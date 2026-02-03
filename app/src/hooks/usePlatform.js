@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { getPlatform } from '@/platform';
+import { getPlatform } from '@/platform/platform';
 
 /**
  * Hook to get current platform (ios | android | web)

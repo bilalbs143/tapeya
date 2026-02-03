@@ -1,7 +1,9 @@
 /**
- * Reusable Button component - Tailwind-based
- * Extend with variants as needed
+ * Reusable Button component - Radix Slot-based for composition
+ * Use with asChild on Radix triggers: <DropdownMenu.Trigger asChild><Button>Open</Button></DropdownMenu.Trigger>
  */
+
+import { Slot } from '@radix-ui/react-slot';
 
 const variants = {
   primary: 'bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800',
@@ -23,16 +25,18 @@ export function Button({
   size = 'md',
   className = '',
   disabled = false,
+  asChild = false,
   ...props
 }) {
+  const Comp = asChild ? Slot : 'button';
   return (
-    <button
-      type="button"
+    <Comp
+      type={asChild ? undefined : 'button'}
       disabled={disabled}
-      className={`inline-flex touch-manipulation items-center justify-center rounded-lg font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${sizes[size]} ${className} `}
+      className={`inline-flex touch-manipulation items-center justify-center rounded-lg font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     >
       {children}
-    </button>
+    </Comp>
   );
 }

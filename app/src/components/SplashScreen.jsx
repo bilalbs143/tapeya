@@ -26,7 +26,7 @@ export function SplashScreen() {
   return (
     <div className="fixed inset-0 overflow-visible bg-black">
       <div
-        className="pointer-events-none fixed left-1/2 top-[-115px] z-0 h-[302px] w-[622px] -translate-x-1/2 rounded-full bg-[#FF9700] opacity-30 blur-[200px]"
+        className="pointer-events-none fixed top-[-115px] left-1/2 z-0 h-[302px] w-[622px] -translate-x-1/2 rounded-full bg-[#FF9700] opacity-30 blur-[200px]"
         aria-hidden
       />
       <div
@@ -35,10 +35,10 @@ export function SplashScreen() {
         <img
           src={tapeyaLogo}
           alt="Tapeya"
-          className="h-auto w-[270px] opacity-0 motion-safe:animate-splash-slide-up motion-reduce:opacity-100"
+          className="motion-safe:animate-splash-slide-up h-auto w-[270px] opacity-0 motion-reduce:opacity-100"
         />
         <p
-          className="max-w-[90vw] text-center text-[16px] text-white opacity-0 motion-safe:animate-splash-slide-up-delayed motion-reduce:opacity-100"
+          className="motion-safe:animate-splash-slide-up-delayed max-w-[90vw] text-center text-[16px] text-white opacity-0 motion-reduce:opacity-100"
           style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
         >
           Live Cricket & Instant Updates, Anytime!

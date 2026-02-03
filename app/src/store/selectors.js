@@ -1,0 +1,29 @@
+import { createSelector } from '@reduxjs/toolkit';
+
+const selectAuthState = (state) => state.auth;
+const selectUiState = (state) => state.ui;
+
+export const selectUser = createSelector(
+  [selectAuthState],
+  (auth) => auth.user,
+);
+
+export const selectIsAuthenticated = createSelector(
+  [selectAuthState],
+  (auth) => auth.isAuthenticated,
+);
+
+export const selectAccessToken = createSelector(
+  [selectAuthState],
+  (auth) => auth.accessToken,
+);
+
+export const selectIsLoading = createSelector(
+  [selectUiState],
+  (ui) => ui.isLoading,
+);
+
+export const selectIsSidebarOpen = createSelector(
+  [selectUiState],
+  (ui) => ui.isSidebarOpen,
+);
