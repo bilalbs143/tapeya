@@ -1,3 +1,4 @@
+import '@/assets/css/style.scss';
 import './index.css';
 
 import React from 'react';
