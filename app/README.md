@@ -17,19 +17,19 @@ src/
 
 ## Commands
 
-| Command               | Description                     |
-| --------------------- | ------------------------------- |
-| `npm run dev`         | Start dev server (Web)          |
-| `npm run build`       | Production build                |
-| `npm run preview`     | Preview production build        |
-| `npm run lint`        | Run ESLint                      |
-| `npm run lint:fix`    | Run ESLint with auto-fix        |
-| `npm run format`      | Format code with Prettier       |
-| `npm run format:check`| Check Prettier formatting       |
-| `npm run fix`         | Lint fix + format (all-in-one)  |
-| `npm run cap:sync`    | Build + sync to native projects |
-| `npm run cap:ios`     | Open Xcode (iOS)                |
-| `npm run cap:android` | Open Android Studio             |
+| Command                | Description                     |
+| ---------------------- | ------------------------------- |
+| `npm run dev`          | Start dev server (Web)          |
+| `npm run build`        | Production build                |
+| `npm run preview`      | Preview production build        |
+| `npm run lint`         | Run ESLint                      |
+| `npm run lint:fix`     | Run ESLint with auto-fix        |
+| `npm run format`       | Format code with Prettier       |
+| `npm run format:check` | Check Prettier formatting       |
+| `npm run fix`          | Lint fix + format (all-in-one)  |
+| `npm run cap:sync`     | Build + sync to native projects |
+| `npm run cap:ios`      | Open Xcode (iOS)                |
+| `npm run cap:android`  | Open Android Studio             |
 
 ## Native Setup
 
