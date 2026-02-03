@@ -1,0 +1,22 @@
+<app-dialog-wrapper [dialogTitle]="data.title | translate">
+  <mat-dialog-content class="mat-typography mat-subtitle-2 lh-16">
+    {{ data.message | translate }}
+  </mat-dialog-content>
+
+  <mat-divider></mat-divider>
+  <mat-dialog-actions>
+    @if (data.rejectBtn) {
+      <button mat-button class="b-1 border-error text-error" mat-dialog-close>
+        {{ data.rejectBtnText | translate }}
+      </button>
+    }
+
+    <app-submit-button
+      [isSubmitting]="isSubmitting"
+      (click)="disableButton()"
+      [text]=data.acceptBtnText
+      [focusInitial]="true"
+    ></app-submit-button>
+
+  </mat-dialog-actions>
+</app-dialog-wrapper>

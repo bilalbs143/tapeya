@@ -1,0 +1,64 @@
+<div class="max-w-3xl px-3 mb-12 mx-auto">
+  <h2 class="text-center mborder2 font-bold text-2xl sm:text-3xl md:text-[40px] leading-normal">
+    111,476+ Trusted developers & many tech giants as well
+  </h2>
+</div>
+<div class="grid grid-cols-12 gap-6">
+  @for(plan of plans;track plan){
+  <div class="col-span-12 md:col-span-6 lg:col-span-3">
+    <mat-card class="cardWithShadow border mb-0!">
+      <mat-card-content>
+
+        <div class="mb-4 flex items-center">
+          <h6 class="text-xl font-semibold  ">
+            {{ plan.title }}
+            @if (plan.popular) {
+            <span class="bg-light-primary text-primary rounded-sm font-semibold text-xs py-0.5 px-2">
+              Popular
+            </span>
+            }
+          </h6>
+        </div>
+        <p class="text-xs mb-8 mt-0">{{ plan.description }}</p>
+        <mat-divider></mat-divider>
+
+        <div class="price-line mt-8">
+          <span class="text-[40px] font-semibold">${{ plan.price }}</span>
+          <span class="text-sm">/{{ plan.period }}</span>
+        </div>
+        <div class="my-8">
+          @for(feature of plan.features; track feature) {
+          <div class="flex items-center gap-8 mb-3">
+            <img
+              [src]="feature.included ? '/assets/images/front-pages/icon-circle-check.svg' : '/assets/images/front-pages/icon-circle-x.svg'"
+              alt="icon-facebook-dark" width="21" height="21" />
+
+            <span [ngClass]="{
+                                'font-semibold': feature.bold,
+                                'text-sm opacity-50': !feature.included,
+                                'text-sm': feature.included
+                              }">
+              {{ feature.text }}
+            </span>
+          </div>
+          }
+        </div>
+
+        <button mat-flat-button color="primary" class="w-full ">
+          Purchase Now
+        </button>
+      </mat-card-content>
+    </mat-card>
+
+  </div>
+  }
+</div>
+<div class="mt-8">
+  <p class="text-center text-sm mb-0">Secured payment with PayPal & Razorpay</p>
+  <div class="flex items-center justify-center mt-8 mx-0 gap-12 flex-wrap">
+    @for( logo of paymentLogos;track logo){
+    <img class="cursor-pointer" [src]="logo.src" [alt]="logo.alt" [matTooltip]="logo.tooltip"
+      matTooltipPosition="below">
+    }
+  </div>
+</div>

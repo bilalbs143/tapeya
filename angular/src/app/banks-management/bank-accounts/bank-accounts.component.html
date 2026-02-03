@@ -1,0 +1,257 @@
+<mat-card class="cardWithShadow m-b-10">
+  <mat-card-content class="p-10">
+    <form (ngSubmit)="loadHttpData()" [formGroup]="searchForm">
+      <div class="row">
+        <div class="col-lg-3 m-b-10">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label>{{ 'BANK' | translate }}</mat-label>
+            <mat-select formControlName="bank">
+              <mat-option value="">{{ 'ALL' | translate }}</mat-option>
+              @for (bank of banks; track bank.id) {
+                <mat-option [value]="bank.id">
+                  {{ bank.bank_name }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="col-lg-3 m-b-10">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label>{{ 'ACCOUNT_TYPE' | translate }}</mat-label>
+            <mat-select formControlName="type">
+              <mat-option value="">{{ 'ALL' | translate }}</mat-option>
+              @for (type of accountTypes; track type.value) {
+                <mat-option [value]="type.value">
+                  {{ type.label | translate }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="col-lg-3 m-b-10">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label>{{ 'ACCOUNT_HOLDER_NAME' | translate }}</mat-label>
+            <input
+              matInput
+              formControlName="accountHolderName"
+            />
+          </mat-form-field>
+        </div>
+
+        <div class="col-lg-3 m-b-10">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label>{{ 'ACCOUNT_NUMBER' | translate }}</mat-label>
+            <input
+              matInput
+              formControlName="accountNumber"
+            />
+          </mat-form-field>
+        </div>
+
+        <div class="col-lg-3 m-b-10">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label>{{ 'STATUS' | translate }}</mat-label>
+            <mat-select formControlName="isActive">
+              <mat-option value="">{{ 'ALL' | translate }}</mat-option>
+              <mat-option value="1">{{ 'ACTIVE' | translate }}</mat-option>
+              <mat-option value="0">{{ 'INACTIVE' | translate }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="col-lg-9 d-flex align-items-center justify-content-end gap-8">
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="resetSearchForm()"
+          >
+            {{ 'CLEAR_SEARCH' | translate }}
+          </button>
+
+          <button mat-flat-button type="submit">
+            {{ 'SEARCH' | translate }}
+          </button>
+
+          <button
+            mat-flat-button
+            (click)="openManageBankAccountDialog('CREATE')"
+            type="button"
+          >
+            {{ 'ADD_BANK_ACCOUNT' | translate }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="cardWithShadow m-b-0">
+  <mat-card-content class="p-10">
+    <app-table-wrapper
+        [isLoading]="isLoading"
+      >
+      <table
+        mat-table
+        [dataSource]="dataSource"
+        matSort
+        matSortActive="created_at"
+        [matSortDisableClear]="true"
+        matSortDirection="desc"
+        class="w-100"
+      >
+        <ng-container matColumnDef="#">
+          <th mat-header-cell *matHeaderCellDef>#</th>
+          <td mat-cell *matCellDef="let row; let i = index">
+            <app-serial-number
+              [currentPage]="currentPage"
+              [pageSize]="pageSize"
+              [i]="i"
+              [totalRecords]="totalRecords"
+            ></app-serial-number>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="logo">
+          <th mat-header-cell *matHeaderCellDef>{{ 'LOGO' | translate }}</th>
+          <td mat-cell *matCellDef="let element">
+            @if (element.logo_path) {
+              <img
+                [src]="element.logo_path"
+                alt="Logo"
+                class="bank-logo"
+                style="width: 40px; height: 40px; object-fit: contain;"
+              />
+            }
+            @if (!element.logo_path) {
+              <span class="text-muted">-</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="type">
+          <th mat-header-cell *matHeaderCellDef>{{ 'ACCOUNT_TYPE' | translate }}</th>
+          <td mat-cell *matCellDef="let element">
+            {{ getAccountTypeLabel(element.type) | translate }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="bank">
+          <th mat-header-cell *matHeaderCellDef>{{ 'BANK' | translate }}</th>
+          <td mat-cell *matCellDef="let element">
+            {{ getBankName(element.bank) }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="accountHolderName">
+          <th mat-header-cell *matHeaderCellDef>{{ 'ACCOUNT_HOLDER_NAME' | translate }}</th>
+          <td mat-cell *matCellDef="let element">{{ element.account_holder_name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="accountNumber">
+          <th mat-header-cell *matHeaderCellDef>{{ 'ACCOUNT_NUMBER' | translate }}</th>
+          <td mat-cell *matCellDef="let element">{{ element.account_number }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="qrCode">
+          <th mat-header-cell *matHeaderCellDef>{{ 'QR_CODE' | translate }}</th>
+          <td mat-cell *matCellDef="let element">
+            @if (element.qr_code_path) {
+              <img
+                [src]="element.qr_code_path"
+                alt="QR Code"
+                class="qr-code"
+                style="width: 40px; height: 40px; object-fit: contain;"
+              />
+            }
+            @if (!element.qr_code_path) {
+              <span class="text-muted">-</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>{{ 'STATUS' | translate }}</th>
+          <td mat-cell *matCellDef="let element">
+            <span
+              class="badge"
+              [ngClass]="{
+                'badge-success': element.is_active === 1 || element.is_active === true,
+                'badge-danger': element.is_active === 0 || element.is_active === false
+              }"
+            >
+              {{ (element.is_active === 1 || element.is_active === true) ? ('ACTIVE' | translate) : ('INACTIVE' | translate) }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="minDepositAmount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'MIN_DEPOSIT_AMOUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element">
+            <app-amount-display
+              [value]="element.min_deposit_amount"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="maxDepositAmount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'MAX_DEPOSIT_AMOUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element">
+            <app-amount-display
+              [value]="element.max_deposit_amount"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="bankTransactionFee">
+          <th mat-header-cell *matHeaderCellDef>{{ 'BANK_TRANSACTION_FEE' | translate }}</th>
+          <td mat-cell *matCellDef="let element">
+            <app-amount-display
+              [value]="element.bank_transaction_fee"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="bankTransactionSubsidi">
+          <th mat-header-cell *matHeaderCellDef>{{ 'BANK_TRANSACTION_SUBSIDI' | translate }}</th>
+          <td mat-cell *matCellDef="let element">
+            <app-amount-display
+              [value]="element.bank_transaction_subsidi"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="action">
+          <th mat-header-cell *matHeaderCellDef>{{ 'ACTION' | translate }}</th>
+          <td mat-cell *matCellDef="let element" class="action-link">
+            <a
+              (click)="openManageBankAccountDialog('UPDATE', element)"
+              class="m-r-10 cursor-pointer"
+            >
+              <i-tabler name="edit" class="icon-18"></i-tabler>
+            </a>
+            <a
+              (click)="openDeleteDialog(element.id)"
+              class="m-r-10 cursor-pointer"
+            >
+              <i-tabler name="trash" class="icon-18"></i-tabler>
+            </a>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+    </app-table-wrapper>
+
+    <app-paginator
+      [currentPage]="currentPage"
+      [pageSize]="pageSize"
+      [length]="totalRecords || 0"
+      (page)="onPaginationChange($event)"
+    ></app-paginator>
+  </mat-card-content>
+</mat-card>
+
+

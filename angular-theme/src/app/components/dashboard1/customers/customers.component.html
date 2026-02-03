@@ -1,0 +1,21 @@
+<!-- Customers -->
+<mat-card class="cardWithShadow overflow-hidden mb-0!">
+  <mat-card-content>
+    <mat-card-subtitle>Customers</mat-card-subtitle>
+    <h5 class="text-2xl font-semibold">36,358</h5>
+
+    <div class="flex items-center mt-3">
+      <button mat-mini-fab class="bg-light-error text-error shadow-none size-5.5!">
+        <i-tabler name="arrow-down-right" class="size-4! flex!"></i-tabler>
+      </button>
+      <div class="text-sm font-semibold ms-3">+9%</div>
+    </div>
+  </mat-card-content>
+  <!-- ---------------------------- -->
+  <!-- charts here -->
+  <!-- ---------------------------- -->
+  <apx-chart [series]="customerChart.series" [dataLabels]="customerChart.dataLabels" [chart]="customerChart.chart"
+    [legend]="customerChart.legend" [colors]="customerChart.colors" [stroke]="customerChart.stroke"
+    [tooltip]="customerChart.tooltip" [plotOptions]="customerChart.plotOptions" [fill]="customerChart.fill"
+    [responsive]="customerChart.responsive"></apx-chart>
+</mat-card>

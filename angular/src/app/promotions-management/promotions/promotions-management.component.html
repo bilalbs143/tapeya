@@ -1,0 +1,159 @@
+<mat-card class="cardWithShadow m-b-10">
+  <mat-card-content class="p-10">
+    <form (ngSubmit)="loadHttpData()" [formGroup]="searchForm">
+      <div class="row">
+        <div class="col-lg-3 m-b-10">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label>{{ 'PROMOTION_NAME' | translate }}</mat-label>
+            <input matInput formControlName="name" />
+          </mat-form-field>
+        </div>
+        <div class="col-lg-3 m-b-10">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label>{{ 'PROMOTION_TYPE' | translate }}</mat-label>
+            <mat-select formControlName="type">
+              <mat-option value="">{{ 'ALL' | translate }}</mat-option>
+              @for (type of types; track type.key) {
+                <mat-option [value]="type.key">{{ type.type_enum | translate }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-lg-3 m-b-10">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label>{{ 'STATUS' | translate }}</mat-label>
+            <mat-select formControlName="status">
+              <mat-option value="">{{ 'ALL' | translate }}</mat-option>
+              <mat-option value="active">{{ 'ACTIVE' | translate }}</mat-option>
+              <mat-option value="inactive">{{ 'INACTIVE' | translate }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-lg-3 m-b-10">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label>{{ 'VISIBILITY' | translate }}</mat-label>
+            <mat-select formControlName="is_visible">
+              <mat-option value="">{{ 'ALL' | translate }}</mat-option>
+              <mat-option value="1">{{ 'VISIBLE' | translate }}</mat-option>
+              <mat-option value="0">{{ 'HIDDEN' | translate }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="col-lg-12 d-flex align-items-center justify-content-end gap-8">
+          <button mat-stroked-button type="button" (click)="resetSearchForm()">
+            {{ 'CLEAR_SEARCH' | translate }}
+          </button>
+
+          <button mat-flat-button type="submit">
+            {{ 'SEARCH' | translate }}
+          </button>
+
+          <button mat-flat-button color="primary" type="button" (click)="openManageDialog('create')">
+            {{ 'ADD_PROMOTION' | translate }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="cardWithShadow m-b-0">
+  <mat-card-content class="p-10">
+    <app-table-wrapper [isLoading]="isLoading">
+      <table
+        mat-table
+        [dataSource]="dataSource"
+        matSort
+        matSortActive="created_at"
+        [matSortDisableClear]="true"
+        matSortDirection="desc"
+        class="w-100"
+      >
+        <ng-container matColumnDef="#">
+          <th mat-header-cell *matHeaderCellDef>#</th>
+          <td mat-cell *matCellDef="let element; let i = index">
+            <app-serial-number [currentPage]="currentPage" [pageSize]="pageSize" [i]="i" [totalRecords]="totalRecords"></app-serial-number>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell mat-sort-header="name" disableClear *matHeaderCellDef>
+            {{ 'PROMOTION_NAME' | translate }}
+          </th>
+          <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="type">
+          <th mat-header-cell mat-sort-header="type" disableClear *matHeaderCellDef>
+            {{ 'PROMOTION_TYPE' | translate }}
+          </th>
+          <td mat-cell *matCellDef="let element">{{ element.type_enum | translate }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell mat-sort-header="status" disableClear *matHeaderCellDef>
+            {{ 'STATUS' | translate }}
+          </th>
+          <td mat-cell *matCellDef="let element">{{ element.status_enum | translate }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="validFrom">
+          <th mat-header-cell mat-sort-header="valid_from" disableClear *matHeaderCellDef>
+            {{ 'VALID_FROM' | translate }}
+          </th>
+          <td mat-cell *matCellDef="let element">
+            <app-date-format
+              [value]="element.valid_from"
+              format="yyyy-MM-dd"
+            ></app-date-format>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="validTo">
+          <th mat-header-cell mat-sort-header="valid_to" disableClear *matHeaderCellDef>
+            {{ 'VALID_TO' | translate }}
+          </th>
+          <td mat-cell *matCellDef="let element">
+            <app-date-format
+              [value]="element.valid_to"
+              format="yyyy-MM-dd">
+            </app-date-format>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="visible">
+          <th mat-header-cell *matHeaderCellDef>{{ 'VISIBILITY' | translate }}</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.is_visible ? ('VISIBLE' | translate) : ('HIDDEN' | translate) }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="action">
+          <th mat-header-cell *matHeaderCellDef>{{ 'ACTION' | translate }}</th>
+          <td mat-cell *matCellDef="let element" class="action-link">
+            <a (click)="openManageDialog('edit', element)" class="m-r-10 cursor-pointer">
+              <i-tabler name="edit" class="icon-18"></i-tabler>
+            </a>
+            <a (click)="openDeleteDialog(element.id)" class="m-r-10 cursor-pointer">
+              <i-tabler name="trash" class="icon-18"></i-tabler>
+            </a>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+    </app-table-wrapper>
+
+    <app-paginator
+      [currentPage]="currentPage"
+      [pageSize]="pageSize"
+      [length]="totalRecords || 0"
+      [pageSizeOptions]="[50, 100, 500, 1000]"
+      (page)="onPaginationChange($event)"
+    ></app-paginator>
+  </mat-card-content>
+</mat-card>
+
+

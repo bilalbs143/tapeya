@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <clipPath id="a">
+      <rect width="64" height="64" rx="32"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#a)">
+    <rect width="64" height="4.57" fill="#cc0001"/>
+    <rect y="4.57" width="64" height="4.57" fill="#fff"/>
+    <rect y="9.14" width="64" height="4.57" fill="#cc0001"/>
+    <rect y="13.71" width="64" height="4.57" fill="#fff"/>
+    <rect y="18.29" width="64" height="4.57" fill="#cc0001"/>
+    <rect y="22.86" width="64" height="4.57" fill="#fff"/>
+    <rect y="27.43" width="64" height="4.57" fill="#cc0001"/>
+    <rect y="32" width="64" height="4.57" fill="#fff"/>
+    <rect y="36.57" width="64" height="4.57" fill="#cc0001"/>
+    <rect y="41.14" width="64" height="4.57" fill="#fff"/>
+    <rect y="45.71" width="64" height="4.57" fill="#cc0001"/>
+    <rect y="50.29" width="64" height="4.57" fill="#fff"/>
+    <rect y="54.86" width="64" height="4.57" fill="#cc0001"/>
+    <rect y="59.43" width="64" height="4.57" fill="#fff"/>
+    <rect width="32" height="32" fill="#010066"/>
+    <path d="M17.5 24a8 8 0 0 1 0-16 8 8 0 0 0 0 16z" fill="#fc0"/>
+    <path d="m21 16-1.5 4.6-3.8-2.8 3.8-2.8L21 16zm-8.5 0 1.5 4.6 3.8-2.8-3.8-2.8L12.5 16zm4.3-4.3-1.5 4.6 3.8-2.8-3.8-2.8 1.5 4.3zm0 8.6 1.5-4.6-3.8 2.8 3.8 2.8-1.5-4.3zm-3-6.8-4.6 1.5 2.8 3.8 2.8-3.8-4.6-1.5zm8.6 0 4.6 1.5-2.8 3.8-2.8-3.8 4.6-1.5zm-6.8 3 4.6-1.5-2.8-3.8-2.8 3.8 4.6 1.5zm4.3 0-4.6-1.5 2.8-3.8 2.8 3.8-4.6 1.5z" fill="#fc0"/>
+  </g>
+</svg>
+

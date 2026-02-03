@@ -1,0 +1,75 @@
+<app-dialog-wrapper dialogTitle="MANAGE_CUSTOMER_INQUIRIES">
+  <form (ngSubmit)="onSubmit()" [formGroup]="form">
+    <mat-dialog-content class="mat-typography mat-subtitle-2 lh-16">
+
+      <div>
+        <span class="text-primary">{{ data.record.creator.username }}</span> | {{ data.record.title }}
+        <span class="d-block m-t-10" [innerHTML]="data.record.content"></span>
+      </div>
+
+      <mat-divider class="m-t-20 m-b-20"></mat-divider>
+
+      @if(data.record.reply){
+        <h3>{{ 'ADMINISTRATOR_REPLY' | translate }}</h3>
+        <span [innerHTML]="data.record.reply.content"></span>
+      } @else {
+        <div class="row">
+          <div class="col-lg-12 d-flex align-items-center">
+            <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12"></mat-label>
+          </div>
+          <div class="col-lg-12">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>{{ 'TEMPLATES' | translate }}</mat-label>
+              <mat-select formControlName="template">
+                <mat-option value="">{{ 'SELECT_TEMPLATE' | translate }}</mat-option>
+                @for (template of templates; track template.id) {
+                  <mat-option [value]="template.id">{{ template.title }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-12 d-flex align-items-center">
+            <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12">{{ 'CONTENT' | translate }}</mat-label>
+          </div>
+          <div class="col-lg-12">
+            <div class="NgxEditor__Wrapper">
+              <ngx-editor-menu [editor]="editor" [toolbar]="toolbar" ></ngx-editor-menu>
+              <ngx-editor
+                formControlName="content"
+                [editor]="editor"
+                [disabled]="false"
+                [placeholder]="'Type here...'"
+                class="b-t-1"
+              ></ngx-editor>
+            </div>
+            @if (formControls['content'].touched && formControls['content'].invalid) {
+              <mat-hint class="m-b-16 error-msg">
+                @if (formControls['content'].errors && formControls['content'].hasError('required')) {
+                  <div class="text-error">
+                    {{ 'CONTENT_IS_REQUIRED' | translate }}
+                  </div>
+                }
+              </mat-hint>
+            }
+          </div>
+        </div>
+      }
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions>
+      <button mat-button class="b-1 border-error text-error" mat-dialog-close>
+        {{ 'CANCEL' | translate }}
+      </button>
+      @if(!data.record.reply) {
+        <app-submit-button
+          [isSubmitting]="isSubmitting"
+          [disabled]="form.invalid"
+        ></app-submit-button>
+      }
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

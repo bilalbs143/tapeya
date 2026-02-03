@@ -1,0 +1,37 @@
+<mat-card class="cardWithShadow mb-0!">
+  <mat-card-content>
+    <div class="flex flex-col gap-5">
+      <div>
+        <mat-card-title>Weekly Sales</mat-card-title>
+        <mat-card-subtitle>Every month</mat-card-subtitle>
+      </div>
+      <apx-chart [series]="weeklysaleChart.series" [plotOptions]="weeklysaleChart.plotOptions"
+        [dataLabels]="weeklysaleChart.dataLabels" [chart]="weeklysaleChart.chart" [legend]="weeklysaleChart.legend"
+        [colors]="weeklysaleChart.colors" [tooltip]="weeklysaleChart.tooltip" [xaxis]="weeklysaleChart.xaxis"
+        [yaxis]="weeklysaleChart.yaxis" [grid]="weeklysaleChart.grid"></apx-chart>
+
+      <div class="flex items-start justify-between">
+        <div class="flex items-center gap-3">
+          <span class="text-primary bg-light-primary rounded-sm size-10! flex items-center justify-center">
+            <i-tabler name="grid-dots" class="size-5!"></i-tabler>
+          </span>
+
+          <div class="flex flex-col">
+            <span class="text-sm text-muted">Total Sales</span>
+            <h5 class="text-base">$36,358</h5>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="bg-light rounded-sm size-10! flex items-center justify-center">
+            <i-tabler name="grid-dots" class="size-5!"></i-tabler>
+          </span>
+
+          <div class="flex flex-col">
+            <span class="text-sm text-muted">Expenses</span>
+            <h5 class="text-base">$5,296</h5>
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>

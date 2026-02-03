@@ -1,0 +1,611 @@
+<div class="home-page">
+  <div class="bg-light-primary pb-12 lg:pb-0">
+    <div class="header-container-content w-full max-w-[1400px] mx-auto px-[15px] mx-auto">
+      <div class="max-w-4xl px-3 mx-auto pt-18!">
+        <h1 class="text-center font-bold sm:text-[56px] text-3xl sm:leading-[55px]">
+          Most powerful &
+          <span class="text-primary">developer friendly </span>
+          Admin dashboard
+        </h1>
+      </div>
+      <div class="grid grid-cols-12 gap-6 items-end justify-center">
+        @if(!isMobileView){
+
+        <div class="col-span-12 lg:col-span-3 hidden lg:block cardPosition">
+          <img src="assets/images/front-pages/banner-top-left.svg" alt="banner-top-left"
+            class="max-w-full h-auto! rounded-sm float-image w-full" />
+        </div>
+        }
+        <div class="col-span-12 lg:col-span-6 m-border0">
+          <div class="grid grid-cols-12 gap-6 mt-6">
+            <div class="col-span-12 flex gap-5 items-center justify-center chipContainer">
+              <div class="social-chips shrink-0 flex items-center">
+                <img src="assets/images/profile/user-2.jpg" width="40" alt="social"
+                  class="rounded-full -ml-2.5 border-2 border-white first:ml-0" />
+                <img src="assets/images/profile/user-3.jpg" width="40" alt="social"
+                  class="rounded-full -ml-2.5 border-2 border-white" />
+                <img src="assets/images/profile/user-4.jpg" width="40" alt="social"
+                  class="rounded-full -ml-2.5 border-2 border-white" />
+              </div>
+              <div class="text-base font-medium text-muted">
+                52,589+ developers & agencies using our templates
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center justify-center mt-6 gap-5 loginBtn">
+            <a mat-flat-button color="primary" [routerLink]="'/authentication/login'"><span
+                class="py-2.5">Login</span></a>
+            <div class="flex items-center gap-8" matRipple [matRippleCentered]="centered" [matRippleDisabled]="disabled"
+              [matRippleUnbounded]="unbounded" [matRippleRadius]="radius" [matRippleColor]="color" [ngClass]="{
+                'rounded-sm': showBackground,
+                'py-0.5': true,
+                'px-[7px]': true
+              }" (click)="openDialog(true)">
+              <button mat-mini-fab class="text-white! bg-primary" aria-label="Example icon button with a delete icon">
+                <i-tabler class="size-4.5! flex! margin-auto" name="player-play"></i-tabler>
+              </button>
+              <span class="textSee text-sm font-medium">See how it works</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-5 justify-center framework mt-8">
+            @for (framework of frameworks; track framework.tooltip) {
+            <a href="javascript:void(0)" class="rounded-sm mb-0 bg-white size-13.5! flex items-center justify-center"
+              matTooltip="{{ framework.tooltip }}" matTooltipPosition="below">
+              <img [src]="framework.src" [alt]="framework.alt" class="" width="28" height="28" />
+            </a>
+            }
+          </div>
+        </div>
+        @if(!isMobileView){
+        <div class="col-span-12 lg:col-span-3 hidden lg:block cardPositionTwo">
+          <img src="assets/images/front-pages/banner-top-right.svg" alt="banner-top-right"
+            class="max-w-full h-auto! rounded-sm float-image w-full" />
+        </div>
+
+        }
+      </div>
+      @if (!isMobileView) {
+      <div class="grid-cols-12 gap-6 hidden lg:block mt-7.5">
+        <div class="col-span-12">
+          <img src="assets/images/front-pages/bottom-part.svg" alt="bottom-part"
+            class="w-full max-w-full h-auto! block" />
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+
+  <div class="introducing-section dashboardCards md:py-20 py-6">
+    <div class="container card-container">
+      <div class="max-w-2xl px-3 mx-auto">
+        <p class="text-center mt-0 text-muted">
+          Introducing Modernize's Light & Dark Skins, Exceptional Dashboards,
+          and Dynamic Pages - Stay Updated on What's New!
+        </p>
+      </div>
+
+
+      <!--new-->
+      <!-- DESKTOP VIEW -->
+      @if (!isMobileView) {
+      <div class="grid grid-cols-12 gap-6 mt-6">
+        <!-- Column 1: Light & Dark + 12+ Designs -->
+        <div class="col-span-12 md:col-span-4">
+          <div>
+            @for (topcard of topcards; track topcard.title) {
+            @if (topcard.title === 'Light & Dark Color Schemes' || topcard.title.includes('12+')) {
+            <mat-card
+              class="shadow-none! text-center rounded-2xl! bg-light-{{ topcard.color }} card-box px-[60px] py-[44px]">
+              <mat-card-content>
+                @if (topcard.title === 'Light & Dark Color Schemes') {
+                <img [src]="topcard.img" alt="icon" class="mx-auto" width="40" />
+                }
+                <h6 class="text-lg mt-4">{{ topcard.title }}</h6>
+                <p class="text-base mt-4 text-muted">{{ topcard.subtitle }}</p>
+                @if (topcard.title.includes('12+')) {
+                <img [src]="topcard.imgMain" alt="image" class="img-fluid w-full mt-4 -mb-11! mx-auto" />
+                }
+              </mat-card-content>
+            </mat-card>
+            }
+            }
+          </div>
+        </div>
+        <div class="col-span-12 md:col-span-4">
+          <div>
+            @for (topcard of topcards; track topcard.title)
+            {
+            @if
+            (topcard.title.includes('New Demos')) {
+            <mat-card class="shadow-none! text-center rounded-2xl! bg-light-{{
+          topcard.color
+        }} card-box tall-card px-[30px] py-12">
+              <mat-card-content>
+                <img [src]="topcard.img" alt="icon" width="40" class="mx-auto" />
+                <h2 class="font-bold text-center text-2xl sm:text-3xl md:text-[40px] leading-normal mt-16">{{
+                  topcard.title
+                  }}</h2>
+                <p class="text-sm mt-5 mb-0" [innerHTML]="topcard.subtitle"></p>
+                <img src="assets/images/landingpage/background/screen1.png" alt="demo" class="img-fluid w-full mt-18" />
+              </mat-card-content>
+            </mat-card>
+            } }
+          </div>
+        </div>
+
+        <!-- Column 2: Code Improvements + UI Components -->
+        <div class="col-span-12 md:col-span-4">
+          <div>
+            @for (topcard of topcards; track topcard.title) {
+            @if (topcard.title.includes('Code Improvements') || topcard.title.includes('UI Components')) {
+            <mat-card
+              class="shadow-none! text-center rounded-2xl! bg-light-{{ topcard.color }} card-box px-[60px] py-12">
+              <mat-card-content>
+                <img [src]="topcard.img" alt="icon" class="mx-auto" width="40" />
+                <h6 class="text-lg mt-4">{{ topcard.title }}</h6>
+                <p class="text-base mt-4 text-muted">{{ topcard.subtitle }}</p>
+              </mat-card-content>
+            </mat-card>
+            }
+            }
+          </div>
+        </div>
+
+      </div>
+      }
+
+      <!-- MOBILE VIEW -->
+      @else {
+      <div class="grid-container mt-6 mx-0">
+        @for (topcard of topcards; track topcard.title) {
+        @if (!topcard.title.includes('New Demos')) {
+        <mat-card class="shadow-none text-center rounded-sm bg-light-{{ topcard.color }} card-box px-6 py-8">
+          <mat-card-content>
+            @if (!topcard.title.includes('12+')) {
+            <img [src]="topcard.img" alt="icon" class="mx-auto" width="40" />
+            }
+            <h6 class="text-lg mt-4">{{ topcard.title }}</h6>
+            <p class="text-base mt-4 text-muted">{{ topcard.subtitle }}</p>
+
+            @if (topcard.title.includes('12+')) {
+            <img [src]="topcard.imgMain" alt="image" class="img-fluid w-full mt-4 mx-auto" />
+            }
+          </mat-card-content>
+        </mat-card>
+        }
+        }
+      </div>
+
+
+      <div>
+        @for (topcard of topcards; track topcard.title)
+        {
+        @if
+        (topcard.title.includes('New Demos')) {
+        <mat-card class="shadow-none text-center rounded-sm bg-light-{{
+        topcard.color
+      }} card-box tall-card px-8 py-12">
+          <mat-card-content>
+            <img [src]="topcard.img" alt="icon" width="40" class="mx-auto" />
+            <h6 class="mt-8 tall-card-title font-bold text-2xl sm:text-3xl md:text-[40px] leading-normal">{{
+              topcard.title }}</h6>
+            <p class="text-sm mt-5" [innerHTML]="topcard.subtitle"></p>
+            <img src="assets/images/landingpage/background/screen1.png" alt="demo" class="img-fluid w-full mt-7.5" />
+          </mat-card-content>
+        </mat-card>
+        } }
+      </div>
+      }
+
+      <!--end-->
+    </div>
+  </div>
+
+  <div class="tab-header">
+    <mat-divider></mat-divider>
+    <div class="container">
+      <mat-tab-group headerPosition="below" [(selectedIndex)]="selectedIndex" class="profileTabs">
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <tabler-icon name="user-circle" class="me-2.5 size-6!4"></tabler-icon>
+            <span class="tab-label text-lg font-medium">Team Scheduling</span>
+          </ng-template>
+        </mat-tab>
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <tabler-icon name="wallet" class="me-2.5 size-6!4"></tabler-icon>
+            <span class="tab-label text-lg font-medium">Payments</span>
+          </ng-template>
+        </mat-tab>
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <tabler-icon name="app-window" class="me-2.5 size-6!4"></tabler-icon>
+            <span class="tab-label text-lg font-medium">Embedding</span>
+          </ng-template>
+        </mat-tab>
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <tabler-icon name="arrow-fork" class="me-2.5 size-6!4"></tabler-icon>
+            <span class="tab-label text-lg font-medium">Workflows</span>
+          </ng-template>
+        </mat-tab>
+      </mat-tab-group>
+
+      <!-- Tab content shown BELOW the tab group -->
+
+      <div class="grid grid-cols-12 gap-6 tab-header-content py-16 items-center">
+        <div class="col-span-12 md:col-span-6">
+          <div class="tabsimage">
+            <img src="assets/images/landingpage/background/accordian1.jpg" alt="slider-group"
+              class="img-fluid w-full" />
+          </div>
+        </div>
+
+        <div class="col-span-12 md:col-span-6 mt-7.5">
+          <div class="right-content ms-6">
+            <h2 class="font-bold text-2xl sm:text-3xl md:text-[40px] leading-normal">Defend your focus</h2>
+            <div class="my-7.5">
+              <mat-accordion multi>
+                <!-- Panel 0 -->
+                <mat-expansion-panel #panel0 [expanded]="selectedIndex === 0 || selectedIndex === 3" hideToggle
+                  class="expansion-panel">
+                  <mat-expansion-panel-header>
+                    <div class="flex items-center justify-between w-full">
+                      <span class="text-lg font-medium">Factor in outside colleagues</span>
+                      <tabler-icon [name]="panel0.expanded ? 'minus' : 'plus'" class="ms-2 size-5!"></tabler-icon>
+                    </div>
+                  </mat-expansion-panel-header>
+                  <div>
+                    <p class="text-base my-0 text-muted">
+                      Factor in availability for required attendees, and skip
+                      checking for conflicts for optional attendees.
+                    </p>
+                  </div>
+                </mat-expansion-panel>
+
+                <!-- Panel 1 -->
+                <mat-expansion-panel #panel1 [expanded]="selectedIndex === 1" hideToggle class="expansion-panel">
+                  <mat-expansion-panel-header>
+                    <div class="flex items-center justify-between w-full">
+                      <span class="text-lg font-medium">Combine teammate schedules</span>
+                      <tabler-icon [name]="panel1.expanded ? 'minus' : 'plus'" class="size-5!"></tabler-icon>
+                    </div>
+                  </mat-expansion-panel-header>
+                  <div>
+                    <p class="text-base my-0 text-muted">
+                      Factor in availability for required attendees, and skip
+                      checking for conflicts for optional attendees.
+                    </p>
+                  </div>
+                </mat-expansion-panel>
+
+                <!-- Panel 2 & 3 merged -->
+                <mat-expansion-panel #panel2 [expanded]="selectedIndex === 2" hideToggle class="expansion-panel">
+                  <mat-expansion-panel-header>
+                    <div class="flex items-center justify-between w-full">
+                      <span class="text-lg font-medium">Round robin pooling</span>
+                      <tabler-icon [name]="panel2.expanded ? 'minus' : 'plus'" class="ms-2 size-5!"></tabler-icon>
+                    </div>
+                  </mat-expansion-panel-header>
+                  <div>
+                    <p class="text-base my-0 text-muted">
+                      Factor in availability for required attendees, and skip
+                      checking for conflicts for optional attendees.
+                    </p>
+                  </div>
+                </mat-expansion-panel>
+              </mat-accordion>
+            </div>
+
+            <a mat-flat-button color="primary">Learn More</a>
+          </div>
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="our-leadership md:pt-20 pt-6 pborder2">
+    <app-image-slider></app-image-slider>
+  </div>
+
+  <div class="toolBar bg-primary py-4">
+    <div class="container">
+      <div class="flex items-center justify-center">
+        <div class="social-chips shrink-0 flex items-center">
+          <img src="assets/images/profile/user-2.jpg" width="44" height="44" alt="social"
+            class="rounded-full -ml-2.5 border-2 border-white first:ml-0" />
+          <img src="assets/images/profile/user-3.jpg" width="44" height="44" alt="social"
+            class="rounded-full -ml-2.5 border-2 border-white" />
+        </div>
+        <span class="text-white text-base ms-2.5">
+          Save valuable time and effort spent searching for a solution.
+          <a class="text-white! font-semibold ms-1 underline" [routerLink]="['/front-pages/contact']">Contact
+            us now</a>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="template-slider md:py-20 py-6">
+    <div class="w-full max-w-[1400px] mx-auto px-[15px]">
+      <div class="bg-light-primary rounded-2xl md:py-20 py-6 template-slider-content">
+        <div class="md:px-20 px-6 mb-2">
+          <h2 class="tfont-bold text-2xl sm:text-3xl md:text-[40px] leading-normal">
+            Discover Powerful Dozens of <br> Purpose-Fit Templates
+          </h2>
+        </div>
+        <div class="demo-slider overflow-hidden flex gap-8 md:pb-20 pb-6">
+          <div>
+            <div class="demo-slide">
+              <a [routerLink]="['/apps/chat']">
+                <img src="assets/images/front-pages/app-chat.jpg" alt="slide"
+                  class="rounded-sm sliderImg max-w-[380px] h-[300px] object-cover" />
+              </a>
+            </div>
+          </div>
+          <div>
+            <div class="demo-slide">
+              <a (click)="onImageClick('/apps/email/inbox')">
+                <img src="assets/images/front-pages/app-email.jpg" alt="slide"
+                  class="rounded-sm sliderImg max-w-[380px] h-[300px] object-cover" [ngClass]="{
+                  'img-border': selectedPath === '/apps/email/inbox'
+                }" />
+              </a>
+            </div>
+          </div>
+          <div>
+            <div class="demo-slide">
+              <a (click)="onImageClick('/dashboards/dashboard1')">
+                <img src="assets/images/front-pages/demo-main.jpg" alt="slide"
+                  class="rounded-sm sliderImg max-w-[380px] h-[300px] object-cover" [ngClass]="{
+                  'img-border': selectedPath === '/dashboards/dashboard1'
+                }" />
+              </a>
+            </div>
+          </div>
+          <div>
+            <div class="demo-slide">
+              <img src="assets/images/front-pages/demo-dark.jpg" alt="slide"
+                class="rounded-sm sliderImg max-w-[380px] h-[300px] object-cover" />
+            </div>
+          </div>
+          <div>
+            <div class="demo-slide">
+              <a (click)="onImageClick('/front-pages/homepage')">
+                <img src="assets/images/front-pages/demo-horizontal.jpg" alt="slide"
+                  class="rounded-sm sliderImg max-w-[380px] h-[300px] object-cover" [ngClass]="{
+                  'img-border': selectedPath === '/front-pages/homepage'
+                }" />
+              </a>
+            </div>
+          </div>
+          <div>
+            <div class="demo-slide">
+              <img src="assets/images/front-pages/demo-rtl.jpg" alt="slide"
+                class="rounded-sm sliderImg max-w-[380px] h-[300px] object-cover" />
+            </div>
+          </div>
+          <div>
+            <div class="demo-slide">
+              <img src="assets/images/front-pages/app-chat.jpg" alt="slide"
+                class="rounded-sm sliderImg max-w-[380px] h-[300px] object-cover" />
+            </div>
+          </div>
+          <div>
+            <div class="demo-slide">
+              <img src="assets/images/front-pages/app-email.jpg" alt="slide"
+                class="rounded-sm sliderImg max-w-[380px] h-[300px] object-cover" />
+            </div>
+          </div>
+        </div>
+        <div class="md:px-20 px-6">
+          <div class="grid grid-cols-12 gap-6">
+            <div class="col-span-12 md:col-span-4 text-center">
+              <h3 class="text-lg mb-4">High Customizability</h3>
+              <p class="text-sm m-0 text-muted">
+                Tailor the dashboard to your exact needs. Customize layouts, color
+                schemes, and widgets effortlessly for a personalized user
+                experience.
+              </p>
+            </div>
+            <div class="col-span-12 md:col-span-4 text-center">
+              <h3 class="text-lg mb-4">Powerful Data Analytics</h3>
+              <p class="text-sm m-0 text-muted">
+                Unlock the true potential of your data with our advanced analytics
+                tools. Gain valuable insights and make data-driven decisions with
+                ease.
+              </p>
+            </div>
+
+            <div class="col-span-12 md:col-span-4 text-center">
+              <h3 class="text-lg mb-4">Interactive Charts</h3>
+              <p class="text-sm m-0 text-muted">
+                Visualize complex data sets beautifully with our interactive
+                graphs and charts. Quickly grasp trends and patterns for smarter
+                analysis.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="features md:pb-20 pb-6">
+    <div class="container">
+      <div class="grid grid-cols-12 gap-6 items-center justify-between">
+        <!--row-->
+        <div class="col-span-12 md:col-span-5">
+          <div class="client-margin">
+            <h2
+              class="mb-4! font-bold text-2xl sm:text-3xl md:text-[40px] leading-normal flex flex-row items-center self-stretch gap-2 flex-wrap">
+              What our clients think
+              <img src="assets/images/front-pages/logoIcon.svg" class="img-fluid" alt="logo" />
+              about us?
+            </h2>
+            <p class="m-0 text-muted">
+              Our users' feedback is a testament to our commitment to quality
+              and user satisfaction. Read what they have to say about their
+              journey with us.
+            </p>
+          </div>
+        </div>
+        <div class="col-span-12 md:col-span-2"></div>
+        <div class="col-span-12 md:col-span-5">
+          <mat-card class="cardWithShadow border rounded-sm mb-0! p-6 sm:p-12">
+            <mat-card-content>
+              <mat-card-title class="text-2xl font-semibold mb-4!">Features availability</mat-card-title>
+
+              <div class="flex items-center gap-4 mb-6">
+                <div>
+                  <img [src]="currentUser().img" [alt]="currentUser().name" class="rounded-full" width="40" />
+                </div>
+                <h6 class="text-sm font-semibold">{{ currentUser().name }}</h6>
+              </div>
+
+              <p class="text-sm mb-4 mt-0 text-muted">
+                {{ currentUser().review }}
+              </p>
+
+              <mat-divider></mat-divider>
+
+              <div class="flex items-center gap-4 mt-3">
+                <button class="bg-light size-8! flex! items-center justify-center" mat-icon-button (click)="goPrev()">
+                  <i-tabler name="chevron-left" class="size-4.5! flex! items-center justify-center"></i-tabler>
+                </button>
+
+                <span class="text-sm">{{ displayCount() }}</span>
+
+                <button class="bg-light size-8! flex! items-center justify-center" mat-icon-button (click)="goNext()">
+                  <i-tabler name="chevron-right" class="size-4.5! flex! items-center justify-center"></i-tabler>
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="exceptional relative">
+    <div class="w-full max-w-[1400px] mx-auto px-[15px]">
+      <div class="bg-light-primary rounded-2xl exceptional-content md:py-20 py-6">
+        <div class="flex justify-center w-full mb-8">
+          <div class="lg:w-6/12 w-full">
+            <h2 class="text-center font-bold text-2xl sm:text-3xl md:text-[40px] leading-normal">
+              Enjoy unparalleled features & exceptional flexibility.
+            </h2>
+          </div>
+        </div>
+
+        <div class="mt-0">
+          <div class="demo-slider overflow-hidden flex gap-8">
+            <div class="flex items-center flex-nowrap overflow-hidden gap-5 shrink-0">
+              @for (followercard of followercardsfirst; track followercard.title)
+              {
+              <div>
+                <mat-card class="cardWithShadow demo-slide rounded-sm shrink-0">
+                  <mat-card-content class="shrink-0">
+                    <div class="flex items-center justify-center gap-4 shrink-0">
+                      <img [src]="followercard.imgSrc" alt="icon" />
+                      <h6 class="m-0 font-medium text-sm">
+                        {{ followercard.title }}
+                      </h6>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+              }
+            </div>
+          </div>
+          <div class="demo-slider overflow-hidden flex gap-8 mt-0.5!">
+            <div class="flex items-center flex-nowrap overflow-hidden gap-5 shrink-0">
+              @for (followercard of followercardsecond; track followercard.title)
+              {
+              <div>
+                <mat-card class="cardWithShadow demo-slide-two rounded-sm shrink-0">
+                  <mat-card-content class="shrink-0">
+                    <div class="flex items-center justify-center gap-4 shrink-0">
+                      <img [src]="followercard.imgSrc" alt="icon" />
+                      <h6 class="m-0 font-medium text-sm">
+                        {{ followercard.title }}
+                      </h6>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+              }
+            </div>
+          </div>
+          <div class="demo-slider overflow-hidden flex gap-8 mt-0.5!">
+            <div class="flex items-center flex-nowrap overflow-hidden gap-5 shrink-0">
+              @for (followercard of followercardthird; track followercard.title) {
+              <div>
+                <mat-card class="cardWithShadow demo-slide rounded-sm shrink-0">
+                  <mat-card-content class="shrink-0">
+                    <div class="flex items-center justify-center gap-4 shrink-0">
+                      <img [src]="followercard.imgSrc" alt="icon" />
+                      <h6 class="m-0 font-medium text-sm">
+                        {{ followercard.title }}
+                      </h6>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="asked-questions md:py-20 py-6">
+    <div class="container">
+      <h2 class="text-center mb-12! font-bold text-2xl sm:text-3xl md:text-[40px] leading-normal">Frequently Asked
+        Questions
+      </h2>
+      <div class="max-w-4xl px-3 mx-auto">
+        <mat-accordion multi class="faq-accordion mb-10 block">
+          @for (item of faqList; track item) {
+          <mat-expansion-panel [expanded]="expandedIndex === $index" (opened)="expandedIndex = $index"
+            (closed)="expandedIndex = null" hideToggle class="border border-border expansion-panel mb-4!">
+            <mat-expansion-panel-header>
+              <mat-panel-title class="text-lg mx-0">{{
+                item.question
+                }}</mat-panel-title>
+
+              <tabler-icon [name]="expandedIndex === $index ? 'minus' : 'plus'" class="ms-auto size-5! mx-0 p-0">
+              </tabler-icon>
+            </mat-expansion-panel-header>
+
+            <p class="m-0 text-muted">{{ item.answer }}</p>
+          </mat-expansion-panel>
+          }
+        </mat-accordion>
+      </div>
+      <div class="flex justify-center">
+        <div class="flex items-center justify-center gap-2 py-1.5 px-2.5 rounded-sm border-dash">
+          <span class="text-sm">Still have a question?</span>
+          <a target="_blank" href="https://discord.com/invite/XujgB8ww4n"
+            class="underline text-dark text-sm font-semibold">
+            Ask on discord
+          </a>
+          <span class="text-sm">or</span>
+          <a target="_blank" href="https://adminmart.com/support/" class="underline text-dark text-sm font-semibold">
+            Submit a ticket
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>
+      <app-footer></app-footer>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,32 @@
+<mat-card class="cardWithShadow m-b-0">
+  <mat-card-content class="p-10">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <app-table-wrapper [isLoading]="isLoading">
+        <table mat-table [dataSource]="dataSource.data" class="w-100 membership-setting-table">
+          <!-- Columns setup -->
+          @for (column of displayedColumns; track column; let i = $index) {
+            <ng-container matColumnDef="{{column}}">
+              <th mat-header-cell *matHeaderCellDef> {{ column | translate }} </th>
+              <td mat-cell *matCellDef="let element">
+                @if (i > 0) {
+                  <mat-form-field>
+                    <input matInput [formControlName]="element.BONUS_TYPE + '_' + column" [placeholder]="column | translate">
+                  </mat-form-field>
+                } @else {
+                  {{ element[column] | translate }}
+                }
+              </td>
+            </ng-container>
+          }
+
+          <!-- Row Definitions -->
+          <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+        <div class="d-flex align-items-center justify-content-end m-t-10 m-r-10">
+          <app-submit-button [isSubmitting]="isSubmitting" [disabled]="form.invalid"></app-submit-button>
+        </div>
+      </app-table-wrapper>
+    </form>
+  </mat-card-content>
+</mat-card>

@@ -1,0 +1,43 @@
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/build
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
+yarn.lock
+package-lock.json
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+*.launch
+.settings/
+*.sublime-workspace
+
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# Misc
+/.angular/cache
+.sass-cache/
+/coverage
+/libpeerconnection.log
+testem.log
+
+# System
+.DS_Store
+Thumbs.db
+
+# Lockfiles and generated
+*.min.js
+*.min.css

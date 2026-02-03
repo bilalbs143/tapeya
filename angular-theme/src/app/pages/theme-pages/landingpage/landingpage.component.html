@@ -1,0 +1,542 @@
+<mat-sidenav-container>
+  <mat-sidenav-content class="">
+    <!-- Header -->
+    <mat-toolbar class="topbar topbar-xl m-auto px-0!">
+      <div class="container">
+        <div class="flex items-center justify-between">
+          <div class="py-5">
+            <app-branding></app-branding>
+          </div>
+          <div class="hidden lg:flex">
+            <!--  Links -->
+            <button mat-button class="text-base! font-medium!" (click)="gotoDemos()">
+              Demos
+            </button>
+            <!--  Links -->
+            <button mat-button class="text-base! font-medium!" [matMenuTriggerFor]="appsmenu"
+              aria-label="Notifications">
+              <div class="flex items-center gap-1">
+                Pages
+                <i-tabler name="chevron-down" class="size-4!"></i-tabler>
+              </div>
+            </button>
+            <mat-menu #appsmenu="matMenu" class="apps-dd cardWithShadow" xPosition="before">
+              <div class="grid grid-cols-12">
+                <div class="sm:col-span-8 col-span-12 border-e border-border pe-0!">
+                  <div class="p-8">
+                    <div class="grid sm:grid-cols-2 grid-cols-1 gap-6">
+                      @for(appdd of apps; track appdd.title) {
+                      <div class="text-hover-primary">
+                        <a [routerLink]="[appdd.link]" class="flex items-center no-underline">
+                          <button mat-mini-fab class="text-primary bg-light shadow-none rounded-sm">
+                            <img [src]="appdd.img" width="20" />
+                          </button>
+                          <div class="ms-4">
+                            <h5 class="text-sm font-semibold m-0 hover-text">
+                              {{ appdd.title }}
+                            </h5>
+                            <span class="text-xs text-body">
+                              {{ appdd.subtitle }}
+                            </span>
+                          </div>
+                        </a>
+                      </div>
+                      }
+                    </div>
+                  </div>
+                  <div class="border-t border-border p-6 hidden lg:flex items-center justify-between">
+                    <span class="flex items-center  text-base! font-medium!">
+                      <i-tabler name="help" class="size-5! me-2"></i-tabler>Frequently
+                      Asked Questions
+                    </span>
+                    <a [routerLink]="['/theme-pages/faq']" mat-flat-button color="primary">Check</a>
+                  </div>
+                </div>
+                <div class="sm:col-span-4 col-span-12">
+                  <div class="px-4 py-8">
+                    <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+                    @for(quicklink of quicklinks; track quicklink.title) {
+                    <div class="text-hover-primary w-fit">
+                      <a [routerLink]="[quicklink.link]"
+                        class="hover-text no-underline text-sm font-semibold block w-fit py-2">{{
+                        quicklink.title
+                        }}</a>
+                    </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            </mat-menu>
+
+            <a mat-button class="text-base! font-medium!"
+              [routerLink]="['/landingpage/components/badge']">Components</a>
+
+            <a mat-button class="text-base! font-medium!"
+              href="https://tailwind-admin.github.io/tailwind-admin-documentation/premium-documentation/angular/index.html">Documentation</a>
+            <a mat-button class="text-base! font-medium!" href="https://tailwind-admin.com/support">Support</a>
+            <a mat-flat-button color="primary" [routerLink]="['/authentication/login']">Login</a>
+          </div>
+          <!-- Mobile Menu -->
+          <button mat-icon-button (click)="filterNavRight.toggle()"
+            class="flex! items-center justify-center lg:hidden!">
+            <i-tabler name="menu-2" class="flex!"></i-tabler>
+          </button>
+        </div>
+      </div>
+    </mat-toolbar>
+
+
+    <!-- Banner -->
+    <div class="overflow-hidden banner-section pt-16 lg:pt-0">
+      <div class="container">
+        <div class="grid lg:grid-cols-2 grid-cols-1 gap-6">
+          <div class="flex items-start justify-center gap-6 flex-col">
+            <span class="text-base font-semibold flex items-center">
+              <i-tabler name="rocket" class="text-secondary me-2"></i-tabler>Kick start your project with
+            </span>
+            <h1 class="font-bold sm:text-[56px] text-3xl sm:leading-[55px]">
+              Most powerful &
+              <span class="text-primary">Developer friendly </span> Angular
+              dashboard
+            </h1>
+            <p class="text-lg m-0">
+              Modernize comes with light & dark color skins, well designed dashboards, applications and pages.
+            </p>
+            <div class="flex flex-row items-center self-stretch gap-4">
+              <a mat-flat-button color="primary" [routerLink]="['/authentication/login']">Login</a>
+              <a mat-stroked-button color="primary" (click)="gotoDemos()" class="border-primary">
+                Live Preview
+              </a>
+            </div>
+          </div>
+          <div class="hidden lg:flex">
+            <div
+              class="p-6 banner-slider bg-light-primary min-w-[2000px] h-[calc(100vh-100px)] max-h-[790px] rounded-md overflow-hidden">
+              <div class="flex">
+                <div>
+                  <div class="slider-img">
+                    <img src="assets/images/landingpage/bannerimg1.svg" alt="img1" />
+                  </div>
+                  <div class="slider-img">
+                    <img src="assets/images/landingpage/bannerimg1.svg" alt="img1" />
+                  </div>
+                </div>
+                <div>
+                  <div class="slider-img2">
+                    <img src="assets/images/landingpage/bannerimg2.svg" alt="img1" />
+                  </div>
+                  <div class="slider-img2">
+                    <img src="assets/images/landingpage/bannerimg2.svg" alt="img1" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Template -->
+    <div class="md:py-20 py-6" id="demos">
+      <div class="container">
+        <div class="max-w-4xl px-3 text-center mx-auto">
+          <div class="sm:flex items-center justify-center mb-4 gap-2.5">
+            <div class="flex items-center justify-center social-chips">
+              <img src="assets/images/profile/user-2.jpg" width="30" alt="social"
+                class="rounded-full -ml-2.5 border-2 border-white first:ml-0" />
+              <img src="assets/images/profile/user-3.jpg" width="30" alt="social"
+                class="rounded-full -ml-2.5 border-2 border-white" />
+              <img src="assets/images/profile/user-4.jpg" width="30" alt="social"
+                class="rounded-full -ml-2.5 border-2 border-white" />
+            </div>
+            <span class="text-base font-medium">
+              <span class="font-semibold">52,589+</span>
+              developers & agencies using our templates
+            </span>
+          </div>
+          <h2 class="text-center sm:text-4xl text-2xl mt-8 font-bold sm:leading-[45px]!">
+            Production Ready & Developer Friendly Material Angular Admin
+            Template
+          </h2>
+        </div>
+        <div class="text-center my-8">
+          <span class="bg-primary p-2 rounded-full text-white font-semibold px-4 text-base inline-block">
+            Demos
+          </span>
+        </div>
+        <div class="shapes-component relative">
+          <!-- demos and apps -->
+          <div class="grid grid-cols-12 gap-6 justify-center">
+            @for(demo of demos; track demo.url) {
+            <div class="lg:col-span-4 md:col-span-6 col-span-12">
+              <div class="rounded-sm border border-border">
+                <div class="img-overlay rounded-sm shadow border-0">
+                  <img [src]="demo.imgSrc" alt="demos" class="rounded-sm w-full" />
+                  <div class="overlay-content">
+                    <a href="{{ demo.url }}" target="_blank" mat-flat-button color="primary">
+                      Live preview
+                    </a>
+                  </div>
+                </div>
+                <div class="px-4 py-3">
+                  <span class="text-base block font-semibold">{{
+                    demo.name
+                    }}</span>
+                  <span class="text-sm text-muted mt-1">
+                    Demo
+                  </span>
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+          <div class="text-center my-8">
+            <span class="bg-primary p-2 rounded-full text-white font-semibold px-4 text-base inline-block">
+              Apps
+            </span>
+          </div>
+          <!-- apss -->
+          <div class="grid grid-cols-12 gap-6 justify-center">
+            @for(app of appdemos; track app.url) {
+            <div class="lg:col-span-4 md:col-span-6 col-span-12">
+              <div class="rounded-sm border border-border">
+                <div class="img-overlay rounded-sm shadowborder-0">
+                  <img [src]="app.imgSrc" alt="apps" class="rounded-sm w-full" />
+                  <div class="overlay-content">
+                    <a href="{{ app.url }}" target="_blank" mat-flat-button color="primary">
+                      Live preview
+                    </a>
+                  </div>
+                </div>
+                <div class="px-4 py-3">
+                  <span class="text-base block font-semibold">{{
+                    app.name
+                    }}</span>
+                  <span class="text-sm text-muted mt-1">
+                    Application
+                  </span>
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+
+          <div class="text-center my-8">
+            <span class="bg-primary p-2 rounded-full text-white font-semibold px-4 text-base inline-block">
+              Frontend Pages
+            </span>
+          </div>
+          <!-- apss -->
+          <div class="grid grid-cols-12 gap-6 justify-center">
+            @for(frontend of frontenddemos; track frontend.url) {
+            <div class="lg:col-span-4 md:col-span-6 col-span-12">
+              <div class="rounded-sm border border-border">
+                <div class="img-overlay rounded-sm shadowborder-0">
+                  <img [src]="frontend.imgSrc" alt="frontends" class="rounded-sm w-full" />
+                  <div class="overlay-content">
+                    <a href="{{ frontend.url }}" target="_blank" mat-flat-button color="primary">
+                      Live preview
+                    </a>
+                  </div>
+                </div>
+                <div class="px-4 py-3">
+                  <span class="text-base block font-semibold">{{
+                    frontend.name
+                    }}</span>
+                  <span class="text-sm text-muted mt-1">
+                    Frontend Pages
+                  </span>
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Demo slider -->
+    <div class="md:pt-20 pt-6">
+      <div class="container">
+        <div class="flex justify-center flex-wrap">
+          <div class="w-full sm:w-11/12 lg:w-8/12">
+            <h2 class="text-center sm:text-4xl text-2xl font-bold sm:leading-[45px]!">
+              Increase speed of your development and launch quickly with
+              Modernize
+            </h2>
+          </div>
+        </div>
+      </div>
+      <div class="demo-slider overflow-hidden flex mt-10">
+        <div>
+          <div class="demo-slide">
+            <img src="assets/images/landingpage/background/slider-group.png" alt="slide" />
+          </div>
+        </div>
+        <div>
+          <div class="demo-slide">
+            <img src="assets/images/landingpage/background/slider-group.png" alt="slide" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Testimonial -->
+    <div class="md:py-20 py-6">
+      <div class="container">
+        <div class="flex justify-center flex-wrap mb-7.5">
+          <div class="w-full sm:w-11/12 lg:w-8/12">
+            <h2 class="text-center sm:text-4xl text-2xl font-bold sm:leading-[45px]!">
+              Don’t just take our words for it, See what developers like you are
+              saying
+            </h2>
+          </div>
+        </div>
+
+        <div class="marquee flex overflow-hidden whitespace-nowrap w-full py-5 px-2.5">
+          <div class="marquee-content flex gap-5!">
+            @for (slide of slides; track slide) {
+            <mat-card class="cardWithShadow mb-0 shrink-0">
+              <mat-card-content>
+                <div class="flex flex-col flex-auto self-stretch gap-6">
+                  <div class="flex flex-row items-center self-stretch justify-between gap-3 ">
+                    <div class="flex flex-row items-center self-stretch gap-3 ">
+                      <img [src]="slide.img" [alt]="slide.title" height="40" width="40" class="rounded-full w-auto">
+                      <div>
+                        <h3 class="text-base">{{ slide.title }}</h3>
+                        <h6 class="text-sm text-muted font-normal">{{ slide.subtitle }}</h6>
+                      </div>
+                    </div>
+                    <img [src]="slide.logo" [alt]="slide.title" width="80" height="19" class="w-auto">
+                  </div>
+                  <div class="flex flex-col flex-auto self-stretch gap-8">
+                    <h6 class="text-sm text-muted font-normal text-wrap">{{ slide.text }}</h6>
+                    <div class="flex items-center">
+                      <i-tabler name="star-filled" class="fill-warning size-4.5!"></i-tabler>
+                      <i-tabler name="star-filled" class="fill-warning size-4.5! ml-1"></i-tabler>
+                      <i-tabler name="star-filled" class="fill-warning size-4.5! ml-1"></i-tabler>
+                      <i-tabler name="star-filled" class="fill-warning size-4.5! ml-1"></i-tabler>
+                      <i-tabler name="star-filled" class="fill-warning size-4.5! ml-1"></i-tabler>
+                    </div>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Features -->
+    <div class="md:py-20 py-6">
+      <div class="container">
+        <div class="flex justify-center flex-wrap">
+          <div class="w-full sm:w-8/12 lg:w-6/12">
+            <span class="text-primary uppercase block text-center font-medium">
+              ALMOST COVERED EVERYTHING
+            </span>
+            <h2 class="text-3xl font-bold text-center mt-4">
+              Other Amazing Features & Flexibility Provided
+            </h2>
+          </div>
+        </div>
+
+        <!-- features -->
+        <div class="grid grid-cols-12 gap-6 mt-6">
+          @for(feature of features; track feature.title) {
+          <div class="lg:col-span-3 md:col-span-4 col-span-12 text-center">
+            <i-tabler [name]="feature.icon" class="size-10! text-primary mt-4"></i-tabler>
+            <h6 class="m-0 text-lg font-semibold mb-2 mt-6">{{ feature.title }}</h6>
+            <span class="text-sm mb-6 block ">
+              {{ feature.subtext }}
+            </span>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- call to action -->
+    <div class="container pb-10">
+      <div class="max-w-2xl px-3 mx-auto">
+        <mat-card class="cardWithShadow shape-card bg-no-repeat bg-center overflow-hidden" [style.background-image]="
+            'url(/assets/images/landingpage/shape/line-bg.svg)'
+          ">
+          <mat-card-content class="p-8 text-center">
+            <h3 class="text-2xl font-semibold m-0 mt-3">
+              Haven't found an answer to your question?
+            </h3>
+            <p class="mt-2">Connect with us either on discord or email us</p>
+            <div class="mt-8 mb-4! gap-3 flex flex-row items-center self-stretch justify-center">
+              <a mat-flat-button href="https://discord.com/invite/XujgB8ww4n" color="accent">Ask on Discord</a>
+              <a matButton="outlined" href="https://tailwind-admin.com/support" color="accent">Submit Ticket</a>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- buy section -->
+    <div class="bg-primary py-6">
+      <div class="container">
+        <div class="flex flex-wrap justify-between">
+          <div class="w-full lg:w-5/12 flex items-center">
+            <div>
+              <h3 class="font-bold lg:text-4xl text-3xl text-white mb-7 lg:pt-0 pt-10 sm:leading-[50px]!">
+                Build your app with our highly customizable Angular based
+                Dashboard
+              </h3>
+              <div class="flex flex-row items-center self-stretch gap-4">
+                <a mat-flat-button [routerLink]="['/authentication/login']"
+                  class="text-primary bg-white! font-medium">Login</a>
+
+                <a mat-stroked-button color="white" [routerLink]="['/authentication/side-register']"
+                  class="text-white! font-medium border-white">Register</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="w-full lg:w-5/12 text-right">
+            <img src="assets/images/landingpage/background/c2a.png" alt="img" class="max-w-full h-auto inline-block"
+              width="330" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- footer -->
+    <footer class="py-8">
+      <div class="container">
+        <div class="flex justify-center flex-wrap">
+          <div class="w-full sm:w-5/12 lg:w-3/12 text-center">
+            <a href="/">
+              <img src="assets/images/landingpage/favicon.png" class="max-w-full h-auto mx-auto" alt="logo" />
+            </a>
+            <div class="text-sm mt-4">
+              All rights reserved by Modernize. Designed & Developed by
+              <a href="https://adminmart.com/" target="_blank" class="text-sm underline font-semibold">AdminMart.</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </mat-sidenav-content>
+
+  <!-- Mobile Sidebar -->
+  <mat-sidenav #filterNavRight mode="over" position="end"
+    class="filter-sidebar w-[290px] fixed -right-[290px] top-0 z-10 h-full transition-all duration-300 ease-in-out shadow-(--mat-sys-level1) bg-(--mat-sys-background)">
+    <div>
+      <div class="branding">
+        @if(options.theme === 'light') {
+        <a href="/">
+          <img src="./assets/images/logos/dark-logo.svg" class="align-middle m-2 rtl:-scale-x-100" alt="logo" />
+        </a>
+        } @if(options.theme === 'dark') {
+        <a href="/">
+          <img src="./assets/images/logos/light-logo.svg" class="align-middle m-2 rtl:-scale-x-100" alt="logo" />
+        </a>
+        }
+      </div>
+
+      <mat-accordion>
+        <mat-expansion-panel class="shadow-none!">
+          <mat-expansion-panel-header>
+            <mat-panel-title class="text-base font-medium"> Demos </mat-panel-title>
+          </mat-expansion-panel-header>
+          <div>
+            <h5 class="text-lg font-semibold">Different Demos</h5>
+            <span>Included with the package</span>
+            <div class="grid grid-cols-12 gap-6 mt-6">
+              @for(demo of demos; track demo.url) {
+              <div class="col-span-12">
+                <div>
+                  <div class="img-overlay rounded-sm">
+                    <img [src]="demo.imgSrc" alt="demos" class="rounded-sm w-full" />
+                    <div class="overlay-content">
+                      <a href="{{ demo.url }}" mat-flat-button color="primary">
+                        Live preview
+                      </a>
+                    </div>
+                  </div>
+                  <span class="text-sm block text-center mt-2">{{
+                    demo.name
+                    }}</span>
+                </div>
+              </div>
+              }
+            </div>
+            <!-- apps -->
+            <h5 class="text-lg font-semibold mt-6">Different Apps</h5>
+            <div class="grid grid-cols-12 gap-6 mt-6">
+              @for(app of appdemos; track app.url) {
+              <div class="col-span-12">
+                <div>
+                  <div class="img-overlay rounded-sm">
+                    <img [src]="app.imgSrc" alt="apps" class="rounded-sm w-full" />
+                    <div class="overlay-content">
+                      <a href="{{ app.url }}" mat-flat-button color="primary">
+                        Live preview
+                      </a>
+                    </div>
+                  </div>
+                  <span class="text-sm block text-center mt-2">{{
+                    app.name
+                    }}</span>
+                </div>
+              </div>
+              }
+            </div>
+          </div>
+        </mat-expansion-panel>
+        <mat-expansion-panel class="shadow-none!">
+          <mat-expansion-panel-header>
+            <mat-panel-title class="text-base font-medium"> Pages </mat-panel-title>
+          </mat-expansion-panel-header>
+          <div>
+            <div class="grid grid-cols-12 gap-6">
+              @for(appdd of apps; track appdd.img) {
+              <div class="col-span-12 text-hover-primary">
+                <a [routerLink]="[appdd.link]" class="flex items-center no-underline mb-6">
+                  <button mat-mini-fab class="text-primary bg-light-primary shadow-none rounded-sm">
+                    <img [src]="appdd.img" width="20" />
+                  </button>
+
+                  <div class="ms-4">
+                    <h5 class="text-sm font-semibold m-0 text-primary hover-text">
+                      {{ appdd.title }}
+                    </h5>
+                    <span class="text-xs">{{ appdd.subtitle }}</span>
+                  </div>
+                </a>
+              </div>
+              }
+            </div>
+            <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+            @for(quicklink of quicklinks; track quicklink.title) {
+            <div class="text-hover-primary">
+              <a [routerLink]="['quicklink.link']" class="hover-text no-underline text-sm font-semibold block py-2">{{
+                quicklink.title }}</a>
+            </div>
+            }
+          </div>
+        </mat-expansion-panel>
+      </mat-accordion>
+
+      <div class="px-4">
+        <a href="
+            https://tailwind-admin.github.io/tailwind-admin-documentation/premium-documentation/angular/index.html
+          " class="flex items-center no-underline text-sm py-4">
+          <span class="text-base font-medium ml-2">Documentation</span>
+        </a>
+        <a [routerLink]="['/landingpage/components/badge']" class="flex items-center no-underline text-sm py-4">
+          <span class="text-base font-medium ml-2">Components</span>
+        </a>
+        <a [routerLink]="['https://tailwind-admin.com/support']" class="flex items-center no-underline text-sm py-4">
+          <span class="text-base font-medium ml-2">Support</span>
+        </a>
+        <a mat-flat-button color="primary" class="w-full" [routerLink]="['/']">Buy Now</a>
+      </div>
+    </div>
+  </mat-sidenav>
+</mat-sidenav-container>

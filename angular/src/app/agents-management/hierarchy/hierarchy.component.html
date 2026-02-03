@@ -1,0 +1,36 @@
+<div class="hierarchy-wrapper">
+  <div class="row">
+    <div class="col-lg-4">
+      <mat-card class="cardWithShadow">
+        <mat-card-content class="p-10">
+
+          @if (isLoading) {
+            <div class="skeleton-loader-header">
+              <ngx-skeleton-loader
+                class="skeleton-loader-style"
+                count="21"
+                [theme]="cardLoader"
+              ></ngx-skeleton-loader>
+            </div>
+          } @else {
+            @if (branches.length > 0) {
+              <ul class="hierarchy-tree">
+                @for (branch of branches; track branch.id) {
+                  <app-hierarchy-tree
+                    [data]="branch"
+                    (itemClicked)="onItemClicked($event)"
+                  ></app-hierarchy-tree>
+                }
+              </ul>
+            }
+          }
+
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <div class="col-lg-8">
+      <app-agent-basic-info></app-agent-basic-info>
+    </div>
+  </div>
+</div>

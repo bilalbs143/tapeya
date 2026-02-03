@@ -1,0 +1,54 @@
+{
+    "antechip": {
+        "staging": {
+            "baseUrl": "https://dev.vendor.art-chip.com/api/v1/clients",
+            "apiKey": "new_solution_api_key1",
+            "secretKey": "random_secret_key"
+        },
+        "production": {
+            "baseUrl": "https://dev.vendor.art-chip.com/api/v1/clients",
+            "apiKey": "new_solution_api_key1",
+            "secretKey": "random_secret_key"
+        }
+    },
+    "vinus": {
+        "staging": {
+            "baseUrl": "https://game.vinus-gaming.com",
+            "apiKey": "id111",
+            "infoUrl": "https://info.vinus-gaming.com",
+            "secretKey": "OQ3SXnKTYL6t7FiLXFsM"
+        },
+        "production": {
+            "baseUrl": "https://game.vinus-gaming.com",
+            "apiKey": "id111",
+            "infoUrl": "https://info.vinus-gaming.com",
+            "secretKey": "OQ3SXnKTYL6t7FiLXFsM"
+        }
+    },
+    "thebighit": {
+        "staging": {
+            "baseUrl": "https://slot-dev.bighitplay.net",
+            "apiKey": "artchip",
+            "infoUrl": "https://info.thebighit.com",
+            "secretKey": "80c8213345ada9b70b4196eec2569ff8"
+        },
+        "production": {
+            "baseUrl": "https://slot-game.bighitplay.net",
+            "apiKey": "artchip",
+            "infoUrl": "https://info.thebighit.com",
+            "secretKey": "ae38da877fea5e5b11ea89d7f1f44669"
+        }
+    },
+    "fourten": {
+        "staging": {
+            "baseUrl": "https://api.4tengame.com",
+            "siteCode": "artc1",
+            "apiKey": "e8c33d692d1a627c39b462e8cd2f26765c359ba3"
+        },
+        "production": {
+            "baseUrl": "https://api.4tengame.com",
+            "siteCode": "artc1",
+            "apiKey": "e8c33d692d1a627c39b462e8cd2f26765c359ba3"
+        }
+    }
+}

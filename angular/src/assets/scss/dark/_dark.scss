@@ -1,0 +1,96 @@
+@use "sass:meta";
+@use "../variables" as *;
+
+.dark-theme {
+  //   typography
+  color: $dark-text-secondary;
+
+  .mat-mdc-menu-panel {
+    color: var(--mat-sys-on-background) !important;
+  }
+
+  .bg-white,
+  .mdc-menu-surface {
+    background-color: var(--mat-sys-surface) !important;
+  }
+
+  .topbar {
+    background-color: var(--mat-sys-surface);
+  }
+
+  .hljs {
+    background: var(--mat-sys-surface);
+  }
+
+  // -------------------------------------------------------
+  //   border
+  // -------------------------------------------------------
+
+  .b-1 {
+    border: 1px solid var(--mat-sys-outline-variant) !important;
+  }
+
+  .b-b-1 {
+    border-bottom: 1px solid var(--mat-sys-outline-variant) !important;
+  }
+
+  .b-t-1 {
+    border-top: 1px solid var(--mat-sys-outline-variant) !important;
+  }
+
+  .b-r-1 {
+    border-right: 1px solid var(--mat-sys-outline-variant) !important;
+  }
+
+  .b-l-1 {
+    border-left: 1px solid var(--mat-sys-outline-variant);
+  }
+
+  // fill
+  .customizer-button-group .mat-button-toggle-appearance-standard.mat-button-toggle-checked i-tabler.fill-icon {
+    fill: var(--mat-sys-primary-fixed-dim);
+  }
+
+  // Skeleton loader dark theme styles
+  .skeleton-loader-style .skeleton-loader {
+    background-color: var(--skeleton-loader-bg) !important;
+    background: linear-gradient(90deg, var(--skeleton-loader-bg) 25%, var(--skeleton-loader-shimmer) 50%, var(--skeleton-loader-bg) 75%) !important;
+    animation: skeleton-loading 1.5s ease-in-out infinite !important;
+  }
+
+  .skeleton-loader-header {
+    background: var(--mat-sys-surface) !important;
+  }
+
+  // Enhanced skeleton loader animations for dark theme
+  @keyframes skeleton-loading {
+    0% {
+      background-position: -200px 0;
+    }
+    100% {
+      background-position: calc(200px + 100%) 0;
+    }
+  }
+
+  .table-responsive {
+    th,
+    mat-header-cell {
+      background-color: rgb(31 42 66) !important;
+    }
+  }
+
+}
+
+// horizontal + dark
+
+html.dark-theme {
+  .logodark {
+    display: none;
+  }
+}
+
+html.light-theme {
+  .logolight {
+    display: none;
+  }
+}

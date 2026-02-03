@@ -1,0 +1,94 @@
+<div class="footer-content">
+  <div class="w-full max-w-[1400px] mx-auto px-[15px] footer-dashboard">
+    <div class="bg-light-primary rounded-2xl footer-container overflow-hidden">
+      <div class="grid grid-cols-12 gap-6">
+        <div class="lg:col-span-6 col-span-12">
+          <div class="md:py-20 py-6 md:pl-20 pl-6 rtl:md:pr-20 rtl:pr-6 rtl:md:pl-0 left-side-content">
+            <h2 class="mb-6! font-bold text-2xl sm:text-3xl md:text-[40px] leading-normal">
+              Develop with feature-rich Angular Dashboard
+            </h2>
+            <div class="mb-6 flex flex-row items-center self-stretch gap-4">
+              <a href="authentication/login" target="_blank" mat-flat-button color="primary" class="">Member Login</a>
+              <a href="authentication/side-register" target="_blank" mat-stroked-button color="primary"
+                class="border-primary">Register as Member</a>
+            </div>
+            <span class="text-sm font-semibold"> One-time purchase</span> - no
+            recurring fees.
+          </div>
+        </div>
+        <div class="md:col-span-6 col-span-12 hidden! lg:block! relative">
+          <img src="assets/images/front-pages/design-collection.png" alt="bg-img"
+            class="w-full absolute rtl:-scale-x-100" />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer-wrapper">
+    <div class="container">
+      <div class="grid grid-cols-12 gap-6 md:py-20 py-6">
+        <div class="col-span-6 md:col-span-3">
+          <div class="listContainer">
+            <h5 class="text-lg font-semibold mb-8">Company and team</h5>
+            <mat-list role="list" class="py-0! flex! flex-col gap-4">
+              @for (item of applicationsItems; track item) {
+              <a class="block text-muted" [routerLink]="[item.href]">
+                {{ item.title }}
+              </a>
+              }
+            </mat-list>
+          </div>
+        </div>
+        <div class="col-span-6 md:col-span-3">
+          <div class="listContainer">
+            <h5 class="text-lg font-semibold mb-8">Features</h5>
+            <mat-list role="list" class="py-0! flex! flex-col gap-4">
+              @for (item of formsItems; track item) {
+              <a class="block text-muted" [routerLink]="[item.href]">
+                {{ item.title }}
+              </a>
+              }
+            </mat-list>
+          </div>
+        </div>
+        <div class="col-span-6 md:col-span-3">
+          <div class="listContainer">
+            <h5 class="text-lg font-semibold mb-8">Resources</h5>
+            <mat-list role="list" class="py-0! flex! flex-col gap-4">
+              @for (item of tablesItems; track item) {
+              <a class="block text-muted" [routerLink]="[item.href]">
+                {{ item.title }}
+              </a>
+              }
+            </mat-list>
+          </div>
+        </div>
+        <div class="col-span-6 md:col-span-3">
+          <h5 class="text-lg font-semibold mb-8">Followers</h5>
+          <div class="flex items-center gap-5">
+            @for (icon of socialIcons; track icon.src) {
+            <img [src]="icon.src" [matTooltip]="icon.tooltip" alt="social-icon" width="22" height="22"
+              class="cursor-pointer" />
+            }
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center justify-between py-8 border-t border-border flex-wrap">
+        <!-- Left side -->
+        <div class="flex items-center gap-4">
+          <img src="assets/images/landingpage/favicon.png" alt="logo" class="img-fluid" />
+          <h6 class="font-medium">All rights reserved by Modernize.</h6>
+        </div>
+
+        <!-- Right side -->
+        <div class="flex justify-end items-center">
+          <p class="text-base m-0">
+            Designed & Developed by
+            <a href="https://adminmart.com/" target="_blank" class="no-underline text-primary">
+              AdminMart.
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

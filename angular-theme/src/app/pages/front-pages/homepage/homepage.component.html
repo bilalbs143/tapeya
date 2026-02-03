@@ -1,0 +1,144 @@
+<div>
+  <mat-sidenav-container>
+    <mat-sidenav-content>
+      @if(hideCloserBtn){
+
+      <mat-toolbar
+        class="bg-primary flex justify-between items-center h-[46px]! bg-cover bg-no-repeat bg-[url('/assets/images/front-pages/topbar-bg.png')]! relative overflow-hidden">
+
+        <!-- Center text -->
+        <div class="text-center text-white text-sm font-medium grow">
+          <span class="text-white bg-secondary mx-3 text-xs px-2 py-1 rounded-sm">New</span>
+          Frontend Pages Included!
+        </div>
+
+        <!-- Right close icon -->
+        <button mat-icon-button aria-label="Close" class="text-white!" (click)="hideCloser()">
+          <mat-icon>close</mat-icon>
+        </button>
+
+      </mat-toolbar>
+
+      }
+      <mat-toolbar class="topbar front-topbar topbar-xl m-auto py-2" [ngClass]="{ 'fixed-topbar': isTopbarFixed }">
+        <div class="max-w-[1400px] mx-auto w-full sm:px-4">
+          <div class="flex items-center justify-between">
+            <div class="branding p-0!">
+              <app-branding></app-branding>
+            </div>
+
+            @if(!isMobileView){
+            <div class="hidden lg:flex justify-between">
+              <button mat-button class="mx-2 text-[15px] font-medium" [routerLink]="['/front-pages/about']"
+                [ngClass]="isActiveRoute('about') ? 'bg-(--mat-sys-primary-fixed-dim) text-primary transition-colors duration-300' : 'hover:text-primary hover:transition-colors hover:duration-300'">
+                About Us
+              </button>
+              <button mat-button class="mx-2 text-sm font-medium"
+                [ngClass]="isActiveRoute('blog') ? 'bg-(--mat-sys-primary-fixed-dim) text-primary transition-colors duration-300' : 'hover:text-primary hover:transition-colors hover:duration-300'"
+                [routerLink]="['/front-pages/blog']">
+                Blogs
+              </button>
+              <button mat-button class="mx-2 text-[15px] font-medium" [routerLink]="['/front-pages/portfolio']"
+                [ngClass]="isActiveRoute('portfolio') ? 'bg-(--mat-sys-primary-fixed-dim) text-primary transition-colors duration-300' : 'hover:text-primary hover:transition-colors hover:duration-300'">
+                Portfolio
+                <span class="bg-primary-50 text-primary rounded-sm font-semibold px-2 py-1 text-xs ml-1">
+                  New
+                </span>
+              </button>
+              <button mat-button class="mx-2 text-[15px] font-medium"
+                [ngClass]="isActiveRoute('dashboard') ? 'bg-(--mat-sys-primary-fixed-dim) text-primary transition-colors duration-300' : 'hover:text-primary hover:transition-colors hover:duration-300'"
+                [routerLink]="['/dashboards/dashboard1']">
+                Dashboard
+              </button>
+
+              <button mat-button class="mx-2 text-[15px] font-medium"
+                [ngClass]="isActiveRoute('pricing') ? 'bg-(--mat-sys-primary-fixed-dim) text-primary transition-colors duration-300' : 'hover:text-primary hover:transition-colors hover:duration-300'"
+                [routerLink]="['/front-pages/pricing']">
+                Pricing
+              </button>
+
+              <button mat-button class="mx-2 text-[15px] font-medium"
+                [ngClass]="isActiveRoute('contact') ? 'bg-(--mat-sys-primary-fixed-dim) text-primary transition-colors duration-300' : 'hover:text-primary hover:transition-colors hover:duration-300'"
+                [routerLink]="['/front-pages/contact']">
+                Contact
+              </button>
+            </div>
+            <a mat-flat-button color="primary" class="" [routerLink]="'/authentication/login'">Login</a>
+            } @if(isMobileView){
+            <button mat-mini-fab class="flex items-center justify-center"
+              aria-label="Example icon button with a delete icon" (click)="customizerRight.toggle()">
+              <i-tabler class="flex!" name="menu"></i-tabler>
+            </button>
+            }
+          </div>
+        </div>
+      </mat-toolbar>
+
+      <div class="content-scroll">
+        <router-outlet></router-outlet>
+      </div>
+    </mat-sidenav-content>
+
+    <mat-sidenav class="mobile-sidebar" #customizerRight mode="over" position="start">
+
+      <div class="">
+        <div class="branding">
+          <app-branding></app-branding>
+        </div>
+        <div class="">
+          <mat-list role="list">
+            <mat-list-item role="listitem">
+              <button mat-button class="text-dark" [routerLink]="['/front-pages/about']"
+                [ngClass]="isActiveRoute('about') ? 'bg-(--mat-sys-primary-fixed-dim) text-primary transition-colors duration-300' : ''">
+                About Us
+              </button></mat-list-item>
+            <mat-list-item role="listitem">
+              <button mat-button class="text-dark"
+                [ngClass]="isActiveRoute('blogs') ? 'bg-(--mat-sys-primary-fixed-dim) text-primary transition-colors duration-300' : ''"
+                [routerLink]="['/front-pages/blog']">
+                Blogs
+              </button></mat-list-item>
+            <mat-list-item role="listitem">
+              <button mat-button class="text-dark" [routerLink]="['/front-pages/portfolio']"
+                [ngClass]="isActiveRoute('portfolio') ? 'bg-(--mat-sys-primary-fixed-dim) text-primary transition-colors duration-300' : ''">
+                Portfolio
+                <span class="bg-primary-50 text-primary rounded-sm font-semibold p-1.5 py-1 text-xs">
+                  New
+                </span>
+              </button></mat-list-item>
+            <mat-list-item role="listitem">
+              <button mat-button class="text-dark"
+                [ngClass]="isActiveRoute('dashboard') ? 'bg-(--mat-sys-primary-fixed-dim) text-primary transition-colors duration-300' : ''"
+                [routerLink]="['/dashboards/dashboard1']">
+                Dashboard
+              </button>
+            </mat-list-item>
+            <mat-list-item role="listitem">
+              <button mat-button class="text-dark"
+                [ngClass]="isActiveRoute('pricing') ? 'bg-(--mat-sys-primary-fixed-dim) text-primary transition-colors duration-300' : ''"
+                [routerLink]="['/front-pages/pricing']">
+                Pricing
+              </button>
+            </mat-list-item>
+            <mat-list-item role="listitem">
+              <button mat-button class="text-dark "
+                [ngClass]="isActiveRoute('contact') ? 'bg-(--mat-sys-primary-fixed-dim) text-primary transition-colors duration-300' : ''"
+                [routerLink]="['/front-pages/contact']">
+                Contact
+              </button></mat-list-item>
+            <mat-list-item role="listitem" class="w-full">
+              <a mat-flat-button color="primary" class="w-full" [routerLink]="'/authentication/login'">Get
+                Started</a></mat-list-item>
+          </mat-list>
+        </div>
+      </div>
+    </mat-sidenav>
+  </mat-sidenav-container>
+  @if(showBackToTop){
+  <div
+    class="back-to-top bg-primary rounded-full flex items-center justify-center shadow w-[54px] h-[54px] cursor-pointer fixed bottom-[20px] right-[20px] z-10 transition-opacity duration-300 ease-in-out"
+    (click)="scrollToTop()">
+    <i-tabler name="arrow-up" class="w-6 h-6 text-white"></i-tabler>
+  </div>
+  }
+</div>

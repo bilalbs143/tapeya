@@ -1,0 +1,689 @@
+<mat-card class="cardWithShadow m-b-10">
+  <mat-card-content class="p-10">
+    <form (ngSubmit)="loadHttpData()" [formGroup]="searchForm">
+      <div class="row">
+        <div class="col-lg-3">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label>{{ 'AGENTS' | translate }}</mat-label>
+            <mat-select value="" formControlName="agent_id">
+              <mat-option value="">{{ 'ALL' | translate }}</mat-option>
+              @for (agent of agents; track agent.id) {
+                <mat-option [value]="agent.id">
+                  {{ agent.username }} | {{ agent.name }} | {{ agent.referral_info.code }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-lg-3">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label>{{ 'START_DATE' | translate }}</mat-label>
+            <input
+              matInput
+              formControlName="date_after"
+              [matDatepicker]="startDate"
+            />
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="startDate"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #startDate></mat-datepicker>
+          </mat-form-field>
+        </div>
+        <div class="col-lg-3">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label>{{ 'END_DATE' | translate }}</mat-label>
+            <input
+              matInput
+              formControlName="date_before"
+              [matDatepicker]="endDate"
+            />
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="endDate"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #endDate></mat-datepicker>
+          </mat-form-field>
+        </div>
+
+        <div
+          class="col-lg-3 d-flex align-items-center justify-content-end gap-8"
+        >
+          <button mat-stroked-button (click)="resetSearchForm()">
+            {{ 'CLEAR_SEARCH' | translate }}
+          </button>
+
+          <button mat-flat-button type="submit">
+            {{ 'SEARCH' | translate }}
+          </button>
+
+          <button
+            mat-flat-button
+            type="button"
+            routerLink="/settlements-management/monthly-settlements"
+          >
+            {{ 'NORMAL_VIEW' | translate }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="cardWithShadow m-b-0">
+  <mat-card-content class="p-10">
+    <app-table-wrapper
+      [isLoading]="isLoading"
+    >
+      <table
+        mat-table
+        [dataSource]="dataSource"
+        class="w-100"
+      >
+        <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef>{{ 'DATE' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            {{ element.month }}-{{ element.year }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="requestedMembersCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'MEMBERS_REQUEST' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.requested_members_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="approvedMembersCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'APPROVED_MEMBERS' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.approved_members_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="walletHoldingMoney">
+          <th mat-header-cell *matHeaderCellDef>{{ 'HOLDING_MONEY' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.wallet_total_holding_money"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="walletPoints">
+          <th mat-header-cell *matHeaderCellDef>{{ 'POINTS' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.wallet_total_points"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="walletCouponPoints">
+          <th mat-header-cell *matHeaderCellDef>{{ 'COUPON_POINTS' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.wallet_total_coupon_points"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="walletRollingMoney">
+          <th mat-header-cell *matHeaderCellDef>{{ 'ROLLING_MONEY' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.wallet_total_rolling_money"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="walletLosingMoney">
+          <th mat-header-cell *matHeaderCellDef>{{ 'LOSING_MONEY' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.wallet_total_losing_money"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="bettingAmount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'BETTING_AMOUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.betting_money"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="refundAmount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'REFUND_AMOUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.refunded_money"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="netBettingAmount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'NET_BETTING_AMOUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.net_betting_money"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="winningAmount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'WINNING_AMOUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.winning_money"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="canceledAmount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'CANCELLED_AMOUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.canceled_money"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="netWinningAmount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'NET_WINNING_AMOUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.net_winning_money"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="bettingDifference">
+          <th mat-header-cell *matHeaderCellDef>{{ 'BET_DIFFERENCE' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.betting_difference"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="netBettingDifference">
+          <th mat-header-cell *matHeaderCellDef>{{ 'NET_BET_DIFFERENCE' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.net_betting_difference"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="depositedMoney">
+          <th mat-header-cell *matHeaderCellDef>{{ 'DEPOSITED_MONEY' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.deposited_money"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="depositedMoneyCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'DEPOSITED_MONEY_COUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.deposited_money_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="depositedMoneyByAdmin">
+          <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN_MONEY_PAYMENT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.deposited_money_by_admin"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="depositedMoneyByAdminCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN_MONEY_PAYMENT_COUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.deposited_money_by_admin_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="withdrawalMoney">
+          <th mat-header-cell *matHeaderCellDef>{{ 'WITHDRAWAL_MONEY' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.withdrawal_money"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="withdrawalMoneyCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'WITHDRAWAL_MONEY_COUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.withdrawal_money_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="withdrawalMoneyByAdmin">
+          <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN_MONEY_RECOVERY' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.withdrawal_money_by_admin"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="withdrawalMoneyByAdminCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN_MONEY_RECOVERY_COUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.withdrawal_money_by_admin_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="pointsCreditedByAdmin">
+          <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN_POINTS_PAYMENT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.points_credited_by_admin"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="pointsCreditedByAdminCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN_POINTS_PAYMENT_COUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.points_credited_by_admin_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="pointsDebitedByAdmin">
+          <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN_POINTS_RECOVERY' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.points_debited_by_admin"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="pointsDebitedByAdminCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN_POINTS_RECOVERY_COUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.points_debited_by_admin_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="pointsExchange">
+          <th mat-header-cell *matHeaderCellDef>{{ 'POINTS_EXCHANGE' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.points_exchange"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="pointsExchangeCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'POINTS_EXCHANGE_COUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.points_exchange_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="couponPointsCreditedByAdmin">
+          <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN_COUPON_POINTS_PAYMENT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.coupon_points_credited_by_admin"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="couponPointsCreditedByAdminCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN_COUPON_POINTS_PAYMENT_COUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.coupon_points_credited_by_admin_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="couponPointsDebitedByAdmin">
+          <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN_COUPON_POINTS_RECOVERY' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.coupon_points_debited_by_admin"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="couponPointsDebitedByAdminCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN_COUPON_POINTS_RECOVERY_COUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.coupon_points_debited_by_admin_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="couponPointsCreditedByAgent">
+          <th mat-header-cell *matHeaderCellDef>{{ 'AGENT_COUPON_POINTS_PAYMENT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.coupon_points_credited_by_agent"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="couponPointsCreditedByAgentCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'AGENT_COUPON_POINTS_PAYMENT_COUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.coupon_points_credited_by_agent_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="couponPointsDebitedByAgent">
+          <th mat-header-cell *matHeaderCellDef>{{ 'AGENT_COUPON_POINTS_RECOVERY' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.coupon_points_debited_by_agent"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="couponPointsDebitedByAgentCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'AGENT_COUPON_POINTS_RECOVERY_COUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.coupon_points_debited_by_agent_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="couponPointsDistributionPaymentByAgent">
+          <th mat-header-cell *matHeaderCellDef>{{ 'AGENT_COUPON_POINTS_DISTRIBUTION_PAYMENT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.coupon_points_distribution_payment_by_agent"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="couponPointsDistributionPaymentByAgentCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'AGENT_COUPON_POINTS_DISTRIBUTION_PAYMENT_COUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.coupon_points_distribution_payment_by_agent_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="couponPointsDistributionRecoveryByAgent">
+          <th mat-header-cell *matHeaderCellDef>{{ 'AGENT_COUPON_POINTS_DISTRIBUTION_RECOVERY' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.coupon_points_distribution_recovery_by_agent"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="couponPointsDistributionRecoveryByAgentCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'AGENT_COUPON_POINTS_DISTRIBUTION_RECOVERY_COUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.coupon_points_distribution_recovery_by_agent_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="couponPointsExchange">
+          <th mat-header-cell *matHeaderCellDef>{{ 'COUPON_POINTS_EXCHANGE' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.coupon_points_exchange"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="couponPointsExchangeCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'COUPON_POINTS_EXCHANGE_COUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.coupon_points_exchange_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="rollingMoneyCredited">
+          <th mat-header-cell *matHeaderCellDef>{{ 'ROLLING_MONEY_CREDITED' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.rolling_money_credited"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="rollingMoneyCreditedCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'ROLLING_MONEY_CREDITED_COUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.rolling_money_credited_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="rollingMoneyWithdrawal">
+          <th mat-header-cell *matHeaderCellDef>{{ 'ROLLING_MONEY_WITHDRAWAL' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.rolling_money_withdrawal"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="rollingMoneyWithdrawalCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'ROLLING_MONEY_WITHDRAWAL_COUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.rolling_money_withdrawal_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="losingMoneyCredited">
+          <th mat-header-cell *matHeaderCellDef>{{ 'LOSING_MONEY_CREDITED' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.losing_money_credited"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="losingMoneyCreditedCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'LOSING_MONEY_CREDITED_COUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.losing_money_credited_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="losingMoneyDebited">
+          <th mat-header-cell *matHeaderCellDef>{{ 'LOSING_MONEY_DEBITED' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.losing_money_debited"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="losingMoneyDebitedCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'LOSING_MONEY_DEBITED_COUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.losing_money_debited_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="losingMoneyWithdrawal">
+          <th mat-header-cell *matHeaderCellDef>{{ 'LOSING_MONEY_WITHDRAWAL' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.losing_money_withdrawal"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="losingMoneyWithdrawalCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'LOSING_MONEY_WITHDRAWAL_COUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.losing_money_withdrawal_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="firstRechargeBonusPointsAfterSignup">
+          <th mat-header-cell *matHeaderCellDef>{{ 'FIRST_DEPOSIT_BONUS_POINTS_AFTER_SIGNUP' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.first_recharge_bonus_points_after_signup"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="firstRechargeBonusPointsAfterSignupCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'FIRST_DEPOSIT_BONUS_POINTS_AFTER_SIGNUP_COUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.first_recharge_bonus_points_after_signup_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="firstRechargeBonusPointsOfDay">
+          <th mat-header-cell *matHeaderCellDef>{{ 'FIRST_DEPOSIT_BONUS_POINTS_OF_DAY' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.first_recharge_bonus_points_of_day"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="firstRechargeBonusPointsOfDayCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'FIRST_DEPOSIT_BONUS_POINTS_OF_DAY_COUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.first_recharge_bonus_points_of_day_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="perRechargeBonusPoints">
+          <th mat-header-cell *matHeaderCellDef>{{ 'PER_DEPOSIT_BONUS_POINTS' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.per_recharge_bonus_points"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="perRechargeBonusPointsCount">
+          <th mat-header-cell *matHeaderCellDef>{{ 'PER_DEPOSIT_BONUS_POINTS_COUNT' | translate }}</th>
+          <td mat-cell *matCellDef="let element;">
+            <app-amount-display
+              [value]="element.per_recharge_bonus_points_count"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+
+        <!-- Header row first group -->
+        <ng-container matColumnDef="dateDetail">
+          <th mat-header-cell *matHeaderCellDef [style.text-align]="'center'" [attr.colspan]="1"></th>
+        </ng-container>
+
+        <ng-container matColumnDef="general">
+          <th mat-header-cell *matHeaderCellDef [style.text-align]="'center'" [attr.colspan]="2">{{ 'MEMBERS_REQUEST_DETAIL' | translate }}</th>
+        </ng-container>
+
+        <!-- Header row second group -->
+        <ng-container matColumnDef="transactionDetails">
+          <th mat-header-cell *matHeaderCellDef [style.text-align]="'center'" [attr.colspan]="5">{{ 'WALLET' | translate }}</th>
+        </ng-container>
+
+        <ng-container matColumnDef="walletInfo">
+          <th mat-header-cell *matHeaderCellDef [style.text-align]="'center'" [attr.colspan]="8">{{ 'BETTING' | translate }}</th>
+        </ng-container>
+
+        <ng-container matColumnDef="holdingMoneyByAdmin">
+          <th mat-header-cell *matHeaderCellDef [style.text-align]="'center'" [attr.colspan]="8">{{ 'HOLDING_MONEY' | translate }}</th>
+        </ng-container>
+
+        <ng-container matColumnDef="pointsByAdmin">
+          <th mat-header-cell *matHeaderCellDef [style.text-align]="'center'" [attr.colspan]="6">{{ 'POINTS' | translate }}</th>
+        </ng-container>
+
+        <ng-container matColumnDef="couponPointsByAdmin">
+          <th mat-header-cell *matHeaderCellDef [style.text-align]="'center'" [attr.colspan]="14">{{ 'COUPON_POINTS' | translate }}</th>
+        </ng-container>
+
+        <ng-container matColumnDef="rollingMoney">
+          <th mat-header-cell *matHeaderCellDef [style.text-align]="'center'" [attr.colspan]="4">{{ 'ROLLING_MONEY' | translate }}</th>
+        </ng-container>
+
+        <ng-container matColumnDef="losingMoney">
+          <th mat-header-cell *matHeaderCellDef [style.text-align]="'center'" [attr.colspan]="6">{{ 'LOSING_MONEY' | translate }}</th>
+        </ng-container>
+
+        <ng-container matColumnDef="rechargeBonus">
+          <th mat-header-cell *matHeaderCellDef [style.text-align]="'center'" [attr.colspan]="6">{{ 'DEPOSIT_BONUS' | translate }}</th>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="[
+          'dateDetail',
+          'general',
+          'transactionDetails',
+          'walletInfo',
+          'holdingMoneyByAdmin',
+          'pointsByAdmin',
+          'couponPointsByAdmin',
+          'rollingMoney',
+          'losingMoney',
+          'rechargeBonus',
+          ]"
+        ></tr>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </app-table-wrapper>
+
+    <app-paginator
+      [currentPage]="currentPage"
+      [pageSize]="pageSize"
+      [length]="totalRecords || 0"
+      (page)="onPaginationChange($event)"
+    ></app-paginator>
+  </mat-card-content>
+</mat-card>

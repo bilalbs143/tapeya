@@ -1,0 +1,23 @@
+<form (ngSubmit)="onSubmit()" [formGroup]="form">
+  <div class="d-flex align-items-center">
+    <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12 m-t-16">{{ 'MEMO' | translate }}</mat-label>
+  </div>
+  <div class="w-100">
+    <div class="NgxEditor__Wrapper">
+      <ngx-editor-menu [editor]="editor" [toolbar]="toolbar"></ngx-editor-menu>
+      <ngx-editor
+        formControlName="memo"
+        [editor]="editor"
+        [disabled]="false"
+        [placeholder]="'Type here...'"
+        class="b-t-1"
+      ></ngx-editor>
+    </div>
+  </div>
+
+  <div class="text-right p-t-24 p-r-0">
+    <button mat-flat-button type="submit">
+      {{ 'SUBMIT' | translate }}
+    </button>
+  </div>
+</form>

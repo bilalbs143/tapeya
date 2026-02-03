@@ -1,0 +1,131 @@
+@if (loggedInUserType === 'AGENT') {
+  <div class="row">
+    <div class="col-lg-4 col-sm-4 col-6">
+      <mat-card
+        class="cardWithShadow text-center bg-light-primary"
+      >
+        <mat-card-content class="p-20">
+          <div class="top-bar-card">
+            <div class="stats">
+              <h4 class="mat-subtitle-2 f-w-600 text-primary m-t-8">
+                {{ 'MY_COUPON_POINTS' | translate }}
+              </h4>
+              <h5 class="m-t-4 mat-subtitle-2 f-w-600 text-primary m-t-8">
+                <app-amount-display
+                  [value]="user?.wallet?.coupon_points"
+                ></app-amount-display>
+              </h5>
+            </div>
+            <img
+              [src]="'/assets/images/svgs/total-profit.svg'"
+              alt="users"
+              width="40"
+            />
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <div class="col-lg-4 col-sm-4 col-6">
+      <mat-card
+        class="cardWithShadow text-center bg-light-warning"
+      >
+        <mat-card-content class="p-20">
+          <div class="top-bar-card">
+            <div class="stats">
+              <h4 class="mat-subtitle-2 f-w-600 text-warning m-t-8">
+                {{ 'MY_LOSING_MONEY' | translate }}
+              </h4>
+              <h6 class="m-t-4 mat-subtitle-2 f-w-600 text-warning m-t-8">
+                <app-amount-display
+                  [value]="user?.wallet?.rolling_money"
+                ></app-amount-display>
+              </h6>
+            </div>
+            <img
+              [src]="'/assets/images/svgs/total-profit.svg'"
+              alt="users"
+              width="40"
+            />
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <div class="col-lg-4 col-sm-4 col-6">
+      <mat-card
+        class="cardWithShadow text-center bg-light-secondary"
+      >
+        <mat-card-content class="p-20">
+          <div class="top-bar-card">
+            <div class="stats">
+              <h4 class="mat-subtitle-2 f-w-600 text-secondary m-t-8">
+                {{ 'MY_ROLLING_MONEY' | translate }}
+              </h4>
+              <h6 class="m-t-4 mat-subtitle-2 f-w-600 text-secondary m-t-8">
+                <app-amount-display
+                  [value]="user?.wallet?.rolling_money"
+                ></app-amount-display>
+              </h6>
+            </div>
+            <img
+              [src]="'/assets/images/svgs/total-profit.svg'"
+              alt="users"
+              width="40"
+            />
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+}
+
+<div class="row">
+  @for(topcard of topCards; track $index) {
+    <div class="col-lg-2 col-sm-4 col-6">
+      <mat-card
+        class="cardWithShadow text-center bg-light-{{ topcard.color }}"
+      >
+        <mat-card-content class="p-20">
+          <div class="top-bar-card">
+            <div class="stats">
+              <h4 class="mat-subtitle-2 f-w-600 text-{{ topcard.color }} m-t-8">
+                {{ topcard.title | translate }}
+              </h4>
+              <h5 class="m-t-4 mat-subtitle-2 f-w-600 text-{{ topcard.color }} m-t-8">
+                <app-amount-display
+                  [value]="topcard.value"
+                ></app-amount-display>
+              </h5>
+            </div>
+            <img
+              [src]="topcard.img"
+              alt="users"
+              width="40"
+            />
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+</div>
+
+
+<div class="row">
+  @for(card of statisticsCards; track card) {
+    <div class="col-lg-2 col-sm-4 col-6">
+      <mat-card class="cardWithShadow">
+        <mat-card-content class="p-20">
+          <mat-card-subtitle class="mat-body-1 p-b-4">
+            {{ card.title | translate }}
+          </mat-card-subtitle>
+          <h5 class="mat-subtitle-2 m-t-4 f-w-600">
+            <app-amount-display
+              [value]="card.value"
+            ></app-amount-display>
+          </h5>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+</div>

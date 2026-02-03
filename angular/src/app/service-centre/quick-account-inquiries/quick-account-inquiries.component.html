@@ -1,0 +1,166 @@
+<mat-card class="cardWithShadow m-b-10">
+  <mat-card-content class="p-10">
+    <form (ngSubmit)="loadHttpData()" [formGroup]="searchForm">
+      <div class="row">
+        <div class="col-lg-3 m-b-10">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label>{{ 'ID' | translate }}</mat-label>
+            <input
+              matInput
+              formControlName="username"
+            />
+          </mat-form-field>
+        </div>
+        <div class="col-lg-3 m-b-10">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label>{{ 'NAME' | translate }}</mat-label>
+            <input
+              matInput
+              formControlName="name"
+            />
+          </mat-form-field>
+        </div>
+        <div class="col-lg-3 m-b-10">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label>{{ 'START_DATE' | translate }}</mat-label>
+            <input
+              matInput
+              formControlName="created_after"
+              [matDatepicker]="startDate"
+            />
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="startDate"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #startDate></mat-datepicker>
+          </mat-form-field>
+        </div>
+        <div class="col-lg-3 m-b-10">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label>{{ 'END_DATE' | translate }}</mat-label>
+            <input
+              matInput
+              formControlName="created_before"
+              [matDatepicker]="endDate"
+            />
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="endDate"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #endDate></mat-datepicker>
+          </mat-form-field>
+        </div>
+        <div
+          class="col-lg-12 d-flex align-items-center justify-content-end gap-8"
+        >
+          <button mat-stroked-button (click)="resetSearchForm()">
+            {{ 'CLEAR_SEARCH' | translate }}
+          </button>
+
+          <button mat-flat-button type="submit">
+            {{ 'SEARCH' | translate }}
+          </button>
+
+          <button
+            mat-flat-button
+            (click)="openManageAccountInfoDialog()"
+            type="button"
+          >
+            {{ 'UPDATE_ACCOUNT_INFO' | translate }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="cardWithShadow m-b-0">
+  <mat-card-content class="p-10">
+    <app-table-wrapper
+        [isLoading]="isLoading"
+      >
+      <table
+        mat-table
+        [dataSource]="dataSource"
+        matSort
+        matSortActive="created_at"
+        [matSortDisableClear]="true"
+        matSortDirection="desc"
+        class="w-100"
+      >
+        <ng-container matColumnDef="#">
+          <th mat-header-cell *matHeaderCellDef>#</th>
+          <td mat-cell *matCellDef="let row; let i = index">
+            <app-serial-number
+              [currentPage]="currentPage"
+              [pageSize]="pageSize"
+              [i]="i"
+              [totalRecords]="totalRecords"
+            ></app-serial-number>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell mat-sort-header="created_by.name" disableClear *matHeaderCellDef>
+            {{ 'NAME' | translate }}
+          </th>
+          <td mat-cell *matCellDef="let element">
+            <app-hidden-item
+              [isLink]="true"
+              [id]="element.creator.id"
+              [displayName]="element.creator.name"
+              [userType]="element.creator.type_enum"
+            ></app-hidden-item>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="username">
+          <th mat-header-cell mat-sort-header="created_by.username" disableClear *matHeaderCellDef>
+            {{ 'ID' | translate }}
+          </th>
+          <td mat-cell *matCellDef="let element">
+            <app-hidden-item
+              [isLink]="true"
+              [id]="element.creator.id"
+              [displayName]="element.creator.username"
+              [userType]="element.creator.type_enum"
+            ></app-hidden-item>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="phoneNumber">
+          <th mat-header-cell *matHeaderCellDef>
+            {{ 'PHONE_NUMBER' | translate }}
+          </th>
+          <td mat-cell *matCellDef="let element">{{ element.phone }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="message">
+          <th mat-header-cell *matHeaderCellDef>{{ 'MESSAGE' | translate }}</th>
+          <td mat-cell *matCellDef="let element">{{ element.message }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="createdAt">
+          <th mat-header-cell mat-sort-header="created_at" disableClear *matHeaderCellDef>
+            {{ 'CREATED_AT' | translate }}
+          </th>
+          <td mat-cell *matCellDef="let element">
+            <app-date-format
+              [value]="element.created_at"
+            ></app-date-format>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+    </app-table-wrapper>
+
+    <app-paginator
+      [currentPage]="currentPage"
+      [pageSize]="pageSize"
+      [length]="totalRecords || 0"
+      (page)="onPaginationChange($event)"
+    ></app-paginator>
+  </mat-card-content>
+</mat-card>

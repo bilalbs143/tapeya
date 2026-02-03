@@ -1,0 +1,116 @@
+<div class="blank-layout-container justify-content-center min-vh-100">
+  <div class="position-relative row w-100 h-100">
+    <!-- Left Section -->
+    <div class="col-lg-7 col-xl-8 bg-gredient p-0">
+      <div class="p-24 h-100 d-flex justify-content-center align-items-center">
+        <a [routerLink]="['/']">
+          <img
+            src="https://art-chip.s3.ap-southeast-1.amazonaws.com/logo/artchip-logo-dark.png"
+            alt="logo"
+            class="w-64 h-64 object-contain md:w-72 md:h-72 lg:w-80 lg:h-80"
+          />
+        </a>
+      </div>
+    </div>
+
+    <!-- Right Section -->
+    <div class="col-lg-5 col-xl-4 p-0">
+      <div
+        class="p-32 d-flex align-items-start align-items-lg-center justify-content-center h-100"
+      >
+        <div class="row justify-content-center w-100">
+          <div class="col-lg-9 max-width-form">
+            <h4 class="f-w-700 f-s-24 m-0">
+              {{ 'WELCOME_TO_BACKOFFICE' | translate }}
+            </h4>
+            <span class="f-s-14 d-block mat-body-1 m-t-8">
+              {{ 'YOUR_PERSONAL_BACKOFFICE' | translate }}
+            </span>
+
+            <form class="m-t-30" [formGroup]="loginForm" (ngSubmit)="submit()">
+              <!-- Username -->
+              <div class="row">
+                <div class="col-lg-12 d-flex align-items-center">
+                  <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12">
+                    {{ 'USERNAME' | translate }}
+                  </mat-label>
+                </div>
+                <div class="col-lg-12">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>{{ 'USERNAME' | translate }}</mat-label>
+                    <input matInput formControlName="username" />
+                    <mat-hint
+                      class="m-b-16 error-msg"
+                      *ngIf="form['username'].touched && form['username'].invalid"
+                    >
+                      <div
+                        class="text-error"
+                        *ngIf="form['username'].errors?.['required']"
+                      >
+                        {{ 'USERNAME_IS_REQUIRED' | translate }}
+                      </div>
+                      <div
+                        class="text-error"
+                        *ngIf="form['username'].errors?.['minlength']"
+                      >
+                        {{ 'USERNAME_SHOULD_BE_6_CHARACTER' | translate }}
+                      </div>
+                    </mat-hint>
+                  </mat-form-field>
+                </div>
+              </div>
+
+              <!-- Password -->
+              <div class="row">
+                <div class="col-lg-12 d-flex align-items-center">
+                  <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12">
+                    {{ 'PASSWORD' | translate }}
+                  </mat-label>
+                </div>
+                <div class="col-lg-12">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>{{ 'PASSWORD' | translate }}</mat-label>
+                    <input
+                      ngxTouchKeyboard
+                      autocomplete="off"
+                      #touchKeyboard="ngxTouchKeyboard"
+                      (focus)="touchKeyboard.openPanel()"
+                      matInput
+                      type="password"
+                      formControlName="password"
+                    />
+                    <mat-hint
+                      class="m-b-16 error-msg"
+                      *ngIf="form['password'].touched && form['password'].invalid"
+                    >
+                      <div
+                        class="text-error"
+                        *ngIf="form['password'].errors?.['required']"
+                      >
+                        {{ 'PASSWORD_IS_REQUIRED' | translate }}
+                      </div>
+                    </mat-hint>
+                  </mat-form-field>
+                </div>
+              </div>
+
+              <!-- Remember Me -->
+              <div class="d-flex align-items-center m-b-12">
+                <mat-checkbox formControlName="rememberMe"
+                >{{ 'REMEMBER_ME' | translate }}</mat-checkbox
+                >
+              </div>
+
+              <!-- Submit -->
+              <app-submit-button
+                [isSubmitting]="isSubmitting"
+                [disabled]="!loginForm.valid"
+                classesName="w-100"
+              ></app-submit-button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

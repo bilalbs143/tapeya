@@ -1,0 +1,220 @@
+<app-dialog-wrapper [dialogTitle]="data?.record?.id ? 'EDIT_PROMOTION' : 'ADD_PROMOTION'">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <mat-dialog-content class="mat-typography mat-subtitle-2 lh-16">
+      <div class="row">
+        <div class="col-lg-4">
+          <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12">{{ 'PROMOTION_NAME' | translate }}</mat-label>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>{{ 'PROMOTION_NAME' | translate }}</mat-label>
+            <input matInput formControlName="name" />
+            @if (formControls['name'].touched && formControls['name'].invalid) {
+              <mat-hint class="m-b-16 error-msg">
+                @if (formControls['name'].errors && formControls['name'].hasError('required')) {
+                  <div class="text-error">
+                    {{ 'PROMOTION_NAME' | translate }} {{ 'IS_REQUIRED' | translate }}
+                  </div>
+                }
+              </mat-hint>
+            }
+          </mat-form-field>
+        </div>
+        <div class="col-lg-4">
+          <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12">{{ 'PROMOTION_TYPE' | translate }}</mat-label>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>{{ 'PROMOTION_TYPE' | translate }}</mat-label>
+            <mat-select formControlName="type">
+              @for (type of types; track type.key) {
+                <mat-option [value]="type.key">{{ type.type_enum | translate }}</mat-option>
+              }
+            </mat-select>
+            @if (formControls['type'].touched && formControls['type'].invalid) {
+              <mat-hint class="m-b-16 error-msg">
+                @if (formControls['type'].errors && formControls['type'].hasError('required')) {
+                  <div class="text-error">
+                    {{ 'PROMOTION_TYPE' | translate }} {{ 'IS_REQUIRED' | translate }}
+                  </div>
+                }
+              </mat-hint>
+            }
+          </mat-form-field>
+        </div>
+        <div class="col-lg-4">
+          <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12">{{ 'STATUS' | translate }}</mat-label>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>{{ 'STATUS' | translate }}</mat-label>
+            <mat-select formControlName="status">
+              <mat-option value="active">{{ 'ACTIVE' | translate }}</mat-option>
+              <mat-option value="inactive">{{ 'INACTIVE' | translate }}</mat-option>
+            </mat-select>
+            @if (formControls['status'].touched && formControls['status'].invalid) {
+              <mat-hint class="m-b-16 error-msg">
+                @if (formControls['status'].errors && formControls['status'].hasError('required')) {
+                  <div class="text-error">
+                    {{ 'STATUS' | translate }} {{ 'IS_REQUIRED' | translate }}
+                  </div>
+                }
+              </mat-hint>
+            }
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-6 d-flex align-items-center">
+          <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12">{{ 'VALID_FROM' | translate }}</mat-label>
+        </div>
+        <div class="col-lg-6 d-flex align-items-center">
+          <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12">{{ 'VALID_TO' | translate }}</mat-label>
+        </div>
+        <div class="col-lg-6">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>{{ 'VALID_FROM' | translate }}</mat-label>
+            <input matInput [matDatepicker]="pickerFrom" formControlName="valid_from" />
+            <mat-datepicker-toggle matSuffix [for]="pickerFrom"></mat-datepicker-toggle>
+            <mat-datepicker #pickerFrom></mat-datepicker>
+            @if (formControls['valid_from'].touched && formControls['valid_from'].invalid) {
+              <mat-hint class="m-b-16 error-msg">
+                @if (formControls['valid_from'].errors && formControls['valid_from'].hasError('required')) {
+                  <div class="text-error">
+                    {{ 'VALID_FROM' | translate }} {{ 'IS_REQUIRED' | translate }}
+                  </div>
+                }
+              </mat-hint>
+            }
+          </mat-form-field>
+        </div>
+        <div class="col-lg-6">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>{{ 'VALID_TO' | translate }}</mat-label>
+            <input matInput [matDatepicker]="pickerTo" formControlName="valid_to" />
+            <mat-datepicker-toggle matSuffix [for]="pickerTo"></mat-datepicker-toggle>
+            <mat-datepicker #pickerTo></mat-datepicker>
+            @if (formControls['valid_to'].touched && formControls['valid_to'].invalid) {
+              <mat-hint class="m-b-16 error-msg">
+                @if (formControls['valid_to'].errors && formControls['valid_to'].hasError('required')) {
+                  <div class="text-error">
+                    {{ 'VALID_TO' | translate }} {{ 'IS_REQUIRED' | translate }}
+                  </div>
+                }
+              </mat-hint>
+            }
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-6">
+          <div class="row">
+            <div class="col-lg-6 d-flex align-items-center">
+              <mat-slide-toggle formControlName="is_stackable">{{ 'STACKABLE' | translate }}</mat-slide-toggle>
+            </div>
+            <div class="col-lg-6 d-flex align-items-center">
+              <mat-slide-toggle formControlName="is_visible">{{ 'VISIBLE' | translate }}</mat-slide-toggle>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12">{{ 'IMAGE' | translate }}</mat-label>
+          <button mat-flat-button type="button" class="input-file-button w-100">
+            <input type="file" formControlName="image" accept="image/*" (change)="onFileSelected($event)" />
+          </button>
+          @if (formControls['image'].touched && formControls['image'].invalid) {
+            <div class="m-t-8 m-b-16 error-msg">
+              @if (formControls['image'].errors && formControls['image'].hasError('required')) {
+                <div class="text-error">
+                  {{ 'IMAGE' | translate }} {{ 'IS_REQUIRED' | translate }}
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-12 d-flex align-items-center">
+          <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12 m-t-20">{{ 'DESCRIPTION' | translate }}</mat-label>
+        </div>
+        <div class="col-lg-12">
+          <div class="NgxEditor__Wrapper">
+            <ngx-editor-menu [editor]="editor" [toolbar]="toolbar"></ngx-editor-menu>
+            <ngx-editor formControlName="description" [editor]="editor" class="b-t-1"></ngx-editor>
+          </div>
+        </div>
+      </div>
+
+      @if (form.value.type && configSchema.length) {
+      <div class="row">
+        <div class="col-lg-12 d-flex align-items-center">
+          <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12 m-t-20">{{ 'PROMOTION_CONFIG' | translate }}</mat-label>
+        </div>
+        @if (selectedTypeFormula) {
+        <div class="col-lg-12">
+          <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-8">{{ 'FORMULA' | translate }}</mat-label>
+          <div class="mat-body-2 lh-16 m-b-16" [innerHTML]="selectedTypeFormula"></div>
+        </div>
+        }
+
+        @for (field of configSchema; track field.name) {
+          <div class="col-lg-6 col-xl-4">
+            <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12">{{ field.label_key | translate }}</mat-label>
+            @if (field.control !== 'textarea') {
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>{{ field.label_key | translate }}</mat-label>
+              <input
+                  *ngIf="field.control === 'number' || field.control === 'text'"
+                  matInput
+                  [type]="field.control === 'number' ? 'number' : 'text'"
+                  [formControlName]="field.name"
+                  [placeholder]="field.format === 'csv' ? 'pragmatic, pgsoft' : ''"
+                />
+              @if (field.control === 'select') {
+                <mat-select [formControlName]="field.name">
+                  @for (opt of field.options || []; track opt.value) {
+                    <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                  }
+                </mat-select>
+              }
+              @if (formControls[field.name].touched && formControls[field.name].invalid) {
+                <mat-hint class="m-b-16 error-msg">
+                  @if (formControls[field.name].errors && formControls[field.name].hasError('required')) {
+                    <div class="text-error">
+                      {{ field.label_key | translate }} {{ 'IS_REQUIRED' | translate }}
+                    </div>
+                  }
+                </mat-hint>
+              }
+            </mat-form-field>
+            }
+            @if (field.control === 'textarea') {
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>{{ field.label_key | translate }}</mat-label>
+              <textarea matInput rows="3" [formControlName]="field.name"></textarea>
+              @if (formControls[field.name].touched && formControls[field.name].invalid) {
+                <mat-hint class="m-b-16 error-msg">
+                  @if (formControls[field.name].errors && formControls[field.name].hasError('required')) {
+                    <div class="text-error">
+                      {{ field.label_key | translate }} {{ 'IS_REQUIRED' | translate }}
+                    </div>
+                  }
+                </mat-hint>
+              }
+            </mat-form-field>
+            }
+          </div>
+        }
+      </div>
+      }
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions>
+      <button mat-button class="b-1 border-error text-error" mat-dialog-close>
+        {{ 'CANCEL' | translate }}
+      </button>
+
+      <app-submit-button [isSubmitting]="isSubmitting" [disabled]="form.invalid"></app-submit-button>
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>
+
+

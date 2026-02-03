@@ -1,0 +1,231 @@
+<div class="customizerNav">
+  <ng-scrollbar class="position-relative" style="height: calc(100vh - 50px)">
+    <div class="p-x-16 p-y-20">
+      <h3 class="mat-subtitle-1 f-s-21 f-w-600">{{ 'SETTINGS' | translate }}</h3>
+    </div>
+    <mat-divider></mat-divider>
+    <div class="p-24">
+      <h6 class="f-s-16 f-w-600 mat-subtitle-1 f-s-16 m-b-16">{{ 'THEME_OPTION' | translate }}</h6>
+      <mat-button-toggle-group
+        #group="matButtonToggleGroup"
+        [(ngModel)]="options.theme"
+        (change)="setDark($event.value)"
+        class="customizer-button-group gap-16"
+        [hideSingleSelectionIndicator]="hideSingleSelectionIndicator()"
+      >
+        <mat-button-toggle [value]="'light'">
+          <div class="d-flex align-items-center f-w-500">
+            <i-tabler name="sun-high" class="d-flex m-r-8 fill-icon"></i-tabler>
+            {{ 'LIGHT' | translate }}
+          </div>
+        </mat-button-toggle>
+        <mat-button-toggle [value]="'dark'">
+          <div class="d-flex align-items-center f-w-500">
+            <i-tabler name="moon" class="d-flex m-r-8 fill-icon"></i-tabler>
+            {{ 'DARK' | translate }}
+          </div>
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <div>
+        <h6 class="f-s-16 f-w-600 mat-subtitle-1 f-s-16 m-b-16 m-t-24 p-t-16">
+          {{ 'THEME_COLORS' | translate }}
+        </h6>
+        <mat-button-toggle-group
+          #group="matButtonToggleGroup"
+          [(ngModel)]="options.activeTheme"
+          (change)="setColor($event.value)"
+          class="customizer-button-group theme-colors two-row"
+          [hideSingleSelectionIndicator]="hideSingleSelectionIndicator()"
+        >
+          <mat-button-toggle [value]="'blue_theme'">
+            <span
+              class="theme-circle blue_theme"
+              [matTooltip]="'BLUE_THEME' | translate"
+              matTooltipClass="text-uppercase"
+              matTooltipPosition="above"
+            >
+              <i-tabler name="check" class="icon-16 theme-icon"></i-tabler>
+            </span>
+          </mat-button-toggle>
+          <mat-button-toggle [value]="'aqua_theme'">
+            <span
+              class="theme-circle aqua_theme"
+              [matTooltip]="'AQUA_THEME' | translate"
+              matTooltipClass="text-uppercase"
+              matTooltipPosition="above"
+            >
+              <i-tabler name="check" class="icon-16 theme-icon"></i-tabler>
+            </span>
+          </mat-button-toggle>
+          <mat-button-toggle [value]="'purple_theme'">
+            <span
+              class="theme-circle purple_theme"
+              [matTooltip]="'PURPLE_THEME' | translate"
+              matTooltipClass="text-uppercase"
+              matTooltipPosition="above"
+            >
+              <i-tabler name="check" class="icon-16 theme-icon"></i-tabler>
+            </span>
+          </mat-button-toggle>
+
+          <mat-button-toggle [value]="'green_theme'">
+            <span
+              class="theme-circle green_theme"
+              [matTooltip]="'GREEN_THEME' | translate"
+              matTooltipClass="text-uppercase"
+              matTooltipPosition="above"
+            >
+              <i-tabler name="check" class="icon-16 theme-icon"></i-tabler>
+            </span>
+          </mat-button-toggle>
+          <mat-button-toggle [value]="'cyan_theme'">
+            <span
+              class="theme-circle cyan_theme"
+              [matTooltip]="'CYAN_THEME' | translate"
+              matTooltipClass="text-uppercase"
+              matTooltipPosition="above"
+            >
+              <i-tabler name="check" class="icon-16 theme-icon"></i-tabler>
+            </span>
+          </mat-button-toggle>
+          <mat-button-toggle [value]="'orange_theme'">
+            <span
+              class="theme-circle orange_theme"
+              [matTooltip]="'ORANGE_THEME' | translate"
+              matTooltipClass="text-uppercase"
+              matTooltipPosition="above"
+            >
+              <i-tabler name="check" class="icon-16 theme-icon"></i-tabler>
+            </span>
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
+
+      @if (!options.horizontal) {
+        <div>
+          <h6 class="f-s-16 f-w-600 mat-subtitle-1 f-s-16 m-b-16 m-t-24 p-t-16">
+            {{ 'SIDEBAR_TYPE' | translate }}
+          </h6>
+
+          <mat-button-toggle-group
+            #group="matButtonToggleGroup"
+            [(ngModel)]="options.sidenavCollapsed"
+            (change)="setSidebar($event.value)"
+            [hideSingleSelectionIndicator]="hideSingleSelectionIndicator()"
+            class="customizer-button-group gap-16"
+          >
+            <mat-button-toggle [value]="false">
+              <div class="d-flex align-items-center f-w-500">
+                <i-tabler
+                  name="layout-sidebar-right"
+                  class="d-flex m-r-8 fill-icon"
+                ></i-tabler>
+                {{ 'FULL' | translate }}
+              </div>
+            </mat-button-toggle>
+            <mat-button-toggle [value]="true">
+              <div class="d-flex align-items-center f-w-500">
+                <i-tabler
+                  name="layout-sidebar"
+                  class="d-flex m-r-8 fill-icon"
+                ></i-tabler>
+                {{ 'MINI_SIDEBAR' | translate }}
+              </div>
+            </mat-button-toggle>
+          </mat-button-toggle-group>
+        </div>
+      }
+
+      <h6 class="f-s-16 f-w-600 mat-subtitle-1 f-s-16 m-b-16 m-t-24 p-t-16">
+        {{ 'LAYOUT_TYPE' | translate }}
+      </h6>
+
+      <mat-button-toggle-group
+        #group="matButtonToggleGroup"
+        [(ngModel)]="options.horizontal"
+        (change)="setLayout($event.value)"
+        class="customizer-button-group gap-16"
+        [hideSingleSelectionIndicator]="hideSingleSelectionIndicator()"
+      >
+        <mat-button-toggle [value]="false">
+          <div class="d-flex align-items-center f-w-500">
+            <i-tabler
+              name="layout-distribute-vertical"
+              class="d-flex m-r-8 fill-icon"
+            ></i-tabler>
+            {{ 'VERTICAL' | translate }}
+          </div>
+        </mat-button-toggle>
+        <mat-button-toggle [value]="true">
+          <div class="d-flex align-items-center f-w-500">
+            <i-tabler
+              name="layout-distribute-horizontal"
+              class="d-flex m-r-8 fill-icon"
+            ></i-tabler>
+            {{ 'HORIZONTAL' | translate }}
+          </div>
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <h6 class="f-s-16 f-w-600 mat-subtitle-1 f-s-16 m-b-16 m-t-24 p-t-16">
+        {{ 'CARD_WITH' | translate }}
+      </h6>
+
+      <mat-button-toggle-group
+        #group="matButtonToggleGroup"
+        [(ngModel)]="options.cardBorder"
+        (change)="setCardBorder($event.value)"
+        class="customizer-button-group gap-16"
+        [hideSingleSelectionIndicator]="hideSingleSelectionIndicator()"
+      >
+        <mat-button-toggle [value]="false">
+          <div class="d-flex align-items-center f-w-500">
+            <i-tabler name="shadow" class="d-flex m-r-8 fill-icon"></i-tabler>
+            {{ 'SHADOW' | translate }}
+          </div>
+        </mat-button-toggle>
+        <mat-button-toggle [value]="true">
+          <div class="d-flex align-items-center f-w-500">
+            <i-tabler
+              name="shadow-off"
+              class="d-flex m-r-8 fill-icon"
+            ></i-tabler>
+            {{ 'BORDER' | translate }}
+          </div>
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <h6 class="f-s-16 f-w-600 mat-subtitle-1 f-s-16 m-b-16 m-t-24 p-t-16">
+        {{ 'CONTAINER_OPTION' | translate }}
+      </h6>
+
+      <mat-button-toggle-group
+        #group="matButtonToggleGroup"
+        [(ngModel)]="options.boxed"
+        (change)="setBoxContainer($event.value)"
+        class="customizer-button-group gap-16"
+        [hideSingleSelectionIndicator]="hideSingleSelectionIndicator()"
+      >
+        <mat-button-toggle [value]="false">
+          <div class="d-flex align-items-center f-w-500">
+            <i-tabler
+              name="layout-navbar"
+              class="d-flex m-r-8 fill-icon"
+            ></i-tabler>
+            {{ 'FULL' | translate }}
+          </div>
+        </mat-button-toggle>
+        <mat-button-toggle [value]="true">
+          <div class="d-flex align-items-center f-w-500">
+            <i-tabler
+              name="layout-sidebar"
+              class="d-flex m-r-8 fill-icon"
+            ></i-tabler>
+            {{ 'BOXED' | translate }}
+          </div>
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+  </ng-scrollbar>
+</div>

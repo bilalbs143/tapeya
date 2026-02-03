@@ -1,0 +1,23 @@
+<mat-card class="cardWithShadow overflow-hidden mb-0!">
+  <mat-card-content>
+    <div class="flex items-start justify-between">
+      <div class="flex flex-col gap-2">
+        <mat-card-title>Monthly Earnings</mat-card-title>
+        <div class="flex items-start gap-2">
+          <h4 class="text-xl">$6,820</h4>
+          <button mat-mini-fab class="bg-light-success text-success shadow-none size-5!">
+            <i-tabler name="arrow-up-left" class="size-3.5! flex"></i-tabler>
+          </button>
+          <div class="text-sm">+9%</div>
+        </div>
+      </div>
+      <span class="bg-light-primary rounded-sm size-11! flex items-center justify-center">
+        <img src="assets/images/svgs/icon-master-card-2.svg" alt="icon" />
+      </span>
+    </div>
+    <apx-chart [series]="monthlytwoChart.series" [dataLabels]="monthlytwoChart.dataLabels"
+      [chart]="monthlytwoChart.chart" [legend]="monthlytwoChart.legend" [colors]="monthlytwoChart.colors"
+      [stroke]="monthlytwoChart.stroke" [tooltip]="monthlytwoChart.tooltip" [fill]="monthlytwoChart.fill"
+      [plotOptions]="monthlytwoChart.plotOptions" [responsive]="monthlytwoChart.responsive"></apx-chart>
+  </mat-card-content>
+</mat-card>

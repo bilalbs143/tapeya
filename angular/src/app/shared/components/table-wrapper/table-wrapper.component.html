@@ -1,0 +1,13 @@
+<div class="table-responsive" #scrollContainer (mousedown)="startDragging($event)" (mouseup)="stopDragging()">
+  <ng-content></ng-content>
+
+  @if (isLoading) {
+    <div class="skeleton-loader-header">
+      <ngx-skeleton-loader
+        class="skeleton-loader-style"
+        count="13"
+        [theme]="tableLoader"
+      ></ngx-skeleton-loader>
+    </div>
+  }
+</div>

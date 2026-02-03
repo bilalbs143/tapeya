@@ -1,0 +1,199 @@
+Promotion & Bonus System – Functional Documentation
+
+1. Overview
+
+The Promotion System lets the platform create, manage, display, activate, and redeem multiple campaigns (e.g., New Member Bonus, Slot Deposit Bonus, Cashback). Admin defines everything; the user site reflects changes instantly.
+
+⸻
+
+2. User Functionality
+
+2.1 Promotion Display
+	•	Header/homepage banner lists all currently active promotions.
+	•	Each card shows: image, title, status (Active/Expired), optional expiry.
+
+2.2 User Actions
+	•	Activate / Claim: enabled only when eligibility is met; otherwise disabled or shows “Does Not Meet Requirements”. On click, user goes to the Promotion Details page and status becomes Activated.
+	•	View Details: opens Promotion Details (modal or page) with full description, T&C, calculation examples, turnover (TO) rules, and validity period.
+
+2.3 Promotion Details (Bonus Inner Page)
+	•	Shows title, validity window, bonus type, eligible games, min deposit, max bonus, turnover multiplier (e.g., 22x deposit + bonus).
+
+2.4 Progress & Redemption
+	•	After activation, show progress: current TO, required TO, completion%.
+	•	Example: Deposit 100,000 + Bonus 100,000 → TO = (Deposit + Bonus) x 22 = 4,400,000.
+	•	Redeem / Claim button appears when TO is fully met; on success, bonus moves to main wallet and status becomes Completed.
+	•	If rules are violated, bonus can be forfeited automatically; reason is visible in admin.
+
+2.5 User-Side Rules Enforcement
+	•	Common rules: new members only, specific games/providers, max claims per user, bonus validity after activation, anti-abuse (multi-account, stacking prevention, non-stackable with other promos when flagged).
+
+⸻
+
+3. Admin Functionality
+
+3.1 Promotion Management
+	•	Create, edit, enable/disable, delete promotions.
+
+3.2 Configuration Fields
+	•	Basic: title, description (rich text/HTML), image/banner, type (deposit bonus, cashback, free spin, etc.), status.
+	•	Bonus: percentage, minimum deposit, maximum bonus, turnover multiplier, eligible games/providers.
+	•	Eligibility: new user only flag, user level/VIP tier, one-time vs multiple claims, stackable toggle.
+	•	Validity: start/end date-time, bonus expiry duration after activation.
+
+3.3 Monitoring & Controls
+	•	Dashboard lists users who activated, met turnover, redeemed, or were forfeited; shows per-user progress.
+	•	Admin can forfeit/cancel manually.
+	•	Audit logs: activation, turnover updates, redemption, forfeits.
+
+⸻
+
+4. System Flow
+	1.	Admin creates/publishes a promotion.
+	2.	User site shows it in the header/banner list.
+	3.	User opens details to read T&C.
+	4.	User activates; promotion moves to the user’s Bonus page.
+	5.	User plays eligible games; system tracks turnover automatically.
+	6.	When TO met, user redeems bonus.
+	7.	Bonus credits to main wallet; status becomes Completed (or forfeited if rules broken).
+
+⸻
+
+5. Bonus Types
+
+5.1 New Member Bonus (Slots Deposit)
+	•	Validity: until 02-Mar-2026.
+	•	Eligible users: new members only; slots games only.
+	•	Deposit limits: minimum deposit IDR 100,000; maximum bonus IDR 500,000.
+	•	Bonus formula: Bonus = min(Deposit x (Configured %), IDR 500,000).
+	•	Turnover formula: Required TO = (Deposit + Bonus) x 22. Example: Deposit 100,000 → Bonus 100,000 → TO requirement 4,400,000.
+	•	Claim flow: go to "Claim Bonus" page, select the promo, click "Claim this promotion".
+	•	Redemption timing: bonus can be claimed after TO is met; must be claimed within 24 hours of meeting TO or it is forfeited.
+	•	Restrictions: anti-abuse checks (e.g., pending free spins) may freeze balance; shared IP cannot withdraw; not eligible for weekly bonus while on this promo; general T&C apply and operator may cancel/withdraw without notice.
+
+5.2 Casino Streak Bonus (Live Casino)
+	•	Scope: all members; live casino Baccarat only.
+	•	Eligibility pattern: 8 consecutive tickets that are all wins or all losses within one day (00:00–23:59).
+	•	Stake example: ticket stake IDR 50,000; 8 tickets → total stake 400,000.
+	•	Bonus formula: Bonus = Total valid stake x Configured %. Example: 400,000 x 25% = 100,000.
+	•	Betting freeze: must stop betting after the 8th ticket when claiming; any bet before crediting voids the bonus.
+	•	Claim flow: send ticket numbers and win/lose ticket photos to CS; wait for verification.
+	•	Category choice: may choose both “Win streak” and “Lose streak” once per day each.
+	•	Validity: can be claimed daily during promo period; 8-ticket streak validity is per day (00:00–23:59).
+	•	Exclusions: ties/draws/side bets are not valid tickets.
+	•	Anti-abuse: fraud, bonus hunting, shared IP can void bonus and winnings; operator may change/cancel without notice.
+	•	Additional note: different minimum stakes (e.g., 20,000 vs 300,000) change max bonus and the 20-ticket prize tier (e.g., Honda CBR or Daihatsu Ayla).
+
+5.3 Slots Cashback + Commission
+	•	Validity: until 24-Sep-2030 (promo started 18-May-2020).
+	•	Scope: all members using IDR; slots games only.
+	•	Calculation window: weekly Monday–Sunday; bonuses credited every Monday of the following week.
+	•	Rates: Cashback 5% on net loss after commission; Commission 0.5% on weekly turnover.
+	•	Formulas:
+		•	Commission = Weekly Turnover x 0.5%.
+		•	Cashback Base = max(Weekly Net Loss – Commission, 0).
+		•	Cashback = Cashback Base x 5%.
+		•	Total Bonus = Commission + Cashback.
+	•	Example (as provided): Weekly net loss 100,000; weekly turnover 1,000,000 → Commission 1,000,000 x 0.5% = 5,000; Cashback Base = 100,000 – 5,000 = 95,000; Cashback = 95,000 x 5% = 4,750; Total Bonus = 4,750 + 5,000 = 9,750.
+	•	Claim flow: open “Claim Commission” page, select this promo, click “Claim this promotion.”
+	•	Restrictions: identical IP or incorrect member data voids bonus; turnover manipulation/abuse voids bonus and winnings; general T&C apply.
+
+5.4 Sports Cashback + Commission
+	•	Validity: until 01-Mar-2026 (promo started 18-May-2020).
+	•	Scope: all new members using IDR; sportsbook only.
+	•	Calculation window: weekly Monday–Sunday; bonuses credited every Monday of the following week.
+	•	Rates: Cashback 5% on net loss after commission; Commission 0.5% on qualifying weekly turnover.
+	•	Formulas:
+		•	Commission = Qualifying Weekly Turnover x 0.5%.
+		•	Cashback Base = max(Weekly Net Loss – Commission, 0).
+		•	Cashback = Cashback Base x 5%.
+		•	Total Bonus = Commission + Cashback (minimum payout 10,000).
+	•	Example: Weekly net loss 200,000; qualifying turnover 2,000,000 → Commission 2,000,000 x 0.5% = 10,000; Cashback Base = 200,000 – 10,000 = 190,000; Cashback = 190,000 x 5% = 9,500; Total Bonus = 10,000 + 9,500 = 19,500.
+	•	Odds threshold for valid turnover: DEC ≥ 1.7; HK/CN ≥ 0.7; IND ≥ -1.43; MY ≥ 0.7; US ≥ -143. Lower odds bets are excluded from turnover.
+	•	Exclusions: opposite/safety bets or other sports void bonus and winning bets; identical IP or incorrect member data voids bonus; turnover manipulation/abuse voids bonus and winnings; general T&C apply.
+	•	Claim flow: open “Claim Commission” page, select this promo, click “Claim this promotion.”
+
+5.5 Poker Weekly Rakeback (Rollingan 0.3%)
+	•	Validity: until 01-Mar-2026; promo period 01-Jan-2025 to 31-Dec-2025.
+	•	Scope: poker games; weekly rakeback.
+	•	Rate: 0.3% of qualifying weekly turnover/rake.
+	•	Payout timing: automatically credited to each player every Tuesday.
+	•	Minimum payout: IDR 10,000; no maximum bonus cap.
+	•	Anti-abuse: fraud or bonus manipulation voids the rolling bonus; management may cancel/close promos per terms without notice; terms may change without prior notice.
+
+5.6 Arcade Cashback 5%
+	•	Validity: until 01-Mar-2026.
+	•	Scope: all members; arcade games only.
+	•	Rate: 5% weekly cashback (Monday–Sunday window).
+	•	Payout timing: credited every Monday after 14:00 WIB.
+	•	Minimum bonus: IDR 50,000; maximum bonus: IDR 10,000,000.
+	•	Anti-abuse: operator may cancel cashback for fraud or suspicious activity.
+
+5.7 Casino Weekly Commission
+	•	Validity: until 01-Mar-2026; promo period starts 01-Jan.
+	•	Scope: all members; casino games only (excludes sportsbook, slots, poker, arcade, 4D lottery).
+	•	Rate: 0.5% on weekly turnover (Monday–Sunday).
+	•	Payout timing: credited every Monday.
+	•	Formula: Bonus = Weekly Casino Turnover x 0.5%. Example: 5,000,000 x 0.5% = 25,000.
+	•	Claim flow: after login, go to “Claim Bonus”, select this promo, click “Claim this promotion”.
+	•	Restrictions: cannot be combined with other promos; fraud/bonus hunting/shared IP or mismatched data voids bonus and winnings; general T&C apply.
+
+5.8 Free Balance Bonus (Loss Guarantee)
+	•	Validity: no end date specified.
+	•	Scope: new members only; first-time initial deposit; slots only (Pragmatic Play & PG Soft).
+	•	Deposit requirements: minimum deposit IDR 50,000 via bank only (no e-wallets); must register with valid bank account.
+	•	Bonus cap: loss guarantee up to the configured max; not stackable with other promos.
+	•	Turnover requirements: must reach 2x first deposit to claim loss guarantee. Example: Deposit 50,000 → required TO 100,000.
+	•	Withdrawal requirement: balance must reach 4x of (first deposit + loss guarantee) before withdrawal. Example: (50,000 + 50,000) x 4 = 400,000.
+	•	Claim flow: after deposit and before playing, contact CS via Live Chat to confirm participation.
+	•	Identity/IP rules: valid personal data required; 1 IP/1 data only 1x claim (except Palembang IP not eligible); VPN use disqualifies; fraud or abuse voids bonus/withdrawal; operator decisions are final.
+	•	Withdrawal cap note: max withdrawable balance under this promo is IDR 1,000,000; remaining balance will be removed.
+	•	Terms may change without notice.
+
+5.9 Sabung Ayam Cashback 5% (SV388)
+	•	Validity: until 01-Mar-2026.
+	•	Scope: Sabung Ayam/SV388.
+	•	Rate: 5% cashback.
+	•	Payout timing: automatically credited to each account every Tuesday.
+	•	Minimum bonus: IDR 25,000 (or credit 25); no maximum cashback cap.
+	•	Anti-abuse: fraud or suspicious activity may forfeit bonus; management may cancel promos per terms without notice.
+
+⸻
+
+6. Admin Inputs & Formulas (per bonus type)
+
+6.1 New Member 100% (Slots Deposit)
+	•	Admin inputs: min_deposit; max_bonus; bonus_percentage; to_multiplier (22x); expiry_after_activation_hours; allowed_games (slots); eligibility flag (new member only).
+	•	Formulas: Bonus = min(deposit x bonus_percentage, max_bonus). Required TO = (deposit + bonus) x to_multiplier.
+
+6.2 Casino Streak Bonus (Live Casino)
+	•	Admin inputs: streak_length (8); bonus_percentage (25%); stake_min; stake_max (optional); day_window (00:00–23:59); allowed_game (baccarat).
+	•	Formulas: detect 8 consecutive win-only or loss-only tickets; Total Stake = sum(ticket stakes in streak); Bonus = Total Stake x bonus_percentage.
+
+6.3 Slots Cashback + Commission
+	•	Admin inputs: cashback_percentage (5%); commission_percentage (0.5%); min_payout (optional); calc_window (Mon–Sun); payout_day (Mon); scope (slots).
+	•	Formulas: Commission = Weekly Turnover x commission_percentage. CashbackBase = max(Weekly Net Loss – Commission, 0). Cashback = CashbackBase x cashback_percentage. Total Bonus = Commission + Cashback.
+
+6.4 Sports Cashback + Commission
+	•	Admin inputs: cashback_percentage (5%); commission_percentage (0.5%); min_payout (10,000); odds_thresholds (DEC≥1.7, HK/CN≥0.7, IND≥-1.43, MY≥0.7, US≥-143); calc_window (Mon–Sun); payout_day (Mon); scope (sportsbook); eligibility flag (new member only).
+	•	Formulas: Commission = Qualifying Turnover x commission_percentage. CashbackBase = max(Weekly Net Loss – Commission, 0). Cashback = CashbackBase x cashback_percentage. Total Bonus = Commission + Cashback.
+
+6.5 Poker Weekly Rakeback
+	•	Admin inputs: rakeback_percentage (0.3%); min_payout (10,000); payout_day (Tue); scope (poker).
+	•	Formulas: Rakeback = Qualifying Weekly Rake/Turnover x rakeback_percentage.
+
+6.6 Arcade Cashback 5%
+	•	Admin inputs: cashback_percentage (5%); min_payout (50,000); max_payout (10,000,000); calc_window (Mon–Sun); payout_day (Mon after 14:00); scope (arcade).
+	•	Formulas: Cashback = clamp(Weekly Turnover x cashback_percentage, min_payout, max_payout).
+
+6.7 Casino Weekly Commission
+	•	Admin inputs: commission_percentage (0.5%); calc_window (Mon–Sun); payout_day (Mon); scope (casino only); stackable flag (usually false).
+	•	Formulas: Bonus = Weekly Casino Turnover x commission_percentage.
+
+6.8 Free Balance Bonus (Loss Guarantee)
+	•	Admin inputs: min_deposit (bank only); max_guarantee (configurable cap); claim_to_multiplier (e.g., 2x deposit); withdraw_multiplier (e.g., 4x (deposit + guarantee)); max_withdrawable; allowed_providers (Pragmatic Play, PG Soft); first_deposit_only flag; requires_preplay_contact flag.
+	•	Formulas: Guarantee = min(loss, max_guarantee) after meeting TO. Claim TO requirement = deposit x claim_to_multiplier. Withdrawal gate = (deposit + guarantee) x withdraw_multiplier; withdrawals capped at max_withdrawable.
+
+6.9 Sabung Ayam Cashback 5% (SV388)
+	•	Admin inputs: cashback_percentage (5%); min_payout (25,000); payout_day (Tue); scope (sabung/SV388); max_payout (none).
+	•	Formulas: Cashback = max(Weekly Turnover x cashback_percentage, min_payout); no cap.

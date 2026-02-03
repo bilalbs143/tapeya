@@ -1,0 +1,9 @@
+<app-dialog-wrapper dialogTitle="VIEW_GAME_RESULT" [ngClass]="{'cursor-loading': isLoading}">
+  @if (isLoading) {
+    <div class="h-calc-6 d-flex justify-content-center align-items-center">
+      <mat-spinner></mat-spinner>
+    </div>
+  }
+  <iframe #iframe [src]="safeUrl" [class.d-none]="isLoading"  frameborder="0" class="w-100 h-calc-6" (load)="onLoad()"></iframe>
+
+</app-dialog-wrapper>

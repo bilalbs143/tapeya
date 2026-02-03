@@ -1,0 +1,241 @@
+<mat-card class="cardWithShadow m-b-10">
+  <mat-card-content class="p-10">
+    <form (ngSubmit)="loadHttpData()" [formGroup]="searchForm">
+      <div class="row">
+        <div class="col-lg-3 m-b-10">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label>{{ 'ID' | translate }}</mat-label>
+            <input
+              matInput
+              formControlName="username"
+            />
+          </mat-form-field>
+        </div>
+        <div class="col-lg-3 m-b-10">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label>{{ 'NAME' | translate }}</mat-label>
+            <input
+              matInput
+              formControlName="name"
+            />
+          </mat-form-field>
+        </div>
+        <div class="col-lg-3 m-b-10">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label>{{ 'START_DATE' | translate }}</mat-label>
+            <input
+              matInput
+              formControlName="created_after"
+              [matDatepicker]="startDate"
+            />
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="startDate"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #startDate></mat-datepicker>
+          </mat-form-field>
+        </div>
+        <div class="col-lg-3 m-b-10">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label>{{ 'END_DATE' | translate }}</mat-label>
+            <input
+              matInput
+              formControlName="created_before"
+              [matDatepicker]="endDate"
+            />
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="endDate"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #endDate></mat-datepicker>
+          </mat-form-field>
+        </div>
+        <div class="col-lg-3">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label>{{ 'CATEGORIES' | translate }}</mat-label>
+            <mat-select value="" formControlName="category">
+              <mat-option value="">{{ 'ALL' | translate }}</mat-option>
+              @for (category of categories; track category.key) {
+                <mat-option [value]="category.key">{{ category.value }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-lg-9 d-flex align-items-center justify-content-end gap-8">
+          <button mat-stroked-button (click)="resetSearchForm()">
+            {{ 'CLEAR_SEARCH' | translate }}
+          </button>
+
+          <button mat-flat-button type="submit">
+            {{ 'SEARCH' | translate }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="cardWithShadow m-b-10">
+  <mat-card-content class="p-10">
+    <app-table-wrapper
+        [isLoading]="isLoading"
+      >
+      <table
+        mat-table
+        [dataSource]="dataSource"
+        matSort
+        matSortActive="created_at"
+        [matSortDisableClear]="true"
+        matSortDirection="desc"
+        class="w-100"
+      >
+        <ng-container matColumnDef="#">
+          <th mat-header-cell *matHeaderCellDef>#</th>
+          <td mat-cell *matCellDef="let row; let i = index">
+            <app-serial-number
+              [currentPage]="currentPage"
+              [pageSize]="pageSize"
+              [i]="i"
+              [totalRecords]="totalRecords"
+            ></app-serial-number>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell mat-sort-header="user_id.name" disableClear *matHeaderCellDef>
+            {{ 'NAME' | translate }}
+          </th>
+          <td mat-cell *matCellDef="let element">
+            <app-hidden-item
+              [isLink]="true"
+              [id]="element.user.id"
+              [displayName]="element.user.name"
+              [userType]="element.user.type_enum"
+            ></app-hidden-item>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="username">
+          <th mat-header-cell mat-sort-header="user_id.username" disableClear *matHeaderCellDef>
+            {{ 'ID' | translate }}
+          </th>
+          <td mat-cell *matCellDef="let element">
+            <app-hidden-item
+              [isLink]="true"
+              [id]="element.user.id"
+              [displayName]="element.user.username"
+              [userType]="element.user.type_enum"
+            ></app-hidden-item>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="beforeTransaction">
+          <th mat-header-cell mat-sort-header="before_money" disableClear *matHeaderCellDef>
+            {{ 'BEFORE_TRANSACTION' | translate }}
+          </th>
+          <td mat-cell *matCellDef="let element">
+            <app-amount-display
+              [value]="element.before_transaction_amount"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="amount">
+          <th mat-header-cell mat-sort-header="money" disableClear *matHeaderCellDef>
+            {{ 'ROLLING_MONEY' | translate }}
+          </th>
+          <td mat-cell *matCellDef="let element">{{ element.amount }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="afterTransaction">
+          <th mat-header-cell mat-sort-header="after_money" disableClear *matHeaderCellDef>
+            {{ 'AFTER_TRANSACTION' | translate }}
+          </th>
+          <td mat-cell *matCellDef="let element">
+            <app-amount-display
+              [value]="element.after_transaction_amount"
+            ></app-amount-display>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="type">
+          <th mat-header-cell *matHeaderCellDef>
+            {{ 'TYPE' | translate }}
+          </th>
+          <td mat-cell *matCellDef="let element">{{ element.category }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="receivedFromUser">
+          <th mat-header-cell *matHeaderCellDef>
+            {{ 'RECEIVED_FROM_USER' | translate }}
+          </th>
+          <td mat-cell *matCellDef="let element">
+            @if(element.category_enum === 'ROLLING_MONEY_WITHDRAWAL') {
+              ----
+            } @else {
+              <app-user-details-link
+                [id]="element.creator.id"
+                [displayName]="element.creator.username"
+                [userType]="element.creator.type_enum"
+              ></app-user-details-link>
+            }
+
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="createdAt">
+          <th mat-header-cell mat-sort-header="created_at" disableClear *matHeaderCellDef>
+            {{ 'CREATED_AT' | translate }}
+          </th>
+          <td mat-cell *matCellDef="let element">
+            <app-date-format
+              [value]="element.created_at"
+            ></app-date-format>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+    </app-table-wrapper>
+
+    <app-paginator
+      [currentPage]="currentPage"
+      [pageSize]="pageSize"
+      [length]="totalRecords || 0"
+      (page)="onPaginationChange($event)"
+    ></app-paginator>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="cardWithShadow m-b-0">
+  <mat-card-content class="p-10">
+    <div class="detail-card">
+      <div class="detail-card-inner">
+        <div class="detail-card-heading bg-light-primary">
+          <h3>{{ 'TABLE_STATISTICS' | translate }}</h3>
+        </div>
+        <div class="detail-card-row">
+          <div class="detail-card-column">
+            <span class="field-name">{{ 'ROLLING_MONEY_DISTRIBUTED' | translate }}</span>
+            <span class="field-detail">
+              <app-amount-display
+                [value]="sumArray?.ROLLING_MONEY_DISTRIBUTED"
+              ></app-amount-display>
+            </span>
+          </div>
+          <div class="detail-card-column">
+            <span class="field-name">{{ 'ROLLING_MONEY_WITHDRAWAL' | translate }}</span>
+            <span class="field-detail">
+              <app-amount-display
+                [value]="sumArray?.ROLLING_MONEY_WITHDRAWAL"
+              ></app-amount-display>
+            </span>
+          </div>
+          <div class="detail-card-column">
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>

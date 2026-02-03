@@ -1,0 +1,19 @@
+<div class="sidebar-stats">
+  <mat-card class="sidebar-stats-card shadow-none">
+    <div class="sidebar-stats-card-header bg-light-primary rounded">
+      <div class="stat-item">
+        <h3 class="text-primary">{{ 'MEMBERSHIP_MONEY' | translate }}</h3>
+        <h6 class="text-primary">
+          <app-amount-display [value]="data?.total_holding_money"></app-amount-display>
+        </h6>
+      </div>
+
+      <div class="stat-item">
+        <h3 class="text-primary">{{ 'MONEY_HELD_BY_GAME_COMPANIES' | translate }}</h3>
+        <h6 class="text-primary">
+          <app-amount-display [value]="data?.my_balance"></app-amount-display>
+        </h6>
+      </div>
+    </div>
+  </mat-card>
+</div>

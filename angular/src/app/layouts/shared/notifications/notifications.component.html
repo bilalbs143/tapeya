@@ -1,0 +1,48 @@
+<button
+  mat-icon-button
+  [matMenuTriggerFor]="notificationmenu"
+  aria-label="Notifications"
+>
+  <i-tabler
+    class="d-flex"
+    name="bell"
+    matBadge="1"
+    matBadgeColor="primary"
+  ></i-tabler>
+</button>
+<mat-menu #notificationmenu="matMenu" class="topbar-dd cardWithShadow">
+  <div class="d-flex align-items-center p-x-32 p-y-16">
+    <h6 class="f-s-16 f-w-600 m-0">Notifications</h6>
+    <span class="m-l-auto">
+      <span class="bg-primary text-white p-x-8 p-y-4 f-w-500 rounded f-s-12"
+        >5 new</span
+      >
+    </span>
+  </div>
+  @for(notification of notifications; track notification) {
+    <button
+      mat-menu-item
+      class="p-x-32 p-y-16"
+    >
+      <div class="d-flex align-items-center">
+        <img
+          [src]="notification.img"
+          class="rounded-circle"
+          width="48"
+          alt="notification-img"
+        />
+        <div class="m-l-16">
+          <h5 class="f-s-14 f-w-600 m-0 mat-subtitle-1">
+            {{ notification.title }}
+          </h5>
+          <span>{{ notification.subtitle }}</span>
+        </div>
+      </div>
+    </button>
+  }
+  <div class="p-y-12 p-x-32">
+    <button mat-stroked-button class="w-100">
+      See all notifications
+    </button>
+  </div>
+</mat-menu>

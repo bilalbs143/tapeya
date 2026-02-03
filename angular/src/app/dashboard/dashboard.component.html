@@ -1,0 +1,22 @@
+<div class="dashboard">
+
+  <app-statistics-card></app-statistics-card>
+
+  @if(loggedInUser.typeEnum === 'ADMINISTRATOR') {
+    <div class="row">
+      <div class="col-lg-6">
+        <app-last-activities-table></app-last-activities-table>
+      </div>
+
+      <div class="col-lg-6">
+        <app-providers-table></app-providers-table>
+      </div>
+    </div>
+  }
+
+  <div class="row">
+    <div class="col-lg-12">
+      <app-members-request-table></app-members-request-table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,44 @@
+on Fresh ubuntu server
+
+- Implement GitHub Action from api-backend Repo on this Server as self-hosted
+- Setup Docker and Docker Compose (scripts/install-docker.sh)
+- Login to Docker Hub using - sudo docker login
+- Create SSH key (ssh-keygen -t rsa) and put on GitHub for cloning
+- on root, git clone git@github.com:antechip/docker-compose-new-solution.git
+- cd docker-compose-new-solution
+- cp .bash_aliases ~/.bash_aliases
+- cp .env.example .env
+- set .env variables values
+- create new branch for client (e.g., client_artchip_prod)
+- add that branch in docker-deployment.yml under branches
+- For One Time only
+    - Add DOCKERHUB_USERNAME & DOCKERHUB_TOKEN only once in our GitHub so further deployments will use same dockerhub (Go To Settings>Personal Access Tokens > Create)
+    - Create 4 Repositories on DockerHub
+        - frontend-next_app
+        - frontend-angular_app
+        - api-backend-api_nginx
+        - api-backend-api_app
+- if docker-compose-new-solution exists under some other path than /home/ubuntu/docker-compose-new-solution then set in GitHub Variables prefxing with BRANCH_NAME_DOCKER_COMPOSE_PATH
+- On Root of SSH Server, Setup GitHub Action Runner using GitHub Actions
+    - On Github, Go to Settings>Actions>Runners
+    - Click on `New self-hosten runner`
+    - Click on Linux
+    - Run commands on SSH Server root till  `./config.sh --url https://github.com/antechip/game-solution --token TOKEN`
+        - in Above Command there will be few prompts
+            - Enter the name of the runner group to add this runner to: [press Enter for Default] => Just Enter
+            - Enter the name of runner: [press Enter for ip-172-26-12-184] => Here Enter something like client_artchip_prod (similar to branch name)
+            - Enter any additional labels (ex. label-1,label-2): [press Enter to skip] => Here Enter something like client_artchip_prod (similar to branch name)
+            - Enter name of work folder: [press Enter for _work] => Just Enter
+    - then run sudo ./svc.sh install
+        - here you will get line like below
+            - Created symlink /etc/systemd/system/multi-user.target.wants/actions.runner.antechip-game-solution.client_artchip_prod.service → /etc/systemd/system/actions.runner.antechip-game-solution.client_artchip_prod.service.
+            - Copy `actions.runner.antechip-game-solution.client_artchip_prod.service` from above string
+    - Then Run sudo systemctl enable actions.runner.antechip-game-solution.client_artchip_prod.service
+    - Then Run sudo systemctl start actions.runner.antechip-game-solution.client_artchip_prod.service
+    - Then Run sudo systemctl status actions.runner.antechip-game-solution.client_artchip_prod.service
+    - Check on GitHub if Action is `Active` now if above status says active (running)
+    - Go to docker-deployment.yml and add above branch name instead of self-hosted in deploy step runs-on
+- push code to branch
+- workflow should deploy code
+- jump in to docker container and run php artisan passport:install & php artisan sync:games
+- Test & Verify

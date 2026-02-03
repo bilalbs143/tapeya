@@ -1,0 +1,28 @@
+<li class="agent-list" [ngClass]="{ folder: hasChildren }">
+  <a class="main-parent" (click)="hasChildren && toggleChildrenVisibility()">
+    @if (hasChildren) {
+      <span class="collapse-img">
+        @if (!childrenVisible) {
+          <i-tabler name="plus" class="plus-user"></i-tabler>
+        }
+        @if (childrenVisible) {
+          <i-tabler name="minus" class="minus-user"></i-tabler>
+        }
+      </span>
+    }
+    <i-tabler name="user" class="icon-18"></i-tabler>
+    <span (click)="onClick($event, data.id)">
+      <b>{{ data.username }}</b> &nbsp; | &nbsp; {{ 'LOSING_MONEY_RATIO' | translate }}[{{ data.losing_point_ratio }}%]
+    </span>
+  </a>
+  @if (hasChildren && childrenVisible) {
+    <ul class="hierarchy-tree">
+      @for (child of data.grand_children; track child.id) {
+        <app-hierarchy-tree
+          [data]="child"
+          (itemClicked)="onChildItemClicked($event)"
+        ></app-hierarchy-tree>
+      }
+    </ul>
+  }
+</li>

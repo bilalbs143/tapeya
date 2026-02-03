@@ -1,0 +1,17 @@
+.component-sidebarNav {
+    position: sticky !important;
+}
+
+.component-library {
+    display: none;
+}
+
+@media (max-width: 1023px) {
+    .component-library {
+        display: block;
+    }
+
+    .component-sidebarNav{
+        display: none !important;
+    }
+} 

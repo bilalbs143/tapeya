@@ -1,0 +1,66 @@
+<mat-card class="cardWithShadow">
+  <mat-card-header class="d-flex p-10">
+    <mat-card-title>
+      {{ 'LAST_ACTIVITY' | translate }}
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content class="p-10">
+    <app-table-wrapper>
+      <table
+        mat-table
+        [dataSource]="dataSource"
+        matSort
+        matSortActive="created_at"
+        [matSortDisableClear]="true"
+        matSortDirection="desc"
+        class="w-100"
+      >
+        <ng-container matColumnDef="#">
+          <th mat-header-cell *matHeaderCellDef>#</th>
+          <td mat-cell *matCellDef="let row; let i = index">
+            {{ i + 1 }}
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="username">
+          <th mat-header-cell *matHeaderCellDef>
+            {{ 'ID' | translate }}
+          </th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.username }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="activity">
+          <th mat-header-cell *matHeaderCellDef>
+            {{ 'ACTIVITY' | translate }}
+          </th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.description.charAt(0).toUpperCase() + element.description.slice(1) }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="createdAt">
+          <th mat-header-cell mat-sort-header disableClear *matHeaderCellDef>
+            {{ 'CREATED_AT' | translate }}
+          </th>
+          <td mat-cell *matCellDef="let element">
+            <app-date-format
+              [value]="element.created_at"
+            ></app-date-format>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+
+      @if(this.dataSource.data.length === 0) {
+        <p
+          class="table-not-found-msg d-flex align-items-center justify-content-center f-s-16 f-w-600"
+        >
+          {{ 'NO_RECORD_FOUND' | translate }}
+        </p>
+      }
+    </app-table-wrapper>
+  </mat-card-content>
+</mat-card>

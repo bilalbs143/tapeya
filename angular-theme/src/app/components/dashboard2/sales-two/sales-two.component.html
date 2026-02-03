@@ -1,0 +1,19 @@
+<mat-card class="cardWithShadow mb-0!">
+  <mat-card-content>
+    <div class="flex flex-col gap-4">
+      <div class="flex items-start justify-between">
+        <div class="flex flex-col">
+          <mat-card-title>$16.5k</mat-card-title>
+          <mat-card-subtitle class="leading-5">Sales</mat-card-subtitle>
+        </div>
+        <span class="bg-light-primary text-primary rounded-sm size-10! flex items-center justify-center">
+          <i class="iconify size-6!4" data-icon="solar:cart-4-bold-duotone"></i>
+        </span>
+      </div>
+      <apx-chart [series]="salestwoChart.series" [chart]="salestwoChart.chart" [plotOptions]="salestwoChart.plotOptions"
+        [tooltip]="salestwoChart.tooltip" [stroke]="salestwoChart.stroke" [markers]="salestwoChart.markers"
+        [labels]="salestwoChart.labels" [fill]="salestwoChart.fill" [legend]="salestwoChart.legend"
+        [dataLabels]="salestwoChart.dataLabels" [colors]="salestwoChart.colors"></apx-chart>
+    </div>
+  </mat-card-content>
+</mat-card>

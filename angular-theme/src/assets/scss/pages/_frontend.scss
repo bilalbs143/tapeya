@@ -1,0 +1,60 @@
+.front-topbar {
+    background-color: var(--mat-sys-primary-fixed-dim) !important;
+
+    &.fixed-topbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        background-color: var(--mat-sys-background) !important;
+        z-index: 9;
+    }
+}
+
+.tab-header {
+
+    .profileTabs {
+
+        .mat-mdc-tab {
+            padding: 30px 16px;
+            height: auto;
+            border-right: 1px solid var(--mat-sys-outline);
+
+            &:last-child {
+                border-right: 0;
+            }
+        }
+
+        .mat-mdc-tab-label-container {
+            border-top-width: 0;
+        }
+    }
+
+}
+
+.home-page .expansion-panel .mat-expansion-panel-body {
+    padding: 16px 0;
+}
+
+.faq-accordion {
+    .mat-expansion-panel-body {
+        padding: 16px 24px !important;
+    }
+}
+
+.mobile-sidebar {
+    .mdc-list {
+        .mdc-list-item {
+            .mat-mdc-button {
+                color: var(--mat-sys-on-background);
+                min-width: 100%;
+                justify-content: flex-start;
+
+                &.selected {
+                    background-color: var(--mat-sys-primary-fixed-dim);
+                    color: var(--mat-sys-primary);
+                    transition: background-color 0.3s ease;
+                }
+            }
+        }
+    }
+}

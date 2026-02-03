@@ -1,0 +1,21 @@
+<?php
+
+namespace DummyNamespace;
+
+use Closure;
+use Illuminate\Support\Collection;
+
+class DummyClass
+{
+    /**
+     * Handle the given input.
+     *
+     * @param  Collection $collection
+     * @param  Closure  $next
+     * @return mixed
+     */
+    public function handle(Collection $collection, Closure $next)
+    {
+        return $next($collection);
+    }
+}

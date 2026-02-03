@@ -1,0 +1,33 @@
+<mat-toolbar class="topbar horizontal-topbar child">
+  <div class="container">
+    <!-- --------------------------------------------------------------- -->
+
+    <div class="d-none d-lg-flex">
+      <div class="horizontal-navbar hstack align-items-center">
+        <div class="parentBox">
+          <a
+            mat-button
+            matRippleDisabled
+             class="nav-username menuLink"
+          >
+            <div [innerHTML]="user?.username"></div>
+          </a>
+        </div>
+
+        @for (menu of userDetailsMenu; track menu.link) {
+          <div class="parentBox">
+            <a
+              [routerLink]="['/'+ viewUserType +'/details/' + userId + menu.link]"
+              class="menuLink cursor-pointer"
+              [ngClass]="{'activeMenu': router.isActive('/'+ viewUserType +'/details/' + userId + menu.link, true)}"
+            >
+              {{ menu.title | translate }}
+            </a>
+          </div>
+        }
+      </div>
+    </div>
+
+    <span class="flex-1-auto"></span>
+  </div>
+</mat-toolbar>

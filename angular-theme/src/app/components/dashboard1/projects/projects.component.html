@@ -1,0 +1,20 @@
+<mat-card class="cardWithShadow mb-0!">
+  <mat-card-content>
+    <mat-card-subtitle>Projects</mat-card-subtitle>
+    <h5 class="text-2xl font-semibold">78,298</h5>
+
+    <div class="flex items-center mt-3">
+      <button mat-mini-fab class="bg-light-success text-success shadow-none size-5.5!">
+        <i-tabler name="arrow-up-left" class="size-4! flex!"></i-tabler>
+      </button>
+      <div class="text-sm font-semibold ms-3">+9%</div>
+    </div>
+
+    <!-- ---------------------------- -->
+    <!-- charts here -->
+    <!-- ---------------------------- -->
+    <apx-chart [series]="projectsChart.series" [chart]="projectsChart.chart" [plotOptions]="projectsChart.plotOptions"
+      [tooltip]="projectsChart.tooltip" [stroke]="projectsChart.stroke" [xaxis]="projectsChart.xaxis"
+      [yaxis]="projectsChart.yaxis" [grid]="projectsChart.grid" [colors]="projectsChart.colors"></apx-chart>
+  </mat-card-content>
+</mat-card>

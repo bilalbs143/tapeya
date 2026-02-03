@@ -1,0 +1,125 @@
+version: "3.3"
+services:
+  api_app:
+    container_name: api_app
+    build:
+      context: .
+      dockerfile: ./docker/php/Dockerfile
+    image: artchips/api-backend-api_app:${VERSION}
+    expose:
+      - 9000
+    environment:
+      APP_NAME: ${APP_NAME}
+      APP_ENV: ${APP_ENV}
+      APP_KEY: ${APP_KEY}
+      APP_DEBUG: ${APP_DEBUG}
+      APP_URL: ${APP_URL}
+      APP_TIMEZONE: ${APP_TIMEZONE}
+      FRONTEND_URL: ${FRONTEND_URL}
+
+      DB_CONNECTION: ${DB_CONNECTION}
+      DB_PORT: ${DB_PORT}
+      DB_HOST: ${DB_HOST}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}
+      AWS_BUCKET: ${AWS_BUCKET}
+      AWS_USE_PATH_STYLE_ENDPOINT: ${AWS_USE_PATH_STYLE_ENDPOINT}
+
+      PUSHER_APP_ID: ${PUSHER_APP_ID}
+      PUSHER_APP_KEY: ${PUSHER_APP_KEY}
+      PUSHER_APP_SECRET: ${PUSHER_APP_SECRET}
+      PUSHER_HOST: ${PUSHER_HOST}
+      PUSHER_PORT: ${PUSHER_PORT}
+      PUSHER_SCHEME: ${PUSHER_SCHEME}
+      PUSHER_APP_CLUSTER: ${PUSHER_APP_CLUSTER}
+
+      SLACK_BOT_USER_OAUTH_TOKEN: ${SLACK_BOT_USER_OAUTH_TOKEN}
+      SLACK_BOT_USER_DEFAULT_CHANNEL: ${SLACK_BOT_USER_DEFAULT_CHANNEL}
+      LOG_SLACK_WEBHOOK_URL: ${LOG_SLACK_WEBHOOK_URL}
+
+      BASIC_AUTH_USERNAME: ${BASIC_AUTH_USERNAME}
+      BASIC_AUTH_PASSWORD: ${BASIC_AUTH_PASSWORD}
+
+      NOWPAYMENTS_API_KEY: ${NOWPAYMENTS_API_KEY}
+      NOWPAYMENTS_PAYOUT_API_KEY: ${NOWPAYMENTS_PAYOUT_API_KEY}
+      NOWPAYMENTS_IPN_SECRET: ${NOWPAYMENTS_IPN_SECRET}
+      NOWPAYMENTS_PAYOUT_IPN_SECRET: ${NOWPAYMENTS_PAYOUT_IPN_SECRET}
+      NOWPAYMENTS_EMAIL: ${NOWPAYMENTS_EMAIL}
+      NOWPAYMENTS_PASSWORD: ${NOWPAYMENTS_PASSWORD}
+      NOWPAYMENTS_2FA_SECRET: ${NOWPAYMENTS_2FA_SECRET}
+      NOWPAYMENTS_ENV: ${NOWPAYMENTS_ENV}
+      NOTIFY_ADMIN_EMAIL: ${NOTIFY_ADMIN_EMAIL}
+    networks:
+      - app_network
+
+  api_nginx:
+    container_name: api_nginx
+    build:
+      context: .
+      dockerfile: ./docker/nginx/Dockerfile
+    image: artchips/api-backend-api_nginx:${VERSION}
+    ports:
+      - 9191:9090
+    depends_on:
+      - api_app
+    environment:
+      NGINX_FPM_HOST: api_app
+      NGINX_ROOT: /usr/src/app/public
+    networks:
+      - app_network
+
+  api_redis:
+    container_name: api_redis
+    image: redis:latest
+    ports:
+      - 6389:6379
+    volumes:
+      - redis_data:/data
+    networks:
+      - app_network
+
+  angular_app:
+    container_name: angular_app
+    build:
+      context: .
+      dockerfile: ./docker/angular/Dockerfile
+    image: artchips/frontend-angular_app:${VERSION}
+    ports:
+      - 9292:7070
+    networks:
+      - app_network
+
+  next_app:
+    container_name: next_app
+    build:
+      context: .
+      dockerfile: ./docker/next/Dockerfile
+      args:
+        NEXT_PUBLIC_TEMPLATE: ${NEXT_PUBLIC_TEMPLATE}
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
+        NEXT_PUBLIC_PUSHER_KEY: ${NEXT_PUBLIC_PUSHER_KEY}
+        NEXT_PUBLIC_PUSHER_CLUSTER: ${NEXT_PUBLIC_PUSHER_CLUSTER}
+    image: artchips/frontend-next_app:${VERSION}
+    ports:
+      - 9393:6060
+    networks:
+      - app_network
+    env_file:
+      - .env.docker
+    environment:
+      NEXT_PUBLIC_TEMPLATE: ${NEXT_PUBLIC_TEMPLATE}
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
+      NEXT_PUBLIC_PUSHER_KEY: ${NEXT_PUBLIC_PUSHER_KEY}
+      NEXT_PUBLIC_PUSHER_CLUSTER: ${NEXT_PUBLIC_PUSHER_CLUSTER}
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  redis_data:

@@ -1,0 +1,663 @@
+<mat-card class="cardWithShadow">
+  <mat-card-content class="p-10">
+
+    @if (isLoading) {
+      <div class="skeleton-loader-header">
+        <ngx-skeleton-loader
+          class="skeleton-loader-style"
+          count="19"
+          [theme]="cardLoader"
+        ></ngx-skeleton-loader>
+      </div>
+    } @else {
+      <div class="detail-card">
+        <div class="detail-card-inner">
+          <div class="detail-card-heading bg-light-primary">
+            <h3>{{ 'BASIC_INFORMATION' | translate }}</h3>
+          </div>
+          <div class="detail-card-row">
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'ID' | translate }}</span>
+              <span class="field-detail">
+                <app-hidden-item
+                  [isLink]="false"
+                  [displayName]="user.username"
+                ></app-hidden-item>
+              </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'NAME' | translate }}</span>
+              <span class="field-detail">
+                <app-hidden-item
+                  [isLink]="false"
+                  [displayName]="user.name"
+                ></app-hidden-item>
+              </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'NICKNAME' | translate }}</span>
+              <span class="field-detail">
+                <app-hidden-item
+                  [isLink]="false"
+                  [displayName]="user.nickname"
+                ></app-hidden-item>
+              </span>
+            </div>
+          </div>
+
+          <div class="detail-card-row">
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'PHONE_NUMBER' | translate }}</span>
+              <span class="field-detail">
+                <app-hidden-item
+                  [isLink]="false"
+                  [displayName]="user.phone"
+                ></app-hidden-item>
+              </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'RECOMMENDER' | translate }}</span>
+              <span class="field-detail">
+                  @if (user.parent) {
+                    {{ user.parent.username }}
+                  } @else {
+                    {{ '----' }}
+                  }
+                </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'REFERRAL_CODE' | translate }}</span>
+              <span class="field-detail">
+                  @if (user.parent) {
+                    {{ user.parent.ref_code }}
+                  } @else {
+                    {{ '----' }}
+                  }
+                </span>
+            </div>
+          </div>
+
+          <div class="detail-card-row">
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'DATE_OF_BIRTH' | translate }}</span>
+              <span class="field-detail">
+                @if (user.dob) {
+                  <app-date-format
+                    [value]="user.dob"
+                    format="yyyy-MM-dd"
+                  ></app-date-format>
+                } @else {
+                  ----
+                }
+              </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'LEVEL' | translate }}</span>
+              <span class="field-detail">{{ user.level }}</span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'LAST_WITHDRAWAL_MONEY_AT' | translate }}</span>
+              <span class="field-detail">
+              <app-date-format
+                [value]="user.wallet.last_withdrawal_money_at"
+              ></app-date-format>
+            </span>
+            </div>
+          </div>
+
+          <div class="detail-card-row">
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'MEMBER_SINCE' | translate }}</span>
+              <span class="field-detail">
+              <app-date-format
+                [value]="user.created_at"
+              ></app-date-format>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'STATUS' | translate }}</span>
+              <span class="field-detail">{{ user.status_enum | translate }}</span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'BLOCKED_AT' | translate }}</span>
+              <span class="field-detail">
+              <app-date-format
+                [value]="user.blocked_at"
+              ></app-date-format>
+            </span>
+            </div>
+          </div>
+
+          <div class="detail-card-row">
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'REGISTRATION_IP' | translate }}</span>
+              <span class="field-detail">{{ user.created_at_ip }}</span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'LOGIN_IP' | translate }}</span>
+              <span class="field-detail" [ngClass]="getLoginIpClass()">
+              @if (user.last_login) {
+                {{ user.last_login.ip_address }}
+              } @else {
+                {{ '----' }}
+              }
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'LAST_LOGIN_AT' | translate }}</span>
+              <span class="field-detail">
+              <app-date-format
+                [value]="user.last_login?.login_at"
+              ></app-date-format>
+            </span>
+            </div>
+          </div>
+
+          <div class="detail-card-heading bg-light-primary">
+            <h3>{{ 'BANK_INFORMATION' | translate }}</h3>
+          </div>
+          <div class="detail-card-row">
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'BANK' | translate }}</span>
+              <span class="field-detail">
+                <app-hidden-item
+                  [isLink]="false"
+                  [displayName]="user.bank_account.bank_name"
+                ></app-hidden-item>
+              </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'ACCOUNT_HOLDER' | translate }}</span>
+              <span class="field-detail">
+                <app-hidden-item
+                  [isLink]="false"
+                  [displayName]="user.bank_account.account_holder"
+                ></app-hidden-item>
+              </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'ACCOUNT_NUMBER' | translate }}</span>
+              <span class="field-detail">
+                <app-hidden-item
+                  [isLink]="false"
+                  [displayName]="user.bank_account.account_number"
+                ></app-hidden-item>
+              </span>
+            </div>
+          </div>
+
+          <div class="detail-card-heading bg-light-primary">
+            <h3>{{ 'WALLET' | translate }}</h3>
+          </div>
+          <div class="detail-card-row">
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'HOLDING_MONEY' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.holding_money"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'COUPON_POINTS' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.coupon_points"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'POINTS' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.points"
+              ></app-amount-display>
+            </span>
+            </div>
+          </div>
+
+          <div class="detail-card-heading bg-light-primary">
+            <h3>{{ 'HOLDING_MONEY_DETAIL' | translate }}</h3>
+          </div>
+          <div class="detail-card-row">
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'TOTAL_DEPOSIT' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.deposited_money"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'DEPOSIT_COUNT' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.deposited_money_count"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'TOTAL_ADMIN_PAYMENT' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.deposited_money_by_admin"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'ADMIN_PAYMENT_COUNT' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.deposited_money_by_admin_count"
+              ></app-amount-display>
+            </span>
+            </div>
+          </div>
+          <div class="detail-card-row">
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'LAST_DEPOSIT_DATE' | translate }}</span>
+              <span class="field-detail">
+              <app-date-format
+                [value]="user.wallet.last_deposited_money_at"
+              ></app-date-format>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'LAST_ADMIN_PAYMENT_DATE' | translate }}</span>
+              <span class="field-detail">
+              <app-date-format
+                [value]="user.wallet.last_deposited_money_by_admin_at"
+              ></app-date-format>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'TOTAL_WITHDRAWAL' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.withdrawal_money"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'WITHDRAWAL_COUNT' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.withdrawal_money_count"
+              ></app-amount-display>
+            </span>
+            </div>
+          </div>
+          <div class="detail-card-row">
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'TOTAL_ADMIN_RECOVERY' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.withdrawal_money_by_admin"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'ADMIN_RECOVERY_COUNT' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.withdrawal_money_by_admin_count"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'LAST_WITHDRAWAL_DATE' | translate }}</span>
+              <span class="field-detail">
+              <app-date-format
+                [value]="user.wallet.last_withdrawal_money_at"
+              ></app-date-format>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'LAST_ADMIN_RECOVERY_DATE' | translate }}</span>
+              <span class="field-detail">
+              <app-date-format
+                [value]="user.wallet.last_withdrawal_money_by_admin_at"
+              ></app-date-format>
+            </span>
+            </div>
+          </div>
+
+
+          <div class="detail-card-heading bg-light-primary">
+            <h3>{{ 'COUPON_POINTS_DETAIL' | translate }}</h3>
+          </div>
+          <div class="detail-card-row">
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'TOTAL_COUPON_POINTS' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.total_coupon_points"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'TOTAL_EXCHANGE' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.coupon_points_exchange"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'EXCHANGE_COUNT' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.coupon_points_exchange_count"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'TOTAL_ADMIN_RECOVERY' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.coupon_points_debited_by_admin"
+              ></app-amount-display>
+            </span>
+            </div>
+          </div>
+          <div class="detail-card-row">
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'ADMIN_RECOVERY_COUNT' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.coupon_points_debited_by_admin_count"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'TOTAL_AGENT_PAYMENT' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.coupon_points_credited_by_agent"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'AGENT_PAYMENT_COUNT' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.coupon_points_credited_by_agent_count"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'TOTAL_AGENT_RECOVERY' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.coupon_points_debited_by_agent"
+              ></app-amount-display>
+            </span>
+            </div>
+          </div>
+          <div class="detail-card-row">
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'AGENT_RECOVERY_COUNT' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.coupon_points_debited_by_agent_count"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'TOTAL_ADMIN_PAYMENT' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.coupon_points_credited_by_admin"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'ADMIN_PAYMENT_COUNT' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.coupon_points_credited_by_admin_count"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'LAST_EXCHANGED_DATE' | translate }}</span>
+              <span class="field-detail">
+              <app-date-format
+                [value]="user.wallet.last_coupon_points_exchanged_at"
+              ></app-date-format>
+            </span>
+            </div>
+          </div>
+          <div class="detail-card-row">
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'LAST_ADMIN_PAYMENT_DATE' | translate }}</span>
+              <span class="field-detail">
+              <app-date-format
+                [value]="user.wallet.last_coupon_points_credited_by_admin_at"
+              ></app-date-format>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'LAST_ADMIN_RECOVERY_DATE' | translate }}</span>
+              <span class="field-detail">
+              <app-date-format
+                [value]="user.wallet.last_coupon_points_debited_by_admin_at"
+              ></app-date-format>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'LAST_AGENT_PAYMENT_DATE' | translate }}</span>
+              <span class="field-detail">
+              <app-date-format
+                [value]="user.wallet.last_coupon_points_credited_by_agent_at"
+              ></app-date-format>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'LAST_AGENT_RECOVERY_DATE' | translate }}</span>
+              <span class="field-detail">
+              <app-date-format
+                [value]="user.wallet.last_coupon_points_debited_by_agent_at"
+              ></app-date-format>
+            </span>
+            </div>
+          </div>
+
+          <div class="detail-card-heading bg-light-primary">
+            <h3>{{ 'POINTS_DETAIL' | translate }}</h3>
+          </div>
+          <div class="detail-card-row">
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'TOTAL_POINTS' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.total_points"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'TOTAL_EXCHANGE' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.points_exchange"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'EXCHANGE_COUNT' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.points_exchange_count"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'TOTAL_ADMIN_RECOVERY' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.points_debited_by_admin"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'LAST_EXCHANGED_DATE' | translate }}</span>
+              <span class="field-detail">
+              <app-date-format
+                [value]="user.wallet.last_points_exchanged_at"
+              ></app-date-format>
+            </span>
+            </div>
+          </div>
+          <div class="detail-card-row">
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'ADMIN_RECOVERY_COUNT' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.points_debited_by_admin_count"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'LAST_ADMIN_PAYMENT_DATE' | translate }}</span>
+              <span class="field-detail">
+              <app-date-format
+                [value]="user.wallet.last_points_credited_by_admin_at"
+              ></app-date-format>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'LAST_ADMIN_RECOVERY_DATE' | translate }}</span>
+              <span class="field-detail">
+              <app-date-format
+                [value]="user.wallet.last_coupon_points_debited_by_admin_at"
+              ></app-date-format>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'TOTAL_ADMIN_PAYMENT' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.points_credited_by_admin"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'ADMIN_PAYMENT_COUNT' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.points_credited_by_admin_count"
+              ></app-amount-display>
+            </span>
+            </div>
+          </div>
+
+          <div class="detail-card-heading bg-light-primary">
+            <h3>{{ 'BETTING_DETAIL' | translate }}</h3>
+          </div>
+          <div class="detail-card-row">
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'TOTAL_BET' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.total_betting_money"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'TOTAL_REFUND' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.total_refunded_money"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'TOTAL_NET_BETTING' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.total_net_betting_money"
+              ></app-amount-display>
+            </span>
+            </div>
+          </div>
+          <div class="detail-card-row">
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'TOTAL_WIN' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.total_winning_money"
+              ></app-amount-display>
+            </span>
+            </div>
+
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'TOTAL_CANCEL_BET' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.total_canceled_money"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'TOTAL_NET_WINNING' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.total_net_winning_money"
+              ></app-amount-display>
+            </span>
+            </div>
+          </div>
+          <div class="detail-card-row">
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'BET_DIFFERENCE' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.total_betting_difference"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'NET_BET_DIFFERENCE' | translate }}</span>
+              <span class="field-detail">
+              <app-amount-display
+                [value]="user.wallet.total_net_betting_difference"
+              ></app-amount-display>
+            </span>
+            </div>
+            <div class="detail-card-column">
+              <span class="field-name">{{ 'TOTAL_BONUS' | translate }}</span>
+              <span class="field-detail">
+                <app-amount-display
+                  [value]="user.wallet.total_bonus_money"
+                ></app-amount-display>
+            </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-right p-t-10 p-r-0">
+          <button
+            mat-stroked-button
+            color="warn"
+            type="button"
+            [routerLink]="'/user/details/' + user.id + '/basic-info'"
+            class="m-r-8"
+          >
+            {{ 'NORMAL_VIEW' | translate }}
+          </button>
+
+          <button
+            (click)="openManualPaymentsDialog()"
+            mat-stroked-button
+            type="submit"
+          >
+            {{ 'MANUAL_PAYMENTS' | translate }}
+          </button>
+        </div>
+
+        <app-memo-form [user]="user"></app-memo-form>
+      </div>
+    }
+
+  </mat-card-content>
+</mat-card>

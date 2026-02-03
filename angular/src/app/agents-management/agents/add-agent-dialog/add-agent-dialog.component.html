@@ -1,0 +1,449 @@
+<app-dialog-wrapper dialogTitle="ADD_AGENT">
+  <form (ngSubmit)="onSubmit()" [formGroup]="form">
+    <mat-dialog-content class="mat-typography mat-subtitle-2 lh-16">
+      <div class="row">
+        <div class="col-lg-6">
+          <div class="row">
+            <div class="col-lg-12 d-flex align-items-center">
+              <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12"
+                >{{ 'ID' | translate }}</mat-label
+              >
+            </div>
+            <div class="col-lg-12">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>{{ 'ID' | translate }}</mat-label>
+                <input matInput formControlName="username" />
+                @if(formControls['username'].touched && formControls['username'].invalid) {
+                  <mat-hint class="m-b-16 error-msg">
+                    @if(formControls['username'].errors && formControls['username'].hasError('required')) {
+                      <div class="text-error">
+                        {{ 'ID_IS_REQUIRED' | translate }}
+                      </div>
+                    }
+                    @if(formControls['username'].errors && formControls['username'].hasError('minlength')) {
+                      <div class="text-error">
+                        {{ 'ID_SHOULD_BE_GREATER_CHARACTER' | translate }}
+                      </div>
+                    }
+                    @if(formControls['username'].errors && formControls['username'].hasError('usernameInvalid')) {
+                      <div class="text-error">
+                        {{ 'ID_SHOULD_CONTAIN_ONLY_LOWERCASE_LETTERS_AND_NUMBERS' | translate }}
+                      </div>
+                    }
+                  </mat-hint>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="row">
+            <div class="col-lg-12 d-flex align-items-center">
+              <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12">
+                {{ 'NAME' | translate }}</mat-label>
+            </div>
+            <div class="col-lg-12">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>{{ 'NAME' | translate }}</mat-label>
+                <input
+                  matInput
+                  formControlName="name"
+                />
+                @if(formControls['name'].touched && formControls['name'].invalid) {
+                  <mat-hint class="m-b-16 error-msg">
+                    @if(formControls['name'].errors && formControls['name'].hasError('required')) {
+                      <div class="text-error">
+                        {{ 'NAME_IS_REQUIRED' | translate }}
+                      </div>
+                    }
+                  </mat-hint>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="row">
+            <div class="col-lg-12 d-flex align-items-center">
+              <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12">
+                {{ 'PASSWORD' | translate }}</mat-label
+              >
+            </div>
+            <div class="col-lg-12">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>{{ 'PASSWORD' | translate }}</mat-label>
+                <input
+                  matInput
+                  formControlName="password"
+                />
+                @if (formControls['password'].touched && formControls['password'].invalid) {
+                  <mat-hint class="m-b-16 error-msg">
+                    @if (formControls['password'].errors && formControls['password'].errors['required']) {
+                      <div class="text-error">
+                        {{ 'PASSWORD_IS_REQUIRED' | translate }}
+                      </div>
+                    }
+                    @if (formControls['password'].hasError('minlength')) {
+                      <div class="text-error">
+                        {{
+                          'THE_PASSWORD_MUST_BE_AT_LEAST_7_CHARACTERS_LONG'
+                            | translate
+                        }}
+                      </div>
+                    }
+                  </mat-hint>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="row">
+            <div class="col-lg-12 d-flex align-items-center">
+              <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12">{{
+                'CONFIRM_PASSWORD' | translate
+              }}</mat-label>
+            </div>
+            <div class="col-lg-12">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>{{ 'CONFIRM_PASSWORD' | translate }}</mat-label>
+                <input
+                  matInput
+                  formControlName="password_confirmation"
+                />
+                @if (formControls['password_confirmation'].touched && formControls['password_confirmation'].invalid) {
+                  <mat-hint class="m-b-16 error-msg">
+                    @if (formControls['password_confirmation'].errors && formControls['password_confirmation'].hasError('required')) {
+                      <div class="text-error">
+                        {{ 'CONFIRM_PASSWORD_IS_REQUIRED' | translate }}
+                      </div>
+                    }
+                  </mat-hint>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="row">
+            <div class="col-lg-12 d-flex align-items-center">
+              <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12">{{ 'PHONE_NUMBER' | translate }}</mat-label>
+            </div>
+            <div class="col-lg-12">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>{{ 'PHONE_NUMBER' | translate }}</mat-label>
+                <input
+                  matInput
+                  formControlName="phone"
+                />
+                @if (formControls['phone'].touched && formControls['phone'].invalid) {
+                  <mat-hint class="m-b-16 error-msg">
+                    @if (formControls['phone'].errors && formControls['phone'].hasError('required')) {
+                      <div class="text-error">
+                        {{ 'PHONE_NUMBER_IS_REQUIRED' | translate }}
+                      </div>
+                    }
+                    @if (formControls['phone'].errors && formControls['phone'].hasError('phoneNumberInvalid')) {
+                      <div class="text-error">
+                        {{ 'PHONE_NUMBER_ONLY_NUMBERS' | translate }}
+                      </div>
+                    }
+                    @if (formControls['phone'].errors && formControls['phone'].hasError('noSpace')) {
+                      <div class="text-error">
+                        {{ 'NO_SPACE_IS_ALLOWED' | translate }}
+                      </div>
+                    }
+                  </mat-hint>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="row">
+            <div class="col-lg-12 d-flex align-items-center">
+              <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12">
+                {{ 'DATE_OF_BIRTH' | translate }}</mat-label>
+            </div>
+            <div class="col-lg-12">
+              <mat-form-field appearance="outline" class="w-100 hide-hint">
+                <mat-label>{{ 'DATE_OF_BIRTH' | translate }}</mat-label>
+                <input matInput formControlName="dob" [matDatepicker]="dob" />
+                <mat-datepicker-toggle
+                  matIconSuffix
+                  [for]="dob"
+                ></mat-datepicker-toggle>
+                <mat-datepicker #dob></mat-datepicker>
+                @if (formControls['dob'].touched && formControls['dob'].invalid) {
+                  <mat-hint class="m-b-16 error-msg">
+                    @if (formControls['dob'].errors && formControls['dob'].hasError('required')) {
+                      <div class="text-error">
+                        {{ 'DATE_OF_BIRTH_IS_REQUIRED' | translate }}
+                      </div>
+                    }
+                  </mat-hint>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="row">
+            <div class="col-lg-12 d-flex align-items-center">
+              <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12">
+                {{ 'BANK' | translate }}</mat-label>
+            </div>
+            <div class="col-lg-12">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>{{ 'BANK' | translate }}</mat-label>
+                <mat-select value="" formControlName="bank_id">
+                  <mat-option value="">
+                    {{ 'SELECT_BANK' | translate }}
+                  </mat-option>
+                  @for (bank of banks; track bank.id) {
+                    <mat-option [value]="bank.id">
+                      {{ bank.bank_name }} - {{ bank.code }}
+                    </mat-option>
+                  }
+                </mat-select>
+                @if (formControls['bank_id'].touched && formControls['bank_id'].invalid) {
+                  <mat-hint class="m-b-16 error-msg">
+                    @if (formControls['bank_id'].errors && formControls['bank_id'].hasError('required')) {
+                      <div class="text-error">
+                        {{ 'BANK_IS_REQUIRED' | translate }}
+                      </div>
+                    }
+                  </mat-hint>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="row">
+            <div class="col-lg-12 d-flex align-items-center">
+              <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12">{{ 'ACCOUNT_HOLDER' | translate }}</mat-label>
+            </div>
+            <div class="col-lg-12">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>{{ 'ACCOUNT_HOLDER' | translate }}</mat-label>
+                <input
+                  matInput
+                  formControlName="account_holder"
+                />
+                @if (formControls['account_holder'].touched && formControls['account_holder'].invalid) {
+                  <mat-hint class="m-b-16 error-msg">
+                    @if (formControls['account_holder'].errors && formControls['account_holder'].hasError('required')) {
+                      <div class="text-error">
+                        {{ 'ACCOUNT_HOLDER_IS_REQUIRED' | translate }}
+                      </div>
+                    }
+                  </mat-hint>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="row">
+            <div class="col-lg-12 d-flex align-items-center">
+              <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12">{{ 'ACCOUNT_NUMBER' | translate }}</mat-label>
+            </div>
+            <div class="col-lg-12">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>{{ 'ACCOUNT_NUMBER' | translate }}</mat-label>
+                <input
+                  matInput
+                  formControlName="account_number"
+                />
+                @if (formControls['account_number'].touched && formControls['account_number'].invalid) {
+                  <mat-hint class="m-b-16 error-msg">
+                    @if (formControls['account_number'].errors && formControls['account_number'].hasError('required')) {
+                      <div class="text-error">
+                        {{ 'ACCOUNT_NUMBER_IS_REQUIRED' | translate }}
+                      </div>
+                    }
+                    @if (formControls['account_number'].errors && formControls['account_number'].hasError('onlyNumbers')) {
+                      <div class="text-error">
+                        {{ 'ONLY_NUMBERS_ARE_ALLOWED' | translate }}
+                      </div>
+                    }
+                    @if (formControls['account_number'].errors && formControls['account_number'].hasError('noSpace')) {
+                      <div class="text-error">
+                        {{ 'NO_SPACE_IS_ALLOWED' | translate }}
+                      </div>
+                    }
+                  </mat-hint>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3">
+          <div class="row">
+            <div class="col-lg-12 d-flex align-items-center">
+              <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12">
+                {{ 'PARENT_AGENT' | translate }}</mat-label>
+            </div>
+            <div class="col-lg-12">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>{{ 'PARENT_AGENT' | translate }}</mat-label>
+                <mat-select value="" formControlName="parent_id">
+                  <mat-option value="">
+                    {{ 'SELECT_AGENT' | translate }}
+                  </mat-option>
+                  @for (agent of agents; track agent.id) {
+                    <mat-option [value]="agent.id">
+                      {{ agent.username }} | {{ agent.referral_info.code }}
+                    </mat-option>
+                  }
+                </mat-select>
+                @if (formControls['parent_id'].touched && formControls['parent_id'].invalid) {
+                  <mat-hint class="m-b-16 error-msg">
+                    @if (formControls['parent_id'].errors && formControls['parent_id'].hasError('required')) {
+                      <div class="text-error">
+                        {{ 'PARENT_AGENT_IS_REQUIRED' | translate }}
+                      </div>
+                    }
+                  </mat-hint>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3">
+          <div class="row">
+            <div class="col-lg-12 d-flex align-items-center">
+              <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12">{{ 'REFERRAL_CODE' | translate  }}</mat-label>
+            </div>
+            <div class="col-lg-12">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>{{ 'REFERRAL_CODE' | translate }}</mat-label>
+                <input
+                  matInput
+                  formControlName="ref_code"
+                />
+                @if (formControls['ref_code'].touched && formControls['ref_code'].invalid) {
+                  <mat-hint class="m-b-16 error-msg">
+                    @if (formControls['ref_code'].errors && formControls['ref_code'].hasError('required')) {
+                      <div class="text-error">
+                        {{ 'REFERRAL_CODE_IS_REQUIRED' | translate }}
+                      </div>
+                    }
+                    @if (formControls['ref_code'].errors && formControls['ref_code'].hasError('noSpace')) {
+                      <div class="text-error">
+                        {{ 'NO_SPACE_IS_ALLOWED' | translate }}
+                      </div>
+                    }
+                  </mat-hint>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3">
+          <div class="row">
+            <div class="col-lg-12 d-flex align-items-center">
+              <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12">
+                {{ 'LOSING_MONEY_RATIO' | translate }} (%) (0 ~ 99)</mat-label
+              >
+            </div>
+            <div class="col-lg-12">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>{{ 'LOSING_MONEY_RATIO' | translate }}</mat-label>
+                <input
+                  matInput
+                  formControlName="losing_point_ratio"
+                />
+                @if (formControls['losing_point_ratio'].touched && formControls['losing_point_ratio'].invalid) {
+                  <mat-hint class="m-b-16 error-msg">
+                    @if (formControls['losing_point_ratio'].errors && formControls['losing_point_ratio'].hasError('required')) {
+                      <div class="text-error">
+                        {{ 'LOSING_POINT_RATIO_IS_REQUIRED' | translate }}
+                  </div>
+                    @if (formControls['losing_point_ratio'].errors && formControls['losing_point_ratio'].hasError('min')) {
+                      <div class="text-error">
+                        {{
+                          'LOSING_POINT_RATIO_SHOULD_BE_GREATER_THAN' | translate
+                        }}
+                        0.
+                      </div>
+                    }
+                    @if (formControls['losing_point_ratio'].errors && formControls['losing_point_ratio'].hasError('max')) {
+                      <div class="text-error">
+                        {{ 'LOSING_POINT_RATIO_SHOULD_BE_LESS_THAN' | translate }} 100.
+                      </div>
+                    }
+                }
+                  </mat-hint>
+                }
+
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3">
+          <div class="row">
+            <div class="col-lg-12 d-flex align-items-center">
+              <mat-label class="mat-subtitle-2 f-w-600 d-block m-b-12">
+                {{ 'ROLLING_RATIO' | translate }} (%) (0 ~ 1)
+              </mat-label>
+            </div>
+            <div class="col-lg-12">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>{{ 'ROLLING_RATIO' | translate }}</mat-label>
+                <input
+                  matInput
+                  formControlName="rolling_ratio"
+                />
+                @if (formControls['rolling_ratio'].touched && formControls['rolling_ratio'].invalid) {
+                  <mat-hint class="m-b-16 error-msg">
+                    @if (formControls['rolling_ratio'].errors && formControls['rolling_ratio'].hasError('required')) {
+                      <div class="text-error">
+                        {{ 'ROLLING_RATIO_IS_REQUIRED' | translate }}
+                      </div>
+                    }
+                    @if (formControls['rolling_ratio'].errors && formControls['rolling_ratio'].hasError('min')) {
+                      <div class="text-error">
+                        {{ 'ROLLING_RATIO_SHOULD_BE_GREATER_THAN' | translate }} 0.
+                      </div>
+                    }
+                    @if (formControls['rolling_ratio'].errors && formControls['rolling_ratio'].hasError('max')) {
+                      <div class="text-error">
+                        {{ 'ROLLING_RATIO_SHOULD_BE_LESS_THAN' | translate }} 1.
+                      </div>
+                    }
+                  </mat-hint>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions>
+      <button mat-button class="b-1 border-error text-error" mat-dialog-close>
+        {{ 'CANCEL' | translate }}
+      </button>
+
+      <app-submit-button
+        [isSubmitting]="isSubmitting"
+        [disabled]="form.invalid"
+      ></app-submit-button>
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

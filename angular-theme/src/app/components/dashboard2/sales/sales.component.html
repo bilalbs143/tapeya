@@ -1,0 +1,19 @@
+<mat-card class="cardWithShadow mb-0!">
+  <mat-card-content>
+    <div class="flex flex-col gap-4">
+      <div class="flex items-start justify-between">
+        <div class="flex flex-col">
+          <mat-card-title>$65,432</mat-card-title>
+          <mat-card-subtitle class="leading-5">Sales</mat-card-subtitle>
+        </div>
+        <span class="bg-light-secondary text-secondary rounded-sm size-10! flex items-center justify-center">
+          <i class="iconify size-6!4" data-icon="solar:wallet-money-bold-duotone"></i>
+        </span>
+      </div>
+      <apx-chart [series]="salesChart.series" [chart]="salesChart.chart" [plotOptions]="salesChart.plotOptions"
+        [tooltip]="salesChart.tooltip" [stroke]="salesChart.stroke" [markers]="salesChart.markers"
+        [labels]="salesChart.labels" [fill]="salesChart.fill" [legend]="salesChart.legend"
+        [dataLabels]="salesChart.dataLabels" [colors]="salesChart.colors"></apx-chart>
+    </div>
+  </mat-card-content>
+</mat-card>
