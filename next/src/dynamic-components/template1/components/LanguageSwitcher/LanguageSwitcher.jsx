@@ -1,0 +1,209 @@
+import Image from 'next/image';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { useLanguageSwitcher } from '@/hooks/useLanguageSwitcher';
+
+export const LanguageSwitcher = ({ variant = 'dropdown' }) => {
+  const {
+    currentLocale,
+    switchLanguage,
+    isLoading,
+    locales,
+    localeNames,
+    isSavingToBackend,
+  } = useLanguageSwitcher();
+
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const localeFlags = {
+    en: 'https://d3emlo5tm9es2f.cloudfront.net/next/icons/uk-flag.svg',
+    id: 'https://d3emlo5tm9es2f.cloudfront.net/next/icons/id-flag.svg',
+    ko: 'https://d3emlo5tm9es2f.cloudfront.net/next/icons/korea-flag.svg',
+    jp: 'https://d3emlo5tm9es2f.cloudfront.net/next/icons/japan-flag.svg',
+    my: 'https://d3emlo5tm9es2f.cloudfront.net/next/icons/malaysia-flag.svg',
+    th: 'https://d3emlo5tm9es2f.cloudfront.net/next/icons/thailand-flag.svg',
+    tw: 'https://d3emlo5tm9es2f.cloudfront.net/next/icons/taiwan-flag.svg',
+    vn: 'https://d3emlo5tm9es2f.cloudfront.net/next/icons/vietnam-flag.svg',
+  };
+
+  const handleLanguageSwitch = useCallback(
+    async (locale) => {
+      if (locale !== currentLocale && !isSavingToBackend) {
+        await switchLanguage(locale);
+        if (variant === 'dropdown') {
+          setOpen(false);
+        }
+      }
+    },
+    [currentLocale, isSavingToBackend, switchLanguage, variant],
+  );
+
+  const toggleDropdown = useCallback(() => {
+    setOpen((prev) => !prev);
+  }, []);
+
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [open]);
+
+  if (isLoading) return null;
+
+  if (variant === 'dropdown') {
+    return (
+      <div ref={dropdownRef} className="relative z-[1001] inline-block">
+        <button
+          onClick={toggleDropdown}
+          disabled={isSavingToBackend}
+          className={`btn-hover-outline group inline-flex items-center gap-2 rounded-full border border-[#FC9405] bg-[#141943] py-2 pr-2 pl-4 text-white transition-colors hover:bg-[#141943]/80 ${
+            isSavingToBackend ? 'cursor-not-allowed opacity-50' : ''
+          }`}
+          aria-label="Select language"
+          aria-expanded={open}
+          aria-haspopup="listbox"
+        >
+          <Image
+            src={localeFlags[currentLocale] || localeFlags.en}
+            alt={localeNames[currentLocale] || 'English'}
+            width={25}
+            height={12}
+          />
+          {isSavingToBackend ? (
+            <div
+              className="h-5 w-5 animate-spin rounded-full border border-white border-t-transparent"
+              aria-hidden="true"
+            />
+          ) : (
+            <svg
+              className="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                d="M5.23 7.21a.75.75 0 011.06.02L10 11.2l3.71-3.97a.75.75 0 111.08 1.04l-4.25 4.54a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"
+                clipRule="evenodd"
+              />
+            </svg>
+          )}
+        </button>
+
+        {open && !isSavingToBackend && (
+          <div
+            className="absolute right-0 z-[1002] mt-2 w-32 overflow-hidden rounded-lg border border-[#FC9405] bg-[#141943] shadow-lg"
+            role="listbox"
+            aria-label="Language options"
+          >
+            {locales.map((locale) => (
+              <button
+                key={locale}
+                onClick={() => handleLanguageSwitch(locale)}
+                disabled={locale === currentLocale || isSavingToBackend}
+                className={`group flex w-full items-center gap-2 px-3 py-2 text-left text-white transition-all duration-200 hover:bg-[#FC9405] hover:text-[#141943] ${
+                  currentLocale === locale ? 'bg-[#FC9405]/20 font-medium' : ''
+                } ${locale === currentLocale || isSavingToBackend ? 'cursor-not-allowed opacity-50' : ''}`}
+                role="option"
+                aria-selected={currentLocale === locale}
+              >
+                <Image
+                  src={localeFlags[locale]}
+                  alt={localeNames[locale]}
+                  width={18}
+                  height={12}
+                  className="transition-transform duration-200 group-hover:scale-110"
+                />
+                <span className="text-sm font-medium">
+                  {localeNames[locale]}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (variant === 'list') {
+    return (
+      <div className="space-y-2">
+        {locales.map((locale) => (
+          <button
+            key={locale}
+            onClick={() => handleLanguageSwitch(locale)}
+            disabled={locale === currentLocale || isSavingToBackend}
+            className={`flex w-full items-center gap-3 rounded-lg border px-4 py-3 transition-all duration-200 ${
+              currentLocale === locale
+                ? 'border-[#FC9405] bg-[#FC9405]/20 text-white'
+                : 'border-[#FC9405]/30 bg-[#141943]/50 text-white/80 hover:border-[#FC9405]/50 hover:bg-[#FC9405]/10'
+            } ${locale === currentLocale || isSavingToBackend ? 'cursor-not-allowed opacity-50' : ''}`}
+          >
+            <Image
+              src={localeFlags[locale]}
+              alt={localeNames[locale]}
+              width={20}
+              height={14}
+            />
+            <span className="text-sm font-medium">{localeNames[locale]}</span>
+            {currentLocale === locale && (
+              <div className="ml-auto">
+                <svg
+                  className="h-4 w-4 text-[#FC9405]"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+            )}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  // Alternative list/button variant
+  return (
+    <div className="flex gap-2">
+      {locales.map((locale) => (
+        <button
+          key={locale}
+          onClick={() => handleLanguageSwitch(locale)}
+          disabled={locale === currentLocale || isSavingToBackend}
+          className={`flex items-center gap-2 rounded-full border px-3 py-2 transition-colors ${
+            currentLocale === locale
+              ? 'border-[#FC9405] bg-[#141943] text-white'
+              : 'border-[#FC9405] bg-transparent text-white hover:bg-[#141943]/20'
+          } ${locale === currentLocale || isSavingToBackend ? 'cursor-not-allowed opacity-50' : ''}`}
+        >
+          <Image
+            src={localeFlags[locale]}
+            alt={localeNames[locale]}
+            width={18}
+            height={12}
+          />
+          <span className="text-sm">{localeNames[locale]}</span>
+        </button>
+      ))}
+    </div>
+  );
+};

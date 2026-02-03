@@ -1,0 +1,9 @@
+node_modules
+dist
+build
+.next
+ios
+android
+.capacitor
+*.lock
+package-lock.json

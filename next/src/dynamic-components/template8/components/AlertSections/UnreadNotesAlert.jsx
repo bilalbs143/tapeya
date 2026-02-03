@@ -1,0 +1,88 @@
+'use client';
+
+import { useDispatch } from 'react-redux';
+
+import { useTranslations } from '@/hooks/useTranslations';
+import { openModal } from '@/slices/common/commonSlice';
+
+export default function UnreadNotesAlert({
+  unreadNotes = [],
+  unreadCount = 0,
+  hasUnreadNotes = false,
+}) {
+  const dispatch = useDispatch();
+  const { t } = useTranslations();
+
+  // Don't render if no unread notes
+  if (!hasUnreadNotes) {
+    return null;
+  }
+
+  const handleOpenNotesModal = (e) => {
+    e.preventDefault();
+
+    if (unreadCount === 1 && unreadNotes.length === 1) {
+      const unreadMessage = unreadNotes[0];
+      dispatch(
+        openModal({
+          modal: 'customerService',
+          props: {
+            defaultTab: 'note',
+            openMessageId: unreadMessage.id,
+          },
+        }),
+      );
+    } else {
+      dispatch(
+        openModal({
+          modal: 'customerService',
+          props: { defaultTab: 'note' },
+        }),
+      );
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="mt-3 flex items-center space-x-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-[3px] border border-[#2DFA1A4D] bg-[#0A1414] shadow-[inset_4px_5px_16px_0_rgba(0,0,0,0.25)]">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M2 6C2 5.46957 2.21071 4.96086 2.58579 4.58579C2.96086 4.21071 3.46957 4 4 4H20C20.5304 4 21.0391 4.21071 21.4142 4.58579C21.7893 4.96086 22 5.46957 22 6V17C22 17.5304 21.7893 18.0391 21.4142 18.4142C21.0391 18.7893 20.5304 19 20 19H15.414L12.707 21.707C12.5195 21.8945 12.2652 21.9998 12 21.9998C11.7348 21.9998 11.4805 21.8945 11.293 21.707L8.586 19H4C3.46957 19 2.96086 18.7893 2.58579 18.4142C2.21071 18.0391 2 17.5304 2 17V6ZM20 6H4V17H9C9.26519 17.0001 9.51951 17.1054 9.707 17.293L12 19.586L14.293 17.293C14.4805 17.1054 14.7348 17.0001 15 17H20V6ZM6 9.5C6 9.23478 6.10536 8.98043 6.29289 8.79289C6.48043 8.60536 6.73478 8.5 7 8.5H17C17.2652 8.5 17.5196 8.60536 17.7071 8.79289C17.8946 8.98043 18 9.23478 18 9.5C18 9.76522 17.8946 10.0196 17.7071 10.2071C17.5196 10.3946 17.2652 10.5 17 10.5H7C6.73478 10.5 6.48043 10.3946 6.29289 10.2071C6.10536 10.0196 6 9.76522 6 9.5ZM6 13.5C6 13.2348 6.10536 12.9804 6.29289 12.7929C6.48043 12.6054 6.73478 12.5 7 12.5H13C13.2652 12.5 13.5196 12.6054 13.7071 12.7929C13.8946 12.9804 14 13.2348 14 13.5C14 13.7652 13.8946 14.0196 13.7071 14.2071C13.5196 14.3946 13.2652 14.5 13 14.5H7C6.73478 14.5 6.48043 14.3946 6.29289 14.2071C6.10536 14.0196 6 13.7652 6 13.5Z"
+              fill="white"
+            />
+          </svg>
+        </div>
+        <div className="flex-1">
+          <p className="text-sm font-medium text-[#D9D9D9]">
+            {t('you_have_unread_messages')}
+          </p>
+          <p className="text-xs text-[#FFFFFF33]">
+            {unreadCount}{' '}
+            {unreadCount === 1 ? t('unread_message') : t('unread_messages')}
+          </p>
+        </div>
+      </div>
+
+      <div className="rounded-[3px] border border-[#2DFA1A4D] bg-[#050C0C] p-4">
+        <p className="text-sm text-[white]">
+          {t('please_check_your_messages_before_continuing')}
+        </p>
+      </div>
+
+      <button
+        onClick={handleOpenNotesModal}
+        className="w-full cursor-pointer rounded-[4px] bg-[#2DFA1A] px-4 py-3 text-sm font-semibold text-black transition-all duration-150 active:scale-95"
+        data-hover="View Messages"
+      >
+        {t('view_messages')}
+      </button>
+    </div>
+  );
+}

@@ -1,0 +1,567 @@
+@import url('https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
+@import 'tailwindcss';
+
+/* Global font configuration */
+* {
+  font-family: var(--font-urbanist), 'Urbanist', sans-serif;
+}
+
+body {
+  font-family: var(--font-urbanist), 'Urbanist', sans-serif;
+}
+.flatpickr-wrapper {
+  width: 100% !important;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 20s linear infinite;
+}
+
+/* Remove number input spin buttons across browsers */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+  /* Firefox */
+}
+
+/* Global pointer cursor for interactive controls */
+button,
+[role='button'],
+[role='tab'],
+.tab,
+.tabs button,
+[data-tab] {
+  cursor: pointer;
+}
+
+/* Floating Buttons Styles */
+.floating-buttons-container {
+  position: fixed;
+  right: 24px;
+  top: 55%;
+  transform: translateY(-50%);
+  z-index: 50;
+}
+
+.floating-backdrop {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 112px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.9);
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.floating-backdrop.guest {
+  height: 0px;
+  opacity: 0;
+  transition:
+    height 300ms ease,
+    opacity 200ms ease;
+}
+
+.floating-backdrop.guest.expanded {
+  height: 320px;
+  opacity: 1;
+}
+
+.floating-backdrop.auth {
+  height: 0px;
+  opacity: 0;
+  transition:
+    height 300ms ease,
+    opacity 200ms ease;
+}
+
+.floating-backdrop.auth.expanded {
+  height: 500px;
+  opacity: 1;
+}
+
+.floating-button-wrapper {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: all 300ms ease-out;
+}
+
+.floating-button-wrapper.upward {
+  margin-bottom: 8px;
+}
+
+.floating-button-wrapper.downward {
+  margin-top: 8px;
+}
+
+.floating-button-wrapper.expanded {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  scale: 1;
+}
+
+.floating-button-wrapper.collapsed {
+  transform: translateX(-50%) translateY(16px);
+  opacity: 0;
+  scale: 0.95;
+  pointer-events: none;
+}
+
+.floating-button {
+  position: relative;
+  display: flex;
+  height: 75px;
+  width: 85px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: all 200ms ease;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #d3af37, #fff788);
+  padding: 2px;
+}
+
+.floating-button:hover {
+  transform: scale(1.05);
+}
+
+.floating-button:active {
+  transform: scale(0.95);
+}
+
+.floating-button.clicked {
+  transform: scale(0.95);
+}
+
+.floating-button-inner {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  background: black;
+  border-radius: 6px;
+}
+
+.floating-button-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.floating-button-icon {
+  margin-bottom: 4px;
+  height: 25px;
+  width: 25px;
+}
+
+.floating-button-text {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.floating-main-button {
+  position: relative;
+  display: flex;
+  height: 80px;
+  width: 80px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: all 300ms ease;
+  border-radius: 50%;
+  background: transparent;
+  padding: 2px;
+  opacity: 1;
+}
+
+.floating-main-button:hover {
+  transform: scale(1.05);
+}
+
+.floating-main-button:active {
+  transform: scale(0.95);
+}
+
+.floating-main-button-inner {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  background: black;
+  border-radius: 50%;
+  position: relative;
+  z-index: 1;
+}
+
+.floating-main-button-inner.with-gif {
+  background-image: url('https://d3emlo5tm9es2f.cloudfront.net/next/icons/floating-gif-3.gif');
+  background-size: 110px;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.floating-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.floating-logo-rotator {
+  animation: rotate-with-pause 3.6s linear infinite;
+  transform-origin: center;
+  will-change: transform;
+  display: inline-block;
+}
+
+.rotating-gradient-border {
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #d3af37, #fff788, #d3af37);
+  animation: spin-gradient 2s linear infinite;
+  z-index: 0;
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 2px),
+    #000 0
+  );
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 0);
+}
+
+.floating-close-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.floating-notes-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: grid;
+  height: 16px;
+  min-width: 16px;
+  place-items: center;
+  border-radius: 50%;
+  background: #d3af37;
+  padding: 0 4px;
+  font-size: 10px;
+  line-height: 1;
+  color: black;
+  font-weight: bold;
+}
+
+/* Button positioning classes */
+.floating-button-login {
+  bottom: 100px;
+}
+
+.floating-button-register {
+  top: 100px;
+}
+
+.floating-button-deposit {
+  bottom: 180px;
+}
+
+.floating-button-withdrawal {
+  bottom: 100px;
+}
+
+.floating-button-support {
+  top: 100px;
+}
+
+.floating-button-notes {
+  top: 180px;
+}
+
+/* Animations */
+@keyframes rotate-with-pause {
+  0% {
+    transform: rotate(0deg);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  10% {
+    opacity: 0.4;
+  }
+
+  25% {
+    transform: rotate(360deg);
+    opacity: 0.4;
+  }
+
+  25.01% {
+    transform: rotate(360deg);
+    opacity: 1;
+    animation-timing-function: linear;
+  }
+
+  100% {
+    transform: rotate(360deg);
+    opacity: 1;
+  }
+}
+
+@keyframes spin-gradient {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.gradient-border {
+  border: 1px solid transparent;
+  border-radius: 5px;
+  border-image: linear-gradient(90deg, #d3af3780, #fff78880, #d3af3780) 1;
+}
+.status-pill {
+  padding: 5px 12px 5px 12px !important;
+  border-radius: 6px !important;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Simple Border Styles for Game Cards */
+@media (min-width: 768px) {
+  .floating-buttons-container {
+    display: none;
+  }
+}
+
+.game-card-simple {
+  width: 100%;
+  aspect-ratio: 13 / 15;
+  position: relative;
+  background: transparent;
+  border: 2px solid #e8d25e;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Image section takes up most of the space */
+.game-card-image-section {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  border-radius: 6px 6px 0 0;
+  border-bottom: 2px solid #e8d25e;
+}
+
+/* Game name section at the bottom */
+.game-name-section {
+  flex-shrink: 0;
+  background: #000000;
+  border-radius: 0 0 6px 6px;
+}
+
+/* Image area inside the card */
+.game-card-media {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+  z-index: 1;
+  border-radius: 6px;
+  background: #1a1a1a; /* fallback if image fails */
+}
+
+.game-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Wrapper for content */
+.game-card-image-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* Simple game name styling */
+.game-name-simple {
+  padding: 15px 4px;
+  margin: 0;
+  text-align: center;
+}
+
+.game-card-svg-path {
+  transition: fill 0.3s ease;
+}
+/* Modal scrollbar hiding - comprehensive solution */
+[data-radix-dialog-overlay] {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+[data-radix-dialog-overlay]::-webkit-scrollbar {
+  display: none !important;
+}
+
+[data-radix-dialog-content] {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+[data-radix-dialog-content]::-webkit-scrollbar {
+  display: none !important;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+/* Prevent layout shift when internal scrolling toggles in modal content */
+[data-radix-dialog-content],
+.register-modal {
+  scrollbar-gutter: stable both-edges;
+}
+
+/* Mobile-specific modal scrolling fixes */
+@media (max-width: 768px) {
+  .register-modal {
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  [data-radix-dialog-content] {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+}
+
+/* Game Slider Navigation Button Hover Effects */
+.game-slider-nav-button {
+  transition: all 0.2s ease;
+}
+
+.game-slider-nav-button:hover {
+  transform: scale(1.1);
+}
+.status-pill {
+  width: 100%;
+  max-width: 90px;
+}
+
+/* Provider Select Dropdown Custom Scrollbar - Template 12 */
+.template12-provider-select[data-slot='select-content'],
+[data-slot='select-content'].template12-provider-select {
+  scrollbar-width: thin !important;
+  scrollbar-color: #e8d25e #1a1a1a !important;
+}
+
+.template12-provider-select[data-slot='select-content']::-webkit-scrollbar,
+[data-slot='select-content'].template12-provider-select::-webkit-scrollbar {
+  width: 6px !important;
+  display: block !important;
+  -webkit-appearance: none !important;
+}
+
+.template12-provider-select[data-slot='select-content']::-webkit-scrollbar-track,
+[data-slot='select-content'].template12-provider-select::-webkit-scrollbar-track {
+  background: #1a1a1a !important;
+  border-radius: 3px !important;
+}
+
+.template12-provider-select[data-slot='select-content']::-webkit-scrollbar-thumb,
+[data-slot='select-content'].template12-provider-select::-webkit-scrollbar-thumb {
+  background: #e8d25e !important;
+  border-radius: 3px !important;
+}
+
+.template12-provider-select[data-slot='select-content']::-webkit-scrollbar-thumb:hover,
+[data-slot='select-content'].template12-provider-select::-webkit-scrollbar-thumb:hover {
+  background: #d4c04d !important;
+}
+
+/* Target the viewport inside select content - more specific selectors */
+.template12-provider-select[data-slot='select-content'] > div,
+[data-slot='select-content'].template12-provider-select > div,
+.template12-provider-select[data-slot='select-content'] *,
+[data-slot='select-content'].template12-provider-select * {
+  scrollbar-width: thin !important;
+  scrollbar-color: #e8d25e #1a1a1a !important;
+}
+
+.template12-provider-select[data-slot='select-content']
+  > div::-webkit-scrollbar,
+[data-slot='select-content'].template12-provider-select
+  > div::-webkit-scrollbar,
+.template12-provider-select[data-slot='select-content'] *::-webkit-scrollbar,
+[data-slot='select-content'].template12-provider-select *::-webkit-scrollbar {
+  width: 6px !important;
+  display: block !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+.template12-provider-select[data-slot='select-content']
+  > div::-webkit-scrollbar-track,
+[data-slot='select-content'].template12-provider-select
+  > div::-webkit-scrollbar-track,
+.template12-provider-select[data-slot='select-content']
+  *::-webkit-scrollbar-track,
+[data-slot='select-content'].template12-provider-select
+  *::-webkit-scrollbar-track {
+  background: #1a1a1a !important;
+  border-radius: 3px !important;
+}
+
+.template12-provider-select[data-slot='select-content']
+  > div::-webkit-scrollbar-thumb,
+[data-slot='select-content'].template12-provider-select
+  > div::-webkit-scrollbar-thumb,
+.template12-provider-select[data-slot='select-content']
+  *::-webkit-scrollbar-thumb,
+[data-slot='select-content'].template12-provider-select
+  *::-webkit-scrollbar-thumb {
+  background: #e8d25e !important;
+  border-radius: 3px !important;
+}
+
+.template12-provider-select[data-slot='select-content']
+  > div::-webkit-scrollbar-thumb:hover,
+[data-slot='select-content'].template12-provider-select
+  > div::-webkit-scrollbar-thumb:hover,
+.template12-provider-select[data-slot='select-content']
+  *::-webkit-scrollbar-thumb:hover,
+[data-slot='select-content'].template12-provider-select
+  *::-webkit-scrollbar-thumb:hover {
+  background: #d4c04d !important;
+}
+
+/* Provider Select Dropdown Text Size - Template 12 */
+.template12-provider-select[data-slot='select-content']
+  [data-slot='select-item'],
+[data-slot='select-content'].template12-provider-select
+  [data-slot='select-item'] {
+  font-size: 12px !important;
+}
