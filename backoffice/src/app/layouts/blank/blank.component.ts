@@ -16,19 +16,19 @@ export class BlankComponent {
   private readonly settings = inject(CoreService);
   private htmlElement!: HTMLHtmlElement;
 
-  options = this.settings.getOptions();
+  public options = this.settings.getOptions();
 
   constructor() {
     this.htmlElement = document.querySelector('html')!;
     this.receiveOptions(this.options);
   }
 
-  receiveOptions(options: AppSettings): void {
+  public receiveOptions(options: AppSettings): void {
     this.toggleDarkTheme(options);
     this.toggleColorsTheme(options);
   }
 
-  toggleDarkTheme(options: AppSettings) {
+  private toggleDarkTheme(options: AppSettings) {
     if (options.theme === 'dark') {
       this.htmlElement.classList.add('dark-theme');
       this.htmlElement.classList.remove('light-theme');
@@ -38,7 +38,7 @@ export class BlankComponent {
     }
   }
 
-  toggleColorsTheme(options: AppSettings) {
+  private toggleColorsTheme(options: AppSettings) {
     // Remove any existing theme class dynamically
     this.htmlElement.classList.forEach((className) => {
       if (className.endsWith('_theme')) {

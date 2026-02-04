@@ -20,7 +20,7 @@ import { AppBreadcrumbComponent } from './shared/breadcrumb/breadcrumb.component
 import { CustomizerComponent } from './shared/customizer/customizer.component';
 import { HeaderComponent } from './vertical/header/header.component';
 import { AppNavItemComponent } from './vertical/sidebar/nav-item/nav-item.component';
-import { navItems } from './vertical/sidebar/sidebar-data';
+import { navItems } from './shared/nav/sidebar-data';
 import { SidebarComponent } from './vertical/sidebar/sidebar.component';
 
 const MOBILE_VIEW = 'screen and (max-width: 768px)';
@@ -71,30 +71,33 @@ export class FullComponent implements OnDestroy {
   private readonly navService = inject(NavService);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  navItems = navItems;
+  public navItems = navItems;
 
   @ViewChild('leftsidenav')
   public sidenav: MatSidenav;
-  resView = false;
-  @ViewChild('content', { static: true }) content!: MatSidenavContent;
+  public resView = false;
+  @ViewChild('content', { static: true }) public content!: MatSidenavContent;
 
-  options = this.settings.getOptions();
+  /** Current options from the service (persisted in localStorage). */
+  public get options(): AppSettings {
+    return this.settings.getOptions();
+  }
   private layoutChangesSubscription = Subscription.EMPTY;
   private isMobileScreen = false;
   private isContentWidthFixed = true;
   private isCollapsedWidthFixed = false;
   private htmlElement!: HTMLHtmlElement;
 
-  get isOver(): boolean {
+  public get isOver(): boolean {
     return this.isMobileScreen;
   }
 
-  get isTablet(): boolean {
+  public get isTablet(): boolean {
     return this.resView;
   }
 
   // for mobile app sidebar
-  apps: apps[] = [
+  public apps: apps[] = [
     {
       id: 1,
       img: '/assets/images/svgs/icon-dd-chat.svg',
@@ -153,7 +156,7 @@ export class FullComponent implements OnDestroy {
     },
   ];
 
-  quicklinks: quicklinks[] = [
+  public quicklinks: quicklinks[] = [
     {
       id: 1,
       title: 'Pricing Page',
@@ -210,43 +213,43 @@ export class FullComponent implements OnDestroy {
     });
   }
 
-  isFilterNavOpen = false;
+  public isFilterNavOpen = false;
 
-  toggleFilterNav() {
+  public toggleFilterNav() {
     this.isFilterNavOpen = !this.isFilterNavOpen;
     this.cdr.detectChanges();
   }
 
-  ngOnDestroy() {
+  public ngOnDestroy() {
     this.layoutChangesSubscription.unsubscribe();
   }
 
-  toggleCollapsed() {
+  public toggleCollapsed() {
     this.isContentWidthFixed = false;
     this.options.sidenavCollapsed = !this.options.sidenavCollapsed;
     this.resetCollapsedState();
   }
 
-  resetCollapsedState(timer = 400) {
+  public resetCollapsedState(timer = 400) {
     setTimeout(() => this.settings.setOptions(this.options), timer);
   }
 
-  onSidenavClosedStart() {
+  public onSidenavClosedStart() {
     this.isContentWidthFixed = false;
   }
 
-  onSidenavOpenedChange(isOpened: boolean) {
+  public onSidenavOpenedChange(isOpened: boolean) {
     this.isCollapsedWidthFixed = !this.isOver;
     this.options.sidenavOpened = isOpened;
     this.settings.setOptions(this.options);
   }
 
-  receiveOptions(options: AppSettings): void {
+  public receiveOptions(options: AppSettings): void {
     this.toggleDarkTheme(options);
     this.toggleColorsTheme(options);
   }
 
-  toggleDarkTheme(options: AppSettings) {
+  private toggleDarkTheme(options: AppSettings) {
     if (options.theme === 'dark') {
       this.htmlElement.classList.add('dark-theme');
       this.htmlElement.classList.remove('light-theme');
@@ -256,7 +259,7 @@ export class FullComponent implements OnDestroy {
     }
   }
 
-  toggleColorsTheme(options: AppSettings) {
+  private toggleColorsTheme(options: AppSettings) {
     // Remove any existing theme class dynamically
     this.htmlElement.classList.forEach((className) => {
       if (className.endsWith('_theme')) {

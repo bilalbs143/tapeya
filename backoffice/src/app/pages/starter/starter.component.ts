@@ -29,6 +29,6 @@ const ELEMENT_DATA: PeriodicElement[] = [
   encapsulation: ViewEncapsulation.None,
 })
 export class StarterComponent {
-  displayedColumns: string[] = ['position', 'name', 'weight', 'symbol'];
-  dataSource = ELEMENT_DATA;
+  public displayedColumns: string[] = ['position', 'name', 'weight', 'symbol'];
+  public dataSource = ELEMENT_DATA;
 }

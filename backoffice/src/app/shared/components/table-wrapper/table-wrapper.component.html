@@ -1,0 +1,14 @@
+<div
+  #scrollContainer
+  class="table-responsive relative"
+  (mousedown)="startDragging($event)"
+  (mouseup)="stopDragging()"
+>
+  <ng-content></ng-content>
+
+  @if (loading) {
+    <div class="absolute inset-x-0 top-0">
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    </div>
+  }
+</div>

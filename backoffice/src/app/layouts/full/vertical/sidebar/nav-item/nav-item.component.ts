@@ -8,7 +8,7 @@ import { NavService } from '../../../../../services/nav.service';
 
 import { MaterialModule } from 'src/app/material.module';
 
-import { NavItem } from './nav-item';
+import { NavItem } from '../../../shared/nav/nav-item.model';
 
 @Component({
   selector: 'app-nav-item',
@@ -24,20 +24,20 @@ import { NavItem } from './nav-item';
   ],
 })
 export class AppNavItemComponent implements OnChanges {
-  @Output() readonly toggleMobileLink = new EventEmitter<void>();
-  @Output() readonly notify = new EventEmitter<boolean>();
+  @Output() public readonly toggleMobileLink = new EventEmitter<void>();
+  @Output() public readonly notify = new EventEmitter<boolean>();
 
-  expanded = false;
-  disabled = false;
-  twoLines = false;
-  @HostBinding('attr.aria-expanded') ariaExpanded = this.expanded;
-  @Input() item!: NavItem;
-  @Input() depth = 0;
+  public expanded = false;
+  public disabled = false;
+  public twoLines = false;
+  @HostBinding('attr.aria-expanded') public ariaExpanded = this.expanded;
+  @Input() public item!: NavItem;
+  @Input() public depth = 0;
 
-  readonly navService = inject(NavService);
-  private readonly router = inject(Router);
+  public readonly navService = inject(NavService);
+  public readonly router = inject(Router);
 
-  ngOnChanges() {
+  public ngOnChanges() {
     const url = this.navService.currentUrl();
     if (this.item.route && url) {
       this.expanded = url.indexOf(`/${this.item.route}`) === 0;
@@ -45,7 +45,7 @@ export class AppNavItemComponent implements OnChanges {
     }
   }
 
-  onItemSelected(item: NavItem) {
+  public onItemSelected(item: NavItem) {
     if (!item.children?.length && item.route) {
       void this.router.navigate([item.route]);
     }
@@ -65,7 +65,7 @@ export class AppNavItemComponent implements OnChanges {
     }
   }
 
-  onSubItemSelected(item: NavItem) {
+  public onSubItemSelected(item: NavItem) {
     if (!item.children || !item.children.length) {
       if (this.expanded && window.innerWidth < 1024) {
         this.notify.emit();
@@ -73,11 +73,11 @@ export class AppNavItemComponent implements OnChanges {
     }
   }
 
-  isDirectlyActive(item: NavItem): boolean {
+  public isDirectlyActive(item: NavItem): boolean {
     return !!item.route && this.router.isActive(item.route, true);
   }
 
-  isChildActive(item: NavItem): boolean {
+  public isChildActive(item: NavItem): boolean {
     if (!item.children) return false;
     return item.children.some((child) => this.isDirectlyActive(child) || this.isChildActive(child));
   }

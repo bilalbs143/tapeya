@@ -11,7 +11,7 @@ import { BrandingComponent } from './branding.component';
   templateUrl: './sidebar.component.html',
 })
 export class SidebarComponent {
-  @Input() showToggle = true;
-  @Output() readonly toggleMobileNav = new EventEmitter<void>();
-  @Output() readonly toggleCollapsed = new EventEmitter<void>();
+  @Input() public showToggle = true;
+  @Output() public readonly toggleMobileNav = new EventEmitter<void>();
+  @Output() public readonly toggleCollapsed = new EventEmitter<void>();
 }

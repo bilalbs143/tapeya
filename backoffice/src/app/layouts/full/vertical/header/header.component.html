@@ -269,14 +269,16 @@
             width="95"
           />
           <div class="ms-4">
-            <h6 class="text-sm font-semibold m-0">Mathew Anderson</h6>
-            <span class="text-sm block mb-1 text-muted">Designer</span>
+            <h6 class="text-sm font-semibold m-0">
+              {{ (currentUser() || { name: 'Admin' }).name }}
+            </h6>
+            <span class="text-sm block mb-1 text-muted"> Admin </span>
             <span class="flex items-center text-muted">
               <i-tabler
                 name="mail"
                 class="size-3.5! me-1"
               ></i-tabler>
-              info&#64;tapeya.com
+              {{ (currentUser() || { email: 'info@tapeya.com' }).email }}
             </span>
           </div>
         </div>
@@ -309,13 +311,15 @@
         }
       </div>
       <div class="py-3 px-6">
-        <a
-          [routerLink]="['/authentication/login']"
+        <button
+          type="button"
+          (click)="logout()"
           mat-stroked-button
           color="primary"
           class="w-full"
-          >Logout</a
         >
+          Logout
+        </button>
       </div>
     </ng-scrollbar>
   </mat-menu>

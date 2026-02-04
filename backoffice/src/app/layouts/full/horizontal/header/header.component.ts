@@ -6,7 +6,8 @@ import { TablerIconsModule } from 'angular-tabler-icons';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 
 import { BrandingComponent } from '../../vertical/sidebar/branding.component';
-import { navItems } from '../../vertical/sidebar/sidebar-data';
+import { NavItem } from '../../shared/nav/nav-item.model';
+import { navItems } from '../../shared/nav/sidebar-data';
 
 import { AppSettings } from 'src/app/config';
 import { MaterialModule } from 'src/app/material.module';
@@ -47,22 +48,24 @@ interface quicklinks {
   templateUrl: './header.component.html',
 })
 export class AppHorizontalHeaderComponent {
-  @Input() showToggle = true;
-  @Input() toggleChecked = false;
-  @Output() readonly toggleMobileNav = new EventEmitter<void>();
-  @Output() readonly toggleMobileFilterNav = new EventEmitter<void>();
-  @Output() readonly toggleCollapsed = new EventEmitter<void>();
-  @Output() readonly optionsChange = new EventEmitter<AppSettings>();
+  @Input() public showToggle = true;
+  @Input() public toggleChecked = false;
+  @Output() public readonly toggleMobileNav = new EventEmitter<void>();
+  @Output() public readonly toggleMobileFilterNav = new EventEmitter<void>();
+  @Output() public readonly toggleCollapsed = new EventEmitter<void>();
+  @Output() public readonly optionsChange = new EventEmitter<AppSettings>();
 
-  showFiller = false;
+  public showFiller = false;
 
   private readonly settings = inject(CoreService);
-  private readonly vsidenav = inject(CoreService);
-  readonly dialog = inject(MatDialog);
+  public readonly dialog = inject(MatDialog);
 
-  options = this.settings.getOptions();
+  /** Current options from the service (persisted in localStorage). */
+  public get options(): AppSettings {
+    return this.settings.getOptions();
+  }
 
-  openDialog() {
+  public openDialog(): void {
     const dialogRef = this.dialog.open(AppHorizontalSearchDialogComponent);
 
     dialogRef.afterClosed().subscribe((result) => {
@@ -70,16 +73,17 @@ export class AppHorizontalHeaderComponent {
     });
   }
 
-  private emitOptions() {
-    this.optionsChange.emit(this.options);
+  private emitOptions(): void {
+    this.optionsChange.emit(this.settings.getOptions());
   }
 
-  setlightDark(theme: string) {
-    this.options.theme = theme;
+  /** Toggle light/dark theme and persist to localStorage. */
+  public setlightDark(theme: 'light' | 'dark'): void {
+    this.settings.setOptions({ theme });
     this.emitOptions();
   }
 
-  notifications: notifications[] = [
+  public notifications: notifications[] = [
     {
       id: 1,
       img: '/assets/images/profile/user-1.jpg',
@@ -112,7 +116,7 @@ export class AppHorizontalHeaderComponent {
     },
   ];
 
-  profiledd: profiledd[] = [
+  public profiledd: profiledd[] = [
     {
       id: 1,
       img: '/assets/images/svgs/icon-account.svg',
@@ -136,7 +140,7 @@ export class AppHorizontalHeaderComponent {
     },
   ];
 
-  apps: apps[] = [
+  public apps: apps[] = [
     {
       id: 1,
       img: '/assets/images/svgs/icon-dd-chat.svg',
@@ -195,7 +199,7 @@ export class AppHorizontalHeaderComponent {
     },
   ];
 
-  quicklinks: quicklinks[] = [
+  public quicklinks: quicklinks[] = [
     {
       id: 1,
       title: 'Pricing Page',
@@ -245,8 +249,7 @@ export class AppHorizontalHeaderComponent {
   templateUrl: 'search-dialog.component.html',
 })
 export class AppHorizontalSearchDialogComponent {
-  searchText: string = '';
-  navItems = navItems;
-
-  navItemsData = navItems.filter((navitem) => navitem.displayName);
+  public searchText: string = '';
+  public navItems = navItems;
+  public navItemsData = navItems.filter((navitem: NavItem) => navitem.displayName);
 }

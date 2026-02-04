@@ -1,14 +1,17 @@
-import { Component, EventEmitter, inject, Input, Output, ViewEncapsulation } from '@angular/core';
+import { Component, EventEmitter, Signal, computed, inject, Input, Output, ViewEncapsulation } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { RouterModule } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 
-import { navItems } from '../sidebar/sidebar-data';
+import { NavItem } from '../../shared/nav/nav-item.model';
+import { navItems } from '../../shared/nav/sidebar-data';
 
 import { AppSettings } from 'src/app/config';
 import { MaterialModule } from 'src/app/material.module';
+import type { AuthUser } from 'src/app/models/auth.models';
+import { AuthService } from 'src/app/services/auth.service';
 import { CoreService } from 'src/app/services/core.service';
 
 interface notifications {
@@ -47,22 +50,25 @@ interface quicklinks {
   encapsulation: ViewEncapsulation.None,
 })
 export class HeaderComponent {
-  @Input() showToggle = true;
-  @Input() toggleChecked = false;
-  @Output() readonly toggleMobileNav = new EventEmitter<void>();
-  @Output() readonly toggleMobileFilterNav = new EventEmitter<void>();
-  @Output() readonly toggleCollapsed = new EventEmitter<void>();
-  @Output() readonly optionsChange = new EventEmitter<AppSettings>();
-
-  showFiller = false;
+  @Input() public showToggle = true;
+  @Input() public toggleChecked = false;
+  @Output() public readonly toggleMobileNav = new EventEmitter<void>();
+  @Output() public readonly toggleMobileFilterNav = new EventEmitter<void>();
+  @Output() public readonly toggleCollapsed = new EventEmitter<void>();
+  @Output() public readonly optionsChange = new EventEmitter<AppSettings>();
 
   private readonly settings = inject(CoreService);
-  private readonly vsidenav = inject(CoreService);
-  readonly dialog = inject(MatDialog);
+  private readonly auth = inject(AuthService);
+  public readonly dialog = inject(MatDialog);
 
-  options = this.settings.getOptions();
+  /** Current options from the service (persisted in localStorage). */
+  public get options(): AppSettings {
+    return this.settings.getOptions();
+  }
 
-  openDialog() {
+  public readonly currentUser: Signal<AuthUser | null> = computed(() => this.auth.currentUser());
+
+  public openDialog(): void {
     const dialogRef = this.dialog.open(AppSearchDialogComponent);
 
     dialogRef.afterClosed().subscribe((result) => {
@@ -70,16 +76,21 @@ export class HeaderComponent {
     });
   }
 
-  private emitOptions() {
-    this.optionsChange.emit(this.options);
+  private emitOptions(): void {
+    this.optionsChange.emit(this.settings.getOptions());
   }
 
-  setlightDark(theme: string) {
-    this.options.theme = theme;
+  /** Toggle light/dark theme and persist to localStorage. */
+  public setlightDark(theme: 'light' | 'dark'): void {
+    this.settings.setOptions({ theme });
     this.emitOptions();
   }
 
-  notifications: notifications[] = [
+  public logout() {
+    this.auth.logout();
+  }
+
+  public notifications: notifications[] = [
     {
       id: 1,
       img: '/assets/images/profile/user-1.jpg',
@@ -112,7 +123,7 @@ export class HeaderComponent {
     },
   ];
 
-  profiledd: profiledd[] = [
+  public profiledd: profiledd[] = [
     {
       id: 1,
       img: '/assets/images/svgs/icon-account.svg',
@@ -136,7 +147,7 @@ export class HeaderComponent {
     },
   ];
 
-  apps: apps[] = [
+  public apps: apps[] = [
     {
       id: 1,
       img: '/assets/images/svgs/icon-dd-chat.svg',
@@ -195,7 +206,7 @@ export class HeaderComponent {
     },
   ];
 
-  quicklinks: quicklinks[] = [
+  public quicklinks: quicklinks[] = [
     {
       id: 1,
       title: 'Pricing Page',
@@ -245,8 +256,7 @@ export class HeaderComponent {
   templateUrl: 'search-dialog.component.html',
 })
 export class AppSearchDialogComponent {
-  searchText: string = '';
-  navItems = navItems;
-
-  navItemsData = navItems.filter((navitem) => navitem.displayName);
+  public searchText: string = '';
+  public navItems = navItems;
+  public navItemsData = navItems.filter((navitem: NavItem) => navitem.displayName);
 }

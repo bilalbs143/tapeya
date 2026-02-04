@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 
 import { NavService } from '../../../../../services/nav.service';
-import { NavItem } from '../../../vertical/sidebar/nav-item/nav-item';
+import { NavItem } from '../../../shared/nav/nav-item.model';
 
 @Component({
   selector: 'app-horizontal-nav-item',
@@ -13,13 +13,13 @@ import { NavItem } from '../../../vertical/sidebar/nav-item/nav-item';
   templateUrl: './nav-item.component.html',
 })
 export class AppHorizontalNavItemComponent {
-  @Input() depth = 0;
-  @Input() item!: NavItem;
+  @Input() public depth = 0;
+  @Input() public item!: NavItem;
 
-  readonly navService = inject(NavService);
-  private readonly router = inject(Router);
+  public readonly navService = inject(NavService);
+  public readonly router = inject(Router);
 
-  onItemSelected(item: NavItem) {
+  public onItemSelected(item: NavItem) {
     if (!item.children?.length && item.route) {
       void this.router.navigate([item.route]);
     }

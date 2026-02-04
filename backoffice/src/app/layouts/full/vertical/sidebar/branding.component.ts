@@ -17,5 +17,5 @@ import { CoreService } from 'src/app/services/core.service';
 })
 export class BrandingComponent {
   private readonly settings = inject(CoreService);
-  options = this.settings.getOptions();
+  public options = this.settings.getOptions();
 }

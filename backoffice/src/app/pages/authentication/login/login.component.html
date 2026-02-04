@@ -19,53 +19,12 @@
           <h4 class="font-bold text-2xl m-0">Welcome to Tapeya</h4>
           <span class="block text-sm mt-2">Backoffice</span>
 
-          <div class="grid grid-cols-12 gap-6 mt-6">
-            <div class="col-span-6">
-              <button
-                mat-stroked-button
-                class="w-full"
-              >
-                <div class="flex items-center">
-                  <img
-                    src="/assets/images/svgs/google-icon.svg"
-                    alt="google"
-                    width="18"
-                    class="me-2"
-                  />
-                  Google
-                </div>
-              </button>
-            </div>
-            <div class="col-span-6">
-              <button
-                mat-stroked-button
-                class="w-full flex items-center"
-              >
-                <div class="flex items-center">
-                  <img
-                    src="/assets/images/svgs/github-icon.svg"
-                    alt="facebook"
-                    width="20"
-                    class="me-2"
-                  />
-                  Github
-                </div>
-              </button>
-            </div>
-          </div>
-
-          <div
-            class="or-border relative text-center before:content-[''] before:absolute before:left-0 before:top-1/2 before:w-[120px] before:h-px before:bg-(--mat-sys-outline) after:content-[''] after:absolute after:right-0 after:top-1/2 after:w-[120px] after:h-px after:bg-(--mat-sys-outline) mt-8"
-          >
-            or sign in with
-          </div>
-
           <form
             class="mt-8"
             [formGroup]="form"
             (ngSubmit)="submit()"
           >
-            <mat-label class="text-sm font-semibold mb-3 block">Username</mat-label>
+            <mat-label class="text-sm font-semibold mb-3 block">Email</mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
@@ -73,15 +32,16 @@
             >
               <input
                 matInput
-                formControlName="uname"
+                type="email"
+                formControlName="email"
               />
-              @if (f['uname'].touched && f['uname'].invalid) {
+              @if (f['email'].touched && f['email'].invalid) {
                 <mat-hint class="mb-4 absolute -top-[19px] right-[3px]">
-                  @if (f['uname'].errors && f['uname'].errors['required']) {
-                    <div class="text-error">Name is required.</div>
+                  @if (f['email'].errors && f['email'].errors['required']) {
+                    <div class="text-error">Email is required.</div>
                   }
-                  @if (f['uname'].errors && f['uname'].errors['minlength']) {
-                    <div class="text-error">Name should be 6 character.</div>
+                  @if (f['email'].errors && f['email'].errors['email']) {
+                    <div class="text-error">Please enter a valid email address.</div>
                   }
                 </mat-hint>
               }
@@ -109,20 +69,18 @@
 
             <div class="flex items-center mb-3">
               <mat-checkbox color="primary">Remember this Device</mat-checkbox>
-              <a
-                [routerLink]="['/starter']"
-                class="text-primary font-semibold no-underline ms-auto text-sm"
-              >
-                Forgot Password?
-              </a>
             </div>
             <button
               mat-flat-button
               color="primary"
               class="w-full"
-              [disabled]="!form.valid"
+              [disabled]="!form.valid || loading"
             >
-              Sign In
+              @if (loading) {
+                Signing In...
+              } @else {
+                Sign In
+              }
             </button>
           </form>
         </div>

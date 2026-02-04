@@ -16,25 +16,45 @@ import { CoreService } from 'src/app/services/core.service';
 export class CustomizerComponent {
   private readonly settings = inject(CoreService);
 
-  options = this.settings.getOptions();
-  @Output() readonly optionsChange = new EventEmitter<AppSettings>();
-  hideSingleSelectionIndicator = signal(true);
-  setDark() {
-    this.settings.setOptions({ theme: 'dark' });
+  /** Always read current options from the service (single source of truth, includes persisted state). */
+  public get options(): AppSettings {
+    return this.settings.getOptions();
+  }
+
+  @Output() public readonly optionsChange = new EventEmitter<AppSettings>();
+  public hideSingleSelectionIndicator = signal(true);
+
+  public setDark(): void {
+    this.settings.setOptions({ theme: this.options.theme });
     this.emitOptions();
   }
 
-  setColor(color: string) {
+  public setColor(color: string): void {
     this.settings.setOptions({ activeTheme: color });
     this.emitOptions();
   }
 
-  setSidebar(sidenavOpened: boolean) {
-    this.settings.setOptions({ sidenavOpened: sidenavOpened });
+  public setSidebarCollapsed(collapsed: boolean): void {
+    this.settings.setOptions({ sidenavCollapsed: collapsed });
     this.emitOptions();
   }
 
-  private emitOptions() {
-    this.optionsChange.emit(this.options);
+  public setHorizontal(horizontal: boolean): void {
+    this.settings.setOptions({ horizontal });
+    this.emitOptions();
+  }
+
+  public setCardBorder(cardBorder: boolean): void {
+    this.settings.setOptions({ cardBorder });
+    this.emitOptions();
+  }
+
+  public setBoxed(boxed: boolean): void {
+    this.settings.setOptions({ boxed });
+    this.emitOptions();
+  }
+
+  private emitOptions(): void {
+    this.optionsChange.emit(this.settings.getOptions());
   }
 }

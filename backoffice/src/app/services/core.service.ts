@@ -2,20 +2,50 @@ import { Injectable, signal } from '@angular/core';
 
 import { AppSettings, defaults } from '../config';
 
+const STORAGE_KEY = 'tapeya-backoffice-settings';
+
 @Injectable({
   providedIn: 'root',
 })
 export class CoreService {
-  private optionsSignal = signal<AppSettings>(defaults);
+  private optionsSignal = signal<AppSettings>(this.loadStoredOptions());
 
-  getOptions() {
+  public getOptions(): AppSettings {
     return this.optionsSignal();
   }
 
-  setOptions(options: Partial<AppSettings>) {
-    this.optionsSignal.update((current) => ({
-      ...current,
-      ...options,
-    }));
+  public setOptions(options: Partial<AppSettings>): void {
+    this.optionsSignal.update((current) => {
+      const next = { ...current, ...options };
+      this.persistOptions(next);
+      return next;
+    });
+  }
+
+  private loadStoredOptions(): AppSettings {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return { ...defaults };
+    }
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        return { ...defaults };
+      }
+      const stored = JSON.parse(raw) as Partial<AppSettings>;
+      return { ...defaults, ...stored };
+    } catch {
+      return { ...defaults };
+    }
+  }
+
+  private persistOptions(options: AppSettings): void {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return;
+    }
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(options));
+    } catch {
+      // Ignore quota or other storage errors
+    }
   }
 }

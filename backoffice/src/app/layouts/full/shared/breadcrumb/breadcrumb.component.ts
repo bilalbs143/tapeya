@@ -15,8 +15,9 @@ export class AppBreadcrumbComponent {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly titleService = inject(Title);
 
-  pageInfo: Data & { title?: string } = Object.create(null);
-  myurl: string[] = this.router.url.slice(1).split('/');
+  // Allow null so template's optional chaining (pageInfo?.['title'], etc.) is type-correct.
+  public pageInfo: (Data & { title?: string; urls?: Array<{ url?: string; title?: string }> }) | null = null;
+  public myurl: string[] = this.router.url.slice(1).split('/');
 
   constructor() {
     this.router.events
@@ -32,10 +33,8 @@ export class AppBreadcrumbComponent {
       )
       .pipe(filter((route) => route.outlet === 'primary'))
       .pipe(mergeMap((route) => route.data))
-      // tslint:disable-next-line - Disables all
       .subscribe((event) => {
-        // tslint:disable-next-line - Disables all
-        this.titleService.setTitle(event['title'] + ' - Angular 21');
+        this.titleService.setTitle(event['title']);
         this.pageInfo = event;
       });
   }

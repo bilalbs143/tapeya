@@ -148,7 +148,7 @@
           <mat-button-toggle-group
             #group="matButtonToggleGroup"
             [(ngModel)]="options.sidenavCollapsed"
-            (change)="setSidebar($event.value)"
+            (change)="setSidebarCollapsed($event.value)"
             class="customizer-button-group gap-4"
             [hideSingleSelectionIndicator]="hideSingleSelectionIndicator()"
           >
@@ -178,6 +178,7 @@
       <mat-button-toggle-group
         #group="matButtonToggleGroup"
         [(ngModel)]="options.horizontal"
+        (change)="setHorizontal($event.value)"
         class="customizer-button-group gap-4"
         [hideSingleSelectionIndicator]="hideSingleSelectionIndicator()"
       >
@@ -206,6 +207,7 @@
       <mat-button-toggle-group
         #group="matButtonToggleGroup"
         [(ngModel)]="options.cardBorder"
+        (change)="setCardBorder($event.value)"
         class="customizer-button-group gap-4"
         [hideSingleSelectionIndicator]="hideSingleSelectionIndicator()"
       >
@@ -234,6 +236,7 @@
       <mat-button-toggle-group
         #group="matButtonToggleGroup"
         [(ngModel)]="options.boxed"
+        (change)="setBoxed($event.value)"
         class="customizer-button-group gap-4"
         [hideSingleSelectionIndicator]="hideSingleSelectionIndicator()"
       >

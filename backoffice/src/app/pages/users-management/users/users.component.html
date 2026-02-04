@@ -1,0 +1,180 @@
+<mat-card class="cardWithShadow m-b-10">
+  <mat-card-content class="p-6">
+    <div class="grid grid-cols-12 gap-4 items-center">
+      <div class="col-span-12 lg:col-span-4">
+        <mat-form-field
+          appearance="outline"
+          class="w-full hide-hint"
+        >
+          <div class="flex gap-3 items-center">
+            <i
+              class="iconify size-5.5!"
+              data-icon="solar:magnifer-line-duotone"
+            ></i>
+            <input
+              matInput
+              placeholder="Search users"
+              [ngModel]="searchText"
+              (ngModelChange)="applyFilter($event)"
+            />
+          </div>
+        </mat-form-field>
+      </div>
+
+      <div class="col-span-12 lg:col-span-8 flex items-center justify-end">
+        <button
+          mat-flat-button
+          color="primary"
+          (click)="openCreateDialog()"
+        >
+          Add User
+        </button>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="cardWithShadow">
+  <mat-card-content class="p-0">
+    <app-table-wrapper>
+      <table
+        mat-table
+        [dataSource]="dataSource"
+        class="min-w-full"
+      >
+        <ng-container matColumnDef="id">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="text-sm font-semibold"
+          >
+            #
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let row"
+            class="text-sm"
+          >
+            {{ row.id }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="text-sm font-semibold"
+          >
+            Name
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let row"
+            class="text-sm whitespace-nowrap"
+          >
+            {{ row.name }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="email">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="text-sm font-semibold"
+          >
+            Email
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let row"
+            class="text-sm whitespace-nowrap"
+          >
+            {{ row.email }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="role">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="text-sm font-semibold"
+          >
+            Role
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let row"
+            class="text-sm whitespace-nowrap"
+          >
+            {{ row.role }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="text-sm font-semibold"
+          >
+            Status
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let row"
+            class="text-sm whitespace-nowrap"
+          >
+            <span
+              class="rounded-full px-3 py-1 text-xs font-semibold"
+              [ngClass]="{
+                'bg-primary text-white': row.status === 'active',
+                'bg-error text-white': row.status === 'blocked',
+              }"
+            >
+              {{ row.status | titlecase }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="text-sm font-semibold"
+          >
+            Action
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let row"
+            class="text-sm whitespace-nowrap"
+          >
+            <button
+              mat-icon-button
+              (click)="openEditDialog(row)"
+              aria-label="Edit user"
+            >
+              <i-tabler
+                name="edit"
+                class="size-4.5!"
+              ></i-tabler>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr
+          mat-header-row
+          *matHeaderRowDef="displayedColumns"
+        ></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+        ></tr>
+      </table>
+    </app-table-wrapper>
+
+    <mat-paginator
+      [pageSizeOptions]="[5, 10, 25]"
+      showFirstLastButtons
+    ></mat-paginator>
+  </mat-card-content>
+</mat-card>

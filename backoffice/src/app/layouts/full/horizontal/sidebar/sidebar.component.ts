@@ -6,7 +6,7 @@ import { Router } from '@angular/router';
 import { NavService } from '../../../../services/nav.service';
 
 import { AppHorizontalNavItemComponent } from './nav-item/nav-item.component';
-import { navItems } from './sidebar-data';
+import { navItems } from '../../shared/nav/sidebar-data';
 
 @Component({
   selector: 'app-horizontal-sidebar',
@@ -19,9 +19,9 @@ export class AppHorizontalSidebarComponent implements OnInit {
   private readonly media = inject(MediaMatcher);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
-  navItems = navItems;
-  parentActive = '';
-  mobileQuery: MediaQueryList;
+  public navItems = navItems;
+  public parentActive = '';
+  public mobileQuery: MediaQueryList;
   private _mobileQueryListener: () => void;
 
   constructor() {
@@ -31,7 +31,7 @@ export class AppHorizontalSidebarComponent implements OnInit {
     this.router.events.subscribe(() => (this.parentActive = this.router.url.split('/')[1]));
   }
 
-  ngOnInit(): void {
+  public ngOnInit(): void {
     this.parentActive = this.router.url.split('/')[1];
     this.router.events.subscribe(() => {
       this.parentActive = this.router.url.split('/')[1];

@@ -6,7 +6,7 @@ interface ItemWithDisplayName {
 
 @Pipe({ name: 'appFilter' })
 export class FilterPipe implements PipeTransform {
-  transform(items: ItemWithDisplayName[] | null | undefined, searchText: string): ItemWithDisplayName[] {
+  public transform(items: ItemWithDisplayName[] | null | undefined, searchText: string): ItemWithDisplayName[] {
     if (!items) {
       return [];
     }

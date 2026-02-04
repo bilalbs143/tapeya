@@ -1,4 +1,4 @@
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ApplicationConfig, importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { provideClientHydration } from '@angular/platform-browser';
@@ -9,6 +9,9 @@ import * as TablerIcons from 'angular-tabler-icons/icons';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 
 import { routes } from './app.routes';
+import { apiPrefixInterceptor } from './interceptors/api-prefix.interceptor';
+import { authTokenInterceptor } from './interceptors/auth-token.interceptor';
+import { errorInterceptor } from './interceptors/error.interceptor';
 import { MaterialModule } from './material.module';
 
 export const appConfig: ApplicationConfig = {
@@ -23,7 +26,7 @@ export const appConfig: ApplicationConfig = {
       }),
       withComponentInputBinding()
     ),
-    provideHttpClient(withInterceptorsFromDi()),
+    provideHttpClient(withInterceptors([apiPrefixInterceptor, authTokenInterceptor, errorInterceptor])),
     provideClientHydration(),
     provideAnimationsAsync(),
     importProvidersFrom(

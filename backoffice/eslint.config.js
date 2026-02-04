@@ -83,7 +83,15 @@ module.exports = tseslint.config(
       '@angular-eslint/prefer-inject': 'error',
       '@angular-eslint/no-input-rename': 'off',
       // TypeScript – balanced strictness
-      '@typescript-eslint/explicit-member-accessibility': 'off',
+      '@typescript-eslint/explicit-member-accessibility': [
+        'error',
+        {
+          accessibility: 'explicit',
+          overrides: {
+            constructors: 'no-public',
+          },
+        },
+      ],
       '@typescript-eslint/no-empty-function': 'error',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { caughtErrorsIgnorePattern: '^_' }],

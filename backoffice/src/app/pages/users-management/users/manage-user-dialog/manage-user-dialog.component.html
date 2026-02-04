@@ -1,0 +1,80 @@
+<app-dialog-wrapper [title]="title">
+  <mat-dialog-content>
+    <form
+      [formGroup]="form"
+      (ngSubmit)="save()"
+    >
+      <div class="grid grid-cols-12 gap-x-6">
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Name</mat-label>
+          <mat-form-field appearance="outline" class="w-full">
+            <input
+              matInput
+              formControlName="name"
+              placeholder="Name"
+            />
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Email</mat-label>
+          <mat-form-field appearance="outline" class="w-full">
+            <input
+              matInput
+              formControlName="email"
+              placeholder="Email"
+            />
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Role</mat-label>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-select formControlName="role">
+              <mat-option value="Admin">Admin</mat-option>
+              <mat-option value="Manager">Manager</mat-option>
+              <mat-option value="Viewer">Viewer</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Status</mat-label>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-select formControlName="status">
+              <mat-option value="active">Active</mat-option>
+              <mat-option value="blocked">Blocked</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+
+      @if (data.mode === 'edit') {
+        <button
+          type="button"
+          mat-flat-button
+          class="bg-error text-white!"
+          (click)="delete()"
+        >
+          Delete
+        </button>
+      }
+      <button
+        type="submit"
+        mat-flat-button
+        color="primary"
+        [disabled]="form.invalid"
+      >
+        Save
+      </button>
+      <button
+        type="button"
+        mat-flat-button
+        class="ms-2 bg-error text-white!"
+        mat-dialog-close
+      >
+        Cancel
+      </button>
+    </form>
+  </mat-dialog-content>
+</app-dialog-wrapper>
