@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { Controller, useForm } from 'react-hook-form';
+import { Link, useNavigate } from 'react-router-dom';
 
 import tapeyaLogo from '@/assets/images/logos/tapeya-logo-white.svg';
 import { loginSchema } from '@/lib/validations/auth';
@@ -9,7 +9,7 @@ import { useAppDispatch } from '@/store/hooks';
 import { setCredentials } from '@/store/slices/authSlice';
 import { Button } from '@/ui/Button';
 import { FormField } from '@/ui/FormField';
-import { Input } from '@/ui/Input';
+import { PhoneInput } from '@/ui/PhoneInput';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -17,11 +17,12 @@ export default function Login() {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
+    defaultValues: { phone: '+92' },
     mode: 'onChange',
   });
 
@@ -29,10 +30,7 @@ export default function Login() {
 
   const onSubmit = async (data) => {
     try {
-      const result = await login({
-        email: data.email,
-        password: data.password,
-      }).unwrap();
+      const result = await login({ phone: data.phone }).unwrap();
 
       const user = result?.data?.user ?? result?.user;
       const token =
@@ -57,43 +55,35 @@ export default function Login() {
         className="pointer-events-none fixed top-[-115px] left-1/2 z-0 h-[302px] w-[622px] -translate-x-1/2 rounded-full bg-[#FF9700] opacity-50 blur-[200px]"
         aria-hidden
       />
-      <div className="relative z-10 flex min-h-full flex-col items-center px-6 pt-12">
+      <div className="relative z-10 flex min-h-full flex-col items-center px-6 justify-center">
         <img
           src={tapeyaLogo}
           alt="Tapeya"
           className="motion-safe:animate-splash-slide-up h-auto w-[270px] opacity-0 motion-reduce:opacity-100"
         />
-        <p
-          className="motion-safe:animate-splash-slide-up-delayed mt-6 max-w-[90vw] text-center text-[16px] text-white opacity-0 motion-reduce:opacity-100"
-          style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
-        >
+        <p className="motion-safe:animate-splash-slide-up-delayed mt-6 max-w-[90vw] text-center font-sans text-base text-white opacity-0 motion-reduce:opacity-100">
           Live Cricket & Instant Updates, Anytime!
         </p>
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="mt-12 w-full max-w-[320px] space-y-4"
+          className="mt-12 w-full max-w-[358px] space-y-4"
         >
-          <FormField label="Email" htmlFor="email">
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              autoComplete="email"
-              error={errors.email?.message}
-              {...register('email')}
-            />
-          </FormField>
-
-          <FormField label="Password" htmlFor="password">
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              autoComplete="current-password"
-              showPasswordToggle
-              error={errors.password?.message}
-              {...register('password')}
+          <h2 className="text-center text-xl font-bold text-white mb-6">
+          Login with your account
+          </h2>
+          <FormField label="Phone" htmlFor="phone">
+            <Controller
+              name="phone"
+              control={control}
+              render={({ field }) => (
+                <PhoneInput
+                  id="phone"
+                  placeholder="Enter Phone Number"
+                  error={errors.phone?.message}
+                  {...field}
+                />
+              )}
             />
           </FormField>
 
@@ -111,10 +101,18 @@ export default function Login() {
           <Button
             type="submit"
             disabled={busy}
-            className="mt-4 w-full bg-[#FF9700] hover:bg-[#e08800]"
+            variant="auth"
+            className="mt-4"
           >
-            {busy ? 'Signing in...' : 'Sign in'}
+            {busy ? 'Signing in...' : 'Login'}
           </Button>
+
+          <p className="mt-6 text-center text-base text-[#A2A6AB]">
+            Don&apos;t have an account?{' '}
+            <Link to="/register" className="underline text-[#DA9811]">
+              Sign up
+            </Link>
+          </p>
         </form>
       </div>
     </>

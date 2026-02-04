@@ -6,11 +6,11 @@
 import { forwardRef, useCallback, useState } from 'react';
 
 const inputBase =
-  'w-full rounded-lg border bg-white/10 px-4 py-3 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 transition-colors';
+  'h-12 w-full max-w-[358px] rounded-[160px] bg-[#141412] px-4 py-3 text-white placeholder:text-base placeholder:text-[#A2A6AB78] focus:outline-none focus:ring-2 transition-colors';
 
 const inputVariants = {
-  default: 'border-white/30 focus:border-[#FF9700] focus:ring-[#FF9700]/50',
-  error: 'border-red-400 focus:border-red-500 focus:ring-red-500/50',
+  default: 'focus:ring-[#FF9700]/50',
+  error: 'focus:ring-red-500/50',
 };
 
 export const Input = forwardRef(function Input(
