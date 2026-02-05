@@ -11,6 +11,7 @@ const variants = {
     'bg-slate-200 text-slate-800 hover:bg-slate-300 active:bg-slate-400',
   outline: 'border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50',
   ghost: 'text-indigo-600 hover:bg-indigo-50',
+  auth: 'h-12 w-[358px] max-w-full rounded-[160px] bg-[#EBF2FF] text-slate-800 hover:bg-[#d4e4ff] active:bg-[#bdd1ff]',
 };
 
 const sizes = {
@@ -33,7 +34,7 @@ export function Button({
     <Comp
       type={asChild ? undefined : 'button'}
       disabled={disabled}
-      className={`inline-flex touch-manipulation items-center justify-center rounded-lg font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`inline-flex touch-manipulation items-center justify-center font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     >
       {children}
