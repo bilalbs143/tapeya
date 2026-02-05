@@ -1,0 +1,81 @@
+import defaultAvatar from '@/assets/images/standard/default-avatar.png';
+import goLiveIcon from '@/assets/images/icons/go-live.svg';
+import logoutIcon from '@/assets/images/icons/logout.svg';
+import profilesIcon from '@/assets/images/icons/profiles.svg';
+import requestTournamentIcon from '@/assets/images/icons/request-tournament.svg';
+import scoreCardRequestIcon from '@/assets/images/icons/score-card-request.svg';
+import starMatchIcon from '@/assets/images/icons/star-match.svg';
+import supportIcon from '@/assets/images/icons/support.svg';
+import tossIcon from '@/assets/images/icons/toss.svg';
+import topPlayersIcon from '@/assets/images/icons/top-players.svg';
+import topSponsorsIcon from '@/assets/images/icons/top-sponsers.svg';
+
+const MENU_ITEMS = [
+  { label: 'Score Card request', icon: scoreCardRequestIcon },
+  { label: 'Request Tournament', icon: requestTournamentIcon },
+  { label: 'Start Match', icon: starMatchIcon },
+  { label: 'Go live', icon: goLiveIcon },
+  { label: 'Toss', icon: tossIcon },
+  { label: 'Top Players', icon: topPlayersIcon },
+  { label: 'Top Sponsors', icon: topSponsorsIcon },
+  { label: 'Profiles', icon: profilesIcon },
+  { label: 'My Tournaments', icon: requestTournamentIcon },
+  { label: 'Support', icon: supportIcon },
+  { label: 'Logout', icon: logoutIcon },
+];
+
+const overlay = (open) =>
+  `fixed inset-0 z-[60] bg-black/50 transition-opacity duration-200 ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}`;
+
+const panel = (open) =>
+  `fixed left-0 top-0 z-[70] h-full w-[280px] flex flex-col border-r border-[#FFFFFF12] bg-[#10110EA3] backdrop-blur-[26.5px] transition-transform duration-200 ease-out ${open ? 'translate-x-0' : '-translate-x-full'}`;
+
+const menuBtn =
+  'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-white transition-colors hover:bg-white/10';
+
+export function Sidebar({ open, onClose }) {
+  return (
+    <>
+      <button
+        type="button"
+        aria-label="Close menu"
+        onClick={onClose}
+        className={overlay(open)}
+      />
+      <aside aria-hidden={!open} className={panel(open)}>
+        <div className="flex flex-1 flex-col overflow-y-auto px-4 py-6">
+          <header className="flex gap-3">
+            <img
+              src={defaultAvatar}
+              alt=""
+              className="h-[44px] w-[44px] shrink-0 rounded-full border border-white object-cover"
+            />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[14px] font-bold text-white">
+                Sohaib Amjad
+              </p>
+              <p className="truncate text-[12px] text-[#A2A6AB] font-medium">sohaib@gmail.com</p>
+            </div>
+          </header>
+          <div className="mt-2 flex items-center gap-2 pb-6">
+            <div className="h-[4px] flex-1 overflow-hidden rounded-full bg-zinc-600">
+              <div className="h-full w-[70%] rounded-full bg-[#DA9811]" />
+            </div>
+            <span className="shrink-0 text-[14px] font-bold italic text-white">
+              70% Complete
+            </span>
+          </div>
+          <div className="h-px w-full bg-[linear-gradient(to_right,#00000000,#FFFFFF33,#00000000)]" />
+          <nav className="flex flex-col gap-1 pt-4">
+            {MENU_ITEMS.map(({ label, icon }) => (
+              <button key={label} type="button" className={menuBtn}>
+                <img src={icon} alt="" className="h-5 w-5 shrink-0" />
+                <span className='text-[16px] font-medium text-[#A2A6AB]'>{label}</span>
+              </button>
+            ))}
+          </nav>
+        </div>
+      </aside>
+    </>
+  );
+}

@@ -53,3 +53,19 @@ body {
   background-color: #000;
   min-height: 100vh;
 }
+
+/* Swiper pagination styles */
+.hero-swiper .swiper-pagination {
+  bottom: 8px;
+}
+
+.hero-swiper .swiper-pagination-bullet {
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 1;
+  width: 8px;
+  height: 8px;
+}
+
+.hero-swiper .swiper-pagination-bullet-active {
+  background: #fdb022;
+}
