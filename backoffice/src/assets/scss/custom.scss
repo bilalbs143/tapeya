@@ -1,24 +1,65 @@
 // Breadcrumb (overrides from layouts/_breacrumb.scss)
 .breadcrumb {
-    align-items: baseline;
-    flex-wrap: wrap;
-  }
-  
-  .breadcrumb-item {
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.breadcrumb-item {
+  font-size: 14px;
+  line-height: 1.5;
+
+  &.active {
     font-size: 14px;
-    line-height: 1.5;
-  
-    &.active {
-      font-size: 14px;
-    }
-  
-    a {
-      font-size: 14px;
-    }
   }
-  
-  .page-title {
-    transform: scaleY(2);
-    opacity: 0.2;
-    letter-spacing: 10px;
+
+  a {
+    font-size: 14px;
   }
+}
+
+.page-title {
+  transform: scaleY(2);
+  opacity: 0.2;
+  letter-spacing: 10px;
+}
+
+.mat-mdc-dialog-actions {
+  padding: 8px 24px !important;
+}
+
+.mat-mdc-card > .mat-mdc-card-content {
+  padding: 10px !important;
+}
+
+.pageWrapper {
+  padding-top: 10px;
+}
+
+.sidebar-list.mdc-list {
+  padding: 0 15px;
+}
+
+.table-responsive td,
+.table-responsive mat-cell,
+.mdc-data-table__cell,
+.mdc-data-table__header-cell {
+  padding: 0 8px !important;
+}
+
+// Table header: same bg as breadcrumb (bg-light-secondary). Override Material with higher specificity.
+
+
+.table-responsive tr {
+  height: 50px !important;
+}
+
+// Sticky header table: scrollable container so header can stick
+.sticky-header-table-container {
+  max-height: calc(100vh - 280px);
+
+  .mat-mdc-header-row {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+}

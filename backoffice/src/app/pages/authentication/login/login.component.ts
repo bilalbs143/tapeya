@@ -8,10 +8,11 @@ import { MaterialModule } from '../../../material.module';
 import { AuthService } from 'src/app/services/auth.service';
 import { CoreService } from 'src/app/services/core.service';
 import { MessageService } from 'src/app/services/message.service';
+import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 
 @Component({
   selector: 'app-login',
-  imports: [RouterModule, MaterialModule, FormsModule, ReactiveFormsModule, BrandingComponent],
+  imports: [RouterModule, MaterialModule, FormsModule, ReactiveFormsModule, BrandingComponent, SubmitButtonComponent],
   templateUrl: './login.component.html',
 })
 export class AppLoginComponent {

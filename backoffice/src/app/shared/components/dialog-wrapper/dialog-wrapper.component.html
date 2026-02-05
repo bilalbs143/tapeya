@@ -1,8 +1,16 @@
-<div class="flex items-center justify-between mb-4 px-5 pt-4">
+<div class="flex items-center justify-between px-5 pt-4">
   <h3>{{ title }}</h3>
   @if (showClose) {
-    <button mat-icon-button mat-dialog-close class="flex! justify-center" aria-label="Close dialog">
-      <i-tabler name="x" class="size-5! flex!"></i-tabler>
+    <button
+      mat-icon-button
+      mat-dialog-close
+      class="flex! justify-center"
+      aria-label="Close dialog"
+    >
+      <i-tabler
+        name="x"
+        class="size-5! flex!"
+      ></i-tabler>
     </button>
   }
 </div>

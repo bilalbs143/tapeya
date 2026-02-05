@@ -1,0 +1,15 @@
+<button
+  mat-flat-button
+  [class]="className"
+  [color]="color"
+  type="submit"
+  [disabled]="isSubmitting || disabled"
+  [attr.cdkFocusInitial]="focusInitial ? '' : null"
+>
+  @if (!isSubmitting) {
+    {{ text }}
+  }
+  @if (isSubmitting) {
+    <mat-spinner diameter="20"></mat-spinner>
+  }
+</button>

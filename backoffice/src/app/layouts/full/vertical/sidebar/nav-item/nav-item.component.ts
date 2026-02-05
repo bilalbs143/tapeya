@@ -5,10 +5,9 @@ import { Router } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 
 import { NavService } from '../../../../../services/nav.service';
+import { NavItem } from '../../../shared/nav/nav-item.model';
 
 import { MaterialModule } from 'src/app/material.module';
-
-import { NavItem } from '../../../shared/nav/nav-item.model';
 
 @Component({
   selector: 'app-nav-item',

@@ -4,9 +4,9 @@ import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { NavService } from '../../../../services/nav.service';
+import { navItems } from '../../shared/nav/sidebar-data';
 
 import { AppHorizontalNavItemComponent } from './nav-item/nav-item.component';
-import { navItems } from '../../shared/nav/sidebar-data';
 
 @Component({
   selector: 'app-horizontal-sidebar',

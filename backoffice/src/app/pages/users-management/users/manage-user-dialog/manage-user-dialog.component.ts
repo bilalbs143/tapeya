@@ -5,11 +5,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatDivider } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
 import { TablerIconsModule } from 'angular-tabler-icons';
 
 import { BackofficeUser, UsersService } from 'src/app/services/users.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 
 export interface ManageUserDialogData {
   mode: 'create' | 'edit';
@@ -29,6 +31,8 @@ export interface ManageUserDialogData {
     MatSelectModule,
     TablerIconsModule,
     DialogWrapperComponent,
+    MatDivider,
+    SubmitButtonComponent,
   ],
   templateUrl: './manage-user-dialog.component.html',
 })

@@ -1,11 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { Subscription } from 'rxjs';
@@ -13,6 +12,7 @@ import { Subscription } from 'rxjs';
 import { MaterialModule } from 'src/app/material.module';
 import { MessageService } from 'src/app/services/message.service';
 import { BackofficeUser, UsersService } from 'src/app/services/users.service';
+import { PaginatorComponent } from 'src/app/shared/components/paginator/paginator.component';
 import { TableWrapperComponent } from 'src/app/shared/components/table-wrapper/table-wrapper.component';
 
 import { ManageUserDialogComponent } from './manage-user-dialog/manage-user-dialog.component';
@@ -25,21 +25,21 @@ import { ManageUserDialogComponent } from './manage-user-dialog/manage-user-dial
     FormsModule,
     MaterialModule,
     MatTableModule,
-    MatPaginatorModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
     MatDialogModule,
     TablerIconsModule,
     TableWrapperComponent,
+    PaginatorComponent,
   ],
   templateUrl: './users.component.html',
 })
-export class UsersComponent implements OnInit, OnDestroy {
+export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly usersService = inject(UsersService);
   private readonly message = inject(MessageService);
 
-  @ViewChild(MatPaginator, { static: true }) public paginator!: MatPaginator;
+  @ViewChild(PaginatorComponent) public appPaginator!: PaginatorComponent;
 
   public displayedColumns: string[] = ['id', 'name', 'email', 'role', 'status', 'actions'];
   public dataSource = new MatTableDataSource<BackofficeUser>([]);
@@ -51,12 +51,20 @@ export class UsersComponent implements OnInit, OnDestroy {
     this.sub.add(
       this.usersService.users$.subscribe((users) => {
         this.dataSource.data = users;
-        if (this.paginator) {
-          this.dataSource.paginator = this.paginator;
-        }
+        this.connectPaginator();
         this.applyFilter(this.searchText);
       })
     );
+  }
+
+  public ngAfterViewInit(): void {
+    this.connectPaginator();
+  }
+
+  private connectPaginator(): void {
+    if (this.appPaginator?.matPaginator) {
+      this.dataSource.paginator = this.appPaginator.matPaginator;
+    }
   }
 
   public ngOnDestroy(): void {
@@ -77,7 +85,7 @@ export class UsersComponent implements OnInit, OnDestroy {
           this.applyFilter(this.searchText);
         }
       },
-      { widthSize: 'sm', disableClose: true }
+      { widthSize: 'xs', disableClose: true }
     );
   }
 
@@ -91,6 +99,26 @@ export class UsersComponent implements OnInit, OnDestroy {
         }
       },
       { widthSize: 'sm', disableClose: true }
+    );
+  }
+
+  public openDeleteDialog(user: BackofficeUser): void {
+    this.sub.add(
+      this.message
+        .prompt(
+          'Delete User?',
+          `Are you sure you want to delete ${user.name}?`,
+          'Delete',
+          'Cancel'
+        )
+        .afterClosed()
+        .subscribe((confirmed) => {
+          if (confirmed) {
+            this.usersService.remove(user.id);
+            this.message.success('User deleted successfully.');
+            this.applyFilter(this.searchText);
+          }
+        })
     );
   }
 }
