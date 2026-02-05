@@ -18,9 +18,9 @@ import { AppHorizontalHeaderComponent } from './horizontal/header/header.compone
 import { AppHorizontalSidebarComponent } from './horizontal/sidebar/sidebar.component';
 import { AppBreadcrumbComponent } from './shared/breadcrumb/breadcrumb.component';
 import { CustomizerComponent } from './shared/customizer/customizer.component';
+import { navItems } from './shared/nav/sidebar-data';
 import { HeaderComponent } from './vertical/header/header.component';
 import { AppNavItemComponent } from './vertical/sidebar/nav-item/nav-item.component';
-import { navItems } from './shared/nav/sidebar-data';
 import { SidebarComponent } from './vertical/sidebar/sidebar.component';
 
 const MOBILE_VIEW = 'screen and (max-width: 768px)';

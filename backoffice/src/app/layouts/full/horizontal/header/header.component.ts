@@ -5,9 +5,9 @@ import { RouterModule } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 
-import { BrandingComponent } from '../../vertical/sidebar/branding.component';
 import { NavItem } from '../../shared/nav/nav-item.model';
 import { navItems } from '../../shared/nav/sidebar-data';
+import { BrandingComponent } from '../../vertical/sidebar/branding.component';
 
 import { AppSettings } from 'src/app/config';
 import { MaterialModule } from 'src/app/material.module';

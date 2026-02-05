@@ -1,0 +1,27 @@
+<app-dialog-wrapper [title]="data.title">
+  <mat-dialog-content class="mat-typography">
+    {{ data.message }}
+  </mat-dialog-content>
+
+  <mat-divider></mat-divider>
+  <mat-dialog-actions>
+    @if (data.rejectBtn) {
+      <button
+        mat-stroked-button
+        class="border border-error! text-error"
+        mat-dialog-close
+      >
+        {{ data.rejectBtnText ?? 'Cancel' }}
+      </button>
+    }
+
+    @if (!data.onlyCancel) {
+      <app-submit-button
+        [isSubmitting]="isSubmitting"
+        [text]="data.acceptBtnText ?? 'Yes'"
+        [focusInitial]="true"
+        (click)="accept()"
+      />
+    }
+  </mat-dialog-actions>
+</app-dialog-wrapper>

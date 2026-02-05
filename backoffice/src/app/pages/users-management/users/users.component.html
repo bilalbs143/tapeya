@@ -1,4 +1,4 @@
-<mat-card class="cardWithShadow m-b-10">
+<mat-card class="cardWithShadow mb-3!">
   <mat-card-content class="p-6">
     <div class="grid grid-cols-12 gap-4 items-center">
       <div class="col-span-12 lg:col-span-4">
@@ -34,19 +34,20 @@
   </mat-card-content>
 </mat-card>
 
-<mat-card class="cardWithShadow">
+<mat-card class="cardWithShadow table-header-theme">
   <mat-card-content class="p-0">
-    <app-table-wrapper>
-      <table
-        mat-table
-        [dataSource]="dataSource"
-        class="min-w-full"
-      >
+    <div class="sticky-header-table-container relative overflow-auto">
+      <app-table-wrapper>
+        <table
+          mat-table
+          [dataSource]="dataSource"
+          class="min-w-full"
+        >
         <ng-container matColumnDef="id">
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="text-sm font-semibold"
+            class="bg-light-secondary text-sm font-semibold"
           >
             #
           </th>
@@ -63,7 +64,7 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="text-sm font-semibold"
+            class="bg-light-secondary text-sm font-semibold"
           >
             Name
           </th>
@@ -80,7 +81,7 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="text-sm font-semibold"
+            class="bg-light-secondary text-sm font-semibold"
           >
             Email
           </th>
@@ -97,7 +98,7 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="text-sm font-semibold"
+            class="bg-light-secondary text-sm font-semibold"
           >
             Role
           </th>
@@ -114,7 +115,7 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="text-sm font-semibold"
+            class="bg-light-secondary text-sm font-semibold"
           >
             Status
           </th>
@@ -123,15 +124,16 @@
             *matCellDef="let row"
             class="text-sm whitespace-nowrap"
           >
-            <span
-              class="rounded-full px-3 py-1 text-xs font-semibold"
-              [ngClass]="{
-                'bg-primary text-white': row.status === 'active',
-                'bg-error text-white': row.status === 'blocked',
-              }"
-            >
-              {{ row.status | titlecase }}
-            </span>
+            @if (row.status === 'active') {
+              <span class="bg-light-success text-success rounded-sm font-semibold px-1.5 py-1 text-xs">
+                {{ row.status | titlecase }}
+              </span>
+            }
+            @if (row.status === 'blocked') {
+              <span class="bg-light-error text-error rounded-sm font-semibold px-1.5 py-1 text-xs">
+                {{ row.status | titlecase }}
+              </span>
+            }
           </td>
         </ng-container>
 
@@ -139,31 +141,27 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="text-sm font-semibold"
+            class="bg-light-secondary text-sm font-semibold"
           >
             Action
           </th>
           <td
             mat-cell
             *matCellDef="let row"
-            class="text-sm whitespace-nowrap"
+            class="action-link text-sm whitespace-nowrap"
           >
-            <button
-              mat-icon-button
-              (click)="openEditDialog(row)"
-              aria-label="Edit user"
-            >
-              <i-tabler
-                name="edit"
-                class="size-4.5!"
-              ></i-tabler>
-            </button>
+            <a (click)="openEditDialog(row)" class="me-2.5 cursor-pointer">
+              <i-tabler name="edit" class="size-4.5!"></i-tabler>
+            </a>
+            <a (click)="openDeleteDialog(row)" class="me-2.5 cursor-pointer">
+              <i-tabler name="trash" class="size-4.5!"></i-tabler>
+            </a>
           </td>
         </ng-container>
 
         <tr
           mat-header-row
-          *matHeaderRowDef="displayedColumns"
+          *matHeaderRowDef="displayedColumns; sticky: true"
         ></tr>
         <tr
           mat-row
@@ -171,10 +169,8 @@
         ></tr>
       </table>
     </app-table-wrapper>
+    </div>
 
-    <mat-paginator
-      [pageSizeOptions]="[5, 10, 25]"
-      showFirstLastButtons
-    ></mat-paginator>
+    <app-paginator [length]="dataSource.data.length"></app-paginator>
   </mat-card-content>
 </mat-card>
