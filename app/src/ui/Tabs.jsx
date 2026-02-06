@@ -11,6 +11,15 @@ const trigger =
 const content =
   'mt-2 ring-offset-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2';
 
+/** Profile tabs: dark theme, full-width, icon + label, active = gold bg + black text */
+export const profileListClass =
+  'flex w-full gap-1 p-1 text-white';
+export const profileTriggerClass =
+  'group inline-flex flex-1 items-center justify-center gap-1 rounded-[17px] px-2 py-2 text-[13px] font-bold uppercase transition-colors data-[state=inactive]:bg-transparent data-[state=inactive]:text-white data-[state=active]:bg-[#DA9811] data-[state=active]:text-black focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d8a11e] focus-visible:ring-offset-2 focus-visible:ring-offset-black';
+export const profileTabIconClass =
+  'shrink-0 transition-[filter] duration-150 group-data-[state=active]:brightness-0';
+export const profileTabIconSize = 18;
+
 export const Tabs = TabsPrimitive.Root;
 export const TabsList = TabsPrimitive.List;
 export const TabsTrigger = TabsPrimitive.Trigger;

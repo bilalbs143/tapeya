@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import defaultAvatar from '@/assets/images/standard/default-avatar.png';
 import goLiveIcon from '@/assets/images/icons/go-live.svg';
 import logoutIcon from '@/assets/images/icons/logout.svg';
@@ -44,7 +45,11 @@ export function Sidebar({ open, onClose }) {
       />
       <aside aria-hidden={!open} className={panel(open)}>
         <div className="flex flex-1 flex-col overflow-y-auto px-4 py-6">
-          <header className="flex gap-3">
+          <Link
+            to="/user-profile"
+            onClick={onClose}
+            className="flex gap-3 rounded-lg transition-colors hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/20"
+          >
             <img
               src={defaultAvatar}
               alt=""
@@ -56,7 +61,7 @@ export function Sidebar({ open, onClose }) {
               </p>
               <p className="truncate text-[12px] text-[#A2A6AB] font-medium">sohaib@gmail.com</p>
             </div>
-          </header>
+          </Link>
           <div className="mt-2 flex items-center gap-2 pb-6">
             <div className="h-[4px] flex-1 overflow-hidden rounded-full bg-zinc-600">
               <div className="h-full w-[70%] rounded-full bg-[#DA9811]" />

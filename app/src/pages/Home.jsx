@@ -3,6 +3,7 @@ import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 import { HeroSlider } from '@/components/HeroSlider';
 import { ExploreCategories } from '@/components/ExploreCategories';
+import { HighlightSlider } from '@/components/HighlightSlider';
 import { LiveMatchSlider } from '@/components/LiveMatchSlider';
 
 export default function Home() {
@@ -14,6 +15,7 @@ export default function Home() {
         <HeroSlider />
         <ExploreCategories />
         <LiveMatchSlider />
+        <HighlightSlider />
       </div>
     </Container>
   );
