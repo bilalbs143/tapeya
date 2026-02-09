@@ -5,17 +5,29 @@
 
 import { Label } from '@/ui/Label';
 
+const defaultLabelClass = 'mb-4 block text-[16px] text-white';
+/** Edit modal: 12px, #A2A6AB */
+export const formFieldLabelEditClass = 'mb-2 block text-[12px] !font-bold text-[#A2A6AB]';
+
+function getLabelClass(variant, labelClassName) {
+  if (labelClassName) return labelClassName;
+  if (variant === 'edit') return formFieldLabelEditClass;
+  return defaultLabelClass;
+}
+
 export function FormField({
   htmlFor,
   label,
   children,
   className = '',
+  labelClassName = '',
+  variant,
   required,
 }) {
   return (
     <div className={`space-y-2 ${className}`}>
       {label && (
-        <Label htmlFor={htmlFor} className="mb-4 text-[16px] block text-white">
+        <Label htmlFor={htmlFor} className={getLabelClass(variant, labelClassName)}>
           {label}
           {required && <span className="text-red-300"> *</span>}
         </Label>

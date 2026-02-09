@@ -5,7 +5,19 @@
 import * as SelectPrimitive from '@radix-ui/react-select';
 
 const trigger =
-  'flex h-10 w-full items-center justify-between rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1';
+  'flex h-10 w-full items-center justify-between rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF9700] disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1';
+
+/** Matches Input style: h-12, rounded-[160px], bg-[#141412], focus ring [#FF9700]/50 */
+export const selectTriggerInputClass =
+  '!h-12 !rounded-[160px] !border-0 !bg-[#141412] !px-4 !py-3 w-full !text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 [&>span]:!text-white [&>span]:!text-base [&_svg]:!text-white data-[placeholder]:!text-[#A2A6AB78]';
+export const selectContentInputClass =
+  '!rounded-xl !border-[#141412] !bg-[#141412] !w-[var(--radix-select-trigger-width)] shadow-lg';
+export const selectViewportInputClass = '!bg-transparent p-1';
+export const selectItemInputClass =
+  '!text-white !bg-transparent rounded-sm py-2.5 pl-4 pr-8 text-base outline-none hover:!bg-white/10 focus:!bg-white/10 data-[highlighted]:!bg-white/10 data-[state=checked]:!bg-white/5 data-[disabled]:pointer-events-none data-[disabled]:opacity-50';
+export const selectItemTextInputClass = '!text-white';
+export const selectItemIndicatorInputClass = '!text-white';
+
 const content =
   'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-white shadow-md';
 const viewport = 'p-1';
@@ -31,6 +43,7 @@ export function SelectTrigger({ className = '', children, ...props }) {
 
 export function SelectContent({
   className = '',
+  viewportClassName = '',
   position = 'popper',
   ...props
 }) {
@@ -41,7 +54,7 @@ export function SelectContent({
         className={`${content} ${className}`}
         {...props}
       >
-        <SelectPrimitive.Viewport className={viewport}>
+        <SelectPrimitive.Viewport className={`${viewport} ${viewportClassName}`}>
           {props.children}
         </SelectPrimitive.Viewport>
       </SelectPrimitive.Content>
@@ -49,11 +62,13 @@ export function SelectContent({
   );
 }
 
-export function SelectItem({ className = '', ...props }) {
+export function SelectItem({ className = '', textClassName = '', indicatorClassName = '', children, ...props }) {
   return (
     <SelectPrimitive.Item className={`${item} ${className}`} {...props}>
-      <SelectPrimitive.ItemText />
-      <SelectPrimitive.ItemIndicator className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
+      <SelectPrimitive.ItemText className={textClassName}>
+        {children}
+      </SelectPrimitive.ItemText>
+      <SelectPrimitive.ItemIndicator className={`absolute right-2 flex h-3.5 w-3.5 items-center justify-center ${indicatorClassName}`}>
         <CheckIcon />
       </SelectPrimitive.ItemIndicator>
     </SelectPrimitive.Item>

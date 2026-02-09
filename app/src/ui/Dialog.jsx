@@ -7,6 +7,13 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 const overlay = 'fixed inset-0 z-50 bg-black/50';
 const content =
   'fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-white p-6 shadow-lg rounded-lg';
+/** Profile/dark modal: fixed height, dark bg, 17px radius, flex layout */
+const contentProfile =
+  '!flex h-[447px] max-w-[380px] flex-col overflow-hidden rounded-[17px] border-2 p-0 shadow-xl fixed left-[50%] top-[50%] z-50 w-full translate-x-[-50%] translate-y-[-50%]';
+const scrollBody =
+  'min-h-0 flex-1 overflow-y-auto px-5 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden';
+const saveButtonAttached =
+  'w-full shrink-0 rounded-b-[17px] bg-[#E8E8E8] py-4 text-base font-bold uppercase tracking-wide text-black transition-colors hover:bg-[#d8d8d8] focus:outline-none focus:ring-2 focus:ring-[#FFB703] focus:ring-inset';
 const header = 'flex flex-col gap-1.5 text-center sm:text-left';
 const footer = 'flex flex-col-reverse sm:flex-row sm:justify-end sm:gap-2';
 const title = 'text-lg font-semibold';
@@ -34,6 +41,32 @@ export function DialogContent({ className = '', children, ...props }) {
       </DialogPrimitive.Content>
     </DialogPrimitive.Portal>
   );
+}
+
+/** Dark profile modal: bg #080807, border #141412, 17px radius. Use with DialogScrollBody and DialogSaveButton. */
+export function DialogContentProfile({ className = '', children, ...props }) {
+  return (
+    <DialogPrimitive.Portal>
+      <DialogOverlay />
+      <DialogPrimitive.Content
+        className={`${contentProfile} ${className}`}
+        style={{ backgroundColor: '#080807', borderColor: '#141412' }}
+        {...props}
+      >
+        {children}
+      </DialogPrimitive.Content>
+    </DialogPrimitive.Portal>
+  );
+}
+
+/** Scrollable body with hidden scrollbar. Use inside DialogContentProfile. */
+export function DialogScrollBody({ className = '', ...props }) {
+  return <div className={`${scrollBody} ${className}`} {...props} />;
+}
+
+/** Save button attached to bottom of profile modal (17px top radius). */
+export function DialogSaveButton({ className = '', ...props }) {
+  return <button type="button" className={`${saveButtonAttached} ${className}`} {...props} />;
 }
 
 export function DialogHeader({ className = '', ...props }) {

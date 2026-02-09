@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 
 import tapeyaLogo from '@/assets/images/logos/tapeya-logo-white.svg';
 
-const SPLASH_DURATION_MS = 5000;
+const SPLASH_DURATION_MS = 3000;
 const SPLASH_FADE_OUT_MS = 350;
 
 export function SplashScreen() {

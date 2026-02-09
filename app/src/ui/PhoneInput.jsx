@@ -28,7 +28,7 @@ export const PhoneInput = forwardRef(function PhoneInput(
   return (
     <div className="flex w-full flex-col gap-1">
       <div
-        className={`flex w-full max-w-[358px] overflow-hidden rounded-[160px] bg-[#141412] transition-colors ${error ? ring.error : ring.default}`}
+        className={`flex w-full overflow-hidden rounded-[160px] bg-[#141412] transition-colors ${error ? ring.error : ring.default}`}
       >
         <span
           className="flex h-12 w-10 shrink-0 items-center justify-center pl-2 text-white"
