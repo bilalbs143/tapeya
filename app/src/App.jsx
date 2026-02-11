@@ -8,6 +8,8 @@ import Login from '@/pages/auth/Login';
 import Otp from '@/pages/auth/Otp';
 import Register from '@/pages/auth/Register';
 import Home from '@/pages/Home';
+import ShopCategory from '@/pages/ShopCategory';
+import ShopHome from '@/pages/ShopHome';
 import UserProfile from '@/pages/UserProfile';
 import { Toaster, ToastViewportStyled } from '@/ui/Toast';
 import { TooltipProvider } from '@/ui/Tooltip';
@@ -21,6 +23,8 @@ function App() {
             <Route path="/" element={<SplashScreen />} />
             <Route element={<MainLayout />}>
               <Route path="/home" element={<Home />} />
+              <Route path="/shop" element={<ShopHome />} />
+              <Route path="/shop/:brandId" element={<ShopCategory />} />
               <Route path="/user-profile" element={<UserProfile />} />
             </Route>
             <Route element={<AuthLayout />}>
