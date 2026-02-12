@@ -155,10 +155,10 @@ export default function ShopHome() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="What are you looking for?"
-            className="h-12 w-full rounded-full bg-[#141412] pl-4 pr-12 text-white placeholder:text-[#A2A6AB] focus:outline-none focus:ring-2 focus:ring-[#DA9811]/50"
+            className="h-12 w-full rounded-full bg-[#141412] pl-4 pr-14 text-white placeholder:text-[#A2A6AB] focus:outline-none focus:ring-2 focus:ring-[#DA9811]/50"
             aria-label="Search shop"
           />
-          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
+          <span className="pointer-events-none absolute right-5 top-0 bottom-0 flex items-center">
             <SearchIcon />
           </span>
         </div>
