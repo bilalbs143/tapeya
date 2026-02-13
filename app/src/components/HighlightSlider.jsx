@@ -1,7 +1,8 @@
+import 'swiper/css';
+
 import { Link } from 'react-router-dom';
 import { Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
 
 import highlight1 from '@/assets/images/standard/highlight-1.png';
 import highlight2 from '@/assets/images/standard/highlight-2.jpg';
@@ -10,14 +11,13 @@ const SLIDES = [
   { id: 1, image: highlight1, alt: 'Highlight 1' },
   { id: 2, image: highlight2, alt: 'Highlight 2' },
   { id: 3, image: highlight1, alt: 'Highlight 3' },
-
 ];
 
 export function HighlightSlider() {
   return (
     <section className="space-y-3">
       <header className="flex items-center justify-between">
-        <h2 className="text-[13px] font-bold uppercase tracking-wide text-[#A2A6AB]">
+        <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
           Highlights
         </h2>
         <Link

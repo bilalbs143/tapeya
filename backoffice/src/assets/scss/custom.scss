@@ -48,18 +48,63 @@
 
 // Table header: same bg as breadcrumb (bg-light-secondary). Override Material with higher specificity.
 
-
-.table-responsive tr {
-  height: 50px !important;
+// Table card: relative so paginator’s no-data message can be centered in the card
+.table-header-theme > .mat-mdc-card-content {
+  position: relative;
 }
 
-// Sticky header table: scrollable container so header can stick
+// Sticky header + full available height (same approach as angular agents table)
+// Scroll container uses viewport height; header stays sticky via *matHeaderRowDef="...; sticky: true"
 .sticky-header-table-container {
-  max-height: calc(100vh - 280px);
+  height: 69vh;
+  overflow: auto;
+  width: 100%;
 
   .mat-mdc-header-row {
     position: sticky;
     top: 0;
     z-index: 1;
   }
+}
+
+// Hide element visually (paginator when no data); use !important to override Material
+.visually-hidden {
+  display: none !important;
+}
+
+// No records message (generic, used by app-paginator when length is 0)
+.table-not-found-msg {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  margin: 0;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--mat-sys-on-surface-variant, #666);
+}
+
+// Snackbar: show multiple validation errors on separate lines
+.mat-mdc-snack-bar-container .mat-mdc-snack-bar-label {
+  white-space: pre-line;
+}
+
+// ngx-editor (e.g. product description)
+.NgxEditor__Wrapper {
+  border: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.38));
+  border-radius: 4px;
+}
+
+.NgxEditor__Seperator {
+  border-left: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.38));
+}
+
+.NgxEditor {
+  background: var(--mat-card-elevated-container-color, #fff);
+  color: var(--mat-sys-on-background, #000);
+  min-height: 200px;
 }

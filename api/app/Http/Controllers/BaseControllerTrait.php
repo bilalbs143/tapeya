@@ -23,6 +23,11 @@ trait BaseControllerTrait
         return response()->forbidden($message);
     }
 
+    protected function noContent()
+    {
+        return response()->noContent();
+    }
+
     public function index()
     {
         $records = QueryBuilder::for($this->baseQuery())
@@ -56,9 +61,12 @@ trait BaseControllerTrait
         return $this->success(new $this->resource($record), $msg, 'CREATED');
     }
 
-    protected function _patch(Request $request, $record, ?string $message = null, ?callable $callback = null)
+    protected function _patch(Request $request, $record, ?string $message = null, ?callable $callback = null, ?callable $dataMapper = null)
     {
         $data = $request->validated();
+        if ($dataMapper) {
+            $dataMapper($data);
+        }
         $record = $this->refresh($record);
         $record->update($data);
         if ($callback) {
@@ -84,8 +92,7 @@ trait BaseControllerTrait
         if ($callback) {
             $callback($record);
         }
-        $msg = $message ?? Str::headline($this->resourceName).' deleted.';
 
-        return $this->success(null, $msg);
+        return $this->noContent();
     }
 }

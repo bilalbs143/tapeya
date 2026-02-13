@@ -1,60 +1,110 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
+
+import { toHttpParams } from 'src/app/shared/functions/http-params.function';
+import type { ListParams } from 'src/app/shared/functions/list-params.function';
 
 import { MessageService } from './message.service';
 
-export interface BackofficeUser {
+export interface UserRole {
   id: number;
   name: string;
-  email: string;
-  role: string;
-  status: 'active' | 'blocked';
+  slug: string;
 }
+
+export interface User {
+  id: number;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  date_of_birth?: string | null;
+  type: string;
+  type_enum: string;
+  status: string;
+  status_enum: string;
+  playing_role?: string | null;
+  playing_role_enum?: string | null;
+  bowling_style?: string | null;
+  bowling_style_enum?: string | null;
+  batting_style?: string | null;
+  batting_style_enum?: string | null;
+  country?: string | null;
+  city?: string | null;
+  roles?: UserRole[];
+  role_ids?: number[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface UsersListResponse {
+  data: User[];
+  meta?: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number;
+    to: number;
+  };
+  links?: Record<string, string | null>;
+}
+
+export interface CreateUserPayload {
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  date_of_birth?: string | null;
+  password?: string | null;
+  password_confirmation?: string | null;
+  type: string;
+  status?: string | null;
+  role_ids?: number[];
+  playing_role?: string | null;
+  bowling_style?: string | null;
+  batting_style?: string | null;
+  country?: string | null;
+  city?: string | null;
+}
+
+export type UpdateUserPayload = Partial<CreateUserPayload>;
 
 @Injectable({ providedIn: 'root' })
 export class UsersService {
-  private readonly messages = inject(MessageService);
+  private readonly http = inject(HttpClient);
+  private readonly messageService = inject(MessageService);
 
-  // Simple in-memory store for now; can be replaced with HTTP later.
-  private readonly usersSubject = new BehaviorSubject<BackofficeUser[]>([
-    { id: 1, name: 'Alice Admin', email: 'alice@example.com', role: 'Admin', status: 'active' },
-    { id: 2, name: 'Bob Manager', email: 'bob@example.com', role: 'Manager', status: 'active' },
-    { id: 3, name: 'Charlie Viewer', email: 'charlie@example.com', role: 'Viewer', status: 'blocked' },
-  ]);
+  private readonly baseUrl = 'v1/admin/users';
 
-  public get users$(): Observable<BackofficeUser[]> {
-    return this.usersSubject.asObservable();
+  public getList(params: Partial<ListParams> = {}): Observable<UsersListResponse> {
+    return this.http.get<UsersListResponse>(this.baseUrl, { params: toHttpParams(params as Record<string, unknown>) });
   }
 
-  public getSnapshot(): BackofficeUser[] {
-    return this.usersSubject.getValue();
+  public getById(id: number): Observable<{ data: User }> {
+    return this.http.get<{ data: User }>(`${this.baseUrl}/${id}`);
   }
 
-  public upsert(user: Partial<BackofficeUser>): void {
-    const current = this.getSnapshot();
-
-    if (user.id) {
-      const updated = current.map((u) => (u.id === user.id ? ({ ...u, ...user } as BackofficeUser) : u));
-      this.usersSubject.next(updated);
-      this.messages.success('User updated successfully.');
-      return;
-    }
-
-    const nextId = current.length ? Math.max(...current.map((u) => u.id)) + 1 : 1;
-    const created: BackofficeUser = {
-      id: nextId,
-      name: user.name ?? '',
-      email: user.email ?? '',
-      role: user.role ?? 'Viewer',
-      status: (user.status as BackofficeUser['status']) ?? 'active',
-    };
-    this.usersSubject.next([...current, created]);
-    this.messages.success('User created successfully.');
+  public create(payload: CreateUserPayload): Observable<{ data: User }> {
+    return this.http.post<{ data: User }>(this.baseUrl, payload).pipe(
+      tap(() => {
+        this.messageService.success('User created successfully.');
+      })
+    );
   }
 
-  public remove(id: number): void {
-    const current = this.getSnapshot();
-    this.usersSubject.next(current.filter((u) => u.id !== id));
-    this.messages.success('User deleted successfully.');
+  public update(id: number, payload: UpdateUserPayload): Observable<{ data: User }> {
+    return this.http.patch<{ data: User }>(`${this.baseUrl}/${id}`, payload).pipe(
+      tap(() => {
+        this.messageService.success('User updated successfully.');
+      })
+    );
+  }
+
+  public delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`).pipe(
+      tap(() => {
+        this.messageService.success('User deleted successfully.');
+      })
+    );
   }
 }

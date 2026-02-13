@@ -21,6 +21,20 @@ trait DateFilterTrait
         }
     }
 
+    public function scopeCreatedAfter(Builder $query, ?string $date): void
+    {
+        if ($date) {
+            $query->whereDate('created_at', '>=', $date);
+        }
+    }
+
+    public function scopeCreatedBefore(Builder $query, ?string $date): void
+    {
+        if ($date) {
+            $query->whereDate('created_at', '<=', $date);
+        }
+    }
+
     public function scopeUpdatedBetween(Builder $query, ?string $from, ?string $to): void
     {
         if ($from) {

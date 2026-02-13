@@ -184,7 +184,7 @@ export class MessageService implements OnDestroy {
 
   /**
    * Smart helper to display a message from an HttpErrorResponse.
-   * Looks for common Laravel-style fields: message, error, errors[*].
+   * For 422 (validation), shows all field errors. Otherwise uses message/error/errors or fallback.
    */
   public httpError(error: unknown, fallbackMessage = 'Something went wrong. Please try again.') {
     if (!(error instanceof HttpErrorResponse)) {
@@ -192,34 +192,50 @@ export class MessageService implements OnDestroy {
       return;
     }
 
-    const data = error.error;
+    const data = error.error as Record<string, unknown> | null | undefined;
+
+    if (error.status === 422) {
+      const allMessages = this.collectValidationErrors(data);
+      const message =
+        allMessages.length > 0 ? allMessages.join('\n') : ((data?.['message'] as string) ?? fallbackMessage);
+      this.error(message, { durationMs: Math.max(4000, allMessages.length * 2000) });
+      return;
+    }
 
     const messageFromBackend =
-      data?.message ??
-      data?.error ??
+      (data?.['message'] as string) ??
+      (data?.['error'] as string) ??
       (typeof data === 'string' ? data : null) ??
-      this.extractFirstValidationError(data?.errors);
+      this.extractFirstValidationError((data?.['errors'] as Record<string, unknown>) ?? null);
 
     this.error(messageFromBackend || fallbackMessage);
   }
 
-  private extractFirstValidationError(errors: any): string | null {
+  /**
+   * Collect all validation error messages from a 422 response.
+   * Handles both { errors: { field: ["msg"] } } (Laravel) and { field: ["msg"] } (flat).
+   */
+  private collectValidationErrors(data: Record<string, unknown> | null | undefined): string[] {
+    const errors = (data?.['errors'] ?? data) as Record<string, unknown> | null | undefined;
     if (!errors || typeof errors !== 'object') {
-      return null;
+      return [];
     }
 
-    const firstKey = Object.keys(errors)[0];
-    if (!firstKey) return null;
+    const messages: string[] = [];
+    Object.values(errors).forEach((value) => {
+      if (Array.isArray(value)) {
+        value.forEach((msg) => {
+          if (typeof msg === 'string') messages.push(msg);
+        });
+      } else if (typeof value === 'string') {
+        messages.push(value);
+      }
+    });
+    return messages;
+  }
 
-    const firstError = errors[firstKey];
-    if (Array.isArray(firstError)) {
-      return firstError[0] as string;
-    }
-
-    if (typeof firstError === 'string') {
-      return firstError;
-    }
-
-    return null;
+  private extractFirstValidationError(errors: Record<string, unknown> | null | undefined): string | null {
+    const all = this.collectValidationErrors(errors ?? undefined);
+    return all.length > 0 ? all[0] : null;
   }
 }

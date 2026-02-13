@@ -66,7 +66,13 @@ export function DialogScrollBody({ className = '', ...props }) {
 
 /** Save button attached to bottom of profile modal (17px top radius). */
 export function DialogSaveButton({ className = '', ...props }) {
-  return <button type="button" className={`${saveButtonAttached} ${className}`} {...props} />;
+  return (
+    <button
+      type="button"
+      className={`${saveButtonAttached} ${className}`}
+      {...props}
+    />
+  );
 }
 
 export function DialogHeader({ className = '', ...props }) {

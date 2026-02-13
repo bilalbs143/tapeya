@@ -20,9 +20,19 @@ export const routes: Routes = [
         loadChildren: () => import('./pages/pages.routes').then((m) => m.PagesRoutes),
       },
       {
+        path: 'content-management',
+        loadChildren: () =>
+          import('./pages/content-management/content-management.routes').then((m) => m.ContentManagementRoutes),
+      },
+      {
         path: 'users-management',
         loadChildren: () =>
           import('./pages/users-management/users-management.routes').then((m) => m.UsersManagementRoutes),
+      },
+      {
+        path: 'shop-management',
+        loadChildren: () =>
+          import('./pages/shop-management/shop-management.routes').then((m) => m.ShopManagementRoutes),
       },
       {
         path: 'sample-page',

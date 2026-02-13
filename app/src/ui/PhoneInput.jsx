@@ -1,6 +1,7 @@
 /** Phone input: flag from country code, "+" and digits in field. Use with Controller. */
 
 import { forwardRef, useCallback } from 'react';
+
 import { getCountryFromDialDigits, getFlagEmoji } from '@/lib/phoneCodes';
 
 const ring = {
@@ -12,10 +13,21 @@ const inputClass =
   'h-12 min-w-0 flex-1 bg-transparent px-2 py-3 text-white placeholder:text-base placeholder:text-[#A2A6AB78] focus:outline-none';
 
 export const PhoneInput = forwardRef(function PhoneInput(
-  { className = '', error, value = '', onChange, id, name, placeholder, ...props },
+  {
+    className = '',
+    error,
+    value = '',
+    onChange,
+    id,
+    name,
+    placeholder,
+    ...props
+  },
   ref,
 ) {
-  const digits = value?.startsWith('+') ? value.slice(1).replace(/\D/g, '') : (value || '').replace(/\D/g, '');
+  const digits = value?.startsWith('+')
+    ? value.slice(1).replace(/\D/g, '')
+    : (value || '').replace(/\D/g, '');
   const resolvedCountry = getCountryFromDialDigits(digits);
   const country = resolvedCountry ?? 'PK'; // Always show a flag so the input doesn't shift
   const display = value === '' ? '+92' : value;
@@ -53,7 +65,11 @@ export const PhoneInput = forwardRef(function PhoneInput(
         />
       </div>
       {error && (
-        <p id={id ? `${id}-error` : undefined} className="text-sm text-red-200" role="alert">
+        <p
+          id={id ? `${id}-error` : undefined}
+          className="text-sm text-red-200"
+          role="alert"
+        >
           {error}
         </p>
       )}

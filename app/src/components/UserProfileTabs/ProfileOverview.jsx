@@ -1,5 +1,7 @@
 import { useState } from 'react';
+
 import editProfileIcon from '@/assets/images/icons/edit-profile.svg';
+
 import { CONTENT_MAX_WIDTH, FOCUS_RING } from './constants';
 import { UserEdit } from './UserEdit';
 
@@ -24,8 +26,9 @@ const EDIT_PROFILE_BUTTON_CLASS = `inline-flex items-center gap-2 rounded-[17px]
 function DetailRow({ label, value, withColon = true }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-xs font-bold uppercase tracking-wide text-white/60">
-        {label}{withColon ? ':' : ''}
+      <span className="text-xs font-bold tracking-wide text-white/60 uppercase">
+        {label}
+        {withColon ? ':' : ''}
       </span>
       <span className="text-[16px] font-normal text-white">{value}</span>
     </div>
@@ -52,7 +55,13 @@ export function ProfileOverview() {
           onClick={() => setEditOpen(true)}
         >
           EDIT
-          <img src={editProfileIcon} alt="" width={16} height={16} className="shrink-0" />
+          <img
+            src={editProfileIcon}
+            alt=""
+            width={16}
+            height={16}
+            className="shrink-0"
+          />
         </button>
       </div>
 

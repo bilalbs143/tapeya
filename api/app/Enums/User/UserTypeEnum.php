@@ -11,5 +11,5 @@ enum UserTypeEnum: string
     case SYSTEM = 'system';
     case ADMINISTRATOR = 'administrator';
     case USER = 'user';
+    case SELLER = 'seller';
 }
-

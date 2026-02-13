@@ -9,7 +9,8 @@ const defaultLabelClass = 'mb-4 block text-[16px] text-white';
 /** Checkout / billing: 14px, white */
 export const formFieldLabelCheckoutClass = 'mb-4 block text-[14px] text-white';
 /** Edit modal: 12px, #A2A6AB */
-export const formFieldLabelEditClass = 'mb-2 block text-[12px] !font-bold text-[#A2A6AB]';
+export const formFieldLabelEditClass =
+  'mb-2 block text-[12px] !font-bold text-[#A2A6AB]';
 
 function getLabelClass(variant, labelClassName) {
   if (labelClassName) return labelClassName;
@@ -30,7 +31,10 @@ export function FormField({
   return (
     <div className={`space-y-2 ${className}`}>
       {label && (
-        <Label htmlFor={htmlFor} className={getLabelClass(variant, labelClassName)}>
+        <Label
+          htmlFor={htmlFor}
+          className={getLabelClass(variant, labelClassName)}
+        >
           {label}
           {required && <span className="text-red-300"> *</span>}
         </Label>

@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Builder;
 trait FilterTrait
 {
     use DateFilterTrait;
+    use OperationFilterTrait;
+    use OperatorFilterTrait;
 
     public function scopeActive(Builder $query): void
     {

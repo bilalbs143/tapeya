@@ -1,0 +1,125 @@
+<?php
+
+namespace App\Models\Shop;
+
+use App\Enums\Shop\ProductDiscountTypeEnum;
+use App\Models\BaseModel;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class Product extends BaseModel
+{
+    protected $table = 'shop_products';
+
+    protected $fillable = [
+        'name',
+        'slug',
+        'description',
+        'sku',
+        'price',
+        'brand_id',
+        'category_id',
+        'stock_quantity',
+        'low_stock_threshold',
+        'is_active',
+        'is_featured',
+        'is_popular',
+        'is_special_offer',
+        'discount_type',
+        'discount_value',
+        'discount_starts_at',
+        'discount_ends_at',
+    ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'price' => 'decimal:2',
+            'is_active' => 'boolean',
+            'is_featured' => 'boolean',
+            'is_popular' => 'boolean',
+            'is_special_offer' => 'boolean',
+            'discount_type' => ProductDiscountTypeEnum::class,
+            'discount_value' => 'decimal:2',
+            'discount_starts_at' => 'datetime',
+            'discount_ends_at' => 'datetime',
+        ];
+    }
+
+    /** Whether the product has an active discount (within date range if set). */
+    public function hasValidDiscount(): bool
+    {
+        if ($this->discount_type === null || $this->discount_value === null) {
+            return false;
+        }
+        $now = Carbon::now();
+        if ($this->discount_starts_at !== null && $now->lt($this->discount_starts_at)) {
+            return false;
+        }
+        if ($this->discount_ends_at !== null && $now->gt($this->discount_ends_at)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /** Sale price after discount, or null if no valid discount. */
+    public function getSalePrice(): ?float
+    {
+        if (! $this->hasValidDiscount()) {
+            return null;
+        }
+        $price = (float) $this->price;
+        $value = (float) $this->discount_value;
+        if ($this->discount_type === ProductDiscountTypeEnum::PERCENTAGE) {
+            return round($price * (1 - $value / 100), 2);
+        }
+
+        return round(max(0, $price - $value), 2);
+    }
+
+    public function brand(): BelongsTo
+    {
+        return $this->belongsTo(Brand::class, 'brand_id');
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(ProductImage::class, 'product_id')->orderBy('sort_order');
+    }
+
+    public function cartItems(): HasMany
+    {
+        return $this->hasMany(CartItem::class, 'product_id');
+    }
+
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class, 'product_id');
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function getFilters(): array
+    {
+        return ['id', 'name', 'brand_id', 'category_id', 'is_active', 'is_featured', 'is_popular', 'is_special_offer', 'discount_type'];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function getSorts(): array
+    {
+        return ['id', 'name', 'slug', 'price', 'stock_quantity', 'created_at', 'updated_at'];
+    }
+}

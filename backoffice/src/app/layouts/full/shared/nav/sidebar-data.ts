@@ -16,6 +16,17 @@ export const navItems: NavItem[] = [
     route: '/ecommerce',
   },
   {
+    displayName: 'Content Management',
+    iconName: 'solar:gallery-line-duotone',
+    children: [
+      {
+        displayName: 'Hero Slider',
+        iconName: 'tabler:point',
+        route: '/content-management/hero-slider',
+      },
+    ],
+  },
+  {
     displayName: 'Users Management',
     iconName: 'solar:users-group-two-rounded-line-duotone',
     children: [
@@ -33,6 +44,32 @@ export const navItems: NavItem[] = [
         displayName: 'Login History',
         iconName: 'tabler:point',
         route: '/users/login-history',
+      },
+    ],
+  },
+  {
+    displayName: 'Shop',
+    iconName: 'solar:cart-large-2-line-duotone',
+    children: [
+      {
+        displayName: 'Brands',
+        iconName: 'tabler:point',
+        route: '/shop-management/brands',
+      },
+      {
+        displayName: 'Categories',
+        iconName: 'tabler:point',
+        route: '/shop-management/categories',
+      },
+      {
+        displayName: 'Products',
+        iconName: 'tabler:point',
+        route: '/shop-management/products',
+      },
+      {
+        displayName: 'Orders',
+        iconName: 'tabler:point',
+        route: '/shop-management/orders',
       },
     ],
   },

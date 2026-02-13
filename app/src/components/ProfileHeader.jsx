@@ -1,6 +1,6 @@
-import profileHeaderBg from '@/assets/images/standard/profile-header.jpg';
-import defaultAvatar from '@/assets/images/standard/player-avatar.png';
 import goldMemberIcon from '@/assets/images/icons/gold-member.png';
+import defaultAvatar from '@/assets/images/standard/player-avatar.png';
+import profileHeaderBg from '@/assets/images/standard/profile-header.jpg';
 import { Progress } from '@/ui/Progress';
 
 const BANNER_HEIGHT = 202;
@@ -14,10 +14,7 @@ export function ProfileHeader({
   avatarSrc = defaultAvatar,
 }) {
   return (
-    <header
-      className="relative isolate"
-      style={{ height: BANNER_HEIGHT }}
-    >
+    <header className="relative isolate" style={{ height: BANNER_HEIGHT }}>
       <img
         src={profileHeaderBg}
         alt=""
@@ -26,7 +23,7 @@ export function ProfileHeader({
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#000000] to-[#00000073]" />
 
       <div className="relative flex h-full flex-col px-4 pt-16">
-        <div className={`mx-auto flex flex-1 w-full ${CONTENT_MAX} flex-col`}>
+        <div className={`mx-auto flex w-full flex-1 ${CONTENT_MAX} flex-col`}>
           <div className="flex flex-1 items-end justify-between gap-4">
             <div className="flex min-w-0 items-start gap-2 pb-6">
               <img src={goldMemberIcon} alt="" className="h-9 w-9 shrink-0" />
@@ -49,16 +46,18 @@ export function ProfileHeader({
             />
           </div>
 
-          <div className="w-full rounded-full bg-[#141412] px-4 py-3 backdrop-blur absolute bottom-[-22px] left-0 right-0 max-w-[358px] mx-auto">
+          <div className="absolute right-0 bottom-[-22px] left-0 mx-auto w-full max-w-[358px] rounded-full bg-[#141412] px-4 py-3 backdrop-blur">
             <div className="flex items-center gap-4">
-              <span className="text-[13px] text-[#A2A6AB]">Your profile strength</span>
+              <span className="text-[13px] text-[#A2A6AB]">
+                Your profile strength
+              </span>
               <div className="flex flex-1 items-center gap-3">
                 <Progress
                   value={strength}
                   className="h-2 flex-1 bg-white/20"
                   indicatorClassName="bg-[#d8a11e]"
                 />
-                <span className="shrink-0 text-sm font-bold italic text-white">
+                <span className="shrink-0 text-sm font-bold text-white italic">
                   {strength}%
                 </span>
               </div>

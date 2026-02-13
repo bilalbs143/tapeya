@@ -1,5 +1,6 @@
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
+
 import { Container } from '@/ui/Container';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
@@ -26,23 +27,31 @@ export default function ShopCheckout() {
     <div className="min-h-screen bg-black">
       <Container className="!px-4 !py-0">
         {/* In-page header (same pattern as My Orders / Shop Cart) */}
-        <header className="flex -mx-4 -mt-6 px-4 pt-6 pb-6 items-center gap-3 bg-black">
+        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
           <button
             type="button"
             onClick={() => navigate(-1)}
             className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80"
             aria-label="Back"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="min-w-0 flex-1 text-[16px] font-bold uppercase tracking-wide text-center text-white pr-[27px]">
+          <h1 className="min-w-0 flex-1 pr-[27px] text-center text-[16px] font-bold tracking-wide text-white uppercase">
             BILLING DETAILS
           </h1>
         </header>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="pt-2 space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-2">
           <FormField label="Full Name" htmlFor="fullName" variant="checkout">
             <Input
               id="fullName"
@@ -77,7 +86,11 @@ export default function ShopCheckout() {
             />
           </FormField>
 
-          <FormField label="Delivery Address" htmlFor="deliveryAddress" variant="checkout">
+          <FormField
+            label="Delivery Address"
+            htmlFor="deliveryAddress"
+            variant="checkout"
+          >
             <Input
               id="deliveryAddress"
               type="text"
@@ -92,7 +105,15 @@ export default function ShopCheckout() {
             className="flex w-full items-center justify-center gap-2 rounded-full bg-[#DA9811] py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90"
           >
             Continue
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
           </button>

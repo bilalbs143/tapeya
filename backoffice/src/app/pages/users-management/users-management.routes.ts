@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 
+/** Lazy-loaded routes for Users Management (list, create/edit/delete user). */
 export const UsersManagementRoutes: Routes = [
   {
     path: 'users',

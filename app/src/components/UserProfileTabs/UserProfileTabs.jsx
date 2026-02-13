@@ -1,27 +1,43 @@
 import profileUserIcon from '@/assets/images/icons/profile-user.svg';
-import userStatsIcon from '@/assets/images/icons/user-stats.svg';
 import userPostsIcon from '@/assets/images/icons/user-posts.svg';
+import userStatsIcon from '@/assets/images/icons/user-stats.svg';
 import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
   profileListClass,
-  profileTriggerClass,
   profileTabIconClass,
   profileTabIconSize,
+  profileTriggerClass,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
 } from '@/ui/Tabs';
+
 import { ProfileMetrics } from './ProfileMetrics';
 import { ProfileOverview } from './ProfileOverview';
-import { ProfileStats } from './ProfileStats';
 import { ProfilePosts } from './ProfilePosts';
+import { ProfileStats } from './ProfileStats';
 
 const CONTENT_WRAPPER_CLASS = 'px-4 pb-6 pt-1';
 
 const TABS = [
-  { value: 'overview', label: 'Overview', icon: profileUserIcon, Content: ProfileOverview },
-  { value: 'stats', label: 'Stats', icon: userStatsIcon, Content: ProfileStats },
-  { value: 'posts', label: 'Posts', icon: userPostsIcon, Content: ProfilePosts },
+  {
+    value: 'overview',
+    label: 'Overview',
+    icon: profileUserIcon,
+    Content: ProfileOverview,
+  },
+  {
+    value: 'stats',
+    label: 'Stats',
+    icon: userStatsIcon,
+    Content: ProfileStats,
+  },
+  {
+    value: 'posts',
+    label: 'Posts',
+    icon: userPostsIcon,
+    Content: ProfilePosts,
+  },
 ];
 
 export function UserProfileTabs({ ranking, followers, likes }) {
@@ -38,7 +54,11 @@ export function UserProfileTabs({ ranking, followers, likes }) {
     <Tabs className="w-full" defaultValue="overview">
       <TabsList className={profileListClass}>
         {TABS.map(({ value, label, icon }) => (
-          <TabsTrigger key={value} value={value} className={profileTriggerClass}>
+          <TabsTrigger
+            key={value}
+            value={value}
+            className={profileTriggerClass}
+          >
             <img
               src={icon}
               alt=""

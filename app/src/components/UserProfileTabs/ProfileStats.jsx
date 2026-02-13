@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import { CONTENT_MAX_WIDTH } from './constants';
 
 const SUMMARY_STATS = [
@@ -7,7 +8,14 @@ const SUMMARY_STATS = [
   { label: 'SIXES', value: '19' },
 ];
 
-const TEAMS_FULL = ['Team Abc', 'team Xyz', 'Team H1', 'Team Delta', 'Team Omega', 'Team Phoenix'];
+const TEAMS_FULL = [
+  'Team Abc',
+  'team Xyz',
+  'Team H1',
+  'Team Delta',
+  'Team Omega',
+  'Team Phoenix',
+];
 const TEAMS_PREVIEW_COUNT = 3;
 
 const CAREER_AVERAGES = [
@@ -25,7 +33,8 @@ const CAREER_AVERAGES = [
   { label: '6S', value: '16' },
 ];
 
-const LABEL_CLASS = 'text-[14px] font-bold uppercase tracking-wide text-[#A2A6AB]';
+const LABEL_CLASS =
+  'text-[14px] font-bold uppercase tracking-wide text-[#A2A6AB]';
 const VALUE_CLASS = 'text-sm font-normal text-white';
 
 function StatItem({ label, value }) {
@@ -95,7 +104,7 @@ export function ProfileStats() {
       <div className="mt-5 h-px w-full bg-[linear-gradient(to_right,#00000000,#FFFFFF33,#00000000)]" />
 
       {/* Career averages */}
-      <h2 className="mt-6 text-[12px] font-bold uppercase tracking-wide text-white">
+      <h2 className="mt-6 text-[12px] font-bold tracking-wide text-white uppercase">
         CAREER AVERAGES
       </h2>
       <div className="mt-4 grid grid-cols-3 gap-x-8 gap-y-5">

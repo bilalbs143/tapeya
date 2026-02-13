@@ -1,5 +1,5 @@
-import { Component, inject, Input, ViewChild } from '@angular/core';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { Component, EventEmitter, inject, Input, Output, ViewChild } from '@angular/core';
+import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 import { PAGINATOR_CONFIG } from '../../config/paginator.config';
 
@@ -15,8 +15,15 @@ export class PaginatorComponent {
   @ViewChild(MatPaginator) public matPaginator!: MatPaginator;
 
   @Input() public length: number = 0;
+  @Input() public pageIndex: number = 0;
   @Input() public pageSize: number = this.config.pageSize;
   @Input() public pageSizeOptions: number[] = this.config.pageSizeOptions;
   @Input() public showFirstLastButtons: boolean = this.config.showFirstLastButtons;
   @Input() public ariaLabel: string = 'Select page';
+  @Input() public showNoRecMessage: boolean = true;
+  @Input() public noRecMessage: string = 'No Data Available';
+  @Input() public loading: boolean = false;
+  @Input() public loadingMessage: string = 'Loading...';
+
+  @Output() public readonly page = new EventEmitter<PageEvent>();
 }

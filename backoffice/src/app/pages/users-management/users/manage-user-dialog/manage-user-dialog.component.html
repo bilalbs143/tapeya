@@ -1,12 +1,14 @@
 <app-dialog-wrapper [title]="title">
   <form
     [formGroup]="form"
-    (ngSubmit)="save()"
+    (ngSubmit)="onSubmit()"
+    aria-label="User form"
   >
     <mat-dialog-content>
       <div class="grid grid-cols-12 gap-x-6">
+        <!-- Row 1: Name | Email -->
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Name</mat-label>
+          <mat-label class="text-sm font-semibold mb-2 block">Name <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
@@ -16,9 +18,11 @@
               formControlName="name"
               placeholder="Name"
             />
+            @if (form.get('name')?.invalid && form.get('name')?.touched) {
+              <mat-error>Name is required</mat-error>
+            }
           </mat-form-field>
         </div>
-
         <div class="col-span-12 lg:col-span-6">
           <mat-label class="text-sm font-semibold mb-2 block">Email</mat-label>
           <mat-form-field
@@ -27,36 +31,215 @@
           >
             <input
               matInput
+              type="email"
               formControlName="email"
               placeholder="Email"
             />
           </mat-form-field>
         </div>
 
+        <!-- Row 2: Phone | Date of Birth -->
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Role</mat-label>
+          <mat-label class="text-sm font-semibold mb-2 block">Phone <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
-            <mat-select formControlName="role">
-              <mat-option value="Admin">Admin</mat-option>
-              <mat-option value="Manager">Manager</mat-option>
-              <mat-option value="Viewer">Viewer</mat-option>
+            <input
+              matInput
+              formControlName="phone"
+              placeholder="e.g. +921234567890"
+            />
+            @if (form.get('phone')?.invalid && form.get('phone')?.touched) {
+              <mat-error>Valid Phone is required (e.g. +92...)</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Date of Birth</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              formControlName="date_of_birth"
+              [matDatepicker]="dobPicker"
+              placeholder="Select Date"
+            />
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="dobPicker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #dobPicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+
+        <!-- Row 3: Roles | Status -->
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Roles <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-select
+              formControlName="role_ids"
+              multiple
+              placeholder="Select Roles"
+            >
+              @if (appRolesOptions$ | async; as roleOptions) {
+                @for (opt of roleOptions; track opt.value) {
+                  <mat-option [value]="+opt.value">{{ opt.label }}</mat-option>
+                }
+              }
+            </mat-select>
+            @if (form.get('role_ids')?.invalid && form.get('role_ids')?.touched) {
+              <mat-error>Select at least one role</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Status <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-select
+              formControlName="status"
+              placeholder="Select Status"
+            >
+              @if (statusOptions$ | async; as statusOptions) {
+                @for (opt of statusOptions; track opt.value) {
+                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                }
+              }
             </mat-select>
           </mat-form-field>
         </div>
 
-        <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Status</mat-label>
+        <!-- Row 4: Playing Role | Bowling Style | Batting Style -->
+        <div class="col-span-12 lg:col-span-4">
+          <mat-label class="text-sm font-semibold mb-2 block">Playing Role</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
-            <mat-select formControlName="status">
-              <mat-option value="active">Active</mat-option>
-              <mat-option value="blocked">Blocked</mat-option>
+            <mat-select
+              formControlName="playing_role"
+              placeholder="Select Playing Role"
+            >
+              <mat-option value="">Select Playing Role</mat-option>
+              @if (playingRoleOptions$ | async; as opts) {
+                @for (opt of opts; track opt.value) {
+                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                }
+              }
             </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-4">
+          <mat-label class="text-sm font-semibold mb-2 block">Bowling Style</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-select
+              formControlName="bowling_style"
+              placeholder="Select Bowling Style"
+            >
+              <mat-option value="">Select Bowling Style</mat-option>
+              @if (bowlingStyleOptions$ | async; as opts) {
+                @for (opt of opts; track opt.value) {
+                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                }
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-4">
+          <mat-label class="text-sm font-semibold mb-2 block">Batting Style</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-select
+              formControlName="batting_style"
+              placeholder="Select Batting Style"
+            >
+              <mat-option value="">Select Batting Style</mat-option>
+              @if (battingStyleOptions$ | async; as opts) {
+                @for (opt of opts; track opt.value) {
+                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                }
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Row 5: Country | City -->
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Country</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-select
+              formControlName="country"
+              placeholder="Select Country"
+            >
+              <mat-option value="">Select Country</mat-option>
+              @for (c of countriesList; track c.country_code) {
+                <mat-option [value]="c.name">{{ c.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">City</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-select
+              formControlName="city"
+              [disabled]="!form.get('country')?.value"
+              placeholder="Select City"
+            >
+              <mat-option value="">Select City</mat-option>
+              @for (c of cities; track c.id) {
+                <mat-option [value]="c.name">{{ c.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Row 6: Password | Confirm Password -->
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Password (Optional)</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              type="password"
+              formControlName="password"
+              placeholder="Min 8 characters"
+            />
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Confirm Password</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              type="password"
+              formControlName="password_confirmation"
+              placeholder="Confirm Password"
+            />
           </mat-form-field>
         </div>
       </div>
@@ -68,13 +251,14 @@
         type="button"
         mat-stroked-button
         class="border border-error! text-error"
-        mat-dialog-close
+        [mat-dialog-close]="false"
       >
         Cancel
       </button>
 
       <app-submit-button
         [disabled]="form.invalid"
+        [isSubmitting]="isSubmitting"
         text="Submit"
         color="primary"
       />

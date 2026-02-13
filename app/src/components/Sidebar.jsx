@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import defaultAvatar from '@/assets/images/standard/default-avatar.png';
+
 import goLiveIcon from '@/assets/images/icons/go-live.svg';
 import logoutIcon from '@/assets/images/icons/logout.svg';
 import profilesIcon from '@/assets/images/icons/profiles.svg';
@@ -7,9 +7,10 @@ import requestTournamentIcon from '@/assets/images/icons/request-tournament.svg'
 import scoreCardRequestIcon from '@/assets/images/icons/score-card-request.svg';
 import starMatchIcon from '@/assets/images/icons/star-match.svg';
 import supportIcon from '@/assets/images/icons/support.svg';
-import tossIcon from '@/assets/images/icons/toss.svg';
 import topPlayersIcon from '@/assets/images/icons/top-players.svg';
 import topSponsorsIcon from '@/assets/images/icons/top-sponsers.svg';
+import tossIcon from '@/assets/images/icons/toss.svg';
+import defaultAvatar from '@/assets/images/standard/default-avatar.png';
 
 const MENU_ITEMS = [
   { label: 'Score Card request', icon: scoreCardRequestIcon },
@@ -48,7 +49,7 @@ export function Sidebar({ open, onClose }) {
           <Link
             to="/user-profile"
             onClick={onClose}
-            className="flex gap-3 rounded-lg transition-colors hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/20"
+            className="flex gap-3 rounded-lg transition-colors hover:bg-white/5 focus:ring-2 focus:ring-white/20 focus:outline-none"
           >
             <img
               src={defaultAvatar}
@@ -59,14 +60,16 @@ export function Sidebar({ open, onClose }) {
               <p className="truncate text-[14px] font-bold text-white">
                 Sohaib Amjad
               </p>
-              <p className="truncate text-[12px] text-[#A2A6AB] font-medium">sohaib@gmail.com</p>
+              <p className="truncate text-[12px] font-medium text-[#A2A6AB]">
+                sohaib@gmail.com
+              </p>
             </div>
           </Link>
           <div className="mt-2 flex items-center gap-2 pb-6">
             <div className="h-[4px] flex-1 overflow-hidden rounded-full bg-zinc-600">
               <div className="h-full w-[70%] rounded-full bg-[#DA9811]" />
             </div>
-            <span className="shrink-0 text-[14px] font-bold italic text-white">
+            <span className="shrink-0 text-[14px] font-bold text-white italic">
               70% Complete
             </span>
           </div>
@@ -75,7 +78,9 @@ export function Sidebar({ open, onClose }) {
             {MENU_ITEMS.map(({ label, icon }) => (
               <button key={label} type="button" className={menuBtn}>
                 <img src={icon} alt="" className="h-5 w-5 shrink-0" />
-                <span className='text-[16px] font-medium text-[#A2A6AB]'>{label}</span>
+                <span className="text-[16px] font-medium text-[#A2A6AB]">
+                  {label}
+                </span>
               </button>
             ))}
           </nav>

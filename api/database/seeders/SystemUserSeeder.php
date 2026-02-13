@@ -21,4 +21,3 @@ class SystemUserSeeder extends Seeder
         );
     }
 }
-

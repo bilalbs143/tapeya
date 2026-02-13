@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -34,7 +34,11 @@ export default function Register() {
       navigate('/login', { replace: true });
     } catch (err) {
       console.error('Register failed:', err);
-      setSubmitError(err?.data?.message ?? err?.message ?? 'Registration failed. Please try again.');
+      setSubmitError(
+        err?.data?.message ??
+          err?.message ??
+          'Registration failed. Please try again.',
+      );
     }
   };
 
@@ -110,28 +114,23 @@ export default function Register() {
             </p>
           )}
 
-          <Button
-            type="submit"
-            disabled={busy}
-            variant="auth"
-            className="mt-4"
-          >
+          <Button type="submit" disabled={busy} variant="auth" className="mt-4">
             {busy ? 'Signing up...' : 'Sign up'}
           </Button>
 
           <p className="mt-6 text-center text-base text-[#A2A6AB]">
             Already have an account?{' '}
-            <Link to="/login" className="underline text-[#DA9811]">
+            <Link to="/login" className="text-[#DA9811] underline">
               Login
             </Link>
           </p>
           <p className="mt-3 text-center text-base text-[#A2A6AB]">
             By signing up, you agree to the{' '}
-            <Link to="/terms" className="underline text-[#DA9811]">
+            <Link to="/terms" className="text-[#DA9811] underline">
               Terms of Use
             </Link>{' '}
             and{' '}
-            <Link to="/privacy" className="underline text-[#DA9811]">
+            <Link to="/privacy" className="text-[#DA9811] underline">
               Privacy Policy
             </Link>
             .

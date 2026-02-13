@@ -30,6 +30,10 @@ return [
 
     'disks' => [
 
+        /*
+         * Private storage (not web-accessible). Use for sensitive or internal files.
+         * Default disk when FILESYSTEM_DISK is not set.
+         */
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
@@ -38,6 +42,11 @@ return [
             'report' => false,
         ],
 
+        /*
+         * Web-accessible storage. Run: php artisan storage:link
+         * Use this disk for uploads that must be served via URL (e.g. hero sliders, popup images).
+         * Same pattern as laravel/popups: AsFile cast with disk 'public' for web-facing images.
+         */
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

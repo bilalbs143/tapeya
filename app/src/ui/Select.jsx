@@ -54,7 +54,9 @@ export function SelectContent({
         className={`${content} ${className}`}
         {...props}
       >
-        <SelectPrimitive.Viewport className={`${viewport} ${viewportClassName}`}>
+        <SelectPrimitive.Viewport
+          className={`${viewport} ${viewportClassName}`}
+        >
           {props.children}
         </SelectPrimitive.Viewport>
       </SelectPrimitive.Content>
@@ -62,13 +64,21 @@ export function SelectContent({
   );
 }
 
-export function SelectItem({ className = '', textClassName = '', indicatorClassName = '', children, ...props }) {
+export function SelectItem({
+  className = '',
+  textClassName = '',
+  indicatorClassName = '',
+  children,
+  ...props
+}) {
   return (
     <SelectPrimitive.Item className={`${item} ${className}`} {...props}>
       <SelectPrimitive.ItemText className={textClassName}>
         {children}
       </SelectPrimitive.ItemText>
-      <SelectPrimitive.ItemIndicator className={`absolute right-2 flex h-3.5 w-3.5 items-center justify-center ${indicatorClassName}`}>
+      <SelectPrimitive.ItemIndicator
+        className={`absolute right-2 flex h-3.5 w-3.5 items-center justify-center ${indicatorClassName}`}
+      >
         <CheckIcon />
       </SelectPrimitive.ItemIndicator>
     </SelectPrimitive.Item>

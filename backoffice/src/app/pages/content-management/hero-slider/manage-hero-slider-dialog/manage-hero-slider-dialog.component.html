@@ -1,0 +1,90 @@
+<app-dialog-wrapper [title]="title">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    aria-label="Hero slide form"
+  >
+    <mat-dialog-content>
+      <div class="grid grid-cols-12 gap-x-6">
+        <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">
+            Image {{ isEdit ? '(optional – leave empty to keep current)' : '' }}
+            @if (!isEdit) {
+              <span class="text-error">*</span>
+            }
+          </mat-label>
+          <div class="flex flex-col gap-2 items-start">
+            @if (currentImageUrl) {
+              <div class="grid shrink-0">
+                <img
+                  [src]="currentImageUrl"
+                  alt="Preview"
+                  class="col-start-1 row-start-1 block max-h-40 max-w-full object-cover rounded border border-default-border"
+                />
+                <button
+                  type="button"
+                  mat-icon-button
+                  class="col-start-1 row-start-1 justify-self-end self-start m-2 size-8 min-w-8 rounded-full bg-white shadow-md border border-error text-error hover:bg-error hover:text-white hover:border-error"
+                  aria-label="Remove Image"
+                  (click)="clearFile()"
+                >
+                  <i-tabler
+                    name="trash"
+                    class="size-5"
+                  ></i-tabler>
+                </button>
+              </div>
+            }
+            <input
+              type="file"
+              accept="image/*"
+              (change)="onFileSelected($event)"
+              class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-primary file:text-white file:font-medium"
+            />
+            @if (form.get('image')?.invalid && form.get('image')?.touched && !isEdit) {
+              <span class="text-error text-sm">Image is required</span>
+            }
+          </div>
+        </div>
+
+        <div class="col-span-12 mt-4">
+          <mat-label class="text-sm font-semibold mb-2 block">Status <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-select
+              formControlName="status"
+              placeholder="Select Status"
+            >
+              @if (statusOptions$ | async; as statusOptions) {
+                @for (opt of statusOptions; track opt.value) {
+                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                }
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions>
+      <button
+        type="button"
+        mat-stroked-button
+        class="border border-error! text-error"
+        [mat-dialog-close]="false"
+      >
+        Cancel
+      </button>
+
+      <app-submit-button
+        [disabled]="form.invalid"
+        [isSubmitting]="isSubmitting"
+        text="Submit"
+        color="primary"
+      />
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

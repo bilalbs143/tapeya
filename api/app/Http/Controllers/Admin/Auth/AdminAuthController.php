@@ -1,29 +1,26 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers\Admin\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Auth\LoginResource;
+use App\Http\Requests\Admin\Auth\LoginRequest;
+use App\Http\Resources\Admin\Auth\LoginResource;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class UserAuthController extends Controller
+class AdminAuthController extends Controller
 {
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-        ]);
+        $credentials = $request->validated();
 
         $user = User::where('email', $credentials['email'])->first();
 
-        if (! $user || ! $user->isUser() || $user->isSystem() || ! Auth::attempt($credentials)) {
+        if (! $user || ! $user->isAdmin() || $user->isSystem() || ! Auth::attempt($credentials)) {
             return response()->failure('Invalid credentials', 'UNAUTHORIZED');
         }
 
-        $token = $user->createToken('app')->plainTextToken;
+        $token = $user->createToken('admin')->plainTextToken;
 
         $data = [
             'user' => new LoginResource($user),
@@ -36,11 +33,10 @@ class UserAuthController extends Controller
         return response()->success($data, 'auth.logged_in', 'SUCCESS');
     }
 
-    public function logout(Request $request)
+    public function logout()
     {
-        $request->user()->currentAccessToken()?->delete();
+        request()->user()->currentAccessToken()?->delete();
 
         return response()->success(message: 'auth.logged_out');
     }
 }
-

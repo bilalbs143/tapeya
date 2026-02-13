@@ -1,0 +1,172 @@
+<app-dialog-wrapper title="Order Details">
+  @if (isLoading) {
+    <p class="p-4 text-muted">Loading Order...</p>
+  } @else if (order) {
+    <mat-dialog-content>
+      <div class="grid grid-cols-12 gap-x-6 gap-y-4 mb-4">
+        <div class="col-span-12 sm:col-span-6">
+          <p class="text-sm font-semibold mb-1">Order Number</p>
+          <p class="text-sm">{{ order.order_number }}</p>
+        </div>
+        <div class="col-span-12 sm:col-span-6">
+          <p class="text-sm font-semibold mb-1">Status</p>
+          <span
+            class="rounded-sm font-semibold px-1.5 py-1 text-xs inline-block"
+            [ngClass]="statusClass(order.status)"
+          >
+            {{ order.status | titlecase }}
+          </span>
+        </div>
+        <div class="col-span-12 sm:col-span-6">
+          <p class="text-sm font-semibold mb-1">Customer</p>
+          <p class="text-sm">{{ order.user?.name ?? emptyCell }}</p>
+          @if (order.user?.email) {
+            <p class="text-sm text-muted">{{ order.user?.email }}</p>
+          }
+          @if (order.user?.phone) {
+            <p class="text-sm text-muted">{{ order.user?.phone }}</p>
+          }
+        </div>
+        <div class="col-span-12 sm:col-span-6">
+          <p class="text-sm font-semibold mb-1">Totals</p>
+          <p class="text-sm">Subtotal: {{ order.subtotal | number: '1.2-2' }} {{ order.currency }}</p>
+          <p class="text-sm">Shipping: {{ order.shipping_amount | number: '1.2-2' }} {{ order.currency }}</p>
+          <p class="text-sm">Discount: {{ order.discount_amount | number: '1.2-2' }} {{ order.currency }}</p>
+          <p class="text-sm font-semibold">Total: {{ order.total | number: '1.2-2' }} {{ order.currency }}</p>
+        </div>
+        <div class="col-span-12">
+          <p class="text-sm font-semibold mb-1">Shipping Address</p>
+          <p class="text-sm">{{ order.address }}, {{ order.city }}, {{ order.country }}</p>
+        </div>
+        @if (order.notes) {
+          <div class="col-span-12">
+            <p class="text-sm font-semibold mb-1">Notes</p>
+            <p class="text-sm">{{ order.notes }}</p>
+          </div>
+        }
+      </div>
+
+      <mat-divider></mat-divider>
+      <p class="text-sm font-semibold mt-4 mb-2">Order Items</p>
+      <table
+        mat-table
+        [dataSource]="items"
+        class="min-w-full"
+      >
+        <ng-container matColumnDef="product">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="bg-light-secondary text-sm font-semibold"
+          >
+            Product
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let item"
+            class="text-sm"
+          >
+            {{ productName(item) }}
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="quantity">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="bg-light-secondary text-sm font-semibold"
+          >
+            Qty
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let item"
+            class="text-sm"
+          >
+            {{ item.quantity }}
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="unit_price">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="bg-light-secondary text-sm font-semibold"
+          >
+            Unit Price
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let item"
+            class="text-sm"
+          >
+            {{ item.unit_price | number: '1.2-2' }}
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="total_price">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="bg-light-secondary text-sm font-semibold"
+          >
+            Total
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let item"
+            class="text-sm"
+          >
+            {{ item.total_price | number: '1.2-2' }}
+          </td>
+        </ng-container>
+        <tr
+          mat-header-row
+          *matHeaderRowDef="displayedColumns"
+        ></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+        ></tr>
+      </table>
+
+      <mat-divider class="my-4"></mat-divider>
+      <p class="text-sm font-semibold mb-2">Update Status</p>
+      <form
+        [formGroup]="form"
+        (ngSubmit)="onSubmit()"
+        aria-label="Update order status"
+      >
+        <mat-form-field
+          appearance="outline"
+          class="w-full"
+        >
+          <mat-label class="text-sm font-semibold">Status</mat-label>
+          <mat-select
+            formControlName="status"
+            placeholder="Select Status"
+          >
+            @if (statusOptions$ | async; as opts) {
+              @for (opt of opts; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-dialog-actions>
+          <button
+            type="button"
+            mat-stroked-button
+            class="border border-error! text-error"
+            [mat-dialog-close]="false"
+          >
+            Close
+          </button>
+          <app-submit-button
+            [disabled]="form.invalid"
+            [isSubmitting]="isSubmitting"
+            text="Update Status"
+            color="primary"
+          />
+        </mat-dialog-actions>
+      </form>
+    </mat-dialog-content>
+  }
+</app-dialog-wrapper>

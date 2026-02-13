@@ -1,10 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
 
-import shopNavIcon from '@/assets/images/icons/shop-navigation.svg';
-import liveScoreIcon from '@/assets/images/icons/score-card-request.svg';
-import liveNavIcon from '@/assets/images/icons/live-navigation.svg';
 import feedNavIcon from '@/assets/images/icons/feed-navigation.svg';
+import liveNavIcon from '@/assets/images/icons/live-navigation.svg';
 import reelsNavIcon from '@/assets/images/icons/reels-navigation.svg';
+import liveScoreIcon from '@/assets/images/icons/score-card-request.svg';
+import shopNavIcon from '@/assets/images/icons/shop-navigation.svg';
 
 const ITEMS = [
   { path: '/shop', label: 'Shop', icon: shopNavIcon },
@@ -19,7 +19,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around rounded-tl-[17px] rounded-tr-[17px] bg-[#141412] px-2 py-3 shadow-[0_-2px_10px_rgba(0,0,0,0.2)]"
+      className="fixed right-0 bottom-0 left-0 z-40 flex items-center justify-around rounded-tl-[17px] rounded-tr-[17px] bg-[#141412] px-2 py-3 shadow-[0_-2px_10px_rgba(0,0,0,0.2)]"
       aria-label="Bottom navigation"
     >
       {ITEMS.map(({ path, label, icon }) => {
@@ -38,7 +38,9 @@ export function BottomNav() {
               className="h-6 w-6 shrink-0 object-contain"
               aria-hidden
             />
-            <span className="text-[13px] font-medium text-[#A2A6AB]">{label}</span>
+            <span className="text-[13px] font-medium text-[#A2A6AB]">
+              {label}
+            </span>
           </Link>
         );
       })}

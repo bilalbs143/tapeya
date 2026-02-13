@@ -19,7 +19,10 @@ const passwordSchema = z
 const phoneSchema = z
   .string()
   .min(1, 'Phone is required')
-  .refine((v) => /^\+\d+$/.test(v) && v.length >= 2, 'Enter a valid phone number');
+  .refine(
+    (v) => /^\+\d+$/.test(v) && v.length >= 2,
+    'Enter a valid phone number',
+  );
 
 /** Login form (phone only) */
 export const loginSchema = z.object({

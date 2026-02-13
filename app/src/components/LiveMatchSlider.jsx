@@ -1,7 +1,8 @@
+import 'swiper/css';
+
 import { Link } from 'react-router-dom';
 import { Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
 
 import liveImg1 from '@/assets/images/standard/live-img-1.png';
 import liveImg2 from '@/assets/images/standard/live-img-2.png';
@@ -26,7 +27,7 @@ export function LiveMatchSlider() {
             className="h-2 w-2 shrink-0 rounded-full bg-red-500"
             aria-hidden
           />
-          <h2 className="text-[13px] font-bold uppercase tracking-wide text-[#A2A6AB]">
+          <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
             Live now
           </h2>
         </div>

@@ -12,4 +12,3 @@ class SystemUserService
         return User::where('type', UserTypeEnum::SYSTEM)->first();
     }
 }
-

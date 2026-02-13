@@ -29,12 +29,16 @@ class MacroServiceProvider extends ServiceProvider
                 fn ($v) => $v !== null
             );
 
-            return response()->json($payload);
+            $status = $type === 'CREATED' ? 201 : 200;
+
+            return response()->json($payload, $status);
         });
 
         Response::macro('failure', function (?string $message = null, string $type = 'BAD_REQUEST', $errors = null) {
             $status = match ($type) {
                 'UNAUTHORIZED' => 401,
+                'FORBIDDEN' => 403,
+                'NOT_FOUND' => 404,
                 'VALIDATION_ERROR' => 422,
                 'SERVER_ERROR' => 500,
                 default => 400,
@@ -53,6 +57,10 @@ class MacroServiceProvider extends ServiceProvider
 
         Response::macro('forbidden', function (?string $message = null) {
             return response()->json(['message' => $message ?? 'Forbidden'], 403);
+        });
+
+        Response::macro('noContent', function () {
+            return response()->noContent();
         });
     }
 }

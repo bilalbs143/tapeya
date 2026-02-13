@@ -4,12 +4,15 @@ import { Observable } from 'rxjs';
 
 import type { AuthUser, LoginSuccessResponse } from '../models/auth.models';
 
+import { EnumsService } from './enums.service';
+
 const TOKEN_STORAGE_KEY = 'tapeya_backoffice_token';
 const USER_STORAGE_KEY = 'tapeya_backoffice_user';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
+  private readonly enumsService = inject(EnumsService);
 
   private readonly tokenSignal = signal<string | null>(this.readTokenFromStorage());
   private readonly userSignal = signal<AuthUser | null>(this.readUserFromStorage());
@@ -19,7 +22,7 @@ export class AuthService {
 
   public login(credentials: { email: string; password: string }) {
     return this.http.post<LoginSuccessResponse>('v1/admin/login', credentials).pipe((source) => {
-      return new Observable<LoginSuccessResponse>((subscriber: any) => {
+      return new Observable<LoginSuccessResponse>((subscriber) => {
         const subscription = source.subscribe({
           next: (response) => {
             const token = response.data?.auth?.access_token;
@@ -62,6 +65,7 @@ export class AuthService {
   private clearSession() {
     this.tokenSignal.set(null);
     this.userSignal.set(null);
+    this.enumsService.clearCache();
 
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     localStorage.removeItem(USER_STORAGE_KEY);

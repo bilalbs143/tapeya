@@ -3,15 +3,30 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Builders\UserBuilder;
+use App\Contracts\RoleEnumInterface;
+use App\Enums\User\BattingStyleEnum;
+use App\Enums\User\BowlingStyleEnum;
+use App\Enums\User\PlayingRoleEnum;
+use App\Enums\User\RoleGuardEnum;
+use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
+use App\Utils\Traits\Model\BaseModelTrait;
+use App\Utils\Traits\Model\Filters\DateFilterTrait;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\QueryBuilder\AllowedFilter;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
+    use BaseModelTrait;
+
+    use DateFilterTrait;
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
@@ -22,8 +37,16 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'phone',
+        'date_of_birth',
+        'playing_role',
+        'bowling_style',
+        'batting_style',
+        'country',
+        'city',
         'password',
         'type',
+        'status',
     ];
 
     /**
@@ -45,9 +68,22 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'date_of_birth' => 'date',
             'password' => 'hashed',
             'type' => UserTypeEnum::class,
+            'status' => UserStatusEnum::class,
+            'playing_role' => PlayingRoleEnum::class,
+            'bowling_style' => BowlingStyleEnum::class,
+            'batting_style' => BattingStyleEnum::class,
         ];
+    }
+
+    /**
+     * Create a new Eloquent query builder for the model.
+     */
+    public function newEloquentBuilder($query): Builder
+    {
+        return new UserBuilder($query);
     }
 
     public function isAdmin(): bool
@@ -63,5 +99,189 @@ class User extends Authenticatable
     public function isUser(): bool
     {
         return $this->type === UserTypeEnum::USER;
+    }
+
+    public function isSeller(): bool
+    {
+        return $this->type === UserTypeEnum::SELLER;
+    }
+
+    /**
+     * Roles (app: player/organizer/sponsor; admin: future roles). Same pivot for all guards.
+     */
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'role_user')->withTimestamps();
+    }
+
+    /** Shop: carts (typically one active per user). */
+    public function shopCarts(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\Shop\Cart::class, 'user_id');
+    }
+
+    /** Shop: orders. */
+    public function shopOrders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\Shop\Order::class, 'user_id');
+    }
+
+    /**
+     * App-guard roles for this user (for API / serialization). Single query, qualified for joins.
+     *
+     * @return \Illuminate\Support\Collection<int, Role>
+     */
+    public function getAppRoles(): \Illuminate\Support\Collection
+    {
+        return $this->roles()->where('roles.guard', RoleGuardEnum::APP->value)->get();
+    }
+
+    /**
+     * Check if user has a role. Use RoleEnumInterface (AppRoleEnum, AdminRoleEnum) or slug + guard.
+     */
+    public function hasRole(RoleEnumInterface|string $role, ?string $guard = null): bool
+    {
+        if ($role instanceof RoleEnumInterface) {
+            $slug = $role->value;
+            $guard = $role->guard();
+        } else {
+            $slug = $role;
+            $guard ??= RoleGuardEnum::APP->value;
+        }
+
+        return $this->roles()->where('slug', $slug)->where('guard', $guard)->exists();
+    }
+
+    /** @param array<RoleEnumInterface|string> $roles Guard for string slugs: pass $guard or defaults to app. */
+    public function hasAnyRole(array $roles, ?string $guard = null): bool
+    {
+        $defaultGuard = $guard ?? RoleGuardEnum::APP->value;
+        foreach ($roles as $r) {
+            if ($this->hasRole($r, $r instanceof RoleEnumInterface ? null : $defaultGuard)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function scopeAppUsers(Builder $query): Builder
+    {
+        return $query->where('type', UserTypeEnum::USER);
+    }
+
+    public function scopeSellers(Builder $query): Builder
+    {
+        return $query->where('type', UserTypeEnum::SELLER);
+    }
+
+    /** Scope: users that have the given role (e.g. all sponsors). Use enum or slug + guard. */
+    public function scopeWithRole(Builder $query, RoleEnumInterface|string $role, ?string $guard = null): Builder
+    {
+        if ($role instanceof RoleEnumInterface) {
+            $slug = $role->value;
+            $guard = $role->guard();
+        } else {
+            $slug = $role;
+            $guard ??= RoleGuardEnum::APP->value;
+        }
+
+        return $query->whereHas('roles', fn (Builder $q) => $q->where('slug', $slug)->where('guard', $guard));
+    }
+
+    /**
+     * Check if user has a permission (through any of their roles). Use when permissions are attached to roles.
+     */
+    public function hasPermissionTo(string $permission, ?string $guard = null): bool
+    {
+        $guard ??= RoleGuardEnum::APP->value;
+
+        return $this->roles()
+            ->where('guard', $guard)
+            ->whereHas('permissions', fn (Builder $q) => $q->where('slug', $permission)->where('guard', $guard))
+            ->exists();
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === UserStatusEnum::ACTIVE;
+    }
+
+    public function isBlocked(): bool
+    {
+        return $this->status === UserStatusEnum::BLOCKED;
+    }
+
+    public function isVerificationPending(): bool
+    {
+        return $this->status === UserStatusEnum::VERIFICATION_PENDING;
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('status', UserStatusEnum::ACTIVE);
+    }
+
+    public function scopeNotBlocked(Builder $query): Builder
+    {
+        return $query->where('status', '!=', UserStatusEnum::BLOCKED);
+    }
+
+    /**
+     * Scope: match phone by digits (e.g. 92212212123 or 212212123 matches +92212212123).
+     * Normalizes stored phone to digits in SQL so partial digit search works.
+     */
+    public function scopePhone(Builder $query, ?string $value): void
+    {
+        $digits = $value !== null && $value !== '' ? preg_replace('/\D/', '', $value) : '';
+        if ($digits === '') {
+            return;
+        }
+        $like = '%'.$digits.'%';
+        $driver = $query->getConnection()->getDriverName();
+        $expr = $driver === 'mysql'
+            ? 'REGEXP_REPLACE(COALESCE(phone, ""), "[^0-9]", "") LIKE ?'
+            : "REGEXP_REPLACE(COALESCE(phone, ''), '[^0-9]', '', 'g') LIKE ?";
+        $query->whereRaw($expr, [$like]);
+    }
+
+    /**
+     * Filters for QueryBuilder (admin/index listing).
+     *
+     * @return array<int, string|AllowedFilter>
+     */
+    public static function getFilters(): array
+    {
+        return [
+            AllowedFilter::scope('search'),
+            AllowedFilter::exact('type'),
+            AllowedFilter::exact('status'),
+            AllowedFilter::exact('name'),
+            'email',
+            AllowedFilter::scope('phone'),
+            AllowedFilter::scope('created_between'),
+            AllowedFilter::scope('created_after'),
+            AllowedFilter::scope('created_before'),
+            AllowedFilter::scope('updated_between'),
+        ];
+    }
+
+    /**
+     * Sortable columns for QueryBuilder.
+     *
+     * @return array<int, string>
+     */
+    public static function getSorts(): array
+    {
+        return [
+            'id',
+            'name',
+            'email',
+            'phone',
+            'type',
+            'status',
+            'created_at',
+            'updated_at',
+        ];
     }
 }

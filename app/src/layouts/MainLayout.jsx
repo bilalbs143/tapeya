@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
-import { useLocation } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
+
 import { BottomNav } from '@/components/BottomNav';
 import { Navbar } from '@/components/Navbar';
 import { Sidebar } from '@/components/Sidebar';

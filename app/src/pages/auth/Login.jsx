@@ -55,7 +55,7 @@ export default function Login() {
         className="pointer-events-none fixed top-[-115px] left-1/2 z-0 h-[302px] w-[622px] -translate-x-1/2 rounded-full bg-[#FF9700] opacity-50 blur-[200px]"
         aria-hidden
       />
-      <div className="relative z-10 flex min-h-full flex-col items-center px-6 justify-center">
+      <div className="relative z-10 flex min-h-full flex-col items-center justify-center px-6">
         <img
           src={tapeyaLogo}
           alt="Tapeya"
@@ -69,8 +69,8 @@ export default function Login() {
           onSubmit={handleSubmit(onSubmit)}
           className="mt-12 w-full max-w-[358px] space-y-4"
         >
-          <h2 className="text-center text-xl font-bold text-white mb-6">
-          Login with your account
+          <h2 className="mb-6 text-center text-xl font-bold text-white">
+            Login with your account
           </h2>
           <FormField label="Phone" htmlFor="phone">
             <Controller
@@ -98,18 +98,13 @@ export default function Login() {
             </p>
           )}
 
-          <Button
-            type="submit"
-            disabled={busy}
-            variant="auth"
-            className="mt-4"
-          >
+          <Button type="submit" disabled={busy} variant="auth" className="mt-4">
             {busy ? 'Signing in...' : 'Login'}
           </Button>
 
           <p className="mt-6 text-center text-base text-[#A2A6AB]">
             Don&apos;t have an account?{' '}
-            <Link to="/register" className="underline text-[#DA9811]">
+            <Link to="/register" className="text-[#DA9811] underline">
               Sign up
             </Link>
           </p>

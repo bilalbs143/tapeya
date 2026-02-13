@@ -8,14 +8,14 @@ import Login from '@/pages/auth/Login';
 import Otp from '@/pages/auth/Otp';
 import Register from '@/pages/auth/Register';
 import Home from '@/pages/Home';
-import ShopCategory from '@/pages/ShopCategory';
-import ShopHome from '@/pages/ShopHome';
-import ShopProductDetail from '@/pages/ShopProductDetail';
-import ShopCart from '@/pages/ShopCart';
-import ShopCheckout from '@/pages/ShopCheckout';
 import MyOrders from '@/pages/MyOrders';
 import OrderDetail from '@/pages/OrderDetail';
 import OrderSuccess from '@/pages/OrderSuccess';
+import ShopCart from '@/pages/ShopCart';
+import ShopCategory from '@/pages/ShopCategory';
+import ShopCheckout from '@/pages/ShopCheckout';
+import ShopHome from '@/pages/ShopHome';
+import ShopProductDetail from '@/pages/ShopProductDetail';
 import UserProfile from '@/pages/UserProfile';
 import { Toaster, ToastViewportStyled } from '@/ui/Toast';
 import { TooltipProvider } from '@/ui/Tooltip';
@@ -31,7 +31,10 @@ function App() {
               <Route path="/home" element={<Home />} />
               <Route path="/shop" element={<ShopHome />} />
               <Route path="/shop/:brandId" element={<ShopCategory />} />
-              <Route path="/shop/:brandId/product/:productId" element={<ShopProductDetail />} />
+              <Route
+                path="/shop/:brandId/product/:productId"
+                element={<ShopProductDetail />}
+              />
               <Route path="/shop-cart" element={<ShopCart />} />
               <Route path="/shop-checkout" element={<ShopCheckout />} />
               <Route path="/my-orders" element={<MyOrders />} />

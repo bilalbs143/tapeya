@@ -18,13 +18,7 @@ export interface PromptDialogData {
 @Component({
   selector: 'app-prompt-dialog',
   standalone: true,
-  imports: [
-    MatDialogModule,
-    MatButtonModule,
-    MatDividerModule,
-    DialogWrapperComponent,
-    SubmitButtonComponent,
-  ],
+  imports: [MatDialogModule, MatButtonModule, MatDividerModule, DialogWrapperComponent, SubmitButtonComponent],
   templateUrl: './prompt-dialog.component.html',
 })
 export class PromptDialogComponent {

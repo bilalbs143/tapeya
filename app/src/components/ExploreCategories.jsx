@@ -1,23 +1,33 @@
 import { Link } from 'react-router-dom';
 
+import draftingIcon from '@/assets/images/icons/drafting.svg';
+import highlightsIcon from '@/assets/images/icons/highlights.svg';
 import liveIcon from '@/assets/images/icons/live-icon.svg';
 import liveScoreIcon from '@/assets/images/icons/live-score.svg';
 import rankingsIcon from '@/assets/images/icons/rankings.svg';
+import reelsIcon from '@/assets/images/icons/reels.svg';
 import shopIcon from '@/assets/images/icons/shop.svg';
 import upcomingIcon from '@/assets/images/icons/upcoming.svg';
-import draftingIcon from '@/assets/images/icons/drafting.svg';
-import reelsIcon from '@/assets/images/icons/reels.svg';
-import highlightsIcon from '@/assets/images/icons/highlights.svg';
 
 const CATEGORIES = [
   { id: 'live', label: 'Live', path: '/live', icon: liveIcon },
-  { id: 'live-score', label: 'Live Score', path: '/live-score', icon: liveScoreIcon },
+  {
+    id: 'live-score',
+    label: 'Live Score',
+    path: '/live-score',
+    icon: liveScoreIcon,
+  },
   { id: 'rankings', label: 'Rankings', path: '/rankings', icon: rankingsIcon },
   { id: 'shop', label: 'Shop', path: '/shop', icon: shopIcon },
   { id: 'upcoming', label: 'Upcoming', path: '/upcoming', icon: upcomingIcon },
   { id: 'drafting', label: 'Drafting', path: '/drafting', icon: draftingIcon },
   { id: 'reels', label: 'Reels', path: '/reels', icon: reelsIcon },
-  { id: 'highlights', label: 'Highlights', path: '/highlights', icon: highlightsIcon },
+  {
+    id: 'highlights',
+    label: 'Highlights',
+    path: '/highlights',
+    icon: highlightsIcon,
+  },
 ];
 
 const ITEM_STYLE = {
@@ -29,7 +39,7 @@ const ITEM_STYLE = {
 export function ExploreCategories() {
   return (
     <section className="space-y-4">
-      <h2 className="text-[13px] font-bold uppercase tracking-wide text-[#A2A6AB]">
+      <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
         Explore
       </h2>
       <div className="grid grid-cols-4 gap-3">
@@ -41,7 +51,11 @@ export function ExploreCategories() {
             style={ITEM_STYLE}
             aria-label={label}
           >
-            <img src={icon} alt="" className="h-5 w-5 shrink-0 object-contain" />
+            <img
+              src={icon}
+              alt=""
+              className="h-5 w-5 shrink-0 object-contain"
+            />
             <span className="text-center text-[11px] font-bold text-white">
               {label}
             </span>

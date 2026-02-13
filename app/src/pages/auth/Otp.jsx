@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
@@ -22,7 +22,12 @@ export default function Otp() {
   const [error, setError] = useState(null);
   const refs = useRef([]);
 
-  const { setValue, watch, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+  const {
+    setValue,
+    watch,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
     resolver: zodResolver(otp5Schema),
     defaultValues: { code: '' },
     mode: 'onSubmit',
@@ -39,12 +44,16 @@ export default function Otp() {
   };
 
   const onKeyDown = (i, e) => {
-    if (e.key === 'Backspace' && !code[i] && i > 0) refs.current[i - 1]?.focus();
+    if (e.key === 'Backspace' && !code[i] && i > 0)
+      refs.current[i - 1]?.focus();
   };
 
   const onPaste = (e) => {
     e.preventDefault();
-    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, LENGTH);
+    const pasted = e.clipboardData
+      .getData('text')
+      .replace(/\D/g, '')
+      .slice(0, LENGTH);
     setValue('code', pasted);
     refs.current[Math.min(pasted.length, LENGTH - 1)]?.focus();
   };
@@ -62,19 +71,33 @@ export default function Otp() {
 
   return (
     <>
-      <div className="pointer-events-none fixed top-[-115px] left-1/2 z-0 h-[302px] w-[622px] -translate-x-1/2 rounded-full bg-[#FF9700] opacity-50 blur-[200px]" aria-hidden />
+      <div
+        className="pointer-events-none fixed top-[-115px] left-1/2 z-0 h-[302px] w-[622px] -translate-x-1/2 rounded-full bg-[#FF9700] opacity-50 blur-[200px]"
+        aria-hidden
+      />
       <div className="relative z-10 flex min-h-full flex-col items-center justify-center px-6">
-        <img src={tapeyaLogo} alt="Tapeya" className="motion-safe:animate-splash-slide-up h-auto w-[270px] opacity-0 motion-reduce:opacity-100" />
+        <img
+          src={tapeyaLogo}
+          alt="Tapeya"
+          className="motion-safe:animate-splash-slide-up h-auto w-[270px] opacity-0 motion-reduce:opacity-100"
+        />
         <p className="motion-safe:animate-splash-slide-up-delayed mt-6 max-w-[90vw] text-center text-base text-white opacity-0 motion-reduce:opacity-100">
           Live Cricket & Instant Updates, Anytime!
         </p>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-12 w-full max-w-[358px] space-y-6">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="mt-12 w-full max-w-[358px] space-y-6"
+        >
           <p className="text-center text-base text-white">
             Enter OTP sent to <span className="text-[#DA9811]">{phone}</span>
           </p>
 
-          <div className="flex justify-between" role="group" aria-label="OTP digits">
+          <div
+            className="flex justify-between"
+            role="group"
+            aria-label="OTP digits"
+          >
             {[...Array(LENGTH)].map((_, i) => (
               <div key={i} className="h-[55px] w-[55px] shrink-0">
                 <Input
@@ -101,10 +124,18 @@ export default function Otp() {
           )}
 
           <p className="text-center text-base text-white">
-            Didn&apos;t receive? <Link to="/login" className="text-[#DA9811] underline">Resend</Link>
+            Didn&apos;t receive?{' '}
+            <Link to="/login" className="text-[#DA9811] underline">
+              Resend
+            </Link>
           </p>
 
-          <Button type="submit" disabled={isSubmitting} variant="auth" className="mt-4">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            variant="auth"
+            className="mt-4"
+          >
             {isSubmitting ? 'Verifying...' : 'Next'}
           </Button>
         </form>
