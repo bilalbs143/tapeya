@@ -1,10 +1,12 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import successOrderGif from '@/assets/images/icons/success-order.gif';
 import { Container } from '@/ui/Container';
 
 export default function OrderSuccess() {
   const navigate = useNavigate();
+  const { state } = useLocation();
+  const orderId = state?.orderId;
 
   return (
     <div className="flex flex-col bg-black">
@@ -54,6 +56,27 @@ export default function OrderSuccess() {
             We will notify you of all the details via email or WhatsApp number
             you provided.
           </p>
+
+          {orderId != null && (
+            <button
+              type="button"
+              onClick={() => navigate(`/shop/orders/${orderId}`)}
+              className="mb-4 flex w-full items-center justify-center gap-2 rounded-full border-2 border-[#DA9811] bg-transparent py-3.5 text-[16px] font-bold text-[#DA9811] transition-opacity active:opacity-90"
+            >
+              View order
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </button>
+          )}
 
           <button
             type="button"

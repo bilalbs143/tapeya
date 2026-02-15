@@ -157,11 +157,9 @@
               class="text-sm"
             >
               @if (row.logo) {
-                <img
+                <app-table-image
                   [src]="row.logo"
-                  alt=""
-                  class="h-10 w-10 object-contain"
-                  onerror="this.style.display = 'none'"
+                  alt="Brand logo"
                 />
               } @else {
                 {{ emptyCell }}

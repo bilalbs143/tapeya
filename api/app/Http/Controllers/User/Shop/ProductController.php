@@ -40,13 +40,14 @@ class ProductController extends Controller
         return ProductResource::collection($records);
     }
 
-    public function show(int $product): JsonResponse
+    public function show(Product $product): JsonResponse
     {
-        $record = Product::query()
-            ->active()
-            ->with(['brand', 'category', 'images'])
-            ->findOrFail($product);
+        if (! $product->is_active) {
+            abort(404);
+        }
 
-        return $this->success(new ProductResource($record));
+        $product->load(['brand', 'category', 'images']);
+
+        return $this->success(new ProductResource($product));
     }
 }

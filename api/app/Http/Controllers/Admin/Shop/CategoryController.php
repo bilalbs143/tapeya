@@ -26,7 +26,7 @@ class CategoryController extends BaseAdminController
     {
         $data = $request->validated();
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('shop/categories', 'public');
+            $data['image'] = $request->file('image')->store('shop/categories', config('filesystems.media_disk'));
         }
         $record = $this->model->create($data);
         $record = $this->refresh($record);
@@ -44,9 +44,9 @@ class CategoryController extends BaseAdminController
         $data = $request->validated();
         if ($request->hasFile('image')) {
             if ($category->image) {
-                Storage::disk('public')->delete($category->image);
+                Storage::disk(config('filesystems.media_disk'))->delete($category->image);
             }
-            $data['image'] = $request->file('image')->store('shop/categories', 'public');
+            $data['image'] = $request->file('image')->store('shop/categories', config('filesystems.media_disk'));
         }
         $category = $this->refresh($category);
         $category->update($data);
@@ -58,7 +58,7 @@ class CategoryController extends BaseAdminController
     public function destroy(Category $category): JsonResponse
     {
         if ($category->image) {
-            Storage::disk('public')->delete($category->image);
+            Storage::disk(config('filesystems.media_disk'))->delete($category->image);
         }
 
         return $this->_destroy($category, null);

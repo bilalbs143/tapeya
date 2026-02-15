@@ -21,6 +21,7 @@ yarn-error.log*
 # ===================
 api/vendor/
 api/node_modules/
+api/composer.lock
 api/.env
 api/storage/*.key
 api/storage/logs/
@@ -30,6 +31,7 @@ api/bootstrap/cache/
 # Backoffice (Angular)
 # ===================
 backoffice/node_modules/
+backoffice/package-lock.json
 backoffice/dist/
 backoffice/.angular/
 
@@ -37,6 +39,7 @@ backoffice/.angular/
 # App (Ionic + React)
 # ===================
 app/node_modules/
+app/package-lock.json
 app/dist/
 app/www/
 app/ios/

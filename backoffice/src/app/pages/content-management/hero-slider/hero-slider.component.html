@@ -94,10 +94,9 @@
               class="text-sm"
             >
               @if (row.image) {
-                <img
+                <app-table-image
                   [src]="row.image"
                   alt="Slide"
-                  class="max-h-14 object-cover rounded"
                 />
               } @else {
                 {{ emptyCell }}

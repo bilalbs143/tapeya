@@ -1,20 +1,54 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
+import { formatPrice } from '@/lib/format';
+import { useGetOrderQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 
-const ORDER_ID = '3325677';
 const WHATSAPP = '+92 315 711 8511';
 const BANK_NAME = 'Bank Alfalah';
 const IBAN = 'PKLF457781445468799235';
 const ACCOUNT_TITLE = 'Oneeb Arif';
 
 export default function OrderDetail() {
+  const { orderId } = useParams();
   const navigate = useNavigate();
+  const {
+    data: order,
+    isLoading,
+    isError,
+  } = useGetOrderQuery(orderId, {
+    skip: !orderId,
+  });
+
+  const orderNumber = order?.order_number ?? orderId;
+
+  if (!orderId) {
+    navigate('/shop/orders', { replace: true });
+    return null;
+  }
+
+  if (isLoading) return null;
+
+  if (isError || !order) {
+    return (
+      <Container>
+        <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 py-12">
+          <p className="text-[14px] text-[#A2A6AB]">Order not found.</p>
+          <button
+            type="button"
+            onClick={() => navigate('/shop/orders')}
+            className="rounded-full bg-[#DA9811] px-6 py-2.5 text-[14px] font-bold text-black"
+          >
+            My orders
+          </button>
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black">
       <Container className="!px-4 !py-0">
-        {/* Header: back (dark circle, white chevron) + title */}
         <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
           <button
             type="button"
@@ -40,7 +74,6 @@ export default function OrderDetail() {
         </header>
 
         <div className="space-y-6 pt-2">
-          {/* Payment instructions */}
           <p className="text-[14px] leading-relaxed text-[#B0B0B0]">
             Make your payment directly into our bank account. Please use your{' '}
             <span className="font-semibold text-[#DA9811]">Order ID</span> and{' '}
@@ -53,20 +86,27 @@ export default function OrderDetail() {
             account.
           </p>
 
-          {/* Order ID - single white pill with label + id */}
           <div
             className="flex max-w-fit items-center gap-1 rounded-[160px] bg-white px-2 py-1"
-            aria-label={`Order ID: ${ORDER_ID}`}
+            aria-label={`Order ID: ${orderNumber}`}
           >
             <span className="text-[16px] font-bold text-[#1a1a1a] uppercase">
               YOUR ORDER ID:
             </span>
             <span className="text-[16px] font-normal text-[#1a1a1a]">
-              {ORDER_ID}
+              {orderNumber}
             </span>
           </div>
 
-          {/* Bank details */}
+          <div>
+            <p className="text-[14px] font-bold text-[#A2A6AB] uppercase">
+              ORDER TOTAL
+            </p>
+            <p className="mt-1 text-[16px] font-bold text-[#DA9811]">
+              {formatPrice(order.total)} {order.currency ?? 'PKR'}
+            </p>
+          </div>
+
           <div className="space-y-4">
             <div>
               <p className="text-[14px] font-bold text-[#A2A6AB] uppercase">
@@ -90,13 +130,14 @@ export default function OrderDetail() {
             </div>
           </div>
 
-          {/* Order Now button */}
           <button
             type="button"
-            onClick={() => navigate('/order-success')}
+            onClick={() =>
+              navigate('/shop/order-success', { state: { orderId: order.id } })
+            }
             className="flex w-full items-center justify-center gap-2 rounded-full bg-[#DA9811] py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90"
           >
-            Order Now
+            I&apos;ve paid
             <svg
               className="h-5 w-5"
               fill="none"

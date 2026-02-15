@@ -19,7 +19,7 @@ class StoreHeroSliderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'image' => ['required', 'image', 'max:5120'],
+            'image' => ['required', 'image', 'min:1', 'max:5120'],
             'status' => ['required', Rule::enum(StatusEnum::class)],
         ];
     }

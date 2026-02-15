@@ -24,7 +24,7 @@ class HeroSliderController extends BaseAdminController
 
     public function store(StoreHeroSliderRequest $request): JsonResponse
     {
-        $path = $request->file('image')->store('hero-sliders', 'public');
+        $path = $request->file('image')->store('hero-sliders', config('filesystems.media_disk'));
         $data = [
             'status' => StatusEnum::from($request->validated('status')),
             'image' => $path,
@@ -47,9 +47,9 @@ class HeroSliderController extends BaseAdminController
         ];
         if ($request->hasFile('image')) {
             if ($hero_slider->getRawOriginal('image')) {
-                Storage::disk('public')->delete($hero_slider->getRawOriginal('image'));
+                Storage::disk(config('filesystems.media_disk'))->delete($hero_slider->getRawOriginal('image'));
             }
-            $data['image'] = $request->file('image')->store('hero-sliders', 'public');
+            $data['image'] = $request->file('image')->store('hero-sliders', config('filesystems.media_disk'));
         }
         $hero_slider = $this->refresh($hero_slider);
         $hero_slider->update($data);

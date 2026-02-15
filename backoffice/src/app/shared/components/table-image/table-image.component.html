@@ -1,0 +1,15 @@
+@if (src) {
+  <a
+    [href]="src"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="inline-block align-middle"
+    aria-label="Open image in new tab"
+  >
+    <img
+      [src]="src"
+      [alt]="alt"
+      class="inline-block h-[45px] w-auto max-w-[120px] object-cover object-center rounded cursor-pointer align-middle"
+    />
+  </a>
+}

@@ -19,7 +19,7 @@ class CategoryResource extends JsonResource
             'slug' => $this->slug,
             'parent_id' => $this->parent_id,
             'parent' => $this->whenLoaded('parent', fn () => new CategoryResource($this->parent)),
-            'image' => $this->image ? Storage::disk('public')->url($this->image) : null,
+            'image' => $this->image ? Storage::disk(config('filesystems.media_disk'))->url($this->image) : null,
             'sort_order' => $this->sort_order,
         ];
     }

@@ -33,7 +33,7 @@ class AsFile implements CastsAttributes
         string $disk = 'local',
     ) {
         $this->useModelSegment = $useModelSegment !== false && strtolower((string) $useModelSegment) !== 'false';
-        $this->disk = $disk ?: 'local';
+        $this->disk = ($disk === 'media') ? config('filesystems.media_disk', 'public') : ($disk ?: 'local');
     }
 
     /**

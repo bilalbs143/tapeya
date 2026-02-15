@@ -9,7 +9,7 @@ import { baseApi } from './baseApi';
  * - 'Item' – single item endpoints (or add more tag types in baseApi)
  */
 export const commonApi = baseApi.injectEndpoints({
-  endpoints: (builder) => ({
+  endpoints: (_builder) => ({
     // Example: add your endpoints here
     // getItems: builder.query({
     //   query: (params) => ({ url: '/items', params }),

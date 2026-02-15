@@ -26,7 +26,7 @@ class BrandController extends BaseAdminController
     {
         $data = $request->validated();
         if ($request->hasFile('logo')) {
-            $data['logo'] = $request->file('logo')->store('shop/brands', 'public');
+            $data['logo'] = $request->file('logo')->store('shop/brands', config('filesystems.media_disk'));
         }
         $record = $this->model->create($data);
         $record = $this->refresh($record);
@@ -44,9 +44,9 @@ class BrandController extends BaseAdminController
         $data = $request->validated();
         if ($request->hasFile('logo')) {
             if ($brand->logo) {
-                Storage::disk('public')->delete($brand->logo);
+                Storage::disk(config('filesystems.media_disk'))->delete($brand->logo);
             }
-            $data['logo'] = $request->file('logo')->store('shop/brands', 'public');
+            $data['logo'] = $request->file('logo')->store('shop/brands', config('filesystems.media_disk'));
         }
         $brand = $this->refresh($brand);
         $brand->update($data);
@@ -58,7 +58,7 @@ class BrandController extends BaseAdminController
     public function destroy(Brand $brand): JsonResponse
     {
         if ($brand->logo) {
-            Storage::disk('public')->delete($brand->logo);
+            Storage::disk(config('filesystems.media_disk'))->delete($brand->logo);
         }
 
         return $this->_destroy($brand, null);

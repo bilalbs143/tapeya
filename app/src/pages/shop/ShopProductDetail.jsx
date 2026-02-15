@@ -1,0 +1,277 @@
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+
+import { formatPrice } from '@/lib/format';
+import {
+  useAddCartItemMutation,
+  useGetProductQuery,
+} from '@/store/api/shopApi';
+import { Container } from '@/ui/Container';
+
+function getImageUrls(images) {
+  if (!images?.length) return [];
+  return images.map((img) => img.path ?? img).filter(Boolean);
+}
+
+function getFeatures(product) {
+  if (Array.isArray(product.features)) return product.features;
+  if (product.description) {
+    return product.description
+      .split(/\n+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
+export default function ShopProductDetail() {
+  const { brandId, productSlug } = useParams();
+  const { state } = useLocation();
+  const navigate = useNavigate();
+  const [quantity, setQuantity] = useState(1);
+  const [selectedImage, setSelectedImage] = useState(0);
+
+  const {
+    data: product,
+    isLoading,
+    isError,
+    error,
+  } = useGetProductQuery(productSlug, { skip: !productSlug });
+  const [addToCart, { isLoading: isAddingToCart }] = useAddCartItemMutation();
+
+  const normalized = useMemo(() => {
+    if (!product) return null;
+    const imageUrls = getImageUrls(product.images);
+    const displayPrice = product.sale_price ?? product.price;
+    const hasDiscount =
+      product.sale_price != null && product.sale_price < product.price;
+    return {
+      ...product,
+      imageUrls: imageUrls.length ? imageUrls : [],
+      categoryName:
+        typeof product.category === 'object' && product.category?.name
+          ? product.category.name
+          : (product.category ?? 'Product'),
+      features: getFeatures(product),
+      displayPrice,
+      hasDiscount,
+      stock: product.stock_quantity ?? 0,
+    };
+  }, [product]);
+
+  const backTo = state?.from ?? (brandId ? `/shop/${brandId}` : '/shop');
+
+  const handleAddToCart = async () => {
+    if (!normalized?.id) return;
+    try {
+      await addToCart({ product_id: normalized.id, quantity }).unwrap();
+      navigate('/shop/cart');
+    } catch (err) {
+      console.error('Add to cart failed:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (!productSlug) navigate('/shop', { replace: true });
+  }, [productSlug, navigate]);
+
+  if (!productSlug) return null;
+
+  if (isLoading || !normalized) {
+    return (
+      <Container>
+        <div className="flex min-h-[40vh] items-center justify-center">
+          {!isLoading && (
+            <p className="text-[14px] text-[#A2A6AB]">Product not found.</p>
+          )}
+        </div>
+      </Container>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Container>
+        <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
+          <p className="text-[14px] text-[#A2A6AB]">
+            {error?.data?.message ?? 'Something went wrong.'}
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate(backTo)}
+            className="rounded-full bg-[#DA9811] px-6 py-2.5 text-[14px] font-bold text-black"
+          >
+            Go back
+          </button>
+        </div>
+      </Container>
+    );
+  }
+
+  const mainImage =
+    normalized.imageUrls[selectedImage] ?? normalized.imageUrls[0];
+
+  return (
+    <Container>
+      <div className="flex flex-col gap-4">
+        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-4">
+          <button
+            type="button"
+            onClick={() => navigate(backTo)}
+            className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80"
+            aria-label="Back"
+          >
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h1 className="min-w-0 flex-1 truncate pr-4 text-center text-[16px] font-bold tracking-wide text-white uppercase">
+            SHOP - {normalized.categoryName.toUpperCase()}
+          </h1>
+        </header>
+
+        <div className="space-y-3">
+          <div className="relative overflow-hidden rounded-[17px] bg-white">
+            {mainImage ? (
+              <img
+                src={mainImage}
+                alt={normalized.images?.[selectedImage]?.alt ?? normalized.name}
+                className="aspect-square w-full object-contain p-4"
+              />
+            ) : (
+              <div className="aspect-square w-full bg-[#141412]" aria-hidden />
+            )}
+            {normalized.is_featured && (
+              <span className="absolute top-3 left-3 rounded-full bg-[#DA9811] px-2.5 py-1 text-[12px] font-bold text-black uppercase">
+                Featured
+              </span>
+            )}
+          </div>
+          {normalized.imageUrls.length > 1 && (
+            <div className="flex gap-2">
+              {normalized.imageUrls.map((url, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setSelectedImage(i)}
+                  className={`h-12 w-12 shrink-0 overflow-hidden rounded-full border-2 bg-white ${
+                    selectedImage === i
+                      ? 'border-[#DA9811]'
+                      : 'border-transparent'
+                  }`}
+                  aria-label={`View image ${i + 1}`}
+                >
+                  <img
+                    src={url}
+                    alt=""
+                    className="h-full w-full object-contain p-1"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <h2 className="text-[16px] font-bold text-white">
+            {normalized.name}
+          </h2>
+          <div className="flex items-center gap-4">
+            {normalized.hasDiscount && (
+              <span className="text-[16px] font-bold text-[#A2A6AB82] line-through">
+                {formatPrice(normalized.price)}
+              </span>
+            )}
+            <span className="text-[16px] font-bold text-[#DA9811]">
+              {formatPrice(normalized.displayPrice)}
+            </span>
+          </div>
+          <p className="text-[12px] font-bold text-[#A2A6AB]">
+            Availability:{' '}
+            <span
+              className={`ml-2 text-[12px] ${
+                normalized.stock > 0 ? 'text-[#FF3B30]' : 'text-[#A2A6AB]'
+              }`}
+            >
+              {normalized.stock > 0
+                ? `Only ${normalized.stock} left in stock`
+                : 'Out of stock'}
+            </span>
+          </p>
+        </div>
+
+        <div className="flex items-center gap-4 border-t border-b border-[#1A1A1A] py-4">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full bg-[#141412] text-white transition-opacity active:opacity-80"
+              aria-label="Decrease quantity"
+            >
+              <span className="text-xl leading-none font-medium">−</span>
+            </button>
+            <span
+              className="flex h-[44px] w-[74px] min-w-[3rem] items-center justify-center rounded-full bg-[#141412] px-5 text-base font-medium text-white"
+              aria-live="polite"
+            >
+              {quantity}
+            </span>
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => q + 1)}
+              className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full bg-[#141412] text-white transition-opacity active:opacity-80"
+              aria-label="Increase quantity"
+            >
+              <span className="text-xl leading-none font-medium">+</span>
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            disabled={normalized.stock < 1 || isAddingToCart}
+            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#DA9811] py-3.5 text-base text-[16px] font-bold text-black transition-opacity active:opacity-90 disabled:opacity-50"
+          >
+            <svg
+              className="h-5 w-5 shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+            {isAddingToCart ? 'Adding…' : 'Add to Cart'}
+          </button>
+        </div>
+
+        {normalized.features.length > 0 && (
+          <section className="space-y-2 pt-2">
+            <h3 className="text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">
+              Features
+            </h3>
+            <ul className="space-y-1 text-[12px] text-[#A2A6AB]">
+              {normalized.features.map((line, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="shrink-0 text-[#A2A6AB]">*</span>
+                  <span>{line.replace(/^\*\s*/, '')}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </div>
+    </Container>
+  );
+}

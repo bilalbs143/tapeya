@@ -52,7 +52,7 @@ class ProductController extends BaseAdminController
         $data = $request->validated();
         $product->update($data);
         if ($request->hasFile('images')) {
-            $product->images->each(fn (ProductImage $img) => Storage::disk('public')->delete($img->path));
+            $product->images->each(fn (ProductImage $img) => Storage::disk(config('filesystems.media_disk'))->delete($img->path));
             $product->images()->delete();
             $this->syncProductImages($product, $request->file('images'));
         }
@@ -64,7 +64,7 @@ class ProductController extends BaseAdminController
     public function destroy(Product $product): JsonResponse
     {
         $product = $this->refresh($product);
-        $product->images->each(fn (ProductImage $img) => Storage::disk('public')->delete($img->path));
+        $product->images->each(fn (ProductImage $img) => Storage::disk(config('filesystems.media_disk'))->delete($img->path));
         $product->images()->delete();
 
         return $this->_destroy($product, null);
@@ -74,7 +74,7 @@ class ProductController extends BaseAdminController
     {
         $sortOrder = 0;
         foreach ($files as $file) {
-            $path = $file->store('shop/products', 'public');
+            $path = $file->store('shop/products', config('filesystems.media_disk'));
             $product->images()->create([
                 'path' => $path,
                 'sort_order' => $sortOrder++,

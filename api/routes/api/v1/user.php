@@ -26,7 +26,7 @@ Route::prefix('auth')->group(function () {
 // User shop: all routes require auth
 Route::middleware('auth:api')->prefix('shop')->group(function () {
     Route::get('products', [ProductController::class, 'index']);
-    Route::get('products/{product}', [ProductController::class, 'show']);
+    Route::get('products/{product:slug}', [ProductController::class, 'show']);
     Route::get('brands', [BrandController::class, 'index']);
     Route::get('brands/{brand}', [BrandController::class, 'show']);
     Route::get('categories', [CategoryController::class, 'index']);

@@ -8,14 +8,14 @@ import Login from '@/pages/auth/Login';
 import Otp from '@/pages/auth/Otp';
 import Register from '@/pages/auth/Register';
 import Home from '@/pages/Home';
-import MyOrders from '@/pages/MyOrders';
-import OrderDetail from '@/pages/OrderDetail';
-import OrderSuccess from '@/pages/OrderSuccess';
-import ShopCart from '@/pages/ShopCart';
-import ShopCategory from '@/pages/ShopCategory';
-import ShopCheckout from '@/pages/ShopCheckout';
-import ShopHome from '@/pages/ShopHome';
-import ShopProductDetail from '@/pages/ShopProductDetail';
+import MyOrders from '@/pages/shop/MyOrders';
+import OrderDetail from '@/pages/shop/OrderDetail';
+import OrderSuccess from '@/pages/shop/OrderSuccess';
+import ShopCart from '@/pages/shop/ShopCart';
+import ShopCategory from '@/pages/shop/ShopCategory';
+import ShopCheckout from '@/pages/shop/ShopCheckout';
+import ShopHome from '@/pages/shop/ShopHome';
+import ShopProductDetail from '@/pages/shop/ShopProductDetail';
 import UserProfile from '@/pages/UserProfile';
 import { Toaster, ToastViewportStyled } from '@/ui/Toast';
 import { TooltipProvider } from '@/ui/Tooltip';
@@ -29,18 +29,19 @@ function App() {
             <Route path="/" element={<SplashScreen />} />
             <Route element={<MainLayout />}>
               <Route path="/home" element={<Home />} />
+              <Route path="/user-profile" element={<UserProfile />} />
+              {/* Shop: all shop/ecommerce under /shop */}
               <Route path="/shop" element={<ShopHome />} />
-              <Route path="/shop/:brandId" element={<ShopCategory />} />
+              <Route path="/shop/cart" element={<ShopCart />} />
+              <Route path="/shop/checkout" element={<ShopCheckout />} />
+              <Route path="/shop/orders/:orderId" element={<OrderDetail />} />
+              <Route path="/shop/orders" element={<MyOrders />} />
+              <Route path="/shop/order-success" element={<OrderSuccess />} />
               <Route
-                path="/shop/:brandId/product/:productId"
+                path="/shop/:brandId/product/:productSlug"
                 element={<ShopProductDetail />}
               />
-              <Route path="/shop-cart" element={<ShopCart />} />
-              <Route path="/shop-checkout" element={<ShopCheckout />} />
-              <Route path="/my-orders" element={<MyOrders />} />
-              <Route path="/order-detail" element={<OrderDetail />} />
-              <Route path="/order-success" element={<OrderSuccess />} />
-              <Route path="/user-profile" element={<UserProfile />} />
+              <Route path="/shop/:brandId" element={<ShopCategory />} />
             </Route>
             <Route element={<AuthLayout />}>
               <Route path="/login" element={<Login />} />

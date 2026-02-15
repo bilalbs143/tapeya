@@ -16,7 +16,6 @@ export default function Login() {
   const dispatch = useAppDispatch();
 
   const {
-    register,
     control,
     handleSubmit,
     formState: { errors, isSubmitting },

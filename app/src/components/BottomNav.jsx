@@ -23,7 +23,11 @@ export function BottomNav() {
       aria-label="Bottom navigation"
     >
       {ITEMS.map(({ path, label, icon }) => {
-        const isActive = location.pathname === path;
+        const isActive =
+          path === '/shop'
+            ? location.pathname === path ||
+              location.pathname.startsWith('/shop/')
+            : location.pathname === path;
         return (
           <Link
             key={path}

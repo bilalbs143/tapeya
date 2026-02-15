@@ -5,67 +5,9 @@ import { Link } from 'react-router-dom';
 import { Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-import shopPopular1 from '@/assets/images/standard/shop-most-popular-1.png';
-import shopPopular2 from '@/assets/images/standard/shop-most-popular-2.png';
-import shopOffer1 from '@/assets/images/standard/shop-sp-offer-1.png';
-import shopOffer2 from '@/assets/images/standard/shop-sp-offer-2.png';
+import { formatPrice } from '@/lib/format';
+import { useGetBrandsQuery, useGetProductsQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
-
-/** Brands that offer products; each links to their shop category page */
-const SHOP_BRANDS = [
-  { id: 'jd', label: 'JD' },
-  { id: 'fplus', label: 'FPLUS' },
-  { id: 'saki', label: 'SAKI' },
-  { id: 'tm-spor', label: 'TM SPOR' },
-];
-
-const MOST_POPULAR_PRODUCTS = [
-  {
-    id: 1,
-    image: shopPopular1,
-    title: 'Cricket Arabia Silver Medal for Place 34',
-    price: '1,499',
-    featured: true,
-  },
-  {
-    id: 2,
-    image: shopPopular2,
-    title: 'Cricket Arabia Silver Medal for Place 34',
-    price: '1,499',
-    featured: true,
-  },
-  {
-    id: 3,
-    image: shopPopular1,
-    title: 'Cricket Arabia Silver Medal for Place 34',
-    price: '1,499',
-    featured: false,
-  },
-];
-
-const SPECIAL_OFFER_PRODUCTS = [
-  {
-    id: 1,
-    image: shopOffer1,
-    title: 'White Athletic Shoes Blue Accents',
-    price: '2,299',
-    featured: true,
-  },
-  {
-    id: 2,
-    image: shopOffer2,
-    title: 'Sports Sunglasses Reflective',
-    price: '1,899',
-    featured: true,
-  },
-  {
-    id: 3,
-    image: shopOffer1,
-    title: 'White Athletic Shoes Blue Accents',
-    price: '2,299',
-    featured: false,
-  },
-];
 
 function SearchIcon() {
   return (
@@ -83,17 +25,6 @@ function SearchIcon() {
         d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
       />
     </svg>
-  );
-}
-
-function TmBadgeIcon() {
-  return (
-    <span
-      className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded bg-[#DA9811]/20 text-[10px] font-bold text-[#DA9811]"
-      aria-hidden
-    >
-      TM
-    </span>
   );
 }
 
@@ -126,25 +57,59 @@ function AddToCartIcon({ className = 'text-[#DA9811]' }) {
   );
 }
 
-function ProductCard({ image, title, price, featured }) {
-  return (
-    <article className="flex w-full min-w-0 flex-col overflow-hidden rounded-[17px] bg-[#1a1a18]">
+function ProductCard({ product, brandSlug }) {
+  const imageUrl = product.images?.[0]?.path;
+  const hasDiscount =
+    product.sale_price != null && product.sale_price < product.price;
+  const discountPercent =
+    hasDiscount && product.price > 0
+      ? Math.round((1 - product.sale_price / product.price) * 100)
+      : 0;
+
+  const content = (
+    <>
       <div className="relative aspect-square bg-white">
-        <img src={image} alt="" className="h-full w-full object-contain p-2" />
-        {featured && (
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={product.images?.[0]?.alt ?? product.name}
+            className="h-full w-full object-contain p-2"
+          />
+        ) : (
+          <div className="h-full w-full bg-[#141412]" aria-hidden />
+        )}
+        {product.is_featured && (
           <span className="absolute top-2 left-2 rounded-full bg-[#DA9811] px-2 py-0.5 text-[12px] font-bold text-black uppercase">
             Featured
+          </span>
+        )}
+        {hasDiscount && discountPercent > 0 && (
+          <span className="absolute top-2 right-2 rounded-full bg-[#FF3B30] px-2 py-0.5 text-[12px] font-bold text-white">
+            -{discountPercent}%
           </span>
         )}
       </div>
       <div className="flex flex-1 flex-col justify-between gap-1 p-3">
         <p className="line-clamp-2 text-[13px] font-medium text-white">
-          {title}
+          {product.name}
         </p>
         <div className="mt-auto flex items-end justify-between gap-2">
-          <span className="text-base font-bold text-[#DA9811]">
-            PKR {price}
-          </span>
+          <div className="flex min-w-0 flex-col gap-0.5">
+            {hasDiscount ? (
+              <>
+                <span className="text-[11px] text-[#A2A6AB] line-through">
+                  {formatPrice(product.price)}
+                </span>
+                <span className="text-base font-bold text-[#DA9811]">
+                  {formatPrice(product.sale_price)}
+                </span>
+              </>
+            ) : (
+              <span className="text-base font-bold text-[#DA9811]">
+                {formatPrice(product.price)}
+              </span>
+            )}
+          </div>
           <button
             type="button"
             className="shrink-0 rounded p-1 transition-opacity active:opacity-80"
@@ -154,6 +119,23 @@ function ProductCard({ image, title, price, featured }) {
           </button>
         </div>
       </div>
+    </>
+  );
+
+  if (brandSlug && product.slug) {
+    return (
+      <Link
+        to={`/shop/${brandSlug}/product/${product.slug}`}
+        className="flex w-full min-w-0 flex-col overflow-hidden rounded-[17px] bg-[#1a1a18] transition-opacity active:opacity-90"
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <article className="flex w-full min-w-0 flex-col overflow-hidden rounded-[17px] bg-[#1a1a18]">
+      {content}
     </article>
   );
 }
@@ -162,8 +144,16 @@ function ShopSlider({
   title,
   viewMorePath,
   products,
+  brands,
   reverseDirection = false,
 }) {
+  const productsWithBrandSlug = products.map((p) => ({
+    ...p,
+    brandSlug: brands.find((b) => b.id === p.brand_id)?.slug,
+  }));
+
+  if (productsWithBrandSlug.length === 0) return null;
+
   return (
     <section className="space-y-3">
       <header className="flex items-center justify-between">
@@ -190,9 +180,9 @@ function ShopSlider({
         className="shop-swiper -mx-4 px-4"
         grabCursor
       >
-        {products.map((product) => (
+        {productsWithBrandSlug.map((product) => (
           <SwiperSlide key={product.id}>
-            <ProductCard {...product} />
+            <ProductCard product={product} brandSlug={product.brandSlug} />
           </SwiperSlide>
         ))}
       </Swiper>
@@ -202,6 +192,18 @@ function ShopSlider({
 
 export default function ShopHome() {
   const [query, setQuery] = useState('');
+  const { data: brandsResponse } = useGetBrandsQuery({ all: true });
+  const brands = brandsResponse?.data ?? [];
+  const { data: popularResponse } = useGetProductsQuery({
+    is_popular: true,
+    all: true,
+  });
+  const { data: specialOfferResponse } = useGetProductsQuery({
+    is_special_offer: true,
+    all: true,
+  });
+  const popularProducts = popularResponse?.data ?? [];
+  const specialOfferProducts = specialOfferResponse?.data ?? [];
 
   return (
     <Container>
@@ -225,15 +227,21 @@ export default function ShopHome() {
         </div>
 
         <div className="flex gap-2 overflow-x-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {SHOP_BRANDS.map(({ id, label }) => (
+          {brands.map(({ id, name, slug, logo }) => (
             <Link
               key={id}
-              to={`/shop/${id}`}
+              to={`/shop/${slug}`}
               className="flex shrink-0 items-center gap-2 rounded-[6px] bg-[#141412] px-[13px] py-[10px] text-[13px] font-semibold tracking-wide text-white uppercase transition-colors hover:bg-[#252520]"
-              aria-label={`Shop ${label} products`}
+              aria-label={`Shop ${name} products`}
             >
-              <TmBadgeIcon />
-              {label}
+              {logo ? (
+                <img
+                  src={logo}
+                  alt={`${name} logo`}
+                  className="h-5 w-5 shrink-0 object-contain"
+                />
+              ) : null}
+              {name}
             </Link>
           ))}
         </div>
@@ -242,12 +250,15 @@ export default function ShopHome() {
           <ShopSlider
             title="Most popular"
             viewMorePath="/shop"
-            products={MOST_POPULAR_PRODUCTS}
+            products={popularProducts}
+            brands={brands}
+            reverseDirection={false}
           />
           <ShopSlider
             title="Special offer"
             viewMorePath="/shop"
-            products={SPECIAL_OFFER_PRODUCTS}
+            products={specialOfferProducts}
+            brands={brands}
             reverseDirection
           />
         </div>

@@ -17,6 +17,7 @@ import { EnumsService } from 'src/app/services/enums.service';
 import { HeroSliderService, type HeroSlider } from 'src/app/services/hero-slider.service';
 import { MessageService } from 'src/app/services/message.service';
 import { PaginatorComponent } from 'src/app/shared/components/paginator/paginator.component';
+import { TableImageComponent } from 'src/app/shared/components/table-image/table-image.component';
 import { TableWrapperComponent } from 'src/app/shared/components/table-wrapper/table-wrapper.component';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
@@ -44,6 +45,7 @@ const DEFAULT_FILTERS = {
     MatButtonModule,
     MatDialogModule,
     TablerIconsModule,
+    TableImageComponent,
     TableWrapperComponent,
     PaginatorComponent,
   ],

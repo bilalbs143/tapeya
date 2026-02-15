@@ -23,7 +23,7 @@ class HeroSlider extends Model
     protected function casts(): array
     {
         return [
-            'image' => AsFile::class.':hero-sliders,false,public',
+            'image' => AsFile::class.':hero-sliders,false,media',
             'status' => StatusEnum::class,
         ];
     }

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /** Shared: non-empty email */
-const emailSchema = z
+const _emailSchema = z
   .string()
   .min(1, 'Email is required')
   .email('Please enter a valid email address');

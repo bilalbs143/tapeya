@@ -19,6 +19,7 @@ import { MessageService } from 'src/app/services/message.service';
 import type { Category } from 'src/app/services/shop/category.service';
 import { CategoryService } from 'src/app/services/shop/category.service';
 import { PaginatorComponent } from 'src/app/shared/components/paginator/paginator.component';
+import { TableImageComponent } from 'src/app/shared/components/table-image/table-image.component';
 import { TableWrapperComponent } from 'src/app/shared/components/table-wrapper/table-wrapper.component';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
@@ -44,6 +45,7 @@ const DEFAULT_FILTERS = { name: '', is_active: '' } as const;
     MatButtonModule,
     MatDialogModule,
     TablerIconsModule,
+    TableImageComponent,
     TableWrapperComponent,
     PaginatorComponent,
   ],
@@ -64,6 +66,7 @@ export class CategoriesComponent implements OnInit, AfterViewInit, OnDestroy {
     'sr',
     'name',
     'slug',
+    'image',
     'parent',
     'sort_order',
     'status',

@@ -17,7 +17,7 @@ class BrandResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-            'logo' => $this->logo ? Storage::disk('public')->url($this->logo) : null,
+            'logo' => $this->logo ? Storage::disk(config('filesystems.media_disk'))->url($this->logo) : null,
             'sort_order' => $this->sort_order,
         ];
     }
