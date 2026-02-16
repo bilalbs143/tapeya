@@ -1,1 +1,59 @@
-// Global SCSS – add app-wide styles here
+// Global SCSS – app-wide styles
+
+// Live icon equalizer bars – wave animation
+@keyframes live-wave {
+  0%,
+  100% {
+    transform: scaleY(0.45);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.live-icon-bar {
+  transform-origin: center bottom;
+  animation: live-wave 0.8s ease-in-out infinite;
+}
+
+// Base styles – black background prevents white flash during splash → login
+html {
+  -webkit-tap-highlight-color: transparent;
+  background-color: #000;
+  font-family: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #000;
+  min-height: 100vh;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  font-family: inherit;
+}
+
+#root {
+  background-color: #000;
+  min-height: 100vh;
+}
+
+// Swiper pagination styles
+.hero-swiper {
+  .swiper-pagination {
+    bottom: 8px;
+  }
+
+  .swiper-pagination-bullet {
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 1;
+    width: 8px;
+    height: 8px;
+  }
+
+  .swiper-pagination-bullet-active {
+    background: #fdb022;
+  }
+}
