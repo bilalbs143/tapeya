@@ -52,11 +52,12 @@ class UserAuthController extends Controller
 
         $this->otpService->sendToUser($user);
 
-        return response()->success(
-            ['user' => new UserResource($user)],
-            'auth.otp_sent',
-            'SUCCESS'
-        );
+        $data = ['user' => new UserResource($user)];
+        if (config('app.debug')) {
+            $data['otp'] = $this->otpService->getCurrentOtp($user->phone);
+        }
+
+        return response()->success($data, 'auth.otp_sent', 'SUCCESS');
     }
 
     /**
@@ -81,7 +82,12 @@ class UserAuthController extends Controller
 
         $this->otpService->sendToUser($user);
 
-        return response()->success(null, 'auth.otp_sent', 'SUCCESS');
+        $data = null;
+        if (config('app.debug')) {
+            $data = ['otp' => $this->otpService->getCurrentOtp($phone)];
+        }
+
+        return response()->success($data, 'auth.otp_sent', 'SUCCESS');
     }
 
     /**

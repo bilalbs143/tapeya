@@ -159,7 +159,7 @@ export class BrandsComponent implements OnInit, AfterViewInit, OnDestroy {
       ManageBrandDialogComponent,
       { mode: 'create' },
       (result) => result && this.loadHttpData(),
-      { widthSize: 'sm', disableClose: true }
+      { widthSize: 'md', disableClose: true }
     );
   }
 
@@ -168,7 +168,7 @@ export class BrandsComponent implements OnInit, AfterViewInit, OnDestroy {
       ManageBrandDialogComponent,
       { mode: 'edit', brand },
       (result) => result && this.loadHttpData(),
-      { widthSize: 'sm', disableClose: true }
+      { widthSize: 'md', disableClose: true }
     );
   }
 

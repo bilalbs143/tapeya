@@ -8,6 +8,7 @@ use App\Http\Resources\User\Shop\ProductResource;
 use App\Models\Shop\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class ProductController extends Controller
@@ -28,7 +29,14 @@ class ProductController extends Controller
         });
 
         $records = QueryBuilder::for($query)
-            ->allowedFilters(['id', 'brand_id', 'category_id', 'is_featured', 'is_popular', 'is_special_offer'])
+            ->allowedFilters([
+                AllowedFilter::exact('id'),
+                AllowedFilter::exact('brand_id'),
+                AllowedFilter::exact('category_id'),
+                AllowedFilter::exact('is_featured'),
+                AllowedFilter::exact('is_popular'),
+                AllowedFilter::exact('is_special_offer'),
+            ])
             ->defaultSort('-id')
             ->allowedSorts(['id', 'name', 'price', 'created_at'])
             ->when(

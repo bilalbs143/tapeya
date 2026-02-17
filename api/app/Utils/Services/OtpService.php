@@ -51,6 +51,15 @@ class OtpService
     }
 
     /**
+     * Return current OTP for a phone (for testing when SMS is not ready).
+     * Only use when APP_DEBUG is true; do not expose in production.
+     */
+    public function getCurrentOtp(string $phone): ?string
+    {
+        return Cache::get(self::CACHE_PREFIX.self::normalizePhone($phone));
+    }
+
+    /**
      * Normalize to E.164: + followed by digits only. User supplies country code (e.g. +44, +1, +92).
      */
     public static function normalizePhone(string $phone): string

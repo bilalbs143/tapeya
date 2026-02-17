@@ -3,24 +3,53 @@ import { baseApi } from './baseApi';
 /**
  * Auth API - inject into baseApi.
  *
- * API response shape (adapt to your backend):
- * { data: { user: {...}, auth: { access_token: "..." }, message?: "..." } }
+ * Backend success: { data?, message?, type }.
+ * Backend error (4xx/5xx): { message?, type?, errors? }.
  */
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    login: builder.mutation({
-      query: (credentials) => ({
-        url: '/auth/login',
+    register: builder.mutation({
+      query: (body) => ({
+        url: '/auth/register',
         method: 'POST',
-        body: credentials,
+        body,
       }),
       invalidatesTags: ['Auth'],
     }),
+    requestOtp: builder.mutation({
+      query: (body) => ({
+        url: '/auth/request-otp',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Auth'],
+    }),
+    verifyOtp: builder.mutation({
+      query: (body) => ({
+        url: '/auth/verify-otp',
+        method: 'POST',
+        body: { phone: body.phone, code: body.code },
+      }),
+      invalidatesTags: ['Auth', 'User'],
+    }),
     getMe: builder.query({
-      query: () => '/auth/profile/me',
+      query: () => '/me',
       providesTags: ['User'],
+    }),
+    logout: builder.mutation({
+      query: () => ({
+        url: '/auth/logout',
+        method: 'POST',
+      }),
+      invalidatesTags: ['Auth', 'User'],
     }),
   }),
 });
 
-export const { useLoginMutation, useGetMeQuery } = authApi;
+export const {
+  useRegisterMutation,
+  useRequestOtpMutation,
+  useVerifyOtpMutation,
+  useGetMeQuery,
+  useLogoutMutation,
+} = authApi;

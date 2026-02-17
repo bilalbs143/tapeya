@@ -13,17 +13,6 @@ function getImageUrls(images) {
   return images.map((img) => img.path ?? img).filter(Boolean);
 }
 
-function getFeatures(product) {
-  if (Array.isArray(product.features)) return product.features;
-  if (product.description) {
-    return product.description
-      .split(/\n+/)
-      .map((s) => s.trim())
-      .filter(Boolean);
-  }
-  return [];
-}
-
 export default function ShopProductDetail() {
   const { brandId, productSlug } = useParams();
   const { state } = useLocation();
@@ -52,7 +41,6 @@ export default function ShopProductDetail() {
         typeof product.category === 'object' && product.category?.name
           ? product.category.name
           : (product.category ?? 'Product'),
-      features: getFeatures(product),
       displayPrice,
       hasDiscount,
       stock: product.stock_quantity ?? 0,
@@ -256,19 +244,15 @@ export default function ShopProductDetail() {
           </button>
         </div>
 
-        {normalized.features.length > 0 && (
-          <section className="space-y-2 pt-2">
-            <h3 className="text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">
-              Features
+        {normalized.description && (
+          <section className="pt-2">
+            <h3 className="mb-2 text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">
+            Features
             </h3>
-            <ul className="space-y-1 text-[12px] text-[#A2A6AB]">
-              {normalized.features.map((line, i) => (
-                <li key={i} className="flex gap-2">
-                  <span className="shrink-0 text-[#A2A6AB]">*</span>
-                  <span>{line.replace(/^\*\s*/, '')}</span>
-                </li>
-              ))}
-            </ul>
+            <div
+              className="product-description text-[14px] text-[#A2A6AB] "
+              dangerouslySetInnerHTML={{ __html: normalized.description }}
+            />
           </section>
         )}
       </div>

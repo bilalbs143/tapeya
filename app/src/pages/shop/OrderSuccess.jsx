@@ -60,10 +60,10 @@ export default function OrderSuccess() {
           {orderId != null && (
             <button
               type="button"
-              onClick={() => navigate(`/shop/orders/${orderId}`)}
+              onClick={() => navigate('/shop/orders')}
               className="mb-4 flex w-full items-center justify-center gap-2 rounded-full border-2 border-[#DA9811] bg-transparent py-3.5 text-[16px] font-bold text-[#DA9811] transition-opacity active:opacity-90"
             >
-              View order
+              View my orders
               <svg
                 className="h-5 w-5"
                 fill="none"

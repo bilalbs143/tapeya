@@ -1,14 +1,19 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import tapeyaLogo from '@/assets/images/logos/tapeya-logo-white.svg';
-import { otp5Schema } from '@/lib/validations/auth';
+import { getApiErrorMessage } from '@/lib/apiErrors';
+import { otpSchema } from '@/lib/validations/auth';
+import { setCredentials } from '@/store/slices/authSlice';
+import { useRequestOtpMutation, useVerifyOtpMutation } from '@/store/api/authApi';
+import { useAppDispatch } from '@/store/hooks';
 import { Button } from '@/ui/Button';
 import { Input } from '@/ui/Input';
+import { useToast } from '@/ui/ToastContext';
 
-const LENGTH = 5;
+const LENGTH = 6;
 
 function formatPhone(phone) {
   const d = (phone || '').replace(/\D/g, '');
@@ -18,9 +23,44 @@ function formatPhone(phone) {
 
 export default function Otp() {
   const navigate = useNavigate();
-  const phone = formatPhone(useLocation().state?.phone || '+923157118511');
-  const [error, setError] = useState(null);
+  const dispatch = useAppDispatch();
+  const { state } = useLocation();
+  const phoneRaw = state?.phone;
+  const phone = formatPhone(phoneRaw || '+923157118511');
+  const [latestOtp, setLatestOtp] = useState(state?.otp ?? null);
+  const toast = useToast();
+  const [serverError, setServerError] = useState(null);
+  const [resendError, setResendError] = useState(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const refs = useRef([]);
+
+  const [verifyOtp, { isLoading }] = useVerifyOtpMutation();
+  const [requestOtp, { isLoading: isResendLoading }] = useRequestOtpMutation();
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setInterval(() => setResendCooldown((c) => c - 1), 1000);
+    return () => clearInterval(t);
+  }, [resendCooldown]);
+
+  const handleResend = async () => {
+    if (!phoneRaw) {
+      setResendError('Session expired. Please start from Login or Register.');
+      return;
+    }
+    setResendError(null);
+    try {
+      const result = await requestOtp({ phone: phoneRaw }).unwrap();
+      toast.success('OTP sent again!');
+      const otp = result?.data?.otp ?? result?.otp;
+      if (otp) setLatestOtp(otp);
+      setResendCooldown(60);
+    } catch (err) {
+      setResendError(
+        getApiErrorMessage(err, 'Could not resend OTP. Please try again.'),
+      );
+    }
+  };
 
   const {
     setValue,
@@ -28,7 +68,7 @@ export default function Otp() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm({
-    resolver: zodResolver(otp5Schema),
+    resolver: zodResolver(otpSchema),
     defaultValues: { code: '' },
     mode: 'onSubmit',
   });
@@ -58,14 +98,24 @@ export default function Otp() {
     refs.current[Math.min(pasted.length, LENGTH - 1)]?.focus();
   };
 
-  const onSubmit = async ({ code: otp }) => {
-    setError(null);
+  const onSubmit = async ({ code }) => {
+    if (!phoneRaw) {
+      setServerError('Session expired. Please start from Login or Register.');
+      return;
+    }
+    setServerError(null);
     try {
-      // TODO: verify OTP via API
-      console.log('OTP', otp);
+      const result = await verifyOtp({ phone: phoneRaw, code }).unwrap();
+      const { user, auth } = result?.data ?? result ?? {};
+      const token = auth?.access_token;
+      if (token && user) {
+        dispatch(setCredentials({ user, accessToken: token }));
+      }
       navigate('/home', { replace: true });
     } catch (err) {
-      setError(err?.data?.message ?? err?.message ?? 'Verification failed.');
+      setServerError(
+        getApiErrorMessage(err, 'Invalid or expired OTP. Please try again.'),
+      );
     }
   };
 
@@ -93,6 +143,15 @@ export default function Otp() {
             Enter OTP sent to <span className="text-[#DA9811]">{phone}</span>
           </p>
 
+          {latestOtp && (
+            <p
+              className="rounded-lg bg-amber-500/20 px-4 py-2 text-center text-sm text-amber-200"
+              role="status"
+            >
+              For testing: OTP is <strong className="tabular-nums">{latestOtp}</strong>
+            </p>
+          )}
+
           <div
             className="flex justify-between"
             role="group"
@@ -117,26 +176,46 @@ export default function Otp() {
             ))}
           </div>
 
-          {(errors.code?.message || error) && (
+          {(errors.code?.message || serverError) && (
             <p className="text-center text-sm text-red-200" role="alert">
-              {errors.code?.message ?? error}
+              {errors.code?.message ?? serverError}
             </p>
           )}
 
-          <p className="text-center text-base text-white">
-            Didn&apos;t receive?{' '}
-            <Link to="/login" className="text-[#DA9811] underline">
-              Resend
-            </Link>
-          </p>
+          <div className="space-y-1 text-center">
+            <p className="text-base text-white">
+              Didn&apos;t receive?{' '}
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={
+                  !phoneRaw ||
+                  isResendLoading ||
+                  resendCooldown > 0
+                }
+                className="text-[#DA9811] underline disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {resendCooldown > 0
+                  ? `Resend in ${resendCooldown}s`
+                  : isResendLoading
+                    ? 'Sending...'
+                    : 'Resend'}
+              </button>
+            </p>
+            {resendError && (
+              <p className="text-sm text-red-200" role="alert">
+                {resendError}
+              </p>
+            )}
+          </div>
 
           <Button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isLoading}
             variant="auth"
             className="mt-4"
           >
-            {isSubmitting ? 'Verifying...' : 'Next'}
+            {isSubmitting || isLoading ? 'Verifying...' : 'Next'}
           </Button>
         </form>
       </div>

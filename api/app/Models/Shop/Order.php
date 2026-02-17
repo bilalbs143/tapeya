@@ -20,7 +20,7 @@ class Order extends BaseModel
 
         $last = self::query()
             ->where('order_number', 'like', $prefix.'%')
-            ->orderByRaw('CAST(SUBSTRING(order_number, 10) AS UNSIGNED) DESC')
+            ->orderByRaw('CAST(SUBSTRING(order_number FROM 10) AS INTEGER) DESC')
             ->lockForUpdate()
             ->first();
 

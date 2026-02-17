@@ -3,12 +3,24 @@ import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
 import { formatPrice } from '@/lib/format';
+import { useGetCitiesQuery, useGetCountriesQuery } from '@/store/api/locationApi';
 import { useCreateOrderMutation, useGetCartQuery } from '@/store/api/shopApi';
 import { useAppSelector } from '@/store/hooks';
 import { Container } from '@/ui/Container';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import { PhoneInput } from '@/ui/PhoneInput';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  selectContentInputClass,
+  selectItemInputClass,
+  selectTriggerInputClass,
+  selectViewportInputClass,
+} from '@/ui/Select';
 
 export default function ShopCheckout() {
   const navigate = useNavigate();
@@ -17,7 +29,7 @@ export default function ShopCheckout() {
   const [createOrder, { isLoading: isSubmitting }] = useCreateOrderMutation();
   const [checkoutError, setCheckoutError] = useState(null);
 
-  const { register, control, handleSubmit, reset } = useForm({
+  const { register, control, handleSubmit, reset, watch, setValue } = useForm({
     defaultValues: {
       fullName: '',
       phone: '',
@@ -27,6 +39,16 @@ export default function ShopCheckout() {
       country: '',
       notes: '',
     },
+  });
+
+  const selectedCountryName = watch('country');
+  const { data: countriesList = [] } = useGetCountriesQuery();
+  const selectedCountry = countriesList.find(
+    (c) => c.name === selectedCountryName,
+  );
+  const countryCode = selectedCountry?.country_code ?? null;
+  const { data: citiesList = [] } = useGetCitiesQuery(countryCode, {
+    skip: !countryCode,
   });
 
   useEffect(() => {
@@ -44,8 +66,6 @@ export default function ShopCheckout() {
   const hasName = !!user?.name;
   const hasPhone = !!user?.phone;
   const hasEmail = !!user?.email;
-  const hasCity = !!user?.city;
-  const hasCountry = !!user?.country;
 
   const onSubmit = async (data) => {
     setCheckoutError(null);
@@ -169,29 +189,86 @@ export default function ShopCheckout() {
               />
             </FormField>
 
-            <FormField label="City" htmlFor="city" variant="checkout">
-              <Input
-                id="city"
-                type="text"
-                placeholder="City"
-                autoComplete="address-level2"
-                readOnly={hasCity}
-                aria-readonly={hasCity}
-                className={hasCity ? 'cursor-default opacity-90' : ''}
-                {...register('city', { required: true })}
+            <FormField label="Country" htmlFor="country" variant="checkout" required>
+              <Controller
+                name="country"
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <Select
+                    value={field.value || ''}
+                    onValueChange={(val) => {
+                      field.onChange(val);
+                      setValue('city', '');
+                    }}
+                  >
+                    <SelectTrigger
+                      id="country"
+                      className={selectTriggerInputClass}
+                      aria-label="Country"
+                    >
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent
+                      className={selectContentInputClass}
+                      viewportClassName={selectViewportInputClass}
+                      position="popper"
+                    >
+                      {countriesList.map((c) => (
+                        <SelectItem
+                          key={c.country_code}
+                          value={c.name}
+                          className={selectItemInputClass}
+                          textClassName="!text-white"
+                          indicatorClassName="!text-white"
+                        >
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               />
             </FormField>
 
-            <FormField label="Country" htmlFor="country" variant="checkout">
-              <Input
-                id="country"
-                type="text"
-                placeholder="Country"
-                autoComplete="country-name"
-                readOnly={hasCountry}
-                aria-readonly={hasCountry}
-                className={hasCountry ? 'cursor-default opacity-90' : ''}
-                {...register('country', { required: true })}
+            <FormField label="City" htmlFor="city" variant="checkout" required>
+              <Controller
+                name="city"
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <Select
+                    value={field.value || ''}
+                    onValueChange={field.onChange}
+                    disabled={!countryCode}
+                  >
+                    <SelectTrigger
+                      id="city"
+                      className={selectTriggerInputClass}
+                      aria-label="City"
+                      disabled={!countryCode}
+                    >
+                      <SelectValue placeholder="Select city" />
+                    </SelectTrigger>
+                    <SelectContent
+                      className={selectContentInputClass}
+                      viewportClassName={selectViewportInputClass}
+                      position="popper"
+                    >
+                      {citiesList.map((c) => (
+                        <SelectItem
+                          key={c.id}
+                          value={c.name}
+                          className={selectItemInputClass}
+                          textClassName="!text-white"
+                          indicatorClassName="!text-white"
+                        >
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               />
             </FormField>
 

@@ -23,7 +23,7 @@ return new class extends Migration
             $table->boolean('is_featured')->default(false);
             $table->boolean('is_popular')->default(false);
             $table->boolean('is_special_offer')->default(false);
-            $table->string('discount_type', 20)->nullable(); // percentage | fixed
+            $table->string('discount_type', 20)->nullable();
             $table->decimal('discount_value', 12, 2)->nullable();
             $table->timestamp('discount_starts_at')->nullable();
             $table->timestamp('discount_ends_at')->nullable();

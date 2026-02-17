@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('order_id')->constrained('shop_orders')->cascadeOnDelete();
             $table->foreignId('product_id')->nullable()->constrained('shop_products')->nullOnDelete();
-            $table->json('product_snapshot'); // name, sku, etc. at order time
+            $table->json('product_snapshot');
             $table->unsignedInteger('quantity');
             $table->decimal('unit_price', 12, 2);
             $table->decimal('total_price', 12, 2);

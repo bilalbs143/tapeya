@@ -1,7 +1,10 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import goLiveIcon from '@/assets/images/icons/go-live.svg';
 import logoutIcon from '@/assets/images/icons/logout.svg';
+import { clearCredentials } from '@/store/slices/authSlice';
+import { useLogoutMutation } from '@/store/api/authApi';
+import { useAppDispatch } from '@/store/hooks';
 import profilesIcon from '@/assets/images/icons/profiles.svg';
 import requestTournamentIcon from '@/assets/images/icons/request-tournament.svg';
 import scoreCardRequestIcon from '@/assets/images/icons/score-card-request.svg';
@@ -36,6 +39,20 @@ const menuBtn =
   'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-white transition-colors hover:bg-white/10';
 
 export function Sidebar({ open, onClose }) {
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const [logout] = useLogoutMutation();
+
+  const handleLogout = async () => {
+    try {
+      await logout().unwrap();
+    } finally {
+      dispatch(clearCredentials());
+      onClose();
+      navigate('/login', { replace: true });
+    }
+  };
+
   return (
     <>
       <button
@@ -75,14 +92,28 @@ export function Sidebar({ open, onClose }) {
           </div>
           <div className="h-px w-full bg-[linear-gradient(to_right,#00000000,#FFFFFF33,#00000000)]" />
           <nav className="flex flex-col gap-1 pt-4">
-            {MENU_ITEMS.map(({ label, icon }) => (
-              <button key={label} type="button" className={menuBtn}>
-                <img src={icon} alt="" className="h-5 w-5 shrink-0" />
-                <span className="text-[16px] font-medium text-[#A2A6AB]">
-                  {label}
-                </span>
-              </button>
-            ))}
+            {MENU_ITEMS.map(({ label, icon }) =>
+              label === 'Logout' ? (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={handleLogout}
+                  className={menuBtn}
+                >
+                  <img src={icon} alt="" className="h-5 w-5 shrink-0" />
+                  <span className="text-[16px] font-medium text-[#A2A6AB]">
+                    {label}
+                  </span>
+                </button>
+              ) : (
+                <button key={label} type="button" className={menuBtn}>
+                  <img src={icon} alt="" className="h-5 w-5 shrink-0" />
+                  <span className="text-[16px] font-medium text-[#A2A6AB]">
+                    {label}
+                  </span>
+                </button>
+              ),
+            )}
           </nav>
         </div>
       </aside>

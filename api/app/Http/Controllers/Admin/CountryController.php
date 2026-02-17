@@ -5,30 +5,33 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Nnjeim\World\Models\City;
+use Nnjeim\World\Models\Country;
 
 class CountryController extends Controller
 {
     /**
      * List countries for dropdowns. Returns id, name, country_code (iso2).
-     * Uses nnjeim/world package when available.
+     * Reads from nnjeim/world package's countries table.
      */
     public function index(Request $request): JsonResponse
     {
         try {
-            $action = \Nnjeim\World\World::countries([
-                'fields' => 'id,name,iso2',
-                'search' => $request->input('search'),
-            ]);
+            $query = Country::query()
+                ->select('id', 'name', 'iso2')
+                ->whereNotNull('iso2')
+                ->orderBy('name');
 
-            if (! $action->success || ! $action->data) {
-                return response()->json(['data' => []]);
+            if ($request->filled('search')) {
+                $search = $request->input('search');
+                $query->where('name', 'like', '%'.$search.'%');
             }
 
-            $data = collect($action->data)->map(fn ($c) => [
-                'id' => is_object($c) ? $c->id : $c['id'] ?? null,
-                'name' => is_object($c) ? $c->name : $c['name'] ?? '',
-                'country_code' => is_object($c) ? ($c->iso2 ?? null) : ($c['iso2'] ?? null),
-            ])->filter(fn ($c) => $c['country_code'] !== null)->values();
+            $data = $query->get()->map(fn ($c) => [
+                'id' => $c->id,
+                'name' => $c->name,
+                'country_code' => $c->iso2,
+            ])->values();
 
             return response()->json(['data' => $data]);
         } catch (\Throwable) {
@@ -47,19 +50,19 @@ class CountryController extends Controller
         }
 
         try {
-            $action = \Nnjeim\World\World::cities([
-                'fields' => 'id,name',
-                'filters' => ['country_code' => $countryCode],
-                'search' => $request->input('search'),
-            ]);
+            $query = City::query()
+                ->select('id', 'name')
+                ->where('country_code', $countryCode)
+                ->orderBy('name');
 
-            if (! $action->success || ! $action->data) {
-                return response()->json(['data' => []]);
+            if ($request->filled('search')) {
+                $search = $request->input('search');
+                $query->where('name', 'like', '%'.$search.'%');
             }
 
-            $data = collect($action->data)->map(fn ($c) => [
-                'id' => is_object($c) ? $c->id : $c['id'] ?? null,
-                'name' => is_object($c) ? $c->name : $c['name'] ?? '',
+            $data = $query->get()->map(fn ($c) => [
+                'id' => $c->id,
+                'name' => $c->name,
             ])->values();
 
             return response()->json(['data' => $data]);

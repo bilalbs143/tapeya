@@ -17,20 +17,10 @@ return new class extends Migration
 
             $table->unique(['slug', 'guard']);
         });
-
-        Schema::create('role_user', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('role_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->timestamps();
-
-            $table->unique(['role_id', 'user_id']);
-        });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('role_user');
         Schema::dropIfExists('roles');
     }
 };

@@ -3,17 +3,15 @@ import { Controller, useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 
 import tapeyaLogo from '@/assets/images/logos/tapeya-logo-white.svg';
+import { getApiErrorMessage } from '@/lib/apiErrors';
 import { loginSchema } from '@/lib/validations/auth';
-import { useLoginMutation } from '@/store/api/authApi';
-import { useAppDispatch } from '@/store/hooks';
-import { setCredentials } from '@/store/slices/authSlice';
+import { useRequestOtpMutation } from '@/store/api/authApi';
 import { Button } from '@/ui/Button';
 import { FormField } from '@/ui/FormField';
 import { PhoneInput } from '@/ui/PhoneInput';
 
 export default function Login() {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
 
   const {
     control,
@@ -25,22 +23,13 @@ export default function Login() {
     mode: 'onChange',
   });
 
-  const [login, { isLoading, error }] = useLoginMutation();
+  const [requestOtp, { isLoading, error, reset }] = useRequestOtpMutation();
 
   const onSubmit = async (data) => {
     try {
-      const result = await login({ phone: data.phone }).unwrap();
-
-      const user = result?.data?.user ?? result?.user;
-      const token =
-        result?.data?.auth?.access_token ??
-        result?.auth?.access_token ??
-        result?.access_token;
-
-      if (user && token) {
-        dispatch(setCredentials({ user, accessToken: token }));
-        navigate('/home', { replace: true });
-      }
+      const result = await requestOtp({ phone: data.phone }).unwrap();
+      const otp = result?.data?.otp ?? result?.otp;
+      navigate('/otp', { state: { phone: data.phone, otp }, replace: true });
     } catch (err) {
       console.error('Login failed:', err);
     }
@@ -66,6 +55,7 @@ export default function Login() {
 
         <form
           onSubmit={handleSubmit(onSubmit)}
+          onFocus={() => reset()}
           className="mt-12 w-full max-w-[358px] space-y-4"
         >
           <h2 className="mb-6 text-center text-xl font-bold text-white">
@@ -91,9 +81,7 @@ export default function Login() {
               className="rounded-lg bg-red-500/20 px-4 py-2 text-sm text-red-200"
               role="alert"
             >
-              {error?.data?.message ??
-                error?.error ??
-                'Login failed. Please try again.'}
+              {getApiErrorMessage(error, 'Could not send OTP. Please try again.')}
             </p>
           )}
 

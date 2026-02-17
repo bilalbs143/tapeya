@@ -21,7 +21,7 @@ class CartController extends Controller
     {
         $cart = $this->getOrCreateCart();
 
-        $cart->load(['items.product']);
+        $cart->load(['items.product.images']);
 
         return $this->success(new CartResource($cart));
     }
@@ -55,7 +55,7 @@ class CartController extends Controller
             ]);
         }
 
-        $cart->load(['items.product']);
+        $cart->load(['items.product.images']);
 
         return $this->success(new CartResource($cart), 'Cart updated.');
     }
@@ -80,7 +80,7 @@ class CartController extends Controller
             'price_snapshot' => $product->getSalePrice() ?? (float) $product->price,
         ]);
 
-        $cart->load(['items.product']);
+        $cart->load(['items.product.images']);
 
         return $this->success(new CartResource($cart), 'Cart updated.');
     }
@@ -94,7 +94,7 @@ class CartController extends Controller
         }
 
         $cartItem->delete();
-        $cart->load(['items.product']);
+        $cart->load(['items.product.images']);
 
         return $this->success(new CartResource($cart), 'Item removed.');
     }
