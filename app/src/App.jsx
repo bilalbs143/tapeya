@@ -19,7 +19,6 @@ import UserProfile from '@/pages/UserProfile';
 import { Toaster } from '@/ui/Toast';
 import { ToastProvider } from '@/ui/ToastContext';
 import { ScorecardHome } from '@/pages/scorecard';
-import { Toaster } from '@/ui/Toast';
 import { TooltipProvider } from '@/ui/Tooltip';
 
 function App() {
