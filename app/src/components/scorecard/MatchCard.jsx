@@ -104,8 +104,9 @@ function CommentaryWithNumbers({ text }) {
   );
 }
 
-export function MatchCard({ match }) {
-  const { status, matchId, league, team1, team2, score1, score2, meta } = match;
+export function MatchCard({ match, showScheduleTableLinks = true }) {
+  const { status, matchId, league, team1, team2, score1, score2, meta } =
+    match;
   const isUpcoming = status === 'upcoming';
   const isLive = status === 'live';
   const isResult = status === 'result';
@@ -194,21 +195,22 @@ export function MatchCard({ match }) {
         </p>
       )}
 
-      {/* Schedule & Table links */}
-      <div className="flex gap-3">
-        <Link
-          to="#"
-          className="text-[14px] text-white underline underline-offset-2"
-        >
-          Schedule
-        </Link>
-        <Link
-          to="#"
-          className="text-[14px] text-white underline underline-offset-2"
-        >
-          Table
-        </Link>
-      </div>
+      {showScheduleTableLinks && (
+        <div className="flex gap-3">
+          <Link
+            to={`/scorecard/${league}?tab=schedule`}
+            className="text-[14px] text-[#A2A6AB] underline underline-offset-2"
+          >
+            Schedule
+          </Link>
+          <Link
+            to={`/scorecard/${league}?tab=table`}
+            className="text-[14px] text-[#A2A6AB] underline underline-offset-2"
+          >
+            Table
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,0 +1,32 @@
+/**
+ * Mock points table data - replace with API later.
+ * Each group has teams with: rank, name, logo, M, W, L, T, pts, nrr, seriesForm.
+ */
+import karachiFlag from '@/assets/images/icons/karachi-flag.png';
+
+const TEAM_LOGO = karachiFlag;
+
+export const POINTS_TABLE_GROUPS = [
+  {
+    id: 'group1',
+    label: 'GROUP 1',
+    teams: [
+      { rank: 1, name: 'RCB-W', logo: TEAM_LOGO, m: 4, w: 5, l: 7, t: 1, pts: 4, nrr: 1.22, seriesForm: 'WWLLW' },
+      { rank: 2, name: 'GG-W', logo: TEAM_LOGO, m: 6, w: 8, l: 4, t: 3, pts: 12, nrr: 0.24, seriesForm: 'WWLLW' },
+      { rank: 3, name: 'MI-W', logo: TEAM_LOGO, m: 3, w: 8, l: 9, t: 0, pts: 6, nrr: -1.9, seriesForm: 'WWLLW' },
+      { rank: 4, name: 'DC-W', logo: TEAM_LOGO, m: 5, w: 3, l: 6, t: 6, pts: 7, nrr: -2.44, seriesForm: 'WWLLW' },
+      { rank: 5, name: 'UPW-W', logo: TEAM_LOGO, m: 1, w: 2, l: 8, t: 0, pts: 16, nrr: -0.2, seriesForm: 'WWLLW' },
+    ],
+  },
+  {
+    id: 'group2',
+    label: 'GROUP 2',
+    teams: [
+      { rank: 1, name: 'RCB-W', logo: TEAM_LOGO, m: 4, w: 5, l: 7, t: 1, pts: 4, nrr: 1.22, seriesForm: 'WWLLW' },
+      { rank: 2, name: 'GG-W', logo: TEAM_LOGO, m: 6, w: 8, l: 4, t: 3, pts: 12, nrr: 0.24, seriesForm: 'WWLLW' },
+      { rank: 3, name: 'MI-W', logo: TEAM_LOGO, m: 3, w: 8, l: 9, t: 0, pts: 6, nrr: -1.9, seriesForm: 'WWLLW' },
+      { rank: 4, name: 'DC-W', logo: TEAM_LOGO, m: 5, w: 3, l: 6, t: 6, pts: 7, nrr: -2.44, seriesForm: 'WWLLW' },
+      { rank: 5, name: 'UPW-W', logo: TEAM_LOGO, m: 1, w: 2, l: 8, t: 0, pts: 16, nrr: -0.2, seriesForm: 'WWLLW' },
+    ],
+  },
+];

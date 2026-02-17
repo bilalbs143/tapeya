@@ -1,64 +1,61 @@
 /**
  * Scorecard filter tabs - Matches (all), DMT, TSL, DPL, XRL, KTPL
+ * Matches tab shows all; tournament tabs navigate to ScorecardDetails
  */
+import { Link } from 'react-router-dom';
+
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
+  scorecardListClass,
+  scorecardLinkClass,
+  scorecardTriggerClass,
 } from '@/ui/Tabs';
 
 import { MatchCard } from './MatchCard';
 
 const TABS = [
-  { value: 'all', label: 'Matches' },
-  { value: 'DMT', label: 'DMT' },
-  { value: 'TSL', label: 'TSL' },
-  { value: 'DPL', label: 'DPL' },
-  { value: 'XRL', label: 'XRL' },
-  { value: 'KTPL', label: 'KTPL' },
+  { value: 'all', label: 'Matches', isTournament: false },
+  { value: 'DMT', label: 'DMT', isTournament: true },
+  { value: 'TSL', label: 'TSL', isTournament: true },
+  { value: 'DPL', label: 'DPL', isTournament: true },
+  { value: 'XRL', label: 'XRL', isTournament: true },
+  { value: 'KTPL', label: 'KTPL', isTournament: true },
 ];
-
-const listClass =
-  'flex w-full gap-1 overflow-x-auto p-1 text-white [scrollbar-width:none] [&::-webkit-scrollbar]:hidden';
-const triggerClass =
-  'shrink-0 rounded-[17px] px-3 py-2 text-[13px] font-bold uppercase transition-colors data-[state=inactive]:bg-transparent data-[state=inactive]:text-white data-[state=active]:bg-[#DA9811] data-[state=active]:text-black focus:outline-none';
-
-function filterMatches(matches, league) {
-  if (league === 'all') return matches;
-  return matches.filter((m) => m.league === league);
-}
 
 export function ScorecardTabs({ matches }) {
   return (
     <Tabs defaultValue="all" className="w-full">
-      <TabsList className={listClass}>
-        {TABS.map(({ value, label }) => (
-          <TabsTrigger key={value} value={value} className={triggerClass}>
-            {label}
-          </TabsTrigger>
-        ))}
+      <TabsList className={scorecardListClass}>
+        {TABS.map(({ value, label, isTournament }) =>
+          isTournament ? (
+            <Link
+              key={value}
+              to={`/scorecard/${value}`}
+              className={scorecardLinkClass}
+            >
+              {label}
+            </Link>
+          ) : (
+            <TabsTrigger key={value} value={value} className={scorecardTriggerClass}>
+              {label}
+            </TabsTrigger>
+          )
+        )}
       </TabsList>
-      {TABS.map(({ value }) => {
-        const filtered = filterMatches(matches, value);
-        return (
-          <TabsContent
-            key={value}
-            value={value}
-            className="mt-4 space-y-3 focus:outline-none"
-          >
-            {filtered.length === 0 ? (
-              <p className="py-8 text-center text-[13px] text-[#A2A6AB]">
-                No matches in this category
-              </p>
-            ) : (
-              filtered.map((match) => (
-                <MatchCard key={match.id} match={match} />
-              ))
-            )}
-          </TabsContent>
-        );
-      })}
+      <TabsContent value="all" className="mt-4 space-y-3 focus:outline-none">
+        {matches.length === 0 ? (
+          <p className="py-8 text-center text-[13px] text-[#A2A6AB]">
+            No matches in this category
+          </p>
+        ) : (
+          matches.map((match) => (
+            <MatchCard key={match.id} match={match} />
+          ))
+        )}
+      </TabsContent>
     </Tabs>
   );
 }

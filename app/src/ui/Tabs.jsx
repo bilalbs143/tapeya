@@ -19,6 +19,14 @@ export const profileTabIconClass =
   'shrink-0 transition-[filter] duration-150 group-data-[state=active]:brightness-0';
 export const profileTabIconSize = 18;
 
+/** Scorecard tabs: dark theme, horizontal scroll, gold active, dark inactive */
+export const scorecardListClass =
+  'flex w-full gap-1 overflow-x-auto p-1 text-white [scrollbar-width:none] [&::-webkit-scrollbar]:hidden';
+export const scorecardTriggerClass =
+  'shrink-0 rounded-[6px] px-3 py-2 text-[13px] font-bold uppercase transition-colors data-[state=inactive]:bg-[#141412] data-[state=inactive]:text-white data-[state=active]:bg-[#DA9811] data-[state=active]:text-black focus:outline-none';
+export const scorecardLinkClass =
+  'shrink-0 rounded-[6px] px-3 py-2 text-[13px] font-bold uppercase bg-[#141412] text-white transition-opacity hover:opacity-90 focus:outline-none';
+
 export const Tabs = TabsPrimitive.Root;
 export const TabsList = TabsPrimitive.List;
 export const TabsTrigger = TabsPrimitive.Trigger;

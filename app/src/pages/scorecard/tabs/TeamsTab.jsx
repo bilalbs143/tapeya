@@ -1,0 +1,39 @@
+import { POINTS_TABLE_GROUPS } from './pointsTableData';
+
+const BORDER = 'border-[#1A1A1A]';
+
+export function TeamsTab({ tournamentId }) {
+  const title = tournamentId ? `${tournamentId} 2026 - TEAMS` : 'TEAMS';
+  const teams = POINTS_TABLE_GROUPS[0]?.teams ?? [];
+
+  return (
+    <div className="mt-4 pb-6 focus:outline-none">
+      <h1 className="border-b border-[#1A1A1A] pb-4 text-left text-[13px] font-bold uppercase tracking-wide text-white">
+        {title}
+      </h1>
+
+      <div className="rounded-md border border-[#1A1A1A]">
+        <div className="bg-[#1A1A1A] px-4 py-3 text-[13px] font-bold text-white">
+          Teams
+        </div>
+        <div className="divide-y divide-[#1A1A1A]">
+          {teams.map((team) => (
+            <div
+              key={team.rank}
+              className="flex items-center gap-2.5 bg-transparent px-4 py-3.5 text-[13px] text-white"
+            >
+              <span>{team.rank}</span>
+              <span>{team.name}</span>
+              <img
+                src={team.logo}
+                alt=""
+                className="h-5 w-5 shrink-0 rounded-full object-cover"
+                aria-hidden
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

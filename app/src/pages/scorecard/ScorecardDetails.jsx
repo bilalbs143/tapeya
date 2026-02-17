@@ -1,0 +1,89 @@
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+
+import { Container } from '@/ui/Container';
+import { Tabs, TabsList, TabsTrigger, scorecardListClass, scorecardTriggerClass } from '@/ui/Tabs';
+
+import {
+  ScheduleTab,
+  SquadsTab,
+  StatsTab,
+  TableTab,
+  TeamsTab,
+} from './tabs';
+import { MOCK_MATCHES } from './mockMatches';
+
+const TOURNAMENT_TABS = [
+  { value: 'schedule', label: 'Schedule' },
+  { value: 'table', label: 'Table' },
+  { value: 'stats', label: 'Stats' },
+  { value: 'teams', label: 'Teams' },
+  { value: 'squads', label: 'Squads' },
+];
+
+const VALID_TABS = ['schedule', 'table', 'stats', 'teams', 'squads'];
+
+const TAB_VIEWS = {
+  schedule: ScheduleTab,
+  table: TableTab,
+  stats: StatsTab,
+  teams: TeamsTab,
+  squads: SquadsTab,
+};
+
+export default function ScorecardDetails() {
+  const navigate = useNavigate();
+  const { tournamentId } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const tabParam = searchParams.get('tab');
+  const activeTab = VALID_TABS.includes(tabParam) ? tabParam : 'schedule';
+
+  const matches = MOCK_MATCHES.filter((m) => m.league === tournamentId);
+  const ActiveView = TAB_VIEWS[activeTab];
+
+  return (
+    <div className="min-h-screen bg-black">
+      <header className="flex items-center gap-3 bg-black px-4 pt-6 pb-6">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80"
+          aria-label="Back"
+        >
+          <svg
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <h1 className="min-w-0 flex-1 pr-[27px] text-center text-[16px] font-bold tracking-wide text-white uppercase">
+          SCORE CARD - <span className="text-[#DA9811]">{tournamentId || ''}</span>
+        </h1>
+      </header>
+
+      <Container className="!px-4 !py-0">
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => setSearchParams({ tab: value })}
+          className="w-full"
+        >
+          <TabsList className={scorecardListClass}>
+            {TOURNAMENT_TABS.map(({ value, label }) => (
+              <TabsTrigger key={value} value={value} className={scorecardTriggerClass}>
+                {label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          <ActiveView matches={matches} tournamentId={tournamentId} />
+        </Tabs>
+      </Container>
+    </div>
+  );
+}
