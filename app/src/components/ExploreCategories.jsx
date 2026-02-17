@@ -14,7 +14,7 @@ const CATEGORIES = [
   {
     id: 'live-score',
     label: 'Live Score',
-    path: '/live-score',
+    path: '/scorecard',
     icon: liveScoreIcon,
   },
   { id: 'rankings', label: 'Rankings', path: '/rankings', icon: rankingsIcon },
