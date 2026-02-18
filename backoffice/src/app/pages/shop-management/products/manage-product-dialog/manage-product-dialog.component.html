@@ -39,23 +39,7 @@
             }
           </mat-form-field>
         </div>
-        <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">SKU <span class="text-error">*</span></mat-label>
-          <mat-form-field
-            appearance="outline"
-            class="w-full"
-          >
-            <input
-              matInput
-              formControlName="sku"
-              placeholder="E.g. GM-BAT-001"
-            />
-            @if (form.get('sku')?.invalid && form.get('sku')?.touched) {
-              <mat-error>SKU is required</mat-error>
-            }
-          </mat-form-field>
-        </div>
-        <div class="col-span-12 lg:col-span-6">
+        <div class="col-span-12 lg:col-span-12">
           <mat-label class="text-sm font-semibold mb-2 block">Price <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"

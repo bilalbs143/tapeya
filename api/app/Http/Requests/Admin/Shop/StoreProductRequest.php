@@ -23,7 +23,6 @@ class StoreProductRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
-            'sku' => ['required', 'string', 'max:100', 'unique:shop_products,sku'],
             'price' => ['required', 'numeric', 'min:0'],
             'brand_id' => ['required', 'integer', 'exists:shop_brands,id'],
             'category_id' => ['required', 'integer', 'exists:shop_categories,id'],
@@ -49,6 +48,7 @@ class StoreProductRequest extends FormRequest
     {
         $data = parent::validated($key, $default);
         $data['slug'] = $this->uniqueSlug(\Illuminate\Support\Str::slug($data['slug']));
+        $data['sku'] = Product::generateIntelligentSku((int) $data['brand_id'], (int) $data['category_id']);
         if (array_key_exists('images', $data)) {
             unset($data['images']);
         }

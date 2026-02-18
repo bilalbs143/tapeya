@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin\Shop;
 
 use App\Enums\Shop\ProductDiscountTypeEnum;
+use App\Models\Shop\Product;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -24,7 +25,6 @@ class UpdateProductRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', Rule::unique('shop_products', 'slug')->ignore($product->id)],
             'description' => ['required', 'string'],
-            'sku' => ['required', 'string', 'max:100', Rule::unique('shop_products', 'sku')->ignore($product->id)],
             'price' => ['required', 'numeric', 'min:0'],
             'brand_id' => ['required', 'integer', 'exists:shop_brands,id'],
             'category_id' => ['required', 'integer', 'exists:shop_categories,id'],
@@ -49,6 +49,12 @@ class UpdateProductRequest extends FormRequest
     public function validated($key = null, $default = null): array
     {
         $data = parent::validated($key, $default);
+        $product = $this->route('product');
+        $brandChanged = (int) $product->brand_id !== (int) $data['brand_id'];
+        $categoryChanged = (int) $product->category_id !== (int) $data['category_id'];
+        if ($brandChanged || $categoryChanged) {
+            $data['sku'] = Product::generateIntelligentSku((int) $data['brand_id'], (int) $data['category_id']);
+        }
         if (array_key_exists('images', $data)) {
             unset($data['images']);
         }

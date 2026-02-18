@@ -108,6 +108,28 @@ class Product extends BaseModel
     }
 
     /**
+     * Generate SKU as BRANDCODE-CATEGORYCODE-NNN (e.g. TMSPORTS-BALL-001).
+     * Uses brand and category slugs (uppercase, no dashes) and next sequence for that brand+category.
+     */
+    public static function generateIntelligentSku(int $brandId, int $categoryId): string
+    {
+        $brand = Brand::find($brandId);
+        $category = Category::find($categoryId);
+        $brandCode = $brand && $brand->slug
+            ? strtoupper(str_replace('-', '', $brand->slug))
+            : 'BRAND';
+        $categoryCode = $category && $category->slug
+            ? strtoupper(str_replace('-', '', $category->slug))
+            : 'CAT';
+        $nextNum = self::query()
+            ->where('brand_id', $brandId)
+            ->where('category_id', $categoryId)
+            ->count() + 1;
+
+        return $brandCode.'-'.$categoryCode.'-'.str_pad((string) $nextNum, 3, '0', STR_PAD_LEFT);
+    }
+
+    /**
      * @return array<int, string>
      */
     public static function getFilters(): array

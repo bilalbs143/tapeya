@@ -97,7 +97,6 @@ export class ManageProductDialogComponent implements OnInit, OnDestroy {
       name: [p?.name ?? '', [Validators.required, Validators.maxLength(255)]],
       slug: [p?.slug ?? '', [Validators.required]],
       description: [p?.description ?? '', [Validators.required]],
-      sku: [p?.sku ?? '', [Validators.required, Validators.maxLength(100)]],
       price: [p?.price ?? 0, [Validators.required, Validators.min(0)]],
       brand_id: [p?.brand_id ?? null, [Validators.required]],
       category_id: [p?.category_id ?? null, [Validators.required]],
@@ -241,7 +240,6 @@ export class ManageProductDialogComponent implements OnInit, OnDestroy {
     formData.append('name', raw.name);
     formData.append('slug', (raw.slug ?? '').trim());
     formData.append('description', raw.description ?? '');
-    formData.append('sku', (raw.sku ?? '').trim());
     formData.append('price', String(raw.price));
     formData.append('brand_id', String(raw.brand_id));
     formData.append('category_id', String(raw.category_id));
