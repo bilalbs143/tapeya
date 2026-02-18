@@ -18,7 +18,7 @@ import ShopProductDetail from '@/pages/shop/ShopProductDetail';
 import UserProfile from '@/pages/UserProfile';
 import { Toaster } from '@/ui/Toast';
 import { ToastProvider } from '@/ui/ToastContext';
-import { ScorecardDetails, ScorecardHome } from '@/pages/scorecard';
+import { ScorecardDetails, ScorecardHome, StatsTotal } from '@/pages/scorecard';
 import { TooltipProvider } from '@/ui/Tooltip';
 
 function App() {
@@ -36,6 +36,10 @@ function App() {
               <Route
                 path="/scorecard/:tournamentId"
                 element={<ScorecardDetails />}
+              />
+              <Route
+                path="/scorecard/:tournamentId/stats-total/:statType"
+                element={<StatsTotal />}
               />
               {/* Shop: all shop/ecommerce under /shop */}
               <Route path="/shop" element={<ShopHome />} />
