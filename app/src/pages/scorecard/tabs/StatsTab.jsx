@@ -94,7 +94,8 @@ function SectionHeader({ title, viewMoreTo }) {
       {viewMoreTo && (
         <Link
           to={viewMoreTo}
-          className="text-[12px] font-bold uppercase tracking-wide text-[#DA9811] transition-opacity hover:opacity-90"
+          className="text-[12px] font-
+          bold uppercase tracking-wide text-[#DA9811] transition-opacity hover:opacity-90"
         >
           VIEW MORE
         </Link>
