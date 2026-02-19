@@ -69,7 +69,17 @@ export default function ShopCart() {
   const [removeItem] = useRemoveCartItemMutation();
 
   const items = cart?.items ?? [];
-  const subtotal = cart?.subtotal ?? 0;
+  const subtotalFromApi = Number(cart?.subtotal) ?? 0;
+  const subtotalFromItems = items.reduce(
+    (sum, i) => sum + (Number(i.price_snapshot) || 0) * (Number(i.quantity) || 0),
+    0,
+  );
+  const subtotal = subtotalFromApi > 0 ? subtotalFromApi : subtotalFromItems;
+  const shipping = Number(cart?.shipping_amount ?? cart?.shipping) ?? 0;
+  const discount = Number(cart?.discount_amount ?? cart?.discount) ?? 0;
+  const computedTotal = Math.max(0, subtotal + shipping - discount);
+  const apiTotal = Number(cart?.total);
+  const grandTotal = apiTotal > 0 ? apiTotal : computedTotal;
 
   const handleUpdateQty = (cartItemId, quantity) => {
     updateItem({ cartItemId, quantity });
@@ -83,7 +93,7 @@ export default function ShopCart() {
 
   return (
     <div className="flex min-h-screen flex-col bg-black">
-      <Container className="!px-4 !py-0">
+      <Container fullWidth className="!px-4 !py-0">
         <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
           <button
             type="button"
@@ -130,6 +140,36 @@ export default function ShopCart() {
                 isUpdating={isUpdating}
               />
             ))}
+
+            <div className="rounded-2xl bg-[#141412] p-4 shadow-sm">
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-[14px] font-normal text-[#A2A6AB]">
+                    Subtotal:
+                  </span>
+                  <span className="text-[14px] font-bold text-white">
+                    {formatPrice(subtotal)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-[14px] font-normal text-[#A2A6AB]">
+                    Shipping:
+                  </span>
+                  <span className="text-[14px] font-bold text-white">
+                    {formatPrice(shipping)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-[14px] font-normal text-[#A2A6AB]">
+                    Discount:
+                  </span>
+                  <span className="text-[14px] font-bold text-white">
+                    {formatPrice(discount)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
             <div className="h-24" />
           </div>
         )}
@@ -137,17 +177,17 @@ export default function ShopCart() {
 
       {!emptyCart && !isLoading && (
         <footer className="fixed right-0 bottom-20 left-0 z-30 bg-black px-4 pt-4 pb-4">
-          <div className="mx-auto flex max-w-2xl items-center justify-between gap-4 rounded-2xl bg-[#1A1A1A] p-4">
+          <div className="flex w-full items-center justify-between gap-4 rounded-2xl bg-[#1A1A1A] p-4">
             <div>
               <p className="text-[12px] font-normal text-white">Grand Total:</p>
               <p className="text-[18px] font-bold text-[#DA9811]">
-                {formatPrice(subtotal)}
+                {formatPrice(grandTotal)}
               </p>
             </div>
             <button
               type="button"
               onClick={() => navigate('/shop/checkout')}
-              className="shrink-0 rounded-full bg-[#DA9811] px-8 py-3.5 text-[14px] font-bold tracking-wide text-black uppercase transition-opacity active:opacity-90"
+              className="shrink-0 rounded-[6px] bg-[#DA9811] px-8 py-3.5 text-[14px] font-bold tracking-wide text-black uppercase transition-opacity active:opacity-90"
             >
               Checkout
             </button>

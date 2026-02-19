@@ -257,7 +257,7 @@ className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-f
                   ? navigate(`/shop/order-payment/${order.id}`)
                   : navigate(-1)
               }
-              className="shrink-0 rounded-xl bg-[#DA9811] px-6 py-3.5 text-[16px] font-semibold text-black transition-opacity active:opacity-90"
+              className="shrink-0 rounded-[6px] bg-[#DA9811] px-6 py-3.5 text-[16px] font-semibold text-black transition-opacity active:opacity-90"
             >
               Pay Now
             </button>

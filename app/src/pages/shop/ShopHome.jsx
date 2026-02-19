@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
+import { FloatingCartButton } from '@/components/FloatingCartButton';
 import { formatPrice } from '@/lib/format';
 import { useGetBrandsQuery, useGetProductsQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
@@ -32,7 +33,7 @@ function AddToCartIcon({ className = 'text-[#DA9811]' }) {
   return (
     <span className={`flex items-center gap-0.5 ${className}`} aria-hidden>
       <svg
-        className="h-4 w-4"
+        className="h-3 w-3"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -68,7 +69,7 @@ function ProductCard({ product, brandSlug }) {
 
   const content = (
     <>
-      <div className="relative aspect-square bg-white">
+      <div className="relative h-[138px] bg-white">
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -89,12 +90,12 @@ function ProductCard({ product, brandSlug }) {
           </span>
         )}
       </div>
-      <div className="flex flex-1 flex-col justify-between gap-1 p-3">
-        <p className="line-clamp-2 text-[13px] font-medium text-white">
+      <div className="flex h-[110px] flex-col p-3">
+        <p className="line-clamp-2 shrink-0 text-[13px] font-medium leading-snug text-white">
           {product.name}
         </p>
-        <div className="mt-auto flex items-end justify-between gap-2">
-          <div className="flex min-w-0 flex-col gap-0.5">
+        <div className="mt-auto flex min-h-[2.75rem] shrink-0 items-end justify-between gap-2">
+          <div className="flex min-w-0 flex-col justify-end gap-0.5">
             {hasDiscount ? (
               <>
                 <span className="text-[11px] text-[#A2A6AB] line-through">
@@ -126,7 +127,7 @@ function ProductCard({ product, brandSlug }) {
     return (
       <Link
         to={`/shop/${brandSlug}/product/${product.slug}`}
-        className="flex w-full min-w-0 flex-col overflow-hidden rounded-[17px] bg-[#1a1a18] transition-opacity active:opacity-90"
+        className="flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[17px] bg-[#1a1a18] transition-opacity active:opacity-90"
       >
         {content}
       </Link>
@@ -134,7 +135,7 @@ function ProductCard({ product, brandSlug }) {
   }
 
   return (
-    <article className="flex w-full min-w-0 flex-col overflow-hidden rounded-[17px] bg-[#1a1a18]">
+    <article className="flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[17px] bg-[#1a1a18]">
       {content}
     </article>
   );
@@ -170,14 +171,14 @@ function ShopSlider({
       <Swiper
         modules={[Autoplay]}
         spaceBetween={12}
-        slidesPerView={1.5}
+        slidesPerView={2}
         autoplay={{
           delay: 4000,
           disableOnInteraction: false,
           reverseDirection,
         }}
         loop
-        className="shop-swiper -mx-4 px-4"
+        className="shop-swiper -mx-4 px-4 [&_.swiper-wrapper]:items-stretch"
         grabCursor
       >
         {productsWithBrandSlug.map((product) => (
@@ -207,6 +208,7 @@ export default function ShopHome() {
 
   return (
     <Container>
+      <FloatingCartButton />
       <div className="flex flex-col gap-6">
         <h1 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">
           Shop

@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 
-import { formatDate, formatPrice } from '@/lib/format';
+import { formatPrice } from '@/lib/format';
 import { useGetOrdersQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 
@@ -21,6 +21,21 @@ const STATUS_PILL_STYLES = {
     'border border-[#34C759] text-[#34C759] font-bold uppercase tracking-wide',
 };
 
+function getRelativeTime(isoString) {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) return '';
+  const now = new Date();
+  const diffMs = now - date;
+  const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return '1 day ago';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+  return `${Math.floor(diffDays / 365)} years ago`;
+}
+
 function OrderStatusPill({ status, statusLabel }) {
   const value = (status ?? '').toLowerCase();
   const display =
@@ -39,48 +54,58 @@ function OrderStatusPill({ status, statusLabel }) {
 }
 
 function OrderCard({ order, onClick }) {
-  const firstItem = order.items?.[0];
-  const name = firstItem?.product_snapshot?.name ?? 'Order items';
-  const quantity = firstItem?.quantity ?? 0;
-  const created = formatDate(order.created_at);
+  const items = order.items ?? [];
+  const firstItemName = items[0]?.product_snapshot?.name ?? 'Order items';
+  const extraCount = items.length > 1 ? items.length - 1 : 0;
+  const names = items
+    .slice(0, 3)
+    .map((i) => i.product_snapshot?.name ?? '')
+    .filter(Boolean);
+  const rawSummary = names.length ? names.join(' ') : firstItemName;
+  const maxLen = 42;
+  const displaySummary =
+    rawSummary.length > maxLen
+      ? `${rawSummary.slice(0, maxLen - 3).trim()}...`
+      : rawSummary;
+  const relativeTime = getRelativeTime(order.created_at);
 
   return (
     <button
       type="button"
       onClick={() => onClick(order.id)}
-      className="flex w-full gap-3 rounded-2xl bg-[#1A1A1A] p-4 text-left transition-opacity active:opacity-90"
+      className="flex w-full flex-col gap-0 rounded-[10px] bg-[#1A1A1A] p-4 text-left transition-opacity active:opacity-90"
     >
-      <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-white">
-        <div
-          className="flex h-full w-full items-center justify-center bg-[#141412] text-[24px] font-bold text-[#DA9811]"
-          aria-hidden
-        >
-          #
-        </div>
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5">
-        <p className="text-[13px] font-normal text-white">{name}</p>
-        <p className="flex my-1 flex-wrap items-center justify-between gap-2 text-[13px] font-normal text-[#A2A6AB]">
-          <span>{order.order_number}</span>
-          <OrderStatusPill
-            status={order.status}
-            statusLabel={order.status_label}
-          />
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <p className="min-w-0 flex-1 text-base font-bold leading-tight text-white">
+          {order.order_number ?? '—'}
         </p>
-        <p className="text-[16px] font-bold text-[#DA9811]">
-          {formatPrice(order.total)}{' '}
-          <span className="font-normal text-white">
-            {order.items?.length > 1
-              ? `· ${order.items.length} items`
-              : quantity > 1
-                ? `x ${quantity}`
-                : ''}
+        {relativeTime && (
+          <span className="shrink-0 text-[12px] font-medium text-[#A2A6AB]">
+            {relativeTime}
           </span>
-        </p>
-        {created && (
-          <p className="text-[12px] font-normal text-[#A2A6AB]">
-            Ordered on {created}
+        )}
+      </div>
+      <div className="mt-2 flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0 flex-1 flex items-center gap-2">
+        <p className="text-base font-bold leading-tight text-[16px] text-[#DA9811]">
+            {formatPrice(order.total)}
           </p>
+          <p className="text-[16px] font-medium text-[#808080]">Total</p>
+      
+        </div>
+        <OrderStatusPill
+          status={order.status}
+          statusLabel={order.status_label}
+        />
+      </div>
+      <div className="mt-1.5 flex min-w-0 flex-wrap items-center gap-1">
+        <span className="min-w-0 truncate text-[13px] font-normal text-[#CCCCCC]">
+          {displaySummary}
+        </span>
+        {extraCount > 0 && (
+          <span className="shrink-0 font-normal text-[#DA9811]">
+            +{extraCount}
+          </span>
         )}
       </div>
     </button>

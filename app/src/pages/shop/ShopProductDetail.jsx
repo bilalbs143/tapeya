@@ -207,7 +207,7 @@ export default function ShopProductDetail() {
               <span className="text-xl leading-none font-medium">−</span>
             </button>
             <span
-              className="flex h-[44px] w-[74px] min-w-[3rem] items-center justify-center rounded-full bg-[#141412] px-5 text-base font-medium text-white"
+              className="flex h-[44px] w-[74px] min-w-[3rem] items-center justify-center rounded-[6px] bg-[#141412] px-5 text-base font-medium text-white"
               aria-live="polite"
             >
               {quantity}
@@ -225,7 +225,7 @@ export default function ShopProductDetail() {
             type="button"
             onClick={handleAddToCart}
             disabled={normalized.stock < 1 || isAddingToCart}
-            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#DA9811] py-3.5 text-base text-[16px] font-bold text-black transition-opacity active:opacity-90 disabled:opacity-50"
+            className="flex flex-1 items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] py-3.5 text-base text-[16px] font-bold text-black transition-opacity active:opacity-90 disabled:opacity-50"
           >
             <svg
               className="h-5 w-5 shrink-0"

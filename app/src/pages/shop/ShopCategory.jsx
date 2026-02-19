@@ -32,7 +32,7 @@ function AddToCartIcon({ className = 'text-white' }) {
   return (
     <span className={`flex items-center gap-0.5 ${className}`} aria-hidden>
       <svg
-        className="h-4 w-4"
+        className="h-3 w-3"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -69,9 +69,9 @@ function ProductCard({ product, brandSlug }) {
   return (
     <Link
       to={`/shop/${brandSlug}/product/${product.slug}`}
-      className="flex flex-col overflow-hidden rounded-[17px] bg-[#1a1a18] transition-opacity active:opacity-90"
+      className="flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[17px] bg-[#1a1a18] transition-opacity active:opacity-90"
     >
-      <div className="relative aspect-square bg-white">
+      <div className="relative h-[138px] bg-white">
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -92,12 +92,12 @@ function ProductCard({ product, brandSlug }) {
           </span>
         )}
       </div>
-      <div className="flex flex-col gap-1 p-3">
-        <p className="line-clamp-2 text-[13px] font-medium text-white">
+      <div className="flex h-[90px] flex-col p-3">
+        <p className="line-clamp-2 shrink-0 text-[13px] font-medium leading-snug text-white">
           {product.name}
         </p>
-        <div className="flex items-end justify-between gap-2">
-          <div className="flex min-w-0 flex-col gap-0.5">
+        <div className="mt-auto flex min-h-[2.75rem] shrink-0 items-end justify-between gap-2">
+          <div className="flex min-w-0 flex-col justify-end gap-0.5">
             {hasDiscount ? (
               <>
                 <span className="text-[11px] text-[#A2A6AB] line-through">
@@ -176,13 +176,13 @@ export default function ShopCategory() {
           </h1>
         </header>
 
-        <div className="relative -mx-4 px-4">
+        <div className="relative">
           <input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="What are you looking for?"
-            className="h-12 w-full rounded-full bg-[#2a2a2a] pr-14 pl-4 text-white placeholder:text-[#A2A6AB] focus:ring-2 focus:ring-[#DA9811]/50 focus:outline-none"
+            className="h-12 w-full rounded-full bg-[#141412] pr-14 pl-4 text-white placeholder:text-[#A2A6AB] focus:ring-2 focus:ring-[#DA9811]/50 focus:outline-none"
             aria-label="Search shop"
           />
           <span className="pointer-events-none absolute top-0 right-5 bottom-0 flex items-center">
