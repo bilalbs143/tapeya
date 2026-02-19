@@ -6,6 +6,38 @@ import { Container } from '@/ui/Container';
 
 const CURRENT_STATUSES = ['pending', 'processing'];
 
+const STATUS_PILL_STYLES = {
+  pending:
+    'border border-[#DA9811] text-[#DA9811] font-bold uppercase tracking-wide',
+  processing:
+    'border border-white text-white font-bold uppercase tracking-wide',
+  dispatched:
+    'border border-[#34C759] text-[#34C759] font-bold uppercase tracking-wide',
+  delivered:
+    'border border-[#22c55e] text-[#22c55e] font-bold uppercase tracking-wide',
+  cancelled:
+    'border border-[#FF3B30] text-[#FF3B30] font-bold uppercase tracking-wide',
+  shipped:
+    'border border-[#34C759] text-[#34C759] font-bold uppercase tracking-wide',
+};
+
+function OrderStatusPill({ status, statusLabel }) {
+  const value = (status ?? '').toLowerCase();
+  const display =
+    (statusLabel ?? value) !== '' ? (statusLabel ?? value).toUpperCase() : '—';
+  const style =
+    STATUS_PILL_STYLES[value] ??
+    'border border-[#6b7280] bg-transparent text-[#6b7280] font-bold uppercase tracking-wide';
+
+  return (
+    <span
+      className={`inline-block rounded-full px-3 py-1 text-[11px] ${style}`}
+    >
+      {display}
+    </span>
+  );
+}
+
 function OrderCard({ order, onClick }) {
   const firstItem = order.items?.[0];
   const name = firstItem?.product_snapshot?.name ?? 'Order items';
@@ -28,8 +60,12 @@ function OrderCard({ order, onClick }) {
       </div>
       <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5">
         <p className="text-[13px] font-normal text-white">{name}</p>
-        <p className="text-[13px] font-normal text-[#A2A6AB]">
-          {order.order_number} · {order.status_label ?? order.status}
+        <p className="flex my-1 flex-wrap items-center justify-between gap-2 text-[13px] font-normal text-[#A2A6AB]">
+          <span>{order.order_number}</span>
+          <OrderStatusPill
+            status={order.status}
+            statusLabel={order.status_label}
+          />
         </p>
         <p className="text-[16px] font-bold text-[#DA9811]">
           {formatPrice(order.total)}{' '}
