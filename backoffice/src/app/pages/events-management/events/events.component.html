@@ -11,10 +11,40 @@
             appearance="outline"
             class="w-full hide-hint"
           >
-            <mat-label>Name</mat-label>
+            <mat-label>Status</mat-label>
+            <mat-select formControlName="status">
+              <mat-option value="">All</mat-option>
+              @for (opt of statusOptions$ | async; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 sm:col-span-6 lg:col-span-2">
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Event Type</mat-label>
+            <mat-select formControlName="event_type">
+              <mat-option value="">All</mat-option>
+              @for (opt of eventTypeOptions$ | async; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 sm:col-span-6 lg:col-span-2">
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Country</mat-label>
             <input
               matInput
-              formControlName="name"
+              formControlName="country"
+              type="text"
+              placeholder="Country"
             />
           </mat-form-field>
         </div>
@@ -23,48 +53,13 @@
             appearance="outline"
             class="w-full hide-hint"
           >
-            <mat-label>Status</mat-label>
-            <mat-select formControlName="is_active">
-              @if (statusOptions$ | async; as opts) {
-                @for (opt of opts; track opt.value) {
-                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                }
-              }
-            </mat-select>
-          </mat-form-field>
-        </div>
-        <div class="col-span-12 sm:col-span-6 lg:col-span-2">
-          <mat-form-field
-            appearance="outline"
-            class="w-full hide-hint"
-          >
-            <mat-label>Brand</mat-label>
-            <mat-select
-              formControlName="brand_id"
-              placeholder="All"
-            >
-              <mat-option value="">All</mat-option>
-              @for (b of brands; track b.id) {
-                <mat-option [value]="string(b.id)">{{ b.name }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-        </div>
-        <div class="col-span-12 sm:col-span-6 lg:col-span-2">
-          <mat-form-field
-            appearance="outline"
-            class="w-full hide-hint"
-          >
-            <mat-label>Category</mat-label>
-            <mat-select
-              formControlName="category_id"
-              placeholder="All"
-            >
-              <mat-option value="">All</mat-option>
-              @for (c of categories; track c.id) {
-                <mat-option [value]="string(c.id)">{{ c.name }}</mat-option>
-              }
-            </mat-select>
+            <mat-label>City</mat-label>
+            <input
+              matInput
+              formControlName="city"
+              type="text"
+              placeholder="City"
+            />
           </mat-form-field>
         </div>
         <div class="col-span-12 sm:col-span-6 lg:col-span-4 flex flex-wrap items-center justify-end gap-2">
@@ -73,7 +68,7 @@
             type="button"
             (click)="resetSearchForm()"
           >
-            Clear Search
+            Clear
           </button>
           <button
             mat-flat-button
@@ -88,7 +83,7 @@
             type="button"
             (click)="openCreateDialog()"
           >
-            Add Product
+            Add Event
           </button>
         </div>
       </div>
@@ -99,12 +94,12 @@
 <mat-card class="cardWithShadow table-header-theme">
   <mat-card-content class="p-0">
     <div class="sticky-header-table-container relative overflow-auto">
-      <app-table-wrapper>
+      <app-table-wrapper [loading]="isLoading">
         <table
           mat-table
           matSort
-          aria-label="Products list"
-          matSortActive="id"
+          aria-label="Events list"
+          matSortActive="created_at"
           matSortStart="desc"
           matSortDirection="desc"
           [dataSource]="dataSource"
@@ -126,161 +121,136 @@
               {{ totalRecords - currentPage * pageSize - i }}
             </td>
           </ng-container>
-          <ng-container matColumnDef="name">
+
+          <ng-container matColumnDef="event_name">
             <th
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
               class="bg-light-secondary text-sm font-semibold"
             >
-              Name
+              Event Name
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm"
+            >
+              {{ row.event_name || emptyCell }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="event_type">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Event Type
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm"
+            >
+              {{ row.event_type_label || row.event_type || emptyCell }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="venue_name">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Venue
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm"
+            >
+              {{ row.venue_name || emptyCell }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="country">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Country
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm"
+            >
+              {{ row.country || emptyCell }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="city">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              City
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm"
+            >
+              {{ row.city || emptyCell }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="start_date">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Start Date
             </th>
             <td
               mat-cell
               *matCellDef="let row"
               class="text-sm whitespace-nowrap"
             >
-              {{ row.name }}
+              {{ row.start_date ? (row.start_date | date: 'yyyy-MM-dd') : emptyCell }}
             </td>
           </ng-container>
-          <ng-container matColumnDef="sku">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
-            >
-              SKU
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="text-sm"
-            >
-              {{ row.sku ?? emptyCell }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="price">
+
+          <ng-container matColumnDef="end_date">
             <th
               mat-header-cell
               *matHeaderCellDef
               mat-sort-header
               class="bg-light-secondary text-sm font-semibold"
             >
-              Price
+              End Date
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
+              class="text-sm whitespace-nowrap"
             >
-              {{ row.price | number: '1.0-0' }}
+              {{ row.end_date ? (row.end_date | date: 'yyyy-MM-dd') : emptyCell }}
             </td>
           </ng-container>
-          <ng-container matColumnDef="sale_price">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
-            >
-              Sale Price
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="text-sm"
-            >
-              {{ row.sale_price !== null ? (row.sale_price | number: '1.0-0') : emptyCell }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="sale_percentage">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
-            >
-              Sale %
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="text-sm"
-            >
-              {{ row.sale_percentage !== null ? row.sale_percentage + '%' : emptyCell }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="sale_type">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
-            >
-              Sale Type
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="text-sm"
-            >
-              @if (row.discount_type) {
-                {{ row.discount_type === 'percentage' ? 'Percentage' : 'Fixed' }}
-              } @else {
-                {{ emptyCell }}
-              }
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="brand">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
-            >
-              Brand
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="text-sm"
-            >
-              {{ row.brand?.name ?? emptyCell }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="category">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
-            >
-              Category
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="text-sm"
-            >
-              {{ row.category?.name ?? emptyCell }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="stock_quantity">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
-            >
-              Stock
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="text-sm"
-            >
-              {{ row.stock_quantity }}
-            </td>
-          </ng-container>
+
           <ng-container matColumnDef="status">
             <th
               mat-header-cell
               *matHeaderCellDef
+              mat-sort-header
               class="bg-light-secondary text-sm font-semibold"
             >
               Status
@@ -288,16 +258,17 @@
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
+              class="text-sm whitespace-nowrap"
             >
               <span
                 class="rounded-sm font-semibold px-1.5 py-1 text-xs"
-                [ngClass]="statusClass(row.is_active ? 'active' : 'inactive')"
+                [ngClass]="statusClass(row.status_enum ?? row.status)"
               >
-                {{ row.is_active ? 'Active' : 'Inactive' }}
+                {{ row.status_label || row.status }}
               </span>
             </td>
           </ng-container>
+
           <ng-container matColumnDef="created_at">
             <th
               mat-header-cell
@@ -315,6 +286,7 @@
               {{ row.created_at ? (row.created_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
             </td>
           </ng-container>
+
           <ng-container matColumnDef="actions">
             <th
               mat-header-cell
@@ -331,7 +303,18 @@
               <button
                 type="button"
                 class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
-                aria-label="Edit product"
+                aria-label="View event"
+                (click)="openDetailDialog(row)"
+              >
+                <i-tabler
+                  name="eye"
+                  class="size-4.5!"
+                ></i-tabler>
+              </button>
+              <button
+                type="button"
+                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                aria-label="Edit event"
                 (click)="openEditDialog(row)"
               >
                 <i-tabler
@@ -342,7 +325,7 @@
               <button
                 type="button"
                 class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
-                aria-label="Delete product"
+                aria-label="Delete event"
                 (click)="openDeleteDialog(row)"
               >
                 <i-tabler
@@ -352,6 +335,7 @@
               </button>
             </td>
           </ng-container>
+
           <tr
             mat-header-row
             *matHeaderRowDef="displayedColumns; sticky: true"
@@ -363,6 +347,7 @@
         </table>
       </app-table-wrapper>
     </div>
+
     <app-paginator
       [length]="totalRecords"
       [pageIndex]="currentPage"

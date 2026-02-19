@@ -4,6 +4,7 @@ namespace App\Models\Shop;
 
 use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\QueryBuilder\AllowedFilter;
 
 class Brand extends BaseModel
 {
@@ -37,7 +38,7 @@ class Brand extends BaseModel
      */
     public static function getFilters(): array
     {
-        return ['id', 'is_active'];
+        return ['id', 'name', 'slug', AllowedFilter::exact('is_active')];
     }
 
     /**

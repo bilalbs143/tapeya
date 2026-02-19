@@ -35,16 +35,16 @@
           <div class="col-span-12 sm:col-span-6">
             <span class="block text-sm font-semibold mb-1">Totals</span>
             <span class="block text-sm mt-0.5"
-              >Subtotal: {{ order.subtotal | number: '1.2-2' }} {{ order.currency }}</span
+              >Subtotal: {{ order.subtotal | number: '1.0-0' }} {{ order.currency }}</span
             >
             <span class="block text-sm mt-0.5"
-              >Shipping: {{ order.shipping_amount | number: '1.2-2' }} {{ order.currency }}</span
+              >Shipping: {{ order.shipping_amount | number: '1.0-0' }} {{ order.currency }}</span
             >
             <span class="block text-sm mt-0.5"
-              >Discount: {{ order.discount_amount | number: '1.2-2' }} {{ order.currency }}</span
+              >Discount: {{ order.discount_amount | number: '1.0-0' }} {{ order.currency }}</span
             >
             <span class="block text-sm font-semibold mt-0.5"
-              >Total: {{ order.total | number: '1.2-2' }} {{ order.currency }}</span
+              >Total: {{ order.total | number: '1.0-0' }} {{ order.currency }}</span
             >
           </div>
           <div class="col-span-12">
@@ -111,7 +111,7 @@
               *matCellDef="let item"
               class="text-sm"
             >
-              {{ item.unit_price | number: '1.2-2' }}
+              {{ item.unit_price | number: '1.0-0' }}
             </td>
           </ng-container>
           <ng-container matColumnDef="total_price">
@@ -127,7 +127,7 @@
               *matCellDef="let item"
               class="text-sm"
             >
-              {{ item.total_price | number: '1.2-2' }}
+              {{ item.total_price | number: '1.0-0' }}
             </td>
           </ng-container>
           <tr

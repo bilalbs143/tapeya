@@ -16,9 +16,20 @@ export const navItems: NavItem[] = [
     route: '/ecommerce',
   },
   {
-    displayName: 'Event Requests',
-    iconName: 'solar:calendar-mark-line-duotone',
-    route: '/event-requests',
+    displayName: 'Events Management',
+    iconName: 'solar:calendar-date-line-duotone',
+    children: [
+      {
+        displayName: 'Events',
+        iconName: 'tabler:point',
+        route: '/events-management/events',
+      },
+      {
+        displayName: 'Event Requests',
+        iconName: 'tabler:point',
+        route: '/events-management/event-requests',
+      },
+    ],
   },
   {
     displayName: 'Content Management',

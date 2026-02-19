@@ -5,6 +5,7 @@ namespace App\Models\Shop;
 use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\QueryBuilder\AllowedFilter;
 
 class Category extends BaseModel
 {
@@ -49,7 +50,7 @@ class Category extends BaseModel
      */
     public static function getFilters(): array
     {
-        return ['id', 'parent_id', 'is_active'];
+        return ['id', 'name', 'slug', AllowedFilter::exact('parent_id'), AllowedFilter::exact('is_active')];
     }
 
     /**

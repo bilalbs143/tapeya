@@ -7,6 +7,7 @@ use App\Models\BaseModel;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\QueryBuilder\AllowedFilter;
 
 class Product extends BaseModel
 {
@@ -134,7 +135,17 @@ class Product extends BaseModel
      */
     public static function getFilters(): array
     {
-        return ['id', 'name', 'brand_id', 'category_id', 'is_active', 'is_featured', 'is_popular', 'is_special_offer', 'discount_type'];
+        return [
+            AllowedFilter::exact('id'),
+            'name',
+            AllowedFilter::exact('brand_id'),
+            AllowedFilter::exact('category_id'),
+            AllowedFilter::exact('is_active'),
+            AllowedFilter::exact('is_featured'),
+            AllowedFilter::exact('is_popular'),
+            AllowedFilter::exact('is_special_offer'),
+            AllowedFilter::exact('discount_type'),
+        ];
     }
 
     /**

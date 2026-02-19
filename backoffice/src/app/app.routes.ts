@@ -35,8 +35,9 @@ export const routes: Routes = [
           import('./pages/shop-management/shop-management.routes').then((m) => m.ShopManagementRoutes),
       },
       {
-        path: 'event-requests',
-        loadChildren: () => import('./pages/event-requests/event-requests.routes').then((m) => m.EventRequestsRoutes),
+        path: 'events-management',
+        loadChildren: () =>
+          import('./pages/events-management/events-management.routes').then((m) => m.EventsManagementRoutes),
       },
       {
         path: 'sample-page',
