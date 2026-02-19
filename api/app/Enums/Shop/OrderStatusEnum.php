@@ -10,7 +10,7 @@ enum OrderStatusEnum: string
 
     case PENDING = 'pending';
     case PROCESSING = 'processing';
-    case SHIPPED = 'shipped';
+    case DISPATCHED = 'dispatched';
     case DELIVERED = 'delivered';
     case CANCELLED = 'cancelled';
 }
