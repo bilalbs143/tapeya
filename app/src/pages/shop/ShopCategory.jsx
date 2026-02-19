@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
+import { FloatingCartButton } from '@/components/FloatingCartButton';
 import { formatPrice } from '@/lib/format';
 import {
   useGetBrandsQuery,
@@ -151,6 +152,7 @@ export default function ShopCategory() {
 
   return (
     <Container>
+      <FloatingCartButton />
       <div className="flex flex-col gap-4">
         <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-4">
           <Link

@@ -10,7 +10,7 @@ export default function OrderSuccess() {
 
   return (
     <div className="flex flex-col bg-black">
-      <Container className="flex flex-1 flex-col !px-4 !py-0">
+      <Container fullWidth className="flex flex-1 flex-col !px-4 !py-0">
         {/* Header: back (white circle, black chevron) + title */}
         <header className="-mx-4 -mt-6 flex shrink-0 items-center gap-3 bg-black px-4 pt-6 pb-6">
           <button
@@ -61,7 +61,7 @@ export default function OrderSuccess() {
             <button
               type="button"
               onClick={() => navigate('/shop/orders')}
-              className="mb-4 flex w-full items-center justify-center gap-2 rounded-full border-2 border-[#DA9811] bg-transparent py-3.5 text-[16px] font-bold text-[#DA9811] transition-opacity active:opacity-90"
+              className="mb-4 flex w-full items-center justify-center gap-2 rounded-[6px] border-2 border-[#DA9811] bg-transparent py-3.5 text-[16px] font-bold text-[#DA9811] transition-opacity active:opacity-90"
             >
               View my orders
               <svg
@@ -81,7 +81,7 @@ export default function OrderSuccess() {
           <button
             type="button"
             onClick={() => navigate('/shop')}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#DA9811] px-8 py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90"
+            className="flex w-full items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] px-8 py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90"
           >
             Shop Again
             <svg

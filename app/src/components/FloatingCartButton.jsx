@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import shoppingCartIcon from '@/assets/images/icons/shopping-cart.svg';
 
 /**
- * Reusable floating cart button (48×48). Navigates to My Orders.
+ * Reusable floating cart button (48×48). Navigates to Shop cart.
  * Can be used on Shop home and other shop pages.
  */
 export function FloatingCartButton() {
@@ -12,10 +12,10 @@ export function FloatingCartButton() {
   return (
     <button
       type="button"
-      onClick={() => navigate('/shop/orders')}
+      onClick={() => navigate('/shop/cart')}
       className="fixed right-4 bottom-20 z-30 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#DA9811] shadow-lg transition-opacity active:opacity-90"
       style={{ width: 48, height: 48 }}
-      aria-label="Go to my orders"
+      aria-label="Go to cart"
     >
       <img
         src={shoppingCartIcon}
