@@ -78,7 +78,7 @@ export default function ShopCheckout() {
         shipping_amount: 0,
       }).unwrap();
       const order = result?.data ?? result;
-      if (order?.id) navigate(`/shop/orders/${order.id}`, { replace: true });
+      if (order?.id) navigate(`/shop/order-payment/${order.id}`, { replace: true });
     } catch (err) {
       const message =
         err?.data?.message ??

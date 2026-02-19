@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\Auth\AdminAuthController;
 use App\Http\Controllers\Admin\CountryController;
+use App\Http\Controllers\Admin\Event\EventRequestController as AdminEventRequestController;
 use App\Http\Controllers\Admin\EnumController;
 use App\Http\Controllers\Admin\HeroSliderController;
 use App\Http\Controllers\Admin\Shop\BrandController as AdminBrandController;
@@ -27,6 +28,10 @@ Route::prefix('admin')->group(function () {
         Route::get('countries/cities', [CountryController::class, 'cities']);
         Route::apiResource('users', UserController::class);
         Route::apiResource('hero-sliders', HeroSliderController::class);
+
+        Route::get('event-requests', [AdminEventRequestController::class, 'index']);
+        Route::get('event-requests/{event_request}', [AdminEventRequestController::class, 'show']);
+        Route::match(['put', 'patch'], 'event-requests/{event_request}', [AdminEventRequestController::class, 'update']);
 
         Route::prefix('shop')->group(function () {
             Route::apiResource('brands', AdminBrandController::class);

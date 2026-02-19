@@ -8,6 +8,8 @@ const STATUS_CLASS_MAP: Record<string, string> = {
   verification_pending: 'bg-light-warning text-warning',
   inactive: 'bg-light-secondary text-secondary',
   pending: 'bg-light-warning text-warning',
+  approved: 'bg-light-success text-success',
+  rejected: 'bg-light-error text-error',
   processing: 'bg-light-primary text-primary',
   shipped: 'bg-light-info text-info',
   delivered: 'bg-light-success text-success',

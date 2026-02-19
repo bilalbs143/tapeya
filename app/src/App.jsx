@@ -9,6 +9,7 @@ import Register from '@/pages/auth/Register';
 import Home from '@/pages/Home';
 import MyOrders from '@/pages/shop/MyOrders';
 import OrderDetail from '@/pages/shop/OrderDetail';
+import OrderPayment from '@/pages/shop/OrderPayment';
 import OrderSuccess from '@/pages/shop/OrderSuccess';
 import ShopCart from '@/pages/shop/ShopCart';
 import ShopCategory from '@/pages/shop/ShopCategory';
@@ -41,6 +42,7 @@ function App() {
               <Route path="/shop" element={<ShopHome />} />
               <Route path="/shop/cart" element={<ShopCart />} />
               <Route path="/shop/checkout" element={<ShopCheckout />} />
+              <Route path="/shop/order-payment/:orderId" element={<OrderPayment />} />
               <Route path="/shop/orders/:orderId" element={<OrderDetail />} />
               <Route path="/shop/orders" element={<MyOrders />} />
               <Route path="/shop/order-success" element={<OrderSuccess />} />

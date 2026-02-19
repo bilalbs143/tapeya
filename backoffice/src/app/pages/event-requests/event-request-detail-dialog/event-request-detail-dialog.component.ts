@@ -1,0 +1,93 @@
+import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatDivider } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { Observable } from 'rxjs';
+import { finalize } from 'rxjs/operators';
+
+import type { EnumOption } from 'src/app/services/enums.service';
+import { EnumsService } from 'src/app/services/enums.service';
+import type { EventRequest } from 'src/app/services/event-request.service';
+import { EventRequestService } from 'src/app/services/event-request.service';
+import { MessageService } from 'src/app/services/message.service';
+import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
+import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
+import { getStatusClass } from 'src/app/utils/status-class.util';
+
+export interface EventRequestDetailDialogData {
+  eventRequest: EventRequest;
+}
+
+@Component({
+  selector: 'app-event-request-detail-dialog',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatDivider,
+    TablerIconsModule,
+    DialogWrapperComponent,
+    SubmitButtonComponent,
+  ],
+  templateUrl: './event-request-detail-dialog.component.html',
+})
+export class EventRequestDetailDialogComponent implements OnInit {
+  public readonly data = inject<EventRequestDetailDialogData>(MAT_DIALOG_DATA);
+  private readonly eventRequestService = inject(EventRequestService);
+  private readonly enumsService = inject(EnumsService);
+  private readonly dialogRef = inject<MatDialogRef<EventRequestDetailDialogComponent>>(MatDialogRef);
+  private readonly fb = inject(FormBuilder);
+  private readonly messageService = inject(MessageService);
+
+  public eventRequest: EventRequest | null = null;
+  public form!: FormGroup;
+  public isSubmitting = false;
+  public isLoading = true;
+  public readonly emptyCell = EMPTY_CELL;
+  public readonly statusClass = getStatusClass;
+  public statusOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('event_request_status');
+
+  public ngOnInit(): void {
+    this.form = this.fb.group({
+      status: [this.data.eventRequest.status, [Validators.required]],
+    });
+    this.eventRequestService.getById(this.data.eventRequest.id).subscribe({
+      next: (res) => {
+        this.eventRequest = res.data;
+        this.form.patchValue({ status: this.eventRequest?.status ?? this.data.eventRequest.status });
+        this.isLoading = false;
+      },
+      error: () => {
+        this.eventRequest = this.data.eventRequest;
+        this.isLoading = false;
+      },
+    });
+  }
+
+  public onSubmit(): void {
+    if (this.form.invalid || !this.eventRequest) return;
+    this.isSubmitting = true;
+    this.eventRequestService
+      .updateStatus(this.eventRequest.id, this.form.value.status)
+      .pipe(finalize(() => (this.isSubmitting = false)))
+      .subscribe({
+        next: (res) => {
+          this.eventRequest = res.data;
+          this.dialogRef.close(true);
+        },
+        error: () => {
+          this.messageService.error('Failed to update status.');
+        },
+      });
+  }
+}

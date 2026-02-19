@@ -3,6 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\Common\StatusEnum;
+use App\Enums\Event\CricketFormatEnum;
+use App\Enums\Event\EventRequestStatusEnum;
+use App\Enums\Event\EventTypeEnum;
+use App\Enums\Event\MatchTimingEnum;
 use App\Enums\Shop\OrderStatusEnum;
 use App\Enums\Shop\ProductDiscountTypeEnum;
 use App\Enums\User\BattingStyleEnum;
@@ -31,6 +35,10 @@ class EnumController extends Controller
             'batting_style' => $this->toOptions(BattingStyleEnum::cases()),
             'order_status' => $this->toOptions(OrderStatusEnum::cases()),
             'product_discount_type' => $this->toOptions(ProductDiscountTypeEnum::cases()),
+            'event_type' => $this->toOptions(EventTypeEnum::cases()),
+            'cricket_format' => $this->toOptions(CricketFormatEnum::cases()),
+            'match_timings' => $this->toOptions(MatchTimingEnum::cases()),
+            'event_request_status' => $this->toOptions(EventRequestStatusEnum::cases()),
             'app_roles' => Role::forGuard('app')->orderBy('name')->get()->map(fn (Role $r) => [
                 'value' => (string) $r->id,
                 'label' => $r->name,
