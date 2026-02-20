@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
+import shoppingCartIcon from '@/assets/images/icons/shopping-cart.svg';
+
 import { FloatingCartButton } from '@/components/FloatingCartButton';
 import { formatPrice } from '@/lib/format';
 import {
@@ -131,18 +133,18 @@ export default function ShopProductDetail() {
         </header>
 
         <div className="space-y-3">
-          <div className="relative overflow-hidden rounded-[17px] bg-white">
+          <div className="relative overflow-hidden rounded-t-[17px] bg-white">
             {mainImage ? (
               <img
                 src={mainImage}
                 alt={normalized.images?.[selectedImage]?.alt ?? normalized.name}
-                className="aspect-square w-full object-contain p-4"
+                className="aspect-square w-full object-contain h-[280px]"
               />
             ) : (
               <div className="aspect-square w-full bg-[#141412]" aria-hidden />
             )}
             {normalized.is_featured && (
-              <span className="absolute top-3 left-3 rounded-full bg-[#DA9811] px-2.5 py-1 text-[12px] font-bold text-black uppercase">
+              <span className="absolute top-3 left-3 rounded-full bg-[#DA9811] px-4 py-1 text-[12px] font-bold text-black uppercase">
                 Featured
               </span>
             )}
@@ -154,7 +156,7 @@ export default function ShopProductDetail() {
                   key={i}
                   type="button"
                   onClick={() => setSelectedImage(i)}
-                  className={`h-12 w-12 shrink-0 overflow-hidden rounded-full border-2 bg-white ${
+                  className={`h-[45px] w-[45px] shrink-0 overflow-hidden rounded-full border-2 bg-white ${
                     selectedImage === i
                       ? 'border-[#DA9811]'
                       : 'border-transparent'
@@ -164,7 +166,7 @@ export default function ShopProductDetail() {
                   <img
                     src={url}
                     alt=""
-                    className="h-full w-full object-contain p-1"
+                    className="h-full w-full object-cover "
                   />
                 </button>
               ))}
@@ -176,7 +178,7 @@ export default function ShopProductDetail() {
           <h2 className="text-[16px] font-bold text-white">
             {normalized.name}
           </h2>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-8">
             {normalized.hasDiscount && (
               <span className="text-[16px] font-bold text-[#A2A6AB82] line-through">
                 {formatPrice(normalized.price)}
@@ -205,13 +207,13 @@ export default function ShopProductDetail() {
             <button
               type="button"
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full bg-[#141412] text-white transition-opacity active:opacity-80"
+              className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full bg-[#141412] text-[#A2A6AB] transition-opacity active:opacity-80"
               aria-label="Decrease quantity"
             >
-              <span className="text-xl leading-none font-medium">−</span>
+              <span className="text-xl leading-none font-bold">−</span>
             </button>
             <span
-              className="flex h-[44px] w-[74px] min-w-[3rem] items-center justify-center rounded-[6px] bg-[#141412] px-5 text-base font-medium text-white"
+              className="flex h-[48px] w-[86px] min-w-[3rem] items-center justify-center rounded-[6px] bg-[#141412] px-5 text-base font-bold text-[#A2A6AB]"
               aria-live="polite"
             >
               {quantity}
@@ -219,31 +221,19 @@ export default function ShopProductDetail() {
             <button
               type="button"
               onClick={() => setQuantity((q) => q + 1)}
-              className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full bg-[#141412] text-white transition-opacity active:opacity-80"
+              className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full bg-[#141412] text-[#A2A6AB] transition-opacity active:opacity-80"
               aria-label="Increase quantity"
             >
-              <span className="text-xl leading-none font-medium">+</span>
+              <span className="text-xl leading-none font-bold">+</span>
             </button>
           </div>
           <button
             type="button"
             onClick={handleAddToCart}
             disabled={normalized.stock < 1 || isAddingToCart}
-            className="flex flex-1 items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] py-3.5 text-base text-[16px] font-bold text-black transition-opacity active:opacity-90 disabled:opacity-50"
+            className="flex flex-1 items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] py-3.5 text-base text-[16px] font-semibold text-black transition-opacity active:opacity-90 disabled:opacity-50"
           >
-            <svg
-              className="h-5 w-5 shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
+            <img src={shoppingCartIcon} alt="" className="h-6 w-6 shrink-0" aria-hidden />
             {isAddingToCart ? 'Adding…' : 'Add to Cart'}
           </button>
         </div>

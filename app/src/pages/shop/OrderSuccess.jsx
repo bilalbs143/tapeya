@@ -52,7 +52,7 @@ export default function OrderSuccess() {
             THANK YOU FOR YOUR ORDER!
           </h2>
 
-          <p className="mb-10 max-w-[280px] text-[14px] leading-relaxed text-white">
+          <p className="mb-4 max-w-[280px] text-[14px] font-medium leading-relaxed text-[#A2A6AB]">
             We will notify you of all the details via email or WhatsApp number
             you provided.
           </p>

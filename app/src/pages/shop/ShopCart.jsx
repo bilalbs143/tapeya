@@ -13,7 +13,7 @@ function CartItemCard({ item, onUpdateQty, onRemove, isUpdating }) {
   const name = item.product?.name ?? 'Product';
 
   return (
-    <div className="flex gap-3 rounded-2xl bg-[#1A1A1A] p-4">
+    <div className="flex gap-3 rounded-2xl bg-[#141412] p-4">
       <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-white">
         {imageUrl ? (
           <img
@@ -142,9 +142,9 @@ export default function ShopCart() {
             ))}
 
             <div className="rounded-2xl bg-[#141412] p-4 shadow-sm">
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-[14px] font-normal text-[#A2A6AB]">
+                  <span className="text-[14px] font-medium text-[#A2A6AB]">
                     Subtotal:
                   </span>
                   <span className="text-[14px] font-bold text-white">
@@ -152,7 +152,7 @@ export default function ShopCart() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-[14px] font-normal text-[#A2A6AB]">
+                  <span className="text-[14px] font-medium text-[#A2A6AB]">
                     Shipping:
                   </span>
                   <span className="text-[14px] font-bold text-white">
@@ -160,7 +160,7 @@ export default function ShopCart() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-[14px] font-normal text-[#A2A6AB]">
+                  <span className="text-[14px] font-medium text-[#A2A6AB]">
                     Discount:
                   </span>
                   <span className="text-[14px] font-bold text-white">
@@ -177,7 +177,7 @@ export default function ShopCart() {
 
       {!emptyCart && !isLoading && (
         <footer className="fixed right-0 bottom-20 left-0 z-30 bg-black px-4 pt-4 pb-4">
-          <div className="flex w-full items-center justify-between gap-4 rounded-2xl bg-[#1A1A1A] p-4">
+          <div className="flex w-full items-center justify-between gap-4 rounded-[17px] bg-[#141412] p-4">
             <div>
               <p className="text-[12px] font-normal text-white">Grand Total:</p>
               <p className="text-[18px] font-bold text-[#DA9811]">

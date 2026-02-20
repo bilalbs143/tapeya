@@ -18,7 +18,7 @@ function OrderItemCard({ item, orderStatus, orderUpdatedAt }) {
     : 'Pending';
 
   return (
-    <div className="flex gap-3 rounded-2xl bg-[#1A1A1A] p-4">
+    <div className="flex gap-3 rounded-[17px] bg-[#141412] p-4">
       <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-white">
         {imageUrl ? (
           <img
@@ -28,7 +28,7 @@ function OrderItemCard({ item, orderStatus, orderUpdatedAt }) {
           />
         ) : (
           <div
-            className="flex h-full w-full items-center justify-center bg-[#141412] text-[20px] font-bold text-[#DA9811]"
+            className="flex h-full w-full items-center justify-center bg-[#1A1A1A] text-[20px] font-bold text-[#DA9811]"
             aria-hidden
           >
             {name.charAt(0).toUpperCase() || '#'}
@@ -220,7 +220,7 @@ className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-f
             )}
           </div>
 
-          <div className="mt-6 space-y-2 rounded-2xl bg-[#141412] p-4">
+          <div className="mt-3 space-y-2 rounded-2xl bg-[#141412] p-4">
             <div className="flex justify-between text-[14px]">
               <span className="text-white">Subtotal:</span>
               <span className="font-bold text-white">
@@ -241,7 +241,7 @@ className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-f
             </div>
           </div>
 
-          <div className="mt-4 flex items-center justify-between gap-4 rounded-xl bg-[#141412] p-4">
+          <div className="mt-3 flex items-center justify-between gap-4 rounded-xl bg-[#141412] p-4">
             <div>
               <p className="text-[16px] font-semibold text-white">
                 Grand Total:

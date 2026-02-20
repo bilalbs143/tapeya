@@ -53,7 +53,7 @@ export default function OrderPayment() {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-[#141412] text-white transition-opacity active:opacity-80"
+            className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80"
             aria-label="Back"
           >
             <svg
@@ -84,7 +84,7 @@ export default function OrderPayment() {
           </p>
 
           <div
-            className="flex max-w-fit items-center gap-1 rounded-[160px] bg-white px-2 py-1"
+            className="flex max-w-fit items-center gap-1 rounded-[160px] bg-white px-4 py-1"
             aria-label={`Order ID: ${orderNumber}`}
           >
             <span className="text-[16px] font-bold text-[#1a1a1a] uppercase">

@@ -6,8 +6,9 @@
 import { Label } from '@/ui/Label';
 
 const defaultLabelClass = 'mb-4 block text-[16px] text-white';
-/** Checkout / billing: 14px, white */
-export const formFieldLabelCheckoutClass = 'mb-4 block text-[14px] text-white';
+/** Checkout / billing: 14px, #A2A6AB */
+export const formFieldLabelCheckoutClass =
+  'mb-4 block text-[14px] !font-bold text-[#A2A6AB]';
 /** Edit modal: 12px, #A2A6AB */
 export const formFieldLabelEditClass =
   'mb-2 block text-[12px] !font-bold text-[#A2A6AB]';
