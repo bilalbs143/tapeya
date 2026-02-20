@@ -11,7 +11,7 @@ const variants = {
     'bg-slate-200 text-slate-800 hover:bg-slate-300 active:bg-slate-400',
   outline: 'border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50',
   ghost: 'text-indigo-600 hover:bg-indigo-50',
-  auth: 'h-12 w-[358px] max-w-full rounded-[160px] bg-[#EBF2FF] text-slate-800 hover:bg-[#d4e4ff] active:bg-[#bdd1ff]',
+  auth: 'h-12 w-[358px] max-w-full rounded-[6px] bg-[#EBF2FF] text-slate-800 hover:bg-[#d4e4ff] active:bg-[#bdd1ff]',
 };
 
 const sizes = {
