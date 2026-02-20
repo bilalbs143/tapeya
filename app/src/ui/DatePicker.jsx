@@ -8,7 +8,7 @@ import { DayPicker } from 'react-day-picker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/Popover';
 
 const inputBase =
-  'flex h-12 w-full items-center rounded-[160px] bg-[#141412] px-4 py-3 text-white placeholder:text-base placeholder:text-[#A2A6AB78] focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50 transition-colors cursor-pointer text-left';
+  'flex h-12 w-full items-center rounded-[6px] bg-[#141412] px-4 py-3 text-white placeholder:text-base placeholder:text-[#A2A6AB78] focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50 transition-colors cursor-pointer text-left';
 
 function formatDisplay(value) {
   if (!value || typeof value !== 'string') return '';
@@ -35,6 +35,7 @@ export function DatePicker({
   placeholder = 'MM-DD-YYYY',
   className = '',
   disabled,
+  allowFuture = false,
   ...props
 }) {
   const [open, setOpen] = useState(false);
@@ -43,6 +44,13 @@ export function DatePicker({
   useEffect(() => {
     setSelectedDate(parseValue(value));
   }, [value]);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dayPickerDisabled = allowFuture ? { before: today } : { after: new Date() };
+  const endMonth = allowFuture
+    ? new Date(today.getFullYear() + 2, 11)
+    : new Date();
 
   const handleSelect = (date) => {
     setSelectedDate(date);
@@ -85,12 +93,12 @@ export function DatePicker({
           mode="single"
           selected={selectedDate}
           onSelect={handleSelect}
-          disabled={{ after: new Date() }}
+          disabled={dayPickerDisabled}
           defaultMonth={selectedDate || new Date()}
           captionLayout="dropdown"
           reverseYears
           startMonth={new Date(new Date().getFullYear() - 100, 0)}
-          endMonth={new Date()}
+          endMonth={endMonth}
           classNames={{
             root: '',
             months: 'space-y-3',
@@ -98,9 +106,10 @@ export function DatePicker({
             month_caption: 'flex items-center justify-center gap-3 flex-wrap',
             caption_label: 'sr-only',
             dropdowns: 'flex gap-2 items-center',
-            dropdown_root: 'inline-flex min-w-0',
+            dropdown_root:
+              'inline-flex min-w-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
             dropdown:
-              'rounded-lg border-0 bg-[#1f1f1d] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50 appearance-none cursor-pointer min-w-[5rem]',
+              'rounded-lg border-0 bg-[#1f1f1d] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50 appearance-none cursor-pointer min-w-[5rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
             chevron: '!fill-white !text-white shrink-0 [&_polygon]:!fill-white',
             nav: 'flex gap-1 shrink-0',
             button_previous:

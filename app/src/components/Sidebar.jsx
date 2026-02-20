@@ -1,7 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom';
 
+import draftingIcon from '@/assets/images/icons/drafting-icon.svg';
 import goLiveIcon from '@/assets/images/icons/go-live.svg';
 import logoutIcon from '@/assets/images/icons/logout.svg';
+import myOrderIcon from '@/assets/images/icons/my-order.svg';
 import { clearCredentials } from '@/store/slices/authSlice';
 import { useLogoutMutation } from '@/store/api/authApi';
 import { useAppDispatch } from '@/store/hooks';
@@ -16,9 +18,10 @@ import tossIcon from '@/assets/images/icons/toss.svg';
 import defaultAvatar from '@/assets/images/standard/default-avatar.png';
 
 const MENU_ITEMS = [
-  { label: 'Score Card request', icon: scoreCardRequestIcon },
-  { label: 'Request Tournament', icon: requestTournamentIcon },
+  { label: 'Request Tournament', icon: requestTournamentIcon, path: '/event-request' },
   { label: 'Start Match', icon: starMatchIcon },
+  { label: 'Drafting', icon: draftingIcon },
+  { label: 'My Orders', icon: myOrderIcon, path: '/shop/orders' },
   { label: 'Go live', icon: goLiveIcon },
   { label: 'Toss', icon: tossIcon },
   { label: 'Top Players', icon: topPlayersIcon },
@@ -92,7 +95,7 @@ export function Sidebar({ open, onClose }) {
           </div>
           <div className="h-px w-full bg-[linear-gradient(to_right,#00000000,#FFFFFF33,#00000000)]" />
           <nav className="flex flex-col gap-1 pt-4">
-            {MENU_ITEMS.map(({ label, icon }) =>
+            {MENU_ITEMS.map(({ label, icon, path }) =>
               label === 'Logout' ? (
                 <button
                   key={label}
@@ -105,6 +108,18 @@ export function Sidebar({ open, onClose }) {
                     {label}
                   </span>
                 </button>
+              ) : path ? (
+                <Link
+                  key={label}
+                  to={path}
+                  onClick={onClose}
+                  className={menuBtn}
+                >
+                  <img src={icon} alt="" className="h-5 w-5 shrink-0" />
+                  <span className="text-[16px] font-medium text-[#A2A6AB]">
+                    {label}
+                  </span>
+                </Link>
               ) : (
                 <button key={label} type="button" className={menuBtn}>
                   <img src={icon} alt="" className="h-5 w-5 shrink-0" />

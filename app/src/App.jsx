@@ -12,6 +12,7 @@ import OrderDetail from '@/pages/shop/OrderDetail';
 import OrderPayment from '@/pages/shop/OrderPayment';
 import OrderSuccess from '@/pages/shop/OrderSuccess';
 import ShopCart from '@/pages/shop/ShopCart';
+import EventRequest from '@/pages/EventRequest';
 import ShopCategory from '@/pages/shop/ShopCategory';
 import ShopCheckout from '@/pages/shop/ShopCheckout';
 import ShopHome from '@/pages/shop/ShopHome';
@@ -55,6 +56,7 @@ function App() {
                 element={<ShopProductDetail />}
               />
               <Route path="/shop/:brandId" element={<ShopCategory />} />
+              <Route path="/event-request" element={<EventRequest />} />
             </Route>
             <Route element={<AuthLayout />}>
               <Route path="/login" element={<Login />} />
