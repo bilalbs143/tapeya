@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { Container } from '@/ui/Container';
@@ -11,6 +12,8 @@ import {
   TeamsTab,
 } from './tabs';
 import { MOCK_MATCHES } from './mockMatches';
+
+const NAVBAR_HEIGHT = 64; // h-16 = 4rem
 
 const TOURNAMENT_TABS = [
   { value: 'schedule', label: 'Schedule' },
@@ -34,12 +37,31 @@ export default function ScorecardDetails() {
   const navigate = useNavigate();
   const { tournamentId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [tabsFixedVisible, setTabsFixedVisible] = useState(false);
+  const tabsSentinelRef = useRef(null);
 
   const tabParam = searchParams.get('tab');
   const activeTab = VALID_TABS.includes(tabParam) ? tabParam : 'schedule';
 
   const matches = MOCK_MATCHES.filter((m) => m.league === tournamentId);
   const ActiveView = TAB_VIEWS[activeTab];
+
+  useEffect(() => {
+    const sentinel = tabsSentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setTabsFixedVisible(!entry.isIntersecting);
+      },
+      {
+        root: null,
+        rootMargin: `-${NAVBAR_HEIGHT}px 0px 0px 0px`,
+        threshold: 0,
+      },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div className="min-h-screen bg-black">
@@ -73,13 +95,35 @@ export default function ScorecardDetails() {
           onValueChange={(value) => setSearchParams({ tab: value })}
           className="w-full"
         >
-          <TabsList className={scorecardListClass}>
-            {TOURNAMENT_TABS.map(({ value, label }) => (
-              <TabsTrigger key={value} value={value} className={scorecardTriggerClass}>
-                {label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          <div className="flex flex-col">
+            <div ref={tabsSentinelRef} className="h-px w-full" aria-hidden />
+            <div className="-mx-4 bg-black px-4 pb-2 pt-0.5">
+              <TabsList className={scorecardListClass}>
+                {TOURNAMENT_TABS.map(({ value, label }) => (
+                  <TabsTrigger key={value} value={value} className={scorecardTriggerClass}>
+                    {label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
+          </div>
+
+          {tabsFixedVisible && (
+            <div
+              className="fixed left-0 right-0 z-10 bg-black pb-2 pt-1 z-[100]"
+              style={{ top: NAVBAR_HEIGHT }}
+            >
+              <div className="mx-auto max-w-2xl px-4">
+                <TabsList className={scorecardListClass}>
+                  {TOURNAMENT_TABS.map(({ value, label }) => (
+                    <TabsTrigger key={value} value={value} className={scorecardTriggerClass}>
+                      {label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </div>
+            </div>
+          )}
 
           <ActiveView matches={matches} tournamentId={tournamentId} />
         </Tabs>

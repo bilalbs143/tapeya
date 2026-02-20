@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { ScorecardTabs } from '@/components/scorecard';
@@ -5,8 +6,29 @@ import { Container } from '@/ui/Container';
 
 import { MOCK_MATCHES } from './mockMatches';
 
+const NAVBAR_HEIGHT = 64; // h-16 = 4rem
+
 export default function ScorecardHome() {
   const navigate = useNavigate();
+  const [tabsFixedVisible, setTabsFixedVisible] = useState(false);
+  const tabsSentinelRef = useRef(null);
+
+  useEffect(() => {
+    const sentinel = tabsSentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setTabsFixedVisible(!entry.isIntersecting);
+      },
+      {
+        root: null,
+        rootMargin: `-${NAVBAR_HEIGHT}px 0px 0px 0px`,
+        threshold: 0,
+      },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div className="min-h-screen bg-black">
@@ -35,8 +57,15 @@ export default function ScorecardHome() {
           </h1>
         </header>
 
-        <div className="pt-2">
-          <ScorecardTabs matches={MOCK_MATCHES} />
+        <div className="flex flex-col pt-2">
+          <div ref={tabsSentinelRef} className="h-px w-full" aria-hidden />
+          <div className="-mx-4 bg-black px-4 pb-2 pt-0.5">
+            <ScorecardTabs
+              matches={MOCK_MATCHES}
+              fixedVisible={tabsFixedVisible}
+              fixedTop={NAVBAR_HEIGHT}
+            />
+          </div>
         </div>
       </Container>
     </div>

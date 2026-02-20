@@ -25,26 +25,42 @@ const TABS = [
   { value: 'KTPL', label: 'KTPL', isTournament: true },
 ];
 
-export function ScorecardTabs({ matches }) {
+function TabListRow({ className = '' }) {
+  return (
+    <TabsList className={`${scorecardListClass} ${className}`.trim()}>
+      {TABS.map(({ value, label, isTournament }) =>
+        isTournament ? (
+          <Link
+            key={value}
+            to={`/scorecard/${value}`}
+            className={scorecardLinkClass}
+          >
+            {label}
+          </Link>
+        ) : (
+          <TabsTrigger key={value} value={value} className={scorecardTriggerClass}>
+            {label}
+          </TabsTrigger>
+        )
+      )}
+    </TabsList>
+  );
+}
+
+export function ScorecardTabs({ matches, fixedVisible = false, fixedTop = 64 }) {
   return (
     <Tabs defaultValue="all" className="w-full">
-      <TabsList className={scorecardListClass}>
-        {TABS.map(({ value, label, isTournament }) =>
-          isTournament ? (
-            <Link
-              key={value}
-              to={`/scorecard/${value}`}
-              className={scorecardLinkClass}
-            >
-              {label}
-            </Link>
-          ) : (
-            <TabsTrigger key={value} value={value} className={scorecardTriggerClass}>
-              {label}
-            </TabsTrigger>
-          )
-        )}
-      </TabsList>
+      {fixedVisible && (
+        <div
+          className="fixed left-0 right-0 z-10 bg-black pb-2 pt-1"
+          style={{ top: fixedTop }}
+        >
+          <div className="mx-auto max-w-2xl px-4">
+            <TabListRow />
+          </div>
+        </div>
+      )}
+      <TabListRow />
       <TabsContent value="all" className="mt-4 space-y-3 focus:outline-none">
         {matches.length === 0 ? (
           <p className="py-8 text-center text-[13px] text-[#A2A6AB]">

@@ -8,14 +8,19 @@ const STICKY_BODY_BG = 'bg-black';
 
 function SeriesFormCell({ form }) {
   if (!form) return null;
+  const chars = form.split('');
   return (
-    <span className="inline-flex gap-0.5 font-bold">
-      {form.split('').map((char, i) => (
-        <span
-          key={i}
-          className={char === 'W' ? 'text-[#FFC107]' : 'text-[#DC3545]'}
-        >
-          {char}
+    <span className="inline-flex items-center gap-0.5 font-bold">
+      {chars.map((char, i) => (
+        <span key={i} className="inline-flex items-center gap-0.5">
+          <span
+            className={char === 'W' ? 'text-[#FFC107]' : 'text-[#DC3545]'}
+          >
+            {char}
+          </span>
+          {i < chars.length - 1 && (
+            <span className="text-[#6B7280]">.</span>
+          )}
         </span>
       ))}
     </span>
@@ -43,7 +48,7 @@ function PointsTableGroup({ group }) {
               <th className={`border-b border-r ${BORDER} py-3.5 text-center font-medium w-12`}>T</th>
               <th className={`border-b border-r ${BORDER} py-3.5 text-center font-medium w-14`}>PTS</th>
               <th className={`border-b border-r ${BORDER} py-3.5 text-center font-medium w-14`}>NRR</th>
-              <th className={`border-b border-r ${BORDER} py-3.5 text-center font-medium w-20`}>Series Form</th>
+              <th className={`border-b border-r ${BORDER} py-3.5 px-1 text-center font-medium w-20`}>Series Form</th>
             </tr>
           </thead>
           <tbody>
@@ -67,7 +72,7 @@ function PointsTableGroup({ group }) {
                 <td className={`border-b border-r ${BORDER} py-3.5 text-center bg-transparent`}>{team.t}</td>
                 <td className={`border-b border-r ${BORDER} py-3.5 text-center bg-transparent`}>{team.pts}</td>
                 <td className={`border-b border-r ${BORDER} py-3.5 text-center bg-transparent`}>{team.nrr}</td>
-                <td className={`border-b border-r ${BORDER} py-3.5 text-center bg-transparent`}>
+                <td className={`border-b border-r ${BORDER} py-3.5 px-2 text-center bg-transparent`}>
                   <SeriesFormCell form={team.seriesForm} />
                 </td>
               </tr>
