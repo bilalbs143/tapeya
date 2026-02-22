@@ -17,6 +17,10 @@ export interface NotificationData {
   total?: string;
   currency?: string;
   message?: string;
+  event_request_id?: number;
+  event_name?: string;
+  contact_person_name?: string;
+  contact_phone?: string;
   [key: string]: unknown;
 }
 

@@ -262,14 +262,14 @@
                   ></i-tabler>
                 </a>
               }
-              @if (row.type === AdminNotificationType.EVENT_CREATED && row.data?.event_id !== null) {
+              @if (row.type === AdminNotificationType.EVENT_REQUEST_SUBMITTED && row.data?.event_request_id !== null) {
                 <a
-                  [routerLink]="['/events-management/events']"
-                  aria-label="View events"
+                  [routerLink]="['/events-management/event-requests']"
+                  aria-label="View event requests"
                   class="align-middle"
                 >
                   <i-tabler
-                    name="calendar-event"
+                    name="file-text"
                     class="size-4.5!"
                   ></i-tabler>
                 </a>

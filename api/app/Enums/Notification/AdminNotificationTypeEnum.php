@@ -10,5 +10,5 @@ enum AdminNotificationTypeEnum: string
 
     case ORDER_PLACED = 'order_placed';
     case USER_REGISTERED = 'user_registered';
-    case EVENT_CREATED = 'event_created';
+    case EVENT_REQUEST_SUBMITTED = 'event_request_submitted';
 }

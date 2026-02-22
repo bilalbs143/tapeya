@@ -60,8 +60,9 @@ export function DatePicker({
       const mm = String(date.getMonth() + 1).padStart(2, '0');
       const dd = String(date.getDate()).padStart(2, '0');
       const yyyy = date.getFullYear();
-      onChange?.(`${mm}-${dd}-${yyyy}`);
-      setOpen(false);
+      const value = `${mm}-${dd}-${yyyy}`;
+      onChange?.(value);
+      setTimeout(() => setOpen(false), 0);
     }
   };
 

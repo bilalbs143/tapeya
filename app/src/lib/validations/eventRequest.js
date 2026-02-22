@@ -9,6 +9,31 @@ const phoneSchema = z
   );
 
 /**
+ * Parse date string (MM-DD-YYYY or YYYY-MM-DD) to Date without relying on browser's
+ * new Date(string), which can fail on mobile Safari for non-ISO formats.
+ */
+function parseDateString(str) {
+  if (!str || typeof str !== 'string') return null;
+  const parts = str.trim().split(/[-/]/).map((p) => parseInt(p, 10));
+  if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return null;
+  const [a, b, c] = parts;
+  let year, month, day;
+  if (a >= 1 && a <= 31 && c >= 1000) {
+    month = a;
+    day = b;
+    year = c;
+  } else if (c >= 1 && c <= 31 && a >= 1000) {
+    year = a;
+    month = b;
+    day = c;
+  } else {
+    return null;
+  }
+  const d = new Date(year, month - 1, day);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/**
  * Event request form schema. Keys match event_requests table columns for easy submit mapping.
  * All fields required; enums validated by API.
  */
@@ -47,16 +72,23 @@ export const eventRequestSchema = z
   .refine(
     (data) => {
       if (!data.start_date || !data.end_date) return true;
-      return new Date(data.end_date) >= new Date(data.start_date);
+      const start = parseDateString(data.start_date);
+      const end = parseDateString(data.end_date);
+      if (!start || !end) return true;
+      return end >= start;
     },
     { message: 'End date must be on or after start date', path: ['end_date'] },
   )
   .refine(
     (data) => {
       if (!data.start_date) return true;
+      const start = parseDateString(data.start_date);
+      if (!start) return true;
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      return new Date(data.start_date) >= today;
+      const startMidnight = new Date(start);
+      startMidnight.setHours(0, 0, 0, 0);
+      return startMidnight >= today;
     },
     { message: 'Start date must be today or later', path: ['start_date'] },
   );

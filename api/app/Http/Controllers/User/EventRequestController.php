@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Enums\Event\EventRequestStatusEnum;
+use App\Events\EventRequestSubmitted;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\Event\StoreEventRequestRequest;
@@ -22,6 +23,7 @@ class EventRequestController extends Controller
         $data['status'] = EventRequestStatusEnum::PENDING;
 
         $eventRequest = EventRequest::create($data);
+        event(new EventRequestSubmitted($eventRequest));
 
         return $this->success(
             new EventRequestResource($eventRequest),

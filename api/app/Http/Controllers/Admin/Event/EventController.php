@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin\Event;
 
-use App\Events\EventCreated;
 use App\Http\Controllers\Admin\BaseAdminController;
 use App\Http\Requests\Admin\Event\StoreEventRequest;
 use App\Http\Requests\Admin\Event\UpdateEventRequest;
@@ -39,8 +38,6 @@ class EventController extends BaseAdminController
 
         $record = $this->model->create($data);
         $record = $this->refresh($record);
-
-        event(new EventCreated($record));
 
         return $this->success(new EventResource($record), 'Event created.', 'CREATED');
     }
