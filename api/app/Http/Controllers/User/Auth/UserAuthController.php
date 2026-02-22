@@ -6,6 +6,7 @@ use App\Enums\User\AppRoleEnum;
 use App\Enums\User\RoleGuardEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
+use App\Events\UserRegistered;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\Auth\RegisterRequest;
 use App\Http\Requests\User\Auth\RequestOtpRequest;
@@ -38,6 +39,7 @@ class UserAuthController extends Controller
 
         $user = User::create([
             'name' => $data['name'],
+            'nickname' => $data['nickname'],
             'phone' => $data['phone'],
             'email' => $data['email'] ?? null,
             'password' => null,
@@ -49,6 +51,8 @@ class UserAuthController extends Controller
         if ($playerRole) {
             $user->roles()->attach($playerRole->id);
         }
+
+        event(new UserRegistered($user));
 
         $this->otpService->sendToUser($user);
 

@@ -7,6 +7,7 @@ use App\Enums\Event\CricketFormatEnum;
 use App\Enums\Event\EventRequestStatusEnum;
 use App\Enums\Event\EventTypeEnum;
 use App\Enums\Event\MatchTimingEnum;
+use App\Enums\Notification\AdminNotificationTypeEnum;
 use App\Enums\Shop\OrderStatusEnum;
 use App\Enums\Shop\ProductDiscountTypeEnum;
 use App\Enums\User\BattingStyleEnum;
@@ -39,6 +40,7 @@ class EnumController extends Controller
             'cricket_format' => $this->toOptions(CricketFormatEnum::cases()),
             'match_timings' => $this->toOptions(MatchTimingEnum::cases()),
             'event_request_status' => $this->toOptions(EventRequestStatusEnum::cases()),
+            'notification_type' => $this->toOptions(AdminNotificationTypeEnum::cases()),
             'app_roles' => Role::forGuard('app')->orderBy('name')->get()->map(fn (Role $r) => [
                 'value' => (string) $r->id,
                 'label' => $r->name,

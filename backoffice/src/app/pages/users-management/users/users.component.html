@@ -146,6 +146,24 @@
             </td>
           </ng-container>
 
+          <ng-container matColumnDef="nickname">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Nickname
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm whitespace-nowrap"
+            >
+              {{ row.nickname ?? emptyCell }}
+            </td>
+          </ng-container>
+
           <ng-container matColumnDef="email">
             <th
               mat-header-cell

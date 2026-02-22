@@ -11,7 +11,7 @@ export function SquadsTab({ tournamentId }) {
 
   return (
     <div className="mt-4 pb-6 focus:outline-none">
-      <h1 className="border-b border-[#1A1A1A] pb-4 text-left text-[13px] font-bold uppercase tracking-wide text-white">
+      <h1 className="border-b border-[#1A1A1A] pb-4 text-left text-[13px] font-bold tracking-wide text-white uppercase">
         {title}
       </h1>
 

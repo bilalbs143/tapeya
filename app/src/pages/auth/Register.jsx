@@ -21,7 +21,7 @@ export default function Register() {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(registerSchema),
-    defaultValues: { phone: '+92', name: '', email: '' },
+    defaultValues: { phone: '+92', name: '', nickname: '', email: '' },
     mode: 'onChange',
   });
 
@@ -31,6 +31,7 @@ export default function Register() {
     try {
       const result = await registerUser({
         name: data.name,
+        nickname: data.nickname,
         phone: data.phone,
         email: data.email || undefined,
       }).unwrap();
@@ -93,6 +94,17 @@ export default function Register() {
             />
           </FormField>
 
+          <FormField label="Nickname" htmlFor="nickname">
+            <Input
+              id="nickname"
+              type="text"
+              placeholder="Letters, numbers, underscores only"
+              autoComplete="username"
+              error={errors.nickname?.message}
+              {...register('nickname')}
+            />
+          </FormField>
+
           <FormField label="Email" htmlFor="email">
             <Input
               id="email"
@@ -109,7 +121,10 @@ export default function Register() {
               className="rounded-lg bg-red-500/20 px-4 py-2 text-sm text-red-200"
               role="alert"
             >
-              {getApiErrorMessage(error, 'Registration failed. Please try again.')}
+              {getApiErrorMessage(
+                error,
+                'Registration failed. Please try again.',
+              )}
             </p>
           )}
 

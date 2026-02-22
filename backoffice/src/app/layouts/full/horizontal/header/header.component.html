@@ -17,20 +17,6 @@
     </button>
     <!-- --------------------------------------------------------------- -->
 
-    <!-- --------------------------------------------------------------- -->
-    <!--  Search -->
-    <!-- --------------------------------------------------------------- -->
-    <button
-      mat-icon-button
-      (click)="openDialog()"
-      class="flex"
-    >
-      <i
-        class="iconify size-5.5!"
-        data-icon="solar:magnifer-line-duotone"
-      ></i>
-    </button>
-
     <div class="hidden lg:flex">
       <!-- --------------------------------------------------------------- -->
       <!--  Links -->
@@ -177,7 +163,8 @@
     <!-- --------------------------------------------------------------- -->
     <button
       mat-icon-button
-      matBadge="5"
+      [matBadge]="notificationsUnreadCount"
+      [matBadgeHidden]="notificationsUnreadCount === 0"
       [matMenuTriggerFor]="notificationmenu"
       aria-label="Notifications"
       class="notification-badge"
@@ -190,44 +177,57 @@
     <mat-menu
       #notificationmenu="matMenu"
       class="topbar-dd cardWithShadow"
+      (opened)="loadNotifications()"
     >
       <div class="flex items-center px-6 py-4">
         <h6 class="text-base font-semibold m-0">Notifications</h6>
-        <span class="ms-auto">
-          <span class="bg-primary text-white px-2 py-1 font-medium rounded-sm text-xs">5 new</span>
-        </span>
+        @if (notificationsUnreadCount > 0) {
+          <span class="ms-auto">
+            <span class="bg-primary text-white px-2 py-1 font-medium rounded-sm text-xs">
+              {{ notificationsUnreadCount }} new
+            </span>
+          </span>
+        }
       </div>
-
-      @for (notification of notifications; track notification.title) {
-        <button
-          mat-menu-item
-          class="px-5! py-2!"
-        >
-          <div class="flex items-center">
-            <img
-              [src]="notification.img"
-              [alt]="notification.title"
-              class="rounded-full"
-              width="48"
-            />
-            <div class="ms-4">
-              <h5 class="text-sm font-semibold m-0">
-                {{ notification.title }}
-              </h5>
-              <span>{{ notification.subtitle }}</span>
+      @if (notificationsLoading) {
+        <div class="px-6 py-4 text-muted text-sm">Loading…</div>
+      } @else if (apiNotifications.length === 0) {
+        <div class="px-6 py-4 text-muted text-sm">No notifications</div>
+      } @else {
+        @for (notification of apiNotifications; track notification.id) {
+          <a
+            mat-menu-item
+            class="px-5! py-2! block"
+            [routerLink]="['/notifications']"
+          >
+            <div class="flex items-start">
+              <span
+                class="rounded-full bg-light-primary text-primary size-10! flex items-center justify-center shrink-0"
+              >
+                <i-tabler
+                  [name]="notificationIcon(notification.type)"
+                  class="size-5!"
+                ></i-tabler>
+              </span>
+              <div class="ms-4 min-w-0">
+                <h5 class="text-sm font-semibold m-0">
+                  {{ notificationTypeLabel(notification.type) }}
+                </h5>
+                <span class="text-xs text-body line-clamp-2">{{ notification.data.message ?? '' }}</span>
+              </div>
             </div>
-          </div>
-        </button>
+          </a>
+        }
       }
-
       <div class="py-3 px-6">
-        <button
+        <a
           mat-stroked-button
           color="primary"
           class="w-full"
+          routerLink="/notifications"
         >
           See all notifications
-        </button>
+        </a>
       </div>
     </mat-menu>
 

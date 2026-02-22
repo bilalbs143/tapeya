@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\User\Auth\UserAuthController;
+use App\Http\Controllers\User\EnumController;
 use App\Http\Controllers\User\EventRequestController;
 use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\User\Shop\BrandController;
@@ -16,6 +17,8 @@ use Illuminate\Support\Facades\Route;
 | User API (app / customer-facing)
 |--------------------------------------------------------------------------
 */
+
+Route::get('enums', [EnumController::class, 'index']);
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [UserAuthController::class, 'register']);

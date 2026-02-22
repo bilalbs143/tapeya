@@ -1,6 +1,7 @@
+import { memo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { formatPrice } from '@/lib/format';
+import { formatDate, formatPrice } from '@/lib/format';
 import { useGetOrdersQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 
@@ -21,19 +22,35 @@ const STATUS_PILL_STYLES = {
     'border border-[#34C759] text-[#34C759] font-bold uppercase tracking-wide',
 };
 
-function getRelativeTime(isoString) {
+const MINUTE_MS = 60 * 1000;
+const HOUR_MS = 60 * MINUTE_MS;
+const DAY_MS = 24 * HOUR_MS;
+const RELATIVE_DAYS_CUTOFF = 10;
+
+function getHumanizedDate(isoString) {
   if (!isoString) return '';
   const date = new Date(isoString);
   if (Number.isNaN(date.getTime())) return '';
   const now = new Date();
   const diffMs = now - date;
-  const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return '1 day ago';
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-  if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
-  return `${Math.floor(diffDays / 365)} years ago`;
+
+  if (diffMs < 0) return formatDate(date);
+  if (diffMs < MINUTE_MS) return 'Moments ago';
+  if (diffMs < HOUR_MS) {
+    const mins = Math.floor(diffMs / MINUTE_MS);
+    return mins === 1 ? '1 minute ago' : `${mins} minutes ago`;
+  }
+  if (diffMs < DAY_MS) {
+    const hours = Math.floor(diffMs / HOUR_MS);
+    return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
+  }
+
+  const diffDays = Math.floor(diffMs / DAY_MS);
+  if (diffDays <= RELATIVE_DAYS_CUTOFF) {
+    return diffDays === 1 ? '1 day ago' : `${diffDays} days ago`;
+  }
+
+  return formatDate(date);
 }
 
 function OrderStatusPill({ status, statusLabel }) {
@@ -53,7 +70,7 @@ function OrderStatusPill({ status, statusLabel }) {
   );
 }
 
-function OrderCard({ order, onClick }) {
+const OrderCard = memo(function OrderCard({ order, onClick }) {
   const items = order.items ?? [];
   const firstItemName = items[0]?.product_snapshot?.name ?? 'Order items';
   const extraCount = items.length > 1 ? items.length - 1 : 0;
@@ -67,7 +84,7 @@ function OrderCard({ order, onClick }) {
     rawSummary.length > maxLen
       ? `${rawSummary.slice(0, maxLen - 3).trim()}...`
       : rawSummary;
-  const relativeTime = getRelativeTime(order.created_at);
+  const relativeTime = getHumanizedDate(order.created_at);
 
   return (
     <button
@@ -76,7 +93,7 @@ function OrderCard({ order, onClick }) {
       className="flex w-full flex-col gap-0 rounded-[17px] bg-[#141412] p-4 text-left transition-opacity active:opacity-90"
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <p className="min-w-0 flex-1 text-base font-bold leading-tight text-white">
+        <p className="min-w-0 flex-1 text-base leading-tight font-bold text-white">
           {order.order_number ?? '—'}
         </p>
         {relativeTime && (
@@ -86,12 +103,11 @@ function OrderCard({ order, onClick }) {
         )}
       </div>
       <div className="mt-2 flex flex-wrap items-start justify-between gap-2">
-        <div className="min-w-0 flex-1 flex items-center gap-2">
-        <p className="text-base font-bold leading-tight text-[16px] text-[#DA9811]">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <p className="text-base text-[16px] leading-tight font-bold text-[#DA9811]">
             {formatPrice(order.total)}
           </p>
           <p className="text-[16px] font-medium text-[#808080]">Total</p>
-      
         </div>
         <OrderStatusPill
           status={order.status}
@@ -110,11 +126,16 @@ function OrderCard({ order, onClick }) {
       </div>
     </button>
   );
-}
+});
 
 export default function MyOrders() {
   const navigate = useNavigate();
-  const { data: ordersResponse, isLoading } = useGetOrdersQuery({
+  const {
+    data: ordersResponse,
+    isLoading,
+    isError,
+    refetch,
+  } = useGetOrdersQuery({
     per_page: 50,
   });
   const orders = ordersResponse?.data ?? [];
@@ -126,9 +147,12 @@ export default function MyOrders() {
     (o) => !CURRENT_STATUSES.includes(o.status ?? ''),
   );
 
-  const handleOrderClick = (orderId) => {
-    navigate(`/shop/orders/${orderId}`);
-  };
+  const handleOrderClick = useCallback(
+    (orderId) => {
+      navigate(`/shop/orders/${orderId}`);
+    },
+    [navigate],
+  );
 
   return (
     <div className="min-h-screen bg-black">
@@ -157,7 +181,28 @@ export default function MyOrders() {
           </h1>
         </header>
 
-        {!isLoading && (
+        {isLoading && (
+          <div className="flex min-h-[30vh] items-center justify-center py-12">
+            <p className="text-[14px] text-[#A2A6AB]">Loading orders…</p>
+          </div>
+        )}
+
+        {isError && !isLoading && (
+          <div className="flex min-h-[30vh] flex-col items-center justify-center gap-4 py-12">
+            <p className="text-[14px] text-[#A2A6AB]">
+              Could not load orders. Please try again.
+            </p>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="rounded-full bg-[#DA9811] px-6 py-2.5 text-[14px] font-bold text-black"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {!isLoading && !isError && (
           <div className="flex flex-col gap-8 pt-2">
             <section>
               <h2 className="mb-4 text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">

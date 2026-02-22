@@ -18,12 +18,7 @@ const STATUS_STYLES = {
 function LiveIcon() {
   return (
     <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-white bg-transparent">
-      <svg
-        width="12"
-        height="12"
-        viewBox="0 0 12 12"
-        fill="none"
-      >
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
         <rect
           x="3"
           y="4"
@@ -77,7 +72,8 @@ function TeamAvatar({ team, accent }) {
 
 /** Parse score2 like "27/1 (4.4/50 OV, T:235)" into current score and overs */
 function parseLiveScore2(score2) {
-  if (!score2 || typeof score2 !== 'string') return { current: score2, overs: null };
+  if (!score2 || typeof score2 !== 'string')
+    return { current: score2, overs: null };
   const idx = score2.indexOf(' (');
   if (idx === -1) return { current: score2, overs: null };
   return {
@@ -98,15 +94,14 @@ function CommentaryWithNumbers({ text }) {
           </span>
         ) : (
           part
-        )
+        ),
       )}
     </span>
   );
 }
 
 export function MatchCard({ match, showScheduleTableLinks = true }) {
-  const { status, matchId, league, team1, team2, score1, score2, meta } =
-    match;
+  const { status, matchId, league, team1, team2, score1, score2, meta } = match;
   const isUpcoming = status === 'upcoming';
   const isLive = status === 'live';
   const isResult = status === 'result';
@@ -119,7 +114,9 @@ export function MatchCard({ match, showScheduleTableLinks = true }) {
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           {isLive && <LiveIcon />}
-          <span className={`text-[12px] font-bold uppercase ${STATUS_STYLES[status]}`}>
+          <span
+            className={`text-[12px] font-bold uppercase ${STATUS_STYLES[status]}`}
+          >
             {status}
           </span>
         </div>
@@ -139,7 +136,9 @@ export function MatchCard({ match, showScheduleTableLinks = true }) {
               {team1.name}
             </span>
           </div>
-          <span className="shrink-0 text-[14px] font-semibold text-[#DA9811]">VS</span>
+          <span className="shrink-0 text-[14px] font-semibold text-[#DA9811]">
+            VS
+          </span>
           <div className="flex min-w-0 items-center justify-end gap-2">
             <TeamAvatar team={team2} accent="orange" />
             <span className="truncate text-[14px] font-semibold text-white">
@@ -157,7 +156,9 @@ export function MatchCard({ match, showScheduleTableLinks = true }) {
               </span>
             </div>
             {score1 && (
-              <span className="shrink-0 text-[14px] font-medium text-white">{score1}</span>
+              <span className="shrink-0 text-[14px] font-medium text-white">
+                {score1}
+              </span>
             )}
           </div>
           <div className="flex items-center justify-between gap-2">
@@ -170,7 +171,9 @@ export function MatchCard({ match, showScheduleTableLinks = true }) {
             {score2 && (
               <span className="shrink-0 text-right">
                 {liveScore2?.overs && (
-                  <span className="text-[13px] text-[#A2A6AB]">{liveScore2.overs}</span>
+                  <span className="text-[13px] text-[#A2A6AB]">
+                    {liveScore2.overs}
+                  </span>
                 )}
                 {liveScore2?.overs && ' '}
                 <span className="text-[14px] font-bold text-[#DA9811]">

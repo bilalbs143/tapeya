@@ -1,14 +1,21 @@
+import { memo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { formatPrice } from '@/lib/format';
+import { formatPrice, toNumber } from '@/lib/format';
 import {
   useGetCartQuery,
   useRemoveCartItemMutation,
   useUpdateCartItemMutation,
 } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
+import { useToast } from '@/ui/useToast';
 
-function CartItemCard({ item, onUpdateQty, onRemove, isUpdating }) {
+const CartItemCard = memo(function CartItemCard({
+  item,
+  onUpdateQty,
+  onRemove,
+  isUpdating,
+}) {
   const imageUrl = item.product?.images?.[0]?.path;
   const name = item.product?.name ?? 'Product';
 
@@ -60,34 +67,51 @@ function CartItemCard({ item, onUpdateQty, onRemove, isUpdating }) {
       </div>
     </div>
   );
-}
+});
 
 export default function ShopCart() {
   const navigate = useNavigate();
+  const toast = useToast();
   const { data: cart, isLoading } = useGetCartQuery();
   const [updateItem, { isLoading: isUpdating }] = useUpdateCartItemMutation();
   const [removeItem] = useRemoveCartItemMutation();
 
   const items = cart?.items ?? [];
-  const subtotalFromApi = Number(cart?.subtotal) ?? 0;
+  const subtotalFromApi = toNumber(cart?.subtotal);
   const subtotalFromItems = items.reduce(
-    (sum, i) => sum + (Number(i.price_snapshot) || 0) * (Number(i.quantity) || 0),
+    (sum, i) =>
+      sum + toNumber(i.price_snapshot) * Math.max(0, toNumber(i.quantity)),
     0,
   );
   const subtotal = subtotalFromApi > 0 ? subtotalFromApi : subtotalFromItems;
-  const shipping = Number(cart?.shipping_amount ?? cart?.shipping) ?? 0;
-  const discount = Number(cart?.discount_amount ?? cart?.discount) ?? 0;
+  const shipping = toNumber(cart?.shipping_amount ?? cart?.shipping);
+  const discount = toNumber(cart?.discount_amount ?? cart?.discount);
   const computedTotal = Math.max(0, subtotal + shipping - discount);
-  const apiTotal = Number(cart?.total);
-  const grandTotal = apiTotal > 0 ? apiTotal : computedTotal;
+  const apiTotal = toNumber(cart?.total);
+  const grandTotal = Math.max(
+    0,
+    Number.isFinite(apiTotal) && apiTotal > 0 ? apiTotal : computedTotal,
+  );
 
-  const handleUpdateQty = (cartItemId, quantity) => {
-    updateItem({ cartItemId, quantity });
-  };
+  const handleUpdateQty = useCallback(
+    (cartItemId, quantity) => {
+      updateItem({ cartItemId, quantity })
+        .unwrap()
+        .then(() => toast.success('Cart updated'))
+        .catch(() => toast.error('Could not update cart. Try again.'));
+    },
+    [updateItem, toast],
+  );
 
-  const handleRemove = (cartItemId) => {
-    removeItem(cartItemId);
-  };
+  const handleRemove = useCallback(
+    (cartItemId) => {
+      removeItem(cartItemId)
+        .unwrap()
+        .then(() => toast.success('Item removed'))
+        .catch(() => toast.error('Could not remove item. Try again.'));
+    },
+    [removeItem, toast],
+  );
 
   const emptyCart = !isLoading && items.length === 0;
 
@@ -126,7 +150,7 @@ export default function ShopCart() {
               onClick={() => navigate('/shop')}
               className="rounded-full bg-[#DA9811] px-6 py-3 text-[14px] font-bold text-black"
             >
-              Continue shopping
+              Continue Shopping
             </button>
           </div>
         ) : (

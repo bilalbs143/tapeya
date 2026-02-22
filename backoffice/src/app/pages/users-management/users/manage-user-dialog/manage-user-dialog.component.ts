@@ -86,6 +86,10 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
     this.form = this.fb.group({
       id: [user?.id ?? null],
       name: [user?.name ?? '', [Validators.required]],
+      nickname: [
+        user?.nickname ?? '',
+        [Validators.required, Validators.maxLength(50), Validators.pattern(/^[a-zA-Z0-9_]+$/)],
+      ],
       email: [user?.email ?? ''],
       phone: [user?.phone ?? '', [Validators.required, Validators.pattern(PHONE_PATTERN)]],
       date_of_birth: [user?.date_of_birth ?? null],
@@ -164,6 +168,7 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
     const raw = this.form.getRawValue();
     const payload: Record<string, unknown> = {
       name: raw.name,
+      nickname: raw.nickname || null,
       email: raw.email || null,
       phone: raw.phone || null,
       date_of_birth: raw.date_of_birth || null,

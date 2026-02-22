@@ -16,6 +16,7 @@ export interface UserRole {
 export interface User {
   id: number;
   name: string;
+  nickname: string | null;
   email: string | null;
   phone: string | null;
   date_of_birth?: string | null;
@@ -52,6 +53,7 @@ export interface UsersListResponse {
 
 export interface CreateUserPayload {
   name: string;
+  nickname: string;
   email?: string | null;
   phone?: string | null;
   date_of_birth?: string | null;

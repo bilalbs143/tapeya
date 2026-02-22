@@ -1,16 +1,21 @@
+import { memo, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { formatDate, formatPrice } from '@/lib/format';
 import { useGetOrderQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 
-function OrderItemCard({ item, orderStatus, orderUpdatedAt }) {
+const OrderItemCard = memo(function OrderItemCard({
+  item,
+  orderStatus,
+  orderUpdatedAt,
+}) {
   const snapshot = item.product_snapshot ?? {};
   const name = snapshot.name ?? 'Product';
   const edition = snapshot.edition ?? snapshot.variant ?? '';
   const unitPrice = item.unit_price ?? 0;
   const quantity = item.quantity ?? 1;
-  const imageUrl = snapshot.image_url ?? snapshot.image ?? null;
+  const imageUrl = snapshot.image_url;
 
   const isDelivered = orderStatus === 'delivered';
   const deliveryLabel = isDelivered
@@ -21,11 +26,7 @@ function OrderItemCard({ item, orderStatus, orderUpdatedAt }) {
     <div className="flex gap-3 rounded-[17px] bg-[#141412] p-4">
       <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-white">
         {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt=""
-            className="h-full w-full object-contain"
-          />
+          <img src={imageUrl} alt="" className="h-full w-full object-contain" />
         ) : (
           <div
             className="flex h-full w-full items-center justify-center bg-[#1A1A1A] text-[20px] font-bold text-[#DA9811]"
@@ -65,7 +66,7 @@ function OrderItemCard({ item, orderStatus, orderUpdatedAt }) {
       </div>
     </div>
   );
-}
+});
 
 export default function OrderDetail() {
   const { orderId } = useParams();
@@ -78,10 +79,11 @@ export default function OrderDetail() {
     skip: !orderId,
   });
 
-  if (!orderId) {
-    navigate('/shop/orders', { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (!orderId) navigate('/shop/orders', { replace: true });
+  }, [orderId, navigate]);
+
+  if (!orderId) return null;
 
   if (isLoading) {
     return (
@@ -91,25 +93,25 @@ export default function OrderDetail() {
             <button
               type="button"
               onClick={() => navigate(-1)}
-className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-white transition-opacity active:opacity-80"
-            aria-label="Back"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
+              className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-white transition-opacity active:opacity-80"
+              aria-label="Back"
             >
-              <path d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="min-w-0 flex-1 pr-[27px] text-center text-[16px] font-bold tracking-wide text-white uppercase">
-            SELECTED ITEMS
-          </h1>
-        </header>
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <h1 className="min-w-0 flex-1 pr-[27px] text-center text-[16px] font-bold tracking-wide text-white uppercase">
+              SELECTED ITEMS
+            </h1>
+          </header>
           <div className="flex min-h-[40vh] items-center justify-center py-12">
             <p className="text-[14px] text-[#A2A6AB]">Loading order…</p>
           </div>
@@ -126,25 +128,25 @@ className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-f
             <button
               type="button"
               onClick={() => navigate(-1)}
-className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-[#2a2a2a] text-white transition-opacity active:opacity-80"
-            aria-label="Back"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
+              className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-[#2a2a2a] text-white transition-opacity active:opacity-80"
+              aria-label="Back"
             >
-              <path d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="min-w-0 flex-1 pr-[27px] text-center text-[16px] font-bold tracking-wide text-white uppercase">
-            SELECTED ITEMS
-          </h1>
-        </header>
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <h1 className="min-w-0 flex-1 pr-[27px] text-center text-[16px] font-bold tracking-wide text-white uppercase">
+              SELECTED ITEMS
+            </h1>
+          </header>
           <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 py-12">
             <p className="text-[14px] text-[#A2A6AB]">Order not found.</p>
             <button
@@ -152,7 +154,7 @@ className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-f
               onClick={() => navigate('/shop/orders')}
               className="rounded-full bg-[#DA9811] px-6 py-2.5 text-[14px] font-bold text-black"
             >
-              My orders
+              My Orders
             </button>
           </div>
         </Container>
@@ -162,13 +164,12 @@ className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-f
 
   const orderNumber = order.order_number ?? orderId;
   const items = order.items ?? [];
-  const subtotal = Number(order.subtotal) ?? 0;
-  const shipping = Number(order.shipping_amount) ?? 0;
-  const discount = Number(order.discount_amount) ?? 0;
-  const total = Number(order.total) ?? 0;
+  const subtotal = order.subtotal;
+  const shipping = order.shipping_amount;
+  const discount = order.discount_amount;
+  const total = order.total;
   const status = order.status ?? '';
   const updatedAt = order.updated_at ?? order.created_at;
-  const canPay = status === 'pending' || status === 'processing';
 
   return (
     <div className="min-h-screen bg-black">
@@ -197,17 +198,19 @@ className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-f
           </h1>
         </header>
 
-        <div className="pb-8 pt-2">
-          <p className="mb-4 text-[16px] font-bold uppercase tracking-wide text-[#DA9811]">
+        <div className="pt-2 pb-8">
+          <p className="mb-4 text-[16px] font-bold tracking-wide text-[#DA9811] uppercase">
             ORDER NUMBER:{' '}
-            <span className="font-bold uppercase text-[#DA9811]">
+            <span className="font-bold text-[#DA9811] uppercase">
               {orderNumber}
             </span>
           </p>
 
           <div className="flex flex-col gap-3">
             {items.length === 0 ? (
-              <p className="text-[13px] text-[#A2A6AB]">No items in this order.</p>
+              <p className="text-[13px] text-[#A2A6AB]">
+                No items in this order.
+              </p>
             ) : (
               items.map((item) => (
                 <OrderItemCard
@@ -224,19 +227,19 @@ className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-f
             <div className="flex justify-between text-[14px]">
               <span className="text-white">Subtotal:</span>
               <span className="font-bold text-white">
-                {subtotal.toLocaleString()}
+                {formatPrice(subtotal)}
               </span>
             </div>
             <div className="flex justify-between text-[14px]">
               <span className="text-white">Shipping:</span>
               <span className="font-bold text-white">
-                {shipping.toLocaleString()}
+                {formatPrice(shipping)}
               </span>
             </div>
             <div className="flex justify-between text-[14px]">
               <span className="text-white">Discount:</span>
               <span className="font-bold text-white">
-                {discount.toLocaleString()}
+                {formatPrice(discount)}
               </span>
             </div>
           </div>
@@ -247,20 +250,18 @@ className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-f
                 Grand Total:
               </p>
               <p className="mt-1 text-[20px] font-bold text-[#DA9811]">
-                {formatPrice(total)} {order.currency ?? 'PKR'}
+                {formatPrice(total)}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() =>
-                canPay
-                  ? navigate(`/shop/order-payment/${order.id}`)
-                  : navigate(-1)
-              }
-              className="shrink-0 rounded-[6px] bg-[#DA9811] px-6 py-3.5 text-[16px] font-semibold text-black transition-opacity active:opacity-90"
-            >
-              Pay Now
-            </button>
+            {status === 'pending' && (
+              <button
+                type="button"
+                onClick={() => navigate(`/shop/order-payment/${order.id}`)}
+                className="shrink-0 rounded-[6px] bg-[#DA9811] px-6 py-3.5 text-[16px] font-semibold text-black transition-opacity active:opacity-90"
+              >
+                Pay Now
+              </button>
+            )}
           </div>
         </div>
       </Container>

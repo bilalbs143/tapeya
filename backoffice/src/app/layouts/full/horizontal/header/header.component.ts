@@ -1,24 +1,16 @@
-import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { MatDialog } from '@angular/material/dialog';
+import { Component, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 
-import { NavItem } from '../../shared/nav/nav-item.model';
-import { navItems } from '../../shared/nav/sidebar-data';
 import { BrandingComponent } from '../../vertical/sidebar/branding.component';
 
 import { AppSettings } from 'src/app/config';
 import { MaterialModule } from 'src/app/material.module';
 import { CoreService } from 'src/app/services/core.service';
-
-interface notifications {
-  id: number;
-  img: string;
-  title: string;
-  subtitle: string;
-}
+import type { Notification } from 'src/app/services/notifications.service';
+import { NotificationsService } from 'src/app/services/notifications.service';
+import { ADMIN_NOTIFICATION_TYPE_LABELS, AdminNotificationType } from 'src/app/shared/constants/notification.constants';
 
 interface profiledd {
   id: number;
@@ -47,7 +39,7 @@ interface quicklinks {
   imports: [RouterModule, TablerIconsModule, MaterialModule, BrandingComponent, NgScrollbarModule],
   templateUrl: './header.component.html',
 })
-export class AppHorizontalHeaderComponent {
+export class AppHorizontalHeaderComponent implements OnInit {
   @Input() public showToggle = true;
   @Input() public toggleChecked = false;
   @Output() public readonly toggleMobileNav = new EventEmitter<void>();
@@ -56,65 +48,56 @@ export class AppHorizontalHeaderComponent {
   @Output() public readonly optionsChange = new EventEmitter<AppSettings>();
 
   public showFiller = false;
+  public readonly AdminNotificationType = AdminNotificationType;
 
   private readonly settings = inject(CoreService);
-  public readonly dialog = inject(MatDialog);
+  private readonly notificationsService = inject(NotificationsService);
 
-  /** Current options from the service (persisted in localStorage). */
+  public apiNotifications: Notification[] = [];
+  public notificationsUnreadCount = 0;
+  public notificationsLoading = false;
+
   public get options(): AppSettings {
     return this.settings.getOptions();
-  }
-
-  public openDialog(): void {
-    const dialogRef = this.dialog.open(AppHorizontalSearchDialogComponent);
-
-    dialogRef.afterClosed().subscribe((result) => {
-      console.log(`Dialog result: ${result}`);
-    });
   }
 
   private emitOptions(): void {
     this.optionsChange.emit(this.settings.getOptions());
   }
 
-  /** Toggle light/dark theme and persist to localStorage. */
   public setlightDark(theme: 'light' | 'dark'): void {
     this.settings.setOptions({ theme });
     this.emitOptions();
   }
 
-  public notifications: notifications[] = [
-    {
-      id: 1,
-      img: '/assets/images/profile/user-1.jpg',
-      title: 'Roman Joined thes Team!',
-      subtitle: 'Congratulate him',
-    },
-    {
-      id: 2,
-      img: '/assets/images/profile/user-2.jpg',
-      title: 'New message received',
-      subtitle: 'Salma sent you new message',
-    },
-    {
-      id: 3,
-      img: '/assets/images/profile/user-3.jpg',
-      title: 'New Payment received',
-      subtitle: 'Check your earnings',
-    },
-    {
-      id: 4,
-      img: '/assets/images/profile/user-4.jpg',
-      title: 'Jolly completed tasks',
-      subtitle: 'Assign her new tasks',
-    },
-    {
-      id: 5,
-      img: '/assets/images/profile/user-5.jpg',
-      title: 'Roman Joined the Team!',
-      subtitle: 'Congratulate him',
-    },
-  ];
+  public ngOnInit(): void {
+    this.loadNotifications();
+  }
+
+  public loadNotifications(): void {
+    this.notificationsLoading = true;
+    this.notificationsService.getList({ page: 1, per_page: 5 }).subscribe({
+      next: (res) => {
+        this.apiNotifications = res?.data ?? [];
+        this.notificationsUnreadCount = res?.meta?.unread_count ?? 0;
+        this.notificationsLoading = false;
+      },
+      error: () => {
+        this.notificationsLoading = false;
+      },
+    });
+  }
+
+  public notificationTypeLabel(type: string | null): string {
+    if (!type) return 'Notification';
+    return ADMIN_NOTIFICATION_TYPE_LABELS[type as keyof typeof ADMIN_NOTIFICATION_TYPE_LABELS] ?? type;
+  }
+
+  public notificationIcon(type: string | null): string {
+    if (type === AdminNotificationType.ORDER_PLACED) return 'shopping-cart';
+    if (type === AdminNotificationType.EVENT_CREATED) return 'calendar-event';
+    return 'user';
+  }
 
   public profiledd: profiledd[] = [
     {
@@ -241,15 +224,4 @@ export class AppHorizontalHeaderComponent {
       link: '/',
     },
   ];
-}
-
-@Component({
-  selector: 'app-search-dialog',
-  imports: [RouterModule, MaterialModule, TablerIconsModule, FormsModule],
-  templateUrl: 'search-dialog.component.html',
-})
-export class AppHorizontalSearchDialogComponent {
-  public searchText: string = '';
-  public navItems = navItems;
-  public navItemsData = navItems.filter((navitem: NavItem) => navitem.displayName);
 }

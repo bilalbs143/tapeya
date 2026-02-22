@@ -81,7 +81,10 @@ export default function Login() {
               className="rounded-lg bg-red-500/20 px-4 py-2 text-sm text-red-200"
               role="alert"
             >
-              {getApiErrorMessage(error, 'Could not send OTP. Please try again.')}
+              {getApiErrorMessage(
+                error,
+                'Could not send OTP. Please try again.',
+              )}
             </p>
           )}
 

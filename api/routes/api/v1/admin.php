@@ -2,10 +2,11 @@
 
 use App\Http\Controllers\Admin\Auth\AdminAuthController;
 use App\Http\Controllers\Admin\CountryController;
+use App\Http\Controllers\Admin\EnumController;
 use App\Http\Controllers\Admin\Event\EventController as AdminEventController;
 use App\Http\Controllers\Admin\Event\EventRequestController as AdminEventRequestController;
-use App\Http\Controllers\Admin\EnumController;
 use App\Http\Controllers\Admin\HeroSliderController;
+use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\Shop\BrandController as AdminBrandController;
 use App\Http\Controllers\Admin\Shop\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\Shop\OrderController as AdminOrderController;
@@ -25,6 +26,10 @@ Route::prefix('admin')->group(function () {
 
     Route::middleware(['auth:api', 'admin.only'])->group(function () {
         Route::get('enums', [EnumController::class, 'index']);
+        Route::get('notifications', [NotificationController::class, 'index']);
+        Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+        Route::delete('notifications', [NotificationController::class, 'flush']);
+        Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
         Route::get('countries', [CountryController::class, 'index']);
         Route::get('countries/cities', [CountryController::class, 'cities']);
         Route::apiResource('users', UserController::class);

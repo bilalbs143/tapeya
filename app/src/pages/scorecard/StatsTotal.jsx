@@ -12,17 +12,31 @@ const STICKY_BODY_BG = 'bg-black';
 const VALID_STAT_TYPES = ['fours', 'sixes', 'run-scorers', 'wicket-takers'];
 
 const TITLES = {
-  fours: { main: (t) => `MOST FOURS ${t || ''} 2026 - SEASON 3`, sub: 'MOST FOURS' },
-  sixes: { main: (t) => `MOST SIXES ${t || ''} 2026 - SEASON 3`, sub: 'MOST SIXES' },
-  'run-scorers': { main: (t) => `TOP RUN SCORERS ${t || ''} 2026 - SEASON 3`, sub: 'TOP RUN SCORERS' },
-  'wicket-takers': { main: (t) => `TOP WICKET TAKERS ${t || ''} 2026 - SEASON 3`, sub: 'TOP WICKET TAKERS' },
+  fours: {
+    main: (t) => `MOST FOURS ${t || ''} 2026 - SEASON 3`,
+    sub: 'MOST FOURS',
+  },
+  sixes: {
+    main: (t) => `MOST SIXES ${t || ''} 2026 - SEASON 3`,
+    sub: 'MOST SIXES',
+  },
+  'run-scorers': {
+    main: (t) => `TOP RUN SCORERS ${t || ''} 2026 - SEASON 3`,
+    sub: 'TOP RUN SCORERS',
+  },
+  'wicket-takers': {
+    main: (t) => `TOP WICKET TAKERS ${t || ''} 2026 - SEASON 3`,
+    sub: 'TOP WICKET TAKERS',
+  },
 };
 
 function StatsTotalContent() {
   const navigate = useNavigate();
   const { tournamentId, statType } = useParams();
 
-  const normalizedType = VALID_STAT_TYPES.includes(statType) ? statType : 'fours';
+  const normalizedType = VALID_STAT_TYPES.includes(statType)
+    ? statType
+    : 'fours';
   const rows = getStatsTotalRows(tournamentId, normalizedType);
   const titles = TITLES[normalizedType] ?? TITLES.fours;
   const mainTitle = titles.main(tournamentId);
@@ -63,11 +77,11 @@ function StatsTotalContent() {
       </header>
 
       <Container className="!px-4 pb-6">
-        <h2 className="text-center text-base font-bold uppercase tracking-wide text-white">
+        <h2 className="text-center text-base font-bold tracking-wide text-white uppercase">
           {mainTitle}
         </h2>
 
-        <h3 className="mt-4 text-left text-sm font-medium uppercase tracking-wide text-white">
+        <h3 className="mt-4 text-left text-sm font-medium tracking-wide text-white uppercase">
           {subheading}
         </h3>
 
@@ -75,21 +89,41 @@ function StatsTotalContent() {
           <table className="w-full min-w-max border-collapse text-[12px] text-white">
             <thead>
               <tr className={HEADER_BG}>
-                <th className={`${STICKY_PLAYER} ${HEADER_BG} border-b border-l border-r ${BORDER} py-3.5 pl-4 text-left font-medium`}>
+                <th
+                  className={`${STICKY_PLAYER} ${HEADER_BG} border-r border-b border-l ${BORDER} py-3.5 pl-4 text-left font-medium`}
+                >
                   Player
                 </th>
-                <th className={`border-b border-r ${BORDER} py-3.5 text-center font-medium w-12`}>Mat</th>
-                <th className={`border-b border-r ${BORDER} py-3.5 text-center font-medium w-12`}>Inns</th>
+                <th
+                  className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-medium`}
+                >
+                  Mat
+                </th>
+                <th
+                  className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-medium`}
+                >
+                  Inns
+                </th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
                 <tr key={row.rank}>
-                  <td className={`${STICKY_PLAYER} ${STICKY_BODY_BG} border-b border-l border-r ${BORDER} py-3.5 pl-4`}>
+                  <td
+                    className={`${STICKY_PLAYER} ${STICKY_BODY_BG} border-r border-b border-l ${BORDER} py-3.5 pl-4`}
+                  >
                     {row.rank} {row.playerName}
                   </td>
-                  <td className={`border-b border-r ${BORDER} py-3.5 text-center bg-transparent`}>{row.mat}</td>
-                  <td className={`border-b border-r ${BORDER} py-3.5 text-center bg-transparent`}>{row.inns}</td>
+                  <td
+                    className={`border-r border-b ${BORDER} bg-transparent py-3.5 text-center`}
+                  >
+                    {row.mat}
+                  </td>
+                  <td
+                    className={`border-r border-b ${BORDER} bg-transparent py-3.5 text-center`}
+                  >
+                    {row.inns}
+                  </td>
                 </tr>
               ))}
             </tbody>

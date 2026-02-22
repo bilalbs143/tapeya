@@ -2,14 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import shoppingCartIcon from '@/assets/images/icons/shopping-cart.svg';
-
 import { FloatingCartButton } from '@/components/FloatingCartButton';
+import { useAddToCart } from '@/hooks/shop/useAddToCart';
 import { formatPrice } from '@/lib/format';
-import {
-  useAddCartItemMutation,
-  useGetProductQuery,
-} from '@/store/api/shopApi';
+import { useGetProductQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
+import { useToast } from '@/ui/useToast';
 
 function getImageUrls(images) {
   if (!images?.length) return [];
@@ -29,7 +27,8 @@ export default function ShopProductDetail() {
     isError,
     error,
   } = useGetProductQuery(productSlug, { skip: !productSlug });
-  const [addToCart, { isLoading: isAddingToCart }] = useAddCartItemMutation();
+  const toast = useToast();
+  const { addToCart, isAddingToCart } = useAddToCart();
 
   const normalized = useMemo(() => {
     if (!product) return null;
@@ -37,6 +36,10 @@ export default function ShopProductDetail() {
     const displayPrice = product.sale_price ?? product.price;
     const hasDiscount =
       product.sale_price != null && product.sale_price < product.price;
+    const discountPercent =
+      hasDiscount && product.price > 0
+        ? Math.round((1 - product.sale_price / product.price) * 100)
+        : 0;
     return {
       ...product,
       imageUrls: imageUrls.length ? imageUrls : [],
@@ -46,6 +49,7 @@ export default function ShopProductDetail() {
           : (product.category ?? 'Product'),
       displayPrice,
       hasDiscount,
+      discountPercent,
       stock: product.stock_quantity ?? 0,
     };
   }, [product]);
@@ -56,9 +60,9 @@ export default function ShopProductDetail() {
     if (!normalized?.id) return;
     try {
       await addToCart({ product_id: normalized.id, quantity }).unwrap();
-      navigate('/shop/cart');
+      toast.success('Added to cart');
     } catch (err) {
-      console.error('Add to cart failed:', err);
+      toast.error('Could not add to cart. Try again.');
     }
   };
 
@@ -94,7 +98,7 @@ export default function ShopProductDetail() {
             onClick={() => navigate(backTo)}
             className="rounded-full bg-[#DA9811] px-6 py-2.5 text-[14px] font-bold text-black"
           >
-            Go back
+            Go Back
           </button>
         </div>
       </Container>
@@ -127,8 +131,9 @@ export default function ShopProductDetail() {
               <path d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="min-w-0 flex-1 truncate pr-4 text-center text-[16px] font-bold tracking-wide text-white uppercase">
-            SHOP - {normalized.categoryName.toUpperCase()}
+          <h1 className="min-w-0 flex-1 pr-4 text-center text-[16px] font-bold tracking-wide uppercase">
+            <span className="text-white">SHOP - </span>
+            <span className="text-[#DA9811]">{normalized.categoryName}</span>
           </h1>
         </header>
 
@@ -138,7 +143,7 @@ export default function ShopProductDetail() {
               <img
                 src={mainImage}
                 alt={normalized.images?.[selectedImage]?.alt ?? normalized.name}
-                className="aspect-square w-full object-contain h-[280px]"
+                className="aspect-square h-[280px] w-full object-contain"
               />
             ) : (
               <div className="aspect-square w-full bg-[#141412]" aria-hidden />
@@ -146,6 +151,11 @@ export default function ShopProductDetail() {
             {normalized.is_featured && (
               <span className="absolute top-3 left-3 rounded-full bg-[#DA9811] px-4 py-1 text-[12px] font-bold text-black uppercase">
                 Featured
+              </span>
+            )}
+            {normalized.hasDiscount && normalized.discountPercent > 0 && (
+              <span className="absolute top-3 right-3 rounded-full bg-[#FF3B30] px-2 py-0.5 text-[11px] font-bold text-white">
+                -{normalized.discountPercent}%
               </span>
             )}
           </div>
@@ -166,7 +176,7 @@ export default function ShopProductDetail() {
                   <img
                     src={url}
                     alt=""
-                    className="h-full w-full object-cover "
+                    className="h-full w-full object-cover"
                   />
                 </button>
               ))}
@@ -233,7 +243,12 @@ export default function ShopProductDetail() {
             disabled={normalized.stock < 1 || isAddingToCart}
             className="flex flex-1 items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] py-3.5 text-base text-[16px] font-semibold text-black transition-opacity active:opacity-90 disabled:opacity-50"
           >
-            <img src={shoppingCartIcon} alt="" className="h-6 w-6 shrink-0" aria-hidden />
+            <img
+              src={shoppingCartIcon}
+              alt=""
+              className="h-6 w-6 shrink-0"
+              aria-hidden
+            />
             {isAddingToCart ? 'Adding…' : 'Add to Cart'}
           </button>
         </div>
@@ -241,10 +256,10 @@ export default function ShopProductDetail() {
         {normalized.description && (
           <section className="pt-2">
             <h3 className="mb-2 text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">
-            Features
+              Features
             </h3>
             <div
-              className="product-description text-[14px] text-[#A2A6AB] "
+              className="product-description text-[14px] text-[#A2A6AB]"
               dangerouslySetInnerHTML={{ __html: normalized.description }}
             />
           </section>

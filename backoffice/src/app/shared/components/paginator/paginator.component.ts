@@ -23,7 +23,7 @@ export class PaginatorComponent {
   @Input() public showNoRecMessage: boolean = true;
   @Input() public noRecMessage: string = 'No Data Available';
   @Input() public loading: boolean = false;
-  @Input() public loadingMessage: string = 'Loading...';
+  @Input() public loadingMessage: string = '';
 
   @Output() public readonly page = new EventEmitter<PageEvent>();
 }

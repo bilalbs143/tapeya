@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { ScorecardTabs } from '@/components/scorecard';
+import { ScorecardTabs } from '@/components/scorecard/ScorecardTabs';
 import { Container } from '@/ui/Container';
 
 import { MOCK_MATCHES } from './mockMatches';
@@ -59,7 +59,7 @@ export default function ScorecardHome() {
 
         <div className="flex flex-col pt-2">
           <div ref={tabsSentinelRef} className="h-px w-full" aria-hidden />
-          <div className="-mx-4 bg-black px-4 pb-2 pt-0.5">
+          <div className="-mx-4 bg-black px-4 pt-0.5 pb-2">
             <ScorecardTabs
               matches={MOCK_MATCHES}
               fixedVisible={tabsFixedVisible}

@@ -32,6 +32,7 @@ class StoreEventRequestRequest extends FormRequest
             'number_of_matches' => ['required', 'integer', 'min:1', 'max:1000'],
             'number_of_teams' => ['required', 'integer', 'min:1', 'max:500'],
             'expected_players_count' => ['required', 'integer', 'min:1', 'max:10000'],
+            'country' => ['required', 'string', 'max:100'],
             'city' => ['required', 'string', 'max:100'],
             'match_timings' => ['required', Rule::enum(MatchTimingEnum::class)],
         ];

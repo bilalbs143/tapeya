@@ -27,6 +27,7 @@ class StoreUserRequest extends FormRequest
 
         return [
             'name' => ['required', 'string'],
+            'nickname' => ['required', 'string', 'max:50', 'regex:/^[a-zA-Z0-9_]+$/', 'unique:users,nickname'],
             'email' => ['nullable', 'string', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['required', 'string', 'regex:/^\+[1-9]\d{6,}$/', 'unique:users,phone'],
             'date_of_birth' => ['nullable', 'date', 'before:today'],

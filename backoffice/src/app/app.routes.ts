@@ -40,6 +40,10 @@ export const routes: Routes = [
           import('./pages/events-management/events-management.routes').then((m) => m.EventsManagementRoutes),
       },
       {
+        path: 'notifications',
+        loadChildren: () => import('./pages/notifications/notifications.routes').then((m) => m.NotificationsRoutes),
+      },
+      {
         path: 'sample-page',
         loadChildren: () => import('./pages/pages.routes').then((m) => m.PagesRoutes),
       },

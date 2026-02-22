@@ -5,13 +5,13 @@
 import { Link } from 'react-router-dom';
 
 import {
+  scorecardLinkClass,
+  scorecardListClass,
+  scorecardTriggerClass,
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-  scorecardListClass,
-  scorecardLinkClass,
-  scorecardTriggerClass,
 } from '@/ui/Tabs';
 
 import { MatchCard } from './MatchCard';
@@ -38,21 +38,29 @@ function TabListRow({ className = '' }) {
             {label}
           </Link>
         ) : (
-          <TabsTrigger key={value} value={value} className={scorecardTriggerClass}>
+          <TabsTrigger
+            key={value}
+            value={value}
+            className={scorecardTriggerClass}
+          >
             {label}
           </TabsTrigger>
-        )
+        ),
       )}
     </TabsList>
   );
 }
 
-export function ScorecardTabs({ matches, fixedVisible = false, fixedTop = 64 }) {
+export function ScorecardTabs({
+  matches,
+  fixedVisible = false,
+  fixedTop = 64,
+}) {
   return (
     <Tabs defaultValue="all" className="w-full">
       {fixedVisible && (
         <div
-          className="fixed left-0 right-0 z-10 bg-black pb-2 pt-1"
+          className="fixed right-0 left-0 z-10 bg-black pt-1 pb-2"
           style={{ top: fixedTop }}
         >
           <div className="mx-auto max-w-2xl px-4">
@@ -67,9 +75,7 @@ export function ScorecardTabs({ matches, fixedVisible = false, fixedTop = 64 }) 
             No matches in this category
           </p>
         ) : (
-          matches.map((match) => (
-            <MatchCard key={match.id} match={match} />
-          ))
+          matches.map((match) => <MatchCard key={match.id} match={match} />)
         )}
       </TabsContent>
     </Tabs>

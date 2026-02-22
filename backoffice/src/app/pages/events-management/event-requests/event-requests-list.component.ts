@@ -67,6 +67,8 @@ export class EventRequestsListComponent implements OnInit, AfterViewInit, OnDest
     'contact_phone',
     'event_type',
     'venue',
+    'country',
+    'city',
     'start_date',
     'end_date',
     'status',

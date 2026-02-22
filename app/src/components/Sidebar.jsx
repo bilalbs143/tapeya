@@ -4,21 +4,24 @@ import draftingIcon from '@/assets/images/icons/drafting-icon.svg';
 import goLiveIcon from '@/assets/images/icons/go-live.svg';
 import logoutIcon from '@/assets/images/icons/logout.svg';
 import myOrderIcon from '@/assets/images/icons/my-order.svg';
-import { clearCredentials } from '@/store/slices/authSlice';
-import { useLogoutMutation } from '@/store/api/authApi';
-import { useAppDispatch } from '@/store/hooks';
 import profilesIcon from '@/assets/images/icons/profiles.svg';
 import requestTournamentIcon from '@/assets/images/icons/request-tournament.svg';
-import scoreCardRequestIcon from '@/assets/images/icons/score-card-request.svg';
 import starMatchIcon from '@/assets/images/icons/star-match.svg';
 import supportIcon from '@/assets/images/icons/support.svg';
 import topPlayersIcon from '@/assets/images/icons/top-players.svg';
 import topSponsorsIcon from '@/assets/images/icons/top-sponsers.svg';
 import tossIcon from '@/assets/images/icons/toss.svg';
 import defaultAvatar from '@/assets/images/standard/default-avatar.png';
+import { useLogoutMutation } from '@/store/api/authApi';
+import { useAppDispatch } from '@/store/hooks';
+import { clearCredentials } from '@/store/slices/authSlice';
 
 const MENU_ITEMS = [
-  { label: 'Request Tournament', icon: requestTournamentIcon, path: '/event-request' },
+  {
+    label: 'Request Tournament',
+    icon: requestTournamentIcon,
+    path: '/event-request',
+  },
   { label: 'Start Match', icon: starMatchIcon },
   { label: 'Drafting', icon: draftingIcon },
   { label: 'My Orders', icon: myOrderIcon, path: '/shop/orders' },

@@ -2,7 +2,10 @@ import { z } from 'zod';
 
 /** Shared: optional email; when provided must be valid */
 const emailSchema = z
-  .union([z.string().email('Please enter a valid email address'), z.literal('')])
+  .union([
+    z.string().email('Please enter a valid email address'),
+    z.literal(''),
+  ])
   .optional()
   .transform((v) => (v === '' ? undefined : v));
 
@@ -23,11 +26,47 @@ export const loginSchema = z.object({
   phone: phoneSchema,
 });
 
-/** Register form: phone, name, optional email (backend: email nullable) */
+/** Nickname: letters, numbers, underscores only; unique on backend */
+const nicknameSchema = z
+  .string()
+  .min(1, 'Nickname is required')
+  .max(50, 'Nickname must be at most 50 characters')
+  .regex(
+    /^[a-zA-Z0-9_]+$/,
+    'Nickname may only contain letters, numbers and underscores',
+  );
+
+/** Register form: phone, name, nickname, optional email (backend: email nullable) */
 export const registerSchema = z.object({
   phone: phoneSchema,
   name: nameSchema,
+  nickname: nicknameSchema,
   email: emailSchema.optional(),
+});
+
+/** Profile edit: optional nickname; when provided same format as register (unique validated on backend) */
+export const profileNicknameSchema = z
+  .string()
+  .max(50, 'Nickname must be at most 50 characters')
+  .regex(
+    /^[a-zA-Z0-9_]*$/,
+    'Nickname may only contain letters, numbers and underscores',
+  )
+  .optional()
+  .transform((v) => (v === '' ? undefined : v));
+
+/** Profile update payload (optional fields) */
+export const updateProfileSchema = z.object({
+  name: z.string().min(1).optional(),
+  nickname: profileNicknameSchema,
+  email: emailSchema.optional(),
+  phone: z.string().optional(),
+  date_of_birth: z.string().optional(),
+  playing_role: z.string().optional(),
+  bowling_style: z.string().optional(),
+  batting_style: z.string().optional(),
+  country: z.string().optional(),
+  city: z.string().optional(),
 });
 
 /** OTP verification (6 digits) */

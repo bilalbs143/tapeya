@@ -17,14 +17,7 @@ export interface EventDetailDialogData {
 @Component({
   selector: 'app-event-detail-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatDivider,
-    TablerIconsModule,
-    DialogWrapperComponent,
-  ],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, MatDivider, TablerIconsModule, DialogWrapperComponent],
   templateUrl: './event-detail-dialog.component.html',
 })
 export class EventDetailDialogComponent {

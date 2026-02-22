@@ -24,6 +24,7 @@ class UpdateProfileRequest extends FormRequest
 
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'nickname' => ['sometimes', 'nullable', 'string', 'max:50', 'regex:/^[a-zA-Z0-9_]*$/', Rule::unique('users', 'nickname')->ignore($userId)],
             'email' => ['nullable', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
             'phone' => ['sometimes', 'nullable', 'string', 'regex:/^\+[1-9]\d{6,}$/', Rule::unique('users', 'phone')->ignore($userId)],
             'date_of_birth' => ['nullable', 'date', 'before:today'],

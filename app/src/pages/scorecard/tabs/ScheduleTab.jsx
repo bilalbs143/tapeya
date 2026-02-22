@@ -1,4 +1,4 @@
-import { MatchCard } from '@/components/scorecard';
+import { MatchCard } from '@/components/scorecard/MatchCard';
 
 export function ScheduleTab({ matches }) {
   if (!matches?.length) {
@@ -13,7 +13,11 @@ export function ScheduleTab({ matches }) {
   return (
     <div className="mt-4 space-y-3 pb-6 focus:outline-none">
       {matches.map((match) => (
-        <MatchCard key={match.id} match={match} showScheduleTableLinks={false} />
+        <MatchCard
+          key={match.id}
+          match={match}
+          showScheduleTableLinks={false}
+        />
       ))}
     </div>
   );

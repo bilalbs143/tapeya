@@ -47,7 +47,9 @@ export function DatePicker({
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const dayPickerDisabled = allowFuture ? { before: today } : { after: new Date() };
+  const dayPickerDisabled = allowFuture
+    ? { before: today }
+    : { after: new Date() };
   const endMonth = allowFuture
     ? new Date(today.getFullYear() + 2, 11)
     : new Date();

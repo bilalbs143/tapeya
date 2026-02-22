@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
+import { updateProfileSchema } from '@/lib/validations/auth';
+import { useGetMeQuery, useUpdateProfileMutation } from '@/store/api/authApi';
 import { DatePicker } from '@/ui/DatePicker';
 import {
   Dialog,
@@ -50,7 +52,16 @@ const bowlingStyleOptions = [
   { value: 'N/A', label: 'N/A' },
 ];
 
+const NICKNAME_REGEX = /^[a-zA-Z0-9_]*$/;
+const NICKNAME_MAX = 50;
+
 export function UserEdit({ open, onOpenChange }) {
+  const { data: meData } = useGetMeQuery(undefined, { skip: !open });
+  const user = meData?.data ?? null;
+
+  const [name, setName] = useState('');
+  const [nickname, setNickname] = useState('');
+  const [nicknameError, setNicknameError] = useState('');
   const [phone, setPhone] = useState('+923157118511');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [category, setCategory] = useState('Player');
@@ -61,8 +72,68 @@ export function UserEdit({ open, onOpenChange }) {
   const [country, setCountry] = useState('Pakistan');
   const [city, setCity] = useState('Lahore, Pakistan');
 
-  const handleSave = () => {
-    onOpenChange?.(false);
+  const [updateProfile, { isLoading: isSaving, error: saveError }] =
+    useUpdateProfileMutation();
+
+  useEffect(() => {
+    if (!open || !user) return;
+    setName(user.name ?? '');
+    setNickname(user.nickname ?? '');
+    setPhone(user.phone ?? '');
+    setDateOfBirth(user.date_of_birth ?? '');
+    setEmail(user.email ?? '');
+    setCountry(user.country ?? '');
+    setCity(user.city ?? '');
+    setPlayingRole(user.playing_role_enum ?? user.playing_role ?? 'Bowler');
+    setBattingStyle(
+      user.batting_style_enum ?? user.batting_style ?? 'Left handed',
+    );
+    setBowlingStyle(
+      user.bowling_style_enum ?? user.bowling_style ?? 'Right handed',
+    );
+    setNicknameError('');
+  }, [open, user]);
+
+  const handleSave = async () => {
+    setNicknameError('');
+    const rawNick = nickname.trim();
+    if (
+      rawNick &&
+      (rawNick.length > NICKNAME_MAX || !NICKNAME_REGEX.test(rawNick))
+    ) {
+      setNicknameError(
+        rawNick.length > NICKNAME_MAX
+          ? 'Nickname must be at most 50 characters'
+          : 'Nickname may only contain letters, numbers and underscores',
+      );
+      return;
+    }
+    const parsed = updateProfileSchema.safeParse({
+      name: name.trim() || undefined,
+      nickname: rawNick || undefined,
+      email: email.trim() || undefined,
+      phone: phone.trim() || undefined,
+      date_of_birth: dateOfBirth || undefined,
+      playing_role: playingRole || undefined,
+      bowling_style: bowlingStyle || undefined,
+      batting_style: battingStyle || undefined,
+      country: country.trim() || undefined,
+      city: city.trim() || undefined,
+    });
+    const payload = parsed.success ? parsed.data : {};
+    const toSend = Object.fromEntries(
+      Object.entries(payload).filter(([, v]) => v !== undefined && v !== ''),
+    );
+    try {
+      await updateProfile(toSend).unwrap();
+      onOpenChange?.(false);
+    } catch (err) {
+      const errors = err?.data?.errors;
+      const nicknameMsg = Array.isArray(errors?.nickname)
+        ? errors.nickname[0]
+        : null;
+      if (nicknameMsg) setNicknameError(nicknameMsg);
+    }
   };
 
   return (
@@ -92,6 +163,37 @@ export function UserEdit({ open, onOpenChange }) {
 
           <DialogScrollBody>
             <div className="flex flex-col gap-4">
+              <FormField label="Name" htmlFor="name" variant="edit">
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Full name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="max-w-none"
+                />
+              </FormField>
+
+              <FormField
+                label="Nickname (optional)"
+                htmlFor="nickname"
+                variant="edit"
+              >
+                <Input
+                  id="nickname"
+                  type="text"
+                  placeholder="Letters, numbers, underscores only"
+                  value={nickname}
+                  onChange={(e) => {
+                    setNickname(e.target.value);
+                    setNicknameError('');
+                  }}
+                  className="max-w-none"
+                  maxLength={NICKNAME_MAX}
+                  error={nicknameError || undefined}
+                />
+              </FormField>
+
               <FormField label="Phone" htmlFor="phone" variant="edit">
                 <PhoneInput
                   id="phone"
@@ -269,8 +371,12 @@ export function UserEdit({ open, onOpenChange }) {
             </div>
           </DialogScrollBody>
 
-          <DialogSaveButton onClick={handleSave} className="shrink-0">
-            Save
+          <DialogSaveButton
+            onClick={handleSave}
+            className="shrink-0"
+            disabled={isSaving}
+          >
+            {isSaving ? 'Saving…' : 'Save'}
           </DialogSaveButton>
         </div>
       </DialogContentProfile>

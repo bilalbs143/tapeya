@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User\Shop;
 
 use App\Enums\Shop\OrderStatusEnum;
+use App\Events\OrderPlaced;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\Shop\StoreOrderRequest;
@@ -13,6 +14,7 @@ use App\Models\Shop\OrderItem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class OrderController extends Controller
 {
@@ -24,9 +26,22 @@ class OrderController extends Controller
         $user = request()->user();
         $orders = Order::query()
             ->where('user_id', $user->id)
-            ->with('items')
+            ->with('items.product.images')
             ->orderByDesc('created_at')
             ->paginate((int) request('per_page', 15));
+
+        foreach ($orders as $record) {
+            foreach ($record->items as $item) {
+                $snapshot = $item->product_snapshot ?? [];
+                if (empty($snapshot['image_url']) && $item->product) {
+                    $firstImage = $item->product->images->first();
+                    if ($firstImage && $firstImage->path) {
+                        $snapshot['image_url'] = Storage::disk(config('filesystems.media_disk'))->url($firstImage->path);
+                        $item->product_snapshot = $snapshot;
+                    }
+                }
+            }
+        }
 
         return OrderResource::collection($orders);
     }
@@ -37,8 +52,19 @@ class OrderController extends Controller
         $user = request()->user();
         $record = Order::query()
             ->where('user_id', $user->id)
-            ->with('items')
+            ->with('items.product.images')
             ->findOrFail($order);
+
+        foreach ($record->items as $item) {
+            $snapshot = $item->product_snapshot ?? [];
+            if (empty($snapshot['image_url']) && $item->product) {
+                $firstImage = $item->product->images->first();
+                if ($firstImage && $firstImage->path) {
+                    $snapshot['image_url'] = Storage::disk(config('filesystems.media_disk'))->url($firstImage->path);
+                    $item->product_snapshot = $snapshot;
+                }
+            }
+        }
 
         return $this->success(new OrderResource($record));
     }
@@ -52,7 +78,7 @@ class OrderController extends Controller
             return $this->failure('Cart is empty.', 'VALIDATION_ERROR');
         }
 
-        $cart->load('items.product');
+        $cart->load('items.product.images');
         if ($cart->items->isEmpty()) {
             return $this->failure('Cart is empty.', 'VALIDATION_ERROR');
         }
@@ -75,12 +101,18 @@ class OrderController extends Controller
             $unitPrice = $product->getSalePrice() ?? (float) $product->price;
             $totalPrice = round($unitPrice * $item->quantity, 2);
             $subtotal += $totalPrice;
+            $firstImage = $product->images->first();
+            $imageUrl = $firstImage && $firstImage->path
+                ? Storage::disk(config('filesystems.media_disk'))->url($firstImage->path)
+                : null;
+
             $itemsData[] = [
                 'product_id' => $product->id,
                 'product_snapshot' => [
                     'name' => $product->name,
                     'sku' => $product->sku,
                     'slug' => $product->slug,
+                    'image_url' => $imageUrl,
                 ],
                 'quantity' => $item->quantity,
                 'unit_price' => $unitPrice,
@@ -122,6 +154,8 @@ class OrderController extends Controller
 
             return $order->load('items');
         });
+
+        event(new OrderPlaced($order));
 
         return $this->success(new OrderResource($order), 'Order placed successfully.', 'CREATED');
     }

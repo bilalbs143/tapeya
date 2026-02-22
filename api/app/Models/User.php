@@ -11,6 +11,7 @@ use App\Enums\User\PlayingRoleEnum;
 use App\Enums\User\RoleGuardEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
+use App\Utils\Services\OtpService;
 use App\Utils\Traits\Model\BaseModelTrait;
 use App\Utils\Traits\Model\Filters\DateFilterTrait;
 use Illuminate\Database\Eloquent\Builder;
@@ -36,6 +37,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'nickname',
         'email',
         'phone',
         'date_of_birth',
@@ -84,6 +86,16 @@ class User extends Authenticatable
     public function newEloquentBuilder($query): Builder
     {
         return new UserBuilder($query);
+    }
+
+    /** Phone number for SMS notifications (E.164). */
+    public function routeNotificationForSms(): ?string
+    {
+        if (empty($this->phone)) {
+            return null;
+        }
+
+        return OtpService::normalizePhone($this->phone);
     }
 
     public function isAdmin(): bool
@@ -257,6 +269,7 @@ class User extends Authenticatable
             AllowedFilter::exact('type'),
             AllowedFilter::exact('status'),
             AllowedFilter::exact('name'),
+            'nickname',
             'email',
             AllowedFilter::scope('phone'),
             AllowedFilter::scope('created_between'),
@@ -276,6 +289,7 @@ class User extends Authenticatable
         return [
             'id',
             'name',
+            'nickname',
             'email',
             'phone',
             'type',

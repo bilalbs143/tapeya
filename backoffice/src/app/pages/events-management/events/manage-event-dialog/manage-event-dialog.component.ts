@@ -16,6 +16,7 @@ import { EnumsService } from 'src/app/services/enums.service';
 import type { Event } from 'src/app/services/events.service';
 import { EventsService } from 'src/app/services/events.service';
 import { type Country, LocationService } from 'src/app/services/location.service';
+import { MessageService } from 'src/app/services/message.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { PHONE_PATTERN } from 'src/app/shared/constants/validation.constants';
@@ -52,6 +53,7 @@ export class ManageEventDialogComponent implements OnInit, OnDestroy {
   private readonly dialogRef = inject<MatDialogRef<ManageEventDialogComponent>>(MatDialogRef);
   private readonly fb = inject(FormBuilder);
   private readonly enumsService = inject(EnumsService);
+  private readonly messageService = inject(MessageService);
   private readonly sub = new Subscription();
 
   public form!: FormGroup;
@@ -148,10 +150,7 @@ export class ManageEventDialogComponent implements OnInit, OnDestroy {
         event?.number_of_matches ?? null,
         [Validators.required, Validators.min(1), Validators.max(1000)],
       ],
-      number_of_teams: [
-        event?.number_of_teams ?? null,
-        [Validators.required, Validators.min(1), Validators.max(500)],
-      ],
+      number_of_teams: [event?.number_of_teams ?? null, [Validators.required, Validators.min(1), Validators.max(500)]],
       expected_players_count: [
         event?.expected_players_count ?? null,
         [Validators.required, Validators.min(1), Validators.max(10000)],
@@ -248,7 +247,7 @@ export class ManageEventDialogComponent implements OnInit, OnDestroy {
 
     request$.pipe(finalize(() => (this.isSubmitting = false))).subscribe({
       next: () => this.dialogRef.close(true),
-      error: () => {},
+      error: () => this.messageService.error('Failed to save event.'),
     });
   }
 }

@@ -7,24 +7,98 @@ const DEFAULT_STATS = {
   totalFours: 476,
   totalSixes: 265,
   topRunScorers: [
-    { id: '1', name: 'Arsalan Butt', teamAbbr: 'KK', role: 'RHB', runs: 154, innings: 2, average: 154.0, image: null },
-    { id: '2', name: 'Arsalan Butt', teamAbbr: 'KK', role: 'RHB', runs: 154, innings: 2, average: 154.0, image: null },
-    { id: '3', name: 'Arsalan Butt', teamAbbr: 'KK', role: 'RHB', runs: 154, innings: 2, average: 154.0, image: null },
+    {
+      id: '1',
+      name: 'Arsalan Butt',
+      teamAbbr: 'KK',
+      role: 'RHB',
+      runs: 154,
+      innings: 2,
+      average: 154.0,
+      image: null,
+    },
+    {
+      id: '2',
+      name: 'Arsalan Butt',
+      teamAbbr: 'KK',
+      role: 'RHB',
+      runs: 154,
+      innings: 2,
+      average: 154.0,
+      image: null,
+    },
+    {
+      id: '3',
+      name: 'Arsalan Butt',
+      teamAbbr: 'KK',
+      role: 'RHB',
+      runs: 154,
+      innings: 2,
+      average: 154.0,
+      image: null,
+    },
   ],
   topWicketTakers: [
-    { id: '1', name: 'Arsalan Butt', teamAbbr: 'KK', role: 'RHB', wickets: 6, innings: 2, average: 154.0, image: null },
-    { id: '2', name: 'Arsalan Butt', teamAbbr: 'KK', role: 'RHB', wickets: 6, innings: 2, average: 154.0, image: null },
-    { id: '3', name: 'Arsalan Butt', teamAbbr: 'KK', role: 'RHB', wickets: 6, innings: 2, average: 154.0, image: null },
+    {
+      id: '1',
+      name: 'Arsalan Butt',
+      teamAbbr: 'KK',
+      role: 'RHB',
+      wickets: 6,
+      innings: 2,
+      average: 154.0,
+      image: null,
+    },
+    {
+      id: '2',
+      name: 'Arsalan Butt',
+      teamAbbr: 'KK',
+      role: 'RHB',
+      wickets: 6,
+      innings: 2,
+      average: 154.0,
+      image: null,
+    },
+    {
+      id: '3',
+      name: 'Arsalan Butt',
+      teamAbbr: 'KK',
+      role: 'RHB',
+      wickets: 6,
+      innings: 2,
+      average: 154.0,
+      image: null,
+    },
   ],
 };
 
 /** Season stats by league/tournamentId - use same keys as mockMatches.league */
 export const STATS_BY_TOURNAMENT = {
   KTPL: { ...DEFAULT_STATS },
-  DMT: { totalFours: 312, totalSixes: 189, topRunScorers: DEFAULT_STATS.topRunScorers, topWicketTakers: DEFAULT_STATS.topWicketTakers },
-  TSL: { totalFours: 401, totalSixes: 220, topRunScorers: DEFAULT_STATS.topRunScorers, topWicketTakers: DEFAULT_STATS.topWicketTakers },
-  DPL: { totalFours: 288, totalSixes: 165, topRunScorers: DEFAULT_STATS.topRunScorers, topWicketTakers: DEFAULT_STATS.topWicketTakers },
-  XRL: { totalFours: 198, totalSixes: 98, topRunScorers: DEFAULT_STATS.topRunScorers, topWicketTakers: DEFAULT_STATS.topWicketTakers },
+  DMT: {
+    totalFours: 312,
+    totalSixes: 189,
+    topRunScorers: DEFAULT_STATS.topRunScorers,
+    topWicketTakers: DEFAULT_STATS.topWicketTakers,
+  },
+  TSL: {
+    totalFours: 401,
+    totalSixes: 220,
+    topRunScorers: DEFAULT_STATS.topRunScorers,
+    topWicketTakers: DEFAULT_STATS.topWicketTakers,
+  },
+  DPL: {
+    totalFours: 288,
+    totalSixes: 165,
+    topRunScorers: DEFAULT_STATS.topRunScorers,
+    topWicketTakers: DEFAULT_STATS.topWicketTakers,
+  },
+  XRL: {
+    totalFours: 198,
+    totalSixes: 98,
+    topRunScorers: DEFAULT_STATS.topRunScorers,
+    topWicketTakers: DEFAULT_STATS.topWicketTakers,
+  },
 };
 
 /** Default player list for Most Fours / Most Sixes tables (rank, playerName, mat, inns) */
@@ -79,7 +153,8 @@ export function getSeasonStats(tournamentId) {
 export function getStatsTotalRows(tournamentId, statType) {
   if (statType === 'run-scorers' || statType === 'wicket-takers') {
     const stats = getSeasonStats(tournamentId);
-    const list = statType === 'run-scorers' ? stats.topRunScorers : stats.topWicketTakers;
+    const list =
+      statType === 'run-scorers' ? stats.topRunScorers : stats.topWicketTakers;
     return list.map((p, i) => ({
       rank: i + 1,
       playerName: p.name,
@@ -87,7 +162,12 @@ export function getStatsTotalRows(tournamentId, statType) {
       inns: p.innings ?? 2,
     }));
   }
-  const source = statType === 'sixes' ? MOST_SIXES_BY_TOURNAMENT : MOST_FOURS_BY_TOURNAMENT;
-  if (!tournamentId) return statType === 'sixes' ? DEFAULT_MOST_SIXES : DEFAULT_MOST_FOURS;
-  return source[tournamentId] ?? (statType === 'sixes' ? DEFAULT_MOST_SIXES : DEFAULT_MOST_FOURS);
+  const source =
+    statType === 'sixes' ? MOST_SIXES_BY_TOURNAMENT : MOST_FOURS_BY_TOURNAMENT;
+  if (!tournamentId)
+    return statType === 'sixes' ? DEFAULT_MOST_SIXES : DEFAULT_MOST_FOURS;
+  return (
+    source[tournamentId] ??
+    (statType === 'sixes' ? DEFAULT_MOST_SIXES : DEFAULT_MOST_FOURS)
+  );
 }

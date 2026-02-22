@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { formatPrice } from '@/lib/format';
@@ -22,10 +23,11 @@ export default function OrderPayment() {
 
   const orderNumber = order?.order_number ?? orderId;
 
-  if (!orderId) {
-    navigate('/shop/orders', { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (!orderId) navigate('/shop/orders', { replace: true });
+  }, [orderId, navigate]);
+
+  if (!orderId) return null;
 
   if (isLoading) return null;
 
@@ -39,7 +41,7 @@ export default function OrderPayment() {
             onClick={() => navigate('/shop/orders')}
             className="rounded-full bg-[#DA9811] px-6 py-2.5 text-[14px] font-bold text-black"
           >
-            My orders
+            My Orders
           </button>
         </div>
       </Container>
@@ -77,10 +79,12 @@ export default function OrderPayment() {
           <p className="text-[14px] leading-relaxed text-[#B0B0B0]">
             Make your payment directly into our bank account. Please use your{' '}
             <span className="font-semibold text-[#DA9811]">Order ID</span> and{' '}
-            <span className="font-semibold text-[#DA9811]">Payment Screenshot</span>{' '}
+            <span className="font-semibold text-[#DA9811]">
+              Payment Screenshot
+            </span>{' '}
             as the payment reference and send on this WhatsApp:{' '}
-            <span className="font-bold text-[#DA9811]">{WHATSAPP}</span>. Your order won't be
-            shipped until the funds have cleared in our account.
+            <span className="font-bold text-[#DA9811]">{WHATSAPP}</span>. Your
+            order won't be shipped until the funds have cleared in our account.
           </p>
 
           <div
@@ -100,7 +104,7 @@ export default function OrderPayment() {
               ORDER TOTAL
             </p>
             <p className="mt-1 text-[16px] font-bold text-[#DA9811]">
-              {formatPrice(order.total)} {order.currency ?? 'PKR'}
+              {formatPrice(order.total)}
             </p>
           </div>
 
@@ -134,7 +138,7 @@ export default function OrderPayment() {
             }
             className="flex w-full items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90"
           >
-            I&apos;ve paid
+            I&apos;ve Paid
             <svg
               className="h-5 w-5"
               fill="none"
@@ -152,4 +156,3 @@ export default function OrderPayment() {
     </div>
   );
 }
-

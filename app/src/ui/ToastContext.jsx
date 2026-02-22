@@ -1,13 +1,13 @@
 /**
  * Imperative toast API. Use from any component:
- *   import { useToast } from '@/ui/ToastContext';
+ *   import { useToast } from '@/ui/useToast';
  *   const toast = useToast();
  *   toast.success('OTP sent again!');
  *   toast.error('Something went wrong.');
  *   toast('A message');
  */
 
-import { createContext, useCallback, useContext, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import {
   Toast,
@@ -16,14 +16,13 @@ import {
   ToastTitleStyled,
   ToastViewportStyled,
 } from '@/ui/Toast';
+import { ToastContext } from '@/ui/toastContext';
 
 const variantStyles = {
   default: 'border-slate-200 bg-white text-slate-900',
   success: 'border-emerald-500/50 bg-emerald-50 text-emerald-900',
   error: 'border-red-500/50 bg-red-50 text-red-900',
 };
-
-const ToastContext = createContext(null);
 
 export function ToastProvider({ children }) {
   const [state, setState] = useState({
@@ -34,7 +33,8 @@ export function ToastProvider({ children }) {
   });
 
   const show = useCallback((options) => {
-    const opts = typeof options === 'string' ? { description: options } : options;
+    const opts =
+      typeof options === 'string' ? { description: options } : options;
     setState({
       open: true,
       title: opts.title ?? '',
@@ -66,28 +66,12 @@ export function ToastProvider({ children }) {
     <ToastContext.Provider value={toast}>
       {children}
       <ToastViewportStyled />
-      <Toast
-        open={state.open}
-        onOpenChange={handleOpenChange}
-        duration={5000}
-      >
+      <Toast open={state.open} onOpenChange={handleOpenChange} duration={5000}>
         <ToastRootStyled className={rootClass}>
-          {state.title && (
-            <ToastTitleStyled>{state.title}</ToastTitleStyled>
-          )}
-          <ToastDescriptionStyled>
-            {state.description}
-          </ToastDescriptionStyled>
+          {state.title && <ToastTitleStyled>{state.title}</ToastTitleStyled>}
+          <ToastDescriptionStyled>{state.description}</ToastDescriptionStyled>
         </ToastRootStyled>
       </Toast>
     </ToastContext.Provider>
   );
-}
-
-export function useToast() {
-  const ctx = useContext(ToastContext);
-  if (!ctx) {
-    throw new Error('useToast must be used within ToastProvider');
-  }
-  return ctx;
 }

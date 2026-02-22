@@ -24,6 +24,7 @@ export interface EventRequest {
   number_of_matches: number;
   number_of_teams: number;
   expected_players_count: number;
+  country?: string | null;
   city: string;
   match_timings: string;
   match_timings_label: string;

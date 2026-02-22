@@ -6,12 +6,15 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import tapeyaLogo from '@/assets/images/logos/tapeya-logo-white.svg';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { otpSchema } from '@/lib/validations/auth';
-import { setCredentials } from '@/store/slices/authSlice';
-import { useRequestOtpMutation, useVerifyOtpMutation } from '@/store/api/authApi';
+import {
+  useRequestOtpMutation,
+  useVerifyOtpMutation,
+} from '@/store/api/authApi';
 import { useAppDispatch } from '@/store/hooks';
+import { setCredentials } from '@/store/slices/authSlice';
 import { Button } from '@/ui/Button';
 import { Input } from '@/ui/Input';
-import { useToast } from '@/ui/ToastContext';
+import { useToast } from '@/ui/useToast';
 
 const LENGTH = 6;
 
@@ -148,7 +151,8 @@ export default function Otp() {
               className="rounded-lg bg-amber-500/20 px-4 py-2 text-center text-sm text-amber-200"
               role="status"
             >
-              For testing: OTP is <strong className="tabular-nums">{latestOtp}</strong>
+              For testing: OTP is{' '}
+              <strong className="tabular-nums">{latestOtp}</strong>
             </p>
           )}
 
@@ -188,11 +192,7 @@ export default function Otp() {
               <button
                 type="button"
                 onClick={handleResend}
-                disabled={
-                  !phoneRaw ||
-                  isResendLoading ||
-                  resendCooldown > 0
-                }
+                disabled={!phoneRaw || isResendLoading || resendCooldown > 0}
                 className="text-[#DA9811] underline disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {resendCooldown > 0

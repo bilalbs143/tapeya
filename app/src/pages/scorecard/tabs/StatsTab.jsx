@@ -1,7 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
 
 import defaultPlayerImage from '@/assets/images/standard/player-avatar.png';
-
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 
 import { getSeasonStats } from './statsData';
@@ -16,7 +15,7 @@ function SummaryCard({ value, label, accent = 'yellow', to }) {
     <>
       <div>
         <div className="text-xl font-bold text-white">{value}</div>
-        <div className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-[#AAAAAA]">
+        <div className="mt-0.5 text-[11px] font-medium tracking-wide text-[#AAAAAA] uppercase">
           {label}
         </div>
       </div>
@@ -48,7 +47,12 @@ function SummaryCard({ value, label, accent = 'yellow', to }) {
   );
 }
 
-function PlayerStatCard({ player, primaryStat, primaryLabel, statSuffix = '' }) {
+function PlayerStatCard({
+  player,
+  primaryStat,
+  _primaryLabel,
+  statSuffix = '',
+}) {
   const initials = player.name
     .split(' ')
     .map((n) => n[0])
@@ -68,7 +72,9 @@ function PlayerStatCard({ player, primaryStat, primaryLabel, statSuffix = '' }) 
       </Avatar>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-1.5">
-          <span className="text-[16px] font-bold text-white">{player.name}</span>
+          <span className="text-[16px] font-bold text-white">
+            {player.name}
+          </span>
           <span className="text-[12px] font-medium text-[#DEDEDE]">
             {player.teamAbbr}, {player.role}
           </span>
@@ -88,14 +94,13 @@ function PlayerStatCard({ player, primaryStat, primaryLabel, statSuffix = '' }) 
 function SectionHeader({ title, viewMoreTo }) {
   return (
     <div className="mb-3 flex items-center justify-between">
-      <h2 className="text-[13px] font-bold uppercase tracking-wide text-[#A2A6AB]">
+      <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
         {title}
       </h2>
       {viewMoreTo && (
         <Link
           to={viewMoreTo}
-          className="text-[12px] font-
-          bold uppercase tracking-wide text-[#DA9811] transition-opacity hover:opacity-90"
+          className="font- bold text-[12px] tracking-wide text-[#DA9811] uppercase transition-opacity hover:opacity-90"
         >
           VIEW MORE
         </Link>
@@ -104,7 +109,7 @@ function SectionHeader({ title, viewMoreTo }) {
   );
 }
 
-export function StatsTab({ tournamentId, matches }) {
+export function StatsTab({ tournamentId, matches: _matches }) {
   const { tournamentId: paramId } = useParams();
   const id = tournamentId ?? paramId;
   const stats = getSeasonStats(id);
@@ -112,12 +117,16 @@ export function StatsTab({ tournamentId, matches }) {
   const basePath = id ? `/scorecard/${id}` : '/scorecard';
   const statsTotalFours = id ? `${basePath}/stats-total/fours` : null;
   const statsTotalSixes = id ? `${basePath}/stats-total/sixes` : null;
-  const statsTotalRunScorers = id ? `${basePath}/stats-total/run-scorers` : null;
-  const statsTotalWicketTakers = id ? `${basePath}/stats-total/wicket-takers` : null;
+  const statsTotalRunScorers = id
+    ? `${basePath}/stats-total/run-scorers`
+    : null;
+  const statsTotalWicketTakers = id
+    ? `${basePath}/stats-total/wicket-takers`
+    : null;
 
   return (
     <div className="mt-4 pb-6 focus:outline-none">
-      <h1 className="text-center text-base font-medium uppercase tracking-wide text-white">
+      <h1 className="text-center text-base font-medium tracking-wide text-white uppercase">
         {title}
       </h1>
 
@@ -137,7 +146,10 @@ export function StatsTab({ tournamentId, matches }) {
       </div>
 
       <section className="mt-8">
-        <SectionHeader title="TOP RUN SCORERS" viewMoreTo={statsTotalRunScorers} />
+        <SectionHeader
+          title="TOP RUN SCORERS"
+          viewMoreTo={statsTotalRunScorers}
+        />
         <div className="space-y-3">
           {stats.topRunScorers.map((player) => (
             <PlayerStatCard
@@ -151,7 +163,10 @@ export function StatsTab({ tournamentId, matches }) {
       </section>
 
       <section className="mt-8">
-        <SectionHeader title="TOP WICKET TAKERS" viewMoreTo={statsTotalWicketTakers} />
+        <SectionHeader
+          title="TOP WICKET TAKERS"
+          viewMoreTo={statsTotalWicketTakers}
+        />
         <div className="space-y-3">
           {stats.topWicketTakers.map((player) => (
             <PlayerStatCard

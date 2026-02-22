@@ -2,16 +2,16 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { Container } from '@/ui/Container';
-import { Tabs, TabsList, TabsTrigger, scorecardListClass, scorecardTriggerClass } from '@/ui/Tabs';
-
 import {
-  ScheduleTab,
-  SquadsTab,
-  StatsTab,
-  TableTab,
-  TeamsTab,
-} from './tabs';
+  scorecardListClass,
+  scorecardTriggerClass,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from '@/ui/Tabs';
+
 import { MOCK_MATCHES } from './mockMatches';
+import { ScheduleTab, SquadsTab, StatsTab, TableTab, TeamsTab } from './tabs';
 
 const NAVBAR_HEIGHT = 64; // h-16 = 4rem
 
@@ -85,7 +85,8 @@ export default function ScorecardDetails() {
           </svg>
         </button>
         <h1 className="min-w-0 flex-1 pr-[27px] text-center text-[16px] font-bold tracking-wide text-white uppercase">
-          SCORE CARD - <span className="text-[#DA9811]">{tournamentId || ''}</span>
+          SCORE CARD -{' '}
+          <span className="text-[#DA9811]">{tournamentId || ''}</span>
         </h1>
       </header>
 
@@ -97,10 +98,14 @@ export default function ScorecardDetails() {
         >
           <div className="flex flex-col">
             <div ref={tabsSentinelRef} className="h-px w-full" aria-hidden />
-            <div className="-mx-4 bg-black px-4 pb-2 pt-0.5">
+            <div className="-mx-4 bg-black px-4 pt-0.5 pb-2">
               <TabsList className={scorecardListClass}>
                 {TOURNAMENT_TABS.map(({ value, label }) => (
-                  <TabsTrigger key={value} value={value} className={scorecardTriggerClass}>
+                  <TabsTrigger
+                    key={value}
+                    value={value}
+                    className={scorecardTriggerClass}
+                  >
                     {label}
                   </TabsTrigger>
                 ))}
@@ -110,13 +115,17 @@ export default function ScorecardDetails() {
 
           {tabsFixedVisible && (
             <div
-              className="fixed left-0 right-0 z-10 bg-black pb-2 pt-1 z-[100]"
+              className="fixed right-0 left-0 z-10 z-[100] bg-black pt-1 pb-2"
               style={{ top: NAVBAR_HEIGHT }}
             >
               <div className="mx-auto max-w-2xl px-4">
                 <TabsList className={scorecardListClass}>
                   {TOURNAMENT_TABS.map(({ value, label }) => (
-                    <TabsTrigger key={value} value={value} className={scorecardTriggerClass}>
+                    <TabsTrigger
+                      key={value}
+                      value={value}
+                      className={scorecardTriggerClass}
+                    >
                       {label}
                     </TabsTrigger>
                   ))}

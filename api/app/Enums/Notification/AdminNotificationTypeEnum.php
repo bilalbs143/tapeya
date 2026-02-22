@@ -1,0 +1,14 @@
+<?php
+
+namespace App\Enums\Notification;
+
+use App\Enums\BaseEnumTrait;
+
+enum AdminNotificationTypeEnum: string
+{
+    use BaseEnumTrait;
+
+    case ORDER_PLACED = 'order_placed';
+    case USER_REGISTERED = 'user_registered';
+    case EVENT_CREATED = 'event_created';
+}

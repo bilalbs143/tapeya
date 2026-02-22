@@ -22,6 +22,7 @@ return new class extends Migration
             $table->unsignedInteger('number_of_matches');
             $table->unsignedInteger('number_of_teams');
             $table->unsignedInteger('expected_players_count');
+            $table->string('country', 100)->nullable();
             $table->string('city', 100);
             $table->string('match_timings', 30);
             $table->string('status', 20)->default('pending');

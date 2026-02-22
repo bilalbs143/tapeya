@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
 import { formatPrice } from '@/lib/format';
-import { useGetCitiesQuery, useGetCountriesQuery } from '@/store/api/locationApi';
+import {
+  useGetCitiesQuery,
+  useGetCountriesQuery,
+} from '@/store/api/locationApi';
 import { useCreateOrderMutation, useGetCartQuery } from '@/store/api/shopApi';
 import { useAppSelector } from '@/store/hooks';
 import { Container } from '@/ui/Container';
@@ -13,21 +16,22 @@ import { PhoneInput } from '@/ui/PhoneInput';
 import {
   Select,
   SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   selectContentInputClass,
+  SelectItem,
   selectItemInputClass,
+  SelectTrigger,
   selectTriggerInputClass,
+  SelectValue,
   selectViewportInputClass,
 } from '@/ui/Select';
+import { useToast } from '@/ui/useToast';
 
 export default function ShopCheckout() {
   const navigate = useNavigate();
+  const toast = useToast();
   const user = useAppSelector((state) => state.auth?.user);
   const { data: cart, isLoading: cartLoading } = useGetCartQuery();
   const [createOrder, { isLoading: isSubmitting }] = useCreateOrderMutation();
-  const [checkoutError, setCheckoutError] = useState(null);
 
   const { register, control, handleSubmit, reset, watch, setValue } = useForm({
     defaultValues: {
@@ -68,7 +72,6 @@ export default function ShopCheckout() {
   const hasEmail = !!user?.email;
 
   const onSubmit = async (data) => {
-    setCheckoutError(null);
     try {
       const result = await createOrder({
         address: data.address,
@@ -78,13 +81,16 @@ export default function ShopCheckout() {
         shipping_amount: 0,
       }).unwrap();
       const order = result?.data ?? result;
-      if (order?.id) navigate(`/shop/order-payment/${order.id}`, { replace: true });
+      if (order?.id) {
+        toast.success('Order placed');
+        navigate(`/shop/order-payment/${order.id}`, { replace: true });
+      }
     } catch (err) {
       const message =
         err?.data?.message ??
         err?.message ??
         'Checkout failed. Please try again.';
-      setCheckoutError(message);
+      toast.error(message);
     }
   };
 
@@ -127,7 +133,7 @@ export default function ShopCheckout() {
               onClick={() => navigate('/shop/cart')}
               className="mt-4 rounded-full bg-[#DA9811] px-6 py-3 text-[14px] font-bold text-black"
             >
-              View cart
+              View Cart
             </button>
           </div>
         ) : (
@@ -179,17 +185,26 @@ export default function ShopCheckout() {
               label="Delivery Address"
               htmlFor="address"
               variant="checkout"
+              required
             >
               <Input
                 id="address"
                 type="text"
                 placeholder="Street address"
                 autoComplete="street-address"
-                {...register('address', { required: true })}
+                aria-required="true"
+                {...register('address', {
+                  required: 'Delivery address is required',
+                })}
               />
             </FormField>
 
-            <FormField label="Country" htmlFor="country" variant="checkout" required>
+            <FormField
+              label="Country"
+              htmlFor="country"
+              variant="checkout"
+              required
+            >
               <Controller
                 name="country"
                 control={control}
@@ -285,12 +300,6 @@ export default function ShopCheckout() {
               />
             </FormField>
 
-            {checkoutError && (
-              <p className="text-[14px] text-red-400" role="alert">
-                {checkoutError}
-              </p>
-            )}
-
             <p className="text-[14px] text-[#A2A6AB]">
               Subtotal:{' '}
               <strong className="text-[#DA9811]">
@@ -304,7 +313,7 @@ export default function ShopCheckout() {
               disabled={isSubmitting}
               className="flex w-full items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90 disabled:opacity-50"
             >
-              {isSubmitting ? 'Placing order…' : 'Place order'}
+              {isSubmitting ? 'Placing Order…' : 'Place Order'}
               <svg
                 className="h-5 w-5"
                 fill="none"

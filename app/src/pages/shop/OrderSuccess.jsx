@@ -8,6 +8,9 @@ export default function OrderSuccess() {
   const { state } = useLocation();
   const orderId = state?.orderId;
 
+  const handleShopAgain = () => navigate('/shop');
+  const handleViewOrders = () => navigate('/shop/orders');
+
   return (
     <div className="flex flex-col bg-black">
       <Container fullWidth className="flex flex-1 flex-col !px-4 !py-0">
@@ -52,18 +55,18 @@ export default function OrderSuccess() {
             THANK YOU FOR YOUR ORDER!
           </h2>
 
-          <p className="mb-4 max-w-[280px] text-[14px] font-medium leading-relaxed text-[#A2A6AB]">
+          <p className="mb-4 max-w-[280px] text-[14px] leading-relaxed font-medium text-[#A2A6AB]">
             We will notify you of all the details via email or WhatsApp number
             you provided.
           </p>
 
-          {orderId != null && (
+          {orderId != null ? (
             <button
               type="button"
-              onClick={() => navigate('/shop/orders')}
+              onClick={handleViewOrders}
               className="mb-4 flex w-full items-center justify-center gap-2 rounded-[6px] border-2 border-[#DA9811] bg-transparent py-3.5 text-[16px] font-bold text-[#DA9811] transition-opacity active:opacity-90"
             >
-              View my orders
+              View My Orders
               <svg
                 className="h-5 w-5"
                 fill="none"
@@ -76,11 +79,11 @@ export default function OrderSuccess() {
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </button>
-          )}
+          ) : null}
 
           <button
             type="button"
-            onClick={() => navigate('/shop')}
+            onClick={handleShopAgain}
             className="flex w-full items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] px-8 py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90"
           >
             Shop Again

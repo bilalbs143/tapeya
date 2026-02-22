@@ -73,6 +73,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
   public readonly displayedColumns: string[] = [
     'sr',
     'name',
+    'nickname',
     'email',
     'phone',
     'date_of_birth',

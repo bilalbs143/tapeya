@@ -28,6 +28,7 @@ class RegisterRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
+            'nickname' => ['required', 'string', 'max:50', 'regex:/^[a-zA-Z0-9_]+$/', 'unique:users,nickname'],
             'phone' => ['required', 'string', 'regex:/^\+[1-9]\d{6,14}$/', 'unique:users,phone'],
             'email' => ['nullable', 'string', 'email', 'max:255'],
         ];
@@ -36,6 +37,7 @@ class RegisterRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'nickname.regex' => 'Nickname may only contain letters, numbers and underscores.',
             'phone.regex' => 'Phone must include country code (e.g. +441234567890).',
         ];
     }

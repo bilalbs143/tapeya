@@ -30,6 +30,7 @@ class EventRequestResource extends JsonResource
             'number_of_matches' => $this->number_of_matches,
             'number_of_teams' => $this->number_of_teams,
             'expected_players_count' => $this->expected_players_count,
+            'country' => $this->country,
             'city' => $this->city,
             'match_timings' => $this->match_timings?->value,
             'match_timings_label' => $this->match_timings?->label(),

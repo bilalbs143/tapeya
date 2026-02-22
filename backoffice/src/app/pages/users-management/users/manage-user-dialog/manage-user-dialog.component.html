@@ -6,7 +6,7 @@
   >
     <mat-dialog-content>
       <div class="grid grid-cols-12 gap-x-6">
-        <!-- Row 1: Name | Email -->
+        <!-- Row 1: Name | Nickname -->
         <div class="col-span-12 lg:col-span-6">
           <mat-label class="text-sm font-semibold mb-2 block">Name <span class="text-error">*</span></mat-label>
           <mat-form-field
@@ -24,6 +24,24 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Nickname <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              formControlName="nickname"
+              placeholder="Letters, numbers, underscores only"
+            />
+            @if (form.get('nickname')?.invalid && form.get('nickname')?.touched) {
+              <mat-error>Required; letters, numbers and underscores only</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <!-- Row 2: Email | Phone -->
+        <div class="col-span-12 lg:col-span-6">
           <mat-label class="text-sm font-semibold mb-2 block">Email</mat-label>
           <mat-form-field
             appearance="outline"
@@ -38,7 +56,7 @@
           </mat-form-field>
         </div>
 
-        <!-- Row 2: Phone | Date of Birth -->
+        <!-- Row 3: Phone | Date of Birth -->
         <div class="col-span-12 lg:col-span-6">
           <mat-label class="text-sm font-semibold mb-2 block">Phone <span class="text-error">*</span></mat-label>
           <mat-form-field
@@ -75,7 +93,7 @@
           </mat-form-field>
         </div>
 
-        <!-- Row 3: Roles | Status -->
+        <!-- Row 4: Roles | Status -->
         <div class="col-span-12 lg:col-span-6">
           <mat-label class="text-sm font-semibold mb-2 block">Roles <span class="text-error">*</span></mat-label>
           <mat-form-field
@@ -117,7 +135,7 @@
           </mat-form-field>
         </div>
 
-        <!-- Row 4: Playing Role | Bowling Style | Batting Style -->
+        <!-- Row 5: Playing Role | Bowling Style | Batting Style -->
         <div class="col-span-12 lg:col-span-4">
           <mat-label class="text-sm font-semibold mb-2 block">Playing Role</mat-label>
           <mat-form-field
@@ -176,7 +194,7 @@
           </mat-form-field>
         </div>
 
-        <!-- Row 5: Country | City -->
+        <!-- Row 6: Country | City -->
         <div class="col-span-12 lg:col-span-6">
           <mat-label class="text-sm font-semibold mb-2 block">Country</mat-label>
           <mat-form-field
@@ -213,7 +231,7 @@
           </mat-form-field>
         </div>
 
-        <!-- Row 6: Password | Confirm Password -->
+        <!-- Row 7: Password | Confirm Password -->
         <div class="col-span-12 lg:col-span-6">
           <mat-label class="text-sm font-semibold mb-2 block">Password (Optional)</mat-label>
           <mat-form-field

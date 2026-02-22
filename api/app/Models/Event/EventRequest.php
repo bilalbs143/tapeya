@@ -28,6 +28,7 @@ class EventRequest extends BaseModel
         'number_of_matches',
         'number_of_teams',
         'expected_players_count',
+        'country',
         'city',
         'match_timings',
         'status',

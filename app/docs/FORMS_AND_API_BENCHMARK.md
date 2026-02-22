@@ -87,11 +87,13 @@ const onSubmit = async (data) => {
 ```jsx
 import { getApiErrorMessage } from '@/lib/apiErrors';
 
-{error && (
-  <p className="..." role="alert">
-    {getApiErrorMessage(error, 'Could not send OTP. Please try again.')}
-  </p>
-)}
+{
+  error && (
+    <p className="..." role="alert">
+      {getApiErrorMessage(error, 'Could not send OTP. Please try again.')}
+    </p>
+  );
+}
 ```
 
 ### 4.2 Validation errors (client-side)

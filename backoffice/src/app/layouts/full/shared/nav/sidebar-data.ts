@@ -64,6 +64,11 @@ export const navItems: NavItem[] = [
     ],
   },
   {
+    displayName: 'Notifications',
+    iconName: 'solar:bell-line-duotone',
+    route: '/notifications',
+  },
+  {
     displayName: 'Shop',
     iconName: 'solar:cart-large-2-line-duotone',
     children: [
