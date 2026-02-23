@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import hamburgerIcon from '@/assets/images/icons/hamburger-icon.svg';
 import notificationIcon from '@/assets/images/icons/notification-icon.svg';
@@ -31,9 +32,13 @@ export function Navbar({ onMenuClick }) {
         <img src={logo} alt="" className="h-8 w-auto" />
       </a>
       <div className="flex items-center gap-2">
-        <button type="button" className={iconBtn} aria-label="Notifications">
+        <Link
+          to="/notification-center"
+          className={iconBtn}
+          aria-label="Notifications"
+        >
           <img src={notificationIcon} alt="" className="h-3.5 w-3.5" />
-        </button>
+        </Link>
         <button
           type="button"
           className={iconBtn}

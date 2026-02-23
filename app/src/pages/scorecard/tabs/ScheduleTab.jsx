@@ -17,6 +17,7 @@ export function ScheduleTab({ matches }) {
           key={match.id}
           match={match}
           showScheduleTableLinks={false}
+          to={`/scorecard/${match.league}/match/${match.id}`}
         />
       ))}
     </div>

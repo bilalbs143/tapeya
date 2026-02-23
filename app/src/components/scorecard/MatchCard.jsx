@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 
 import karachiFlag from '@/assets/images/icons/karachi-flag.png';
 import rawalpindiFlag from '@/assets/images/icons/rawalpindi-flag.png';
+import { CommentaryText } from '@/components/scorecard/CommentaryText';
 
 const FLAGS = { karachi: karachiFlag, rawalpindi: rawalpindiFlag };
 
@@ -82,25 +83,7 @@ function parseLiveScore2(score2) {
   };
 }
 
-/** Highlight numbers in commentary e.g. "Karachi Kids need 207 runs from 45 overs" */
-function CommentaryWithNumbers({ text }) {
-  const parts = text.split(/(\d+)/);
-  return (
-    <span className="text-[13px] text-[#BBBBBB]">
-      {parts.map((part, i) =>
-        /^\d+$/.test(part) ? (
-          <span key={i} className="font-semibold text-[#CCCCCC]">
-            {part}
-          </span>
-        ) : (
-          part
-        ),
-      )}
-    </span>
-  );
-}
-
-export function MatchCard({ match, showScheduleTableLinks = true }) {
+export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
   const { status, matchId, league, team1, team2, score1, score2, meta } = match;
   const isUpcoming = status === 'upcoming';
   const isLive = status === 'live';
@@ -108,8 +91,8 @@ export function MatchCard({ match, showScheduleTableLinks = true }) {
   const useLiveLayout = isLive || isResult;
   const liveScore2 = useLiveLayout ? parseLiveScore2(score2) : null;
 
-  return (
-    <div className="rounded-[17px] bg-[#141412] p-4">
+  const cardInner = (
+    <>
       {/* Top row: status left, match title right */}
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
@@ -194,7 +177,11 @@ export function MatchCard({ match, showScheduleTableLinks = true }) {
       )}
       {(isLive || isResult) && meta?.commentary && (
         <p className="mb-3">
-          <CommentaryWithNumbers text={meta.commentary} />
+          <CommentaryText
+            text={meta.commentary}
+            className="text-[13px] text-[#BBBBBB]"
+            numberClassName="font-semibold text-[#CCCCCC]"
+          />
         </p>
       )}
 
@@ -214,6 +201,21 @@ export function MatchCard({ match, showScheduleTableLinks = true }) {
           </Link>
         </div>
       )}
-    </div>
+    </>
+  );
+
+  if (to) {
+    return (
+      <Link
+        to={to}
+        className="block rounded-[17px] bg-[#141412] p-4 transition-opacity active:opacity-90"
+      >
+        {cardInner}
+      </Link>
+    );
+  }
+
+  return (
+    <div className="rounded-[17px] bg-[#141412] p-4">{cardInner}</div>
   );
 }

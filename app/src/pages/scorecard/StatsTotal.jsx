@@ -43,11 +43,7 @@ function StatsTotalContent() {
   const subheading = titles.sub;
 
   const backToStats = () => {
-    if (tournamentId) {
-      navigate(`/scorecard/${tournamentId}?tab=stats`, { replace: false });
-    } else {
-      navigate(-1);
-    }
+    navigate(-1);
   };
 
   return (

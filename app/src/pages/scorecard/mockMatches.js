@@ -104,4 +104,25 @@ export const MOCK_MATCHES = [
     score2: '202/5 (18.2/20 OV)',
     meta: { commentary: 'Rawalpindi Royals won by 5 wickets.' },
   },
+  {
+    id: 7,
+    league: 'DPL',
+    status: 'live',
+    matchId: '12th Match - DPL T20',
+    team1: {
+      name: 'Karachi Kids',
+      initial: 'K',
+      flag: 'karachi',
+      score: '112/4',
+    },
+    team2: {
+      name: 'Rawalpindi Royals',
+      initial: 'R',
+      flag: 'rawalpindi',
+      score: '78/3 (10/20 OV, T:113)',
+    },
+    score1: '112/4',
+    score2: '78/3 (10/20 OV, T:113)',
+    meta: { commentary: 'Rawalpindi Royals need 35 runs from 60 balls.' },
+  },
 ];

@@ -1,0 +1,131 @@
+/**
+ * Scorecard tab: batting scorecard with team selector (ScorecardStatusDetails).
+ */
+import { useState } from 'react';
+
+import { StatusDetailsPlaceholderTab } from './PlaceholderTab';
+
+const BORDER = 'border-[#1C1C1A]';
+const HEADER_BG = 'bg-[#141412]';
+
+function BattingScorecardTable({ team }) {
+  return (
+    <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <table className="w-full border-collapse text-[12px]">
+        <thead>
+          <tr className={HEADER_BG}>
+            <th
+              className={`${HEADER_BG} border-b border-r py-2.5 px-4 text-left font-bold text-white ${BORDER}`}
+            >
+              Batting
+            </th>
+            {['R', 'B', '4s', '6s', 'SR'].map((h) => (
+              <th
+                key={h}
+                className={`${HEADER_BG} w-[2rem] border-b border-r py-2.5 text-center font-bold text-white ${BORDER}`}
+              >
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {team.batting.map((player, i) => (
+            <tr key={i}>
+              <td className={`border-b border-r ${BORDER} py-3 px-4`}>
+                <p className="text-[12px] font-medium text-white">{player.name}</p>
+                {player.dismissal && (
+                  <p className="mt-0.5 text-[11px] text-[#A2A6AB]">{player.dismissal}</p>
+                )}
+              </td>
+              <td className={`border-b border-r ${BORDER} py-3 px-4 text-center text-white`}>
+                {player.r}
+              </td>
+              <td className={`border-b border-r ${BORDER} py-3 px-4 text-center text-white`}>
+                {player.b}
+              </td>
+              <td className={`border-b border-r ${BORDER} py-3 px-4 text-center text-white`}>
+                {player.fours}
+              </td>
+              <td className={`border-b border-r ${BORDER} py-3 px-4 text-center text-white`}>
+                {player.sixes}
+              </td>
+              <td className={`border-b border-r ${BORDER} py-3 px-4 text-center text-white`}>
+                {player.sr}
+              </td>
+            </tr>
+          ))}
+
+          {team.extras && (
+            <tr>
+              <td className={`border-b border-r ${BORDER} py-3 px-4`}>
+                <p className="text-[13px] font-medium text-white">Extras</p>
+                <p className="mt-0.5 text-[11px] text-[#A2A6AB]">({team.extras.detail})</p>
+              </td>
+              <td className={`border-b border-r ${BORDER} py-3 text-center text-white`}>
+                {team.extras.runs}
+              </td>
+              <td className={`border-b border-r ${BORDER} py-3 text-center`} />
+              <td className={`border-b border-r ${BORDER} py-3 text-center`} />
+              <td className={`border-b border-r ${BORDER} py-3 text-center`} />
+              <td className={`border-b border-r ${BORDER} py-3 text-center`} />
+            </tr>
+          )}
+
+          {team.total && (
+            <tr className={HEADER_BG}>
+              <td className={`${HEADER_BG} border-r ${BORDER} py-3 px-4`}>
+                <span className="text-[13px] font-semibold text-white">Total</span>
+              </td>
+              <td colSpan={4} className={`${HEADER_BG} border-r ${BORDER} py-3 pr-2 text-[12px] text-white`}>
+                {team.total.summary}
+              </td>
+              <td className={`${HEADER_BG} border-r ${BORDER} py-3 text-center text-[13px] font-bold text-white`}>
+                {team.total.score}
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export function StatusDetailsScorecardTab({ details }) {
+  const [teamIndex, setTeamIndex] = useState(0);
+
+  if (!details?.teams?.length) {
+    return <StatusDetailsPlaceholderTab label="Scorecard data unavailable" />;
+  }
+
+  const teams = details.teams;
+  const selectedTeam = teams[teamIndex];
+
+  return (
+    <div className="pb-6">
+      <div className="mb-4 flex justify-center">
+        {teams.map((team, i) => (
+          <button
+            key={team.name}
+            type="button"
+            onClick={() => setTeamIndex(i)}
+            className={`mr-6 text-[14px] font-normal transition-colors ${
+              i === teamIndex ? 'text-[#DA9811]' : 'text-[#A2A6AB]'
+            }`}
+          >
+            <span
+              className={
+                i === teamIndex
+                  ? 'inline-block border-b-4 border-[#DA9811] pb-2.5'
+                  : 'inline-block pb-3'
+              }
+            >
+              {team.name}
+            </span>
+          </button>
+        ))}
+      </div>
+      <BattingScorecardTable team={selectedTeam} />
+    </div>
+  );
+}

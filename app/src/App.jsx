@@ -8,7 +8,13 @@ import Otp from '@/pages/auth/Otp';
 import Register from '@/pages/auth/Register';
 import EventRequest from '@/pages/EventRequest';
 import Home from '@/pages/Home';
-import { ScorecardDetails, ScorecardHome, StatsTotal } from '@/pages/scorecard';
+import NotificationCenter from '@/pages/NotificationCenter';
+import {
+  ScorecardDetails,
+  ScorecardHome,
+  ScorecardStatusDetails,
+  StatsTotal,
+} from '@/pages/scorecard';
 import MyOrders from '@/pages/shop/MyOrders';
 import OrderDetail from '@/pages/shop/OrderDetail';
 import OrderPayment from '@/pages/shop/OrderPayment';
@@ -41,6 +47,10 @@ function App() {
                   element={<ScorecardDetails />}
                 />
                 <Route
+                  path="/scorecard/:tournamentId/match/:matchId"
+                  element={<ScorecardStatusDetails />}
+                />
+                <Route
                   path="/scorecard/:tournamentId/stats-total/:statType"
                   element={<StatsTotal />}
                 />
@@ -65,6 +75,7 @@ function App() {
                 />
                 <Route path="/shop/:brandId" element={<ShopCategory />} />
                 <Route path="/event-request" element={<EventRequest />} />
+                <Route path="/notification-center" element={<NotificationCenter />} />
               </Route>
               <Route element={<AuthLayout />}>
                 <Route path="/login" element={<Login />} />
