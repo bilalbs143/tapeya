@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import karachiFlag from '@/assets/images/icons/karachi-flag.png';
@@ -16,10 +16,12 @@ import {
 
 import { MOCK_MATCH_DETAILS } from './mockMatchDetails';
 import { MOCK_MATCHES } from './mockMatches';
-import { StatsTab, TableTab } from './tabs';
+import { ScheduleTab, StatsTab, TableTab } from './tabs';
 import {
   StatusDetailsLiveTab,
+  StatusDetailsOversTab,
   StatusDetailsPlaceholderTab,
+  StatusDetailsPlayingXITab,
   StatusDetailsScorecardTab,
 } from './statusDetailsTabs';
 
@@ -58,8 +60,11 @@ const STATUS_DEFAULT_TAB = {
 const TAB_VIEWS = {
   live: StatusDetailsLiveTab,
   scorecard: StatusDetailsScorecardTab,
+  overs: StatusDetailsOversTab,
+  'playing-xi': StatusDetailsPlayingXITab,
   table: TableTab,
   stats: StatsTab,
+  fixture: ScheduleTab,
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -79,7 +84,7 @@ function ResultTextHighlighted({ text, highlight }) {
   }
   const [before, after] = text.split(highlight);
   return (
-    <span className="text-[14px] font-medium text-white">
+    <span className="text-[14px] font-normal text-white">
       {before}
       <span className="font-semibold text-[#DA9811]">{highlight}</span>
       {after}
@@ -187,7 +192,7 @@ function MatchHeader({ match, details }) {
             <span className="shrink-0 text-[14px] text-[#A2A6AB]">{meta?.time}</span>
           ) : (
             score1 && (
-              <span className="shrink-0 text-[14px] font-medium text-white">{score1}</span>
+              <span className="shrink-0 text-[14px] font-medium text-[#A2A6AB]">{score1}</span>
             )
           )}
         </div>
@@ -253,12 +258,18 @@ export default function ScorecardStatusDetails() {
 
   const match = MOCK_MATCHES.find((m) => m.id === Number(matchId));
   const details = MOCK_MATCH_DETAILS[Number(matchId)] ?? null;
+  const matches = MOCK_MATCHES.filter((m) => m.league === tournamentId);
 
   const status = match?.status ?? 'upcoming';
   const tabs = STATUS_TABS[status] ?? [];
   const defaultTab = STATUS_DEFAULT_TAB[status] ?? tabs[0]?.value;
 
   const [activeTab, setActiveTab] = useState(defaultTab);
+
+  useEffect(() => {
+    const nextDefault = STATUS_DEFAULT_TAB[status] ?? STATUS_TABS[status]?.[0]?.value;
+    setActiveTab(nextDefault);
+  }, [status, matchId]);
 
   if (!match) {
     return (
@@ -273,8 +284,11 @@ export default function ScorecardStatusDetails() {
   const tabProps = {
     live: { details },
     scorecard: { details },
+    overs: { match, details },
+    'playing-xi': { match, details },
     table: { tournamentId },
     stats: { tournamentId },
+    fixture: { matches, tournamentId },
   };
 
   return (

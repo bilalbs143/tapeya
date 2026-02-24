@@ -4,6 +4,52 @@
  */
 
 // Live match details (matches id: 2 TSL, id: 5 KTPL)
+// Over-by-over: each over has runs/wickets for that over and running total
+const OVERS_MOCK = [
+  { over: 1, team1: { runs: 10, wickets: 0 }, team2: { runs: 5, wickets: 0 } },
+  { over: 2, team1: { runs: 10, wickets: 0 }, team2: { runs: 5, wickets: 0 } },
+  { over: 3, team1: { runs: 10, wickets: 0 }, team2: { runs: 5, wickets: 0 } },
+  { over: 4, team1: { runs: 10, wickets: 0 }, team2: { runs: 5, wickets: 0 } },
+  { over: 5, team1: { runs: 10, wickets: 0 }, team2: { runs: 5, wickets: 0 } },
+];
+
+const PLAYING_XI_2 = {
+  team1: [
+    { name: 'Aaron George', role: 'Top-order Batter' },
+    { name: 'Sam Curran', role: 'Allrounder' },
+    { name: 'Harry Brook', role: 'Middle-order Batter' },
+    { name: 'Brooke Halliday', role: 'Bowler' },
+    { name: 'Lauren Down', role: 'Batter' },
+    { name: 'Bella Armstrong', role: 'Batter' },
+    { name: 'Alex Carey', role: 'Wicketkeeper' },
+    { name: 'Imad Wasim', role: 'Allrounder' },
+    { name: 'Shaheen Afridi', role: 'Bowler' },
+    { name: 'Mohammad Amir', role: 'Bowler' },
+    { name: 'Shan Masood', role: 'Top-order Batter' },
+    { name: 'Asif Ali', role: 'Bowler' },
+    { name: 'Khurram Manzoor', role: 'Bowler' },
+    { name: 'Anwar Ali', role: 'Allrounder' },
+    { name: 'Sohail Khan', role: 'Allrounder' },
+  ],
+  team2: [
+    { name: 'Hamza Zahoor', role: 'Wicketkeeper' },
+    { name: 'Aiden Markram', role: 'Top-order Batter' },
+    { name: 'Andre Russell', role: 'Allrounder' },
+    { name: 'David Warner', role: 'Batter' },
+    { name: 'Glenn Maxwell', role: 'Allrounder' },
+    { name: 'Dasun Shanaka', role: 'Bowler' },
+    { name: 'Adil Rashid', role: 'Bowler' },
+    { name: 'Babar Azam', role: 'Top-order Batter' },
+    { name: 'Mohammad Rizwan', role: 'Wicketkeeper' },
+    { name: 'Shadab Khan', role: 'Allrounder' },
+    { name: 'Hasan Ali', role: 'Bowler' },
+    { name: 'Faheem Ashraf', role: 'Allrounder' },
+    { name: 'Haris Rauf', role: 'Bowler' },
+    { name: 'Usman Qadir', role: 'Bowler' },
+    { name: 'Iftikhar Ahmed', role: 'Allrounder' },
+  ],
+};
+
 const LIVE_DETAILS_2 = {
   crr: '6.55',
   rrr: '9.90',
@@ -37,6 +83,8 @@ const LIVE_DETAILS_2 = {
       total: { score: '27/1', summary: '4.4 Ov (RR: 6.55, T:235)' },
     },
   ],
+  playingXI: PLAYING_XI_2,
+  overs: OVERS_MOCK,
 };
 
 const LIVE_DETAILS_5 = {
@@ -72,6 +120,8 @@ const LIVE_DETAILS_5 = {
       total: { score: '89/2', summary: '12 Ov (RR: 7.42, T:157)' },
     },
   ],
+  playingXI: PLAYING_XI_2,
+  overs: OVERS_MOCK,
 };
 
 // Live match details (match id: 7 DPL)
@@ -108,6 +158,8 @@ const LIVE_DETAILS_7 = {
       total: { score: '78/3', summary: '10 Ov (RR: 7.80, T:113)' },
     },
   ],
+  playingXI: PLAYING_XI_2,
+  overs: OVERS_MOCK,
 };
 
 // Result match details (matches id: 3 DPL, id: 6 DMT)
@@ -140,6 +192,8 @@ const RESULT_DETAILS_3 = {
       total: { score: '175/3', summary: '19.2 Ov (RR: 9.05, 72 Mins)' },
     },
   ],
+  playingXI: PLAYING_XI_2,
+  overs: OVERS_MOCK,
 };
 
 const RESULT_DETAILS_6 = {
@@ -171,13 +225,18 @@ const RESULT_DETAILS_6 = {
       total: { score: '202/5', summary: '18.2 Ov (RR: 11.02, 88 Mins)' },
     },
   ],
+  playingXI: PLAYING_XI_2,
+  overs: OVERS_MOCK,
 };
 
+// Upcoming matches: only playing XI available (no scorecard yet)
+const UPCOMING_DETAILS = { playingXI: PLAYING_XI_2 };
+
 export const MOCK_MATCH_DETAILS = {
-  1: null,
+  1: UPCOMING_DETAILS,
   2: LIVE_DETAILS_2,
   3: RESULT_DETAILS_3,
-  4: null,
+  4: UPCOMING_DETAILS,
   5: LIVE_DETAILS_5,
   6: RESULT_DETAILS_6,
   7: LIVE_DETAILS_7,

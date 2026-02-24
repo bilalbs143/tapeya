@@ -29,47 +29,47 @@ function PointsTableGroup({ group }) {
       <h2 className="mb-4 text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
         {group.label}
       </h2>
-      <div className="overflow-x-auto overflow-y-hidden rounded-md border border-[#1A1A1A] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="overflow-x-auto overflow-y-hidden border border-[#1A1A1A] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <table className="w-full min-w-max border-collapse text-[12px] text-white">
           <thead>
             <tr className={HEADER_BG}>
               <th
-                className={`${STICKY_TEAMS} ${HEADER_BG} border-r border-b border-l ${BORDER} py-3.5 pl-4 text-left font-medium`}
+                className={`${STICKY_TEAMS} ${HEADER_BG} border-r border-b border-l ${BORDER} py-3.5 pl-4 text-left font-bold`}
               >
                 Teams
               </th>
               <th
-                className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-medium`}
+                className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-bold`}
               >
                 M
               </th>
               <th
-                className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-medium`}
+                className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-bold`}
               >
                 W
               </th>
               <th
-                className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-medium`}
+                className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-bold`}
               >
                 L
               </th>
               <th
-                className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-medium`}
+                className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-bold`}
               >
                 T
               </th>
               <th
-                className={`border-r border-b ${BORDER} w-14 py-3.5 text-center font-medium`}
+                className={`border-r border-b ${BORDER} w-14 py-3.5 text-center font-bold`}
               >
                 PTS
               </th>
               <th
-                className={`border-r border-b ${BORDER} w-14 py-3.5 text-center font-medium`}
+                className={`border-r border-b ${BORDER} w-14 py-3.5 text-center font-bold`}
               >
                 NRR
               </th>
               <th
-                className={`border-r border-b ${BORDER} w-20 px-1 py-3.5 text-center font-medium`}
+                className={`border-r border-b ${BORDER} w-20 px-1 py-3.5 text-center font-bold`}
               >
                 Series Form
               </th>

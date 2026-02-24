@@ -23,7 +23,7 @@ const MENU_ITEMS = [
     path: '/event-request',
   },
   { label: 'Start Match', icon: starMatchIcon },
-  { label: 'Drafting', icon: draftingIcon },
+  { label: 'Drafting', icon: draftingIcon, path: '/drafting' },
   { label: 'My Orders', icon: myOrderIcon, path: '/shop/orders' },
   { label: 'Go live', icon: goLiveIcon },
   { label: 'Toss', icon: tossIcon },

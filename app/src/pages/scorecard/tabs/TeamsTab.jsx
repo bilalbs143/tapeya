@@ -10,8 +10,8 @@ export function TeamsTab({ tournamentId }) {
         {title}
       </h1>
 
-      <div className="rounded-md border border-[#1A1A1A]">
-        <div className="bg-[#1A1A1A] px-4 py-3 text-[13px] font-bold text-white">
+      <div className="border border-[#1A1A1A]">
+        <div className="bg-[#141412] px-4 py-3 text-[13px] font-bold text-white">
           Teams
         </div>
         <div className="divide-y divide-[#1A1A1A]">

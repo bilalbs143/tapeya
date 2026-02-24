@@ -5,9 +5,62 @@ import { Container } from '@/ui/Container';
 import { getStatsTotalRows } from './tabs/statsData';
 
 const BORDER = 'border-[#1A1A1A]';
-const STICKY_PLAYER = 'sticky left-0 z-10 min-w-[140px]';
 const HEADER_BG = 'bg-[#141412]';
-const STICKY_BODY_BG = 'bg-black';
+const COL_TH = 'min-w-[80px] py-3.5 pl-4 text-left font-bold';
+const COL_TD = 'py-3.5 pl-4 text-left';
+
+const COLUMNS_FOURS = [
+  { key: 'player', header: 'Player', width: 'min-w-[120px]' },
+  { key: 'mat', header: 'Mat' },
+  { key: 'inns', header: 'Inns' },
+  { key: 'four', header: 'Fours' },
+];
+
+const COLUMNS_SIXES = [
+  { key: 'player', header: 'Player', width: 'min-w-[120px]' },
+  { key: 'mat', header: 'Mat' },
+  { key: 'inns', header: 'Inns' },
+  { key: 'six', header: 'Six' },
+];
+
+const COLUMNS_RUN_SCORERS = [
+  { key: 'player', header: 'Player', width: 'min-w-[120px]' },
+  { key: 'mat', header: 'Mat' },
+  { key: 'runs', header: 'Runs' },
+  { key: 'inns', header: 'Inns' },
+  { key: 'balls', header: 'Balls' },
+  { key: 'hs', header: 'HS' },
+  { key: 'avg', header: 'Avg' },
+  { key: 'sr', header: 'SR' },
+  { key: 'six', header: 'Six' },
+  { key: 'four', header: 'Four' },
+  { key: '50s', header: '50s' },
+  { key: '100s', header: '100s' },
+];
+
+const COLUMNS_WICKET_TAKERS = [
+  { key: 'player', header: 'Player', width: 'min-w-[120px]' },
+  { key: 'mat', header: 'Mat' },
+  { key: 'wkts', header: 'Wkts' },
+  { key: 'balls', header: 'Balls' },
+  { key: 'overs', header: 'Overs' },
+  { key: 'mdns', header: 'Mdns' },
+  { key: 'runs', header: 'Runs' },
+  { key: 'inns', header: 'Inns' },
+  { key: 'bbi', header: 'BBI' },
+  { key: 'ave', header: 'Ave' },
+  { key: 'econ', header: 'Econ' },
+  { key: 'sr', header: 'SR' },
+  { key: '4', header: '4' },
+  { key: '5', header: '5' },
+];
+
+const COLUMNS_BY_STAT_TYPE = {
+  fours: COLUMNS_FOURS,
+  sixes: COLUMNS_SIXES,
+  'run-scorers': COLUMNS_RUN_SCORERS,
+  'wicket-takers': COLUMNS_WICKET_TAKERS,
+};
 
 const VALID_STAT_TYPES = ['fours', 'sixes', 'run-scorers', 'wicket-takers'];
 
@@ -41,6 +94,7 @@ function StatsTotalContent() {
   const titles = TITLES[normalizedType] ?? TITLES.fours;
   const mainTitle = titles.main(tournamentId);
   const subheading = titles.sub;
+  const columns = COLUMNS_BY_STAT_TYPE[normalizedType] ?? COLUMNS_FOURS;
 
   const backToStats = () => {
     navigate(-1);
@@ -77,49 +131,37 @@ function StatsTotalContent() {
           {mainTitle}
         </h2>
 
-        <h3 className="mt-4 text-left text-sm font-medium tracking-wide text-white uppercase">
+        <h3 className="mt-4 text-left text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
           {subheading}
         </h3>
 
-        <div className="mt-3 overflow-x-auto overflow-y-hidden rounded-md border border-[#1A1A1A] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="mt-3 overflow-x-auto overflow-y-hidden border border-[#1A1A1A] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <table className="w-full min-w-max border-collapse text-[12px] text-white">
             <thead>
               <tr className={HEADER_BG}>
-                <th
-                  className={`${STICKY_PLAYER} ${HEADER_BG} border-r border-b border-l ${BORDER} py-3.5 pl-4 text-left font-medium`}
-                >
-                  Player
-                </th>
-                <th
-                  className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-medium`}
-                >
-                  Mat
-                </th>
-                <th
-                  className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-medium`}
-                >
-                  Inns
-                </th>
+                {columns.map((col, i) => (
+                  <th
+                    key={col.key}
+                    className={`${COL_TH} ${col.width ?? ''} ${HEADER_BG} border-b border-r ${BORDER} ${i === 0 ? 'border-l' : ''}`}
+                  >
+                    {col.header}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
                 <tr key={row.rank}>
-                  <td
-                    className={`${STICKY_PLAYER} ${STICKY_BODY_BG} border-r border-b border-l ${BORDER} py-3.5 pl-4`}
-                  >
-                    {row.rank} {row.playerName}
-                  </td>
-                  <td
-                    className={`border-r border-b ${BORDER} bg-transparent py-3.5 text-center`}
-                  >
-                    {row.mat}
-                  </td>
-                  <td
-                    className={`border-r border-b ${BORDER} bg-transparent py-3.5 text-center`}
-                  >
-                    {row.inns}
-                  </td>
+                  {columns.map((col, i) => (
+                    <td
+                      key={col.key}
+                      className={`${COL_TD} border-b border-r ${BORDER} bg-transparent ${i === 0 ? 'border-l' : ''}`}
+                    >
+                      {col.key === 'player'
+                        ? `${row.rank} ${row.playerName}`
+                        : row[col.key]}
+                    </td>
+                  ))}
                 </tr>
               ))}
             </tbody>

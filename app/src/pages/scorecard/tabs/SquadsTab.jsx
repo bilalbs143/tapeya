@@ -15,8 +15,8 @@ export function SquadsTab({ tournamentId }) {
         {title}
       </h1>
 
-      <div className="overflow-hidden rounded-md border border-[#1A1A1A]">
-        <div className="rounded-t-md bg-[#252525] px-4 py-3 text-[13px] font-bold text-white">
+      <div className="overflow-hidden border border-[#1A1A1A]">
+        <div className=" bg-[#141412] px-4 py-3 text-[13px] font-bold text-white">
           {squad?.teamName ?? 'Squad'}
         </div>
         <div className="border-t border-[#1A1A1A]">

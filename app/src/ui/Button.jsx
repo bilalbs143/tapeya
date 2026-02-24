@@ -11,6 +11,9 @@ const variants = {
     'bg-slate-200 text-slate-800 hover:bg-slate-300 active:bg-slate-400',
   outline: 'border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50',
   ghost: 'text-indigo-600 hover:bg-indigo-50',
+  file:
+    'border border-[#FFB800] text-[#FFB800] bg-transparent hover:bg-transparent active:bg-transparent',
+  card: 'bg-[#EBF2FF] text-[#A2A6AB]',
   auth: 'h-12 w-[358px] max-w-full rounded-[6px] bg-[#EBF2FF] text-slate-800 hover:bg-[#d4e4ff] active:bg-[#bdd1ff]',
 };
 

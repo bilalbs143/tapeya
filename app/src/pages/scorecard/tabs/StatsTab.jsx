@@ -8,14 +8,14 @@ import { getSeasonStats } from './statsData';
 function SummaryCard({ value, label, accent = 'yellow', to }) {
   const borderClass =
     accent === 'yellow'
-      ? 'border-2 border-[#FFC107]'
-      : 'border-2 border-[#03B0E7]';
+      ? 'border border-[#FFC107]'
+      : 'border border-[#03B0E7]';
   const baseClass = `flex w-full flex-1 items-center justify-between rounded-[6px] bg-transparent px-4 py-4 ${borderClass} text-left transition-opacity active:opacity-90`;
   const content = (
     <>
       <div>
-        <div className="text-xl font-bold text-white">{value}</div>
-        <div className="mt-0.5 text-[11px] font-medium tracking-wide text-[#AAAAAA] uppercase">
+        <div className="text-[16px] font-bold text-white">{value}</div>
+        <div className="mt-0.5 text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">
           {label}
         </div>
       </div>
@@ -71,7 +71,7 @@ function PlayerStatCard({
         </AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-baseline gap-1.5">
+        <div className="flex flex-wrap items-baseline gap-3">
           <span className="text-[16px] font-bold text-white">
             {player.name}
           </span>
@@ -79,12 +79,13 @@ function PlayerStatCard({
             {player.teamAbbr}, {player.role}
           </span>
         </div>
-        <div className="mt-1 text-[16px] font-bold text-[#FFC107]">
+        <div className="mt-1 text-[18px] font-bold text-[#DA9811]">
           {primaryStat}
           {statSuffix}
         </div>
-        <div className="mt-0.5 text-[12px] text-[#A2A6AB]">
-          Innings: {player.innings} Average: {player.average.toFixed(2)}
+        <div className="mt-0.5 flex flex-wrap gap-x-4 gap-y-0 text-[12px] text-[#A2A6AB]">
+          <div>Innings: {player.innings}</div>
+          <div>Average: {player.average.toFixed(2)}</div>
         </div>
       </div>
     </div>
@@ -100,7 +101,7 @@ function SectionHeader({ title, viewMoreTo }) {
       {viewMoreTo && (
         <Link
           to={viewMoreTo}
-          className="font- bold text-[12px] tracking-wide text-[#DA9811] uppercase transition-opacity hover:opacity-90"
+          className="font-bold text-[12px] tracking-wide text-[#DA9811] uppercase transition-opacity hover:opacity-90"
         >
           VIEW MORE
         </Link>
@@ -126,7 +127,7 @@ export function StatsTab({ tournamentId, matches: _matches }) {
 
   return (
     <div className="mt-4 pb-6 focus:outline-none">
-      <h1 className="text-center text-base font-medium tracking-wide text-white uppercase">
+      <h1 className="text-center text-base font-bold tracking-wide text-white uppercase">
         {title}
       </h1>
 

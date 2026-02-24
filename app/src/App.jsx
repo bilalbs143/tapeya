@@ -6,6 +6,9 @@ import { MainLayout } from '@/layouts/MainLayout';
 import Login from '@/pages/auth/Login';
 import Otp from '@/pages/auth/Otp';
 import Register from '@/pages/auth/Register';
+import AddTeam from '@/pages/drafting/AddTeam';
+import DraftingHome from '@/pages/drafting/DraftingHome';
+import TeamList from '@/pages/drafting/TeamList';
 import EventRequest from '@/pages/EventRequest';
 import Home from '@/pages/Home';
 import NotificationCenter from '@/pages/NotificationCenter';
@@ -41,6 +44,9 @@ function App() {
               <Route element={<MainLayout />}>
                 <Route path="/home" element={<Home />} />
                 <Route path="/user-profile" element={<UserProfile />} />
+                <Route path="/drafting" element={<DraftingHome />} />
+                <Route path="/drafting/add-team" element={<AddTeam />} />
+                <Route path="/drafting/teams" element={<TeamList />} />
                 <Route path="/scorecard" element={<ScorecardHome />} />
                 <Route
                   path="/scorecard/:tournamentId"

@@ -118,10 +118,19 @@ export function StatusDetailsLiveTab({ details }) {
       <BattingLiveTable batters={details.batters} />
       <BowlingLiveTable bowlers={details.bowlers} />
       {details.partnership && (
-        <div className=" pt-3">
-          <p className="text-[12px] text-[#A2A6AB]">
-            P&apos;SHIP: {details.partnership}
+        <div className="pt-3 space-y-1">
+          <p className="text-[14px]">
+            <span className="text-[#A2A6AB]">P&apos;SHIP:</span>{' '}
+            <span className="text-white">{details.partnership}</span>
           </p>
+          {details.batters?.[0] && (
+            <p className="text-[14px]">
+              <span className="text-[#A2A6AB]">L&apos;BAT:</span>{' '}
+              <span className="text-white">
+                {details.batters[0].name} {details.batters[0].r} ({details.batters[0].b}b)
+              </span>
+            </p>
+          )}
         </div>
       )}
     </div>

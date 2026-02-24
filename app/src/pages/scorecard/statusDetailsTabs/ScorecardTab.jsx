@@ -15,7 +15,7 @@ function BattingScorecardTable({ team }) {
         <thead>
           <tr className={HEADER_BG}>
             <th
-              className={`${HEADER_BG} border-b border-r py-2.5 px-4 text-left font-bold text-white ${BORDER}`}
+              className={`${HEADER_BG} border-b border-l border-r py-2.5 px-4 text-left font-bold text-white ${BORDER}`}
             >
               Batting
             </th>
@@ -32,10 +32,10 @@ function BattingScorecardTable({ team }) {
         <tbody>
           {team.batting.map((player, i) => (
             <tr key={i}>
-              <td className={`border-b border-r ${BORDER} py-3 px-4`}>
+              <td className={`border-b border-l border-r ${BORDER} py-3 px-4`}>
                 <p className="text-[12px] font-medium text-white">{player.name}</p>
                 {player.dismissal && (
-                  <p className="mt-0.5 text-[11px] text-[#A2A6AB]">{player.dismissal}</p>
+                  <p className="mt-0.5 text-[12px] text-[#A2A6AB]">{player.dismissal}</p>
                 )}
               </td>
               <td className={`border-b border-r ${BORDER} py-3 px-4 text-center text-white`}>
@@ -58,9 +58,9 @@ function BattingScorecardTable({ team }) {
 
           {team.extras && (
             <tr>
-              <td className={`border-b border-r ${BORDER} py-3 px-4`}>
+              <td className={`border-b border-l border-r ${BORDER} py-3 px-4`}>
                 <p className="text-[13px] font-medium text-white">Extras</p>
-                <p className="mt-0.5 text-[11px] text-[#A2A6AB]">({team.extras.detail})</p>
+                <p className="mt-0.5 text-[12px] text-[#A2A6AB]">({team.extras.detail})</p>
               </td>
               <td className={`border-b border-r ${BORDER} py-3 text-center text-white`}>
                 {team.extras.runs}
@@ -74,13 +74,13 @@ function BattingScorecardTable({ team }) {
 
           {team.total && (
             <tr className={HEADER_BG}>
-              <td className={`${HEADER_BG} border-r ${BORDER} py-3 px-4`}>
-                <span className="text-[13px] font-semibold text-white">Total</span>
+              <td className={`${HEADER_BG} border-l border-r ${BORDER} py-3 px-4`}>
+                <span className="text-[12px] font-semibold text-white">Total</span>
               </td>
-              <td colSpan={4} className={`${HEADER_BG} border-r ${BORDER} py-3 pr-2 text-[12px] text-white`}>
+              <td colSpan={4} className={`${HEADER_BG} border-r ${BORDER} py-3 px-2 text-[12px] font-semibold text-white`}>
                 {team.total.summary}
               </td>
-              <td className={`${HEADER_BG} border-r ${BORDER} py-3 text-center text-[13px] font-bold text-white`}>
+              <td className={`${HEADER_BG} border-r ${BORDER} py-3 text-center text-[13px] font-semibold text-white`}>
                 {team.total.score}
               </td>
             </tr>
