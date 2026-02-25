@@ -13,9 +13,15 @@ function TeamLogoIcon() {
   );
 }
 
-function TeamCard({ team, index, onEdit, onDelete }) {
+function TeamCard({ team, index, onEdit, onDelete, onClick }) {
   return (
-    <div className="flex items-start gap-3 rounded-[17px] bg-[#141412] p-4">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => onClick?.(team)}
+      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onClick?.(team)}
+      className="flex cursor-pointer items-start gap-3 rounded-[17px] bg-[#141412] p-4 transition-opacity active:opacity-90"
+    >
       <TeamLogoIcon />
       <div className="min-w-0 flex-1">
         <h3 className="text-[16px] font-bold text-white">{team.name}</h3>
@@ -30,7 +36,10 @@ function TeamCard({ team, index, onEdit, onDelete }) {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => onEdit?.(team)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit?.(team);
+            }}
             className="flex h-4 w-4 items-center justify-end rounded-lg transition-opacity active:opacity-80"
             aria-label="Edit team"
           >
@@ -38,7 +47,10 @@ function TeamCard({ team, index, onEdit, onDelete }) {
           </button>
           <button
             type="button"
-            onClick={() => onDelete?.(team)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete?.(team);
+            }}
             className="flex h-4 w-4 items-center justify-end rounded-lg transition-opacity active:opacity-80"
             aria-label="Delete team"
           >
@@ -64,6 +76,10 @@ export default function TeamList() {
   const location = useLocation();
   const newTeam = location.state?.newTeam;
   const teams = newTeam ? [newTeam, ...MOCK_TEAMS] : MOCK_TEAMS;
+
+  const handleTeamClick = (team) => {
+    navigate(`/drafting/teams/${team.id}`, { state: { team } });
+  };
 
   const handleEdit = (team) => {
     // TODO: Navigate to edit team or open edit modal
@@ -126,6 +142,7 @@ export default function TeamList() {
                 index={index}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onClick={handleTeamClick}
               />
             </li>
           ))}

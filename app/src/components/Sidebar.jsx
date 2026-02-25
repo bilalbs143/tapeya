@@ -30,7 +30,7 @@ const MENU_ITEMS = [
   { label: 'Top Players', icon: topPlayersIcon },
   { label: 'Top Sponsors', icon: topSponsorsIcon },
   { label: 'Profiles', icon: profilesIcon },
-  { label: 'My Tournaments', icon: requestTournamentIcon },
+  { label: 'My Tournaments', icon: requestTournamentIcon, path: '/organizer-tournament' },
   { label: 'Support', icon: supportIcon },
   { label: 'Logout', icon: logoutIcon },
 ];
