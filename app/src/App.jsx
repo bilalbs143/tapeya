@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
+import { ScrollRestoration } from '@/components/ScrollRestoration';
 import { SplashScreen } from '@/components/SplashScreen';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { MainLayout } from '@/layouts/MainLayout';
@@ -45,6 +46,7 @@ function App() {
       <Toaster>
         <ToastProvider>
           <BrowserRouter>
+            <ScrollRestoration />
             <Routes>
               <Route path="/" element={<SplashScreen />} />
               <Route element={<MainLayout />}>
