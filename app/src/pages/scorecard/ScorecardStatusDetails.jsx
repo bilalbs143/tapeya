@@ -273,7 +273,7 @@ export default function ScorecardStatusDetails() {
 
   if (!match) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black">
+      <div className="flex items-center justify-center bg-black">
         <p className="text-[13px] text-[#A2A6AB]">Match not found</p>
       </div>
     );
