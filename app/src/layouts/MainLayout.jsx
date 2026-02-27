@@ -17,7 +17,7 @@ export function MainLayout() {
   const isNavbarOverlayPage = location.pathname === '/user-profile';
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="bg-black">
       <Navbar onMenuClick={() => setSidebarOpen(true)} />
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <main className={`pb-20 ${isNavbarOverlayPage ? 'pt-0' : 'pt-16'}`}>

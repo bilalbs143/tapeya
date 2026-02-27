@@ -87,7 +87,7 @@ export default function OrderDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black">
+      <div className="bg-black">
         <Container className="!px-4 !py-0">
           <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
             <button
@@ -122,7 +122,7 @@ export default function OrderDetail() {
 
   if (isError || !order) {
     return (
-      <div className="min-h-screen bg-black">
+      <div className="bg-black">
         <Container className="!px-4 !py-0">
           <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
             <button
@@ -172,7 +172,7 @@ export default function OrderDetail() {
   const updatedAt = order.updated_at ?? order.created_at;
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="bg-black">
       <Container className="!px-4 !py-0">
         <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
           <button
