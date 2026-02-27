@@ -75,7 +75,7 @@ export default function NotificationCenter() {
   }, [notifications.length]);
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="bg-black">
       <header className="sticky top-0 z-10 flex items-center gap-3 bg-black px-4 py-4">
         <button
           type="button"

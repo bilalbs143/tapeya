@@ -3,7 +3,7 @@ import { UserProfileTabs } from '@/components/UserProfileTabs';
 
 export default function UserProfile() {
   return (
-    <div className="min-h-screen bg-black">
+    <div className="bg-black">
       <ProfileHeader />
 
       <div className="px-4 pt-10 pb-6">

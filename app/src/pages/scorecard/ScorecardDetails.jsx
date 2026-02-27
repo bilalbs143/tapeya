@@ -64,7 +64,7 @@ export default function ScorecardDetails() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="bg-black">
       <header className="flex items-center gap-3 bg-black px-4 pt-6 pb-6">
         <button
           type="button"

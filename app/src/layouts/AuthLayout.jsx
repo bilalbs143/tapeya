@@ -5,7 +5,7 @@ import { Outlet } from 'react-router-dom';
  */
 export function AuthLayout() {
   return (
-    <div className="fixed inset-0 overflow-visible bg-black">
+    <div className="flex min-h-screen items-center justify-center bg-black">
       <Outlet />
     </div>
   );

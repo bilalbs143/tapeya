@@ -43,7 +43,7 @@ export default function Login() {
         className="pointer-events-none fixed top-[-115px] left-1/2 z-0 h-[302px] w-[622px] -translate-x-1/2 rounded-full bg-[#FF9700] opacity-50 blur-[200px]"
         aria-hidden
       />
-      <div className="relative z-10 flex min-h-full flex-col items-center justify-center px-6">
+      <div className="relative z-10 flex w-full flex-col items-center px-6">
         <img
           src={tapeyaLogo}
           alt="Tapeya"
@@ -58,7 +58,7 @@ export default function Login() {
           onFocus={() => reset()}
           className="mt-12 w-full max-w-[358px] space-y-4"
         >
-          <h2 className="mb-6 text-center text-xl font-bold text-white">
+          <h2 className="text-center text-xl font-bold text-white">
             Login with your account
           </h2>
           <FormField label="Phone" htmlFor="phone">

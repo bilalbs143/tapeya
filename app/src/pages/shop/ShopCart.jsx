@@ -116,7 +116,7 @@ export default function ShopCart() {
   const emptyCart = !isLoading && items.length === 0;
 
   return (
-    <div className="flex min-h-screen flex-col bg-black">
+    <div className="flex flex-col bg-black">
       <Container fullWidth className="!px-4 !py-0">
         <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
           <button

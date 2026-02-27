@@ -50,7 +50,7 @@ export default function Register() {
         className="pointer-events-none fixed top-[-115px] left-1/2 z-0 h-[302px] w-[622px] -translate-x-1/2 rounded-full bg-[#FF9700] opacity-50 blur-[200px]"
         aria-hidden
       />
-      <div className="relative z-10 flex min-h-full flex-col items-center px-6 pt-12">
+      <div className="relative z-10 flex w-full flex-col items-center px-6">
         <img
           src={tapeyaLogo}
           alt="Tapeya"
@@ -138,7 +138,7 @@ export default function Register() {
               Login
             </Link>
           </p>
-          <p className="mt-3 text-center text-base text-[#A2A6AB]">
+          <p className="mt-3 mb-6 text-center text-base text-[#A2A6AB]">
             By signing up, you agree to the{' '}
             <Link to="/terms" className="text-[#DA9811] underline">
               Terms of Use
