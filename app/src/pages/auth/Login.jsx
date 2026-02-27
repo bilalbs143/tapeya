@@ -43,11 +43,11 @@ export default function Login() {
         className="pointer-events-none fixed top-[-115px] left-1/2 z-0 h-[302px] w-[622px] -translate-x-1/2 rounded-full bg-[#FF9700] opacity-50 blur-[200px]"
         aria-hidden
       />
-      <div className="relative z-10 flex w-full flex-col items-center px-6">
+      <div className="relative z-10 flex w-full flex-col items-center px-6 pt-6 sm:pt-8 md:pt-10">
         <img
           src={tapeyaLogo}
           alt="Tapeya"
-          className="motion-safe:animate-splash-slide-up h-auto w-[270px] opacity-0 motion-reduce:opacity-100"
+          className="motion-safe:animate-splash-slide-up h-auto w-[240px] opacity-0 motion-reduce:opacity-100"
         />
         <p className="motion-safe:animate-splash-slide-up-delayed mt-6 max-w-[90vw] text-center font-sans text-base text-white opacity-0 motion-reduce:opacity-100">
           Live Cricket & Instant Updates, Anytime!

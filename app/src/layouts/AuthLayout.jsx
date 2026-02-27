@@ -5,8 +5,10 @@ import { Outlet } from 'react-router-dom';
  */
 export function AuthLayout() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-black">
-      <Outlet />
+    <div className="bg-black">
+      <div className="mx-auto flex min-h-[100dvh] w-full items-center">
+        <Outlet />
+      </div>
     </div>
   );
 }
