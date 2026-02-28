@@ -65,7 +65,7 @@ export default function Register() {
           onFocus={() => reset()}
           className="mt-12 w-full max-w-[358px] space-y-4"
         >
-          <h2 className="text-center text-xl font-bold text-white">
+          <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">
             Create an account
           </h2>
           <FormField label="Phone" htmlFor="phone">
@@ -118,7 +118,7 @@ export default function Register() {
 
           {error && (
             <p
-              className="rounded-lg bg-red-500/20 px-4 py-2 text-sm text-red-200"
+              className="rounded-[6px] border border-[#1A1A1A] bg-red-500/20 px-4 py-2.5 text-[14px] text-red-200"
               role="alert"
             >
               {getApiErrorMessage(
@@ -132,19 +132,28 @@ export default function Register() {
             {busy ? 'Signing up...' : 'Sign up'}
           </Button>
 
-          <p className="mt-6 text-center text-base text-[#A2A6AB]">
+          <p className="mt-6 text-center text-[14px] text-[#A2A6AB]">
             Already have an account?{' '}
-            <Link to="/login" className="text-[#DA9811] underline">
+            <Link
+              to="/login"
+              className="font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820]"
+            >
               Login
             </Link>
           </p>
-          <p className="mt-3 mb-6 text-center text-base text-[#A2A6AB]">
+          <p className="mt-3 mb-6 text-center text-[14px] text-[#A2A6AB]">
             By signing up, you agree to the{' '}
-            <Link to="/terms" className="text-[#DA9811] underline">
+            <Link
+              to="/terms"
+              className="font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820]"
+            >
               Terms of Use
             </Link>{' '}
             and{' '}
-            <Link to="/privacy" className="text-[#DA9811] underline">
+            <Link
+              to="/privacy"
+              className="font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820]"
+            >
               Privacy Policy
             </Link>
             .

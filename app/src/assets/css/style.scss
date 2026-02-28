@@ -33,6 +33,15 @@
   animation: badge-pop 0.4s ease-out;
 }
 
+// Hide scrollbar but keep scroll (e.g. saved profiles list)
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 // Base styles – black background prevents white flash during splash → login
 html {
   -webkit-tap-highlight-color: transparent;

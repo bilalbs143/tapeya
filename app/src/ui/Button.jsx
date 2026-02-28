@@ -14,7 +14,7 @@ const variants = {
   file:
     'border border-[#FFB800] text-[#FFB800] bg-transparent hover:bg-transparent active:bg-transparent',
   card: 'bg-[#EBF2FF] text-[#A2A6AB]',
-  auth: 'h-12 w-[358px] max-w-full rounded-[6px] bg-[#EBF2FF] text-slate-800 hover:bg-[#d4e4ff] active:bg-[#bdd1ff]',
+  auth: 'h-12 w-[358px] max-w-full rounded-[6px] bg-[#DA9811] font-bold text-[#080807] transition-opacity hover:opacity-95 active:opacity-90',
 };
 
 const sizes = {

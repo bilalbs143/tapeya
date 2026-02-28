@@ -12,8 +12,8 @@ import topPlayersIcon from '@/assets/images/icons/top-players.svg';
 import topSponsorsIcon from '@/assets/images/icons/top-sponsers.svg';
 import tossIcon from '@/assets/images/icons/toss.svg';
 import defaultAvatar from '@/assets/images/standard/default-avatar.png';
-import { useLogoutMutation } from '@/store/api/authApi';
-import { useAppDispatch } from '@/store/hooks';
+import { addSavedProfile } from '@/lib/savedProfiles';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { clearCredentials } from '@/store/slices/authSlice';
 
 const MENU_ITEMS = [
@@ -47,16 +47,25 @@ const menuBtn =
 export function Sidebar({ open, onClose }) {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const [logout] = useLogoutMutation();
+  const { user, accessToken } = useAppSelector((s) => ({
+    user: s.auth?.user,
+    accessToken: s.auth?.accessToken,
+  }));
 
-  const handleLogout = async () => {
-    try {
-      await logout().unwrap();
-    } finally {
-      dispatch(clearCredentials());
-      onClose();
-      navigate('/login', { replace: true });
+  const handleLogout = () => {
+    if (user?.phone && accessToken) {
+      addSavedProfile({
+        id: user.id,
+        name: user.name,
+        nickname: user.nickname,
+        phone: user.phone,
+        email: user.email,
+        accessToken,
+      });
     }
+    dispatch(clearCredentials());
+    onClose();
+    navigate('/login', { replace: true });
   };
 
   return (
@@ -81,10 +90,10 @@ export function Sidebar({ open, onClose }) {
             />
             <div className="min-w-0 flex-1">
               <p className="truncate text-[14px] font-bold text-white">
-                Sohaib Amjad
+                {user?.name || user?.nickname || 'Profile'}
               </p>
               <p className="truncate text-[12px] font-medium text-[#A2A6AB]">
-                sohaib@gmail.com
+                {user?.email || user?.phone || ''}
               </p>
             </div>
           </Link>

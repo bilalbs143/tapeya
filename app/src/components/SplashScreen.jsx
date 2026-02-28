@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 
 import tapeyaLogo from '@/assets/images/logos/tapeya-logo-white.svg';
+import { useAppSelector } from '@/store/hooks';
 
 const SPLASH_DURATION_MS = 3000;
 const SPLASH_FADE_OUT_MS = 350;
@@ -9,6 +10,7 @@ const SPLASH_FADE_OUT_MS = 350;
 export function SplashScreen() {
   const [exiting, setExiting] = useState(false);
   const [redirect, setRedirect] = useState(false);
+  const isAuthenticated = useAppSelector((s) => !!s.auth?.accessToken);
 
   useEffect(() => {
     const startExit = setTimeout(() => setExiting(true), SPLASH_DURATION_MS);
@@ -17,11 +19,13 @@ export function SplashScreen() {
 
   useEffect(() => {
     if (!exiting) return;
-    const goToLogin = setTimeout(() => setRedirect(true), SPLASH_FADE_OUT_MS);
-    return () => clearTimeout(goToLogin);
+    const go = setTimeout(() => setRedirect(true), SPLASH_FADE_OUT_MS);
+    return () => clearTimeout(go);
   }, [exiting]);
 
-  if (redirect) return <Navigate to="/login" replace />;
+  if (redirect) {
+    return <Navigate to={isAuthenticated ? '/home' : '/login'} replace />;
+  }
 
   return (
     <div className="fixed inset-0 overflow-visible bg-black">
