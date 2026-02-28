@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import tapeyaLogo from '@/assets/images/logos/tapeya-logo-white.svg';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { addSavedProfile, bumpSavedProfile } from '@/lib/savedProfiles';
 import { otpSchema } from '@/lib/validations/auth';
 import {
   useRequestOtpMutation,
@@ -113,6 +114,15 @@ export default function Otp() {
       const token = auth?.access_token;
       if (token && user) {
         dispatch(setCredentials({ user, accessToken: token }));
+        addSavedProfile({
+          id: user.id,
+          name: user.name,
+          nickname: user.nickname,
+          phone: user.phone,
+          email: user.email,
+          accessToken: token,
+        });
+        bumpSavedProfile(phoneRaw);
       }
       navigate('/home', { replace: true });
     } catch (err) {
@@ -142,13 +152,13 @@ export default function Otp() {
           onSubmit={handleSubmit(onSubmit)}
           className="mt-12 w-full max-w-[358px] space-y-6"
         >
-          <p className="text-center text-base text-white">
-            Enter OTP sent to <span className="text-[#DA9811]">{phone}</span>
+          <p className="text-center text-[14px] text-white">
+            Enter OTP sent to <span className="font-bold text-[#DA9811]">{phone}</span>
           </p>
 
           {latestOtp && (
             <p
-              className="rounded-lg bg-amber-500/20 px-4 py-2 text-center text-sm text-amber-200"
+              className="rounded-[6px] border border-[#1A1A1A] bg-[#DA9811]/20 px-4 py-2.5 text-center text-[14px] text-[#E8A820]"
               role="status"
             >
               For testing: OTP is{' '}
@@ -173,7 +183,7 @@ export default function Otp() {
                   onChange={(e) => setDigit(i, e.target.value)}
                   onKeyDown={(e) => onKeyDown(i, e)}
                   onPaste={i ? undefined : onPaste}
-                  className="!h-[55px] !max-w-full rounded-full text-center text-lg tabular-nums"
+                  className="!h-[55px] !max-w-full rounded-full border border-[#1A1A1A] text-center text-lg tabular-nums"
                   aria-label={`Digit ${i + 1}`}
                 />
               </div>
@@ -193,7 +203,7 @@ export default function Otp() {
                 type="button"
                 onClick={handleResend}
                 disabled={!phoneRaw || isResendLoading || resendCooldown > 0}
-                className="text-[#DA9811] underline disabled:cursor-not-allowed disabled:opacity-50"
+                className="font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {resendCooldown > 0
                   ? `Resend in ${resendCooldown}s`
