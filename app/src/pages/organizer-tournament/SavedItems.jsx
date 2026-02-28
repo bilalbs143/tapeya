@@ -114,7 +114,7 @@ export default function SavedItems() {
           </button>
         </div>
 
-        <ul className="space-y-3 pb-40">
+        <ul className="space-y-3 pb-6">
           {teams.map((team, index) => (
             <li key={team.id ?? index}>
               <TeamCard team={team} index={index} />
@@ -122,7 +122,7 @@ export default function SavedItems() {
           ))}
         </ul>
 
-        <div className="fixed bottom-20 left-0 right-0 z-50 border-t border-[#FFFFFF12] bg-black px-4 pb-4 pt-4">
+        <div className="pt-2">
           <Button
             type="button"
             variant="auth"

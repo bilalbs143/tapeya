@@ -123,7 +123,7 @@ export default function AddTeam() {
             <Button
               type="submit"
               variant="auth"
-              className="h-12 w-full rounded-[8px] text-[15px] font-semibold uppercase tracking-wide"
+              className="h-12 w-full rounded-[8px] bg-[#E4E7F4] text-[15px] font-semibold uppercase tracking-wide text-[#1a1a1a]"
             >
               Submit
             </Button>

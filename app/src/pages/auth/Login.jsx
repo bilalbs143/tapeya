@@ -148,7 +148,7 @@ export default function Login() {
               <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">
                 Choose an account
               </h2>
-              <div className="scrollbar-hide flex max-h-[250px] flex-col gap-3 overflow-y-auto">
+              <div className="scrollbar-hide flex max-h-[280px] flex-col gap-3 overflow-y-auto p-[10px] mb-2">
                 {savedProfiles.map((profile) => {
                   const isTapping = tappingProfile === profile.phone;
                   return (
@@ -160,7 +160,7 @@ export default function Login() {
                         type="button"
                         onClick={(e) => handleRemoveProfile(e, profile.phone)}
                         aria-label="Remove account"
-                        className="absolute -top-1 -right-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#DA9811] text-[13px] font-bold leading-none text-[#080807] shadow-sm transition-opacity hover:opacity-90 active:opacity-80 focus:outline-none focus:ring-2 focus:ring-[#DA9811] focus:ring-offset-2 focus:ring-offset-[#141412]"
+                        className="absolute top-[5px] right-[5px] flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#DA9811] text-[20px] font-bold leading-none text-[#080807] shadow-sm transition-opacity hover:opacity-90 active:opacity-80 focus:outline-none focus:ring-2 focus:ring-[#DA9811] focus:ring-offset-2 focus:ring-offset-[#141412]"
                       >
                         ×
                       </button>

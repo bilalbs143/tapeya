@@ -13,6 +13,7 @@ import TeamDetail from '@/pages/drafting/TeamDetail';
 import TeamList from '@/pages/drafting/TeamList';
 import AddTeamOrganizer from '@/pages/organizer-tournament/AddTeam';
 import Organizer from '@/pages/organizer-tournament/Organizer';
+import OrgTournamentList from '@/pages/organizer-tournament/OrgTournamentList';
 import AddSquad from '@/pages/organizer-tournament/AddSquad';
 import EditSquad from '@/pages/organizer-tournament/EditSquad';
 import SavedItems from '@/pages/organizer-tournament/SavedItems';
@@ -57,6 +58,7 @@ function App() {
                 <Route path="/drafting/teams" element={<TeamList />} />
                 <Route path="/drafting/teams/:teamId" element={<TeamDetail />} />
                 <Route path="/organizer-tournament" element={<Organizer />} />
+                <Route path="/organizer-tournament/list" element={<OrgTournamentList />} />
                 <Route path="/organizer-tournament/add-team" element={<AddTeamOrganizer />} />
                 <Route path="/organizer-tournament/saved-items" element={<SavedItems />} />
                 <Route path="/organizer-tournament/add-squad" element={<AddSquad />} />
