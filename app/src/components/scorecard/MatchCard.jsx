@@ -170,7 +170,7 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
 
       {/* Bottom: time row (upcoming) or commentary (live/result) */}
       {isUpcoming && meta?.startsIn && (
-        <div className="mb-3 flex items-center justify-between text-[13px]">
+        <div className="mb-3 flex items-center gap-4 text-[13px]">
           <span className="text-[#BBBBBB]">Starts in {meta.startsIn}</span>
           <span className="text-[#DA9811]">{meta.time}</span>
         </div>

@@ -1,47 +1,17 @@
-import { MOCK_SQUADS } from './squadsData';
+import { useSearchParams } from 'react-router-dom';
 
-const BORDER = 'border-[#1A1A1A]';
+import { SquadSingle } from './SquadSingle';
+import { SquadTeams } from './SquadTeams';
 
 export function SquadsTab({ tournamentId }) {
-  const title = tournamentId
-    ? `${tournamentId} 2026 - KARACHI KIDS SQUAD`
-    : 'SQUAD';
-  const squad = MOCK_SQUADS[0];
-  const players = squad?.players ?? [];
+  const [searchParams] = useSearchParams();
+  const teamId = searchParams.get('team');
 
-  return (
-    <div className="mt-4 pb-6 focus:outline-none">
-      <h1 className="border-b border-[#1A1A1A] pb-4 text-left text-[13px] font-bold tracking-wide text-white uppercase">
-        {title}
-      </h1>
+  if (teamId) {
+    return (
+      <SquadSingle tournamentId={tournamentId} teamId={teamId} />
+    );
+  }
 
-      <div className="overflow-hidden border border-[#1A1A1A]">
-        <div className=" bg-[#141412] px-4 py-3 text-[13px] font-bold text-white">
-          {squad?.teamName ?? 'Squad'}
-        </div>
-        <div className="border-t border-[#1A1A1A]">
-          {players.map((player, index) => (
-            <div
-              key={index}
-              className={`flex border-b ${BORDER} last:border-b-0`}
-            >
-              <div
-                className={`flex w-10 shrink-0 items-center justify-center border-r ${BORDER} py-3 text-[13px] text-white`}
-              >
-                {index + 1}
-              </div>
-              <div className="min-w-0 flex-1 px-4 py-3">
-                <div className="text-[13px] font-bold text-white">
-                  {player.name}
-                </div>
-                <div className="mt-0.5 text-[12px] text-[#A2A6AB]">
-                  {player.role}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+  return <SquadTeams tournamentId={tournamentId} />;
 }
