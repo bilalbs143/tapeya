@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
 
+import { statsTotalPaths } from '@/pages/scorecard/statsTotalFlow';
 import defaultPlayerImage from '@/assets/images/standard/player-avatar.png';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 
@@ -115,14 +116,13 @@ export function StatsTab({ tournamentId, matches: _matches }) {
   const id = tournamentId ?? paramId;
   const stats = getSeasonStats(id);
   const title = id ? `${id} 2026 - SEASON 3` : 'SEASON 3';
-  const basePath = id ? `/scorecard/${id}` : '/scorecard';
-  const statsTotalFours = id ? `${basePath}/stats-total/fours` : null;
-  const statsTotalSixes = id ? `${basePath}/stats-total/sixes` : null;
+  const statsTotalFours = id ? statsTotalPaths.scorecard(id, 'fours') : null;
+  const statsTotalSixes = id ? statsTotalPaths.scorecard(id, 'sixes') : null;
   const statsTotalRunScorers = id
-    ? `${basePath}/stats-total/run-scorers`
+    ? statsTotalPaths.scorecard(id, 'run-scorers')
     : null;
   const statsTotalWicketTakers = id
-    ? `${basePath}/stats-total/wicket-takers`
+    ? statsTotalPaths.scorecard(id, 'wicket-takers')
     : null;
 
   return (

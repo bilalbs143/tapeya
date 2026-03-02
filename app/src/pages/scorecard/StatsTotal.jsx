@@ -1,8 +1,14 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { Container } from '@/ui/Container';
 
-import { getStatsTotalRows } from './tabs/statsData';
+import {
+  getFlowFromPath,
+  getStatsTotalBackPath,
+  RANKING_FLOW,
+  VALID_STAT_TYPES as FLOW_STAT_TYPES,
+} from './statsTotalFlow';
+import { getRankingStatsTotalRows, getStatsTotalRows } from './tabs/statsData';
 
 const BORDER = 'border-[#1A1A1A]';
 const HEADER_BG = 'bg-[#141412]';
@@ -62,8 +68,6 @@ const COLUMNS_BY_STAT_TYPE = {
   'wicket-takers': COLUMNS_WICKET_TAKERS,
 };
 
-const VALID_STAT_TYPES = ['fours', 'sixes', 'run-scorers', 'wicket-takers'];
-
 const TITLES = {
   fours: {
     main: (t) => `MOST FOURS ${t || ''} 2026 - SEASON 3`,
@@ -85,19 +89,35 @@ const TITLES = {
 
 function StatsTotalContent() {
   const navigate = useNavigate();
-  const { tournamentId, statType } = useParams();
+  const location = useLocation();
+  const { tournamentId } = useParams();
 
-  const normalizedType = VALID_STAT_TYPES.includes(statType)
-    ? statType
+  const flowInfo = getFlowFromPath(location.pathname);
+  const normalizedType = flowInfo?.statType && FLOW_STAT_TYPES.includes(flowInfo.statType)
+    ? flowInfo.statType
     : 'fours';
-  const rows = getStatsTotalRows(tournamentId, normalizedType);
+  const isRankingFlow = flowInfo?.flow === RANKING_FLOW;
+
+  const rows = isRankingFlow
+    ? getRankingStatsTotalRows(
+        Array.isArray(location.state?.rankingData) ? location.state.rankingData : [],
+        normalizedType
+      )
+    : getStatsTotalRows(flowInfo?.tournamentId ?? tournamentId, normalizedType);
+
   const titles = TITLES[normalizedType] ?? TITLES.fours;
-  const mainTitle = titles.main(tournamentId);
+  const mainTitle = isRankingFlow
+    ? titles.main('').trim()
+    : titles.main(flowInfo?.tournamentId ?? tournamentId);
   const subheading = titles.sub;
   const columns = COLUMNS_BY_STAT_TYPE[normalizedType] ?? COLUMNS_FOURS;
 
   const backToStats = () => {
-    navigate(-1);
+    const backPath = getStatsTotalBackPath(
+      flowInfo?.flow ?? (tournamentId ? 'scorecard' : 'ranking'),
+      flowInfo?.tournamentId ?? tournamentId
+    );
+    navigate(backPath);
   };
 
   return (
@@ -122,16 +142,18 @@ function StatsTotalContent() {
           </svg>
         </button>
         <h1 className="min-w-0 flex-1 pr-[27px] text-center text-[16px] font-bold tracking-wide text-white uppercase">
-          {subheading}
+          {isRankingFlow ? 'Stats' : subheading}
         </h1>
       </header>
 
       <Container className="!px-4 pb-6">
-        <h2 className="text-center text-base font-bold tracking-wide text-white uppercase">
-          {mainTitle}
-        </h2>
+        {!isRankingFlow && (
+          <h2 className="text-center text-base font-bold tracking-wide text-white uppercase">
+            {mainTitle}
+          </h2>
+        )}
 
-        <h3 className="mt-4 text-left text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
+        <h3 className={`text-left text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase ${isRankingFlow ? '' : 'mt-4'}`}>
           {subheading}
         </h3>
 

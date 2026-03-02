@@ -159,8 +159,75 @@ export function getSeasonStats(tournamentId) {
 }
 
 /**
- * Get table rows for StatsTotal page (fours, sixes, run-scorers, or wicket-takers).
- * Row shape depends on statType; only fields for that view are set.
+ * Convert Ranking flow player list to StatsTotal table rows (ranking stats only).
+ * API-ready: replace with e.g. fetchRankingStatsTotal(statType) when backend exists.
+ * @param {Array} rankingData - from Ranking page state (TOP_RUN_SCORERS, etc.)
+ * @param {'run-scorers'|'wicket-takers'|'sixes'|'fours'} statType
+ * @returns {Array<object>}
+ */
+export function getRankingStatsTotalRows(rankingData, statType) {
+  if (!Array.isArray(rankingData) || rankingData.length === 0) return [];
+  const noMatch = '-';
+  if (statType === 'run-scorers') {
+    return rankingData.map((p, i) => ({
+      rank: i + 1,
+      playerName: p.name,
+      mat: p.innings ?? noMatch,
+      runs: p.score ?? noMatch,
+      inns: p.innings ?? noMatch,
+      balls: noMatch,
+      hs: noMatch,
+      avg: p.average != null ? Number(p.average).toFixed(2) : noMatch,
+      sr: noMatch,
+      six: noMatch,
+      four: noMatch,
+      '50s': noMatch,
+      '100s': noMatch,
+    }));
+  }
+  if (statType === 'wicket-takers') {
+    return rankingData.map((p, i) => ({
+      rank: i + 1,
+      playerName: p.name,
+      mat: p.innings ?? noMatch,
+      wkts: p.wickets ?? noMatch,
+      balls: noMatch,
+      overs: noMatch,
+      mdns: noMatch,
+      runs: noMatch,
+      inns: p.innings ?? noMatch,
+      bbi: noMatch,
+      ave: noMatch,
+      econ: p.economy != null ? Number(p.economy).toFixed(2) : noMatch,
+      sr: noMatch,
+      '4': noMatch,
+      '5': noMatch,
+    }));
+  }
+  if (statType === 'sixes') {
+    return rankingData.map((p, i) => ({
+      rank: i + 1,
+      playerName: p.name,
+      mat: p.innings ?? noMatch,
+      inns: p.innings ?? noMatch,
+      six: p.stat ?? noMatch,
+    }));
+  }
+  if (statType === 'fours') {
+    return rankingData.map((p, i) => ({
+      rank: i + 1,
+      playerName: p.name,
+      mat: p.innings ?? noMatch,
+      inns: p.innings ?? noMatch,
+      four: p.stat ?? noMatch,
+    }));
+  }
+  return [];
+}
+
+/**
+ * Get table rows for StatsTotal page (Scorecard flow): fours, sixes, run-scorers, wicket-takers.
+ * API-ready: replace with e.g. fetchTournamentStatsTotal(tournamentId, statType) when backend exists.
  * @param {string} [tournamentId]
  * @param {'fours'|'sixes'|'run-scorers'|'wicket-takers'} statType
  */

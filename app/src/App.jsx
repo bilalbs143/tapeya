@@ -20,6 +20,9 @@ import SavedItems from '@/pages/organizer-tournament/SavedItems';
 import EventRequest from '@/pages/EventRequest';
 import Home from '@/pages/Home';
 import NotificationCenter from '@/pages/NotificationCenter';
+import Ranking from '@/pages/ranking/Ranking';
+import Reels from '@/pages/reels/Reels';
+import UploadReels from '@/pages/reels/UploadReels';
 import {
   ScorecardDetails,
   ScorecardHome,
@@ -97,7 +100,14 @@ function App() {
                 />
                 <Route path="/shop/:brandId" element={<ShopCategory />} />
                 <Route path="/event-request" element={<EventRequest />} />
+                <Route path="/ranking" element={<Ranking />} />
+                <Route
+                  path="/ranking/stats-total/:statType"
+                  element={<StatsTotal />}
+                />
                 <Route path="/notification-center" element={<NotificationCenter />} />
+                <Route path="/reels" element={<Reels />} />
+                <Route path="/reels/upload" element={<UploadReels />} />
               </Route>
               <Route element={<AuthLayout />}>
                 <Route path="/login" element={<Login />} />

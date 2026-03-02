@@ -27,7 +27,7 @@ const MENU_ITEMS = [
   { label: 'My Orders', icon: myOrderIcon, path: '/shop/orders' },
   { label: 'Go live', icon: goLiveIcon },
   { label: 'Toss', icon: tossIcon },
-  { label: 'Top Players', icon: topPlayersIcon },
+  { label: 'Top Players', icon: topPlayersIcon, path: '/ranking' },
   { label: 'Top Sponsors', icon: topSponsorsIcon },
   { label: 'Profiles', icon: profilesIcon },
   { label: 'My Tournaments', icon: requestTournamentIcon, path: '/organizer-tournament' },
