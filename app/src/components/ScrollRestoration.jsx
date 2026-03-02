@@ -1,20 +1,32 @@
-import { useEffect } from 'react';
+import { useLayoutEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
+// Disable the browser's built-in scroll restoration so it doesn't
+// overwrite our manual scroll-to-top after back/forward navigation.
+if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
+  window.history.scrollRestoration = 'manual';
+}
+
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+};
+
 /**
- * Scrolls the window to the top on every navigation.
- * Renders nothing; must be used inside a React Router provider (e.g. BrowserRouter).
+ * Resets scroll to the top on every route change.
+ * Must live inside a React Router provider (e.g. BrowserRouter).
  *
- * This ensures each page loads from the top instead of inheriting the previous
- * page's scroll position, which is the expected UX for full-page navigations.
+ * - Disables the browser's native scroll restoration so back/forward
+ *   navigation doesn't re-apply a saved scroll offset after our effect runs.
+ * - useLayoutEffect fires before the browser paints so there is no visible
+ *   flash of the wrong scroll position.
  */
 export function ScrollRestoration() {
   const { pathname } = useLocation();
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    document.documentElement.scrollTo(0, 0);
-    document.body.scrollTo(0, 0);
+  useLayoutEffect(() => {
+    scrollToTop();
   }, [pathname]);
 
   return null;

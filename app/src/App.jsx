@@ -23,6 +23,10 @@ import NotificationCenter from '@/pages/NotificationCenter';
 import Ranking from '@/pages/ranking/Ranking';
 import Reels from '@/pages/reels/Reels';
 import UploadReels from '@/pages/reels/UploadReels';
+import Pricing from '@/pages/pricing/Pricing';
+import PricingDetail from '@/pages/pricing/PricingDetail';
+import ActivityFeed from '@/pages/feed/ActivityFeed';
+import ActivityFeedDetail from '@/pages/feed/ActivityFeedDetail';
 import {
   ScorecardDetails,
   ScorecardHome,
@@ -108,6 +112,10 @@ function App() {
                 <Route path="/notification-center" element={<NotificationCenter />} />
                 <Route path="/reels" element={<Reels />} />
                 <Route path="/reels/upload" element={<UploadReels />} />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/pricing/:planId" element={<PricingDetail />} />
+                <Route path="/feed" element={<ActivityFeed />} />
+                <Route path="/feed/:postId" element={<ActivityFeedDetail />} />
               </Route>
               <Route element={<AuthLayout />}>
                 <Route path="/login" element={<Login />} />
