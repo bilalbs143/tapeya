@@ -43,6 +43,7 @@ import TournamentAddSquad from '@/pages/tournaments/TournamentAddSquad';
 import TournamentAddTeam from '@/pages/tournaments/TournamentAddTeam';
 import TournamentCreateTeamIntro from '@/pages/tournaments/TournamentCreateTeamIntro';
 import TournamentEditSquad from '@/pages/tournaments/TournamentEditSquad';
+import TournamentFinalSquad from '@/pages/tournaments/TournamentFinalSquad';
 import Tournaments from '@/pages/tournaments/Tournaments';
 import TournamentSavedTeams from '@/pages/tournaments/TournamentSavedTeams';
 import UserProfile from '@/pages/UserProfile';
@@ -93,6 +94,10 @@ function App() {
                 <Route
                   path="/tournaments/:tournamentId/edit-squad"
                   element={<TournamentEditSquad />}
+                />
+                <Route
+                  path="/tournaments/final-squad"
+                  element={<TournamentFinalSquad />}
                 />
                 <Route path="/scorecard" element={<ScorecardHome />} />
                 <Route
