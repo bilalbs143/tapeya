@@ -39,6 +39,10 @@ import ShopFilter from '@/pages/shop/ShopFilter';
 import ShopHome from '@/pages/shop/ShopHome';
 import ShopProductDetail from '@/pages/shop/ShopProductDetail';
 import TournamentRequest from '@/pages/TournamentRequest';
+import {
+  UpcomingTournamentDetails,
+  UpcomingTournaments,
+} from '@/pages/upcoming-tournaments';
 import TournamentAddSquad from '@/pages/tournaments/TournamentAddSquad';
 import TournamentAddTeam from '@/pages/tournaments/TournamentAddTeam';
 import TournamentCreateTeamIntro from '@/pages/tournaments/TournamentCreateTeamIntro';
@@ -135,6 +139,14 @@ function App() {
                 <Route
                   path="/tournament-request"
                   element={<TournamentRequest />}
+                />
+                <Route
+                  path="/upcoming-tournaments"
+                  element={<UpcomingTournaments />}
+                />
+                <Route
+                  path="/upcoming-tournaments/:tournamentId"
+                  element={<UpcomingTournamentDetails />}
                 />
                 <Route path="/ranking" element={<Ranking />} />
                 <Route
