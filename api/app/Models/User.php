@@ -113,11 +113,6 @@ class User extends Authenticatable
         return $this->type === UserTypeEnum::USER;
     }
 
-    public function isSeller(): bool
-    {
-        return $this->type === UserTypeEnum::SELLER;
-    }
-
     /**
      * Roles (app: player/organizer/sponsor; admin: future roles). Same pivot for all guards.
      */
@@ -180,11 +175,6 @@ class User extends Authenticatable
     public function scopeAppUsers(Builder $query): Builder
     {
         return $query->where('type', UserTypeEnum::USER);
-    }
-
-    public function scopeSellers(Builder $query): Builder
-    {
-        return $query->where('type', UserTypeEnum::SELLER);
     }
 
     /** Scope: users that have the given role (e.g. all sponsors). Use enum or slug + guard. */

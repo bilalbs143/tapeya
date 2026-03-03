@@ -10,5 +10,14 @@ enum AdminNotificationTypeEnum: string
 
     case ORDER_PLACED = 'order_placed';
     case USER_REGISTERED = 'user_registered';
-    case EVENT_REQUEST_SUBMITTED = 'event_request_submitted';
+    case TOURNAMENT_REQUEST_SUBMITTED = 'tournament_request_submitted';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::ORDER_PLACED => 'Order Placed',
+            self::USER_REGISTERED => 'User Registered',
+            self::TOURNAMENT_REQUEST_SUBMITTED => 'Tournament Request Submitted',
+        };
+    }
 }

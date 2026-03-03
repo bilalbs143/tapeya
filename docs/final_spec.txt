@@ -2,10 +2,9 @@ Final Tape Ball App Specification
 =================================
 
 Actors & Responsibilities
-- **Admin**: Launches tournaments, verifies content, manages live streams, approves merchant listings, and oversees the entire platform experience (including drafts, ecommerce, rewards, and lucky draws). Admins can download/delete live streams, add products for verified sellers, configure spend-based incentives, and enforce tournament templates/checklists.
+- **Admin**: Launches tournaments, verifies content, manages live streams, approves merchant listings, and oversees the entire platform experience (including drafts, ecommerce, rewards, and lucky draws). Admins can download/delete live streams, add products for verified merchants, configure spend-based incentives, and enforce tournament templates/checklists.
 - **User**: Has full platform access, acting as player, team manager, scorer, and content creator. Users can create/update teams, register for tournaments, submit scorecards, capture reels (likes/comments), join drafts, initiate open matches, participate in ecommerce, and claim or track rewards and lucky draw eligibility. This role also doubles as an organizer when creating tournaments, scheduling matches, and managing draft flows.
 - **Sponsor**: Selects players during drafting rounds (one pick per round, randomized order), reviews registered rosters, and helps define tournaments by approving player selections. Sponsors also gain analytics on player engagement and ROI and can participate in leaderboards/standings views.
-- **Shopkeeper/Seller**: Contacts the platform to sign MOUs, lists sporting goods (bats, balls, protective gear), fulfills orders, and can reward app-download customers with counter discounts.
 
 App Screens (Player/Organizer Experience)
 ---------------------------------------
@@ -28,7 +27,7 @@ App Screens (Player/Organizer Experience)
 9. **Subscriptions & Access**
    - Tier selector summarizing Sponsor Teams, Reels Creators, Reels + Teams, and Premium bundles. Shows benefits, upgrade CTAs, and usage counters (reel limits, team quotas).
 10. **Ecommerce Marketplace**
-    - Seller onboarding widget (contact form/support chat), admin product dashboard (inventory, promos), public storefront (products, reviews, loyalty/app-download offers), order tracker linking to payout history, and loyalty incentives.
+    - Merchant onboarding widget (contact form/support chat), admin product dashboard (inventory, promos), public storefront (products, reviews, loyalty/app-download offers), order tracker linking to payout history, and loyalty incentives.
 11. **Lucky Draw & Incentives**
     - Spend tracker toward threshold (e.g., Rs. 10k), qualification modal when met, prize pool (dinner, cash, vouchers), draw event page with winners, upcoming dates, and fulfillment statuses. Supports secondary rewards for participants who don’t win.
 12. **Tape Ball Game**
@@ -39,6 +38,6 @@ Admin Screens
 - **Tournament Control Center**: Lists tournaments with status badges, lets admins edit templates, confirm sponsor picks, publish registration/draft windows, and manage notifications.
 - **Draft Oversight**: Visualizes sponsor turns, dice rolls, team caps, and provides override controls. Admins can monitor fair turn order, shuffle teams, and ensure each sponsor selects once per round.
 - **Match Admin Panel**: Offers scheduling overrides, live scorecard review, stats feeds, and Man of the Match overrides. Includes streaming controls and reel curation.
-- **Ecommerce Management**: Seller approval queue, product upload console (stock, pricing, promotions), order fulfillment tracker, and payout/review reporting. Supports counter discount verification for app-downloaded customers.
+- **Ecommerce Management**: Merchant approval queue, product upload console (stock, pricing, promotions), order fulfillment tracker, and payout/review reporting. Supports counter discount verification for app-downloaded customers.
 - **Rewards & Analytics**: Configures lucky draw rules, monitors stacked spend, launches draws, and tracks prize fulfillment. Displays sponsor analytics (draft picks, player impact) and metrics for ecommerce/orders/reels engagement.
 - **Content & Communication**: Assets for tournament posts (text + image), feeds for likes/comments, notification settings for all actors, and analytics dashboards covering reels, live streams, and standing updates.

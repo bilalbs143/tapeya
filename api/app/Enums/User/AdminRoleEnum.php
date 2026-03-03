@@ -19,4 +19,11 @@ enum AdminRoleEnum: string implements RoleEnumInterface
     {
         return RoleGuardEnum::ADMIN->value;
     }
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::SUPER_ADMIN => 'Super Admin',
+        };
+    }
 }

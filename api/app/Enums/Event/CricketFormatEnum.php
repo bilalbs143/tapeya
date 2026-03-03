@@ -12,4 +12,14 @@ enum CricketFormatEnum: string
     case TAPE_BALL = 'tape_ball';
     case TENNIS_BALL = 'tennis_ball';
     case HARD_TENNIS = 'hard_tennis';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::HARD_BALL => 'Hard Ball',
+            self::TAPE_BALL => 'Tape Ball',
+            self::TENNIS_BALL => 'Tennis Ball',
+            self::HARD_TENNIS => 'Hard Tennis',
+        };
+    }
 }

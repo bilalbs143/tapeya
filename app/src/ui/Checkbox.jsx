@@ -1,16 +1,28 @@
 /**
- * Radix Checkbox - toggle checkbox input
+ * Radix Checkbox - toggle checkbox input.
+ * variant: 'default' (light) | 'input' (dark form theme: #141412 bg, #FF9700 accent)
  */
 
 import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
 
 const baseRoot =
-  'peer h-4 w-4 shrink-0 rounded border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600 data-[state=checked]:text-white';
+  'peer h-4 w-4 shrink-0 rounded border focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50';
+
+const variants = {
+  default:
+    'border-slate-300 focus:ring-indigo-500 focus:ring-offset-2 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600 data-[state=checked]:text-white',
+  input:
+    'border-white/50 focus:ring-[#FF9700]/50 focus:ring-offset-0 data-[state=checked]:bg-[#FF9700] data-[state=checked]:border-[#FF9700] data-[state=checked]:text-white',
+};
+
 const baseIndicator = 'flex items-center justify-center text-current';
 
-export function Checkbox({ className = '', ...props }) {
+export function Checkbox({ className = '', variant = 'default', ...props }) {
   return (
-    <CheckboxPrimitive.Root className={`${baseRoot} ${className}`} {...props}>
+    <CheckboxPrimitive.Root
+      className={`${baseRoot} ${variants[variant] ?? variants.default} ${className}`}
+      {...props}
+    >
       <CheckboxPrimitive.Indicator className={baseIndicator}>
         <CheckIcon />
       </CheckboxPrimitive.Indicator>

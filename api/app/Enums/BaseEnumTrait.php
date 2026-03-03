@@ -2,8 +2,6 @@
 
 namespace App\Enums;
 
-use Illuminate\Support\Str;
-
 trait BaseEnumTrait
 {
     public static function values(): array
@@ -19,10 +17,5 @@ trait BaseEnumTrait
         }
 
         return $out;
-    }
-
-    public function label(): string
-    {
-        return Str::headline($this->value);
     }
 }

@@ -1,5 +1,5 @@
-import { useNavigate } from 'react-router-dom';
 import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
@@ -123,7 +123,7 @@ export default function AddTeam() {
             <Button
               type="submit"
               variant="auth"
-              className="h-12 w-full rounded-[8px] text-[15px] font-semibold uppercase tracking-wide"
+              className="h-12 w-full rounded-[8px] text-[15px] font-semibold tracking-wide uppercase"
             >
               Submit
             </Button>
@@ -133,4 +133,3 @@ export default function AddTeam() {
     </div>
   );
 }
-

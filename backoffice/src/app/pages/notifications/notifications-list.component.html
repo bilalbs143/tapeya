@@ -262,10 +262,13 @@
                   ></i-tabler>
                 </a>
               }
-              @if (row.type === AdminNotificationType.EVENT_REQUEST_SUBMITTED && row.data?.event_request_id !== null) {
+              @if (
+                row.type === AdminNotificationType.TOURNAMENT_REQUEST_SUBMITTED &&
+                row.data?.tournament_request_id !== null
+              ) {
                 <a
-                  [routerLink]="['/events-management/event-requests']"
-                  aria-label="View event requests"
+                  [routerLink]="['/tournaments-management/tournament-requests']"
+                  aria-label="View tournament requests"
                   class="align-middle"
                 >
                   <i-tabler

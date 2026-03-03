@@ -1,10 +1,12 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container } from '@/ui/Container';
-import goldRankingIcon from '@/assets/images/icons/gold-ranking-icon.svg';
+
 import eliteRankingIcon from '@/assets/images/icons/elite-ranking-icon.svg';
-import recommendedIcon from '@/assets/images/icons/recommended-icon.svg';
+import goldRankingIcon from '@/assets/images/icons/gold-ranking-icon.svg';
 import pricingListTickIcon from '@/assets/images/icons/pricing-list-tick.svg';
+import recommendedIcon from '@/assets/images/icons/recommended-icon.svg';
+import { Container } from '@/ui/Container';
 
 export const PRICING_PLANS = [
   {
@@ -47,7 +49,7 @@ export const PRICING_PLANS = [
     ctaLabel: 'Buy',
     icon: eliteRankingIcon,
     features: [
-      'Create & manage events/tournaments',
+      'Create & manage tournaments',
       'Upload up to 120 videos',
       'Organizer support chat',
       'Elite organizer badge',
@@ -120,22 +122,19 @@ function PricingCard({ plan, isSelected, onSelect, onBuy }) {
               className="h-8 w-8 object-contain"
             />
           </div>
-          <h2
-            className="text-[16px] font-bold uppercase text-[#DA9811]"
-          >
+          <h2 className="text-[16px] font-bold text-[#DA9811] uppercase">
             {name}
           </h2>
         </div>
 
         <div className="text-right">
-          
           <p className="mt-1 text-[16px] font-bold tracking-wide text-white">
             {currency}{' '}
             <span className="text-[16px] font-bold tracking-tight">
               {price.toLocaleString('en-PK')}
             </span>
           </p>
-          <p className="text-[12px] font-bold uppercase text-white">
+          <p className="text-[12px] font-bold text-white uppercase">
             {billingCycleLabel}
           </p>
         </div>
@@ -148,7 +147,7 @@ function PricingCard({ plan, isSelected, onSelect, onBuy }) {
             alt="Recommended"
             className="mr-2 h-[18px] w-[18px] object-contain"
           />
-          <span className="text-[12px] font-normal uppercase text-white">
+          <span className="text-[12px] font-normal text-white uppercase">
             {badgeLabel}
           </span>
         </div>
@@ -156,7 +155,10 @@ function PricingCard({ plan, isSelected, onSelect, onBuy }) {
 
       <ul className="mb-5 space-y-2.5">
         {features.map((feature) => (
-          <li key={feature} className="flex items-start gap-2.5 text-[12px] text-[#A2A6AB]">
+          <li
+            key={feature}
+            className="flex items-start gap-2.5 text-[12px] text-[#A2A6AB]"
+          >
             <CheckIcon />
             <span className="leading-relaxed">{feature}</span>
           </li>
@@ -186,14 +188,16 @@ function PricingCard({ plan, isSelected, onSelect, onBuy }) {
 }
 
 export default function Pricing() {
-  const [selectedPlanId, setSelectedPlanId] = useState(PRICING_PLANS[0]?.id ?? null);
+  const [selectedPlanId, setSelectedPlanId] = useState(
+    PRICING_PLANS[0]?.id ?? null,
+  );
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <Container className="flex min-h-screen flex-col justify-center gap-4 pb-8 pt-8">
+      <Container className="flex min-h-screen flex-col justify-center gap-4 pt-8 pb-8">
         <header className="mb-2 text-center">
-          <h1 className="text-[16px] font-bold uppercase text-white">
+          <h1 className="text-[16px] font-bold text-white uppercase">
             Choose Plan
           </h1>
         </header>
@@ -212,4 +216,3 @@ export default function Pricing() {
     </div>
   );
 }
-

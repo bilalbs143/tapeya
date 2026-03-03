@@ -1,0 +1,376 @@
+<mat-card class="cardWithShadow mb-3!">
+  <mat-card-content class="p-6">
+    <form
+      (ngSubmit)="loadHttpData()"
+      [formGroup]="searchForm"
+      aria-label="Filter form"
+    >
+      <div class="grid grid-cols-12 gap-4 items-end">
+        <div class="col-span-12 sm:col-span-6 lg:col-span-2">
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Status</mat-label>
+            <mat-select formControlName="status">
+              <mat-option value="">All</mat-option>
+              @for (opt of statusOptions$ | async; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 sm:col-span-6 lg:col-span-2">
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Tournament Type</mat-label>
+            <mat-select formControlName="tournament_type">
+              <mat-option value="">All</mat-option>
+              @for (opt of tournamentTypeOptions$ | async; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 sm:col-span-6 lg:col-span-2">
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Country</mat-label>
+            <input
+              matInput
+              formControlName="country"
+              type="text"
+              placeholder="Country"
+            />
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 sm:col-span-6 lg:col-span-2">
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>City</mat-label>
+            <input
+              matInput
+              formControlName="city"
+              type="text"
+              placeholder="City"
+            />
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 sm:col-span-6 lg:col-span-4 flex flex-wrap items-center justify-end gap-2">
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="resetSearchForm()"
+          >
+            Clear
+          </button>
+          <button
+            mat-flat-button
+            color="primary"
+            type="submit"
+          >
+            Search
+          </button>
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            (click)="openCreateDialog()"
+          >
+            Add Tournament
+          </button>
+        </div>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="cardWithShadow table-header-theme">
+  <mat-card-content class="p-0">
+    <div class="sticky-header-table-container relative overflow-auto">
+      <app-table-wrapper [loading]="isLoading">
+        <table
+          mat-table
+          matSort
+          aria-label="Tournaments list"
+          matSortActive="created_at"
+          matSortStart="desc"
+          matSortDirection="desc"
+          [dataSource]="dataSource"
+          class="min-w-full"
+        >
+          <ng-container matColumnDef="sr">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              #
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row; let i = index"
+              class="text-sm"
+            >
+              {{ totalRecords - currentPage * pageSize - i }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="tournament_name">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Tournament Name
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm"
+            >
+              {{ row.tournament_name || emptyCell }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="tournament_type">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Tournament Type
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm"
+            >
+              {{ row.tournament_type_label || row.tournament_type || emptyCell }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="venue_name">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Venue
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm"
+            >
+              {{ row.venue_name || emptyCell }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="prize">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Prize
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm"
+            >
+              {{ row.prize || emptyCell }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="country">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Country
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm"
+            >
+              {{ row.country || emptyCell }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="city">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              City
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm"
+            >
+              {{ row.city || emptyCell }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="start_date">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Start Date
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm whitespace-nowrap"
+            >
+              {{ row.start_date ? (row.start_date | date: 'yyyy-MM-dd') : emptyCell }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="end_date">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              End Date
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm whitespace-nowrap"
+            >
+              {{ row.end_date ? (row.end_date | date: 'yyyy-MM-dd') : emptyCell }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Status
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm whitespace-nowrap"
+            >
+              <span
+                class="rounded-sm font-semibold px-1.5 py-1 text-xs"
+                [ngClass]="statusClass(row.status_enum ?? row.status)"
+              >
+                {{ row.status_label || row.status }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="created_at">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Created At
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm whitespace-nowrap"
+            >
+              {{ row.created_at ? (row.created_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Action
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="action-link text-sm whitespace-nowrap"
+            >
+              <button
+                type="button"
+                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                aria-label="View tournament"
+                (click)="openDetailDialog(row)"
+              >
+                <i-tabler
+                  name="eye"
+                  class="size-4.5!"
+                ></i-tabler>
+              </button>
+              <button
+                type="button"
+                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                aria-label="Edit tournament"
+                (click)="openEditDialog(row)"
+              >
+                <i-tabler
+                  name="edit"
+                  class="size-4.5!"
+                ></i-tabler>
+              </button>
+              <button
+                type="button"
+                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                aria-label="Delete tournament"
+                (click)="openDeleteDialog(row)"
+              >
+                <i-tabler
+                  name="trash"
+                  class="size-4.5!"
+                ></i-tabler>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr
+            mat-header-row
+            *matHeaderRowDef="displayedColumns; sticky: true"
+          ></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: displayedColumns"
+          ></tr>
+        </table>
+      </app-table-wrapper>
+    </div>
+
+    <app-paginator
+      [length]="totalRecords"
+      [pageIndex]="currentPage"
+      [pageSize]="pageSize"
+      [loading]="isLoading"
+      (page)="onPaginationChange($event)"
+    ></app-paginator>
+  </mat-card-content>
+</mat-card>

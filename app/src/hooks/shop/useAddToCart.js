@@ -1,5 +1,5 @@
+import { useToast } from '@/hooks/useToast';
 import { useAddCartItemMutation } from '@/store/api/shopApi';
-import { useToast } from '@/ui/useToast';
 
 /**
  * Shop add-to-cart hook. Use in listing cards and product detail.

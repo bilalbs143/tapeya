@@ -4,10 +4,10 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import shoppingCartIcon from '@/assets/images/icons/shopping-cart.svg';
 import { FloatingCartButton } from '@/components/FloatingCartButton';
 import { useAddToCart } from '@/hooks/shop/useAddToCart';
+import { useToast } from '@/hooks/useToast';
 import { formatPrice } from '@/lib/format';
 import { useGetProductQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
-import { useToast } from '@/ui/useToast';
 
 function getImageUrls(images) {
   if (!images?.length) return [];
@@ -61,7 +61,7 @@ export default function ShopProductDetail() {
     try {
       await addToCart({ product_id: normalized.id, quantity }).unwrap();
       toast.success('Added to cart');
-    } catch (err) {
+    } catch (_err) {
       toast.error('Could not add to cart. Try again.');
     }
   };

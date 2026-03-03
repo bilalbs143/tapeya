@@ -215,7 +215,5 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
     );
   }
 
-  return (
-    <div className="rounded-[17px] bg-[#141412] p-4">{cardInner}</div>
-  );
+  return <div className="rounded-[17px] bg-[#141412] p-4">{cardInner}</div>;
 }

@@ -6,7 +6,7 @@ import editReelIcon from '@/assets/images/icons/edit-reel.svg';
 import playIcon from '@/assets/images/icons/play-icon.svg';
 import reelCameraIcon from '@/assets/images/icons/reel-camera-icon.svg';
 import { addReel } from '@/store/slices/reelsSlice';
-import { Avatar, AvatarImage, AvatarFallback } from '@/ui/Avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 
@@ -30,7 +30,15 @@ function ChevronLeftIcon() {
 
 function CloseIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" aria-hidden>
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#fff"
+      strokeWidth="2.5"
+      aria-hidden
+    >
       <path d="M18 6L6 18M6 6l12 12" />
     </svg>
   );
@@ -67,14 +75,17 @@ export default function UploadReels() {
     setPreviewUrl(null);
   }, [previewUrl]);
 
-  const handleFileChange = useCallback((e) => {
-    const file = e.target?.files?.[0];
-    if (!file || !file.type.startsWith('video/')) return;
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setSelectedFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
-    e.target.value = '';
-  }, [previewUrl]);
+  const handleFileChange = useCallback(
+    (e) => {
+      const file = e.target?.files?.[0];
+      if (!file || !file.type.startsWith('video/')) return;
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      e.target.value = '';
+    },
+    [previewUrl],
+  );
 
   const handleDelete = useCallback(() => {
     clearVideo();
@@ -94,7 +105,7 @@ export default function UploadReels() {
           username: displayName,
           handle: displayHandle,
           likes: 0,
-        })
+        }),
       );
       clearVideo();
       setCaption('');
@@ -102,7 +113,15 @@ export default function UploadReels() {
     } finally {
       setIsPublishing(false);
     }
-  }, [selectedFile, caption, displayName, displayHandle, dispatch, navigate, clearVideo]);
+  }, [
+    selectedFile,
+    caption,
+    displayName,
+    displayHandle,
+    dispatch,
+    navigate,
+    clearVideo,
+  ]);
 
   return (
     <div className="bg-black">
@@ -117,7 +136,7 @@ export default function UploadReels() {
           >
             <ChevronLeftIcon />
           </button>
-          <h1 className="text-[16px] font-bold uppercase tracking-wide text-white">
+          <h1 className="text-[16px] font-bold tracking-wide text-white uppercase">
             Upload Reel
           </h1>
           <div className="w-[27px]" aria-hidden />
@@ -131,7 +150,9 @@ export default function UploadReels() {
               {displayName.slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <span className="text-[15px] font-medium text-white">{displayName}</span>
+          <span className="text-[15px] font-medium text-white">
+            {displayName}
+          </span>
         </div>
 
         {/* Card: caption + video preview */}
@@ -141,7 +162,7 @@ export default function UploadReels() {
             onChange={(e) => setCaption(e.target.value)}
             placeholder="What do you want to talk about?"
             rows={3}
-            className="mb-4 w-full resize-none rounded-lg border-0 bg-transparent text-[15px] text-white placeholder:text-[#A2A6AB] focus:outline-none focus:ring-0"
+            className="mb-4 w-full resize-none rounded-lg border-0 bg-transparent text-[15px] text-white placeholder:text-[#A2A6AB] focus:ring-0 focus:outline-none"
           />
           <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black">
             {previewUrl ? (
@@ -152,23 +173,35 @@ export default function UploadReels() {
                   playsInline
                   preload="metadata"
                   className="h-full w-full object-contain"
-                />
+                >
+                  <track kind="captions" />
+                </video>
                 <button
                   type="button"
                   onClick={() => videoPreviewRef.current?.play()}
-                  className="absolute left-1/2 top-1/2 flex h-[30px] w-[30px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow"
+                  className="absolute top-1/2 left-1/2 flex h-[30px] w-[30px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow"
                   aria-label="Play"
                 >
-                  <img src={playIcon} alt="" className="h-3 w-3 object-contain" aria-hidden />
+                  <img
+                    src={playIcon}
+                    alt=""
+                    className="h-3 w-3 object-contain"
+                    aria-hidden
+                  />
                 </button>
-                <div className="absolute right-2 top-2 flex gap-2">
+                <div className="absolute top-2 right-2 flex gap-2">
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     className="flex h-[25px] w-[25px] items-center justify-center rounded-full bg-white"
                     aria-label="Change video"
                   >
-                    <img src={editReelIcon} alt="" className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    <img
+                      src={editReelIcon}
+                      alt=""
+                      className="h-3.5 w-3.5 shrink-0"
+                      aria-hidden
+                    />
                   </button>
                   <button
                     type="button"
@@ -186,7 +219,12 @@ export default function UploadReels() {
                 onClick={() => fileInputRef.current?.click()}
                 className="flex h-full w-full flex-col items-center justify-center gap-2 text-[#A2A6AB]"
               >
-                <img src={reelCameraIcon} alt="" className="h-8 w-8 shrink-0 brightness-0 invert opacity-80" aria-hidden />
+                <img
+                  src={reelCameraIcon}
+                  alt=""
+                  className="h-8 w-8 shrink-0 opacity-80 brightness-0 invert"
+                  aria-hidden
+                />
                 <span className="text-sm">Select video</span>
               </button>
             )}
@@ -209,14 +247,19 @@ export default function UploadReels() {
             className="flex h-[37px] w-[37px] shrink-0 items-center justify-center rounded-full bg-white"
             aria-label="Add or change video"
           >
-            <img src={reelCameraIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
+            <img
+              src={reelCameraIcon}
+              alt=""
+              className="h-5 w-5 shrink-0 object-contain"
+              aria-hidden
+            />
           </button>
           <Button
             type="button"
             onClick={handlePublish}
             disabled={!selectedFile || isPublishing}
             variant="auth"
-            className="min-w-[160px] !w-auto"
+            className="!w-auto min-w-[160px]"
           >
             {isPublishing ? 'Publishing…' : 'Publish Now'}
           </Button>

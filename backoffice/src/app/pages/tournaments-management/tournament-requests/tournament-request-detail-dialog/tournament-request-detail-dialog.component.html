@@ -1,0 +1,134 @@
+<app-dialog-wrapper title="Tournament Request Details">
+  @if (isLoading) {
+    <span class="block p-4 text-muted">Loading tournament request...</span>
+  } @else if (tournamentRequest) {
+    <form
+      [formGroup]="form"
+      (ngSubmit)="onSubmit()"
+      aria-label="Update tournament request status"
+    >
+      <mat-dialog-content>
+        <div class="grid grid-cols-12 gap-x-6 gap-y-4 mb-4">
+          <div class="col-span-12 sm:col-span-6">
+            <span class="block text-sm font-semibold mb-1">Contact Person</span>
+            <span class="block text-sm">{{ tournamentRequest.contact_person_name }}</span>
+          </div>
+          <div class="col-span-12 sm:col-span-6">
+            <span class="block text-sm font-semibold mb-1">Contact Phone</span>
+            <span class="block text-sm">{{ tournamentRequest.contact_phone }}</span>
+          </div>
+          <div class="col-span-12 sm:col-span-6">
+            <span class="block text-sm font-semibold mb-1">Tournament Name</span>
+            <span class="block text-sm">{{ tournamentRequest.tournament_name }}</span>
+          </div>
+          <div class="col-span-12 sm:col-span-6">
+            <span class="block text-sm font-semibold mb-1">Status</span>
+            <span
+              class="rounded-sm font-semibold px-1.5 py-1 text-xs inline-block"
+              [ngClass]="statusClass(tournamentRequest.status)"
+            >
+              {{ tournamentRequest.status_label }}
+            </span>
+          </div>
+          @if (tournamentRequest.user) {
+            <div class="col-span-12 sm:col-span-6">
+              <span class="block text-sm font-semibold mb-1">User (App)</span>
+              <span class="block text-sm">{{ tournamentRequest.user.name }}</span>
+              @if (tournamentRequest.user.email) {
+                <span class="block text-sm text-muted mt-0.5">{{ tournamentRequest.user.email }}</span>
+              }
+              @if (tournamentRequest.user.phone) {
+                <span class="block text-sm text-muted mt-0.5">{{ tournamentRequest.user.phone }}</span>
+              }
+            </div>
+          }
+          <div class="col-span-12 sm:col-span-6">
+            <span class="block text-sm font-semibold mb-1">Tournament Type</span>
+            <span class="block text-sm">{{ tournamentRequest.tournament_type_label }}</span>
+          </div>
+          <div class="col-span-12 sm:col-span-6">
+            <span class="block text-sm font-semibold mb-1">Cricket Format</span>
+            <span class="block text-sm">{{ tournamentRequest.cricket_format_label }}</span>
+          </div>
+          <div class="col-span-12 sm:col-span-6">
+            <span class="block text-sm font-semibold mb-1">Venue</span>
+            <span class="block text-sm">{{ tournamentRequest.venue_name }}</span>
+          </div>
+          <div class="col-span-12 sm:col-span-6">
+            <span class="block text-sm font-semibold mb-1">City</span>
+            <span class="block text-sm">{{ tournamentRequest.city }}</span>
+          </div>
+          <div class="col-span-12 sm:col-span-6">
+            <span class="block text-sm font-semibold mb-1">Start Date</span>
+            <span class="block text-sm">{{
+              tournamentRequest.start_date ? (tournamentRequest.start_date | date: 'yyyy-MM-dd') : emptyCell
+            }}</span>
+          </div>
+          <div class="col-span-12 sm:col-span-6">
+            <span class="block text-sm font-semibold mb-1">End Date</span>
+            <span class="block text-sm">{{
+              tournamentRequest.end_date ? (tournamentRequest.end_date | date: 'yyyy-MM-dd') : emptyCell
+            }}</span>
+          </div>
+          <div class="col-span-12 sm:col-span-6">
+            <span class="block text-sm font-semibold mb-1">Match Timings</span>
+            <span class="block text-sm">{{ tournamentRequest.match_timings_label }}</span>
+          </div>
+          <div class="col-span-12 sm:col-span-6">
+            <span class="block text-sm font-semibold mb-1">Prize</span>
+            <span class="block text-sm">{{ tournamentRequest.prize ?? emptyCell }}</span>
+          </div>
+          <div class="col-span-12 sm:col-span-6">
+            <span class="block text-sm font-semibold mb-1">Number of Matches</span>
+            <span class="block text-sm">{{ tournamentRequest.number_of_matches }}</span>
+          </div>
+          <div class="col-span-12 sm:col-span-6">
+            <span class="block text-sm font-semibold mb-1">Number of Teams</span>
+            <span class="block text-sm">{{ tournamentRequest.number_of_teams }}</span>
+          </div>
+          <div class="col-span-12 sm:col-span-6">
+            <span class="block text-sm font-semibold mb-1">Expected Players Count</span>
+            <span class="block text-sm">{{ tournamentRequest.expected_players_count }}</span>
+          </div>
+        </div>
+
+        <mat-divider class="my-4"></mat-divider>
+        <span class="block text-sm font-semibold mb-2">Update Status</span>
+        <mat-form-field
+          appearance="outline"
+          class="w-full"
+        >
+          <mat-label class="text-sm font-semibold">Status</mat-label>
+          <mat-select
+            formControlName="status"
+            placeholder="Select Status"
+          >
+            @if (statusOptions$ | async; as opts) {
+              @for (opt of opts; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            }
+          </mat-select>
+        </mat-form-field>
+      </mat-dialog-content>
+
+      <mat-divider></mat-divider>
+      <mat-dialog-actions>
+        <button
+          type="button"
+          mat-stroked-button
+          class="border border-error! text-error"
+          [mat-dialog-close]="false"
+        >
+          Close
+        </button>
+        <app-submit-button
+          [disabled]="form.invalid"
+          [isSubmitting]="isSubmitting"
+          text="Update Status"
+          color="primary"
+        />
+      </mat-dialog-actions>
+    </form>
+  }
+</app-dialog-wrapper>

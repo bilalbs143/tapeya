@@ -59,5 +59,8 @@ export const MOCK_SQUADS = [
 export function getSquadByTeamId(teamId) {
   if (!teamId) return null;
   const id = String(teamId).toLowerCase();
-  return MOCK_SQUADS.find((s) => s.id === id || s.teamName.toLowerCase() === id) ?? null;
+  return (
+    MOCK_SQUADS.find((s) => s.id === id || s.teamName.toLowerCase() === id) ??
+    null
+  );
 }

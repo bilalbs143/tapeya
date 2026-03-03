@@ -1,8 +1,8 @@
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-import teamIcon from '@/assets/images/icons/team-icon.svg';
 import teamDeleteIcon from '@/assets/images/icons/team-delete-icon.svg';
 import teamEditIcon from '@/assets/images/icons/team-edit-icon.svg';
+import teamIcon from '@/assets/images/icons/team-icon.svg';
 import { Container } from '@/ui/Container';
 
 function TeamLogoIcon() {
@@ -26,10 +26,12 @@ function TeamCard({ team, index, onEdit, onDelete, onClick }) {
       <div className="min-w-0 flex-1">
         <h3 className="text-[16px] font-bold text-white">{team.name}</h3>
         <p className="mt-0.5 text-[14px] text-[#A2A6AB]">
-          <span className="font-medium text-[#DA9811]">Owner: {team.owner}</span>
+          <span className="font-medium text-[#DA9811]">
+            Owner: {team.owner}
+          </span>
         </p>
         <p className="mt-0.5 text-[12px] text-[#A2A6AB]">
-        Icon Player: <span className="text-white">{team.iconPlayer}</span>
+          Icon Players: <span className="text-white">{team.iconPlayer}</span>
         </p>
       </div>
       <div className="flex shrink-0 flex-col items-end gap-1">
@@ -57,18 +59,45 @@ function TeamCard({ team, index, onEdit, onDelete, onClick }) {
             <img src={teamDeleteIcon} alt="" className="h-4 w-4" />
           </button>
         </div>
-        <span className="text-[28px] font-bold text-[#DA98113B]">{index + 1}</span>
+        <span className="text-[28px] font-bold text-[#DA98113B]">
+          {index + 1}
+        </span>
       </div>
     </div>
   );
 }
 
 const MOCK_TEAMS = [
-  { id: '1', name: 'Al Fareed - Mian Channu', owner: 'Mian Asif Naddem', iconPlayer: 'Asif Butt' },
-  { id: '2', name: 'Al Fareed - Mian Channu', owner: 'Mian Asif Naddem', iconPlayer: 'Asif Butt' },
-  { id: '3', name: 'Al Fareed - Mian Channu', owner: 'Mian Asif Naddem', iconPlayer: 'Asif Butt' },
-  { id: '4', name: 'Al Fareed - Mian Channu', owner: 'Mian Asif Naddem', iconPlayer: 'Asif Butt' },
-  { id: '5', name: 'Al Fareed - Mian Channu', owner: 'Mian Asif Naddem', iconPlayer: 'Asif Butt' },
+  {
+    id: '1',
+    name: 'Al Fareed - Mian Channu',
+    owner: 'Mian Asif Naddem',
+    iconPlayer: 'Asif Butt',
+  },
+  {
+    id: '2',
+    name: 'Al Fareed - Mian Channu',
+    owner: 'Mian Asif Naddem',
+    iconPlayer: 'Asif Butt',
+  },
+  {
+    id: '3',
+    name: 'Al Fareed - Mian Channu',
+    owner: 'Mian Asif Naddem',
+    iconPlayer: 'Asif Butt',
+  },
+  {
+    id: '4',
+    name: 'Al Fareed - Mian Channu',
+    owner: 'Mian Asif Naddem',
+    iconPlayer: 'Asif Butt',
+  },
+  {
+    id: '5',
+    name: 'Al Fareed - Mian Channu',
+    owner: 'Mian Asif Naddem',
+    iconPlayer: 'Asif Butt',
+  },
 ];
 
 export default function TeamList() {
@@ -81,11 +110,11 @@ export default function TeamList() {
     navigate(`/drafting/teams/${team.id}`, { state: { team } });
   };
 
-  const handleEdit = (team) => {
+  const handleEdit = (_team) => {
     // TODO: Navigate to edit team or open edit modal
   };
 
-  const handleDelete = (team) => {
+  const handleDelete = (_team) => {
     // TODO: Confirm and delete team
   };
 

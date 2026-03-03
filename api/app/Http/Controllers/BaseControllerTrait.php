@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -26,6 +27,25 @@ trait BaseControllerTrait
     protected function noContent()
     {
         return response()->noContent();
+    }
+
+    /**
+     * Store/update a single image field on a model in a consistent way.
+     *
+     * - Saves the uploaded file to "images/{$path}" on the default disk.
+     * - Deletes the previous file if a record and old path exist.
+     */
+    protected function storeImage(Request $request, string $param, string $path, array &$data, $record = null): void
+    {
+        if ($request->hasFile($param)) {
+            $data[$param] = $request
+                ->file($param)
+                ->store($path, config('filesystems.media_disk'));
+
+            if ($record && $record->$param) {
+                Storage::disk(config('filesystems.media_disk'))->delete($record->$param);
+            }
+        }
     }
 
     public function index()

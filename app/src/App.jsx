@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import { ScrollRestoration } from '@/components/ScrollRestoration';
 import { SplashScreen } from '@/components/SplashScreen';
+import { ToastProvider } from '@/contexts/ToastContext';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { MainLayout } from '@/layouts/MainLayout';
 import Login from '@/pages/auth/Login';
@@ -11,22 +12,16 @@ import AddTeam from '@/pages/drafting/AddTeam';
 import DraftingHome from '@/pages/drafting/DraftingHome';
 import TeamDetail from '@/pages/drafting/TeamDetail';
 import TeamList from '@/pages/drafting/TeamList';
-import AddTeamOrganizer from '@/pages/organizer-tournament/AddTeam';
-import Organizer from '@/pages/organizer-tournament/Organizer';
-import OrgTournamentList from '@/pages/organizer-tournament/OrgTournamentList';
-import AddSquad from '@/pages/organizer-tournament/AddSquad';
-import EditSquad from '@/pages/organizer-tournament/EditSquad';
-import SavedItems from '@/pages/organizer-tournament/SavedItems';
-import EventRequest from '@/pages/EventRequest';
-import Home from '@/pages/Home';
-import NotificationCenter from '@/pages/NotificationCenter';
-import Ranking from '@/pages/ranking/Ranking';
-import Reels from '@/pages/reels/Reels';
-import UploadReels from '@/pages/reels/UploadReels';
-import Pricing from '@/pages/pricing/Pricing';
-import PricingDetail from '@/pages/pricing/PricingDetail';
 import ActivityFeed from '@/pages/feed/ActivityFeed';
 import ActivityFeedDetail from '@/pages/feed/ActivityFeedDetail';
+import Home from '@/pages/Home';
+import NotificationCenter from '@/pages/NotificationCenter';
+import Pricing from '@/pages/pricing/Pricing';
+import PricingDetail from '@/pages/pricing/PricingDetail';
+import Ranking from '@/pages/ranking/Ranking';
+import RankingStatsTotal from '@/pages/ranking/RankingStatsTotal';
+import Reels from '@/pages/reels/Reels';
+import UploadReels from '@/pages/reels/UploadReels';
 import {
   ScorecardDetails,
   ScorecardHome,
@@ -43,9 +38,15 @@ import ShopCheckout from '@/pages/shop/ShopCheckout';
 import ShopFilter from '@/pages/shop/ShopFilter';
 import ShopHome from '@/pages/shop/ShopHome';
 import ShopProductDetail from '@/pages/shop/ShopProductDetail';
+import TournamentRequest from '@/pages/TournamentRequest';
+import TournamentAddSquad from '@/pages/tournaments/TournamentAddSquad';
+import TournamentAddTeam from '@/pages/tournaments/TournamentAddTeam';
+import TournamentCreateTeamIntro from '@/pages/tournaments/TournamentCreateTeamIntro';
+import TournamentEditSquad from '@/pages/tournaments/TournamentEditSquad';
+import Tournaments from '@/pages/tournaments/Tournaments';
+import TournamentSavedTeams from '@/pages/tournaments/TournamentSavedTeams';
 import UserProfile from '@/pages/UserProfile';
 import { Toaster } from '@/ui/Toast';
-import { ToastProvider } from '@/ui/ToastContext';
 import { TooltipProvider } from '@/ui/Tooltip';
 
 function App() {
@@ -53,7 +54,12 @@ function App() {
     <TooltipProvider delayDuration={300}>
       <Toaster>
         <ToastProvider>
-          <BrowserRouter>
+          <BrowserRouter
+            future={{
+              v7_relativeSplatPath: true,
+              v7_startTransition: true,
+            }}
+          >
             <ScrollRestoration />
             <Routes>
               <Route path="/" element={<SplashScreen />} />
@@ -63,13 +69,31 @@ function App() {
                 <Route path="/drafting" element={<DraftingHome />} />
                 <Route path="/drafting/add-team" element={<AddTeam />} />
                 <Route path="/drafting/teams" element={<TeamList />} />
-                <Route path="/drafting/teams/:teamId" element={<TeamDetail />} />
-                <Route path="/organizer-tournament" element={<Organizer />} />
-                <Route path="/organizer-tournament/list" element={<OrgTournamentList />} />
-                <Route path="/organizer-tournament/add-team" element={<AddTeamOrganizer />} />
-                <Route path="/organizer-tournament/saved-items" element={<SavedItems />} />
-                <Route path="/organizer-tournament/add-squad" element={<AddSquad />} />
-                <Route path="/organizer-tournament/edit-squad" element={<EditSquad />} />
+                <Route
+                  path="/drafting/teams/:teamId"
+                  element={<TeamDetail />}
+                />
+                <Route path="/tournaments" element={<Tournaments />} />
+                <Route
+                  path="/tournaments/:tournamentId/create-team-intro"
+                  element={<TournamentCreateTeamIntro />}
+                />
+                <Route
+                  path="/tournaments/:tournamentId/add-team"
+                  element={<TournamentAddTeam />}
+                />
+                <Route
+                  path="/tournaments/:tournamentId/saved-teams"
+                  element={<TournamentSavedTeams />}
+                />
+                <Route
+                  path="/tournaments/:tournamentId/add-squad"
+                  element={<TournamentAddSquad />}
+                />
+                <Route
+                  path="/tournaments/:tournamentId/edit-squad"
+                  element={<TournamentEditSquad />}
+                />
                 <Route path="/scorecard" element={<ScorecardHome />} />
                 <Route
                   path="/scorecard/:tournamentId"
@@ -103,13 +127,19 @@ function App() {
                   element={<ShopFilter />}
                 />
                 <Route path="/shop/:brandId" element={<ShopCategory />} />
-                <Route path="/event-request" element={<EventRequest />} />
+                <Route
+                  path="/tournament-request"
+                  element={<TournamentRequest />}
+                />
                 <Route path="/ranking" element={<Ranking />} />
                 <Route
                   path="/ranking/stats-total/:statType"
-                  element={<StatsTotal />}
+                  element={<RankingStatsTotal />}
                 />
-                <Route path="/notification-center" element={<NotificationCenter />} />
+                <Route
+                  path="/notification-center"
+                  element={<NotificationCenter />}
+                />
                 <Route path="/reels" element={<Reels />} />
                 <Route path="/reels/upload" element={<UploadReels />} />
                 <Route path="/pricing" element={<Pricing />} />

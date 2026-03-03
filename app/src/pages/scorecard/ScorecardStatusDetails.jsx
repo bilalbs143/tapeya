@@ -16,7 +16,6 @@ import {
 
 import { MOCK_MATCH_DETAILS } from './mockMatchDetails';
 import { MOCK_MATCHES } from './mockMatches';
-import { ScheduleTab, StatsTab, TableTab } from './tabs';
 import {
   StatusDetailsLiveTab,
   StatusDetailsOversTab,
@@ -24,6 +23,7 @@ import {
   StatusDetailsPlayingXITab,
   StatusDetailsScorecardTab,
 } from './statusDetailsTabs';
+import { ScheduleTab, StatsTab, TableTab } from './tabs';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -71,7 +71,8 @@ const TAB_VIEWS = {
 
 /** Parse "27/1 (4.4/50 OV, T:235)" → { current: "27/1", overs: "(4.4/50 OV, T:235)" } */
 function parseLiveScore(score) {
-  if (!score || typeof score !== 'string') return { current: score, overs: null };
+  if (!score || typeof score !== 'string')
+    return { current: score, overs: null };
   const idx = score.indexOf(' (');
   if (idx === -1) return { current: score, overs: null };
   return { current: score.slice(0, idx), overs: score.slice(idx) };
@@ -121,18 +122,22 @@ function WinProbabilityCard({ match, winProb }) {
 
   return (
     <div className="border-t border-[#1A1A1A] px-4 py-4">
-      <div className="mb-6 mt-2 flex items-center justify-center gap-2">
+      <div className="mt-2 mb-6 flex items-center justify-center gap-2">
         <img
           src={winProbabilityIcon}
           alt=""
           className="h-5 w-5 shrink-0"
           aria-hidden
         />
-        <span className="text-[14px] font-bold text-[#A2A6AB]">Win Probability</span>
+        <span className="text-[14px] font-bold text-[#A2A6AB]">
+          Win Probability
+        </span>
       </div>
       <div className="flex items-stretch">
         <div className="flex flex-1 flex-col items-center justify-center">
-          <span className="mb-1 text-[14px] text-[#A2A6AB]">{match.team1.name}</span>
+          <span className="mb-1 text-[14px] text-[#A2A6AB]">
+            {match.team1.name}
+          </span>
           <span
             className={`text-[14px] font-bold ${higherIsTeam2 ? 'text-white' : 'text-[#DA9811]'}`}
           >
@@ -144,7 +149,9 @@ function WinProbabilityCard({ match, winProb }) {
           aria-hidden
         />
         <div className="flex flex-1 flex-col items-center justify-center">
-          <span className="mb-1 text-[12px] text-[#A2A6AB]">{match.team2.name}</span>
+          <span className="mb-1 text-[12px] text-[#A2A6AB]">
+            {match.team2.name}
+          </span>
           <span
             className={`text-[18px] font-bold ${higherIsTeam2 ? 'text-[#DA9811]' : 'text-white'}`}
           >
@@ -168,12 +175,14 @@ function MatchHeader({ match, details }) {
     <div className="px-4 pb-4">
       {isUpcoming ? (
         <>
-          <p className="mb-1 text-[13px] font-bold uppercase text-white">{status}</p>
+          <p className="mb-1 text-[13px] font-bold text-white uppercase">
+            {status}
+          </p>
           <p className="mb-3 text-[12px] text-[#A2A6AB]">{matchId}</p>
         </>
       ) : (
         <div className="mb-4">
-          <span className="shrink-0 text-[13px] font-bold uppercase text-white">
+          <span className="shrink-0 text-[13px] font-bold text-white uppercase">
             {isLive ? 'LIVE' : 'RESULT'}
           </span>
           <p className="mt-2 text-[12px] text-[#A2A6AB]">{matchId}</p>
@@ -189,10 +198,14 @@ function MatchHeader({ match, details }) {
             </span>
           </div>
           {isUpcoming ? (
-            <span className="shrink-0 text-[14px] text-[#A2A6AB]">{meta?.time}</span>
+            <span className="shrink-0 text-[14px] text-[#A2A6AB]">
+              {meta?.time}
+            </span>
           ) : (
             score1 && (
-              <span className="shrink-0 text-[14px] font-medium text-[#A2A6AB]">{score1}</span>
+              <span className="shrink-0 text-[14px] font-medium text-[#A2A6AB]">
+                {score1}
+              </span>
             )
           )}
         </div>
@@ -212,7 +225,9 @@ function MatchHeader({ match, details }) {
             score2 && (
               <span className="shrink-0 text-right">
                 {liveScore2?.overs && (
-                  <span className="text-[14px] text-[#A2A6AB]">{liveScore2.overs} </span>
+                  <span className="text-[14px] text-[#A2A6AB]">
+                    {liveScore2.overs}{' '}
+                  </span>
                 )}
                 <span className="text-[14px] font-bold text-[#DA9811]">
                   {liveScore2?.current ?? score2}
@@ -225,7 +240,10 @@ function MatchHeader({ match, details }) {
 
       {isLive && meta?.commentary && (
         <p className="mb-3">
-          <CommentaryText text={meta.commentary} className="text-[14px] text-white" />
+          <CommentaryText
+            text={meta.commentary}
+            className="text-[14px] text-white"
+          />
         </p>
       )}
 
@@ -267,7 +285,8 @@ export default function ScorecardStatusDetails() {
   const [activeTab, setActiveTab] = useState(defaultTab);
 
   useEffect(() => {
-    const nextDefault = STATUS_DEFAULT_TAB[status] ?? STATUS_TABS[status]?.[0]?.value;
+    const nextDefault =
+      STATUS_DEFAULT_TAB[status] ?? STATUS_TABS[status]?.[0]?.value;
     setActiveTab(nextDefault);
   }, [status, matchId]);
 

@@ -3,14 +3,14 @@
 use App\Http\Controllers\Admin\Auth\AdminAuthController;
 use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\Admin\EnumController;
-use App\Http\Controllers\Admin\Event\EventController as AdminEventController;
-use App\Http\Controllers\Admin\Event\EventRequestController as AdminEventRequestController;
 use App\Http\Controllers\Admin\HeroSliderController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\Shop\BrandController as AdminBrandController;
 use App\Http\Controllers\Admin\Shop\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\Shop\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\Shop\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\TournamentController;
+use App\Http\Controllers\Admin\TournamentRequestController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -34,11 +34,11 @@ Route::prefix('admin')->group(function () {
         Route::get('countries/cities', [CountryController::class, 'cities']);
         Route::apiResource('users', UserController::class);
         Route::apiResource('hero-sliders', HeroSliderController::class);
-        Route::apiResource('events', AdminEventController::class);
+        Route::apiResource('tournaments', TournamentController::class);
 
-        Route::get('event-requests', [AdminEventRequestController::class, 'index']);
-        Route::get('event-requests/{event_request}', [AdminEventRequestController::class, 'show']);
-        Route::match(['put', 'patch'], 'event-requests/{event_request}', [AdminEventRequestController::class, 'update']);
+        Route::get('tournament-requests', [TournamentRequestController::class, 'index']);
+        Route::get('tournament-requests/{tournament_request}', [TournamentRequestController::class, 'show']);
+        Route::match(['put', 'patch'], 'tournament-requests/{tournament_request}', [TournamentRequestController::class, 'update']);
 
         Route::prefix('shop')->group(function () {
             Route::apiResource('brands', AdminBrandController::class);

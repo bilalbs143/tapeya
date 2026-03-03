@@ -16,18 +16,18 @@ export const navItems: NavItem[] = [
     route: '/ecommerce',
   },
   {
-    displayName: 'Events Management',
+    displayName: 'Tournaments Management',
     iconName: 'solar:calendar-date-line-duotone',
     children: [
       {
-        displayName: 'Events',
+        displayName: 'Tournaments',
         iconName: 'tabler:point',
-        route: '/events-management/events',
+        route: '/tournaments-management/tournaments',
       },
       {
-        displayName: 'Event Requests',
+        displayName: 'Tournament Requests',
         iconName: 'tabler:point',
-        route: '/events-management/event-requests',
+        route: '/tournaments-management/tournament-requests',
       },
     ],
   },

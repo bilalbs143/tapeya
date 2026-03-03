@@ -1,0 +1,52 @@
+<?php
+
+namespace App\Http\Controllers\User;
+
+use App\Http\Controllers\BaseControllerTrait;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\User\TournamentResource;
+use App\Models\Tournament;
+use Illuminate\Http\JsonResponse;
+use Spatie\QueryBuilder\QueryBuilder;
+
+class TournamentController extends Controller
+{
+    use BaseControllerTrait;
+
+    /**
+     * List tournaments (for app: e.g. to pick tournament when creating teams or viewing schedule).
+     */
+    public function index(): JsonResponse
+    {
+        $query = QueryBuilder::for(Tournament::class)
+            ->allowedFilters(Tournament::getFilters())
+            ->defaultSort('-start_date')
+            ->allowedSorts(Tournament::getSorts())
+            ->withCount('teams');
+
+        $tournaments = request()->has('all')
+            ? $query->get()
+            : $query->paginate((int) request('per_page', 15));
+
+        return $this->success(TournamentResource::collection($tournaments));
+    }
+
+    /**
+     * Show one tournament (with optional matches loaded).
+     * Use GET /tournaments/{id}/teams for the list of teams.
+     */
+    public function show(Tournament $tournament): JsonResponse
+    {
+        $with = [];
+        if (request()->boolean('with_matches')) {
+            $with[] = 'matches.homeTeam';
+            $with[] = 'matches.awayTeam';
+            $with[] = 'matches.winningTeam';
+        }
+        if ($with !== []) {
+            $tournament->load($with);
+        }
+
+        return $this->success(new TournamentResource($tournament));
+    }
+}

@@ -1,14 +1,9 @@
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { Container } from '@/ui/Container';
 
-import {
-  getFlowFromPath,
-  getStatsTotalBackPath,
-  RANKING_FLOW,
-  VALID_STAT_TYPES as FLOW_STAT_TYPES,
-} from './statsTotalFlow';
-import { getRankingStatsTotalRows, getStatsTotalRows } from './tabs/statsData';
+import { VALID_STAT_TYPES } from './statsTotalFlow';
+import { getStatsTotalRows } from './tabs/statsData';
 
 const BORDER = 'border-[#1A1A1A]';
 const HEADER_BG = 'bg-[#141412]';
@@ -89,35 +84,24 @@ const TITLES = {
 
 function StatsTotalContent() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { tournamentId } = useParams();
+  const { tournamentId, statType } = useParams();
 
-  const flowInfo = getFlowFromPath(location.pathname);
-  const normalizedType = flowInfo?.statType && FLOW_STAT_TYPES.includes(flowInfo.statType)
-    ? flowInfo.statType
-    : 'fours';
-  const isRankingFlow = flowInfo?.flow === RANKING_FLOW;
+  const normalizedType =
+    statType && VALID_STAT_TYPES.includes(statType) ? statType : 'fours';
 
-  const rows = isRankingFlow
-    ? getRankingStatsTotalRows(
-        Array.isArray(location.state?.rankingData) ? location.state.rankingData : [],
-        normalizedType
-      )
-    : getStatsTotalRows(flowInfo?.tournamentId ?? tournamentId, normalizedType);
+  const rows = getStatsTotalRows(tournamentId, normalizedType);
 
   const titles = TITLES[normalizedType] ?? TITLES.fours;
-  const mainTitle = isRankingFlow
-    ? titles.main('').trim()
-    : titles.main(flowInfo?.tournamentId ?? tournamentId);
+  const mainTitle = titles.main(tournamentId);
   const subheading = titles.sub;
   const columns = COLUMNS_BY_STAT_TYPE[normalizedType] ?? COLUMNS_FOURS;
 
   const backToStats = () => {
-    const backPath = getStatsTotalBackPath(
-      flowInfo?.flow ?? (tournamentId ? 'scorecard' : 'ranking'),
-      flowInfo?.tournamentId ?? tournamentId
-    );
-    navigate(backPath);
+    if (tournamentId) {
+      navigate(`/scorecard/${tournamentId}`);
+    } else {
+      navigate('/scorecard');
+    }
   };
 
   return (
@@ -142,18 +126,16 @@ function StatsTotalContent() {
           </svg>
         </button>
         <h1 className="min-w-0 flex-1 pr-[27px] text-center text-[16px] font-bold tracking-wide text-white uppercase">
-          {isRankingFlow ? 'Stats' : subheading}
+          {subheading}
         </h1>
       </header>
 
       <Container className="!px-4 pb-6">
-        {!isRankingFlow && (
-          <h2 className="text-center text-base font-bold tracking-wide text-white uppercase">
-            {mainTitle}
-          </h2>
-        )}
+        <h2 className="text-center text-base font-bold tracking-wide text-white uppercase">
+          {mainTitle}
+        </h2>
 
-        <h3 className={`text-left text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase ${isRankingFlow ? '' : 'mt-4'}`}>
+        <h3 className="mt-4 text-left text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
           {subheading}
         </h3>
 
@@ -164,7 +146,7 @@ function StatsTotalContent() {
                 {columns.map((col, i) => (
                   <th
                     key={col.key}
-                    className={`${COL_TH} ${col.width ?? ''} ${HEADER_BG} border-b border-r ${BORDER} ${i === 0 ? 'border-l' : ''}`}
+                    className={`${COL_TH} ${col.width ?? ''} ${HEADER_BG} border-r border-b ${BORDER} ${i === 0 ? 'border-l' : ''}`}
                   >
                     {col.header}
                   </th>
@@ -177,7 +159,7 @@ function StatsTotalContent() {
                   {columns.map((col, i) => (
                     <td
                       key={col.key}
-                      className={`${COL_TD} border-b border-r ${BORDER} bg-transparent ${i === 0 ? 'border-l' : ''}`}
+                      className={`${COL_TD} border-r border-b ${BORDER} bg-transparent ${i === 0 ? 'border-l' : ''}`}
                     >
                       {col.key === 'player'
                         ? `${row.rank} ${row.playerName}`

@@ -1,16 +1,14 @@
 import { Link, useParams } from 'react-router-dom';
 
-import { statsTotalPaths } from '@/pages/scorecard/statsTotalFlow';
 import defaultPlayerImage from '@/assets/images/standard/player-avatar.png';
+import { statsTotalPaths } from '@/pages/scorecard/statsTotalFlow';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 
 import { getSeasonStats } from './statsData';
 
 function SummaryCard({ value, label, accent = 'yellow', to }) {
   const borderClass =
-    accent === 'yellow'
-      ? 'border border-[#FFC107]'
-      : 'border border-[#03B0E7]';
+    accent === 'yellow' ? 'border border-[#FFC107]' : 'border border-[#03B0E7]';
   const baseClass = `flex w-full flex-1 items-center justify-between rounded-[6px] bg-transparent px-4 py-4 ${borderClass} text-left transition-opacity active:opacity-90`;
   const content = (
     <>
@@ -102,7 +100,7 @@ function SectionHeader({ title, viewMoreTo }) {
       {viewMoreTo && (
         <Link
           to={viewMoreTo}
-          className="font-bold text-[12px] tracking-wide text-[#DA9811] uppercase transition-opacity hover:opacity-90"
+          className="text-[12px] font-bold tracking-wide text-[#DA9811] uppercase transition-opacity hover:opacity-90"
         >
           VIEW MORE
         </Link>

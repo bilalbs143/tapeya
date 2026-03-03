@@ -35,9 +35,11 @@ export const routes: Routes = [
           import('./pages/shop-management/shop-management.routes').then((m) => m.ShopManagementRoutes),
       },
       {
-        path: 'events-management',
+        path: 'tournaments-management',
         loadChildren: () =>
-          import('./pages/events-management/events-management.routes').then((m) => m.EventsManagementRoutes),
+          import('./pages/tournaments-management/tournaments-management.routes').then(
+            (m) => m.TournamentsManagementRoutes
+          ),
       },
       {
         path: 'notifications',

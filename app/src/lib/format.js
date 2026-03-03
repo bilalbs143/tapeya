@@ -39,3 +39,25 @@ export function formatDate(
   if (Number.isNaN(date.getTime())) return '';
   return date.toLocaleDateString('en-GB', options);
 }
+
+/**
+ * Format a date range for display. Uses formatDate for each part.
+ * @param {string|Date|null|undefined} startDate - Start date (ISO or Date)
+ * @param {string|Date|null|undefined} [endDate] - End date; if same as start or omitted, single date is shown
+ * @param {Intl.DateTimeFormatOptions} [options] - Optional format options passed to formatDate
+ * @returns {string} e.g. "08 Jan, 2025" or "08 Jan, 2025 – 15 Mar, 2025"
+ */
+export function formatDateRange(startDate, endDate, options) {
+  if (startDate == null || startDate === '') return '—';
+  const start = formatDate(startDate, options);
+  if (!start) return '—';
+  if (
+    endDate == null ||
+    endDate === '' ||
+    String(endDate) === String(startDate)
+  )
+    return start;
+  const end = formatDate(endDate, options);
+  if (!end) return start;
+  return `${start} – ${end}`;
+}

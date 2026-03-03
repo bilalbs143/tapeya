@@ -6,7 +6,6 @@
 |-------|--------|--------|---------|
 | **Admin** | Yes, separate | Backoffice only | `users.type = administrator` + optional `roles` (guard=admin) |
 | **User** (player / organizer / sponsor) | Yes | App only | `users.type = user` + `roles` (guard=app) via `role_user` |
-| **Seller** | No (maybe later) | — | `users.type = seller` (same table, ready for future login) |
 
 - **Roles** are scoped by **guard** (`app` | `admin`). Same `roles` table and `role_user` pivot; slug is unique per guard.
 - **Permissions** are attached to **roles**; users get permissions through their roles. Permissions also have a guard.
@@ -17,7 +16,7 @@
 
 | Table | Purpose |
 |-------|---------|
-| `users` | All accounts. `type`: administrator, system, user, seller. |
+| `users` | All accounts. `type`: administrator, system, user. |
 | `roles` | name, slug, **guard** (app/admin). Slug unique per guard. |
 | `role_user` | user_id ↔ role_id (user has many roles). |
 | `permissions` | name, slug, **guard**. Slug unique per guard. |
@@ -72,7 +71,6 @@
 | `$user->hasAnyRole(array $roles, ?string $guard = null)` | Has any of the given roles. |
 | `$user->hasPermissionTo(string $permission, ?string $guard = null)` | Has this permission via any of their roles (guard default app). |
 | `User::appUsers()` | Scope: `type = user`. |
-| `User::sellers()` | Scope: `type = seller`. |
 | `User::withRole(RoleEnumInterface\|string $role, ?string $guard = null)` | Scope: users that have this role. |
 
 ---
@@ -88,11 +86,6 @@
 
 - `$user->isUser()`, `$user->roles`, `$user->hasRole(AppRoleEnum::SPONSOR)`, `$user->hasAnyRole([AppRoleEnum::PLAYER, AppRoleEnum::ORGANIZER])`, `$user->hasPermissionTo('tournaments.create')`.
 - Queries: `User::appUsers()->withRole(AppRoleEnum::ORGANIZER)->get()`.
-
-**Seller**
-
-- `$user->isSeller()`, `User::sellers()`.
-- Stored in `users` with `type = seller`; no login for now.
 
 ---
 
@@ -115,4 +108,4 @@ $user->hasPermissionTo('tournaments.create');  // true if any of user's roles ha
 
 ---
 
-**Status**: Final. Roles and permissions are guard-based; actors (admin, user, seller) and APIs above are the single source of truth.
+**Status**: Final. Roles and permissions are guard-based; actors (admin, user) and APIs above are the single source of truth.

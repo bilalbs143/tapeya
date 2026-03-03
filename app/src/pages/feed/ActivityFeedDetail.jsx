@@ -3,12 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import feedCommentIcon from '@/assets/images/icons/feed-comment.svg';
 import feedShareIcon from '@/assets/images/icons/feed-share.svg';
-import { Container } from '@/ui/Container';
 import {
   formatCount,
   formatPostTimestamp,
   ThumbsUpIcon,
 } from '@/pages/feed/PostCard';
+import { Container } from '@/ui/Container';
+
 import { getPostDetail } from './feedData';
 
 const AVATAR_PLACEHOLDER =
@@ -72,7 +73,7 @@ function CommentItem({
         <p className="text-[14px] font-bold text-white">
           {comment.commenterName}
         </p>
-        <p className="mt-0.5 text-[14px] font-normal leading-relaxed text-[#B0B0B0]">
+        <p className="mt-0.5 text-[14px] leading-relaxed font-normal text-[#B0B0B0]">
           {comment.text}
         </p>
         <div className="mt-2 flex items-center gap-4 text-[#A2A6AB]">
@@ -131,23 +132,20 @@ export default function ActivityFeedDetail() {
   const navigate = useNavigate();
   const detail = useMemo(
     () => (postId ? getPostDetail(postId) : null),
-    [postId]
+    [postId],
   );
 
   const [postLiked, setPostLiked] = useState(false);
   const [newComments, setNewComments] = useState([]);
   const [commentInput, setCommentInput] = useState('');
-  const [commentReactions, setCommentReactions] = useState(
-    () => new Map()
-  );
+  const [commentReactions, setCommentReactions] = useState(() => new Map());
   const [imageError, setImageError] = useState(false);
   const [authorAvatarError, setAuthorAvatarError] = useState(false);
 
   const post = detail?.post ?? null;
-  const baseComments = detail?.comments ?? [];
   const commentsToShow = useMemo(
-    () => [...baseComments, ...newComments],
-    [baseComments, newComments]
+    () => [...(detail?.comments ?? []), ...newComments],
+    [detail, newComments],
   );
 
   useEffect(() => {
@@ -211,12 +209,12 @@ export default function ActivityFeedDetail() {
       setNewComments((prev) => [...prev, comment]);
       setCommentInput('');
     },
-    [commentInput]
+    [commentInput],
   );
 
   const formattedTimestamp = useMemo(
     () => (post ? formatPostTimestamp(post.publishedAt) : ''),
-    [post]
+    [post],
   );
 
   if (!post) {
@@ -246,7 +244,7 @@ export default function ActivityFeedDetail() {
   } = post;
 
   return (
-    <div className="bg-black text-white min-h-full">
+    <div className="min-h-full bg-black text-white">
       <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-[#1A1A1A] bg-black px-4 py-4">
         <button
           type="button"
@@ -266,13 +264,13 @@ export default function ActivityFeedDetail() {
             <path d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="min-w-0 flex-1 text-center text-[16px] font-bold uppercase tracking-wide text-white">
+        <h1 className="min-w-0 flex-1 text-center text-[16px] font-bold tracking-wide text-white uppercase">
           ACTIVITY FEED
         </h1>
         <span className="w-9" aria-hidden />
       </header>
 
-      <Container className="flex flex-col gap-0 pb-24 pt-4">
+      <Container className="flex flex-col gap-0 pt-4 pb-24">
         {/* Post block - consistent with PostCard */}
         <article className="overflow-hidden rounded-2xl bg-[#141412] shadow-[0_18px_40px_rgba(0,0,0,0.9)]">
           <div className="relative aspect-[4/3] w-full overflow-hidden bg-black">
@@ -293,9 +291,7 @@ export default function ActivityFeedDetail() {
           <div className="p-4">
             <div className="mb-3 flex items-center gap-2 border-b border-[#1A1A1A] pb-3">
               <img
-                src={
-                  authorAvatarError ? AVATAR_PLACEHOLDER : authorAvatarUrl
-                }
+                src={authorAvatarError ? AVATAR_PLACEHOLDER : authorAvatarUrl}
                 alt=""
                 className="h-9 w-9 flex-shrink-0 rounded-full object-cover"
                 loading="lazy"
@@ -311,10 +307,10 @@ export default function ActivityFeedDetail() {
               </div>
             </div>
 
-            <h2 className="mb-1.5 text-[14px] font-bold leading-snug text-white">
+            <h2 className="mb-1.5 text-[14px] leading-snug font-bold text-white">
               {title}
             </h2>
-            <p className="mb-4 text-[14px] font-normal leading-relaxed text-[#B0B0B0]">
+            <p className="mb-4 text-[14px] leading-relaxed font-normal text-[#B0B0B0]">
               {description}
             </p>
 
@@ -368,9 +364,7 @@ export default function ActivityFeedDetail() {
                   comment={comment}
                   onLike={handleCommentLike}
                   onDislike={handleCommentDislike}
-                  likedByUser={
-                    commentReactions.get(comment.id) === 'like'
-                  }
+                  likedByUser={commentReactions.get(comment.id) === 'like'}
                   dislikedByUser={
                     commentReactions.get(comment.id) === 'dislike'
                   }
@@ -383,7 +377,7 @@ export default function ActivityFeedDetail() {
         {/* Add comment - fixed at bottom above nav */}
         <form
           onSubmit={handleAddComment}
-          className="fixed bottom-20 left-0 right-0 z-10 mx-auto max-w-2xl px-4"
+          className="fixed right-0 bottom-20 left-0 z-10 mx-auto max-w-2xl px-4"
         >
           <div className="flex items-center gap-2 rounded-2xl border border-[#2A2A2A] bg-[#1A1A1A] px-4 py-3">
             <input

@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import tapeyaLogo from '@/assets/images/logos/tapeya-logo-white.svg';
+import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { addSavedProfile, bumpSavedProfile } from '@/lib/savedProfiles';
 import { otpSchema } from '@/lib/validations/auth';
@@ -15,7 +16,6 @@ import { useAppDispatch } from '@/store/hooks';
 import { setCredentials } from '@/store/slices/authSlice';
 import { Button } from '@/ui/Button';
 import { Input } from '@/ui/Input';
-import { useToast } from '@/ui/useToast';
 
 const LENGTH = 6;
 
@@ -153,7 +153,8 @@ export default function Otp() {
           className="mt-12 w-full max-w-[358px] space-y-6"
         >
           <p className="text-center text-[14px] text-white">
-            Enter OTP sent to <span className="font-bold text-[#DA9811]">{phone}</span>
+            Enter OTP sent to{' '}
+            <span className="font-bold text-[#DA9811]">{phone}</span>
           </p>
 
           {latestOtp && (

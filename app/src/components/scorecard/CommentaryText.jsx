@@ -4,7 +4,11 @@
  */
 const DEFAULT_NUMBER_CLASS = 'font-semibold text-[#DA9811]';
 
-export function CommentaryText({ text, className = '', numberClassName = DEFAULT_NUMBER_CLASS }) {
+export function CommentaryText({
+  text,
+  className = '',
+  numberClassName = DEFAULT_NUMBER_CLASS,
+}) {
   if (!text) return null;
   const parts = text.split(/(\d+)/);
   return (

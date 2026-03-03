@@ -8,7 +8,6 @@ use App\Http\Requests\Admin\HeroSlider\UpdateHeroSliderRequest;
 use App\Http\Resources\Admin\HeroSlider\HeroSliderResource;
 use App\Models\HeroSlider;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Storage;
 
 class HeroSliderController extends BaseAdminController
 {
@@ -24,11 +23,10 @@ class HeroSliderController extends BaseAdminController
 
     public function store(StoreHeroSliderRequest $request): JsonResponse
     {
-        $path = $request->file('image')->store('hero-sliders', config('filesystems.media_disk'));
         $data = [
             'status' => StatusEnum::from($request->validated('status')),
-            'image' => $path,
         ];
+        $this->storeImage($request, 'image', 'hero-sliders', $data);
         $record = $this->model->create($data);
         $record = $this->refresh($record);
 
@@ -45,12 +43,7 @@ class HeroSliderController extends BaseAdminController
         $data = [
             'status' => StatusEnum::from($request->validated('status')),
         ];
-        if ($request->hasFile('image')) {
-            if ($hero_slider->getRawOriginal('image')) {
-                Storage::disk(config('filesystems.media_disk'))->delete($hero_slider->getRawOriginal('image'));
-            }
-            $data['image'] = $request->file('image')->store('hero-sliders', config('filesystems.media_disk'));
-        }
+        $this->storeImage($request, 'image', 'hero-sliders', $data, $hero_slider);
         $hero_slider = $this->refresh($hero_slider);
         $hero_slider->update($data);
         $hero_slider = $this->refresh($hero_slider);

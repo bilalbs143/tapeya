@@ -3,13 +3,25 @@
 use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\User\Auth\UserAuthController;
 use App\Http\Controllers\User\EnumController;
-use App\Http\Controllers\User\EventRequestController;
+use App\Http\Controllers\User\MatchSquadController;
+use App\Http\Controllers\User\MatchTossController;
+use App\Http\Controllers\User\PlayerController;
+use App\Http\Controllers\User\PlayerStatsController;
+use App\Http\Controllers\User\PlayingElevenController;
 use App\Http\Controllers\User\ProfileController;
+use App\Http\Controllers\User\RankingController;
+use App\Http\Controllers\User\ScorecardController;
 use App\Http\Controllers\User\Shop\BrandController;
 use App\Http\Controllers\User\Shop\CartController;
 use App\Http\Controllers\User\Shop\CategoryController;
 use App\Http\Controllers\User\Shop\OrderController;
 use App\Http\Controllers\User\Shop\ProductController;
+use App\Http\Controllers\User\SponsorController;
+use App\Http\Controllers\User\TeamController;
+use App\Http\Controllers\User\TournamentController;
+use App\Http\Controllers\User\TournamentMatchController;
+use App\Http\Controllers\User\TournamentRequestController;
+use App\Http\Controllers\User\TournamentTeamController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -44,11 +56,37 @@ Route::middleware('auth:api')->prefix('shop')->group(function () {
     Route::get('orders/{order}', [OrderController::class, 'show']);
 });
 
-// Authenticated user: me, profile, countries, event requests
+// Authenticated user: me, profile, countries, tournament requests, teams, tournament-team links, team squads, matches & match squads
 Route::middleware('auth:api')->group(function () {
     Route::get('/me', [UserAuthController::class, 'me']);
     Route::patch('profile', [ProfileController::class, 'update']);
     Route::get('countries', [CountryController::class, 'index']);
     Route::get('countries/cities', [CountryController::class, 'cities']);
-    Route::post('event-requests', [EventRequestController::class, 'store']);
+    Route::post('tournament-requests', [TournamentRequestController::class, 'store']);
+    Route::get('sponsors', [SponsorController::class, 'index']);
+    Route::get('players', [PlayerController::class, 'index']);
+    Route::get('teams', [TeamController::class, 'index']);
+    Route::post('teams', [TeamController::class, 'store']);
+    Route::get('teams/{team}/squad', [TeamController::class, 'showSquad']);
+    Route::post('teams/{team}/squad', [TeamController::class, 'storeSquad']);
+    Route::get('tournaments', [TournamentController::class, 'index']);
+    Route::get('tournaments/{tournament}', [TournamentController::class, 'show']);
+    Route::get('tournaments/{tournament}/teams', [TournamentTeamController::class, 'index']);
+    Route::post('tournaments/{tournament}/teams', [TournamentTeamController::class, 'store']);
+    Route::delete('tournaments/{tournament}/teams/{team}', [TournamentTeamController::class, 'destroy']);
+    Route::get('tournaments/{tournament}/matches', [TournamentMatchController::class, 'index']);
+    Route::post('tournaments/{tournament}/matches', [TournamentMatchController::class, 'store']);
+    Route::get('matches/{match}', [TournamentMatchController::class, 'show']);
+    Route::patch('matches/{match}/toss', [MatchTossController::class, 'update']);
+    Route::get('matches/{match}/scorecard', [ScorecardController::class, 'scorecard']);
+    Route::get('matches/{match}/player-stats', [ScorecardController::class, 'playerStats']);
+    Route::post('matches/{match}/innings/{innings}/balls', [ScorecardController::class, 'storeBall']);
+    Route::patch('matches/{match}/innings/{innings}/balls/{ball}', [ScorecardController::class, 'updateBall']);
+    Route::delete('matches/{match}/innings/{innings}/balls/{ball}', [ScorecardController::class, 'deleteBall']);
+    Route::get('users/{user}/stats', [PlayerStatsController::class, 'show']);
+    Route::get('rankings', [RankingController::class, 'index']);
+    Route::get('matches/{match}/teams/{team}/squad', [MatchSquadController::class, 'show']);
+    Route::post('matches/{match}/teams/{team}/squad', [MatchSquadController::class, 'store']);
+    Route::get('matches/{match}/teams/{team}/playing-eleven', [PlayingElevenController::class, 'show']);
+    Route::post('matches/{match}/teams/{team}/playing-eleven', [PlayingElevenController::class, 'store']);
 });

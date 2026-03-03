@@ -58,7 +58,9 @@ export function clearProfileToken(phone) {
   );
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ profiles: updated }));
-  } catch {}
+  } catch {
+    // ignore storage errors
+  }
 }
 
 /**
@@ -74,7 +76,9 @@ export function bumpSavedProfile(phone) {
   const updated = [item, ...list];
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ profiles: updated }));
-  } catch {}
+  } catch {
+    // ignore storage errors
+  }
 }
 
 /**
@@ -86,5 +90,7 @@ export function removeSavedProfile(phone) {
   const list = getSavedProfiles().filter((p) => p.phone !== phone);
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ profiles: list }));
-  } catch {}
+  } catch {
+    // ignore storage errors
+  }
 }

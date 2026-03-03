@@ -18,6 +18,11 @@ export const selectAccessToken = createSelector(
   (auth) => auth.accessToken,
 );
 
+export const selectAuthUserAndToken = createSelector(
+  [selectAuthState],
+  (auth) => ({ user: auth?.user, accessToken: auth?.accessToken }),
+);
+
 export const selectIsLoading = createSelector(
   [selectUiState],
   (ui) => ui.isLoading,

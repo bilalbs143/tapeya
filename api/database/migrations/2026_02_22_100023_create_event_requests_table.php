@@ -8,13 +8,13 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('event_requests', function (Blueprint $table) {
+        Schema::create('tournament_requests', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->string('contact_person_name');
             $table->string('contact_phone', 30);
-            $table->string('event_name');
-            $table->string('event_type', 30);
+            $table->string('tournament_name');
+            $table->string('tournament_type', 30);
             $table->string('cricket_format', 30);
             $table->string('venue_name');
             $table->date('start_date');
@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('country', 100)->nullable();
             $table->string('city', 100);
             $table->string('match_timings', 30);
+            $table->string('prize', 255)->nullable();
             $table->string('status', 20)->default('pending');
             $table->timestamps();
         });
@@ -32,6 +33,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('event_requests');
+        Schema::dropIfExists('tournament_requests');
     }
 };

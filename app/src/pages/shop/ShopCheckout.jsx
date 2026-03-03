@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
+import { useToast } from '@/hooks/useToast';
 import { formatPrice } from '@/lib/format';
 import {
   useGetCitiesQuery,
@@ -24,7 +25,6 @@ import {
   SelectValue,
   selectViewportInputClass,
 } from '@/ui/Select';
-import { useToast } from '@/ui/useToast';
 
 export default function ShopCheckout() {
   const navigate = useNavigate();

@@ -8,10 +8,16 @@ export const RANKING_FLOW = 'ranking';
 export const SCORECARD_FLOW = 'scorecard';
 
 const RANKING_STATS_TOTAL_PREFIX = '/ranking/stats-total';
-const SCORECARD_STATS_TOTAL_PATTERN = /^\/scorecard\/([^/]+)\/stats-total\/([^/]+)$/;
+const SCORECARD_STATS_TOTAL_PATTERN =
+  /^\/scorecard\/([^/]+)\/stats-total\/([^/]+)$/;
 
 /** Valid stat types for both flows */
-export const VALID_STAT_TYPES = ['fours', 'sixes', 'run-scorers', 'wicket-takers'];
+export const VALID_STAT_TYPES = [
+  'fours',
+  'sixes',
+  'run-scorers',
+  'wicket-takers',
+];
 
 /**
  * Path builders for linking to Stats Total from each flow.
@@ -34,7 +40,9 @@ export function getFlowFromPath(pathname) {
   if (!pathname || typeof pathname !== 'string') return null;
 
   if (pathname.startsWith(RANKING_STATS_TOTAL_PREFIX)) {
-    const statType = pathname.slice(RANKING_STATS_TOTAL_PREFIX.length + 1).split('/')[0];
+    const statType = pathname
+      .slice(RANKING_STATS_TOTAL_PREFIX.length + 1)
+      .split('/')[0];
     return {
       flow: RANKING_FLOW,
       statType: statType || 'fours',
@@ -62,6 +70,7 @@ export function getFlowFromPath(pathname) {
  */
 export function getStatsTotalBackPath(flow, tournamentId) {
   if (flow === RANKING_FLOW) return '/ranking';
-  if (flow === SCORECARD_FLOW && tournamentId) return `/scorecard/${tournamentId}`;
+  if (flow === SCORECARD_FLOW && tournamentId)
+    return `/scorecard/${tournamentId}`;
   return '/scorecard';
 }

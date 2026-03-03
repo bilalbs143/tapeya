@@ -52,7 +52,7 @@ export function SquadTeams({ tournamentId }) {
               type="button"
               key={team.id}
               onClick={() => handleTeamClick(team.id)}
-              className="flex w-full items-center gap-2.5 bg-transparent px-4 py-3.5 text-left text-[13px] text-white focus:outline-none focus:ring-2 focus:ring-[#DA9811] focus:ring-inset active:bg-[#1A1A1A]"
+              className="flex w-full items-center gap-2.5 bg-transparent px-4 py-3.5 text-left text-[13px] text-white focus:ring-2 focus:ring-[#DA9811] focus:outline-none focus:ring-inset active:bg-[#1A1A1A]"
             >
               <TeamLogo team={team} />
               <span className="min-w-0 flex-1">{team.teamName}</span>

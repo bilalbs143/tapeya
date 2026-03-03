@@ -1,8 +1,8 @@
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-import teamIcon from '@/assets/images/icons/team-icon.svg';
 import searchIcon from '@/assets/images/icons/searchicon.svg';
+import teamIcon from '@/assets/images/icons/team-icon.svg';
 import { Container } from '@/ui/Container';
 import {
   Dialog,
@@ -31,7 +31,6 @@ const DEFAULT_TEAM = {
 
 export default function TeamDetail() {
   const navigate = useNavigate();
-  const { teamId } = useParams();
   const location = useLocation();
   const team = location.state?.team ?? DEFAULT_TEAM;
 
@@ -44,8 +43,7 @@ export default function TeamDetail() {
     const q = findPlayer.trim().toLowerCase();
     return MOCK_PLAYERS.filter(
       (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.role.toLowerCase().includes(q),
+        p.name.toLowerCase().includes(q) || p.role.toLowerCase().includes(q),
     );
   }, [findPlayer]);
 
@@ -81,13 +79,17 @@ export default function TeamDetail() {
           </h1>
         </header>
 
-        <p className="mb-3 text-[13px] font-medium uppercase tracking-wide text-[#A2A6AB]">
+        <p className="mb-3 text-[13px] font-medium tracking-wide text-[#A2A6AB] uppercase">
           {team.name.toUpperCase()}
         </p>
 
         <div className="mb-5 flex items-stretch gap-3 rounded-[17px] bg-[#141412] p-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg">
-            <img src={teamIcon} alt="" className="h-full w-full object-contain" />
+            <img
+              src={teamIcon}
+              alt=""
+              className="h-full w-full object-contain"
+            />
           </div>
           <div className="min-w-0 flex-1">
             <h2 className="text-[16px] font-bold text-white">{team.name}</h2>
@@ -95,7 +97,7 @@ export default function TeamDetail() {
               Owner: {team.owner}
             </p>
             <p className="mt-0.5 text-[12px] text-white">
-              Icon Player: {team.iconPlayer}
+              Icon Players: {team.iconPlayer}
             </p>
           </div>
           <span className="text-[28px] font-bold text-[#DA98113B]">1</span>
@@ -108,7 +110,7 @@ export default function TeamDetail() {
               value={findPlayer}
               onChange={(e) => setFindPlayer(e.target.value)}
               placeholder="Find player"
-              className="h-12 w-full rounded-[6px] bg-[#141412] py-3 pl-4 pr-12 text-white placeholder:text-base placeholder:text-[#A2A6AB78] focus:outline-none focus:ring-2 focus:ring-[#DA9811]/50"
+              className="h-12 w-full rounded-[6px] bg-[#141412] py-3 pr-12 pl-4 text-white placeholder:text-base placeholder:text-[#A2A6AB78] focus:ring-2 focus:ring-[#DA9811]/50 focus:outline-none"
               aria-label="Find player"
             />
             <img
@@ -125,7 +127,7 @@ export default function TeamDetail() {
             value={nickName}
             onChange={(e) => setNickName(e.target.value)}
             placeholder="Nick name"
-            className="h-12 w-full rounded-[6px] bg-[#141412] px-4 py-3 text-white placeholder:text-base placeholder:text-[#A2A6AB78] focus:outline-none focus:ring-2 focus:ring-[#DA9811]/50"
+            className="h-12 w-full rounded-[6px] bg-[#141412] px-4 py-3 text-white placeholder:text-base placeholder:text-[#A2A6AB78] focus:ring-2 focus:ring-[#DA9811]/50 focus:outline-none"
             aria-label="Nick name"
           />
         </div>
@@ -135,12 +137,12 @@ export default function TeamDetail() {
             <thead>
               <tr className={HEADER_BG}>
                 <th
-                  className={`${HEADER_BG} border-b border-l border-r py-2.5 pl-4 text-left font-bold text-white ${BORDER}`}
+                  className={`${HEADER_BG} border-r border-b border-l py-2.5 pl-4 text-left font-bold text-white ${BORDER}`}
                 >
                   Player
                 </th>
                 <th
-                  className={`${HEADER_BG} border-b border-r py-2.5 pr-4 text-right font-bold text-white ${BORDER}`}
+                  className={`${HEADER_BG} border-r border-b py-2.5 pr-4 text-right font-bold text-white ${BORDER}`}
                 >
                   Playing Role
                 </th>
@@ -150,14 +152,14 @@ export default function TeamDetail() {
               {filteredPlayers.map((player, index) => (
                 <tr key={player.id}>
                   <td
-                    className={`border-b border-l border-r py-3 pl-4 ${BORDER}`}
+                    className={`border-r border-b border-l py-3 pl-4 ${BORDER}`}
                   >
                     <p className="text-[12px] font-medium text-white">
                       {index + 1} {player.name}
                     </p>
                   </td>
                   <td
-                    className={`border-b border-r py-3 pr-4 text-right text-white ${BORDER}`}
+                    className={`border-r border-b py-3 pr-4 text-right text-white ${BORDER}`}
                   >
                     {player.role}
                   </td>
@@ -170,7 +172,7 @@ export default function TeamDetail() {
         <button
           type="button"
           onClick={handleSubmitSquad}
-          className="h-12 px-4 text-center m-auto max-w-fit flex items-center justify-center rounded-[6px] border border-[#DA9811]  text-[16px] font-bold uppercase tracking-wide text-[#DA9811] transition-opacity active:opacity-90"
+          className="m-auto flex h-12 max-w-fit items-center justify-center rounded-[6px] border border-[#DA9811] px-4 text-center text-[16px] font-bold tracking-wide text-[#DA9811] uppercase transition-opacity active:opacity-90"
         >
           Submit Squad
         </button>
@@ -211,7 +213,7 @@ export default function TeamDetail() {
                   </svg>
                 </div>
                 <div
-                  className="absolute -right-0.5 -top-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-[#22C55E]"
+                  className="absolute -top-0.5 -right-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-[#22C55E]"
                   aria-hidden
                 >
                   <svg

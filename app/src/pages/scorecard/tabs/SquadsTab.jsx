@@ -8,9 +8,7 @@ export function SquadsTab({ tournamentId }) {
   const teamId = searchParams.get('team');
 
   if (teamId) {
-    return (
-      <SquadSingle tournamentId={tournamentId} teamId={teamId} />
-    );
+    return <SquadSingle tournamentId={tournamentId} teamId={teamId} />;
   }
 
   return <SquadTeams tournamentId={tournamentId} />;

@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 
@@ -84,6 +84,18 @@ export class UsersService {
 
   public getById(id: number): Observable<{ data: User }> {
     return this.http.get<{ data: User }>(`${this.baseUrl}/${id}`);
+  }
+
+  /** Server-side user search for organizer dropdown (sponsor role only). */
+  public searchUsersForOrganizerDropdown(search?: string): Observable<{
+    data: { id: number; name: string; nickname: string | null; email: string | null; phone: string | null }[];
+  }> {
+    let params = new HttpParams();
+    if (search?.trim()) params = params.set('search', search.trim());
+    params = params.set('role', 'sponsor');
+    return this.http.get<{
+      data: { id: number; name: string; nickname: string | null; email: string | null; phone: string | null }[];
+    }>(`${this.baseUrl}`, { params });
   }
 
   public create(payload: CreateUserPayload): Observable<{ data: User }> {

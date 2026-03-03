@@ -2,10 +2,7 @@ import { useCallback, useState } from 'react';
 
 import { Container } from '@/ui/Container';
 
-import {
-  ACTIVITY_FEED_POSTS,
-  ACTIVITY_FEED_SECTION_TITLE,
-} from './feedData';
+import { ACTIVITY_FEED_POSTS, ACTIVITY_FEED_SECTION_TITLE } from './feedData';
 import PostCard from './PostCard';
 
 /**
@@ -29,14 +26,14 @@ export default function ActivityFeed() {
 
   return (
     <div className="bg-black text-white">
-      <Container className="flex flex-col gap-3 pb-8 pt-4">
+      <Container className="flex flex-col gap-3 pt-4 pb-8">
         <header className="text-center">
-          <h1 className="text-[16px] font-bold uppercase tracking-wide text-white">
+          <h1 className="text-[16px] font-bold tracking-wide text-white uppercase">
             ACTIVITY FEED
           </h1>
         </header>
 
-        <h2 className="text-[13px] font-bold uppercase tracking-wide text-[#A2A6AB]">
+        <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
           {ACTIVITY_FEED_SECTION_TITLE}
         </h2>
 

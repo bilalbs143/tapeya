@@ -72,8 +72,7 @@ export function UserEdit({ open, onOpenChange }) {
   const [country, setCountry] = useState('Pakistan');
   const [city, setCity] = useState('Lahore, Pakistan');
 
-  const [updateProfile, { isLoading: isSaving, error: saveError }] =
-    useUpdateProfileMutation();
+  const [updateProfile, { isLoading: isSaving }] = useUpdateProfileMutation();
 
   useEffect(() => {
     if (!open || !user) return;

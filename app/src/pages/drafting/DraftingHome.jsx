@@ -39,7 +39,7 @@ export default function DraftingHome() {
               type="button"
               variant="card"
               onClick={() => navigate('/drafting/add-team')}
-              className="flex h-[120px] w-[158px] flex-col items-center !bg-[#141412] justify-center gap-3 rounded-[18px] px-0 py-0"
+              className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
             >
               <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
                 +
@@ -54,4 +54,3 @@ export default function DraftingHome() {
     </div>
   );
 }
-

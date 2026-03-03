@@ -165,12 +165,10 @@ function DidNotBatSection({ players }) {
   if (!players?.length) return null;
   return (
     <section className="mt-8 first:mt-4">
-      <h2 className=" text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">
+      <h2 className="text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">
         DID NOT BAT:
       </h2>
-      <p className="text-[12px] text-white">
-        {players.join(', ')}
-      </p>
+      <p className="text-[12px] text-white">{players.join(', ')}</p>
     </section>
   );
 }
@@ -179,8 +177,7 @@ function FallOfWicketsSection({ items }) {
   if (!items?.length) return null;
   const text = items
     .map(
-      (item) =>
-        `${item.wicket}-${item.runs} (${item.batter}, ${item.over} ov)`,
+      (item) => `${item.wicket}-${item.runs} (${item.batter}, ${item.over} ov)`,
     )
     .join(', ');
   return (
@@ -205,32 +202,32 @@ function BowlingTable({ rows }) {
           <thead>
             <tr className={HEADER_BG}>
               <th
-                className={`border-b border-l border-r ${BORDER} py-3 pl-4 text-left font-bold`}
+                className={`border-r border-b border-l ${BORDER} py-3 pl-4 text-left font-bold`}
               >
                 Bowling
               </th>
               <th
-                className={`border-b border-r ${BORDER} w-12 py-3 text-center font-bold`}
+                className={`border-r border-b ${BORDER} w-12 py-3 text-center font-bold`}
               >
                 O
               </th>
               <th
-                className={`border-b border-r ${BORDER} w-12 py-3 text-center font-bold`}
+                className={`border-r border-b ${BORDER} w-12 py-3 text-center font-bold`}
               >
                 M
               </th>
               <th
-                className={`border-b border-r ${BORDER} w-12 py-3 text-center font-bold`}
+                className={`border-r border-b ${BORDER} w-12 py-3 text-center font-bold`}
               >
                 R
               </th>
               <th
-                className={`border-b border-r ${BORDER} w-12 py-3 text-center font-bold`}
+                className={`border-r border-b ${BORDER} w-12 py-3 text-center font-bold`}
               >
                 W
               </th>
               <th
-                className={`border-b border-r ${BORDER} w-14 py-3 text-center font-bold`}
+                className={`border-r border-b ${BORDER} w-14 py-3 text-center font-bold`}
               >
                 ECON
               </th>
@@ -240,32 +237,32 @@ function BowlingTable({ rows }) {
             {rows.map((row, i) => (
               <tr key={`bowling-${i}`}>
                 <td
-                  className={`border-b border-l border-r ${BORDER} bg-black py-3 pl-4`}
+                  className={`border-r border-b border-l ${BORDER} bg-black py-3 pl-4`}
                 >
                   {row.name}
                 </td>
                 <td
-                  className={`border-b border-r ${BORDER} bg-transparent py-3 text-center`}
+                  className={`border-r border-b ${BORDER} bg-transparent py-3 text-center`}
                 >
                   {row.o}
                 </td>
                 <td
-                  className={`border-b border-r ${BORDER} bg-transparent py-3 text-center`}
+                  className={`border-r border-b ${BORDER} bg-transparent py-3 text-center`}
                 >
                   {row.m}
                 </td>
                 <td
-                  className={`border-b border-r ${BORDER} bg-transparent py-3 text-center`}
+                  className={`border-r border-b ${BORDER} bg-transparent py-3 text-center`}
                 >
                   {row.r}
                 </td>
                 <td
-                  className={`border-b border-r ${BORDER} bg-transparent py-3 text-center`}
+                  className={`border-r border-b ${BORDER} bg-transparent py-3 text-center`}
                 >
                   {row.w}
                 </td>
                 <td
-                  className={`border-b border-r ${BORDER} bg-transparent py-3 text-center`}
+                  className={`border-r border-b ${BORDER} bg-transparent py-3 text-center`}
                 >
                   {row.econ}
                 </td>

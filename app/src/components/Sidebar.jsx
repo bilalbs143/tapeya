@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import draftingIcon from '@/assets/images/icons/drafting-icon.svg';
@@ -14,13 +15,14 @@ import tossIcon from '@/assets/images/icons/toss.svg';
 import defaultAvatar from '@/assets/images/standard/default-avatar.png';
 import { addSavedProfile } from '@/lib/savedProfiles';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { selectAuthUserAndToken } from '@/store/selectors';
 import { clearCredentials } from '@/store/slices/authSlice';
 
 const MENU_ITEMS = [
   {
     label: 'Request Tournament',
     icon: requestTournamentIcon,
-    path: '/event-request',
+    path: '/tournament-request',
   },
   { label: 'Start Match', icon: starMatchIcon },
   { label: 'Drafting', icon: draftingIcon, path: '/drafting' },
@@ -30,7 +32,11 @@ const MENU_ITEMS = [
   { label: 'Top Players', icon: topPlayersIcon, path: '/ranking' },
   { label: 'Top Sponsors', icon: topSponsorsIcon },
   { label: 'Profiles', icon: profilesIcon },
-  { label: 'My Tournaments', icon: requestTournamentIcon, path: '/organizer-tournament' },
+  {
+    label: 'My Tournaments',
+    icon: requestTournamentIcon,
+    path: '/tournaments',
+  },
   { label: 'Support', icon: supportIcon },
   { label: 'Logout', icon: logoutIcon },
 ];
@@ -47,10 +53,18 @@ const menuBtn =
 export function Sidebar({ open, onClose }) {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { user, accessToken } = useAppSelector((s) => ({
-    user: s.auth?.user,
-    accessToken: s.auth?.accessToken,
-  }));
+  const overlayRef = useRef(null);
+  const { user, accessToken } = useAppSelector(selectAuthUserAndToken);
+
+  useEffect(() => {
+    if (
+      !open &&
+      overlayRef.current &&
+      document.activeElement?.closest?.('aside')
+    ) {
+      overlayRef.current.focus({ preventScroll: true });
+    }
+  }, [open]);
 
   const handleLogout = () => {
     if (user?.phone && accessToken) {
@@ -71,10 +85,12 @@ export function Sidebar({ open, onClose }) {
   return (
     <>
       <button
+        ref={overlayRef}
         type="button"
         aria-label="Close menu"
         onClick={onClose}
         className={overlay(open)}
+        tabIndex={open ? 0 : -1}
       />
       <aside aria-hidden={!open} className={panel(open)}>
         <div className="flex flex-1 flex-col overflow-y-auto px-4 py-6">

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import exploreOrangeIcon from '@/assets/images/icons/explore-orange.svg';
 import exploreWhiteIcon from '@/assets/images/icons/explore-white.svg';
@@ -30,9 +30,11 @@ function ChevronLeftIcon() {
 export default function Reels() {
   const navigate = useNavigate();
   const location = useLocation();
-  const publishedReels = useSelector((state) => state.reels?.publishedReels ?? []);
+  const publishedReels = useSelector(
+    (state) => state.reels?.publishedReels ?? [],
+  );
   const [activeTab, setActiveTab] = useState(
-    location.state?.tab === TAB_MY_VIDEOS ? TAB_MY_VIDEOS : TAB_EXPLORE
+    location.state?.tab === TAB_MY_VIDEOS ? TAB_MY_VIDEOS : TAB_EXPLORE,
   );
   const [likedIds, setLikedIds] = useState(new Set());
   const [activeIndex, setActiveIndex] = useState(0);
@@ -75,7 +77,7 @@ export default function Reels() {
      */
     <div className="fixed inset-0 z-30 bg-black">
       {/* Tab bar — back left, Explore & My Videos centered */}
-      <div className="absolute top-[64px] left-0 right-0 z-10 flex items-center justify-between px-4 py-2">
+      <div className="absolute top-[64px] right-0 left-0 z-10 flex items-center justify-between px-4 py-2">
         {/* Back — left */}
         <button
           type="button"
@@ -91,12 +93,14 @@ export default function Reels() {
           <button
             type="button"
             onClick={() => setActiveTab(TAB_EXPLORE)}
-            className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[13px] font-bold uppercase tracking-wide transition-colors ${
+            className={`flex shrink-0 items-center gap-1.5 text-[13px] font-bold tracking-wide whitespace-nowrap uppercase transition-colors ${
               activeTab === TAB_EXPLORE ? 'text-[#DA9811]' : 'text-white'
             }`}
           >
             <img
-              src={activeTab === TAB_EXPLORE ? exploreOrangeIcon : exploreWhiteIcon}
+              src={
+                activeTab === TAB_EXPLORE ? exploreOrangeIcon : exploreWhiteIcon
+              }
               alt=""
               className="h-[18px] w-[18px] shrink-0"
               aria-hidden
@@ -106,12 +110,16 @@ export default function Reels() {
           <button
             type="button"
             onClick={() => setActiveTab(TAB_MY_VIDEOS)}
-            className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[13px] font-bold uppercase tracking-wide transition-colors ${
+            className={`flex shrink-0 items-center gap-1.5 text-[13px] font-bold tracking-wide whitespace-nowrap uppercase transition-colors ${
               activeTab === TAB_MY_VIDEOS ? 'text-[#DA9811]' : 'text-white'
             }`}
           >
             <img
-              src={activeTab === TAB_MY_VIDEOS ? myVideosOrangeIcon : myVideosWhiteIcon}
+              src={
+                activeTab === TAB_MY_VIDEOS
+                  ? myVideosOrangeIcon
+                  : myVideosWhiteIcon
+              }
               alt=""
               className="h-[18px] w-[18px] shrink-0"
               aria-hidden
@@ -128,7 +136,7 @@ export default function Reels() {
       <div
         ref={containerRef}
         onScroll={handleScroll}
-        className="h-full w-full overflow-y-scroll [scroll-snap-type:y_mandatory] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="h-full w-full [scroll-snap-type:y_mandatory] overflow-y-scroll [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {reels.map((reel, index) => (
           <ReelItem

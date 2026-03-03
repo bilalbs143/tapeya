@@ -4,12 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\Common\StatusEnum;
 use App\Enums\Event\CricketFormatEnum;
-use App\Enums\Event\EventRequestStatusEnum;
-use App\Enums\Event\EventTypeEnum;
 use App\Enums\Event\MatchTimingEnum;
+use App\Enums\Event\ShotPositionEnum;
 use App\Enums\Notification\AdminNotificationTypeEnum;
 use App\Enums\Shop\OrderStatusEnum;
 use App\Enums\Shop\ProductDiscountTypeEnum;
+use App\Enums\Tournament\TournamentRequestStatusEnum;
+use App\Enums\Tournament\TournamentTypeEnum;
 use App\Enums\User\BattingStyleEnum;
 use App\Enums\User\BowlingStyleEnum;
 use App\Enums\User\PlayingRoleEnum;
@@ -36,10 +37,11 @@ class EnumController extends Controller
             'batting_style' => $this->toOptions(BattingStyleEnum::cases()),
             'order_status' => $this->toOptions(OrderStatusEnum::cases()),
             'product_discount_type' => $this->toOptions(ProductDiscountTypeEnum::cases()),
-            'event_type' => $this->toOptions(EventTypeEnum::cases()),
+            'tournament_type' => $this->toOptions(TournamentTypeEnum::cases()),
             'cricket_format' => $this->toOptions(CricketFormatEnum::cases()),
             'match_timings' => $this->toOptions(MatchTimingEnum::cases()),
-            'event_request_status' => $this->toOptions(EventRequestStatusEnum::cases()),
+            'tournament_request_status' => $this->toOptions(TournamentRequestStatusEnum::cases()),
+            'shot_position' => $this->toOptions(ShotPositionEnum::cases()),
             'notification_type' => $this->toOptions(AdminNotificationTypeEnum::cases()),
             'app_roles' => Role::forGuard('app')->orderBy('name')->get()->map(fn (Role $r) => [
                 'value' => (string) $r->id,

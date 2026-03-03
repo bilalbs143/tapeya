@@ -95,7 +95,7 @@ export class AppHorizontalHeaderComponent implements OnInit {
 
   public notificationIcon(type: string | null): string {
     if (type === AdminNotificationType.ORDER_PLACED) return 'shopping-cart';
-    if (type === AdminNotificationType.EVENT_REQUEST_SUBMITTED) return 'file-text';
+    if (type === AdminNotificationType.TOURNAMENT_REQUEST_SUBMITTED) return 'file-text';
     return 'user';
   }
 

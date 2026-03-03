@@ -1,6 +1,7 @@
 import { memo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { useToast } from '@/hooks/useToast';
 import { formatPrice, toNumber } from '@/lib/format';
 import {
   useGetCartQuery,
@@ -8,7 +9,6 @@ import {
   useUpdateCartItemMutation,
 } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
-import { useToast } from '@/ui/useToast';
 
 const CartItemCard = memo(function CartItemCard({
   item,

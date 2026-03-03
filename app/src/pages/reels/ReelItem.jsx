@@ -131,7 +131,7 @@ export default function ReelItem({ reel, isActive, isLiked, onLike }) {
   };
 
   return (
-    <div className="relative h-screen w-full flex-shrink-0 overflow-hidden bg-black [scroll-snap-align:start]">
+    <div className="relative h-screen w-full flex-shrink-0 [scroll-snap-align:start] overflow-hidden bg-black">
       {/* Background video — contained to preserve aspect ratio; letterbox/pillarbox is black */}
       <video
         ref={videoRef}
@@ -142,11 +142,13 @@ export default function ReelItem({ reel, isActive, isLiked, onLike }) {
         preload="metadata"
         onClick={handleTogglePlay}
         className="absolute inset-0 h-full w-full object-contain"
-      />
+      >
+        <track kind="captions" />
+      </video>
 
       {/* Center play overlay when video is stopped */}
       {paused && (
-        <div className="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center">
+        <div className="pointer-events-none absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center">
           <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-[#da98115c] bg-black/35">
             <img
               src={playIcon}
@@ -162,7 +164,7 @@ export default function ReelItem({ reel, isActive, isLiked, onLike }) {
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/10" />
 
       {/* Video duration / progress bar — above bottom nav (z-40) so it stays visible */}
-      <div className="absolute bottom-20 left-0 right-0 z-[35] px-4">
+      <div className="absolute right-0 bottom-20 left-0 z-[35] px-4">
         <div
           ref={barRef}
           className="relative h-3 cursor-pointer"
@@ -202,9 +204,14 @@ export default function ReelItem({ reel, isActive, isLiked, onLike }) {
             className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow"
             aria-label="Upload reel"
           >
-            <img src={reelCameraIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
+            <img
+              src={reelCameraIcon}
+              alt=""
+              className="h-5 w-5 shrink-0 object-contain"
+              aria-hidden
+            />
           </Link>
-          <span className="absolute -top-1 -right-1 flex h-[16px] w-[16px] items-center justify-center rounded-full bg-[#DA9811] text-[14px] font-bold leading-none text-white">
+          <span className="absolute -top-1 -right-1 flex h-[16px] w-[16px] items-center justify-center rounded-full bg-[#DA9811] text-[14px] leading-none font-bold text-white">
             +
           </span>
         </div>
@@ -225,13 +232,20 @@ export default function ReelItem({ reel, isActive, isLiked, onLike }) {
           className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow"
           aria-label="Share"
         >
-          <img src={messageIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
+          <img
+            src={messageIcon}
+            alt=""
+            className="h-5 w-5 shrink-0 object-contain"
+            aria-hidden
+          />
         </button>
       </div>
 
       {/* Bottom info */}
-      <div className="absolute bottom-24 left-4 right-16">
-        <p className="text-[15px] font-bold leading-tight text-white">{reel.username}</p>
+      <div className="absolute right-16 bottom-24 left-4">
+        <p className="text-[15px] leading-tight font-bold text-white">
+          {reel.username}
+        </p>
         <p className="mt-1 text-[12px] leading-relaxed text-white/80">
           {reel.caption}{' '}
           <span className="font-semibold text-white">See More</span>

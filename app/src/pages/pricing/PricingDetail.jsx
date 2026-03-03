@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import pricingListTickIcon from '@/assets/images/icons/pricing-list-tick.svg';
+import { PRICING_PLANS } from '@/pages/pricing/Pricing';
 import { Container } from '@/ui/Container';
 import {
   Dialog,
@@ -8,8 +10,6 @@ import {
   DialogContentProfile,
   DialogScrollBody,
 } from '@/ui/Dialog';
-import { PRICING_PLANS } from '@/pages/pricing/Pricing';
-import pricingListTickIcon from '@/assets/images/icons/pricing-list-tick.svg';
 
 function DetailCheckIcon() {
   return (
@@ -65,7 +65,7 @@ export default function PricingDetail() {
           </h1>
         </header>
 
-        <div className="w-full max-w-md mx-auto rounded-[18px] bg-[#141412] p-6 shadow-[0_18px_40px_rgba(0,0,0,0.9)]">
+        <div className="mx-auto w-full max-w-md rounded-[18px] bg-[#141412] p-6 shadow-[0_18px_40px_rgba(0,0,0,0.9)]">
           <div className="mb-4 flex items-center gap-3">
             {plan.icon ? (
               <div className="flex h-9 w-9 items-center justify-center rounded-[14px] bg-black/60">
@@ -76,7 +76,7 @@ export default function PricingDetail() {
                 />
               </div>
             ) : null}
-            <h2 className="text-[18px] font-extrabold uppercase tracking-[0.18em] text-[#DA9811]">
+            <h2 className="text-[18px] font-extrabold tracking-[0.18em] text-[#DA9811] uppercase">
               {name}
             </h2>
           </div>
@@ -158,7 +158,7 @@ export default function PricingDetail() {
                   </svg>
                 </div>
                 <div
-                  className="absolute -right-0.5 -top-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-[#22C55E]"
+                  className="absolute -top-0.5 -right-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-[#22C55E]"
                   aria-hidden
                 >
                   <svg
@@ -188,4 +188,3 @@ export default function PricingDetail() {
     </div>
   );
 }
-

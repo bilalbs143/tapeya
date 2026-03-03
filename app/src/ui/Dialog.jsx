@@ -3,6 +3,7 @@
  */
 
 import * as DialogPrimitive from '@radix-ui/react-dialog';
+import { forwardRef } from 'react';
 
 const overlay = 'fixed inset-0 z-50 bg-black/50';
 const content =
@@ -26,17 +27,28 @@ export const DialogTrigger = DialogPrimitive.Trigger;
 export const DialogPortal = DialogPrimitive.Portal;
 export const DialogClose = DialogPrimitive.Close;
 
-export function DialogOverlay({ className = '', ...props }) {
+export const DialogOverlay = forwardRef(function DialogOverlay(
+  { className = '', ...props },
+  ref,
+) {
   return (
-    <DialogPrimitive.Overlay className={`${overlay} ${className}`} {...props} />
+    <DialogPrimitive.Overlay
+      ref={ref}
+      className={`${overlay} ${className}`}
+      {...props}
+    />
   );
-}
+});
 
 export function DialogContent({ className = '', children, ...props }) {
   return (
     <DialogPrimitive.Portal>
       <DialogOverlay />
-      <DialogPrimitive.Content className={`${content} ${className}`} {...props}>
+      <DialogPrimitive.Content
+        className={`${content} ${className}`}
+        aria-describedby={undefined}
+        {...props}
+      >
         {children}
       </DialogPrimitive.Content>
     </DialogPrimitive.Portal>
@@ -51,6 +63,7 @@ export function DialogContentProfile({ className = '', children, ...props }) {
       <DialogPrimitive.Content
         className={`${contentProfile} ${className}`}
         style={{ backgroundColor: '#080807', borderColor: '#141412' }}
+        aria-describedby={undefined}
         {...props}
       >
         {children}

@@ -7,7 +7,8 @@ const BORDER = 'border-[#1C1C1A]';
 const HEADER_BG = 'bg-[#141412]';
 
 export function StatusDetailsPlayingXITab({ match, details }) {
-  if (!match) return <StatusDetailsPlaceholderTab label="Match data unavailable" />;
+  if (!match)
+    return <StatusDetailsPlaceholderTab label="Match data unavailable" />;
 
   const playingXI = details?.playingXI;
   const team1Name = match.team1?.name ?? '';
@@ -25,7 +26,6 @@ export function StatusDetailsPlayingXITab({ match, details }) {
 
   const mainTeam1 = team1Players.slice(0, MAIN_XI_COUNT);
   const mainTeam2 = team2Players.slice(0, MAIN_XI_COUNT);
-  const mainRowCount = Math.max(mainTeam1.length, mainTeam2.length, 1);
 
   const benchTeam1 = team1Players.slice(MAIN_XI_COUNT);
   const benchTeam2 = team2Players.slice(MAIN_XI_COUNT);
@@ -40,16 +40,16 @@ export function StatusDetailsPlayingXITab({ match, details }) {
             <thead>
               <tr className={HEADER_BG}>
                 <th
-                  className={`w-8 shrink-0 border-b border-l border-r border-t py-2.5 pl-3 text-left text-[#A2A6AB] ${BORDER} ${HEADER_BG}`}
+                  className={`w-8 shrink-0 border-t border-r border-b border-l py-2.5 pl-3 text-left text-[#A2A6AB] ${BORDER} ${HEADER_BG}`}
                   aria-label="Index"
                 />
                 <th
-                  className={`border-b border-r border-t py-2.5 px-4 text-left font-semibold text-white ${BORDER} ${HEADER_BG}`}
+                  className={`border-t border-r border-b px-4 py-2.5 text-left font-semibold text-white ${BORDER} ${HEADER_BG}`}
                 >
                   {team1Name}
                 </th>
                 <th
-                  className={`border-b border-r border-t py-2.5 px-4 text-left font-semibold text-white ${BORDER} ${HEADER_BG}`}
+                  className={`border-t border-r border-b px-4 py-2.5 text-left font-semibold text-white ${BORDER} ${HEADER_BG}`}
                 >
                   {team2Name}
                 </th>
@@ -59,44 +59,49 @@ export function StatusDetailsPlayingXITab({ match, details }) {
           <tbody>
             {Array.from({ length: rows }, (_, i) => {
               const isFirstRow = i === 0;
-              const topBorderClass = !showHeader && isFirstRow ? ' border-t' : '';
+              const topBorderClass =
+                !showHeader && isFirstRow ? ' border-t' : '';
 
               return (
                 <tr key={startIndex + i}>
                   <td
-                    className={`w-8 shrink-0 border-b border-l border-r py-3 pl-3 text-white ${BORDER}${topBorderClass}`}
+                    className={`w-8 shrink-0 border-r border-b border-l py-3 pl-3 text-white ${BORDER}${topBorderClass}`}
                   >
                     {startIndex + i}
                   </td>
-                  <td className={`border-b border-r py-3 px-4 ${BORDER}${topBorderClass}`}>
-                  {players1[i] ? (
-                    <>
-                      <p className="text-[12px] font-bold text-white">
-                        {players1[i].name}
-                      </p>
-                      <p className="mt-0.5 text-[12px] text-[#A2A6AB]">
-                        {players1[i].role}
-                      </p>
-                    </>
-                  ) : (
-                    <span className="text-[#A2A6AB]">—</span>
-                  )}
-                </td>
-                <td className={`border-b border-r py-3 px-4 ${BORDER}${topBorderClass}`}>
-                  {players2[i] ? (
-                    <>
-                      <p className="text-[12px] font-bold text-white">
-                        {players2[i].name}
-                      </p>
-                      <p className="mt-0.5 text-[12px] text-[#A2A6AB]">
-                        {players2[i].role}
-                      </p>
-                    </>
-                  ) : (
-                    <span className="text-[#A2A6AB]">—</span>
-                  )}
-                </td>
-              </tr>
+                  <td
+                    className={`border-r border-b px-4 py-3 ${BORDER}${topBorderClass}`}
+                  >
+                    {players1[i] ? (
+                      <>
+                        <p className="text-[12px] font-bold text-white">
+                          {players1[i].name}
+                        </p>
+                        <p className="mt-0.5 text-[12px] text-[#A2A6AB]">
+                          {players1[i].role}
+                        </p>
+                      </>
+                    ) : (
+                      <span className="text-[#A2A6AB]">—</span>
+                    )}
+                  </td>
+                  <td
+                    className={`border-r border-b px-4 py-3 ${BORDER}${topBorderClass}`}
+                  >
+                    {players2[i] ? (
+                      <>
+                        <p className="text-[12px] font-bold text-white">
+                          {players2[i].name}
+                        </p>
+                        <p className="mt-0.5 text-[12px] text-[#A2A6AB]">
+                          {players2[i].role}
+                        </p>
+                      </>
+                    ) : (
+                      <span className="text-[#A2A6AB]">—</span>
+                    )}
+                  </td>
+                </tr>
               );
             })}
           </tbody>
@@ -108,7 +113,7 @@ export function StatusDetailsPlayingXITab({ match, details }) {
   return (
     <div className="pb-6">
       {matchTitle && (
-        <p className="mb-4 text-[13px] font-bold uppercase tracking-wide text-[#A2A6AB]">
+        <p className="mb-4 text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
           {matchTitle}
         </p>
       )}
@@ -117,7 +122,7 @@ export function StatusDetailsPlayingXITab({ match, details }) {
 
       {benchRowCount > 0 && (
         <>
-          <p className="mt-6 mb-2 text-[13px] font-bold uppercase tracking-wide text-[#A2A6AB]">
+          <p className="mt-6 mb-2 text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
             Bench
           </p>
           {renderTable(benchTeam1, benchTeam2, MAIN_XI_COUNT + 1, false)}

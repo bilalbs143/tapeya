@@ -14,10 +14,7 @@ import {
 import { loginSchema } from '@/lib/validations/auth';
 import { authApi, useRequestOtpMutation } from '@/store/api/authApi';
 import { useAppDispatch } from '@/store/hooks';
-import {
-  clearCredentials,
-  setCredentials,
-} from '@/store/slices/authSlice';
+import { clearCredentials, setCredentials } from '@/store/slices/authSlice';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 import { Button } from '@/ui/Button';
 import { FormField } from '@/ui/FormField';
@@ -148,7 +145,7 @@ export default function Login() {
               <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">
                 Choose an account
               </h2>
-              <div className="scrollbar-hide flex max-h-[280px] flex-col gap-3 overflow-y-auto p-[10px] mb-2">
+              <div className="scrollbar-hide mb-2 flex max-h-[280px] flex-col gap-3 overflow-y-auto p-[10px]">
                 {savedProfiles.map((profile) => {
                   const isTapping = tappingProfile === profile.phone;
                   return (
@@ -160,7 +157,7 @@ export default function Login() {
                         type="button"
                         onClick={(e) => handleRemoveProfile(e, profile.phone)}
                         aria-label="Remove account"
-                        className="absolute top-[5px] right-[5px] flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#DA9811] text-[20px] font-bold leading-none text-[#080807] shadow-sm transition-opacity hover:opacity-90 active:opacity-80 focus:outline-none focus:ring-2 focus:ring-[#DA9811] focus:ring-offset-2 focus:ring-offset-[#141412]"
+                        className="absolute top-[5px] right-[5px] flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#DA9811] text-[20px] leading-none font-bold text-[#080807] shadow-sm transition-opacity hover:opacity-90 focus:ring-2 focus:ring-[#DA9811] focus:ring-offset-2 focus:ring-offset-[#141412] focus:outline-none active:opacity-80"
                       >
                         ×
                       </button>
@@ -168,7 +165,7 @@ export default function Login() {
                         type="button"
                         onClick={() => onProfileTap(profile)}
                         disabled={busy}
-                        className="flex min-w-0 flex-1 items-center gap-4 pr-8 text-left transition-opacity active:opacity-90 focus:outline-none focus:ring-2 focus:ring-[#DA9811] focus:ring-offset-2 focus:ring-offset-black disabled:opacity-60"
+                        className="flex min-w-0 flex-1 items-center gap-4 pr-8 text-left transition-opacity focus:ring-2 focus:ring-[#DA9811] focus:ring-offset-2 focus:ring-offset-black focus:outline-none active:opacity-90 disabled:opacity-60"
                       >
                         <Avatar className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-[#1A1A1A]">
                           <AvatarImage src={defaultAvatar} alt="" />

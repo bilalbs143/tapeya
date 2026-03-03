@@ -11,5 +11,13 @@ enum UserTypeEnum: string
     case SYSTEM = 'system';
     case ADMINISTRATOR = 'administrator';
     case USER = 'user';
-    case SELLER = 'seller';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::SYSTEM => 'System',
+            self::ADMINISTRATOR => 'Administrator',
+            self::USER => 'User',
+        };
+    }
 }

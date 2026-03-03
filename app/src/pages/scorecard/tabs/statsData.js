@@ -200,8 +200,8 @@ export function getRankingStatsTotalRows(rankingData, statType) {
       ave: noMatch,
       econ: p.economy != null ? Number(p.economy).toFixed(2) : noMatch,
       sr: noMatch,
-      '4': noMatch,
-      '5': noMatch,
+      4: noMatch,
+      5: noMatch,
     }));
   }
   if (statType === 'sixes') {
@@ -266,8 +266,8 @@ export function getStatsTotalRows(tournamentId, statType) {
       ave: '16.33',
       econ: '4.90',
       sr: '20.00',
-      '4': 0,
-      '5': 1,
+      4: 0,
+      5: 1,
     }));
   }
   const source =

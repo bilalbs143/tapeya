@@ -36,22 +36,36 @@ function BattingLiveTable({ batters }) {
         <tbody>
           {batters.map((b, i) => (
             <tr key={i}>
-              <td className={`${STICKY_FIRST} ${STICKY_BG} ${BORDER_B} ${BORDER_R} ${CELL_PADDING}`}>
-                <span className="truncate block text-[12px] font-medium text-white">{b.name}</span>
+              <td
+                className={`${STICKY_FIRST} ${STICKY_BG} ${BORDER_B} ${BORDER_R} ${CELL_PADDING}`}
+              >
+                <span className="block truncate text-[12px] font-medium text-white">
+                  {b.name}
+                </span>
               </td>
-              <td className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}>
+              <td
+                className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}
+              >
                 {b.r}
               </td>
-              <td className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}>
+              <td
+                className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}
+              >
                 {b.b}
               </td>
-              <td className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}>
+              <td
+                className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}
+              >
                 {b.fours}
               </td>
-              <td className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}>
+              <td
+                className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}
+              >
                 {b.sixes}
               </td>
-              <td className={`${SR_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}>
+              <td
+                className={`${SR_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}
+              >
                 {b.sr}
               </td>
             </tr>
@@ -86,19 +100,31 @@ function BowlingLiveTable({ bowlers }) {
         <tbody>
           {bowlers.map((b, i) => (
             <tr key={i}>
-              <td className={`${STICKY_FIRST} ${STICKY_BG} ${BORDER_B} ${BORDER_R} ${CELL_PADDING}`}>
-                <span className="truncate block text-[12px] font-medium text-white">{b.name}</span>
+              <td
+                className={`${STICKY_FIRST} ${STICKY_BG} ${BORDER_B} ${BORDER_R} ${CELL_PADDING}`}
+              >
+                <span className="block truncate text-[12px] font-medium text-white">
+                  {b.name}
+                </span>
               </td>
-              <td className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}>
+              <td
+                className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}
+              >
                 {b.o}
               </td>
-              <td className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}>
+              <td
+                className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}
+              >
                 {b.m}
               </td>
-              <td className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}>
+              <td
+                className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}
+              >
                 {b.r}
               </td>
-              <td className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center font-semibold text-white`}>
+              <td
+                className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center font-semibold text-white`}
+              >
                 {b.w}
               </td>
             </tr>
@@ -118,7 +144,7 @@ export function StatusDetailsLiveTab({ details }) {
       <BattingLiveTable batters={details.batters} />
       <BowlingLiveTable bowlers={details.bowlers} />
       {details.partnership && (
-        <div className="pt-3 space-y-1">
+        <div className="space-y-1 pt-3">
           <p className="text-[14px]">
             <span className="text-[#A2A6AB]">P&apos;SHIP:</span>{' '}
             <span className="text-white">{details.partnership}</span>
@@ -127,7 +153,8 @@ export function StatusDetailsLiveTab({ details }) {
             <p className="text-[14px]">
               <span className="text-[#A2A6AB]">L&apos;BAT:</span>{' '}
               <span className="text-white">
-                {details.batters[0].name} {details.batters[0].r} ({details.batters[0].b}b)
+                {details.batters[0].name} {details.batters[0].r} (
+                {details.batters[0].b}b)
               </span>
             </p>
           )}
