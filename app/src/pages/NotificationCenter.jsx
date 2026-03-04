@@ -1,93 +1,13 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
+import {
+  useGetNotificationsQuery,
+  useMarkAllNotificationsReadMutation,
+} from '@/store/api/notificationApi';
 
-const PAGE_SIZE = 3;
-
-// Single source of truth (newest first). Replace with API/real-time data later.
-const NOTIFICATIONS_MOCK = [
-  {
-    id: '1',
-    avatar: null,
-    fallback: 'AB',
-    boldText: 'Arsalan Butt',
-    regularText: ' Started following you...',
-    timestamp: '5 minutes ago',
-    actionLabel: 'Follow Back',
-    unread: true,
-  },
-  {
-    id: '2',
-    avatar: null,
-    fallback: 'RK',
-    boldText: '7th Match Rawalpindi Royal vs Karachi Kids - Season 2',
-    regularText: ' Starting in 30 min.',
-    timestamp: '10 minutes ago',
-    actionLabel: null,
-    unread: true,
-  },
-  {
-    id: '3',
-    avatar: null,
-    fallback: 'T',
-    boldText: 'New updates in the app!',
-    regularText: ' Download latest version now.',
-    timestamp: '3 hours ago',
-    actionLabel: null,
-    unread: true,
-  },
-  {
-    id: '4',
-    avatar: null,
-    fallback: 'AB',
-    boldText: 'Arsalan Butt',
-    regularText: ' Started following you...',
-    timestamp: '1 day ago',
-    actionLabel: 'Follow Back',
-    unread: false,
-  },
-  {
-    id: '5',
-    avatar: null,
-    fallback: 'RK',
-    boldText: '8th Match Lahore vs Islamabad - Season 2',
-    regularText: ' Starting tomorrow.',
-    timestamp: '1 day ago',
-    actionLabel: null,
-    unread: false,
-  },
-  {
-    id: '6',
-    avatar: null,
-    fallback: 'T',
-    boldText: 'App maintenance scheduled.',
-    regularText: ' Feb 25, 2:00 AM – 4:00 AM.',
-    timestamp: '2 days ago',
-    actionLabel: null,
-    unread: false,
-  },
-  {
-    id: '7',
-    avatar: null,
-    fallback: 'MK',
-    boldText: 'Match result: Karachi Kids won by 5 wickets.',
-    regularText: ' View scorecard.',
-    timestamp: '3 days ago',
-    actionLabel: null,
-    unread: false,
-  },
-  {
-    id: '8',
-    avatar: null,
-    fallback: 'T',
-    boldText: 'Welcome to Tapeya!',
-    regularText: ' Complete your profile to get started.',
-    timestamp: '1 week ago',
-    actionLabel: null,
-    unread: false,
-  },
-];
+const PAGE_SIZE = 10;
 
 const ChevronLeft = () => (
   <svg
@@ -164,16 +84,105 @@ function NotificationCard({ notification }) {
   );
 }
 
+function mapApiNotificationToCard(notification) {
+  if (!notification) return null;
+
+  const data = notification.data || {};
+  const rawMessage = typeof data.message === 'string' ? data.message : '';
+
+  let boldText = 'Notification';
+  let regularText = '';
+
+  if (rawMessage) {
+    const [firstPart, ...rest] = rawMessage.split(':');
+    boldText = firstPart || boldText;
+    const tail = rest.join(':');
+    regularText = tail ? `: ${tail}` : '';
+  }
+
+  const nameSource =
+    data.customer_name || data.user_name || data.tournament_name || '';
+
+  const fallback =
+    nameSource
+      ?.split(' ')
+      .map((chunk) => chunk[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || 'NT';
+
+  return {
+    id: notification.id,
+    avatar: null,
+    fallback,
+    boldText,
+    regularText,
+    timestamp: notification.created_at,
+    actionLabel: null,
+    unread: !notification.read_at,
+  };
+}
+
 export default function NotificationCenter() {
   const navigate = useNavigate();
-  const notifications = NOTIFICATIONS_MOCK; // Replace with API/real-time list when integrating
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const displayed = notifications.slice(0, visibleCount);
-  const hasMoreOlder = visibleCount < notifications.length;
+  const [page, setPage] = useState(1);
+  const [items, setItems] = useState([]);
+
+  const {
+    data: apiResponse,
+    isLoading,
+    isFetching,
+    isError,
+  } = useGetNotificationsQuery({
+    page,
+    per_page: PAGE_SIZE,
+  });
+
+  const [markAllNotificationsRead, { isLoading: isMarkingAll }] =
+    useMarkAllNotificationsReadMutation();
+
+  useEffect(() => {
+    if (!apiResponse?.data) return;
+
+    setItems((prev) => {
+      if (page === 1) {
+        return apiResponse.data;
+      }
+
+      const existingIds = new Set(prev.map((n) => n.id));
+      const merged = [
+        ...prev,
+        ...apiResponse.data.filter((n) => !existingIds.has(n.id)),
+      ];
+
+      return merged;
+    });
+  }, [apiResponse, page]);
+
+  const notifications = items
+    .map(mapApiNotificationToCard)
+    .filter(Boolean)
+    .sort((a, b) => {
+      const aTime = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+      const bTime = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+      return bTime - aTime;
+    });
+  const hasMoreOlder =
+    apiResponse?.meta &&
+    apiResponse.meta.current_page < apiResponse.meta.last_page;
 
   const loadOlder = useCallback(() => {
-    setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, notifications.length));
-  }, [notifications.length]);
+    if (!hasMoreOlder || isFetching) return;
+    setPage((prev) => prev + 1);
+  }, [hasMoreOlder, isFetching]);
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllNotificationsRead().unwrap();
+    } catch {
+      // Best-effort; keep UI as-is on failure.
+    }
+  };
 
   return (
     <div className="bg-black">
@@ -198,28 +207,49 @@ export default function NotificationCenter() {
           </h2>
           <button
             type="button"
+            onClick={handleMarkAllAsRead}
+            disabled={isMarkingAll}
             className="text-[12px] font-normal text-[#DA9811] underline transition-opacity active:opacity-90"
           >
-            Mark all as read
+            {isMarkingAll ? 'Marking…' : 'Mark all as read'}
           </button>
         </div>
 
-        <ul className="flex flex-col gap-3" aria-label="Notifications">
-          {displayed.map((notification) => (
-            <li key={notification.id}>
-              <NotificationCard notification={notification} />
-            </li>
-          ))}
-        </ul>
+        {isLoading && (
+          <p className="mb-3 text-[12px] text-[#A2A6AB]">Loading notifications…</p>
+        )}
+
+        {isError && (
+          <p className="mb-3 text-[12px] text-[#DA9811]">
+            Failed to load notifications. Please try again.
+          </p>
+        )}
+
+        {notifications.length > 0 ? (
+          <ul className="flex flex-col gap-3" aria-label="Notifications">
+            {notifications.map((notification) => (
+              <li key={notification.id}>
+                <NotificationCard notification={notification} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          !isLoading && (
+            <p className="text-[12px] text-[#A2A6AB]">
+              You have no notifications yet.
+            </p>
+          )
+        )}
 
         {hasMoreOlder && (
           <div className="mt-6 flex flex-col items-center pb-4">
             <button
               type="button"
               onClick={loadOlder}
-              className="font-nornal text-[12px] text-[#A2A6AB] transition-opacity active:opacity-90"
+              disabled={isFetching}
+              className="font-nornal text-[12px] text-[#A2A6AB] transition-opacity active:opacity-90 disabled:opacity-60"
             >
-              View Older
+              {isFetching ? 'Loading…' : 'View Older'}
             </button>
             <ChevronDown />
           </div>

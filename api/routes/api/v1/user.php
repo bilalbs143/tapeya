@@ -8,6 +8,7 @@ use App\Http\Controllers\User\MatchTossController;
 use App\Http\Controllers\User\PlayerController;
 use App\Http\Controllers\User\PlayerStatsController;
 use App\Http\Controllers\User\PlayingElevenController;
+use App\Http\Controllers\User\NotificationController;
 use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\User\RankingController;
 use App\Http\Controllers\User\ScorecardController;
@@ -89,4 +90,8 @@ Route::middleware('auth:api')->group(function () {
     Route::post('matches/{match}/teams/{team}/squad', [MatchSquadController::class, 'store']);
     Route::get('matches/{match}/teams/{team}/playing-eleven', [PlayingElevenController::class, 'show']);
     Route::post('matches/{match}/teams/{team}/playing-eleven', [PlayingElevenController::class, 'store']);
+    Route::get('notifications', [NotificationController::class, 'index']);
+    Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+    Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::delete('notifications', [NotificationController::class, 'flush']);
 });
