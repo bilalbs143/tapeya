@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { formatDateRange } from '@/lib/format';
@@ -12,11 +12,9 @@ import {
   TabsTrigger,
 } from '@/ui/Tabs';
 
-import {
-  MONTH_TABS_COUNT,
-  PLACEHOLDER_CARD_IMAGE,
-  PLACEHOLDER_TITLES,
-} from './constants';
+const MONTH_TABS_COUNT = 6;
+const FALLBACK_IMAGE =
+  'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&h=320&fit=crop';
 
 function toDateStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -31,21 +29,31 @@ function parseDate(str) {
 }
 
 function UpcomingTournamentCard({ tournament, onClick }) {
-  const imageUrl =
-    tournament.display_image || tournament.cover_image || PLACEHOLDER_CARD_IMAGE;
+  const imageUrl = tournament.display_image || FALLBACK_IMAGE;
   const title = tournament.tournament_name || tournament.name || 'Tournament';
 
   return (
     <button
       type="button"
       onClick={() => onClick(tournament)}
-      className="flex w-full flex-col overflow-hidden rounded-[17px] bg-[#141412] text-left transition-opacity active:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA9811] focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+      className="flex w-full flex-col overflow-hidden rounded-[17px] bg-[#141412] text-left transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA9811] focus-visible:ring-offset-2 focus-visible:ring-offset-black active:opacity-90"
     >
       <div className="h-[148px] w-full overflow-hidden bg-[#0d0d0b]">
-        <img src={imageUrl} alt={title} className="h-full w-full object-cover" />
+        <img
+          src={imageUrl}
+          alt={title}
+          className="h-full w-full object-cover"
+          onError={(e) => {
+            if (e.currentTarget.src !== FALLBACK_IMAGE) {
+              e.currentTarget.src = FALLBACK_IMAGE;
+            }
+          }}
+        />
       </div>
       <div className="flex flex-col gap-1 p-3">
-        <h3 className="line-clamp-2 text-[13px] font-bold text-white">{title}</h3>
+        <h3 className="line-clamp-2 text-[13px] font-bold text-white">
+          {title}
+        </h3>
         <p className="text-[12px] text-[#A2A6AB]">
           {formatDateRange(tournament.start_date, tournament.end_date)}
         </p>
@@ -56,7 +64,10 @@ function UpcomingTournamentCard({ tournament, onClick }) {
 
 export default function UpcomingTournaments() {
   const navigate = useNavigate();
-  const now = new Date();
+  const initialNowRef = useRef(null);
+  if (initialNowRef.current === null) initialNowRef.current = new Date();
+  const now = initialNowRef.current;
+
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const [activeMonth, setActiveMonth] = useState(currentMonth);
 
@@ -74,7 +85,7 @@ export default function UpcomingTournaments() {
       });
     }
     return tabs;
-  }, []);
+  }, [now]);
 
   const upcomingByMonth = useMemo(() => {
     const list = data?.data ?? [];
@@ -104,25 +115,7 @@ export default function UpcomingTournaments() {
     return byMonth;
   }, [data?.data, monthTabs, todayStr]);
 
-  const cardsToShow = useMemo(() => {
-    const real = upcomingByMonth[activeMonth] ?? [];
-    if (real.length > 0) return real;
-
-    const [y, m] = activeMonth.split('-').map(Number);
-    return PLACEHOLDER_TITLES.map((title, i) => {
-      const start = new Date(y, m - 1, 10 + i);
-      const end = new Date(start);
-      end.setDate(end.getDate() + 5);
-      return {
-        id: `placeholder-${activeMonth}-${i}`,
-        tournament_name: title,
-        name: title,
-        start_date: toDateStr(start),
-        end_date: toDateStr(end),
-        isPlaceholder: true,
-      };
-    });
-  }, [upcomingByMonth, activeMonth]);
+  const cardsToShow = upcomingByMonth[activeMonth] ?? [];
 
   const handleCardClick = (tournament) => {
     const id = tournament.id ?? 'preview';
@@ -136,7 +129,7 @@ export default function UpcomingTournaments() {
     });
   };
 
-  const hasRealData = (upcomingByMonth[activeMonth] ?? []).length > 0;
+  const isEmpty = cardsToShow.length === 0;
 
   return (
     <div className="min-h-screen bg-black">
@@ -147,19 +140,23 @@ export default function UpcomingTournaments() {
           </h1>
         </header>
 
-        <Tabs value={activeMonth} onValueChange={setActiveMonth} className="w-full">
+        <Tabs
+          value={activeMonth}
+          onValueChange={setActiveMonth}
+          className="w-full"
+        >
           <div className="-mx-4 bg-black px-4 pb-3">
             <TabsList className={scorecardListClass}>
               {monthTabs.map(({ value, monthShort, year }) => (
                 <TabsTrigger
                   key={value}
                   value={value}
-                  className={`${scorecardTriggerClass} min-w-[72px] flex-col items-center justify-center gap-0 rounded-xl px-4 py-2.5 data-[state=inactive]:text-white data-[state=active]:text-black`}
+                  className={`${scorecardTriggerClass} min-w-[72px] flex-col items-center justify-center gap-0 rounded-xl px-4 py-2.5 text-white data-[state=active]:text-black`}
                 >
-                  <span className="block text-[12px] font-bold uppercase leading-tight">
+                  <span className="block text-[12px] leading-tight font-bold uppercase">
                     {monthShort}
                   </span>
-                  <span className="mt-1 block text-[12px] font-medium uppercase leading-tight opacity-90">
+                  <span className="mt-1 block text-[12px] leading-tight font-medium uppercase opacity-90">
                     {year}
                   </span>
                 </TabsTrigger>
@@ -167,7 +164,7 @@ export default function UpcomingTournaments() {
             </TabsList>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 pb-6 pt-1">
+          <div className="grid grid-cols-2 gap-3 pt-1 pb-6">
             {cardsToShow.map((tournament) => (
               <UpcomingTournamentCard
                 key={tournament.id}
@@ -187,9 +184,9 @@ export default function UpcomingTournaments() {
               Failed to load tournaments. Try again later.
             </p>
           )}
-          {!hasRealData && !isLoading && (
+          {isEmpty && !isLoading && (
             <p className="py-2 text-center text-[13px] text-[#A2A6AB]">
-              No upcoming tournaments for this month. Showing sample cards.
+              No upcoming tournaments for this month.
             </p>
           )}
         </Tabs>

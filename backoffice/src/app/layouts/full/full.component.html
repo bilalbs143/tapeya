@@ -162,7 +162,9 @@
         maxWidth: options.boxed,
       }"
     >
-      <app-breadcrumb></app-breadcrumb>
+      @if (showBreadcrumb) {
+        <app-breadcrumb></app-breadcrumb>
+      }
       <!-- ============================================================== -->
       <!-- Outlet -->
       <!-- ============================================================== -->

@@ -27,6 +27,9 @@ return new class extends Migration
             $table->string('display_image')->nullable();
             $table->string('cover_image')->nullable();
             $table->string('prize', 255)->nullable();
+            $table->unsignedInteger('likes_count')->default(0);
+            $table->unsignedInteger('dislikes_count')->default(0);
+            $table->unsignedInteger('shares_count')->default(0);
             $table->timestamps();
         });
     }

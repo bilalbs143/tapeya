@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
+import { RequireAuth } from '@/components/RequireAuth';
 import { ScrollRestoration } from '@/components/ScrollRestoration';
 import { SplashScreen } from '@/components/SplashScreen';
 import { ToastProvider } from '@/contexts/ToastContext';
@@ -16,6 +17,13 @@ import ActivityFeed from '@/pages/feed/ActivityFeed';
 import ActivityFeedDetail from '@/pages/feed/ActivityFeedDetail';
 import Home from '@/pages/Home';
 import NotificationCenter from '@/pages/NotificationCenter';
+import TournamentAddSquad from '@/pages/organizer/tournaments/TournamentAddSquad';
+import TournamentAddTeam from '@/pages/organizer/tournaments/TournamentAddTeam';
+import TournamentCreateTeamIntro from '@/pages/organizer/tournaments/TournamentCreateTeamIntro';
+import TournamentEditSquad from '@/pages/organizer/tournaments/TournamentEditSquad';
+import TournamentFinalSquad from '@/pages/organizer/tournaments/TournamentFinalSquad';
+import Tournaments from '@/pages/organizer/tournaments/Tournaments';
+import TournamentSavedTeams from '@/pages/organizer/tournaments/TournamentSavedTeams';
 import Pricing from '@/pages/pricing/Pricing';
 import PricingDetail from '@/pages/pricing/PricingDetail';
 import Ranking from '@/pages/ranking/Ranking';
@@ -39,17 +47,8 @@ import ShopFilter from '@/pages/shop/ShopFilter';
 import ShopHome from '@/pages/shop/ShopHome';
 import ShopProductDetail from '@/pages/shop/ShopProductDetail';
 import TournamentRequest from '@/pages/TournamentRequest';
-import {
-  UpcomingTournamentDetails,
-  UpcomingTournaments,
-} from '@/pages/upcoming-tournaments';
-import TournamentAddSquad from '@/pages/tournaments/TournamentAddSquad';
-import TournamentAddTeam from '@/pages/tournaments/TournamentAddTeam';
-import TournamentCreateTeamIntro from '@/pages/tournaments/TournamentCreateTeamIntro';
-import TournamentEditSquad from '@/pages/tournaments/TournamentEditSquad';
-import TournamentFinalSquad from '@/pages/tournaments/TournamentFinalSquad';
-import Tournaments from '@/pages/tournaments/Tournaments';
-import TournamentSavedTeams from '@/pages/tournaments/TournamentSavedTeams';
+import UpcomingTournamentDetails from '@/pages/upcoming-tournaments/UpcomingTournamentDetails';
+import UpcomingTournaments from '@/pages/upcoming-tournaments/UpcomingTournaments';
 import UserProfile from '@/pages/UserProfile';
 import { Toaster } from '@/ui/Toast';
 import { TooltipProvider } from '@/ui/Tooltip';
@@ -68,101 +67,115 @@ function App() {
             <ScrollRestoration />
             <Routes>
               <Route path="/" element={<SplashScreen />} />
-              <Route element={<MainLayout />}>
-                <Route path="/home" element={<Home />} />
-                <Route path="/user-profile" element={<UserProfile />} />
-                <Route path="/drafting" element={<DraftingHome />} />
-                <Route path="/drafting/add-team" element={<AddTeam />} />
-                <Route path="/drafting/teams" element={<TeamList />} />
-                <Route
-                  path="/drafting/teams/:teamId"
-                  element={<TeamDetail />}
-                />
-                <Route path="/tournaments" element={<Tournaments />} />
-                <Route
-                  path="/tournaments/:tournamentId/create-team-intro"
-                  element={<TournamentCreateTeamIntro />}
-                />
-                <Route
-                  path="/tournaments/:tournamentId/add-team"
-                  element={<TournamentAddTeam />}
-                />
-                <Route
-                  path="/tournaments/:tournamentId/saved-teams"
-                  element={<TournamentSavedTeams />}
-                />
-                <Route
-                  path="/tournaments/:tournamentId/add-squad"
-                  element={<TournamentAddSquad />}
-                />
-                <Route
-                  path="/tournaments/:tournamentId/edit-squad"
-                  element={<TournamentEditSquad />}
-                />
-                <Route
-                  path="/tournaments/final-squad"
-                  element={<TournamentFinalSquad />}
-                />
-                <Route path="/scorecard" element={<ScorecardHome />} />
-                <Route
-                  path="/scorecard/:tournamentId"
-                  element={<ScorecardDetails />}
-                />
-                <Route
-                  path="/scorecard/:tournamentId/match/:matchId"
-                  element={<ScorecardStatusDetails />}
-                />
-                <Route
-                  path="/scorecard/:tournamentId/stats-total/:statType"
-                  element={<StatsTotal />}
-                />
-                {/* Shop: all shop/ecommerce under /shop */}
-                <Route path="/shop" element={<ShopHome />} />
-                <Route path="/shop/cart" element={<ShopCart />} />
-                <Route path="/shop/checkout" element={<ShopCheckout />} />
-                <Route
-                  path="/shop/order-payment/:orderId"
-                  element={<OrderPayment />}
-                />
-                <Route path="/shop/orders/:orderId" element={<OrderDetail />} />
-                <Route path="/shop/orders" element={<MyOrders />} />
-                <Route path="/shop/order-success" element={<OrderSuccess />} />
-                <Route
-                  path="/shop/:brandId/product/:productSlug"
-                  element={<ShopProductDetail />}
-                />
-                <Route
-                  path="/shop/filter/:filterKey"
-                  element={<ShopFilter />}
-                />
-                <Route path="/shop/:brandId" element={<ShopCategory />} />
-                <Route
-                  path="/tournament-request"
-                  element={<TournamentRequest />}
-                />
-                <Route
-                  path="/upcoming-tournaments"
-                  element={<UpcomingTournaments />}
-                />
-                <Route
-                  path="/upcoming-tournaments/:tournamentId"
-                  element={<UpcomingTournamentDetails />}
-                />
-                <Route path="/ranking" element={<Ranking />} />
-                <Route
-                  path="/ranking/stats-total/:statType"
-                  element={<RankingStatsTotal />}
-                />
-                <Route
-                  path="/notification-center"
-                  element={<NotificationCenter />}
-                />
-                <Route path="/reels" element={<Reels />} />
-                <Route path="/reels/upload" element={<UploadReels />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/pricing/:planId" element={<PricingDetail />} />
-                <Route path="/feed" element={<ActivityFeed />} />
-                <Route path="/feed/:postId" element={<ActivityFeedDetail />} />
+              <Route element={<RequireAuth />}>
+                <Route element={<MainLayout />}>
+                  <Route path="/home" element={<Home />} />
+                  <Route path="/user-profile" element={<UserProfile />} />
+                  <Route path="/drafting" element={<DraftingHome />} />
+                  <Route path="/drafting/add-team" element={<AddTeam />} />
+                  <Route path="/drafting/teams" element={<TeamList />} />
+                  <Route
+                    path="/drafting/teams/:teamId"
+                    element={<TeamDetail />}
+                  />
+                  <Route
+                    path="/upcoming-tournaments"
+                    element={<UpcomingTournaments />}
+                  />
+                  <Route
+                    path="/upcoming-tournaments/:tournamentId"
+                    element={<UpcomingTournamentDetails />}
+                  />
+                  <Route
+                    path="/organizer/tournaments"
+                    element={<Tournaments />}
+                  />
+                  <Route
+                    path="/organizer/tournaments/:tournamentId/create-team-intro"
+                    element={<TournamentCreateTeamIntro />}
+                  />
+                  <Route
+                    path="/organizer/tournaments/:tournamentId/add-team"
+                    element={<TournamentAddTeam />}
+                  />
+                  <Route
+                    path="/organizer/tournaments/:tournamentId/saved-teams"
+                    element={<TournamentSavedTeams />}
+                  />
+                  <Route
+                    path="/organizer/tournaments/:tournamentId/add-squad"
+                    element={<TournamentAddSquad />}
+                  />
+                  <Route
+                    path="/organizer/tournaments/:tournamentId/edit-squad"
+                    element={<TournamentEditSquad />}
+                  />
+                  <Route
+                    path="/organizer/tournaments/:tournamentId/final-squad/:teamId"
+                    element={<TournamentFinalSquad />}
+                  />
+                  <Route path="/scorecard" element={<ScorecardHome />} />
+                  <Route
+                    path="/scorecard/:tournamentId"
+                    element={<ScorecardDetails />}
+                  />
+                  <Route
+                    path="/scorecard/:tournamentId/match/:matchId"
+                    element={<ScorecardStatusDetails />}
+                  />
+                  <Route
+                    path="/scorecard/:tournamentId/stats-total/:statType"
+                    element={<StatsTotal />}
+                  />
+                  {/* Shop: all shop/ecommerce under /shop */}
+                  <Route path="/shop" element={<ShopHome />} />
+                  <Route path="/shop/cart" element={<ShopCart />} />
+                  <Route path="/shop/checkout" element={<ShopCheckout />} />
+                  <Route
+                    path="/shop/order-payment/:orderId"
+                    element={<OrderPayment />}
+                  />
+                  <Route
+                    path="/shop/orders/:orderId"
+                    element={<OrderDetail />}
+                  />
+                  <Route path="/shop/orders" element={<MyOrders />} />
+                  <Route
+                    path="/shop/order-success"
+                    element={<OrderSuccess />}
+                  />
+                  <Route
+                    path="/shop/:brandId/product/:productSlug"
+                    element={<ShopProductDetail />}
+                  />
+                  <Route
+                    path="/shop/filter/:filterKey"
+                    element={<ShopFilter />}
+                  />
+                  <Route path="/shop/:brandId" element={<ShopCategory />} />
+                  <Route
+                    path="/tournament-request"
+                    element={<TournamentRequest />}
+                  />
+                  <Route path="/ranking" element={<Ranking />} />
+                  <Route
+                    path="/ranking/stats-total/:statType"
+                    element={<RankingStatsTotal />}
+                  />
+                  <Route
+                    path="/notification-center"
+                    element={<NotificationCenter />}
+                  />
+                  <Route path="/reels" element={<Reels />} />
+                  <Route path="/reels/upload" element={<UploadReels />} />
+                  <Route path="/pricing" element={<Pricing />} />
+                  <Route path="/pricing/:planId" element={<PricingDetail />} />
+                  <Route path="/feed" element={<ActivityFeed />} />
+                  <Route
+                    path="/feed/:postId"
+                    element={<ActivityFeedDetail />}
+                  />
+                </Route>
               </Route>
               <Route element={<AuthLayout />}>
                 <Route path="/login" element={<Login />} />

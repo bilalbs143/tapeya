@@ -36,6 +36,10 @@ class TournamentResource extends JsonResource
             'display_image' => $this->display_image ? $disk->url($this->display_image) : null,
             'cover_image' => $this->cover_image ? $disk->url($this->cover_image) : null,
             'prize' => $this->prize,
+            'likes_count' => (int) ($this->likes_count ?? 0),
+            'dislikes_count' => (int) ($this->dislikes_count ?? 0),
+            'shares_count' => (int) ($this->shares_count ?? 0),
+            'my_reaction' => $this->when(isset($this->my_reaction), $this->my_reaction),
 
             'teams_count' => (int) ($this->teams_count ?? 0),
             'matches' => $this->whenLoaded('matches', fn () => TournamentMatchResource::collection($this->matches)),

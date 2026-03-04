@@ -7,7 +7,7 @@ export const TournamentsManagementRoutes: Routes = [
     loadComponent: () => import('./tournaments/tournaments.component').then((m) => m.TournamentsComponent),
     data: {
       title: 'Tournaments',
-      urls: [{ title: 'Dashboard', url: '/starter' }, { title: 'Tournaments Management' }, { title: 'Tournaments' }],
+      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Tournaments Management' }, { title: 'Tournaments' }],
     },
   },
   {
@@ -17,7 +17,7 @@ export const TournamentsManagementRoutes: Routes = [
     data: {
       title: 'Tournament Requests',
       urls: [
-        { title: 'Dashboard', url: '/starter' },
+        { title: 'Dashboard', url: '/dashboard' },
         { title: 'Tournaments Management' },
         { title: 'Tournament Requests' },
       ],

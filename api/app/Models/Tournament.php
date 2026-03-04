@@ -33,6 +33,9 @@ class Tournament extends BaseModel
         'display_image',
         'cover_image',
         'prize',
+        'likes_count',
+        'dislikes_count',
+        'shares_count',
     ];
 
     /**
@@ -89,5 +92,13 @@ class Tournament extends BaseModel
     public function matches(): HasMany
     {
         return $this->hasMany(TournamentMatch::class, 'tournament_id');
+    }
+
+    /**
+     * User reactions (like/dislike) for this tournament.
+     */
+    public function userReactions(): HasMany
+    {
+        return $this->hasMany(TournamentUserReaction::class, 'tournament_id');
     }
 }

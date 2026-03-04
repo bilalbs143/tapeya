@@ -53,7 +53,7 @@ export class AppLoginComponent {
       .subscribe({
         next: () => {
           this.loading = false;
-          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/starter';
+          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/dashboard';
           void this.router.navigateByUrl(returnUrl);
         },
         error: (error: unknown) => {

@@ -96,6 +96,12 @@ export class FullComponent implements OnDestroy {
     return this.resView;
   }
 
+  /** Hide breadcrumb on dashboard routes (cricket + ecommerce). */
+  public get showBreadcrumb(): boolean {
+    const path = this.router.url.split('?')[0];
+    return path !== '/dashboard' && path !== '/ecommerce';
+  }
+
   // for mobile app sidebar
   public apps: apps[] = [
     {

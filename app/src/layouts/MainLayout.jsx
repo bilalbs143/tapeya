@@ -15,9 +15,10 @@ export function MainLayout() {
   // Some pages (like profile header) need content to start at top,
   // behind the fixed navbar (no top padding).
   const isNavbarOverlayPage = location.pathname === '/user-profile';
-  const isUpcomingTournamentDetails =
-    /^\/upcoming-tournaments\/[^/]+$/.test(location.pathname);
-  const noTopPadding = isNavbarOverlayPage || isUpcomingTournamentDetails;
+  const isTournamentDetails = /^\/upcoming-tournaments\/[^/]+$/.test(
+    location.pathname,
+  );
+  const noTopPadding = isNavbarOverlayPage || isTournamentDetails;
 
   return (
     <div className="bg-black">

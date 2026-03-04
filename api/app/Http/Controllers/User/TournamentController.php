@@ -6,6 +6,7 @@ use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\User\TournamentResource;
 use App\Models\Tournament;
+use App\Models\TournamentUserReaction;
 use Illuminate\Http\JsonResponse;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -45,6 +46,14 @@ class TournamentController extends Controller
         }
         if ($with !== []) {
             $tournament->load($with);
+        }
+
+        if (request()->user()) {
+            $myReaction = TournamentUserReaction::query()
+                ->where('tournament_id', $tournament->id)
+                ->where('user_id', request()->user()->id)
+                ->value('reaction');
+            $tournament->setAttribute('my_reaction', $myReaction);
         }
 
         return $this->success(new TournamentResource($tournament));

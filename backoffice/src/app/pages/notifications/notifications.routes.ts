@@ -7,7 +7,7 @@ export const NotificationsRoutes: Routes = [
     loadComponent: () => import('./notifications-list.component').then((m) => m.NotificationsListComponent),
     data: {
       title: 'Notifications',
-      urls: [{ title: 'Dashboard', url: '/starter' }, { title: 'Notifications' }],
+      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Notifications' }],
     },
   },
 ];

@@ -10,23 +10,6 @@ import { Container } from '@/ui/Container';
 const BORDER = 'border-[#1C1C1A]';
 const HEADER_BG = 'bg-[#141412]';
 
-// Placeholder data so the page can be viewed standalone (e.g. /tournaments/final-squad)
-const DEMO_TEAM = {
-  id: null,
-  name: 'Al Fareed - Mian Channu',
-  logo: null,
-  sponsor: { name: 'Mian Asif Naddem' },
-  owner: 'Mian Asif Naddem',
-  icon_players: [{ name: 'Asif Butt' }],
-};
-const DEMO_SQUAD = [
-  { id: 1, name: 'Arslan Butt', playing_role: 'Batsman' },
-  { id: 2, name: 'Rahmanullah Gurbaz', playing_role: 'Bowler' },
-  { id: 3, name: 'Ishan Kishan', playing_role: 'All rounder' },
-  { id: 4, name: 'Sahibzada Farhan', playing_role: 'Batsman' },
-  { id: 5, name: 'Sohaib Khan', playing_role: 'Batsman' },
-];
-
 function TeamLogoIcon({ logo, teamName }) {
   return (
     <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#0d0d0b]">
@@ -46,7 +29,10 @@ function teamDisplay(team) {
     team?.sponsor?.name ?? (team?.owner != null ? String(team.owner) : '—');
   const iconPlayer =
     Array.isArray(team?.icon_players) && team.icon_players.length > 0
-      ? team.icon_players.map((p) => p.name).filter(Boolean).join(', ')
+      ? team.icon_players
+          .map((p) => p.name)
+          .filter(Boolean)
+          .join(', ')
       : '—';
   return { owner, iconPlayer };
 }
@@ -83,22 +69,34 @@ export default function TournamentFinalSquad() {
     { skip: !isValidId },
   );
 
+  const teamIdNum =
+    teamFromState?.id != null
+      ? Number(teamFromState.id)
+      : teamIdParam != null && teamIdParam !== ''
+        ? Number(teamIdParam)
+        : null;
+  const hasValidTeamId =
+    teamIdNum != null && Number.isInteger(teamIdNum) && teamIdNum > 0;
+
+  const { data: squadFromApi = [], isLoading: isLoadingSquad } =
+    useGetTeamSquadQuery(teamIdNum, { skip: !hasValidTeamId });
+  const squad = squadFromApi;
+  const isLoading = isLoadingSquad;
+
   const resolvedTeam =
     teamFromState ??
-    (teamIdParam
-      ? tournamentTeams.find((t) => String(t.id) === String(teamIdParam))
+    (hasValidTeamId
+      ? tournamentTeams.find((t) => Number(t.id) === teamIdNum)
       : tournamentTeams[0]) ??
     null;
 
-  const team = resolvedTeam ?? DEMO_TEAM;
-  const teamId = team?.id;
-
-  const { data: squadFromApi = [], isLoading: isLoadingSquad } =
-    useGetTeamSquadQuery(teamId, { skip: !teamId });
-  const squad = teamId ? squadFromApi : DEMO_SQUAD;
-  const isLoading = teamId ? isLoadingSquad : false;
-
+  const team = resolvedTeam ?? teamFromState ?? null;
   const { owner, iconPlayer } = teamDisplay(team);
+
+  if (!isValidId || !hasValidTeamId) {
+    navigate('/organizer/tournaments', { replace: true });
+    return null;
+  }
 
   return (
     <div className="bg-black">
@@ -127,6 +125,11 @@ export default function TournamentFinalSquad() {
           </h1>
         </header>
 
+        {tournament && (
+          <p className="mb-1 text-[12px] font-medium tracking-wide text-[#A2A6AB] uppercase">
+            {tournament.tournament_name ?? tournament.name ?? 'Tournament'}
+          </p>
+        )}
         <p className="mb-3 text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
           {team?.name ?? 'Team'}
         </p>
@@ -138,7 +141,7 @@ export default function TournamentFinalSquad() {
               {team?.name ?? '—'}
             </h2>
             <p className="mt-0.5 text-[14px] text-white">
-             <span className="font-medium text-[#DA9811]">Owner: {owner}</span>
+              <span className="font-medium text-[#DA9811]">Owner: {owner}</span>
             </p>
             <p className="mt-0.5 text-[12px] text-[#A2A6AB]">
               Icon Player: <span className="text-white">{iconPlayer}</span>
@@ -190,8 +193,7 @@ export default function TournamentFinalSquad() {
                       className={`border-r border-b border-l py-3 pl-4 ${BORDER}`}
                     >
                       <span className="text-[12px] font-medium text-white">
-                        {index + 1}{' '}
-                        {player.name ?? player.nickname ?? '—'}
+                        {index + 1} {player.name ?? player.nickname ?? '—'}
                       </span>
                     </td>
                     <td

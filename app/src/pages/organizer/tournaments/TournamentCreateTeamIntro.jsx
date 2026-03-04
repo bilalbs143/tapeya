@@ -29,13 +29,13 @@ export default function TournamentCreateTeamIntro() {
 
   useEffect(() => {
     if (!isValidId) {
-      navigate('/tournaments', { replace: true });
+      navigate('/organizer/tournaments', { replace: true });
     }
   }, [isValidId, navigate]);
 
   const handleCreateTeams = () => {
     if (tournamentIdNum) {
-      navigate(`/tournaments/${tournamentIdNum}/add-team`, {
+      navigate(`/organizer/tournaments/${tournamentIdNum}/add-team`, {
         state: {
           tournament: tournament
             ? {
@@ -46,7 +46,7 @@ export default function TournamentCreateTeamIntro() {
         },
       });
     } else {
-      navigate('/tournaments');
+      navigate('/organizer/tournaments');
     }
   };
 

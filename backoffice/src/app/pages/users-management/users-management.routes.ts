@@ -7,7 +7,7 @@ export const UsersManagementRoutes: Routes = [
     loadComponent: () => import('./users/users.component').then((m) => m.UsersComponent),
     data: {
       title: 'Users',
-      urls: [{ title: 'Dashboard', url: '/starter' }, { title: 'Users Management' }, { title: 'Users' }],
+      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Users Management' }, { title: 'Users' }],
     },
   },
 ];

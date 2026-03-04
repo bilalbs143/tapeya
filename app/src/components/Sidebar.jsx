@@ -35,7 +35,7 @@ const MENU_ITEMS = [
   {
     label: 'My Tournaments',
     icon: requestTournamentIcon,
-    path: '/tournaments',
+    path: '/organizer/tournaments',
   },
   { label: 'Support', icon: supportIcon },
   { label: 'Logout', icon: logoutIcon },

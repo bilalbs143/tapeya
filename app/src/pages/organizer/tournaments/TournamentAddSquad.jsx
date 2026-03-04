@@ -1,9 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
+import teamDeleteIcon from '@/assets/images/icons/team-delete-icon.svg';
+import { useToast } from '@/hooks/useToast';
+import { getApiErrorMessage } from '@/lib/apiErrors';
 import {
   useGetTournamentQuery,
   useGetTournamentTeamsQuery,
+  useRemoveTeamFromTournamentMutation,
 } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
@@ -35,31 +39,57 @@ function teamDisplay(team) {
   return { owner, iconPlayers };
 }
 
-function TeamCard({ team, index }) {
+function TeamCard({ team, index, onAddSquad, onDelete, isDeleting }) {
   const { owner, iconPlayers } = teamDisplay(team);
   return (
-    <div className="flex items-start gap-3 rounded-[17px] bg-[#141412] p-4">
-      <TeamLogoIcon logo={team.logo} teamName={team.name} />
-      <div className="min-w-0 flex-1">
-        <h3 className="text-[16px] font-bold text-white">{team.name ?? '—'}</h3>
-        <p className="mt-0.5 text-[14px] text-white">
-          Owner: <span className="font-medium text-[#DA9811]">{owner}</span>
-        </p>
-        <p className="mt-0.5 text-[12px] text-white">
-          Icon Players: <span className="text-[#A2A6AB]">{iconPlayers}</span>
-        </p>
+    <div className="rounded-[17px] bg-[#141412] p-4">
+      <div className="flex justify-end gap-1.5">
+        <Button
+          type="button"
+          variant="file"
+          size="sm"
+          className="h-8 rounded-full border border-[#DA9811] bg-transparent px-3 text-[12px] font-semibold text-[#DA9811]"
+          onClick={() => onAddSquad?.(team)}
+          disabled={isDeleting}
+        >
+          Add Squad
+        </Button>
+        <button
+          type="button"
+          onClick={() => onDelete?.(team)}
+          disabled={isDeleting}
+          className="flex h-8 w-8 shrink-0 items-center justify-center transition-opacity active:opacity-80 disabled:opacity-50"
+          aria-label="Remove team from tournament"
+        >
+          <img src={teamDeleteIcon} alt="" className="h-5 w-5" />
+        </button>
       </div>
-      <span className="shrink-0 text-[28px] font-bold text-[#DA98113B]">
-        {index + 1}
-      </span>
+      <div className="mt-3 flex items-start gap-3">
+        <TeamLogoIcon logo={team.logo} teamName={team.name} />
+        <div className="min-w-0 flex-1">
+          <h3 className="text:white text-[16px] font-bold">
+            {team.name ?? '—'}
+          </h3>
+          <p className="mt-0.5 text-[14px] text-white">
+            Owner: <span className="font-medium text-[#DA9811]">{owner}</span>
+          </p>
+          <p className="text:white mt-0.5 text-[12px]">
+            Icon Players: <span className="text-[#A2A6AB]">{iconPlayers}</span>
+          </p>
+        </div>
+        <span className="shrink-0 self-center text-[28px] leading-none font-bold text-[#DA98113B]">
+          {index + 1}
+        </span>
+      </div>
     </div>
   );
 }
 
-export default function TournamentSavedTeams() {
+export default function TournamentAddSquad() {
   const navigate = useNavigate();
   const location = useLocation();
   const { tournamentId } = useParams();
+  const stateTeams = location.state?.teams;
   const tournamentFromState = location.state?.tournament ?? null;
 
   const tournamentIdNum =
@@ -74,25 +104,52 @@ export default function TournamentSavedTeams() {
   );
   const tournament = tournamentFromState ?? tournamentFromApi ?? null;
 
-  const {
-    data: teams = [],
-    isLoading,
-    isError,
-    isSuccess,
-  } = useGetTournamentTeamsQuery(tournamentIdNum, {
-    skip: !isValidId,
-  });
+  const { data: fetchedTeams = [], isLoading } = useGetTournamentTeamsQuery(
+    tournamentIdNum,
+    { skip: !isValidId || stateTeams?.length > 0 },
+  );
+
+  const [removedTeamIds, setRemovedTeamIds] = useState([]);
+  const baseTeams = stateTeams?.length > 0 ? stateTeams : fetchedTeams;
+  const teams = baseTeams.filter((t) => !removedTeamIds.includes(t.id));
+  const toast = useToast();
+  const [removeTeam, { isLoading: isRemoving }] =
+    useRemoveTeamFromTournamentMutation();
 
   useEffect(() => {
     if (!isValidId) {
-      navigate('/tournaments', { replace: true });
+      navigate('/organizer/tournaments', { replace: true });
     }
   }, [isValidId, navigate]);
 
-  const handleSubmitTeams = () => {
-    navigate(`/tournaments/${tournamentIdNum}/add-squad`, {
-      state: { teams, tournament: tournament ?? { id: tournamentIdNum } },
+  const handleAddSquad = (team) => {
+    navigate(`/organizer/tournaments/${tournamentIdNum}/edit-squad`, {
+      state: { team, tournament: tournament ?? { id: tournamentIdNum } },
     });
+  };
+
+  const handleDelete = async (teamToRemove) => {
+    const teamName = teamToRemove?.name ?? 'this team';
+    if (
+      !window.confirm(
+        `Remove ${teamName} from the tournament? Scheduled matches involving this team will be deleted. This cannot be undone.`,
+      )
+    ) {
+      return;
+    }
+    try {
+      await removeTeam({
+        tournamentId: tournamentIdNum,
+        teamId: teamToRemove.id,
+      }).unwrap();
+      setRemovedTeamIds((prev) => [...prev, teamToRemove.id]);
+      toast.success('Team removed from tournament.');
+    } catch (err) {
+      toast.error(
+        getApiErrorMessage(err) ??
+          'Could not remove team. It may not be allowed after toss.',
+      );
+    }
   };
 
   return (
@@ -123,16 +180,13 @@ export default function TournamentSavedTeams() {
         </header>
 
         {tournament && (
-          <p className="mb-3 text-[13px] font-medium tracking-wide text-white uppercase">
+          <p className="mb-2 text-[13px] font-medium tracking-wide text-white uppercase">
             {tournament.tournament_name ?? tournament.name ?? 'Tournament'}
           </p>
         )}
 
-        {isLoading && (
+        {!stateTeams?.length && tournament?.id && isLoading && (
           <p className="mb-3 text-[13px] text-[#A2A6AB]">Loading teams…</p>
-        )}
-        {isError && (
-          <p className="mb-3 text-[13px] text-red-400">Failed to load teams.</p>
         )}
 
         <div className="mb-3 flex items-center justify-between">
@@ -142,7 +196,7 @@ export default function TournamentSavedTeams() {
           <button
             type="button"
             onClick={() =>
-              navigate(`/tournaments/${tournamentIdNum}/add-team`, {
+              navigate(`/organizer/tournaments/${tournamentIdNum}/add-team`, {
                 state: { tournament: tournament ?? { id: tournamentIdNum } },
               })
             }
@@ -157,32 +211,26 @@ export default function TournamentSavedTeams() {
           </button>
         </div>
 
-        <ul className="space-y-3 pb-6">
+        <ul className="space-y-3 pb-10">
           {!isLoading &&
             teams.map((team, index) => (
               <li key={team.id ?? index}>
-                <TeamCard team={team} index={index} />
+                <TeamCard
+                  team={team}
+                  index={index}
+                  onAddSquad={handleAddSquad}
+                  onDelete={handleDelete}
+                  isDeleting={isRemoving}
+                />
               </li>
             ))}
         </ul>
 
-        {!isLoading && isSuccess && teams.length === 0 && (
+        {!isLoading && teams.length === 0 && (
           <p className="rounded-[17px] bg-[#141412] px-4 py-6 text-center text-[13px] text-[#A2A6AB]">
-            No teams added yet. Create a team to get started.
+            No teams yet. Add teams from the saved teams step first.
           </p>
         )}
-
-        <div className="pt-2">
-          <Button
-            type="button"
-            variant="auth"
-            className="h-12 w-full rounded-[8px] bg-[#E4E7F4] text-[15px] font-semibold tracking-wide text-[#1a1a1a] uppercase"
-            onClick={handleSubmitTeams}
-            disabled={isLoading || teams.length === 0}
-          >
-            Submit Teams
-          </Button>
-        </div>
       </Container>
     </div>
   );

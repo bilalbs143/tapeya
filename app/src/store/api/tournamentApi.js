@@ -77,6 +77,49 @@ export const tournamentApi = baseApi.injectEndpoints({
         { type: 'Tournament', id: 'LIST' },
       ],
     }),
+    getTournamentMatches: builder.query({
+      query: ({ tournamentId, per_page } = {}) => ({
+        url: `/tournaments/${tournamentId}/matches`,
+        params: {
+          per_page: per_page ?? 100,
+        },
+      }),
+      transformResponse: (response) => response?.data ?? response ?? [],
+      providesTags: (result, _err, args) =>
+        args?.tournamentId
+          ? [
+              { type: 'TournamentMatches', id: args.tournamentId },
+              { type: 'Tournament', id: args.tournamentId },
+            ]
+          : [],
+    }),
+    likeTournament: builder.mutation({
+      query: (tournamentId) => ({
+        url: `/tournaments/${tournamentId}/like`,
+        method: 'POST',
+      }),
+      transformResponse: (response) => response?.data ?? response,
+      invalidatesTags: (_result, _err, tournamentId) =>
+        tournamentId ? [{ type: 'Tournament', id: tournamentId }] : [],
+    }),
+    dislikeTournament: builder.mutation({
+      query: (tournamentId) => ({
+        url: `/tournaments/${tournamentId}/dislike`,
+        method: 'POST',
+      }),
+      transformResponse: (response) => response?.data ?? response,
+      invalidatesTags: (_result, _err, tournamentId) =>
+        tournamentId ? [{ type: 'Tournament', id: tournamentId }] : [],
+    }),
+    shareTournament: builder.mutation({
+      query: (tournamentId) => ({
+        url: `/tournaments/${tournamentId}/share`,
+        method: 'POST',
+      }),
+      transformResponse: (response) => response?.data ?? response,
+      invalidatesTags: (_result, _err, tournamentId) =>
+        tournamentId ? [{ type: 'Tournament', id: tournamentId }] : [],
+    }),
   }),
 });
 
@@ -85,6 +128,10 @@ export const {
   useGetTournamentQuery,
   useLazyGetTournamentQuery,
   useGetTournamentTeamsQuery,
+  useGetTournamentMatchesQuery,
   useAttachTeamsToTournamentMutation,
   useRemoveTeamFromTournamentMutation,
+  useLikeTournamentMutation,
+  useDislikeTournamentMutation,
+  useShareTournamentMutation,
 } = tournamentApi;

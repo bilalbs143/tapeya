@@ -36,8 +36,8 @@ class StoreTournamentRequest extends FormRequest
             'city' => ['required', 'string', 'max:100'],
             'match_timings' => ['required', Rule::enum(MatchTimingEnum::class)],
             'status' => ['required', Rule::enum(StatusEnum::class)],
-            'display_image' => ['nullable', 'image', 'min:1', 'max:5120'],
-            'cover_image' => ['nullable', 'image', 'min:1', 'max:5120'],
+            'display_image' => ['sometimes', 'nullable', 'file', 'image', 'max:5120'],
+            'cover_image' => ['sometimes', 'nullable', 'file', 'image', 'max:5120'],
             'prize' => ['nullable', 'string', 'max:255'],
         ];
     }
