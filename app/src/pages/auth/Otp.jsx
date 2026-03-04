@@ -124,7 +124,8 @@ export default function Otp() {
         });
         bumpSavedProfile(phoneRaw);
       }
-      navigate('/home', { replace: true });
+      const from = state?.from?.pathname;
+      navigate(from && from !== '/login' ? from : '/home', { replace: true });
     } catch (err) {
       setServerError(
         getApiErrorMessage(err, 'Invalid or expired OTP. Please try again.'),

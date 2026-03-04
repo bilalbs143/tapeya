@@ -7,7 +7,7 @@ export const ShopManagementRoutes: Routes = [
     loadComponent: () => import('./brands/brands.component').then((m) => m.BrandsComponent),
     data: {
       title: 'Brands',
-      urls: [{ title: 'Dashboard', url: '/starter' }, { title: 'Shop' }, { title: 'Brands' }],
+      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Shop' }, { title: 'Brands' }],
     },
   },
   {
@@ -15,7 +15,7 @@ export const ShopManagementRoutes: Routes = [
     loadComponent: () => import('./categories/categories.component').then((m) => m.CategoriesComponent),
     data: {
       title: 'Categories',
-      urls: [{ title: 'Dashboard', url: '/starter' }, { title: 'Shop' }, { title: 'Categories' }],
+      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Shop' }, { title: 'Categories' }],
     },
   },
   {
@@ -23,7 +23,7 @@ export const ShopManagementRoutes: Routes = [
     loadComponent: () => import('./products/products.component').then((m) => m.ProductsComponent),
     data: {
       title: 'Products',
-      urls: [{ title: 'Dashboard', url: '/starter' }, { title: 'Shop' }, { title: 'Products' }],
+      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Shop' }, { title: 'Products' }],
     },
   },
   {
@@ -31,7 +31,7 @@ export const ShopManagementRoutes: Routes = [
     loadComponent: () => import('./orders/orders.component').then((m) => m.OrdersComponent),
     data: {
       title: 'Orders',
-      urls: [{ title: 'Dashboard', url: '/starter' }, { title: 'Shop' }, { title: 'Orders' }],
+      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Shop' }, { title: 'Orders' }],
     },
   },
 ];

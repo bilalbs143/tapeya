@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import tapeyaLogo from '@/assets/images/logos/tapeya-logo-white.svg';
 import defaultAvatar from '@/assets/images/standard/default-avatar.png';
@@ -37,6 +37,7 @@ function formatPhoneDisplay(phone) {
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useAppDispatch();
   const [showOtherAccount, setShowOtherAccount] = useState(false);
   const [tappingProfile, setTappingProfile] = useState(null);
@@ -64,7 +65,10 @@ export default function Login() {
     try {
       const result = await requestOtp({ phone }).unwrap();
       const otp = result?.data?.otp ?? result?.otp;
-      navigate('/otp', { state: { phone, otp }, replace: true });
+      navigate('/otp', {
+        state: { phone, otp, from: location.state?.from },
+        replace: true,
+      });
     } catch (err) {
       console.error('Login failed:', err);
     }
@@ -107,7 +111,10 @@ export default function Login() {
               }),
             );
           }
-          navigate('/home', { replace: true });
+          const from = location.state?.from?.pathname;
+          navigate(from && from !== '/login' ? from : '/home', {
+            replace: true,
+          });
         }
       } catch {
         clearProfileToken(profile.phone);

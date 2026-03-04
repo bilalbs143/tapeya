@@ -91,7 +91,7 @@ export default function TournamentAddTeam() {
 
   useEffect(() => {
     if (!isValidId) {
-      navigate('/tournaments', { replace: true });
+      navigate('/organizer/tournaments', { replace: true });
     }
   }, [isValidId, navigate]);
 
@@ -219,7 +219,7 @@ export default function TournamentAddTeam() {
           team_ids: [selectedTeam.id],
         }).unwrap();
         toast.success('Team added to tournament.');
-        navigate(`/tournaments/${tournamentIdNum}/saved-teams`, {
+        navigate(`/organizer/tournaments/${tournamentIdNum}/saved-teams`, {
           state: {
             newTeam: selectedTeam,
             tournament: tournament ?? { id: tournamentIdNum },
@@ -255,7 +255,7 @@ export default function TournamentAddTeam() {
           ? 'Team created and added to tournament.'
           : 'Team created.',
       );
-      navigate(`/tournaments/${tournamentIdNum}/saved-teams`, {
+      navigate(`/organizer/tournaments/${tournamentIdNum}/saved-teams`, {
         state: {
           newTeam: team,
           tournament: tournament ?? { id: tournamentIdNum },
@@ -454,7 +454,7 @@ export default function TournamentAddTeam() {
                                     });
                                     setSponsorSearch('');
                                   }}
-                                  className="flex w-full cursor-pointer items-center rounded-sm px-3 py-2.5 text-left text-base text-white outline-none hover:bg-white/10 focus:bg-white/10"
+                                  className="flex w-full cursor-pointer items-center rounded-sm px-3 py-2.5 text-left text-base text-white transition-colors outline-none hover:bg-white/10 focus:bg-white/10"
                                 >
                                   {s.name}
                                 </button>

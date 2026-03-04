@@ -117,9 +117,11 @@ export default function TournamentEditSquad() {
 
   useEffect(() => {
     if (!isValidId) {
-      navigate('/tournaments', { replace: true });
+      navigate('/organizer/tournaments', { replace: true });
     } else if (!teamFromState) {
-      navigate(`/tournaments/${tournamentIdNum}/add-squad`, { replace: true });
+      navigate(`/organizer/tournaments/${tournamentIdNum}/add-squad`, {
+        replace: true,
+      });
     }
   }, [isValidId, teamFromState, tournamentIdNum, navigate]);
 
@@ -175,8 +177,17 @@ export default function TournamentEditSquad() {
     }
     try {
       await updateSquad({ teamId, player_ids }).unwrap();
-      setShowSuccessModal(true);
       toast.success('Squad updated.');
+
+      if (tournamentIdNum && teamId) {
+        navigate(
+          `/organizer/tournaments/${tournamentIdNum}/final-squad/${teamId}`,
+          {
+            replace: true,
+            state: { team, tournament },
+          },
+        );
+      }
     } catch (err) {
       toast.error(getApiErrorMessage(err) ?? 'Failed to save squad.');
     }
@@ -214,7 +225,7 @@ export default function TournamentEditSquad() {
             {tournament?.tournament_name ?? tournament?.name ?? 'Tournament'}
           </p>
         )}
-        <p className="mb-3 text-[13px] font-medium tracking-wide text-white uppercase">
+        <p className="text:white mb-3 text-[13px] font-medium tracking-wide uppercase">
           {(team?.name ?? '').toUpperCase() || 'Team'}
         </p>
 
@@ -237,13 +248,13 @@ export default function TournamentEditSquad() {
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <h2 className="text-[16px] font-bold text-white">
+            <h2 className="text:white text-[16px] font-bold">
               {team?.name ?? '—'}
             </h2>
             <p className="mt-0.5 text-[14px] text-[#DA9811]">
               Owner: {team?.owner ?? team?.sponsor?.name ?? '—'}
             </p>
-            <p className="mt-0.5 text-[12px] text-white">
+            <p className="text:white mt-0.5 text-[12px]">
               Icon Players:{' '}
               {Array.isArray(team?.icon_players) && team.icon_players.length > 0
                 ? team.icon_players
@@ -265,7 +276,7 @@ export default function TournamentEditSquad() {
           <div className="relative">
             <input
               id="find-player"
-              type="search"
+              type="text"
               value={findPlayer}
               onChange={(e) => setFindPlayer(e.target.value)}
               placeholder="Search by name, nickname or phone…"
@@ -300,7 +311,7 @@ export default function TournamentEditSquad() {
                         <button
                           type="button"
                           onClick={() => handleAddPlayer(player)}
-                          className="hover:bg.white/10 flex w-full cursor-pointer flex-col gap-0.5 px-4 py-3 text-left transition-colors hover:bg-white/10"
+                          className="flex w-full cursor-pointer flex-col gap-0.5 px-4 py-3 text-left text-white transition-colors hover:bg-white/10"
                         >
                           <span className="font-semibold text-white">
                             {player.name ?? player.nickname ?? '—'}
@@ -407,7 +418,7 @@ export default function TournamentEditSquad() {
             <div className="flex shrink-0 items-center justify-between px-4 py-3">
               <span aria-hidden className="w-5" />
               <DialogClose
-                className="rounded p-1 text-white/60 transition-colors hover:text-white focus:ring-2 focus:ring-[#FFB703] focus:outline-none"
+                className="text:white/60 hover:text:white rounded p-1 transition-colors focus:ring-2 focus:ring-[#FFB703] focus:outline-none"
                 aria-label="Close"
               >
                 <svg
@@ -425,7 +436,7 @@ export default function TournamentEditSquad() {
 
             <DialogScrollBody className="flex flex-col items-center justify-center py-2 text-center">
               <div className="relative mb-3 flex h-14 w-14 shrink-0 items-center justify-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white">
+                <div className="bg:white flex h-14 w-14 items-center justify-center rounded-full">
                   <svg
                     className="h-7 w-7 text-[#E8A857]"
                     viewBox="0 0 24 24"
@@ -440,7 +451,7 @@ export default function TournamentEditSquad() {
                   aria-hidden
                 >
                   <svg
-                    className="h-3 w-3 text-white"
+                    className="text:white h-3 w-3"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -453,7 +464,7 @@ export default function TournamentEditSquad() {
                 </div>
               </div>
 
-              <DialogTitle className="mb-1.5 text-[14px] font-bold text-white">
+              <DialogTitle className="text:white mb-1.5 text-[14px] font-bold">
                 Squad has been submitted
               </DialogTitle>
               <DialogDescription className="text-[13px] leading-snug text-[#A2A6AB]">

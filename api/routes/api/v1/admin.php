@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\HeroSliderController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\Shop\BrandController as AdminBrandController;
 use App\Http\Controllers\Admin\Shop\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\Shop\EcommerceDashboardController;
 use App\Http\Controllers\Admin\Shop\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\Shop\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\TournamentController;
@@ -41,6 +42,7 @@ Route::prefix('admin')->group(function () {
         Route::match(['put', 'patch'], 'tournament-requests/{tournament_request}', [TournamentRequestController::class, 'update']);
 
         Route::prefix('shop')->group(function () {
+            Route::get('dashboard-stats', EcommerceDashboardController::class);
             Route::apiResource('brands', AdminBrandController::class);
             Route::apiResource('categories', AdminCategoryController::class);
             Route::apiResource('products', AdminProductController::class);

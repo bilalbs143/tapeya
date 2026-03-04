@@ -242,7 +242,7 @@ export default function Ranking() {
 
           <TabsContent value="batters" className="mt-0">
             <RankingSection
-              title="Top Run Scorers (Open Tournaments)"
+              title="Top Run Scorers"
               linkTo={statsTotalPaths.ranking('run-scorers')}
               linkState={{
                 fromRanking: true,
@@ -257,7 +257,7 @@ export default function Ranking() {
 
           <TabsContent value="bowlers" className="mt-0">
             <RankingSection
-              title="Top Wicket Takers (Open Tournaments)"
+              title="Top Wicket Takers"
               linkTo={statsTotalPaths.ranking('wicket-takers')}
               linkState={{
                 fromRanking: true,
@@ -274,7 +274,7 @@ export default function Ranking() {
           <TabsContent value="others" className="mt-0">
             <section className="mb-8">
               <RankingSection
-                title="Most Sixes (Open Tournaments)"
+                title="Most Sixes"
                 linkTo={statsTotalPaths.ranking('sixes')}
                 linkState={{
                   fromRanking: true,
@@ -289,7 +289,7 @@ export default function Ranking() {
             </section>
             <section>
               <RankingSection
-                title="Most Fours (Open Tournaments)"
+                title="Most Fours"
                 linkTo={statsTotalPaths.ranking('fours')}
                 linkState={{
                   fromRanking: true,

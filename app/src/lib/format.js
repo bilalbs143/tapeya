@@ -61,3 +61,63 @@ export function formatDateRange(startDate, endDate, options) {
   if (!end) return start;
   return `${start} – ${end}`;
 }
+
+/**
+ * Ordinal suffix for day numbers (1st, 2nd, 3rd, 4th, …).
+ * @param {number} n - Day of month
+ * @returns {string} e.g. "st", "nd", "rd", "th"
+ */
+function ordinalSuffix(n) {
+  if (n >= 11 && n <= 13) return 'th';
+  switch (n % 10) {
+    case 1:
+      return 'st';
+    case 2:
+      return 'nd';
+    case 3:
+      return 'rd';
+    default:
+      return 'th';
+  }
+}
+
+/**
+ * Format date range with ordinal days: "10th - 15th June 2026".
+ * @param {string|Date|null|undefined} startDate
+ * @param {string|Date|null|undefined} [endDate]
+ * @returns {string}
+ */
+export function formatOrdinalDateRange(startDate, endDate) {
+  if (startDate == null || startDate === '') return '—';
+  const start = startDate instanceof Date ? startDate : new Date(startDate);
+  if (Number.isNaN(start.getTime())) return '—';
+  const startDay = start.getDate();
+  const startMonth = start.toLocaleDateString('en-GB', { month: 'long' });
+  const startYear = start.getFullYear();
+  const startStr = `${startDay}${ordinalSuffix(startDay)} ${startMonth} ${startYear}`;
+  if (
+    endDate == null ||
+    endDate === '' ||
+    String(endDate) === String(startDate)
+  )
+    return startStr;
+  const end = endDate instanceof Date ? endDate : new Date(endDate);
+  if (Number.isNaN(end.getTime())) return startStr;
+  const endDay = end.getDate();
+  const endMonth = end.toLocaleDateString('en-GB', { month: 'long' });
+  const endYear = end.getFullYear();
+  if (startMonth === endMonth && startYear === endYear)
+    return `${startDay}${ordinalSuffix(startDay)} - ${endDay}${ordinalSuffix(endDay)} ${endMonth} ${endYear}`;
+  return `${startStr} – ${endDay}${ordinalSuffix(endDay)} ${endMonth} ${endYear}`;
+}
+
+/**
+ * Ordinal match label: 1 -> "1st Match", 2 -> "2nd Match", etc.
+ * @param {number} n - Match number
+ * @returns {string}
+ */
+export function formatOrdinalMatch(n) {
+  const num = Number(n);
+  if (!Number.isFinite(num) || num < 1) return 'Match';
+  return `${num}${ordinalSuffix(num)} Match`;
+}

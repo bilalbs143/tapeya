@@ -135,9 +135,13 @@ export default function Tournaments() {
     const state = { tournament: payload };
     const hasTeams = (tournament.teams_count ?? 0) > 0;
     if (hasTeams) {
-      navigate(`/tournaments/${tournament.id}/saved-teams`, { state });
+      navigate(`/organizer/tournaments/${tournament.id}/saved-teams`, {
+        state,
+      });
     } else {
-      navigate(`/tournaments/${tournament.id}/create-team-intro`, { state });
+      navigate(`/organizer/tournaments/${tournament.id}/create-team-intro`, {
+        state,
+      });
     }
   };
 

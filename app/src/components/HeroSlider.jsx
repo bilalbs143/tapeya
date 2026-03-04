@@ -4,11 +4,20 @@ import 'swiper/css/pagination';
 import { Autoplay, Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-import heroImage from '@/assets/images/standard/hero-slider-image.png';
-
-const SLIDES = [1, 2];
+import { useGetHeroSlidersQuery } from '@/store/api/heroSliderApi';
 
 export function HeroSlider() {
+  const { data: slides = [], isLoading } = useGetHeroSlidersQuery();
+
+  if (isLoading) {
+    return (
+      <div className="h-[160px] animate-pulse overflow-hidden rounded-[17px] bg-[#141412]" />
+    );
+  }
+
+  const list = Array.isArray(slides) && slides.length > 0 ? slides : null;
+  if (!list) return null;
+
   return (
     <Swiper
       modules={[Autoplay, Pagination]}
@@ -16,14 +25,14 @@ export function HeroSlider() {
       slidesPerView={1}
       autoplay={{ delay: 5000, disableOnInteraction: false }}
       pagination={{ clickable: true }}
-      loop
+      loop={list.length > 1}
       className="hero-swiper"
     >
-      {SLIDES.map((id) => (
-        <SwiperSlide key={id}>
+      {list.map((slide) => (
+        <SwiperSlide key={slide.id}>
           <div className="h-[160px] overflow-hidden rounded-[17px]">
             <img
-              src={heroImage}
+              src={slide.image}
               alt=""
               className="h-full w-full object-cover"
             />

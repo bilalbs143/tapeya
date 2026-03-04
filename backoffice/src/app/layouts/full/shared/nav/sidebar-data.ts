@@ -8,7 +8,7 @@ export const navItems: NavItem[] = [
   {
     displayName: 'Cricket Dashboard',
     iconName: 'solar:home-angle-line-duotone',
-    route: '/starter',
+    route: '/dashboard',
   },
   {
     displayName: 'eCommerce Dashboard',

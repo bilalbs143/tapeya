@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\User\Auth\UserAuthController;
 use App\Http\Controllers\User\EnumController;
+use App\Http\Controllers\User\HeroSliderController;
 use App\Http\Controllers\User\MatchSquadController;
 use App\Http\Controllers\User\MatchTossController;
 use App\Http\Controllers\User\PlayerController;
@@ -21,6 +22,7 @@ use App\Http\Controllers\User\SponsorController;
 use App\Http\Controllers\User\TeamController;
 use App\Http\Controllers\User\TournamentController;
 use App\Http\Controllers\User\TournamentMatchController;
+use App\Http\Controllers\User\TournamentReactionController;
 use App\Http\Controllers\User\TournamentRequestController;
 use App\Http\Controllers\User\TournamentTeamController;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +34,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('enums', [EnumController::class, 'index']);
+Route::get('hero-sliders', [HeroSliderController::class, 'index']);
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [UserAuthController::class, 'register']);
@@ -72,6 +75,9 @@ Route::middleware('auth:api')->group(function () {
     Route::post('teams/{team}/squad', [TeamController::class, 'storeSquad']);
     Route::get('tournaments', [TournamentController::class, 'index']);
     Route::get('tournaments/{tournament}', [TournamentController::class, 'show']);
+    Route::post('tournaments/{tournament}/like', [TournamentReactionController::class, 'like']);
+    Route::post('tournaments/{tournament}/dislike', [TournamentReactionController::class, 'dislike']);
+    Route::post('tournaments/{tournament}/share', [TournamentReactionController::class, 'share']);
     Route::get('tournaments/{tournament}/teams', [TournamentTeamController::class, 'index']);
     Route::post('tournaments/{tournament}/teams', [TournamentTeamController::class, 'store']);
     Route::delete('tournaments/{tournament}/teams/{team}', [TournamentTeamController::class, 'destroy']);

@@ -75,7 +75,8 @@ export class TournamentsService {
   }
 
   public update(id: number, formData: FormData): Observable<{ data: Tournament }> {
-    return this.http.patch<{ data: Tournament }>(`${this.baseUrl}/${id}`, formData).pipe(
+    formData.append('_method', 'PATCH');
+    return this.http.post<{ data: Tournament }>(`${this.baseUrl}/${id}`, formData).pipe(
       tap(() => {
         this.messageService.success('Tournament updated successfully.');
       })

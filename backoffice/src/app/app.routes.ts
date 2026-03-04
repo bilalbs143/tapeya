@@ -12,12 +12,16 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: '/starter',
+        redirectTo: '/dashboard',
         pathMatch: 'full',
       },
       {
-        path: 'starter',
-        loadChildren: () => import('./pages/pages.routes').then((m) => m.PagesRoutes),
+        path: 'dashboard',
+        loadChildren: () => import('./pages/ecommerce/ecommerce.routes').then((m) => m.EcommerceRoutes),
+      },
+      {
+        path: 'ecommerce',
+        loadChildren: () => import('./pages/ecommerce/ecommerce.routes').then((m) => m.EcommerceRoutes),
       },
       {
         path: 'content-management',

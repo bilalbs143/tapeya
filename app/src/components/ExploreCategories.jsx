@@ -17,9 +17,14 @@ const CATEGORIES = [
     path: '/scorecard',
     icon: liveScoreIcon,
   },
-  { id: 'rankings', label: 'Rankings', path: '/rankings', icon: rankingsIcon },
+  { id: 'rankings', label: 'Rankings', path: '/ranking', icon: rankingsIcon },
   { id: 'shop', label: 'Shop', path: '/shop', icon: shopIcon },
-  { id: 'upcoming', label: 'Upcoming', path: '/upcoming', icon: upcomingIcon },
+  {
+    id: 'upcoming',
+    label: 'Upcoming',
+    path: '/upcoming-tournaments',
+    icon: upcomingIcon,
+  },
   { id: 'drafting', label: 'Drafting', path: '/drafting', icon: draftingIcon },
   { id: 'reels', label: 'Reels', path: '/reels', icon: reelsIcon },
   {
