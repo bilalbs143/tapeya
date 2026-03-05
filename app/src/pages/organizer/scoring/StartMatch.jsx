@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import teamMatchIcon from '@/assets/images/icons/team-match-icon.svg';
+import { buildMatchConfig } from './matchConfig';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 import { DatePicker } from '@/ui/DatePicker';
@@ -38,8 +39,10 @@ export default function StartMatch() {
   const [playersPerSide, setPlayersPerSide] = useState('');
   const [ballType, setBallType] = useState('leather');
   const [teamDialogOpen, setTeamDialogOpen] = useState(false);
+  const [editingTeam, setEditingTeam] = useState(null); // 'A' | 'B'
   const [teamName, setTeamName] = useState('');
-  const [teamLocation, setTeamLocation] = useState('');
+  const [teamA, setTeamA] = useState({ name: '' });
+  const [teamB, setTeamB] = useState({ name: '' });
   const [oversDialogOpen, setOversDialogOpen] = useState(false);
   const [wicketsDialogOpen, setWicketsDialogOpen] = useState(false);
   const [tossDialogOpen, setTossDialogOpen] = useState(false);
@@ -47,21 +50,48 @@ export default function StartMatch() {
   const [tossDecision, setTossDecision] = useState('');
 
   const handleBack = () => navigate(-1);
-  const handleOpenTeamDialog = () => setTeamDialogOpen(true);
+  const handleOpenTeamDialog = (team) => {
+    setEditingTeam(team);
+    if (team === 'A') {
+      setTeamName(teamA.name);
+    } else {
+      setTeamName(teamB.name);
+    }
+    setTeamDialogOpen(true);
+  };
   const handleCreateTeam = () => {
-    // TODO: integrate API
+    const name = teamName.trim();
+    if (!name) return;
+    if (editingTeam === 'A') {
+      setTeamA({ name });
+    } else if (editingTeam === 'B') {
+      setTeamB({ name });
+    }
     setTeamDialogOpen(false);
+    setEditingTeam(null);
     setTeamName('');
-    setTeamLocation('');
   };
   const handleSaveFixture = () => {} // TODO: integrate with API
   const handleStartMatch = () => setTossDialogOpen(true);
   const handleStartScoring = () => {
+    const match = buildMatchConfig({
+      teamA,
+      teamB,
+      venue,
+      matchDate,
+      matchTime,
+      format,
+      overs,
+      playersPerSide,
+      ballType,
+      tossWinner,
+      tossDecision,
+    });
     setTossDialogOpen(false);
     setTossWinner('');
     setTossDecision('');
-    // TODO: create match via API and use returned matchId
-    navigate('/organizer/scoring/match/new');
+    // TODO: create match via API, use returned matchId in URL
+    navigate('/organizer/scoring/match/new', { state: { match } });
   };
 
   return (
@@ -96,15 +126,15 @@ export default function StartMatch() {
           <div className="flex items-stretch">
             <button
               type="button"
-              onClick={handleOpenTeamDialog}
+              onClick={() => handleOpenTeamDialog('A')}
               className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] bg-[#141412] p-4 transition-opacity active:opacity-90"
             >
               <img src={teamMatchIcon} alt="" className="h-10 w-10 shrink-0" aria-hidden />
               <span className="text-[16px] font-bold uppercase tracking-wide text-white">
-                Team A
+                {teamA.name || 'Team A'}
               </span>
               <span className="text-[13px] font-normal text-[#A2A6AB]">
-                Create Team 1
+                {teamA.name ? null : 'Create Team 1'}
               </span>
             </button>
             <div className="relative z-10 flex shrink-0 items-center -mx-3">
@@ -114,15 +144,15 @@ export default function StartMatch() {
             </div>
             <button
               type="button"
-              onClick={handleOpenTeamDialog}
+              onClick={() => handleOpenTeamDialog('B')}
               className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] bg-[#141412] p-4 transition-opacity active:opacity-90"
             >
               <img src={teamMatchIcon} alt="" className="h-10 w-10 shrink-0" aria-hidden />
               <span className="text-[16px] font-bold uppercase tracking-wide text-white">
-                Team B
+                {teamB.name || 'Team B'}
               </span>
               <span className="text-[13px] font-normal text-[#A2A6AB]">
-                Create Team 2
+                {teamB.name ? null : 'Create Team 2'}
               </span>
             </button>
           </div>
@@ -343,7 +373,7 @@ export default function StartMatch() {
           <div className="flex min-h-0 flex-1 flex-col">
             <div className="flex shrink-0 items-center justify-between px-5 py-4">
               <DialogTitle className="text-[14px] !font-bold uppercase tracking-wide text-[#FF9700]">
-                Select Team
+                {editingTeam === 'A' ? 'Team A' : 'Team B'}
               </DialogTitle>
               <DialogClose
                 className="cursor-pointer rounded p-1 text-white/60 transition-colors hover:text-white focus:outline-none"
@@ -373,19 +403,6 @@ export default function StartMatch() {
                   placeholder="Create a team name"
                   value={teamName}
                   onChange={(e) => setTeamName(e.target.value)}
-                  className="!mb-0"
-                />
-              </FormField>
-              <FormField
-                htmlFor="team-location"
-                label="Location"
-                labelClassName={`!mb-2 ${formFieldLabelCheckoutClass}`}
-              >
-                <Input
-                  id="team-location"
-                  placeholder="Enter location"
-                  value={teamLocation}
-                  onChange={(e) => setTeamLocation(e.target.value)}
                   className="!mb-0"
                 />
               </FormField>
@@ -424,7 +441,9 @@ export default function StartMatch() {
                 }`}
               >
                 <img src={teamMatchIcon} alt="" className="h-8 w-8 shrink-0" aria-hidden />
-                <span className="text-[14px] font-bold uppercase">Team A</span>
+                <span className="text-[14px] font-bold uppercase">
+                  {teamA.name || 'Team A'}
+                </span>
               </button>
               <button
                 type="button"
@@ -436,7 +455,9 @@ export default function StartMatch() {
                 }`}
               >
                 <img src={teamMatchIcon} alt="" className="h-8 w-8 shrink-0" aria-hidden />
-                <span className="text-[14px] font-bold uppercase">Team B</span>
+                <span className="text-[14px] font-bold uppercase">
+                  {teamB.name || 'Team B'}
+                </span>
               </button>
             </div>
 

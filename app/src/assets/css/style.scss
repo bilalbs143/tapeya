@@ -83,3 +83,35 @@ body {
     background: #fdb022;
   }
 }
+
+// ─── Scoring / Partnership tabs ─────────────────────────────────────────────
+
+@keyframes scoring-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.scoring-blink-dot,
+.partnership-blink-dot {
+  animation: scoring-blink 1s ease-in-out infinite;
+}
+
+@keyframes slide-up-sheet {
+  from {
+    transform: translateY(100%);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.out-reason-sheet[data-state='open'] {
+  animation: slide-up-sheet 0.25s ease-out forwards;
+}
