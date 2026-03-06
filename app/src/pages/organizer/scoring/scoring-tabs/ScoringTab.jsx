@@ -19,6 +19,7 @@ import {
 } from '@/ui/Dialog';
 import { FormField, formFieldLabelEditClass } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
+import { ShotAreaDialog } from '../ShotAreaDialog';
 
 // ─── Constants ─────────────────────────────────────────────────────────────
 
@@ -137,6 +138,8 @@ export function ScoringTab({
   const [outReasonModalOpen, setOutReasonModalOpen] = useState(false);
   const [customScoreDialogOpen, setCustomScoreDialogOpen] = useState(false);
   const [customScoreInput, setCustomScoreInput] = useState('');
+  const [shotAreaDialogOpen, setShotAreaDialogOpen] = useState(false);
+  const [pendingRunsForShot, setPendingRunsForShot] = useState(null);
 
   // ─── Lifted state with fallbacks (persists across tab switch) ──────────────
 
@@ -383,8 +386,11 @@ export function ScoringTab({
 
   // ─── Scoring handlers (runs, extras, out, undo) ───────────────────────────
 
-  /** Record a run-scoring ball: update striker, bowler, and current partnership. */
-  const handleRuns = (runs) => {
+  /** Record a run-scoring ball: update striker, bowler, and current partnership.
+   *  @param {number} runs
+   *  @param {string} [shotDirection] - optional zone id from SHOT_DIRECTION_ZONES (when selected from dialog)
+   */
+  const handleRuns = (runs, shotDirection = null) => {
     if (batsmenOnCrease.length < 2 || bowlersInTable.length === 0) return;
     const striker = batsmenOnCrease[strikerIndex];
     const bowler = bowlersInTable[currentBowlerIndex];
@@ -393,7 +399,10 @@ export function ScoringTab({
     const overComplete = newBalls > 0 && newBalls % 6 === 0;
     const hasTwoBowlers = bowlersInTable.length === 2;
 
-    setBallHistory((prev) => [...prev, { type: 'runs', runs, strikerId: striker?.id, bowlerId: bowler?.id }]);
+    setBallHistory((prev) => [
+      ...prev,
+      { type: 'runs', runs, strikerId: striker?.id, bowlerId: bowler?.id, shotDirection: shotDirection ?? undefined },
+    ]);
     setBatsmenOnCrease((prev) =>
       prev.map((b) =>
         b.id === striker?.id
@@ -426,6 +435,24 @@ export function ScoringTab({
   const closeCustomScoreDialog = () => {
     setCustomScoreDialogOpen(false);
     setCustomScoreInput('');
+  };
+
+  /** Open shot-area dialog for run buttons 1–6; 0 still scores immediately. */
+  const openShotAreaDialog = (runs) => {
+    setPendingRunsForShot(runs);
+    setShotAreaDialogOpen(true);
+  };
+
+  const closeShotAreaDialog = () => {
+    setShotAreaDialogOpen(false);
+    setPendingRunsForShot(null);
+  };
+
+  const handleShotDirectionSelect = (zoneId) => {
+    if (pendingRunsForShot != null) {
+      handleRuns(pendingRunsForShot, zoneId);
+    }
+    closeShotAreaDialog();
   };
 
   const handleCustomScoreDone = () => {
@@ -927,7 +954,7 @@ export function ScoringTab({
               <button
                 key={runs}
                 type="button"
-                onClick={() => handleRuns(runs)}
+                onClick={() => (runs === 0 ? handleRuns(0) : openShotAreaDialog(runs))}
                 className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full text-[14px] font-bold text-white transition-opacity active:opacity-80"
                 style={{ backgroundColor: RUN_BUTTON_BG[runs] }}
                 aria-label={`${runs} run${runs !== 1 ? 's' : ''}`}
@@ -993,7 +1020,7 @@ export function ScoringTab({
               className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-red-500 bg-[#141412] text-[8px] font-bold uppercase text-red-500 transition-opacity active:opacity-80"
               aria-label="Undo"
             >
-              <span className="flex flex-col items-center gap-0.5">
+              <span className="flex flex-col items-center">
                 <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 10h10a5 5 0 0 1 5 5v2" />
                   <path d="M3 10l4-4M3 10l4 4" />
@@ -1025,6 +1052,13 @@ export function ScoringTab({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Shot area dialog – shown when user taps 1–6 runs */}
+      <ShotAreaDialog
+        open={shotAreaDialogOpen}
+        onOpenChange={(open) => !open && closeShotAreaDialog()}
+        onSelect={handleShotDirectionSelect}
+      />
 
       {/* Add custom score dialog */}
       <Dialog open={customScoreDialogOpen} onOpenChange={(open) => !open && closeCustomScoreDialog()}>
