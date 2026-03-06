@@ -135,6 +135,8 @@ export function ScoringTab({
   const [addBowlerView, setAddBowlerView] = useState('select');
   const [newBowlerName, setNewBowlerName] = useState('');
   const [outReasonModalOpen, setOutReasonModalOpen] = useState(false);
+  const [customScoreDialogOpen, setCustomScoreDialogOpen] = useState(false);
+  const [customScoreInput, setCustomScoreInput] = useState('');
 
   // ─── Lifted state with fallbacks (persists across tab switch) ──────────────
 
@@ -414,6 +416,23 @@ export function ScoringTab({
     }
     if (runs % 2 === 1) setStrikerIndexState((i) => (i === 0 ? 1 : 0));
     if (overComplete && hasTwoBowlers) setCurrentBowlerIndexState((i) => 1 - i);
+  };
+
+  const openCustomScoreDialog = () => {
+    setCustomScoreInput('');
+    setCustomScoreDialogOpen(true);
+  };
+
+  const closeCustomScoreDialog = () => {
+    setCustomScoreDialogOpen(false);
+    setCustomScoreInput('');
+  };
+
+  const handleCustomScoreDone = () => {
+    const n = parseInt(customScoreInput.trim(), 10);
+    if (Number.isNaN(n) || n < 0 || n > 99) return;
+    handleRuns(n);
+    closeCustomScoreDialog();
   };
 
   /** Record special/extra: wide, no-ball, bye, leg bye.
@@ -909,19 +928,27 @@ export function ScoringTab({
                 key={runs}
                 type="button"
                 onClick={() => handleRuns(runs)}
-                className="flex h-[47px] w-[47px] shrink-0 cursor-pointer items-center justify-center rounded-full text-[14px] font-bold text-white transition-opacity active:opacity-80"
+                className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full text-[14px] font-bold text-white transition-opacity active:opacity-80"
                 style={{ backgroundColor: RUN_BUTTON_BG[runs] }}
                 aria-label={`${runs} run${runs !== 1 ? 's' : ''}`}
               >
                 {runs}
               </button>
             ))}
+            <button
+              type="button"
+              onClick={openCustomScoreDialog}
+              className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#46463F] text-[25px] font-bold text-[#DA9811] transition-opacity active:opacity-80"
+              aria-label="Add custom score"
+            >
+              +
+            </button>
           </div>
           <div className="flex flex-wrap justify-center gap-2">
             <button
               type="button"
               onClick={() => handleSpecial('wd')}
-              className="flex h-14 w-14 shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#141412] text-[12px] font-bold uppercase text-white transition-opacity active:opacity-80"
+              className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#141412] text-[12px] font-bold uppercase text-white transition-opacity active:opacity-80"
               aria-label="Wide"
             >
               WD
@@ -929,7 +956,7 @@ export function ScoringTab({
             <button
               type="button"
               onClick={() => handleSpecial('nb')}
-              className="flex h-14 w-14 shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#141412] text-[12px] font-bold uppercase text-white transition-opacity active:opacity-80"
+              className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#141412] text-[12px] font-bold uppercase text-white transition-opacity active:opacity-80"
               aria-label="No ball"
             >
               NB
@@ -937,7 +964,7 @@ export function ScoringTab({
             <button
               type="button"
               onClick={() => handleSpecial('bye')}
-              className="flex h-14 w-14 shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#141412] text-[12px] font-bold uppercase text-white transition-opacity active:opacity-80"
+              className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#141412] text-[12px] font-bold uppercase text-white transition-opacity active:opacity-80"
               aria-label="Bye"
             >
               BYE
@@ -945,7 +972,7 @@ export function ScoringTab({
             <button
               type="button"
               onClick={() => handleSpecial('lb')}
-              className="flex h-14 w-14 shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#141412] text-[12px] font-bold uppercase text-white transition-opacity active:opacity-80"
+              className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#141412] text-[12px] font-bold uppercase text-white transition-opacity active:opacity-80"
               aria-label="Leg bye"
             >
               LB
@@ -955,7 +982,7 @@ export function ScoringTab({
               onClick={() => {
                 if (batsmenOnCrease.length === 2 && bowlersInTable.length > 0) setOutReasonModalOpen(true);
               }}
-              className="flex h-14 w-14 shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#141412] text-[12px] font-bold uppercase text-[#DA9811] transition-opacity active:opacity-80"
+              className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#141412] text-[12px] font-bold uppercase text-[#DA9811] transition-opacity active:opacity-80"
               aria-label="Out"
             >
               OUT
@@ -963,11 +990,11 @@ export function ScoringTab({
             <button
               type="button"
               onClick={() => handleUndo()}
-              className="flex h-14 w-14 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-red-500 bg-[#141412] text-[12px] font-bold uppercase text-red-500 transition-opacity active:opacity-80"
+              className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-red-500 bg-[#141412] text-[8px] font-bold uppercase text-red-500 transition-opacity active:opacity-80"
               aria-label="Undo"
             >
               <span className="flex flex-col items-center gap-0.5">
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 10h10a5 5 0 0 1 5 5v2" />
                   <path d="M3 10l4-4M3 10l4 4" />
               </svg>
@@ -997,6 +1024,47 @@ export function ScoringTab({
             ))}
           </div>
         </DialogContent>
+      </Dialog>
+
+      {/* Add custom score dialog */}
+      <Dialog open={customScoreDialogOpen} onOpenChange={(open) => !open && closeCustomScoreDialog()}>
+        <DialogContentProfile className="!h-auto !max-h-[90vh]">
+          <div className="shrink-0 px-5 pt-5">
+            <DialogTitle className="text-[14px] !font-bold uppercase tracking-wide text-[#DA9811]">
+              Add Score
+            </DialogTitle>
+          </div>
+          <DialogScrollBody className="flex flex-col">
+            <FormField
+              htmlFor="custom-score-input"
+              label="Custom score"
+              className="space-y-2"
+              labelClassName={formFieldLabelEditClass}
+            >
+              <Input
+                id="custom-score-input"
+                type="number"
+                min={0}
+                max={99}
+                placeholder="Enter custom score"
+                value={customScoreInput}
+                onChange={(e) => setCustomScoreInput(e.target.value)}
+                className="!mb-0 !border-[#DA9811] input-no-spinner"
+              />
+            </FormField>
+          </DialogScrollBody>
+          <div className="shrink-0 px-5 pb-5 pt-4">
+            <Button
+              type="button"
+              variant="orangeDialog"
+              size="dialog"
+              disabled={!customScoreInput.trim()}
+              onClick={handleCustomScoreDone}
+            >
+              Done
+            </Button>
+          </div>
+        </DialogContentProfile>
       </Dialog>
 
       {/* Add Batsman dialog – Select Batsman | Create New Batsman */}

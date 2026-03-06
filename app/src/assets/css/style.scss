@@ -115,3 +115,13 @@ body {
 .out-reason-sheet[data-state='open'] {
   animation: slide-up-sheet 0.25s ease-out forwards;
 }
+
+// Hide number input spinner (Chrome, Safari, Firefox)
+.input-no-spinner {
+  -moz-appearance: textfield;
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
