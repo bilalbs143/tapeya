@@ -58,7 +58,14 @@ class Tournament extends BaseModel
      */
     public static function getFilters(): array
     {
-        return ['id', 'status', 'tournament_type', 'organizer_id', 'country', 'city'];
+        return [
+            AllowedFilter::exact('id'),
+            'status',
+            'tournament_type',
+            AllowedFilter::exact('organizer_id'),
+            'country',
+            'city',
+        ];
     }
 
     /**
@@ -101,4 +108,5 @@ class Tournament extends BaseModel
     {
         return $this->hasMany(TournamentUserReaction::class, 'tournament_id');
     }
+
 }

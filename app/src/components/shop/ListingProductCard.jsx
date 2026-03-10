@@ -1,4 +1,5 @@
 import { memo } from 'react';
+
 import { Link } from 'react-router-dom';
 
 import productCartIcon from '@/assets/images/icons/product-cart-icon.svg';

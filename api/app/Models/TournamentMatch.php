@@ -17,10 +17,21 @@ class TournamentMatch extends BaseModel
         'match_time',
         'venue_name',
         'players_per_side',
+        'overs',
         'status',
         'winning_team_id',
         'chose_to_bat_or_bowl',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'match_date' => 'date',
+        ];
+    }
 
     public function tournament(): BelongsTo
     {

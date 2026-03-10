@@ -43,9 +43,7 @@ export function SquadSingle({ tournamentId, teamId }) {
               </div>
               <div className="min-w-0 flex-1 px-4 py-3">
                 <Link
-                  to={
-                    player.id ? `/user-profile/${player.id}` : '/user-profile'
-                  }
+                  to={player.id ? `/profile/${player.id}` : '/profile'}
                   className="block text-[13px] font-bold text-white focus:outline-none"
                 >
                   {player.name}

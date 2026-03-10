@@ -1,48 +1,127 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, useForm } from 'react-hook-form';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import teamMatchIcon from '@/assets/images/icons/team-match-icon.svg';
-import { buildMatchConfig } from './matchConfig';
+import OversDialog from '@/components/dialogs/scoring/OversDialog';
+import PlayersPerSideDialog from '@/components/dialogs/scoring/PlayersPerSideDialog';
+import TeamSelectDialog from '@/components/dialogs/scoring/TeamSelectDialog';
+import TossDialog from '@/components/dialogs/scoring/TossDialog';
+import { useToast } from '@/hooks/useToast';
+import { getApiErrorMessage } from '@/lib/apiErrors';
+import { startMatchSchema } from '@/lib/validations/startMatch';
+import { useGetEnumsQuery } from '@/store/api/enumApi';
+import { useUpdateTossMutation } from '@/store/api/matchApi';
+import {
+  useCreateTournamentMatchMutation,
+  useGetTournamentsQuery,
+  useGetTournamentTeamsQuery,
+} from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 import { DatePicker } from '@/ui/DatePicker';
-import { TimePicker } from '@/ui/TimePicker';
-import {
-  Dialog,
-  DialogClose,
-  DialogContentProfile,
-  DialogScrollBody,
-  DialogTitle,
-} from '@/ui/Dialog';
-import {
-  FormField,
-  formFieldLabelCheckoutClass,
-} from '@/ui/FormField';
+import { FormField, formFieldLabelCheckoutClass } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import { Label } from '@/ui/Label';
-import { ToggleGroup, ToggleGroupItem } from '@/ui/ToggleGroup';
+import { TimePicker } from '@/ui/TimePicker';
 
-const OVERS_OPTIONS = [5, 10, 15, 20, 25, 30, 40, 50];
-const OVERS_DIALOG_OPTIONS = [10, 20, 30, 40, 50];
-const PLAYERS_PER_SIDE_OPTIONS = [2, 3, 4, 5];
+import {
+  getMatchOversOptions,
+  getPlayersPerSideOptions,
+} from './scoringMappers';
+import { formatDateForApi, formatTimeForApi } from './scoringUtils';
 
 const oversInputBase =
   'flex h-12 w-full items-center rounded-[6px] bg-[#141412] px-4 py-3 text-left text-white focus:outline-none focus:ring-2 focus:ring-[#DA9811]/50 cursor-pointer';
 
+function buildMatchPayload(data) {
+  return {
+    tournamentId: data.tournament_id,
+    home_team_id: Number(data.team_a_id),
+    away_team_id: Number(data.team_b_id),
+    match_date: formatDateForApi(data.match_date),
+    match_time: formatTimeForApi(data.match_time),
+    venue_name: data.venue.trim(),
+    players_per_side: Number(data.players_per_side),
+    overs: data.overs,
+  };
+}
+
 export default function StartMatch() {
   const navigate = useNavigate();
-  const [venue, setVenue] = useState('');
-  const [matchDate, setMatchDate] = useState('');
-  const [matchTime, setMatchTime] = useState('');
-  const [format, setFormat] = useState('tournament');
-  const [overs, setOvers] = useState('');
-  const [playersPerSide, setPlayersPerSide] = useState('');
-  const [ballType, setBallType] = useState('leather');
-  const [teamDialogOpen, setTeamDialogOpen] = useState(false);
-  const [editingTeam, setEditingTeam] = useState(null); // 'A' | 'B'
-  const [teamName, setTeamName] = useState('');
-  const [teamA, setTeamA] = useState({ name: '' });
-  const [teamB, setTeamB] = useState({ name: '' });
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const tournamentIdFromUrl =
+    searchParams.get('tournamentId') || location.state?.tournamentId;
+
+  const { data: enums = {} } = useGetEnumsQuery();
+  const { data: tournamentsData } = useGetTournamentsQuery({ all: true });
+  const tournaments = tournamentsData?.data ?? [];
+
+  const toast = useToast();
+  const [createMatch, { isLoading: isCreatingMatch }] =
+    useCreateTournamentMatchMutation();
+  const [updateToss, { isLoading: isUpdatingToss }] = useUpdateTossMutation();
+
+  const oversOptions = useMemo(
+    () => getMatchOversOptions(enums.match_overs),
+    [enums.match_overs],
+  );
+  const playersPerSideOptions = useMemo(
+    () => getPlayersPerSideOptions(enums.players_per_side),
+    [enums.players_per_side],
+  );
+
+  const {
+    control,
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    getValues,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(startMatchSchema),
+    defaultValues: {
+      tournament_id: '',
+      team_a_id: '',
+      team_b_id: '',
+      venue: '',
+      match_date: '',
+      match_time: '',
+      players_per_side: '',
+      overs: '',
+    },
+    mode: 'onChange',
+  });
+
+  const validatedFormDataRef = useRef(null);
+
+  const {
+    tournament_id: tournamentId,
+    team_a_id,
+    team_b_id,
+    overs,
+    players_per_side: playersPerSide,
+  } = watch();
+  const { data: tournamentTeams = [] } = useGetTournamentTeamsQuery(
+    tournamentId || undefined,
+    { skip: !tournamentId },
+  );
+  const teams = Array.isArray(tournamentTeams) ? tournamentTeams : [];
+
+  useEffect(() => {
+    if (
+      tournamentIdFromUrl &&
+      getValues('tournament_id') !== String(tournamentIdFromUrl)
+    )
+      setValue('tournament_id', String(tournamentIdFromUrl));
+  }, [tournamentIdFromUrl, setValue, getValues]);
+
+  const [teamSelectDialogOpen, setTeamSelectDialogOpen] = useState(false);
+  const [teamSelectSide, setTeamSelectSide] = useState(null); // 'A' | 'B'
   const [oversDialogOpen, setOversDialogOpen] = useState(false);
   const [wicketsDialogOpen, setWicketsDialogOpen] = useState(false);
   const [tossDialogOpen, setTossDialogOpen] = useState(false);
@@ -50,54 +129,61 @@ export default function StartMatch() {
   const [tossDecision, setTossDecision] = useState('');
 
   const handleBack = () => navigate(-1);
-  const handleOpenTeamDialog = (team) => {
-    setEditingTeam(team);
-    if (team === 'A') {
-      setTeamName(teamA.name);
-    } else {
-      setTeamName(teamB.name);
+  const onSaveFixture = async (data) => {
+    try {
+      await createMatch(buildMatchPayload(data)).unwrap();
+      toast.success(
+        'Fixture saved. You can start scoring from the match later.',
+      );
+      navigate('/organizer/tournaments');
+    } catch (err) {
+      toast.error(
+        getApiErrorMessage(err) ?? 'Could not save fixture. Please try again.',
+      );
     }
-    setTeamDialogOpen(true);
   };
-  const handleCreateTeam = () => {
-    const name = teamName.trim();
-    if (!name) return;
-    if (editingTeam === 'A') {
-      setTeamA({ name });
-    } else if (editingTeam === 'B') {
-      setTeamB({ name });
-    }
-    setTeamDialogOpen(false);
-    setEditingTeam(null);
-    setTeamName('');
+
+  const onOpenToss = (data) => {
+    validatedFormDataRef.current = data;
+    setTossDialogOpen(true);
   };
-  const handleSaveFixture = () => {} // TODO: integrate with API
-  const handleStartMatch = () => setTossDialogOpen(true);
-  const handleStartScoring = () => {
-    const match = buildMatchConfig({
-      teamA,
-      teamB,
-      venue,
-      matchDate,
-      matchTime,
-      format,
-      overs,
-      playersPerSide,
-      ballType,
-      tossWinner,
-      tossDecision,
-    });
+
+  const handleStartScoring = async () => {
+    const data = validatedFormDataRef.current;
+    if (!data) return;
+
+    if (!tossWinner || !tossDecision) return;
+
     setTossDialogOpen(false);
     setTossWinner('');
     setTossDecision('');
-    // TODO: create match via API, use returned matchId in URL
-    navigate('/organizer/scoring/match/new', { state: { match } });
+
+    try {
+      const created = await createMatch(buildMatchPayload(data)).unwrap();
+      const matchId = created?.id;
+      if (matchId) {
+        const winningTeamId =
+          tossWinner === 'A' ? Number(data.team_a_id) : Number(data.team_b_id);
+        await updateToss({
+          matchId,
+          winning_team_id: winningTeamId,
+          chose_to_bat_or_bowl: tossDecision,
+        }).unwrap();
+        navigate(`/organizer/scoring/match/${matchId}`);
+        return;
+      }
+    } catch (err) {
+      toast.error(
+        getApiErrorMessage(err) ?? 'Could not create match. Please try again.',
+      );
+      return;
+    }
   };
 
   return (
     <div className="bg-black">
       <Container className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pb-6 pt-6">
+        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
           <button
             type="button"
             onClick={handleBack}
@@ -116,99 +202,176 @@ export default function StartMatch() {
               <path d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="min-w-0 flex-1 truncate pr-[27px] text-center text-[16px] font-bold uppercase tracking-wide text-white">
+          <h1 className="min-w-0 flex-1 truncate pr-[27px] text-center text-[16px] font-bold tracking-wide text-white uppercase">
             Start A Match
           </h1>
         </header>
 
         <div className="space-y-6 pb-8">
-          {/* Team selection */}
+          {/* Tournament selection (required – teams come from API) */}
+          <FormField
+            htmlFor="tournament_id"
+            label="Tournament"
+            className="space-y-2"
+            labelClassName={`!mb-2 ${formFieldLabelCheckoutClass}`}
+          >
+            <select
+              id="tournament_id"
+              value={tournamentId}
+              onChange={(e) => {
+                const v = e.target.value;
+                setValue('tournament_id', v || '');
+                setValue('team_a_id', '');
+                setValue('team_b_id', '');
+              }}
+              className={`${oversInputBase} w-full ${errors.tournament_id ? 'border-red-500' : ''}`}
+              aria-label="Select tournament"
+              aria-invalid={!!errors.tournament_id}
+            >
+              <option value="">Select tournament</option>
+              {tournaments.map((t) => (
+                <option key={t.id} value={String(t.id)}>
+                  {t.tournament_name ?? t.name ?? `Tournament ${t.id}`}
+                </option>
+              ))}
+            </select>
+            {errors.tournament_id?.message && (
+              <p className="text-sm text-red-200" role="alert">
+                {errors.tournament_id.message}
+              </p>
+            )}
+          </FormField>
+
+          {/* Team selection: card view, tap opens TeamSelectDialog when tournament has teams */}
           <div className="flex items-stretch">
             <button
               type="button"
-              onClick={() => handleOpenTeamDialog('A')}
-              className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] bg-[#141412] p-4 transition-opacity active:opacity-90"
+              disabled={!tournamentId || teams.length === 0}
+              onClick={() => {
+                setTeamSelectSide('A');
+                setTeamSelectDialogOpen(true);
+              }}
+              className={`flex flex-1 flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] bg-[#141412] p-4 transition-opacity active:opacity-90 disabled:cursor-default disabled:opacity-60 ${errors.team_a_id ? 'border-red-500' : ''}`}
+              aria-label="Select Team A"
             >
-              <img src={teamMatchIcon} alt="" className="h-10 w-10 shrink-0" aria-hidden />
-              <span className="text-[16px] font-bold uppercase tracking-wide text-white">
-                {teamA.name || 'Team A'}
+              <img
+                src={teamMatchIcon}
+                alt=""
+                className="h-10 w-10 shrink-0"
+                aria-hidden
+              />
+              <span className="text-[16px] font-bold tracking-wide text-white uppercase">
+                {team_a_id && teams.length > 0
+                  ? (teams.find((t) => String(t.id) === team_a_id)?.name ??
+                    'Team A')
+                  : 'Team A'}
               </span>
               <span className="text-[13px] font-normal text-[#A2A6AB]">
-                {teamA.name ? null : 'Create Team 1'}
+                {!tournamentId
+                  ? 'Select tournament'
+                  : team_a_id
+                    ? null
+                    : 'Select Team'}
               </span>
             </button>
-            <div className="relative z-10 flex shrink-0 items-center -mx-3">
-              <span className="flex h-13 w-13 shrink-0 items-center justify-center rounded-full border-[8px] border-black bg-[#DA9811] text-[12px] font-bold uppercase tracking-wide text-[#080807]">
+            <div className="relative z-10 -mx-3 flex shrink-0 items-center">
+              <span className="flex h-13 w-13 shrink-0 items-center justify-center rounded-full border-[8px] border-black bg-[#DA9811] text-[12px] font-bold tracking-wide text-[#080807] uppercase">
                 VS
               </span>
             </div>
             <button
               type="button"
-              onClick={() => handleOpenTeamDialog('B')}
-              className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] bg-[#141412] p-4 transition-opacity active:opacity-90"
+              disabled={!tournamentId || teams.length === 0}
+              onClick={() => {
+                setTeamSelectSide('B');
+                setTeamSelectDialogOpen(true);
+              }}
+              className={`flex flex-1 flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] bg-[#141412] p-4 transition-opacity active:opacity-90 disabled:cursor-default disabled:opacity-60 ${errors.team_b_id ? 'border-red-500' : ''}`}
+              aria-label="Select Team B"
             >
-              <img src={teamMatchIcon} alt="" className="h-10 w-10 shrink-0" aria-hidden />
-              <span className="text-[16px] font-bold uppercase tracking-wide text-white">
-                {teamB.name || 'Team B'}
+              <img
+                src={teamMatchIcon}
+                alt=""
+                className="h-10 w-10 shrink-0"
+                aria-hidden
+              />
+              <span className="text-[16px] font-bold tracking-wide text-white uppercase">
+                {team_b_id && teams.length > 0
+                  ? (teams.find((t) => String(t.id) === team_b_id)?.name ??
+                    'Team B')
+                  : 'Team B'}
               </span>
               <span className="text-[13px] font-normal text-[#A2A6AB]">
-                {teamB.name ? null : 'Create Team 2'}
+                {!tournamentId
+                  ? 'Select tournament'
+                  : team_b_id
+                    ? null
+                    : 'Select Team'}
               </span>
             </button>
           </div>
+          {errors.team_a_id?.message && (
+            <p className="text-sm text-red-200" role="alert">
+              {errors.team_a_id.message}
+            </p>
+          )}
+          {errors.team_b_id?.message && (
+            <p className="text-sm text-red-200" role="alert">
+              {errors.team_b_id.message}
+            </p>
+          )}
 
           <FormField
             htmlFor="venue"
-            label="Select a venue"
+            label="Select a Venue"
             className="space-y-2"
             labelClassName={`!mb-2 ${formFieldLabelCheckoutClass}`}
           >
             <Input
               id="venue"
-              placeholder="Venue name"
-              value={venue}
-              onChange={(e) => setVenue(e.target.value)}
+              placeholder="Venue Name"
+              error={errors.venue?.message}
               className="!mb-0"
+              {...register('venue')}
             />
           </FormField>
 
           {/* Match date and time */}
           <div className="space-y-2">
             <Label className={`!mb-2 ${formFieldLabelCheckoutClass}`}>
-              Match date and time
+              Match Date and Time
             </Label>
             <div className="grid grid-cols-2 gap-3">
-              <DatePicker
-                value={matchDate}
-                onChange={setMatchDate}
-                placeholder="Select date"
+              <Controller
+                name="match_date"
+                control={control}
+                render={({ field }) => (
+                  <DatePicker
+                    id={field.name}
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="Select Date"
+                  />
+                )}
               />
-              <TimePicker
-                value={matchTime}
-                onChange={setMatchTime}
-                placeholder="Select time"
+              <Controller
+                name="match_time"
+                control={control}
+                render={({ field }) => (
+                  <TimePicker
+                    id={field.name}
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="Select Time"
+                  />
+                )}
               />
             </div>
-          </div>
-
-          {/* Format */}
-          <div className="space-y-2">
-            <Label className={`!mb-2 ${formFieldLabelCheckoutClass}`}>
-              Format
-            </Label>
-            <ToggleGroup
-              type="single"
-              value={format}
-              onValueChange={(v) => v && setFormat(v)}
-              className="flex cursor-pointer gap-2"
-            >
-              <ToggleGroupItem value="tournament" className="cursor-pointer" aria-label="Tournament">
-                Tournament
-              </ToggleGroupItem>
-              <ToggleGroupItem value="club" className="cursor-pointer" aria-label="Club">
-                Club
-              </ToggleGroupItem>
-            </ToggleGroup>
+            {(errors.match_date?.message || errors.match_time?.message) && (
+              <p className="text-sm text-red-200" role="alert">
+                {errors.match_date?.message || errors.match_time?.message}
+              </p>
+            )}
           </div>
 
           {/* Overs */}
@@ -225,55 +388,22 @@ export default function StartMatch() {
               className={`${oversInputBase} ${!overs ? '!text-[#A2A6AB78]' : ''}`}
               aria-label="Select overs"
             >
-              {overs || 'Select overs'}
+              {overs || 'Select Overs'}
             </button>
+            {errors.overs?.message && (
+              <p className="text-sm text-red-200" role="alert">
+                {errors.overs.message}
+              </p>
+            )}
           </FormField>
 
-          {/* Overs selection dialog */}
-          <Dialog open={oversDialogOpen} onOpenChange={setOversDialogOpen}>
-            <DialogContentProfile className="!h-auto !max-h-[90vh]">
-              <div className="flex min-h-0 flex-1 flex-col p-5">
-                <DialogTitle className="text-[14px] !font-bold uppercase tracking-wide text-[#DA9811]">
-                  Select Overs
-                </DialogTitle>
-                <div
-                  className="mt-4 flex h-12 items-center rounded-[6px] bg-[#141412] px-4 text-white"
-                  aria-live="polite"
-                >
-                  {overs || '—'}
-                </div>
-                <div className="mt-4">
-                  <ToggleGroup
-                    type="single"
-                    value={overs}
-                    onValueChange={(v) => v && setOvers(v)}
-                    className="flex cursor-pointer flex-wrap gap-2"
-                  >
-                    {OVERS_DIALOG_OPTIONS.map((n) => (
-                      <ToggleGroupItem
-                        key={n}
-                        value={String(n)}
-                        className="cursor-pointer"
-                        aria-label={`${n} overs`}
-                      >
-                        {n}
-                      </ToggleGroupItem>
-                    ))}
-                  </ToggleGroup>
-                </div>
-                <div className="mt-6">
-                  <Button
-                    type="button"
-                    variant="orange"
-                    className="w-full cursor-pointer !bg-[#DA9811] !text-[#080807]"
-                    onClick={() => setOversDialogOpen(false)}
-                  >
-                    Done
-                  </Button>
-                </div>
-              </div>
-            </DialogContentProfile>
-          </Dialog>
+          <OversDialog
+            open={oversDialogOpen}
+            onOpenChange={setOversDialogOpen}
+            overs={overs}
+            options={oversOptions}
+            onChange={(v) => setValue('overs', v)}
+          />
 
           {/* Wickets / players per side */}
           <FormField
@@ -289,206 +419,89 @@ export default function StartMatch() {
               className={`${oversInputBase} ${!playersPerSide ? '!text-[#A2A6AB78]' : ''}`}
               aria-label="Select players per side"
             >
-              {playersPerSide || 'Select players per side'}
+              {playersPerSide || 'Select Players Per Side'}
             </button>
+            {errors.players_per_side?.message && (
+              <p className="text-sm text-red-200" role="alert">
+                {errors.players_per_side.message}
+              </p>
+            )}
           </FormField>
 
-          {/* Wickets (players per side) selection dialog */}
-          <Dialog open={wicketsDialogOpen} onOpenChange={setWicketsDialogOpen}>
-            <DialogContentProfile className="!h-auto !max-h-[90vh]">
-              <div className="flex min-h-0 flex-1 flex-col p-5">
-                <DialogTitle className="text-[14px] !font-bold uppercase tracking-wide text-[#DA9811]">
-                  Select players per side
-                </DialogTitle>
-                <div className="mt-5 flex flex-col gap-2">
-                  {PLAYERS_PER_SIDE_OPTIONS.map((n) => {
-                    const isSelected = playersPerSide === String(n);
-                    return (
-                      <button
-                        key={n}
-                        type="button"
-                        onClick={() => {
-                          setPlayersPerSide(String(n));
-                          setWicketsDialogOpen(false);
-                        }}
-                        className={`flex w-full cursor-pointer items-center rounded-full px-4 py-3 text-base text-[14px] font-medium transition-colors focus:outline-none ${
-                          isSelected
-                            ? 'bg-[#DA9811] text-[#080807]'
-                            : 'bg-[#141412] text-white'
-                        }`}
-                      >
-                        {n}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </DialogContentProfile>
-          </Dialog>
-
-          {/* Ball type */}
-          <div className="space-y-2">
-            <Label className={`!mb-2 ${formFieldLabelCheckoutClass}`}>
-              Ball type
-            </Label>
-            <ToggleGroup
-              type="single"
-              value={ballType}
-              onValueChange={(v) => v && setBallType(v)}
-              className="flex cursor-pointer gap-2"
-            >
-              <ToggleGroupItem value="leather" className="cursor-pointer" aria-label="Leather Ball">
-                Leather Ball
-              </ToggleGroupItem>
-              <ToggleGroupItem value="tennis" className="cursor-pointer" aria-label="Tennis Ball">
-                Tennis Ball
-              </ToggleGroupItem>
-            </ToggleGroup>
-          </div>
+          <PlayersPerSideDialog
+            open={wicketsDialogOpen}
+            onOpenChange={setWicketsDialogOpen}
+            playersPerSide={playersPerSide}
+            options={playersPerSideOptions}
+            onSelect={(val) => setValue('players_per_side', val)}
+          />
 
           {/* Actions */}
           <div className="flex gap-3 pt-2">
             <Button
               type="button"
               variant="fixture"
-              onClick={handleSaveFixture}
+              onClick={handleSubmit(onSaveFixture)}
               className="flex-1 cursor-pointer"
+              disabled={isCreatingMatch}
             >
-              Save Fixture
+              {isCreatingMatch ? 'Saving…' : 'Save Fixture'}
             </Button>
             <Button
               type="button"
               variant="orange"
-              onClick={handleStartMatch}
+              onClick={handleSubmit(onOpenToss)}
               className="flex-1 cursor-pointer"
+              disabled={isCreatingMatch || isUpdatingToss}
             >
-              Start Match
+              {isCreatingMatch || isUpdatingToss ? 'Starting…' : 'Start Match'}
             </Button>
           </div>
         </div>
       </Container>
 
-      <Dialog open={teamDialogOpen} onOpenChange={setTeamDialogOpen}>
-        <DialogContentProfile className="!h-auto !max-h-[90vh]">
-          <div className="flex min-h-0 flex-1 flex-col">
-            <div className="flex shrink-0 items-center justify-between px-5 py-4">
-              <DialogTitle className="text-[14px] !font-bold uppercase tracking-wide text-[#FF9700]">
-                {editingTeam === 'A' ? 'Team A' : 'Team B'}
-              </DialogTitle>
-              <DialogClose
-                className="cursor-pointer rounded p-1 text-white/60 transition-colors hover:text-white focus:outline-none"
-                aria-label="Close"
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 15 15"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M11.7816 4.03157C12.0062 3.80702 12.0062 3.44295 11.7816 3.2184C11.5571 2.99385 11.193 2.99385 10.9685 3.2184L7.50005 6.68682L4.03164 3.2184C3.80708 2.99385 3.44301 2.99385 3.21846 3.2184C2.99391 3.44295 2.99391 3.80702 3.21846 4.03157L6.68688 7.49999L3.21846 10.9684C2.99391 11.193 2.99391 11.557 3.21846 11.7816C3.44301 12.0061 3.80708 12.0061 4.03164 11.7816L7.50005 8.31316L10.9685 11.7816C11.193 12.0061 11.5571 12.0061 11.7816 11.7816C12.0062 11.557 12.0062 11.193 11.7816 10.9684L8.31322 7.49999L11.7816 4.03157Z" />
-                </svg>
-              </DialogClose>
-            </div>
+      <TeamSelectDialog
+        open={teamSelectDialogOpen}
+        onOpenChange={(open) => {
+          setTeamSelectDialogOpen(open);
+          if (!open) setTeamSelectSide(null);
+        }}
+        title={teamSelectSide === 'A' ? 'Select Team A' : 'Select Team B'}
+        teams={
+          teamSelectSide === 'B'
+            ? teams.filter((t) => String(t.id) !== team_a_id)
+            : teams.filter((t) => String(t.id) !== team_b_id)
+        }
+        selectedTeamId={teamSelectSide === 'A' ? team_a_id : team_b_id}
+        onSelect={(id) => {
+          if (teamSelectSide === 'A') setValue('team_a_id', id);
+          else if (teamSelectSide === 'B') setValue('team_b_id', id);
+        }}
+      />
 
-            <DialogScrollBody className="flex flex-col gap-4">
-              <FormField
-                htmlFor="team-name"
-                label="Team name"
-                labelClassName={`!mb-2 ${formFieldLabelCheckoutClass}`}
-              >
-                <Input
-                  id="team-name"
-                  placeholder="Create a team name"
-                  value={teamName}
-                  onChange={(e) => setTeamName(e.target.value)}
-                  className="!mb-0"
-                />
-              </FormField>
-            </DialogScrollBody>
-
-            <div className="shrink-0 px-5 pb-5 pt-2">
-              <Button
-                type="button"
-                variant="orange"
-                className="w-full cursor-pointer"
-                onClick={handleCreateTeam}
-              >
-                Create Team
-              </Button>
-            </div>
-          </div>
-        </DialogContentProfile>
-      </Dialog>
-
-      {/* Toss dialog – shown when user clicks Start Match */}
-      <Dialog open={tossDialogOpen} onOpenChange={setTossDialogOpen}>
-        <DialogContentProfile className="!h-auto !max-h-[90vh]">
-          <div className="flex min-h-0 flex-1 flex-col p-5">
-            <DialogTitle className="text-[14px] !font-bold uppercase tracking-wide text-[#DA9811]">
-              Who won the toss?
-            </DialogTitle>
-
-            <div className="mt-5 flex gap-3">
-              <button
-                type="button"
-                onClick={() => setTossWinner('A')}
-                className={`flex flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-[17px] border-2 px-4 py-4 transition-colors focus:outline-none ${
-                  tossWinner === 'A'
-                    ? 'border-[#DA9811] bg-[#DA9811] text-white'
-                    : 'border-[#141412] bg-[#141412] text-white'
-                }`}
-              >
-                <img src={teamMatchIcon} alt="" className="h-8 w-8 shrink-0" aria-hidden />
-                <span className="text-[14px] font-bold uppercase">
-                  {teamA.name || 'Team A'}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setTossWinner('B')}
-                className={`flex flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-[17px] border-2 px-4 py-4 transition-colors focus:outline-none ${
-                  tossWinner === 'B'
-                    ? 'border-[#DA9811] bg-[#DA9811] text-white'
-                    : 'border-[#141412] bg-[#141412] text-white'
-                }`}
-              >
-                <img src={teamMatchIcon} alt="" className="h-8 w-8 shrink-0" aria-hidden />
-                <span className="text-[14px] font-bold uppercase">
-                  {teamB.name || 'Team B'}
-                </span>
-              </button>
-            </div>
-
-            <p className="mt-6 text-[14px] font-medium text-white">Decided to?</p>
-            <ToggleGroup
-              type="single"
-              value={tossDecision}
-              onValueChange={(v) => v && setTossDecision(v)}
-              className="mt-2 flex cursor-pointer gap-2"
-            >
-              <ToggleGroupItem value="bat" className="cursor-pointer" aria-label="Bat">
-                Bat
-              </ToggleGroupItem>
-              <ToggleGroupItem value="bowl" className="cursor-pointer" aria-label="Bowl">
-                Bowl
-              </ToggleGroupItem>
-            </ToggleGroup>
-
-            <div className="mt-6">
-              <Button
-                type="button"
-                variant="orange"
-                className="w-full cursor-pointer"
-                onClick={handleStartScoring}
-              >
-                Start Scoring
-              </Button>
-            </div>
-          </div>
-        </DialogContentProfile>
-      </Dialog>
+      <TossDialog
+        open={tossDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setTossWinner('');
+            setTossDecision('');
+          }
+          setTossDialogOpen(open);
+        }}
+        teamAName={
+          teams.find((t) => String(t.id) === team_a_id)?.name ?? 'Team A'
+        }
+        teamBName={
+          teams.find((t) => String(t.id) === team_b_id)?.name ?? 'Team B'
+        }
+        tossWinner={tossWinner}
+        setTossWinner={setTossWinner}
+        tossDecision={tossDecision}
+        setTossDecision={setTossDecision}
+        onStartScoring={handleStartScoring}
+        disabled={isCreatingMatch || isUpdatingToss}
+        canConfirm={!!tossWinner && !!tossDecision}
+      />
     </div>
   );
 }

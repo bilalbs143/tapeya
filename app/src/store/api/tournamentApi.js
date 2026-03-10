@@ -15,6 +15,7 @@ export const tournamentApi = baseApi.injectEndpoints({
           per_page: params.all ? undefined : (params.per_page ?? 15),
           page: params.all ? undefined : params.page,
           'filter[status]': params.status,
+          'filter[organizer_id]': params.organizer_id,
           sort: params.sort,
         },
       }),
@@ -93,6 +94,21 @@ export const tournamentApi = baseApi.injectEndpoints({
             ]
           : [],
     }),
+    createTournamentMatch: builder.mutation({
+      query: ({ tournamentId, ...body }) => ({
+        url: `/tournaments/${tournamentId}/matches`,
+        method: 'POST',
+        body,
+      }),
+      transformResponse: (response) => response?.data ?? response,
+      invalidatesTags: (_result, _err, { tournamentId }) =>
+        tournamentId
+          ? [
+              { type: 'TournamentMatches', id: tournamentId },
+              { type: 'Tournament', id: tournamentId },
+            ]
+          : [],
+    }),
     likeTournament: builder.mutation({
       query: (tournamentId) => ({
         url: `/tournaments/${tournamentId}/like`,
@@ -129,6 +145,7 @@ export const {
   useLazyGetTournamentQuery,
   useGetTournamentTeamsQuery,
   useGetTournamentMatchesQuery,
+  useCreateTournamentMatchMutation,
   useAttachTeamsToTournamentMutation,
   useRemoveTeamFromTournamentMutation,
   useLikeTournamentMutation,

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+
 import { Link, useNavigate } from 'react-router-dom';
 
 import draftingIcon from '@/assets/images/icons/drafting-icon.svg';
@@ -24,7 +25,11 @@ const MENU_ITEMS = [
     icon: requestTournamentIcon,
     path: '/tournament-request',
   },
-  { label: 'Start Match', icon: starMatchIcon, path: '/organizer/scoring/start-match' },
+  {
+    label: 'Start Match',
+    icon: starMatchIcon,
+    path: '/organizer/scoring/start-match',
+  },
   { label: 'Drafting', icon: draftingIcon, path: '/drafting' },
   { label: 'My Orders', icon: myOrderIcon, path: '/shop/orders' },
   { label: 'Go live', icon: goLiveIcon },
@@ -95,7 +100,7 @@ export function Sidebar({ open, onClose }) {
       <aside aria-hidden={!open} className={panel(open)}>
         <div className="flex flex-1 flex-col overflow-y-auto px-4 py-6">
           <Link
-            to="/user-profile"
+            to="/profile"
             onClick={onClose}
             className="flex gap-3 rounded-lg transition-colors hover:bg-white/5 focus:ring-2 focus:ring-white/20 focus:outline-none"
           >

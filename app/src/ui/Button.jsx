@@ -15,17 +15,22 @@ const variants = {
   card: 'bg-[#EBF2FF] text-[#A2A6AB]',
   auth: 'h-12 w-[358px] max-w-full rounded-[6px] bg-[#DA9811] font-bold text-[#080807] transition-opacity hover:opacity-95 active:opacity-90',
   /** Light grey/off-white background, dark text – e.g. Save Fixture */
-  fixture: 'rounded-[6px] bg-[#e8eafc] font-medium text-[#080807] transition-opacity hover:opacity-95 active:opacity-90',
+  fixture:
+    'rounded-[6px] bg-[#e8eafc] font-medium text-[#080807] transition-opacity hover:opacity-95 active:opacity-90',
   /** Orange primary action – e.g. Start Match */
-  orange: 'rounded-[6px] bg-[#DA9811] font-bold text-[#080807] transition-opacity hover:opacity-95 active:opacity-90',
+  orange:
+    'rounded-[6px] bg-[#DA9811] font-bold text-[#080807] transition-opacity hover:opacity-95 active:opacity-90',
   /** Scoring tab overlay – e.g. Add Batsman / Add Bowler table button */
   dark: 'rounded-[17px] bg-[#080807] text-white transition-opacity hover:opacity-95 active:opacity-90 focus:outline-none ',
   /** Unselected role toggle – e.g. Playing / Bench when inactive */
-  black: 'rounded-[6px] bg-black text-white transition-opacity hover:opacity-95 active:opacity-90 focus:outline-none',
+  black:
+    'rounded-[6px] bg-black text-white transition-opacity hover:opacity-95 active:opacity-90 focus:outline-none',
   /** Dialog primary – e.g. Create New (orange, dark text) */
-  orangeDialog: 'rounded-[6px] bg-[#DA9811] !capitalize font-bold text-[#080807] transition-opacity hover:opacity-95 active:opacity-90 focus:outline-none',
+  orangeDialog:
+    'rounded-[6px] bg-[#DA9811] !capitalize font-bold text-[#080807] transition-opacity hover:opacity-95 active:opacity-90 focus:outline-none',
   /** Dialog primary with white text – e.g. Add Batsman / Add Bowler submit */
-  orangeDialogWhite: 'rounded-[6px] !capitalize bg-[#DA9811] font-bold transition-opacity hover:opacity-95 active:opacity-90 focus:outline-none ',
+  orangeDialogWhite:
+    'rounded-[6px] !capitalize bg-[#DA9811] font-bold transition-opacity hover:opacity-95 active:opacity-90 focus:outline-none ',
 };
 
 const sizes = {

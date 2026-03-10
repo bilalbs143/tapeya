@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+
 import { Navigate } from 'react-router-dom';
 
 import tapeyaLogo from '@/assets/images/logos/tapeya-logo-white.svg';

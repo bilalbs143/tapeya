@@ -1,19 +1,34 @@
 import teamMatchIcon from '@/assets/images/icons/team-match-icon.svg';
 
-import { DEFAULT_MATCH_CONFIG } from '../matchConfig';
-
 const DASH = '—';
 
-export function InfoTab({ match: matchProp, matchId, liveScore: liveScoreProp }) {
-  const match = { ...DEFAULT_MATCH_CONFIG, ...matchProp };
-  const { teamA, teamB, venue, format, ballType, overs, playersPerSide, matchDate, matchTime, toss } = match;
-  const teamATitle = teamA?.name || 'Team A';
-  const teamBTitle = teamB?.name || 'Team B';
-  const tossWinnerName = toss?.winner === 'A' ? (teamA?.name || 'Team A') : (teamB?.name || 'Team B');
-  const tossDecisionLabel = toss?.decision === 'bat' ? 'Bat' : toss?.decision === 'bowl' ? 'Bowl' : DASH;
-  const dateTimeLabel = [matchDate, matchTime].filter(Boolean).join(' ') || DASH;
+export function InfoTab({ match, matchId, liveScore: liveScoreProp }) {
+  if (!match) return null;
+  const {
+    teamA,
+    teamB,
+    venue,
+    overs,
+    playersPerSide,
+    matchDate,
+    matchTime,
+    toss,
+  } = match;
+  const teamATitle = teamA?.name ?? '';
+  const teamBTitle = teamB?.name ?? '';
+  const tossWinnerName =
+    toss?.winner === 'A' ? (teamA?.name ?? '') : (teamB?.name ?? '');
+  const tossDecisionLabel =
+    toss?.decision === 'bat'
+      ? 'Bat'
+      : toss?.decision === 'bowl'
+        ? 'Bowl'
+        : DASH;
+  const dateTimeLabel =
+    [matchDate, matchTime].filter(Boolean).join(' ') || DASH;
 
-  const matchIdLabel = matchId != null && String(matchId).trim() !== '' ? String(matchId) : DASH;
+  const matchIdLabel =
+    matchId != null && String(matchId).trim() !== '' ? String(matchId) : DASH;
   const liveScore = liveScoreProp ?? null;
   const currentScoreLabel =
     liveScore &&
@@ -27,35 +42,40 @@ export function InfoTab({ match: matchProp, matchId, liveScore: liveScoreProp })
     <div className="mt-6 pb-10">
       <div className="flex items-stretch">
         <div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] bg-[#141412] p-4">
-          <img src={teamMatchIcon} alt="" className="h-10 w-10 shrink-0" aria-hidden />
-          <span className="text-[16px] font-bold uppercase tracking-wide text-white">
-            {teamATitle}
+          <img
+            src={teamMatchIcon}
+            alt=""
+            className="h-10 w-10 shrink-0"
+            aria-hidden
+          />
+          <span className="text-[16px] font-bold tracking-wide text-white uppercase">
+            {teamATitle || DASH}
           </span>
-          {!teamA?.name && (
-            <span className="text-[13px] font-normal text-[#A2A6AB]">Team A</span>
-          )}
         </div>
-        <div className="relative z-10 flex shrink-0 items-center -mx-3">
-          <span className="flex h-13 w-13 shrink-0 items-center justify-center rounded-full border-[8px] border-black bg-[#DA9811] text-[12px] font-bold uppercase tracking-wide text-[#080807]">
+        <div className="relative z-10 -mx-3 flex shrink-0 items-center">
+          <span className="flex h-13 w-13 shrink-0 items-center justify-center rounded-full border-[8px] border-black bg-[#DA9811] text-[12px] font-bold tracking-wide text-[#080807] uppercase">
             VS
           </span>
         </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] bg-[#141412] p-4">
-          <img src={teamMatchIcon} alt="" className="h-10 w-10 shrink-0" aria-hidden />
-          <span className="text-[16px] font-bold uppercase tracking-wide text-white">
-            {teamBTitle}
+          <img
+            src={teamMatchIcon}
+            alt=""
+            className="h-10 w-10 shrink-0"
+            aria-hidden
+          />
+          <span className="text-[16px] font-bold tracking-wide text-white uppercase">
+            {teamBTitle || DASH}
           </span>
-          {!teamB?.name && (
-            <span className="text-[13px] font-normal text-[#A2A6AB]">Team B</span>
-          )}
         </div>
       </div>
 
       <div className="mt-6 py-5">
         <div className="space-y-4 text-[12px]">
-          <InfoRow label="Format" value={format === 'tournament' ? 'Tournament' : format === 'club' ? 'Club' : format || DASH} />
-          <InfoRow label="Ball type" value={ballType === 'leather' ? 'Leather Ball' : ballType === 'tennis' ? 'Tennis Ball' : ballType || DASH} />
-          <InfoRow label="Playing" value={playersPerSide ? `${playersPerSide} per side` : DASH} />
+          <InfoRow
+            label="Playing"
+            value={playersPerSide ? `${playersPerSide} per side` : DASH}
+          />
           <InfoRow label="Overs" value={overs ?? DASH} />
           <InfoRow label="Venue" value={venue || DASH} />
           <InfoRow label="Date & time" value={dateTimeLabel} />
@@ -74,11 +94,13 @@ export function InfoTab({ match: matchProp, matchId, liveScore: liveScoreProp })
 function InfoRow({ label, value }) {
   return (
     <div className="flex items-center text-[12px]">
-      <span className="whitespace-nowrap text-[12px] font-bold uppercase text-[#A2A6AB]">
+      <span className="text-[12px] font-bold whitespace-nowrap text-[#A2A6AB] uppercase">
         {label}
       </span>
       <span className="mx-4 flex-1 border-b-2 border-dotted border-[#FFFFFF66]" />
-      <span className="whitespace-nowrap text-[12px] font-normal text-[#A2A6AB]">{value}</span>
+      <span className="text-[12px] font-normal whitespace-nowrap text-[#A2A6AB]">
+        {value}
+      </span>
     </div>
   );
 }

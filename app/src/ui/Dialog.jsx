@@ -2,8 +2,9 @@
  * Radix Dialog - modal dialog
  */
 
-import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { forwardRef } from 'react';
+
+import * as DialogPrimitive from '@radix-ui/react-dialog';
 
 const overlay = 'fixed inset-0 z-50 bg-black/50';
 const content =

@@ -44,4 +44,13 @@ enum DismissalTypeEnum: string
             self::OBSTRUCTING_THE_FIELD => 'Obstructing the Field',
         };
     }
+
+    /** Whether this dismissal type requires fielder_id (for API validation and UI fielder picker). */
+    public function requiresFielder(): bool
+    {
+        return match ($this) {
+            self::CAUGHT, self::STUMPED, self::RUN_OUT => true,
+            default => false,
+        };
+    }
 }

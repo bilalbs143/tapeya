@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import shoppingCartIcon from '@/assets/images/icons/shopping-cart.svg';

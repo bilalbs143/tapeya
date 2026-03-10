@@ -21,6 +21,7 @@ class TournamentMatchResource extends JsonResource
             'match_time' => $match->match_time,
             'venue_name' => $match->venue_name,
             'players_per_side' => $match->players_per_side,
+            'overs' => $match->overs,
             'status' => $match->status,
 
             'home_team_id' => $match->home_team_id,

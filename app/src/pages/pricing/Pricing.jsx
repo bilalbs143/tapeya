@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { useState } from 'react';
+
 import { useNavigate } from 'react-router-dom';
 
 import eliteRankingIcon from '@/assets/images/icons/elite-ranking-icon.svg';

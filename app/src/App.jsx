@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
+import DialogManager from '@/components/dialogs/DialogManager';
 import { RequireAuth } from '@/components/RequireAuth';
 import { ScrollRestoration } from '@/components/ScrollRestoration';
 import { SplashScreen } from '@/components/SplashScreen';
@@ -17,6 +18,8 @@ import ActivityFeed from '@/pages/feed/ActivityFeed';
 import ActivityFeedDetail from '@/pages/feed/ActivityFeedDetail';
 import Home from '@/pages/Home';
 import NotificationCenter from '@/pages/NotificationCenter';
+import ScoringMatch from '@/pages/organizer/scoring/ScoringMatch';
+import StartMatch from '@/pages/organizer/scoring/StartMatch';
 import TournamentAddSquad from '@/pages/organizer/tournaments/TournamentAddSquad';
 import TournamentAddTeam from '@/pages/organizer/tournaments/TournamentAddTeam';
 import TournamentCreateTeamIntro from '@/pages/organizer/tournaments/TournamentCreateTeamIntro';
@@ -24,10 +27,9 @@ import TournamentEditSquad from '@/pages/organizer/tournaments/TournamentEditSqu
 import TournamentFinalSquad from '@/pages/organizer/tournaments/TournamentFinalSquad';
 import Tournaments from '@/pages/organizer/tournaments/Tournaments';
 import TournamentSavedTeams from '@/pages/organizer/tournaments/TournamentSavedTeams';
-import ScoringMatch from '@/pages/organizer/scoring/ScoringMatch';
-import StartMatch from '@/pages/organizer/scoring/StartMatch';
 import Pricing from '@/pages/pricing/Pricing';
 import PricingDetail from '@/pages/pricing/PricingDetail';
+import Profile from '@/pages/Profile';
 import Ranking from '@/pages/ranking/Ranking';
 import RankingStatsTotal from '@/pages/ranking/RankingStatsTotal';
 import Reels from '@/pages/reels/Reels';
@@ -51,7 +53,6 @@ import ShopProductDetail from '@/pages/shop/ShopProductDetail';
 import TournamentRequest from '@/pages/TournamentRequest';
 import UpcomingTournamentDetails from '@/pages/upcoming-tournaments/UpcomingTournamentDetails';
 import UpcomingTournaments from '@/pages/upcoming-tournaments/UpcomingTournaments';
-import UserProfile from '@/pages/UserProfile';
 import { Toaster } from '@/ui/Toast';
 import { TooltipProvider } from '@/ui/Tooltip';
 
@@ -60,6 +61,7 @@ function App() {
     <TooltipProvider delayDuration={300}>
       <Toaster>
         <ToastProvider>
+          <DialogManager />
           <BrowserRouter
             future={{
               v7_relativeSplatPath: true,
@@ -72,7 +74,7 @@ function App() {
               <Route element={<RequireAuth />}>
                 <Route element={<MainLayout />}>
                   <Route path="/home" element={<Home />} />
-                  <Route path="/user-profile" element={<UserProfile />} />
+                  <Route path="/profile" element={<Profile />} />
                   <Route path="/drafting" element={<DraftingHome />} />
                   <Route path="/drafting/add-team" element={<AddTeam />} />
                   <Route path="/drafting/teams" element={<TeamList />} />
@@ -116,7 +118,10 @@ function App() {
                     path="/organizer/tournaments/:tournamentId/final-squad/:teamId"
                     element={<TournamentFinalSquad />}
                   />
-                  <Route path="/organizer/scoring/start-match" element={<StartMatch />} />
+                  <Route
+                    path="/organizer/scoring/start-match"
+                    element={<StartMatch />}
+                  />
                   <Route
                     path="/organizer/scoring/match/:matchId"
                     element={<ScoringMatch />}

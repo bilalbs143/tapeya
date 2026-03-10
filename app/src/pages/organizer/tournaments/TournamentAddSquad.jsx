@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import teamDeleteIcon from '@/assets/images/icons/team-delete-icon.svg';

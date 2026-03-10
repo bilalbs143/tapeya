@@ -55,4 +55,3 @@ export const {
   useMarkAllNotificationsReadMutation,
   useMarkNotificationReadMutation,
 } = notificationApi;
-

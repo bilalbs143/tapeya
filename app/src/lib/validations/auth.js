@@ -62,7 +62,6 @@ export const updateProfileSchema = z.object({
   email: emailSchema.optional(),
   phone: z.string().optional(),
   date_of_birth: z.string().optional(),
-  playing_role: z.string().optional(),
   bowling_style: z.string().optional(),
   batting_style: z.string().optional(),
   country: z.string().optional(),

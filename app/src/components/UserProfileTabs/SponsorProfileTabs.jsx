@@ -1,5 +1,5 @@
 import profileUserIcon from '@/assets/images/icons/profile-user.svg';
-import userPostsIcon from '@/assets/images/icons/user-posts.svg';
+import teamIcon from '@/assets/images/icons/team-icon.svg';
 import userStatsIcon from '@/assets/images/icons/user-stats.svg';
 import {
   profileListClass,
@@ -13,42 +13,48 @@ import {
 } from '@/ui/Tabs';
 
 import { ProfileMetrics } from './ProfileMetrics';
-import { ProfileOverview } from './ProfileOverview';
-import { ProfilePosts } from './ProfilePosts';
-import { ProfileStats } from './ProfileStats';
+import { SponsorOverview } from './SponsorOverview';
+import { SponsorStats } from './SponsorStats';
+import { SponsorTeams } from './SponsorTeams';
 
 const CONTENT_WRAPPER_CLASS = 'px-4 pb-6 pt-1';
+
+const SPONSOR_METRICS = [
+  { value: '—', label: 'TEAMS' },
+  { value: '—', label: 'PARTNERSHIPS' },
+  { value: '—', label: 'REACH' },
+];
 
 const TABS = [
   {
     value: 'overview',
     label: 'Overview',
     icon: profileUserIcon,
-    Content: ProfileOverview,
+    Content: SponsorOverview,
+  },
+  {
+    value: 'teams',
+    label: 'Teams',
+    icon: teamIcon,
+    Content: SponsorTeams,
   },
   {
     value: 'stats',
     label: 'Stats',
     icon: userStatsIcon,
-    Content: ProfileStats,
-  },
-  {
-    value: 'posts',
-    label: 'Posts',
-    icon: userPostsIcon,
-    Content: ProfilePosts,
+    Content: SponsorStats,
   },
 ];
 
-export function UserProfileTabs({ ranking, followers, likes }) {
+export function SponsorProfileTabs({ teams, partnerships, reach }) {
   const metrics =
-    ranking != null || followers != null || likes != null
+    teams != null || partnerships != null || reach != null
       ? [
-          { value: String(ranking ?? '—'), label: 'RANKING' },
-          { value: String(followers ?? '—'), label: 'FOLLOWERS' },
-          { value: String(likes ?? '—'), label: 'LIKES' },
+          { value: String(teams ?? '—'), label: 'TEAMS' },
+          { value: String(partnerships ?? '—'), label: 'PARTNERSHIPS' },
+          { value: String(reach ?? '—'), label: 'REACH' },
         ]
-      : undefined;
+      : SPONSOR_METRICS;
 
   return (
     <Tabs className="w-full" defaultValue="overview">

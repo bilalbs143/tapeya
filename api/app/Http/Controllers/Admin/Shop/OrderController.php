@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\Shop;
 
+use App\Events\OrderStatusUpdated;
 use App\Http\Controllers\Admin\BaseAdminController;
 use App\Http\Requests\Admin\Shop\UpdateOrderRequest;
 use App\Http\Resources\Admin\Shop\OrderResource;
@@ -27,6 +28,11 @@ class OrderController extends BaseAdminController
 
     public function update(UpdateOrderRequest $request, Order $order): JsonResponse
     {
-        return $this->_patch($request, $order, 'Order updated.');
+        $previousStatus = $order->status;
+        $response = $this->_patch($request, $order, 'Order updated.');
+        $order->refresh();
+        event(new OrderStatusUpdated($order, $previousStatus));
+
+        return $response;
     }
 }

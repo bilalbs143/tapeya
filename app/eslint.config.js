@@ -118,7 +118,25 @@ export default [
     },
     rules: {
       'import/no-unresolved': 'off',
-      'simple-import-sort/imports': 'error',
+      'simple-import-sort/imports': [
+        'error',
+        {
+          groups: [
+            // 1. Side-effect imports (e.g. import 'swiper/css')
+            ['^\\u0000'],
+            // 2. Node builtins (node:)
+            ['^node:'],
+            // 3. React first
+            ['^react$', '^react-dom$'],
+            // 4. Other external packages (alphabetical within group)
+            ['^@?\\w'],
+            // 5. Internal alias @/ (alphabetical within group)
+            ['^@/'],
+            // 6. Relative imports (../ then ./)
+            ['^\\.\\./', '^\\./'],
+          ],
+        },
+      ],
       'simple-import-sort/exports': 'error',
       'import/first': 'error',
       'import/newline-after-import': 'error',

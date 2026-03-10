@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import { Outlet, useLocation } from 'react-router-dom';
 
 import { BottomNav } from '@/components/BottomNav';
@@ -14,7 +15,7 @@ export function MainLayout() {
 
   // Some pages (like profile header) need content to start at top,
   // behind the fixed navbar (no top padding).
-  const isNavbarOverlayPage = location.pathname === '/user-profile';
+  const isNavbarOverlayPage = location.pathname === '/profile';
   const isTournamentDetails = /^\/upcoming-tournaments\/[^/]+$/.test(
     location.pathname,
   );

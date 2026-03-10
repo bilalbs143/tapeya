@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { formatPrice } from '@/lib/format';

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+
 import { useNavigate } from 'react-router-dom';
 
 import searchIcon from '@/assets/images/icons/searchicon.svg';

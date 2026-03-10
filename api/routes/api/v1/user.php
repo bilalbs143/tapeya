@@ -24,6 +24,8 @@ use App\Http\Controllers\User\TournamentController;
 use App\Http\Controllers\User\TournamentMatchController;
 use App\Http\Controllers\User\TournamentReactionController;
 use App\Http\Controllers\User\TournamentRequestController;
+use App\Http\Controllers\User\UserFollowController;
+use App\Http\Controllers\User\UserTeamController;
 use App\Http\Controllers\User\TournamentTeamController;
 use Illuminate\Support\Facades\Route;
 
@@ -91,6 +93,9 @@ Route::middleware('auth:api')->group(function () {
     Route::patch('matches/{match}/innings/{innings}/balls/{ball}', [ScorecardController::class, 'updateBall']);
     Route::delete('matches/{match}/innings/{innings}/balls/{ball}', [ScorecardController::class, 'deleteBall']);
     Route::get('users/{user}/stats', [PlayerStatsController::class, 'show']);
+    Route::get('users/{user}/teams', [UserTeamController::class, 'index']);
+    Route::post('users/{user}/follow', [UserFollowController::class, 'follow']);
+    Route::delete('users/{user}/follow', [UserFollowController::class, 'unfollow']);
     Route::get('rankings', [RankingController::class, 'index']);
     Route::get('matches/{match}/teams/{team}/squad', [MatchSquadController::class, 'show']);
     Route::post('matches/{match}/teams/{team}/squad', [MatchSquadController::class, 'store']);

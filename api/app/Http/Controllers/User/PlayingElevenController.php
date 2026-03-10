@@ -69,9 +69,14 @@ class PlayingElevenController extends Controller
             return $this->forbidden('All players in the playing eleven must be in the match squad.');
         }
 
-        // Enforce playing eleven size: must equal players_per_side for the match.
-        if (count($playerIds) !== (int) $match->players_per_side) {
-            return $this->forbidden('Playing eleven size must match players_per_side for the match.');
+        // Playing eleven: between 1 and players_per_side (allows smaller squads for demo/testing).
+        $playersPerSide = (int) $match->players_per_side ?: 11;
+        $count = count($playerIds);
+        if ($count < 1) {
+            return $this->forbidden('Playing eleven must have at least one player.');
+        }
+        if ($count > $playersPerSide) {
+            return $this->forbidden("Playing eleven cannot exceed {$playersPerSide} players.");
         }
 
         // Replace existing playing eleven for this match+team.

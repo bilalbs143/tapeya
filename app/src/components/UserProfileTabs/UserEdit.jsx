@@ -2,6 +2,13 @@ import { useEffect, useState } from 'react';
 
 import { updateProfileSchema } from '@/lib/validations/auth';
 import { useGetMeQuery, useUpdateProfileMutation } from '@/store/api/authApi';
+import { usePlayerProfileEnums } from '@/store/api/enumApi';
+import {
+  useGetCitiesQuery,
+  useGetCountriesQuery,
+} from '@/store/api/locationApi';
+import { useAppDispatch } from '@/store/hooks';
+import { updateUser } from '@/store/slices/authSlice';
 import { DatePicker } from '@/ui/DatePicker';
 import {
   Dialog,
@@ -28,49 +35,41 @@ import {
   selectViewportInputClass,
 } from '@/ui/Select';
 
-const categoryOptions = [
-  { value: 'Player', label: 'Player' },
-  { value: 'Coach', label: 'Coach' },
-  { value: 'Umpire', label: 'Umpire' },
-];
-
-const playingRoleOptions = [
-  { value: 'Batter', label: 'Batter' },
-  { value: 'Bowler', label: 'Bowler' },
-  { value: 'All-rounder', label: 'All-rounder' },
-  { value: 'Wicket-keeper', label: 'Wicket-keeper' },
-];
-
-const battingStyleOptions = [
-  { value: 'Left handed', label: 'Left handed' },
-  { value: 'Right handed', label: 'Right handed' },
-];
-
-const bowlingStyleOptions = [
-  { value: 'Left handed', label: 'Left handed' },
-  { value: 'Right handed', label: 'Right handed' },
-  { value: 'N/A', label: 'N/A' },
-];
+/** Backend returns enum name (e.g. RIGHT_HAND); we use value (e.g. right_hand) in form and API */
+function enumNameToValue(name) {
+  if (!name || typeof name !== 'string') return '';
+  return name.toLowerCase();
+}
 
 const NICKNAME_REGEX = /^[a-zA-Z0-9_]*$/;
 const NICKNAME_MAX = 50;
 
 export function UserEdit({ open, onOpenChange }) {
+  const dispatch = useAppDispatch();
   const { data: meData } = useGetMeQuery(undefined, { skip: !open });
   const user = meData?.data ?? null;
+  const { battingStyleOptions, bowlingStyleOptions } = usePlayerProfileEnums();
+
+  const { data: countriesList = [] } = useGetCountriesQuery(undefined, {
+    skip: !open,
+  });
 
   const [name, setName] = useState('');
+  const [country, setCountry] = useState('');
+  const [city, setCity] = useState('');
   const [nickname, setNickname] = useState('');
   const [nicknameError, setNicknameError] = useState('');
-  const [phone, setPhone] = useState('+923157118511');
+  const [phone, setPhone] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
-  const [category, setCategory] = useState('Player');
-  const [playingRole, setPlayingRole] = useState('Bowler');
-  const [battingStyle, setBattingStyle] = useState('Left handed');
-  const [bowlingStyle, setBowlingStyle] = useState('Right handed');
+  const [battingStyle, setBattingStyle] = useState('');
+  const [bowlingStyle, setBowlingStyle] = useState('');
   const [email, setEmail] = useState('');
-  const [country, setCountry] = useState('Pakistan');
-  const [city, setCity] = useState('Lahore, Pakistan');
+
+  const countryCode =
+    countriesList.find((c) => c.name === country)?.country_code ?? null;
+  const { data: citiesList = [] } = useGetCitiesQuery(countryCode, {
+    skip: !open || !countryCode,
+  });
 
   const [updateProfile, { isLoading: isSaving }] = useUpdateProfileMutation();
 
@@ -83,15 +82,22 @@ export function UserEdit({ open, onOpenChange }) {
     setEmail(user.email ?? '');
     setCountry(user.country ?? '');
     setCity(user.city ?? '');
-    setPlayingRole(user.playing_role_enum ?? user.playing_role ?? 'Bowler');
+    const batting =
+      enumNameToValue(user.batting_style_enum) || user.batting_style;
     setBattingStyle(
-      user.batting_style_enum ?? user.batting_style ?? 'Left handed',
+      battingStyleOptions.some((o) => o.value === batting)
+        ? batting
+        : (battingStyleOptions[0]?.value ?? ''),
     );
+    const bowling =
+      enumNameToValue(user.bowling_style_enum) || user.bowling_style;
     setBowlingStyle(
-      user.bowling_style_enum ?? user.bowling_style ?? 'Right handed',
+      bowlingStyleOptions.some((o) => o.value === bowling)
+        ? bowling
+        : (bowlingStyleOptions[0]?.value ?? ''),
     );
     setNicknameError('');
-  }, [open, user]);
+  }, [open, user, battingStyleOptions, bowlingStyleOptions]);
 
   const handleSave = async () => {
     setNicknameError('');
@@ -113,7 +119,6 @@ export function UserEdit({ open, onOpenChange }) {
       email: email.trim() || undefined,
       phone: phone.trim() || undefined,
       date_of_birth: dateOfBirth || undefined,
-      playing_role: playingRole || undefined,
       bowling_style: bowlingStyle || undefined,
       batting_style: battingStyle || undefined,
       country: country.trim() || undefined,
@@ -124,7 +129,11 @@ export function UserEdit({ open, onOpenChange }) {
       Object.entries(payload).filter(([, v]) => v !== undefined && v !== ''),
     );
     try {
-      await updateProfile(toSend).unwrap();
+      const result = await updateProfile(toSend).unwrap();
+      const updatedUser = result?.data ?? result;
+      if (updatedUser && typeof updatedUser === 'object') {
+        dispatch(updateUser(updatedUser));
+      }
       onOpenChange?.(false);
     } catch (err) {
       const errors = err?.data?.errors;
@@ -212,64 +221,6 @@ export function UserEdit({ open, onOpenChange }) {
                 />
               </FormField>
 
-              <FormField label="Category" htmlFor="category" variant="edit">
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger
-                    id="category"
-                    className={`max-w-none ${selectTriggerInputClass}`}
-                  >
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent
-                    className={`z-[100] ${selectContentInputClass}`}
-                    viewportClassName={selectViewportInputClass}
-                  >
-                    {categoryOptions.map((opt) => (
-                      <SelectItem
-                        key={opt.value}
-                        value={opt.value}
-                        className={selectItemInputClass}
-                        textClassName={selectItemTextInputClass}
-                        indicatorClassName={selectItemIndicatorInputClass}
-                      >
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormField>
-
-              <FormField
-                label="Playing role"
-                htmlFor="playing-role"
-                variant="edit"
-              >
-                <Select value={playingRole} onValueChange={setPlayingRole}>
-                  <SelectTrigger
-                    id="playing-role"
-                    className={`max-w-none ${selectTriggerInputClass}`}
-                  >
-                    <SelectValue placeholder="Select playing role" />
-                  </SelectTrigger>
-                  <SelectContent
-                    className={`z-[100] ${selectContentInputClass}`}
-                    viewportClassName={selectViewportInputClass}
-                  >
-                    {playingRoleOptions.map((opt) => (
-                      <SelectItem
-                        key={opt.value}
-                        value={opt.value}
-                        className={selectItemInputClass}
-                        textClassName={selectItemTextInputClass}
-                        indicatorClassName={selectItemIndicatorInputClass}
-                      >
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormField>
-
               <FormField
                 label="Batting style"
                 htmlFor="batting-style"
@@ -348,24 +299,63 @@ export function UserEdit({ open, onOpenChange }) {
               </FormField>
 
               <FormField label="Country" htmlFor="country" variant="edit">
-                <Input
-                  id="country"
-                  type="text"
-                  placeholder="Enter country"
+                <Select
                   value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  className="max-w-none"
-                />
+                  onValueChange={(v) => {
+                    setCountry(v);
+                    setCity('');
+                  }}
+                >
+                  <SelectTrigger
+                    id="country"
+                    className={`max-w-none ${selectTriggerInputClass}`}
+                  >
+                    <SelectValue placeholder="Select country" />
+                  </SelectTrigger>
+                  <SelectContent
+                    className={`z-[100] ${selectContentInputClass}`}
+                    viewportClassName={selectViewportInputClass}
+                  >
+                    {countriesList.map((c) => (
+                      <SelectItem
+                        key={c.id}
+                        value={c.name}
+                        className={selectItemInputClass}
+                        textClassName={selectItemTextInputClass}
+                        indicatorClassName={selectItemIndicatorInputClass}
+                      >
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormField>
 
               <FormField label="City" htmlFor="city" variant="edit">
-                <Input
-                  id="city"
-                  type="text"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="max-w-none"
-                />
+                <Select value={city} onValueChange={setCity}>
+                  <SelectTrigger
+                    id="city"
+                    className={`max-w-none ${selectTriggerInputClass}`}
+                  >
+                    <SelectValue placeholder="Select city" />
+                  </SelectTrigger>
+                  <SelectContent
+                    className={`z-[100] ${selectContentInputClass}`}
+                    viewportClassName={selectViewportInputClass}
+                  >
+                    {citiesList.map((c) => (
+                      <SelectItem
+                        key={c.id}
+                        value={c.name}
+                        className={selectItemInputClass}
+                        textClassName={selectItemTextInputClass}
+                        indicatorClassName={selectItemIndicatorInputClass}
+                      >
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormField>
             </div>
           </DialogScrollBody>

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('type')->default('user');
             $table->string('phone', 20)->nullable()->unique();
             $table->string('status', 30)->nullable()->default(UserStatusEnum::VERIFICATION_PENDING->value);
+            $table->unsignedInteger('followers_count')->default(0);
             $table->date('date_of_birth')->nullable();
             $table->string('playing_role', 30)->nullable();
             $table->string('bowling_style', 50)->nullable();

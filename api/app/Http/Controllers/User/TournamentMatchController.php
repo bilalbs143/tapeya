@@ -71,6 +71,7 @@ class TournamentMatchController extends Controller
             'match_time' => $data['match_time'],
             'venue_name' => $data['venue_name'],
             'players_per_side' => $data['players_per_side'],
+            'overs' => $data['overs'],
             'status' => 'scheduled',
         ]);
 

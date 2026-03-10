@@ -47,10 +47,7 @@ export function FixturesTab({ tournamentId }) {
     );
   }
 
-  const upcomingMatches =
-    matches.filter((m) => m.status === 'upcoming') ?? matches;
-
-  if (!upcomingMatches.length) {
+  if (!matches.length) {
     return (
       <div className="mt-4 pb-6">
         <p className="py-8 text-center text-[13px] text-[#A2A6AB]">
@@ -62,7 +59,7 @@ export function FixturesTab({ tournamentId }) {
 
   return (
     <div className="mt-4 space-y-3 pb-6">
-      {upcomingMatches.map((match) => {
+      {matches.map((match) => {
         const home = match.home_team ?? match.homeTeam ?? { name: 'Home team' };
         const away = match.away_team ?? match.awayTeam ?? { name: 'Away team' };
         const date = match.match_date ?? '';

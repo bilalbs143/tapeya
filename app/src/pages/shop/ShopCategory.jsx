@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+
 import { Link, useParams } from 'react-router-dom';
 
 import searchIcon from '@/assets/images/icons/searchicon.svg';

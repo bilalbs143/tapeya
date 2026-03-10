@@ -17,6 +17,7 @@ use App\Utils\Traits\Model\Filters\DateFilterTrait;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -49,6 +50,7 @@ class User extends Authenticatable
         'password',
         'type',
         'status',
+        'followers_count',
     ];
 
     /**
@@ -131,6 +133,30 @@ class User extends Authenticatable
     public function shopOrders(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\App\Models\Shop\Order::class, 'user_id');
+    }
+
+    /**
+     * Follow records where this user is followed (people who follow me).
+     */
+    public function followers(): HasMany
+    {
+        return $this->hasMany(UserFollow::class, 'followed_user_id');
+    }
+
+    /**
+     * Follow records where this user is the follower (users I follow).
+     */
+    public function following(): HasMany
+    {
+        return $this->hasMany(UserFollow::class, 'follower_id');
+    }
+
+    /**
+     * Teams this user is a squad member of (via team_user).
+     */
+    public function teams(): BelongsToMany
+    {
+        return $this->belongsToMany(Team::class, 'team_user')->withTimestamps();
     }
 
     /**

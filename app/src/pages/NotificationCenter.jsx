@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
+
 import { useNavigate } from 'react-router-dom';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 import {
   useGetNotificationsQuery,
   useMarkAllNotificationsReadMutation,
 } from '@/store/api/notificationApi';
+import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 
 const PAGE_SIZE = 10;
 
@@ -216,7 +217,9 @@ export default function NotificationCenter() {
         </div>
 
         {isLoading && (
-          <p className="mb-3 text-[12px] text-[#A2A6AB]">Loading notifications…</p>
+          <p className="mb-3 text-[12px] text-[#A2A6AB]">
+            Loading notifications…
+          </p>
         )}
 
         {isError && (

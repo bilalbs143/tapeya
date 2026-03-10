@@ -13,17 +13,6 @@ import { ballsToOvers, getRunsFromBall } from '../scoringUtils';
 // Constants
 // -----------------------------------------------------------------------------
 
-const DEFAULT_TEAM = { name: '' };
-
-const DEFAULT_LIVE_SCORE = {
-  totalRuns: 0,
-  totalWickets: 0,
-  oversDisplay: '0',
-  maxOvers: 20,
-  extras: 0,
-  crr: '0.0',
-};
-
 const STATS_SEPARATOR =
   'w-px shrink-0 self-stretch bg-gradient-to-b from-[#00000000] via-[#FFFFFF66] to-[#00000000]';
 
@@ -87,42 +76,69 @@ export function ScorecardTab({
   ballHistory = [],
   batsmenOnCrease = [],
   bowlersInTable = [],
+  secondInningsBallHistory = [],
+  secondInningsBatsmenOnCrease = [],
+  secondInningsBowlersInTable = [],
+  secondInningsLiveScore,
 }) {
   const [activeScorecardTeam, setActiveScorecardTeam] = useState(BATTING_TEAM);
 
-  const teamA = match?.teamA ?? DEFAULT_TEAM;
-  const teamB = match?.teamB ?? DEFAULT_TEAM;
-  const liveScore = liveScoreProp ?? DEFAULT_LIVE_SCORE;
+  const teamA = match?.teamA;
+  const teamB = match?.teamB;
+  const liveScore = liveScoreProp;
 
-  const teamAName = teamA.name || 'Team A';
-  const teamBName = teamB.name || 'Team B';
+  const teamAName = teamA?.name ?? '';
+  const teamBName = teamB?.name ?? '';
 
-  /** Team A is batting in 1st innings; Team B has not batted yet. */
-  const isTeamABatting = true;
-  const isTeamBBatting = false;
+  /** Team A bats in first innings; Team B bats in second when data exists. */
+  const isTeamBBatting = secondInningsBallHistory.length > 0;
 
   const showTeamAData = activeScorecardTeam === 'teamA';
   const showTeamBData = activeScorecardTeam === 'teamB';
 
+  // Active innings data based on selected team
+  const activeBallHistory = showTeamAData
+    ? ballHistory
+    : secondInningsBallHistory;
+  const activeBatsmenOnCrease = showTeamAData
+    ? batsmenOnCrease
+    : secondInningsBatsmenOnCrease;
+  const activeBowlersInTable = showTeamAData
+    ? bowlersInTable
+    : secondInningsBowlersInTable;
+  const activeLiveScore = showTeamAData ? liveScore : secondInningsLiveScore;
+
   const statsForView = useMemo(() => {
     if (showTeamAData) {
       return {
-        extras: liveScore.extras,
-        oversDisplay: liveScore.oversDisplay,
-        crr: liveScore.crr,
-        totalRuns: liveScore.totalRuns,
-        totalWickets: liveScore.totalWickets,
+        extras: activeLiveScore?.extras ?? 0,
+        oversDisplay: activeLiveScore?.oversDisplay ?? '0',
+        crr: activeLiveScore?.crr ?? '0.0',
+        totalRuns: activeLiveScore?.totalRuns ?? 0,
+        totalWickets: activeLiveScore?.totalWickets ?? 0,
       };
     }
     if (showTeamBData && !isTeamBBatting) {
-      return { extras: DASH, oversDisplay: DASH, crr: DASH, totalRuns: DASH, totalWickets: DASH };
+      return {
+        extras: DASH,
+        oversDisplay: DASH,
+        crr: DASH,
+        totalRuns: DASH,
+        totalWickets: DASH,
+      };
     }
-    return { extras: 0, oversDisplay: '0', crr: '0.0', totalRuns: 0, totalWickets: 0 };
-  }, [showTeamAData, showTeamBData, isTeamBBatting, liveScore]);
+    return {
+      extras: activeLiveScore?.extras ?? 0,
+      oversDisplay: activeLiveScore?.oversDisplay ?? '0',
+      crr: activeLiveScore?.crr ?? '0.0',
+      totalRuns: activeLiveScore?.totalRuns ?? 0,
+      totalWickets: activeLiveScore?.totalWickets ?? 0,
+    };
+  }, [activeLiveScore, showTeamAData, showTeamBData, isTeamBBatting]);
 
   const battingList = useMemo(() => {
     if (showTeamBData && !isTeamBBatting) return [];
-    const dismissed = (ballHistory || [])
+    const dismissed = (activeBallHistory || [])
       .filter((b) => b.type === 'out' && b.striker)
       .map((b) => ({
         name: b.striker.name ?? DASH,
@@ -131,7 +147,7 @@ export function ScorecardTab({
         fours: b.striker.fours ?? 0,
         sixes: b.striker.sixes ?? 0,
       }));
-    const current = (batsmenOnCrease || []).map((b) => ({
+    const current = (activeBatsmenOnCrease || []).map((b) => ({
       name: b.name ?? DASH,
       runs: b.runs ?? 0,
       balls: b.balls ?? 0,
@@ -139,13 +155,17 @@ export function ScorecardTab({
       sixes: b.sixes ?? 0,
     }));
     return [...current, ...dismissed];
-  }, [ballHistory, batsmenOnCrease, showTeamBData, isTeamBBatting]);
+  }, [activeBallHistory, activeBatsmenOnCrease, showTeamBData, isTeamBBatting]);
 
   const bowlerStatsList = useMemo(() => {
     if (showTeamBData && !isTeamBBatting) return [];
-    return (bowlersInTable || []).map((bowler) => {
-      const ballsByBowler = (ballHistory || []).filter((b) => b.bowlerId === bowler.id);
-      const validBalls = ballsByBowler.filter((b) => b.type !== 'wd' && b.type !== 'nb').length;
+    return (activeBowlersInTable || []).map((bowler) => {
+      const ballsByBowler = (activeBallHistory || []).filter(
+        (b) => b.bowlerId === bowler.id,
+      );
+      const validBalls = ballsByBowler.filter(
+        (b) => b.type !== 'wd' && b.type !== 'nb',
+      ).length;
       let dots = 0;
       let fours = 0;
       let sixes = 0;
@@ -168,16 +188,18 @@ export function ScorecardTab({
         wides,
       };
     });
-  }, [ballHistory, bowlersInTable, showTeamBData, isTeamBBatting]);
+  }, [activeBallHistory, activeBowlersInTable, showTeamBData, isTeamBBatting]);
 
   const fallOfWickets = useMemo(() => {
     if (showTeamBData && !isTeamBBatting) return [];
-    return (ballHistory || [])
-      .map((b, i) => (b.type === 'out' && b.striker ? { index: i, striker: b.striker } : null))
+    return (activeBallHistory || [])
+      .map((b, i) =>
+        b.type === 'out' && b.striker ? { index: i, striker: b.striker } : null,
+      )
       .filter(Boolean)
       .map((item, idx) => {
-        const totalRuns = runsAt(ballHistory, item.index);
-        const validCount = validBallsCount(ballHistory, item.index);
+        const totalRuns = runsAt(activeBallHistory, item.index);
+        const validCount = validBallsCount(activeBallHistory, item.index);
         const oversStr = ballsToOvers(validCount);
         return {
           wicketNumber: idx + 1,
@@ -185,10 +207,11 @@ export function ScorecardTab({
           scoreAtFall: `${totalRuns}(${oversStr})`,
         };
       });
-  }, [ballHistory, showTeamBData, isTeamBBatting]);
+  }, [activeBallHistory, ballHistory, showTeamBData, isTeamBBatting]);
 
   const totalDisplay =
-    typeof statsForView.totalRuns === 'number' && typeof statsForView.totalWickets === 'number'
+    typeof statsForView.totalRuns === 'number' &&
+    typeof statsForView.totalWickets === 'number'
       ? `${statsForView.totalRuns}/${statsForView.totalWickets}`
       : DASH;
 
@@ -196,12 +219,12 @@ export function ScorecardTab({
     <div className="mt-4 space-y-6 pb-8">
       <div className="flex items-center justify-center gap-12">
         <TeamTabButton
-          teamName={teamAName}
+          teamName={teamAName || DASH}
           isActive={activeScorecardTeam === 'teamA'}
           onSelect={() => setActiveScorecardTeam('teamA')}
         />
         <TeamTabButton
-          teamName={teamBName}
+          teamName={teamBName || DASH}
           isActive={activeScorecardTeam === 'teamB'}
           onSelect={() => setActiveScorecardTeam('teamB')}
         />
@@ -212,7 +235,7 @@ export function ScorecardTab({
           <Fragment key={item.key}>
             {index > 0 && <div className={STATS_SEPARATOR} aria-hidden />}
             <div className="flex flex-1 flex-col items-center justify-center px-3 py-2.5">
-              <p className="text-[12px] font-bold uppercase tracking-wide text-[#A2A6AB]">
+              <p className="text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">
                 {item.label}
               </p>
               <p
@@ -306,7 +329,7 @@ export function ScorecardTab({
             <tr className={HEADER_BG}>
               <th
                 colSpan={3}
-                className={`${HEADER_BG} border-r border-b border-l px-4 py-2.5 text-left text-[12px] font-bold uppercase tracking-wide text-[#DA9811] ${BORDER}`}
+                className={`${HEADER_BG} border-r border-b border-l px-4 py-2.5 text-left text-[12px] font-bold tracking-wide text-[#DA9811] uppercase ${BORDER}`}
               >
                 Fall of Wickets
               </th>
@@ -324,7 +347,11 @@ export function ScorecardTab({
                 <tr key={f.wicketNumber}>
                   <td className={TABLE_CELL_LEFT}>{f.wicketNumber}</td>
                   <td className={TABLE_CELL_LEFT_ALIGN}>{f.batsmanName}</td>
-                  <td className={`border-r border-b ${BORDER} px-4 py-3 text-right text-white`}>{f.scoreAtFall}</td>
+                  <td
+                    className={`border-r border-b ${BORDER} px-4 py-3 text-right text-white`}
+                  >
+                    {f.scoreAtFall}
+                  </td>
                 </tr>
               ))
             )}
@@ -344,7 +371,7 @@ function TeamTabButton({ teamName, isActive, onSelect }) {
     <button
       type="button"
       onClick={onSelect}
-      className="flex flex-col items-center gap-1 cursor-pointer bg-transparent border-0 p-0"
+      className="flex cursor-pointer flex-col items-center gap-1 border-0 bg-transparent p-0"
       aria-pressed={isActive}
     >
       <img
@@ -355,7 +382,7 @@ function TeamTabButton({ teamName, isActive, onSelect }) {
       />
       <div className="flex flex-col items-center">
         <span
-          className={`text-[16px] font-bold uppercase tracking-wide ${
+          className={`text-[16px] font-bold tracking-wide uppercase ${
             isActive ? 'text-[#DA9811]' : 'text-white'
           }`}
         >

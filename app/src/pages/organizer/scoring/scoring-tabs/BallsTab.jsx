@@ -4,41 +4,41 @@
  * Uses: ballHistory, squad, bowlersInTable, bowlerSquad, batsmenOnCrease, liveScore from parent.
  */
 
-import { useMemo, useState, Fragment } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 
 import arrowRightOrange from '@/assets/images/icons/arrow-right-orange.svg';
+
 import { ballsToOvers } from '../scoringUtils';
 
 // ─── Constants ─────────────────────────────────────────────────────────────
 
 const DASH = '—';
 
-const DEFAULT_LIVE_SCORE = {
-  totalRuns: 0,
-  totalWickets: 0,
-  oversDisplay: '0',
-  maxOvers: 20,
-  extras: 0,
-  crr: '0.0',
-};
-
-const INNINGS_ACTIVE_CLASS = 'text-[#DA9811] font-bold border-b-2 border-[#DA9811] pb-1';
+const INNINGS_ACTIVE_CLASS =
+  'text-[#DA9811] font-bold border-b-2 border-[#DA9811] pb-1';
 const INNINGS_INACTIVE_CLASS = 'text-white font-bold';
 
 // ─── Ball display & description helpers ────────────────────────────────────
 
 function getBallDisplay(ball) {
-  if (!ball) return { label: '0', isWicket: false, isDot: true, isExtra: false };
+  if (!ball)
+    return { label: '0', isWicket: false, isDot: true, isExtra: false };
   if (ball.type === 'runs') {
     const r = ball.runs ?? 0;
-    if (r === 0) return { label: '0', isWicket: false, isDot: true, isExtra: false };
+    if (r === 0)
+      return { label: '0', isWicket: false, isDot: true, isExtra: false };
     return { label: String(r), isWicket: false, isDot: false, isExtra: false };
   }
-  if (ball.type === 'out') return { label: 'W', isWicket: true, isDot: false, isExtra: false };
-  if (ball.type === 'wd') return { label: 'WD', isWicket: false, isDot: false, isExtra: true };
-  if (ball.type === 'nb') return { label: 'NB', isWicket: false, isDot: false, isExtra: true };
-  if (ball.type === 'bye') return { label: 'B', isWicket: false, isDot: false, isExtra: true };
-  if (ball.type === 'lb') return { label: 'LB', isWicket: false, isDot: false, isExtra: true };
+  if (ball.type === 'out')
+    return { label: 'W', isWicket: true, isDot: false, isExtra: false };
+  if (ball.type === 'wd')
+    return { label: 'WD', isWicket: false, isDot: false, isExtra: true };
+  if (ball.type === 'nb')
+    return { label: 'NB', isWicket: false, isDot: false, isExtra: true };
+  if (ball.type === 'bye')
+    return { label: 'B', isWicket: false, isDot: false, isExtra: true };
+  if (ball.type === 'lb')
+    return { label: 'LB', isWicket: false, isDot: false, isExtra: true };
   return { label: '0', isWicket: false, isDot: true, isExtra: false };
 }
 
@@ -133,15 +133,24 @@ function BallListRow({
 
   return (
     <div className="flex items-center gap-3 px-4 py-3">
-      <span className="w-5 shrink-0 text-[13px] font-medium text-[#9CA3AF]">{overBallLabel}</span>
+      <span className="w-5 shrink-0 text-[13px] font-medium text-[#9CA3AF]">
+        {overBallLabel}
+      </span>
       <span
         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[12px] font-bold ${chipClass}`}
       >
         {label}
       </span>
       <span className="flex shrink-0 items-center gap-1.5 text-[12px] font-bold text-white">
-        {strikerName !== DASH && <span className="shrink-0">{strikerName}</span>}
-        <img src={arrowRightOrange} alt="" className="h-2 w-auto shrink-0" aria-hidden />
+        {strikerName !== DASH && (
+          <span className="shrink-0">{strikerName}</span>
+        )}
+        <img
+          src={arrowRightOrange}
+          alt=""
+          className="h-2 w-auto shrink-0"
+          aria-hidden
+        />
         <span className="shrink-0">{bowlerName}</span>
       </span>
       <span className="min-w-[8px] flex-1 self-center border-b-2 border-dotted border-[#6B7280]" />
@@ -155,8 +164,15 @@ function BallListRow({
 // ─── Over summary block (stats at end of a completed over) ──────────────────
 
 function SummaryBlock({ summary, squad, bowlersInTable, bowlerSquad }) {
-  const { balls, overRuns, cumulativeRuns, cumulativeWickets, completedOvers, creaseSnapshot, bowlerSnapshot } =
-    summary;
+  const {
+    balls,
+    overRuns,
+    cumulativeRuns,
+    cumulativeWickets,
+    completedOvers,
+    creaseSnapshot,
+    bowlerSnapshot,
+  } = summary;
 
   return (
     <div className="rounded-[17px] bg-[#141412] p-4">
@@ -184,19 +200,34 @@ function SummaryBlock({ summary, squad, bowlersInTable, bowlerSquad }) {
             <>
               <div className="flex items-center gap-2 text-[13px]">
                 <span className="font-bold text-white">
-                  {resolvePlayerName(creaseSnapshot[0].id, squad, bowlersInTable, bowlerSquad)}
+                  {resolvePlayerName(
+                    creaseSnapshot[0].id,
+                    squad,
+                    bowlersInTable,
+                    bowlerSquad,
+                  )}
                 </span>
                 <span className="flex-1 border-b-2 border-dashed border-[#6B7280]" />
                 <span className="text-white">
                   {creaseSnapshot[0].runs} ({creaseSnapshot[0].balls})
                 </span>
                 <span className="font-bold text-white">
-                  {resolvePlayerName(creaseSnapshot[1].id, squad, bowlersInTable, bowlerSquad)}
+                  {resolvePlayerName(
+                    creaseSnapshot[1].id,
+                    squad,
+                    bowlersInTable,
+                    bowlerSquad,
+                  )}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-[13px]">
                 <span className="font-bold text-white">
-                  {resolvePlayerName(creaseSnapshot[1].id, squad, bowlersInTable, bowlerSquad)}
+                  {resolvePlayerName(
+                    creaseSnapshot[1].id,
+                    squad,
+                    bowlersInTable,
+                    bowlerSquad,
+                  )}
                 </span>
                 <span className="flex-1 border-b-2 border-dashed border-[#6B7280]" />
                 <span className="text-white">
@@ -204,7 +235,8 @@ function SummaryBlock({ summary, squad, bowlersInTable, bowlerSquad }) {
                 </span>
                 {bowlerSnapshot && (
                   <span className="text-white">
-                    {ballsToOvers(bowlerSnapshot.balls)} - {bowlerSnapshot.maidens} - {bowlerSnapshot.runs} -{' '}
+                    {ballsToOvers(bowlerSnapshot.balls)} -{' '}
+                    {bowlerSnapshot.maidens} - {bowlerSnapshot.runs} -{' '}
                     {bowlerSnapshot.wickets}
                   </span>
                 )}
@@ -213,9 +245,17 @@ function SummaryBlock({ summary, squad, bowlersInTable, bowlerSquad }) {
           ) : (
             <>
               {creaseSnapshot.map((b, i) => (
-                <div key={b.id ?? i} className="flex items-center gap-2 text-[13px]">
+                <div
+                  key={b.id ?? i}
+                  className="flex items-center gap-2 text-[13px]"
+                >
                   <span className="font-bold text-white">
-                    {resolvePlayerName(b.id, squad, bowlersInTable, bowlerSquad)}
+                    {resolvePlayerName(
+                      b.id,
+                      squad,
+                      bowlersInTable,
+                      bowlerSquad,
+                    )}
                   </span>
                   <span className="flex-1 border-b-2 border-dashed border-[#6B7280]" />
                   <span className="text-white">
@@ -226,11 +266,17 @@ function SummaryBlock({ summary, squad, bowlersInTable, bowlerSquad }) {
               {bowlerSnapshot && (
                 <div className="flex items-center gap-2 text-[13px]">
                   <span className="font-bold text-white">
-                    {resolvePlayerName(bowlerSnapshot.id, squad, bowlersInTable, bowlerSquad)}
+                    {resolvePlayerName(
+                      bowlerSnapshot.id,
+                      squad,
+                      bowlersInTable,
+                      bowlerSquad,
+                    )}
                   </span>
                   <span className="flex-1 border-b-2 border-dashed border-[#6B7280]" />
                   <span className="text-white">
-                    {ballsToOvers(bowlerSnapshot.balls)} - {bowlerSnapshot.maidens} - {bowlerSnapshot.runs} -{' '}
+                    {ballsToOvers(bowlerSnapshot.balls)} -{' '}
+                    {bowlerSnapshot.maidens} - {bowlerSnapshot.runs} -{' '}
                     {bowlerSnapshot.wickets}
                   </span>
                 </div>
@@ -311,7 +357,12 @@ function buildBallListWithMetaAndOverSummaries(ballHistory) {
     // Bowler: track balls, runs, wickets, maidens
     if (bowlerId) {
       if (!bowlerStatsMap.has(bowlerId)) {
-        bowlerStatsMap.set(bowlerId, { balls: 0, runs: 0, wickets: 0, maidens: 0 });
+        bowlerStatsMap.set(bowlerId, {
+          balls: 0,
+          runs: 0,
+          wickets: 0,
+          maidens: 0,
+        });
       }
       const bws = bowlerStatsMap.get(bowlerId);
       bws.runs += ballRuns;
@@ -329,7 +380,9 @@ function buildBallListWithMetaAndOverSummaries(ballHistory) {
     if (isLegal) validCount += 1;
 
     const overBallLabel =
-      validCount > 0 ? `${Math.floor((validCount - 1) / 6) + 1}.${((validCount - 1) % 6) + 1}` : '0.0';
+      validCount > 0
+        ? `${Math.floor((validCount - 1) / 6) + 1}.${((validCount - 1) % 6) + 1}`
+        : '0.0';
 
     list.push({ ball, overBallLabel, validCount, overIndex: currentOverIdx });
 
@@ -383,26 +436,41 @@ function buildBallListWithMetaAndOverSummaries(ballHistory) {
 // ─── Main component ────────────────────────────────────────────────────────
 
 export function BallsTab({
-  match,
   ballHistory = [],
   squad = [],
   bowlersInTable = [],
   bowlerSquad = [],
   batsmenOnCrease = [],
-  liveScore: liveScoreProp,
+  secondInningsBallHistory = [],
+  secondInningsBatsmenOnCrease = [],
+  secondInningsBowlersInTable = [],
 }) {
   const [activeInnings, setActiveInnings] = useState('1');
-  const liveScore = liveScoreProp ?? DEFAULT_LIVE_SCORE;
 
   const { ballListWithMeta, overSummaries } = useMemo(
     () => buildBallListWithMetaAndOverSummaries(ballHistory),
     [ballHistory],
   );
 
+  const {
+    ballListWithMeta: ballListSecond,
+    overSummaries: overSummariesSecond,
+  } = useMemo(
+    () => buildBallListWithMetaAndOverSummaries(secondInningsBallHistory ?? []),
+    [secondInningsBallHistory],
+  );
+
   const isEndOfOver = (validCount) => validCount > 0 && validCount % 6 === 0;
 
   const isEmpty =
-    ballListWithMeta.length === 0 && !batsmenOnCrease.length && !bowlersInTable.length;
+    ballListWithMeta.length === 0 &&
+    !batsmenOnCrease.length &&
+    !bowlersInTable.length;
+
+  const isEmptySecond =
+    (ballListSecond?.length ?? 0) === 0 &&
+    !secondInningsBatsmenOnCrease.length &&
+    !secondInningsBowlersInTable.length;
 
   return (
     <div className="mt-4 flex flex-col pb-8">
@@ -411,14 +479,14 @@ export function BallsTab({
         <button
           type="button"
           onClick={() => setActiveInnings('1')}
-          className={`text-[14px] uppercase tracking-wide ${activeInnings === '1' ? INNINGS_ACTIVE_CLASS : INNINGS_INACTIVE_CLASS}`}
+          className={`text-[14px] tracking-wide uppercase ${activeInnings === '1' ? INNINGS_ACTIVE_CLASS : INNINGS_INACTIVE_CLASS}`}
         >
           1st Innings
         </button>
         <button
           type="button"
           onClick={() => setActiveInnings('2')}
-          className={`text-[14px] uppercase tracking-wide ${activeInnings === '2' ? INNINGS_ACTIVE_CLASS : INNINGS_INACTIVE_CLASS}`}
+          className={`text-[14px] tracking-wide uppercase ${activeInnings === '2' ? INNINGS_ACTIVE_CLASS : INNINGS_INACTIVE_CLASS}`}
         >
           2nd Innings
         </button>
@@ -427,37 +495,74 @@ export function BallsTab({
       {activeInnings === '1' && (
         <div className="mt-4 flex flex-col gap-2">
           {isEmpty ? (
-            <p className="py-6 text-center text-[13px] text-[#A2A6AB]">No balls recorded yet.</p>
+            <p className="py-6 text-center text-[13px] text-[#A2A6AB]">
+              No balls recorded yet.
+            </p>
           ) : (
-            ballListWithMeta.map(({ ball, overBallLabel, validCount, overIndex }, idx) => (
-              <Fragment key={`ball-${idx}`}>
-                <BallListRow
-                  overBallLabel={overBallLabel}
-                  ball={ball}
-                  squad={squad}
-                  bowlersInTable={bowlersInTable}
-                  bowlerSquad={bowlerSquad}
-                  getBallDisplay={getBallDisplay}
-                  getBallDescription={getBallDescription}
-                  getStrikerName={getStrikerName}
-                  getBowlerName={getBowlerName}
-                />
-                {isEndOfOver(validCount) && overSummaries.has(overIndex) && (
-                  <SummaryBlock
-                    summary={overSummaries.get(overIndex)}
+            ballListWithMeta.map(
+              ({ ball, overBallLabel, validCount, overIndex }, idx) => (
+                <Fragment key={`ball-${idx}`}>
+                  <BallListRow
+                    overBallLabel={overBallLabel}
+                    ball={ball}
                     squad={squad}
                     bowlersInTable={bowlersInTable}
                     bowlerSquad={bowlerSquad}
+                    getBallDisplay={getBallDisplay}
+                    getBallDescription={getBallDescription}
+                    getStrikerName={getStrikerName}
+                    getBowlerName={getBowlerName}
                   />
-                )}
-              </Fragment>
-            ))
+                  {isEndOfOver(validCount) && overSummaries.has(overIndex) && (
+                    <SummaryBlock
+                      summary={overSummaries.get(overIndex)}
+                      squad={squad}
+                      bowlersInTable={bowlersInTable}
+                      bowlerSquad={bowlerSquad}
+                    />
+                  )}
+                </Fragment>
+              ),
+            )
           )}
         </div>
       )}
 
       {activeInnings === '2' && (
-        <p className="py-8 text-center text-[13px] text-[#A2A6AB]">2nd innings – coming soon.</p>
+        <div className="mt-4 flex flex-col gap-2">
+          {isEmptySecond ? (
+            <p className="py-6 text-center text-[13px] text-[#A2A6AB]">
+              No balls recorded yet.
+            </p>
+          ) : (
+            ballListSecond.map(
+              ({ ball, overBallLabel, validCount, overIndex }, idx) => (
+                <Fragment key={`ball2-${idx}`}>
+                  <BallListRow
+                    overBallLabel={overBallLabel}
+                    ball={ball}
+                    squad={squad}
+                    bowlersInTable={secondInningsBowlersInTable}
+                    bowlerSquad={bowlerSquad}
+                    getBallDisplay={getBallDisplay}
+                    getBallDescription={getBallDescription}
+                    getStrikerName={getStrikerName}
+                    getBowlerName={getBowlerName}
+                  />
+                  {isEndOfOver(validCount) &&
+                    overSummariesSecond.has(overIndex) && (
+                      <SummaryBlock
+                        summary={overSummariesSecond.get(overIndex)}
+                        squad={squad}
+                        bowlersInTable={secondInningsBowlersInTable}
+                        bowlerSquad={bowlerSquad}
+                      />
+                    )}
+                </Fragment>
+              ),
+            )
+          )}
+        </div>
       )}
     </div>
   );

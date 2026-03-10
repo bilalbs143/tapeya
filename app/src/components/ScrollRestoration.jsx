@@ -1,4 +1,5 @@
 import { useLayoutEffect } from 'react';
+
 import { useLocation } from 'react-router-dom';
 
 // Disable the browser's built-in scroll restoration so it doesn't

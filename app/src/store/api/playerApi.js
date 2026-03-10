@@ -1,8 +1,8 @@
 import { baseApi } from './baseApi';
 
 /**
- * Players API – list/search users with player role (icon players, squad picker, etc.).
- * GET /players, GET /players?search=...
+ * Players API – list/search users with player role, and player stats for profile.
+ * GET /players, GET /players?search=..., GET /users/{user}/stats, GET /users/{user}/teams
  */
 export const playerApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -26,7 +26,29 @@ export const playerApi = baseApi.injectEndpoints({
       }),
       transformResponse: (response) => response?.data ?? response ?? [],
     }),
+    getPlayerStats: builder.query({
+      query: ({ userId, tournament_type = 'all' }) => ({
+        url: `/users/${userId}/stats`,
+        params: { tournament_type },
+      }),
+      transformResponse: (response) => response?.data ?? response ?? null,
+      providesTags: (result, error, { userId }) =>
+        result ? [{ type: 'User', id: `stats-${userId}` }] : [],
+    }),
+    getPlayerTeams: builder.query({
+      query: (userId) => ({
+        url: `/users/${userId}/teams`,
+      }),
+      transformResponse: (response) => response?.data ?? response ?? [],
+      providesTags: (result, error, userId) =>
+        result?.length ? [{ type: 'User', id: `teams-${userId}` }] : [],
+    }),
   }),
 });
 
-export const { useGetPlayersQuery, useSearchPlayersQuery } = playerApi;
+export const {
+  useGetPlayersQuery,
+  useSearchPlayersQuery,
+  useGetPlayerStatsQuery,
+  useGetPlayerTeamsQuery,
+} = playerApi;
