@@ -29,6 +29,11 @@ function parseValue(value) {
   return isNaN(d.getTime()) ? undefined : d;
 }
 
+const triggerVariants = {
+  default: 'focus:ring-[#FF9700]/50',
+  error: 'focus:ring-red-500/50',
+};
+
 export function DatePicker({
   id,
   value = '',
@@ -37,6 +42,7 @@ export function DatePicker({
   className = '',
   disabled,
   allowFuture = false,
+  error,
   ...props
 }) {
   const [open, setOpen] = useState(false);
@@ -70,71 +76,84 @@ export function DatePicker({
   const displayValue = value ? formatDisplay(value) : '';
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          id={id}
-          disabled={disabled}
-          className={`${inputBase} ${className}`}
-          aria-haspopup="dialog"
-          aria-expanded={open}
-          aria-label={placeholder}
-          {...props}
+    <div className="flex w-full flex-col gap-1">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            id={id}
+            disabled={disabled}
+            className={`${inputBase} ${error ? triggerVariants.error : triggerVariants.default} ${className}`}
+            aria-haspopup="dialog"
+            aria-expanded={open}
+            aria-label={placeholder}
+            aria-describedby={error && id ? `${id}-error` : undefined}
+            {...props}
+          >
+            <span className={displayValue ? 'text-white' : 'text-[#A2A6AB78]'}>
+              {displayValue || placeholder}
+            </span>
+            <CalendarIcon className="ml-auto shrink-0 text-white/70" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          className="w-auto !rounded-xl !border-[#141412] !bg-[#141412] p-0 shadow-lg"
+          align="start"
+          onOpenAutoFocus={(e) => e.preventDefault()}
         >
-          <span className={displayValue ? 'text-white' : 'text-[#A2A6AB78]'}>
-            {displayValue || placeholder}
-          </span>
-          <CalendarIcon className="ml-auto shrink-0 text-white/70" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent
-        className="w-auto !rounded-xl !border-[#141412] !bg-[#141412] p-0 shadow-lg"
-        align="start"
-        onOpenAutoFocus={(e) => e.preventDefault()}
-      >
-        <DayPicker
-          mode="single"
-          selected={selectedDate}
-          onSelect={handleSelect}
-          disabled={dayPickerDisabled}
-          defaultMonth={selectedDate || new Date()}
-          captionLayout="dropdown"
-          reverseYears
-          startMonth={new Date(new Date().getFullYear() - 100, 0)}
-          endMonth={endMonth}
-          classNames={{
-            root: '',
-            months: 'space-y-3',
-            month: 'space-y-3',
-            month_caption: 'flex items-center justify-center gap-3 flex-wrap',
-            caption_label: 'sr-only',
-            dropdowns: 'flex gap-2 items-center',
-            dropdown_root:
-              'inline-flex min-w-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
-            dropdown:
-              'rounded-lg border-0 bg-[#1f1f1d] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50 appearance-none cursor-pointer min-w-[5rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
-            chevron: '!fill-white !text-white shrink-0 [&_polygon]:!fill-white',
-            nav: 'flex gap-1 shrink-0',
-            button_previous:
-              'h-8 w-8 rounded flex items-center justify-center !text-white hover:bg-white/10',
-            button_next:
-              'h-8 w-8 rounded flex items-center justify-center !text-white hover:bg-white/10',
-            weekdays: 'flex',
-            weekday: 'w-9 text-center text-sm text-[#A2A6AB78]',
-            week: 'flex',
-            day: 'h-9 w-9 text-center text-sm',
-            day_button:
-              'h-9 w-9 rounded text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50',
-            selected: '!bg-[#FF9700] !text-white hover:!bg-[#FF9700]/90',
-            today: 'font-semibold text-[#FFB703]',
-            outside: 'text-white/40',
-            disabled: 'text-white/30 cursor-not-allowed',
-            hidden: 'invisible',
-          }}
-        />
-      </PopoverContent>
-    </Popover>
+          <DayPicker
+            mode="single"
+            selected={selectedDate}
+            onSelect={handleSelect}
+            disabled={dayPickerDisabled}
+            defaultMonth={selectedDate || new Date()}
+            captionLayout="dropdown"
+            reverseYears
+            startMonth={new Date(new Date().getFullYear() - 100, 0)}
+            endMonth={endMonth}
+            classNames={{
+              root: '',
+              months: 'space-y-3',
+              month: 'space-y-3',
+              month_caption: 'flex items-center justify-center gap-3 flex-wrap',
+              caption_label: 'sr-only',
+              dropdowns: 'flex gap-2 items-center',
+              dropdown_root:
+                'inline-flex min-w-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+              dropdown:
+                'rounded-lg border-0 bg-[#1f1f1d] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50 appearance-none cursor-pointer min-w-[5rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+              chevron:
+                '!fill-white !text-white shrink-0 [&_polygon]:!fill-white',
+              nav: 'flex gap-1 shrink-0',
+              button_previous:
+                'h-8 w-8 rounded flex items-center justify-center !text-white hover:bg-white/10',
+              button_next:
+                'h-8 w-8 rounded flex items-center justify-center !text-white hover:bg-white/10',
+              weekdays: 'flex',
+              weekday: 'w-9 text-center text-sm text-[#A2A6AB78]',
+              week: 'flex',
+              day: 'h-9 w-9 text-center text-sm',
+              day_button:
+                'h-9 w-9 rounded text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50',
+              selected: '!bg-[#FF9700] !text-white hover:!bg-[#FF9700]/90',
+              today: 'font-semibold text-[#FFB703]',
+              outside: 'text-white/40',
+              disabled: 'text-white/30 cursor-not-allowed',
+              hidden: 'invisible',
+            }}
+          />
+        </PopoverContent>
+      </Popover>
+      {error && (
+        <p
+          id={id ? `${id}-error` : undefined}
+          className="text-sm text-red-200"
+          role="alert"
+        >
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
 

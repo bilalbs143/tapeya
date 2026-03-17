@@ -50,7 +50,7 @@ class ScoringDemoSeeder extends Seeder
         $tournaments = $this->createTournaments($organizers);
         $this->createTeamsAndAttach($sponsors, $players, $tournaments);
 
-        $this->command->info('Done. Players: ' . count($players) . ', Organizers: ' . count($organizers) . ', Sponsors: ' . count($sponsors) . ', Tournaments: ' . count($tournaments));
+        $this->command->info('Done. Players: '.count($players).', Organizers: '.count($organizers).', Sponsors: '.count($sponsors).', Tournaments: '.count($tournaments));
     }
 
     private function ensureRoles(): void
@@ -77,11 +77,11 @@ class ScoringDemoSeeder extends Seeder
 
         $players = [];
         $numBase = time() % 1000000;
-        $base = 'sd' . $numBase;
+        $base = 'sd'.$numBase;
         for ($i = 1; $i <= 20; $i++) {
             $email = "player{$i}_{$base}@demo.local";
             $nick = "player{$i}_{$base}";
-            $phone = '+92300' . str_pad((string) ($numBase * 10 + $i), 7, '0', STR_PAD_LEFT);
+            $phone = '+92300'.str_pad((string) ($numBase * 10 + $i), 7, '0', STR_PAD_LEFT);
 
             $user = User::firstOrCreate(
                 ['email' => $email],
@@ -99,6 +99,7 @@ class ScoringDemoSeeder extends Seeder
             $user->roles()->syncWithoutDetaching([$playerRole->id]);
             $players[] = $user;
         }
+
         return $players;
     }
 
@@ -111,11 +112,11 @@ class ScoringDemoSeeder extends Seeder
 
         $organizers = [];
         $numBase = time() % 1000000;
-        $base = 'sd' . $numBase;
+        $base = 'sd'.$numBase;
         for ($i = 1; $i <= 3; $i++) {
             $email = "organizer{$i}_{$base}@demo.local";
             $nick = "organizer{$i}_{$base}";
-            $phone = '+92301' . str_pad((string) ($numBase * 10 + $i), 7, '0', STR_PAD_LEFT);
+            $phone = '+92301'.str_pad((string) ($numBase * 10 + $i), 7, '0', STR_PAD_LEFT);
 
             $user = User::firstOrCreate(
                 ['email' => $email],
@@ -133,6 +134,7 @@ class ScoringDemoSeeder extends Seeder
             $user->roles()->syncWithoutDetaching([$role->id]);
             $organizers[] = $user;
         }
+
         return $organizers;
     }
 
@@ -145,11 +147,11 @@ class ScoringDemoSeeder extends Seeder
 
         $sponsors = [];
         $numBase = time() % 1000000;
-        $base = 'sd' . $numBase;
+        $base = 'sd'.$numBase;
         for ($i = 1; $i <= 3; $i++) {
             $email = "sponsor{$i}_{$base}@demo.local";
             $nick = "sponsor{$i}_{$base}";
-            $phone = '+92302' . str_pad((string) ($numBase * 10 + $i), 7, '0', STR_PAD_LEFT);
+            $phone = '+92302'.str_pad((string) ($numBase * 10 + $i), 7, '0', STR_PAD_LEFT);
 
             $user = User::firstOrCreate(
                 ['email' => $email],
@@ -167,6 +169,7 @@ class ScoringDemoSeeder extends Seeder
             $user->roles()->syncWithoutDetaching([$role->id]);
             $sponsors[] = $user;
         }
+
         return $sponsors;
     }
 
@@ -205,6 +208,7 @@ class ScoringDemoSeeder extends Seeder
             ]);
             $tournaments[] = $t;
         }
+
         return $tournaments;
     }
 
@@ -213,13 +217,13 @@ class ScoringDemoSeeder extends Seeder
     /** @param array<Tournament> $tournaments */
     private function createTeamsAndAttach(array $sponsors, array $players, array $tournaments): void
     {
-        $base = 'SC' . substr((string) time(), -4);
+        $base = 'SC'.substr((string) time(), -4);
         $teamNames = ['Lions', 'Tigers', 'Eagles', 'Hawks', 'Falcons', 'Panthers'];
         $teams = [];
 
         for ($i = 0; $i < 6; $i++) {
             $sponsor = $sponsors[$i % count($sponsors)];
-            $code = strtoupper(substr($teamNames[$i], 0, 3)) . $base . $i;
+            $code = strtoupper(substr($teamNames[$i], 0, 3)).$base.$i;
             $team = Team::create([
                 'name' => "Demo {$teamNames[$i]}",
                 'code' => $code,

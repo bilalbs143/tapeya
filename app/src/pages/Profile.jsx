@@ -22,11 +22,13 @@ const PROFILE_ROLES = [
   { value: 'sponsor', label: 'Sponsor Profile' },
 ];
 
+/** Role slugs the user holds. Returns [] when user has no roles; ['player'] when user not yet loaded. */
 function getRoleSlugs(user) {
-  const roles = user?.roles;
-  if (!roles || !Array.isArray(roles)) return ['player'];
+  if (user == null) return ['player'];
+  const roles = user.roles;
+  if (!roles || !Array.isArray(roles)) return [];
   const slugs = roles.map((r) => r?.slug).filter(Boolean);
-  return slugs.length ? slugs : ['player'];
+  return slugs;
 }
 
 function ProfileContent({ activeRole }) {
@@ -35,8 +37,14 @@ function ProfileContent({ activeRole }) {
       return <OrganizerProfileTabs />;
     case 'sponsor':
       return <SponsorProfileTabs />;
-    default:
+    case 'player':
       return <PlayerProfile />;
+    default:
+      return (
+        <p className="text-[13px] text-[#A2A6AB]">
+          Unknown profile role. Select a tab above or go back.
+        </p>
+      );
   }
 }
 
@@ -45,13 +53,18 @@ export default function Profile() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const userRoleSlugs = useMemo(() => getRoleSlugs(user), [user]);
+
+  const visibleRoleTabs = useMemo(
+    () => PROFILE_ROLES.filter(({ value }) => userRoleSlugs.includes(value)),
+    [userRoleSlugs],
+  );
+
   const hasMultipleRoles = userRoleSlugs.length > 1;
 
   const activeRole = useMemo(() => {
     const fromUrl = searchParams.get('role');
-    if (fromUrl && PROFILE_ROLES.some((r) => r.value === fromUrl))
-      return fromUrl;
-    return userRoleSlugs[0] ?? 'player';
+    if (fromUrl && userRoleSlugs.includes(fromUrl)) return fromUrl;
+    return userRoleSlugs[0] ?? null;
   }, [searchParams, userRoleSlugs]);
 
   const setActiveRole = (value) => {
@@ -66,10 +79,10 @@ export default function Profile() {
     <div className="bg-black">
       <ProfileHeader />
 
-      {hasMultipleRoles ? (
+      {hasMultipleRoles && (
         <Tabs
           className="w-full"
-          value={activeRole}
+          value={activeRole ?? ''}
           onValueChange={setActiveRole}
         >
           <div className="px-4 pt-6">
@@ -77,7 +90,7 @@ export default function Profile() {
               Switch profile
             </p>
             <TabsList className={profileListClass}>
-              {PROFILE_ROLES.map(({ value, label }) => (
+              {visibleRoleTabs.map(({ value, label }) => (
                 <TabsTrigger
                   key={value}
                   value={value}
@@ -88,15 +101,18 @@ export default function Profile() {
               ))}
             </TabsList>
           </div>
-          <div className="px-4 pt-10 pb-6">
-            <ProfileContent activeRole={activeRole} />
-          </div>
         </Tabs>
-      ) : (
-        <div className="px-4 pt-10 pb-6">
-          <ProfileContent activeRole={activeRole} />
-        </div>
       )}
+
+      <div className="px-4 pt-10 pb-6">
+        {userRoleSlugs.length === 0 ? (
+          <p className="text-[13px] text-[#A2A6AB]">
+            You don&apos;t have any profile roles yet.
+          </p>
+        ) : (
+          <ProfileContent activeRole={activeRole ?? 'player'} />
+        )}
+      </div>
     </div>
   );
 }

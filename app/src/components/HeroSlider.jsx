@@ -6,6 +6,8 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 
 import { useGetHeroSlidersQuery } from '@/store/api/heroSliderApi';
 
+const AUTOPLAY_DELAY_MS = 5000;
+
 export function HeroSlider() {
   const { data: slides = [], isLoading } = useGetHeroSlidersQuery();
 
@@ -15,15 +17,18 @@ export function HeroSlider() {
     );
   }
 
-  const list = Array.isArray(slides) && slides.length > 0 ? slides : null;
-  if (!list) return null;
+  const list =
+    Array.isArray(slides) && slides.length > 0
+      ? slides.filter((s) => s?.image)
+      : null;
+  if (!list?.length) return null;
 
   return (
     <Swiper
       modules={[Autoplay, Pagination]}
       spaceBetween={16}
       slidesPerView={1}
-      autoplay={{ delay: 5000, disableOnInteraction: false }}
+      autoplay={{ delay: AUTOPLAY_DELAY_MS, disableOnInteraction: false }}
       pagination={{ clickable: true }}
       loop={list.length > 1}
       className="hero-swiper"
@@ -33,8 +38,11 @@ export function HeroSlider() {
           <div className="h-[160px] overflow-hidden rounded-[17px]">
             <img
               src={slide.image}
-              alt=""
+              alt={slide.alt ?? slide.title ?? ''}
               className="h-full w-full object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
             />
           </div>
         </SwiperSlide>

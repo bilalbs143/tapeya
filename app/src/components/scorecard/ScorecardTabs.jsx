@@ -1,7 +1,3 @@
-/**
- * Scorecard filter tabs - Matches (all), DMT, TSL, DPL, XRL, KTPL
- * Matches tab shows all; tournament tabs navigate to ScorecardDetails
- */
 import { Link } from 'react-router-dom';
 
 import {
@@ -16,43 +12,30 @@ import {
 
 import { MatchCard } from './MatchCard';
 
-const TABS = [
-  { value: 'all', label: 'Matches', isTournament: false },
-  { value: 'DMT', label: 'DMT', isTournament: true },
-  { value: 'TSL', label: 'TSL', isTournament: true },
-  { value: 'DPL', label: 'DPL', isTournament: true },
-  { value: 'XRL', label: 'XRL', isTournament: true },
-  { value: 'KTPL', label: 'KTPL', isTournament: true },
-];
-
-function TabListRow({ className = '' }) {
+function TabListRow({ className = '', tournaments = [] }) {
   return (
     <TabsList className={`${scorecardListClass} ${className}`.trim()}>
-      {TABS.map(({ value, label, isTournament }) =>
-        isTournament ? (
-          <Link
-            key={value}
-            to={`/scorecard/${value}`}
-            className={scorecardLinkClass}
-          >
-            {label}
-          </Link>
-        ) : (
-          <TabsTrigger
-            key={value}
-            value={value}
-            className={scorecardTriggerClass}
-          >
-            {label}
-          </TabsTrigger>
-        ),
-      )}
+      <TabsTrigger value="all" className={scorecardTriggerClass}>
+        All
+      </TabsTrigger>
+      {tournaments.map((tournament) => (
+        <Link
+          key={tournament.id}
+          to={`/scorecard/${tournament.id}`}
+          className={scorecardLinkClass}
+        >
+          {tournament.tournament_name ||
+            tournament.name ||
+            `Tournament ${tournament.id}`}
+        </Link>
+      ))}
     </TabsList>
   );
 }
 
 export function ScorecardTabs({
   matches,
+  tournaments = [],
   fixedVisible = false,
   fixedTop = 64,
 }) {
@@ -64,11 +47,11 @@ export function ScorecardTabs({
           style={{ top: fixedTop }}
         >
           <div className="mx-auto max-w-2xl px-4">
-            <TabListRow />
+            <TabListRow tournaments={tournaments} />
           </div>
         </div>
       )}
-      <TabListRow />
+      <TabListRow tournaments={tournaments} />
       <TabsContent value="all" className="mt-4 space-y-3 focus:outline-none">
         {matches.length === 0 ? (
           <p className="py-8 text-center text-[13px] text-[#A2A6AB]">

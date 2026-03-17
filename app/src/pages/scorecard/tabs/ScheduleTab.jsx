@@ -1,6 +1,13 @@
+/**
+ * ScheduleTab
+ *
+ * Renders list of MatchCards for schedule. Tab panel for scorecard/upcoming.
+ * Coding guidelines: docs/Coding guidelines.md (§14 focus-visible:outline-none)
+ */
+
 import { MatchCard } from '@/components/scorecard/MatchCard';
 
-export function ScheduleTab({ matches }) {
+export function ScheduleTab({ matches, tournamentId }) {
   if (!matches?.length) {
     return (
       <div className="mt-4 space-y-3 pb-6">
@@ -11,13 +18,17 @@ export function ScheduleTab({ matches }) {
     );
   }
   return (
-    <div className="mt-4 space-y-3 pb-6 focus:outline-none">
+    <div className="mt-4 space-y-3 pb-6 focus-visible:outline-none">
       {matches.map((match) => (
         <MatchCard
           key={match.id}
           match={match}
           showScheduleTableLinks={false}
-          to={`/scorecard/${match.league}/match/${match.id}`}
+          to={
+            tournamentId
+              ? `/scorecard/${tournamentId}/match/${match.id}`
+              : `/scorecard/match/${match.id}`
+          }
         />
       ))}
     </div>

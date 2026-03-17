@@ -1,5 +1,5 @@
-import { useDispatch, useSelector } from 'react-redux';
-
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { selectDialogKey, selectDialogProps } from '@/store/selectors';
 import { closeDialog } from '@/store/slices/commonSlice';
 
 import BaseDialog from './BaseDialog';
@@ -14,9 +14,9 @@ const DIALOG_COMPONENTS = {
 };
 
 export function DialogManager() {
-  const dispatch = useDispatch();
-  const dialogKey = useSelector((state) => state.common.dialogKey);
-  const dialogProps = useSelector((state) => state.common.dialogProps || {});
+  const dispatch = useAppDispatch();
+  const dialogKey = useAppSelector(selectDialogKey);
+  const dialogProps = useAppSelector(selectDialogProps);
 
   if (!dialogKey || !DIALOG_COMPONENTS[dialogKey]) {
     return null;

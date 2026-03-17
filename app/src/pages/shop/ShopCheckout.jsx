@@ -11,6 +11,7 @@ import {
 } from '@/store/api/locationApi';
 import { useCreateOrderMutation, useGetCartQuery } from '@/store/api/shopApi';
 import { useAppSelector } from '@/store/hooks';
+import { selectUser } from '@/store/selectors';
 import { Container } from '@/ui/Container';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
@@ -30,7 +31,7 @@ import {
 export default function ShopCheckout() {
   const navigate = useNavigate();
   const toast = useToast();
-  const user = useAppSelector((state) => state.auth?.user);
+  const user = useAppSelector(selectUser);
   const { data: cart, isLoading: cartLoading } = useGetCartQuery();
   const [createOrder, { isLoading: isSubmitting }] = useCreateOrderMutation();
 

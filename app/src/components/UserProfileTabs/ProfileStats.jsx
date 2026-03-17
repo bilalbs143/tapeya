@@ -1,6 +1,11 @@
 import { useState } from 'react';
 
 import {
+  StatItem,
+  StatItemInline,
+} from '@/features/profile/components/StatItem';
+import { formatDecimal } from '@/lib/utils/displayUtils';
+import {
   useGetPlayerStatsQuery,
   useGetPlayerTeamsQuery,
 } from '@/store/api/playerApi';
@@ -13,37 +18,6 @@ const TEAMS_PREVIEW_COUNT = 3;
 
 const LABEL_CLASS =
   'text-[14px] font-bold uppercase tracking-wide text-[#A2A6AB]';
-const VALUE_CLASS = 'text-sm font-normal text-white';
-
-function formatNum(n) {
-  if (n == null || n === '') return '—';
-  if (typeof n === 'number' && Number.isFinite(n)) return String(n);
-  return String(n);
-}
-
-function formatDecimal(n) {
-  if (n == null || n === '') return '—';
-  if (typeof n === 'number' && Number.isFinite(n)) return n.toFixed(2);
-  return String(n);
-}
-
-function StatItem({ label, value }) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <span className={LABEL_CLASS}>{label}:</span>
-      <span className={VALUE_CLASS}>{formatNum(value)}</span>
-    </div>
-  );
-}
-
-function StatItemInline({ label, value }) {
-  return (
-    <span className="inline">
-      <span className={LABEL_CLASS}>{label}: </span>
-      <span className={VALUE_CLASS}>{formatNum(value)}</span>
-    </span>
-  );
-}
 
 export function ProfileStats() {
   const [teamsExpanded, setTeamsExpanded] = useState(false);
@@ -79,7 +53,6 @@ export function ProfileStats() {
   const careerAverages =
     batting != null
       ? [
-          { label: 'SPAN', value: null },
           { label: 'MAT', value: batting.matches },
           { label: 'INNS', value: batting.innings },
           { label: 'RUNS', value: batting.runs },
@@ -113,7 +86,6 @@ export function ProfileStats() {
         <div className="text-sm text-white/60">Loading stats…</div>
       ) : (
         <>
-          {/* Summary stats — inline (batting) */}
           <div className="flex flex-wrap items-baseline gap-x-8">
             {summaryStats.length > 0 ? (
               summaryStats.map(({ label, value }) => (
@@ -126,7 +98,6 @@ export function ProfileStats() {
             )}
           </div>
 
-          {/* Teams */}
           <div className="mt-4 flex flex-wrap items-baseline gap-x-1">
             <span className={LABEL_CLASS}>TEAMS:</span>
             {teamsLoading ? (
@@ -163,7 +134,6 @@ export function ProfileStats() {
 
           <div className="mt-5 h-px w-full bg-[linear-gradient(to_right,#00000000,#FFFFFF33,#00000000)]" />
 
-          {/* Career averages (batting) */}
           <h2 className="mt-6 text-[12px] font-bold tracking-wide text-white uppercase">
             CAREER AVERAGES (BATTING)
           </h2>

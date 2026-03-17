@@ -6,10 +6,10 @@ use App\Http\Controllers\User\EnumController;
 use App\Http\Controllers\User\HeroSliderController;
 use App\Http\Controllers\User\MatchSquadController;
 use App\Http\Controllers\User\MatchTossController;
+use App\Http\Controllers\User\NotificationController;
 use App\Http\Controllers\User\PlayerController;
 use App\Http\Controllers\User\PlayerStatsController;
 use App\Http\Controllers\User\PlayingElevenController;
-use App\Http\Controllers\User\NotificationController;
 use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\User\RankingController;
 use App\Http\Controllers\User\ScorecardController;
@@ -24,9 +24,10 @@ use App\Http\Controllers\User\TournamentController;
 use App\Http\Controllers\User\TournamentMatchController;
 use App\Http\Controllers\User\TournamentReactionController;
 use App\Http\Controllers\User\TournamentRequestController;
+use App\Http\Controllers\User\TournamentStatsController;
+use App\Http\Controllers\User\TournamentTeamController;
 use App\Http\Controllers\User\UserFollowController;
 use App\Http\Controllers\User\UserTeamController;
-use App\Http\Controllers\User\TournamentTeamController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -83,6 +84,8 @@ Route::middleware('auth:api')->group(function () {
     Route::get('tournaments/{tournament}/teams', [TournamentTeamController::class, 'index']);
     Route::post('tournaments/{tournament}/teams', [TournamentTeamController::class, 'store']);
     Route::delete('tournaments/{tournament}/teams/{team}', [TournamentTeamController::class, 'destroy']);
+    Route::get('tournaments/{tournament}/standings', [TournamentStatsController::class, 'standings']);
+    Route::get('tournaments/{tournament}/season-stats', [TournamentStatsController::class, 'seasonStats']);
     Route::get('tournaments/{tournament}/matches', [TournamentMatchController::class, 'index']);
     Route::post('tournaments/{tournament}/matches', [TournamentMatchController::class, 'store']);
     Route::get('matches/{match}', [TournamentMatchController::class, 'show']);

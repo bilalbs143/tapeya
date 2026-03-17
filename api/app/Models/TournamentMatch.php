@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Event\MatchStatusEnum;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -30,6 +31,7 @@ class TournamentMatch extends BaseModel
     {
         return [
             'match_date' => 'date',
+            'status' => MatchStatusEnum::class,
         ];
     }
 

@@ -4,20 +4,24 @@ import { Navigate } from 'react-router-dom';
 
 import tapeyaLogo from '@/assets/images/logos/tapeya-logo-white.svg';
 import { useAppSelector } from '@/store/hooks';
+import { selectIsAuthenticated } from '@/store/selectors';
 
 const SPLASH_DURATION_MS = 3000;
 const SPLASH_FADE_OUT_MS = 350;
 
-export function SplashScreen() {
+export default function SplashScreen() {
   const [exiting, setExiting] = useState(false);
   const [redirect, setRedirect] = useState(false);
-  const isAuthenticated = useAppSelector((s) => !!s.auth?.accessToken);
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
 
+  // Step 1: start the fade-out after the full splash duration.
   useEffect(() => {
     const startExit = setTimeout(() => setExiting(true), SPLASH_DURATION_MS);
     return () => clearTimeout(startExit);
   }, []);
 
+  // Step 2: trigger navigation once the fade-out animation has finished.
+  // Total time before redirect: SPLASH_DURATION_MS + SPLASH_FADE_OUT_MS.
   useEffect(() => {
     if (!exiting) return;
     const go = setTimeout(() => setRedirect(true), SPLASH_FADE_OUT_MS);
@@ -29,24 +33,24 @@ export function SplashScreen() {
   }
 
   return (
-    <div className="fixed inset-0 overflow-visible bg-black">
+    <div className="fixed inset-0 bg-black">
       <div
         className="pointer-events-none fixed top-[-115px] left-1/2 z-0 h-[302px] w-[622px] -translate-x-1/2 rounded-full bg-[#FF9700] opacity-30 blur-[200px]"
         aria-hidden
       />
+
       <div
-        className={`relative z-10 flex min-h-full flex-col items-center justify-center gap-6 ${exiting ? 'motion-safe:animate-splash-fade-out' : ''}`}
+        className={`relative z-10 flex min-h-full flex-col items-center justify-center gap-6 ${
+          exiting ? 'motion-safe:animate-splash-fade-out' : ''
+        }`}
       >
         <img
           src={tapeyaLogo}
           alt="Tapeya"
           className="motion-safe:animate-splash-slide-up h-auto w-[270px] opacity-0 motion-reduce:opacity-100"
         />
-        <p
-          className="motion-safe:animate-splash-slide-up-delayed max-w-[90vw] text-center text-[16px] text-white opacity-0 motion-reduce:opacity-100"
-          style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
-        >
-          Live Cricket & Instant Updates, Anytime!
+        <p className="motion-safe:animate-splash-slide-up-delayed max-w-[90vw] text-center font-sans text-[16px] text-white opacity-0 motion-reduce:opacity-100">
+          Live Cricket &amp; Instant Updates, Anytime!
         </p>
       </div>
     </div>

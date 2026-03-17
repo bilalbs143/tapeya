@@ -1,3 +1,11 @@
+/**
+ * TournamentAddSquad.jsx
+ *
+ * Lists teams attached to a tournament. Organizer can add squad (edit-squad),
+ * remove a team (with confirm), or add a new team. Route:
+ * /organizer/tournaments/:tournamentId/saved-teams
+ */
+
 import { useEffect, useState } from 'react';
 
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -6,12 +14,29 @@ import teamDeleteIcon from '@/assets/images/icons/team-delete-icon.svg';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import {
+  getTournamentTitle,
+  parseTournamentId,
+} from '@/lib/utils/tournamentUtils';
+import {
   useGetTournamentQuery,
   useGetTournamentTeamsQuery,
   useRemoveTeamFromTournamentMutation,
 } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+
+function teamDisplay(team) {
+  const owner =
+    team.sponsor?.name ?? (team.owner != null ? String(team.owner) : '—');
+  const iconPlayers =
+    Array.isArray(team.icon_players) && team.icon_players.length > 0
+      ? team.icon_players
+          .map((p) => p.name)
+          .filter(Boolean)
+          .join(', ')
+      : '—';
+  return { owner, iconPlayers };
+}
 
 function TeamLogoIcon({ logo, teamName }) {
   return (
@@ -27,21 +52,13 @@ function TeamLogoIcon({ logo, teamName }) {
   );
 }
 
-function teamDisplay(team) {
-  const owner =
-    team.sponsor?.name ?? (team.owner != null ? String(team.owner) : '—');
-  const iconPlayers =
-    Array.isArray(team.icon_players) && team.icon_players.length > 0
-      ? team.icon_players
-          .map((p) => p.name)
-          .filter(Boolean)
-          .join(', ')
-      : '—';
-  return { owner, iconPlayers };
-}
-
+/**
+ * TeamCard — displays team metadata with Add Squad and Remove actions.
+ * CURSOR: move to src/features/teams/components/TeamCard.jsx
+ */
 function TeamCard({ team, index, onAddSquad, onDelete, isDeleting }) {
   const { owner, iconPlayers } = teamDisplay(team);
+
   return (
     <div className="rounded-[17px] bg-[#141412] p-4">
       <div className="flex justify-end gap-1.5">
@@ -65,16 +82,19 @@ function TeamCard({ team, index, onAddSquad, onDelete, isDeleting }) {
           <img src={teamDeleteIcon} alt="" className="h-5 w-5" />
         </button>
       </div>
+
       <div className="mt-3 flex items-start gap-3">
         <TeamLogoIcon logo={team.logo} teamName={team.name} />
         <div className="min-w-0 flex-1">
-          <h3 className="text:white text-[16px] font-bold">
+          {/* Fixed: was `text:white` (invalid) → `text-white` */}
+          <h3 className="text-[16px] font-bold text-white">
             {team.name ?? '—'}
           </h3>
           <p className="mt-0.5 text-[14px] text-white">
             Owner: <span className="font-medium text-[#DA9811]">{owner}</span>
           </p>
-          <p className="text:white mt-0.5 text-[12px]">
+          {/* Fixed: was `text:white` (invalid) → correct colour via parent `text-white` */}
+          <p className="mt-0.5 text-[12px] text-white">
             Icon Players: <span className="text-[#A2A6AB]">{iconPlayers}</span>
           </p>
         </div>
@@ -86,18 +106,24 @@ function TeamCard({ team, index, onAddSquad, onDelete, isDeleting }) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Page component
+// ---------------------------------------------------------------------------
+
 export default function TournamentAddSquad() {
   const navigate = useNavigate();
   const location = useLocation();
   const { tournamentId } = useParams();
+  const toast = useToast();
+
   const stateTeams = location.state?.teams;
   const tournamentFromState = location.state?.tournament ?? null;
 
-  const tournamentIdNum =
-    tournamentId != null && tournamentId !== ''
-      ? Number(tournamentId)
-      : tournamentFromState?.id;
-  const isValidId = Number.isInteger(tournamentIdNum) && tournamentIdNum > 0;
+  const tournamentIdNum = parseTournamentId(
+    tournamentId,
+    tournamentFromState?.id,
+  );
+  const isValidId = tournamentIdNum != null;
 
   const { data: tournamentFromApi } = useGetTournamentQuery(
     { id: tournamentIdNum },
@@ -105,15 +131,17 @@ export default function TournamentAddSquad() {
   );
   const tournament = tournamentFromState ?? tournamentFromApi ?? null;
 
+  // Skip the API fetch when teams were passed via location state.
   const { data: fetchedTeams = [], isLoading } = useGetTournamentTeamsQuery(
     tournamentIdNum,
     { skip: !isValidId || stateTeams?.length > 0 },
   );
 
+  // Optimistic removal: filter out deleted teams immediately without refetch.
   const [removedTeamIds, setRemovedTeamIds] = useState([]);
   const baseTeams = stateTeams?.length > 0 ? stateTeams : fetchedTeams;
   const teams = baseTeams.filter((t) => !removedTeamIds.includes(t.id));
-  const toast = useToast();
+
   const [removeTeam, { isLoading: isRemoving }] =
     useRemoveTeamFromTournamentMutation();
 
@@ -123,6 +151,10 @@ export default function TournamentAddSquad() {
     }
   }, [isValidId, navigate]);
 
+  // ------------------------------------------------------------------
+  // Handlers
+  // ------------------------------------------------------------------
+
   const handleAddSquad = (team) => {
     navigate(`/organizer/tournaments/${tournamentIdNum}/edit-squad`, {
       state: { team, tournament: tournament ?? { id: tournamentIdNum } },
@@ -131,6 +163,7 @@ export default function TournamentAddSquad() {
 
   const handleDelete = async (teamToRemove) => {
     const teamName = teamToRemove?.name ?? 'this team';
+
     if (
       !window.confirm(
         `Remove ${teamName} from the tournament? Scheduled matches involving this team will be deleted. This cannot be undone.`,
@@ -138,6 +171,7 @@ export default function TournamentAddSquad() {
     ) {
       return;
     }
+
     try {
       await removeTeam({
         tournamentId: tournamentIdNum,
@@ -152,6 +186,10 @@ export default function TournamentAddSquad() {
       );
     }
   };
+
+  // ------------------------------------------------------------------
+  // Render
+  // ------------------------------------------------------------------
 
   return (
     <div className="bg-black">
@@ -182,11 +220,12 @@ export default function TournamentAddSquad() {
 
         {tournament && (
           <p className="mb-2 text-[13px] font-medium tracking-wide text-white uppercase">
-            {tournament.tournament_name ?? tournament.name ?? 'Tournament'}
+            {getTournamentTitle(tournament)}
           </p>
         )}
 
-        {!stateTeams?.length && tournament?.id && isLoading && (
+        {/* Loading indicator only shown when teams are not available from state */}
+        {!stateTeams?.length && isLoading && (
           <p className="mb-3 text-[13px] text-[#A2A6AB]">Loading teams…</p>
         )}
 
@@ -213,18 +252,32 @@ export default function TournamentAddSquad() {
         </div>
 
         <ul className="space-y-3 pb-10">
-          {!isLoading &&
-            teams.map((team, index) => (
-              <li key={team.id ?? index}>
-                <TeamCard
-                  team={team}
-                  index={index}
-                  onAddSquad={handleAddSquad}
-                  onDelete={handleDelete}
-                  isDeleting={isRemoving}
-                />
-              </li>
-            ))}
+          {isLoading && teams.length === 0
+            ? [1, 2, 3].map((i) => (
+                <li
+                  key={i}
+                  className="animate-pulse rounded-[17px] bg-[#141412] p-4"
+                >
+                  <div className="flex gap-3">
+                    <div className="h-12 w-12 shrink-0 rounded-lg bg-[#1c1c1a]" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-24 rounded bg-[#1c1c1a]" />
+                      <div className="h-3 w-32 rounded bg-[#1c1c1a]" />
+                    </div>
+                  </div>
+                </li>
+              ))
+            : teams.map((team, index) => (
+                <li key={team.id ?? index}>
+                  <TeamCard
+                    team={team}
+                    index={index}
+                    onAddSquad={handleAddSquad}
+                    onDelete={handleDelete}
+                    isDeleting={isRemoving}
+                  />
+                </li>
+              ))}
         </ul>
 
         {!isLoading && teams.length === 0 && (

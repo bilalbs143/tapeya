@@ -1,23 +1,12 @@
-/**
- * Scorecard tab – Team A / Team B switcher, stats row (Extras, Overs, CRR, Total),
- * batsman table, bowler table, and fall of wickets. Uses live data from ScoringMatch.
- * Team B shows "—" when they have not batted yet.
- */
 import { Fragment, useMemo, useState } from 'react';
 
 import teamMatchIcon from '@/assets/images/icons/team-match-icon.svg';
+import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
 
 import { ballsToOvers, getRunsFromBall } from '../scoringUtils';
 
-// -----------------------------------------------------------------------------
-// Constants
-// -----------------------------------------------------------------------------
+const STATS_SEPARATOR = 'w-px shrink-0 self-stretch bg-gradient-to-b from-[#00000000] via-[#FFFFFF66] to-[#00000000]';
 
-const STATS_SEPARATOR =
-  'w-px shrink-0 self-stretch bg-gradient-to-b from-[#00000000] via-[#FFFFFF66] to-[#00000000]';
-
-const BORDER = 'border-[#1C1C1A]';
-const HEADER_BG = 'bg-[#141412]';
 const DASH = '—';
 
 /** First innings: Team A bats, Team B bowls. */
@@ -40,10 +29,6 @@ const TABLE_HEADER_CELL = `${HEADER_BG} w-[2.5rem] border-r border-b py-2.5 text
 const TABLE_HEADER_FIRST = `${HEADER_BG} border-r border-b border-l px-4 py-2.5 text-left text-[12px] font-bold text-[#DA9811] ${BORDER}`;
 const TABLE_EMPTY_CELL = `border-r border-b border-l ${BORDER} px-4 py-3 text-center text-[#A2A6AB]`;
 
-// -----------------------------------------------------------------------------
-// Helpers
-// -----------------------------------------------------------------------------
-
 function strikeRate(runs, balls) {
   if (!balls) return '0.0';
   return ((Number(runs) / Number(balls)) * 100).toFixed(1);
@@ -65,10 +50,6 @@ function runsAt(ballHistory, index) {
     .slice(0, index + 1)
     .reduce((s, b) => s + getRunsFromBall(b), 0);
 }
-
-// -----------------------------------------------------------------------------
-// Component
-// -----------------------------------------------------------------------------
 
 export function ScorecardTab({
   match,
@@ -361,10 +342,6 @@ export function ScorecardTab({
     </div>
   );
 }
-
-// -----------------------------------------------------------------------------
-// Subcomponents
-// -----------------------------------------------------------------------------
 
 function TeamTabButton({ teamName, isActive, onSelect }) {
   return (

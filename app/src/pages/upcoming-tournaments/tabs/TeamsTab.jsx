@@ -1,16 +1,25 @@
+import { isValidTournamentId } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
 
 export function TeamsTab({ tournamentId }) {
+  const hasValidId = isValidTournamentId(tournamentId);
+
   const {
     data: teams = [],
     isLoading,
     isError,
   } = useGetTournamentTeamsQuery(tournamentId, {
-    skip: !tournamentId,
+    skip: !hasValidId,
   });
 
-  if (!tournamentId) {
-    return null;
+  if (!hasValidId) {
+    return (
+      <div className="mt-4 pb-6">
+        <p className="py-4 text-center text-[13px] text-[#A2A6AB]">
+          Teams are not available for this sample tournament.
+        </p>
+      </div>
+    );
   }
 
   if (isLoading) {

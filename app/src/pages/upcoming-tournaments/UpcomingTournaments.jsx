@@ -3,6 +3,8 @@ import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { formatDateRange } from '@/lib/format';
+import { parseDate, toDateStr } from '@/lib/utils/dateUtils';
+import { getTournamentTitle } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentsQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
 import {
@@ -14,30 +16,20 @@ import {
 } from '@/ui/Tabs';
 
 const MONTH_TABS_COUNT = 6;
-const FALLBACK_IMAGE =
-  'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&h=320&fit=crop';
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&h=320&fit=crop';
 
-function toDateStr(d) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
+const upcomingTriggerClass = 'min-w-[72px] flex-col items-center justify-center gap-0 rounded-xl px-4 py-2.5 text-white data-[state=active]:text-black';
 
-function parseDate(str) {
-  if (!str) return null;
-  const s = String(str).trim();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return new Date(s + 'T12:00:00');
-  const d = new Date(s);
-  return Number.isNaN(d.getTime()) ? null : d;
-}
-
-function UpcomingTournamentCard({ tournament, onClick }) {
+function UpcomingTournamentCard({ tournament, onClick, disabled }) {
   const imageUrl = tournament.display_image || FALLBACK_IMAGE;
-  const title = tournament.tournament_name || tournament.name || 'Tournament';
+  const title = getTournamentTitle(tournament);
 
   return (
     <button
       type="button"
-      onClick={() => onClick(tournament)}
-      className="flex w-full flex-col overflow-hidden rounded-[17px] bg-[#141412] text-left transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA9811] focus-visible:ring-offset-2 focus-visible:ring-offset-black active:opacity-90"
+      onClick={() => !disabled && onClick(tournament)}
+      disabled={disabled}
+      className="flex w-full flex-col overflow-hidden rounded-[17px] bg-[#141412] text-left transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA9811] focus-visible:ring-offset-2 focus-visible:ring-offset-black active:opacity-90 disabled:cursor-default disabled:opacity-60"
     >
       <div className="h-[148px] w-full overflow-hidden bg-[#0d0d0b]">
         <img
@@ -45,6 +37,7 @@ function UpcomingTournamentCard({ tournament, onClick }) {
           alt={title}
           className="h-full w-full object-cover"
           onError={(e) => {
+            // Guard prevents an infinite error loop if FALLBACK_IMAGE also fails.
             if (e.currentTarget.src !== FALLBACK_IMAGE) {
               e.currentTarget.src = FALLBACK_IMAGE;
             }
@@ -65,9 +58,9 @@ function UpcomingTournamentCard({ tournament, onClick }) {
 
 export default function UpcomingTournaments() {
   const navigate = useNavigate();
-  const initialNowRef = useRef(null);
-  if (initialNowRef.current === null) initialNowRef.current = new Date();
-  const now = initialNowRef.current;
+
+  const nowRef = useRef(new Date());
+  const now = nowRef.current;
 
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const [activeMonth, setActiveMonth] = useState(currentMonth);
@@ -100,7 +93,8 @@ export default function UpcomingTournaments() {
       const end = parseDate(t.end_date);
       const startStr = start ? toDateStr(start) : '';
       const endStr = end ? toDateStr(end) : '';
-      if (endStr < todayStr && startStr < todayStr) return;
+      // Skip tournaments that ended before today.
+      if (endStr && endStr < todayStr && startStr < todayStr) return;
 
       monthTabs.forEach(({ value }) => {
         const [y, m] = value.split('-').map(Number);
@@ -117,10 +111,11 @@ export default function UpcomingTournaments() {
   }, [data?.data, monthTabs, todayStr]);
 
   const cardsToShow = upcomingByMonth[activeMonth] ?? [];
+  const isEmpty = cardsToShow.length === 0;
 
   const handleCardClick = (tournament) => {
-    const id = tournament.id ?? 'preview';
-    navigate(`/upcoming-tournaments/${id}`, {
+    if (tournament.id == null) return;
+    navigate(`/upcoming-tournaments/${tournament.id}`, {
       state: {
         tournament: {
           ...tournament,
@@ -129,8 +124,6 @@ export default function UpcomingTournaments() {
       },
     });
   };
-
-  const isEmpty = cardsToShow.length === 0;
 
   return (
     <div className="min-h-screen bg-black">
@@ -152,7 +145,7 @@ export default function UpcomingTournaments() {
                 <TabsTrigger
                   key={value}
                   value={value}
-                  className={`${scorecardTriggerClass} min-w-[72px] flex-col items-center justify-center gap-0 rounded-xl px-4 py-2.5 text-white data-[state=active]:text-black`}
+                  className={`${scorecardTriggerClass} ${upcomingTriggerClass}`}
                 >
                   <span className="block text-[12px] leading-tight font-bold uppercase">
                     {monthShort}
@@ -166,13 +159,27 @@ export default function UpcomingTournaments() {
           </div>
 
           <div className="grid grid-cols-2 gap-3 pt-1 pb-6">
-            {cardsToShow.map((tournament) => (
-              <UpcomingTournamentCard
-                key={tournament.id}
-                tournament={tournament}
-                onClick={handleCardClick}
-              />
-            ))}
+            {isLoading
+              ? Array.from({ length: 4 }, (_, i) => (
+                  <div
+                    key={`skeleton-${i}`}
+                    className="flex animate-pulse flex-col overflow-hidden rounded-[17px] bg-[#141412]"
+                  >
+                    <div className="h-[148px] w-full bg-[#1A1A1A]" />
+                    <div className="flex flex-col gap-2 p-3">
+                      <div className="h-4 w-3/4 rounded bg-[#1A1A1A]" />
+                      <div className="h-3 w-1/2 rounded bg-[#1A1A1A]" />
+                    </div>
+                  </div>
+                ))
+              : cardsToShow.map((tournament) => (
+                  <UpcomingTournamentCard
+                    key={tournament.id}
+                    tournament={tournament}
+                    onClick={handleCardClick}
+                    disabled={tournament.id == null}
+                  />
+                ))}
           </div>
 
           {isLoading && (
@@ -185,7 +192,7 @@ export default function UpcomingTournaments() {
               Failed to load tournaments. Try again later.
             </p>
           )}
-          {isEmpty && !isLoading && (
+          {isEmpty && !isLoading && !isError && (
             <p className="py-2 text-center text-[13px] text-[#A2A6AB]">
               No upcoming tournaments for this month.
             </p>

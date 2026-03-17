@@ -1,11 +1,20 @@
+/**
+ * UploadReels
+ *
+ * Reel upload flow: back, preview, caption, publish. Route: /reels/upload
+ *
+ * Coding guidelines: docs/Coding guidelines.md (§2 selectors, useAppDispatch)
+ */
+
 import { useCallback, useRef, useState } from 'react';
 
-import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 import editReelIcon from '@/assets/images/icons/edit-reel.svg';
 import playIcon from '@/assets/images/icons/play-icon.svg';
 import reelCameraIcon from '@/assets/images/icons/reel-camera-icon.svg';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { selectUser } from '@/store/selectors';
 import { addReel } from '@/store/slices/reelsSlice';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 import { Button } from '@/ui/Button';
@@ -56,8 +65,8 @@ function fileToDataUrl(file) {
 
 export default function UploadReels() {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const user = useSelector((state) => state.auth?.user);
+  const dispatch = useAppDispatch();
+  const user = useAppSelector(selectUser);
   const fileInputRef = useRef(null);
 
   const [caption, setCaption] = useState('');

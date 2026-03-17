@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -9,6 +9,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 
 const PAGE_SIZE = 10;
+
+const backButtonClass = 'flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80';
 
 const ChevronLeft = () => (
   <svg
@@ -23,8 +25,6 @@ const ChevronLeft = () => (
     <path d="M15 19l-7-7 7-7" />
   </svg>
 );
-const backButtonClass =
-  'flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80';
 
 const ChevronDown = () => (
   <svg
@@ -39,51 +39,6 @@ const ChevronDown = () => (
     <path d="M6 9l6 6 6-6" />
   </svg>
 );
-
-function NotificationCard({ notification }) {
-  const {
-    avatar,
-    fallback,
-    boldText,
-    regularText,
-    timestamp,
-    actionLabel,
-    unread,
-  } = notification;
-  return (
-    <article className="flex items-start gap-3 rounded-[17px] bg-[#141412] p-4">
-      <Avatar className="h-12 w-12 shrink-0 rounded-full bg-[#252520]">
-        {avatar && <AvatarImage src={avatar} alt="" />}
-        <AvatarFallback className="bg-[#252520] text-sm font-semibold text-white">
-          {fallback}
-        </AvatarFallback>
-      </Avatar>
-      <div className="min-w-0 flex-1">
-        <p className="text-[12px] leading-snug text-white">
-          <span className="font-bold">{boldText}</span>
-          <span className="font-normal">{regularText}</span>
-        </p>
-        <p className="mt-1 text-[12px] text-[#A2A6AB]">{timestamp}</p>
-      </div>
-      <div className="flex shrink-0 items-center gap-2">
-        {actionLabel && (
-          <button
-            type="button"
-            className="rounded-[6px] border border-[#DA9811] bg-transparent px-3 py-1 text-[13px] font-bold text-[#DA9811] transition-opacity active:opacity-90"
-          >
-            {actionLabel}
-          </button>
-        )}
-        {unread && (
-          <span
-            className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#4CAF50]"
-            aria-hidden
-          />
-        )}
-      </div>
-    </article>
-  );
-}
 
 function mapApiNotificationToCard(notification) {
   if (!notification) return null;
@@ -107,7 +62,8 @@ function mapApiNotificationToCard(notification) {
   const fallback =
     nameSource
       ?.split(' ')
-      .map((chunk) => chunk[0])
+      .filter(Boolean)
+      .map((chunk) => chunk[0] || '')
       .join('')
       .slice(0, 2)
       .toUpperCase() || 'NT';
@@ -122,6 +78,53 @@ function mapApiNotificationToCard(notification) {
     actionLabel: null,
     unread: !notification.read_at,
   };
+}
+
+function NotificationCard({ notification, onActionClick }) {
+  const {
+    avatar,
+    fallback,
+    boldText,
+    regularText,
+    timestamp,
+    actionLabel,
+    unread,
+  } = notification;
+
+  return (
+    <article className="flex items-start gap-3 rounded-[17px] bg-[#141412] p-4">
+      <Avatar className="h-12 w-12 shrink-0 rounded-full bg-[#252520]">
+        {avatar && <AvatarImage src={avatar} alt="" />}
+        <AvatarFallback className="bg-[#252520] text-sm font-semibold text-white">
+          {fallback}
+        </AvatarFallback>
+      </Avatar>
+      <div className="min-w-0 flex-1">
+        <p className="text-[12px] leading-snug text-white">
+          <span className="font-bold">{boldText}</span>
+          <span className="font-normal">{regularText}</span>
+        </p>
+        <p className="mt-1 text-[12px] text-[#A2A6AB]">{timestamp}</p>
+      </div>
+      <div className="flex shrink-0 items-center gap-2">
+        {actionLabel && onActionClick && (
+          <button
+            type="button"
+            onClick={() => onActionClick(notification)}
+            className="rounded-[6px] border border-[#DA9811] bg-transparent px-3 py-1 text-[13px] font-bold text-[#DA9811] transition-opacity active:opacity-90"
+          >
+            {actionLabel}
+          </button>
+        )}
+        {unread && (
+          <span
+            className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#4CAF50]"
+            aria-hidden
+          />
+        )}
+      </div>
+    </article>
+  );
 }
 
 export default function NotificationCenter() {
@@ -142,32 +145,40 @@ export default function NotificationCenter() {
   const [markAllNotificationsRead, { isLoading: isMarkingAll }] =
     useMarkAllNotificationsReadMutation();
 
+  // Merge incoming page data into `items` by deduplicating on id.
+  // When page === 1 and we already have items (e.g. from pages 2+), merge
+  // so a background refetch of page 1 doesn't wipe the list.
   useEffect(() => {
     if (!apiResponse?.data) return;
 
     setItems((prev) => {
       if (page === 1) {
-        return apiResponse.data;
+        if (prev.length === 0) return apiResponse.data;
+        const page1Ids = new Set(apiResponse.data.map((n) => n.id));
+        const rest = prev.filter((n) => !page1Ids.has(n.id));
+        return [...apiResponse.data, ...rest];
       }
-
       const existingIds = new Set(prev.map((n) => n.id));
-      const merged = [
+      return [
         ...prev,
         ...apiResponse.data.filter((n) => !existingIds.has(n.id)),
       ];
-
-      return merged;
     });
   }, [apiResponse, page]);
 
-  const notifications = items
-    .map(mapApiNotificationToCard)
-    .filter(Boolean)
-    .sort((a, b) => {
-      const aTime = a.timestamp ? new Date(a.timestamp).getTime() : 0;
-      const bTime = b.timestamp ? new Date(b.timestamp).getTime() : 0;
-      return bTime - aTime;
-    });
+  const notifications = useMemo(
+    () =>
+      items
+        .map(mapApiNotificationToCard)
+        .filter(Boolean)
+        .sort((a, b) => {
+          const aTime = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+          const bTime = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+          return bTime - aTime;
+        }),
+    [items],
+  );
+
   const hasMoreOlder =
     apiResponse?.meta &&
     apiResponse.meta.current_page < apiResponse.meta.last_page;
@@ -180,6 +191,10 @@ export default function NotificationCenter() {
   const handleMarkAllAsRead = async () => {
     try {
       await markAllNotificationsRead().unwrap();
+      const now = new Date().toISOString();
+      setItems((prev) =>
+        prev.map((n) => ({ ...n, read_at: n.read_at || now })),
+      );
     } catch {
       // Best-effort; keep UI as-is on failure.
     }
@@ -250,7 +265,7 @@ export default function NotificationCenter() {
               type="button"
               onClick={loadOlder}
               disabled={isFetching}
-              className="font-nornal text-[12px] text-[#A2A6AB] transition-opacity active:opacity-90 disabled:opacity-60"
+              className="text-[12px] font-normal text-[#A2A6AB] transition-opacity active:opacity-90 disabled:opacity-60"
             >
               {isFetching ? 'Loading…' : 'View Older'}
             </button>

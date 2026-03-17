@@ -1,12 +1,22 @@
+/**
+ * Reels
+ *
+ * Reels feed: explore / my-videos tabs, vertical scroll, like.
+ * Route: /reels
+ *
+ * Coding guidelines: docs/Coding guidelines.md (§2 selectors)
+ */
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import exploreOrangeIcon from '@/assets/images/icons/explore-orange.svg';
 import exploreWhiteIcon from '@/assets/images/icons/explore-white.svg';
 import myVideosOrangeIcon from '@/assets/images/icons/my-videos-orange.svg';
 import myVideosWhiteIcon from '@/assets/images/icons/my-videos-white.svg';
+import { useAppSelector } from '@/store/hooks';
+import { selectPublishedReels } from '@/store/selectors';
 
 import ReelItem from './ReelItem';
 import { EXPLORE_REELS, MY_VIDEOS_REELS } from './reelsData';
@@ -31,9 +41,7 @@ function ChevronLeftIcon() {
 export default function Reels() {
   const navigate = useNavigate();
   const location = useLocation();
-  const publishedReels = useSelector(
-    (state) => state.reels?.publishedReels ?? [],
-  );
+  const publishedReels = useAppSelector(selectPublishedReels);
   const [activeTab, setActiveTab] = useState(
     location.state?.tab === TAB_MY_VIDEOS ? TAB_MY_VIDEOS : TAB_EXPLORE,
   );

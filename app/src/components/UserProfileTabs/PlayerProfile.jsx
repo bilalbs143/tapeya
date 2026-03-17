@@ -70,10 +70,16 @@ export function PlayerProfile({ ranking, followers, likes }) {
           </TabsTrigger>
         ))}
       </TabsList>
+
       <ProfileMetrics metrics={metrics} />
+
       <div className={CONTENT_WRAPPER_CLASS}>
         {TABS.map(({ value, Content }) => (
-          <TabsContent key={value} value={value} className="focus:outline-none">
+          <TabsContent
+            key={value}
+            value={value}
+            className="focus-visible:outline-none"
+          >
             <Content />
           </TabsContent>
         ))}

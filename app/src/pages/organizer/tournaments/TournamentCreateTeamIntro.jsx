@@ -2,25 +2,26 @@ import { useEffect } from 'react';
 
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
+import {
+  getTournamentTitle,
+  parseTournamentId,
+} from '@/lib/utils/tournamentUtils';
 import { useGetTournamentQuery } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 
-/**
- * Shown when user opens a scheduled/upcoming tournament that has no teams yet.
- * Route: /tournaments/:tournamentId/create-team-intro
- */
 export default function TournamentCreateTeamIntro() {
   const navigate = useNavigate();
   const location = useLocation();
   const { tournamentId } = useParams();
+
   const tournamentFromState = location.state?.tournament ?? null;
 
-  const tournamentIdNum =
-    tournamentId != null && tournamentId !== ''
-      ? Number(tournamentId)
-      : tournamentFromState?.id;
-  const isValidId = Number.isInteger(tournamentIdNum) && tournamentIdNum > 0;
+  const tournamentIdNum = parseTournamentId(
+    tournamentId,
+    tournamentFromState?.id,
+  );
+  const isValidId = tournamentIdNum != null;
 
   const { data: tournamentFromApi } = useGetTournamentQuery(
     { id: tournamentIdNum },
@@ -34,32 +35,35 @@ export default function TournamentCreateTeamIntro() {
     }
   }, [isValidId, navigate]);
 
+  if (!isValidId) return null;
+
+  const title = getTournamentTitle(tournament);
+
+  // ------------------------------------------------------------------
+  // Handlers
+  // ------------------------------------------------------------------
+
   const handleCreateTeams = () => {
-    if (tournamentIdNum) {
-      navigate(`/organizer/tournaments/${tournamentIdNum}/add-team`, {
-        state: {
-          tournament: tournament
-            ? {
-                ...tournament,
-                name: tournament.tournament_name ?? tournament.name,
-              }
-            : { id: tournamentIdNum },
-        },
-      });
-    } else {
+    if (!tournamentIdNum) {
       navigate('/organizer/tournaments');
+      return;
     }
+
+    navigate(`/organizer/tournaments/${tournamentIdNum}/add-team`, {
+      state: {
+        tournament: tournament
+          ? {
+              ...tournament,
+              name: tournament.tournament_name ?? tournament.name,
+            }
+          : { id: tournamentIdNum },
+      },
+    });
   };
 
-  const handleBack = () => {
-    navigate(-1);
-  };
-
-  if (!isValidId) {
-    return null;
-  }
-
-  const title = tournament?.tournament_name ?? tournament?.name ?? 'Tournament';
+  // ------------------------------------------------------------------
+  // Render
+  // ------------------------------------------------------------------
 
   return (
     <div className="bg-black">
@@ -68,7 +72,7 @@ export default function TournamentCreateTeamIntro() {
           <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
             <button
               type="button"
-              onClick={handleBack}
+              onClick={() => navigate(-1)}
               className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80"
               aria-label="Back"
             >

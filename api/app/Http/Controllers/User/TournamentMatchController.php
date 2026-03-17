@@ -16,14 +16,18 @@ class TournamentMatchController extends Controller
 
     /**
      * List matches for a tournament.
+     * Query: all=1 to return all matches (no pagination); otherwise paginate with per_page.
      */
     public function index(Tournament $tournament): JsonResponse
     {
-        $matches = $tournament->matches()
+        $query = $tournament->matches()
             ->with(['homeTeam', 'awayTeam', 'winningTeam'])
             ->orderBy('match_date')
-            ->orderBy('match_time')
-            ->paginate(request('per_page', 15));
+            ->orderBy('match_time');
+
+        $matches = request()->has('all')
+            ? $query->get()
+            : $query->paginate((int) request('per_page', 15));
 
         return $this->success(TournamentMatchResource::collection($matches));
     }

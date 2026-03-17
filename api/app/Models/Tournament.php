@@ -108,5 +108,4 @@ class Tournament extends BaseModel
     {
         return $this->hasMany(TournamentUserReaction::class, 'tournament_id');
     }
-
 }

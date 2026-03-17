@@ -66,6 +66,7 @@ class OrderPlacedUserNotification extends Notification implements ShouldQueue
             'message' => 'Order '.$orderNumber.' confirmed: '.$totalStr,
         ];
     }
+
     public function toSms(object $notifiable): string
     {
         $orderNumber = $this->order->order_number;

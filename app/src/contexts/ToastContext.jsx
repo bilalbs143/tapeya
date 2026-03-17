@@ -1,13 +1,3 @@
-/**
- * Imperative toast API. Use from any component:
- *   import { useToast } from '@/hooks/useToast';
- *   const toast = useToast();
- *   toast.success('OTP sent again!');
- *   toast.error('Something went wrong.');
- *   toast('A message');
- */
-
-/* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useState } from 'react';
 
 import {

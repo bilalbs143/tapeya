@@ -2,9 +2,11 @@ import { useEffect, useMemo } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { toApiDate } from '@/lib/utils/dateUtils';
 import { tournamentRequestSchema } from '@/lib/validations/tournamentRequest';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
 import {
@@ -13,6 +15,8 @@ import {
 } from '@/store/api/locationApi';
 import { useCreateTournamentRequestMutation } from '@/store/api/tournamentRequestApi';
 import { useAppSelector } from '@/store/hooks';
+import { selectUser } from '@/store/selectors';
+import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 import { DatePicker } from '@/ui/DatePicker';
 import { FormField } from '@/ui/FormField';
@@ -29,7 +33,7 @@ import {
   SelectValue,
   selectViewportInputClass,
 } from '@/ui/Select';
-import { ToggleGroup, ToggleGroupItem } from '@/ui/ToggleGroup';
+import { ToggleGroupField } from '@/ui/ToggleGroupField';
 
 const DEFAULT_VALUES = {
   contact_person_name: '',
@@ -49,64 +53,28 @@ const DEFAULT_VALUES = {
   prize: '',
 };
 
-function ToggleGroupField({ name, control, label, options, error, required }) {
-  return (
-    <FormField label={label} htmlFor={name} required={required}>
-      <Controller
-        name={name}
-        control={control}
-        render={({ field }) => (
-          <>
-            <ToggleGroup
-              type="single"
-              value={field.value}
-              onValueChange={(v) => v != null && field.onChange(v)}
-              className="flex flex-wrap gap-2"
-              aria-invalid={error ? 'true' : undefined}
-            >
-              {options.map((opt) => (
-                <ToggleGroupItem
-                  key={opt.value}
-                  value={opt.value}
-                  aria-label={opt.label}
-                >
-                  {opt.label}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
-            {error && (
-              <p className="text-sm text-red-200" role="alert">
-                {error}
-              </p>
-            )}
-          </>
-        )}
-      />
-    </FormField>
-  );
-}
-
 export default function TournamentRequest() {
+  const navigate = useNavigate();
   const toast = useToast();
-  const user = useAppSelector((state) => state.auth?.user);
+
+  const user = useAppSelector(selectUser);
+
   const { data: enums = {}, isLoading: enumsLoading } = useGetEnumsQuery();
+
+  const { tournamentTypeOptions, cricketFormatOptions, matchTimingsOptions } =
+    useMemo(
+      () => ({
+        tournamentTypeOptions: enums.tournament_type ?? [],
+        cricketFormatOptions: enums.cricket_format ?? [],
+        matchTimingsOptions: enums.match_timings ?? [],
+      }),
+      [enums],
+    );
+
   const [
     createTournamentRequest,
     { isLoading: isSubmitting, reset: resetApiError },
   ] = useCreateTournamentRequestMutation();
-
-  const tournamentTypeOptions = useMemo(
-    () => enums.tournament_type ?? [],
-    [enums.tournament_type],
-  );
-  const cricketFormatOptions = useMemo(
-    () => enums.cricket_format ?? [],
-    [enums.cricket_format],
-  );
-  const matchTimingsOptions = useMemo(
-    () => enums.match_timings ?? [],
-    [enums.match_timings],
-  );
 
   const {
     register,
@@ -132,6 +100,7 @@ export default function TournamentRequest() {
     skip: !countryCode,
   });
 
+  // Pre-fill contact details and default enum selections once enums are loaded.
   useEffect(() => {
     if (enumsLoading || tournamentTypeOptions.length === 0) return;
     reset({
@@ -157,13 +126,6 @@ export default function TournamentRequest() {
     reset,
   ]);
 
-  /** Convert MM-DD-YYYY (DatePicker) to YYYY-MM-DD (API). */
-  const toApiDate = (value) => {
-    if (!value || typeof value !== 'string') return value;
-    const [mm, dd, yyyy] = value.split(/[-/]/);
-    return yyyy && mm && dd ? `${yyyy}-${mm}-${dd}` : value;
-  };
-
   const onSubmit = async (data) => {
     resetApiError();
     try {
@@ -179,20 +141,7 @@ export default function TournamentRequest() {
           : {}),
       };
       await createTournamentRequest(payload).unwrap();
-      toast.success(
-        'Request submitted successfully. We will contact you shortly.',
-      );
-      reset({
-        ...DEFAULT_VALUES,
-        contact_person_name: user?.name ?? '',
-        contact_phone: user?.phone ?? '+92',
-        country: user?.country ?? '',
-        city: user?.city ?? '',
-        tournament_type: tournamentTypeOptions[0]?.value ?? '',
-        cricket_format: cricketFormatOptions[0]?.value ?? '',
-        match_timings: matchTimingsOptions[0]?.value ?? '',
-        prize: '',
-      });
+      navigate('/tournament-request/success');
     } catch (err) {
       console.error('Tournament request failed:', err);
       toast.error(
@@ -219,7 +168,7 @@ export default function TournamentRequest() {
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          onFocus={() => resetApiError()}
+          onFocus={resetApiError}
           className="space-y-6 pb-8"
         >
           <FormField
@@ -298,6 +247,7 @@ export default function TournamentRequest() {
               {...register('number_of_matches')}
             />
           </FormField>
+
           <FormField
             label="Number of Teams:"
             htmlFor="number_of_teams"
@@ -311,6 +261,7 @@ export default function TournamentRequest() {
               {...register('number_of_teams')}
             />
           </FormField>
+
           <FormField
             label="Expected Players Count:"
             htmlFor="expected_players_count"
@@ -364,12 +315,12 @@ export default function TournamentRequest() {
                 </Select>
               )}
             />
+            {errors.country?.message && (
+              <p className="text-sm text-red-200" role="alert">
+                {errors.country.message}
+              </p>
+            )}
           </FormField>
-          {errors.country?.message && (
-            <p className="text-sm text-red-200" role="alert">
-              {errors.country.message}
-            </p>
-          )}
 
           <FormField label="City:" htmlFor="city" required>
             <Controller
@@ -409,12 +360,12 @@ export default function TournamentRequest() {
                 </Select>
               )}
             />
+            {errors.city?.message && (
+              <p className="text-sm text-red-200" role="alert">
+                {errors.city.message}
+              </p>
+            )}
           </FormField>
-          {errors.city?.message && (
-            <p className="text-sm text-red-200" role="alert">
-              {errors.city.message}
-            </p>
-          )}
 
           <ToggleGroupField
             name="match_timings"
@@ -445,15 +396,12 @@ export default function TournamentRequest() {
                   onChange={field.onChange}
                   placeholder="Choose Date"
                   allowFuture
+                  error={errors.start_date?.message}
                 />
               )}
             />
-            {errors.start_date?.message && (
-              <p className="text-sm text-red-200" role="alert">
-                {errors.start_date.message}
-              </p>
-            )}
           </FormField>
+
           <FormField label="End Date:" htmlFor="end_date" required>
             <Controller
               name="end_date"
@@ -465,14 +413,10 @@ export default function TournamentRequest() {
                   onChange={field.onChange}
                   placeholder="Choose Date"
                   allowFuture
+                  error={errors.end_date?.message}
                 />
               )}
             />
-            {errors.end_date?.message && (
-              <p className="text-sm text-red-200" role="alert">
-                {errors.end_date.message}
-              </p>
-            )}
           </FormField>
 
           <FormField label="Prize (optional):" htmlFor="prize">
@@ -484,13 +428,14 @@ export default function TournamentRequest() {
             />
           </FormField>
 
-          <button
+          <Button
             type="submit"
             disabled={busy}
-            className="flex w-full items-center justify-center rounded-[6px] bg-white py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90 disabled:opacity-60"
+            variant="auth"
+            className="w-full"
           >
-            {isSubmitting ? 'Submitting...' : 'Submit'}
-          </button>
+            {isSubmitting ? 'Submitting…' : 'Submit'}
+          </Button>
         </form>
       </Container>
     </div>

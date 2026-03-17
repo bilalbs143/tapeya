@@ -1,14 +1,26 @@
+/**
+ * TournamentFinalSquad.jsx
+ *
+ * Read-only view of a team's finalised squad. Route:
+ * /organizer/tournaments/:tournamentId/final-squad/:teamId. State: { team?, tournament? }
+ */
+
+import { useEffect } from 'react';
+
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
+import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
+import { playerDisplayRole } from '@/lib/utils/playerUtils';
+import {
+  getTournamentTitle,
+  parseTournamentId,
+} from '@/lib/utils/tournamentUtils';
 import { useGetTeamSquadQuery } from '@/store/api/teamApi';
 import {
   useGetTournamentQuery,
   useGetTournamentTeamsQuery,
 } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
-
-const BORDER = 'border-[#1C1C1A]';
-const HEADER_BG = 'bg-[#141412]';
 
 function TeamLogoIcon({ logo, teamName }) {
   return (
@@ -24,6 +36,12 @@ function TeamLogoIcon({ logo, teamName }) {
   );
 }
 
+/**
+ * Derives owner label and icon-player names from a raw team object.
+ * CURSOR: move to src/lib/utils/teamUtils.js → export { getTeamDisplayMeta }
+ *         Consolidate with identical copies in TournamentAddSquad and
+ *         TournamentSavedTeams.
+ */
 function teamDisplay(team) {
   const owner =
     team?.sponsor?.name ?? (team?.owner != null ? String(team.owner) : '—');
@@ -37,37 +55,23 @@ function teamDisplay(team) {
   return { owner, iconPlayer };
 }
 
-function playerDisplayRole(player) {
-  return (
-    player?.playing_role ??
-    player?.playing_role_enum ??
-    (player?.role != null ? String(player.role) : '—')
-  );
-}
+// ---------------------------------------------------------------------------
+// Page component
+// ---------------------------------------------------------------------------
 
 export default function TournamentFinalSquad() {
   const navigate = useNavigate();
   const { tournamentId, teamId: teamIdParam } = useParams();
   const location = useLocation();
+
   const teamFromState = location.state?.team;
   const tournamentFromState = location.state?.tournament ?? null;
 
-  const tournamentIdNum =
-    tournamentId != null && tournamentId !== ''
-      ? Number(tournamentId)
-      : tournamentFromState?.id;
-  const isValidId = Number.isInteger(tournamentIdNum) && tournamentIdNum > 0;
-
-  const { data: tournamentFromApi } = useGetTournamentQuery(
-    { id: tournamentIdNum },
-    { skip: !isValidId || !!tournamentFromState },
+  const tournamentIdNum = parseTournamentId(
+    tournamentId,
+    tournamentFromState?.id,
   );
-  const tournament = tournamentFromState ?? tournamentFromApi ?? null;
-
-  const { data: tournamentTeams = [] } = useGetTournamentTeamsQuery(
-    tournamentIdNum,
-    { skip: !isValidId },
-  );
+  const isValidId = tournamentIdNum != null;
 
   const teamIdNum =
     teamFromState?.id != null
@@ -78,10 +82,22 @@ export default function TournamentFinalSquad() {
   const hasValidTeamId =
     teamIdNum != null && Number.isInteger(teamIdNum) && teamIdNum > 0;
 
-  const { data: squadFromApi = [], isLoading: isLoadingSquad } =
-    useGetTeamSquadQuery(teamIdNum, { skip: !hasValidTeamId });
+  const { data: tournamentFromApi } = useGetTournamentQuery(
+    { id: tournamentIdNum },
+    { skip: !isValidId || !!tournamentFromState },
+  );
+  const tournament = tournamentFromState ?? tournamentFromApi ?? null;
+
+  const { data: tournamentTeams = [] } = useGetTournamentTeamsQuery(
+    tournamentIdNum,
+    { skip: !isValidId || !!teamFromState },
+  );
+
+  const { data: squadFromApi = [], isLoading } = useGetTeamSquadQuery(
+    teamIdNum,
+    { skip: !hasValidTeamId },
+  );
   const squad = squadFromApi;
-  const isLoading = isLoadingSquad;
 
   const resolvedTeam =
     teamFromState ??
@@ -89,14 +105,24 @@ export default function TournamentFinalSquad() {
       ? tournamentTeams.find((t) => Number(t.id) === teamIdNum)
       : tournamentTeams[0]) ??
     null;
+  const team = resolvedTeam;
 
-  const team = resolvedTeam ?? teamFromState ?? null;
   const { owner, iconPlayer } = teamDisplay(team);
 
+  useEffect(() => {
+    if (!isValidId || !hasValidTeamId) {
+      navigate('/organizer/tournaments', { replace: true });
+    }
+  }, [isValidId, hasValidTeamId, navigate]);
+
+  // Guard: render nothing while the redirect effect fires.
   if (!isValidId || !hasValidTeamId) {
-    navigate('/organizer/tournaments', { replace: true });
     return null;
   }
+
+  // ------------------------------------------------------------------
+  // Render
+  // ------------------------------------------------------------------
 
   return (
     <div className="bg-black">
@@ -127,28 +153,34 @@ export default function TournamentFinalSquad() {
 
         {tournament && (
           <p className="mb-1 text-[12px] font-medium tracking-wide text-[#A2A6AB] uppercase">
-            {tournament.tournament_name ?? tournament.name ?? 'Tournament'}
+            {getTournamentTitle(tournament)}
           </p>
         )}
         <p className="mb-3 text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
           {team?.name ?? 'Team'}
         </p>
 
-        <div className="mb-5 flex items-start gap-3 rounded-[17px] bg-[#141412] p-4">
-          <TeamLogoIcon logo={team.logo} teamName={team.name} />
-          <div className="min-w-0 flex-1">
-            <h2 className="text-[16px] font-bold text-white">
-              {team?.name ?? '—'}
-            </h2>
-            <p className="mt-0.5 text-[14px] text-white">
-              <span className="font-medium text-[#DA9811]">Owner: {owner}</span>
-            </p>
-            <p className="mt-0.5 text-[12px] text-[#A2A6AB]">
-              Icon Player: <span className="text-white">{iconPlayer}</span>
-            </p>
+        {/* Team info card — guarded so TeamLogoIcon never receives null team */}
+        {team && (
+          <div className="mb-5 flex items-start gap-3 rounded-[17px] bg-[#141412] p-4">
+            <TeamLogoIcon logo={team.logo} teamName={team.name} />
+            <div className="min-w-0 flex-1">
+              <h2 className="text-[16px] font-bold text-white">
+                {team.name ?? '—'}
+              </h2>
+              <p className="mt-0.5 text-[14px] text-white">
+                <span className="font-medium text-[#DA9811]">
+                  Owner: {owner}
+                </span>
+              </p>
+              <p className="mt-0.5 text-[12px] text-[#A2A6AB]">
+                Icon Player: <span className="text-white">{iconPlayer}</span>
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
+        {/* Squad table — CURSOR: extract into <SquadTable> (see top) */}
         <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <table className="w-full border-collapse text-[12px] text-white">
             <thead>

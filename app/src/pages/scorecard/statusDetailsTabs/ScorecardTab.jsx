@@ -3,10 +3,9 @@
  */
 import { useState } from 'react';
 
-import { StatusDetailsPlaceholderTab } from './PlaceholderTab';
+import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
 
-const BORDER = 'border-[#1C1C1A]';
-const HEADER_BG = 'bg-[#141412]';
+import { StatusDetailsPlaceholderTab } from './PlaceholderTab';
 
 function BattingScorecardTable({ team }) {
   return (

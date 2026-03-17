@@ -1,33 +1,26 @@
+/**
+ * SquadTeams
+ *
+ * Tab content: list of tournament teams; click navigates to squad single.
+ * Used in scorecard and upcoming-tournaments. Coding guidelines: docs/Coding guidelines.md
+ */
+
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { MOCK_SQUADS } from './squadsData';
-
-function TeamLogo({ team, className = '' }) {
-  if (team.logo) {
-    return (
-      <img
-        src={team.logo}
-        alt=""
-        className={`h-5 w-5 shrink-0 rounded-full object-cover ${className}`.trim()}
-        aria-hidden
-      />
-    );
-  }
-  const initial = team.teamName.charAt(0);
-  return (
-    <div
-      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1A1A1A] text-[11px] font-bold text-[#DA9811] ${className}`.trim()}
-      aria-hidden
-    >
-      {initial}
-    </div>
-  );
-}
+import { useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
 
 export function SquadTeams({ tournamentId }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const title = tournamentId ? `${tournamentId} 2026 - SQUADS` : 'SQUADS';
+
+  const {
+    data: teams = [],
+    isLoading,
+    isError,
+  } = useGetTournamentTeamsQuery(tournamentId, {
+    skip: !tournamentId,
+  });
 
   const handleTeamClick = (teamId) => {
     const next = new URLSearchParams(searchParams);
@@ -35,6 +28,40 @@ export function SquadTeams({ tournamentId }) {
     next.set('team', teamId);
     navigate({ search: next.toString() }, { replace: false });
   };
+
+  if (!tournamentId) {
+    return null;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="mt-4 pb-6">
+        <p className="py-4 text-center text-[13px] text-[#A2A6AB]">
+          Loading squads…
+        </p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="mt-4 pb-6">
+        <p className="py-4 text-center text-[13px] text-red-400">
+          Failed to load teams for squads.
+        </p>
+      </div>
+    );
+  }
+
+  if (!teams.length) {
+    return (
+      <div className="mt-4 pb-6">
+        <p className="py-8 text-center text-[13px] text-[#A2A6AB]">
+          No teams added yet.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-4 pb-6 focus:outline-none">
@@ -47,17 +74,18 @@ export function SquadTeams({ tournamentId }) {
           Teams
         </div>
         <div className="divide-y divide-[#1A1A1A]">
-          {MOCK_SQUADS.map((team) => (
+          {teams.map((team) => (
             <button
               type="button"
               key={team.id}
               onClick={() => handleTeamClick(team.id)}
               className="flex w-full items-center gap-2.5 bg-transparent px-4 py-3.5 text-left text-[13px] text-white focus:ring-2 focus:ring-[#DA9811] focus:outline-none focus:ring-inset active:bg-[#1A1A1A]"
             >
-              <TeamLogo team={team} />
-              <span className="min-w-0 flex-1">{team.teamName}</span>
-              <span className="shrink-0 text-[12px] text-[#A2A6AB]">
-                Last updated: {team.lastUpdated}
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1A1A1A] text-[11px] font-bold text-[#DA9811]">
+                {(team.name ?? 'T').charAt(0)}
+              </span>
+              <span className="min-w-0 flex-1 truncate">
+                {team.name ?? team.code ?? 'Team'}
               </span>
             </button>
           ))}

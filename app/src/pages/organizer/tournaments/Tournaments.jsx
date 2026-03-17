@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
+import { Children, useMemo } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
 import { formatDateRange } from '@/lib/format';
+import { getTournamentTitle } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentsQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
 
@@ -36,17 +37,13 @@ function TournamentCard({ tournament, showWinningTeam = false, onClick }) {
       <div className="flex h-[117px] w-[100px] shrink-0 overflow-hidden rounded-xl bg-[#0d0d0b]">
         <img
           src={imageUrl}
-          alt={
-            tournament.tournament_name
-              ? `${tournament.tournament_name} cover`
-              : 'Tournament'
-          }
+          alt={`${getTournamentTitle(tournament)} cover`}
           className="h-full w-full object-cover"
         />
       </div>
       <div className="min-w-0 flex-1">
         <h3 className="line-clamp-2 text-[13px] font-bold text-white">
-          {tournament.tournament_name}
+          {getTournamentTitle(tournament)}
         </h3>
         {tournament.tournament_type_label && (
           <p className="mt-0.5 text-[13px] font-bold text-white">
@@ -86,8 +83,15 @@ function TournamentCard({ tournament, showWinningTeam = false, onClick }) {
   );
 }
 
+/**
+ * Section — titled list wrapper with an empty-state message.
+ * CURSOR: move to src/ui/Section.jsx → export { Section }
+ *
+ * Fixed: was counting children with a manual Array.isArray check which
+ * mishandled single-element children.  Now uses React.Children.count.
+ */
 function Section({ title, children, emptyMessage = 'No tournaments' }) {
-  const count = Array.isArray(children) ? children.length : children ? 1 : 0;
+  const count = Children.count(children);
   return (
     <section>
       <h2 className="mb-3 text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
@@ -104,6 +108,10 @@ function Section({ title, children, emptyMessage = 'No tournaments' }) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Page component
+// ---------------------------------------------------------------------------
+
 export default function Tournaments() {
   const navigate = useNavigate();
   const { data } = useGetTournamentsQuery({ all: true });
@@ -117,7 +125,13 @@ export default function Tournaments() {
     const previous = [];
 
     list.forEach((t) => {
-      const endDate = t.end_date ? new Date(t.end_date + 'T12:00:00') : null;
+      // Append T12:00:00 for date-only strings to avoid UTC-midnight rollover in timezones west of UTC. Skip if end_date already contains 'T'.
+      const endStr = t.end_date?.includes?.('T')
+        ? t.end_date
+        : t.end_date
+          ? t.end_date + 'T12:00:00'
+          : null;
+      const endDate = endStr ? new Date(endStr) : null;
       if (endDate && endDate < today) {
         previous.push(t);
       } else {
@@ -128,13 +142,18 @@ export default function Tournaments() {
     return { scheduled, previous };
   }, [data?.data]);
 
+  // ------------------------------------------------------------------
+  // Handlers
+  // ------------------------------------------------------------------
+
   const handleTournamentClick = (tournament) => {
     const payload = {
       ...tournament,
-      name: tournament.tournament_name ?? tournament.name,
+      name: getTournamentTitle(tournament),
     };
     const state = { tournament: payload };
     const hasTeams = (tournament.teams_count ?? 0) > 0;
+
     if (hasTeams) {
       navigate(`/organizer/tournaments/${tournament.id}/saved-teams`, {
         state,
@@ -145,6 +164,10 @@ export default function Tournaments() {
       });
     }
   };
+
+  // ------------------------------------------------------------------
+  // Render
+  // ------------------------------------------------------------------
 
   return (
     <div className="bg-black">

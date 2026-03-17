@@ -1,15 +1,13 @@
 import { useMemo, useState } from 'react';
 
-import { useDispatch } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import searchIcon from '@/assets/images/icons/searchicon.svg';
 import teamIcon from '@/assets/images/icons/team-icon.svg';
+import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
+import { useAppDispatch } from '@/store/hooks';
 import { openDialog } from '@/store/slices/commonSlice';
 import { Container } from '@/ui/Container';
-
-const BORDER = 'border-[#1C1C1A]';
-const HEADER_BG = 'bg-[#141412]';
 
 const MOCK_PLAYERS = [
   { id: '1', name: 'Arslan Butt', role: 'Batsman' },
@@ -29,7 +27,7 @@ const DEFAULT_TEAM = {
 export default function TeamDetail() {
   const navigate = useNavigate();
   const location = useLocation();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const team = location.state?.team ?? DEFAULT_TEAM;
 
   const [findPlayer, setFindPlayer] = useState('');

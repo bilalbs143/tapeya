@@ -7,7 +7,8 @@ import { useAddToCart } from '@/hooks/shop/useAddToCart';
 import { formatPrice } from '@/lib/format';
 
 function ListingProductCardInner({ product, brandSlug }) {
-  const { isAddingToCart, handleAddToCartForCard } = useAddToCart();
+  const { addingProductId, handleAddToCartForCard } = useAddToCart();
+  const isThisCardAdding = addingProductId === product.id;
   const stock = product.stock_quantity ?? 0;
   const imageUrl = product.images?.[0]?.path;
   const hasDiscount =
@@ -64,9 +65,9 @@ function ListingProductCardInner({ product, brandSlug }) {
           <button
             type="button"
             onClick={(e) => handleAddToCartForCard(e, product.id)}
-            disabled={stock < 1 || isAddingToCart}
+            disabled={stock < 1 || isThisCardAdding}
             className="flex shrink-0 items-center gap-0.5 rounded p-1 transition-opacity active:opacity-80 disabled:opacity-50"
-            aria-label="Add to cart"
+            aria-label={`Add ${product.name} to cart`}
           >
             <svg
               className="h-3 w-3 font-bold text-[#DA9811]"

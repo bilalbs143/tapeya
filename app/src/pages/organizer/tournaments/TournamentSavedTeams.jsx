@@ -1,7 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
+import {
+  getTournamentTitle,
+  parseTournamentId,
+} from '@/lib/utils/tournamentUtils';
 import {
   useGetTournamentQuery,
   useGetTournamentTeamsQuery,
@@ -36,10 +40,14 @@ function teamDisplay(team) {
   return { owner, iconPlayers };
 }
 
-function TeamCard({ team, index }) {
+function TeamCard({ team, index, highlight }) {
   const { owner, iconPlayers } = teamDisplay(team);
   return (
-    <div className="flex items-start gap-3 rounded-[17px] bg-[#141412] p-4">
+    <div
+      className={`flex items-start gap-3 rounded-[17px] bg-[#141412] p-4 ${
+        highlight ? 'ring-2 ring-[#DA9811] ring-offset-2 ring-offset-black' : ''
+      }`}
+    >
       <TeamLogoIcon logo={team.logo} teamName={team.name} />
       <div className="min-w-0 flex-1">
         <h3 className="text-[16px] font-bold text-white">{team.name ?? '—'}</h3>
@@ -57,17 +65,24 @@ function TeamCard({ team, index }) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Page component
+// ---------------------------------------------------------------------------
+
 export default function TournamentSavedTeams() {
   const navigate = useNavigate();
   const location = useLocation();
   const { tournamentId } = useParams();
-  const tournamentFromState = location.state?.tournament ?? null;
 
-  const tournamentIdNum =
-    tournamentId != null && tournamentId !== ''
-      ? Number(tournamentId)
-      : tournamentFromState?.id;
-  const isValidId = Number.isInteger(tournamentIdNum) && tournamentIdNum > 0;
+  const tournamentFromState = location.state?.tournament ?? null;
+  const newTeam = location.state?.newTeam ?? null;
+  const newTeamListRef = useRef(null);
+
+  const tournamentIdNum = parseTournamentId(
+    tournamentId,
+    tournamentFromState?.id,
+  );
+  const isValidId = tournamentIdNum != null;
 
   const { data: tournamentFromApi } = useGetTournamentQuery(
     { id: tournamentIdNum },
@@ -80,9 +95,7 @@ export default function TournamentSavedTeams() {
     isLoading,
     isError,
     isSuccess,
-  } = useGetTournamentTeamsQuery(tournamentIdNum, {
-    skip: !isValidId,
-  });
+  } = useGetTournamentTeamsQuery(tournamentIdNum, { skip: !isValidId });
 
   useEffect(() => {
     if (!isValidId) {
@@ -90,11 +103,28 @@ export default function TournamentSavedTeams() {
     }
   }, [isValidId, navigate]);
 
+  useEffect(() => {
+    if (newTeam && !isLoading && newTeamListRef.current) {
+      newTeamListRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      });
+    }
+  }, [newTeam, isLoading]);
+
+  // ------------------------------------------------------------------
+  // Handlers
+  // ------------------------------------------------------------------
+
   const handleSubmitTeams = () => {
     navigate(`/organizer/tournaments/${tournamentIdNum}/add-squad`, {
-      state: { teams, tournament: tournament ?? { id: tournamentIdNum } },
+      state: { tournament: tournament ?? { id: tournamentIdNum } },
     });
   };
+
+  // ------------------------------------------------------------------
+  // Render
+  // ------------------------------------------------------------------
 
   return (
     <div className="bg-black">
@@ -125,7 +155,7 @@ export default function TournamentSavedTeams() {
 
         {tournament && (
           <p className="mb-3 text-[13px] font-medium tracking-wide text-white uppercase">
-            {tournament.tournament_name ?? tournament.name ?? 'Tournament'}
+            {getTournamentTitle(tournament)}
           </p>
         )}
 
@@ -161,12 +191,25 @@ export default function TournamentSavedTeams() {
         <ul className="space-y-3 pb-6">
           {!isLoading &&
             teams.map((team, index) => (
-              <li key={team.id ?? index}>
-                <TeamCard team={team} index={index} />
+              <li
+                key={team.id ?? index}
+                ref={
+                  newTeam?.id != null && team.id === newTeam.id
+                    ? newTeamListRef
+                    : undefined
+                }
+              >
+                <TeamCard
+                  team={team}
+                  index={index}
+                  highlight={newTeam?.id != null && team.id === newTeam.id}
+                />
               </li>
             ))}
         </ul>
 
+        {/* `isSuccess` guard ensures the empty state only shows after a
+            successful fetch, not during loading or on error */}
         {!isLoading && isSuccess && teams.length === 0 && (
           <p className="rounded-[17px] bg-[#141412] px-4 py-6 text-center text-[13px] text-[#A2A6AB]">
             No teams added yet. Create a team to get started.

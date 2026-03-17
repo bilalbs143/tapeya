@@ -25,6 +25,15 @@ class TournamentController extends Controller
             ->allowedSorts(Tournament::getSorts())
             ->withCount('teams');
 
+        // Optionally eager-load matches for each tournament (for user scorecard views).
+        if (request()->boolean('with_matches')) {
+            $query->with([
+                'matches.homeTeam',
+                'matches.awayTeam',
+                'matches.winningTeam',
+            ]);
+        }
+
         $tournaments = request()->has('all')
             ? $query->get()
             : $query->paginate((int) request('per_page', 15));

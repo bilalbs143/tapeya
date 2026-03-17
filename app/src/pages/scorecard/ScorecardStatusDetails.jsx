@@ -1,3 +1,96 @@
+/**
+ * ScorecardStatusDetails.jsx
+ *
+ * Match detail screen showing live/result/upcoming match info with a
+ * tab-based view switcher.  The available tabs and the default tab depend
+ * on the current match status.
+ *
+ * Route: /scorecard/:tournamentId/:matchId
+ *
+ * -----------------------------------------------------------------------------
+ * CURSOR — File structure guide
+ * -----------------------------------------------------------------------------
+ *
+ * Mock data to replace
+ * ──────────────────────
+ *   MOCK_MATCHES / MOCK_MATCH_DETAILS
+ *     → replace with real API calls once the match-details endpoint is ready.
+ *     Suggested hooks:
+ *       useGetMatchQuery(matchId)          → replaces MOCK_MATCH_DETAILS lookup
+ *       useGetTournamentMatchesQuery(...)  → replaces MOCK_MATCHES.filter
+ *     Remove ./mockMatchDetails and ./mockMatches imports at that point.
+ *
+ * Utils to move out of this file
+ * ───────────────────────────────
+ *   parseLiveScore(score)
+ *     → move to: src/lib/utils/scorecardUtils.js → export { parseLiveScore }
+ *     reason: pure string transform, unit-testable, potentially reused on
+ *             match-card components.
+ *
+ * Components to extract into their own files
+ * ───────────────────────────────────────────
+ *   <ResultTextHighlighted>
+ *     → move to: src/features/scorecard/components/ResultTextHighlighted.jsx
+ *     reason: highlight-a-word-in-gold is a self-contained display component
+ *             that may be reused in match summaries or notification cards.
+ *
+ *   <TeamFlag>
+ *     → move to: src/features/scorecard/components/TeamFlag.jsx
+ *     reason: flag-with-initial-fallback will appear on every screen that
+ *             shows team identities (match cards, standings table).
+ *
+ *   <WinProbabilityCard>
+ *     → move to: src/features/scorecard/components/WinProbabilityCard.jsx
+ *     reason: self-contained card with its own layout and conditional colour
+ *             logic — extracting makes it independently testable.
+ *
+ *   <MatchHeader>
+ *     → move to: src/features/scorecard/components/MatchHeader.jsx
+ *     reason: the largest sub-component here — renders differently for all
+ *             three statuses (upcoming / live / result) and already accepts
+ *             clean props.
+ *
+ * Hooks to extract
+ * ─────────────────
+ *   Sentinel-based sticky tabs visibility (tabsFixedVisible + IntersectionObserver)
+ *     → move to: src/hooks/useFixedOnScroll.js → export { useFixedOnScroll }
+ *     reason: **identical** pattern in ScorecardHome.jsx and ScorecardDetails.jsx.
+ *             One hook replaces all three:
+ *               const { sentinelRef, isFixed } = useFixedOnScroll(NAVBAR_HEIGHT);
+ *     NOTE: ScorecardStatusDetails does NOT currently use this pattern — the
+ *           fixed tab bar is not implemented here yet.  Add when needed and use
+ *           the shared hook from the start.
+ *
+ * Constants to move
+ * ──────────────────
+ *   FLAGS
+ *     → move to: src/lib/constants/teamFlags.js
+ *     reason: hardcoded to `karachi` and `rawalpindi` only — needs to grow as
+ *             more teams are added.  A constants file is easier to maintain
+ *             than hunting through this component.
+ *
+ * Behaviour notes for Cursor
+ * ──────────────────────────
+ *   TODO: `tabProps` is rebuilt on every render and includes props for all
+ *         tab keys even though only one tab is active at a time.  This is
+ *         harmless for plain objects but could cause unnecessary re-renders if
+ *         any value is a derived object/array.  Lazily compute only the active
+ *         tab's props:
+ *           const activeTabProps = tabProps[activeTab] ?? {};
+ *
+ *   TODO: The `useEffect([status, matchId])` that resets `activeTab` will
+ *         silently reset the tab if `status` changes while the user is viewing
+ *         a non-default tab (e.g. reading the scorecard when a live match ends).
+ *         If that behaviour is undesired, gate the reset on `matchId` only and
+ *         let the user stay on their current tab after a status change.
+ *
+ *   TODO: `FLAGS` only maps `karachi` and `rawalpindi`.  When new teams are
+ *         added the `TeamFlag` fallback (coloured initial square) will be used
+ *         silently.  Add a DEV-only console.warn when `team.flag` is set but
+ *         not found in `FLAGS` so missing entries are caught early.
+ * -----------------------------------------------------------------------------
+ */
+
 import { useEffect, useState } from 'react';
 
 import { useNavigate, useParams } from 'react-router-dom';
@@ -26,8 +119,12 @@ import {
 } from './statusDetailsTabs';
 import { ScheduleTab, StatsTab, TableTab } from './tabs';
 
-// ─── Constants ───────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Constants
+// CURSOR: move FLAGS to src/lib/constants/teamFlags.js (see top).
+// ---------------------------------------------------------------------------
 
+// TODO: replace MOCK_MATCHES and MOCK_MATCH_DETAILS with real API calls (see top).
 const FLAGS = { karachi: karachiFlag, rawalpindi: rawalpindiFlag };
 
 const STATUS_TABS = {
@@ -68,9 +165,16 @@ const TAB_VIEWS = {
   fixture: ScheduleTab,
 };
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Utils
+// CURSOR: move parseLiveScore to src/lib/utils/scorecardUtils.js (see top).
+// ---------------------------------------------------------------------------
 
-/** Parse "27/1 (4.4/50 OV, T:235)" → { current: "27/1", overs: "(4.4/50 OV, T:235)" } */
+/**
+ * Parses a live score string into current score and overs context.
+ * e.g. "27/1 (4.4/50 OV, T:235)" → { current: "27/1", overs: "(4.4/50 OV, T:235)" }
+ * CURSOR: move to src/lib/utils/scorecardUtils.js → export { parseLiveScore }
+ */
 function parseLiveScore(score) {
   if (!score || typeof score !== 'string')
     return { current: score, overs: null };
@@ -79,7 +183,15 @@ function parseLiveScore(score) {
   return { current: score.slice(0, idx), overs: score.slice(idx) };
 }
 
-/** Highlight a specific word/phrase in gold within a result text */
+// ---------------------------------------------------------------------------
+// Sub-components
+// CURSOR: move each to its own file once extracted (see top).
+// ---------------------------------------------------------------------------
+
+/**
+ * ResultTextHighlighted — highlights a specific word/phrase in gold.
+ * CURSOR: move to src/features/scorecard/components/ResultTextHighlighted.jsx
+ */
 function ResultTextHighlighted({ text, highlight }) {
   if (!highlight || !text.includes(highlight)) {
     return <span className="text-white">{text}</span>;
@@ -94,8 +206,11 @@ function ResultTextHighlighted({ text, highlight }) {
   );
 }
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
-
+/**
+ * TeamFlag — team flag image with coloured-initial fallback.
+ * CURSOR: move to src/features/scorecard/components/TeamFlag.jsx
+ * TODO: add DEV console.warn when team.flag is set but not in FLAGS (see top).
+ */
 function TeamFlag({ team }) {
   const src = team.flag ? FLAGS[team.flag] : null;
   if (src) {
@@ -115,7 +230,10 @@ function TeamFlag({ team }) {
   );
 }
 
-/** Win Probability card shown only for LIVE status */
+/**
+ * WinProbabilityCard — win probability bar shown only for LIVE matches.
+ * CURSOR: move to src/features/scorecard/components/WinProbabilityCard.jsx
+ */
 function WinProbabilityCard({ match, winProb }) {
   const p1 = winProb.team1;
   const p2 = winProb.team2;
@@ -164,7 +282,10 @@ function WinProbabilityCard({ match, winProb }) {
   );
 }
 
-/** Match header info section - renders differently per status */
+/**
+ * MatchHeader — renders match identity and score differently per status.
+ * CURSOR: move to src/features/scorecard/components/MatchHeader.jsx
+ */
 function MatchHeader({ match, details }) {
   const { status, matchId, team1, team2, score1, score2, meta } = match;
   const isUpcoming = status === 'upcoming';
@@ -269,7 +390,9 @@ function MatchHeader({ match, details }) {
   );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Page component
+// ---------------------------------------------------------------------------
 
 export default function ScorecardStatusDetails() {
   const navigate = useNavigate();
@@ -285,6 +408,9 @@ export default function ScorecardStatusDetails() {
 
   const [activeTab, setActiveTab] = useState(defaultTab);
 
+  // Reset active tab when the match or its status changes.
+  // TODO: gate on matchId only if you want to preserve the active tab when
+  //       a live match ends and status flips to 'result' (see top).
   useEffect(() => {
     const nextDefault =
       STATUS_DEFAULT_TAB[status] ?? STATUS_TABS[status]?.[0]?.value;
@@ -301,6 +427,8 @@ export default function ScorecardStatusDetails() {
 
   const ActiveView = TAB_VIEWS[activeTab] ?? StatusDetailsPlaceholderTab;
 
+  // TODO: compute only the active tab's props to avoid rebuilding all keys
+  //       on every render (see top).
   const tabProps = {
     live: { details },
     scorecard: { details },

@@ -1,21 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
 import searchIcon from '@/assets/images/icons/searchicon.svg';
+import { useDebounce } from '@/hooks/useDebounce';
+import { DEBOUNCE_MS, MIN_SEARCH_LENGTH } from '@/lib/constants/search';
 import { formatPrice } from '@/lib/format';
 import { useGetBrandsQuery, useGetProductsQuery } from '@/store/api/shopApi';
+import { CloseIcon } from '@/ui/icons/CloseIcon';
 import { Popover, PopoverAnchor, PopoverContent } from '@/ui/Popover';
 
-const DEBOUNCE_MS = 300;
-const MIN_SEARCH_LENGTH = 2;
 const SEARCH_RESULTS_LIMIT = 8;
 
 export function ShopSearchPopover() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [open, setOpen] = useState(false);
+  const debouncedSearch = useDebounce(searchTerm.trim(), DEBOUNCE_MS);
+  const isOpen = searchTerm.trim().length >= MIN_SEARCH_LENGTH;
 
   const { data: brandsResponse } = useGetBrandsQuery({ all: true });
   const brands = brandsResponse?.data ?? [];
@@ -34,31 +35,23 @@ export function ShopSearchPopover() {
     brandSlug: brands.find((b) => b.id === p.brand_id)?.slug ?? '',
   }));
 
-  useEffect(() => {
-    const t = setTimeout(() => {
-      setDebouncedSearch(searchTerm.trim());
-    }, DEBOUNCE_MS);
-    return () => clearTimeout(t);
-  }, [searchTerm]);
-
-  useEffect(() => {
-    setOpen(searchTerm.trim().length >= MIN_SEARCH_LENGTH);
-  }, [searchTerm]);
-
   const handleSelectProduct = (product) => {
     if (!product.slug || !product.brandSlug) return;
-    setOpen(false);
+    setSearchTerm('');
     setSearchTerm('');
     navigate(`/shop/${product.brandSlug}/product/${product.slug}`);
   };
 
-  const showPopover = open && searchTerm.trim().length >= MIN_SEARCH_LENGTH;
   const hasResults = productsWithBrandSlug.length > 0;
   const showEmpty =
     debouncedSearch.length >= MIN_SEARCH_LENGTH && !isSearching && !hasResults;
 
+  const handleOpenChange = (open) => {
+    if (!open) setSearchTerm('');
+  };
+
   return (
-    <Popover open={showPopover} onOpenChange={setOpen}>
+    <Popover open={isOpen} onOpenChange={handleOpenChange}>
       <PopoverAnchor asChild>
         <div className="relative [&_input::-webkit-search-cancel-button]:hidden [&_input::-webkit-search-decoration]:hidden">
           <input
@@ -80,20 +73,7 @@ export function ShopSearchPopover() {
               className="absolute top-0 right-10 bottom-0 flex w-10 items-center justify-center text-[#A2A6AB] transition-colors hover:text-white active:opacity-80"
               aria-label="Clear search"
             >
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                aria-hidden
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              <CloseIcon />
             </button>
           ) : null}
           <span className="pointer-events-none absolute top-0 right-0 bottom-0 flex w-10 items-center justify-center">
@@ -115,10 +95,7 @@ export function ShopSearchPopover() {
         className="max-h-[min(70vh,320px)] w-[var(--radix-popover-trigger-width)] overflow-hidden rounded-[6px] border border-[#252520] p-0 shadow-xl outline-none [background:#1a1a18]"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
-        <div
-          className="max-h-[min(70vh,320px)] overflow-y-auto rounded-[6px] py-1"
-          style={{ backgroundColor: '#1a1a18' }}
-        >
+        <div className="max-h-[min(70vh,320px)] overflow-y-auto rounded-[6px] py-1">
           {isSearching && (
             <div className="px-4 py-6 text-center text-[13px] text-[#A2A6AB]">
               Searching…

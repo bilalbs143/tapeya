@@ -1,10 +1,9 @@
 /**
  * Playing XI tab: two-column squad list with match title (ScorecardStatusDetails).
  */
-import { StatusDetailsPlaceholderTab } from './PlaceholderTab';
+import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
 
-const BORDER = 'border-[#1C1C1A]';
-const HEADER_BG = 'bg-[#141412]';
+import { StatusDetailsPlaceholderTab } from './PlaceholderTab';
 
 export function StatusDetailsPlayingXITab({ match, details }) {
   if (!match)

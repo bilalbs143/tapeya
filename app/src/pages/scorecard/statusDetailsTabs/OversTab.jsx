@@ -1,10 +1,9 @@
 /**
  * Overs tab: over-by-over scores for both teams (ScorecardStatusDetails).
  */
-import { StatusDetailsPlaceholderTab } from './PlaceholderTab';
+import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
 
-const BORDER = 'border-[#1C1C1A]';
-const HEADER_BG = 'bg-[#141412]';
+import { StatusDetailsPlaceholderTab } from './PlaceholderTab';
 
 function OverBadge({ number }) {
   return (

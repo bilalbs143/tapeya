@@ -1,10 +1,19 @@
+/**
+ * PricingDetail
+ *
+ * Single pricing plan detail and purchase CTA. Opens success dialog.
+ * Route: /pricing/:planId
+ *
+ * Coding guidelines: docs/Coding guidelines.md (§2 useAppDispatch)
+ */
+
 import { useMemo } from 'react';
 
-import { useDispatch } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import pricingListTickIcon from '@/assets/images/icons/pricing-list-tick.svg';
 import { PRICING_PLANS } from '@/pages/pricing/Pricing';
+import { useAppDispatch } from '@/store/hooks';
 import { openDialog } from '@/store/slices/commonSlice';
 import { Container } from '@/ui/Container';
 
@@ -22,7 +31,7 @@ function DetailCheckIcon() {
 export default function PricingDetail() {
   const { planId } = useParams();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const plan = useMemo(
     () => PRICING_PLANS.find((p) => p.id === planId) ?? PRICING_PLANS[0],

@@ -1,24 +1,3 @@
-/**
- * ScoringTab – Live scoring view for the CURRENTLY ACTIVE innings.
- *
- * ── SIMPLIFICATION ──────────────────────────────────────────────────────────
- * This component is completely innings-agnostic. It does NOT know whether it
- * is scoring innings 1 or innings 2. ScoringMatch resolves the correct innings
- * state and passes ONE flat set of props directly via the activeInnings spread.
- *
- * REMOVED compared to the previous version:
- *   ✗ The `active` useMemo with 40+ deps — was the source of most bugs
- *   ✗ All `innings2*` props — ScoringMatch handles the swap
- *   ✗ `currentInnings` prop — no longer needed here
- *   ✗ All team-swap / fallback squad logic
- *
- * This component now only:
- *   ✓ Renders the batting/bowling tables for one innings
- *   ✓ Drives useScoringEngine with flat props
- *   ✓ Owns UI-only dialog state
- *   ✓ Detects innings end and calls onInningsComplete
- */
-
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import teamMatchIcon from '@/assets/images/icons/team-match-icon.svg';
@@ -27,6 +6,7 @@ import AddBowlerDialog from '@/components/dialogs/scoring/AddBowlerDialog';
 import CustomScoreDialog from '@/components/dialogs/scoring/CustomScoreDialog';
 import FielderPickerDialog from '@/components/dialogs/scoring/FielderPickerDialog';
 import OutReasonDialog from '@/components/dialogs/scoring/OutReasonDialog';
+import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
 import {
   useStoreMatchSquadMutation,
@@ -48,8 +28,6 @@ import { useScoringEngine } from './useScoringEngine';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const BORDER = 'border-[#1C1C1A]';
-const HEADER_BG = 'bg-[#141412]';
 const DASH = '—';
 const VALID_DELIVERIES_PER_OVER = 6;
 
@@ -69,7 +47,6 @@ const RUN_BUTTON_BG = [
   '#46463F',
 ];
 
-// ─── Pure helpers ─────────────────────────────────────────────────────────────
 
 function strikeRate(runs, balls) {
   if (!balls) return '0.0';
@@ -124,8 +101,6 @@ function overOrdinal(n) {
   const v = n % 100;
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
-
-// ─── ScoringTab ───────────────────────────────────────────────────────────────
 
 /**
  * All props describe the ACTIVE innings only.
@@ -674,8 +649,7 @@ export function ScoringTab({
                 (b) => String(b.id) === String(player.id),
               );
               const isOnCrease = creaseIndex >= 0;
-              const isStriker =
-                isOnCrease && creaseIndex === strikerIndex;
+              const isStriker = isOnCrease && creaseIndex === strikerIndex;
               const display = stats
                 ? {
                     runs: stats.runs,
@@ -690,14 +664,9 @@ export function ScoringTab({
                   key={player.id}
                   role={isOnCrease ? 'button' : undefined}
                   tabIndex={isOnCrease ? 0 : undefined}
-                  onClick={() =>
-                    isOnCrease && setStrikerIndex?.(creaseIndex)
-                  }
+                  onClick={() => isOnCrease && setStrikerIndex?.(creaseIndex)}
                   onKeyDown={(e) => {
-                    if (
-                      isOnCrease &&
-                      (e.key === 'Enter' || e.key === ' ')
-                    ) {
+                    if (isOnCrease && (e.key === 'Enter' || e.key === ' ')) {
                       e.preventDefault();
                       setStrikerIndex?.(creaseIndex);
                     }
@@ -819,10 +788,7 @@ export function ScoringTab({
                     m: bowler.maidens ?? 0,
                     r: bowler.runs,
                     w: bowler.wickets,
-                    econ: economyRate(
-                      bowler.runs,
-                      (bowler.balls ?? 0) / 6,
-                    ),
+                    econ: economyRate(bowler.runs, (bowler.balls ?? 0) / 6),
                   }
                 : { o: '0', m: 0, r: 0, w: 0, econ: '0.0' };
               const handleBowlerClick = () => {
@@ -837,10 +803,7 @@ export function ScoringTab({
                   tabIndex={canSelect ? 0 : undefined}
                   onClick={() => canSelect && handleBowlerClick()}
                   onKeyDown={(e) => {
-                    if (
-                      canSelect &&
-                      (e.key === 'Enter' || e.key === ' ')
-                    ) {
+                    if (canSelect && (e.key === 'Enter' || e.key === ' ')) {
                       e.preventDefault();
                       handleBowlerClick();
                     }

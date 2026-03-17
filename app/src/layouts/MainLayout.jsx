@@ -6,9 +6,6 @@ import { BottomNav } from '@/components/BottomNav';
 import { Navbar } from '@/components/Navbar';
 import { Sidebar } from '@/components/Sidebar';
 
-/**
- * Main app layout - header, content area, sidebar drawer, bottom nav
- */
 export function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();

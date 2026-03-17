@@ -3,7 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import DialogManager from '@/components/dialogs/DialogManager';
 import { RequireAuth } from '@/components/RequireAuth';
 import { ScrollRestoration } from '@/components/ScrollRestoration';
-import { SplashScreen } from '@/components/SplashScreen';
+import SplashScreen from '@/components/SplashScreen';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { MainLayout } from '@/layouts/MainLayout';
@@ -51,6 +51,7 @@ import ShopFilter from '@/pages/shop/ShopFilter';
 import ShopHome from '@/pages/shop/ShopHome';
 import ShopProductDetail from '@/pages/shop/ShopProductDetail';
 import TournamentRequest from '@/pages/TournamentRequest';
+import TournamentRequestSuccess from '@/pages/TournamentRequestSuccess';
 import UpcomingTournamentDetails from '@/pages/upcoming-tournaments/UpcomingTournamentDetails';
 import UpcomingTournaments from '@/pages/upcoming-tournaments/UpcomingTournaments';
 import { Toaster } from '@/ui/Toast';
@@ -168,6 +169,10 @@ function App() {
                   <Route
                     path="/tournament-request"
                     element={<TournamentRequest />}
+                  />
+                  <Route
+                    path="/tournament-request/success"
+                    element={<TournamentRequestSuccess />}
                   />
                   <Route path="/ranking" element={<Ranking />} />
                   <Route

@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 
+import { useToast } from '@/hooks/useToast';
+import { getApiErrorMessage } from '@/lib/apiErrors';
+import { enumNameToValue } from '@/lib/utils/enumUtils';
 import { updateProfileSchema } from '@/lib/validations/auth';
 import { useGetMeQuery, useUpdateProfileMutation } from '@/store/api/authApi';
 import { usePlayerProfileEnums } from '@/store/api/enumApi';
@@ -35,14 +38,19 @@ import {
   selectViewportInputClass,
 } from '@/ui/Select';
 
-/** Backend returns enum name (e.g. RIGHT_HAND); we use value (e.g. right_hand) in form and API */
-function enumNameToValue(name) {
-  if (!name || typeof name !== 'string') return '';
-  return name.toLowerCase();
-}
-
-const NICKNAME_REGEX = /^[a-zA-Z0-9_]*$/;
 const NICKNAME_MAX = 50;
+
+const DEFAULT_FIELDS = {
+  name: '',
+  country: '',
+  city: '',
+  nickname: '',
+  phone: '',
+  dateOfBirth: '',
+  battingStyle: '',
+  bowlingStyle: '',
+  email: '',
+};
 
 export function UserEdit({ open, onOpenChange }) {
   const dispatch = useAppDispatch();
@@ -54,19 +62,15 @@ export function UserEdit({ open, onOpenChange }) {
     skip: !open,
   });
 
-  const [name, setName] = useState('');
-  const [country, setCountry] = useState('');
-  const [city, setCity] = useState('');
-  const [nickname, setNickname] = useState('');
+  const toast = useToast();
+  const [fields, setFields] = useState(DEFAULT_FIELDS);
   const [nicknameError, setNicknameError] = useState('');
-  const [phone, setPhone] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('');
-  const [battingStyle, setBattingStyle] = useState('');
-  const [bowlingStyle, setBowlingStyle] = useState('');
-  const [email, setEmail] = useState('');
+
+  const setField = (key) => (value) =>
+    setFields((prev) => ({ ...prev, [key]: value }));
 
   const countryCode =
-    countriesList.find((c) => c.name === country)?.country_code ?? null;
+    countriesList.find((c) => c.name === fields.country)?.country_code ?? null;
   const { data: citiesList = [] } = useGetCitiesQuery(countryCode, {
     skip: !open || !countryCode,
   });
@@ -75,59 +79,58 @@ export function UserEdit({ open, onOpenChange }) {
 
   useEffect(() => {
     if (!open || !user) return;
-    setName(user.name ?? '');
-    setNickname(user.nickname ?? '');
-    setPhone(user.phone ?? '');
-    setDateOfBirth(user.date_of_birth ?? '');
-    setEmail(user.email ?? '');
-    setCountry(user.country ?? '');
-    setCity(user.city ?? '');
     const batting =
       enumNameToValue(user.batting_style_enum) || user.batting_style;
-    setBattingStyle(
-      battingStyleOptions.some((o) => o.value === batting)
-        ? batting
-        : (battingStyleOptions[0]?.value ?? ''),
-    );
     const bowling =
       enumNameToValue(user.bowling_style_enum) || user.bowling_style;
-    setBowlingStyle(
-      bowlingStyleOptions.some((o) => o.value === bowling)
+    setFields({
+      name: user.name ?? '',
+      country: user.country ?? '',
+      city: user.city ?? '',
+      nickname: user.nickname ?? '',
+      phone: user.phone ?? '',
+      dateOfBirth: user.date_of_birth ?? '',
+      battingStyle: battingStyleOptions.some((o) => o.value === batting)
+        ? batting
+        : (battingStyleOptions[0]?.value ?? ''),
+      bowlingStyle: bowlingStyleOptions.some((o) => o.value === bowling)
         ? bowling
         : (bowlingStyleOptions[0]?.value ?? ''),
-    );
+      email: user.email ?? '',
+    });
     setNicknameError('');
   }, [open, user, battingStyleOptions, bowlingStyleOptions]);
 
   const handleSave = async () => {
     setNicknameError('');
-    const rawNick = nickname.trim();
-    if (
-      rawNick &&
-      (rawNick.length > NICKNAME_MAX || !NICKNAME_REGEX.test(rawNick))
-    ) {
-      setNicknameError(
-        rawNick.length > NICKNAME_MAX
-          ? 'Nickname must be at most 50 characters'
-          : 'Nickname may only contain letters, numbers and underscores',
+
+    const rawNick = fields.nickname.trim();
+    const parsed = updateProfileSchema.safeParse({
+      name: fields.name.trim() || undefined,
+      nickname: rawNick || undefined,
+      email: fields.email.trim() || undefined,
+      phone: fields.phone.trim() || undefined,
+      date_of_birth: fields.dateOfBirth || undefined,
+      bowling_style: fields.bowlingStyle || undefined,
+      batting_style: fields.battingStyle || undefined,
+      country: fields.country.trim() || undefined,
+      city: fields.city.trim() || undefined,
+    });
+
+    if (!parsed.success) {
+      const nicknameIssue = parsed.error.issues.find((i) =>
+        i.path.includes('nickname'),
       );
+      if (nicknameIssue?.message) setNicknameError(nicknameIssue.message);
       return;
     }
-    const parsed = updateProfileSchema.safeParse({
-      name: name.trim() || undefined,
-      nickname: rawNick || undefined,
-      email: email.trim() || undefined,
-      phone: phone.trim() || undefined,
-      date_of_birth: dateOfBirth || undefined,
-      bowling_style: bowlingStyle || undefined,
-      batting_style: battingStyle || undefined,
-      country: country.trim() || undefined,
-      city: city.trim() || undefined,
-    });
-    const payload = parsed.success ? parsed.data : {};
+
     const toSend = Object.fromEntries(
-      Object.entries(payload).filter(([, v]) => v !== undefined && v !== ''),
+      Object.entries(parsed.data).filter(
+        ([, v]) => v !== undefined && v !== '',
+      ),
     );
+
     try {
       const result = await updateProfile(toSend).unwrap();
       const updatedUser = result?.data ?? result;
@@ -140,7 +143,11 @@ export function UserEdit({ open, onOpenChange }) {
       const nicknameMsg = Array.isArray(errors?.nickname)
         ? errors.nickname[0]
         : null;
-      if (nicknameMsg) setNicknameError(nicknameMsg);
+      if (nicknameMsg) {
+        setNicknameError(nicknameMsg);
+        return;
+      }
+      toast.error(getApiErrorMessage(err, 'Failed to save profile.'));
     }
   };
 
@@ -176,8 +183,8 @@ export function UserEdit({ open, onOpenChange }) {
                   id="name"
                   type="text"
                   placeholder="Full name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  value={fields.name}
+                  onChange={(e) => setField('name')(e.target.value)}
                   className="max-w-none"
                 />
               </FormField>
@@ -191,9 +198,9 @@ export function UserEdit({ open, onOpenChange }) {
                   id="nickname"
                   type="text"
                   placeholder="Letters, numbers, underscores only"
-                  value={nickname}
+                  value={fields.nickname}
                   onChange={(e) => {
-                    setNickname(e.target.value);
+                    setField('nickname')(e.target.value);
                     setNicknameError('');
                   }}
                   className="max-w-none"
@@ -206,8 +213,8 @@ export function UserEdit({ open, onOpenChange }) {
                 <PhoneInput
                   id="phone"
                   placeholder="Enter Phone Number"
-                  value={phone}
-                  onChange={setPhone}
+                  value={fields.phone}
+                  onChange={setField('phone')}
                 />
               </FormField>
 
@@ -215,8 +222,8 @@ export function UserEdit({ open, onOpenChange }) {
                 <DatePicker
                   id="dob"
                   placeholder="MM-DD-YYYY"
-                  value={dateOfBirth}
-                  onChange={setDateOfBirth}
+                  value={fields.dateOfBirth}
+                  onChange={setField('dateOfBirth')}
                   className="max-w-none"
                 />
               </FormField>
@@ -226,7 +233,10 @@ export function UserEdit({ open, onOpenChange }) {
                 htmlFor="batting-style"
                 variant="edit"
               >
-                <Select value={battingStyle} onValueChange={setBattingStyle}>
+                <Select
+                  value={fields.battingStyle}
+                  onValueChange={setField('battingStyle')}
+                >
                   <SelectTrigger
                     id="batting-style"
                     className={`max-w-none ${selectTriggerInputClass}`}
@@ -257,7 +267,10 @@ export function UserEdit({ open, onOpenChange }) {
                 htmlFor="bowling-style"
                 variant="edit"
               >
-                <Select value={bowlingStyle} onValueChange={setBowlingStyle}>
+                <Select
+                  value={fields.bowlingStyle}
+                  onValueChange={setField('bowlingStyle')}
+                >
                   <SelectTrigger
                     id="bowling-style"
                     className={`max-w-none ${selectTriggerInputClass}`}
@@ -292,18 +305,18 @@ export function UserEdit({ open, onOpenChange }) {
                   id="email"
                   type="email"
                   placeholder="Enter email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={fields.email}
+                  onChange={(e) => setField('email')(e.target.value)}
                   className="max-w-none"
                 />
               </FormField>
 
               <FormField label="Country" htmlFor="country" variant="edit">
                 <Select
-                  value={country}
+                  value={fields.country}
                   onValueChange={(v) => {
-                    setCountry(v);
-                    setCity('');
+                    setField('country')(v);
+                    setField('city')('');
                   }}
                 >
                   <SelectTrigger
@@ -332,7 +345,7 @@ export function UserEdit({ open, onOpenChange }) {
               </FormField>
 
               <FormField label="City" htmlFor="city" variant="edit">
-                <Select value={city} onValueChange={setCity}>
+                <Select value={fields.city} onValueChange={setField('city')}>
                   <SelectTrigger
                     id="city"
                     className={`max-w-none ${selectTriggerInputClass}`}

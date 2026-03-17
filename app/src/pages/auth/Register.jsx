@@ -35,6 +35,7 @@ export default function Register() {
         phone: data.phone,
         email: data.email || undefined,
       }).unwrap();
+
       const otp = result?.data?.otp ?? result?.otp;
       navigate('/otp', { state: { phone: data.phone, otp }, replace: true });
     } catch (err) {
@@ -46,10 +47,12 @@ export default function Register() {
 
   return (
     <>
+      {/* Ambient glow — decorative only */}
       <div
         className="pointer-events-none fixed top-[-115px] left-1/2 z-0 h-[302px] w-[622px] -translate-x-1/2 rounded-full bg-[#FF9700] opacity-50 blur-[200px]"
         aria-hidden
       />
+
       <div className="relative z-10 flex w-full flex-col items-center px-6 pt-6 sm:pt-8 md:pt-10">
         <img
           src={tapeyaLogo}
@@ -57,17 +60,18 @@ export default function Register() {
           className="motion-safe:animate-splash-slide-up h-auto w-[240px] opacity-0 motion-reduce:opacity-100"
         />
         <p className="motion-safe:animate-splash-slide-up-delayed mt-6 max-w-[90vw] text-center font-sans text-base text-white opacity-0 motion-reduce:opacity-100">
-          Live Cricket & Instant Updates, Anytime!
+          Live Cricket &amp; Instant Updates, Anytime!
         </p>
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          onFocus={() => reset()}
+          onFocus={reset}
           className="mt-12 w-full max-w-[358px] space-y-4"
         >
           <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">
             Create an account
           </h2>
+
           <FormField label="Phone" htmlFor="phone">
             <Controller
               name="phone"
@@ -88,7 +92,7 @@ export default function Register() {
               id="fname"
               type="text"
               placeholder="Enter Full Name"
-              autoComplete="fname"
+              autoComplete="name"
               error={errors.name?.message}
               {...register('name')}
             />
@@ -129,7 +133,7 @@ export default function Register() {
           )}
 
           <Button type="submit" disabled={busy} variant="auth" className="mt-4">
-            {busy ? 'Signing up...' : 'Sign up'}
+            {busy ? 'Signing up…' : 'Sign up'}
           </Button>
 
           <p className="mt-6 text-center text-[14px] text-[#A2A6AB]">
@@ -141,6 +145,7 @@ export default function Register() {
               Login
             </Link>
           </p>
+
           <p className="mt-3 mb-6 text-center text-[14px] text-[#A2A6AB]">
             By signing up, you agree to the{' '}
             <Link

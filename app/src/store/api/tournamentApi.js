@@ -16,6 +16,7 @@ export const tournamentApi = baseApi.injectEndpoints({
           page: params.all ? undefined : params.page,
           'filter[status]': params.status,
           'filter[organizer_id]': params.organizer_id,
+          with_matches: params.with_matches ? 1 : undefined,
           sort: params.sort,
         },
       }),
@@ -55,6 +56,24 @@ export const tournamentApi = baseApi.injectEndpoints({
             ]
           : [],
     }),
+    getTournamentStandings: builder.query({
+      query: (tournamentId) => ({
+        url: `/tournaments/${tournamentId}/standings`,
+      }),
+      transformResponse: (response) => response?.data?.standings ?? [],
+      providesTags: (result, _err, tournamentId) =>
+        tournamentId ? [{ type: 'TournamentStandings', id: tournamentId }] : [],
+    }),
+    getTournamentSeasonStats: builder.query({
+      query: (tournamentId) => ({
+        url: `/tournaments/${tournamentId}/season-stats`,
+      }),
+      transformResponse: (response) => response?.data ?? response ?? null,
+      providesTags: (result, _err, tournamentId) =>
+        tournamentId
+          ? [{ type: 'TournamentSeasonStats', id: tournamentId }]
+          : [],
+    }),
     attachTeamsToTournament: builder.mutation({
       query: ({ tournamentId, team_ids }) => ({
         url: `/tournaments/${tournamentId}/teams`,
@@ -79,11 +98,9 @@ export const tournamentApi = baseApi.injectEndpoints({
       ],
     }),
     getTournamentMatches: builder.query({
-      query: ({ tournamentId, per_page } = {}) => ({
+      query: ({ tournamentId, all, per_page } = {}) => ({
         url: `/tournaments/${tournamentId}/matches`,
-        params: {
-          per_page: per_page ?? 100,
-        },
+        params: all ? { all: 1 } : { per_page: per_page ?? 15 },
       }),
       transformResponse: (response) => response?.data ?? response ?? [],
       providesTags: (result, _err, args) =>
@@ -145,6 +162,8 @@ export const {
   useLazyGetTournamentQuery,
   useGetTournamentTeamsQuery,
   useGetTournamentMatchesQuery,
+  useGetTournamentStandingsQuery,
+  useGetTournamentSeasonStatsQuery,
   useCreateTournamentMatchMutation,
   useAttachTeamsToTournamentMutation,
   useRemoveTeamFromTournamentMutation,

@@ -1,3 +1,10 @@
+/**
+ * ReelItem
+ *
+ * Single reel card: video area, like, comment/share. Used in Reels feed.
+ * Coding guidelines: docs/Coding guidelines.md
+ */
+
 import { useEffect, useRef, useState } from 'react';
 
 import { Link } from 'react-router-dom';

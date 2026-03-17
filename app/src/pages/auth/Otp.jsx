@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import tapeyaLogo from '@/assets/images/logos/tapeya-logo-white.svg';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { formatPhoneFull } from '@/lib/utils/phoneUtils';
 import { addSavedProfile, bumpSavedProfile } from '@/lib/savedProfiles';
 import { otpSchema } from '@/lib/validations/auth';
 import {
@@ -18,54 +19,63 @@ import { setCredentials } from '@/store/slices/authSlice';
 import { Button } from '@/ui/Button';
 import { Input } from '@/ui/Input';
 
-const LENGTH = 6;
+const OTP_LENGTH = 6;
+const RESEND_COOLDOWN_SECONDS = 60;
+const OTP_COOLDOWN_KEY = 'otp_resend_cooldown_end';
 
-function formatPhone(phone) {
-  const d = (phone || '').replace(/\D/g, '');
-  if (d.length < 10) return phone || '+92 315 711 8511';
-  return `+${d.slice(0, 2)} ${d.slice(2, 5)} ${d.slice(5, 8)} ${d.slice(8, 12)}`;
+function getStoredCooldownRemaining() {
+  try {
+    const end = sessionStorage.getItem(OTP_COOLDOWN_KEY);
+    if (!end) return 0;
+    const remaining = Math.ceil((Number(end) - Date.now()) / 1000);
+    return remaining > 0 ? remaining : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function setStoredCooldownEnd(secondsFromNow) {
+  try {
+    sessionStorage.setItem(
+      OTP_COOLDOWN_KEY,
+      String(Date.now() + secondsFromNow * 1000),
+    );
+  } catch {
+    // ignore
+  }
 }
 
 export default function Otp() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { state } = useLocation();
-  const phoneRaw = state?.phone;
-  const phone = formatPhone(phoneRaw || '+923157118511');
-  const [latestOtp, setLatestOtp] = useState(state?.otp ?? null);
   const toast = useToast();
+
+  const phoneRaw = state?.phone ?? null;
+  const phone = formatPhoneFull(phoneRaw ?? '');
+
+  const [latestOtp, setLatestOtp] = useState(state?.otp ?? null);
   const [serverError, setServerError] = useState(null);
   const [resendError, setResendError] = useState(null);
-  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendCooldown, setResendCooldown] = useState(() =>
+    getStoredCooldownRemaining(),
+  );
+
   const refs = useRef([]);
+  const submitRef = useRef(null);
 
   const [verifyOtp, { isLoading }] = useVerifyOtpMutation();
   const [requestOtp, { isLoading: isResendLoading }] = useRequestOtpMutation();
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
-    const t = setInterval(() => setResendCooldown((c) => c - 1), 1000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setResendCooldown((c) => c - 1), 1000);
+    return () => clearInterval(timer);
   }, [resendCooldown]);
 
-  const handleResend = async () => {
-    if (!phoneRaw) {
-      setResendError('Session expired. Please start from Login or Register.');
-      return;
-    }
-    setResendError(null);
-    try {
-      const result = await requestOtp({ phone: phoneRaw }).unwrap();
-      toast.success('OTP sent again!');
-      const otp = result?.data?.otp ?? result?.otp;
-      if (otp) setLatestOtp(otp);
-      setResendCooldown(60);
-    } catch (err) {
-      setResendError(
-        getApiErrorMessage(err, 'Could not resend OTP. Please try again.'),
-      );
-    }
-  };
+  useEffect(() => () => {
+    if (submitRef.current) clearTimeout(submitRef.current);
+  }, []);
 
   const {
     setValue,
@@ -80,17 +90,27 @@ export default function Otp() {
 
   const code = watch('code') || '';
 
-  const setDigit = (i, val) => {
-    const digit = val.replace(/\D/g, '').slice(0, 1);
-    const next = code.split('');
-    next[i] = digit;
-    setValue('code', next.join('').slice(0, LENGTH));
-    if (digit && i < LENGTH - 1) refs.current[i + 1]?.focus();
+  const setDigit = (index, value) => {
+    const digit = value.replace(/\D/g, '').slice(0, 1);
+    const chars = code.split('');
+    chars[index] = digit;
+    const nextCode = chars.join('').slice(0, OTP_LENGTH);
+    setValue('code', nextCode);
+    if (digit && index < OTP_LENGTH - 1) refs.current[index + 1]?.focus();
+    if (nextCode.length === OTP_LENGTH) {
+      if (submitRef.current) clearTimeout(submitRef.current);
+      submitRef.current = setTimeout(() => {
+        submitRef.current = null;
+        handleSubmit(onSubmit)();
+      }, 300);
+    }
   };
 
-  const onKeyDown = (i, e) => {
-    if (e.key === 'Backspace' && !code[i] && i > 0)
-      refs.current[i - 1]?.focus();
+  const onKeyDown = (index, e) => {
+    // Move focus backward on Backspace when the current cell is already empty.
+    if (e.key === 'Backspace' && !code[index] && index > 0) {
+      refs.current[index - 1]?.focus();
+    }
   };
 
   const onPaste = (e) => {
@@ -98,21 +118,54 @@ export default function Otp() {
     const pasted = e.clipboardData
       .getData('text')
       .replace(/\D/g, '')
-      .slice(0, LENGTH);
+      .slice(0, OTP_LENGTH);
     setValue('code', pasted);
-    refs.current[Math.min(pasted.length, LENGTH - 1)]?.focus();
+    refs.current[Math.min(pasted.length, OTP_LENGTH - 1)]?.focus();
+    if (pasted.length === OTP_LENGTH) {
+      if (submitRef.current) clearTimeout(submitRef.current);
+      submitRef.current = setTimeout(() => {
+        submitRef.current = null;
+        handleSubmit(onSubmit)();
+      }, 300);
+    }
   };
 
-  const onSubmit = async ({ code }) => {
+  const handleResend = async () => {
+    if (!phoneRaw) {
+      setResendError('Session expired. Please start from Login or Register.');
+      return;
+    }
+    setResendError(null);
+
+    try {
+      const result = await requestOtp({ phone: phoneRaw }).unwrap();
+      toast.success('OTP sent again!');
+      const otp = result?.data?.otp ?? result?.otp;
+      if (otp) setLatestOtp(otp);
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
+      setStoredCooldownEnd(RESEND_COOLDOWN_SECONDS);
+    } catch (err) {
+      setResendError(
+        getApiErrorMessage(err, 'Could not resend OTP. Please try again.'),
+      );
+    }
+  };
+
+  const onSubmit = async ({ code: submittedCode }) => {
     if (!phoneRaw) {
       setServerError('Session expired. Please start from Login or Register.');
       return;
     }
     setServerError(null);
+
     try {
-      const result = await verifyOtp({ phone: phoneRaw, code }).unwrap();
+      const result = await verifyOtp({
+        phone: phoneRaw,
+        code: submittedCode,
+      }).unwrap();
       const { user, auth } = result?.data ?? result ?? {};
       const token = auth?.access_token;
+
       if (token && user) {
         dispatch(setCredentials({ user, accessToken: token }));
         addSavedProfile({
@@ -125,6 +178,7 @@ export default function Otp() {
         });
         bumpSavedProfile(phoneRaw);
       }
+
       const from = state?.from?.pathname;
       navigate(from && from !== '/login' ? from : '/home', { replace: true });
     } catch (err) {
@@ -134,12 +188,16 @@ export default function Otp() {
     }
   };
 
+  const busy = isSubmitting || isLoading;
+
   return (
     <>
+      {/* Ambient glow — decorative only */}
       <div
         className="pointer-events-none fixed top-[-115px] left-1/2 z-0 h-[302px] w-[622px] -translate-x-1/2 rounded-full bg-[#FF9700] opacity-50 blur-[200px]"
         aria-hidden
       />
+
       <div className="relative z-10 flex w-full flex-col items-center px-6 pt-6 sm:pt-8 md:pt-10">
         <img
           src={tapeyaLogo}
@@ -147,19 +205,26 @@ export default function Otp() {
           className="motion-safe:animate-splash-slide-up h-auto w-[240px] opacity-0 motion-reduce:opacity-100"
         />
         <p className="motion-safe:animate-splash-slide-up-delayed mt-6 max-w-[90vw] text-center text-base text-white opacity-0 motion-reduce:opacity-100">
-          Live Cricket & Instant Updates, Anytime!
+          Live Cricket &amp; Instant Updates, Anytime!
         </p>
 
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="mt-12 w-full max-w-[358px] space-y-6"
         >
+          {/* Show a generic prompt when there is no phone — user landed here directly */}
           <p className="text-center text-[14px] text-white">
-            Enter OTP sent to{' '}
-            <span className="font-bold text-[#DA9811]">{phone}</span>
+            {phoneRaw ? (
+              <>
+                Enter OTP sent to{' '}
+                <span className="font-bold text-[#DA9811]">{phone}</span>
+              </>
+            ) : (
+              'Enter the OTP you received'
+            )}
           </p>
 
-          {latestOtp && (
+          {import.meta.env.DEV && latestOtp && (
             <p
               className="rounded-[6px] border border-[#1A1A1A] bg-[#DA9811]/20 px-4 py-2.5 text-center text-[14px] text-[#E8A820]"
               role="status"
@@ -169,23 +234,24 @@ export default function Otp() {
             </p>
           )}
 
+          {/* OTP digit inputs */}
           <div
             className="flex justify-between"
             role="group"
             aria-label="OTP digits"
           >
-            {[...Array(LENGTH)].map((_, i) => (
+            {Array.from({ length: OTP_LENGTH }, (_, i) => (
               <div key={i} className="h-[55px] w-[55px] shrink-0">
                 <Input
                   ref={(el) => (refs.current[i] = el)}
                   type="text"
                   inputMode="numeric"
-                  autoComplete={i ? 'off' : 'one-time-code'}
+                  autoComplete={i === 0 ? 'one-time-code' : 'off'}
                   maxLength={1}
                   value={code[i] ?? ''}
                   onChange={(e) => setDigit(i, e.target.value)}
                   onKeyDown={(e) => onKeyDown(i, e)}
-                  onPaste={i ? undefined : onPaste}
+                  onPaste={i === 0 ? onPaste : undefined}
                   className="!h-[55px] !max-w-full rounded-full border border-[#1A1A1A] text-center text-lg tabular-nums"
                   aria-label={`Digit ${i + 1}`}
                 />
@@ -199,6 +265,7 @@ export default function Otp() {
             </p>
           )}
 
+          {/* Resend section */}
           <div className="space-y-1 text-center">
             <p className="text-base text-white">
               Didn&apos;t receive?{' '}
@@ -211,7 +278,7 @@ export default function Otp() {
                 {resendCooldown > 0
                   ? `Resend in ${resendCooldown}s`
                   : isResendLoading
-                    ? 'Sending...'
+                    ? 'Sending…'
                     : 'Resend'}
               </button>
             </p>
@@ -222,13 +289,8 @@ export default function Otp() {
             )}
           </div>
 
-          <Button
-            type="submit"
-            disabled={isSubmitting || isLoading}
-            variant="auth"
-            className="mt-4"
-          >
-            {isSubmitting || isLoading ? 'Verifying...' : 'Next'}
+          <Button type="submit" disabled={busy} variant="auth" className="mt-4">
+            {busy ? 'Verifying…' : 'Next'}
           </Button>
         </form>
       </div>

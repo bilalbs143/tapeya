@@ -8,37 +8,17 @@ import rankingsIcon from '@/assets/images/icons/rankings.svg';
 import reelsIcon from '@/assets/images/icons/reels.svg';
 import shopIcon from '@/assets/images/icons/shop.svg';
 import upcomingIcon from '@/assets/images/icons/upcoming.svg';
+import { EXPLORE_CATEGORIES } from '@/lib/constants/navigation';
 
-const CATEGORIES = [
-  { id: 'live', label: 'Live', path: '/live', icon: liveIcon },
-  {
-    id: 'live-score',
-    label: 'Live Score',
-    path: '/scorecard',
-    icon: liveScoreIcon,
-  },
-  { id: 'rankings', label: 'Rankings', path: '/ranking', icon: rankingsIcon },
-  { id: 'shop', label: 'Shop', path: '/shop', icon: shopIcon },
-  {
-    id: 'upcoming',
-    label: 'Upcoming',
-    path: '/upcoming-tournaments',
-    icon: upcomingIcon,
-  },
-  { id: 'drafting', label: 'Drafting', path: '/drafting', icon: draftingIcon },
-  { id: 'reels', label: 'Reels', path: '/reels', icon: reelsIcon },
-  {
-    id: 'highlights',
-    label: 'Highlights',
-    path: '/highlights',
-    icon: highlightsIcon,
-  },
-];
-
-const ITEM_STYLE = {
-  height: 78,
-  width: 78,
-  borderRadius: 17,
+const PATH_TO_ICON = {
+  '/live': liveIcon,
+  '/scorecard': liveScoreIcon,
+  '/ranking': rankingsIcon,
+  '/shop': shopIcon,
+  '/upcoming-tournaments': upcomingIcon,
+  '/drafting': draftingIcon,
+  '/reels': reelsIcon,
+  '/highlights': highlightsIcon,
 };
 
 export function ExploreCategories() {
@@ -48,16 +28,14 @@ export function ExploreCategories() {
         Explore
       </h2>
       <div className="grid grid-cols-4 gap-3">
-        {CATEGORIES.map(({ id, label, path, icon }) => (
+        {EXPLORE_CATEGORIES.map(({ path, label }) => (
           <Link
-            key={id}
+            key={path}
             to={path}
-            className="flex flex-col items-center justify-center gap-2 bg-[#141412] transition-colors duration-200 ease-out hover:bg-[#1c1c1a] active:opacity-90"
-            style={ITEM_STYLE}
-            aria-label={label}
+            className="flex h-[78px] w-[78px] flex-col items-center justify-center gap-2 rounded-[17px] bg-[#141412] transition-colors duration-200 ease-out hover:bg-[#1c1c1a] active:opacity-90"
           >
             <img
-              src={icon}
+              src={PATH_TO_ICON[path]}
               alt=""
               className="h-5 w-5 shrink-0 object-contain"
             />

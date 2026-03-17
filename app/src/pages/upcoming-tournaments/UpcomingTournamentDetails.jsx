@@ -4,6 +4,11 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import feedShareIcon from '@/assets/images/icons/feed-share.svg';
 import { formatOrdinalDateRange } from '@/lib/format';
+import {
+  getTournamentImage,
+  getTournamentTitle,
+  isValidTournamentId,
+} from '@/lib/utils/tournamentUtils';
 import { formatCount, ThumbsUpIcon } from '@/pages/feed/PostCard';
 import { FixturesTab } from '@/pages/upcoming-tournaments/tabs/FixturesTab';
 import { SquadsTab } from '@/pages/upcoming-tournaments/tabs/SquadsTab';
@@ -22,13 +27,18 @@ const DETAIL_TABS = {
   TEAMS: 'teams',
   SQUADS: 'squads',
 };
+
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&h=320&fit=crop';
 
-/** cover_image → fallback (detail page uses cover) */
-function getTournamentImage(tournament, fallback = FALLBACK_IMAGE) {
-  return tournament?.cover_image || fallback;
-}
+const DEFAULT_TOURNAMENT = {
+  display_image: FALLBACK_IMAGE,
+  tournament_name: 'Tournament',
+  name: 'Tournament',
+  start_date: '',
+  end_date: '',
+  description: '',
+};
 
 function ThumbsDownIcon({ className = '' }) {
   return (
@@ -64,7 +74,7 @@ export default function UpcomingTournamentDetails() {
     dislikes_count: 0,
     shares_count: 0,
   });
-  const [myReaction, setMyReaction] = useState(null); // 'like' | 'dislike' | null
+  const [myReaction, setMyReaction] = useState(null);
 
   const [likeTournament, { isLoading: isLiking }] = useLikeTournamentMutation();
   const [dislikeTournament, { isLoading: isDisliking }] =
@@ -72,10 +82,8 @@ export default function UpcomingTournamentDetails() {
   const [shareTournament, { isLoading: isSharing }] =
     useShareTournamentMutation();
 
-  const isPlaceholderRoute =
-    !tournamentId || String(tournamentId).startsWith('placeholder-');
-
-  const numericId = !isPlaceholderRoute ? Number(tournamentId) : undefined;
+  const hasValidId = isValidTournamentId(tournamentId);
+  const numericId = hasValidId ? Number(tournamentId) : undefined;
   const hasValidNumericId =
     typeof numericId === 'number' &&
     Number.isInteger(numericId) &&
@@ -84,24 +92,14 @@ export default function UpcomingTournamentDetails() {
   const { data: tournamentFromApi, isLoading: isLoadingTournament } =
     useGetTournamentQuery(
       { id: numericId },
-      { skip: isPlaceholderRoute || !hasValidNumericId },
+      { skip: !hasValidId || !hasValidNumericId },
     );
 
   const tournament = tournamentFromApi ??
-    stateTournament ?? {
-      id: tournamentId,
-      display_image: FALLBACK_IMAGE,
-      tournament_name: 'Tournament',
-      name: 'Tournament',
-      start_date: '',
-      end_date: '',
-      description: '',
-    };
+    stateTournament ?? { id: tournamentId, ...DEFAULT_TOURNAMENT };
 
-  const bannerImage = getTournamentImage(tournament);
-
-  const displayName =
-    tournament.tournament_name ?? tournament.name ?? 'Tournament';
+  const bannerImage = getTournamentImage(tournament, FALLBACK_IMAGE);
+  const displayName = getTournamentTitle(tournament);
   const startDate = tournament.start_date ?? '';
   const endDate = tournament.end_date ?? '';
   const description = tournament.description ?? '';
@@ -112,21 +110,24 @@ export default function UpcomingTournamentDetails() {
       dislikes_count: tournament.dislikes_count ?? 0,
       shares_count: tournament.shares_count ?? 0,
     });
-  }, [
-    tournament.likes_count,
-    tournament.dislikes_count,
-    tournament.shares_count,
-  ]);
-
-  useEffect(() => {
     const reaction = tournament.my_reaction ?? null;
     setMyReaction(
       reaction === 'like' || reaction === 'dislike' ? reaction : null,
     );
-  }, [tournament.my_reaction, tournament.id]);
+  }, [
+    tournament.id,
+    tournament.likes_count,
+    tournament.dislikes_count,
+    tournament.shares_count,
+    tournament.my_reaction,
+  ]);
 
-  const canReact = hasValidNumericId && !isPlaceholderRoute;
+  const canReact = hasValidNumericId;
   const isReacting = isLiking || isDisliking || isSharing;
+
+  // ------------------------------------------------------------------
+  // Handlers
+  // ------------------------------------------------------------------
 
   const handleLike = async () => {
     if (!canReact || isReacting) return;
@@ -137,7 +138,7 @@ export default function UpcomingTournamentDetails() {
         if (result.my_reaction !== undefined) setMyReaction(result.my_reaction);
       }
     } catch {
-      // Optional: toast on error
+      // Optional: surface a toast here on error.
     }
   };
 
@@ -150,7 +151,7 @@ export default function UpcomingTournamentDetails() {
         if (result.my_reaction !== undefined) setMyReaction(result.my_reaction);
       }
     } catch {
-      // Ignore; counts stay unchanged
+      // Ignore; counts stay unchanged on error.
     }
   };
 
@@ -158,27 +159,27 @@ export default function UpcomingTournamentDetails() {
     if (!canReact || isReacting) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share) {
-        try {
-          await navigator.share({
-            title: displayName,
-            text: description || displayName,
-            url: window.location.href,
-          });
-        } catch {
-          // User cancelled or share failed; still record share count
-        }
+        await navigator.share({
+          title: displayName,
+          text: description || displayName,
+          url: window.location.href,
+        });
+        const result = await shareTournament(numericId).unwrap();
+        if (result && typeof result === 'object')
+          setCounts((prev) => ({ ...prev, ...result }));
       }
-      const result = await shareTournament(numericId).unwrap();
-      if (result && typeof result === 'object')
-        setCounts((prev) => ({ ...prev, ...result }));
     } catch {
-      // Ignore; counts stay unchanged
+      // User cancelled or share failed; do not increment share count.
     }
   };
 
+  // ------------------------------------------------------------------
+  // Render
+  // ------------------------------------------------------------------
+
   return (
     <div className="">
-      {/* Banner: extends behind navbar; back button below nav */}
+      {/* Banner: extends behind navbar; back button positioned within the image */}
       <div className="relative h-[200px] w-full overflow-hidden bg-[#0d0d0b]">
         <img
           src={bannerImage}
@@ -220,14 +221,13 @@ export default function UpcomingTournamentDetails() {
           <p className="mt-1 text-[14px] text-[#A2A6AB]">
             {formatOrdinalDateRange(startDate, endDate)}
           </p>
-          {isLoadingTournament && !stateTournament && !isPlaceholderRoute && (
+          {isLoadingTournament && !stateTournament && hasValidId && (
             <p className="mt-1 text-[12px] text-[#A2A6AB]">
               Refreshing tournament details…
             </p>
           )}
         </div>
 
-        {/* Engagement: like, dislike, share – centered, icons in white circles */}
         <div className="mt-4 flex justify-center gap-8">
           <button
             type="button"
@@ -250,6 +250,7 @@ export default function UpcomingTournamentDetails() {
               {formatCount(counts.likes_count)}
             </span>
           </button>
+
           <button
             type="button"
             onClick={handleDislike}
@@ -273,6 +274,7 @@ export default function UpcomingTournamentDetails() {
               {formatCount(counts.dislikes_count)}
             </span>
           </button>
+
           <button
             type="button"
             onClick={handleShare}
@@ -294,7 +296,7 @@ export default function UpcomingTournamentDetails() {
           </button>
         </div>
 
-        {/* Description – directly under socials, left-aligned, light text */}
+        {/* Description */}
         <p className="mt-4 text-left text-[14px] leading-relaxed text-white/95">
           {description}
         </p>
@@ -308,19 +310,19 @@ export default function UpcomingTournamentDetails() {
             <TabsList className="flex justify-center gap-2 p-1">
               <TabsTrigger
                 value={DETAIL_TABS.FIXTURES}
-                className="data-[state=inactive]:text:white rounded-lg px-3 py-2.5 text-[13px] font-bold uppercase transition-colors focus:outline-none data-[state=active]:bg-[#DA9811] data-[state=active]:text-black data-[state=inactive]:bg-[#1A1A1A]"
+                className="rounded-lg px-3 py-2.5 text-[13px] font-bold uppercase transition-colors focus:outline-none data-[state=active]:bg-[#DA9811] data-[state=active]:text-black data-[state=inactive]:bg-[#1A1A1A] data-[state=inactive]:text-white"
               >
                 Fixtures
               </TabsTrigger>
               <TabsTrigger
                 value={DETAIL_TABS.TEAMS}
-                className="data-[state=inactive]:text:white rounded-lg px-3 py-2.5 text-[13px] font-bold uppercase transition-colors focus:outline-none data-[state=active]:bg-[#DA9811] data-[state=active]:text-black data-[state=inactive]:bg-[#1A1A1A]"
+                className="rounded-lg px-3 py-2.5 text-[13px] font-bold uppercase transition-colors focus:outline-none data-[state=active]:bg-[#DA9811] data-[state=active]:text-black data-[state=inactive]:bg-[#1A1A1A] data-[state=inactive]:text-white"
               >
                 Teams
               </TabsTrigger>
               <TabsTrigger
                 value={DETAIL_TABS.SQUADS}
-                className="data-[state=inactive]:text:white rounded-lg px-3 py-2.5 text-[13px] font-bold uppercase transition-colors focus:outline-none data-[state=active]:bg-[#DA9811] data-[state=active]:text-black data-[state=inactive]:bg-[#1A1A1A]"
+                className="rounded-lg px-3 py-2.5 text-[13px] font-bold uppercase transition-colors focus:outline-none data-[state=active]:bg-[#DA9811] data-[state=active]:text-black data-[state=inactive]:bg-[#1A1A1A] data-[state=inactive]:text-white"
               >
                 Squads
               </TabsTrigger>

@@ -1,3 +1,8 @@
+/**
+ * Ranking.jsx — Open-tournament rankings: Top Batters, Top Bowlers, Others (sixes/fours).
+ * Route: /ranking. Sections show top 5 and link to RankingStatsTotal via location state.
+ */
+
 import { Link, useNavigate } from 'react-router-dom';
 
 import { statsTotalPaths } from '@/pages/scorecard/statsTotalFlow';
@@ -13,11 +18,13 @@ import {
   TabsTrigger,
 } from '@/ui/Tabs';
 
-// Placeholder player image (backend can later return avatar URLs)
 const DEFAULT_AVATAR =
   'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=96&h=96&fit=crop';
 
 const OPEN_TOURNAMENT_TYPE = 'open_tournament';
+
+/** Number of players shown per section before the "View More" link. */
+const TOP_RANKINGS_LIMIT = 5;
 
 function useOpenTournamentRankings(category, sort) {
   return useGetRankingsQuery({
@@ -25,6 +32,46 @@ function useOpenTournamentRankings(category, sort) {
     category,
     sort,
   });
+}
+
+function safeRankings(data) {
+  return Array.isArray(data?.rankings) ? data.rankings : [];
+}
+
+function toBatterCard(row) {
+  return {
+    id: row.player_id,
+    name: row.player?.name ?? '—',
+    type: 'BAT',
+    score: row.stats?.runs ?? 0,
+    innings: row.stats?.innings ?? 0,
+    average: row.stats?.average ?? null,
+    image: null,
+  };
+}
+
+function toBowlerCard(row) {
+  return {
+    id: row.player_id,
+    name: row.player?.name ?? '—',
+    type: 'BOWL',
+    wickets: row.stats?.wickets ?? 0,
+    innings: row.stats?.innings ?? 0,
+    economy: row.stats?.economy ?? null,
+    image: null,
+  };
+}
+
+function toOtherCard(row, key) {
+  return {
+    id: row.player_id,
+    name: row.player?.name ?? '—',
+    type: 'BAT',
+    stat: row.stats?.[key] ?? 0,
+    innings: row.stats?.innings ?? 0,
+    average: row.stats?.average ?? null,
+    image: null,
+  };
 }
 
 function PlayerCard({ player, rank, variant = 'batter' }) {
@@ -52,7 +99,7 @@ function PlayerCard({ player, rank, variant = 'batter' }) {
           className="object-cover"
         />
         <AvatarFallback className="bg-zinc-700 text-white">
-          {player.name.slice(0, 2).toUpperCase()}
+          {(player.name ?? '').slice(0, 2).toUpperCase()}
         </AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1">
@@ -111,7 +158,7 @@ function RankingSection({
         <p className="text-[13px] text-[#A2A6AB]">{emptyMessage}</p>
       )}
       <div className="space-y-3">
-        {rows.slice(0, 5).map((player, index) => (
+        {rows.slice(0, TOP_RANKINGS_LIMIT).map((player, index) => (
           <PlayerCard
             key={player.id}
             player={player}
@@ -148,52 +195,10 @@ export default function Ranking() {
     isError: isErrorFours,
   } = useOpenTournamentRankings('batting', 'fours');
 
-  const rawBatters =
-    Array.isArray(battingData?.rankings) && battingData.rankings.length > 0
-      ? battingData.rankings
-      : [];
-  const rawBowlers =
-    Array.isArray(bowlingData?.rankings) && bowlingData.rankings.length > 0
-      ? bowlingData.rankings
-      : [];
-  const rawSixes =
-    Array.isArray(sixesData?.rankings) && sixesData.rankings.length > 0
-      ? sixesData.rankings
-      : [];
-  const rawFours =
-    Array.isArray(foursData?.rankings) && foursData.rankings.length > 0
-      ? foursData.rankings
-      : [];
-
-  const toBatterCard = (row) => ({
-    id: row.player_id,
-    name: row.player?.name ?? '—',
-    type: 'BAT', // backend could add detailed role later
-    score: row.stats?.runs ?? 0,
-    innings: row.stats?.innings ?? 0,
-    average: row.stats?.average ?? null,
-    image: null,
-  });
-
-  const toBowlerCard = (row) => ({
-    id: row.player_id,
-    name: row.player?.name ?? '—',
-    type: 'BOWL',
-    wickets: row.stats?.wickets ?? 0,
-    innings: row.stats?.innings ?? 0,
-    economy: row.stats?.economy ?? null,
-    image: null,
-  });
-
-  const toOtherCard = (row, key) => ({
-    id: row.player_id,
-    name: row.player?.name ?? '—',
-    type: 'BAT',
-    stat: row.stats?.[key] ?? 0,
-    innings: row.stats?.innings ?? 0,
-    average: row.stats?.average ?? null,
-    image: null,
-  });
+  const rawBatters = safeRankings(battingData);
+  const rawBowlers = safeRankings(bowlingData);
+  const rawSixes = safeRankings(sixesData);
+  const rawFours = safeRankings(foursData);
 
   const topBatters = rawBatters.map(toBatterCard);
   const topBowlers = rawBowlers.map(toBowlerCard);
@@ -244,10 +249,7 @@ export default function Ranking() {
             <RankingSection
               title="Top Run Scorers"
               linkTo={statsTotalPaths.ranking('run-scorers')}
-              linkState={{
-                fromRanking: true,
-                rankingData: rawBatters,
-              }}
+              linkState={{ fromRanking: true, rankingData: rawBatters }}
               rows={topBatters}
               loading={isLoadingBatting}
               error={isErrorBatting}
@@ -259,10 +261,7 @@ export default function Ranking() {
             <RankingSection
               title="Top Wicket Takers"
               linkTo={statsTotalPaths.ranking('wicket-takers')}
-              linkState={{
-                fromRanking: true,
-                rankingData: rawBowlers,
-              }}
+              linkState={{ fromRanking: true, rankingData: rawBowlers }}
               rows={topBowlers}
               variant="bowler"
               loading={isLoadingBowling}
@@ -276,10 +275,7 @@ export default function Ranking() {
               <RankingSection
                 title="Most Sixes"
                 linkTo={statsTotalPaths.ranking('sixes')}
-                linkState={{
-                  fromRanking: true,
-                  rankingData: rawSixes,
-                }}
+                linkState={{ fromRanking: true, rankingData: rawSixes }}
                 rows={mostSixes}
                 variant="other"
                 loading={isLoadingSixes}
@@ -291,10 +287,7 @@ export default function Ranking() {
               <RankingSection
                 title="Most Fours"
                 linkTo={statsTotalPaths.ranking('fours')}
-                linkState={{
-                  fromRanking: true,
-                  rankingData: rawFours,
-                }}
+                linkState={{ fromRanking: true, rankingData: rawFours }}
                 rows={mostFours}
                 variant="other"
                 loading={isLoadingFours}

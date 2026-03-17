@@ -1,6 +1,9 @@
 import { useState } from 'react';
 
+import { useNavigate } from 'react-router-dom';
+
 import editProfileIcon from '@/assets/images/icons/edit-profile.svg';
+import { formatAge } from '@/lib/utils/dateUtils';
 import {
   getBattingStyleLabel,
   getBowlingStyleLabel,
@@ -11,26 +14,6 @@ import { selectUser } from '@/store/selectors';
 
 import { CONTENT_MAX_WIDTH, FOCUS_RING } from './constants';
 import { UserEdit } from './UserEdit';
-
-/** Compute age string from date_of_birth (YYYY-MM-DD): "X years Y days" */
-function formatAge(dateOfBirth) {
-  if (!dateOfBirth) return '—';
-  const d = new Date(dateOfBirth);
-  if (Number.isNaN(d.getTime())) return '—';
-  const today = new Date();
-  let years = today.getFullYear() - d.getFullYear();
-  const lastBday = new Date(today.getFullYear(), d.getMonth(), d.getDate());
-  if (lastBday > today) {
-    years -= 1;
-    lastBday.setFullYear(today.getFullYear() - 1);
-  }
-  const days = Math.floor((today - lastBday) / (24 * 60 * 60 * 1000));
-  if (years <= 0 && days <= 0) return '—';
-  const parts = [];
-  if (years > 0) parts.push(`${years} year${years !== 1 ? 's' : ''}`);
-  parts.push(`${days} day${days !== 1 ? 's' : ''}`);
-  return parts.join(' ');
-}
 
 const BECOME_SPONSOR_BUTTON_CLASS = `inline-flex items-center gap-2 rounded-[17px] border border-[#d8a11e] bg-transparent px-4 py-1 text-[12px] font-semibold tracking-wide text-[#d8a11e] transition-colors hover:border-[#e5b42a] hover:text-[#e5b42a] ${FOCUS_RING}`;
 
@@ -49,6 +32,7 @@ function DetailRow({ label, value, withColon = true }) {
 }
 
 export function ProfileOverview() {
+  const navigate = useNavigate();
   const [editOpen, setEditOpen] = useState(false);
   const user = useAppSelector(selectUser);
   const { battingStyleOptions, bowlingStyleOptions } = usePlayerProfileEnums();
@@ -73,20 +57,21 @@ export function ProfileOverview() {
   ];
 
   const detailsRight = [
-    { label: 'AGE', value: formatAge(user?.date_of_birth) },
-    { label: 'BOWLING STYLE', value: bowlingLabel },
+    { label: 'AGE', value: formatAge(user?.date_of_birth), withColon: true },
+    { label: 'BOWLING STYLE', value: bowlingLabel, withColon: true },
     { label: 'CITY', value: user?.city ?? '—', withColon: false },
-    { label: 'COUNTRY', value: user?.country ?? '—' },
+    { label: 'COUNTRY', value: user?.country ?? '—', withColon: true },
   ];
 
   return (
     <div className={`mx-auto w-full ${CONTENT_MAX_WIDTH}`}>
       <UserEdit open={editOpen} onOpenChange={setEditOpen} />
+
       <div className="flex flex-wrap items-center justify-between gap-4 py-4">
         <button
           type="button"
           className={BECOME_SPONSOR_BUTTON_CLASS}
-          onClick={() => {}}
+          onClick={() => navigate('/profile?role=sponsor')}
         >
           Become a Sponsor
         </button>
@@ -118,7 +103,7 @@ export function ProfileOverview() {
               key={item.label}
               label={item.label}
               value={item.value}
-              withColon={item.withColon !== false}
+              withColon={item.withColon ?? true}
             />
           ))}
         </div>

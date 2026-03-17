@@ -1,6 +1,3 @@
-/**
- * Match card - UPCOMING | LIVE | RESULT
- */
 import { Link } from 'react-router-dom';
 
 import karachiFlag from '@/assets/images/icons/karachi-flag.png';
@@ -83,8 +80,23 @@ function parseLiveScore2(score2) {
   };
 }
 
+function normalizeTeam(team, fallbackName = 'Team', fallbackInitial = 'T') {
+  if (team && typeof team === 'object') {
+    return {
+      name: team.name ?? fallbackName,
+      initial: (team.initial ?? String(fallbackName).charAt(0)).toUpperCase(),
+      flag: team.flag ?? null,
+    };
+  }
+  return { name: fallbackName, initial: fallbackInitial, flag: null };
+}
+
 export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
+  if (!match || typeof match !== 'object') return null;
+
   const { status, matchId, league, team1, team2, score1, score2, meta } = match;
+  const t1 = normalizeTeam(team1, 'Home team', 'H');
+  const t2 = normalizeTeam(team2, 'Away team', 'A');
   const isUpcoming = status === 'upcoming';
   const isLive = status === 'live';
   const isResult = status === 'result';
@@ -114,18 +126,18 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
       {isUpcoming ? (
         <div className="mb-4 flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2">
-            <TeamAvatar team={team1} accent="green" />
+            <TeamAvatar team={t1} accent="green" />
             <span className="truncate text-[14px] font-semibold text-white">
-              {team1.name}
+              {t1.name}
             </span>
           </div>
           <span className="shrink-0 text-[14px] font-semibold text-[#DA9811]">
             VS
           </span>
           <div className="flex min-w-0 items-center justify-end gap-2">
-            <TeamAvatar team={team2} accent="orange" />
+            <TeamAvatar team={t2} accent="orange" />
             <span className="truncate text-[14px] font-semibold text-white">
-              {team2.name}
+              {t2.name}
             </span>
           </div>
         </div>
@@ -133,9 +145,9 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
         <div className="mb-4 flex flex-col gap-3">
           <div className="flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2">
-              <TeamAvatar team={team1} accent="green" />
+              <TeamAvatar team={t1} accent="green" />
               <span className="truncate text-[14px] font-semibold text-white">
-                {team1.name}
+                {t1.name}
               </span>
             </div>
             {score1 && (
@@ -146,9 +158,9 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
           </div>
           <div className="flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2">
-              <TeamAvatar team={team2} accent="orange" />
+              <TeamAvatar team={t2} accent="orange" />
               <span className="truncate text-[14px] font-semibold text-white">
-                {team2.name}
+                {t2.name}
               </span>
             </div>
             {score2 && (
@@ -169,10 +181,12 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
       )}
 
       {/* Bottom: time row (upcoming) or commentary (live/result) */}
-      {isUpcoming && meta?.startsIn && (
+      {isUpcoming && (meta?.startsIn || meta?.time) && (
         <div className="mb-3 flex items-center gap-4 text-[13px]">
-          <span className="text-[#BBBBBB]">Starts in {meta.startsIn}</span>
-          <span className="text-[#DA9811]">{meta.time}</span>
+          {meta?.startsIn && (
+            <span className="text-[#BBBBBB]">Starts in {meta.startsIn}</span>
+          )}
+          {meta?.time && <span className="text-[#DA9811]">{meta.time}</span>}
         </div>
       )}
       {(isLive || isResult) && meta?.commentary && (
@@ -187,18 +201,26 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
 
       {showScheduleTableLinks && (
         <div className="flex gap-3">
-          <Link
-            to={`/scorecard/${league}?tab=schedule`}
-            className="text-[14px] text-[#A2A6AB] underline underline-offset-2"
-          >
-            Schedule
-          </Link>
-          <Link
-            to={`/scorecard/${league}?tab=table`}
-            className="text-[14px] text-[#A2A6AB] underline underline-offset-2"
-          >
-            Table
-          </Link>
+          {(() => {
+            const leagueId = match.tournament_id ?? league;
+            if (!leagueId) return null;
+            return (
+              <>
+                <Link
+                  to={`/scorecard/${leagueId}?tab=schedule`}
+                  className="text-[14px] text-[#A2A6AB] underline underline-offset-2"
+                >
+                  Schedule
+                </Link>
+                <Link
+                  to={`/scorecard/${leagueId}?tab=table`}
+                  className="text-[14px] text-[#A2A6AB] underline underline-offset-2"
+                >
+                  Table
+                </Link>
+              </>
+            );
+          })()}
         </div>
       )}
     </>

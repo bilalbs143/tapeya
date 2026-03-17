@@ -4,8 +4,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
+import { useDebounce } from '@/hooks/useDebounce';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { DEBOUNCE_MS, MIN_SEARCH_LENGTH } from '@/lib/constants/search';
+import { parseTournamentId } from '@/lib/utils/tournamentUtils';
 import { teamFormSchema } from '@/lib/validations/team';
 import {
   useGetCitiesQuery,
@@ -25,6 +28,7 @@ import { Button } from '@/ui/Button';
 import { Checkbox } from '@/ui/Checkbox';
 import { Container } from '@/ui/Container';
 import { FormField } from '@/ui/FormField';
+import { CloseIcon } from '@/ui/icons/CloseIcon';
 import { Input } from '@/ui/Input';
 import {
   Select,
@@ -47,42 +51,21 @@ const DEFAULT_VALUES = {
   icon_player_ids: [],
 };
 
-const DEBOUNCE_MS = 300;
-const MIN_SEARCH_LENGTH = 2;
-
 const labelClass = 'mb-4 block capitalize text-[16px] text-white';
-
-function CloseIcon({ className = 'h-5 w-5' }) {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-      aria-hidden
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M6 18L18 6M6 6l12 12"
-      />
-    </svg>
-  );
-}
 
 export default function TournamentAddTeam() {
   const navigate = useNavigate();
   const { state } = useLocation();
   const { tournamentId } = useParams();
   const toast = useToast();
+
   const tournamentFromState = state?.tournament ?? null;
 
-  const tournamentIdNum =
-    tournamentId != null && tournamentId !== ''
-      ? Number(tournamentId)
-      : tournamentFromState?.id;
-  const isValidId = Number.isInteger(tournamentIdNum) && tournamentIdNum > 0;
+  const tournamentIdNum = parseTournamentId(
+    tournamentId,
+    tournamentFromState?.id,
+  );
+  const isValidId = tournamentIdNum != null;
 
   const { data: tournamentFromApi } = useGetTournamentQuery(
     { id: tournamentIdNum },
@@ -96,6 +79,10 @@ export default function TournamentAddTeam() {
     }
   }, [isValidId, navigate]);
 
+  // ------------------------------------------------------------------
+  // Local state
+  // ------------------------------------------------------------------
+
   const fileInputRef = useRef(null);
 
   const [selectedTeam, setSelectedTeam] = useState(null);
@@ -105,10 +92,16 @@ export default function TournamentAddTeam() {
     /** @type {{ id: number; name: string } | null} */ (null),
   );
   const [sponsorSearch, setSponsorSearch] = useState('');
-  const [debouncedSponsorSearch, setDebouncedSponsorSearch] = useState('');
   const [iconPlayerSearch, setIconPlayerSearch] = useState('');
-  const [debouncedIconPlayerSearch, setDebouncedIconPlayerSearch] =
-    useState('');
+  const debouncedSponsorSearch = useDebounce(sponsorSearch.trim(), DEBOUNCE_MS);
+  const debouncedIconPlayerSearch = useDebounce(
+    iconPlayerSearch.trim(),
+    DEBOUNCE_MS,
+  );
+
+  // ------------------------------------------------------------------
+  // Form
+  // ------------------------------------------------------------------
 
   const {
     control,
@@ -126,51 +119,53 @@ export default function TournamentAddTeam() {
 
   const nameValue = watch('name') ?? '';
   const searchQuery = nameValue.trim();
+
   const { data: searchResults = [], isFetching: isSearching } =
     useSearchTeamsQuery(searchQuery, {
-      skip: searchQuery.length < 2 || !!selectedTeam,
+      skip: searchQuery.length < MIN_SEARCH_LENGTH || !!selectedTeam,
     });
 
   const [createTeam, { isLoading: isSubmitting }] = useCreateTeamMutation();
   const [attachTeamsToTournament] = useAttachTeamsToTournamentMutation();
 
   const selectedCountryName = watch('country');
-  useEffect(() => {
-    const t = setTimeout(
-      () => setDebouncedSponsorSearch(sponsorSearch.trim()),
-      DEBOUNCE_MS,
-    );
-    return () => clearTimeout(t);
-  }, [sponsorSearch]);
-  useEffect(() => {
-    const t = setTimeout(
-      () => setDebouncedIconPlayerSearch(iconPlayerSearch.trim()),
-      DEBOUNCE_MS,
-    );
-    return () => clearTimeout(t);
-  }, [iconPlayerSearch]);
 
   const { data: sponsorsList = [], isFetching: isSearchingSponsors } =
     useSearchSponsorsQuery(debouncedSponsorSearch, {
       skip: debouncedSponsorSearch.length < MIN_SEARCH_LENGTH,
     });
+
   const { data: playersList = [], isFetching: isSearchingPlayers } =
     useSearchPlayersQuery(debouncedIconPlayerSearch, {
       skip: debouncedIconPlayerSearch.length < MIN_SEARCH_LENGTH,
     });
+
   const { data: countriesList = [] } = useGetCountriesQuery();
+
   const selectedCountry = countriesList.find(
     (c) => c.name === selectedCountryName,
   );
   const countryCode = selectedCountry?.country_code ?? null;
+
   const { data: citiesList = [] } = useGetCitiesQuery(countryCode, {
     skip: !countryCode,
   });
 
+  // ------------------------------------------------------------------
+  // Derived state
+  // ------------------------------------------------------------------
+
+  // `isReadonly` is true when an existing team has been selected from search.
   const isReadonly = !!selectedTeam;
   const readonlyClass = isReadonly ? 'cursor-default opacity-90' : '';
-  const showSearchResults = searchQuery.length >= 2 && !selectedTeam;
+  const showSearchResults =
+    searchQuery.length >= MIN_SEARCH_LENGTH && !selectedTeam;
 
+  // ------------------------------------------------------------------
+  // Handlers
+  // ------------------------------------------------------------------
+
+  /** Populates all form fields from the selected search result. */
   const handleSelectTeam = (team) => {
     setSelectedTeam(team);
     setValue('name', team.name ?? '');
@@ -192,6 +187,7 @@ export default function TournamentAddTeam() {
     );
   };
 
+  /** Resets the form back to create-mode (clears selected team). */
   const handleChangeTeam = () => {
     setSelectedTeam(null);
     setSelectedSponsor(null);
@@ -208,12 +204,13 @@ export default function TournamentAddTeam() {
     setLogoFile(file ?? null);
   };
 
-  const handleAttachClick = () => {
-    fileInputRef.current?.click();
-  };
+  // ------------------------------------------------------------------
+  // Submit
+  // ------------------------------------------------------------------
 
   const onSubmit = async (data) => {
     try {
+      // Attach-only path: an existing team was selected from search.
       if (selectedTeam?.id) {
         await attachTeamsToTournament({
           tournamentId: tournamentIdNum,
@@ -229,6 +226,7 @@ export default function TournamentAddTeam() {
         return;
       }
 
+      // Create-and-attach path: build a new team then attach it.
       const payload = {
         name: data.name.trim(),
         code: data.code.trim(),
@@ -240,6 +238,7 @@ export default function TournamentAddTeam() {
           : [],
         logo: logoFile ?? undefined,
       };
+
       const result = await createTeam(payload).unwrap();
       const team = result?.data ?? result;
       const teamId = team?.id;
@@ -295,6 +294,7 @@ export default function TournamentAddTeam() {
         </header>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 pb-10">
+          {/* Team Name — search + select or free type */}
           <FormField
             label="Team Name"
             htmlFor="name"
@@ -322,6 +322,7 @@ export default function TournamentAddTeam() {
                   <CloseIcon />
                 </button>
               )}
+              {/* CURSOR: extract this dropdown shell into <SearchDropdown> (see top) */}
               {showSearchResults && (
                 <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-48 overflow-auto rounded-[6px] border border-[#141412] bg-[#141412] shadow-lg">
                   {isSearching ? (
@@ -426,6 +427,7 @@ export default function TournamentAddTeam() {
                         <CloseIcon />
                       </button>
                     )}
+                    {/* CURSOR: extract this dropdown shell into <SearchDropdown> (see top) */}
                     {showSponsorResults && (
                       <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] bg-[#141412] shadow-lg">
                         {debouncedSponsorSearch.length < MIN_SEARCH_LENGTH ? (
@@ -469,8 +471,14 @@ export default function TournamentAddTeam() {
                 );
               }}
             />
+            {errors.sponsor_user_id?.message && (
+              <p className="text-sm text-red-200" role="alert">
+                {errors.sponsor_user_id.message}
+              </p>
+            )}
           </FormField>
 
+          {/* Country */}
           <FormField
             label="Country"
             htmlFor="country"
@@ -485,6 +493,7 @@ export default function TournamentAddTeam() {
                   value={field.value || ''}
                   onValueChange={(val) => {
                     field.onChange(val);
+                    // Reset city when country changes so stale city values are cleared.
                     setValue('city', '');
                   }}
                   disabled={isReadonly}
@@ -523,16 +532,17 @@ export default function TournamentAddTeam() {
             </p>
           )}
 
+          {/* City — read-only Input when team is selected, Select otherwise */}
           <FormField
             label="City"
             htmlFor="city"
             labelClassName={labelClass}
             required
           >
-            {isReadonly && selectedTeam ? (
+            {isReadonly ? (
               <Input
                 id="city"
-                value={selectedTeam.city ?? ''}
+                value={selectedTeam?.city ?? ''}
                 readOnly
                 className={readonlyClass}
               />
@@ -582,6 +592,8 @@ export default function TournamentAddTeam() {
             </p>
           )}
 
+          {/* Icon Players — multi-select typeahead with checkboxes */}
+          {/* CURSOR: extract into <IconPlayersField> (see top) */}
           <FormField
             label="Icon Players"
             htmlFor="icon_player_ids"
@@ -619,6 +631,7 @@ export default function TournamentAddTeam() {
                           <CloseIcon />
                         </button>
                       )}
+                      {/* CURSOR: extract this dropdown shell into <SearchDropdown> (see top) */}
                       {showPlayerResults && (
                         <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] bg-[#141412] shadow-lg">
                           {debouncedIconPlayerSearch.length <
@@ -685,6 +698,8 @@ export default function TournamentAddTeam() {
             />
           </FormField>
 
+          {/* Logo upload — hidden when team is selected (logo already set) */}
+          {/* CURSOR: extract into <LogoUploadField> (see top) */}
           {!isReadonly && (
             <FormField
               label="Upload Logo"
@@ -713,7 +728,7 @@ export default function TournamentAddTeam() {
                     variant="file"
                     size="sm"
                     className="h-8 rounded-[6px] px-2 text-[12px] font-semibold tracking-wide capitalize"
-                    onClick={handleAttachClick}
+                    onClick={() => fileInputRef.current?.click()}
                   >
                     Attach File
                   </Button>
@@ -722,19 +737,22 @@ export default function TournamentAddTeam() {
             </FormField>
           )}
 
-          {isReadonly && selectedTeam?.logo && (
-            <FormField
-              label="Logo"
-              htmlFor="team_logo_display"
-              labelClassName={labelClass}
-            >
-              <div className="flex h-12 items-center rounded-[6px] bg-[#141412] px-4">
-                <span className="text-[16px] text-[#A2A6AB78] capitalize">
-                  Logo uploaded
-                </span>
-              </div>
-            </FormField>
-          )}
+          {/* Logo indicator for selected team — only when logo URL is non-empty */}
+          {isReadonly &&
+            selectedTeam?.logo &&
+            String(selectedTeam.logo).trim() !== '' && (
+              <FormField
+                label="Logo"
+                htmlFor="team_logo_display"
+                labelClassName={labelClass}
+              >
+                <div className="flex h-12 items-center rounded-[6px] bg-[#141412] px-4">
+                  <span className="text-[16px] text-[#A2A6AB] capitalize">
+                    Logo uploaded
+                  </span>
+                </div>
+              </FormField>
+            )}
 
           <div className="pt-4">
             <Button

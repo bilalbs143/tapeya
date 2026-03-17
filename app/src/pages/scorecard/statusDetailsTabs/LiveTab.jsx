@@ -1,11 +1,12 @@
 /**
  * Live tab: current batters + bowlers + partnership (ScorecardStatusDetails).
  */
+import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
+
 import { StatusDetailsPlaceholderTab } from './PlaceholderTab';
 
-const BORDER_B = 'border-b border-[#1C1C1A]';
-const BORDER_R = 'border-r border-[#1C1C1A]';
-const HEADER_BG = 'bg-[#141412]';
+const BORDER_B = `border-b ${BORDER}`;
+const BORDER_R = `border-r ${BORDER}`;
 const CELL_PADDING = 'py-3 px-4';
 const STAT_COL_WIDTH = 'w-12'; /* R, B, 4s, 6s / O, M, R, W */
 const SR_COL_WIDTH = 'w-16'; /* SR: fit decimals e.g. 154.5 */

@@ -1,3 +1,11 @@
+/**
+ * Pricing
+ *
+ * Pricing plans list and CTA. Exports PRICING_PLANS for PricingDetail.
+ * Route: /pricing
+ *
+ * Coding guidelines: docs/Coding guidelines.md
+ */
 /* eslint-disable react-refresh/only-export-components */
 import { useState } from 'react';
 
