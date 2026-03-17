@@ -103,7 +103,7 @@ export default function ShopCheckout() {
   return (
     <div className="bg-black">
       <Container className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
+        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6 lg:mt-0">
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -140,6 +140,7 @@ export default function ShopCheckout() {
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-2">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <FormField label="Full Name" htmlFor="fullName" variant="checkout">
               <Input
                 id="fullName"
@@ -301,6 +302,7 @@ export default function ShopCheckout() {
                 {...register('notes')}
               />
             </FormField>
+            </div>
 
             <p className="text-[14px] text-[#A2A6AB]">
               Subtotal:{' '}

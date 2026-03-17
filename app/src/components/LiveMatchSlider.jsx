@@ -43,6 +43,9 @@ export function LiveMatchSlider() {
         modules={[Autoplay]}
         spaceBetween={15}
         slidesPerView={4}
+        breakpoints={{
+          768: { slidesPerView: 4.5 },
+        }}
         autoplay={{ delay: 4000, disableOnInteraction: false }}
         loop
         grabCursor
@@ -50,7 +53,7 @@ export function LiveMatchSlider() {
       >
         {SLIDES.map(({ id, image, alt }) => (
           <SwiperSlide key={id}>
-            <div className="h-[116px] overflow-hidden rounded-[17px]">
+            <div className="h-[116px] overflow-hidden rounded-[17px] md:h-[260px]">
               <img
                 src={image}
                 alt={alt}

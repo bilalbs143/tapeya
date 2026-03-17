@@ -194,23 +194,23 @@ export default function Otp() {
     <>
       {/* Ambient glow — decorative only */}
       <div
-        className="pointer-events-none fixed top-[-115px] left-1/2 z-0 h-[302px] w-[622px] -translate-x-1/2 rounded-full bg-[#FF9700] opacity-50 blur-[200px]"
+        className="pointer-events-none fixed top-[-115px] left-1/2 z-0 h-[302px] w-[622px] -translate-x-1/2 rounded-full bg-[#FF9700] opacity-50 blur-[200px] lg:top-[-260px] lg:w-[1159px]"
         aria-hidden
       />
 
-      <div className="relative z-10 flex w-full flex-col items-center px-6 pt-6 sm:pt-8 md:pt-10">
+      <div className="relative z-10 flex w-full flex-col items-center px-6 pt-6 sm:pt-8 md:pt-10 lg:pt-16">
         <img
           src={tapeyaLogo}
           alt="Tapeya"
-          className="motion-safe:animate-splash-slide-up h-auto w-[240px] opacity-0 motion-reduce:opacity-100"
+          className="motion-safe:animate-splash-slide-up h-auto w-[240px] opacity-0 motion-reduce:opacity-100 lg:w-[280px]"
         />
-        <p className="motion-safe:animate-splash-slide-up-delayed mt-6 max-w-[90vw] text-center text-base text-white opacity-0 motion-reduce:opacity-100">
+        <p className="motion-safe:animate-splash-slide-up-delayed mt-6 max-w-[90vw] text-center font-sans text-base text-white opacity-0 motion-reduce:opacity-100">
           Live Cricket &amp; Instant Updates, Anytime!
         </p>
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="mt-12 w-full max-w-[358px] space-y-6"
+          className="mt-12 w-full max-w-[358px] space-y-6 lg:mt-14 lg:max-w-[880px] lg:px-20 lg:py-15"
         >
           {/* Show a generic prompt when there is no phone — user landed here directly */}
           <p className="text-center text-[14px] text-white">
@@ -289,7 +289,7 @@ export default function Otp() {
             )}
           </div>
 
-          <Button type="submit" disabled={busy} variant="auth" className="mt-4">
+          <Button type="submit" disabled={busy} variant="auth" className="mt-4 lg:w-full">
             {busy ? 'Verifying…' : 'Next'}
           </Button>
         </form>

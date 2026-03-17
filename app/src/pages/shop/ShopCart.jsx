@@ -119,7 +119,7 @@ export default function ShopCart() {
   return (
     <div className="flex flex-col bg-black">
       <Container fullWidth className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
+        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6 lg:mt-0">
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -155,53 +155,77 @@ export default function ShopCart() {
             </button>
           </div>
         ) : (
-          <div className="flex flex-col gap-3 pt-2">
-            {items.map((item) => (
-              <CartItemCard
-                key={item.id}
-                item={item}
-                onUpdateQty={handleUpdateQty}
-                onRemove={handleRemove}
-                isUpdating={isUpdating}
-              />
-            ))}
+          <div className="flex flex-col gap-3 pt-2 lg:flex-row lg:items-start lg:gap-6 lg:pt-4">
+            <div className="min-w-0 flex-1 space-y-3">
+              {items.map((item) => (
+                <CartItemCard
+                  key={item.id}
+                  item={item}
+                  onUpdateQty={handleUpdateQty}
+                  onRemove={handleRemove}
+                  isUpdating={isUpdating}
+                />
+              ))}
+            </div>
 
-            <div className="rounded-2xl bg-[#141412] p-4 shadow-sm">
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-[14px] font-medium text-[#A2A6AB]">
-                    Subtotal:
-                  </span>
-                  <span className="text-[14px] font-bold text-white">
-                    {formatPrice(subtotal)}
-                  </span>
+            <div className="lg:sticky lg:top-20 lg:w-[320px] lg:shrink-0">
+              <div className="rounded-2xl bg-[#141412] p-4 shadow-sm">
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-[14px] font-medium text-[#A2A6AB]">
+                      Subtotal:
+                    </span>
+                    <span className="text-[14px] font-bold text-white">
+                      {formatPrice(subtotal)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-[14px] font-medium text-[#A2A6AB]">
+                      Shipping:
+                    </span>
+                    <span className="text-[14px] font-bold text-white">
+                      {formatPrice(shipping)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-[14px] font-medium text-[#A2A6AB]">
+                      Discount:
+                    </span>
+                    <span className="text-[14px] font-bold text-white">
+                      {formatPrice(discount)}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-[14px] font-medium text-[#A2A6AB]">
-                    Shipping:
-                  </span>
-                  <span className="text-[14px] font-bold text-white">
-                    {formatPrice(shipping)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-[14px] font-medium text-[#A2A6AB]">
-                    Discount:
-                  </span>
-                  <span className="text-[14px] font-bold text-white">
-                    {formatPrice(discount)}
-                  </span>
+
+                <div className="mt-4 hidden border-t border-white/10 pt-4 lg:block">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-[12px] font-normal text-white">
+                        Grand Total:
+                      </p>
+                      <p className="text-[18px] font-bold text-[#DA9811]">
+                        {formatPrice(grandTotal)}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/shop/checkout')}
+                      className="shrink-0 rounded-[6px] bg-[#DA9811] px-6 py-3 text-[14px] font-bold tracking-wide text-black uppercase transition-opacity hover:opacity-95 active:opacity-90 lg:px-8 lg:py-3.5"
+                    >
+                      Checkout
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="h-24" />
+            <div className="h-24 lg:hidden" />
           </div>
         )}
       </Container>
 
       {!emptyCart && !isLoading && (
-        <footer className="fixed right-0 bottom-20 left-0 z-30 bg-black px-4 pt-4 pb-4">
+        <footer className="fixed right-0 bottom-20 left-0 z-30 bg-black px-4 pt-4 pb-4 lg:hidden">
           <div className="flex w-full items-center justify-between gap-4 rounded-[17px] bg-[#141412] p-4">
             <div>
               <p className="text-[12px] font-normal text-white">Grand Total:</p>

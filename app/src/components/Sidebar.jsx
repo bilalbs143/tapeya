@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -47,12 +47,12 @@ const MENU_ITEMS = [
 ];
 
 const overlay = (open) =>
-  `fixed inset-0 z-[60] bg-black/50 transition-opacity duration-200 ${
+  `fixed inset-0 z-[60] bg-black/50 transition-opacity duration-200 lg:hidden ${
     open ? 'opacity-100' : 'pointer-events-none opacity-0'
   }`;
 
 const panel = (open) =>
-  `fixed left-0 top-0 z-[70] h-full w-[280px] flex flex-col border-r border-[#FFFFFF12] bg-[#10110EA3] backdrop-blur-[26.5px] transition-transform duration-200 ease-out ${
+  `fixed left-0 top-0 z-[70] h-full w-[280px] flex flex-col border-r border-[#FFFFFF12] bg-[#10110EA3] backdrop-blur-[26.5px] transition-transform duration-200 ease-out lg:translate-x-0 ${
     open ? 'translate-x-0' : '-translate-x-full'
   }`;
 
@@ -64,6 +64,17 @@ export function Sidebar({ open, onClose }) {
   const dispatch = useAppDispatch();
   const overlayRef = useRef(null);
   const { user, accessToken } = useAppSelector(selectAuthUserAndToken);
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth >= 1024,
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    setIsDesktop(mq.matches);
+    const handler = (e) => setIsDesktop(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   useEffect(() => {
     if (
@@ -102,7 +113,7 @@ export function Sidebar({ open, onClose }) {
         tabIndex={open ? 0 : -1}
       />
 
-      <aside aria-hidden={!open} className={panel(open)} inert={!open}>
+      <aside aria-hidden={!open && !isDesktop} className={panel(open)} inert={!open && !isDesktop ? '' : undefined}>
         <div className="flex flex-1 flex-col overflow-y-auto px-4 py-6">
           <Link
             to="/profile"
@@ -124,7 +135,7 @@ export function Sidebar({ open, onClose }) {
             </div>
           </Link>
 
-          <div className="mt-2 flex items-center gap-2 pb-6">
+          <div className="mt-2 flex items-center gap-2 pb-4">
             <div className="h-[4px] flex-1 overflow-hidden rounded-full bg-zinc-600">
               <div className="h-full w-[70%] rounded-full bg-[#DA9811]" />
             </div>
@@ -132,6 +143,14 @@ export function Sidebar({ open, onClose }) {
               70% Complete
             </span>
           </div>
+
+          <Link
+            to="/profile?role=sponsor"
+            onClick={onClose}
+            className="mb-4 block rounded-[6px] border border-[#DA9811] px-3 py-1 text-center text-[12px] max-w-fit font-bold text-[#DA9811] transition-colors hover:border-[#e5b42a] hover:bg-[#1A1A1A] focus:ring-2 focus:ring-[#d8a11e]/50 focus:outline-none"
+          >
+            Become a Sponsor
+          </Link>
 
           <div className="h-px w-full bg-[linear-gradient(to_right,#00000000,#FFFFFF33,#00000000)]" />
 

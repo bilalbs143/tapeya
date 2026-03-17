@@ -107,7 +107,7 @@ export default function ShopFilter() {
     <Container>
       <FloatingCartButton />
       <div className="flex flex-col gap-3">
-        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-2">
+        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-2 lg:mt-0">
           <Link
             to="/shop"
             className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80"
@@ -187,10 +187,10 @@ export default function ShopFilter() {
 
         {tabsFixedVisible && (
           <div
-            className="fixed right-0 left-0 z-10 bg-black pt-1 pb-2"
+            className="fixed right-0 left-0 z-10 bg-black pt-1 pb-2 lg:left-[280px]"
             style={{ top: NAVBAR_HEIGHT }}
           >
-            <div className="mx-auto max-w-2xl px-4">
+            <div className="mx-auto max-w-2xl px-4 lg:max-w-none lg:px-4">
               <div className="flex gap-2 overflow-x-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 <button
                   type="button"
@@ -224,7 +224,7 @@ export default function ShopFilter() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {productsWithBrandSlug.map((product) => (
             <ListingProductCard
               key={product.id}

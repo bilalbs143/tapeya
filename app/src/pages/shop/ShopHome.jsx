@@ -43,6 +43,9 @@ function ShopSlider({
         modules={[Autoplay]}
         spaceBetween={12}
         slidesPerView={2}
+        breakpoints={{
+          1024: { slidesPerView: 3.5 },
+        }}
         autoplay={{
           delay: 4000,
           disableOnInteraction: false,
@@ -137,10 +140,10 @@ export default function ShopHome() {
 
         {tabsFixedVisible && (
           <div
-            className="fixed right-0 left-0 z-10 bg-black pt-1 pb-2"
+            className="fixed right-0 left-0 z-10 bg-black pt-1 pb-2 lg:left-[280px]"
             style={{ top: NAVBAR_HEIGHT }}
           >
-            <div className="mx-auto max-w-2xl px-4">
+            <div className="mx-auto max-w-2xl px-4 lg:max-w-none lg:px-4">
               <div className="flex gap-2 overflow-x-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {brands.map(({ id, name, slug, logo }) => (
                   <Link

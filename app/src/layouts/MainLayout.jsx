@@ -22,10 +22,14 @@ export function MainLayout() {
     <div className="bg-black">
       <Navbar onMenuClick={() => setSidebarOpen(true)} />
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <main className={`pb-20 ${noTopPadding ? 'pt-0' : 'pt-16'}`}>
+      <main
+        className={`pb-20 lg:ml-[280px] lg:pb-0 ${noTopPadding ? 'pt-0' : 'pt-16'}`}
+      >
         <Outlet />
       </main>
-      <BottomNav />
+      <div className="lg:hidden">
+        <BottomNav />
+      </div>
     </div>
   );
 }

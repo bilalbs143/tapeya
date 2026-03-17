@@ -17,12 +17,12 @@ export function HighlightSlider() {
   return (
     <section className="space-y-3">
       <header className="flex items-center justify-between">
-        <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
+        <h2 className="text-[13px] md:text-[16px] font-bold tracking-wide text-[#A2A6AB] uppercase">
           Highlights
         </h2>
         <Link
           to="/highlights"
-          className="text-[12px] font-bold text-[#DA9811] transition-opacity active:opacity-80"
+          className="text-[12px] md:text-[16px] font-bold text-[#DA9811] transition-opacity active:opacity-80"
         >
           View more
         </Link>
@@ -32,6 +32,9 @@ export function HighlightSlider() {
         modules={[Autoplay]}
         spaceBetween={12}
         slidesPerView={1.5}
+        breakpoints={{
+          768: { slidesPerView: 2.5 },
+        }}
         centeredSlides={false}
         initialSlide={0}
         autoplay={{ delay: 4000, disableOnInteraction: false }}
@@ -41,7 +44,7 @@ export function HighlightSlider() {
       >
         {SLIDES.map(({ id, image, alt }) => (
           <SwiperSlide key={id}>
-            <div className="h-[160px] overflow-hidden rounded-[17px] sm:h-[180px]">
+            <div className="h-[160px] overflow-hidden rounded-[17px] sm:h-[180px] md:h-[300px]">
               <img
                 src={image}
                 alt={alt}

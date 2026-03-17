@@ -113,7 +113,7 @@ export default function ShopProductDetail() {
     <Container>
       <FloatingCartButton />
       <div className="flex flex-col gap-4">
-        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-4">
+        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-4 lg:mt-0">
           <button
             type="button"
             onClick={() => navigate(backTo)}
