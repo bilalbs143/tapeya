@@ -47,7 +47,6 @@ const RUN_BUTTON_BG = [
   '#46463F',
 ];
 
-
 function strikeRate(runs, balls) {
   if (!balls) return '0.0';
   return ((Number(runs) / Number(balls)) * 100).toFixed(1);

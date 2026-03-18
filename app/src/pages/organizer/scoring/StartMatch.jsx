@@ -36,8 +36,8 @@ import { formatDateForApi, formatTimeForApi } from './scoringUtils';
 const oversInputBase =
   'flex h-12 w-full items-center rounded-[6px] bg-[#141412] px-4 py-3 text-left text-white focus:outline-none focus:ring-2 focus:ring-[#DA9811]/50 cursor-pointer';
 
-function buildMatchPayload(data) {
-  return {
+function buildMatchPayload(data, groupIndex = null) {
+  const payload = {
     tournamentId: data.tournament_id,
     home_team_id: Number(data.team_a_id),
     away_team_id: Number(data.team_b_id),
@@ -47,6 +47,10 @@ function buildMatchPayload(data) {
     players_per_side: Number(data.players_per_side),
     overs: data.overs,
   };
+  if (groupIndex != null && groupIndex > 0) {
+    payload.group_index = groupIndex;
+  }
+  return payload;
 }
 
 export default function StartMatch() {
@@ -110,7 +114,22 @@ export default function StartMatch() {
     tournamentId || undefined,
     { skip: !tournamentId },
   );
-  const teams = Array.isArray(tournamentTeams) ? tournamentTeams : [];
+  const allTeams = Array.isArray(tournamentTeams) ? tournamentTeams : [];
+  const selectedTournament = tournaments.find(
+    (t) => String(t.id) === tournamentId,
+  );
+  const numberOfGroups = selectedTournament?.number_of_groups ?? 1;
+  const hasGroups = numberOfGroups > 1;
+
+  const [matchGroupKey, setMatchGroupKey] = useState('knockout');
+  const matchGroupIndex =
+    matchGroupKey !== '' && matchGroupKey !== 'knockout'
+      ? Number(matchGroupKey)
+      : null;
+  const teams =
+    hasGroups && matchGroupIndex != null
+      ? allTeams.filter((t) => Number(t.group_index) === matchGroupIndex)
+      : allTeams;
 
   useEffect(() => {
     if (
@@ -119,6 +138,14 @@ export default function StartMatch() {
     )
       setValue('tournament_id', String(tournamentIdFromUrl));
   }, [tournamentIdFromUrl, setValue, getValues]);
+
+  useEffect(() => {
+    if (!hasGroups) return;
+    const aInList = !team_a_id || teams.some((t) => String(t.id) === team_a_id);
+    const bInList = !team_b_id || teams.some((t) => String(t.id) === team_b_id);
+    if (!aInList) setValue('team_a_id', '');
+    if (!bInList) setValue('team_b_id', '');
+  }, [hasGroups, matchGroupKey, teams, team_a_id, team_b_id, setValue]);
 
   const [teamSelectDialogOpen, setTeamSelectDialogOpen] = useState(false);
   const [teamSelectSide, setTeamSelectSide] = useState(null); // 'A' | 'B'
@@ -131,7 +158,7 @@ export default function StartMatch() {
   const handleBack = () => navigate(-1);
   const onSaveFixture = async (data) => {
     try {
-      await createMatch(buildMatchPayload(data)).unwrap();
+      await createMatch(buildMatchPayload(data, matchGroupIndex)).unwrap();
       toast.success(
         'Fixture saved. You can start scoring from the match later.',
       );
@@ -159,7 +186,9 @@ export default function StartMatch() {
     setTossDecision('');
 
     try {
-      const created = await createMatch(buildMatchPayload(data)).unwrap();
+      const created = await createMatch(
+        buildMatchPayload(data, matchGroupIndex),
+      ).unwrap();
       const matchId = created?.id;
       if (matchId) {
         const winningTeamId =
@@ -241,6 +270,37 @@ export default function StartMatch() {
               </p>
             )}
           </FormField>
+
+          {hasGroups && (
+            <FormField
+              htmlFor="match_group"
+              label="Match type"
+              className="space-y-2"
+              labelClassName={`!mb-2 ${formFieldLabelCheckoutClass}`}
+            >
+              <select
+                id="match_group"
+                value={matchGroupKey}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setMatchGroupKey(v ?? '');
+                  setValue('team_a_id', '');
+                  setValue('team_b_id', '');
+                }}
+                className={`${oversInputBase} w-full`}
+                aria-label="Match type (group or knockout)"
+              >
+                <option value="knockout">Knockout / Playoff</option>
+                {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map(
+                  (idx) => (
+                    <option key={idx} value={String(idx)}>
+                      Group {idx}
+                    </option>
+                  ),
+                )}
+              </select>
+            </FormField>
+          )}
 
           {/* Team selection: card view, tap opens TeamSelectDialog when tournament has teams */}
           <div className="flex items-stretch">

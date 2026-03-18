@@ -141,167 +141,180 @@ export default function ShopCheckout() {
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-2">
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <FormField label="Full Name" htmlFor="fullName" variant="checkout">
-              <Input
-                id="fullName"
-                type="text"
-                placeholder="Enter full name"
-                autoComplete="name"
-                readOnly={hasName}
-                aria-readonly={hasName}
-                className={hasName ? 'cursor-default opacity-90' : ''}
-                {...register('fullName')}
-              />
-            </FormField>
+              <FormField
+                label="Full Name"
+                htmlFor="fullName"
+                variant="checkout"
+              >
+                <Input
+                  id="fullName"
+                  type="text"
+                  placeholder="Enter full name"
+                  autoComplete="name"
+                  readOnly={hasName}
+                  aria-readonly={hasName}
+                  className={hasName ? 'cursor-default opacity-90' : ''}
+                  {...register('fullName')}
+                />
+              </FormField>
 
-            <FormField label="Phone" htmlFor="phone" variant="checkout">
-              <Controller
-                name="phone"
-                control={control}
-                render={({ field }) => (
-                  <PhoneInput
-                    id="phone"
-                    placeholder="Enter phone number"
-                    readOnly={hasPhone}
-                    aria-readonly={hasPhone}
-                    className={hasPhone ? 'cursor-default opacity-90' : ''}
-                    {...field}
-                  />
-                )}
-              />
-            </FormField>
+              <FormField label="Phone" htmlFor="phone" variant="checkout">
+                <Controller
+                  name="phone"
+                  control={control}
+                  render={({ field }) => (
+                    <PhoneInput
+                      id="phone"
+                      placeholder="Enter phone number"
+                      readOnly={hasPhone}
+                      aria-readonly={hasPhone}
+                      className={hasPhone ? 'cursor-default opacity-90' : ''}
+                      {...field}
+                    />
+                  )}
+                />
+              </FormField>
 
-            <FormField label="Email Address" htmlFor="email" variant="checkout">
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter email address"
-                autoComplete="email"
-                readOnly={hasEmail}
-                aria-readonly={hasEmail}
-                className={hasEmail ? 'cursor-default opacity-90' : ''}
-                {...register('email')}
-              />
-            </FormField>
+              <FormField
+                label="Email Address"
+                htmlFor="email"
+                variant="checkout"
+              >
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter email address"
+                  autoComplete="email"
+                  readOnly={hasEmail}
+                  aria-readonly={hasEmail}
+                  className={hasEmail ? 'cursor-default opacity-90' : ''}
+                  {...register('email')}
+                />
+              </FormField>
 
-            <FormField
-              label="Delivery Address"
-              htmlFor="address"
-              variant="checkout"
-              required
-            >
-              <Input
-                id="address"
-                type="text"
-                placeholder="Street address"
-                autoComplete="street-address"
-                aria-required="true"
-                {...register('address', {
-                  required: 'Delivery address is required',
-                })}
-              />
-            </FormField>
+              <FormField
+                label="Delivery Address"
+                htmlFor="address"
+                variant="checkout"
+                required
+              >
+                <Input
+                  id="address"
+                  type="text"
+                  placeholder="Street address"
+                  autoComplete="street-address"
+                  aria-required="true"
+                  {...register('address', {
+                    required: 'Delivery address is required',
+                  })}
+                />
+              </FormField>
 
-            <FormField
-              label="Country"
-              htmlFor="country"
-              variant="checkout"
-              required
-            >
-              <Controller
-                name="country"
-                control={control}
-                rules={{ required: true }}
-                render={({ field }) => (
-                  <Select
-                    value={field.value || ''}
-                    onValueChange={(val) => {
-                      field.onChange(val);
-                      setValue('city', '');
-                    }}
-                  >
-                    <SelectTrigger
-                      id="country"
-                      className={selectTriggerInputClass}
-                      aria-label="Country"
+              <FormField
+                label="Country"
+                htmlFor="country"
+                variant="checkout"
+                required
+              >
+                <Controller
+                  name="country"
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value || ''}
+                      onValueChange={(val) => {
+                        field.onChange(val);
+                        setValue('city', '');
+                      }}
                     >
-                      <SelectValue placeholder="Select country" />
-                    </SelectTrigger>
-                    <SelectContent
-                      className={selectContentInputClass}
-                      viewportClassName={selectViewportInputClass}
-                      position="popper"
-                    >
-                      {countriesList.map((c) => (
-                        <SelectItem
-                          key={c.country_code}
-                          value={c.name}
-                          className={selectItemInputClass}
-                          textClassName="!text-white"
-                          indicatorClassName="!text-white"
-                        >
-                          {c.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </FormField>
+                      <SelectTrigger
+                        id="country"
+                        className={selectTriggerInputClass}
+                        aria-label="Country"
+                      >
+                        <SelectValue placeholder="Select country" />
+                      </SelectTrigger>
+                      <SelectContent
+                        className={selectContentInputClass}
+                        viewportClassName={selectViewportInputClass}
+                        position="popper"
+                      >
+                        {countriesList.map((c) => (
+                          <SelectItem
+                            key={c.country_code}
+                            value={c.name}
+                            className={selectItemInputClass}
+                            textClassName="!text-white"
+                            indicatorClassName="!text-white"
+                          >
+                            {c.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </FormField>
 
-            <FormField label="City" htmlFor="city" variant="checkout" required>
-              <Controller
-                name="city"
-                control={control}
-                rules={{ required: true }}
-                render={({ field }) => (
-                  <Select
-                    value={field.value || ''}
-                    onValueChange={field.onChange}
-                    disabled={!countryCode}
-                  >
-                    <SelectTrigger
-                      id="city"
-                      className={selectTriggerInputClass}
-                      aria-label="City"
+              <FormField
+                label="City"
+                htmlFor="city"
+                variant="checkout"
+                required
+              >
+                <Controller
+                  name="city"
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value || ''}
+                      onValueChange={field.onChange}
                       disabled={!countryCode}
                     >
-                      <SelectValue placeholder="Select city" />
-                    </SelectTrigger>
-                    <SelectContent
-                      className={selectContentInputClass}
-                      viewportClassName={selectViewportInputClass}
-                      position="popper"
-                    >
-                      {citiesList.map((c) => (
-                        <SelectItem
-                          key={c.id}
-                          value={c.name}
-                          className={selectItemInputClass}
-                          textClassName="!text-white"
-                          indicatorClassName="!text-white"
-                        >
-                          {c.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </FormField>
+                      <SelectTrigger
+                        id="city"
+                        className={selectTriggerInputClass}
+                        aria-label="City"
+                        disabled={!countryCode}
+                      >
+                        <SelectValue placeholder="Select city" />
+                      </SelectTrigger>
+                      <SelectContent
+                        className={selectContentInputClass}
+                        viewportClassName={selectViewportInputClass}
+                        position="popper"
+                      >
+                        {citiesList.map((c) => (
+                          <SelectItem
+                            key={c.id}
+                            value={c.name}
+                            className={selectItemInputClass}
+                            textClassName="!text-white"
+                            indicatorClassName="!text-white"
+                          >
+                            {c.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </FormField>
 
-            <FormField
-              label="Notes (optional)"
-              htmlFor="notes"
-              variant="checkout"
-            >
-              <Input
-                id="notes"
-                type="text"
-                placeholder="Order notes"
-                {...register('notes')}
-              />
-            </FormField>
+              <FormField
+                label="Notes (optional)"
+                htmlFor="notes"
+                variant="checkout"
+              >
+                <Input
+                  id="notes"
+                  type="text"
+                  placeholder="Order notes"
+                  {...register('notes')}
+                />
+              </FormField>
             </div>
 
             <p className="text-[14px] text-[#A2A6AB]">

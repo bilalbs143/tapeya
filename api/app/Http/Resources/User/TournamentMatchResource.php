@@ -17,6 +17,7 @@ class TournamentMatchResource extends JsonResource
         return [
             'id' => $match->id,
             'tournament_id' => $match->tournament_id,
+            'group_index' => $match->group_index,
             'match_date' => $match->match_date?->format('Y-m-d'),
             'match_time' => $match->match_time,
             'venue_name' => $match->venue_name,

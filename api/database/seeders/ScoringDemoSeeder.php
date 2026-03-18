@@ -24,6 +24,15 @@ use Illuminate\Support\Facades\Hash;
  * Run manually after migrations:
  *   php artisan db:seed --class=ScoringDemoSeeder
  *
+ * Scope (via SEEDER_SCOPE env):
+ *   - users  … only users (roles + players + organizers + sponsors). No tournaments/teams.
+ *   - teams  … only teams path: users (by SCORING_DEMO_BASE) + tournaments + teams + attach.
+ *   - all    … default: roles + all users + tournaments + teams + attach.
+ *
+ * For "teams" scope use the same base as a previous "users" run so existing users are reused:
+ *   SEEDER_SCOPE=users SCORING_DEMO_BASE=sd123 php artisan db:seed --class=ScoringDemoSeeder
+ *   SEEDER_SCOPE=teams SCORING_DEMO_BASE=sd123 php artisan db:seed --class=ScoringDemoSeeder
+ *
  * Prerequisites: RoleSeeder must have been run (Roles exist).
  *
  * Creates:
@@ -38,19 +47,65 @@ use Illuminate\Support\Facades\Hash;
  */
 class ScoringDemoSeeder extends Seeder
 {
+    private const SCOPE_USERS = 'users';
+
+    private const SCOPE_TEAMS = 'teams';
+
+    private const SCOPE_ALL = 'all';
+
     public function run(): void
     {
-        $this->command->info('Seeding scoring demo data…');
+        $scope = $this->resolveScope();
+        $this->command->info('Seeding scoring demo data (scope: '.$scope.')…');
 
         $this->ensureRoles();
 
-        $players = $this->createPlayers();
-        $organizers = $this->createOrganizers();
-        $sponsors = $this->createSponsors();
+        $base = $this->resolveBase($scope);
+
+        if ($scope === self::SCOPE_TEAMS) {
+            $players = $this->getOrCreatePlayers($base);
+            $organizers = $this->getOrCreateOrganizers($base);
+            $sponsors = $this->getOrCreateSponsors($base);
+            $tournaments = $this->createTournaments($organizers);
+            $this->createTeamsAndAttach($sponsors, $players, $tournaments);
+            $this->command->info('Done (teams). Tournaments: '.count($tournaments));
+
+            return;
+        }
+
+        $players = $this->createPlayers($base);
+        $organizers = $this->createOrganizers($base);
+        $sponsors = $this->createSponsors($base);
+
+        if ($scope === self::SCOPE_USERS) {
+            $this->command->info('Done (users only). Players: '.count($players).', Organizers: '.count($organizers).', Sponsors: '.count($sponsors));
+
+            return;
+        }
+
         $tournaments = $this->createTournaments($organizers);
         $this->createTeamsAndAttach($sponsors, $players, $tournaments);
+        $this->command->info('Done (all). Players: '.count($players).', Organizers: '.count($organizers).', Sponsors: '.count($sponsors).', Tournaments: '.count($tournaments));
+    }
 
-        $this->command->info('Done. Players: '.count($players).', Organizers: '.count($organizers).', Sponsors: '.count($sponsors).', Tournaments: '.count($tournaments));
+    private function resolveScope(): string
+    {
+        $scope = strtolower(trim((string) (env('SEEDER_SCOPE') ?? getenv('SEEDER_SCOPE') ?: 'all')));
+        if (! in_array($scope, [self::SCOPE_USERS, self::SCOPE_TEAMS, self::SCOPE_ALL], true)) {
+            $scope = self::SCOPE_ALL;
+        }
+
+        return $scope;
+    }
+
+    private function resolveBase(string $scope): string
+    {
+        $envBase = env('SCORING_DEMO_BASE') ?? getenv('SCORING_DEMO_BASE');
+        if ($scope === self::SCOPE_TEAMS) {
+            return $envBase !== null && $envBase !== '' ? (string) $envBase : 'default';
+        }
+
+        return $envBase !== null && $envBase !== '' ? (string) $envBase : 'sd'.(time() % 1000000);
     }
 
     private function ensureRoles(): void
@@ -68,7 +123,7 @@ class ScoringDemoSeeder extends Seeder
         }
     }
 
-    private function createPlayers(): array
+    private function createPlayers(string $base): array
     {
         $playerRole = Role::where('slug', AppRoleEnum::PLAYER->value)->where('guard', RoleGuardEnum::APP->value)->first();
         if (! $playerRole) {
@@ -76,12 +131,11 @@ class ScoringDemoSeeder extends Seeder
         }
 
         $players = [];
-        $numBase = time() % 1000000;
-        $base = 'sd'.$numBase;
+        $numBase = is_numeric($base) ? (int) $base : crc32($base);
         for ($i = 1; $i <= 20; $i++) {
             $email = "player{$i}_{$base}@demo.local";
             $nick = "player{$i}_{$base}";
-            $phone = '+92300'.str_pad((string) ($numBase * 10 + $i), 7, '0', STR_PAD_LEFT);
+            $phone = '+92300'.str_pad((string) (abs($numBase) % 10000000 + $i), 7, '0', STR_PAD_LEFT);
 
             $user = User::firstOrCreate(
                 ['email' => $email],
@@ -103,7 +157,13 @@ class ScoringDemoSeeder extends Seeder
         return $players;
     }
 
-    private function createOrganizers(): array
+    /** @return array<User> */
+    private function getOrCreatePlayers(string $base): array
+    {
+        return $this->createPlayers($base);
+    }
+
+    private function createOrganizers(string $base): array
     {
         $role = Role::where('slug', AppRoleEnum::ORGANIZER->value)->where('guard', RoleGuardEnum::APP->value)->first();
         if (! $role) {
@@ -111,12 +171,11 @@ class ScoringDemoSeeder extends Seeder
         }
 
         $organizers = [];
-        $numBase = time() % 1000000;
-        $base = 'sd'.$numBase;
+        $numBase = is_numeric($base) ? (int) $base : crc32($base);
         for ($i = 1; $i <= 3; $i++) {
             $email = "organizer{$i}_{$base}@demo.local";
             $nick = "organizer{$i}_{$base}";
-            $phone = '+92301'.str_pad((string) ($numBase * 10 + $i), 7, '0', STR_PAD_LEFT);
+            $phone = '+92301'.str_pad((string) (abs($numBase) % 10000000 + $i), 7, '0', STR_PAD_LEFT);
 
             $user = User::firstOrCreate(
                 ['email' => $email],
@@ -138,7 +197,13 @@ class ScoringDemoSeeder extends Seeder
         return $organizers;
     }
 
-    private function createSponsors(): array
+    /** @return array<User> */
+    private function getOrCreateOrganizers(string $base): array
+    {
+        return $this->createOrganizers($base);
+    }
+
+    private function createSponsors(string $base): array
     {
         $role = Role::where('slug', AppRoleEnum::SPONSOR->value)->where('guard', RoleGuardEnum::APP->value)->first();
         if (! $role) {
@@ -146,12 +211,11 @@ class ScoringDemoSeeder extends Seeder
         }
 
         $sponsors = [];
-        $numBase = time() % 1000000;
-        $base = 'sd'.$numBase;
+        $numBase = is_numeric($base) ? (int) $base : crc32($base);
         for ($i = 1; $i <= 3; $i++) {
             $email = "sponsor{$i}_{$base}@demo.local";
             $nick = "sponsor{$i}_{$base}";
-            $phone = '+92302'.str_pad((string) ($numBase * 10 + $i), 7, '0', STR_PAD_LEFT);
+            $phone = '+92302'.str_pad((string) (abs($numBase) % 10000000 + $i), 7, '0', STR_PAD_LEFT);
 
             $user = User::firstOrCreate(
                 ['email' => $email],
@@ -171,6 +235,12 @@ class ScoringDemoSeeder extends Seeder
         }
 
         return $sponsors;
+    }
+
+    /** @return array<User> */
+    private function getOrCreateSponsors(string $base): array
+    {
+        return $this->createSponsors($base);
     }
 
     /** @param array<User> $organizers */

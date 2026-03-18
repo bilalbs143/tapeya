@@ -7,7 +7,6 @@ use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Models\Ball;
 use App\Models\Innings;
-use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentMatch;
 use App\Models\User;
@@ -20,27 +19,55 @@ class TournamentStatsController extends Controller
     /**
      * Tournament standings / points table for a single tournament.
      *
-     * Basic rules:
-     * - Win  = 2 points
-     * - Tie / no result = 1 point
-     * - Loss = 0 points
+     * When number_of_groups <= 1: returns { tournament_id, standings: [...] } (single table).
+     * When number_of_groups > 1: returns { tournament_id, number_of_groups, groups: [ { group_index, group_name, standings }, ... ] }.
      *
-     * Net run rate (nrr) is reserved for future use and returned as null.
+     * Basic rules: Win = 2 points, Tie/no result = 1, Loss = 0. NRR reserved for future use (null).
      */
     public function standings(Tournament $tournament): JsonResponse
     {
-        $teams = [];
+        $numberOfGroups = (int) ($tournament->number_of_groups ?? 1);
 
-        /** @var \Illuminate\Support\Collection<int, TournamentMatch> $matches */
-        $matches = $tournament->matches()
-            ->with(['homeTeam', 'awayTeam'])
-            ->get();
+        if ($numberOfGroups <= 1) {
+            return $this->success([
+                'tournament_id' => $tournament->id,
+                'standings' => $this->computeStandingsForTeamsAndMatches($tournament->teams()->get(), $tournament->matches()->with(['homeTeam', 'awayTeam'])->get()),
+            ]);
+        }
 
-        /** @var \Illuminate\Support\Collection<int, Team> $tournamentTeams */
+        $groups = [];
         $tournamentTeams = $tournament->teams()->get();
+        $allMatches = $tournament->matches()->with(['homeTeam', 'awayTeam'])->get();
 
-        foreach ($tournamentTeams as $team) {
-            $teams[$team->id] = [
+        for ($groupIndex = 1; $groupIndex <= $numberOfGroups; $groupIndex++) {
+            $teamsInGroup = $tournamentTeams->filter(fn ($t) => (int) ($t->pivot->group_index ?? 0) === $groupIndex);
+            $matchesInGroup = $allMatches->filter(fn ($m) => $m->group_index !== null && (int) $m->group_index === $groupIndex);
+
+            $groups[] = [
+                'group_index' => $groupIndex,
+                'group_name' => 'Group '.$groupIndex,
+                'standings' => $this->computeStandingsForTeamsAndMatches($teamsInGroup->values(), $matchesInGroup->values()),
+            ];
+        }
+
+        return $this->success([
+            'tournament_id' => $tournament->id,
+            'number_of_groups' => $numberOfGroups,
+            'groups' => $groups,
+        ]);
+    }
+
+    /**
+     * @param  \Illuminate\Support\Collection<int, \App\Models\Team>  $teams
+     * @param  \Illuminate\Support\Collection<int, TournamentMatch>  $matches
+     * @return array<int, array<string, mixed>>
+     */
+    private function computeStandingsForTeamsAndMatches($teams, $matches): array
+    {
+        $table = [];
+
+        foreach ($teams as $team) {
+            $table[$team->id] = [
                 'team_id' => $team->id,
                 'team_name' => $team->name,
                 'played' => 0,
@@ -61,8 +88,8 @@ class TournamentStatsController extends Controller
                 continue;
             }
 
-            if (! isset($teams[$homeId])) {
-                $teams[$homeId] = [
+            if (! isset($table[$homeId])) {
+                $table[$homeId] = [
                     'team_id' => $homeId,
                     'team_name' => $match->homeTeam?->name ?? 'Team '.$homeId,
                     'played' => 0,
@@ -74,8 +101,8 @@ class TournamentStatsController extends Controller
                     'nrr' => null,
                 ];
             }
-            if (! isset($teams[$awayId])) {
-                $teams[$awayId] = [
+            if (! isset($table[$awayId])) {
+                $table[$awayId] = [
                     'team_id' => $awayId,
                     'team_name' => $match->awayTeam?->name ?? 'Team '.$awayId,
                     'played' => 0,
@@ -95,29 +122,30 @@ class TournamentStatsController extends Controller
                 continue;
             }
 
-            $teams[$homeId]['played']++;
-            $teams[$awayId]['played']++;
+            $table[$homeId]['played']++;
+            $table[$awayId]['played']++;
 
             if ($hasResult) {
                 $winnerId = (int) $match->winning_team_id;
                 $loserId = $winnerId === (int) $homeId ? $awayId : $homeId;
 
-                if (isset($teams[$winnerId])) {
-                    $teams[$winnerId]['won']++;
-                    $teams[$winnerId]['points'] += 2;
+                if (isset($table[$winnerId])) {
+                    $table[$winnerId]['won']++;
+                    $table[$winnerId]['points'] += 2;
                 }
-                if (isset($teams[$loserId])) {
-                    $teams[$loserId]['lost']++;
+                if (isset($table[$loserId])) {
+                    $table[$loserId]['lost']++;
                 }
             } else {
-                $teams[$homeId]['tied']++;
-                $teams[$awayId]['tied']++;
-                $teams[$homeId]['points'] += 1;
-                $teams[$awayId]['points'] += 1;
+                $table[$homeId]['tied']++;
+                $table[$awayId]['tied']++;
+                $table[$homeId]['points'] += 1;
+                $table[$awayId]['points'] += 1;
             }
         }
 
-        usort($teams, function (array $a, array $b) {
+        $sorted = array_values($table);
+        usort($sorted, function (array $a, array $b) {
             if ($a['points'] === $b['points']) {
                 return strcmp($a['team_name'], $b['team_name']);
             }
@@ -125,10 +153,7 @@ class TournamentStatsController extends Controller
             return $b['points'] <=> $a['points'];
         });
 
-        return $this->success([
-            'tournament_id' => $tournament->id,
-            'standings' => array_values($teams),
-        ]);
+        return $sorted;
     }
 
     /**

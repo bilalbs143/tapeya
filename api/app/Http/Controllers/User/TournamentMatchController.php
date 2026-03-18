@@ -67,8 +67,23 @@ class TournamentMatchController extends Controller
             return $this->forbidden('Both teams must be attached to this tournament before scheduling a match.');
         }
 
+        $groupIndex = isset($data['group_index']) ? (int) $data['group_index'] : null;
+        if ($groupIndex !== null) {
+            if ($tournament->number_of_groups < 1 || $groupIndex < 1 || $groupIndex > $tournament->number_of_groups) {
+                return $this->failure('Group Index must be between 1 and '.$tournament->number_of_groups.' for this tournament.', 'VALIDATION_ERROR', 422);
+            }
+            $inGroup = $tournament->teams()
+                ->whereIn('teams.id', $teamIds)
+                ->wherePivot('group_index', $groupIndex)
+                ->count();
+            if ($inGroup !== 2) {
+                return $this->failure('Both teams must belong to group '.$groupIndex.' for this group-stage match.', 'VALIDATION_ERROR', 422);
+            }
+        }
+
         $match = TournamentMatch::create([
             'tournament_id' => $tournament->id,
+            'group_index' => $groupIndex,
             'home_team_id' => $data['home_team_id'],
             'away_team_id' => $data['away_team_id'],
             'match_date' => $data['match_date'],

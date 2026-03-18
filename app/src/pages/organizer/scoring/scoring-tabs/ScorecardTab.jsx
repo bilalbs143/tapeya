@@ -5,7 +5,8 @@ import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
 
 import { ballsToOvers, getRunsFromBall } from '../scoringUtils';
 
-const STATS_SEPARATOR = 'w-px shrink-0 self-stretch bg-gradient-to-b from-[#00000000] via-[#FFFFFF66] to-[#00000000]';
+const STATS_SEPARATOR =
+  'w-px shrink-0 self-stretch bg-gradient-to-b from-[#00000000] via-[#FFFFFF66] to-[#00000000]';
 
 const DASH = '—';
 

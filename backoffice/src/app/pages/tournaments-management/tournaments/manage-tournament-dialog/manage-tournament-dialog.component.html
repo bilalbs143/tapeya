@@ -332,6 +332,41 @@
         </div>
 
         <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">Group mode <span class="text-error">*</span></mat-label>
+          <mat-radio-group
+            formControlName="group_mode"
+            class="flex flex-wrap gap-4"
+          >
+            @for (opt of (groupModeOptions$ | async) ?? []; track opt.value) {
+              <mat-radio-button [value]="opt.value">{{ opt.label }}</mat-radio-button>
+            }
+          </mat-radio-group>
+        </div>
+        @if (isGroupWise) {
+          <div class="col-span-12 lg:col-span-12">
+            <mat-label class="text-sm font-semibold mb-2 block"
+              >Number of groups <span class="text-error">*</span></mat-label
+            >
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <input
+                matInput
+                type="number"
+                formControlName="number_of_groups"
+                min="2"
+                max="16"
+                placeholder="e.g. 4"
+              />
+              @if (form.get('number_of_groups')?.invalid && form.get('number_of_groups')?.touched) {
+                <mat-error>Required (2–16)</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        }
+
+        <div class="col-span-12">
           <mat-label class="text-sm font-semibold mb-2 block"
             >Display Image {{ isEdit ? '(optional – leave empty to keep current)' : '' }}</mat-label
           >

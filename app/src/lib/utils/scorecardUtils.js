@@ -49,6 +49,7 @@ export function normaliseTournamentMatches(tournaments) {
         score1: null,
         score2: null,
         meta: status === 'upcoming' && timeLabel ? { time: timeLabel } : {},
+        group_index: match.group_index ?? undefined,
       };
     });
   });

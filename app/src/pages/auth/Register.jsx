@@ -66,7 +66,7 @@ export default function Register() {
         <form
           onSubmit={handleSubmit(onSubmit)}
           onFocus={reset}
-          className="mt-10 w-full max-w-[358px] space-y-4 lg:mt-14 lg:max-w-[880px] lg:px-20 lg:p-0"
+          className="mt-10 w-full max-w-[358px] space-y-4 lg:mt-14 lg:max-w-[880px] lg:p-0 lg:px-20"
         >
           <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">
             Create an account
@@ -132,7 +132,12 @@ export default function Register() {
             </p>
           )}
 
-          <Button type="submit" disabled={busy} variant="auth" className="mt-4 lg:w-full">
+          <Button
+            type="submit"
+            disabled={busy}
+            variant="auth"
+            className="mt-4 lg:w-full"
+          >
             {busy ? 'Signing up…' : 'Sign up'}
           </Button>
 

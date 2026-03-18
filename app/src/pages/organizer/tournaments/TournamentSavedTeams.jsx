@@ -9,6 +9,7 @@ import {
 import {
   useGetTournamentQuery,
   useGetTournamentTeamsQuery,
+  useUpdateTournamentTeamGroupMutation,
 } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
@@ -40,8 +41,22 @@ function teamDisplay(team) {
   return { owner, iconPlayers };
 }
 
-function TeamCard({ team, index, highlight }) {
+function TeamCard({
+  team,
+  index,
+  highlight,
+  numberOfGroups,
+  tournamentId,
+  onUpdateGroup,
+  isUpdatingGroup,
+}) {
   const { owner, iconPlayers } = teamDisplay(team);
+  const canMoveGroup =
+    numberOfGroups != null &&
+    numberOfGroups > 1 &&
+    typeof onUpdateGroup === 'function' &&
+    tournamentId != null;
+
   return (
     <div
       className={`flex items-start gap-3 rounded-[17px] bg-[#141412] p-4 ${
@@ -51,6 +66,34 @@ function TeamCard({ team, index, highlight }) {
       <TeamLogoIcon logo={team.logo} teamName={team.name} />
       <div className="min-w-0 flex-1">
         <h3 className="text-[16px] font-bold text-white">{team.name ?? '—'}</h3>
+        <div className="mt-0.5 flex flex-wrap items-center gap-2">
+          {team.group_index != null && (
+            <span className="text-[12px] text-[#A2A6AB]">
+              Group {team.group_index}
+            </span>
+          )}
+          {canMoveGroup && (
+            <select
+              value={team.group_index ?? 1}
+              onChange={(e) => {
+                const next = Number(e.target.value);
+                const current = team.group_index ?? 1;
+                if (next !== current) onUpdateGroup(team.id, next);
+              }}
+              disabled={isUpdatingGroup}
+              className="rounded border border-[#2a2a2a] bg-[#1A1A1A] px-2 py-1 text-[12px] text-white focus:border-[#DA9811] focus:outline-none disabled:opacity-60"
+              aria-label={`Move ${team.name ?? 'team'} to group`}
+            >
+              {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map(
+                (g) => (
+                  <option key={g} value={g}>
+                    Group {g}
+                  </option>
+                ),
+              )}
+            </select>
+          )}
+        </div>
         <p className="mt-0.5 text-[14px] text-white">
           Owner: <span className="font-medium text-[#DA9811]">{owner}</span>
         </p>
@@ -86,9 +129,9 @@ export default function TournamentSavedTeams() {
 
   const { data: tournamentFromApi } = useGetTournamentQuery(
     { id: tournamentIdNum },
-    { skip: !isValidId || !!tournamentFromState },
+    { skip: !isValidId },
   );
-  const tournament = tournamentFromState ?? tournamentFromApi ?? null;
+  const tournament = tournamentFromApi ?? tournamentFromState ?? null;
 
   const {
     data: teams = [],
@@ -96,6 +139,17 @@ export default function TournamentSavedTeams() {
     isError,
     isSuccess,
   } = useGetTournamentTeamsQuery(tournamentIdNum, { skip: !isValidId });
+
+  const [updateTeamGroup, { isLoading: isUpdatingGroup }] =
+    useUpdateTournamentTeamGroupMutation();
+
+  const numberOfGroups =
+    tournament?.number_of_groups != null ? tournament.number_of_groups : null;
+
+  const handleUpdateGroup = (teamId, group_index) => {
+    if (!tournamentIdNum) return;
+    updateTeamGroup({ tournamentId: tournamentIdNum, teamId, group_index });
+  };
 
   useEffect(() => {
     if (!isValidId) {
@@ -203,6 +257,10 @@ export default function TournamentSavedTeams() {
                   team={team}
                   index={index}
                   highlight={newTeam?.id != null && team.id === newTeam.id}
+                  numberOfGroups={numberOfGroups}
+                  tournamentId={tournamentIdNum}
+                  onUpdateGroup={handleUpdateGroup}
+                  isUpdatingGroup={isUpdatingGroup}
                 />
               </li>
             ))}

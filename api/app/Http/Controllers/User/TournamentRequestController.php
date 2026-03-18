@@ -21,6 +21,7 @@ class TournamentRequestController extends Controller
         $data = $request->validated();
         $data['user_id'] = $request->user()?->id;
         $data['status'] = TournamentRequestStatusEnum::PENDING;
+        $data['number_of_groups'] = $data['number_of_groups'] ?? 1;
 
         $tournamentRequest = TournamentRequest::create($data);
         event(new TournamentRequestSubmitted($tournamentRequest));

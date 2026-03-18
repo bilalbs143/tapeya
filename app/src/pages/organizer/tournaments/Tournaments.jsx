@@ -56,6 +56,15 @@ function TournamentCard({ tournament, showWinningTeam = false, onClick }) {
             <span className="text-white">{dates}</span>
           </li>
           <li>
+            <span className="text-[#A2A6AB]">Format:</span>{' '}
+            <span className="text-white">
+              {tournament.number_of_groups == null ||
+              tournament.number_of_groups <= 1
+                ? 'Single Table'
+                : `Groups: ${tournament.number_of_groups}`}
+            </span>
+          </li>
+          <li>
             <span className="text-[#A2A6AB]">Venue:</span>{' '}
             <span className="text-white">{venue}</span>
           </li>

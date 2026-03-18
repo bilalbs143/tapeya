@@ -3,9 +3,8 @@
 namespace App\Http\Requests\User;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
-class AttachTeamsToTournamentRequest extends FormRequest
+class UpdateTournamentTeamRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -23,15 +22,7 @@ class AttachTeamsToTournamentRequest extends FormRequest
             : 16;
 
         return [
-            'team_ids' => ['required', 'array', 'min:1'],
-            'team_ids.*' => ['integer', 'exists:teams,id'],
-            'group_index' => [
-                Rule::requiredIf(fn () => $tournament && $tournament->number_of_groups > 1),
-                'nullable',
-                'integer',
-                'min:1',
-                'max:'.$maxGroups,
-            ],
+            'group_index' => ['required', 'integer', 'min:1', 'max:'.$maxGroups],
         ];
     }
 }

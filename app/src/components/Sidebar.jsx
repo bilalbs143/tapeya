@@ -113,7 +113,11 @@ export function Sidebar({ open, onClose }) {
         tabIndex={open ? 0 : -1}
       />
 
-      <aside aria-hidden={!open && !isDesktop} className={panel(open)} inert={!open && !isDesktop ? '' : undefined}>
+      <aside
+        aria-hidden={!open && !isDesktop}
+        className={panel(open)}
+        inert={!open && !isDesktop ? '' : undefined}
+      >
         <div className="flex flex-1 flex-col overflow-y-auto px-4 py-6">
           <Link
             to="/profile"
@@ -147,7 +151,7 @@ export function Sidebar({ open, onClose }) {
           <Link
             to="/profile?role=sponsor"
             onClick={onClose}
-            className="mb-4 block rounded-[6px] border border-[#DA9811] px-3 py-1 text-center text-[12px] max-w-fit font-bold text-[#DA9811] transition-colors hover:border-[#e5b42a] hover:bg-[#1A1A1A] focus:ring-2 focus:ring-[#d8a11e]/50 focus:outline-none"
+            className="mb-4 block max-w-fit rounded-[6px] border border-[#DA9811] px-3 py-1 text-center text-[12px] font-bold text-[#DA9811] transition-colors hover:border-[#e5b42a] hover:bg-[#1A1A1A] focus:ring-2 focus:ring-[#d8a11e]/50 focus:outline-none"
           >
             Become a Sponsor
           </Link>

@@ -31,6 +31,7 @@ class StoreTournamentRequestRequest extends FormRequest
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'number_of_matches' => ['required', 'integer', 'min:1', 'max:1000'],
             'number_of_teams' => ['required', 'integer', 'min:1', 'max:500'],
+            'number_of_groups' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:16'],
             'expected_players_count' => ['required', 'integer', 'min:1', 'max:10000'],
             'country' => ['required', 'string', 'max:100'],
             'city' => ['required', 'string', 'max:100'],

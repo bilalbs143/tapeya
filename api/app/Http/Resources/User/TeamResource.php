@@ -35,6 +35,8 @@ class TeamResource extends JsonResource
                 : [],
             'icon_players' => $this->whenLoaded('iconPlayers', fn () => UserResource::collection($team->iconPlayers)),
 
+            'group_index' => $this->when(isset($team->pivot), fn () => $team->pivot->group_index),
+
             'created_at' => $team->created_at?->toIso8601String(),
             'updated_at' => $team->updated_at?->toIso8601String(),
         ];

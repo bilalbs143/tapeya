@@ -85,7 +85,11 @@ export default function TournamentAddTeam() {
 
   const fileInputRef = useRef(null);
 
+  const numberOfGroups = tournament?.number_of_groups ?? 1;
+  const hasGroups = numberOfGroups > 1;
+
   const [selectedTeam, setSelectedTeam] = useState(null);
+  const [selectedGroupIndex, setSelectedGroupIndex] = useState(1);
   const [logoName, setLogoName] = useState('No File Selected');
   const [logoFile, setLogoFile] = useState(/** @type {File | null} */ (null));
   const [selectedSponsor, setSelectedSponsor] = useState(
@@ -215,6 +219,7 @@ export default function TournamentAddTeam() {
         await attachTeamsToTournament({
           tournamentId: tournamentIdNum,
           team_ids: [selectedTeam.id],
+          ...(hasGroups ? { group_index: selectedGroupIndex } : {}),
         }).unwrap();
         toast.success('Team added to tournament.');
         navigate(`/organizer/tournaments/${tournamentIdNum}/saved-teams`, {
@@ -247,6 +252,7 @@ export default function TournamentAddTeam() {
         await attachTeamsToTournament({
           tournamentId: tournamentIdNum,
           team_ids: [teamId],
+          ...(hasGroups ? { group_index: selectedGroupIndex } : {}),
         }).unwrap();
       }
 
@@ -294,6 +300,46 @@ export default function TournamentAddTeam() {
         </header>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 pb-10">
+          {hasGroups && (
+            <FormField
+              label="Group"
+              htmlFor="group_index"
+              labelClassName={labelClass}
+              required
+            >
+              <Select
+                value={String(selectedGroupIndex)}
+                onValueChange={(v) => setSelectedGroupIndex(Number(v))}
+              >
+                <SelectTrigger
+                  id="group_index"
+                  className={selectTriggerInputClass}
+                  aria-label="Select group"
+                >
+                  <SelectValue placeholder="Select group" />
+                </SelectTrigger>
+                <SelectContent
+                  className={selectContentInputClass}
+                  viewportClassName={selectViewportInputClass}
+                  position="popper"
+                >
+                  {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map(
+                    (idx) => (
+                      <SelectItem
+                        key={idx}
+                        value={String(idx)}
+                        className={selectItemInputClass}
+                        textClassName="!text-white"
+                        indicatorClassName="!text-white"
+                      >
+                        Group {idx}
+                      </SelectItem>
+                    ),
+                  )}
+                </SelectContent>
+              </Select>
+            </FormField>
+          )}
           {/* Team Name — search + select or free type */}
           <FormField
             label="Team Name"

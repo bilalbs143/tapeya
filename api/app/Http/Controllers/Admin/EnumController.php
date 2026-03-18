@@ -9,6 +9,7 @@ use App\Enums\Event\ShotPositionEnum;
 use App\Enums\Notification\AdminNotificationTypeEnum;
 use App\Enums\Shop\OrderStatusEnum;
 use App\Enums\Shop\ProductDiscountTypeEnum;
+use App\Enums\Tournament\GroupModeEnum;
 use App\Enums\Tournament\TournamentRequestStatusEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
 use App\Enums\User\BattingStyleEnum;
@@ -38,6 +39,7 @@ class EnumController extends Controller
             'order_status' => $this->toOptions(OrderStatusEnum::cases()),
             'product_discount_type' => $this->toOptions(ProductDiscountTypeEnum::cases()),
             'tournament_type' => $this->toOptions(TournamentTypeEnum::cases()),
+            'group_mode' => $this->toOptions(GroupModeEnum::cases()),
             'cricket_format' => $this->toOptions(CricketFormatEnum::cases()),
             'match_timings' => $this->toOptions(MatchTimingEnum::cases()),
             'tournament_request_status' => $this->toOptions(TournamentRequestStatusEnum::cases()),

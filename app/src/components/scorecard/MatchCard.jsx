@@ -91,12 +91,43 @@ function normalizeTeam(team, fallbackName = 'Team', fallbackInitial = 'T') {
   return { name: fallbackName, initial: fallbackInitial, flag: null };
 }
 
+/** Normalise API status to MatchCard status */
+function normaliseStatus(raw) {
+  if (raw === 'in_progress' || raw === 'live') return 'live';
+  if (raw === 'completed' || raw === 'finished') return 'result';
+  return 'upcoming';
+}
+
+/** Support both API shape (home_team, away_team, id) and normalised shape (team1, team2, matchId) */
+function getMatchDisplay(match) {
+  const team1 = match.team1 ?? match.home_team ?? match.homeTeam;
+  const team2 = match.team2 ?? match.away_team ?? match.awayTeam;
+  const rawStatus = match.status ?? 'scheduled';
+  const status =
+    rawStatus === 'upcoming' || rawStatus === 'live' || rawStatus === 'result'
+      ? rawStatus
+      : normaliseStatus(rawStatus);
+  const matchId =
+    match.matchId ??
+    (team1?.name && team2?.name ? `${team1.name} vs ${team2.name}` : null) ??
+    (match.id != null ? `Match ${match.id}` : '');
+  return {
+    status,
+    matchId,
+    league: match.league ?? match.tournament_id,
+    t1: normalizeTeam(team1, 'Home team', 'H'),
+    t2: normalizeTeam(team2, 'Away team', 'A'),
+    score1: match.score1,
+    score2: match.score2,
+    meta: match.meta ?? {},
+  };
+}
+
 export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
   if (!match || typeof match !== 'object') return null;
 
-  const { status, matchId, league, team1, team2, score1, score2, meta } = match;
-  const t1 = normalizeTeam(team1, 'Home team', 'H');
-  const t2 = normalizeTeam(team2, 'Away team', 'A');
+  const { status, matchId, league, t1, t2, score1, score2, meta } =
+    getMatchDisplay(match);
   const isUpcoming = status === 'upcoming';
   const isLive = status === 'live';
   const isResult = status === 'result';
@@ -105,7 +136,7 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
 
   const cardInner = (
     <>
-      {/* Top row: status left, match title right */}
+      {/* Top row: status left, group badge (optional), match title right */}
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           {isLive && <LiveIcon />}
@@ -114,6 +145,11 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
           >
             {status}
           </span>
+          {match.group_index != null && (
+            <span className="rounded bg-[#1A1A1A] px-2 py-0.5 text-[11px] font-medium text-[#A2A6AB]">
+              Group {match.group_index}
+            </span>
+          )}
         </div>
         <p
           className={`text-right text-[13px] ${useLiveLayout ? 'text-[#A2A6AB]' : 'text-white'}`}
@@ -150,7 +186,7 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
                 {t1.name}
               </span>
             </div>
-            {score1 && (
+            {score1 != null && score1 !== '' && (
               <span className="shrink-0 text-[14px] font-medium text-white">
                 {score1}
               </span>
@@ -163,7 +199,7 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
                 {t2.name}
               </span>
             </div>
-            {score2 && (
+            {score2 != null && score2 !== '' && (
               <span className="shrink-0 text-right">
                 {liveScore2?.overs && (
                   <span className="text-[13px] text-[#A2A6AB]">

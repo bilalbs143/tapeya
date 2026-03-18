@@ -5,8 +5,9 @@ import { useGetTournamentMatchesQuery } from '@/store/api/tournamentApi';
 
 const STATUS_LABELS = { upcoming: 'Upcoming', live: 'Live', result: 'Result' };
 
-export function FixturesTab({ tournamentId }) {
+export function FixturesTab({ tournamentId, numberOfGroups }) {
   const hasValidId = isValidTournamentId(tournamentId);
+  const hasGroups = numberOfGroups != null && numberOfGroups > 1;
 
   const {
     data: matches = [],
@@ -75,9 +76,20 @@ export function FixturesTab({ tournamentId }) {
             className="rounded-[17px] bg-[#141412] p-4 text-white"
           >
             <div className="mb-3 flex items-center justify-between gap-3">
-              <span className="text-[12px] font-bold text-[#DA9811] uppercase">
-                {STATUS_LABELS[status] ?? 'Upcoming'}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[12px] font-bold text-[#DA9811] uppercase">
+                  {STATUS_LABELS[status] ?? 'Upcoming'}
+                </span>
+                {match.group_index != null ? (
+                  <span className="rounded bg-[#1A1A1A] px-2 py-0.5 text-[11px] font-medium text-[#A2A6AB]">
+                    Group {match.group_index}
+                  </span>
+                ) : hasGroups ? (
+                  <span className="rounded bg-[#1A1A1A] px-2 py-0.5 text-[11px] font-medium text-[#A2A6AB]">
+                    Knockout
+                  </span>
+                ) : null}
+              </div>
               <span className="text-[12px] text-[#A2A6AB]">
                 {dateLabel}
                 {timePart}

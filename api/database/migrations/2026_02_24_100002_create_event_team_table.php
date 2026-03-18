@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('team_id')
                 ->constrained('teams')
                 ->cascadeOnDelete();
+            $table->unsignedTinyInteger('group_index')->nullable();
             $table->timestamps();
 
             $table->unique(['tournament_id', 'team_id']);

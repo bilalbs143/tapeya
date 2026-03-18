@@ -83,6 +83,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('tournaments/{tournament}/share', [TournamentReactionController::class, 'share']);
     Route::get('tournaments/{tournament}/teams', [TournamentTeamController::class, 'index']);
     Route::post('tournaments/{tournament}/teams', [TournamentTeamController::class, 'store']);
+    Route::patch('tournaments/{tournament}/teams/{team}', [TournamentTeamController::class, 'update']);
     Route::delete('tournaments/{tournament}/teams/{team}', [TournamentTeamController::class, 'destroy']);
     Route::get('tournaments/{tournament}/standings', [TournamentStatsController::class, 'standings']);
     Route::get('tournaments/{tournament}/season-stats', [TournamentStatsController::class, 'seasonStats']);

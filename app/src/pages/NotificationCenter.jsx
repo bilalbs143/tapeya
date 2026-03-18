@@ -10,7 +10,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 
 const PAGE_SIZE = 10;
 
-const backButtonClass = 'flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80';
+const backButtonClass =
+  'flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80';
 
 const ChevronLeft = () => (
   <svg

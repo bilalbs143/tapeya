@@ -17,12 +17,12 @@ export function HighlightSlider() {
   return (
     <section className="space-y-3">
       <header className="flex items-center justify-between">
-        <h2 className="text-[13px] md:text-[16px] font-bold tracking-wide text-[#A2A6AB] uppercase">
+        <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase md:text-[16px]">
           Highlights
         </h2>
         <Link
           to="/highlights"
-          className="text-[12px] md:text-[16px] font-bold text-[#DA9811] transition-opacity active:opacity-80"
+          className="text-[12px] font-bold text-[#DA9811] transition-opacity active:opacity-80 md:text-[16px]"
         >
           View more
         </Link>

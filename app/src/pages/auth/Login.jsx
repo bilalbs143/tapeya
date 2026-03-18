@@ -7,13 +7,13 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import tapeyaLogo from '@/assets/images/logos/tapeya-logo-white.svg';
 import defaultAvatar from '@/assets/images/standard/default-avatar.png';
 import { getApiErrorMessage } from '@/lib/apiErrors';
-import { getInitials } from '@/lib/utils/displayUtils';
-import { formatPhoneMasked } from '@/lib/utils/phoneUtils';
 import {
   clearProfileToken,
   getSavedProfiles,
   removeSavedProfile,
 } from '@/lib/savedProfiles';
+import { getInitials } from '@/lib/utils/displayUtils';
+import { formatPhoneMasked } from '@/lib/utils/phoneUtils';
 import { loginSchema } from '@/lib/validations/auth';
 import { authApi, useRequestOtpMutation } from '@/store/api/authApi';
 import { useAppDispatch } from '@/store/hooks';
@@ -148,7 +148,7 @@ export default function Login() {
           Live Cricket &amp; Instant Updates, Anytime!
         </p>
 
-        <div className="mt-10 w-full max-w-[358px] space-y-4 lg:mt-14 lg:max-w-[880px] lg:px-20 lg:p-0">
+        <div className="mt-10 w-full max-w-[358px] space-y-4 lg:mt-14 lg:max-w-[880px] lg:p-0 lg:px-20">
           {showProfiles ? (
             <ProfilePicker
               profiles={savedProfiles}
@@ -228,7 +228,9 @@ function ProfilePicker({
               >
                 <Avatar className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-[#1A1A1A]">
                   <AvatarImage
-                    src={profile.avatarUrl ?? profile.avatar_url ?? defaultAvatar}
+                    src={
+                      profile.avatarUrl ?? profile.avatar_url ?? defaultAvatar
+                    }
                     alt=""
                   />
                   <AvatarFallback className="bg-[#DA9811] text-sm font-bold text-[#080807]">
@@ -313,7 +315,12 @@ function PhoneForm({
         </p>
       )}
 
-      <Button type="submit" disabled={busy} variant="auth" className="mt-4 lg:w-full">
+      <Button
+        type="submit"
+        disabled={busy}
+        variant="auth"
+        className="mt-4 lg:w-full"
+      >
         {busy ? 'Signing in…' : 'Login'}
       </Button>
     </form>

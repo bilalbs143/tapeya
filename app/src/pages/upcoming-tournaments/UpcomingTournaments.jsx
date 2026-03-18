@@ -16,9 +16,11 @@ import {
 } from '@/ui/Tabs';
 
 const MONTH_TABS_COUNT = 6;
-const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&h=320&fit=crop';
+const FALLBACK_IMAGE =
+  'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&h=320&fit=crop';
 
-const upcomingTriggerClass = 'min-w-[72px] flex-col items-center justify-center gap-0 rounded-xl px-4 py-2.5 text-white data-[state=active]:text-black';
+const upcomingTriggerClass =
+  'min-w-[72px] flex-col items-center justify-center gap-0 rounded-xl px-4 py-2.5 text-white data-[state=active]:text-black';
 
 function UpcomingTournamentCard({ tournament, onClick, disabled }) {
   const imageUrl = tournament.display_image || FALLBACK_IMAGE;

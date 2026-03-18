@@ -56,11 +56,20 @@ export class TournamentRequestDetailDialogComponent implements OnInit {
   public readonly emptyCell = EMPTY_CELL;
   public readonly statusClass = getStatusClass;
   public statusOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('tournament_request_status');
+  public groupModeOptions: EnumOption[] = [];
+
+  public get groupModeLabel(): string {
+    const n = this.tournamentRequest?.number_of_groups ?? 1;
+    const value = n === 1 ? 'open' : 'group_wise';
+    const opt = this.groupModeOptions.find((o) => o.value === value);
+    return opt?.label ?? (n === 1 ? 'Open Group' : 'Group Wise');
+  }
 
   public ngOnInit(): void {
     this.form = this.fb.group({
       status: [this.data.tournamentRequest.status, [Validators.required]],
     });
+    this.enumsService.getOptions('group_mode').subscribe((opts) => (this.groupModeOptions = opts));
     this.tournamentRequestService.getById(this.data.tournamentRequest.id).subscribe({
       next: (res) => {
         this.tournamentRequest = res.data;

@@ -12,6 +12,7 @@ class TournamentMatch extends BaseModel
 
     protected $fillable = [
         'tournament_id',
+        'group_index',
         'home_team_id',
         'away_team_id',
         'match_date',

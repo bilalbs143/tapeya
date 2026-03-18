@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\AttachTeamsToTournamentRequest;
+use App\Http\Requests\User\UpdateTournamentTeamRequest;
 use App\Http\Resources\User\TeamResource;
 use App\Models\Team;
 use App\Models\Tournament;
@@ -18,6 +19,7 @@ class TournamentTeamController extends Controller
     /**
      * List teams attached to a tournament.
      * GET /tournaments/{tournament}/teams
+     * Each team includes group_index from the tournament_team pivot when tournament has groups.
      */
     public function index(Tournament $tournament): JsonResponse
     {
@@ -44,8 +46,16 @@ class TournamentTeamController extends Controller
         }
 
         $teamIds = $request->validated('team_ids');
+        $groupIndex = $request->validated('group_index');
 
-        $tournament->teams()->syncWithoutDetaching($teamIds);
+        if ($tournament->number_of_groups > 1 && ($groupIndex === null || $groupIndex < 1 || $groupIndex > $tournament->number_of_groups)) {
+            return $this->failure('Group Index is required and must be between 1 and '.$tournament->number_of_groups.' for this tournament.', 'VALIDATION_ERROR', 422);
+        }
+
+        $pivot = $groupIndex !== null ? ['group_index' => $groupIndex] : [];
+        foreach ($teamIds as $teamId) {
+            $tournament->teams()->syncWithoutDetaching([$teamId => $pivot]);
+        }
 
         $tournament->load('teams');
 
@@ -55,6 +65,38 @@ class TournamentTeamController extends Controller
                 'team_ids' => $tournament->teams->pluck('id')->values()->all(),
             ],
             'Teams attached to tournament.',
+            'SUCCESS'
+        );
+    }
+
+    /**
+     * Update a team's group in the tournament (organizer only).
+     * PATCH /tournaments/{tournament}/teams/{team}
+     */
+    public function update(UpdateTournamentTeamRequest $request, Tournament $tournament, Team $team): JsonResponse
+    {
+        if ($tournament->organizer_id !== $request->user()->id) {
+            return $this->forbidden('Only the tournament organizer can update team groups.');
+        }
+
+        if (! $tournament->teams()->where('teams.id', $team->id)->exists()) {
+            return $this->failure('Team is not attached to this tournament.', 'NOT_FOUND');
+        }
+
+        if ($tournament->number_of_groups <= 1) {
+            return $this->failure('This tournament does not use groups.', 'VALIDATION_ERROR', 422);
+        }
+
+        $groupIndex = $request->validated('group_index');
+        $tournament->teams()->updateExistingPivot($team->id, ['group_index' => $groupIndex]);
+
+        return $this->success(
+            [
+                'tournament_id' => $tournament->id,
+                'team_id' => $team->id,
+                'group_index' => $groupIndex,
+            ],
+            'Team group updated.',
             'SUCCESS'
         );
     }

@@ -25,6 +25,7 @@ class TournamentRequest extends BaseModel
         'end_date',
         'number_of_matches',
         'number_of_teams',
+        'number_of_groups',
         'expected_players_count',
         'country',
         'city',

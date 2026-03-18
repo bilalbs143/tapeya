@@ -14,6 +14,7 @@ return new class extends Migration
             $table->foreignId('tournament_id')
                 ->constrained('tournaments')
                 ->cascadeOnDelete();
+            $table->unsignedTinyInteger('group_index')->nullable();
 
             $table->foreignId('home_team_id')
                 ->constrained('teams')

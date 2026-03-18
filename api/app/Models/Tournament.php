@@ -25,6 +25,7 @@ class Tournament extends BaseModel
         'end_date',
         'number_of_matches',
         'number_of_teams',
+        'number_of_groups',
         'expected_players_count',
         'country',
         'city',
@@ -87,9 +88,14 @@ class Tournament extends BaseModel
     /**
      * Teams participating in this tournament.
      */
+    /**
+     * Teams participating in this tournament.
+     * When number_of_groups > 1, each team has pivot group_index (1..number_of_groups).
+     */
     public function teams(): BelongsToMany
     {
         return $this->belongsToMany(Team::class, 'tournament_team')
+            ->withPivot('group_index')
             ->withTimestamps();
     }
 

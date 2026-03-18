@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { toApiDate } from '@/lib/utils/dateUtils';
-import { tournamentRequestSchema } from '@/lib/validations/tournamentRequest';
+import { createTournamentRequestSchema } from '@/lib/validations/tournamentRequest';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
 import {
   useGetCitiesQuery,
@@ -51,6 +51,8 @@ const DEFAULT_VALUES = {
   city: '',
   match_timings: '',
   prize: '',
+  group_mode: 'open',
+  number_of_groups: '',
 };
 
 export default function TournamentRequest() {
@@ -61,15 +63,25 @@ export default function TournamentRequest() {
 
   const { data: enums = {}, isLoading: enumsLoading } = useGetEnumsQuery();
 
-  const { tournamentTypeOptions, cricketFormatOptions, matchTimingsOptions } =
-    useMemo(
-      () => ({
-        tournamentTypeOptions: enums.tournament_type ?? [],
-        cricketFormatOptions: enums.cricket_format ?? [],
-        matchTimingsOptions: enums.match_timings ?? [],
-      }),
-      [enums],
-    );
+  const {
+    tournamentTypeOptions,
+    cricketFormatOptions,
+    matchTimingsOptions,
+    groupModeOptions,
+    tournamentRequestSchema,
+  } = useMemo(() => {
+    const groupModeOptions = Array.isArray(enums.group_mode)
+      ? enums.group_mode
+      : [];
+    const groupModeValues = groupModeOptions.map((o) => o.value);
+    return {
+      tournamentTypeOptions: enums.tournament_type ?? [],
+      cricketFormatOptions: enums.cricket_format ?? [],
+      matchTimingsOptions: enums.match_timings ?? [],
+      groupModeOptions,
+      tournamentRequestSchema: createTournamentRequestSchema(groupModeValues),
+    };
+  }, [enums]);
 
   const [
     createTournamentRequest,
@@ -90,6 +102,7 @@ export default function TournamentRequest() {
     mode: 'onChange',
   });
 
+  const groupMode = watch('group_mode');
   const selectedCountryName = watch('country');
   const { data: countriesList = [] } = useGetCountriesQuery();
   const selectedCountry = countriesList.find(
@@ -112,6 +125,7 @@ export default function TournamentRequest() {
       tournament_type: tournamentTypeOptions[0]?.value ?? '',
       cricket_format: cricketFormatOptions[0]?.value ?? '',
       match_timings: matchTimingsOptions[0]?.value ?? '',
+      group_mode: groupModeOptions[0]?.value ?? 'open',
       prize: '',
     });
   }, [
@@ -119,6 +133,7 @@ export default function TournamentRequest() {
     tournamentTypeOptions,
     cricketFormatOptions,
     matchTimingsOptions,
+    groupModeOptions,
     user?.name,
     user?.phone,
     user?.country,
@@ -129,12 +144,19 @@ export default function TournamentRequest() {
   const onSubmit = async (data) => {
     resetApiError();
     try {
+      const number_of_groups =
+        data.group_mode === 'group_wise' &&
+        data.number_of_groups != null &&
+        data.number_of_groups !== ''
+          ? Number(data.number_of_groups)
+          : 1;
       const payload = {
         ...data,
         start_date: toApiDate(data.start_date),
         end_date: toApiDate(data.end_date),
         number_of_matches: Number(data.number_of_matches),
         number_of_teams: Number(data.number_of_teams),
+        number_of_groups: Math.max(1, Math.min(16, number_of_groups)),
         expected_players_count: Number(data.expected_players_count),
         ...(data.prize != null && String(data.prize).trim() !== ''
           ? { prize: String(data.prize).trim() }
@@ -261,6 +283,30 @@ export default function TournamentRequest() {
               {...register('number_of_teams')}
             />
           </FormField>
+
+          <ToggleGroupField
+            name="group_mode"
+            control={control}
+            label="Group mode:"
+            options={groupModeOptions}
+            error={errors.group_mode?.message}
+            required
+          />
+          {groupMode === 'group_wise' && (
+            <FormField
+              label="Number of groups:"
+              htmlFor="number_of_groups"
+              required
+            >
+              <Input
+                id="number_of_groups"
+                inputMode="numeric"
+                placeholder="e.g. 2, 4"
+                error={errors.number_of_groups?.message}
+                {...register('number_of_groups')}
+              />
+            </FormField>
+          )}
 
           <FormField
             label="Expected Players Count:"

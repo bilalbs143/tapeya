@@ -60,7 +60,15 @@ export const tournamentApi = baseApi.injectEndpoints({
       query: (tournamentId) => ({
         url: `/tournaments/${tournamentId}/standings`,
       }),
-      transformResponse: (response) => response?.data?.standings ?? [],
+      transformResponse: (response) => {
+        const data = response?.data ?? {};
+        if (Array.isArray(data.groups) && data.groups.length > 0) {
+          return { groups: data.groups };
+        }
+        return {
+          standings: Array.isArray(data.standings) ? data.standings : [],
+        };
+      },
       providesTags: (result, _err, tournamentId) =>
         tournamentId ? [{ type: 'TournamentStandings', id: tournamentId }] : [],
     }),
@@ -75,10 +83,22 @@ export const tournamentApi = baseApi.injectEndpoints({
           : [],
     }),
     attachTeamsToTournament: builder.mutation({
-      query: ({ tournamentId, team_ids }) => ({
+      query: ({ tournamentId, team_ids, group_index }) => ({
         url: `/tournaments/${tournamentId}/teams`,
         method: 'POST',
-        body: { team_ids },
+        body: { team_ids, ...(group_index != null ? { group_index } : {}) },
+      }),
+      invalidatesTags: (_result, _err, { tournamentId }) => [
+        { type: 'TournamentTeams', id: tournamentId },
+        { type: 'Tournament', id: tournamentId },
+        { type: 'Tournament', id: 'LIST' },
+      ],
+    }),
+    updateTournamentTeamGroup: builder.mutation({
+      query: ({ tournamentId, teamId, group_index }) => ({
+        url: `/tournaments/${tournamentId}/teams/${teamId}`,
+        method: 'PATCH',
+        body: { group_index },
       }),
       invalidatesTags: (_result, _err, { tournamentId }) => [
         { type: 'TournamentTeams', id: tournamentId },
@@ -166,6 +186,7 @@ export const {
   useGetTournamentSeasonStatsQuery,
   useCreateTournamentMatchMutation,
   useAttachTeamsToTournamentMutation,
+  useUpdateTournamentTeamGroupMutation,
   useRemoveTeamFromTournamentMutation,
   useLikeTournamentMutation,
   useDislikeTournamentMutation,

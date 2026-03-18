@@ -72,31 +72,127 @@ const STICKY_BODY_BG = 'bg-black';
 // Tab component
 // ---------------------------------------------------------------------------
 
+function StandingsTable({ standings }) {
+  return (
+    <div className="overflow-x-auto overflow-y-hidden border border-[#1A1A1A] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <table className="w-full min-w-max border-collapse text-[12px] text-white">
+        <thead>
+          <tr className={HEADER_BG}>
+            <th
+              className={`${STICKY_TEAMS} ${HEADER_BG} border-r border-b border-l ${BORDER} py-3.5 pl-4 text-left font-bold`}
+            >
+              Teams
+            </th>
+            <th
+              className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-bold`}
+            >
+              M
+            </th>
+            <th
+              className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-bold`}
+            >
+              W
+            </th>
+            <th
+              className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-bold`}
+            >
+              L
+            </th>
+            <th
+              className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-bold`}
+            >
+              T
+            </th>
+            <th
+              className={`border-r border-b ${BORDER} w-14 py-3.5 text-center font-bold`}
+            >
+              PTS
+            </th>
+            <th
+              className={`border-r border-b ${BORDER} w-14 py-3.5 text-center font-bold`}
+            >
+              NRR
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {standings.map((team, index) => (
+            <tr key={team.team_id ?? index}>
+              <td
+                className={`${STICKY_TEAMS} ${STICKY_BODY_BG} border-r border-b border-l ${BORDER} py-3.5 pl-4`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <span>{index + 1}</span>
+                  <span>{team.team_name}</span>
+                </div>
+              </td>
+              <td
+                className={`border-r border-b ${BORDER} bg-transparent py-3.5 text-center`}
+              >
+                {team.played}
+              </td>
+              <td
+                className={`border-r border-b ${BORDER} bg-transparent py-3.5 text-center`}
+              >
+                {team.won}
+              </td>
+              <td
+                className={`border-r border-b ${BORDER} bg-transparent py-3.5 text-center`}
+              >
+                {team.lost}
+              </td>
+              <td
+                className={`border-r border-b ${BORDER} bg-transparent py-3.5 text-center`}
+              >
+                {team.tied}
+              </td>
+              <td
+                className={`border-r border-b ${BORDER} bg-transparent py-3.5 text-center`}
+              >
+                {team.points}
+              </td>
+              <td
+                className={`border-r border-b ${BORDER} bg-transparent py-3.5 text-center`}
+              >
+                {team.nrr ?? '—'}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export function TableTab({ tournamentId }) {
-  // TODO: replace hardcoded '2026 - POINTS TABLE' with dynamic season label.
   const title = tournamentId
     ? `${tournamentId} 2026 - POINTS TABLE`
     : 'POINTS TABLE';
 
   const {
-    data: standings = [],
+    data: standingsData = {},
     isLoading,
     isError,
   } = useGetTournamentStandingsQuery(tournamentId, {
     skip: !tournamentId,
   });
 
-  // Shared title node — avoids copy-pasting the <h1> in every early return.
-  // Fixed: removed conflicting `text-base` class (see top).
+  const hasGroups =
+    Array.isArray(standingsData.groups) && standingsData.groups.length > 0;
+  const singleStandings = Array.isArray(standingsData.standings)
+    ? standingsData.standings
+    : [];
+  const hasSingleStandings = singleStandings.length > 0;
+  const hasAnyStandings =
+    hasSingleStandings ||
+    (hasGroups &&
+      standingsData.groups.some((g) => (g.standings?.length ?? 0) > 0));
+
   const titleNode = (
     <h1 className="text-left text-[13px] font-bold tracking-wide text-white uppercase">
       {title}
     </h1>
   );
-
-  // ------------------------------------------------------------------
-  // Early-return states
-  // ------------------------------------------------------------------
 
   if (!tournamentId) {
     return (
@@ -129,7 +225,7 @@ export function TableTab({ tournamentId }) {
     );
   }
 
-  if (!standings.length) {
+  if (!hasAnyStandings) {
     return (
       <div className="mt-4 pb-6 focus:outline-none">
         {titleNode}
@@ -140,103 +236,22 @@ export function TableTab({ tournamentId }) {
     );
   }
 
-  // ------------------------------------------------------------------
-  // Render
-  // ------------------------------------------------------------------
-
   return (
     <div className="mt-4 pb-6 focus:outline-none">
       {titleNode}
-      <section className="mt-4">
-        {/* CURSOR: extract table chrome into <StatsTable> (see top). */}
-        <div className="overflow-x-auto overflow-y-hidden border border-[#1A1A1A] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <table className="w-full min-w-max border-collapse text-[12px] text-white">
-            <thead>
-              <tr className={HEADER_BG}>
-                <th
-                  className={`${STICKY_TEAMS} ${HEADER_BG} border-r border-b border-l ${BORDER} py-3.5 pl-4 text-left font-bold`}
-                >
-                  Teams
-                </th>
-                <th
-                  className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-bold`}
-                >
-                  M
-                </th>
-                <th
-                  className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-bold`}
-                >
-                  W
-                </th>
-                <th
-                  className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-bold`}
-                >
-                  L
-                </th>
-                <th
-                  className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-bold`}
-                >
-                  T
-                </th>
-                <th
-                  className={`border-r border-b ${BORDER} w-14 py-3.5 text-center font-bold`}
-                >
-                  PTS
-                </th>
-                <th
-                  className={`border-r border-b ${BORDER} w-14 py-3.5 text-center font-bold`}
-                >
-                  NRR
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {standings.map((team, index) => (
-                <tr key={team.team_id}>
-                  <td
-                    className={`${STICKY_TEAMS} ${STICKY_BODY_BG} border-r border-b border-l ${BORDER} py-3.5 pl-4`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <span>{index + 1}</span>
-                      <span>{team.team_name}</span>
-                    </div>
-                  </td>
-                  <td
-                    className={`border-r border-b ${BORDER} bg-transparent py-3.5 text-center`}
-                  >
-                    {team.played}
-                  </td>
-                  <td
-                    className={`border-r border-b ${BORDER} bg-transparent py-3.5 text-center`}
-                  >
-                    {team.won}
-                  </td>
-                  <td
-                    className={`border-r border-b ${BORDER} bg-transparent py-3.5 text-center`}
-                  >
-                    {team.lost}
-                  </td>
-                  <td
-                    className={`border-r border-b ${BORDER} bg-transparent py-3.5 text-center`}
-                  >
-                    {team.tied}
-                  </td>
-                  <td
-                    className={`border-r border-b ${BORDER} bg-transparent py-3.5 text-center`}
-                  >
-                    {team.points}
-                  </td>
-                  {/* TODO: normalise empty/null NRR values explicitly (see top). */}
-                  <td
-                    className={`border-r border-b ${BORDER} bg-transparent py-3.5 text-center`}
-                  >
-                    {team.nrr ?? '—'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <section className="mt-4 space-y-6">
+        {hasGroups ? (
+          standingsData.groups.map((group) => (
+            <div key={group.group_index ?? group.group_name}>
+              <h2 className="mb-2 text-[12px] font-bold tracking-wide text-white uppercase">
+                {group.group_name ?? `Group ${group.group_index}`}
+              </h2>
+              <StandingsTable standings={group.standings ?? []} />
+            </div>
+          ))
+        ) : (
+          <StandingsTable standings={singleStandings} />
+        )}
       </section>
     </div>
   );

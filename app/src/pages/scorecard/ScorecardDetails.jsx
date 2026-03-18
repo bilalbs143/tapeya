@@ -54,8 +54,14 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { NAVBAR_HEIGHT } from '@/lib/constants/layout';
-import { isValidTournamentId } from '@/lib/utils/tournamentUtils';
-import { useGetTournamentMatchesQuery } from '@/store/api/tournamentApi';
+import {
+  isValidTournamentId,
+  parseTournamentId,
+} from '@/lib/utils/tournamentUtils';
+import {
+  useGetTournamentMatchesQuery,
+  useGetTournamentQuery,
+} from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
 import {
   scorecardListClass,
@@ -100,6 +106,7 @@ export default function ScorecardDetails() {
   const activeTab = VALID_TABS.includes(tabParam) ? tabParam : 'schedule';
 
   const hasValidId = isValidTournamentId(tournamentId);
+  const tournamentIdNum = parseTournamentId(tournamentId, null);
 
   const {
     data: matches = [],
@@ -110,7 +117,18 @@ export default function ScorecardDetails() {
     { skip: !hasValidId },
   );
 
+  const { data: tournament } = useGetTournamentQuery(
+    { id: tournamentIdNum },
+    { skip: !hasValidId || tournamentIdNum == null },
+  );
+
   const ActiveView = TAB_VIEWS[activeTab];
+  const formatLabel =
+    tournament?.number_of_groups != null
+      ? tournament.number_of_groups <= 1
+        ? 'Single table'
+        : `Groups: ${tournament.number_of_groups}`
+      : null;
 
   // CURSOR: replace with useFixedOnScroll(NAVBAR_HEIGHT) once extracted (see top).
   useEffect(() => {
@@ -169,10 +187,15 @@ export default function ScorecardDetails() {
         </button>
         {/* TODO: replace tournamentId with the tournament name once available
                   from the API or location state (see top). */}
-        <h1 className="min-w-0 flex-1 pr-[27px] text-center text-[16px] font-bold tracking-wide text-white uppercase">
-          SCORE CARD -{' '}
-          <span className="text-[#DA9811]">{tournamentId || ''}</span>
-        </h1>
+        <div className="min-w-0 flex-1 pr-[27px] text-center">
+          <h1 className="text-[16px] font-bold tracking-wide text-white uppercase">
+            SCORE CARD -{' '}
+            <span className="text-[#DA9811]">{tournamentId || ''}</span>
+          </h1>
+          {formatLabel && (
+            <p className="mt-0.5 text-[12px] text-[#A2A6AB]">{formatLabel}</p>
+          )}
+        </div>
       </header>
 
       <Container className="!px-4 !py-0">

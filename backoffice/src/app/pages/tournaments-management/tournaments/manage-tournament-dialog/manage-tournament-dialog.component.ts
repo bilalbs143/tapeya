@@ -8,6 +8,7 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatDivider } from '@angular/material/list';
+import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { Subject, Subscription } from 'rxjs';
@@ -47,6 +48,7 @@ export interface ManageTournamentDialogData {
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
+    MatRadioModule,
     MatSelectModule,
     MatDatepickerModule,
     TablerIconsModule,
@@ -79,6 +81,7 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
   public coverImagePreview: string | null = null;
 
   public readonly tournamentTypeOptions$ = this.enumsService.getOptions('tournament_type');
+  public readonly groupModeOptions$ = this.enumsService.getOptions('group_mode');
   public readonly cricketFormatOptions$ = this.enumsService.getOptions('cricket_format');
   public readonly matchTimingsOptions$ = this.enumsService.getOptions('match_timings');
   public readonly statusOptions$ = this.enumsService.getOptions('status');
@@ -97,6 +100,10 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
 
   public get coverImageUrl(): string | null {
     return this.coverImagePreview ?? this.data.tournament?.cover_image ?? null;
+  }
+
+  public get isGroupWise(): boolean {
+    return this.form?.get('group_mode')?.value === 'group_wise';
   }
 
   constructor() {
@@ -212,6 +219,11 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
         tournament?.number_of_teams ?? null,
         [Validators.required, Validators.min(1), Validators.max(500)],
       ],
+      group_mode: [(tournament?.number_of_groups ?? 1) > 1 ? 'group_wise' : 'open', [Validators.required]],
+      number_of_groups: [
+        tournament?.number_of_groups && tournament.number_of_groups > 1 ? tournament.number_of_groups : 2,
+        [Validators.min(2), Validators.max(16)],
+      ],
       expected_players_count: [
         tournament?.expected_players_count ?? null,
         [Validators.required, Validators.min(1), Validators.max(10000)],
@@ -304,6 +316,8 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
     formData.append('end_date', this.formatDateForApi(v.end_date) ?? '');
     formData.append('number_of_matches', String(Number(v.number_of_matches)));
     formData.append('number_of_teams', String(Number(v.number_of_teams)));
+    const numGroups: number = v.group_mode === 'group_wise' ? Number(v.number_of_groups) || 2 : 1;
+    formData.append('number_of_groups', String(Math.max(1, Math.min(16, numGroups))));
     formData.append('expected_players_count', String(Number(v.expected_players_count)));
     formData.append('country', v.country ?? '');
     formData.append('city', v.city);

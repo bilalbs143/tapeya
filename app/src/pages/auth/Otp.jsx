@@ -7,8 +7,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import tapeyaLogo from '@/assets/images/logos/tapeya-logo-white.svg';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
-import { formatPhoneFull } from '@/lib/utils/phoneUtils';
 import { addSavedProfile, bumpSavedProfile } from '@/lib/savedProfiles';
+import { formatPhoneFull } from '@/lib/utils/phoneUtils';
 import { otpSchema } from '@/lib/validations/auth';
 import {
   useRequestOtpMutation,
@@ -73,9 +73,12 @@ export default function Otp() {
     return () => clearInterval(timer);
   }, [resendCooldown]);
 
-  useEffect(() => () => {
-    if (submitRef.current) clearTimeout(submitRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (submitRef.current) clearTimeout(submitRef.current);
+    },
+    [],
+  );
 
   const {
     setValue,
@@ -289,7 +292,12 @@ export default function Otp() {
             )}
           </div>
 
-          <Button type="submit" disabled={busy} variant="auth" className="mt-4 lg:w-full">
+          <Button
+            type="submit"
+            disabled={busy}
+            variant="auth"
+            className="mt-4 lg:w-full"
+          >
             {busy ? 'Verifying…' : 'Next'}
           </Button>
         </form>

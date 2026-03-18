@@ -31,6 +31,7 @@ class UpdateTournamentRequest extends FormRequest
             'end_date' => ['sometimes', 'date', 'after_or_equal:start_date'],
             'number_of_matches' => ['sometimes', 'integer', 'min:1', 'max:1000'],
             'number_of_teams' => ['sometimes', 'integer', 'min:1', 'max:500'],
+            'number_of_groups' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:16'],
             'expected_players_count' => ['sometimes', 'integer', 'min:1', 'max:10000'],
             'country' => ['sometimes', 'required', 'string', 'max:100'],
             'city' => ['sometimes', 'string', 'max:100'],
