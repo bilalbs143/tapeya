@@ -10,7 +10,7 @@ import { MessageService } from './message.service';
 export interface TournamentRequest {
   id: number;
   user_id: number | null;
-  user?: { id: number; name: string; email: string | null; phone: string | null };
+  user?: { id: number; name: string; nickname?: string | null; email: string | null; phone: string | null };
   contact_person_name: string;
   contact_phone: string;
   tournament_name: string;
@@ -21,10 +21,8 @@ export interface TournamentRequest {
   venue_name: string;
   start_date: string;
   end_date: string;
-  number_of_matches: number;
   number_of_teams: number;
   number_of_groups?: number;
-  expected_players_count: number;
   country?: string | null;
   city: string;
   match_timings: string;

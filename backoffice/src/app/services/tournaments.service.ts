@@ -19,10 +19,8 @@ export interface Tournament {
   venue_name: string;
   start_date: string;
   end_date: string;
-  number_of_matches: number;
   number_of_teams: number;
   number_of_groups?: number;
-  expected_players_count: number;
   country?: string | null;
   city: string;
   match_timings: string;

@@ -211,27 +211,6 @@
 
         <div class="col-span-12 lg:col-span-4">
           <mat-label class="text-sm font-semibold mb-2 block"
-            >Number of Matches <span class="text-error">*</span></mat-label
-          >
-          <mat-form-field
-            appearance="outline"
-            class="w-full"
-          >
-            <input
-              matInput
-              type="number"
-              formControlName="number_of_matches"
-              min="1"
-              max="1000"
-              placeholder="e.g. 10"
-            />
-            @if (form.get('number_of_matches')?.invalid && form.get('number_of_matches')?.touched) {
-              <mat-error>Required (1–1000)</mat-error>
-            }
-          </mat-form-field>
-        </div>
-        <div class="col-span-12 lg:col-span-4">
-          <mat-label class="text-sm font-semibold mb-2 block"
             >Number of Teams <span class="text-error">*</span></mat-label
           >
           <mat-form-field
@@ -248,27 +227,6 @@
             />
             @if (form.get('number_of_teams')?.invalid && form.get('number_of_teams')?.touched) {
               <mat-error>Required (1–500)</mat-error>
-            }
-          </mat-form-field>
-        </div>
-        <div class="col-span-12 lg:col-span-4">
-          <mat-label class="text-sm font-semibold mb-2 block"
-            >Expected Players <span class="text-error">*</span></mat-label
-          >
-          <mat-form-field
-            appearance="outline"
-            class="w-full"
-          >
-            <input
-              matInput
-              type="number"
-              formControlName="expected_players_count"
-              min="1"
-              max="10000"
-              placeholder="e.g. 88"
-            />
-            @if (form.get('expected_players_count')?.invalid && form.get('expected_players_count')?.touched) {
-              <mat-error>Required (1–10000)</mat-error>
             }
           </mat-form-field>
         </div>

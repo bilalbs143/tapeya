@@ -6,7 +6,10 @@ import {
   getTournamentTitle,
   parseTournamentId,
 } from '@/lib/utils/tournamentUtils';
-import { useGetTournamentQuery } from '@/store/api/tournamentApi';
+import {
+  useGetTournamentMatchesQuery,
+  useGetTournamentQuery,
+} from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 
@@ -29,6 +32,17 @@ export default function TournamentCreateTeamIntro() {
   );
   const tournament = tournamentFromState ?? tournamentFromApi ?? null;
 
+  const { data: matches = [] } = useGetTournamentMatchesQuery(
+    { tournamentId: tournamentIdNum, all: true },
+    { skip: !isValidId },
+  );
+  const matchesCount = Array.isArray(matches) ? matches.length : 0;
+  const numberOfMatches = tournament?.number_of_matches ?? null;
+  const allFixturesAdded =
+    numberOfMatches != null &&
+    Number.isInteger(numberOfMatches) &&
+    matchesCount >= numberOfMatches;
+
   useEffect(() => {
     if (!isValidId) {
       navigate('/organizer/tournaments', { replace: true });
@@ -38,17 +52,10 @@ export default function TournamentCreateTeamIntro() {
   if (!isValidId) return null;
 
   const title = getTournamentTitle(tournament);
+  const teamsCount = tournament?.teams_count ?? 0;
+  const noTeams = teamsCount === 0;
 
-  // ------------------------------------------------------------------
-  // Handlers
-  // ------------------------------------------------------------------
-
-  const handleCreateTeams = () => {
-    if (!tournamentIdNum) {
-      navigate('/organizer/tournaments');
-      return;
-    }
-
+  const handleCreateTeam = () => {
     navigate(`/organizer/tournaments/${tournamentIdNum}/add-team`, {
       state: {
         tournament: tournament
@@ -61,9 +68,36 @@ export default function TournamentCreateTeamIntro() {
     });
   };
 
-  // ------------------------------------------------------------------
-  // Render
-  // ------------------------------------------------------------------
+  const handleViewTeams = () => {
+    navigate(`/organizer/tournaments/${tournamentIdNum}/add-squad`, {
+      state: {
+        tournament: tournament
+          ? {
+              ...tournament,
+              name: tournament.tournament_name ?? tournament.name,
+            }
+          : { id: tournamentIdNum },
+      },
+    });
+  };
+
+  const handleFixtures = () => {
+    if (allFixturesAdded) {
+      navigate(`/scorecard/${tournamentIdNum}`);
+    } else {
+      navigate('/organizer/scoring/start-match', {
+        state: {
+          tournamentId: tournamentIdNum,
+          tournament: tournament
+            ? {
+                ...tournament,
+                name: tournament.tournament_name ?? tournament.name,
+              }
+            : { id: tournamentIdNum },
+        },
+      });
+    }
+  };
 
   return (
     <div className="bg-black">
@@ -94,22 +128,58 @@ export default function TournamentCreateTeamIntro() {
           </header>
 
           <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4">
-            <p className="text-center text-[14px] text-[#A2A6AB]">
-              No teams yet. Create your first team to get started.
-            </p>
-            <Button
-              type="button"
-              variant="card"
-              onClick={handleCreateTeams}
-              className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
-            >
-              <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
-                +
-              </span>
-              <span className="text-[16px] font-bold text-[#A2A6AB]">
-                Create Team
-              </span>
-            </Button>
+            {noTeams ? (
+              <>
+                <p className="text-center text-[14px] text-[#A2A6AB]">
+                  No teams yet. Create your first team to get started.
+                </p>
+                <Button
+                  type="button"
+                  variant="card"
+                  onClick={handleCreateTeam}
+                  className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
+                >
+                  <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
+                    +
+                  </span>
+                  <span className="text-[16px] font-bold text-[#A2A6AB]">
+                    Create Team
+                  </span>
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="text-center text-[14px] text-[#A2A6AB]">
+                  Teams are complete. Manage squads or add fixtures.
+                </p>
+                <Button
+                  type="button"
+                  variant="card"
+                  onClick={handleViewTeams}
+                  className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
+                >
+                  <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
+                    +
+                  </span>
+                  <span className="text-[16px] font-bold text-[#A2A6AB]">
+                    View teams
+                  </span>
+                </Button>
+                <Button
+                  type="button"
+                  variant="card"
+                  onClick={handleFixtures}
+                  className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
+                >
+                  <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
+                    +
+                  </span>
+                  <span className="text-[16px] font-bold text-[#A2A6AB]">
+                    {allFixturesAdded ? 'View fixtures' : 'Add Fixtures'}
+                  </span>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </Container>

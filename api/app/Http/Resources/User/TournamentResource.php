@@ -8,6 +8,15 @@ use Illuminate\Support\Facades\Storage;
 
 class TournamentResource extends JsonResource
 {
+    private function getTeamsCount(): int
+    {
+        if (! array_key_exists('teams_count', $this->resource->getAttributes())) {
+            $this->resource->loadCount('teams');
+        }
+
+        return (int) ($this->resource->teams_count ?? 0);
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -25,8 +34,8 @@ class TournamentResource extends JsonResource
             'venue_name' => $this->venue_name,
             'start_date' => $this->start_date?->format('Y-m-d'),
             'end_date' => $this->end_date?->format('Y-m-d'),
-            'number_of_matches' => $this->number_of_matches,
             'number_of_teams' => $this->number_of_teams,
+            'number_of_matches' => $this->number_of_matches,
             'number_of_groups' => (int) ($this->number_of_groups ?? 1),
             'country' => $this->country,
             'city' => $this->city,
@@ -42,7 +51,7 @@ class TournamentResource extends JsonResource
             'shares_count' => (int) ($this->shares_count ?? 0),
             'my_reaction' => $this->when(isset($this->my_reaction), $this->my_reaction),
 
-            'teams_count' => (int) ($this->teams_count ?? 0),
+            'teams_count' => (int) $this->getTeamsCount(),
             'matches' => $this->whenLoaded('matches', fn () => TournamentMatchResource::collection($this->matches)),
 
             'created_at' => $this->created_at?->toIso8601String(),

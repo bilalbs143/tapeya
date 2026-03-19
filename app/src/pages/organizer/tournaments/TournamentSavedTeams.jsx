@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
@@ -9,7 +9,6 @@ import {
 import {
   useGetTournamentQuery,
   useGetTournamentTeamsQuery,
-  useUpdateTournamentTeamGroupMutation,
 } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
@@ -41,21 +40,8 @@ function teamDisplay(team) {
   return { owner, iconPlayers };
 }
 
-function TeamCard({
-  team,
-  index,
-  highlight,
-  numberOfGroups,
-  tournamentId,
-  onUpdateGroup,
-  isUpdatingGroup,
-}) {
+function TeamCard({ team, index, highlight }) {
   const { owner, iconPlayers } = teamDisplay(team);
-  const canMoveGroup =
-    numberOfGroups != null &&
-    numberOfGroups > 1 &&
-    typeof onUpdateGroup === 'function' &&
-    tournamentId != null;
 
   return (
     <div
@@ -71,27 +57,6 @@ function TeamCard({
             <span className="text-[12px] text-[#A2A6AB]">
               Group {team.group_index}
             </span>
-          )}
-          {canMoveGroup && (
-            <select
-              value={team.group_index ?? 1}
-              onChange={(e) => {
-                const next = Number(e.target.value);
-                const current = team.group_index ?? 1;
-                if (next !== current) onUpdateGroup(team.id, next);
-              }}
-              disabled={isUpdatingGroup}
-              className="rounded border border-[#2a2a2a] bg-[#1A1A1A] px-2 py-1 text-[12px] text-white focus:border-[#DA9811] focus:outline-none disabled:opacity-60"
-              aria-label={`Move ${team.name ?? 'team'} to group`}
-            >
-              {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map(
-                (g) => (
-                  <option key={g} value={g}>
-                    Group {g}
-                  </option>
-                ),
-              )}
-            </select>
           )}
         </div>
         <p className="mt-0.5 text-[14px] text-white">
@@ -133,6 +98,9 @@ export default function TournamentSavedTeams() {
   );
   const tournament = tournamentFromApi ?? tournamentFromState ?? null;
 
+  const numberOfGroups = tournament?.number_of_groups ?? 1;
+  const hasGroups = numberOfGroups > 1;
+
   const {
     data: teams = [],
     isLoading,
@@ -140,16 +108,14 @@ export default function TournamentSavedTeams() {
     isSuccess,
   } = useGetTournamentTeamsQuery(tournamentIdNum, { skip: !isValidId });
 
-  const [updateTeamGroup, { isLoading: isUpdatingGroup }] =
-    useUpdateTournamentTeamGroupMutation();
-
-  const numberOfGroups =
-    tournament?.number_of_groups != null ? tournament.number_of_groups : null;
-
-  const handleUpdateGroup = (teamId, group_index) => {
-    if (!tournamentIdNum) return;
-    updateTeamGroup({ tournamentId: tournamentIdNum, teamId, group_index });
-  };
+  const teamsByGroup = useMemo(() => {
+    if (!hasGroups || numberOfGroups < 2) return null;
+    const byGroup = /** @type {Record<number, typeof teams>} */ ({});
+    for (let i = 1; i <= numberOfGroups; i++) {
+      byGroup[i] = teams.filter((t) => Number(t.group_index) === i);
+    }
+    return byGroup;
+  }, [hasGroups, numberOfGroups, teams]);
 
   useEffect(() => {
     if (!isValidId) {
@@ -173,6 +139,14 @@ export default function TournamentSavedTeams() {
   const handleSubmitTeams = () => {
     navigate(`/organizer/tournaments/${tournamentIdNum}/add-squad`, {
       state: { tournament: tournament ?? { id: tournamentIdNum } },
+    });
+  };
+
+  const handleNavigateToAddTeam = () => {
+    navigate(`/organizer/tournaments/${tournamentIdNum}/add-team`, {
+      state: {
+        tournament: tournament ?? { id: tournamentIdNum },
+      },
     });
   };
 
@@ -226,11 +200,7 @@ export default function TournamentSavedTeams() {
           </h2>
           <button
             type="button"
-            onClick={() =>
-              navigate(`/organizer/tournaments/${tournamentIdNum}/add-team`, {
-                state: { tournament: tournament ?? { id: tournamentIdNum } },
-              })
-            }
+            onClick={handleNavigateToAddTeam}
             className="flex shrink-0 items-center gap-2 transition-opacity active:opacity-80"
           >
             <span className="flex h-[27px] w-[27px] items-center justify-center rounded-full bg-[#DA9811] text-[18px] font-bold text-[#080807]">
@@ -242,9 +212,54 @@ export default function TournamentSavedTeams() {
           </button>
         </div>
 
-        <ul className="space-y-3 pb-6">
-          {!isLoading &&
-            teams.map((team, index) => (
+        {!isLoading && isSuccess && teams.length === 0 && (
+          <p className="mb-6 rounded-[17px] bg-[#141412] px-4 py-6 text-center text-[13px] text-[#A2A6AB]">
+            No teams added yet. Create a team to get started.
+          </p>
+        )}
+
+        {!isLoading && teamsByGroup != null && (
+          <div className="space-y-6 pb-6">
+            {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map(
+              (groupIndex) => (
+                <section key={groupIndex}>
+                  <h3 className="mb-2 text-[13px] font-bold tracking-wide text-[#DA9811] uppercase">
+                    Group {groupIndex}
+                  </h3>
+                  <ul className="space-y-3">
+                    {teamsByGroup[groupIndex].map((team, index) => (
+                      <li
+                        key={team.id ?? index}
+                        ref={
+                          newTeam?.id != null && team.id === newTeam.id
+                            ? newTeamListRef
+                            : undefined
+                        }
+                      >
+                        <TeamCard
+                          team={team}
+                          index={index}
+                          highlight={
+                            newTeam?.id != null && team.id === newTeam.id
+                          }
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                  {teamsByGroup[groupIndex].length === 0 && (
+                    <p className="rounded-[17px] bg-[#141412] px-4 py-4 text-center text-[13px] text-[#A2A6AB]">
+                      No teams in this group
+                    </p>
+                  )}
+                </section>
+              ),
+            )}
+          </div>
+        )}
+
+        {!isLoading && teamsByGroup == null && teams.length > 0 && (
+          <ul className="space-y-3 pb-6">
+            {teams.map((team, index) => (
               <li
                 key={team.id ?? index}
                 ref={
@@ -257,21 +272,10 @@ export default function TournamentSavedTeams() {
                   team={team}
                   index={index}
                   highlight={newTeam?.id != null && team.id === newTeam.id}
-                  numberOfGroups={numberOfGroups}
-                  tournamentId={tournamentIdNum}
-                  onUpdateGroup={handleUpdateGroup}
-                  isUpdatingGroup={isUpdatingGroup}
                 />
               </li>
             ))}
-        </ul>
-
-        {/* `isSuccess` guard ensures the empty state only shows after a
-            successful fetch, not during loading or on error */}
-        {!isLoading && isSuccess && teams.length === 0 && (
-          <p className="rounded-[17px] bg-[#141412] px-4 py-6 text-center text-[13px] text-[#A2A6AB]">
-            No teams added yet. Create a team to get started.
-          </p>
+          </ul>
         )}
 
         <div className="pt-2">
@@ -280,7 +284,12 @@ export default function TournamentSavedTeams() {
             variant="auth"
             className="h-12 w-full rounded-[8px] bg-[#E4E7F4] text-[15px] font-semibold tracking-wide text-[#1a1a1a] uppercase"
             onClick={handleSubmitTeams}
-            disabled={isLoading || teams.length === 0}
+            disabled={
+              isLoading ||
+              teams.length === 0 ||
+              (tournament?.number_of_teams != null &&
+                teams.length < tournament.number_of_teams)
+            }
           >
             Submit Teams
           </Button>

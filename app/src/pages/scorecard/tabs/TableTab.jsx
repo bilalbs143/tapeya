@@ -17,7 +17,7 @@
  *             (or src/lib/constants/rankingColumns.js where BORDER and
  *             HEADER_BG already exist with the same values)
  *     reason: identical constants (`border-[#1A1A1A]`, `bg-[#141412]`) exist
- *             in StatsTotal.jsx, RankingStatsTotal.jsx, TournamentEditSquad.jsx,
+ *             in StatsTotal.jsx, RankingStatsTotal.jsx, TournamentSquad.jsx,
  *             and TournamentFinalSquad.jsx.  One export used everywhere
  *             prevents silent drift.
  *
@@ -29,7 +29,7 @@
  *   <StatsTable>  (the bordered scrollable table chrome)
  *     → move to: src/features/ranking/components/StatsTable.jsx
  *     reason: same bordered scrollable table pattern as StatsTotal.jsx,
- *             RankingStatsTotal.jsx, TournamentEditSquad.jsx, and
+ *             RankingStatsTotal.jsx, TournamentSquad.jsx, and
  *             TournamentFinalSquad.jsx.  A shared component would unify all
  *             five tables (see RankingStatsTotal top comment for the proposed
  *             props interface).

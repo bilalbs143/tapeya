@@ -17,10 +17,8 @@ return new class extends Migration
             $table->string('venue_name');
             $table->date('start_date');
             $table->date('end_date');
-            $table->unsignedInteger('number_of_matches');
             $table->unsignedInteger('number_of_teams');
             $table->unsignedTinyInteger('number_of_groups')->default(1);
-            $table->unsignedInteger('expected_players_count');
             $table->string('country', 100)->nullable();
             $table->string('city', 100);
             $table->string('match_timings', 30);

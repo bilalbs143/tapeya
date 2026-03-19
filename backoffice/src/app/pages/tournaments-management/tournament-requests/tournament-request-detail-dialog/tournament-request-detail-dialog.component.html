@@ -79,20 +79,12 @@
             <span class="block text-sm">{{ tournamentRequest.prize ?? emptyCell }}</span>
           </div>
           <div class="col-span-12 sm:col-span-6">
-            <span class="block text-sm font-semibold mb-1">Number of Matches</span>
-            <span class="block text-sm">{{ tournamentRequest.number_of_matches }}</span>
-          </div>
-          <div class="col-span-12 sm:col-span-6">
             <span class="block text-sm font-semibold mb-1">Number of Teams</span>
             <span class="block text-sm">{{ tournamentRequest.number_of_teams }}</span>
           </div>
           <div class="col-span-12 sm:col-span-6">
             <span class="block text-sm font-semibold mb-1">Number of Groups</span>
             <span class="block text-sm">{{ tournamentRequest.number_of_groups ?? 1 }} ({{ groupModeLabel }})</span>
-          </div>
-          <div class="col-span-12 sm:col-span-6">
-            <span class="block text-sm font-semibold mb-1">Expected Players Count</span>
-            <span class="block text-sm">{{ tournamentRequest.expected_players_count }}</span>
           </div>
         </div>
 

@@ -1,12 +1,12 @@
 /**
  * TournamentAddSquad.jsx
  *
- * Lists teams attached to a tournament. Organizer can add squad (edit-squad),
+ * Lists teams attached to a tournament. Organizer can add squad (squad),
  * remove a team (with confirm), or add a new team. Route:
  * /organizer/tournaments/:tournamentId/saved-teams
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
@@ -142,6 +142,17 @@ export default function TournamentAddSquad() {
   const baseTeams = stateTeams?.length > 0 ? stateTeams : fetchedTeams;
   const teams = baseTeams.filter((t) => !removedTeamIds.includes(t.id));
 
+  const numberOfGroups = tournament?.number_of_groups ?? 1;
+  const hasGroups = numberOfGroups > 1;
+  const teamsByGroup = useMemo(() => {
+    if (!hasGroups || numberOfGroups < 2) return null;
+    const byGroup = /** @type {Record<number, typeof teams>} */ ({});
+    for (let i = 1; i <= numberOfGroups; i++) {
+      byGroup[i] = teams.filter((t) => Number(t.group_index) === i);
+    }
+    return byGroup;
+  }, [hasGroups, numberOfGroups, teams]);
+
   const [removeTeam, { isLoading: isRemoving }] =
     useRemoveTeamFromTournamentMutation();
 
@@ -156,7 +167,7 @@ export default function TournamentAddSquad() {
   // ------------------------------------------------------------------
 
   const handleAddSquad = (team) => {
-    navigate(`/organizer/tournaments/${tournamentIdNum}/edit-squad`, {
+    navigate(`/organizer/tournaments/${tournamentIdNum}/squad`, {
       state: { team, tournament: tournament ?? { id: tournamentIdNum } },
     });
   };
@@ -251,34 +262,72 @@ export default function TournamentAddSquad() {
           </button>
         </div>
 
-        <ul className="space-y-3 pb-10">
-          {isLoading && teams.length === 0
-            ? [1, 2, 3].map((i) => (
-                <li
-                  key={i}
-                  className="animate-pulse rounded-[17px] bg-[#141412] p-4"
-                >
-                  <div className="flex gap-3">
-                    <div className="h-12 w-12 shrink-0 rounded-lg bg-[#1c1c1a]" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 w-24 rounded bg-[#1c1c1a]" />
-                      <div className="h-3 w-32 rounded bg-[#1c1c1a]" />
-                    </div>
+        {isLoading && teams.length === 0 && (
+          <ul className="space-y-3 pb-10">
+            {[1, 2, 3].map((i) => (
+              <li
+                key={i}
+                className="animate-pulse rounded-[17px] bg-[#141412] p-4"
+              >
+                <div className="flex gap-3">
+                  <div className="h-12 w-12 shrink-0 rounded-lg bg-[#1c1c1a]" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-24 rounded bg-[#1c1c1a]" />
+                    <div className="h-3 w-32 rounded bg-[#1c1c1a]" />
                   </div>
-                </li>
-              ))
-            : teams.map((team, index) => (
-                <li key={team.id ?? index}>
-                  <TeamCard
-                    team={team}
-                    index={index}
-                    onAddSquad={handleAddSquad}
-                    onDelete={handleDelete}
-                    isDeleting={isRemoving}
-                  />
-                </li>
-              ))}
-        </ul>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {!isLoading && teamsByGroup != null && (
+          <div className="space-y-6 pb-10">
+            {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map(
+              (groupIndex) => (
+                <section key={groupIndex}>
+                  <h3 className="mb-2 text-[13px] font-bold tracking-wide text-[#DA9811] uppercase">
+                    Group {groupIndex}
+                  </h3>
+                  <ul className="space-y-3">
+                    {teamsByGroup[groupIndex].map((team, index) => (
+                      <li key={team.id ?? index}>
+                        <TeamCard
+                          team={team}
+                          index={index}
+                          onAddSquad={handleAddSquad}
+                          onDelete={handleDelete}
+                          isDeleting={isRemoving}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                  {teamsByGroup[groupIndex].length === 0 && (
+                    <p className="rounded-[17px] bg-[#141412] px-4 py-4 text-center text-[13px] text-[#A2A6AB]">
+                      No teams in this group
+                    </p>
+                  )}
+                </section>
+              ),
+            )}
+          </div>
+        )}
+
+        {!isLoading && teamsByGroup == null && teams.length > 0 && (
+          <ul className="space-y-3 pb-10">
+            {teams.map((team, index) => (
+              <li key={team.id ?? index}>
+                <TeamCard
+                  team={team}
+                  index={index}
+                  onAddSquad={handleAddSquad}
+                  onDelete={handleDelete}
+                  isDeleting={isRemoving}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
 
         {!isLoading && teams.length === 0 && (
           <p className="rounded-[17px] bg-[#141412] px-4 py-6 text-center text-[13px] text-[#A2A6AB]">

@@ -57,8 +57,8 @@ export default function StartMatch() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const tournamentIdFromUrl =
-    searchParams.get('tournamentId') || location.state?.tournamentId;
+  const tournamentIdFromUrl = searchParams.get('tournamentId') || location.state?.tournamentId;
+  const tournamentPreSelected = !!tournamentIdFromUrl;
 
   const { data: enums = {} } = useGetEnumsQuery();
   const { data: tournamentsData } = useGetTournamentsQuery({ all: true });
@@ -89,7 +89,7 @@ export default function StartMatch() {
   } = useForm({
     resolver: zodResolver(startMatchSchema),
     defaultValues: {
-      tournament_id: '',
+      tournament_id: tournamentIdFromUrl ? String(tournamentIdFromUrl) : '',
       team_a_id: '',
       team_b_id: '',
       venue: '',
@@ -237,39 +237,41 @@ export default function StartMatch() {
         </header>
 
         <div className="space-y-6 pb-8">
-          {/* Tournament selection (required – teams come from API) */}
-          <FormField
-            htmlFor="tournament_id"
-            label="Tournament"
-            className="space-y-2"
-            labelClassName={`!mb-2 ${formFieldLabelCheckoutClass}`}
-          >
-            <select
-              id="tournament_id"
-              value={tournamentId}
-              onChange={(e) => {
-                const v = e.target.value;
-                setValue('tournament_id', v || '');
-                setValue('team_a_id', '');
-                setValue('team_b_id', '');
-              }}
-              className={`${oversInputBase} w-full ${errors.tournament_id ? 'border-red-500' : ''}`}
-              aria-label="Select tournament"
-              aria-invalid={!!errors.tournament_id}
+          {/* Tournament selection (hidden when opened from tournament hub with pre-selected tournament) */}
+          {!tournamentPreSelected && (
+            <FormField
+              htmlFor="tournament_id"
+              label="Tournament"
+              className="space-y-2"
+              labelClassName={`!mb-2 ${formFieldLabelCheckoutClass}`}
             >
-              <option value="">Select tournament</option>
-              {tournaments.map((t) => (
-                <option key={t.id} value={String(t.id)}>
-                  {t.tournament_name ?? t.name ?? `Tournament ${t.id}`}
-                </option>
-              ))}
-            </select>
-            {errors.tournament_id?.message && (
-              <p className="text-sm text-red-200" role="alert">
-                {errors.tournament_id.message}
-              </p>
-            )}
-          </FormField>
+              <select
+                id="tournament_id"
+                value={tournamentId}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setValue('tournament_id', v || '');
+                  setValue('team_a_id', '');
+                  setValue('team_b_id', '');
+                }}
+                className={`${oversInputBase} w-full ${errors.tournament_id ? 'border-red-500' : ''}`}
+                aria-label="Select tournament"
+                aria-invalid={!!errors.tournament_id}
+              >
+                <option value="">Select tournament</option>
+                {tournaments.map((t) => (
+                  <option key={t.id} value={String(t.id)}>
+                    {t.tournament_name ?? t.name ?? `Tournament ${t.id}`}
+                  </option>
+                ))}
+              </select>
+              {errors.tournament_id?.message && (
+                <p className="text-sm text-red-200" role="alert">
+                  {errors.tournament_id.message}
+                </p>
+              )}
+            </FormField>
+          )}
 
           {hasGroups && (
             <FormField

@@ -68,21 +68,11 @@ export function createTournamentRequestSchema(groupModeValues = []) {
       venue_name: z.string().min(1, 'Venue name is required').max(255),
       start_date: z.string().min(1, 'Start date is required'),
       end_date: z.string().min(1, 'End date is required'),
-      number_of_matches: z.coerce
-        .number({ invalid_type_error: 'Enter a number' })
-        .int('Must be a whole number')
-        .min(1, 'At least 1 match')
-        .max(1000),
       number_of_teams: z.coerce
         .number({ invalid_type_error: 'Enter a number' })
         .int('Must be a whole number')
         .min(1, 'At least 1 team')
         .max(500),
-      expected_players_count: z.coerce
-        .number({ invalid_type_error: 'Enter a number' })
-        .int('Must be a whole number')
-        .min(1, 'At least 1 player')
-        .max(10000),
       country: z.string().min(1, 'Country is required').max(100),
       city: z.string().min(1, 'City is required').max(100),
       match_timings: z.string().min(1, 'Match timings is required'),

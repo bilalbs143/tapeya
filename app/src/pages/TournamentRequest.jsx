@@ -44,9 +44,7 @@ const DEFAULT_VALUES = {
   venue_name: '',
   start_date: '',
   end_date: '',
-  number_of_matches: '',
   number_of_teams: '',
-  expected_players_count: '',
   country: '',
   city: '',
   match_timings: '',
@@ -154,10 +152,8 @@ export default function TournamentRequest() {
         ...data,
         start_date: toApiDate(data.start_date),
         end_date: toApiDate(data.end_date),
-        number_of_matches: Number(data.number_of_matches),
         number_of_teams: Number(data.number_of_teams),
         number_of_groups: Math.max(1, Math.min(16, number_of_groups)),
-        expected_players_count: Number(data.expected_players_count),
         ...(data.prize != null && String(data.prize).trim() !== ''
           ? { prize: String(data.prize).trim() }
           : {}),
@@ -257,20 +253,6 @@ export default function TournamentRequest() {
           />
 
           <FormField
-            label="Number of Matches:"
-            htmlFor="number_of_matches"
-            required
-          >
-            <Input
-              id="number_of_matches"
-              inputMode="numeric"
-              placeholder="Enter Number of Matches"
-              error={errors.number_of_matches?.message}
-              {...register('number_of_matches')}
-            />
-          </FormField>
-
-          <FormField
             label="Number of Teams:"
             htmlFor="number_of_teams"
             required
@@ -307,20 +289,6 @@ export default function TournamentRequest() {
               />
             </FormField>
           )}
-
-          <FormField
-            label="Expected Players Count:"
-            htmlFor="expected_players_count"
-            required
-          >
-            <Input
-              id="expected_players_count"
-              inputMode="numeric"
-              placeholder="Enter Number of Expected Players"
-              error={errors.expected_players_count?.message}
-              {...register('expected_players_count')}
-            />
-          </FormField>
 
           <FormField label="Country:" htmlFor="country" required>
             <Controller

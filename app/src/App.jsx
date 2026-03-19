@@ -23,10 +23,9 @@ import StartMatch from '@/pages/organizer/scoring/StartMatch';
 import TournamentAddSquad from '@/pages/organizer/tournaments/TournamentAddSquad';
 import TournamentAddTeam from '@/pages/organizer/tournaments/TournamentAddTeam';
 import TournamentCreateTeamIntro from '@/pages/organizer/tournaments/TournamentCreateTeamIntro';
-import TournamentEditSquad from '@/pages/organizer/tournaments/TournamentEditSquad';
-import TournamentFinalSquad from '@/pages/organizer/tournaments/TournamentFinalSquad';
 import Tournaments from '@/pages/organizer/tournaments/Tournaments';
 import TournamentSavedTeams from '@/pages/organizer/tournaments/TournamentSavedTeams';
+import TournamentSquad from '@/pages/organizer/tournaments/TournamentSquad';
 import Pricing from '@/pages/pricing/Pricing';
 import PricingDetail from '@/pages/pricing/PricingDetail';
 import Profile from '@/pages/Profile';
@@ -112,12 +111,8 @@ function App() {
                     element={<TournamentAddSquad />}
                   />
                   <Route
-                    path="/organizer/tournaments/:tournamentId/edit-squad"
-                    element={<TournamentEditSquad />}
-                  />
-                  <Route
-                    path="/organizer/tournaments/:tournamentId/final-squad/:teamId"
-                    element={<TournamentFinalSquad />}
+                    path="/organizer/tournaments/:tournamentId/squad"
+                    element={<TournamentSquad />}
                   />
                   <Route
                     path="/organizer/scoring/start-match"

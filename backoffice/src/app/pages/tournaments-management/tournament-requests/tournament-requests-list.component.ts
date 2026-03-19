@@ -9,8 +9,11 @@ import { PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { Router } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { Observable, Subscription } from 'rxjs';
+
+import { ManageTournamentDialogComponent } from '../tournaments/manage-tournament-dialog/manage-tournament-dialog.component';
 
 import { MaterialModule } from 'src/app/material.module';
 import type { EnumOption } from 'src/app/services/enums.service';
@@ -52,6 +55,7 @@ const DEFAULT_FILTERS = { contact_phone: '', status: '', tournament_type: '' } a
 export class TournamentRequestsListComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly tournamentRequestService = inject(TournamentRequestService);
   private readonly messageService = inject(MessageService);
+  private readonly router = inject(Router);
   private readonly enumsService = inject(EnumsService);
   private readonly paginatorConfig = inject(PAGINATOR_CONFIG);
   private readonly fb = inject(FormBuilder);
@@ -162,6 +166,27 @@ export class TournamentRequestsListComponent implements OnInit, AfterViewInit, O
       TournamentRequestDetailDialogComponent,
       { tournamentRequest: request },
       (result) => result && this.loadHttpData(),
+      { widthSize: 'md', disableClose: true }
+    );
+  }
+
+  public openCreateTournamentDialog(request: TournamentRequest): void {
+    this.messageService.openDialog<ManageTournamentDialogComponent, boolean>(
+      ManageTournamentDialogComponent,
+      { mode: 'create', fromRequest: request },
+      (result) => {
+        if (result) {
+          this.tournamentRequestService.updateStatus(request.id, 'approved').subscribe({
+            next: () => {
+              this.router.navigate(['/tournaments-management/tournaments']);
+            },
+            error: () => {
+              this.loadHttpData();
+              this.messageService.error('Tournament created but failed to approve request.');
+            },
+          });
+        }
+      },
       { widthSize: 'md', disableClose: true }
     );
   }

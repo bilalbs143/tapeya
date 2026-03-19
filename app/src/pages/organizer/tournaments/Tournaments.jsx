@@ -161,14 +161,17 @@ export default function Tournaments() {
       name: getTournamentTitle(tournament),
     };
     const state = { tournament: payload };
-    const hasTeams = (tournament.teams_count ?? 0) > 0;
+    const teamsCount = tournament.teams_count ?? 0;
+    const requiredTeams = tournament.number_of_teams ?? 0;
+    const teamsComplete = requiredTeams > 0 && teamsCount >= requiredTeams;
+    const noTeams = teamsCount === 0;
 
-    if (hasTeams) {
-      navigate(`/organizer/tournaments/${tournament.id}/saved-teams`, {
+    if (noTeams || teamsComplete) {
+      navigate(`/organizer/tournaments/${tournament.id}/create-team-intro`, {
         state,
       });
     } else {
-      navigate(`/organizer/tournaments/${tournament.id}/create-team-intro`, {
+      navigate(`/organizer/tournaments/${tournament.id}/saved-teams`, {
         state,
       });
     }

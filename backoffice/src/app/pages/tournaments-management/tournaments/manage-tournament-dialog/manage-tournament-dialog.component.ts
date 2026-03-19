@@ -17,6 +17,7 @@ import { debounceTime, distinctUntilChanged, finalize, switchMap } from 'rxjs/op
 import { EnumsService } from 'src/app/services/enums.service';
 import { type Country, LocationService } from 'src/app/services/location.service';
 import { MessageService } from 'src/app/services/message.service';
+import type { TournamentRequest } from 'src/app/services/tournament-request.service';
 import type { Tournament } from 'src/app/services/tournaments.service';
 import { TournamentsService } from 'src/app/services/tournaments.service';
 import { UsersService } from 'src/app/services/users.service';
@@ -35,6 +36,8 @@ export interface OrganizerOption {
 export interface ManageTournamentDialogData {
   mode: 'create' | 'edit';
   tournament?: Tournament;
+  /** When set, form is pre-filled from this request (create mode), including organizer from request user. */
+  fromRequest?: TournamentRequest;
 }
 
 @Component({
@@ -183,6 +186,9 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
 
   private initializeForm(): void {
     const tournament = this.data.tournament;
+    const fromRequest = this.data.fromRequest;
+
+    const source = fromRequest ?? tournament;
     const initialOrganizer: OrganizerOption | null =
       tournament?.organizer_id && tournament?.organizer
         ? {
@@ -192,7 +198,20 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
             email: tournament.organizer.email ?? null,
             phone: tournament.organizer.phone ?? null,
           }
-        : null;
+        : fromRequest?.user_id && fromRequest?.user
+          ? {
+              id: fromRequest.user.id,
+              name: fromRequest.user.name,
+              nickname: fromRequest.user.nickname ?? null,
+              email: fromRequest.user.email ?? null,
+              phone: fromRequest.user.phone ?? null,
+            }
+          : null;
+
+    const numGroups = source?.number_of_groups ?? 1;
+    const groupMode = numGroups > 1 ? 'group_wise' : 'open';
+    const numberOfGroups = numGroups > 1 ? numGroups : 2;
+
     this.form = this.fb.group({
       organizer: [
         initialOrganizer,
@@ -205,34 +224,20 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
           },
         ],
       ],
-      tournament_name: [tournament?.tournament_name ?? '', [Validators.required, Validators.maxLength(255)]],
-      tournament_type: [normalizeEnumValue(tournament?.tournament_type, ''), [Validators.required]],
-      cricket_format: [normalizeEnumValue(tournament?.cricket_format, ''), [Validators.required]],
-      venue_name: [tournament?.venue_name ?? '', [Validators.required, Validators.maxLength(255)]],
-      start_date: [tournament?.start_date ? this.parseDate(tournament.start_date) : null, [Validators.required]],
-      end_date: [tournament?.end_date ? this.parseDate(tournament.end_date) : null, [Validators.required]],
-      number_of_matches: [
-        tournament?.number_of_matches ?? null,
-        [Validators.required, Validators.min(1), Validators.max(1000)],
-      ],
-      number_of_teams: [
-        tournament?.number_of_teams ?? null,
-        [Validators.required, Validators.min(1), Validators.max(500)],
-      ],
-      group_mode: [(tournament?.number_of_groups ?? 1) > 1 ? 'group_wise' : 'open', [Validators.required]],
-      number_of_groups: [
-        tournament?.number_of_groups && tournament.number_of_groups > 1 ? tournament.number_of_groups : 2,
-        [Validators.min(2), Validators.max(16)],
-      ],
-      expected_players_count: [
-        tournament?.expected_players_count ?? null,
-        [Validators.required, Validators.min(1), Validators.max(10000)],
-      ],
-      country: [tournament?.country ?? '', [Validators.required, Validators.maxLength(100)]],
-      city: [tournament?.city ?? '', [Validators.required, Validators.maxLength(100)]],
-      match_timings: [normalizeEnumValue(tournament?.match_timings, ''), [Validators.required]],
+      tournament_name: [source?.tournament_name ?? '', [Validators.required, Validators.maxLength(255)]],
+      tournament_type: [normalizeEnumValue(source?.tournament_type, ''), [Validators.required]],
+      cricket_format: [normalizeEnumValue(source?.cricket_format, ''), [Validators.required]],
+      venue_name: [source?.venue_name ?? '', [Validators.required, Validators.maxLength(255)]],
+      start_date: [source?.start_date ? this.parseDate(String(source.start_date)) : null, [Validators.required]],
+      end_date: [source?.end_date ? this.parseDate(String(source.end_date)) : null, [Validators.required]],
+      number_of_teams: [source?.number_of_teams ?? null, [Validators.required, Validators.min(1), Validators.max(500)]],
+      group_mode: [groupMode, [Validators.required]],
+      number_of_groups: [numberOfGroups, [Validators.min(2), Validators.max(16)]],
+      country: [source?.country ?? '', [Validators.required, Validators.maxLength(100)]],
+      city: [source?.city ?? '', [Validators.required, Validators.maxLength(100)]],
+      match_timings: [normalizeEnumValue(source?.match_timings, ''), [Validators.required]],
       status: [normalizeEnumValue(tournament?.status_enum ?? tournament?.status, 'active'), [Validators.required]],
-      prize: [tournament?.prize ?? '', [Validators.maxLength(255)]],
+      prize: [source?.prize ?? '', [Validators.maxLength(255)]],
     });
   }
 
@@ -314,11 +319,9 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
     formData.append('venue_name', v.venue_name);
     formData.append('start_date', this.formatDateForApi(v.start_date) ?? '');
     formData.append('end_date', this.formatDateForApi(v.end_date) ?? '');
-    formData.append('number_of_matches', String(Number(v.number_of_matches)));
     formData.append('number_of_teams', String(Number(v.number_of_teams)));
     const numGroups: number = v.group_mode === 'group_wise' ? Number(v.number_of_groups) || 2 : 1;
     formData.append('number_of_groups', String(Math.max(1, Math.min(16, numGroups))));
-    formData.append('expected_players_count', String(Number(v.expected_players_count)));
     formData.append('country', v.country ?? '');
     formData.append('city', v.city);
     formData.append('match_timings', v.match_timings);

@@ -88,8 +88,29 @@ export default function TournamentAddTeam() {
   const numberOfGroups = tournament?.number_of_groups ?? 1;
   const hasGroups = numberOfGroups > 1;
 
+  const preferredGroupFromState = state?.preferredGroupIndex;
   const [selectedTeam, setSelectedTeam] = useState(null);
-  const [selectedGroupIndex, setSelectedGroupIndex] = useState(1);
+  const [selectedGroupIndex, setSelectedGroupIndex] = useState(
+    /** @type {number | 'random'} */ (
+      () => {
+        const n = Number(preferredGroupFromState);
+        if (Number.isInteger(n) && n >= 1 && n <= 16) return n;
+        return 'random';
+      }
+    ),
+  );
+  useEffect(() => {
+    const n = Number(preferredGroupFromState);
+    if (hasGroups && Number.isInteger(n) && n >= 1 && n <= numberOfGroups) {
+      setSelectedGroupIndex(n);
+    }
+  }, [hasGroups, numberOfGroups, preferredGroupFromState]);
+
+  const resolveGroupIndex = () =>
+    selectedGroupIndex === 'random'
+      ? Math.floor(Math.random() * numberOfGroups) + 1
+      : selectedGroupIndex;
+
   const [logoName, setLogoName] = useState('No File Selected');
   const [logoFile, setLogoFile] = useState(/** @type {File | null} */ (null));
   const [selectedSponsor, setSelectedSponsor] = useState(
@@ -219,7 +240,7 @@ export default function TournamentAddTeam() {
         await attachTeamsToTournament({
           tournamentId: tournamentIdNum,
           team_ids: [selectedTeam.id],
-          ...(hasGroups ? { group_index: selectedGroupIndex } : {}),
+          ...(hasGroups ? { group_index: resolveGroupIndex() } : {}),
         }).unwrap();
         toast.success('Team added to tournament.');
         navigate(`/organizer/tournaments/${tournamentIdNum}/saved-teams`, {
@@ -252,7 +273,7 @@ export default function TournamentAddTeam() {
         await attachTeamsToTournament({
           tournamentId: tournamentIdNum,
           team_ids: [teamId],
-          ...(hasGroups ? { group_index: selectedGroupIndex } : {}),
+          ...(hasGroups ? { group_index: resolveGroupIndex() } : {}),
         }).unwrap();
       }
 
@@ -309,7 +330,9 @@ export default function TournamentAddTeam() {
             >
               <Select
                 value={String(selectedGroupIndex)}
-                onValueChange={(v) => setSelectedGroupIndex(Number(v))}
+                onValueChange={(v) =>
+                  setSelectedGroupIndex(v === 'random' ? 'random' : Number(v))
+                }
               >
                 <SelectTrigger
                   id="group_index"
@@ -323,6 +346,14 @@ export default function TournamentAddTeam() {
                   viewportClassName={selectViewportInputClass}
                   position="popper"
                 >
+                  <SelectItem
+                    value="random"
+                    className={selectItemInputClass}
+                    textClassName="!text-white"
+                    indicatorClassName="!text-white"
+                  >
+                    Random Group
+                  </SelectItem>
                   {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map(
                     (idx) => (
                       <SelectItem
