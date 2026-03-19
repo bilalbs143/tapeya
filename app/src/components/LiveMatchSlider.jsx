@@ -27,13 +27,13 @@ export function LiveMatchSlider() {
             className="h-2 w-2 shrink-0 rounded-full bg-red-500"
             aria-hidden
           />
-          <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
+          <h2 className="text-[13px] md:text-[16px] font-bold tracking-wide text-[#A2A6AB] uppercase">
             Live now
           </h2>
         </div>
         <Link
           to="/live"
-          className="text-[12px] font-bold text-[#DA9811] transition-opacity active:opacity-80"
+          className="text-[12px] md:text-[16px] font-bold text-[#DA9811] transition-opacity active:opacity-80"
         >
           View more
         </Link>

@@ -137,7 +137,7 @@ export default function UploadReels() {
     <div className="bg-black">
       <Container className="!px-4 !py-0">
         {/* Header: back + title */}
-        <header className="-mx-4 -mt-6 flex items-center justify-between bg-black px-4 pt-6 pb-4">
+        <header className="-mx-4 -mt-6 lg:mt-0 flex items-center justify-between bg-black px-4 pt-6 pb-4">
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -250,7 +250,7 @@ export default function UploadReels() {
         </div>
 
         {/* Actions */}
-        <div className="mt-6 flex items-center justify-center gap-4">
+        <div className="mt-6 flex items-center justify-center gap-4 lg:my-5 lg:justify-start">
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
