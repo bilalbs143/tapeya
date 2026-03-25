@@ -183,6 +183,11 @@ export default function ScoringMatch() {
 
   const match = useMemo(() => {
     if (!fromApi || !apiMatch) return null;
+    const needsScorecardForLegacyToss =
+      apiMatch.status === 'completed' &&
+      apiMatch.toss_winner_team_id == null &&
+      apiMatch.chose_to_bat_or_bowl != null;
+    if (needsScorecardForLegacyToss && !scorecard?.innings?.[0]) return null;
     const homeSquadArr = Array.isArray(squadHome) ? squadHome : [];
     const awaySquadArr = Array.isArray(squadAway) ? squadAway : [];
     const battingIds = playingElevenHome?.player_ids ?? [];
@@ -195,10 +200,16 @@ export default function ScoringMatch() {
       const u = awaySquadArr.find((x) => x.id === id);
       return { id, name: u?.name ?? u?.nickname ?? `Player ${id}` };
     });
-    return apiMatchToUiMatchConfig(apiMatch, battingPlayers, bowlingPlayers);
+    return apiMatchToUiMatchConfig(
+      apiMatch,
+      battingPlayers,
+      bowlingPlayers,
+      scorecard,
+    );
   }, [
     fromApi,
     apiMatch,
+    scorecard,
     playingElevenHome?.player_ids,
     playingElevenAway?.player_ids,
     squadHome,
@@ -263,7 +274,9 @@ export default function ScoringMatch() {
   useEffect(() => {
     if (!fromApi || !apiMatch) return;
     const hasToss =
-      apiMatch.winning_team_id != null && apiMatch.chose_to_bat_or_bowl != null;
+      apiMatch.chose_to_bat_or_bowl != null &&
+      (apiMatch.toss_winner_team_id != null ||
+        (apiMatch.status !== 'completed' && apiMatch.winning_team_id != null));
     if (!hasToss && apiMatch.status === 'scheduled') setTossDialogOpen(true);
   }, [
     fromApi,
@@ -271,6 +284,7 @@ export default function ScoringMatch() {
     apiMatch?.id,
     apiMatch?.status,
     apiMatch?.winning_team_id,
+    apiMatch?.toss_winner_team_id,
     apiMatch?.chose_to_bat_or_bowl,
   ]);
 

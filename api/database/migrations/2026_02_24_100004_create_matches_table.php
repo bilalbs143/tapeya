@@ -36,7 +36,13 @@ return new class extends Migration
                 ->nullable()
                 ->constrained('teams')
                 ->nullOnDelete();
+            $table->foreignId('toss_winner_team_id')
+                ->nullable()
+                ->after('winning_team_id')
+                ->constrained('teams')
+                ->nullOnDelete();
             $table->string('chose_to_bat_or_bowl', 10)->nullable();
+            $table->boolean('is_no_result')->default(false);
 
             $table->timestamps();
         });

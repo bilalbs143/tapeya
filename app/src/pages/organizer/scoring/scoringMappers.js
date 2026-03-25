@@ -271,30 +271,76 @@ export function uiBallToStoreBallPayload({
 // -----------------------------------------------------------------------------
 
 /**
+ * Toss winner team id. After a match is completed, `winning_team_id` is the match winner;
+ * use `toss_winner_team_id` when present. Legacy completed rows may infer from innings 1 + chose_to.
+ *
+ * @param {object|null} apiMatch
+ * @param {object|null} [scorecard]
+ * @returns {number|null}
+ */
+export function getTossWinnerTeamId(apiMatch, scorecard) {
+  if (!apiMatch) return null;
+  if (apiMatch.toss_winner_team_id != null) {
+    return Number(apiMatch.toss_winner_team_id);
+  }
+  if (apiMatch.status !== 'completed') {
+    return apiMatch.winning_team_id != null
+      ? Number(apiMatch.winning_team_id)
+      : null;
+  }
+  const inn1 = scorecard?.innings?.[0];
+  const choseBat = apiMatch.chose_to_bat_or_bowl === 'bat';
+  if (
+    inn1?.batting_team_id != null &&
+    inn1?.bowling_team_id != null &&
+    apiMatch.chose_to_bat_or_bowl
+  ) {
+    return choseBat
+      ? Number(inn1.batting_team_id)
+      : Number(inn1.bowling_team_id);
+  }
+  return apiMatch.winning_team_id != null
+    ? Number(apiMatch.winning_team_id)
+    : null;
+}
+
+/**
  * Build UI match config from API match response.
  * API match must include overs (required). Other fields: home_team, away_team,
- * winning_team_id, chose_to_bat_or_bowl, venue_name, match_date, match_time, players_per_side.
+ * toss_winner_team_id / winning_team_id, chose_to_bat_or_bowl, venue_name, match_date, match_time, players_per_side.
+ *
+ * @param {object|null} [scorecard] optional; used to infer toss winner on legacy completed matches.
  */
 export function apiMatchToUiMatchConfig(
   apiMatch,
   battingPlayers = [],
   bowlingPlayers = [],
+  scorecard = null,
 ) {
   if (!apiMatch) return null;
   const home = apiMatch.home_team ?? {};
   const away = apiMatch.away_team ?? {};
-  const winningId = apiMatch.winning_team_id;
+  const winningId = getTossWinnerTeamId(apiMatch, scorecard);
   const choseBat = apiMatch.chose_to_bat_or_bowl === 'bat';
+  const hid = home.id != null ? Number(home.id) : null;
+  const aid = away.id != null ? Number(away.id) : null;
+  const wid = winningId != null ? Number(winningId) : null;
   const battingTeamId =
-    winningId && choseBat
-      ? winningId
-      : winningId === home.id
-        ? away.id
-        : home.id;
-  const bowlingTeamId = battingTeamId === home.id ? away.id : home.id;
+    wid != null && choseBat
+      ? wid
+      : wid === hid
+        ? aid
+        : hid;
+  const bowlingTeamId = battingTeamId === hid ? aid : hid;
 
-  const battingTeam = battingTeamId === home.id ? home : away;
-  const bowlingTeam = bowlingTeamId === home.id ? home : away;
+  const battingTeam =
+    battingTeamId != null && hid != null && Number(battingTeamId) === hid
+      ? home
+      : away;
+  const bowlingTeam =
+    bowlingTeamId != null && hid != null && Number(bowlingTeamId) === hid
+      ? home
+      : away;
 
   const teamA = {
     name: battingTeam.name ?? '',
@@ -326,9 +372,9 @@ export function apiMatchToUiMatchConfig(
     matchTime: apiMatch.match_time ?? '',
     overs: apiMatch.overs,
     playersPerSide: apiMatch.players_per_side,
-    toss: winningId
+    toss: wid != null
       ? {
-          winner: winningId === home.id ? 'A' : 'B',
+          winner: wid === hid ? 'A' : 'B',
           decision: apiMatch.chose_to_bat_or_bowl === 'bat' ? 'bat' : 'bowl',
         }
       : null,

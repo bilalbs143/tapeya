@@ -10,6 +10,7 @@ use App\Jobs\RefreshMatchStatsJob;
 use App\Models\Ball;
 use App\Models\Innings;
 use App\Models\TournamentMatch;
+use App\Services\MatchCompletionService;
 use App\Services\PlayerStatsService;
 use Illuminate\Http\JsonResponse;
 
@@ -40,6 +41,8 @@ class ScorecardController extends Controller
         $ball = Ball::create($data);
 
         $innings->update(['status' => 'in_progress']);
+
+        app(MatchCompletionService::class)->evaluate($match->fresh());
 
         RefreshMatchStatsJob::dispatch($match->id);
 
@@ -92,6 +95,8 @@ class ScorecardController extends Controller
 
         $ball->update($request->validated());
 
+        app(MatchCompletionService::class)->evaluate($match->fresh());
+
         RefreshMatchStatsJob::dispatch($match->id);
 
         $ball->load(['striker', 'nonStriker', 'bowler', 'outPlayer', 'fielder']);
@@ -139,6 +144,8 @@ class ScorecardController extends Controller
 
         $ball->delete();
 
+        app(MatchCompletionService::class)->evaluate($match->fresh());
+
         RefreshMatchStatsJob::dispatch($match->id);
 
         return $this->success(null, 'Ball deleted.');
@@ -160,9 +167,9 @@ class ScorecardController extends Controller
             'match_id' => $match->id,
             'innings' => $innings->map(function (Innings $inn) use ($statsService) {
                 $balls = $inn->balls;
-                $totalRuns = $balls->sum('runs') + $balls->sum('penalty_runs');
+                $totalRuns = $balls->sum('runs');
                 $totalWickets = $balls->where('is_wicket', true)->count();
-                $totalExtras = $balls->sum('runs') - $balls->sum('runs_off_bat') + $balls->sum('penalty_runs');
+                $totalExtras = $balls->sum('runs') - $balls->sum('runs_off_bat');
 
                 return [
                     'id' => $inn->id,

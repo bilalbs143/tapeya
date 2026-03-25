@@ -77,7 +77,7 @@ export function StatusDetailsPlayingXITab({ match, details }) {
                           {players1[i].name}
                         </p>
                         <p className="mt-0.5 text-[12px] text-[#A2A6AB]">
-                          {players1[i].role}
+                          {players1[i].playing_role}
                         </p>
                       </>
                     ) : (
@@ -93,7 +93,7 @@ export function StatusDetailsPlayingXITab({ match, details }) {
                           {players2[i].name}
                         </p>
                         <p className="mt-0.5 text-[12px] text-[#A2A6AB]">
-                          {players2[i].role}
+                          {players2[i].playing_role}
                         </p>
                       </>
                     ) : (

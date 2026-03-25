@@ -1,96 +1,6 @@
-/**
- * StatsTab.jsx  (exported as StatsTab — part of the scorecard tabs module)
- *
- * Displays season stats for a tournament: total fours/sixes summary cards and
- * top run-scorers / top wicket-takers player lists, each linking to the full
- * stats table (StatsTotal).
- *
- * Used by both ScorecardDetails and ScorecardStatusDetails as a tab panel.
- *
- * -----------------------------------------------------------------------------
- * CURSOR — File structure guide
- * -----------------------------------------------------------------------------
- *
- * Utils to move out of this file
- * ───────────────────────────────
- *   getPlayerInitials(name)
- *     → move to: src/lib/utils/displayUtils.js → export { getPlayerInitials }
- *     reason: same initials logic already exists as getInitials(name, nickname)
- *             in Login.jsx.  Consolidate both into one utility:
- *               export function getInitials(name, nickname?)
- *             and use it everywhere avatars show initials.
- *
- * Components to extract into their own files
- * ───────────────────────────────────────────
- *   <SummaryCard>
- *     → move to: src/features/scorecard/components/SummaryCard.jsx
- *     reason: a self-contained card that renders as either a <Link> or a
- *             <button> depending on whether `to` is provided.  Extracting
- *             gives a clear place to fix the dead-button TODO below.
- *     props it will need:
- *       value   {number | string}
- *       label   {string}
- *       accent  {'yellow' | 'blue'}  default 'yellow'
- *       to      {string | undefined}
- *
- *   <PlayerStatCard>
- *     → move to: src/features/scorecard/components/PlayerStatCard.jsx
- *     reason: avatar + name + primary stat + innings/average — similar to
- *             PlayerCard in Ranking.jsx.  If the two cards converge on the
- *             same design, merge them into one shared component.
- *     props it will need:
- *       player       {SeasonStatsPlayer}
- *       primaryStat  {number | string}
- *       statSuffix   {string}  default ''
- *
- *   <SectionHeader>
- *     → move to: src/ui/SectionHeader.jsx  (or src/features/scorecard/components/)
- *     reason: title + optional View More link — likely reusable across other
- *             list sections in the scorecard module.
- *     props it will need:
- *       title      {string}
- *       viewMoreTo {string | undefined}
- *
- * Behaviour notes for Cursor
- * ──────────────────────────
- *   FIXED: `player.name.split(' ').map((n) => n[0])` threw when player.name
- *          was null/undefined, and `n[0]` was undefined for empty name parts.
- *          Replaced with a safe initials helper using optional chaining.
- *
- *   FIXED: `AvatarImage` was conditionally rendered twice (once for
- *          player.image, once for the default).  `AvatarImage` handles a
- *          missing/falsy src gracefully — simplified to a single
- *          `src={player.image || defaultPlayerImage}`.
- *
- *   FIXED: The `<h1>{title}</h1>` header was copy-pasted in all three
- *          early-return branches.  Extracted to a `const titleNode` variable.
- *
- *   TODO: `_primaryLabel` is accepted as a prop (prefixed _ to signal
- *         "unused") but is never rendered.  The call sites pass
- *         `primaryLabel="Runs"` and `primaryLabel="Wickets"` which are also
- *         silently discarded.  Either:
- *           a) render it below the primaryStat in PlayerStatCard, or
- *           b) remove the prop from the signature and stop passing it at
- *              call sites to keep the interface clean.
- *
- *   TODO: `matches: _matches` is accepted but never used.  Remove from the
- *         prop signature and from all call sites once confirmed it is not
- *         needed by this component.
- *
- *   TODO: `SummaryCard` renders a `<button>` with no `onClick` when `to` is
- *         not provided — a dead interactive element that does nothing and
- *         misleads keyboard users.  Either always require `to`, or accept an
- *         `onClick` prop, or render a plain `<div>` when neither is provided.
- *
- *   TODO: `title` contains a hardcoded `2026 - SEASON 3` string — same issue
- *         as StatsTotal.jsx.  Replace with dynamic season data from the API
- *         once the endpoint returns it.
- * -----------------------------------------------------------------------------
- */
-
 import { Link, useParams } from 'react-router-dom';
 
-import defaultPlayerImage from '@/assets/images/standard/player-avatar.png';
+import defaultPlayerImage from '@/assets/images/standard/default-avatar.png';
 import { statsTotalPaths } from '@/pages/scorecard/statsTotalFlow';
 import { useGetTournamentSeasonStatsQuery } from '@/store/api/tournamentApi';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
@@ -138,18 +48,20 @@ function SummaryCard({ value, label, accent = 'yellow', to }) {
           {label}
         </div>
       </div>
-      <svg
-        className="h-5 w-5 shrink-0 text-white"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-      >
-        <path d="M9 18l6-6-6-6" />
-      </svg>
+      {to && (
+        <svg
+          className="h-5 w-5 shrink-0 text-white"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden
+        >
+          <path d="M9 18l6-6-6-6" />
+        </svg>
+      )}
     </>
   );
 
@@ -160,12 +72,7 @@ function SummaryCard({ value, label, accent = 'yellow', to }) {
       </Link>
     );
   }
-  // TODO: render a <div> here instead of a dead <button> (see top).
-  return (
-    <button type="button" className={baseClass}>
-      {content}
-    </button>
-  );
+  return <div className={baseClass}>{content}</div>;
 }
 
 /**
@@ -176,8 +83,6 @@ function SummaryCard({ value, label, accent = 'yellow', to }) {
 function PlayerStatCard({
   player,
   primaryStat,
-
-  _primaryLabel,
   statSuffix = '',
 }) {
   // Fixed: was `player.name.split(' ').map((n) => n[0])` — throws when name
@@ -205,7 +110,7 @@ function PlayerStatCard({
             {player.name}
           </span>
           <span className="text-[12px] font-medium text-[#DEDEDE]">
-            {player.teamAbbr}, {player.role}
+            {player.teamAbbr}, {player.playing_role}
           </span>
         </div>
         <div className="mt-1 text-[18px] font-bold text-[#DA9811]">
@@ -247,7 +152,7 @@ function SectionHeader({ title, viewMoreTo }) {
 // Tab component
 // ---------------------------------------------------------------------------
 
-export function StatsTab({ tournamentId, matches: _matches }) {
+export function StatsTab({ tournamentId }) {
   const { tournamentId: paramId } = useParams();
   const id = tournamentId ?? paramId;
 
@@ -257,8 +162,7 @@ export function StatsTab({ tournamentId, matches: _matches }) {
     isError,
   } = useGetTournamentSeasonStatsQuery(id, { skip: !id });
 
-  // TODO: replace hardcoded '2026 - SEASON 3' with dynamic season data (see top).
-  const title = id ? `${id} 2026 - SEASON 3` : 'SEASON 3';
+  const title = id ? `${id} - SEASON STATS` : 'SEASON STATS';
 
   const statsTotalFours = id ? statsTotalPaths.scorecard(id, 'fours') : null;
   const statsTotalSixes = id ? statsTotalPaths.scorecard(id, 'sixes') : null;
@@ -351,7 +255,6 @@ export function StatsTab({ tournamentId, matches: _matches }) {
               key={player.id}
               player={player}
               primaryStat={player.runs}
-              primaryLabel="Runs"
             />
           ))}
         </div>
@@ -368,7 +271,6 @@ export function StatsTab({ tournamentId, matches: _matches }) {
               key={player.id}
               player={player}
               primaryStat={player.wickets}
-              primaryLabel="Wickets"
             />
           ))}
         </div>

@@ -21,7 +21,7 @@ class TournamentMatchController extends Controller
     public function index(Tournament $tournament): JsonResponse
     {
         $query = $tournament->matches()
-            ->with(['homeTeam', 'awayTeam', 'winningTeam'])
+            ->with(['homeTeam', 'awayTeam', 'winningTeam', 'tossWinnerTeam'])
             ->orderBy('match_date')
             ->orderBy('match_time');
 
@@ -37,7 +37,7 @@ class TournamentMatchController extends Controller
      */
     public function show(TournamentMatch $match): JsonResponse
     {
-        $match->load(['homeTeam', 'awayTeam', 'winningTeam', 'tournament']);
+        $match->load(['homeTeam', 'awayTeam', 'winningTeam', 'tossWinnerTeam', 'tournament']);
 
         return $this->success(new TournamentMatchResource($match));
     }

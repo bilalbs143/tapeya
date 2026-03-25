@@ -22,7 +22,9 @@ class TournamentMatch extends BaseModel
         'overs',
         'status',
         'winning_team_id',
+        'toss_winner_team_id',
         'chose_to_bat_or_bowl',
+        'is_no_result',
     ];
 
     /**
@@ -33,6 +35,7 @@ class TournamentMatch extends BaseModel
         return [
             'match_date' => 'date',
             'status' => MatchStatusEnum::class,
+            'is_no_result' => 'boolean',
         ];
     }
 
@@ -54,6 +57,11 @@ class TournamentMatch extends BaseModel
     public function winningTeam(): BelongsTo
     {
         return $this->belongsTo(Team::class, 'winning_team_id');
+    }
+
+    public function tossWinnerTeam(): BelongsTo
+    {
+        return $this->belongsTo(Team::class, 'toss_winner_team_id');
     }
 
     public function innings(): HasMany

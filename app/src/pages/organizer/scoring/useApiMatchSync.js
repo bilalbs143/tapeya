@@ -22,6 +22,7 @@ import {
 } from './scoring-tabs/useInningsState';
 import {
   buildPlayerIdToName,
+  getTossWinnerTeamId,
   scorecardInningsToBallHistory,
 } from './scoringMappers';
 import { replayBallHistory } from './scoringReplay';
@@ -46,15 +47,18 @@ function idsToPlayers(ids, nameMap) {
   }));
 }
 
-function getBattingBowlingTeamIds(apiMatch) {
+function getBattingBowlingTeamIds(apiMatch, scorecard) {
   if (!apiMatch) return { battingTeamId: null, bowlingTeamId: null };
   const homeId = apiMatch.home_team_id;
   const awayId = apiMatch.away_team_id;
-  const winnerId = apiMatch.winning_team_id;
+  const tossWinnerId = getTossWinnerTeamId(apiMatch, scorecard);
   const choseBat = apiMatch.chose_to_bat_or_bowl === 'bat';
+  const tw = tossWinnerId != null ? Number(tossWinnerId) : null;
+  const hid = homeId != null ? Number(homeId) : null;
+  const aid = awayId != null ? Number(awayId) : null;
   const battingTeamId =
-    winnerId && choseBat ? winnerId : winnerId === homeId ? awayId : homeId;
-  const bowlingTeamId = battingTeamId === homeId ? awayId : homeId;
+    tw != null && choseBat ? tw : tw === hid ? aid : hid;
+  const bowlingTeamId = battingTeamId === hid ? aid : hid;
   return { battingTeamId, bowlingTeamId };
 }
 
@@ -104,6 +108,12 @@ export function useApiMatchSync({
     if (playingElevenHome === undefined || playingElevenAway === undefined)
       return;
 
+    const needsScorecardForLegacyToss =
+      apiMatch.status === 'completed' &&
+      apiMatch.toss_winner_team_id == null &&
+      apiMatch.chose_to_bat_or_bowl != null;
+    if (needsScorecardForLegacyToss && scorecard == null) return;
+
     const homeSquadArr = Array.isArray(squadHome) ? squadHome : [];
     const awaySquadArr = Array.isArray(squadAway) ? squadAway : [];
     const scorecardInnings1 = scorecard?.innings?.[0];
@@ -111,7 +121,7 @@ export function useApiMatchSync({
 
     // ── Innings 1: determine batting/bowling teams ─────────────────────────
     const { battingTeamId: defaultBatId, bowlingTeamId: defaultBowlId } =
-      getBattingBowlingTeamIds(apiMatch);
+      getBattingBowlingTeamIds(apiMatch, scorecard);
 
     const bat1TeamId = scorecardInnings1?.batting_team_id ?? defaultBatId;
     const bowl1TeamId = scorecardInnings1?.bowling_team_id ?? defaultBowlId;
@@ -256,6 +266,7 @@ export function useApiMatchSync({
     playingElevenAway,
     squadHome,
     squadAway,
+    scorecard,
     apiSynced,
   ]);
 }

@@ -209,8 +209,6 @@ export default function ScorecardDetails() {
             <div className="-mx-4 bg-black px-4 pt-0.5 pb-2">{tabsContent}</div>
           </div>
 
-          {/* Fixed tab bar — shown once the inline bar scrolls out of view.
-              Fixed: removed redundant `z-10`; `z-[100]` is the effective value. */}
           {tabsFixedVisible && (
             <div
               className="fixed right-0 left-0 z-[100] bg-black pt-1 pb-2"
