@@ -1,23 +1,12 @@
 import { useState } from 'react';
 
 import editProfileIcon from '@/assets/images/icons/edit-profile.svg';
+import { formatDate } from '@/lib/format';
+import { useAppSelector } from '@/store/hooks';
+import { selectUser } from '@/store/selectors';
 
 import { CONTENT_MAX_WIDTH, FOCUS_RING } from './constants';
 import { UserEdit } from './UserEdit';
-
-const DETAILS_LEFT = [
-  { label: 'PHONE', value: '—' },
-  { label: 'CATEGORY', value: 'Organizer' },
-  { label: 'ORGANIZATION', value: '—' },
-  { label: 'EMAIL', value: '—' },
-];
-
-const DETAILS_RIGHT = [
-  { label: 'CITY', value: '—' },
-  { label: 'TOURNAMENTS', value: '—' },
-  { label: 'EVENTS HOSTED', value: '—' },
-  { label: 'MEMBER SINCE', value: '—' },
-];
 
 const EDIT_PROFILE_BUTTON_CLASS = `inline-flex items-center gap-2 rounded-[17px] border border-white bg-transparent px-4 py-1 text-[12px] font-semibold uppercase tracking-wide text-white/70 transition-colors hover:border-white/60 hover:text-white/90 ${FOCUS_RING}`;
 
@@ -33,8 +22,36 @@ function DetailRow({ label, value, withColon = true }) {
   );
 }
 
-export function OrganizerOverview() {
+export function OrganizerOverview({ tournaments, events }) {
   const [editOpen, setEditOpen] = useState(false);
+  const user = useAppSelector(selectUser);
+
+  const detailsLeft = [
+    { label: 'PHONE', value: user?.phone ?? '—' },
+    { label: 'CATEGORY', value: 'Organizer' },
+    { label: 'ORGANIZATION', value: user?.organization ?? '—' },
+    { label: 'EMAIL', value: user?.email ?? '—' },
+  ];
+
+  const memberSince = user?.created_at
+    ? formatDate(user.created_at, { month: 'short', year: 'numeric' })
+    : '—';
+
+  const detailsRight = [
+    { label: 'CITY', value: user?.city ?? '—', withColon: false },
+    { label: 'COUNTRY', value: user?.country ?? '—', withColon: true },
+    {
+      label: 'TOURNAMENTS',
+      value: tournaments != null ? String(tournaments) : '—',
+      withColon: true,
+    },
+    {
+      label: 'EVENTS HOSTED',
+      value: events != null ? String(events) : '—',
+      withColon: true,
+    },
+    { label: 'MEMBER SINCE', value: memberSince, withColon: true },
+  ];
 
   return (
     <div className={`mx-auto w-full ${CONTENT_MAX_WIDTH}`}>
@@ -58,17 +75,17 @@ export function OrganizerOverview() {
 
       <div className="grid grid-cols-2 gap-x-8 gap-y-6 py-6">
         <div className="flex flex-col gap-5">
-          {DETAILS_LEFT.map((item) => (
+          {detailsLeft.map((item) => (
             <DetailRow key={item.label} label={item.label} value={item.value} />
           ))}
         </div>
         <div className="flex flex-col gap-5">
-          {DETAILS_RIGHT.map((item) => (
+          {detailsRight.map((item) => (
             <DetailRow
               key={item.label}
               label={item.label}
               value={item.value}
-              withColon={item.label !== 'CITY'}
+              withColon={item.withColon ?? true}
             />
           ))}
         </div>

@@ -120,7 +120,8 @@ export function dismissalValueToLabel(value, enumOptions) {
 
 /**
  * Convert a single API ball to UI ball shape.
- * UI shape: { type: 'runs'|'out'|'wd'|'nb'|'bye'|'lb', runs?, strikerId?, bowlerId?, striker?, dismissalType?, fielderId?, id? }
+ * UI shape: { type: 'runs'|'out'|'wd'|'nb'|'bye'|'lb', runs?, strikerId?, bowlerId?, striker?, dismissalType?, dismissalLabel?, fielderId?, id? }
+ * dismissalLabel comes from API dismissal_type_label (display only).
  */
 export function apiBallToUiBall(apiBall, playerIdToName = {}) {
   if (!apiBall) return null;
@@ -141,7 +142,7 @@ export function apiBallToUiBall(apiBall, playerIdToName = {}) {
 
   const ui = {
     type,
-    runs: type === 'wd' || type === 'nb' ? 1 : runs,
+    runs: type === 'wd' || type === 'nb' ? (runs > 0 ? runs : 1) : runs,
     strikerId: apiBall.striker_id,
     nonStrikerId: apiBall.non_striker_id,
     bowlerId: apiBall.bowler_id,
@@ -152,6 +153,7 @@ export function apiBallToUiBall(apiBall, playerIdToName = {}) {
   if (type === 'out') {
     const outPlayerId = apiBall.out_player_id ?? apiBall.striker_id;
     ui.dismissalType = apiBall.dismissal_type ?? null;
+    ui.dismissalLabel = apiBall.dismissal_type_label ?? undefined;
     ui.fielderId = apiBall.fielder_id ?? undefined;
     ui.striker = {
       id: outPlayerId,
@@ -223,7 +225,11 @@ export function uiBallToStoreBallPayload({
     runs = ball.runs ?? 0;
     runsOffBat = runs;
   } else if (isWide || isNoBall) {
-    runs = 1;
+    runs = Math.max(0, Number(ball.runs) || 1);
+    runsOffBat = isNoBall ? Math.max(0, runs - 1) : 0;
+  } else if (isBye || isLegBye) {
+    runs = Math.max(0, Number(ball.runs) || 0);
+    runsOffBat = 0;
   }
 
   const dismissalValue =

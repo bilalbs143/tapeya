@@ -47,6 +47,7 @@ class User extends Authenticatable
         'batting_style',
         'country',
         'city',
+        'avatar',
         'password',
         'type',
         'status',

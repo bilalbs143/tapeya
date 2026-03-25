@@ -1,16 +1,3 @@
-/**
- * StatsTab – shot direction wheel, batting stats bar, and comparison charts.
- *
- * Receives both innings' ball histories so Over/Run Comparison charts can
- * toggle between teams. Previously teamBRunsPerOver was always hardcoded to []
- * — that bug is fixed here.
- *
- * Props:
- *   ballHistory         {object[]}  Innings 1 ball history (team A batting).
- *   innings2BallHistory {object[]}  Innings 2 ball history (team B batting).
- *   match               {object}    Full match object (teamA, teamB, etc.)
- */
-
 import { useMemo, useState } from 'react';
 
 import ReactApexChart from 'react-apexcharts';
@@ -58,15 +45,64 @@ const STAT_ITEMS = [
 ];
 
 /** Shared axis label style for all charts. */
-const BASE_AXIS_STYLE = { colors: '#fff', fontSize: '12px' };
+const BASE_AXIS_STYLE = Object.freeze({ colors: '#fff', fontSize: '12px' });
 
 /** Shared grid config for all charts. */
-const BASE_GRID = {
+const BASE_GRID = Object.freeze({
   borderColor: 'rgba(255,255,255,0.2)',
   strokeDashArray: 0,
-  xaxis: { lines: { show: false } },
-  yaxis: { lines: { show: true } },
-};
+  xaxis: Object.freeze({ lines: Object.freeze({ show: false }) }),
+  yaxis: Object.freeze({ lines: Object.freeze({ show: true }) }),
+});
+
+/** Bar chart column width: narrow so two series remain readable side by side. */
+const BAR_CHART_COLUMN_WIDTH = '20%';
+
+// ─── Chart option factory ─────────────────────────────────────────────────────
+
+/**
+ * Builds a base ApexCharts options object and deep-merges type-specific
+ * overrides on top.  Eliminates the ~70% duplication between line and bar
+ * chart option objects.
+ *
+ * @param {string} type        ApexCharts chart type ('line' | 'bar').
+ * @param {string[]} categories  X-axis category labels.
+ * @param {object}  overrides  Type-specific fields that replace the defaults.
+ * @returns {object}
+ */
+function makeChartOptions(type, categories, overrides = {}) {
+  return {
+    chart: {
+      type,
+      background: 'transparent',
+      toolbar: { show: false },
+      zoom: { enabled: false },
+      selection: { enabled: false },
+      ...overrides.chart,
+    },
+    colors: [CHART_ORANGE, '#FFFFFF'],
+    dataLabels: { enabled: false },
+    xaxis: {
+      categories,
+      labels: { style: BASE_AXIS_STYLE },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+    },
+    yaxis: {
+      min: 0,
+      max: 50,
+      tickAmount: 5,
+      labels: { style: BASE_AXIS_STYLE },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      ...overrides.yaxis,
+    },
+    grid: BASE_GRID,
+    tooltip: { theme: 'dark', x: { show: true } },
+    legend: { show: false },
+    ...overrides,
+  };
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -158,21 +194,20 @@ export function StatsTab({
   const teamAName = (teamA?.name ?? '').trim() || '—';
   const teamBName = (teamB?.name ?? '').trim() || '—';
 
-  // ── Stats bar: always shows the currently selected team's innings ──────────
+  const [chartTeam, setChartTeam] = useState('both');
 
-  // The chart team toggle controls BOTH the stats bar and the charts.
-  const [chartTeam, setChartTeam] = useState('teamA');
+  // ── Stats bar ────────────────────────────────────────────────────────────────
 
-  const activeHistory =
-    chartTeam === 'teamA' ? ballHistory : innings2BallHistory;
-
-  // Stats bar reflects the selected team's innings.
-  const stats = useMemo(
-    () => computeBattingStatsBar(activeHistory),
-    [activeHistory],
+  const statsA = useMemo(
+    () => computeBattingStatsBar(ballHistory),
+    [ballHistory],
+  );
+  const statsB = useMemo(
+    () => computeBattingStatsBar(innings2BallHistory),
+    [innings2BallHistory],
   );
 
-  // ── Runs per over (FIX: teamB now uses innings2BallHistory, not []) ────────
+  // ── Runs per over ────────────────────────────────────────────────────────────
 
   const teamARunsPerOver = useMemo(
     () => getRunsPerOver(ballHistory),
@@ -183,105 +218,83 @@ export function StatsTab({
     [innings2BallHistory],
   );
 
-  const chartData = chartTeam === 'teamA' ? teamARunsPerOver : teamBRunsPerOver;
-  const displayLength = Math.min(20, Math.max(5, chartData.length));
+  const hasChartData =
+    teamARunsPerOver.length > 0 || teamBRunsPerOver.length > 0;
+  const displayLength = hasChartData
+    ? Math.min(
+        20,
+        Math.max(5, teamARunsPerOver.length, teamBRunsPerOver.length),
+      )
+    : 0;
 
   const categories = useMemo(
     () => Array.from({ length: displayLength }, (_, i) => String(i + 1)),
     [displayLength],
   );
-  const seriesData = useMemo(
-    () => Array.from({ length: displayLength }, (_, i) => chartData[i] ?? 0),
-    [displayLength, chartData],
-  );
-  const chartSeries = useMemo(
-    () => [{ name: 'Runs', data: seriesData }],
-    [seriesData],
+
+  const seriesDataA = useMemo(
+    () =>
+      Array.from({ length: displayLength }, (_, i) => teamARunsPerOver[i] ?? 0),
+    [displayLength, teamARunsPerOver],
   );
 
-  // ── Chart options ──────────────────────────────────────────────────────────
+  const seriesDataB = useMemo(
+    () =>
+      Array.from({ length: displayLength }, (_, i) => teamBRunsPerOver[i] ?? 0),
+    [displayLength, teamBRunsPerOver],
+  );
+
+  const chartSeries = useMemo(() => {
+    if (chartTeam === 'teamA') return [{ name: teamAName, data: seriesDataA }];
+    if (chartTeam === 'teamB') return [{ name: teamBName, data: seriesDataB }];
+    return [
+      { name: teamAName, data: seriesDataA },
+      { name: teamBName, data: seriesDataB },
+    ];
+  }, [chartTeam, teamAName, teamBName, seriesDataA, seriesDataB]);
+
+  const yMax = useMemo(() => {
+    const maxVal = Math.max(10, ...seriesDataA, ...seriesDataB);
+    return Math.ceil(maxVal * 1.2);
+  }, [seriesDataA, seriesDataB]);
 
   const lineChartOptions = useMemo(
-    () => ({
-      chart: {
-        type: 'line',
-        background: 'transparent',
-        toolbar: { show: false },
-        zoom: { enabled: false },
-        selection: { enabled: false },
-      },
-      colors: [CHART_ORANGE],
-      stroke: { curve: 'smooth', width: 2 },
-      dataLabels: { enabled: false },
-      xaxis: {
-        categories,
-        labels: { style: BASE_AXIS_STYLE },
-        axisBorder: { show: false },
-        axisTicks: { show: false },
-      },
-      yaxis: {
-        min: 0,
-        max: 50,
-        tickAmount: 5,
-        labels: { style: BASE_AXIS_STYLE },
-        axisBorder: { show: false },
-        axisTicks: { show: false },
-      },
-      grid: BASE_GRID,
-      markers: {
-        size: 4,
-        colors: '#fff',
-        strokeColors: CHART_ORANGE,
-        strokeWidth: 2,
-        hover: { size: 6 },
-      },
-      tooltip: { theme: 'dark', x: { show: true } },
-    }),
-    [categories],
+    () =>
+      makeChartOptions('line', categories, {
+        stroke: { curve: 'smooth', width: 2 },
+        markers: {
+          size: 4,
+          colors: ['#fff', '#fff'],
+          strokeColors: [CHART_ORANGE, '#FFFFFF'],
+          strokeWidth: 2,
+          hover: { size: 6 },
+        },
+        yaxis: { max: yMax },
+      }),
+    [categories, yMax],
   );
 
   const barChartOptions = useMemo(
-    () => ({
-      chart: {
-        type: 'bar',
-        background: 'transparent',
-        toolbar: { show: false },
-        selection: { enabled: false },
-      },
-      plotOptions: {
-        bar: {
-          borderRadius: 6,
-          borderRadiusApplication: 'end',
-          columnWidth: '20%',
+    () =>
+      makeChartOptions('bar', categories, {
+        plotOptions: {
+          bar: {
+            borderRadius: 6,
+            borderRadiusApplication: 'end',
+            columnWidth: BAR_CHART_COLUMN_WIDTH,
+          },
         },
-      },
-      colors: [CHART_ORANGE],
-      dataLabels: { enabled: false },
-      xaxis: {
-        categories,
-        labels: { style: BASE_AXIS_STYLE },
-        axisBorder: { show: false },
-        axisTicks: { show: false },
-      },
-      yaxis: {
-        min: 0,
-        max: 60,
-        tickAmount: 6,
-        labels: { style: BASE_AXIS_STYLE },
-        axisBorder: { show: false },
-        axisTicks: { show: false },
-      },
-      grid: BASE_GRID,
-      tooltip: { theme: 'dark', x: { show: true } },
-    }),
-    [categories],
+        yaxis: { min: 0, max: yMax, tickAmount: 6 },
+      }),
+    [categories, yMax],
   );
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
     <div className="mt-4 space-y-6 pb-6">
-      {/* Shot-direction wheel always shows innings 1 (striker's perspective) */}
+      {/* Shot-direction wheel: innings 1. zones=undefined uses component's
+          built-in default zones when enums aren't loaded yet. */}
       <ShotDirectionStats
         ballHistory={ballHistory}
         zones={shotPositionZones.length > 0 ? shotPositionZones : undefined}
@@ -289,40 +302,65 @@ export function StatsTab({
         className="max-h-[50vh]"
       />
 
-      {/* Stats bar reflects the selected team */}
-      <BattingStatsBar stats={stats} />
+      {/* Stats bar: both teams side-by-side for comparison */}
+      <div className="space-y-4">
+        <div>
+          <p className="mb-1 text-[11px] font-semibold tracking-wide text-[#DA9811] uppercase">
+            {teamAName}
+          </p>
+          <BattingStatsBar stats={statsA} />
+        </div>
+        <div>
+          <p className="mb-1 text-[11px] font-semibold tracking-wide text-[#DA9811] uppercase">
+            {teamBName}
+          </p>
+          <BattingStatsBar stats={statsB} />
+        </div>
+      </div>
 
-      <ChartSection
-        ariaLabel="Over comparison chart"
-        title="Over Comparison"
-        teamAName={teamAName}
-        teamBName={teamBName}
-        chartTeam={chartTeam}
-        onSelectTeam={setChartTeam}
-      >
-        <ReactApexChart
-          type="line"
-          series={chartSeries}
-          options={lineChartOptions}
-          height={220}
-        />
-      </ChartSection>
-
-      <ChartSection
-        ariaLabel="Run comparison chart"
-        title="Run Comparison"
-        teamAName={teamAName}
-        teamBName={teamBName}
-        chartTeam={chartTeam}
-        onSelectTeam={setChartTeam}
-      >
-        <ReactApexChart
-          type="bar"
-          series={chartSeries}
-          options={barChartOptions}
-          height={220}
-        />
-      </ChartSection>
+      {hasChartData ? (
+        <>
+          <ChartSection
+            ariaLabel="Over comparison chart"
+            title="Over Comparison"
+            teamAName={teamAName}
+            teamBName={teamBName}
+            chartTeam={chartTeam}
+            onSelectTeam={setChartTeam}
+          >
+            <ReactApexChart
+              type="line"
+              series={chartSeries}
+              options={lineChartOptions}
+              height={220}
+            />
+          </ChartSection>
+          <ChartSection
+            ariaLabel="Run comparison chart"
+            title="Run Comparison"
+            teamAName={teamAName}
+            teamBName={teamBName}
+            chartTeam={chartTeam}
+            onSelectTeam={setChartTeam}
+          >
+            <ReactApexChart
+              type="bar"
+              series={chartSeries}
+              options={barChartOptions}
+              height={220}
+            />
+          </ChartSection>
+        </>
+      ) : (
+        <section
+          className="mt-6 rounded-lg bg-[#141412] px-4 py-8 text-center"
+          aria-label="No chart data yet"
+        >
+          <p className="text-[14px] font-medium text-[#A2A6AB]">
+            No over data yet. Start scoring to see comparison charts.
+          </p>
+        </section>
+      )}
     </div>
   );
 }
@@ -341,8 +379,10 @@ function BattingStatsBar({ stats }) {
             <p className="text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">
               {item.label}
             </p>
+            {/* Fixed: was stats[item.valueKey] with no fallback — would render
+                "undefined" as text if the key is missing. */}
             <p className="mt-0.5 text-[14px] font-bold text-white">
-              {stats[item.valueKey]}
+              {stats[item.valueKey] ?? '—'}
             </p>
           </div>
           {index < STAT_ITEMS.length - 1 && (
@@ -358,7 +398,9 @@ function BattingStatsBar({ stats }) {
 }
 
 /**
- * Card wrapper for a chart with a header that includes a team toggle.
+ * Card wrapper for a chart with an optional team toggle in the header.
+ * Toggle: Team A | Team B (default shows both teams; neither button highlighted).
+ * When onSelectTeam is not passed, no toggle is shown.
  */
 function ChartSection({
   ariaLabel,
@@ -369,35 +411,47 @@ function ChartSection({
   onSelectTeam,
   children,
 }) {
+  const showTeamToggle = typeof onSelectTeam === 'function';
   return (
     <section className="mt-6" aria-label={ariaLabel}>
       <div className="flex items-center justify-between gap-4 rounded-t-lg bg-[#141412] px-3 py-2">
         <h2 className="text-[12px] font-bold tracking-wide text-[#DA9811]">
           {title}
         </h2>
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => onSelectTeam('teamA')}
-            className={`text-[12px] font-semibold transition-colors ${chartTeam === 'teamA' ? 'text-[#DA9811]' : 'text-white'}`}
-          >
-            {teamAName}
-          </button>
-          <button
-            type="button"
-            onClick={() => onSelectTeam('teamB')}
-            className={`text-[12px] font-semibold transition-colors ${chartTeam === 'teamB' ? 'text-[#DA9811]' : 'text-white'}`}
-          >
-            {teamBName}
-          </button>
-        </div>
+        {showTeamToggle && (
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() =>
+                onSelectTeam(chartTeam === 'teamA' ? 'both' : 'teamA')
+              }
+              className={`text-[12px] font-semibold transition-colors ${
+                chartTeam === 'teamA' || chartTeam === 'both'
+                  ? 'text-[#DA9811]'
+                  : 'text-white'
+              }`}
+            >
+              {teamAName}
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                onSelectTeam(chartTeam === 'teamB' ? 'both' : 'teamB')
+              }
+              className={`text-[12px] font-semibold transition-colors ${
+                chartTeam === 'teamB' || chartTeam === 'both'
+                  ? 'text-[#DA9811]'
+                  : 'text-white'
+              }`}
+            >
+              {teamBName}
+            </button>
+          </div>
+        )}
       </div>
-      <div
-        className={CHART_CONTAINER_CLASS}
-        style={{ outline: 'none', boxShadow: 'none', border: 'none' }}
-      >
-        {children}
-      </div>
+      {/* Fixed: removed inline style={{ outline, boxShadow, border }} — these are
+          already set by CHART_CONTAINER_CLASS via Tailwind utility classes. */}
+      <div className={CHART_CONTAINER_CLASS}>{children}</div>
     </section>
   );
 }

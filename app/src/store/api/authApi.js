@@ -6,6 +6,44 @@ import { baseApi } from './baseApi';
  * Backend success: { data?, message?, type }.
  * Backend error (4xx/5xx): { message?, type?, errors? }.
  */
+
+const PROFILE_TEXT_FIELDS = [
+  'name',
+  'nickname',
+  'email',
+  'phone',
+  'date_of_birth',
+  'bowling_style',
+  'batting_style',
+  'country',
+  'city',
+];
+
+function buildProfilePayload(payload) {
+  const hasFile = payload.avatar instanceof File;
+  const hasRemoval = 'avatar' in payload && payload.avatar === null;
+
+  if (hasFile) {
+    const fd = new FormData();
+    for (const key of PROFILE_TEXT_FIELDS) {
+      if (payload[key] != null) fd.append(key, payload[key]);
+    }
+    fd.append('avatar', payload.avatar);
+    return fd;
+  }
+
+  if (hasRemoval) {
+    const body = {};
+    for (const key of PROFILE_TEXT_FIELDS) {
+      if (payload[key] != null) body[key] = payload[key];
+    }
+    body.avatar = null;
+    return body;
+  }
+
+  return payload;
+}
+
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     register: builder.mutation({
@@ -37,11 +75,16 @@ export const authApi = baseApi.injectEndpoints({
       providesTags: ['User'],
     }),
     updateProfile: builder.mutation({
-      query: (body) => ({
-        url: '/profile',
-        method: 'PATCH',
-        body,
-      }),
+      query: (body) => {
+        if (body instanceof FormData) {
+          return { url: '/profile', method: 'PATCH', body };
+        }
+        return {
+          url: '/profile',
+          method: 'PATCH',
+          body: buildProfilePayload(body),
+        };
+      },
       invalidatesTags: ['User'],
     }),
     logout: builder.mutation({

@@ -6,6 +6,7 @@ import { ProfileHeader } from '@/components/ProfileHeader';
 import { OrganizerProfileTabs } from '@/components/UserProfileTabs/OrganizerProfileTabs';
 import { PlayerProfile } from '@/components/UserProfileTabs/PlayerProfile';
 import { SponsorProfileTabs } from '@/components/UserProfileTabs/SponsorProfileTabs';
+import { useGetMeQuery } from '@/store/api/authApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 import {
@@ -49,7 +50,11 @@ function ProfileContent({ activeRole }) {
 }
 
 export default function Profile() {
-  const user = useAppSelector(selectUser);
+  const userFromStore = useAppSelector(selectUser);
+  const { data: meResponse } = useGetMeQuery(undefined, {
+    skip: !userFromStore?.id,
+  });
+  const user = meResponse?.data ?? userFromStore;
   const [searchParams, setSearchParams] = useSearchParams();
 
   const userRoleSlugs = useMemo(() => getRoleSlugs(user), [user]);
@@ -77,7 +82,7 @@ export default function Profile() {
 
   return (
     <div className="bg-black">
-      <ProfileHeader />
+      <ProfileHeader user={user} />
 
       {hasMultipleRoles && (
         <Tabs

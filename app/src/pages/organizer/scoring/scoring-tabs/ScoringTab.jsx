@@ -4,6 +4,7 @@ import teamMatchIcon from '@/assets/images/icons/team-match-icon.svg';
 import AddBatsmanDialog from '@/components/dialogs/scoring/AddBatsmanDialog';
 import AddBowlerDialog from '@/components/dialogs/scoring/AddBowlerDialog';
 import CustomScoreDialog from '@/components/dialogs/scoring/CustomScoreDialog';
+import ExtraRunsDialog from '@/components/dialogs/scoring/ExtraRunsDialog';
 import FielderPickerDialog from '@/components/dialogs/scoring/FielderPickerDialog';
 import OutReasonDialog from '@/components/dialogs/scoring/OutReasonDialog';
 import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
@@ -70,13 +71,25 @@ function getBallDisplay(ball) {
     case 'out':
       return { label: 'W', variant: 'wicket' };
     case 'wd':
-      return { label: 'WD', variant: 'extra' };
+      return {
+        label: ball.runs > 1 ? `WD ${ball.runs}` : 'WD',
+        variant: 'extra',
+      };
     case 'nb':
-      return { label: 'NB', variant: 'extra' };
+      return {
+        label: ball.runs > 1 ? `NB ${ball.runs}` : 'NB',
+        variant: 'extra',
+      };
     case 'bye':
-      return { label: 'B', variant: 'extra' };
+      return {
+        label: (ball.runs ?? 0) > 0 ? `B ${ball.runs}` : 'B',
+        variant: 'extra',
+      };
     case 'lb':
-      return { label: 'LB', variant: 'extra' };
+      return {
+        label: (ball.runs ?? 0) > 0 ? `LB ${ball.runs}` : 'LB',
+        variant: 'extra',
+      };
     default:
       return { label: '•', variant: 'dot' };
   }
@@ -200,6 +213,10 @@ export function ScoringTab({
   const [savingBowlerSquad, setSavingBowlerSquad] = useState(false);
   const [outReasonModalOpen, setOutReasonModalOpen] = useState(false);
   const [customScoreDialogOpen, setCustomScoreDialogOpen] = useState(false);
+  const [extraRunsDialogOpen, setExtraRunsDialogOpen] = useState(false);
+  const [pendingExtraType, setPendingExtraType] = useState(
+    /** @type {'wd'|'nb'|'bye'|'lb'|null} */ (null),
+  );
   const [customScoreInput, setCustomScoreInput] = useState('');
   const [shotAreaDialogOpen, setShotAreaDialogOpen] = useState(false);
   const [pendingRunsForShot, setPendingRunsForShot] = useState(null);
@@ -980,7 +997,19 @@ export function ScoringTab({
                 <button
                   key={opt.value}
                   type="button"
-                  onClick={() => handleSpecial(opt.value)}
+                  onClick={() => {
+                    if (
+                      opt.value === 'wd' ||
+                      opt.value === 'nb' ||
+                      opt.value === 'bye' ||
+                      opt.value === 'lb'
+                    ) {
+                      setPendingExtraType(opt.value);
+                      setExtraRunsDialogOpen(true);
+                    } else {
+                      handleSpecial(opt.value);
+                    }
+                  }}
                   className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#141412] text-[12px] font-bold text-white uppercase transition-opacity active:opacity-80"
                   aria-label={opt.label}
                 >
@@ -1025,6 +1054,18 @@ export function ScoringTab({
         )}
 
       {/* ── Dialogs ──────────────────────────────────────────────────────────── */}
+
+      <ExtraRunsDialog
+        open={extraRunsDialogOpen}
+        onOpenChange={(open) => {
+          setExtraRunsDialogOpen(open);
+          if (!open) setPendingExtraType(null);
+        }}
+        extraType={pendingExtraType}
+        onSelect={(runs) => {
+          if (pendingExtraType) handleSpecial(pendingExtraType, runs);
+        }}
+      />
 
       <OutReasonDialog
         open={outReasonModalOpen}

@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom';
 
 import feedShareIcon from '@/assets/images/icons/feed-share.svg';
 import { formatOrdinalDateRange } from '@/lib/format';
@@ -27,6 +32,18 @@ const DETAIL_TABS = {
   TEAMS: 'teams',
   SQUADS: 'squads',
 };
+
+function tabFromSearchParams(searchParams) {
+  const t = searchParams.get('tab');
+  if (
+    t === DETAIL_TABS.FIXTURES ||
+    t === DETAIL_TABS.TEAMS ||
+    t === DETAIL_TABS.SQUADS
+  ) {
+    return t;
+  }
+  return DETAIL_TABS.FIXTURES;
+}
 
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&h=320&fit=crop';
@@ -67,8 +84,11 @@ export default function UpcomingTournamentDetails() {
   const { tournamentId } = useParams();
   const location = useLocation();
   const stateTournament = location.state?.tournament;
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [activeTab, setActiveTab] = useState(DETAIL_TABS.FIXTURES);
+  const [activeTab, setActiveTab] = useState(() =>
+    tabFromSearchParams(searchParams),
+  );
   const [counts, setCounts] = useState({
     likes_count: 0,
     dislikes_count: 0,
@@ -121,6 +141,22 @@ export default function UpcomingTournamentDetails() {
     tournament.shares_count,
     tournament.my_reaction,
   ]);
+
+  useEffect(() => {
+    setActiveTab(tabFromSearchParams(searchParams));
+  }, [tournamentId, searchParams]);
+
+  const handleDetailTabChange = (value) => {
+    setActiveTab(value);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('tab', value);
+        return next;
+      },
+      { replace: true },
+    );
+  };
 
   const canReact = hasValidNumericId;
   const isReacting = isLiking || isDisliking || isSharing;
@@ -310,7 +346,7 @@ export default function UpcomingTournamentDetails() {
 
         <Tabs
           value={activeTab}
-          onValueChange={setActiveTab}
+          onValueChange={handleDetailTabChange}
           className="mt-5 w-full"
         >
           <div className="-mx-4 px-4 pb-3">

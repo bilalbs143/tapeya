@@ -10,13 +10,13 @@ This document is the **single reference for everything related to tournament gro
 
 | Layer | What exists today |
 |-------|-------------------|
-| **User tournament request** | Contact, tournament name, type, format, venue, dates, **number_of_matches**, **number_of_teams**, expected_players_count, country, city, match_timings, prize. **No number_of_groups.** |
+| **User tournament request** | Contact, tournament name, type, format, venue, dates, **number_of_teams**, expected_players_count, country, city, match_timings, prize. **No number_of_groups.** |
 | **Tournament (admin)** | Same fields + organizer_id, status, images. **No number_of_groups.** |
 | **tournament_team pivot** | `tournament_id`, `team_id` only. No group. |
 | **matches** | `tournament_id`, `home_team_id`, `away_team_id`, date, time, venue, players_per_side, overs, status, etc. **No group.** |
 | **Standings API** | `GET /tournaments/{id}/standings` returns a **single flat list** of teams with played/won/lost/tied/points/nrr for the **entire tournament**. |
 | **Season stats API** | `GET /tournaments/{id}/season-stats` – tournament-wide only. |
-| **App – TournamentRequest** | Form has number_of_matches, number_of_teams. **No number_of_groups.** |
+| **App – TournamentRequest** | Form has number_of_teams. **No number_of_groups.** |
 | **App – Organizer** | Add team to tournament (no group). Create match by picking any two tournament teams. |
 | **App – Scorecard TableTab** | Uses standings API; shows one points table. Mock `pointsTableData.js` has `POINTS_TABLE_GROUPS` but not wired to API. |
 

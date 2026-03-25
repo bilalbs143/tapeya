@@ -1,18 +1,36 @@
 import goldMemberIcon from '@/assets/images/icons/gold-member.png';
 import defaultAvatar from '@/assets/images/standard/player-avatar.png';
 import profileHeaderBg from '@/assets/images/standard/profile-header.jpg';
+import { calculateProfileStrength } from '@/lib/profileStrength';
 import { Progress } from '@/ui/Progress';
 
 const BANNER_HEIGHT = 202;
 const CONTENT_MAX = 'max-w-[1100px]';
 
+/** Primary role label for display (e.g. "Player" → "PLAYER"). */
+function getPrimaryRoleLabel(user) {
+  const roles = user?.roles;
+  if (!roles?.length) return 'MEMBER';
+  const first = roles[0];
+  const label = first?.name ?? first?.slug ?? '';
+  return label ? label.toUpperCase().replace(/-/g, ' ') : 'MEMBER';
+}
+
 export function ProfileHeader({
-  name = 'Sohaib Amjad',
-  role = 'BATSMAN',
+  user: userProp,
+  name: nameProp,
+  role: roleProp,
   membership = 'GOLD MEMBER',
-  strength = 70,
-  avatarSrc = defaultAvatar,
+  strength: strengthProp,
+  avatarSrc: avatarSrcProp,
 }) {
+  const name =
+    nameProp ??
+    (userProp?.name?.trim() || userProp?.nickname?.trim() || 'Guest');
+  const role = roleProp ?? getPrimaryRoleLabel(userProp);
+  const avatarSrc = avatarSrcProp ?? userProp?.avatar_url ?? defaultAvatar;
+  const strength =
+    strengthProp ?? (userProp ? calculateProfileStrength(userProp) : 0);
   return (
     <header className="relative isolate" style={{ height: BANNER_HEIGHT }}>
       <img

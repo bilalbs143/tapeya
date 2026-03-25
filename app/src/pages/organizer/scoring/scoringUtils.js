@@ -119,3 +119,132 @@ export function computePartnership(batsmenOnCrease) {
   const balls = list.reduce((s, b) => s + (b?.balls ?? 0), 0);
   return { runs, balls };
 }
+
+/**
+ * Build ball list with over labels and per-over summaries from ball history.
+ * Extras (wd/nb) do not count toward the 6 legal balls; summary appears only after 6 legal deliveries.
+ *
+ * @param {Array} ballHistory - UI balls { type, runs, strikerId, bowlerId, striker?, ... }
+ * @returns {{ ballListWithMeta: Array<{ ball, overBallLabel, validCount, overIndex }>, overSummaries: Object<number, summary> }}
+ */
+export function buildBallListWithMetaAndOverSummaries(ballHistory) {
+  const list = [];
+  const summaries = {};
+
+  let validCount = 0;
+  let currentOverIdx = 0;
+  let cumulativeRuns = 0;
+  let cumulativeWickets = 0;
+  let currentOverBalls = [];
+  let currentOverRuns = 0;
+
+  const batsmanStatsMap = new Map();
+  const bowlerStatsMap = new Map();
+  const activeBatsmen = [];
+  let currentOverBowlerId = null;
+  let currentOverBowlerRuns = 0;
+
+  (ballHistory || []).forEach((ball) => {
+    const isExtra = ball.type === 'wd' || ball.type === 'nb';
+    const isLegal = !isExtra;
+    const ballRuns = ball.runs ?? 0;
+    const strikerId = ball.strikerId ?? ball.striker?.id;
+    const bowlerId = ball.bowlerId;
+
+    if (strikerId) {
+      if (!activeBatsmen.find((b) => b.id === strikerId)) {
+        activeBatsmen.push({ id: strikerId });
+      }
+      if (!batsmanStatsMap.has(strikerId)) {
+        batsmanStatsMap.set(strikerId, { runs: 0, balls: 0 });
+      }
+      const bs = batsmanStatsMap.get(strikerId);
+      if (ball.type === 'runs') bs.runs += ballRuns;
+      if (isLegal) bs.balls += 1;
+    }
+    if (ball.type === 'out') {
+      const outId = ball.striker?.id ?? strikerId;
+      if (outId) {
+        const idx = activeBatsmen.findIndex((b) => b.id === outId);
+        if (idx !== -1) activeBatsmen.splice(idx, 1);
+      }
+    }
+
+    if (bowlerId) {
+      if (!bowlerStatsMap.has(bowlerId)) {
+        bowlerStatsMap.set(bowlerId, {
+          balls: 0,
+          runs: 0,
+          wickets: 0,
+          maidens: 0,
+        });
+      }
+      const bws = bowlerStatsMap.get(bowlerId);
+      bws.runs += ballRuns;
+      if (isLegal) bws.balls += 1;
+      if (ball.type === 'out') bws.wickets += 1;
+      currentOverBowlerId = bowlerId;
+      currentOverBowlerRuns = ballRuns;
+    }
+
+    cumulativeRuns += ballRuns;
+    if (ball.type === 'out') cumulativeWickets += 1;
+    currentOverRuns += ballRuns;
+    currentOverBalls.push(ball);
+
+    if (isLegal) validCount += 1;
+
+    const overBallLabel =
+      validCount > 0
+        ? `${Math.floor((validCount - 1) / 6) + 1}.${((validCount - 1) % 6) + 1}`
+        : '0.0';
+
+    list.push({ ball, overBallLabel, validCount, overIndex: currentOverIdx });
+
+    if (isLegal && validCount % 6 === 0) {
+      if (
+        currentOverBowlerId &&
+        bowlerStatsMap.has(currentOverBowlerId) &&
+        currentOverBowlerRuns === 0
+      ) {
+        bowlerStatsMap.get(currentOverBowlerId).maidens += 1;
+      }
+
+      // After a wicket we have one batsman; next ball adds the new striker, so slice(-2) is the two current batsmen.
+      const creaseSnapshot = activeBatsmen.slice(-2).map(({ id }) => {
+        const stats = batsmanStatsMap.get(id) ?? { runs: 0, balls: 0 };
+        return { id, runs: stats.runs, balls: stats.balls };
+      });
+
+      let bowlerSnapshot = null;
+      if (currentOverBowlerId && bowlerStatsMap.has(currentOverBowlerId)) {
+        const bws = bowlerStatsMap.get(currentOverBowlerId);
+        bowlerSnapshot = {
+          id: currentOverBowlerId,
+          balls: bws.balls,
+          runs: bws.runs,
+          wickets: bws.wickets,
+          maidens: bws.maidens,
+        };
+      }
+
+      summaries[currentOverIdx] = {
+        balls: [...currentOverBalls],
+        overRuns: currentOverRuns,
+        cumulativeRuns,
+        cumulativeWickets,
+        completedOvers: validCount / 6,
+        creaseSnapshot,
+        bowlerSnapshot,
+      };
+
+      currentOverIdx += 1;
+      currentOverBalls = [];
+      currentOverRuns = 0;
+      currentOverBowlerId = null;
+      currentOverBowlerRuns = 0;
+    }
+  });
+
+  return { ballListWithMeta: list, overSummaries: summaries };
+}

@@ -235,7 +235,11 @@ export default function ScorecardDetails() {
           {/* TODO: add empty state when !isLoading && !isError &&
                     matches.length === 0 (see top). */}
           {!isLoading && !isError && (
-            <ActiveView matches={matches} tournamentId={tournamentId} />
+            <ActiveView
+              matches={matches}
+              tournamentId={tournamentId}
+              tournament={tournament}
+            />
           )}
         </Tabs>
       </Container>

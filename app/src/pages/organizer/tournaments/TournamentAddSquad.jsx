@@ -1,9 +1,9 @@
 /**
  * TournamentAddSquad.jsx
  *
- * Lists teams attached to a tournament. Organizer can add squad (squad),
- * remove a team (with confirm), or add a new team. Route:
- * /organizer/tournaments/:tournamentId/saved-teams
+ * Lists teams attached to a tournament. Organizer can add squad,
+ * remove a team (with confirm). Route:
+ * /organizer/tournaments/:tournamentId/add-squad
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -240,26 +240,10 @@ export default function TournamentAddSquad() {
           <p className="mb-3 text-[13px] text-[#A2A6AB]">Loading teams…</p>
         )}
 
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3">
           <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">
             Teams
           </h2>
-          <button
-            type="button"
-            onClick={() =>
-              navigate(`/organizer/tournaments/${tournamentIdNum}/add-team`, {
-                state: { tournament: tournament ?? { id: tournamentIdNum } },
-              })
-            }
-            className="flex shrink-0 items-center gap-2 transition-opacity active:opacity-80"
-          >
-            <span className="flex h-[27px] w-[27px] items-center justify-center rounded-full bg-[#DA9811] text-[18px] font-bold text-[#080807]">
-              +
-            </span>
-            <span className="text-[13px] font-bold text-[#A2A6AB]">
-              Create Team
-            </span>
-          </button>
         </div>
 
         {isLoading && teams.length === 0 && (

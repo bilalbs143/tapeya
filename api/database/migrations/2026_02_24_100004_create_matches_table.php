@@ -28,6 +28,7 @@ return new class extends Migration
             $table->time('match_time');
             $table->string('venue_name');
             $table->unsignedTinyInteger('players_per_side')->default(11);
+            $table->unsignedTinyInteger('overs')->default(20);
 
             $table->string('status', 20)->default('scheduled');
 

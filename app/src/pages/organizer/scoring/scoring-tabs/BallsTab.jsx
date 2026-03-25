@@ -1,16 +1,13 @@
-/**
- * BallsTab – Ball-by-ball view with innings tabs, event list, and per-over summary blocks.
- *
- * Uses: ballHistory, squad, bowlersInTable, bowlerSquad, batsmenOnCrease, liveScore from parent.
- */
-
 import { Fragment, useMemo, useState } from 'react';
 
 import arrowRightOrange from '@/assets/images/icons/arrow-right-orange.svg';
 
-import { ballsToOvers } from '../scoringUtils';
+import {
+  ballsToOvers,
+  buildBallListWithMetaAndOverSummaries,
+} from '../scoringUtils';
 
-// ─── Constants ─────────────────────────────────────────────────────────────
+// ─── Constants ──────────────────────────────────────────────────────────────
 
 const DASH = '—';
 
@@ -18,7 +15,15 @@ const INNINGS_ACTIVE_CLASS =
   'text-[#DA9811] font-bold border-b-2 border-[#DA9811] pb-1';
 const INNINGS_INACTIVE_CLASS = 'text-white font-bold';
 
-// ─── Ball display & description helpers ────────────────────────────────────
+// ─── Module-level pure helpers ───────────────────────────────────────────────
+// These never depend on component state and should not be recreated per render.
+
+/** True when the validCount marks the end of a completed over (every 6th legal ball). */
+function isEndOfOver(validCount) {
+  return validCount > 0 && validCount % 6 === 0;
+}
+
+// ─── Ball display & description helpers ─────────────────────────────────────
 
 function getBallDisplay(ball) {
   if (!ball)
@@ -32,21 +37,44 @@ function getBallDisplay(ball) {
   if (ball.type === 'out')
     return { label: 'W', isWicket: true, isDot: false, isExtra: false };
   if (ball.type === 'wd')
-    return { label: 'WD', isWicket: false, isDot: false, isExtra: true };
+    return {
+      label: ball.runs > 1 ? `WD ${ball.runs}` : 'WD',
+      isWicket: false,
+      isDot: false,
+      isExtra: true,
+    };
   if (ball.type === 'nb')
-    return { label: 'NB', isWicket: false, isDot: false, isExtra: true };
+    return {
+      label: ball.runs > 1 ? `NB ${ball.runs}` : 'NB',
+      isWicket: false,
+      isDot: false,
+      isExtra: true,
+    };
   if (ball.type === 'bye')
-    return { label: 'B', isWicket: false, isDot: false, isExtra: true };
+    return {
+      label: (ball.runs ?? 0) > 0 ? `B ${ball.runs}` : 'B',
+      isWicket: false,
+      isDot: false,
+      isExtra: true,
+    };
   if (ball.type === 'lb')
-    return { label: 'LB', isWicket: false, isDot: false, isExtra: true };
+    return {
+      label: (ball.runs ?? 0) > 0 ? `LB ${ball.runs}` : 'LB',
+      isWicket: false,
+      isDot: false,
+      isExtra: true,
+    };
   return { label: '0', isWicket: false, isDot: true, isExtra: false };
 }
 
+/**
+ * Ball description for display. Dismissal label comes from backend (dismissal_type_label).
+ */
 function getBallDescription(ball) {
   if (!ball) return '—';
   if (ball.type === 'out') {
-    const dt = ball.dismissalType;
-    return dt ? `Wicket. ${dt}` : 'Wicket.';
+    const label = ball.dismissalLabel;
+    return label ? `Wicket ${label}` : 'Wicket.';
   }
   if (ball.type === 'runs') {
     const r = ball.runs ?? 0;
@@ -76,7 +104,7 @@ function formatDescription(description) {
   );
 }
 
-// ─── Player name resolution ────────────────────────────────────────────────
+// ─── Player name resolution ──────────────────────────────────────────────────
 
 function getStrikerName(ball, squad) {
   if (ball.type === 'out' && ball.striker?.name) return ball.striker.name;
@@ -106,18 +134,19 @@ function resolvePlayerName(id, squad, bowlersInTable, bowlerSquad) {
   return inBowlerSquad?.name ?? DASH;
 }
 
-// ─── Ball list row (single delivery) ──────────────────────────────────────
+// ─── Ball list row (single delivery) ────────────────────────────────────────
 
+/**
+ * Fixed: removed getBallDisplay / getBallDescription / getStrikerName /
+ * getBowlerName from props — they are module-level pure functions and are
+ * now called directly inside the component.
+ */
 function BallListRow({
   overBallLabel,
   ball,
   squad,
   bowlersInTable,
   bowlerSquad,
-  getBallDisplay,
-  getBallDescription,
-  getStrikerName,
-  getBowlerName,
 }) {
   const { label, isWicket, isDot, isExtra } = getBallDisplay(ball);
   const strikerName = getStrikerName(ball, squad);
@@ -127,9 +156,7 @@ function BallListRow({
   const chipClass =
     isWicket || (label !== '0' && !isDot && !isExtra)
       ? 'bg-[#DA9811]'
-      : isDot || isExtra
-        ? 'border-2 border-[#DA9811] bg-[#141412] text-white'
-        : 'bg-[#DA9811] border border-white text-white';
+      : 'border-2 border-[#DA9811] bg-[#141412] text-white';
 
   return (
     <div className="flex items-center gap-3 px-4 py-3">
@@ -161,7 +188,7 @@ function BallListRow({
   );
 }
 
-// ─── Over summary block (stats at end of a completed over) ──────────────────
+// ─── Over summary block (stats at end of a completed over) ───────────────────
 
 function SummaryBlock({ summary, squad, bowlersInTable, bowlerSquad }) {
   const {
@@ -194,6 +221,7 @@ function SummaryBlock({ summary, squad, bowlersInTable, bowlerSquad }) {
       )}
 
       {/* Batsmen and bowler stats at end of this over */}
+      {/* Intentional: creaseSnapshot >= 2 shows two rows — first row: batsman 1 name + batsman 2 name + batsman 1 score; second row: batsman 2 name + batsman 2 score + bowler stats. */}
       {creaseSnapshot.length > 0 && (
         <div className="mb-4 space-y-2">
           {creaseSnapshot.length >= 2 ? (
@@ -305,145 +333,15 @@ function SummaryBlock({ summary, squad, bowlersInTable, bowlerSquad }) {
   );
 }
 
-// ─── Ball list + over summaries (derived from ballHistory) ────────────────────
-//
-// Returns { ballListWithMeta, overSummaries }.
-// Extras (wd/nb) do not count toward the 6 legal balls; summary appears only after 6 legal deliveries.
-
-function buildBallListWithMetaAndOverSummaries(ballHistory) {
-  const list = [];
-  const summaries = new Map();
-
-  let validCount = 0;
-  let currentOverIdx = 0;
-  let cumulativeRuns = 0;
-  let cumulativeWickets = 0;
-  let currentOverBalls = [];
-  let currentOverRuns = 0;
-
-  const batsmanStatsMap = new Map();
-  const bowlerStatsMap = new Map();
-  const activeBatsmen = [];
-  let currentOverBowlerId = null;
-  let currentOverBowlerRuns = 0;
-
-  (ballHistory || []).forEach((ball) => {
-    const isExtra = ball.type === 'wd' || ball.type === 'nb';
-    const isLegal = !isExtra;
-    const ballRuns = ball.runs ?? 0;
-    const strikerId = ball.strikerId ?? ball.striker?.id;
-    const bowlerId = ball.bowlerId;
-
-    // Batsman: track runs/balls and who is on crease
-    if (strikerId) {
-      if (!activeBatsmen.find((b) => b.id === strikerId)) {
-        activeBatsmen.push({ id: strikerId });
-      }
-      if (!batsmanStatsMap.has(strikerId)) {
-        batsmanStatsMap.set(strikerId, { runs: 0, balls: 0 });
-      }
-      const bs = batsmanStatsMap.get(strikerId);
-      if (ball.type === 'runs') bs.runs += ballRuns;
-      if (isLegal) bs.balls += 1;
-    }
-    if (ball.type === 'out') {
-      const outId = ball.striker?.id ?? strikerId;
-      if (outId) {
-        const idx = activeBatsmen.findIndex((b) => b.id === outId);
-        if (idx !== -1) activeBatsmen.splice(idx, 1);
-      }
-    }
-
-    // Bowler: track balls, runs, wickets, maidens
-    if (bowlerId) {
-      if (!bowlerStatsMap.has(bowlerId)) {
-        bowlerStatsMap.set(bowlerId, {
-          balls: 0,
-          runs: 0,
-          wickets: 0,
-          maidens: 0,
-        });
-      }
-      const bws = bowlerStatsMap.get(bowlerId);
-      bws.runs += ballRuns;
-      if (isLegal) bws.balls += 1;
-      if (ball.type === 'out') bws.wickets += 1;
-      currentOverBowlerId = bowlerId;
-      currentOverBowlerRuns += ballRuns;
-    }
-
-    cumulativeRuns += ballRuns;
-    if (ball.type === 'out') cumulativeWickets += 1;
-    currentOverRuns += ballRuns;
-    currentOverBalls.push(ball);
-
-    if (isLegal) validCount += 1;
-
-    const overBallLabel =
-      validCount > 0
-        ? `${Math.floor((validCount - 1) / 6) + 1}.${((validCount - 1) % 6) + 1}`
-        : '0.0';
-
-    list.push({ ball, overBallLabel, validCount, overIndex: currentOverIdx });
-
-    if (isLegal && validCount % 6 === 0) {
-      if (
-        currentOverBowlerId &&
-        bowlerStatsMap.has(currentOverBowlerId) &&
-        currentOverBowlerRuns === 0
-      ) {
-        bowlerStatsMap.get(currentOverBowlerId).maidens += 1;
-      }
-
-      const creaseSnapshot = activeBatsmen.slice(-2).map(({ id }) => {
-        const stats = batsmanStatsMap.get(id) ?? { runs: 0, balls: 0 };
-        return { id, runs: stats.runs, balls: stats.balls };
-      });
-
-      let bowlerSnapshot = null;
-      if (currentOverBowlerId && bowlerStatsMap.has(currentOverBowlerId)) {
-        const bws = bowlerStatsMap.get(currentOverBowlerId);
-        bowlerSnapshot = {
-          id: currentOverBowlerId,
-          balls: bws.balls,
-          runs: bws.runs,
-          wickets: bws.wickets,
-          maidens: bws.maidens,
-        };
-      }
-
-      summaries.set(currentOverIdx, {
-        balls: [...currentOverBalls],
-        overRuns: currentOverRuns,
-        cumulativeRuns,
-        cumulativeWickets,
-        completedOvers: validCount / 6,
-        creaseSnapshot,
-        bowlerSnapshot,
-      });
-
-      currentOverIdx += 1;
-      currentOverBalls = [];
-      currentOverRuns = 0;
-      currentOverBowlerId = null;
-      currentOverBowlerRuns = 0;
-    }
-  });
-
-  return { ballListWithMeta: list, overSummaries: summaries };
-}
-
-// ─── Main component ────────────────────────────────────────────────────────
-
 export function BallsTab({
   ballHistory = [],
   squad = [],
   bowlersInTable = [],
   bowlerSquad = [],
-  batsmenOnCrease = [],
   secondInningsBallHistory = [],
-  secondInningsBatsmenOnCrease = [],
   secondInningsBowlersInTable = [],
+  secondInningsSquad = [],
+  secondInningsBowlerSquad = [],
 }) {
   const [activeInnings, setActiveInnings] = useState('1');
 
@@ -460,17 +358,8 @@ export function BallsTab({
     [secondInningsBallHistory],
   );
 
-  const isEndOfOver = (validCount) => validCount > 0 && validCount % 6 === 0;
-
-  const isEmpty =
-    ballListWithMeta.length === 0 &&
-    !batsmenOnCrease.length &&
-    !bowlersInTable.length;
-
-  const isEmptySecond =
-    (ballListSecond?.length ?? 0) === 0 &&
-    !secondInningsBatsmenOnCrease.length &&
-    !secondInningsBowlersInTable.length;
+  const isEmpty = ballListWithMeta.length === 0;
+  const isEmptySecond = (ballListSecond?.length ?? 0) === 0;
 
   return (
     <div className="mt-4 flex flex-col pb-8">
@@ -479,19 +368,28 @@ export function BallsTab({
         <button
           type="button"
           onClick={() => setActiveInnings('1')}
-          className={`text-[14px] tracking-wide uppercase ${activeInnings === '1' ? INNINGS_ACTIVE_CLASS : INNINGS_INACTIVE_CLASS}`}
+          className={`text-[14px] tracking-wide uppercase ${
+            activeInnings === '1'
+              ? INNINGS_ACTIVE_CLASS
+              : INNINGS_INACTIVE_CLASS
+          }`}
         >
           1st Innings
         </button>
         <button
           type="button"
           onClick={() => setActiveInnings('2')}
-          className={`text-[14px] tracking-wide uppercase ${activeInnings === '2' ? INNINGS_ACTIVE_CLASS : INNINGS_INACTIVE_CLASS}`}
+          className={`text-[14px] tracking-wide uppercase ${
+            activeInnings === '2'
+              ? INNINGS_ACTIVE_CLASS
+              : INNINGS_INACTIVE_CLASS
+          }`}
         >
           2nd Innings
         </button>
       </div>
 
+      {/* 1st innings ball list */}
       {activeInnings === '1' && (
         <div className="mt-4 flex flex-col gap-2">
           {isEmpty ? (
@@ -501,21 +399,17 @@ export function BallsTab({
           ) : (
             ballListWithMeta.map(
               ({ ball, overBallLabel, validCount, overIndex }, idx) => (
-                <Fragment key={`ball-${idx}`}>
+                <Fragment key={ball.id ?? `ball-${idx}`}>
                   <BallListRow
                     overBallLabel={overBallLabel}
                     ball={ball}
                     squad={squad}
                     bowlersInTable={bowlersInTable}
                     bowlerSquad={bowlerSquad}
-                    getBallDisplay={getBallDisplay}
-                    getBallDescription={getBallDescription}
-                    getStrikerName={getStrikerName}
-                    getBowlerName={getBowlerName}
                   />
-                  {isEndOfOver(validCount) && overSummaries.has(overIndex) && (
+                  {isEndOfOver(validCount) && overSummaries[overIndex] && (
                     <SummaryBlock
-                      summary={overSummaries.get(overIndex)}
+                      summary={overSummaries[overIndex]}
                       squad={squad}
                       bowlersInTable={bowlersInTable}
                       bowlerSquad={bowlerSquad}
@@ -528,6 +422,7 @@ export function BallsTab({
         </div>
       )}
 
+      {/* 2nd innings ball list */}
       {activeInnings === '2' && (
         <div className="mt-4 flex flex-col gap-2">
           {isEmptySecond ? (
@@ -537,25 +432,35 @@ export function BallsTab({
           ) : (
             ballListSecond.map(
               ({ ball, overBallLabel, validCount, overIndex }, idx) => (
-                <Fragment key={`ball2-${idx}`}>
+                <Fragment key={ball.id ?? `ball2-${idx}`}>
                   <BallListRow
                     overBallLabel={overBallLabel}
                     ball={ball}
-                    squad={squad}
+                    squad={
+                      secondInningsSquad?.length ? secondInningsSquad : squad
+                    }
                     bowlersInTable={secondInningsBowlersInTable}
-                    bowlerSquad={bowlerSquad}
-                    getBallDisplay={getBallDisplay}
-                    getBallDescription={getBallDescription}
-                    getStrikerName={getStrikerName}
-                    getBowlerName={getBowlerName}
+                    bowlerSquad={
+                      secondInningsBowlerSquad?.length
+                        ? secondInningsBowlerSquad
+                        : bowlerSquad
+                    }
                   />
                   {isEndOfOver(validCount) &&
-                    overSummariesSecond.has(overIndex) && (
+                    overSummariesSecond[overIndex] && (
                       <SummaryBlock
-                        summary={overSummariesSecond.get(overIndex)}
-                        squad={squad}
+                        summary={overSummariesSecond[overIndex]}
+                        squad={
+                          secondInningsSquad?.length
+                            ? secondInningsSquad
+                            : squad
+                        }
                         bowlersInTable={secondInningsBowlersInTable}
-                        bowlerSquad={bowlerSquad}
+                        bowlerSquad={
+                          secondInningsBowlerSquad?.length
+                            ? secondInningsBowlerSquad
+                            : bowlerSquad
+                        }
                       />
                     )}
                 </Fragment>

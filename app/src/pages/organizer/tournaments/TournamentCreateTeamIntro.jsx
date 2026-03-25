@@ -37,11 +37,6 @@ export default function TournamentCreateTeamIntro() {
     { skip: !isValidId },
   );
   const matchesCount = Array.isArray(matches) ? matches.length : 0;
-  const numberOfMatches = tournament?.number_of_matches ?? null;
-  const allFixturesAdded =
-    numberOfMatches != null &&
-    Number.isInteger(numberOfMatches) &&
-    matchesCount >= numberOfMatches;
 
   useEffect(() => {
     if (!isValidId) {
@@ -81,22 +76,22 @@ export default function TournamentCreateTeamIntro() {
     });
   };
 
-  const handleFixtures = () => {
-    if (allFixturesAdded) {
-      navigate(`/scorecard/${tournamentIdNum}`);
-    } else {
-      navigate('/organizer/scoring/start-match', {
-        state: {
-          tournamentId: tournamentIdNum,
-          tournament: tournament
-            ? {
-                ...tournament,
-                name: tournament.tournament_name ?? tournament.name,
-              }
-            : { id: tournamentIdNum },
-        },
-      });
-    }
+  const handleAddFixtures = () => {
+    navigate('/organizer/scoring/start-match', {
+      state: {
+        tournamentId: tournamentIdNum,
+        tournament: tournament
+          ? {
+              ...tournament,
+              name: tournament.tournament_name ?? tournament.name,
+            }
+          : { id: tournamentIdNum },
+      },
+    });
+  };
+
+  const handleViewFixtures = () => {
+    navigate(`/upcoming-tournaments/${tournamentIdNum}?tab=fixtures`);
   };
 
   return (
@@ -162,22 +157,37 @@ export default function TournamentCreateTeamIntro() {
                     +
                   </span>
                   <span className="text-[16px] font-bold text-[#A2A6AB]">
-                    View teams
+                    View Teams
                   </span>
                 </Button>
                 <Button
                   type="button"
                   variant="card"
-                  onClick={handleFixtures}
+                  onClick={handleAddFixtures}
                   className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
                 >
                   <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
                     +
                   </span>
                   <span className="text-[16px] font-bold text-[#A2A6AB]">
-                    {allFixturesAdded ? 'View fixtures' : 'Add Fixtures'}
+                    Add Fixtures
                   </span>
                 </Button>
+                {matchesCount > 0 && (
+                  <Button
+                    type="button"
+                    variant="card"
+                    onClick={handleViewFixtures}
+                    className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
+                  >
+                    <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
+                      +
+                    </span>
+                    <span className="text-[16px] font-bold text-[#A2A6AB]">
+                      View Fixtures
+                    </span>
+                  </Button>
+                )}
               </>
             )}
           </div>

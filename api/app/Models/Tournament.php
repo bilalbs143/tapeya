@@ -24,7 +24,6 @@ class Tournament extends BaseModel
         'start_date',
         'end_date',
         'number_of_teams',
-        'number_of_matches',
         'number_of_groups',
         'country',
         'city',

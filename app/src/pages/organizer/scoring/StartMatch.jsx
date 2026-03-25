@@ -57,7 +57,8 @@ export default function StartMatch() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const tournamentIdFromUrl = searchParams.get('tournamentId') || location.state?.tournamentId;
+  const tournamentIdFromUrl =
+    searchParams.get('tournamentId') || location.state?.tournamentId;
   const tournamentPreSelected = !!tournamentIdFromUrl;
 
   const { data: enums = {} } = useGetEnumsQuery();

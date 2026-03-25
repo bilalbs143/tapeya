@@ -405,7 +405,7 @@ export default function ScoringMatch() {
       storeBall({ matchId, inningsId: innings1Id, payload })
         .unwrap()
         .then((data) => {
-          if (data?.id) setLastBallId?.(data.id);
+          if (data?.id) setLastBallId?.(data);
         })
         .catch(() => {});
     },
@@ -441,7 +441,7 @@ export default function ScoringMatch() {
       storeBall({ matchId, inningsId: innings2Id, payload })
         .unwrap()
         .then((data) => {
-          if (data?.id) setLastBallId?.(data.id);
+          if (data?.id) setLastBallId?.(data);
         })
         .catch(() => {});
     },
@@ -495,11 +495,15 @@ export default function ScoringMatch() {
       innings2LiveScore: liveScore2,
 
       // StatsTab + ScorecardTab/BallsTab need both innings' batsmen & bowlers
+      squad: innings1.battingSquad,
       batsmenOnCrease: innings1.batsmenOnCrease,
       bowlersInTable: innings1.bowlersInTable,
+      bowlerSquad: innings1.bowlingSquad,
       secondInningsBallHistory: innings2.ballHistory,
       secondInningsBatsmenOnCrease: innings2.batsmenOnCrease,
       secondInningsBowlersInTable: innings2.bowlersInTable,
+      secondInningsSquad: innings2.battingSquad,
+      secondInningsBowlerSquad: innings2.bowlingSquad,
       secondInningsLiveScore: liveScore2,
 
       // StatsTab expects innings-prefixed props
@@ -518,6 +522,10 @@ export default function ScoringMatch() {
       innings1Id,
       innings1.ballHistory,
       innings2.ballHistory,
+      innings1.battingSquad,
+      innings2.battingSquad,
+      innings1.bowlingSquad,
+      innings2.bowlingSquad,
       innings1.batsmenOnCrease,
       innings2.batsmenOnCrease,
       innings1.bowlersInTable,

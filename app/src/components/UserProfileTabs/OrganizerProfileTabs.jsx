@@ -80,7 +80,7 @@ export function OrganizerProfileTabs({ tournaments, events, teams }) {
       <div className={CONTENT_WRAPPER_CLASS}>
         {TABS.map(({ value, Content }) => (
           <TabsContent key={value} value={value} className="focus:outline-none">
-            <Content />
+            <Content tournaments={tournaments} events={events} teams={teams} />
           </TabsContent>
         ))}
       </div>

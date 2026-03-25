@@ -26,6 +26,7 @@ return new class extends Migration
             $table->string('batting_style', 50)->nullable();
             $table->string('country', 100)->nullable();
             $table->string('city', 100)->nullable();
+            $table->string('avatar')->nullable()->after('city');
             $table->rememberToken();
             $table->timestamps();
         });

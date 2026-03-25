@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
+import defaultAvatar from '@/assets/images/standard/player-avatar.png';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { enumNameToValue } from '@/lib/utils/enumUtils';
@@ -39,6 +40,7 @@ import {
 } from '@/ui/Select';
 
 const NICKNAME_MAX = 50;
+const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5 MB
 
 const DEFAULT_FIELDS = {
   name: '',
@@ -65,6 +67,10 @@ export function UserEdit({ open, onOpenChange }) {
   const toast = useToast();
   const [fields, setFields] = useState(DEFAULT_FIELDS);
   const [nicknameError, setNicknameError] = useState('');
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [avatarRemove, setAvatarRemove] = useState(false);
+  const fileInputRef = useRef(null);
 
   const setField = (key) => (value) =>
     setFields((prev) => ({ ...prev, [key]: value }));
@@ -99,7 +105,46 @@ export function UserEdit({ open, onOpenChange }) {
       email: user.email ?? '',
     });
     setNicknameError('');
+    setAvatarFile(null);
+    setAvatarPreview(null);
+    setAvatarRemove(false);
   }, [open, user, battingStyleOptions, bowlingStyleOptions]);
+
+  useEffect(() => {
+    return () => {
+      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    };
+  }, [avatarPreview]);
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please choose an image file (e.g. JPG, PNG).');
+      return;
+    }
+    if (file.size > MAX_AVATAR_BYTES) {
+      toast.error('Image must be smaller than 5MB.');
+      return;
+    }
+    if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+    setAvatarRemove(false);
+  };
+
+  const clearAvatarSelection = () => {
+    if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    setAvatarFile(null);
+    setAvatarPreview(null);
+    setAvatarRemove(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleRemoveAvatar = () => {
+    clearAvatarSelection();
+    setAvatarRemove(true);
+  };
 
   const handleSave = async () => {
     setNicknameError('');
@@ -131,12 +176,25 @@ export function UserEdit({ open, onOpenChange }) {
       ),
     );
 
+    if (avatarRemove) toSend.avatar = null;
+
+    let bodyToSend = toSend;
+    if (avatarFile instanceof File) {
+      const fd = new FormData();
+      Object.entries(toSend).forEach(([key, value]) => {
+        if (value != null && key !== 'avatar') fd.append(key, String(value));
+      });
+      fd.append('avatar', avatarFile);
+      bodyToSend = fd;
+    }
+
     try {
-      const result = await updateProfile(toSend).unwrap();
+      const result = await updateProfile(bodyToSend).unwrap();
       const updatedUser = result?.data ?? result;
       if (updatedUser && typeof updatedUser === 'object') {
         dispatch(updateUser(updatedUser));
       }
+      clearAvatarSelection();
       onOpenChange?.(false);
     } catch (err) {
       const errors = err?.data?.errors;
@@ -150,6 +208,10 @@ export function UserEdit({ open, onOpenChange }) {
       toast.error(getApiErrorMessage(err, 'Failed to save profile.'));
     }
   };
+
+  const avatarSrc =
+    avatarPreview ??
+    (avatarRemove ? defaultAvatar : (user?.avatar_url ?? defaultAvatar));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -178,6 +240,56 @@ export function UserEdit({ open, onOpenChange }) {
 
           <DialogScrollBody>
             <div className="flex flex-col gap-4">
+              <FormField label="Profile image" htmlFor="avatar" variant="edit">
+                <div className="flex flex-wrap items-center gap-4">
+                  <div className="relative shrink-0">
+                    <img
+                      src={avatarSrc}
+                      alt=""
+                      className="h-20 w-20 rounded-2xl object-cover ring-2 ring-white/20"
+                    />
+                    <input
+                      ref={fileInputRef}
+                      id="avatar"
+                      type="file"
+                      accept="image/*"
+                      className="absolute inset-0 cursor-pointer opacity-0"
+                      onChange={handleAvatarChange}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[13px] text-white/70">
+                      Click the photo to change. JPG or PNG, max 5MB.
+                    </span>
+                    {avatarFile ? (
+                      <button
+                        type="button"
+                        onClick={clearAvatarSelection}
+                        className="self-start text-xs font-medium text-[#DA9811] underline hover:no-underline"
+                      >
+                        Clear selection
+                      </button>
+                    ) : user?.avatar_url && !avatarRemove ? (
+                      <button
+                        type="button"
+                        onClick={handleRemoveAvatar}
+                        className="self-start text-xs font-medium text-red-400 underline hover:no-underline"
+                      >
+                        Remove photo
+                      </button>
+                    ) : avatarRemove ? (
+                      <button
+                        type="button"
+                        onClick={() => setAvatarRemove(false)}
+                        className="self-start text-xs font-medium text-[#A2A6AB] underline hover:no-underline"
+                      >
+                        Keep existing photo
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+              </FormField>
+
               <FormField label="Name" htmlFor="name" variant="edit">
                 <Input
                   id="name"
