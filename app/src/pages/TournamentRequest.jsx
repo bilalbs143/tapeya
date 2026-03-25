@@ -173,13 +173,13 @@ export default function TournamentRequest() {
   return (
     <div className="bg-black">
       <Container className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 bg-black px-4 pt-6 pb-4">
+        <header className="-mx-4 -mt-6 bg-black px-4 pt-6 pb-4 lg:mt-0">
           <h1 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">
             REQUEST TOURNAMENT
           </h1>
         </header>
 
-        <p className="mb-6 text-[14px] text-white/90">
+        <p className="mb-6 text-[14px] text-white/90 text-left lg:text-center">
           Please fill in the details below to request tournament services. Our
           team will review your request and contact you shortly.
         </p>
@@ -187,7 +187,7 @@ export default function TournamentRequest() {
         <form
           onSubmit={handleSubmit(onSubmit)}
           onFocus={resetApiError}
-          className="space-y-6 pb-8"
+          className="space-y-6 pb-8 lg:grid lg:grid-cols-3 lg:gap-6 lg:space-y-0"
         >
           <FormField
             label="Contact Person Name:"
@@ -446,7 +446,7 @@ export default function TournamentRequest() {
             type="submit"
             disabled={busy}
             variant="auth"
-            className="w-full"
+            className="w-full lg:col-span-3 lg:w-[150px] lg:justify-self-start"
           >
             {isSubmitting ? 'Submitting…' : 'Submit'}
           </Button>

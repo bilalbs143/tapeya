@@ -84,78 +84,80 @@ export default function Reels() {
      * Fixed overlay sits above the <main> flow but below the Navbar (z-50)
      * and BottomNav (z-40), so both remain visible on top.
      */
-    <div className="fixed inset-0 z-30 bg-black">
-      {/* Tab bar — back left, Explore & My Videos centered */}
-      <div className="absolute top-[64px] right-0 left-0 z-10 flex items-center justify-between px-4 py-2">
-        {/* Back — left */}
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white shadow"
-          aria-label="Go back"
-        >
-          <ChevronLeftIcon />
-        </button>
+    <div className="fixed inset-0 z-30 bg-black lg:left-[280px]">
+      <div className="relative h-full w-full lg:mx-auto lg:max-w-[430px] lg:border-x lg:border-[#1A1A1A]">
+        {/* Tab bar — back left, Explore & My Videos centered */}
+        <div className="absolute top-[64px] right-0 left-0 z-10 flex items-center justify-between px-4 py-2">
+          {/* Back — left */}
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white shadow"
+            aria-label="Go back"
+          >
+            <ChevronLeftIcon />
+          </button>
 
-        {/* Explore & My Videos — center, text stays inline */}
-        <div className="absolute left-1/2 flex -translate-x-1/2 flex-nowrap items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setActiveTab(TAB_EXPLORE)}
-            className={`flex shrink-0 items-center gap-1.5 text-[13px] font-bold tracking-wide whitespace-nowrap uppercase transition-colors ${
-              activeTab === TAB_EXPLORE ? 'text-[#DA9811]' : 'text-white'
-            }`}
-          >
-            <img
-              src={
-                activeTab === TAB_EXPLORE ? exploreOrangeIcon : exploreWhiteIcon
-              }
-              alt=""
-              className="h-[18px] w-[18px] shrink-0"
-              aria-hidden
-            />
-            Explore
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab(TAB_MY_VIDEOS)}
-            className={`flex shrink-0 items-center gap-1.5 text-[13px] font-bold tracking-wide whitespace-nowrap uppercase transition-colors ${
-              activeTab === TAB_MY_VIDEOS ? 'text-[#DA9811]' : 'text-white'
-            }`}
-          >
-            <img
-              src={
-                activeTab === TAB_MY_VIDEOS
-                  ? myVideosOrangeIcon
-                  : myVideosWhiteIcon
-              }
-              alt=""
-              className="h-[18px] w-[18px] shrink-0"
-              aria-hidden
-            />
-            My Videos
-          </button>
+          {/* Explore & My Videos — center, text stays inline */}
+          <div className="absolute left-1/2 flex -translate-x-1/2 flex-nowrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setActiveTab(TAB_EXPLORE)}
+              className={`flex shrink-0 items-center gap-1.5 text-[13px] font-bold tracking-wide whitespace-nowrap uppercase transition-colors ${
+                activeTab === TAB_EXPLORE ? 'text-[#DA9811]' : 'text-white'
+              }`}
+            >
+              <img
+                src={
+                  activeTab === TAB_EXPLORE ? exploreOrangeIcon : exploreWhiteIcon
+                }
+                alt=""
+                className="h-[18px] w-[18px] shrink-0"
+                aria-hidden
+              />
+              Explore
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab(TAB_MY_VIDEOS)}
+              className={`flex shrink-0 items-center gap-1.5 text-[13px] font-bold tracking-wide whitespace-nowrap uppercase transition-colors ${
+                activeTab === TAB_MY_VIDEOS ? 'text-[#DA9811]' : 'text-white'
+              }`}
+            >
+              <img
+                src={
+                  activeTab === TAB_MY_VIDEOS
+                    ? myVideosOrangeIcon
+                    : myVideosWhiteIcon
+                }
+                alt=""
+                className="h-[18px] w-[18px] shrink-0"
+                aria-hidden
+              />
+              My Videos
+            </button>
+          </div>
+
+          {/* Spacer — same width as back button so center is true */}
+          <div className="w-[27px] shrink-0" aria-hidden />
         </div>
 
-        {/* Spacer — same width as back button so center is true */}
-        <div className="w-[27px] shrink-0" aria-hidden />
-      </div>
-
-      {/* Vertical snap scroll container */}
-      <div
-        ref={containerRef}
-        onScroll={handleScroll}
-        className="h-full w-full [scroll-snap-type:y_mandatory] overflow-y-scroll [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
-        {reels.map((reel, index) => (
-          <ReelItem
-            key={reel.id}
-            reel={reel}
-            isActive={index === activeIndex}
-            isLiked={likedIds.has(reel.id)}
-            onLike={toggleLike}
-          />
-        ))}
+        {/* Vertical snap scroll container */}
+        <div
+          ref={containerRef}
+          onScroll={handleScroll}
+          className="h-full w-full [scroll-snap-type:y_mandatory] overflow-y-scroll [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {reels.map((reel, index) => (
+            <ReelItem
+              key={reel.id}
+              reel={reel}
+              isActive={index === activeIndex}
+              isLiked={likedIds.has(reel.id)}
+              onLike={toggleLike}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

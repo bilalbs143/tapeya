@@ -24,7 +24,7 @@ const PATH_TO_ICON = {
 export function ExploreCategories() {
   return (
     <section className="space-y-4">
-      <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase md:text-[15px]">
+      <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase md:text-[16px]">
         <span>Explore</span>
       </h2>
       <div className="grid grid-cols-4 gap-3 md:grid-cols-4 md:gap-4">

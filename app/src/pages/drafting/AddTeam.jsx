@@ -37,7 +37,7 @@ export default function AddTeam() {
   return (
     <div className="bg-black">
       <Container className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
+        <header className="-mx-4 -mt-6 lg:mt-0 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -61,70 +61,72 @@ export default function AddTeam() {
           </h1>
         </header>
 
-        <form onSubmit={handleSubmit} className="space-y-5 pb-10">
-          <FormField label="Team Name" htmlFor="team_name" required>
-            <Input
-              id="team_name"
-              name="team_name"
-              placeholder="Enter team name"
-              autoComplete="off"
-            />
-          </FormField>
+        <form onSubmit={handleSubmit} className="pb-10">
+          <div className="space-y-5 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">
+            <FormField label="Team Name" htmlFor="team_name" required>
+              <Input
+                id="team_name"
+                name="team_name"
+                placeholder="Enter team name"
+                autoComplete="off"
+              />
+            </FormField>
 
-          <FormField label="Owner Name" htmlFor="owner_name" required>
-            <Input
-              id="owner_name"
-              name="owner_name"
-              placeholder="Enter owner name"
-              autoComplete="off"
-            />
-          </FormField>
+            <FormField label="Owner Name" htmlFor="owner_name" required>
+              <Input
+                id="owner_name"
+                name="owner_name"
+                placeholder="Enter owner name"
+                autoComplete="off"
+              />
+            </FormField>
 
-          <FormField label="Icon Player" htmlFor="icon_player" required>
-            <Input
-              id="icon_player"
-              name="icon_player"
-              placeholder="Enter icon player name"
-              autoComplete="off"
-            />
-          </FormField>
+            <FormField label="Icon Player" htmlFor="icon_player" required>
+              <Input
+                id="icon_player"
+                name="icon_player"
+                placeholder="Enter icon player name"
+                autoComplete="off"
+              />
+            </FormField>
 
-          <FormField label="Upload Logo" htmlFor="team_logo_input">
-            <div className="flex h-12 items-center justify-between rounded-[6px] bg-[#141412] px-4">
-              <span
-                className="truncate text-[16px]"
-                style={{ color: '#A2A6AB78' }}
-              >
-                {logoName}
-              </span>
-              <div className="shrink-0">
-                <input
-                  ref={fileInputRef}
-                  id="team_logo_input"
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  onChange={handleFileChange}
-                  aria-label="Upload team logo"
-                />
-                <Button
-                  type="button"
-                  variant="file"
-                  size="sm"
-                  className="h-8 rounded-[6px] px-2 text-[12px] font-semibold tracking-wide"
-                  onClick={handleAttachClick}
+            <FormField label="Upload Logo" htmlFor="team_logo_input">
+              <div className="flex h-12 items-center justify-between rounded-[6px] bg-[#141412] px-4">
+                <span
+                  className="truncate text-[16px]"
+                  style={{ color: '#A2A6AB78' }}
                 >
-                  Attach file
-                </Button>
+                  {logoName}
+                </span>
+                <div className="shrink-0">
+                  <input
+                    ref={fileInputRef}
+                    id="team_logo_input"
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={handleFileChange}
+                    aria-label="Upload team logo"
+                  />
+                  <Button
+                    type="button"
+                    variant="file"
+                    size="sm"
+                    className="h-8 rounded-[6px] px-2 text-[12px] font-semibold tracking-wide"
+                    onClick={handleAttachClick}
+                  >
+                    Attach file
+                  </Button>
+                </div>
               </div>
-            </div>
-          </FormField>
+            </FormField>
+          </div>
 
-          <div className="pt-4">
+          <div className="pt-4 lg:flex lg:justify-start">
             <Button
               type="submit"
               variant="auth"
-              className="h-12 w-full rounded-[8px] text-[15px] font-semibold tracking-wide uppercase"
+              className="h-12 w-full rounded-[8px] text-[15px] font-semibold tracking-wide uppercase lg:w-[150px]"
             >
               Submit
             </Button>

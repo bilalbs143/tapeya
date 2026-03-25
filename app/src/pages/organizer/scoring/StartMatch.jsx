@@ -213,7 +213,7 @@ export default function StartMatch() {
   return (
     <div className="bg-black">
       <Container className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
+        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6 lg:mt-0">
           <button
             type="button"
             onClick={handleBack}
@@ -437,75 +437,83 @@ export default function StartMatch() {
             )}
           </div>
 
-          {/* Overs */}
-          <FormField
-            htmlFor="overs"
-            label="Overs"
-            className="space-y-2"
-            labelClassName={`!mb-2 ${formFieldLabelCheckoutClass}`}
-          >
-            <button
-              type="button"
-              id="overs"
-              onClick={() => setOversDialogOpen(true)}
-              className={`${oversInputBase} ${!overs ? '!text-[#A2A6AB78]' : ''}`}
-              aria-label="Select overs"
-            >
-              {overs || 'Select Overs'}
-            </button>
-            {errors.overs?.message && (
-              <p className="text-sm text-red-200" role="alert">
-                {errors.overs.message}
-              </p>
-            )}
-          </FormField>
+          {/* Overs + Wickets */}
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+            <div className="space-y-6">
+              <FormField
+                htmlFor="overs"
+                label="Overs"
+                className="space-y-2"
+                labelClassName={`!mb-2 ${formFieldLabelCheckoutClass}`}
+              >
+                <button
+                  type="button"
+                  id="overs"
+                  onClick={() => setOversDialogOpen(true)}
+                  className={`${oversInputBase} ${!overs ? '!text-[#A2A6AB78]' : ''}`}
+                  aria-label="Select overs"
+                >
+                  {overs || 'Select Overs'}
+                </button>
+                {errors.overs?.message && (
+                  <p className="text-sm text-red-200" role="alert">
+                    {errors.overs.message}
+                  </p>
+                )}
+              </FormField>
 
-          <OversDialog
-            open={oversDialogOpen}
-            onOpenChange={setOversDialogOpen}
-            overs={overs}
-            options={oversOptions}
-            onChange={(v) => setValue('overs', v)}
-          />
+              <OversDialog
+                open={oversDialogOpen}
+                onOpenChange={setOversDialogOpen}
+                overs={overs}
+                options={oversOptions}
+                onChange={(v) => setValue('overs', v)}
+              />
+            </div>
 
-          {/* Wickets / players per side */}
-          <FormField
-            htmlFor="players-per-side"
-            label="Wickets"
-            className="space-y-2"
-            labelClassName={`!mb-2 ${formFieldLabelCheckoutClass}`}
-          >
-            <button
-              type="button"
-              id="players-per-side"
-              onClick={() => setWicketsDialogOpen(true)}
-              className={`${oversInputBase} ${!playersPerSide ? '!text-[#A2A6AB78]' : ''}`}
-              aria-label="Select players per side"
-            >
-              {playersPerSide || 'Select Players Per Side'}
-            </button>
-            {errors.players_per_side?.message && (
-              <p className="text-sm text-red-200" role="alert">
-                {errors.players_per_side.message}
-              </p>
-            )}
-          </FormField>
+            <div className="space-y-6">
+              {/* Wickets / players per side */}
+              <FormField
+                htmlFor="players-per-side"
+                label="Wickets"
+                className="space-y-2"
+                labelClassName={`!mb-2 ${formFieldLabelCheckoutClass}`}
+              >
+                <button
+                  type="button"
+                  id="players-per-side"
+                  onClick={() => setWicketsDialogOpen(true)}
+                  className={`${oversInputBase} ${
+                    !playersPerSide ? '!text-[#A2A6AB78]' : ''
+                  }`}
+                  aria-label="Select players per side"
+                >
+                  {playersPerSide || 'Select Players Per Side'}
+                </button>
+                {errors.players_per_side?.message && (
+                  <p className="text-sm text-red-200" role="alert">
+                    {errors.players_per_side.message}
+                  </p>
+                )}
+              </FormField>
 
-          <PlayersPerSideDialog
-            open={wicketsDialogOpen}
-            onOpenChange={setWicketsDialogOpen}
-            playersPerSide={playersPerSide}
-            options={playersPerSideOptions}
-            onSelect={(val) => setValue('players_per_side', val)}
-          />
+              <PlayersPerSideDialog
+                open={wicketsDialogOpen}
+                onOpenChange={setWicketsDialogOpen}
+                playersPerSide={playersPerSide}
+                options={playersPerSideOptions}
+                onSelect={(val) => setValue('players_per_side', val)}
+              />
+            </div>
+          </div>
 
           {/* Actions */}
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-2 lg:justify-start">
             <Button
               type="button"
               variant="fixture"
               onClick={handleSubmit(onSaveFixture)}
-              className="flex-1 cursor-pointer"
+              className="flex-1 cursor-pointer lg:flex-none lg:w-[150px] lg:whitespace-nowrap"
               disabled={isCreatingMatch}
             >
               {isCreatingMatch ? 'Saving…' : 'Save Fixture'}
@@ -514,7 +522,7 @@ export default function StartMatch() {
               type="button"
               variant="orange"
               onClick={handleSubmit(onOpenToss)}
-              className="flex-1 cursor-pointer"
+              className="flex-1 cursor-pointer lg:flex-none lg:w-[150px] lg:whitespace-nowrap"
               disabled={isCreatingMatch || isUpdatingToss}
             >
               {isCreatingMatch || isUpdatingToss ? 'Starting…' : 'Start Match'}
