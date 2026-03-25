@@ -1,8 +1,8 @@
 import { baseApi } from './baseApi';
 
 /**
- * Sponsors API – search users with sponsor role (for team-creation dropdown).
- * GET /sponsors?search=... — server-side search; use when dropdown has thousands.
+ * Team owner API – search app users (for sponsor/owner dropdown when adding a team).
+ * GET /sponsors?search=... — server assigns sponsor role on team create if needed.
  */
 export const sponsorApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({

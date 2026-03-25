@@ -1,12 +1,22 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Button } from '@/ui/Button';
+import { getApiErrorMessage } from '@/lib/apiErrors';
+import { useGetMeQuery } from '@/store/api/authApi';
+import { useSubmitSupportMessageMutation } from '@/store/api/supportApi';
+import { useAppSelector } from '@/store/hooks';
+import { selectUser } from '@/store/selectors';
 import { useToast } from '@/hooks/useToast';
+import { Button } from '@/ui/Button';
 
 export default function Support() {
   const navigate = useNavigate();
   const toast = useToast();
+  const userFromStore = useAppSelector(selectUser);
+  const { data: meResponse } = useGetMeQuery(undefined, {
+    skip: !userFromStore?.id,
+  });
+  const me = meResponse?.data ?? userFromStore;
 
   const [values, setValues] = useState({
     name: '',
@@ -14,12 +24,21 @@ export default function Support() {
     phone: '',
   });
   const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSupport, { isLoading: isSubmitting }] =
+    useSubmitSupportMessageMutation();
+
+  useEffect(() => {
+    if (!me) return;
+    setValues((prev) => ({
+      ...prev,
+      name: prev.name || me.name?.trim() || me.nickname?.trim() || '',
+      phone: prev.phone || me.phone?.trim() || '',
+    }));
+  }, [me]);
 
   const isValid = useMemo(() => {
     return (
-      values.name.trim().length >= 2 &&
-      values.message.trim().length >= 10
+      values.name.trim().length >= 2 && values.message.trim().length >= 10
     );
   }, [values.message, values.name]);
 
@@ -43,17 +62,35 @@ export default function Support() {
     }
 
     try {
-      setIsSubmitting(true);
-      // No dedicated backend endpoint is wired here yet.
-      // This is a UI-only submit with basic feedback.
-      await new Promise((r) => setTimeout(r, 700));
-      setValues({ name: '', message: '', phone: '' });
+      const result = await submitSupport({
+        name: values.name.trim(),
+        phone: values.phone.trim() || undefined,
+        message: values.message.trim(),
+      }).unwrap();
       setErrors({});
-      toast.success('Your message has been sent. We will get back to you soon.');
+      toast.success(
+        result?.message ??
+          'Your message has been sent. We will get back to you soon.',
+      );
+      if (me) {
+        setValues({
+          name: me.name?.trim() || me.nickname?.trim() || '',
+          message: '',
+          phone: me.phone?.trim() || '',
+        });
+      } else {
+        setValues({ name: '', message: '', phone: '' });
+      }
     } catch (err) {
-      toast.error('Something went wrong. Please try again.');
-    } finally {
-      setIsSubmitting(false);
+      const data = err?.data;
+      if (data?.errors && typeof data.errors === 'object') {
+        const next = {};
+        if (data.errors.name?.[0]) next.name = data.errors.name[0];
+        if (data.errors.message?.[0]) next.message = data.errors.message[0];
+        if (data.errors.phone?.[0]) next.phone = data.errors.phone[0];
+        if (Object.keys(next).length) setErrors(next);
+      }
+      toast.error(getApiErrorMessage(err));
     }
   };
 
@@ -84,7 +121,7 @@ export default function Support() {
         </h1>
       </header>
 
-      <div className="mx-auto w-full px-4 pb-8 pt-6 max-w-2xl">
+      <div className="mx-auto w-full max-w-2xl px-4 pb-8 pt-6">
         <div>
           <p className="mb-4 text-[13px] leading-snug text-[#A2A6AB] md:text-[14px]">
             Have a question or need help? Send us your details and message and
@@ -104,8 +141,10 @@ export default function Support() {
                   id="support-name"
                   value={values.name}
                   onChange={onChange('name')}
-                  className={`h-12 w-full rounded-[6px] bg-[#141412] px-4 py-3 text-white placeholder:text-base placeholder:text-[#A2A6AB78] focus:outline-none focus:ring-2 transition-colors ${
-                    errors.name ? 'focus:ring-red-500/50' : 'focus:ring-[#FF9700]/50'
+                  className={`h-12 w-full rounded-[6px] bg-[#141412] px-4 py-3 text-white transition-colors placeholder:text-base placeholder:text-[#A2A6AB78] focus:outline-none focus:ring-2 ${
+                    errors.name
+                      ? 'focus:ring-red-500/50'
+                      : 'focus:ring-[#FF9700]/50'
                   }`}
                   placeholder="Your full name"
                   autoComplete="name"
@@ -123,17 +162,26 @@ export default function Support() {
                 htmlFor="support-phone"
                 className="text-[12px] font-bold text-[#A2A6AB] uppercase"
               >
-                  Phone (optional)
-                </label>
+                Phone
+              </label>
               <input
                 id="support-phone"
                 value={values.phone}
                 onChange={onChange('phone')}
-                className="h-12 w-full rounded-[6px] bg-[#141412] px-4 py-3 text-white placeholder:text-base placeholder:text-[#A2A6AB78] focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50 transition-colors"
+                className={`h-12 w-full rounded-[6px] bg-[#141412] px-4 py-3 text-white transition-colors placeholder:text-base placeholder:text-[#A2A6AB78] focus:outline-none focus:ring-2 ${
+                  errors.phone
+                    ? 'focus:ring-red-500/50'
+                    : 'focus:ring-[#FF9700]/50'
+                }`}
                 placeholder="+92 3xx xxxxxxx"
                 autoComplete="tel"
                 inputMode="tel"
               />
+              {errors.phone && (
+                <p className="text-sm text-red-200" role="alert">
+                  {errors.phone}
+                </p>
+              )}
             </div>
 
             <div className="flex flex-col gap-1">
@@ -148,8 +196,10 @@ export default function Support() {
                 value={values.message}
                 onChange={onChange('message')}
                 rows={6}
-                className={`w-full resize-y rounded-[6px] bg-[#141412] px-4 py-3 text-white placeholder:text-base placeholder:text-[#A2A6AB78] focus:outline-none focus:ring-2 transition-colors ${
-                  errors.message ? 'focus:ring-red-500/50' : 'focus:ring-[#FF9700]/50'
+                className={`w-full resize-y rounded-[6px] bg-[#141412] px-4 py-3 text-white transition-colors placeholder:text-base placeholder:text-[#A2A6AB78] focus:outline-none focus:ring-2 ${
+                  errors.message
+                    ? 'focus:ring-red-500/50'
+                    : 'focus:ring-[#FF9700]/50'
                 }`}
                 placeholder="Write your message here..."
               />
@@ -166,6 +216,7 @@ export default function Support() {
               </p>
 
               <Button
+                type="submit"
                 variant="orangeDialogWhite"
                 size="dialog"
                 className="sm:w-[180px] sm:uppercase"
@@ -180,4 +231,3 @@ export default function Support() {
     </div>
   );
 }
-

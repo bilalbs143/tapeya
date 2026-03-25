@@ -1,5 +1,9 @@
+import { useMemo } from 'react';
+
+import { useSearchParams } from 'react-router-dom';
+
 import profileUserIcon from '@/assets/images/icons/profile-user.svg';
-import teamIcon from '@/assets/images/icons/team-icon.svg';
+import teamIcon from '@/assets/images/icons/teams-white.svg';
 import userStatsIcon from '@/assets/images/icons/user-stats.svg';
 import {
   profileListClass,
@@ -12,8 +16,9 @@ import {
   TabsTrigger,
 } from '@/ui/Tabs';
 
+import { PROFILE_OVERVIEW_ROLE } from './constants';
 import { ProfileMetrics } from './ProfileMetrics';
-import { SponsorOverview } from './SponsorOverview';
+import { ProfileRoleOverview } from './ProfileRoleOverview';
 import { SponsorStats } from './SponsorStats';
 import { SponsorTeams } from './SponsorTeams';
 
@@ -30,7 +35,7 @@ const TABS = [
     value: 'overview',
     label: 'Overview',
     icon: profileUserIcon,
-    Content: SponsorOverview,
+    Content: null,
   },
   {
     value: 'teams',
@@ -46,18 +51,46 @@ const TABS = [
   },
 ];
 
+const VALID_SPONSOR_TABS = new Set(TABS.map((t) => t.value));
+
+function sponsorTabFromSearchParams(searchParams) {
+  const t = searchParams.get('tab');
+  return t && VALID_SPONSOR_TABS.has(t) ? t : 'overview';
+}
+
 export function SponsorProfileTabs({ teams, partnerships, reach }) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = useMemo(
+    () => sponsorTabFromSearchParams(searchParams),
+    [searchParams],
+  );
+
+  const handleSubTabChange = (value) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('tab', value);
+        return next;
+      },
+      { replace: true },
+    );
+  };
+
   const metrics =
     teams != null || partnerships != null || reach != null
       ? [
-          { value: String(teams ?? '—'), label: 'TEAMS' },
-          { value: String(partnerships ?? '—'), label: 'PARTNERSHIPS' },
-          { value: String(reach ?? '—'), label: 'REACH' },
-        ]
+        { value: String(teams ?? '—'), label: 'TEAMS' },
+        { value: String(partnerships ?? '—'), label: 'PARTNERSHIPS' },
+        { value: String(reach ?? '—'), label: 'REACH' },
+      ]
       : SPONSOR_METRICS;
 
   return (
-    <Tabs className="w-full" defaultValue="overview">
+    <Tabs
+      className="w-full"
+      value={activeTab}
+      onValueChange={handleSubTabChange}
+    >
       <TabsList className={profileListClass}>
         {TABS.map(({ value, label, icon }) => (
           <TabsTrigger
@@ -80,7 +113,11 @@ export function SponsorProfileTabs({ teams, partnerships, reach }) {
       <div className={CONTENT_WRAPPER_CLASS}>
         {TABS.map(({ value, Content }) => (
           <TabsContent key={value} value={value} className="focus:outline-none">
-            <Content />
+            {value === 'overview' ? (
+              <ProfileRoleOverview role={PROFILE_OVERVIEW_ROLE.SPONSOR} />
+            ) : (
+              <Content />
+            )}
           </TabsContent>
         ))}
       </div>

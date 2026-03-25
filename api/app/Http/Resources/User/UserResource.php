@@ -39,6 +39,7 @@ class UserResource extends JsonResource
             'batting_style_enum' => $this->batting_style?->name,
             'country' => $this->country,
             'city' => $this->city,
+            'followers_count' => (int) ($this->followers_count ?? 0),
             'roles' => $appRoles->map(fn ($r) => [
                 'id' => $r->id,
                 'name' => $r->name,

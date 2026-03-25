@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\User;
 
-use App\Enums\User\AppRoleEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -13,15 +12,14 @@ class SponsorController extends Controller
     use BaseControllerTrait;
 
     /**
-     * List users with sponsor role (for team-creation dropdown).
-     * GET /sponsors?search=... — optional search by name, nickname, or phone (partial match). Limit 50.
+     * List app users for team owner / sponsor dropdown (not restricted to sponsor role).
+     * GET /sponsors?search=... — search by name, nickname, or phone (partial match). Limit 50.
      */
     public function index(): JsonResponse
     {
         $search = request()->str('search')->trim();
         $query = User::query()
             ->appUsers()
-            ->withRole(AppRoleEnum::SPONSOR)
             ->orderBy('name');
 
         if ($search->isNotEmpty()) {

@@ -2,7 +2,7 @@
  * Profile strength – 0–100 score based on profile completeness.
  * Uses the same user shape as the API (UserResource): name, nickname, email,
  * phone, date_of_birth, country, city, batting_style, bowling_style,
- * playing_role, roles.
+ * playing_role, avatar_url.
  *
  * Each criterion is weighted equally; filled = 1, missing = 0.
  * Result is rounded to an integer.
@@ -27,10 +27,6 @@ const CRITERIA = [
   {
     key: 'playing_role',
     get: (u) => !!(u?.playing_role ?? u?.playing_role_enum),
-  },
-  {
-    key: 'roles',
-    get: (u) => Array.isArray(u?.roles) && u.roles.length > 0,
   },
 ];
 

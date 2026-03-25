@@ -1,4 +1,4 @@
-import { DialogClose, DialogScrollBody } from '@/ui/Dialog';
+import { DialogClose, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
 
 export function DraftingSubmitSquadSuccessDialog({ teamName }) {
   return (
@@ -52,9 +52,9 @@ export function DraftingSubmitSquadSuccessDialog({ teamName }) {
           </div>
         </div>
 
-        <h2 className="mb-1.5 text-[14px] font-bold text-white">
+        <DialogTitle className="mb-1.5 text-[14px] font-bold text-white">
           Team has been submitted
-        </h2>
+        </DialogTitle>
         <p className="text-[13px] leading-snug text-[#A2A6AB]">
           {teamName
             ? `If you need any changes for ${teamName}, please contact the organizer.`

@@ -1,3 +1,10 @@
+/** Keys for {@link ProfileRoleOverview} in `ProfileRoleOverview.jsx`. */
+export const PROFILE_OVERVIEW_ROLE = {
+  PLAYER: 'player',
+  ORGANIZER: 'organizer',
+  SPONSOR: 'sponsor',
+};
+
 /** Max width for profile tab content, aligned with app layout */
 export const CONTENT_MAX_WIDTH = 'max-w-[1100px]';
 

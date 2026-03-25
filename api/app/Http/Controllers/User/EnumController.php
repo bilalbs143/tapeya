@@ -14,6 +14,7 @@ use App\Enums\Tournament\GroupModeEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
 use App\Enums\User\BattingStyleEnum;
 use App\Enums\User\BowlingStyleEnum;
+use App\Enums\User\PlayingRoleEnum;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 
@@ -38,6 +39,7 @@ class EnumController extends Controller
             'players_per_side' => $this->toOptions(PlayersPerSideEnum::cases()),
             'batting_style' => $this->toOptions(BattingStyleEnum::cases()),
             'bowling_style' => $this->toOptions(BowlingStyleEnum::cases()),
+            'playing_role' => $this->toOptions(PlayingRoleEnum::cases()),
         ];
 
         return response()->json(['data' => $enums]);

@@ -35,6 +35,28 @@ export const playerApi = baseApi.injectEndpoints({
       providesTags: (result, error, { userId }) =>
         result ? [{ type: 'User', id: `stats-${userId}` }] : [],
     }),
+    /**
+     * Open-tournament rank; pass category + sort from user playing role (see getProfileRankingParamsByPlayingRole).
+     * Params may be omitted — API derives category/sort from the user's profile when absent.
+     */
+    getPlayerRankingPosition: builder.query({
+      query: ({
+        userId,
+        tournament_type = 'open_tournament',
+        category,
+        sort,
+        min_innings,
+      }) => ({
+        url: `/users/${userId}/ranking-position`,
+        params: {
+          tournament_type,
+          ...(category != null ? { category } : {}),
+          ...(sort != null ? { sort } : {}),
+          ...(min_innings != null ? { min_innings } : {}),
+        },
+      }),
+      transformResponse: (response) => response?.data ?? response ?? null,
+    }),
     getPlayerTeams: builder.query({
       query: (userId) => ({
         url: `/users/${userId}/teams`,
@@ -50,5 +72,6 @@ export const {
   useGetPlayersQuery,
   useSearchPlayersQuery,
   useGetPlayerStatsQuery,
+  useGetPlayerRankingPositionQuery,
   useGetPlayerTeamsQuery,
 } = playerApi;

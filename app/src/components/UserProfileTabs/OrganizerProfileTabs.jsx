@@ -12,10 +12,11 @@ import {
   TabsTrigger,
 } from '@/ui/Tabs';
 
+import { PROFILE_OVERVIEW_ROLE } from './constants';
 import { OrganizerEvents } from './OrganizerEvents';
-import { OrganizerOverview } from './OrganizerOverview';
 import { OrganizerStats } from './OrganizerStats';
 import { ProfileMetrics } from './ProfileMetrics';
+import { ProfileRoleOverview } from './ProfileRoleOverview';
 
 const CONTENT_WRAPPER_CLASS = 'px-4 pb-6 pt-1';
 
@@ -30,7 +31,7 @@ const TABS = [
     value: 'overview',
     label: 'Overview',
     icon: profileUserIcon,
-    Content: OrganizerOverview,
+    Content: null,
   },
   {
     value: 'events',
@@ -50,10 +51,10 @@ export function OrganizerProfileTabs({ tournaments, events, teams }) {
   const metrics =
     tournaments != null || events != null || teams != null
       ? [
-          { value: String(tournaments ?? '—'), label: 'TOURNAMENTS' },
-          { value: String(events ?? '—'), label: 'EVENTS' },
-          { value: String(teams ?? '—'), label: 'TEAMS' },
-        ]
+        { value: String(tournaments ?? '—'), label: 'TOURNAMENTS' },
+        { value: String(events ?? '—'), label: 'EVENTS' },
+        { value: String(teams ?? '—'), label: 'TEAMS' },
+      ]
       : ORGANIZER_METRICS;
 
   return (
@@ -80,7 +81,15 @@ export function OrganizerProfileTabs({ tournaments, events, teams }) {
       <div className={CONTENT_WRAPPER_CLASS}>
         {TABS.map(({ value, Content }) => (
           <TabsContent key={value} value={value} className="focus:outline-none">
-            <Content tournaments={tournaments} events={events} teams={teams} />
+            {value === 'overview' ? (
+              <ProfileRoleOverview
+                role={PROFILE_OVERVIEW_ROLE.ORGANIZER}
+                tournaments={tournaments}
+                events={events}
+              />
+            ) : (
+              <Content tournaments={tournaments} events={events} teams={teams} />
+            )}
           </TabsContent>
         ))}
       </div>

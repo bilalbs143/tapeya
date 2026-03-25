@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import DialogManager from '@/components/dialogs/DialogManager';
+import { ProfileStrengthReminderScheduler } from '@/components/ProfileStrengthReminderScheduler';
 import { RequireAuth } from '@/components/RequireAuth';
 import { ScrollRestoration } from '@/components/ScrollRestoration';
 import SplashScreen from '@/components/SplashScreen';
@@ -62,7 +63,6 @@ function App() {
     <TooltipProvider delayDuration={300}>
       <Toaster>
         <ToastProvider>
-          <DialogManager />
           <BrowserRouter
             future={{
               v7_relativeSplatPath: true,
@@ -70,6 +70,8 @@ function App() {
             }}
           >
             <ScrollRestoration />
+            <DialogManager />
+            <ProfileStrengthReminderScheduler />
             <Routes>
               <Route path="/" element={<SplashScreen />} />
               <Route element={<RequireAuth />}>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AdminOnlyServiceProvider;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -23,6 +24,15 @@ return Application::configure(basePath: dirname(__DIR__))
                     $e->getMessage(),
                     'VALIDATION_ERROR',
                     $e->errors()
+                );
+            }
+        });
+
+        $exceptions->render(function (AuthenticationException $e, $request) {
+            if ($request->expectsJson()) {
+                return response()->failure(
+                    $e->getMessage(),
+                    'UNAUTHORIZED'
                 );
             }
         });

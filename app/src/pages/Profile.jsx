@@ -32,14 +32,14 @@ function getRoleSlugs(user) {
   return slugs;
 }
 
-function ProfileContent({ activeRole }) {
+function ProfileContent({ activeRole, user }) {
   switch (activeRole) {
     case 'organizer':
       return <OrganizerProfileTabs />;
     case 'sponsor':
       return <SponsorProfileTabs />;
     case 'player':
-      return <PlayerProfile />;
+      return <PlayerProfile user={user} />;
     default:
       return (
         <p className="text-[13px] text-[#A2A6AB]">
@@ -76,6 +76,7 @@ export default function Profile() {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       next.set('role', value);
+      next.delete('tab');
       return next;
     });
   };
@@ -90,7 +91,7 @@ export default function Profile() {
           value={activeRole ?? ''}
           onValueChange={setActiveRole}
         >
-          <div className="px-4 pt-6">
+          <div className="px-4">
             <p className="mb-2 text-xs font-semibold tracking-wide text-white/60 uppercase">
               Switch profile
             </p>
@@ -109,13 +110,13 @@ export default function Profile() {
         </Tabs>
       )}
 
-      <div className="px-4 pt-10 pb-6">
+      <div className="px-4 pt-6 pb-6">
         {userRoleSlugs.length === 0 ? (
           <p className="text-[13px] text-[#A2A6AB]">
             You don&apos;t have any profile roles yet.
           </p>
         ) : (
-          <ProfileContent activeRole={activeRole ?? 'player'} />
+          <ProfileContent activeRole={activeRole ?? 'player'} user={user} />
         )}
       </div>
     </div>

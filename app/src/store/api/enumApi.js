@@ -24,6 +24,9 @@ export function usePlayerProfileEnums() {
     bowlingStyleOptions: Array.isArray(enums.bowling_style)
       ? enums.bowling_style
       : [],
+    playingRoleOptions: Array.isArray(enums.playing_role)
+      ? enums.playing_role
+      : [],
     isLoading,
   };
 }
@@ -36,6 +39,13 @@ export function getBattingStyleLabel(value, options = []) {
 }
 
 export function getBowlingStyleLabel(value, options = []) {
+  if (!value) return '—';
+  const n = typeof value === 'string' ? value.toLowerCase() : value;
+  const opt = (options || []).find((o) => o.value === n || o.value === value);
+  return opt ? opt.label : value;
+}
+
+export function getPlayingRoleLabel(value, options = []) {
   if (!value) return '—';
   const n = typeof value === 'string' ? value.toLowerCase() : value;
   const opt = (options || []).find((o) => o.value === n || o.value === value);

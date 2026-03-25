@@ -1,6 +1,7 @@
 import goldMemberIcon from '@/assets/images/icons/gold-member.png';
-import defaultAvatar from '@/assets/images/standard/player-avatar.png';
+import defaultAvatar from '@/assets/images/standard/default-avatar.png';
 import profileHeaderBg from '@/assets/images/standard/profile-header.jpg';
+import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { calculateProfileStrength } from '@/lib/profileStrength';
 import { Progress } from '@/ui/Progress';
 
@@ -24,15 +25,16 @@ export function ProfileHeader({
   strength: strengthProp,
   avatarSrc: avatarSrcProp,
 }) {
-  const name =
-    nameProp ??
-    (userProp?.name?.trim() || userProp?.nickname?.trim() || 'Guest');
+  const name = nameProp ?? (userProp?.name?.trim() || userProp?.nickname?.trim() || 'Guest');
   const role = roleProp ?? getPrimaryRoleLabel(userProp);
   const avatarSrc = avatarSrcProp ?? userProp?.avatar_url ?? defaultAvatar;
-  const strength =
-    strengthProp ?? (userProp ? calculateProfileStrength(userProp) : 0);
+  const strength = strengthProp ?? (userProp ? calculateProfileStrength(userProp) : 0);
+
   return (
-    <header className="relative isolate" style={{ height: BANNER_HEIGHT }}>
+    <header
+      className="relative isolate mb-6 overflow-visible"
+      style={{ height: BANNER_HEIGHT }}
+    >
       <img
         src={profileHeaderBg}
         alt=""
@@ -57,30 +59,28 @@ export function ProfileHeader({
                 <p className="text-xs font-bold text-[#DA9811]">{membership}</p>
               </div>
             </div>
-            <img
-              src={avatarSrc}
-              alt={name}
-              className="w-20 shrink-0 rounded-2xl object-cover shadow-[0_20px_60px_rgba(0,0,0,0.5)] sm:block"
-            />
+            <ProfileAvatar src={avatarSrc} name={name} />
           </div>
 
-          <div className="absolute right-0 bottom-[-22px] left-0 mx-auto w-full max-w-[358px] rounded-full bg-[#141412] px-4 py-3 backdrop-blur">
-            <div className="flex items-center gap-4">
-              <span className="text-[13px] text-[#A2A6AB]">
-                Your profile strength
-              </span>
-              <div className="flex flex-1 items-center gap-3">
-                <Progress
-                  value={strength}
-                  className="h-2 flex-1 bg-white/20"
-                  indicatorClassName="bg-[#d8a11e]"
-                />
-                <span className="shrink-0 text-sm font-bold text-white italic">
-                  {strength}%
+          {strength < 100 && (
+            <div className="absolute right-0 bottom-[-22px] left-0 mx-auto w-full max-w-[358px] rounded-full bg-[#141412] px-4 py-3 backdrop-blur">
+              <div className="flex items-center gap-4">
+                <span className="text-[13px] text-[#A2A6AB]">
+                  Your Profile Strength
                 </span>
+                <div className="flex flex-1 items-center gap-3">
+                  <Progress
+                    value={strength}
+                    className="h-2 flex-1 bg-white/20"
+                    indicatorClassName="bg-[#d8a11e]"
+                  />
+                  <span className="shrink-0 text-sm font-bold text-white italic">
+                    {strength}%
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </header>

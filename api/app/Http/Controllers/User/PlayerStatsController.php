@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Enums\Tournament\TournamentTypeEnum;
+use App\Enums\User\PlayingRoleEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -38,5 +39,55 @@ class PlayerStatsController extends Controller
         ];
 
         return $this->success($data);
+    }
+
+    /**
+     * Where this player sits on a leaderboard (same rules as GET /rankings).
+     *
+     * Query: tournament_type, category, sort, min_innings — defaults: open tournament;
+     *          category + sort from the user's playing role when omitted (bowler → bowling/wickets, etc.).
+     */
+    public function rankingPosition(User $user): JsonResponse
+    {
+        $tournamentType = request()->query('tournament_type', 'open_tournament');
+        $category = request()->query('category');
+        if ($category === null || $category === '') {
+            $category = match ($user->playing_role) {
+                PlayingRoleEnum::BOWLER => 'bowling',
+                PlayingRoleEnum::ALL_ROUNDER,
+                PlayingRoleEnum::BATSMAN => 'batting',
+                default => 'batting',
+            };
+        }
+
+        $sort = request()->query('sort');
+        if ($sort === null || $sort === '') {
+            $sort = $category === 'batting' ? 'runs' : ($category === 'bowling' ? 'wickets' : 'ct');
+        }
+        $minInnings = (int) request()->query('min_innings', 0);
+
+        $validTournamentType = ['league', 'open_tournament', 'emerging'];
+        if (! in_array($tournamentType, $validTournamentType, true)) {
+            return $this->failure('tournament_type must be one of: league, open_tournament, emerging.');
+        }
+        $validCategory = ['batting', 'bowling', 'fielding'];
+        if (! in_array($category, $validCategory, true)) {
+            return $this->failure('category must be one of: batting, bowling, fielding.');
+        }
+
+        $rank = app(PlayerStatsService::class)->rankPositionForPlayer(
+            (int) $user->id,
+            $tournamentType,
+            $category,
+            $sort,
+            $minInnings
+        );
+
+        return $this->success([
+            'rank' => $rank,
+            'tournament_type' => $tournamentType,
+            'category' => $category,
+            'sort' => $sort,
+        ]);
     }
 }

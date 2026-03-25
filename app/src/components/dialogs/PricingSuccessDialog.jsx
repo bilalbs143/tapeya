@@ -1,4 +1,4 @@
-import { DialogClose, DialogScrollBody } from '@/ui/Dialog';
+import { DialogClose, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
 
 export function PricingSuccessDialog({ planName }) {
   return (
@@ -52,9 +52,9 @@ export function PricingSuccessDialog({ planName }) {
           </div>
         </div>
 
-        <h2 className="mb-1.5 text-[16px] font-bold text-white">
+        <DialogTitle className="mb-1.5 text-[16px] font-bold text-white">
           Thank you for your request
-        </h2>
+        </DialogTitle>
         <p className="text-[13px] leading-snug text-[#A2A6AB]">
           {planName
             ? `Our team will contact you soon about the ${planName} plan.`

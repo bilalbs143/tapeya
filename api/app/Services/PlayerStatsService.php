@@ -661,6 +661,21 @@ class PlayerStatsService
         return array_values($out);
     }
 
+    /**
+     * 1-based position in the leaderboard for this player, or null if not ranked (no qualifying rows).
+     */
+    public function rankPositionForPlayer(int $playerId, string $eventType, string $category, string $sort = 'runs', int $minInnings = 0): ?int
+    {
+        $rankings = $this->rankings($eventType, $category, $sort, $minInnings);
+        foreach ($rankings as $index => $row) {
+            if ((int) $row['player_id'] === $playerId) {
+                return $index + 1;
+            }
+        }
+
+        return null;
+    }
+
     private function highestScoreInnings(array $inningsRuns, array $inningsOut): string
     {
         if (empty($inningsRuns)) {

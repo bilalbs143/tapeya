@@ -15,6 +15,7 @@ const PROFILE_TEXT_FIELDS = [
   'date_of_birth',
   'bowling_style',
   'batting_style',
+  'playing_role',
   'country',
   'city',
 ];
@@ -77,12 +78,16 @@ export const authApi = baseApi.injectEndpoints({
     updateProfile: builder.mutation({
       query: (body) => {
         if (body instanceof FormData) {
-          return { url: '/profile', method: 'PATCH', body };
+          return { url: '/profile', method: 'POST', body };
+        }
+        const resolved = buildProfilePayload(body);
+        if (resolved instanceof FormData) {
+          return { url: '/profile', method: 'POST', body: resolved };
         }
         return {
           url: '/profile',
           method: 'PATCH',
-          body: buildProfilePayload(body),
+          body: resolved,
         };
       },
       invalidatesTags: ['User'],

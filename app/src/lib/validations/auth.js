@@ -44,26 +44,16 @@ export const registerSchema = z.object({
   email: emailSchema.optional(),
 });
 
-/** Profile edit: optional nickname; when provided same format as register (unique validated on backend) */
-export const profileNicknameSchema = z
-  .string()
-  .max(50, 'Nickname must be at most 50 characters')
-  .regex(
-    /^[a-zA-Z0-9_]*$/,
-    'Nickname may only contain letters, numbers and underscores',
-  )
-  .optional()
-  .transform((v) => (v === '' ? undefined : v));
-
-/** Profile update payload (optional fields) */
+/** Profile update payload (optional fields except nickname) */
 export const updateProfileSchema = z.object({
   name: z.string().min(1).optional(),
-  nickname: profileNicknameSchema,
+  nickname: nicknameSchema,
   email: emailSchema.optional(),
   phone: z.string().optional(),
   date_of_birth: z.string().optional(),
   bowling_style: z.string().optional(),
   batting_style: z.string().optional(),
+  playing_role: z.union([z.string(), z.null()]).optional(),
   country: z.string().optional(),
   city: z.string().optional(),
 });

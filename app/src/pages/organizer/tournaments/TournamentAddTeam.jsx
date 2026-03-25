@@ -518,7 +518,7 @@ export default function TournamentAddTeam() {
                           </p>
                         ) : sponsorsList.length === 0 ? (
                           <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
-                            No sponsors found
+                            No users found
                           </p>
                         ) : (
                           <ul className="space-y-0.5">

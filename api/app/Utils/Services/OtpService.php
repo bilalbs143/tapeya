@@ -24,12 +24,22 @@ class OtpService
         Log::info('OTP for user', ['user_id' => $user->id, 'phone' => $user->phone, 'code' => $code]);
     }
 
-    public function generateCode(int $length = 6): string
+    public function generateCode(): string
     {
-        $min = (int) str_pad('1', $length, '0');
-        $max = (int) str_pad('9', $length, '9');
-
-        return (string) random_int($min, $max);
+        return match (random_int(0, 2)) {
+            0 => sprintf(
+                '%02d%02d%02d',
+                random_int(10, 99),
+                random_int(10, 99),
+                random_int(10, 99),
+            ),
+            1 => str_repeat((string) random_int(1, 9), 2)
+                .str_repeat((string) random_int(1, 9), 2)
+                .sprintf('%02d', random_int(10, 99)),
+            2 => str_repeat((string) random_int(1, 9), 2)
+                .str_repeat((string) random_int(1, 9), 2)
+                .str_repeat((string) random_int(1, 9), 2),
+        };
     }
 
     public function store(string $normalizedPhone, string $code): void

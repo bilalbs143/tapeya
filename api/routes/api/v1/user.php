@@ -19,6 +19,7 @@ use App\Http\Controllers\User\Shop\CategoryController;
 use App\Http\Controllers\User\Shop\OrderController;
 use App\Http\Controllers\User\Shop\ProductController;
 use App\Http\Controllers\User\SponsorController;
+use App\Http\Controllers\User\SupportMessageController;
 use App\Http\Controllers\User\TeamController;
 use App\Http\Controllers\User\TournamentController;
 use App\Http\Controllers\User\TournamentMatchController;
@@ -66,10 +67,11 @@ Route::middleware('auth:api')->prefix('shop')->group(function () {
 // Authenticated user: me, profile, countries, tournament requests, teams, tournament-team links, team squads, matches & match squads
 Route::middleware('auth:api')->group(function () {
     Route::get('/me', [UserAuthController::class, 'me']);
-    Route::patch('profile', [ProfileController::class, 'update']);
+    Route::match(['patch', 'post'], 'profile', [ProfileController::class, 'update']);
     Route::get('countries', [CountryController::class, 'index']);
     Route::get('countries/cities', [CountryController::class, 'cities']);
     Route::post('tournament-requests', [TournamentRequestController::class, 'store']);
+    Route::post('support/messages', [SupportMessageController::class, 'store']);
     Route::get('sponsors', [SponsorController::class, 'index']);
     Route::get('players', [PlayerController::class, 'index']);
     Route::get('teams', [TeamController::class, 'index']);
@@ -97,6 +99,7 @@ Route::middleware('auth:api')->group(function () {
     Route::patch('matches/{match}/innings/{innings}/balls/{ball}', [ScorecardController::class, 'updateBall']);
     Route::delete('matches/{match}/innings/{innings}/balls/{ball}', [ScorecardController::class, 'deleteBall']);
     Route::get('users/{user}/stats', [PlayerStatsController::class, 'show']);
+    Route::get('users/{user}/ranking-position', [PlayerStatsController::class, 'rankingPosition']);
     Route::get('users/{user}/teams', [UserTeamController::class, 'index']);
     Route::post('users/{user}/follow', [UserFollowController::class, 'follow']);
     Route::delete('users/{user}/follow', [UserFollowController::class, 'unfollow']);

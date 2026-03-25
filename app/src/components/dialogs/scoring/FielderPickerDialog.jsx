@@ -1,4 +1,9 @@
-import { Dialog, DialogContent, DialogScrollBody } from '@/ui/Dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogScrollBody,
+  DialogTitle,
+} from '@/ui/Dialog';
 
 export function FielderPickerDialog({
   open,
@@ -13,6 +18,9 @@ export function FielderPickerDialog({
         className="!max-h-[85vh] rounded-t-3xl !bg-[#141412] p-5 pb-8"
         aria-describedby={undefined}
       >
+        <DialogTitle className="sr-only">
+          {message?.trim() ? message : 'Choose fielder'}
+        </DialogTitle>
         <p className="mb-3 text-[12px] font-medium text-[#A2A6AB]">{message}</p>
         <DialogScrollBody className="max-h-[50vh]">
           <div className="flex flex-col gap-2">

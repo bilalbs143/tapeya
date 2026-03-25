@@ -5,12 +5,14 @@ import { closeDialog } from '@/store/slices/commonSlice';
 import BaseDialog from './BaseDialog';
 import DraftingSubmitSquadSuccessDialog from './DraftingSubmitSquadSuccessDialog';
 import PricingSuccessDialog from './PricingSuccessDialog';
+import ProfileStrengthReminderDialog from './ProfileStrengthReminderDialog';
 import TournamentSquadUpdatedSuccessDialog from './TournamentSquadUpdatedSuccessDialog';
 
 const DIALOG_COMPONENTS = {
   pricingSuccess: PricingSuccessDialog,
   draftingSubmitSquadSuccess: DraftingSubmitSquadSuccessDialog,
   tournamentSquadUpdatedSuccess: TournamentSquadUpdatedSuccessDialog,
+  profileStrengthReminder: ProfileStrengthReminderDialog,
 };
 
 export function DialogManager() {

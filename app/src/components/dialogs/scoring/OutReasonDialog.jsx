@@ -1,4 +1,4 @@
-import { Dialog, DialogContent } from '@/ui/Dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/ui/Dialog';
 
 export function OutReasonDialog({
   open,
@@ -12,6 +12,7 @@ export function OutReasonDialog({
         className="out-reason-sheet !fixed !top-auto !right-0 !bottom-0 !left-0 max-h-[85vh] !w-full !max-w-none !translate-x-0 !translate-y-0 rounded-t-3xl !bg-[#141412] p-5 pb-8"
         aria-describedby={undefined}
       >
+        <DialogTitle className="sr-only">Select dismissal reason</DialogTitle>
         <div className="flex flex-wrap gap-2 overflow-y-auto">
           {dismissalOptions.map((opt) => (
             <button

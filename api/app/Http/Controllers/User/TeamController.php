@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\User;
 
 use App\Enums\User\AppRoleEnum;
+use App\Enums\User\RoleGuardEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreTeamRequest;
 use App\Http\Requests\User\StoreTeamSquadRequest;
 use App\Http\Resources\User\TeamResource;
 use App\Http\Resources\User\UserResource;
+use App\Models\Role;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -44,9 +46,9 @@ class TeamController extends Controller
     /**
      * Create a team for a sponsor.
      *
-     * - If sponsor_user_id is omitted, the authenticated user is the sponsor (creating their own team).
-     * - If sponsor_user_id is provided and differs from the authenticated user, we treat this as
-     *   organizer-on-behalf-of-sponsor; created_by is set to the authenticated user.
+     * - If sponsor_user_id is omitted, the authenticated user is the team owner (sponsor role added if missing).
+     * - If sponsor_user_id is provided and differs from the authenticated user, only organizers may do this;
+     *   the chosen owner receives the sponsor role if they do not already have it.
      */
     public function store(StoreTeamRequest $request): JsonResponse
     {
@@ -59,25 +61,13 @@ class TeamController extends Controller
         unset($data['sponsor_user_id'], $data['icon_player_ids']);
         $this->storeImage($request, 'logo', 'teams', $data);
 
-        // Authorization: sponsors can create their own teams; organizers can create on behalf of sponsors.
-        $isSponsor = $authUser->hasRole(AppRoleEnum::SPONSOR);
         $isOrganizer = $authUser->hasRole(AppRoleEnum::ORGANIZER);
-
-        if ((int) $sponsorId === (int) $authUser->id) {
-            if (! $isSponsor) {
-                return $this->forbidden('Only sponsors can create their own teams.');
-            }
-        } else {
-            if (! $isOrganizer) {
-                return $this->forbidden('Only organizers can create teams on behalf of sponsors.');
-            }
-
-            /** @var User $sponsor */
-            $sponsor = User::findOrFail($sponsorId);
-            if (! $sponsor->hasRole(AppRoleEnum::SPONSOR)) {
-                return $this->forbidden('Sponsor user must have the sponsor role.');
-            }
+        if ((int) $sponsorId !== (int) $authUser->id && ! $isOrganizer) {
+            return $this->forbidden('Only organizers can create teams on behalf of sponsors.');
         }
+
+        $owner = User::findOrFail($sponsorId);
+        $this->ensureAppUserHasSponsorRole($owner);
 
         $team = Team::create([
             'name' => $data['name'],
@@ -165,5 +155,20 @@ class TeamController extends Controller
             'Team squad updated.',
             'SUCCESS'
         );
+    }
+
+    /** Team owner must carry the sponsor role; attach without removing other app roles. */
+    private function ensureAppUserHasSponsorRole(User $user): void
+    {
+        if ($user->hasRole(AppRoleEnum::SPONSOR)) {
+            return;
+        }
+
+        $sponsorRole = Role::query()
+            ->where('slug', AppRoleEnum::SPONSOR->value)
+            ->where('guard', RoleGuardEnum::APP->value)
+            ->firstOrFail();
+
+        $user->roles()->syncWithoutDetaching([$sponsorRole->id]);
     }
 }

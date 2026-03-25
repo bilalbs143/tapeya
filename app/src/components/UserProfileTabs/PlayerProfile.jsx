@@ -1,6 +1,8 @@
 import profileUserIcon from '@/assets/images/icons/profile-user.svg';
 import userPostsIcon from '@/assets/images/icons/user-posts.svg';
 import userStatsIcon from '@/assets/images/icons/user-stats.svg';
+import { getProfileRankingParamsByPlayingRole } from '@/lib/playerRankingProfile';
+import { useGetPlayerRankingPositionQuery } from '@/store/api/playerApi';
 import {
   profileListClass,
   profileTabIconClass,
@@ -12,9 +14,10 @@ import {
   TabsTrigger,
 } from '@/ui/Tabs';
 
+import { PROFILE_OVERVIEW_ROLE } from './constants';
 import { ProfileMetrics } from './ProfileMetrics';
-import { ProfileOverview } from './ProfileOverview';
 import { ProfilePosts } from './ProfilePosts';
+import { ProfileRoleOverview } from './ProfileRoleOverview';
 import { ProfileStats } from './ProfileStats';
 
 const CONTENT_WRAPPER_CLASS = 'px-4 pb-6 pt-1';
@@ -24,7 +27,7 @@ const TABS = [
     value: 'overview',
     label: 'Overview',
     icon: profileUserIcon,
-    Content: ProfileOverview,
+    Content: null,
   },
   {
     value: 'stats',
@@ -40,15 +43,34 @@ const TABS = [
   },
 ];
 
-export function PlayerProfile({ ranking, followers, likes }) {
-  const metrics =
-    ranking != null || followers != null || likes != null
-      ? [
-          { value: String(ranking ?? '—'), label: 'RANKING' },
-          { value: String(followers ?? '—'), label: 'FOLLOWERS' },
-          { value: String(likes ?? '—'), label: 'LIKES' },
-        ]
-      : undefined;
+/**
+ * Player profile tabs + metrics. Open-tournament rank uses category/sort from playing role (bowler → wickets, etc.).
+ */
+export function PlayerProfile({ user }) {
+  const userId = user?.id;
+  const { category, sort } = getProfileRankingParamsByPlayingRole(
+    user?.playing_role_enum,
+  );
+  const { data: rankData, isLoading: rankLoading } = useGetPlayerRankingPositionQuery(
+    { userId, category, sort },
+    { skip: !userId },
+  );
+
+  const rankingDisplay =
+    !userId ? '—' : rankLoading ? '…' : rankData?.rank ?? '—';
+  const followersDisplay =
+    user?.followers_count != null ? String(user.followers_count) : '—';
+  /** No player-level “likes received” API yet; keep placeholder. */
+  const likesDisplay = '—';
+
+  const metrics = [
+    {
+      value: String(rankingDisplay),
+      label: 'RANKING',
+    },
+    { value: followersDisplay, label: 'FOLLOWERS' },
+    { value: likesDisplay, label: 'LIKES' },
+  ];
 
   return (
     <Tabs className="w-full" defaultValue="overview">
@@ -80,7 +102,11 @@ export function PlayerProfile({ ranking, followers, likes }) {
             value={value}
             className="focus-visible:outline-none"
           >
-            <Content />
+            {value === 'overview' ? (
+              <ProfileRoleOverview role={PROFILE_OVERVIEW_ROLE.PLAYER} />
+            ) : (
+              <Content />
+            )}
           </TabsContent>
         ))}
       </div>
