@@ -6,7 +6,6 @@ import { Link } from 'react-router-dom';
 import { Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-import { FloatingCartButton } from '@/components/FloatingCartButton';
 import { ListingProductCard } from '@/components/shop/ListingProductCard';
 import { ShopSearchPopover } from '@/components/shop/ShopSearchPopover';
 import { useGetBrandsQuery, useGetProductsQuery } from '@/store/api/shopApi';
@@ -105,7 +104,6 @@ export default function ShopHome() {
 
   return (
     <Container>
-      <FloatingCartButton />
       <div className="flex flex-col gap-3">
         <h1 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">
           Shop

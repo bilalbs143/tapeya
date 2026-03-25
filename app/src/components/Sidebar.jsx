@@ -58,8 +58,7 @@ const panel = (open) =>
     open ? 'translate-x-0' : '-translate-x-full'
   }`;
 
-const menuBtn =
-  'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-white transition-colors hover:bg-[#DA9811]';
+const menuBtn = 'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-white transition-colors hover:bg-[#DA9811]';
 
 export function Sidebar({ open, onClose }) {
   const navigate = useNavigate();

@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import searchIcon from '@/assets/images/icons/searchicon.svg';
-import { FloatingCartButton } from '@/components/FloatingCartButton';
 import { ListingProductCard } from '@/components/shop/ListingProductCard';
 import {
   useGetBrandsQuery,
@@ -62,7 +61,6 @@ export default function ShopCategory() {
 
   return (
     <Container>
-      <FloatingCartButton />
       <div className="flex flex-col gap-3">
         <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-2 lg:mt-0">
           <Link

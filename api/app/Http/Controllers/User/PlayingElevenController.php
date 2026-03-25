@@ -9,6 +9,7 @@ use App\Models\Team;
 use App\Models\TournamentMatch;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class PlayingElevenController extends Controller
 {
@@ -23,17 +24,32 @@ class PlayingElevenController extends Controller
             return $this->forbidden('Team does not belong to this match.');
         }
 
-        $playerIds = DB::table('match_players')
-            ->where('match_id', $match->id)
-            ->where('team_id', $team->id)
-            ->pluck('user_id')
-            ->values()
-            ->all();
+        $rows = DB::table('match_players as mp')
+            ->join('users as u', 'u.id', '=', 'mp.user_id')
+            ->where('mp.match_id', $match->id)
+            ->where('mp.team_id', $team->id)
+            ->orderBy('mp.id')
+            ->get(['mp.user_id', 'mp.playing_role', 'u.name', 'u.nickname']);
+
+        $playerIds = $rows->pluck('user_id')->values()->all();
+
+        $players = $rows->map(function ($r) {
+            $role = $r->playing_role
+                ? Str::headline(str_replace('_', ' ', $r->playing_role))
+                : 'Player';
+
+            return [
+                'id' => (int) $r->user_id,
+                'name' => $r->name ?: $r->nickname ?: 'Player',
+                'role' => $role,
+            ];
+        })->values()->all();
 
         return $this->success([
             'match_id' => $match->id,
             'team_id' => $team->id,
             'player_ids' => $playerIds,
+            'players' => $players,
         ]);
     }
 

@@ -5,20 +5,16 @@
  * tab-based view switcher.  The available tabs and the default tab depend
  * on the current match status.
  *
- * Route: /scorecard/:tournamentId/:matchId
+ * Route: /scorecard/:tournamentId/match/:matchId
  *
  * -----------------------------------------------------------------------------
  * CURSOR — File structure guide
  * -----------------------------------------------------------------------------
  *
- * Mock data to replace
- * ──────────────────────
- *   MOCK_MATCHES / MOCK_MATCH_DETAILS
- *     → replace with real API calls once the match-details endpoint is ready.
- *     Suggested hooks:
- *       useGetMatchQuery(matchId)          → replaces MOCK_MATCH_DETAILS lookup
- *       useGetTournamentMatchesQuery(...)  → replaces MOCK_MATCHES.filter
- *     Remove ./mockMatchDetails and ./mockMatches imports at that point.
+ * Data source
+ * ───────────
+ *   GET /matches/:matchId, GET /matches/:matchId/scorecard,
+ *   GET /tournaments/:tournamentId/matches — see scorecardUtils mappers.
  *
  * Utils to move out of this file
  * ───────────────────────────────
@@ -91,7 +87,7 @@
  * -----------------------------------------------------------------------------
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -99,6 +95,21 @@ import karachiFlag from '@/assets/images/icons/karachi-flag.png';
 import rawalpindiFlag from '@/assets/images/icons/rawalpindi-flag.png';
 import winProbabilityIcon from '@/assets/images/icons/win-probabilty.svg';
 import { CommentaryText } from '@/components/scorecard/CommentaryText';
+import {
+  apiTournamentMatchToStatusDetailsMatch,
+  buildMatchStatusDetails,
+  minimalStatusDetailsFromApi,
+  normaliseTournamentMatches,
+  oversDetailsFromScorecard,
+  playingXIFromPlayingElevenResponses,
+} from '@/lib/utils/scorecardUtils';
+import { isValidTournamentId } from '@/lib/utils/tournamentUtils';
+import {
+  useGetMatchQuery,
+  useGetPlayingElevenQuery,
+  useGetScorecardQuery,
+} from '@/store/api/matchApi';
+import { useGetTournamentMatchesQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
 import {
   scorecardListClass,
@@ -108,8 +119,6 @@ import {
   TabsTrigger,
 } from '@/ui/Tabs';
 
-import { MOCK_MATCH_DETAILS } from './mockMatchDetails';
-import { MOCK_MATCHES } from './mockMatches';
 import {
   StatusDetailsLiveTab,
   StatusDetailsOversTab,
@@ -124,7 +133,6 @@ import { ScheduleTab, StatsTab, TableTab } from './tabs';
 // CURSOR: move FLAGS to src/lib/constants/teamFlags.js (see top).
 // ---------------------------------------------------------------------------
 
-// TODO: replace MOCK_MATCHES and MOCK_MATCH_DETAILS with real API calls (see top).
 const FLAGS = { karachi: karachiFlag, rawalpindi: rawalpindiFlag };
 
 const STATUS_TABS = {
@@ -398,9 +406,81 @@ export default function ScorecardStatusDetails() {
   const navigate = useNavigate();
   const { tournamentId, matchId } = useParams();
 
-  const match = MOCK_MATCHES.find((m) => m.id === Number(matchId));
-  const details = MOCK_MATCH_DETAILS[Number(matchId)] ?? null;
-  const matches = MOCK_MATCHES.filter((m) => m.league === tournamentId);
+  const matchIdNum =
+    matchId != null && matchId !== '' ? Number(matchId) : NaN;
+  const matchIdOk = Number.isInteger(matchIdNum) && matchIdNum > 0;
+  const tournamentOk = isValidTournamentId(tournamentId);
+
+  const {
+    data: apiMatch,
+    isLoading: matchLoading,
+    isError: matchIsError,
+  } = useGetMatchQuery(matchId, { skip: !matchIdOk });
+
+  const tournamentMismatch =
+    Boolean(apiMatch) &&
+    Number(apiMatch.tournament_id) !== Number(tournamentId);
+
+  const { data: scorecard } = useGetScorecardQuery(matchId, {
+    skip: !matchIdOk || !apiMatch || tournamentMismatch,
+  });
+
+  const homeTeamId = apiMatch?.home_team_id;
+  const awayTeamId = apiMatch?.away_team_id;
+
+  const { data: xiHome } = useGetPlayingElevenQuery(
+    { matchId, teamId: homeTeamId },
+    {
+      skip:
+        !matchIdOk ||
+        homeTeamId == null ||
+        homeTeamId === '' ||
+        !apiMatch ||
+        tournamentMismatch,
+    },
+  );
+
+  const { data: xiAway } = useGetPlayingElevenQuery(
+    { matchId, teamId: awayTeamId },
+    {
+      skip:
+        !matchIdOk ||
+        awayTeamId == null ||
+        awayTeamId === '' ||
+        !apiMatch ||
+        tournamentMismatch,
+    },
+  );
+
+  const { data: rawTournamentMatches = [] } = useGetTournamentMatchesQuery(
+    { tournamentId, all: true },
+    { skip: !tournamentOk || tournamentMismatch },
+  );
+
+  const scheduleMatches = useMemo(
+    () =>
+      normaliseTournamentMatches([
+        { id: tournamentId, matches: rawTournamentMatches },
+      ]),
+    [tournamentId, rawTournamentMatches],
+  );
+
+  const match = useMemo(() => {
+    if (!apiMatch || tournamentMismatch) return null;
+    return apiTournamentMatchToStatusDetailsMatch(apiMatch, scorecard);
+  }, [apiMatch, scorecard, tournamentMismatch]);
+
+  const details = useMemo(() => {
+    if (!apiMatch || tournamentMismatch) return null;
+    const resultBits = minimalStatusDetailsFromApi(apiMatch);
+    const overs = oversDetailsFromScorecard(
+      scorecard,
+      apiMatch.home_team_id,
+      apiMatch.away_team_id,
+    );
+    const playingXI = playingXIFromPlayingElevenResponses(xiHome, xiAway);
+    return buildMatchStatusDetails(resultBits, overs, playingXI);
+  }, [apiMatch, tournamentMismatch, scorecard, xiHome, xiAway]);
 
   const status = match?.status ?? 'upcoming';
   const tabs = STATUS_TABS[status] ?? [];
@@ -417,10 +497,32 @@ export default function ScorecardStatusDetails() {
     setActiveTab(nextDefault);
   }, [status, matchId]);
 
-  if (!match) {
+  if (!matchIdOk || !tournamentOk) {
     return (
-      <div className="flex items-center justify-center bg-black">
-        <p className="text-[13px] text-[#A2A6AB]">Match not found</p>
+      <div className="flex min-h-[40vh] items-center justify-center bg-black px-4">
+        <p className="text-center text-[13px] text-[#A2A6AB]">
+          Invalid match or tournament link.
+        </p>
+      </div>
+    );
+  }
+
+  if (matchLoading) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center bg-black">
+        <p className="text-[13px] text-[#A2A6AB]">Loading match…</p>
+      </div>
+    );
+  }
+
+  if (matchIsError || tournamentMismatch || !apiMatch || !match) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center bg-black px-4">
+        <p className="text-center text-[13px] text-[#A2A6AB]">
+          {tournamentMismatch
+            ? 'This match does not belong to this tournament.'
+            : 'Match not found.'}
+        </p>
       </div>
     );
   }
@@ -436,7 +538,7 @@ export default function ScorecardStatusDetails() {
     'playing-xi': { match, details },
     table: { tournamentId },
     stats: { tournamentId },
-    fixture: { matches, tournamentId },
+    fixture: { matches: scheduleMatches, tournamentId },
   };
 
   return (

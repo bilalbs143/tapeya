@@ -26,6 +26,10 @@ export function FloatingCartButton() {
     }
   }, [count]);
 
+  if (items.length === 0) {
+    return null;
+  }
+
   return (
     <button
       type="button"

@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import shoppingCartIcon from '@/assets/images/icons/shopping-cart.svg';
-import { FloatingCartButton } from '@/components/FloatingCartButton';
 import { useAddToCart } from '@/hooks/shop/useAddToCart';
 import { useToast } from '@/hooks/useToast';
 import { formatPrice } from '@/lib/format';
@@ -76,7 +75,6 @@ export default function ShopProductDetail() {
   if (isLoading || !normalized) {
     return (
       <Container>
-        <FloatingCartButton />
         <div className="flex min-h-[40vh] items-center justify-center">
           {!isLoading && (
             <p className="text-[14px] text-[#A2A6AB]">Product not found.</p>
@@ -89,7 +87,6 @@ export default function ShopProductDetail() {
   if (isError) {
     return (
       <Container>
-        <FloatingCartButton />
         <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
           <p className="text-[14px] text-[#A2A6AB]">
             {error?.data?.message ?? 'Something went wrong.'}
@@ -111,7 +108,6 @@ export default function ShopProductDetail() {
 
   return (
     <Container>
-      <FloatingCartButton />
       <div className="flex flex-col gap-4">
         <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-4 lg:mt-0">
           <button

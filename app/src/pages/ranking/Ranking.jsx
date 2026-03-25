@@ -18,8 +18,7 @@ import {
   TabsTrigger,
 } from '@/ui/Tabs';
 
-const DEFAULT_AVATAR =
-  'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=96&h=96&fit=crop';
+import defaultAvatar from '@/assets/images/standard/default-avatar.png';
 
 const OPEN_TOURNAMENT_TYPE = 'open_tournament';
 
@@ -94,7 +93,7 @@ function PlayerCard({ player, rank, variant = 'batter' }) {
     <div className="flex items-center gap-3 rounded-[17px] bg-[#141412] p-3">
       <Avatar className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-white/10">
         <AvatarImage
-          src={player.image || DEFAULT_AVATAR}
+          src={player.image || defaultAvatar}
           alt=""
           className="object-cover"
         />

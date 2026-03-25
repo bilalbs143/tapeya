@@ -1,9 +1,6 @@
 /**
- * ScheduleTab
- *
- * Renders list of MatchCards for schedule. Tab panel for scorecard/upcoming.
- * When tournament has groups, matches are shown group-wise (Group 1, Group 2, …).
- * Coding guidelines: docs/Coding guidelines.md (§14 focus-visible:outline-none)
+ * ScheduleTab — list of MatchCards for a tournament schedule (scorecard / upcoming).
+ * With multiple groups, matches are grouped (Group 1, Group 2, …).
  */
 
 import { useMemo } from 'react';
@@ -13,18 +10,20 @@ import { MatchCard } from '@/components/scorecard/MatchCard';
 function MatchCardList({ matches, tournamentId }) {
   return (
     <div className="space-y-3">
-      {matches.map((match) => (
-        <MatchCard
-          key={match.id}
-          match={match}
-          showScheduleTableLinks={false}
-          to={
-            tournamentId
-              ? `/scorecard/${tournamentId}/match/${match.id}`
-              : `/scorecard/match/${match.id}`
-          }
-        />
-      ))}
+      {matches.map((match) => {
+        const tid = tournamentId ?? match.tournament_id;
+        const to = tid
+          ? `/scorecard/${tid}/match/${match.id}`
+          : `/scorecard/match/${match.id}`;
+        return (
+          <MatchCard
+            key={match.id}
+            match={match}
+            showScheduleTableLinks={false}
+            to={to}
+          />
+        );
+      })}
     </div>
   );
 }

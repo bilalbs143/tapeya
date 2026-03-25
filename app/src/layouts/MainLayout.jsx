@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 
 import { BottomNav } from '@/components/BottomNav';
+import { FloatingCartButton } from '@/components/FloatingCartButton';
 import { Navbar } from '@/components/Navbar';
 import { Sidebar } from '@/components/Sidebar';
 
@@ -30,6 +31,7 @@ export function MainLayout() {
       <div className="lg:hidden">
         <BottomNav />
       </div>
+      <FloatingCartButton />
     </div>
   );
 }
