@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { clearCredentials } from '@/store/slices/authSlice';
 
 export const baseUrl =
-  import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1';
+import.meta.env.VITE_API_URL || 'https://api.tapeya.com/api/v1'
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl,

@@ -11,12 +11,13 @@ export const BOTTOM_NAV_ITEMS = [
 ];
 
 export const EXPLORE_CATEGORIES = [
-  { path: '/live', label: 'Live' },
+  { path: '/shop', label: 'Shop' },
   { path: '/scorecard', label: 'Live Score' },
   { path: '/ranking', label: 'Rankings' },
-  { path: '/shop', label: 'Shop' },
   { path: '/upcoming-tournaments', label: 'Upcoming' },
-  { path: '/drafting', label: 'Drafting' },
-  { path: '/reels', label: 'Reels' },
-  { path: '/highlights', label: 'Highlights' },
+
+  // { path: '/live', label: 'Live' },
+  // { path: '/drafting', label: 'Drafting' },
+  // { path: '/reels', label: 'Reels' },
+  // { path: '/highlights', label: 'Highlights' },
 ];

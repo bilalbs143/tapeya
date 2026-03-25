@@ -1,17 +1,114 @@
+import 'swiper/css';
+
+import { useGetBrandsQuery, useGetProductsQuery } from '@/store/api/shopApi';
+import { ListingProductCard } from '@/components/shop/ListingProductCard';
 import { ExploreCategories } from '@/components/ExploreCategories';
 import { HeroSlider } from '@/components/HeroSlider';
-import { HighlightSlider } from '@/components/HighlightSlider';
-import { LiveMatchSlider } from '@/components/LiveMatchSlider';
 import { Container } from '@/ui/Container';
 
+import { Link } from 'react-router-dom';
+import { Autoplay } from 'swiper/modules';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { useMemo } from 'react';
+
+function ShopSlider({
+  title,
+  viewMorePath,
+  products,
+  brands,
+  reverseDirection = false,
+}) {
+  const productsWithBrandSlug = useMemo(
+    () =>
+      products.map((p) => ({
+        ...p,
+        brandSlug: brands.find((b) => b.id === p.brand_id)?.slug,
+      })),
+    [products, brands],
+  );
+
+  if (productsWithBrandSlug.length === 0) return null;
+
+  return (
+    <section className="mb-10 space-y-3">
+      <header className="flex items-center justify-between">
+        <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
+          {title}
+        </h2>
+        <Link
+          to={viewMorePath}
+          className="text-[12px] font-bold text-[#DA9811] uppercase transition-opacity active:opacity-80"
+        >
+          View More
+        </Link>
+      </header>
+
+      <Swiper
+        modules={[Autoplay]}
+        spaceBetween={12}
+        slidesPerView={2}
+        breakpoints={{
+          1024: { slidesPerView: 3.5 },
+        }}
+        autoplay={{
+          delay: 4000,
+          disableOnInteraction: false,
+          reverseDirection,
+        }}
+        loop
+        className="shop-swiper -mx-4 px-4 [&_.swiper-wrapper]:items-stretch"
+        grabCursor
+      >
+        {productsWithBrandSlug.map((product) => (
+          <SwiperSlide key={product.id}>
+            <ListingProductCard
+              product={product}
+              brandSlug={product.brandSlug}
+            />
+          </SwiperSlide>
+        ))}
+      </Swiper>
+    </section>
+  );
+}
+
 export default function Home() {
+  const { data: brandsResponse } = useGetBrandsQuery({ all: true });
+  const brands = brandsResponse?.data ?? [];
+
+  const { data: popularResponse } = useGetProductsQuery({
+    is_popular: true,
+    all: true,
+  });
+
+  const { data: specialOfferResponse } = useGetProductsQuery({
+    is_special_offer: true,
+    all: true,
+  });
+
+  const popularProducts = popularResponse?.data ?? [];
+  const specialOfferProducts = specialOfferResponse?.data ?? [];
+
   return (
     <Container>
       <div className="space-y-6">
         <HeroSlider />
         <ExploreCategories />
-        <LiveMatchSlider />
-        <HighlightSlider />
+        {/* Hidden on Home: Live now + Highlights */}
+        <ShopSlider
+          title="Most popular"
+          viewMorePath="/shop/filter/popular"
+          products={popularProducts}
+          brands={brands}
+          reverseDirection={false}
+        />
+        <ShopSlider
+          title="Special offer"
+          viewMorePath="/shop/filter/special-offer"
+          products={specialOfferProducts}
+          brands={brands}
+          reverseDirection
+        />
       </div>
     </Container>
   );

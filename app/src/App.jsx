@@ -20,6 +20,7 @@ import Home from '@/pages/Home';
 import NotificationCenter from '@/pages/NotificationCenter';
 import ScoringMatch from '@/pages/organizer/scoring/ScoringMatch';
 import StartMatch from '@/pages/organizer/scoring/StartMatch';
+import Support from '@/pages/Support';
 import TournamentAddSquad from '@/pages/organizer/tournaments/TournamentAddSquad';
 import TournamentAddTeam from '@/pages/organizer/tournaments/TournamentAddTeam';
 import TournamentCreateTeamIntro from '@/pages/organizer/tournaments/TournamentCreateTeamIntro';
@@ -178,6 +179,7 @@ function App() {
                     path="/notification-center"
                     element={<NotificationCenter />}
                   />
+                  <Route path="/support" element={<Support />} />
                   <Route path="/reels" element={<Reels />} />
                   <Route path="/reels/upload" element={<UploadReels />} />
                   <Route path="/pricing" element={<Pricing />} />

@@ -32,7 +32,7 @@ export function ExploreCategories() {
           <Link
             key={path}
             to={path}
-            className="flex min-h-[78px] w-full flex-col items-center justify-center gap-2 rounded-[17px] bg-[#141412] transition-colors duration-200 ease-out hover:bg-[#1c1c1a] active:opacity-90 md:h-auto md:min-h-[72px] md:flex-row md:items-center md:gap-3 md:px-4 md:hover:bg-[#2C2C2C]"
+            className="flex min-h-[90px] w-full flex-col items-center justify-center gap-2 rounded-[17px] bg-[#141412] transition-colors duration-200 ease-out hover:bg-[#1c1c1a] active:opacity-90 md:h-auto md:min-h-[72px] md:flex-row md:items-center md:gap-3 md:px-4 md:hover:bg-[#2C2C2C]"
           >
             <img
               src={PATH_TO_ICON[path]}

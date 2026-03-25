@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import draftingIcon from '@/assets/images/icons/drafting-icon.svg';
 import goLiveIcon from '@/assets/images/icons/go-live.svg';
@@ -15,11 +15,18 @@ import topSponsorsIcon from '@/assets/images/icons/top-sponsers.svg';
 import tossIcon from '@/assets/images/icons/toss.svg';
 import defaultAvatar from '@/assets/images/standard/default-avatar.png';
 import { addSavedProfile } from '@/lib/savedProfiles';
+import { calculateProfileStrength } from '@/lib/profileStrength';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectAuthUserAndToken } from '@/store/selectors';
 import { clearCredentials } from '@/store/slices/authSlice';
 
 const MENU_ITEMS = [
+  {
+    label: 'My Tournaments',
+    icon: requestTournamentIcon,
+    path: '/organizer/tournaments',
+  },
+  { label: 'My Orders', icon: myOrderIcon, path: '/shop/orders' },
   {
     label: 'Request Tournament',
     icon: requestTournamentIcon,
@@ -30,19 +37,13 @@ const MENU_ITEMS = [
     icon: starMatchIcon,
     path: '/organizer/scoring/start-match',
   },
-  { label: 'Drafting', icon: draftingIcon, path: '/drafting' },
-  { label: 'My Orders', icon: myOrderIcon, path: '/shop/orders' },
-  { label: 'Go live', icon: goLiveIcon, comingSoon: true },
-  { label: 'Toss', icon: tossIcon, comingSoon: true },
+  /* { label: 'Drafting', icon: draftingIcon, path: '/drafting' }, */
+  /* { label: 'Go live', icon: goLiveIcon, comingSoon: true }, */
+  /* { label: 'Toss', icon: tossIcon, comingSoon: true }, */
   { label: 'Top Players', icon: topPlayersIcon, path: '/ranking' },
-  { label: 'Top Sponsors', icon: topSponsorsIcon, comingSoon: true },
-  { label: 'Profiles', icon: profilesIcon, comingSoon: true },
-  {
-    label: 'My Tournaments',
-    icon: requestTournamentIcon,
-    path: '/organizer/tournaments',
-  },
-  { label: 'Support', icon: supportIcon, comingSoon: true },
+  /* { label: 'Top Sponsors', icon: topSponsorsIcon, comingSoon: true }, */
+  /* { label: 'Profiles', icon: profilesIcon, comingSoon: true }, */
+  { label: 'Support', icon: supportIcon, path: '/support' },
   { label: 'Logout', icon: logoutIcon },
 ];
 
@@ -57,16 +58,25 @@ const panel = (open) =>
   }`;
 
 const menuBtn =
-  'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-white transition-colors hover:bg-white/10';
+  'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-white transition-colors hover:bg-[#DA9811]';
 
 export function Sidebar({ open, onClose }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useAppDispatch();
   const overlayRef = useRef(null);
   const { user, accessToken } = useAppSelector(selectAuthUserAndToken);
+  const strength = calculateProfileStrength(user);
+  const navItems = MENU_ITEMS.filter((item) => item.label !== 'Logout');
   const [isDesktop, setIsDesktop] = useState(
     () => typeof window !== 'undefined' && window.innerWidth >= 1024,
   );
+
+  const isActivePath = (path) => {
+    if (!path) return false;
+    const current = location?.pathname ?? '';
+    return current === path || current.startsWith(`${path}/`);
+  };
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)');
@@ -116,95 +126,116 @@ export function Sidebar({ open, onClose }) {
       <aside
         aria-hidden={!open && !isDesktop}
         className={panel(open)}
+        style={{ backgroundColor: '#10110EA3' }}
         inert={!open && !isDesktop ? '' : undefined}
       >
-        <div className="flex flex-1 flex-col overflow-y-auto px-4 py-6">
-          <Link
-            to="/profile"
-            onClick={onClose}
-            className="flex gap-3 rounded-lg transition-colors hover:bg-white/5 focus:ring-2 focus:ring-white/20 focus:outline-none"
-          >
-            <img
-              src={user?.avatar_url || defaultAvatar}
-              alt=""
-              className="h-[44px] w-[44px] shrink-0 rounded-full border border-white object-cover"
-            />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[14px] font-bold text-white">
-                {user?.name || user?.nickname || 'Profile'}
-              </p>
-              <p className="truncate text-[12px] font-medium text-[#A2A6AB]">
-                {user?.email || user?.phone || ''}
-              </p>
-            </div>
-          </Link>
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto px-4 py-6">
+            <Link
+              to="/profile"
+              onClick={onClose}
+              className="flex gap-3 rounded-lg transition-colors hover:bg-white/5 focus:ring-2 focus:ring-white/20 focus:outline-none"
+            >
+              <img
+                src={user?.avatar_url || defaultAvatar}
+                alt=""
+                className="h-[44px] w-[44px] shrink-0 rounded-full border border-white object-cover"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[14px] font-bold text-white">
+                  {user?.name || user?.nickname || 'Profile'}
+                </p>
+                <p className="truncate text-[12px] font-medium text-[#A2A6AB]">
+                  {user?.email || user?.phone || ''}
+                </p>
+              </div>
+            </Link>
 
-          <div className="mt-2 flex items-center gap-2 pb-4">
-            <div className="h-[4px] flex-1 overflow-hidden rounded-full bg-zinc-600">
-              <div className="h-full w-[70%] rounded-full bg-[#DA9811]" />
+            <div className="mt-2 flex items-center gap-2 pb-4">
+              <div className="h-[4px] flex-1 overflow-hidden rounded-full bg-zinc-600">
+                <div
+                  className="h-full rounded-full bg-[#DA9811]"
+                  style={{ width: `${strength}%` }}
+                />
+              </div>
+              <span className="shrink-0 text-[14px] font-bold text-white italic">
+                {strength}% Complete
+              </span>
             </div>
-            <span className="shrink-0 text-[14px] font-bold text-white italic">
-              70% Complete
-            </span>
+
+            <Link
+              to="/profile?role=sponsor"
+              onClick={onClose}
+              className="mb-4 block max-w-fit rounded-[6px] border border-[#DA9811] px-3 py-1 text-center text-[12px] font-bold text-[#DA9811] transition-colors hover:border-[#e5b42a] hover:bg-[#1A1A1A] focus:ring-2 focus:ring-[#d8a11e]/50 focus:outline-none"
+            >
+              Become a Sponsor
+            </Link>
+
+            <div className="h-px w-full bg-[linear-gradient(to_right,#00000000,#FFFFFF33,#00000000)]" />
+
+            <nav className="flex flex-col gap-1 pt-4">
+              {navItems.map(({ label, icon, path }) =>
+                path ? (
+                  <Link
+                    key={label}
+                    to={path}
+                    onClick={onClose}
+                    className={`group ${menuBtn} ${isActivePath(path) ? 'bg-[#DA9811]' : ''}`}
+                  >
+                    <img
+                      src={icon}
+                      alt=""
+                      className={`h-5 w-5 shrink-0 ${
+                        isActivePath(path) ? 'filter brightness-0' : ''
+                      } group-hover:filter group-hover:brightness-0`}
+                    />
+                    <span
+                      className={`text-[16px] font-medium ${
+                        isActivePath(path) ? 'text-[#080807]' : 'text-[#A2A6AB]'
+                      } group-hover:text-[#080807]`}
+                    >
+                      {label}
+                    </span>
+                  </Link>
+                ) : (
+                  <button
+                    key={label}
+                    type="button"
+                    className={`${menuBtn} hover:bg-transparent`}
+                    disabled
+                    aria-disabled="true"
+                    aria-label={`${label} (coming soon)`}
+                  >
+                    <img
+                      src={icon}
+                      alt=""
+                      className="h-5 w-5 shrink-0 opacity-60"
+                    />
+                    <span className="text-[16px] font-medium text-[#A2A6AB] opacity-60">
+                      {label}
+                    </span>
+                  </button>
+                ),
+              )}
+            </nav>
           </div>
 
-          <Link
-            to="/profile?role=sponsor"
-            onClick={onClose}
-            className="mb-4 block max-w-fit rounded-[6px] border border-[#DA9811] px-3 py-1 text-center text-[12px] font-bold text-[#DA9811] transition-colors hover:border-[#e5b42a] hover:bg-[#1A1A1A] focus:ring-2 focus:ring-[#d8a11e]/50 focus:outline-none"
-          >
-            Become a Sponsor
-          </Link>
-
-          <div className="h-px w-full bg-[linear-gradient(to_right,#00000000,#FFFFFF33,#00000000)]" />
-
-          <nav className="flex flex-col gap-1 pt-4">
-            {MENU_ITEMS.map(({ label, icon, path, comingSoon }) =>
-              label === 'Logout' ? (
-                <button
-                  key={label}
-                  type="button"
-                  onClick={handleLogout}
-                  className={menuBtn}
-                >
-                  <img src={icon} alt="" className="h-5 w-5 shrink-0" />
-                  <span className="text-[16px] font-medium text-[#A2A6AB]">
-                    {label}
-                  </span>
-                </button>
-              ) : path ? (
-                <Link
-                  key={label}
-                  to={path}
-                  onClick={onClose}
-                  className={menuBtn}
-                >
-                  <img src={icon} alt="" className="h-5 w-5 shrink-0" />
-                  <span className="text-[16px] font-medium text-[#A2A6AB]">
-                    {label}
-                  </span>
-                </Link>
-              ) : (
-                <button
-                  key={label}
-                  type="button"
-                  className={menuBtn}
-                  disabled
-                  aria-disabled="true"
-                  aria-label={`${label} (coming soon)`}
-                >
-                  <img
-                    src={icon}
-                    alt=""
-                    className="h-5 w-5 shrink-0 opacity-60"
-                  />
-                  <span className="text-[16px] font-medium text-[#A2A6AB] opacity-60">
-                    {label}
-                  </span>
-                </button>
-              ),
-            )}
-          </nav>
+          <div className="mt-auto">
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex w-full items-center justify-center gap-2 bg-[#DA9811] py-4 cursor-pointer"
+            >
+              <img
+                src={logoutIcon}
+                alt=""
+                className="h-8 w-8 shrink-0 filter brightness-0"
+              />
+              <span className="text-[16px] font-bold leading-none text-[#080807]">
+                Logout
+              </span>
+            </button>
+          </div>
         </div>
       </aside>
     </>
