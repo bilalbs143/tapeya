@@ -4,10 +4,9 @@
 
 export const BOTTOM_NAV_ITEMS = [
   { path: '/shop', label: 'Shop' },
-  { path: '/live-score', label: 'Score' },
-  { path: '/live', label: 'Live' },
-  { path: '/feed', label: 'Feed' },
-  { path: '/reels', label: 'Reels' },
+  { path: '/scorecard', label: 'Score' },
+  { path: '/upcoming-tournaments', label: 'Upcoming' },
+  { path: '/profile', label: 'Profile' },
 ];
 
 export const EXPLORE_CATEGORIES = [

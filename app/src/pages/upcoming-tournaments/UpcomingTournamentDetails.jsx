@@ -216,7 +216,7 @@ export default function UpcomingTournamentDetails() {
   return (
     <div className="">
       {/* Banner: extends behind navbar; back button positioned within the image */}
-      <div className="relative h-[200px] w-full overflow-hidden bg-[#0d0d0b]">
+      <div className="relative h-[200px] lg:h-[300px] w-full overflow-hidden bg-[#0d0d0b]">
         <img
           src={bannerImage}
           alt=""

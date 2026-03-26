@@ -137,7 +137,7 @@ export default function OrderPayment() {
             onClick={() =>
               navigate('/shop/order-success', { state: { orderId: order.id } })
             }
-            className="flex w-full items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90"
+            className="flex w-full items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90 lg:w-auto lg:justify-start lg:px-4"
           >
             I&apos;ve Paid
             <svg

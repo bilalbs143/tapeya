@@ -205,7 +205,7 @@ export default function TournamentAddSquad() {
   return (
     <div className="bg-black">
       <Container className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
+        <header className="-mx-4 -mt-6 lg:mt-0 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -273,7 +273,7 @@ export default function TournamentAddSquad() {
                   <h3 className="mb-2 text-[13px] font-bold tracking-wide text-[#DA9811] uppercase">
                     Group {groupIndex}
                   </h3>
-                  <ul className="space-y-3">
+                  <ul className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3">
                     {teamsByGroup[groupIndex].map((team, index) => (
                       <li key={team.id ?? index}>
                         <TeamCard
@@ -298,7 +298,7 @@ export default function TournamentAddSquad() {
         )}
 
         {!isLoading && teamsByGroup == null && teams.length > 0 && (
-          <ul className="space-y-3 pb-10">
+          <ul className="space-y-3 pb-10 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3">
             {teams.map((team, index) => (
               <li key={team.id ?? index}>
                 <TeamCard

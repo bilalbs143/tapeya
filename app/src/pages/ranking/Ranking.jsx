@@ -207,7 +207,7 @@ export default function Ranking() {
   return (
     <div className="min-h-screen bg-black">
       <Container className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-4">
+        <header className="-mx-4 -mt-6 lg:mt-0 flex items-center gap-3 bg-black px-4 pt-6 pb-4">
           <button
             type="button"
             onClick={() => navigate(-1)}

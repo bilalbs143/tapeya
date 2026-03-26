@@ -1,21 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
 
-import feedNavIcon from '@/assets/images/icons/feed-navigation.svg';
-import liveNavIcon from '@/assets/images/icons/live-navigation.svg';
-import reelsNavIcon from '@/assets/images/icons/reels-navigation.svg';
-import liveScoreIcon from '@/assets/images/icons/score-card-request.svg';
-import shopNavIcon from '@/assets/images/icons/shop-navigation.svg';
 import { BOTTOM_NAV_Z } from '@/lib/constants/layout';
-import { BOTTOM_NAV_ITEMS } from '@/lib/constants/navigation';
 import logo from '@/assets/images/logos/tapya-t.svg';
-
-const PATH_TO_ICON = {
-  '/shop': shopNavIcon,
-  '/live-score': liveScoreIcon,
-  '/live': liveNavIcon,
-  '/feed': feedNavIcon,
-  '/reels': reelsNavIcon,
-};
+import shopIcon from '@/assets/images/icons/shop-navigation.svg';
+import scoreIcon from '@/assets/images/icons/score-bottom.svg';
+import profileIcon from '@/assets/images/icons/profile.svg';
+import upcomingIcon from '@/assets/images/icons/upcoming-bottom.svg';
 
 function isTabActive(pathname, tabPath) {
   return pathname === tabPath || pathname.startsWith(tabPath + '/');
@@ -24,24 +14,21 @@ function isTabActive(pathname, tabPath) {
 export function BottomNav() {
   const location = useLocation();
 
-  const shopItem = BOTTOM_NAV_ITEMS.find((i) => i.path === '/shop');
-  const scoreItem = BOTTOM_NAV_ITEMS.find((i) => i.path === '/live-score');
-  const feedItem = BOTTOM_NAV_ITEMS.find((i) => i.path === '/feed');
-  const reelsItem = BOTTOM_NAV_ITEMS.find((i) => i.path === '/reels');
+  const items = [
+    { path: '/shop', label: 'Shop', icon: shopIcon },
+    { path: '/scorecard', label: 'Score', icon: scoreIcon },
+    { path: '/upcoming-tournaments', label: 'Upcoming', icon: upcomingIcon },
+    { path: '/profile', label: 'Profile', icon: profileIcon },
+  ];
 
-  // Mobile bottom bar should be a strict 5-slot layout, with the Live tab
-  // replaced by the centered circular logo (no "Live" label).
-  const renderTab = ({ path, label }) => {
+  const renderTab = ({ path, label, icon }) => {
     const isActive = isTabActive(location.pathname, path);
-    const icon = PATH_TO_ICON[path];
 
     return (
       <Link
         key={path}
         to={path}
-        className={`flex flex-col items-center gap-1 transition-opacity active:opacity-80 ${
-          isActive ? 'opacity-100' : 'opacity-70'
-        }`}
+        className="flex flex-col items-center gap-1"
         aria-current={isActive ? 'page' : undefined}
       >
         <img
@@ -50,9 +37,7 @@ export function BottomNav() {
           className="h-6 w-6 shrink-0 object-contain"
         />
         <span
-          className={`text-[13px] font-medium ${
-            isActive ? 'text-[#DA9811]' : 'text-[#A2A6AB]'
-          }`}
+          className="text-[13px] font-medium text-[#A2A6AB]"
         >
           {label}
         </span>
@@ -61,6 +46,10 @@ export function BottomNav() {
   };
 
   const isLogoActive = isTabActive(location.pathname, '/home');
+  const shopItem = items.find((i) => i.path === '/shop');
+  const scoreItem = items.find((i) => i.path === '/scorecard');
+  const upcomingItem = items.find((i) => i.path === '/upcoming-tournaments');
+  const profileItem = items.find((i) => i.path === '/profile');
 
   return (
     <nav
@@ -89,8 +78,8 @@ export function BottomNav() {
           </div>
         </Link>
 
-        {feedItem ? renderTab(feedItem) : null}
-        {reelsItem ? renderTab(reelsItem) : null}
+        {upcomingItem ? renderTab(upcomingItem) : null}
+        {profileItem ? renderTab(profileItem) : null}
       </div>
     </nav>
   );
