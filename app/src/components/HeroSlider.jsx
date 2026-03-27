@@ -13,7 +13,7 @@ export function HeroSlider() {
 
   if (isLoading) {
     return (
-      <div className="h-[160px] animate-pulse overflow-hidden rounded-[17px] bg-[#141412]" />
+      <div className="h-[160px] animate-pulse overflow-hidden rounded-[17px] bg-[#141412] lg:h-[250px]" />
     );
   }
 
@@ -35,7 +35,7 @@ export function HeroSlider() {
     >
       {list.map((slide) => (
         <SwiperSlide key={slide.id}>
-          <div className="h-[160px] overflow-hidden rounded-[17px]">
+          <div className="h-[160px] overflow-hidden rounded-[17px] lg:h-[250px]">
             <img
               src={slide.image}
               alt={slide.alt ?? slide.title ?? ''}

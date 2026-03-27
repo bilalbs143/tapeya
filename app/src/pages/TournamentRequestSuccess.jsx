@@ -11,7 +11,7 @@ export default function TournamentRequestSuccess() {
   return (
     <div className="flex flex-col bg-black">
       <Container fullWidth className="flex flex-1 flex-col !px-4 !py-0">
-        <header className="-mx-4 -mt-6 flex shrink-0 items-center gap-3 bg-black px-4 pt-6 pb-6">
+        <header className="-mx-4 -mt-6 lg:mt-0 flex shrink-0 items-center gap-3 bg-black px-4 pt-6 pb-6">
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -57,7 +57,7 @@ export default function TournamentRequestSuccess() {
           <button
             type="button"
             onClick={handleGoHome}
-            className="flex w-full items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] px-8 py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90"
+            className="flex w-full items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] px-8 py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90 lg:w-auto"
           >
             Go to Home
             <svg

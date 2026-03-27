@@ -156,7 +156,7 @@ function RankingSection({
       {!loading && !error && rows.length === 0 && (
         <p className="text-[13px] text-[#A2A6AB]">{emptyMessage}</p>
       )}
-      <div className="space-y-3">
+      <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
         {rows.slice(0, TOP_RANKINGS_LIMIT).map((player, index) => (
           <PlayerCard
             key={player.id}

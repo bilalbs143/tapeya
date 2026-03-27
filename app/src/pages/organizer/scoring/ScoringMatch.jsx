@@ -671,7 +671,7 @@ export default function ScoringMatch() {
               <img
                 src={matchCenterHeader}
                 alt=""
-                className="h-auto w-full"
+                className="h-auto w-full lg:h-[300px] lg:object-cover lg:object-center"
                 aria-hidden
               />
 
@@ -688,7 +688,9 @@ export default function ScoringMatch() {
 
               <div className="pointer-events-auto absolute inset-x-0 bottom-0 translate-y-1/2 px-4">
                 <div className="rounded-[24px] bg-black/0">
-                  <TabsList className={scorecardListClass}>
+                  <TabsList
+                    className={`${scorecardListClass} lg:justify-center lg:overflow-x-visible`}
+                  >
                     {SCORING_TABS.map(({ value, label }) => (
                       <TabsTrigger
                         key={value}

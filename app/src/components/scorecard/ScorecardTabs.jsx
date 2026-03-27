@@ -43,22 +43,27 @@ export function ScorecardTabs({
     <Tabs defaultValue="all" className="w-full">
       {fixedVisible && (
         <div
-          className="fixed right-0 left-0 z-10 bg-black pt-1 pb-2"
+          className="fixed right-0 left-0 z-40 bg-black pt-1 pb-2 lg:left-[280px]"
           style={{ top: fixedTop }}
         >
-          <div className="mx-auto max-w-2xl px-4">
+          {/* Match main column width on desktop (sidebar 280px); avoid max-w-2xl clipping tabs */}
+          <div className="mx-auto w-full min-w-0 max-w-2xl px-4 lg:mx-0 lg:max-w-none">
             <TabListRow tournaments={tournaments} />
           </div>
         </div>
       )}
       <TabListRow tournaments={tournaments} />
-      <TabsContent value="all" className="mt-4 space-y-3 focus:outline-none">
+      <TabsContent value="all" className="mt-4 focus:outline-none">
         {matches.length === 0 ? (
           <p className="py-8 text-center text-[13px] text-[#A2A6AB]">
             No matches in this category
           </p>
         ) : (
-          matches.map((match) => <MatchCard key={match.id} match={match} />)
+          <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
+            {matches.map((match) => (
+              <MatchCard key={match.id} match={match} />
+            ))}
+          </div>
         )}
       </TabsContent>
     </Tabs>
