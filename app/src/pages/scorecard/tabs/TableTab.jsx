@@ -239,7 +239,13 @@ export function TableTab({ tournamentId }) {
   return (
     <div className="mt-4 pb-6 focus:outline-none">
       {titleNode}
-      <section className="mt-4 space-y-6">
+      <section
+        className={
+          hasGroups
+            ? 'mt-4 space-y-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-4 lg:space-y-0'
+            : 'mt-4'
+        }
+      >
         {hasGroups ? (
           standingsData.groups.map((group) => (
             <div key={group.group_index ?? group.group_name}>

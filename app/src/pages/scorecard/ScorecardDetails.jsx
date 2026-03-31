@@ -211,10 +211,12 @@ export default function ScorecardDetails() {
 
           {tabsFixedVisible && (
             <div
-              className="fixed right-0 left-0 z-[100] bg-black pt-1 pb-2"
+              className="fixed right-0 left-0 z-[100] bg-black pt-1 pb-2 lg:left-[280px]"
               style={{ top: NAVBAR_HEIGHT }}
             >
-              <div className="mx-auto max-w-2xl px-4">{tabsContent}</div>
+              <div className="mx-auto w-full min-w-0 max-w-2xl px-4 lg:mx-0 lg:max-w-none">
+                {tabsContent}
+              </div>
             </div>
           )}
 

@@ -296,7 +296,7 @@ export default function TournamentAddTeam() {
   return (
     <div className="bg-black">
       <Container className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
+        <header className="-mx-4 -mt-6 lg:mt-0 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -320,14 +320,15 @@ export default function TournamentAddTeam() {
           </h1>
         </header>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 pb-10">
-          {hasGroups && (
-            <FormField
-              label="Group"
-              htmlFor="group_index"
-              labelClassName={labelClass}
-              required
-            >
+        <form onSubmit={handleSubmit(onSubmit)} className="pb-10">
+          <div className="space-y-5 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-x-4 lg:gap-y-5">
+            {hasGroups && (
+              <FormField
+                label="Group"
+                htmlFor="group_index"
+                labelClassName={labelClass}
+                required
+              >
               <Select
                 value={String(selectedGroupIndex)}
                 onValueChange={(v) =>
@@ -369,15 +370,15 @@ export default function TournamentAddTeam() {
                   )}
                 </SelectContent>
               </Select>
-            </FormField>
-          )}
-          {/* Team Name — search + select or free type */}
-          <FormField
-            label="Team Name"
-            htmlFor="name"
-            labelClassName={labelClass}
-            required
-          >
+              </FormField>
+            )}
+            {/* Team Name — search + select or free type */}
+            <FormField
+              label="Team Name"
+              htmlFor="name"
+              labelClassName={labelClass}
+              required
+            >
             <div className="relative">
               <Input
                 id="name"
@@ -436,14 +437,14 @@ export default function TournamentAddTeam() {
                 </div>
               )}
             </div>
-          </FormField>
+            </FormField>
 
-          <FormField
-            label="Team Code"
-            htmlFor="code"
-            labelClassName={labelClass}
-            required
-          >
+            <FormField
+              label="Team Code"
+              htmlFor="code"
+              labelClassName={labelClass}
+              required
+            >
             <Input
               id="code"
               placeholder="E.g. IND, MI"
@@ -454,13 +455,13 @@ export default function TournamentAddTeam() {
               className={readonlyClass}
               {...register('code')}
             />
-          </FormField>
+            </FormField>
 
-          <FormField
-            label="Owner / Sponsor"
-            htmlFor="sponsor_user_id"
-            labelClassName={labelClass}
-          >
+            <FormField
+              label="Owner / Sponsor"
+              htmlFor="sponsor_user_id"
+              labelClassName={labelClass}
+            >
             <Controller
               name="sponsor_user_id"
               control={control}
@@ -553,15 +554,15 @@ export default function TournamentAddTeam() {
                 {errors.sponsor_user_id.message}
               </p>
             )}
-          </FormField>
+            </FormField>
 
-          {/* Country */}
-          <FormField
-            label="Country"
-            htmlFor="country"
-            labelClassName={labelClass}
-            required
-          >
+            {/* Country */}
+            <FormField
+              label="Country"
+              htmlFor="country"
+              labelClassName={labelClass}
+              required
+            >
             <Controller
               name="country"
               control={control}
@@ -602,80 +603,81 @@ export default function TournamentAddTeam() {
                 </Select>
               )}
             />
-          </FormField>
+            </FormField>
           {errors.country?.message && (
             <p className="text-sm text-red-200" role="alert">
               {errors.country.message}
             </p>
           )}
 
-          {/* City — read-only Input when team is selected, Select otherwise */}
-          <FormField
-            label="City"
-            htmlFor="city"
-            labelClassName={labelClass}
-            required
-          >
-            {isReadonly ? (
-              <Input
-                id="city"
-                value={selectedTeam?.city ?? ''}
-                readOnly
-                className={readonlyClass}
-              />
-            ) : (
-              <Controller
-                name="city"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    value={field.value || ''}
-                    onValueChange={field.onChange}
-                    disabled={!countryCode}
-                  >
-                    <SelectTrigger
-                      id="city"
-                      className={`${selectTriggerInputClass} ${readonlyClass}`}
-                      aria-label="City"
+            {/* City — read-only Input when team is selected, Select otherwise */}
+            <FormField
+              label="City"
+              htmlFor="city"
+              labelClassName={labelClass}
+              required
+            >
+              {isReadonly ? (
+                <Input
+                  id="city"
+                  value={selectedTeam?.city ?? ''}
+                  readOnly
+                  className={readonlyClass}
+                />
+              ) : (
+                <Controller
+                  name="city"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value || ''}
+                      onValueChange={field.onChange}
                       disabled={!countryCode}
                     >
-                      <SelectValue placeholder="Select City" />
-                    </SelectTrigger>
-                    <SelectContent
-                      className={selectContentInputClass}
-                      viewportClassName={selectViewportInputClass}
-                      position="popper"
-                    >
-                      {citiesList.map((c) => (
-                        <SelectItem
-                          key={c.id}
-                          value={c.name}
-                          className={selectItemInputClass}
-                          textClassName="!text-white"
-                          indicatorClassName="!text-white"
-                        >
-                          {c.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            )}
-          </FormField>
+                      <SelectTrigger
+                        id="city"
+                        className={`${selectTriggerInputClass} ${readonlyClass}`}
+                        aria-label="City"
+                        disabled={!countryCode}
+                      >
+                        <SelectValue placeholder="Select City" />
+                      </SelectTrigger>
+                      <SelectContent
+                        className={selectContentInputClass}
+                        viewportClassName={selectViewportInputClass}
+                        position="popper"
+                      >
+                        {citiesList.map((c) => (
+                          <SelectItem
+                            key={c.id}
+                            value={c.name}
+                            className={selectItemInputClass}
+                            textClassName="!text-white"
+                            indicatorClassName="!text-white"
+                          >
+                            {c.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              )}
+            </FormField>
           {errors.city?.message && (
             <p className="text-sm text-red-200" role="alert">
               {errors.city.message}
             </p>
           )}
 
-          {/* Icon Players — multi-select typeahead with checkboxes */}
-          {/* CURSOR: extract into <IconPlayersField> (see top) */}
-          <FormField
-            label="Icon Players"
-            htmlFor="icon_player_ids"
-            labelClassName={labelClass}
-          >
+            {/* Icon Players — multi-select typeahead with checkboxes */}
+            {/* CURSOR: extract into <IconPlayersField> (see top) */}
+            <div>
+              <FormField
+                label="Icon Players"
+                htmlFor="icon_player_ids"
+                labelClassName={labelClass}
+              >
             <Controller
               name="icon_player_ids"
               control={control}
@@ -772,17 +774,18 @@ export default function TournamentAddTeam() {
                   </div>
                 );
               }}
-            />
-          </FormField>
+              />
+              </FormField>
+            </div>
 
           {/* Logo upload — hidden when team is selected (logo already set) */}
           {/* CURSOR: extract into <LogoUploadField> (see top) */}
           {!isReadonly && (
-            <FormField
-              label="Upload Logo"
-              htmlFor="team_logo_input"
-              labelClassName={labelClass}
-            >
+              <FormField
+                label="Upload Logo"
+                htmlFor="team_logo_input"
+                labelClassName={labelClass}
+              >
               <div className="flex h-12 items-center justify-between rounded-[6px] bg-[#141412] px-4">
                 <span
                   className="truncate text-[16px] capitalize"
@@ -811,7 +814,7 @@ export default function TournamentAddTeam() {
                   </Button>
                 </div>
               </div>
-            </FormField>
+              </FormField>
           )}
 
           {/* Logo indicator for selected team — only when logo URL is non-empty */}
@@ -831,19 +834,20 @@ export default function TournamentAddTeam() {
               </FormField>
             )}
 
-          <div className="pt-4">
-            <Button
-              type="submit"
-              variant="auth"
-              disabled={isSubmitting}
-              className="h-12 w-full rounded-[8px] bg-[#E4E7F4] text-[15px] font-semibold tracking-wide text-[#1a1a1a] uppercase"
-            >
-              {isSubmitting
-                ? 'Saving…'
-                : isReadonly
-                  ? 'Add This Team to Tournament'
-                  : 'Create & Add to Tournament'}
-            </Button>
+              <div className="pt-4 lg:col-span-3 flex justify-start">
+                <Button
+                  type="submit"
+                  variant="auth"
+                  disabled={isSubmitting}
+                  className="h-12 w-full rounded-[8px] bg-[#E4E7F4] text-[15px] font-semibold tracking-wide text-[#1a1a1a] uppercase lg:w-auto"
+                >
+                  {isSubmitting
+                    ? 'Saving…'
+                    : isReadonly
+                      ? 'Add This Team to Tournament'
+                      : 'Create & Add to Tournament'}
+                </Button>
+              </div>
           </div>
         </form>
       </Container>

@@ -328,7 +328,7 @@ export default function ShopCheckout() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex w-full items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90 disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90 disabled:opacity-50 lg:w-auto lg:justify-start lg:px-4"
             >
               {isSubmitting ? 'Placing Order…' : 'Place Order'}
               <svg

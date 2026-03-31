@@ -107,7 +107,9 @@ function Section({ title, children, emptyMessage = 'No tournaments' }) {
         {title}
       </h2>
       {count > 0 ? (
-        <div className="space-y-3">{children}</div>
+        <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3">
+          {children}
+        </div>
       ) : (
         <p className="rounded-[17px] bg-[#141412] px-4 py-6 text-center text-[13px] text-[#A2A6AB]">
           {emptyMessage}
@@ -184,7 +186,7 @@ export default function Tournaments() {
   return (
     <div className="bg-black">
       <Container className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
+        <header className="-mx-4 -mt-6 lg:mt-0 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
           <button
             type="button"
             onClick={() => navigate(-1)}

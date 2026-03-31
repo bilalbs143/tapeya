@@ -244,37 +244,39 @@ export function StatsTab({ tournamentId }) {
         />
       </div>
 
-      <section className="mt-8">
-        <SectionHeader
-          title="TOP RUN SCORERS"
-          viewMoreTo={statsTotalRunScorers}
-        />
-        <div className="space-y-3">
-          {topRunScorers.map((player) => (
-            <PlayerStatCard
-              key={player.id}
-              player={player}
-              primaryStat={player.runs}
-            />
-          ))}
-        </div>
-      </section>
+      <div className="mt-8 space-y-8 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6 lg:space-y-0">
+        <section>
+          <SectionHeader
+            title="TOP RUN SCORERS"
+            viewMoreTo={statsTotalRunScorers}
+          />
+          <div className="space-y-3">
+            {topRunScorers.map((player) => (
+              <PlayerStatCard
+                key={player.id}
+                player={player}
+                primaryStat={player.runs}
+              />
+            ))}
+          </div>
+        </section>
 
-      <section className="mt-8">
-        <SectionHeader
-          title="TOP WICKET TAKERS"
-          viewMoreTo={statsTotalWicketTakers}
-        />
-        <div className="space-y-3">
-          {topWicketTakers.map((player) => (
-            <PlayerStatCard
-              key={player.id}
-              player={player}
-              primaryStat={player.wickets}
-            />
-          ))}
-        </div>
-      </section>
+        <section>
+          <SectionHeader
+            title="TOP WICKET TAKERS"
+            viewMoreTo={statsTotalWicketTakers}
+          />
+          <div className="space-y-3">
+            {topWicketTakers.map((player) => (
+              <PlayerStatCard
+                key={player.id}
+                player={player}
+                primaryStat={player.wickets}
+              />
+            ))}
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

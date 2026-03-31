@@ -2,13 +2,12 @@ import { useEffect, useState } from 'react';
 
 import { Link, useLocation } from 'react-router-dom';
 
-import feedNavIcon from '@/assets/images/icons/feed-navigation.svg';
 import hamburgerIcon from '@/assets/images/icons/hamburger-icon.svg';
-import liveNavIcon from '@/assets/images/icons/live-navigation.svg';
 import notificationIcon from '@/assets/images/icons/notification-icon.svg';
-import reelsNavIcon from '@/assets/images/icons/reels-navigation.svg';
-import liveScoreIcon from '@/assets/images/icons/score-card-request.svg';
+import profileIcon from '@/assets/images/icons/profile.svg';
+import scoreIcon from '@/assets/images/icons/score-bottom.svg';
 import shopNavIcon from '@/assets/images/icons/shop-navigation.svg';
+import upcomingIcon from '@/assets/images/icons/upcoming-bottom.svg';
 import logo from '@/assets/images/logos/tapya-t.svg';
 import {
   NAVBAR_HEIGHT,
@@ -22,10 +21,9 @@ const iconBtn =
 
 const DESKTOP_NAV_PATH_TO_ICON = {
   '/shop': shopNavIcon,
-  '/live-score': liveScoreIcon,
-  '/live': liveNavIcon,
-  '/feed': feedNavIcon,
-  '/reels': reelsNavIcon,
+  '/scorecard': scoreIcon,
+  '/upcoming-tournaments': upcomingIcon,
+  '/profile': profileIcon,
 };
 
 function isTabActive(pathname, tabPath) {
