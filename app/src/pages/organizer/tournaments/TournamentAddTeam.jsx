@@ -8,7 +8,10 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { DEBOUNCE_MS, MIN_SEARCH_LENGTH } from '@/lib/constants/search';
-import { parseTournamentId } from '@/lib/utils/tournamentUtils';
+import {
+  getTournamentTitle,
+  parseTournamentId,
+} from '@/lib/utils/tournamentUtils';
 import { teamFormSchema } from '@/lib/validations/team';
 import {
   useGetCitiesQuery,
@@ -296,7 +299,7 @@ export default function TournamentAddTeam() {
   return (
     <div className="bg-black">
       <Container className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 lg:mt-0 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
+        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6 lg:mt-0">
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -316,12 +319,14 @@ export default function TournamentAddTeam() {
             </svg>
           </button>
           <h1 className="min-w-0 flex-1 pr-[27px] text-center text-[16px] font-bold tracking-wide text-white uppercase">
-            Add Team
+            {tournament
+              ? `${getTournamentTitle(tournament)} - Add Team`
+              : 'Tournaments - Add Team'}
           </h1>
         </header>
 
         <form onSubmit={handleSubmit(onSubmit)} className="pb-10">
-          <div className="space-y-5 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-x-4 lg:gap-y-5">
+          <div className="space-y-5 lg:grid lg:grid-cols-3 lg:space-y-0 lg:gap-x-4 lg:gap-y-5">
             {hasGroups && (
               <FormField
                 label="Group"
@@ -329,34 +334,36 @@ export default function TournamentAddTeam() {
                 labelClassName={labelClass}
                 required
               >
-              <Select
-                value={String(selectedGroupIndex)}
-                onValueChange={(v) =>
-                  setSelectedGroupIndex(v === 'random' ? 'random' : Number(v))
-                }
-              >
-                <SelectTrigger
-                  id="group_index"
-                  className={selectTriggerInputClass}
-                  aria-label="Select group"
+                <Select
+                  value={String(selectedGroupIndex)}
+                  onValueChange={(v) =>
+                    setSelectedGroupIndex(v === 'random' ? 'random' : Number(v))
+                  }
                 >
-                  <SelectValue placeholder="Select group" />
-                </SelectTrigger>
-                <SelectContent
-                  className={selectContentInputClass}
-                  viewportClassName={selectViewportInputClass}
-                  position="popper"
-                >
-                  <SelectItem
-                    value="random"
-                    className={selectItemInputClass}
-                    textClassName="!text-white"
-                    indicatorClassName="!text-white"
+                  <SelectTrigger
+                    id="group_index"
+                    className={selectTriggerInputClass}
+                    aria-label="Select group"
                   >
-                    Random Group
-                  </SelectItem>
-                  {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map(
-                    (idx) => (
+                    <SelectValue placeholder="Select group" />
+                  </SelectTrigger>
+                  <SelectContent
+                    className={selectContentInputClass}
+                    viewportClassName={selectViewportInputClass}
+                    position="popper"
+                  >
+                    <SelectItem
+                      value="random"
+                      className={selectItemInputClass}
+                      textClassName="!text-white"
+                      indicatorClassName="!text-white"
+                    >
+                      Random Group
+                    </SelectItem>
+                    {Array.from(
+                      { length: numberOfGroups },
+                      (_, i) => i + 1,
+                    ).map((idx) => (
                       <SelectItem
                         key={idx}
                         value={String(idx)}
@@ -366,10 +373,9 @@ export default function TournamentAddTeam() {
                       >
                         Group {idx}
                       </SelectItem>
-                    ),
-                  )}
-                </SelectContent>
-              </Select>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormField>
             )}
             {/* Team Name — search + select or free type */}
@@ -379,64 +385,64 @@ export default function TournamentAddTeam() {
               labelClassName={labelClass}
               required
             >
-            <div className="relative">
-              <Input
-                id="name"
-                placeholder="Type team name or code to search"
-                autoComplete="off"
-                maxLength={255}
-                error={errors.name?.message}
-                readOnly={isReadonly}
-                className={isReadonly ? `${readonlyClass} pr-12` : ''}
-                {...register('name')}
-              />
-              {selectedTeam && (
-                <button
-                  type="button"
-                  onClick={handleChangeTeam}
-                  className="absolute top-0 right-0 bottom-0 flex w-10 items-center justify-center text-[#A2A6AB] transition-colors hover:text-white active:opacity-80"
-                  aria-label="Change team"
-                >
-                  <CloseIcon />
-                </button>
-              )}
-              {/* CURSOR: extract this dropdown shell into <SearchDropdown> (see top) */}
-              {showSearchResults && (
-                <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-48 overflow-auto rounded-[6px] border border-[#141412] bg-[#141412] shadow-lg">
-                  {isSearching ? (
-                    <p className="px-4 py-3 text-[13px] text-[#A2A6AB] capitalize">
-                      Searching…
-                    </p>
-                  ) : searchResults.length > 0 ? (
-                    <ul className="py-1">
-                      {searchResults.map((team) => (
-                        <li key={team.id}>
-                          <button
-                            type="button"
-                            onClick={() => handleSelectTeam(team)}
-                            className="flex w-full cursor-pointer flex-col gap-0.5 px-4 py-3 text-left transition-colors hover:bg-white/10"
-                          >
-                            <span className="font-semibold text-white">
-                              {team.name}
-                            </span>
-                            <span className="text-[13px] text-[#A2A6AB]">
-                              Code: {team.code}
-                              {team.sponsor?.name
-                                ? ` · ${team.sponsor.name}`
-                                : ''}
-                            </span>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="px-4 py-3 text-[13px] text-[#A2A6AB] capitalize">
-                      No teams found. Fill the form below to add a new team.
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
+              <div className="relative">
+                <Input
+                  id="name"
+                  placeholder="Type team name or code to search"
+                  autoComplete="off"
+                  maxLength={255}
+                  error={errors.name?.message}
+                  readOnly={isReadonly}
+                  className={isReadonly ? `${readonlyClass} pr-12` : ''}
+                  {...register('name')}
+                />
+                {selectedTeam && (
+                  <button
+                    type="button"
+                    onClick={handleChangeTeam}
+                    className="absolute top-0 right-0 bottom-0 flex w-10 items-center justify-center text-[#A2A6AB] transition-colors hover:text-white active:opacity-80"
+                    aria-label="Change team"
+                  >
+                    <CloseIcon />
+                  </button>
+                )}
+                {/* CURSOR: extract this dropdown shell into <SearchDropdown> (see top) */}
+                {showSearchResults && (
+                  <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-48 overflow-auto rounded-[6px] border border-[#141412] bg-[#141412] shadow-lg">
+                    {isSearching ? (
+                      <p className="px-4 py-3 text-[13px] text-[#A2A6AB] capitalize">
+                        Searching…
+                      </p>
+                    ) : searchResults.length > 0 ? (
+                      <ul className="py-1">
+                        {searchResults.map((team) => (
+                          <li key={team.id}>
+                            <button
+                              type="button"
+                              onClick={() => handleSelectTeam(team)}
+                              className="flex w-full cursor-pointer flex-col gap-0.5 px-4 py-3 text-left transition-colors hover:bg-white/10"
+                            >
+                              <span className="font-semibold text-white">
+                                {team.name}
+                              </span>
+                              <span className="text-[13px] text-[#A2A6AB]">
+                                Code: {team.code}
+                                {team.sponsor?.name
+                                  ? ` · ${team.sponsor.name}`
+                                  : ''}
+                              </span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="px-4 py-3 text-[13px] text-[#A2A6AB] capitalize">
+                        No teams found. Fill the form below to add a new team.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
             </FormField>
 
             <FormField
@@ -445,16 +451,16 @@ export default function TournamentAddTeam() {
               labelClassName={labelClass}
               required
             >
-            <Input
-              id="code"
-              placeholder="E.g. IND, MI"
-              autoComplete="off"
-              maxLength={20}
-              error={errors.code?.message}
-              readOnly={isReadonly}
-              className={readonlyClass}
-              {...register('code')}
-            />
+              <Input
+                id="code"
+                placeholder="E.g. IND, MI"
+                autoComplete="off"
+                maxLength={20}
+                error={errors.code?.message}
+                readOnly={isReadonly}
+                className={readonlyClass}
+                {...register('code')}
+              />
             </FormField>
 
             <FormField
@@ -462,98 +468,98 @@ export default function TournamentAddTeam() {
               htmlFor="sponsor_user_id"
               labelClassName={labelClass}
             >
-            <Controller
-              name="sponsor_user_id"
-              control={control}
-              render={({ field }) => {
-                const sponsorInputValue = selectedSponsor
-                  ? selectedSponsor.name
-                  : sponsorSearch;
-                const sponsorQuery = sponsorSearch.trim();
-                const showSponsorResults =
-                  !isReadonly && !selectedSponsor && sponsorQuery.length > 0;
+              <Controller
+                name="sponsor_user_id"
+                control={control}
+                render={({ field }) => {
+                  const sponsorInputValue = selectedSponsor
+                    ? selectedSponsor.name
+                    : sponsorSearch;
+                  const sponsorQuery = sponsorSearch.trim();
+                  const showSponsorResults =
+                    !isReadonly && !selectedSponsor && sponsorQuery.length > 0;
 
-                return (
-                  <div className="relative">
-                    <Input
-                      id="sponsor_user_id"
-                      placeholder="Search by name, nickname or phone…"
-                      autoComplete="off"
-                      disabled={isReadonly}
-                      value={sponsorInputValue}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (selectedSponsor) {
-                          setSelectedSponsor(null);
-                          field.onChange('');
-                        }
-                        setSponsorSearch(value);
-                      }}
-                      className={readonlyClass}
-                    />
-                    {selectedSponsor && !isReadonly && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedSponsor(null);
-                          field.onChange('');
-                          setSponsorSearch('');
+                  return (
+                    <div className="relative">
+                      <Input
+                        id="sponsor_user_id"
+                        placeholder="Search by name, nickname or phone…"
+                        autoComplete="off"
+                        disabled={isReadonly}
+                        value={sponsorInputValue}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (selectedSponsor) {
+                            setSelectedSponsor(null);
+                            field.onChange('');
+                          }
+                          setSponsorSearch(value);
                         }}
-                        className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-[#A2A6AB] transition-colors hover:text-white active:opacity-80"
-                        aria-label="Clear sponsor"
-                      >
-                        <CloseIcon />
-                      </button>
-                    )}
-                    {/* CURSOR: extract this dropdown shell into <SearchDropdown> (see top) */}
-                    {showSponsorResults && (
-                      <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] bg-[#141412] shadow-lg">
-                        {debouncedSponsorSearch.length < MIN_SEARCH_LENGTH ? (
-                          <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
-                            Type at least {MIN_SEARCH_LENGTH} characters to
-                            search
-                          </p>
-                        ) : isSearchingSponsors ? (
-                          <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
-                            Searching…
-                          </p>
-                        ) : sponsorsList.length === 0 ? (
-                          <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
-                            No users found
-                          </p>
-                        ) : (
-                          <ul className="space-y-0.5">
-                            {sponsorsList.map((s) => (
-                              <li key={s.id}>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    field.onChange(String(s.id));
-                                    setSelectedSponsor({
-                                      id: s.id,
-                                      name: s.name ?? '',
-                                    });
-                                    setSponsorSearch('');
-                                  }}
-                                  className="flex w-full cursor-pointer items-center rounded-sm px-3 py-2.5 text-left text-base text-white transition-colors outline-none hover:bg-white/10 focus:bg-white/10"
-                                >
-                                  {s.name}
-                                </button>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              }}
-            />
-            {errors.sponsor_user_id?.message && (
-              <p className="text-sm text-red-200" role="alert">
-                {errors.sponsor_user_id.message}
-              </p>
-            )}
+                        className={readonlyClass}
+                      />
+                      {selectedSponsor && !isReadonly && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedSponsor(null);
+                            field.onChange('');
+                            setSponsorSearch('');
+                          }}
+                          className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-[#A2A6AB] transition-colors hover:text-white active:opacity-80"
+                          aria-label="Clear sponsor"
+                        >
+                          <CloseIcon />
+                        </button>
+                      )}
+                      {/* CURSOR: extract this dropdown shell into <SearchDropdown> (see top) */}
+                      {showSponsorResults && (
+                        <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] bg-[#141412] shadow-lg">
+                          {debouncedSponsorSearch.length < MIN_SEARCH_LENGTH ? (
+                            <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
+                              Type at least {MIN_SEARCH_LENGTH} characters to
+                              search
+                            </p>
+                          ) : isSearchingSponsors ? (
+                            <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
+                              Searching…
+                            </p>
+                          ) : sponsorsList.length === 0 ? (
+                            <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
+                              No users found
+                            </p>
+                          ) : (
+                            <ul className="space-y-0.5">
+                              {sponsorsList.map((s) => (
+                                <li key={s.id}>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      field.onChange(String(s.id));
+                                      setSelectedSponsor({
+                                        id: s.id,
+                                        name: s.name ?? '',
+                                      });
+                                      setSponsorSearch('');
+                                    }}
+                                    className="flex w-full cursor-pointer items-center rounded-sm px-3 py-2.5 text-left text-base text-white transition-colors outline-none hover:bg-white/10 focus:bg-white/10"
+                                  >
+                                    {s.name}
+                                  </button>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }}
+              />
+              {errors.sponsor_user_id?.message && (
+                <p className="text-sm text-red-200" role="alert">
+                  {errors.sponsor_user_id.message}
+                </p>
+              )}
             </FormField>
 
             {/* Country */}
@@ -563,52 +569,52 @@ export default function TournamentAddTeam() {
               labelClassName={labelClass}
               required
             >
-            <Controller
-              name="country"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  value={field.value || ''}
-                  onValueChange={(val) => {
-                    field.onChange(val);
-                    // Reset city when country changes so stale city values are cleared.
-                    setValue('city', '');
-                  }}
-                  disabled={isReadonly}
-                >
-                  <SelectTrigger
-                    id="country"
-                    className={`${selectTriggerInputClass} ${readonlyClass}`}
-                    aria-label="Country"
+              <Controller
+                name="country"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    value={field.value || ''}
+                    onValueChange={(val) => {
+                      field.onChange(val);
+                      // Reset city when country changes so stale city values are cleared.
+                      setValue('city', '');
+                    }}
+                    disabled={isReadonly}
                   >
-                    <SelectValue placeholder="Select Country" />
-                  </SelectTrigger>
-                  <SelectContent
-                    className={selectContentInputClass}
-                    viewportClassName={selectViewportInputClass}
-                    position="popper"
-                  >
-                    {countriesList.map((c) => (
-                      <SelectItem
-                        key={c.country_code}
-                        value={c.name}
-                        className={selectItemInputClass}
-                        textClassName="!text-white"
-                        indicatorClassName="!text-white"
-                      >
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
+                    <SelectTrigger
+                      id="country"
+                      className={`${selectTriggerInputClass} ${readonlyClass}`}
+                      aria-label="Country"
+                    >
+                      <SelectValue placeholder="Select Country" />
+                    </SelectTrigger>
+                    <SelectContent
+                      className={selectContentInputClass}
+                      viewportClassName={selectViewportInputClass}
+                      position="popper"
+                    >
+                      {countriesList.map((c) => (
+                        <SelectItem
+                          key={c.country_code}
+                          value={c.name}
+                          className={selectItemInputClass}
+                          textClassName="!text-white"
+                          indicatorClassName="!text-white"
+                        >
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </FormField>
-          {errors.country?.message && (
-            <p className="text-sm text-red-200" role="alert">
-              {errors.country.message}
-            </p>
-          )}
+            {errors.country?.message && (
+              <p className="text-sm text-red-200" role="alert">
+                {errors.country.message}
+              </p>
+            )}
 
             {/* City — read-only Input when team is selected, Select otherwise */}
             <FormField
@@ -664,11 +670,11 @@ export default function TournamentAddTeam() {
                 />
               )}
             </FormField>
-          {errors.city?.message && (
-            <p className="text-sm text-red-200" role="alert">
-              {errors.city.message}
-            </p>
-          )}
+            {errors.city?.message && (
+              <p className="text-sm text-red-200" role="alert">
+                {errors.city.message}
+              </p>
+            )}
 
             {/* Icon Players — multi-select typeahead with checkboxes */}
             {/* CURSOR: extract into <IconPlayersField> (see top) */}
@@ -678,176 +684,182 @@ export default function TournamentAddTeam() {
                 htmlFor="icon_player_ids"
                 labelClassName={labelClass}
               >
-            <Controller
-              name="icon_player_ids"
-              control={control}
-              render={({ field }) => {
-                const iconQuery = iconPlayerSearch.trim();
-                const showPlayerResults = !isReadonly && iconQuery.length > 0;
+                <Controller
+                  name="icon_player_ids"
+                  control={control}
+                  render={({ field }) => {
+                    const iconQuery = iconPlayerSearch.trim();
+                    const showPlayerResults =
+                      !isReadonly && iconQuery.length > 0;
 
-                return (
-                  <div className="space-y-2">
-                    <div className="relative">
-                      <Input
-                        id="icon_player_ids"
-                        placeholder="Search by name, nickname or phone…"
-                        autoComplete="off"
-                        disabled={isReadonly}
-                        value={iconPlayerSearch}
-                        onChange={(e) => setIconPlayerSearch(e.target.value)}
-                        className={readonlyClass}
-                      />
-                      {field.value?.length > 0 && !isReadonly && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            field.onChange([]);
-                            setIconPlayerSearch('');
-                          }}
-                          className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-[#A2A6AB] transition-colors hover:text-white active:opacity-80"
-                          aria-label="Clear selected icon players"
-                        >
-                          <CloseIcon />
-                        </button>
-                      )}
-                      {/* CURSOR: extract this dropdown shell into <SearchDropdown> (see top) */}
-                      {showPlayerResults && (
-                        <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] bg-[#141412] shadow-lg">
-                          {debouncedIconPlayerSearch.length <
-                          MIN_SEARCH_LENGTH ? (
-                            <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
-                              Type at least {MIN_SEARCH_LENGTH} characters to
-                              search
-                            </p>
-                          ) : isSearchingPlayers ? (
-                            <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
-                              Searching…
-                            </p>
-                          ) : playersList.length === 0 ? (
-                            <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
-                              No players found
-                            </p>
-                          ) : (
-                            <div className="space-y-0.5">
-                              {playersList.map((player) => (
-                                <label
-                                  key={player.id}
-                                  className="flex cursor-pointer items-center gap-3 rounded-sm py-2.5 pr-4 pl-4 text-base text-white outline-none focus-within:bg-white/10 hover:bg-white/10"
-                                >
-                                  <Checkbox
-                                    variant="input"
-                                    checked={
-                                      field.value?.includes(player.id) ?? false
-                                    }
-                                    onCheckedChange={(checked) => {
-                                      const prev = field.value ?? [];
-                                      const next = checked
-                                        ? [...prev, player.id]
-                                        : prev.filter((id) => id !== player.id);
-                                      field.onChange(next);
-                                    }}
-                                    disabled={isReadonly}
-                                  />
-                                  <span className="truncate font-normal">
-                                    {player.name ?? player.nickname ?? '—'}
-                                  </span>
-                                  {(player.playing_role ??
-                                    player.playing_role_enum) && (
-                                    <span className="ml-auto shrink-0 text-[12px] text-[#A2A6AB]">
-                                      {player.playing_role ??
-                                        player.playing_role_enum}
-                                    </span>
-                                  )}
-                                </label>
-                              ))}
+                    return (
+                      <div className="space-y-2">
+                        <div className="relative">
+                          <Input
+                            id="icon_player_ids"
+                            placeholder="Search by name, nickname or phone…"
+                            autoComplete="off"
+                            disabled={isReadonly}
+                            value={iconPlayerSearch}
+                            onChange={(e) =>
+                              setIconPlayerSearch(e.target.value)
+                            }
+                            className={readonlyClass}
+                          />
+                          {field.value?.length > 0 && !isReadonly && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                field.onChange([]);
+                                setIconPlayerSearch('');
+                              }}
+                              className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-[#A2A6AB] transition-colors hover:text-white active:opacity-80"
+                              aria-label="Clear selected icon players"
+                            >
+                              <CloseIcon />
+                            </button>
+                          )}
+                          {/* CURSOR: extract this dropdown shell into <SearchDropdown> (see top) */}
+                          {showPlayerResults && (
+                            <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] bg-[#141412] shadow-lg">
+                              {debouncedIconPlayerSearch.length <
+                              MIN_SEARCH_LENGTH ? (
+                                <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
+                                  Type at least {MIN_SEARCH_LENGTH} characters
+                                  to search
+                                </p>
+                              ) : isSearchingPlayers ? (
+                                <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
+                                  Searching…
+                                </p>
+                              ) : playersList.length === 0 ? (
+                                <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
+                                  No players found
+                                </p>
+                              ) : (
+                                <div className="space-y-0.5">
+                                  {playersList.map((player) => (
+                                    <label
+                                      key={player.id}
+                                      className="flex cursor-pointer items-center gap-3 rounded-sm py-2.5 pr-4 pl-4 text-base text-white outline-none focus-within:bg-white/10 hover:bg-white/10"
+                                    >
+                                      <Checkbox
+                                        variant="input"
+                                        checked={
+                                          field.value?.includes(player.id) ??
+                                          false
+                                        }
+                                        onCheckedChange={(checked) => {
+                                          const prev = field.value ?? [];
+                                          const next = checked
+                                            ? [...prev, player.id]
+                                            : prev.filter(
+                                                (id) => id !== player.id,
+                                              );
+                                          field.onChange(next);
+                                        }}
+                                        disabled={isReadonly}
+                                      />
+                                      <span className="truncate font-normal">
+                                        {player.name ?? player.nickname ?? '—'}
+                                      </span>
+                                      {(player.playing_role ??
+                                        player.playing_role_enum) && (
+                                        <span className="ml-auto shrink-0 text-[12px] text-[#A2A6AB]">
+                                          {player.playing_role ??
+                                            player.playing_role_enum}
+                                        </span>
+                                      )}
+                                    </label>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
-                      )}
-                    </div>
-                    {field.value?.length > 0 && (
-                      <p className="text-[13px] text-[#A2A6AB]">
-                        {field.value.length} Player
-                        {field.value.length === 1 ? '' : 's'} selected
-                      </p>
-                    )}
-                  </div>
-                );
-              }}
-              />
+                        {field.value?.length > 0 && (
+                          <p className="text-[13px] text-[#A2A6AB]">
+                            {field.value.length} Player
+                            {field.value.length === 1 ? '' : 's'} selected
+                          </p>
+                        )}
+                      </div>
+                    );
+                  }}
+                />
               </FormField>
             </div>
 
-          {/* Logo upload — hidden when team is selected (logo already set) */}
-          {/* CURSOR: extract into <LogoUploadField> (see top) */}
-          {!isReadonly && (
+            {/* Logo upload — hidden when team is selected (logo already set) */}
+            {/* CURSOR: extract into <LogoUploadField> (see top) */}
+            {!isReadonly && (
               <FormField
                 label="Upload Logo"
                 htmlFor="team_logo_input"
                 labelClassName={labelClass}
               >
-              <div className="flex h-12 items-center justify-between rounded-[6px] bg-[#141412] px-4">
-                <span
-                  className="truncate text-[16px] capitalize"
-                  style={{ color: '#A2A6AB78' }}
-                >
-                  {logoName}
-                </span>
-                <div className="shrink-0">
-                  <input
-                    ref={fileInputRef}
-                    id="team_logo_input"
-                    type="file"
-                    accept="image/*"
-                    className="sr-only"
-                    onChange={handleFileChange}
-                    aria-label="Upload Team Logo"
-                  />
-                  <Button
-                    type="button"
-                    variant="file"
-                    size="sm"
-                    className="h-8 rounded-[6px] px-2 text-[12px] font-semibold tracking-wide capitalize"
-                    onClick={() => fileInputRef.current?.click()}
+                <div className="flex h-12 items-center justify-between rounded-[6px] bg-[#141412] px-4">
+                  <span
+                    className="truncate text-[16px] capitalize"
+                    style={{ color: '#A2A6AB78' }}
                   >
-                    Attach File
-                  </Button>
-                </div>
-              </div>
-              </FormField>
-          )}
-
-          {/* Logo indicator for selected team — only when logo URL is non-empty */}
-          {isReadonly &&
-            selectedTeam?.logo &&
-            String(selectedTeam.logo).trim() !== '' && (
-              <FormField
-                label="Logo"
-                htmlFor="team_logo_display"
-                labelClassName={labelClass}
-              >
-                <div className="flex h-12 items-center rounded-[6px] bg-[#141412] px-4">
-                  <span className="text-[16px] text-[#A2A6AB] capitalize">
-                    Logo uploaded
+                    {logoName}
                   </span>
+                  <div className="shrink-0">
+                    <input
+                      ref={fileInputRef}
+                      id="team_logo_input"
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      onChange={handleFileChange}
+                      aria-label="Upload Team Logo"
+                    />
+                    <Button
+                      type="button"
+                      variant="file"
+                      size="sm"
+                      className="h-8 rounded-[6px] px-2 text-[12px] font-semibold tracking-wide capitalize"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      Attach File
+                    </Button>
+                  </div>
                 </div>
               </FormField>
             )}
 
-              <div className="pt-4 lg:col-span-3 flex justify-start">
-                <Button
-                  type="submit"
-                  variant="auth"
-                  disabled={isSubmitting}
-                  className="h-12 w-full rounded-[8px] bg-[#E4E7F4] text-[15px] font-semibold tracking-wide text-[#1a1a1a] uppercase lg:w-auto"
+            {/* Logo indicator for selected team — only when logo URL is non-empty */}
+            {isReadonly &&
+              selectedTeam?.logo &&
+              String(selectedTeam.logo).trim() !== '' && (
+                <FormField
+                  label="Logo"
+                  htmlFor="team_logo_display"
+                  labelClassName={labelClass}
                 >
-                  {isSubmitting
-                    ? 'Saving…'
-                    : isReadonly
-                      ? 'Add This Team to Tournament'
-                      : 'Create & Add to Tournament'}
-                </Button>
-              </div>
+                  <div className="flex h-12 items-center rounded-[6px] bg-[#141412] px-4">
+                    <span className="text-[16px] text-[#A2A6AB] capitalize">
+                      Logo uploaded
+                    </span>
+                  </div>
+                </FormField>
+              )}
+
+            <div className="flex justify-start pt-4 lg:col-span-3">
+              <Button
+                type="submit"
+                variant="auth"
+                disabled={isSubmitting}
+                className="h-12 w-full rounded-[8px] bg-[#E4E7F4] text-[15px] font-semibold tracking-wide text-[#1a1a1a] uppercase lg:w-auto"
+              >
+                {isSubmitting
+                  ? 'Saving…'
+                  : isReadonly
+                    ? 'Add This Team to Tournament'
+                    : 'Create & Add to Tournament'}
+              </Button>
+            </div>
           </div>
         </form>
       </Container>

@@ -180,7 +180,7 @@ export default function TournamentSquad() {
   return (
     <div className="bg-black">
       <Container className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 lg:mt-0 flex items-center gap-3 bg-black px-4 pt-6 pb-4">
+        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-4 lg:mt-0">
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -200,19 +200,11 @@ export default function TournamentSquad() {
             </svg>
           </button>
           <h1 className="min-w-0 flex-1 pr-[27px] text-center text-[16px] font-bold tracking-wide text-white uppercase">
-            Tournaments - Squad
+            {tournament
+              ? `${getTournamentTitle(tournament)} - Squad`
+              : 'Tournaments - Squad'}
           </h1>
         </header>
-
-        {(tournament || tournamentIdNum) && (
-          <p className="mb-1 text-[12px] font-medium tracking-wide text-[#A2A6AB] uppercase">
-            {getTournamentTitle(tournament)}
-          </p>
-        )}
-
-        <p className="mb-3 text-[13px] font-medium tracking-wide text-white uppercase">
-          {(team?.name ?? '').toUpperCase() || 'Team'}
-        </p>
 
         {isLoadingSquad && (
           <p className="mb-3 text-[13px] text-[#A2A6AB]">Loading squad…</p>

@@ -16,6 +16,7 @@ class TournamentController extends Controller
 
     /**
      * List tournaments (for app: e.g. to pick tournament when creating teams or viewing schedule).
+     * Query organizer_tournaments=1 scopes the list to tournaments organized by the authenticated user.
      */
     public function index(): JsonResponse
     {
@@ -24,6 +25,10 @@ class TournamentController extends Controller
             ->defaultSort('-start_date')
             ->allowedSorts(Tournament::getSorts())
             ->withCount('teams');
+
+        if (request()->boolean('organizer_tournaments')) {
+            $query->where('organizer_id', request()->user()->id);
+        }
 
         // Optionally eager-load matches for each tournament (for user scorecard views).
         if (request()->boolean('with_matches')) {

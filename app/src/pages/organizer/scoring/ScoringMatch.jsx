@@ -40,6 +40,18 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import matchCenterHeader from '@/assets/images/background/match-center-header.png';
 import teamMatchIcon from '@/assets/images/icons/team-match-icon.svg';
+import { useApiMatchSync } from '@/hooks/useApiMatchSync';
+import {
+  blankBatsman,
+  blankBowler,
+  INITIAL_PARTNERSHIP,
+  useInningsState,
+} from '@/hooks/useInningsState';
+import {
+  apiMatchToUiMatchConfig,
+  uiBallToStoreBallPayload,
+} from '@/lib/utils/scoringMappers';
+import { computeLiveScore } from '@/lib/utils/scoringUtils';
 import {
   useDeleteBallMutation,
   useGetMatchQuery,
@@ -69,18 +81,6 @@ import {
   ScoringTab,
   StatsTab,
 } from './scoring-tabs';
-import {
-  blankBatsman,
-  blankBowler,
-  INITIAL_PARTNERSHIP,
-  useInningsState,
-} from './scoring-tabs/useInningsState';
-import {
-  apiMatchToUiMatchConfig,
-  uiBallToStoreBallPayload,
-} from './scoringMappers';
-import { computeLiveScore } from './scoringUtils';
-import { useApiMatchSync } from './useApiMatchSync';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -527,6 +527,12 @@ export default function ScoringMatch() {
       innings1LiveScore: liveScore1,
       innings2BatsmenOnCrease: innings2.batsmenOnCrease,
       innings2BowlersInTable: innings2.bowlersInTable,
+
+      // Partnership tab (non-scoring routes): same data as ScoringTab’s active innings
+      partnershipTabLiveScore: activeLiveScore,
+      partnershipTabBatsmenOnCrease: activeInnings.batsmenOnCrease,
+      partnershipTabCompletedPartnerships: activeInnings.completedPartnerships,
+      partnershipTabPartnership: activeInnings.currentPartnership,
     }),
     [
       matchId,
@@ -548,32 +554,51 @@ export default function ScoringMatch() {
       innings2.completedPartnerships,
       liveScore1,
       liveScore2,
+      currentInnings,
+      activeLiveScore,
+      activeInnings.batsmenOnCrease,
+      activeInnings.completedPartnerships,
+      activeInnings.currentPartnership,
     ],
   );
 
   // Props specifically for ScoringTab — derived from the ACTIVE innings
-  const scoringProps = useMemo(
-    () => ({
+  const scoringProps = useMemo(() => {
+    const battingTeamId = isInnings2
+      ? (scorecard?.innings?.[1]?.batting_team_id ??
+        match?.teamB?.id ??
+        awayTeamId)
+      : (scorecard?.innings?.[0]?.batting_team_id ??
+        match?.teamA?.id ??
+        homeTeamId);
+    const bowlingTeamId = isInnings2
+      ? (scorecard?.innings?.[1]?.bowling_team_id ??
+        match?.teamA?.id ??
+        homeTeamId)
+      : (scorecard?.innings?.[0]?.bowling_team_id ??
+        match?.teamB?.id ??
+        awayTeamId);
+    const hid = homeTeamId != null ? Number(homeTeamId) : NaN;
+    const battingPlayingElevenIds =
+      Number(battingTeamId) === hid
+        ? (playingElevenHome?.player_ids ?? [])
+        : (playingElevenAway?.player_ids ?? []);
+    const bowlingPlayingElevenIds =
+      Number(bowlingTeamId) === hid
+        ? (playingElevenHome?.player_ids ?? [])
+        : (playingElevenAway?.player_ids ?? []);
+
+    return {
       // Innings identity
       inningsNumber: currentInnings,
       battingTeamName: isInnings2
         ? match?.teamB?.name || ''
         : match?.teamA?.name || '',
       // FIX (BUG-10): use scorecard batting_team_id as source of truth, not match.teamA/B
-      battingTeamId: isInnings2
-        ? (scorecard?.innings?.[1]?.batting_team_id ??
-          match?.teamB?.id ??
-          awayTeamId)
-        : (scorecard?.innings?.[0]?.batting_team_id ??
-          match?.teamA?.id ??
-          homeTeamId),
-      bowlingTeamId: isInnings2
-        ? (scorecard?.innings?.[1]?.bowling_team_id ??
-          match?.teamA?.id ??
-          homeTeamId)
-        : (scorecard?.innings?.[0]?.bowling_team_id ??
-          match?.teamB?.id ??
-          awayTeamId),
+      battingTeamId,
+      bowlingTeamId,
+      battingPlayingElevenIds,
+      bowlingPlayingElevenIds,
 
       // Active innings state (flat — ScoringTab needs no innings2* props)
       ballHistory: activeInnings.ballHistory,
@@ -619,26 +644,27 @@ export default function ScoringMatch() {
           ? syncUndoToApi2
           : syncUndoToApi1
         : undefined,
-    }),
-    [
-      currentInnings,
-      isInnings2,
-      match,
-      scorecard,
-      homeTeamId,
-      awayTeamId,
-      activeInnings,
-      activeLiveScore,
-      liveScore1,
-      handleInnings1Complete,
-      handleMatchComplete,
-      fromApi,
-      syncBallToApi1,
-      syncUndoToApi1,
-      syncBallToApi2,
-      syncUndoToApi2,
-    ],
-  );
+    };
+  }, [
+    currentInnings,
+    isInnings2,
+    match,
+    scorecard,
+    homeTeamId,
+    awayTeamId,
+    playingElevenHome?.player_ids,
+    playingElevenAway?.player_ids,
+    activeInnings,
+    activeLiveScore,
+    liveScore1,
+    handleInnings1Complete,
+    handleMatchComplete,
+    fromApi,
+    syncBallToApi1,
+    syncUndoToApi1,
+    syncBallToApi2,
+    syncUndoToApi2,
+  ]);
 
   // Combined props for the active view.
   // Only merge scoringProps when on Scoring tab (it overrides ballHistory with active innings).
@@ -847,7 +873,7 @@ function MatchResultBanner({ match, liveScore1, liveScore2 }) {
     : `${target - 1 - runs2} run${target - 1 - runs2 !== 1 ? 's' : ''}`;
 
   return (
-    <div className="mb-6 rounded-[17px] border border-[#DA9811] bg-[#141412] p-6 text-center">
+    <div className="mb-6 rounded-[17px] bg-[#141412] p-8 text-center">
       <p className="text-[12px] font-bold tracking-wide text-[#DA9811] uppercase">
         Match Complete
       </p>

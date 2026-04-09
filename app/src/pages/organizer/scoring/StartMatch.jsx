@@ -11,6 +11,11 @@ import TeamSelectDialog from '@/components/dialogs/scoring/TeamSelectDialog';
 import TossDialog from '@/components/dialogs/scoring/TossDialog';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import {
+  getMatchOversOptions,
+  getPlayersPerSideOptions,
+} from '@/lib/utils/scoringMappers';
+import { formatDateForApi, formatTimeForApi } from '@/lib/utils/scoringUtils';
 import { startMatchSchema } from '@/lib/validations/startMatch';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
 import { useUpdateTossMutation } from '@/store/api/matchApi';
@@ -26,12 +31,6 @@ import { FormField, formFieldLabelCheckoutClass } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import { Label } from '@/ui/Label';
 import { TimePicker } from '@/ui/TimePicker';
-
-import {
-  getMatchOversOptions,
-  getPlayersPerSideOptions,
-} from './scoringMappers';
-import { formatDateForApi, formatTimeForApi } from './scoringUtils';
 
 const oversInputBase =
   'flex h-12 w-full items-center rounded-[6px] bg-[#141412] px-4 py-3 text-left text-white focus:outline-none focus:ring-2 focus:ring-[#DA9811]/50 cursor-pointer';
@@ -62,7 +61,10 @@ export default function StartMatch() {
   const tournamentPreSelected = !!tournamentIdFromUrl;
 
   const { data: enums = {} } = useGetEnumsQuery();
-  const { data: tournamentsData } = useGetTournamentsQuery({ all: true });
+  const { data: tournamentsData } = useGetTournamentsQuery({
+    all: true,
+    organizer_tournaments: true,
+  });
   const tournaments = tournamentsData?.data ?? [];
 
   const toast = useToast();
@@ -414,6 +416,7 @@ export default function StartMatch() {
                     value={field.value}
                     onChange={field.onChange}
                     placeholder="Select Date"
+                    allowFuture
                   />
                 )}
               />
@@ -513,7 +516,7 @@ export default function StartMatch() {
               type="button"
               variant="fixture"
               onClick={handleSubmit(onSaveFixture)}
-              className="flex-1 cursor-pointer lg:flex-none lg:w-[150px] lg:whitespace-nowrap"
+              className="flex-1 cursor-pointer lg:w-[150px] lg:flex-none lg:whitespace-nowrap"
               disabled={isCreatingMatch}
             >
               {isCreatingMatch ? 'Saving…' : 'Save Fixture'}
@@ -522,7 +525,7 @@ export default function StartMatch() {
               type="button"
               variant="orange"
               onClick={handleSubmit(onOpenToss)}
-              className="flex-1 cursor-pointer lg:flex-none lg:w-[150px] lg:whitespace-nowrap"
+              className="flex-1 cursor-pointer lg:w-[150px] lg:flex-none lg:whitespace-nowrap"
               disabled={isCreatingMatch || isUpdatingToss}
             >
               {isCreatingMatch || isUpdatingToss ? 'Starting…' : 'Start Match'}

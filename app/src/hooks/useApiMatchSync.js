@@ -16,16 +16,18 @@
 import { useEffect, useState } from 'react';
 
 import {
-  blankBatsman,
-  blankBowler,
-  INITIAL_PARTNERSHIP,
-} from './scoring-tabs/useInningsState';
-import {
+  apiPartnershipsToUiState,
   buildPlayerIdToName,
   getTossWinnerTeamId,
   scorecardInningsToBallHistory,
-} from './scoringMappers';
-import { replayBallHistory } from './scoringReplay';
+} from '@/lib/utils/scoringMappers';
+import { replayBallHistory } from '@/lib/utils/scoringReplay';
+
+import {
+  blankBatsman,
+  blankBowler,
+  INITIAL_PARTNERSHIP,
+} from './useInningsState';
 
 // ─── Helpers (used only by this hook) ────────────────────────────────────────
 
@@ -56,8 +58,7 @@ function getBattingBowlingTeamIds(apiMatch, scorecard) {
   const tw = tossWinnerId != null ? Number(tossWinnerId) : null;
   const hid = homeId != null ? Number(homeId) : null;
   const aid = awayId != null ? Number(awayId) : null;
-  const battingTeamId =
-    tw != null && choseBat ? tw : tw === hid ? aid : hid;
+  const battingTeamId = tw != null && choseBat ? tw : tw === hid ? aid : hid;
   const bowlingTeamId = battingTeamId === hid ? aid : hid;
   return { battingTeamId, bowlingTeamId };
 }
@@ -178,14 +179,24 @@ export function useApiMatchSync({
       });
     } else {
       const r1 = replayBallHistory(history1, bat1Players, bowl1Players);
+      const apiP1 = scorecardInnings1.partnerships ?? [];
+      const hasApiP1 = apiP1.length > 0;
+      const parsed1 = hasApiP1
+        ? apiPartnershipsToUiState(apiP1, nameMap1)
+        : { completed: [], current: null };
+      const currentP1 = hasApiP1
+        ? (parsed1.current ?? INITIAL_PARTNERSHIP)
+        : (r1.currentPartnership ?? INITIAL_PARTNERSHIP);
       innings1.reset({
         ballHistory: history1,
         batsmenOnCrease: r1.batsmenOnCrease ?? [],
         bowlersInTable: r1.bowlersInTable ?? [],
         strikerIndex: r1.strikerIndex ?? 0,
         currentBowlerIndex: r1.currentBowlerIndex ?? 0,
-        completedPartnerships: r1.completedPartnerships ?? [],
-        currentPartnership: INITIAL_PARTNERSHIP,
+        completedPartnerships: hasApiP1
+          ? parsed1.completed
+          : (r1.completedPartnerships ?? []),
+        currentPartnership: currentP1,
       });
     }
 
@@ -238,14 +249,24 @@ export function useApiMatchSync({
         });
       } else {
         const r2 = replayBallHistory(history2, bat2Players, bowl2Players);
+        const apiP2 = scorecardInnings2.partnerships ?? [];
+        const hasApiP2 = apiP2.length > 0;
+        const parsed2 = hasApiP2
+          ? apiPartnershipsToUiState(apiP2, nameMap2)
+          : { completed: [], current: null };
+        const currentP2 = hasApiP2
+          ? (parsed2.current ?? INITIAL_PARTNERSHIP)
+          : (r2.currentPartnership ?? INITIAL_PARTNERSHIP);
         innings2.reset({
           ballHistory: history2,
           batsmenOnCrease: r2.batsmenOnCrease ?? [],
           bowlersInTable: r2.bowlersInTable ?? [],
           strikerIndex: r2.strikerIndex ?? 0,
           currentBowlerIndex: r2.currentBowlerIndex ?? 0,
-          completedPartnerships: r2.completedPartnerships ?? [],
-          currentPartnership: INITIAL_PARTNERSHIP,
+          completedPartnerships: hasApiP2
+            ? parsed2.completed
+            : (r2.completedPartnerships ?? []),
+          currentPartnership: currentP2,
         });
       }
 

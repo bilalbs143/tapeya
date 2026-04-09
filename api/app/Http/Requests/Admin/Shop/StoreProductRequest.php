@@ -5,6 +5,7 @@ namespace App\Http\Requests\Admin\Shop;
 use App\Enums\Shop\ProductDiscountTypeEnum;
 use App\Models\Shop\Product;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class StoreProductRequest extends FormRequest
@@ -47,7 +48,7 @@ class StoreProductRequest extends FormRequest
     public function validated($key = null, $default = null): array
     {
         $data = parent::validated($key, $default);
-        $data['slug'] = $this->uniqueSlug(\Illuminate\Support\Str::slug($data['slug']));
+        $data['slug'] = $this->uniqueSlug(Str::slug($data['slug']));
         $data['sku'] = Product::generateIntelligentSku((int) $data['brand_id'], (int) $data['category_id']);
         if (array_key_exists('images', $data)) {
             unset($data['images']);

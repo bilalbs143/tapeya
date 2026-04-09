@@ -9,7 +9,8 @@ import { MessageService } from './message.service';
 
 export interface HeroSlider {
   id: number;
-  image: string | null;
+  image_mobile: string | null;
+  image_desktop: string | null;
   status: string;
   status_enum: string;
   created_at?: string;

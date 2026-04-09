@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
+
 import { useNavigate } from 'react-router-dom';
 
+import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useSubmitSupportMessageMutation } from '@/store/api/supportApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
-import { useToast } from '@/hooks/useToast';
 import { Button } from '@/ui/Button';
 
 export default function Support() {
@@ -37,9 +38,7 @@ export default function Support() {
   }, [me]);
 
   const isValid = useMemo(() => {
-    return (
-      values.name.trim().length >= 2 && values.message.trim().length >= 10
-    );
+    return values.name.trim().length >= 2 && values.message.trim().length >= 10;
   }, [values.message, values.name]);
 
   const onChange = (key) => (e) => {
@@ -121,7 +120,7 @@ export default function Support() {
         </h1>
       </header>
 
-      <div className="mx-auto w-full max-w-2xl px-4 pb-8 pt-6">
+      <div className="mx-auto w-full max-w-2xl px-4 pt-6 pb-8">
         <div>
           <p className="mb-4 text-[13px] leading-snug text-[#A2A6AB] md:text-[14px]">
             Have a question or need help? Send us your details and message and
@@ -141,7 +140,7 @@ export default function Support() {
                   id="support-name"
                   value={values.name}
                   onChange={onChange('name')}
-                  className={`h-12 w-full rounded-[6px] bg-[#141412] px-4 py-3 text-white transition-colors placeholder:text-base placeholder:text-[#A2A6AB78] focus:outline-none focus:ring-2 ${
+                  className={`h-12 w-full rounded-[6px] bg-[#141412] px-4 py-3 text-white transition-colors placeholder:text-base placeholder:text-[#A2A6AB78] focus:ring-2 focus:outline-none ${
                     errors.name
                       ? 'focus:ring-red-500/50'
                       : 'focus:ring-[#FF9700]/50'
@@ -168,7 +167,7 @@ export default function Support() {
                 id="support-phone"
                 value={values.phone}
                 onChange={onChange('phone')}
-                className={`h-12 w-full rounded-[6px] bg-[#141412] px-4 py-3 text-white transition-colors placeholder:text-base placeholder:text-[#A2A6AB78] focus:outline-none focus:ring-2 ${
+                className={`h-12 w-full rounded-[6px] bg-[#141412] px-4 py-3 text-white transition-colors placeholder:text-base placeholder:text-[#A2A6AB78] focus:ring-2 focus:outline-none ${
                   errors.phone
                     ? 'focus:ring-red-500/50'
                     : 'focus:ring-[#FF9700]/50'
@@ -196,7 +195,7 @@ export default function Support() {
                 value={values.message}
                 onChange={onChange('message')}
                 rows={6}
-                className={`w-full resize-y rounded-[6px] bg-[#141412] px-4 py-3 text-white transition-colors placeholder:text-base placeholder:text-[#A2A6AB78] focus:outline-none focus:ring-2 ${
+                className={`w-full resize-y rounded-[6px] bg-[#141412] px-4 py-3 text-white transition-colors placeholder:text-base placeholder:text-[#A2A6AB78] focus:ring-2 focus:outline-none ${
                   errors.message
                     ? 'focus:ring-red-500/50'
                     : 'focus:ring-[#FF9700]/50'

@@ -9,6 +9,7 @@ export function AddBowlerDialog({
   canAddMoreBowlers,
   bowlersInTable,
   isApiMatch,
+  hideSquadSetup = false,
   savingBowlerSquad,
   requiredBowling,
   currentBowlerSquad,
@@ -36,7 +37,10 @@ export function AddBowlerDialog({
           const inTable = bowlersInTable.some(
             (bt) => String(bt.id) === String(b.id),
           );
-          const canAdd = b.role === 'playing' && canAddMoreBowlers && !inTable;
+          const canAdd =
+            (hideSquadSetup || b.role === 'playing') &&
+            canAddMoreBowlers &&
+            !inTable;
           const canSelect = inTable || canAdd;
           return (
             <div
@@ -60,35 +64,37 @@ export function AddBowlerDialog({
                 <span className="text-[14px] font-bold text-white">
                   {b.name}
                 </span>
-                <div
-                  className="flex shrink-0 gap-1"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={b.role === 'playing' ? 'orange' : 'black'}
-                    onClick={() => onSetBowlerRole(b.id, 'playing')}
-                    className="text-[12px] font-bold uppercase"
+                {hideSquadSetup ? null : (
+                  <div
+                    className="flex shrink-0 gap-1"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    Playing
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={b.role === 'bench' ? 'orange' : 'black'}
-                    onClick={() => onSetBowlerRole(b.id, 'bench')}
-                    className="text-[12px] font-bold uppercase"
-                  >
-                    Bench
-                  </Button>
-                </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={b.role === 'playing' ? 'orange' : 'black'}
+                      onClick={() => onSetBowlerRole(b.id, 'playing')}
+                      className="text-[12px] font-bold uppercase"
+                    >
+                      Playing
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={b.role === 'bench' ? 'orange' : 'black'}
+                      onClick={() => onSetBowlerRole(b.id, 'bench')}
+                      className="text-[12px] font-bold uppercase"
+                    >
+                      Bench
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           );
         })}
       </DialogScrollBody>
-      {isApiMatch && (
+      {isApiMatch && !hideSquadSetup && (
         <div className="shrink-0 px-5 pt-2 pb-5">
           <Button
             type="button"

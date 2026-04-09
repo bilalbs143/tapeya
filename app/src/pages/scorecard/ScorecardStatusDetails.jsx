@@ -406,8 +406,7 @@ export default function ScorecardStatusDetails() {
   const navigate = useNavigate();
   const { tournamentId, matchId } = useParams();
 
-  const matchIdNum =
-    matchId != null && matchId !== '' ? Number(matchId) : NaN;
+  const matchIdNum = matchId != null && matchId !== '' ? Number(matchId) : NaN;
   const matchIdOk = Number.isInteger(matchIdNum) && matchIdNum > 0;
   const tournamentOk = isValidTournamentId(tournamentId);
 

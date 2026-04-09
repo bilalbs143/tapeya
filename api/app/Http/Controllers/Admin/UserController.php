@@ -7,6 +7,7 @@ use App\Enums\User\UserTypeEnum;
 use App\Http\Requests\Admin\User\StoreUserRequest;
 use App\Http\Requests\Admin\User\UpdateUserRequest;
 use App\Http\Resources\Admin\User\UserResource;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 
@@ -37,7 +38,7 @@ class UserController extends BaseAdminController
         $record = $this->model->create($data);
         if (is_array($roleIds) && count($roleIds) > 0) {
             $record->roles()->sync(
-                \App\Models\Role::whereIn('id', $roleIds)->where('guard', 'app')->pluck('id')->toArray()
+                Role::whereIn('id', $roleIds)->where('guard', 'app')->pluck('id')->toArray()
             );
         }
         $record = $this->refresh($record);
@@ -57,7 +58,7 @@ class UserController extends BaseAdminController
         return $this->_patch($request, $user, null, function ($record) use ($roleIds): void {
             if (is_array($roleIds)) {
                 $record->roles()->sync(
-                    \App\Models\Role::whereIn('id', $roleIds)->where('guard', 'app')->pluck('id')->toArray()
+                    Role::whereIn('id', $roleIds)->where('guard', 'app')->pluck('id')->toArray()
                 );
             }
         }, function (array &$data): void {

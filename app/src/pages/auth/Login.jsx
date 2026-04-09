@@ -291,7 +291,7 @@ function PhoneForm({
         </button>
       )}
 
-      <FormField label="Phone" htmlFor="phone">
+      <FormField label="Phone (+923001234567)" htmlFor="phone" required>
         <Controller
           name="phone"
           control={control}

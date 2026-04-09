@@ -14,7 +14,8 @@ class HeroSliderResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'image' => $this->image,
+            'image_mobile' => $this->image_mobile,
+            'image_desktop' => $this->image_desktop,
         ];
     }
 }

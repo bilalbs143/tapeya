@@ -79,10 +79,10 @@ export function SponsorProfileTabs({ teams, partnerships, reach }) {
   const metrics =
     teams != null || partnerships != null || reach != null
       ? [
-        { value: String(teams ?? '—'), label: 'TEAMS' },
-        { value: String(partnerships ?? '—'), label: 'PARTNERSHIPS' },
-        { value: String(reach ?? '—'), label: 'REACH' },
-      ]
+          { value: String(teams ?? '—'), label: 'TEAMS' },
+          { value: String(partnerships ?? '—'), label: 'PARTNERSHIPS' },
+          { value: String(reach ?? '—'), label: 'REACH' },
+        ]
       : SPONSOR_METRICS;
 
   return (

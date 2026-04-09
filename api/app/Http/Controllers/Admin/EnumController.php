@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\Common\StatusEnum;
 use App\Enums\Event\CricketFormatEnum;
+use App\Enums\Event\MatchStatusEnum;
 use App\Enums\Event\MatchTimingEnum;
 use App\Enums\Event\ShotPositionEnum;
 use App\Enums\Notification\AdminNotificationTypeEnum;
@@ -42,6 +43,7 @@ class EnumController extends Controller
             'group_mode' => $this->toOptions(GroupModeEnum::cases()),
             'cricket_format' => $this->toOptions(CricketFormatEnum::cases()),
             'match_timings' => $this->toOptions(MatchTimingEnum::cases()),
+            'match_status' => $this->toOptions(MatchStatusEnum::cases()),
             'tournament_request_status' => $this->toOptions(TournamentRequestStatusEnum::cases()),
             'shot_position' => $this->toOptions(ShotPositionEnum::cases()),
             'notification_type' => $this->toOptions(AdminNotificationTypeEnum::cases()),

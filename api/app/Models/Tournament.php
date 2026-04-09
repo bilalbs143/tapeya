@@ -61,7 +61,6 @@ class Tournament extends BaseModel
             AllowedFilter::exact('id'),
             'status',
             'tournament_type',
-            AllowedFilter::exact('organizer_id'),
             'country',
             'city',
         ];

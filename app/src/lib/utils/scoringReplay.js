@@ -8,7 +8,7 @@
  * @param {Array} ballHistory - UI shape balls (type, runs, strikerId, bowlerId, striker, etc.)
  * @param {Array} battingPlayers - [{ id, name }] playing eleven batting side
  * @param {Array} bowlingPlayers - [{ id, name }] playing eleven bowling side
- * @returns {{ batsmenOnCrease, bowlersInTable, strikerIndex, currentBowlerIndex, completedPartnerships }}
+ * @returns {{ batsmenOnCrease, bowlersInTable, strikerIndex, currentBowlerIndex, completedPartnerships, currentPartnership }}
  */
 export function replayBallHistory(
   ballHistory,
@@ -217,5 +217,6 @@ export function replayBallHistory(
     strikerIndex: strikerIdx,
     currentBowlerIndex: currentBowlerIdx >= 0 ? currentBowlerIdx : 0,
     completedPartnerships,
+    currentPartnership: { runs: partnershipRuns, balls: partnershipBalls },
   };
 }

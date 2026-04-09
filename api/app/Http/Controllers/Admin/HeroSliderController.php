@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\HeroSlider\UpdateHeroSliderRequest;
 use App\Http\Resources\Admin\HeroSlider\HeroSliderResource;
 use App\Models\HeroSlider;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 
 class HeroSliderController extends BaseAdminController
 {
@@ -26,7 +27,8 @@ class HeroSliderController extends BaseAdminController
         $data = [
             'status' => StatusEnum::from($request->validated('status')),
         ];
-        $this->storeImage($request, 'image', 'hero-sliders', $data);
+        $this->storeImage($request, 'image_mobile', 'hero-sliders', $data);
+        $this->storeImage($request, 'image_desktop', 'hero-sliders', $data);
         $record = $this->model->create($data);
         $record = $this->refresh($record);
 
@@ -43,7 +45,8 @@ class HeroSliderController extends BaseAdminController
         $data = [
             'status' => StatusEnum::from($request->validated('status')),
         ];
-        $this->storeImage($request, 'image', 'hero-sliders', $data, $hero_slider);
+        $this->storeImage($request, 'image_mobile', 'hero-sliders', $data, $hero_slider);
+        $this->storeImage($request, 'image_desktop', 'hero-sliders', $data, $hero_slider);
         $hero_slider = $this->refresh($hero_slider);
         $hero_slider->update($data);
         $hero_slider = $this->refresh($hero_slider);
@@ -53,6 +56,16 @@ class HeroSliderController extends BaseAdminController
 
     public function destroy(HeroSlider $hero_slider): JsonResponse
     {
-        return $this->_destroy($hero_slider, null);
+        $hero_slider = $this->refresh($hero_slider);
+        $disk = Storage::disk(config('filesystems.media_disk'));
+        foreach (['image_mobile', 'image_desktop'] as $field) {
+            $path = $hero_slider->getRawOriginal($field);
+            if ($path) {
+                $disk->delete($path);
+            }
+        }
+        $hero_slider->delete();
+
+        return $this->noContent();
     }
 }

@@ -1,7 +1,11 @@
 <?php
 
+use App\Providers\AppServiceProvider;
+use App\Providers\EventServiceProvider;
+use App\Providers\MacroServiceProvider;
+
 return [
-    App\Providers\AppServiceProvider::class,
-    App\Providers\EventServiceProvider::class,
-    App\Providers\MacroServiceProvider::class,
+    AppServiceProvider::class,
+    EventServiceProvider::class,
+    MacroServiceProvider::class,
 ];

@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin\Shop;
 
 use App\Models\Shop\Category;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 class StoreCategoryRequest extends FormRequest
 {
@@ -33,7 +34,7 @@ class StoreCategoryRequest extends FormRequest
     public function validated($key = null, $default = null): array
     {
         $data = parent::validated($key, $default);
-        $data['slug'] = $this->uniqueSlug(\Illuminate\Support\Str::slug($data['slug']));
+        $data['slug'] = $this->uniqueSlug(Str::slug($data['slug']));
         unset($data['image']); // controller sets from file
         if (! isset($data['is_active'])) {
             $data['is_active'] = true;

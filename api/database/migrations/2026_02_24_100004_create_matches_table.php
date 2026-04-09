@@ -43,6 +43,8 @@ return new class extends Migration
                 ->nullOnDelete();
             $table->string('chose_to_bat_or_bowl', 10)->nullable();
             $table->boolean('is_no_result')->default(false);
+            $table->unsignedSmallInteger('win_by_runs')->nullable();
+            $table->unsignedTinyInteger('win_by_wickets')->nullable();
 
             $table->timestamps();
         });

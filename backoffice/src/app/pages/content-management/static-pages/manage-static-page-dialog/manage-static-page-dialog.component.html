@@ -1,0 +1,78 @@
+<app-dialog-wrapper [title]="title">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    aria-label="Static page form"
+  >
+    <mat-dialog-content>
+      <div class="grid grid-cols-12 gap-x-6 gap-y-4">
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Title <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              formControlName="title"
+              placeholder="Page title"
+            />
+            @if (form.get('title')?.invalid && form.get('title')?.touched) {
+              <mat-error>Title is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Slug <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              formControlName="slug"
+              placeholder="Auto-generated from title (editable)"
+            />
+            @if (form.get('slug')?.invalid && form.get('slug')?.touched) {
+              <mat-error>Slug is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">Content (HTML)</mat-label>
+          <div class="NgxEditor__Wrapper">
+            <ngx-editor-menu
+              [editor]="editor"
+              [toolbar]="toolbar"
+            ></ngx-editor-menu>
+            <ngx-editor
+              [editor]="editor"
+              formControlName="content"
+              placeholder="Page body…"
+              class="border-t"
+            ></ngx-editor>
+          </div>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions>
+      <button
+        type="button"
+        mat-stroked-button
+        class="border border-error! text-error"
+        [mat-dialog-close]="false"
+      >
+        Cancel
+      </button>
+
+      <app-submit-button
+        [disabled]="form.invalid"
+        [isSubmitting]="isSubmitting"
+        text="Submit"
+        color="primary"
+      />
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

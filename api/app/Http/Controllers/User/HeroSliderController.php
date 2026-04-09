@@ -20,6 +20,7 @@ class HeroSliderController extends Controller
     {
         $sliders = HeroSlider::query()
             ->where('status', StatusEnum::ACTIVE)
+            ->whereNotNull('image_mobile')
             ->orderBy('id')
             ->get();
 

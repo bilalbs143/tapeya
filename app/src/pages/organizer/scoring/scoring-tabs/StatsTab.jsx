@@ -3,10 +3,10 @@ import { useMemo, useState } from 'react';
 import ReactApexChart from 'react-apexcharts';
 
 import stadiumBg from '@/assets/images/standard/stadium-bg.png';
+import { getShotPositionOptions } from '@/lib/utils/scoringMappers';
+import { getRunsFromBall } from '@/lib/utils/scoringUtils';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
 
-import { getShotPositionOptions } from '../scoringMappers';
-import { getRunsFromBall } from '../scoringUtils';
 import { ShotDirectionStats } from '../ShotAreaDialog';
 
 // ─── Constants ────────────────────────────────────────────────────────────────

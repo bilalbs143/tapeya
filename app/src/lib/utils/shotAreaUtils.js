@@ -3,6 +3,8 @@
  * Keys must match backend ShotPositionEnum values (shot_position API).
  */
 
+import { getRunsFromBall } from './scoringUtils';
+
 /** Geometry keyed by zone id (enum value). Order for UI comes from API; default order = Object.keys. */
 export const SHOT_ZONE_GEOMETRY = {
   deep_fine_leg: {
@@ -55,10 +57,12 @@ export const SHOT_DIRECTION_ZONES = Object.keys(SHOT_ZONE_GEOMETRY).map(
 );
 
 /**
- * From ball history, count how many run-scoring balls had each shot direction.
+ * From ball history, compute share of runs (off the bat, type `runs`) per shot direction.
+ * Percentages are by total runs in tagged zones, not ball count (e.g. 1 + 6 → 14% / 86%).
+ *
  * @param {Array} ballHistory
  * @param {Array} [zones] - Zone list (from API or SHOT_DIRECTION_ZONES); order defines percentages index.
- * Returns { total, percentages } where percentages[i] is the share (0–100) for zones[i].
+ * @returns {{ total: number, percentages: number[] }} total = sum of those runs; percentages[i] is 0–100 for zones[i].
  */
 export function getShotDirectionPercentages(
   ballHistory = [],
@@ -66,19 +70,21 @@ export function getShotDirectionPercentages(
 ) {
   const list =
     Array.isArray(zones) && zones.length > 0 ? zones : SHOT_DIRECTION_ZONES;
-  const counts = list.map(() => 0);
-  let total = 0;
+  const runTotals = list.map(() => 0);
+  let totalRuns = 0;
   for (const ball of ballHistory) {
     if (ball.type !== 'runs' || !ball.shotDirection) continue;
+    const runs = getRunsFromBall(ball);
+    if (runs <= 0) continue;
     const idx = list.findIndex((z) => (z.id ?? z.value) === ball.shotDirection);
     if (idx >= 0) {
-      counts[idx] += 1;
-      total += 1;
+      runTotals[idx] += runs;
+      totalRuns += runs;
     }
   }
   const percentages =
-    total > 0
-      ? counts.map((c) => Math.round((c / total) * 100))
-      : counts.map(() => 0);
-  return { total, percentages };
+    totalRuns > 0
+      ? runTotals.map((r) => Math.round((r / totalRuns) * 100))
+      : runTotals.map(() => 0);
+  return { total: totalRuns, percentages };
 }

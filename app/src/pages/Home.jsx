@@ -1,15 +1,16 @@
 import 'swiper/css';
 
-import { useGetBrandsQuery, useGetProductsQuery } from '@/store/api/shopApi';
-import { ListingProductCard } from '@/components/shop/ListingProductCard';
-import { ExploreCategories } from '@/components/ExploreCategories';
-import { HeroSlider } from '@/components/HeroSlider';
-import { Container } from '@/ui/Container';
+import { useMemo } from 'react';
 
 import { Link } from 'react-router-dom';
 import { Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { useMemo } from 'react';
+
+import { ExploreCategories } from '@/components/ExploreCategories';
+import { HeroSlider } from '@/components/HeroSlider';
+import { ListingProductCard } from '@/components/shop/ListingProductCard';
+import { useGetBrandsQuery, useGetProductsQuery } from '@/store/api/shopApi';
+import { Container } from '@/ui/Container';
 
 function ShopSlider({
   title,

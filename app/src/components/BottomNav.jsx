@@ -1,11 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
 
-import { BOTTOM_NAV_Z } from '@/lib/constants/layout';
-import logo from '@/assets/images/logos/tapya-t.svg';
-import shopIcon from '@/assets/images/icons/shop-navigation.svg';
-import scoreIcon from '@/assets/images/icons/score-bottom.svg';
 import profileIcon from '@/assets/images/icons/profile.svg';
+import scoreIcon from '@/assets/images/icons/score-bottom.svg';
+import shopIcon from '@/assets/images/icons/shop-navigation.svg';
 import upcomingIcon from '@/assets/images/icons/upcoming-bottom.svg';
+import logo from '@/assets/images/logos/tapya-t.svg';
+import { BOTTOM_NAV_Z } from '@/lib/constants/layout';
 
 function isTabActive(pathname, tabPath) {
   return pathname === tabPath || pathname.startsWith(tabPath + '/');
@@ -31,16 +31,8 @@ export function BottomNav() {
         className="flex flex-col items-center gap-1"
         aria-current={isActive ? 'page' : undefined}
       >
-        <img
-          src={icon}
-          alt=""
-          className="h-6 w-6 shrink-0 object-contain"
-        />
-        <span
-          className="text-[13px] font-medium text-[#A2A6AB]"
-        >
-          {label}
-        </span>
+        <img src={icon} alt="" className="h-6 w-6 shrink-0 object-contain" />
+        <span className="text-[13px] font-medium text-[#A2A6AB]">{label}</span>
       </Link>
     );
   };
@@ -65,15 +57,15 @@ export function BottomNav() {
         <Link
           to="/home"
           aria-current={isLogoActive ? 'page' : undefined}
-          className={`-translate-y-6 flex items-center justify-center transition-opacity active:opacity-80 ${
+          className={`flex -translate-y-6 items-center justify-center transition-opacity active:opacity-80 ${
             isLogoActive ? 'opacity-100' : 'opacity-90'
           }`}
         >
-          <div className="flex h-[60px] w-[60px] items-center justify-center rounded-full outline-[6px] outline-black outline-offset-0 bg-[#003C71]">
+          <div className="flex h-[60px] w-[60px] items-center justify-center rounded-full bg-[#003C71] outline-[6px] outline-offset-0 outline-black">
             <img
               src={logo}
               alt="Tapeya"
-              className="h-[25px] w-auto ml-1 object-contain"
+              className="ml-1 h-[25px] w-auto object-contain"
             />
           </div>
         </Link>

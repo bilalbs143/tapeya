@@ -10,6 +10,7 @@ export function AddBatsmanDialog({
   isPlayerBattingOrOut,
   getBatsmanDisplayStats,
   isApiMatch,
+  hideSquadSetup = false,
   savingBatsmanSquad,
   requiredBatting,
   currentSquad,
@@ -36,7 +37,9 @@ export function AddBatsmanDialog({
         {players.map((b) => {
           const hasBattingStats = isPlayerBattingOrOut(b.id);
           const canAdd =
-            !hasBattingStats && b.role === 'playing' && canAddMoreBatsmen;
+            !hasBattingStats &&
+            (hideSquadSetup || b.role === 'playing') &&
+            canAddMoreBatsmen;
           const stats = getBatsmanDisplayStats(b.id);
           return (
             <div
@@ -68,7 +71,7 @@ export function AddBatsmanDialog({
                     <span>6s: {stats.sixes}</span>
                     <span>SR: {stats.strikeRate}</span>
                   </div>
-                ) : (
+                ) : hideSquadSetup ? null : (
                   <div
                     className="flex shrink-0 gap-1"
                     onClick={(e) => e.stopPropagation()}
@@ -98,7 +101,7 @@ export function AddBatsmanDialog({
           );
         })}
       </DialogScrollBody>
-      {isApiMatch && (
+      {isApiMatch && !hideSquadSetup && (
         <div className="shrink-0 px-5 pt-2 pb-5">
           <Button
             type="button"

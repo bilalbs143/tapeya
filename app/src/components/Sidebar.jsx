@@ -1,18 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-import draftingIcon from '@/assets/images/icons/drafting-icon.svg';
-import goLiveIcon from '@/assets/images/icons/go-live.svg';
 import logoutIcon from '@/assets/images/icons/logout.svg';
 import myOrderIcon from '@/assets/images/icons/my-order.svg';
-import profilesIcon from '@/assets/images/icons/profiles.svg';
 import requestTournamentIcon from '@/assets/images/icons/request-tournament.svg';
 import starMatchIcon from '@/assets/images/icons/star-match.svg';
 import supportIcon from '@/assets/images/icons/support.svg';
 import topPlayersIcon from '@/assets/images/icons/top-players.svg';
-import topSponsorsIcon from '@/assets/images/icons/top-sponsers.svg';
-import tossIcon from '@/assets/images/icons/toss.svg';
 import defaultAvatar from '@/assets/images/standard/default-avatar.png';
 import { calculateProfileStrength } from '@/lib/profileStrength';
 import { addSavedProfile } from '@/lib/savedProfiles';
@@ -26,6 +21,7 @@ const MENU_ITEMS = [
     label: 'My Tournaments',
     icon: requestTournamentIcon,
     path: '/organizer/tournaments',
+    organizerOnly: true,
   },
   { label: 'My Orders', icon: myOrderIcon, path: '/shop/orders' },
   {
@@ -38,12 +34,12 @@ const MENU_ITEMS = [
     icon: starMatchIcon,
     path: '/organizer/scoring/start-match',
   },
-  /* { label: 'Drafting', icon: draftingIcon, path: '/drafting' }, */
-  /* { label: 'Go live', icon: goLiveIcon, comingSoon: true }, */
-  /* { label: 'Toss', icon: tossIcon, comingSoon: true }, */
+  /* { label: 'Drafting', path: '/drafting' }, */
+  /* { label: 'Go live', comingSoon: true }, */
+  /* { label: 'Toss', comingSoon: true }, */
   { label: 'Top Players', icon: topPlayersIcon, path: '/ranking' },
-  /* { label: 'Top Sponsors', icon: topSponsorsIcon, comingSoon: true }, */
-  /* { label: 'Profiles', icon: profilesIcon, comingSoon: true }, */
+  /* { label: 'Top Sponsors', comingSoon: true }, */
+  /* { label: 'Profiles', comingSoon: true }, */
   { label: 'Support', icon: supportIcon, path: '/support' },
   { label: 'Logout', icon: logoutIcon },
 ];
@@ -58,7 +54,8 @@ const panel = (open) =>
     open ? 'translate-x-0' : '-translate-x-full'
   }`;
 
-const menuBtn = 'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-white transition-colors hover:bg-[#DA9811]';
+const menuBtn =
+  'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-white transition-colors hover:bg-[#DA9811]';
 
 export function Sidebar({ open, onClose }) {
   const navigate = useNavigate();
@@ -72,7 +69,16 @@ export function Sidebar({ open, onClose }) {
   /** Same merge as Profile page / ProfileHeader — live /me data when available */
   const profileUser = meResponse?.data ?? user;
   const strength = profileUser ? calculateProfileStrength(profileUser) : 0;
-  const navItems = MENU_ITEMS.filter((item) => item.label !== 'Logout');
+  const hasOrganizerRole = useMemo(() => {
+    const roles = profileUser?.roles;
+    if (!roles || !Array.isArray(roles)) return false;
+    return roles.some((r) => r?.slug === 'organizer');
+  }, [profileUser]);
+  const navItems = MENU_ITEMS.filter((item) => {
+    if (item.label === 'Logout') return false;
+    if (item.organizerOnly && !hasOrganizerRole) return false;
+    return true;
+  });
   const [isDesktop, setIsDesktop] = useState(
     () => typeof window !== 'undefined' && window.innerWidth >= 1024,
   );
@@ -170,14 +176,6 @@ export function Sidebar({ open, onClose }) {
               </div>
             )}
 
-            <Link
-              to="/profile?role=sponsor"
-              onClick={onClose}
-              className="mb-4 mt-2 block max-w-fit rounded-[6px] border border-[#DA9811] px-3 py-1 text-center text-[12px] font-bold text-[#DA9811] transition-colors hover:border-[#e5b42a] hover:bg-[#1A1A1A] focus:ring-2 focus:ring-[#d8a11e]/50 focus:outline-none"
-            >
-              Become a Sponsor
-            </Link>
-
             <div className="h-px w-full bg-[linear-gradient(to_right,#00000000,#FFFFFF33,#00000000)]" />
 
             <nav className="flex flex-col gap-1 pt-4">
@@ -193,8 +191,8 @@ export function Sidebar({ open, onClose }) {
                       src={icon}
                       alt=""
                       className={`h-5 w-5 shrink-0 ${
-                        isActivePath(path) ? 'filter brightness-0' : ''
-                      } group-hover:filter group-hover:brightness-0`}
+                        isActivePath(path) ? 'brightness-0 filter' : ''
+                      } group-hover:brightness-0 group-hover:filter`}
                     />
                     <span
                       className={`text-[16px] font-medium ${
@@ -231,14 +229,14 @@ export function Sidebar({ open, onClose }) {
             <button
               type="button"
               onClick={handleLogout}
-              className="flex w-full items-center justify-center gap-2 bg-[#DA9811] py-4 cursor-pointer"
+              className="flex w-full cursor-pointer items-center justify-center gap-2 bg-[#DA9811] py-4"
             >
               <img
                 src={logoutIcon}
                 alt=""
-                className="h-8 w-8 shrink-0 filter brightness-0"
+                className="h-8 w-8 shrink-0 brightness-0 filter"
               />
-              <span className="text-[16px] font-bold leading-none text-[#080807]">
+              <span className="text-[16px] leading-none font-bold text-[#080807]">
                 Logout
               </span>
             </button>

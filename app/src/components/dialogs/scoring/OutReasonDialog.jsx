@@ -13,7 +13,7 @@ export function OutReasonDialog({
         aria-describedby={undefined}
       >
         <DialogTitle className="sr-only">Select dismissal reason</DialogTitle>
-        <div className="grid max-h-[min(70vh,calc(85vh-5rem))] min-w-0 w-full grid-cols-2 gap-2 overflow-y-auto overflow-x-hidden sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid max-h-[min(70vh,calc(85vh-5rem))] w-full min-w-0 grid-cols-2 gap-2 overflow-x-hidden overflow-y-auto sm:grid-cols-3 lg:grid-cols-4">
           {dismissalOptions.map((opt) => (
             <button
               key={opt.value}

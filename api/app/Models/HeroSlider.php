@@ -13,7 +13,8 @@ class HeroSlider extends Model
     use BaseModelTrait;
 
     protected $fillable = [
-        'image',
+        'image_mobile',
+        'image_desktop',
         'status',
     ];
 
@@ -23,7 +24,8 @@ class HeroSlider extends Model
     protected function casts(): array
     {
         return [
-            'image' => AsFile::class.':hero-sliders,false,media',
+            'image_mobile' => AsFile::class.':hero-sliders,false,media',
+            'image_desktop' => AsFile::class.':hero-sliders,false,media',
             'status' => StatusEnum::class,
         ];
     }

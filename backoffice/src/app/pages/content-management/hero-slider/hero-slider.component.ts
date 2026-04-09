@@ -63,7 +63,15 @@ export class HeroSliderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public statusOptions$ = this.enumsService.getOptions('status');
   public searchForm: FormGroup;
-  public readonly displayedColumns: string[] = ['sr', 'image', 'status', 'created_at', 'updated_at', 'actions'];
+  public readonly displayedColumns: string[] = [
+    'sr',
+    'image_mobile',
+    'image_desktop',
+    'status',
+    'created_at',
+    'updated_at',
+    'actions',
+  ];
   public dataSource = new MatTableDataSource<HeroSlider>([]);
   public readonly statusClass = getStatusClass;
   public readonly emptyCell = EMPTY_CELL;
@@ -143,7 +151,7 @@ export class HeroSliderComponent implements OnInit, AfterViewInit, OnDestroy {
       ManageHeroSliderDialogComponent,
       { mode: 'create' },
       (result) => result && this.loadHttpData(),
-      { widthSize: 'sm', disableClose: true }
+      { widthSize: 'md', disableClose: true }
     );
   }
 
@@ -152,7 +160,7 @@ export class HeroSliderComponent implements OnInit, AfterViewInit, OnDestroy {
       ManageHeroSliderDialogComponent,
       { mode: 'edit', heroSlider: item },
       (result) => result && this.loadHttpData(),
-      { widthSize: 'sm', disableClose: true }
+      { widthSize: 'md', disableClose: true }
     );
   }
 

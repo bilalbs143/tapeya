@@ -1,12 +1,13 @@
 import { useEffect, useRef } from 'react';
+
 import { useLocation } from 'react-router-dom';
 
 import { calculateProfileStrength } from '@/lib/profileStrength';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated, selectUser } from '@/store/selectors';
-import { store } from '@/store/store';
 import { openDialog } from '@/store/slices/commonSlice';
+import { store } from '@/store/store';
 
 const INTERVAL_MS = 2 * 60 * 1000;
 

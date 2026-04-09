@@ -10,7 +10,8 @@ return new class extends Migration
     {
         Schema::create('hero_sliders', function (Blueprint $table) {
             $table->id();
-            $table->string('image')->nullable();
+            $table->string('image_mobile')->nullable();
+            $table->string('image_desktop')->nullable();
             $table->string('status', 20)->default('active');
             $table->timestamps();
         });

@@ -22,6 +22,8 @@ use App\Utils\Services\OtpService;
  * Register: POST /register (name, phone, email?) → create user, send OTP → user must verify.
  * Login:    POST /request-otp (phone) → send OTP → POST /verify-otp (phone, code) → token.
  * Both flows complete with the same verify-otp step (activates account and returns token).
+ *
+ * When APP_DEBUG is true, OTP is not sent by SMS; the code is only included in the JSON response.
  */
 class UserAuthController extends Controller
 {

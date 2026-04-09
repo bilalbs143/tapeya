@@ -6,6 +6,7 @@ use App\Contracts\Notifications\SmsDriverInterface;
 use App\Services\Notifications\Drivers\ApiSmsDriver;
 use App\Services\Notifications\Drivers\LogSmsDriver;
 use App\Services\Notifications\Drivers\NullSmsDriver;
+use App\Services\Notifications\Drivers\VeevoTechSmsDriver;
 use Illuminate\Support\Facades\App;
 
 class SmsSender
@@ -40,6 +41,7 @@ class SmsSender
             'log' => App::make(LogSmsDriver::class),
             'null' => App::make(NullSmsDriver::class),
             'api' => App::make(ApiSmsDriver::class),
+            'veevotech' => App::make(VeevoTechSmsDriver::class),
             default => App::make(LogSmsDriver::class),
         };
     }

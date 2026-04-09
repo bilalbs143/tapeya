@@ -43,13 +43,14 @@ export class ManageHeroSliderDialogComponent {
   private readonly heroSliderService = inject(HeroSliderService);
   private readonly dialogRef = inject<MatDialogRef<ManageHeroSliderDialogComponent>>(MatDialogRef);
   private readonly fb = inject(FormBuilder);
-
   private readonly enumsService = inject(EnumsService);
 
   public form!: FormGroup;
   public isSubmitting = false;
-  public selectedFile: File | null = null;
-  public previewUrl: string | null = null;
+  public selectedFileMobile: File | null = null;
+  public previewUrlMobile: string | null = null;
+  public selectedFileDesktop: File | null = null;
+  public previewUrlDesktop: string | null = null;
 
   public readonly statusOptions$ = this.enumsService.getOptions('status');
 
@@ -61,8 +62,12 @@ export class ManageHeroSliderDialogComponent {
     return this.data.mode === 'edit';
   }
 
-  public get currentImageUrl(): string | null {
-    return this.data.heroSlider?.image ?? this.previewUrl;
+  public get mobilePreviewUrl(): string | null {
+    return this.previewUrlMobile ?? this.data.heroSlider?.image_mobile ?? null;
+  }
+
+  public get desktopPreviewUrl(): string | null {
+    return this.previewUrlDesktop ?? this.data.heroSlider?.image_desktop ?? null;
   }
 
   constructor() {
@@ -72,35 +77,54 @@ export class ManageHeroSliderDialogComponent {
   private initializeForm(): void {
     const slide = this.data.heroSlider;
     this.form = this.fb.group({
-      image: [null, this.data.mode === 'create' ? [Validators.required] : []],
+      image_mobile: [null, this.data.mode === 'create' ? [Validators.required] : []],
+      image_desktop: [null],
       status: [normalizeEnumValue(slide?.status_enum, 'active'), [Validators.required]],
     });
-    if (slide?.image) {
-      this.previewUrl = slide.image;
-    }
   }
 
-  public onFileSelected(event: Event): void {
+  public onMobileFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (file) {
-      this.selectedFile = file;
-      this.previewUrl = null;
+      this.selectedFileMobile = file;
+      this.previewUrlMobile = null;
       const reader = new FileReader();
       reader.onload = () => {
-        this.previewUrl = reader.result as string;
+        this.previewUrlMobile = reader.result as string;
       };
       reader.readAsDataURL(file);
-      this.form.patchValue({ image: file });
-      this.form.get('image')?.updateValueAndValidity();
+      this.form.patchValue({ image_mobile: file });
+      this.form.get('image_mobile')?.updateValueAndValidity();
     }
   }
 
-  public clearFile(): void {
-    this.selectedFile = null;
-    this.previewUrl = this.data.heroSlider?.image ?? null;
-    this.form.patchValue({ image: null });
-    this.form.get('image')?.updateValueAndValidity();
+  public onDesktopFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) {
+      this.selectedFileDesktop = file;
+      this.previewUrlDesktop = null;
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.previewUrlDesktop = reader.result as string;
+      };
+      reader.readAsDataURL(file);
+      this.form.patchValue({ image_desktop: file });
+    }
+  }
+
+  public clearMobileFile(): void {
+    this.selectedFileMobile = null;
+    this.previewUrlMobile = null;
+    this.form.patchValue({ image_mobile: null });
+    this.form.get('image_mobile')?.updateValueAndValidity();
+  }
+
+  public clearDesktopFile(): void {
+    this.selectedFileDesktop = null;
+    this.previewUrlDesktop = null;
+    this.form.patchValue({ image_desktop: null });
   }
 
   public onSubmit(): void {
@@ -109,12 +133,19 @@ export class ManageHeroSliderDialogComponent {
       return;
     }
 
+    if (this.data.mode === 'create' && !this.selectedFileMobile) {
+      return;
+    }
+
     const formData = new FormData();
     formData.append('status', this.form.get('status')?.value ?? 'active');
-    if (this.selectedFile) {
-      formData.append('image', this.selectedFile);
+    if (this.selectedFileMobile) {
+      formData.append('image_mobile', this.selectedFileMobile);
     } else if (this.data.mode === 'create') {
       return;
+    }
+    if (this.selectedFileDesktop) {
+      formData.append('image_desktop', this.selectedFileDesktop);
     }
 
     this.isSubmitting = true;

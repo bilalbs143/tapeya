@@ -95,6 +95,8 @@ class MatchCompletionService
                 $match->update([
                     'status' => MatchStatusEnum::IN_PROGRESS,
                     'winning_team_id' => $match->toss_winner_team_id,
+                    'win_by_runs' => null,
+                    'win_by_wickets' => null,
                 ]);
             }
 
@@ -115,9 +117,22 @@ class MatchCompletionService
             $winnerId = null;
         }
 
+        $winByRuns = null;
+        $winByWickets = null;
+
+        if ($winnerId !== null) {
+            if ($winnerId === $batSecondId) {
+                $winByWickets = max(0, $maxWickets - $r2['wickets']);
+            } else {
+                $winByRuns = max(0, $r1['runs'] - $r2['runs']);
+            }
+        }
+
         $match->update([
             'status' => MatchStatusEnum::COMPLETED,
             'winning_team_id' => $winnerId,
+            'win_by_runs' => $winByRuns,
+            'win_by_wickets' => $winByWickets,
         ]);
     }
 

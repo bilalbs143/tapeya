@@ -3,8 +3,9 @@
 namespace App\Sorts;
 
 use Illuminate\Support\Str;
+use Spatie\QueryBuilder\Sorts\Sort;
 
-abstract class BaseSort implements \Spatie\QueryBuilder\Sorts\Sort
+abstract class BaseSort implements Sort
 {
     protected function getDirection(bool $descending): string
     {

@@ -7,7 +7,16 @@ import CustomScoreDialog from '@/components/dialogs/scoring/CustomScoreDialog';
 import ExtraRunsDialog from '@/components/dialogs/scoring/ExtraRunsDialog';
 import FielderPickerDialog from '@/components/dialogs/scoring/FielderPickerDialog';
 import OutReasonDialog from '@/components/dialogs/scoring/OutReasonDialog';
+import { blankBatsman, blankBowler } from '@/hooks/useInningsState';
+import { useScoringEngine } from '@/hooks/useScoringEngine';
 import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
+import {
+  dismissalRequiresFielder,
+  getDismissalOptions,
+  getExtraTypeOptions,
+  getShotPositionOptions,
+} from '@/lib/utils/scoringMappers';
+import { ballsToOvers, getRunsFromBall } from '@/lib/utils/scoringUtils';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
 import {
   useStoreMatchSquadMutation,
@@ -15,17 +24,8 @@ import {
 } from '@/store/api/matchApi';
 import { Button } from '@/ui/Button';
 
-import { MatchStatsRow } from '../MatchStatsRow';
-import {
-  dismissalRequiresFielder,
-  getDismissalOptions,
-  getExtraTypeOptions,
-  getShotPositionOptions,
-} from '../scoringMappers';
-import { ballsToOvers, getRunsFromBall } from '../scoringUtils';
+import { MatchStatsRow, SecondInningsChaseRow } from '../MatchStatsRow';
 import { ShotAreaDialog } from '../ShotAreaDialog';
-import { blankBatsman, blankBowler } from './useInningsState';
-import { useScoringEngine } from './useScoringEngine';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -37,6 +37,12 @@ const VALID_DELIVERIES_PER_OVER = 6;
  * MUST match the `>= 2` check in useScoringEngine so end-of-over rotation works.
  */
 const MAX_BOWLERS_IN_TABLE = 2;
+
+/** Placeholder row count when batting playing XI is empty — keeps table height / Add controls layout stable */
+const EMPTY_SQUAD_PLACEHOLDER_ROWS = 2;
+
+/** Bowler column shows only the active bowler; one placeholder row when no bowler / no squad */
+const BOWLER_TABLE_PLACEHOLDER_ROWS = 1;
 
 const RUN_BUTTON_BG = [
   '#10100F',
@@ -158,6 +164,10 @@ export function ScoringTab({
   battingTeamName,
   battingTeamId,
   bowlingTeamId,
+  /** GET /matches/:id/teams/:teamId/playing-eleven → player_ids for batting side (active innings) */
+  battingPlayingElevenIds = [],
+  /** Same for bowling side */
+  bowlingPlayingElevenIds = [],
 
   ballHistory = [],
   setBallHistory,
@@ -231,6 +241,39 @@ export function ScoringTab({
     (inningsNumber === '2'
       ? match?.teamB?.name || 'Team B'
       : match?.teamA?.name || 'Team A');
+
+  /** Chase metrics for 2nd innings (below {@link MatchStatsRow}). */
+  const secondInningsChase = useMemo(() => {
+    if (inningsNumber !== '2' || targetScore == null || liveScore == null) {
+      return null;
+    }
+    const maxOversNum =
+      liveScore.maxOvers ??
+      (match?.overs != null && match.overs !== ''
+        ? Number(match.overs)
+        : undefined);
+    if (maxOversNum == null || Number.isNaN(maxOversNum)) return null;
+    const maxBalls = Math.floor(maxOversNum * 6);
+    const valid = liveScore.validDeliveries ?? 0;
+    const ballsLeft = Math.max(0, maxBalls - valid);
+    const totalRuns = liveScore.totalRuns ?? 0;
+    const runsToWin = Math.max(0, targetScore - totalRuns);
+    const oversRemaining = ballsLeft / 6;
+    let requiredRunRate = '0.0';
+    if (runsToWin <= 0) {
+      requiredRunRate = '0.0';
+    } else if (ballsLeft <= 0 || oversRemaining <= 0) {
+      requiredRunRate = '—';
+    } else {
+      requiredRunRate = (runsToWin / oversRemaining).toFixed(1);
+    }
+    return {
+      target: targetScore,
+      requiredRunRate,
+      ballsLeft,
+      runsToWin,
+    };
+  }, [inningsNumber, targetScore, liveScore, match?.overs]);
 
   // ── Over strip ─────────────────────────────────────────────────────────────
   //
@@ -329,11 +372,17 @@ export function ScoringTab({
     match?.overs,
   ]);
 
+  useEffect(() => {
+    if (matchComplete) setAddBowlerOpen(false);
+  }, [matchComplete]);
+
   // ── Capacity flags ─────────────────────────────────────────────────────────
 
   const canAddMoreBatsmen = batsmenOnCrease.length < 2;
   // FIX (BUG-16): was `< 1` — prevented second bowler, broke end-of-over rotation
   const canAddMoreBowlers = bowlersInTable.length < MAX_BOWLERS_IN_TABLE;
+  /** Full-screen “Add Bowler” CTA only when no bowler is selected; with 1 bowler, add the second via a squad row tap */
+  const showAddBowlerOverlay = bowlersInTable.length === 0 && !matchComplete;
 
   // ── Squad helpers ──────────────────────────────────────────────────────────
 
@@ -373,9 +422,6 @@ export function ScoringTab({
     return null;
   };
 
-  const getBowlerDisplayStats = (playerId) =>
-    bowlersInTable.find((b) => String(b.id) === String(playerId)) ?? null;
-
   const battingOrder = useMemo(
     () => battingSquad.filter((p) => p.role === 'playing'),
     [battingSquad],
@@ -384,6 +430,60 @@ export function ScoringTab({
     () => bowlingSquad.filter((p) => p.role === 'playing'),
     [bowlingSquad],
   );
+
+  const expectedXiSize = useMemo(() => {
+    const n = match?.playersPerSide;
+    return n != null && Number.isFinite(Number(n)) ? Number(n) : 11;
+  }, [match?.playersPerSide]);
+
+  const battingXiSavedOnApi = useMemo(() => {
+    const ids = battingPlayingElevenIds ?? [];
+    return Array.isArray(ids) && ids.length >= expectedXiSize;
+  }, [battingPlayingElevenIds, expectedXiSize]);
+
+  const bowlingXiSavedOnApi = useMemo(() => {
+    const ids = bowlingPlayingElevenIds ?? [];
+    return Array.isArray(ids) && ids.length >= expectedXiSize;
+  }, [bowlingPlayingElevenIds, expectedXiSize]);
+
+  const addBatsmanDialogPlayers = useMemo(() => {
+    if (!battingXiSavedOnApi) return battingSquad;
+    const set = new Set((battingPlayingElevenIds ?? []).map(String));
+    const out = battingSquad.filter(
+      (p) => p.id != null && set.has(String(p.id)),
+    );
+    return out.length > 0 ? out : battingSquad;
+  }, [battingSquad, battingPlayingElevenIds, battingXiSavedOnApi]);
+
+  const addBowlerDialogPlayers = useMemo(() => {
+    if (!bowlingXiSavedOnApi) return bowlingSquad;
+    const set = new Set((bowlingPlayingElevenIds ?? []).map(String));
+    const out = bowlingSquad.filter(
+      (p) => p.id != null && set.has(String(p.id)),
+    );
+    return out.length > 0 ? out : bowlingSquad;
+  }, [bowlingSquad, bowlingPlayingElevenIds, bowlingXiSavedOnApi]);
+
+  /** Single visible bowler row: current bowler only (state may still hold two for over-end swap). */
+  const activeBowlerDisplay = useMemo(() => {
+    const table = bowlersInTable ?? [];
+    if (table.length === 0) return null;
+    const idx = Math.min(
+      Math.max(0, Number(currentBowlerIndex) || 0),
+      table.length - 1,
+    );
+    const b = table[idx];
+    if (!b) return null;
+    const balls = b.balls ?? 0;
+    return {
+      bowler: b,
+      o: ballsToOvers(balls),
+      m: b.maidens ?? 0,
+      r: b.runs ?? 0,
+      w: b.wickets ?? 0,
+      econ: economyRate(b.runs ?? 0, balls / 6),
+    };
+  }, [bowlersInTable, currentBowlerIndex]);
 
   const needsFielder = (opt) =>
     dismissalRequiresFielder(
@@ -562,6 +662,10 @@ export function ScoringTab({
       setFielderPickerOpen,
       syncBallToApi,
       syncUndoToApi,
+      matchOvers: match?.overs,
+      playersPerSide: match?.playersPerSide,
+      targetScore,
+      matchComplete,
     },
   );
 
@@ -615,6 +719,15 @@ export function ScoringTab({
         <span className="text-[13px] text-[#DA9811]">{inningsLabel}</span>
       </div>
 
+      {secondInningsChase ? (
+        <SecondInningsChaseRow
+          target={secondInningsChase.target}
+          requiredRunRate={secondInningsChase.requiredRunRate}
+          ballsLeft={secondInningsChase.ballsLeft}
+          runsToWin={secondInningsChase.runsToWin}
+        />
+      ) : null}
+
       {/* Live score box */}
       <div className="m-auto max-w-fit rounded-[17px] bg-[#141412] px-6 py-4 text-center">
         <div className="flex items-baseline justify-center gap-1">
@@ -659,74 +772,103 @@ export function ScoringTab({
             </tr>
           </thead>
           <tbody>
-            {battingOrder.map((player) => {
-              const stats = getBatsmanDisplayStats(player.id);
-              const creaseIndex = batsmenOnCrease.findIndex(
-                (b) => String(b.id) === String(player.id),
-              );
-              const isOnCrease = creaseIndex >= 0;
-              const isStriker = isOnCrease && creaseIndex === strikerIndex;
-              const display = stats
-                ? {
-                    runs: stats.runs,
-                    balls: stats.balls,
-                    fours: stats.fours,
-                    sixes: stats.sixes,
-                    sr: stats.strikeRate,
-                  }
-                : { runs: 0, balls: 0, fours: 0, sixes: 0, sr: '0.0' };
-              return (
-                <tr
-                  key={player.id}
-                  role={isOnCrease ? 'button' : undefined}
-                  tabIndex={isOnCrease ? 0 : undefined}
-                  onClick={() => isOnCrease && setStrikerIndex?.(creaseIndex)}
-                  onKeyDown={(e) => {
-                    if (isOnCrease && (e.key === 'Enter' || e.key === ' ')) {
-                      e.preventDefault();
-                      setStrikerIndex?.(creaseIndex);
-                    }
-                  }}
-                  className={
-                    isOnCrease
-                      ? 'cursor-pointer transition-opacity active:opacity-90'
-                      : ''
-                  }
-                >
-                  <td
-                    className={`border-r border-b border-l ${BORDER} px-4 py-3`}
+            {battingOrder.length === 0
+              ? Array.from({ length: EMPTY_SQUAD_PLACEHOLDER_ROWS }, (_, i) => (
+                  <tr
+                    key={`batsman-placeholder-${i}`}
+                    className="pointer-events-none"
+                    aria-hidden
                   >
-                    <span className="flex items-center gap-2">
-                      <span
-                        className={`text-[12px] font-medium ${isStriker ? 'text-[#DA9811]' : 'text-white'}`}
-                      >
-                        {player.name ?? DASH}
-                      </span>
-                      {isStriker && (
-                        <span
-                          className="scoring-blink-dot inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full bg-red-500"
-                          aria-label="On strike"
-                        />
-                      )}
-                    </span>
-                  </td>
-                  {[
-                    display.runs,
-                    display.balls,
-                    display.fours,
-                    display.sixes,
-                    display.sr,
-                  ].map((val, i) => (
                     <td
-                      key={i}
-                      className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white`}
+                      className={`border-r border-b border-l ${BORDER} px-4 py-3`}
                     >
-                      {val ?? DASH}
+                      <span className="block min-h-[1.125rem] text-[12px] text-white/20">
+                        {'\u00a0'}
+                      </span>
                     </td>
-                  ))}
-                </tr>
-              );
-            })}
+                    {[0, 1, 2, 3, 4].map((j) => (
+                      <td
+                        key={j}
+                        className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white/20`}
+                      >
+                        {'\u00a0'}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              : battingOrder.map((player) => {
+                  const stats = getBatsmanDisplayStats(player.id);
+                  const creaseIndex = batsmenOnCrease.findIndex(
+                    (b) => String(b.id) === String(player.id),
+                  );
+                  const isOnCrease = creaseIndex >= 0;
+                  const isStriker = isOnCrease && creaseIndex === strikerIndex;
+                  const display = stats
+                    ? {
+                        runs: stats.runs,
+                        balls: stats.balls,
+                        fours: stats.fours,
+                        sixes: stats.sixes,
+                        sr: stats.strikeRate,
+                      }
+                    : { runs: 0, balls: 0, fours: 0, sixes: 0, sr: '0.0' };
+                  return (
+                    <tr
+                      key={player.id}
+                      role={isOnCrease ? 'button' : undefined}
+                      tabIndex={isOnCrease ? 0 : undefined}
+                      onClick={() =>
+                        isOnCrease && setStrikerIndex?.(creaseIndex)
+                      }
+                      onKeyDown={(e) => {
+                        if (
+                          isOnCrease &&
+                          (e.key === 'Enter' || e.key === ' ')
+                        ) {
+                          e.preventDefault();
+                          setStrikerIndex?.(creaseIndex);
+                        }
+                      }}
+                      className={
+                        isOnCrease
+                          ? 'cursor-pointer transition-opacity active:opacity-90'
+                          : ''
+                      }
+                    >
+                      <td
+                        className={`border-r border-b border-l ${BORDER} px-4 py-3`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <span
+                            className={`text-[12px] font-medium ${isStriker ? 'text-[#DA9811]' : 'text-white'}`}
+                          >
+                            {player.name ?? DASH}
+                          </span>
+                          {isStriker && (
+                            <span
+                              className="scoring-blink-dot inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full bg-red-500"
+                              aria-label="On strike"
+                            />
+                          )}
+                        </span>
+                      </td>
+                      {[
+                        display.runs,
+                        display.balls,
+                        display.fours,
+                        display.sixes,
+                        display.sr,
+                      ].map((val, i) => (
+                        <td
+                          key={i}
+                          className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white`}
+                        >
+                          {val ?? DASH}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
           </tbody>
         </table>
         {canAddMoreBatsmen && !matchComplete && (
@@ -737,14 +879,14 @@ export function ScoringTab({
             <Button
               type="button"
               variant="dark"
-              size="lg"
+              size="md"
               className="pointer-events-auto flex flex-col items-center gap-1.5"
               aria-label="Add Batsman"
               onClick={() => setAddBatsmanOpen(true)}
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#DA9811] text-[#080807]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#DA9811] text-[#080807]">
                 <svg
-                  className="h-5 w-5"
+                  className="h-4 w-4"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -786,87 +928,88 @@ export function ScoringTab({
             </tr>
           </thead>
           <tbody>
-            {bowlingOrder.map((player) => {
-              const bowler = getBowlerDisplayStats(player.id);
-              const tableIndex = bowler
-                ? bowlersInTable.findIndex(
-                    (b) => String(b.id) === String(player.id),
-                  )
-                : -1;
-              const isCurrentBowler =
-                tableIndex >= 0 && tableIndex === currentBowlerIndex;
-              const isInTable = tableIndex >= 0;
-              const canSelect =
-                isInTable || (canAddMoreBowlers && player.role === 'playing');
-              const display = bowler
-                ? {
-                    o: ballsToOvers(bowler.balls ?? 0),
-                    m: bowler.maidens ?? 0,
-                    r: bowler.runs,
-                    w: bowler.wickets,
-                    econ: economyRate(bowler.runs, (bowler.balls ?? 0) / 6),
-                  }
-                : { o: '0', m: 0, r: 0, w: 0, econ: '0.0' };
-              const handleBowlerClick = () => {
-                if (isInTable) setCurrentBowlerIndex?.(tableIndex);
-                else if (canAddMoreBowlers && player.role === 'playing')
-                  addBowlerToTable(player);
-              };
-              return (
+            {bowlingOrder.length === 0 ? (
+              Array.from({ length: BOWLER_TABLE_PLACEHOLDER_ROWS }, (_, i) => (
                 <tr
-                  key={player.id}
-                  role={canSelect ? 'button' : undefined}
-                  tabIndex={canSelect ? 0 : undefined}
-                  onClick={() => canSelect && handleBowlerClick()}
-                  onKeyDown={(e) => {
-                    if (canSelect && (e.key === 'Enter' || e.key === ' ')) {
-                      e.preventDefault();
-                      handleBowlerClick();
-                    }
-                  }}
-                  className={
-                    canSelect
-                      ? 'cursor-pointer transition-opacity active:opacity-90'
-                      : ''
-                  }
+                  key={`bowler-placeholder-${i}`}
+                  className="pointer-events-none"
+                  aria-hidden
                 >
                   <td
                     className={`border-r border-b border-l ${BORDER} bg-black px-4 py-3`}
                   >
-                    <span className="flex items-center gap-2">
-                      <span
-                        className={`text-[12px] font-medium ${isCurrentBowler ? 'text-[#DA9811]' : 'text-white'}`}
-                      >
-                        {player.name ?? DASH}
-                      </span>
-                      {isCurrentBowler && (
-                        <span
-                          className="scoring-blink-dot inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full bg-red-500"
-                          aria-label="Bowling"
-                        />
-                      )}
+                    <span className="block min-h-[1.125rem] text-[12px] text-white/20">
+                      {'\u00a0'}
                     </span>
                   </td>
-                  {[
-                    display.o,
-                    display.m,
-                    display.r,
-                    display.w,
-                    display.econ,
-                  ].map((val, i) => (
+                  {[0, 1, 2, 3, 4].map((j) => (
                     <td
-                      key={i}
-                      className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white`}
+                      key={j}
+                      className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white/20`}
                     >
-                      {val ?? DASH}
+                      {'\u00a0'}
                     </td>
                   ))}
                 </tr>
-              );
-            })}
+              ))
+            ) : !activeBowlerDisplay ? (
+              Array.from({ length: BOWLER_TABLE_PLACEHOLDER_ROWS }, (_, i) => (
+                <tr
+                  key={`bowler-pending-${i}`}
+                  className="pointer-events-none"
+                  aria-hidden
+                >
+                  <td
+                    className={`border-r border-b border-l ${BORDER} bg-black px-4 py-3`}
+                  >
+                    <span className="block min-h-[1.125rem] text-[12px] text-white/20">
+                      {'\u00a0'}
+                    </span>
+                  </td>
+                  {[0, 1, 2, 3, 4].map((j) => (
+                    <td
+                      key={j}
+                      className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white/20`}
+                    >
+                      {'\u00a0'}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <tr key={activeBowlerDisplay.bowler.id} aria-current="true">
+                <td
+                  className={`border-r border-b border-l ${BORDER} bg-black px-4 py-3`}
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="text-[12px] font-medium text-[#DA9811]">
+                      {activeBowlerDisplay.bowler.name ?? DASH}
+                    </span>
+                    <span
+                      className="scoring-blink-dot inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full bg-red-500"
+                      aria-label="Bowling"
+                    />
+                  </span>
+                </td>
+                {[
+                  activeBowlerDisplay.o,
+                  activeBowlerDisplay.m,
+                  activeBowlerDisplay.r,
+                  activeBowlerDisplay.w,
+                  activeBowlerDisplay.econ,
+                ].map((val, i) => (
+                  <td
+                    key={i}
+                    className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white`}
+                  >
+                    {val ?? DASH}
+                  </td>
+                ))}
+              </tr>
+            )}
           </tbody>
         </table>
-        {canAddMoreBowlers && !matchComplete && (
+        {showAddBowlerOverlay && (
           <div
             className="pointer-events-none absolute inset-x-0 top-0 bottom-0 flex min-h-[5rem] items-center justify-center"
             aria-hidden
@@ -874,14 +1017,14 @@ export function ScoringTab({
             <Button
               type="button"
               variant="dark"
-              size="lg"
+              size="md"
               className="pointer-events-auto flex flex-col items-center gap-1.5"
               aria-label="Add Bowler"
               onClick={() => setAddBowlerOpen(true)}
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#DA9811] text-[#080807]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#DA9811] text-[#080807]">
                 <svg
-                  className="h-5 w-5"
+                  className="h-4 w-4"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -1095,7 +1238,7 @@ export function ScoringTab({
               ? 'catch'
               : 'stumping'
         })`}
-        players={bowlingSquad}
+        players={addBowlerDialogPlayers}
         onSelectFielder={(playerId) => handleOut(pendingDismissal, playerId)}
       />
 
@@ -1121,11 +1264,12 @@ export function ScoringTab({
         onOpenChange={(open) => {
           if (!open) setAddBatsmanOpen(false);
         }}
-        players={battingSquad}
+        players={addBatsmanDialogPlayers}
         canAddMoreBatsmen={canAddMoreBatsmen}
         isPlayerBattingOrOut={isPlayerBattingOrOut}
         getBatsmanDisplayStats={getBatsmanDisplayStats}
         isApiMatch={isApiMatch}
+        hideSquadSetup={battingXiSavedOnApi}
         savingBatsmanSquad={savingBatsmanSquad}
         requiredBatting={requiredBatting}
         currentSquad={battingSquad}
@@ -1139,10 +1283,11 @@ export function ScoringTab({
         onOpenChange={(open) => {
           if (!open) setAddBowlerOpen(false);
         }}
-        players={bowlingSquad}
+        players={addBowlerDialogPlayers}
         canAddMoreBowlers={canAddMoreBowlers}
         bowlersInTable={bowlersInTable}
         isApiMatch={isApiMatch}
+        hideSquadSetup={bowlingXiSavedOnApi}
         savingBowlerSquad={savingBowlerSquad}
         requiredBowling={requiredBowling}
         currentBowlerSquad={bowlingSquad}

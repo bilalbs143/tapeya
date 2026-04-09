@@ -5,6 +5,7 @@
 
 import { Link, useNavigate } from 'react-router-dom';
 
+import defaultAvatar from '@/assets/images/standard/default-avatar.png';
 import { statsTotalPaths } from '@/pages/scorecard/statsTotalFlow';
 import { useGetRankingsQuery } from '@/store/api/rankingApi';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
@@ -17,8 +18,6 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/ui/Tabs';
-
-import defaultAvatar from '@/assets/images/standard/default-avatar.png';
 
 const OPEN_TOURNAMENT_TYPE = 'open_tournament';
 
@@ -207,7 +206,7 @@ export default function Ranking() {
   return (
     <div className="min-h-screen bg-black">
       <Container className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 lg:mt-0 flex items-center gap-3 bg-black px-4 pt-6 pb-4">
+        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-4 lg:mt-0">
           <button
             type="button"
             onClick={() => navigate(-1)}

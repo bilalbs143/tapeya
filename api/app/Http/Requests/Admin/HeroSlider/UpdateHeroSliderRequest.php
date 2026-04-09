@@ -19,7 +19,8 @@ class UpdateHeroSliderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'image' => ['nullable', 'image', 'min:1', 'max:5120'],
+            'image_mobile' => ['nullable', 'image', 'min:1', 'max:5120'],
+            'image_desktop' => ['nullable', 'image', 'min:1', 'max:5120'],
             'status' => ['required', Rule::enum(StatusEnum::class)],
         ];
     }

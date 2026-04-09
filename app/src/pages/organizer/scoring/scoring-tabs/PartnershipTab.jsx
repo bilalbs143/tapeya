@@ -1,8 +1,3 @@
-/**
- * Partnership tab – team/innings header, score box, stats row, and partnership rows.
- * Uses same dynamic liveScore and partnership from ScoringMatch as Scoring tab.
- */
-
 import ballIcon from '@/assets/images/icons/ball-icon.svg';
 import teamMatchIcon from '@/assets/images/icons/team-match-icon.svg';
 
@@ -15,6 +10,24 @@ const VERTICAL_SEPARATOR =
 
 const INNINGS_LABEL = '1st Innings';
 
+/** Runs/balls in the current stand from each batsman’s contribution (matches side columns). */
+function standTotalsFromCrease(batsmenOnCrease) {
+  if (!batsmenOnCrease || batsmenOnCrease.length !== 2) return null;
+  const r1 =
+    (batsmenOnCrease[0]?.runs ?? 0) -
+    (batsmenOnCrease[0]?.partnerRunsAtStart ?? 0);
+  const b1 =
+    (batsmenOnCrease[0]?.balls ?? 0) -
+    (batsmenOnCrease[0]?.partnerBallsAtStart ?? 0);
+  const r2 =
+    (batsmenOnCrease[1]?.runs ?? 0) -
+    (batsmenOnCrease[1]?.partnerRunsAtStart ?? 0);
+  const b2 =
+    (batsmenOnCrease[1]?.balls ?? 0) -
+    (batsmenOnCrease[1]?.partnerBallsAtStart ?? 0);
+  return { runs: r1 + r2, balls: b1 + b2 };
+}
+
 // ─── Component ─────────────────────────────────────────────────────────────
 
 export function PartnershipTab({
@@ -23,6 +36,11 @@ export function PartnershipTab({
   partnership: partnershipProp,
   completedPartnerships = [],
   batsmenOnCrease = [],
+  /** When set (from ScoringMatch sharedProps), use live scoring innings — avoids empty partnership on non-Scoring tabs. */
+  partnershipTabLiveScore,
+  partnershipTabBatsmenOnCrease,
+  partnershipTabCompletedPartnerships,
+  partnershipTabPartnership,
 }) {
   const teamA = match?.teamA;
   const teamName = teamA?.name ?? '';
@@ -30,44 +48,49 @@ export function PartnershipTab({
     match?.overs != null && match?.overs !== ''
       ? Number(match.overs)
       : undefined;
-  const liveScore = liveScoreProp;
-  const partnershipRuns = partnershipProp?.runs ?? 0;
-  const partnershipBalls = partnershipProp?.balls ?? 0;
+  const liveScore = partnershipTabLiveScore ?? liveScoreProp;
+  const crease = partnershipTabBatsmenOnCrease ?? batsmenOnCrease;
+  const completedList =
+    partnershipTabCompletedPartnerships ?? completedPartnerships;
+  const partnershipState = partnershipTabPartnership ?? partnershipProp;
+
+  const fromCrease = standTotalsFromCrease(crease);
+  const partnershipRuns = fromCrease?.runs ?? partnershipState?.runs ?? 0;
+  const partnershipBalls = fromCrease?.balls ?? partnershipState?.balls ?? 0;
 
   // ─── Derived: partnership list (completed + current) ───────────────────────
 
   /** Current stand row when two batsmen on crease; individual runs/balls use partnerRunsAtStart. */
   const currentPartnershipRow =
-    batsmenOnCrease.length === 2
-      ? {
-          id: 'current',
-          isCurrent: true,
-          batter1: {
-            name: batsmenOnCrease[0]?.name ?? '—',
-            runs:
-              (batsmenOnCrease[0]?.runs ?? 0) -
-              (batsmenOnCrease[0]?.partnerRunsAtStart ?? 0),
+    crease.length === 2
+      ? (() => {
+          const batter1 = {
+            name: crease[0]?.name ?? '—',
+            runs: (crease[0]?.runs ?? 0) - (crease[0]?.partnerRunsAtStart ?? 0),
             balls:
-              (batsmenOnCrease[0]?.balls ?? 0) -
-              (batsmenOnCrease[0]?.partnerBallsAtStart ?? 0),
-          },
-          batter2: {
-            name: batsmenOnCrease[1]?.name ?? '—',
-            runs:
-              (batsmenOnCrease[1]?.runs ?? 0) -
-              (batsmenOnCrease[1]?.partnerRunsAtStart ?? 0),
+              (crease[0]?.balls ?? 0) - (crease[0]?.partnerBallsAtStart ?? 0),
+          };
+          const batter2 = {
+            name: crease[1]?.name ?? '—',
+            runs: (crease[1]?.runs ?? 0) - (crease[1]?.partnerRunsAtStart ?? 0),
             balls:
-              (batsmenOnCrease[1]?.balls ?? 0) -
-              (batsmenOnCrease[1]?.partnerBallsAtStart ?? 0),
-          },
-          runs: partnershipRuns,
-          balls: partnershipBalls,
-        }
+              (crease[1]?.balls ?? 0) - (crease[1]?.partnerBallsAtStart ?? 0),
+          };
+          const totals = standTotalsFromCrease(crease);
+          return {
+            id: 'current',
+            isCurrent: true,
+            batter1,
+            batter2,
+            runs: totals?.runs ?? 0,
+            balls: totals?.balls ?? 0,
+          };
+        })()
       : null;
 
   const allPartnerships = currentPartnershipRow
-    ? [...completedPartnerships, currentPartnershipRow]
-    : completedPartnerships;
+    ? [...completedList, currentPartnershipRow]
+    : completedList;
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
@@ -136,7 +159,9 @@ export function PartnershipTab({
                   </span>
                   <div className={VERTICAL_SEPARATOR} aria-hidden />
                   <span className="text-[12px] font-normal text-[#A2A6AB]">
-                    {p.batter1.runs} ({p.batter1.balls})
+                    {p.batter1.runs != null && p.batter1.balls != null
+                      ? `${p.batter1.runs} (${p.batter1.balls})`
+                      : '—'}
                   </span>
                 </div>
                 <div className="flex shrink-0 flex-col items-center gap-1">
@@ -164,7 +189,9 @@ export function PartnershipTab({
                   </span>
                   <div className={VERTICAL_SEPARATOR} aria-hidden />
                   <span className="text-[12px] font-normal text-[#A2A6AB]">
-                    {p.batter2.runs} ({p.batter2.balls})
+                    {p.batter2.runs != null && p.batter2.balls != null
+                      ? `${p.batter2.runs} (${p.batter2.balls})`
+                      : '—'}
                   </span>
                   {p.isCurrent && (
                     <span

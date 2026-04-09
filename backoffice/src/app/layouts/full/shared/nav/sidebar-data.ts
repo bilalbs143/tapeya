@@ -40,6 +40,11 @@ export const navItems: NavItem[] = [
         iconName: 'tabler:point',
         route: '/content-management/hero-slider',
       },
+      {
+        displayName: 'Static Pages',
+        iconName: 'tabler:point',
+        route: '/content-management/static-pages',
+      },
     ],
   },
   {

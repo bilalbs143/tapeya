@@ -109,7 +109,9 @@ export default function Reels() {
             >
               <img
                 src={
-                  activeTab === TAB_EXPLORE ? exploreOrangeIcon : exploreWhiteIcon
+                  activeTab === TAB_EXPLORE
+                    ? exploreOrangeIcon
+                    : exploreWhiteIcon
                 }
                 alt=""
                 className="h-[18px] w-[18px] shrink-0"

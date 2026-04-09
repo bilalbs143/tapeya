@@ -14,6 +14,10 @@ const STATUS_CLASS_MAP: Record<string, string> = {
   dispatched: 'bg-light-info text-info',
   delivered: 'bg-light-success text-success',
   cancelled: 'bg-light-error text-error',
+  scheduled: 'bg-light-secondary text-secondary',
+  toss_done: 'bg-light-info text-info',
+  in_progress: 'bg-light-primary text-primary',
+  completed: 'bg-light-success text-success',
   read: 'bg-light-success text-success',
   unread: 'bg-light-warning text-warning',
 };

@@ -21,7 +21,7 @@ const footer = 'flex flex-col-reverse sm:flex-row sm:justify-end sm:gap-2';
 const title = 'text-lg font-semibold';
 const description = 'text-sm text-slate-500';
 const closeButton =
-  'absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-indigo-500';
+  'absolute right-4 top-4 rounded-sm opacity-70 ring-0 hover:opacity-100 outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0';
 
 export const Dialog = DialogPrimitive.Root;
 export const DialogTrigger = DialogPrimitive.Trigger;

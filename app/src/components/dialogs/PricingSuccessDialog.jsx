@@ -6,7 +6,7 @@ export function PricingSuccessDialog({ planName }) {
       <div className="flex shrink-0 items-center justify-between px-4 py-3">
         <span aria-hidden className="w-5" />
         <DialogClose
-          className="rounded p-1 text-white/60 transition-colors hover:text-white focus:ring-2 focus:ring-[#FFB703] focus:outline-none"
+          className="rounded p-1 text-white/60 ring-0 transition-colors outline-none hover:text-white focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:outline-none"
           aria-label="Close"
         >
           <svg

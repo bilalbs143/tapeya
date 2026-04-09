@@ -1,11 +1,10 @@
 import { Fragment, useMemo, useState } from 'react';
 
 import arrowRightOrange from '@/assets/images/icons/arrow-right-orange.svg';
-
 import {
   ballsToOvers,
   buildBallListWithMetaAndOverSummaries,
-} from '../scoringUtils';
+} from '@/lib/utils/scoringUtils';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 

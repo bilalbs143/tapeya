@@ -11,21 +11,25 @@ use App\Enums\User\PlayingRoleEnum;
 use App\Enums\User\RoleGuardEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
+use App\Models\Shop\Cart;
+use App\Models\Shop\Order;
 use App\Utils\Services\OtpService;
 use App\Utils\Traits\Model\BaseModelTrait;
 use App\Utils\Traits\Model\Filters\DateFilterTrait;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\QueryBuilder\AllowedFilter;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use BaseModelTrait;
 
     use DateFilterTrait;
@@ -125,15 +129,15 @@ class User extends Authenticatable
     }
 
     /** Shop: carts (typically one active per user). */
-    public function shopCarts(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function shopCarts(): HasMany
     {
-        return $this->hasMany(\App\Models\Shop\Cart::class, 'user_id');
+        return $this->hasMany(Cart::class, 'user_id');
     }
 
     /** Shop: orders. */
-    public function shopOrders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function shopOrders(): HasMany
     {
-        return $this->hasMany(\App\Models\Shop\Order::class, 'user_id');
+        return $this->hasMany(Order::class, 'user_id');
     }
 
     /**
@@ -163,9 +167,9 @@ class User extends Authenticatable
     /**
      * App-guard roles for this user (for API / serialization). Single query, qualified for joins.
      *
-     * @return \Illuminate\Support\Collection<int, Role>
+     * @return Collection<int, Role>
      */
-    public function getAppRoles(): \Illuminate\Support\Collection
+    public function getAppRoles(): Collection
     {
         return $this->roles()->where('roles.guard', RoleGuardEnum::APP->value)->get();
     }

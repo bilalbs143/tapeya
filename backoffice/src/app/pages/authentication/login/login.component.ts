@@ -9,6 +9,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import { CoreService } from 'src/app/services/core.service';
 import { MessageService } from 'src/app/services/message.service';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
+import { safeReturnUrl } from 'src/app/utils/return-url.util';
 
 @Component({
   selector: 'app-login',
@@ -53,7 +54,7 @@ export class AppLoginComponent {
       .subscribe({
         next: () => {
           this.loading = false;
-          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/dashboard';
+          const returnUrl = safeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl'));
           void this.router.navigateByUrl(returnUrl);
         },
         error: (error: unknown) => {

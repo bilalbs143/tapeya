@@ -107,6 +107,38 @@ export function computeLiveScore(ballHistory, maxOvers) {
 }
 
 /**
+ * If `pendingBall` were appended to `ballHistory`, would the innings be over?
+ * Aligns with ScoringTab innings-end effect (target, max wickets, max legal balls).
+ *
+ * @param {object} p
+ * @param {object[]} p.ballHistory
+ * @param {object} p.pendingBall – same shape as stored UI balls (runs, out, etc.)
+ * @param {number|string|undefined} p.maxOvers
+ * @param {number|undefined} p.playersPerSide
+ * @param {number|undefined} p.targetScore – innings 2 chase target
+ */
+export function wouldInningsEndAfterBall({
+  ballHistory = [],
+  pendingBall,
+  maxOvers,
+  playersPerSide,
+  targetScore,
+}) {
+  if (!pendingBall) return false;
+  const next = [...ballHistory, pendingBall];
+  const live = computeLiveScore(next, maxOvers);
+  if (targetScore != null && live.totalRuns >= targetScore) return true;
+  const maxWickets =
+    playersPerSide != null ? Number(playersPerSide) - 1 : undefined;
+  const maxValidBalls =
+    maxOvers != null && maxOvers !== '' ? Number(maxOvers) * 6 : undefined;
+  if (maxWickets != null && live.totalWickets >= maxWickets) return true;
+  if (maxValidBalls != null && live.validDeliveries >= maxValidBalls)
+    return true;
+  return false;
+}
+
+/**
  * Compute current partnership runs and balls from batsmen on crease.
  * Partnership is only between two batsmen; when one is out it resets. With only one batsman, 0(0).
  * @param {Array} batsmenOnCrease

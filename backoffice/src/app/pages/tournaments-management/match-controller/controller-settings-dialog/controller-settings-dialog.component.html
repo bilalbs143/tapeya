@@ -1,0 +1,104 @@
+<h2
+  mat-dialog-title
+  class="m-0 text-lg font-semibold"
+>
+  Graphics settings
+</h2>
+
+<mat-dialog-content class="!max-h-[70vh]">
+  <form
+    [formGroup]="form"
+    class="grid grid-cols-12 gap-3 pt-2"
+  >
+    <div class="col-span-12">
+      <mat-form-field
+        appearance="outline"
+        class="w-full"
+      >
+        <mat-label>Theme</mat-label>
+        <mat-select formControlName="graphic_theme_id">
+          @for (t of data.themes; track t.id) {
+            <mat-option [value]="t.id">{{ t.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="col-span-12 sm:col-span-6">
+      <p class="text-xs font-semibold text-muted m-0 mb-1">Home — text</p>
+      <input
+        type="color"
+        formControlName="home_text"
+        class="h-10 w-full rounded border border-gray-200 cursor-pointer"
+        aria-label="Home text color"
+      />
+    </div>
+    <div class="col-span-12 sm:col-span-6">
+      <p class="text-xs font-semibold text-muted m-0 mb-1">Home — background</p>
+      <input
+        type="color"
+        formControlName="home_bg"
+        class="h-10 w-full rounded border border-gray-200 cursor-pointer"
+        aria-label="Home background color"
+      />
+    </div>
+    <div class="col-span-12 sm:col-span-6">
+      <p class="text-xs font-semibold text-muted m-0 mb-1">Away — text</p>
+      <input
+        type="color"
+        formControlName="away_text"
+        class="h-10 w-full rounded border border-gray-200 cursor-pointer"
+        aria-label="Away text color"
+      />
+    </div>
+    <div class="col-span-12 sm:col-span-6">
+      <p class="text-xs font-semibold text-muted m-0 mb-1">Away — background</p>
+      <input
+        type="color"
+        formControlName="away_bg"
+        class="h-10 w-full rounded border border-gray-200 cursor-pointer"
+        aria-label="Away background color"
+      />
+    </div>
+
+    <div class="col-span-12 flex items-center">
+      <mat-slide-toggle formControlName="enable_images">Enable images</mat-slide-toggle>
+    </div>
+
+    @if (data.session.theme?.graphics_url_template; as urlTpl) {
+      <div class="col-span-12">
+        <mat-form-field
+          appearance="outline"
+          class="w-full"
+        >
+          <mat-label>Graphics URL template</mat-label>
+          <input
+            matInput
+            readonly
+            [value]="urlTpl"
+          />
+        </mat-form-field>
+      </div>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button
+    mat-button
+    type="button"
+    (click)="cancel()"
+    [disabled]="saving"
+  >
+    Cancel
+  </button>
+  <button
+    mat-flat-button
+    color="primary"
+    type="button"
+    (click)="save()"
+    [disabled]="saving || form.invalid"
+  >
+    Save
+  </button>
+</mat-dialog-actions>

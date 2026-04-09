@@ -1,4 +1,3 @@
-import goldMemberIcon from '@/assets/images/icons/gold-member.png';
 import defaultAvatar from '@/assets/images/standard/default-avatar.png';
 import profileHeaderBg from '@/assets/images/standard/profile-header.jpg';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
@@ -21,14 +20,17 @@ export function ProfileHeader({
   user: userProp,
   name: nameProp,
   role: roleProp,
-  membership = 'GOLD MEMBER',
   strength: strengthProp,
   avatarSrc: avatarSrcProp,
 }) {
-  const name = nameProp ?? (userProp?.name?.trim() || userProp?.nickname?.trim() || 'Guest');
+  const name =
+    nameProp ??
+    (userProp?.name?.trim() || userProp?.nickname?.trim() || 'Guest');
   const role = roleProp ?? getPrimaryRoleLabel(userProp);
   const avatarSrc = avatarSrcProp ?? userProp?.avatar_url ?? defaultAvatar;
-  const strength = strengthProp ?? (userProp ? calculateProfileStrength(userProp) : 0);
+  const strength =
+    strengthProp ?? (userProp ? calculateProfileStrength(userProp) : 0);
+  const showStrengthBar = strength < 100;
 
   return (
     <header
@@ -45,42 +47,49 @@ export function ProfileHeader({
       <div className="relative flex h-full flex-col px-4 pt-16">
         <div className={`mx-auto flex w-full flex-1 ${CONTENT_MAX} flex-col`}>
           <div className="flex flex-1 items-end justify-between gap-4">
-            <div className="flex min-w-0 items-start gap-2 pb-6">
-              <img src={goldMemberIcon} alt="" className="h-9 w-9 shrink-0" />
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="truncate text-base font-semibold tracking-tight text-white">
-                    {name}
-                  </h1>
-                  <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold tracking-wide text-black">
-                    {role}
-                  </span>
-                </div>
-                <p className="text-xs font-bold text-[#DA9811]">{membership}</p>
-              </div>
-            </div>
-            <ProfileAvatar src={avatarSrc} name={name} />
-          </div>
-
-          {strength < 100 && (
-            <div className="absolute right-0 bottom-[-22px] left-0 mx-auto w-full max-w-[358px] rounded-full bg-[#141412] px-4 py-3 backdrop-blur">
-              <div className="flex items-center gap-4">
-                <span className="text-[13px] text-[#A2A6AB]">
-                  Your Profile Strength
+            <div
+              className={
+                showStrengthBar
+                  ? 'relative min-w-0 flex-1 pb-10'
+                  : 'min-w-0 flex-1'
+              }
+            >
+              <div
+                className={`flex flex-col items-start gap-1.5 ${
+                  showStrengthBar ? '' : 'translate-y-[25%]'
+                }`}
+              >
+                <h1 className="max-w-full truncate text-base font-semibold tracking-tight text-white">
+                  {name}
+                </h1>
+                <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold tracking-wide text-black">
+                  {role}
                 </span>
-                <div className="flex flex-1 items-center gap-3">
-                  <Progress
-                    value={strength}
-                    className="h-2 flex-1 bg-white/20"
-                    indicatorClassName="bg-[#d8a11e]"
-                  />
-                  <span className="shrink-0 text-sm font-bold text-white italic">
-                    {strength}%
-                  </span>
-                </div>
               </div>
+              {showStrengthBar && (
+                <div className="absolute bottom-[-22px] left-0 z-0 w-full max-w-[358px] rounded-full bg-[#141412] px-4 py-3 backdrop-blur">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <span className="text-[13px] text-[#A2A6AB]">
+                      Your Profile Strength
+                    </span>
+                    <div className="flex flex-1 items-center gap-3">
+                      <Progress
+                        value={strength}
+                        className="h-2 flex-1 bg-white/20"
+                        indicatorClassName="bg-[#d8a11e]"
+                      />
+                      <span className="shrink-0 text-sm font-bold text-white italic">
+                        {strength}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+            <div className="relative z-10 shrink-0">
+              <ProfileAvatar src={avatarSrc} name={name} />
+            </div>
+          </div>
         </div>
       </div>
     </header>

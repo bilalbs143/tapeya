@@ -1,7 +1,5 @@
 import { useState } from 'react';
 
-import { useNavigate } from 'react-router-dom';
-
 import editProfileIcon from '@/assets/images/icons/edit-profile.svg';
 import { formatDate } from '@/lib/format';
 import { formatAge } from '@/lib/utils/dateUtils';
@@ -14,10 +12,12 @@ import {
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 
-import { CONTENT_MAX_WIDTH, FOCUS_RING, PROFILE_OVERVIEW_ROLE } from './constants';
+import {
+  CONTENT_MAX_WIDTH,
+  FOCUS_RING,
+  PROFILE_OVERVIEW_ROLE,
+} from './constants';
 import { UserEdit } from './UserEdit';
-
-const BECOME_SPONSOR_BUTTON_CLASS = `inline-flex items-center gap-2 rounded-[17px] border border-[#d8a11e] bg-transparent px-4 py-1 text-[12px] font-semibold tracking-wide text-[#d8a11e] transition-colors hover:border-[#e5b42a] hover:text-[#e5b42a] ${FOCUS_RING}`;
 
 const EDIT_PROFILE_BUTTON_CLASS = `inline-flex items-center gap-2 rounded-[17px] border border-white bg-transparent px-4 py-1 text-[12px] font-semibold uppercase tracking-wide text-white/70 transition-colors hover:border-white/60 hover:text-white/90 ${FOCUS_RING}`;
 
@@ -55,10 +55,10 @@ function DetailRow({ label, value, withColon = true, truncateAt }) {
  * @param {number} [props.events] — organizer metrics
  */
 export function ProfileRoleOverview({ role, tournaments, events }) {
-  const navigate = useNavigate();
   const [editOpen, setEditOpen] = useState(false);
   const user = useAppSelector(selectUser);
-  const { battingStyleOptions, bowlingStyleOptions, playingRoleOptions } = usePlayerProfileEnums();
+  const { battingStyleOptions, bowlingStyleOptions, playingRoleOptions } =
+    usePlayerProfileEnums();
 
   const r = role ?? PROFILE_OVERVIEW_ROLE.PLAYER;
 
@@ -119,7 +119,6 @@ export function ProfileRoleOverview({ role, tournaments, events }) {
       { label: 'PHONE', value: user?.phone ?? '—' },
       { label: 'NICKNAME', value: user?.nickname ?? '—' },
       { label: 'EMAIL', value: user?.email ?? '—', truncateAt: 15 },
-      
     ];
     detailsRight = [
       { label: 'CITY', value: user?.city ?? '—', withColon: false },
@@ -128,24 +127,11 @@ export function ProfileRoleOverview({ role, tournaments, events }) {
     ];
   }
 
-  const showBecomeSponsor = r === PROFILE_OVERVIEW_ROLE.PLAYER;
-  const toolbarJustify =
-    r === PROFILE_OVERVIEW_ROLE.PLAYER ? 'justify-between' : 'justify-end';
-
   return (
     <div className={`mx-auto w-full ${CONTENT_MAX_WIDTH}`}>
       <UserEdit open={editOpen} onOpenChange={setEditOpen} />
 
-      <div className={`flex flex-wrap items-center gap-4 py-4 ${toolbarJustify}`}>
-        {showBecomeSponsor && (
-          <button
-            type="button"
-            className={BECOME_SPONSOR_BUTTON_CLASS}
-            onClick={() => navigate('/profile?role=sponsor')}
-          >
-            Become a Sponsor
-          </button>
-        )}
+      <div className="flex flex-wrap items-center justify-end gap-4 py-4">
         <button
           type="button"
           className={EDIT_PROFILE_BUTTON_CLASS}

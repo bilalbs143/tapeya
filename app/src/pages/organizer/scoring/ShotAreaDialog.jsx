@@ -7,17 +7,16 @@ import { useId } from 'react';
 
 import stadiumBg from '@/assets/images/standard/stadium-bg.png';
 import {
+  getShotDirectionPercentages,
+  SHOT_DIRECTION_ZONES,
+  SHOT_ZONE_GEOMETRY,
+} from '@/lib/utils/shotAreaUtils';
+import {
   Dialog,
   DialogContentProfile,
   DialogScrollBody,
   DialogTitle,
 } from '@/ui/Dialog';
-
-import {
-  getShotDirectionPercentages,
-  SHOT_DIRECTION_ZONES,
-  SHOT_ZONE_GEOMETRY,
-} from './shotAreaUtils';
 
 // ─── ShotDirectionPicker ──────────────────────────────────────────────────
 

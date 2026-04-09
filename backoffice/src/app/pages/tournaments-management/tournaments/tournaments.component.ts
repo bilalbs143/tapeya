@@ -9,6 +9,8 @@ import { PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { RouterLink } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { Subscription } from 'rxjs';
 
@@ -48,8 +50,10 @@ const DEFAULT_FILTERS = {
     MatButtonModule,
     MatDialogModule,
     TablerIconsModule,
+    MatTooltipModule,
     TableWrapperComponent,
     PaginatorComponent,
+    RouterLink,
   ],
   templateUrl: './tournaments.component.html',
 })

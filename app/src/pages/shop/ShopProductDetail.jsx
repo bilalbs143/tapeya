@@ -141,11 +141,16 @@ export default function ShopProductDetail() {
               {mainImage ? (
                 <img
                   src={mainImage}
-                  alt={normalized.images?.[selectedImage]?.alt ?? normalized.name}
+                  alt={
+                    normalized.images?.[selectedImage]?.alt ?? normalized.name
+                  }
                   className="aspect-square h-[280px] w-full object-contain"
                 />
               ) : (
-                <div className="aspect-square w-full bg-[#141412]" aria-hidden />
+                <div
+                  className="aspect-square w-full bg-[#141412]"
+                  aria-hidden
+                />
               )}
               {normalized.is_featured && (
                 <span className="absolute top-3 left-3 rounded-full bg-[#DA9811] px-4 py-1 text-[12px] font-bold text-black uppercase">
@@ -172,7 +177,11 @@ export default function ShopProductDetail() {
                     }`}
                     aria-label={`View image ${i + 1}`}
                   >
-                    <img src={url} alt="" className="h-full w-full object-cover" />
+                    <img
+                      src={url}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
                   </button>
                 ))}
               </div>
@@ -180,7 +189,9 @@ export default function ShopProductDetail() {
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-[16px] font-bold text-white">{normalized.name}</h2>
+            <h2 className="text-[16px] font-bold text-white">
+              {normalized.name}
+            </h2>
             <div className="flex items-center gap-8">
               {normalized.hasDiscount && (
                 <span className="text-[16px] font-bold text-[#A2A6AB82] line-through">
@@ -260,7 +271,7 @@ export default function ShopProductDetail() {
         </div>
 
         {/* Desktop layout: left image; right details (top) + counter/button */}
-        <div className="hidden lg:grid lg:grid-cols-2 lg:items-center lg:gap-8 ">
+        <div className="hidden lg:grid lg:grid-cols-2 lg:items-center lg:gap-8">
           <div className="space-y-4">
             <div className="space-y-3">
               <div className="relative overflow-hidden rounded-t-[17px] bg-white">
@@ -283,12 +294,11 @@ export default function ShopProductDetail() {
                     Featured
                   </span>
                 )}
-                {normalized.hasDiscount &&
-                  normalized.discountPercent > 0 && (
-                    <span className="absolute top-3 right-3 rounded-full bg-[#FF3B30] px-2 py-0.5 text-[11px] font-bold text-white">
-                      -{normalized.discountPercent}%
-                    </span>
-                  )}
+                {normalized.hasDiscount && normalized.discountPercent > 0 && (
+                  <span className="absolute top-3 right-3 rounded-full bg-[#FF3B30] px-2 py-0.5 text-[11px] font-bold text-white">
+                    -{normalized.discountPercent}%
+                  </span>
+                )}
               </div>
               {normalized.imageUrls.length > 1 && (
                 <div className="flex gap-2">
@@ -314,12 +324,13 @@ export default function ShopProductDetail() {
                 </div>
               )}
             </div>
-
           </div>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <h2 className="text-[16px] font-bold text-white">{normalized.name}</h2>
+              <h2 className="text-[16px] font-bold text-white">
+                {normalized.name}
+              </h2>
               <div className="flex items-center gap-8">
                 {normalized.hasDiscount && (
                   <span className="text-[16px] font-bold text-[#A2A6AB82] line-through">
@@ -334,9 +345,7 @@ export default function ShopProductDetail() {
                 Availability:{' '}
                 <span
                   className={`ml-2 text-[12px] ${
-                    normalized.stock > 0
-                      ? 'text-[#FF3B30]'
-                      : 'text-[#A2A6AB]'
+                    normalized.stock > 0 ? 'text-[#FF3B30]' : 'text-[#A2A6AB]'
                   }`}
                 >
                   {normalized.stock > 0
@@ -391,7 +400,7 @@ export default function ShopProductDetail() {
       </div>
 
       {normalized.description && (
-        <section className="hidden lg:block pt-2">
+        <section className="hidden pt-2 lg:block">
           <h3 className="mb-2 text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">
             Features
           </h3>

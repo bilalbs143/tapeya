@@ -141,8 +141,7 @@ export function StatusDetailsLiveTab({ details }) {
   const bowlers = details?.bowlers;
   if (
     !details ||
-    ((!batters || batters.length === 0) &&
-      (!bowlers || bowlers.length === 0))
+    ((!batters || batters.length === 0) && (!bowlers || bowlers.length === 0))
   ) {
     return <StatusDetailsPlaceholderTab label="Live data unavailable" />;
   }

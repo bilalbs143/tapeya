@@ -157,7 +157,7 @@ export default function TournamentSavedTeams() {
   return (
     <div className="bg-black">
       <Container className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 lg:mt-0 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
+        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6 lg:mt-0">
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -177,15 +177,11 @@ export default function TournamentSavedTeams() {
             </svg>
           </button>
           <h1 className="min-w-0 flex-1 pr-[27px] text-center text-[16px] font-bold tracking-wide text-white uppercase">
-            Tournaments - Teams
+            {tournament
+              ? `${getTournamentTitle(tournament)} - Teams`
+              : 'Tournaments - Teams'}
           </h1>
         </header>
-
-        {tournament && (
-          <p className="mb-3 text-[13px] font-medium tracking-wide text-white uppercase">
-            {getTournamentTitle(tournament)}
-          </p>
-        )}
 
         {isLoading && (
           <p className="mb-3 text-[13px] text-[#A2A6AB]">Loading teams…</p>
@@ -226,7 +222,7 @@ export default function TournamentSavedTeams() {
                   <h3 className="mb-2 text-[13px] font-bold tracking-wide text-[#DA9811] uppercase">
                     Group {groupIndex}
                   </h3>
-                  <ul className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3">
+                  <ul className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
                     {teamsByGroup[groupIndex].map((team, index) => (
                       <li
                         key={team.id ?? index}
@@ -258,7 +254,7 @@ export default function TournamentSavedTeams() {
         )}
 
         {!isLoading && teamsByGroup == null && teams.length > 0 && (
-          <ul className="space-y-3 pb-6 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3">
+          <ul className="space-y-3 pb-6 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
             {teams.map((team, index) => (
               <li
                 key={team.id ?? index}
@@ -278,7 +274,7 @@ export default function TournamentSavedTeams() {
           </ul>
         )}
 
-        <div className="pt-2 flex justify-start">
+        <div className="flex justify-start pt-2">
           <Button
             type="button"
             variant="auth"

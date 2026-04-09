@@ -179,6 +179,52 @@ export function scorecardInningsToBallHistory(innings, playerIdToName = {}) {
   return balls.map((b) => apiBallToUiBall(b, playerIdToName));
 }
 
+/**
+ * Scorecard innings.partnerships → UI list shape + current stand totals.
+ * Matches PlayerStatsService::partnershipsForInnings (wicket_number null = open stand).
+ * Per-batter splits are not in the API; batter runs/balls are left null for display as "—".
+ *
+ * @param {Array<{ player_1_id: number, player_2_id: number, runs: number, balls: number, wicket_number: number|null }>} partnerships
+ * @param {Record<string, string>} playerIdToName
+ * @returns {{ completed: object[], current: { runs: number, balls: number }|null }}
+ */
+export function apiPartnershipsToUiState(partnerships, playerIdToName = {}) {
+  const list = Array.isArray(partnerships) ? partnerships : [];
+  const label = (id) =>
+    playerIdToName[String(id)] ?? (id != null ? `Player ${id}` : '—');
+  const completed = [];
+  /** @type {{ runs: number, balls: number } | null} */
+  let current = null;
+
+  for (let i = 0; i < list.length; i++) {
+    const p = list[i];
+    const id1 = p.player_1_id;
+    const id2 = p.player_2_id;
+    const row = {
+      id: `api-p-${i}-${id1}-${id2}`,
+      batter1: {
+        name: label(id1),
+        runs: null,
+        balls: null,
+      },
+      batter2: {
+        name: label(id2),
+        runs: null,
+        balls: null,
+      },
+      runs: p.runs ?? 0,
+      balls: p.balls ?? 0,
+    };
+    if (p.wicket_number != null) {
+      completed.push(row);
+    } else {
+      current = { runs: p.runs ?? 0, balls: p.balls ?? 0 };
+    }
+  }
+
+  return { completed, current };
+}
+
 // -----------------------------------------------------------------------------
 // UI ball -> API payload (for storeBall)
 // -----------------------------------------------------------------------------
@@ -325,12 +371,7 @@ export function apiMatchToUiMatchConfig(
   const hid = home.id != null ? Number(home.id) : null;
   const aid = away.id != null ? Number(away.id) : null;
   const wid = winningId != null ? Number(winningId) : null;
-  const battingTeamId =
-    wid != null && choseBat
-      ? wid
-      : wid === hid
-        ? aid
-        : hid;
+  const battingTeamId = wid != null && choseBat ? wid : wid === hid ? aid : hid;
   const bowlingTeamId = battingTeamId === hid ? aid : hid;
 
   const battingTeam =
@@ -372,12 +413,13 @@ export function apiMatchToUiMatchConfig(
     matchTime: apiMatch.match_time ?? '',
     overs: apiMatch.overs,
     playersPerSide: apiMatch.players_per_side,
-    toss: wid != null
-      ? {
-          winner: wid === hid ? 'A' : 'B',
-          decision: apiMatch.chose_to_bat_or_bowl === 'bat' ? 'bat' : 'bowl',
-        }
-      : null,
+    toss:
+      wid != null
+        ? {
+            winner: wid === hid ? 'A' : 'B',
+            decision: apiMatch.chose_to_bat_or_bowl === 'bat' ? 'bat' : 'bowl',
+          }
+        : null,
     battingTeamId,
     bowlingTeamId,
   };

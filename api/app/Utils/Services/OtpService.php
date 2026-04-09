@@ -2,26 +2,51 @@
 
 namespace App\Utils\Services;
 
+use App\Exceptions\OtpSmsDeliveryException;
 use App\Models\User;
+use App\Services\Notifications\SmsSender;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class OtpService
 {
-    public const TTL_SECONDS = 300; // 5 minutes
+    public const TTL_SECONDS = 600; // 10 minutes
 
     public const CACHE_PREFIX = 'otp:';
 
+    public function __construct(
+        protected SmsSender $smsSender
+    ) {}
+
     /**
-     * Generate OTP, store for phone, and send to user (SMS / log).
+     * Generate OTP, store under a normalized phone cache key, and send SMS unless APP_DEBUG is true
+     * (debug: OTP is only returned in the API JSON for local testing — no real SMS).
      */
     public function sendToUser(User $user): void
     {
         $code = $this->generateCode();
         $this->store($user->phone, $code);
 
-        // TODO: Send SMS (Twilio, etc.). For now log.
-        Log::info('OTP for user', ['user_id' => $user->id, 'phone' => $user->phone, 'code' => $code]);
+        if (config('app.debug')) {
+            return;
+        }
+
+        $template = (string) config('notifications.sms.otp_message', 'Welcome to Tapeya, your verification code is :code. Valid for 10 minutes. Do not share this code.');
+        $message = str_replace(':code', $code, $template);
+
+        try {
+            $this->smsSender->send($user->phone, $message);
+        } catch (Throwable $e) {
+            Log::error('OTP SMS delivery failed.', [
+                'user_id' => $user->id,
+                'phone' => self::normalizePhone($user->phone),
+                'exception' => $e::class,
+                'message' => $e->getMessage(),
+            ]);
+
+            throw new OtpSmsDeliveryException(previous: $e);
+        }
     }
 
     public function generateCode(): string
@@ -42,30 +67,35 @@ class OtpService
         };
     }
 
-    public function store(string $normalizedPhone, string $code): void
+    public function store(string $phone, string $code): void
     {
-        Cache::put(self::CACHE_PREFIX.$normalizedPhone, $code, self::TTL_SECONDS);
+        $key = self::normalizePhone($phone);
+        Cache::put(self::CACHE_PREFIX.$key, $code, self::TTL_SECONDS);
     }
 
-    public function verify(string $normalizedPhone, string $code): bool
+    public function verify(string $phone, string $code): bool
     {
-        $stored = Cache::get(self::CACHE_PREFIX.$normalizedPhone);
+        $key = self::normalizePhone($phone);
+        $stored = Cache::get(self::CACHE_PREFIX.$key);
 
         if ($stored === null || $stored !== $code) {
             return false;
         }
 
-        Cache::forget(self::CACHE_PREFIX.$normalizedPhone);
+        Cache::forget(self::CACHE_PREFIX.$key);
 
         return true;
     }
 
     /**
-     * Return current OTP for a phone (for testing when SMS is not ready).
-     * Only use when APP_DEBUG is true; do not expose in production.
+     * Return current OTP for a phone (for testing when APP_DEBUG is true).
      */
     public function getCurrentOtp(string $phone): ?string
     {
+        if (! config('app.debug')) {
+            return null;
+        }
+
         return Cache::get(self::CACHE_PREFIX.self::normalizePhone($phone));
     }
 

@@ -19,6 +19,7 @@ use App\Http\Controllers\User\Shop\CategoryController;
 use App\Http\Controllers\User\Shop\OrderController;
 use App\Http\Controllers\User\Shop\ProductController;
 use App\Http\Controllers\User\SponsorController;
+use App\Http\Controllers\User\StaticPageController;
 use App\Http\Controllers\User\SupportMessageController;
 use App\Http\Controllers\User\TeamController;
 use App\Http\Controllers\User\TournamentController;
@@ -39,6 +40,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('enums', [EnumController::class, 'index']);
 Route::get('hero-sliders', [HeroSliderController::class, 'index']);
+Route::get('static-pages/{slug}', [StaticPageController::class, 'show'])
+    ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*');
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [UserAuthController::class, 'register']);

@@ -72,7 +72,7 @@ export default function Register() {
             Create an account
           </h2>
 
-          <FormField label="Phone" htmlFor="phone">
+          <FormField label="Phone (+923001234567)" htmlFor="phone" required>
             <Controller
               name="phone"
               control={control}
@@ -87,7 +87,7 @@ export default function Register() {
             />
           </FormField>
 
-          <FormField label="Full Name" htmlFor="fname">
+          <FormField label="Full Name" htmlFor="fname" required>
             <Input
               id="fname"
               type="text"
@@ -98,11 +98,11 @@ export default function Register() {
             />
           </FormField>
 
-          <FormField label="Nickname" htmlFor="nickname">
+          <FormField label="Nickname" htmlFor="nickname" required>
             <Input
               id="nickname"
               type="text"
-              placeholder="Letters, numbers, underscores only"
+              placeholder="Example: ali07"
               autoComplete="username"
               error={errors.nickname?.message}
               {...register('nickname')}
@@ -154,14 +154,14 @@ export default function Register() {
           <p className="mt-3 mb-6 text-center text-[14px] text-[#A2A6AB]">
             By signing up, you agree to the{' '}
             <Link
-              to="/terms"
+              to="/pages/terms-of-use"
               className="font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820]"
             >
               Terms of Use
             </Link>{' '}
             and{' '}
             <Link
-              to="/privacy"
+              to="/pages/privacy-policy"
               className="font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820]"
             >
               Privacy Policy

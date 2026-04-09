@@ -47,7 +47,7 @@ export function ScorecardTabs({
           style={{ top: fixedTop }}
         >
           {/* Match main column width on desktop (sidebar 280px); avoid max-w-2xl clipping tabs */}
-          <div className="mx-auto w-full min-w-0 max-w-2xl px-4 lg:mx-0 lg:max-w-none">
+          <div className="mx-auto w-full max-w-2xl min-w-0 px-4 lg:mx-0 lg:max-w-none">
             <TabListRow tournaments={tournaments} />
           </div>
         </div>

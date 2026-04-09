@@ -80,11 +80,7 @@ function SummaryCard({ value, label, accent = 'yellow', to }) {
  * CURSOR: move to src/features/scorecard/components/PlayerStatCard.jsx
  * TODO: decide whether to render or remove _primaryLabel (see top).
  */
-function PlayerStatCard({
-  player,
-  primaryStat,
-  statSuffix = '',
-}) {
+function PlayerStatCard({ player, primaryStat, statSuffix = '' }) {
   // Fixed: was `player.name.split(' ').map((n) => n[0])` — throws when name
   //        is null/undefined; also undefined for empty name segments.
   const initials = getPlayerInitials(player.name);

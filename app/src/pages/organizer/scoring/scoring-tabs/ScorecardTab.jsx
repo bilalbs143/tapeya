@@ -2,8 +2,7 @@ import { Fragment, useMemo, useState } from 'react';
 
 import teamMatchIcon from '@/assets/images/icons/team-match-icon.svg';
 import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
-
-import { ballsToOvers, getRunsFromBall } from '../scoringUtils';
+import { ballsToOvers, getRunsFromBall } from '@/lib/utils/scoringUtils';
 
 const STATS_SEPARATOR =
   'w-px shrink-0 self-stretch bg-gradient-to-b from-[#00000000] via-[#FFFFFF66] to-[#00000000]';
@@ -260,7 +259,7 @@ export function ScorecardTab({
                   <td className={TABLE_CELL}>{b.balls}</td>
                   <td className={TABLE_CELL}>{b.fours}</td>
                   <td className={TABLE_CELL}>{b.sixes}</td>
-                  <td className={TABLE_CELL}>{strikeRate(b.runs, b.balls)}%</td>
+                  <td className={TABLE_CELL}>{strikeRate(b.runs, b.balls)}</td>
                 </tr>
               ))
             )}

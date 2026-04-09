@@ -1,0 +1,177 @@
+:host {
+  display: block;
+}
+
+.controller-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+  max-width: 100%;
+}
+
+.controller-dashboard__header {
+  gap: 1rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.08));
+}
+
+.controller-dashboard__innings-toggle.mat-button-toggle-group {
+  border-radius: 8px;
+}
+
+.controller-dashboard__innings-toggle .mat-button-toggle {
+  font-size: 0.8125rem;
+}
+
+.controller-dashboard__innings-toggle .mat-button-toggle-appearance-standard {
+  min-width: 5.5rem;
+}
+
+/* Light callout — reads as “hint” not a heavy bar in dark sidebar themes */
+.controller-dashboard__caption {
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12));
+  border-left: 3px solid var(--mat-sys-primary, #1976d2);
+  background: var(--mat-sys-surface-container-low, rgba(255, 255, 255, 0.9));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.controller-dashboard__caption-title {
+  margin: 0 0 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--mat-sys-on-surface, rgba(0, 0, 0, 0.87));
+}
+
+.controller-dashboard__caption-body {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--mat-sys-on-surface-variant, rgba(0, 0, 0, 0.68));
+  text-wrap: balance;
+  max-width: 62rem;
+}
+
+.controller-dashboard__caption-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.controller-dashboard__catalog {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14.25rem, 1fr));
+  gap: 1rem 1.1rem;
+  align-items: start;
+}
+
+@media (min-width: 1200px) {
+  .controller-dashboard__catalog {
+    grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
+  }
+}
+
+@media (min-width: 1600px) {
+  .controller-dashboard__catalog {
+    grid-template-columns: repeat(auto-fill, minmax(16.5rem, 1fr));
+  }
+}
+
+.catalog-group {
+  min-width: 0;
+  padding: 0.7rem 0.9rem 0.95rem;
+  border-radius: 10px;
+  border: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.1));
+  background: var(--mat-sys-surface, #fff);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.catalog-group--wide {
+  grid-column: 1 / -1;
+}
+
+.catalog-group__title {
+  margin: 0 0 0.6rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.08));
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  color: var(--mat-sys-on-surface, rgba(0, 0, 0, 0.78));
+  line-height: 1.3;
+}
+
+.catalog-group__player-pick {
+  margin-bottom: 0.65rem;
+}
+
+.catalog-group__player-pick-hint {
+  line-height: 1.45;
+}
+
+.catalog-group__player-select {
+  width: 100%;
+  max-width: min(100%, 28rem);
+}
+
+/* Dense auto-fill so wide sections use horizontal space with fewer ragged gaps */
+.catalog-group__actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.75rem, 1fr));
+  gap: 0.5rem 0.45rem;
+}
+
+.catalog-group--wide .catalog-group__actions {
+  grid-template-columns: repeat(auto-fill, minmax(4.65rem, 1fr));
+}
+
+@media (min-width: 768px) {
+  .catalog-group--wide .catalog-group__actions {
+    grid-template-columns: repeat(auto-fill, minmax(4.85rem, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .catalog-group--wide .catalog-group__actions {
+    grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
+    gap: 0.55rem 0.5rem;
+  }
+}
+
+.catalog-group__actions .catalog-group__btn.mat-mdc-outlined-button {
+  min-width: 0;
+  width: 100%;
+  max-width: none;
+  padding-left: 0.35rem;
+  padding-right: 0.35rem;
+  font-size: 0.72rem;
+  line-height: 1.2;
+  white-space: normal;
+  text-align: center;
+  min-height: 2.2rem;
+}
+
+.controller-dashboard__recent {
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+  margin-top: 0.15rem;
+  border-top: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.08));
+}
+
+.controller-dashboard__recent-head {
+  margin-bottom: 0.65rem;
+}
+
+.controller-dashboard__recent-head .controller-dashboard__recent-title {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  color: var(--mat-sys-on-surface, rgba(0, 0, 0, 0.78));
+}
+
+/* Recent Commands uses default Material chip-set spacing — no overrides here. */

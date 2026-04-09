@@ -10,4 +10,12 @@ export const ContentManagementRoutes: Routes = [
       urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Content Management' }, { title: 'Hero Slider' }],
     },
   },
+  {
+    path: 'static-pages',
+    loadComponent: () => import('./static-pages/static-pages.component').then((m) => m.StaticPagesComponent),
+    data: {
+      title: 'Static Pages',
+      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Content Management' }, { title: 'Static Pages' }],
+    },
+  },
 ];

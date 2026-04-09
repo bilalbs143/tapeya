@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+
 abstract class BaseApiController extends Controller
 {
     use BaseControllerTrait;
 
-    /** @var \Illuminate\Database\Eloquent\Model */
+    /** @var Model */
     public $model;
 
     public string $resource;
@@ -23,7 +26,7 @@ abstract class BaseApiController extends Controller
     /**
      * Base query for index/show (e.g. with(), scopes). Override in child.
      *
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     abstract protected function baseQuery();
 }

@@ -38,6 +38,10 @@ class TournamentMatchResource extends JsonResource
             'winning_team' => $this->whenLoaded('winningTeam', fn () => new TeamResource($match->winningTeam)),
             'toss_winner_team' => $this->whenLoaded('tossWinnerTeam', fn () => new TeamResource($match->tossWinnerTeam)),
 
+            'win_by_runs' => $match->win_by_runs !== null ? (int) $match->win_by_runs : null,
+            'win_by_wickets' => $match->win_by_wickets !== null ? (int) $match->win_by_wickets : null,
+            'result_summary' => $match->resultSummary(),
+
             'created_at' => $match->created_at?->toIso8601String(),
             'updated_at' => $match->updated_at?->toIso8601String(),
         ];

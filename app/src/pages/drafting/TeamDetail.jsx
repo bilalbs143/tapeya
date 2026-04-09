@@ -55,7 +55,7 @@ export default function TeamDetail() {
   return (
     <div className="bg-black">
       <Container className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 lg:mt-0 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
+        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6 lg:mt-0">
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -94,7 +94,9 @@ export default function TeamDetail() {
                 />
               </div>
               <div className="min-w-0 flex-1">
-                <h2 className="text-[16px] font-bold text-white">{team.name}</h2>
+                <h2 className="text-[16px] font-bold text-white">
+                  {team.name}
+                </h2>
                 <p className="mt-0.5 text-[14px] text-[#DA9811]">
                   Owner: {team.owner}
                 </p>

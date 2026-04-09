@@ -3,6 +3,7 @@ import { baseApi } from './baseApi';
 /**
  * Tournament API – list and show tournaments (user app, auth required).
  * GET /tournaments, GET /tournaments/:id
+ * Use organizer_tournaments=1 to list only tournaments where the user is organizer.
  * Backend returns { data } for single, { data: [...], meta? } for list.
  */
 export const tournamentApi = baseApi.injectEndpoints({
@@ -15,7 +16,7 @@ export const tournamentApi = baseApi.injectEndpoints({
           per_page: params.all ? undefined : (params.per_page ?? 15),
           page: params.all ? undefined : params.page,
           'filter[status]': params.status,
-          'filter[organizer_id]': params.organizer_id,
+          organizer_tournaments: params.organizer_tournaments ? 1 : undefined,
           with_matches: params.with_matches ? 1 : undefined,
           sort: params.sort,
         },

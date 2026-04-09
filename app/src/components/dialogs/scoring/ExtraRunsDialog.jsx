@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import { BaseDialog } from '@/components/dialogs/BaseDialog';
-import { getExtraTypeOptions } from '@/pages/organizer/scoring/scoringMappers';
+import { getExtraTypeOptions } from '@/lib/utils/scoringMappers';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
 import { DialogScrollBody, DialogTitle } from '@/ui/Dialog';
 

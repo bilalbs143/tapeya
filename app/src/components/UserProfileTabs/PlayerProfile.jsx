@@ -51,13 +51,17 @@ export function PlayerProfile({ user }) {
   const { category, sort } = getProfileRankingParamsByPlayingRole(
     user?.playing_role_enum,
   );
-  const { data: rankData, isLoading: rankLoading } = useGetPlayerRankingPositionQuery(
-    { userId, category, sort },
-    { skip: !userId },
-  );
+  const { data: rankData, isLoading: rankLoading } =
+    useGetPlayerRankingPositionQuery(
+      { userId, category, sort },
+      { skip: !userId },
+    );
 
-  const rankingDisplay =
-    !userId ? '—' : rankLoading ? '…' : rankData?.rank ?? '—';
+  const rankingDisplay = !userId
+    ? '—'
+    : rankLoading
+      ? '…'
+      : (rankData?.rank ?? '—');
   const followersDisplay =
     user?.followers_count != null ? String(user.followers_count) : '—';
   /** No player-level “likes received” API yet; keep placeholder. */

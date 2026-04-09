@@ -5,6 +5,7 @@ import { tap } from 'rxjs/operators';
 
 import { AuthService } from '../services/auth.service';
 import { MessageService } from '../services/message.service';
+import { isAuthenticationPath, safeReturnUrl } from '../utils/return-url.util';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
@@ -18,8 +19,12 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           if (error.status === 401) {
             auth.logout();
             messages.error('Your session has expired. Please sign in again.');
+            if (isAuthenticationPath(router.url)) {
+              void router.navigate(['/authentication/login'], { replaceUrl: true });
+              return;
+            }
             void router.navigate(['/authentication/login'], {
-              queryParams: { returnUrl: router.url },
+              queryParams: { returnUrl: safeReturnUrl(router.url) },
             });
             return;
           }

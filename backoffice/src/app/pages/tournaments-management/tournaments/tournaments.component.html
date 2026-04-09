@@ -317,6 +317,17 @@
               *matCellDef="let row"
               class="action-link text-sm whitespace-nowrap"
             >
+              <a
+                class="me-2.5 inline-flex align-middle text-primary"
+                [routerLink]="['/tournaments-management/tournaments', row.id, 'matches']"
+                matTooltip="Matches & controller"
+                aria-label="Tournament matches"
+              >
+                <i-tabler
+                  name="layout-list"
+                  class="size-4.5!"
+                ></i-tabler>
+              </a>
               <button
                 type="button"
                 class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"

@@ -89,11 +89,15 @@ export function apiTournamentMatchToStatusDetailsMatch(apiMatch, scorecard) {
   const status = normaliseMatchStatus(apiMatch.status || 'scheduled');
   const team1 = {
     name: home.name || 'Home team',
-    initial: String(home.name || 'H').charAt(0).toUpperCase(),
+    initial: String(home.name || 'H')
+      .charAt(0)
+      .toUpperCase(),
   };
   const team2 = {
     name: away.name || 'Away team',
-    initial: String(away.name || 'A').charAt(0).toUpperCase(),
+    initial: String(away.name || 'A')
+      .charAt(0)
+      .toUpperCase(),
   };
 
   const formattedDate = apiMatch.match_date
@@ -177,13 +181,9 @@ export function oversDetailsFromScorecard(scorecard, homeTeamId, awayTeamId) {
   if (!Array.isArray(innings) || innings.length === 0) return [];
 
   const hid =
-    homeTeamId != null && homeTeamId !== ''
-      ? Number(homeTeamId)
-      : NaN;
+    homeTeamId != null && homeTeamId !== '' ? Number(homeTeamId) : NaN;
   const aid =
-    awayTeamId != null && awayTeamId !== ''
-      ? Number(awayTeamId)
-      : NaN;
+    awayTeamId != null && awayTeamId !== '' ? Number(awayTeamId) : NaN;
 
   const homeInn = Number.isFinite(hid)
     ? innings.find((i) => Number(i?.batting_team_id) === hid)
@@ -220,8 +220,7 @@ export function playingXIFromPlayingElevenResponses(xiHome, xiAway) {
   });
 
   const fromPayload = (payload) => {
-    if (payload?.players?.length)
-      return payload.players.map(mapRow);
+    if (payload?.players?.length) return payload.players.map(mapRow);
     const ids = payload?.player_ids;
     if (Array.isArray(ids) && ids.length > 0)
       return ids.map((id) => ({

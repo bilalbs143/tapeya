@@ -80,23 +80,47 @@
             </td>
           </ng-container>
 
-          <ng-container matColumnDef="image">
+          <ng-container matColumnDef="image_mobile">
             <th
               mat-header-cell
               *matHeaderCellDef
               class="bg-light-secondary text-sm font-semibold"
             >
-              Image
+              Mobile Image
             </th>
             <td
               mat-cell
               *matCellDef="let row"
               class="text-sm"
             >
-              @if (row.image) {
+              @if (row.image_mobile) {
                 <app-table-image
-                  [src]="row.image"
-                  alt="Slide"
+                  [src]="row.image_mobile"
+                  alt="Mobile Slide"
+                />
+              } @else {
+                {{ emptyCell }}
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="image_desktop">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Desktop Image
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm"
+            >
+              @if (row.image_desktop) {
+                <app-table-image
+                  [src]="row.image_desktop"
+                  alt="Desktop Slide"
                 />
               } @else {
                 {{ emptyCell }}

@@ -19,7 +19,7 @@ export function HeroSlider() {
 
   const list =
     Array.isArray(slides) && slides.length > 0
-      ? slides.filter((s) => s?.image)
+      ? slides.filter((s) => s?.image_mobile)
       : null;
   if (!list?.length) return null;
 
@@ -33,20 +33,29 @@ export function HeroSlider() {
       loop={list.length > 1}
       className="hero-swiper"
     >
-      {list.map((slide) => (
-        <SwiperSlide key={slide.id}>
-          <div className="h-[160px] overflow-hidden rounded-[17px] lg:h-[250px]">
-            <img
-              src={slide.image}
-              alt={slide.alt ?? slide.title ?? ''}
-              className="h-full w-full object-cover"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-          </div>
-        </SwiperSlide>
-      ))}
+      {list.map((slide) => {
+        const mobileSrc = slide.image_mobile;
+        const desktopSrc = slide.image_desktop || slide.image_mobile;
+        return (
+          <SwiperSlide key={slide.id}>
+            <div className="h-[160px] overflow-hidden rounded-[17px] lg:h-[250px]">
+              <picture className="block h-full w-full">
+                {slide.image_desktop ? (
+                  <source media="(min-width: 1024px)" srcSet={desktopSrc} />
+                ) : null}
+                <img
+                  src={mobileSrc}
+                  alt={slide.alt ?? slide.title ?? ''}
+                  className="h-full w-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </picture>
+            </div>
+          </SwiperSlide>
+        );
+      })}
     </Swiper>
   );
 }

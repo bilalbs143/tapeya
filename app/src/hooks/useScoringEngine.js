@@ -63,6 +63,7 @@
 import { useCallback } from 'react';
 
 import { DASH } from '@/lib/constants/ui';
+import { wouldInningsEndAfterBall } from '@/lib/utils/scoringUtils';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -155,6 +156,10 @@ function appendBallImpl(setBallHistory, syncBallToApi, ball) {
  * @param {Function} p.setFielderPickerOpen     Called false after wicket confirmed.
  * @param {Function} [p.syncBallToApi]          (ball, onIdAssigned) => void
  * @param {Function} [p.syncUndoToApi]          (ballId) => void
+ * @param {number|string|undefined} [p.matchOvers]       match.overs — for innings-end projection
+ * @param {number|undefined} [p.playersPerSide]          match.playersPerSide
+ * @param {number|undefined} [p.targetScore]             innings 2 chase target
+ * @param {boolean} [p.matchComplete]                    when true, never open bowler dialog at over end
  */
 export function useScoringEngine({
   ballHistory,
@@ -176,6 +181,10 @@ export function useScoringEngine({
   setFielderPickerOpen,
   syncBallToApi,
   syncUndoToApi,
+  matchOvers,
+  playersPerSide,
+  targetScore,
+  matchComplete = false,
 }) {
   // appendBall is stable when setBallHistory and syncBallToApi are stable refs —
   // setBallHistory always is (useState setter); syncBallToApi depends on the caller.
@@ -207,13 +216,22 @@ export function useScoringEngine({
       // If length === 1 the guard above still passes but rotation is intentionally skipped.
       const hasTwoBowlers = bowlersInTable.length >= 2;
 
-      appendBall({
+      const pendingBall = {
         type: 'runs',
         runs,
         strikerId: striker?.id,
         bowlerId: bowler?.id,
         ...(shotDirection ? { shotDirection } : {}),
+      };
+      const inningsEndsAfterThis = wouldInningsEndAfterBall({
+        ballHistory,
+        pendingBall,
+        maxOvers: matchOvers,
+        playersPerSide,
+        targetScore,
       });
+
+      appendBall(pendingBall);
 
       setBatsmenOnCrease((prev) =>
         prev.map((b) =>
@@ -248,7 +266,9 @@ export function useScoringEngine({
 
       if (runs % 2 === 1) setStrikerIndex((i) => 1 - i);
       if (overDone && hasTwoBowlers) setCurrentBowlerIndex((i) => 1 - i);
-      if (overDone) setAddBowlerOpen(true);
+      if (overDone && !matchComplete && !inningsEndsAfterThis) {
+        setAddBowlerOpen(true);
+      }
     },
     [
       ballHistory,
@@ -263,6 +283,10 @@ export function useScoringEngine({
       setStrikerIndex,
       setCurrentBowlerIndex,
       setAddBowlerOpen,
+      matchOvers,
+      playersPerSide,
+      targetScore,
+      matchComplete,
     ],
   );
 
@@ -314,12 +338,23 @@ export function useScoringEngine({
       const overDone = isLegal && willCompleteOver(ballHistory);
       const hasTwoBowlers = bowlersInTable.length >= 2;
 
-      appendBall({
+      const pendingSpecialBall = {
         type,
         runs: extraRun,
         bowlerId: bowler?.id,
         strikerId: striker?.id,
-      });
+      };
+      const inningsEndsAfterSpecial = overDone
+        ? wouldInningsEndAfterBall({
+            ballHistory,
+            pendingBall: pendingSpecialBall,
+            maxOvers: matchOvers,
+            playersPerSide,
+            targetScore,
+          })
+        : false;
+
+      appendBall(pendingSpecialBall);
 
       // NB: striker personally faces the ball (ball count goes up for their stats)
       // even though it is not a legal delivery for over-counter purposes.
@@ -356,7 +391,9 @@ export function useScoringEngine({
 
       if (isLegal && extraRun % 2 === 1) setStrikerIndex((i) => 1 - i);
       if (overDone && hasTwoBowlers) setCurrentBowlerIndex((i) => 1 - i);
-      if (overDone) setAddBowlerOpen(true);
+      if (overDone && !matchComplete && !inningsEndsAfterSpecial) {
+        setAddBowlerOpen(true);
+      }
     },
     [
       ballHistory,
@@ -371,6 +408,10 @@ export function useScoringEngine({
       setStrikerIndex,
       setCurrentBowlerIndex,
       setAddBowlerOpen,
+      matchOvers,
+      playersPerSide,
+      targetScore,
+      matchComplete,
     ],
   );
 
@@ -407,6 +448,22 @@ export function useScoringEngine({
         balls: currentPartnership?.balls ?? 0,
       };
 
+      const pendingOutBall = {
+        type: 'out',
+        striker: { ...striker },
+        bowlerId: bowler?.id,
+        dismissalType: dismissalType ?? null,
+        fielderId: fielderId || undefined,
+        partnershipSnapshot,
+      };
+      const inningsEndsAfterOut = wouldInningsEndAfterBall({
+        ballHistory,
+        pendingBall: pendingOutBall,
+        maxOvers: matchOvers,
+        playersPerSide,
+        targetScore,
+      });
+
       // Per-batter contributions in this stand.
       // Requires partnerRunsAtStart / partnerBallsAtStart to be set on batter objects
       // when they take the crease (see JSDoc at top of hook).
@@ -433,17 +490,7 @@ export function useScoringEngine({
 
       setCurrentPartnership({ runs: 0, balls: 0 });
 
-      appendBall({
-        type: 'out',
-        striker: { ...striker },
-        bowlerId: bowler?.id,
-        dismissalType: dismissalType ?? null,
-        // Fixed: was `fielderId ?? undefined` which is a no-op — `?? undefined`
-        // never changes the value since undefined is already the default.
-        // Use `|| undefined` to also exclude falsy non-null values (e.g. 0, '').
-        fielderId: fielderId || undefined,
-        partnershipSnapshot,
-      });
+      appendBall(pendingOutBall);
 
       setBowlersInTable((prev) =>
         prev.map((b) =>
@@ -464,7 +511,9 @@ export function useScoringEngine({
       setStrikerIndex(0);
 
       if (overDone && hasTwoBowlers) setCurrentBowlerIndex((i) => 1 - i);
-      if (overDone) setAddBowlerOpen(true);
+      if (overDone && !matchComplete && !inningsEndsAfterOut) {
+        setAddBowlerOpen(true);
+      }
 
       setOutReasonModalOpen(false);
       setPendingDismissal(null);
@@ -488,6 +537,10 @@ export function useScoringEngine({
       setOutReasonModalOpen,
       setPendingDismissal,
       setFielderPickerOpen,
+      matchOvers,
+      playersPerSide,
+      targetScore,
+      matchComplete,
     ],
   );
 

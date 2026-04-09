@@ -26,7 +26,7 @@ export function ProfileStrengthReminderDialog() {
   return (
     <div className="relative flex min-h-0 flex-1 flex-col justify-center">
       <DialogClose
-        className="absolute right-4 top-4 z-10 rounded p-1 text-white transition-colors hover:text-white/80 focus:outline-none focus:ring-2 focus:ring-[#FFB703]"
+        className="absolute top-4 right-4 z-10 rounded p-1 text-white ring-0 transition-colors outline-none hover:text-white/80 focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:outline-none"
         aria-label="Close"
       >
         <svg
@@ -42,7 +42,7 @@ export function ProfileStrengthReminderDialog() {
       </DialogClose>
 
       <div className="flex flex-col items-stretch px-6 py-8 text-center">
-        <DialogTitle className="px-2 text-[14px] font-bold leading-tight tracking-wide text-[#DA9811] uppercase sm:text-[15px]">
+        <DialogTitle className="px-2 text-[14px] leading-tight font-bold tracking-wide text-[#DA9811] uppercase sm:text-[15px]">
           Complete your profile
         </DialogTitle>
 
@@ -55,14 +55,14 @@ export function ProfileStrengthReminderDialog() {
           />
         </div>
 
-        <p className="mt-4 text-[15px] font-bold italic text-white">
+        <p className="mt-4 text-[15px] font-bold text-white italic">
           Your profile is {strength}% complete
         </p>
 
         <button
           type="button"
           onClick={goToProfile}
-          className="mt-6 inline-flex items-center justify-center gap-1.5 self-center text-[14px] font-semibold tracking-wide text-[#DA9811] underline decoration-[#DA9811] underline-offset-4 transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[#FFB703] focus:ring-offset-2 focus:ring-offset-[#080807]"
+          className="mt-6 inline-flex items-center justify-center gap-1.5 self-center text-[14px] font-semibold tracking-wide text-[#DA9811] underline decoration-[#DA9811] underline-offset-4 transition-opacity hover:opacity-90 focus:ring-2 focus:ring-[#FFB703] focus:ring-offset-2 focus:ring-offset-[#080807] focus:outline-none"
         >
           Go to Profile
           <svg

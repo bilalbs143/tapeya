@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\OtpSmsDeliveryException;
 use App\Http\Middleware\AdminOnlyServiceProvider;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
@@ -33,6 +34,15 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->failure(
                     $e->getMessage(),
                     'UNAUTHORIZED'
+                );
+            }
+        });
+
+        $exceptions->render(function (OtpSmsDeliveryException $e, $request) {
+            if ($request->expectsJson()) {
+                return response()->failure(
+                    $e->getMessage(),
+                    'SERVICE_UNAVAILABLE'
                 );
             }
         });
