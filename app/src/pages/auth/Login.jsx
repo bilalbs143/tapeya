@@ -276,7 +276,11 @@ function PhoneForm({
   onBack,
 }) {
   return (
-    <form onSubmit={onSubmit} onFocus={onFocus} className="space-y-4">
+    <form
+      onSubmit={onSubmit}
+      onFocus={onFocus}
+      className="space-y-4 lg:mx-auto lg:max-w-[400px]"
+    >
       <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">
         Login with your account
       </h2>

@@ -151,12 +151,12 @@ export default function ScorecardDetails() {
   // Fixed: extracted shared tab list to avoid copy-pasting the same JSX for
   //        both inline and fixed positions.
   const tabsContent = (
-    <TabsList className={scorecardListClass}>
+    <TabsList className={`${scorecardListClass} lg:gap-2`}>
       {TOURNAMENT_TABS.map(({ value, label }) => (
         <TabsTrigger
           key={value}
           value={value}
-          className={scorecardTriggerClass}
+          className={`${scorecardTriggerClass} lg:min-w-[96px] lg:px-4`}
         >
           {label}
         </TabsTrigger>

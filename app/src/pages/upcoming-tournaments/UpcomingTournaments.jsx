@@ -20,7 +20,7 @@ const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&h=320&fit=crop';
 
 const upcomingTriggerClass =
-  'min-w-[72px] flex-col items-center justify-center gap-0 rounded-xl px-4 py-2.5 text-white data-[state=active]:text-black';
+  'min-w-[72px] flex-col items-center justify-center gap-0 rounded-xl px-4 py-2.5 text-white data-[state=active]:text-black lg:min-w-[96px]';
 
 function UpcomingTournamentCard({ tournament, onClick, disabled }) {
   const imageUrl = tournament.display_image || FALLBACK_IMAGE;
@@ -142,7 +142,7 @@ export default function UpcomingTournaments() {
           className="w-full"
         >
           <div className="-mx-4 bg-black px-4 pb-3">
-            <TabsList className={`${scorecardListClass} lg:justify-center`}>
+            <TabsList className={`${scorecardListClass} lg:justify-center lg:gap-2`}>
               {monthTabs.map(({ value, monthShort, year }) => (
                 <TabsTrigger
                   key={value}

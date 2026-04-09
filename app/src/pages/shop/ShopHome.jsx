@@ -114,12 +114,12 @@ export default function ShopHome() {
         <div className="flex flex-col">
           <div ref={tabsSentinelRef} className="h-px w-full" aria-hidden />
           <div className="-mx-4 bg-black px-4 pt-0.5 pb-2">
-            <div className="flex gap-2 overflow-x-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex gap-2 overflow-x-auto py-1 lg:gap-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {brands.map(({ id, name, slug, logo }) => (
                 <Link
                   key={id}
                   to={`/shop/${slug}`}
-                  className="flex shrink-0 items-center gap-2 rounded-[6px] bg-[#141412] px-[13px] py-[10px] text-[13px] font-semibold tracking-wide text-white uppercase transition-colors hover:bg-[#252520]"
+                  className="flex shrink-0 items-center gap-2 rounded-[6px] bg-[#141412] px-[13px] py-[10px] text-[13px] font-semibold tracking-wide text-white uppercase transition-colors hover:bg-[#252520] lg:min-w-[96px] lg:justify-center lg:px-4"
                   aria-label={`Shop ${name} products`}
                 >
                   {logo ? (
@@ -142,12 +142,12 @@ export default function ShopHome() {
             style={{ top: NAVBAR_HEIGHT }}
           >
             <div className="mx-auto max-w-2xl px-4 lg:max-w-none lg:px-4">
-              <div className="flex gap-2 overflow-x-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex gap-2 overflow-x-auto py-1 lg:gap-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {brands.map(({ id, name, slug, logo }) => (
                   <Link
                     key={id}
                     to={`/shop/${slug}`}
-                    className="flex shrink-0 items-center gap-2 rounded-[6px] bg-[#141412] px-[13px] py-[10px] text-[13px] font-semibold tracking-wide text-white uppercase transition-colors hover:bg-[#252520]"
+                    className="flex shrink-0 items-center gap-2 rounded-[6px] bg-[#141412] px-[13px] py-[10px] text-[13px] font-semibold tracking-wide text-white uppercase transition-colors hover:bg-[#252520] lg:min-w-[96px] lg:justify-center lg:px-4"
                     aria-label={`Shop ${name} products`}
                   >
                     {logo ? (

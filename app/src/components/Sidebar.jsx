@@ -145,7 +145,7 @@ export function Sidebar({ open, onClose }) {
             <Link
               to="/profile"
               onClick={onClose}
-              className="flex gap-3 rounded-lg transition-colors hover:bg-white/5 focus:ring-2 focus:ring-white/20 focus:outline-none"
+              className="flex gap-3 rounded-lg transition-colors hover:bg-white/5 focus:outline-none"
             >
               <img
                 src={profileUser?.avatar_url || defaultAvatar}

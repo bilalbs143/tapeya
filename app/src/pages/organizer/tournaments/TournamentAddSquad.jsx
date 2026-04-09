@@ -61,29 +61,7 @@ function TeamCard({ team, index, onAddSquad, onDelete, isDeleting }) {
 
   return (
     <div className="rounded-[17px] bg-[#141412] p-4">
-      <div className="flex justify-end gap-1.5">
-        <Button
-          type="button"
-          variant="file"
-          size="sm"
-          className="h-8 rounded-full border border-[#DA9811] bg-transparent px-3 text-[12px] font-semibold text-[#DA9811]"
-          onClick={() => onAddSquad?.(team)}
-          disabled={isDeleting}
-        >
-          Add Squad
-        </Button>
-        <button
-          type="button"
-          onClick={() => onDelete?.(team)}
-          disabled={isDeleting}
-          className="flex h-8 w-8 shrink-0 items-center justify-center transition-opacity active:opacity-80 disabled:opacity-50"
-          aria-label="Remove team from tournament"
-        >
-          <img src={teamDeleteIcon} alt="" className="h-5 w-5" />
-        </button>
-      </div>
-
-      <div className="mt-3 flex items-start gap-3">
+      <div className="flex items-start gap-3">
         <TeamLogoIcon logo={team.logo} teamName={team.name} />
         <div className="min-w-0 flex-1">
           {/* Fixed: was `text:white` (invalid) → `text-white` */}
@@ -98,9 +76,32 @@ function TeamCard({ team, index, onAddSquad, onDelete, isDeleting }) {
             Icon Players: <span className="text-[#A2A6AB]">{iconPlayers}</span>
           </p>
         </div>
-        <span className="shrink-0 self-center text-[28px] leading-none font-bold text-[#DA98113B]">
-          {index + 1}
-        </span>
+        <div className="flex shrink-0 flex-col items-end gap-3">
+          <div className="flex gap-1.5">
+            <Button
+              type="button"
+              variant="file"
+              size="sm"
+              className="h-8 rounded-full border border-[#DA9811] bg-transparent px-3 text-[12px] font-semibold text-[#DA9811]"
+              onClick={() => onAddSquad?.(team)}
+              disabled={isDeleting}
+            >
+              Add Squad
+            </Button>
+            <button
+              type="button"
+              onClick={() => onDelete?.(team)}
+              disabled={isDeleting}
+              className="flex h-8 w-8 shrink-0 items-center justify-end transition-opacity active:opacity-80 disabled:opacity-50"
+              aria-label="Remove team from tournament"
+            >
+              <img src={teamDeleteIcon} alt="" className="h-5 w-5" />
+            </button>
+          </div>
+          <span className="shrink-0 text-[28px] leading-none font-bold text-[#DA98113B]">
+            {index + 1}
+          </span>
+        </div>
       </div>
     </div>
   );

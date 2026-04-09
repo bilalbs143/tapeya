@@ -213,7 +213,7 @@ export default function Otp() {
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="mt-12 w-full max-w-[358px] space-y-6 lg:mt-14 lg:max-w-[880px] lg:px-20 lg:py-15"
+          className="mt-12 w-full max-w-[358px] space-y-6 lg:mt-14 lg:max-w-[400px] lg:px-0 lg:py-15"
         >
           {/* Show a generic prompt when there is no phone — user landed here directly */}
           <p className="text-center text-[14px] text-white">

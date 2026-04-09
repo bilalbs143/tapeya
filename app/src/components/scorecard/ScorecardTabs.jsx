@@ -14,8 +14,11 @@ import { MatchCard } from './MatchCard';
 
 function TabListRow({ className = '', tournaments = [] }) {
   return (
-    <TabsList className={`${scorecardListClass} ${className}`.trim()}>
-      <TabsTrigger value="all" className={scorecardTriggerClass}>
+    <TabsList className={`${scorecardListClass} lg:gap-2 ${className}`.trim()}>
+      <TabsTrigger
+        value="all"
+        className={`${scorecardTriggerClass} lg:min-w-[96px] lg:px-4`}
+      >
         All
       </TabsTrigger>
       {tournaments.map((tournament) => (
