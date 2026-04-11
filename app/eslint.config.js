@@ -27,7 +27,7 @@ export default [
       'android/**',
       '.capacitor/**',
       'vite.config.js',
-      'capacitor.config.js',
+      'capacitor.config.json',
     ],
   },
   js.configs.recommended,

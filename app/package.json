@@ -81,10 +81,5 @@
     "sass": "^1.97.3",
     "tailwindcss": "^4.0.0",
     "vite": "^6.0.0"
-  },
-  "capacitor": {
-    "appId": "com.tapeya.app",
-    "appName": "Tapeya",
-    "webDir": "dist"
   }
 }

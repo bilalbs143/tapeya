@@ -5,7 +5,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import logoutIcon from '@/assets/images/icons/logout.svg';
 import myOrderIcon from '@/assets/images/icons/my-order.svg';
 import requestTournamentIcon from '@/assets/images/icons/request-tournament.svg';
-import starMatchIcon from '@/assets/images/icons/star-match.svg';
+// import starMatchIcon from '@/assets/images/icons/star-match.svg';
 import supportIcon from '@/assets/images/icons/support.svg';
 import topPlayersIcon from '@/assets/images/icons/top-players.svg';
 import defaultAvatar from '@/assets/images/standard/default-avatar.png';
@@ -29,11 +29,11 @@ const MENU_ITEMS = [
     icon: requestTournamentIcon,
     path: '/tournament-request',
   },
-  {
-    label: 'Start Match',
-    icon: starMatchIcon,
-    path: '/organizer/scoring/start-match',
-  },
+  // {
+  //   label: 'Start Match',
+  //   icon: starMatchIcon,
+  //   path: '/organizer/scoring/start-match',
+  // },
   /* { label: 'Drafting', path: '/drafting' }, */
   /* { label: 'Go live', comingSoon: true }, */
   /* { label: 'Toss', comingSoon: true }, */
