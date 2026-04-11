@@ -227,7 +227,8 @@ export default function Otp() {
             )}
           </p>
 
-          {import.meta.env.DEV && latestOtp && (
+          {/* Shown when API returns otp (APP_DEBUG); not gated on Vite DEV so staging/prod preview builds still work */}
+          {latestOtp && (
             <p
               className="rounded-[6px] border border-[#1A1A1A] bg-[#DA9811]/20 px-4 py-2.5 text-center text-[14px] text-[#E8A820]"
               role="status"
