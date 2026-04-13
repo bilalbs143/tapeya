@@ -7,6 +7,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import tapeyaLogo from '@/assets/images/logos/tapeya-logo-white.svg';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import {
+  clearOtpPreview,
+  extractOtpFromAuthResponse,
+  getOtpPreview,
+  setOtpPreview,
+} from '@/lib/otpPreviewSession';
 import { addSavedProfile, bumpSavedProfile } from '@/lib/savedProfiles';
 import { formatPhoneFull } from '@/lib/utils/phoneUtils';
 import { otpSchema } from '@/lib/validations/auth';
@@ -54,7 +60,11 @@ export default function Otp() {
   const phoneRaw = state?.phone ?? null;
   const phone = formatPhoneFull(phoneRaw ?? '');
 
-  const [latestOtp, setLatestOtp] = useState(state?.otp ?? null);
+  const [latestOtp, setLatestOtp] = useState(() => {
+    if (state?.otp != null && state.otp !== '') return String(state.otp);
+    if (phoneRaw) return getOtpPreview(phoneRaw);
+    return null;
+  });
   const [serverError, setServerError] = useState(null);
   const [resendError, setResendError] = useState(null);
   const [resendCooldown, setResendCooldown] = useState(() =>
@@ -79,6 +89,18 @@ export default function Otp() {
     },
     [],
   );
+
+  // iOS Safari / WebView often drops router state; recover OTP from sessionStorage.
+  useEffect(() => {
+    if (state?.otp != null && state.otp !== '') {
+      setLatestOtp(String(state.otp));
+      return;
+    }
+    if (phoneRaw) {
+      const fromSession = getOtpPreview(phoneRaw);
+      if (fromSession) setLatestOtp(fromSession);
+    }
+  }, [state?.otp, phoneRaw]);
 
   const {
     setValue,
@@ -143,8 +165,11 @@ export default function Otp() {
     try {
       const result = await requestOtp({ phone: phoneRaw }).unwrap();
       toast.success('OTP sent again!');
-      const otp = result?.data?.otp ?? result?.otp;
-      if (otp) setLatestOtp(otp);
+      const otp = extractOtpFromAuthResponse(result);
+      if (otp) {
+        setOtpPreview(phoneRaw, otp);
+        setLatestOtp(otp);
+      }
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
       setStoredCooldownEnd(RESEND_COOLDOWN_SECONDS);
     } catch (err) {
@@ -170,6 +195,7 @@ export default function Otp() {
       const token = auth?.access_token;
 
       if (token && user) {
+        clearOtpPreview();
         dispatch(setCredentials({ user, accessToken: token }));
         addSavedProfile({
           id: user.id,

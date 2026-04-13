@@ -4,6 +4,10 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import tapeyaLogo from '@/assets/images/logos/tapeya-logo-white.svg';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import {
+  extractOtpFromAuthResponse,
+  setOtpPreview,
+} from '@/lib/otpPreviewSession';
 import { registerSchema } from '@/lib/validations/auth';
 import { useRegisterMutation } from '@/store/api/authApi';
 import { Button } from '@/ui/Button';
@@ -36,7 +40,8 @@ export default function Register() {
         email: data.email || undefined,
       }).unwrap();
 
-      const otp = result?.data?.otp ?? result?.otp;
+      const otp = extractOtpFromAuthResponse(result);
+      if (otp) setOtpPreview(data.phone, otp);
       navigate('/otp', { state: { phone: data.phone, otp }, replace: true });
     } catch (err) {
       console.error('Register failed:', err);

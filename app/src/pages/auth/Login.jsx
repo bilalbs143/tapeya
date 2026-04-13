@@ -8,6 +8,10 @@ import tapeyaLogo from '@/assets/images/logos/tapeya-logo-white.svg';
 import defaultAvatar from '@/assets/images/standard/default-avatar.png';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import {
+  extractOtpFromAuthResponse,
+  setOtpPreview,
+} from '@/lib/otpPreviewSession';
+import {
   clearProfileToken,
   getSavedProfiles,
   removeSavedProfile,
@@ -54,7 +58,8 @@ export default function Login() {
 
   const requestOtpAndNavigate = async (phone) => {
     const result = await requestOtp({ phone }).unwrap();
-    const otp = result?.data?.otp ?? result?.otp;
+    const otp = extractOtpFromAuthResponse(result);
+    if (otp) setOtpPreview(phone, otp);
     navigate('/otp', {
       state: { phone, otp, from: location.state?.from },
       replace: true,

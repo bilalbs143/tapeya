@@ -7,6 +7,7 @@ use App\Enums\User\RoleGuardEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
 use App\Events\UserRegistered;
+use App\Exceptions\OtpSmsDeliveryException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\Auth\RegisterRequest;
 use App\Http\Requests\User\Auth\RequestOtpRequest;
@@ -15,6 +16,7 @@ use App\Http\Resources\User\UserResource;
 use App\Models\Role;
 use App\Models\User;
 use App\Utils\Services\OtpService;
+use Illuminate\Support\Facades\Log;
 
 /**
  * User (app) auth: phone + OTP only. No password.
@@ -24,7 +26,8 @@ use App\Utils\Services\OtpService;
  * Both flows complete with the same verify-otp step (activates account and returns token).
  *
  * When APP_DEBUG is true, OTP is not sent by SMS; the code is only included in the JSON response.
- * When TEST_OTP_PHONES lists a number, SMS is still sent (if not debug) and the OTP is also in the JSON.
+ * When TEST_OTP_PHONES lists a number, SMS is still attempted (if not debug) and the OTP is also in the JSON.
+ * If SMS fails for a test-only number, the error is logged and the JSON still includes the OTP for QA.
  */
 class UserAuthController extends Controller
 {
@@ -57,7 +60,7 @@ class UserAuthController extends Controller
 
         event(new UserRegistered($user));
 
-        $this->otpService->sendToUser($user);
+        $this->sendOtpHandlingTestPhoneSmsFailure($user);
 
         $data = ['user' => new UserResource($user)];
         $otp = $this->otpService->getCurrentOtp($user->phone);
@@ -88,7 +91,7 @@ class UserAuthController extends Controller
             return response()->failure('Account is blocked.', 'FORBIDDEN');
         }
 
-        $this->otpService->sendToUser($user);
+        $this->sendOtpHandlingTestPhoneSmsFailure($user);
 
         $otp = $this->otpService->getCurrentOtp($phone);
         $data = $otp !== null ? ['otp' => $otp] : null;
@@ -149,5 +152,26 @@ class UserAuthController extends Controller
         request()->user()->currentAccessToken()?->delete();
 
         return response()->success(message: 'auth.logged_out');
+    }
+
+    /**
+     * Send OTP SMS unless APP_DEBUG. For TEST_OTP_PHONES, OTP is always stored; if SMS fails, still allow JSON OTP for QA.
+     */
+    private function sendOtpHandlingTestPhoneSmsFailure(User $user): void
+    {
+        try {
+            $this->otpService->sendToUser($user);
+        } catch (OtpSmsDeliveryException $e) {
+            if (! OtpService::isTestOtpPhone($user->phone)) {
+                throw $e;
+            }
+
+            Log::warning('OTP SMS failed for TEST_OTP_PHONES number; returning OTP in API only.', [
+                'user_id' => $user->id,
+                'phone' => OtpService::normalizePhone($user->phone),
+                'exception' => $e::class,
+                'message' => $e->getMessage(),
+            ]);
+        }
     }
 }
