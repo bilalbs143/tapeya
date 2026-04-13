@@ -4,17 +4,15 @@ namespace App\Notifications;
 
 use App\Enums\Shop\OrderStatusEnum;
 use App\Models\Shop\Order;
-use App\Notifications\Concerns\HasOrderPayload;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class OrderStatusUpdatedUserNotification extends Notification implements ShouldQueue
+/**
+ * In-app notification only (no ShouldQueue) so {@see NotificationSent} runs immediately and
+ * {@see BroadcastUserDatabaseNotification} can push to Reverb in the same process as the admin update.
+ * Email is sent via {@see OrderStatusUpdatedUserMailNotification} (queued).
+ */
+class OrderStatusUpdatedUserNotification extends Notification
 {
-    use HasOrderPayload;
-    use Queueable;
-
     public function __construct(
         protected Order $order,
         protected ?OrderStatusEnum $previousStatus = null
@@ -23,23 +21,11 @@ class OrderStatusUpdatedUserNotification extends Notification implements ShouldQ
     }
 
     /**
-     * Channels: database + mail only.
-     *
      * @return array<int, string>
      */
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
-    }
-
-    public function toMail(object $notifiable): MailMessage
-    {
-        $orderNumber = $this->order->order_number;
-        $statusLabel = $this->order->status?->label() ?? 'Updated';
-
-        return (new MailMessage)
-            ->subject('Order '.$orderNumber.' status: '.$statusLabel)
-            ->view('emails.user.order-status-updated', $this->orderStatusPayload());
+        return ['database'];
     }
 
     /**
@@ -70,19 +56,5 @@ class OrderStatusUpdatedUserNotification extends Notification implements ShouldQ
             'customer_name' => $customerName,
             'message' => $message,
         ];
-    }
-
-    /**
-     * Payload for order-status-updated email view (order + status info).
-     *
-     * @return array<string, mixed>
-     */
-    protected function orderStatusPayload(): array
-    {
-        $base = $this->orderPayload();
-        $base['statusLabel'] = $this->order->status?->label() ?? 'Updated';
-        $base['previousStatusLabel'] = $this->previousStatus?->label();
-
-        return $base;
     }
 }

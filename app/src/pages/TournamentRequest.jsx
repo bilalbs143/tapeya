@@ -161,7 +161,6 @@ export default function TournamentRequest() {
       await createTournamentRequest(payload).unwrap();
       navigate('/tournament-request/success');
     } catch (err) {
-      console.error('Tournament request failed:', err);
       toast.error(
         getApiErrorMessage(err, 'Failed to submit request. Please try again.'),
       );

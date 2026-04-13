@@ -10,6 +10,17 @@ import { baseApi } from './baseApi';
  */
 export const notificationApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    /** Minimal fetch to read `meta.unread_count` (same tag as list → Reverb + read mutations keep badge in sync). */
+    getNotificationUnreadCount: builder.query({
+      query: () => ({
+        url: '/notifications',
+        params: { per_page: 1, page: 1 },
+      }),
+      transformResponse: (response) => ({
+        unreadCount: Number(response?.meta?.unread_count ?? 0),
+      }),
+      providesTags: () => [{ type: 'List', id: 'Notifications' }],
+    }),
     getNotifications: builder.query({
       query: (params = {}) => ({
         url: '/notifications',
@@ -25,9 +36,9 @@ export const notificationApi = baseApi.injectEndpoints({
       providesTags: (result) =>
         result?.data && Array.isArray(result.data) && result.data.length
           ? [
-              ...result.data.map((n) => ({ type: 'Item', id: n.id })),
-              { type: 'List', id: 'Notifications' },
-            ]
+            ...result.data.map((n) => ({ type: 'Item', id: n.id })),
+            { type: 'List', id: 'Notifications' },
+          ]
           : [{ type: 'List', id: 'Notifications' }],
     }),
     markAllNotificationsRead: builder.mutation({
@@ -51,6 +62,7 @@ export const notificationApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useGetNotificationUnreadCountQuery,
   useGetNotificationsQuery,
   useMarkAllNotificationsReadMutation,
   useMarkNotificationReadMutation,
