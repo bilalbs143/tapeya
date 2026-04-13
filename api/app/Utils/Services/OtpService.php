@@ -20,8 +20,8 @@ class OtpService
     ) {}
 
     /**
-     * Generate OTP, store under a normalized phone cache key, and send SMS unless APP_DEBUG is true
-     * (debug: OTP is only returned in the API JSON for local testing — no real SMS).
+     * Generate OTP, store under a normalized phone cache key, and send SMS unless APP_DEBUG is true.
+     * In debug mode no SMS is sent; numbers in TEST_OTP_PHONES still receive SMS when debug is off.
      */
     public function sendToUser(User $user): void
     {
@@ -88,11 +88,37 @@ class OtpService
     }
 
     /**
-     * Return current OTP for a phone (for testing when APP_DEBUG is true).
+     * Whether this phone may receive the OTP in API responses (APP_DEBUG or TEST_OTP_PHONES).
+     */
+    public static function shouldExposeOtpInResponse(string $phone): bool
+    {
+        return config('app.debug') || self::isTestOtpPhone($phone);
+    }
+
+    /**
+     * Phone listed in config otp.test_phone_numbers (comma-separated in TEST_OTP_PHONES).
+     */
+    public static function isTestOtpPhone(string $phone): bool
+    {
+        $normalized = self::normalizePhone($phone);
+        foreach (config('otp.test_phone_numbers', []) as $raw) {
+            if ($raw === '') {
+                continue;
+            }
+            if (self::normalizePhone($raw) === $normalized) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Return current OTP when exposure is allowed (debug or test phone).
      */
     public function getCurrentOtp(string $phone): ?string
     {
-        if (! config('app.debug')) {
+        if (! self::shouldExposeOtpInResponse($phone)) {
             return null;
         }
 

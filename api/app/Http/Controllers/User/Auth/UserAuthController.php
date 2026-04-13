@@ -24,6 +24,7 @@ use App\Utils\Services\OtpService;
  * Both flows complete with the same verify-otp step (activates account and returns token).
  *
  * When APP_DEBUG is true, OTP is not sent by SMS; the code is only included in the JSON response.
+ * When TEST_OTP_PHONES lists a number, SMS is still sent (if not debug) and the OTP is also in the JSON.
  */
 class UserAuthController extends Controller
 {
@@ -59,8 +60,9 @@ class UserAuthController extends Controller
         $this->otpService->sendToUser($user);
 
         $data = ['user' => new UserResource($user)];
-        if (config('app.debug')) {
-            $data['otp'] = $this->otpService->getCurrentOtp($user->phone);
+        $otp = $this->otpService->getCurrentOtp($user->phone);
+        if ($otp !== null) {
+            $data['otp'] = $otp;
         }
 
         return response()->success($data, 'auth.otp_sent', 'SUCCESS');
@@ -88,10 +90,8 @@ class UserAuthController extends Controller
 
         $this->otpService->sendToUser($user);
 
-        $data = null;
-        if (config('app.debug')) {
-            $data = ['otp' => $this->otpService->getCurrentOtp($phone)];
-        }
+        $otp = $this->otpService->getCurrentOtp($phone);
+        $data = $otp !== null ? ['otp' => $otp] : null;
 
         return response()->success($data, 'auth.otp_sent', 'SUCCESS');
     }
