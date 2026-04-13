@@ -12,6 +12,7 @@ class SupportMessage extends Model
         'name',
         'phone',
         'message',
+        'attachment_path',
     ];
 
     public function user(): BelongsTo
