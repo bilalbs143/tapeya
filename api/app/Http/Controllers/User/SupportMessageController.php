@@ -12,15 +12,22 @@ class SupportMessageController extends Controller
 {
     use BaseControllerTrait;
 
+    private const ATTACHMENT_STORAGE_PATH = 'support-messages/attachments';
+
     /** Store a contact / support message from an authenticated app user. */
     public function store(StoreSupportMessageRequest $request): JsonResponse
     {
-        $data = $request->validated();
+        $validated = $request->validated();
+
+        $fileData = [];
+        $this->storeImage($request, 'attachment', self::ATTACHMENT_STORAGE_PATH, $fileData);
+
         $record = SupportMessage::create([
             'user_id' => $request->user()?->id,
-            'name' => $data['name'],
-            'phone' => $data['phone'] ?? null,
-            'message' => $data['message'],
+            'name' => $validated['name'],
+            'phone' => $validated['phone'] ?? null,
+            'message' => $validated['message'],
+            'attachment_path' => $fileData['attachment'] ?? null,
         ]);
 
         return $this->success(

@@ -14,6 +14,7 @@ return new class extends Migration
             $table->string('name', 255);
             $table->string('phone', 30)->nullable();
             $table->text('message');
+            $table->string('attachment_path', 500)->nullable();
             $table->timestamps();
         });
     }

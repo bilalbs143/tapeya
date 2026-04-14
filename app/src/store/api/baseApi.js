@@ -5,6 +5,15 @@ import { clearCredentials } from '@/store/slices/authSlice';
 export const baseUrl =
   import.meta.env.VITE_API_URL || 'https://api.tapeya.com/api/v1';
 
+/** Origin of the Laravel app (no `/api/v1`), for `/broadcasting/auth` and similar. */
+export function getApiOrigin() {
+  try {
+    return new URL(baseUrl).origin;
+  } catch {
+    return '';
+  }
+}
+
 const rawBaseQuery = fetchBaseQuery({
   baseUrl,
   prepareHeaders: (headers, { getState }) => {

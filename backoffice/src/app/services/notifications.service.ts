@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 
 import { toHttpParams } from 'src/app/shared/functions/http-params.function';
 import type { ListParams } from 'src/app/shared/functions/list-params.function';
@@ -51,6 +51,15 @@ export interface NotificationsListResponse {
 export class NotificationsService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = 'v1/admin/notifications';
+
+  private readonly adminInboxBroadcastSubject = new Subject<void>();
+
+  /** Emits when a new admin inbox notification arrives over Reverb (refresh bell / list). */
+  public readonly adminInboxBroadcast$: Observable<void> = this.adminInboxBroadcastSubject.asObservable();
+
+  public notifyAdminInboxBroadcast(): void {
+    this.adminInboxBroadcastSubject.next();
+  }
 
   public getList(
     params: Partial<ListParams> & Record<string, unknown> = {}

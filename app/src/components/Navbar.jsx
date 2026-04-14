@@ -15,6 +15,8 @@ import {
   NAVBAR_Z,
 } from '@/lib/constants/layout';
 import { BOTTOM_NAV_ITEMS } from '@/lib/constants/navigation';
+import { useGetNotificationUnreadCountQuery } from '@/store/api/notificationApi';
+import { useAppSelector } from '@/store/hooks';
 
 const iconBtn =
   'flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#141412] transition-colors hover:bg-zinc-700';
@@ -33,6 +35,12 @@ function isTabActive(pathname, tabPath) {
 export function Navbar({ onMenuClick }) {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const accessToken = useAppSelector((s) => s.auth?.accessToken);
+  const { data: unreadData } = useGetNotificationUnreadCountQuery(undefined, {
+    skip: !accessToken,
+  });
+  const unreadCount = Math.max(0, unreadData?.unreadCount ?? 0);
+  const badgeLabel = unreadCount > 99 ? '99+' : unreadCount > 0 ? String(unreadCount) : null;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -90,10 +98,22 @@ export function Navbar({ onMenuClick }) {
       <div className="flex shrink-0 items-center gap-2">
         <Link
           to="/notification-center"
-          className={iconBtn}
-          aria-label="Notifications"
+          className={`${iconBtn} relative`}
+          aria-label={
+            unreadCount > 0
+              ? `Notifications, ${unreadCount} unread`
+              : 'Notifications'
+          }
         >
           <img src={notificationIcon} alt="" className="h-3.5 w-3.5" />
+          {badgeLabel ? (
+            <span
+              className="absolute -top-0.5 -right-0.5 flex min-h-[16px] min-w-[16px] items-center justify-center rounded-full bg-[#DA9811] px-1 text-[10px] font-bold leading-none text-[#080807]"
+              aria-hidden
+            >
+              {badgeLabel}
+            </span>
+          ) : null}
         </Link>
 
         <button

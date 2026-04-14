@@ -3,7 +3,8 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import DialogManager from '@/components/dialogs/DialogManager';
 import { ProfileStrengthReminderScheduler } from '@/components/ProfileStrengthReminderScheduler';
 import { RequireAuth } from '@/components/RequireAuth';
-import { RequireOrganizerRole } from '@/components/RequireOrganizerRole';
+// import { RequireOrganizerRole } from '@/components/RequireOrganizerRole';
+import { ReverbNotificationListener } from '@/components/ReverbNotificationListener';
 import { ScrollRestoration } from '@/components/ScrollRestoration';
 import SplashScreen from '@/components/SplashScreen';
 import { ToastProvider } from '@/contexts/ToastContext';
@@ -72,6 +73,7 @@ function App() {
             }}
           >
             <ScrollRestoration />
+            <ReverbNotificationListener />
             <DialogManager />
             <ProfileStrengthReminderScheduler />
             <Routes>
@@ -96,32 +98,32 @@ function App() {
                     path="/upcoming-tournaments/:tournamentId"
                     element={<UpcomingTournamentDetails />}
                   />
-                  <Route element={<RequireOrganizerRole />}>
-                    <Route
-                      path="/organizer/tournaments"
-                      element={<Tournaments />}
-                    />
-                    <Route
-                      path="/organizer/tournaments/:tournamentId/create-team-intro"
-                      element={<TournamentCreateTeamIntro />}
-                    />
-                    <Route
-                      path="/organizer/tournaments/:tournamentId/add-team"
-                      element={<TournamentAddTeam />}
-                    />
-                    <Route
-                      path="/organizer/tournaments/:tournamentId/saved-teams"
-                      element={<TournamentSavedTeams />}
-                    />
-                    <Route
-                      path="/organizer/tournaments/:tournamentId/add-squad"
-                      element={<TournamentAddSquad />}
-                    />
-                    <Route
-                      path="/organizer/tournaments/:tournamentId/squad"
-                      element={<TournamentSquad />}
-                    />
-                  </Route>
+                  {/* <Route element={<RequireOrganizerRole />}> */}
+                  <Route
+                    path="/organizer/tournaments"
+                    element={<Tournaments />}
+                  />
+                  <Route
+                    path="/organizer/tournaments/:tournamentId/create-team-intro"
+                    element={<TournamentCreateTeamIntro />}
+                  />
+                  <Route
+                    path="/organizer/tournaments/:tournamentId/add-team"
+                    element={<TournamentAddTeam />}
+                  />
+                  <Route
+                    path="/organizer/tournaments/:tournamentId/saved-teams"
+                    element={<TournamentSavedTeams />}
+                  />
+                  <Route
+                    path="/organizer/tournaments/:tournamentId/add-squad"
+                    element={<TournamentAddSquad />}
+                  />
+                  <Route
+                    path="/organizer/tournaments/:tournamentId/squad"
+                    element={<TournamentSquad />}
+                  />
+                  {/* </Route> */}
                   <Route
                     path="/organizer/scoring/start-match"
                     element={<StartMatch />}

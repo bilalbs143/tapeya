@@ -3,13 +3,13 @@
 namespace App\Listeners;
 
 use App\Events\OrderStatusUpdated;
+use App\Notifications\OrderStatusUpdatedUserMailNotification;
 use App\Notifications\OrderStatusUpdatedUserNotification;
-use Illuminate\Contracts\Queue\ShouldQueue;
 
-class SendOrderStatusUpdatedUserNotification implements ShouldQueue
+class SendOrderStatusUpdatedUserNotification
 {
     /**
-     * When admin updates order status, notify the customer (database + mail).
+     * When admin updates order status, notify the customer (database immediately for Reverb + queued mail).
      */
     public function handle(OrderStatusUpdated $event): void
     {
@@ -17,8 +17,13 @@ class SendOrderStatusUpdatedUserNotification implements ShouldQueue
         $order->loadMissing(['user']);
 
         $user = $order->user;
-        if ($user) {
-            $user->notify(new OrderStatusUpdatedUserNotification($order, $event->previousStatus));
+        if (! $user) {
+            return;
         }
+
+        $previous = $event->previousStatus;
+
+        $user->notify(new OrderStatusUpdatedUserNotification($order, $previous));
+        $user->notify(new OrderStatusUpdatedUserMailNotification($order, $previous));
     }
 }

@@ -53,14 +53,26 @@ flowchart LR
 
 ## 3. Setup outline (when you enable it)
 
-Follow the **current** [Laravel Reverb documentation](https://laravel.com/docs/reverb) for exact commands; the flow is usually:
+### Tapeya API (implemented)
 
-1. Install Reverb and (if needed) publishing **`config/broadcasting.php`**, **`routes/channels.php`**, and **`.env`** keys.
-2. Set **`BROADCAST_CONNECTION=reverb`** (and Reverb host/port/scheme/App ID/key/secret as generated).
-3. Run the Reverb process: **`php artisan reverb:start`** (development and production—often supervised by **Supervisor**, **systemd**, or your PaaS worker type).
-4. In production, terminate **TLS** at a reverse proxy or load balancer in front of Reverb if browsers connect with **`wss:`**.
+- **Package:** `laravel/reverb` (Composer). Config: `config/broadcasting.php`, `config/reverb.php`, `routes/channels.php`.
+- **Env:** See `api/.env.example` — `BROADCAST_CONNECTION=reverb`, `REVERB_APP_*`, `REVERB_HOST` / `REVERB_PORT` / `REVERB_SCHEME`, optional `REVERB_ALLOWED_ORIGINS` (comma-separated; default `*` via config).
+- **Auth for private channels:** `POST/GET /broadcasting/auth` is registered with **`api` + `auth:api`** (Sanctum bearer token). Point **Laravel Echo** `authEndpoint` at `{APP_URL}/broadcasting/auth` and send the same `Authorization` header as other API calls.
+- **Run Reverb:** `composer reverb` from `api/` or **`php artisan reverb:start`**. **`composer dev`** in `api/` also starts Reverb alongside `serve`, queue, pail, and Vite.
+- **Live events (current):** Database notifications are mapped to **named** broadcast events via `ResolveAdminInboxBroadcast` / `ResolveUserNotificationBroadcast` (see `App\Support\Broadcast\BroadcastEventNames`). **Admin inbox** (`private-backoffice.notifications`): e.g. `.admin.order.placed`, `.admin.tournament_request.submitted`, `.admin.user.registered`. **App user** (`private-App.Models.User.{id}`): e.g. `.user.order.placed`, `.user.order.status_updated`. Clients subscribe to **all** names listed in their `broadcast-events` config and refetch / invalidate on any match. Match graphics are **not** broadcast yet.
+- **Backoffice Echo config:** `backoffice/src/environments/environment.development.ts` → `reverb` block (`appKey` must match `REVERB_APP_KEY`). Production template has `reverb.enabled: false` until you configure **wss** and keys.
+- **App Echo config:** Defaults live in **`app/src/config/reverb.js`** (aligned with `api/.env.example`). Optional **`VITE_REVERB_*`** overrides; **`VITE_REVERB_ENABLED=false`** disables the listener. For production, set **`VITE_REVERB_*`** (or defaults) to match your API Reverb host, port, scheme, and app key.
+- **Shop / user push timing:** **`OrderPlaced`**: `SendOrderPlacedCustomerDatabaseNotification` (sync) writes the customer DB row + broadcast in the checkout request; mail/SMS + admin inbox stay on **`SendOrderPlacedNotifications`** (queued). **`OrderStatusUpdated`**: customer DB is sync; mail is queued (see notifications in `app/Notifications`).
 
-**Queues:** If events use **`ShouldBroadcast` with `ShouldQueue`**, ensure **queue workers** run so broadcasts are not lost.
+### General checklist (Laravel docs)
+
+Follow the **current** [Laravel Reverb documentation](https://laravel.com/docs/reverb) for scaling, TLS, and upgrades:
+
+1. Set **`BROADCAST_CONNECTION=reverb`** and Reverb app credentials / host / port / scheme.
+2. Run **`php artisan reverb:start`** in dev; in production use **Supervisor**, **systemd**, or your PaaS worker type.
+3. Terminate **TLS** at a reverse proxy or load balancer in front of Reverb if browsers use **`wss:`**.
+
+**Queues:** Admin inbox notifications are often created inside **queued** notification jobs; **`NotificationSent`** (and thus the Reverb broadcast) runs when the job executes—keep **`php artisan queue:work`** running in dev if you use `ShouldQueue` on those notifications. The broadcast event itself uses **`ShouldBroadcastNow`**.
 
 ---
 
@@ -254,4 +266,4 @@ Keeping **HTTP resources** the **source of truth** for full state and using broa
 
 ---
 
-*Internal doc for Tapeya. Install Reverb and publish configs when you are ready; commands above are illustrative—verify against your Laravel version’s documentation.*
+*Internal doc for Tapeya. Reverb is installed in the API; verify host/TLS and scaling against your Laravel version’s documentation.*

@@ -80,12 +80,15 @@ export function createTournamentRequestSchema(groupModeValues = []) {
       group_mode: z.enum(groupModeEnum, {
         required_error: 'Select Open Group or Group Wise',
       }),
-      number_of_groups: z.coerce
-        .number({ invalid_type_error: 'Enter a number' })
-        .int('Must be a whole number')
-        .min(2, 'At least 2 groups')
-        .max(16, 'At most 16 groups')
-        .optional(),
+      number_of_groups: z.preprocess(
+        (val) => (val === '' || val === null ? undefined : val),
+        z.coerce
+          .number({ invalid_type_error: 'Enter a number' })
+          .int('Must be a whole number')
+          .min(2, 'At least 2 groups')
+          .max(16, 'At most 16 groups')
+          .optional(),
+      ),
     })
     .refine(
       (data) => {

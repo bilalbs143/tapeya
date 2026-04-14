@@ -37,6 +37,7 @@ class StoreSupportMessageRequest extends FormRequest
             'name' => ['required', 'string', 'min:2', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'],
             'message' => ['required', 'string', 'min:10', 'max:10000'],
+            'attachment' => ['nullable', 'file', 'max:5120', 'mimes:jpg,jpeg,png,gif,webp,pdf'],
         ];
     }
 }

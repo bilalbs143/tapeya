@@ -1,5 +1,6 @@
 import {
   Component,
+  DestroyRef,
   EventEmitter,
   OnInit,
   Signal,
@@ -9,6 +10,7 @@ import {
   Output,
   ViewEncapsulation,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterModule } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { NgScrollbarModule } from 'ngx-scrollbar';
@@ -17,6 +19,7 @@ import { AppSettings } from 'src/app/config';
 import { MaterialModule } from 'src/app/material.module';
 import type { AuthUser } from 'src/app/models/auth.models';
 import { AuthService } from 'src/app/services/auth.service';
+import { BackofficeReverbService } from 'src/app/services/backoffice-reverb.service';
 import { CoreService } from 'src/app/services/core.service';
 import type { Notification } from 'src/app/services/notifications.service';
 import { NotificationsService } from 'src/app/services/notifications.service';
@@ -61,6 +64,14 @@ export class HeaderComponent implements OnInit {
   private readonly settings = inject(CoreService);
   private readonly auth = inject(AuthService);
   private readonly notificationsService = inject(NotificationsService);
+  private readonly reverb = inject(BackofficeReverbService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  public constructor() {
+    this.notificationsService.adminInboxBroadcast$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadNotifications());
+  }
 
   public readonly AdminNotificationType = AdminNotificationType;
   public apiNotifications: Notification[] = [];
@@ -83,11 +94,13 @@ export class HeaderComponent implements OnInit {
   }
 
   public logout() {
+    this.reverb.disconnect();
     this.auth.logout();
   }
 
   public ngOnInit(): void {
     this.loadNotifications();
+    this.reverb.connect();
   }
 
   public loadNotifications(): void {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -25,6 +25,8 @@ export default function Support() {
     phone: '',
   });
   const [errors, setErrors] = useState({});
+  const [attachment, setAttachment] = useState(null);
+  const attachmentInputRef = useRef(null);
   const [submitSupport, { isLoading: isSubmitting }] =
     useSubmitSupportMessageMutation();
 
@@ -65,12 +67,17 @@ export default function Support() {
         name: values.name.trim(),
         phone: values.phone.trim() || undefined,
         message: values.message.trim(),
+        ...(attachment ? { attachment } : {}),
       }).unwrap();
       setErrors({});
       toast.success(
         result?.message ??
           'Your message has been sent. We will get back to you soon.',
       );
+      setAttachment(null);
+      if (attachmentInputRef.current) {
+        attachmentInputRef.current.value = '';
+      }
       if (me) {
         setValues({
           name: me.name?.trim() || me.nickname?.trim() || '',
@@ -87,6 +94,7 @@ export default function Support() {
         if (data.errors.name?.[0]) next.name = data.errors.name[0];
         if (data.errors.message?.[0]) next.message = data.errors.message[0];
         if (data.errors.phone?.[0]) next.phone = data.errors.phone[0];
+        if (data.errors.attachment?.[0]) next.attachment = data.errors.attachment[0];
         if (Object.keys(next).length) setErrors(next);
       }
       toast.error(getApiErrorMessage(err));
@@ -205,6 +213,37 @@ export default function Support() {
               {errors.message && (
                 <p className="text-sm text-red-200" role="alert">
                   {errors.message}
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label
+                htmlFor="support-attachment"
+                className="text-[12px] font-bold text-[#A2A6AB] uppercase"
+              >
+                Attachment <span className="font-normal normal-case">(optional)</span>
+              </label>
+              <input
+                ref={attachmentInputRef}
+                id="support-attachment"
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp,application/pdf"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null;
+                  setAttachment(file);
+                  setErrors((prev) => ({ ...prev, attachment: undefined }));
+                }}
+                className={`block w-full text-[13px] text-[#A2A6AB] file:mr-3 file:rounded-[6px] file:border-0 file:bg-[#141412] file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-[#1a1a18] ${
+                  errors.attachment ? 'ring-2 ring-red-500/40 rounded-[6px]' : ''
+                }`}
+              />
+              <p className="text-[11px] leading-snug text-[#A2A6AB]/80">
+                JPG, PNG, GIF, WebP, or PDF. Max 5&nbsp;MB.
+              </p>
+              {errors.attachment && (
+                <p className="text-sm text-red-200" role="alert">
+                  {errors.attachment}
                 </p>
               )}
             </div>
