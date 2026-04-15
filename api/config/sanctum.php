@@ -19,10 +19,6 @@ return [
         '%s%s',
         'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1',
         Sanctum::currentApplicationUrlWithPort(),
-        // 'localhost,dev.api.art-chip.com'
-        // 'https://dev.master.art-chip.com/',
-        // 'dev.master.art-chip.com',
-        // 'https://dev.master.art-chip.com',
         // Sanctum::currentRequestHost(),
     ))),
 
@@ -49,7 +45,8 @@ return [
     | considered expired. This will override any values set in the token's
     | "expires_at" attribute, but first-party sessions are not affected.
     |
-    | null = tokens never expire by time (until logout / token revoked).
+    | null = personal access tokens do not expire by time (users stay signed in
+    | until logout or token deletion). Set to an integer to enforce a max age.
     |
     */
 

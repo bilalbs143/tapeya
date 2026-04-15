@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 
 import tapeyaLogo from '@/assets/images/logos/tapeya-logo-white.svg';
+import { isReturningUser } from '@/lib/returningUser';
 import { useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated } from '@/store/selectors';
 
@@ -29,7 +30,13 @@ export default function SplashScreen() {
   }, [exiting]);
 
   if (redirect) {
-    return <Navigate to={isAuthenticated ? '/home' : '/login'} replace />;
+    if (isAuthenticated) {
+      return <Navigate to="/home" replace />;
+    }
+    if (isReturningUser()) {
+      return <Navigate to="/login" replace />;
+    }
+    return <Navigate to="/register" replace />;
   }
 
   return (

@@ -13,6 +13,7 @@ import {
   getOtpPreview,
   setOtpPreview,
 } from '@/lib/otpPreviewSession';
+import { markReturningUser } from '@/lib/returningUser';
 import { addSavedProfile, bumpSavedProfile } from '@/lib/savedProfiles';
 import { formatPhoneFull } from '@/lib/utils/phoneUtils';
 import { otpSchema } from '@/lib/validations/auth';
@@ -25,7 +26,7 @@ import { setCredentials } from '@/store/slices/authSlice';
 import { Button } from '@/ui/Button';
 import { Input } from '@/ui/Input';
 
-const OTP_LENGTH = 6;
+const OTP_LENGTH = 4;
 const RESEND_COOLDOWN_SECONDS = 60;
 const OTP_COOLDOWN_KEY = 'otp_resend_cooldown_end';
 
@@ -196,6 +197,7 @@ export default function Otp() {
 
       if (token && user) {
         clearOtpPreview();
+        markReturningUser();
         dispatch(setCredentials({ user, accessToken: token }));
         addSavedProfile({
           id: user.id,
@@ -259,7 +261,7 @@ export default function Otp() {
               className="rounded-[6px] border border-[#1A1A1A] bg-[#DA9811]/20 px-4 py-2.5 text-center text-[14px] text-[#E8A820]"
               role="status"
             >
-              For testing: OTP is{' '}
+              Use this OTP Below: {' '}
               <strong className="tabular-nums">{latestOtp}</strong>
             </p>
           )}

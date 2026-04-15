@@ -27,10 +27,13 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (ValidationException $e, $request) {
             if ($request->expectsJson()) {
+                $errors = $e->errors();
+                $first = collect($errors)->flatten()->first();
+
                 return response()->failure(
-                    $e->getMessage(),
+                    is_string($first) && $first !== '' ? $first : $e->getMessage(),
                     'VALIDATION_ERROR',
-                    $e->errors()
+                    $errors
                 );
             }
         });

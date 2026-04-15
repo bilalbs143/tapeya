@@ -49,20 +49,21 @@ class OtpService
         }
     }
 
+    /**
+     * Four-digit numeric OTP. Uses mixed patterns (same idea as the former 6-digit
+     * generator): avoids an all-uniform look and keeps codes easy to read in SMS.
+     */
     public function generateCode(): string
     {
         return match (random_int(0, 2)) {
             0 => sprintf(
-                '%02d%02d%02d',
-                random_int(10, 99),
+                '%02d%02d',
                 random_int(10, 99),
                 random_int(10, 99),
             ),
             1 => str_repeat((string) random_int(1, 9), 2)
-                .str_repeat((string) random_int(1, 9), 2)
                 .sprintf('%02d', random_int(10, 99)),
             2 => str_repeat((string) random_int(1, 9), 2)
-                .str_repeat((string) random_int(1, 9), 2)
                 .str_repeat((string) random_int(1, 9), 2),
         };
     }
