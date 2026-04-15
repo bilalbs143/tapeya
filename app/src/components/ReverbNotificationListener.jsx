@@ -17,7 +17,7 @@ import { updateUser } from '@/store/slices/authSlice';
  * Calls GET /api/v1/me whenever a bearer token exists so we always have a user id for
  * the private channel and `/broadcasting/auth` (Echo), even if persisted `auth.user` lacked `id`.
  *
- * Config: `src/config/reverb.js` (defaults match `api/.env.example`).
+ * Config: `src/config/reverb.js` (host/port/scheme derived from `VITE_API_URL` / `baseApi` origin, like backoffice `environment.ts`).
  */
 export function ReverbNotificationListener() {
   const dispatch = useAppDispatch();

@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Support\Broadcast\ResolveUserNotificationBroadcast;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\Events\NotificationSent;
+use Throwable;
 
 class BroadcastUserDatabaseNotification
 {
@@ -27,7 +28,11 @@ class BroadcastUserDatabaseNotification
 
         $broadcast = ResolveUserNotificationBroadcast::resolve($notifiable, $record);
         if ($broadcast !== null) {
-            broadcast($broadcast);
+            try {
+                broadcast($broadcast);
+            } catch (Throwable $e) {
+                report($e);
+            }
         }
     }
 }
