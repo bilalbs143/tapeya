@@ -6,7 +6,6 @@ dist/
 www/
 
 # Capacitor
-ios/
 android/
 .capacitor/
 
