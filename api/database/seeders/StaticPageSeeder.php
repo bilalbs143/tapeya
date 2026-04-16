@@ -221,19 +221,32 @@ HTML;
 
   <p>The Service is not directed at children under the age required by local law to consent without a parent. We do not knowingly collect personal information from those children. If you believe we have, contact us and we will take appropriate steps.</p>
 
-  <h2>10. International transfers</h2>
+  <h2 id="age-suitability">10. Age suitability</h2>
+
+  <p>This section summarises how Tapeya is intended to be used and who it is suitable for. You may share this page with app stores or parents as supplemental information alongside our age rating disclosures.</p>
+
+  <ul>
+    <li><strong>What Tapeya is:</strong> Tapeya is a sports and community platform focused on cricket tournaments, scoring, schedules, profiles, highlights, and related features (including optional shop or organiser tools where available).</li>
+    <li><strong>Typical audience:</strong> The Service is designed for teens and adults who participate in or follow amateur or organised cricket. Some regions require parental involvement for minors; where that applies, a parent or guardian should supervise account creation and use.</li>
+    <li><strong>User-generated content:</strong> Users may upload or post content such as profile photos, match information, messages, or media. Content reflects what users choose to share; we provide tools and rules to reduce misuse, but we cannot guarantee that all user content will be free of strong language, competitive banter, or occasional mature themes.</li>
+    <li><strong>Commerce:</strong> Where the Service includes a shop or payments, purchases are ordinary e-commerce transactions. We do not operate real-money gambling, sweepstakes, or wagering through the Service.</li>
+    <li><strong>Safety and reporting:</strong> If you see content or behaviour that appears unsafe, illegal, or inappropriate, contact us at hello@tapeya.com with relevant details so we can review and take appropriate action consistent with our Terms of Use and policies.</li>
+    <li><strong>Alignment with app store ratings:</strong> Our responses in platform age-rating questionnaires (including Apple’s) are answered honestly based on current features. If features change materially, we will update both the product and this section where needed.</li>
+  </ul>
+
+  <h2>11. International transfers</h2>
 
   <p>We may process and store information in countries other than your own. Where required, we use appropriate safeguards (for example contractual clauses) for cross-border transfers.</p>
 
-  <h2>11. Cookies and similar technologies</h2>
+  <h2>12. Cookies and similar technologies</h2>
 
   <p>We may use cookies, local storage, or similar technologies for sign-in, preferences, analytics, and security. You can control some of these through your browser or device settings.</p>
 
-  <h2>12. Changes to this Policy</h2>
+  <h2>13. Changes to this Policy</h2>
 
   <p>We may update this Policy from time to time. We will post the new version and update the “Last updated” date. For material changes, we may provide additional notice.</p>
 
-  <h2>13. Contact</h2>
+  <h2>14. Contact</h2>
 
   <p>Privacy questions or requests: hello@tapeya.com</p>
 </article>
