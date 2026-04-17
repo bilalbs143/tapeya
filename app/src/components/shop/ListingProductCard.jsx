@@ -2,9 +2,12 @@ import { memo } from 'react';
 
 import { Link } from 'react-router-dom';
 
-import productCartIcon from '@/assets/images/icons/product-cart-icon.svg';
 import { useAddToCart } from '@/hooks/shop/useAddToCart';
 import { formatPrice } from '@/lib/format';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const productCartIcon = `${CLOUDFRONT_APP_BASE}/images/icons/product-cart-icon.svg`;
 
 function ListingProductCardInner({ product, brandSlug }) {
   const { addingProductId, handleAddToCartForCard } = useAddToCart();

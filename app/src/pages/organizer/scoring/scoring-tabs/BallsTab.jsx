@@ -1,10 +1,13 @@
 import { Fragment, useMemo, useState } from 'react';
 
-import arrowRightOrange from '@/assets/images/icons/arrow-right-orange.svg';
 import {
   ballsToOvers,
   buildBallListWithMetaAndOverSummaries,
 } from '@/lib/utils/scoringUtils';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const arrowRightOrange = `${CLOUDFRONT_APP_BASE}/images/icons/arrow-right-orange.svg`;
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 

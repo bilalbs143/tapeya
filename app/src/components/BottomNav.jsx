@@ -1,11 +1,14 @@
 import { Link, useLocation } from 'react-router-dom';
 
-import profileIcon from '@/assets/images/icons/profile.svg';
-import scoreIcon from '@/assets/images/icons/score-bottom.svg';
-import shopIcon from '@/assets/images/icons/shop-navigation.svg';
-import upcomingIcon from '@/assets/images/icons/upcoming-bottom.svg';
-import logo from '@/assets/images/logos/tapya-t.svg';
 import { BOTTOM_NAV_Z } from '@/lib/constants/layout';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const profileIcon = `${CLOUDFRONT_APP_BASE}/images/icons/profile.svg`;
+const scoreIcon = `${CLOUDFRONT_APP_BASE}/images/icons/score-bottom.svg`;
+const shopIcon = `${CLOUDFRONT_APP_BASE}/images/icons/shop-navigation.svg`;
+const upcomingIcon = `${CLOUDFRONT_APP_BASE}/images/icons/upcoming-bottom.svg`;
+const logo = `${CLOUDFRONT_APP_BASE}/images/logos/tapya-t.svg`;
 
 function isTabActive(pathname, tabPath) {
   return pathname === tabPath || pathname.startsWith(tabPath + '/');

@@ -2,19 +2,22 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-import logoutIcon from '@/assets/images/icons/logout.svg';
-import myOrderIcon from '@/assets/images/icons/my-order.svg';
-import requestTournamentIcon from '@/assets/images/icons/request-tournament.svg';
 // import starMatchIcon from '@/assets/images/icons/star-match.svg';
-import supportIcon from '@/assets/images/icons/support.svg';
-import topPlayersIcon from '@/assets/images/icons/top-players.svg';
-import defaultAvatar from '@/assets/images/standard/default-avatar.png';
 import { calculateProfileStrength } from '@/lib/profileStrength';
 import { addSavedProfile } from '@/lib/savedProfiles';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectAuthUserAndToken } from '@/store/selectors';
 import { clearCredentials } from '@/store/slices/authSlice';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const logoutIcon = `${CLOUDFRONT_APP_BASE}/images/icons/logout.svg`;
+const myOrderIcon = `${CLOUDFRONT_APP_BASE}/images/icons/my-order.svg`;
+const requestTournamentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/request-tournament.svg`;
+const supportIcon = `${CLOUDFRONT_APP_BASE}/images/icons/support.svg`;
+const topPlayersIcon = `${CLOUDFRONT_APP_BASE}/images/icons/top-players.svg`;
+const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
 const MENU_ITEMS = [
   {

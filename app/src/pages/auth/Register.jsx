@@ -2,7 +2,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 
-import tapeyaLogo from '@/assets/images/logos/tapeya-logo-white.svg';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import {
   extractOtpFromAuthResponse,
@@ -14,6 +13,10 @@ import { Button } from '@/ui/Button';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import { PhoneInput } from '@/ui/PhoneInput';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const tapeyaLogo = `${CLOUDFRONT_APP_BASE}/images/logos/tapeya-logo-white.svg`;
 
 export default function Register() {
   const navigate = useNavigate();

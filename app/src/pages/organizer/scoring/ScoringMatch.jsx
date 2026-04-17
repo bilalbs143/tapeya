@@ -38,8 +38,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
-import matchCenterHeader from '@/assets/images/background/match-center-header.png';
-import teamMatchIcon from '@/assets/images/icons/team-match-icon.svg';
 import { useApiMatchSync } from '@/hooks/useApiMatchSync';
 import {
   blankBatsman,
@@ -83,6 +81,11 @@ import {
 } from './scoring-tabs';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const matchCenterHeader = `${CLOUDFRONT_APP_BASE}/images/background/match-center-header.png`;
+const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
 
 const SCORING_TABS = [
   { value: 'scoring', label: 'Scoring' },

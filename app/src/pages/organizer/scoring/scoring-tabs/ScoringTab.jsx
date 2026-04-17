@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import teamMatchIcon from '@/assets/images/icons/team-match-icon.svg';
 import AddBatsmanDialog from '@/components/dialogs/scoring/AddBatsmanDialog';
 import AddBowlerDialog from '@/components/dialogs/scoring/AddBowlerDialog';
 import CustomScoreDialog from '@/components/dialogs/scoring/CustomScoreDialog';
@@ -28,6 +27,10 @@ import { MatchStatsRow, SecondInningsChaseRow } from '../MatchStatsRow';
 import { ShotAreaDialog } from '../ShotAreaDialog';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
 
 const DASH = '—';
 const VALID_DELIVERIES_PER_OVER = 6;

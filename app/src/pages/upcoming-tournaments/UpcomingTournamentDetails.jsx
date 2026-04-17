@@ -7,7 +7,6 @@ import {
   useSearchParams,
 } from 'react-router-dom';
 
-import feedShareIcon from '@/assets/images/icons/feed-share.svg';
 import { formatOrdinalDateRange } from '@/lib/format';
 import {
   getTournamentImage,
@@ -26,6 +25,10 @@ import {
 } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
 import { Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const feedShareIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-share.svg`;
 
 const DETAIL_TABS = {
   FIXTURES: 'fixtures',

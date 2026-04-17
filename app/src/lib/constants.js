@@ -4,4 +4,4 @@
  */
 
 export const APP_NAME = 'Tapeya';
-export const APP_ID = 'com.tapeya.app';
+export const APP_ID = 'com.tapbytapeya.app';

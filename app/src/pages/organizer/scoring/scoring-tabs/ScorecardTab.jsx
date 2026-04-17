@@ -1,8 +1,11 @@
 import { Fragment, useMemo, useState } from 'react';
 
-import teamMatchIcon from '@/assets/images/icons/team-match-icon.svg';
 import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
 import { ballsToOvers, getRunsFromBall } from '@/lib/utils/scoringUtils';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
 
 const STATS_SEPARATOR =
   'w-px shrink-0 self-stretch bg-gradient-to-b from-[#00000000] via-[#FFFFFF66] to-[#00000000]';

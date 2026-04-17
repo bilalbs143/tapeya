@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 
 import ReactApexChart from 'react-apexcharts';
 
-import stadiumBg from '@/assets/images/standard/stadium-bg.png';
 import { getShotPositionOptions } from '@/lib/utils/scoringMappers';
 import { getRunsFromBall } from '@/lib/utils/scoringUtils';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
@@ -10,6 +9,10 @@ import { useGetEnumsQuery } from '@/store/api/enumApi';
 import { ShotDirectionStats } from '../ShotAreaDialog';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const stadiumBg = `${CLOUDFRONT_APP_BASE}/images/standard/stadium-bg.png`;
 
 /** Zone IDs classed as off-side for the stats bar. */
 const OFF_SIDE_ZONES = ['third_man', 'deep_point', 'deep_cover', 'long_off'];

@@ -2,13 +2,6 @@ import { useEffect, useState } from 'react';
 
 import { Link, useLocation } from 'react-router-dom';
 
-import hamburgerIcon from '@/assets/images/icons/hamburger-icon.svg';
-import notificationIcon from '@/assets/images/icons/notification-icon.svg';
-import profileIcon from '@/assets/images/icons/profile.svg';
-import scoreIcon from '@/assets/images/icons/score-bottom.svg';
-import shopNavIcon from '@/assets/images/icons/shop-navigation.svg';
-import upcomingIcon from '@/assets/images/icons/upcoming-bottom.svg';
-import logo from '@/assets/images/logos/tapya-t.svg';
 import {
   NAVBAR_HEIGHT,
   NAVBAR_SCROLL_THRESHOLD,
@@ -17,6 +10,16 @@ import {
 import { BOTTOM_NAV_ITEMS } from '@/lib/constants/navigation';
 import { useGetNotificationUnreadCountQuery } from '@/store/api/notificationApi';
 import { useAppSelector } from '@/store/hooks';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const hamburgerIcon = `${CLOUDFRONT_APP_BASE}/images/icons/hamburger-icon.svg`;
+const notificationIcon = `${CLOUDFRONT_APP_BASE}/images/icons/notification-icon.svg`;
+const profileIcon = `${CLOUDFRONT_APP_BASE}/images/icons/profile.svg`;
+const scoreIcon = `${CLOUDFRONT_APP_BASE}/images/icons/score-bottom.svg`;
+const shopNavIcon = `${CLOUDFRONT_APP_BASE}/images/icons/shop-navigation.svg`;
+const upcomingIcon = `${CLOUDFRONT_APP_BASE}/images/icons/upcoming-bottom.svg`;
+const logo = `${CLOUDFRONT_APP_BASE}/images/logos/tapya-t.svg`;
 
 const iconBtn =
   'flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#141412] transition-colors hover:bg-zinc-700';
