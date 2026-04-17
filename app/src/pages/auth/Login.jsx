@@ -11,6 +11,7 @@ import {
   extractOtpFromAuthResponse,
   setOtpPreview,
 } from '@/lib/otpPreviewSession';
+import { markReturningUser } from '@/lib/returningUser';
 import {
   clearProfileToken,
   getSavedProfiles,
@@ -121,6 +122,7 @@ export default function Login() {
         );
       }
 
+      markReturningUser();
       const from = location.state?.from?.pathname;
       navigate(from && from !== '/login' ? from : '/home', { replace: true });
     } catch {

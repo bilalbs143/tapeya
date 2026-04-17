@@ -28,7 +28,7 @@ class VerifyOtpRequest extends FormRequest
     {
         return [
             'phone' => ['required', 'string', 'regex:/^\+[1-9]\d{6,14}$/'],
-            'code' => ['required', 'string', 'size:6', 'regex:/^\d{6}$/'],
+            'code' => ['required', 'string', 'size:4', 'regex:/^\d{4}$/'],
         ];
     }
 
@@ -36,7 +36,8 @@ class VerifyOtpRequest extends FormRequest
     {
         return [
             'phone.regex' => 'Phone must include country code (e.g. +441234567890).',
-            'code.regex' => 'OTP must be 6 digits.',
+            'code.regex' => 'OTP must be 4 digits.',
+            'code.size' => 'OTP must be 4 digits.',
         ];
     }
 }

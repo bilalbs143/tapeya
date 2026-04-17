@@ -22,7 +22,7 @@ class UpdateBrandRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', Rule::unique('shop_brands', 'slug')->ignore($brand->id)],
-            'logo' => ['nullable', 'image', 'max:2048'],
+            'logo' => ['nullable', 'image'],
             'is_active' => ['boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ];

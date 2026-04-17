@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Support\Broadcast\ResolveAdminInboxBroadcast;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\Events\NotificationSent;
+use Throwable;
 
 class BroadcastAdminInboxNotification
 {
@@ -27,7 +28,11 @@ class BroadcastAdminInboxNotification
 
         $broadcast = ResolveAdminInboxBroadcast::resolve($record);
         if ($broadcast !== null) {
-            broadcast($broadcast);
+            try {
+                broadcast($broadcast);
+            } catch (Throwable $e) {
+                report($e);
+            }
         }
     }
 }

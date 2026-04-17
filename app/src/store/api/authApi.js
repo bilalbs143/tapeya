@@ -69,7 +69,7 @@ export const authApi = baseApi.injectEndpoints({
         method: 'POST',
         body: { phone: body.phone, code: body.code },
       }),
-      invalidatesTags: ['Auth', 'User'],
+      invalidatesTags: ['Auth'],
     }),
     getMe: builder.query({
       query: () => '/me',

@@ -58,13 +58,13 @@ export const updateProfileSchema = z.object({
   city: z.string().optional(),
 });
 
-/** OTP verification (6 digits) */
+/** OTP verification (4 digits) */
 export const otpSchema = z.object({
   code: z
     .string()
     .min(1, 'Code is required')
     .regex(/^\d+$/, 'Code must contain only digits')
-    .length(6, 'Code must be 6 digits'),
+    .length(4, 'Code must be 4 digits'),
 });
 
 /** OTP verification (5 digits, for digit-by-digit input UI) */

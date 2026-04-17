@@ -42,7 +42,6 @@ app/node_modules/
 app/package-lock.json
 app/dist/
 app/www/
-app/ios/
 app/android/
 app/.capacitor/
 

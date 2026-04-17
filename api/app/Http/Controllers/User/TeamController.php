@@ -95,23 +95,11 @@ class TeamController extends Controller
     /**
      * Get the team-level squad (players belonging to this team).
      * GET /teams/{team}/squad
+     *
+     * Any authenticated app user may view (squad is public within the app; changing it is still sponsor/organizer-only).
      */
     public function showSquad(Team $team): JsonResponse
     {
-        $authUser = request()->user();
-        $isSponsor = $authUser->hasRole(AppRoleEnum::SPONSOR);
-        $isOrganizer = $authUser->hasRole(AppRoleEnum::ORGANIZER);
-
-        if ((int) $team->user_id === (int) $authUser->id) {
-            if (! $isSponsor) {
-                return $this->forbidden('Only sponsors can view their own team squad.');
-            }
-        } else {
-            if (! $isOrganizer) {
-                return $this->forbidden('Only organizers can view squads for other sponsors.');
-            }
-        }
-
         $team->load('players');
 
         return $this->success(UserResource::collection($team->players));

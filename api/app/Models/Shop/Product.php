@@ -110,7 +110,10 @@ class Product extends BaseModel
 
     /**
      * Generate SKU as BRANDCODE-CATEGORYCODE-NNN (e.g. TMSPORTS-BALL-001).
-     * Uses brand and category slugs (uppercase, no dashes) and next sequence for that brand+category.
+     * Uses brand and category slugs (uppercase, no dashes) and the next free sequence for that brand+category.
+     *
+     * Sequence is based on the highest existing numeric suffix, not row count, so deletes or imports
+     * cannot reuse an SKU that is still taken (unique constraint on `sku`).
      */
     public static function generateIntelligentSku(int $brandId, int $categoryId): string
     {
@@ -122,12 +125,27 @@ class Product extends BaseModel
         $categoryCode = $category && $category->slug
             ? strtoupper(str_replace('-', '', $category->slug))
             : 'CAT';
-        $nextNum = self::query()
+        $prefix = $brandCode.'-'.$categoryCode.'-';
+
+        $maxSuffix = self::query()
             ->where('brand_id', $brandId)
             ->where('category_id', $categoryId)
-            ->count() + 1;
+            ->where('sku', 'like', $prefix.'%')
+            ->pluck('sku')
+            ->map(function (string $sku) use ($prefix): int {
+                if (! str_starts_with($sku, $prefix)) {
+                    return 0;
+                }
+                $suffix = substr($sku, strlen($prefix));
 
-        return $brandCode.'-'.$categoryCode.'-'.str_pad((string) $nextNum, 3, '0', STR_PAD_LEFT);
+                return ctype_digit($suffix) ? (int) $suffix : 0;
+            })
+            ->max() ?? 0;
+
+        $next = $maxSuffix + 1;
+        $width = max(3, strlen((string) $next));
+
+        return $prefix.str_pad((string) $next, $width, '0', STR_PAD_LEFT);
     }
 
     /**

@@ -23,7 +23,7 @@ class UpdateCategoryRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', Rule::unique('shop_categories', 'slug')->ignore($category->id)],
             'parent_id' => ['nullable', 'integer', 'exists:shop_categories,id', Rule::notIn([$category->id])],
-            'image' => ['nullable', 'image', 'max:2048'],
+            'image' => ['nullable', 'image'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['boolean'],
         ];

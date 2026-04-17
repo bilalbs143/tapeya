@@ -38,7 +38,7 @@ class StoreProductRequest extends FormRequest
             'discount_starts_at' => ['nullable', 'date', 'required_with:discount_type'],
             'discount_ends_at' => ['nullable', 'date', 'required_with:discount_type', 'after_or_equal:discount_starts_at'],
             'images' => ['required', 'array', 'min:1'],
-            'images.*' => ['image', 'max:2048'],
+            'images.*' => ['image'],
         ];
     }
 

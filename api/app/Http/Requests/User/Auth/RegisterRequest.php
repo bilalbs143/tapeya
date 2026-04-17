@@ -4,6 +4,7 @@ namespace App\Http\Requests\User\Auth;
 
 use App\Utils\Services\OtpService;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class RegisterRequest extends FormRequest
 {
@@ -17,6 +18,10 @@ class RegisterRequest extends FormRequest
         if ($this->filled('phone')) {
             $this->merge(['phone' => OtpService::normalizePhone($this->input('phone'))]);
         }
+
+        if ($this->has('email') && $this->input('email') === '') {
+            $this->merge(['email' => null]);
+        }
     }
 
     /**
@@ -28,9 +33,9 @@ class RegisterRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'nickname' => ['required', 'string', 'max:50', 'regex:/^[a-zA-Z0-9_]+$/', 'unique:users,nickname'],
-            'phone' => ['required', 'string', 'regex:/^\+[1-9]\d{6,14}$/', 'unique:users,phone'],
-            'email' => ['nullable', 'string', 'email', 'max:255'],
+            'nickname' => ['required', 'string', 'max:50', 'regex:/^[a-zA-Z0-9_]+$/', Rule::unique('users', 'nickname')],
+            'phone' => ['required', 'string', 'regex:/^\+[1-9]\d{6,14}$/', Rule::unique('users', 'phone')],
+            'email' => ['nullable', 'string', 'email', 'max:255', Rule::unique('users', 'email')],
         ];
     }
 
@@ -38,7 +43,10 @@ class RegisterRequest extends FormRequest
     {
         return [
             'nickname.regex' => 'Nickname may only contain letters, numbers and underscores.',
-            'phone.regex' => 'Phone must include country code (e.g. +441234567890).',
+            'nickname.unique' => 'This nickname is already taken. Please choose another.',
+            'phone.regex' => 'Phone must include country code (e.g. +923001234567).',
+            'phone.unique' => 'This phone number is already registered. Try logging in instead.',
+            'email.unique' => 'This email is already registered. Try logging in or use a different email.',
         ];
     }
 }
