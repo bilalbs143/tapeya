@@ -1,6 +1,3 @@
-import profileUserIcon from '@/assets/images/icons/profile-user.svg';
-import userPostsIcon from '@/assets/images/icons/user-posts.svg';
-import userStatsIcon from '@/assets/images/icons/user-stats.svg';
 import { getProfileRankingParamsByPlayingRole } from '@/lib/playerRankingProfile';
 import { useGetPlayerRankingPositionQuery } from '@/store/api/playerApi';
 import {
@@ -19,6 +16,12 @@ import { ProfileMetrics } from './ProfileMetrics';
 import { ProfilePosts } from './ProfilePosts';
 import { ProfileRoleOverview } from './ProfileRoleOverview';
 import { ProfileStats } from './ProfileStats';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const profileUserIcon = `${CLOUDFRONT_APP_BASE}/images/icons/profile-user.svg`;
+const userPostsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/user-posts.svg`;
+const userStatsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/user-stats.svg`;
 
 const CONTENT_WRAPPER_CLASS = 'px-4 pb-6 pt-1';
 

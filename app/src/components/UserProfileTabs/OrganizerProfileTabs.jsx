@@ -1,6 +1,3 @@
-import profileUserIcon from '@/assets/images/icons/profile-user.svg';
-import starMatchIcon from '@/assets/images/icons/star-match.svg';
-import userStatsIcon from '@/assets/images/icons/user-stats.svg';
 import {
   profileListClass,
   profileTabIconClass,
@@ -17,6 +14,12 @@ import { OrganizerEvents } from './OrganizerEvents';
 import { OrganizerStats } from './OrganizerStats';
 import { ProfileMetrics } from './ProfileMetrics';
 import { ProfileRoleOverview } from './ProfileRoleOverview';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const profileUserIcon = `${CLOUDFRONT_APP_BASE}/images/icons/profile-user.svg`;
+const starMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/star-match.svg`;
+const userStatsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/user-stats.svg`;
 
 const CONTENT_WRAPPER_CLASS = 'px-4 pb-6 pt-1';
 
