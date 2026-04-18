@@ -5,7 +5,6 @@
 
 import { useId } from 'react';
 
-import stadiumBg from '@/assets/images/standard/stadium-bg.png';
 import {
   getShotDirectionPercentages,
   SHOT_DIRECTION_ZONES,
@@ -17,6 +16,10 @@ import {
   DialogScrollBody,
   DialogTitle,
 } from '@/ui/Dialog';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const stadiumBg = `${CLOUDFRONT_APP_BASE}/images/standard/stadium-bg.png`;
 
 // ─── ShotDirectionPicker ──────────────────────────────────────────────────
 

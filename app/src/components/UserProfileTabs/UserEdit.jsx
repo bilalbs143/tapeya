@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 
-import defaultAvatar from '@/assets/images/standard/default-avatar.png';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
@@ -43,6 +42,10 @@ import {
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
 const NICKNAME_MAX = 50;
 /** Must match the UI copy and backend limit. */

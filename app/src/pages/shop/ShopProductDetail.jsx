@@ -2,12 +2,15 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import shoppingCartIcon from '@/assets/images/icons/shopping-cart.svg';
 import { useAddToCart } from '@/hooks/shop/useAddToCart';
 import { useToast } from '@/hooks/useToast';
 import { formatPrice } from '@/lib/format';
 import { useGetProductQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const shoppingCartIcon = `${CLOUDFRONT_APP_BASE}/images/icons/shopping-cart.svg`;
 
 function getImageUrls(images) {
   if (!images?.length) return [];

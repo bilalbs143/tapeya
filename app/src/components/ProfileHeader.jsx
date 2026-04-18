@@ -1,8 +1,11 @@
-import defaultAvatar from '@/assets/images/standard/default-avatar.png';
-import profileHeaderBg from '@/assets/images/standard/profile-header.jpg';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { calculateProfileStrength } from '@/lib/profileStrength';
 import { Progress } from '@/ui/Progress';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
+const profileHeaderBg = `${CLOUDFRONT_APP_BASE}/images/standard/profile-header.jpg`;
 
 const BANNER_HEIGHT = 202;
 const CONTENT_MAX = 'max-w-[1100px]';

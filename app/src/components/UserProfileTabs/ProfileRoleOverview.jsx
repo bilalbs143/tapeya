@@ -1,6 +1,5 @@
 import { useState } from 'react';
 
-import editProfileIcon from '@/assets/images/icons/edit-profile.svg';
 import { formatDate } from '@/lib/format';
 import { formatAge } from '@/lib/utils/dateUtils';
 import {
@@ -18,6 +17,10 @@ import {
   PROFILE_OVERVIEW_ROLE,
 } from './constants';
 import { UserEdit } from './UserEdit';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const editProfileIcon = `${CLOUDFRONT_APP_BASE}/images/icons/edit-profile.svg`;
 
 const EDIT_PROFILE_BUTTON_CLASS = `inline-flex items-center gap-2 rounded-[17px] border border-white bg-transparent px-4 py-1 text-[12px] font-semibold uppercase tracking-wide text-white/70 transition-colors hover:border-white/60 hover:text-white/90 ${FOCUS_RING}`;
 

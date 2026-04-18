@@ -2,9 +2,9 @@
  * Mock points table data - replace with API later.
  * Each group has teams with: rank, name, logo, M, W, L, T, pts, nrr, seriesForm.
  */
-import karachiFlag from '@/assets/images/icons/karachi-flag.png';
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
-const TEAM_LOGO = karachiFlag;
+const TEAM_LOGO = `${CLOUDFRONT_APP_BASE}/images/icons/karachi-flag.png`;
 
 export const POINTS_TABLE_GROUPS = [
   {

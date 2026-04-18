@@ -17,8 +17,8 @@ export const appConfig = {
   customUrlScheme: 'com.artchip.app',
 
   // Version Information
-  versionName: '1.4',
-  versionCode: 5,
+  versionName: '1.5',
+  versionCode: 6,
 
   // Visual Configuration
   icon: {

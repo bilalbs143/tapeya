@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 
 import { Link, useParams } from 'react-router-dom';
 
-import searchIcon from '@/assets/images/icons/searchicon.svg';
 import { ListingProductCard } from '@/components/shop/ListingProductCard';
 import {
   useGetBrandsQuery,
@@ -10,6 +9,10 @@ import {
   useGetProductsQuery,
 } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const searchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/searchicon.svg`;
 
 const NAVBAR_HEIGHT = 64; // h-16 = 4rem
 

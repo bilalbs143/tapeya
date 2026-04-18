@@ -1,4 +1,6 @@
-import teamMatchIcon from '@/assets/images/icons/team-match-icon.svg';
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
 
 const DASH = '—';
 

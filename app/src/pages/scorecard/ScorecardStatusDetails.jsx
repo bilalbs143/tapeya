@@ -91,9 +91,6 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { useNavigate, useParams } from 'react-router-dom';
 
-import karachiFlag from '@/assets/images/icons/karachi-flag.png';
-import rawalpindiFlag from '@/assets/images/icons/rawalpindi-flag.png';
-import winProbabilityIcon from '@/assets/images/icons/win-probabilty.svg';
 import { CommentaryText } from '@/components/scorecard/CommentaryText';
 import {
   apiTournamentMatchToStatusDetailsMatch,
@@ -132,6 +129,12 @@ import { ScheduleTab, StatsTab, TableTab } from './tabs';
 // Constants
 // CURSOR: move FLAGS to src/lib/constants/teamFlags.js (see top).
 // ---------------------------------------------------------------------------
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const karachiFlag = `${CLOUDFRONT_APP_BASE}/images/icons/karachi-flag.png`;
+const rawalpindiFlag = `${CLOUDFRONT_APP_BASE}/images/icons/rawalpindi-flag.png`;
+const winProbabilityIcon = `${CLOUDFRONT_APP_BASE}/images/icons/win-probabilty.svg`;
 
 const FLAGS = { karachi: karachiFlag, rawalpindi: rawalpindiFlag };
 

@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
-import teamMatchIcon from '@/assets/images/icons/team-match-icon.svg';
 import OversDialog from '@/components/dialogs/scoring/OversDialog';
 import PlayersPerSideDialog from '@/components/dialogs/scoring/PlayersPerSideDialog';
 import TeamSelectDialog from '@/components/dialogs/scoring/TeamSelectDialog';
@@ -31,6 +30,10 @@ import { FormField, formFieldLabelCheckoutClass } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import { Label } from '@/ui/Label';
 import { TimePicker } from '@/ui/TimePicker';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
 
 const oversInputBase =
   'flex h-12 w-full items-center rounded-[6px] bg-[#141412] px-4 py-3 text-left text-white focus:outline-none focus:ring-2 focus:ring-[#DA9811]/50 cursor-pointer';

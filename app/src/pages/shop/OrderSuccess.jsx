@@ -1,7 +1,10 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import successOrderGif from '@/assets/images/icons/success-order.gif';
 import { Container } from '@/ui/Container';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const successOrderGif = `${CLOUDFRONT_APP_BASE}/images/icons/success-order.gif`;
 
 export default function OrderSuccess() {
   const navigate = useNavigate();

@@ -1,14 +1,17 @@
 import { Link } from 'react-router-dom';
 
-import draftingIcon from '@/assets/images/icons/drafting.svg';
-import highlightsIcon from '@/assets/images/icons/highlights.svg';
-import liveIcon from '@/assets/images/icons/live-icon.svg';
-import liveScoreIcon from '@/assets/images/icons/live-score.svg';
-import rankingsIcon from '@/assets/images/icons/rankings.svg';
-import reelsIcon from '@/assets/images/icons/reels.svg';
-import shopIcon from '@/assets/images/icons/shop.svg';
-import upcomingIcon from '@/assets/images/icons/upcoming.svg';
 import { EXPLORE_CATEGORIES } from '@/lib/constants/navigation';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const draftingIcon = `${CLOUDFRONT_APP_BASE}/images/icons/drafting.svg`;
+const highlightsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/highlights.svg`;
+const liveIcon = `${CLOUDFRONT_APP_BASE}/images/icons/live-icon.svg`;
+const liveScoreIcon = `${CLOUDFRONT_APP_BASE}/images/icons/live-score.svg`;
+const rankingsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/rankings.svg`;
+const reelsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/reels.svg`;
+const shopIcon = `${CLOUDFRONT_APP_BASE}/images/icons/shop.svg`;
+const upcomingIcon = `${CLOUDFRONT_APP_BASE}/images/icons/upcoming.svg`;
 
 const PATH_TO_ICON = {
   '/live': liveIcon,

@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { clearCredentials } from '@/store/slices/authSlice';
 
 export const baseUrl =
-  import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+  import.meta.env.VITE_API_URL || 'https://api.tapeya.com/api/v1';
 
 /** Origin of the Laravel app (no `/api/v1`), for `/broadcasting/auth` and similar. */
 export function getApiOrigin() {
