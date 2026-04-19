@@ -70,6 +70,7 @@ Route::middleware('auth:api')->prefix('shop')->group(function () {
 // Authenticated user: me, profile, countries, tournament requests, teams, tournament-team links, team squads, matches & match squads
 Route::middleware('auth:api')->group(function () {
     Route::get('/me', [UserAuthController::class, 'me']);
+    Route::delete('profile', [ProfileController::class, 'destroy']);
     Route::match(['patch', 'post'], 'profile', [ProfileController::class, 'update']);
     Route::get('countries', [CountryController::class, 'index']);
     Route::get('countries/cities', [CountryController::class, 'cities']);

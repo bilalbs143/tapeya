@@ -7,8 +7,9 @@ import { OrganizerProfileTabs } from '@/components/UserProfileTabs/OrganizerProf
 import { PlayerProfile } from '@/components/UserProfileTabs/PlayerProfile';
 import { SponsorProfileTabs } from '@/components/UserProfileTabs/SponsorProfileTabs';
 import { useGetMeQuery } from '@/store/api/authApi';
-import { useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
+import { openDialog } from '@/store/slices/commonSlice';
 import {
   profileListClass,
   profileTriggerClass,
@@ -50,6 +51,7 @@ function ProfileContent({ activeRole, user }) {
 }
 
 export default function Profile() {
+  const dispatch = useAppDispatch();
   const userFromStore = useAppSelector(selectUser);
   const { data: meResponse } = useGetMeQuery(undefined, {
     skip: !userFromStore?.id,
@@ -119,6 +121,29 @@ export default function Profile() {
           <ProfileContent activeRole={activeRole ?? 'player'} user={user} />
         )}
       </div>
+
+      <section
+        className="border-t border-white/10 px-4 pt-8 pb-10"
+        aria-labelledby="account-danger-heading"
+      >
+        <h2
+          id="account-danger-heading"
+          className="text-xs font-semibold tracking-wide text-white/50 uppercase"
+        >
+          Account
+        </h2>
+        <p className="mt-2 text-[13px] leading-relaxed text-[#A2A6AB]">
+          Permanently delete your Tapeya account and associated profile data.
+          This action cannot be undone.
+        </p>
+        <button
+          type="button"
+          onClick={() => dispatch(openDialog({ key: 'deleteAccount' }))}
+          className="mt-4 w-full rounded-lg border border-red-500/40 bg-red-950/30 py-3 text-sm font-semibold text-red-300 transition hover:bg-red-950/50"
+        >
+          Delete Account
+        </button>
+      </section>
     </div>
   );
 }
