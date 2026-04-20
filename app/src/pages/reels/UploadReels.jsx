@@ -10,15 +10,18 @@ import { useCallback, useRef, useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
-import editReelIcon from '@/assets/images/icons/edit-reel.svg';
-import playIcon from '@/assets/images/icons/play-icon.svg';
-import reelCameraIcon from '@/assets/images/icons/reel-camera-icon.svg';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 import { addReel } from '@/store/slices/reelsSlice';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const editReelIcon = `${CLOUDFRONT_APP_BASE}/images/icons/edit-reel.svg`;
+const playIcon = `${CLOUDFRONT_APP_BASE}/images/icons/play-icon.svg`;
+const reelCameraIcon = `${CLOUDFRONT_APP_BASE}/images/icons/reel-camera-icon.svg`;
 
 const DEFAULT_AVATAR =
   'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=96&h=96&fit=crop';

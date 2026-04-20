@@ -1,9 +1,12 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import teamDeleteIcon from '@/assets/images/icons/team-delete-icon.svg';
-import teamEditIcon from '@/assets/images/icons/team-edit-icon.svg';
-import teamIcon from '@/assets/images/icons/team-icon.svg';
 import { Container } from '@/ui/Container';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
+const teamEditIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-edit-icon.svg`;
+const teamIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-icon.svg`;
 
 function TeamLogoIcon() {
   return (
