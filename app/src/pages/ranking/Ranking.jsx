@@ -5,7 +5,6 @@
 
 import { Link, useNavigate } from 'react-router-dom';
 
-import defaultAvatar from '@/assets/images/standard/default-avatar.png';
 import { statsTotalPaths } from '@/pages/scorecard/statsTotalFlow';
 import { useGetRankingsQuery } from '@/store/api/rankingApi';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
@@ -18,6 +17,10 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/ui/Tabs';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
 const OPEN_TOURNAMENT_TYPE = 'open_tournament';
 

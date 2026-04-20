@@ -4,10 +4,12 @@ import { Link } from 'react-router-dom';
 import { Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-import liveImg1 from '@/assets/images/standard/live-img-1.png';
-import liveImg2 from '@/assets/images/standard/live-img-2.png';
-import liveImg3 from '@/assets/images/standard/live-img-3.png';
-import liveImg4 from '@/assets/images/standard/live-img-4.png';
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const liveImg1 = `${CLOUDFRONT_APP_BASE}/images/standard/live-img-1.png`;
+const liveImg2 = `${CLOUDFRONT_APP_BASE}/images/standard/live-img-2.png`;
+const liveImg3 = `${CLOUDFRONT_APP_BASE}/images/standard/live-img-3.png`;
+const liveImg4 = `${CLOUDFRONT_APP_BASE}/images/standard/live-img-4.png`;
 
 const SLIDES = [
   { id: 1, image: liveImg1, alt: 'Live match 1' },

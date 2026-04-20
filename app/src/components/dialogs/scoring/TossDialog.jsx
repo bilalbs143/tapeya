@@ -1,8 +1,11 @@
-import teamMatchIcon from '@/assets/images/icons/team-match-icon.svg';
 import { BaseDialog } from '@/components/dialogs/BaseDialog';
 import { Button } from '@/ui/Button';
 import { DialogTitle } from '@/ui/Dialog';
 import { ToggleGroup, ToggleGroupItem } from '@/ui/ToggleGroup';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
 
 /**
  * Toss dialog for Start Match – who won the toss and chose to bat/bowl.

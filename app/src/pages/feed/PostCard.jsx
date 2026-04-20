@@ -3,8 +3,10 @@ import { useMemo, useState } from 'react';
 
 import { Link } from 'react-router-dom';
 
-import feedCommentIcon from '@/assets/images/icons/feed-comment.svg';
-import feedShareIcon from '@/assets/images/icons/feed-share.svg';
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const feedCommentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-comment.svg`;
+const feedShareIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-share.svg`;
 
 /**
  * Format ISO date string to "Feb 11, 2026 • 12:15 AM"

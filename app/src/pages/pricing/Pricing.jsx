@@ -11,11 +11,14 @@ import { useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
-import eliteRankingIcon from '@/assets/images/icons/elite-ranking-icon.svg';
-import goldRankingIcon from '@/assets/images/icons/gold-ranking-icon.svg';
-import pricingListTickIcon from '@/assets/images/icons/pricing-list-tick.svg';
-import recommendedIcon from '@/assets/images/icons/recommended-icon.svg';
 import { Container } from '@/ui/Container';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const eliteRankingIcon = `${CLOUDFRONT_APP_BASE}/images/icons/elite-ranking-icon.svg`;
+const goldRankingIcon = `${CLOUDFRONT_APP_BASE}/images/icons/gold-ranking-icon.svg`;
+const pricingListTickIcon = `${CLOUDFRONT_APP_BASE}/images/icons/pricing-list-tick.svg`;
+const recommendedIcon = `${CLOUDFRONT_APP_BASE}/images/icons/recommended-icon.svg`;
 
 export const PRICING_PLANS = [
   {
