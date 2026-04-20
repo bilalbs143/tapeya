@@ -22,13 +22,15 @@ class AppAccountDeletionService
         DB::transaction(function () use ($user) {
             $user->tokens()->delete();
 
+            $deletedSuffix = '_deleted_id_'.$user->id;
+
             $user->forceFill([
-                'name' => ($user->name ?? '').'_deleted',
-                'nickname' => ($user->nickname ?? '').'_deleted',
+                'name' => ($user->name ?? '').$deletedSuffix,
+                'nickname' => ($user->nickname ?? '').$deletedSuffix,
                 'email' => filled($user->email)
-                    ? $user->email.'_deleted'
+                    ? $user->email.$deletedSuffix
                     : 'deleted-'.$user->id.'@tapeya.invalid',
-                'phone' => ($user->phone ?? '').'_deleted',
+                'phone' => ($user->phone ?? '').$deletedSuffix,
                 'status' => UserStatusEnum::BLOCKED,
             ])->save();
 
