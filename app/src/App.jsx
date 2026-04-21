@@ -19,6 +19,21 @@ import TeamDetail from '@/pages/drafting/TeamDetail';
 import TeamList from '@/pages/drafting/TeamList';
 import ActivityFeed from '@/pages/feed/ActivityFeed';
 import ActivityFeedDetail from '@/pages/feed/ActivityFeedDetail';
+import CricketMatchSummary from '@/pages/graphics-controller/theme01/CricketMatchSummary';
+import DecisionPending from '@/pages/graphics-controller/theme01/DecisionPending';
+import Four from '@/pages/graphics-controller/theme01/Four';
+import Fifty from '@/pages/graphics-controller/theme01/Fifty';
+import Hundred from '@/pages/graphics-controller/theme01/Hundred';
+import InningsBreak from '@/pages/graphics-controller/theme01/InningsBreak';
+import NoBall from '@/pages/graphics-controller/theme01/NoBall';
+import NotOut from '@/pages/graphics-controller/theme01/NotOut';
+import Out from '@/pages/graphics-controller/theme01/Out';
+import PlayingXI from '@/pages/graphics-controller/theme01/PlayingXI';
+import Replay from '@/pages/graphics-controller/theme01/Replay';
+import Six from '@/pages/graphics-controller/theme01/Six';
+import TeaBreak from '@/pages/graphics-controller/theme01/TeaBreak';
+import TournamentStart from '@/pages/graphics-controller/theme01/TournamentStart';
+import Wide from '@/pages/graphics-controller/theme01/Wide';
 import Home from '@/pages/Home';
 import NotificationCenter from '@/pages/NotificationCenter';
 import ScoringMatch from '@/pages/organizer/scoring/ScoringMatch';
@@ -205,6 +220,36 @@ function App() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/otp" element={<Otp />} />
               </Route>
+              <Route
+                path="/graphics-controller/tournament-start"
+                element={<TournamentStart />}
+              />
+              <Route
+                path="/graphics-controller/playing-xi"
+                element={<PlayingXI />}
+              />
+              <Route path="/graphics-controller/four" element={<Four />} />
+              <Route path="/graphics-controller/six" element={<Six />} />
+              <Route path="/graphics-controller/out" element={<Out />} />
+              <Route path="/graphics-controller/not-out" element={<NotOut />} />
+              <Route path="/graphics-controller/no-ball" element={<NoBall />} />
+              <Route path="/graphics-controller/wide" element={<Wide />} />
+              <Route path="/graphics-controller/fifty" element={<Fifty />} />
+              <Route path="/graphics-controller/hundred" element={<Hundred />} />
+              <Route
+                path="/graphics-controller/innings-break"
+                element={<InningsBreak />}
+              />
+              <Route path="/graphics-controller/tea-break" element={<TeaBreak />} />
+              <Route path="/graphics-controller/replay" element={<Replay />} />
+              <Route
+                path="/graphics-controller/cricket-match-summary"
+                element={<CricketMatchSummary />}
+              />
+              <Route
+                path="/graphics-controller/decision-pending"
+                element={<DecisionPending />}
+              />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>
