@@ -23,13 +23,20 @@ import CricketMatchSummary from '@/pages/graphics-controller/theme01/CricketMatc
 import DecisionPending from '@/pages/graphics-controller/theme01/DecisionPending';
 import Four from '@/pages/graphics-controller/theme01/Four';
 import Fifty from '@/pages/graphics-controller/theme01/Fifty';
+import HighestRuns from '@/pages/graphics-controller/theme01/HighestRuns';
+import HighestWickets from '@/pages/graphics-controller/theme01/HighestWickets';
 import Hundred from '@/pages/graphics-controller/theme01/Hundred';
 import InningsBreak from '@/pages/graphics-controller/theme01/InningsBreak';
 import NoBall from '@/pages/graphics-controller/theme01/NoBall';
 import NotOut from '@/pages/graphics-controller/theme01/NotOut';
 import Out from '@/pages/graphics-controller/theme01/Out';
+import PlayerCareerStats from '@/pages/graphics-controller/theme01/PlayerCareerStats';
 import PlayingXI from '@/pages/graphics-controller/theme01/PlayingXI';
+import PlayerIntro from '@/pages/graphics-controller/theme01/PlayerIntro';
+import PlayerTournamentStats from '@/pages/graphics-controller/theme01/PlayerTournamentStats';
 import Replay from '@/pages/graphics-controller/theme01/Replay';
+import ScoreComparison from '@/pages/graphics-controller/theme01/ScoreComparison';
+import ScoreComparisonBar from '@/pages/graphics-controller/theme01/ScoreComparisonBar';
 import Six from '@/pages/graphics-controller/theme01/Six';
 import TeaBreak from '@/pages/graphics-controller/theme01/TeaBreak';
 import TournamentStart from '@/pages/graphics-controller/theme01/TournamentStart';
@@ -235,6 +242,14 @@ function App() {
               <Route path="/graphics-controller/no-ball" element={<NoBall />} />
               <Route path="/graphics-controller/wide" element={<Wide />} />
               <Route path="/graphics-controller/fifty" element={<Fifty />} />
+              <Route
+                path="/graphics-controller/highest-runs"
+                element={<HighestRuns />}
+              />
+              <Route
+                path="/graphics-controller/highest-wickets"
+                element={<HighestWickets />}
+              />
               <Route path="/graphics-controller/hundred" element={<Hundred />} />
               <Route
                 path="/graphics-controller/innings-break"
@@ -242,6 +257,26 @@ function App() {
               />
               <Route path="/graphics-controller/tea-break" element={<TeaBreak />} />
               <Route path="/graphics-controller/replay" element={<Replay />} />
+              <Route
+                path="/graphics-controller/score-comparison"
+                element={<ScoreComparison />}
+              />
+              <Route
+                path="/graphics-controller/score-comparison-bar"
+                element={<ScoreComparisonBar />}
+              />
+              <Route
+                path="/graphics-controller/player-intro"
+                element={<PlayerIntro />}
+              />
+              <Route
+                path="/graphics-controller/player-tournament-stats"
+                element={<PlayerTournamentStats />}
+              />
+              <Route
+                path="/graphics-controller/player-career-stats"
+                element={<PlayerCareerStats />}
+              />
               <Route
                 path="/graphics-controller/cricket-match-summary"
                 element={<CricketMatchSummary />}
