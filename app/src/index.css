@@ -1,4 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Moul&display=swap');
 @import 'tailwindcss';
+
+.font-moul {
+  font-family: 'Moul', serif;
+}
+
+.row-marquee-right {
+  animation: row-marquee-right 10s linear infinite;
+  will-change: transform;
+}
+
+@keyframes row-marquee-right {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
 
 /* Safe area spacing for iOS notch / Android navigation */
 @theme {
