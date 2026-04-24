@@ -20,6 +20,11 @@ import TeamList from '@/pages/drafting/TeamList';
 import ActivityFeed from '@/pages/feed/ActivityFeed';
 import ActivityFeedDetail from '@/pages/feed/ActivityFeedDetail';
 import AtThisStage from '@/pages/graphics-controller/theme01/AtThisStage';
+import BatsmanCareerStats from '@/pages/graphics-controller/theme01/BatsmanCareerStats';
+import BatsmanInningsStats from '@/pages/graphics-controller/theme01/BatsmanInningsStats';
+import BatsmanCurrentStats from '@/pages/graphics-controller/theme01/BatsmanCurrentStats';
+import BowlerCareerStats from '@/pages/graphics-controller/theme01/BowlerCareerStats';
+import BowlerCurrentStats from '@/pages/graphics-controller/theme01/BowlerCurrentStats';
 import CricketMatchSummary from '@/pages/graphics-controller/theme01/CricketMatchSummary';
 import DecisionPending from '@/pages/graphics-controller/theme01/DecisionPending';
 import DecisionPendingRow from '@/pages/graphics-controller/theme01/DecisionPendingRow';
@@ -33,6 +38,7 @@ import HighestRuns from '@/pages/graphics-controller/theme01/HighestRuns';
 import HighestWickets from '@/pages/graphics-controller/theme01/HighestWickets';
 import Hundred from '@/pages/graphics-controller/theme01/Hundred';
 import InningsBreak from '@/pages/graphics-controller/theme01/InningsBreak';
+import StatsDefault from '@/pages/graphics-controller/theme01/StatsDefault';
 import TargetNeeded from '@/pages/graphics-controller/theme01/TargetNeeded';
 import NoBall from '@/pages/graphics-controller/theme01/NoBall';
 import NoBallRow from '@/pages/graphics-controller/theme01/NoBallRow';
@@ -45,6 +51,7 @@ import PlayingXI from '@/pages/graphics-controller/theme01/PlayingXI';
 import PlayerIntro from '@/pages/graphics-controller/theme01/PlayerIntro';
 import PlayerTournamentStats from '@/pages/graphics-controller/theme01/PlayerTournamentStats';
 import PreviousOrder from '@/pages/graphics-controller/theme01/PreviousOrder';
+import ResultIntro from '@/pages/graphics-controller/theme01/ResultIntro';
 import Replay from '@/pages/graphics-controller/theme01/Replay';
 import ReplayRow from '@/pages/graphics-controller/theme01/ReplayRow';
 import RunRate from '@/pages/graphics-controller/theme01/RunRate';
@@ -53,6 +60,10 @@ import ScoreComparisonBar from '@/pages/graphics-controller/theme01/ScoreCompari
 import Six from '@/pages/graphics-controller/theme01/Six';
 import SixRow from '@/pages/graphics-controller/theme01/SixRow';
 import TeaBreak from '@/pages/graphics-controller/theme01/TeaBreak';
+import Toss from '@/pages/graphics-controller/theme01/Toss';
+import TournamentIntro from '@/pages/graphics-controller/theme01/TournamentIntro';
+import TournamentOverview from '@/pages/graphics-controller/theme01/TournamentOverview';
+import TournamentOver from '@/pages/graphics-controller/theme01/TournamentOver';
 import TournamentStart from '@/pages/graphics-controller/theme01/TournamentStart';
 import Wide from '@/pages/graphics-controller/theme01/Wide';
 import WideRow from '@/pages/graphics-controller/theme01/WideRow';
@@ -272,9 +283,26 @@ function App() {
                 element={<InningsBreak />}
               />
               <Route path="/graphics-controller/tea-break" element={<TeaBreak />} />
+              <Route path="/graphics-controller/toss" element={<Toss />} />
+              <Route
+                path="/graphics-controller/tournament-intro"
+                element={<TournamentIntro />}
+              />
+              <Route
+                path="/graphics-controller/tournament-overview"
+                element={<TournamentOverview />}
+              />
+              <Route
+                path="/graphics-controller/tournament-over"
+                element={<TournamentOver />}
+              />
               <Route
                 path="/graphics-controller/target-needed"
                 element={<TargetNeeded />}
+              />
+              <Route
+                path="/graphics-controller/stats-default"
+                element={<StatsDefault />}
               />
               <Route
                 path="/graphics-controller/at-this-stage"
@@ -320,8 +348,32 @@ function App() {
                 element={<PlayerTournamentStats />}
               />
               <Route
+                path="/graphics-controller/result-intro"
+                element={<ResultIntro />}
+              />
+              <Route
                 path="/graphics-controller/player-career-stats"
                 element={<PlayerCareerStats />}
+              />
+              <Route
+                path="/graphics-controller/bowler-current-stats"
+                element={<BowlerCurrentStats />}
+              />
+              <Route
+                path="/graphics-controller/batsman-current-stats"
+                element={<BatsmanCurrentStats />}
+              />
+              <Route
+                path="/graphics-controller/batsman-career-stats"
+                element={<BatsmanCareerStats />}
+              />
+              <Route
+                path="/graphics-controller/batsman-innings-stats"
+                element={<BatsmanInningsStats />}
+              />
+              <Route
+                path="/graphics-controller/bowler-career-stats"
+                element={<BowlerCareerStats />}
               />
               <Route
                 path="/graphics-controller/cricket-match-summary"
