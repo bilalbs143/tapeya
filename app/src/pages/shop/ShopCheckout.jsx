@@ -28,6 +28,9 @@ import {
   selectViewportInputClass,
 } from '@/ui/Select';
 
+/** Matches API country `name` (see GET /countries). */
+const DEFAULT_CHECKOUT_COUNTRY = 'Pakistan';
+
 export default function ShopCheckout() {
   const navigate = useNavigate();
   const toast = useToast();
@@ -42,7 +45,7 @@ export default function ShopCheckout() {
       email: '',
       address: '',
       city: '',
-      country: '',
+      country: DEFAULT_CHECKOUT_COUNTRY,
       notes: '',
     },
   });
@@ -58,13 +61,14 @@ export default function ShopCheckout() {
   });
 
   useEffect(() => {
+    const countryFromProfile = user?.country && String(user.country).trim();
     reset({
       fullName: user?.name ?? '',
       phone: user?.phone ?? '',
       email: user?.email ?? '',
       address: '',
       city: user?.city ?? '',
-      country: user?.country ?? '',
+      country: countryFromProfile || DEFAULT_CHECKOUT_COUNTRY,
       notes: '',
     });
   }, [user, reset]);

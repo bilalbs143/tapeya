@@ -19,9 +19,9 @@ import {
 } from '@/ui/Tabs';
 
 const PROFILE_ROLES = [
-  { value: 'player', label: 'Player Profile' },
-  { value: 'organizer', label: 'Organizer Profile' },
-  { value: 'sponsor', label: 'Sponsor Profile' },
+  { value: 'player', label: 'As a Player' },
+  { value: 'organizer', label: 'As an Organizer' },
+  { value: 'sponsor', label: 'As a Sponsor' },
 ];
 
 /** Role slugs the user holds. Returns [] when user has no roles; ['player'] when user not yet loaded. */
@@ -93,10 +93,7 @@ export default function Profile() {
           value={activeRole ?? ''}
           onValueChange={setActiveRole}
         >
-          <div className="px-4">
-            <p className="mb-2 mt-10 text-xs font-semibold tracking-wide text-white/60 uppercase">
-              Switch profile
-            </p>
+          <div className="px-4 pt-10">
             <TabsList className={profileListClass}>
               {visibleRoleTabs.map(({ value, label }) => (
                 <TabsTrigger

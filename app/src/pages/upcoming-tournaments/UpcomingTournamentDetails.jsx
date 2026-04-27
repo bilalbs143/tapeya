@@ -29,6 +29,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
 const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const feedShareIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-share.svg`;
+const FIXTURE_TAB_BG = `${CLOUDFRONT_APP_BASE}/images/background/fixture-bg.png`;
 
 const DETAIL_TABS = {
   FIXTURES: 'fixtures',
@@ -122,6 +123,9 @@ export default function UpcomingTournamentDetails() {
     stateTournament ?? { id: tournamentId, ...DEFAULT_TOURNAMENT };
 
   const bannerImage = getTournamentImage(tournament, FALLBACK_IMAGE);
+  /** When Fixtures tab is active, show dedicated fixture art in the top banner. */
+  const headerImageSrc =
+    activeTab === DETAIL_TABS.FIXTURES ? FIXTURE_TAB_BG : bannerImage;
   const displayName = getTournamentTitle(tournament);
   const startDate = tournament.start_date ?? '';
   const endDate = tournament.end_date ?? '';
@@ -219,14 +223,22 @@ export default function UpcomingTournamentDetails() {
   return (
     <div className="">
       {/* Banner: extends behind navbar; back button positioned within the image */}
-      <div className="relative h-[200px] w-full overflow-hidden bg-[#0d0d0b] lg:h-[300px]">
+      <div className="relative h-[250px] w-full overflow-hidden bg-[#0d0d0b] lg:h-[400px]">
         <img
-          src={bannerImage}
+          key={headerImageSrc}
+          src={headerImageSrc}
           alt=""
           className="h-full w-full object-cover"
           onError={(e) => {
-            if (e.currentTarget.src !== FALLBACK_IMAGE) {
-              e.currentTarget.src = FALLBACK_IMAGE;
+            const el = e.currentTarget;
+            if (activeTab === DETAIL_TABS.FIXTURES) {
+              if (el.src.includes('fixture-bg')) {
+                el.src = bannerImage;
+                return;
+              }
+            }
+            if (el.src !== FALLBACK_IMAGE) {
+              el.src = FALLBACK_IMAGE;
             }
           }}
         />
