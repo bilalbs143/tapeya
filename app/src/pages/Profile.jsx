@@ -94,7 +94,7 @@ export default function Profile() {
           onValueChange={setActiveRole}
         >
           <div className="px-4">
-            <p className="mb-2 text-xs font-semibold tracking-wide text-white/60 uppercase">
+            <p className="mb-2 mt-10 text-xs font-semibold tracking-wide text-white/60 uppercase">
               Switch profile
             </p>
             <TabsList className={profileListClass}>
