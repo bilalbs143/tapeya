@@ -26,6 +26,7 @@ import BatsmanCurrentStats from '@/pages/graphics-controller/theme01/BatsmanCurr
 import BowlerCareerStats from '@/pages/graphics-controller/theme01/BowlerCareerStats';
 import BowlerCurrentStats from '@/pages/graphics-controller/theme01/BowlerCurrentStats';
 import CricketMatchSummary from '@/pages/graphics-controller/theme01/CricketMatchSummary';
+import CurrentPartnership from '@/pages/graphics-controller/theme01/CurrentPartnership';
 import DecisionPending from '@/pages/graphics-controller/theme01/DecisionPending';
 import DecisionPendingRow from '@/pages/graphics-controller/theme01/DecisionPendingRow';
 import FallofWickets from '@/pages/graphics-controller/theme01/FallofWickets';
@@ -38,6 +39,7 @@ import HighestRuns from '@/pages/graphics-controller/theme01/HighestRuns';
 import HighestWickets from '@/pages/graphics-controller/theme01/HighestWickets';
 import Hundred from '@/pages/graphics-controller/theme01/Hundred';
 import InningsBreak from '@/pages/graphics-controller/theme01/InningsBreak';
+import LastBalls from '@/pages/graphics-controller/theme01/LastBalls';
 import StatsDefault from '@/pages/graphics-controller/theme01/StatsDefault';
 import TargetNeeded from '@/pages/graphics-controller/theme01/TargetNeeded';
 import NoBall from '@/pages/graphics-controller/theme01/NoBall';
@@ -55,6 +57,7 @@ import ResultIntro from '@/pages/graphics-controller/theme01/ResultIntro';
 import Replay from '@/pages/graphics-controller/theme01/Replay';
 import ReplayRow from '@/pages/graphics-controller/theme01/ReplayRow';
 import RunRate from '@/pages/graphics-controller/theme01/RunRate';
+import WinPredictor from '@/pages/graphics-controller/theme01/WinPredictor';
 import ScoreComparison from '@/pages/graphics-controller/theme01/ScoreComparison';
 import ScoreComparisonBar from '@/pages/graphics-controller/theme01/ScoreComparisonBar';
 import Six from '@/pages/graphics-controller/theme01/Six';
@@ -309,6 +312,18 @@ function App() {
                 element={<AtThisStage />}
               />
               <Route path="/graphics-controller/run-rate" element={<RunRate />} />
+              <Route
+                path="/graphics-controller/win-predictor"
+                element={<WinPredictor />}
+              />
+              <Route
+                path="/graphics-controller/current-partnership"
+                element={<CurrentPartnership />}
+              />
+              <Route
+                path="/graphics-controller/last-balls"
+                element={<LastBalls />}
+              />
               <Route
                 path="/graphics-controller/previous-order"
                 element={<PreviousOrder />}
