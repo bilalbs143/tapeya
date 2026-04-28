@@ -111,8 +111,8 @@ export function replayBallHistory(
     if (type === 'out') {
       const outId = b.striker?.id ?? sid;
       const outBatsman = getOrCreateBatsman(outId);
-      const stayedId = outId === sid ? nid : sid;
-      const stayedBatsman = getOrCreateBatsman(stayedId);
+      const partnerStaysId = outId === sid ? nid : sid;
+      const stayedBatsman = getOrCreateBatsman(partnerStaysId);
       if (partnershipRuns > 0 || partnershipBalls > 0) {
         const stayRuns = outId === sid ? p2Runs : p1Runs;
         const stayBalls = outId === sid ? p2Balls : p1Balls;
@@ -142,19 +142,38 @@ export function replayBallHistory(
       const nextIn = battingPlayers.find(
         (p) => !battingOrder.some((id) => String(id) === String(p.id)),
       );
-      const nextId = nextIn ? nextIn.id : null;
-      if (nextId != null) battingOrder.push(nextId);
-      getOrCreateBatsman(nextId);
-      if (nextId != null) ensureBattingOrder(nextId);
+      let nextId = nextIn ? nextIn.id : null;
+      const nextBall = balls[i + 1];
+      if (nextId == null && nextBall != null && partnerStaysId != null) {
+        const nbSid = nextBall.strikerId ?? nextBall.striker?.id;
+        const nbNid = nextBall.nonStrikerId;
+        if (nbSid != null && String(nbSid) !== String(partnerStaysId)) {
+          nextId = nbSid;
+        } else if (nbNid != null && String(nbNid) !== String(partnerStaysId)) {
+          nextId = nbNid;
+        }
+      }
+      if (nextId != null && !battingOrder.some((id) => String(id) === String(nextId))) {
+        battingOrder.push(nextId);
+      }
+      if (nextId != null) {
+        getOrCreateBatsman(nextId);
+        ensureBattingOrder(nextId);
+      }
 
-      p1Id = nextId ?? nonStrikerId;
-      p2Id = outId === sid ? nid : sid;
+      if (outId === sid) {
+        strikerId = nextId;
+        nonStrikerId = partnerStaysId;
+      } else {
+        strikerId = partnerStaysId;
+        nonStrikerId = nextId;
+      }
+      p1Id = strikerId;
+      p2Id = nonStrikerId;
       p1Runs = 0;
       p1Balls = 0;
       p2Runs = 0;
       p2Balls = 0;
-      strikerId = nextId ?? nonStrikerId;
-      nonStrikerId = outId === sid ? nid : sid;
       currentBowlerId = bid;
       continue;
     }
@@ -195,10 +214,16 @@ export function replayBallHistory(
     }
   }
 
-  const batsmenOnCrease = [
+  let batsmenOnCrease = [
     strikerId != null ? getOrCreateBatsman(strikerId) : null,
     nonStrikerId != null ? getOrCreateBatsman(nonStrikerId) : null,
   ].filter(Boolean);
+  if (
+    batsmenOnCrease.length === 2 &&
+    String(batsmenOnCrease[0]?.id) === String(batsmenOnCrease[1]?.id)
+  ) {
+    batsmenOnCrease = [batsmenOnCrease[0]];
+  }
 
   const bowlerIds = Object.keys(bowlingStats);
   const bowlersInTable = bowlerIds.map((id) => bowlingStats[id]);
@@ -206,10 +231,12 @@ export function replayBallHistory(
     (b) => String(b.id) === String(currentBowlerId),
   );
   const strikerIdx =
-    batsmenOnCrease.length >= 2 &&
-    String(batsmenOnCrease[0]?.id) === String(strikerId)
+    batsmenOnCrease.length === 1
       ? 0
-      : 1;
+      : batsmenOnCrease.length >= 2 &&
+          String(batsmenOnCrease[0]?.id) === String(strikerId)
+        ? 0
+        : 1;
 
   return {
     batsmenOnCrease,
