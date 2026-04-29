@@ -1,0 +1,242 @@
+<app-dialog-wrapper [title]="title">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    aria-label="Team Form"
+  >
+    <mat-dialog-content>
+      <div class="grid grid-cols-12 gap-x-6">
+        <!-- Row 1: Name | Code -->
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Team Name <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              formControlName="name"
+              placeholder="Team Name"
+              autocomplete="organization"
+            />
+            @if (form.get('name')?.invalid && form.get('name')?.touched) {
+              <mat-error>Team name is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Code <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              formControlName="code"
+              placeholder="Short Code"
+              autocomplete="off"
+            />
+            @if (form.get('code')?.invalid && form.get('code')?.touched) {
+              <mat-error>Short code is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <!-- Row 2: Country | City (same pattern as manage user) -->
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Country <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-select
+              formControlName="country"
+              placeholder="Select Country"
+            >
+              <mat-option value="">Select Country</mat-option>
+              @for (c of countriesList; track c.country_code) {
+                <mat-option [value]="c.name">{{ c.name }}</mat-option>
+              }
+            </mat-select>
+            @if (form.get('country')?.invalid && form.get('country')?.touched) {
+              <mat-error>Country is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">City <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-select
+              formControlName="city"
+              [disabled]="!form.get('country')?.value"
+              placeholder="Select City"
+            >
+              <mat-option value="">Select City</mat-option>
+              @for (c of cities; track c.id) {
+                <mat-option [value]="c.name">{{ c.name }}</mat-option>
+              }
+            </mat-select>
+            @if (form.get('city')?.invalid && form.get('city')?.touched) {
+              <mat-error>City is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <!-- Logo (same file control pattern as manage-brand-dialog) -->
+        <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">
+            Logo {{ isEdit ? '(Optional — Leave Empty to Keep Current)' : '' }}
+          </mat-label>
+          <div class="flex flex-col gap-2 items-start">
+            @if (logoPreviewUrl) {
+              <div class="grid shrink-0">
+                <img
+                  [src]="logoPreviewUrl"
+                  alt="Logo Preview"
+                  class="col-start-1 row-start-1 block max-h-40 max-w-full object-contain rounded border border-default-border"
+                />
+                <button
+                  type="button"
+                  mat-icon-button
+                  class="col-start-1 row-start-1 justify-self-end self-start m-2 size-8 min-w-8 rounded-full bg-white shadow-md border border-error text-error hover:bg-error hover:text-white hover:border-error"
+                  aria-label="Remove Logo"
+                  (click)="clearLogo()"
+                >
+                  <i-tabler
+                    name="trash"
+                    class="size-5"
+                  ></i-tabler>
+                </button>
+              </div>
+            }
+            <input
+              type="file"
+              accept="image/*"
+              (change)="onLogoSelected($event)"
+              class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-primary file:text-white file:font-medium"
+            />
+          </div>
+        </div>
+
+        <!-- Sponsor (chip grid + autocomplete, same pattern as tournament Broadcaster) -->
+        <div class="col-span-12 mt-4">
+          <mat-label class="text-sm font-semibold mb-2 block">Sponsor <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-chip-grid
+              #sponsorChipGrid
+              aria-label="Team Sponsor"
+            >
+              @if (sponsor) {
+                <mat-chip-row
+                  (removed)="removeSponsor()"
+                  class="text-sm"
+                >
+                  {{ userChipLabel(sponsor) }}
+                  <button
+                    type="button"
+                    matChipRemove
+                    [attr.aria-label]="'Remove Sponsor ' + userChipLabel(sponsor)"
+                  >
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip-row>
+              }
+              <input
+                [formControl]="sponsorSearch"
+                [matChipInputFor]="sponsorChipGrid"
+                [matChipInputSeparatorKeyCodes]="roleChipSeparatorKeys"
+                [matChipInputAddOnBlur]="roleChipInputAddOnBlur"
+                (matChipInputTokenEnd)="onSponsorChipInputTokenEnd($event)"
+                [matAutocomplete]="sponsorAuto"
+                [placeholder]="sponsor ? 'Search to replace…' : 'Search to assign…'"
+              />
+            </mat-chip-grid>
+            <mat-autocomplete
+              #sponsorAuto="matAutocomplete"
+              (optionSelected)="onSponsorSelected($event)"
+            >
+              @for (c of sponsorCandidates; track c.id) {
+                <mat-option [value]="c">{{ userOptionLabel(c) }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          @if (form.get('sponsor_user_id')?.invalid && form.get('sponsor_user_id')?.touched) {
+            <p class="text-error text-sm m-0 mt-1">Select a sponsor from the suggestions.</p>
+          }
+        </div>
+
+        <!-- Icon players (multi chips + autocomplete) -->
+        <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">Icon Players</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-chip-grid
+              #iconChipGrid
+              aria-label="Icon Players"
+            >
+              @for (p of iconPlayers; track p.id) {
+                <mat-chip-row
+                  (removed)="removeIconPlayer(p)"
+                  class="text-sm"
+                >
+                  {{ userChipLabel(p) }}
+                  <button
+                    type="button"
+                    matChipRemove
+                    [attr.aria-label]="'Remove Icon Player ' + userChipLabel(p)"
+                  >
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip-row>
+              }
+              <input
+                [formControl]="iconSearch"
+                [matChipInputFor]="iconChipGrid"
+                [matChipInputSeparatorKeyCodes]="roleChipSeparatorKeys"
+                [matChipInputAddOnBlur]="roleChipInputAddOnBlur"
+                (matChipInputTokenEnd)="onIconChipInputTokenEnd($event)"
+                [matAutocomplete]="iconAuto"
+                [placeholder]="iconPlayers.length ? 'Search to add another…' : 'Search to assign…'"
+              />
+            </mat-chip-grid>
+            <mat-autocomplete
+              #iconAuto="matAutocomplete"
+              (optionSelected)="onIconSelected($event)"
+            >
+              @for (c of iconCandidates; track c.id) {
+                <mat-option [value]="c">{{ userOptionLabel(c) }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions>
+      <button
+        type="button"
+        mat-stroked-button
+        class="border border-error! text-error"
+        [mat-dialog-close]="false"
+      >
+        Cancel
+      </button>
+
+      <app-submit-button
+        [disabled]="form.invalid"
+        [isSubmitting]="isSubmitting"
+        [text]="submitButtonText"
+        color="primary"
+      />
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

@@ -11,8 +11,8 @@ use App\Models\MatchGraphicCaption;
 use App\Models\TournamentMatch;
 use App\Services\Broadcast\ResolveMatchGraphicSession;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class MatchGraphicCaptionController extends Controller
 {
@@ -56,7 +56,7 @@ class MatchGraphicCaptionController extends Controller
         return $this->success(new MatchGraphicCaptionResource($caption->fresh()), 'Caption updated.');
     }
 
-    public function destroy(TournamentMatch $match, MatchGraphicCaption $caption): Response
+    public function destroy(TournamentMatch $match, MatchGraphicCaption $caption): JsonResponse|SymfonyResponse
     {
         $this->assertCaptionForMatch($match, $caption);
         $caption->delete();

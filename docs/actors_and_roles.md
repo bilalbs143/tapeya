@@ -24,6 +24,8 @@
 
 **Flow**: User → **roles** (via `role_user`) → **permissions** (via `role_permission`).
 
+**Backoffice admin permission slugs:** Canonical seed list in **`api/database/seeders/PermissionSeeder.php`**; readable mirror in **`BROADCASTER_ROLE.md` §8**. See **`SHARED_DOMAIN_SERVICES.md`** (admin permission table) for how that lines up with HTTP layers.
+
 ---
 
 ## 3. Guards

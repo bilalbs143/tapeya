@@ -24,15 +24,6 @@ html .topbar {
   min-width: 360px !important;
 }
 
-.apps-dd {
-  min-width: 830px !important;
-  overflow: unset !important;
-
-  .mat-mdc-menu-content {
-    padding: 0;
-  }
-}
-
 .text-hover-primary:hover {
   .hover-text {
     color: var(--mat-sys-primary);

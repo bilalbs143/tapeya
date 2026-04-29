@@ -41,15 +41,15 @@ class TournamentTeamController extends Controller
     {
         $user = $request->user();
 
-        if ($tournament->organizer_id !== $user->id) {
-            return $this->forbidden('Only the tournament organizer can attach teams.');
+        if (! $user->canOperateTournamentInApp($tournament)) {
+            return $this->forbidden('You cannot manage teams for this tournament.');
         }
 
         $teamIds = $request->validated('team_ids');
         $groupIndex = $request->validated('group_index');
 
         if ($tournament->number_of_groups > 1 && ($groupIndex === null || $groupIndex < 1 || $groupIndex > $tournament->number_of_groups)) {
-            return $this->failure('Group Index is required and must be between 1 and '.$tournament->number_of_groups.' for this tournament.', 'VALIDATION_ERROR', 422);
+            return $this->failure('Group index is required and must be between 1 and '.$tournament->number_of_groups.' for this tournament.', 'VALIDATION_ERROR', 422);
         }
 
         $pivot = $groupIndex !== null ? ['group_index' => $groupIndex] : [];
@@ -75,8 +75,8 @@ class TournamentTeamController extends Controller
      */
     public function update(UpdateTournamentTeamRequest $request, Tournament $tournament, Team $team): JsonResponse
     {
-        if ($tournament->organizer_id !== $request->user()->id) {
-            return $this->forbidden('Only the tournament organizer can update team groups.');
+        if (! $request->user()->canOperateTournamentInApp($tournament)) {
+            return $this->forbidden('You cannot manage teams for this tournament.');
         }
 
         if (! $tournament->teams()->where('teams.id', $team->id)->exists()) {
@@ -113,8 +113,8 @@ class TournamentTeamController extends Controller
     {
         $user = request()->user();
 
-        if ($tournament->organizer_id !== $user->id) {
-            return $this->forbidden('Only the tournament organizer can remove teams.');
+        if (! $user->canOperateTournamentInApp($tournament)) {
+            return $this->forbidden('You cannot manage teams for this tournament.');
         }
 
         if (! $tournament->teams()->where('teams.id', $team->id)->exists()) {

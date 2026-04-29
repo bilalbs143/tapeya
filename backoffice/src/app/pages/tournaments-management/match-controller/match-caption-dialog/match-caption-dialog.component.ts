@@ -2,12 +2,15 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDividerModule } from '@angular/material/divider';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
 import { MatchGraphicService, type MatchGraphicCaption } from 'src/app/services/match-graphic.service';
 import { MessageService } from 'src/app/services/message.service';
+import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 
 export interface MatchCaptionDialogData {
   matchId: number;
@@ -17,7 +20,17 @@ export interface MatchCaptionDialogData {
 @Component({
   selector: 'app-match-caption-dialog',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatInputModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatDividerModule,
+    MatFormFieldModule,
+    MatInputModule,
+    DialogWrapperComponent,
+    SubmitButtonComponent,
+  ],
   templateUrl: './match-caption-dialog.component.html',
 })
 export class MatchCaptionDialogComponent {
@@ -39,10 +52,6 @@ export class MatchCaptionDialogComponent {
     if (c) {
       this.form.patchValue({ title: c.title, description: c.description });
     }
-  }
-
-  public cancel(): void {
-    this.dialogRef.close(false);
   }
 
   public save(): void {

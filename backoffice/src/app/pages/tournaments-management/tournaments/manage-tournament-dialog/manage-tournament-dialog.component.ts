@@ -1,6 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -20,18 +27,36 @@ import { MessageService } from 'src/app/services/message.service';
 import type { TournamentRequest } from 'src/app/services/tournament-request.service';
 import type { Tournament } from 'src/app/services/tournaments.service';
 import { TournamentsService } from 'src/app/services/tournaments.service';
-import { UsersService } from 'src/app/services/users.service';
+import { UsersService, type UserSearchRow } from 'src/app/services/users.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { normalizeEnumValue } from 'src/app/shared/functions/enum.function';
 
-export interface OrganizerOption {
-  id: number;
-  name: string;
-  nickname: string | null;
-  email: string | null;
-  phone: string | null;
+function tournamentDateOrderValidator(group: AbstractControl): ValidationErrors | null {
+  const start = group.get('start_date')?.value;
+  const end = group.get('end_date')?.value;
+  if (!(start instanceof Date) || !(end instanceof Date)) {
+    return null;
+  }
+  const s = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const e = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+  return e < s ? { dateOrder: true } : null;
 }
+
+/** Require a selected organizer object (autocomplete); free text counts as invalid like {@link Validators.required}. */
+function organizerRequiredValidator(control: AbstractControl): ValidationErrors | null {
+  const v = control.value;
+  if (v == null || v === '') {
+    return { required: true };
+  }
+  if (typeof v !== 'object' || !('id' in v) || typeof (v as { id: unknown }).id !== 'number') {
+    return { required: true };
+  }
+  return null;
+}
+
+/** Sponsor row from organizer search — same minimal shape as other admin user pickers. */
+export type OrganizerOption = UserSearchRow;
 
 export interface ManageTournamentDialogData {
   mode: 'create' | 'edit';
@@ -133,7 +158,7 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
         .pipe(
           debounceTime(300),
           distinctUntilChanged(),
-          switchMap((term) => this.usersService.searchUsersForOrganizerDropdown(term))
+          switchMap((term) => this.usersService.adminUserSearch(term))
         )
         .subscribe({
           next: (res) => {
@@ -212,33 +237,33 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
     const groupMode = numGroups > 1 ? 'group_wise' : 'open';
     const numberOfGroups = numGroups > 1 ? numGroups : 2;
 
-    this.form = this.fb.group({
-      organizer: [
-        initialOrganizer,
-        [
-          Validators.required,
-          (c: AbstractControl) => {
-            const v = c.value;
-            if (!v || typeof v !== 'object' || !('id' in v)) return { organizerRequired: true };
-            return null;
-          },
-        ],
-      ],
-      tournament_name: [source?.tournament_name ?? '', [Validators.required, Validators.maxLength(255)]],
-      tournament_type: [normalizeEnumValue(source?.tournament_type, ''), [Validators.required]],
-      cricket_format: [normalizeEnumValue(source?.cricket_format, ''), [Validators.required]],
-      venue_name: [source?.venue_name ?? '', [Validators.required, Validators.maxLength(255)]],
-      start_date: [source?.start_date ? this.parseDate(String(source.start_date)) : null, [Validators.required]],
-      end_date: [source?.end_date ? this.parseDate(String(source.end_date)) : null, [Validators.required]],
-      number_of_teams: [source?.number_of_teams ?? null, [Validators.required, Validators.min(1), Validators.max(500)]],
-      group_mode: [groupMode, [Validators.required]],
-      number_of_groups: [numberOfGroups, [Validators.min(2), Validators.max(16)]],
-      country: [source?.country ?? '', [Validators.required, Validators.maxLength(100)]],
-      city: [source?.city ?? '', [Validators.required, Validators.maxLength(100)]],
-      match_timings: [normalizeEnumValue(source?.match_timings, ''), [Validators.required]],
-      status: [normalizeEnumValue(tournament?.status_enum ?? tournament?.status, 'active'), [Validators.required]],
-      prize: [source?.prize ?? '', [Validators.maxLength(255)]],
-    });
+    this.form = this.fb.group(
+      {
+        organizer: [initialOrganizer, [organizerRequiredValidator]],
+        tournament_name: [source?.tournament_name ?? '', [Validators.required, Validators.maxLength(255)]],
+        tournament_type: [normalizeEnumValue(source?.tournament_type, ''), [Validators.required]],
+        cricket_format: [normalizeEnumValue(source?.cricket_format, ''), [Validators.required]],
+        venue_name: [source?.venue_name ?? '', [Validators.required, Validators.maxLength(255)]],
+        start_date: [source?.start_date ? this.parseDate(String(source.start_date)) : null, [Validators.required]],
+        end_date: [source?.end_date ? this.parseDate(String(source.end_date)) : null, [Validators.required]],
+        number_of_teams: [source?.number_of_teams ?? null, [Validators.required, Validators.min(1), Validators.max(500)]],
+        group_mode: [groupMode, [Validators.required]],
+        number_of_groups: [numberOfGroups, [Validators.min(2), Validators.max(16)]],
+        country: [source?.country ?? '', [Validators.required, Validators.maxLength(100)]],
+        city: [source?.city ?? '', [Validators.required, Validators.maxLength(100)]],
+        match_timings: [normalizeEnumValue(source?.match_timings, ''), [Validators.required]],
+        status: [normalizeEnumValue(tournament?.status_enum ?? tournament?.status, 'active'), [Validators.required]],
+        prize: [source?.prize ?? '', [Validators.maxLength(255)]],
+      },
+      { validators: [tournamentDateOrderValidator] }
+    );
+  }
+
+  public endDateOrderShowError(): boolean {
+    return !!(
+      this.form.errors?.['dateOrder'] &&
+      (this.form.get('end_date')?.touched || this.form.get('start_date')?.touched)
+    );
   }
 
   public onDisplayImageSelected(ev: unknown): void {

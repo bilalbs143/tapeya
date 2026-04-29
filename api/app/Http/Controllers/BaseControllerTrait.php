@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -24,9 +25,12 @@ trait BaseControllerTrait
         return response()->forbidden($message);
     }
 
-    protected function noContent()
+    /**
+     * 204 with no body, as JSON-capable response (JsonResponse) for controllers typed to JsonResponse.
+     */
+    protected function noContent(): JsonResponse
     {
-        return response()->noContent();
+        return new JsonResponse(null, 204);
     }
 
     /**

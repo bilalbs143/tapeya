@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard } from './guards/auth.guard';
+import { backofficeScopeGuard } from './guards/backoffice-scope.guard';
 import { BlankComponent } from './layouts/blank/blank.component';
 import { FullComponent } from './layouts/full/full.component';
 
@@ -8,7 +9,7 @@ export const routes: Routes = [
   {
     path: '',
     component: FullComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, backofficeScopeGuard],
     children: [
       {
         path: '',
@@ -17,7 +18,7 @@ export const routes: Routes = [
       },
       {
         path: 'dashboard',
-        loadChildren: () => import('./pages/ecommerce/ecommerce.routes').then((m) => m.EcommerceRoutes),
+        loadChildren: () => import('./pages/dashboard/dashboard.routes').then((m) => m.dashboardRoutes),
       },
       {
         path: 'ecommerce',
@@ -32,6 +33,11 @@ export const routes: Routes = [
         path: 'users-management',
         loadChildren: () =>
           import('./pages/users-management/users-management.routes').then((m) => m.UsersManagementRoutes),
+      },
+      {
+        path: 'players-management',
+        loadChildren: () =>
+          import('./pages/players-management/players-management.routes').then((m) => m.playersManagementRoutes),
       },
       {
         path: 'shop-management',

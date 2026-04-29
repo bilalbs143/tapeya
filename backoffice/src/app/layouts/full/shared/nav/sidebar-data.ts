@@ -1,3 +1,5 @@
+import type { AuthUser } from 'src/app/models/auth.models';
+
 import { NavItem } from './nav-item.model';
 
 /** Shared nav/sidebar menu data for both vertical and horizontal layouts. */
@@ -29,6 +31,11 @@ export const navItems: NavItem[] = [
         iconName: 'tabler:point',
         route: '/tournaments-management/tournament-requests',
       },
+      {
+        displayName: 'Teams',
+        iconName: 'tabler:point',
+        route: '/tournaments-management/teams',
+      },
     ],
   },
   {
@@ -57,14 +64,9 @@ export const navItems: NavItem[] = [
         route: '/users-management/users',
       },
       {
-        displayName: 'Blocked Users',
+        displayName: 'Players Management',
         iconName: 'tabler:point',
-        route: '/users/blocked',
-      },
-      {
-        displayName: 'Login History',
-        iconName: 'tabler:point',
-        route: '/users/login-history',
+        route: '/players-management/players',
       },
     ],
   },
@@ -111,3 +113,38 @@ export const navItems: NavItem[] = [
     ],
   },
 ];
+
+/** Sidebar for Broadcast Operator staff — flat top-level links (small menu). */
+export const broadcastStaffNavItems: NavItem[] = [
+  {
+    navCap: 'Main Menu',
+  },
+  {
+    displayName: 'Dashboard',
+    iconName: 'solar:home-angle-line-duotone',
+    route: '/dashboard',
+  },
+  {
+    displayName: 'Players Management',
+    iconName: 'solar:user-id-line-duotone',
+    route: '/players-management/players',
+  },
+  {
+    displayName: 'Teams Management',
+    iconName: 'solar:users-group-two-rounded-line-duotone',
+    route: '/tournaments-management/teams',
+  },
+  {
+    displayName: 'Tournaments Management',
+    iconName: 'solar:calendar-date-line-duotone',
+    route: '/tournaments-management/tournaments',
+  },
+];
+
+export function getVisibleNavItems(user: AuthUser | null): NavItem[] {
+  if (user?.is_broadcast_staff && !user.is_admin) {
+    return broadcastStaffNavItems;
+  }
+
+  return navItems;
+}

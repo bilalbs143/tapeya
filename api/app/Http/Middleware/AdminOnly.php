@@ -8,11 +8,14 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AdminOnly
 {
+    /**
+     * Administrators (full) or Broadcast Operator app users (tournament-scoped elsewhere).
+     */
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
 
-        if (! $user || ! $user->isAdmin() || $user->isSystem()) {
+        if (! $user || $user->isSystem() || ! $user->canAccessBackofficeApi()) {
             return response()->json([
                 'message' => 'Forbidden',
             ], 403);

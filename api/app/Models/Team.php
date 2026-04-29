@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Spatie\QueryBuilder\AllowedFilter;
 
 class Team extends BaseModel
 {
@@ -54,5 +55,30 @@ class Team extends BaseModel
     {
         return $this->belongsToMany(Tournament::class, 'tournament_team')
             ->withTimestamps();
+    }
+
+    /**
+     * @return array<int, string|AllowedFilter>
+     */
+    public static function getFilters(): array
+    {
+        return [
+            AllowedFilter::callback('search', function ($query, $value) {
+                $term = '%'.addcslashes(mb_strtolower((string) $value), '%_\\').'%';
+                $query->where(function ($q) use ($term) {
+                    $q->whereRaw('LOWER(name) LIKE ?', [$term])
+                        ->orWhereRaw('LOWER(code) LIKE ?', [$term]);
+                });
+            }),
+            AllowedFilter::exact('country'),
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function getSorts(): array
+    {
+        return ['id', 'name', 'code', 'country', 'city', 'created_at', 'updated_at'];
     }
 }

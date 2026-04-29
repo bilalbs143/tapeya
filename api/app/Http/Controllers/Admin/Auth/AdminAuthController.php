@@ -16,7 +16,7 @@ class AdminAuthController extends Controller
 
         $user = User::where('email', $credentials['email'])->first();
 
-        if (! $user || ! $user->isAdmin() || $user->isSystem() || ! Auth::attempt($credentials)) {
+        if (! $user || $user->isSystem() || ! $user->canAccessBackofficeApi() || ! Auth::attempt($credentials)) {
             return response()->failure('Invalid credentials', 'UNAUTHORIZED');
         }
 

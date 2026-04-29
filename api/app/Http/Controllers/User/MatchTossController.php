@@ -23,8 +23,8 @@ class MatchTossController extends Controller
     {
         $authUser = $request->user();
 
-        if ($match->tournament->organizer_id !== $authUser->id) {
-            return $this->forbidden('Only the tournament organizer can record the toss.');
+        if (! $authUser->canOperateTournamentInApp($match->tournament)) {
+            return $this->forbidden('You cannot record the toss for this match.');
         }
 
         $winningTeamId = (int) $request->validated('winning_team_id');

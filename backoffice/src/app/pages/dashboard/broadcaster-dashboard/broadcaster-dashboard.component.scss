@@ -1,0 +1,10 @@
+/* Hero welcome card — soft primary/secondary wash over surface (restored from earlier dashboard). */
+.broadcaster-dashboard-hero {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface)) 0%,
+    var(--mat-sys-surface) 52%,
+    color-mix(in srgb, var(--mat-sys-secondary) 8%, var(--mat-sys-surface)) 100%
+  );
+  border: 1px solid var(--mat-sys-outline-variant);
+}

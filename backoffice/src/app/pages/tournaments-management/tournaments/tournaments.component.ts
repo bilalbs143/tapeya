@@ -4,7 +4,6 @@ import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSort, MatSortModule } from '@angular/material/sort';
@@ -26,13 +25,11 @@ import { buildListParams } from 'src/app/shared/functions/list-params.function';
 import { getStatusClass } from 'src/app/utils/status-class.util';
 
 import { ManageTournamentDialogComponent } from './manage-tournament-dialog/manage-tournament-dialog.component';
-import { TournamentDetailDialogComponent } from './tournament-detail-dialog/tournament-detail-dialog.component';
 
 const DEFAULT_FILTERS = {
   status: '',
+  schedule_window: '',
   tournament_type: '',
-  country: '',
-  city: '',
 } as const;
 
 @Component({
@@ -45,7 +42,6 @@ const DEFAULT_FILTERS = {
     MatTableModule,
     MatSortModule,
     MatFormFieldModule,
-    MatInputModule,
     MatSelectModule,
     MatButtonModule,
     MatDialogModule,
@@ -68,6 +64,7 @@ export class TournamentsComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(MatSort) public sort!: MatSort;
 
   public statusOptions$ = this.enumsService.getOptions('status');
+  public tournamentScheduleWindowOptions$ = this.enumsService.getOptions('tournament_schedule_window');
   public tournamentTypeOptions$ = this.enumsService.getOptions('tournament_type');
   public searchForm: FormGroup;
   public readonly displayedColumns: string[] = [
@@ -80,6 +77,7 @@ export class TournamentsComponent implements OnInit, AfterViewInit, OnDestroy {
     'city',
     'start_date',
     'end_date',
+    'schedule_phase',
     'status',
     'created_at',
     'actions',
@@ -101,9 +99,8 @@ export class TournamentsComponent implements OnInit, AfterViewInit, OnDestroy {
   private initialiseSearchForm(): void {
     this.searchForm = this.fb.group({
       status: [DEFAULT_FILTERS.status],
+      schedule_window: [DEFAULT_FILTERS.schedule_window],
       tournament_type: [DEFAULT_FILTERS.tournament_type],
-      country: [DEFAULT_FILTERS.country],
-      city: [DEFAULT_FILTERS.city],
     });
   }
 
@@ -145,11 +142,10 @@ export class TournamentsComponent implements OnInit, AfterViewInit, OnDestroy {
     const filters = this.searchForm.value;
     const baseParams = buildListParams(page, perPage, this.sort ?? null, {
       status: filters.status ?? '',
+      schedule_window: filters.schedule_window ?? '',
     });
     const requestParams: Record<string, unknown> = { ...baseParams };
     if (filters.tournament_type) requestParams['filter[tournament_type]'] = filters.tournament_type;
-    if (filters.country) requestParams['filter[country]'] = filters.country;
-    if (filters.city) requestParams['filter[city]'] = filters.city;
 
     this.isLoading = true;
     this.tournamentsService.getList(requestParams).subscribe({
@@ -171,15 +167,6 @@ export class TournamentsComponent implements OnInit, AfterViewInit, OnDestroy {
       { mode: 'create' },
       (result) => result && this.loadHttpData(),
       { widthSize: 'md', disableClose: true }
-    );
-  }
-
-  public openDetailDialog(item: Tournament): void {
-    this.messageService.openDialog<TournamentDetailDialogComponent, boolean>(
-      TournamentDetailDialogComponent,
-      { tournament: item },
-      undefined,
-      { widthSize: 'md' }
     );
   }
 

@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Builders\UserBuilder;
 use App\Contracts\RoleEnumInterface;
+use App\Enums\User\AdminRoleEnum;
 use App\Enums\User\BattingStyleEnum;
 use App\Enums\User\BowlingStyleEnum;
 use App\Enums\User\PlayingRoleEnum;
@@ -19,6 +20,7 @@ use App\Utils\Traits\Model\Filters\DateFilterTrait;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -56,6 +58,7 @@ class User extends Authenticatable
         'type',
         'status',
         'followers_count',
+        'created_by',
     ];
 
     /**
@@ -84,6 +87,7 @@ class User extends Authenticatable
             'playing_role' => PlayingRoleEnum::class,
             'bowling_style' => BowlingStyleEnum::class,
             'batting_style' => BattingStyleEnum::class,
+            'created_by' => 'integer',
         ];
     }
 
@@ -118,6 +122,99 @@ class User extends Authenticatable
     public function isUser(): bool
     {
         return $this->type === UserTypeEnum::USER;
+    }
+
+    /**
+     * Backoffice (admin guard): Broadcast Operator role on a normal app account.
+     */
+    public function hasBroadcastBackofficeRole(): bool
+    {
+        return $this->isUser() && $this->hasRole(AdminRoleEnum::BROADCASTER);
+    }
+
+    /**
+     * May call shared backoffice API (administrator accounts or Broadcast Operator staff).
+     */
+    public function canAccessBackofficeApi(): bool
+    {
+        if ($this->isSystem()) {
+            return false;
+        }
+
+        return $this->isAdmin() || $this->hasBroadcastBackofficeRole();
+    }
+
+    /**
+     * Organizer, backoffice/API creator (`created_by`), or listed Broadcast Staff (pivot).
+     */
+    public function isTournamentStaff(Tournament $tournament): bool
+    {
+        if ($this->isSystem()) {
+            return false;
+        }
+
+        if ((int) $tournament->organizer_id === (int) $this->id) {
+            return true;
+        }
+
+        if ($tournament->created_by !== null && (int) $tournament->created_by === (int) $this->id) {
+            return true;
+        }
+
+        return $tournament->broadcasters()->whereKey($this->id)->exists();
+    }
+
+    /**
+     * App (Sanctum app user): same tournament ops + scoring as organizer when on pivot or organizer_id.
+     */
+    public function canOperateTournamentInApp(Tournament $tournament): bool
+    {
+        return $this->isUser() && $this->isTournamentStaff($tournament);
+    }
+
+    /**
+     * App scoring / scorecard: organizer or pivot staff, or platform administrator (break-glass).
+     */
+    public function canScoreMatchInApp(TournamentMatch $match): bool
+    {
+        if ($this->isSystem()) {
+            return false;
+        }
+
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        $match->loadMissing('tournament');
+
+        return $this->canOperateTournamentInApp($match->tournament);
+    }
+
+    /**
+     * May manage another sponsor's team-level squad when that team is in a tournament this user staffs.
+     */
+    public function canManageTeamSquadAsTournamentStaff(Team $team): bool
+    {
+        if (! $this->isUser() || $this->isSystem()) {
+            return false;
+        }
+
+        return $team->tournaments()
+            ->where(function ($q) {
+                $uid = $this->id;
+                $q->where('organizer_id', $uid)
+                    ->orWhere('created_by', $uid)
+                    ->orWhereHas('broadcasters', fn ($b) => $b->whereKey($uid));
+            })
+            ->exists();
+    }
+
+    /**
+     * Backoffice account that created this user (admin or broadcast staff). Null when the row was created by the user (e.g. app self-registration) or legacy data.
+     */
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'created_by');
     }
 
     /**
@@ -172,6 +269,14 @@ class User extends Authenticatable
     public function getAppRoles(): Collection
     {
         return $this->roles()->where('roles.guard', RoleGuardEnum::APP->value)->get();
+    }
+
+    /**
+     * @return Collection<int, Role>
+     */
+    public function getAdminRoles(): Collection
+    {
+        return $this->roles()->where('roles.guard', RoleGuardEnum::ADMIN->value)->get();
     }
 
     /**

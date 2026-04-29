@@ -47,6 +47,20 @@ class TournamentMatch extends BaseModel
         return $this->belongsTo(Tournament::class, 'tournament_id');
     }
 
+    /**
+     * Eager-load tournament when resolving `matches/{match}` so authorization
+     * (e.g. scoring) does not run a separate tournament query.
+     *
+     * @param  mixed  $value
+     */
+    public function resolveRouteBinding($value, $field = null): static
+    {
+        return static::query()
+            ->where($field ?? $this->getRouteKeyName(), $value)
+            ->with('tournament')
+            ->firstOrFail();
+    }
+
     public function homeTeam(): BelongsTo
     {
         return $this->belongsTo(Team::class, 'home_team_id');

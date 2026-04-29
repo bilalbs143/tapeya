@@ -20,6 +20,8 @@ const STATUS_CLASS_MAP: Record<string, string> = {
   completed: 'bg-light-success text-success',
   read: 'bg-light-success text-success',
   unread: 'bg-light-warning text-warning',
+  upcoming: 'bg-light-info text-info',
+  live: 'bg-light-primary text-primary',
 };
 
 const DEFAULT_STATUS_CLASS = 'bg-light-secondary text-secondary';

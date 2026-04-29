@@ -7,12 +7,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreTournamentMatchRequest;
 use App\Http\Resources\User\TournamentMatchResource;
 use App\Models\Tournament;
-use App\Models\TournamentMatch;
+use App\Services\Tournament\TournamentMatchSchedulingService;
 use Illuminate\Http\JsonResponse;
 
 class TournamentMatchController extends Controller
 {
     use BaseControllerTrait;
+
+    public function __construct(
+        protected TournamentMatchSchedulingService $tournamentMatchSchedulingService
+    ) {}
 
     /**
      * List matches for a tournament.
@@ -51,53 +55,20 @@ class TournamentMatchController extends Controller
     {
         $authUser = $request->user();
 
-        if ($tournament->organizer_id !== $authUser->id) {
-            return $this->forbidden('Only the tournament organizer can create matches.');
+        if (! $authUser->canOperateTournamentInApp($tournament)) {
+            return $this->forbidden('You cannot manage matches for this tournament.');
         }
 
-        $data = $request->validated();
+        $result = $this->tournamentMatchSchedulingService->schedule($tournament, $request->validated());
 
-        // Ensure both teams belong to this tournament (via tournament-team pivot).
-        $teamIds = [$data['home_team_id'], $data['away_team_id']];
-        $attachedCount = $tournament->teams()
-            ->whereIn('teams.id', $teamIds)
-            ->count();
-
-        if ($attachedCount !== 2) {
-            return $this->forbidden('Both teams must be attached to this tournament before scheduling a match.');
+        if (! $result['ok']) {
+            return $result['reason'] === 'forbidden'
+                ? $this->forbidden($result['message'])
+                : $this->failure($result['message'], 'VALIDATION_ERROR');
         }
-
-        $groupIndex = isset($data['group_index']) ? (int) $data['group_index'] : null;
-        if ($groupIndex !== null) {
-            if ($tournament->number_of_groups < 1 || $groupIndex < 1 || $groupIndex > $tournament->number_of_groups) {
-                return $this->failure('Group Index must be between 1 and '.$tournament->number_of_groups.' for this tournament.', 'VALIDATION_ERROR', 422);
-            }
-            $inGroup = $tournament->teams()
-                ->whereIn('teams.id', $teamIds)
-                ->wherePivot('group_index', $groupIndex)
-                ->count();
-            if ($inGroup !== 2) {
-                return $this->failure('Both teams must belong to group '.$groupIndex.' for this group-stage match.', 'VALIDATION_ERROR', 422);
-            }
-        }
-
-        $match = TournamentMatch::create([
-            'tournament_id' => $tournament->id,
-            'group_index' => $groupIndex,
-            'home_team_id' => $data['home_team_id'],
-            'away_team_id' => $data['away_team_id'],
-            'match_date' => $data['match_date'],
-            'match_time' => $data['match_time'],
-            'venue_name' => $data['venue_name'],
-            'players_per_side' => $data['players_per_side'],
-            'overs' => $data['overs'],
-            'status' => 'scheduled',
-        ]);
-
-        $match->load(['homeTeam', 'awayTeam']);
 
         return $this->success(
-            new TournamentMatchResource($match),
+            new TournamentMatchResource($result['match']),
             'Match created.',
             'CREATED'
         );

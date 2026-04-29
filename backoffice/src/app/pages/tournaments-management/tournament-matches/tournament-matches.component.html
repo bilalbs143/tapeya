@@ -3,7 +3,7 @@
     <form
       (ngSubmit)="applyFilters()"
       [formGroup]="searchForm"
-      aria-label="Filter matches"
+      aria-label="Filter Matches"
     >
       <div class="grid grid-cols-12 gap-4 items-end">
         <div class="col-span-12 sm:col-span-6 lg:col-span-4">
@@ -16,7 +16,7 @@
               matInput
               formControlName="q"
               type="search"
-              placeholder="Teams, venue, result…"
+              placeholder="Teams, Venue, Result…"
               autocomplete="off"
             />
           </mat-form-field>
@@ -26,12 +26,18 @@
             appearance="outline"
             class="w-full hide-hint"
           >
-            <mat-label>From (start date)</mat-label>
+            <mat-label>From (Start Date)</mat-label>
             <input
               matInput
               formControlName="from_date"
-              type="date"
+              [matDatepicker]="fromDatePicker"
+              placeholder="Select date"
             />
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="fromDatePicker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #fromDatePicker></mat-datepicker>
           </mat-form-field>
         </div>
         <div class="col-span-12 sm:col-span-6 lg:col-span-2">
@@ -49,6 +55,16 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 sm:col-span-6 lg:col-span-4 flex flex-wrap items-center justify-end gap-2">
+          <mat-slide-toggle
+            formControlName="live_today"
+            color="primary"
+            class="me-1 shrink-0"
+            matTooltip="Fixture date is today (local time), including scheduled matches that have not started."
+            matTooltipShowDelay="300"
+            (change)="applyFilters()"
+          >
+            Live today
+          </mat-slide-toggle>
           <button
             mat-stroked-button
             type="button"
@@ -63,6 +79,14 @@
           >
             Search
           </button>
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            (click)="openScheduleDialog()"
+          >
+            Schedule Match
+          </button>
         </div>
       </div>
     </form>
@@ -72,16 +96,22 @@
 <mat-card class="cardWithShadow table-header-theme">
   <mat-card-content class="p-0">
     @if (isLoading) {
-      <div class="flex justify-center py-12">
+      <div class="flex min-h-[18rem] w-full items-center justify-center px-4 py-10">
         <mat-spinner diameter="40" />
       </div>
     } @else if (hasNoMatches) {
-      <div class="p-6">
-        <p class="text-muted m-0">No matches scheduled for this tournament yet.</p>
+      <div
+        class="flex min-h-[18rem] w-full flex-col items-center justify-center px-4 py-10 text-center text-muted"
+      >
+        <p class="m-0 max-w-md text-sm">No matches scheduled for this tournament yet.</p>
       </div>
     } @else if (hasFilterEmpty) {
-      <div class="p-6">
-        <p class="text-muted m-0">No matches match your filters. Try adjusting search, date, or status.</p>
+      <div
+        class="flex min-h-[18rem] w-full flex-col items-center justify-center px-4 py-10 text-center text-muted"
+      >
+        <p class="m-0 max-w-md text-sm">
+          No matches match your filters. Try adjusting search, date, status, or Live today.
+        </p>
       </div>
     } @else {
       <div class="sticky-header-table-container relative overflow-auto">
@@ -93,7 +123,7 @@
             matSortDirection="asc"
             [dataSource]="dataSource"
             class="min-w-full"
-            aria-label="Tournament matches"
+            aria-label="Tournament Matches"
           >
             <ng-container matColumnDef="when">
               <th
@@ -102,7 +132,7 @@
                 mat-sort-header
                 class="bg-light-secondary text-sm font-semibold"
               >
-                Date / time
+                Date / Time
               </th>
               <td
                 mat-cell
@@ -235,7 +265,7 @@
         [pageSize]="defaultPageSize"
         [pageSizeOptions]="pageSizeOptions"
         [showFirstLastButtons]="true"
-        aria-label="Select page of matches"
+        aria-label="Select Page of Matches"
       />
     }
   </mat-card-content>

@@ -64,6 +64,7 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
   public readonly bowlingStyleOptions$ = this.enumsService.getOptions('bowling_style');
   public readonly battingStyleOptions$ = this.enumsService.getOptions('batting_style');
   public readonly appRolesOptions$ = this.enumsService.getOptions('app_roles');
+  public readonly adminRolesOptions$ = this.enumsService.getOptions('admin_roles');
 
   public get title(): string {
     return this.data.mode === 'edit' ? 'Edit User' : 'Create User';
@@ -101,6 +102,7 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
           (c: AbstractControl) => (Array.isArray(c.value) && c.value.length >= 1 ? null : { atLeastOneRole: true }),
         ],
       ],
+      admin_role_ids: [user?.admin_role_ids ?? []],
       playing_role: [normalizeEnumValue(user?.playing_role_enum ?? undefined, '')],
       bowling_style: [normalizeEnumValue(user?.bowling_style_enum ?? undefined, '')],
       batting_style: [normalizeEnumValue(user?.batting_style_enum ?? undefined, '')],
@@ -175,6 +177,7 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
       type: 'user',
       status: raw.status,
       role_ids: Array.isArray(raw.role_ids) ? raw.role_ids : [],
+      admin_role_ids: Array.isArray(raw.admin_role_ids) ? raw.admin_role_ids : [],
       playing_role: raw.playing_role || null,
       bowling_style: raw.bowling_style || null,
       batting_style: raw.batting_style || null,

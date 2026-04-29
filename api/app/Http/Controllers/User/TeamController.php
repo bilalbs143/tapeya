@@ -123,8 +123,8 @@ class TeamController extends Controller
                 return $this->forbidden('Only sponsors can manage their own team squad.');
             }
         } else {
-            if (! $isOrganizer) {
-                return $this->forbidden('Only organizers can manage squads for other sponsors.');
+            if (! $isOrganizer && ! $authUser->canManageTeamSquadAsTournamentStaff($team)) {
+                return $this->forbidden('Only organizers or tournament staff can manage squads for other sponsors.');
             }
         }
 

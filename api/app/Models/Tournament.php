@@ -5,10 +5,14 @@ namespace App\Models;
 use App\Enums\Common\StatusEnum;
 use App\Enums\Event\CricketFormatEnum;
 use App\Enums\Event\MatchTimingEnum;
+use App\Enums\Tournament\TournamentScheduleWindowEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
+use App\Models\Relations\TournamentSquadPlayersRelation;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\AllowedFilter;
 
 class Tournament extends BaseModel
@@ -17,6 +21,7 @@ class Tournament extends BaseModel
 
     protected $fillable = [
         'organizer_id',
+        'created_by',
         'tournament_name',
         'tournament_type',
         'cricket_format',
@@ -63,7 +68,70 @@ class Tournament extends BaseModel
             'tournament_type',
             'country',
             'city',
+            AllowedFilter::callback('schedule_window', function (Builder $query, mixed $value): void {
+                if (! is_string($value) || $value === '') {
+                    return;
+                }
+                $phase = TournamentScheduleWindowEnum::tryFrom($value);
+                if ($phase === null) {
+                    return;
+                }
+                self::applyScheduleWindowFilter($query, $phase);
+            }),
         ];
+    }
+
+    /**
+     * Filter rows by calendar phase (start/end vs today). Uses date-only comparison in the app timezone.
+     */
+    public static function applyScheduleWindowFilter(Builder $query, TournamentScheduleWindowEnum $phase): void
+    {
+        $today = now()->toDateString();
+
+        match ($phase) {
+            TournamentScheduleWindowEnum::UPCOMING => $query
+                ->whereNotNull('start_date')
+                ->whereDate('start_date', '>', $today),
+            TournamentScheduleWindowEnum::LIVE => $query
+                ->whereNotNull('start_date')
+                ->whereDate('start_date', '<=', $today)
+                ->where(function (Builder $q) use ($today): void {
+                    $q->whereNull('end_date')
+                        ->orWhereDate('end_date', '>=', $today);
+                }),
+            TournamentScheduleWindowEnum::COMPLETED => $query
+                ->whereNotNull('end_date')
+                ->whereDate('end_date', '<', $today),
+        };
+    }
+
+    /**
+     * Derived calendar phase for UI (null when {@see $start_date} is missing).
+     */
+    public function schedulePhase(): ?TournamentScheduleWindowEnum
+    {
+        if ($this->start_date === null) {
+            return null;
+        }
+
+        $today = now()->startOfDay();
+        $start = $this->start_date->copy()->startOfDay();
+
+        if ($start->isAfter($today)) {
+            return TournamentScheduleWindowEnum::UPCOMING;
+        }
+
+        if ($this->end_date === null) {
+            return TournamentScheduleWindowEnum::LIVE;
+        }
+
+        $end = $this->end_date->copy()->startOfDay();
+
+        if ($end->lt($today)) {
+            return TournamentScheduleWindowEnum::COMPLETED;
+        }
+
+        return TournamentScheduleWindowEnum::LIVE;
     }
 
     /**
@@ -83,8 +151,23 @@ class Tournament extends BaseModel
     }
 
     /**
-     * Teams participating in this tournament.
+     * Backoffice (or API) user who created this tournament row (audit / scope).
      */
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Broadcast / Match-Ops staff for this tournament (pivot).
+     * At most one user per tournament (unique tournament_id on pivot).
+     */
+    public function broadcasters(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'tournament_broadcaster')
+            ->withTimestamps();
+    }
+
     /**
      * Teams participating in this tournament.
      * When number_of_groups > 1, each team has pivot group_index (1..number_of_groups).
@@ -94,6 +177,26 @@ class Tournament extends BaseModel
         return $this->belongsToMany(Team::class, 'tournament_team')
             ->withPivot('group_index')
             ->withTimestamps();
+    }
+
+    /**
+     * App users on team rosters for teams participating in this tournament (via team_user + tournament_team).
+     * A user on multiple teams appears once per team in the relation collection; use distinct() when needed.
+     */
+    public function squadPlayers(): BelongsToMany
+    {
+        $instance = $this->newRelatedInstance(User::class);
+
+        return new TournamentSquadPlayersRelation(
+            $instance->newQuery(),
+            $this,
+            'team_user',
+            'team_id',
+            'user_id',
+            $this->getKeyName(),
+            $instance->getKeyName(),
+            __FUNCTION__,
+        );
     }
 
     /**
@@ -110,5 +213,19 @@ class Tournament extends BaseModel
     public function userReactions(): HasMany
     {
         return $this->hasMany(TournamentUserReaction::class, 'tournament_id');
+    }
+
+    /**
+     * Eager-load count of distinct roster users for each tournament (see {@see self::squadPlayers()}).
+     */
+    public function scopeWithSquadPlayerCount(Builder $query): void
+    {
+        $qualifiedUserKey = (new User)->getQualifiedKeyName();
+
+        $query->withAggregate(
+            'squadPlayers as squad_player_count',
+            DB::raw('distinct '.$qualifiedUserKey),
+            'count',
+        );
     }
 }

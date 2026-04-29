@@ -9,7 +9,9 @@ use App\Http\Requests\User\UpdateBallRequest;
 use App\Jobs\RefreshMatchStatsJob;
 use App\Models\Ball;
 use App\Models\Innings;
+use App\Models\MatchScoringAudit;
 use App\Models\TournamentMatch;
+use App\Models\User;
 use App\Services\MatchCompletionService;
 use App\Services\PlayerStatsService;
 use Illuminate\Http\JsonResponse;
@@ -27,8 +29,8 @@ class ScorecardController extends Controller
     {
         $authUser = $request->user();
 
-        if ($match->tournament->organizer_id !== $authUser->id) {
-            return $this->forbidden('Only the tournament organizer can add balls to the scorecard.');
+        if (! $authUser->canScoreMatchInApp($match)) {
+            return $this->forbidden('You cannot score this match.');
         }
 
         if ($innings->match_id !== $match->id) {
@@ -39,6 +41,8 @@ class ScorecardController extends Controller
         $data['innings_id'] = $innings->id;
 
         $ball = Ball::create($data);
+
+        $this->logScoringAudit($match, $authUser, 'store_ball', $ball->id, ['innings_id' => $innings->id]);
 
         $innings->update(['status' => 'in_progress']);
 
@@ -85,8 +89,8 @@ class ScorecardController extends Controller
     {
         $authUser = $request->user();
 
-        if ($match->tournament->organizer_id !== $authUser->id) {
-            return $this->forbidden('Only the tournament organizer can update balls.');
+        if (! $authUser->canScoreMatchInApp($match)) {
+            return $this->forbidden('You cannot score this match.');
         }
 
         if ($innings->match_id !== $match->id || $ball->innings_id !== $innings->id) {
@@ -94,6 +98,8 @@ class ScorecardController extends Controller
         }
 
         $ball->update($request->validated());
+
+        $this->logScoringAudit($match, $authUser, 'update_ball', $ball->id);
 
         app(MatchCompletionService::class)->evaluate($match->fresh());
 
@@ -134,13 +140,15 @@ class ScorecardController extends Controller
     {
         $authUser = request()->user();
 
-        if (! $authUser || $match->tournament->organizer_id !== $authUser->id) {
-            return $this->forbidden('Only the tournament organizer can delete balls.');
+        if (! $authUser || ! $authUser->canScoreMatchInApp($match)) {
+            return $this->forbidden('You cannot score this match.');
         }
 
         if ($innings->match_id !== $match->id || $ball->innings_id !== $innings->id) {
             return $this->forbidden('Ball does not belong to this innings and match.');
         }
+
+        $this->logScoringAudit($match, $authUser, 'delete_ball', $ball->id);
 
         $ball->delete();
 
@@ -156,6 +164,11 @@ class ScorecardController extends Controller
      */
     public function scorecard(TournamentMatch $match): JsonResponse
     {
+        $user = request()->user();
+        if (! $user || ! $user->canScoreMatchInApp($match)) {
+            return $this->forbidden('You cannot view this scorecard.');
+        }
+
         $innings = $match->innings()
             ->with(['battingTeam', 'bowlingTeam', 'balls' => fn ($q) => $q->orderBy('over')->orderBy('ball_in_over')])
             ->orderBy('innings_number')
@@ -214,6 +227,11 @@ class ScorecardController extends Controller
      */
     public function playerStats(TournamentMatch $match): JsonResponse
     {
+        $user = request()->user();
+        if (! $user || ! $user->canScoreMatchInApp($match)) {
+            return $this->forbidden('You cannot view match player stats.');
+        }
+
         $service = app(PlayerStatsService::class);
         $data = [
             'match_id' => $match->id,
@@ -223,5 +241,19 @@ class ScorecardController extends Controller
         ];
 
         return $this->success($data);
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $meta
+     */
+    private function logScoringAudit(TournamentMatch $match, User $user, string $action, ?int $ballId = null, ?array $meta = null): void
+    {
+        MatchScoringAudit::query()->create([
+            'tournament_match_id' => $match->id,
+            'user_id' => $user->id,
+            'action' => $action,
+            'ball_id' => $ballId,
+            'meta' => $meta,
+        ]);
     }
 }

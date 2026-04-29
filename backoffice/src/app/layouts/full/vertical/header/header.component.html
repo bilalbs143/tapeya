@@ -29,104 +29,6 @@
   }
   <!-- --------------------------------------------------------------- -->
 
-  <div class="hidden lg:flex">
-    <!-- --------------------------------------------------------------- -->
-    <!--  Links -->
-    <!-- --------------------------------------------------------------- -->
-    <button
-      mat-button
-      [matMenuTriggerFor]="appsmenu"
-      aria-label="Notifications"
-    >
-      <div class="flex items-center">
-        Apps
-        <i
-          class="iconify size-4.5! ms-1"
-          data-icon="solar:alt-arrow-down-linear"
-        ></i>
-      </div>
-    </button>
-    <mat-menu
-      #appsmenu="matMenu"
-      class="apps-dd cardWithShadow"
-    >
-      <div class="grid grid-cols-12 gap-4">
-        <div class="sm:col-span-8 col-span-12 border-r border-border pe-0">
-          <div class="p-6">
-            <div class="grid grid-cols-12 gap-6">
-              @for (appdd of apps; track appdd.title) {
-                <div class="sm:col-span-6 col-span-12 text-hover-primary">
-                  <a
-                    [routerLink]="[appdd.link]"
-                    class="flex items-center no-underline"
-                  >
-                    <span class="text-primary bg-light rounded-sm size-10! flex items-center justify-center">
-                      <img
-                        [src]="appdd.img"
-                        [alt]="appdd.title"
-                        width="20"
-                      />
-                    </span>
-
-                    <div class="ms-4">
-                      <h5 class="text-sm font-semibold m-0 textprimary hover-text">
-                        {{ appdd.title }}
-                      </h5>
-                      <span class="text-xs text-body">{{ appdd.subtitle }}</span>
-                    </div>
-                  </a>
-                </div>
-              }
-            </div>
-          </div>
-          <div class="border-t border-border p-5 hidden lg:flex items-center justify-between">
-            <span class="flex items-center text-base font-medium">
-              <i-tabler
-                name="help"
-                class="size-5! me-2"
-              ></i-tabler
-              >Frequently Asked Questions
-            </span>
-            <a
-              [routerLink]="['/theme-pages/faq']"
-              mat-flat-button
-              color="primary"
-              >Check</a
-            >
-          </div>
-        </div>
-        <div class="sm:col-span-4 col-span-12">
-          <div class="px-4 py-6 pb-0">
-            <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
-            @for (quicklink of quicklinks; track quicklink.title) {
-              <div class="text-hover-primary">
-                <a
-                  [routerLink]="[quicklink.link]"
-                  class="hover-text no-underline text-sm font-semibold block py-1.5"
-                  >{{ quicklink.title }}</a
-                >
-              </div>
-            }
-          </div>
-        </div>
-      </div>
-    </mat-menu>
-    <a
-      mat-button
-      href="javascript:void(0)"
-      >Chat</a
-    >
-    <a
-      mat-button
-      href="javascript:void(0)"
-      >Calendar</a
-    >
-    <a
-      mat-button
-      href="javascript:void(0)"
-      >Email</a
-    >
-  </div>
   <span class="flex-1"></span>
   <!-- Mobile Menu -->
   <div class="flex lg:hidden">
@@ -171,73 +73,75 @@
   <!-- --------------------------------------------------------------- -->
   <!-- Notification Dropdown -->
   <!-- --------------------------------------------------------------- -->
-  <button
-    mat-icon-button
-    [matBadge]="notificationsUnreadCount"
-    [matBadgeHidden]="notificationsUnreadCount === 0"
-    [matMenuTriggerFor]="notificationmenu"
-    aria-label="Notifications"
-    class="notification-badge"
-  >
-    <i
-      class="iconify"
-      data-icon="solar:bell-line-duotone"
-    ></i>
-  </button>
-  <mat-menu
-    #notificationmenu="matMenu"
-    class="topbar-dd cardWithShadow"
-    (opened)="loadNotifications()"
-  >
-    <div class="flex items-center px-6 py-4">
-      <h6 class="text-base font-semibold m-0">Notifications</h6>
-      @if (notificationsUnreadCount > 0) {
-        <span class="ms-auto">
-          <span class="bg-primary text-white px-2 py-1 font-medium rounded-sm text-xs">
-            {{ notificationsUnreadCount }} new
-          </span>
-        </span>
-      }
-    </div>
-    @if (notificationsLoading) {
-      <div class="px-6 py-4 text-muted text-sm">Loading…</div>
-    } @else if (apiNotifications.length === 0) {
-      <div class="px-6 py-4 text-muted text-sm">No notifications</div>
-    } @else {
-      @for (notification of apiNotifications; track notification.id) {
-        <a
-          mat-menu-item
-          class="px-5! py-2! block"
-          [routerLink]="['/notifications']"
-        >
-          <div class="flex items-start">
-            <span class="rounded-full bg-light-primary text-primary size-10! flex items-center justify-center shrink-0">
-              <i-tabler
-                [name]="notificationIcon(notification.type)"
-                class="size-5!"
-              ></i-tabler>
+  @if (isAdmin()) {
+    <button
+      mat-icon-button
+      [matBadge]="notificationsUnreadCount"
+      [matBadgeHidden]="notificationsUnreadCount === 0"
+      [matMenuTriggerFor]="notificationmenu"
+      aria-label="Notifications"
+      class="notification-badge"
+    >
+      <i
+        class="iconify"
+        data-icon="solar:bell-line-duotone"
+      ></i>
+    </button>
+    <mat-menu
+      #notificationmenu="matMenu"
+      class="topbar-dd cardWithShadow"
+      (opened)="loadNotifications()"
+    >
+      <div class="flex items-center px-6 py-4">
+        <h6 class="text-base font-semibold m-0">Notifications</h6>
+        @if (notificationsUnreadCount > 0) {
+          <span class="ms-auto">
+            <span class="bg-primary text-white px-2 py-1 font-medium rounded-sm text-xs">
+              {{ notificationsUnreadCount }} new
             </span>
-            <div class="ms-4 min-w-0">
-              <h5 class="text-sm font-semibold m-0">
-                {{ notificationTypeLabel(notification.type) }}
-              </h5>
-              <span class="text-xs text-body line-clamp-2">{{ notification.data.message ?? '' }}</span>
+          </span>
+        }
+      </div>
+      @if (notificationsLoading) {
+        <div class="px-6 py-4 text-muted text-sm">Loading…</div>
+      } @else if (apiNotifications.length === 0) {
+        <div class="px-6 py-4 text-muted text-sm">No notifications</div>
+      } @else {
+        @for (notification of apiNotifications; track notification.id) {
+          <a
+            mat-menu-item
+            class="px-5! py-2! block"
+            [routerLink]="['/notifications']"
+          >
+            <div class="flex items-start">
+              <span class="rounded-full bg-light-primary text-primary size-10! flex items-center justify-center shrink-0">
+                <i-tabler
+                  [name]="notificationIcon(notification.type)"
+                  class="size-5!"
+                ></i-tabler>
+              </span>
+              <div class="ms-4 min-w-0">
+                <h5 class="text-sm font-semibold m-0">
+                  {{ notificationTypeLabel(notification.type) }}
+                </h5>
+                <span class="text-xs text-body line-clamp-2">{{ notification.data.message ?? '' }}</span>
+              </div>
             </div>
-          </div>
-        </a>
+          </a>
+        }
       }
-    }
-    <div class="py-3 px-6">
-      <a
-        mat-stroked-button
-        color="primary"
-        class="w-full"
-        routerLink="/notifications"
-      >
-        See all notifications
-      </a>
-    </div>
-  </mat-menu>
+      <div class="py-3 px-6">
+        <a
+          mat-stroked-button
+          color="primary"
+          class="w-full"
+          routerLink="/notifications"
+        >
+          See all notifications
+        </a>
+      </div>
+    </mat-menu>
+  }
   <!-- --------------------------------------------------------------- -->
   <!-- profile Dropdown -->
   <!-- --------------------------------------------------------------- -->
@@ -264,21 +168,21 @@
         <div class="flex items-center py-4 border-b border-border mt-4">
           <img
             src="/assets/images/profile/user-1.jpg"
-            alt="User profile"
+            [alt]="profileMenuUserName() + ' profile'"
             class="rounded-full"
             width="95"
           />
           <div class="ms-4">
             <h6 class="text-sm font-semibold m-0">
-              {{ (currentUser() || { name: 'Admin' }).name }}
+              {{ profileMenuUserName() }}
             </h6>
-            <span class="text-sm block mb-1 text-muted"> Admin </span>
+            <span class="text-sm block mb-1 text-muted">{{ profileMenuUserRole() }}</span>
             <span class="flex items-center text-muted">
               <i-tabler
                 name="mail"
                 class="size-3.5! me-1"
               ></i-tabler>
-              {{ (currentUser() || { email: 'info@tapeya.com' }).email }}
+              {{ currentUser()?.email ?? '—' }}
             </span>
           </div>
         </div>

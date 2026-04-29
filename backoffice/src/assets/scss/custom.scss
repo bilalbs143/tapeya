@@ -31,6 +31,11 @@
   padding: 10px !important;
 }
 
+// Dialog cards: keep comfortable padding (matches theme cards); the rule above is for compact list pages.
+.mat-mdc-dialog-container .mat-mdc-card > .mat-mdc-card-content {
+  padding: 24px !important;
+}
+
 .pageWrapper {
   padding-top: 10px;
 }

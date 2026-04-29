@@ -1,0 +1,81 @@
+@if (isLoading) {
+  <div class="flex justify-center py-16">
+    <mat-spinner diameter="40" />
+  </div>
+} @else if (tournament) {
+  <div class="flex flex-col">
+    <mat-card class="cardWithShadow mb-3!">
+      <mat-card-content class="p-4 sm:p-6">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div class="min-w-0">
+            <h1 class="text-xl font-semibold m-0 truncate">{{ tournament.tournament_name }}</h1>
+            <p class="text-sm text-muted m-0 mt-1">
+              {{ tournament.venue_name }}
+              @if (tournament.start_date || tournament.end_date) {
+                <span class="text-muted"> · </span>
+                {{ tournament.start_date ? (tournament.start_date | date: 'mediumDate') : '—' }}
+                —
+                {{ tournament.end_date ? (tournament.end_date | date: 'mediumDate') : '—' }}
+              }
+            </p>
+          </div>
+          <span
+            class="rounded-sm font-semibold px-2 py-1 text-xs shrink-0"
+            [ngClass]="statusClass(tournament.status_enum ?? tournament.status)"
+          >
+            {{ tournament.status_label || tournament.status }}
+          </span>
+        </div>
+
+        <nav
+          mat-tab-nav-bar
+          [tabPanel]="tabPanel"
+          mat-stretch-tabs="false"
+          mat-align-tabs="start"
+          class="mt-4 border-t border-border pt-1"
+        >
+          <a
+            mat-tab-link
+            routerLink="overview"
+            routerLinkActive
+            #rlaO="routerLinkActive"
+            [active]="rlaO.isActive"
+          >
+            Overview
+          </a>
+          <a
+            mat-tab-link
+            routerLink="teams"
+            routerLinkActive
+            #rlaT="routerLinkActive"
+            [active]="rlaT.isActive"
+          >
+            Teams
+          </a>
+          <a
+            mat-tab-link
+            routerLink="squads"
+            routerLinkActive
+            #rlaS="routerLinkActive"
+            [active]="rlaS.isActive"
+          >
+            Team Squads
+          </a>
+          <a
+            mat-tab-link
+            routerLink="matches"
+            routerLinkActive
+            #rlaM="routerLinkActive"
+            [active]="rlaM.isActive"
+          >
+            Matches
+          </a>
+        </nav>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-tab-nav-panel #tabPanel>
+      <router-outlet />
+    </mat-tab-nav-panel>
+  </div>
+}

@@ -30,7 +30,7 @@
           style="height: 100%"
         >
           <mat-nav-list class="sidebar-list">
-            @for (item of navItems; track item) {
+            @for (item of visibleNavItems(); track item) {
               <app-nav-item
                 [item]="item"
                 (notify)="sidenav.toggle()"
@@ -44,13 +44,13 @@
           <div class="bg-light-secondary flex items-center rounded-sm p-4">
             <img
               src="/assets/images/profile/user-1.jpg"
-              alt="User profile"
+              [alt]="sidebarUserName() + ' profile'"
               class="rounded-full"
               width="40"
             />
             <div class="ms-4 leading-5">
-              <h4 class="font-semibold leading-5">Mathew</h4>
-              <span class="text-xs leading-5">Designer</span>
+              <h4 class="text-sm font-semibold leading-5">{{ sidebarUserName() }}</h4>
+              <span class="text-xs leading-5">{{ sidebarUserRole() }}</span>
             </div>
             <div class="ms-auto">
               <a
@@ -88,7 +88,7 @@
         style="height: 100%"
       >
         <mat-nav-list class="sidebar-list">
-          @for (item of navItems; track item) {
+          @for (item of visibleNavItems(); track item) {
             <app-nav-item
               [item]="item"
               (notify)="sidenav.toggle()"
@@ -101,13 +101,13 @@
         <div class="bg-light-secondary flex items-center rounded-sm p-4">
           <img
             src="/assets/images/profile/user-1.jpg"
-            alt="User profile"
+            [alt]="sidebarUserName() + ' profile'"
             class="rounded-full"
             width="40"
           />
           <div class="ms-4 leading-5">
-            <h4 class="font-semibold leading-5">Mathew</h4>
-            <span class="text-xs leading-5">Designer</span>
+            <h4 class="text-sm font-semibold leading-5">{{ sidebarUserName() }}</h4>
+            <span class="text-xs leading-5">{{ sidebarUserRole() }}</span>
           </div>
           <div class="ms-auto">
             <a
@@ -181,7 +181,7 @@
     </main>
 
     <!-- ------------------------------------------------------------------
-        Mobile Apps Sidebar
+        Mobile filter sidebar (menu trigger)
         ------------------------------------------------------------------ -->
     <div
       [class.open]="isFilterNavOpen"
@@ -218,75 +218,6 @@
               class="size-4.5! flex!"
             ></i-tabler>
           </button>
-        </div>
-
-        <mat-accordion>
-          <mat-expansion-panel class="shadow-none!">
-            <mat-expansion-panel-header>
-              <mat-panel-title class="text-base font-medium"> Apps </mat-panel-title>
-            </mat-expansion-panel-header>
-            <div>
-              <div class="grid grid-cols-12 gap-6">
-                @for (appdd of apps; track appdd.img) {
-                  <div class="col-span-12 text-hover-primary">
-                    <a
-                      [routerLink]="[appdd.link]"
-                      class="flex items-center no-underline gap-4"
-                    >
-                      <button
-                        mat-mini-fab
-                        class="text-primary bg-light-primary shadow-none! rounded-sm"
-                      >
-                        <img
-                          [src]="appdd.img"
-                          [alt]="appdd.title"
-                          width="20"
-                        />
-                      </button>
-
-                      <div>
-                        <h5 class="text-sm font-semibold m-0 textprimary hover-text">
-                          {{ appdd.title }}
-                        </h5>
-                        <span class="text-sm">{{ appdd.subtitle }}</span>
-                      </div>
-                    </a>
-                  </div>
-                }
-              </div>
-              <h4 class="text-lg font-semibold my-4">Quick Links</h4>
-              @for (quicklink of quicklinks; track quicklink.title) {
-                <div class="text-hover-primary">
-                  <a
-                    [routerLink]="['quicklink.link']"
-                    class="hover-text no-underline text-sm font-semibold block py-2"
-                    >{{ quicklink.title }}</a
-                  >
-                </div>
-              }
-            </div>
-          </mat-expansion-panel>
-        </mat-accordion>
-
-        <div class="px-4">
-          <a
-            [routerLink]="['/apps/calendar']"
-            class="flex items-center no-underline text-sm py-2 gap-8"
-          >
-            <span class="text-base font-medium ms-2">Calendar</span>
-          </a>
-          <a
-            [routerLink]="['/apps/chat']"
-            class="flex items-center no-underline text-sm py-2"
-          >
-            <span class="text-base font-medium ms-2">Chat</span>
-          </a>
-          <a
-            [routerLink]="['/apps/email/inbox']"
-            class="flex items-center no-underline text-sm py-2 gap-8"
-          >
-            <span class="text-base font-medium ms-2">Email</span>
-          </a>
         </div>
       </div>
     </div>

@@ -5,6 +5,7 @@ namespace App\Http\Requests\Admin\User;
 use App\Enums\User\BattingStyleEnum;
 use App\Enums\User\BowlingStyleEnum;
 use App\Enums\User\PlayingRoleEnum;
+use App\Enums\User\RoleGuardEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
 use App\Models\Role;
@@ -24,7 +25,8 @@ class UpdateUserRequest extends FormRequest
     public function rules(): array
     {
         $userId = $this->route('user')?->id;
-        $appRoleIds = Role::forGuard('app')->pluck('id')->toArray();
+        $appRoleIds = Role::forGuard(RoleGuardEnum::APP->value)->pluck('id')->toArray();
+        $adminRoleIds = Role::forGuard(RoleGuardEnum::ADMIN->value)->pluck('id')->toArray();
 
         return [
             'name' => ['sometimes', 'required', 'string'],
@@ -37,6 +39,8 @@ class UpdateUserRequest extends FormRequest
             'status' => ['sometimes', 'nullable', Rule::enum(UserStatusEnum::class)],
             'role_ids' => ['sometimes', 'required', 'array', 'min:1'],
             'role_ids.*' => ['integer', Rule::in($appRoleIds)],
+            'admin_role_ids' => ['sometimes', 'array'],
+            'admin_role_ids.*' => ['integer', Rule::in($adminRoleIds)],
             'playing_role' => ['nullable', Rule::enum(PlayingRoleEnum::class)],
             'bowling_style' => ['nullable', Rule::enum(BowlingStyleEnum::class)],
             'batting_style' => ['nullable', Rule::enum(BattingStyleEnum::class)],
