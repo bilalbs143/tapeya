@@ -50,15 +50,45 @@ class VeevoTechSmsDriver implements SmsDriverInterface
         }
 
         $data = $response->json();
-        if (is_array($data) && isset($data['STATUS']) && strtoupper((string) $data['STATUS']) === 'ERROR') {
+        if (! is_array($data)) {
+            Log::error('VeevoTech SMS invalid JSON body', [
+                'to' => $to,
+                'body' => $response->body(),
+            ]);
+
+            throw new \RuntimeException('SMS provider returned invalid JSON.');
+        }
+
+        Log::info('VeevoTech SMS provider response', [
+            'to' => $to,
+            'response' => $data,
+        ]);
+
+        $status = strtoupper((string) ($data['STATUS'] ?? ''));
+        if ($status === 'ERROR') {
             Log::error('VeevoTech SMS API error', [
                 'to' => $to,
                 'filter' => $data['ERROR_FILTER'] ?? null,
                 'code' => $data['ERROR_CODE'] ?? null,
                 'description' => $data['ERROR_DESCRIPTION'] ?? null,
+                'response' => $data,
             ]);
 
             throw new \RuntimeException('SMS provider rejected the request.');
+        }
+
+        if ($status !== '' && $status !== 'SUCCESSFUL') {
+            Log::error('VeevoTech SMS non-success status', [
+                'to' => $to,
+                'response' => $data,
+            ]);
+
+            throw new \RuntimeException(
+                'SMS provider returned a non-success status: '.$status
+                .(isset($data['ERROR_DESCRIPTION']) && $data['ERROR_DESCRIPTION'] !== ''
+                    ? ' ('.(string) $data['ERROR_DESCRIPTION'].')'
+                    : '')
+            );
         }
     }
 }

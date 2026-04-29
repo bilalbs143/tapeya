@@ -5,6 +5,8 @@ import {
   DialogTitle,
 } from '@/ui/Dialog';
 
+import { ScoringPlayerPickerMeta } from '@/components/scoring/ScoringPlayerPickerMeta';
+
 export function FielderPickerDialog({
   open,
   onOpenChange,
@@ -29,9 +31,12 @@ export function FielderPickerDialog({
                 key={player.id}
                 type="button"
                 onClick={() => onSelectFielder(player.id)}
-                className="cursor-pointer rounded-[6px] bg-black px-4 py-3 text-left text-[14px] font-medium text-white transition-opacity hover:bg-[#1a1a18] active:opacity-90"
+                className="cursor-pointer rounded-[6px] bg-black px-4 py-3 text-left transition-opacity hover:bg-[#1a1a18] active:opacity-90"
               >
-                {player.name}
+                <span className="block text-[14px] font-medium text-white">
+                  {player.name}
+                </span>
+                <ScoringPlayerPickerMeta player={player} variant="fielder" />
               </button>
             ))}
           </div>

@@ -41,10 +41,6 @@
  *         matches.length === 0`.  Add a "No matches scheduled yet" message
  *         for tournaments that exist but have no matches.
  *
- *   TODO: The page title shows the raw `tournamentId` param as a gold label.
- *         Replace with the tournament name once it is available from the API
- *         (e.g. from a useGetTournamentQuery call or location state).
- *
  * Coding guidelines: docs/Coding guidelines.md
  * -----------------------------------------------------------------------------
  */
@@ -55,6 +51,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { NAVBAR_HEIGHT } from '@/lib/constants/layout';
 import {
+  getTournamentTitle,
   isValidTournamentId,
   parseTournamentId,
 } from '@/lib/utils/tournamentUtils';
@@ -117,9 +114,15 @@ export default function ScorecardDetails() {
     { skip: !hasValidId },
   );
 
-  const { data: tournament } = useGetTournamentQuery(
-    { id: tournamentIdNum },
-    { skip: !hasValidId || tournamentIdNum == null },
+  const { data: tournament, isLoading: isLoadingTournament } =
+    useGetTournamentQuery(
+      { id: tournamentIdNum },
+      { skip: !hasValidId || tournamentIdNum == null },
+    );
+
+  const headerTitleHighlight = getTournamentTitle(
+    tournament,
+    isLoadingTournament ? '…' : String(tournamentId ?? ''),
   );
 
   const ActiveView = TAB_VIEWS[activeTab];
@@ -185,12 +188,12 @@ export default function ScorecardDetails() {
             <path d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        {/* TODO: replace tournamentId with the tournament name once available
-                  from the API or location state (see top). */}
         <div className="min-w-0 flex-1 pr-[27px] text-center">
-          <h1 className="text-[16px] font-bold tracking-wide text-white uppercase">
-            SCORE CARD -{' '}
-            <span className="text-[#DA9811]">{tournamentId || ''}</span>
+          <h1 className="text-[16px] font-bold leading-snug tracking-wide text-white uppercase">
+            <span className="whitespace-normal break-words">SCORE CARD - </span>
+            <span className="text-[#DA9811] normal-case">
+              {headerTitleHighlight}
+            </span>
           </h1>
           {formatLabel && (
             <p className="mt-0.5 text-[12px] text-[#A2A6AB]">{formatLabel}</p>

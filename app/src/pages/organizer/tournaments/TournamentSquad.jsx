@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import teamDeleteIcon from '@/assets/images/icons/team-delete-icon.svg';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
@@ -21,6 +20,10 @@ import {
 import { useGetTournamentQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
 import { CloseIcon } from '@/ui/icons/CloseIcon';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
 
 export default function TournamentSquad() {
   const navigate = useNavigate();

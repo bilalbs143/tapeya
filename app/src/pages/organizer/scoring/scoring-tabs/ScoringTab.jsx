@@ -154,7 +154,7 @@ function overOrdinal(n) {
  * @param {object[]} bowlingSquad           Players for bowling team
  * @param {Function} setBowlingSquad
  * @param {object}   liveScore              From computeLiveScore(ballHistory)
- * @param {Function} onInningsComplete      Called when wickets or overs end this innings
+ * @param {Function} onInningsComplete      Called once when this innings ends (overs, wickets, or chase). Optional `{ reason: 'overs'|'wickets'|'target' }`.
  * @param {boolean}  isApiMatch
  * @param {Function} syncBallToApi
  * @param {Function} syncUndoToApi
@@ -325,11 +325,13 @@ export function ScoringTab({
 
   const baselineRef = useRef(ballHistory.length);
   const prevLengthRef = useRef(ballHistory.length);
+  const inningsEndEmittedRef = useRef(false);
 
   useEffect(() => {
     // Re-baseline whenever we switch to a new innings
     baselineRef.current = ballHistory.length;
     prevLengthRef.current = ballHistory.length;
+    inningsEndEmittedRef.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inningsNumber]);
 
@@ -345,25 +347,35 @@ export function ScoringTab({
 
   useEffect(() => {
     if (!onInningsComplete) return;
-    if (ballHistory.length <= baselineRef.current) return;
 
     const totalRuns = liveScore?.totalRuns ?? 0;
-    // Innings 2: target achieved – chasing team wins
-    if (targetScore != null && totalRuns >= targetScore) {
-      onInningsComplete();
-      return;
-    }
     const maxWickets =
       match?.playersPerSide != null ? match.playersPerSide - 1 : undefined;
     const maxValidBalls =
       match?.overs != null ? Number(match.overs) * 6 : undefined;
-    if (
-      (maxWickets != null && (liveScore?.totalWickets ?? 0) >= maxWickets) ||
-      (maxValidBalls != null &&
-        (liveScore?.validDeliveries ?? 0) >= maxValidBalls)
-    ) {
-      onInningsComplete();
+
+    const targetMet =
+      targetScore != null && totalRuns >= targetScore;
+    const wicketsMet =
+      maxWickets != null && (liveScore?.totalWickets ?? 0) >= maxWickets;
+    const oversMet =
+      maxValidBalls != null &&
+      (liveScore?.validDeliveries ?? 0) >= maxValidBalls;
+    const inningsEnded = targetMet || wicketsMet || oversMet;
+
+    if (!inningsEnded) {
+      inningsEndEmittedRef.current = false;
+      return;
     }
+    if (ballHistory.length <= baselineRef.current) return;
+    if (inningsEndEmittedRef.current) return;
+
+    let reason = 'overs';
+    if (targetMet) reason = 'target';
+    else if (wicketsMet) reason = 'wickets';
+
+    inningsEndEmittedRef.current = true;
+    onInningsComplete({ reason });
   }, [
     liveScore?.totalRuns,
     liveScore?.totalWickets,
@@ -629,16 +641,36 @@ export function ScoringTab({
   };
 
   const selectBowlerForNextOver = (player) => {
+    const playingOk =
+      bowlingXiSavedOnApi || player?.role === 'playing';
+    if (!playingOk) return;
+
     const idx = bowlersInTable.findIndex(
       (bt) => String(bt.id) === String(player.id),
     );
     if (idx >= 0) {
       setCurrentBowlerIndex?.(idx);
       setAddBowlerOpen(false);
-    } else if (canAddMoreBowlers && player.role === 'playing') {
+      return;
+    }
+    if (canAddMoreBowlers) {
       addBowlerToTable(player);
       setAddBowlerOpen(false);
+      return;
     }
+    // Two bowlers already tracked: bring in this bowler as the next over (swap current slot).
+    const table = bowlersInTable ?? [];
+    if (table.length === 0) return;
+    const cur = Math.min(
+      Math.max(0, Number(currentBowlerIndex) || 0),
+      table.length - 1,
+    );
+    setBowlersInTable?.((prev) => {
+      const next = [...prev];
+      next[cur] = blankBowler(player);
+      return next;
+    });
+    setAddBowlerOpen(false);
   };
 
   // ── Scoring engine ─────────────────────────────────────────────────────────
@@ -799,79 +831,90 @@ export function ScoringTab({
                     ))}
                   </tr>
                 ))
-              : battingOrder.map((player) => {
-                  const stats = getBatsmanDisplayStats(player.id);
-                  const creaseIndex = batsmenOnCrease.findIndex(
-                    (b) => String(b.id) === String(player.id),
-                  );
-                  const isOnCrease = creaseIndex >= 0;
-                  const isStriker = isOnCrease && creaseIndex === strikerIndex;
-                  const display = stats
-                    ? {
-                        runs: stats.runs,
-                        balls: stats.balls,
-                        fours: stats.fours,
-                        sixes: stats.sixes,
-                        sr: stats.strikeRate,
-                      }
-                    : { runs: 0, balls: 0, fours: 0, sixes: 0, sr: '0.0' };
-                  return (
+              : batsmenOnCrease.length === 0
+                ? Array.from({ length: EMPTY_SQUAD_PLACEHOLDER_ROWS }, (_, i) => (
                     <tr
-                      key={player.id}
-                      role={isOnCrease ? 'button' : undefined}
-                      tabIndex={isOnCrease ? 0 : undefined}
-                      onClick={() =>
-                        isOnCrease && setStrikerIndex?.(creaseIndex)
-                      }
-                      onKeyDown={(e) => {
-                        if (
-                          isOnCrease &&
-                          (e.key === 'Enter' || e.key === ' ')
-                        ) {
-                          e.preventDefault();
-                          setStrikerIndex?.(creaseIndex);
-                        }
-                      }}
-                      className={
-                        isOnCrease
-                          ? 'cursor-pointer transition-opacity active:opacity-90'
-                          : ''
-                      }
+                      key={`batsman-pending-${i}`}
+                      className="pointer-events-none"
+                      aria-hidden
                     >
                       <td
                         className={`border-r border-b border-l ${BORDER} px-4 py-3`}
                       >
-                        <span className="flex items-center gap-2">
-                          <span
-                            className={`text-[12px] font-medium ${isStriker ? 'text-[#DA9811]' : 'text-white'}`}
-                          >
-                            {player.name ?? DASH}
-                          </span>
-                          {isStriker && (
-                            <span
-                              className="scoring-blink-dot inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full bg-red-500"
-                              aria-label="On strike"
-                            />
-                          )}
+                        <span className="block min-h-[1.125rem] text-[12px] text-white/20">
+                          {'\u00a0'}
                         </span>
                       </td>
-                      {[
-                        display.runs,
-                        display.balls,
-                        display.fours,
-                        display.sixes,
-                        display.sr,
-                      ].map((val, i) => (
+                      {[0, 1, 2, 3, 4].map((j) => (
                         <td
-                          key={i}
-                          className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white`}
+                          key={j}
+                          className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white/20`}
                         >
-                          {val ?? DASH}
+                          {'\u00a0'}
                         </td>
                       ))}
                     </tr>
-                  );
-                })}
+                  ))
+                : batsmenOnCrease.slice(0, 2).map((b, creaseIndex) => {
+                    const stats = getBatsmanDisplayStats(b.id);
+                    const isStriker = creaseIndex === strikerIndex;
+                    const display = stats
+                      ? {
+                          runs: stats.runs,
+                          balls: stats.balls,
+                          fours: stats.fours,
+                          sixes: stats.sixes,
+                          sr: stats.strikeRate,
+                        }
+                      : { runs: 0, balls: 0, fours: 0, sixes: 0, sr: '0.0' };
+                    return (
+                      <tr
+                        key={b.id}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setStrikerIndex?.(creaseIndex)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setStrikerIndex?.(creaseIndex);
+                          }
+                        }}
+                        className="cursor-pointer transition-opacity active:opacity-90"
+                      >
+                        <td
+                          className={`border-r border-b border-l ${BORDER} px-4 py-3`}
+                        >
+                          <span className="flex items-center gap-2">
+                            <span
+                              className={`text-[12px] font-medium ${isStriker ? 'text-[#DA9811]' : 'text-white'}`}
+                            >
+                              {b.name ?? DASH}
+                            </span>
+                            {isStriker && (
+                              <span
+                                className="scoring-blink-dot inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full bg-red-500"
+                                aria-label="On strike"
+                              />
+                            )}
+                          </span>
+                        </td>
+                        {[
+                          display.runs,
+                          display.balls,
+                          display.fours,
+                          display.sixes,
+                          display.sr,
+                        ].map((val, i) => (
+                          <td
+                            key={i}
+                            className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white`}
+                          >
+                            {val ?? DASH}
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })}
           </tbody>
         </table>
         {canAddMoreBatsmen && !matchComplete && (

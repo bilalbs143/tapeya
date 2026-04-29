@@ -35,6 +35,9 @@ import {
 } from '@/ui/Select';
 import { ToggleGroupField } from '@/ui/ToggleGroupField';
 
+/** Matches API country `name` (see GET /countries), same as shop checkout. */
+const DEFAULT_COUNTRY = 'Pakistan';
+
 const DEFAULT_VALUES = {
   contact_person_name: '',
   contact_phone: '+92',
@@ -45,7 +48,7 @@ const DEFAULT_VALUES = {
   start_date: '',
   end_date: '',
   number_of_teams: '',
-  country: '',
+  country: DEFAULT_COUNTRY,
   city: '',
   match_timings: '',
   prize: '',
@@ -114,11 +117,12 @@ export default function TournamentRequest() {
   // Pre-fill contact details and default enum selections once enums are loaded.
   useEffect(() => {
     if (enumsLoading || tournamentTypeOptions.length === 0) return;
+    const countryFromProfile = user?.country && String(user.country).trim();
     reset({
       ...DEFAULT_VALUES,
       contact_person_name: user?.name ?? '',
       contact_phone: user?.phone ?? '+92',
-      country: user?.country ?? '',
+      country: countryFromProfile || DEFAULT_COUNTRY,
       city: user?.city ?? '',
       tournament_type: tournamentTypeOptions[0]?.value ?? '',
       cricket_format: cricketFormatOptions[0]?.value ?? '',

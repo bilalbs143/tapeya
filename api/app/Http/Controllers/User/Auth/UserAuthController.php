@@ -142,7 +142,10 @@ class UserAuthController extends Controller
      */
     public function me()
     {
-        $user = request()->user()->fresh();
+        $user = request()->user()?->fresh();
+        if (! $user) {
+            return response()->failure('Unauthenticated.', 'UNAUTHORIZED');
+        }
 
         return response()->success(new UserResource($user));
     }

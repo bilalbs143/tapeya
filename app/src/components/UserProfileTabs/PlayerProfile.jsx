@@ -13,14 +13,14 @@ import {
 
 import { PROFILE_OVERVIEW_ROLE } from './constants';
 import { ProfileMetrics } from './ProfileMetrics';
-import { ProfilePosts } from './ProfilePosts';
+// import { ProfilePosts } from './ProfilePosts';
 import { ProfileRoleOverview } from './ProfileRoleOverview';
 import { ProfileStats } from './ProfileStats';
 
 const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const profileUserIcon = `${CLOUDFRONT_APP_BASE}/images/icons/profile-user.svg`;
-const userPostsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/user-posts.svg`;
+// const userPostsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/user-posts.svg`;
 const userStatsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/user-stats.svg`;
 
 const CONTENT_WRAPPER_CLASS = 'px-4 pb-6 pt-1';
@@ -38,12 +38,12 @@ const TABS = [
     icon: userStatsIcon,
     Content: ProfileStats,
   },
-  {
-    value: 'posts',
-    label: 'Posts',
-    icon: userPostsIcon,
-    Content: ProfilePosts,
-  },
+  // {
+  //   value: 'posts',
+  //   label: 'Posts',
+  //   icon: userPostsIcon,
+  //   Content: ProfilePosts,
+  // },
 ];
 
 /**

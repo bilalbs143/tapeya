@@ -9,9 +9,11 @@ import { useEffect, useRef, useState } from 'react';
 
 import { Link } from 'react-router-dom';
 
-import messageIcon from '@/assets/images/icons/message-icon.svg';
-import playIcon from '@/assets/images/icons/play-icon.svg';
-import reelCameraIcon from '@/assets/images/icons/reel-camera-icon.svg';
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const messageIcon = `${CLOUDFRONT_APP_BASE}/images/icons/message-icon.svg`;
+const playIcon = `${CLOUDFRONT_APP_BASE}/images/icons/play-icon.svg`;
+const reelCameraIcon = `${CLOUDFRONT_APP_BASE}/images/icons/reel-camera-icon.svg`;
 
 function HeartIcon({ filled }) {
   const color = filled ? '#ef4444' : '#000';

@@ -3,16 +3,26 @@ import { selectDialogKey, selectDialogProps } from '@/store/selectors';
 import { closeDialog } from '@/store/slices/commonSlice';
 
 import BaseDialog from './BaseDialog';
+import DeleteAccountDialog from './DeleteAccountDialog';
 import DraftingSubmitSquadSuccessDialog from './DraftingSubmitSquadSuccessDialog';
+import InningsEndDialog from './InningsEndDialog';
 import PricingSuccessDialog from './PricingSuccessDialog';
 import ProfileStrengthReminderDialog from './ProfileStrengthReminderDialog';
 import TournamentSquadUpdatedSuccessDialog from './TournamentSquadUpdatedSuccessDialog';
 
 const DIALOG_COMPONENTS = {
+  inningsEnd: InningsEndDialog,
   pricingSuccess: PricingSuccessDialog,
   draftingSubmitSquadSuccess: DraftingSubmitSquadSuccessDialog,
   tournamentSquadUpdatedSuccess: TournamentSquadUpdatedSuccessDialog,
   profileStrengthReminder: ProfileStrengthReminderDialog,
+  deleteAccount: DeleteAccountDialog,
+};
+
+/** Extra Tailwind classes merged onto BaseDialog content (defaults for short modals). */
+const DIALOG_CONTENT_CLASS_BY_KEY = {
+  deleteAccount: '!min-h-[300px]',
+  inningsEnd: '!h-auto !min-h-[240px]',
 };
 
 export function DialogManager() {
@@ -32,11 +42,14 @@ export function DialogManager() {
     }
   };
 
+  const contentClassName =
+    DIALOG_CONTENT_CLASS_BY_KEY[dialogKey] ?? '!h-[250px]';
+
   return (
     <BaseDialog
       open
       onOpenChange={handleOpenChange}
-      contentClassName="!h-[250px]"
+      contentClassName={contentClassName}
     >
       <DialogBody {...dialogProps} />
     </BaseDialog>

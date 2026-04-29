@@ -76,21 +76,22 @@ const VALID_DELIVERIES_PER_OVER = 6;
  * WD/NB do not count. Used so we open the bowler dialog exactly after the 6th
  * legal ball even when there are extras in the over (avoids relying on bowler.balls).
  *
- * Returns 0 in two distinct situations:
- *   a) No balls have been bowled yet in this over (count never reached 6).
- *   b) The last 6 legal deliveries form a complete over (early return 0).
- * Callers only use this via willCompleteOver which checks for 5 — neither
- * zero case causes a problem there.
+ * Walks backward from the latest ball. Every 6 legal deliveries crossed is an
+ * over boundary: reset the running count so we only keep the remainder in the
+ * current over. (A naive “return 0 when 6 legals seen” breaks after over 1,
+ * because the tail always includes six legal balls from the previous over.)
  *
  * @param {object[]} ballHistory
- * @returns {number} 0–5 (legal balls in current over)
+ * @returns {number} 0–5 (legal balls already bowled in the current over)
  */
 function countLegalInCurrentOver(ballHistory) {
   let count = 0;
   for (let i = (ballHistory ?? []).length - 1; i >= 0; i--) {
     const t = ballHistory[i].type;
-    if (t !== 'wd' && t !== 'nb') count++;
-    if (count === VALID_DELIVERIES_PER_OVER) return 0; // last 6 are a full over → current over empty
+    if (t !== 'wd' && t !== 'nb') {
+      count++;
+      if (count === VALID_DELIVERIES_PER_OVER) count = 0;
+    }
   }
   return count;
 }

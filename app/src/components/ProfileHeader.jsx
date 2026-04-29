@@ -50,6 +50,9 @@ export function ProfileHeader({
       <div className="relative flex h-full flex-col px-4 pt-16">
         <div className={`mx-auto flex w-full flex-1 ${CONTENT_MAX} flex-col`}>
           <div className="flex flex-1 items-end justify-between gap-4">
+            <div className="relative z-10 shrink-0">
+              <ProfileAvatar src={avatarSrc} name={name} />
+            </div>
             <div
               className={
                 showStrengthBar
@@ -88,9 +91,6 @@ export function ProfileHeader({
                   </div>
                 </div>
               )}
-            </div>
-            <div className="relative z-10 shrink-0">
-              <ProfileAvatar src={avatarSrc} name={name} />
             </div>
           </div>
         </div>

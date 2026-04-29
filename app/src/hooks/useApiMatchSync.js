@@ -15,6 +15,7 @@
 
 import { useEffect, useState } from 'react';
 
+import { squadPlayerProfileFields } from '@/lib/utils/playerUtils';
 import {
   apiPartnershipsToUiState,
   buildPlayerIdToName,
@@ -35,11 +36,15 @@ function buildRoleSquad(squadList, playingIds) {
   const playingSet = new Set((playingIds ?? []).map(String));
   return (squadList ?? [])
     .filter((p) => p.id != null)
-    .map((p) => ({
-      id: p.id ?? p.user_id,
-      name: p.name ?? p.nickname ?? `Player ${p.id ?? p.user_id}`,
-      role: playingSet.has(String(p.id ?? p.user_id)) ? 'playing' : 'bench',
-    }));
+    .map((p) => {
+      const id = p.id ?? p.user_id;
+      return {
+        ...squadPlayerProfileFields(p),
+        id,
+        name: p.name ?? p.nickname ?? `Player ${id}`,
+        role: playingSet.has(String(id)) ? 'playing' : 'bench',
+      };
+    });
 }
 
 function idsToPlayers(ids, nameMap) {

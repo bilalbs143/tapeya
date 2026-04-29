@@ -57,9 +57,12 @@ const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5 MB
  */
 const PROFILE_FIELD_NONE = '__none__';
 
+/** Matches API country `name` (GET /countries). */
+const DEFAULT_COUNTRY = 'Pakistan';
+
 const DEFAULT_FIELDS = {
   name: '',
-  country: '',
+  country: DEFAULT_COUNTRY,
   city: '',
   nickname: '',
   phone: '',
@@ -112,9 +115,10 @@ export function UserEdit({ open, onOpenChange }) {
     const bowling =
       enumNameToValue(user.bowling_style_enum) || user.bowling_style;
     const playing = enumNameToValue(user.playing_role_enum);
+    const countryFromProfile = user.country && String(user.country).trim();
     setFields({
       name: user.name ?? '',
-      country: user.country ?? '',
+      country: countryFromProfile || DEFAULT_COUNTRY,
       city: user.city ?? '',
       nickname: user.nickname ?? '',
       phone: user.phone ?? '',

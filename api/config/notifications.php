@@ -30,7 +30,7 @@ return [
         'from' => env('SMS_FROM', env('APP_NAME', 'Tapeya')),
         'otp_message' => env(
             'SMS_OTP_MESSAGE',
-            'Tapeya: Your verification code is :code. Valid for 10 minutes. Do not share this code.'
+            'Your verification code is :code. Valid for 10 minutes. Do not share this code with anyone.'
         ),
     ],
 

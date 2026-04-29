@@ -4,8 +4,10 @@ import { Link } from 'react-router-dom';
 import { Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-import highlight1 from '@/assets/images/standard/highlight-1.png';
-import highlight2 from '@/assets/images/standard/highlight-2.jpg';
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const highlight1 = `${CLOUDFRONT_APP_BASE}/images/standard/highlight-1.png`;
+const highlight2 = `${CLOUDFRONT_APP_BASE}/images/standard/highlight-2.jpg`;
 
 const SLIDES = [
   { id: 1, image: highlight1, alt: 'Highlight 1' },

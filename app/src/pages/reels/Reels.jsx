@@ -11,15 +11,18 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import exploreOrangeIcon from '@/assets/images/icons/explore-orange.svg';
-import exploreWhiteIcon from '@/assets/images/icons/explore-white.svg';
-import myVideosOrangeIcon from '@/assets/images/icons/my-videos-orange.svg';
-import myVideosWhiteIcon from '@/assets/images/icons/my-videos-white.svg';
 import { useAppSelector } from '@/store/hooks';
 import { selectPublishedReels } from '@/store/selectors';
 
 import ReelItem from './ReelItem';
 import { EXPLORE_REELS, MY_VIDEOS_REELS } from './reelsData';
+
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+
+const exploreOrangeIcon = `${CLOUDFRONT_APP_BASE}/images/icons/explore-orange.svg`;
+const exploreWhiteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/explore-white.svg`;
+const myVideosOrangeIcon = `${CLOUDFRONT_APP_BASE}/images/icons/my-videos-orange.svg`;
+const myVideosWhiteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/my-videos-white.svg`;
 
 const TAB_EXPLORE = 'explore';
 const TAB_MY_VIDEOS = 'my-videos';

@@ -99,6 +99,14 @@ export const authApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Auth', 'User'],
     }),
+    /** DELETE /profile — permanently closes the authenticated app account. */
+    deleteAccount: builder.mutation({
+      query: () => ({
+        url: '/profile',
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Auth', 'User'],
+    }),
   }),
 });
 
@@ -109,4 +117,5 @@ export const {
   useGetMeQuery,
   useUpdateProfileMutation,
   useLogoutMutation,
+  useDeleteAccountMutation,
 } = authApi;
