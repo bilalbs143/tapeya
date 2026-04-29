@@ -28,7 +28,7 @@ export function SponsorStats() {
       <h2 className="text-[12px] font-bold tracking-wide text-white uppercase">
         SPONSOR STATS
       </h2>
-      <div className="mt-4 grid grid-cols-3 gap-x-8 gap-y-5">
+      <div className="mt-4 grid grid-cols-2 gap-x-8 gap-y-5 md:grid-cols-3">
         {STATS.map(({ label, value }) => (
           <StatItem key={label} label={label} value={value} />
         ))}

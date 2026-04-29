@@ -6,9 +6,9 @@ import { formatPrice } from '@/lib/format';
 import { useGetOrderQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 
-const WHATSAPP = '+92 315 711 8511';
-const BANK_NAME = 'Bank Alfalah';
-const IBAN = 'PKLF457781445468799235';
+const WHATSAPP = '+923001238832';
+const BANK_NAME = 'NayaPay';
+const IBAN = '0339 0003609';
 const ACCOUNT_TITLE = 'Oneeb Arif';
 
 export default function OrderPayment() {
@@ -118,7 +118,7 @@ export default function OrderPayment() {
             </div>
             <div>
               <p className="text-[14px] font-bold text-[#A2A6AB] uppercase">
-                IBAN
+                Account Number
               </p>
               <p className="mt-1 text-[14px] break-all text-[#B0B0B0]">
                 {IBAN}

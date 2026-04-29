@@ -3,8 +3,7 @@ import { Fragment } from 'react';
 export const STAT_DIVIDER_CLASS =
   'w-px shrink-0 self-stretch bg-gradient-to-b from-[#00000000] via-[#FFFFFF66] to-[#00000000]';
 
-const CELL_CLASS =
-  'flex flex-1 flex-col items-center justify-center px-2.5 py-2.5';
+const CELL_CLASS = 'flex flex-1 flex-col items-center justify-center text-[11px] px-1 py-2.5';
 const LABEL_CLASS =
   'text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase';
 const VALUE_CLASS = 'mt-0.5 text-[14px] font-bold text-white';

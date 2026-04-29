@@ -2,6 +2,8 @@ import { BaseDialog } from '@/components/dialogs/BaseDialog';
 import { Button } from '@/ui/Button';
 import { DialogScrollBody, DialogTitle } from '@/ui/Dialog';
 
+import { ScoringPlayerPickerMeta } from '@/components/scoring/ScoringPlayerPickerMeta';
+
 export function AddBowlerDialog({
   open,
   onOpenChange,
@@ -37,16 +39,15 @@ export function AddBowlerDialog({
           const inTable = bowlersInTable.some(
             (bt) => String(bt.id) === String(b.id),
           );
-          const canAdd =
-            (hideSquadSetup || b.role === 'playing') &&
-            canAddMoreBowlers &&
-            !inTable;
-          const canSelect = inTable || canAdd;
+          const playingEligible = hideSquadSetup || b.role === 'playing';
+          const canAdd = playingEligible && canAddMoreBowlers && !inTable;
+          const canSwapIn = playingEligible && !inTable && !canAddMoreBowlers;
+          const canSelect = inTable || canAdd || canSwapIn;
           return (
             <div
               key={b.id}
               role="button"
-              tabIndex={0}
+              tabIndex={canSelect ? 0 : -1}
               onClick={() => canSelect && onSelectBowlerForNextOver(b)}
               onKeyDown={(e) => {
                 if (canSelect && (e.key === 'Enter' || e.key === ' ')) {
@@ -57,13 +58,16 @@ export function AddBowlerDialog({
               className={`flex flex-col gap-2 rounded-[10px] bg-[#141412] px-4 py-3 ${
                 canSelect
                   ? 'cursor-pointer transition-opacity active:opacity-90'
-                  : ''
+                  : 'cursor-not-allowed opacity-45'
               }`}
             >
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-[14px] font-bold text-white">
-                  {b.name}
-                </span>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <span className="text-[14px] font-bold text-white">
+                    {b.name}
+                  </span>
+                  <ScoringPlayerPickerMeta player={b} variant="bowling" />
+                </div>
                 {hideSquadSetup ? null : (
                   <div
                     className="flex shrink-0 gap-1"

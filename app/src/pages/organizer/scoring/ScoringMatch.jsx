@@ -34,7 +34,7 @@
 
 // ─── Imports ──────────────────────────────────────────────────────────────────
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
@@ -45,6 +45,7 @@ import {
   INITIAL_PARTNERSHIP,
   useInningsState,
 } from '@/hooks/useInningsState';
+import { squadPlayerProfileFields } from '@/lib/utils/playerUtils';
 import {
   apiMatchToUiMatchConfig,
   uiBallToStoreBallPayload,
@@ -59,6 +60,9 @@ import {
   useUpdateTossMutation,
 } from '@/store/api/matchApi';
 import { useGetTeamSquadQuery } from '@/store/api/teamApi';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { selectDialogKey } from '@/store/selectors';
+import { openDialog } from '@/store/slices/commonSlice';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 import { Dialog, DialogContentProfile, DialogTitle } from '@/ui/Dialog';
@@ -126,11 +130,15 @@ function buildRoleSquad(squadList, playingIds) {
   const playingSet = new Set((playingIds ?? []).map(String));
   return (squadList ?? [])
     .filter((p) => p.id != null)
-    .map((p) => ({
-      id: p.id ?? p.user_id,
-      name: p.name ?? p.nickname ?? `Player ${p.id ?? p.user_id}`,
-      role: playingSet.has(String(p.id ?? p.user_id)) ? 'playing' : 'bench',
-    }));
+    .map((p) => {
+      const id = p.id ?? p.user_id;
+      return {
+        ...squadPlayerProfileFields(p),
+        id,
+        name: p.name ?? p.nickname ?? `Player ${id}`,
+        role: playingSet.has(String(id)) ? 'playing' : 'bench',
+      };
+    });
 }
 
 /**
@@ -142,6 +150,53 @@ function idsToPlayers(ids, nameMap) {
     id,
     name: nameMap[String(id)] ?? `Player ${id}`,
   }));
+}
+
+/**
+ * Innings 1 = team A bats, innings 2 = team B chases (team A total + 1).
+ * Used by MatchResultBanner and the innings-end dialog after the second innings.
+ */
+function computeMatchResultSummary(match, liveScore1, liveScore2) {
+  const inn1 = liveScore1?.totalRuns ?? 0;
+  const inn2 = liveScore2?.totalRuns ?? 0;
+  const wickets2 = liveScore2?.totalWickets ?? 0;
+  const target = inn1 + 1;
+  const maxWickets =
+    match?.playersPerSide != null ? Number(match.playersPerSide) - 1 : 10;
+  const teamA = match?.teamA?.name?.trim() ?? '';
+  const teamB = match?.teamB?.name?.trim() ?? '';
+
+  const chasingWon = inn2 >= target;
+  const runsShort = target - 1 - inn2;
+
+  if (!chasingWon && runsShort === 0) {
+    return {
+      tie: true,
+      titleLine: 'Match tied',
+      detailLine: [teamA, teamB].filter(Boolean).length
+        ? `${teamA || 'Team A'} ${inn1} · ${teamB || 'Team B'} ${inn2}`
+        : `Scores level at ${inn1} runs each.`,
+    };
+  }
+
+  if (chasingWon) {
+    const wkts = maxWickets - wickets2;
+    const margin = `${wkts} wicket${wkts !== 1 ? 's' : ''}`;
+    return {
+      tie: false,
+      titleLine: teamB ? `${teamB} won` : 'Chasing team won',
+      marginLine: `by ${margin}`,
+      scoresLine: `${teamA || 'Team A'} ${inn1} · ${teamB || 'Team B'} ${inn2}`,
+    };
+  }
+
+  const margin = `${runsShort} run${runsShort !== 1 ? 's' : ''}`;
+  return {
+    tie: false,
+    titleLine: teamA ? `${teamA} won` : 'Defending team won',
+    marginLine: `by ${margin}`,
+    scoresLine: `${teamA || 'Team A'} ${inn1} · ${teamB || 'Team B'} ${inn2}`,
+  };
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -233,6 +288,8 @@ export default function ScoringMatch() {
 
   // Which innings is currently live
   const [currentInnings, setCurrentInnings] = useState('1');
+  /** Declared here (not below live scores) so no hook/useMemo deps hit TDZ before init. */
+  const isInnings2 = currentInnings === '2';
 
   // ── Toss state ─────────────────────────────────────────────────────────────
 
@@ -323,11 +380,15 @@ export default function ScoringMatch() {
   // from API hydration. buildRoleSquad handles them correctly whether or not they
   // already have a role field — roles are always re-derived from playingIds.
 
-  const [matchComplete, setMatchComplete] = useState(false);
-
-  const handleMatchComplete = useCallback(() => {
-    setMatchComplete(true);
-  }, []);
+  /** Match finished — from API / scorecard only (no local scoring flag). */
+  const matchComplete = useMemo(() => {
+    if (!fromApi || !apiMatch) return false;
+    if (apiMatch.status === 'completed') return true;
+    const i1 = scorecard?.innings?.[0];
+    const i2 = scorecard?.innings?.[1];
+    if (!i1 || !i2) return false;
+    return i1.status === 'completed' && i2.status === 'completed';
+  }, [fromApi, apiMatch, scorecard?.innings]);
 
   const handleInnings1Complete = useCallback(() => {
     // Innings 2 batting = who bowled in innings 1 (innings1.bowlingSquad)
@@ -399,10 +460,67 @@ export default function ScoringMatch() {
     [innings2.ballHistory, match?.overs],
   );
 
-  // Active innings convenience
-  const isInnings2 = currentInnings === '2';
+  // Active innings convenience (isInnings2 is declared with currentInnings above)
   const activeInnings = isInnings2 ? innings2 : innings1;
   const activeLiveScore = isInnings2 ? liveScore2 : liveScore1;
+
+  const dispatch = useAppDispatch();
+  const dialogKey = useAppSelector(selectDialogKey);
+  const pendingInningsEndRef = useRef(null);
+  const prevDialogKeyRef = useRef(null);
+
+  const requestInningsEndUI = useCallback(
+    (payload) => {
+      if (dialogKey === 'inningsEnd') return;
+      pendingInningsEndRef.current = currentInnings;
+      const battingTeamName = isInnings2
+        ? match?.teamB?.name || ''
+        : match?.teamA?.name || '';
+      dispatch(
+        openDialog({
+          key: 'inningsEnd',
+          props: {
+            variant:
+              currentInnings === '1' ? 'first_innings_break' : 'match_over',
+            reason: payload?.reason ?? 'overs',
+            battingTeamName,
+            matchOvers:
+              match?.overs != null ? Number(match.overs) : undefined,
+            matchResult:
+              currentInnings === '2'
+                ? computeMatchResultSummary(match, liveScore1, liveScore2)
+                : undefined,
+          },
+        }),
+      );
+    },
+    [
+      currentInnings,
+      dialogKey,
+      dispatch,
+      isInnings2,
+      liveScore1,
+      liveScore2,
+      match,
+    ],
+  );
+
+  useEffect(() => {
+    const prev = prevDialogKeyRef.current;
+    if (
+      prev === 'inningsEnd' &&
+      dialogKey != null &&
+      dialogKey !== 'inningsEnd'
+    ) {
+      pendingInningsEndRef.current = null;
+    }
+    if (prev === 'inningsEnd' && dialogKey == null) {
+      const which = pendingInningsEndRef.current;
+      pendingInningsEndRef.current = null;
+      if (which === '1') handleInnings1Complete();
+    }
+    prevDialogKeyRef.current = dialogKey;
+  }, [dialogKey, handleInnings1Complete]);
 
   // ── API sync callbacks ─────────────────────────────────────────────────────
   //
@@ -626,11 +744,9 @@ export default function ScoringMatch() {
 
       // Innings lifecycle
       onInningsComplete:
-        currentInnings === '1'
-          ? handleInnings1Complete
-          : currentInnings === '2'
-            ? handleMatchComplete
-            : undefined,
+        currentInnings === '1' || currentInnings === '2'
+          ? requestInningsEndUI
+          : undefined,
       targetScore:
         isInnings2 && liveScore1?.totalRuns != null
           ? liveScore1.totalRuns + 1
@@ -660,8 +776,7 @@ export default function ScoringMatch() {
     activeInnings,
     activeLiveScore,
     liveScore1,
-    handleInnings1Complete,
-    handleMatchComplete,
+    requestInningsEndUI,
     fromApi,
     syncBallToApi1,
     syncUndoToApi1,
@@ -861,28 +976,19 @@ export default function ScoringMatch() {
 
 /** Displays match result when innings 2 completes (target achieved, all wickets, or all overs). */
 function MatchResultBanner({ match, liveScore1, liveScore2 }) {
-  const target = (liveScore1?.totalRuns ?? 0) + 1;
-  const runs2 = liveScore2?.totalRuns ?? 0;
-  const wickets2 = liveScore2?.totalWickets ?? 0;
-  const maxWickets =
-    match?.playersPerSide != null ? match.playersPerSide - 1 : 10;
-  const teamA = match?.teamA?.name ?? '';
-  const teamB = match?.teamB?.name ?? '';
-
-  const chasingWon = runs2 >= target;
-  const winnerName = chasingWon ? teamB : teamA;
-  const margin = chasingWon
-    ? `${maxWickets - wickets2} wicket${maxWickets - wickets2 !== 1 ? 's' : ''}`
-    : `${target - 1 - runs2} run${target - 1 - runs2 !== 1 ? 's' : ''}`;
+  const s = computeMatchResultSummary(match, liveScore1, liveScore2);
 
   return (
     <div className="mb-6 rounded-[17px] bg-[#141412] p-8 text-center">
       <p className="text-[12px] font-bold tracking-wide text-[#DA9811] uppercase">
         Match Complete
       </p>
-      <p className="mt-3 text-[18px] font-bold text-white">
-        {winnerName || '—'} won by {margin}
+      <p className="mt-3 text-[18px] font-bold text-white capitalize">
+        {s.tie ? s.titleLine : `${s.titleLine} ${s.marginLine ?? ''}`}
       </p>
+      {s.tie && s.detailLine ? (
+        <p className="mt-2 text-[13px] text-[#A2A6AB]">{s.detailLine}</p>
+      ) : null}
     </div>
   );
 }

@@ -7,6 +7,10 @@ import { getTournamentTitle } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentsQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
 
+const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+/** Same asset as upcoming tournament details (Fixtures) header. */
+const FIXTURE_CARD_IMAGE = `${CLOUDFRONT_APP_BASE}/images/background/fixture-bg.png`;
+
 const PLACEHOLDER_IMAGE =
   'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=200&h=200&fit=crop';
 
@@ -36,9 +40,19 @@ function TournamentCard({ tournament, showWinningTeam = false, onClick }) {
     >
       <div className="flex h-[117px] w-[100px] shrink-0 overflow-hidden rounded-xl bg-[#0d0d0b]">
         <img
-          src={imageUrl}
-          alt={`${getTournamentTitle(tournament)} cover`}
+          src={FIXTURE_CARD_IMAGE}
+          alt=""
           className="h-full w-full object-cover"
+          onError={(e) => {
+            const el = e.currentTarget;
+            if (el.src.includes('fixture-bg')) {
+              el.src = imageUrl;
+              return;
+            }
+            if (el.src !== PLACEHOLDER_IMAGE) {
+              el.src = PLACEHOLDER_IMAGE;
+            }
+          }}
         />
       </div>
       <div className="min-w-0 flex-1">

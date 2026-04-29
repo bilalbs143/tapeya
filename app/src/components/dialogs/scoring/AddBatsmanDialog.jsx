@@ -2,6 +2,8 @@ import { BaseDialog } from '@/components/dialogs/BaseDialog';
 import { Button } from '@/ui/Button';
 import { DialogScrollBody, DialogTitle } from '@/ui/Dialog';
 
+import { ScoringPlayerPickerMeta } from '@/components/scoring/ScoringPlayerPickerMeta';
+
 export function AddBatsmanDialog({
   open,
   onOpenChange,
@@ -59,10 +61,13 @@ export function AddBatsmanDialog({
                   : ''
               } ${hasBattingStats ? 'cursor-not-allowed opacity-90' : ''}`}
             >
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-[14px] font-bold text-white">
-                  {b.name}
-                </span>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <span className="text-[14px] font-bold text-white">
+                    {b.name}
+                  </span>
+                  <ScoringPlayerPickerMeta player={b} variant="batting" />
+                </div>
                 {hasBattingStats && stats ? (
                   <div className="flex shrink-0 gap-4 text-[12px] text-[#A2A6AB]">
                     <span>R: {stats.runs}</span>
