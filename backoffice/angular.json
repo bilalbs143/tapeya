@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "allowedCommonJsDependencies": ["apexcharts", "bezier-easing", "chance"],
+            "allowedCommonJsDependencies": ["apexcharts", "bezier-easing", "chance", "pusher-js"],
             "outputPath": {
               "base": "dist/backoffice"
             },
