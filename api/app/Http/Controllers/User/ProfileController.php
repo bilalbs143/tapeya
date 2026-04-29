@@ -44,7 +44,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Permanently close the app account (soft delete, revoke tokens, and strip identifiers).
+     * Close the app account (revoke tokens, set status blocked, soft delete).
      */
     public function destroy(Request $request, AppAccountDeletionService $deletion): JsonResponse
     {

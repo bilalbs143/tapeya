@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 class AppAccountDeletionService
 {
     /**
-     * Soft-delete an app (customer) user: revoke API tokens, then mark fields deleted and soft-delete the row.
+     * Soft-delete an app (customer) user: revoke API tokens, set status blocked, then soft-delete the row.
      *
      * Call only for {@see User::isUser()} accounts. The HTTP layer must enforce that.
      */
@@ -22,17 +22,9 @@ class AppAccountDeletionService
         DB::transaction(function () use ($user) {
             $user->tokens()->delete();
 
-            $deletedSuffix = '_deleted_id_'.$user->id;
-
-            $user->forceFill([
-                'name' => ($user->name ?? '').$deletedSuffix,
-                'nickname' => ($user->nickname ?? '').$deletedSuffix,
-                'email' => filled($user->email)
-                    ? $user->email.$deletedSuffix
-                    : 'deleted-'.$user->id.'@tapeya.invalid',
-                'phone' => ($user->phone ?? '').$deletedSuffix,
+            $user->update([
                 'status' => UserStatusEnum::BLOCKED,
-            ])->save();
+            ]);
 
             $user->delete();
         });
