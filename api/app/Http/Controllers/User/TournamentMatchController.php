@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreTournamentMatchRequest;
 use App\Http\Resources\User\TournamentMatchResource;
 use App\Models\Tournament;
+use App\Models\TournamentMatch;
 use App\Services\Tournament\TournamentMatchSchedulingService;
 use Illuminate\Http\JsonResponse;
 
