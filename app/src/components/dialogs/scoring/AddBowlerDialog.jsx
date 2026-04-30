@@ -58,7 +58,7 @@ export function AddBowlerDialog({
               className={`flex flex-col gap-2 rounded-[10px] bg-[#141412] px-4 py-3 ${
                 canSelect
                   ? 'cursor-pointer transition-opacity active:opacity-90'
-                  : 'cursor-not-allowed opacity-45'
+                  : 'cursor-default'
               }`}
             >
               <div className="flex items-start justify-between gap-3">
