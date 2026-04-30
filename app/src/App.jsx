@@ -30,6 +30,7 @@ import CurrentPartnership from '@/pages/graphics-controller/theme01/CurrentPartn
 import DecisionPending from '@/pages/graphics-controller/theme01/DecisionPending';
 import DecisionPendingRow from '@/pages/graphics-controller/theme01/DecisionPendingRow';
 import FallofWickets from '@/pages/graphics-controller/theme01/FallofWickets';
+import FollowUs from '@/pages/graphics-controller/theme01/FollowUs';
 import Four from '@/pages/graphics-controller/theme01/Four';
 import FourRow from '@/pages/graphics-controller/theme01/FourRow';
 import Fifty from '@/pages/graphics-controller/theme01/Fifty';
@@ -48,9 +49,14 @@ import NotOut from '@/pages/graphics-controller/theme01/NotOut';
 import NotOutRow from '@/pages/graphics-controller/theme01/NotOutRow';
 import Out from '@/pages/graphics-controller/theme01/Out';
 import MatchSummary from '@/pages/graphics-controller/theme01/MatchSummary';
+import MatchCommentator from '@/pages/graphics-controller/theme01/MatchCommentator';
+import MatchScorers from '@/pages/graphics-controller/theme01/MatchScorers';
+import MatchUmpires from '@/pages/graphics-controller/theme01/MatchUmpires';
+import MiniScorecard from '@/pages/graphics-controller/theme01/MiniScorecard';
 import PlayerCareerStats from '@/pages/graphics-controller/theme01/PlayerCareerStats';
 import PlayingXI from '@/pages/graphics-controller/theme01/PlayingXI';
 import PlayerIntro from '@/pages/graphics-controller/theme01/PlayerIntro';
+import PlayerIntroRow from '@/pages/graphics-controller/theme01/PlayerIntroRow';
 import PlayerTournamentStats from '@/pages/graphics-controller/theme01/PlayerTournamentStats';
 import PreviousOrder from '@/pages/graphics-controller/theme01/PreviousOrder';
 import ResultIntro from '@/pages/graphics-controller/theme01/ResultIntro';
@@ -64,6 +70,10 @@ import Six from '@/pages/graphics-controller/theme01/Six';
 import SixRow from '@/pages/graphics-controller/theme01/SixRow';
 import TeaBreak from '@/pages/graphics-controller/theme01/TeaBreak';
 import Toss from '@/pages/graphics-controller/theme01/Toss';
+import TournamanentWickets from '@/pages/graphics-controller/theme01/TournamanentWickets';
+import TournamentCentries from '@/pages/graphics-controller/theme01/TournamentCentries';
+import TournamentFifties from '@/pages/graphics-controller/theme01/TournamentFifties';
+import TournamentRuns from '@/pages/graphics-controller/theme01/TournamentRuns';
 import TournamentIntro from '@/pages/graphics-controller/theme01/TournamentIntro';
 import TournamentOverview from '@/pages/graphics-controller/theme01/TournamentOverview';
 import TournamentOver from '@/pages/graphics-controller/theme01/TournamentOver';
@@ -280,6 +290,22 @@ function App() {
                 path="/graphics-controller/highest-wickets"
                 element={<HighestWickets />}
               />
+              <Route
+                path="/graphics-controller/tournamanent-wickets"
+                element={<TournamanentWickets />}
+              />
+              <Route
+                path="/graphics-controller/tournament-runs"
+                element={<TournamentRuns />}
+              />
+              <Route
+                path="/graphics-controller/tournament-centries"
+                element={<TournamentCentries />}
+              />
+              <Route
+                path="/graphics-controller/tournament-fifties"
+                element={<TournamentFifties />}
+              />
               <Route path="/graphics-controller/hundred" element={<Hundred />} />
               <Route
                 path="/graphics-controller/innings-break"
@@ -359,12 +385,20 @@ function App() {
                 element={<PlayerIntro />}
               />
               <Route
+                path="/graphics-controller/player-intro-row"
+                element={<PlayerIntroRow />}
+              />
+              <Route
                 path="/graphics-controller/player-tournament-stats"
                 element={<PlayerTournamentStats />}
               />
               <Route
                 path="/graphics-controller/result-intro"
                 element={<ResultIntro />}
+              />
+              <Route
+                path="/graphics-controller/follow-us"
+                element={<FollowUs />}
               />
               <Route
                 path="/graphics-controller/player-career-stats"
@@ -397,6 +431,22 @@ function App() {
               <Route
                 path="/graphics-controller/match-summary"
                 element={<MatchSummary />}
+              />
+              <Route
+                path="/graphics-controller/match-umpires"
+                element={<MatchUmpires />}
+              />
+              <Route
+                path="/graphics-controller/match-scorers"
+                element={<MatchScorers />}
+              />
+              <Route
+                path="/graphics-controller/match-commentator"
+                element={<MatchCommentator />}
+              />
+              <Route
+                path="/graphics-controller/mini-scorecard"
+                element={<MiniScorecard />}
               />
               <Route
                 path="/graphics-controller/decision-pending"
