@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom';
+
 import { useAppDispatch } from '@/store/hooks';
 import { closeDialog } from '@/store/slices/commonSlice';
 import { Button } from '@/ui/Button';
@@ -20,7 +22,7 @@ function reasonDescription({ reason, matchOvers, battingTeamName }) {
 
 /**
  * Shown when live scoring detects the end of an innings (overs, wickets, or chase).
- * Closing the dialog (Continue or X) lets the parent complete the innings transition.
+ * Match over + `tournamentId`: **Continue** goes to that tournament’s fixtures tab.
  *
  * @param {object} [matchResult] – Second innings only: `{ tie, titleLine, marginLine?, scoresLine?, detailLine? }`.
  */
@@ -30,14 +32,21 @@ export function InningsEndDialog({
   battingTeamName = '',
   matchOvers,
   matchResult,
+  tournamentId,
 }) {
   const dispatch = useAppDispatch();
-
-  const handleContinue = () => {
-    dispatch(closeDialog());
-  };
+  const navigate = useNavigate();
 
   const isMatchOver = variant === 'match_over';
+
+  const handleContinue = () => {
+    if (isMatchOver && tournamentId != null && tournamentId !== '') {
+      navigate(`/upcoming-tournaments/${tournamentId}?tab=fixtures`, {
+        replace: true,
+      });
+    }
+    dispatch(closeDialog());
+  };
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">

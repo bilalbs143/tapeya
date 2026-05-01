@@ -489,11 +489,13 @@ export default function ScoringMatch() {
               currentInnings === '2'
                 ? computeMatchResultSummary(match, liveScore1, liveScore2)
                 : undefined,
+            tournamentId: apiMatch?.tournament_id,
           },
         }),
       );
     },
     [
+      apiMatch?.tournament_id,
       currentInnings,
       dialogKey,
       dispatch,
