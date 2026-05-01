@@ -24,7 +24,18 @@ export function MainLayout() {
       <Navbar onMenuClick={() => setSidebarOpen(true)} />
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <main
-        className={`pb-20 lg:ml-[280px] lg:pb-0 ${noTopPadding ? 'pt-0' : 'pt-16'}`}
+        className="lg:ml-[280px] lg:pb-0"
+        style={{
+          // Top: match navbar's real rendered height (64px content + status-bar inset).
+          // Pages that need content behind the navbar (profile, tournament details)
+          // opt out via noTopPadding.
+          paddingTop: noTopPadding
+            ? 0
+            : 'calc(env(safe-area-inset-top) + 64px)',
+          // Bottom: BottomNav is 80px tall. Add home-indicator clearance so the
+          // last item is never clipped on iPhone/newer Android.
+          paddingBottom: 'calc(env(safe-area-inset-bottom) + 80px)',
+        }}
       >
         <Outlet />
       </main>

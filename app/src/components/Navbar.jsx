@@ -61,7 +61,14 @@ export function Navbar({ onMenuClick }) {
       className={`fixed top-0 right-0 left-0 flex items-center justify-between border-b border-transparent px-4 transition-colors duration-300 lg:left-[280px] lg:border-[#1A1A1A] lg:bg-black ${
         scrolled ? 'bg-black' : 'bg-transparent'
       }`}
-      style={{ height: NAVBAR_HEIGHT, zIndex: NAVBAR_Z }}
+      style={{
+        // paddingTop pushes the navbar *content* (logo, icons) below the status
+        // bar while the navbar background extends all the way to the screen edge,
+        // covering the status bar area gracefully (viewport-fit=cover).
+        paddingTop: 'env(safe-area-inset-top)',
+        height: `calc(${NAVBAR_HEIGHT}px + env(safe-area-inset-top))`,
+        zIndex: NAVBAR_Z,
+      }}
     >
       <div className="flex min-w-0 flex-1 items-center gap-4 lg:gap-6">
         <Link to="/home" className="shrink-0" aria-label="Tapeya home">
