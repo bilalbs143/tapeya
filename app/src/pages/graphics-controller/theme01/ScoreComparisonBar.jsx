@@ -152,7 +152,11 @@ const chartOptions = {
             offsetX: 0,
             style: { color: '#FFFFFF', fontSize: '14px', fontWeight: 500 },
           },
-          labels: { style: { colors: '#FFFFFF', fontSize: '12px' }, minWidth: 30, offsetX: 2 },
+          labels: {
+            style: { colors: '#FFFFFF', fontSize: '12px' },
+            minWidth: 30,
+            offsetX: 2,
+          },
         },
       },
     },
@@ -191,17 +195,17 @@ export default function ScoreComparisonBar() {
                 key={index}
                 className="w-full rounded-[10px] bg-[#0C0601] px-2.5 py-2 text-[#DA9811] sm:max-w-[214px] sm:px-4 sm:py-3"
               >
-                <div className="flex items-center justify-between text-[12px] font-medium leading-none sm:text-[16px]">
+                <div className="flex items-center justify-between text-[12px] leading-none font-medium sm:text-[16px]">
                   <span>{card.team}</span>
                   <span>{card.score}</span>
                   <span>{card.overs}</span>
                 </div>
                 <div className="mt-2 h-px bg-white/20" />
-                <div className="mt-2 flex items-center justify-between text-[12px] font-medium leading-none sm:text-[14px]">
+                <div className="mt-2 flex items-center justify-between text-[12px] leading-none font-medium sm:text-[14px]">
                   <span>Six</span>
                   <span>{card.six}</span>
                 </div>
-                <div className="mt-2 flex items-center justify-between text-[12px] font-medium leading-none sm:text-[14px]">
+                <div className="mt-2 flex items-center justify-between text-[12px] leading-none font-medium sm:text-[14px]">
                   <span>Four</span>
                   <span>{card.four}</span>
                 </div>

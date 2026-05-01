@@ -142,7 +142,9 @@ export default function UpcomingTournaments() {
           className="w-full"
         >
           <div className="-mx-4 bg-black px-4 pb-3">
-            <TabsList className={`${scorecardListClass} lg:justify-center lg:gap-2`}>
+            <TabsList
+              className={`${scorecardListClass} lg:justify-center lg:gap-2`}
+            >
               {monthTabs.map(({ value, monthShort, year }) => (
                 <TabsTrigger
                   key={value}

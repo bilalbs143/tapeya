@@ -4,66 +4,67 @@
     aria-label="Manage team squad"
   >
     <mat-dialog-content>
-    <p class="text-sm text-muted m-0 mb-3 leading-relaxed">
-      Search players by name, email, or phone. They must be on this Tournament Squad before they can be used in the app for Match Squads and Playing Elevens.
-    </p>
-    <div class="grid grid-cols-12 gap-x-6">
-      @if (selected.length === 0) {
-        <div class="col-span-12">
-          <p class="text-sm text-muted m-0">No players on the Team Squad yet.</p>
-        </div>
-      } @else {
-        <div class="col-span-12">
-          <mat-chip-set
-            class="team-roster-chips w-full max-w-full mb-2"
-            aria-label="Players on Tournament Team Squad"
-          >
-            @for (p of selected; track p.id) {
-              <mat-chip
-                class="team-roster-chip text-sm"
-                (removed)="removePlayer(p)"
-              >
-                <span class="team-roster-chip__label">
-                  {{ p.name }}
-                  @if (p.nickname) {
-                    <span class="text-muted font-normal"> - {{ p.nickname }}</span>
-                  }
-                </span>
-                <button
-                  type="button"
-                  matChipRemove
-                  [attr.aria-label]="'Remove ' + p.name + (p.nickname ? ' - ' + p.nickname : '') + ' from Team Squad'"
+      <p class="text-sm text-muted m-0 mb-3 leading-relaxed">
+        Search players by name, email, or phone. They must be on this Tournament Squad before they can be used in the
+        app for Match Squads and Playing Elevens.
+      </p>
+      <div class="grid grid-cols-12 gap-x-6">
+        @if (selected.length === 0) {
+          <div class="col-span-12">
+            <p class="text-sm text-muted m-0">No players on the Team Squad yet.</p>
+          </div>
+        } @else {
+          <div class="col-span-12">
+            <mat-chip-set
+              class="team-roster-chips w-full max-w-full mb-2"
+              aria-label="Players on Tournament Team Squad"
+            >
+              @for (p of selected; track p.id) {
+                <mat-chip
+                  class="team-roster-chip text-sm"
+                  (removed)="removePlayer(p)"
                 >
-                  <mat-icon>cancel</mat-icon>
-                </button>
-              </mat-chip>
-            }
-          </mat-chip-set>
-        </div>
-      }
-      <div class="col-span-12">
-        <mat-label class="text-sm font-semibold mb-2 block">Add Player</mat-label>
-        <mat-form-field
-          appearance="outline"
-          class="w-full"
-        >
-          <input
-            matInput
-            [formControl]="searchControl"
-            [matAutocomplete]="autoCand"
-            placeholder="Search by name, email, or phone"
-          />
-          <mat-autocomplete
-            #autoCand="matAutocomplete"
-            (optionSelected)="onCandidateSelected($event)"
+                  <span class="team-roster-chip__label">
+                    {{ p.name }}
+                    @if (p.nickname) {
+                      <span class="text-muted font-normal"> - {{ p.nickname }}</span>
+                    }
+                  </span>
+                  <button
+                    type="button"
+                    matChipRemove
+                    [attr.aria-label]="'Remove ' + p.name + (p.nickname ? ' - ' + p.nickname : '') + ' from Team Squad'"
+                  >
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip>
+              }
+            </mat-chip-set>
+          </div>
+        }
+        <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">Add Player</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
           >
-            @for (c of candidates; track c.id) {
-              <mat-option [value]="c">{{ c.name }} — {{ c.email || c.nickname || ('#' + c.id) }}</mat-option>
-            }
-          </mat-autocomplete>
-        </mat-form-field>
+            <input
+              matInput
+              [formControl]="searchControl"
+              [matAutocomplete]="autoCand"
+              placeholder="Search by name, email, or phone"
+            />
+            <mat-autocomplete
+              #autoCand="matAutocomplete"
+              (optionSelected)="onCandidateSelected($event)"
+            >
+              @for (c of candidates; track c.id) {
+                <mat-option [value]="c">{{ c.name }} — {{ c.email || c.nickname || '#' + c.id }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+        </div>
       </div>
-    </div>
     </mat-dialog-content>
     <mat-divider></mat-divider>
     <mat-dialog-actions>

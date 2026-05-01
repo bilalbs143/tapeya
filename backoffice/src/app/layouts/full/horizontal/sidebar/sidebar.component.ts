@@ -6,8 +6,9 @@ import { Router } from '@angular/router';
 import { NavService } from '../../../../services/nav.service';
 import { getVisibleNavItems } from '../../shared/nav/sidebar-data';
 
-import { AppHorizontalNavItemComponent } from './nav-item/nav-item.component';
 import { AuthService } from 'src/app/services/auth.service';
+
+import { AppHorizontalNavItemComponent } from './nav-item/nav-item.component';
 
 @Component({
   selector: 'app-horizontal-sidebar',

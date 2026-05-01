@@ -3,9 +3,9 @@ import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
+import { MatChipsModule } from '@angular/material/chips';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -13,7 +13,11 @@ import { of, Subscription } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, finalize, switchMap } from 'rxjs/operators';
 
 import { MessageService } from 'src/app/services/message.service';
-import { type SquadUser, type TournamentTeamRow, TournamentTeamsService } from 'src/app/services/tournament-teams.service';
+import {
+  type SquadUser,
+  type TournamentTeamRow,
+  TournamentTeamsService,
+} from 'src/app/services/tournament-teams.service';
 import { UsersService } from 'src/app/services/users.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';

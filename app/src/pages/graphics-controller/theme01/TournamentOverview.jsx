@@ -28,7 +28,7 @@ export default function TournamentOverview() {
                 Tapeball Super League (TSL)
               </p>
               <p className="mt-1 text-[12px] leading-none text-white sm:mt-2 sm:text-[18px]">
-              At League Matches (Match 7)
+                At League Matches (Match 7)
               </p>
             </div>
           </div>

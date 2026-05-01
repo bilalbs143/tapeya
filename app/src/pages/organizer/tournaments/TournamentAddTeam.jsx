@@ -873,7 +873,7 @@ export default function TournamentAddTeam() {
                                   Type to search players…
                                 </p>
                               ) : debouncedIconPlayerSearch.length <
-                              MIN_SEARCH_LENGTH ? (
+                                MIN_SEARCH_LENGTH ? (
                                 <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
                                   Type at least {MIN_SEARCH_LENGTH} characters
                                   to search
@@ -904,17 +904,14 @@ export default function TournamentAddTeam() {
                                             variant="input"
                                             checked={Boolean(isSelected)}
                                             onCheckedChange={(checked) => {
-                                              const pLabel = playerLineLabel(
-                                                player,
-                                              );
+                                              const pLabel =
+                                                playerLineLabel(player);
                                               const prev = field.value ?? [];
                                               if (checked) {
-                                                setIconPlayerIdToName(
-                                                  (m) => ({
-                                                    ...m,
-                                                    [player.id]: pLabel,
-                                                  }),
-                                                );
+                                                setIconPlayerIdToName((m) => ({
+                                                  ...m,
+                                                  [player.id]: pLabel,
+                                                }));
                                                 const next = prev.includes(
                                                   player.id,
                                                 )
@@ -1013,18 +1010,18 @@ export default function TournamentAddTeam() {
             {isReadonly &&
               selectedTeam?.logo &&
               String(selectedTeam.logo).trim() !== '' && (
-              <FormField
-                label="Logo"
-                htmlFor="team_logo_display"
-                labelClassName={labelClass}
-              >
-                <div className="flex h-12 items-center rounded-[6px] bg-[#141412] px-4">
-                  <span className="text-[16px] text-[#A2A6AB] capitalize">
-                    Logo uploaded
-                  </span>
-                </div>
-              </FormField>
-            )}
+                <FormField
+                  label="Logo"
+                  htmlFor="team_logo_display"
+                  labelClassName={labelClass}
+                >
+                  <div className="flex h-12 items-center rounded-[6px] bg-[#141412] px-4">
+                    <span className="text-[16px] text-[#A2A6AB] capitalize">
+                      Logo uploaded
+                    </span>
+                  </div>
+                </FormField>
+              )}
 
             <div className="flex justify-start pt-4 lg:col-span-3">
               <Button

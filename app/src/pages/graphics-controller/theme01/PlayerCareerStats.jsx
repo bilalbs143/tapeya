@@ -42,7 +42,9 @@ export default function PlayerCareerStats() {
             <div className="rounded-[10px] bg-[#0C0601] px-3 py-4 text-white sm:py-5">
               {stats.map((item, index) => (
                 <div key={item.label} className="text-center">
-                  <p className="text-[11px] leading-none font-medium sm:text-[12px]">{item.label}</p>
+                  <p className="text-[11px] leading-none font-medium sm:text-[12px]">
+                    {item.label}
+                  </p>
                   <p className="mt-2 text-[13px] leading-none font-medium sm:text-[14px]">
                     {item.value}
                   </p>
@@ -59,7 +61,9 @@ export default function PlayerCareerStats() {
                   Qaderr
                 </p>
                 <div className="mt-3 h-px w-full bg-gradient-to-r from-[#FFFFFF30] to-[#FFFFFF00]" />
-                <p className="mt-3 text-[13px] leading-none font-medium sm:text-[14px]">KKR</p>
+                <p className="mt-3 text-[13px] leading-none font-medium sm:text-[14px]">
+                  KKR
+                </p>
                 <p className="mt-2 text-[13px] leading-none font-medium sm:text-[14px]">
                   Right Hand Batsman
                 </p>

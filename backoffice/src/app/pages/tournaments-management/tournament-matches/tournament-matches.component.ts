@@ -17,11 +17,12 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 
+import { ScheduleTournamentMatchDialogComponent } from '../tournament-detail/schedule-tournament-match-dialog/schedule-tournament-match-dialog.component';
+
 import { EnumsService } from 'src/app/services/enums.service';
 import { MessageService } from 'src/app/services/message.service';
 import { TournamentMatchesService, type TournamentMatchRow } from 'src/app/services/tournament-matches.service';
 import { TableWrapperComponent } from 'src/app/shared/components/table-wrapper/table-wrapper.component';
-import { ScheduleTournamentMatchDialogComponent } from '../tournament-detail/schedule-tournament-match-dialog/schedule-tournament-match-dialog.component';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { getStatusClass } from 'src/app/utils/status-class.util';

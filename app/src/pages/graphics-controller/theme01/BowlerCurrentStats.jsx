@@ -29,30 +29,34 @@ export default function BowlerCurrentStats() {
           className="relative w-full overflow-hidden px-3 py-2 sm:px-10 sm:py-4"
           style={panelStyle}
         >
-            <div className="flex items-start justify-between gap-2 sm:gap-6">
-              <p className="text-[15px] leading-none font-extrabold uppercase tracking-wide text-[#DA9811] sm:text-[28px]">
-                TAMOUR MIRZA
+          <div className="flex items-start justify-between gap-2 sm:gap-6">
+            <p className="text-[15px] leading-none font-extrabold tracking-wide text-[#DA9811] uppercase sm:text-[28px]">
+              TAMOUR MIRZA
+            </p>
+
+            <div className="flex items-baseline gap-1.5 sm:gap-3">
+              <p className="text-[15px] leading-none font-extrabold sm:text-[28px]">
+                0-36
               </p>
+              <p className="text-[8px] leading-none font-bold sm:text-[16px]">
+                2.0
+              </p>
+            </div>
+          </div>
+          <div className="mt-2 h-px w-full sm:mt-3" style={bottomBorderStyle} />
 
-              <div className="flex items-baseline gap-1.5 sm:gap-3">
-                <p className="text-[15px] leading-none font-extrabold sm:text-[28px]">0-36</p>
-                <p className="text-[8px] leading-none font-bold sm:text-[16px]">2.0</p>
+          <div className="mt-2 flex items-start justify-center gap-8 text-center sm:mt-5 sm:gap-20">
+            {stats.map((item) => (
+              <div key={item.label} className="min-w-0">
+                <p className="text-[8px] leading-none font-medium text-[#EDEDED] sm:text-[16px]">
+                  {item.label}
+                </p>
+                <p className="mt-0.5 text-[10px] leading-none font-medium text-white sm:mt-2 sm:text-[16px]">
+                  {item.value}
+                </p>
               </div>
-            </div>
-            <div className="mt-2 h-px w-full sm:mt-3" style={bottomBorderStyle} />
-
-            <div className="mt-2 flex items-start justify-center gap-8 text-center sm:mt-5 sm:gap-20">
-              {stats.map((item) => (
-                <div key={item.label} className="min-w-0">
-                  <p className="text-[8px] leading-none font-medium text-[#EDEDED] sm:text-[16px]">
-                    {item.label}
-                  </p>
-                  <p className="mt-0.5 text-[10px] leading-none font-medium text-white sm:mt-2 sm:text-[16px]">
-                    {item.value}
-                  </p>
-                </div>
-              ))}
-            </div>
+            ))}
+          </div>
         </div>
       </section>
     </div>

@@ -1,14 +1,6 @@
 import { BreakpointObserver, MediaMatcher } from '@angular/cdk/layout';
 import { CommonModule } from '@angular/common';
-import {
-  ChangeDetectorRef,
-  Component,
-  OnDestroy,
-  ViewChild,
-  ViewEncapsulation,
-  computed,
-  inject,
-} from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, ViewChild, ViewEncapsulation, computed, inject } from '@angular/core';
 import { MatSidenav, MatSidenavContent } from '@angular/material/sidenav';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
@@ -20,8 +12,8 @@ import { NavService } from '../../services/nav.service';
 
 import { AppSettings } from 'src/app/config';
 import { MaterialModule } from 'src/app/material.module';
-import { CoreService } from 'src/app/services/core.service';
 import { AuthService } from 'src/app/services/auth.service';
+import { CoreService } from 'src/app/services/core.service';
 import { authUserDisplayName, authUserDisplayRole } from 'src/app/shared/functions/auth-user-display';
 
 import { AppHorizontalHeaderComponent } from './horizontal/header/header.component';

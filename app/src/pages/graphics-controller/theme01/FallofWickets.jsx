@@ -55,11 +55,17 @@ export default function FallofWickets() {
               196-7
             </p>
           </div>
-          <div className="ml-1 flex min-w-0 flex-1 items-stretch overflow-hidden justify-end sm:ml-auto sm:overflow-x-auto">
+          <div className="ml-1 flex min-w-0 flex-1 items-stretch justify-end overflow-hidden sm:ml-auto sm:overflow-x-auto">
             {wicketMilestones.map((item, index) => (
-              <div key={item.over} className="flex min-w-0 flex-1 items-stretch sm:flex-none sm:shrink-0">
+              <div
+                key={item.over}
+                className="flex min-w-0 flex-1 items-stretch sm:flex-none sm:shrink-0"
+              >
                 {index > 0 ? (
-                  <div className="mx-0.5 w-px self-stretch sm:mx-3" style={separatorStyle} />
+                  <div
+                    className="mx-0.5 w-px self-stretch sm:mx-3"
+                    style={separatorStyle}
+                  />
                 ) : null}
                 <div className="flex min-w-0 flex-1 flex-col items-center justify-center px-0.5 text-center sm:w-[80px] sm:flex-none sm:px-2">
                   <p className="text-[6px] leading-none font-semibold text-white sm:text-[18px]">

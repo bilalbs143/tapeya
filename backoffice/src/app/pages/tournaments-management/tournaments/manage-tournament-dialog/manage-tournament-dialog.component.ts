@@ -246,7 +246,10 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
         venue_name: [source?.venue_name ?? '', [Validators.required, Validators.maxLength(255)]],
         start_date: [source?.start_date ? this.parseDate(String(source.start_date)) : null, [Validators.required]],
         end_date: [source?.end_date ? this.parseDate(String(source.end_date)) : null, [Validators.required]],
-        number_of_teams: [source?.number_of_teams ?? null, [Validators.required, Validators.min(1), Validators.max(500)]],
+        number_of_teams: [
+          source?.number_of_teams ?? null,
+          [Validators.required, Validators.min(1), Validators.max(500)],
+        ],
         group_mode: [groupMode, [Validators.required]],
         number_of_groups: [numberOfGroups, [Validators.min(2), Validators.max(16)]],
         country: [source?.country ?? '', [Validators.required, Validators.maxLength(100)]],

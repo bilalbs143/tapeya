@@ -39,7 +39,7 @@ class PlayerStatsService
             return round($runs / $dismissals, 2);
         }
 
-        return round((float) $runs, 2);
+        return null;
     }
 
     // ─── Per-match: read materialized → fallback to compute ──────────────────

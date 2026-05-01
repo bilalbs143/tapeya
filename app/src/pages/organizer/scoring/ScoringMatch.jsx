@@ -484,8 +484,7 @@ export default function ScoringMatch() {
               currentInnings === '1' ? 'first_innings_break' : 'match_over',
             reason: payload?.reason ?? 'overs',
             battingTeamName,
-            matchOvers:
-              match?.overs != null ? Number(match.overs) : undefined,
+            matchOvers: match?.overs != null ? Number(match.overs) : undefined,
             matchResult:
               currentInnings === '2'
                 ? computeMatchResultSummary(match, liveScore1, liveScore2)
@@ -634,8 +633,10 @@ export default function ScoringMatch() {
       batsmenOnCrease: innings1.batsmenOnCrease,
       bowlersInTable: innings1.bowlersInTable,
       bowlerSquad: innings1.bowlingSquad,
+      retiredBatsmen: innings1.retiredBatsmen,
       secondInningsBallHistory: innings2.ballHistory,
       secondInningsBatsmenOnCrease: innings2.batsmenOnCrease,
+      secondInningsRetiredBatsmen: innings2.retiredBatsmen,
       secondInningsBowlersInTable: innings2.bowlersInTable,
       secondInningsSquad: innings2.battingSquad,
       secondInningsBowlerSquad: innings2.bowlingSquad,
@@ -669,6 +670,8 @@ export default function ScoringMatch() {
       innings2.bowlingSquad,
       innings1.batsmenOnCrease,
       innings2.batsmenOnCrease,
+      innings1.retiredBatsmen,
+      innings2.retiredBatsmen,
       innings1.bowlersInTable,
       innings2.bowlersInTable,
       innings1.completedPartnerships,
@@ -736,6 +739,10 @@ export default function ScoringMatch() {
       setCurrentPartnership: activeInnings.setCurrentPartnership,
       completedPartnerships: activeInnings.completedPartnerships,
       setCompletedPartnerships: activeInnings.setCompletedPartnerships,
+      pendingFreeHit: activeInnings.pendingFreeHit,
+      setPendingFreeHit: activeInnings.setPendingFreeHit,
+      retiredBatsmen: activeInnings.retiredBatsmen,
+      setRetiredBatsmen: activeInnings.setRetiredBatsmen,
       battingSquad: activeInnings.battingSquad,
       setBattingSquad: activeInnings.setBattingSquad,
       bowlingSquad: activeInnings.bowlingSquad,

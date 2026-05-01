@@ -1,25 +1,22 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { RouterLink } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { forkJoin, from, of } from 'rxjs';
 import { catchError, mergeMap, reduce, switchMap } from 'rxjs/operators';
 
 import { AuthService } from 'src/app/services/auth.service';
+import { TournamentMatchesService, type TournamentMatchRow } from 'src/app/services/tournament-matches.service';
+import { TournamentsService, type Tournament } from 'src/app/services/tournaments.service';
 import {
   BROADCASTER_DASHBOARD_MATCH_MIX_TOURNAMENTS_PER_PAGE,
   BROADCASTER_DASHBOARD_PHASE_COUNT_PER_PAGE,
   BROADCASTER_DASHBOARD_SCHEDULE_LIST_PER_PAGE,
 } from 'src/app/shared/config/paginator.config';
-import {
-  TournamentMatchesService,
-  type TournamentMatchRow,
-} from 'src/app/services/tournament-matches.service';
-import { TournamentsService, type Tournament } from 'src/app/services/tournaments.service';
 
 type WritableTournamentList = ReturnType<typeof signal<Tournament[]>>;
 type WritableFlag = ReturnType<typeof signal<boolean>>;
@@ -119,11 +116,7 @@ export class BroadcasterDashboardComponent implements OnInit {
     style: {
       fontSize: '12px',
       fontWeight: 600,
-      colors: [
-        'var(--mat-sys-on-primary)',
-        'var(--mat-sys-on-secondary)',
-        'var(--mat-sys-on-tertiary)',
-      ],
+      colors: ['var(--mat-sys-on-primary)', 'var(--mat-sys-on-secondary)', 'var(--mat-sys-on-tertiary)'],
     },
   };
 
@@ -159,13 +152,7 @@ export class BroadcasterDashboardComponent implements OnInit {
     return [m.scheduled, m.toss_done, m.in_progress, m.completed, m.cancelled];
   });
 
-  public readonly matchDonutLabels = [
-    'Scheduled',
-    'Toss done',
-    'In progress',
-    'Completed',
-    'Cancelled',
-  ];
+  public readonly matchDonutLabels = ['Scheduled', 'Toss done', 'In progress', 'Completed', 'Cancelled'];
 
   public readonly matchDonutChart = {
     type: 'donut' as const,
@@ -221,7 +208,13 @@ export class BroadcasterDashboardComponent implements OnInit {
     this.loadPhaseCounts();
     this.loadMatchMix();
     this.fetchScheduleWindow('live', this.liveTournaments, this.loadingLive, this.liveListError, '-start_date');
-    this.fetchScheduleWindow('upcoming', this.upcomingTournaments, this.loadingUpcoming, this.upcomingListError, 'start_date');
+    this.fetchScheduleWindow(
+      'upcoming',
+      this.upcomingTournaments,
+      this.loadingUpcoming,
+      this.upcomingListError,
+      'start_date'
+    );
   }
 
   public hasAnyMatchData(): boolean {
@@ -294,30 +287,33 @@ export class BroadcasterDashboardComponent implements OnInit {
                 this.matchesApi.listByTournament(id).pipe(catchError(() => of({ data: [] as TournamentMatchRow[] }))),
               4
             ),
-            reduce((acc, res) => {
-              for (const m of res.data ?? []) {
-                switch (m.status) {
-                  case 'scheduled':
-                    acc.scheduled++;
-                    break;
-                  case 'toss_done':
-                    acc.toss_done++;
-                    break;
-                  case 'in_progress':
-                    acc.in_progress++;
-                    break;
-                  case 'completed':
-                    acc.completed++;
-                    break;
-                  case 'cancelled':
-                    acc.cancelled++;
-                    break;
-                  default:
-                    break;
+            reduce(
+              (acc, res) => {
+                for (const m of res.data ?? []) {
+                  switch (m.status) {
+                    case 'scheduled':
+                      acc.scheduled++;
+                      break;
+                    case 'toss_done':
+                      acc.toss_done++;
+                      break;
+                    case 'in_progress':
+                      acc.in_progress++;
+                      break;
+                    case 'completed':
+                      acc.completed++;
+                      break;
+                    case 'cancelled':
+                      acc.cancelled++;
+                      break;
+                    default:
+                      break;
+                  }
                 }
-              }
-              return acc;
-            }, { ...empty })
+                return acc;
+              },
+              { ...empty }
+            )
           );
         })
       )

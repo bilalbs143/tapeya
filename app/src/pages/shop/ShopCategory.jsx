@@ -111,7 +111,7 @@ export default function ShopCategory() {
         <div className="flex flex-col">
           <div ref={tabsSentinelRef} className="h-px w-full" aria-hidden />
           <div className="-mx-4 bg-black px-4 pt-0.5 pb-2">
-            <div className="flex gap-2 overflow-x-auto py-1 lg:gap-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex gap-2 overflow-x-auto py-1 [scrollbar-width:none] lg:gap-3 [&::-webkit-scrollbar]:hidden">
               <button
                 type="button"
                 onClick={() => setActiveCategoryId(null)}
@@ -149,7 +149,7 @@ export default function ShopCategory() {
             style={{ top: NAVBAR_HEIGHT }}
           >
             <div className="mx-auto max-w-2xl px-4 lg:max-w-none lg:px-4">
-              <div className="flex gap-2 overflow-x-auto py-1 lg:gap-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex gap-2 overflow-x-auto py-1 [scrollbar-width:none] lg:gap-3 [&::-webkit-scrollbar]:hidden">
                 <button
                   type="button"
                   onClick={() => setActiveCategoryId(null)}

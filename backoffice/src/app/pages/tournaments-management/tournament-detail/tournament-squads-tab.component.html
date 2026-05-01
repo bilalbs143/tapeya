@@ -3,11 +3,14 @@
     <div class="mb-4">
       <h2 class="text-base font-semibold m-0 mb-1">Team Squads</h2>
       <p class="text-sm text-muted m-0 leading-relaxed">
-        Use the <span class="font-medium text-primary">Actions</span> column (users icon) on a team to add or remove players on that team's Tournament Squad. Match Squads and Playing Elevens are set later when scoring in the app (Organizer or Broadcaster). Attach or remove teams on the
+        Use the <span class="font-medium text-primary">Actions</span> column (users icon) on a team to add or remove
+        players on that team's Tournament Squad. Match Squads and Playing Elevens are set later when scoring in the app
+        (Organizer or Broadcaster). Attach or remove teams on the
         <a
           class="text-primary font-medium no-underline hover:underline"
           [routerLink]="['/tournaments-management/tournaments', tournamentId, 'teams']"
-          >Teams</a>
+          >Teams</a
+        >
         tab.
       </p>
     </div>
@@ -21,9 +24,7 @@
         <mat-spinner diameter="40" />
       </div>
     } @else if (teams.length === 0) {
-      <div
-        class="flex min-h-[18rem] w-full flex-col items-center justify-center px-4 py-10 text-center text-muted"
-      >
+      <div class="flex min-h-[18rem] w-full flex-col items-center justify-center px-4 py-10 text-center text-muted">
         <p class="m-0 max-w-md text-sm">
           No teams on this tournament yet. Add them on the Teams tab before you can manage Team Squads here.
         </p>
@@ -79,7 +80,7 @@
                 mat-cell
                 *matCellDef="let row"
               >
-                {{ row.group_index != null ? row.group_index : '—' }}
+                {{ row.group_index ?? '—' }}
               </td>
             </ng-container>
             <ng-container matColumnDef="actions">

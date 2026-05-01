@@ -1,9 +1,17 @@
 /**
- * Shared scoring helpers – used by ScoringMatch, ScoringTab, PartnershipTab, StartMatch.
+ * scoringUtils.js
+ *
+ * Shared scoring helpers — pure functions, no React.
+ * Used by: ScoringMatch, ScoringTab, PartnershipTab, StartMatch, ScorecardTab.
  */
 
+import { checkInningsEnd, isLegalDelivery } from './cricketRules';
+
+// ─── Date / time formatting ───────────────────────────────────────────────────
+
 /**
- * Format date for API (Y-m-d). Accepts Y-m-d, MM-DD-YYYY, or Date.
+ * Format date for API (YYYY-MM-DD).
+ * Accepts YYYY-MM-DD, MM-DD-YYYY, or Date objects.
  */
 export function formatDateForApi(value) {
   if (!value) return '';
@@ -23,7 +31,7 @@ export function formatDateForApi(value) {
 }
 
 /**
- * Format time for API (HH:mm). Normalises single-digit minutes (e.g. "2:5" → "2:05").
+ * Format time for API (HH:mm). Normalises single-digit minutes ("2:5" → "2:05").
  */
 export function formatTimeForApi(value) {
   if (!value) return '';
@@ -35,11 +43,13 @@ export function formatTimeForApi(value) {
   return '';
 }
 
+// ─── Ball type normalisation ──────────────────────────────────────────────────
+
 /**
- * Normalize ball to a shape with .type (for compatibility with API-loaded balls that use is_wicket, is_wide, etc.).
- * @param {Object} ball - UI shape { type } or API shape { is_wicket, is_wide, is_no_ball, is_bye, is_leg_bye, runs }
+ * Normalise a ball to ensure it has a `type` field.
+ * Handles both UI shape (has .type) and API shape (has is_wicket, is_wide, etc.).
  */
-function normalizeBallType(ball) {
+function normaliseBallType(ball) {
   if (!ball) return null;
   if (ball.type) return ball;
   if (ball.is_wicket) return { ...ball, type: 'out' };
@@ -50,50 +60,135 @@ function normalizeBallType(ball) {
   return { ...ball, type: 'runs' };
 }
 
-/** Runs scored in a single ball (for over total / extras). */
+// ─── Per-ball run extraction ──────────────────────────────────────────────────
+
+/**
+ * Total runs contributed by a single ball (batting runs + extras + penalty).
+ */
 export function getRunsFromBall(ball) {
-  const b = normalizeBallType(ball);
+  const b = normaliseBallType(ball);
   if (!b) return 0;
-  if (b.type === 'runs') return b.runs ?? 0;
-  if (b.type === 'out') return 0;
-  return b.runs ?? 0;
+  // 'out' and 'retired_hurt' contribute 0 batting runs (runs field may be absent).
+  if (b.type === 'out' || b.type === 'retired_hurt') return 0;
+  return (b.runs ?? 0) + (b.penalty_runs ?? 0);
 }
 
-/** Format balls as overs (e.g. 8 balls -> "1.2"). */
+// ─── Over formatting ──────────────────────────────────────────────────────────
+
+/**
+ * Format a count of legal balls as an overs string (e.g. 8 → "1.2").
+ */
 export function ballsToOvers(balls) {
   const b = Number(balls) || 0;
   if (b === 0) return '0';
   return `${Math.floor(b / 6)}.${b % 6}`;
 }
 
+// ─── Extras breakdown ─────────────────────────────────────────────────────────
+
 /**
- * Compute live score from ball history.
- * An over = 6 legal deliveries; WD and NB do not count, so overs can be 6+ balls.
+ * Compute a detailed extras breakdown from ball history.
  *
- * @param {Array} ballHistory
- * @param {number|string|undefined} maxOvers - From API; no default.
- * @returns {{ totalRuns, totalWickets, totalBalls, validDeliveries, oversDisplay, maxOvers, extras, crr }}
+ * @param {object[]} ballHistory  UI-shape balls
+ * @returns {{
+ *   wides:        number,
+ *   noBalls:      number,
+ *   byes:         number,
+ *   legByes:      number,
+ *   penaltyRuns:  number,
+ *   total:        number,
+ * }}
+ */
+export function computeExtrasBreakdown(ballHistory) {
+  const list = ballHistory ?? [];
+  let wides = 0;
+  let noBalls = 0;
+  let byes = 0;
+  let legByes = 0;
+  let penaltyRuns = 0;
+
+  for (const ball of list) {
+    const b = normaliseBallType(ball);
+    if (!b) continue;
+    const r = b.runs ?? 0;
+    switch (b.type) {
+      case 'wd':
+        wides += r;
+        break;
+      case 'nb':
+        noBalls += r;
+        break;
+      case 'bye':
+        byes += r;
+        break;
+      case 'lb':
+        legByes += r;
+        break;
+      default:
+        break;
+    }
+    penaltyRuns += b.penalty_runs ?? 0;
+  }
+
+  return {
+    wides,
+    noBalls,
+    byes,
+    legByes,
+    penaltyRuns,
+    total: wides + noBalls + byes + legByes + penaltyRuns,
+  };
+}
+
+// ─── Live score computation ───────────────────────────────────────────────────
+
+/**
+ * Compute live innings score from ball history.
+ *
+ * Wicket count excludes 'retired_hurt' (does not count as a dismissal).
+ *
+ * @param {object[]} ballHistory
+ * @param {number|string|undefined} maxOvers  match.overs
+ * @returns {{
+ *   totalRuns: number,
+ *   totalWickets: number,
+ *   totalBalls: number,
+ *   validDeliveries: number,
+ *   oversDisplay: string,
+ *   maxOvers: number|undefined,
+ *   extras: number,
+ *   extrasBreakdown: object,
+ *   crr: string,
+ * }}
  */
 export function computeLiveScore(ballHistory, maxOvers) {
-  const list = ballHistory || [];
-  const totalRuns = list.reduce((s, b) => s + getRunsFromBall(b), 0);
-  const totalWickets = list.filter((b) => {
-    const n = normalizeBallType(b);
-    return n && n.type === 'out';
-  }).length;
-  let validDeliveries = 0; // only runs/out/bye/lb count; wd/nb do not
-  let extras = 0;
-  for (const b of list) {
-    const n = normalizeBallType(b);
-    if (n?.type !== 'wd' && n?.type !== 'nb') validDeliveries += 1;
-    if (n && ['wd', 'nb', 'bye', 'lb'].includes(n.type)) extras += n.runs ?? 0;
+  const list = ballHistory ?? [];
+  let totalRuns = 0;
+  let totalWickets = 0;
+  let validDeliveries = 0;
+
+  for (const ball of list) {
+    const b = normaliseBallType(ball);
+    if (!b) continue;
+
+    totalRuns += getRunsFromBall(ball);
+
+    // Retired hurt does NOT count as a wicket.
+    if (b.type === 'out' && b.dismissalType !== 'retired_hurt')
+      totalWickets += 1;
+
+    if (isLegalDelivery(b.type)) validDeliveries += 1;
   }
+
+  const extrasBreakdown = computeExtrasBreakdown(list);
   const oversDisplay = ballsToOvers(validDeliveries);
   const max =
     maxOvers != null && maxOvers !== '' ? Number(maxOvers) : undefined;
-  const oversDecimal = validDeliveries / 6;
   const crr =
-    validDeliveries > 0 ? (totalRuns / oversDecimal).toFixed(1) : '0.0';
+    validDeliveries > 0
+      ? (totalRuns / (validDeliveries / 6)).toFixed(1)
+      : '0.0';
+
   return {
     totalRuns,
     totalWickets,
@@ -101,21 +196,23 @@ export function computeLiveScore(ballHistory, maxOvers) {
     validDeliveries,
     oversDisplay,
     maxOvers: max,
-    extras,
+    extras: extrasBreakdown.total,
+    extrasBreakdown,
     crr,
   };
 }
 
+// ─── Innings-end projection ───────────────────────────────────────────────────
+
 /**
  * If `pendingBall` were appended to `ballHistory`, would the innings be over?
- * Aligns with ScoringTab innings-end effect (target, max wickets, max legal balls).
  *
  * @param {object} p
  * @param {object[]} p.ballHistory
- * @param {object} p.pendingBall – same shape as stored UI balls (runs, out, etc.)
+ * @param {object}   p.pendingBall
  * @param {number|string|undefined} p.maxOvers
  * @param {number|undefined} p.playersPerSide
- * @param {number|undefined} p.targetScore – innings 2 chase target
+ * @param {number|undefined} p.targetScore
  */
 export function wouldInningsEndAfterBall({
   ballHistory = [],
@@ -127,37 +224,46 @@ export function wouldInningsEndAfterBall({
   if (!pendingBall) return false;
   const next = [...ballHistory, pendingBall];
   const live = computeLiveScore(next, maxOvers);
-  if (targetScore != null && live.totalRuns >= targetScore) return true;
-  const maxWickets =
-    playersPerSide != null ? Number(playersPerSide) - 1 : undefined;
-  const maxValidBalls =
-    maxOvers != null && maxOvers !== '' ? Number(maxOvers) * 6 : undefined;
-  if (maxWickets != null && live.totalWickets >= maxWickets) return true;
-  if (maxValidBalls != null && live.validDeliveries >= maxValidBalls)
-    return true;
-  return false;
+  const { ended } = checkInningsEnd({
+    totalRuns: live.totalRuns,
+    totalWickets: live.totalWickets,
+    validDeliveries: live.validDeliveries,
+    maxOvers: live.maxOvers,
+    playersPerSide,
+    targetScore,
+  });
+  return ended;
 }
 
+// ─── Partnership ──────────────────────────────────────────────────────────────
+
 /**
- * Compute current partnership runs and balls from batsmen on crease.
- * Partnership is only between two batsmen; when one is out it resets. With only one batsman, 0(0).
- * @param {Array} batsmenOnCrease
- * @returns {{ runs, balls }}
+ * Compute current partnership from two batsmen on the crease.
+ * Partnership resets on wicket; with only one batsman → 0(0).
+ *
+ * @param {object[]} batsmenOnCrease
+ * @returns {{ runs: number, balls: number }}
  */
 export function computePartnership(batsmenOnCrease) {
-  const list = batsmenOnCrease || [];
+  const list = batsmenOnCrease ?? [];
   if (list.length !== 2) return { runs: 0, balls: 0 };
   const runs = list.reduce((s, b) => s + (b?.runs ?? 0), 0);
   const balls = list.reduce((s, b) => s + (b?.balls ?? 0), 0);
   return { runs, balls };
 }
 
+// ─── Ball list + over summaries (for BallsTab) ────────────────────────────────
+
 /**
- * Build ball list with over labels and per-over summaries from ball history.
- * Extras (wd/nb) do not count toward the 6 legal balls; summary appears only after 6 legal deliveries.
+ * Build an annotated ball list with over summaries from ball history.
+ * Extras (wd/nb) do not count toward the 6 legal balls.
+ * A summary block appears after every 6th legal delivery.
  *
- * @param {Array} ballHistory - UI balls { type, runs, strikerId, bowlerId, striker?, ... }
- * @returns {{ ballListWithMeta: Array<{ ball, overBallLabel, validCount, overIndex }>, overSummaries: Object<number, summary> }}
+ * @param {object[]} ballHistory  UI-shape balls
+ * @returns {{
+ *   ballListWithMeta: Array<{ ball, overBallLabel, validCount, overIndex }>,
+ *   overSummaries: Record<number, object>,
+ * }}
  */
 export function buildBallListWithMetaAndOverSummaries(ballHistory) {
   const list = [];
@@ -176,25 +282,24 @@ export function buildBallListWithMetaAndOverSummaries(ballHistory) {
   let currentOverBowlerId = null;
   let currentOverBowlerRuns = 0;
 
-  (ballHistory || []).forEach((ball) => {
-    const isExtra = ball.type === 'wd' || ball.type === 'nb';
-    const isLegal = !isExtra;
+  for (const ball of ballHistory ?? []) {
+    const isExtra = !isLegalDelivery(ball.type);
     const ballRuns = ball.runs ?? 0;
     const strikerId = ball.strikerId ?? ball.striker?.id;
     const bowlerId = ball.bowlerId;
 
+    // Batsman stats accumulation
     if (strikerId) {
-      if (!activeBatsmen.find((b) => b.id === strikerId)) {
+      if (!activeBatsmen.find((b) => b.id === strikerId))
         activeBatsmen.push({ id: strikerId });
-      }
-      if (!batsmanStatsMap.has(strikerId)) {
+      if (!batsmanStatsMap.has(strikerId))
         batsmanStatsMap.set(strikerId, { runs: 0, balls: 0 });
-      }
       const bs = batsmanStatsMap.get(strikerId);
       if (ball.type === 'runs') bs.runs += ballRuns;
-      if (isLegal) bs.balls += 1;
+      if (!isExtra) bs.balls += 1;
     }
-    if (ball.type === 'out') {
+
+    if (ball.type === 'out' || ball.type === 'retired_hurt') {
       const outId = ball.striker?.id ?? strikerId;
       if (outId) {
         const idx = activeBatsmen.findIndex((b) => b.id === outId);
@@ -202,6 +307,7 @@ export function buildBallListWithMetaAndOverSummaries(ballHistory) {
       }
     }
 
+    // Bowler stats accumulation
     if (bowlerId) {
       if (!bowlerStatsMap.has(bowlerId)) {
         bowlerStatsMap.set(bowlerId, {
@@ -213,19 +319,22 @@ export function buildBallListWithMetaAndOverSummaries(ballHistory) {
       }
       const bws = bowlerStatsMap.get(bowlerId);
       bws.runs += ballRuns;
-      if (isLegal) bws.balls += 1;
-      if (ball.type === 'out') bws.wickets += 1;
+      if (!isExtra) bws.balls += 1;
+      if (ball.type === 'out' && ball.dismissalType !== 'retired_hurt')
+        bws.wickets += 1;
       currentOverBowlerId = bowlerId;
       currentOverBowlerRuns = ballRuns;
     }
 
-    cumulativeRuns += ballRuns;
-    if (ball.type === 'out') cumulativeWickets += 1;
-    currentOverRuns += ballRuns;
+    cumulativeRuns += getRunsFromBall(ball);
+    if (ball.type === 'out' && ball.dismissalType !== 'retired_hurt')
+      cumulativeWickets += 1;
+    currentOverRuns += getRunsFromBall(ball);
     currentOverBalls.push(ball);
 
-    if (isLegal) validCount += 1;
+    if (!isExtra) validCount += 1;
 
+    // Over-ball label: e.g. "2.3" = 3rd ball of 2nd over
     const overBallLabel =
       validCount > 0
         ? `${Math.floor((validCount - 1) / 6) + 1}.${((validCount - 1) % 6) + 1}`
@@ -233,7 +342,9 @@ export function buildBallListWithMetaAndOverSummaries(ballHistory) {
 
     list.push({ ball, overBallLabel, validCount, overIndex: currentOverIdx });
 
-    if (isLegal && validCount % 6 === 0) {
+    // End of a completed over (every 6th legal delivery)
+    if (!isExtra && validCount % 6 === 0) {
+      // Maiden detection: over bowler conceded 0 runs this over
       if (
         currentOverBowlerId &&
         bowlerStatsMap.has(currentOverBowlerId) &&
@@ -242,23 +353,18 @@ export function buildBallListWithMetaAndOverSummaries(ballHistory) {
         bowlerStatsMap.get(currentOverBowlerId).maidens += 1;
       }
 
-      // After a wicket we have one batsman; next ball adds the new striker, so slice(-2) is the two current batsmen.
       const creaseSnapshot = activeBatsmen.slice(-2).map(({ id }) => {
         const stats = batsmanStatsMap.get(id) ?? { runs: 0, balls: 0 };
         return { id, runs: stats.runs, balls: stats.balls };
       });
 
-      let bowlerSnapshot = null;
-      if (currentOverBowlerId && bowlerStatsMap.has(currentOverBowlerId)) {
-        const bws = bowlerStatsMap.get(currentOverBowlerId);
-        bowlerSnapshot = {
-          id: currentOverBowlerId,
-          balls: bws.balls,
-          runs: bws.runs,
-          wickets: bws.wickets,
-          maidens: bws.maidens,
-        };
-      }
+      const bowlerSnapshot =
+        currentOverBowlerId && bowlerStatsMap.has(currentOverBowlerId)
+          ? {
+              id: currentOverBowlerId,
+              ...bowlerStatsMap.get(currentOverBowlerId),
+            }
+          : null;
 
       summaries[currentOverIdx] = {
         balls: [...currentOverBalls],
@@ -276,7 +382,7 @@ export function buildBallListWithMetaAndOverSummaries(ballHistory) {
       currentOverBowlerId = null;
       currentOverBowlerRuns = 0;
     }
-  });
+  }
 
   return { ballListWithMeta: list, overSummaries: summaries };
 }

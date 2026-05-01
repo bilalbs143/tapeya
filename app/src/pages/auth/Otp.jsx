@@ -264,7 +264,7 @@ export default function Otp() {
               className="rounded-[6px] border border-[#1A1A1A] bg-[#DA9811]/20 px-4 py-2.5 text-center text-[14px] text-[#E8A820]"
               role="status"
             >
-              Use this OTP Below: {' '}
+              Use this OTP Below:{' '}
               <strong className="tabular-nums">{latestOtp}</strong>
             </p>
           )}

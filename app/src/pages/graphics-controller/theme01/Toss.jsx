@@ -29,7 +29,7 @@ export default function Toss() {
                 <p className="text-[8px] leading-none font-extrabold text-[#DA9811] sm:text-[28px]">
                   Karachi Kings
                 </p>
-                <p className="text-[8px] leading-none font-extrabold uppercase text-white sm:text-[30px]">
+                <p className="text-[8px] leading-none font-extrabold text-white uppercase sm:text-[30px]">
                   VS
                 </p>
                 <p className="text-[8px] leading-none font-extrabold text-[#DA9811] sm:text-[28px]">

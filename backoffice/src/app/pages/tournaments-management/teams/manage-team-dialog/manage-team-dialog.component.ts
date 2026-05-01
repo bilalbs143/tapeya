@@ -5,8 +5,8 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
-import { MatDividerModule } from '@angular/material/divider';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -230,7 +230,7 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
     if (this.logoPreviewUrl && this.logoPreviewUrl.startsWith('blob:')) {
       URL.revokeObjectURL(this.logoPreviewUrl);
     }
-    this.logoPreviewUrl = file ? URL.createObjectURL(file) : this.data.team?.logo ?? null;
+    this.logoPreviewUrl = file ? URL.createObjectURL(file) : (this.data.team?.logo ?? null);
   }
 
   public clearLogo(): void {
@@ -305,9 +305,7 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
     const fd = this.buildFormData();
     this.isSubmitting = true;
     const request$ =
-      this.data.mode === 'create'
-        ? this.teamsService.create(fd)
-        : this.teamsService.update(this.data.team!.id, fd);
+      this.data.mode === 'create' ? this.teamsService.create(fd) : this.teamsService.update(this.data.team!.id, fd);
 
     request$.pipe(finalize(() => (this.isSubmitting = false))).subscribe({
       next: () => {

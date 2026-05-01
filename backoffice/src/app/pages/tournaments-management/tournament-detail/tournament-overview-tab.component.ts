@@ -4,8 +4,8 @@ import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
-import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { MatCardModule } from '@angular/material/card';
+import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,10 +17,7 @@ import { forkJoin, of, Subscription } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, startWith, switchMap, take } from 'rxjs/operators';
 
 import { MessageService } from 'src/app/services/message.service';
-import {
-  TournamentMatchesService,
-  type TournamentMatchRow,
-} from 'src/app/services/tournament-matches.service';
+import { TournamentMatchesService, type TournamentMatchRow } from 'src/app/services/tournament-matches.service';
 import { TournamentTeamsService } from 'src/app/services/tournament-teams.service';
 import { TournamentsService, type Tournament } from 'src/app/services/tournaments.service';
 import { UsersService, type UserSearchRow } from 'src/app/services/users.service';
@@ -150,9 +147,9 @@ export class TournamentOverviewTabComponent implements OnInit, OnDestroy {
             if (!this.tournamentId) {
               return of({ data: [] as UserSearchRow[] });
             }
-            return this.usersService.adminUserSearch(term ?? '').pipe(
-              catchError(() => of({ data: [] as UserSearchRow[] }))
-            );
+            return this.usersService
+              .adminUserSearch(term ?? '')
+              .pipe(catchError(() => of({ data: [] as UserSearchRow[] })));
           })
         )
         .subscribe((res) => {
@@ -190,7 +187,10 @@ export class TournamentOverviewTabComponent implements OnInit, OnDestroy {
   private loadBroadcaster(): void {
     this.tournamentsService
       .getBroadcaster(this.tournamentId)
-      .pipe(take(1), catchError(() => of({ data: null as UserSearchRow | null })))
+      .pipe(
+        take(1),
+        catchError(() => of({ data: null as UserSearchRow | null }))
+      )
       .subscribe((res) => {
         this.broadcaster = res.data ?? null;
       });
@@ -301,12 +301,7 @@ export class TournamentOverviewTabComponent implements OnInit, OnDestroy {
         { name: 'Completed', data: completed },
         { name: 'Cancelled', data: cancelled },
       ],
-      colors: [
-        'var(--mat-sys-outline)',
-        'var(--mat-sys-secondary)',
-        'var(--mat-sys-primary)',
-        'var(--mat-sys-error)',
-      ],
+      colors: ['var(--mat-sys-outline)', 'var(--mat-sys-secondary)', 'var(--mat-sys-primary)', 'var(--mat-sys-error)'],
     };
     this.matchDateBarXaxis = { categories, labels: { rotate: categories.length > 8 ? -50 : -35 } };
   }

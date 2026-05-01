@@ -1,11 +1,10 @@
+import { ScoringPlayerPickerMeta } from '@/components/scoring/ScoringPlayerPickerMeta';
 import {
   Dialog,
   DialogContent,
   DialogScrollBody,
   DialogTitle,
 } from '@/ui/Dialog';
-
-import { ScoringPlayerPickerMeta } from '@/components/scoring/ScoringPlayerPickerMeta';
 
 export function FielderPickerDialog({
   open,

@@ -52,7 +52,10 @@
               formControlName="tournament_name"
               placeholder="Tournament Name"
             />
-            @if (form.get('tournament_name')?.invalid && (form.get('tournament_name')?.touched || form.get('tournament_name')?.dirty)) {
+            @if (
+              form.get('tournament_name')?.invalid &&
+              (form.get('tournament_name')?.touched || form.get('tournament_name')?.dirty)
+            ) {
               <mat-error>
                 @if (form.get('tournament_name')?.hasError('required')) {
                   Enter a tournament name.
@@ -81,7 +84,10 @@
                 }
               }
             </mat-select>
-            @if (form.get('tournament_type')?.invalid && (form.get('tournament_type')?.touched || form.get('tournament_type')?.dirty)) {
+            @if (
+              form.get('tournament_type')?.invalid &&
+              (form.get('tournament_type')?.touched || form.get('tournament_type')?.dirty)
+            ) {
               <mat-error>Select a tournament type.</mat-error>
             }
           </mat-form-field>
@@ -105,7 +111,10 @@
                 }
               }
             </mat-select>
-            @if (form.get('cricket_format')?.invalid && (form.get('cricket_format')?.touched || form.get('cricket_format')?.dirty)) {
+            @if (
+              form.get('cricket_format')?.invalid &&
+              (form.get('cricket_format')?.touched || form.get('cricket_format')?.dirty)
+            ) {
               <mat-error>Select a cricket format.</mat-error>
             }
           </mat-form-field>
@@ -145,7 +154,9 @@
               [for]="startPicker"
             ></mat-datepicker-toggle>
             <mat-datepicker #startPicker></mat-datepicker>
-            @if (form.get('start_date')?.invalid && (form.get('start_date')?.touched || form.get('start_date')?.dirty)) {
+            @if (
+              form.get('start_date')?.invalid && (form.get('start_date')?.touched || form.get('start_date')?.dirty)
+            ) {
               <mat-error>
                 @if (form.get('start_date')?.hasError('required')) {
                   Select a start date.
@@ -205,7 +216,10 @@
                 }
               }
             </mat-select>
-            @if (form.get('match_timings')?.invalid && (form.get('match_timings')?.touched || form.get('match_timings')?.dirty)) {
+            @if (
+              form.get('match_timings')?.invalid &&
+              (form.get('match_timings')?.touched || form.get('match_timings')?.dirty)
+            ) {
               <mat-error>Select match timings.</mat-error>
             }
           </mat-form-field>
@@ -248,7 +262,10 @@
               max="500"
               placeholder="e.g. 8"
             />
-            @if (form.get('number_of_teams')?.invalid && (form.get('number_of_teams')?.touched || form.get('number_of_teams')?.dirty)) {
+            @if (
+              form.get('number_of_teams')?.invalid &&
+              (form.get('number_of_teams')?.touched || form.get('number_of_teams')?.dirty)
+            ) {
               <mat-error>
                 @if (form.get('number_of_teams')?.hasError('required')) {
                   Enter how many teams will play.
@@ -326,7 +343,9 @@
               formControlName="venue_name"
               placeholder="Venue"
             />
-            @if (form.get('venue_name')?.invalid && (form.get('venue_name')?.touched || form.get('venue_name')?.dirty)) {
+            @if (
+              form.get('venue_name')?.invalid && (form.get('venue_name')?.touched || form.get('venue_name')?.dirty)
+            ) {
               <mat-error>
                 @if (form.get('venue_name')?.hasError('required')) {
                   Enter the venue name.
@@ -366,7 +385,10 @@
                 max="16"
                 placeholder="e.g. 4"
               />
-              @if (form.get('number_of_groups')?.invalid && (form.get('number_of_groups')?.touched || form.get('number_of_groups')?.dirty)) {
+              @if (
+                form.get('number_of_groups')?.invalid &&
+                (form.get('number_of_groups')?.touched || form.get('number_of_groups')?.dirty)
+              ) {
                 <mat-error>
                   @if (form.get('number_of_groups')?.hasError('min')) {
                     Use at least 2 groups for group-wise mode.

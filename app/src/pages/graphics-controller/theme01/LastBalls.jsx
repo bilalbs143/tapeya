@@ -45,7 +45,10 @@ export default function LastBalls() {
               196-7
             </p>
           </div>
-          <div className="mx-1 w-px self-stretch sm:mx-3" style={separatorStyle} />
+          <div
+            className="mx-1 w-px self-stretch sm:mx-3"
+            style={separatorStyle}
+          />
 
           <div className="px-2 text-center sm:px-10">
             <p className="text-[8px] leading-none font-extrabold text-[#DA9811] sm:text-[28px]">
@@ -58,32 +61,64 @@ export default function LastBalls() {
 
           <div className="ml-auto flex items-center">
             <div className="px-2 text-center sm:px-6">
-              <p className="text-[8px] leading-none font-bold text-white uppercase sm:text-[20px]">DOTS</p>
-              <p className="mt-0.5 text-[10px] leading-none font-extrabold text-white sm:mt-1 sm:text-[20px]">366</p>
+              <p className="text-[8px] leading-none font-bold text-white uppercase sm:text-[20px]">
+                DOTS
+              </p>
+              <p className="mt-0.5 text-[10px] leading-none font-extrabold text-white sm:mt-1 sm:text-[20px]">
+                366
+              </p>
             </div>
-            <div className="mx-1 w-px self-stretch sm:mx-3" style={separatorStyle} />
+            <div
+              className="mx-1 w-px self-stretch sm:mx-3"
+              style={separatorStyle}
+            />
 
             <div className="px-2 text-center sm:px-6">
-              <p className="text-[8px] leading-none font-bold text-white uppercase sm:text-[20px]">FOURS</p>
-              <p className="mt-0.5 text-[10px] leading-none font-extrabold text-white sm:mt-1 sm:text-[20px]">366</p>
+              <p className="text-[8px] leading-none font-bold text-white uppercase sm:text-[20px]">
+                FOURS
+              </p>
+              <p className="mt-0.5 text-[10px] leading-none font-extrabold text-white sm:mt-1 sm:text-[20px]">
+                366
+              </p>
             </div>
-            <div className="mx-1 w-px self-stretch sm:mx-3" style={separatorStyle} />
+            <div
+              className="mx-1 w-px self-stretch sm:mx-3"
+              style={separatorStyle}
+            />
 
             <div className="px-2 text-center sm:px-6">
-              <p className="text-[8px] leading-none font-bold text-white sm:text-[20px]">Sixes</p>
-              <p className="mt-0.5 text-[10px] leading-none font-extrabold text-white sm:mt-1 sm:text-[20px]">05</p>
+              <p className="text-[8px] leading-none font-bold text-white sm:text-[20px]">
+                Sixes
+              </p>
+              <p className="mt-0.5 text-[10px] leading-none font-extrabold text-white sm:mt-1 sm:text-[20px]">
+                05
+              </p>
             </div>
-            <div className="mx-1 w-px self-stretch sm:mx-3" style={separatorStyle} />
+            <div
+              className="mx-1 w-px self-stretch sm:mx-3"
+              style={separatorStyle}
+            />
 
             <div className="px-2 text-center sm:px-6">
-              <p className="text-[8px] leading-none font-bold text-white sm:text-[20px]">Wickets</p>
-              <p className="mt-0.5 text-[10px] leading-none font-extrabold text-white sm:mt-1 sm:text-[20px]">0</p>
+              <p className="text-[8px] leading-none font-bold text-white sm:text-[20px]">
+                Wickets
+              </p>
+              <p className="mt-0.5 text-[10px] leading-none font-extrabold text-white sm:mt-1 sm:text-[20px]">
+                0
+              </p>
             </div>
-            <div className="mx-1 w-px self-stretch sm:mx-3" style={separatorStyle} />
+            <div
+              className="mx-1 w-px self-stretch sm:mx-3"
+              style={separatorStyle}
+            />
 
             <div className="px-2 text-center sm:px-6">
-              <p className="text-[8px] leading-none font-bold text-white uppercase sm:text-[20px]">RUNS</p>
-              <p className="mt-0.5 text-[10px] leading-none font-extrabold text-white sm:mt-1 sm:text-[20px]">50</p>
+              <p className="text-[8px] leading-none font-bold text-white uppercase sm:text-[20px]">
+                RUNS
+              </p>
+              <p className="mt-0.5 text-[10px] leading-none font-extrabold text-white sm:mt-1 sm:text-[20px]">
+                50
+              </p>
             </div>
           </div>
         </div>

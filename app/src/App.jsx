@@ -21,8 +21,8 @@ import ActivityFeed from '@/pages/feed/ActivityFeed';
 import ActivityFeedDetail from '@/pages/feed/ActivityFeedDetail';
 import AtThisStage from '@/pages/graphics-controller/theme01/AtThisStage';
 import BatsmanCareerStats from '@/pages/graphics-controller/theme01/BatsmanCareerStats';
-import BatsmanInningsStats from '@/pages/graphics-controller/theme01/BatsmanInningsStats';
 import BatsmanCurrentStats from '@/pages/graphics-controller/theme01/BatsmanCurrentStats';
+import BatsmanInningsStats from '@/pages/graphics-controller/theme01/BatsmanInningsStats';
 import BowlerCareerStats from '@/pages/graphics-controller/theme01/BowlerCareerStats';
 import BowlerCurrentStats from '@/pages/graphics-controller/theme01/BowlerCurrentStats';
 import CricketMatchSummary from '@/pages/graphics-controller/theme01/CricketMatchSummary';
@@ -30,47 +30,47 @@ import CurrentPartnership from '@/pages/graphics-controller/theme01/CurrentPartn
 import DecisionPending from '@/pages/graphics-controller/theme01/DecisionPending';
 import DecisionPendingRow from '@/pages/graphics-controller/theme01/DecisionPendingRow';
 import FallofWickets from '@/pages/graphics-controller/theme01/FallofWickets';
-import Four from '@/pages/graphics-controller/theme01/Four';
-import FourRow from '@/pages/graphics-controller/theme01/FourRow';
 import Fifty from '@/pages/graphics-controller/theme01/Fifty';
 import FiftyRow from '@/pages/graphics-controller/theme01/FiftyRow';
-import HundredRow from '@/pages/graphics-controller/theme01/HundredRow';
+import Four from '@/pages/graphics-controller/theme01/Four';
+import FourRow from '@/pages/graphics-controller/theme01/FourRow';
 import HighestRuns from '@/pages/graphics-controller/theme01/HighestRuns';
 import HighestWickets from '@/pages/graphics-controller/theme01/HighestWickets';
 import Hundred from '@/pages/graphics-controller/theme01/Hundred';
+import HundredRow from '@/pages/graphics-controller/theme01/HundredRow';
 import InningsBreak from '@/pages/graphics-controller/theme01/InningsBreak';
 import LastBalls from '@/pages/graphics-controller/theme01/LastBalls';
-import StatsDefault from '@/pages/graphics-controller/theme01/StatsDefault';
-import TargetNeeded from '@/pages/graphics-controller/theme01/TargetNeeded';
+import MatchSummary from '@/pages/graphics-controller/theme01/MatchSummary';
 import NoBall from '@/pages/graphics-controller/theme01/NoBall';
 import NoBallRow from '@/pages/graphics-controller/theme01/NoBallRow';
 import NotOut from '@/pages/graphics-controller/theme01/NotOut';
 import NotOutRow from '@/pages/graphics-controller/theme01/NotOutRow';
 import Out from '@/pages/graphics-controller/theme01/Out';
-import MatchSummary from '@/pages/graphics-controller/theme01/MatchSummary';
 import PlayerCareerStats from '@/pages/graphics-controller/theme01/PlayerCareerStats';
-import PlayingXI from '@/pages/graphics-controller/theme01/PlayingXI';
 import PlayerIntro from '@/pages/graphics-controller/theme01/PlayerIntro';
 import PlayerTournamentStats from '@/pages/graphics-controller/theme01/PlayerTournamentStats';
+import PlayingXI from '@/pages/graphics-controller/theme01/PlayingXI';
 import PreviousOrder from '@/pages/graphics-controller/theme01/PreviousOrder';
-import ResultIntro from '@/pages/graphics-controller/theme01/ResultIntro';
 import Replay from '@/pages/graphics-controller/theme01/Replay';
 import ReplayRow from '@/pages/graphics-controller/theme01/ReplayRow';
+import ResultIntro from '@/pages/graphics-controller/theme01/ResultIntro';
 import RunRate from '@/pages/graphics-controller/theme01/RunRate';
-import WinPredictor from '@/pages/graphics-controller/theme01/WinPredictor';
 import ScoreComparison from '@/pages/graphics-controller/theme01/ScoreComparison';
 import ScoreComparisonBar from '@/pages/graphics-controller/theme01/ScoreComparisonBar';
 import Six from '@/pages/graphics-controller/theme01/Six';
 import SixRow from '@/pages/graphics-controller/theme01/SixRow';
+import StatsDefault from '@/pages/graphics-controller/theme01/StatsDefault';
+import TargetNeeded from '@/pages/graphics-controller/theme01/TargetNeeded';
 import TeaBreak from '@/pages/graphics-controller/theme01/TeaBreak';
 import Toss from '@/pages/graphics-controller/theme01/Toss';
 import TournamentIntro from '@/pages/graphics-controller/theme01/TournamentIntro';
-import TournamentOverview from '@/pages/graphics-controller/theme01/TournamentOverview';
 import TournamentOver from '@/pages/graphics-controller/theme01/TournamentOver';
+import TournamentOverview from '@/pages/graphics-controller/theme01/TournamentOverview';
 import TournamentStart from '@/pages/graphics-controller/theme01/TournamentStart';
+import WicketRow from '@/pages/graphics-controller/theme01/WicketRow';
 import Wide from '@/pages/graphics-controller/theme01/Wide';
 import WideRow from '@/pages/graphics-controller/theme01/WideRow';
-import WicketRow from '@/pages/graphics-controller/theme01/WicketRow';
+import WinPredictor from '@/pages/graphics-controller/theme01/WinPredictor';
 import Home from '@/pages/Home';
 import NotificationCenter from '@/pages/NotificationCenter';
 import ScoringMatch from '@/pages/organizer/scoring/ScoringMatch';
@@ -280,12 +280,18 @@ function App() {
                 path="/graphics-controller/highest-wickets"
                 element={<HighestWickets />}
               />
-              <Route path="/graphics-controller/hundred" element={<Hundred />} />
+              <Route
+                path="/graphics-controller/hundred"
+                element={<Hundred />}
+              />
               <Route
                 path="/graphics-controller/innings-break"
                 element={<InningsBreak />}
               />
-              <Route path="/graphics-controller/tea-break" element={<TeaBreak />} />
+              <Route
+                path="/graphics-controller/tea-break"
+                element={<TeaBreak />}
+              />
               <Route path="/graphics-controller/toss" element={<Toss />} />
               <Route
                 path="/graphics-controller/tournament-intro"
@@ -311,7 +317,10 @@ function App() {
                 path="/graphics-controller/at-this-stage"
                 element={<AtThisStage />}
               />
-              <Route path="/graphics-controller/run-rate" element={<RunRate />} />
+              <Route
+                path="/graphics-controller/run-rate"
+                element={<RunRate />}
+              />
               <Route
                 path="/graphics-controller/win-predictor"
                 element={<WinPredictor />}
@@ -332,15 +341,39 @@ function App() {
                 path="/graphics-controller/fall-of-wickets"
                 element={<FallofWickets />}
               />
-              <Route path="/graphics-controller/four-row" element={<FourRow />} />
+              <Route
+                path="/graphics-controller/four-row"
+                element={<FourRow />}
+              />
               <Route path="/graphics-controller/six-row" element={<SixRow />} />
-              <Route path="/graphics-controller/wide-row" element={<WideRow />} />
-              <Route path="/graphics-controller/no-ball-row" element={<NoBallRow />} />
-              <Route path="/graphics-controller/not-out-row" element={<NotOutRow />} />
-              <Route path="/graphics-controller/fifty-row" element={<FiftyRow />} />
-              <Route path="/graphics-controller/hundred-row" element={<HundredRow />} />
-              <Route path="/graphics-controller/wicket-row" element={<WicketRow />} />
-              <Route path="/graphics-controller/replay-row" element={<ReplayRow />} />
+              <Route
+                path="/graphics-controller/wide-row"
+                element={<WideRow />}
+              />
+              <Route
+                path="/graphics-controller/no-ball-row"
+                element={<NoBallRow />}
+              />
+              <Route
+                path="/graphics-controller/not-out-row"
+                element={<NotOutRow />}
+              />
+              <Route
+                path="/graphics-controller/fifty-row"
+                element={<FiftyRow />}
+              />
+              <Route
+                path="/graphics-controller/hundred-row"
+                element={<HundredRow />}
+              />
+              <Route
+                path="/graphics-controller/wicket-row"
+                element={<WicketRow />}
+              />
+              <Route
+                path="/graphics-controller/replay-row"
+                element={<ReplayRow />}
+              />
               <Route
                 path="/graphics-controller/decision-pending-row"
                 element={<DecisionPendingRow />}

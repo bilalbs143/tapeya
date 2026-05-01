@@ -55,25 +55,46 @@ export default function TargetNeeded() {
               196-7
             </p>
           </div>
-          <div className="mx-1 w-px self-stretch sm:mx-3" style={separatorStyle} />
+          <div
+            className="mx-1 w-px self-stretch sm:mx-3"
+            style={separatorStyle}
+          />
 
           <div className="flex items-center px-1 sm:hidden">
             <div>
               <div className="flex items-center gap-1 leading-none">
-                <span className="w-[30px] text-[8px] font-medium text-[#E8E8E8]">{batters[0].name}</span>
-                <span className="text-[11px] font-bold text-[#DA9811]">{batters[0].runs}</span>
-                <span className="text-[9px] font-bold text-[#DA9811]">{batters[0].balls}</span>
+                <span className="w-[30px] text-[8px] font-medium text-[#E8E8E8]">
+                  {batters[0].name}
+                </span>
+                <span className="text-[11px] font-bold text-[#DA9811]">
+                  {batters[0].runs}
+                </span>
+                <span className="text-[9px] font-bold text-[#DA9811]">
+                  {batters[0].balls}
+                </span>
               </div>
-              <div className="my-0.5 h-px w-[30px]" style={batterSeparatorStyle} />
+              <div
+                className="my-0.5 h-px w-[30px]"
+                style={batterSeparatorStyle}
+              />
               <div className="flex items-center gap-1 leading-none">
-                <span className="w-[30px] text-[8px] font-medium text-[#E8E8E8]">{batters[1].name}</span>
-                <span className="text-[11px] font-bold text-[#DA9811]">{batters[1].runs}</span>
-                <span className="text-[9px] font-bold text-[#DA9811]">{batters[1].balls}</span>
+                <span className="w-[30px] text-[8px] font-medium text-[#E8E8E8]">
+                  {batters[1].name}
+                </span>
+                <span className="text-[11px] font-bold text-[#DA9811]">
+                  {batters[1].runs}
+                </span>
+                <span className="text-[9px] font-bold text-[#DA9811]">
+                  {batters[1].balls}
+                </span>
               </div>
             </div>
           </div>
 
-          <div className="mx-1 w-px self-stretch sm:hidden" style={separatorStyle} />
+          <div
+            className="mx-1 w-px self-stretch sm:hidden"
+            style={separatorStyle}
+          />
 
           <div className="hidden items-center px-3 sm:flex sm:px-6">
             <div>
@@ -84,10 +105,15 @@ export default function TargetNeeded() {
                 <span className="text-[24px] font-bold text-[#DA9811]">
                   {batters[0].runs}
                 </span>
-                <span className="text-[16px] font-bold text-[#DA9811]">{batters[0].balls}</span>
+                <span className="text-[16px] font-bold text-[#DA9811]">
+                  {batters[0].balls}
+                </span>
               </div>
 
-              <div className="my-1 h-px w-[72px]" style={batterSeparatorStyle} />
+              <div
+                className="my-1 h-px w-[72px]"
+                style={batterSeparatorStyle}
+              />
 
               <div className="flex items-center gap-3 leading-none">
                 <span className="w-[72px] text-[14px] font-medium text-[#E8E8E8]">
@@ -96,7 +122,9 @@ export default function TargetNeeded() {
                 <span className="text-[24px] font-bold text-[#DA9811]">
                   {batters[1].runs}
                 </span>
-                <span className="text-[16px] font-bold text-[#DA9811]">{batters[1].balls}</span>
+                <span className="text-[16px] font-bold text-[#DA9811]">
+                  {batters[1].balls}
+                </span>
               </div>
             </div>
           </div>
@@ -112,7 +140,10 @@ export default function TargetNeeded() {
                 </p>
               </div>
             </div>
-            <div className="mx-1 w-px self-stretch sm:mx-3" style={separatorStyle} />
+            <div
+              className="mx-1 w-px self-stretch sm:mx-3"
+              style={separatorStyle}
+            />
 
             <div className="flex items-center px-1 text-center sm:px-7">
               <div>
@@ -124,18 +155,30 @@ export default function TargetNeeded() {
                 </p>
               </div>
             </div>
-            <div className="mx-1 w-px self-stretch sm:mx-3" style={separatorStyle} />
+            <div
+              className="mx-1 w-px self-stretch sm:mx-3"
+              style={separatorStyle}
+            />
 
             <div className="flex items-center pl-1 sm:pl-6">
               <div>
                 <div className="mb-1 flex items-end justify-between gap-2 font-medium sm:mb-2 sm:gap-6">
                   <div>
-                    <p className="text-[8px] leading-none text-[#E8E8E8] sm:text-[14px]">Arqam</p>
-                    <div className="mt-1 h-px w-[28px] sm:mt-2 sm:w-[72px]" style={batterSeparatorStyle} />
+                    <p className="text-[8px] leading-none text-[#E8E8E8] sm:text-[14px]">
+                      Arqam
+                    </p>
+                    <div
+                      className="mt-1 h-px w-[28px] sm:mt-2 sm:w-[72px]"
+                      style={batterSeparatorStyle}
+                    />
                   </div>
-                  <div className="flex items-baseline gap-1.5 sm:gap-4 mb-1.5">
-                    <p className="text-[8px] leading-none text-[#E8E8E8] sm:text-[18px]">0-44</p>
-                    <p className="text-[8px] leading-none text-[#E8E8E8] sm:text-[14px]">3.0</p>
+                  <div className="mb-1.5 flex items-baseline gap-1.5 sm:gap-4">
+                    <p className="text-[8px] leading-none text-[#E8E8E8] sm:text-[18px]">
+                      0-44
+                    </p>
+                    <p className="text-[8px] leading-none text-[#E8E8E8] sm:text-[14px]">
+                      3.0
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 sm:gap-2">

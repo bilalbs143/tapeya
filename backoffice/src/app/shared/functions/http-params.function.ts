@@ -29,7 +29,8 @@ export function toHttpParams(params: Record<string, unknown>, options?: ToHttpPa
     if (trimmed) {
       record = { ...record, search: trimmed };
     } else {
-      const { search: _omit, ...rest } = record;
+      const rest = { ...record };
+      delete rest['search'];
       record = rest;
     }
   }

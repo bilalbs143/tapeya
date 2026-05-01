@@ -86,15 +86,13 @@ export class ManageCategoryDialogComponent implements OnInit {
   }
 
   private loadParentCategories(): void {
-    this.categoryService
-      .getList({ all: true, sort: 'sort_order' })
-      .subscribe({
-        next: (res) => {
-          const list = res.data ?? [];
-          const excludeId = this.data.category?.id;
-          this.parentCategories = excludeId ? list.filter((c) => c.id !== excludeId) : list;
-        },
-      });
+    this.categoryService.getList({ all: true, sort: 'sort_order' }).subscribe({
+      next: (res) => {
+        const list = res.data ?? [];
+        const excludeId = this.data.category?.id;
+        this.parentCategories = excludeId ? list.filter((c) => c.id !== excludeId) : list;
+      },
+    });
   }
 
   public onFileSelected(event: Event): void {

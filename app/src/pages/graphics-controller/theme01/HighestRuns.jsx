@@ -23,7 +23,7 @@ export default function HighestRuns() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#1D1E22] p-3 sm:p-5">
       <section
-        className="relative w-full max-w-[677px] sm:w-[677px] overflow-hidden px-5 py-7 text-white sm:px-8 sm:py-8"
+        className="relative w-full max-w-[677px] overflow-hidden px-5 py-7 text-white sm:w-[677px] sm:px-8 sm:py-8"
         style={frameStyle}
       >
         <img
@@ -54,7 +54,9 @@ export default function HighestRuns() {
                     {runs}
                   </span>
                   <div className="leading-none">
-                    <p className="text-[14px] font-bold text-white sm:text-[20px]">{name}</p>
+                    <p className="text-[14px] font-bold text-white sm:text-[20px]">
+                      {name}
+                    </p>
                     <p className="mt-1 text-[12px] font-normal text-white sm:mt-2 sm:text-[18px]">
                       {team}
                     </p>
@@ -73,7 +75,7 @@ export default function HighestRuns() {
                   alt="Top run scorer"
                   className="h-[150px] w-full rounded-[8px] object-cover sm:h-[250px] sm:rounded-[10px]"
                 />
-                <div className="pb-2 pt-4 text-center leading-none">
+                <div className="pt-4 pb-2 text-center leading-none">
                   <p className="text-[16px] font-semibold text-[#DA9811] sm:text-[18px]">
                     Haroon
                   </p>

@@ -32,7 +32,8 @@ export default function Register() {
     mode: 'onChange',
   });
 
-  const [registerUser, { isLoading, error, reset: resetRegisterMutation }] = useRegisterMutation();
+  const [registerUser, { isLoading, error, reset: resetRegisterMutation }] =
+    useRegisterMutation();
 
   const onSubmit = async (data) => {
     try {

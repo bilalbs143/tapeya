@@ -5,79 +5,79 @@
   >
     <mat-dialog-content class="!max-h-[70vh]">
       <div class="grid grid-cols-12 gap-x-6">
-    <div class="col-span-12">
-      <mat-label class="text-sm font-semibold mb-2 block">Theme</mat-label>
-      <mat-form-field
-        appearance="outline"
-        class="w-full"
-      >
-        <mat-select
-          formControlName="graphic_theme_id"
-          placeholder="Select Theme"
-        >
-          @for (t of data.themes; track t.id) {
-            <mat-option [value]="t.id">{{ t.name }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-    </div>
+        <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">Theme</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-select
+              formControlName="graphic_theme_id"
+              placeholder="Select Theme"
+            >
+              @for (t of data.themes; track t.id) {
+                <mat-option [value]="t.id">{{ t.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
 
-    <div class="col-span-12 sm:col-span-6">
-      <mat-label class="text-sm font-semibold mb-2 block">Home — text</mat-label>
-      <input
-        type="color"
-        formControlName="home_text"
-        class="h-10 w-full rounded border border-gray-200 cursor-pointer"
-        aria-label="Home text color"
-      />
-    </div>
-    <div class="col-span-12 sm:col-span-6">
-      <mat-label class="text-sm font-semibold mb-2 block">Home — background</mat-label>
-      <input
-        type="color"
-        formControlName="home_bg"
-        class="h-10 w-full rounded border border-gray-200 cursor-pointer"
-        aria-label="Home background color"
-      />
-    </div>
-    <div class="col-span-12 sm:col-span-6">
-      <mat-label class="text-sm font-semibold mb-2 block">Away — text</mat-label>
-      <input
-        type="color"
-        formControlName="away_text"
-        class="h-10 w-full rounded border border-gray-200 cursor-pointer"
-        aria-label="Away text color"
-      />
-    </div>
-    <div class="col-span-12 sm:col-span-6">
-      <mat-label class="text-sm font-semibold mb-2 block">Away — background</mat-label>
-      <input
-        type="color"
-        formControlName="away_bg"
-        class="h-10 w-full rounded border border-gray-200 cursor-pointer"
-        aria-label="Away background color"
-      />
-    </div>
-
-    <div class="col-span-12 flex items-center">
-      <mat-slide-toggle formControlName="enable_images">Enable images</mat-slide-toggle>
-    </div>
-
-    @if (data.session.theme?.graphics_url_template; as urlTpl) {
-      <div class="col-span-12">
-        <mat-label class="text-sm font-semibold mb-2 block">Graphics URL template</mat-label>
-        <mat-form-field
-          appearance="outline"
-          class="w-full"
-        >
+        <div class="col-span-12 sm:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Home — text</mat-label>
           <input
-            matInput
-            readonly
-            [value]="urlTpl"
+            type="color"
+            formControlName="home_text"
+            class="h-10 w-full rounded border border-gray-200 cursor-pointer"
+            aria-label="Home text color"
           />
-        </mat-form-field>
-      </div>
-    }
+        </div>
+        <div class="col-span-12 sm:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Home — background</mat-label>
+          <input
+            type="color"
+            formControlName="home_bg"
+            class="h-10 w-full rounded border border-gray-200 cursor-pointer"
+            aria-label="Home background color"
+          />
+        </div>
+        <div class="col-span-12 sm:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Away — text</mat-label>
+          <input
+            type="color"
+            formControlName="away_text"
+            class="h-10 w-full rounded border border-gray-200 cursor-pointer"
+            aria-label="Away text color"
+          />
+        </div>
+        <div class="col-span-12 sm:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Away — background</mat-label>
+          <input
+            type="color"
+            formControlName="away_bg"
+            class="h-10 w-full rounded border border-gray-200 cursor-pointer"
+            aria-label="Away background color"
+          />
+        </div>
+
+        <div class="col-span-12 flex items-center">
+          <mat-slide-toggle formControlName="enable_images">Enable images</mat-slide-toggle>
+        </div>
+
+        @if (data.session.theme?.graphics_url_template; as urlTpl) {
+          <div class="col-span-12">
+            <mat-label class="text-sm font-semibold mb-2 block">Graphics URL template</mat-label>
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <input
+                matInput
+                readonly
+                [value]="urlTpl"
+              />
+            </mat-form-field>
+          </div>
+        }
       </div>
     </mat-dialog-content>
 

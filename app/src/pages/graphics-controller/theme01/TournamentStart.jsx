@@ -26,11 +26,19 @@ export default function TournamentStart() {
         </h1>
 
         <div className="mb-6 flex w-full max-w-[448px] items-center justify-between sm:mb-8">
-          <img src={teamLogo} alt="Team one logo" className={teamLogoClassName} />
+          <img
+            src={teamLogo}
+            alt="Team one logo"
+            className={teamLogoClassName}
+          />
           <span className="px-3 text-[45px] leading-none font-bold text-[#DA9811] uppercase sm:text-[54px]">
             VS
           </span>
-          <img src={teamLogo} alt="Team two logo" className={teamLogoClassName} />
+          <img
+            src={teamLogo}
+            alt="Team two logo"
+            className={teamLogoClassName}
+          />
         </div>
 
         <p className="mb-3 text-center text-[16px] leading-none font-semibold tracking-[0.02em] text-white uppercase sm:mb-4 sm:text-[18px]">

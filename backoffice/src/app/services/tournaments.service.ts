@@ -5,9 +5,8 @@ import { Observable, tap } from 'rxjs';
 import { toHttpParams } from 'src/app/shared/functions/http-params.function';
 import type { ListParams } from 'src/app/shared/functions/list-params.function';
 
-import type { UserSearchRow } from './users.service';
-
 import { MessageService } from './message.service';
+import type { UserSearchRow } from './users.service';
 
 export interface Tournament {
   id: number;

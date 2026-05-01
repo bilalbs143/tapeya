@@ -4,11 +4,13 @@
       <div class="col-span-12 lg:col-span-8">
         <h2 class="text-base font-semibold m-0 mb-1">Teams</h2>
         <p class="text-sm text-muted m-0 leading-relaxed">
-          Link teams to this tournament and assign groups when the format uses multiple groups. Rosters and match line-ups are managed on the
+          Link teams to this tournament and assign groups when the format uses multiple groups. Rosters and match
+          line-ups are managed on the
           <a
             class="text-primary font-medium no-underline hover:underline"
             [routerLink]="['/tournaments-management/tournaments', tournamentId, 'squads']"
-            >Team Squads</a>
+            >Team Squads</a
+          >
           tab.
         </p>
       </div>
@@ -33,12 +35,8 @@
         <mat-spinner diameter="40" />
       </div>
     } @else if (teams.length === 0) {
-      <div
-        class="flex min-h-[18rem] w-full flex-col items-center justify-center px-4 py-10 text-center text-muted"
-      >
-        <p class="m-0 max-w-md text-sm">
-          No teams are linked to this tournament. Attach Teams to add them.
-        </p>
+      <div class="flex min-h-[18rem] w-full flex-col items-center justify-center px-4 py-10 text-center text-muted">
+        <p class="m-0 max-w-md text-sm">No teams are linked to this tournament. Attach Teams to add them.</p>
       </div>
     } @else {
       <div class="sticky-header-table-container relative overflow-auto">
@@ -91,7 +89,7 @@
                 mat-cell
                 *matCellDef="let row"
               >
-                {{ row.group_index != null ? row.group_index : '—' }}
+                {{ row.group_index ?? '—' }}
               </td>
             </ng-container>
             <ng-container matColumnDef="actions">

@@ -18,9 +18,7 @@ export const backofficeScopeGuard: CanActivateFn = (_route, state) => {
 
   const path = state.url.split('?')[0];
   const allowed =
-    path === '/dashboard' ||
-    path.startsWith('/tournaments-management/') ||
-    path.startsWith('/players-management/');
+    path === '/dashboard' || path.startsWith('/tournaments-management/') || path.startsWith('/players-management/');
 
   if (allowed) {
     return true;

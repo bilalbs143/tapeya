@@ -122,13 +122,11 @@ export class ProductsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private loadCategories(): void {
-    this.categoryService
-      .getList({ all: true, sort: 'sort_order' })
-      .subscribe({
-        next: (res) => {
-          this.categories = res.data ?? [];
-        },
-      });
+    this.categoryService.getList({ all: true, sort: 'sort_order' }).subscribe({
+      next: (res) => {
+        this.categories = res.data ?? [];
+      },
+    });
   }
 
   public ngAfterViewInit(): void {

@@ -43,7 +43,8 @@ export function Navbar({ onMenuClick }) {
     skip: !accessToken,
   });
   const unreadCount = Math.max(0, unreadData?.unreadCount ?? 0);
-  const badgeLabel = unreadCount > 99 ? '99+' : unreadCount > 0 ? String(unreadCount) : null;
+  const badgeLabel =
+    unreadCount > 99 ? '99+' : unreadCount > 0 ? String(unreadCount) : null;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -111,7 +112,7 @@ export function Navbar({ onMenuClick }) {
           <img src={notificationIcon} alt="" className="h-3.5 w-3.5" />
           {badgeLabel ? (
             <span
-              className="absolute -top-0.5 -right-0.5 flex min-h-[16px] min-w-[16px] items-center justify-center rounded-full bg-[#DA9811] px-1 text-[10px] font-bold leading-none text-[#080807]"
+              className="absolute -top-0.5 -right-0.5 flex min-h-[16px] min-w-[16px] items-center justify-center rounded-full bg-[#DA9811] px-1 text-[10px] leading-none font-bold text-[#080807]"
               aria-hidden
             >
               {badgeLabel}

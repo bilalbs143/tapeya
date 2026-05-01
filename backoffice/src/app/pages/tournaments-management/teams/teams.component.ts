@@ -119,7 +119,7 @@ export class TeamsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public loadHttpData(): void {
     const filters = this.searchForm.value as { search?: string; country?: string };
-    let params = buildListParams(this.currentPage, this.pageSize, this.sort ?? null, {
+    const params = buildListParams(this.currentPage, this.pageSize, this.sort ?? null, {
       search: filters.search ?? '',
     });
     const requestParams: Record<string, unknown> = { ...params };
@@ -174,8 +174,7 @@ export class TeamsComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.messageService.success('Team deleted.');
                 this.loadHttpData();
               },
-              error: () =>
-                this.messageService.error('Could not delete team. It may still be referenced by matches.'),
+              error: () => this.messageService.error('Could not delete team. It may still be referenced by matches.'),
             });
           }
         })

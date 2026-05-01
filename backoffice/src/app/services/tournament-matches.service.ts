@@ -69,7 +69,10 @@ export class TournamentMatchesService {
     return this.http.get<{ data: TournamentMatchRow }>(`v1/admin/matches/${matchId}`);
   }
 
-  public createMatch(tournamentId: number, body: CreateTournamentMatchPayload): Observable<{ data: TournamentMatchRow }> {
+  public createMatch(
+    tournamentId: number,
+    body: CreateTournamentMatchPayload
+  ): Observable<{ data: TournamentMatchRow }> {
     return this.http.post<{ data: TournamentMatchRow }>(`v1/admin/tournaments/${tournamentId}/matches`, body);
   }
 }

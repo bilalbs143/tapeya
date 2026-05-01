@@ -30,7 +30,7 @@ class ScorecardController extends Controller
     // ─── Mutation endpoints ───────────────────────────────────────────────────
 
     /**
-     * Add a ball/delivery to an innings (Step 7 in tournament_flow).
+     * Add a ball/delivery to an innings.
      * Only organizers. Innings must belong to the match.
      */
     public function storeBall(StoreBallRequest $request, TournamentMatch $match, Innings $innings): JsonResponse
@@ -56,9 +56,6 @@ class ScorecardController extends Controller
 
         $this->completionService->evaluate($match->fresh());
 
-        // FIX (perf): job is already queued — add a short delay so rapid consecutive
-        // deliveries collapse into fewer job executions. Also consider adding
-        // ShouldBeUnique + uniqueId() = $this->matchId to the job itself.
         RefreshMatchStatsJob::dispatch($match->id)->delay(now()->addSeconds(3));
 
         $ball->load(['striker', 'nonStriker', 'bowler', 'outPlayer', 'fielder']);
@@ -67,7 +64,7 @@ class ScorecardController extends Controller
     }
 
     /**
-     * Update a ball/delivery (Step 7 in tournament_flow).
+     * Update a ball/delivery.
      * Only organizers. Ball must belong to innings, innings to match.
      */
     public function updateBall(UpdateBallRequest $request, TournamentMatch $match, Innings $innings, Ball $ball): JsonResponse
@@ -96,11 +93,8 @@ class ScorecardController extends Controller
     }
 
     /**
-     * Delete a ball/delivery (Step 7 in tournament_flow).
+     * Delete a ball/delivery (undo).
      * Only organizers. Ball must belong to innings, innings to match.
-     *
-     * FIX (arch): inject Request instead of using global request() helper,
-     *             consistent with storeBall/updateBall.
      */
     public function deleteBall(Request $request, TournamentMatch $match, Innings $innings, Ball $ball): JsonResponse
     {
@@ -128,12 +122,7 @@ class ScorecardController extends Controller
     // ─── Read endpoints ───────────────────────────────────────────────────────
 
     /**
-     * Get scorecard for a match (both innings with balls and totals).
-     *
-     * FIX (arch): inject Request instead of global helper.
-     * FIX (bug):  extras computed from explicit extra-type columns, not runs − runs_off_bat.
-     * FIX (perf): pass already-loaded balls collection to partnershipsForInnings
-     *             to avoid one extra Ball query per innings.
+     * Full scorecard for a match (both innings with balls, partnerships, and extras breakdown).
      */
     public function scorecard(Request $request, TournamentMatch $match): JsonResponse
     {
@@ -160,9 +149,7 @@ class ScorecardController extends Controller
     }
 
     /**
-     * Per-match player stats (batting, bowling, fielding) for scorecard/profile.
-     *
-     * FIX (arch): inject Request instead of global helper.
+     * Per-match player stats (batting, bowling, fielding) for scorecard / profile.
      */
     public function playerStats(Request $request, TournamentMatch $match): JsonResponse
     {
@@ -182,8 +169,8 @@ class ScorecardController extends Controller
     // ─── Private helpers ──────────────────────────────────────────────────────
 
     /**
-     * FIX (arch): single source of truth for ball response shape.
-     * Previously duplicated verbatim between storeBall and updateBall.
+     * Single source-of-truth shape for a ball in mutation responses.
+     * Includes is_free_hit so the app can replay free-hit state correctly.
      */
     private function formatBall(Ball $ball): array
     {
@@ -201,6 +188,7 @@ class ScorecardController extends Controller
             'is_wide' => $ball->is_wide,
             'is_leg_bye' => $ball->is_leg_bye,
             'is_bye' => $ball->is_bye,
+            'is_free_hit' => $ball->is_free_hit,
             'penalty_runs' => $ball->penalty_runs,
             'is_wicket' => $ball->is_wicket,
             'dismissal_type' => $ball->dismissal_type?->value,
@@ -214,29 +202,30 @@ class ScorecardController extends Controller
     /**
      * Format a single innings for the scorecard response.
      *
-     * FIX (bug): extras = sum of actual extra-type runs only.
-     *   Old formula (runs − runs_off_bat) silently included penalty_runs in extras,
-     *   which inflated the extras figure and double-counted them in total_runs.
+     * Extras breakdown is returned as a structured object so the frontend can
+     * display Wides, No Balls, Byes, Leg Byes, and Penalty Runs individually.
      *
-     * FIX (perf): passes already-loaded $inn->balls into partnershipsForInnings
-     *   so the service does not fire an extra Ball query per innings.
+     * Wicket count excludes retired_hurt (law: does not count as a dismissal).
      */
     private function formatInnings(Innings $inn): array
     {
-        /** @var Collection $balls */
+        /** @var Collection<int, Ball> $balls */
         $balls = $inn->balls;
 
         $totalRuns = $balls->sum('runs');
-        $totalWickets = $balls->where('is_wicket', true)->count();
 
-        // Extras = wides + no-ball runs + bye runs + leg-bye runs.
-        // penalty_runs are NOT included — they are awarded to the team separately
-        // and are already part of $ball->runs in most schemas, so excluding them
-        // here prevents double-counting in the extras line.
-        $totalExtras = $balls->filter(fn ($b) => $b->is_wide)->sum('runs')
-            + $balls->filter(fn ($b) => $b->is_no_ball && ! $b->is_wide)->sum('runs')
-            + $balls->filter(fn ($b) => $b->is_bye)->sum('runs')
-            + $balls->filter(fn ($b) => $b->is_leg_bye)->sum('runs');
+        // Retired hurt does NOT count as a wicket.
+        $totalWickets = $balls->filter(
+            fn (Ball $b) => $b->is_wicket && ! $b->isRetiredHurt()
+        )->count();
+
+        // Individual extras breakdown — allows frontend to display per-type totals.
+        $wides = (int) $balls->filter(fn (Ball $b) => $b->is_wide)->sum('runs');
+        $noBalls = (int) $balls->filter(fn (Ball $b) => $b->is_no_ball && ! $b->is_wide)->sum('runs');
+        $byes = (int) $balls->filter(fn (Ball $b) => $b->is_bye)->sum('runs');
+        $legByes = (int) $balls->filter(fn (Ball $b) => $b->is_leg_bye)->sum('runs');
+        $penaltyRuns = (int) $balls->sum('penalty_runs');
+        $totalExtras = $wides + $noBalls + $byes + $legByes + $penaltyRuns;
 
         return [
             'id' => $inn->id,
@@ -253,8 +242,14 @@ class ScorecardController extends Controller
             'total_runs' => $totalRuns,
             'total_wickets' => $totalWickets,
             'total_extras' => $totalExtras,
+            'extras_breakdown' => [
+                'wides' => $wides,
+                'no_balls' => $noBalls,
+                'byes' => $byes,
+                'leg_byes' => $legByes,
+                'penalty_runs' => $penaltyRuns,
+            ],
             'balls_count' => $balls->count(),
-            // FIX (perf): pass loaded collection — avoids an extra query per innings.
             'partnerships' => $this->statsService->partnershipsForInnings($inn->id, $balls),
             'balls' => $balls->map(fn (Ball $b) => [
                 'id' => $b->id,
@@ -267,21 +262,30 @@ class ScorecardController extends Controller
                 'runs_off_bat' => $b->runs_off_bat,
                 'is_no_ball' => $b->is_no_ball,
                 'is_wide' => $b->is_wide,
+                'is_leg_bye' => $b->is_leg_bye,
+                'is_bye' => $b->is_bye,
+                'is_free_hit' => $b->is_free_hit,
+                'penalty_runs' => $b->penalty_runs,
                 'is_wicket' => $b->is_wicket,
                 'dismissal_type' => $b->dismissal_type?->value,
                 'dismissal_type_label' => $b->dismissal_type?->label(),
                 'out_player_id' => $b->out_player_id,
                 'fielder_id' => $b->fielder_id,
                 'shot_position' => $b->shot_position?->value,
-            ]),
+            ])->values(),
         ];
     }
 
     /**
      * @param  array<string, mixed>|null  $meta
      */
-    private function logScoringAudit(TournamentMatch $match, User $user, string $action, ?int $ballId = null, ?array $meta = null): void
-    {
+    private function logScoringAudit(
+        TournamentMatch $match,
+        User $user,
+        string $action,
+        ?int $ballId = null,
+        ?array $meta = null,
+    ): void {
         MatchScoringAudit::query()->create([
             'tournament_match_id' => $match->id,
             'user_id' => $user->id,

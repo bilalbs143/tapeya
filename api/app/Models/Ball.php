@@ -23,6 +23,7 @@ class Ball extends BaseModel
         'is_wide',
         'is_leg_bye',
         'is_bye',
+        'is_free_hit',
         'penalty_runs',
         'is_wicket',
         'dismissal_type',
@@ -41,11 +42,14 @@ class Ball extends BaseModel
             'is_wide' => 'boolean',
             'is_leg_bye' => 'boolean',
             'is_bye' => 'boolean',
+            'is_free_hit' => 'boolean',
             'is_wicket' => 'boolean',
             'dismissal_type' => DismissalTypeEnum::class,
             'shot_position' => ShotPositionEnum::class,
         ];
     }
+
+    // ─── Relationships ────────────────────────────────────────────────────────
 
     public function innings(): BelongsTo
     {
@@ -75,5 +79,24 @@ class Ball extends BaseModel
     public function fielder(): BelongsTo
     {
         return $this->belongsTo(User::class, 'fielder_id');
+    }
+
+    // ─── Helpers ──────────────────────────────────────────────────────────────
+
+    /**
+     * True when this ball is a valid (legal) delivery — i.e. contributes to
+     * the over ball count. Wides and no-balls do NOT count as legal deliveries.
+     */
+    public function isLegalDelivery(): bool
+    {
+        return ! $this->is_wide && ! $this->is_no_ball;
+    }
+
+    /**
+     * True when dismissal_type is retired_hurt (does NOT count as a wicket).
+     */
+    public function isRetiredHurt(): bool
+    {
+        return $this->dismissal_type === DismissalTypeEnum::RETIRED_HURT;
     }
 }

@@ -54,20 +54,38 @@ export default function RunRate() {
               196-7
             </p>
           </div>
-          <div className="mx-1 w-px self-stretch sm:mx-3" style={separatorStyle} />
+          <div
+            className="mx-1 w-px self-stretch sm:mx-3"
+            style={separatorStyle}
+          />
 
           <div className="flex items-center px-1 sm:hidden">
             <div>
               <div className="flex items-center gap-1 leading-none">
-                <span className="w-[30px] text-[8px] font-medium text-[#E8E8E8]">{batters[0].name}</span>
-                <span className="text-[11px] font-bold text-[#DA9811]">{batters[0].runs}</span>
-                <span className="text-[9px] font-bold text-[#DA9811]">{batters[0].balls}</span>
+                <span className="w-[30px] text-[8px] font-medium text-[#E8E8E8]">
+                  {batters[0].name}
+                </span>
+                <span className="text-[11px] font-bold text-[#DA9811]">
+                  {batters[0].runs}
+                </span>
+                <span className="text-[9px] font-bold text-[#DA9811]">
+                  {batters[0].balls}
+                </span>
               </div>
-              <div className="my-0.5 h-px w-[30px]" style={batterSeparatorStyle} />
+              <div
+                className="my-0.5 h-px w-[30px]"
+                style={batterSeparatorStyle}
+              />
               <div className="flex items-center gap-1 leading-none">
-                <span className="w-[30px] text-[8px] font-medium text-[#E8E8E8]">{batters[1].name}</span>
-                <span className="text-[11px] font-bold text-[#DA9811]">{batters[1].runs}</span>
-                <span className="text-[9px] font-bold text-[#DA9811]">{batters[1].balls}</span>
+                <span className="w-[30px] text-[8px] font-medium text-[#E8E8E8]">
+                  {batters[1].name}
+                </span>
+                <span className="text-[11px] font-bold text-[#DA9811]">
+                  {batters[1].runs}
+                </span>
+                <span className="text-[9px] font-bold text-[#DA9811]">
+                  {batters[1].balls}
+                </span>
               </div>
             </div>
           </div>
@@ -81,10 +99,15 @@ export default function RunRate() {
                 <span className="text-[24px] font-bold text-[#DA9811]">
                   {batters[0].runs}
                 </span>
-                <span className="text-[16px] font-bold text-[#DA9811]">{batters[0].balls}</span>
+                <span className="text-[16px] font-bold text-[#DA9811]">
+                  {batters[0].balls}
+                </span>
               </div>
 
-              <div className="my-1 h-px w-[72px]" style={batterSeparatorStyle} />
+              <div
+                className="my-1 h-px w-[72px]"
+                style={batterSeparatorStyle}
+              />
 
               <div className="flex items-center gap-3 leading-none">
                 <span className="w-[72px] text-[14px] font-medium text-[#E8E8E8]">
@@ -93,7 +116,9 @@ export default function RunRate() {
                 <span className="text-[24px] font-bold text-[#DA9811]">
                   {batters[1].runs}
                 </span>
-                <span className="text-[16px] font-bold text-[#DA9811]">{batters[1].balls}</span>
+                <span className="text-[16px] font-bold text-[#DA9811]">
+                  {batters[1].balls}
+                </span>
               </div>
             </div>
           </div>
@@ -117,21 +142,31 @@ export default function RunRate() {
               <p className="text-[6px] leading-none font-bold text-white uppercase sm:text-[20px]">
                 Current
               </p>
-              <div className="mt-1 flex items-baseline gap-1 sm:mt-3 sm:gap-4 justify-center">
-                <p className="text-[9px] leading-none font-extrabold text-white sm:text-[24px]">16.3</p>
+              <div className="mt-1 flex items-baseline justify-center gap-1 sm:mt-3 sm:gap-4">
+                <p className="text-[9px] leading-none font-extrabold text-white sm:text-[24px]">
+                  16.3
+                </p>
               </div>
             </div>
-            <div className="mx-1 w-px self-stretch sm:mx-3" style={separatorStyle} />
+            <div
+              className="mx-1 w-px self-stretch sm:mx-3"
+              style={separatorStyle}
+            />
 
             <div className="px-1 sm:px-4">
               <p className="text-[6px] leading-none font-bold text-white uppercase sm:text-[20px]">
                 Required
               </p>
-              <div className="mt-1 flex items-baseline gap-1 sm:mt-3 sm:gap-4 justify-center">
-                <p className="text-[9px] leading-none font-extrabold text-white sm:text-[24px]">16.3</p>
+              <div className="mt-1 flex items-baseline justify-center gap-1 sm:mt-3 sm:gap-4">
+                <p className="text-[9px] leading-none font-extrabold text-white sm:text-[24px]">
+                  16.3
+                </p>
               </div>
             </div>
-            <div className="mx-1 w-px self-stretch sm:mx-3" style={separatorStyle} />
+            <div
+              className="mx-1 w-px self-stretch sm:mx-3"
+              style={separatorStyle}
+            />
 
             <div className="px-1 sm:px-4">
               <p className="text-[9px] leading-none font-extrabold text-white uppercase sm:text-[20px]">

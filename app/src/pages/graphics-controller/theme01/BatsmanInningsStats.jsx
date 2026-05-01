@@ -29,11 +29,13 @@ export default function BatsmanInningsStats() {
           style={panelStyle}
         >
           <div className="flex items-start justify-between gap-2 sm:gap-6">
-            <p className="text-[15px] leading-none font-extrabold uppercase tracking-wide text-[#DA9811] sm:text-[28px]">
+            <p className="text-[15px] leading-none font-extrabold tracking-wide text-[#DA9811] uppercase sm:text-[28px]">
               TAMOUR MIRZA
             </p>
 
-            <p className="text-[15px] leading-none font-semibold sm:text-[24px]">This Tournament</p>
+            <p className="text-[15px] leading-none font-semibold sm:text-[24px]">
+              This Tournament
+            </p>
           </div>
           <div className="mt-2 h-px w-full sm:mt-3" style={bottomBorderStyle} />
 

@@ -28,11 +28,7 @@ export const TournamentsManagementRoutes: Routes = [
     loadComponent: () => import('./teams/teams.component').then((m) => m.TeamsComponent),
     data: {
       title: 'Teams',
-      urls: [
-        { title: 'Dashboard', url: '/dashboard' },
-        { title: 'Tournaments Management' },
-        { title: 'Teams' },
-      ],
+      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Tournaments Management' }, { title: 'Teams' }],
     },
   },
   {

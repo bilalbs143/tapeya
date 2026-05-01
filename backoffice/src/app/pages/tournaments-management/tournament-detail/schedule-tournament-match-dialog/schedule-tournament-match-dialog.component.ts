@@ -4,10 +4,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatIconModule } from '@angular/material/icon';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatRadioModule } from '@angular/material/radio';
@@ -18,10 +18,10 @@ import { finalize } from 'rxjs/operators';
 import { EnumsService } from 'src/app/services/enums.service';
 import { MessageService } from 'src/app/services/message.service';
 import { TournamentMatchesService } from 'src/app/services/tournament-matches.service';
-import type { Tournament } from 'src/app/services/tournaments.service';
-import { TournamentsService } from 'src/app/services/tournaments.service';
 import type { TournamentTeamRow } from 'src/app/services/tournament-teams.service';
 import { TournamentTeamsService } from 'src/app/services/tournament-teams.service';
+import { TournamentsService } from 'src/app/services/tournaments.service';
+import type { Tournament } from 'src/app/services/tournaments.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 
@@ -102,7 +102,8 @@ export class ScheduleTournamentMatchDialogComponent implements OnInit {
       if (!c.errors?.['sameFixture']) {
         continue;
       }
-      const { sameFixture: _s, ...rest } = c.errors;
+      const rest = { ...c.errors };
+      delete rest['sameFixture'];
       c.setErrors(Object.keys(rest).length ? rest : null);
     }
   }

@@ -36,13 +36,24 @@ export default function TournamentOver() {
 
             <div className="mx-2 flex items-center sm:mx-6">
               <div className="text-center">
-                <p className="text-[12px] leading-none font-extrabold text-white sm:text-[30px]">196-7</p>
-                <p className="mt-1 text-[10px] leading-none text-white sm:text-[18px]">14.4 Over</p>
+                <p className="text-[12px] leading-none font-extrabold text-white sm:text-[30px]">
+                  196-7
+                </p>
+                <p className="mt-1 text-[10px] leading-none text-white sm:text-[18px]">
+                  14.4 Over
+                </p>
               </div>
-              <div className="mx-2 h-12 w-px sm:mx-5 sm:h-16" style={separatorStyle} />
+              <div
+                className="mx-2 h-12 w-px sm:mx-5 sm:h-16"
+                style={separatorStyle}
+              />
               <div className="text-center">
-                <p className="text-[12px] leading-none font-extrabold text-white sm:text-[30px]">326-4</p>
-                <p className="mt-1 text-[10px] leading-none text-white sm:text-[18px]">20.0 Over</p>
+                <p className="text-[12px] leading-none font-extrabold text-white sm:text-[30px]">
+                  326-4
+                </p>
+                <p className="mt-1 text-[10px] leading-none text-white sm:text-[18px]">
+                  20.0 Over
+                </p>
               </div>
             </div>
 

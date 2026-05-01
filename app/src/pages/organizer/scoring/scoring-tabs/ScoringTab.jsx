@@ -1,3 +1,18 @@
+/**
+ * ScoringTab
+ *
+ * Orchestrates the live scoring UI for one innings.
+ * All business logic lives in hooks (useScoringEngine) and utils (scoringUtils, cricketRules).
+ * All rendering of tables / controls is delegated to components/scoring/*.
+ *
+ * Responsibilities:
+ *   • Wires useScoringEngine into inline innings state.
+ *   • Computes derived values (overStrip, secondInningsChase, dismissal options).
+ *   • Detects and emits innings-end events (onInningsComplete).
+ *   • Manages dialog open/close state.
+ *   • Manages squad save / player-picker interactions.
+ */
+
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import CustomScoreDialog from '@/components/dialogs/scoring/CustomScoreDialog';
@@ -5,22 +20,27 @@ import ExtraRunsDialog from '@/components/dialogs/scoring/ExtraRunsDialog';
 import FielderPickerDialog from '@/components/dialogs/scoring/FielderPickerDialog';
 import OutReasonDialog from '@/components/dialogs/scoring/OutReasonDialog';
 import ScoringSquadPlayerPickerDialog from '@/components/dialogs/scoring/ScoringSquadPlayerPickerDialog';
+import { BatsmenTable } from '@/components/scoring/BatsmenTable';
+import { BowlerTable } from '@/components/scoring/BowlerTable';
+import { LiveScoreBox } from '@/components/scoring/LiveScoreBox';
+import { OverStrip } from '@/components/scoring/OverStrip';
+import { ScoringControls } from '@/components/scoring/ScoringControls';
 import { blankBatsman, blankBowler } from '@/hooks/useInningsState';
 import { useScoringEngine } from '@/hooks/useScoringEngine';
-import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
+import { isLegalDelivery } from '@/lib/utils/cricketRules';
 import {
   dismissalRequiresFielder,
   getDismissalOptions,
   getExtraTypeOptions,
+  getFreeHitDismissalOptions,
   getShotPositionOptions,
 } from '@/lib/utils/scoringMappers';
-import { ballsToOvers, getRunsFromBall } from '@/lib/utils/scoringUtils';
+import { getRunsFromBall } from '@/lib/utils/scoringUtils';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
 import {
   useStoreMatchSquadMutation,
   useStorePlayingElevenMutation,
 } from '@/store/api/matchApi';
-import { Button } from '@/ui/Button';
 
 import { MatchStatsRow, SecondInningsChaseRow } from '../MatchStatsRow';
 import { ShotAreaDialog } from '../ShotAreaDialog';
@@ -28,130 +48,54 @@ import { ShotAreaDialog } from '../ShotAreaDialog';
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+const TEAM_MATCH_ICON = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
 
-const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
-
-const DASH = '—';
-const VALID_DELIVERIES_PER_OVER = 6;
-
-/**
- * Max bowlers in the live table at once.
- * MUST match the `>= 2` check in useScoringEngine so end-of-over rotation works.
- */
+const LEGAL_DELIVERIES_PER_OVER = 6;
+/** Max bowlers in the live table at once (must match useScoringEngine's rotation logic). */
 const MAX_BOWLERS_IN_TABLE = 2;
 
-/** Placeholder row count when batting playing XI is empty — keeps table height / Add controls layout stable */
-const EMPTY_SQUAD_PLACEHOLDER_ROWS = 2;
-
-/** Bowler column shows only the active bowler; one placeholder row when no bowler / no squad */
-const BOWLER_TABLE_PLACEHOLDER_ROWS = 1;
-
-function HeaderEditPencilIcon() {
-  return (
-    <svg
-      className="block h-4 w-4"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-    </svg>
-  );
-}
-
-const RUN_BUTTON_BG = [
-  '#10100F',
-  '#171715',
-  '#1F1F1C',
-  '#282824',
-  '#31312C',
-  '#3B3B35',
-  '#46463F',
-];
-
-function strikeRate(runs, balls) {
-  if (!balls) return '0.0';
-  return ((Number(runs) / Number(balls)) * 100).toFixed(1);
-}
-
-function economyRate(runs, overs) {
-  if (!overs) return '0.0';
-  return (Number(runs) / Number(overs)).toFixed(1);
-}
-
-function getBallDisplay(ball) {
-  if (!ball) return { label: '•', variant: 'dot' };
-  switch (ball.type) {
-    case 'runs': {
-      const r = ball.runs ?? 0;
-      if (r === 0) return { label: '•', variant: 'dot' };
-      if (r === 4) return { label: '4', variant: 'four' };
-      if (r === 6) return { label: '6', variant: 'six' };
-      return { label: String(r), variant: 'runs' };
-    }
-    case 'out':
-      return { label: 'W', variant: 'wicket' };
-    case 'wd':
-      return {
-        label: ball.runs > 1 ? `WD ${ball.runs}` : 'WD',
-        variant: 'extra',
-      };
-    case 'nb':
-      return {
-        label: ball.runs > 1 ? `NB ${ball.runs}` : 'NB',
-        variant: 'extra',
-      };
-    case 'bye':
-      return {
-        label: (ball.runs ?? 0) > 0 ? `B ${ball.runs}` : 'B',
-        variant: 'extra',
-      };
-    case 'lb':
-      return {
-        label: (ball.runs ?? 0) > 0 ? `LB ${ball.runs}` : 'LB',
-        variant: 'extra',
-      };
-    default:
-      return { label: '•', variant: 'dot' };
-  }
-}
-
-function ballChipClass(variant) {
-  switch (variant) {
-    case 'four':
-      return 'bg-[#22C55E] text-white';
-    case 'six':
-      return 'bg-[#A855F7] text-white';
-    case 'wicket':
-      return 'bg-[#EF4444] text-white';
-    default:
-      return 'bg-[#2a2a28] text-[#E5E7EB]';
-  }
-}
-
-function overOrdinal(n) {
-  const s = ['th', 'st', 'nd', 'rd'];
-  const v = n % 100;
-  return n + (s[(v - 20) % 10] || s[v] || s[0]);
-}
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /**
- * All props describe the ACTIVE innings only.
- * ScoringMatch resolves which innings is active and passes these directly.
- *
+ * Build the over-strip data from ball history.
+ * Returns an array of { overIndex, runs, balls } — one entry per completed or current over.
+ */
+function buildOversFromBalls(ballHistory) {
+  const list = [];
+  let currentOver = [];
+  let validCount = 0;
+
+  for (const ball of ballHistory) {
+    currentOver.push(ball);
+    if (isLegalDelivery(ball.type)) validCount += 1;
+    if (validCount === LEGAL_DELIVERIES_PER_OVER) {
+      const runs = currentOver.reduce((s, b) => s + getRunsFromBall(b), 0);
+      list.push({ overIndex: list.length + 1, runs, balls: currentOver });
+      currentOver = [];
+      validCount = 0;
+    }
+  }
+  if (currentOver.length > 0) {
+    const runs = currentOver.reduce((s, b) => s + getRunsFromBall(b), 0);
+    list.push({ overIndex: list.length + 1, runs, balls: currentOver });
+  }
+  return list;
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+/**
  * @param {string}   matchId
- * @param {object}   match                  Full match config (for overs / playersPerSide)
- * @param {string}   inningsNumber          '1' | '2' — for header label only
- * @param {string}   battingTeamName        Display name for the batting team
- * @param {number}   battingTeamId          For API squad saves
- * @param {number}   bowlingTeamId          For API squad saves
+ * @param {object}   match                   Full match config (overs, playersPerSide, etc.)
+ * @param {boolean}  [matchComplete]
+ * @param {string}   inningsNumber           '1' | '2'
+ * @param {string}   [battingTeamName]       Display name for the batting team
+ * @param {number}   battingTeamId
+ * @param {number}   bowlingTeamId
+ * @param {number[]} [battingPlayingElevenIds]
+ * @param {number[]} [bowlingPlayingElevenIds]
  *
- * Scoring state — all from useInningsState of the active innings:
+ * Innings state (all from useInningsState of the active innings):
  * @param {object[]} ballHistory
  * @param {Function} setBallHistory
  * @param {object[]} batsmenOnCrease
@@ -162,19 +106,25 @@ function overOrdinal(n) {
  * @param {Function} setStrikerIndex
  * @param {number}   currentBowlerIndex
  * @param {Function} setCurrentBowlerIndex
- * @param {object}   currentPartnership     { runs, balls }
+ * @param {object}   currentPartnership        { runs, balls }
  * @param {Function} setCurrentPartnership
  * @param {object[]} completedPartnerships
  * @param {Function} setCompletedPartnerships
- * @param {object[]} battingSquad           Players for batting team (role: 'playing'|'bench')
+ * @param {boolean}  pendingFreeHit
+ * @param {Function} setPendingFreeHit
+ * @param {object[]} retiredBatsmen
+ * @param {Function} setRetiredBatsmen
+ * @param {object[]} battingSquad
  * @param {Function} setBattingSquad
- * @param {object[]} bowlingSquad           Players for bowling team
+ * @param {object[]} bowlingSquad
  * @param {Function} setBowlingSquad
- * @param {object}   liveScore              From computeLiveScore(ballHistory)
- * @param {Function} onInningsComplete      Called once when this innings ends (overs, wickets, or chase). Optional `{ reason: 'overs'|'wickets'|'target' }`.
- * @param {boolean}  isApiMatch
- * @param {Function} syncBallToApi
- * @param {Function} syncUndoToApi
+ *
+ * @param {object}   liveScore               From computeLiveScore(ballHistory)
+ * @param {Function} [onInningsComplete]     ({ reason }) => void
+ * @param {number}   [targetScore]           2nd innings: first innings total + 1
+ * @param {boolean}  [isApiMatch]
+ * @param {Function} [syncBallToApi]
+ * @param {Function} [syncUndoToApi]
  */
 export function ScoringTab({
   matchId,
@@ -184,9 +134,7 @@ export function ScoringTab({
   battingTeamName,
   battingTeamId,
   bowlingTeamId,
-  /** GET /matches/:id/teams/:teamId/playing-eleven → player_ids for batting side (active innings) */
   battingPlayingElevenIds = [],
-  /** Same for bowling side */
   bowlingPlayingElevenIds = [],
 
   ballHistory = [],
@@ -203,6 +151,10 @@ export function ScoringTab({
   setCurrentPartnership,
   completedPartnerships = [],
   setCompletedPartnerships,
+  pendingFreeHit = false,
+  setPendingFreeHit,
+  retiredBatsmen = [],
+  setRetiredBatsmen,
   battingSquad = [],
   setBattingSquad,
   bowlingSquad = [],
@@ -210,22 +162,31 @@ export function ScoringTab({
 
   liveScore,
   onInningsComplete,
-  /** Innings 2 only: target = first innings total + 1. Match ends when totalRuns >= targetScore. */
   targetScore,
   isApiMatch,
   syncBallToApi,
   syncUndoToApi,
 }) {
-  // ── Enum data ──────────────────────────────────────────────────────────────
+  // ── Enum data ────────────────────────────────────────────────────────────────
 
   const { data: enums = {} } = useGetEnumsQuery();
   const [storeMatchSquad] = useStoreMatchSquadMutation();
   const [storePlayingEleven] = useStorePlayingElevenMutation();
 
-  const dismissalOptions = useMemo(
+  const allDismissalOptions = useMemo(
     () => getDismissalOptions(enums.dismissal_type),
     [enums.dismissal_type],
   );
+
+  // On a free hit only run_out / obstructing / hit_ball_twice are valid.
+  const activeDismissalOptions = useMemo(
+    () =>
+      pendingFreeHit
+        ? getFreeHitDismissalOptions(allDismissalOptions)
+        : allDismissalOptions,
+    [allDismissalOptions, pendingFreeHit],
+  );
+
   const extraTypeOptions = useMemo(
     () => getExtraTypeOptions(enums.extra_type),
     [enums.extra_type],
@@ -235,7 +196,7 @@ export function ScoringTab({
     [enums.shot_position],
   );
 
-  // ── UI-only dialog state ───────────────────────────────────────────────────
+  // ── Dialog state ─────────────────────────────────────────────────────────────
 
   const [addBatsmanOpen, setAddBatsmanOpen] = useState(false);
   const [batsmanDialogReplaceStriker, setBatsmanDialogReplaceStriker] =
@@ -246,18 +207,17 @@ export function ScoringTab({
   const [savingBatsmanSquad, setSavingBatsmanSquad] = useState(false);
   const [savingBowlerSquad, setSavingBowlerSquad] = useState(false);
   const [outReasonModalOpen, setOutReasonModalOpen] = useState(false);
+  const [retiredHurtConfirmOpen, setRetiredHurtConfirmOpen] = useState(false);
   const [customScoreDialogOpen, setCustomScoreDialogOpen] = useState(false);
   const [extraRunsDialogOpen, setExtraRunsDialogOpen] = useState(false);
-  const [pendingExtraType, setPendingExtraType] = useState(
-    /** @type {'wd'|'nb'|'bye'|'lb'|null} */ (null),
-  );
+  const [pendingExtraType, setPendingExtraType] = useState(null);
   const [customScoreInput, setCustomScoreInput] = useState('');
   const [shotAreaDialogOpen, setShotAreaDialogOpen] = useState(false);
   const [pendingRunsForShot, setPendingRunsForShot] = useState(null);
   const [pendingDismissal, setPendingDismissal] = useState(null);
   const [fielderPickerOpen, setFielderPickerOpen] = useState(false);
 
-  // ── Innings header ─────────────────────────────────────────────────────────
+  // ── Derived ──────────────────────────────────────────────────────────────────
 
   const inningsLabel = inningsNumber === '2' ? '2nd Innings' : '1st Innings';
   const displayTeamName =
@@ -266,11 +226,14 @@ export function ScoringTab({
       ? match?.teamB?.name || 'Team B'
       : match?.teamA?.name || 'Team A');
 
-  /** Chase metrics for 2nd innings (below {@link MatchStatsRow}). */
+  const oversFromBalls = useMemo(
+    () => buildOversFromBalls(ballHistory),
+    [ballHistory],
+  );
+
   const secondInningsChase = useMemo(() => {
-    if (inningsNumber !== '2' || targetScore == null || liveScore == null) {
+    if (inningsNumber !== '2' || targetScore == null || liveScore == null)
       return null;
-    }
     const maxOversNum =
       liveScore.maxOvers ??
       (match?.overs != null && match.overs !== ''
@@ -280,52 +243,18 @@ export function ScoringTab({
     const maxBalls = Math.floor(maxOversNum * 6);
     const valid = liveScore.validDeliveries ?? 0;
     const ballsLeft = Math.max(0, maxBalls - valid);
-    const totalRuns = liveScore.totalRuns ?? 0;
-    const runsToWin = Math.max(0, targetScore - totalRuns);
+    const runsToWin = Math.max(0, targetScore - (liveScore.totalRuns ?? 0));
     const oversRemaining = ballsLeft / 6;
-    let requiredRunRate = '0.0';
-    if (runsToWin <= 0) {
-      requiredRunRate = '0.0';
-    } else if (ballsLeft <= 0 || oversRemaining <= 0) {
-      requiredRunRate = '—';
-    } else {
-      requiredRunRate = (runsToWin / oversRemaining).toFixed(1);
-    }
-    return {
-      target: targetScore,
-      requiredRunRate,
-      ballsLeft,
-      runsToWin,
-    };
+    const requiredRunRate =
+      runsToWin <= 0
+        ? '0.0'
+        : ballsLeft <= 0
+          ? '—'
+          : (runsToWin / oversRemaining).toFixed(1);
+    return { target: targetScore, requiredRunRate, ballsLeft, runsToWin };
   }, [inningsNumber, targetScore, liveScore, match?.overs]);
 
-  // ── Over strip ─────────────────────────────────────────────────────────────
-  //
-  // An over = 6 LEGAL deliveries. WD and NB are shown in the over but do NOT
-  // count toward the 6, so an over can have 6+ balls when there are extras.
-
-  const oversFromBalls = useMemo(() => {
-    const list = [];
-    let currentOver = [];
-    let validCount = 0;
-
-    for (const ball of ballHistory) {
-      currentOver.push(ball);
-      if (ball.type !== 'wd' && ball.type !== 'nb') validCount += 1;
-
-      if (validCount === VALID_DELIVERIES_PER_OVER) {
-        const runs = currentOver.reduce((s, b) => s + getRunsFromBall(b), 0);
-        list.push({ overIndex: list.length + 1, runs, balls: currentOver });
-        currentOver = [];
-        validCount = 0;
-      }
-    }
-    if (currentOver.length > 0) {
-      const runs = currentOver.reduce((s, b) => s + getRunsFromBall(b), 0);
-      list.push({ overIndex: list.length + 1, runs, balls: currentOver });
-    }
-    return list;
-  }, [ballHistory]);
+  // ── Auto-scroll over strip ────────────────────────────────────────────────────
 
   const overStatsScrollRef = useRef(null);
   useEffect(() => {
@@ -336,20 +265,16 @@ export function ScoringTab({
     });
   }, [ballHistory.length]);
 
-  // ── Innings-end detection ──────────────────────────────────────────────────
+  // ── Innings-end detection ────────────────────────────────────────────────────
   //
-  // Fires onInningsComplete only when a SINGLE new live ball ends the innings.
-  // Skips: batch API load (jump 0→N), innings switch (drop N→0), undo (N→N-1).
-  //
-  // CRITICAL FIX: refs reset when inningsNumber changes so that innings 2 with
-  // pre-loaded balls from API does NOT immediately fire onInningsComplete.
+  // Fires onInningsComplete only for a SINGLE newly added live ball.
+  // Skips batch loads (0 → N), undo (N → N-1), and innings switch.
 
   const baselineRef = useRef(ballHistory.length);
   const prevLengthRef = useRef(ballHistory.length);
   const inningsEndEmittedRef = useRef(false);
 
   useEffect(() => {
-    // Re-baseline whenever we switch to a new innings
     baselineRef.current = ballHistory.length;
     prevLengthRef.current = ballHistory.length;
     inningsEndEmittedRef.current = false;
@@ -360,7 +285,6 @@ export function ScoringTab({
     const curr = ballHistory.length;
     const prev = prevLengthRef.current;
     if (curr !== prev) {
-      // Non-live change (batch load / undo): shift baseline so detection skips it
       if (curr - prev !== 1) baselineRef.current = curr;
       prevLengthRef.current = curr;
     }
@@ -368,15 +292,13 @@ export function ScoringTab({
 
   useEffect(() => {
     if (!onInningsComplete) return;
-
     const totalRuns = liveScore?.totalRuns ?? 0;
     const maxWickets =
       match?.playersPerSide != null ? match.playersPerSide - 1 : undefined;
     const maxValidBalls =
       match?.overs != null ? Number(match.overs) * 6 : undefined;
 
-    const targetMet =
-      targetScore != null && totalRuns >= targetScore;
+    const targetMet = targetScore != null && totalRuns >= targetScore;
     const wicketsMet =
       maxWickets != null && (liveScore?.totalWickets ?? 0) >= maxWickets;
     const oversMet =
@@ -391,10 +313,7 @@ export function ScoringTab({
     if (ballHistory.length <= baselineRef.current) return;
     if (inningsEndEmittedRef.current) return;
 
-    let reason = 'overs';
-    if (targetMet) reason = 'target';
-    else if (wicketsMet) reason = 'wickets';
-
+    const reason = targetMet ? 'target' : wicketsMet ? 'wickets' : 'overs';
     inningsEndEmittedRef.current = true;
     onInningsComplete({ reason });
   }, [
@@ -408,6 +327,7 @@ export function ScoringTab({
     match?.overs,
   ]);
 
+  // Close dialogs when match completes
   useEffect(() => {
     if (matchComplete) {
       setAddBowlerOpen(false);
@@ -417,61 +337,15 @@ export function ScoringTab({
     }
   }, [matchComplete]);
 
-  // ── Capacity flags ─────────────────────────────────────────────────────────
+  // ── Capacity flags ────────────────────────────────────────────────────────────
 
   const canAddMoreBatsmen = batsmenOnCrease.length < 2;
-  // FIX (BUG-16): was `< 1` — prevented second bowler, broke end-of-over rotation
   const canAddMoreBowlers = bowlersInTable.length < MAX_BOWLERS_IN_TABLE;
-  /** Full-screen “Add Bowler” CTA only when no bowler is selected; with 1 bowler, add the second via a squad row tap */
   const showAddBowlerOverlay = bowlersInTable.length === 0 && !matchComplete;
 
-  // ── Squad helpers ──────────────────────────────────────────────────────────
+  // ── Squad helpers ─────────────────────────────────────────────────────────────
 
   const playersPerSide = match?.playersPerSide;
-  const battingCount = battingSquad.filter((p) =>
-    Number.isFinite(Number(p.id)),
-  ).length;
-  const bowlingCount = bowlingSquad.filter((p) =>
-    Number.isFinite(Number(p.id)),
-  ).length;
-  const requiredBatting =
-    playersPerSide != null
-      ? Math.min(playersPerSide, battingCount)
-      : battingCount;
-  const requiredBowling =
-    playersPerSide != null
-      ? Math.min(playersPerSide, bowlingCount)
-      : bowlingCount;
-
-  const isPlayerBattingOrOut = (playerId) =>
-    batsmenOnCrease.some((b) => b.id === playerId) ||
-    ballHistory.some((b) => b.type === 'out' && b.striker?.id === playerId);
-
-  const getBatsmanDisplayStats = (playerId) => {
-    const onCrease = batsmenOnCrease.find((b) => b.id === playerId);
-    if (onCrease) {
-      const { runs = 0, balls = 0, fours = 0, sixes = 0 } = onCrease;
-      return { runs, balls, fours, sixes, strikeRate: strikeRate(runs, balls) };
-    }
-    const outBall = ballHistory.find(
-      (b) => b.type === 'out' && b.striker?.id === playerId,
-    );
-    if (outBall?.striker) {
-      const { runs = 0, balls = 0, fours = 0, sixes = 0 } = outBall.striker;
-      return { runs, balls, fours, sixes, strikeRate: strikeRate(runs, balls) };
-    }
-    return null;
-  };
-
-  const battingOrder = useMemo(
-    () => battingSquad.filter((p) => p.role === 'playing'),
-    [battingSquad],
-  );
-  const bowlingOrder = useMemo(
-    () => bowlingSquad.filter((p) => p.role === 'playing'),
-    [bowlingSquad],
-  );
-
   const expectedXiSize = useMemo(() => {
     const n = match?.playersPerSide;
     return n != null && Number.isFinite(Number(n)) ? Number(n) : 11;
@@ -487,51 +361,127 @@ export function ScoringTab({
     return Array.isArray(ids) && ids.length >= expectedXiSize;
   }, [bowlingPlayingElevenIds, expectedXiSize]);
 
+  const battingCount = battingSquad.filter((p) =>
+    Number.isFinite(Number(p.id)),
+  ).length;
+  const bowlingCount = bowlingSquad.filter((p) =>
+    Number.isFinite(Number(p.id)),
+  ).length;
+  const requiredBatting =
+    playersPerSide != null
+      ? Math.min(playersPerSide, battingCount)
+      : battingCount;
+  const requiredBowling =
+    playersPerSide != null
+      ? Math.min(playersPerSide, bowlingCount)
+      : bowlingCount;
+
   const addBatsmanDialogPlayers = useMemo(() => {
     if (!battingXiSavedOnApi) return battingSquad;
-    const set = new Set((battingPlayingElevenIds ?? []).map(String));
-    const out = battingSquad.filter(
-      (p) => p.id != null && set.has(String(p.id)),
+    const ids = new Set((battingPlayingElevenIds ?? []).map(String));
+    const filtered = battingSquad.filter(
+      (p) => p.id != null && ids.has(String(p.id)),
     );
-    return out.length > 0 ? out : battingSquad;
+    return filtered.length > 0 ? filtered : battingSquad;
   }, [battingSquad, battingPlayingElevenIds, battingXiSavedOnApi]);
 
   const addBowlerDialogPlayers = useMemo(() => {
     if (!bowlingXiSavedOnApi) return bowlingSquad;
-    const set = new Set((bowlingPlayingElevenIds ?? []).map(String));
-    const out = bowlingSquad.filter(
-      (p) => p.id != null && set.has(String(p.id)),
+    const ids = new Set((bowlingPlayingElevenIds ?? []).map(String));
+    const filtered = bowlingSquad.filter(
+      (p) => p.id != null && ids.has(String(p.id)),
     );
-    return out.length > 0 ? out : bowlingSquad;
+    return filtered.length > 0 ? filtered : bowlingSquad;
   }, [bowlingSquad, bowlingPlayingElevenIds, bowlingXiSavedOnApi]);
 
-  /** Single visible bowler row: current bowler only (state may still hold two for over-end swap). */
-  const activeBowlerDisplay = useMemo(() => {
-    const table = bowlersInTable ?? [];
-    if (table.length === 0) return null;
-    const idx = Math.min(
-      Math.max(0, Number(currentBowlerIndex) || 0),
-      table.length - 1,
-    );
-    const b = table[idx];
-    if (!b) return null;
-    const balls = b.balls ?? 0;
-    return {
-      bowler: b,
-      o: ballsToOvers(balls),
-      m: b.maidens ?? 0,
-      r: b.runs ?? 0,
-      w: b.wickets ?? 0,
-      econ: economyRate(b.runs ?? 0, balls / 6),
-    };
-  }, [bowlersInTable, currentBowlerIndex]);
+  const battingOrder = useMemo(
+    () => battingSquad.filter((p) => p.role === 'playing'),
+    [battingSquad],
+  );
+  const bowlingOrder = useMemo(
+    () => bowlingSquad.filter((p) => p.role === 'playing'),
+    [bowlingSquad],
+  );
 
-  const needsFielder = (opt) =>
-    dismissalRequiresFielder(
-      typeof opt === 'object' && opt !== null ? opt : { value: opt },
+  // ── Player lookup helpers ─────────────────────────────────────────────────────
+
+  const isPlayerBattingOrOut = (playerId) =>
+    batsmenOnCrease.some((b) => b.id === playerId) ||
+    ballHistory.some(
+      (b) =>
+        (b.type === 'out' || b.type === 'retired_hurt') &&
+        b.striker?.id === playerId,
     );
 
-  // ── API squad persistence ──────────────────────────────────────────────────
+  const getBatsmanDisplayStats = (playerId) => {
+    const onCrease = batsmenOnCrease.find((b) => b.id === playerId);
+    if (onCrease) {
+      const { runs = 0, balls = 0, fours = 0, sixes = 0 } = onCrease;
+      return {
+        runs,
+        balls,
+        fours,
+        sixes,
+        strikeRate: !balls ? '0.0' : ((runs / balls) * 100).toFixed(1),
+      };
+    }
+    const outBall = ballHistory.find(
+      (b) =>
+        (b.type === 'out' || b.type === 'retired_hurt') &&
+        b.striker?.id === playerId,
+    );
+    if (outBall?.striker) {
+      const { runs = 0, balls = 0, fours = 0, sixes = 0 } = outBall.striker;
+      return {
+        runs,
+        balls,
+        fours,
+        sixes,
+        strikeRate: !balls ? '0.0' : ((runs / balls) * 100).toFixed(1),
+      };
+    }
+    return null;
+  };
+
+  // ── Scoring engine ────────────────────────────────────────────────────────────
+
+  const {
+    handleRuns,
+    handleSpecial,
+    handleOut,
+    handleRetiredHurt,
+    handleUndo,
+  } = useScoringEngine({
+    ballHistory,
+    setBallHistory,
+    batsmenOnCrease,
+    setBatsmenOnCrease,
+    bowlersInTable,
+    setBowlersInTable,
+    strikerIndex,
+    setStrikerIndex,
+    currentBowlerIndex,
+    setCurrentBowlerIndex,
+    currentPartnership,
+    setCurrentPartnership,
+    setCompletedPartnerships,
+    pendingFreeHit,
+    setPendingFreeHit,
+    retiredBatsmen,
+    setRetiredBatsmen,
+    setAddBowlerOpen,
+    setOutReasonModalOpen,
+    setPendingDismissal,
+    setFielderPickerOpen,
+    syncBallToApi,
+    syncUndoToApi,
+    matchOvers: match?.overs,
+    playersPerSide: match?.playersPerSide,
+    targetScore,
+    matchComplete,
+  });
+
+  // ── API squad persistence ─────────────────────────────────────────────────────
 
   const handleSaveBatsmanSquad = async () => {
     if (!isApiMatch || !matchId || !battingTeamId) return;
@@ -558,8 +508,6 @@ export function ScoringTab({
       if (playing.length >= 2)
         setBatsmenOnCrease(playing.slice(0, 2).map(blankBatsman));
       setAddBatsmanOpen(false);
-    } catch {
-      // @cursor-enhancement: surface error via toast / snackbar
     } finally {
       setSavingBatsmanSquad(false);
     }
@@ -590,40 +538,29 @@ export function ScoringTab({
       if (playing.length > 0)
         setBowlersInTable(playing.slice(0, 2).map(blankBowler));
       setAddBowlerOpen(false);
-    } catch {
-      // @cursor-enhancement: surface error via toast / snackbar
     } finally {
       setSavingBowlerSquad(false);
     }
   };
 
-  // ── Squad role toggles ─────────────────────────────────────────────────────
+  // ── Squad role toggles ────────────────────────────────────────────────────────
 
   const setBatsmanRole = (id, role) =>
     setBattingSquad?.((prev) =>
       prev.map((b) => (b.id === id ? { ...b, role } : b)),
     );
+
   const setBowlerRole = (id, role) =>
     setBowlingSquad?.((prev) =>
       prev.map((b) => (b.id === id ? { ...b, role } : b)),
     );
 
-  // ── Add players to live tables ─────────────────────────────────────────────
+  // ── Add players to live tables ────────────────────────────────────────────────
 
   const addBatsmanToCrease = (player) => {
     if (batsmenOnCrease.length >= 2) return;
     const isSecond = batsmenOnCrease.length === 1;
-
-    const newBatsman = {
-      id: player.id,
-      name: player.name,
-      runs: 0,
-      balls: 0,
-      fours: 0,
-      sixes: 0,
-      partnerRunsAtStart: 0,
-      partnerBallsAtStart: 0,
-    };
+    const newBatsman = blankBatsman(player);
 
     setBatsmenOnCrease?.((prev) => {
       if (isSecond) {
@@ -670,26 +607,13 @@ export function ScoringTab({
     if (!canAddMoreBowlers) return;
     const newIndex = bowlersInTable.length;
     const isLastSlot = newIndex === MAX_BOWLERS_IN_TABLE - 1;
-
-    setBowlersInTable?.((prev) => [
-      ...prev,
-      {
-        id: player.id,
-        name: player.name,
-        overs: 0,
-        maidens: 0,
-        runs: 0,
-        wickets: 0,
-        balls: 0,
-      },
-    ]);
+    setBowlersInTable?.((prev) => [...prev, blankBowler(player)]);
     setCurrentBowlerIndex?.(newIndex);
     if (isLastSlot) setAddBowlerOpen(false);
   };
 
   const selectBowlerForNextOver = (player) => {
-    const playingOk =
-      bowlingXiSavedOnApi || player?.role === 'playing';
+    const playingOk = bowlingXiSavedOnApi || player?.role === 'playing';
     if (!playingOk) return;
 
     const idx = bowlersInTable.findIndex(
@@ -705,7 +629,7 @@ export function ScoringTab({
       setAddBowlerOpen(false);
       return;
     }
-    // Two bowlers already tracked: bring in this bowler as the next over (swap current slot).
+    // Swap current slot with the new bowler
     const table = bowlersInTable ?? [];
     if (table.length === 0) return;
     const cur = Math.min(
@@ -749,44 +673,13 @@ export function ScoringTab({
     setBowlerDialogReplaceActive(false);
   };
 
-  // ── Scoring engine ─────────────────────────────────────────────────────────
+  // ── Shot area / custom score dialog flows ─────────────────────────────────────
 
-  const { handleRuns, handleSpecial, handleOut, handleUndo } = useScoringEngine(
-    {
-      ballHistory,
-      setBallHistory,
-      batsmenOnCrease,
-      setBatsmenOnCrease,
-      bowlersInTable,
-      setBowlersInTable,
-      strikerIndex,
-      setStrikerIndex,
-      currentBowlerIndex,
-      setCurrentBowlerIndex,
-      currentPartnership,
-      setCurrentPartnership,
-      completedPartnerships,
-      setCompletedPartnerships,
-      setAddBowlerOpen,
-      setOutReasonModalOpen,
-      setPendingDismissal,
-      setFielderPickerOpen,
-      syncBallToApi,
-      syncUndoToApi,
-      matchOvers: match?.overs,
-      playersPerSide: match?.playersPerSide,
-      targetScore,
-      matchComplete,
-    },
-  );
-
-  // ── Custom score dialog ────────────────────────────────────────────────────
-
-  const openCustomScoreDialog = () => {
+  const openCustomScore = () => {
     setCustomScoreInput('');
     setCustomScoreDialogOpen(true);
   };
-  const closeCustomScoreDialog = () => {
+  const closeCustomScore = () => {
     setCustomScoreDialogOpen(false);
     setCustomScoreInput('');
   };
@@ -794,32 +687,55 @@ export function ScoringTab({
     const n = parseInt(customScoreInput.trim(), 10);
     if (Number.isNaN(n) || n < 0 || n > 99) return;
     handleRuns(n);
-    closeCustomScoreDialog();
+    closeCustomScore();
   };
 
-  // ── Shot area dialog ───────────────────────────────────────────────────────
-
-  const openShotAreaDialog = (runs) => {
+  const openShotArea = (runs) => {
     setPendingRunsForShot(runs);
     setShotAreaDialogOpen(true);
   };
-  const closeShotAreaDialog = () => {
+  const closeShotArea = () => {
     setShotAreaDialogOpen(false);
     setPendingRunsForShot(null);
   };
-  const handleShotDirectionSelect = (zoneId) => {
+  const handleShotSelect = (zoneId) => {
     if (pendingRunsForShot != null) handleRuns(pendingRunsForShot, zoneId);
-    closeShotAreaDialog();
+    closeShotArea();
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // ── Penalty runs ──────────────────────────────────────────────────────────────
+
+  const handlePenaltyRuns = () => {
+    // Award 5 penalty runs to the batting team as a wide (extra ball).
+    // Bowler is charged the runs but the delivery doesn't count toward the over.
+    handleSpecial('wd', 5);
+  };
+
+  // ── Retired Hurt flow ─────────────────────────────────────────────────────────
+
+  const handleRetiredHurtConfirm = () => {
+    handleRetiredHurt();
+    setRetiredHurtConfirmOpen(false);
+  };
+
+  // ── Fielder / dismissal ───────────────────────────────────────────────────────
+
+  const needsFielder = (opt) =>
+    dismissalRequiresFielder(
+      typeof opt === 'object' && opt !== null ? opt : { value: opt },
+    );
+
+  // ── Render ────────────────────────────────────────────────────────────────────
+
+  const isReadyToScore =
+    batsmenOnCrease.length === 2 && bowlersInTable.length > 0 && !matchComplete;
 
   return (
     <div className="mt-4 space-y-4 pb-8">
       {/* Innings header */}
       <div className="flex items-center justify-center gap-2">
         <img
-          src={teamMatchIcon}
+          src={TEAM_MATCH_ICON}
           alt=""
           className="h-8 w-8 shrink-0"
           aria-hidden
@@ -830,6 +746,7 @@ export function ScoringTab({
         <span className="text-[13px] text-[#DA9811]">{inningsLabel}</span>
       </div>
 
+      {/* 2nd innings chase row */}
       {secondInningsChase ? (
         <SecondInningsChaseRow
           target={secondInningsChase.target}
@@ -839,18 +756,13 @@ export function ScoringTab({
         />
       ) : null}
 
-      {/* Live score box */}
-      <div className="m-auto max-w-fit rounded-[17px] bg-[#141412] px-6 py-4 text-center">
-        <div className="flex items-baseline justify-center gap-1">
-          <span className="text-[36px] leading-none font-bold text-white">
-            {liveScore?.totalRuns ?? 0}-{liveScore?.totalWickets ?? 0}
-          </span>
-          <span className="text-[16px] font-bold text-white/90">
-            ({liveScore?.oversDisplay ?? '0'} /{' '}
-            {liveScore?.maxOvers ?? match?.overs ?? ''})
-          </span>
-        </div>
-      </div>
+      {/* Live score */}
+      <LiveScoreBox
+        totalRuns={liveScore?.totalRuns ?? 0}
+        totalWickets={liveScore?.totalWickets ?? 0}
+        oversDisplay={liveScore?.oversDisplay ?? '0'}
+        maxOvers={liveScore?.maxOvers ?? match?.overs}
+      />
 
       {/* Match stats bar */}
       <MatchStatsRow
@@ -862,492 +774,57 @@ export function ScoringTab({
         partnershipBalls={currentPartnership.balls}
       />
 
-      {/* Batsman table — @cursor-enhancement: Extract as <BatsmenTable /> */}
-      <div className="relative overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <table className="w-full border-collapse text-[12px]">
-          <thead>
-            <tr className={HEADER_BG}>
-              <th
-                className={`${HEADER_BG} min-w-[8.5rem] border-r border-b border-l px-4 py-2.5 text-left font-bold text-white ${BORDER}`}
-              >
-                <div className="inline-flex max-w-full min-w-0 items-center gap-1.5 whitespace-nowrap">
-                  {!matchComplete && batsmenOnCrease.length > 0 ? (
-                    <button
-                      type="button"
-                      className="inline-flex shrink-0 rounded p-0.5 text-[#DA9811] hover:text-[#f0b94a] focus-visible:outline focus-visible:outline-offset-1 focus-visible:outline-[#DA9811]"
-                      aria-label="Replace striker"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setBatsmanDialogReplaceStriker(true);
-                        setAddBatsmanOpen(true);
-                      }}
-                    >
-                      <HeaderEditPencilIcon />
-                    </button>
-                  ) : null}
-                  <span>Batsman</span>
-                </div>
-              </th>
-              {['R', 'B', '4s', '6s', 'SR'].map((h) => (
-                <th
-                  key={h}
-                  className={`${HEADER_BG} w-[2rem] border-r border-b py-2.5 text-center font-bold text-white ${BORDER}`}
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {battingOrder.length === 0
-              ? Array.from({ length: EMPTY_SQUAD_PLACEHOLDER_ROWS }, (_, i) => (
-                <tr
-                  key={`batsman-placeholder-${i}`}
-                  className="pointer-events-none"
-                  aria-hidden
-                >
-                  <td
-                    className={`border-r border-b border-l ${BORDER} px-4 py-3`}
-                  >
-                    <span className="block min-h-[1.125rem] text-[12px] text-white/20">
-                      {'\u00a0'}
-                    </span>
-                  </td>
-                  {[0, 1, 2, 3, 4].map((j) => (
-                    <td
-                      key={j}
-                      className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white/20`}
-                    >
-                      {'\u00a0'}
-                    </td>
-                  ))}
-                </tr>
-              ))
-              : batsmenOnCrease.length === 0
-                ? Array.from({ length: EMPTY_SQUAD_PLACEHOLDER_ROWS }, (_, i) => (
-                  <tr
-                    key={`batsman-pending-${i}`}
-                    className="pointer-events-none"
-                    aria-hidden
-                  >
-                    <td
-                      className={`border-r border-b border-l ${BORDER} px-4 py-3`}
-                    >
-                      <span className="block min-h-[1.125rem] text-[12px] text-white/20">
-                        {'\u00a0'}
-                      </span>
-                    </td>
-                    {[0, 1, 2, 3, 4].map((j) => (
-                      <td
-                        key={j}
-                        className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white/20`}
-                      >
-                        {'\u00a0'}
-                      </td>
-                    ))}
-                  </tr>
-                ))
-                : batsmenOnCrease.slice(0, 2).map((b, creaseIndex) => {
-                  const stats = getBatsmanDisplayStats(b.id);
-                  const isStriker = creaseIndex === strikerIndex;
-                  const display = stats
-                      ? {
-                        runs: stats.runs,
-                        balls: stats.balls,
-                        fours: stats.fours,
-                        sixes: stats.sixes,
-                        sr: stats.strikeRate,
-                      }
-                      : { runs: 0, balls: 0, fours: 0, sixes: 0, sr: '0.0' };
-                  return (
-                    <tr
-                      key={b.id}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => setStrikerIndex?.(creaseIndex)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          setStrikerIndex?.(creaseIndex);
-                        }
-                      }}
-                      className="cursor-pointer transition-opacity active:opacity-90"
-                    >
-                      <td
-                        className={`border-r border-b border-l ${BORDER} px-4 py-3`}
-                      >
-                        <span className="flex items-center gap-2">
-                          <span
-                            className={`text-[12px] font-medium ${isStriker ? 'text-[#DA9811]' : 'text-white'}`}
-                          >
-                            {b.name ?? DASH}
-                          </span>
-                          {isStriker && (
-                            <span
-                              className="scoring-blink-dot inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full bg-red-500"
-                              aria-label="On strike"
-                            />
-                          )}
-                        </span>
-                      </td>
-                      {[
-                        display.runs,
-                        display.balls,
-                        display.fours,
-                        display.sixes,
-                        display.sr,
-                      ].map((val, i) => (
-                        <td
-                          key={i}
-                          className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white`}
-                        >
-                          {val ?? DASH}
-                        </td>
-                      ))}
-                    </tr>
-                  );
-                })}
-          </tbody>
-        </table>
-        {canAddMoreBatsmen && !matchComplete && (
-          <div
-            className="pointer-events-none absolute inset-x-0 top-0 bottom-0 z-0 flex min-h-[5rem] items-center justify-center"
-            aria-hidden
-          >
-            <Button
-              type="button"
-              variant="dark"
-              size="md"
-              className="pointer-events-auto flex flex-col items-center gap-1.5"
-              aria-label="Add Batsman"
-              onClick={() => setAddBatsmanOpen(true)}
-            >
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#DA9811] text-[#080807]">
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={5}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-              </span>
-              <span className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
-                Add Batsman
-              </span>
-            </Button>
-          </div>
-        )}
-      </div>
+      {/* Batsmen table */}
+      <BatsmenTable
+        batsmenOnCrease={batsmenOnCrease}
+        strikerIndex={strikerIndex}
+        onStrikerChange={setStrikerIndex}
+        retiredBatsmen={retiredBatsmen}
+        hasSquad={battingOrder.length > 0}
+        matchComplete={matchComplete}
+        onAddBatsman={() => setAddBatsmanOpen(true)}
+        onReplaceStriker={() => {
+          setBatsmanDialogReplaceStriker(true);
+          setAddBatsmanOpen(true);
+        }}
+      />
 
-      {/* Bowler table — @cursor-enhancement: Extract as <BowlerTable /> */}
-      <div className="relative overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <table className="w-full border-collapse text-[12px]">
-          <thead>
-            <tr className={HEADER_BG}>
-              <th
-                className={`${HEADER_BG} min-w-[8.5rem] border-r border-b border-l px-4 py-2.5 text-left font-bold text-white ${BORDER}`}
-              >
-                <div className="inline-flex max-w-full min-w-0 items-center gap-1.5 whitespace-nowrap">
-                  {!matchComplete && activeBowlerDisplay ? (
-                    <button
-                      type="button"
-                      className="inline-flex shrink-0 rounded p-0.5 text-[#DA9811] hover:text-[#f0b94a] focus-visible:outline focus-visible:outline-offset-1 focus-visible:outline-[#DA9811]"
-                      aria-label="Replace bowler"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setBowlerDialogReplaceActive(true);
-                        setAddBowlerOpen(true);
-                      }}
-                    >
-                      <HeaderEditPencilIcon />
-                    </button>
-                  ) : null}
-                  <span>Bowler</span>
-                </div>
-              </th>
-              {['O', 'M', 'R', 'W', 'ECON'].map((h) => (
-                <th
-                  key={h}
-                  className={`${HEADER_BG} ${h === 'ECON' ? 'w-14' : 'w-[2rem]'} border-r border-b py-2.5 text-center font-bold text-white ${BORDER}`}
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {bowlingOrder.length === 0 ? (
-              Array.from({ length: BOWLER_TABLE_PLACEHOLDER_ROWS }, (_, i) => (
-                <tr
-                  key={`bowler-placeholder-${i}`}
-                  className="pointer-events-none"
-                  aria-hidden
-                >
-                  <td
-                    className={`border-r border-b border-l ${BORDER} bg-black px-4 py-3`}
-                  >
-                    <span className="block min-h-[1.125rem] text-[12px] text-white/20">
-                      {'\u00a0'}
-                    </span>
-                  </td>
-                  {[0, 1, 2, 3, 4].map((j) => (
-                    <td
-                      key={j}
-                      className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white/20`}
-                    >
-                      {'\u00a0'}
-                    </td>
-                  ))}
-                </tr>
-              ))
-            ) : !activeBowlerDisplay ? (
-              Array.from({ length: BOWLER_TABLE_PLACEHOLDER_ROWS }, (_, i) => (
-                <tr
-                  key={`bowler-pending-${i}`}
-                  className="pointer-events-none"
-                  aria-hidden
-                >
-                  <td
-                    className={`border-r border-b border-l ${BORDER} bg-black px-4 py-3`}
-                  >
-                    <span className="block min-h-[1.125rem] text-[12px] text-white/20">
-                      {'\u00a0'}
-                    </span>
-                  </td>
-                  {[0, 1, 2, 3, 4].map((j) => (
-                    <td
-                      key={j}
-                      className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white/20`}
-                    >
-                      {'\u00a0'}
-                    </td>
-                  ))}
-                </tr>
-              ))
-            ) : (
-              <tr key={activeBowlerDisplay.bowler.id} aria-current="true">
-                <td
-                  className={`border-r border-b border-l ${BORDER} bg-black px-4 py-3`}
-                >
-                  <span className="flex items-center gap-2">
-                    <span className="text-[12px] font-medium text-[#DA9811]">
-                      {activeBowlerDisplay.bowler.name ?? DASH}
-                    </span>
-                    <span
-                      className="scoring-blink-dot inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full bg-red-500"
-                      aria-label="Bowling"
-                    />
-                  </span>
-                </td>
-                {[
-                  activeBowlerDisplay.o,
-                  activeBowlerDisplay.m,
-                  activeBowlerDisplay.r,
-                  activeBowlerDisplay.w,
-                  activeBowlerDisplay.econ,
-                ].map((val, i) => (
-                  <td
-                    key={i}
-                    className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white`}
-                  >
-                    {val ?? DASH}
-                  </td>
-                ))}
-              </tr>
-            )}
-          </tbody>
-        </table>
-        {showAddBowlerOverlay && (
-          <div
-            className="pointer-events-none absolute inset-x-0 top-0 bottom-0 z-0 flex min-h-[5rem] items-center justify-center"
-            aria-hidden
-          >
-            <Button
-              type="button"
-              variant="dark"
-              size="md"
-              className="pointer-events-auto flex flex-col items-center gap-1.5"
-              aria-label="Add Bowler"
-              onClick={() => setAddBowlerOpen(true)}
-            >
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#DA9811] text-[#080807]">
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={5}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-              </span>
-              <span className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
-                Add Bowler
-              </span>
-            </Button>
-          </div>
-        )}
-      </div>
+      {/* Bowler table */}
+      <BowlerTable
+        bowlersInTable={bowlersInTable}
+        currentBowlerIndex={currentBowlerIndex}
+        hasSquad={bowlingOrder.length > 0}
+        matchComplete={matchComplete}
+        onAddBowler={() => setAddBowlerOpen(true)}
+        onReplaceBowler={() => {
+          setBowlerDialogReplaceActive(true);
+          setAddBowlerOpen(true);
+        }}
+      />
 
-      {/* Over strip — @cursor-enhancement: Extract as <OverStrip /> */}
-      {oversFromBalls.length > 0 && (
-        <div className="mt-4 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() =>
-              overStatsScrollRef.current?.scrollBy({
-                left: -200,
-                behavior: 'smooth',
-              })
-            }
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1C1C1A] text-white transition-opacity hover:opacity-90 active:opacity-80"
-            aria-label="Previous overs"
-          >
-            <span className="text-lg font-bold">&lsaquo;</span>
-          </button>
-          <div
-            ref={overStatsScrollRef}
-            className="flex flex-1 flex-nowrap items-center gap-3 overflow-x-auto py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          >
-            {oversFromBalls.map(({ overIndex, balls }) => (
-              <div
-                key={overIndex}
-                className="flex shrink-0 items-center gap-2 border-r border-[#1C1C1A] pr-3 last:border-r-0 last:pr-0"
-              >
-                <span className="text-[11px] font-medium tracking-wide text-[#6B7280] uppercase">
-                  {overOrdinal(overIndex)}
-                </span>
-                <div className="flex gap-1">
-                  {balls.map((b, i) => {
-                    const { label, variant } = getBallDisplay(b);
-                    return (
-                      <span
-                        key={i}
-                        className={`flex h-7 min-w-[1.75rem] items-center justify-center rounded-md text-[12px] font-bold ${ballChipClass(variant)}`}
-                      >
-                        {label}
-                      </span>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-          <button
-            type="button"
-            onClick={() =>
-              overStatsScrollRef.current?.scrollBy({
-                left: 200,
-                behavior: 'smooth',
-              })
-            }
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1C1C1A] text-white transition-opacity hover:opacity-90 active:opacity-80"
-            aria-label="Next overs"
-          >
-            <span className="text-lg font-bold">&rsaquo;</span>
-          </button>
-        </div>
-      )}
+      {/* Over strip */}
+      <OverStrip
+        oversFromBalls={oversFromBalls}
+        scrollRef={overStatsScrollRef}
+      />
 
-      {/* Scoring controls — @cursor-enhancement: Extract as <ScoringControls /> */}
-      {batsmenOnCrease.length === 2 &&
-        bowlersInTable.length > 0 &&
-        !matchComplete && (
-        <div className="mt-6 flex flex-col items-center gap-4 pb-8">
-          <div className="flex flex-wrap justify-center gap-2">
-            {[0, 1, 2, 3, 4, 5, 6].map((runs) => (
-              <button
-                key={runs}
-                type="button"
-                onClick={() =>
-                    runs === 0 ? handleRuns(0) : openShotAreaDialog(runs)
-                }
-                className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full text-[14px] font-bold text-white transition-opacity active:opacity-80"
-                style={{ backgroundColor: RUN_BUTTON_BG[runs] }}
-                aria-label={`${runs} run${runs !== 1 ? 's' : ''}`}
-              >
-                {runs}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={openCustomScoreDialog}
-              className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#46463F] text-[25px] font-bold text-[#DA9811] transition-opacity active:opacity-80"
-              aria-label="Add custom score"
-            >
-                +
-            </button>
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-2">
-            {extraTypeOptions.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => {
-                  if (
-                    opt.value === 'wd' ||
-                      opt.value === 'nb' ||
-                      opt.value === 'bye' ||
-                      opt.value === 'lb'
-                  ) {
-                    setPendingExtraType(opt.value);
-                    setExtraRunsDialogOpen(true);
-                  } else {
-                    handleSpecial(opt.value);
-                  }
-                }}
-                className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#141412] text-[12px] font-bold text-white uppercase transition-opacity active:opacity-80"
-                aria-label={opt.label}
-              >
-                {opt.short_label}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={() => {
-                if (batsmenOnCrease.length === 2 && bowlersInTable.length > 0)
-                  setOutReasonModalOpen(true);
-              }}
-              className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#141412] text-[12px] font-bold text-[#DA9811] uppercase transition-opacity active:opacity-80"
-              aria-label="Out"
-            >
-                OUT
-            </button>
-            <button
-              type="button"
-              onClick={handleUndo}
-              className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-red-500 bg-[#141412] text-[8px] font-bold text-red-500 uppercase transition-opacity active:opacity-80"
-              aria-label="Undo"
-            >
-              <span className="flex flex-col items-center">
-                <svg
-                  className="h-3 w-3"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M3 10h10a5 5 0 0 1 5 5v2" />
-                  <path d="M3 10l4-4M3 10l4 4" />
-                </svg>
-                  UNDO
-              </span>
-            </button>
-          </div>
-        </div>
+      {/* Scoring controls (hidden when match is complete or teams not ready) */}
+      {isReadyToScore && (
+        <ScoringControls
+          pendingFreeHit={pendingFreeHit}
+          extraTypeOptions={extraTypeOptions}
+          onRun={handleRuns}
+          onRunWithShot={openShotArea}
+          onExtra={(type) => {
+            setPendingExtraType(type);
+            setExtraRunsDialogOpen(true);
+          }}
+          onPenaltyRuns={handlePenaltyRuns}
+          onOut={() => setOutReasonModalOpen(true)}
+          onRetiredHurt={() => setRetiredHurtConfirmOpen(true)}
+          onUndo={handleUndo}
+          onCustomScore={openCustomScore}
+        />
       )}
 
       {/* ── Dialogs ──────────────────────────────────────────────────────────── */}
@@ -1367,7 +844,7 @@ export function ScoringTab({
       <OutReasonDialog
         open={outReasonModalOpen}
         onOpenChange={setOutReasonModalOpen}
-        dismissalOptions={dismissalOptions}
+        dismissalOptions={activeDismissalOptions}
         onSelectOption={(opt) => {
           if (needsFielder(opt)) {
             setPendingDismissal(opt.value);
@@ -1396,17 +873,53 @@ export function ScoringTab({
         onSelectFielder={(playerId) => handleOut(pendingDismissal, playerId)}
       />
 
+      {/* Retired Hurt confirmation */}
+      {retiredHurtConfirmOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 pb-8"
+          role="dialog"
+          aria-modal
+          aria-label="Confirm retired hurt"
+        >
+          <div className="w-full max-w-sm rounded-t-2xl bg-[#141412] px-6 pt-6 pb-8">
+            <p className="mb-1 text-center text-[15px] font-bold text-white">
+              Retired Hurt?
+            </p>
+            <p className="mb-6 text-center text-[12px] text-white/60">
+              {batsmenOnCrease[strikerIndex]?.name ?? 'Batsman'} will leave the
+              crease. This does NOT count as a wicket and they may return later.
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setRetiredHurtConfirmOpen(false)}
+                className="flex-1 rounded-xl border border-[#3B3B35] py-3 text-[13px] font-bold text-white/70"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleRetiredHurtConfirm}
+                className="flex-1 rounded-xl bg-[#DA9811] py-3 text-[13px] font-bold text-[#080807]"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ShotAreaDialog
         open={shotAreaDialogOpen}
-        onOpenChange={(open) => !open && closeShotAreaDialog()}
-        onSelect={handleShotDirectionSelect}
+        onOpenChange={(open) => !open && closeShotArea()}
+        onSelect={handleShotSelect}
         zones={shotPositionOptions.length > 0 ? shotPositionOptions : undefined}
       />
 
       <CustomScoreDialog
         open={customScoreDialogOpen}
         onOpenChange={(open) => {
-          if (!open) closeCustomScoreDialog();
+          if (!open) closeCustomScore();
         }}
         value={customScoreInput}
         onChange={setCustomScoreInput}
@@ -1467,7 +980,11 @@ export function ScoringTab({
         bowlersInTable={bowlersInTable}
         onSelectBowlerForNextOver={selectBowlerForNextOver}
         replaceActiveBowlerMode={bowlerDialogReplaceActive}
-        activeBowlerId={activeBowlerDisplay?.bowler?.id}
+        activeBowlerId={
+          bowlersInTable[
+            Math.min(Math.max(0, currentBowlerIndex), bowlersInTable.length - 1)
+          ]?.id
+        }
         onReplaceActiveBowlerPick={handleReplaceActiveBowlerPick}
       />
     </div>

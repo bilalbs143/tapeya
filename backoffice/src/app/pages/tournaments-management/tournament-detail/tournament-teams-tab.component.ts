@@ -135,8 +135,7 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
                 this.messageService.success('Team removed from tournament.');
                 this.load();
               },
-              error: () =>
-                this.messageService.error('Could not remove team. Check matches and toss status.'),
+              error: () => this.messageService.error('Could not remove team. Check matches and toss status.'),
             });
           }
         })

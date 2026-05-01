@@ -55,25 +55,46 @@ export default function StatsDefault() {
               196-7
             </p>
           </div>
-          <div className="mx-0.5 w-px self-stretch sm:mx-3" style={separatorStyle} />
+          <div
+            className="mx-0.5 w-px self-stretch sm:mx-3"
+            style={separatorStyle}
+          />
 
           <div className="flex items-center px-0.5 sm:hidden">
             <div>
               <div className="flex items-center gap-0.5 leading-none">
-                <span className="w-[34px] text-[7px] font-medium text-[#E8E8E8]">{batters[0].name}</span>
-                <span className="text-[7px] font-bold text-[#DA9811]">{batters[0].runs}</span>
-                <span className="text-[6px] font-bold text-[#DA9811]">{batters[0].balls}</span>
+                <span className="w-[34px] text-[7px] font-medium text-[#E8E8E8]">
+                  {batters[0].name}
+                </span>
+                <span className="text-[7px] font-bold text-[#DA9811]">
+                  {batters[0].runs}
+                </span>
+                <span className="text-[6px] font-bold text-[#DA9811]">
+                  {batters[0].balls}
+                </span>
               </div>
-              <div className="my-0.5 h-px w-[34px]" style={batterSeparatorStyle} />
+              <div
+                className="my-0.5 h-px w-[34px]"
+                style={batterSeparatorStyle}
+              />
               <div className="flex items-center gap-0.5 leading-none">
-                <span className="w-[34px] text-[7px] font-medium text-[#E8E8E8]">{batters[1].name}</span>
-                <span className="text-[7px] font-bold text-[#DA9811]">{batters[1].runs}</span>
-                <span className="text-[6px] font-bold text-[#DA9811]">{batters[1].balls}</span>
+                <span className="w-[34px] text-[7px] font-medium text-[#E8E8E8]">
+                  {batters[1].name}
+                </span>
+                <span className="text-[7px] font-bold text-[#DA9811]">
+                  {batters[1].runs}
+                </span>
+                <span className="text-[6px] font-bold text-[#DA9811]">
+                  {batters[1].balls}
+                </span>
               </div>
             </div>
           </div>
 
-          <div className="mx-0.5 w-px self-stretch sm:hidden" style={separatorStyle} />
+          <div
+            className="mx-0.5 w-px self-stretch sm:hidden"
+            style={separatorStyle}
+          />
 
           <div className="hidden items-center px-3 sm:flex sm:px-6">
             <div>
@@ -84,10 +105,15 @@ export default function StatsDefault() {
                 <span className="text-[24px] font-bold text-[#DA9811]">
                   {batters[0].runs}
                 </span>
-                <span className="text-[16px] font-bold text-[#DA9811]">{batters[0].balls}</span>
+                <span className="text-[16px] font-bold text-[#DA9811]">
+                  {batters[0].balls}
+                </span>
               </div>
 
-              <div className="my-1 h-px w-[72px]" style={batterSeparatorStyle} />
+              <div
+                className="my-1 h-px w-[72px]"
+                style={batterSeparatorStyle}
+              />
 
               <div className="flex items-center gap-3 leading-none">
                 <span className="w-[72px] text-[14px] font-medium text-[#E8E8E8]">
@@ -96,7 +122,9 @@ export default function StatsDefault() {
                 <span className="text-[24px] font-bold text-[#DA9811]">
                   {batters[1].runs}
                 </span>
-                <span className="text-[16px] font-bold text-[#DA9811]">{batters[1].balls}</span>
+                <span className="text-[16px] font-bold text-[#DA9811]">
+                  {batters[1].balls}
+                </span>
               </div>
             </div>
           </div>
@@ -110,7 +138,7 @@ export default function StatsDefault() {
                 KKR
               </p>
             </div>
-          
+
             <div className="flex items-center px-0.5 sm:px-3">
               <img
                 src={teamLogo}
@@ -118,18 +146,30 @@ export default function StatsDefault() {
                 className="h-7 w-7 rounded-full object-cover sm:h-14 sm:w-14"
               />
             </div>
-            <div className="mx-0.5 w-px self-stretch sm:mx-3" style={separatorStyle} />
+            <div
+              className="mx-0.5 w-px self-stretch sm:mx-3"
+              style={separatorStyle}
+            />
 
             <div className="flex items-center pl-0.5 sm:pl-6">
               <div>
                 <div className="mb-0.5 flex items-end justify-between gap-2 font-medium sm:mb-2 sm:gap-6">
                   <div>
-                    <p className="text-[7px] leading-none text-[#E8E8E8] sm:text-[14px]">Arqam</p>
-                    <div className="mt-0.5 h-px w-[28px] sm:mt-2 sm:w-[72px]" style={batterSeparatorStyle} />
+                    <p className="text-[7px] leading-none text-[#E8E8E8] sm:text-[14px]">
+                      Arqam
+                    </p>
+                    <div
+                      className="mt-0.5 h-px w-[28px] sm:mt-2 sm:w-[72px]"
+                      style={batterSeparatorStyle}
+                    />
                   </div>
                   <div className="mb-1 flex items-baseline gap-1 sm:gap-4">
-                    <p className="text-[7px] leading-none text-[#E8E8E8] sm:text-[18px]">0-44</p>
-                    <p className="text-[7px] leading-none text-[#E8E8E8] sm:text-[14px]">3.0</p>
+                    <p className="text-[7px] leading-none text-[#E8E8E8] sm:text-[18px]">
+                      0-44
+                    </p>
+                    <p className="text-[7px] leading-none text-[#E8E8E8] sm:text-[14px]">
+                      3.0
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-0.5 sm:gap-2">

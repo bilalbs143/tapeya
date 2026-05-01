@@ -3,11 +3,11 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { BOTTOM_NAV_HEIGHT, FLOATING_CART_Z } from '@/lib/constants/layout';
+import { useGetCartQuery } from '@/store/api/shopApi';
 
 const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const shoppingCartIcon = `${CLOUDFRONT_APP_BASE}/images/icons/shopping-cart.svg`;
-import { useGetCartQuery } from '@/store/api/shopApi';
 
 export function FloatingCartButton() {
   const navigate = useNavigate();

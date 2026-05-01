@@ -1,14 +1,4 @@
-import {
-  Component,
-  computed,
-  DestroyRef,
-  EventEmitter,
-  inject,
-  Input,
-  OnInit,
-  Output,
-  Signal,
-} from '@angular/core';
+import { Component, computed, DestroyRef, EventEmitter, inject, Input, OnInit, Output, Signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterModule } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
@@ -26,7 +16,11 @@ import type { Notification } from 'src/app/services/notifications.service';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { HEADER_NOTIFICATION_PREVIEW_PER_PAGE } from 'src/app/shared/config/paginator.config';
 import { ADMIN_NOTIFICATION_TYPE_LABELS, AdminNotificationType } from 'src/app/shared/constants/notification.constants';
-import { authUserDisplayName, authUserDisplayRole, isAdmin as authUserIsAdmin } from 'src/app/shared/functions/auth-user-display';
+import {
+  authUserDisplayName,
+  authUserDisplayRole,
+  isAdmin as authUserIsAdmin,
+} from 'src/app/shared/functions/auth-user-display';
 
 interface profiledd {
   id: number;
@@ -66,7 +60,7 @@ export class AppHorizontalHeaderComponent implements OnInit {
 
   public readonly isAdmin = computed(() => authUserIsAdmin(this.auth.currentUser()));
 
-  public constructor() {
+  constructor() {
     this.notificationsService.adminInboxBroadcast$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.loadNotifications());
@@ -143,5 +137,4 @@ export class AppHorizontalHeaderComponent implements OnInit {
       link: '/',
     },
   ];
-
 }

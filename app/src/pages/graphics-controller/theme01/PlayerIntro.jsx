@@ -44,7 +44,9 @@ export default function PlayerIntro() {
                   Qaderr
                 </p>
                 <div className="mt-3 h-px w-full bg-[#FFFFFF24]" />
-                <p className="mt-3 text-[13px] leading-none sm:text-[14px]">KKR</p>
+                <p className="mt-3 text-[13px] leading-none sm:text-[14px]">
+                  KKR
+                </p>
                 <p className="mt-2 text-[13px] leading-none sm:text-[14px]">
                   Right Hand Batsman
                 </p>

@@ -4,7 +4,7 @@ function GlowBackground() {
       <div className="absolute -top-10 left-1/3 h-40 w-40 rounded-full bg-[#C57A12]/30 blur-3xl" />
       <div className="absolute top-16 right-16 h-28 w-28 rounded-full bg-[#E3A63B]/25 blur-2xl" />
       <div className="absolute bottom-12 left-8 h-36 w-36 rounded-full bg-[#A85E08]/30 blur-3xl" />
-      <div className="absolute bottom-10 right-10 h-24 w-24 rounded-full bg-[#E8A020]/25 blur-2xl" />
+      <div className="absolute right-10 bottom-10 h-24 w-24 rounded-full bg-[#E8A020]/25 blur-2xl" />
     </div>
   );
 }

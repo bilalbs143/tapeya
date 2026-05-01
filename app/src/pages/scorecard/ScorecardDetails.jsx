@@ -189,8 +189,8 @@ export default function ScorecardDetails() {
           </svg>
         </button>
         <div className="min-w-0 flex-1 pr-[27px] text-center">
-          <h1 className="text-[16px] font-bold leading-snug tracking-wide text-white uppercase">
-            <span className="whitespace-normal break-words">SCORE CARD - </span>
+          <h1 className="text-[16px] leading-snug font-bold tracking-wide text-white uppercase">
+            <span className="break-words whitespace-normal">SCORE CARD - </span>
             <span className="text-[#DA9811] normal-case">
               {headerTitleHighlight}
             </span>

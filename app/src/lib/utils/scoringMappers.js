@@ -1,34 +1,81 @@
 /**
- * Scoring mappers – convert between API (match, scorecard, balls) and UI shape.
- * Keeps API enum values (dismissal_type, shot_position) aligned with backend.
+ * scoringMappers.js
+ *
+ * Convert between API shapes (match, scorecard, balls, enums) and UI shapes.
+ * Pure functions — no React, no side effects.
  */
 
-// -----------------------------------------------------------------------------
-// Dismissal type: API GET /enums (dismissal_type) only – no fallback list
-// API returns { value, label, requires_fielder } per option.
-// -----------------------------------------------------------------------------
+// ─── Dismissal options ────────────────────────────────────────────────────────
 
-/** Dismissal options from API enums only. Returns [] if API not loaded or empty. */
+/**
+ * Build the dismissal pick-list from API enums.
+ * Returns [] if API enums are not yet loaded.
+ *
+ * @param {object[]|undefined} enumOptions  GET /enums → dismissal_type
+ * @returns {{ value: string, label: string, requires_fielder: boolean, valid_on_free_hit: boolean }[]}
+ */
 export function getDismissalOptions(enumOptions) {
   if (!Array.isArray(enumOptions) || enumOptions.length === 0) return [];
   return enumOptions.map((o) => ({
     value: o.value,
     label: o.label,
     requires_fielder: Boolean(o.requires_fielder),
+    valid_on_free_hit: Boolean(o.valid_on_free_hit),
+    counts_as_wicket: o.counts_as_wicket !== false, // default true unless explicitly false
   }));
 }
 
-/** Whether this dismissal option requires a fielder (from API enum). */
+/**
+ * Whether a dismissal option requires a fielder ID.
+ * @param {{ requires_fielder: boolean }|string} option
+ */
 export function dismissalRequiresFielder(option) {
-  return Boolean(option?.requires_fielder);
+  return Boolean(
+    typeof option === 'object' && option !== null
+      ? option.requires_fielder
+      : false,
+  );
 }
 
-// -----------------------------------------------------------------------------
-// Extra type: API GET /enums (extra_type) for WD, NB, BYE, LB buttons
-// API returns { value, label, short_label } per option. value = ball type ('wd', 'nb', etc.).
-// -----------------------------------------------------------------------------
+/**
+ * Filter dismissal options to only those valid on a free-hit delivery.
+ * Falls back to run_out / obstructing_the_field / hit_ball_twice if
+ * the API enum does not carry a valid_on_free_hit flag.
+ *
+ * @param {object[]} options
+ * @returns {object[]}
+ */
+export function getFreeHitDismissalOptions(options) {
+  if (!Array.isArray(options)) return [];
+  const FREE_HIT_TYPES = new Set([
+    'run_out',
+    'obstructing_the_field',
+    'hit_ball_twice',
+  ]);
+  return options.filter((o) =>
+    o.valid_on_free_hit !== undefined
+      ? o.valid_on_free_hit
+      : FREE_HIT_TYPES.has(o.value),
+  );
+}
 
-/** Extra type options from API only. Returns [] if not loaded or empty. */
+/**
+ * Dismissal options that do NOT count as a wicket (for retired_hurt).
+ * @param {object[]} options
+ */
+export function getNonWicketDismissalOptions(options) {
+  if (!Array.isArray(options)) return [];
+  return options.filter((o) => o.counts_as_wicket === false);
+}
+
+// ─── Extra type options ───────────────────────────────────────────────────────
+
+/**
+ * Build the extras type pick-list (WD / NB / Bye / LB buttons) from API enums.
+ *
+ * @param {object[]|undefined} enumOptions  GET /enums → extra_type
+ * @returns {{ value: string, label: string, short_label: string }[]}
+ */
 export function getExtraTypeOptions(enumOptions) {
   if (!Array.isArray(enumOptions) || enumOptions.length === 0) return [];
   return enumOptions.map((o) => ({
@@ -38,11 +85,9 @@ export function getExtraTypeOptions(enumOptions) {
   }));
 }
 
-// -----------------------------------------------------------------------------
-// Shot position: API GET /enums (shot_position) for shot-direction picker
-// -----------------------------------------------------------------------------
+// ─── Shot position options ────────────────────────────────────────────────────
 
-/** Split label into two lines for stadium SVG (e.g. "Deep Fine Leg" -> "DEEP FINE", "LEG"). */
+/** Split a label into two lines for the stadium SVG. */
 function labelToTwoLines(label) {
   if (!label || typeof label !== 'string') return { line1: '', line2: '' };
   const upper = label.toUpperCase().trim();
@@ -55,7 +100,12 @@ function labelToTwoLines(label) {
   };
 }
 
-/** Shot position options from API; each zone has id (value), label, labelLine1, labelLine2. */
+/**
+ * Build shot position options from API enums.
+ *
+ * @param {object[]|undefined} enumOptions  GET /enums → shot_position
+ * @returns {{ id: string, value: string, label: string, labelLine1: string, labelLine2: string }[]}
+ */
 export function getShotPositionOptions(enumOptions) {
   if (!Array.isArray(enumOptions) || enumOptions.length === 0) return [];
   return enumOptions.map((o) => {
@@ -70,11 +120,9 @@ export function getShotPositionOptions(enumOptions) {
   });
 }
 
-// -----------------------------------------------------------------------------
-// Start Match form: match_overs, players_per_side
-// -----------------------------------------------------------------------------
+// ─── Start-match form options ─────────────────────────────────────────────────
 
-/** Options from API only. Value may be number (overs, players) or string. */
+/** Match overs options from API enums. */
 export function getMatchOversOptions(enumOptions) {
   if (!Array.isArray(enumOptions) || enumOptions.length === 0) return [];
   return enumOptions.map((o) => ({
@@ -83,6 +131,7 @@ export function getMatchOversOptions(enumOptions) {
   }));
 }
 
+/** Players per side options from API enums. */
 export function getPlayersPerSideOptions(enumOptions) {
   if (!Array.isArray(enumOptions) || enumOptions.length === 0) return [];
   return enumOptions.map((o) => ({
@@ -91,14 +140,16 @@ export function getPlayersPerSideOptions(enumOptions) {
   }));
 }
 
-/** Get label for a value from options list (e.g. for InfoTab display). */
+/** Get display label for an enum value (e.g. for InfoTab). */
 export function getOptionLabel(options, value) {
   if (value == null || value === '') return '—';
   const opt = Array.isArray(options) && options.find((o) => o.value === value);
   return opt ? opt.label : String(value);
 }
 
-/** UI label -> API value. Uses API enum only; if not found returns slugified label. */
+// ─── Dismissal label ↔ value ──────────────────────────────────────────────────
+
+/** UI label → API value.  Falls back to a slugified form of the label. */
 export function dismissalLabelToValue(label, enumOptions) {
   const list = Array.isArray(enumOptions) ? enumOptions : [];
   const found = list.find((o) => (o.label || o.value) === label);
@@ -106,7 +157,7 @@ export function dismissalLabelToValue(label, enumOptions) {
   return (label || '').toLowerCase().replace(/\s+/g, '_');
 }
 
-/** API value -> UI label. Uses API enum only; if not found returns value or '—'. */
+/** API value → UI label.  Falls back to the raw value. */
 export function dismissalValueToLabel(value, enumOptions) {
   if (value == null || value === '') return '—';
   const list = Array.isArray(enumOptions) ? enumOptions : [];
@@ -114,50 +165,82 @@ export function dismissalValueToLabel(value, enumOptions) {
   return found ? found.label : (value ?? '—');
 }
 
-// -----------------------------------------------------------------------------
-// API ball -> UI ball (for ballHistory, getRunsFromBall, etc.)
-// -----------------------------------------------------------------------------
+// ─── API ball → UI ball ───────────────────────────────────────────────────────
 
 /**
- * Convert a single API ball to UI ball shape.
- * UI shape: { type: 'runs'|'out'|'wd'|'nb'|'bye'|'lb', runs?, strikerId?, bowlerId?, striker?, dismissalType?, dismissalLabel?, fielderId?, id? }
- * dismissalLabel comes from API dismissal_type_label (display only).
+ * Convert a single API ball object to UI-shape.
+ *
+ * UI shape:
+ *   {
+ *     type: 'runs'|'out'|'wd'|'nb'|'bye'|'lb'|'retired_hurt',
+ *     runs?: number,
+ *     isFreeHit?: boolean,
+ *     penaltyRuns?: number,
+ *     strikerId?, nonStrikerId?, bowlerId?,
+ *     shotDirection?,
+ *     id?,
+ *     // only when type === 'out' or 'retired_hurt':
+ *     dismissalType?, dismissalLabel?, fielderId?,
+ *     striker?: { id, name, runs, balls, fours, sixes, ... },
+ *   }
+ *
+ * @param {object} apiBall
+ * @param {Record<string,string>} playerIdToName  id → display name map
+ * @returns {object|null}
  */
 export function apiBallToUiBall(apiBall, playerIdToName = {}) {
   if (!apiBall) return null;
-  const id = apiBall.id;
-  const runs = apiBall.runs ?? 0;
-  const isWicket = apiBall.is_wicket === true;
-  const isWide = apiBall.is_wide === true;
-  const isNoBall = apiBall.is_no_ball === true;
-  const isBye = apiBall.is_bye === true;
-  const isLegBye = apiBall.is_leg_bye === true;
 
+  const {
+    id,
+    runs = 0,
+    is_wicket: isWicket = false,
+    is_wide: isWide = false,
+    is_no_ball: isNoBall = false,
+    is_bye: isBye = false,
+    is_leg_bye: isLegBye = false,
+    is_free_hit: isFreeHit = false,
+    penalty_runs: penaltyRuns = 0,
+    dismissal_type: dismissalType = null,
+    dismissal_type_label: dismissalLabel,
+    fielder_id: fielderId,
+    shot_position: shotPosition,
+    striker_id: strikerId,
+    non_striker_id: nonStrikerId,
+    bowler_id: bowlerId,
+    out_player_id: outPlayerId,
+  } = apiBall;
+
+  // Determine UI ball type
   let type = 'runs';
-  if (isWicket) type = 'out';
-  else if (isWide) type = 'wd';
+  if (isWicket) {
+    type = dismissalType === 'retired_hurt' ? 'retired_hurt' : 'out';
+  } else if (isWide) type = 'wd';
   else if (isNoBall) type = 'nb';
   else if (isBye) type = 'bye';
   else if (isLegBye) type = 'lb';
 
   const ui = {
     type,
-    runs: type === 'wd' || type === 'nb' ? (runs > 0 ? runs : 1) : runs,
-    strikerId: apiBall.striker_id,
-    nonStrikerId: apiBall.non_striker_id,
-    bowlerId: apiBall.bowler_id,
-    shotDirection: apiBall.shot_position ?? undefined,
+    // WD/NB always contribute at least 1 run even if API sends 0.
+    runs: type === 'wd' || type === 'nb' ? Math.max(1, runs) : runs,
+    isFreeHit: Boolean(isFreeHit),
+    penaltyRuns: penaltyRuns || 0,
+    strikerId,
+    nonStrikerId,
+    bowlerId,
+    shotDirection: shotPosition ?? undefined,
     id,
   };
 
-  if (type === 'out') {
-    const outPlayerId = apiBall.out_player_id ?? apiBall.striker_id;
-    ui.dismissalType = apiBall.dismissal_type ?? null;
-    ui.dismissalLabel = apiBall.dismissal_type_label ?? undefined;
-    ui.fielderId = apiBall.fielder_id ?? undefined;
+  if (type === 'out' || type === 'retired_hurt') {
+    const outId = outPlayerId ?? strikerId;
+    ui.dismissalType = dismissalType ?? null;
+    ui.dismissalLabel = dismissalLabel ?? undefined;
+    ui.fielderId = fielderId ?? undefined;
     ui.striker = {
-      id: outPlayerId,
-      name: playerIdToName[outPlayerId] ?? '',
+      id: outId,
+      name: playerIdToName[outId] ?? '',
       runs: 0,
       balls: 0,
       fours: 0,
@@ -171,21 +254,25 @@ export function apiBallToUiBall(apiBall, playerIdToName = {}) {
 }
 
 /**
- * Convert scorecard innings balls to UI ballHistory.
- * Optionally pass a map striker_id/bowler_id/out_player_id -> name for display.
+ * Convert scorecard innings balls array to UI ball history.
+ *
+ * @param {object|null}            innings         API innings object (has .balls)
+ * @param {Record<string,string>}  playerIdToName  id → name map
+ * @returns {object[]}
  */
 export function scorecardInningsToBallHistory(innings, playerIdToName = {}) {
   const balls = innings?.balls ?? [];
-  return balls.map((b) => apiBallToUiBall(b, playerIdToName));
+  return balls.map((b) => apiBallToUiBall(b, playerIdToName)).filter(Boolean);
 }
 
+// ─── API partnerships → UI state ──────────────────────────────────────────────
+
 /**
- * Scorecard innings.partnerships → UI list shape + current stand totals.
- * Matches PlayerStatsService::partnershipsForInnings (wicket_number null = open stand).
- * Per-batter splits are not in the API; batter runs/balls are left null for display as "—".
+ * Convert API partnerships array to UI state.
+ * wicket_number === null → open (current) partnership.
  *
- * @param {Array<{ player_1_id: number, player_2_id: number, runs: number, balls: number, wicket_number: number|null }>} partnerships
- * @param {Record<string, string>} playerIdToName
+ * @param {object[]} partnerships
+ * @param {Record<string,string>} playerIdToName
  * @returns {{ completed: object[], current: { runs: number, balls: number }|null }}
  */
 export function apiPartnershipsToUiState(partnerships, playerIdToName = {}) {
@@ -193,25 +280,13 @@ export function apiPartnershipsToUiState(partnerships, playerIdToName = {}) {
   const label = (id) =>
     playerIdToName[String(id)] ?? (id != null ? `Player ${id}` : '—');
   const completed = [];
-  /** @type {{ runs: number, balls: number } | null} */
   let current = null;
 
-  for (let i = 0; i < list.length; i++) {
-    const p = list[i];
-    const id1 = p.player_1_id;
-    const id2 = p.player_2_id;
+  list.forEach((p, i) => {
     const row = {
-      id: `api-p-${i}-${id1}-${id2}`,
-      batter1: {
-        name: label(id1),
-        runs: null,
-        balls: null,
-      },
-      batter2: {
-        name: label(id2),
-        runs: null,
-        balls: null,
-      },
+      id: `api-p-${i}-${p.player_1_id}-${p.player_2_id}`,
+      batter1: { name: label(p.player_1_id), runs: null, balls: null },
+      batter2: { name: label(p.player_2_id), runs: null, balls: null },
       runs: p.runs ?? 0,
       balls: p.balls ?? 0,
     };
@@ -220,18 +295,19 @@ export function apiPartnershipsToUiState(partnerships, playerIdToName = {}) {
     } else {
       current = { runs: p.runs ?? 0, balls: p.balls ?? 0 };
     }
-  }
+  });
 
   return { completed, current };
 }
 
-// -----------------------------------------------------------------------------
-// UI ball -> API payload (for storeBall)
-// -----------------------------------------------------------------------------
+// ─── Ball position helpers ────────────────────────────────────────────────────
 
 /**
- * Compute over and ball_in_over from current ballHistory (only valid deliveries count).
- * Valid = not wide, not no-ball. ball_in_over is 1-6.
+ * Compute over number and ball-in-over from ball history (for storeBall payload).
+ * Only legal deliveries count. ball_in_over is 1-based (1-6).
+ *
+ * @param {object[]} ballHistory  current history BEFORE appending this ball
+ * @returns {{ over: number, ball_in_over: number }}
  */
 export function computeOverAndBallInOver(ballHistory) {
   let validCount = 0;
@@ -243,19 +319,24 @@ export function computeOverAndBallInOver(ballHistory) {
   return { over, ball_in_over: ballInOver };
 }
 
+// ─── UI ball → API storeBall payload ─────────────────────────────────────────
+
 /**
- * Build API storeBall payload from UI state.
- * @param {Object} params
- * @param {Array} params.ballHistory - current UI ballHistory (before appending this ball)
- * @param {Object} params.ball - UI ball being added (type, runs, strikerId, bowlerId, etc.)
- * @param {number} params.nonStrikerId - non-striker user id
- * @param {number} [params.fielderId] - required for caught, run_out, stumped
+ * Build the API storeBall request body from a UI ball object.
+ *
+ * @param {object} params
+ * @param {object[]} params.ballHistory     history BEFORE this ball
+ * @param {object}   params.ball            UI ball being added
+ * @param {number}   params.nonStrikerId    non-striker player ID
+ * @param {number}   [params.fielderId]     required for caught / run_out / stumped
+ * @param {boolean}  [params.isFreeHit]     whether this is a free-hit delivery
  */
 export function uiBallToStoreBallPayload({
   ballHistory,
   ball,
   nonStrikerId,
   fielderId,
+  isFreeHit = false,
 }) {
   const { over, ball_in_over } = computeOverAndBallInOver(ballHistory);
   const type = ball.type;
@@ -264,9 +345,11 @@ export function uiBallToStoreBallPayload({
   const isBye = type === 'bye';
   const isLegBye = type === 'lb';
   const isWicket = type === 'out';
+  const isRetiredHurt = type === 'retired_hurt';
 
   let runs = 0;
   let runsOffBat = 0;
+
   if (type === 'runs') {
     runs = ball.runs ?? 0;
     runsOffBat = runs;
@@ -276,17 +359,31 @@ export function uiBallToStoreBallPayload({
   } else if (isBye || isLegBye) {
     runs = Math.max(0, Number(ball.runs) || 0);
     runsOffBat = 0;
+  } else if (isRetiredHurt) {
+    runs = 0;
+    runsOffBat = 0;
   }
 
-  const dismissalValue =
-    isWicket && ball.dismissalType
-      ? typeof ball.dismissalType === 'string' &&
-        ball.dismissalType.includes('_')
-        ? ball.dismissalType
-        : dismissalLabelToValue(ball.dismissalType)
+  // Resolve dismissal value (API expects snake_case value, not a label).
+  const rawDismissal =
+    isWicket || isRetiredHurt ? (ball.dismissalType ?? null) : null;
+  const dismissalValue = rawDismissal
+    ? typeof rawDismissal === 'string' && rawDismissal.includes('_')
+      ? rawDismissal
+      : dismissalLabelToValue(rawDismissal)
+    : null;
+
+  const outPlayerId =
+    isWicket || isRetiredHurt
+      ? Number(ball.striker?.id ?? ball.strikerId)
       : null;
 
-  const payload = {
+  const resolvedFielderId =
+    (isWicket || isRetiredHurt) && (fielderId ?? ball.fielderId) != null
+      ? Number(fielderId ?? ball.fielderId)
+      : null;
+
+  return {
     over,
     ball_in_over: Math.min(ball_in_over, 7),
     striker_id: Number(ball.strikerId ?? ball.striker?.id),
@@ -298,27 +395,23 @@ export function uiBallToStoreBallPayload({
     is_wide: isWide,
     is_leg_bye: isLegBye,
     is_bye: isBye,
-    penalty_runs: 0,
-    is_wicket: isWicket,
+    is_free_hit: Boolean(isFreeHit || ball.isFreeHit),
+    penalty_runs: Number(ball.penaltyRuns ?? 0),
+    // retired_hurt is stored as is_wicket=true with dismissal_type='retired_hurt'.
+    // This is the API convention: isRetiredHurt() on the model checks the dismissal_type.
+    is_wicket: isWicket || isRetiredHurt,
     dismissal_type: dismissalValue,
-    out_player_id: isWicket ? Number(ball.striker?.id ?? ball.strikerId) : null,
-    fielder_id:
-      isWicket && (fielderId ?? ball.fielderId) != null
-        ? Number(fielderId ?? ball.fielderId)
-        : null,
+    out_player_id: outPlayerId,
+    fielder_id: resolvedFielderId,
     shot_position: ball.shotDirection ?? null,
   };
-
-  return payload;
 }
 
-// -----------------------------------------------------------------------------
-// API match + scorecard -> UI match config and initial state
-// -----------------------------------------------------------------------------
+// ─── Toss winner resolution ───────────────────────────────────────────────────
 
 /**
- * Toss winner team id. After a match is completed, `winning_team_id` is the match winner;
- * use `toss_winner_team_id` when present. Legacy completed rows may infer from innings 1 + chose_to.
+ * Resolve the toss winner team ID from match data.
+ * Handles the legacy case where completed matches don't have toss_winner_team_id.
  *
  * @param {object|null} apiMatch
  * @param {object|null} [scorecard]
@@ -326,21 +419,16 @@ export function uiBallToStoreBallPayload({
  */
 export function getTossWinnerTeamId(apiMatch, scorecard) {
   if (!apiMatch) return null;
-  if (apiMatch.toss_winner_team_id != null) {
+  if (apiMatch.toss_winner_team_id != null)
     return Number(apiMatch.toss_winner_team_id);
-  }
   if (apiMatch.status !== 'completed') {
     return apiMatch.winning_team_id != null
       ? Number(apiMatch.winning_team_id)
       : null;
   }
   const inn1 = scorecard?.innings?.[0];
-  const choseBat = apiMatch.chose_to_bat_or_bowl === 'bat';
-  if (
-    inn1?.batting_team_id != null &&
-    inn1?.bowling_team_id != null &&
-    apiMatch.chose_to_bat_or_bowl
-  ) {
+  if (inn1?.batting_team_id != null && apiMatch.chose_to_bat_or_bowl) {
+    const choseBat = apiMatch.chose_to_bat_or_bowl === 'bat';
     return choseBat
       ? Number(inn1.batting_team_id)
       : Number(inn1.bowling_team_id);
@@ -350,12 +438,16 @@ export function getTossWinnerTeamId(apiMatch, scorecard) {
     : null;
 }
 
+// ─── API match → UI match config ──────────────────────────────────────────────
+
 /**
- * Build UI match config from API match response.
- * API match must include overs (required). Other fields: home_team, away_team,
- * toss_winner_team_id / winning_team_id, chose_to_bat_or_bowl, venue_name, match_date, match_time, players_per_side.
+ * Build UI match config from an API match response + optional playing XI data.
  *
- * @param {object|null} [scorecard] optional; used to infer toss winner on legacy completed matches.
+ * @param {object|null} apiMatch
+ * @param {object[]} battingPlayers   [{ id, name }] for batting team in innings 1
+ * @param {object[]} bowlingPlayers   [{ id, name }] for bowling team in innings 1
+ * @param {object|null} [scorecard]   Used to infer toss on legacy completed matches
+ * @returns {object|null}
  */
 export function apiMatchToUiMatchConfig(
   apiMatch,
@@ -383,31 +475,24 @@ export function apiMatchToUiMatchConfig(
       ? home
       : away;
 
-  const teamA = {
-    name: battingTeam.name ?? '',
-    id: battingTeam.id,
-    players: battingPlayers.length
-      ? battingPlayers.map((p) => ({
-          id: p.id,
-          name: p.name ?? p.nickname ?? '',
-        }))
-      : [],
-  };
-  const teamB = {
-    name: bowlingTeam.name ?? '',
-    id: bowlingTeam.id,
-    players: bowlingPlayers.length
-      ? bowlingPlayers.map((p) => ({
-          id: p.id,
-          name: p.name ?? p.nickname ?? '',
-        }))
-      : [],
-  };
-
   return {
     id: apiMatch.id,
-    teamA,
-    teamB,
+    teamA: {
+      name: battingTeam.name ?? '',
+      id: battingTeam.id,
+      players: battingPlayers.map((p) => ({
+        id: p.id,
+        name: p.name ?? p.nickname ?? '',
+      })),
+    },
+    teamB: {
+      name: bowlingTeam.name ?? '',
+      id: bowlingTeam.id,
+      players: bowlingPlayers.map((p) => ({
+        id: p.id,
+        name: p.name ?? p.nickname ?? '',
+      })),
+    },
     venue: apiMatch.venue_name ?? '',
     matchDate: apiMatch.match_date ?? '',
     matchTime: apiMatch.match_time ?? '',
@@ -417,7 +502,7 @@ export function apiMatchToUiMatchConfig(
       wid != null
         ? {
             winner: wid === hid ? 'A' : 'B',
-            decision: apiMatch.chose_to_bat_or_bowl === 'bat' ? 'bat' : 'bowl',
+            decision: choseBat ? 'bat' : 'bowl',
           }
         : null,
     battingTeamId,
@@ -425,15 +510,25 @@ export function apiMatchToUiMatchConfig(
   };
 }
 
+// ─── Player ID → name map ─────────────────────────────────────────────────────
+
 /**
- * Build playerId -> name map from team squad (UserResource list) and playing eleven ids.
+ * Build a { id → name } map from a squad list filtered by playing XI IDs.
+ *
+ * @param {object[]} squadList         Array of { id, name, nickname, ... }
+ * @param {number[]} playingElevenIds  Only IDs in this set are included
+ * @returns {Record<string, string>}
  */
 export function buildPlayerIdToName(squadList = [], playingElevenIds = []) {
   const map = {};
-  const ids = new Set(Array.isArray(playingElevenIds) ? playingElevenIds : []);
+  const ids = new Set(
+    Array.isArray(playingElevenIds) ? playingElevenIds.map(String) : [],
+  );
   for (const p of squadList) {
     const id = p.id ?? p.user_id;
-    if (id && ids.has(id)) map[id] = p.name ?? p.nickname ?? '';
+    if (id && ids.has(String(id))) {
+      map[String(id)] = p.name ?? p.nickname ?? '';
+    }
   }
   return map;
 }

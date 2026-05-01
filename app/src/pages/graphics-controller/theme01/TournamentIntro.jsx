@@ -32,7 +32,7 @@ export default function TournamentIntro() {
                 </p>
               </div>
 
-              <p className="text-[8px] leading-none font-extrabold uppercase text-white sm:text-[30px]">
+              <p className="text-[8px] leading-none font-extrabold text-white uppercase sm:text-[30px]">
                 VS
               </p>
 

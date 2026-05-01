@@ -12,10 +12,7 @@ const toStr = (v) => (v == null ? '' : String(v));
 
 function PlayingBenchRoleToggle({ playerId, role, onSetRole }) {
   return (
-    <div
-      className="flex shrink-0 gap-1"
-      onClick={(e) => e.stopPropagation()}
-    >
+    <div className="flex shrink-0 gap-1" onClick={(e) => e.stopPropagation()}>
       <Button
         type="button"
         size="sm"
@@ -201,7 +198,9 @@ function BowlerSquadPickerRow({
         }
       }}
       className={`flex flex-col gap-2 rounded-[10px] bg-[#141412] px-4 py-3 ${
-        canSelect ? 'cursor-pointer transition-opacity active:opacity-90' : 'cursor-default'
+        canSelect
+          ? 'cursor-pointer transition-opacity active:opacity-90'
+          : 'cursor-default'
       } ${replaceActiveBowlerMode && isActiveBowler ? 'opacity-60' : ''}`}
     >
       <div className="flex items-start justify-between gap-3">

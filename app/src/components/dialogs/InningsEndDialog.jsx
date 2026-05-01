@@ -67,7 +67,7 @@ export function InningsEndDialog({
             <p className="text-[12px] font-bold tracking-wide text-[#DA9811] uppercase">
               Match result
             </p>
-            <DialogTitle className="mt-3 text-[16px] font-bold leading-snug text-white capitalize">
+            <DialogTitle className="mt-3 text-[16px] leading-snug font-bold text-white capitalize">
               {matchResult.tie
                 ? matchResult.titleLine
                 : `${matchResult.titleLine} ${matchResult.marginLine ?? ''}`.trim()}

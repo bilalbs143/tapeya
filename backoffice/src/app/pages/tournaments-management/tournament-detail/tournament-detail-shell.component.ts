@@ -6,8 +6,8 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Subscription } from 'rxjs';
 
-import { TournamentsService, type Tournament } from 'src/app/services/tournaments.service';
 import { MessageService } from 'src/app/services/message.service';
+import { TournamentsService, type Tournament } from 'src/app/services/tournaments.service';
 import { getStatusClass } from 'src/app/utils/status-class.util';
 
 @Component({
