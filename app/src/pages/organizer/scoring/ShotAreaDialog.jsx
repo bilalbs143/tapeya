@@ -244,7 +244,7 @@ export function ShotAreaDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContentDark className="!h-auto !max-h-[90vh]">
-        <DialogHeaderRow hideClose>
+        <DialogHeaderRow>
           <DialogTitle
             className={`${dialogPrimaryTitleClass} w-full text-center`}
           >

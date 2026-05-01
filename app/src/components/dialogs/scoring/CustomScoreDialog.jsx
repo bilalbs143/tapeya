@@ -22,7 +22,7 @@ export function CustomScoreDialog({
 
   return (
     <BaseDialog open={open} onOpenChange={onOpenChange}>
-      <DialogHeaderRow hideClose>
+      <DialogHeaderRow>
         <DialogTitle className={dialogPrimaryTitleClass}>Add Score</DialogTitle>
       </DialogHeaderRow>
       <DialogScrollBody className="flex flex-col">

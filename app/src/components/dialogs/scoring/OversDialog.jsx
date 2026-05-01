@@ -15,7 +15,7 @@ export function OversDialog({ open, onOpenChange, overs, options, onChange }) {
   return (
     <BaseDialog open={open} onOpenChange={onOpenChange}>
       <div className="flex min-h-0 flex-1 flex-col">
-        <DialogHeaderRow hideClose>
+        <DialogHeaderRow>
           <DialogTitle className={dialogPrimaryTitleClass}>
             Select Overs
           </DialogTitle>

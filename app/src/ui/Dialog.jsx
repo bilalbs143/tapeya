@@ -148,16 +148,28 @@ DialogOverlay.displayName = 'DialogOverlay';
  * Default size is 447 × 380 px. Most dialogs override height via:
  *   className="!h-auto !max-h-[90vh]"
  * (BaseDialog does this automatically.)
+ *
+ * Outside taps do not dismiss the dialog (overlay is still visible for context);
+ * use the header close control, in-content actions, or Escape to dismiss.
  */
-export function DialogContentDark({ className = '', children, ...props }) {
+export function DialogContentDark({
+  className = '',
+  children,
+  onPointerDownOutside,
+  ...props
+}) {
   return (
     <DialogPrimitive.Portal>
       <DialogOverlay />
       <DialogPrimitive.Content
+        {...props}
         className={`${CONTENT_DARK} ${className}`.trim()}
         style={{ backgroundColor: '#080807', borderColor: '#141412' }}
         aria-describedby={undefined}
-        {...props}
+        onPointerDownOutside={(e) => {
+          onPointerDownOutside?.(e);
+          e.preventDefault();
+        }}
       >
         {children}
       </DialogPrimitive.Content>

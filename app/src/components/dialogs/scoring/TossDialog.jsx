@@ -30,7 +30,7 @@ export function TossDialog({
   return (
     <BaseDialog open={open} onOpenChange={onOpenChange}>
       <div className="flex min-h-0 flex-1 flex-col">
-        <DialogHeaderRow hideClose>
+        <DialogHeaderRow>
           <DialogTitle className={dialogPrimaryTitleClass}>
             Who Won the Toss?
           </DialogTitle>

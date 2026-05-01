@@ -275,7 +275,7 @@ export default function ScoringSquadPlayerPickerDialog({
 
   return (
     <BaseDialog open={open} onOpenChange={handleOpenChange}>
-      <DialogHeaderRow hideClose>
+      <DialogHeaderRow>
         <DialogTitle className={dialogPrimaryTitleClass}>{title}</DialogTitle>
       </DialogHeaderRow>
 

@@ -834,7 +834,6 @@ export function ScoringTab({
           setExtraRunsDialogOpen(open);
           if (!open) setPendingExtraType(null);
         }}
-        extraType={pendingExtraType}
         onSelect={(runs) => {
           if (pendingExtraType) handleSpecial(pendingExtraType, runs);
         }}
@@ -861,13 +860,7 @@ export function ScoringTab({
           if (!open) setPendingDismissal(null);
           setFielderPickerOpen(open);
         }}
-        message={`Who was the fielder? (required for ${
-          pendingDismissal === 'run_out'
-            ? 'run out'
-            : pendingDismissal === 'caught'
-              ? 'catch'
-              : 'stumping'
-        })`}
+        message="Who was the fielder?"
         players={addBowlerDialogPlayers}
         onSelectFielder={(playerId) => handleOut(pendingDismissal, playerId)}
       />

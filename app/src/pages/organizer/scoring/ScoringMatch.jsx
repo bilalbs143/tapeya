@@ -894,7 +894,7 @@ export default function ScoringMatch() {
           <Dialog open={tossDialogOpen} onOpenChange={setTossDialogOpen}>
             <DialogContentDark className="!h-auto !max-h-[90vh]">
               <div className="flex min-h-0 flex-1 flex-col">
-                <DialogHeaderRow hideClose>
+                <DialogHeaderRow>
                   <DialogTitle className={dialogPrimaryTitleClass}>
                     Who Won the Toss?
                   </DialogTitle>
