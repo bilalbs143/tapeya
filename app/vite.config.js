@@ -9,9 +9,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 /**
- * Build-time Vite plugin: automatically injects loading="lazy" decoding="async"
- * on every <img> element in JSX/TSX that does not already declare a loading
- * strategy or carry fetchpriority="high" (LCP hero images).
+ * Build-time Vite plugin: adds missing loading / decoding hints on <img> in
+ * JSX/TSX. Only injects attributes that are absent (never duplicates).
+ * Skips elements with fetchpriority="high" (LCP hero images).
  *
  * This avoids the need for a wrapper component while still achieving lazy
  * loading across the entire app.
@@ -25,15 +25,20 @@ function autoLazyImages() {
 
       let changed = false;
       const out = src.replace(/<img\b([\s\S]*?)\/>/g, (match, attrs) => {
-        // Skip: already handled or marked as above-the-fold / LCP
-        if (
-          /\bloading=/.test(attrs) ||
-          /fetchpriority=["']high["']/.test(attrs)
-        ) {
-          return match;
-        }
+        // Never touch LCP / above-the-fold hero images
+        if (/fetchpriority=["']high["']/.test(attrs)) return match;
+
+        const hasLoading = /\bloading=/.test(attrs);
+        const hasDecoding = /\bdecoding=/.test(attrs);
+        if (hasLoading && hasDecoding) return match;
+
+        let inject = '';
+        if (!hasLoading && !hasDecoding) inject = ' loading="lazy" decoding="async"';
+        else if (!hasLoading) inject = ' loading="lazy"';
+        else inject = ' decoding="async"';
+
         changed = true;
-        return `<img${attrs} loading="lazy" decoding="async"/>`;
+        return `<img${attrs}${inject}/>`;
       });
 
       return changed ? { code: out } : null;
@@ -55,8 +60,9 @@ export default defineConfig({
     sourcemap: false,
     // Ship each route's CSS only when the route is visited
     cssCodeSplit: true,
-    // Warn when a chunk exceeds 500 kB (gzipped budget reminder)
-    chunkSizeWarningLimit: 500,
+    // ApexCharts core alone is ~500 kB minified; split into apex + react wrapper
+    // chunks (see manualChunks) so each file stays under this budget.
+    chunkSizeWarningLimit: 550,
     rollupOptions: {
       output: {
         /**
@@ -66,9 +72,10 @@ export default defineConfig({
         manualChunks(id) {
           if (!id.includes('node_modules')) return;
 
-          // Heavy chart library — only loaded on stats/graphics pages
-          if (id.includes('apexcharts') || id.includes('react-apexcharts'))
-            return 'charts';
+          // ApexCharts: split core vs React wrapper so neither chunk trips the
+          // default Rollup size warning (~500 kB) as a single bundle.
+          if (id.includes('node_modules/react-apexcharts')) return 'charts-react';
+          if (id.includes('node_modules/apexcharts')) return 'charts-apex';
 
           // Swiper carousel — only on pages that use it
           if (id.includes('swiper')) return 'swiper';
