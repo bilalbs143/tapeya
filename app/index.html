@@ -8,15 +8,27 @@
     />
     <meta name="theme-color" content="#000000" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Tapeya" />
     <meta name="format-detection" content="telephone=no" />
     <link rel="icon" type="image/png" href="/favicon.png" sizes="32x32" />
+
+    <!--
+      Google Fonts — single request for both typefaces (was 2 separate requests).
+      preconnect hints are declared first so the TCP handshake starts before
+      the browser parses the <link rel="stylesheet">.
+    -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Moul&display=swap"
       rel="stylesheet"
     />
+
+    <!-- Warm the connection to the CloudFront CDN used for all app images -->
+    <link rel="preconnect" href="https://d1nmw2vhka3zp0.cloudfront.net" />
+
     <title>Tapeya</title>
   </head>
   <body>
