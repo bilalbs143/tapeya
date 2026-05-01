@@ -2,9 +2,9 @@ import {
   Dialog,
   DialogContentDark,
   DialogHeaderRow,
+  dialogPrimaryTitleClass,
   DialogScrollBody,
   DialogTitle,
-  dialogPrimaryTitleClass,
 } from '@/ui/Dialog';
 
 export function OutReasonDialog({

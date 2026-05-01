@@ -160,7 +160,6 @@ export default function MyOrders() {
     <div className="bg-black">
       <AppSubpageHeader title="MY ORDERS" />
       <Container>
-
         {isLoading && (
           <div className="flex min-h-[30vh] items-center justify-center py-12">
             <p className="text-[14px] text-[#A2A6AB]">Loading orders…</p>

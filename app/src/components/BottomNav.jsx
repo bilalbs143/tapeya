@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { BOTTOM_NAV_Z } from '@/lib/constants/layout';
 
-
 const profileIcon = `${CLOUDFRONT_APP_BASE}/images/icons/profile.svg`;
 const scoreIcon = `${CLOUDFRONT_APP_BASE}/images/icons/score-bottom.svg`;
 const shopIcon = `${CLOUDFRONT_APP_BASE}/images/icons/shop-navigation.svg`;

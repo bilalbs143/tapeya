@@ -36,7 +36,10 @@ export default function OrderPayment() {
   if (isError || !order) {
     return (
       <div className="bg-black">
-        <AppSubpageHeader title="ORDER PAYMENT" onBack={() => navigate('/shop/orders')} />
+        <AppSubpageHeader
+          title="ORDER PAYMENT"
+          onBack={() => navigate('/shop/orders')}
+        />
         <Container>
           <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
             <p className="text-[14px] text-[#A2A6AB]">Order not found.</p>
@@ -57,7 +60,6 @@ export default function OrderPayment() {
     <div className="bg-black">
       <AppSubpageHeader title="ORDER PAYMENT" />
       <Container>
-
         <div className="space-y-6">
           <p className="text-[14px] leading-relaxed text-[#B0B0B0]">
             Make your payment directly into our bank account. Please use your{' '}

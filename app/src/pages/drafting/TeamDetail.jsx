@@ -9,7 +9,6 @@ import { useAppDispatch } from '@/store/hooks';
 import { openDialog } from '@/store/slices/commonSlice';
 import { Container } from '@/ui/Container';
 
-
 const searchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/searchicon.svg`;
 const teamIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-icon.svg`;
 
@@ -59,7 +58,6 @@ export default function TeamDetail() {
     <div className="bg-black">
       <AppSubpageHeader title="Drafting" />
       <Container>
-
         <div className="lg:grid lg:grid-cols-2 lg:gap-6">
           <div>
             <p className="mb-3 text-[13px] font-medium tracking-wide text-[#A2A6AB] uppercase">

@@ -128,14 +128,18 @@ export function AppSubpageHeader({
           <span className="text-[#DA9811] normal-case">{subtitle}</span>
         </h1>
       ) : (
-        <h1 className={`${baseStringClass} ${titleClassName}`.trim()}>{title}</h1>
+        <h1 className={`${baseStringClass} ${titleClassName}`.trim()}>
+          {title}
+        </h1>
       )
     ) : (
       <div className="min-w-0 flex-1 text-center">{title}</div>
     );
 
   // Invisible spacer keeps title optically centred when no right slot is given.
-  const rightElement = right ?? <span className="h-7 w-7 shrink-0" aria-hidden />;
+  const rightElement = right ?? (
+    <span className="h-7 w-7 shrink-0" aria-hidden />
+  );
 
   return (
     <header className={headerClass}>

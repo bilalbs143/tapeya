@@ -33,7 +33,6 @@ import { Input } from '@/ui/Input';
 import { Label } from '@/ui/Label';
 import { TimePicker } from '@/ui/TimePicker';
 
-
 const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
 
 const oversInputBase =
@@ -218,9 +217,12 @@ export default function StartMatch() {
 
   return (
     <div className="bg-black">
-      <AppSubpageHeader title="Start A Match" onBack={handleBack} titleClassName="truncate" />
+      <AppSubpageHeader
+        title="Start A Match"
+        onBack={handleBack}
+        titleClassName="truncate"
+      />
       <Container>
-
         <div className="space-y-6 pb-8">
           {/* Tournament selection (hidden when opened from tournament hub with pre-selected tournament) */}
           {!tournamentPreSelected && (

@@ -26,7 +26,6 @@ import { setCredentials } from '@/store/slices/authSlice';
 import { Button } from '@/ui/Button';
 import { Input } from '@/ui/Input';
 
-
 const tapeyaLogo = `${CLOUDFRONT_APP_BASE}/images/logos/tapeya-logo-white.svg`;
 
 const OTP_LENGTH = 4;

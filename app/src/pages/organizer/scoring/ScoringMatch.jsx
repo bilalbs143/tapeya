@@ -94,7 +94,6 @@ import {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-
 const matchCenterHeader = `${CLOUDFRONT_APP_BASE}/images/background/match-center-header.png`;
 const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
 
@@ -687,7 +686,6 @@ export default function ScoringMatch() {
       innings2.completedPartnerships,
       liveScore1,
       liveScore2,
-      currentInnings,
       activeLiveScore,
       activeInnings.batsmenOnCrease,
       activeInnings.completedPartnerships,
@@ -902,7 +900,7 @@ export default function ScoringMatch() {
                   </DialogTitle>
                 </DialogHeaderRow>
 
-                <div className="flex flex-1 flex-col px-5 pb-5 pt-4">
+                <div className="flex flex-1 flex-col px-5 pt-4 pb-5">
                   <div className="flex gap-3">
                     {[
                       {
@@ -919,9 +917,9 @@ export default function ScoringMatch() {
                         type="button"
                         onClick={() => setTossWinner(key)}
                         className={`flex flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-[17px] border-2 px-4 py-4 transition-colors focus:outline-none ${
-                        tossWinner === key
-                          ? 'border-[#DA9811] bg-[#DA9811] text-white'
-                          : 'border-[#141412] bg-[#141412] text-white'
+                          tossWinner === key
+                            ? 'border-[#DA9811] bg-[#DA9811] text-white'
+                            : 'border-[#141412] bg-[#141412] text-white'
                         }`}
                       >
                         <img
@@ -938,7 +936,7 @@ export default function ScoringMatch() {
                   </div>
 
                   <p className="mt-6 text-[14px] font-medium text-white">
-                  Decided To?
+                    Decided To?
                   </p>
                   <ToggleGroup
                     type="single"
@@ -951,14 +949,14 @@ export default function ScoringMatch() {
                       className="cursor-pointer"
                       aria-label="Bat"
                     >
-                    Bat
+                      Bat
                     </ToggleGroupItem>
                     <ToggleGroupItem
                       value="bowl"
                       className="cursor-pointer"
                       aria-label="Bowl"
                     >
-                    Bowl
+                      Bowl
                     </ToggleGroupItem>
                   </ToggleGroup>
 
@@ -969,7 +967,10 @@ export default function ScoringMatch() {
                       className="w-full cursor-pointer"
                       onClick={handleSaveToss}
                       disabled={
-                        isUpdatingToss || !tossWinner || !tossDecision || !fromApi
+                        isUpdatingToss ||
+                        !tossWinner ||
+                        !tossDecision ||
+                        !fromApi
                       }
                     >
                       {isUpdatingToss ? 'Saving toss…' : 'Save Toss'}

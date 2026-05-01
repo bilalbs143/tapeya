@@ -11,7 +11,6 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectAuthUserAndToken } from '@/store/selectors';
 import { clearCredentials } from '@/store/slices/authSlice';
 
-
 const logoutIcon = `${CLOUDFRONT_APP_BASE}/images/icons/logout.svg`;
 const myOrderIcon = `${CLOUDFRONT_APP_BASE}/images/icons/my-order.svg`;
 const homeIcon = `${CLOUDFRONT_APP_BASE}/images/logos/tapya-t.svg`;

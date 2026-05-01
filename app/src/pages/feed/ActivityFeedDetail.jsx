@@ -13,7 +13,6 @@ import { Container } from '@/ui/Container';
 
 import { getPostDetail } from './feedData';
 
-
 const feedCommentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-comment.svg`;
 const feedShareIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-share.svg`;
 
@@ -225,7 +224,12 @@ export default function ActivityFeedDetail() {
   if (!post) {
     return (
       <div className="bg-black text-white">
-        <AppSubpageHeader sticky divider title="ACTIVITY FEED" onBack={() => navigate('/feed')} />
+        <AppSubpageHeader
+          sticky
+          divider
+          title="ACTIVITY FEED"
+          onBack={() => navigate('/feed')}
+        />
         <Container>
           <div className="py-8 text-center">
             <p className="text-[#A2A6AB]">Post not found.</p>
@@ -253,11 +257,7 @@ export default function ActivityFeedDetail() {
 
   return (
     <div className="min-h-full bg-black text-white">
-      <AppSubpageHeader
-        sticky
-        divider
-        title="ACTIVITY FEED"
-      />
+      <AppSubpageHeader sticky divider title="ACTIVITY FEED" />
 
       <Container className="flex flex-col gap-0 pb-24">
         {/* Post block - consistent with PostCard */}

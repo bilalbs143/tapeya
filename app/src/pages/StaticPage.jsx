@@ -3,9 +3,9 @@ import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
-import { Container } from '@/ui/Container';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { useGetStaticPageBySlugQuery } from '@/store/api/staticPageApi';
+import { Container } from '@/ui/Container';
 
 export default function StaticPage() {
   const { slug } = useParams();

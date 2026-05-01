@@ -45,7 +45,6 @@ import {
 // Constants
 // ---------------------------------------------------------------------------
 
-
 const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
 const NICKNAME_MAX = 50;

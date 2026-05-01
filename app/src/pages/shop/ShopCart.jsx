@@ -121,7 +121,6 @@ export default function ShopCart() {
     <div className="flex flex-col bg-black">
       <AppSubpageHeader title="SELECTED ITEMS" />
       <Container fullWidth>
-
         {isLoading ? null : emptyCart ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-4 py-12 text-center">
             <p className="text-[14px] text-[#A2A6AB]">Your cart is empty.</p>

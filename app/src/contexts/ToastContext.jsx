@@ -8,6 +8,8 @@ import {
   ToastViewportStyled,
 } from '@/ui/Toast';
 
+// Provider + context in one module is intentional; only ToastProvider is hot-reloaded as a component boundary.
+// eslint-disable-next-line react-refresh/only-export-components -- context instance must be shared with consumers
 export const ToastContext = createContext(null);
 
 const variantStyles = {

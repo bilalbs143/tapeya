@@ -1,7 +1,7 @@
 import {
   DialogDescription,
-  dialogPrimaryTitleClass,
   DialogHeaderRow,
+  dialogPrimaryTitleClass,
   DialogScrollBody,
   DialogTitle,
 } from '@/ui/Dialog';

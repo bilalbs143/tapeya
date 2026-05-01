@@ -6,7 +6,6 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 
-
 const liveImg1 = `${CLOUDFRONT_APP_BASE}/images/standard/live-img-1.png`;
 const liveImg2 = `${CLOUDFRONT_APP_BASE}/images/standard/live-img-2.png`;
 const liveImg3 = `${CLOUDFRONT_APP_BASE}/images/standard/live-img-3.png`;

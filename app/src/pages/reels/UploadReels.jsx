@@ -19,7 +19,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 
-
 const editReelIcon = `${CLOUDFRONT_APP_BASE}/images/icons/edit-reel.svg`;
 const playIcon = `${CLOUDFRONT_APP_BASE}/images/icons/play-icon.svg`;
 const reelCameraIcon = `${CLOUDFRONT_APP_BASE}/images/icons/reel-camera-icon.svg`;
@@ -127,7 +126,6 @@ export default function UploadReels() {
     <div className="bg-black">
       <AppSubpageHeader title="Upload Reel" backAriaLabel="Go back" />
       <Container>
-
         {/* User row */}
         <div className="mb-4 flex items-center gap-3">
           <Avatar className="h-12 w-12 shrink-0">

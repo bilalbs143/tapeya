@@ -26,7 +26,6 @@ import {
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 
-
 const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
 
 function teamDisplay(team) {
@@ -35,9 +34,9 @@ function teamDisplay(team) {
   const iconPlayers =
     Array.isArray(team.icon_players) && team.icon_players.length > 0
       ? team.icon_players
-        .map((p) => p.name)
-        .filter(Boolean)
-        .join(', ')
+          .map((p) => p.name)
+          .filter(Boolean)
+          .join(', ')
       : '—';
   return { owner, iconPlayers };
 }
@@ -217,7 +216,6 @@ export default function TournamentAddSquad() {
         }
       />
       <Container>
-
         {/* Loading indicator only shown when teams are not available from state */}
         {!stateTeams?.length && isLoading && (
           <p className="mb-3 text-[13px] text-[#A2A6AB]">Loading teams…</p>

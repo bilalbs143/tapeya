@@ -14,9 +14,7 @@ const FIXTURE_CARD_IMAGE = `${CLOUDFRONT_APP_BASE}/images/background/fixture-bg.
 
 function TournamentCard({ tournament, showWinningTeam = false, onClick }) {
   const imageUrl =
-    tournament.display_image ||
-    tournament.cover_image ||
-    FIXTURE_CARD_IMAGE;
+    tournament.display_image || tournament.cover_image || FIXTURE_CARD_IMAGE;
   const dates = formatDateRange(tournament.start_date, tournament.end_date);
   const location = [tournament.city, tournament.country]
     .filter(Boolean)
@@ -204,7 +202,6 @@ export default function Tournaments() {
     <div className="bg-black">
       <AppSubpageHeader title="My Tournaments" />
       <Container>
-
         <div className="space-y-6 pb-6">
           <Section
             title="Scheduled Tournaments"

@@ -20,7 +20,7 @@ export function OversDialog({ open, onOpenChange, overs, options, onChange }) {
             Select Overs
           </DialogTitle>
         </DialogHeaderRow>
-        <div className="flex flex-1 flex-col px-5 pb-5 pt-4">
+        <div className="flex flex-1 flex-col px-5 pt-4 pb-5">
           <Input
             type="text"
             inputMode="numeric"
@@ -61,7 +61,7 @@ export function OversDialog({ open, onOpenChange, overs, options, onChange }) {
               className="w-full cursor-pointer !bg-[#DA9811] !text-[#080807]"
               onClick={() => onOpenChange(false)}
             >
-            Done
+              Done
             </Button>
           </div>
         </div>

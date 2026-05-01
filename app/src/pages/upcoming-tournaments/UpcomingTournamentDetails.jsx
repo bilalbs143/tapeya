@@ -28,7 +28,6 @@ import {
 import { Container } from '@/ui/Container';
 import { Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
 
-
 const feedShareIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-share.svg`;
 const FIXTURE_TAB_BG = `${CLOUDFRONT_APP_BASE}/images/background/fixture-bg.png`;
 

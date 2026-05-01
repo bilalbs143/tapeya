@@ -5,7 +5,6 @@ import { statsTotalPaths } from '@/pages/scorecard/statsTotalFlow';
 import { useGetTournamentSeasonStatsQuery } from '@/store/api/tournamentApi';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 
-
 const defaultPlayerImage = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
 // ---------------------------------------------------------------------------

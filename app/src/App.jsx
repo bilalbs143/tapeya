@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react';
+
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import DialogManager from '@/components/dialogs/DialogManager';
@@ -19,126 +20,238 @@ import { TooltipProvider } from '@/ui/Tooltip';
 // The main bundle ships only the shell: layouts, providers, and SplashScreen.
 
 // Auth
-const Login    = lazy(() => import('@/pages/auth/Login'));
+const Login = lazy(() => import('@/pages/auth/Login'));
 const Register = lazy(() => import('@/pages/auth/Register'));
-const Otp      = lazy(() => import('@/pages/auth/Otp'));
+const Otp = lazy(() => import('@/pages/auth/Otp'));
 
 // Core
-const Home                    = lazy(() => import('@/pages/Home'));
-const Profile                 = lazy(() => import('@/pages/Profile'));
-const StaticPage              = lazy(() => import('@/pages/StaticPage'));
-const Support                 = lazy(() => import('@/pages/Support'));
-const NotificationCenter      = lazy(() => import('@/pages/NotificationCenter'));
-const TournamentRequest       = lazy(() => import('@/pages/TournamentRequest'));
-const TournamentRequestSuccess = lazy(() => import('@/pages/TournamentRequestSuccess'));
+const Home = lazy(() => import('@/pages/Home'));
+const Profile = lazy(() => import('@/pages/Profile'));
+const StaticPage = lazy(() => import('@/pages/StaticPage'));
+const Support = lazy(() => import('@/pages/Support'));
+const NotificationCenter = lazy(() => import('@/pages/NotificationCenter'));
+const TournamentRequest = lazy(() => import('@/pages/TournamentRequest'));
+const TournamentRequestSuccess = lazy(
+  () => import('@/pages/TournamentRequestSuccess'),
+);
 
 // Drafting
 const DraftingHome = lazy(() => import('@/pages/drafting/DraftingHome'));
-const AddTeam      = lazy(() => import('@/pages/drafting/AddTeam'));
-const TeamList     = lazy(() => import('@/pages/drafting/TeamList'));
-const TeamDetail   = lazy(() => import('@/pages/drafting/TeamDetail'));
+const AddTeam = lazy(() => import('@/pages/drafting/AddTeam'));
+const TeamList = lazy(() => import('@/pages/drafting/TeamList'));
+const TeamDetail = lazy(() => import('@/pages/drafting/TeamDetail'));
 
 // Feed
-const ActivityFeed       = lazy(() => import('@/pages/feed/ActivityFeed'));
-const ActivityFeedDetail = lazy(() => import('@/pages/feed/ActivityFeedDetail'));
+const ActivityFeed = lazy(() => import('@/pages/feed/ActivityFeed'));
+const ActivityFeedDetail = lazy(
+  () => import('@/pages/feed/ActivityFeedDetail'),
+);
 
 // Pricing
-const Pricing       = lazy(() => import('@/pages/pricing/Pricing'));
+const Pricing = lazy(() => import('@/pages/pricing/Pricing'));
 const PricingDetail = lazy(() => import('@/pages/pricing/PricingDetail'));
 
 // Ranking
-const Ranking           = lazy(() => import('@/pages/ranking/Ranking'));
-const RankingStatsTotal = lazy(() => import('@/pages/ranking/RankingStatsTotal'));
+const Ranking = lazy(() => import('@/pages/ranking/Ranking'));
+const RankingStatsTotal = lazy(
+  () => import('@/pages/ranking/RankingStatsTotal'),
+);
 
 // Reels
-const Reels       = lazy(() => import('@/pages/reels/Reels'));
+const Reels = lazy(() => import('@/pages/reels/Reels'));
 const UploadReels = lazy(() => import('@/pages/reels/UploadReels'));
 
 // Scorecard
-const ScorecardHome          = lazy(() => import('@/pages/scorecard/ScorecardHome'));
-const ScorecardDetails       = lazy(() => import('@/pages/scorecard/ScorecardDetails'));
-const ScorecardStatusDetails = lazy(() => import('@/pages/scorecard/ScorecardStatusDetails'));
-const StatsTotal             = lazy(() => import('@/pages/scorecard/StatsTotal'));
+const ScorecardHome = lazy(() => import('@/pages/scorecard/ScorecardHome'));
+const ScorecardDetails = lazy(
+  () => import('@/pages/scorecard/ScorecardDetails'),
+);
+const ScorecardStatusDetails = lazy(
+  () => import('@/pages/scorecard/ScorecardStatusDetails'),
+);
+const StatsTotal = lazy(() => import('@/pages/scorecard/StatsTotal'));
 
 // Shop
-const ShopHome          = lazy(() => import('@/pages/shop/ShopHome'));
-const ShopCart          = lazy(() => import('@/pages/shop/ShopCart'));
-const ShopCheckout      = lazy(() => import('@/pages/shop/ShopCheckout'));
-const ShopCategory      = lazy(() => import('@/pages/shop/ShopCategory'));
-const ShopFilter        = lazy(() => import('@/pages/shop/ShopFilter'));
+const ShopHome = lazy(() => import('@/pages/shop/ShopHome'));
+const ShopCart = lazy(() => import('@/pages/shop/ShopCart'));
+const ShopCheckout = lazy(() => import('@/pages/shop/ShopCheckout'));
+const ShopCategory = lazy(() => import('@/pages/shop/ShopCategory'));
+const ShopFilter = lazy(() => import('@/pages/shop/ShopFilter'));
 const ShopProductDetail = lazy(() => import('@/pages/shop/ShopProductDetail'));
-const MyOrders          = lazy(() => import('@/pages/shop/MyOrders'));
-const OrderDetail       = lazy(() => import('@/pages/shop/OrderDetail'));
-const OrderPayment      = lazy(() => import('@/pages/shop/OrderPayment'));
-const OrderSuccess      = lazy(() => import('@/pages/shop/OrderSuccess'));
+const MyOrders = lazy(() => import('@/pages/shop/MyOrders'));
+const OrderDetail = lazy(() => import('@/pages/shop/OrderDetail'));
+const OrderPayment = lazy(() => import('@/pages/shop/OrderPayment'));
+const OrderSuccess = lazy(() => import('@/pages/shop/OrderSuccess'));
 
 // Upcoming Tournaments
-const UpcomingTournaments       = lazy(() => import('@/pages/upcoming-tournaments/UpcomingTournaments'));
-const UpcomingTournamentDetails = lazy(() => import('@/pages/upcoming-tournaments/UpcomingTournamentDetails'));
+const UpcomingTournaments = lazy(
+  () => import('@/pages/upcoming-tournaments/UpcomingTournaments'),
+);
+const UpcomingTournamentDetails = lazy(
+  () => import('@/pages/upcoming-tournaments/UpcomingTournamentDetails'),
+);
 
 // Organizer
-const Tournaments               = lazy(() => import('@/pages/organizer/tournaments/Tournaments'));
-const TournamentCreateTeamIntro = lazy(() => import('@/pages/organizer/tournaments/TournamentCreateTeamIntro'));
-const TournamentAddTeam         = lazy(() => import('@/pages/organizer/tournaments/TournamentAddTeam'));
-const TournamentSavedTeams      = lazy(() => import('@/pages/organizer/tournaments/TournamentSavedTeams'));
-const TournamentAddSquad        = lazy(() => import('@/pages/organizer/tournaments/TournamentAddSquad'));
-const TournamentSquad           = lazy(() => import('@/pages/organizer/tournaments/TournamentSquad'));
-const StartMatch                = lazy(() => import('@/pages/organizer/scoring/StartMatch'));
-const ScoringMatch              = lazy(() => import('@/pages/organizer/scoring/ScoringMatch'));
+const Tournaments = lazy(
+  () => import('@/pages/organizer/tournaments/Tournaments'),
+);
+const TournamentCreateTeamIntro = lazy(
+  () => import('@/pages/organizer/tournaments/TournamentCreateTeamIntro'),
+);
+const TournamentAddTeam = lazy(
+  () => import('@/pages/organizer/tournaments/TournamentAddTeam'),
+);
+const TournamentSavedTeams = lazy(
+  () => import('@/pages/organizer/tournaments/TournamentSavedTeams'),
+);
+const TournamentAddSquad = lazy(
+  () => import('@/pages/organizer/tournaments/TournamentAddSquad'),
+);
+const TournamentSquad = lazy(
+  () => import('@/pages/organizer/tournaments/TournamentSquad'),
+);
+const StartMatch = lazy(() => import('@/pages/organizer/scoring/StartMatch'));
+const ScoringMatch = lazy(
+  () => import('@/pages/organizer/scoring/ScoringMatch'),
+);
 
 // Graphics controller — used only by operators; loaded as separate async chunks
-const TournamentStart    = lazy(() => import('@/pages/graphics-controller/theme01/TournamentStart'));
-const PlayingXI          = lazy(() => import('@/pages/graphics-controller/theme01/PlayingXI'));
-const Four               = lazy(() => import('@/pages/graphics-controller/theme01/Four'));
-const FourRow            = lazy(() => import('@/pages/graphics-controller/theme01/FourRow'));
-const Six                = lazy(() => import('@/pages/graphics-controller/theme01/Six'));
-const SixRow             = lazy(() => import('@/pages/graphics-controller/theme01/SixRow'));
-const Out                = lazy(() => import('@/pages/graphics-controller/theme01/Out'));
-const NotOut             = lazy(() => import('@/pages/graphics-controller/theme01/NotOut'));
-const NotOutRow          = lazy(() => import('@/pages/graphics-controller/theme01/NotOutRow'));
-const NoBall             = lazy(() => import('@/pages/graphics-controller/theme01/NoBall'));
-const NoBallRow          = lazy(() => import('@/pages/graphics-controller/theme01/NoBallRow'));
-const Wide               = lazy(() => import('@/pages/graphics-controller/theme01/Wide'));
-const WideRow            = lazy(() => import('@/pages/graphics-controller/theme01/WideRow'));
-const Fifty              = lazy(() => import('@/pages/graphics-controller/theme01/Fifty'));
-const FiftyRow           = lazy(() => import('@/pages/graphics-controller/theme01/FiftyRow'));
-const Hundred            = lazy(() => import('@/pages/graphics-controller/theme01/Hundred'));
-const HundredRow         = lazy(() => import('@/pages/graphics-controller/theme01/HundredRow'));
-const WicketRow          = lazy(() => import('@/pages/graphics-controller/theme01/WicketRow'));
-const InningsBreak       = lazy(() => import('@/pages/graphics-controller/theme01/InningsBreak'));
-const TeaBreak           = lazy(() => import('@/pages/graphics-controller/theme01/TeaBreak'));
-const Toss               = lazy(() => import('@/pages/graphics-controller/theme01/Toss'));
-const TournamentIntro    = lazy(() => import('@/pages/graphics-controller/theme01/TournamentIntro'));
-const TournamentOverview = lazy(() => import('@/pages/graphics-controller/theme01/TournamentOverview'));
-const TournamentOver     = lazy(() => import('@/pages/graphics-controller/theme01/TournamentOver'));
-const TargetNeeded       = lazy(() => import('@/pages/graphics-controller/theme01/TargetNeeded'));
-const StatsDefault       = lazy(() => import('@/pages/graphics-controller/theme01/StatsDefault'));
-const AtThisStage        = lazy(() => import('@/pages/graphics-controller/theme01/AtThisStage'));
-const RunRate            = lazy(() => import('@/pages/graphics-controller/theme01/RunRate'));
-const WinPredictor       = lazy(() => import('@/pages/graphics-controller/theme01/WinPredictor'));
-const CurrentPartnership = lazy(() => import('@/pages/graphics-controller/theme01/CurrentPartnership'));
-const LastBalls          = lazy(() => import('@/pages/graphics-controller/theme01/LastBalls'));
-const PreviousOrder      = lazy(() => import('@/pages/graphics-controller/theme01/PreviousOrder'));
-const FallofWickets      = lazy(() => import('@/pages/graphics-controller/theme01/FallofWickets'));
-const Replay             = lazy(() => import('@/pages/graphics-controller/theme01/Replay'));
-const ReplayRow          = lazy(() => import('@/pages/graphics-controller/theme01/ReplayRow'));
-const DecisionPending    = lazy(() => import('@/pages/graphics-controller/theme01/DecisionPending'));
-const DecisionPendingRow = lazy(() => import('@/pages/graphics-controller/theme01/DecisionPendingRow'));
-const ScoreComparison    = lazy(() => import('@/pages/graphics-controller/theme01/ScoreComparison'));
-const ScoreComparisonBar = lazy(() => import('@/pages/graphics-controller/theme01/ScoreComparisonBar'));
-const HighestRuns        = lazy(() => import('@/pages/graphics-controller/theme01/HighestRuns'));
-const HighestWickets     = lazy(() => import('@/pages/graphics-controller/theme01/HighestWickets'));
-const PlayerIntro          = lazy(() => import('@/pages/graphics-controller/theme01/PlayerIntro'));
-const PlayerTournamentStats = lazy(() => import('@/pages/graphics-controller/theme01/PlayerTournamentStats'));
-const PlayerCareerStats    = lazy(() => import('@/pages/graphics-controller/theme01/PlayerCareerStats'));
-const ResultIntro          = lazy(() => import('@/pages/graphics-controller/theme01/ResultIntro'));
-const BowlerCurrentStats   = lazy(() => import('@/pages/graphics-controller/theme01/BowlerCurrentStats'));
-const BowlerCareerStats    = lazy(() => import('@/pages/graphics-controller/theme01/BowlerCareerStats'));
-const BatsmanCurrentStats  = lazy(() => import('@/pages/graphics-controller/theme01/BatsmanCurrentStats'));
-const BatsmanCareerStats   = lazy(() => import('@/pages/graphics-controller/theme01/BatsmanCareerStats'));
-const BatsmanInningsStats  = lazy(() => import('@/pages/graphics-controller/theme01/BatsmanInningsStats'));
-const CricketMatchSummary  = lazy(() => import('@/pages/graphics-controller/theme01/CricketMatchSummary'));
-const MatchSummary         = lazy(() => import('@/pages/graphics-controller/theme01/MatchSummary'));
+const TournamentStart = lazy(
+  () => import('@/pages/graphics-controller/theme01/TournamentStart'),
+);
+const PlayingXI = lazy(
+  () => import('@/pages/graphics-controller/theme01/PlayingXI'),
+);
+const Four = lazy(() => import('@/pages/graphics-controller/theme01/Four'));
+const FourRow = lazy(
+  () => import('@/pages/graphics-controller/theme01/FourRow'),
+);
+const Six = lazy(() => import('@/pages/graphics-controller/theme01/Six'));
+const SixRow = lazy(() => import('@/pages/graphics-controller/theme01/SixRow'));
+const Out = lazy(() => import('@/pages/graphics-controller/theme01/Out'));
+const NotOut = lazy(() => import('@/pages/graphics-controller/theme01/NotOut'));
+const NotOutRow = lazy(
+  () => import('@/pages/graphics-controller/theme01/NotOutRow'),
+);
+const NoBall = lazy(() => import('@/pages/graphics-controller/theme01/NoBall'));
+const NoBallRow = lazy(
+  () => import('@/pages/graphics-controller/theme01/NoBallRow'),
+);
+const Wide = lazy(() => import('@/pages/graphics-controller/theme01/Wide'));
+const WideRow = lazy(
+  () => import('@/pages/graphics-controller/theme01/WideRow'),
+);
+const Fifty = lazy(() => import('@/pages/graphics-controller/theme01/Fifty'));
+const FiftyRow = lazy(
+  () => import('@/pages/graphics-controller/theme01/FiftyRow'),
+);
+const Hundred = lazy(
+  () => import('@/pages/graphics-controller/theme01/Hundred'),
+);
+const HundredRow = lazy(
+  () => import('@/pages/graphics-controller/theme01/HundredRow'),
+);
+const WicketRow = lazy(
+  () => import('@/pages/graphics-controller/theme01/WicketRow'),
+);
+const InningsBreak = lazy(
+  () => import('@/pages/graphics-controller/theme01/InningsBreak'),
+);
+const TeaBreak = lazy(
+  () => import('@/pages/graphics-controller/theme01/TeaBreak'),
+);
+const Toss = lazy(() => import('@/pages/graphics-controller/theme01/Toss'));
+const TournamentIntro = lazy(
+  () => import('@/pages/graphics-controller/theme01/TournamentIntro'),
+);
+const TournamentOverview = lazy(
+  () => import('@/pages/graphics-controller/theme01/TournamentOverview'),
+);
+const TournamentOver = lazy(
+  () => import('@/pages/graphics-controller/theme01/TournamentOver'),
+);
+const TargetNeeded = lazy(
+  () => import('@/pages/graphics-controller/theme01/TargetNeeded'),
+);
+const StatsDefault = lazy(
+  () => import('@/pages/graphics-controller/theme01/StatsDefault'),
+);
+const AtThisStage = lazy(
+  () => import('@/pages/graphics-controller/theme01/AtThisStage'),
+);
+const RunRate = lazy(
+  () => import('@/pages/graphics-controller/theme01/RunRate'),
+);
+const WinPredictor = lazy(
+  () => import('@/pages/graphics-controller/theme01/WinPredictor'),
+);
+const CurrentPartnership = lazy(
+  () => import('@/pages/graphics-controller/theme01/CurrentPartnership'),
+);
+const LastBalls = lazy(
+  () => import('@/pages/graphics-controller/theme01/LastBalls'),
+);
+const PreviousOrder = lazy(
+  () => import('@/pages/graphics-controller/theme01/PreviousOrder'),
+);
+const FallofWickets = lazy(
+  () => import('@/pages/graphics-controller/theme01/FallofWickets'),
+);
+const Replay = lazy(() => import('@/pages/graphics-controller/theme01/Replay'));
+const ReplayRow = lazy(
+  () => import('@/pages/graphics-controller/theme01/ReplayRow'),
+);
+const DecisionPending = lazy(
+  () => import('@/pages/graphics-controller/theme01/DecisionPending'),
+);
+const DecisionPendingRow = lazy(
+  () => import('@/pages/graphics-controller/theme01/DecisionPendingRow'),
+);
+const ScoreComparison = lazy(
+  () => import('@/pages/graphics-controller/theme01/ScoreComparison'),
+);
+const ScoreComparisonBar = lazy(
+  () => import('@/pages/graphics-controller/theme01/ScoreComparisonBar'),
+);
+const HighestRuns = lazy(
+  () => import('@/pages/graphics-controller/theme01/HighestRuns'),
+);
+const HighestWickets = lazy(
+  () => import('@/pages/graphics-controller/theme01/HighestWickets'),
+);
+const PlayerIntro = lazy(
+  () => import('@/pages/graphics-controller/theme01/PlayerIntro'),
+);
+const PlayerTournamentStats = lazy(
+  () => import('@/pages/graphics-controller/theme01/PlayerTournamentStats'),
+);
+const PlayerCareerStats = lazy(
+  () => import('@/pages/graphics-controller/theme01/PlayerCareerStats'),
+);
+const ResultIntro = lazy(
+  () => import('@/pages/graphics-controller/theme01/ResultIntro'),
+);
+const BowlerCurrentStats = lazy(
+  () => import('@/pages/graphics-controller/theme01/BowlerCurrentStats'),
+);
+const BowlerCareerStats = lazy(
+  () => import('@/pages/graphics-controller/theme01/BowlerCareerStats'),
+);
+const BatsmanCurrentStats = lazy(
+  () => import('@/pages/graphics-controller/theme01/BatsmanCurrentStats'),
+);
+const BatsmanCareerStats = lazy(
+  () => import('@/pages/graphics-controller/theme01/BatsmanCareerStats'),
+);
+const BatsmanInningsStats = lazy(
+  () => import('@/pages/graphics-controller/theme01/BatsmanInningsStats'),
+);
+const CricketMatchSummary = lazy(
+  () => import('@/pages/graphics-controller/theme01/CricketMatchSummary'),
+);
+const MatchSummary = lazy(
+  () => import('@/pages/graphics-controller/theme01/MatchSummary'),
+);
 
 // ── Route transition fallback ──────────────────────────────────────────────────
 function PageFallback() {
@@ -281,7 +394,10 @@ function App() {
                     <Route path="/reels" element={<Reels />} />
                     <Route path="/reels/upload" element={<UploadReels />} />
                     <Route path="/pricing" element={<Pricing />} />
-                    <Route path="/pricing/:planId" element={<PricingDetail />} />
+                    <Route
+                      path="/pricing/:planId"
+                      element={<PricingDetail />}
+                    />
                     <Route path="/feed" element={<ActivityFeed />} />
                     <Route
                       path="/feed/:postId"
@@ -305,8 +421,14 @@ function App() {
                 <Route path="/graphics-controller/four" element={<Four />} />
                 <Route path="/graphics-controller/six" element={<Six />} />
                 <Route path="/graphics-controller/out" element={<Out />} />
-                <Route path="/graphics-controller/not-out" element={<NotOut />} />
-                <Route path="/graphics-controller/no-ball" element={<NoBall />} />
+                <Route
+                  path="/graphics-controller/not-out"
+                  element={<NotOut />}
+                />
+                <Route
+                  path="/graphics-controller/no-ball"
+                  element={<NoBall />}
+                />
                 <Route path="/graphics-controller/wide" element={<Wide />} />
                 <Route path="/graphics-controller/fifty" element={<Fifty />} />
                 <Route

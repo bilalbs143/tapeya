@@ -7,7 +7,6 @@ import { isReturningUser } from '@/lib/returningUser';
 import { useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated } from '@/store/selectors';
 
-
 const tapeyaLogo = `${CLOUDFRONT_APP_BASE}/images/logos/tapeya-logo-white.svg`;
 
 const SPLASH_DURATION_MS = 3000;

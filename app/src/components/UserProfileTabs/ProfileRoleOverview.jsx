@@ -19,7 +19,6 @@ import {
 } from './constants';
 import { UserEdit } from './UserEdit';
 
-
 const editProfileIcon = `${CLOUDFRONT_APP_BASE}/images/icons/edit-profile.svg`;
 
 const EDIT_PROFILE_BUTTON_CLASS = `inline-flex items-center gap-2 rounded-[17px] border border-white bg-transparent px-4 py-1 text-[12px] font-semibold uppercase tracking-wide text-white/70 transition-colors hover:border-white/60 hover:text-white/90 ${FOCUS_RING}`;
@@ -57,7 +56,11 @@ function DetailRow({ label, value, withColon = true, truncateAt }) {
  * @param {number} [props.tournaments] — organizer metrics
  * @param {number} [props.events] — organizer metrics
  */
-export function ProfileRoleOverview({ role, tournaments, events }) {
+export function ProfileRoleOverview({
+  role,
+  tournaments: _tournaments,
+  events: _events,
+}) {
   const [editOpen, setEditOpen] = useState(false);
   const user = useAppSelector(selectUser);
   const { battingStyleOptions, bowlingStyleOptions, playingRoleOptions } =

@@ -12,6 +12,7 @@ import {
   useGetTournamentQuery,
 } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
+
 export default function TournamentCreateTeamIntro() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -54,9 +55,9 @@ export default function TournamentCreateTeamIntro() {
       state: {
         tournament: tournament
           ? {
-            ...tournament,
-            name: tournament.tournament_name ?? tournament.name,
-          }
+              ...tournament,
+              name: tournament.tournament_name ?? tournament.name,
+            }
           : { id: tournamentIdNum },
       },
     });
@@ -67,9 +68,9 @@ export default function TournamentCreateTeamIntro() {
       state: {
         tournament: tournament
           ? {
-            ...tournament,
-            name: tournament.tournament_name ?? tournament.name,
-          }
+              ...tournament,
+              name: tournament.tournament_name ?? tournament.name,
+            }
           : { id: tournamentIdNum },
       },
     });
@@ -81,9 +82,9 @@ export default function TournamentCreateTeamIntro() {
         tournamentId: tournamentIdNum,
         tournament: tournament
           ? {
-            ...tournament,
-            name: tournament.tournament_name ?? tournament.name,
-          }
+              ...tournament,
+              name: tournament.tournament_name ?? tournament.name,
+            }
           : { id: tournamentIdNum },
       },
     });
@@ -98,73 +99,73 @@ export default function TournamentCreateTeamIntro() {
       <AppSubpageHeader title={title} titleClassName="truncate" />
 
       <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4">
-            {noTeams ? (
-              <>
-                <p className="text-center text-[14px] text-[#A2A6AB]">
-                  No teams yet. Create your first team to get started.
-                </p>
-                <Button
-                  type="button"
-                  variant="card"
-                  onClick={handleCreateTeam}
-                  className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
-                >
-                  <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
-                    +
-                  </span>
-                  <span className="text-[16px] font-bold text-[#A2A6AB]">
-                    Create Team
-                  </span>
-                </Button>
-              </>
-            ) : (
-              <>
-                <p className="text-center text-[14px] text-[#A2A6AB]">
-                  Teams are complete. Manage squads or add fixtures.
-                </p>
-                <Button
-                  type="button"
-                  variant="card"
-                  onClick={handleViewTeams}
-                  className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
-                >
-                  <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
-                    +
-                  </span>
-                  <span className="text-[16px] font-bold text-[#A2A6AB]">
-                    View Teams
-                  </span>
-                </Button>
-                <Button
-                  type="button"
-                  variant="card"
-                  onClick={handleAddFixtures}
-                  className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
-                >
-                  <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
-                    +
-                  </span>
-                  <span className="text-[16px] font-bold text-[#A2A6AB]">
-                    Add Fixtures
-                  </span>
-                </Button>
-                {matchesCount > 0 && (
-                  <Button
-                    type="button"
-                    variant="card"
-                    onClick={handleViewFixtures}
-                    className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
-                  >
-                    <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
-                      +
-                    </span>
-                    <span className="text-[16px] font-bold text-[#A2A6AB]">
-                      View Fixtures
-                    </span>
-                  </Button>
-                )}
-              </>
+        {noTeams ? (
+          <>
+            <p className="text-center text-[14px] text-[#A2A6AB]">
+              No teams yet. Create your first team to get started.
+            </p>
+            <Button
+              type="button"
+              variant="card"
+              onClick={handleCreateTeam}
+              className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
+            >
+              <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
+                +
+              </span>
+              <span className="text-[16px] font-bold text-[#A2A6AB]">
+                Create Team
+              </span>
+            </Button>
+          </>
+        ) : (
+          <>
+            <p className="text-center text-[14px] text-[#A2A6AB]">
+              Teams are complete. Manage squads or add fixtures.
+            </p>
+            <Button
+              type="button"
+              variant="card"
+              onClick={handleViewTeams}
+              className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
+            >
+              <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
+                +
+              </span>
+              <span className="text-[16px] font-bold text-[#A2A6AB]">
+                View Teams
+              </span>
+            </Button>
+            <Button
+              type="button"
+              variant="card"
+              onClick={handleAddFixtures}
+              className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
+            >
+              <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
+                +
+              </span>
+              <span className="text-[16px] font-bold text-[#A2A6AB]">
+                Add Fixtures
+              </span>
+            </Button>
+            {matchesCount > 0 && (
+              <Button
+                type="button"
+                variant="card"
+                onClick={handleViewFixtures}
+                className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
+              >
+                <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
+                  +
+                </span>
+                <span className="text-[16px] font-bold text-[#A2A6AB]">
+                  View Fixtures
+                </span>
+              </Button>
             )}
+          </>
+        )}
       </div>
     </div>
   );

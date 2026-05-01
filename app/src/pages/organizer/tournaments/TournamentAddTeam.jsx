@@ -390,7 +390,6 @@ export default function TournamentAddTeam() {
         }
       />
       <Container>
-
         <form onSubmit={handleSubmit(onSubmit)} className="pb-10">
           <div className="space-y-5 lg:grid lg:grid-cols-3 lg:space-y-0 lg:gap-x-4 lg:gap-y-5">
             {hasGroups && (
@@ -993,18 +992,18 @@ export default function TournamentAddTeam() {
             {isReadonly &&
               selectedTeam?.logo &&
               String(selectedTeam.logo).trim() !== '' && (
-              <FormField
-                label="Logo"
-                htmlFor="team_logo_display"
-                labelClassName={labelClass}
-              >
-                <div className="flex h-12 items-center rounded-[6px] bg-[#141412] px-4">
-                  <span className="text-[16px] text-[#A2A6AB] capitalize">
+                <FormField
+                  label="Logo"
+                  htmlFor="team_logo_display"
+                  labelClassName={labelClass}
+                >
+                  <div className="flex h-12 items-center rounded-[6px] bg-[#141412] px-4">
+                    <span className="text-[16px] text-[#A2A6AB] capitalize">
                       Logo uploaded
-                  </span>
-                </div>
-              </FormField>
-            )}
+                    </span>
+                  </div>
+                </FormField>
+              )}
 
             <div className="flex justify-start pt-4 lg:col-span-3">
               <Button

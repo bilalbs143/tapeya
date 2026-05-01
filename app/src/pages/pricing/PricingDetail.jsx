@@ -18,7 +18,6 @@ import { useAppDispatch } from '@/store/hooks';
 import { openDialog } from '@/store/slices/commonSlice';
 import { Container } from '@/ui/Container';
 
-
 const pricingListTickIcon = `${CLOUDFRONT_APP_BASE}/images/icons/pricing-list-tick.svg`;
 
 function DetailCheckIcon() {
@@ -51,7 +50,6 @@ export default function PricingDetail() {
     <div className="bg-black text-white">
       <AppSubpageHeader title="Plan Detail" />
       <Container>
-
         <div className="mx-auto w-full max-w-md rounded-[18px] bg-[#141412] p-6 shadow-[0_18px_40px_rgba(0,0,0,0.9)]">
           <div className="mb-4 flex items-center gap-3">
             {plan.icon ? (

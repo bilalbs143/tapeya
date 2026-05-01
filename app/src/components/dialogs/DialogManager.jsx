@@ -42,8 +42,7 @@ export function DialogManager() {
     }
   };
 
-  const contentClassName =
-    DIALOG_CONTENT_CLASS_BY_KEY[dialogKey] ?? '';
+  const contentClassName = DIALOG_CONTENT_CLASS_BY_KEY[dialogKey] ?? '';
 
   return (
     <BaseDialog

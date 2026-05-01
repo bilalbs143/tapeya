@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
-import { Container } from '@/ui/Container';
 import {
   useGetNotificationsQuery,
   useMarkAllNotificationsReadMutation,
 } from '@/store/api/notificationApi';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
+import { Container } from '@/ui/Container';
 
 const PAGE_SIZE = 10;
 

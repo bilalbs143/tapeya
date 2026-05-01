@@ -34,9 +34,9 @@ function teamDisplay(team) {
   const iconPlayers =
     Array.isArray(team.icon_players) && team.icon_players.length > 0
       ? team.icon_players
-        .map((p) => p.name)
-        .filter(Boolean)
-        .join(', ')
+          .map((p) => p.name)
+          .filter(Boolean)
+          .join(', ')
       : '—';
   return { owner, iconPlayers };
 }
@@ -165,7 +165,6 @@ export default function TournamentSavedTeams() {
         }
       />
       <Container>
-
         {isLoading && (
           <p className="mb-3 text-[13px] text-[#A2A6AB]">Loading teams…</p>
         )}

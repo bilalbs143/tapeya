@@ -12,7 +12,6 @@ import { BOTTOM_NAV_ITEMS } from '@/lib/constants/navigation';
 import { useGetNotificationUnreadCountQuery } from '@/store/api/notificationApi';
 import { useAppSelector } from '@/store/hooks';
 
-
 const hamburgerIcon = `${CLOUDFRONT_APP_BASE}/images/icons/hamburger-icon.svg`;
 const notificationIcon = `${CLOUDFRONT_APP_BASE}/images/icons/notification-icon.svg`;
 const profileIcon = `${CLOUDFRONT_APP_BASE}/images/icons/profile.svg`;

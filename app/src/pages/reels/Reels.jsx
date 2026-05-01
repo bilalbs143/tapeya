@@ -19,7 +19,6 @@ import { selectPublishedReels } from '@/store/selectors';
 import ReelItem from './ReelItem';
 import { EXPLORE_REELS, MY_VIDEOS_REELS } from './reelsData';
 
-
 const exploreOrangeIcon = `${CLOUDFRONT_APP_BASE}/images/icons/explore-orange.svg`;
 const exploreWhiteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/explore-white.svg`;
 const myVideosOrangeIcon = `${CLOUDFRONT_APP_BASE}/images/icons/my-videos-orange.svg`;

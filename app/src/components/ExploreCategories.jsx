@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { EXPLORE_CATEGORIES } from '@/lib/constants/navigation';
 
-
 const draftingIcon = `${CLOUDFRONT_APP_BASE}/images/icons/drafting.svg`;
 const highlightsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/highlights.svg`;
 const liveIcon = `${CLOUDFRONT_APP_BASE}/images/icons/live-icon.svg`;

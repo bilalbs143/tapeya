@@ -132,7 +132,6 @@ import { ScheduleTab, StatsTab, TableTab } from './tabs';
 // CURSOR: move FLAGS to src/lib/constants/teamFlags.js (see top).
 // ---------------------------------------------------------------------------
 
-
 const karachiFlag = `${CLOUDFRONT_APP_BASE}/images/icons/karachi-flag.png`;
 const rawalpindiFlag = `${CLOUDFRONT_APP_BASE}/images/icons/rawalpindi-flag.png`;
 const winProbabilityIcon = `${CLOUDFRONT_APP_BASE}/images/icons/win-probabilty.svg`;

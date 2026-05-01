@@ -25,9 +25,7 @@ export function TeamNameDialog({
     <BaseDialog open={open} onOpenChange={onOpenChange}>
       <div className="flex min-h-0 flex-1 flex-col">
         <DialogHeaderRow hideClose>
-          <DialogTitle className={dialogPrimaryTitleClass}>
-            {title}
-          </DialogTitle>
+          <DialogTitle className={dialogPrimaryTitleClass}>{title}</DialogTitle>
         </DialogHeaderRow>
 
         <DialogScrollBody className="flex flex-col gap-4">

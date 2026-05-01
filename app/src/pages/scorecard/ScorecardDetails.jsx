@@ -126,12 +126,6 @@ export default function ScorecardDetails() {
   );
 
   const ActiveView = TAB_VIEWS[activeTab];
-  const formatLabel =
-    tournament?.number_of_groups != null
-      ? tournament.number_of_groups <= 1
-        ? 'Single table'
-        : `Groups: ${tournament.number_of_groups}`
-      : null;
 
   // CURSOR: replace with useFixedOnScroll(NAVBAR_HEIGHT) once extracted (see top).
   useEffect(() => {
@@ -169,10 +163,7 @@ export default function ScorecardDetails() {
 
   return (
     <div className="bg-black">
-      <AppSubpageHeader
-        title="SCORE CARD"
-        subtitle={headerTitleHighlight}
-      />
+      <AppSubpageHeader title="SCORE CARD" subtitle={headerTitleHighlight} />
 
       <Container className="!pb-0">
         <Tabs

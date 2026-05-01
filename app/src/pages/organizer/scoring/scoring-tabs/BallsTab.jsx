@@ -465,21 +465,21 @@ export function BallsTab({
       <div className="mt-4 flex flex-col gap-2">
         {activeInnings === '1'
           ? renderInnings(
-            ballListWithMeta,
-            overSummaries,
-            squad,
-            bowlersInTable,
-            bowlerSquad,
-          )
+              ballListWithMeta,
+              overSummaries,
+              squad,
+              bowlersInTable,
+              bowlerSquad,
+            )
           : renderInnings(
-            ballListSecond,
-            overSummariesSecond,
+              ballListSecond,
+              overSummariesSecond,
               secondInningsSquad.length ? secondInningsSquad : squad,
               secondInningsBowlersInTable,
               secondInningsBowlerSquad.length
                 ? secondInningsBowlerSquad
                 : bowlerSquad,
-          )}
+            )}
       </div>
     </div>
   );

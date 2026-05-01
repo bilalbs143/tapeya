@@ -20,7 +20,6 @@ import {
   DialogTitle,
 } from '@/ui/Dialog';
 
-
 const stadiumBg = `${CLOUDFRONT_APP_BASE}/images/standard/stadium-bg.png`;
 
 // ─── ShotDirectionPicker ──────────────────────────────────────────────────

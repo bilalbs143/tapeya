@@ -11,7 +11,6 @@ import { ShotDirectionStats } from '../ShotAreaDialog';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-
 const stadiumBg = `${CLOUDFRONT_APP_BASE}/images/standard/stadium-bg.png`;
 
 /** Zone IDs classed as off-side for the stats bar. */
@@ -225,9 +224,9 @@ export function StatsTab({
     teamARunsPerOver.length > 0 || teamBRunsPerOver.length > 0;
   const displayLength = hasChartData
     ? Math.min(
-      20,
-      Math.max(5, teamARunsPerOver.length, teamBRunsPerOver.length),
-    )
+        20,
+        Math.max(5, teamARunsPerOver.length, teamBRunsPerOver.length),
+      )
     : 0;
 
   const categories = useMemo(

@@ -23,7 +23,6 @@ import { useGetTournamentQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
 import { CloseIcon } from '@/ui/icons/CloseIcon';
 
-
 const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
 
 export default function TournamentSquad() {
@@ -95,8 +94,7 @@ export default function TournamentSquad() {
       skip: debouncedFindPlayer.length < MIN_SEARCH_LENGTH,
     });
 
-  const [updateSquad, { isLoading: isSubmitting }] =
-    useUpdateTeamSquadMutation();
+  const [updateSquad] = useUpdateTeamSquadMutation();
 
   // ------------------------------------------------------------------
   // Navigation guard
@@ -191,7 +189,6 @@ export default function TournamentSquad() {
         }
       />
       <Container>
-
         {isLoadingSquad && (
           <p className="mb-3 text-[13px] text-[#A2A6AB]">Loading squad…</p>
         )}
@@ -224,9 +221,9 @@ export default function TournamentSquad() {
                 {Array.isArray(team?.icon_players) &&
                 team.icon_players.length > 0
                   ? team.icon_players
-                    .map((p) => p.name)
-                    .filter(Boolean)
-                    .join(', ')
+                      .map((p) => p.name)
+                      .filter(Boolean)
+                      .join(', ')
                   : (team?.iconPlayer ?? '—')}
               </p>
             </div>

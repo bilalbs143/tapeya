@@ -27,7 +27,6 @@ import { Button } from '@/ui/Button';
 import { FormField } from '@/ui/FormField';
 import { PhoneInput } from '@/ui/PhoneInput';
 
-
 const tapeyaLogo = `${CLOUDFRONT_APP_BASE}/images/logos/tapeya-logo-white.svg`;
 const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 

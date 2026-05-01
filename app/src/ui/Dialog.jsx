@@ -57,18 +57,17 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 // Radix primitives — re-exported for convenience
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const Dialog        = DialogPrimitive.Root;
+export const Dialog = DialogPrimitive.Root;
 export const DialogTrigger = DialogPrimitive.Trigger;
-export const DialogPortal  = DialogPrimitive.Portal;
-export const DialogClose   = DialogPrimitive.Close; // unstyled — use DialogHeaderClose inside panels
+export const DialogPortal = DialogPrimitive.Portal;
+export const DialogClose = DialogPrimitive.Close; // unstyled — use DialogHeaderClose inside panels
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Design tokens
 // Edit these to restyle all dialogs globally.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const OVERLAY =
-  'fixed inset-0 z-50 bg-black/50';
+const OVERLAY = 'fixed inset-0 z-50 bg-black/50';
 
 const CONTENT_DARK =
   'fixed left-1/2 top-1/2 z-50 flex h-[447px] w-full max-w-[380px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[17px] border-2 p-0 shadow-xl';
@@ -95,9 +94,10 @@ const CLOSE_ICON_PATH =
 // ─────────────────────────────────────────────────────────────────────────────
 // Exported class-name constants
 // ─────────────────────────────────────────────────────────────────────────────
-
-export const dialogHeaderClass       = HEADER_ROW;
+/* eslint-disable react-refresh/only-export-components -- shared layout tokens used outside this file */
+export const dialogHeaderClass = HEADER_ROW;
 export const dialogPrimaryTitleClass = TITLE_PRIMARY;
+/* eslint-enable react-refresh/only-export-components */
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Internal: shared × icon
@@ -215,12 +215,12 @@ DialogHeaderClose.displayName = 'DialogHeaderClose';
  *   </DialogHeaderRow>
  */
 export function DialogHeaderRow({
-  children          = null,
-  trailing          = null,
+  children = null,
+  trailing = null,
   closeSlot,
-  hideClose         = false,
+  hideClose = false,
   reserveCloseSpace = true,
-  className         = '',
+  className = '',
 }) {
   let right;
   if (closeSlot != null) {

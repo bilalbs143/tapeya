@@ -109,7 +109,6 @@ export default function ShopCheckout() {
     <div className="bg-black">
       <AppSubpageHeader title="BILLING DETAILS" />
       <Container>
-
         {cartLoading ? null : !canCheckout ? (
           <div className="py-8 text-center">
             <p className="text-[14px] text-[#A2A6AB]">Your cart is empty.</p>

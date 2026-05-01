@@ -149,7 +149,7 @@ export function ScoringTab({
   setCurrentBowlerIndex,
   currentPartnership = { runs: 0, balls: 0 },
   setCurrentPartnership,
-  completedPartnerships = [],
+  completedPartnerships: _completedPartnerships = [],
   setCompletedPartnerships,
   pendingFreeHit = false,
   setPendingFreeHit,
@@ -341,7 +341,6 @@ export function ScoringTab({
 
   const canAddMoreBatsmen = batsmenOnCrease.length < 2;
   const canAddMoreBowlers = bowlersInTable.length < MAX_BOWLERS_IN_TABLE;
-  const showAddBowlerOverlay = bowlersInTable.length === 0 && !matchComplete;
 
   // ── Squad helpers ─────────────────────────────────────────────────────────────
 
@@ -976,7 +975,6 @@ export function ScoringTab({
         squad={bowlingSquad}
         onSaveSquad={handleSaveBowlerSquad}
         onSetRole={setBowlerRole}
-        canAddMoreBowlers={canAddMoreBowlers}
         bowlersInTable={bowlersInTable}
         onSelectBowlerForNextOver={selectBowlerForNextOver}
         replaceActiveBowlerMode={bowlerDialogReplaceActive}

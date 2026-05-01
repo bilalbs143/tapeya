@@ -160,7 +160,6 @@ function BowlerSquadPickerRow({
   b,
   hideSquadSetup,
   bowlersInTable,
-  canAddMoreBowlers,
   replaceActiveBowlerMode,
   activeBowlerId,
   onReplaceActiveBowlerPick,
@@ -253,7 +252,6 @@ export default function ScoringSquadPlayerPickerDialog({
   strikerId,
   nonStrikerId,
   // bowler-only
-  canAddMoreBowlers,
   bowlersInTable,
   onSelectBowlerForNextOver,
   replaceActiveBowlerMode = false,
@@ -309,7 +307,6 @@ export default function ScoringSquadPlayerPickerDialog({
               b={b}
               hideSquadSetup={hideSquadSetup}
               bowlersInTable={bowlersInTable}
-              canAddMoreBowlers={canAddMoreBowlers}
               replaceActiveBowlerMode={replaceActiveBowlerMode}
               activeBowlerId={activeBowlerId}
               onReplaceActiveBowlerPick={onReplaceActiveBowlerPick}

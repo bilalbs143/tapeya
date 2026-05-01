@@ -18,7 +18,6 @@ import { ProfileMetrics } from './ProfileMetrics';
 import { ProfileRoleOverview } from './ProfileRoleOverview';
 import { ProfileStats } from './ProfileStats';
 
-
 const profileUserIcon = `${CLOUDFRONT_APP_BASE}/images/icons/profile-user.svg`;
 // const userPostsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/user-posts.svg`;
 const userStatsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/user-stats.svg`;

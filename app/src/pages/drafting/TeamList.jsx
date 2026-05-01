@@ -4,7 +4,6 @@ import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { Container } from '@/ui/Container';
 
-
 const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
 const teamEditIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-edit-icon.svg`;
 const teamIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-icon.svg`;
@@ -126,7 +125,6 @@ export default function TeamList() {
     <div className="bg-black">
       <AppSubpageHeader title="Drafting" />
       <Container>
-
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">
             Teams

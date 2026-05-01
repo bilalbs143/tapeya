@@ -11,7 +11,6 @@ import { Link } from 'react-router-dom';
 
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 
-
 const messageIcon = `${CLOUDFRONT_APP_BASE}/images/icons/message-icon.svg`;
 const playIcon = `${CLOUDFRONT_APP_BASE}/images/icons/play-icon.svg`;
 const reelCameraIcon = `${CLOUDFRONT_APP_BASE}/images/icons/reel-camera-icon.svg`;

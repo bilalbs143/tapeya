@@ -20,7 +20,6 @@ import {
   TabsTrigger,
 } from '@/ui/Tabs';
 
-
 const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
 const OPEN_TOURNAMENT_TYPE = 'open_tournament';
@@ -87,10 +86,10 @@ function PlayerCard({ player, rank, variant = 'batter' }) {
   const detailText = isBowler
     ? `Innings: ${player.innings} Economy: ${
         player.economy != null ? Number(player.economy).toFixed(2) : '-'
-    }`
+      }`
     : `Innings: ${player.innings} Average: ${
         player.average != null ? Number(player.average).toFixed(2) : '-'
-    }`;
+      }`;
 
   return (
     <div className="flex items-center gap-3 rounded-[17px] bg-[#141412] p-3">
@@ -209,7 +208,6 @@ export default function Ranking() {
     <div className="bg-black">
       <AppSubpageHeader title="Latest Ranking" />
       <Container>
-
         <Tabs defaultValue="batters" className="w-full">
           <TabsList className={`${profileListClass} mb-4`}>
             <TabsTrigger value="batters" className={profileTriggerClass}>

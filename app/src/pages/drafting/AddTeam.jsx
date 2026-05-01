@@ -39,7 +39,6 @@ export default function AddTeam() {
     <div className="bg-black">
       <AppSubpageHeader title="Add Team" />
       <Container>
-
         <form onSubmit={handleSubmit} className="pb-10">
           <div className="space-y-5 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">
             <FormField label="Team Name" htmlFor="team_name" required>

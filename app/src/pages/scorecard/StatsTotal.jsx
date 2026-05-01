@@ -279,12 +279,7 @@ export default function StatsTotal() {
     navigate(tournamentId ? `/scorecard/${tournamentId}` : '/scorecard');
   };
 
-  const header = (
-    <AppSubpageHeader
-      title={subheading}
-      onBack={backToStats}
-    />
-  );
+  const header = <AppSubpageHeader title={subheading} onBack={backToStats} />;
 
   // ------------------------------------------------------------------
   // Early-return states

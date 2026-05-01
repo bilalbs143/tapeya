@@ -33,7 +33,8 @@ function autoLazyImages() {
         if (hasLoading && hasDecoding) return match;
 
         let inject = '';
-        if (!hasLoading && !hasDecoding) inject = ' loading="lazy" decoding="async"';
+        if (!hasLoading && !hasDecoding)
+          inject = ' loading="lazy" decoding="async"';
         else if (!hasLoading) inject = ' loading="lazy"';
         else inject = ' decoding="async"';
 
@@ -74,7 +75,8 @@ export default defineConfig({
 
           // ApexCharts: split core vs React wrapper so neither chunk trips the
           // default Rollup size warning (~500 kB) as a single bundle.
-          if (id.includes('node_modules/react-apexcharts')) return 'charts-react';
+          if (id.includes('node_modules/react-apexcharts'))
+            return 'charts-react';
           if (id.includes('node_modules/apexcharts')) return 'charts-apex';
 
           // Swiper carousel — only on pages that use it

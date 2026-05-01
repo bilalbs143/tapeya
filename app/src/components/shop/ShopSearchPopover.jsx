@@ -10,7 +10,6 @@ import { useGetBrandsQuery, useGetProductsQuery } from '@/store/api/shopApi';
 import { CloseIcon } from '@/ui/icons/CloseIcon';
 import { Popover, PopoverAnchor, PopoverContent } from '@/ui/Popover';
 
-
 const searchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/searchicon.svg`;
 
 const SEARCH_RESULTS_LIMIT = 8;

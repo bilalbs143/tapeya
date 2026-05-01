@@ -25,7 +25,7 @@ export function PlayersPerSideDialog({
             Select Players Per Side
           </DialogTitle>
         </DialogHeaderRow>
-        <div className="flex flex-1 flex-col px-5 pb-5 pt-4">
+        <div className="flex flex-1 flex-col px-5 pt-4 pb-5">
           <Input
             type="text"
             inputMode="numeric"
@@ -48,9 +48,9 @@ export function PlayersPerSideDialog({
                     onOpenChange(false);
                   }}
                   className={`flex w-full cursor-pointer items-center rounded-full px-4 py-3 text-base text-[14px] font-medium transition-colors focus:outline-none ${
-                  isSelected
-                    ? 'bg-[#DA9811] text-[#080807]'
-                    : 'bg-[#141412] text-white'
+                    isSelected
+                      ? 'bg-[#DA9811] text-[#080807]'
+                      : 'bg-[#141412] text-white'
                   }`}
                 >
                   {opt.label}
@@ -65,7 +65,7 @@ export function PlayersPerSideDialog({
               className="w-full cursor-pointer !bg-[#DA9811] !text-[#080807]"
               onClick={() => onOpenChange(false)}
             >
-            Done
+              Done
             </Button>
           </div>
         </div>

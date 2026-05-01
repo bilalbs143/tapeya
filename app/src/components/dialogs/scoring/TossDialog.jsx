@@ -8,7 +8,6 @@ import {
 } from '@/ui/Dialog';
 import { ToggleGroup, ToggleGroupItem } from '@/ui/ToggleGroup';
 
-
 const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
 
 /**
@@ -37,15 +36,15 @@ export function TossDialog({
           </DialogTitle>
         </DialogHeaderRow>
 
-        <div className="flex flex-1 flex-col px-5 pb-5 pt-4">
+        <div className="flex flex-1 flex-col px-5 pt-4 pb-5">
           <div className="flex gap-3">
             <button
               type="button"
               onClick={() => setTossWinner('A')}
               className={`flex flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-[17px] border-2 px-4 py-4 transition-colors focus:outline-none ${
-              tossWinner === 'A'
-                ? 'border-[#DA9811] bg-[#DA9811] text-white'
-                : 'border-[#141412] bg-[#141412] text-white'
+                tossWinner === 'A'
+                  ? 'border-[#DA9811] bg-[#DA9811] text-white'
+                  : 'border-[#141412] bg-[#141412] text-white'
               }`}
             >
               <img
@@ -62,9 +61,9 @@ export function TossDialog({
               type="button"
               onClick={() => setTossWinner('B')}
               className={`flex flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-[17px] border-2 px-4 py-4 transition-colors focus:outline-none ${
-              tossWinner === 'B'
-                ? 'border-[#DA9811] bg-[#DA9811] text-white'
-                : 'border-[#141412] bg-[#141412] text-white'
+                tossWinner === 'B'
+                  ? 'border-[#DA9811] bg-[#DA9811] text-white'
+                  : 'border-[#141412] bg-[#141412] text-white'
               }`}
             >
               <img
@@ -91,14 +90,14 @@ export function TossDialog({
               className="cursor-pointer"
               aria-label="Bat"
             >
-            Bat
+              Bat
             </ToggleGroupItem>
             <ToggleGroupItem
               value="bowl"
               className="cursor-pointer"
               aria-label="Bowl"
             >
-            Bowl
+              Bowl
             </ToggleGroupItem>
           </ToggleGroup>
 

@@ -179,7 +179,7 @@ export function useScoringEngine({
   setCompletedPartnerships,
   pendingFreeHit,
   setPendingFreeHit,
-  retiredBatsmen,
+  retiredBatsmen: _retiredBatsmen,
   setRetiredBatsmen,
   setAddBowlerOpen,
   setOutReasonModalOpen,
@@ -675,7 +675,6 @@ export function useScoringEngine({
       // (No over-boundary check needed.)
     },
     [
-      ballHistory,
       batsmenOnCrease,
       bowlersInTable,
       strikerIndex,
@@ -875,7 +874,6 @@ export function useScoringEngine({
     },
     [
       ballHistory,
-      batsmenOnCrease,
       bowlersInTable,
       setBallHistory,
       setBatsmenOnCrease,

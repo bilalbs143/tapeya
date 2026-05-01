@@ -6,7 +6,6 @@ import { useAddToCart } from '@/hooks/shop/useAddToCart';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatPrice } from '@/lib/format';
 
-
 const productCartIcon = `${CLOUDFRONT_APP_BASE}/images/icons/product-cart-icon.svg`;
 
 function ListingProductCardInner({ product, brandSlug }) {

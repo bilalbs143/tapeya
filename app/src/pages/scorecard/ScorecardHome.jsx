@@ -95,7 +95,6 @@ export default function ScorecardHome() {
     <div className="bg-black">
       <AppSubpageHeader title="SCORE CARD" />
       <Container>
-
         <div className="flex flex-col">
           <div ref={tabsSentinelRef} className="h-px w-full" aria-hidden />
           <div className="-mx-4 bg-black px-4 pt-0.5 pb-2">
