@@ -27,13 +27,9 @@ export default function ActivityFeed() {
 
   return (
     <div className="bg-black text-white">
-      <Container className="!px-4 !py-0">
-        <AppSubpageHeader
-          title="ACTIVITY FEED"
-          className="-mx-4 -mt-6 lg:mt-0"
-        />
-
-        <div className="flex flex-col gap-3 pt-3 pb-8">
+      <AppSubpageHeader title="ACTIVITY FEED" />
+      <Container>
+        <div className="flex flex-col gap-3 pb-8">
           <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
             {ACTIVITY_FEED_SECTION_TITLE}
           </h2>

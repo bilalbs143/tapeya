@@ -202,12 +202,8 @@ export default function Tournaments() {
 
   return (
     <div className="bg-black">
-      <Container className="!px-4 !py-0">
-        <AppSubpageHeader
-          title="My Tournaments"
-          bottomSpacing="relaxed"
-          className="-mx-4 -mt-6 lg:mt-0"
-        />
+      <AppSubpageHeader title="My Tournaments" />
+      <Container>
 
         <div className="space-y-6 pb-6">
           <Section

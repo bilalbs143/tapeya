@@ -382,16 +382,14 @@ export default function TournamentAddTeam() {
 
   return (
     <div className="bg-black">
-      <Container className="!px-4 !py-0">
-        <AppSubpageHeader
-          title={
-            tournament
-              ? `${getTournamentTitle(tournament)} - Add Team`
-              : 'Tournaments - Add Team'
-          }
-          bottomSpacing="relaxed"
-          className="-mx-4 -mt-6 lg:mt-0"
-        />
+      <AppSubpageHeader
+        title={
+          tournament
+            ? `${getTournamentTitle(tournament)} - Add Team`
+            : 'Tournaments - Add Team'
+        }
+      />
+      <Container>
 
         <form onSubmit={handleSubmit(onSubmit)} className="pb-10">
           <div className="space-y-5 lg:grid lg:grid-cols-3 lg:space-y-0 lg:gap-x-4 lg:gap-y-5">

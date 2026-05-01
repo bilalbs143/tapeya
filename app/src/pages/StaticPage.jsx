@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { Container } from '@/ui/Container';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { useGetStaticPageBySlugQuery } from '@/store/api/staticPageApi';
 
@@ -30,7 +31,7 @@ export default function StaticPage() {
     <div className="bg-black">
       <AppSubpageHeader sticky title={headerLabel} />
 
-      <div className="mx-auto w-full max-w-2xl px-4 pt-6 pb-8">
+      <Container className="pb-8">
         {normalizedSlug && error && !isLoading && !isFetching && (
           <p className="text-[13px] leading-snug text-[#A2A6AB] md:text-[14px]">
             {is404
@@ -49,7 +50,7 @@ export default function StaticPage() {
             }}
           />
         )}
-      </div>
+      </Container>
     </div>
   );
 }

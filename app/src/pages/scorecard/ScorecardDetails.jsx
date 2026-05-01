@@ -170,23 +170,11 @@ export default function ScorecardDetails() {
   return (
     <div className="bg-black">
       <AppSubpageHeader
-        bottomSpacing="relaxed"
-        title={
-          <>
-            <h1 className="text-[16px] leading-snug font-bold tracking-wide text-white uppercase">
-              <span className="break-words whitespace-normal">SCORE CARD - </span>
-              <span className="text-[#DA9811] normal-case">
-                {headerTitleHighlight}
-              </span>
-            </h1>
-            {formatLabel && (
-              <p className="mt-0.5 text-[12px] text-[#A2A6AB]">{formatLabel}</p>
-            )}
-          </>
-        }
+        title="SCORE CARD"
+        subtitle={headerTitleHighlight}
       />
 
-      <Container className="!px-4 !py-0">
+      <Container className="!pb-0">
         <Tabs
           value={activeTab}
           onValueChange={(value) => setSearchParams({ tab: value })}

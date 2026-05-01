@@ -12,8 +12,6 @@ import {
   useGetTournamentQuery,
 } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
-import { Container } from '@/ui/Container';
-
 export default function TournamentCreateTeamIntro() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -96,17 +94,10 @@ export default function TournamentCreateTeamIntro() {
   };
 
   return (
-    <div className="bg-black">
-      <Container className="!px-4 !py-0">
-        <div className="flex min-h-[calc(100vh-144px)] flex-col">
-          <AppSubpageHeader
-            title={title}
-            bottomSpacing="relaxed"
-            titleClassName="truncate"
-            className="-mx-4 -mt-6 lg:mt-0"
-          />
+    <div className="flex min-h-[calc(100vh-144px)] flex-col bg-black">
+      <AppSubpageHeader title={title} titleClassName="truncate" />
 
-          <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4">
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4">
             {noTeams ? (
               <>
                 <p className="text-center text-[14px] text-[#A2A6AB]">
@@ -174,9 +165,7 @@ export default function TournamentCreateTeamIntro() {
                 )}
               </>
             )}
-          </div>
-        </div>
-      </Container>
+      </div>
     </div>
   );
 }

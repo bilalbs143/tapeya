@@ -57,12 +57,8 @@ export default function TeamDetail() {
 
   return (
     <div className="bg-black">
-      <Container className="!px-4 !py-0">
-        <AppSubpageHeader
-          title="Drafting"
-          bottomSpacing="relaxed"
-          className="-mx-4 -mt-6 lg:mt-0"
-        />
+      <AppSubpageHeader title="Drafting" />
+      <Container>
 
         <div className="lg:grid lg:grid-cols-2 lg:gap-6">
           <div>

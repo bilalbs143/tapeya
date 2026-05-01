@@ -125,14 +125,8 @@ export default function UploadReels() {
 
   return (
     <div className="bg-black">
-      <Container className="!px-4 !py-0">
-        {/* Header: back + title */}
-        <AppSubpageHeader
-          title="Upload Reel"
-          className="-mx-4 -mt-6 justify-between gap-0 lg:mt-0"
-          backAriaLabel="Go back"
-          trailing={<div className="w-[27px] shrink-0" aria-hidden />}
-        />
+      <AppSubpageHeader title="Upload Reel" backAriaLabel="Go back" />
+      <Container>
 
         {/* User row */}
         <div className="mb-4 flex items-center gap-3">

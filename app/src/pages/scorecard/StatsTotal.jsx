@@ -283,7 +283,6 @@ export default function StatsTotal() {
     <AppSubpageHeader
       title={subheading}
       onBack={backToStats}
-      bottomSpacing="relaxed"
     />
   );
 
@@ -295,7 +294,7 @@ export default function StatsTotal() {
     return (
       <div className="bg-black">
         {header}
-        <Container className="!px-4 pb-6">
+        <Container className="pb-6">
           <p className="mt-4 text-center text-[13px] text-[#A2A6AB]">
             Select a tournament to view stats.
           </p>
@@ -308,7 +307,7 @@ export default function StatsTotal() {
     return (
       <div className="bg-black">
         {header}
-        <Container className="!px-4 pb-6">
+        <Container className="pb-6">
           <p className="mt-4 text-center text-[13px] text-[#A2A6AB]">
             Loading stats…
           </p>
@@ -321,7 +320,7 @@ export default function StatsTotal() {
     return (
       <div className="bg-black">
         {header}
-        <Container className="!px-4 pb-6">
+        <Container className="pb-6">
           <p className="mt-4 text-center text-[13px] text-red-400">
             Failed to load stats.
           </p>
@@ -345,7 +344,7 @@ export default function StatsTotal() {
     <div className="bg-black">
       {header}
 
-      <Container className="!px-4 pb-6">
+      <Container className="pb-6">
         <h2 className="text-center text-base font-bold tracking-wide text-white uppercase">
           {mainTitle}
         </h2>

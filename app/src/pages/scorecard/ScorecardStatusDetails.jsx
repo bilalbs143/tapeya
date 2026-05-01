@@ -553,7 +553,7 @@ export default function ScorecardStatusDetails() {
         <WinProbabilityCard match={match} winProb={details.winProb} />
       )}
 
-      <Container className="!px-4 !py-0">
+      <Container className="!py-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="-mx-4 bg-black px-4 pt-3 pb-2">
             <TabsList className={scorecardListClass}>

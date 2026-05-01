@@ -209,16 +209,14 @@ export default function TournamentAddSquad() {
 
   return (
     <div className="bg-black">
-      <Container className="!px-4 !py-0">
-        <AppSubpageHeader
-          title={
-            tournament
-              ? `${getTournamentTitle(tournament)} - Teams`
-              : 'Tournaments - Teams'
-          }
-          bottomSpacing="relaxed"
-          className="-mx-4 -mt-6 lg:mt-0"
-        />
+      <AppSubpageHeader
+        title={
+          tournament
+            ? `${getTournamentTitle(tournament)} - Teams`
+            : 'Tournaments - Teams'
+        }
+      />
+      <Container>
 
         {/* Loading indicator only shown when teams are not available from state */}
         {!stateTeams?.length && isLoading && (

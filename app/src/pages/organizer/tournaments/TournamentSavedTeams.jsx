@@ -157,16 +157,14 @@ export default function TournamentSavedTeams() {
 
   return (
     <div className="bg-black">
-      <Container className="!px-4 !py-0">
-        <AppSubpageHeader
-          title={
-            tournament
-              ? `${getTournamentTitle(tournament)} - Teams`
-              : 'Tournaments - Teams'
-          }
-          bottomSpacing="relaxed"
-          className="-mx-4 -mt-6 lg:mt-0"
-        />
+      <AppSubpageHeader
+        title={
+          tournament
+            ? `${getTournamentTitle(tournament)} - Teams`
+            : 'Tournaments - Teams'
+        }
+      />
+      <Container>
 
         {isLoading && (
           <p className="mb-3 text-[13px] text-[#A2A6AB]">Loading teams…</p>

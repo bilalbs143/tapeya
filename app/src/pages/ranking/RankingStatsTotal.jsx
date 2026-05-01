@@ -181,9 +181,9 @@ export default function RankingStatsTotal() {
 
   return (
     <div className="bg-black">
-      <AppSubpageHeader title="Stats" bottomSpacing="relaxed" />
+      <AppSubpageHeader title="Stats" />
 
-      <Container className="!px-4 pb-6">
+      <Container className="pb-6">
         <h3 className="mt-0 text-left text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
           {subheading}
         </h3>

@@ -259,13 +259,6 @@ export default function UpcomingTournamentDetails() {
           <p className="mt-1 text-[14px] text-[#A2A6AB]">
             {formatOrdinalDateRange(startDate, endDate)}
           </p>
-          {tournament.number_of_groups != null && (
-            <p className="mt-0.5 text-[13px] text-[#A2A6AB]">
-              {tournament.number_of_groups <= 1
-                ? 'Single table'
-                : `Groups: ${tournament.number_of_groups}`}
-            </p>
-          )}
           {isLoadingTournament && !stateTournament && hasValidId && (
             <p className="mt-1 text-[12px] text-[#A2A6AB]">
               Refreshing tournament details…

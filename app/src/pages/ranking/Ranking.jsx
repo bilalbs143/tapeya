@@ -207,11 +207,8 @@ export default function Ranking() {
 
   return (
     <div className="bg-black">
-      <Container className="!px-4 !py-0">
-        <AppSubpageHeader
-          title="Latest Ranking"
-          className="-mx-4 -mt-6 lg:mt-0"
-        />
+      <AppSubpageHeader title="Latest Ranking" />
+      <Container>
 
         <Tabs defaultValue="batters" className="w-full">
           <TabsList className={`${profileListClass} mb-4`}>

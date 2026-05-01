@@ -49,12 +49,8 @@ export default function PricingDetail() {
 
   return (
     <div className="bg-black text-white">
-      <Container className="!px-4 !py-0">
-        <AppSubpageHeader
-          title="Plan Detail"
-          bottomSpacing="relaxed"
-          className="-mx-4 -mt-6 lg:mt-0"
-        />
+      <AppSubpageHeader title="Plan Detail" />
+      <Container>
 
         <div className="mx-auto w-full max-w-md rounded-[18px] bg-[#141412] p-6 shadow-[0_18px_40px_rgba(0,0,0,0.9)]">
           <div className="mb-4 flex items-center gap-3">

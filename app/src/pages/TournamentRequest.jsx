@@ -182,11 +182,8 @@ export default function TournamentRequest() {
 
   return (
     <div className="bg-black">
-      <Container className="!px-4 !py-0">
-        <AppSubpageHeader
-          title="REQUEST TOURNAMENT"
-          className="-mx-4 -mt-6 lg:mt-0"
-        />
+      <AppSubpageHeader title="REQUEST TOURNAMENT" />
+      <Container>
 
         <p className="mb-6 text-left text-[14px] text-white/90 lg:text-center">
           Please fill in the details below to request tournament services. Our

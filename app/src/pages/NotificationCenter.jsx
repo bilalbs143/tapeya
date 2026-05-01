@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { Container } from '@/ui/Container';
 import {
   useGetNotificationsQuery,
   useMarkAllNotificationsReadMutation,
@@ -186,7 +187,7 @@ export default function NotificationCenter() {
     <div className="bg-black">
       <AppSubpageHeader sticky title="NOTIFICATION CENTER" />
 
-      <div className="px-4 py-4">
+      <Container>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
             LATEST
@@ -242,7 +243,7 @@ export default function NotificationCenter() {
             <ChevronDown />
           </div>
         )}
-      </div>
+      </Container>
     </div>
   );
 }

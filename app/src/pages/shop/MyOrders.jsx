@@ -158,12 +158,8 @@ export default function MyOrders() {
 
   return (
     <div className="bg-black">
-      <Container className="!px-4 !py-0">
-        <AppSubpageHeader
-          title="MY ORDERS"
-          bottomSpacing="relaxed"
-          className="-mx-4 -mt-6 lg:mt-0"
-        />
+      <AppSubpageHeader title="MY ORDERS" />
+      <Container>
 
         {isLoading && (
           <div className="flex min-h-[30vh] items-center justify-center py-12">
@@ -187,7 +183,7 @@ export default function MyOrders() {
         )}
 
         {!isLoading && !isError && (
-          <div className="flex flex-col gap-8 pt-2">
+          <div className="flex flex-col gap-8">
             <section>
               <h2 className="mb-4 text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
                 CURRENT ORDERS

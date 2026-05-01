@@ -93,14 +93,10 @@ export default function ScorecardHome() {
 
   return (
     <div className="bg-black">
-      <Container className="!px-4 !py-0">
-        <AppSubpageHeader
-          title="SCORE CARD"
-          bottomSpacing="relaxed"
-          className="-mx-4 -mt-6 lg:mt-0"
-        />
+      <AppSubpageHeader title="SCORE CARD" />
+      <Container>
 
-        <div className="flex flex-col pt-2">
+        <div className="flex flex-col">
           <div ref={tabsSentinelRef} className="h-px w-full" aria-hidden />
           <div className="-mx-4 bg-black px-4 pt-0.5 pb-2">
             <ScorecardTabs

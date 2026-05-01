@@ -78,32 +78,38 @@ export default function ShopProductDetail() {
 
   if (isLoading || !normalized) {
     return (
-      <Container>
-        <div className="flex min-h-[40vh] items-center justify-center">
-          {!isLoading && (
-            <p className="text-[14px] text-[#A2A6AB]">Product not found.</p>
-          )}
-        </div>
-      </Container>
+      <div className="bg-black">
+        <AppSubpageHeader title="SHOP" onBack={() => navigate(backTo)} />
+        <Container>
+          <div className="flex min-h-[40vh] items-center justify-center">
+            {!isLoading && (
+              <p className="text-[14px] text-[#A2A6AB]">Product not found.</p>
+            )}
+          </div>
+        </Container>
+      </div>
     );
   }
 
   if (isError) {
     return (
-      <Container>
-        <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
-          <p className="text-[14px] text-[#A2A6AB]">
-            {error?.data?.message ?? 'Something went wrong.'}
-          </p>
-          <button
-            type="button"
-            onClick={() => navigate(backTo)}
-            className="rounded-full bg-[#DA9811] px-6 py-2.5 text-[14px] font-bold text-black"
-          >
-            Go Back
-          </button>
-        </div>
-      </Container>
+      <div className="bg-black">
+        <AppSubpageHeader title="SHOP" onBack={() => navigate(backTo)} />
+        <Container>
+          <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
+            <p className="text-[14px] text-[#A2A6AB]">
+              {error?.data?.message ?? 'Something went wrong.'}
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate(backTo)}
+              className="rounded-full bg-[#DA9811] px-6 py-2.5 text-[14px] font-bold text-black"
+            >
+              Go Back
+            </button>
+          </div>
+        </Container>
+      </div>
     );
   }
 
@@ -111,19 +117,18 @@ export default function ShopProductDetail() {
     normalized.imageUrls[selectedImage] ?? normalized.imageUrls[0];
 
   return (
-    <Container>
+    <div className="bg-black">
+      <AppSubpageHeader
+        onBack={() => navigate(backTo)}
+        title={
+          <h1 className="min-w-0 text-[16px] font-bold tracking-wide uppercase">
+            <span className="text-white">SHOP - </span>
+            <span className="text-[#DA9811]">{normalized.categoryName}</span>
+          </h1>
+        }
+      />
+      <Container>
       <div className="flex flex-col gap-4">
-        <AppSubpageHeader
-          onBack={() => navigate(backTo)}
-          className="-mx-4 -mt-6 lg:mt-0"
-          titleWrapClassName="min-w-0 flex-1 pr-4 text-center"
-          title={
-            <h1 className="min-w-0 text-[16px] font-bold tracking-wide uppercase">
-              <span className="text-white">SHOP - </span>
-              <span className="text-[#DA9811]">{normalized.categoryName}</span>
-            </h1>
-          }
-        />
 
         {/* Mobile layout: keep original stacking order */}
         <div className="flex flex-col gap-4 lg:hidden">
@@ -401,6 +406,7 @@ export default function ShopProductDetail() {
           />
         </section>
       )}
-    </Container>
+      </Container>
+    </div>
   );
 }

@@ -225,15 +225,18 @@ export default function ActivityFeedDetail() {
   if (!post) {
     return (
       <div className="bg-black text-white">
-        <Container className="py-8 text-center">
-          <p className="text-[#A2A6AB]">Post not found.</p>
-          <button
-            type="button"
-            onClick={() => navigate('/feed')}
-            className="mt-4 text-[#DA9811] underline"
-          >
-            Back to feed
-          </button>
+        <AppSubpageHeader sticky divider title="ACTIVITY FEED" onBack={() => navigate('/feed')} />
+        <Container>
+          <div className="py-8 text-center">
+            <p className="text-[#A2A6AB]">Post not found.</p>
+            <button
+              type="button"
+              onClick={() => navigate('/feed')}
+              className="mt-4 text-[#DA9811] underline"
+            >
+              Back to feed
+            </button>
+          </div>
         </Container>
       </div>
     );
@@ -252,12 +255,11 @@ export default function ActivityFeedDetail() {
     <div className="min-h-full bg-black text-white">
       <AppSubpageHeader
         sticky
+        divider
         title="ACTIVITY FEED"
-        className="border-b border-[#1A1A1A]"
-        trailing={<span className="w-[27px] shrink-0" aria-hidden />}
       />
 
-      <Container className="flex flex-col gap-0 pt-4 pb-24">
+      <Container className="flex flex-col gap-0 pb-24">
         {/* Post block - consistent with PostCard */}
         <article className="overflow-hidden rounded-2xl bg-[#141412] shadow-[0_18px_40px_rgba(0,0,0,0.9)]">
           <div className="relative aspect-[4/3] w-full overflow-hidden bg-black">

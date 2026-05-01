@@ -126,8 +126,8 @@ export default function Reels() {
             </button>
           </div>
 
-          {/* Spacer — same width as back button so center is true */}
-          <div className="w-[27px] shrink-0" aria-hidden />
+          {/* Spacer — same width as back button (36px) so center is true */}
+          <div className="w-9 shrink-0" aria-hidden />
         </div>
 
         {/* Vertical snap scroll container */}

@@ -1,13 +1,17 @@
 import { useNavigate } from 'react-router-dom';
 
-/** Shared class for the white circular back control (use when a page needs only the button). */
+/**
+ * Standard circular back button used throughout the app.
+ * Exported for pages that render it in an overlay or custom layout
+ * (e.g. tournament hero image, live-scoring screen).
+ */
 export const appSubpageBackButtonClassName =
-  'flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80';
+  'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-[#1a1a18] transition-opacity active:opacity-80';
 
 function BackChevron() {
   return (
     <svg
-      className="h-5 w-5"
+      className="h-[14px] w-[14px]"
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -22,7 +26,8 @@ function BackChevron() {
 }
 
 /**
- * White circular back button with the standard chevron (matches scorecard / shop / drafting headers).
+ * White circular back button — use directly only when the full header
+ * cannot be used (overlay layouts, custom match headers, etc.).
  */
 export function AppSubpageBackButton({
   onClick,
@@ -43,69 +48,104 @@ export function AppSubpageBackButton({
   );
 }
 
-const stringTitleClass =
-  'min-w-0 flex-1 pr-[27px] text-center text-[16px] font-bold tracking-wide text-white uppercase';
+// ─────────────────────────────────────────────────────────────────────────────
+// AppSubpageHeader
+// ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Black app subpage header: back (left) + centered title. Title uses optical centering (`pr-[27px]`) to balance the 27px back control.
+ * The single, standardised page-level header for every subpage.
  *
- * @param {React.ReactNode} title – Plain string/number becomes the default uppercase title; otherwise rendered inside the centered column.
- * @param {() => void} [onBack] – Defaults to `navigate(-1)`.
- * @param {boolean} [sticky] – Sticky bar with compact vertical padding (e.g. forms).
- * @param {'default' | 'relaxed' | 'compact'} [bottomSpacing] – `relaxed` → `pb-6`; `compact` → `pb-2` (shop filter rails).
- * @param {string} [className] – Merged onto `<header>` (e.g. `-mx-4 -mt-6 lg:mt-0`).
- * @param {string} [titleClassName] – Extra classes when `title` is a string or number (e.g. `truncate`).
- * @param {string} [titleWrapClassName] – Classes for the centered wrapper when `title` is a React node (default balances the 27px back button).
- * @param {string} [backClassName] – Extra classes on the back button (avoid size overrides — keep 27×27 + chevron consistent app-wide).
- * @param {React.ReactNode} [trailing] – Optional right slot (e.g. width spacer so the title stays visually centered).
- * @param {string} [backAriaLabel] – `aria-label` on the back button (default `Back`).
+ * Layout (always 3-column flex):
+ *   [back 36×36] | [title — optically centred] | [right 36×36 or invisible spacer]
+ *
+ * Always render this component at the TOP of the page root, OUTSIDE of any
+ * Container wrapper. The Container below provides the consistent 24px top gap
+ * between the header and the first piece of content.
+ *
+ * ─── Props ───────────────────────────────────────────────────────────────────
+ *
+ * title          {string|ReactNode}  Page title.
+ *                  • string/number → rendered as <h1> in uppercase bold white.
+ *                  • ReactNode     → wrapped in a centred flex column.
+ *
+ * subtitle       {string}           Optional inline suffix: "Title - Subtitle".
+ *                                   Same size/weight as title, gold (#DA9811),
+ *                                   normal-case. Only applies when title is a
+ *                                   string/number.
+ *
+ * onBack         {function}         Defaults to navigate(-1).
+ *
+ * right          {ReactNode}        Optional right-side slot (search icon,
+ *                                   filter button, etc.). Must be 36×36 for
+ *                                   proper optical balance. When omitted an
+ *                                   invisible same-size spacer keeps the title
+ *                                   centred.
+ *
+ * sticky         {boolean}          Makes the header sticky (top-0 z-20) for
+ *                                   long-form pages (Support, StaticPage, etc.)
+ *
+ * divider        {boolean}          Adds a subtle bottom border separator.
+ *
+ * className      {string}           Extra classes merged onto <header>.
+ * titleClassName {string}           Extra classes on the string title <h1>.
+ * backClassName  {string}           Extra classes on the back button.
+ * backAriaLabel  {string}           aria-label on the back button.
  */
 export function AppSubpageHeader({
   title,
+  subtitle,
   onBack,
   sticky = false,
-  bottomSpacing = 'default',
+  divider = false,
+  right = null,
   className = '',
   titleClassName = '',
-  titleWrapClassName = 'min-w-0 flex-1 pr-[27px] text-center',
   backClassName = '',
-  trailing = null,
   backAriaLabel,
 }) {
   const navigate = useNavigate();
   const handleBack = onBack ?? (() => navigate(-1));
 
-  const spacing = sticky
-    ? 'sticky top-0 z-10 py-4'
-    : bottomSpacing === 'relaxed'
-      ? 'pt-6 pb-6'
-      : bottomSpacing === 'compact'
-        ? 'pt-6 pb-2'
-        : 'pt-6 pb-4';
+  // Fixed height: py-[14px] + h-9 (36px) = 64px total — consistent everywhere.
+  const headerClass = [
+    'flex items-center gap-3 bg-black px-4 py-[14px]',
+    sticky ? 'sticky top-0 z-20' : '',
+    divider ? 'border-b border-white/10' : '',
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
-  const stringHeadingClass =
-    trailing != null
-      ? `min-w-0 flex-1 text-center text-[16px] font-bold tracking-wide text-white uppercase ${titleClassName}`.trim()
-      : `${stringTitleClass} ${titleClassName}`.trim();
+  const baseStringClass =
+    'min-w-0 flex-1 text-center text-[16px] font-bold tracking-wide text-white uppercase';
 
   const titleSlot =
     typeof title === 'string' || typeof title === 'number' ? (
-      <h1 className={stringHeadingClass}>{title}</h1>
+      subtitle ? (
+        <h1 className={`${baseStringClass} ${titleClassName}`.trim()}>
+          <span className="text-white">{title}</span>
+          <span className="mx-1 text-white/40">-</span>
+          <span className="text-[#DA9811] normal-case">{subtitle}</span>
+        </h1>
+      ) : (
+        <h1 className={`${baseStringClass} ${titleClassName}`.trim()}>{title}</h1>
+      )
     ) : (
-      <div className={titleWrapClassName.trim()}>{title}</div>
+      <div className="min-w-0 flex-1 text-center">{title}</div>
     );
 
+  // Invisible spacer keeps title optically centred when no right slot is given.
+  const rightElement = right ?? <span className="h-7 w-7 shrink-0" aria-hidden />;
+
   return (
-    <header
-      className={`flex items-center gap-3 bg-black px-4 ${spacing} ${className}`.trim()}
-    >
+    <header className={headerClass}>
       <AppSubpageBackButton
         onClick={handleBack}
-        className={backClassName.trim()}
+        className={backClassName}
         aria-label={backAriaLabel ?? 'Back'}
       />
       {titleSlot}
-      {trailing}
+      {rightElement}
     </header>
   );
 }

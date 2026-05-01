@@ -104,9 +104,10 @@ export default function ShopHome() {
   }, []);
 
   return (
-    <Container className="!px-4 !py-0">
+    <div className="bg-black">
+      <AppSubpageHeader title="Shop" />
+      <Container>
       <div className="flex flex-col gap-3">
-        <AppSubpageHeader title="Shop" className="-mx-4 -mt-6 lg:mt-0" />
 
         <ShopSearchPopover />
 
@@ -181,6 +182,7 @@ export default function ShopHome() {
           />
         </div>
       </div>
-    </Container>
+      </Container>
+    </div>
   );
 }

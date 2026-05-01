@@ -37,12 +37,8 @@ export default function AddTeam() {
 
   return (
     <div className="bg-black">
-      <Container className="!px-4 !py-0">
-        <AppSubpageHeader
-          title="Drafting"
-          bottomSpacing="relaxed"
-          className="-mx-4 -mt-6 lg:mt-0"
-        />
+      <AppSubpageHeader title="Add Team" />
+      <Container>
 
         <form onSubmit={handleSubmit} className="pb-10">
           <div className="space-y-5 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">

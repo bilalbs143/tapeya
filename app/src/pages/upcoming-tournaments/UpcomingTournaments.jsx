@@ -130,11 +130,8 @@ export default function UpcomingTournaments() {
 
   return (
     <div className="min-h-screen bg-black">
-      <Container className="!px-4 !py-0">
-        <AppSubpageHeader
-          title="UPCOMING TOURNAMENTS"
-          className="-mx-4 -mt-6 lg:mt-0"
-        />
+      <AppSubpageHeader title="UPCOMING TOURNAMENTS" />
+      <Container>
 
         <Tabs
           value={activeMonth}

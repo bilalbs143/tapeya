@@ -2,7 +2,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { Container } from '@/ui/Container';
 
 
 const successOrderGif = `${CLOUDFRONT_APP_BASE}/images/icons/success-order.gif`;
@@ -16,16 +15,11 @@ export default function OrderSuccess() {
   const handleViewOrders = () => navigate('/shop/orders');
 
   return (
-    <div className="flex flex-col bg-black">
-      <Container fullWidth className="flex flex-1 flex-col !px-4 !py-0">
-        <AppSubpageHeader
-          title="ORDER SUCCESSFUL"
-          bottomSpacing="relaxed"
-          className="shrink-0 -mx-4 -mt-6 lg:mt-0"
-        />
+    <div className="flex min-h-[calc(100vh-144px)] flex-col bg-black">
+      <AppSubpageHeader title="ORDER SUCCESSFUL" />
 
-        {/* Main content - centered */}
-        <div className="flex flex-1 flex-col items-center justify-center px-2 py-8 text-center">
+      {/* Main content - centered */}
+      <div className="flex flex-1 flex-col items-center justify-center px-4 py-8 text-center">
           {/* White circle with success order image */}
           <div className="mb-8 flex shrink-0 items-center justify-center overflow-hidden">
             <img
@@ -86,8 +80,7 @@ export default function OrderSuccess() {
               </svg>
             </button>
           </div>
-        </div>
-      </Container>
+      </div>
     </div>
   );
 }

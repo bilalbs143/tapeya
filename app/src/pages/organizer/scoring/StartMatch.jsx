@@ -218,14 +218,8 @@ export default function StartMatch() {
 
   return (
     <div className="bg-black">
-      <Container className="!px-4 !py-0">
-        <AppSubpageHeader
-          title="Start A Match"
-          onBack={handleBack}
-          bottomSpacing="relaxed"
-          titleClassName="truncate"
-          className="-mx-4 -mt-6 lg:mt-0"
-        />
+      <AppSubpageHeader title="Start A Match" onBack={handleBack} titleClassName="truncate" />
+      <Container>
 
         <div className="space-y-6 pb-8">
           {/* Tournament selection (hidden when opened from tournament hub with pre-selected tournament) */}

@@ -8,6 +8,7 @@ import { useSubmitSupportMessageMutation } from '@/store/api/supportApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 import { Button } from '@/ui/Button';
+import { Container } from '@/ui/Container';
 
 const SUPPORT_WHATSAPP_E164 = '+971552780065';
 
@@ -131,7 +132,7 @@ export default function Support() {
     <div className="bg-black">
       <AppSubpageHeader sticky title="CONTACT US" />
 
-      <div className="mx-auto w-full max-w-2xl px-4 pt-6 pb-8">
+      <Container className="pb-8">
         <div>
           <p className="mb-4 text-[13px] leading-snug text-[#A2A6AB] md:text-[14px]">
             Have a question or need help? Message us on{' '}
@@ -321,7 +322,7 @@ export default function Support() {
             </div>
           </form>
         </div>
-      </div>
+      </Container>
     </div>
   );
 }

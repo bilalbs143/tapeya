@@ -183,15 +183,14 @@ export default function TournamentSquad() {
 
   return (
     <div className="bg-black">
-      <Container className="!px-4 !py-0">
-        <AppSubpageHeader
-          title={
-            tournament
-              ? `${getTournamentTitle(tournament)} - Squad`
-              : 'Tournaments - Squad'
-          }
-          className="-mx-4 -mt-6 lg:mt-0"
-        />
+      <AppSubpageHeader
+        title={
+          tournament
+            ? `${getTournamentTitle(tournament)} - Squad`
+            : 'Tournaments - Squad'
+        }
+      />
+      <Container>
 
         {isLoadingSquad && (
           <p className="mb-3 text-[13px] text-[#A2A6AB]">Loading squad…</p>

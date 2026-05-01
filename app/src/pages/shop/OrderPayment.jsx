@@ -35,31 +35,30 @@ export default function OrderPayment() {
 
   if (isError || !order) {
     return (
-      <Container>
-        <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 py-12">
-          <p className="text-[14px] text-[#A2A6AB]">Order not found.</p>
-          <button
-            type="button"
-            onClick={() => navigate('/shop/orders')}
-            className="rounded-full bg-[#DA9811] px-6 py-2.5 text-[14px] font-bold text-black"
-          >
-            My Orders
-          </button>
-        </div>
-      </Container>
+      <div className="bg-black">
+        <AppSubpageHeader title="ORDER PAYMENT" onBack={() => navigate('/shop/orders')} />
+        <Container>
+          <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
+            <p className="text-[14px] text-[#A2A6AB]">Order not found.</p>
+            <button
+              type="button"
+              onClick={() => navigate('/shop/orders')}
+              className="rounded-full bg-[#DA9811] px-6 py-2.5 text-[14px] font-bold text-black"
+            >
+              My Orders
+            </button>
+          </div>
+        </Container>
+      </div>
     );
   }
 
   return (
     <div className="bg-black">
-      <Container className="!px-4 !py-0">
-        <AppSubpageHeader
-          title="ORDER PAYMENT"
-          bottomSpacing="relaxed"
-          className="-mx-4 -mt-6 lg:mt-0"
-        />
+      <AppSubpageHeader title="ORDER PAYMENT" />
+      <Container>
 
-        <div className="space-y-6 pt-2">
+        <div className="space-y-6">
           <p className="text-[14px] leading-relaxed text-[#B0B0B0]">
             Make your payment directly into our bank account. Please use your{' '}
             <span className="font-semibold text-[#DA9811]">Order ID</span> and{' '}

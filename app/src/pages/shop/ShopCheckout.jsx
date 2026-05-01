@@ -107,12 +107,8 @@ export default function ShopCheckout() {
 
   return (
     <div className="bg-black">
-      <Container className="!px-4 !py-0">
-        <AppSubpageHeader
-          title="BILLING DETAILS"
-          bottomSpacing="relaxed"
-          className="-mx-4 -mt-6 lg:mt-0"
-        />
+      <AppSubpageHeader title="BILLING DETAILS" />
+      <Container>
 
         {cartLoading ? null : !canCheckout ? (
           <div className="py-8 text-center">
@@ -126,7 +122,7 @@ export default function ShopCheckout() {
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-2">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <FormField
                 label="Full Name"

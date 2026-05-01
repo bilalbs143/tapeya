@@ -90,12 +90,8 @@ export default function OrderDetail() {
   if (isLoading) {
     return (
       <div className="bg-black">
-        <Container className="!px-4 !py-0">
-          <AppSubpageHeader
-            title="SELECTED ITEMS"
-            bottomSpacing="relaxed"
-            className="-mx-4 -mt-6 lg:mt-0"
-          />
+        <AppSubpageHeader title="ORDER DETAIL" />
+        <Container>
           <div className="flex min-h-[40vh] items-center justify-center py-12">
             <p className="text-[14px] text-[#A2A6AB]">Loading order…</p>
           </div>
@@ -107,12 +103,8 @@ export default function OrderDetail() {
   if (isError || !order) {
     return (
       <div className="bg-black">
-        <Container className="!px-4 !py-0">
-          <AppSubpageHeader
-            title="SELECTED ITEMS"
-            bottomSpacing="relaxed"
-            className="-mx-4 -mt-6 lg:mt-0"
-          />
+        <AppSubpageHeader title="ORDER DETAIL" />
+        <Container>
           <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 py-12">
             <p className="text-[14px] text-[#A2A6AB]">Order not found.</p>
             <button
@@ -139,14 +131,9 @@ export default function OrderDetail() {
 
   return (
     <div className="bg-black">
-      <Container className="!px-4 !py-0">
-        <AppSubpageHeader
-          title="SELECTED ITEMS"
-          bottomSpacing="relaxed"
-          className="-mx-4 -mt-6 lg:mt-0"
-        />
-
-        <div className="pt-2 pb-8">
+      <AppSubpageHeader title="ORDER DETAIL" />
+      <Container>
+        <div className="pb-8">
           <p className="mb-4 text-[16px] font-bold tracking-wide text-[#DA9811] uppercase">
             ORDER NUMBER:{' '}
             <span className="font-bold text-[#DA9811] uppercase">

@@ -119,12 +119,8 @@ export default function ShopCart() {
 
   return (
     <div className="flex flex-col bg-black">
-      <Container fullWidth className="!px-4 !py-0">
-        <AppSubpageHeader
-          title="SELECTED ITEMS"
-          bottomSpacing="relaxed"
-          className="-mx-4 -mt-6 lg:mt-0"
-        />
+      <AppSubpageHeader title="SELECTED ITEMS" />
+      <Container fullWidth>
 
         {isLoading ? null : emptyCart ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-4 py-12 text-center">
@@ -138,7 +134,7 @@ export default function ShopCart() {
             </button>
           </div>
         ) : (
-          <div className="flex flex-col gap-3 pt-2 lg:flex-row lg:items-start lg:gap-6 lg:pt-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:gap-6">
             <div className="min-w-0 flex-1 space-y-3">
               {items.map((item) => (
                 <CartItemCard

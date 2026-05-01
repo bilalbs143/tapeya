@@ -88,17 +88,20 @@ export default function ShopFilter() {
 
   if (!config) {
     return (
-      <Container>
-        <div className="py-8 text-center text-white">
-          <p>Invalid filter.</p>
-          <Link
-            to="/shop"
-            className="mt-4 inline-block text-[#DA9811] underline"
-          >
-            Back to Shop
-          </Link>
-        </div>
-      </Container>
+      <div className="bg-black">
+        <AppSubpageHeader title="SHOP" onBack={() => navigate('/shop')} />
+        <Container>
+          <div className="py-8 text-center text-white">
+            <p>Invalid filter.</p>
+            <Link
+              to="/shop"
+              className="mt-4 inline-block text-[#DA9811] underline"
+            >
+              Back to Shop
+            </Link>
+          </div>
+        </Container>
+      </div>
     );
   }
 
@@ -108,20 +111,18 @@ export default function ShopFilter() {
   }));
 
   return (
-    <Container>
+    <div className="bg-black">
+      <AppSubpageHeader
+        onBack={() => navigate('/shop')}
+        title={
+          <h1 className="min-w-0 text-[16px] font-bold tracking-wide uppercase">
+            <span className="text-white">SHOP - </span>
+            <span className="text-[#DA9811]">{displayTitle}</span>
+          </h1>
+        }
+      />
+      <Container>
       <div className="flex flex-col gap-3">
-        <AppSubpageHeader
-          onBack={() => navigate('/shop')}
-          bottomSpacing="compact"
-          className="-mx-4 -mt-6 lg:mt-0"
-          titleWrapClassName="min-w-0 flex-1 pr-4 text-center"
-          title={
-            <h1 className="min-w-0 text-[16px] font-bold tracking-wide uppercase">
-              <span className="text-white">SHOP - </span>
-              <span className="text-[#DA9811]">{displayTitle}</span>
-            </h1>
-          }
-        />
 
         <div className="relative">
           <input
@@ -226,6 +227,7 @@ export default function ShopFilter() {
           ))}
         </div>
       </div>
-    </Container>
+      </Container>
+    </div>
   );
 }
