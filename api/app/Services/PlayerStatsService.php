@@ -173,7 +173,9 @@ class PlayerStatsService
                 $byPlayer[$pid]['sixes'] += 1;
             }
 
-            if ($ball->is_wicket && $ball->out_player_id) {
+            // retired_hurt is stored with is_wicket=true but must NOT count as
+            // a dismissal — the batsman may return and their average is unaffected.
+            if ($ball->is_wicket && $ball->out_player_id && ! $ball->isRetiredHurt()) {
                 $op = $ball->out_player_id;
                 $inningsOut[$op] = $inningsOut[$op] ?? [];
                 $inningsOut[$op][$innId] = true;
@@ -252,7 +254,10 @@ class PlayerStatsService
             $byPlayer[$pid]['runs_conceded'] += $ball->runs + $ball->penalty_runs;
             $byPlayer[$pid]['balls_bowled'] += 1;
 
-            if ($ball->is_wicket) {
+            // retired_hurt is stored with is_wicket=true but must NOT credit the
+            // bowler with a wicket — the batsman was not dismissed by the bowler.
+            $countsAsWicket = $ball->is_wicket && ! $ball->isRetiredHurt();
+            if ($countsAsWicket) {
                 $byPlayer[$pid]['wickets'] += 1;
             }
             if ($ball->is_no_ball) {
@@ -268,7 +273,7 @@ class PlayerStatsService
 
             // Accumulate per-innings data needed for bestBowlingInnings/Match
             $byPlayer[$pid]['innings_balls'][$innId] = $byPlayer[$pid]['innings_balls'][$innId] ?? ['wickets' => 0, 'runs' => 0];
-            $byPlayer[$pid]['innings_balls'][$innId]['wickets'] += $ball->is_wicket ? 1 : 0;
+            $byPlayer[$pid]['innings_balls'][$innId]['wickets'] += $countsAsWicket ? 1 : 0;
             $byPlayer[$pid]['innings_balls'][$innId]['runs'] += $ball->runs + $ball->penalty_runs;
         }
 
@@ -697,9 +702,12 @@ class PlayerStatsService
         $inningsIds = Innings::whereIn('match_id', $matchIds)->pluck('id');
 
         $ballsStriker = Ball::whereIn('innings_id', $inningsIds)->where('striker_id', $playerId)->get();
+        // Exclude retired_hurt: it is stored with is_wicket=true but the batsman
+        // is not dismissed, so the innings must not count as a "not out lost".
         $inningsOutIds = Ball::whereIn('innings_id', $inningsIds)
             ->where('is_wicket', true)
             ->where('out_player_id', $playerId)
+            ->where('dismissal_type', '!=', 'retired_hurt')
             ->pluck('innings_id')
             ->unique()
             ->all();
@@ -774,7 +782,8 @@ class PlayerStatsService
 
         $balls = $base->select('balls.*')->get();
         $runsConceded = $balls->sum(fn ($b) => $b->runs + $b->penalty_runs);
-        $wickets = $balls->where('is_wicket', true)->count();
+        // Exclude retired_hurt: the bowler does not receive wicket credit.
+        $wickets = $balls->filter(fn ($b) => $b->is_wicket && ! $b->isRetiredHurt())->count();
         $noBalls = $balls->where('is_no_ball', true)->count();
         $wides = $balls->where('is_wide', true)->count();
         $ballsBowled = $balls->count();
@@ -939,6 +948,7 @@ class PlayerStatsService
         $wicketsPerInnings = Ball::whereIn('innings_id', $allInningsIds)
             ->where('bowler_id', $playerId)
             ->where('is_wicket', true)
+            ->where('dismissal_type', '!=', 'retired_hurt')
             ->selectRaw('innings_id, COUNT(*) as wkts')
             ->groupBy('innings_id')
             ->pluck('wkts', 'innings_id');
@@ -1084,7 +1094,8 @@ class PlayerStatsService
             if (! isset($byInn[$inningsId])) {
                 $byInn[$inningsId] = ['wickets' => 0, 'runs' => 0];
             }
-            $byInn[$inningsId]['wickets'] += $ball->is_wicket ? 1 : 0;
+            // retired_hurt must not credit the bowler with a wicket.
+            $byInn[$inningsId]['wickets'] += ($ball->is_wicket && ! $ball->isRetiredHurt()) ? 1 : 0;
             $byInn[$inningsId]['runs'] += $ball->runs + $ball->penalty_runs;
         }
 

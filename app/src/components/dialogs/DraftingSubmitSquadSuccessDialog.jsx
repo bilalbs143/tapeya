@@ -1,9 +1,18 @@
-import { DialogHeaderRow, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import {
+  dialogPrimaryTitleClass,
+  DialogHeaderRow,
+  DialogScrollBody,
+  DialogTitle,
+} from '@/ui/Dialog';
 
 export function DraftingSubmitSquadSuccessDialog({ teamName }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <DialogHeaderRow reserveCloseSpace={false} />
+      <DialogHeaderRow>
+        <DialogTitle className={dialogPrimaryTitleClass}>
+          Squad Submitted
+        </DialogTitle>
+      </DialogHeaderRow>
 
       <DialogScrollBody className="flex flex-col items-center justify-center py-2 text-center">
         <div className="relative mb-3 flex h-14 w-14 shrink-0 items-center justify-center">

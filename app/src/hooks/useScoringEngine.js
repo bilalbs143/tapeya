@@ -338,9 +338,11 @@ export function useScoringEngine({
       const striker = batsmenOnCrease[strikerIndex];
       const bowler = bowlersInTable[currentBowlerIndex];
 
+      // WD / NB: the user enters the batting/overthrow runs on top of the
+      // mandatory +1 penalty run.  e.g. NB + 1 batting run = 2 total, NOT 1.
       const extraRun =
         type === 'wd' || type === 'nb'
-          ? Math.max(0, Number(extraRuns) || 1)
+          ? Math.max(0, Number(extraRuns) || 0) + 1
           : Math.max(0, Number(extraRuns) || 0);
 
       const legal = isLegalDelivery(type);

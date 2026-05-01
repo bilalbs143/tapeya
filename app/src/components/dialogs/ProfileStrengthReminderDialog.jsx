@@ -29,16 +29,14 @@ export function ProfileStrengthReminderDialog() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <DialogHeaderRow reserveCloseSpace={false} />
-
-      <div className="flex flex-1 flex-col items-stretch justify-center px-6 py-6 text-center">
-        <DialogTitle
-          className={`${dialogPrimaryTitleClass} px-2 text-center`}
-        >
+      <DialogHeaderRow>
+        <DialogTitle className={dialogPrimaryTitleClass}>
           Complete your profile
         </DialogTitle>
+      </DialogHeaderRow>
 
-        <div className="mt-5 w-full px-1">
+      <div className="flex flex-1 flex-col items-stretch justify-center px-6 py-6 text-center">
+        <div className="w-full px-1">
           <Progress
             value={strength}
             max={100}
@@ -47,7 +45,7 @@ export function ProfileStrengthReminderDialog() {
           />
         </div>
 
-        <p className="mt-4 text-[15px] font-bold text-white italic">
+        <p className="mt-3 text-[15px] font-bold text-white italic">
           Your profile is {strength}% complete
         </p>
 

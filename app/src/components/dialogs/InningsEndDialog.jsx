@@ -3,7 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '@/store/hooks';
 import { closeDialog } from '@/store/slices/commonSlice';
 import { Button } from '@/ui/Button';
-import { DialogHeaderRow, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import {
+  DialogHeaderRow,
+  dialogPrimaryTitleClass,
+  DialogScrollBody,
+  DialogTitle,
+} from '@/ui/Dialog';
 
 function reasonDescription({ reason, matchOvers, battingTeamName }) {
   if (reason === 'target') {
@@ -22,7 +27,7 @@ function reasonDescription({ reason, matchOvers, battingTeamName }) {
 
 /**
  * Shown when live scoring detects the end of an innings (overs, wickets, or chase).
- * Match over + `tournamentId`: **Continue** goes to that tournament’s fixtures tab.
+ * Match over + `tournamentId`: **Continue** goes to that tournament's fixtures tab.
  *
  * @param {object} [matchResult] – Second innings only: `{ tie, titleLine, marginLine?, scoresLine?, detailLine? }`.
  */
@@ -50,7 +55,11 @@ export function InningsEndDialog({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <DialogHeaderRow reserveCloseSpace={false} />
+      <DialogHeaderRow hideClose reserveCloseSpace>
+        <DialogTitle className={dialogPrimaryTitleClass}>
+          {isMatchOver ? 'Match Over' : 'Innings Complete'}
+        </DialogTitle>
+      </DialogHeaderRow>
 
       <DialogScrollBody className="flex min-h-0 flex-1 flex-col px-5 pb-4 text-center">
         {isMatchOver && matchResult ? (
@@ -76,10 +85,7 @@ export function InningsEndDialog({
           </>
         ) : isMatchOver ? (
           <>
-            <p className="text-[12px] font-bold tracking-wide text-[#DA9811] uppercase">
-              Match result
-            </p>
-            <DialogTitle className="mt-3 text-[14px] font-bold text-white capitalize">
+            <DialogTitle className="text-[14px] font-bold text-white capitalize">
               Match ended
             </DialogTitle>
             <p className="mt-2 text-[13px] leading-snug text-[#A2A6AB]">
@@ -102,7 +108,7 @@ export function InningsEndDialog({
         )}
       </DialogScrollBody>
 
-      <div className="shrink-0 px-5 pt-2 pb-5">
+      <div className="shrink-0 px-5 pt-4 pb-5">
         <Button
           type="button"
           variant="orangeDialog"

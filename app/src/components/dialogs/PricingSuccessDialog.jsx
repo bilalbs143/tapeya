@@ -1,9 +1,18 @@
-import { DialogHeaderRow, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import {
+  dialogPrimaryTitleClass,
+  DialogHeaderRow,
+  DialogScrollBody,
+  DialogTitle,
+} from '@/ui/Dialog';
 
 export function PricingSuccessDialog({ planName }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <DialogHeaderRow reserveCloseSpace={false} />
+      <DialogHeaderRow>
+        <DialogTitle className={dialogPrimaryTitleClass}>
+          Pricing Request
+        </DialogTitle>
+      </DialogHeaderRow>
 
       <DialogScrollBody className="flex flex-col items-center justify-center py-2 text-center">
         <div className="relative mb-4 flex h-16 w-16 shrink-0 items-center justify-center">

@@ -20,7 +20,7 @@ export function OversDialog({ open, onOpenChange, overs, options, onChange }) {
             Select Overs
           </DialogTitle>
         </DialogHeaderRow>
-        <div className="flex flex-1 flex-col px-5 pb-5 pt-2">
+        <div className="flex flex-1 flex-col px-5 pb-5 pt-4">
           <Input
             type="text"
             inputMode="numeric"

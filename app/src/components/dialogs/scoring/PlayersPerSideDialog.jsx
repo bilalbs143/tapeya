@@ -25,7 +25,7 @@ export function PlayersPerSideDialog({
             Select Players Per Side
           </DialogTitle>
         </DialogHeaderRow>
-        <div className="flex flex-1 flex-col px-5 pb-5 pt-2">
+        <div className="flex flex-1 flex-col px-5 pb-5 pt-4">
           <Input
             type="text"
             inputMode="numeric"

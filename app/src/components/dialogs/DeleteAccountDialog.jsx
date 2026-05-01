@@ -11,6 +11,7 @@ import { closeDialog } from '@/store/slices/commonSlice';
 import {
   DialogHeaderClose,
   DialogHeaderRow,
+  dialogPrimaryTitleClass,
   DialogScrollBody,
   DialogTitle,
 } from '@/ui/Dialog';
@@ -52,7 +53,6 @@ export function DeleteAccountDialog() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <DialogHeaderRow
-        reserveCloseSpace={false}
         closeSlot={
           isLoading ? (
             <span
@@ -74,13 +74,14 @@ export function DeleteAccountDialog() {
             <DialogHeaderClose aria-label="Close" />
           )
         }
-      />
+      >
+        <DialogTitle className={dialogPrimaryTitleClass}>
+          Delete Account
+        </DialogTitle>
+      </DialogHeaderRow>
 
       <DialogScrollBody className="flex flex-col px-5 pb-2">
-        <DialogTitle className="text-center text-[14px] font-bold text-white">
-          Delete Account?
-        </DialogTitle>
-        <p className="mt-3 text-center text-[13px] leading-relaxed text-[#A2A6AB]">
+        <p className="text-center text-[13px] leading-relaxed text-[#A2A6AB]">
           You will not be able to sign in again with this phone number. Your
           profile and personal data will be removed permanently.
         </p>

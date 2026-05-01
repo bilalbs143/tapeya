@@ -46,7 +46,7 @@ export function TeamNameDialog({
           </FormField>
         </DialogScrollBody>
 
-        <div className="shrink-0 px-5 pt-2 pb-5">
+        <div className="shrink-0 px-5 pt-4 pb-5">
           <Button
             type="button"
             variant="orange"

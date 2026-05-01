@@ -354,7 +354,10 @@ export function uiBallToStoreBallPayload({
     runs = ball.runs ?? 0;
     runsOffBat = runs;
   } else if (isWide || isNoBall) {
-    runs = Math.max(0, Number(ball.runs) || 1);
+    // ball.runs is the TOTAL (batting/overthrow runs + mandatory 1 penalty),
+    // as computed by useScoringEngine.  Minimum is always 1.
+    runs = Math.max(1, Number(ball.runs) || 1);
+    // For NB: runs_off_bat = total − 1 penalty. For WD: 0 (runs_off_bat stay 0).
     runsOffBat = isNoBall ? Math.max(0, runs - 1) : 0;
   } else if (isBye || isLegBye) {
     runs = Math.max(0, Number(ball.runs) || 0);
