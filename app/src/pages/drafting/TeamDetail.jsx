@@ -2,12 +2,12 @@ import { useMemo, useState } from 'react';
 
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
 import { useAppDispatch } from '@/store/hooks';
 import { openDialog } from '@/store/slices/commonSlice';
 import { Container } from '@/ui/Container';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const searchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/searchicon.svg`;
 const teamIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-icon.svg`;

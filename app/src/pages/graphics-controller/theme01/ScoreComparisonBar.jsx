@@ -1,6 +1,7 @@
 import ReactApexChart from 'react-apexcharts';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+
 const controllerFrameBg = `${CLOUDFRONT_APP_BASE}/images/background/controller-frame.png`;
 
 const frameStyle = {

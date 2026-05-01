@@ -15,12 +15,12 @@
 
 import { Fragment, useMemo, useState } from 'react';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
   ballsToOvers,
   buildBallListWithMetaAndOverSummaries,
 } from '@/lib/utils/scoringUtils';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 const ARROW_RIGHT_ORANGE = `${CLOUDFRONT_APP_BASE}/images/icons/arrow-right-orange.svg`;
 
 const DASH = '—';
@@ -465,21 +465,21 @@ export function BallsTab({
       <div className="mt-4 flex flex-col gap-2">
         {activeInnings === '1'
           ? renderInnings(
-              ballListWithMeta,
-              overSummaries,
-              squad,
-              bowlersInTable,
-              bowlerSquad,
-            )
+            ballListWithMeta,
+            overSummaries,
+            squad,
+            bowlersInTable,
+            bowlerSquad,
+          )
           : renderInnings(
-              ballListSecond,
-              overSummariesSecond,
+            ballListSecond,
+            overSummariesSecond,
               secondInningsSquad.length ? secondInningsSquad : squad,
               secondInningsBowlersInTable,
               secondInningsBowlerSquad.length
                 ? secondInningsBowlerSquad
                 : bowlerSquad,
-            )}
+          )}
       </div>
     </div>
   );

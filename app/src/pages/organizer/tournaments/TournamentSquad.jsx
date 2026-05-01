@@ -5,6 +5,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { DEBOUNCE_MS, MIN_SEARCH_LENGTH } from '@/lib/constants/search';
 import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
 import { playerDisplayRole } from '@/lib/utils/playerUtils';
@@ -21,7 +22,6 @@ import { useGetTournamentQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
 import { CloseIcon } from '@/ui/icons/CloseIcon';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
 
@@ -241,9 +241,9 @@ export default function TournamentSquad() {
                 {Array.isArray(team?.icon_players) &&
                 team.icon_players.length > 0
                   ? team.icon_players
-                      .map((p) => p.name)
-                      .filter(Boolean)
-                      .join(', ')
+                    .map((p) => p.name)
+                    .filter(Boolean)
+                    .join(', ')
                   : (team?.iconPlayer ?? '—')}
               </p>
             </div>

@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { Container } from '@/ui/Container';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const successOrderGif = `${CLOUDFRONT_APP_BASE}/images/icons/success-order.gif`;
 

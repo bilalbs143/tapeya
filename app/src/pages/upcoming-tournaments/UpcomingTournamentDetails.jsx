@@ -7,6 +7,7 @@ import {
   useSearchParams,
 } from 'react-router-dom';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatOrdinalDateRange } from '@/lib/format';
 import {
   getTournamentImage,
@@ -26,7 +27,6 @@ import {
 import { Container } from '@/ui/Container';
 import { Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const feedShareIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-share.svg`;
 const FIXTURE_TAB_BG = `${CLOUDFRONT_APP_BASE}/images/background/fixture-bg.png`;

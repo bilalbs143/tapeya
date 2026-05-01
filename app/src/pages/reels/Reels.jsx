@@ -11,13 +11,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { useAppSelector } from '@/store/hooks';
 import { selectPublishedReels } from '@/store/selectors';
 
 import ReelItem from './ReelItem';
 import { EXPLORE_REELS, MY_VIDEOS_REELS } from './reelsData';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const exploreOrangeIcon = `${CLOUDFRONT_APP_BASE}/images/icons/explore-orange.svg`;
 const exploreWhiteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/explore-white.svg`;

@@ -1,8 +1,8 @@
 import { ProfileAvatar } from '@/components/ProfileAvatar';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { calculateProfileStrength } from '@/lib/profileStrength';
 import { Progress } from '@/ui/Progress';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 const profileHeaderBg = `${CLOUDFRONT_APP_BASE}/images/standard/profile-header.jpg`;

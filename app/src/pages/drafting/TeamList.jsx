@@ -1,8 +1,8 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { Container } from '@/ui/Container';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
 const teamEditIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-edit-icon.svg`;

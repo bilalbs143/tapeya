@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
   formatCount,
   formatPostTimestamp,
@@ -11,7 +12,6 @@ import { Container } from '@/ui/Container';
 
 import { getPostDetail } from './feedData';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const feedCommentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-comment.svg`;
 const feedShareIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-share.svg`;

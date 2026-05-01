@@ -1,9 +1,9 @@
 import { BaseDialog } from '@/components/dialogs/BaseDialog';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { Button } from '@/ui/Button';
 import { DialogTitle } from '@/ui/Dialog';
 import { ToggleGroup, ToggleGroupItem } from '@/ui/ToggleGroup';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
 

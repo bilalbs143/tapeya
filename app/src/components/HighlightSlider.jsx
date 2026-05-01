@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom';
 import { Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+
 
 const highlight1 = `${CLOUDFRONT_APP_BASE}/images/standard/highlight-1.png`;
 const highlight2 = `${CLOUDFRONT_APP_BASE}/images/standard/highlight-2.jpg`;

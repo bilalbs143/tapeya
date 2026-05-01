@@ -5,6 +5,7 @@
 
 import { useId } from 'react';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
   getShotDirectionPercentages,
   SHOT_DIRECTION_ZONES,
@@ -17,7 +18,6 @@ import {
   DialogTitle,
 } from '@/ui/Dialog';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const stadiumBg = `${CLOUDFRONT_APP_BASE}/images/standard/stadium-bg.png`;
 

@@ -5,6 +5,7 @@
 
 import { Link, useNavigate } from 'react-router-dom';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { statsTotalPaths } from '@/pages/scorecard/statsTotalFlow';
 import { useGetRankingsQuery } from '@/store/api/rankingApi';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
@@ -18,7 +19,6 @@ import {
   TabsTrigger,
 } from '@/ui/Tabs';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
@@ -86,10 +86,10 @@ function PlayerCard({ player, rank, variant = 'batter' }) {
   const detailText = isBowler
     ? `Innings: ${player.innings} Economy: ${
         player.economy != null ? Number(player.economy).toFixed(2) : '-'
-      }`
+    }`
     : `Innings: ${player.innings} Average: ${
         player.average != null ? Number(player.average).toFixed(2) : '-'
-      }`;
+    }`;
 
   return (
     <div className="flex items-center gap-3 rounded-[17px] bg-[#141412] p-3">

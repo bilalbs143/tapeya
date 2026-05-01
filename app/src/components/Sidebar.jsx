@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 // import starMatchIcon from '@/assets/images/icons/star-match.svg';
 import { calculateProfileStrength } from '@/lib/profileStrength';
 import { addSavedProfile } from '@/lib/savedProfiles';
@@ -10,7 +11,6 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectAuthUserAndToken } from '@/store/selectors';
 import { clearCredentials } from '@/store/slices/authSlice';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const logoutIcon = `${CLOUDFRONT_APP_BASE}/images/icons/logout.svg`;
 const myOrderIcon = `${CLOUDFRONT_APP_BASE}/images/icons/my-order.svg`;

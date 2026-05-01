@@ -2,12 +2,12 @@ import { Children, useMemo } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatDateRange } from '@/lib/format';
 import { getTournamentTitle } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentsQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 /** Same asset as upcoming tournament details (Fixtures) header. */
 const FIXTURE_CARD_IMAGE = `${CLOUDFRONT_APP_BASE}/images/background/fixture-bg.png`;
 

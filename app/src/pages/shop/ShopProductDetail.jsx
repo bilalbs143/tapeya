@@ -4,11 +4,11 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { useAddToCart } from '@/hooks/shop/useAddToCart';
 import { useToast } from '@/hooks/useToast';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatPrice } from '@/lib/format';
 import { useGetProductQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const shoppingCartIcon = `${CLOUDFRONT_APP_BASE}/images/icons/shopping-cart.svg`;
 

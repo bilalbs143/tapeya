@@ -6,6 +6,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
   clearOtpPreview,
   extractOtpFromAuthResponse,
@@ -25,7 +26,6 @@ import { setCredentials } from '@/store/slices/authSlice';
 import { Button } from '@/ui/Button';
 import { Input } from '@/ui/Input';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const tapeyaLogo = `${CLOUDFRONT_APP_BASE}/images/logos/tapeya-logo-white.svg`;
 

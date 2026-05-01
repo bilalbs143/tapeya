@@ -1,4 +1,4 @@
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 
 const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
 

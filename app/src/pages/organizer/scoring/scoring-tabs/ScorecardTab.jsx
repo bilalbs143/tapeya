@@ -11,6 +11,7 @@
 
 import { Fragment, useMemo, useState } from 'react';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
 import { isLegalDelivery } from '@/lib/utils/cricketRules';
 import {
@@ -21,7 +22,6 @@ import {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 const TEAM_MATCH_ICON = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
 
 const DASH = '—';

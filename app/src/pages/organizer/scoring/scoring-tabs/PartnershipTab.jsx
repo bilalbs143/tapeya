@@ -1,6 +1,7 @@
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+
 import { MatchStatsRow } from '../MatchStatsRow';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const ballIcon = `${CLOUDFRONT_APP_BASE}/images/icons/ball-icon.svg`;
 const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
@@ -66,28 +67,28 @@ export function PartnershipTab({
   const currentPartnershipRow =
     crease.length === 2
       ? (() => {
-          const batter1 = {
-            name: crease[0]?.name ?? '—',
-            runs: (crease[0]?.runs ?? 0) - (crease[0]?.partnerRunsAtStart ?? 0),
-            balls:
+        const batter1 = {
+          name: crease[0]?.name ?? '—',
+          runs: (crease[0]?.runs ?? 0) - (crease[0]?.partnerRunsAtStart ?? 0),
+          balls:
               (crease[0]?.balls ?? 0) - (crease[0]?.partnerBallsAtStart ?? 0),
-          };
-          const batter2 = {
-            name: crease[1]?.name ?? '—',
-            runs: (crease[1]?.runs ?? 0) - (crease[1]?.partnerRunsAtStart ?? 0),
-            balls:
+        };
+        const batter2 = {
+          name: crease[1]?.name ?? '—',
+          runs: (crease[1]?.runs ?? 0) - (crease[1]?.partnerRunsAtStart ?? 0),
+          balls:
               (crease[1]?.balls ?? 0) - (crease[1]?.partnerBallsAtStart ?? 0),
-          };
-          const totals = standTotalsFromCrease(crease);
-          return {
-            id: 'current',
-            isCurrent: true,
-            batter1,
-            batter2,
-            runs: totals?.runs ?? 0,
-            balls: totals?.balls ?? 0,
-          };
-        })()
+        };
+        const totals = standTotalsFromCrease(crease);
+        return {
+          id: 'current',
+          isCurrent: true,
+          batter1,
+          batter2,
+          runs: totals?.runs ?? 0,
+          balls: totals?.balls ?? 0,
+        };
+      })()
       : null;
 
   const allPartnerships = currentPartnershipRow

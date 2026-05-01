@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 
 import { Navigate } from 'react-router-dom';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { isReturningUser } from '@/lib/returningUser';
 import { useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated } from '@/store/selectors';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const tapeyaLogo = `${CLOUDFRONT_APP_BASE}/images/logos/tapeya-logo-white.svg`;
 

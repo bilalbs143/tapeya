@@ -45,6 +45,7 @@ import {
   INITIAL_PARTNERSHIP,
   useInningsState,
 } from '@/hooks/useInningsState';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { squadPlayerProfileFields } from '@/lib/utils/playerUtils';
 import {
   apiMatchToUiMatchConfig,
@@ -86,7 +87,6 @@ import {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const matchCenterHeader = `${CLOUDFRONT_APP_BASE}/images/background/match-center-header.png`;
 const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;

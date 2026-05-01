@@ -10,6 +10,7 @@ import { useCallback, useRef, useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 import { addReel } from '@/store/slices/reelsSlice';
@@ -17,7 +18,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const editReelIcon = `${CLOUDFRONT_APP_BASE}/images/icons/edit-reel.svg`;
 const playIcon = `${CLOUDFRONT_APP_BASE}/images/icons/play-icon.svg`;

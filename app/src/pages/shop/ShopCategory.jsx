@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { ListingProductCard } from '@/components/shop/ListingProductCard';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
   useGetBrandsQuery,
   useGetCategoriesQuery,
@@ -10,7 +11,6 @@ import {
 } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const searchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/searchicon.svg`;
 

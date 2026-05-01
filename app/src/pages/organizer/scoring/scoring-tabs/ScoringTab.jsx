@@ -27,6 +27,7 @@ import { OverStrip } from '@/components/scoring/OverStrip';
 import { ScoringControls } from '@/components/scoring/ScoringControls';
 import { blankBatsman, blankBowler } from '@/hooks/useInningsState';
 import { useScoringEngine } from '@/hooks/useScoringEngine';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { isLegalDelivery } from '@/lib/utils/cricketRules';
 import {
   dismissalRequiresFielder,
@@ -47,7 +48,6 @@ import { ShotAreaDialog } from '../ShotAreaDialog';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 const TEAM_MATCH_ICON = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
 
 const LEGAL_DELIVERIES_PER_OVER = 6;

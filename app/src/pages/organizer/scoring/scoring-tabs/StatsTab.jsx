@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 
 import ReactApexChart from 'react-apexcharts';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { getShotPositionOptions } from '@/lib/utils/scoringMappers';
 import { getRunsFromBall } from '@/lib/utils/scoringUtils';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
@@ -10,7 +11,6 @@ import { ShotDirectionStats } from '../ShotAreaDialog';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const stadiumBg = `${CLOUDFRONT_APP_BASE}/images/standard/stadium-bg.png`;
 
@@ -225,9 +225,9 @@ export function StatsTab({
     teamARunsPerOver.length > 0 || teamBRunsPerOver.length > 0;
   const displayLength = hasChartData
     ? Math.min(
-        20,
-        Math.max(5, teamARunsPerOver.length, teamBRunsPerOver.length),
-      )
+      20,
+      Math.max(5, teamARunsPerOver.length, teamBRunsPerOver.length),
+    )
     : 0;
 
   const categories = useMemo(

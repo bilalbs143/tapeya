@@ -12,6 +12,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
   getTournamentTitle,
   parseTournamentId,
@@ -24,7 +25,6 @@ import {
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
 
@@ -34,9 +34,9 @@ function teamDisplay(team) {
   const iconPlayers =
     Array.isArray(team.icon_players) && team.icon_players.length > 0
       ? team.icon_players
-          .map((p) => p.name)
-          .filter(Boolean)
-          .join(', ')
+        .map((p) => p.name)
+        .filter(Boolean)
+        .join(', ')
       : '—';
   return { owner, iconPlayers };
 }

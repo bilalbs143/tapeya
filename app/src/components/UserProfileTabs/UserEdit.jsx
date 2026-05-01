@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { enumNameToValue } from '@/lib/utils/enumUtils';
 import { updateProfileSchema } from '@/lib/validations/auth';
 import { useGetMeQuery, useUpdateProfileMutation } from '@/store/api/authApi';
@@ -43,7 +44,6 @@ import {
 // Constants
 // ---------------------------------------------------------------------------
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 

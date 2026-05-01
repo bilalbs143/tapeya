@@ -10,6 +10,7 @@ import TeamSelectDialog from '@/components/dialogs/scoring/TeamSelectDialog';
 import TossDialog from '@/components/dialogs/scoring/TossDialog';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
   getMatchOversOptions,
   getPlayersPerSideOptions,
@@ -31,7 +32,6 @@ import { Input } from '@/ui/Input';
 import { Label } from '@/ui/Label';
 import { TimePicker } from '@/ui/TimePicker';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
 

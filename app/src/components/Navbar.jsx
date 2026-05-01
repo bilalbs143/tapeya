@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { Link, useLocation } from 'react-router-dom';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
   NAVBAR_HEIGHT,
   NAVBAR_SCROLL_THRESHOLD,
@@ -11,7 +12,6 @@ import { BOTTOM_NAV_ITEMS } from '@/lib/constants/navigation';
 import { useGetNotificationUnreadCountQuery } from '@/store/api/notificationApi';
 import { useAppSelector } from '@/store/hooks';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const hamburgerIcon = `${CLOUDFRONT_APP_BASE}/images/icons/hamburger-icon.svg`;
 const notificationIcon = `${CLOUDFRONT_APP_BASE}/images/icons/notification-icon.svg`;

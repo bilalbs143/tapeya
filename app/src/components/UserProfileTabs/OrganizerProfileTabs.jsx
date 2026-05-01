@@ -1,3 +1,4 @@
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
   profileListClass,
   profileTabIconClass,
@@ -15,7 +16,6 @@ import { OrganizerStats } from './OrganizerStats';
 import { ProfileMetrics } from './ProfileMetrics';
 import { ProfileRoleOverview } from './ProfileRoleOverview';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const profileUserIcon = `${CLOUDFRONT_APP_BASE}/images/icons/profile-user.svg`;
 const starMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/star-match.svg`;
@@ -54,10 +54,10 @@ export function OrganizerProfileTabs({ tournaments, events, teams }) {
   const metrics =
     tournaments != null || events != null || teams != null
       ? [
-          { value: String(tournaments ?? '—'), label: 'TOURNAMENTS' },
-          { value: String(events ?? '—'), label: 'EVENTS' },
-          { value: String(teams ?? '—'), label: 'TEAMS' },
-        ]
+        { value: String(tournaments ?? '—'), label: 'TOURNAMENTS' },
+        { value: String(events ?? '—'), label: 'EVENTS' },
+        { value: String(teams ?? '—'), label: 'TEAMS' },
+      ]
       : ORGANIZER_METRICS;
 
   return (

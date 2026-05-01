@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 
 import { useSearchParams } from 'react-router-dom';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
   profileListClass,
   profileTabIconClass,
@@ -19,7 +20,6 @@ import { ProfileRoleOverview } from './ProfileRoleOverview';
 import { SponsorStats } from './SponsorStats';
 import { SponsorTeams } from './SponsorTeams';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const profileUserIcon = `${CLOUDFRONT_APP_BASE}/images/icons/profile-user.svg`;
 const teamIcon = `${CLOUDFRONT_APP_BASE}/images/icons/teams-white.svg`;
@@ -82,10 +82,10 @@ export function SponsorProfileTabs({ teams, partnerships, reach }) {
   const metrics =
     teams != null || partnerships != null || reach != null
       ? [
-          { value: String(teams ?? '—'), label: 'TEAMS' },
-          { value: String(partnerships ?? '—'), label: 'PARTNERSHIPS' },
-          { value: String(reach ?? '—'), label: 'REACH' },
-        ]
+        { value: String(teams ?? '—'), label: 'TEAMS' },
+        { value: String(partnerships ?? '—'), label: 'PARTNERSHIPS' },
+        { value: String(reach ?? '—'), label: 'REACH' },
+      ]
       : SPONSOR_METRICS;
 
   return (

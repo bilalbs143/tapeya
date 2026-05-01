@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { EXPLORE_CATEGORIES } from '@/lib/constants/navigation';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const draftingIcon = `${CLOUDFRONT_APP_BASE}/images/icons/drafting.svg`;
 const highlightsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/highlights.svg`;

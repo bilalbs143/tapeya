@@ -11,12 +11,12 @@ import { useMemo } from 'react';
 
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { PRICING_PLANS } from '@/pages/pricing/Pricing';
 import { useAppDispatch } from '@/store/hooks';
 import { openDialog } from '@/store/slices/commonSlice';
 import { Container } from '@/ui/Container';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const pricingListTickIcon = `${CLOUDFRONT_APP_BASE}/images/icons/pricing-list-tick.svg`;
 

@@ -3,6 +3,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
   extractOtpFromAuthResponse,
   setOtpPreview,
@@ -14,7 +15,6 @@ import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import { PhoneInput } from '@/ui/PhoneInput';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const tapeyaLogo = `${CLOUDFRONT_APP_BASE}/images/logos/tapeya-logo-white.svg`;
 
