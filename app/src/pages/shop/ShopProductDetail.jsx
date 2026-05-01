@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useAddToCart } from '@/hooks/shop/useAddToCart';
 import { useToast } from '@/hooks/useToast';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
@@ -112,30 +113,17 @@ export default function ShopProductDetail() {
   return (
     <Container>
       <div className="flex flex-col gap-4">
-        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-4 lg:mt-0">
-          <button
-            type="button"
-            onClick={() => navigate(backTo)}
-            className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80"
-            aria-label="Back"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="min-w-0 flex-1 pr-4 text-center text-[16px] font-bold tracking-wide uppercase">
-            <span className="text-white">SHOP - </span>
-            <span className="text-[#DA9811]">{normalized.categoryName}</span>
-          </h1>
-        </header>
+        <AppSubpageHeader
+          onBack={() => navigate(backTo)}
+          className="-mx-4 -mt-6 lg:mt-0"
+          titleWrapClassName="min-w-0 flex-1 pr-4 text-center"
+          title={
+            <h1 className="min-w-0 text-[16px] font-bold tracking-wide uppercase">
+              <span className="text-white">SHOP - </span>
+              <span className="text-[#DA9811]">{normalized.categoryName}</span>
+            </h1>
+          }
+        />
 
         {/* Mobile layout: keep original stacking order */}
         <div className="flex flex-col gap-4 lg:hidden">

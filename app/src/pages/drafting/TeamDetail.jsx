@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
 import { useAppDispatch } from '@/store/hooks';
@@ -28,7 +29,6 @@ const DEFAULT_TEAM = {
 };
 
 export default function TeamDetail() {
-  const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useAppDispatch();
   const team = location.state?.team ?? DEFAULT_TEAM;
@@ -58,29 +58,11 @@ export default function TeamDetail() {
   return (
     <div className="bg-black">
       <Container className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6 lg:mt-0">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80"
-            aria-label="Back"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="min-w-0 flex-1 text-center text-[16px] font-bold tracking-wide text-white uppercase">
-            Drafting
-          </h1>
-        </header>
+        <AppSubpageHeader
+          title="Drafting"
+          bottomSpacing="relaxed"
+          className="-mx-4 -mt-6 lg:mt-0"
+        />
 
         <div className="lg:grid lg:grid-cols-2 lg:gap-6">
           <div>

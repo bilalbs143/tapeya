@@ -11,6 +11,7 @@ import { useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { Container } from '@/ui/Container';
 
@@ -207,22 +208,24 @@ export default function Pricing() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <Container className="flex min-h-screen flex-col justify-center gap-4 pt-8 pb-8">
-        <header className="mb-2 text-center">
-          <h1 className="text-[16px] font-bold text-white uppercase">
-            Choose Plan
-          </h1>
-        </header>
-        <div className="space-y-4">
-          {PRICING_PLANS.map((plan) => (
-            <PricingCard
-              key={plan.id}
-              plan={plan}
-              isSelected={plan.id === selectedPlanId}
-              onSelect={() => setSelectedPlanId(plan.id)}
-              onBuy={() => navigate(`/pricing/${plan.id}`)}
-            />
-          ))}
+      <Container className="flex min-h-screen !flex-col !px-4 !py-0">
+        <AppSubpageHeader
+          title="Choose Plan"
+          bottomSpacing="relaxed"
+          className="-mx-4 -mt-6 shrink-0 lg:mt-0"
+        />
+        <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center gap-4 py-4 lg:max-w-none">
+          <div className="space-y-4">
+            {PRICING_PLANS.map((plan) => (
+              <PricingCard
+                key={plan.id}
+                plan={plan}
+                isSelected={plan.id === selectedPlanId}
+                onSelect={() => setSelectedPlanId(plan.id)}
+                onBuy={() => navigate(`/pricing/${plan.id}`)}
+              />
+            ))}
+          </div>
         </div>
       </Container>
     </div>

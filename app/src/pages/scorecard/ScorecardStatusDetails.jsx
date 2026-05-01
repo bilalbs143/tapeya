@@ -89,8 +89,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { CommentaryText } from '@/components/scorecard/CommentaryText';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
@@ -406,7 +407,6 @@ function MatchHeader({ match, details }) {
 // ---------------------------------------------------------------------------
 
 export default function ScorecardStatusDetails() {
-  const navigate = useNavigate();
   const { tournamentId, matchId } = useParams();
 
   const matchIdNum = matchId != null && matchId !== '' ? Number(matchId) : NaN;
@@ -545,29 +545,7 @@ export default function ScorecardStatusDetails() {
 
   return (
     <div className="bg-black">
-      <header className="flex items-center gap-3 bg-black px-4 pt-6 pb-4">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80"
-          aria-label="Back"
-        >
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <h1 className="min-w-0 flex-1 pr-[27px] text-center text-[16px] font-bold tracking-wide text-white uppercase">
-          SCORE CARD
-        </h1>
-      </header>
+      <AppSubpageHeader title="SCORE CARD" />
 
       <MatchHeader match={match} details={details} />
 

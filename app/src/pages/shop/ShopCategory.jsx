@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { Link, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { ListingProductCard } from '@/components/shop/ListingProductCard';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
@@ -17,6 +18,7 @@ const searchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/searchicon.svg`;
 const NAVBAR_HEIGHT = 64; // h-16 = 4rem
 
 export default function ShopCategory() {
+  const navigate = useNavigate();
   const { brandId: brandSlug } = useParams();
   const [query, setQuery] = useState('');
   const [activeCategoryId, setActiveCategoryId] = useState(null);
@@ -65,29 +67,18 @@ export default function ShopCategory() {
   return (
     <Container>
       <div className="flex flex-col gap-3">
-        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-2 lg:mt-0">
-          <Link
-            to="/shop"
-            className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80"
-            aria-label="Back to shop"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M15 19l-7-7 7-7" />
-            </svg>
-          </Link>
-          <h1 className="min-w-0 flex-1 pr-4 text-center text-[16px] font-bold tracking-wide uppercase">
-            <span className="text-white">SHOP - </span>
-            <span className="text-[#DA9811]">{displayTitle || 'Brand'}</span>
-          </h1>
-        </header>
+        <AppSubpageHeader
+          onBack={() => navigate('/shop')}
+          bottomSpacing="compact"
+          className="-mx-4 -mt-6 lg:mt-0"
+          titleWrapClassName="min-w-0 flex-1 pr-4 text-center"
+          title={
+            <h1 className="min-w-0 text-[16px] font-bold tracking-wide uppercase">
+              <span className="text-white">SHOP - </span>
+              <span className="text-[#DA9811]">{displayTitle || 'Brand'}</span>
+            </h1>
+          }
+        />
 
         <div className="relative">
           <input

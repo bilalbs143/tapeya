@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { ListingProductCard } from '@/components/shop/ListingProductCard';
 import { ShopSearchPopover } from '@/components/shop/ShopSearchPopover';
 import { useGetBrandsQuery, useGetProductsQuery } from '@/store/api/shopApi';
@@ -103,11 +104,9 @@ export default function ShopHome() {
   }, []);
 
   return (
-    <Container>
+    <Container className="!px-4 !py-0">
       <div className="flex flex-col gap-3">
-        <h1 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">
-          Shop
-        </h1>
+        <AppSubpageHeader title="Shop" className="-mx-4 -mt-6 lg:mt-0" />
 
         <ShopSearchPopover />
 

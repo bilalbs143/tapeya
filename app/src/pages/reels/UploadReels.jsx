@@ -10,6 +10,7 @@ import { useCallback, useRef, useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
@@ -26,20 +27,6 @@ const reelCameraIcon = `${CLOUDFRONT_APP_BASE}/images/icons/reel-camera-icon.svg
 const DEFAULT_AVATAR =
   'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=96&h=96&fit=crop';
 const UPLOAD_REEL_TAB = 'my-videos';
-
-function ChevronLeftIcon() {
-  return (
-    <svg width="8" height="14" viewBox="0 0 8 14" fill="none" aria-hidden>
-      <path
-        d="M7 1L1 7l6 6"
-        stroke="#000"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 function CloseIcon() {
   return (
@@ -140,20 +127,12 @@ export default function UploadReels() {
     <div className="bg-black">
       <Container className="!px-4 !py-0">
         {/* Header: back + title */}
-        <header className="-mx-4 -mt-6 flex items-center justify-between bg-black px-4 pt-6 pb-4 lg:mt-0">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white shadow"
-            aria-label="Go back"
-          >
-            <ChevronLeftIcon />
-          </button>
-          <h1 className="text-[16px] font-bold tracking-wide text-white uppercase">
-            Upload Reel
-          </h1>
-          <div className="w-[27px]" aria-hidden />
-        </header>
+        <AppSubpageHeader
+          title="Upload Reel"
+          className="-mx-4 -mt-6 justify-between gap-0 lg:mt-0"
+          backAriaLabel="Go back"
+          trailing={<div className="w-[27px] shrink-0" aria-hidden />}
+        />
 
         {/* User row */}
         <div className="mb-4 flex items-center gap-3">

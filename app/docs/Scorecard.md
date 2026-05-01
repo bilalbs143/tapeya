@@ -46,7 +46,7 @@ Nav labels that point at scorecard: `src/lib/constants/navigation.js` (`/scoreca
 
 | Location               | Purpose                                                                                                                                                                                |
 | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`ScoringMatch.jsx`** | Inline **toss** modal (`Dialog` / `DialogContentProfile` / `DialogTitle`) when match is `scheduled` and toss missing — home/away + bat/bowl + **Save Toss** → `useUpdateTossMutation`. |
+| **`ScoringMatch.jsx`** | Inline **toss** modal (`Dialog` / `DialogContentDark` / `DialogTitle`) when match is `scheduled` and toss missing — home/away + bat/bowl + **Save Toss** → `useUpdateTossMutation`. |
 
 ### 2.4 Global Redux dialog (`inningsEnd`)
 

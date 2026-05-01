@@ -1,4 +1,4 @@
-import { Dialog, DialogContentProfile } from '@/ui/Dialog';
+import { Dialog, DialogContentDark } from '@/ui/Dialog';
 
 /**
  * Base dialog wrapper for app dialogs.
@@ -12,11 +12,11 @@ export function BaseDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContentProfile
+      <DialogContentDark
         className={`!h-auto !max-h-[90vh] ${contentClassName}`}
       >
         {children}
-      </DialogContentProfile>
+      </DialogContentDark>
     </Dialog>
   );
 }

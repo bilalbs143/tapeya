@@ -3,8 +3,9 @@
  * Route: /ranking. Sections show top 5 and link to RankingStatsTotal via location state.
  */
 
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { statsTotalPaths } from '@/pages/scorecard/statsTotalFlow';
 import { useGetRankingsQuery } from '@/store/api/rankingApi';
@@ -173,8 +174,6 @@ function RankingSection({
 }
 
 export default function Ranking() {
-  const navigate = useNavigate();
-
   const {
     data: battingData,
     isLoading: isLoadingBatting,
@@ -209,29 +208,10 @@ export default function Ranking() {
   return (
     <div className="bg-black">
       <Container className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-4 lg:mt-0">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80"
-            aria-label="Back"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="min-w-0 flex-1 pr-[27px] text-center text-[16px] font-bold tracking-wide text-white uppercase">
-            Latest Ranking
-          </h1>
-        </header>
+        <AppSubpageHeader
+          title="Latest Ranking"
+          className="-mx-4 -mt-6 lg:mt-0"
+        />
 
         <Tabs defaultValue="batters" className="w-full">
           <TabsList className={`${profileListClass} mb-4`}>

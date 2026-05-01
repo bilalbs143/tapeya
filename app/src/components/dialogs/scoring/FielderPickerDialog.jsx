@@ -2,6 +2,7 @@ import { ScoringPlayerPickerMeta } from '@/components/scoring/ScoringPlayerPicke
 import {
   Dialog,
   DialogContent,
+  DialogHeaderRow,
   DialogScrollBody,
   DialogTitle,
 } from '@/ui/Dialog';
@@ -16,14 +17,17 @@ export function FielderPickerDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="!max-h-[85vh] rounded-t-3xl !bg-[#141412] p-5 pb-8"
+        className="!max-h-[85vh] rounded-t-3xl !bg-[#141412] px-0 pb-8 pt-2"
         aria-describedby={undefined}
       >
         <DialogTitle className="sr-only">
           {message?.trim() ? message : 'Choose fielder'}
         </DialogTitle>
-        <p className="mb-3 text-[12px] font-medium text-[#A2A6AB]">{message}</p>
-        <DialogScrollBody className="max-h-[50vh]">
+        <DialogHeaderRow reserveCloseSpace={false} />
+        <p className="mb-3 px-5 text-[12px] font-medium text-[#A2A6AB]">
+          {message}
+        </p>
+        <DialogScrollBody className="max-h-[50vh] px-5">
           <div className="flex flex-col gap-2">
             {players.map((player) => (
               <button

@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
@@ -382,31 +383,15 @@ export default function TournamentAddTeam() {
   return (
     <div className="bg-black">
       <Container className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6 lg:mt-0">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80"
-            aria-label="Back"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="min-w-0 flex-1 pr-[27px] text-center text-[16px] font-bold tracking-wide text-white uppercase">
-            {tournament
+        <AppSubpageHeader
+          title={
+            tournament
               ? `${getTournamentTitle(tournament)} - Add Team`
-              : 'Tournaments - Add Team'}
-          </h1>
-        </header>
+              : 'Tournaments - Add Team'
+          }
+          bottomSpacing="relaxed"
+          className="-mx-4 -mt-6 lg:mt-0"
+        />
 
         <form onSubmit={handleSubmit(onSubmit)} className="pb-10">
           <div className="space-y-5 lg:grid lg:grid-cols-3 lg:space-y-0 lg:gap-x-4 lg:gap-y-5">
@@ -1010,18 +995,18 @@ export default function TournamentAddTeam() {
             {isReadonly &&
               selectedTeam?.logo &&
               String(selectedTeam.logo).trim() !== '' && (
-                <FormField
-                  label="Logo"
-                  htmlFor="team_logo_display"
-                  labelClassName={labelClass}
-                >
-                  <div className="flex h-12 items-center rounded-[6px] bg-[#141412] px-4">
-                    <span className="text-[16px] text-[#A2A6AB] capitalize">
+              <FormField
+                label="Logo"
+                htmlFor="team_logo_display"
+                labelClassName={labelClass}
+              >
+                <div className="flex h-12 items-center rounded-[6px] bg-[#141412] px-4">
+                  <span className="text-[16px] text-[#A2A6AB] capitalize">
                       Logo uploaded
-                    </span>
-                  </div>
-                </FormField>
-              )}
+                  </span>
+                </div>
+              </FormField>
+            )}
 
             <div className="flex justify-start pt-4 lg:col-span-3">
               <Button

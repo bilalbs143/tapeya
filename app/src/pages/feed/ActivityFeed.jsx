@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { Container } from '@/ui/Container';
 
 import { ACTIVITY_FEED_POSTS, ACTIVITY_FEED_SECTION_TITLE } from './feedData';
@@ -26,29 +27,30 @@ export default function ActivityFeed() {
 
   return (
     <div className="bg-black text-white">
-      <Container className="flex flex-col gap-3 pt-4 pb-8">
-        <header className="text-center">
-          <h1 className="text-[16px] font-bold tracking-wide text-white uppercase">
-            ACTIVITY FEED
-          </h1>
-        </header>
+      <Container className="!px-4 !py-0">
+        <AppSubpageHeader
+          title="ACTIVITY FEED"
+          className="-mx-4 -mt-6 lg:mt-0"
+        />
 
-        <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
-          {ACTIVITY_FEED_SECTION_TITLE}
-        </h2>
+        <div className="flex flex-col gap-3 pt-3 pb-8">
+          <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
+            {ACTIVITY_FEED_SECTION_TITLE}
+          </h2>
 
-        <div className="flex flex-col gap-6">
-          {ACTIVITY_FEED_POSTS.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              isLiked={likedPostIds.has(post.id)}
-              likesCountOverride={
-                likedPostIds.has(post.id) ? post.likesCount + 1 : undefined
-              }
-              onLike={toggleLike}
-            />
-          ))}
+          <div className="flex flex-col gap-6">
+            {ACTIVITY_FEED_POSTS.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                isLiked={likedPostIds.has(post.id)}
+                likesCountOverride={
+                  likedPostIds.has(post.id) ? post.likesCount + 1 : undefined
+                }
+                onLike={toggleLike}
+              />
+            ))}
+          </div>
         </div>
       </Container>
     </div>

@@ -2,6 +2,7 @@ import { Children, useMemo } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatDateRange } from '@/lib/format';
 import { getTournamentTitle } from '@/lib/utils/tournamentUtils';
@@ -11,12 +12,11 @@ import { Container } from '@/ui/Container';
 /** Same asset as upcoming tournament details (Fixtures) header. */
 const FIXTURE_CARD_IMAGE = `${CLOUDFRONT_APP_BASE}/images/background/fixture-bg.png`;
 
-const PLACEHOLDER_IMAGE =
-  'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=200&h=200&fit=crop';
-
 function TournamentCard({ tournament, showWinningTeam = false, onClick }) {
   const imageUrl =
-    tournament.display_image || tournament.cover_image || PLACEHOLDER_IMAGE;
+    tournament.display_image ||
+    tournament.cover_image ||
+    FIXTURE_CARD_IMAGE;
   const dates = formatDateRange(tournament.start_date, tournament.end_date);
   const location = [tournament.city, tournament.country]
     .filter(Boolean)
@@ -49,8 +49,8 @@ function TournamentCard({ tournament, showWinningTeam = false, onClick }) {
               el.src = imageUrl;
               return;
             }
-            if (el.src !== PLACEHOLDER_IMAGE) {
-              el.src = PLACEHOLDER_IMAGE;
+            if (el.src !== FIXTURE_CARD_IMAGE) {
+              el.src = FIXTURE_CARD_IMAGE;
             }
           }}
         />
@@ -203,29 +203,11 @@ export default function Tournaments() {
   return (
     <div className="bg-black">
       <Container className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6 lg:mt-0">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80"
-            aria-label="Back"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="min-w-0 flex-1 pr-[27px] text-center text-[16px] font-bold tracking-wide text-white uppercase">
-            My Tournaments
-          </h1>
-        </header>
+        <AppSubpageHeader
+          title="My Tournaments"
+          bottomSpacing="relaxed"
+          className="-mx-4 -mt-6 lg:mt-0"
+        />
 
         <div className="space-y-6 pb-6">
           <Section

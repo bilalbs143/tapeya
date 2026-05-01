@@ -1,6 +1,11 @@
 import { BaseDialog } from '@/components/dialogs/BaseDialog';
 import { Button } from '@/ui/Button';
-import { DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import {
+  DialogHeaderRow,
+  dialogPrimaryTitleClass,
+  DialogScrollBody,
+  DialogTitle,
+} from '@/ui/Dialog';
 
 /**
  * Dialog to pick a team from a list (Start Match – tournament flow).
@@ -20,13 +25,13 @@ export function TeamSelectDialog({
   return (
     <BaseDialog open={open} onOpenChange={onOpenChange}>
       <div className="flex min-h-0 flex-1 flex-col">
-        <div className="flex shrink-0 px-5 pt-4">
-          <DialogTitle className="text-[14px] !font-bold tracking-wide text-[#DA9811] uppercase">
+        <DialogHeaderRow hideClose>
+          <DialogTitle className={dialogPrimaryTitleClass}>
             {title}
           </DialogTitle>
-        </div>
+        </DialogHeaderRow>
 
-        <DialogScrollBody className="flex flex-col gap-2 px-5 pt-4">
+        <DialogScrollBody className="flex flex-col gap-2 px-5 pt-2">
           {teams.map((team) => {
             const id = String(team.id);
             const isSelected = selected === id;

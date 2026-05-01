@@ -9,8 +9,9 @@
 
 import { useMemo } from 'react';
 
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { PRICING_PLANS } from '@/pages/pricing/Pricing';
 import { useAppDispatch } from '@/store/hooks';
@@ -33,7 +34,6 @@ function DetailCheckIcon() {
 
 export default function PricingDetail() {
   const { planId } = useParams();
-  const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
   const plan = useMemo(
@@ -50,29 +50,11 @@ export default function PricingDetail() {
   return (
     <div className="bg-black text-white">
       <Container className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80"
-            aria-label="Back"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="min-w-0 flex-1 pr-[27px] text-center text-[16px] font-bold tracking-wide text-white uppercase">
-            Plan Detail
-          </h1>
-        </header>
+        <AppSubpageHeader
+          title="Plan Detail"
+          bottomSpacing="relaxed"
+          className="-mx-4 -mt-6 lg:mt-0"
+        />
 
         <div className="mx-auto w-full max-w-md rounded-[18px] bg-[#141412] p-6 shadow-[0_18px_40px_rgba(0,0,0,0.9)]">
           <div className="mb-4 flex items-center gap-3">

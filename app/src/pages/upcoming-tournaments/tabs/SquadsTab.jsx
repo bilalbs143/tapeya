@@ -1,5 +1,6 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
+import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
 import { BORDER_ALT as BORDER } from '@/lib/constants/tableStyles';
 import { playerDisplayRole } from '@/lib/utils/playerUtils';
 import {
@@ -170,26 +171,10 @@ function SquadSingle({ tournamentId, teamId }) {
   return (
     <div className="mt-4 pb-6">
       <div className="flex items-center gap-2 border-b border-[#1A1A1A] pb-4">
-        <button
-          type="button"
+        <AppSubpageBackButton
           onClick={clearTeam}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition-opacity active:opacity-80"
           aria-label="Back to teams"
-        >
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-        </button>
+        />
         <h2 className="min-w-0 flex-1 text-left text-[13px] font-bold tracking-wide text-white uppercase">
           {title}
         </h2>

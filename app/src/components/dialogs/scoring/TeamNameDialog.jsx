@@ -1,6 +1,11 @@
 import { BaseDialog } from '@/components/dialogs/BaseDialog';
 import { Button } from '@/ui/Button';
-import { DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import {
+  DialogHeaderRow,
+  dialogPrimaryTitleClass,
+  DialogScrollBody,
+  DialogTitle,
+} from '@/ui/Dialog';
 import { FormField, formFieldLabelCheckoutClass } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 
@@ -19,11 +24,11 @@ export function TeamNameDialog({
   return (
     <BaseDialog open={open} onOpenChange={onOpenChange}>
       <div className="flex min-h-0 flex-1 flex-col">
-        <div className="flex shrink-0 px-5 pt-4">
-          <DialogTitle className="text-[14px] !font-bold tracking-wide text-[#FF9700] uppercase">
+        <DialogHeaderRow hideClose>
+          <DialogTitle className={dialogPrimaryTitleClass}>
             {title}
           </DialogTitle>
-        </div>
+        </DialogHeaderRow>
 
         <DialogScrollBody className="flex flex-col gap-4">
           <FormField

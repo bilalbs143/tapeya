@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
   formatCount,
@@ -249,30 +250,12 @@ export default function ActivityFeedDetail() {
 
   return (
     <div className="min-h-full bg-black text-white">
-      <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-[#1A1A1A] bg-black px-4 py-4">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#A2A6AB] transition-opacity hover:opacity-80"
-          aria-label="Back"
-        >
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <h1 className="min-w-0 flex-1 text-center text-[16px] font-bold tracking-wide text-white uppercase">
-          ACTIVITY FEED
-        </h1>
-        <span className="w-9" aria-hidden />
-      </header>
+      <AppSubpageHeader
+        sticky
+        title="ACTIVITY FEED"
+        className="border-b border-[#1A1A1A]"
+        trailing={<span className="w-[27px] shrink-0" aria-hidden />}
+      />
 
       <Container className="flex flex-col gap-0 pt-4 pb-24">
         {/* Post block - consistent with PostCard */}

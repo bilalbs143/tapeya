@@ -3,7 +3,12 @@ import { useMemo } from 'react';
 import { BaseDialog } from '@/components/dialogs/BaseDialog';
 import { getExtraTypeOptions } from '@/lib/utils/scoringMappers';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
-import { DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import {
+  DialogHeaderRow,
+  dialogPrimaryTitleClass,
+  DialogScrollBody,
+  DialogTitle,
+} from '@/ui/Dialog';
 
 const RUNS_OPTIONS = [0, 1, 2, 3, 4, 5, 6];
 
@@ -21,11 +26,11 @@ export function ExtraRunsDialog({ open, onOpenChange, extraType, onSelect }) {
     extraTypeOptions.find((o) => o.value === extraType)?.label ?? 'Extra';
   return (
     <BaseDialog open={open} onOpenChange={onOpenChange}>
-      <div className="shrink-0 px-5 pt-5">
-        <DialogTitle className="text-[14px] !font-bold tracking-wide text-[#DA9811] uppercase">
+      <DialogHeaderRow hideClose>
+        <DialogTitle className={dialogPrimaryTitleClass}>
           {label} – runs from this delivery?
         </DialogTitle>
-      </div>
+      </DialogHeaderRow>
       <DialogScrollBody className="flex flex-col">
         <div className="flex flex-wrap justify-center gap-2 py-2">
           {RUNS_OPTIONS.map((runs) => (

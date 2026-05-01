@@ -14,12 +14,14 @@ import { clearCredentials } from '@/store/slices/authSlice';
 
 const logoutIcon = `${CLOUDFRONT_APP_BASE}/images/icons/logout.svg`;
 const myOrderIcon = `${CLOUDFRONT_APP_BASE}/images/icons/my-order.svg`;
+const homeIcon = `${CLOUDFRONT_APP_BASE}/images/logos/tapya-t.svg`;
 const requestTournamentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/request-tournament.svg`;
 const supportIcon = `${CLOUDFRONT_APP_BASE}/images/icons/support.svg`;
 const topPlayersIcon = `${CLOUDFRONT_APP_BASE}/images/icons/top-players.svg`;
 const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
 const MENU_ITEMS = [
+  { label: 'Home', icon: homeIcon, path: '/home' },
   {
     label: 'My Tournaments',
     icon: requestTournamentIcon,

@@ -1,7 +1,12 @@
 import { BaseDialog } from '@/components/dialogs/BaseDialog';
 import { ScoringPlayerPickerMeta } from '@/components/scoring/ScoringPlayerPickerMeta';
 import { Button } from '@/ui/Button';
-import { DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import {
+  DialogHeaderRow,
+  dialogPrimaryTitleClass,
+  DialogScrollBody,
+  DialogTitle,
+} from '@/ui/Dialog';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -272,11 +277,9 @@ export default function ScoringSquadPlayerPickerDialog({
 
   return (
     <BaseDialog open={open} onOpenChange={handleOpenChange}>
-      <div className="shrink-0 px-5 py-4">
-        <DialogTitle className="text-[14px] !font-bold tracking-wide text-[#DA9811] uppercase">
-          {title}
-        </DialogTitle>
-      </div>
+      <DialogHeaderRow hideClose>
+        <DialogTitle className={dialogPrimaryTitleClass}>{title}</DialogTitle>
+      </DialogHeaderRow>
 
       <DialogScrollBody className="flex flex-col gap-3">
         {players.length === 0 && (

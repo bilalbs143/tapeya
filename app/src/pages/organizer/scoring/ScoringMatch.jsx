@@ -38,6 +38,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
+import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
 import { useApiMatchSync } from '@/hooks/useApiMatchSync';
 import {
   blankBatsman,
@@ -66,7 +67,13 @@ import { selectDialogKey } from '@/store/selectors';
 import { openDialog } from '@/store/slices/commonSlice';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
-import { Dialog, DialogContentProfile, DialogTitle } from '@/ui/Dialog';
+import {
+  Dialog,
+  DialogContentDark,
+  DialogHeaderRow,
+  dialogPrimaryTitleClass,
+  DialogTitle,
+} from '@/ui/Dialog';
 import {
   scorecardListClass,
   scorecardTriggerClass,
@@ -829,14 +836,7 @@ export default function ScoringMatch() {
               />
 
               <div className="absolute inset-0 flex items-start px-4 pt-6">
-                <button
-                  type="button"
-                  onClick={() => navigate(-1)}
-                  className="flex h-[27px] w-[27px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80"
-                  aria-label="Back"
-                >
-                  <BackIcon />
-                </button>
+                <AppSubpageBackButton onClick={() => navigate(-1)} />
               </div>
 
               <div className="pointer-events-auto absolute inset-x-0 bottom-0 translate-y-1/2 px-4">
@@ -894,86 +894,90 @@ export default function ScoringMatch() {
 
           {/* Toss dialog */}
           <Dialog open={tossDialogOpen} onOpenChange={setTossDialogOpen}>
-            <DialogContentProfile className="!h-auto !max-h-[90vh]">
-              <div className="flex min-h-0 flex-1 flex-col p-5">
-                <DialogTitle className="text-[14px] !font-bold tracking-wide text-[#DA9811] uppercase">
-                  Who Won the Toss?
-                </DialogTitle>
+            <DialogContentDark className="!h-auto !max-h-[90vh]">
+              <div className="flex min-h-0 flex-1 flex-col">
+                <DialogHeaderRow hideClose>
+                  <DialogTitle className={dialogPrimaryTitleClass}>
+                    Who Won the Toss?
+                  </DialogTitle>
+                </DialogHeaderRow>
 
-                <div className="mt-5 flex gap-3">
-                  {[
-                    {
-                      key: 'home',
-                      label: apiMatch?.home_team?.name || 'Home Team',
-                    },
-                    {
-                      key: 'away',
-                      label: apiMatch?.away_team?.name || 'Away Team',
-                    },
-                  ].map(({ key, label }) => (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setTossWinner(key)}
-                      className={`flex flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-[17px] border-2 px-4 py-4 transition-colors focus:outline-none ${
+                <div className="flex flex-1 flex-col px-5 pb-5 pt-4">
+                  <div className="flex gap-3">
+                    {[
+                      {
+                        key: 'home',
+                        label: apiMatch?.home_team?.name || 'Home Team',
+                      },
+                      {
+                        key: 'away',
+                        label: apiMatch?.away_team?.name || 'Away Team',
+                      },
+                    ].map(({ key, label }) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setTossWinner(key)}
+                        className={`flex flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-[17px] border-2 px-4 py-4 transition-colors focus:outline-none ${
                         tossWinner === key
                           ? 'border-[#DA9811] bg-[#DA9811] text-white'
                           : 'border-[#141412] bg-[#141412] text-white'
-                      }`}
-                    >
-                      <img
-                        src={teamMatchIcon}
-                        alt=""
-                        className="h-8 w-8 shrink-0"
-                        aria-hidden
-                      />
-                      <span className="text-[14px] font-bold uppercase">
-                        {label}
-                      </span>
-                    </button>
-                  ))}
-                </div>
+                        }`}
+                      >
+                        <img
+                          src={teamMatchIcon}
+                          alt=""
+                          className="h-8 w-8 shrink-0"
+                          aria-hidden
+                        />
+                        <span className="text-[14px] font-bold uppercase">
+                          {label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
 
-                <p className="mt-6 text-[14px] font-medium text-white">
+                  <p className="mt-6 text-[14px] font-medium text-white">
                   Decided To?
-                </p>
-                <ToggleGroup
-                  type="single"
-                  value={tossDecision}
-                  onValueChange={(v) => v && setTossDecision(v)}
-                  className="mt-2 flex cursor-pointer gap-2"
-                >
-                  <ToggleGroupItem
-                    value="bat"
-                    className="cursor-pointer"
-                    aria-label="Bat"
+                  </p>
+                  <ToggleGroup
+                    type="single"
+                    value={tossDecision}
+                    onValueChange={(v) => v && setTossDecision(v)}
+                    className="mt-2 flex cursor-pointer gap-2"
                   >
+                    <ToggleGroupItem
+                      value="bat"
+                      className="cursor-pointer"
+                      aria-label="Bat"
+                    >
                     Bat
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
-                    value="bowl"
-                    className="cursor-pointer"
-                    aria-label="Bowl"
-                  >
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="bowl"
+                      className="cursor-pointer"
+                      aria-label="Bowl"
+                    >
                     Bowl
-                  </ToggleGroupItem>
-                </ToggleGroup>
+                    </ToggleGroupItem>
+                  </ToggleGroup>
 
-                <div className="mt-6">
-                  <Button
-                    type="button"
-                    variant="orange"
-                    className="w-full cursor-pointer"
-                    onClick={handleSaveToss}
-                    disabled={
-                      isUpdatingToss || !tossWinner || !tossDecision || !fromApi
-                    }
-                  >
-                    {isUpdatingToss ? 'Saving toss…' : 'Save Toss'}
-                  </Button>
+                  <div className="mt-6">
+                    <Button
+                      type="button"
+                      variant="orange"
+                      className="w-full cursor-pointer"
+                      onClick={handleSaveToss}
+                      disabled={
+                        isUpdatingToss || !tossWinner || !tossDecision || !fromApi
+                      }
+                    >
+                      {isUpdatingToss ? 'Saving toss…' : 'Save Toss'}
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </DialogContentProfile>
+            </DialogContentDark>
           </Dialog>
         </Tabs>
       </Container>
@@ -999,21 +1003,5 @@ function MatchResultBanner({ match, liveScore1, liveScore2 }) {
         <p className="mt-2 text-[13px] text-[#A2A6AB]">{s.detailLine}</p>
       ) : null}
     </div>
-  );
-}
-
-function BackIcon() {
-  return (
-    <svg
-      className="h-5 w-5"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M15 19l-7-7 7-7" />
-    </svg>
   );
 }

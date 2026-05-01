@@ -1,4 +1,9 @@
-import { Dialog, DialogContent, DialogTitle } from '@/ui/Dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeaderRow,
+  DialogTitle,
+} from '@/ui/Dialog';
 
 export function OutReasonDialog({
   open,
@@ -9,11 +14,12 @@ export function OutReasonDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="out-reason-sheet !fixed !top-auto !right-0 !bottom-0 !left-0 max-h-[85vh] !w-auto !max-w-none !translate-x-0 !translate-y-0 rounded-t-3xl !bg-[#141412] p-5 pb-8 lg:!left-[280px]"
+        className="out-reason-sheet !fixed !top-auto !right-0 !bottom-0 !left-0 max-h-[85vh] !w-auto !max-w-none !translate-x-0 !translate-y-0 rounded-t-3xl !bg-[#141412] px-0 pb-8 pt-2 lg:!left-[280px]"
         aria-describedby={undefined}
       >
         <DialogTitle className="sr-only">Select dismissal reason</DialogTitle>
-        <div className="grid max-h-[min(70vh,calc(85vh-5rem))] w-full min-w-0 grid-cols-2 gap-2 overflow-x-hidden overflow-y-auto sm:grid-cols-3 lg:grid-cols-4">
+        <DialogHeaderRow reserveCloseSpace={false} />
+        <div className="grid max-h-[min(70vh,calc(85vh-5rem))] w-full min-w-0 grid-cols-2 gap-2 overflow-x-hidden overflow-y-auto px-5 pb-5 sm:grid-cols-3 lg:grid-cols-4">
           {dismissalOptions.map((opt) => (
             <button
               key={opt.value}
