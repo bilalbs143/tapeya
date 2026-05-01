@@ -162,8 +162,14 @@ export default function TournamentRequest() {
           ? { prize: String(data.prize).trim() }
           : {}),
       };
-      await createTournamentRequest(payload).unwrap();
-      navigate('/tournament-request/success');
+      const res = await createTournamentRequest(payload).unwrap();
+      const tournament = res.data?.tournament;
+      if (tournament?.id != null) {
+        navigate('/organizer/tournaments', { replace: true });
+        if (res.message) toast.success(res.message);
+      } else {
+        navigate('/tournament-request/success');
+      }
     } catch (err) {
       toast.error(
         getApiErrorMessage(err, 'Failed to submit request. Please try again.'),

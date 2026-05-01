@@ -37,9 +37,12 @@ class RefreshMatchStatsJob implements ShouldQueue
         $bowling = $service->computeBowlingForMatch($this->matchId);
         $fielding = $service->computeFieldingForMatch($this->matchId);
 
-        $matchIdsInEvent = TournamentMatch::where('tournament_id', $match->tournament_id)->pluck('id')->all();
+        $matchIdsInEvent = TournamentMatch::where('tournament_id', $match->tournament_id)
+            ->pluck('id')
+            ->all();
 
         DB::transaction(function () use ($batting, $bowling, $fielding, $eventTypeValue, $matchIdsInEvent) {
+            // ── Wipe and re-insert per-match rows ──────────────────────────────
             PlayerMatchBatting::where('match_id', $this->matchId)->delete();
             PlayerMatchBowling::where('match_id', $this->matchId)->delete();
             PlayerMatchFielding::where('match_id', $this->matchId)->delete();
@@ -97,6 +100,7 @@ class RefreshMatchStatsJob implements ShouldQueue
                 ]);
             }
 
+            // ── Refresh accumulative stats for every affected player ───────────
             $playerIds = collect($batting)->pluck('player_id')
                 ->merge(collect($bowling)->pluck('player_id'))
                 ->merge(collect($fielding)->pluck('player_id'))
@@ -112,6 +116,8 @@ class RefreshMatchStatsJob implements ShouldQueue
         });
     }
 
+    // ─── Private: accumulative refresh helpers ────────────────────────────────
+
     private function refreshAccumulativeBatting(int $playerId, string $eventType, array $matchIdsInEvent): void
     {
         $rows = PlayerMatchBatting::where('player_id', $playerId)
@@ -119,7 +125,9 @@ class RefreshMatchStatsJob implements ShouldQueue
             ->get();
 
         if ($rows->isEmpty()) {
-            PlayerBattingStats::where('player_id', $playerId)->where('tournament_type', $eventType)->delete();
+            PlayerBattingStats::where('player_id', $playerId)
+                ->where('tournament_type', $eventType)
+                ->delete();
 
             return;
         }
@@ -135,10 +143,14 @@ class RefreshMatchStatsJob implements ShouldQueue
         $hundreds = $rows->sum('hundreds');
         $fifties = $rows->sum('fifties');
 
-        $bestRow = $rows->sortByDesc(fn ($row) => (int) rtrim($row->highest_score, '*'))->first();
-        $highestScore = $bestRow ? $bestRow->highest_score : '0';
+        // Pick the highest individual innings score across all match rows.
+        // rtrim strips the not-out '*' before numeric comparison.
+        $highestScore = $rows
+            ->sortByDesc(fn ($row) => (int) rtrim($row->highest_score, '*'))
+            ->first()
+            ?->highest_score ?? '0';
 
-        $average = ($innings - $notOuts) > 0 ? round($runs / ($innings - $notOuts), 2) : null;
+        $average = PlayerStatsService::battingAverage($runs, $innings, $notOuts);
         $strikeRate = $ballsFaced > 0 ? round(100 * $runs / $ballsFaced, 2) : null;
 
         PlayerBattingStats::updateOrCreate(
@@ -168,28 +180,45 @@ class RefreshMatchStatsJob implements ShouldQueue
             ->get();
 
         if ($rows->isEmpty()) {
-            PlayerBowlingStats::where('player_id', $playerId)->where('tournament_type', $eventType)->delete();
+            PlayerBowlingStats::where('player_id', $playerId)
+                ->where('tournament_type', $eventType)
+                ->delete();
 
             return;
         }
 
         $matches = $rows->count();
         $innings = $rows->sum('innings');
-        $overs = round($rows->sum('overs'), 2);
-        $maidens = $rows->sum('maidens');
         $runsConceded = $rows->sum('runs_conceded');
         $wickets = $rows->sum('wickets');
         $noBalls = $rows->sum('no_balls');
         $wides = $rows->sum('wides');
         $fiveWickets = $rows->sum('five_wickets');
         $tenWickets = $rows->sum('ten_wickets');
+        $maidens = $rows->sum('maidens');
 
-        $bestRow = $rows->sort(fn ($a, $b) => $b->wickets <=> $a->wickets ?: $a->runs_conceded <=> $b->runs_conceded)->first();
-        $bestBowlingInnings = $bestRow ? $bestRow->best_bowling_innings : '0/0';
+        // Summing floats directly corrupts the total (e.g. 2.3 + 2.4 = 4.7 but correct = 5.0).
+        // Convert each row's overs to a real ball count, sum, then convert back.
+        $totalBalls = $rows->sum(function ($row) {
+            $wholeOvers = (int) $row->overs;
+            $remainingBalls = (int) round(($row->overs - $wholeOvers) * 10);
 
+            return $wholeOvers * 6 + $remainingBalls;
+        });
+        $overs = floor($totalBalls / 6) + round(($totalBalls % 6) / 10, 1);
+
+        // overs × 6 would be wrong when overs is stored as decimal shorthand.
         $average = $wickets > 0 ? round($runsConceded / $wickets, 2) : null;
         $economy = $overs > 0 ? round($runsConceded / $overs, 2) : null;
-        $strikeRate = ($wickets > 0 && $overs > 0) ? round($overs * 6 / $wickets, 2) : null;
+        $strikeRate = ($wickets > 0 && $totalBalls > 0) ? round($totalBalls / $wickets, 2) : null;
+
+        // Each PlayerMatchBowling row already stores them correctly — pick the best of each.
+        $bestBowlingInnings = $this->pickBestBowlingFigure(
+            $rows->pluck('best_bowling_innings')->all()
+        );
+        $bestBowlingMatch = $this->pickBestBowlingFigure(
+            $rows->pluck('best_bowling_match')->all()
+        );
 
         PlayerBowlingStats::updateOrCreate(
             ['player_id' => $playerId, 'tournament_type' => $eventType],
@@ -203,7 +232,7 @@ class RefreshMatchStatsJob implements ShouldQueue
                 'no_balls' => $noBalls,
                 'wides' => $wides,
                 'best_bowling_innings' => $bestBowlingInnings,
-                'best_bowling_match' => $bestBowlingInnings,
+                'best_bowling_match' => $bestBowlingMatch,
                 'five_wickets' => $fiveWickets,
                 'ten_wickets' => $tenWickets,
                 'average' => $average,
@@ -220,19 +249,42 @@ class RefreshMatchStatsJob implements ShouldQueue
             ->get();
 
         if ($rows->isEmpty()) {
-            PlayerFieldingStats::where('player_id', $playerId)->where('tournament_type', $eventType)->delete();
+            PlayerFieldingStats::where('player_id', $playerId)
+                ->where('tournament_type', $eventType)
+                ->delete();
 
             return;
         }
 
-        $matches = $rows->count();
-        $catches = $rows->sum('catches');
-        $runOuts = $rows->sum('run_outs');
-        $stumpings = $rows->sum('stumpings');
-
         PlayerFieldingStats::updateOrCreate(
             ['player_id' => $playerId, 'tournament_type' => $eventType],
-            ['matches' => $matches, 'catches' => $catches, 'run_outs' => $runOuts, 'stumpings' => $stumpings]
+            [
+                'matches' => $rows->count(),
+                'catches' => $rows->sum('catches'),
+                'run_outs' => $rows->sum('run_outs'),
+                'stumpings' => $rows->sum('stumpings'),
+            ]
         );
+    }
+
+    /**
+     * Given an array of bowling figure strings like ["3/24", "2/18", "0/0"],
+     * return the best one: most wickets first, fewest runs as tiebreaker.
+     */
+    private function pickBestBowlingFigure(array $figures): string
+    {
+        if (empty($figures)) {
+            return '0/0';
+        }
+
+        $parsed = array_map(function (string $figure) {
+            [$wickets, $runs] = explode('/', $figure.'/0');
+
+            return ['wickets' => (int) $wickets, 'runs' => (int) $runs, 'raw' => $figure];
+        }, $figures);
+
+        usort($parsed, fn ($a, $b) => $b['wickets'] <=> $a['wickets'] ?: $a['runs'] <=> $b['runs']);
+
+        return $parsed[0]['raw'];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Services\Tournament;
 
+use App\Http\Requests\User\StoreTournamentMatchRequest;
 use App\Models\Tournament;
 use App\Models\TournamentMatch;
 
@@ -11,7 +12,7 @@ use App\Models\TournamentMatch;
 class TournamentMatchSchedulingService
 {
     /**
-     * @param  array<string, mixed>  $data  Validated payload from {@see \App\Http\Requests\User\StoreTournamentMatchRequest}
+     * @param  array<string, mixed>  $data  Validated payload from {@see StoreTournamentMatchRequest}
      * @return array{ok: true, match: TournamentMatch}|array{ok: false, reason: 'forbidden'|'validation', message: string}
      */
     public function schedule(Tournament $tournament, array $data): array

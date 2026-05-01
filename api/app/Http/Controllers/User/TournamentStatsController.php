@@ -11,6 +11,7 @@ use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentMatch;
 use App\Models\User;
+use App\Services\PlayerStatsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
 
@@ -337,7 +338,8 @@ class TournamentStatsController extends Controller
             $outs = count($outInnings);
             $runs = $raw['runs'];
 
-            $average = $outs > 0 ? round($runs / $outs, 2) : null;
+            $notOuts = $inningsCount - $outs;
+            $average = PlayerStatsService::battingAverage($runs, $inningsCount, $notOuts);
 
             $battingStats[$playerId] = [
                 'player_id' => $playerId,

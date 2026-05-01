@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\EnsuresTournamentStaffAppRoles;
 use App\Http\Requests\Admin\StoreTournamentRequest;
 use App\Http\Requests\Admin\UpdateTournamentRequest;
 use App\Http\Resources\Admin\TournamentResource;
 use App\Models\Tournament;
-use App\Http\Controllers\Admin\Concerns\EnsuresTournamentStaffAppRoles;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 

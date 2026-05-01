@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import AddBatsmanDialog from '@/components/dialogs/scoring/AddBatsmanDialog';
-import AddBowlerDialog from '@/components/dialogs/scoring/AddBowlerDialog';
 import CustomScoreDialog from '@/components/dialogs/scoring/CustomScoreDialog';
 import ExtraRunsDialog from '@/components/dialogs/scoring/ExtraRunsDialog';
 import FielderPickerDialog from '@/components/dialogs/scoring/FielderPickerDialog';
 import OutReasonDialog from '@/components/dialogs/scoring/OutReasonDialog';
+import ScoringSquadPlayerPickerDialog from '@/components/dialogs/scoring/ScoringSquadPlayerPickerDialog';
 import { blankBatsman, blankBowler } from '@/hooks/useInningsState';
 import { useScoringEngine } from '@/hooks/useScoringEngine';
 import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
@@ -46,6 +45,24 @@ const EMPTY_SQUAD_PLACEHOLDER_ROWS = 2;
 
 /** Bowler column shows only the active bowler; one placeholder row when no bowler / no squad */
 const BOWLER_TABLE_PLACEHOLDER_ROWS = 1;
+
+function HeaderEditPencilIcon() {
+  return (
+    <svg
+      className="block h-4 w-4"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+  );
+}
 
 const RUN_BUTTON_BG = [
   '#10100F',
@@ -221,7 +238,11 @@ export function ScoringTab({
   // ── UI-only dialog state ───────────────────────────────────────────────────
 
   const [addBatsmanOpen, setAddBatsmanOpen] = useState(false);
+  const [batsmanDialogReplaceStriker, setBatsmanDialogReplaceStriker] =
+    useState(false);
   const [addBowlerOpen, setAddBowlerOpen] = useState(false);
+  const [bowlerDialogReplaceActive, setBowlerDialogReplaceActive] =
+    useState(false);
   const [savingBatsmanSquad, setSavingBatsmanSquad] = useState(false);
   const [savingBowlerSquad, setSavingBowlerSquad] = useState(false);
   const [outReasonModalOpen, setOutReasonModalOpen] = useState(false);
@@ -388,7 +409,12 @@ export function ScoringTab({
   ]);
 
   useEffect(() => {
-    if (matchComplete) setAddBowlerOpen(false);
+    if (matchComplete) {
+      setAddBowlerOpen(false);
+      setBowlerDialogReplaceActive(false);
+      setAddBatsmanOpen(false);
+      setBatsmanDialogReplaceStriker(false);
+    }
   }, [matchComplete]);
 
   // ── Capacity flags ─────────────────────────────────────────────────────────
@@ -619,6 +645,27 @@ export function ScoringTab({
     }
   };
 
+  const replaceStrikerWith = (player) => {
+    const i = Math.min(
+      Math.max(0, Number(strikerIndex) || 0),
+      Math.max(0, batsmenOnCrease.length - 1),
+    );
+    const cur = batsmenOnCrease[i];
+    if (!cur || String(cur.id) === String(player.id)) {
+      setAddBatsmanOpen(false);
+      setBatsmanDialogReplaceStriker(false);
+      return;
+    }
+    setBatsmenOnCrease?.((prev) => {
+      const next = [...prev];
+      if (!next[i]) return prev;
+      next[i] = blankBatsman(player);
+      return next;
+    });
+    setAddBatsmanOpen(false);
+    setBatsmanDialogReplaceStriker(false);
+  };
+
   const addBowlerToTable = (player) => {
     if (!canAddMoreBowlers) return;
     const newIndex = bowlersInTable.length;
@@ -671,6 +718,35 @@ export function ScoringTab({
       return next;
     });
     setAddBowlerOpen(false);
+  };
+
+  const handleReplaceActiveBowlerPick = (player) => {
+    const playingOk = bowlingXiSavedOnApi || player?.role === 'playing';
+    if (!playingOk) return;
+    const table = bowlersInTable ?? [];
+    if (table.length === 0) return;
+    const cur = Math.min(
+      Math.max(0, Number(currentBowlerIndex) || 0),
+      table.length - 1,
+    );
+    const idxInTable = table.findIndex(
+      (bt) => String(bt.id) === String(player.id),
+    );
+    if (idxInTable >= 0 && idxInTable !== cur) {
+      setCurrentBowlerIndex?.(idxInTable);
+      setAddBowlerOpen(false);
+      setBowlerDialogReplaceActive(false);
+      return;
+    }
+    setBowlersInTable?.((prev) => {
+      const next = [...prev];
+      const slot = next[cur];
+      if (!slot || String(slot.id) === String(player.id)) return prev;
+      next[cur] = blankBowler(player);
+      return next;
+    });
+    setAddBowlerOpen(false);
+    setBowlerDialogReplaceActive(false);
   };
 
   // ── Scoring engine ─────────────────────────────────────────────────────────
@@ -792,9 +868,25 @@ export function ScoringTab({
           <thead>
             <tr className={HEADER_BG}>
               <th
-                className={`${HEADER_BG} border-r border-b border-l px-4 py-2.5 text-left font-bold text-white ${BORDER}`}
+                className={`${HEADER_BG} min-w-[8.5rem] border-r border-b border-l px-4 py-2.5 text-left font-bold text-white ${BORDER}`}
               >
-                Batsman
+                <div className="inline-flex max-w-full min-w-0 items-center gap-1.5 whitespace-nowrap">
+                  {!matchComplete && batsmenOnCrease.length > 0 ? (
+                    <button
+                      type="button"
+                      className="inline-flex shrink-0 rounded p-0.5 text-[#DA9811] hover:text-[#f0b94a] focus-visible:outline focus-visible:outline-offset-1 focus-visible:outline-[#DA9811]"
+                      aria-label="Replace striker"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setBatsmanDialogReplaceStriker(true);
+                        setAddBatsmanOpen(true);
+                      }}
+                    >
+                      <HeaderEditPencilIcon />
+                    </button>
+                  ) : null}
+                  <span>Batsman</span>
+                </div>
               </th>
               {['R', 'B', '4s', '6s', 'SR'].map((h) => (
                 <th
@@ -809,8 +901,32 @@ export function ScoringTab({
           <tbody>
             {battingOrder.length === 0
               ? Array.from({ length: EMPTY_SQUAD_PLACEHOLDER_ROWS }, (_, i) => (
+                <tr
+                  key={`batsman-placeholder-${i}`}
+                  className="pointer-events-none"
+                  aria-hidden
+                >
+                  <td
+                    className={`border-r border-b border-l ${BORDER} px-4 py-3`}
+                  >
+                    <span className="block min-h-[1.125rem] text-[12px] text-white/20">
+                      {'\u00a0'}
+                    </span>
+                  </td>
+                  {[0, 1, 2, 3, 4].map((j) => (
+                    <td
+                      key={j}
+                      className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white/20`}
+                    >
+                      {'\u00a0'}
+                    </td>
+                  ))}
+                </tr>
+              ))
+              : batsmenOnCrease.length === 0
+                ? Array.from({ length: EMPTY_SQUAD_PLACEHOLDER_ROWS }, (_, i) => (
                   <tr
-                    key={`batsman-placeholder-${i}`}
+                    key={`batsman-pending-${i}`}
                     className="pointer-events-none"
                     aria-hidden
                   >
@@ -831,95 +947,71 @@ export function ScoringTab({
                     ))}
                   </tr>
                 ))
-              : batsmenOnCrease.length === 0
-                ? Array.from({ length: EMPTY_SQUAD_PLACEHOLDER_ROWS }, (_, i) => (
+                : batsmenOnCrease.slice(0, 2).map((b, creaseIndex) => {
+                  const stats = getBatsmanDisplayStats(b.id);
+                  const isStriker = creaseIndex === strikerIndex;
+                  const display = stats
+                      ? {
+                        runs: stats.runs,
+                        balls: stats.balls,
+                        fours: stats.fours,
+                        sixes: stats.sixes,
+                        sr: stats.strikeRate,
+                      }
+                      : { runs: 0, balls: 0, fours: 0, sixes: 0, sr: '0.0' };
+                  return (
                     <tr
-                      key={`batsman-pending-${i}`}
-                      className="pointer-events-none"
-                      aria-hidden
+                      key={b.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setStrikerIndex?.(creaseIndex)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setStrikerIndex?.(creaseIndex);
+                        }
+                      }}
+                      className="cursor-pointer transition-opacity active:opacity-90"
                     >
                       <td
                         className={`border-r border-b border-l ${BORDER} px-4 py-3`}
                       >
-                        <span className="block min-h-[1.125rem] text-[12px] text-white/20">
-                          {'\u00a0'}
+                        <span className="flex items-center gap-2">
+                          <span
+                            className={`text-[12px] font-medium ${isStriker ? 'text-[#DA9811]' : 'text-white'}`}
+                          >
+                            {b.name ?? DASH}
+                          </span>
+                          {isStriker && (
+                            <span
+                              className="scoring-blink-dot inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full bg-red-500"
+                              aria-label="On strike"
+                            />
+                          )}
                         </span>
                       </td>
-                      {[0, 1, 2, 3, 4].map((j) => (
+                      {[
+                        display.runs,
+                        display.balls,
+                        display.fours,
+                        display.sixes,
+                        display.sr,
+                      ].map((val, i) => (
                         <td
-                          key={j}
-                          className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white/20`}
+                          key={i}
+                          className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white`}
                         >
-                          {'\u00a0'}
+                          {val ?? DASH}
                         </td>
                       ))}
                     </tr>
-                  ))
-                : batsmenOnCrease.slice(0, 2).map((b, creaseIndex) => {
-                    const stats = getBatsmanDisplayStats(b.id);
-                    const isStriker = creaseIndex === strikerIndex;
-                    const display = stats
-                      ? {
-                          runs: stats.runs,
-                          balls: stats.balls,
-                          fours: stats.fours,
-                          sixes: stats.sixes,
-                          sr: stats.strikeRate,
-                        }
-                      : { runs: 0, balls: 0, fours: 0, sixes: 0, sr: '0.0' };
-                    return (
-                      <tr
-                        key={b.id}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => setStrikerIndex?.(creaseIndex)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            setStrikerIndex?.(creaseIndex);
-                          }
-                        }}
-                        className="cursor-pointer transition-opacity active:opacity-90"
-                      >
-                        <td
-                          className={`border-r border-b border-l ${BORDER} px-4 py-3`}
-                        >
-                          <span className="flex items-center gap-2">
-                            <span
-                              className={`text-[12px] font-medium ${isStriker ? 'text-[#DA9811]' : 'text-white'}`}
-                            >
-                              {b.name ?? DASH}
-                            </span>
-                            {isStriker && (
-                              <span
-                                className="scoring-blink-dot inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full bg-red-500"
-                                aria-label="On strike"
-                              />
-                            )}
-                          </span>
-                        </td>
-                        {[
-                          display.runs,
-                          display.balls,
-                          display.fours,
-                          display.sixes,
-                          display.sr,
-                        ].map((val, i) => (
-                          <td
-                            key={i}
-                            className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white`}
-                          >
-                            {val ?? DASH}
-                          </td>
-                        ))}
-                      </tr>
-                    );
-                  })}
+                  );
+                })}
           </tbody>
         </table>
         {canAddMoreBatsmen && !matchComplete && (
           <div
-            className="pointer-events-none absolute inset-x-0 top-0 bottom-0 flex min-h-[5rem] items-center justify-center"
+            className="pointer-events-none absolute inset-x-0 top-0 bottom-0 z-0 flex min-h-[5rem] items-center justify-center"
             aria-hidden
           >
             <Button
@@ -959,9 +1051,25 @@ export function ScoringTab({
           <thead>
             <tr className={HEADER_BG}>
               <th
-                className={`${HEADER_BG} border-r border-b border-l px-4 py-2.5 text-left font-bold text-white ${BORDER}`}
+                className={`${HEADER_BG} min-w-[8.5rem] border-r border-b border-l px-4 py-2.5 text-left font-bold text-white ${BORDER}`}
               >
-                Bowler
+                <div className="inline-flex max-w-full min-w-0 items-center gap-1.5 whitespace-nowrap">
+                  {!matchComplete && activeBowlerDisplay ? (
+                    <button
+                      type="button"
+                      className="inline-flex shrink-0 rounded p-0.5 text-[#DA9811] hover:text-[#f0b94a] focus-visible:outline focus-visible:outline-offset-1 focus-visible:outline-[#DA9811]"
+                      aria-label="Replace bowler"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setBowlerDialogReplaceActive(true);
+                        setAddBowlerOpen(true);
+                      }}
+                    >
+                      <HeaderEditPencilIcon />
+                    </button>
+                  ) : null}
+                  <span>Bowler</span>
+                </div>
               </th>
               {['O', 'M', 'R', 'W', 'ECON'].map((h) => (
                 <th
@@ -1057,7 +1165,7 @@ export function ScoringTab({
         </table>
         {showAddBowlerOverlay && (
           <div
-            className="pointer-events-none absolute inset-x-0 top-0 bottom-0 flex min-h-[5rem] items-center justify-center"
+            className="pointer-events-none absolute inset-x-0 top-0 bottom-0 z-0 flex min-h-[5rem] items-center justify-center"
             aria-hidden
           >
             <Button
@@ -1155,92 +1263,92 @@ export function ScoringTab({
       {batsmenOnCrease.length === 2 &&
         bowlersInTable.length > 0 &&
         !matchComplete && (
-          <div className="mt-6 flex flex-col items-center gap-4 pb-8">
-            <div className="flex flex-wrap justify-center gap-2">
-              {[0, 1, 2, 3, 4, 5, 6].map((runs) => (
-                <button
-                  key={runs}
-                  type="button"
-                  onClick={() =>
-                    runs === 0 ? handleRuns(0) : openShotAreaDialog(runs)
-                  }
-                  className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full text-[14px] font-bold text-white transition-opacity active:opacity-80"
-                  style={{ backgroundColor: RUN_BUTTON_BG[runs] }}
-                  aria-label={`${runs} run${runs !== 1 ? 's' : ''}`}
-                >
-                  {runs}
-                </button>
-              ))}
+        <div className="mt-6 flex flex-col items-center gap-4 pb-8">
+          <div className="flex flex-wrap justify-center gap-2">
+            {[0, 1, 2, 3, 4, 5, 6].map((runs) => (
               <button
+                key={runs}
                 type="button"
-                onClick={openCustomScoreDialog}
-                className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#46463F] text-[25px] font-bold text-[#DA9811] transition-opacity active:opacity-80"
-                aria-label="Add custom score"
+                onClick={() =>
+                    runs === 0 ? handleRuns(0) : openShotAreaDialog(runs)
+                }
+                className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full text-[14px] font-bold text-white transition-opacity active:opacity-80"
+                style={{ backgroundColor: RUN_BUTTON_BG[runs] }}
+                aria-label={`${runs} run${runs !== 1 ? 's' : ''}`}
               >
-                +
+                {runs}
               </button>
-            </div>
+            ))}
+            <button
+              type="button"
+              onClick={openCustomScoreDialog}
+              className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#46463F] text-[25px] font-bold text-[#DA9811] transition-opacity active:opacity-80"
+              aria-label="Add custom score"
+            >
+                +
+            </button>
+          </div>
 
-            <div className="flex flex-wrap justify-center gap-2">
-              {extraTypeOptions.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => {
-                    if (
-                      opt.value === 'wd' ||
+          <div className="flex flex-wrap justify-center gap-2">
+            {extraTypeOptions.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => {
+                  if (
+                    opt.value === 'wd' ||
                       opt.value === 'nb' ||
                       opt.value === 'bye' ||
                       opt.value === 'lb'
-                    ) {
-                      setPendingExtraType(opt.value);
-                      setExtraRunsDialogOpen(true);
-                    } else {
-                      handleSpecial(opt.value);
-                    }
-                  }}
-                  className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#141412] text-[12px] font-bold text-white uppercase transition-opacity active:opacity-80"
-                  aria-label={opt.label}
-                >
-                  {opt.short_label}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={() => {
-                  if (batsmenOnCrease.length === 2 && bowlersInTable.length > 0)
-                    setOutReasonModalOpen(true);
+                  ) {
+                    setPendingExtraType(opt.value);
+                    setExtraRunsDialogOpen(true);
+                  } else {
+                    handleSpecial(opt.value);
+                  }
                 }}
-                className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#141412] text-[12px] font-bold text-[#DA9811] uppercase transition-opacity active:opacity-80"
-                aria-label="Out"
+                className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#141412] text-[12px] font-bold text-white uppercase transition-opacity active:opacity-80"
+                aria-label={opt.label}
               >
+                {opt.short_label}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => {
+                if (batsmenOnCrease.length === 2 && bowlersInTable.length > 0)
+                  setOutReasonModalOpen(true);
+              }}
+              className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#141412] text-[12px] font-bold text-[#DA9811] uppercase transition-opacity active:opacity-80"
+              aria-label="Out"
+            >
                 OUT
-              </button>
-              <button
-                type="button"
-                onClick={handleUndo}
-                className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-red-500 bg-[#141412] text-[8px] font-bold text-red-500 uppercase transition-opacity active:opacity-80"
-                aria-label="Undo"
-              >
-                <span className="flex flex-col items-center">
-                  <svg
-                    className="h-3 w-3"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M3 10h10a5 5 0 0 1 5 5v2" />
-                    <path d="M3 10l4-4M3 10l4 4" />
-                  </svg>
+            </button>
+            <button
+              type="button"
+              onClick={handleUndo}
+              className="flex h-[40px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-red-500 bg-[#141412] text-[8px] font-bold text-red-500 uppercase transition-opacity active:opacity-80"
+              aria-label="Undo"
+            >
+              <span className="flex flex-col items-center">
+                <svg
+                  className="h-3 w-3"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 10h10a5 5 0 0 1 5 5v2" />
+                  <path d="M3 10l4-4M3 10l4 4" />
+                </svg>
                   UNDO
-                </span>
-              </button>
-            </div>
+              </span>
+            </button>
           </div>
-        )}
+        </div>
+      )}
 
       {/* ── Dialogs ──────────────────────────────────────────────────────────── */}
 
@@ -1305,41 +1413,62 @@ export function ScoringTab({
         onSubmit={handleCustomScoreDone}
       />
 
-      <AddBatsmanDialog
+      <ScoringSquadPlayerPickerDialog
+        variant="batsman"
         open={addBatsmanOpen}
         onOpenChange={(open) => {
-          if (!open) setAddBatsmanOpen(false);
+          if (!open) {
+            setAddBatsmanOpen(false);
+            setBatsmanDialogReplaceStriker(false);
+          }
         }}
         players={addBatsmanDialogPlayers}
+        ballHistory={ballHistory}
         canAddMoreBatsmen={canAddMoreBatsmen}
         isPlayerBattingOrOut={isPlayerBattingOrOut}
         getBatsmanDisplayStats={getBatsmanDisplayStats}
         isApiMatch={isApiMatch}
         hideSquadSetup={battingXiSavedOnApi}
-        savingBatsmanSquad={savingBatsmanSquad}
-        requiredBatting={requiredBatting}
-        currentSquad={battingSquad}
+        savingSquad={savingBatsmanSquad}
+        requiredPlayingCount={requiredBatting}
+        squad={battingSquad}
         onSaveSquad={handleSaveBatsmanSquad}
-        onAddBatsmanToCrease={addBatsmanToCrease}
-        onSetBatsmanRole={setBatsmanRole}
+        onSetRole={setBatsmanRole}
+        onPickBatsman={
+          batsmanDialogReplaceStriker ? replaceStrikerWith : addBatsmanToCrease
+        }
+        replaceStrikerMode={batsmanDialogReplaceStriker}
+        strikerId={batsmenOnCrease[strikerIndex]?.id}
+        nonStrikerId={
+          batsmenOnCrease.length > 1
+            ? batsmenOnCrease[strikerIndex === 0 ? 1 : 0]?.id
+            : undefined
+        }
       />
 
-      <AddBowlerDialog
+      <ScoringSquadPlayerPickerDialog
+        variant="bowler"
         open={addBowlerOpen}
         onOpenChange={(open) => {
-          if (!open) setAddBowlerOpen(false);
+          if (!open) {
+            setAddBowlerOpen(false);
+            setBowlerDialogReplaceActive(false);
+          }
         }}
         players={addBowlerDialogPlayers}
-        canAddMoreBowlers={canAddMoreBowlers}
-        bowlersInTable={bowlersInTable}
         isApiMatch={isApiMatch}
         hideSquadSetup={bowlingXiSavedOnApi}
-        savingBowlerSquad={savingBowlerSquad}
-        requiredBowling={requiredBowling}
-        currentBowlerSquad={bowlingSquad}
-        onSaveBowlerSquad={handleSaveBowlerSquad}
+        savingSquad={savingBowlerSquad}
+        requiredPlayingCount={requiredBowling}
+        squad={bowlingSquad}
+        onSaveSquad={handleSaveBowlerSquad}
+        onSetRole={setBowlerRole}
+        canAddMoreBowlers={canAddMoreBowlers}
+        bowlersInTable={bowlersInTable}
         onSelectBowlerForNextOver={selectBowlerForNextOver}
-        onSetBowlerRole={setBowlerRole}
+        replaceActiveBowlerMode={bowlerDialogReplaceActive}
+        activeBowlerId={activeBowlerDisplay?.bowler?.id}
+        onReplaceActiveBowlerPick={handleReplaceActiveBowlerPick}
       />
     </div>
   );

@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\EnsuresTournamentStaffAppRoles;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreTournamentBroadcasterRequest;
 use App\Http\Resources\Admin\TournamentBroadcasterUserResource;
 use App\Models\Tournament;
 use App\Models\User;
-use App\Http\Controllers\Admin\Concerns\EnsuresTournamentStaffAppRoles;
 use Illuminate\Http\JsonResponse;
 
 class TournamentBroadcasterController extends Controller
