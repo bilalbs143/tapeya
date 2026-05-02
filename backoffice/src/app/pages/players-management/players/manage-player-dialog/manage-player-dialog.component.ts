@@ -95,7 +95,8 @@ export class ManagePlayerDialogComponent implements OnInit, OnDestroy {
       bowling_style: [normalizeEnumValue(u?.bowling_style_enum ?? undefined, '')],
       batting_style: [normalizeEnumValue(u?.batting_style_enum ?? undefined, '')],
       country: [u?.country ?? ''],
-      city: [u?.city ?? ''],
+      // City starts disabled until a country is selected; enabled reactively via loadCitiesForCountry.
+      city: [{ value: u?.city ?? '', disabled: !u?.country }],
     });
   }
 
@@ -111,23 +112,35 @@ export class ManagePlayerDialogComponent implements OnInit, OnDestroy {
   }
 
   private loadCitiesForCountry(countryName: string | null): void {
+    const cityControl = this.form.get('city');
+
     if (!countryName) {
       this.cities = [];
-      this.form.patchValue({ city: '' });
+      cityControl?.setValue('');
+      cityControl?.disable();
       return;
     }
+
     const country = this.countriesList.find((c) => c.name === countryName);
     const code = country?.country_code;
     if (!code) {
       this.cities = [];
-      this.form.patchValue({ city: '' });
+      cityControl?.setValue('');
+      cityControl?.disable();
       return;
     }
+
+    cityControl?.setValue('');
     this.locationService.getCities(code).subscribe({
-      next: (res) => (this.cities = res.data ?? []),
-      error: () => (this.cities = []),
+      next: (res) => {
+        this.cities = res.data ?? [];
+        cityControl?.enable();
+      },
+      error: () => {
+        this.cities = [];
+        cityControl?.disable();
+      },
     });
-    this.form.patchValue({ city: '' });
   }
 
   public onSubmit(): void {

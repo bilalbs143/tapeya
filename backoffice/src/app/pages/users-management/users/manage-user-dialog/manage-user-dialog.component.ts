@@ -84,6 +84,14 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
 
   private initializeForm(): void {
     const user = this.data.user;
+
+    // When editing, the API returns full role objects (roles/admin_roles).
+    // Fall back to mapping those to IDs if the flat role_ids array is absent.
+    const roleIds = user?.role_ids?.length ? user.role_ids : (user?.roles?.map((r) => r.id) ?? []);
+    const adminRoleIds = user?.admin_role_ids?.length
+      ? user.admin_role_ids
+      : (user?.admin_roles?.map((r) => r.id) ?? []);
+
     this.form = this.fb.group({
       id: [user?.id ?? null],
       name: [user?.name ?? '', [Validators.required]],
@@ -96,18 +104,19 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
       date_of_birth: [user?.date_of_birth ?? null],
       status: [normalizeEnumValue(user?.status_enum, 'verification_pending'), [Validators.required]],
       role_ids: [
-        user?.role_ids ?? [],
+        roleIds,
         [
           Validators.required,
           (c: AbstractControl) => (Array.isArray(c.value) && c.value.length >= 1 ? null : { atLeastOneRole: true }),
         ],
       ],
-      admin_role_ids: [user?.admin_role_ids ?? []],
+      admin_role_ids: [adminRoleIds],
       playing_role: [normalizeEnumValue(user?.playing_role_enum ?? undefined, '')],
       bowling_style: [normalizeEnumValue(user?.bowling_style_enum ?? undefined, '')],
       batting_style: [normalizeEnumValue(user?.batting_style_enum ?? undefined, '')],
       country: [user?.country ?? ''],
-      city: [user?.city ?? ''],
+      // City starts disabled when no country is pre-selected; enabled reactively via loadCitiesForCountry.
+      city: [{ value: user?.city ?? '', disabled: !user?.country }],
       password: [''],
       password_confirmation: [''],
     });
@@ -117,31 +126,46 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
     this.locationService.getCountries().subscribe({
       next: (res) => {
         this.countriesList = res.data ?? [];
+        // If editing a user with a pre-filled country, load their cities immediately.
         const countryName = this.form.get('country')?.value;
-        if (countryName) this.loadCitiesForCountry(countryName);
+        if (countryName) {
+          this.loadCitiesForCountry(countryName);
+        }
       },
       error: () => (this.countriesList = []),
     });
   }
 
   private loadCitiesForCountry(countryName: string | null): void {
+    const cityControl = this.form.get('city');
+
     if (!countryName) {
       this.cities = [];
-      this.form.patchValue({ city: '' });
+      cityControl?.setValue('');
+      cityControl?.disable();
       return;
     }
+
     const country = this.countriesList.find((c) => c.name === countryName);
     const code = country?.country_code;
     if (!code) {
       this.cities = [];
-      this.form.patchValue({ city: '' });
+      cityControl?.setValue('');
+      cityControl?.disable();
       return;
     }
+
+    cityControl?.setValue('');
     this.locationService.getCities(code).subscribe({
-      next: (res) => (this.cities = res.data ?? []),
-      error: () => (this.cities = []),
+      next: (res) => {
+        this.cities = res.data ?? [];
+        cityControl?.enable();
+      },
+      error: () => {
+        this.cities = [];
+        cityControl?.disable();
+      },
     });
-    this.form.patchValue({ city: '' });
   }
 
   public onSubmit(): void {
@@ -160,8 +184,8 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
 
     request$.pipe(finalize(() => (this.isSubmitting = false))).subscribe({
       next: () => this.dialogRef.close(true),
-      error: (err) => {
-        console.log('Manage user dialog request failed', err);
+      error: () => {
+        // Errors are handled globally by the error interceptor (422 validation toasts, etc.).
       },
     });
   }

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Events\Broadcast\Graphics\MatchGraphicCommandActivated;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
-use App\Utils\Constants\ApiConstants;
 use App\Http\Requests\Admin\StoreMatchGraphicCommandRequest;
 use App\Http\Requests\Admin\UpdateMatchGraphicSessionRequest;
 use App\Http\Resources\Admin\MatchGraphicCommandResource;
@@ -14,6 +14,7 @@ use App\Models\MatchGraphicCommand;
 use App\Models\MatchGraphicSession;
 use App\Models\TournamentMatch;
 use App\Services\Broadcast\ResolveMatchGraphicSession;
+use App\Utils\Constants\ApiConstants;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -96,6 +97,8 @@ class MatchGraphicSessionController extends Controller
                     'active_command_id' => $cmd->id,
                     'updated_by' => $request->user()?->id,
                 ]);
+
+                MatchGraphicCommandActivated::dispatch($session, $cmd);
             }
 
             return $cmd->fresh();
@@ -115,6 +118,8 @@ class MatchGraphicSessionController extends Controller
             'active_command_id' => $command->id,
             'updated_by' => request()->user()?->id,
         ]);
+
+        MatchGraphicCommandActivated::dispatch($session, $command);
 
         $command->load('session');
 

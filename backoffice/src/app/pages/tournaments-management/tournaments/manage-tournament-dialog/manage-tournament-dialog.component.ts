@@ -190,23 +190,36 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
   }
 
   private loadCitiesForCountry(countryName: string | null, clearCity = true): void {
+    const cityControl = this.form.get('city');
+
     if (!countryName) {
       this.cities = [];
-      if (clearCity) this.form.patchValue({ city: '' });
+      if (clearCity) cityControl?.setValue('');
+      cityControl?.disable();
       return;
     }
+
     const country = this.countriesList.find((c) => c.name === countryName);
     const code = country?.country_code;
     if (!code) {
       this.cities = [];
-      if (clearCity) this.form.patchValue({ city: '' });
+      if (clearCity) cityControl?.setValue('');
+      cityControl?.disable();
       return;
     }
+
+    if (clearCity) cityControl?.setValue('');
     this.locationService.getCities(code).subscribe({
-      next: (res) => (this.cities = res.data ?? []),
-      error: () => (this.cities = []),
+      next: (res) => {
+        this.cities = res.data ?? [];
+        cityControl?.enable();
+      },
+      error: () => {
+        // Keep city enabled so required validator fires and prevents accidental submission.
+        this.cities = [];
+        cityControl?.enable();
+      },
     });
-    if (clearCity) this.form.patchValue({ city: '' });
   }
 
   private initializeForm(): void {
@@ -253,7 +266,8 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
         group_mode: [groupMode, [Validators.required]],
         number_of_groups: [numberOfGroups, [Validators.min(2), Validators.max(16)]],
         country: [source?.country ?? '', [Validators.required, Validators.maxLength(100)]],
-        city: [source?.city ?? '', [Validators.required, Validators.maxLength(100)]],
+        // City starts disabled until a country is selected; enabled reactively via loadCitiesForCountry.
+        city: [{ value: source?.city ?? '', disabled: !source?.country }, [Validators.required, Validators.maxLength(100)]],
         match_timings: [normalizeEnumValue(source?.match_timings, ''), [Validators.required]],
         status: [normalizeEnumValue(tournament?.status_enum ?? tournament?.status, 'active'), [Validators.required]],
         prize: [source?.prize ?? '', [Validators.maxLength(255)]],
@@ -338,7 +352,8 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const v = this.form.value;
+    // Use getRawValue() to include disabled controls (e.g., city while cities are loading).
+    const v = this.form.getRawValue();
     const formData = new FormData();
     formData.append('organizer_id', String((v.organizer as OrganizerOption)?.id ?? ''));
     formData.append('tournament_name', v.tournament_name);

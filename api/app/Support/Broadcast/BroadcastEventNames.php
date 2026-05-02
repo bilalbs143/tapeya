@@ -29,4 +29,7 @@ final class BroadcastEventNames
     public const ADMIN_TOURNAMENT_REQUEST_SUBMITTED = 'admin.tournament_request.submitted';
 
     public const ADMIN_USER_REGISTERED = 'admin.user.registered';
+
+    /** Fired on public channel `match.{matchId}.graphics` when the active graphic changes. */
+    public const MATCH_GRAPHIC_ACTIVATED = 'match.graphic.activated';
 }

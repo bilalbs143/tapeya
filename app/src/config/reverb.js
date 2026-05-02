@@ -1,4 +1,7 @@
-import { baseUrl } from '@/store/api/baseApi';
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
+
+import { baseUrl, getApiOrigin } from '@/store/api/baseApi';
 
 /**
  * WebSocket host/ports must be reachable from the browser (not localhost loopback in production).
@@ -38,4 +41,44 @@ export function getReverbClientConfig() {
     appKey: 'local-reverb-key',
     ...derived,
   };
+}
+
+/**
+ * Creates and returns a configured Laravel Echo instance.
+ *
+ * @param {{ authToken?: string }} [options]
+ *   Pass `authToken` to enable private-channel auth (`/broadcasting/auth`).
+ *   Omit (or pass nothing) for public channels — no auth endpoint is set.
+ * @returns {Echo|null} null when Reverb is disabled or the API origin is unknown.
+ */
+export function createEcho({ authToken } = {}) {
+  const reverb = getReverbClientConfig();
+  if (!reverb.enabled) return null;
+
+  const origin = getApiOrigin();
+  if (!origin) return null;
+
+  window.Pusher = Pusher;
+
+  const options = {
+    broadcaster: 'reverb',
+    key: reverb.appKey,
+    wsHost: reverb.host,
+    wsPort: reverb.port,
+    wssPort: reverb.port,
+    forceTLS: reverb.scheme === 'https',
+    enabledTransports: ['ws', 'wss'],
+  };
+
+  if (authToken) {
+    options.authEndpoint = `${origin}/broadcasting/auth`;
+    options.auth = {
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+        Accept: 'application/json',
+      },
+    };
+  }
+
+  return new Echo(options);
 }

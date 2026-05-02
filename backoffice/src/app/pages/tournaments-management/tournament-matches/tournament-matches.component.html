@@ -3,7 +3,7 @@
     <form
       (ngSubmit)="applyFilters()"
       [formGroup]="searchForm"
-      aria-label="Filter Matches"
+      aria-label="Filter form"
     >
       <div class="grid grid-cols-12 gap-4 items-end">
         <div class="col-span-12 sm:col-span-6 lg:col-span-4">
@@ -116,6 +116,7 @@
             mat-table
             matSort
             matSortActive="when"
+            matSortStart="asc"
             matSortDirection="asc"
             [dataSource]="dataSource"
             class="min-w-full"
@@ -235,7 +236,7 @@
                   class="me-2.5 inline-flex cursor-pointer border-0 bg-transparent p-0 align-middle no-underline"
                   [routerLink]="['/tournaments-management/match-controller', row.id]"
                   matTooltip="Match Controller"
-                  aria-label="Open Match Controller"
+                  aria-label="Open match controller"
                 >
                   <i-tabler
                     name="settings"

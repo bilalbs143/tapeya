@@ -2,7 +2,7 @@
   <form
     [formGroup]="form"
     (ngSubmit)="onSubmit()"
-    aria-label="Team Form"
+    aria-label="Team form"
   >
     <mat-dialog-content>
       <div class="grid grid-cols-12 gap-x-6">
@@ -71,7 +71,6 @@
           >
             <mat-select
               formControlName="city"
-              [disabled]="!form.get('country')?.value"
               placeholder="Select City"
             >
               <mat-option value="">Select City</mat-option>
@@ -102,7 +101,7 @@
                   type="button"
                   mat-icon-button
                   class="col-start-1 row-start-1 justify-self-end self-start m-2 size-8 min-w-8 rounded-full bg-white shadow-md border border-error text-error hover:bg-error hover:text-white hover:border-error"
-                  aria-label="Remove Logo"
+                  aria-label="Remove logo"
                   (click)="clearLogo()"
                 >
                   <i-tabler
@@ -130,7 +129,7 @@
           >
             <mat-chip-grid
               #sponsorChipGrid
-              aria-label="Team Sponsor"
+              aria-label="Team sponsor"
             >
               @if (sponsor) {
                 <mat-chip-row
@@ -141,7 +140,7 @@
                   <button
                     type="button"
                     matChipRemove
-                    [attr.aria-label]="'Remove Sponsor ' + userChipLabel(sponsor)"
+                    [attr.aria-label]="'Remove sponsor ' + userChipLabel(sponsor)"
                   >
                     <mat-icon>cancel</mat-icon>
                   </button>
@@ -180,7 +179,7 @@
           >
             <mat-chip-grid
               #iconChipGrid
-              aria-label="Icon Players"
+              aria-label="Icon players"
             >
               @for (p of iconPlayers; track p.id) {
                 <mat-chip-row
@@ -191,7 +190,7 @@
                   <button
                     type="button"
                     matChipRemove
-                    [attr.aria-label]="'Remove Icon Player ' + userChipLabel(p)"
+                    [attr.aria-label]="'Remove icon player ' + userChipLabel(p)"
                   >
                     <mat-icon>cancel</mat-icon>
                   </button>

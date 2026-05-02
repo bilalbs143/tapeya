@@ -18,20 +18,9 @@ class GraphicThemeSeeder extends Seeder
         ];
 
         GraphicTheme::query()->updateOrCreate(
-            ['slug' => 'tapeya-basic-static'],
+            ['slug' => 'tapeya-basic'],
             [
-                'name' => 'Tapeya Basic Static',
-                'config_schema' => null,
-                'default_config' => $defaults,
-                'graphics_url_template' => null,
-                'is_active' => true,
-            ]
-        );
-
-        GraphicTheme::query()->updateOrCreate(
-            ['slug' => 'tapeya-pro-static'],
-            [
-                'name' => 'Tapeya Pro Static',
+                'name' => 'Tapeya Basic',
                 'config_schema' => null,
                 'default_config' => $defaults,
                 'graphics_url_template' => null,

@@ -239,8 +239,8 @@ Nav labels that point at scorecard: `src/lib/constants/navigation.js` (`/scoreca
 
 These reference “score” in filenames but are **graphics / broadcast** UI, not the main scoring/scorecard module:
 
-- `src/pages/graphics-controller/theme01/ScoreComparison.jsx`
-- `src/pages/graphics-controller/theme01/ScoreComparisonBar.jsx`
+- `src/pages/graphics-controller/theme1/ScoreComparison.jsx`
+- `src/pages/graphics-controller/theme1/ScoreComparisonBar.jsx`
 
 ---
 

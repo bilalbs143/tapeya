@@ -56,7 +56,7 @@
           </mat-form-field>
         </div>
 
-        <!-- Row 3: Phone | Date of Birth -->
+        <!-- Row 2 cont: Phone -->
         <div class="col-span-12 lg:col-span-6">
           <mat-label class="text-sm font-semibold mb-2 block">Phone <span class="text-error">*</span></mat-label>
           <mat-form-field
@@ -73,6 +73,7 @@
             }
           </mat-form-field>
         </div>
+        <!-- Row 3: Date of Birth | Status -->
         <div class="col-span-12 lg:col-span-6">
           <mat-label class="text-sm font-semibold mb-2 block">Date of Birth</mat-label>
           <mat-form-field
@@ -112,7 +113,7 @@
           </mat-form-field>
         </div>
 
-        <!-- Row 4: Roles | Status -->
+        <!-- Row 4: App Roles | Backoffice Roles -->
         <div class="col-span-12 lg:col-span-6">
           <mat-label class="text-sm font-semibold mb-2 block">Roles <span class="text-error">*</span></mat-label>
           <mat-form-field
@@ -241,7 +242,6 @@
           >
             <mat-select
               formControlName="city"
-              [disabled]="!form.get('country')?.value"
               placeholder="Select City"
             >
               <mat-option value="">Select City</mat-option>

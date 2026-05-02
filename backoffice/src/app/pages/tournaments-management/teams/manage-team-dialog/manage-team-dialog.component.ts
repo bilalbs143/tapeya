@@ -157,28 +157,40 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
       name: ['', [Validators.required, Validators.maxLength(255)]],
       code: ['', [Validators.required, Validators.maxLength(20)]],
       country: ['', [Validators.required, Validators.maxLength(100)]],
-      city: ['', [Validators.required, Validators.maxLength(100)]],
+      // City starts disabled; enabled reactively once a country is selected and cities are loaded.
+      city: [{ value: '', disabled: true }, [Validators.required, Validators.maxLength(100)]],
       sponsor_user_id: [0, [Validators.required, Validators.min(1)]],
     });
   }
 
   private fillCitiesForCountry(countryName: string | null): void {
+    const cityControl = this.form.get('city');
+
     if (!countryName) {
       this.cities = [];
+      cityControl?.setValue('');
+      cityControl?.disable();
       return;
     }
+
     const country = this.countriesList.find((c) => c.name === countryName);
     const code = country?.country_code;
     if (!code) {
       this.cities = [];
+      cityControl?.setValue('');
+      cityControl?.disable();
       return;
     }
+
     this.locationService.getCities(code).subscribe({
       next: (res) => {
         this.cities = res.data ?? [];
+        cityControl?.enable();
       },
       error: () => {
+        // Keep city enabled so required validator fires and prevents accidental submission.
         this.cities = [];
+        cityControl?.enable();
       },
     });
   }

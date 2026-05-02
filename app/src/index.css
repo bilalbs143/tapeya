@@ -1,5 +1,19 @@
 @import 'tailwindcss';
 
+/*
+ * Graphic overlay page — used as a browser source in OBS/vMix.
+ *
+ * Each graphic component wraps its card in a full-screen dark div
+ * (bg-[#1D1E22]) for standalone preview. On the overlay page we strip
+ * that outer background so only the graphic card floats over the video
+ * stream with a transparent surround.
+ *
+ * The inner <section> elements keep their own backgrounds.
+ */
+.graphic-overlay-container > div {
+  background-color: transparent !important;
+}
+
 .font-moul {
   font-family: 'Moul', serif;
 }

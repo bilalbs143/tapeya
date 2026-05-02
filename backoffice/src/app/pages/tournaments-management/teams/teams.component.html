@@ -3,7 +3,7 @@
     <form
       (ngSubmit)="loadHttpData()"
       [formGroup]="searchForm"
-      aria-label="Filter teams"
+      aria-label="Filter form"
     >
       <div class="grid grid-cols-12 gap-4 items-end">
         <div class="col-span-12 sm:col-span-6 lg:col-span-4">
@@ -234,7 +234,7 @@
               <button
                 type="button"
                 class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
-                aria-label="Edit Team"
+                aria-label="Edit team"
                 (click)="openEditDialog(row)"
               >
                 <i-tabler
@@ -245,7 +245,7 @@
               <button
                 type="button"
                 class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
-                aria-label="Delete Team"
+                aria-label="Delete team"
                 (click)="openDeleteDialog(row)"
               >
                 <i-tabler
