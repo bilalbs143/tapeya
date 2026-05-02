@@ -39,7 +39,7 @@ export const blankBatsman = (p) => ({
 export const blankBowler = (p) => ({
   id: p.id,
   name: p.name,
-  overs: 0,
+  overs: '0',
   maidens: 0,
   runs: 0,
   wickets: 0,
@@ -58,8 +58,23 @@ export function useInningsState() {
     useState(INITIAL_PARTNERSHIP);
   const [completedPartnerships, setCompletedPartnerships] = useState([]);
 
+  /**
+   * Free hit pending flag (Law 21.18).
+   * True when the NEXT delivery must be bowled as a free hit.
+   * Set after every no-ball; cleared after the next legal delivery.
+   * Carried over through wides and subsequent no-balls.
+   */
+  const [pendingFreeHit, setPendingFreeHit] = useState(false);
+
+  /**
+   * Batsmen who have retired hurt.
+   * They are removed from the crease but do NOT count as a wicket.
+   * They may return later in the innings.
+   * Each entry is a full batsman stat object.
+   */
+  const [retiredBatsmen, setRetiredBatsmen] = useState([]);
+
   // Batting squad: players from the team that is BATTING in this innings.
-  // Role: 'playing' | 'bench'. Populated from API playing-eleven data.
   const [battingSquad, setBattingSquad] = useState([]);
 
   // Bowling squad: players from the team that is BOWLING in this innings.
@@ -80,6 +95,8 @@ export function useInningsState() {
    * @param {number}   [opts.currentBowlerIndex]
    * @param {object}   [opts.currentPartnership]
    * @param {object[]} [opts.completedPartnerships]
+   * @param {boolean}  [opts.pendingFreeHit]
+   * @param {object[]} [opts.retiredBatsmen]
    * @param {object[]} [opts.battingSquad]
    * @param {object[]} [opts.bowlingSquad]
    */
@@ -91,6 +108,8 @@ export function useInningsState() {
     setCurrentBowlerIndex(opts.currentBowlerIndex ?? 0);
     setCurrentPartnership(opts.currentPartnership ?? INITIAL_PARTNERSHIP);
     setCompletedPartnerships(opts.completedPartnerships ?? []);
+    setPendingFreeHit(opts.pendingFreeHit ?? false);
+    setRetiredBatsmen(opts.retiredBatsmen ?? []);
     if (opts.battingSquad !== undefined) setBattingSquad(opts.battingSquad);
     if (opts.bowlingSquad !== undefined) setBowlingSquad(opts.bowlingSquad);
   }
@@ -104,6 +123,8 @@ export function useInningsState() {
     currentBowlerIndex,
     currentPartnership,
     completedPartnerships,
+    pendingFreeHit,
+    retiredBatsmen,
     battingSquad,
     bowlingSquad,
 
@@ -115,6 +136,8 @@ export function useInningsState() {
     setCurrentBowlerIndex,
     setCurrentPartnership,
     setCompletedPartnerships,
+    setPendingFreeHit,
+    setRetiredBatsmen,
     setBattingSquad,
     setBowlingSquad,
 

@@ -6,10 +6,13 @@ import { toHttpParams } from 'src/app/shared/functions/http-params.function';
 import type { ListParams } from 'src/app/shared/functions/list-params.function';
 
 import { MessageService } from './message.service';
+import type { UserSearchRow } from './users.service';
 
 export interface Tournament {
   id: number;
   organizer_id: number;
+  created_by?: number | null;
+  creator?: { id: number; name: string; nickname: string | null; email: string | null; phone: string | null } | null;
   organizer?: { id: number; name: string; nickname: string | null; email: string | null; phone: string | null };
   tournament_name: string;
   tournament_type: string;
@@ -20,6 +23,7 @@ export interface Tournament {
   start_date: string;
   end_date: string;
   number_of_teams: number;
+  squad_player_count?: number;
   number_of_groups?: number;
   country?: string | null;
   city: string;
@@ -28,6 +32,8 @@ export interface Tournament {
   status: string;
   status_enum?: string;
   status_label?: string;
+  schedule_phase?: string | null;
+  schedule_phase_label?: string | null;
   display_image?: string | null;
   cover_image?: string | null;
   prize?: string | null;
@@ -86,6 +92,30 @@ export class TournamentsService {
     return this.http.delete<void>(`${this.baseUrl}/${id}`).pipe(
       tap(() => {
         this.messageService.success('Tournament deleted successfully.');
+      })
+    );
+  }
+
+  public getBroadcaster(tournamentId: number): Observable<{ data?: UserSearchRow | null }> {
+    return this.http.get<{ data?: UserSearchRow | null }>(`${this.baseUrl}/${tournamentId}/broadcaster`);
+  }
+
+  public setBroadcaster(tournamentId: number, userId: number): Observable<{ data: UserSearchRow }> {
+    return this.http
+      .post<{ data: UserSearchRow }>(`${this.baseUrl}/${tournamentId}/broadcaster`, {
+        user_id: userId,
+      })
+      .pipe(
+        tap(() => {
+          this.messageService.success('Tournament broadcaster updated.');
+        })
+      );
+  }
+
+  public removeBroadcaster(tournamentId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${tournamentId}/broadcaster`).pipe(
+      tap(() => {
+        this.messageService.success('Tournament broadcaster removed.');
       })
     );
   }

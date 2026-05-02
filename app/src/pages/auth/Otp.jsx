@@ -6,6 +6,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
   clearOtpPreview,
   extractOtpFromAuthResponse,
@@ -24,8 +25,6 @@ import { useAppDispatch } from '@/store/hooks';
 import { setCredentials } from '@/store/slices/authSlice';
 import { Button } from '@/ui/Button';
 import { Input } from '@/ui/Input';
-
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const tapeyaLogo = `${CLOUDFRONT_APP_BASE}/images/logos/tapeya-logo-white.svg`;
 
@@ -264,7 +263,7 @@ export default function Otp() {
               className="rounded-[6px] border border-[#1A1A1A] bg-[#DA9811]/20 px-4 py-2.5 text-center text-[14px] text-[#E8A820]"
               role="status"
             >
-              Use this OTP Below: {' '}
+              Use this OTP Below:{' '}
               <strong className="tabular-nums">{latestOtp}</strong>
             </p>
           )}

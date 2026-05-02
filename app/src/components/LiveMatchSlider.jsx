@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 
 const liveImg1 = `${CLOUDFRONT_APP_BASE}/images/standard/live-img-1.png`;
 const liveImg2 = `${CLOUDFRONT_APP_BASE}/images/standard/live-img-2.png`;

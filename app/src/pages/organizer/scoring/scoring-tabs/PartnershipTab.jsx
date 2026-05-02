@@ -1,6 +1,6 @@
-import { MatchStatsRow } from '../MatchStatsRow';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+import { MatchStatsRow } from '../MatchStatsRow';
 
 const ballIcon = `${CLOUDFRONT_APP_BASE}/images/icons/ball-icon.svg`;
 const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;

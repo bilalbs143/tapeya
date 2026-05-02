@@ -11,6 +11,7 @@ use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentMatch;
 use App\Models\User;
+use App\Services\PlayerStatsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
 
@@ -305,7 +306,9 @@ class TournamentStatsController extends Controller
                 $inningsRunsByPlayer[$pid][$inningsId] = ($inningsRunsByPlayer[$pid][$inningsId] ?? 0) + $ball->runs_off_bat;
             }
 
-            if ($ball->is_wicket && $ball->out_player_id) {
+            // retired_hurt has is_wicket=false per data contract, but guard defensively
+            // against any inconsistent rows so they don't inflate the not-out denominator.
+            if ($ball->is_wicket && $ball->out_player_id && ! $ball->isRetiredHurt()) {
                 $outPid = $ball->out_player_id;
                 $inningsOutByPlayer[$outPid] = $inningsOutByPlayer[$outPid] ?? [];
                 $inningsOutByPlayer[$outPid][$inningsId] = true;
@@ -323,7 +326,8 @@ class TournamentStatsController extends Controller
                 // Penalty awards are not debited to the bowler's conceded column.
                 $bowlingByPlayer[$bowlerId]['runs_conceded'] += $ball->runs;
                 $bowlingByPlayer[$bowlerId]['balls_bowled'] += 1;
-                if ($ball->is_wicket) {
+                // Only credit the bowler for dismissals that are bowler wickets (not run outs etc.).
+                if ($ball->is_wicket && $ball->dismissal_type?->countsAsBowlerWicket()) {
                     $bowlingByPlayer[$bowlerId]['wickets'] += 1;
                 }
             }
@@ -337,7 +341,8 @@ class TournamentStatsController extends Controller
             $outs = count($outInnings);
             $runs = $raw['runs'];
 
-            $average = $outs > 0 ? round($runs / $outs, 2) : null;
+            $notOuts = $inningsCount - $outs;
+            $average = PlayerStatsService::battingAverage($runs, $inningsCount, $notOuts);
 
             $battingStats[$playerId] = [
                 'player_id' => $playerId,

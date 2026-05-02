@@ -27,6 +27,7 @@ class RoleSeeder extends Seeder
 
         $adminRoles = [
             ['name' => 'Super Admin', 'slug' => AdminRoleEnum::SUPER_ADMIN->value, 'guard' => RoleGuardEnum::ADMIN->value],
+            ['name' => 'Broadcast Operator', 'slug' => AdminRoleEnum::BROADCASTER->value, 'guard' => RoleGuardEnum::ADMIN->value],
         ];
 
         foreach ($adminRoles as $role) {

@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
   formatCount,
   formatPostTimestamp,
@@ -10,8 +12,6 @@ import {
 import { Container } from '@/ui/Container';
 
 import { getPostDetail } from './feedData';
-
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const feedCommentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-comment.svg`;
 const feedShareIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-share.svg`;
@@ -224,15 +224,23 @@ export default function ActivityFeedDetail() {
   if (!post) {
     return (
       <div className="bg-black text-white">
-        <Container className="py-8 text-center">
-          <p className="text-[#A2A6AB]">Post not found.</p>
-          <button
-            type="button"
-            onClick={() => navigate('/feed')}
-            className="mt-4 text-[#DA9811] underline"
-          >
-            Back to feed
-          </button>
+        <AppSubpageHeader
+          sticky
+          divider
+          title="ACTIVITY FEED"
+          onBack={() => navigate('/feed')}
+        />
+        <Container>
+          <div className="py-8 text-center">
+            <p className="text-[#A2A6AB]">Post not found.</p>
+            <button
+              type="button"
+              onClick={() => navigate('/feed')}
+              className="mt-4 text-[#DA9811] underline"
+            >
+              Back to feed
+            </button>
+          </div>
         </Container>
       </div>
     );
@@ -249,32 +257,9 @@ export default function ActivityFeedDetail() {
 
   return (
     <div className="min-h-full bg-black text-white">
-      <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-[#1A1A1A] bg-black px-4 py-4">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#A2A6AB] transition-opacity hover:opacity-80"
-          aria-label="Back"
-        >
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <h1 className="min-w-0 flex-1 text-center text-[16px] font-bold tracking-wide text-white uppercase">
-          ACTIVITY FEED
-        </h1>
-        <span className="w-9" aria-hidden />
-      </header>
+      <AppSubpageHeader sticky divider title="ACTIVITY FEED" />
 
-      <Container className="flex flex-col gap-0 pt-4 pb-24">
+      <Container className="flex flex-col gap-0 pb-24">
         {/* Post block - consistent with PostCard */}
         <article className="overflow-hidden rounded-2xl bg-[#141412] shadow-[0_18px_40px_rgba(0,0,0,0.9)]">
           <div className="relative aspect-[4/3] w-full overflow-hidden bg-black">

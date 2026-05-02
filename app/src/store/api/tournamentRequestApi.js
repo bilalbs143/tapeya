@@ -12,7 +12,7 @@ export const tournamentRequestApi = baseApi.injectEndpoints({
         method: 'POST',
         body,
       }),
-      invalidatesTags: ['List'],
+      invalidatesTags: ['List', 'Tournament'],
     }),
   }),
 });

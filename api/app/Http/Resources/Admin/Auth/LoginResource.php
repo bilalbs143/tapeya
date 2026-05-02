@@ -2,9 +2,19 @@
 
 namespace App\Http\Resources\Admin\Auth;
 
+use App\Enums\User\AdminRoleEnum;
 use App\Http\Resources\Auth\LoginResource as BaseLoginResource;
+use Illuminate\Http\Request;
 
 class LoginResource extends BaseLoginResource
 {
-    // Customize admin-specific representation here in the future if needed.
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        return array_merge(parent::toArray($request), [
+            'is_broadcast_staff' => $this->hasRole(AdminRoleEnum::BROADCASTER),
+        ]);
+    }
 }

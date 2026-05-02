@@ -202,6 +202,8 @@ export function useApiMatchSync({
           ? parsed1.completed
           : (r1.completedPartnerships ?? []),
         currentPartnership: currentP1,
+        pendingFreeHit: r1.pendingFreeHit ?? false,
+        retiredBatsmen: r1.retiredBatsmen ?? [],
       });
     }
 
@@ -272,6 +274,8 @@ export function useApiMatchSync({
             ? parsed2.completed
             : (r2.completedPartnerships ?? []),
           currentPartnership: currentP2,
+          pendingFreeHit: r2.pendingFreeHit ?? false,
+          retiredBatsmen: r2.retiredBatsmen ?? [],
         });
       }
 

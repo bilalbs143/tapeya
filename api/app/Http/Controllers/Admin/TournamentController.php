@@ -2,19 +2,18 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\User\AppRoleEnum;
-use App\Enums\User\RoleGuardEnum;
+use App\Http\Controllers\Admin\Concerns\EnsuresTournamentStaffAppRoles;
 use App\Http\Requests\Admin\StoreTournamentRequest;
 use App\Http\Requests\Admin\UpdateTournamentRequest;
 use App\Http\Resources\Admin\TournamentResource;
-use App\Models\Role;
 use App\Models\Tournament;
-use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 
 class TournamentController extends BaseAdminController
 {
+    use EnsuresTournamentStaffAppRoles;
+
     private const TOURNAMENTS_IMAGE_DIR = 'tournaments';
 
     public function __construct()
@@ -24,18 +23,39 @@ class TournamentController extends BaseAdminController
 
     protected function baseQuery()
     {
-        return Tournament::query()->with('organizer');
+        $query = Tournament::query()
+            ->with(['organizer', 'creator'])
+            ->withSquadPlayerCount();
+        $user = request()->user();
+        if ($user && $user->hasBroadcastBackofficeRole()) {
+            $query->where(function ($q) use ($user) {
+                $q->where('organizer_id', $user->id)
+                    ->orWhere('created_by', $user->id)
+                    ->orWhereHas('broadcasters', fn ($b) => $b->whereKey($user->id));
+            });
+        }
+
+        return $query;
     }
 
     public function store(StoreTournamentRequest $request): JsonResponse
     {
+        $user = $request->user();
+
         $data = $request->validated();
+        if ($user) {
+            $data['created_by'] = $user->id;
+        }
 
         $this->storeImage($request, 'display_image', self::TOURNAMENTS_IMAGE_DIR, $data);
         $this->storeImage($request, 'cover_image', self::TOURNAMENTS_IMAGE_DIR, $data);
 
         $record = $this->model->create($data);
         $this->ensureOrganizerRole($record->organizer_id);
+        if ($user && $user->hasBroadcastBackofficeRole()) {
+            $record->broadcasters()->sync([$user->id]);
+            $this->ensureOrganizerRole($user->id);
+        }
         $record = $this->refresh($record);
 
         return $this->success(new TournamentResource($record), 'Tournament created.', 'CREATED');
@@ -61,22 +81,6 @@ class TournamentController extends BaseAdminController
         $tournament = $this->refresh($tournament);
 
         return $this->success(new TournamentResource($tournament), 'Tournament updated.');
-    }
-
-    /**
-     * Ensure the user has the Organizer role when assigned to a tournament.
-     */
-    private function ensureOrganizerRole(int $organizerId): void
-    {
-        $organizerRole = Role::findBySlug(AppRoleEnum::ORGANIZER->value, RoleGuardEnum::APP->value);
-        if (! $organizerRole) {
-            return;
-        }
-
-        $user = User::find($organizerId);
-        if ($user && ! $user->hasRole(AppRoleEnum::ORGANIZER)) {
-            $user->roles()->syncWithoutDetaching([$organizerRole->id]);
-        }
     }
 
     public function destroy(Tournament $tournament): JsonResponse

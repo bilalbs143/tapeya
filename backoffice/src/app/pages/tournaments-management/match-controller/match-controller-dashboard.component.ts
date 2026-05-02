@@ -83,6 +83,8 @@ export class MatchControllerDashboardComponent implements OnInit {
   public loading = true;
   public sendingKey: string | null = null;
   public clearingRecent = false;
+  /** Tracks whether this is the first data load so we auto-open settings once. */
+  private firstLoad = true;
   /** Sent with every graphic command payload and stored in session `context`. */
   public selectedInnings: 1 | 2 = 1;
 
@@ -127,6 +129,13 @@ export class MatchControllerDashboardComponent implements OnInit {
         this.selectedBowler = null;
         this.syncInningsFromSession(session.data);
         this.loading = false;
+
+        // Auto-open settings on first page load so the operator picks a theme
+        // and copies the overlay URL before starting to send commands.
+        if (this.firstLoad) {
+          this.firstLoad = false;
+          this.openSettings();
+        }
       },
       error: (err: unknown) => {
         this.loading = false;
@@ -168,11 +177,12 @@ export class MatchControllerDashboardComponent implements OnInit {
   }
 
   public openSettings(): void {
-    if (!this.session) {
+    if (!this.session || !this.match) {
       return;
     }
     const data: ControllerSettingsDialogData = {
       matchId: this.matchId,
+      match: this.match,
       session: this.session,
       themes: this.themesList,
     };

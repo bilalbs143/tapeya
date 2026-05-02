@@ -47,8 +47,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { NAVBAR_HEIGHT } from '@/lib/constants/layout';
 import {
   getTournamentTitle,
@@ -93,7 +94,6 @@ const TAB_VIEWS = {
 // ---------------------------------------------------------------------------
 
 export default function ScorecardDetails() {
-  const navigate = useNavigate();
   const { tournamentId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const [tabsFixedVisible, setTabsFixedVisible] = useState(false);
@@ -126,12 +126,6 @@ export default function ScorecardDetails() {
   );
 
   const ActiveView = TAB_VIEWS[activeTab];
-  const formatLabel =
-    tournament?.number_of_groups != null
-      ? tournament.number_of_groups <= 1
-        ? 'Single table'
-        : `Groups: ${tournament.number_of_groups}`
-      : null;
 
   // CURSOR: replace with useFixedOnScroll(NAVBAR_HEIGHT) once extracted (see top).
   useEffect(() => {
@@ -169,39 +163,9 @@ export default function ScorecardDetails() {
 
   return (
     <div className="bg-black">
-      <header className="flex items-center gap-3 bg-black px-4 pt-6 pb-6">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80"
-          aria-label="Back"
-        >
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <div className="min-w-0 flex-1 pr-[27px] text-center">
-          <h1 className="text-[16px] font-bold leading-snug tracking-wide text-white uppercase">
-            <span className="whitespace-normal break-words">SCORE CARD - </span>
-            <span className="text-[#DA9811] normal-case">
-              {headerTitleHighlight}
-            </span>
-          </h1>
-          {formatLabel && (
-            <p className="mt-0.5 text-[12px] text-[#A2A6AB]">{formatLabel}</p>
-          )}
-        </div>
-      </header>
+      <AppSubpageHeader title="SCORE CARD" subtitle={headerTitleHighlight} />
 
-      <Container className="!px-4 !py-0">
+      <Container className="!pb-0">
         <Tabs
           value={activeTab}
           onValueChange={(value) => setSearchParams({ tab: value })}

@@ -25,10 +25,10 @@
             appearance="outline"
             class="w-full hide-hint"
           >
-            <mat-label>Tournament Type</mat-label>
-            <mat-select formControlName="tournament_type">
+            <mat-label>Schedule</mat-label>
+            <mat-select formControlName="schedule_window">
               <mat-option value="">All</mat-option>
-              @for (opt of tournamentTypeOptions$ | async; track opt.value) {
+              @for (opt of tournamentScheduleWindowOptions$ | async; track opt.value) {
                 <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
               }
             </mat-select>
@@ -39,30 +39,16 @@
             appearance="outline"
             class="w-full hide-hint"
           >
-            <mat-label>Country</mat-label>
-            <input
-              matInput
-              formControlName="country"
-              type="text"
-              placeholder="Country"
-            />
+            <mat-label>Tournament Type</mat-label>
+            <mat-select formControlName="tournament_type">
+              <mat-option value="">All</mat-option>
+              @for (opt of tournamentTypeOptions$ | async; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
           </mat-form-field>
         </div>
-        <div class="col-span-12 sm:col-span-6 lg:col-span-2">
-          <mat-form-field
-            appearance="outline"
-            class="w-full hide-hint"
-          >
-            <mat-label>City</mat-label>
-            <input
-              matInput
-              formControlName="city"
-              type="text"
-              placeholder="City"
-            />
-          </mat-form-field>
-        </div>
-        <div class="col-span-12 sm:col-span-6 lg:col-span-4 flex flex-wrap items-center justify-end gap-2">
+        <div class="col-span-12 lg:col-span-6 flex flex-wrap items-center justify-end gap-2">
           <button
             mat-stroked-button
             type="button"
@@ -263,6 +249,32 @@
             </td>
           </ng-container>
 
+          <ng-container matColumnDef="schedule_phase">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Schedule
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm whitespace-nowrap"
+            >
+              @if (row.schedule_phase_label) {
+                <span
+                  class="rounded-sm font-semibold px-1.5 py-1 text-xs"
+                  [ngClass]="statusClass(row.schedule_phase)"
+                >
+                  {{ row.schedule_phase_label }}
+                </span>
+              } @else {
+                {{ emptyCell }}
+              }
+            </td>
+          </ng-container>
+
           <ng-container matColumnDef="status">
             <th
               mat-header-cell
@@ -328,17 +340,17 @@
                   class="size-4.5!"
                 ></i-tabler>
               </a>
-              <button
-                type="button"
-                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
-                aria-label="View tournament"
-                (click)="openDetailDialog(row)"
+              <a
+                class="me-2.5 inline-flex align-middle text-primary"
+                [routerLink]="['/tournaments-management/tournaments', row.id, 'overview']"
+                matTooltip="Tournament detail"
+                aria-label="Tournament detail"
               >
                 <i-tabler
                   name="eye"
                   class="size-4.5!"
                 ></i-tabler>
-              </button>
+              </a>
               <button
                 type="button"
                 class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"

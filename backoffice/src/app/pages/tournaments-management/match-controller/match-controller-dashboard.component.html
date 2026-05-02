@@ -18,7 +18,7 @@
             <strong>{{ session.theme?.name ?? '—' }}</strong>
             @if (session.active_command) {
               <span class="text-muted ms-2">
-                On air:
+                On Air:
                 {{ formatCommandToken(session.active_command.command_type) }} ·
                 {{ formatCommandToken(session.active_command.command_key) }}
               </span>
@@ -35,13 +35,13 @@
                 [value]="1"
                 class="!text-sm"
               >
-                1st innings
+                1st Innings
               </mat-button-toggle>
               <mat-button-toggle
                 [value]="2"
                 class="!text-sm"
               >
-                2nd innings
+                2nd Innings
               </mat-button-toggle>
             </mat-button-toggle-group>
           </div>

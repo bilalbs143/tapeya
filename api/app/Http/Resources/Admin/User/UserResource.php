@@ -14,6 +14,7 @@ class UserResource extends JsonResource
     {
         $user = $this->resource;
         $appRoles = $user->getAppRoles();
+        $adminRoles = $user->getAdminRoles();
 
         return [
             'id' => $this->id,
@@ -40,6 +41,18 @@ class UserResource extends JsonResource
                 'slug' => $r->slug,
             ])->values()->all(),
             'role_ids' => $appRoles->pluck('id')->values()->all(),
+            'admin_roles' => $adminRoles->map(fn ($r) => [
+                'id' => $r->id,
+                'name' => $r->name,
+                'slug' => $r->slug,
+            ])->values()->all(),
+            'admin_role_ids' => $adminRoles->pluck('id')->values()->all(),
+            'created_by' => $this->created_by,
+            'creator' => $this->whenLoaded('creator', fn () => $this->creator ? [
+                'id' => $this->creator->id,
+                'name' => $this->creator->name,
+                'nickname' => $this->creator->nickname,
+            ] : null),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

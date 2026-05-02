@@ -1,31 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { useNavigate } from 'react-router-dom';
-
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import {
   useGetNotificationsQuery,
   useMarkAllNotificationsReadMutation,
 } from '@/store/api/notificationApi';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
+import { Container } from '@/ui/Container';
 
 const PAGE_SIZE = 10;
-
-const backButtonClass =
-  'flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80';
-
-const ChevronLeft = () => (
-  <svg
-    className="h-5 w-5"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2.5}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M15 19l-7-7 7-7" />
-  </svg>
-);
 
 const ChevronDown = () => (
   <svg
@@ -129,7 +112,6 @@ function NotificationCard({ notification, onActionClick }) {
 }
 
 export default function NotificationCenter() {
-  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [items, setItems] = useState([]);
 
@@ -203,21 +185,9 @@ export default function NotificationCenter() {
 
   return (
     <div className="bg-black">
-      <header className="sticky top-0 z-10 flex items-center gap-3 bg-black px-4 py-4">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className={backButtonClass}
-          aria-label="Back"
-        >
-          <ChevronLeft />
-        </button>
-        <h1 className="min-w-0 flex-1 pr-9 text-center text-[16px] font-bold tracking-wide text-white uppercase">
-          NOTIFICATION CENTER
-        </h1>
-      </header>
+      <AppSubpageHeader sticky title="NOTIFICATION CENTER" />
 
-      <div className="px-4 py-4">
+      <Container>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
             LATEST
@@ -273,7 +243,7 @@ export default function NotificationCenter() {
             <ChevronDown />
           </div>
         )}
-      </div>
+      </Container>
     </div>
   );
 }

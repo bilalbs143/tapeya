@@ -178,7 +178,7 @@ export class TournamentRequestsListComponent implements OnInit, AfterViewInit, O
         if (result) {
           this.tournamentRequestService.updateStatus(request.id, 'approved').subscribe({
             next: () => {
-              this.router.navigate(['/tournaments-management/tournaments']);
+              void this.router.navigate(['/tournaments-management/tournaments']);
             },
             error: () => {
               this.loadHttpData();

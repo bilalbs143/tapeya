@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatDate } from '@/lib/format';
 import { formatAge } from '@/lib/utils/dateUtils';
 import {
@@ -17,8 +18,6 @@ import {
   PROFILE_OVERVIEW_ROLE,
 } from './constants';
 import { UserEdit } from './UserEdit';
-
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const editProfileIcon = `${CLOUDFRONT_APP_BASE}/images/icons/edit-profile.svg`;
 
@@ -57,7 +56,11 @@ function DetailRow({ label, value, withColon = true, truncateAt }) {
  * @param {number} [props.tournaments] — organizer metrics
  * @param {number} [props.events] — organizer metrics
  */
-export function ProfileRoleOverview({ role, tournaments, events }) {
+export function ProfileRoleOverview({
+  role,
+  tournaments: _tournaments,
+  events: _events,
+}) {
   const [editOpen, setEditOpen] = useState(false);
   const user = useAppSelector(selectUser);
   const { battingStyleOptions, bowlingStyleOptions, playingRoleOptions } =

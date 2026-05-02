@@ -18,6 +18,14 @@ class TournamentResource extends JsonResource
         return [
             'id' => $this->id,
             'organizer_id' => $this->organizer_id,
+            'created_by' => $this->created_by,
+            'creator' => $this->whenLoaded('creator', fn () => $this->creator ? [
+                'id' => $this->creator?->id,
+                'name' => $this->creator?->name,
+                'nickname' => $this->creator?->nickname,
+                'email' => $this->creator?->email,
+                'phone' => $this->creator?->phone,
+            ] : null),
             'organizer' => $this->whenLoaded('organizer', fn () => $this->organizer ? [
                 'id' => $this->organizer?->id,
                 'name' => $this->organizer?->name,
@@ -34,6 +42,7 @@ class TournamentResource extends JsonResource
             'start_date' => $this->start_date?->format('Y-m-d'),
             'end_date' => $this->end_date?->format('Y-m-d'),
             'number_of_teams' => $this->number_of_teams,
+            'squad_player_count' => (int) ($this->squad_player_count ?? 0),
             'number_of_groups' => (int) ($this->number_of_groups ?? 1),
             'country' => $this->country,
             'city' => $this->city,
@@ -42,6 +51,8 @@ class TournamentResource extends JsonResource
             'status' => $this->status?->value,
             'status_enum' => $this->status?->value,
             'status_label' => $this->status?->label(),
+            'schedule_phase' => $this->schedulePhase()?->value,
+            'schedule_phase_label' => $this->schedulePhase()?->label(),
             'display_image' => $this->display_image ? $disk->url($this->display_image) : null,
             'cover_image' => $this->cover_image ? $disk->url($this->cover_image) : null,
             'prize' => $this->prize,

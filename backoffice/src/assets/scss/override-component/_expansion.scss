@@ -6,3 +6,9 @@
     container-background-color: var(--mat-card-elevated-container-color),
   )
 );
+
+// Same as angular-theme `pages/_dashboards.scss` (backoffice does not import that bundle).
+// Gives expansion panels a level-2 surface shadow when no explicit Material elevation class is set.
+html .mat-expansion-panel:not([class*='mat-elevation-z']) {
+  box-shadow: var(--mat-sys-level2);
+}

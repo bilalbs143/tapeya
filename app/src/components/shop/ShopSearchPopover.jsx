@@ -3,13 +3,12 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useDebounce } from '@/hooks/useDebounce';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { DEBOUNCE_MS, MIN_SEARCH_LENGTH } from '@/lib/constants/search';
 import { formatPrice } from '@/lib/format';
 import { useGetBrandsQuery, useGetProductsQuery } from '@/store/api/shopApi';
 import { CloseIcon } from '@/ui/icons/CloseIcon';
 import { Popover, PopoverAnchor, PopoverContent } from '@/ui/Popover';
-
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const searchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/searchicon.svg`;
 

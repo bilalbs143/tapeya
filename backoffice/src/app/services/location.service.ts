@@ -1,6 +1,8 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+
+import { toHttpParams } from 'src/app/shared/functions/http-params.function';
 
 export interface Country {
   id: number;
@@ -19,14 +21,14 @@ export class LocationService {
   private readonly baseUrl = 'v1/admin';
 
   public getCountries(search?: string): Observable<{ data: Country[] }> {
-    let params = new HttpParams();
-    if (search) params = params.set('search', search);
-    return this.http.get<{ data: Country[] }>(`${this.baseUrl}/countries`, { params });
+    return this.http.get<{ data: Country[] }>(`${this.baseUrl}/countries`, {
+      params: toHttpParams({}, { search }),
+    });
   }
 
   public getCities(countryCode: string, search?: string): Observable<{ data: City[] }> {
-    let params = new HttpParams().set('country_code', countryCode);
-    if (search) params = params.set('search', search);
-    return this.http.get<{ data: City[] }>(`${this.baseUrl}/countries/cities`, { params });
+    return this.http.get<{ data: City[] }>(`${this.baseUrl}/countries/cities`, {
+      params: toHttpParams({ country_code: countryCode }, { search }),
+    });
   }
 }

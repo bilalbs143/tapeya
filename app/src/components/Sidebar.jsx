@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 // import starMatchIcon from '@/assets/images/icons/star-match.svg';
 import { calculateProfileStrength } from '@/lib/profileStrength';
 import { addSavedProfile } from '@/lib/savedProfiles';
@@ -10,16 +11,16 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectAuthUserAndToken } from '@/store/selectors';
 import { clearCredentials } from '@/store/slices/authSlice';
 
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
-
 const logoutIcon = `${CLOUDFRONT_APP_BASE}/images/icons/logout.svg`;
 const myOrderIcon = `${CLOUDFRONT_APP_BASE}/images/icons/my-order.svg`;
+const homeIcon = `${CLOUDFRONT_APP_BASE}/images/logos/tapya-t.svg`;
 const requestTournamentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/request-tournament.svg`;
 const supportIcon = `${CLOUDFRONT_APP_BASE}/images/icons/support.svg`;
 const topPlayersIcon = `${CLOUDFRONT_APP_BASE}/images/icons/top-players.svg`;
 const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
 const MENU_ITEMS = [
+  { label: 'Home', icon: homeIcon, path: '/home' },
   {
     label: 'My Tournaments',
     icon: requestTournamentIcon,

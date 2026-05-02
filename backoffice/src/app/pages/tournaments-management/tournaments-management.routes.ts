@@ -24,18 +24,61 @@ export const TournamentsManagementRoutes: Routes = [
     },
   },
   {
-    path: 'tournaments/:tournamentId/matches',
-    loadComponent: () =>
-      import('./tournament-matches/tournament-matches.component').then((m) => m.TournamentMatchesComponent),
+    path: 'teams',
+    loadComponent: () => import('./teams/teams.component').then((m) => m.TeamsComponent),
     data: {
-      title: 'Tournament matches',
+      title: 'Teams',
+      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Tournaments Management' }, { title: 'Teams' }],
+    },
+  },
+  {
+    path: 'tournaments/:tournamentId',
+    loadComponent: () =>
+      import('./tournament-detail/tournament-detail-shell.component').then((m) => m.TournamentDetailShellComponent),
+    data: {
+      title: 'Tournament',
       urls: [
         { title: 'Dashboard', url: '/dashboard' },
         { title: 'Tournaments Management' },
         { title: 'Tournaments', url: '/tournaments-management/tournaments' },
-        { title: 'Matches' },
+        { title: 'Detail' },
       ],
     },
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'overview' },
+      {
+        path: 'overview',
+        loadComponent: () =>
+          import('./tournament-detail/tournament-overview-tab.component').then((m) => m.TournamentOverviewTabComponent),
+        data: { title: 'Overview' },
+      },
+      {
+        path: 'teams',
+        loadComponent: () =>
+          import('./tournament-detail/tournament-teams-tab.component').then((m) => m.TournamentTeamsTabComponent),
+        data: { title: 'Teams' },
+      },
+      {
+        path: 'squads',
+        loadComponent: () =>
+          import('./tournament-detail/tournament-squads-tab.component').then((m) => m.TournamentSquadsTabComponent),
+        data: { title: 'Team Squads' },
+      },
+      {
+        path: 'matches',
+        loadComponent: () =>
+          import('./tournament-matches/tournament-matches.component').then((m) => m.TournamentMatchesComponent),
+        data: {
+          title: 'Matches',
+          urls: [
+            { title: 'Dashboard', url: '/dashboard' },
+            { title: 'Tournaments Management' },
+            { title: 'Tournaments', url: '/tournaments-management/tournaments' },
+            { title: 'Matches' },
+          ],
+        },
+      },
+    ],
   },
   {
     path: 'match-controller/:matchId',
@@ -44,11 +87,11 @@ export const TournamentsManagementRoutes: Routes = [
         (m) => m.MatchControllerDashboardComponent
       ),
     data: {
-      title: 'Match controller',
+      title: 'Match Controller',
       urls: [
         { title: 'Dashboard', url: '/dashboard' },
         { title: 'Tournaments Management', url: '/tournaments-management/tournaments' },
-        { title: 'Match controller' },
+        { title: 'Match Controller' },
       ],
     },
   },

@@ -63,8 +63,8 @@ class PlayingElevenController extends Controller
     {
         $authUser = $request->user();
 
-        if ($match->tournament->organizer_id !== $authUser->id) {
-            return $this->forbidden('Only the tournament organizer can select playing elevens.');
+        if (! $authUser->canOperateTournamentInApp($match->tournament)) {
+            return $this->forbidden('You cannot manage the playing eleven for this match.');
         }
 
         // Team must be part of this match (home or away).

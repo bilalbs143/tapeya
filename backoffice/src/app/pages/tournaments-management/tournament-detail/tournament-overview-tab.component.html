@@ -1,0 +1,354 @@
+@if (isLoading) {
+  <div class="flex justify-center py-12">
+    <mat-spinner diameter="40" />
+  </div>
+} @else if (tournament) {
+  <div class="grid grid-cols-12 gap-4 mb-4">
+    <div class="col-span-12 sm:col-span-6 lg:col-span-4">
+      <mat-card
+        class="cardWithShadow h-full mb-0! cursor-pointer transition-shadow hover:shadow-md"
+        routerLink="../teams"
+        role="link"
+        tabindex="0"
+      >
+        <mat-card-content class="p-4 sm:p-5">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-sm text-muted m-0 mb-1">Teams</p>
+              <p class="text-2xl font-semibold m-0">{{ teamCount }}</p>
+              <p class="text-xs text-muted m-0 mt-1">Registered in this tournament — click to manage</p>
+            </div>
+            <span class="bg-light-primary text-primary rounded-sm size-10! flex items-center justify-center shrink-0">
+              <i-tabler
+                name="users-group"
+                class="size-5"
+              />
+            </span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div class="col-span-12 sm:col-span-6 lg:col-span-4">
+      <mat-card class="cardWithShadow h-full mb-0!">
+        <mat-card-content class="p-4 sm:p-5">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-sm text-muted m-0 mb-1">Matches</p>
+              <p class="text-2xl font-semibold m-0">{{ matchCount }}</p>
+              <p class="text-xs text-muted m-0 mt-1">Scheduled or played fixtures</p>
+            </div>
+            <span class="bg-light-primary text-primary rounded-sm size-10! flex items-center justify-center shrink-0">
+              <i-tabler
+                name="calendar-event"
+                class="size-5"
+              />
+            </span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div class="col-span-12 sm:col-span-6 lg:col-span-4">
+      <mat-card
+        class="cardWithShadow h-full mb-0! cursor-pointer transition-shadow hover:shadow-md"
+        routerLink="../squads"
+        role="link"
+        tabindex="0"
+      >
+        <mat-card-content class="p-4 sm:p-5">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-sm text-muted m-0 mb-1">Players</p>
+              <p class="text-2xl font-semibold m-0">{{ tournament.squad_player_count ?? 0 }}</p>
+              <p class="text-xs text-muted m-0 mt-1">Distinct players on Team Squads — click to manage</p>
+            </div>
+            <span class="bg-light-primary text-primary rounded-sm size-10! flex items-center justify-center shrink-0">
+              <i-tabler
+                name="users"
+                class="size-5"
+              />
+            </span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-12 items-stretch gap-4 mb-4">
+    <div class="col-span-12 flex min-h-0 flex-col lg:col-span-6">
+      <mat-card class="cardWithShadow mb-0! flex h-full min-h-0 flex-1 flex-col border border-border shadow-none">
+        <mat-card-content class="flex min-h-0 flex-1 flex-col gap-2 p-4 sm:p-6">
+          <div class="shrink-0">
+            <h2 class="text-base font-semibold m-0">Tournament Details</h2>
+            <p class="text-muted m-0 mt-1 text-xs">Type, venue, dates, teams, and images for this tournament.</p>
+          </div>
+
+          <div class="mb-6 grid grid-cols-1 gap-6 border-b border-border py-6 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-0">
+            <div class="flex min-w-0 items-start gap-4">
+              <span class="bg-light-primary text-primary flex size-11! shrink-0 items-center justify-center rounded-sm">
+                <i-tabler
+                  name="user"
+                  class="size-5"
+                />
+              </span>
+              <div class="min-w-0 flex-1">
+                <p class="text-muted m-0 mb-1 text-xs font-medium">Organizer</p>
+                <p class="m-0 truncate text-base font-semibold leading-snug">
+                  {{ tournament.organizer?.nickname || tournament.organizer?.name || emptyCell }}
+                </p>
+                @if (tournament.organizer?.email || tournament.organizer?.phone) {
+                  <p class="text-muted m-0 mt-1 text-xs leading-relaxed">
+                    {{ tournament.organizer?.email || '' }}
+                    {{ tournament.organizer?.email && tournament.organizer?.phone ? ' · ' : '' }}
+                    {{ tournament.organizer?.phone || '' }}
+                  </p>
+                }
+              </div>
+            </div>
+            <div class="flex min-w-0 items-start gap-4">
+              <span class="bg-light-primary text-primary flex size-11! shrink-0 items-center justify-center rounded-sm">
+                <i-tabler
+                  name="antenna"
+                  class="size-5"
+                />
+              </span>
+              <div class="min-w-0 flex-1">
+                <p class="text-muted m-0 mb-1 text-xs font-medium">Broadcaster</p>
+                @if (broadcaster) {
+                  <p class="m-0 truncate text-base font-semibold leading-snug">
+                    {{ broadcaster.nickname || broadcaster.name }}
+                  </p>
+                  @if (broadcaster.email) {
+                    <p class="text-muted m-0 mt-1 text-xs leading-relaxed truncate">{{ broadcaster.email }}</p>
+                  }
+                } @else {
+                  <p class="m-0 text-base font-semibold leading-snug text-muted">Not assigned</p>
+                  <p class="text-muted m-0 mt-1 text-xs leading-relaxed">Assign from the section below</p>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-x-8 gap-y-0 sm:grid-cols-2">
+            <div class="border-border border-b py-3">
+              <p class="text-muted m-0 mb-1 text-xs">Tournament Type</p>
+              <p class="m-0 text-sm font-semibold leading-snug">
+                {{ tournament.tournament_type_label || tournament.tournament_type || emptyCell }}
+              </p>
+            </div>
+            <div class="border-border border-b py-3">
+              <p class="text-muted m-0 mb-1 text-xs">Cricket Format</p>
+              <p class="m-0 text-sm font-semibold leading-snug">
+                {{ tournament.cricket_format_label || tournament.cricket_format || emptyCell }}
+              </p>
+            </div>
+            <div class="border-border border-b py-3">
+              <p class="text-muted m-0 mb-1 text-xs">Venue</p>
+              <p class="m-0 text-sm font-semibold leading-snug">{{ tournament.venue_name || emptyCell }}</p>
+            </div>
+            <div class="border-border border-b py-3">
+              <p class="text-muted m-0 mb-1 text-xs">Match Timings</p>
+              <p class="m-0 text-sm font-semibold leading-snug">
+                {{ tournament.match_timings_label || tournament.match_timings || emptyCell }}
+              </p>
+            </div>
+            <div class="border-border border-b py-3">
+              <p class="text-muted m-0 mb-1 text-xs">Start Date</p>
+              <p class="m-0 text-sm font-semibold leading-snug">
+                {{ tournament.start_date ? (tournament.start_date | date: 'yyyy-MM-dd') : emptyCell }}
+              </p>
+            </div>
+            <div class="border-border border-b py-3">
+              <p class="text-muted m-0 mb-1 text-xs">End Date</p>
+              <p class="m-0 text-sm font-semibold leading-snug">
+                {{ tournament.end_date ? (tournament.end_date | date: 'yyyy-MM-dd') : emptyCell }}
+              </p>
+            </div>
+            <div class="border-border border-b py-3">
+              <p class="text-muted m-0 mb-1 text-xs">Country</p>
+              <p class="m-0 text-sm font-semibold leading-snug">{{ tournament.country || emptyCell }}</p>
+            </div>
+            <div class="border-border border-b py-3">
+              <p class="text-muted m-0 mb-1 text-xs">City</p>
+              <p class="m-0 text-sm font-semibold leading-snug">{{ tournament.city || emptyCell }}</p>
+            </div>
+            <div class="border-border border-b py-3">
+              <p class="text-muted m-0 mb-1 text-xs">Number of Teams</p>
+              <p class="m-0 text-sm font-semibold leading-snug">{{ tournament.number_of_teams }}</p>
+            </div>
+            <div class="border-border border-b py-3">
+              <p class="text-muted m-0 mb-1 text-xs">Prize</p>
+              <p class="m-0 text-sm font-semibold leading-snug">{{ tournament.prize || emptyCell }}</p>
+            </div>
+          </div>
+
+          @if (tournament.display_image || tournament.cover_image) {
+            <div class="bg-light-secondary mt-6 rounded-sm border border-border p-4">
+              <p class="text-muted m-0 mb-3 text-xs font-medium">Tournament Images</p>
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                @if (tournament.display_image) {
+                  <div>
+                    <p class="text-muted m-0 mb-1 text-xs">Display</p>
+                    <img
+                      [src]="tournament.display_image"
+                      alt="Tournament display image"
+                      class="mt-1 max-h-48 w-full rounded-sm border border-default-border object-contain"
+                    />
+                  </div>
+                }
+                @if (tournament.cover_image) {
+                  <div>
+                    <p class="text-muted m-0 mb-1 text-xs">Cover</p>
+                    <img
+                      [src]="tournament.cover_image"
+                      alt="Tournament cover image"
+                      class="mt-1 max-h-48 w-full rounded-sm border border-default-border object-contain"
+                    />
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <div class="col-span-12 lg:col-span-6 flex flex-col min-h-0">
+      <mat-card class="cardWithShadow mb-0! flex h-full min-h-0 flex-1 flex-col">
+        <mat-card-content class="flex min-h-0 flex-1 flex-col gap-2 p-4 sm:p-6">
+          <div class="shrink-0">
+            <h2 class="text-base font-semibold m-0">Matches by date</h2>
+            <p class="text-xs text-muted m-0 mt-1">
+              Each column is a match day; colored segments show incoming, live, completed, and cancelled fixtures on
+              that day.
+            </p>
+          </div>
+          <div class="flex min-h-0 w-full flex-1 flex-col min-h-[18rem] lg:min-h-[22rem]">
+            @if (hasMatchChartData()) {
+              <apx-chart
+                class="block h-full w-full min-h-[16rem] flex-1"
+                [series]="matchDateChart.series"
+                [chart]="matchDateBarChart"
+                [xaxis]="matchDateBarXaxis"
+                [colors]="matchDateChart.colors"
+                [plotOptions]="matchDateBarPlotOptions"
+                [legend]="{ show: true, position: 'bottom', fontSize: '12px' }"
+                [dataLabels]="{ enabled: false }"
+                [yaxis]="matchDateBarYaxis"
+                [tooltip]="{ shared: true, intersect: false }"
+              ></apx-chart>
+            } @else {
+              <div class="flex min-h-[16rem] w-full flex-1 flex-col items-center justify-center px-4 text-center">
+                <p class="text-sm text-muted m-0">No matches for this tournament yet.</p>
+              </div>
+            }
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-12 gap-4">
+    <div class="col-span-12 lg:col-span-6">
+      <mat-card class="cardWithShadow h-full">
+        <mat-card-content class="p-6">
+          <h2 class="text-base font-semibold m-0 mb-1">Broadcaster</h2>
+          <p class="text-muted m-0 mb-3 text-sm leading-relaxed">
+            Search by name, email, or phone. At most one Broadcaster per tournament — pick again to replace.
+          </p>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>{{ broadcaster ? 'Broadcaster (replace via search)' : 'Assign Broadcaster' }}</mat-label>
+            <mat-chip-grid
+              #broadcasterChipGrid
+              aria-label="Tournament Broadcaster"
+            >
+              @if (broadcaster) {
+                <mat-chip-row
+                  (removed)="removeBroadcaster()"
+                  class="text-sm"
+                >
+                  {{ userChipLabel(broadcaster) }}
+                  <button
+                    type="button"
+                    matChipRemove
+                    [attr.aria-label]="'Remove Broadcaster ' + userChipLabel(broadcaster)"
+                  >
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip-row>
+              }
+              <input
+                [formControl]="searchControl"
+                [matChipInputFor]="broadcasterChipGrid"
+                [matChipInputSeparatorKeyCodes]="roleChipSeparatorKeys"
+                [matChipInputAddOnBlur]="roleChipInputAddOnBlur"
+                (matChipInputTokenEnd)="onBroadcasterChipInputTokenEnd($event)"
+                [matAutocomplete]="autoBroadcaster"
+                [placeholder]="broadcaster ? 'Search to replace…' : 'Search to assign…'"
+              />
+            </mat-chip-grid>
+            <mat-autocomplete
+              #autoBroadcaster="matAutocomplete"
+              (optionSelected)="onBroadcasterSelected($event)"
+            >
+              @for (c of candidates; track c.id) {
+                <mat-option [value]="c">{{ userOptionLabel(c) }}</mat-option>
+              }
+            </mat-autocomplete>
+            @if (!broadcaster) {
+              <mat-hint>No Broadcaster assigned yet.</mat-hint>
+            }
+          </mat-form-field>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div class="col-span-12 lg:col-span-6">
+      <mat-card class="cardWithShadow h-full">
+        <mat-card-content class="p-6">
+          <h2 class="text-base font-semibold m-0 mb-1">Organizer</h2>
+          <p class="text-muted m-0 mb-3 text-sm leading-relaxed">
+            Search sponsors by name, email, or phone. Each tournament has one Organizer — pick again to replace.
+          </p>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>{{ tournament.organizer ? 'Organizer (replace via search)' : 'Assign Organizer' }}</mat-label>
+            <mat-chip-grid
+              #organizerChipGrid
+              aria-label="Tournament Organizer"
+            >
+              @if (tournament.organizer) {
+                <mat-chip-row class="text-sm">
+                  {{ tournament.organizer.nickname || tournament.organizer.name }}
+                </mat-chip-row>
+              }
+              <input
+                [formControl]="organizerSearchControl"
+                [matChipInputFor]="organizerChipGrid"
+                [matChipInputSeparatorKeyCodes]="roleChipSeparatorKeys"
+                [matChipInputAddOnBlur]="roleChipInputAddOnBlur"
+                (matChipInputTokenEnd)="onOrganizerChipInputTokenEnd($event)"
+                [matAutocomplete]="autoOrganizer"
+                [placeholder]="tournament.organizer ? 'Search to replace…' : 'Search to assign…'"
+              />
+            </mat-chip-grid>
+            <mat-autocomplete
+              #autoOrganizer="matAutocomplete"
+              (optionSelected)="onOrganizerSelected($event)"
+            >
+              @for (c of organizerCandidates; track c.id) {
+                <mat-option [value]="c">{{ userOptionLabel(c) }}</mat-option>
+              }
+            </mat-autocomplete>
+            @if (!tournament.organizer) {
+              <mat-hint>No Organizer on record.</mat-hint>
+            }
+          </mat-form-field>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+}

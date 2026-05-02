@@ -1,4 +1,4 @@
-import { Component, DestroyRef, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
+import { Component, computed, DestroyRef, EventEmitter, inject, Input, OnInit, Output, Signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterModule } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
@@ -8,32 +8,25 @@ import { BrandingComponent } from '../../vertical/sidebar/branding.component';
 
 import { AppSettings } from 'src/app/config';
 import { MaterialModule } from 'src/app/material.module';
+import type { AuthUser } from 'src/app/models/auth.models';
 import { AuthService } from 'src/app/services/auth.service';
 import { BackofficeReverbService } from 'src/app/services/backoffice-reverb.service';
 import { CoreService } from 'src/app/services/core.service';
 import type { Notification } from 'src/app/services/notifications.service';
 import { NotificationsService } from 'src/app/services/notifications.service';
+import { HEADER_NOTIFICATION_PREVIEW_PER_PAGE } from 'src/app/shared/config/paginator.config';
 import { ADMIN_NOTIFICATION_TYPE_LABELS, AdminNotificationType } from 'src/app/shared/constants/notification.constants';
+import {
+  authUserDisplayName,
+  authUserDisplayRole,
+  isAdmin as authUserIsAdmin,
+} from 'src/app/shared/functions/auth-user-display';
 
 interface profiledd {
   id: number;
   img: string;
   title: string;
   subtitle: string;
-  link: string;
-}
-
-interface apps {
-  id: number;
-  img: string;
-  title: string;
-  subtitle: string;
-  link: string;
-}
-
-interface quicklinks {
-  id: number;
-  title: string;
   link: string;
 }
 
@@ -59,7 +52,15 @@ export class AppHorizontalHeaderComponent implements OnInit {
   private readonly reverb = inject(BackofficeReverbService);
   private readonly destroyRef = inject(DestroyRef);
 
-  public constructor() {
+  public readonly currentUser: Signal<AuthUser | null> = this.auth.currentUser;
+
+  public readonly profileMenuUserName = computed(() => authUserDisplayName(this.auth.currentUser()));
+
+  public readonly profileMenuUserRole = computed(() => authUserDisplayRole(this.auth.currentUser()));
+
+  public readonly isAdmin = computed(() => authUserIsAdmin(this.auth.currentUser()));
+
+  constructor() {
     this.notificationsService.adminInboxBroadcast$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.loadNotifications());
@@ -83,7 +84,6 @@ export class AppHorizontalHeaderComponent implements OnInit {
   }
 
   public ngOnInit(): void {
-    this.loadNotifications();
     if (this.auth.isAuthenticated()) {
       this.reverb.connect();
     }
@@ -91,7 +91,7 @@ export class AppHorizontalHeaderComponent implements OnInit {
 
   public loadNotifications(): void {
     this.notificationsLoading = true;
-    this.notificationsService.getList({ page: 1, per_page: 5 }).subscribe({
+    this.notificationsService.getList({ page: 1, per_page: HEADER_NOTIFICATION_PREVIEW_PER_PAGE }).subscribe({
       next: (res) => {
         this.apiNotifications = res?.data ?? [];
         this.notificationsUnreadCount = res?.meta?.unread_count ?? 0;
@@ -134,108 +134,6 @@ export class AppHorizontalHeaderComponent implements OnInit {
       img: '/assets/images/svgs/icon-tasks.svg',
       title: 'My Tasks',
       subtitle: 'To-do and Daily Tasks',
-      link: '/',
-    },
-  ];
-
-  public apps: apps[] = [
-    {
-      id: 1,
-      img: '/assets/images/svgs/icon-dd-chat.svg',
-      title: 'Chat Application',
-      subtitle: 'Messages & Emails',
-      link: '/',
-    },
-    {
-      id: 2,
-      img: '/assets/images/svgs/icon-dd-cart.svg',
-      title: 'Todo App',
-      subtitle: 'Completed task',
-      link: '/',
-    },
-    {
-      id: 3,
-      img: '/assets/images/svgs/icon-dd-invoice.svg',
-      title: 'Invoice App',
-      subtitle: 'Get latest invoice',
-      link: '/',
-    },
-    {
-      id: 4,
-      img: '/assets/images/svgs/icon-dd-date.svg',
-      title: 'Calendar App',
-      subtitle: 'Get Dates',
-      link: '/',
-    },
-    {
-      id: 5,
-      img: '/assets/images/svgs/icon-dd-mobile.svg',
-      title: 'Contact Application',
-      subtitle: '2 Unsaved Contacts',
-      link: '/',
-    },
-    {
-      id: 6,
-      img: '/assets/images/svgs/icon-dd-lifebuoy.svg',
-      title: 'Tickets App',
-      subtitle: 'Create new ticket',
-      link: '/',
-    },
-    {
-      id: 7,
-      img: '/assets/images/svgs/icon-dd-message-box.svg',
-      title: 'Email App',
-      subtitle: 'Get new emails',
-      link: '/',
-    },
-    {
-      id: 8,
-      img: '/assets/images/svgs/icon-dd-application.svg',
-      title: 'Conatct List',
-      subtitle: 'Create new contact',
-      link: '/',
-    },
-  ];
-
-  public quicklinks: quicklinks[] = [
-    {
-      id: 1,
-      title: 'Pricing Page',
-      link: '/t',
-    },
-    {
-      id: 2,
-      title: 'Authentication Design',
-      link: '/',
-    },
-    {
-      id: 3,
-      title: 'Register Now',
-      link: '/',
-    },
-    {
-      id: 4,
-      title: '404 Error Page',
-      link: '/',
-    },
-    {
-      id: 5,
-      title: 'Notes App',
-      link: '/',
-    },
-    {
-      id: 6,
-      title: 'Employee App',
-      link: '/',
-    },
-    {
-      id: 7,
-      title: 'Todo Application',
-      link: '/',
-    },
-    {
-      id: 8,
-      title: 'Treeview',
       link: '/',
     },
   ];

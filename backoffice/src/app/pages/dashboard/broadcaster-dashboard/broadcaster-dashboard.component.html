@@ -1,0 +1,518 @@
+<section
+  class="grid grid-cols-12 gap-6"
+  aria-labelledby="broadcaster-dashboard-title"
+>
+  <!-- Hero — same building blocks as angular-theme dashboard2 welcome-card (mat-card-content + grid gap-6) -->
+  <div class="col-span-12">
+    <mat-card
+      class="cardWithShadow broadcaster-dashboard-hero shadow-none! mb-0! overflow-hidden"
+      role="region"
+      aria-label="Broadcast overview"
+    >
+      <mat-card-content>
+        <div class="grid grid-cols-12 gap-6 items-start lg:items-center">
+          <div class="col-span-12 lg:col-span-8">
+            <p class="m-0 mb-2 text-xs font-semibold tracking-wide text-primary">Broadcast Operations</p>
+            <mat-card-title
+              class="!m-0 text-2xl font-semibold leading-tight sm:text-3xl"
+              id="broadcaster-dashboard-title"
+            >
+              Welcome{{ user()?.name ? ', ' + user()?.name : '' }}
+            </mat-card-title>
+            <mat-card-subtitle class="!m-0 mt-3 block max-w-2xl text-base leading-normal whitespace-normal text-muted">
+              Track where your tournaments sit on the calendar and how fixtures are distributed. Jump into a tournament
+              for squads, scheduling, and the match controller.
+            </mat-card-subtitle>
+            <div class="mt-6 flex flex-wrap gap-2">
+              <a
+                mat-flat-button
+                color="primary"
+                routerLink="/tournaments-management/tournaments"
+              >
+                All Tournaments
+              </a>
+              <a
+                mat-stroked-button
+                color="primary"
+                routerLink="/players-management/players"
+              >
+                Player Management
+              </a>
+            </div>
+          </div>
+          <div class="col-span-12 flex justify-center lg:col-span-4 lg:justify-end">
+            <div
+              class="flex size-16 shrink-0 items-center justify-center rounded-lg border border-border bg-light-primary text-primary lg:size-[4.25rem]"
+              aria-hidden="true"
+            >
+              <i-tabler
+                name="chart-bar"
+                class="size-10"
+              />
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- KPI strip — angular-theme style: mat-card-content only (see dashboard1 customers / top-cards) -->
+  <div class="col-span-12">
+    <div class="grid grid-cols-12 gap-6">
+      <div
+        class="col-span-12 sm:col-span-6 xl:col-span-3"
+        role="region"
+        aria-label="Upcoming tournaments count"
+      >
+        <mat-card class="cardWithShadow mb-0! h-full">
+          <mat-card-content>
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex min-w-0 flex-col">
+                @if (loadingPhaseCounts()) {
+                  <mat-spinner diameter="28" />
+                } @else {
+                  <mat-card-title class="!m-0 text-2xl font-semibold leading-tight">{{
+                    phaseCounts().upcoming
+                  }}</mat-card-title>
+                }
+                <mat-card-subtitle class="!m-0 mt-1 text-sm font-medium text-muted">Upcoming</mat-card-subtitle>
+                <span class="mt-1 block text-xs leading-snug text-muted">Starts After Today</span>
+              </div>
+              <span
+                class="bg-light-primary text-primary flex size-10! shrink-0 items-center justify-center rounded-sm"
+                aria-hidden="true"
+              >
+                <i-tabler
+                  name="calendar-plus"
+                  class="size-5"
+                />
+              </span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <div
+        class="col-span-12 sm:col-span-6 xl:col-span-3"
+        role="region"
+        aria-label="Live window tournament count"
+      >
+        <mat-card class="cardWithShadow mb-0! h-full">
+          <mat-card-content>
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex min-w-0 flex-col">
+                @if (loadingPhaseCounts()) {
+                  <mat-spinner diameter="28" />
+                } @else {
+                  <mat-card-title class="!m-0 text-2xl font-semibold leading-tight">{{
+                    phaseCounts().live
+                  }}</mat-card-title>
+                }
+                <mat-card-subtitle class="!m-0 mt-1 text-sm font-medium text-muted">Live Window</mat-card-subtitle>
+                <span class="mt-1 block text-xs leading-snug text-muted">In Season Today</span>
+              </div>
+              <span
+                class="bg-light-secondary text-secondary flex size-10! shrink-0 items-center justify-center rounded-sm"
+                aria-hidden="true"
+              >
+                <i-tabler
+                  name="circle-dot"
+                  class="size-5"
+                />
+              </span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <div
+        class="col-span-12 sm:col-span-6 xl:col-span-3"
+        role="region"
+        aria-label="Completed tournaments count"
+      >
+        <mat-card class="cardWithShadow mb-0! h-full">
+          <mat-card-content>
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex min-w-0 flex-col">
+                @if (loadingPhaseCounts()) {
+                  <mat-spinner diameter="28" />
+                } @else {
+                  <mat-card-title class="!m-0 text-2xl font-semibold leading-tight">{{
+                    phaseCounts().completed
+                  }}</mat-card-title>
+                }
+                <mat-card-subtitle class="!m-0 mt-1 text-sm font-medium text-muted">Completed</mat-card-subtitle>
+                <span class="mt-1 block text-xs leading-snug text-muted">Ended Before Today</span>
+              </div>
+              <span
+                class="bg-light-success text-success flex size-10! shrink-0 items-center justify-center rounded-sm"
+                aria-hidden="true"
+              >
+                <i-tabler
+                  name="circle-check"
+                  class="size-5"
+                />
+              </span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <div
+        class="col-span-12 sm:col-span-6 xl:col-span-3"
+        role="region"
+        aria-label="Match count sample"
+      >
+        <mat-card class="cardWithShadow mb-0! h-full">
+          <mat-card-content>
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex min-w-0 flex-col">
+                @if (loadingMatchMix()) {
+                  <mat-spinner diameter="28" />
+                } @else {
+                  <mat-card-title class="!m-0 text-2xl font-semibold leading-tight">{{
+                    matchesTotal()
+                  }}</mat-card-title>
+                }
+                <mat-card-subtitle class="!m-0 mt-1 text-sm font-medium text-muted">Matches (Sample)</mat-card-subtitle>
+                <span class="mt-1 block text-xs leading-snug text-muted"
+                  >Across {{ matchesSampleTournamentCount() }} tournament(s)</span
+                >
+              </div>
+              <span
+                class="bg-light-warning text-warning flex size-10! shrink-0 items-center justify-center rounded-sm"
+                aria-hidden="true"
+              >
+                <i-tabler
+                  name="calendar-event"
+                  class="size-5"
+                />
+              </span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+
+  @if (phaseCountsError()) {
+    <div class="col-span-12">
+      <p
+        class="m-0 text-sm text-error"
+        role="alert"
+      >
+        {{ phaseCountsError() }}
+      </p>
+    </div>
+  }
+
+  <!-- Charts — dashboard1 revenue-updates: mat-card-header.pb-3 + mat-card-content -->
+  <div class="col-span-12 lg:col-span-6">
+    <mat-card
+      class="cardWithShadow mb-0! flex h-full min-h-0 flex-col"
+      role="region"
+      aria-labelledby="broadcaster-chart-tournaments-title"
+    >
+      <mat-card-header class="pb-3">
+        <mat-card-title id="broadcaster-chart-tournaments-title">Tournaments by Schedule Phase</mat-card-title>
+        <mat-card-subtitle class="block max-w-none whitespace-normal text-sm leading-snug">
+          Counts from your scoped tournament list (upcoming · live · completed). Cancelled is not a tournament phase —
+          see matches chart for cancelled fixtures.
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content class="flex min-h-0 flex-1 flex-col">
+        @if (loadingPhaseCounts()) {
+          <div class="flex flex-1 items-center justify-center py-12">
+            <mat-spinner diameter="40" />
+          </div>
+        } @else if (!hasAnyTournamentPhaseData()) {
+          <div class="flex min-h-[200px] flex-1 flex-col items-center justify-center px-4 py-10 text-center text-muted">
+            <i-tabler
+              name="calendar-off"
+              class="mb-3 size-12 opacity-70"
+              aria-hidden="true"
+            />
+            <p class="m-0 max-w-md text-sm">
+              No tournaments in these phases yet. Create or get assigned to a tournament to see distribution here.
+            </p>
+          </div>
+        } @else {
+          <div
+            class="flex min-h-[240px] min-w-0 flex-1 flex-col"
+            role="img"
+            aria-label="Bar chart of tournament counts by upcoming, live, and completed schedule phases"
+          >
+            <apx-chart
+              [series]="tournamentBarSeries()"
+              [chart]="tournamentBarChart"
+              [plotOptions]="tournamentBarPlotOptions"
+              [dataLabels]="tournamentBarDataLabels"
+              [xaxis]="tournamentBarXaxis"
+              [yaxis]="tournamentBarYaxis"
+              [colors]="tournamentBarColors"
+              [legend]="tournamentBarLegend"
+              [grid]="{ strokeDashArray: 4, borderColor: 'var(--mat-sys-outline-variant)' }"
+            ></apx-chart>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="col-span-12 lg:col-span-6">
+    <mat-card
+      class="cardWithShadow mb-0! flex h-full min-h-0 flex-col"
+      role="region"
+      aria-labelledby="broadcaster-chart-matches-title"
+    >
+      <mat-card-header class="pb-3">
+        <mat-card-title id="broadcaster-chart-matches-title">Matches by Status</mat-card-title>
+        <mat-card-subtitle class="block max-w-none whitespace-normal text-sm leading-snug">
+          Aggregated across up to 28 tournaments (mix of upcoming, live, and completed rows). For deep per-tournament
+          analytics, open the tournament overview.
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content class="flex min-h-0 flex-1 flex-col">
+        @if (loadingMatchMix()) {
+          <div class="flex flex-1 items-center justify-center py-12">
+            <mat-spinner diameter="40" />
+          </div>
+        } @else if (matchMixError()) {
+          <p
+            class="m-0 px-4 py-8 text-sm text-error"
+            role="alert"
+          >
+            {{ matchMixError() }}
+          </p>
+        } @else if (!hasAnyMatchData()) {
+          <div class="flex min-h-[200px] flex-1 flex-col items-center justify-center px-4 py-10 text-center text-muted">
+            <i-tabler
+              name="chart-donut-3"
+              class="mb-3 size-12 opacity-70"
+              aria-hidden="true"
+            />
+            <p class="m-0 max-w-md text-sm">No scheduled matches in the sampled tournaments yet.</p>
+          </div>
+        } @else {
+          <div
+            class="flex min-h-[240px] min-w-0 flex-1 flex-col"
+            role="img"
+            aria-label="Donut chart of match counts by status"
+          >
+            <apx-chart
+              [series]="matchDonutSeries()"
+              [chart]="matchDonutChart"
+              [labels]="matchDonutLabels"
+              [colors]="matchDonutColors"
+              [legend]="matchDonutLegend"
+              [plotOptions]="matchDonutPlotOptions"
+              [dataLabels]="matchDonutDataLabels"
+            ></apx-chart>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Next steps — mat-card-content + titles like recent-transactions -->
+  <div class="col-span-12">
+    <mat-card
+      class="cardWithShadow mb-0!"
+      role="region"
+      aria-labelledby="broadcaster-next-steps-title"
+    >
+      <mat-card-content>
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div class="flex min-w-0 items-start gap-4">
+            <span
+              class="bg-light-primary text-primary flex size-10! shrink-0 items-center justify-center rounded-sm"
+              aria-hidden="true"
+            >
+              <i-tabler
+                name="route"
+                class="size-5"
+              />
+            </span>
+            <div class="min-w-0">
+              <mat-card-title
+                class="!m-0 text-lg font-semibold leading-snug"
+                id="broadcaster-next-steps-title"
+              >
+                Next Steps
+              </mat-card-title>
+              <mat-card-subtitle class="!m-0 mt-1 block text-sm leading-normal whitespace-normal text-muted">
+                Open fixtures from a tournament below, or go straight to teams to attach squads before match day.
+              </mat-card-subtitle>
+            </div>
+          </div>
+          <div class="flex shrink-0 flex-wrap gap-2 md:justify-end">
+            <a
+              mat-stroked-button
+              color="primary"
+              routerLink="/tournaments-management/teams"
+            >
+              Teams
+            </a>
+            <a
+              mat-flat-button
+              color="primary"
+              routerLink="/tournaments-management/tournaments"
+            >
+              Browse Tournaments
+            </a>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Lists — dashboard2 recent-transactions: title + subtitle in mat-card-content, then list with mt-6 -->
+  <div class="col-span-12 lg:col-span-6">
+    <mat-card
+      class="cardWithShadow mb-0! flex h-full min-h-0 flex-col"
+      role="region"
+      aria-labelledby="broadcaster-list-live-title"
+    >
+      <mat-card-content class="flex min-h-0 flex-1 flex-col">
+        <mat-card-title
+          class="!m-0"
+          id="broadcaster-list-live-title"
+        >
+          In Season
+        </mat-card-title>
+        <mat-card-subtitle class="!m-0 mt-1 block text-sm whitespace-normal"
+          >Live Window · Today Within Start–End</mat-card-subtitle
+        >
+        @if (loadingLive()) {
+          <div class="flex flex-1 items-center justify-center py-10">
+            <mat-spinner diameter="36" />
+          </div>
+        } @else if (liveListError()) {
+          <p
+            class="m-0 mt-6 text-sm text-error"
+            role="alert"
+          >
+            {{ liveListError() }}
+          </p>
+        } @else if (liveTournaments().length === 0) {
+          <p class="m-0 mt-6 text-sm text-muted">No tournaments in the live window right now.</p>
+        } @else {
+          <ul
+            class="m-0 mt-6 max-h-[min(24rem,50vh)] flex-1 list-none divide-y divide-border overflow-y-auto p-0"
+            aria-label="Tournaments in live window"
+          >
+            @for (t of liveTournaments(); track t.id) {
+              <li class="flex flex-wrap items-center justify-between gap-3 py-3">
+                <div class="min-w-0">
+                  <a
+                    class="block truncate font-medium text-dark no-underline hover:text-primary hover:underline"
+                    [routerLink]="['/tournaments-management/tournaments', t.id, 'overview']"
+                  >
+                    {{ t.tournament_name }}
+                  </a>
+                  <p class="m-0 mt-0.5 text-xs text-muted">
+                    {{ t.venue_name }}
+                    @if (t.start_date || t.end_date) {
+                      <span> · </span>
+                      {{ t.start_date | date: 'mediumDate' }}
+                      @if (t.end_date) {
+                        <span> — {{ t.end_date | date: 'mediumDate' }}</span>
+                      }
+                    }
+                  </p>
+                </div>
+                <a
+                  mat-stroked-button
+                  color="primary"
+                  class="shrink-0"
+                  [routerLink]="['/tournaments-management/tournaments', t.id, 'matches']"
+                >
+                  Matches
+                </a>
+              </li>
+            }
+          </ul>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="col-span-12 lg:col-span-6">
+    <mat-card
+      class="cardWithShadow mb-0! flex h-full min-h-0 flex-col"
+      role="region"
+      aria-labelledby="broadcaster-list-upcoming-title"
+    >
+      <mat-card-content class="flex min-h-0 flex-1 flex-col">
+        <mat-card-title
+          class="!m-0"
+          id="broadcaster-list-upcoming-title"
+        >
+          Upcoming
+        </mat-card-title>
+        <mat-card-subtitle class="!m-0 mt-1 block text-sm whitespace-normal"
+          >Starts After Today · Nearest First</mat-card-subtitle
+        >
+        @if (loadingUpcoming()) {
+          <div class="flex flex-1 items-center justify-center py-10">
+            <mat-spinner diameter="36" />
+          </div>
+        } @else if (upcomingListError()) {
+          <p
+            class="m-0 mt-6 text-sm text-error"
+            role="alert"
+          >
+            {{ upcomingListError() }}
+          </p>
+        } @else if (upcomingTournaments().length === 0) {
+          <p class="m-0 mt-6 text-sm text-muted">No upcoming tournaments in this view.</p>
+        } @else {
+          <ul
+            class="m-0 mt-6 max-h-[min(24rem,50vh)] flex-1 list-none divide-y divide-border overflow-y-auto p-0"
+            aria-label="Upcoming tournaments"
+          >
+            @for (t of upcomingTournaments(); track t.id) {
+              <li class="flex flex-wrap items-center justify-between gap-3 py-3">
+                <div class="min-w-0">
+                  <a
+                    class="block truncate font-medium text-dark no-underline hover:text-primary hover:underline"
+                    [routerLink]="['/tournaments-management/tournaments', t.id, 'overview']"
+                  >
+                    {{ t.tournament_name }}
+                  </a>
+                  <p class="m-0 mt-0.5 text-xs text-muted">
+                    {{ t.venue_name }}
+                    @if (t.start_date || t.end_date) {
+                      <span> · </span>
+                      {{ t.start_date | date: 'mediumDate' }}
+                      @if (t.end_date) {
+                        <span> — {{ t.end_date | date: 'mediumDate' }}</span>
+                      }
+                    }
+                  </p>
+                </div>
+                <a
+                  mat-stroked-button
+                  color="primary"
+                  class="shrink-0"
+                  [routerLink]="['/tournaments-management/tournaments', t.id, 'matches']"
+                >
+                  Matches
+                </a>
+              </li>
+            }
+          </ul>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="col-span-12 pt-2">
+    <p class="m-0 text-center text-xs text-muted">
+      Need something else?
+      <a
+        routerLink="/tournaments-management/tournaments"
+        class="font-medium text-primary no-underline hover:underline"
+      >
+        Browse All Tournaments </a
+      >.
+    </p>
+  </div>
+</section>

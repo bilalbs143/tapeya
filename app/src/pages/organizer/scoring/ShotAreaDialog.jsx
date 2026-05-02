@@ -5,6 +5,7 @@
 
 import { useId } from 'react';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
   getShotDirectionPercentages,
   SHOT_DIRECTION_ZONES,
@@ -12,12 +13,12 @@ import {
 } from '@/lib/utils/shotAreaUtils';
 import {
   Dialog,
-  DialogContentProfile,
+  DialogContentDark,
+  DialogHeaderRow,
+  dialogPrimaryTitleClass,
   DialogScrollBody,
   DialogTitle,
 } from '@/ui/Dialog';
-
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const stadiumBg = `${CLOUDFRONT_APP_BASE}/images/standard/stadium-bg.png`;
 
@@ -242,12 +243,14 @@ export function ShotAreaDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContentProfile className="!h-auto !max-h-[90vh]">
-        <div className="shrink-0 px-5 pt-5">
-          <DialogTitle className="text-center text-[14px] !font-bold tracking-wide text-[#DA9811] uppercase">
+      <DialogContentDark className="!h-auto !max-h-[90vh]">
+        <DialogHeaderRow>
+          <DialogTitle
+            className={`${dialogPrimaryTitleClass} w-full text-center`}
+          >
             {title}
           </DialogTitle>
-        </div>
+        </DialogHeaderRow>
         <DialogScrollBody className="flex flex-col items-center gap-4 py-4">
           <ShotDirectionPicker
             zones={zonesProp}
@@ -256,7 +259,7 @@ export function ShotAreaDialog({
             className="max-h-[50vh]"
           />
         </DialogScrollBody>
-      </DialogContentProfile>
+      </DialogContentDark>
     </Dialog>
   );
 }

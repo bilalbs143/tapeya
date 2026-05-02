@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Events\Broadcast\Graphics\MatchGraphicCommandActivated;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreMatchGraphicCommandRequest;
@@ -13,6 +14,7 @@ use App\Models\MatchGraphicCommand;
 use App\Models\MatchGraphicSession;
 use App\Models\TournamentMatch;
 use App\Services\Broadcast\ResolveMatchGraphicSession;
+use App\Utils\Constants\ApiConstants;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -60,19 +62,19 @@ class MatchGraphicSessionController extends Controller
 
     public function indexCommands(TournamentMatch $match): JsonResponse
     {
-        $perPage = (int) request('per_page', 30);
+        $perPage = (int) request('per_page', ApiConstants::PER_PAGE);
         $perPage = max(1, min(100, $perPage));
 
         $session = $match->graphicSession;
         if (! $session) {
             $empty = new LengthAwarePaginator([], 0, $perPage, 1);
 
-            return MatchGraphicCommandResource::collection($empty)->response();
+            return $this->success(MatchGraphicCommandResource::collection($empty));
         }
 
-        $paginator = $session->commands()->paginate($perPage);
+        $paginator = $session->commands()->paginate($perPage)->appends(request()->query());
 
-        return MatchGraphicCommandResource::collection($paginator)->response();
+        return $this->success(MatchGraphicCommandResource::collection($paginator));
     }
 
     public function storeCommand(StoreMatchGraphicCommandRequest $request, TournamentMatch $match): JsonResponse
@@ -95,6 +97,8 @@ class MatchGraphicSessionController extends Controller
                     'active_command_id' => $cmd->id,
                     'updated_by' => $request->user()?->id,
                 ]);
+
+                MatchGraphicCommandActivated::dispatch($session, $cmd);
             }
 
             return $cmd->fresh();
@@ -114,6 +118,8 @@ class MatchGraphicSessionController extends Controller
             'active_command_id' => $command->id,
             'updated_by' => request()->user()?->id,
         ]);
+
+        MatchGraphicCommandActivated::dispatch($session, $command);
 
         $command->load('session');
 

@@ -45,7 +45,7 @@ export class BackofficeReverbService {
 
     const apiOrigin = new URL(environment.apiBaseUrl).origin;
     const { appKey, wsHost, wsPort, wssPort, scheme } = environment.reverb;
-    const forceTLS = (scheme as 'http' | 'https') === 'https';
+    const forceTLS = scheme === 'https';
 
     this.echo = new Echo({
       broadcaster: 'reverb',

@@ -1,13 +1,14 @@
 import { useMemo } from 'react';
 
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { useGetStaticPageBySlugQuery } from '@/store/api/staticPageApi';
+import { Container } from '@/ui/Container';
 
 export default function StaticPage() {
   const { slug } = useParams();
-  const navigate = useNavigate();
 
   const normalizedSlug = useMemo(() => {
     if (typeof slug !== 'string') return '';
@@ -28,32 +29,9 @@ export default function StaticPage() {
 
   return (
     <div className="bg-black">
-      <header className="sticky top-0 z-10 flex items-center gap-3 bg-black px-4 py-4">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80"
-          aria-label="Back"
-        >
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden
-          >
-            <path d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <h1 className="min-w-0 flex-1 pr-9 text-center text-[16px] font-bold tracking-wide text-white uppercase">
-          {headerLabel}
-        </h1>
-      </header>
+      <AppSubpageHeader sticky title={headerLabel} />
 
-      <div className="mx-auto w-full max-w-2xl px-4 pt-6 pb-8">
+      <Container className="pb-8">
         {normalizedSlug && error && !isLoading && !isFetching && (
           <p className="text-[13px] leading-snug text-[#A2A6AB] md:text-[14px]">
             {is404
@@ -72,7 +50,7 @@ export default function StaticPage() {
             }}
           />
         )}
-      </div>
+      </Container>
     </div>
   );
 }

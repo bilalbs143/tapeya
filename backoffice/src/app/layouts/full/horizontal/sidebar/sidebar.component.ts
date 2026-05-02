@@ -1,10 +1,12 @@
 import { MediaMatcher } from '@angular/cdk/layout';
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, computed, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { NavService } from '../../../../services/nav.service';
-import { navItems } from '../../shared/nav/sidebar-data';
+import { getVisibleNavItems } from '../../shared/nav/sidebar-data';
+
+import { AuthService } from 'src/app/services/auth.service';
 
 import { AppHorizontalNavItemComponent } from './nav-item/nav-item.component';
 
@@ -18,8 +20,9 @@ export class AppHorizontalSidebarComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly media = inject(MediaMatcher);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly auth = inject(AuthService);
 
-  public navItems = navItems;
+  public readonly visibleNavItems = computed(() => getVisibleNavItems(this.auth.currentUser()));
   public parentActive = '';
   public mobileQuery: MediaQueryList;
   private _mobileQueryListener: () => void;

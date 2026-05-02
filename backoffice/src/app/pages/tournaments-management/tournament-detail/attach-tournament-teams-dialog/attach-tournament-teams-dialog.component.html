@@ -1,0 +1,126 @@
+<app-dialog-wrapper [title]="title">
+  <form
+    (ngSubmit)="save()"
+    aria-label="Attach teams to tournament"
+  >
+    <mat-dialog-content>
+      <p class="text-sm text-muted m-0 mb-3 leading-relaxed">
+        Search teams by name or code. Teams already on this tournament are hidden from suggestions.
+      </p>
+      <div class="grid grid-cols-12 gap-x-6">
+        @if (data.numberOfGroups > 1) {
+          <div
+            class="col-span-12"
+            [formGroup]="groupForm"
+          >
+            <mat-label class="text-sm font-semibold mb-2 block">Group <span class="text-error">*</span></mat-label>
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <mat-select
+                formControlName="group_index"
+                placeholder="Select Group"
+              >
+                @for (g of groupOptions; track g) {
+                  <mat-option [value]="g">Group {{ g }}</mat-option>
+                }
+              </mat-select>
+              @if (
+                groupForm.get('group_index')?.invalid &&
+                (groupForm.get('group_index')?.touched || groupForm.get('group_index')?.dirty)
+              ) {
+                <mat-error>
+                  @if (groupForm.get('group_index')?.hasError('required')) {
+                    Select which group these teams belong to.
+                  } @else if (groupForm.get('group_index')?.hasError('min')) {
+                    Choose a valid group.
+                  }
+                </mat-error>
+              }
+            </mat-form-field>
+          </div>
+        }
+        @if (selected.length === 0) {
+          <div class="col-span-12">
+            @if (attachAttempted) {
+              <p
+                class="text-error m-0 mb-2 text-sm"
+                role="alert"
+              >
+                Select at least one team to attach.
+              </p>
+            }
+          </div>
+        } @else {
+          <div class="col-span-12">
+            <mat-chip-set
+              class="team-roster-chips w-full max-w-full mb-2"
+              aria-label="Teams selected to attach"
+            >
+              @for (t of selected; track t.id) {
+                <mat-chip
+                  class="team-roster-chip text-sm"
+                  (removed)="removeTeam(t)"
+                >
+                  <span class="team-roster-chip__label">
+                    {{ t.name }}
+                    @if (t.code) {
+                      <span class="text-muted font-normal"> - {{ t.code }}</span>
+                    }
+                  </span>
+                  <button
+                    type="button"
+                    matChipRemove
+                    [attr.aria-label]="'Remove ' + t.name + (t.code ? ' - ' + t.code : '') + ' from selection'"
+                  >
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip>
+              }
+            </mat-chip-set>
+          </div>
+        }
+        <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">Add Team</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              [formControl]="searchControl"
+              [matAutocomplete]="teamAuto"
+              placeholder="Search by name or code"
+            />
+            <mat-autocomplete
+              #teamAuto="matAutocomplete"
+              (optionSelected)="onTeamSelected($event)"
+            >
+              @for (c of candidates; track c.id) {
+                <mat-option [value]="c">{{ teamOptionLabel(c) }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+        </div>
+      </div>
+    </mat-dialog-content>
+    <mat-divider></mat-divider>
+    <mat-dialog-actions>
+      <button
+        type="button"
+        mat-stroked-button
+        class="border border-error! text-error"
+        [mat-dialog-close]="false"
+      >
+        Cancel
+      </button>
+      <app-submit-button
+        [disabled]="attachPrimaryDisabled"
+        [isSubmitting]="isSubmitting"
+        text="Attach"
+        color="primary"
+      />
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

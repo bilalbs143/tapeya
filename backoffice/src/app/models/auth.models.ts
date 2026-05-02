@@ -3,6 +3,7 @@ export interface AuthUser {
   name: string;
   email: string;
   is_admin: boolean;
+  is_broadcast_staff?: boolean;
   type: string | null;
   type_enum: string | null;
 }

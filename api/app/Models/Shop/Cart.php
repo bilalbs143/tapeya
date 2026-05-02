@@ -2,12 +2,12 @@
 
 namespace App\Models\Shop;
 
+use App\Models\BaseModel;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Cart extends Model
+class Cart extends BaseModel
 {
     protected $table = 'shop_carts';
 

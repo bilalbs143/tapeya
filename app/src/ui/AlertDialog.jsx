@@ -28,13 +28,22 @@ export function AlertDialogOverlay({ className = '', ...props }) {
   );
 }
 
-export function AlertDialogContent({ className = '', children, ...props }) {
+export function AlertDialogContent({
+  className = '',
+  children,
+  onPointerDownOutside,
+  ...props
+}) {
   return (
     <AlertDialogPortal>
       <AlertDialogOverlay />
       <AlertDialogPrimitive.Content
-        className={`${content} ${className}`}
         {...props}
+        className={`${content} ${className}`}
+        onPointerDownOutside={(e) => {
+          onPointerDownOutside?.(e);
+          e.preventDefault();
+        }}
       >
         {children}
       </AlertDialogPrimitive.Content>

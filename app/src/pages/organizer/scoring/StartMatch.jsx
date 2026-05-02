@@ -4,12 +4,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import OversDialog from '@/components/dialogs/scoring/OversDialog';
 import PlayersPerSideDialog from '@/components/dialogs/scoring/PlayersPerSideDialog';
 import TeamSelectDialog from '@/components/dialogs/scoring/TeamSelectDialog';
 import TossDialog from '@/components/dialogs/scoring/TossDialog';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
   getMatchOversOptions,
   getPlayersPerSideOptions,
@@ -30,8 +32,6 @@ import { FormField, formFieldLabelCheckoutClass } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import { Label } from '@/ui/Label';
 import { TimePicker } from '@/ui/TimePicker';
-
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
 
@@ -217,31 +217,12 @@ export default function StartMatch() {
 
   return (
     <div className="bg-black">
-      <Container className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 flex items-center gap-3 bg-black px-4 pt-6 pb-6 lg:mt-0">
-          <button
-            type="button"
-            onClick={handleBack}
-            className="flex h-[27px] w-[27px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80"
-            aria-label="Back"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="min-w-0 flex-1 truncate pr-[27px] text-center text-[16px] font-bold tracking-wide text-white uppercase">
-            Start A Match
-          </h1>
-        </header>
-
+      <AppSubpageHeader
+        title="Start A Match"
+        onBack={handleBack}
+        titleClassName="truncate"
+      />
+      <Container>
         <div className="space-y-6 pb-8">
           {/* Tournament selection (hidden when opened from tournament hub with pre-selected tournament) */}
           {!tournamentPreSelected && (

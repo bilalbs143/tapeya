@@ -17,7 +17,6 @@ export function ProfileAvatar({ src, name, overlap = true }) {
             width={100}
             height={100}
             className="aspect-square h-[100px] w-[100px] object-cover object-center sm:h-[100px] sm:w-[100px]"
-            decoding="async"
           />
         </div>
       </div>

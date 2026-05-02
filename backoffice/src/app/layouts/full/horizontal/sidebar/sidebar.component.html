@@ -3,7 +3,7 @@
     <div class="container">
       <div>
         <div class="horizontal-navbar flex flex-row items-center self-stretch">
-          @for (item of navItems; track item) {
+          @for (item of visibleNavItems(); track item) {
             <app-horizontal-nav-item
               [item]="item"
               class="parentBox {{ item.ddType }}"

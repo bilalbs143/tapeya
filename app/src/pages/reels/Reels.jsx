@@ -11,13 +11,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { useAppSelector } from '@/store/hooks';
 import { selectPublishedReels } from '@/store/selectors';
 
 import ReelItem from './ReelItem';
 import { EXPLORE_REELS, MY_VIDEOS_REELS } from './reelsData';
-
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const exploreOrangeIcon = `${CLOUDFRONT_APP_BASE}/images/icons/explore-orange.svg`;
 const exploreWhiteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/explore-white.svg`;
@@ -26,20 +26,6 @@ const myVideosWhiteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/my-videos-white.s
 
 const TAB_EXPLORE = 'explore';
 const TAB_MY_VIDEOS = 'my-videos';
-
-function ChevronLeftIcon() {
-  return (
-    <svg width="8" height="14" viewBox="0 0 8 14" fill="none" aria-hidden>
-      <path
-        d="M7 1L1 7l6 6"
-        stroke="#000"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 export default function Reels() {
   const navigate = useNavigate();
@@ -92,14 +78,10 @@ export default function Reels() {
         {/* Tab bar — back left, Explore & My Videos centered */}
         <div className="absolute top-[64px] right-0 left-0 z-10 flex items-center justify-between px-4 py-2">
           {/* Back — left */}
-          <button
-            type="button"
+          <AppSubpageBackButton
             onClick={() => navigate(-1)}
-            className="flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full bg-white shadow"
             aria-label="Go back"
-          >
-            <ChevronLeftIcon />
-          </button>
+          />
 
           {/* Explore & My Videos — center, text stays inline */}
           <div className="absolute left-1/2 flex -translate-x-1/2 flex-nowrap items-center gap-3">
@@ -143,8 +125,8 @@ export default function Reels() {
             </button>
           </div>
 
-          {/* Spacer — same width as back button so center is true */}
-          <div className="w-[27px] shrink-0" aria-hidden />
+          {/* Spacer — same width as back button (36px) so center is true */}
+          <div className="w-9 shrink-0" aria-hidden />
         </div>
 
         {/* Vertical snap scroll container */}

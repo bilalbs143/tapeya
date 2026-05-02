@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import { CommentaryText } from '@/components/scorecard/CommentaryText';
-
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 
 const karachiFlag = `${CLOUDFRONT_APP_BASE}/images/icons/karachi-flag.png`;
 const rawalpindiFlag = `${CLOUDFRONT_APP_BASE}/images/icons/rawalpindi-flag.png`;

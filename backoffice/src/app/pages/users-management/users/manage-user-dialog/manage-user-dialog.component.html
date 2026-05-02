@@ -56,7 +56,7 @@
           </mat-form-field>
         </div>
 
-        <!-- Row 3: Phone | Date of Birth -->
+        <!-- Row 2 cont: Phone -->
         <div class="col-span-12 lg:col-span-6">
           <mat-label class="text-sm font-semibold mb-2 block">Phone <span class="text-error">*</span></mat-label>
           <mat-form-field
@@ -73,6 +73,7 @@
             }
           </mat-form-field>
         </div>
+        <!-- Row 3: Date of Birth | Status -->
         <div class="col-span-12 lg:col-span-6">
           <mat-label class="text-sm font-semibold mb-2 block">Date of Birth</mat-label>
           <mat-form-field
@@ -93,7 +94,26 @@
           </mat-form-field>
         </div>
 
-        <!-- Row 4: Roles | Status -->
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Status <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-select
+              formControlName="status"
+              placeholder="Select Status"
+            >
+              @if (statusOptions$ | async; as statusOptions) {
+                @for (opt of statusOptions; track opt.value) {
+                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                }
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Row 4: App Roles | Backoffice Roles -->
         <div class="col-span-12 lg:col-span-6">
           <mat-label class="text-sm font-semibold mb-2 block">Roles <span class="text-error">*</span></mat-label>
           <mat-form-field
@@ -116,19 +136,21 @@
             }
           </mat-form-field>
         </div>
+
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Status <span class="text-error">*</span></mat-label>
+          <mat-label class="text-sm font-semibold mb-2 block">Backoffice Roles</mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
           >
             <mat-select
-              formControlName="status"
-              placeholder="Select Status"
+              formControlName="admin_role_ids"
+              multiple
+              placeholder="Optional (e.g. Broadcast Operator)"
             >
-              @if (statusOptions$ | async; as statusOptions) {
-                @for (opt of statusOptions; track opt.value) {
-                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              @if (adminRolesOptions$ | async; as adminRoleOptions) {
+                @for (opt of adminRoleOptions; track opt.value) {
+                  <mat-option [value]="+opt.value">{{ opt.label }}</mat-option>
                 }
               }
             </mat-select>
@@ -136,7 +158,7 @@
         </div>
 
         <!-- Row 5: Playing Role | Bowling Style | Batting Style -->
-        <div class="col-span-12 lg:col-span-6">
+        <div class="col-span-12 lg:col-span-4">
           <mat-label class="text-sm font-semibold mb-2 block">Playing Role</mat-label>
           <mat-form-field
             appearance="outline"
@@ -155,7 +177,7 @@
             </mat-select>
           </mat-form-field>
         </div>
-        <div class="col-span-12 lg:col-span-6">
+        <div class="col-span-12 lg:col-span-4">
           <mat-label class="text-sm font-semibold mb-2 block">Bowling Style</mat-label>
           <mat-form-field
             appearance="outline"
@@ -174,7 +196,7 @@
             </mat-select>
           </mat-form-field>
         </div>
-        <div class="col-span-12 lg:col-span-6">
+        <div class="col-span-12 lg:col-span-4">
           <mat-label class="text-sm font-semibold mb-2 block">Batting Style</mat-label>
           <mat-form-field
             appearance="outline"
@@ -220,7 +242,6 @@
           >
             <mat-select
               formControlName="city"
-              [disabled]="!form.get('country')?.value"
               placeholder="Select City"
             >
               <mat-option value="">Select City</mat-option>

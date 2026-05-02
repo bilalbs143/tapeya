@@ -1,0 +1,45 @@
+<app-dialog-wrapper [title]="title">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="save()"
+    aria-label="Edit tournament team group"
+  >
+    <mat-dialog-content>
+      <div class="grid grid-cols-12 gap-x-6">
+        <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">Group</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-select
+              formControlName="group_index"
+              placeholder="Select Group"
+            >
+              @for (g of groupOptions; track g) {
+                <mat-option [value]="g">Group {{ g }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+    </mat-dialog-content>
+    <mat-divider></mat-divider>
+    <mat-dialog-actions>
+      <button
+        type="button"
+        mat-stroked-button
+        class="border border-error! text-error"
+        [mat-dialog-close]="false"
+      >
+        Cancel
+      </button>
+      <app-submit-button
+        [disabled]="form.invalid"
+        [isSubmitting]="isSubmitting"
+        text="Save"
+        color="primary"
+      />
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

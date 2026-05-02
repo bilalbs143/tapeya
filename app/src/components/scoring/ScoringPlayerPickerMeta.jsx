@@ -10,7 +10,7 @@ export function ScoringPlayerPickerMeta({ player, variant }) {
   const segments = playerPickerMetaSegments(player, variant);
   if (segments.length === 0) return null;
   return (
-    <p className="mt-1 text-[11px] font-medium leading-snug text-[#A2A6AB]">
+    <p className="mt-1 text-[11px] leading-snug font-medium text-[#A2A6AB]">
       {segments.join(' · ')}
     </p>
   );

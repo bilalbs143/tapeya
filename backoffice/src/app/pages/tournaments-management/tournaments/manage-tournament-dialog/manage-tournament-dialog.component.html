@@ -52,8 +52,17 @@
               formControlName="tournament_name"
               placeholder="Tournament Name"
             />
-            @if (form.get('tournament_name')?.invalid && form.get('tournament_name')?.touched) {
-              <mat-error>Tournament name is required</mat-error>
+            @if (
+              form.get('tournament_name')?.invalid &&
+              (form.get('tournament_name')?.touched || form.get('tournament_name')?.dirty)
+            ) {
+              <mat-error>
+                @if (form.get('tournament_name')?.hasError('required')) {
+                  Enter a tournament name.
+                } @else if (form.get('tournament_name')?.hasError('maxlength')) {
+                  Tournament name is too long (max 255 characters).
+                }
+              </mat-error>
             }
           </mat-form-field>
         </div>
@@ -75,8 +84,11 @@
                 }
               }
             </mat-select>
-            @if (form.get('tournament_type')?.invalid && form.get('tournament_type')?.touched) {
-              <mat-error>Tournament type is required</mat-error>
+            @if (
+              form.get('tournament_type')?.invalid &&
+              (form.get('tournament_type')?.touched || form.get('tournament_type')?.dirty)
+            ) {
+              <mat-error>Select a tournament type.</mat-error>
             }
           </mat-form-field>
         </div>
@@ -99,8 +111,11 @@
                 }
               }
             </mat-select>
-            @if (form.get('cricket_format')?.invalid && form.get('cricket_format')?.touched) {
-              <mat-error>Cricket format is required</mat-error>
+            @if (
+              form.get('cricket_format')?.invalid &&
+              (form.get('cricket_format')?.touched || form.get('cricket_format')?.dirty)
+            ) {
+              <mat-error>Select a cricket format.</mat-error>
             }
           </mat-form-field>
         </div>
@@ -116,8 +131,8 @@
               formControlName="prize"
               placeholder="e.g. Car, Bike, 1 Lakh"
             />
-            @if (form.get('prize')?.invalid && form.get('prize')?.touched) {
-              <mat-error>Max 255 characters</mat-error>
+            @if (form.get('prize')?.invalid && (form.get('prize')?.touched || form.get('prize')?.dirty)) {
+              <mat-error>Prize text is too long (max 255 characters).</mat-error>
             }
           </mat-form-field>
         </div>
@@ -139,8 +154,16 @@
               [for]="startPicker"
             ></mat-datepicker-toggle>
             <mat-datepicker #startPicker></mat-datepicker>
-            @if (form.get('start_date')?.invalid && form.get('start_date')?.touched) {
-              <mat-error>Start date is required</mat-error>
+            @if (
+              form.get('start_date')?.invalid && (form.get('start_date')?.touched || form.get('start_date')?.dirty)
+            ) {
+              <mat-error>
+                @if (form.get('start_date')?.hasError('required')) {
+                  Select a start date.
+                } @else if (form.get('start_date')?.hasError('matDatepickerParse')) {
+                  Enter a valid start date.
+                }
+              </mat-error>
             }
           </mat-form-field>
         </div>
@@ -161,8 +184,16 @@
               [for]="endPicker"
             ></mat-datepicker-toggle>
             <mat-datepicker #endPicker></mat-datepicker>
-            @if (form.get('end_date')?.invalid && form.get('end_date')?.touched) {
-              <mat-error>End date is required</mat-error>
+            @if (form.get('end_date')?.invalid && (form.get('end_date')?.touched || form.get('end_date')?.dirty)) {
+              <mat-error>
+                @if (form.get('end_date')?.hasError('required')) {
+                  Select an end date.
+                } @else if (form.get('end_date')?.hasError('matDatepickerParse')) {
+                  Enter a valid end date.
+                }
+              </mat-error>
+            } @else if (endDateOrderShowError()) {
+              <mat-error>End date must be on or after the start date.</mat-error>
             }
           </mat-form-field>
         </div>
@@ -185,8 +216,11 @@
                 }
               }
             </mat-select>
-            @if (form.get('match_timings')?.invalid && form.get('match_timings')?.touched) {
-              <mat-error>Match timings is required</mat-error>
+            @if (
+              form.get('match_timings')?.invalid &&
+              (form.get('match_timings')?.touched || form.get('match_timings')?.dirty)
+            ) {
+              <mat-error>Select match timings.</mat-error>
             }
           </mat-form-field>
         </div>
@@ -206,6 +240,9 @@
                 }
               }
             </mat-select>
+            @if (form.get('status')?.invalid && (form.get('status')?.touched || form.get('status')?.dirty)) {
+              <mat-error>Select a tournament status.</mat-error>
+            }
           </mat-form-field>
         </div>
 
@@ -225,8 +262,19 @@
               max="500"
               placeholder="e.g. 8"
             />
-            @if (form.get('number_of_teams')?.invalid && form.get('number_of_teams')?.touched) {
-              <mat-error>Required (1–500)</mat-error>
+            @if (
+              form.get('number_of_teams')?.invalid &&
+              (form.get('number_of_teams')?.touched || form.get('number_of_teams')?.dirty)
+            ) {
+              <mat-error>
+                @if (form.get('number_of_teams')?.hasError('required')) {
+                  Enter how many teams will play.
+                } @else if (form.get('number_of_teams')?.hasError('min')) {
+                  Number of teams must be at least 1.
+                } @else if (form.get('number_of_teams')?.hasError('max')) {
+                  Number of teams cannot exceed 500.
+                }
+              </mat-error>
             }
           </mat-form-field>
         </div>
@@ -246,8 +294,14 @@
                 <mat-option [value]="c.name">{{ c.name }}</mat-option>
               }
             </mat-select>
-            @if (form.get('country')?.invalid && form.get('country')?.touched) {
-              <mat-error>Country is required</mat-error>
+            @if (form.get('country')?.invalid && (form.get('country')?.touched || form.get('country')?.dirty)) {
+              <mat-error>
+                @if (form.get('country')?.hasError('required')) {
+                  Select a country.
+                } @else if (form.get('country')?.hasError('maxlength')) {
+                  Country value is too long.
+                }
+              </mat-error>
             }
           </mat-form-field>
         </div>
@@ -259,7 +313,6 @@
           >
             <mat-select
               formControlName="city"
-              [disabled]="!form.get('country')?.value"
               placeholder="Select City"
             >
               <mat-option value="">Select City</mat-option>
@@ -267,8 +320,14 @@
                 <mat-option [value]="c.name">{{ c.name }}</mat-option>
               }
             </mat-select>
-            @if (form.get('city')?.invalid && form.get('city')?.touched) {
-              <mat-error>City is required</mat-error>
+            @if (form.get('city')?.invalid && (form.get('city')?.touched || form.get('city')?.dirty)) {
+              <mat-error>
+                @if (form.get('city')?.hasError('required')) {
+                  Select a city.
+                } @else if (form.get('city')?.hasError('maxlength')) {
+                  City name is too long.
+                }
+              </mat-error>
             }
           </mat-form-field>
         </div>
@@ -283,8 +342,16 @@
               formControlName="venue_name"
               placeholder="Venue"
             />
-            @if (form.get('venue_name')?.invalid && form.get('venue_name')?.touched) {
-              <mat-error>Venue name is required</mat-error>
+            @if (
+              form.get('venue_name')?.invalid && (form.get('venue_name')?.touched || form.get('venue_name')?.dirty)
+            ) {
+              <mat-error>
+                @if (form.get('venue_name')?.hasError('required')) {
+                  Enter the venue name.
+                } @else if (form.get('venue_name')?.hasError('maxlength')) {
+                  Venue name is too long (max 255 characters).
+                }
+              </mat-error>
             }
           </mat-form-field>
         </div>
@@ -317,8 +384,17 @@
                 max="16"
                 placeholder="e.g. 4"
               />
-              @if (form.get('number_of_groups')?.invalid && form.get('number_of_groups')?.touched) {
-                <mat-error>Required (2–16)</mat-error>
+              @if (
+                form.get('number_of_groups')?.invalid &&
+                (form.get('number_of_groups')?.touched || form.get('number_of_groups')?.dirty)
+              ) {
+                <mat-error>
+                  @if (form.get('number_of_groups')?.hasError('min')) {
+                    Use at least 2 groups for group-wise mode.
+                  } @else if (form.get('number_of_groups')?.hasError('max')) {
+                    Use at most 16 groups.
+                  }
+                </mat-error>
               }
             </mat-form-field>
           </div>
@@ -399,7 +475,7 @@
         Cancel
       </button>
       <app-submit-button
-        [disabled]="form.invalid"
+        [disabled]="isSubmitting"
         [isSubmitting]="isSubmitting"
         text="Submit"
         color="primary"

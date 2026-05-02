@@ -7,6 +7,8 @@ import {
   useSearchParams,
 } from 'react-router-dom';
 
+import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatOrdinalDateRange } from '@/lib/format';
 import {
   getTournamentImage,
@@ -25,8 +27,6 @@ import {
 } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
 import { Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
-
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const feedShareIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-share.svg`;
 const FIXTURE_TAB_BG = `${CLOUDFRONT_APP_BASE}/images/background/fixture-bg.png`;
@@ -49,8 +49,7 @@ function tabFromSearchParams(searchParams) {
   return DETAIL_TABS.FIXTURES;
 }
 
-const FALLBACK_IMAGE =
-  'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&h=320&fit=crop';
+const FALLBACK_IMAGE = FIXTURE_TAB_BG;
 
 const DEFAULT_TOURNAMENT = {
   display_image: FALLBACK_IMAGE,
@@ -243,24 +242,11 @@ export default function UpcomingTournamentDetails() {
           }}
         />
         <div className="absolute inset-0 bg-black/40" />
-        <button
-          type="button"
+        <AppSubpageBackButton
           onClick={() => navigate(-1)}
-          className="absolute top-20 left-4 flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#4a4a4a] transition-opacity active:opacity-80"
+          className="absolute top-20 left-4"
           aria-label="Back"
-        >
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
+        />
       </div>
 
       <Container className="!px-4 !py-0">
@@ -272,13 +258,6 @@ export default function UpcomingTournamentDetails() {
           <p className="mt-1 text-[14px] text-[#A2A6AB]">
             {formatOrdinalDateRange(startDate, endDate)}
           </p>
-          {tournament.number_of_groups != null && (
-            <p className="mt-0.5 text-[13px] text-[#A2A6AB]">
-              {tournament.number_of_groups <= 1
-                ? 'Single table'
-                : `Groups: ${tournament.number_of_groups}`}
-            </p>
-          )}
           {isLoadingTournament && !stateTournament && hasValidId && (
             <p className="mt-1 text-[12px] text-[#A2A6AB]">
               Refreshing tournament details…

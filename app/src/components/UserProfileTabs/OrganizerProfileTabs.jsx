@@ -1,3 +1,4 @@
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
   profileListClass,
   profileTabIconClass,
@@ -14,8 +15,6 @@ import { OrganizerEvents } from './OrganizerEvents';
 import { OrganizerStats } from './OrganizerStats';
 import { ProfileMetrics } from './ProfileMetrics';
 import { ProfileRoleOverview } from './ProfileRoleOverview';
-
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const profileUserIcon = `${CLOUDFRONT_APP_BASE}/images/icons/profile-user.svg`;
 const starMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/star-match.svg`;

@@ -47,8 +47,8 @@ class MatchSquadController extends Controller
     {
         $authUser = $request->user();
 
-        if ($match->tournament->organizer_id !== $authUser->id) {
-            return $this->forbidden('Only the tournament organizer can manage match squads.');
+        if (! $authUser->canOperateTournamentInApp($match->tournament)) {
+            return $this->forbidden('You cannot manage match squads for this tournament.');
         }
 
         // Team must be part of this match (home or away).

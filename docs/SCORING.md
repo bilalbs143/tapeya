@@ -28,6 +28,12 @@ This document describes how the organizer scoring flow works, how it integrates 
 
 All require auth. Balls use integer user IDs for `striker_id`, `non_striker_id`, `bowler_id`, `out_player_id`, and `fielder_id`.
 
+## Authorization (who may read / mutate scorecard)
+
+- **Tournament organizer or pivot broadcast staff:** `GET …/scorecard`, `GET …/player-stats`, and ball mutations (`POST` / `PATCH` / `DELETE` …`/balls`) require the authenticated user to pass **`User::canScoreMatchInApp($match)`**, which is true when the user is the tournament **`organizer_id`**, is on the **`tournament_broadcaster`** pivot, or is a **platform administrator** (`type = administrator`) for break-glass support.
+- **Other user routes** (toss, squads, etc.) still use **`canOperateTournamentInApp`** where wired — organizer or pivot staff only (no admin-type bypass on those unless separately added).
+- **Audit trail:** successful **`store_ball`**, **`update_ball`**, and **`delete_ball`** actions append a row to **`match_scoring_audits`** (`tournament_match_id`, `user_id`, `action`, optional `ball_id`, optional `meta` JSON). This is not a full edit-lock or concurrent “lease” system; see `BROADCASTER_ROLE.md` §7 / §9 for remaining scoring hardening (lock, richer audit, etc.).
+
 ## Use Cases
 
 ### 1. Runs (0–6 and custom)

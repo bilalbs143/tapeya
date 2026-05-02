@@ -1,6 +1,6 @@
 import { BreakpointObserver, MediaMatcher } from '@angular/cdk/layout';
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnDestroy, ViewChild, ViewEncapsulation, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, ViewChild, ViewEncapsulation, computed, inject } from '@angular/core';
 import { MatSidenav, MatSidenavContent } from '@angular/material/sidenav';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
@@ -12,13 +12,15 @@ import { NavService } from '../../services/nav.service';
 
 import { AppSettings } from 'src/app/config';
 import { MaterialModule } from 'src/app/material.module';
+import { AuthService } from 'src/app/services/auth.service';
 import { CoreService } from 'src/app/services/core.service';
+import { authUserDisplayName, authUserDisplayRole } from 'src/app/shared/functions/auth-user-display';
 
 import { AppHorizontalHeaderComponent } from './horizontal/header/header.component';
 import { AppHorizontalSidebarComponent } from './horizontal/sidebar/sidebar.component';
 import { AppBreadcrumbComponent } from './shared/breadcrumb/breadcrumb.component';
 import { CustomizerComponent } from './shared/customizer/customizer.component';
-import { navItems } from './shared/nav/sidebar-data';
+import { getVisibleNavItems } from './shared/nav/sidebar-data';
 import { HeaderComponent } from './vertical/header/header.component';
 import { AppNavItemComponent } from './vertical/sidebar/nav-item/nav-item.component';
 import { SidebarComponent } from './vertical/sidebar/sidebar.component';
@@ -27,21 +29,6 @@ const MOBILE_VIEW = 'screen and (max-width: 768px)';
 const TABLET_VIEW = 'screen and (min-width: 769px) and (max-width: 1024px)';
 const MONITOR_VIEW = 'screen and (min-width: 1024px)';
 const BELOWMONITOR = 'screen and (max-width: 1023px)';
-
-// for mobile app sidebar
-interface apps {
-  id: number;
-  img: string;
-  title: string;
-  subtitle: string;
-  link: string;
-}
-
-interface quicklinks {
-  id: number;
-  title: string;
-  link: string;
-}
 
 @Component({
   selector: 'app-full',
@@ -70,8 +57,13 @@ export class FullComponent implements OnDestroy {
   private readonly breakpointObserver = inject(BreakpointObserver);
   private readonly navService = inject(NavService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly auth = inject(AuthService);
 
-  public navItems = navItems;
+  public readonly visibleNavItems = computed(() => getVisibleNavItems(this.auth.currentUser()));
+
+  public readonly sidebarUserName = computed(() => authUserDisplayName(this.auth.currentUser()));
+
+  public readonly sidebarUserRole = computed(() => authUserDisplayRole(this.auth.currentUser()));
 
   @ViewChild('leftsidenav')
   public sidenav: MatSidenav;
@@ -101,104 +93,6 @@ export class FullComponent implements OnDestroy {
     const path = this.router.url.split('?')[0];
     return path !== '/dashboard' && path !== '/ecommerce';
   }
-
-  // for mobile app sidebar
-  public apps: apps[] = [
-    {
-      id: 1,
-      img: '/assets/images/svgs/icon-dd-chat.svg',
-      title: 'Chat Application',
-      subtitle: 'Messages & Emails',
-      link: '/apps/chat',
-    },
-    {
-      id: 2,
-      img: '/assets/images/svgs/icon-dd-cart.svg',
-      title: 'Todo App',
-      subtitle: 'Completed task',
-      link: '/apps/todo',
-    },
-    {
-      id: 3,
-      img: '/assets/images/svgs/icon-dd-invoice.svg',
-      title: 'Invoice App',
-      subtitle: 'Get latest invoice',
-      link: '/apps/invoice',
-    },
-    {
-      id: 4,
-      img: '/assets/images/svgs/icon-dd-date.svg',
-      title: 'Calendar App',
-      subtitle: 'Get Dates',
-      link: '/apps/calendar',
-    },
-    {
-      id: 5,
-      img: '/assets/images/svgs/icon-dd-mobile.svg',
-      title: 'Contact Application',
-      subtitle: '2 Unsaved Contacts',
-      link: '/apps/contacts',
-    },
-    {
-      id: 6,
-      img: '/assets/images/svgs/icon-dd-lifebuoy.svg',
-      title: 'Tickets App',
-      subtitle: 'Create new ticket',
-      link: '/apps/tickets',
-    },
-    {
-      id: 7,
-      img: '/assets/images/svgs/icon-dd-message-box.svg',
-      title: 'Email App',
-      subtitle: 'Get new emails',
-      link: '/apps/email/inbox',
-    },
-    {
-      id: 8,
-      img: '/assets/images/svgs/icon-dd-application.svg',
-      title: 'Courses',
-      subtitle: 'Create new course',
-      link: '/apps/courses',
-    },
-  ];
-
-  public quicklinks: quicklinks[] = [
-    {
-      id: 1,
-      title: 'Pricing Page',
-      link: '/theme-pages/pricing',
-    },
-    {
-      id: 2,
-      title: 'Authentication Design',
-      link: '/authentication/login',
-    },
-    {
-      id: 3,
-      title: '404 Error Page',
-      link: '/authentication/error',
-    },
-    {
-      id: 4,
-      title: 'Notes App',
-      link: '/apps/notes',
-    },
-    {
-      id: 5,
-      title: 'Employee App',
-      link: '/apps/employee',
-    },
-    {
-      id: 6,
-      title: 'Todo Application',
-      link: '/apps/todo',
-    },
-    {
-      id: 7,
-      title: 'Treeview',
-      link: '/theme-pages/treeview',
-    },
-  ];
 
   constructor() {
     this.htmlElement = document.querySelector('html')!;

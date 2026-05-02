@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
+use App\Utils\Constants\ApiConstants;
 use App\Http\Resources\User\NotificationResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,8 +22,8 @@ class NotificationController extends Controller
     {
         $user = $request->user();
 
-        $perPage = (int) $request->input('per_page', 15);
-        $perPage = $perPage >= 1 && $perPage <= 100 ? $perPage : 15;
+        $perPage = (int) $request->input('per_page', ApiConstants::PER_PAGE);
+        $perPage = $perPage >= 1 && $perPage <= 100 ? $perPage : ApiConstants::PER_PAGE;
 
         $query = $user->notifications()->orderByDesc('created_at');
 

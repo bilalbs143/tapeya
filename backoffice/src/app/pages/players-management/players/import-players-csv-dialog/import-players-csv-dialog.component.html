@@ -1,0 +1,385 @@
+<app-dialog-wrapper title="Import Players from CSV">
+  <mat-dialog-content class="max-h-[70vh] overflow-y-auto">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+      <div
+        class="flex size-12 shrink-0 items-center justify-center rounded-lg bg-light-primary text-primary"
+        aria-hidden="true"
+      >
+        <i-tabler
+          name="file-type-csv"
+          class="size-7 shrink-0"
+        />
+      </div>
+      <div class="min-w-0 flex-1">
+        <h4 class="m-0 mb-2 text-base font-semibold">Bulk Import Players</h4>
+        <p class="m-0 text-sm leading-relaxed text-muted">
+          Each row creates an app user with the <strong>Player</strong> role only (same profile fields as
+          <strong>Add Player</strong>). <strong>Country</strong> and <strong>City</strong> are optional. If you set
+          country, use <strong>Pakistan</strong> only; with Pakistan + world city data, pick a city from the reference
+          list below.
+          <a
+            class="font-medium text-primary underline decoration-primary/40 underline-offset-2 hover:decoration-primary"
+            [href]="sampleCsvHref"
+            [download]="sampleCsvDownloadName"
+          >
+            Download sample CSV
+          </a>
+        </p>
+      </div>
+    </div>
+
+    <section class="mt-6 pb-6">
+      <div class="grid grid-cols-12 gap-6">
+        <div class="col-span-12 md:col-span-6">
+          <mat-card class="cardWithShadow h-full">
+            <mat-card-content>
+              <span class="text-xs font-semibold text-error">Mandatory</span>
+              <p class="m-0 mb-2 mt-1 text-xs text-muted">Every Data Row Needs a Value:</p>
+              <p class="m-0 break-all font-mono text-xs leading-relaxed">name, nickname, phone</p>
+            </mat-card-content>
+          </mat-card>
+        </div>
+        <div class="col-span-12 md:col-span-6">
+          <mat-card class="cardWithShadow h-full">
+            <mat-card-content>
+              <span class="text-xs font-semibold text-primary">Optional</span>
+              <p class="m-0 mb-2 mt-1 text-xs text-muted">Header Column Required; Cell May Be Empty:</p>
+              <p class="m-0 break-all font-mono text-xs leading-relaxed">
+                email, date_of_birth, playing_role, bowling_style, batting_style, country, city
+              </p>
+              <p class="m-0 mt-2 text-xs leading-relaxed text-muted">
+                If <span class="font-mono">country</span> is set → <strong>Pakistan</strong> only. With Pakistan + DB
+                cities, <span class="font-mono">city</span> must match “Pakistan cities”.
+              </p>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </section>
+
+    <mat-accordion multi>
+      <mat-expansion-panel class="cardWithShadow">
+        <mat-expansion-panel-header>
+          <mat-panel-title class="font-semibold">Playing Role (CSV Value)</mat-panel-title>
+          <mat-panel-description class="text-sm">
+            Value ↔ label reference for the <span class="font-mono">playing_role</span> column
+            <mat-icon class="ml-auto me-2">
+              <i-tabler
+                name="list"
+                class="size-5!"
+              ></i-tabler>
+            </mat-icon>
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="table-responsive overflow-x-auto">
+          <table
+            mat-table
+            [dataSource]="playingRoles"
+            class="min-w-[240px] w-full text-sm"
+          >
+            <ng-container matColumnDef="value">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="bg-light-secondary text-sm font-semibold"
+              >
+                Value
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="font-mono text-xs"
+              >
+                {{ row.value }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="label">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="bg-light-secondary text-sm font-semibold"
+              >
+                Label
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                {{ row.label }}
+              </td>
+            </ng-container>
+            <tr
+              mat-header-row
+              *matHeaderRowDef="enumColumns"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: enumColumns"
+            ></tr>
+          </table>
+        </div>
+      </mat-expansion-panel>
+
+      <mat-expansion-panel class="cardWithShadow">
+        <mat-expansion-panel-header>
+          <mat-panel-title class="font-semibold">Bowling Style</mat-panel-title>
+          <mat-panel-description class="text-sm">
+            Value ↔ label reference for the <span class="font-mono">bowling_style</span> column
+            <mat-icon class="ml-auto me-2">
+              <i-tabler
+                name="list"
+                class="size-5!"
+              ></i-tabler>
+            </mat-icon>
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="table-responsive overflow-x-auto">
+          <table
+            mat-table
+            [dataSource]="bowlingStyles"
+            class="min-w-[240px] w-full text-sm"
+          >
+            <ng-container matColumnDef="value">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="bg-light-secondary text-sm font-semibold"
+              >
+                Value
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="font-mono text-xs"
+              >
+                {{ row.value }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="label">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="bg-light-secondary text-sm font-semibold"
+              >
+                Label
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                {{ row.label }}
+              </td>
+            </ng-container>
+            <tr
+              mat-header-row
+              *matHeaderRowDef="enumColumns"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: enumColumns"
+            ></tr>
+          </table>
+        </div>
+      </mat-expansion-panel>
+
+      <mat-expansion-panel class="cardWithShadow">
+        <mat-expansion-panel-header>
+          <mat-panel-title class="font-semibold">Batting Style</mat-panel-title>
+          <mat-panel-description class="text-sm">
+            Value ↔ label reference for the <span class="font-mono">batting_style</span> column
+            <mat-icon class="ml-auto me-2">
+              <i-tabler
+                name="list"
+                class="size-5!"
+              ></i-tabler>
+            </mat-icon>
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="table-responsive overflow-x-auto">
+          <table
+            mat-table
+            [dataSource]="battingStyles"
+            class="min-w-[240px] w-full text-sm"
+          >
+            <ng-container matColumnDef="value">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="bg-light-secondary text-sm font-semibold"
+              >
+                Value
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="font-mono text-xs"
+              >
+                {{ row.value }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="label">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="bg-light-secondary text-sm font-semibold"
+              >
+                Label
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                {{ row.label }}
+              </td>
+            </ng-container>
+            <tr
+              mat-header-row
+              *matHeaderRowDef="enumColumns"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: enumColumns"
+            ></tr>
+          </table>
+        </div>
+      </mat-expansion-panel>
+
+      <mat-expansion-panel class="cardWithShadow">
+        <mat-expansion-panel-header>
+          <mat-panel-title class="font-semibold">Pakistan Cities (When Country = Pakistan)</mat-panel-title>
+          <mat-panel-description class="text-sm">
+            Exact names for CSV when country is Pakistan
+            <mat-icon class="ml-auto me-2">
+              <i-tabler
+                name="map-pin"
+                class="size-5!"
+              ></i-tabler>
+            </mat-icon>
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        @if (citiesLoadError) {
+          <p class="m-0 text-sm text-error">Could not load cities. Check the API or world data.</p>
+        } @else if (pakistanCities.length === 0) {
+          <p class="m-0 text-sm leading-relaxed text-muted">
+            No cities returned for Pakistan (<span class="font-mono">PK</span>). You may leave country/city blank, or
+            set <span class="font-mono">Pakistan</span> with any city text until world data is seeded.
+          </p>
+        } @else {
+          <p class="m-0 text-sm leading-relaxed text-muted">
+            Use when <span class="font-mono">country</span> is <strong>Pakistan</strong> and
+            <span class="font-mono">city</span> is set — copy an <strong>exact</strong> name (case-insensitive).
+          </p>
+          <div class="max-h-48 columns-2 gap-x-4 overflow-y-auto font-mono text-xs">
+            @for (c of pakistanCities; track c.id) {
+              <div class="break-inside-avoid py-0.5">{{ c.name }}</div>
+            }
+          </div>
+        }
+      </mat-expansion-panel>
+    </mat-accordion>
+
+    <div class="mt-6 grid grid-cols-12 gap-6">
+      <div class="col-span-12 lg:col-span-6">
+        <mat-checkbox [formControl]="dryRunControl">
+          <span class="text-sm">Preview Only (Dry Run — Validate, Do Not Create Players)</span>
+        </mat-checkbox>
+      </div>
+      <div class="col-span-12 lg:col-span-6">
+        @if (importInProgress) {
+          <div class="flex min-h-[42px] items-center gap-3 py-1">
+            <mat-spinner diameter="28" />
+            <span class="text-sm text-muted m-0">{{ dryRunControl.value ? 'Validating CSV…' : 'Importing…' }}</span>
+          </div>
+        } @else {
+          <input
+            type="file"
+            accept=".csv,text/csv"
+            (change)="onFileSelected($event)"
+            class="block w-full text-sm text-gray-500 file:mr-4 file:rounded file:border-0 file:bg-primary file:px-4 file:py-2 file:font-medium file:text-white"
+          />
+        }
+      </div>
+    </div>
+
+    @if (lastDryRun) {
+      <section
+        class="mt-6 rounded-lg border border-border bg-light-secondary p-4"
+        aria-live="polite"
+      >
+        <div class="mb-3 flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h3 class="m-0 text-sm font-semibold">Dry run result</h3>
+            <p class="text-muted m-0 mt-1 text-xs leading-relaxed">
+              Nothing was saved. You can fix the CSV and run another preview, or turn off Preview Only to import.
+            </p>
+          </div>
+          <button
+            type="button"
+            mat-stroked-button
+            class="shrink-0 text-xs"
+            (click)="clearDryRunFeedback()"
+          >
+            Dismiss
+          </button>
+        </div>
+        <dl class="m-0 grid grid-cols-2 gap-2 text-sm sm:max-w-md">
+          <dt class="text-muted m-0">Valid rows</dt>
+          <dd class="m-0 font-semibold">{{ lastDryRun.rows_imported }}</dd>
+          <dt class="text-muted m-0">Skipped rows</dt>
+          <dd class="m-0 font-semibold">{{ lastDryRun.rows_skipped }}</dd>
+        </dl>
+        @if (lastDryRun.errors.length) {
+          <p class="m-0 mb-2 mt-4 text-xs font-semibold text-error">Row / validation messages</p>
+          <ul
+            class="m-0 max-h-52 list-none space-y-1.5 overflow-y-auto rounded border border-default-border bg-white p-3 font-mono text-xs leading-relaxed dark:bg-gray-900"
+          >
+            @for (line of lastDryRun.errors; track $index) {
+              <li class="break-words">{{ line }}</li>
+            }
+          </ul>
+        } @else {
+          <p class="text-primary m-0 mt-4 text-sm">No row-level issues reported.</p>
+        }
+      </section>
+    }
+
+    @if (dryRunRequestError) {
+      <section
+        class="mt-6 rounded-lg border border-error/40 bg-error/5 p-4"
+        aria-live="assertive"
+      >
+        <div class="mb-2 flex flex-wrap items-start justify-between gap-2">
+          <h3 class="m-0 text-sm font-semibold text-error">Request failed</h3>
+          <button
+            type="button"
+            mat-stroked-button
+            class="shrink-0 text-xs"
+            (click)="clearDryRunFeedback()"
+          >
+            Dismiss
+          </button>
+        </div>
+        <pre
+          class="m-0 max-h-48 overflow-y-auto whitespace-pre-wrap break-words rounded border border-error/30 bg-white p-3 font-mono text-xs leading-relaxed dark:bg-gray-900"
+          >{{ dryRunRequestError }}</pre
+        >
+      </section>
+    }
+  </mat-dialog-content>
+
+  <mat-divider></mat-divider>
+  <mat-dialog-actions>
+    <button
+      type="button"
+      mat-stroked-button
+      class="border border-error! text-error"
+      [mat-dialog-close]="false"
+    >
+      Cancel
+    </button>
+  </mat-dialog-actions>
+</app-dialog-wrapper>

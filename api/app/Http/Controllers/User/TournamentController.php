@@ -27,7 +27,12 @@ class TournamentController extends Controller
             ->withCount('teams');
 
         if (request()->boolean('organizer_tournaments')) {
-            $query->where('organizer_id', request()->user()->id);
+            $uid = request()->user()->id;
+            $query->where(function ($q) use ($uid) {
+                $q->where('organizer_id', $uid)
+                    ->orWhere('created_by', $uid)
+                    ->orWhereHas('broadcasters', fn ($b) => $b->whereKey($uid));
+            });
         }
 
         // Optionally eager-load matches for each tournament (for user scorecard views).
@@ -39,11 +44,7 @@ class TournamentController extends Controller
             ]);
         }
 
-        $tournaments = request()->has('all')
-            ? $query->get()
-            : $query->paginate((int) request('per_page', 15));
-
-        return $this->success(TournamentResource::collection($tournaments));
+        return $this->success(TournamentResource::collection($this->paginateOrAll($query)));
     }
 
     /**

@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 
@@ -34,9 +34,28 @@ export interface User {
   city?: string | null;
   roles?: UserRole[];
   role_ids?: number[];
+  admin_roles?: UserRole[];
+  admin_role_ids?: number[];
+  created_by?: number | null;
+  creator?: { id: number; name: string; nickname: string | null } | null;
   created_at?: string;
   updated_at?: string;
 }
+
+/**
+ * Minimal user row for admin search pickers (organizer, broadcast staff, team squads, etc.).
+ * Some endpoints omit optional keys (e.g. phone on narrow JSON resources).
+ */
+export type UserSearchRow = Pick<User, 'id' | 'name' | 'nickname' | 'email'> & {
+  phone?: string | null;
+};
+
+/** Query params for {@link UsersService.adminUserSearch} (matches admin `UserSearchController`). */
+export type AdminUserSearchParams = {
+  app_role?: string;
+  context?: 'broadcaster';
+  tournament_id?: number;
+};
 
 export interface UsersListResponse {
   data: User[];
@@ -62,6 +81,7 @@ export interface CreateUserPayload {
   type: string;
   status?: string | null;
   role_ids?: number[];
+  admin_role_ids?: number[];
   playing_role?: string | null;
   bowling_style?: string | null;
   batting_style?: string | null;
@@ -86,16 +106,17 @@ export class UsersService {
     return this.http.get<{ data: User }>(`${this.baseUrl}/${id}`);
   }
 
-  /** Server-side user search for organizer dropdown (sponsor role only). */
-  public searchUsersForOrganizerDropdown(search?: string): Observable<{
-    data: { id: number; name: string; nickname: string | null; email: string | null; phone: string | null }[];
-  }> {
-    let params = new HttpParams();
-    if (search?.trim()) params = params.set('search', search.trim());
-    params = params.set('role', 'sponsor');
-    return this.http.get<{
-      data: { id: number; name: string; nickname: string | null; email: string | null; phone: string | null }[];
-    }>(`${this.baseUrl}`, { params });
+  /**
+   * Unified admin user typeahead — `GET v1/admin/users/search`.
+   * Examples: default picker (no extra), `{ app_role: 'sponsor' }` for organizer, `{ context: 'broadcaster', tournament_id }` for broadcast staff.
+   */
+  public adminUserSearch(
+    search?: string | null,
+    extra: AdminUserSearchParams = {}
+  ): Observable<{ data: UserSearchRow[] }> {
+    return this.http.get<{ data: UserSearchRow[] }>(`${this.baseUrl}/search`, {
+      params: toHttpParams(extra as Record<string, unknown>, { search: search ?? '' }),
+    });
   }
 
   public create(payload: CreateUserPayload): Observable<{ data: User }> {

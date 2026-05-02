@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { ListingProductCard } from '@/components/shop/ListingProductCard';
 import { ShopSearchPopover } from '@/components/shop/ShopSearchPopover';
 import { useGetBrandsQuery, useGetProductsQuery } from '@/store/api/shopApi';
@@ -103,46 +104,16 @@ export default function ShopHome() {
   }, []);
 
   return (
-    <Container>
-      <div className="flex flex-col gap-3">
-        <h1 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">
-          Shop
-        </h1>
+    <div className="bg-black">
+      <AppSubpageHeader title="Shop" />
+      <Container>
+        <div className="flex flex-col gap-3">
+          <ShopSearchPopover />
 
-        <ShopSearchPopover />
-
-        <div className="flex flex-col">
-          <div ref={tabsSentinelRef} className="h-px w-full" aria-hidden />
-          <div className="-mx-4 bg-black px-4 pt-0.5 pb-2">
-            <div className="flex gap-2 overflow-x-auto py-1 lg:gap-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {brands.map(({ id, name, slug, logo }) => (
-                <Link
-                  key={id}
-                  to={`/shop/${slug}`}
-                  className="flex shrink-0 items-center gap-2 rounded-[6px] bg-[#141412] px-[13px] py-[10px] text-[13px] font-semibold tracking-wide text-white uppercase transition-colors hover:bg-[#252520] lg:min-w-[96px] lg:justify-center lg:px-4"
-                  aria-label={`Shop ${name} products`}
-                >
-                  {logo ? (
-                    <img
-                      src={logo}
-                      alt={`${name} logo`}
-                      className="h-5 w-5 shrink-0 object-contain"
-                    />
-                  ) : null}
-                  {name}
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {tabsFixedVisible && (
-          <div
-            className="fixed right-0 left-0 z-10 bg-black pt-1 pb-2 lg:left-[280px]"
-            style={{ top: NAVBAR_HEIGHT }}
-          >
-            <div className="mx-auto max-w-2xl px-4 lg:max-w-none lg:px-4">
-              <div className="flex gap-2 overflow-x-auto py-1 lg:gap-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex flex-col">
+            <div ref={tabsSentinelRef} className="h-px w-full" aria-hidden />
+            <div className="-mx-4 bg-black px-4 pt-0.5 pb-2">
+              <div className="flex gap-2 overflow-x-auto py-1 [scrollbar-width:none] lg:gap-3 [&::-webkit-scrollbar]:hidden">
                 {brands.map(({ id, name, slug, logo }) => (
                   <Link
                     key={id}
@@ -163,25 +134,54 @@ export default function ShopHome() {
               </div>
             </div>
           </div>
-        )}
 
-        <div className="space-y-6 pt-2">
-          <ShopSlider
-            title="Most popular"
-            viewMorePath="/shop/filter/popular"
-            products={popularProducts}
-            brands={brands}
-            reverseDirection={false}
-          />
-          <ShopSlider
-            title="Special offer"
-            viewMorePath="/shop/filter/special-offer"
-            products={specialOfferProducts}
-            brands={brands}
-            reverseDirection
-          />
+          {tabsFixedVisible && (
+            <div
+              className="fixed right-0 left-0 z-10 bg-black pt-1 pb-2 lg:left-[280px]"
+              style={{ top: NAVBAR_HEIGHT }}
+            >
+              <div className="mx-auto max-w-2xl px-4 lg:max-w-none lg:px-4">
+                <div className="flex gap-2 overflow-x-auto py-1 [scrollbar-width:none] lg:gap-3 [&::-webkit-scrollbar]:hidden">
+                  {brands.map(({ id, name, slug, logo }) => (
+                    <Link
+                      key={id}
+                      to={`/shop/${slug}`}
+                      className="flex shrink-0 items-center gap-2 rounded-[6px] bg-[#141412] px-[13px] py-[10px] text-[13px] font-semibold tracking-wide text-white uppercase transition-colors hover:bg-[#252520] lg:min-w-[96px] lg:justify-center lg:px-4"
+                      aria-label={`Shop ${name} products`}
+                    >
+                      {logo ? (
+                        <img
+                          src={logo}
+                          alt={`${name} logo`}
+                          className="h-5 w-5 shrink-0 object-contain"
+                        />
+                      ) : null}
+                      {name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-6 pt-2">
+            <ShopSlider
+              title="Most popular"
+              viewMorePath="/shop/filter/popular"
+              products={popularProducts}
+              brands={brands}
+              reverseDirection={false}
+            />
+            <ShopSlider
+              title="Special offer"
+              viewMorePath="/shop/filter/special-offer"
+              products={specialOfferProducts}
+              brands={brands}
+              reverseDirection
+            />
+          </div>
         </div>
-      </div>
-    </Container>
+      </Container>
+    </div>
   );
 }

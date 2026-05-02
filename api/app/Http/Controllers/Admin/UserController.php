@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\User\RoleGuardEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
 use App\Http\Requests\Admin\User\StoreUserRequest;
@@ -20,14 +21,15 @@ class UserController extends BaseAdminController
 
     protected function baseQuery()
     {
-        return User::query()->user();
+        return User::query()->user()->with(['creator:id,name,nickname']);
     }
 
     public function store(StoreUserRequest $request): JsonResponse
     {
         $data = $request->validated();
         $roleIds = $data['role_ids'] ?? null;
-        unset($data['role_ids']);
+        $adminRoleIds = $data['admin_role_ids'] ?? null;
+        unset($data['role_ids'], $data['admin_role_ids']);
 
         if (! isset($data['status'])) {
             $data['status'] = ($data['type'] ?? null) === UserTypeEnum::USER->value
@@ -35,11 +37,23 @@ class UserController extends BaseAdminController
                 : UserStatusEnum::ACTIVE->value;
         }
 
+        $data['created_by'] = $request->user()?->id;
+
         $record = $this->model->create($data);
         if (is_array($roleIds) && count($roleIds) > 0) {
-            $record->roles()->sync(
-                Role::whereIn('id', $roleIds)->where('guard', 'app')->pluck('id')->toArray()
-            );
+            $appIds = Role::query()
+                ->whereIn('id', $roleIds)
+                ->where('guard', RoleGuardEnum::APP->value)
+                ->pluck('id')
+                ->toArray();
+            $adminIds = is_array($adminRoleIds)
+                ? Role::query()
+                    ->whereIn('id', $adminRoleIds)
+                    ->where('guard', RoleGuardEnum::ADMIN->value)
+                    ->pluck('id')
+                    ->toArray()
+                : [];
+            $record->roles()->sync(array_values(array_unique(array_merge($appIds, $adminIds))));
         }
         $record = $this->refresh($record);
 
@@ -53,19 +67,40 @@ class UserController extends BaseAdminController
 
     public function update(UpdateUserRequest $request, User $user): JsonResponse
     {
-        $roleIds = $request->validated()['role_ids'] ?? null;
+        $validated = $request->validated();
+        $roleIds = $validated['role_ids'] ?? null;
+        $adminRoleIds = $validated['admin_role_ids'] ?? null;
 
-        return $this->_patch($request, $user, null, function ($record) use ($roleIds): void {
-            if (is_array($roleIds)) {
-                $record->roles()->sync(
-                    Role::whereIn('id', $roleIds)->where('guard', 'app')->pluck('id')->toArray()
-                );
+        return $this->_patch($request, $user, null, function ($record) use ($roleIds, $adminRoleIds): void {
+            if (! is_array($roleIds) && ! is_array($adminRoleIds)) {
+                return;
             }
+            $appIds = is_array($roleIds)
+                ? Role::query()
+                    ->whereIn('id', $roleIds)
+                    ->where('guard', RoleGuardEnum::APP->value)
+                    ->pluck('id')
+                    ->toArray()
+                : $record->roles()
+                    ->where('roles.guard', RoleGuardEnum::APP->value)
+                    ->pluck('roles.id')
+                    ->toArray();
+            $adminIds = is_array($adminRoleIds)
+                ? Role::query()
+                    ->whereIn('id', $adminRoleIds)
+                    ->where('guard', RoleGuardEnum::ADMIN->value)
+                    ->pluck('id')
+                    ->toArray()
+                : $record->roles()
+                    ->where('roles.guard', RoleGuardEnum::ADMIN->value)
+                    ->pluck('roles.id')
+                    ->toArray();
+            $record->roles()->sync(array_values(array_unique(array_merge($appIds, $adminIds))));
         }, function (array &$data): void {
             if (isset($data['password']) && $data['password'] === '') {
                 unset($data['password']);
             }
-            unset($data['role_ids']);
+            unset($data['role_ids'], $data['admin_role_ids']);
         });
     }
 

@@ -1,8 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { BOTTOM_NAV_Z } from '@/lib/constants/layout';
-
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const profileIcon = `${CLOUDFRONT_APP_BASE}/images/icons/profile.svg`;
 const scoreIcon = `${CLOUDFRONT_APP_BASE}/images/icons/score-bottom.svg`;
@@ -48,8 +47,13 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed right-0 bottom-0 left-0 rounded-tl-[17px] rounded-tr-[17px] bg-[#141412] px-2 py-2 shadow-[0_-2px_10px_rgba(0,0,0,0.2)]"
-      style={{ zIndex: BOTTOM_NAV_Z }}
+      className="fixed right-0 bottom-0 left-0 rounded-tl-[17px] rounded-tr-[17px] bg-[#141412] px-2 pt-2 shadow-[0_-2px_10px_rgba(0,0,0,0.2)]"
+      style={{
+        // Pad below the nav grid to cover the iPhone home indicator / Android
+        // gesture bar so tab labels never disappear behind it.
+        paddingBottom: 'max(8px, env(safe-area-inset-bottom))',
+        zIndex: BOTTOM_NAV_Z,
+      }}
       aria-label="Bottom navigation"
     >
       <div className="grid w-full grid-cols-5 items-center justify-items-center">

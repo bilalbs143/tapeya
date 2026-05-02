@@ -12,18 +12,22 @@ use App\Enums\Shop\OrderStatusEnum;
 use App\Enums\Shop\ProductDiscountTypeEnum;
 use App\Enums\Tournament\GroupModeEnum;
 use App\Enums\Tournament\TournamentRequestStatusEnum;
+use App\Enums\Tournament\TournamentScheduleWindowEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
 use App\Enums\User\BattingStyleEnum;
 use App\Enums\User\BowlingStyleEnum;
 use App\Enums\User\PlayingRoleEnum;
+use App\Enums\User\RoleGuardEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
+use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
 use Illuminate\Http\JsonResponse;
 
 class EnumController extends Controller
 {
+    use BaseControllerTrait;
     /**
      * Return all enum options for admin (value + label), categorized by type.
      * Use for dynamic dropdowns in backoffice.
@@ -40,6 +44,7 @@ class EnumController extends Controller
             'order_status' => $this->toOptions(OrderStatusEnum::cases()),
             'product_discount_type' => $this->toOptions(ProductDiscountTypeEnum::cases()),
             'tournament_type' => $this->toOptions(TournamentTypeEnum::cases()),
+            'tournament_schedule_window' => $this->toOptions(TournamentScheduleWindowEnum::cases()),
             'group_mode' => $this->toOptions(GroupModeEnum::cases()),
             'cricket_format' => $this->toOptions(CricketFormatEnum::cases()),
             'match_timings' => $this->toOptions(MatchTimingEnum::cases()),
@@ -47,14 +52,19 @@ class EnumController extends Controller
             'tournament_request_status' => $this->toOptions(TournamentRequestStatusEnum::cases()),
             'shot_position' => $this->toOptions(ShotPositionEnum::cases()),
             'notification_type' => $this->toOptions(AdminNotificationTypeEnum::cases()),
-            'app_roles' => Role::forGuard('app')->orderBy('name')->get()->map(fn (Role $r) => [
+            'app_roles' => Role::forGuard(RoleGuardEnum::APP->value)->orderBy('name')->get()->map(fn (Role $r) => [
+                'value' => (string) $r->id,
+                'label' => $r->name,
+                'slug' => $r->slug,
+            ])->values()->all(),
+            'admin_roles' => Role::forGuard(RoleGuardEnum::ADMIN->value)->orderBy('name')->get()->map(fn (Role $r) => [
                 'value' => (string) $r->id,
                 'label' => $r->name,
                 'slug' => $r->slug,
             ])->values()->all(),
         ];
 
-        return response()->json(['data' => $enums]);
+        return $this->success($enums);
     }
 
     /**

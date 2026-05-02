@@ -45,6 +45,17 @@ export interface TournamentMatchesListResponse {
   links?: Record<string, string | null>;
 }
 
+export interface CreateTournamentMatchPayload {
+  home_team_id: number;
+  away_team_id: number;
+  match_date: string;
+  match_time: string;
+  venue_name: string;
+  players_per_side: number;
+  overs: number;
+  group_index?: number | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class TournamentMatchesService {
   private readonly http = inject(HttpClient);
@@ -56,5 +67,12 @@ export class TournamentMatchesService {
 
   public getById(matchId: number): Observable<{ data: TournamentMatchRow }> {
     return this.http.get<{ data: TournamentMatchRow }>(`v1/admin/matches/${matchId}`);
+  }
+
+  public createMatch(
+    tournamentId: number,
+    body: CreateTournamentMatchPayload
+  ): Observable<{ data: TournamentMatchRow }> {
+    return this.http.post<{ data: TournamentMatchRow }>(`v1/admin/tournaments/${tournamentId}/matches`, body);
   }
 }

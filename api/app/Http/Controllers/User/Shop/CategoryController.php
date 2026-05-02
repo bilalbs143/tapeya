@@ -18,17 +18,12 @@ class CategoryController extends Controller
     {
         $query = Category::query()->active()->with('parent');
 
-        $records = QueryBuilder::for($query)
+        $query = QueryBuilder::for($query)
             ->allowedFilters(['id', 'parent_id'])
             ->defaultSort('sort_order')
-            ->allowedSorts(['id', 'name', 'slug', 'sort_order'])
-            ->when(
-                request()->has('all'),
-                fn ($q) => $q->get(),
-                fn ($q) => $q->paginate((int) request('per_page', 15))
-            );
+            ->allowedSorts(['id', 'name', 'slug', 'sort_order']);
 
-        return CategoryResource::collection($records);
+        return CategoryResource::collection($this->paginateOrAll($query));
     }
 
     public function show(int $category): JsonResponse

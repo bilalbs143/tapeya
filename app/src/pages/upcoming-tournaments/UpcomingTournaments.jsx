@@ -2,6 +2,8 @@ import { useMemo, useRef, useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatDateRange } from '@/lib/format';
 import { parseDate, toDateStr } from '@/lib/utils/dateUtils';
 import { getTournamentTitle } from '@/lib/utils/tournamentUtils';
@@ -16,8 +18,7 @@ import {
 } from '@/ui/Tabs';
 
 const MONTH_TABS_COUNT = 6;
-const FALLBACK_IMAGE =
-  'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&h=320&fit=crop';
+const FALLBACK_IMAGE = `${CLOUDFRONT_APP_BASE}/images/background/fixture-bg.png`;
 
 const upcomingTriggerClass =
   'min-w-[72px] flex-col items-center justify-center gap-0 rounded-xl px-4 py-2.5 text-white data-[state=active]:text-black lg:min-w-[96px]';
@@ -129,20 +130,17 @@ export default function UpcomingTournaments() {
 
   return (
     <div className="min-h-screen bg-black">
-      <Container className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 flex items-center justify-center bg-black px-4 pt-6 pb-4 lg:mt-0">
-          <h1 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">
-            UPCOMING TOURNAMENTS
-          </h1>
-        </header>
-
+      <AppSubpageHeader title="UPCOMING TOURNAMENTS" />
+      <Container>
         <Tabs
           value={activeMonth}
           onValueChange={setActiveMonth}
           className="w-full"
         >
           <div className="-mx-4 bg-black px-4 pb-3">
-            <TabsList className={`${scorecardListClass} lg:justify-center lg:gap-2`}>
+            <TabsList
+              className={`${scorecardListClass} lg:justify-center lg:gap-2`}
+            >
               {monthTabs.map(({ value, monthShort, year }) => (
                 <TabsTrigger
                   key={value}

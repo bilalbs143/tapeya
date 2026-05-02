@@ -1,10 +1,9 @@
 import { Link, useParams } from 'react-router-dom';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { statsTotalPaths } from '@/pages/scorecard/statsTotalFlow';
 import { useGetTournamentSeasonStatsQuery } from '@/store/api/tournamentApi';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
-
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const defaultPlayerImage = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 

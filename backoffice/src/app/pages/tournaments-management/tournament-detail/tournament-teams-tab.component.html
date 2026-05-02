@@ -1,0 +1,151 @@
+<mat-card class="cardWithShadow mb-3!">
+  <mat-card-content class="p-6">
+    <div class="grid grid-cols-12 gap-4 items-end mb-4">
+      <div class="col-span-12 lg:col-span-8">
+        <h2 class="text-base font-semibold m-0 mb-1">Teams</h2>
+        <p class="text-sm text-muted m-0 leading-relaxed">
+          Link teams to this tournament and assign groups when the format uses multiple groups. Rosters and match
+          line-ups are managed on the
+          <a
+            class="text-primary font-medium no-underline hover:underline"
+            [routerLink]="['/tournaments-management/tournaments', tournamentId, 'squads']"
+            >Team Squads</a
+          >
+          tab.
+        </p>
+      </div>
+      <div class="col-span-12 lg:col-span-4 flex flex-wrap items-center justify-end gap-2">
+        <button
+          type="button"
+          mat-flat-button
+          color="primary"
+          (click)="openAttachTeams()"
+        >
+          Attach Teams
+        </button>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="cardWithShadow table-header-theme">
+  <mat-card-content class="p-0">
+    @if (isLoading) {
+      <div class="flex min-h-[18rem] w-full items-center justify-center px-4 py-10">
+        <mat-spinner diameter="40" />
+      </div>
+    } @else if (teams.length === 0) {
+      <div class="flex min-h-[18rem] w-full flex-col items-center justify-center px-4 py-10 text-center text-muted">
+        <p class="m-0 max-w-md text-sm">No teams are linked to this tournament. Attach Teams to add them.</p>
+      </div>
+    } @else {
+      <div class="sticky-header-table-container relative overflow-auto">
+        <app-table-wrapper [loading]="false">
+          <table
+            mat-table
+            [dataSource]="teams"
+            class="w-full min-w-[480px] text-sm"
+          >
+            <ng-container matColumnDef="name">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="bg-light-secondary text-sm font-semibold"
+              >
+                Team
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="font-medium"
+              >
+                {{ row.name }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="sponsor">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="bg-light-secondary text-sm font-semibold"
+              >
+                Sponsor
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                {{ row.sponsor?.nickname || row.sponsor?.name || emptyCell }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="group">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="bg-light-secondary text-sm font-semibold"
+              >
+                Group
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+              >
+                {{ row.group_index ?? '—' }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="bg-light-secondary text-sm font-semibold"
+              >
+                Actions
+              </th>
+              <td
+                mat-cell
+                *matCellDef="let row"
+                class="text-sm whitespace-nowrap"
+              >
+                @if (numberOfGroups > 1) {
+                  <button
+                    type="button"
+                    class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle text-black hover:opacity-70"
+                    matTooltip="Set Group"
+                    matTooltipShowDelay="300"
+                    aria-label="Set group"
+                    (click)="openEditGroup(row)"
+                  >
+                    <i-tabler
+                      name="layout-grid"
+                      class="size-4.5! text-black"
+                    ></i-tabler>
+                  </button>
+                }
+                <button
+                  type="button"
+                  class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle text-black hover:opacity-70"
+                  matTooltip="Detach From Tournament"
+                  matTooltipShowDelay="300"
+                  aria-label="Detach from tournament"
+                  (click)="confirmDetachTeam(row)"
+                >
+                  <i-tabler
+                    name="unlink"
+                    class="size-4.5! text-black"
+                  ></i-tabler>
+                </button>
+              </td>
+            </ng-container>
+            <tr
+              mat-header-row
+              *matHeaderRowDef="columns"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: columns"
+            ></tr>
+          </table>
+        </app-table-wrapper>
+      </div>
+    }
+  </mat-card-content>
+</mat-card>

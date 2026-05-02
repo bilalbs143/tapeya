@@ -11,9 +11,8 @@ import { useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
-import { Container } from '@/ui/Container';
-
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 
 const eliteRankingIcon = `${CLOUDFRONT_APP_BASE}/images/icons/elite-ranking-icon.svg`;
 const goldRankingIcon = `${CLOUDFRONT_APP_BASE}/images/icons/gold-ranking-icon.svg`;
@@ -206,13 +205,9 @@ export default function Pricing() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <Container className="flex min-h-screen flex-col justify-center gap-4 pt-8 pb-8">
-        <header className="mb-2 text-center">
-          <h1 className="text-[16px] font-bold text-white uppercase">
-            Choose Plan
-          </h1>
-        </header>
+    <div className="flex min-h-screen flex-col bg-black text-white">
+      <AppSubpageHeader title="Choose Plan" />
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center gap-4 px-4 py-4 lg:max-w-none">
         <div className="space-y-4">
           {PRICING_PLANS.map((plan) => (
             <PricingCard
@@ -224,7 +219,7 @@ export default function Pricing() {
             />
           ))}
         </div>
-      </Container>
+      </div>
     </div>
   );
 }

@@ -139,30 +139,29 @@ Every JSX component checked against **docs/Coding guidelines.md**.
 | 97 | components/dialogs/scoring/TeamNameDialog.jsx | ❌ | 0 | Add guidelines. |
 | 98 | components/dialogs/scoring/OversDialog.jsx | ❌ | 0 | Add guidelines. |
 | 99 | components/dialogs/scoring/PlayersPerSideDialog.jsx | ❌ | 0 | Add guidelines. |
-| 100 | components/dialogs/scoring/AddBatsmanDialog.jsx | ❌ | 0 | Add guidelines. |
-| 101 | components/dialogs/scoring/AddBowlerDialog.jsx | ❌ | 0 | Add guidelines. |
-| 102 | components/dialogs/scoring/OutReasonDialog.jsx | ❌ | 0 | Add guidelines. |
-| 103 | components/dialogs/scoring/FielderPickerDialog.jsx | ❌ | 0 | Add guidelines. |
-| 104 | components/dialogs/scoring/CustomScoreDialog.jsx | ❌ | 0 | Add guidelines. |
-| 105 | components/shop/ShopSearchPopover.jsx | ✅ | 7 | Uses useDebounce, search constants. Guidelines added. |
-| 106 | components/shop/ListingProductCard.jsx | ❌ | 9 | Add guidelines. |
-| 107 | components/scorecard/ScorecardTabs.jsx | ❌ | 0 | Add guidelines. |
-| 108 | components/scorecard/MatchCard.jsx | ❌ | 0 | Add guidelines. |
-| 109 | components/scorecard/CommentaryText.jsx | ❌ | 0 | Add guidelines. |
-| 110 | components/UserProfileTabs/ProfileOverview.jsx | ❌ | 8 | Add guidelines. |
-| 111 | components/UserProfileTabs/ProfileStats.jsx | ❌ | 5 | Uses displayUtils. Add guidelines. |
-| 112 | components/UserProfileTabs/PlayerProfile.jsx | ❌ | 5 | Add guidelines. |
-| 113 | components/UserProfileTabs/UserEdit.jsx | ❌ | 13 | Add guidelines. |
-| 114 | components/UserProfileTabs/ProfileMetrics.jsx | ❌ | 0 | Add guidelines. |
-| 115 | components/UserProfileTabs/ProfilePosts.jsx | ❌ | 0 | Add guidelines. |
-| 116 | components/UserProfileTabs/OrganizerOverview.jsx | ❌ | 0 | Add guidelines. |
-| 117 | components/UserProfileTabs/OrganizerStats.jsx | ❌ | 0 | Add guidelines. |
-| 118 | components/UserProfileTabs/OrganizerEvents.jsx | ❌ | 0 | Add guidelines. |
-| 119 | components/UserProfileTabs/SponsorOverview.jsx | ❌ | 0 | Add guidelines. |
-| 120 | components/UserProfileTabs/SponsorStats.jsx | ❌ | 0 | Add guidelines. |
-| 121 | components/UserProfileTabs/SponsorTeams.jsx | ❌ | 0 | Add guidelines. |
-| 122 | components/UserProfileTabs/SponsorProfileTabs.jsx | ❌ | 0 | Add guidelines. |
-| 123 | components/UserProfileTabs/OrganizerProfileTabs.jsx | ❌ | 0 | Add guidelines. |
+| 100 | components/dialogs/scoring/ScoringSquadPlayerPickerDialog.jsx | ❌ | 0 | Unified batting/bowling squad picker (replaces AddBatsmanDialog + AddBowlerDialog). Add guidelines. |
+| 101 | components/dialogs/scoring/OutReasonDialog.jsx | ❌ | 0 | Add guidelines. |
+| 102 | components/dialogs/scoring/FielderPickerDialog.jsx | ❌ | 0 | Add guidelines. |
+| 103 | components/dialogs/scoring/CustomScoreDialog.jsx | ❌ | 0 | Add guidelines. |
+| 104 | components/shop/ShopSearchPopover.jsx | ✅ | 7 | Uses useDebounce, search constants. Guidelines added. |
+| 105 | components/shop/ListingProductCard.jsx | ❌ | 9 | Add guidelines. |
+| 106 | components/scorecard/ScorecardTabs.jsx | ❌ | 0 | Add guidelines. |
+| 107 | components/scorecard/MatchCard.jsx | ❌ | 0 | Add guidelines. |
+| 108 | components/scorecard/CommentaryText.jsx | ❌ | 0 | Add guidelines. |
+| 109 | components/UserProfileTabs/ProfileOverview.jsx | ❌ | 8 | Add guidelines. |
+| 110 | components/UserProfileTabs/ProfileStats.jsx | ❌ | 5 | Uses displayUtils. Add guidelines. |
+| 111 | components/UserProfileTabs/PlayerProfile.jsx | ❌ | 5 | Add guidelines. |
+| 112 | components/UserProfileTabs/UserEdit.jsx | ❌ | 13 | Add guidelines. |
+| 113 | components/UserProfileTabs/ProfileMetrics.jsx | ❌ | 0 | Add guidelines. |
+| 114 | components/UserProfileTabs/ProfilePosts.jsx | ❌ | 0 | Add guidelines. |
+| 115 | components/UserProfileTabs/OrganizerOverview.jsx | ❌ | 0 | Add guidelines. |
+| 116 | components/UserProfileTabs/OrganizerStats.jsx | ❌ | 0 | Add guidelines. |
+| 117 | components/UserProfileTabs/OrganizerEvents.jsx | ❌ | 0 | Add guidelines. |
+| 118 | components/UserProfileTabs/SponsorOverview.jsx | ❌ | 0 | Add guidelines. |
+| 119 | components/UserProfileTabs/SponsorStats.jsx | ❌ | 0 | Add guidelines. |
+| 120 | components/UserProfileTabs/SponsorTeams.jsx | ❌ | 0 | Add guidelines. |
+| 121 | components/UserProfileTabs/SponsorProfileTabs.jsx | ❌ | 0 | Add guidelines. |
+| 122 | components/UserProfileTabs/OrganizerProfileTabs.jsx | ❌ | 0 | Add guidelines. |
 
 ---
 
@@ -170,41 +169,41 @@ Every JSX component checked against **docs/Coding guidelines.md**.
 
 | # | File | Guidelines | C/T | Notes |
 |---|------|------------|-----|--------|
-| 124 | ui/Button.jsx | ❌ | 0 | Add guidelines. |
-| 125 | ui/Input.jsx | ❌ | 0 | Add guidelines. |
-| 126 | ui/DatePicker.jsx | ❌ | 0 | Has error prop. Add guidelines. |
-| 127 | ui/ToggleGroupField.jsx | ✅ | 0 | |
-| 128 | ui/FormField.jsx | ❌ | 0 | Add guidelines. |
-| 129 | ui/Select.jsx | ❌ | 0 | Add guidelines. |
-| 130 | ui/Tabs.jsx | ❌ | 0 | Add guidelines. |
-| 131 | ui/Checkbox.jsx | ❌ | 0 | Add guidelines. |
-| 132 | ui/RadioGroup.jsx | ❌ | 0 | Add guidelines. |
-| 133 | ui/Switch.jsx | ❌ | 0 | Add guidelines. |
-| 134 | ui/Toggle.jsx | ❌ | 0 | Add guidelines. |
-| 135 | ui/ToggleGroup.jsx | ❌ | 0 | Add guidelines. |
-| 136 | ui/Dialog.jsx | ❌ | 0 | Add guidelines. |
-| 137 | ui/AlertDialog.jsx | ❌ | 0 | Add guidelines. |
-| 138 | ui/Popover.jsx | ❌ | 0 | Add guidelines. |
-| 139 | ui/Container.jsx | ❌ | 0 | Add guidelines. |
-| 140 | ui/Avatar.jsx | ❌ | 0 | Add guidelines. |
-| 141 | ui/Label.jsx | ❌ | 0 | Add guidelines. |
-| 142 | ui/PhoneInput.jsx | ❌ | 0 | Add guidelines. |
-| 143 | ui/TimePicker.jsx | ❌ | 0 | Add guidelines. |
-| 144 | ui/Progress.jsx | ❌ | 0 | Add guidelines. |
-| 145 | ui/Slider.jsx | ❌ | 0 | Add guidelines. |
-| 146 | ui/Separator.jsx | ❌ | 0 | Add guidelines. |
-| 147 | ui/Toast.jsx | ❌ | 0 | Add guidelines. |
-| 148 | ui/Tooltip.jsx | ❌ | 0 | Add guidelines. |
-| 149 | ui/Accordion.jsx | ❌ | 0 | Add guidelines. |
-| 150 | ui/Collapsible.jsx | ❌ | 0 | Add guidelines. |
-| 151 | ui/DropdownMenu.jsx | ❌ | 0 | Add guidelines. |
-| 152 | ui/ContextMenu.jsx | ❌ | 0 | Add guidelines. |
-| 153 | ui/Menubar.jsx | ❌ | 0 | Add guidelines. |
-| 154 | ui/NavigationMenu.jsx | ❌ | 0 | Add guidelines. |
-| 155 | ui/HoverCard.jsx | ❌ | 0 | Add guidelines. |
-| 156 | ui/AspectRatio.jsx | ❌ | 0 | Add guidelines. |
-| 157 | ui/ScrollArea.jsx | ❌ | 0 | Add guidelines. |
-| 158 | ui/Toolbar.jsx | ❌ | 0 | Add guidelines. |
+| 123 | ui/Button.jsx | ❌ | 0 | Add guidelines. |
+| 124 | ui/Input.jsx | ❌ | 0 | Add guidelines. |
+| 125 | ui/DatePicker.jsx | ❌ | 0 | Has error prop. Add guidelines. |
+| 126 | ui/ToggleGroupField.jsx | ✅ | 0 | |
+| 127 | ui/FormField.jsx | ❌ | 0 | Add guidelines. |
+| 128 | ui/Select.jsx | ❌ | 0 | Add guidelines. |
+| 129 | ui/Tabs.jsx | ❌ | 0 | Add guidelines. |
+| 130 | ui/Checkbox.jsx | ❌ | 0 | Add guidelines. |
+| 131 | ui/RadioGroup.jsx | ❌ | 0 | Add guidelines. |
+| 132 | ui/Switch.jsx | ❌ | 0 | Add guidelines. |
+| 133 | ui/Toggle.jsx | ❌ | 0 | Add guidelines. |
+| 134 | ui/ToggleGroup.jsx | ❌ | 0 | Add guidelines. |
+| 135 | ui/Dialog.jsx | ❌ | 0 | Add guidelines. |
+| 136 | ui/AlertDialog.jsx | ❌ | 0 | Add guidelines. |
+| 137 | ui/Popover.jsx | ❌ | 0 | Add guidelines. |
+| 138 | ui/Container.jsx | ❌ | 0 | Add guidelines. |
+| 139 | ui/Avatar.jsx | ❌ | 0 | Add guidelines. |
+| 140 | ui/Label.jsx | ❌ | 0 | Add guidelines. |
+| 141 | ui/PhoneInput.jsx | ❌ | 0 | Add guidelines. |
+| 142 | ui/TimePicker.jsx | ❌ | 0 | Add guidelines. |
+| 143 | ui/Progress.jsx | ❌ | 0 | Add guidelines. |
+| 144 | ui/Slider.jsx | ❌ | 0 | Add guidelines. |
+| 145 | ui/Separator.jsx | ❌ | 0 | Add guidelines. |
+| 146 | ui/Toast.jsx | ❌ | 0 | Add guidelines. |
+| 147 | ui/Tooltip.jsx | ❌ | 0 | Add guidelines. |
+| 148 | ui/Accordion.jsx | ❌ | 0 | Add guidelines. |
+| 149 | ui/Collapsible.jsx | ❌ | 0 | Add guidelines. |
+| 150 | ui/DropdownMenu.jsx | ❌ | 0 | Add guidelines. |
+| 151 | ui/ContextMenu.jsx | ❌ | 0 | Add guidelines. |
+| 152 | ui/Menubar.jsx | ❌ | 0 | Add guidelines. |
+| 153 | ui/NavigationMenu.jsx | ❌ | 0 | Add guidelines. |
+| 154 | ui/HoverCard.jsx | ❌ | 0 | Add guidelines. |
+| 155 | ui/AspectRatio.jsx | ❌ | 0 | Add guidelines. |
+| 156 | ui/ScrollArea.jsx | ❌ | 0 | Add guidelines. |
+| 157 | ui/Toolbar.jsx | ❌ | 0 | Add guidelines. |
 
 ---
 
@@ -216,9 +215,9 @@ Every JSX component checked against **docs/Coding guidelines.md**.
 | Layouts | 3 | 3 | 0 |
 | Providers/contexts | 2 | 0 | 2 |
 | Pages | 71 | 24 | 47 |
-| Components | 46 | 10 | 36 |
+| Components | 45 | 10 | 35 |
 | UI | 35 | 1 | 34 |
-| **Total** | **158** | **39** | **119** |
+| **Total** | **157** | **39** | **118** |
 
 ---
 

@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { toApiDate } from '@/lib/utils/dateUtils';
@@ -162,8 +163,14 @@ export default function TournamentRequest() {
           ? { prize: String(data.prize).trim() }
           : {}),
       };
-      await createTournamentRequest(payload).unwrap();
-      navigate('/tournament-request/success');
+      const res = await createTournamentRequest(payload).unwrap();
+      const tournament = res.data?.tournament;
+      if (tournament?.id != null) {
+        navigate('/organizer/tournaments', { replace: true });
+        if (res.message) toast.success(res.message);
+      } else {
+        navigate('/tournament-request/success');
+      }
     } catch (err) {
       toast.error(
         getApiErrorMessage(err, 'Failed to submit request. Please try again.'),
@@ -175,13 +182,8 @@ export default function TournamentRequest() {
 
   return (
     <div className="bg-black">
-      <Container className="!px-4 !py-0">
-        <header className="-mx-4 -mt-6 bg-black px-4 pt-6 pb-4 lg:mt-0">
-          <h1 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">
-            REQUEST TOURNAMENT
-          </h1>
-        </header>
-
+      <AppSubpageHeader title="REQUEST TOURNAMENT" />
+      <Container>
         <p className="mb-6 text-left text-[14px] text-white/90 lg:text-center">
           Please fill in the details below to request tournament services. Our
           team will review your request and contact you shortly.

@@ -2,10 +2,10 @@
 
 namespace App\Models\Shop;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class OrderItem extends Model
+class OrderItem extends BaseModel
 {
     protected $table = 'shop_order_items';
 

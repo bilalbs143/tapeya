@@ -1,19 +1,23 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, formatDate } from '@angular/common';
 import { Component, DestroyRef, OnInit, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
+
+import { ScheduleTournamentMatchDialogComponent } from '../tournament-detail/schedule-tournament-match-dialog/schedule-tournament-match-dialog.component';
 
 import { EnumsService } from 'src/app/services/enums.service';
 import { MessageService } from 'src/app/services/message.service';
@@ -26,7 +30,8 @@ import { getStatusClass } from 'src/app/utils/status-class.util';
 const DEFAULT_FILTERS = {
   q: '',
   status: '',
-  from_date: '',
+  from_date: null as Date | null,
+  live_today: false,
 } as const;
 
 @Component({
@@ -42,7 +47,9 @@ const DEFAULT_FILTERS = {
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
+    MatDatepickerModule,
     MatSelectModule,
+    MatSlideToggleModule,
     MatPaginatorModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
@@ -81,6 +88,7 @@ export class TournamentMatchesComponent implements OnInit {
     q: [DEFAULT_FILTERS.q],
     status: [DEFAULT_FILTERS.status],
     from_date: [DEFAULT_FILTERS.from_date],
+    live_today: [DEFAULT_FILTERS.live_today],
   });
 
   public readonly emptyCell = EMPTY_CELL;
@@ -90,7 +98,7 @@ export class TournamentMatchesComponent implements OnInit {
   /** Full list from API (before client filters). */
   public allMatches: TournamentMatchRow[] = [];
   public dataSource = new MatTableDataSource<TournamentMatchRow>([]);
-  public displayedColumns = ['when', 'teams', 'venue', 'status', 'result', 'actions'] as const;
+  public displayedColumns: string[] = ['when', 'teams', 'venue', 'status', 'result', 'actions'];
   public isLoading = false;
 
   constructor() {
@@ -106,6 +114,8 @@ export class TournamentMatchesComponent implements OnInit {
           return row.status ?? '';
         case 'result':
           return row.result_summary ?? '';
+        case 'actions':
+          return '';
         default:
           return '';
       }
@@ -113,7 +123,8 @@ export class TournamentMatchesComponent implements OnInit {
   }
 
   public ngOnInit(): void {
-    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+    const paramMap$ = this.route.parent?.paramMap ?? this.route.paramMap;
+    paramMap$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       const id = params.get('tournamentId');
       if (!id) {
         void this.router.navigate(['/tournaments-management/tournaments']);
@@ -122,6 +133,15 @@ export class TournamentMatchesComponent implements OnInit {
       this.tournamentId = Number(id);
       this.loadMatches();
     });
+  }
+
+  public openScheduleDialog(): void {
+    this.messageService.openDialog<ScheduleTournamentMatchDialogComponent, boolean>(
+      ScheduleTournamentMatchDialogComponent,
+      { tournamentId: this.tournamentId },
+      (saved) => saved && this.loadMatches(),
+      { widthSize: 'md', disableClose: true }
+    );
   }
 
   public loadMatches(): void {
@@ -140,12 +160,17 @@ export class TournamentMatchesComponent implements OnInit {
   }
 
   public applyFilters(): void {
-    const { q, status, from_date: fromDate } = this.searchForm.getRawValue();
+    const { q, status, from_date: fromDate, live_today: liveToday } = this.searchForm.getRawValue();
     const term = (q ?? '').trim().toLowerCase();
     const statusVal = (status ?? '').trim();
-    const fromVal = (fromDate ?? '').trim();
+    const fromVal = fromDate instanceof Date ? formatDate(fromDate, 'yyyy-MM-dd', 'en-US') : '';
+    const todayStr = formatDate(new Date(), 'yyyy-MM-dd', 'en-US');
 
     let rows = [...this.allMatches];
+
+    if (liveToday) {
+      rows = rows.filter((r) => (r.match_date ?? '').slice(0, 10) === todayStr);
+    }
 
     if (statusVal) {
       rows = rows.filter((r) => r.status === statusVal);
@@ -183,6 +208,7 @@ export class TournamentMatchesComponent implements OnInit {
       q: DEFAULT_FILTERS.q,
       status: DEFAULT_FILTERS.status,
       from_date: DEFAULT_FILTERS.from_date,
+      live_today: DEFAULT_FILTERS.live_today,
     });
     this.applyFilters();
   }

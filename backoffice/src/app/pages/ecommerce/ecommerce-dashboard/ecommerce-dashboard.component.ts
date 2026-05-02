@@ -6,6 +6,7 @@ import { NgApexchartsModule } from 'ng-apexcharts';
 
 import { MaterialModule } from 'src/app/material.module';
 import type { EcommerceDashboardStats } from 'src/app/models/ecommerce-dashboard.models';
+import { AuthService } from 'src/app/services/auth.service';
 import { EcommerceDashboardService } from 'src/app/services/shop/ecommerce-dashboard.service';
 
 @Component({
@@ -16,6 +17,9 @@ import { EcommerceDashboardService } from 'src/app/services/shop/ecommerce-dashb
 })
 export class EcommerceDashboardComponent implements OnInit {
   private readonly dashboardService = inject(EcommerceDashboardService);
+  private readonly auth = inject(AuthService);
+
+  public readonly user = this.auth.currentUser;
 
   public readonly loading = signal(true);
   public readonly error = signal<string | null>(null);
@@ -43,6 +47,11 @@ export class EcommerceDashboardComponent implements OnInit {
   public readonly customerSegmentationLabels = computed(() => this.stats()?.customer_segmentation_labels ?? []);
   public readonly salesSparkline7d = computed(() => this.stats()?.sales_sparkline_7d ?? []);
   public readonly quarterlyTrend = computed(() => this.stats()?.quarterly_stats?.revenue_trend ?? []);
+
+  // New KPIs
+  public readonly productsTotal = computed(() => this.stats()?.products_total ?? 0);
+  public readonly customersTotal = computed(() => this.stats()?.customers_total ?? 0);
+  public readonly lowStockProducts = computed(() => this.stats()?.low_stock_products ?? []);
 
   public readonly expenseDonutSeries = computed(() => {
     const byStatus = this.revenueByStatus();

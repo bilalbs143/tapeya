@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { Link, useLocation } from 'react-router-dom';
 
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
   NAVBAR_HEIGHT,
   NAVBAR_SCROLL_THRESHOLD,
@@ -10,8 +11,6 @@ import {
 import { BOTTOM_NAV_ITEMS } from '@/lib/constants/navigation';
 import { useGetNotificationUnreadCountQuery } from '@/store/api/notificationApi';
 import { useAppSelector } from '@/store/hooks';
-
-const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
 const hamburgerIcon = `${CLOUDFRONT_APP_BASE}/images/icons/hamburger-icon.svg`;
 const notificationIcon = `${CLOUDFRONT_APP_BASE}/images/icons/notification-icon.svg`;
@@ -43,7 +42,8 @@ export function Navbar({ onMenuClick }) {
     skip: !accessToken,
   });
   const unreadCount = Math.max(0, unreadData?.unreadCount ?? 0);
-  const badgeLabel = unreadCount > 99 ? '99+' : unreadCount > 0 ? String(unreadCount) : null;
+  const badgeLabel =
+    unreadCount > 99 ? '99+' : unreadCount > 0 ? String(unreadCount) : null;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -60,7 +60,14 @@ export function Navbar({ onMenuClick }) {
       className={`fixed top-0 right-0 left-0 flex items-center justify-between border-b border-transparent px-4 transition-colors duration-300 lg:left-[280px] lg:border-[#1A1A1A] lg:bg-black ${
         scrolled ? 'bg-black' : 'bg-transparent'
       }`}
-      style={{ height: NAVBAR_HEIGHT, zIndex: NAVBAR_Z }}
+      style={{
+        // paddingTop pushes the navbar *content* (logo, icons) below the status
+        // bar while the navbar background extends all the way to the screen edge,
+        // covering the status bar area gracefully (viewport-fit=cover).
+        paddingTop: 'env(safe-area-inset-top)',
+        height: `calc(${NAVBAR_HEIGHT}px + env(safe-area-inset-top))`,
+        zIndex: NAVBAR_Z,
+      }}
     >
       <div className="flex min-w-0 flex-1 items-center gap-4 lg:gap-6">
         <Link to="/home" className="shrink-0" aria-label="Tapeya home">
@@ -111,7 +118,7 @@ export function Navbar({ onMenuClick }) {
           <img src={notificationIcon} alt="" className="h-3.5 w-3.5" />
           {badgeLabel ? (
             <span
-              className="absolute -top-0.5 -right-0.5 flex min-h-[16px] min-w-[16px] items-center justify-center rounded-full bg-[#DA9811] px-1 text-[10px] font-bold leading-none text-[#080807]"
+              className="absolute -top-0.5 -right-0.5 flex min-h-[16px] min-w-[16px] items-center justify-center rounded-full bg-[#DA9811] px-1 text-[10px] leading-none font-bold text-[#080807]"
               aria-hidden
             >
               {badgeLabel}

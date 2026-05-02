@@ -181,13 +181,13 @@ export class ManageProductDialogComponent implements OnInit, OnDestroy {
   }
 
   private loadBrands(): void {
-    this.brandService.getList({ page: 1, per_page: 500, sort: 'name' }).subscribe({
+    this.brandService.getList({ all: true, sort: 'name' }).subscribe({
       next: (res) => (this.brands = res.data ?? []),
     });
   }
 
   private loadCategories(): void {
-    this.categoryService.getList({ page: 1, per_page: 500, sort: 'sort_order' }).subscribe({
+    this.categoryService.getList({ all: true, sort: 'sort_order' }).subscribe({
       next: (res) => (this.categories = res.data ?? []),
     });
   }

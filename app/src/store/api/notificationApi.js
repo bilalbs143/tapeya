@@ -36,9 +36,9 @@ export const notificationApi = baseApi.injectEndpoints({
       providesTags: (result) =>
         result?.data && Array.isArray(result.data) && result.data.length
           ? [
-            ...result.data.map((n) => ({ type: 'Item', id: n.id })),
-            { type: 'List', id: 'Notifications' },
-          ]
+              ...result.data.map((n) => ({ type: 'Item', id: n.id })),
+              { type: 'List', id: 'Notifications' },
+            ]
           : [{ type: 'List', id: 'Notifications' }],
     }),
     markAllNotificationsRead: builder.mutation({

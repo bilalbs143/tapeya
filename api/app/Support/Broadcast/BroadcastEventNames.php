@@ -2,16 +2,21 @@
 
 namespace App\Support\Broadcast;
 
+use App\Events\Broadcast\Admin\TournamentRequestSubmittedBroadcast;
+use App\Events\Broadcast\Admin\UserRegisteredBroadcast;
+use App\Events\Broadcast\User\OrderPlacedBroadcast;
+use App\Events\Broadcast\User\OrderStatusUpdatedBroadcast;
+
 /**
  * Laravel `broadcastAs()` names. Echo listens with a leading dot (e.g. `.user.order.placed`).
  *
  * One constant per domain event. Payload shape is consistent: `id`, `notification_type`, `data`.
  *
- * @see \App\Events\Broadcast\User\OrderPlacedBroadcast
- * @see \App\Events\Broadcast\User\OrderStatusUpdatedBroadcast
+ * @see OrderPlacedBroadcast
+ * @see OrderStatusUpdatedBroadcast
  * @see \App\Events\Broadcast\Admin\OrderPlacedBroadcast
- * @see \App\Events\Broadcast\Admin\TournamentRequestSubmittedBroadcast
- * @see \App\Events\Broadcast\Admin\UserRegisteredBroadcast
+ * @see TournamentRequestSubmittedBroadcast
+ * @see UserRegisteredBroadcast
  */
 final class BroadcastEventNames
 {
@@ -24,4 +29,7 @@ final class BroadcastEventNames
     public const ADMIN_TOURNAMENT_REQUEST_SUBMITTED = 'admin.tournament_request.submitted';
 
     public const ADMIN_USER_REGISTERED = 'admin.user.registered';
+
+    /** Fired on public channel `match.{matchId}.graphics` when the active graphic changes. */
+    public const MATCH_GRAPHIC_ACTIVATED = 'match.graphic.activated';
 }

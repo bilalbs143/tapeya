@@ -1,11 +1,12 @@
+import { ScoringPlayerPickerMeta } from '@/components/scoring/ScoringPlayerPickerMeta';
 import {
   Dialog,
-  DialogContent,
+  DialogContentDark,
+  DialogHeaderRow,
+  dialogPrimaryTitleClass,
   DialogScrollBody,
   DialogTitle,
 } from '@/ui/Dialog';
-
-import { ScoringPlayerPickerMeta } from '@/components/scoring/ScoringPlayerPickerMeta';
 
 export function FielderPickerDialog({
   open,
@@ -16,15 +17,13 @@ export function FielderPickerDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="!max-h-[85vh] rounded-t-3xl !bg-[#141412] p-5 pb-8"
-        aria-describedby={undefined}
-      >
-        <DialogTitle className="sr-only">
-          {message?.trim() ? message : 'Choose fielder'}
-        </DialogTitle>
-        <p className="mb-3 text-[12px] font-medium text-[#A2A6AB]">{message}</p>
-        <DialogScrollBody className="max-h-[50vh]">
+      <DialogContentDark className="!h-auto !max-h-[90vh]">
+        <DialogHeaderRow>
+          <DialogTitle className={dialogPrimaryTitleClass}>
+            {message?.trim() ? message : 'Choose fielder'}
+          </DialogTitle>
+        </DialogHeaderRow>
+        <DialogScrollBody className="px-5 pb-4">
           <div className="flex flex-col gap-2">
             {players.map((player) => (
               <button
@@ -41,7 +40,7 @@ export function FielderPickerDialog({
             ))}
           </div>
         </DialogScrollBody>
-      </DialogContent>
+      </DialogContentDark>
     </Dialog>
   );
 }

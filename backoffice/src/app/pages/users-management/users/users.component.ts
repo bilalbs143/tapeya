@@ -77,7 +77,8 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     'email',
     'phone',
     'date_of_birth',
-    'roles',
+    'app_roles',
+    'admin_roles',
     'playing_role',
     'bowling_style',
     'batting_style',
@@ -92,7 +93,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
   public readonly statusClass = getStatusClass;
   public readonly emptyCell = EMPTY_CELL;
 
-  public formatRoles(roles: UserRole[] | undefined): string {
+  public formatRoleNames(roles: UserRole[] | undefined): string {
     if (!roles?.length) return EMPTY_CELL;
     return roles.map((r) => r.name).join(', ');
   }
