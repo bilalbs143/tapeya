@@ -26,8 +26,7 @@ use Illuminate\Support\Facades\Log;
  * Both flows complete with the same verify-otp step (activates account and returns token).
  *
  * When APP_DEBUG is true, OTP is not sent by SMS; the code is only included in the JSON response.
- * When TEST_OTP_PHONES lists a number, SMS is still attempted (if not debug) and the OTP is also in the JSON.
- * If SMS fails for a test-only number, the error is logged and the JSON still includes the OTP for QA.
+ * Numbers in TEST_OTP_PHONES never use the SMS OTP service; the OTP is only in the JSON (same as debug).
  */
 class UserAuthController extends Controller
 {

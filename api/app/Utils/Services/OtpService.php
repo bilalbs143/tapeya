@@ -20,15 +20,15 @@ class OtpService
     ) {}
 
     /**
-     * Generate OTP, store under a normalized phone cache key, and send SMS unless APP_DEBUG is true.
-     * In debug mode no SMS is sent; numbers in TEST_OTP_PHONES still receive SMS when debug is off.
+     * Generate OTP, store under a normalized phone cache key, and send SMS when not in debug
+     * and the phone is not listed in TEST_OTP_PHONES. Debug and test phones get OTP in-app/API only.
      */
     public function sendToUser(User $user): void
     {
         $code = $this->generateCode();
         $this->store($user->phone, $code);
 
-        if (config('app.debug')) {
+        if (config('app.debug') || self::isTestOtpPhone($user->phone)) {
             return;
         }
 
