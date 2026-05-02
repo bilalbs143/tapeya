@@ -1,9 +1,0 @@
-export { default as alert } from '@/dynamic-components/template6/modals/alert/Alert';
-export { default as announcement } from '@/dynamic-components/template6/modals/announcement/Announcement';
-export { default as apkDownload } from '@/dynamic-components/template6/modals/apkDownload/ApkDownload';
-export { default as customerService } from '@/dynamic-components/template6/modals/customer-service/CustomerService';
-export { default as launchGame } from '@/dynamic-components/template6/modals/launchGame/LaunchGame';
-export { default as login } from '@/dynamic-components/template6/modals/login/Login';
-export { default as popup } from '@/dynamic-components/template6/modals/popup/Popup';
-export { default as register } from '@/dynamic-components/template6/modals/register/Register';
-export { default as transaction } from '@/dynamic-components/template6/modals/transaction/Transaction';

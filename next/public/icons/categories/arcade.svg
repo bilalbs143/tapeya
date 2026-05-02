@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-  <!-- Joystick: base + stick + ball -->
-  <rect x="6" y="14" width="12" height="6" rx="1"/>
-  <rect x="10" y="6" width="4" height="10"/>
-  <circle cx="12" cy="5" r="3"/>
-</svg>
