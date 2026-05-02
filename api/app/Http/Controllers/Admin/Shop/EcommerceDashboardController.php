@@ -6,6 +6,7 @@ use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Models\Shop\Order;
 use App\Models\Shop\OrderItem;
+use App\Models\Shop\Product;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -291,6 +292,32 @@ class EcommerceDashboardController extends Controller
             ];
         }, $topProducts);
 
+        // ── New KPIs ───────────────────────────────────────────────────────────
+        $productsTotal = Product::query()->where('is_active', true)->count();
+
+        $customersTotal = Order::query()
+            ->whereNotNull('user_id')
+            ->distinct()
+            ->count('user_id');
+
+        // Low-stock: active products where stock_quantity <= low_stock_threshold (default threshold=5 if null)
+        $lowStockProducts = Product::query()
+            ->where('is_active', true)
+            ->whereNotNull('stock_quantity')
+            ->whereColumn('stock_quantity', '<=', DB::raw('COALESCE(low_stock_threshold, 5)'))
+            ->select(['id', 'name', 'slug', 'stock_quantity', 'low_stock_threshold'])
+            ->orderBy('stock_quantity')
+            ->limit(10)
+            ->get()
+            ->map(fn ($p) => [
+                'id' => $p->id,
+                'name' => $p->name,
+                'slug' => $p->slug,
+                'stock_quantity' => (int) $p->stock_quantity,
+                'low_stock_threshold' => (int) ($p->low_stock_threshold ?? 5),
+            ])
+            ->all();
+
         return $this->success([
                 'today_sales' => round($todayRevenue, 2),
                 'today_orders_count' => $todayOrdersCount,
@@ -316,6 +343,10 @@ class EcommerceDashboardController extends Controller
                 'quarterly_stats' => [
                     'revenue_trend' => $monthlyEarnings,
                 ],
+                // New KPIs
+                'products_total' => $productsTotal,
+                'customers_total' => $customersTotal,
+                'low_stock_products' => $lowStockProducts,
         ]);
     }
 }

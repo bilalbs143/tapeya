@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\Shop\BrandController as AdminBrandController;
 use App\Http\Controllers\Admin\Shop\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\CricketDashboardController;
 use App\Http\Controllers\Admin\Shop\EcommerceDashboardController;
 use App\Http\Controllers\Admin\Shop\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\Shop\ProductController as AdminProductController;
@@ -84,6 +85,8 @@ Route::prefix('admin')->group(function () {
         Route::delete('matches/{match}/graphic-session/commands', [MatchGraphicSessionController::class, 'clearCommandHistory']);
         Route::post('matches/{match}/graphic-session/commands', [MatchGraphicSessionController::class, 'storeCommand']);
         Route::post('matches/{match}/graphic-session/commands/{command}/activate', [MatchGraphicSessionController::class, 'activateCommand']);
+
+        Route::get('cricket/dashboard-stats', CricketDashboardController::class);
 
         Route::get('tournament-requests', [TournamentRequestController::class, 'index']);
         Route::get('tournament-requests/{tournament_request}', [TournamentRequestController::class, 'show']);

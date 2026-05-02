@@ -5,7 +5,7 @@ import { AuthService } from '../services/auth.service';
 
 /**
  * Narrow Broadcast Operator shell: limited menu + tournament ops only.
- * Used so `/dashboard` can lazy-load a lightweight home instead of the eCommerce dashboard.
+ * Used so `/dashboard` can lazy-load the broadcaster home instead of the full admin cricket dashboard.
  */
 export const broadcastStaffDashboardCanMatch: CanMatchFn = () => {
   const user = inject(AuthService).currentUser();

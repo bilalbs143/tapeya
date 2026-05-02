@@ -27,6 +27,10 @@ export interface EcommerceDashboardStats {
   top_products: TopProductItem[];
   sales_sparkline_7d: number[];
   quarterly_stats: { revenue_trend: number[] };
+  // New KPIs
+  products_total: number;
+  customers_total: number;
+  low_stock_products: LowStockProductItem[];
 }
 
 export interface SalesByCategoryItem {
@@ -65,6 +69,14 @@ export interface TopProductItem {
   date: string | null;
   price: number;
   status: string;
+}
+
+export interface LowStockProductItem {
+  id: number;
+  name: string;
+  slug: string;
+  stock_quantity: number;
+  low_stock_threshold: number;
 }
 
 export interface EcommerceDashboardResponse {
