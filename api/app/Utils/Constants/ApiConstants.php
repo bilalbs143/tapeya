@@ -4,7 +4,7 @@ namespace App\Utils\Constants;
 
 class ApiConstants
 {
-    public const PER_PAGE = 20;
+    public const PER_PAGE = 50;
 
     public static function perPage(): int
     {

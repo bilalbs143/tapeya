@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\Shop;
 
+use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Models\Shop\Order;
 use App\Models\Shop\OrderItem;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\Storage;
 
 class EcommerceDashboardController extends Controller
 {
+    use BaseControllerTrait;
     /**
      * Return aggregated stats for the ecommerce dashboard.
      */
@@ -289,8 +291,7 @@ class EcommerceDashboardController extends Controller
             ];
         }, $topProducts);
 
-        return response()->json([
-            'data' => [
+        return $this->success([
                 'today_sales' => round($todayRevenue, 2),
                 'today_orders_count' => $todayOrdersCount,
                 'today_sales_percent_change' => round($todaySalesPercentChange, 1),
@@ -315,7 +316,6 @@ class EcommerceDashboardController extends Controller
                 'quarterly_stats' => [
                     'revenue_trend' => $monthlyEarnings,
                 ],
-            ],
         ]);
     }
 }

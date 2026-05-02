@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -10,6 +11,7 @@ use Nnjeim\World\Models\Country;
 
 class CountryController extends Controller
 {
+    use BaseControllerTrait;
     /**
      * List countries for dropdowns. Returns id, name, country_code (iso2).
      * Reads from nnjeim/world package's countries table.
@@ -33,9 +35,9 @@ class CountryController extends Controller
                 'country_code' => $c->iso2,
             ])->values();
 
-            return response()->json(['data' => $data]);
+            return $this->success($data);
         } catch (\Throwable) {
-            return response()->json(['data' => []]);
+            return $this->success([]);
         }
     }
 
@@ -46,7 +48,7 @@ class CountryController extends Controller
     {
         $countryCode = $request->input('country_code');
         if (empty($countryCode)) {
-            return response()->json(['data' => []]);
+            return $this->success([]);
         }
 
         try {
@@ -65,9 +67,9 @@ class CountryController extends Controller
                 'name' => $c->name,
             ])->values();
 
-            return response()->json(['data' => $data]);
+            return $this->success($data);
         } catch (\Throwable) {
-            return response()->json(['data' => []]);
+            return $this->success([]);
         }
     }
 }

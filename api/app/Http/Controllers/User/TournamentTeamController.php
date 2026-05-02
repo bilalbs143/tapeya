@@ -49,7 +49,7 @@ class TournamentTeamController extends Controller
         $groupIndex = $request->validated('group_index');
 
         if ($tournament->number_of_groups > 1 && ($groupIndex === null || $groupIndex < 1 || $groupIndex > $tournament->number_of_groups)) {
-            return $this->failure('Group index is required and must be between 1 and '.$tournament->number_of_groups.' for this tournament.', 'VALIDATION_ERROR', 422);
+            return $this->failure('Group index is required and must be between 1 and '.$tournament->number_of_groups.' for this tournament.', 'VALIDATION_ERROR');
         }
 
         $pivot = $groupIndex !== null ? ['group_index' => $groupIndex] : [];
@@ -84,7 +84,7 @@ class TournamentTeamController extends Controller
         }
 
         if ($tournament->number_of_groups <= 1) {
-            return $this->failure('This tournament does not use groups.', 'VALIDATION_ERROR', 422);
+            return $this->failure('This tournament does not use groups.', 'VALIDATION_ERROR');
         }
 
         $groupIndex = $request->validated('group_index');

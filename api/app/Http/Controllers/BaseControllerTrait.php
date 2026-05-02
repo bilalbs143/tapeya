@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Utils\Constants\ApiConstants;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -52,19 +53,33 @@ trait BaseControllerTrait
         }
     }
 
+    /**
+     * Return all results or a paginated page depending on the presence of the ?all query parameter.
+     *
+     * Works with any Eloquent builder, relation builder, or Spatie QueryBuilder instance.
+     * Pass $defaultPerPage to override the global default for this specific endpoint.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder|\Spatie\QueryBuilder\QueryBuilder  $query
+     */
+    protected function paginateOrAll($query, int $defaultPerPage = ApiConstants::PER_PAGE)
+    {
+        if (request()->has('all')) {
+            return $query->get();
+        }
+
+        $perPage = request()->has('per_page') ? (int) request('per_page') : $defaultPerPage;
+
+        return $query->paginate($perPage)->appends(request()->query());
+    }
+
     public function index()
     {
-        $records = QueryBuilder::for($this->baseQuery())
+        $query = QueryBuilder::for($this->baseQuery())
             ->allowedFilters($this->model->getFilters())
             ->defaultSort('-id')
-            ->allowedSorts($this->model->getSorts())
-            ->when(
-                request()->has('all'),
-                fn ($q) => $q->get(),
-                fn ($q) => $q->pagination()
-            );
+            ->allowedSorts($this->model->getSorts());
 
-        return $this->resource::collection($records);
+        return $this->resource::collection($this->paginateOrAll($query));
     }
 
     protected function refresh($record)

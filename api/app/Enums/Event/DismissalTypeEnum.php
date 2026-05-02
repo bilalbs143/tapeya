@@ -75,6 +75,18 @@ enum DismissalTypeEnum: string
     }
 
     /**
+     * Whether this dismissal is credited to the bowler's wicket column.
+     * Run out, obstructing the field, and hit ball twice are fielding dismissals — the bowler is NOT credited.
+     */
+    public function countsAsBowlerWicket(): bool
+    {
+        return match ($this) {
+            self::RUN_OUT, self::OBSTRUCTING_THE_FIELD, self::HIT_BALL_TWICE, self::OVER_THE_FENCE => false,
+            default => true,
+        };
+    }
+
+    /**
      * Whether this dismissal type is valid on a free-hit delivery.
      * Law 21.18: Only run out, obstructing the field, and hitting the ball twice are permitted.
      */

@@ -29,11 +29,7 @@ class TournamentMatchController extends Controller
             ->orderBy('match_date')
             ->orderBy('match_time');
 
-        $matches = request()->has('all')
-            ? $query->get()
-            : $query->paginate((int) request('per_page', 50));
-
-        return TournamentMatchResource::collection($matches)->response();
+        return $this->success(TournamentMatchResource::collection($this->paginateOrAll($query)));
     }
 
     /**
@@ -60,6 +56,6 @@ class TournamentMatchController extends Controller
     {
         $match->load(['homeTeam', 'awayTeam', 'tournament', 'winningTeam', 'tossWinnerTeam']);
 
-        return (new TournamentMatchResource($match))->response();
+        return $this->success(new TournamentMatchResource($match));
     }
 }

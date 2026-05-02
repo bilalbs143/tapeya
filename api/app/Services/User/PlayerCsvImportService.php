@@ -146,7 +146,7 @@ class PlayerCsvImportService
                             'playing_role' => $data['playing_role'] !== null ? PlayingRoleEnum::from($data['playing_role']) : null,
                             'bowling_style' => $data['bowling_style'] !== null ? BowlingStyleEnum::from($data['bowling_style']) : null,
                             'batting_style' => $data['batting_style'] !== null ? BattingStyleEnum::from($data['batting_style']) : null,
-                            'country' => $data['country'] !== null ? 'Pakistan' : null,
+                            'country' => $data['country'],
                             'city' => $data['city'],
                             'created_by' => $createdBy,
                         ]);

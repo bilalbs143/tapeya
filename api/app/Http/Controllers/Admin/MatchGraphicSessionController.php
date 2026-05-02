@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
+use App\Utils\Constants\ApiConstants;
 use App\Http\Requests\Admin\StoreMatchGraphicCommandRequest;
 use App\Http\Requests\Admin\UpdateMatchGraphicSessionRequest;
 use App\Http\Resources\Admin\MatchGraphicCommandResource;
@@ -60,19 +61,19 @@ class MatchGraphicSessionController extends Controller
 
     public function indexCommands(TournamentMatch $match): JsonResponse
     {
-        $perPage = (int) request('per_page', 30);
+        $perPage = (int) request('per_page', ApiConstants::PER_PAGE);
         $perPage = max(1, min(100, $perPage));
 
         $session = $match->graphicSession;
         if (! $session) {
             $empty = new LengthAwarePaginator([], 0, $perPage, 1);
 
-            return MatchGraphicCommandResource::collection($empty)->response();
+            return $this->success(MatchGraphicCommandResource::collection($empty));
         }
 
-        $paginator = $session->commands()->paginate($perPage);
+        $paginator = $session->commands()->paginate($perPage)->appends(request()->query());
 
-        return MatchGraphicCommandResource::collection($paginator)->response();
+        return $this->success(MatchGraphicCommandResource::collection($paginator));
     }
 
     public function storeCommand(StoreMatchGraphicCommandRequest $request, TournamentMatch $match): JsonResponse

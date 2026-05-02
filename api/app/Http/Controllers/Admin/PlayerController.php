@@ -42,17 +42,12 @@ class PlayerController extends Controller
 
     public function index()
     {
-        $records = QueryBuilder::for($this->playerBaseQuery())
+        $query = QueryBuilder::for($this->playerBaseQuery())
             ->allowedFilters(User::getFilters())
             ->defaultSort('-id')
-            ->allowedSorts(User::getSorts())
-            ->when(
-                request()->has('all'),
-                fn ($q) => $q->get(),
-                fn ($q) => $q->pagination()
-            );
+            ->allowedSorts(User::getSorts());
 
-        return UserResource::collection($records);
+        return UserResource::collection($this->paginateOrAll($query));
     }
 
     public function store(StoreBroadcasterPlayerRequest $request): JsonResponse

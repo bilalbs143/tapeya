@@ -35,7 +35,6 @@ class MatchTossController extends Controller
         $chose = $request->validated('chose_to_bat_or_bowl');
         $match->update([
             'toss_winner_team_id' => $winningTeamId,
-            'winning_team_id' => $winningTeamId,
             'chose_to_bat_or_bowl' => $chose,
             'status' => 'toss_done',
         ]);

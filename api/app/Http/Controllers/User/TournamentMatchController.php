@@ -30,11 +30,7 @@ class TournamentMatchController extends Controller
             ->orderBy('match_date')
             ->orderBy('match_time');
 
-        $matches = request()->has('all')
-            ? $query->get()
-            : $query->paginate((int) request('per_page', 15));
-
-        return $this->success(TournamentMatchResource::collection($matches));
+        return $this->success(TournamentMatchResource::collection($this->paginateOrAll($query)));
     }
 
     /**

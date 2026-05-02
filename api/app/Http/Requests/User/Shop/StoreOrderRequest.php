@@ -21,7 +21,6 @@ class StoreOrderRequest extends FormRequest
             'city' => ['required', 'string', 'max:100'],
             'country' => ['required', 'string', 'max:100'],
             'notes' => ['nullable', 'string', 'max:1000'],
-            'shipping_amount' => ['nullable', 'numeric', 'min:0'],
         ];
     }
 }

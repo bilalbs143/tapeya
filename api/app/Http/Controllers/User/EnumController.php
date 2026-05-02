@@ -15,11 +15,13 @@ use App\Enums\Tournament\TournamentTypeEnum;
 use App\Enums\User\BattingStyleEnum;
 use App\Enums\User\BowlingStyleEnum;
 use App\Enums\User\PlayingRoleEnum;
+use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 
 class EnumController extends Controller
 {
+    use BaseControllerTrait;
     /**
      * Return enum options (value + label) for app forms (tournament request, profile, etc.).
      * Public so the form can load options before auth.
@@ -42,7 +44,7 @@ class EnumController extends Controller
             'playing_role' => $this->toOptions(PlayingRoleEnum::cases()),
         ];
 
-        return response()->json(['data' => $enums]);
+        return $this->success($enums);
     }
 
     /**

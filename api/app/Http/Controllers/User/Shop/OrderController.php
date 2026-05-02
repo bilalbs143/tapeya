@@ -10,7 +10,9 @@ use App\Http\Requests\User\Shop\StoreOrderRequest;
 use App\Http\Resources\User\Shop\OrderResource;
 use App\Models\Shop\Cart;
 use App\Models\Shop\Order;
+use App\Utils\Constants\ApiConstants;
 use App\Models\Shop\OrderItem;
+use App\Models\Shop\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
@@ -28,7 +30,7 @@ class OrderController extends Controller
             ->where('user_id', $user->id)
             ->with('items.product.images')
             ->orderByDesc('created_at')
-            ->paginate((int) request('per_page', 15));
+            ->paginate(ApiConstants::perPage());
 
         foreach ($orders as $record) {
             foreach ($record->items as $item) {
@@ -84,49 +86,67 @@ class OrderController extends Controller
         }
 
         $validated = $request->validated();
-        $shippingAmount = isset($validated['shipping_amount']) ? (float) $validated['shipping_amount'] : 0;
 
-        $subtotal = 0;
-        $itemsData = [];
+        // Collect item data outside the transaction for image URL resolution (read-only, no lock needed).
+        $preflightItems = [];
         foreach ($cart->items as $item) {
             $product = $item->product;
-            if (! $product || $product->stock_quantity < $item->quantity) {
-                $name = $product ? $product->name : 'Unknown';
-
-                return $this->failure(
-                    "Insufficient stock for product: {$name}.",
-                    'VALIDATION_ERROR'
-                );
-            }
-            $unitPrice = $product->getSalePrice() ?? (float) $product->price;
-            $totalPrice = round($unitPrice * $item->quantity, 2);
-            $subtotal += $totalPrice;
-            $firstImage = $product->images->first();
+            $firstImage = $product?->images->first();
             $imageUrl = $firstImage && $firstImage->path
                 ? Storage::disk(config('filesystems.media_disk'))->url($firstImage->path)
                 : null;
 
-            $itemsData[] = [
-                'product_id' => $product->id,
-                'product_snapshot' => [
-                    'name' => $product->name,
-                    'sku' => $product->sku,
-                    'slug' => $product->slug,
-                    'image_url' => $imageUrl,
-                ],
+            $preflightItems[] = [
+                'cart_item' => $item,
+                'product_id' => $product?->id,
+                'product_name' => $product?->name ?? 'Unknown',
                 'quantity' => $item->quantity,
-                'unit_price' => $unitPrice,
-                'total_price' => $totalPrice,
+                'image_url' => $imageUrl,
+                'sku' => $product?->sku,
+                'slug' => $product?->slug,
             ];
         }
 
-        $order = DB::transaction(function () use ($user, $validated, $subtotal, $shippingAmount, $itemsData, $cart) {
-            $orderNumber = Order::generateOrderNumber();
+        try {
+        $order = DB::transaction(function () use ($user, $validated, $preflightItems, $cart) {
+            $subtotal = 0;
+            $itemsData = [];
+
+            foreach ($preflightItems as $entry) {
+                // Lock the product row to prevent concurrent overselling.
+                $product = Product::lockForUpdate()->find($entry['product_id']);
+
+                if (! $product || $product->stock_quantity < $entry['quantity']) {
+                    throw new \RuntimeException("Insufficient stock for product: {$entry['product_name']}.");
+                }
+
+                $unitPrice = $product->getSalePrice() ?? (float) $product->price;
+                $totalPrice = round($unitPrice * $entry['quantity'], 2);
+                $subtotal += $totalPrice;
+
+                $product->decrement('stock_quantity', $entry['quantity']);
+
+                $itemsData[] = [
+                    'product_id' => $product->id,
+                    'product_snapshot' => [
+                        'name' => $product->name,
+                        'sku' => $product->sku,
+                        'slug' => $product->slug,
+                        'image_url' => $entry['image_url'],
+                    ],
+                    'quantity' => $entry['quantity'],
+                    'unit_price' => $unitPrice,
+                    'total_price' => $totalPrice,
+                ];
+            }
+
+            // Shipping is computed server-side (free shipping for now).
+            $shippingAmount = 0;
             $total = round($subtotal + $shippingAmount, 2);
 
             $order = Order::create([
                 'user_id' => $user->id,
-                'order_number' => $orderNumber,
+                'order_number' => Order::generateOrderNumber(),
                 'status' => OrderStatusEnum::PENDING,
                 'subtotal' => $subtotal,
                 'shipping_amount' => $shippingAmount,
@@ -154,6 +174,9 @@ class OrderController extends Controller
 
             return $order->load('items');
         });
+        } catch (\RuntimeException $e) {
+            return $this->failure($e->getMessage(), 'VALIDATION_ERROR');
+        }
 
         event(new OrderPlaced($order));
 

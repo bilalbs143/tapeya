@@ -20,12 +20,14 @@ use App\Enums\User\PlayingRoleEnum;
 use App\Enums\User\RoleGuardEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
+use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
 use Illuminate\Http\JsonResponse;
 
 class EnumController extends Controller
 {
+    use BaseControllerTrait;
     /**
      * Return all enum options for admin (value + label), categorized by type.
      * Use for dynamic dropdowns in backoffice.
@@ -62,7 +64,7 @@ class EnumController extends Controller
             ])->values()->all(),
         ];
 
-        return response()->json(['data' => $enums]);
+        return $this->success($enums);
     }
 
     /**

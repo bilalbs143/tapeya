@@ -28,7 +28,7 @@ class ProductController extends Controller
             });
         });
 
-        $records = QueryBuilder::for($query)
+        $query = QueryBuilder::for($query)
             ->allowedFilters([
                 AllowedFilter::exact('id'),
                 AllowedFilter::exact('brand_id'),
@@ -38,20 +38,15 @@ class ProductController extends Controller
                 AllowedFilter::exact('is_special_offer'),
             ])
             ->defaultSort('-id')
-            ->allowedSorts(['id', 'name', 'price', 'created_at'])
-            ->when(
-                request()->has('all'),
-                fn ($q) => $q->get(),
-                fn ($q) => $q->paginate((int) request('per_page', 15))
-            );
+            ->allowedSorts(['id', 'name', 'price', 'created_at']);
 
-        return ProductResource::collection($records);
+        return ProductResource::collection($this->paginateOrAll($query));
     }
 
     public function show(Product $product): JsonResponse
     {
         if (! $product->is_active) {
-            abort(404);
+            return $this->failure('Product not found.', 'NOT_FOUND');
         }
 
         $product->load(['brand', 'category', 'images']);

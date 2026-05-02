@@ -9,7 +9,6 @@ use App\Http\Resources\User\UserResource;
 use App\Services\User\AppAccountDeletionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
@@ -25,10 +24,6 @@ class ProfileController extends Controller
     {
         $user = $request->user();
         $data = $request->validated();
-
-        if (isset($data['avatar']) && $data['avatar'] instanceof UploadedFile) {
-            unset($data['avatar']);
-        }
 
         if (array_key_exists('avatar', $data) && $data['avatar'] === null) {
             if ($user->avatar) {

@@ -21,13 +21,10 @@ class MatchGraphicCaptionController extends Controller
     public function index(TournamentMatch $match): JsonResponse
     {
         $session = $match->graphicSession;
-        if (! $session) {
-            return MatchGraphicCaptionResource::collection(new Collection)->response();
-        }
 
-        return MatchGraphicCaptionResource::collection(
-            $session->captions()->get()
-        )->response();
+        $captions = $session ? $session->captions()->get() : new Collection;
+
+        return $this->success(MatchGraphicCaptionResource::collection($captions));
     }
 
     public function store(StoreMatchGraphicCaptionRequest $request, TournamentMatch $match): JsonResponse
@@ -49,7 +46,9 @@ class MatchGraphicCaptionController extends Controller
         TournamentMatch $match,
         MatchGraphicCaption $caption
     ): JsonResponse {
-        $this->assertCaptionForMatch($match, $caption);
+        if (! $this->captionBelongsToMatch($match, $caption)) {
+            return $this->failure('Caption does not belong to this match session.', 'NOT_FOUND');
+        }
 
         $caption->update($request->validated());
 
@@ -58,17 +57,19 @@ class MatchGraphicCaptionController extends Controller
 
     public function destroy(TournamentMatch $match, MatchGraphicCaption $caption): JsonResponse|SymfonyResponse
     {
-        $this->assertCaptionForMatch($match, $caption);
+        if (! $this->captionBelongsToMatch($match, $caption)) {
+            return $this->failure('Caption does not belong to this match session.', 'NOT_FOUND');
+        }
+
         $caption->delete();
 
         return $this->noContent();
     }
 
-    private function assertCaptionForMatch(TournamentMatch $match, MatchGraphicCaption $caption): void
+    private function captionBelongsToMatch(TournamentMatch $match, MatchGraphicCaption $caption): bool
     {
         $session = $match->graphicSession;
-        if (! $session || (int) $caption->match_graphic_session_id !== (int) $session->id) {
-            abort(404);
-        }
+
+        return $session && (int) $caption->match_graphic_session_id === (int) $session->id;
     }
 }

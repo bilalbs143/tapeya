@@ -306,7 +306,9 @@ class TournamentStatsController extends Controller
                 $inningsRunsByPlayer[$pid][$inningsId] = ($inningsRunsByPlayer[$pid][$inningsId] ?? 0) + $ball->runs_off_bat;
             }
 
-            if ($ball->is_wicket && $ball->out_player_id) {
+            // retired_hurt has is_wicket=false per data contract, but guard defensively
+            // against any inconsistent rows so they don't inflate the not-out denominator.
+            if ($ball->is_wicket && $ball->out_player_id && ! $ball->isRetiredHurt()) {
                 $outPid = $ball->out_player_id;
                 $inningsOutByPlayer[$outPid] = $inningsOutByPlayer[$outPid] ?? [];
                 $inningsOutByPlayer[$outPid][$inningsId] = true;
@@ -324,7 +326,8 @@ class TournamentStatsController extends Controller
                 // Penalty awards are not debited to the bowler's conceded column.
                 $bowlingByPlayer[$bowlerId]['runs_conceded'] += $ball->runs;
                 $bowlingByPlayer[$bowlerId]['balls_bowled'] += 1;
-                if ($ball->is_wicket) {
+                // Only credit the bowler for dismissals that are bowler wickets (not run outs etc.).
+                if ($ball->is_wicket && $ball->dismissal_type?->countsAsBowlerWicket()) {
                     $bowlingByPlayer[$bowlerId]['wickets'] += 1;
                 }
             }

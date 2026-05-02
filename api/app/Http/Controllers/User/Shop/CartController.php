@@ -103,9 +103,6 @@ class CartController extends Controller
     {
         $user = request()->user();
 
-        return Cart::firstOrCreate(
-            ['user_id' => $user->id],
-            ['user_id' => $user->id]
-        );
+        return Cart::firstOrCreate(['user_id' => $user->id]);
     }
 }

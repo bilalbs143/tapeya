@@ -6,6 +6,7 @@ use App\Enums\Notification\AdminNotificationTypeEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\NotificationResource;
+use App\Utils\Constants\ApiConstants;
 use App\Utils\Services\SystemUserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -31,16 +32,20 @@ class NotificationController extends Controller
             return NotificationResource::collection($emptyPaginator)->additional(['meta' => ['unread_count' => 0]]);
         }
 
-        $perPage = (int) $request->input('per_page', 15);
-        $perPage = $perPage >= 1 && $perPage <= 100 ? $perPage : 15;
+        $perPage = (int) $request->input('per_page', ApiConstants::PER_PAGE);
+        $perPage = $perPage >= 1 && $perPage <= 100 ? $perPage : ApiConstants::PER_PAGE;
 
+        $allowedSortColumns = ['created_at', 'read_at'];
         $sort = $request->input('sort', '-created_at');
-        $query = $systemUser->notifications();
-        if (str_starts_with($sort, '-')) {
-            $query->orderByDesc(ltrim($sort, '-'));
-        } else {
-            $query->orderBy($sort);
+        $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
+        $column = ltrim($sort, '-');
+        if (! in_array($column, $allowedSortColumns, true)) {
+            $column = 'created_at';
+            $direction = 'desc';
         }
+
+        $query = $systemUser->notifications();
+        $query->orderBy($column, $direction);
 
         if ($request->filled('filter[read]')) {
             $read = $request->input('filter[read]');

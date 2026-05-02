@@ -44,11 +44,7 @@ class TournamentController extends Controller
             ]);
         }
 
-        $tournaments = request()->has('all')
-            ? $query->get()
-            : $query->paginate((int) request('per_page', 15));
-
-        return $this->success(TournamentResource::collection($tournaments));
+        return $this->success(TournamentResource::collection($this->paginateOrAll($query)));
     }
 
     /**
