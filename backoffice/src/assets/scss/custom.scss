@@ -113,3 +113,13 @@
   color: var(--mat-sys-on-background, #000);
   min-height: 200px;
 }
+.branding {
+  padding-bottom: 0 !important;
+  img {
+    width: 50%;
+    object-fit: contain;
+  }
+}
+.auth-branding img {
+  width: 10%;
+}

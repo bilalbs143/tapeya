@@ -7,11 +7,11 @@ import { CoreService } from 'src/app/services/core.service';
   imports: [],
   template: `
     <a href="/" class="logodark">
-      <img src="./assets/images/logos/dark-logo.svg" class="align-middle m-2" alt="logo" />
+      <img src="./assets/images/logos/tapeya-logo-light-theme.png" class="align-middle m-2" alt="logo" />
     </a>
 
     <a href="/" class="logolight">
-      <img src="./assets/images/logos/light-logo.svg" class="align-middle m-2" alt="logo" />
+      <img src="./assets/images/logos/tapeya-logo-dark-theme.png" class="align-middle m-2" alt="logo" />
     </a>
   `,
 })
