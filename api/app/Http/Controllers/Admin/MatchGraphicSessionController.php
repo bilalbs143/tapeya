@@ -14,8 +14,10 @@ use App\Models\MatchGraphicCommand;
 use App\Models\MatchGraphicSession;
 use App\Models\TournamentMatch;
 use App\Services\Broadcast\ResolveMatchGraphicSession;
+use App\Services\Overlay\MatchGraphicOverlaySigner;
 use App\Utils\Constants\ApiConstants;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
@@ -36,6 +38,34 @@ class MatchGraphicSessionController extends Controller
         ]);
 
         return $this->success(new MatchGraphicSessionResource($session));
+    }
+
+    /**
+     * Build a time-limited signed URL for the web app overlay (OBS / vMix browser source).
+     */
+    public function signedOverlayUrl(Request $request, TournamentMatch $match): JsonResponse
+    {
+        $ttlSeconds = (int) config('overlay.default_ttl_seconds', 86400);
+        if ($ttlSeconds < 1) {
+            $ttlSeconds = 86400;
+        }
+        $expires = time() + $ttlSeconds;
+        $signature = MatchGraphicOverlaySigner::fromConfig()->sign((int) $match->id, $expires);
+
+        $theme = (string) $request->query('theme', 'tapeya-basic');
+        $base = rtrim((string) config('overlay.frontend_base_url', 'http://localhost:5173'), '/');
+        $query = http_build_query([
+            'theme' => $theme,
+            'expires' => $expires,
+            'signature' => $signature,
+        ], '', '&', PHP_QUERY_RFC3986);
+
+        $url = "{$base}/overlay/{$match->id}?{$query}";
+
+        return $this->success([
+            'url' => $url,
+            'expires_at' => now()->setTimestamp($expires)->toIso8601String(),
+        ]);
     }
 
     public function update(UpdateMatchGraphicSessionRequest $request, TournamentMatch $match): JsonResponse
@@ -107,19 +137,21 @@ class MatchGraphicSessionController extends Controller
         return $this->success(new MatchGraphicCommandResource($command), 'Command recorded.', 'CREATED');
     }
 
-    public function activateCommand(TournamentMatch $match, MatchGraphicCommand $command): JsonResponse
+    public function activateCommand(Request $request, TournamentMatch $match, MatchGraphicCommand $command): JsonResponse
     {
         $session = $match->graphicSession;
         if (! $session || (int) $command->match_graphic_session_id !== (int) $session->id) {
             return $this->failure('Command does not belong to this match session.', 'NOT_FOUND');
         }
 
-        $session->update([
-            'active_command_id' => $command->id,
-            'updated_by' => request()->user()?->id,
-        ]);
+        DB::transaction(function () use ($request, $session, $command) {
+            $session->update([
+                'active_command_id' => $command->id,
+                'updated_by' => $request->user()?->id,
+            ]);
 
-        MatchGraphicCommandActivated::dispatch($session, $command);
+            MatchGraphicCommandActivated::dispatch($session, $command);
+        });
 
         $command->load('session');
 
@@ -137,14 +169,15 @@ class MatchGraphicSessionController extends Controller
         }
 
         DB::transaction(function () use ($session) {
-            MatchGraphicCommand::query()
-                ->where('match_graphic_session_id', $session->id)
-                ->delete();
-
+            // Null the FK pointer first so MySQL doesn't reject the subsequent delete.
             $session->update([
                 'active_command_id' => null,
                 'updated_by' => request()->user()?->id,
             ]);
+
+            MatchGraphicCommand::query()
+                ->where('match_graphic_session_id', $session->id)
+                ->delete();
         });
 
         $session->refresh();

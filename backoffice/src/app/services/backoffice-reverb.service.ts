@@ -73,6 +73,32 @@ export class BackofficeReverbService {
     }
   }
 
+  /**
+   * Subscribe to the public `match.{matchId}.graphics` channel.
+   *
+   * Returns a cleanup function — call it in ngOnDestroy / DestroyRef.onDestroy()
+   * to leave the channel when the match controller page unmounts.
+   *
+   * @param onActivated  Called when a graphic command is activated (`.match.graphic.activated`)
+   * @param onCaptionChanged  Called when a caption is saved or deleted (`.match.graphic.caption.changed`)
+   */
+  public listenMatchGraphics(
+    matchId: number,
+    onActivated: (event: Record<string, unknown>) => void,
+    onCaptionChanged: () => void,
+  ): () => void {
+    if (!this.echo || !environment.reverb.enabled) {
+      return () => {};
+    }
+    const channelName = `match.${matchId}.graphics`;
+    const channel = this.echo.channel(channelName);
+    channel.listen('.match.graphic.activated', onActivated);
+    channel.listen('.match.graphic.caption.changed', onCaptionChanged);
+    return () => {
+      this.echo?.leaveChannel(channelName);
+    };
+  }
+
   public disconnect(): void {
     if (!this.echo) {
       return;

@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\User\Auth\UserAuthController;
 use App\Http\Controllers\User\EnumController;
 use App\Http\Controllers\User\HeroSliderController;
+use App\Http\Controllers\User\MatchGraphicSessionController;
 use App\Http\Controllers\User\MatchSquadController;
 use App\Http\Controllers\User\MatchTossController;
 use App\Http\Controllers\User\NotificationController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\User\Shop\CartController;
 use App\Http\Controllers\User\Shop\CategoryController;
 use App\Http\Controllers\User\Shop\OrderController;
 use App\Http\Controllers\User\Shop\ProductController;
+use App\Http\Controllers\User\SignedMatchGraphicSessionController;
 use App\Http\Controllers\User\SponsorController;
 use App\Http\Controllers\User\StaticPageController;
 use App\Http\Controllers\User\SupportMessageController;
@@ -42,6 +44,9 @@ Route::get('enums', [EnumController::class, 'index']);
 Route::get('hero-sliders', [HeroSliderController::class, 'index']);
 Route::get('static-pages/{slug}', [StaticPageController::class, 'show'])
     ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*');
+
+/** Signed overlay bootstrap (no auth) — query must include expires + HMAC signature. */
+Route::get('matches/{match}/graphic-session/overlay', [SignedMatchGraphicSessionController::class, 'show']);
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [UserAuthController::class, 'register']);
@@ -96,6 +101,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('tournaments/{tournament}/matches', [TournamentMatchController::class, 'index']);
     Route::post('tournaments/{tournament}/matches', [TournamentMatchController::class, 'store']);
     Route::get('matches/{match}', [TournamentMatchController::class, 'show']);
+    Route::get('matches/{match}/graphic-session', [MatchGraphicSessionController::class, 'show']);
     Route::patch('matches/{match}/toss', [MatchTossController::class, 'update']);
     Route::get('matches/{match}/scorecard', [ScorecardController::class, 'scorecard']);
     Route::get('matches/{match}/player-stats', [ScorecardController::class, 'playerStats']);

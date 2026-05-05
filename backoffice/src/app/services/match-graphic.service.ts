@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 
@@ -106,6 +106,21 @@ export class MatchGraphicService {
 
   public getSession(matchId: number): Observable<{ data: MatchGraphicSession }> {
     return this.http.get<{ data: MatchGraphicSession }>(`v1/admin/matches/${matchId}/graphic-session`);
+  }
+
+  /** Signed overlay URL for OBS — paste into browser source (no app login). */
+  public getSignedOverlayUrl(
+    matchId: number,
+    params?: { theme?: string },
+  ): Observable<{ data: { url: string; expires_at: string } }> {
+    let httpParams = new HttpParams();
+    if (params?.theme != null && params.theme !== '') {
+      httpParams = httpParams.set('theme', params.theme);
+    }
+    return this.http.get<{ data: { url: string; expires_at: string } }>(
+      `v1/admin/matches/${matchId}/graphic-session/signed-url`,
+      { params: httpParams },
+    );
   }
 
   public getGraphicPlayerLists(matchId: number): Observable<{ data: MatchGraphicPlayerListsPayload }> {

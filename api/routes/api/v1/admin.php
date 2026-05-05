@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\Auth\AdminAuthController;
 use App\Http\Controllers\Admin\CountryController;
+use App\Http\Controllers\Admin\CricketDashboardController;
 use App\Http\Controllers\Admin\EnumController;
 use App\Http\Controllers\Admin\GraphicCommandCatalogController;
 use App\Http\Controllers\Admin\GraphicThemeController;
@@ -13,7 +14,6 @@ use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\Shop\BrandController as AdminBrandController;
 use App\Http\Controllers\Admin\Shop\CategoryController as AdminCategoryController;
-use App\Http\Controllers\Admin\CricketDashboardController;
 use App\Http\Controllers\Admin\Shop\EcommerceDashboardController;
 use App\Http\Controllers\Admin\Shop\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\Shop\ProductController as AdminProductController;
@@ -75,6 +75,7 @@ Route::prefix('admin')->group(function () {
         Route::get('graphic-themes', [GraphicThemeController::class, 'index']);
         Route::get('graphic-command-catalog', [GraphicCommandCatalogController::class, 'index']);
         Route::get('matches/{match}/graphic-session', [MatchGraphicSessionController::class, 'show']);
+        Route::get('matches/{match}/graphic-session/signed-url', [MatchGraphicSessionController::class, 'signedOverlayUrl']);
         Route::match(['put', 'patch'], 'matches/{match}/graphic-session', [MatchGraphicSessionController::class, 'update']);
         Route::get('matches/{match}/graphic-session/captions', [MatchGraphicCaptionController::class, 'index']);
         Route::post('matches/{match}/graphic-session/captions', [MatchGraphicCaptionController::class, 'store']);

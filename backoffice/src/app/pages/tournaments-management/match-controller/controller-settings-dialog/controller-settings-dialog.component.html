@@ -23,14 +23,30 @@
           </mat-form-field>
         </div>
 
-        <!-- Overlay URL -->
-        @if (overlayUrl(); as url) {
+        <!-- Signed overlay URL (OBS / vMix — no app login required) -->
+        @if (signedLinkLoading()) {
+          <div class="col-span-12 flex items-center gap-3 py-1">
+            <mat-spinner diameter="28"></mat-spinner>
+            <span class="text-sm text-muted">Generating signed overlay link…</span>
+          </div>
+        } @else if (signedLinkError()) {
+          <div class="col-span-12 flex flex-col gap-2 sm:flex-row sm:items-center">
+            <span class="text-sm text-error">Could not generate signed link. Check API env (e.g. OVERLAY_FRONTEND_URL).</span>
+            <button
+              type="button"
+              mat-stroked-button
+              (click)="refreshSignedOverlayUrl()"
+            >
+              Retry
+            </button>
+          </div>
+        } @else if (overlayUrl(); as url) {
           <div class="col-span-12">
             <mat-label class="text-sm font-semibold mb-2 block">
-              Overlay URL
-              <span class="text-xs font-normal text-muted ms-1">— Paste Into OBS / vMix as Browser Source</span>
+              Overlay URL (signed)
+              <span class="text-xs font-normal text-muted ms-1">— Paste into OBS / vMix; renew before expiry</span>
             </mat-label>
-            <div class="flex items-start gap-2">
+            <div class="flex flex-wrap items-start gap-2">
               <mat-form-field
                 appearance="outline"
                 class="flex-1 min-w-0"
@@ -51,6 +67,15 @@
                 (click)="copyOverlayUrl()"
               >
                 <mat-icon>{{ urlCopied ? 'check' : 'content_copy' }}</mat-icon>
+              </button>
+              <button
+                type="button"
+                mat-stroked-button
+                class="shrink-0 mt-1"
+                matTooltip="Issue a new link with a later expiry (old URL stops working)"
+                (click)="refreshSignedOverlayUrl()"
+              >
+                New link
               </button>
             </div>
           </div>

@@ -155,6 +155,27 @@ const KEY_TO_FILE = {
   TOUR_HUNDREDS: 'PlayerTournamentStats',
   TOUR_RUNS:     'PlayerTournamentStats',
   TOUR_WICKETS:  'PlayerTournamentStats',
+
+  // full screen — stats & awards
+  INNING_FIGURES:   'BatsmanInningsStats',
+  PARTNERSHIP_LIST: 'CurrentPartnership',
+  MOM:              'PlayerIntro',
+  NEXT_MATCH:       'TournamentStart',
+
+  // personnel lower-thirds (text card)
+  UMPIRES: 'GraphicTextCard',
+  SCORERS: 'GraphicTextCard',
+  COMM:    'GraphicTextCard',
+
+  // platform promo banners
+  FOLLOW_PLATFORM:   'RowTextBanner',
+  DOWNLOAD_PLATFORM: 'RowTextBanner',
+
+  // captions — CUSTOM renders the saved caption text from the command payload;
+  // ADD_CAPTION is a backoffice-only action (opens the caption dialog) and
+  // never reaches the overlay, so it resolves to null (transparent).
+  CUSTOM:      'GraphicTextCard',
+  ADD_CAPTION: null,
 };
 
 /** API / URL theme slug → on-disk folder name under graphics-controller/ */

@@ -1,16 +1,10 @@
-import { Suspense, useCallback, useEffect } from 'react';
+import { Suspense, useCallback, useEffect, useMemo } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 
 import { graphicSessionApi, useGetGraphicSessionQuery } from '@/store/api/graphicSessionApi';
 import { getGraphicComponent } from './graphicRegistry';
 import { useGraphicChannel } from '@/hooks/useGraphicChannel';
-
-/**
- * Fallback polling interval — acts as a safety-net in case the WebSocket
- * connection drops.  Real-time updates come via Reverb; polling is secondary.
- */
-const FALLBACK_POLL_MS = 30_000;
 
 /**
  * GraphicOverlay
@@ -23,13 +17,13 @@ const FALLBACK_POLL_MS = 30_000;
  * and instantly patches the RTK Query cache whenever `.match.graphic.activated`
  * arrives — zero perceptible delay on live broadcast.
  *
- * Fallback: polls the admin graphic session API every 30 s to self-heal after
- * any WebSocket interruption.
+ * Initial state: GET to graphic session API — either signed query params
+ * (?expires=&signature=, no login) or authenticated /matches/:id/graphic-session.
+ * Updates after that come from Reverb.
  *
- * The page root and body are made transparent so only the graphic card
- * floats over the video stream.
+ * html, body, and #root are forced transparent (global SCSS paints them black)
+ * so only the graphic card floats over the video stream.
  *
- * Auth: uses the Bearer token from the Redux store for the HTTP fallback poll.
  * The Reverb channel is public — no auth required there.
  */
 export default function GraphicOverlay() {
@@ -38,34 +32,53 @@ export default function GraphicOverlay() {
   const theme = searchParams.get('theme') ?? 'tapeya-basic';
   const dispatch = useDispatch();
 
-  // Make the browser window transparent — essential for OBS browser source.
+  // searchParams identity can change every render; .toString() stabilizes deps.
+  const sessionQueryArg = useMemo(() => {
+    if (!matchId) return null;
+    const expires = searchParams.get('expires');
+    const signature = searchParams.get('signature');
+    if (expires && signature) {
+      return { matchId, expires, signature };
+    }
+    return matchId;
+  }, [matchId, searchParams.toString()]);
+
+  // Make the full stack transparent — essential for OBS browser source.
+  // style.scss sets html, body, and #root to #000; inline styles override that.
   useEffect(() => {
     const html = document.documentElement;
     const body = document.body;
-    const prev = { html: html.style.background, body: body.style.background };
-    html.style.background = 'transparent';
-    body.style.background = 'transparent';
+    const root = document.getElementById('root');
+    const prev = {
+      html: html.style.backgroundColor,
+      body: body.style.backgroundColor,
+      root: root?.style.backgroundColor ?? '',
+    };
+    html.style.backgroundColor = 'transparent';
+    body.style.backgroundColor = 'transparent';
+    if (root) {
+      root.style.backgroundColor = 'transparent';
+    }
     return () => {
-      html.style.background = prev.html;
-      body.style.background = prev.body;
+      html.style.backgroundColor = prev.html;
+      body.style.backgroundColor = prev.body;
+      if (root) {
+        root.style.backgroundColor = prev.root;
+      }
     };
   }, []);
 
-  const { data: session, isError, isLoading } = useGetGraphicSessionQuery(
-    matchId,
-    {
-      skip: !matchId,
-      pollingInterval: FALLBACK_POLL_MS,
-      refetchOnFocus: true,
-    },
-  );
+  const { data: session, isError, isLoading } = useGetGraphicSessionQuery(sessionQueryArg, {
+    skip: !sessionQueryArg,
+  });
 
   // When Reverb delivers a real-time event, patch the cached session in-place
-  // so the component re-renders immediately without waiting for the next poll.
+  // so the component re-renders immediately.
   const handleReverbEvent = useCallback(
     (event) => {
+      if (!sessionQueryArg) return;
       dispatch(
-        graphicSessionApi.util.updateQueryData('getGraphicSession', matchId, (draft) => {
+        graphicSessionApi.util.updateQueryData('getGraphicSession', sessionQueryArg, (draft) => {
           draft.active_command = {
             command_key: event.command_key,
             command_type: event.command_type,
@@ -76,13 +89,13 @@ export default function GraphicOverlay() {
         }),
       );
     },
-    [dispatch, matchId],
+    [dispatch, sessionQueryArg],
   );
 
   useGraphicChannel(matchId, handleReverbEvent);
 
   // Before we have data, render nothing (fully transparent).
-  if (!matchId || isLoading) return null;
+  if (!sessionQueryArg || isLoading) return null;
 
   // On error or no session, stay transparent — never show an error overlay
   // over a live stream.
@@ -94,13 +107,23 @@ export default function GraphicOverlay() {
   // null means LT_EMPTY / intentionally clear — transparent screen.
   if (!GraphicComponent) return null;
 
+  const payload = session?.active_command?.payload;
+  const graphicProps =
+    commandKey === 'CUSTOM' && payload && typeof payload === 'object'
+      ? {
+          text: [payload.title, payload.description]
+            .filter((v) => v != null && String(v).trim() !== '')
+            .join('\n\n'),
+        }
+      : {};
+
   return (
     // graphic-overlay-container: CSS in index.css strips the outer dark
     // background wrapper that each component uses for standalone preview,
     // leaving only the graphic card visible against a transparent page.
     <div className="graphic-overlay-container">
       <Suspense fallback={null}>
-        <GraphicComponent />
+        <GraphicComponent {...graphicProps} />
       </Suspense>
     </div>
   );

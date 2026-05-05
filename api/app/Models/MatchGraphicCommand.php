@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MatchGraphicCommand extends Model
 {
-    public $timestamps = false;
+    /** Commands are write-once — track creation time only, no updated_at column. */
+    public const UPDATED_AT = null;
 
     protected $fillable = [
         'match_graphic_session_id',

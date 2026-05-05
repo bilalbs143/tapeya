@@ -151,9 +151,9 @@ function App() {
                 <Route path="/" element={<SplashScreen />} />
                 <Route path="/pages/:slug" element={<StaticPage />} />
 
-                {/* Graphic overlay — used as an OBS/vMix browser source.
-                    Outside auth layout so it can open as a standalone window.
-                    The operator must be logged in (token in Redux store). */}
+                {/* Graphic overlay — OBS/vMix browser source. Outside auth layout.
+                    Use a signed URL from backoffice (?expires=&signature=) or a
+                    logged-in app session for the initial HTTP load. */}
                 <Route
                   path="/overlay/:matchId"
                   element={<GraphicOverlay />}

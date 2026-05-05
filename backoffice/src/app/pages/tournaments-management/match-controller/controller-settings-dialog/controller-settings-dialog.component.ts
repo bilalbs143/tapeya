@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -19,8 +20,6 @@ import { MessageService } from 'src/app/services/message.service';
 import type { TournamentMatchRow } from 'src/app/services/tournament-matches.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
-import { environment } from 'src/environments/environment';
-
 export interface ControllerSettingsDialogData {
   matchId: number;
   match: TournamentMatchRow;
@@ -41,6 +40,7 @@ export interface ControllerSettingsDialogData {
     MatIconModule,
     MatInputModule,
     MatSelectModule,
+    MatProgressSpinnerModule,
     MatSlideToggleModule,
     MatTooltipModule,
     DialogWrapperComponent,
@@ -59,6 +59,11 @@ export class ControllerSettingsDialogComponent {
   public saving = false;
   public urlCopied = false;
 
+  /** Raw signed URL from API (theme updated client-side via overlayUrl). */
+  private readonly signedLinkBaseUrl = signal<string | null>(null);
+  public readonly signedLinkLoading = signal(true);
+  public readonly signedLinkError = signal(false);
+
   public readonly form = this.fb.nonNullable.group({
     graphic_theme_id: [this.data.session.graphic_theme_id, Validators.required],
     home_text: ['#ffffff'],
@@ -74,31 +79,64 @@ export class ControllerSettingsDialogComponent {
     { initialValue: this.data.session.graphic_theme_id },
   );
 
-  /** Overlay URL — updates live as the theme selection changes. */
+  /** Signed overlay URL — theme query updates live as the theme selection changes. */
   public readonly overlayUrl = computed(() => {
+    const base = this.signedLinkBaseUrl();
     const themeId = this.selectedThemeId();
     const theme = this.data.themes.find((t) => t.id === themeId);
-    if (!theme) {
+    if (!theme || !base) {
       return null;
     }
-    const base = environment.appUrl.replace(/\/$/, '');
-    return `${base}/overlay/${this.data.matchId}?theme=${theme.slug}`;
+    try {
+      const u = new URL(base);
+      u.searchParams.set('theme', theme.slug);
+      return u.toString();
+    } catch {
+      return null;
+    }
   });
 
   constructor() {
-    const cfg = (this.data.session.config ?? {}) as {
-      teams?: {
-        home?: { text_color?: string; bg_color?: string };
-        away?: { text_color?: string; bg_color?: string };
-      };
+    // Priority: session.config → active theme's default_config → hardcoded fallback.
+    // The fallback is only reached on brand-new sessions where neither the config
+    // nor the theme default_config has been set yet.
+    type TeamColors = { text_color?: string; bg_color?: string };
+    type ConfigShape = {
+      teams?: { home?: TeamColors; away?: TeamColors };
       enable_images?: boolean;
     };
+
+    const cfg = (this.data.session.config ?? {}) as ConfigShape;
+    const activeTheme = this.data.themes.find((t) => t.id === this.data.session.graphic_theme_id);
+    const themeCfg = (activeTheme?.default_config ?? {}) as ConfigShape;
+
     this.form.patchValue({
-      home_text: cfg.teams?.home?.text_color ?? '#ffffff',
-      home_bg: cfg.teams?.home?.bg_color ?? '#0d3320',
-      away_text: cfg.teams?.away?.text_color ?? '#ffffff',
-      away_bg: cfg.teams?.away?.bg_color ?? '#4a0e0e',
-      enable_images: Boolean(cfg.enable_images),
+      home_text: cfg.teams?.home?.text_color ?? themeCfg.teams?.home?.text_color ?? '#ffffff',
+      home_bg:   cfg.teams?.home?.bg_color   ?? themeCfg.teams?.home?.bg_color   ?? '#0d3320',
+      away_text: cfg.teams?.away?.text_color ?? themeCfg.teams?.away?.text_color ?? '#ffffff',
+      away_bg:   cfg.teams?.away?.bg_color   ?? themeCfg.teams?.away?.bg_color   ?? '#4a0e0e',
+      enable_images: Boolean(cfg.enable_images ?? themeCfg.enable_images),
+    });
+
+    this.refreshSignedOverlayUrl();
+  }
+
+  public refreshSignedOverlayUrl(): void {
+    const themeId = this.selectedThemeId();
+    const theme = this.data.themes.find((t) => t.id === themeId);
+    const themeSlug = theme?.slug ?? 'tapeya-basic';
+    this.signedLinkLoading.set(true);
+    this.signedLinkError.set(false);
+    this.matchGraphicService.getSignedOverlayUrl(this.data.matchId, { theme: themeSlug }).subscribe({
+      next: (res) => {
+        this.signedLinkBaseUrl.set(res.data.url);
+        this.signedLinkLoading.set(false);
+      },
+      error: (err: unknown) => {
+        this.signedLinkLoading.set(false);
+        this.signedLinkError.set(true);
+        this.messageService.httpError(err);
+      },
     });
   }
 

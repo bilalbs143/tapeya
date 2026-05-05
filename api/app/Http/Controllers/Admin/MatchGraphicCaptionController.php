@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Events\Broadcast\Graphics\MatchGraphicCaptionChanged;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreMatchGraphicCaptionRequest;
@@ -38,6 +39,8 @@ class MatchGraphicCaptionController extends Controller
 
         $caption = $session->captions()->create($data);
 
+        MatchGraphicCaptionChanged::dispatch($session, 'saved');
+
         return $this->success(new MatchGraphicCaptionResource($caption), 'Caption saved.', 'CREATED');
     }
 
@@ -52,6 +55,8 @@ class MatchGraphicCaptionController extends Controller
 
         $caption->update($request->validated());
 
+        MatchGraphicCaptionChanged::dispatch($caption->session, 'saved');
+
         return $this->success(new MatchGraphicCaptionResource($caption->fresh()), 'Caption updated.');
     }
 
@@ -61,7 +66,10 @@ class MatchGraphicCaptionController extends Controller
             return $this->failure('Caption does not belong to this match session.', 'NOT_FOUND');
         }
 
+        $session = $caption->session;
         $caption->delete();
+
+        MatchGraphicCaptionChanged::dispatch($session, 'deleted');
 
         return $this->noContent();
     }

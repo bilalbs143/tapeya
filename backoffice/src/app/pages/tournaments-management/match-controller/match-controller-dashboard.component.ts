@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { CommonModule, DOCUMENT } from '@angular/common';
+import { Component, DestroyRef, ElementRef, NgZone, OnInit, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,7 +12,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { forkJoin } from 'rxjs';
 
 import {
@@ -21,10 +20,12 @@ import {
   type GraphicCatalogGroup,
   type GraphicTheme,
   type MatchGraphicCaption,
+  type MatchGraphicCommand,
   type MatchGraphicInningsSide,
   type MatchGraphicPlayerListsPayload,
   type MatchGraphicSession,
 } from 'src/app/services/match-graphic.service';
+import { BackofficeReverbService } from 'src/app/services/backoffice-reverb.service';
 import { MessageService } from 'src/app/services/message.service';
 import { TournamentMatchesService, type TournamentMatchRow } from 'src/app/services/tournament-matches.service';
 
@@ -57,7 +58,6 @@ export interface MatchGraphicPlayerPick {
     MatSelectModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    TablerIconsModule,
   ],
   templateUrl: './match-controller-dashboard.component.html',
   styleUrl: './match-controller-dashboard.component.scss',
@@ -67,9 +67,24 @@ export class MatchControllerDashboardComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly doc = inject(DOCUMENT);
   private readonly matchRows = inject(TournamentMatchesService);
   private readonly graphicService = inject(MatchGraphicService);
+  private readonly reverbService = inject(BackofficeReverbService);
   private readonly messageService = inject(MessageService);
+  private readonly ngZone = inject(NgZone);
+
+  /** Root element for browser Fullscreen API (controller page only). */
+  private readonly fullscreenHost = viewChild<ElementRef<HTMLElement>>('fullscreenHost');
+
+  public readonly isFullscreen = signal(false);
+
+  private readonly onFullscreenChanged = (): void => {
+    this.ngZone.run(() => {
+      const host = this.fullscreenHost()?.nativeElement ?? null;
+      this.isFullscreen.set(!!host && this.doc.fullscreenElement === host);
+    });
+  };
 
   public matchId!: number;
   public match: TournamentMatchRow | null = null;
@@ -87,6 +102,8 @@ export class MatchControllerDashboardComponent implements OnInit {
   private firstLoad = true;
   /** Sent with every graphic command payload and stored in session `context`. */
   public selectedInnings: 1 | 2 = 1;
+  /** Cleanup function returned by BackofficeReverbService.listenMatchGraphics. */
+  private graphicsChannelCleanup: (() => void) | null = null;
 
   public readonly comparePlayerPick = (a: MatchGraphicPlayerPick | null, b: MatchGraphicPlayerPick | null): boolean =>
     !!a && !!b && a.team_id === b.team_id && a.user_id === b.user_id;
@@ -97,6 +114,18 @@ export class MatchControllerDashboardComponent implements OnInit {
   }
 
   public ngOnInit(): void {
+    this.doc.defaultView?.addEventListener('fullscreenchange', this.onFullscreenChanged);
+
+    // Leave the graphics channel when this component is destroyed.
+    this.destroyRef.onDestroy(() => {
+      this.doc.defaultView?.removeEventListener('fullscreenchange', this.onFullscreenChanged);
+      this.graphicsChannelCleanup?.();
+      this.graphicsChannelCleanup = null;
+      if (this.doc.fullscreenElement) {
+        void this.doc.exitFullscreen().catch(() => undefined);
+      }
+    });
+
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       const id = params.get('matchId');
       if (!id) {
@@ -129,9 +158,10 @@ export class MatchControllerDashboardComponent implements OnInit {
         this.selectedBowler = null;
         this.syncInningsFromSession(session.data);
         this.loading = false;
+        this.subscribeToGraphicsChannel();
 
         // Auto-open settings on first page load so the operator picks a theme
-        // and copies the overlay URL before starting to send commands.
+        // and copies the signed OBS overlay URL before starting to send commands.
         if (this.firstLoad) {
           this.firstLoad = false;
           this.openSettings();
@@ -204,7 +234,16 @@ export class MatchControllerDashboardComponent implements OnInit {
       return;
     }
 
-    if (action.command_key === 'CUSTOM' && this.captions.length === 0) {
+    // Include the saved caption text in the payload so the overlay can render
+    // it directly from the broadcast event without a separate HTTP fetch.
+    if (action.command_key === 'CUSTOM') {
+      if (!this.caption) {
+        return;
+      }
+      this.dispatchGraphicCommand(action, {
+        title: this.caption.title,
+        description: this.caption.description,
+      });
       return;
     }
 
@@ -282,22 +321,54 @@ export class MatchControllerDashboardComponent implements OnInit {
         payload: this.buildCommandPayloadWithInnings(payload),
       })
       .subscribe({
-        next: () => {
+        next: (res) => {
           this.sendingKey = null;
           this.messageService.success(`Sent: ${action.label}`);
-          this.graphicService.getSession(this.matchId).subscribe({
-            next: (s) => {
-              this.session = s.data;
-              this.syncInningsFromSession(s.data);
-            },
-            error: (err: unknown) => this.messageService.httpError(err),
-          });
+          if (this.session) {
+            const cmd = res.data;
+            const prev = this.session.recent_commands ?? [];
+            this.session = {
+              ...this.session,
+              active_command: cmd,
+              active_command_id: cmd.id,
+              recent_commands: [cmd, ...prev.filter((c) => c.id !== cmd.id)].slice(0, 30),
+            };
+          }
         },
         error: (err: unknown) => {
           this.sendingKey = null;
           this.messageService.httpError(err);
         },
       });
+  }
+
+  /**
+   * Subscribe to the public match graphics Reverb channel so this page stays
+   * in sync when another operator (or another tab) fires a command or edits a
+   * caption.  Called after every successful loadAll() to reconnect if the matchId
+   * changes (rare but possible via route params).
+   */
+  private subscribeToGraphicsChannel(): void {
+    // Leave any previously subscribed channel first.
+    this.graphicsChannelCleanup?.();
+
+    this.graphicsChannelCleanup = this.reverbService.listenMatchGraphics(
+      this.matchId,
+      (event) => {
+        // Another operator activated a command — update the active graphic chip.
+        if (this.session) {
+          this.session = {
+            ...this.session,
+            active_command: this.commandFromGraphicActivatedEvent(event),
+            active_command_id: this.commandIdFromGraphicActivatedEvent(event),
+          };
+        }
+      },
+      () => {
+        // Caption was saved or deleted by another operator — refresh the list.
+        this.refreshCaptions();
+      },
+    );
   }
 
   public usePrimaryButtons(group: GraphicCatalogGroup): boolean {
@@ -309,6 +380,40 @@ export class MatchControllerDashboardComponent implements OnInit {
     return tid
       ? ['/tournaments-management/tournaments', String(tid), 'matches']
       : ['/tournaments-management/tournaments'];
+  }
+
+  public async toggleFullscreen(): Promise<void> {
+    const root = this.fullscreenHost()?.nativeElement;
+    if (!root) {
+      return;
+    }
+    try {
+      if (this.doc.fullscreenElement === root) {
+        const d = this.doc as Document & { webkitExitFullscreen?: () => Promise<void> | void };
+        if (typeof this.doc.exitFullscreen === 'function') {
+          await this.doc.exitFullscreen();
+        } else if (typeof d.webkitExitFullscreen === 'function') {
+          await Promise.resolve(d.webkitExitFullscreen());
+        }
+      } else {
+        const el = root as HTMLElement & {
+          webkitRequestFullscreen?: () => Promise<void> | void;
+        };
+        if (typeof el.requestFullscreen === 'function') {
+          await el.requestFullscreen();
+        } else if (typeof el.webkitRequestFullscreen === 'function') {
+          await Promise.resolve(el.webkitRequestFullscreen());
+        } else {
+          this.messageService.error('Full screen is not supported in this browser.');
+        }
+      }
+    } catch {
+      this.messageService.error('Could not enter or exit full screen.');
+    }
+  }
+
+  public fullscreenToggleLabel(): string {
+    return this.isFullscreen() ? 'Exit Full Screen' : 'Full Screen';
   }
 
   public confirmClearRecentCommands(): void {
@@ -357,6 +462,29 @@ export class MatchControllerDashboardComponent implements OnInit {
       next: (res) => (this.captions = res.data ?? []),
       error: (err: unknown) => this.messageService.httpError(err),
     });
+  }
+
+  /**
+   * Public Reverb payload uses `command_id`; admin API resources use `id`.
+   */
+  private commandIdFromGraphicActivatedEvent(event: Record<string, unknown>): number | null {
+    const raw = event['command_id'] ?? event['id'];
+    return typeof raw === 'number' ? raw : Number(raw) || null;
+  }
+
+  private commandFromGraphicActivatedEvent(event: Record<string, unknown>): MatchGraphicCommand {
+    const id = this.commandIdFromGraphicActivatedEvent(event);
+    const sidRaw = event['session_id'] ?? event['match_graphic_session_id'];
+    const sessionId = typeof sidRaw === 'number' ? sidRaw : Number(sidRaw) || 0;
+    return {
+      id: id ?? 0,
+      match_graphic_session_id: sessionId,
+      command_type: String(event['command_type'] ?? ''),
+      command_key: String(event['command_key'] ?? ''),
+      payload: (event['payload'] as Record<string, unknown> | null) ?? null,
+      display_mode: (event['display_mode'] as string | null) ?? null,
+      created_at: null,
+    };
   }
 
   /** Hide catalog “Add Caption” when the single slot is already used (edit via Saved Caption). */
