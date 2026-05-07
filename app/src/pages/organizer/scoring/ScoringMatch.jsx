@@ -95,6 +95,7 @@ import {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const matchCenterHeader = `${CLOUDFRONT_APP_BASE}/images/background/match-center-header.png`;
+const matchCenterHeaderDesktop = `${CLOUDFRONT_APP_BASE}/images/background/match-center-header-desktop.png`;
 const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
 
 const SCORING_TABS = [
@@ -212,6 +213,12 @@ export default function ScoringMatch() {
   const { matchId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const fromApi = isApiMatchId(matchId);
+  const [headerImageSrc] = useState(() =>
+    typeof window !== 'undefined' &&
+    window.matchMedia('(min-width: 1024px)').matches
+      ? matchCenterHeaderDesktop
+      : matchCenterHeader,
+  );
 
   // ── API queries ────────────────────────────────────────────────────────────
 
@@ -827,9 +834,9 @@ export default function ScoringMatch() {
           <header className="-mx-4 pb-10">
             <div className="relative w-full">
               <img
-                src={matchCenterHeader}
+                src={headerImageSrc}
                 alt=""
-                className="h-auto w-full lg:h-[300px] lg:object-cover lg:object-center"
+                className="h-auto w-full lg:h-[350px] lg:object-cover lg:object-bottom"
                 aria-hidden
               />
 

@@ -28,7 +28,7 @@ const CONTENT_WRAPPER_CLASS = 'px-4 pb-6 pt-1';
 
 const SPONSOR_METRICS = [
   { value: '—', label: 'TEAMS' },
-  { value: '—', label: 'PARTNERSHIPS' },
+  { value: '—', label: 'FOLLOWERS' },
   { value: '—', label: 'REACH' },
 ];
 
