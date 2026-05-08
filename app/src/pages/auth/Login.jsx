@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
@@ -6,18 +6,12 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import {
-  extractOtpFromAuthResponse,
-  setOtpPreview,
-} from '@/lib/otpPreviewSession';
+import { extractOtpFromAuthResponse, setOtpPreview } from '@/lib/otpPreviewSession';
 import { markReturningUser } from '@/lib/returningUser';
-import {
-  clearProfileToken,
-  getSavedProfiles,
-  removeSavedProfile,
-} from '@/lib/savedProfiles';
+import { clearProfileToken, getSavedProfiles, removeSavedProfile } from '@/lib/savedProfiles';
 import { getInitials } from '@/lib/utils/displayUtils';
 import { formatPhoneMasked } from '@/lib/utils/phoneUtils';
+import { getRedirectPath } from '@/lib/utils/routeUtils';
 import { loginSchema } from '@/lib/validations/auth';
 import { authApi, useRequestOtpMutation } from '@/store/api/authApi';
 import { useAppDispatch } from '@/store/hooks';
@@ -38,7 +32,7 @@ export default function Login() {
   const [showOtherAccount, setShowOtherAccount] = useState(false);
   const [tappingProfile, setTappingProfile] = useState(null);
 
-  // Keep local copy so removing a profile updates the UI without a page reload.
+  // Local copy so removing a profile updates the UI without a page reload.
   const [savedProfiles, setSavedProfiles] = useState(() => getSavedProfiles());
 
   const handleRemoveProfile = (e, phone) => {
@@ -57,17 +51,22 @@ export default function Login() {
     mode: 'onChange',
   });
 
+  // isLoading covers the mutation in-flight; isSubmitting covers form validation delay.
   const [requestOtp, { isLoading, error, reset }] = useRequestOtpMutation();
 
-  const requestOtpAndNavigate = async (phone) => {
-    const result = await requestOtp({ phone }).unwrap();
-    const otp = extractOtpFromAuthResponse(result);
-    if (otp) setOtpPreview(phone, otp);
-    navigate('/otp', {
-      state: { phone, otp, from: location.state?.from },
-      replace: true,
-    });
-  };
+  const requestOtpAndNavigate = useCallback(
+    async (phone) => {
+      const result = await requestOtp({ phone }).unwrap();
+      const otp = extractOtpFromAuthResponse(result);
+      if (otp) setOtpPreview(phone, otp);
+      // otp is intentionally excluded from nav state; setOtpPreview handles the preview.
+      navigate('/otp', {
+        state: { phone, from: location.state?.from },
+        replace: true,
+      });
+    },
+    [requestOtp, navigate, location.state?.from],
+  );
 
   const onSubmit = async (data) => {
     try {
@@ -90,7 +89,7 @@ export default function Login() {
         return;
       }
 
-      // Optimistically set credentials so authenticated endpoints work.
+      // Optimistically set credentials so authenticated endpoints work immediately.
       dispatch(
         setCredentials({
           user: {
@@ -109,25 +108,23 @@ export default function Login() {
       );
 
       if (result.error?.status === 401) {
-        // Token expired — clear it and re-authenticate via OTP.
+        // Token expired — clear and re-authenticate via OTP.
         clearProfileToken(profile.phone);
         dispatch(clearCredentials());
         await requestOtpAndNavigate(profile.phone);
         return;
       }
 
-      // Refresh stored user data with the latest from the server.
+      // Update stored user data with the latest from the server.
       const userData = result.data?.data ?? result.data;
       if (userData) {
-        dispatch(
-          setCredentials({ user: userData, accessToken: profile.accessToken }),
-        );
+        dispatch(setCredentials({ user: userData, accessToken: profile.accessToken }));
       }
 
       markReturningUser();
-      const from = location.state?.from?.pathname;
-      navigate(from && from !== '/login' ? from : '/home', { replace: true });
-    } catch {
+      navigate(getRedirectPath(location.state), { replace: true });
+    } catch (err) {
+      console.error('Profile tap failed:', err);
       clearProfileToken(profile.phone);
       dispatch(clearCredentials());
       await requestOtpAndNavigate(profile.phone);
@@ -136,6 +133,7 @@ export default function Login() {
     }
   };
 
+  // isSubmitting and isLoading can both be true during a phone form submission.
   const busy = isLoading || isSubmitting || tappingProfile !== null;
   const showProfiles = savedProfiles.length > 0 && !showOtherAccount;
 
@@ -195,14 +193,7 @@ export default function Login() {
   );
 }
 
-function ProfilePicker({
-  profiles,
-  tappingProfile,
-  busy,
-  onTap,
-  onRemove,
-  onUseOther,
-}) {
+function ProfilePicker({ profiles, tappingProfile, busy, onTap, onRemove, onUseOther }) {
   return (
     <>
       <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">
@@ -218,7 +209,6 @@ function ProfilePicker({
               key={profile.phone}
               className="relative flex w-full rounded-[18px] border border-[#1A1A1A] bg-[#141412] px-4 py-3.5"
             >
-              {/* Remove button */}
               <button
                 type="button"
                 onClick={(e) => onRemove(e, profile.phone)}
@@ -228,7 +218,6 @@ function ProfilePicker({
                 ×
               </button>
 
-              {/* Profile tap target */}
               <button
                 type="button"
                 onClick={() => onTap(profile)}
@@ -237,9 +226,7 @@ function ProfilePicker({
               >
                 <Avatar className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-[#1A1A1A]">
                   <AvatarImage
-                    src={
-                      profile.avatarUrl ?? profile.avatar_url ?? defaultAvatar
-                    }
+                    src={profile.avatarUrl ?? profile.avatar_url ?? defaultAvatar}
                     alt=""
                   />
                   <AvatarFallback className="bg-[#DA9811] text-sm font-bold text-[#080807]">
@@ -274,16 +261,7 @@ function ProfilePicker({
   );
 }
 
-function PhoneForm({
-  control,
-  errors,
-  error,
-  busy,
-  hasSavedProfiles,
-  onSubmit,
-  onFocus,
-  onBack,
-}) {
+function PhoneForm({ control, errors, error, busy, hasSavedProfiles, onSubmit, onFocus, onBack }) {
   return (
     <form
       onSubmit={onSubmit}
@@ -328,12 +306,7 @@ function PhoneForm({
         </p>
       )}
 
-      <Button
-        type="submit"
-        disabled={busy}
-        variant="auth"
-        className="mt-4 lg:w-full"
-      >
+      <Button type="submit" disabled={busy} variant="auth" className="mt-4 lg:w-full">
         {busy ? 'Signing in…' : 'Login'}
       </Button>
     </form>

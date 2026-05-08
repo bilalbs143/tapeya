@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import {
@@ -24,6 +24,10 @@ const ChevronDown = () => (
   </svg>
 );
 
+/**
+ * Maps a raw API notification to the shape expected by NotificationCard.
+ * Message format expected: "Bold label: remaining detail text"
+ */
 function mapApiNotificationToCard(notification) {
   if (!notification) return null;
 
@@ -40,17 +44,10 @@ function mapApiNotificationToCard(notification) {
     regularText = tail ? `: ${tail}` : '';
   }
 
-  const nameSource =
-    data.customer_name || data.user_name || data.tournament_name || '';
-
-  const fallback =
-    nameSource
-      ?.split(' ')
-      .filter(Boolean)
-      .map((chunk) => chunk[0] || '')
-      .join('')
-      .slice(0, 2)
-      .toUpperCase() || 'NT';
+  const nameSource = data.customer_name || data.user_name || data.tournament_name || '';
+  const fallback = nameSource
+    ? nameSource.split(' ').filter(Boolean).map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+    : 'NT';
 
   return {
     id: notification.id,
@@ -58,28 +55,23 @@ function mapApiNotificationToCard(notification) {
     fallback,
     boldText,
     regularText,
-    timestamp: notification.created_at,
+    timestamp: notification.created_at
+      ? new Date(notification.created_at).toLocaleString()
+      : '',
+    // actionLabel is reserved for future use
     actionLabel: null,
     unread: !notification.read_at,
   };
 }
 
 function NotificationCard({ notification, onActionClick }) {
-  const {
-    avatar,
-    fallback,
-    boldText,
-    regularText,
-    timestamp,
-    actionLabel,
-    unread,
-  } = notification;
+  const { avatar, fallback, boldText, regularText, timestamp, actionLabel, unread } = notification;
 
   return (
     <article className="flex items-start gap-3 rounded-[17px] bg-[#141412] p-4">
       <Avatar className="h-12 w-12 shrink-0 rounded-full bg-[#252520]">
         {avatar && <AvatarImage src={avatar} alt="" />}
-        <AvatarFallback className="bg-[#252520] text-sm font-semibold text-white">
+        <AvatarFallback className="bg-[#252520] text-sm font-semibold text-[#141412]">
           {fallback}
         </AvatarFallback>
       </Avatar>
@@ -90,23 +82,22 @@ function NotificationCard({ notification, onActionClick }) {
         </p>
         <p className="mt-1 text-[12px] text-[#A2A6AB]">{timestamp}</p>
       </div>
-      <div className="flex shrink-0 items-center gap-2">
-        {actionLabel && onActionClick && (
-          <button
-            type="button"
-            onClick={() => onActionClick(notification)}
-            className="rounded-[6px] border border-[#DA9811] bg-transparent px-3 py-1 text-[13px] font-bold text-[#DA9811] transition-opacity active:opacity-90"
-          >
-            {actionLabel}
-          </button>
-        )}
-        {unread && (
-          <span
-            className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#4CAF50]"
-            aria-hidden
-          />
-        )}
-      </div>
+      {(actionLabel || unread) && (
+        <div className="flex shrink-0 items-center gap-2">
+          {actionLabel && onActionClick && (
+            <button
+              type="button"
+              onClick={() => onActionClick(notification)}
+              className="rounded-[6px] border border-[#DA9811] bg-transparent px-3 py-1 text-[13px] font-bold text-[#DA9811] transition-opacity active:opacity-90"
+            >
+              {actionLabel}
+            </button>
+          )}
+          {unread && (
+            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#4CAF50]" aria-hidden />
+          )}
+        </div>
+      )}
     </article>
   );
 }
@@ -114,13 +105,9 @@ function NotificationCard({ notification, onActionClick }) {
 export default function NotificationCenter() {
   const [page, setPage] = useState(1);
   const [items, setItems] = useState([]);
+  const [markAllError, setMarkAllError] = useState(false);
 
-  const {
-    data: apiResponse,
-    isLoading,
-    isFetching,
-    isError,
-  } = useGetNotificationsQuery({
+  const { data: apiResponse, isLoading, isFetching, isError } = useGetNotificationsQuery({
     page,
     per_page: PAGE_SIZE,
   });
@@ -128,9 +115,8 @@ export default function NotificationCenter() {
   const [markAllNotificationsRead, { isLoading: isMarkingAll }] =
     useMarkAllNotificationsReadMutation();
 
-  // Merge incoming page data into `items` by deduplicating on id.
-  // When page === 1 and we already have items (e.g. from pages 2+), merge
-  // so a background refetch of page 1 doesn't wipe the list.
+  // Merge incoming page data into `items`, deduplicating by id.
+  // Page 1 refetches update the top of the list without discarding loaded pages.
   useEffect(() => {
     if (!apiResponse?.data) return;
 
@@ -138,14 +124,10 @@ export default function NotificationCenter() {
       if (page === 1) {
         if (prev.length === 0) return apiResponse.data;
         const page1Ids = new Set(apiResponse.data.map((n) => n.id));
-        const rest = prev.filter((n) => !page1Ids.has(n.id));
-        return [...apiResponse.data, ...rest];
+        return [...apiResponse.data, ...prev.filter((n) => !page1Ids.has(n.id))];
       }
       const existingIds = new Set(prev.map((n) => n.id));
-      return [
-        ...prev,
-        ...apiResponse.data.filter((n) => !existingIds.has(n.id)),
-      ];
+      return [...prev, ...apiResponse.data.filter((n) => !existingIds.has(n.id))];
     });
   }, [apiResponse, page]);
 
@@ -163,23 +145,22 @@ export default function NotificationCenter() {
   );
 
   const hasMoreOlder =
-    apiResponse?.meta &&
-    apiResponse.meta.current_page < apiResponse.meta.last_page;
+    (apiResponse?.meta?.current_page ?? 0) < (apiResponse?.meta?.last_page ?? 0);
 
-  const loadOlder = useCallback(() => {
+  const loadOlder = () => {
     if (!hasMoreOlder || isFetching) return;
     setPage((prev) => prev + 1);
-  }, [hasMoreOlder, isFetching]);
+  };
 
   const handleMarkAllAsRead = async () => {
+    setMarkAllError(false);
     try {
       await markAllNotificationsRead().unwrap();
       const now = new Date().toISOString();
-      setItems((prev) =>
-        prev.map((n) => ({ ...n, read_at: n.read_at || now })),
-      );
-    } catch {
-      // Best-effort; keep UI as-is on failure.
+      setItems((prev) => prev.map((n) => ({ ...n, read_at: n.read_at || now })));
+    } catch (err) {
+      console.error('Failed to mark notifications as read:', err);
+      setMarkAllError(true);
     }
   };
 
@@ -203,14 +184,14 @@ export default function NotificationCenter() {
         </div>
 
         {isLoading && (
-          <p className="mb-3 text-[12px] text-[#A2A6AB]">
-            Loading notifications…
-          </p>
+          <p className="mb-3 text-[12px] text-[#A2A6AB]">Loading notifications…</p>
         )}
 
-        {isError && (
+        {(isError || markAllError) && (
           <p className="mb-3 text-[12px] text-[#DA9811]">
-            Failed to load notifications. Please try again.
+            {isError
+              ? 'Failed to load notifications. Please try again.'
+              : 'Failed to mark notifications as read. Please try again.'}
           </p>
         )}
 
@@ -224,9 +205,7 @@ export default function NotificationCenter() {
           </ul>
         ) : (
           !isLoading && (
-            <p className="text-[12px] text-[#A2A6AB]">
-              You have no notifications yet.
-            </p>
+            <p className="text-[12px] text-[#A2A6AB]">You have no notifications yet.</p>
           )
         )}
 
