@@ -135,9 +135,13 @@ function RankingSection({
   error,
   emptyMessage,
 }) {
+  const desktopCardWidthClass = 'lg:w-[calc((100%-0.75rem)/2)]';
+
   return (
     <>
-      <div className="flex items-center justify-between pb-3">
+      <div
+        className={`flex items-center justify-between pb-3 lg:mx-auto ${desktopCardWidthClass}`}
+      >
         <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
           {title}
         </h2>
@@ -158,14 +162,15 @@ function RankingSection({
       {!loading && !error && rows.length === 0 && (
         <p className="text-[13px] text-[#A2A6AB]">{emptyMessage}</p>
       )}
-      <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
+      <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-1 lg:gap-3 lg:justify-items-center">
         {rows.slice(0, TOP_RANKINGS_LIMIT).map((player, index) => (
-          <PlayerCard
-            key={player.id}
-            player={player}
-            rank={index + 1}
-            variant={variant}
-          />
+          <div key={player.id} className={desktopCardWidthClass}>
+            <PlayerCard
+              player={player}
+              rank={index + 1}
+              variant={variant}
+            />
+          </div>
         ))}
       </div>
     </>
