@@ -24,26 +24,32 @@ class MatchGraphicCommandActivated implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public int $matchId;
+
     public string $commandKey;
+
     public string $commandType;
+
     public ?string $displayMode;
+
     public ?array $payload;
+
     public int $sessionId;
+
     public int $commandId;
 
     public function __construct(MatchGraphicSession $session, MatchGraphicCommand $command)
     {
-        $this->matchId     = $session->match_id;
-        $this->sessionId   = $session->id;
-        $this->commandId   = $command->id;
-        $this->commandKey  = $command->command_key instanceof \BackedEnum
+        $this->matchId = $session->match_id;
+        $this->sessionId = $session->id;
+        $this->commandId = $command->id;
+        $this->commandKey = $command->command_key instanceof \BackedEnum
             ? $command->command_key->value
             : (string) $command->command_key;
         $this->commandType = $command->command_type instanceof \BackedEnum
             ? $command->command_type->value
             : (string) $command->command_type;
         $this->displayMode = $command->display_mode;
-        $this->payload     = $command->payload;
+        $this->payload = $command->payload;
     }
 
     /**
@@ -70,13 +76,13 @@ class MatchGraphicCommandActivated implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         return [
-            'match_id'     => $this->matchId,
-            'session_id'   => $this->sessionId,
-            'command_id'   => $this->commandId,
-            'command_key'  => $this->commandKey,
+            'match_id' => $this->matchId,
+            'session_id' => $this->sessionId,
+            'command_id' => $this->commandId,
+            'command_key' => $this->commandKey,
             'command_type' => $this->commandType,
             'display_mode' => $this->displayMode,
-            'payload'      => $this->payload,
+            'payload' => $this->payload,
         ];
     }
 }

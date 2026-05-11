@@ -91,6 +91,8 @@ const UpcomingTournamentDetails = lazy(
   () => import('@/pages/upcoming-tournaments/UpcomingTournamentDetails'),
 );
 
+const InterestForm = lazy(() => import('@/pages/interest/InterestForm'));
+
 // Organizer
 const Tournaments = lazy(
   () => import('@/pages/organizer/tournaments/Tournaments'),
@@ -177,6 +179,10 @@ function App() {
                     <Route
                       path="/upcoming-tournaments/:tournamentId"
                       element={<UpcomingTournamentDetails />}
+                    />
+                    <Route
+                      path="/interest/:slug"
+                      element={<InterestForm />}
                     />
                     {/* <Route element={<RequireOrganizerRole />}> */}
                     <Route

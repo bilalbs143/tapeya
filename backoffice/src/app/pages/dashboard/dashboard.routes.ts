@@ -14,9 +14,7 @@ export const dashboardRoutes: Routes = [
     path: '',
     canMatch: [broadcastStaffDashboardCanMatch],
     loadComponent: () =>
-      import('./broadcaster-dashboard/broadcaster-dashboard.component').then(
-        (m) => m.BroadcasterDashboardComponent,
-      ),
+      import('./broadcaster-dashboard/broadcaster-dashboard.component').then((m) => m.BroadcasterDashboardComponent),
     data: {
       title: 'Dashboard',
       urls: [{ title: 'Dashboard', url: '/dashboard' }],

@@ -49,6 +49,10 @@ class TournamentResource extends JsonResource
             'dislikes_count' => (int) ($this->dislikes_count ?? 0),
             'shares_count' => (int) ($this->shares_count ?? 0),
             'my_reaction' => $this->when(isset($this->my_reaction), $this->my_reaction),
+            'interest_campaign_slug' => $this->when(
+                array_key_exists('interest_campaign_slug', $this->resource->getAttributes()),
+                fn () => $this->interest_campaign_slug,
+            ),
 
             'teams_count' => (int) $this->getTeamsCount(),
             'matches' => $this->whenLoaded('matches', fn () => TournamentMatchResource::collection($this->matches)),

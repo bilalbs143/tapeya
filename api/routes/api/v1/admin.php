@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\Auth\AdminAuthController;
 use App\Http\Controllers\Admin\CountryController;
+use App\Http\Controllers\Admin\CricketDashboardController;
 use App\Http\Controllers\Admin\EnumController;
 use App\Http\Controllers\Admin\GraphicCommandCatalogController;
 use App\Http\Controllers\Admin\GraphicThemeController;
@@ -13,7 +14,6 @@ use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\Shop\BrandController as AdminBrandController;
 use App\Http\Controllers\Admin\Shop\CategoryController as AdminCategoryController;
-use App\Http\Controllers\Admin\CricketDashboardController;
 use App\Http\Controllers\Admin\Shop\EcommerceDashboardController;
 use App\Http\Controllers\Admin\Shop\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\Shop\ProductController as AdminProductController;
@@ -21,6 +21,8 @@ use App\Http\Controllers\Admin\StaticPageController;
 use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\TournamentBroadcasterController;
 use App\Http\Controllers\Admin\TournamentController;
+use App\Http\Controllers\Admin\TournamentInterestCampaignController;
+use App\Http\Controllers\Admin\TournamentInterestSubmissionController;
 use App\Http\Controllers\Admin\TournamentMatchController;
 use App\Http\Controllers\Admin\TournamentMatchSquadController;
 use App\Http\Controllers\Admin\TournamentRequestController;
@@ -91,6 +93,16 @@ Route::prefix('admin')->group(function () {
         Route::get('tournament-requests', [TournamentRequestController::class, 'index']);
         Route::get('tournament-requests/{tournament_request}', [TournamentRequestController::class, 'show']);
         Route::match(['put', 'patch'], 'tournament-requests/{tournament_request}', [TournamentRequestController::class, 'update']);
+
+        Route::get('interest-campaigns', [TournamentInterestCampaignController::class, 'index']);
+        Route::post('interest-campaigns', [TournamentInterestCampaignController::class, 'store']);
+        Route::get('interest-campaigns/{campaign}', [TournamentInterestCampaignController::class, 'show']);
+        Route::match(['put', 'patch'], 'interest-campaigns/{campaign}', [TournamentInterestCampaignController::class, 'update']);
+        Route::delete('interest-campaigns/{campaign}', [TournamentInterestCampaignController::class, 'destroy']);
+
+        Route::get('interest-submissions', [TournamentInterestSubmissionController::class, 'index']);
+        Route::get('interest-submissions/{submission}', [TournamentInterestSubmissionController::class, 'show']);
+        Route::match(['put', 'patch'], 'interest-submissions/{submission}', [TournamentInterestSubmissionController::class, 'update']);
 
         Route::prefix('shop')->group(function () {
             Route::get('dashboard-stats', EcommerceDashboardController::class);

@@ -56,9 +56,7 @@ export class CricketDashboardComponent implements OnInit {
 
   // ── Top teams ─────────────────────────────────────────────────────────────
   public readonly topTeamsByWins = computed(() => this.stats()?.top_teams_by_wins ?? []);
-  public readonly topTeamsMaxWins = computed(() =>
-    this.topTeamsByWins().reduce((m, t) => Math.max(m, t.wins), 1)
-  );
+  public readonly topTeamsMaxWins = computed(() => this.topTeamsByWins().reduce((m, t) => Math.max(m, t.wins), 1));
 
   // ── Match activity (30d) ──────────────────────────────────────────────────
   public readonly matchActivityDates = computed(() => this.stats()?.match_activity_dates ?? []);

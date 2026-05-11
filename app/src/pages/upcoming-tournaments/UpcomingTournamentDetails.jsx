@@ -166,6 +166,8 @@ export default function UpcomingTournamentDetails() {
 
   const canReact = hasValidNumericId;
   const isReacting = isLiking || isDisliking || isSharing;
+  const interestCampaignSlug = tournament.interest_campaign_slug ?? null;
+  const canExpressInterest = canReact && interestCampaignSlug !== null;
 
   // ------------------------------------------------------------------
   // Handlers
@@ -195,6 +197,11 @@ export default function UpcomingTournamentDetails() {
     } catch {
       // Ignore; counts stay unchanged on error.
     }
+  };
+
+  const handleInterestClick = () => {
+    if (!canExpressInterest || !interestCampaignSlug) return;
+    navigate(`/interest/${interestCampaignSlug}`);
   };
 
   const handleShare = async () => {
@@ -264,6 +271,16 @@ export default function UpcomingTournamentDetails() {
             </p>
           )}
         </div>
+
+        {canExpressInterest && (
+          <button
+            type="button"
+            onClick={handleInterestClick}
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-[10px] bg-[#DA9811] py-3 text-[14px] font-bold uppercase tracking-wide text-black transition-opacity active:opacity-90"
+          >
+            I'm Interested
+          </button>
+        )}
 
         <div className="mt-4 flex justify-center gap-8">
           <button

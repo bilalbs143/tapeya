@@ -4,6 +4,7 @@ import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
 import { enumNameToValue } from '@/lib/utils/enumUtils';
 import { updateProfileSchema } from '@/lib/validations/auth';
 import { useGetMeQuery, useUpdateProfileMutation } from '@/store/api/authApi';
@@ -56,9 +57,6 @@ const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5 MB
  * Maps to '' in state and null in the API, same pattern as playing role.
  */
 const PROFILE_FIELD_NONE = '__none__';
-
-/** Matches API country `name` (GET /countries). */
-const DEFAULT_COUNTRY = 'Pakistan';
 
 const DEFAULT_FIELDS = {
   name: '',

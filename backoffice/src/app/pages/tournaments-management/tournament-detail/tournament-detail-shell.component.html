@@ -70,6 +70,15 @@
           >
             Matches
           </a>
+          <a
+            mat-tab-link
+            routerLink="interest-campaigns"
+            routerLinkActive
+            #rlaIC="routerLinkActive"
+            [active]="rlaIC.isActive"
+          >
+            Interest Campaigns
+          </a>
         </nav>
       </mat-card-content>
     </mat-card>

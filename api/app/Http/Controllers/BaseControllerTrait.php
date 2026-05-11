@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Utils\Constants\ApiConstants;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -59,7 +60,7 @@ trait BaseControllerTrait
      * Works with any Eloquent builder, relation builder, or Spatie QueryBuilder instance.
      * Pass $defaultPerPage to override the global default for this specific endpoint.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder|\Spatie\QueryBuilder\QueryBuilder  $query
+     * @param  Builder|\Illuminate\Database\Query\Builder|QueryBuilder  $query
      */
     protected function paginateOrAll($query, int $defaultPerPage = ApiConstants::PER_PAGE)
     {

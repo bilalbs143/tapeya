@@ -1,6 +1,8 @@
 <app-dialog-wrapper title="Tournament Request Details">
   @if (isLoading) {
-    <span class="block p-4 text-muted">Loading tournament request...</span>
+    <mat-dialog-content>
+      <p class="m-0 py-6 text-center text-muted text-sm">Loading tournament request…</p>
+    </mat-dialog-content>
   } @else if (tournamentRequest) {
     <form
       [formGroup]="form"
@@ -8,104 +10,138 @@
       aria-label="Update tournament request status"
     >
       <mat-dialog-content>
-        <div class="grid grid-cols-12 gap-x-6 mb-4">
-          <div class="col-span-12 sm:col-span-6">
-            <span class="block text-sm font-semibold mb-1">Contact Person</span>
-            <span class="block text-sm">{{ tournamentRequest.contact_person_name }}</span>
+        <div class="flex flex-col gap-2">
+          <div class="shrink-0">
+            <h2 class="text-base font-semibold m-0">Request Details</h2>
+            <p class="text-muted m-0 mt-1 text-xs">
+              Contact, venue, schedule, format, and grouping for this tournament request.
+            </p>
           </div>
-          <div class="col-span-12 sm:col-span-6">
-            <span class="block text-sm font-semibold mb-1">Contact Phone</span>
-            <span class="block text-sm">{{ tournamentRequest.contact_phone }}</span>
-          </div>
-          <div class="col-span-12 sm:col-span-6">
-            <span class="block text-sm font-semibold mb-1">Tournament Name</span>
-            <span class="block text-sm">{{ tournamentRequest.tournament_name }}</span>
-          </div>
-          <div class="col-span-12 sm:col-span-6">
-            <span class="block text-sm font-semibold mb-1">Status</span>
-            <span
-              class="rounded-sm font-semibold px-1.5 py-1 text-xs inline-block"
-              [ngClass]="statusClass(tournamentRequest.status)"
-            >
-              {{ tournamentRequest.status_label }}
-            </span>
-          </div>
-          @if (tournamentRequest.user) {
-            <div class="col-span-12 sm:col-span-6">
-              <span class="block text-sm font-semibold mb-1">User (App)</span>
-              <span class="block text-sm">{{ tournamentRequest.user.name }}</span>
-              @if (tournamentRequest.user.email) {
-                <span class="block text-sm text-muted mt-0.5">{{ tournamentRequest.user.email }}</span>
-              }
-              @if (tournamentRequest.user.phone) {
-                <span class="block text-sm text-muted mt-0.5">{{ tournamentRequest.user.phone }}</span>
-              }
-            </div>
-          }
-          <div class="col-span-12 sm:col-span-6">
-            <span class="block text-sm font-semibold mb-1">Tournament Type</span>
-            <span class="block text-sm">{{ tournamentRequest.tournament_type_label }}</span>
-          </div>
-          <div class="col-span-12 sm:col-span-6">
-            <span class="block text-sm font-semibold mb-1">Cricket Format</span>
-            <span class="block text-sm">{{ tournamentRequest.cricket_format_label }}</span>
-          </div>
-          <div class="col-span-12 sm:col-span-6">
-            <span class="block text-sm font-semibold mb-1">Venue</span>
-            <span class="block text-sm">{{ tournamentRequest.venue_name }}</span>
-          </div>
-          <div class="col-span-12 sm:col-span-6">
-            <span class="block text-sm font-semibold mb-1">City</span>
-            <span class="block text-sm">{{ tournamentRequest.city }}</span>
-          </div>
-          <div class="col-span-12 sm:col-span-6">
-            <span class="block text-sm font-semibold mb-1">Start Date</span>
-            <span class="block text-sm">{{
-              tournamentRequest.start_date ? (tournamentRequest.start_date | date: 'yyyy-MM-dd') : emptyCell
-            }}</span>
-          </div>
-          <div class="col-span-12 sm:col-span-6">
-            <span class="block text-sm font-semibold mb-1">End Date</span>
-            <span class="block text-sm">{{
-              tournamentRequest.end_date ? (tournamentRequest.end_date | date: 'yyyy-MM-dd') : emptyCell
-            }}</span>
-          </div>
-          <div class="col-span-12 sm:col-span-6">
-            <span class="block text-sm font-semibold mb-1">Match Timings</span>
-            <span class="block text-sm">{{ tournamentRequest.match_timings_label }}</span>
-          </div>
-          <div class="col-span-12 sm:col-span-6">
-            <span class="block text-sm font-semibold mb-1">Prize</span>
-            <span class="block text-sm">{{ tournamentRequest.prize ?? emptyCell }}</span>
-          </div>
-          <div class="col-span-12 sm:col-span-6">
-            <span class="block text-sm font-semibold mb-1">Number of Teams</span>
-            <span class="block text-sm">{{ tournamentRequest.number_of_teams }}</span>
-          </div>
-          <div class="col-span-12 sm:col-span-6">
-            <span class="block text-sm font-semibold mb-1">Number of Groups</span>
-            <span class="block text-sm">{{ tournamentRequest.number_of_groups ?? 1 }} ({{ groupModeLabel }})</span>
-          </div>
-        </div>
 
-        <mat-divider class="my-4"></mat-divider>
-        <span class="block text-sm font-semibold mb-2">Update Status</span>
-        <mat-form-field
-          appearance="outline"
-          class="w-full"
-        >
-          <mat-label class="text-sm font-semibold">Status</mat-label>
-          <mat-select
-            formControlName="status"
-            placeholder="Select Status"
-          >
-            @if (statusOptions$ | async; as opts) {
-              @for (opt of opts; track opt.value) {
-                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-              }
+          <div class="mb-6 grid grid-cols-1 gap-6 border-b border-border py-6 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-0">
+            <div class="flex min-w-0 items-start gap-4">
+              <span class="bg-light-primary text-primary flex size-11! shrink-0 items-center justify-center rounded-sm">
+                <i-tabler
+                  name="user"
+                  class="size-5"
+                />
+              </span>
+              <div class="min-w-0 flex-1">
+                <p class="text-muted m-0 mb-1 text-xs font-medium">Contact Person</p>
+                <p class="m-0 truncate text-base font-semibold leading-snug">
+                  {{ tournamentRequest.contact_person_name }}
+                </p>
+                <p class="text-muted m-0 mt-1 text-xs leading-relaxed">{{ tournamentRequest.contact_phone }}</p>
+              </div>
+            </div>
+            <div class="flex min-w-0 items-start gap-4">
+              <span class="bg-light-primary text-primary flex size-11! shrink-0 items-center justify-center rounded-sm">
+                <i-tabler
+                  name="trophy"
+                  class="size-5"
+                />
+              </span>
+              <div class="min-w-0 flex-1">
+                <p class="text-muted m-0 mb-1 text-xs font-medium">Tournament</p>
+                <p class="m-0 truncate text-base font-semibold leading-snug">
+                  {{ tournamentRequest.tournament_name }}
+                </p>
+                <p class="m-0 mt-2">
+                  <span
+                    class="rounded-sm font-semibold px-1.5 py-1 text-xs inline-block"
+                    [ngClass]="statusClass(tournamentRequest.status)"
+                  >
+                    {{ tournamentRequest.status_label }}
+                  </span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-x-8 gap-y-0 sm:grid-cols-2">
+            @if (tournamentRequest.user) {
+              <div class="border-border border-b py-3 sm:col-span-2 min-w-0">
+                <p class="text-muted m-0 mb-1 text-xs">User (App)</p>
+                <p class="m-0 text-sm font-semibold leading-snug">{{ tournamentRequest.user.name }}</p>
+                @if (tournamentRequest.user.email || tournamentRequest.user.phone) {
+                  <p class="text-muted m-0 mt-1 text-xs leading-relaxed">
+                    {{ tournamentRequest.user.email || '' }}
+                    {{ tournamentRequest.user.email && tournamentRequest.user.phone ? ' · ' : '' }}
+                    {{ tournamentRequest.user.phone || '' }}
+                  </p>
+                }
+              </div>
             }
-          </mat-select>
-        </mat-form-field>
+            <div class="border-border border-b py-3">
+              <p class="text-muted m-0 mb-1 text-xs">Tournament Type</p>
+              <p class="m-0 text-sm font-semibold leading-snug">{{ tournamentRequest.tournament_type_label }}</p>
+            </div>
+            <div class="border-border border-b py-3">
+              <p class="text-muted m-0 mb-1 text-xs">Cricket Format</p>
+              <p class="m-0 text-sm font-semibold leading-snug">{{ tournamentRequest.cricket_format_label }}</p>
+            </div>
+            <div class="border-border border-b py-3">
+              <p class="text-muted m-0 mb-1 text-xs">Venue</p>
+              <p class="m-0 text-sm font-semibold leading-snug">{{ tournamentRequest.venue_name }}</p>
+            </div>
+            <div class="border-border border-b py-3">
+              <p class="text-muted m-0 mb-1 text-xs">City</p>
+              <p class="m-0 text-sm font-semibold leading-snug">{{ tournamentRequest.city }}</p>
+            </div>
+            <div class="border-border border-b py-3">
+              <p class="text-muted m-0 mb-1 text-xs">Start Date</p>
+              <p class="m-0 text-sm font-semibold leading-snug">
+                {{ tournamentRequest.start_date ? (tournamentRequest.start_date | date: 'yyyy-MM-dd') : emptyCell }}
+              </p>
+            </div>
+            <div class="border-border border-b py-3">
+              <p class="text-muted m-0 mb-1 text-xs">End Date</p>
+              <p class="m-0 text-sm font-semibold leading-snug">
+                {{ tournamentRequest.end_date ? (tournamentRequest.end_date | date: 'yyyy-MM-dd') : emptyCell }}
+              </p>
+            </div>
+            <div class="border-border border-b py-3">
+              <p class="text-muted m-0 mb-1 text-xs">Match Timings</p>
+              <p class="m-0 text-sm font-semibold leading-snug">{{ tournamentRequest.match_timings_label }}</p>
+            </div>
+            <div class="border-border border-b py-3">
+              <p class="text-muted m-0 mb-1 text-xs">Prize</p>
+              <p class="m-0 text-sm font-semibold leading-snug">{{ tournamentRequest.prize ?? emptyCell }}</p>
+            </div>
+            <div class="border-border border-b py-3">
+              <p class="text-muted m-0 mb-1 text-xs">Number of Teams</p>
+              <p class="m-0 text-sm font-semibold leading-snug">{{ tournamentRequest.number_of_teams }}</p>
+            </div>
+            <div class="border-border border-b py-3">
+              <p class="text-muted m-0 mb-1 text-xs">Number of Groups</p>
+              <p class="m-0 text-sm font-semibold leading-snug">
+                {{ tournamentRequest.number_of_groups ?? 1 }} ({{ groupModeLabel }})
+              </p>
+            </div>
+          </div>
+
+          <mat-divider class="!my-4"></mat-divider>
+          <div class="shrink-0">
+            <h2 class="text-base font-semibold m-0">Update Status</h2>
+            <p class="text-muted m-0 mt-1 text-xs">Change how this request is tracked in the workflow.</p>
+          </div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Status</mat-label>
+            <mat-select
+              formControlName="status"
+              placeholder="Select Status"
+            >
+              @if (statusOptions$ | async; as opts) {
+                @for (opt of opts; track opt.value) {
+                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                }
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
       </mat-dialog-content>
 
       <mat-divider></mat-divider>

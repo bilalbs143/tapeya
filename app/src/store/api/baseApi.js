@@ -64,6 +64,7 @@ export const baseApi = createApi({
     'TeamSquad',
     'Match',
     'Scorecard',
+    'InterestCampaign',
   ],
   endpoints: () => ({}),
 });

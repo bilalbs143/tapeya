@@ -36,6 +36,11 @@ export const navItems: NavItem[] = [
         iconName: 'tabler:point',
         route: '/tournaments-management/teams',
       },
+      {
+        displayName: 'Interest Campaigns',
+        iconName: 'tabler:point',
+        route: '/tournaments-management/interest-campaigns',
+      },
     ],
   },
   {

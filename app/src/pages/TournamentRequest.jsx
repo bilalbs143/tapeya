@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
 import { toApiDate } from '@/lib/utils/dateUtils';
 import { createTournamentRequestSchema } from '@/lib/validations/tournamentRequest';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
@@ -35,9 +36,6 @@ import {
   selectViewportInputClass,
 } from '@/ui/Select';
 import { ToggleGroupField } from '@/ui/ToggleGroupField';
-
-/** Matches API country `name` (see GET /countries), same as shop checkout. */
-const DEFAULT_COUNTRY = 'Pakistan';
 
 const DEFAULT_VALUES = {
   contact_person_name: '',

@@ -24,9 +24,24 @@ export function parseDate(str) {
 }
 
 /**
+ * Converts YYYY-MM-DD (API / profile) to MM-DD-YYYY for DatePicker display.
+ * Strips a time portion if present (e.g. `1990-05-12T00:00:00Z`).
+ *
+ * @param {string} [iso]
+ * @returns {string}
+ */
+export function formatIsoDateForDisplay(iso) {
+  if (!iso || typeof iso !== 'string') return '';
+  const head = iso.split('T')[0] ?? '';
+  const [year, month, day] = head.split('-');
+  if (!year || !month || !day) return '';
+  return `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}-${year}`;
+}
+
+/**
  * Converts MM-DD-YYYY (e.g. from DatePicker) to YYYY-MM-DD for the API.
  * DatePicker (src/ui/DatePicker.jsx) always emits MM-DD-YYYY; this function
- * accepts that format. Returns the original value when not a valid string
+ * accepts that format (slashes allowed). Returns the original value when not a valid string
  * or when parts are missing.
  *
  * @param {string} value - Date string (MM-DD-YYYY or MM/DD/YYYY)
@@ -35,7 +50,8 @@ export function parseDate(str) {
 export function toApiDate(value) {
   if (!value || typeof value !== 'string') return value;
   const [mm, dd, yyyy] = value.split(/[-/]/);
-  return yyyy && mm && dd ? `${yyyy}-${mm}-${dd}` : value;
+  if (!yyyy || !mm || !dd) return value;
+  return `${yyyy}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
 }
 
 /**
