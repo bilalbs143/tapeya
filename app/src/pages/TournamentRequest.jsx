@@ -10,10 +10,7 @@ import { getApiErrorMessage } from '@/lib/apiErrors';
 import { toApiDate } from '@/lib/utils/dateUtils';
 import { createTournamentRequestSchema } from '@/lib/validations/tournamentRequest';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
-import {
-  useGetCitiesQuery,
-  useGetCountriesQuery,
-} from '@/store/api/locationApi';
+import { useGetCitiesQuery, useGetCountriesQuery } from '@/store/api/locationApi';
 import { useCreateTournamentRequestMutation } from '@/store/api/tournamentRequestApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
@@ -60,35 +57,24 @@ const DEFAULT_VALUES = {
 export default function TournamentRequest() {
   const navigate = useNavigate();
   const toast = useToast();
-
   const user = useAppSelector(selectUser);
 
   const { data: enums = {}, isLoading: enumsLoading } = useGetEnumsQuery();
 
-  const {
-    tournamentTypeOptions,
-    cricketFormatOptions,
-    matchTimingsOptions,
-    groupModeOptions,
-    tournamentRequestSchema,
-  } = useMemo(() => {
-    const groupModeOptions = Array.isArray(enums.group_mode)
-      ? enums.group_mode
-      : [];
-    const groupModeValues = groupModeOptions.map((o) => o.value);
-    return {
-      tournamentTypeOptions: enums.tournament_type ?? [],
-      cricketFormatOptions: enums.cricket_format ?? [],
-      matchTimingsOptions: enums.match_timings ?? [],
-      groupModeOptions,
-      tournamentRequestSchema: createTournamentRequestSchema(groupModeValues),
-    };
-  }, [enums]);
+  const tournamentTypeOptions = enums.tournament_type ?? [];
+  const cricketFormatOptions = enums.cricket_format ?? [];
+  const matchTimingsOptions = enums.match_timings ?? [];
+  const groupModeOptions = Array.isArray(enums.group_mode) ? enums.group_mode : [];
 
-  const [
-    createTournamentRequest,
-    { isLoading: isSubmitting, reset: resetApiError },
-  ] = useCreateTournamentRequestMutation();
+  const tournamentRequestSchema = useMemo(
+    () => createTournamentRequestSchema(groupModeOptions.map((o) => o.value)),
+    // enums is stable per query result; groupModeOptions is derived from it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [enums],
+  );
+
+  const [createTournamentRequest, { isLoading: isSubmitting, reset: resetApiError }] =
+    useCreateTournamentRequestMutation();
 
   const {
     register,
@@ -106,24 +92,23 @@ export default function TournamentRequest() {
 
   const groupMode = watch('group_mode');
   const selectedCountryName = watch('country');
+
   const { data: countriesList = [] } = useGetCountriesQuery();
-  const selectedCountry = countriesList.find(
-    (c) => c.name === selectedCountryName,
-  );
+  const selectedCountry = countriesList.find((c) => c.name === selectedCountryName);
   const countryCode = selectedCountry?.country_code ?? null;
   const { data: citiesList = [] } = useGetCitiesQuery(countryCode, {
     skip: !countryCode,
   });
 
   // Pre-fill contact details and default enum selections once enums are loaded.
+  // Depends on `enums` (not derived arrays) to avoid re-firing on reference changes.
   useEffect(() => {
     if (enumsLoading || tournamentTypeOptions.length === 0) return;
-    const countryFromProfile = user?.country && String(user.country).trim();
     reset({
       ...DEFAULT_VALUES,
       contact_person_name: user?.name ?? '',
       contact_phone: user?.phone ?? '+92',
-      country: countryFromProfile || DEFAULT_COUNTRY,
+      country: user?.country?.trim() || DEFAULT_COUNTRY,
       city: user?.city ?? '',
       tournament_type: tournamentTypeOptions[0]?.value ?? '',
       cricket_format: cricketFormatOptions[0]?.value ?? '',
@@ -131,50 +116,37 @@ export default function TournamentRequest() {
       group_mode: groupModeOptions[0]?.value ?? 'open',
       prize: '',
     });
-  }, [
-    enumsLoading,
-    tournamentTypeOptions,
-    cricketFormatOptions,
-    matchTimingsOptions,
-    groupModeOptions,
-    user?.name,
-    user?.phone,
-    user?.country,
-    user?.city,
-    reset,
-  ]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enumsLoading, enums, user?.name, user?.phone, user?.country, user?.city]);
 
   const onSubmit = async (data) => {
     resetApiError();
     try {
       const number_of_groups =
-        data.group_mode === 'group_wise' &&
-        data.number_of_groups != null &&
-        data.number_of_groups !== ''
+        data.group_mode === 'group_wise' && data.number_of_groups !== ''
           ? Number(data.number_of_groups)
           : 1;
+
       const payload = {
         ...data,
         start_date: toApiDate(data.start_date),
         end_date: toApiDate(data.end_date),
         number_of_teams: Number(data.number_of_teams),
-        number_of_groups: Math.max(1, Math.min(16, number_of_groups)),
-        ...(data.prize != null && String(data.prize).trim() !== ''
-          ? { prize: String(data.prize).trim() }
-          : {}),
+        number_of_groups,
+        ...(data.prize?.trim() ? { prize: data.prize.trim() } : {}),
       };
+
       const res = await createTournamentRequest(payload).unwrap();
       const tournament = res.data?.tournament;
+
       if (tournament?.id != null) {
-        navigate('/organizer/tournaments', { replace: true });
         if (res.message) toast.success(res.message);
+        navigate('/organizer/tournaments', { replace: true });
       } else {
         navigate('/tournament-request/success');
       }
     } catch (err) {
-      toast.error(
-        getApiErrorMessage(err, 'Failed to submit request. Please try again.'),
-      );
+      toast.error(getApiErrorMessage(err, 'Failed to submit request. Please try again.'));
     }
   };
 
@@ -185,8 +157,8 @@ export default function TournamentRequest() {
       <AppSubpageHeader title="REQUEST TOURNAMENT" />
       <Container>
         <p className="mb-6 text-left text-[14px] text-white/90 lg:text-center">
-          Please fill in the details below to request tournament services. Our
-          team will review your request and contact you shortly.
+          Please fill in the details below to request tournament services. Our team will
+          review your request and contact you shortly.
         </p>
 
         <form
@@ -194,11 +166,7 @@ export default function TournamentRequest() {
           onFocus={resetApiError}
           className="space-y-6 pb-8 lg:grid lg:grid-cols-3 lg:gap-6 lg:space-y-0"
         >
-          <FormField
-            label="Contact Person Name:"
-            htmlFor="contact_person_name"
-            required
-          >
+          <FormField label="Contact Person Name:" htmlFor="contact_person_name" required>
             <Input
               id="contact_person_name"
               placeholder="Enter Name"
@@ -208,11 +176,7 @@ export default function TournamentRequest() {
             />
           </FormField>
 
-          <FormField
-            label="Mobile / WhatsApp Number:"
-            htmlFor="contact_phone"
-            required
-          >
+          <FormField label="Mobile / WhatsApp Number:" htmlFor="contact_phone" required>
             <Controller
               name="contact_phone"
               control={control}
@@ -227,11 +191,7 @@ export default function TournamentRequest() {
             />
           </FormField>
 
-          <FormField
-            label="Tournament Name:"
-            htmlFor="tournament_name"
-            required
-          >
+          <FormField label="Tournament Name:" htmlFor="tournament_name" required>
             <Input
               id="tournament_name"
               placeholder="Enter Tournament Name"
@@ -248,6 +208,7 @@ export default function TournamentRequest() {
             error={errors.tournament_type?.message}
             required
           />
+
           <ToggleGroupField
             name="cricket_format"
             control={control}
@@ -257,11 +218,7 @@ export default function TournamentRequest() {
             required
           />
 
-          <FormField
-            label="Number of Teams:"
-            htmlFor="number_of_teams"
-            required
-          >
+          <FormField label="Number of Teams:" htmlFor="number_of_teams" required>
             <Input
               id="number_of_teams"
               inputMode="numeric"
@@ -279,12 +236,9 @@ export default function TournamentRequest() {
             error={errors.group_mode?.message}
             required
           />
+
           {groupMode === 'group_wise' && (
-            <FormField
-              label="Number of groups:"
-              htmlFor="number_of_groups"
-              required
-            >
+            <FormField label="Number of groups:" htmlFor="number_of_groups" required>
               <Input
                 id="number_of_groups"
                 inputMode="numeric"

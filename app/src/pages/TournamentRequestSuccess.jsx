@@ -8,8 +8,6 @@ const successOrderGif = `${CLOUDFRONT_APP_BASE}/images/icons/success-order.gif`;
 export default function TournamentRequestSuccess() {
   const navigate = useNavigate();
 
-  const handleGoHome = () => navigate('/home');
-
   return (
     <div className="flex min-h-[calc(100vh-144px)] flex-col bg-black">
       <AppSubpageHeader title="REQUEST RECEIVED" />
@@ -20,22 +18,20 @@ export default function TournamentRequestSuccess() {
             src={successOrderGif}
             alt=""
             className="h-24 w-24 rounded-full object-contain"
-            aria-hidden
           />
         </div>
 
         <h2 className="mb-3 text-[18px] font-bold tracking-wide text-[#DA9811] uppercase sm:text-[20px]">
-          THANK YOU!
+          Thank you!
         </h2>
 
         <p className="mb-8 max-w-[280px] text-[14px] leading-relaxed font-medium text-[#A2A6AB]">
-          Your tournament request has been received. We will contact you
-          shortly.
+          Your tournament request has been received. We will contact you shortly.
         </p>
 
         <button
           type="button"
-          onClick={handleGoHome}
+          onClick={() => navigate('/home')}
           className="flex w-full items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] px-8 py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90 lg:w-auto"
         >
           Go to Home
