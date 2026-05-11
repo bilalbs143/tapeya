@@ -1,7 +1,5 @@
 import 'swiper/css';
 
-import { useMemo } from 'react';
-
 import { Link } from 'react-router-dom';
 import { Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -12,23 +10,8 @@ import { ListingProductCard } from '@/components/shop/ListingProductCard';
 import { useGetBrandsQuery, useGetProductsQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 
-function ShopSlider({
-  title,
-  viewMorePath,
-  products,
-  brands,
-  reverseDirection = false,
-}) {
-  const productsWithBrandSlug = useMemo(
-    () =>
-      products.map((p) => ({
-        ...p,
-        brandSlug: brands.find((b) => b.id === p.brand_id)?.slug,
-      })),
-    [products, brands],
-  );
-
-  if (productsWithBrandSlug.length === 0) return null;
+function ShopSlider({ title, viewMorePath, products, brands, reverseDirection = false }) {
+  if (products.length === 0) return null;
 
   return (
     <section className="mb-10 space-y-3">
@@ -48,23 +31,17 @@ function ShopSlider({
         modules={[Autoplay]}
         spaceBetween={12}
         slidesPerView={2}
-        breakpoints={{
-          1024: { slidesPerView: 3.5 },
-        }}
-        autoplay={{
-          delay: 4000,
-          disableOnInteraction: false,
-          reverseDirection,
-        }}
+        breakpoints={{ 1024: { slidesPerView: 3.5 } }}
+        autoplay={{ delay: 4000, disableOnInteraction: false, reverseDirection }}
         loop
-        className="shop-swiper -mx-4 px-4 [&_.swiper-wrapper]:items-stretch"
         grabCursor
+        className="shop-swiper -mx-4 px-4 [&_.swiper-wrapper]:items-stretch"
       >
-        {productsWithBrandSlug.map((product) => (
+        {products.map((product) => (
           <SwiperSlide key={product.id}>
             <ListingProductCard
               product={product}
-              brandSlug={product.brandSlug}
+              brandSlug={brands.find((b) => b.id === product.brand_id)?.slug}
             />
           </SwiperSlide>
         ))}
@@ -77,15 +54,8 @@ export default function Home() {
   const { data: brandsResponse } = useGetBrandsQuery({ all: true });
   const brands = brandsResponse?.data ?? [];
 
-  const { data: popularResponse } = useGetProductsQuery({
-    is_popular: true,
-    all: true,
-  });
-
-  const { data: specialOfferResponse } = useGetProductsQuery({
-    is_special_offer: true,
-    all: true,
-  });
+  const { data: popularResponse } = useGetProductsQuery({ is_popular: true, all: true });
+  const { data: specialOfferResponse } = useGetProductsQuery({ is_special_offer: true, all: true });
 
   const popularProducts = popularResponse?.data ?? [];
   const specialOfferProducts = specialOfferResponse?.data ?? [];
@@ -95,13 +65,11 @@ export default function Home() {
       <div className="space-y-6">
         <HeroSlider />
         <ExploreCategories />
-        {/* Hidden on Home: Live now + Highlights */}
         <ShopSlider
           title="Most popular"
           viewMorePath="/shop/filter/popular"
           products={popularProducts}
           brands={brands}
-          reverseDirection={false}
         />
         <ShopSlider
           title="Special offer"
