@@ -317,13 +317,13 @@ export default function InterestForm() {
           <img
             src={campaign.logo_url}
             alt=""
-            className="max-h-[55vh] max-w-[70vw] object-contain opacity-[0.25]"
+            className="max-h-[55vh] max-w-[70vw] object-contain opacity-[0.2]"
           />
         </div>
       )}
       <Container className="relative z-10 pb-8">
         {(campaign.description || !isOpen) && (
-          <div className="mb-6 max-w-2xl">
+          <div className="mx-auto mb-6 max-w-2xl text-center">
             {campaign.description && (
               <p className="mb-4 text-[13px] leading-snug text-[#A2A6AB] md:text-[14px] whitespace-pre-line">
                 {campaign.description}
@@ -355,13 +355,7 @@ export default function InterestForm() {
           onSubmit={handleSubmit}
           className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-x-6 lg:gap-y-4 lg:space-y-0"
         >
-          <FormField
-            label="Profile Picture"
-            htmlFor="interest-profile-picture"
-            labelClassName={formFieldLabelEditClass}
-            className="lg:col-span-2"
-            required
-          >
+          <FormField variant="edit" className="lg:col-span-2">
             <div className="flex flex-col items-center gap-3">
               <div className="relative inline-block">
                 <img
@@ -649,11 +643,6 @@ export default function InterestForm() {
 
           {!isConfirmed && (
             <div className="flex flex-col gap-3 pt-2 lg:col-span-2 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-[12px] leading-snug text-[#A2A6AB]">
-                {isActive
-                  ? 'Updates replace what organizers see for your entry. Withdraw removes you from the list.'
-                  : 'Submit once per campaign. You can update or withdraw later while the form is open.'}
-              </p>
               <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
                 <Button
                   type="submit"
