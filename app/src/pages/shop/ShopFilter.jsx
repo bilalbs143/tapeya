@@ -5,6 +5,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { ListingProductCard } from '@/components/shop/ListingProductCard';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { NAVBAR_HEIGHT } from '@/lib/constants/layout';
 import {
   useGetBrandsQuery,
   useGetCategoriesQuery,
@@ -24,8 +25,6 @@ const FILTER_CONFIG = {
     params: { is_special_offer: true },
   },
 };
-
-const NAVBAR_HEIGHT = 64; // h-16 = 4rem
 
 export default function ShopFilter() {
   const navigate = useNavigate();

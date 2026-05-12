@@ -32,7 +32,7 @@ export function TeamNameDialog({
           <FormField
             htmlFor="team-name"
             label="Team Name"
-            labelClassName={`!mb-2 ${formFieldLabelCheckoutClass}`}
+
           >
             <Input
               id="team-name"

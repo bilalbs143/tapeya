@@ -47,7 +47,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed right-0 bottom-0 left-0 rounded-tl-[17px] rounded-tr-[17px] bg-[#141412] px-2 pt-2 shadow-[0_-2px_10px_rgba(0,0,0,0.2)]"
+      className="fixed right-0 bottom-0 left-0 rounded-tl-[17px] rounded-tr-[17px] bg-[#141412] px-2 pt-1 shadow-[0_-2px_10px_rgba(0,0,0,0.2)]"
       style={{
         // Pad below the nav grid to cover the iPhone home indicator / Android
         // gesture bar so tab labels never disappear behind it.

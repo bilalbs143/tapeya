@@ -24,7 +24,7 @@ import {
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 import { DatePicker } from '@/ui/DatePicker';
-import { FormField, formFieldLabelEditClass } from '@/ui/FormField';
+import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import {
   Select,
@@ -355,7 +355,6 @@ export default function InterestForm() {
           onSubmit={handleSubmit}
           className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-x-6 lg:gap-y-4 lg:space-y-0"
         >
-          <FormField variant="edit" className="lg:col-span-2">
             <div className="flex flex-col items-center gap-3">
               <div className="relative inline-block">
                 <img
@@ -408,7 +407,6 @@ export default function InterestForm() {
                 )}
               </div>
             </div>
-          </FormField>
 
           <div className="lg:col-span-2">
             <h2 className="text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">
@@ -422,7 +420,6 @@ export default function InterestForm() {
           <FormField
             label="Full Name"
             htmlFor="interest-name"
-            labelClassName={formFieldLabelEditClass}
             required
           >
             <Input
@@ -442,7 +439,6 @@ export default function InterestForm() {
           <FormField
             label="Nickname"
             htmlFor="interest-nickname"
-            labelClassName={formFieldLabelEditClass}
             required
           >
             <Input
@@ -461,7 +457,6 @@ export default function InterestForm() {
           <FormField
             label="Phone"
             htmlFor="interest-phone"
-            labelClassName={formFieldLabelEditClass}
             required
           >
             <Input
@@ -487,7 +482,6 @@ export default function InterestForm() {
           <FormField
             label="Email"
             htmlFor="interest-email"
-            labelClassName={formFieldLabelEditClass}
             required
           >
             <Input
@@ -505,7 +499,6 @@ export default function InterestForm() {
           <FormField
             label="Date of Birth"
             htmlFor="interest-dob"
-            labelClassName={formFieldLabelEditClass}
             required
           >
             <DatePicker
@@ -521,7 +514,6 @@ export default function InterestForm() {
           <FormField
             label="Country"
             htmlFor="interest-country"
-            labelClassName={formFieldLabelEditClass}
             required
           >
             <Select
@@ -558,7 +550,6 @@ export default function InterestForm() {
           <FormField
             label="City"
             htmlFor="interest-city"
-            labelClassName={formFieldLabelEditClass}
             required
           >
             <Select
@@ -595,7 +586,6 @@ export default function InterestForm() {
           <FormField
             label="CNIC or B-Form"
             htmlFor="interest-id-document"
-            labelClassName={formFieldLabelEditClass}
             className="lg:col-span-2"
             required
           >

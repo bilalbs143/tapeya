@@ -21,7 +21,9 @@ import {
 } from '@/store/api/teamApi';
 import { useGetTournamentQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
+import { formFieldLabelCheckoutClass } from '@/ui/FormField';
 import { CloseIcon } from '@/ui/icons/CloseIcon';
+import { Label } from '@/ui/Label';
 
 const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
 
@@ -231,13 +233,10 @@ export default function TournamentSquad() {
         )}
 
         {team && (
-          <div className="mb-4">
-            <label
-              htmlFor="find-player"
-              className="mb-2 block text-[14px] font-medium text-white"
-            >
+          <div className="mb-4 flex flex-col gap-1">
+            <Label htmlFor="find-player" className={formFieldLabelCheckoutClass}>
               Find Player
-            </label>
+            </Label>
             <div className="relative">
               <input
                 id="find-player"

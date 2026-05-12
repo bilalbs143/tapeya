@@ -124,7 +124,6 @@ export default function ShopCheckout() {
               <FormField
                 label="Full Name"
                 htmlFor="fullName"
-                variant="checkout"
               >
                 <Input
                   id="fullName"
@@ -138,7 +137,10 @@ export default function ShopCheckout() {
                 />
               </FormField>
 
-              <FormField label="Phone" htmlFor="phone" variant="checkout">
+              <FormField
+                label="Phone"
+                htmlFor="phone"
+              >
                 <Controller
                   name="phone"
                   control={control}
@@ -158,7 +160,6 @@ export default function ShopCheckout() {
               <FormField
                 label="Email Address"
                 htmlFor="email"
-                variant="checkout"
               >
                 <Input
                   id="email"
@@ -175,7 +176,6 @@ export default function ShopCheckout() {
               <FormField
                 label="Delivery Address"
                 htmlFor="address"
-                variant="checkout"
                 required
               >
                 <Input
@@ -193,7 +193,6 @@ export default function ShopCheckout() {
               <FormField
                 label="Country"
                 htmlFor="country"
-                variant="checkout"
                 required
               >
                 <Controller
@@ -240,7 +239,6 @@ export default function ShopCheckout() {
               <FormField
                 label="City"
                 htmlFor="city"
-                variant="checkout"
                 required
               >
                 <Controller
@@ -286,7 +284,6 @@ export default function ShopCheckout() {
               <FormField
                 label="Notes (optional)"
                 htmlFor="notes"
-                variant="checkout"
               >
                 <Input
                   id="notes"

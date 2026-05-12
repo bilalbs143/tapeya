@@ -5,19 +5,15 @@
 
 import { Label } from '@/ui/Label';
 
-const defaultLabelClass = 'mb-4 block text-[16px] text-white';
-/** Checkout / billing: 14px, #A2A6AB */
-export const formFieldLabelCheckoutClass =
-  'mb-4 block text-[14px] !font-bold text-[#A2A6AB]';
-/** Edit modal: 12px, #A2A6AB */
-export const formFieldLabelEditClass =
-  'mb-2 block text-[12px] !font-bold text-[#A2A6AB]';
+/** Single label style used across the entire app. */
+const labelClass = 'mb-2 block text-[14px] text-[#A2A6AB]';
 
-function getLabelClass(variant, labelClassName) {
-  if (labelClassName) return labelClassName;
-  if (variant === 'edit') return formFieldLabelEditClass;
-  if (variant === 'checkout') return formFieldLabelCheckoutClass;
-  return defaultLabelClass;
+/** Named exports for pages that import the class directly. */
+export const formFieldLabelCheckoutClass = labelClass;
+export const formFieldLabelEditClass = labelClass;
+
+function getLabelClass(labelClassName) {
+  return labelClassName || labelClass;
 }
 
 export function FormField({
@@ -26,15 +22,14 @@ export function FormField({
   children,
   className = '',
   labelClassName = '',
-  variant,
   required,
 }) {
   return (
-    <div className={`space-y-2 ${className}`}>
+    <div className={`flex flex-col gap-1 ${className}`}>
       {label && (
         <Label
           htmlFor={htmlFor}
-          className={getLabelClass(variant, labelClassName)}
+          className={getLabelClass(labelClassName)}
         >
           {label}
           {required && <span className="text-red-300"> *</span>}

@@ -9,6 +9,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { ListingProductCard } from '@/components/shop/ListingProductCard';
 import { ShopSearchPopover } from '@/components/shop/ShopSearchPopover';
+import { NAVBAR_HEIGHT } from '@/lib/constants/layout';
 import { useGetBrandsQuery, useGetProductsQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 
@@ -67,8 +68,6 @@ function ShopSlider({
     </section>
   );
 }
-
-const NAVBAR_HEIGHT = 64;
 
 export default function ShopHome() {
   const [tabsFixedVisible, setTabsFixedVisible] = useState(false);

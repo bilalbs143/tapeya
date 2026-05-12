@@ -34,6 +34,18 @@ function isTabActive(pathname, tabPath) {
   return pathname === tabPath || pathname.startsWith(tabPath + '/');
 }
 
+// Pages where the navbar intentionally starts transparent so the hero
+// image / cover art can bleed behind it. On every other page the navbar
+// is always solid black so the AppSubpageHeader back button doesn't
+// peek through a transparent background as it scrolls upward.
+function isHeroPath(pathname) {
+  return (
+    pathname === '/home' ||
+    pathname === '/profile' ||
+    /^\/upcoming-tournaments\/[^/]+$/.test(pathname)
+  );
+}
+
 export function Navbar({ onMenuClick }) {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
@@ -45,6 +57,8 @@ export function Navbar({ onMenuClick }) {
   const badgeLabel =
     unreadCount > 99 ? '99+' : unreadCount > 0 ? String(unreadCount) : null;
 
+  // Re-run on pathname change so scrolled resets correctly when navigating
+  // back to a hero page that starts at scroll position 0.
   useEffect(() => {
     const handleScroll = () => {
       const isScrolled = window.scrollY > NAVBAR_SCROLL_THRESHOLD;
@@ -53,12 +67,15 @@ export function Navbar({ onMenuClick }) {
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [location.pathname]);
+
+  // Non-hero pages are always solid — no transparent phase.
+  const alwaysSolid = !isHeroPath(location.pathname);
 
   return (
     <nav
       className={`fixed top-0 right-0 left-0 flex items-center justify-between border-b border-transparent px-4 transition-colors duration-300 lg:left-[280px] lg:border-[#1A1A1A] lg:bg-black ${
-        scrolled ? 'bg-black' : 'bg-transparent'
+        scrolled || alwaysSolid ? 'bg-black' : 'bg-transparent'
       }`}
       style={{
         // paddingTop pushes the navbar *content* (logo, icons) below the status

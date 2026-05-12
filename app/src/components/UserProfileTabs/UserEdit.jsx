@@ -273,7 +273,7 @@ export function UserEdit({ open, onOpenChange }) {
           <DialogScrollBody>
             <div className="flex flex-col gap-4">
               {/* Avatar picker */}
-              <FormField variant="edit">
+              <FormField>
                 <div className="flex flex-col items-center gap-4">
                   <div className="relative inline-block">
                     <ProfileAvatar
@@ -341,7 +341,7 @@ export function UserEdit({ open, onOpenChange }) {
                 </div>
               </FormField>
 
-              <FormField label="Name" htmlFor="name" variant="edit">
+              <FormField label="Name" htmlFor="name">
                 <Input
                   id="name"
                   type="text"
@@ -352,7 +352,7 @@ export function UserEdit({ open, onOpenChange }) {
                 />
               </FormField>
 
-              <FormField label="Nickname" htmlFor="nickname" variant="edit">
+              <FormField label="Nickname" htmlFor="nickname">
                 <Input
                   id="nickname"
                   type="text"
@@ -368,7 +368,7 @@ export function UserEdit({ open, onOpenChange }) {
                 />
               </FormField>
 
-              <FormField label="Phone" htmlFor="phone" variant="edit">
+              <FormField label="Phone" htmlFor="phone">
                 <PhoneInput
                   id="phone"
                   placeholder="Enter Phone Number"
@@ -377,7 +377,7 @@ export function UserEdit({ open, onOpenChange }) {
                 />
               </FormField>
 
-              <FormField label="Date Of Birth" htmlFor="dob" variant="edit">
+              <FormField label="Date Of Birth" htmlFor="dob">
                 <DatePicker
                   id="dob"
                   placeholder="MM-DD-YYYY"
@@ -390,7 +390,7 @@ export function UserEdit({ open, onOpenChange }) {
               <FormField
                 label="Playing Role"
                 htmlFor="playing-role"
-                variant="edit"
+               
               >
                 <Select
                   value={fields.playingRole || PROFILE_FIELD_NONE}
@@ -434,7 +434,7 @@ export function UserEdit({ open, onOpenChange }) {
               <FormField
                 label="Batting Style"
                 htmlFor="batting-style"
-                variant="edit"
+               
               >
                 <Select
                   value={fields.battingStyle || PROFILE_FIELD_NONE}
@@ -478,7 +478,7 @@ export function UserEdit({ open, onOpenChange }) {
               <FormField
                 label="Bowling Style"
                 htmlFor="bowling-style"
-                variant="edit"
+               
               >
                 <Select
                   value={fields.bowlingStyle || PROFILE_FIELD_NONE}
@@ -519,7 +519,7 @@ export function UserEdit({ open, onOpenChange }) {
                 </Select>
               </FormField>
 
-              <FormField label="Email" htmlFor="email" variant="edit">
+              <FormField label="Email" htmlFor="email">
                 <Input
                   id="email"
                   type="email"
@@ -530,7 +530,7 @@ export function UserEdit({ open, onOpenChange }) {
                 />
               </FormField>
 
-              <FormField label="Country" htmlFor="country" variant="edit">
+              <FormField label="Country" htmlFor="country">
                 <Select
                   value={fields.country}
                   onValueChange={(v) => {
@@ -563,7 +563,7 @@ export function UserEdit({ open, onOpenChange }) {
                 </Select>
               </FormField>
 
-              <FormField label="City" htmlFor="city" variant="edit">
+              <FormField label="City" htmlFor="city">
                 <Select value={fields.city} onValueChange={setField('city')}>
                   <SelectTrigger
                     id="city"

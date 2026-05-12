@@ -56,7 +56,6 @@ const DEFAULT_VALUES = {
   icon_player_ids: [],
 };
 
-const labelClass = 'mb-4 block capitalize text-[16px] text-white';
 
 export default function TournamentAddTeam() {
   const navigate = useNavigate();
@@ -394,7 +393,7 @@ export default function TournamentAddTeam() {
               <FormField
                 label="Group"
                 htmlFor="group_index"
-                labelClassName={labelClass}
+
                 required
               >
                 <Select
@@ -445,7 +444,7 @@ export default function TournamentAddTeam() {
             <FormField
               label="Team Name"
               htmlFor="name"
-              labelClassName={labelClass}
+
               required
             >
               <div ref={teamNameFieldRef} className="relative">
@@ -522,7 +521,7 @@ export default function TournamentAddTeam() {
             <FormField
               label="Team Code"
               htmlFor="code"
-              labelClassName={labelClass}
+
               required
             >
               <Input
@@ -540,7 +539,7 @@ export default function TournamentAddTeam() {
             <FormField
               label="Owner / Sponsor"
               htmlFor="sponsor_user_id"
-              labelClassName={labelClass}
+
             >
               <Controller
                 name="sponsor_user_id"
@@ -646,7 +645,7 @@ export default function TournamentAddTeam() {
             <FormField
               label="Country"
               htmlFor="country"
-              labelClassName={labelClass}
+
               required
             >
               <Controller
@@ -700,7 +699,7 @@ export default function TournamentAddTeam() {
             <FormField
               label="City"
               htmlFor="city"
-              labelClassName={labelClass}
+
               required
             >
               {isReadonly ? (
@@ -762,7 +761,7 @@ export default function TournamentAddTeam() {
               <FormField
                 label="Icon Players"
                 htmlFor="icon_player_ids"
-                labelClassName={labelClass}
+
               >
                 <Controller
                   name="icon_player_ids"
@@ -953,7 +952,7 @@ export default function TournamentAddTeam() {
               <FormField
                 label="Upload Logo"
                 htmlFor="team_logo_input"
-                labelClassName={labelClass}
+
               >
                 <div className="flex h-12 items-center justify-between rounded-[6px] bg-[#141412] px-4">
                   <span
@@ -993,7 +992,7 @@ export default function TournamentAddTeam() {
                 <FormField
                   label="Logo"
                   htmlFor="team_logo_display"
-                  labelClassName={labelClass}
+  
                 >
                   <div className="flex h-12 items-center rounded-[6px] bg-[#141412] px-4">
                     <span className="text-[16px] text-[#A2A6AB] capitalize">

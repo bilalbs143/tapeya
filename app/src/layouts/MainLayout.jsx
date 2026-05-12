@@ -31,10 +31,10 @@ export function MainLayout() {
           // opt out via noTopPadding.
           paddingTop: noTopPadding
             ? 0
-            : 'calc(env(safe-area-inset-top) + 64px)',
-          // Bottom: BottomNav is 80px tall. Add home-indicator clearance so the
+            : 'calc(env(safe-area-inset-top) + 56px)',
+          // Bottom: BottomNav is 70px tall. Add home-indicator clearance so the
           // last item is never clipped on iPhone/newer Android.
-          paddingBottom: 'calc(env(safe-area-inset-bottom) + 80px)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom) + 70px)',
         }}
       >
         <Outlet />

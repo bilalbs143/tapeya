@@ -229,8 +229,6 @@ export default function StartMatch() {
             <FormField
               htmlFor="tournament_id"
               label="Tournament"
-              className="space-y-2"
-              labelClassName={`!mb-2 ${formFieldLabelCheckoutClass}`}
             >
               <select
                 id="tournament_id"
@@ -264,8 +262,6 @@ export default function StartMatch() {
             <FormField
               htmlFor="match_group"
               label="Match type"
-              className="space-y-2"
-              labelClassName={`!mb-2 ${formFieldLabelCheckoutClass}`}
             >
               <select
                 id="match_group"
@@ -373,8 +369,6 @@ export default function StartMatch() {
           <FormField
             htmlFor="venue"
             label="Select a Venue"
-            className="space-y-2"
-            labelClassName={`!mb-2 ${formFieldLabelCheckoutClass}`}
           >
             <Input
               id="venue"
@@ -386,8 +380,8 @@ export default function StartMatch() {
           </FormField>
 
           {/* Match date and time */}
-          <div className="space-y-2">
-            <Label className={`!mb-2 ${formFieldLabelCheckoutClass}`}>
+          <div className="flex flex-col gap-1">
+            <Label className={formFieldLabelCheckoutClass}>
               Match Date and Time
             </Label>
             <div className="grid grid-cols-2 gap-3">
@@ -430,8 +424,6 @@ export default function StartMatch() {
               <FormField
                 htmlFor="overs"
                 label="Overs"
-                className="space-y-2"
-                labelClassName={`!mb-2 ${formFieldLabelCheckoutClass}`}
               >
                 <button
                   type="button"
@@ -463,8 +455,6 @@ export default function StartMatch() {
               <FormField
                 htmlFor="players-per-side"
                 label="Wickets"
-                className="space-y-2"
-                labelClassName={`!mb-2 ${formFieldLabelCheckoutClass}`}
               >
                 <button
                   type="button"

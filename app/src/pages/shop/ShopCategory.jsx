@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { ListingProductCard } from '@/components/shop/ListingProductCard';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { NAVBAR_HEIGHT } from '@/lib/constants/layout';
 import {
   useGetBrandsQuery,
   useGetCategoriesQuery,
@@ -13,8 +14,6 @@ import {
 import { Container } from '@/ui/Container';
 
 const searchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/searchicon.svg`;
-
-const NAVBAR_HEIGHT = 64; // h-16 = 4rem
 
 export default function ShopCategory() {
   const navigate = useNavigate();

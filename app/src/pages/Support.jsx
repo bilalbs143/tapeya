@@ -9,6 +9,8 @@ import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { Label } from '@/ui/Label';
+import { formFieldLabelCheckoutClass } from '@/ui/FormField';
 
 const SUPPORT_WHATSAPP_DISPLAY = '+971 552 780 065';
 const SUPPORT_WHATSAPP_HREF = 'https://wa.me/971552780065';
@@ -167,12 +169,9 @@ export default function Support() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex flex-col gap-1">
-            <label
-              htmlFor="support-name"
-              className="text-[12px] font-bold text-[#A2A6AB] uppercase"
-            >
+            <Label htmlFor="support-name" className={formFieldLabelCheckoutClass}>
               Name
-            </label>
+            </Label>
             <input
               id="support-name"
               value={values.name}
@@ -189,12 +188,9 @@ export default function Support() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label
-              htmlFor="support-phone"
-              className="text-[12px] font-bold text-[#A2A6AB] uppercase"
-            >
+            <Label htmlFor="support-phone" className={formFieldLabelCheckoutClass}>
               Phone
-            </label>
+            </Label>
             <input
               id="support-phone"
               value={values.phone}
@@ -212,12 +208,9 @@ export default function Support() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label
-              htmlFor="support-message"
-              className="text-[12px] font-bold text-[#A2A6AB] uppercase"
-            >
+            <Label htmlFor="support-message" className={formFieldLabelCheckoutClass}>
               Message
-            </label>
+            </Label>
             <textarea
               id="support-message"
               value={values.message}
@@ -234,13 +227,10 @@ export default function Support() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label
-              htmlFor="support-attachment"
-              className="text-[12px] font-bold text-[#A2A6AB] uppercase"
-            >
+            <Label htmlFor="support-attachment" className={formFieldLabelCheckoutClass}>
               Attachment{' '}
-              <span className="font-normal normal-case">(optional)</span>
-            </label>
+              <span className="font-normal">(optional)</span>
+            </Label>
             <input
               ref={attachmentInputRef}
               id="support-attachment"

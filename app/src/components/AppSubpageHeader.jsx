@@ -106,9 +106,9 @@ export function AppSubpageHeader({
   const navigate = useNavigate();
   const handleBack = onBack ?? (() => navigate(-1));
 
-  // Fixed height: py-[14px] + h-9 (36px) = 64px total — consistent everywhere.
+  // Fixed height: py-1 + h-9 (36px) — consistent everywhere.
   const headerClass = [
-    'flex items-center gap-3 bg-black px-4 py-[14px]',
+    'flex items-center gap-3 bg-black px-4 py-1',
     sticky ? 'sticky top-0 z-20' : '',
     divider ? 'border-b border-white/10' : '',
     className,

@@ -6,7 +6,7 @@ import {
   DialogScrollBody,
   DialogTitle,
 } from '@/ui/Dialog';
-import { FormField, formFieldLabelEditClass } from '@/ui/FormField';
+import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 
 export function CustomScoreDialog({
@@ -29,8 +29,6 @@ export function CustomScoreDialog({
         <FormField
           htmlFor="custom-score-input"
           label="Custom score"
-          className="space-y-2"
-          labelClassName={formFieldLabelEditClass}
         >
           <Input
             id="custom-score-input"
