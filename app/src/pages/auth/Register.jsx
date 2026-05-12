@@ -78,6 +78,19 @@ export default function Register() {
             Create an account
           </h2>
 
+          <div className="rounded-[6px] border border-[#FF9700]/45 bg-[#141412] p-4 text-center shadow-[0_0_0_1px_rgba(255,151,0,0.12)]">
+            <p className="text-[12px] leading-snug text-[#A2A6AB] md:text-[13px]">
+              Your provided phone number must be on WhatsApp.
+            </p>
+            <p
+              lang="ur"
+              dir="rtl"
+              className="mt-2 font-[system-ui,'Noto Nastaliq Urdu','Geeza Pro',sans-serif] text-[13px] leading-relaxed text-[#A2A6AB] md:text-[14px]"
+            >
+              آپ کا دیا گیا فون نمبر واٹس ایپ پر موجود ہونا ضروری ہے۔
+            </p>
+          </div>
+
           <FormField label="Phone (+923001234567)" htmlFor="phone" required>
             <Controller
               name="phone"
