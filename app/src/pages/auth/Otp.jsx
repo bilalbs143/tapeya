@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -16,11 +16,9 @@ import {
 import { markReturningUser } from '@/lib/returningUser';
 import { addSavedProfile, bumpSavedProfile } from '@/lib/savedProfiles';
 import { formatPhoneFull } from '@/lib/utils/phoneUtils';
+import { getRedirectPath } from '@/lib/utils/routeUtils';
 import { otpSchema } from '@/lib/validations/auth';
-import {
-  useRequestOtpMutation,
-  useVerifyOtpMutation,
-} from '@/store/api/authApi';
+import { useRequestOtpMutation, useVerifyOtpMutation } from '@/store/api/authApi';
 import { useAppDispatch } from '@/store/hooks';
 import { setCredentials } from '@/store/slices/authSlice';
 import { Button } from '@/ui/Button';
@@ -45,12 +43,9 @@ function getStoredCooldownRemaining() {
 
 function setStoredCooldownEnd(secondsFromNow) {
   try {
-    sessionStorage.setItem(
-      OTP_COOLDOWN_KEY,
-      String(Date.now() + secondsFromNow * 1000),
-    );
+    sessionStorage.setItem(OTP_COOLDOWN_KEY, String(Date.now() + secondsFromNow * 1000));
   } catch {
-    // ignore
+    // sessionStorage unavailable (e.g. private browsing restrictions) — ignore.
   }
 }
 
@@ -64,15 +59,14 @@ export default function Otp() {
   const phone = formatPhoneFull(phoneRaw ?? '');
 
   const [latestOtp, setLatestOtp] = useState(() => {
+    // state?.otp is set by non-production environments only (APP_DEBUG / TEST_OTP_PHONES).
     if (state?.otp != null && state.otp !== '') return String(state.otp);
     if (phoneRaw) return getOtpPreview(phoneRaw);
     return null;
   });
   const [serverError, setServerError] = useState(null);
   const [resendError, setResendError] = useState(null);
-  const [resendCooldown, setResendCooldown] = useState(() =>
-    getStoredCooldownRemaining(),
-  );
+  const [resendCooldown, setResendCooldown] = useState(() => getStoredCooldownRemaining());
 
   const refs = useRef([]);
   const submitRef = useRef(null);
@@ -82,7 +76,9 @@ export default function Otp() {
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
-    const timer = setInterval(() => setResendCooldown((c) => c - 1), 1000);
+    const timer = setInterval(() => {
+      setResendCooldown((c) => Math.max(0, c - 1));
+    }, 1000);
     return () => clearInterval(timer);
   }, [resendCooldown]);
 
@@ -93,7 +89,7 @@ export default function Otp() {
     [],
   );
 
-  // iOS Safari / WebView often drops router state; recover OTP from sessionStorage.
+  // iOS Safari / WebView can drop router state on resume — recover OTP from sessionStorage.
   useEffect(() => {
     if (state?.otp != null && state.otp !== '') {
       setLatestOtp(String(state.otp));
@@ -118,6 +114,51 @@ export default function Otp() {
 
   const code = watch('code') || '';
 
+  const onSubmit = useCallback(
+    async ({ code: submittedCode }) => {
+      if (!phoneRaw) {
+        setServerError('Session expired. Please start from Login or Register.');
+        return;
+      }
+      setServerError(null);
+
+      try {
+        const result = await verifyOtp({ phone: phoneRaw, code: submittedCode }).unwrap();
+        const { user, auth } = result?.data ?? result ?? {};
+        const token = auth?.access_token;
+
+        if (token && user) {
+          clearOtpPreview();
+          markReturningUser();
+          dispatch(setCredentials({ user, accessToken: token }));
+          addSavedProfile({
+            id: user.id,
+            name: user.name,
+            nickname: user.nickname,
+            phone: user.phone,
+            email: user.email,
+            accessToken: token,
+          });
+          bumpSavedProfile(phoneRaw);
+          navigate(getRedirectPath(state), { replace: true });
+        } else {
+          setServerError('Unexpected response. Please try again.');
+        }
+      } catch (err) {
+        setServerError(getApiErrorMessage(err, 'Invalid or expired OTP. Please try again.'));
+      }
+    },
+    [phoneRaw, verifyOtp, dispatch, navigate, state],
+  );
+
+  const scheduleAutoSubmit = useCallback(() => {
+    if (submitRef.current) clearTimeout(submitRef.current);
+    submitRef.current = setTimeout(() => {
+      submitRef.current = null;
+      handleSubmit(onSubmit)();
+    }, 300);
+  }, [handleSubmit, onSubmit]);
+
   const setDigit = (index, value) => {
     const digit = value.replace(/\D/g, '').slice(0, 1);
     const chars = code.split('');
@@ -125,13 +166,7 @@ export default function Otp() {
     const nextCode = chars.join('').slice(0, OTP_LENGTH);
     setValue('code', nextCode);
     if (digit && index < OTP_LENGTH - 1) refs.current[index + 1]?.focus();
-    if (nextCode.length === OTP_LENGTH) {
-      if (submitRef.current) clearTimeout(submitRef.current);
-      submitRef.current = setTimeout(() => {
-        submitRef.current = null;
-        handleSubmit(onSubmit)();
-      }, 300);
-    }
+    if (nextCode.length === OTP_LENGTH) scheduleAutoSubmit();
   };
 
   const onKeyDown = (index, e) => {
@@ -143,19 +178,10 @@ export default function Otp() {
 
   const onPaste = (e) => {
     e.preventDefault();
-    const pasted = e.clipboardData
-      .getData('text')
-      .replace(/\D/g, '')
-      .slice(0, OTP_LENGTH);
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, OTP_LENGTH);
     setValue('code', pasted);
     refs.current[Math.min(pasted.length, OTP_LENGTH - 1)]?.focus();
-    if (pasted.length === OTP_LENGTH) {
-      if (submitRef.current) clearTimeout(submitRef.current);
-      submitRef.current = setTimeout(() => {
-        submitRef.current = null;
-        handleSubmit(onSubmit)();
-      }, 300);
-    }
+    if (pasted.length === OTP_LENGTH) scheduleAutoSubmit();
   };
 
   const handleResend = async () => {
@@ -176,52 +202,11 @@ export default function Otp() {
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
       setStoredCooldownEnd(RESEND_COOLDOWN_SECONDS);
     } catch (err) {
-      setResendError(
-        getApiErrorMessage(err, 'Could not resend OTP. Please try again.'),
-      );
+      setResendError(getApiErrorMessage(err, 'Could not resend OTP. Please try again.'));
     }
   };
 
-  const onSubmit = async ({ code: submittedCode }) => {
-    if (!phoneRaw) {
-      setServerError('Session expired. Please start from Login or Register.');
-      return;
-    }
-    setServerError(null);
-
-    try {
-      const result = await verifyOtp({
-        phone: phoneRaw,
-        code: submittedCode,
-      }).unwrap();
-      const { user, auth } = result?.data ?? result ?? {};
-      const token = auth?.access_token;
-
-      if (token && user) {
-        clearOtpPreview();
-        markReturningUser();
-        dispatch(setCredentials({ user, accessToken: token }));
-        addSavedProfile({
-          id: user.id,
-          name: user.name,
-          nickname: user.nickname,
-          phone: user.phone,
-          email: user.email,
-          accessToken: token,
-        });
-        bumpSavedProfile(phoneRaw);
-      }
-
-      const from = state?.from?.pathname;
-      navigate(from && from !== '/login' ? from : '/home', { replace: true });
-    } catch (err) {
-      setServerError(
-        getApiErrorMessage(err, 'Invalid or expired OTP. Please try again.'),
-      );
-    }
-  };
-
-  const busy = isSubmitting || isLoading;
+  const busy = isSubmitting || isLoading || isResendLoading;
 
   return (
     <>
@@ -245,7 +230,6 @@ export default function Otp() {
           onSubmit={handleSubmit(onSubmit)}
           className="mt-12 w-full max-w-[358px] space-y-6 lg:mt-14 lg:max-w-[400px] lg:px-0 lg:py-15"
         >
-          {/* Show a generic prompt when there is no phone — user landed here directly */}
           <p className="text-center text-[14px] text-white">
             {phoneRaw ? (
               <>
@@ -257,23 +241,17 @@ export default function Otp() {
             )}
           </p>
 
-          {/* Shown when API returns otp (APP_DEBUG or TEST_OTP_PHONES); SMS is not used for test phones */}
+          {/* Shown in non-production environments when the API returns the OTP directly */}
           {latestOtp && (
             <p
               className="rounded-[6px] border border-[#1A1A1A] bg-[#DA9811]/20 px-4 py-2.5 text-center text-[14px] text-[#E8A820]"
               role="status"
             >
-              Use this OTP Below:{' '}
-              <strong className="tabular-nums">{latestOtp}</strong>
+              Use this OTP Below: <strong className="tabular-nums">{latestOtp}</strong>
             </p>
           )}
 
-          {/* OTP digit inputs */}
-          <div
-            className="flex justify-between"
-            role="group"
-            aria-label="OTP digits"
-          >
+          <div className="flex justify-between" role="group" aria-label="OTP digits">
             {Array.from({ length: OTP_LENGTH }, (_, i) => (
               <div key={i} className="h-[55px] w-[55px] shrink-0">
                 <Input
@@ -285,7 +263,7 @@ export default function Otp() {
                   value={code[i] ?? ''}
                   onChange={(e) => setDigit(i, e.target.value)}
                   onKeyDown={(e) => onKeyDown(i, e)}
-                  onPaste={i === 0 ? onPaste : undefined}
+                  onPaste={onPaste}
                   className="!h-[55px] !max-w-full rounded-full border border-[#1A1A1A] text-center text-lg tabular-nums"
                   aria-label={`Digit ${i + 1}`}
                 />
@@ -299,7 +277,6 @@ export default function Otp() {
             </p>
           )}
 
-          {/* Resend section */}
           <div className="space-y-1 text-center">
             <p className="text-base text-white">
               Didn&apos;t receive?{' '}
@@ -309,11 +286,7 @@ export default function Otp() {
                 disabled={!phoneRaw || isResendLoading || resendCooldown > 0}
                 className="font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {resendCooldown > 0
-                  ? `Resend in ${resendCooldown}s`
-                  : isResendLoading
-                    ? 'Sending…'
-                    : 'Resend'}
+                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : isResendLoading ? 'Sending…' : 'Resend'}
               </button>
             </p>
             {resendError && (
@@ -323,12 +296,7 @@ export default function Otp() {
             )}
           </div>
 
-          <Button
-            type="submit"
-            disabled={busy}
-            variant="auth"
-            className="mt-4 lg:w-full"
-          >
+          <Button type="submit" disabled={busy} variant="auth" className="mt-4 lg:w-full">
             {busy ? 'Verifying…' : 'Next'}
           </Button>
         </form>

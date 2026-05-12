@@ -4,10 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import {
-  extractOtpFromAuthResponse,
-  setOtpPreview,
-} from '@/lib/otpPreviewSession';
+import { extractOtpFromAuthResponse, setOtpPreview } from '@/lib/otpPreviewSession';
 import { registerSchema } from '@/lib/validations/auth';
 import { useRegisterMutation } from '@/store/api/authApi';
 import { Button } from '@/ui/Button';
@@ -40,12 +37,13 @@ export default function Register() {
         name: data.name,
         nickname: data.nickname,
         phone: data.phone,
-        email: data.email || undefined,
+        email: data.email.trim() || undefined,
       }).unwrap();
 
       const otp = extractOtpFromAuthResponse(result);
       if (otp) setOtpPreview(data.phone, otp);
-      navigate('/otp', { state: { phone: data.phone, otp }, replace: true });
+      // otp is intentionally excluded from nav state; setOtpPreview handles the preview.
+      navigate('/otp', { state: { phone: data.phone }, replace: true });
     } catch (err) {
       console.error('Register failed:', err);
     }
@@ -95,9 +93,9 @@ export default function Register() {
             />
           </FormField>
 
-          <FormField label="Full Name" htmlFor="fname" required>
+          <FormField label="Full Name" htmlFor="name" required>
             <Input
-              id="fname"
+              id="name"
               type="text"
               placeholder="Enter Full Name"
               autoComplete="name"
@@ -133,49 +131,42 @@ export default function Register() {
               className="rounded-[6px] border border-[#1A1A1A] bg-red-500/20 px-4 py-2.5 text-[14px] text-red-200"
               role="alert"
             >
-              {getApiErrorMessage(
-                error,
-                'Registration failed. Please try again.',
-              )}
+              {getApiErrorMessage(error, 'Registration failed. Please try again.')}
             </p>
           )}
 
-          <Button
-            type="submit"
-            disabled={busy}
-            variant="auth"
-            className="mt-4 lg:w-full"
-          >
+          <Button type="submit" disabled={busy} variant="auth" className="mt-4 lg:w-full">
             {busy ? 'Signing up…' : 'Sign up'}
           </Button>
 
-          <p className="mt-6 text-center text-[14px] text-[#A2A6AB] lg:mt-4">
-            Already have an account?{' '}
-            <Link
-              to="/login"
-              className="font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820]"
-            >
-              Login
-            </Link>
-          </p>
-
-          <p className="mt-3 mb-6 text-center text-[14px] text-[#A2A6AB]">
-            By signing up, you agree to the{' '}
-            <Link
-              to="/pages/terms-of-use"
-              className="font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820]"
-            >
-              Terms of Use
-            </Link>{' '}
-            and{' '}
-            <Link
-              to="/pages/privacy-policy"
-              className="font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820]"
-            >
-              Privacy Policy
-            </Link>
-            .
-          </p>
+          <div className="mb-6 mt-6 space-y-3 text-center">
+            <p className="text-[14px] text-[#A2A6AB]">
+              Already have an account?{' '}
+              <Link
+                to="/login"
+                className="font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820]"
+              >
+                Login
+              </Link>
+            </p>
+            <p className="text-[14px] text-[#A2A6AB]">
+              By signing up, you agree to the{' '}
+              <Link
+                to="/pages/terms-of-use"
+                className="font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820]"
+              >
+                Terms of Use
+              </Link>{' '}
+              and{' '}
+              <Link
+                to="/pages/privacy-policy"
+                className="font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820]"
+              >
+                Privacy Policy
+              </Link>
+              .
+            </p>
+          </div>
         </form>
       </div>
     </>
