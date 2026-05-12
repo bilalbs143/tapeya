@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Enums\Tournament\TournamentInterestCampaignStatusEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\User\TournamentResource;
 use App\Models\Tournament;
+use App\Models\TournamentInterestCampaign;
 use App\Models\TournamentUserReaction;
 use Illuminate\Http\JsonResponse;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -70,6 +72,13 @@ class TournamentController extends Controller
                 ->value('reaction');
             $tournament->setAttribute('my_reaction', $myReaction);
         }
+
+        $campaignSlug = TournamentInterestCampaign::query()
+            ->where('tournament_id', $tournament->id)
+            ->where('status', TournamentInterestCampaignStatusEnum::OPEN->value)
+            ->orderByDesc('id')
+            ->value('slug');
+        $tournament->setAttribute('interest_campaign_slug', $campaignSlug);
 
         return $this->success(new TournamentResource($tournament));
     }

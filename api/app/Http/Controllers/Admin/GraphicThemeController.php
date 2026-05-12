@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 class GraphicThemeController extends Controller
 {
     use BaseControllerTrait;
+
     /**
      * List active graphics themes for the match controller settings UI.
      */

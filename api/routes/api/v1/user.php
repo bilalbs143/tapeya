@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\User\Auth\UserAuthController;
 use App\Http\Controllers\User\EnumController;
 use App\Http\Controllers\User\HeroSliderController;
+use App\Http\Controllers\User\InterestCampaignController;
 use App\Http\Controllers\User\MatchGraphicSessionController;
 use App\Http\Controllers\User\MatchSquadController;
 use App\Http\Controllers\User\MatchTossController;
@@ -44,6 +45,7 @@ Route::get('enums', [EnumController::class, 'index']);
 Route::get('hero-sliders', [HeroSliderController::class, 'index']);
 Route::get('static-pages/{slug}', [StaticPageController::class, 'show'])
     ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*');
+Route::get('interest-campaigns/sidebar', [InterestCampaignController::class, 'sidebar']);
 
 /** Signed overlay bootstrap (no auth) — query must include expires + HMAC signature. */
 Route::get('matches/{match}/graphic-session/overlay', [SignedMatchGraphicSessionController::class, 'show']);
@@ -80,6 +82,14 @@ Route::middleware('auth:api')->group(function () {
     Route::get('countries', [CountryController::class, 'index']);
     Route::get('countries/cities', [CountryController::class, 'cities']);
     Route::post('tournament-requests', [TournamentRequestController::class, 'store']);
+
+    Route::get('interest-campaigns/{slug}', [InterestCampaignController::class, 'show'])
+        ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*');
+    Route::post('interest-campaigns/{slug}/submissions', [InterestCampaignController::class, 'store'])
+        ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*');
+    Route::delete('interest-campaigns/{slug}/submissions/me', [InterestCampaignController::class, 'destroy'])
+        ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*');
+
     Route::post('support/messages', [SupportMessageController::class, 'store']);
     Route::get('sponsors', [SponsorController::class, 'index']);
     Route::get('players', [PlayerController::class, 'index']);

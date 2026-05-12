@@ -11,6 +11,8 @@ use App\Enums\Event\PlayersPerSideEnum;
 use App\Enums\Event\ShotPositionEnum;
 use App\Enums\Event\TossChoiceEnum;
 use App\Enums\Tournament\GroupModeEnum;
+use App\Enums\Tournament\TournamentInterestCampaignStatusEnum;
+use App\Enums\Tournament\TournamentInterestSubmissionStatusEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
 use App\Enums\User\BattingStyleEnum;
 use App\Enums\User\BowlingStyleEnum;
@@ -22,6 +24,7 @@ use Illuminate\Http\JsonResponse;
 class EnumController extends Controller
 {
     use BaseControllerTrait;
+
     /**
      * Return enum options (value + label) for app forms (tournament request, profile, etc.).
      * Public so the form can load options before auth.
@@ -42,6 +45,8 @@ class EnumController extends Controller
             'batting_style' => $this->toOptions(BattingStyleEnum::cases()),
             'bowling_style' => $this->toOptions(BowlingStyleEnum::cases()),
             'playing_role' => $this->toOptions(PlayingRoleEnum::cases()),
+            'tournament_interest_campaign_status' => $this->toOptions(TournamentInterestCampaignStatusEnum::cases()),
+            'tournament_interest_submission_status' => $this->toOptions(TournamentInterestSubmissionStatusEnum::cases()),
         ];
 
         return $this->success($enums);

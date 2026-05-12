@@ -262,6 +262,11 @@ class User extends Authenticatable
         return $this->belongsToMany(Team::class, 'team_user')->withTimestamps();
     }
 
+    public function interestSubmissions(): HasMany
+    {
+        return $this->hasMany(TournamentInterestSubmission::class, 'user_id');
+    }
+
     /**
      * App-guard roles for this user (for API / serialization). Single query, qualified for joins.
      *

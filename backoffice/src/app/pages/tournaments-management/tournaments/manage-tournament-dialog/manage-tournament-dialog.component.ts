@@ -267,7 +267,10 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
         number_of_groups: [numberOfGroups, [Validators.min(2), Validators.max(16)]],
         country: [source?.country ?? '', [Validators.required, Validators.maxLength(100)]],
         // City starts disabled until a country is selected; enabled reactively via loadCitiesForCountry.
-        city: [{ value: source?.city ?? '', disabled: !source?.country }, [Validators.required, Validators.maxLength(100)]],
+        city: [
+          { value: source?.city ?? '', disabled: !source?.country },
+          [Validators.required, Validators.maxLength(100)],
+        ],
         match_timings: [normalizeEnumValue(source?.match_timings, ''), [Validators.required]],
         status: [normalizeEnumValue(tournament?.status_enum ?? tournament?.status, 'active'), [Validators.required]],
         prize: [source?.prize ?? '', [Validators.maxLength(255)]],

@@ -1,0 +1,207 @@
+<app-dialog-wrapper [title]="title">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    aria-label="Interest Campaign Form"
+  >
+    <mat-dialog-content>
+      <div class="grid grid-cols-12 gap-x-6">
+        @if (!isLocked) {
+          <div class="col-span-12">
+            <mat-label class="text-sm font-semibold mb-2 block">Campaign Type</mat-label>
+            <mat-radio-group
+              formControlName="kind"
+              class="flex flex-wrap items-center gap-4"
+            >
+              <mat-radio-button value="linked">Link an Existing Tournament</mat-radio-button>
+              <mat-radio-button value="custom">Custom Title (No Tournament Yet)</mat-radio-button>
+            </mat-radio-group>
+          </div>
+        }
+
+        @if (isLinkedKind) {
+          <div class="col-span-12">
+            <mat-label class="text-sm font-semibold mb-2 block">Tournament <span class="text-error">*</span></mat-label>
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <input
+                matInput
+                type="text"
+                formControlName="tournament"
+                placeholder="Search by Tournament Name"
+                [matAutocomplete]="auto"
+                (input)="onTournamentInput($any($event.target).value)"
+                (focus)="onTournamentInput($any($event.target).value)"
+              />
+              <mat-autocomplete
+                #auto="matAutocomplete"
+                [displayWith]="displayTournament"
+                (optionSelected)="onTournamentSelected($event)"
+              >
+                @for (opt of tournamentOptions; track opt.id) {
+                  <mat-option [value]="opt">{{ opt.tournament_name }}</mat-option>
+                }
+              </mat-autocomplete>
+              @if (form.get('tournament')?.touched && form.get('tournament')?.hasError('required')) {
+                <mat-error>Pick a Tournament from the List.</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        } @else {
+          <div class="col-span-12">
+            <mat-label class="text-sm font-semibold mb-2 block"
+              >Tournament Title <span class="text-error">*</span></mat-label
+            >
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <input
+                matInput
+                formControlName="tournament_name"
+                placeholder="e.g. Junior Super League 2027"
+                maxlength="191"
+              />
+              @if (form.get('tournament_name')?.touched && form.get('tournament_name')?.hasError('required')) {
+                <mat-error>Title is required.</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        }
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Status <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-select
+              formControlName="status"
+              placeholder="Select Status"
+            >
+              @if (statusOptions$ | async; as opts) {
+                @for (opt of opts; track opt.value) {
+                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                }
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Public Slug</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <span
+              matTextPrefix
+              class="text-muted me-1"
+              >/interest/</span
+            >
+            <input
+              matInput
+              formControlName="slug"
+              placeholder="Auto-Generated from Title"
+              maxlength="191"
+            />
+            <mat-hint>Lowercase Letters, Digits, and Dashes. Leave Blank to Auto-Generate.</mat-hint>
+            @if (form.get('slug')?.touched && form.get('slug')?.hasError('slug')) {
+              <mat-error>Slug May Only Contain Lowercase Letters, Digits, and Dashes.</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">Description</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <textarea
+              matInput
+              formControlName="description"
+              rows="4"
+              maxlength="5000"
+              placeholder="Shown Above the Public Form."
+            ></textarea>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Show in Sidebar</mat-label>
+          <mat-slide-toggle
+            formControlName="show_in_sidebar"
+            color="primary"
+          ></mat-slide-toggle>
+          <p class="mt-2 mb-0 max-w-md text-xs leading-snug text-muted">
+            Only one campaign can appear in the app sidebar. If another campaign already has this on, it will be turned
+            off when you save.
+          </p>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Show Dialog</mat-label>
+          <mat-slide-toggle
+            formControlName="show_dialog"
+            color="primary"
+          ></mat-slide-toggle>
+        </div>
+
+        <div class="col-span-12 mt-6">
+          <mat-label class="text-sm font-semibold mb-2 block">
+            Logo {{ isEdit ? '(Leave Empty to Keep Current)' : '' }}
+          </mat-label>
+          <div class="flex flex-col gap-2 items-start">
+            @if (logoPreviewUrl) {
+              <div class="grid shrink-0">
+                <img
+                  [src]="logoPreviewUrl"
+                  alt="Logo Preview"
+                  class="col-start-1 row-start-1 block max-h-40 max-w-full object-contain rounded border border-default-border"
+                />
+                <button
+                  type="button"
+                  mat-icon-button
+                  class="col-start-1 row-start-1 justify-self-end self-start m-2 size-8 min-w-8 rounded-full bg-white shadow-md border border-error text-error hover:bg-error hover:text-white hover:border-error"
+                  aria-label="Remove logo"
+                  (click)="clearLogo()"
+                >
+                  <i-tabler
+                    name="trash"
+                    class="size-4!"
+                  ></i-tabler>
+                </button>
+              </div>
+            }
+            <input
+              type="file"
+              accept="image/*"
+              (change)="onLogoSelected($event)"
+              class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-primary file:text-white file:font-medium"
+            />
+          </div>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions>
+      <button
+        type="button"
+        mat-stroked-button
+        class="border border-error! text-error"
+        [mat-dialog-close]="false"
+      >
+        Cancel
+      </button>
+      <app-submit-button
+        [disabled]="form.invalid"
+        [isSubmitting]="isSubmitting"
+        [text]="isEdit ? 'Save Changes' : 'Submit'"
+        color="primary"
+      />
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

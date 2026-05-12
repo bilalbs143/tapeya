@@ -64,6 +64,7 @@ class Tournament extends BaseModel
     {
         return [
             AllowedFilter::exact('id'),
+            AllowedFilter::partial('tournament_name'),
             'status',
             'tournament_type',
             'country',
@@ -213,6 +214,11 @@ class Tournament extends BaseModel
     public function userReactions(): HasMany
     {
         return $this->hasMany(TournamentUserReaction::class, 'tournament_id');
+    }
+
+    public function interestCampaigns(): HasMany
+    {
+        return $this->hasMany(TournamentInterestCampaign::class, 'tournament_id');
     }
 
     /**

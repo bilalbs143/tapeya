@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Storage;
 class EcommerceDashboardController extends Controller
 {
     use BaseControllerTrait;
+
     /**
      * Return aggregated stats for the ecommerce dashboard.
      */
@@ -319,34 +320,34 @@ class EcommerceDashboardController extends Controller
             ->all();
 
         return $this->success([
-                'today_sales' => round($todayRevenue, 2),
-                'today_orders_count' => $todayOrdersCount,
-                'today_sales_percent_change' => round($todaySalesPercentChange, 1),
-                'overall_performance_percent' => round($overallPerformancePercent, 1),
-                'revenue_30d' => round($revenue30d, 2),
-                'orders_count_30d' => $ordersCount30d,
-                'revenue_7d' => round($revenue7d, 2),
-                'revenue_by_status' => $revenueByStatus,
-                'orders_by_status' => $ordersByStatus,
-                'weekly_sales_values' => $weeklySalesValues,
-                'weekly_sales_labels' => $weeklySalesLabels,
-                'monthly_earnings' => $monthlyEarnings,
-                'user_activity_this_week' => $userActivityThisWeek,
-                'user_activity_last_week' => $userActivityLastWeek,
-                'customer_segmentation' => $customerSegmentation,
-                'customer_segmentation_labels' => $customerSegmentationLabels,
-                'sales_by_category' => $salesByCategory,
-                'sales_by_brand' => $salesByBrand,
-                'recent_orders' => $recentOrders,
-                'top_products' => $topProductsWithImage,
-                'sales_sparkline_7d' => $weeklySalesValues,
-                'quarterly_stats' => [
-                    'revenue_trend' => $monthlyEarnings,
-                ],
-                // New KPIs
-                'products_total' => $productsTotal,
-                'customers_total' => $customersTotal,
-                'low_stock_products' => $lowStockProducts,
+            'today_sales' => round($todayRevenue, 2),
+            'today_orders_count' => $todayOrdersCount,
+            'today_sales_percent_change' => round($todaySalesPercentChange, 1),
+            'overall_performance_percent' => round($overallPerformancePercent, 1),
+            'revenue_30d' => round($revenue30d, 2),
+            'orders_count_30d' => $ordersCount30d,
+            'revenue_7d' => round($revenue7d, 2),
+            'revenue_by_status' => $revenueByStatus,
+            'orders_by_status' => $ordersByStatus,
+            'weekly_sales_values' => $weeklySalesValues,
+            'weekly_sales_labels' => $weeklySalesLabels,
+            'monthly_earnings' => $monthlyEarnings,
+            'user_activity_this_week' => $userActivityThisWeek,
+            'user_activity_last_week' => $userActivityLastWeek,
+            'customer_segmentation' => $customerSegmentation,
+            'customer_segmentation_labels' => $customerSegmentationLabels,
+            'sales_by_category' => $salesByCategory,
+            'sales_by_brand' => $salesByBrand,
+            'recent_orders' => $recentOrders,
+            'top_products' => $topProductsWithImage,
+            'sales_sparkline_7d' => $weeklySalesValues,
+            'quarterly_stats' => [
+                'revenue_trend' => $monthlyEarnings,
+            ],
+            // New KPIs
+            'products_total' => $productsTotal,
+            'customers_total' => $customersTotal,
+            'low_stock_products' => $lowStockProducts,
         ]);
     }
 }

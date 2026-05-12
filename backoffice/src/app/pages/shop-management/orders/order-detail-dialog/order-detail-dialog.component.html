@@ -1,6 +1,8 @@
 <app-dialog-wrapper title="Order Details">
   @if (isLoading) {
-    <span class="block p-4 text-muted">Loading Order...</span>
+    <mat-dialog-content>
+      <p class="m-0 py-6 text-center text-muted text-sm">Loading order…</p>
+    </mat-dialog-content>
   } @else if (order) {
     <form
       [formGroup]="form"
@@ -8,156 +10,190 @@
       aria-label="Update order status"
     >
       <mat-dialog-content>
-        <div class="grid grid-cols-12 gap-x-6 mb-4">
-          <div class="col-span-12 sm:col-span-6">
-            <span class="block text-sm font-semibold mb-1">Order Number</span>
-            <span class="block text-sm">{{ order.order_number }}</span>
+        <div class="flex flex-col gap-2">
+          <div class="shrink-0">
+            <h2 class="text-base font-semibold m-0">Order Details</h2>
+            <p class="text-muted m-0 mt-1 text-xs">
+              Customer, totals, shipping address, line items, and fulfillment status for this order.
+            </p>
           </div>
-          <div class="col-span-12 sm:col-span-6">
-            <span class="block text-sm font-semibold mb-1">Status</span>
-            <span
-              class="rounded-sm font-semibold px-1.5 py-1 text-xs inline-block"
-              [ngClass]="statusClass(order.status)"
-            >
-              {{ order.status | titlecase }}
-            </span>
-          </div>
-          <div class="col-span-12 sm:col-span-6">
-            <span class="block text-sm font-semibold mb-1">Customer</span>
-            <span class="block text-sm">{{ order.user?.name ?? emptyCell }}</span>
-            @if (order.user?.email) {
-              <span class="block text-sm text-muted mt-0.5">{{ order.user?.email }}</span>
-            }
-            @if (order.user?.phone) {
-              <span class="block text-sm text-muted mt-0.5">{{ order.user?.phone }}</span>
-            }
-          </div>
-          <div class="col-span-12 sm:col-span-6">
-            <span class="block text-sm font-semibold mb-1">Totals</span>
-            <span class="block text-sm mt-0.5"
-              >Subtotal: {{ order.subtotal | number: '1.0-0' }} {{ order.currency }}</span
-            >
-            <span class="block text-sm mt-0.5"
-              >Shipping: {{ order.shipping_amount | number: '1.0-0' }} {{ order.currency }}</span
-            >
-            <span class="block text-sm mt-0.5"
-              >Discount: {{ order.discount_amount | number: '1.0-0' }} {{ order.currency }}</span
-            >
-            <span class="block text-sm font-semibold mt-0.5"
-              >Total: {{ order.total | number: '1.0-0' }} {{ order.currency }}</span
-            >
-          </div>
-          <div class="col-span-12">
-            <span class="block text-sm font-semibold mb-1">Shipping Address</span>
-            <span class="block text-sm">{{ order.address }}, {{ order.city }}, {{ order.country }}</span>
-          </div>
-          @if (order.notes) {
-            <div class="col-span-12">
-              <span class="block text-sm font-semibold mb-1">Notes</span>
-              <span class="block text-sm">{{ order.notes }}</span>
+
+          <div class="mb-6 grid grid-cols-1 gap-6 border-b border-border py-6 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-0">
+            <div class="flex min-w-0 items-start gap-4">
+              <span class="bg-light-primary text-primary flex size-11! shrink-0 items-center justify-center rounded-sm">
+                <i-tabler
+                  name="user"
+                  class="size-5"
+                />
+              </span>
+              <div class="min-w-0 flex-1">
+                <p class="text-muted m-0 mb-1 text-xs font-medium">Customer</p>
+                <p class="m-0 truncate text-base font-semibold leading-snug">
+                  {{ order.user?.name ?? emptyCell }}
+                </p>
+                @if (order.user?.email || order.user?.phone) {
+                  <p class="text-muted m-0 mt-1 text-xs leading-relaxed">
+                    {{ order.user?.email || '' }}
+                    {{ order.user?.email && order.user?.phone ? ' · ' : '' }}
+                    {{ order.user?.phone || '' }}
+                  </p>
+                }
+              </div>
             </div>
-          }
-        </div>
+            <div class="flex min-w-0 items-start gap-4">
+              <span class="bg-light-primary text-primary flex size-11! shrink-0 items-center justify-center rounded-sm">
+                <i-tabler
+                  name="package"
+                  class="size-5"
+                />
+              </span>
+              <div class="min-w-0 flex-1">
+                <p class="text-muted m-0 mb-1 text-xs font-medium">Order</p>
+                <p class="m-0 truncate text-base font-semibold leading-snug">{{ order.order_number }}</p>
+                <p class="m-0 mt-2">
+                  <span
+                    class="rounded-sm font-semibold px-1.5 py-1 text-xs inline-block"
+                    [ngClass]="statusClass(order.status)"
+                  >
+                    {{ order.status | titlecase }}
+                  </span>
+                </p>
+              </div>
+            </div>
+          </div>
 
-        <mat-divider></mat-divider>
-        <span class="block text-sm font-semibold mt-4 mb-2">Order Items</span>
-        <table
-          mat-table
-          [dataSource]="items"
-          class="min-w-full"
-        >
-          <ng-container matColumnDef="product">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
-            >
-              Product
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let item"
-              class="text-sm"
-            >
-              {{ productName(item) }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="quantity">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
-            >
-              Qty
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let item"
-              class="text-sm"
-            >
-              {{ item.quantity }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="unit_price">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
-            >
-              Unit Price
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let item"
-              class="text-sm"
-            >
-              {{ item.unit_price | number: '1.0-0' }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="total_price">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
-            >
-              Total
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let item"
-              class="text-sm"
-            >
-              {{ item.total_price | number: '1.0-0' }}
-            </td>
-          </ng-container>
-          <tr
-            mat-header-row
-            *matHeaderRowDef="displayedColumns"
-          ></tr>
-          <tr
-            mat-row
-            *matRowDef="let row; columns: displayedColumns"
-          ></tr>
-        </table>
-
-        <mat-divider class="my-4"></mat-divider>
-        <span class="block text-sm font-semibold mb-2">Update Status</span>
-        <mat-form-field
-          appearance="outline"
-          class="w-full"
-        >
-          <mat-label class="text-sm font-semibold">Status</mat-label>
-          <mat-select
-            formControlName="status"
-            placeholder="Select Status"
-          >
-            @if (statusOptions$ | async; as opts) {
-              @for (opt of opts; track opt.value) {
-                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-              }
+          <div class="grid grid-cols-1 gap-x-8 gap-y-0 sm:grid-cols-2">
+            <div class="border-border border-b py-3 sm:col-span-2 min-w-0">
+              <p class="text-muted m-0 mb-1 text-xs">Totals</p>
+              <p class="m-0 text-sm font-semibold leading-snug">
+                Subtotal {{ order.subtotal | number: '1.0-0' }} {{ order.currency }} · Shipping
+                {{ order.shipping_amount | number: '1.0-0' }} {{ order.currency }} · Discount
+                {{ order.discount_amount | number: '1.0-0' }} {{ order.currency }}
+              </p>
+              <p class="m-0 mt-1 text-sm font-semibold leading-snug">
+                Total {{ order.total | number: '1.0-0' }} {{ order.currency }}
+              </p>
+            </div>
+            <div class="border-border border-b py-3 sm:col-span-2 min-w-0">
+              <p class="text-muted m-0 mb-1 text-xs">Shipping Address</p>
+              <p class="m-0 text-sm font-semibold leading-snug break-words">
+                {{ order.address }}, {{ order.city }}, {{ order.country }}
+              </p>
+            </div>
+            @if (order.notes) {
+              <div class="border-border border-b py-3 sm:col-span-2 min-w-0">
+                <p class="text-muted m-0 mb-1 text-xs">Notes</p>
+                <p class="m-0 text-sm font-semibold leading-snug break-words">{{ order.notes }}</p>
+              </div>
             }
-          </mat-select>
-        </mat-form-field>
+          </div>
+
+          <div class="bg-light-secondary mt-2 rounded-sm border border-border p-4">
+            <p class="text-muted m-0 mb-3 text-xs font-medium">Order Items</p>
+            <div class="overflow-x-auto">
+              <table
+                mat-table
+                [dataSource]="items"
+                class="min-w-full bg-transparent"
+              >
+                <ng-container matColumnDef="product">
+                  <th
+                    mat-header-cell
+                    *matHeaderCellDef
+                    class="bg-light-secondary text-sm font-semibold"
+                  >
+                    Product
+                  </th>
+                  <td
+                    mat-cell
+                    *matCellDef="let item"
+                    class="text-sm"
+                  >
+                    {{ productName(item) }}
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="quantity">
+                  <th
+                    mat-header-cell
+                    *matHeaderCellDef
+                    class="bg-light-secondary text-sm font-semibold"
+                  >
+                    Qty
+                  </th>
+                  <td
+                    mat-cell
+                    *matCellDef="let item"
+                    class="text-sm"
+                  >
+                    {{ item.quantity }}
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="unit_price">
+                  <th
+                    mat-header-cell
+                    *matHeaderCellDef
+                    class="bg-light-secondary text-sm font-semibold"
+                  >
+                    Unit Price
+                  </th>
+                  <td
+                    mat-cell
+                    *matCellDef="let item"
+                    class="text-sm"
+                  >
+                    {{ item.unit_price | number: '1.0-0' }}
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="total_price">
+                  <th
+                    mat-header-cell
+                    *matHeaderCellDef
+                    class="bg-light-secondary text-sm font-semibold"
+                  >
+                    Total
+                  </th>
+                  <td
+                    mat-cell
+                    *matCellDef="let item"
+                    class="text-sm"
+                  >
+                    {{ item.total_price | number: '1.0-0' }}
+                  </td>
+                </ng-container>
+                <tr
+                  mat-header-row
+                  *matHeaderRowDef="displayedColumns"
+                ></tr>
+                <tr
+                  mat-row
+                  *matRowDef="let row; columns: displayedColumns"
+                ></tr>
+              </table>
+            </div>
+          </div>
+
+          <mat-divider class="!my-4"></mat-divider>
+          <div class="shrink-0">
+            <h2 class="text-base font-semibold m-0">Update Status</h2>
+            <p class="text-muted m-0 mt-1 text-xs">Change the fulfillment state shown to the customer.</p>
+          </div>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-label>Status</mat-label>
+            <mat-select
+              formControlName="status"
+              placeholder="Select Status"
+            >
+              @if (statusOptions$ | async; as opts) {
+                @for (opt of opts; track opt.value) {
+                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                }
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
       </mat-dialog-content>
 
       <mat-divider></mat-divider>

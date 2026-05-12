@@ -74,10 +74,9 @@ export class ControllerSettingsDialogComponent {
   });
 
   /** Reactive theme-id value for computing the overlay URL. */
-  private readonly selectedThemeId = toSignal(
-    this.form.controls.graphic_theme_id.valueChanges,
-    { initialValue: this.data.session.graphic_theme_id },
-  );
+  private readonly selectedThemeId = toSignal(this.form.controls.graphic_theme_id.valueChanges, {
+    initialValue: this.data.session.graphic_theme_id,
+  });
 
   /** Signed overlay URL — theme query updates live as the theme selection changes. */
   public readonly overlayUrl = computed(() => {

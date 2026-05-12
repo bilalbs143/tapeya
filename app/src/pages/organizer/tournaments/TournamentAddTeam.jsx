@@ -8,6 +8,7 @@ import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
 import { DEBOUNCE_MS, MIN_SEARCH_LENGTH } from '@/lib/constants/search';
 import {
   getTournamentTitle,
@@ -45,9 +46,6 @@ import {
   SelectValue,
   selectViewportInputClass,
 } from '@/ui/Select';
-
-/** Matches API country `name` (GET /countries). */
-const DEFAULT_COUNTRY = 'Pakistan';
 
 const DEFAULT_VALUES = {
   name: '',

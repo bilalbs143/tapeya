@@ -24,6 +24,54 @@ export const TournamentsManagementRoutes: Routes = [
     },
   },
   {
+    path: 'interest-campaigns',
+    loadComponent: () =>
+      import('./interest-campaigns/interest-campaigns-list.component').then((m) => m.InterestCampaignsListComponent),
+    data: {
+      title: 'Interest Campaigns',
+      urls: [
+        { title: 'Dashboard', url: '/dashboard' },
+        { title: 'Tournaments Management' },
+        { title: 'Interest Campaigns' },
+      ],
+    },
+  },
+  {
+    path: 'interest-campaigns/:campaignId',
+    loadComponent: () =>
+      import('./interest-campaigns/campaign-detail/campaign-detail-shell.component').then(
+        (m) => m.CampaignDetailShellComponent
+      ),
+    data: {
+      title: 'Interest Campaign',
+      urls: [
+        { title: 'Dashboard', url: '/dashboard' },
+        { title: 'Tournaments Management' },
+        { title: 'Interest Campaigns', url: '/tournaments-management/interest-campaigns' },
+        { title: 'Detail' },
+      ],
+    },
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'overview' },
+      {
+        path: 'overview',
+        loadComponent: () =>
+          import('./interest-campaigns/campaign-detail/campaign-overview-tab.component').then(
+            (m) => m.CampaignOverviewTabComponent
+          ),
+        data: { title: 'Overview' },
+      },
+      {
+        path: 'submissions',
+        loadComponent: () =>
+          import('./interest-campaigns/campaign-submissions/campaign-submissions.component').then(
+            (m) => m.CampaignSubmissionsComponent
+          ),
+        data: { title: 'Submissions' },
+      },
+    ],
+  },
+  {
     path: 'teams',
     loadComponent: () => import('./teams/teams.component').then((m) => m.TeamsComponent),
     data: {
@@ -77,6 +125,14 @@ export const TournamentsManagementRoutes: Routes = [
             { title: 'Matches' },
           ],
         },
+      },
+      {
+        path: 'interest-campaigns',
+        loadComponent: () =>
+          import('./tournament-detail/tournament-interest-campaigns-tab.component').then(
+            (m) => m.TournamentInterestCampaignsTabComponent
+          ),
+        data: { title: 'Interest Campaigns' },
       },
     ],
   },

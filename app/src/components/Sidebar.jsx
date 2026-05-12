@@ -7,6 +7,7 @@ import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { calculateProfileStrength } from '@/lib/profileStrength';
 import { addSavedProfile } from '@/lib/savedProfiles';
 import { useGetMeQuery } from '@/store/api/authApi';
+import { useGetSidebarInterestCampaignQuery } from '@/store/api/tournamentInterestApi';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectAuthUserAndToken } from '@/store/selectors';
 import { clearCredentials } from '@/store/slices/authSlice';
@@ -17,6 +18,7 @@ const homeIcon = `${CLOUDFRONT_APP_BASE}/images/logos/tapya-t.svg`;
 const requestTournamentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/request-tournament.svg`;
 const supportIcon = `${CLOUDFRONT_APP_BASE}/images/icons/support.svg`;
 const topPlayersIcon = `${CLOUDFRONT_APP_BASE}/images/icons/top-players.svg`;
+const interestCampaignIcon = `${CLOUDFRONT_APP_BASE}/images/icons/interest-campaign.svg`;
 const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
 const MENU_ITEMS = [
@@ -70,6 +72,8 @@ export function Sidebar({ open, onClose }) {
   const { data: meResponse } = useGetMeQuery(undefined, {
     skip: !user?.id,
   });
+  const { data: sidebarInterestPayload } = useGetSidebarInterestCampaignQuery();
+  const sidebarCampaign = sidebarInterestPayload?.campaign ?? null;
   /** Same merge as Profile page / ProfileHeader — live /me data when available */
   const profileUser = meResponse?.data ?? user;
   const strength = profileUser ? calculateProfileStrength(profileUser) : 0;
@@ -78,11 +82,29 @@ export function Sidebar({ open, onClose }) {
     if (!roles || !Array.isArray(roles)) return false;
     return roles.some((r) => r?.slug === 'organizer');
   }, [profileUser]);
-  const navItems = MENU_ITEMS.filter((item) => {
-    if (item.label === 'Logout') return false;
-    if (item.organizerOnly && !hasOrganizerRole) return false;
-    return true;
-  });
+  const navItems = useMemo(() => {
+    const filtered = MENU_ITEMS.filter((item) => {
+      if (item.label === 'Logout') return false;
+      if (item.organizerOnly && !hasOrganizerRole) return false;
+      return true;
+    });
+    const slug = sidebarCampaign?.slug;
+    if (!slug) return filtered;
+    const afterRequestIdx = filtered.findIndex((i) => i.path === '/tournament-request');
+    const interestRow = {
+      label: sidebarCampaign.tournament_name?.trim() || 'Interest',
+      icon: interestCampaignIcon,
+      path: `/interest/${slug}`,
+    };
+    if (afterRequestIdx === -1) {
+      return [...filtered, interestRow];
+    }
+    return [
+      ...filtered.slice(0, afterRequestIdx + 1),
+      interestRow,
+      ...filtered.slice(afterRequestIdx + 1),
+    ];
+  }, [hasOrganizerRole, sidebarCampaign]);
   const [isDesktop, setIsDesktop] = useState(
     () => typeof window !== 'undefined' && window.innerWidth >= 1024,
   );
@@ -186,8 +208,9 @@ export function Sidebar({ open, onClose }) {
               {navItems.map(({ label, icon, path }) =>
                 path ? (
                   <Link
-                    key={label}
+                    key={path}
                     to={path}
+                    title={label}
                     onClick={onClose}
                     className={`group ${menuBtn} ${isActivePath(path) ? 'bg-[#DA9811]' : ''}`}
                   >
@@ -199,7 +222,7 @@ export function Sidebar({ open, onClose }) {
                       } group-hover:brightness-0 group-hover:filter`}
                     />
                     <span
-                      className={`text-[16px] font-medium ${
+                      className={`min-w-0 truncate text-[16px] font-medium ${
                         isActivePath(path) ? 'text-[#080807]' : 'text-[#A2A6AB]'
                       } group-hover:text-[#080807]`}
                     >

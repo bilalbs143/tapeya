@@ -24,10 +24,10 @@ class CricketDashboardController extends Controller
 
     public function __invoke(): JsonResponse
     {
-        $today      = now()->toDateString();
-        $now        = Carbon::now();
-        $thirtyAgo  = $now->copy()->subDays(29)->startOfDay();
-        $sixMonths  = $now->copy()->subMonths(5)->startOfMonth();
+        $today = now()->toDateString();
+        $now = Carbon::now();
+        $thirtyAgo = $now->copy()->subDays(29)->startOfDay();
+        $sixMonths = $now->copy()->subMonths(5)->startOfMonth();
 
         // ── KPI Counts ────────────────────────────────────────────────────────
         $tournamentsTotal = Tournament::query()->count();
@@ -41,9 +41,9 @@ class CricketDashboardController extends Controller
             })
             ->count();
 
-        $matchesTotal     = TournamentMatch::query()->count();
+        $matchesTotal = TournamentMatch::query()->count();
         $matchesCompleted = TournamentMatch::query()->where('status', 'completed')->count();
-        $teamsTotal       = Team::query()->count();
+        $teamsTotal = Team::query()->count();
 
         // Players = users with 'player' role (app guard)
         $playersTotal = DB::table('users')
@@ -55,11 +55,11 @@ class CricketDashboardController extends Controller
             ->count('users.id');
 
         // ── Tournament Phase Breakdown ────────────────────────────────────────
-        $phaseUpcoming  = Tournament::query()
+        $phaseUpcoming = Tournament::query()
             ->whereNotNull('start_date')
             ->whereDate('start_date', '>', $today)
             ->count();
-        $phaseLive      = $tournamentsActive;
+        $phaseLive = $tournamentsActive;
         $phaseCompleted = Tournament::query()
             ->whereNotNull('end_date')
             ->whereDate('end_date', '<', $today)
@@ -73,11 +73,11 @@ class CricketDashboardController extends Controller
             ->all();
 
         $matchStatus = [
-            'scheduled'   => (int) ($matchStatusCounts['scheduled']   ?? 0),
-            'toss_done'   => (int) ($matchStatusCounts['toss_done']   ?? 0),
+            'scheduled' => (int) ($matchStatusCounts['scheduled'] ?? 0),
+            'toss_done' => (int) ($matchStatusCounts['toss_done'] ?? 0),
             'in_progress' => (int) ($matchStatusCounts['in_progress'] ?? 0),
-            'completed'   => (int) ($matchStatusCounts['completed']   ?? 0),
-            'cancelled'   => (int) ($matchStatusCounts['cancelled']   ?? 0),
+            'completed' => (int) ($matchStatusCounts['completed'] ?? 0),
+            'cancelled' => (int) ($matchStatusCounts['cancelled'] ?? 0),
         ];
 
         // ── Tournaments by Cricket Format ─────────────────────────────────────
@@ -89,8 +89,8 @@ class CricketDashboardController extends Controller
             ->get()
             ->map(fn ($r) => [
                 'format' => $r->cricket_format,
-                'label'  => $this->formatLabel($r->cricket_format),
-                'count'  => (int) $r->cnt,
+                'label' => $this->formatLabel($r->cricket_format),
+                'count' => (int) $r->cnt,
             ])
             ->values()
             ->all();
@@ -105,8 +105,8 @@ class CricketDashboardController extends Controller
             ->get()
             ->map(fn ($r) => [
                 'format' => $r->cricket_format,
-                'label'  => $this->formatLabel($r->cricket_format),
-                'count'  => (int) $r->cnt,
+                'label' => $this->formatLabel($r->cricket_format),
+                'count' => (int) $r->cnt,
             ])
             ->values()
             ->all();
@@ -123,9 +123,9 @@ class CricketDashboardController extends Controller
             ->get()
             ->map(fn ($r) => [
                 'team_id' => $r->id,
-                'name'    => $r->name,
-                'logo'    => $r->logo,
-                'wins'    => (int) $r->wins,
+                'name' => $r->name,
+                'logo' => $r->logo,
+                'wins' => (int) $r->wins,
             ])
             ->values()
             ->all();
@@ -133,17 +133,17 @@ class CricketDashboardController extends Controller
         // ── Match Activity — last 30 days (daily counts) ──────────────────────
         $matchActivity = DB::table('matches')
             ->where('created_at', '>=', $thirtyAgo)
-            ->selectRaw("DATE(created_at) as date, COUNT(*) as cnt")
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as cnt')
             ->groupBy('date')
             ->orderBy('date')
             ->get()
             ->keyBy('date');
 
-        $matchDates  = [];
+        $matchDates = [];
         $matchCounts = [];
         for ($i = 29; $i >= 0; $i--) {
-            $d             = $now->copy()->subDays($i)->format('Y-m-d');
-            $matchDates[]  = $d;
+            $d = $now->copy()->subDays($i)->format('Y-m-d');
+            $matchDates[] = $d;
             $matchCounts[] = (int) ($matchActivity->get($d)?->cnt ?? 0);
         }
 
@@ -163,8 +163,8 @@ class CricketDashboardController extends Controller
         $playerGrowthCounts = [];
         $playerGrowthLabels = [];
         for ($i = 5; $i >= 0; $i--) {
-            $key                  = $now->copy()->subMonths($i)->format('Y-m');
-            $label                = $now->copy()->subMonths($i)->format('M');
+            $key = $now->copy()->subMonths($i)->format('Y-m');
+            $label = $now->copy()->subMonths($i)->format('M');
             $playerGrowthLabels[] = $label;
             $playerGrowthCounts[] = (int) ($playerGrowthRaw->get($key)?->cnt ?? 0);
         }
@@ -178,11 +178,11 @@ class CricketDashboardController extends Controller
             ->get()
             ->keyBy('month');
 
-        $requestsMonthlyCounts  = [];
-        $requestsMonthlyLabels  = [];
+        $requestsMonthlyCounts = [];
+        $requestsMonthlyLabels = [];
         for ($i = 5; $i >= 0; $i--) {
-            $key                     = $now->copy()->subMonths($i)->format('Y-m');
-            $label                   = $now->copy()->subMonths($i)->format('M');
+            $key = $now->copy()->subMonths($i)->format('Y-m');
+            $label = $now->copy()->subMonths($i)->format('M');
             $requestsMonthlyLabels[] = $label;
             $requestsMonthlyCounts[] = (int) ($requestsRaw->get($key)?->cnt ?? 0);
         }
@@ -195,7 +195,7 @@ class CricketDashboardController extends Controller
             ->all();
 
         $requestPipeline = [
-            'pending'  => (int) ($requestsByStatus['pending']  ?? 0),
+            'pending' => (int) ($requestsByStatus['pending'] ?? 0),
             'approved' => (int) ($requestsByStatus['approved'] ?? 0),
             'rejected' => (int) ($requestsByStatus['rejected'] ?? 0),
         ];
@@ -212,14 +212,14 @@ class CricketDashboardController extends Controller
             ->limit(6)
             ->get()
             ->map(fn ($m) => [
-                'id'              => $m->id,
+                'id' => $m->id,
                 'tournament_name' => $m->tournament?->tournament_name,
-                'home_team'       => $m->homeTeam?->name,
-                'away_team'       => $m->awayTeam?->name,
-                'home_logo'       => $m->homeTeam?->logo,
-                'away_logo'       => $m->awayTeam?->logo,
-                'match_date'      => $m->match_date?->toDateString(),
-                'overs'           => $m->overs,
+                'home_team' => $m->homeTeam?->name,
+                'away_team' => $m->awayTeam?->name,
+                'home_logo' => $m->homeTeam?->logo,
+                'away_logo' => $m->awayTeam?->logo,
+                'match_date' => $m->match_date?->toDateString(),
+                'overs' => $m->overs,
             ])
             ->values()
             ->all();
@@ -237,16 +237,16 @@ class CricketDashboardController extends Controller
             ->limit(8)
             ->get()
             ->map(fn ($m) => [
-                'id'              => $m->id,
+                'id' => $m->id,
                 'tournament_name' => $m->tournament?->tournament_name,
-                'home_team'       => $m->homeTeam?->name,
-                'away_team'       => $m->awayTeam?->name,
-                'winner'          => $m->winningTeam?->name,
-                'win_by_runs'     => $m->win_by_runs,
-                'win_by_wickets'  => $m->win_by_wickets,
-                'is_no_result'    => (bool) $m->is_no_result,
-                'match_date'      => $m->match_date?->toDateString(),
-                'overs'           => $m->overs,
+                'home_team' => $m->homeTeam?->name,
+                'away_team' => $m->awayTeam?->name,
+                'winner' => $m->winningTeam?->name,
+                'win_by_runs' => $m->win_by_runs,
+                'win_by_wickets' => $m->win_by_wickets,
+                'is_no_result' => (bool) $m->is_no_result,
+                'match_date' => $m->match_date?->toDateString(),
+                'overs' => $m->overs,
             ])
             ->values()
             ->all();
@@ -258,31 +258,31 @@ class CricketDashboardController extends Controller
             ->limit(8)
             ->get()
             ->map(fn ($r) => [
-                'id'              => $r->id,
+                'id' => $r->id,
                 'tournament_name' => $r->tournament_name,
-                'status'          => $r->status?->value,
-                'status_label'    => $r->status?->label(),
-                'user_name'       => $r->user?->name ?? '—',
-                'cricket_format'  => $r->cricket_format?->value,
-                'format_label'    => $r->cricket_format?->label(),
-                'created_at'      => $r->created_at?->toIso8601String(),
+                'status' => $r->status?->value,
+                'status_label' => $r->status?->label(),
+                'user_name' => $r->user?->name ?? '—',
+                'cricket_format' => $r->cricket_format?->value,
+                'format_label' => $r->cricket_format?->label(),
+                'created_at' => $r->created_at?->toIso8601String(),
             ])
             ->values()
             ->all();
 
         return $this->success([
             // KPIs
-            'tournaments_total'    => $tournamentsTotal,
-            'tournaments_active'   => $tournamentsActive,
-            'matches_total'        => $matchesTotal,
-            'matches_completed'    => $matchesCompleted,
-            'teams_total'          => $teamsTotal,
-            'players_total'        => $playersTotal,
+            'tournaments_total' => $tournamentsTotal,
+            'tournaments_active' => $tournamentsActive,
+            'matches_total' => $matchesTotal,
+            'matches_completed' => $matchesCompleted,
+            'teams_total' => $teamsTotal,
+            'players_total' => $playersTotal,
 
             // Phase breakdown
             'phase_counts' => [
-                'upcoming'  => $phaseUpcoming,
-                'live'      => $phaseLive,
+                'upcoming' => $phaseUpcoming,
+                'live' => $phaseLive,
                 'completed' => $phaseCompleted,
             ],
 
@@ -291,13 +291,13 @@ class CricketDashboardController extends Controller
 
             // Format breakdowns
             'tournaments_by_format' => $tournamentsByFormat,
-            'matches_by_format'     => $matchesByFormat,
+            'matches_by_format' => $matchesByFormat,
 
             // Top teams
             'top_teams_by_wins' => $topTeams,
 
             // Match activity (last 30d)
-            'match_activity_dates'  => $matchDates,
+            'match_activity_dates' => $matchDates,
             'match_activity_counts' => $matchCounts,
 
             // Player growth (last 6 months)
@@ -328,11 +328,12 @@ class CricketDashboardController extends Controller
             return 'Unknown';
         }
         $map = [
-            'hard_ball'    => 'Hard Ball',
-            'tape_ball'    => 'Tape Ball',
-            'tennis_ball'  => 'Tennis Ball',
-            'hard_tennis'  => 'Hard Tennis',
+            'hard_ball' => 'Hard Ball',
+            'tape_ball' => 'Tape Ball',
+            'tennis_ball' => 'Tennis Ball',
+            'hard_tennis' => 'Hard Tennis',
         ];
+
         return $map[$value instanceof \BackedEnum ? $value->value : (string) $value] ?? ucwords(str_replace('_', ' ', (string) $value));
     }
 }

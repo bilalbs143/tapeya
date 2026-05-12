@@ -4,8 +4,8 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
-use App\Utils\Constants\ApiConstants;
 use App\Http\Resources\User\NotificationResource;
+use App\Utils\Constants\ApiConstants;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;

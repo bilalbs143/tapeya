@@ -1,0 +1,166 @@
+<app-dialog-wrapper title="Interest Submission Details">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    aria-label="Update Interest Submission"
+  >
+    <mat-dialog-content>
+      <div class="flex flex-col gap-2">
+        <div class="shrink-0">
+          <h2 class="text-base font-semibold m-0">Submission Details</h2>
+          <p class="text-muted m-0 mt-1 text-xs">
+            Player identity, contact, location, documents, and status for this interest submission.
+          </p>
+        </div>
+
+        <div class="mb-6 grid grid-cols-1 gap-6 border-b border-border py-6 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-0">
+          <div class="flex min-w-0 items-start gap-4">
+            @if (submission.profile_picture_url) {
+              <img
+                [src]="submission.profile_picture_url"
+                alt="Player Profile"
+                class="size-11! shrink-0 rounded-full border border-default-border object-cover bg-light-secondary"
+              />
+            } @else {
+              <span class="bg-light-primary text-primary flex size-11! shrink-0 items-center justify-center rounded-sm">
+                <i-tabler
+                  name="user"
+                  class="size-5"
+                />
+              </span>
+            }
+            <div class="min-w-0 flex-1">
+              <p class="text-muted m-0 mb-1 text-xs font-medium">Player</p>
+              <p class="m-0 truncate text-base font-semibold leading-snug">{{ submission.name }}</p>
+              @if (submission.email || submission.phone) {
+                <p class="text-muted m-0 mt-1 text-xs leading-relaxed">
+                  {{ submission.email || '' }}
+                  {{ submission.email && submission.phone ? ' · ' : '' }}
+                  {{ submission.phone || '' }}
+                </p>
+              }
+            </div>
+          </div>
+          <div class="flex min-w-0 items-start gap-4">
+            <span class="bg-light-primary text-primary flex size-11! shrink-0 items-center justify-center rounded-sm">
+              <i-tabler
+                name="flag"
+                class="size-5"
+              />
+            </span>
+            <div class="min-w-0 flex-1">
+              <p class="text-muted m-0 mb-1 text-xs font-medium">Status</p>
+              <span
+                class="rounded-sm font-semibold px-1.5 py-1 text-xs inline-block"
+                [ngClass]="statusClass(submission.status)"
+              >
+                {{ submission.status_label }}
+              </span>
+              @if (submission.withdrawn_at) {
+                <p class="text-muted m-0 mt-2 text-xs leading-relaxed">
+                  Withdrawn At {{ submission.withdrawn_at | date: 'yyyy-MM-dd HH:mm' }}
+                </p>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-x-8 gap-y-0 sm:grid-cols-2">
+          <div class="border-border border-b py-3">
+            <p class="text-muted m-0 mb-1 text-xs">Nickname</p>
+            <p class="m-0 text-sm font-semibold leading-snug">{{ submission.nickname ?? emptyCell }}</p>
+          </div>
+          <div class="border-border border-b py-3">
+            <p class="text-muted m-0 mb-1 text-xs">Email</p>
+            <p class="m-0 text-sm font-semibold leading-snug break-words">{{ submission.email ?? emptyCell }}</p>
+          </div>
+          <div class="border-border border-b py-3">
+            <p class="text-muted m-0 mb-1 text-xs">Phone</p>
+            <p class="m-0 text-sm font-semibold leading-snug">{{ submission.phone ?? emptyCell }}</p>
+          </div>
+          <div class="border-border border-b py-3">
+            <p class="text-muted m-0 mb-1 text-xs">City, Country</p>
+            <p class="m-0 text-sm font-semibold leading-snug">{{ cityCountryLine() }}</p>
+          </div>
+          <div class="border-border border-b py-3">
+            <p class="text-muted m-0 mb-1 text-xs">Date of Birth</p>
+            <p class="m-0 text-sm font-semibold leading-snug">
+              {{ submission.date_of_birth ? (submission.date_of_birth | date: 'yyyy-MM-dd') : emptyCell }}
+            </p>
+          </div>
+          <div class="border-border border-b py-3 min-w-0">
+            <p class="text-muted m-0 mb-1 text-xs">Interest Campaign</p>
+            <p class="m-0 text-sm font-semibold leading-snug truncate">
+              {{ submission.campaign?.tournament_name ?? emptyCell }}
+            </p>
+          </div>
+          <div class="border-border border-b py-3">
+            <p class="text-muted m-0 mb-1 text-xs">Submitted At</p>
+            <p class="m-0 text-sm font-semibold leading-snug">
+              {{ submission.created_at ? (submission.created_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
+            </p>
+          </div>
+          <div class="border-border border-b py-3 min-w-0">
+            <p class="text-muted m-0 mb-1 text-xs">ID Document</p>
+            @if (submission.id_document_url) {
+              <a
+                [href]="submission.id_document_url"
+                target="_blank"
+                rel="noopener"
+                class="inline-flex items-center gap-1 text-sm font-semibold text-primary"
+              >
+                <i-tabler
+                  name="file-text"
+                  class="size-4!"
+                ></i-tabler>
+                View / Download
+              </a>
+            } @else {
+              <p class="m-0 text-sm font-semibold leading-snug">{{ emptyCell }}</p>
+            }
+          </div>
+        </div>
+
+        <mat-divider class="!my-4"></mat-divider>
+        <div class="shrink-0">
+          <h2 class="text-base font-semibold m-0">Update Status</h2>
+          <p class="text-muted m-0 mt-1 text-xs">Change how this submission is tracked in the campaign.</p>
+        </div>
+        <mat-form-field
+          appearance="outline"
+          class="w-full"
+        >
+          <mat-label>Status</mat-label>
+          <mat-select
+            formControlName="status"
+            placeholder="Select Status"
+          >
+            @if (statusOptions$ | async; as opts) {
+              @for (opt of opts; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions>
+      <button
+        type="button"
+        mat-stroked-button
+        class="border border-error! text-error"
+        [mat-dialog-close]="false"
+      >
+        Close
+      </button>
+      <app-submit-button
+        [disabled]="form.invalid"
+        [isSubmitting]="isSubmitting"
+        text="Save Changes"
+        color="primary"
+      />
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

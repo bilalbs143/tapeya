@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useToast } from '@/hooks/useToast';
+import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
 import { formatPrice } from '@/lib/format';
 import {
   useGetCitiesQuery,
@@ -29,9 +30,6 @@ import {
   selectViewportInputClass,
 } from '@/ui/Select';
 
-/** Matches API country `name` (see GET /countries). */
-const DEFAULT_CHECKOUT_COUNTRY = 'Pakistan';
-
 export default function ShopCheckout() {
   const navigate = useNavigate();
   const toast = useToast();
@@ -46,7 +44,7 @@ export default function ShopCheckout() {
       email: '',
       address: '',
       city: '',
-      country: DEFAULT_CHECKOUT_COUNTRY,
+      country: DEFAULT_COUNTRY,
       notes: '',
     },
   });
@@ -69,7 +67,7 @@ export default function ShopCheckout() {
       email: user?.email ?? '',
       address: '',
       city: user?.city ?? '',
-      country: countryFromProfile || DEFAULT_CHECKOUT_COUNTRY,
+      country: countryFromProfile || DEFAULT_COUNTRY,
       notes: '',
     });
   }, [user, reset]);

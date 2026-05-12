@@ -11,6 +11,8 @@ use App\Enums\Notification\AdminNotificationTypeEnum;
 use App\Enums\Shop\OrderStatusEnum;
 use App\Enums\Shop\ProductDiscountTypeEnum;
 use App\Enums\Tournament\GroupModeEnum;
+use App\Enums\Tournament\TournamentInterestCampaignStatusEnum;
+use App\Enums\Tournament\TournamentInterestSubmissionStatusEnum;
 use App\Enums\Tournament\TournamentRequestStatusEnum;
 use App\Enums\Tournament\TournamentScheduleWindowEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
@@ -28,6 +30,7 @@ use Illuminate\Http\JsonResponse;
 class EnumController extends Controller
 {
     use BaseControllerTrait;
+
     /**
      * Return all enum options for admin (value + label), categorized by type.
      * Use for dynamic dropdowns in backoffice.
@@ -50,6 +53,8 @@ class EnumController extends Controller
             'match_timings' => $this->toOptions(MatchTimingEnum::cases()),
             'match_status' => $this->toOptions(MatchStatusEnum::cases()),
             'tournament_request_status' => $this->toOptions(TournamentRequestStatusEnum::cases()),
+            'tournament_interest_campaign_status' => $this->toOptions(TournamentInterestCampaignStatusEnum::cases()),
+            'tournament_interest_submission_status' => $this->toOptions(TournamentInterestSubmissionStatusEnum::cases()),
             'shot_position' => $this->toOptions(ShotPositionEnum::cases()),
             'notification_type' => $this->toOptions(AdminNotificationTypeEnum::cases()),
             'app_roles' => Role::forGuard(RoleGuardEnum::APP->value)->orderBy('name')->get()->map(fn (Role $r) => [

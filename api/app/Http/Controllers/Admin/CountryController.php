@@ -12,6 +12,7 @@ use Nnjeim\World\Models\Country;
 class CountryController extends Controller
 {
     use BaseControllerTrait;
+
     /**
      * List countries for dropdowns. Returns id, name, country_code (iso2).
      * Reads from nnjeim/world package's countries table.
