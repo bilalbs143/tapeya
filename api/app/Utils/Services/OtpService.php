@@ -11,8 +11,6 @@ use Throwable;
 
 class OtpService
 {
-    public const TTL_SECONDS = 600; // 10 minutes
-
     public const CACHE_PREFIX = 'otp:';
 
     public function __construct(
@@ -32,7 +30,7 @@ class OtpService
             return;
         }
 
-        $template = (string) config('notifications.sms.otp_message', 'Welcome to Tapeya, your verification code is :code. Valid for 10 minutes. Do not share this code.');
+        $template = (string) config('notifications.sms.otp_message', 'Welcome to Tapeya, your verification code is :code. Do not share this code.');
         $message = str_replace(':code', $code, $template);
 
         try {
@@ -71,7 +69,7 @@ class OtpService
     public function store(string $phone, string $code): void
     {
         $key = self::normalizePhone($phone);
-        Cache::put(self::CACHE_PREFIX.$key, $code, self::TTL_SECONDS);
+        Cache::forever(self::CACHE_PREFIX.$key, $code);
     }
 
     public function verify(string $phone, string $code): bool

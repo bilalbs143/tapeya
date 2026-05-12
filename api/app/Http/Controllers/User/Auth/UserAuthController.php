@@ -108,7 +108,7 @@ class UserAuthController extends Controller
         $code = $request->validated('code');
 
         if (! $this->otpService->verify($phone, $code)) {
-            return response()->failure('Invalid or expired OTP.', 'UNAUTHORIZED');
+            return response()->failure('Invalid OTP.', 'UNAUTHORIZED');
         }
 
         $user = User::query()

@@ -21,8 +21,13 @@ return [
     | SMS
     |--------------------------------------------------------------------------
     |
-    | Drivers: "log" (development), "null" (disable), "api" (generic HTTP – ApiSmsDriver),
-    | "veevotech" (VeevoTech v3 sendsms – set SMS_API_KEY to your API hash).
+    | Drivers:
+    |   "log"       – writes to Laravel log (default, safe for development)
+    |   "null"      – silently discards every message
+    |   "api"       – generic HTTP driver (ApiSmsDriver) – configure SMS_API_URL / SMS_API_KEY
+    |   "veevotech" – VeevoTech v3 sendsms – set SMS_API_KEY to your API hash
+    |   "whatsapp"  – Meta WhatsApp Business Cloud API (WhatsAppSmsDriver)
+    |                 See config/whatsapp.php for required env vars.
     |
     */
     'sms' => [
@@ -30,7 +35,7 @@ return [
         'from' => env('SMS_FROM', env('APP_NAME', 'Tapeya')),
         'otp_message' => env(
             'SMS_OTP_MESSAGE',
-            'Your verification code is :code. Valid for 10 minutes. Do not share this code with anyone.'
+            'Your verification code is :code. Do not share this code with anyone.'
         ),
     ],
 
