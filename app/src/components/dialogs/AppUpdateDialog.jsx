@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 
-import { App } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 
 import { Button } from '@/ui/Button';
@@ -65,7 +65,15 @@ async function openStoreUrl(url) {
   const platform = Capacitor.getPlatform(); // 'android' | 'ios' | 'web'
   const nativeUrl = toNativeStoreUrl(url, platform);
 
-  await App.openUrl({ url: nativeUrl });
+  if (platform === 'android' || platform === 'ios') {
+    // market:// and itms-apps:// are intercepted by the OS before the WebView
+    // navigates — Android opens Play Store, iOS opens App Store app directly.
+    window.location.href = nativeUrl;
+  } else {
+    // Web fallback — open the https URL in a browser tab
+    await Browser.open({ url });
+  }
+
   return { platform, nativeUrl };
 }
 
