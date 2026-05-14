@@ -1,1 +1,0 @@
-export const APP_UPDATE_DISMISS_STORAGE_KEY = 'tapeya_dismissed_app_update_for_version';
