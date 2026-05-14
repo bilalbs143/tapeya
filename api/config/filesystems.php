@@ -81,7 +81,6 @@ return [
     | Media / public assets disk
     |--------------------------------------------------------------------------
     |
-    | Disk used for web-accessible uploads (shop images, categories, brands,
     | hero sliders). Use 'public' for local storage, or 's3' to store on S3
     | and serve URLs via CloudFront (set AWS_URL to your CloudFront domain).
     |

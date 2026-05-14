@@ -2,6 +2,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectDialogKey, selectDialogProps } from '@/store/selectors';
 import { closeDialog } from '@/store/slices/commonSlice';
 
+import AppUpdateDialog from './AppUpdateDialog';
 import BaseDialog from './BaseDialog';
 import DeleteAccountDialog from './DeleteAccountDialog';
 import DraftingSubmitSquadSuccessDialog from './DraftingSubmitSquadSuccessDialog';
@@ -11,6 +12,7 @@ import ProfileStrengthReminderDialog from './ProfileStrengthReminderDialog';
 import TournamentSquadUpdatedSuccessDialog from './TournamentSquadUpdatedSuccessDialog';
 
 const DIALOG_COMPONENTS = {
+  appUpdate: AppUpdateDialog,
   inningsEnd: InningsEndDialog,
   pricingSuccess: PricingSuccessDialog,
   draftingSubmitSquadSuccess: DraftingSubmitSquadSuccessDialog,
@@ -19,7 +21,6 @@ const DIALOG_COMPONENTS = {
   deleteAccount: DeleteAccountDialog,
 };
 
-/** Extra Tailwind classes merged onto BaseDialog content (defaults for short modals). */
 const DIALOG_CONTENT_CLASS_BY_KEY = {
   deleteAccount: '!min-h-[300px]',
   inningsEnd: '!h-auto !min-h-[240px]',

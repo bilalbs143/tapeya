@@ -5,34 +5,36 @@ namespace App\Utils\Services;
 use App\Exceptions\OtpSmsDeliveryException;
 use App\Models\User;
 use App\Services\Notifications\SmsSender;
+use App\Settings\OtpSettings;
+use App\Settings\SmsSettings;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class OtpService
 {
-    public const TTL_SECONDS = 600; // 10 minutes
-
     public const CACHE_PREFIX = 'otp:';
 
     public function __construct(
-        protected SmsSender $smsSender
+        protected SmsSender $smsSender,
+        protected OtpSettings $otpSettings,
+        protected SmsSettings $smsSettings,
     ) {}
 
     /**
      * Generate OTP, store under a normalized phone cache key, and send SMS when not in debug
-     * and the phone is not listed in TEST_OTP_PHONES. Debug and test phones get OTP in-app/API only.
+     * and the phone is not listed in test_otp_phones (system setting). Debug and test phones get OTP in-app/API only.
      */
     public function sendToUser(User $user): void
     {
         $code = $this->generateCode();
         $this->store($user->phone, $code);
 
-        if (config('app.debug') || self::isTestOtpPhone($user->phone)) {
+        if (config('app.debug') || $this->isTestOtpPhone($user->phone)) {
             return;
         }
 
-        $template = (string) config('notifications.sms.otp_message', 'Welcome to Tapeya, your verification code is :code. Valid for 10 minutes. Do not share this code.');
+        $template = (string) ($this->smsSettings->otpMessage ?? '');
         $message = str_replace(':code', $code, $template);
 
         try {
@@ -71,7 +73,7 @@ class OtpService
     public function store(string $phone, string $code): void
     {
         $key = self::normalizePhone($phone);
-        Cache::put(self::CACHE_PREFIX.$key, $code, self::TTL_SECONDS);
+        Cache::forever(self::CACHE_PREFIX.$key, $code);
     }
 
     public function verify(string $phone, string $code): bool
@@ -89,20 +91,30 @@ class OtpService
     }
 
     /**
-     * Whether this phone may receive the OTP in API responses (APP_DEBUG or TEST_OTP_PHONES).
+     * Whether this phone may receive the OTP in API responses (APP_DEBUG, test_otp_phones, or SMS driver `log`).
      */
-    public static function shouldExposeOtpInResponse(string $phone): bool
+    public function shouldExposeOtpInResponse(string $phone): bool
     {
-        return config('app.debug') || self::isTestOtpPhone($phone);
+        return config('app.debug')
+            || $this->isTestOtpPhone($phone)
+            || $this->isSmsDriverLog();
     }
 
     /**
-     * Phone listed in config otp.test_phone_numbers (comma-separated in TEST_OTP_PHONES).
+     * True when the SMS driver is `log` (OTP is included in register / request-otp JSON regardless of APP_DEBUG).
      */
-    public static function isTestOtpPhone(string $phone): bool
+    public function isSmsDriverLog(): bool
+    {
+        return ($this->smsSettings->driver ?? 'log') === 'log';
+    }
+
+    /**
+     * Whether this phone is listed in the test_otp_phones setting (OTP returned in JSON only, no real SMS).
+     */
+    public function isTestOtpPhone(string $phone): bool
     {
         $normalized = self::normalizePhone($phone);
-        foreach (config('otp.test_phone_numbers', []) as $raw) {
+        foreach ($this->otpSettings->testPhoneNumbers as $raw) {
             if ($raw === '') {
                 continue;
             }
@@ -115,11 +127,11 @@ class OtpService
     }
 
     /**
-     * Return current OTP when exposure is allowed (debug or test phone).
+     * Return current OTP when exposure is allowed (debug, test phone, or SMS driver `log`).
      */
     public function getCurrentOtp(string $phone): ?string
     {
-        if (! self::shouldExposeOtpInResponse($phone)) {
+        if (! $this->shouldExposeOtpInResponse($phone)) {
             return null;
         }
 
@@ -127,10 +139,10 @@ class OtpService
     }
 
     /**
-     * Normalize to E.164: + followed by digits only. User supplies country code (e.g. +44, +1, +92).
+     * Canonical form for OTP cache keys and comparisons. Clients send E.164; only whitespace is trimmed.
      */
     public static function normalizePhone(string $phone): string
     {
-        return '+'.preg_replace('/\D/', '', $phone);
+        return trim($phone);
     }
 }

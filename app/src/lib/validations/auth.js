@@ -1,6 +1,8 @@
+import { isValidPhoneNumber } from 'libphonenumber-js/min';
 import { z } from 'zod';
 
-/** Shared: optional email; when provided must be valid */
+import { normalizePhoneE164 } from '@/lib/phoneCodes';
+
 const emailSchema = z
   .union([
     z.string().email('Please enter a valid email address'),
@@ -9,24 +11,24 @@ const emailSchema = z
   .optional()
   .transform((v) => (v === '' ? undefined : v));
 
-/** Shared: non-empty name (full name) */
 const nameSchema = z.string().min(1, 'Name is required');
 
-/** Phone: optional leading +, then at least one digit */
 const phoneSchema = z
   .string()
   .min(1, 'Phone is required')
-  .refine(
-    (v) => /^\+\d+$/.test(v) && v.length >= 2,
-    'Enter a valid phone number',
-  );
+  .transform((v) => normalizePhoneE164(v))
+  .refine((v) => {
+    try {
+      return isValidPhoneNumber(v);
+    } catch {
+      return false;
+    }
+  }, 'Enter a valid phone number for the selected country');
 
-/** Login form (phone only) */
 export const loginSchema = z.object({
   phone: phoneSchema,
 });
 
-/** Nickname: letters, numbers, underscores only; unique on backend */
 const nicknameSchema = z
   .string()
   .min(1, 'Nickname is required')
@@ -36,7 +38,6 @@ const nicknameSchema = z
     'Nickname may only contain letters, numbers and underscores',
   );
 
-/** Register form: phone, name, nickname, optional email (backend: email nullable) */
 export const registerSchema = z.object({
   phone: phoneSchema,
   name: nameSchema,
@@ -44,12 +45,21 @@ export const registerSchema = z.object({
   email: emailSchema.optional(),
 });
 
-/** Profile update payload (optional fields except nickname) */
 export const updateProfileSchema = z.object({
   name: z.string().min(1).optional(),
   nickname: nicknameSchema,
   email: emailSchema.optional(),
-  phone: z.string().optional(),
+  phone: z
+    .string()
+    .transform((v) => normalizePhoneE164(v))
+    .refine((v) => {
+      try {
+        return isValidPhoneNumber(v);
+      } catch {
+        return false;
+      }
+    }, 'Enter a valid phone number for the selected country')
+    .optional(),
   date_of_birth: z.string().optional(),
   bowling_style: z.union([z.string().min(1), z.null()]).optional(),
   batting_style: z.union([z.string().min(1), z.null()]).optional(),
@@ -58,7 +68,6 @@ export const updateProfileSchema = z.object({
   city: z.string().optional(),
 });
 
-/** OTP verification (4 digits) */
 export const otpSchema = z.object({
   code: z
     .string()
@@ -67,7 +76,6 @@ export const otpSchema = z.object({
     .length(4, 'Code must be 4 digits'),
 });
 
-/** OTP verification (5 digits, for digit-by-digit input UI) */
 export const otp5Schema = z.object({
   code: z
     .string()

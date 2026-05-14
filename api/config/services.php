@@ -35,16 +35,4 @@ return [
         ],
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | SMS (generic – set driver to "api" and configure for your chosen provider)
-    |--------------------------------------------------------------------------
-    */
-    'sms' => [
-        'url' => env('SMS_API_URL'),
-        'key' => env('SMS_API_KEY'),
-        'secret' => env('SMS_API_SECRET'),
-        'from' => env('SMS_FROM'),
-    ],
-
 ];

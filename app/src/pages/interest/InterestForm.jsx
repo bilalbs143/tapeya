@@ -42,6 +42,9 @@ import {
 
 const DEFAULT_AVATAR = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
+const PROFILE_PICTURE_REQUIRED_MSG = 'Please add a profile picture.';
+const ID_DOCUMENT_REQUIRED_MSG = 'Please add your CNIC or B-Form.';
+
 const EMPTY_FORM = {
   name: '',
   nickname: '',
@@ -81,10 +84,20 @@ export default function InterestForm() {
 
   const [idDocumentFile, setIdDocumentFile] = useState(null);
   const idDocumentInputRef = useRef(null);
+  const [errors, setErrors] = useState({});
+
+  const clearError = (key) =>
+    setErrors((prev) => {
+      if (!prev[key]) return prev;
+      const { [key]: _, ...rest } = prev;
+      return rest;
+    });
 
   const campaign = payload?.campaign;
   const mySubmission = payload?.my_submission ?? null;
   const profileDefaults = payload?.profile_defaults ?? null;
+  const needsProfilePictureUpload = !mySubmission?.profile_picture_url && !profileDefaults?.avatar_url;
+  const needsIdDocumentUpload = !mySubmission?.id_document_url;
   const isOpen = campaign?.status === 'open';
   const isActive = mySubmission && mySubmission.status !== 'withdrawn';
   const isConfirmed = mySubmission?.status === 'confirmed';
@@ -116,6 +129,7 @@ export default function InterestForm() {
     setForm(source);
     setProfilePictureFile(null);
     setProfilePicturePreview(null);
+    setErrors({});
     setIdDocumentFile(null);
   }, [payload, mySubmission, profileDefaults]);
 
@@ -141,6 +155,7 @@ export default function InterestForm() {
     if (profilePicturePreview) URL.revokeObjectURL(profilePicturePreview);
     setProfilePictureFile(file);
     setProfilePicturePreview(URL.createObjectURL(file));
+    clearError('picture');
   };
 
   const clearProfilePictureSelection = () => {
@@ -150,6 +165,7 @@ export default function InterestForm() {
     if (profilePictureInputRef.current) {
       profilePictureInputRef.current.value = '';
     }
+    clearError('picture');
   };
 
   const handleIdDocumentChange = (event) => {
@@ -165,6 +181,7 @@ export default function InterestForm() {
       return;
     }
     setIdDocumentFile(file);
+    clearError('idDocument');
   };
 
   const clearIdDocumentSelection = () => {
@@ -172,11 +189,23 @@ export default function InterestForm() {
     if (idDocumentInputRef.current) {
       idDocumentInputRef.current.value = '';
     }
+    clearError('idDocument');
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!isOpen || isSubmitting) return;
+
+    const missPicture = needsProfilePictureUpload && !profilePictureFile;
+    const missIdDocument = needsIdDocumentUpload && !idDocumentFile;
+    if (missPicture || missIdDocument) {
+      setErrors({
+        ...(missPicture     && { picture:    PROFILE_PICTURE_REQUIRED_MSG }),
+        ...(missIdDocument  && { idDocument: ID_DOCUMENT_REQUIRED_MSG }),
+      });
+      return;
+    }
+    setErrors({});
 
     const normalized = {
       ...form,
@@ -292,8 +321,6 @@ export default function InterestForm() {
     mySubmission?.profile_picture_url ?? profileDefaults?.avatar_url ?? null;
   const profilePictureSrc =
     profilePicturePreview ?? existingPictureUrl ?? DEFAULT_AVATAR;
-  const needsProfilePictureUpload =
-    !mySubmission?.profile_picture_url && !profileDefaults?.avatar_url;
 
   const headerTitle =
     campaign.tournament_name != null && campaign.tournament_name !== '' ? (
@@ -355,58 +382,61 @@ export default function InterestForm() {
           onSubmit={handleSubmit}
           className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-x-6 lg:gap-y-4 lg:space-y-0"
         >
-            <div className="flex flex-col items-center gap-3">
-              <div className="relative inline-block">
-                <img
-                  src={profilePictureSrc}
-                  alt="Profile preview"
-                  className="h-24 w-24 rounded-full object-cover border-2 border-[#DA9811] bg-zinc-900"
-                />
-                <span
-                  className="pointer-events-none absolute right-0 bottom-0 z-20 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#080807] bg-[#DA9811] text-[#080807] shadow-md"
-                  aria-hidden
+          <div className="flex flex-col items-center gap-3">
+            <div className="relative inline-block">
+              <img
+                src={profilePictureSrc}
+                alt="Profile preview"
+                className="h-24 w-24 rounded-full object-cover border-2 border-[#DA9811] bg-zinc-900"
+              />
+              <span
+                className="pointer-events-none absolute right-0 bottom-0 z-20 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#080807] bg-[#DA9811] text-[#080807] shadow-md"
+                aria-hidden
+              >
+                <svg
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
-                  <svg
-                    className="h-4 w-4"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                  </svg>
-                </span>
-                <input
-                  id="interest-profile-picture"
-                  ref={profilePictureInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="absolute inset-0 z-10 cursor-pointer rounded-full opacity-0"
-                  onChange={handleProfilePictureChange}
-                  aria-label="Choose Profile Picture"
-                  required={needsProfilePictureUpload}
-                />
-              </div>
-              <div className="flex flex-col items-center gap-1 text-center">
-                <span className="text-[12px] leading-snug text-[#A2A6AB]/90">
-                  {needsProfilePictureUpload && !profilePictureFile
-                    ? 'Add a profile picture (required). JPG or PNG, max 5MB.'
-                    : 'Click the photo to change. JPG or PNG, max 5MB.'}
-                </span>
-                {profilePictureFile && (
-                  <button
-                    type="button"
-                    onClick={clearProfilePictureSelection}
-                    className="text-xs font-medium text-[#DA9811] underline hover:no-underline"
-                  >
-                    Clear Selection
-                  </button>
-                )}
-              </div>
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+              </span>
+              <input
+                id="interest-profile-picture"
+                ref={profilePictureInputRef}
+                type="file"
+                accept="image/*"
+                className="absolute inset-0 z-10 cursor-pointer rounded-full opacity-0"
+                onChange={handleProfilePictureChange}
+                aria-label="Choose profile picture"
+              />
             </div>
+            <p
+              className={`max-w-[350px] text-center text-[12px] leading-snug ${
+                errors.picture ? 'text-red-200' : 'text-[#A2A6AB]/90'
+              }`}
+              role={errors.picture ? 'alert' : undefined}
+            >
+              {errors.picture ??
+                (needsProfilePictureUpload && !profilePictureFile
+                  ? 'Add a profile picture (required). JPG or PNG, max 5MB.'
+                  : 'Click the photo to change. JPG or PNG, max 5MB.')}
+            </p>
+            {profilePictureFile && (
+              <button
+                type="button"
+                onClick={clearProfilePictureSelection}
+                className="text-xs font-medium text-[#DA9811] underline hover:no-underline"
+              >
+                Clear Selection
+              </button>
+            )}
+          </div>
 
           <div className="lg:col-span-2">
             <h2 className="text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">
@@ -587,7 +617,7 @@ export default function InterestForm() {
             label="CNIC or B-Form"
             htmlFor="interest-id-document"
             className="lg:col-span-2"
-            required
+            required={needsIdDocumentUpload}
           >
             <input
               id="interest-id-document"
@@ -596,9 +626,19 @@ export default function InterestForm() {
               accept="image/*,application/pdf"
               onChange={handleIdDocumentChange}
               aria-label="CNIC or B-Form"
-              required={!mySubmission?.id_document_url}
               className="block w-full text-[13px] text-[#A2A6AB] file:mr-3 file:rounded-[6px] file:border-0 file:bg-[#141412] file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-[#1a1a18]"
             />
+            <p
+              className={`mt-1 text-[12px] leading-snug ${
+                errors.idDocument ? 'text-red-200' : 'text-[#A2A6AB]/90'
+              }`}
+              role={errors.idDocument ? 'alert' : undefined}
+            >
+              {errors.idDocument ??
+                (needsIdDocumentUpload && !idDocumentFile
+                  ? 'Upload your CNIC or B-Form (required). Image or PDF, max 10MB.'
+                  : 'Image or PDF, max 10MB.')}
+            </p>
             <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] leading-snug text-[#A2A6AB]/80">
               {idDocumentFile ? (
                 <>
@@ -625,9 +665,7 @@ export default function InterestForm() {
                     View Current
                   </a>
                 </>
-              ) : (
-                <span>Image or PDF, max 10MB.</span>
-              )}
+              ) : null}
             </div>
           </FormField>
 

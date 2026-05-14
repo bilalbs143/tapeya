@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\Shop\EcommerceDashboardController;
 use App\Http\Controllers\Admin\Shop\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\Shop\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\StaticPageController;
+use App\Http\Controllers\Admin\SystemSettingController;
 use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\TournamentBroadcasterController;
 use App\Http\Controllers\Admin\TournamentController;
@@ -57,6 +58,9 @@ Route::prefix('admin')->group(function () {
         Route::apiResource('teams', TeamController::class);
         Route::apiResource('hero-sliders', HeroSliderController::class);
         Route::apiResource('static-pages', StaticPageController::class);
+        Route::get('system-settings', [SystemSettingController::class, 'index']);
+        Route::get('system-settings/{key}', [SystemSettingController::class, 'show'])->where('key', '[a-z0-9_]+');
+        Route::patch('system-settings/{key}', [SystemSettingController::class, 'patch'])->where('key', '[a-z0-9_]+');
         Route::apiResource('tournaments', TournamentController::class);
         Route::get('tournaments/{tournament}/broadcaster', [TournamentBroadcasterController::class, 'index']);
         Route::post('tournaments/{tournament}/broadcaster', [TournamentBroadcasterController::class, 'store']);

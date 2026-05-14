@@ -14,6 +14,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
+import { BackofficeReverbService } from 'src/app/services/backoffice-reverb.service';
 import {
   MatchGraphicService,
   type GraphicCatalogAction,
@@ -25,7 +26,6 @@ import {
   type MatchGraphicPlayerListsPayload,
   type MatchGraphicSession,
 } from 'src/app/services/match-graphic.service';
-import { BackofficeReverbService } from 'src/app/services/backoffice-reverb.service';
 import { MessageService } from 'src/app/services/message.service';
 import { TournamentMatchesService, type TournamentMatchRow } from 'src/app/services/tournament-matches.service';
 
@@ -367,7 +367,7 @@ export class MatchControllerDashboardComponent implements OnInit {
       () => {
         // Caption was saved or deleted by another operator — refresh the list.
         this.refreshCaptions();
-      },
+      }
     );
   }
 
@@ -466,13 +466,14 @@ export class MatchControllerDashboardComponent implements OnInit {
 
   /**
    * Public Reverb payload uses `command_id`; admin API resources use `id`.
+   * Payload shape is not fully typed at the Echo layer — use `any` here only.
    */
-  private commandIdFromGraphicActivatedEvent(event: Record<string, unknown>): number | null {
+  private commandIdFromGraphicActivatedEvent(event: any): number | null {
     const raw = event['command_id'] ?? event['id'];
     return typeof raw === 'number' ? raw : Number(raw) || null;
   }
 
-  private commandFromGraphicActivatedEvent(event: Record<string, unknown>): MatchGraphicCommand {
+  private commandFromGraphicActivatedEvent(event: any): MatchGraphicCommand {
     const id = this.commandIdFromGraphicActivatedEvent(event);
     const sidRaw = event['session_id'] ?? event['match_graphic_session_id'];
     const sessionId = typeof sidRaw === 'number' ? sidRaw : Number(sidRaw) || 0;

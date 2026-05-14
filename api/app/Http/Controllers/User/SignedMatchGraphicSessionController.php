@@ -8,12 +8,15 @@ use App\Http\Resources\Admin\MatchGraphicSessionResource;
 use App\Models\TournamentMatch;
 use App\Services\Broadcast\ResolveMatchGraphicSession;
 use App\Services\Overlay\MatchGraphicOverlaySigner;
+use App\Settings\OverlaySettings;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class SignedMatchGraphicSessionController extends Controller
 {
     use BaseControllerTrait;
+
+    public function __construct(private readonly OverlaySettings $overlaySettings) {}
 
     /**
      * Public read of graphic session when ?expires=&signature= validate (OBS overlay).
@@ -28,8 +31,8 @@ class SignedMatchGraphicSessionController extends Controller
         }
 
         $expires = (int) $expiresRaw;
+        $signer = MatchGraphicOverlaySigner::fromSettings($this->overlaySettings);
 
-        $signer = MatchGraphicOverlaySigner::fromConfig();
         if (! $signer->verify((int) $match->id, $expires, $signature)) {
             return $this->failure('Invalid or expired overlay link.', 'FORBIDDEN');
         }

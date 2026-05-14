@@ -1,6 +1,8 @@
-/** Dial code → ISO 3166-1 alpha-2. Entries sorted by code length descending for longest match. */
-
-const DIAL_TO_COUNTRY = {
+/**
+ * Dial code → ISO 3166-1 alpha-2.
+ * Exported so phoneMetadata.js can build the country picker list without duplicating data.
+ */
+export const DIAL_TO_COUNTRY = {
   963: 'SY',
   964: 'IQ',
   965: 'KW',
@@ -199,4 +201,55 @@ export function getFlagEmoji(iso) {
   return [...iso.toUpperCase()]
     .map((c) => String.fromCodePoint(0x1f1e6 - 65 + c.charCodeAt(0)))
     .join('');
+}
+
+/**
+ * Split an E.164 value into its country dial code and subscriber number.
+ * Uses longest-match against DIAL_ENTRIES so "+923216516130" → { dialCode: "92", subscriber: "3216516130" }.
+ * Falls back to dialCode "92" (Pakistan) when no code matches — safe default for the app's primary market.
+ *
+ * @param {string} value E.164 string (e.g. "+923216516130") or partial (e.g. "+92")
+ * @returns {{ dialCode: string, subscriber: string }}
+ */
+export function parseE164Phone(value) {
+  const digits = String(value || '').replace(/\D/g, '');
+  if (!digits) return { dialCode: '92', subscriber: '' };
+
+  for (const [code] of DIAL_ENTRIES) {
+    if (digits.startsWith(code)) {
+      return { dialCode: code, subscriber: digits.slice(code.length) };
+    }
+  }
+
+  return { dialCode: '92', subscriber: digits };
+}
+
+/**
+ * Normalize a raw phone input to E.164 format.
+ *
+ * Strips non-digit characters, then uses the known dial-code table (longest
+ * match first) to locate the country code. If the subscriber portion starts
+ * with a trunk zero — the common mistake of entering "+920321…" instead of
+ * "+92321…" — that zero is removed.
+ *
+ * @param {string} value Raw phone string (e.g. "+9203216516130", "009203216516130")
+ * @returns {string} Normalized E.164 string starting with "+"
+ */
+export function normalizePhoneE164(value) {
+  if (!value) return '';
+  const digits = String(value).replace(/\D/g, '');
+  if (!digits) return '+';
+
+  for (const [code] of DIAL_ENTRIES) {
+    if (digits.startsWith(code)) {
+      const subscriber = digits.slice(code.length);
+      if (subscriber.startsWith('0')) {
+        return `+${code}${subscriber.slice(1)}`;
+      }
+      return `+${digits}`;
+    }
+  }
+
+  // No matching country code — strip non-digits only.
+  return `+${digits}`;
 }

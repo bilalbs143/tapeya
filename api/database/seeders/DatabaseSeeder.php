@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             GraphicThemeSeeder::class,
             StaticPageSeeder::class,
+            SystemSettingsSeeder::class,
         ]);
     }
 }

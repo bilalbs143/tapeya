@@ -85,10 +85,12 @@ export class BackofficeReverbService {
   public listenMatchGraphics(
     matchId: number,
     onActivated: (event: Record<string, unknown>) => void,
-    onCaptionChanged: () => void,
+    onCaptionChanged: () => void
   ): () => void {
     if (!this.echo || !environment.reverb.enabled) {
-      return () => {};
+      return (): void => {
+        return;
+      };
     }
     const channelName = `match.${matchId}.graphics`;
     const channel = this.echo.channel(channelName);

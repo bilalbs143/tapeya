@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
+import { useNativeStoreVersionInfo } from '@/hooks/useNativeStoreVersionInfo';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 // import starMatchIcon from '@/assets/images/icons/star-match.svg';
 import { calculateProfileStrength } from '@/lib/profileStrength';
@@ -77,6 +78,13 @@ export function Sidebar({ open, onClose }) {
   /** Same merge as Profile page / ProfileHeader — live /me data when available */
   const profileUser = meResponse?.data ?? user;
   const strength = profileUser ? calculateProfileStrength(profileUser) : 0;
+
+  const {
+    isNativeMobile: showNativeVersions,
+    installedVersion,
+    configuredVersion,
+  } = useNativeStoreVersionInfo();
+
   const hasOrganizerRole = useMemo(() => {
     const roles = profileUser?.roles;
     if (!roles || !Array.isArray(roles)) return false;
@@ -253,6 +261,24 @@ export function Sidebar({ open, onClose }) {
           </div>
 
           <div className="mt-auto">
+            {showNativeVersions && (
+              <div className="border-t border-white/[0.06] px-3 py-2 lg:hidden">
+                <p
+                  className="text-center text-[9px] leading-snug tracking-tight text-[#55585e]"
+                  title="Installed app version | Version from system settings"
+                >
+                  <span className="tabular-nums opacity-90">
+                    {installedVersion || '—'}
+                  </span>
+                  <span className="select-none px-1 opacity-35" aria-hidden>
+                    |
+                  </span>
+                  <span className="tabular-nums opacity-90">
+                    {configuredVersion || '—'}
+                  </span>
+                </p>
+              </div>
+            )}
             <button
               type="button"
               onClick={handleLogout}

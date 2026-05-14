@@ -5,12 +5,15 @@ namespace App\Listeners;
 use App\Events\OrderPlaced;
 use App\Notifications\OrderPlacedAdminNotification;
 use App\Notifications\OrderPlacedUserMailSmsNotification;
+use App\Settings\AdminNotificationSettings;
 use App\Utils\Services\SystemUserService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Notification;
 
 class SendOrderPlacedNotifications implements ShouldQueue
 {
+    public function __construct(private readonly AdminNotificationSettings $adminNotificationSettings) {}
+
     /**
      * Handle the event (queued):
      * - User (customer): queued mail + SMS (database already written by SendOrderPlacedCustomerDatabaseNotification).
@@ -32,8 +35,8 @@ class SendOrderPlacedNotifications implements ShouldQueue
             $systemUser->notify(new OrderPlacedAdminNotification($order));
         }
 
-        // Optional: mail to config admin_emails (mail only).
-        $configAdminEmails = config('notifications.admin_emails', []);
+        // Optional: mail to admin_emails system setting (mail only).
+        $configAdminEmails = $this->adminNotificationSettings->adminEmails;
         if (is_array($configAdminEmails)) {
             foreach ($configAdminEmails as $email) {
                 if (is_string($email) && $email !== '') {

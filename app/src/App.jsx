@@ -2,29 +2,23 @@ import { lazy, Suspense } from 'react';
 
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
+import AppUpdatePrompt from '@/components/AppUpdatePrompt';
 import DialogManager from '@/components/dialogs/DialogManager';
 import { ProfileStrengthReminderScheduler } from '@/components/ProfileStrengthReminderScheduler';
 import { RequireAuth } from '@/components/RequireAuth';
-// import { RequireOrganizerRole } from '@/components/RequireOrganizerRole';
-import { useReverbNotifications } from '@/hooks/useReverbNotifications';
 import { ScrollRestoration } from '@/components/ScrollRestoration';
 import SplashScreen from '@/components/SplashScreen';
 import { ToastProvider } from '@/contexts/ToastContext';
+import { useReverbNotifications } from '@/hooks/useReverbNotifications';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { MainLayout } from '@/layouts/MainLayout';
 import { Toaster } from '@/ui/Toast';
 import { TooltipProvider } from '@/ui/Tooltip';
 
-// ── Route-level code splitting ─────────────────────────────────────────────────
-// Every page below is loaded only when its route is first visited.
-// The main bundle ships only the shell: layouts, providers, and SplashScreen.
-
-// Auth
 const Login = lazy(() => import('@/pages/auth/Login'));
 const Register = lazy(() => import('@/pages/auth/Register'));
 const Otp = lazy(() => import('@/pages/auth/Otp'));
 
-// Core
 const Home = lazy(() => import('@/pages/Home'));
 const Profile = lazy(() => import('@/pages/Profile'));
 const StaticPage = lazy(() => import('@/pages/StaticPage'));
@@ -35,33 +29,27 @@ const TournamentRequestSuccess = lazy(
   () => import('@/pages/TournamentRequestSuccess'),
 );
 
-// Drafting
 const DraftingHome = lazy(() => import('@/pages/drafting/DraftingHome'));
 const AddTeam = lazy(() => import('@/pages/drafting/AddTeam'));
 const TeamList = lazy(() => import('@/pages/drafting/TeamList'));
 const TeamDetail = lazy(() => import('@/pages/drafting/TeamDetail'));
 
-// Feed
 const ActivityFeed = lazy(() => import('@/pages/feed/ActivityFeed'));
 const ActivityFeedDetail = lazy(
   () => import('@/pages/feed/ActivityFeedDetail'),
 );
 
-// Pricing
 const Pricing = lazy(() => import('@/pages/pricing/Pricing'));
 const PricingDetail = lazy(() => import('@/pages/pricing/PricingDetail'));
 
-// Ranking
 const Ranking = lazy(() => import('@/pages/ranking/Ranking'));
 const RankingStatsTotal = lazy(
   () => import('@/pages/ranking/RankingStatsTotal'),
 );
 
-// Reels
 const Reels = lazy(() => import('@/pages/reels/Reels'));
 const UploadReels = lazy(() => import('@/pages/reels/UploadReels'));
 
-// Scorecard
 const ScorecardHome = lazy(() => import('@/pages/scorecard/ScorecardHome'));
 const ScorecardDetails = lazy(
   () => import('@/pages/scorecard/ScorecardDetails'),
@@ -71,7 +59,6 @@ const ScorecardStatusDetails = lazy(
 );
 const StatsTotal = lazy(() => import('@/pages/scorecard/StatsTotal'));
 
-// Shop
 const ShopHome = lazy(() => import('@/pages/shop/ShopHome'));
 const ShopCart = lazy(() => import('@/pages/shop/ShopCart'));
 const ShopCheckout = lazy(() => import('@/pages/shop/ShopCheckout'));
@@ -83,7 +70,6 @@ const OrderDetail = lazy(() => import('@/pages/shop/OrderDetail'));
 const OrderPayment = lazy(() => import('@/pages/shop/OrderPayment'));
 const OrderSuccess = lazy(() => import('@/pages/shop/OrderSuccess'));
 
-// Upcoming Tournaments
 const UpcomingTournaments = lazy(
   () => import('@/pages/upcoming-tournaments/UpcomingTournaments'),
 );
@@ -93,7 +79,6 @@ const UpcomingTournamentDetails = lazy(
 
 const InterestForm = lazy(() => import('@/pages/interest/InterestForm'));
 
-// Organizer
 const Tournaments = lazy(
   () => import('@/pages/organizer/tournaments/Tournaments'),
 );
@@ -117,13 +102,10 @@ const ScoringMatch = lazy(
   () => import('@/pages/organizer/scoring/ScoringMatch'),
 );
 
-// Graphic overlay — transparent browser-source page driven by the admin session API.
-// Individual graphics theme/* components are loaded on demand by the registry, not here.
 const GraphicOverlay = lazy(
   () => import('@/pages/graphics-controller/GraphicOverlay'),
 );
 
-// ── Route transition fallback ──────────────────────────────────────────────────
 function PageFallback() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-black">
@@ -147,6 +129,7 @@ function App() {
           >
             <ScrollRestoration />
             <DialogManager />
+            <AppUpdatePrompt />
             <ProfileStrengthReminderScheduler />
             <Suspense fallback={<PageFallback />}>
               <Routes>

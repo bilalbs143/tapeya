@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
+import { isUnauthorizedError } from '@/lib/apiErrors';
 import { clearCredentials } from '@/store/slices/authSlice';
 
 export const baseUrl =
@@ -46,7 +47,7 @@ export const baseApi = createApi({
     const result = await rawBaseQuery(args, api, extraOptions);
 
     // On 401, clear auth so RequireAuth redirects to login (handles expired/invalid token or cleared session)
-    if (result.error?.status === 401) {
+    if (isUnauthorizedError(result.error)) {
       api.dispatch(clearCredentials());
     }
 

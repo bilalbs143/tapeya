@@ -145,7 +145,7 @@ export default function Otp() {
           setServerError('Unexpected response. Please try again.');
         }
       } catch (err) {
-        setServerError(getApiErrorMessage(err, 'Invalid or expired OTP. Please try again.'));
+        setServerError(getApiErrorMessage(err, 'Invalid OTP. Please try again.'));
       }
     },
     [phoneRaw, verifyOtp, dispatch, navigate, state],

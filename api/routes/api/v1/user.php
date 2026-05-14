@@ -24,6 +24,7 @@ use App\Http\Controllers\User\SignedMatchGraphicSessionController;
 use App\Http\Controllers\User\SponsorController;
 use App\Http\Controllers\User\StaticPageController;
 use App\Http\Controllers\User\SupportMessageController;
+use App\Http\Controllers\User\SystemSettingController;
 use App\Http\Controllers\User\TeamController;
 use App\Http\Controllers\User\TournamentController;
 use App\Http\Controllers\User\TournamentMatchController;
@@ -43,11 +44,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('enums', [EnumController::class, 'index']);
 Route::get('hero-sliders', [HeroSliderController::class, 'index']);
+Route::get('system-settings', [SystemSettingController::class, 'index']);
 Route::get('static-pages/{slug}', [StaticPageController::class, 'show'])
     ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*');
 Route::get('interest-campaigns/sidebar', [InterestCampaignController::class, 'sidebar']);
 
-/** Signed overlay bootstrap (no auth) — query must include expires + HMAC signature. */
 Route::get('matches/{match}/graphic-session/overlay', [SignedMatchGraphicSessionController::class, 'show']);
 
 Route::prefix('auth')->group(function () {
@@ -57,7 +58,6 @@ Route::prefix('auth')->group(function () {
     Route::post('/logout', [UserAuthController::class, 'logout'])->middleware('auth:api');
 });
 
-// User shop: all routes require auth
 Route::middleware('auth:api')->prefix('shop')->group(function () {
     Route::get('products', [ProductController::class, 'index']);
     Route::get('products/{product:slug}', [ProductController::class, 'show']);
@@ -74,7 +74,6 @@ Route::middleware('auth:api')->prefix('shop')->group(function () {
     Route::get('orders/{order}', [OrderController::class, 'show']);
 });
 
-// Authenticated user: me, profile, countries, tournament requests, teams, tournament-team links, team squads, matches & match squads
 Route::middleware('auth:api')->group(function () {
     Route::get('/me', [UserAuthController::class, 'me']);
     Route::delete('profile', [ProfileController::class, 'destroy']);

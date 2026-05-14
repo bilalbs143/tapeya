@@ -3,6 +3,7 @@
 namespace App\Services\Notifications\Drivers;
 
 use App\Contracts\Notifications\SmsDriverInterface;
+use App\Settings\VeevoTechSmsSettings;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -13,16 +14,23 @@ use Illuminate\Support\Facades\Log;
  */
 class VeevoTechSmsDriver implements SmsDriverInterface
 {
+    public function __construct(private readonly VeevoTechSmsSettings $veevotechSmsSettings) {}
+
     public function send(string $to, string $message): void
     {
-        $url = filled(config('services.sms.url'))
-            ? (string) config('services.sms.url')
-            : 'https://api.veevotech.com/v3/sendsms';
-        $hash = config('services.sms.key');
-        $from = config('services.sms.from') ?? config('notifications.sms.from', 'Default');
+        $url = trim((string) ($this->veevotechSmsSettings->veevotechApiUrl ?? ''));
+        $hash = $this->veevotechSmsSettings->veevotechApiKey;
+        $hash = is_string($hash) ? trim($hash) : '';
+        $from = $this->veevotechSmsSettings->from ?: 'Default';
 
-        if (! $hash) {
-            Log::warning('VeevoTech SMS failed: missing SMS_API_KEY (API hash).');
+        if ($url === '') {
+            Log::warning('VeevoTech SMS failed: set VeevoTech API URL in System Settings.');
+
+            throw new \RuntimeException('SMS provider is not configured (missing API URL).');
+        }
+
+        if ($hash === '') {
+            Log::warning('VeevoTech SMS failed: set VeevoTech API key in System Settings.');
 
             throw new \RuntimeException('SMS provider is not configured (missing API key).');
         }

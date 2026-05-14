@@ -2,15 +2,20 @@
 
 namespace App\Services\Overlay;
 
+use App\Settings\OverlaySettings;
+
 final class MatchGraphicOverlaySigner
 {
     public function __construct(private readonly string $secret) {}
 
-    public static function fromConfig(): self
+    /**
+     * Build a signer from the overlay system settings (signing secret is required).
+     */
+    public static function fromSettings(OverlaySettings $settings): self
     {
-        $secret = config('overlay.signing_secret') ?: config('app.key');
+        $secret = trim((string) ($settings->signingSecret ?? ''));
 
-        return new self((string) $secret);
+        return new self($secret);
     }
 
     public function sign(int $matchId, int $expiresUnix): string
@@ -27,13 +32,11 @@ final class MatchGraphicOverlaySigner
             return false;
         }
 
-        // Small clock skew tolerance on the client / server boundary.
+        // Small clock-skew tolerance on the client / server boundary.
         if ($expiresUnix < time() - 120) {
             return false;
         }
 
-        $expected = $this->sign($matchId, $expiresUnix);
-
-        return hash_equals($expected, $signature);
+        return hash_equals($this->sign($matchId, $expiresUnix), $signature);
     }
 }

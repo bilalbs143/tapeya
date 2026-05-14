@@ -7,196 +7,196 @@
     class="match-controller-host"
     #fullscreenHost
   >
-  <mat-card class="cardWithShadow mb-3!">
-    <mat-card-content class="controller-dashboard p-5 sm:p-6">
-      <div class="controller-dashboard__header flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 class="text-xl font-semibold m-0">Match Graphics Controller</h1>
-          <p class="text-sm text-muted m-0 mt-1">
-            {{ match.home_team?.name }} · vs · {{ match.away_team?.name }}
-            <span class="mx-1">—</span>
-            {{ match.match_date }} {{ match.match_time }}
-          </p>
-          <p class="text-sm m-0 mt-2">
-            Theme:
-            <strong>{{ session.theme?.name ?? '—' }}</strong>
-            @if (session.active_command) {
-              <span class="text-muted ms-2">
-                On Air:
-                {{ formatCommandToken(session.active_command.command_type) }} ·
-                {{ formatCommandToken(session.active_command.command_key) }}
-              </span>
-            }
-          </p>
-          <div class="controller-dashboard__innings flex flex-wrap items-center gap-2 mt-3">
-            <span class="text-sm text-muted m-0">Innings</span>
-            <mat-button-toggle-group
-              class="controller-dashboard__innings-toggle"
-              [ngModel]="selectedInnings"
-              (ngModelChange)="onInningsSelectionChange($event)"
-            >
-              <mat-button-toggle
-                [value]="1"
-                class="!text-sm"
-              >
-                1st Innings
-              </mat-button-toggle>
-              <mat-button-toggle
-                [value]="2"
-                class="!text-sm"
-              >
-                2nd Innings
-              </mat-button-toggle>
-            </mat-button-toggle-group>
-          </div>
-        </div>
-        <div class="flex flex-wrap gap-2 shrink-0 items-center">
-          <a
-            mat-stroked-button
-            [routerLink]="backLink()"
-          >
-            Back to Matches
-          </a>
-          <button
-            mat-flat-button
-            color="primary"
-            type="button"
-            (click)="openSettings()"
-          >
-            Settings
-          </button>
-          <button
-            mat-stroked-button
-            type="button"
-            (click)="toggleFullscreen()"
-            [matTooltip]="isFullscreen() ? 'Exit full screen (Esc)' : 'Expand match controller to full screen'"
-          >
-            {{ fullscreenToggleLabel() }}
-          </button>
-        </div>
-      </div>
-
-      <section class="controller-dashboard__caption">
-        <h2 class="controller-dashboard__caption-title">Saved Caption</h2>
-        @if (!caption) {
-          <p class="controller-dashboard__caption-body">
-            No caption yet. One caption per match. Add it from <strong>Custom Messages</strong> below.
-          </p>
-        } @else {
-          <div class="controller-dashboard__caption-card">
-            <div class="min-w-0 flex-1">
-              <div class="font-medium text-sm">{{ caption.title }}</div>
-              <div class="text-sm text-muted whitespace-pre-wrap mt-1 leading-snug">{{ caption.description }}</div>
-            </div>
-            <div class="flex flex-wrap gap-2 shrink-0">
-              <button
-                mat-stroked-button
-                type="button"
-                (click)="openCaptionDialog(caption)"
-              >
-                Edit
-              </button>
-              <button
-                mat-stroked-button
-                class="text-error border-error"
-                type="button"
-                (click)="deleteCaption(caption)"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        }
-      </section>
-
-      <div class="controller-dashboard__catalog">
-        @for (group of catalogGroups; track group.id) {
-          <section
-            class="catalog-group"
-            [class.catalog-group--wide]="isWideCatalogGroup(group)"
-          >
-            <h2 class="catalog-group__title">{{ group.title }}</h2>
-
-            @if (isPlayerPickGroup(group)) {
-              <div class="catalog-group__player-pick">
-                @if (!hasPlayerPickRoster) {
-                  <p class="catalog-group__player-pick-hint text-sm text-muted m-0 mb-3">
-                    No playing eleven or squad for this match. Add players in tournament flow first.
-                  </p>
-                } @else {
-                  <mat-form-field
-                    appearance="outline"
-                    class="catalog-group__player-select"
-                  >
-                    <mat-label>{{ group.id === 'PLAYER_BATSMAN' ? 'Batsman' : 'Bowler' }}</mat-label>
-                    <mat-select
-                      [ngModel]="group.id === 'PLAYER_BATSMAN' ? selectedBatsman : selectedBowler"
-                      (ngModelChange)="onPlayerPickChange(group, $event)"
-                      [compareWith]="comparePlayerPick"
-                      placeholder="Choose player"
-                    >
-                      @for (opt of pickOptionsForGroup(group); track opt.value.team_id + '-' + opt.value.user_id) {
-                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                      }
-                    </mat-select>
-                  </mat-form-field>
-                  @if (pickOptionsForGroup(group).length === 0) {
-                    <p class="catalog-group__player-pick-hint text-sm text-muted m-0 mt-2">
-                      No squad for this team in this innings.
-                    </p>
-                  }
-                }
-              </div>
-            }
-
-            <div class="catalog-group__actions">
-              @for (a of group.actions; track a.command_type + ':' + a.command_key + ':' + $index) {
-                @if (!hideCatalogAction(a)) {
-                  <button
-                    mat-stroked-button
-                    type="button"
-                    class="catalog-group__btn"
-                    [color]="usePrimaryButtons(group) ? 'primary' : undefined"
-                    (click)="send(a)"
-                    [disabled]="isActionSending(a) || playerPickActionDisabled(group, a)"
-                    [matTooltip]="catalogActionTooltip(a)"
-                  >
-                    @if (sendingKey === a.command_type + ':' + a.command_key) {
-                      …
-                    } @else {
-                      {{ a.label }}
-                    }
-                  </button>
-                }
+    <mat-card class="cardWithShadow mb-3!">
+      <mat-card-content class="controller-dashboard p-5 sm:p-6">
+        <div class="controller-dashboard__header flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 class="text-xl font-semibold m-0">Match Graphics Controller</h1>
+            <p class="text-sm text-muted m-0 mt-1">
+              {{ match.home_team?.name }} · vs · {{ match.away_team?.name }}
+              <span class="mx-1">—</span>
+              {{ match.match_date }} {{ match.match_time }}
+            </p>
+            <p class="text-sm m-0 mt-2">
+              Theme:
+              <strong>{{ session.theme?.name ?? '—' }}</strong>
+              @if (session.active_command) {
+                <span class="text-muted ms-2">
+                  On Air:
+                  {{ formatCommandToken(session.active_command.command_type) }} ·
+                  {{ formatCommandToken(session.active_command.command_key) }}
+                </span>
               }
+            </p>
+            <div class="controller-dashboard__innings flex flex-wrap items-center gap-2 mt-3">
+              <span class="text-sm text-muted m-0">Innings</span>
+              <mat-button-toggle-group
+                class="controller-dashboard__innings-toggle"
+                [ngModel]="selectedInnings"
+                (ngModelChange)="onInningsSelectionChange($event)"
+              >
+                <mat-button-toggle
+                  [value]="1"
+                  class="!text-sm"
+                >
+                  1st Innings
+                </mat-button-toggle>
+                <mat-button-toggle
+                  [value]="2"
+                  class="!text-sm"
+                >
+                  2nd Innings
+                </mat-button-toggle>
+              </mat-button-toggle-group>
             </div>
-          </section>
-        }
-      </div>
-
-      @if (session.recent_commands?.length) {
-        <section class="controller-dashboard__recent">
-          <div class="controller-dashboard__recent-head flex flex-wrap items-center justify-between gap-2">
-            <h2 class="controller-dashboard__recent-title">Recent Commands</h2>
+          </div>
+          <div class="flex flex-wrap gap-2 shrink-0 items-center">
+            <a
+              mat-stroked-button
+              [routerLink]="backLink()"
+            >
+              Back to Matches
+            </a>
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              (click)="openSettings()"
+            >
+              Settings
+            </button>
             <button
               mat-stroked-button
               type="button"
-              class="text-error border-error"
-              (click)="confirmClearRecentCommands()"
-              [disabled]="clearingRecent"
+              (click)="toggleFullscreen()"
+              [matTooltip]="isFullscreen() ? 'Exit full screen (Esc)' : 'Expand match controller to full screen'"
             >
-              {{ clearingRecent ? 'Clearing…' : 'Clear all' }}
+              {{ fullscreenToggleLabel() }}
             </button>
           </div>
-          <mat-chip-set>
-            @for (c of session.recent_commands; track c.id) {
-              <mat-chip>{{ formatCommandToken(c.command_type) }} · {{ formatCommandToken(c.command_key) }}</mat-chip>
-            }
-          </mat-chip-set>
+        </div>
+
+        <section class="controller-dashboard__caption">
+          <h2 class="controller-dashboard__caption-title">Saved Caption</h2>
+          @if (!caption) {
+            <p class="controller-dashboard__caption-body">
+              No caption yet. One caption per match. Add it from <strong>Custom Messages</strong> below.
+            </p>
+          } @else {
+            <div class="controller-dashboard__caption-card">
+              <div class="min-w-0 flex-1">
+                <div class="font-medium text-sm">{{ caption.title }}</div>
+                <div class="text-sm text-muted whitespace-pre-wrap mt-1 leading-snug">{{ caption.description }}</div>
+              </div>
+              <div class="flex flex-wrap gap-2 shrink-0">
+                <button
+                  mat-stroked-button
+                  type="button"
+                  (click)="openCaptionDialog(caption)"
+                >
+                  Edit
+                </button>
+                <button
+                  mat-stroked-button
+                  class="text-error border-error"
+                  type="button"
+                  (click)="deleteCaption(caption)"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          }
         </section>
-      }
-    </mat-card-content>
-  </mat-card>
+
+        <div class="controller-dashboard__catalog">
+          @for (group of catalogGroups; track group.id) {
+            <section
+              class="catalog-group"
+              [class.catalog-group--wide]="isWideCatalogGroup(group)"
+            >
+              <h2 class="catalog-group__title">{{ group.title }}</h2>
+
+              @if (isPlayerPickGroup(group)) {
+                <div class="catalog-group__player-pick">
+                  @if (!hasPlayerPickRoster) {
+                    <p class="catalog-group__player-pick-hint text-sm text-muted m-0 mb-3">
+                      No playing eleven or squad for this match. Add players in tournament flow first.
+                    </p>
+                  } @else {
+                    <mat-form-field
+                      appearance="outline"
+                      class="catalog-group__player-select"
+                    >
+                      <mat-label>{{ group.id === 'PLAYER_BATSMAN' ? 'Batsman' : 'Bowler' }}</mat-label>
+                      <mat-select
+                        [ngModel]="group.id === 'PLAYER_BATSMAN' ? selectedBatsman : selectedBowler"
+                        (ngModelChange)="onPlayerPickChange(group, $event)"
+                        [compareWith]="comparePlayerPick"
+                        placeholder="Choose player"
+                      >
+                        @for (opt of pickOptionsForGroup(group); track opt.value.team_id + '-' + opt.value.user_id) {
+                          <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    @if (pickOptionsForGroup(group).length === 0) {
+                      <p class="catalog-group__player-pick-hint text-sm text-muted m-0 mt-2">
+                        No squad for this team in this innings.
+                      </p>
+                    }
+                  }
+                </div>
+              }
+
+              <div class="catalog-group__actions">
+                @for (a of group.actions; track a.command_type + ':' + a.command_key + ':' + $index) {
+                  @if (!hideCatalogAction(a)) {
+                    <button
+                      mat-stroked-button
+                      type="button"
+                      class="catalog-group__btn"
+                      [color]="usePrimaryButtons(group) ? 'primary' : undefined"
+                      (click)="send(a)"
+                      [disabled]="isActionSending(a) || playerPickActionDisabled(group, a)"
+                      [matTooltip]="catalogActionTooltip(a)"
+                    >
+                      @if (sendingKey === a.command_type + ':' + a.command_key) {
+                        …
+                      } @else {
+                        {{ a.label }}
+                      }
+                    </button>
+                  }
+                }
+              </div>
+            </section>
+          }
+        </div>
+
+        @if (session.recent_commands?.length) {
+          <section class="controller-dashboard__recent">
+            <div class="controller-dashboard__recent-head flex flex-wrap items-center justify-between gap-2">
+              <h2 class="controller-dashboard__recent-title">Recent Commands</h2>
+              <button
+                mat-stroked-button
+                type="button"
+                class="text-error border-error"
+                (click)="confirmClearRecentCommands()"
+                [disabled]="clearingRecent"
+              >
+                {{ clearingRecent ? 'Clearing…' : 'Clear all' }}
+              </button>
+            </div>
+            <mat-chip-set>
+              @for (c of session.recent_commands; track c.id) {
+                <mat-chip>{{ formatCommandToken(c.command_type) }} · {{ formatCommandToken(c.command_key) }}</mat-chip>
+              }
+            </mat-chip-set>
+          </section>
+        }
+      </mat-card-content>
+    </mat-card>
   </div>
 } @else {
   <p class="text-muted">Match or session could not be loaded.</p>

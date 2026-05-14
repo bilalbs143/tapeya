@@ -11,12 +11,13 @@ class SystemUserSeeder extends Seeder
 {
     public function run(): void
     {
-        User::updateOrCreate(
+        User::withTrashed()->updateOrCreate(
             ['email' => 'system@tapeya.com'],
             [
                 'name' => 'System User',
                 'password' => Str::random(32),
                 'type' => UserTypeEnum::SYSTEM,
+                'deleted_at' => null,
             ]
         );
     }

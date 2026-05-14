@@ -4,14 +4,17 @@ namespace App\Listeners;
 
 use App\Events\TournamentRequestSubmitted;
 use App\Notifications\TournamentRequestSubmittedAdminNotification;
+use App\Settings\AdminNotificationSettings;
 use App\Utils\Services\SystemUserService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Notification;
 
 class SendTournamentRequestSubmittedAdminNotification implements ShouldQueue
 {
+    public function __construct(private readonly AdminNotificationSettings $adminNotificationSettings) {}
+
     /**
-     * Database notification for System user (admin inbox) + mail to config admin_emails.
+     * Database notification for System user (admin inbox) + mail to admin_emails system setting.
      */
     public function handle(TournamentRequestSubmitted $event): void
     {
@@ -22,7 +25,7 @@ class SendTournamentRequestSubmittedAdminNotification implements ShouldQueue
             $systemUser->notify(new TournamentRequestSubmittedAdminNotification($tournamentRequest));
         }
 
-        $configAdminEmails = config('notifications.admin_emails', []);
+        $configAdminEmails = $this->adminNotificationSettings->adminEmails;
         if (is_array($configAdminEmails)) {
             foreach ($configAdminEmails as $email) {
                 if (is_string($email) && $email !== '') {
