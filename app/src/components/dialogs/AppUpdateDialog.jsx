@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
@@ -66,8 +66,6 @@ async function openStoreUrl(url) {
   const nativeUrl = toNativeStoreUrl(url, platform);
 
   if (platform === 'android' || platform === 'ios') {
-    // market:// and itms-apps:// are intercepted by the OS before the WebView
-    // navigates — Android opens Play Store, iOS opens App Store app directly.
     window.location.href = nativeUrl;
   } else {
     // Web fallback — open the https URL in a browser tab
@@ -78,29 +76,14 @@ async function openStoreUrl(url) {
 }
 
 export function AppUpdateDialog({ storeUrl = '', storeName = '' }) {
-  const [debugLines, setDebugLines] = useState([]);
-
-  const log = useCallback((msg) => {
-    const time = new Date().toLocaleTimeString();
-    setDebugLines((prev) => [`[${time}] ${msg}`, ...prev].slice(0, 20));
-  }, []);
-
   const handleUpdate = useCallback(async () => {
-    log(`storeUrl = "${storeUrl}"`);
-    log(`platform = ${Capacitor.getPlatform()}`);
-
-    if (!storeUrl) {
-      log('ERROR: storeUrl is empty, aborting');
-      return;
-    }
-
+    if (!storeUrl) return;
     try {
-      const { platform, nativeUrl } = await openStoreUrl(storeUrl);
-      log(`OK: opened on ${platform} → ${nativeUrl}`);
-    } catch (err) {
-      log(`ERROR: ${err?.message ?? String(err)}`);
+      await openStoreUrl(storeUrl);
+    } catch {
+      // Invalid or blocked URL — normal flow uses server-configured store links
     }
-  }, [storeUrl, log]);
+  }, [storeUrl]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -110,44 +93,11 @@ export function AppUpdateDialog({ storeUrl = '', storeName = '' }) {
         </DialogTitle>
       </DialogHeaderRow>
 
-      <DialogScrollBody className="flex flex-col gap-2 px-5 pb-2">
+      <DialogScrollBody className="flex flex-col px-5 pb-1">
         <DialogDescription className="text-center text-[13px] leading-relaxed">
           A new version of Tapeya is available on the {storeName}. Please update
           the app for a better experience.
         </DialogDescription>
-
-        {/* ── Debug panel – remove once store-open is confirmed working ── */}
-        <div className="mt-3 rounded-[6px] border border-white/10 bg-[#0d0d0d] p-3">
-          <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-[#A2A6AB]">
-            Debug
-          </p>
-          <div className="space-y-0.5 text-[10px] leading-snug text-[#A2A6AB]/80">
-            <p>
-              <span className="text-white/40">platform:</span>{' '}
-              {Capacitor.getPlatform()}
-            </p>
-            <p>
-              <span className="text-white/40">storeUrl:</span>{' '}
-              {storeUrl || <span className="text-red-400">empty</span>}
-            </p>
-          </div>
-
-          {debugLines.length > 0 && (
-            <div className="mt-2 space-y-0.5 border-t border-white/10 pt-2">
-              {debugLines.map((line, i) => (
-                <p
-                  key={i}
-                  className={`break-all font-mono text-[10px] leading-snug ${
-                    line.includes('ERROR') ? 'text-red-400' : 'text-emerald-400'
-                  }`}
-                >
-                  {line}
-                </p>
-              ))}
-            </div>
-          )}
-        </div>
-        {/* ── End debug panel ── */}
       </DialogScrollBody>
 
       <div className="flex shrink-0 flex-col gap-2 border-t border-white/10 px-4 py-4">
