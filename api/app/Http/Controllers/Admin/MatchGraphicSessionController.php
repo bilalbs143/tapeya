@@ -15,6 +15,7 @@ use App\Models\MatchGraphicSession;
 use App\Models\TournamentMatch;
 use App\Services\Broadcast\ResolveMatchGraphicSession;
 use App\Services\Overlay\MatchGraphicOverlaySigner;
+use App\Settings\OverlaySettings;
 use App\Utils\Constants\ApiConstants;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,6 +25,8 @@ use Illuminate\Support\Facades\DB;
 class MatchGraphicSessionController extends Controller
 {
     use BaseControllerTrait;
+
+    public function __construct(private readonly OverlaySettings $overlaySettings) {}
 
     /**
      * Get or create the graphic session for this match.
@@ -45,15 +48,15 @@ class MatchGraphicSessionController extends Controller
      */
     public function signedOverlayUrl(Request $request, TournamentMatch $match): JsonResponse
     {
-        $ttlSeconds = (int) config('overlay.default_ttl_seconds', 86400);
+        $ttlSeconds = $this->overlaySettings->defaultTtlSeconds;
         if ($ttlSeconds < 1) {
             $ttlSeconds = 86400;
         }
         $expires = time() + $ttlSeconds;
-        $signature = MatchGraphicOverlaySigner::fromConfig()->sign((int) $match->id, $expires);
+        $signature = MatchGraphicOverlaySigner::fromSettings($this->overlaySettings)->sign((int) $match->id, $expires);
 
         $theme = (string) $request->query('theme', 'tapeya-basic');
-        $base = rtrim((string) config('overlay.frontend_base_url', 'http://localhost:5173'), '/');
+        $base = rtrim((string) ($this->overlaySettings->frontendUrl ?? ''), '/');
         $query = http_build_query([
             'theme' => $theme,
             'expires' => $expires,

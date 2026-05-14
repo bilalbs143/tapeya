@@ -1,4 +1,16 @@
 /**
+ * RTK Query / fetchBaseQuery errors may expose HTTP status as number or string.
+ *
+ * @param {unknown} error
+ * @returns {boolean}
+ */
+export function isUnauthorizedError(error) {
+  if (!error || typeof error !== 'object') return false;
+  const s = error.status;
+  return s === 401 || s === '401';
+}
+
+/**
  * Normalize API error message from RTK Query / fetchBaseQuery error shape.
  * Backend returns { message?, type?, errors? } on 4xx/5xx.
  *

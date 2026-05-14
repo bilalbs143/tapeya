@@ -8,8 +8,8 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -111,9 +111,9 @@ export class ControllerSettingsDialogComponent {
 
     this.form.patchValue({
       home_text: cfg.teams?.home?.text_color ?? themeCfg.teams?.home?.text_color ?? '#ffffff',
-      home_bg:   cfg.teams?.home?.bg_color   ?? themeCfg.teams?.home?.bg_color   ?? '#0d3320',
+      home_bg: cfg.teams?.home?.bg_color ?? themeCfg.teams?.home?.bg_color ?? '#0d3320',
       away_text: cfg.teams?.away?.text_color ?? themeCfg.teams?.away?.text_color ?? '#ffffff',
-      away_bg:   cfg.teams?.away?.bg_color   ?? themeCfg.teams?.away?.bg_color   ?? '#4a0e0e',
+      away_bg: cfg.teams?.away?.bg_color ?? themeCfg.teams?.away?.bg_color ?? '#4a0e0e',
       enable_images: Boolean(cfg.enable_images ?? themeCfg.enable_images),
     });
 

@@ -3,6 +3,7 @@
 namespace App\Services\Notifications\Drivers;
 
 use App\Contracts\Notifications\SmsDriverInterface;
+use App\Settings\WhatsAppSettings;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -20,17 +21,14 @@ use RuntimeException;
  *
  * Arbitrary templates
  * ───────────────────
- * sendTemplate() accepts any key defined in config('whatsapp.templates') and
- * a pre-built components array in Meta Graph API format. This covers order
- * confirmations, marketing broadcasts, info notifications, and any future
- * template type — all without touching this class.
+ * sendTemplate() accepts any WhatsApp-approved template name + language plus
+ * a pre-built components array in Meta Graph API format. Use this for
+ * non-OTP messages (shipping, promotion, etc.) from queue jobs or notifications.
  *
  * Adding a new template type
  * ──────────────────────────
  * 1. Register the template in Meta Business Manager and get it approved.
- * 2. Add a new entry under config/whatsapp.php → templates (e.g. 'shipping').
- * 3. Set the corresponding env vars in .env.
- * 4. Call  $driver->sendTemplate($to, 'shipping', $components)  from your job/notification.
+ * 2. Call  $driver->sendTemplate($to, 'template_name', 'en_US', $components).
  *
  * @see https://developers.facebook.com/docs/whatsapp/cloud-api/messages/send-template
  */
@@ -41,6 +39,8 @@ class WhatsAppSmsDriver implements SmsDriverInterface
      * future length change without driver edits.
      */
     private const OTP_PATTERN = '/\b(\d{4,8})\b/';
+
+    public function __construct(private readonly WhatsAppSettings $whatsAppSettings) {}
 
     // -------------------------------------------------------------------------
     // SmsDriverInterface — OTP / auth path
@@ -54,11 +54,14 @@ class WhatsAppSmsDriver implements SmsDriverInterface
     {
         $this->assertConfigured();
 
-        $to         = $this->normalizePhone($to);
-        $otp        = $this->extractOtp($message);
+        $to = $this->normalizePhone($to);
+        $otp = $this->extractOtp($message);
         $components = $this->buildOtpComponents($otp);
 
-        $this->dispatch($to, 'auth', $components);
+        $templateName = $this->whatsAppSettings->authTemplateName ?? 'otp';
+        $templateLanguage = $this->whatsAppSettings->authTemplateLanguage ?? 'en_US';
+
+        $this->dispatch($to, $templateName, $templateLanguage, $components);
     }
 
     // -------------------------------------------------------------------------
@@ -66,34 +69,26 @@ class WhatsAppSmsDriver implements SmsDriverInterface
     // -------------------------------------------------------------------------
 
     /**
-     * Send any pre-approved template by its config key.
+     * Send any pre-approved template by name and language.
      *
-     * $templateKey must match a key in config('whatsapp.templates').
      * $components is the raw Meta Graph API components array — callers build it
      * to match their specific template structure (body params, header, buttons…).
      * Omit or pass [] for templates that have no variable parameters.
      *
-     * Example — order confirmation with two body parameters:
-     *
-     *   $driver->sendTemplate('+923001234567', 'order', [
-     *       [
-     *           'type'       => 'body',
-     *           'parameters' => [
-     *               ['type' => 'text', 'text' => '#ORD-1234'],
-     *               ['type' => 'text', 'text' => 'PKR 1,500'],
-     *           ],
-     *       ],
+     * Example:
+     *   $driver->sendTemplate('+923001234567', 'shipping_update', 'en_US', [
+     *       ['type' => 'body', 'parameters' => [['type' => 'text', 'text' => '#ORD-1234']]],
      *   ]);
      *
      * @param  array<int, array<string, mixed>>  $components
      */
-    public function sendTemplate(string $to, string $templateKey, array $components = []): void
+    public function sendTemplate(string $to, string $templateName, string $language = 'en_US', array $components = []): void
     {
         $this->assertConfigured();
 
         $to = $this->normalizePhone($to);
 
-        $this->dispatch($to, $templateKey, $components);
+        $this->dispatch($to, $templateName, $language, $components);
     }
 
     // -------------------------------------------------------------------------
@@ -108,17 +103,17 @@ class WhatsAppSmsDriver implements SmsDriverInterface
     {
         $missing = [];
 
-        if (blank(config('whatsapp.phone_number_id'))) {
-            $missing[] = 'WHATSAPP_PHONE_NUMBER_ID';
+        if (blank($this->whatsAppSettings->phoneNumberId)) {
+            $missing[] = 'WhatsApp phone number id';
         }
 
-        if (blank(config('whatsapp.access_token'))) {
-            $missing[] = 'WHATSAPP_ACCESS_TOKEN';
+        if (blank($this->whatsAppSettings->accessToken)) {
+            $missing[] = 'WhatsApp access token';
         }
 
         if ($missing !== []) {
             throw new RuntimeException(
-                'WhatsApp driver is not configured. Missing env vars: '.implode(', ', $missing)
+                'WhatsApp driver is not configured. Set '.implode(' and ', $missing).' in System Settings (WhatsApp).'
             );
         }
     }
@@ -158,7 +153,7 @@ class WhatsAppSmsDriver implements SmsDriverInterface
     {
         return [
             [
-                'type'       => 'body',
+                'type' => 'body',
                 'parameters' => [
                     ['type' => 'text', 'text' => $otp],
                 ],
@@ -167,43 +162,18 @@ class WhatsAppSmsDriver implements SmsDriverInterface
     }
 
     /**
-     * Resolve template name and language from the templates map by key.
-     *
-     * @return array{name: string, language: string}
-     *
-     * @throws RuntimeException if the key is not defined in config.
-     */
-    private function resolveTemplate(string $key): array
-    {
-        $template = config("whatsapp.templates.{$key}");
-
-        if (blank($template)) {
-            throw new RuntimeException(
-                "WhatsApp template key \"{$key}\" is not defined in config/whatsapp.php → templates."
-            );
-        }
-
-        return [
-            'name'     => (string) ($template['name'] ?? $key),
-            'language' => (string) ($template['language'] ?? 'en_US'),
-        ];
-    }
-
-    /**
      * Build the payload and POST it to the Graph API messages endpoint.
      *
      * @param  array<int, array<string, mixed>>  $components
      */
-    private function dispatch(string $to, string $templateKey, array $components): void
+    private function dispatch(string $to, string $templateName, string $language, array $components): void
     {
-        ['name' => $name, 'language' => $language] = $this->resolveTemplate($templateKey);
-
         $payload = [
             'messaging_product' => 'whatsapp',
-            'to'                => $to,
-            'type'              => 'template',
-            'template'          => [
-                'name'     => $name,
+            'to' => $to,
+            'type' => 'template',
+            'template' => [
+                'name' => $templateName,
                 'language' => ['code' => $language],
             ],
         ];
@@ -213,10 +183,10 @@ class WhatsAppSmsDriver implements SmsDriverInterface
             $payload['template']['components'] = $components;
         }
 
-        $version       = (string) config('whatsapp.api_version', 'v25.0');
-        $phoneNumberId = (string) config('whatsapp.phone_number_id');
-        $token         = (string) config('whatsapp.access_token');
-        $baseUrl       = rtrim((string) config('whatsapp.base_url', 'https://graph.facebook.com'), '/');
+        $version = $this->whatsAppSettings->apiVersion ?? 'v25.0';
+        $phoneNumberId = (string) $this->whatsAppSettings->phoneNumberId;
+        $token = (string) $this->whatsAppSettings->accessToken;
+        $baseUrl = rtrim($this->whatsAppSettings->baseUrl ?? 'https://graph.facebook.com', '/');
 
         $url = "{$baseUrl}/{$version}/{$phoneNumberId}/messages";
 
@@ -232,14 +202,13 @@ class WhatsAppSmsDriver implements SmsDriverInterface
             $error = $data['error'] ?? [];
 
             Log::error('WhatsApp API error', [
-                'to'           => $to,
-                'template_key' => $templateKey,
-                'template'     => $name,
-                'status'       => $response->status(),
-                'code'         => $error['code']       ?? null,
-                'type'         => $error['type']       ?? null,
-                'message'      => $error['message']    ?? $response->body(),
-                'fbtrace'      => $error['fbtrace_id'] ?? null,
+                'to' => $to,
+                'template' => $templateName,
+                'status' => $response->status(),
+                'code' => $error['code'] ?? null,
+                'type' => $error['type'] ?? null,
+                'message' => $error['message'] ?? $response->body(),
+                'fbtrace' => $error['fbtrace_id'] ?? null,
             ]);
 
             throw new RuntimeException(
@@ -251,10 +220,10 @@ class WhatsAppSmsDriver implements SmsDriverInterface
         $messageId = $data['messages'][0]['id'] ?? null;
 
         Log::info('WhatsApp message sent', [
-            'to'           => $to,
-            'template_key' => $templateKey,
-            'message_id'   => $messageId,
-            'status'       => $data['messages'][0]['message_status'] ?? null,
+            'to' => $to,
+            'template' => $templateName,
+            'message_id' => $messageId,
+            'status' => $data['messages'][0]['message_status'] ?? null,
         ]);
     }
 }

@@ -98,7 +98,7 @@ export default function Register() {
               render={({ field }) => (
                 <PhoneInput
                   id="phone"
-                  placeholder="Enter Phone Number"
+                  placeholder="3001234567"
                   error={errors.phone?.message}
                   {...field}
                 />

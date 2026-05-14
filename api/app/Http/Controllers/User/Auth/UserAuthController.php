@@ -26,7 +26,8 @@ use Illuminate\Support\Facades\Log;
  * Both flows complete with the same verify-otp step (activates account and returns token).
  *
  * When APP_DEBUG is true, OTP is not sent by SMS; the code is only included in the JSON response.
- * Numbers in TEST_OTP_PHONES never use the SMS OTP service; the OTP is only in the JSON (same as debug).
+ * When the SMS driver is `log`, the code is also included in the JSON response (regardless of APP_DEBUG).
+ * Numbers listed in system setting `test_otp_phones` never use the SMS OTP service; the OTP is only in the JSON (same as debug).
  */
 class UserAuthController extends Controller
 {
@@ -157,14 +158,14 @@ class UserAuthController extends Controller
     }
 
     /**
-     * Send OTP SMS unless APP_DEBUG. For TEST_OTP_PHONES, OTP is always stored; if SMS fails, still allow JSON OTP for QA.
+     * Send OTP SMS unless APP_DEBUG or test phone. For TEST_OTP_PHONES, OTP is always stored; if SMS fails, still allow JSON OTP for QA.
      */
     private function sendOtpHandlingTestPhoneSmsFailure(User $user): void
     {
         try {
             $this->otpService->sendToUser($user);
         } catch (OtpSmsDeliveryException $e) {
-            if (! OtpService::isTestOtpPhone($user->phone)) {
+            if (! $this->otpService->isTestOtpPhone($user->phone)) {
                 throw $e;
             }
 

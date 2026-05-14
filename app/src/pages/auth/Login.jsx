@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-import { getApiErrorMessage } from '@/lib/apiErrors';
+import { getApiErrorMessage, isUnauthorizedError } from '@/lib/apiErrors';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { extractOtpFromAuthResponse, setOtpPreview } from '@/lib/otpPreviewSession';
 import { markReturningUser } from '@/lib/returningUser';
@@ -107,9 +107,10 @@ export default function Login() {
         authApi.endpoints.getMe.initiate(undefined, { forceRefetch: true }),
       );
 
-      if (result.error?.status === 401) {
-        // Token expired — clear and re-authenticate via OTP.
-        clearProfileToken(profile.phone);
+      if (isUnauthorizedError(result.error)) {
+        // Token expired or invalid — drop saved profile (stale token) and continue with OTP.
+        removeSavedProfile(profile.phone);
+        setSavedProfiles(getSavedProfiles());
         dispatch(clearCredentials());
         await requestOtpAndNavigate(profile.phone);
         return;
@@ -125,7 +126,12 @@ export default function Login() {
       navigate(getRedirectPath(location.state), { replace: true });
     } catch (err) {
       console.error('Profile tap failed:', err);
-      clearProfileToken(profile.phone);
+      if (isUnauthorizedError(err)) {
+        removeSavedProfile(profile.phone);
+        setSavedProfiles(getSavedProfiles());
+      } else {
+        clearProfileToken(profile.phone);
+      }
       dispatch(clearCredentials());
       await requestOtpAndNavigate(profile.phone);
     } finally {
@@ -289,7 +295,7 @@ function PhoneForm({ control, errors, error, busy, hasSavedProfiles, onSubmit, o
           render={({ field }) => (
             <PhoneInput
               id="phone"
-              placeholder="Enter Phone Number"
+              placeholder="3001234567"
               error={errors.phone?.message}
               {...field}
             />

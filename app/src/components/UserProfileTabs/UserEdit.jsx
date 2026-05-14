@@ -27,7 +27,6 @@ import {
 } from '@/ui/Dialog';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
-import { PhoneInput } from '@/ui/PhoneInput';
 import {
   Select,
   SelectContent,
@@ -63,7 +62,6 @@ const DEFAULT_FIELDS = {
   country: DEFAULT_COUNTRY,
   city: '',
   nickname: '',
-  phone: '',
   dateOfBirth: '',
   battingStyle: '',
   bowlingStyle: '',
@@ -119,7 +117,6 @@ export function UserEdit({ open, onOpenChange }) {
       country: countryFromProfile || DEFAULT_COUNTRY,
       city: user.city ?? '',
       nickname: user.nickname ?? '',
-      phone: user.phone ?? '',
       dateOfBirth: user.date_of_birth ?? '',
       battingStyle:
         batting && battingStyleOptions.some((o) => o.value === batting)
@@ -195,7 +192,6 @@ export function UserEdit({ open, onOpenChange }) {
       name: fields.name.trim() || undefined,
       nickname: fields.nickname.trim(),
       email: fields.email.trim() || undefined,
-      phone: fields.phone.trim() || undefined,
       date_of_birth: fields.dateOfBirth || undefined,
       bowling_style: fields.bowlingStyle || null,
       batting_style: fields.battingStyle || null,
@@ -365,15 +361,6 @@ export function UserEdit({ open, onOpenChange }) {
                   className="max-w-none"
                   maxLength={NICKNAME_MAX}
                   error={nicknameError || undefined}
-                />
-              </FormField>
-
-              <FormField label="Phone" htmlFor="phone">
-                <PhoneInput
-                  id="phone"
-                  placeholder="Enter Phone Number"
-                  value={fields.phone}
-                  onChange={setField('phone')}
                 />
               </FormField>
 

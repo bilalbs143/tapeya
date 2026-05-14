@@ -56,6 +56,10 @@ export const routes: Routes = [
         loadChildren: () => import('./pages/notifications/notifications.routes').then((m) => m.NotificationsRoutes),
       },
       {
+        path: 'settings',
+        loadChildren: () => import('./pages/settings/settings.routes').then((m) => m.SettingsRoutes),
+      },
+      {
         path: 'sample-page',
         loadChildren: () => import('./pages/pages.routes').then((m) => m.PagesRoutes),
       },

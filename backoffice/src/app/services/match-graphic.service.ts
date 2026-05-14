@@ -111,7 +111,7 @@ export class MatchGraphicService {
   /** Signed overlay URL for OBS — paste into browser source (no app login). */
   public getSignedOverlayUrl(
     matchId: number,
-    params?: { theme?: string },
+    params?: { theme?: string }
   ): Observable<{ data: { url: string; expires_at: string } }> {
     let httpParams = new HttpParams();
     if (params?.theme != null && params.theme !== '') {
@@ -119,7 +119,7 @@ export class MatchGraphicService {
     }
     return this.http.get<{ data: { url: string; expires_at: string } }>(
       `v1/admin/matches/${matchId}/graphic-session/signed-url`,
-      { params: httpParams },
+      { params: httpParams }
     );
   }
 

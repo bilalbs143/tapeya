@@ -308,6 +308,7 @@ class ScoringDemoSeeder extends Seeder
             $numberOfGroups = $i === 4 ? 2 : 1;
             $t = Tournament::create([
                 'organizer_id' => $org->id,
+                'created_by' => $org->id,
                 'tournament_name' => "Demo {$typeLabel} {$i}",
                 'tournament_type' => $type->value,
                 'cricket_format' => $format->value,
@@ -671,6 +672,7 @@ class ScoringDemoSeeder extends Seeder
             'is_wide' => false,
             'is_leg_bye' => false,
             'is_bye' => false,
+            'is_free_hit' => false,
             'penalty_runs' => 0,
             'is_wicket' => false,
         ]);
