@@ -61,7 +61,7 @@ class MatchTossController extends Controller
             ]);
         }
 
-        $match->load(['homeTeam', 'awayTeam', 'winningTeam', 'tossWinnerTeam', 'innings']);
+        $match->load(['homeTeam', 'awayTeam', 'winningTeam', 'tossWinnerTeam', 'innings', 'playerOfMatch']);
 
         return $this->success(
             new TournamentMatchResource($match),

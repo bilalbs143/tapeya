@@ -28,6 +28,7 @@ class TournamentMatch extends BaseModel
         'is_no_result',
         'win_by_runs',
         'win_by_wickets',
+        'player_of_match_user_id',
     ];
 
     /**
@@ -74,6 +75,11 @@ class TournamentMatch extends BaseModel
     public function winningTeam(): BelongsTo
     {
         return $this->belongsTo(Team::class, 'winning_team_id');
+    }
+
+    public function playerOfMatch(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'player_of_match_user_id');
     }
 
     public function tossWinnerTeam(): BelongsTo

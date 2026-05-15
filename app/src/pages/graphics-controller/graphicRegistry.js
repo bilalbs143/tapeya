@@ -9,6 +9,8 @@ import { lazy } from 'react';
  * (the contract).  This file defines *how* the frontend renders each
  * command — i.e. which React component filename to use.
  *
+ * Human-readable map: `COMMAND_COMPONENT_MAP.md`.
+ *
  * Two things the backend can never know:
  *   1. Which component file to render for a given key.
  *   2. That several keys share one component (e.g. DRINKS / TEA_BREAK /
@@ -115,9 +117,8 @@ const KEY_TO_FILE = {
 
   // charts
   WORM:           'ScoreComparison',
-  RUN_RATE_CHART: 'ScoreComparison',
+  RUN_RATE_CHART: 'RunRateChart',
   MANHATTAN:      'ScoreComparisonBar',
-  WAGON_WHEEL:    'ScoreComparisonBar',
 
   // tournament leaderboards
   HIGHEST_RUNS:    'HighestRuns',
@@ -134,7 +135,6 @@ const KEY_TO_FILE = {
   BATSMAN_MATCH_FS:      'BatsmanCurrentStats',
   BATSMAN_TOURNAMENT_LT: 'BatsmanCareerStats',
   BATSMAN_TOURNAMENT_FS: 'BatsmanCareerStats',
-  BATSMAN_WAGON_WHEEL:   'PlayerCareerStats',
   BATTING_SUMMARY:       'BatsmanInningsStats',
   BATTING_SQUAD:         'BatsmanInningsStats',
 
@@ -161,11 +161,6 @@ const KEY_TO_FILE = {
   PARTNERSHIP_LIST: 'CurrentPartnership',
   MOM:              'PlayerIntro',
   NEXT_MATCH:       'TournamentStart',
-
-  // personnel lower-thirds (text card)
-  UMPIRES: 'GraphicTextCard',
-  SCORERS: 'GraphicTextCard',
-  COMM:    'GraphicTextCard',
 
   // platform promo banners
   FOLLOW_PLATFORM:   'RowTextBanner',

@@ -2,7 +2,14 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+/*
+ * Graphic controller: drop command rows older than 24h (adjust via --hours on the command).
+ * Tune the time if it overlaps with heavy jobs on your host.
+ */
+Schedule::command('match-graphic:purge-old-commands --hours=24')->dailyAt('03:30');

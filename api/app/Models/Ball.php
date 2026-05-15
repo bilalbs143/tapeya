@@ -84,11 +84,35 @@ class Ball extends BaseModel
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
     /**
+     * True when this row records only a Law 41.17-style penalty award — no
+     * actual delivery (runs and runs_off_bat are zero; no extras flags).
+     */
+    public function isPenaltyOnlyAward(): bool
+    {
+        $pr = (int) ($this->penalty_runs ?? 0);
+        if ($pr <= 0) {
+            return false;
+        }
+        if ($this->is_wicket) {
+            return false;
+        }
+        if ($this->is_wide || $this->is_no_ball || $this->is_bye || $this->is_leg_bye) {
+            return false;
+        }
+
+        return (int) ($this->runs ?? 0) === 0;
+    }
+
+    /**
      * True when this ball is a valid (legal) delivery — i.e. contributes to
-     * the over ball count. Wides and no-balls do NOT count as legal deliveries.
+     * the over ball count. Wides, no-balls, and penalty-only awards do NOT count.
      */
     public function isLegalDelivery(): bool
     {
+        if ($this->isPenaltyOnlyAward()) {
+            return false;
+        }
+
         return ! $this->is_wide && ! $this->is_no_ball;
     }
 

@@ -1,16 +1,21 @@
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 
-const teamLogo = `${CLOUDFRONT_APP_BASE}/images/standard/team-logo.png`;
-const controllerFrameBg = `${CLOUDFRONT_APP_BASE}/images/background/controller-frame.png`;
+import { rightHalfStyle } from './ScoreboardHeader';
 
-const rightHalfStyle = {
-  backgroundImage: `url(${controllerFrameBg})`,
-  backgroundPosition: 'center',
-  backgroundRepeat: 'no-repeat',
-  backgroundSize: 'cover',
-};
+const defaultTeamLogo = `${CLOUDFRONT_APP_BASE}/images/standard/team-logo.png`;
 
-export default function MatchSummary() {
+export default function MatchSummary({
+  battingTeam = {},
+  bowlingTeam = {},
+  batters = [],
+  bowler = {},
+  currentOverBalls = [],
+}) {
+  const battingLogo = battingTeam.logoUrl ?? defaultTeamLogo;
+  const bowlingLogo = bowlingTeam.logoUrl ?? defaultTeamLogo;
+  const battingCode = battingTeam.shortCode || battingTeam.name || '—';
+  const bowlingCode = bowlingTeam.shortCode || bowlingTeam.name || '—';
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#1D1E22]">
       <section className="absolute right-0 bottom-0 left-0 overflow-hidden text-white">
@@ -24,20 +29,22 @@ export default function MatchSummary() {
         <div className="relative z-10 mx-auto grid w-full max-w-[1280px] grid-cols-[1fr_auto_1fr] items-center gap-1 px-2 py-1.5 sm:gap-6 sm:px-6 sm:py-3">
           <div className="flex items-center gap-1.5 sm:gap-3">
             <img
-              src={teamLogo}
-              alt="Left team logo"
+              src={battingLogo}
+              alt={battingTeam.name || 'Batting team'}
               className="h-9 w-9 rounded-full object-cover sm:h-14 sm:w-14"
             />
             <span className="text-[12px] leading-none font-extrabold text-[#DA9811] sm:text-[30px]">
-              SC
+              {battingCode}
             </span>
             <div className="ml-1 sm:ml-8">
               <p className="text-[12px] leading-none font-extrabold text-white sm:text-[28px]">
-                196-7
+                {battingTeam.score || ''}
               </p>
-              <p className="mt-0.5 text-[9px] leading-none text-[#E2E2E2] sm:mt-1 sm:text-[14px]">
-                14.4 Over
-              </p>
+              {battingTeam.overs ? (
+                <p className="mt-0.5 text-[9px] leading-none text-[#E2E2E2] sm:mt-1 sm:text-[14px]">
+                  {battingTeam.overs} Over
+                </p>
+              ) : null}
             </div>
           </div>
 
@@ -55,18 +62,20 @@ export default function MatchSummary() {
           <div className="flex items-center justify-end gap-1.5 sm:gap-3">
             <div className="mr-1 text-right sm:mr-8">
               <p className="text-[12px] leading-none font-extrabold text-white sm:text-[28px]">
-                196-7
+                {bowlingTeam.score || ''}
               </p>
-              <p className="mt-0.5 text-[9px] leading-none text-[#E2E2E2] sm:mt-1 sm:text-[14px]">
-                14.4 Over
-              </p>
+              {bowlingTeam.overs ? (
+                <p className="mt-0.5 text-[9px] leading-none text-[#E2E2E2] sm:mt-1 sm:text-[14px]">
+                  {bowlingTeam.overs} Over
+                </p>
+              ) : null}
             </div>
             <span className="text-[12px] leading-none font-extrabold text-[#DA9811] sm:text-[30px]">
-              SC
+              {bowlingCode}
             </span>
             <img
-              src={teamLogo}
-              alt="Right team logo"
+              src={bowlingLogo}
+              alt={bowlingTeam.name || 'Bowling team'}
               className="h-9 w-9 rounded-full object-cover sm:h-14 sm:w-14"
             />
           </div>

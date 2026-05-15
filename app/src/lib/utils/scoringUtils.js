@@ -57,6 +57,14 @@ function normaliseBallType(ball) {
   if (ball.is_no_ball) return { ...ball, type: 'nb' };
   if (ball.is_bye) return { ...ball, type: 'bye' };
   if (ball.is_leg_bye) return { ...ball, type: 'lb' };
+  const pr = Number(ball.penalty_runs ?? ball.penaltyRuns ?? 0) || 0;
+  if (
+    pr > 0 &&
+    !ball.is_wicket &&
+    Number(ball.runs ?? 0) === 0
+  ) {
+    return { ...ball, type: 'penalty', penaltyRuns: pr, runs: 0 };
+  }
   return { ...ball, type: 'runs' };
 }
 
@@ -70,7 +78,43 @@ export function getRunsFromBall(ball) {
   if (!b) return 0;
   // 'out' and 'retired_hurt' contribute 0 batting runs (runs field may be absent).
   if (b.type === 'out' || b.type === 'retired_hurt') return 0;
-  return (b.runs ?? 0) + (b.penalty_runs ?? 0);
+  const pr = Number(b.penaltyRuns ?? b.penalty_runs ?? 0) || 0;
+  return (b.runs ?? 0) + pr;
+}
+
+// ─── Extra-ball display label ─────────────────────────────────────────────────
+
+/**
+ * Returns the chip label for an extra delivery in international format:
+ *
+ *   WD        → 'WD'   (1 wide penalty, no additional run)
+ *   1WD       → '1WD'  (1 extra run + 1 wide penalty = 2 total)
+ *   NB        → 'NB'   (1 no-ball penalty, 0 off bat)
+ *   1NB       → '1NB'  (1 off bat  + 1 NB penalty  = 2 total)
+ *   2NB       → '2NB'  (2 off bat  + 1 NB penalty  = 3 total)
+ *   B         → 'B'    (1 bye)
+ *   2B        → '2B'   (2 byes)
+ *   LB        → 'LB'   (1 leg bye)
+ *   2LB       → '2LB'  (2 leg byes)
+ *
+ * @param {'wd'|'nb'|'bye'|'lb'} type
+ * @param {number} runs  total runs as stored (WD/NB include the 1-run penalty)
+ */
+export function extraBallLabel(type, runs) {
+  const r = runs ?? 0;
+  switch (type) {
+    case 'wd': {
+      const extra = Math.max(1, r) - 1;
+      return extra > 0 ? `${extra}WD` : 'WD';
+    }
+    case 'nb': {
+      const extra = Math.max(1, r) - 1;
+      return extra > 0 ? `${extra}NB` : 'NB';
+    }
+    case 'bye':  return r > 1 ? `${r}B`  : 'B';
+    case 'lb':   return r > 1 ? `${r}LB` : 'LB';
+    default:     return type.toUpperCase();
+  }
 }
 
 // ─── Over formatting ──────────────────────────────────────────────────────────
@@ -127,7 +171,8 @@ export function computeExtrasBreakdown(ballHistory) {
       default:
         break;
     }
-    penaltyRuns += b.penalty_runs ?? 0;
+    penaltyRuns +=
+      Number(b.penaltyRuns ?? b.penalty_runs ?? 0) || 0;
   }
 
   return {
@@ -296,6 +341,7 @@ export function buildBallListWithMetaAndOverSummaries(ballHistory) {
         batsmanStatsMap.set(strikerId, { runs: 0, balls: 0 });
       const bs = batsmanStatsMap.get(strikerId);
       if (ball.type === 'runs') bs.runs += ballRuns;
+      else if (ball.type === 'nb') bs.runs += ball.runsOffBat ?? Math.max(0, ballRuns - 1);
       if (!isExtra) bs.balls += 1;
     }
 

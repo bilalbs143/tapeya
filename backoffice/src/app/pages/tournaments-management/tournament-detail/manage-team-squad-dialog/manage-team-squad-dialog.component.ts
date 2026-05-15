@@ -111,7 +111,13 @@ export class ManageTeamSquadDialogComponent implements OnInit, OnDestroy {
     this.candidates = [];
   }
 
-  public save(): void {
+  /**
+   * Form submit: prevents native GET reload (outer form has no [formGroup]), then validates and saves squad.
+   */
+  public onSubmit(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+
     if (this.selected.length === 0) {
       this.messageService.error('Add at least one player to the Team Squad.');
       return;

@@ -13,7 +13,7 @@
  *   • Manages squad save / player-picker interactions.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import CustomScoreDialog from '@/components/dialogs/scoring/CustomScoreDialog';
 import ExtraRunsDialog from '@/components/dialogs/scoring/ExtraRunsDialog';
@@ -122,7 +122,6 @@ function buildOversFromBalls(ballHistory) {
  * @param {object}   liveScore               From computeLiveScore(ballHistory)
  * @param {Function} [onInningsComplete]     ({ reason }) => void
  * @param {number}   [targetScore]           2nd innings: first innings total + 1
- * @param {boolean}  [isApiMatch]
  * @param {Function} [syncBallToApi]
  * @param {Function} [syncUndoToApi]
  */
@@ -163,9 +162,9 @@ export function ScoringTab({
   liveScore,
   onInningsComplete,
   targetScore,
-  isApiMatch,
   syncBallToApi,
   syncUndoToApi,
+  syncPendingToApi,
 }) {
   // ── Enum data ────────────────────────────────────────────────────────────────
 
@@ -447,6 +446,7 @@ export function ScoringTab({
   const {
     handleRuns,
     handleSpecial,
+    handlePenaltyRuns,
     handleOut,
     handleRetiredHurt,
     handleUndo,
@@ -483,7 +483,7 @@ export function ScoringTab({
   // ── API squad persistence ─────────────────────────────────────────────────────
 
   const handleSaveBatsmanSquad = async () => {
-    if (!isApiMatch || !matchId || !battingTeamId) return;
+    if (!matchId || !battingTeamId) return;
     const playingIds = battingSquad
       .filter((p) => p.role === 'playing' && Number.isFinite(Number(p.id)))
       .map((p) => Number(p.id));
@@ -513,7 +513,7 @@ export function ScoringTab({
   };
 
   const handleSaveBowlerSquad = async () => {
-    if (!isApiMatch || !matchId || !bowlingTeamId) return;
+    if (!matchId || !bowlingTeamId) return;
     const playingIds = bowlingSquad
       .filter((p) => p.role === 'playing' && Number.isFinite(Number(p.id)))
       .map((p) => Number(p.id));
@@ -554,6 +554,29 @@ export function ScoringTab({
       prev.map((b) => (b.id === id ? { ...b, role } : b)),
     );
 
+  const syncCreaseOrderToGraphicSession = useCallback(
+    (newStrikerIndex) => {
+      if (!syncPendingToApi) return;
+      if (ballHistory.length > 0) return;
+      const striker = batsmenOnCrease[newStrikerIndex];
+      const nonStriker = batsmenOnCrease[1 - newStrikerIndex];
+      if (!striker?.id || !nonStriker?.id) return;
+      syncPendingToApi({
+        next_batter_id: Number(striker.id),
+        next_non_striker_id: Number(nonStriker.id),
+      });
+    },
+    [syncPendingToApi, ballHistory.length, batsmenOnCrease],
+  );
+
+  const handleStrikerIndexChange = useCallback(
+    (newIndex) => {
+      setStrikerIndex?.(newIndex);
+      syncCreaseOrderToGraphicSession(newIndex);
+    },
+    [setStrikerIndex, syncCreaseOrderToGraphicSession],
+  );
+
   // ── Add players to live tables ────────────────────────────────────────────────
 
   const addBatsmanToCrease = (player) => {
@@ -578,6 +601,10 @@ export function ScoringTab({
     if (isSecond) {
       setCurrentPartnership?.({ runs: 0, balls: 0 });
       setAddBatsmanOpen(false);
+      const key = ballHistory.length === 0 ? 'next_non_striker_id' : 'next_batter_id';
+      syncPendingToApi?.({ [key]: player.id });
+    } else {
+      syncPendingToApi?.({ next_batter_id: player.id });
     }
   };
 
@@ -600,6 +627,7 @@ export function ScoringTab({
     });
     setAddBatsmanOpen(false);
     setBatsmanDialogReplaceStriker(false);
+    syncPendingToApi?.({ next_batter_id: player.id });
   };
 
   const addBowlerToTable = (player) => {
@@ -608,6 +636,7 @@ export function ScoringTab({
     const isLastSlot = newIndex === MAX_BOWLERS_IN_TABLE - 1;
     setBowlersInTable?.((prev) => [...prev, blankBowler(player)]);
     setCurrentBowlerIndex?.(newIndex);
+    syncPendingToApi?.({ next_bowler_id: Number(player.id) });
     if (isLastSlot) setAddBowlerOpen(false);
   };
 
@@ -621,11 +650,13 @@ export function ScoringTab({
     if (idx >= 0) {
       setCurrentBowlerIndex?.(idx);
       setAddBowlerOpen(false);
+      syncPendingToApi?.({ next_bowler_id: player.id });
       return;
     }
     if (canAddMoreBowlers) {
       addBowlerToTable(player);
       setAddBowlerOpen(false);
+      syncPendingToApi?.({ next_bowler_id: player.id });
       return;
     }
     // Swap current slot with the new bowler
@@ -641,6 +672,7 @@ export function ScoringTab({
       return next;
     });
     setAddBowlerOpen(false);
+    syncPendingToApi?.({ next_bowler_id: player.id });
   };
 
   const handleReplaceActiveBowlerPick = (player) => {
@@ -659,6 +691,7 @@ export function ScoringTab({
       setCurrentBowlerIndex?.(idxInTable);
       setAddBowlerOpen(false);
       setBowlerDialogReplaceActive(false);
+      syncPendingToApi?.({ next_bowler_id: player.id });
       return;
     }
     setBowlersInTable?.((prev) => {
@@ -670,6 +703,7 @@ export function ScoringTab({
     });
     setAddBowlerOpen(false);
     setBowlerDialogReplaceActive(false);
+    syncPendingToApi?.({ next_bowler_id: player.id });
   };
 
   // ── Shot area / custom score dialog flows ─────────────────────────────────────
@@ -703,14 +737,7 @@ export function ScoringTab({
   };
 
   // ── Penalty runs ──────────────────────────────────────────────────────────────
-
-  const handlePenaltyRuns = () => {
-    // Award 5 penalty runs to the batting team as a wide (extra ball).
-    // Bowler is charged the runs but the delivery doesn't count toward the over.
-    handleSpecial('wd', 5);
-  };
-
-  // ── Retired Hurt flow ─────────────────────────────────────────────────────────
+  // Law 41.17: handled by useScoringEngine as type 'penalty' (not a wide).
 
   const handleRetiredHurtConfirm = () => {
     handleRetiredHurt();
@@ -777,7 +804,7 @@ export function ScoringTab({
       <BatsmenTable
         batsmenOnCrease={batsmenOnCrease}
         strikerIndex={strikerIndex}
-        onStrikerChange={setStrikerIndex}
+        onStrikerChange={handleStrikerIndexChange}
         retiredBatsmen={retiredBatsmen}
         hasSquad={battingOrder.length > 0}
         matchComplete={matchComplete}
@@ -932,7 +959,6 @@ export function ScoringTab({
         canAddMoreBatsmen={canAddMoreBatsmen}
         isPlayerBattingOrOut={isPlayerBattingOrOut}
         getBatsmanDisplayStats={getBatsmanDisplayStats}
-        isApiMatch={isApiMatch}
         hideSquadSetup={battingXiSavedOnApi}
         savingSquad={savingBatsmanSquad}
         requiredPlayingCount={requiredBatting}
@@ -961,7 +987,6 @@ export function ScoringTab({
           }
         }}
         players={addBowlerDialogPlayers}
-        isApiMatch={isApiMatch}
         hideSquadSetup={bowlingXiSavedOnApi}
         savingSquad={savingBowlerSquad}
         requiredPlayingCount={requiredBowling}

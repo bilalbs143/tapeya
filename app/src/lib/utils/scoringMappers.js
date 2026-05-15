@@ -5,6 +5,8 @@
  * Pure functions — no React, no side effects.
  */
 
+import { isLegalDelivery } from './cricketRules';
+
 // ─── Dismissal options ────────────────────────────────────────────────────────
 
 /**
@@ -172,7 +174,7 @@ export function dismissalValueToLabel(value, enumOptions) {
  *
  * UI shape:
  *   {
- *     type: 'runs'|'out'|'wd'|'nb'|'bye'|'lb'|'retired_hurt',
+ *     type: 'runs'|'out'|'wd'|'nb'|'bye'|'lb'|'retired_hurt'|'penalty',
  *     runs?: number,
  *     isFreeHit?: boolean,
  *     penaltyRuns?: number,
@@ -211,11 +213,21 @@ export function apiBallToUiBall(apiBall, playerIdToName = {}) {
     out_player_id: outPlayerId,
   } = apiBall;
 
+  const penaltyOnly =
+    !isWicket &&
+    !isWide &&
+    !isNoBall &&
+    !isBye &&
+    !isLegBye &&
+    (Number(penaltyRuns) || 0) > 0 &&
+    (Number(runs) || 0) === 0;
+
   // Determine UI ball type
   let type = 'runs';
   if (isWicket) {
     type = dismissalType === 'retired_hurt' ? 'retired_hurt' : 'out';
-  } else if (isWide) type = 'wd';
+  } else if (penaltyOnly) type = 'penalty';
+  else if (isWide) type = 'wd';
   else if (isNoBall) type = 'nb';
   else if (isBye) type = 'bye';
   else if (isLegBye) type = 'lb';
@@ -223,7 +235,12 @@ export function apiBallToUiBall(apiBall, playerIdToName = {}) {
   const ui = {
     type,
     // WD/NB always contribute at least 1 run even if API sends 0.
-    runs: type === 'wd' || type === 'nb' ? Math.max(1, runs) : runs,
+    runs:
+      type === 'wd' || type === 'nb'
+        ? Math.max(1, runs)
+        : type === 'penalty'
+          ? 0
+          : runs,
     isFreeHit: Boolean(isFreeHit),
     penaltyRuns: penaltyRuns || 0,
     strikerId,
@@ -312,11 +329,12 @@ export function apiPartnershipsToUiState(partnerships, playerIdToName = {}) {
 export function computeOverAndBallInOver(ballHistory) {
   let validCount = 0;
   for (const b of ballHistory) {
-    if (b.type !== 'wd' && b.type !== 'nb') validCount += 1;
+    if (isLegalDelivery(b.type)) validCount += 1;
   }
   const over = Math.floor(validCount / 6);
-  const ballInOver = validCount % 6 || 6;
-  return { over, ball_in_over: ballInOver };
+  // 1-indexed within the over: 0→1, 1→2, …, 5→6
+  const ball_in_over = (validCount % 6) + 1;
+  return { over, ball_in_over };
 }
 
 // ─── UI ball → API storeBall payload ─────────────────────────────────────────
@@ -344,6 +362,7 @@ export function uiBallToStoreBallPayload({
   const isNoBall = type === 'nb';
   const isBye = type === 'bye';
   const isLegBye = type === 'lb';
+  const isPenalty = type === 'penalty';
   const isWicket = type === 'out';
   const isRetiredHurt = type === 'retired_hurt';
 
@@ -353,6 +372,9 @@ export function uiBallToStoreBallPayload({
   if (type === 'runs') {
     runs = ball.runs ?? 0;
     runsOffBat = runs;
+  } else if (isPenalty) {
+    runs = 0;
+    runsOffBat = 0;
   } else if (isWide || isNoBall) {
     // ball.runs is the TOTAL (batting/overthrow runs + mandatory 1 penalty),
     // as computed by useScoringEngine.  Minimum is always 1.

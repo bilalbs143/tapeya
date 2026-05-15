@@ -12,15 +12,11 @@ const bottomBorderStyle = {
   background: 'linear-gradient(90deg, #080807 0%, #FFFFFF 50%, #080807 100%)',
 };
 
-const stats = [
-  { label: 'Matches', value: '6' },
-  { label: 'Runs', value: '366' },
-  { label: "4's/6's", value: '5/5' },
-  { label: 'Wickets', value: '0' },
-  { label: 'Strike Rate', value: '150.43' },
-];
-
-export default function BatsmanInningsStats() {
+export default function BatsmanInningsStats({
+  playerName = '',
+  headline = 'This Tournament',
+  stats = [],
+}) {
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#1D1E22]">
       <section className="absolute right-0 bottom-0 left-0 text-white">
@@ -30,11 +26,11 @@ export default function BatsmanInningsStats() {
         >
           <div className="flex items-start justify-between gap-2 sm:gap-6">
             <p className="text-[15px] leading-none font-extrabold tracking-wide text-[#DA9811] uppercase sm:text-[28px]">
-              TAMOUR MIRZA
+              {playerName}
             </p>
 
             <p className="text-[15px] leading-none font-semibold sm:text-[24px]">
-              This Tournament
+              {headline}
             </p>
           </div>
           <div className="mt-2 h-px w-full sm:mt-3" style={bottomBorderStyle} />

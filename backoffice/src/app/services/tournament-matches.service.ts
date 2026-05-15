@@ -9,9 +9,16 @@ export interface TournamentMatchTeam {
   code?: string | null;
 }
 
+export interface TournamentMatchTournament {
+  id: number;
+  name: string;
+  logo_url: string | null;
+}
+
 export interface TournamentMatchRow {
   id: number;
   tournament_id: number;
+  tournament?: TournamentMatchTournament;
   group_index: number | null;
   match_date: string;
   match_time: string;

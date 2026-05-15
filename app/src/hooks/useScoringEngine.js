@@ -1,9 +1,10 @@
 /**
  * useScoringEngine
  *
- * Pure scoring-logic hook. Owns five handlers:
+ * Pure scoring-logic hook. Owns six handlers:
  *   handleRuns       – legal delivery: runs scored off the bat
  *   handleSpecial    – extras: wd / nb / bye / lb
+ *   handlePenaltyRuns – Law 41.17 penalty-only award (no delivery)
  *   handleOut        – dismissal (wicket)
  *   handleRetiredHurt – batsman retires hurt (NOT a wicket; may return)
  *   handleUndo       – reverses the most recent ball
@@ -49,7 +50,7 @@
 import { useCallback } from 'react';
 
 import { DASH } from '@/lib/constants/ui';
-import { isLegalDelivery } from '@/lib/utils/cricketRules';
+import { isLegalDelivery, PENALTY_RUNS_AMOUNT } from '@/lib/utils/cricketRules';
 import { wouldInningsEndAfterBall } from '@/lib/utils/scoringUtils';
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────
@@ -90,6 +91,7 @@ function isLastBallOfOver(ballHistory) {
  *   Anything else            → clear free hit
  */
 function nextPendingFreeHit(ballType, currentPendingFreeHit) {
+  if (ballType === 'penalty') return currentPendingFreeHit;
   if (ballType === 'nb') return true;
   if (currentPendingFreeHit && ballType === 'wd') return true;
   return false;
@@ -237,18 +239,20 @@ export function useScoringEngine({
 
       appendBall(ball);
 
+      const oddStrikeThisBall = runs % 2 === 1;
+
       // Batsman
       setBatsmenOnCrease((prev) =>
         prev.map((b) =>
           b.id !== striker?.id
             ? b
             : {
-                ...b,
-                runs: b.runs + runs,
-                balls: b.balls + 1,
-                fours: b.fours + (runs === 4 ? 1 : 0),
-                sixes: b.sixes + (runs === 6 ? 1 : 0),
-              },
+              ...b,
+              runs: b.runs + runs,
+              balls: b.balls + 1,
+              fours: b.fours + (runs === 4 ? 1 : 0),
+              sixes: b.sixes + (runs === 6 ? 1 : 0),
+            },
         ),
       );
 
@@ -258,10 +262,10 @@ export function useScoringEngine({
           b.id !== bowler?.id
             ? b
             : {
-                ...b,
-                runs: b.runs + runs + penaltyRuns,
-                balls: (b.balls ?? 0) + 1,
-              },
+              ...b,
+              runs: b.runs + runs + penaltyRuns,
+              balls: (b.balls ?? 0) + 1,
+            },
         ),
       );
 
@@ -272,9 +276,15 @@ export function useScoringEngine({
       }));
 
       // Strike rotation on odd batting runs
-      if (runs % 2 === 1) setStrikerIndex((i) => 1 - i);
+      if (oddStrikeThisBall) setStrikerIndex((i) => 1 - i);
 
-      // Over boundary
+      // Change of ends: after 6 legal balls, if this delivery did not already flip
+      // strike for an odd run, the batsmen cross (non-striker faces next over).
+      if (overDone && !oddStrikeThisBall && batsmenOnCrease.length >= 2) {
+        setStrikerIndex((i) => 1 - i);
+      }
+
+      // Over boundary (bowler end)
       if (overDone && hasTwoBowlers) setCurrentBowlerIndex((i) => 1 - i);
       if (overDone && !matchComplete && !inningsEnds) setAddBowlerOpen(true);
 
@@ -361,21 +371,32 @@ export function useScoringEngine({
 
       const inningsEnds = overDone
         ? wouldInningsEndAfterBall({
-            ballHistory,
-            pendingBall: ball,
-            maxOvers: matchOvers,
-            playersPerSide,
-            targetScore,
-          })
+          ballHistory,
+          pendingBall: ball,
+          maxOvers: matchOvers,
+          playersPerSide,
+          targetScore,
+        })
         : false;
 
       appendBall(ball);
 
-      // NB: striker personally faces the ball — ball count goes up
+      const oddStrikeThisBall = legal && extraRun % 2 === 1;
+
+      // NB: striker personally faces the ball — ball count goes up; runs off bat also credited
       if (type === 'nb' && striker) {
+        const runsOffBat = Math.max(0, Number(extraRuns) || 0);
         setBatsmenOnCrease((prev) =>
           prev.map((b) =>
-            b.id === striker.id ? { ...b, balls: b.balls + 1 } : b,
+            b.id !== striker.id
+              ? b
+              : {
+                ...b,
+                balls: b.balls + 1,
+                runs: b.runs + runsOffBat,
+                fours: b.fours + (runsOffBat === 4 ? 1 : 0),
+                sixes: b.sixes + (runsOffBat === 6 ? 1 : 0),
+              },
           ),
         );
       }
@@ -386,10 +407,10 @@ export function useScoringEngine({
           b.id !== bowler?.id
             ? b
             : {
-                ...b,
-                runs: b.runs + extraRun + penaltyRuns,
-                balls: (b.balls ?? 0) + (legal ? 1 : 0),
-              },
+              ...b,
+              runs: b.runs + extraRun + penaltyRuns,
+              balls: (b.balls ?? 0) + (legal ? 1 : 0),
+            },
         ),
       );
 
@@ -404,9 +425,14 @@ export function useScoringEngine({
       }
 
       // Strike rotation: bye/lb with odd run count rotates strike
-      if (legal && extraRun % 2 === 1) setStrikerIndex((i) => 1 - i);
+      if (oddStrikeThisBall) setStrikerIndex((i) => 1 - i);
 
-      // Over boundary
+      // Change of ends after a completed over of legal deliveries (when no odd-run flip)
+      if (overDone && legal && !oddStrikeThisBall && batsmenOnCrease.length >= 2) {
+        setStrikerIndex((i) => 1 - i);
+      }
+
+      // Over boundary (bowler end)
       if (overDone && hasTwoBowlers) setCurrentBowlerIndex((i) => 1 - i);
       if (overDone && !matchComplete && !inningsEnds) setAddBowlerOpen(true);
 
@@ -432,6 +458,49 @@ export function useScoringEngine({
       playersPerSide,
       targetScore,
       matchComplete,
+    ],
+  );
+
+  // ── handlePenaltyRuns ────────────────────────────────────────────────────────
+
+  /**
+   * Law 41.17-style penalty runs only — not a wide, not a ball bowled.
+   * Adds runs to the team/partnership total; does not rotate strike, advance
+   * the over, or debit the bowler's figures.
+   */
+  const handlePenaltyRuns = useCallback(
+    function handlePenaltyRuns() {
+      if (batsmenOnCrease.length < 2 || bowlersInTable.length === 0) return;
+
+      const striker = batsmenOnCrease[strikerIndex];
+      const nonStriker = batsmenOnCrease[1 - strikerIndex];
+      const bowler = bowlersInTable[currentBowlerIndex];
+
+      const ball = {
+        type: 'penalty',
+        runs: 0,
+        penaltyRuns: PENALTY_RUNS_AMOUNT,
+        strikerId: striker?.id,
+        nonStrikerId: nonStriker?.id,
+        bowlerId: bowler?.id,
+        wasFreeHit: pendingFreeHit,
+      };
+
+      appendBall(ball);
+
+      setCurrentPartnership((p) => ({
+        runs: p.runs + PENALTY_RUNS_AMOUNT,
+        balls: p.balls,
+      }));
+    },
+    [
+      batsmenOnCrease,
+      bowlersInTable,
+      strikerIndex,
+      currentBowlerIndex,
+      pendingFreeHit,
+      appendBall,
+      setCurrentPartnership,
     ],
   );
 
@@ -535,11 +604,11 @@ export function useScoringEngine({
           b.id !== bowler?.id
             ? b
             : {
-                ...b,
-                wickets: b.wickets + 1,
-                balls: (b.balls ?? 0) + 1,
-                runs: b.runs + penaltyRuns,
-              },
+              ...b,
+              wickets: b.wickets + 1,
+              balls: (b.balls ?? 0) + 1,
+              runs: b.runs + penaltyRuns,
+            },
         ),
       );
 
@@ -695,7 +764,7 @@ export function useScoringEngine({
 
   /**
    * Reverses the most recent ball and all state it affected.
-   * Handles: 'runs', 'out', 'retired_hurt', 'wd', 'nb', 'bye', 'lb'.
+   * Handles: 'runs', 'out', 'retired_hurt', 'penalty', 'wd', 'nb', 'bye', 'lb'.
    */
   const handleUndo = useCallback(
     function handleUndo() {
@@ -725,12 +794,12 @@ export function useScoringEngine({
             b.id !== last.strikerId
               ? b
               : {
-                  ...b,
-                  runs: Math.max(0, b.runs - last.runs),
-                  balls: Math.max(0, b.balls - 1),
-                  fours: last.runs === 4 ? Math.max(0, b.fours - 1) : b.fours,
-                  sixes: last.runs === 6 ? Math.max(0, b.sixes - 1) : b.sixes,
-                },
+                ...b,
+                runs: Math.max(0, b.runs - last.runs),
+                balls: Math.max(0, b.balls - 1),
+                fours: last.runs === 4 ? Math.max(0, b.fours - 1) : b.fours,
+                sixes: last.runs === 6 ? Math.max(0, b.sixes - 1) : b.sixes,
+              },
           ),
         );
 
@@ -739,13 +808,13 @@ export function useScoringEngine({
             b.id !== last.bowlerId
               ? b
               : {
-                  ...b,
-                  runs: Math.max(
-                    0,
-                    b.runs - last.runs - (last.penaltyRuns ?? 0),
-                  ),
-                  balls: Math.max(0, (b.balls ?? 0) - 1),
-                },
+                ...b,
+                runs: Math.max(
+                  0,
+                  b.runs - last.runs - (last.penaltyRuns ?? 0),
+                ),
+                balls: Math.max(0, (b.balls ?? 0) - 1),
+              },
           ),
         );
 
@@ -782,11 +851,11 @@ export function useScoringEngine({
             b.id !== last.bowlerId
               ? b
               : {
-                  ...b,
-                  wickets: Math.max(0, b.wickets - 1),
-                  balls: Math.max(0, (b.balls ?? 0) - 1),
-                  runs: Math.max(0, b.runs - (last.penaltyRuns ?? 0)),
-                },
+                ...b,
+                wickets: Math.max(0, b.wickets - 1),
+                balls: Math.max(0, (b.balls ?? 0) - 1),
+                runs: Math.max(0, b.runs - (last.penaltyRuns ?? 0)),
+              },
           ),
         );
 
@@ -823,6 +892,16 @@ export function useScoringEngine({
         }
       }
 
+      // ── penalty-only (Law 41.17) ───────────────────────────────────────────
+      else if (last.type === 'penalty') {
+        const pr = last.penaltyRuns ?? 0;
+        setCurrentPartnership((p) => ({
+          runs: Math.max(0, p.runs - pr),
+          balls: p.balls,
+        }));
+        restoreBowlerIndex(last.bowlerId);
+      }
+
       // ── extras: wd / nb / bye / lb ────────────────────────────────────────
       else if (['wd', 'nb', 'bye', 'lb'].includes(last.type)) {
         const legal = isLegalDelivery(last.type);
@@ -843,13 +922,13 @@ export function useScoringEngine({
             b.id !== last.bowlerId
               ? b
               : {
-                  ...b,
-                  runs: Math.max(
-                    0,
-                    b.runs - (last.runs ?? 0) - (last.penaltyRuns ?? 0),
-                  ),
-                  balls: Math.max(0, (b.balls ?? 0) - (legal ? 1 : 0)),
-                },
+                ...b,
+                runs: Math.max(
+                  0,
+                  b.runs - (last.runs ?? 0) - (last.penaltyRuns ?? 0),
+                ),
+                balls: Math.max(0, (b.balls ?? 0) - (legal ? 1 : 0)),
+              },
           ),
         );
 
@@ -891,6 +970,7 @@ export function useScoringEngine({
   return {
     handleRuns,
     handleSpecial,
+    handlePenaltyRuns,
     handleOut,
     handleRetiredHurt,
     handleUndo,

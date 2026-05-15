@@ -1,7 +1,7 @@
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 
 const controllerFrameBg = `${CLOUDFRONT_APP_BASE}/images/background/controller-frame.png`;
-const teamLogo = `${CLOUDFRONT_APP_BASE}/images/standard/team-logo.png`;
+const defaultTeamLogo = `${CLOUDFRONT_APP_BASE}/images/standard/team-logo.png`;
 
 const panelStyle = {
   backgroundImage: `url(${controllerFrameBg})`,
@@ -9,7 +9,17 @@ const panelStyle = {
   backgroundRepeat: 'no-repeat',
   backgroundSize: 'cover',
 };
-export default function TournamentIntro() {
+
+export default function TournamentIntro({
+  homeTeam = {},
+  awayTeam = {},
+  matchLabel = '',
+}) {
+  const homeLogo = homeTeam.logoUrl ?? defaultTeamLogo;
+  const awayLogo = awayTeam.logoUrl ?? defaultTeamLogo;
+  const homeName = homeTeam.name || 'Home';
+  const awayName = awayTeam.name || 'Away';
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#1D1E22]">
       <section className="absolute right-0 bottom-0 left-0 text-white">
@@ -21,14 +31,12 @@ export default function TournamentIntro() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 sm:gap-4">
                 <img
-                  src={teamLogo}
-                  alt="Left team logo"
+                  src={homeLogo}
+                  alt={homeName}
                   className="h-14 w-14 rounded-full object-cover sm:h-18 sm:w-18"
                 />
                 <p className="text-[8px] leading-none font-extrabold text-[#DA9811] sm:text-[24px]">
-                  Karachi
-                  <br />
-                  Kings
+                  {homeName}
                 </p>
               </div>
 
@@ -38,21 +46,21 @@ export default function TournamentIntro() {
 
               <div className="flex items-center gap-2 sm:gap-4">
                 <p className="text-right text-[8px] leading-none font-extrabold text-[#DA9811] sm:text-[24px]">
-                  Pishawar
-                  <br />
-                  Zalmi
+                  {awayName}
                 </p>
                 <img
-                  src={teamLogo}
-                  alt="Right team logo"
+                  src={awayLogo}
+                  alt={awayName}
                   className="h-14 w-14 rounded-full object-cover sm:h-18 sm:w-18"
                 />
               </div>
             </div>
 
-            <p className="text-center text-[8px] leading-none text-white sm:text-[18px]">
-              At League Matches (Match 7)
-            </p>
+            {matchLabel ? (
+              <p className="text-center text-[8px] leading-none text-white sm:text-[18px]">
+                {matchLabel}
+              </p>
+            ) : null}
           </div>
         </div>
       </section>

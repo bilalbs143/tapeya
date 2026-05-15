@@ -47,6 +47,7 @@ export interface ControllerSettingsDialogData {
     SubmitButtonComponent,
   ],
   templateUrl: './controller-settings-dialog.component.html',
+  styleUrl: './controller-settings-dialog.component.scss',
 })
 export class ControllerSettingsDialogComponent {
   private readonly fb = inject(FormBuilder);

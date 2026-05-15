@@ -59,7 +59,8 @@ export class TeamsService {
   }
 
   public update(id: number, formData: FormData): Observable<{ data: TeamRow }> {
-    return this.http.patch<{ data: TeamRow }>(`${this.baseUrl}/${id}`, formData);
+    formData.append('_method', 'PATCH');
+    return this.http.post<{ data: TeamRow }>(`${this.baseUrl}/${id}`, formData);
   }
 
   public delete(id: number): Observable<void> {

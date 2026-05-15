@@ -188,7 +188,8 @@ export function replayBallHistory(
     const ball = balls[i];
     const { type } = ball;
     const runs = ball.runs ?? 0;
-    const penaltyRuns = ball.penaltyRuns ?? 0;
+    const penaltyRuns =
+      ball.penaltyRuns ?? ball.penalty_runs ?? 0;
 
     const sid = ball.strikerId ?? ball.striker?.id ?? strikerId;
     const nid = ball.nonStrikerId ?? nonStrikerId;
@@ -285,6 +286,19 @@ export function replayBallHistory(
       continue;
     }
 
+    if (type === 'penalty') {
+      const pr = penaltyRuns || 0;
+      if (partnershipTracker && pr > 0) {
+        addExtraToPartnership(partnershipTracker, pr);
+      }
+      currentBowlerId = bid;
+      pendingFreeHit = computePendingFreeHit(
+        balls.slice(0, i + 1),
+        pendingFreeHit,
+      );
+      continue;
+    }
+
     // ── Wicket (out) ─────────────────────────────────────────────────────────
     if (type === 'out') {
       const outId = ball.striker?.id ?? sid;
@@ -347,12 +361,18 @@ export function replayBallHistory(
 
     // ── Normal delivery ───────────────────────────────────────────────────────
 
-    // Batting stats (runs off bat only for 'runs' type)
+    // Batting stats: regular deliveries + runs off bat on no-balls (ICC rules)
     if (striker) {
       if (type === 'runs') {
         striker.runs += runs;
         if (runs === 4) striker.fours += 1;
         if (runs === 6) striker.sixes += 1;
+      } else if (type === 'nb') {
+        // runs_off_bat available on API-sourced balls; for live balls compute as runs − 1 penalty
+        const rob = ball.runsOffBat ?? Math.max(0, (runs ?? 1) - 1);
+        striker.runs += rob;
+        if (rob === 4) striker.fours += 1;
+        if (rob === 6) striker.sixes += 1;
       }
       if (legal) striker.balls += 1;
     }
@@ -366,6 +386,22 @@ export function replayBallHistory(
       }
     }
     currentOverRunsConceded += runs;
+
+    let oddStrikeThisBall = false;
+
+    // Strike rotation: legal bye / leg-bye with odd total runs (before over completion)
+    if (
+      (type === 'bye' || type === 'lb') &&
+      legal &&
+      runs % 2 === 1 &&
+      strikerId != null &&
+      nonStrikerId != null
+    ) {
+      oddStrikeThisBall = true;
+      const tmp = strikerId;
+      strikerId = nonStrikerId;
+      nonStrikerId = tmp;
+    }
 
     // Partnership tracking
     if (partnershipTracker) {
@@ -384,8 +420,30 @@ export function replayBallHistory(
 
     currentBowlerId = bid;
 
-    // Maiden check: completed over (6 legal deliveries) with same bowler
+    // Odd runs off the bat (before over completion)
+    if (
+      type === 'runs' &&
+      causesStrikeRotation(runs) &&
+      striker &&
+      nonStriker
+    ) {
+      oddStrikeThisBall = true;
+      const tmp = strikerId;
+      strikerId = nonStrikerId;
+      nonStrikerId = tmp;
+    }
+
+    // Maiden check + change of ends when 6 legal balls complete
     if (legal && currentOverLegalBalls === 6) {
+      if (
+        !oddStrikeThisBall &&
+        strikerId != null &&
+        nonStrikerId != null
+      ) {
+        const t = strikerId;
+        strikerId = nonStrikerId;
+        nonStrikerId = t;
+      }
       const bws = bowlerStats[String(bid)];
       if (bws && currentOverRunsConceded === 0) {
         bws.maidens += 1;
@@ -394,18 +452,6 @@ export function replayBallHistory(
       currentOverBowlerId = null;
       currentOverRunsConceded = 0;
       currentOverLegalBalls = 0;
-    }
-
-    // Strike rotation: odd number of batting runs rotates striker
-    if (
-      type === 'runs' &&
-      causesStrikeRotation(runs) &&
-      striker &&
-      nonStriker
-    ) {
-      const tmp = strikerId;
-      strikerId = nonStrikerId;
-      nonStrikerId = tmp;
     }
 
     pendingFreeHit = computePendingFreeHit(

@@ -38,7 +38,7 @@ class TournamentMatchController extends Controller
      */
     public function show(TournamentMatch $match): JsonResponse
     {
-        $match->load(['homeTeam', 'awayTeam', 'winningTeam', 'tossWinnerTeam', 'tournament']);
+        $match->load(['homeTeam', 'awayTeam', 'winningTeam', 'tossWinnerTeam', 'tournament', 'playerOfMatch']);
 
         return $this->success(new TournamentMatchResource($match));
     }

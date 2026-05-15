@@ -37,9 +37,6 @@ enum GraphicCommandKeyEnum: string
     case HUNDRED_UP = 'HUNDRED_UP';
     case LT_REPLAY = 'LT_REPLAY';
     case DECISION_PENDING = 'DECISION_PENDING';
-    case UMPIRES = 'UMPIRES';
-    case SCORERS = 'SCORERS';
-    case COMM = 'COMM';
     case FOLLOW_PLATFORM = 'FOLLOW_PLATFORM';
     case DOWNLOAD_PLATFORM = 'DOWNLOAD_PLATFORM';
 
@@ -55,7 +52,6 @@ enum GraphicCommandKeyEnum: string
     case WORM = 'WORM';
     case RUN_RATE_CHART = 'RUN_RATE_CHART';
     case MANHATTAN = 'MANHATTAN';
-    case WAGON_WHEEL = 'WAGON_WHEEL';
 
     // --- Full screen ---
     case SCORECARD_FULL = 'SCORECARD_FULL';
@@ -86,7 +82,6 @@ enum GraphicCommandKeyEnum: string
     case BATSMAN_MATCH_FS = 'BATSMAN_MATCH_FS';
     case BATSMAN_TOURNAMENT_LT = 'BATSMAN_TOURNAMENT_LT';
     case BATSMAN_TOURNAMENT_FS = 'BATSMAN_TOURNAMENT_FS';
-    case BATSMAN_WAGON_WHEEL = 'BATSMAN_WAGON_WHEEL';
 
     // --- Player: bowler ---
     case BOWLER_NAME_LT = 'BOWLER_NAME_LT';
@@ -169,9 +164,6 @@ enum GraphicCommandKeyEnum: string
             self::HUNDRED_UP,
             self::LT_REPLAY,
             self::DECISION_PENDING,
-            self::UMPIRES,
-            self::SCORERS,
-            self::COMM,
             self::FOLLOW_PLATFORM,
             self::DOWNLOAD_PLATFORM => GraphicCommandTypeEnum::LOWER_THIRD,
 
@@ -184,8 +176,7 @@ enum GraphicCommandKeyEnum: string
 
             self::WORM,
             self::RUN_RATE_CHART,
-            self::MANHATTAN,
-            self::WAGON_WHEEL => GraphicCommandTypeEnum::CHART,
+            self::MANHATTAN => GraphicCommandTypeEnum::CHART,
 
             self::SCORECARD_FULL,
             self::THIS_MATCH,
@@ -213,8 +204,7 @@ enum GraphicCommandKeyEnum: string
             self::BATSMAN_MATCH_LT,
             self::BATSMAN_MATCH_FS,
             self::BATSMAN_TOURNAMENT_LT,
-            self::BATSMAN_TOURNAMENT_FS,
-            self::BATSMAN_WAGON_WHEEL => GraphicCommandTypeEnum::PLAYER_BATSMAN,
+            self::BATSMAN_TOURNAMENT_FS => GraphicCommandTypeEnum::PLAYER_BATSMAN,
 
             self::BOWLER_NAME_LT,
             self::BOWLER_NAME_FS,
@@ -293,9 +283,6 @@ enum GraphicCommandKeyEnum: string
             self::HUNDRED_UP => '100 Up',
             self::LT_REPLAY => 'Replay',
             self::DECISION_PENDING => 'Decision Pending',
-            self::UMPIRES => 'Umpires',
-            self::SCORERS => 'Scorers',
-            self::COMM => 'Comm',
             self::FOLLOW_PLATFORM => 'Follow',
             self::DOWNLOAD_PLATFORM => 'Download App',
 
@@ -309,7 +296,6 @@ enum GraphicCommandKeyEnum: string
             self::WORM => 'Worm Chart',
             self::RUN_RATE_CHART => 'Run Rate',
             self::MANHATTAN => 'Manhattan',
-            self::WAGON_WHEEL => 'Wagon Wheel',
 
             self::SCORECARD_FULL => 'Full Scorecard',
             self::THIS_MATCH => 'This Match',
@@ -338,7 +324,6 @@ enum GraphicCommandKeyEnum: string
             self::BATSMAN_MATCH_FS => 'Match FS',
             self::BATSMAN_TOURNAMENT_LT => 'Tournament LT',
             self::BATSMAN_TOURNAMENT_FS => 'Tournament FS',
-            self::BATSMAN_WAGON_WHEEL => 'Player Wagon Wheel',
 
             self::BOWLER_NAME_LT => 'Name LT',
             self::BOWLER_NAME_FS => 'Name FS',
@@ -417,9 +402,6 @@ enum GraphicCommandKeyEnum: string
             self::HUNDRED_UP,
             self::LT_REPLAY,
             self::DECISION_PENDING,
-            self::UMPIRES,
-            self::SCORERS,
-            self::COMM,
             self::FOLLOW_PLATFORM,
             self::DOWNLOAD_PLATFORM,
             self::CUSTOM,
@@ -435,7 +417,6 @@ enum GraphicCommandKeyEnum: string
             self::BATSMAN_NAME_FS,
             self::BATSMAN_MATCH_FS,
             self::BATSMAN_TOURNAMENT_FS,
-            self::BATSMAN_WAGON_WHEEL,
             self::BOWLER_NAME_FS,
             self::BOWLER_MATCH_FS,
             self::BOWLER_TOURNAMENT_FS => GraphicCommandDisplayModeEnum::FS,

@@ -73,7 +73,6 @@ function getBattingBowlingTeamIds(apiMatch, scorecard) {
 /**
  * @param {object} params
  * @param {string|null} params.matchId
- * @param {boolean} params.fromApi
  * @param {object|null} params.apiMatch
  * @param {object|null} params.scorecard
  * @param {number|null} params.homeTeamId
@@ -88,7 +87,6 @@ function getBattingBowlingTeamIds(apiMatch, scorecard) {
  */
 export function useApiMatchSync({
   matchId,
-  fromApi,
   apiMatch,
   scorecard,
   homeTeamId,
@@ -109,7 +107,7 @@ export function useApiMatchSync({
   }, [matchId]);
 
   useEffect(() => {
-    if (!fromApi || !apiMatch || apiSynced) return;
+    if (!apiMatch || apiSynced) return;
     if (squadHome === undefined || squadAway === undefined) return;
     if (playingElevenHome === undefined || playingElevenAway === undefined)
       return;
@@ -287,7 +285,6 @@ export function useApiMatchSync({
     setApiSynced(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- innings1/innings2 are stable refs; we sync when API data changes
   }, [
-    fromApi,
     apiMatch,
     scorecard,
     homeTeamId,
@@ -296,7 +293,6 @@ export function useApiMatchSync({
     playingElevenAway,
     squadHome,
     squadAway,
-    scorecard,
     apiSynced,
   ]);
 }

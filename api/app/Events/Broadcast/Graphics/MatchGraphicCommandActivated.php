@@ -4,11 +4,14 @@ namespace App\Events\Broadcast\Graphics;
 
 use App\Models\MatchGraphicCommand;
 use App\Models\MatchGraphicSession;
+use App\Models\TournamentMatch;
+use App\Services\Broadcast\BuildMatchGraphicContextService;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\App;
 
 /**
  * Broadcast on the public channel `match.{matchId}.graphics` whenever the
@@ -37,6 +40,8 @@ class MatchGraphicCommandActivated implements ShouldBroadcastNow
 
     public int $commandId;
 
+    public ?array $context;
+
     public function __construct(MatchGraphicSession $session, MatchGraphicCommand $command)
     {
         $this->matchId = $session->match_id;
@@ -48,8 +53,32 @@ class MatchGraphicCommandActivated implements ShouldBroadcastNow
         $this->commandType = $command->command_type instanceof \BackedEnum
             ? $command->command_type->value
             : (string) $command->command_type;
-        $this->displayMode = $command->display_mode;
+        $this->displayMode = $command->display_mode instanceof \BackedEnum
+            ? $command->display_mode->value
+            : $command->display_mode;
         $this->payload = $command->payload;
+        $this->context = self::broadcastContext($session);
+    }
+
+    /**
+     * Full live context from the DB (same as {@see BuildMatchGraphicContextService::build}),
+     * merged over any persisted JSON so overlays never show stale `batters` / `bowler`
+     * when a command activates — activating a command does not run {@see SyncMatchGraphicContextJob}.
+     */
+    private static function broadcastContext(MatchGraphicSession $session): ?array
+    {
+        $match = $session->relationLoaded('match')
+            ? $session->getRelation('match')
+            : TournamentMatch::query()->find($session->match_id);
+
+        if (! $match instanceof TournamentMatch) {
+            $base = is_array($session->context) ? $session->context : [];
+
+            return $base !== [] ? $base : null;
+        }
+
+        return App::make(BuildMatchGraphicContextService::class)
+            ->mergeSessionContext($session, $match);
     }
 
     /**
@@ -83,6 +112,7 @@ class MatchGraphicCommandActivated implements ShouldBroadcastNow
             'command_type' => $this->commandType,
             'display_mode' => $this->displayMode,
             'payload' => $this->payload,
+            'context' => $this->context,
         ];
     }
 }

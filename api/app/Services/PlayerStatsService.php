@@ -229,8 +229,8 @@ class PlayerStatsService
         $inningsIds = Innings::where('match_id', $matchId)->pluck('id');
         $balls = Ball::whereIn('innings_id', $inningsIds)
             ->orderBy('innings_id')
-            ->orderBy('over')
-            ->orderBy('ball_in_over')
+
+            ->orderBy('over')->orderBy('ball_in_over')->orderBy('id')
             ->get();
 
         $byPlayer = [];
@@ -387,8 +387,8 @@ class PlayerStatsService
     public function partnershipsForInnings(int $inningsId, ?Collection $balls = null): array
     {
         $balls ??= Ball::where('innings_id', $inningsId)
-            ->orderBy('over')
-            ->orderBy('ball_in_over')
+
+            ->orderBy('over')->orderBy('ball_in_over')->orderBy('id')
             ->get();
 
         $partnerships = [];
@@ -796,7 +796,7 @@ class PlayerStatsService
         foreach ($balls as $b) {
             $k = $b->innings_id.'_'.$b->over;
             $oversRuns[$k] = ($oversRuns[$k] ?? 0) + $b->runs + $b->penalty_runs;
-            if (! $b->is_wide && ! $b->is_no_ball) {
+            if ($b->isLegalDelivery()) {
                 $oversBalls[$k] = ($oversBalls[$k] ?? 0) + 1;
             }
         }

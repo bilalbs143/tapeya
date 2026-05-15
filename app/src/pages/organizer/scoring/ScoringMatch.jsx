@@ -58,6 +58,7 @@ import {
   useGetMatchQuery,
   useGetPlayingElevenQuery,
   useGetScorecardQuery,
+  useSetPendingGraphicPlayersMutation,
   useStoreBallMutation,
   useUpdateTossMutation,
 } from '@/store/api/matchApi';
@@ -118,10 +119,6 @@ const TAB_VIEWS = {
 
 // ─── Module-level helpers ─────────────────────────────────────────────────────
 
-/** True when matchId is a valid numeric API match id (scoring is API-only). */
-const isApiMatchId = (id) =>
-  id != null && id !== '' && !Number.isNaN(Number(id));
-
 /**
  * Builds a squad array with correct playing/bench roles.
  *
@@ -172,6 +169,8 @@ function computeMatchResultSummary(match, liveScore1, liveScore2) {
     match?.playersPerSide != null ? Number(match.playersPerSide) - 1 : 10;
   const teamA = match?.teamA?.name?.trim() ?? '';
   const teamB = match?.teamB?.name?.trim() ?? '';
+  const teamAId = match?.teamA?.id != null ? Number(match.teamA.id) : null;
+  const teamBId = match?.teamB?.id != null ? Number(match.teamB.id) : null;
 
   const chasingWon = inn2 >= target;
   const runsShort = target - 1 - inn2;
@@ -179,6 +178,7 @@ function computeMatchResultSummary(match, liveScore1, liveScore2) {
   if (!chasingWon && runsShort === 0) {
     return {
       tie: true,
+      winningTeamId: null,
       titleLine: 'Match tied',
       detailLine: [teamA, teamB].filter(Boolean).length
         ? `${teamA || 'Team A'} ${inn1} · ${teamB || 'Team B'} ${inn2}`
@@ -191,6 +191,7 @@ function computeMatchResultSummary(match, liveScore1, liveScore2) {
     const margin = `${wkts} wicket${wkts !== 1 ? 's' : ''}`;
     return {
       tie: false,
+      winningTeamId: teamBId,
       titleLine: teamB ? `${teamB} won` : 'Chasing team won',
       marginLine: `by ${margin}`,
       scoresLine: `${teamA || 'Team A'} ${inn1} · ${teamB || 'Team B'} ${inn2}`,
@@ -200,10 +201,105 @@ function computeMatchResultSummary(match, liveScore1, liveScore2) {
   const margin = `${runsShort} run${runsShort !== 1 ? 's' : ''}`;
   return {
     tie: false,
+    winningTeamId: teamAId,
     titleLine: teamA ? `${teamA} won` : 'Defending team won',
     marginLine: `by ${margin}`,
     scoresLine: `${teamA || 'Team A'} ${inn1} · ${teamB || 'Team B'} ${inn2}`,
   };
+}
+
+/**
+ * Same winner resolution as {@link buildPlayerOfMatchCandidates} so UI copy matches the list.
+ *
+ * @param {number|null|undefined} winningTeamIdFromApi
+ * @param {{ tie?: boolean, winningTeamId?: number|null }|undefined} liveSummary
+ * @returns {{ winnerId: number|null, useBothTeams: boolean }}
+ */
+function resolveManOfMatchWinnerScope(winningTeamIdFromApi, liveSummary) {
+  const apiWinner =
+    winningTeamIdFromApi != null ? Number(winningTeamIdFromApi) : null;
+  const liveWinner =
+    liveSummary?.tie || liveSummary?.winningTeamId == null
+      ? null
+      : Number(liveSummary.winningTeamId);
+  const winnerId = apiWinner ?? liveWinner;
+  const useBothTeams = winnerId == null || Number.isNaN(winnerId);
+
+  return { winnerId: useBothTeams ? null : winnerId, useBothTeams };
+}
+
+function mergeDedupedPlayerRows(teamAPlayers, teamBPlayers) {
+  const map = new Map();
+  for (const p of [...teamAPlayers, ...teamBPlayers]) {
+    if (p && Number.isFinite(p.id)) {
+      map.set(p.id, p);
+    }
+  }
+  return [...map.values()];
+}
+
+/**
+ * Playing-eleven players eligible for Man of the Match.
+ * Winner: winning team only. Tie / no decisive winner: both teams (deduped).
+ */
+function buildPlayerOfMatchCandidates({
+  winningTeamIdFromApi,
+  liveSummary,
+  homeTeamId,
+  awayTeamId,
+  playingElevenHome,
+  playingElevenAway,
+  squadHome,
+  squadAway,
+}) {
+  const squadArr = (s) => (Array.isArray(s) ? s : []);
+  const nameFor = (squad, uid) => {
+    const u = squadArr(squad).find(
+      (p) => String(p.id ?? p.user_id) === String(uid),
+    );
+    return u?.name ?? u?.nickname ?? `Player ${uid}`;
+  };
+  const mapTeam = (teamId, ids, squad) =>
+    (ids ?? [])
+      .map((rawId) => {
+        const id = Number(rawId);
+        if (!Number.isFinite(id)) return null;
+        return {
+          id,
+          name: nameFor(squad, rawId),
+          teamId: teamId != null ? Number(teamId) : null,
+        };
+      })
+      .filter(Boolean);
+
+  const hid = homeTeamId != null ? Number(homeTeamId) : null;
+  const aid = awayTeamId != null ? Number(awayTeamId) : null;
+  const homeIds = playingElevenHome?.player_ids ?? [];
+  const awayIds = playingElevenAway?.player_ids ?? [];
+
+  const { winnerId, useBothTeams } = resolveManOfMatchWinnerScope(
+    winningTeamIdFromApi,
+    liveSummary,
+  );
+
+  if (useBothTeams) {
+    return mergeDedupedPlayerRows(
+      mapTeam(hid, homeIds, squadHome),
+      mapTeam(aid, awayIds, squadAway),
+    );
+  }
+
+  if (hid != null && winnerId === hid) {
+    return mapTeam(hid, homeIds, squadHome);
+  }
+  if (aid != null && winnerId === aid) {
+    return mapTeam(aid, awayIds, squadAway);
+  }
+
+  return mergeDedupedPlayerRows(
+    mapTeam(hid, homeIds, squadHome),
+    mapTeam(aid, awayIds, squadAway),
+  );
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -212,7 +308,6 @@ export default function ScoringMatch() {
   const navigate = useNavigate();
   const { matchId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  const fromApi = isApiMatchId(matchId);
   const [headerImageSrc] = useState(() =>
     typeof window !== 'undefined' &&
     window.matchMedia('(min-width: 1024px)').matches
@@ -226,10 +321,10 @@ export default function ScoringMatch() {
     data: apiMatch,
     isLoading: matchLoading,
     isError: matchError,
-  } = useGetMatchQuery(matchId, { skip: !fromApi });
+  } = useGetMatchQuery(matchId, { skip: !matchId });
 
   const { data: scorecard } = useGetScorecardQuery(matchId, {
-    skip: !fromApi || !apiMatch,
+    skip: !matchId || !apiMatch,
   });
 
   const homeTeamId = apiMatch?.home_team_id ?? apiMatch?.home_team?.id;
@@ -237,23 +332,23 @@ export default function ScoringMatch() {
 
   const { data: playingElevenHome } = useGetPlayingElevenQuery(
     { matchId, teamId: homeTeamId },
-    { skip: !fromApi || !homeTeamId },
+    { skip: !matchId || !homeTeamId },
   );
   const { data: playingElevenAway } = useGetPlayingElevenQuery(
     { matchId, teamId: awayTeamId },
-    { skip: !fromApi || !awayTeamId },
+    { skip: !matchId || !awayTeamId },
   );
   const { data: squadHome } = useGetTeamSquadQuery(homeTeamId, {
-    skip: !fromApi || !homeTeamId,
+    skip: !matchId || !homeTeamId,
   });
   const { data: squadAway } = useGetTeamSquadQuery(awayTeamId, {
-    skip: !fromApi || !awayTeamId,
+    skip: !matchId || !awayTeamId,
   });
 
   // ── Derived match config ───────────────────────────────────────────────────
 
   const match = useMemo(() => {
-    if (!fromApi || !apiMatch) return null;
+    if (!apiMatch) return null;
     const needsScorecardForLegacyToss =
       apiMatch.status === 'completed' &&
       apiMatch.toss_winner_team_id == null &&
@@ -278,7 +373,6 @@ export default function ScoringMatch() {
       scorecard,
     );
   }, [
-    fromApi,
     apiMatch,
     scorecard,
     playingElevenHome?.player_ids,
@@ -286,15 +380,6 @@ export default function ScoringMatch() {
     squadHome,
     squadAway,
   ]);
-
-  // Scoring is API-only: redirect if matchId is not a valid numeric id (e.g. /match/new)
-  useEffect(() => {
-    if (!fromApi) {
-      navigate('/organizer/scoring/start-match', { replace: true });
-    }
-  }, [fromApi, navigate]);
-
-  // ── Innings state — one hook per innings (Rules of Hooks: always top level) ─
 
   const innings1 = useInningsState();
   const innings2 = useInningsState();
@@ -314,21 +399,21 @@ export default function ScoringMatch() {
 
   const [storeBall] = useStoreBallMutation();
   const [deleteBall] = useDeleteBallMutation();
+  const [setPendingGraphicPlayers] = useSetPendingGraphicPlayersMutation();
   const [updateToss, { isLoading: isUpdatingToss }] = useUpdateTossMutation();
 
   // Scorecard innings IDs for sync callbacks
   const innings1Id = useMemo(
-    () => (fromApi && scorecard?.innings?.[0] ? scorecard.innings[0].id : null),
-    [fromApi, scorecard?.innings],
+    () => (scorecard?.innings?.[0] ? scorecard.innings[0].id : null),
+    [scorecard?.innings],
   );
   const innings2Id = useMemo(
-    () => (fromApi && scorecard?.innings?.[1] ? scorecard.innings[1].id : null),
-    [fromApi, scorecard?.innings],
+    () => (scorecard?.innings?.[1] ? scorecard.innings[1].id : null),
+    [scorecard?.innings],
   );
 
   useApiMatchSync({
     matchId,
-    fromApi,
     apiMatch,
     scorecard,
     homeTeamId,
@@ -345,14 +430,13 @@ export default function ScoringMatch() {
   // ── Toss dialog trigger ────────────────────────────────────────────────────
 
   useEffect(() => {
-    if (!fromApi || !apiMatch) return;
+    if (!apiMatch) return;
     const hasToss =
       apiMatch.chose_to_bat_or_bowl != null &&
       (apiMatch.toss_winner_team_id != null ||
         (apiMatch.status !== 'completed' && apiMatch.winning_team_id != null));
     if (!hasToss && apiMatch.status === 'scheduled') setTossDialogOpen(true);
   }, [
-    fromApi,
     apiMatch,
     apiMatch?.id,
     apiMatch?.status,
@@ -362,8 +446,7 @@ export default function ScoringMatch() {
   ]);
 
   const handleSaveToss = async () => {
-    if (!fromApi || !matchId || !apiMatch || !tossWinner || !tossDecision)
-      return;
+    if (!matchId || !apiMatch || !tossWinner || !tossDecision) return;
     const winningTeamId =
       tossWinner === 'home' ? apiMatch.home_team_id : apiMatch.away_team_id;
     try {
@@ -395,13 +478,13 @@ export default function ScoringMatch() {
 
   /** Match finished — from API / scorecard only (no local scoring flag). */
   const matchComplete = useMemo(() => {
-    if (!fromApi || !apiMatch) return false;
+    if (!apiMatch) return false;
     if (apiMatch.status === 'completed') return true;
     const i1 = scorecard?.innings?.[0];
     const i2 = scorecard?.innings?.[1];
     if (!i1 || !i2) return false;
     return i1.status === 'completed' && i2.status === 'completed';
-  }, [fromApi, apiMatch, scorecard?.innings]);
+  }, [apiMatch, scorecard?.innings]);
 
   const handleInnings1Complete = useCallback(() => {
     // Innings 2 batting = who bowled in innings 1 (innings1.bowlingSquad)
@@ -489,6 +572,28 @@ export default function ScoringMatch() {
       const battingTeamName = isInnings2
         ? match?.teamB?.name || ''
         : match?.teamA?.name || '';
+      const matchResultForDialog =
+        currentInnings === '2'
+          ? computeMatchResultSummary(match, liveScore1, liveScore2)
+          : undefined;
+      const { useBothTeams: manOfMatchPickerUsesBothTeams } =
+        resolveManOfMatchWinnerScope(
+          apiMatch?.winning_team_id,
+          matchResultForDialog,
+        );
+      const manOfMatchCandidates =
+        currentInnings === '2'
+          ? buildPlayerOfMatchCandidates({
+            winningTeamIdFromApi: apiMatch?.winning_team_id,
+            liveSummary: matchResultForDialog,
+            homeTeamId,
+            awayTeamId,
+            playingElevenHome,
+            playingElevenAway,
+            squadHome,
+            squadAway,
+          })
+          : [];
       dispatch(
         openDialog({
           key: 'inningsEnd',
@@ -498,24 +603,37 @@ export default function ScoringMatch() {
             reason: payload?.reason ?? 'overs',
             battingTeamName,
             matchOvers: match?.overs != null ? Number(match.overs) : undefined,
-            matchResult:
-              currentInnings === '2'
-                ? computeMatchResultSummary(match, liveScore1, liveScore2)
-                : undefined,
+            matchResult: matchResultForDialog,
             tournamentId: apiMatch?.tournament_id,
+            matchId,
+            manOfMatchPickerUsesBothTeams,
+            playerOfMatchAlreadySet:
+              apiMatch?.player_of_match_user_id != null ||
+              apiMatch?.player_of_match?.id != null,
+            manOfMatchCandidates,
           },
         }),
       );
     },
     [
       apiMatch?.tournament_id,
+      apiMatch?.winning_team_id,
+      apiMatch?.player_of_match_user_id,
+      apiMatch?.player_of_match,
+      awayTeamId,
       currentInnings,
       dialogKey,
       dispatch,
+      homeTeamId,
       isInnings2,
       liveScore1,
       liveScore2,
       match,
+      matchId,
+      playingElevenAway,
+      playingElevenHome,
+      squadAway,
+      squadHome,
     ],
   );
 
@@ -543,7 +661,7 @@ export default function ScoringMatch() {
 
   const syncBallToApi1 = useCallback(
     (ball, setLastBallId) => {
-      if (!fromApi || !innings1Id || !matchId) return;
+      if (!innings1Id || !matchId) return;
       const nonStriker = innings1.batsmenOnCrease[1 - innings1.strikerIndex];
       const payload = uiBallToStoreBallPayload({
         ballHistory: innings1.ballHistory,
@@ -559,7 +677,6 @@ export default function ScoringMatch() {
         .catch(() => {});
     },
     [
-      fromApi,
       matchId,
       innings1Id,
       innings1.ballHistory,
@@ -571,15 +688,15 @@ export default function ScoringMatch() {
 
   const syncUndoToApi1 = useCallback(
     (ballId) => {
-      if (!fromApi || !innings1Id || !matchId || ballId == null) return;
+      if (!innings1Id || !matchId || ballId == null) return;
       deleteBall({ matchId, inningsId: innings1Id, ballId }).catch(() => {});
     },
-    [fromApi, matchId, innings1Id, deleteBall],
+    [matchId, innings1Id, deleteBall],
   );
 
   const syncBallToApi2 = useCallback(
     (ball, setLastBallId) => {
-      if (!fromApi || !innings2Id || !matchId) return;
+      if (!innings2Id || !matchId) return;
       const nonStriker = innings2.batsmenOnCrease[1 - innings2.strikerIndex];
       const payload = uiBallToStoreBallPayload({
         ballHistory: innings2.ballHistory,
@@ -595,7 +712,6 @@ export default function ScoringMatch() {
         .catch(() => {});
     },
     [
-      fromApi,
       matchId,
       innings2Id,
       innings2.ballHistory,
@@ -607,10 +723,24 @@ export default function ScoringMatch() {
 
   const syncUndoToApi2 = useCallback(
     (ballId) => {
-      if (!fromApi || !innings2Id || !matchId || ballId == null) return;
+      if (!innings2Id || !matchId || ballId == null) return;
       deleteBall({ matchId, inningsId: innings2Id, ballId }).catch(() => {});
     },
-    [fromApi, matchId, innings2Id, deleteBall],
+    [matchId, innings2Id, deleteBall],
+  );
+
+  // Notify the graphic session about the next batsman/bowler as soon as they
+  // are picked in the scorer UI, before they face/bowl their first ball.
+  // matchId is the same for both innings so a single callback covers both.
+  const syncPendingToApi = useCallback(
+    (patch = {}) => {
+      if (!matchId) return;
+      if (!patch || typeof patch !== 'object' || Object.keys(patch).length === 0) {
+        return;
+      }
+      setPendingGraphicPlayers({ matchId, ...patch }).catch(() => {});
+    },
+    [matchId, setPendingGraphicPlayers],
   );
 
   // ── Tab routing ────────────────────────────────────────────────────────────
@@ -633,7 +763,6 @@ export default function ScoringMatch() {
       matchId,
       match,
       matchComplete,
-      isApiMatch: fromApi,
       innings1Id: innings1Id ?? undefined,
       // Both innings histories for display tabs (Scorecard, Stats, Partnership, Balls)
       ballHistory: innings1.ballHistory,
@@ -643,7 +772,7 @@ export default function ScoringMatch() {
       liveScore: liveScore1,
       innings2LiveScore: liveScore2,
 
-      // StatsTab + ScorecardTab/BallsTab need both innings' batsmen & bowlers
+      // StatsTab + BallsTab need both innings' batsmen & bowlers
       squad: innings1.battingSquad,
       batsmenOnCrease: innings1.batsmenOnCrease,
       bowlersInTable: innings1.bowlersInTable,
@@ -656,6 +785,10 @@ export default function ScoringMatch() {
       secondInningsSquad: innings2.battingSquad,
       secondInningsBowlerSquad: innings2.bowlingSquad,
       secondInningsLiveScore: liveScore2,
+
+      // ScorecardTab — pre-computed innings from API (no frontend calculation needed)
+      innings1: scorecard?.innings?.[0] ?? null,
+      innings2: scorecard?.innings?.[1] ?? null,
 
       // StatsTab expects innings-prefixed props
       innings1BatsmenOnCrease: innings1.batsmenOnCrease,
@@ -675,7 +808,6 @@ export default function ScoringMatch() {
       matchId,
       match,
       matchComplete,
-      fromApi,
       innings1Id,
       innings1.ballHistory,
       innings2.ballHistory,
@@ -691,6 +823,7 @@ export default function ScoringMatch() {
       innings2.bowlersInTable,
       innings1.completedPartnerships,
       innings2.completedPartnerships,
+      scorecard,
       liveScore1,
       liveScore2,
       activeLiveScore,
@@ -774,16 +907,9 @@ export default function ScoringMatch() {
           : undefined,
 
       // API sync (routed to correct innings)
-      syncBallToApi: fromApi
-        ? isInnings2
-          ? syncBallToApi2
-          : syncBallToApi1
-        : undefined,
-      syncUndoToApi: fromApi
-        ? isInnings2
-          ? syncUndoToApi2
-          : syncUndoToApi1
-        : undefined,
+      syncBallToApi: isInnings2 ? syncBallToApi2 : syncBallToApi1,
+      syncUndoToApi: isInnings2 ? syncUndoToApi2 : syncUndoToApi1,
+      syncPendingToApi,
     };
   }, [
     currentInnings,
@@ -798,11 +924,11 @@ export default function ScoringMatch() {
     activeLiveScore,
     liveScore1,
     requestInningsEndUI,
-    fromApi,
     syncBallToApi1,
     syncUndoToApi1,
     syncBallToApi2,
     syncUndoToApi2,
+    syncPendingToApi,
   ]);
 
   // Combined props for the active view.
@@ -815,12 +941,8 @@ export default function ScoringMatch() {
 
   // ── Render ────────────────────────────────────────────────────────────────
 
-  const isLoadingMatch = fromApi && matchLoading;
-  const isMatchError = fromApi && matchError;
-
-  if (!fromApi) {
-    return null; // Redirect to start-match is done in useEffect above
-  }
+  const isLoadingMatch = matchLoading;
+  const isMatchError = matchError;
 
   return (
     <div className="bg-black">
@@ -890,6 +1012,7 @@ export default function ScoringMatch() {
                 match={match}
                 liveScore1={liveScore1}
                 liveScore2={liveScore2}
+                playerOfMatch={apiMatch?.player_of_match ?? null}
               />
             )}
             {!isLoadingMatch && !isMatchError && (
@@ -976,8 +1099,7 @@ export default function ScoringMatch() {
                       disabled={
                         isUpdatingToss ||
                         !tossWinner ||
-                        !tossDecision ||
-                        !fromApi
+                        !tossDecision
                       }
                     >
                       {isUpdatingToss ? 'Saving toss…' : 'Save Toss'}
@@ -996,7 +1118,7 @@ export default function ScoringMatch() {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 /** Displays match result when innings 2 completes (target achieved, all wickets, or all overs). */
-function MatchResultBanner({ match, liveScore1, liveScore2 }) {
+function MatchResultBanner({ match, liveScore1, liveScore2, playerOfMatch }) {
   const s = computeMatchResultSummary(match, liveScore1, liveScore2);
 
   return (
@@ -1009,6 +1131,12 @@ function MatchResultBanner({ match, liveScore1, liveScore2 }) {
       </p>
       {s.tie && s.detailLine ? (
         <p className="mt-2 text-[13px] text-[#A2A6AB]">{s.detailLine}</p>
+      ) : null}
+      {playerOfMatch?.name ? (
+        <p className="mt-4 text-[13px] text-[#A2A6AB]">
+          Man of the match:{' '}
+          <span className="font-semibold text-white">{playerOfMatch.name}</span>
+        </p>
       ) : null}
     </div>
   );

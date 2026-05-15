@@ -6,17 +6,22 @@ use App\Enums\Event\MatchStatusEnum;
 use App\Models\Ball;
 use App\Models\Innings;
 use App\Models\TournamentMatch;
+use App\Services\Broadcast\MatchGraphicCommandHistoryService;
 use Illuminate\Support\Collection;
 
 /**
  * Marks innings and the match as completed from ball data, sets match winner for standings.
  * Re-evaluates on every change (including ball delete) so completion and winner can revert.
  *
- * Rules (aligned with organizer scoring): legal ball = not wide and not no-ball;
+ * Rules (aligned with organizer scoring): legal ball = {@see Ball::isLegalDelivery()};
  * innings ends on max wickets, allocated overs exhausted, or (2nd innings only) runs > target.
  */
 class MatchCompletionService
 {
+    public function __construct(
+        private readonly MatchGraphicCommandHistoryService $graphicCommandHistory,
+    ) {}
+
     public function evaluate(TournamentMatch $match): void
     {
         if ($match->status === MatchStatusEnum::CANCELLED) {
@@ -97,6 +102,7 @@ class MatchCompletionService
                     'winning_team_id' => $match->toss_winner_team_id,
                     'win_by_runs' => null,
                     'win_by_wickets' => null,
+                    'player_of_match_user_id' => null,
                 ]);
             }
 
@@ -128,12 +134,18 @@ class MatchCompletionService
             }
         }
 
+        $wasCompleted = $match->status === MatchStatusEnum::COMPLETED;
+
         $match->update([
             'status' => MatchStatusEnum::COMPLETED,
             'winning_team_id' => $winnerId,
             'win_by_runs' => $winByRuns,
             'win_by_wickets' => $winByWickets,
         ]);
+
+        if (! $wasCompleted) {
+            $this->graphicCommandHistory->clearForMatchIfSessionExists($match);
+        }
     }
 
     /**
@@ -141,10 +153,7 @@ class MatchCompletionService
      */
     private function orderedBalls(Innings $innings): Collection
     {
-        return $innings->balls()
-            ->orderBy('over')
-            ->orderBy('ball_in_over')
-            ->get();
+        return $innings->balls()->get();
     }
 
     /**
@@ -152,12 +161,9 @@ class MatchCompletionService
      */
     private function totalsFromBalls(Collection $balls): array
     {
-        // Batting total per innings: `runs` is the runs credited on that delivery from scoring
-        // (extras, no-ball + runs, etc.). Do not add `penalty_runs` on top — that double-counts
-        // if the same award is stored in both columns (organizer UI sends penalty_runs: 0).
-        $runs = (int) $balls->sum('runs');
+        $runs = (int) $balls->sum(fn (Ball $b) => (int) ($b->runs ?? 0) + (int) ($b->penalty_runs ?? 0));
         $wickets = $balls->where('is_wicket', true)->count();
-        $validDeliveries = $balls->filter(fn (Ball $b) => ! $b->is_wide && ! $b->is_no_ball)->count();
+        $validDeliveries = $balls->filter(fn (Ball $b) => $b->isLegalDelivery())->count();
 
         return [
             'runs' => $runs,

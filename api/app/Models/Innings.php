@@ -34,6 +34,9 @@ class Innings extends BaseModel
 
     public function balls(): HasMany
     {
-        return $this->hasMany(Ball::class, 'innings_id');
+        return $this->hasMany(Ball::class, 'innings_id')
+            ->orderBy('over')
+            ->orderBy('ball_in_over')
+            ->orderBy('id');  // tiebreaker: NB (lower id) always before its free-hit delivery
     }
 }

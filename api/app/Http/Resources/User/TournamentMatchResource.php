@@ -30,6 +30,11 @@ class TournamentMatchResource extends JsonResource
             'away_team_id' => $match->away_team_id,
             'home_team' => $this->whenLoaded('homeTeam', fn () => new TeamResource($match->homeTeam)),
             'away_team' => $this->whenLoaded('awayTeam', fn () => new TeamResource($match->awayTeam)),
+            'tournament' => $this->whenLoaded('tournament', fn () => [
+                'id' => $match->tournament->id,
+                'name' => $match->tournament->tournament_name ?? '',
+                'logo_url' => null,
+            ]),
 
             'winning_team_id' => $match->winning_team_id,
             'toss_winner_team_id' => $match->toss_winner_team_id,
@@ -40,6 +45,20 @@ class TournamentMatchResource extends JsonResource
 
             'win_by_runs' => $match->win_by_runs !== null ? (int) $match->win_by_runs : null,
             'win_by_wickets' => $match->win_by_wickets !== null ? (int) $match->win_by_wickets : null,
+            'player_of_match_user_id' => $match->player_of_match_user_id !== null
+                ? (int) $match->player_of_match_user_id
+                : null,
+            'player_of_match' => $this->whenLoaded('playerOfMatch', function () use ($match) {
+                if (! $match->playerOfMatch) {
+                    return null;
+                }
+                $u = $match->playerOfMatch;
+
+                return [
+                    'id' => (int) $u->id,
+                    'name' => $u->name ?: $u->nickname ?: 'Player',
+                ];
+            }),
             'result_summary' => $match->resultSummary(),
 
             'created_at' => $match->created_at?->toIso8601String(),

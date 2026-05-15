@@ -1,11 +1,28 @@
-const TEAM_ONE_PLAYERS = Array.from(
-  { length: 11 },
-  (_, index) => `Player ${index + 1}`,
-);
-const TEAM_TWO_PLAYERS = Array.from(
-  { length: 11 },
-  (_, index) => `Player ${index + 1}`,
-);
+import {
+  playerPickerMetaSegments,
+  playerProfileRoleLabel,
+  playingLineupMetaVariant,
+} from '@/lib/utils/playerUtils';
+
+/** @param {string | Record<string, unknown>} raw */
+function playingXiRowMeta(raw) {
+  if (raw == null || typeof raw === 'string') {
+    return { name: String(raw ?? ''), metaText: null };
+  }
+  const name = typeof raw.name === 'string' ? raw.name : '';
+  const metaPlayer = {
+    playing_role: raw.playing_role,
+    playing_role_enum: raw.playing_role_enum,
+    batting_style: raw.batting_style,
+    batting_style_enum: raw.batting_style_enum,
+    bowling_style: raw.bowling_style,
+    bowling_style_enum: raw.bowling_style_enum,
+  };
+  const variant = playingLineupMetaVariant(playerProfileRoleLabel(metaPlayer));
+  const segments = playerPickerMetaSegments(metaPlayer, variant);
+  const metaText = segments.length > 0 ? segments.join(' · ') : null;
+  return { name, metaText, userId: raw.user_id };
+}
 
 function TeamColumn({ teamName, players }) {
   return (
@@ -14,20 +31,51 @@ function TeamColumn({ teamName, players }) {
         {teamName}
       </h3>
       <ul className="border border-[#1A1A1A] bg-black/55">
-        {players.map((playerName) => (
-          <li
-            key={`${teamName}-${playerName}`}
-            className="border-b border-[#1A1A1A] px-9 py-3 text-[14px] leading-none font-normal text-[#E8E8E8] last:border-b-0"
-          >
-            {playerName}
-          </li>
-        ))}
+        {players.map((raw, index) => {
+          const { name, metaText, userId } = playingXiRowMeta(raw);
+          const key =
+            userId != null && typeof userId === 'number' ? `p-${userId}` : `${teamName}-${index}`;
+          return (
+            <li
+              key={key}
+              className="border-b border-[#1A1A1A] px-9 py-3 text-[14px] font-normal text-[#E8E8E8] last:border-b-0"
+            >
+              <span className="block leading-none">{name}</span>
+              {metaText ? (
+                <span className="mt-1.5 block text-[11px] leading-snug font-medium text-[#A2A6AB]">
+                  {metaText}
+                </span>
+              ) : null}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
 }
 
-export default function PlayingXI() {
+export default function PlayingXI({
+  homeTeam = {},
+  awayTeam = {},
+  matchLabel = '',
+  requiredRunRate = '',
+  side = 'both',
+}) {
+  const homeName = homeTeam.name || homeTeam.shortCode || 'Home';
+  const awayName = awayTeam.name || awayTeam.shortCode || 'Away';
+  const homePlayers = homeTeam.players ?? [];
+  const awayPlayers = awayTeam.players ?? [];
+
+  const both = side === 'both';
+  const columns = both
+    ? [
+        [homeName, homePlayers],
+        [awayName, awayPlayers],
+      ]
+    : [[side === 'home' ? homeName : awayName, side === 'home' ? homePlayers : awayPlayers]];
+
+  const title = both ? 'Playing XI' : `Playing XI — ${columns[0][0]}`;
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#1D1E22] p-3 sm:p-5">
       <section className="relative w-full max-w-[677px] overflow-hidden bg-[#0D0806] pt-10 pb-8 text-white sm:pt-11 sm:pb-10">
@@ -40,23 +88,30 @@ export default function PlayingXI() {
 
         <div className="relative z-10">
           <div className="px-8 sm:px-12">
-            <p className="mb-2 text-[18px] leading-none font-normal text-[#E9E9E9]">
-              Playing XI
-            </p>
-            <p className="mb-6 text-[24px] leading-none font-semibold text-[#D89A18]">
-              Tournament (Match 7)
-            </p>
+            <p className="mb-2 text-[18px] leading-none font-normal text-[#E9E9E9]">{title}</p>
+            {matchLabel ? (
+              <p className="mb-6 text-[24px] leading-none font-semibold text-[#D89A18]">
+                {matchLabel}
+              </p>
+            ) : null}
           </div>
           <div className="mb-6 h-px w-full bg-[#FFFFFF1C]" />
 
-          <div className="mb-2 flex items-start justify-between gap-10 px-8 sm:px-12">
-            <TeamColumn teamName="Team 1" players={TEAM_ONE_PLAYERS} />
-            <TeamColumn teamName="Team 2" players={TEAM_TWO_PLAYERS} />
+          <div
+            className={`mb-2 flex items-start gap-10 px-8 sm:px-12 ${
+              both ? 'justify-between' : 'justify-center'
+            }`}
+          >
+            {columns.map(([name, players], i) => (
+              <TeamColumn key={`${name}-${i}`} teamName={name} players={players} />
+            ))}
           </div>
 
-          <p className="mt-3 text-center text-[20px] leading-none font-semibold text-[#DA9A10]">
-            Required Run :13.50
-          </p>
+          {requiredRunRate ? (
+            <p className="mt-3 text-center text-[20px] leading-none font-semibold text-[#DA9A10]">
+              Required Run Rate: {requiredRunRate}
+            </p>
+          ) : null}
         </div>
       </section>
     </div>

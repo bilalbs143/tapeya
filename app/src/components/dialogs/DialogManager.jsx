@@ -23,7 +23,7 @@ const DIALOG_COMPONENTS = {
 
 const DIALOG_CONTENT_CLASS_BY_KEY = {
   deleteAccount: '!min-h-[300px]',
-  inningsEnd: '!h-auto !min-h-[240px]',
+  inningsEnd: '!h-auto !min-h-[260px] !max-h-[90vh]',
 };
 
 export function DialogManager() {

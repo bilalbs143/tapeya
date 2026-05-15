@@ -6,6 +6,7 @@ use App\Http\Controllers\User\EnumController;
 use App\Http\Controllers\User\HeroSliderController;
 use App\Http\Controllers\User\InterestCampaignController;
 use App\Http\Controllers\User\MatchGraphicSessionController;
+use App\Http\Controllers\User\MatchPlayerOfMatchController;
 use App\Http\Controllers\User\MatchSquadController;
 use App\Http\Controllers\User\MatchTossController;
 use App\Http\Controllers\User\NotificationController;
@@ -111,7 +112,9 @@ Route::middleware('auth:api')->group(function () {
     Route::post('tournaments/{tournament}/matches', [TournamentMatchController::class, 'store']);
     Route::get('matches/{match}', [TournamentMatchController::class, 'show']);
     Route::get('matches/{match}/graphic-session', [MatchGraphicSessionController::class, 'show']);
+    Route::patch('matches/{match}/graphic-session/pending-players', [MatchGraphicSessionController::class, 'setPendingPlayers']);
     Route::patch('matches/{match}/toss', [MatchTossController::class, 'update']);
+    Route::patch('matches/{match}/player-of-match', [MatchPlayerOfMatchController::class, 'update']);
     Route::get('matches/{match}/scorecard', [ScorecardController::class, 'scorecard']);
     Route::get('matches/{match}/player-stats', [ScorecardController::class, 'playerStats']);
     Route::post('matches/{match}/innings/{innings}/balls', [ScorecardController::class, 'storeBall']);

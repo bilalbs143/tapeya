@@ -18,4 +18,16 @@ trait BaseEnumTrait
 
         return $out;
     }
+
+    /**
+     * Map a stored backing value (e.g. from the database) to a display label, or null if empty / not a known case.
+     */
+    public static function tryLabelFromValue(string|int|null $raw): ?string
+    {
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+
+        return self::tryFrom($raw)?->label();
+    }
 }

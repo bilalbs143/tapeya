@@ -46,7 +46,7 @@
               Overlay URL (signed)
               <span class="text-xs font-normal text-muted ms-1">— Paste into OBS / vMix; renew before expiry</span>
             </mat-label>
-            <div class="flex flex-wrap items-start gap-2">
+            <div class="flex flex-wrap items-center gap-2">
               <mat-form-field
                 appearance="outline"
                 class="flex-1 min-w-0"
@@ -61,21 +61,21 @@
               </mat-form-field>
               <button
                 type="button"
-                mat-icon-button
-                class="shrink-0 mt-1"
+                class="overlay-url-action"
                 [matTooltip]="urlCopied ? 'Copied!' : 'Copy URL'"
+                aria-label="Copy overlay URL"
                 (click)="copyOverlayUrl()"
               >
                 <mat-icon>{{ urlCopied ? 'check' : 'content_copy' }}</mat-icon>
               </button>
               <button
                 type="button"
-                mat-stroked-button
-                class="shrink-0 mt-1"
-                matTooltip="Issue a new link with a later expiry (old URL stops working)"
+                class="overlay-url-action"
+                matTooltip="Issue a new signed URL — previous link stops working"
+                aria-label="Refresh signed overlay URL"
                 (click)="refreshSignedOverlayUrl()"
               >
-                New link
+                <mat-icon>refresh</mat-icon>
               </button>
             </div>
           </div>

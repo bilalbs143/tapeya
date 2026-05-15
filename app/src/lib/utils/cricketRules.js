@@ -10,7 +10,7 @@
 // ─── Delivery classification ──────────────────────────────────────────────────
 
 /** Ball types that do NOT count as a legal delivery (over counter does not advance). */
-export const ILLEGAL_DELIVERY_TYPES = new Set(['wd', 'nb']);
+export const ILLEGAL_DELIVERY_TYPES = new Set(['wd', 'nb', 'penalty']);
 
 /** Ball types that DO count as a legal delivery (over counter advances). */
 export function isLegalDelivery(ballType) {
@@ -65,6 +65,9 @@ export function doesFreeHitCarryOver(ballType) {
 export function computePendingFreeHit(ballHistory, currentPendingFreeHit) {
   const last = ballHistory[ballHistory.length - 1];
   if (!last) return false;
+
+  // Penalty-only rows are not a delivery — free-hit state is unchanged.
+  if (last.type === 'penalty') return currentPendingFreeHit;
 
   // A no-ball always triggers a free hit on the next delivery.
   if (last.type === 'nb') return true;

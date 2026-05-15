@@ -7,11 +7,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreBallRequest;
 use App\Http\Requests\User\UpdateBallRequest;
 use App\Jobs\RefreshMatchStatsJob;
+use App\Jobs\SyncMatchGraphicContextJob;
 use App\Models\Ball;
 use App\Models\Innings;
 use App\Models\MatchScoringAudit;
 use App\Models\TournamentMatch;
 use App\Models\User;
+use App\Services\InningsStatsService;
 use App\Services\MatchCompletionService;
 use App\Services\PlayerStatsService;
 use Illuminate\Http\JsonResponse;
@@ -25,6 +27,7 @@ class ScorecardController extends Controller
     public function __construct(
         private readonly MatchCompletionService $completionService,
         private readonly PlayerStatsService $statsService,
+        private readonly InningsStatsService $inningsStats,
     ) {}
 
     // ─── Mutation endpoints ───────────────────────────────────────────────────
@@ -52,11 +55,14 @@ class ScorecardController extends Controller
 
         $this->logScoringAudit($match, $authUser, 'store_ball', $ball->id, ['innings_id' => $innings->id]);
 
+        $this->clearGraphicPendingCreaseIds($match);
+
         $innings->update(['status' => 'in_progress']);
 
         $this->completionService->evaluate($match->fresh());
 
         RefreshMatchStatsJob::dispatch($match->id)->delay(now()->addSeconds(3));
+        SyncMatchGraphicContextJob::dispatch($match->id);
 
         $ball->load(['striker', 'nonStriker', 'bowler', 'outPlayer', 'fielder']);
 
@@ -83,9 +89,12 @@ class ScorecardController extends Controller
 
         $this->logScoringAudit($match, $authUser, 'update_ball', $ball->id);
 
+        $this->clearGraphicPendingCreaseIds($match);
+
         $this->completionService->evaluate($match->fresh());
 
         RefreshMatchStatsJob::dispatch($match->id)->delay(now()->addSeconds(3));
+        SyncMatchGraphicContextJob::dispatch($match->id);
 
         $ball->load(['striker', 'nonStriker', 'bowler', 'outPlayer', 'fielder']);
 
@@ -112,9 +121,12 @@ class ScorecardController extends Controller
 
         $ball->delete();
 
+        $this->clearGraphicPendingCreaseIds($match);
+
         $this->completionService->evaluate($match->fresh());
 
         RefreshMatchStatsJob::dispatch($match->id)->delay(now()->addSeconds(3));
+        SyncMatchGraphicContextJob::dispatch($match->id);
 
         return $this->success(null, 'Ball deleted.');
     }
@@ -135,14 +147,18 @@ class ScorecardController extends Controller
             ->with([
                 'battingTeam',
                 'bowlingTeam',
-                'balls' => fn ($q) => $q->orderBy('over')->orderBy('ball_in_over'),
+                'balls' => fn ($q) => $q
+                    ->with(['striker:id,name', 'nonStriker:id,name', 'bowler:id,name', 'outPlayer:id,name', 'fielder:id,name'])
+                    ->orderBy('over')->orderBy('ball_in_over')->orderBy('id'),
             ])
             ->orderBy('innings_number')
             ->get();
 
+        $match->loadMissing('graphicSession');
+
         $data = [
             'match_id' => $match->id,
-            'innings' => $innings->map(fn (Innings $inn) => $this->formatInnings($inn)),
+            'innings' => $innings->map(fn (Innings $inn) => $this->formatInnings($match, $inn)),
         ];
 
         return $this->success($data);
@@ -201,31 +217,37 @@ class ScorecardController extends Controller
 
     /**
      * Format a single innings for the scorecard response.
-     *
-     * Extras breakdown is returned as a structured object so the frontend can
-     * display Wides, No Balls, Byes, Leg Byes, and Penalty Runs individually.
-     *
-     * Wicket count excludes retired_hurt (law: does not count as a dismissal).
      */
-    private function formatInnings(Innings $inn): array
+    private function formatInnings(TournamentMatch $match, Innings $inn): array
     {
         /** @var Collection<int, Ball> $balls */
         $balls = $inn->balls;
 
-        $totalRuns = $balls->sum('runs');
+        $names = InningsStatsService::namesFromRelations($balls);
+        $stats = $this->inningsStats->compute($balls, $names);
+        $extras = $stats['extras_breakdown'];
 
-        // Retired hurt does NOT count as a wicket.
-        $totalWickets = $balls->filter(
-            fn (Ball $b) => $b->is_wicket && ! $b->isRetiredHurt()
-        )->count();
-
-        // Individual extras breakdown — allows frontend to display per-type totals.
-        $wides = (int) $balls->filter(fn (Ball $b) => $b->is_wide)->sum('runs');
-        $noBalls = (int) $balls->filter(fn (Ball $b) => $b->is_no_ball && ! $b->is_wide)->sum('runs');
-        $byes = (int) $balls->filter(fn (Ball $b) => $b->is_bye)->sum('runs');
-        $legByes = (int) $balls->filter(fn (Ball $b) => $b->is_leg_bye)->sum('runs');
-        $penaltyRuns = (int) $balls->sum('penalty_runs');
-        $totalExtras = $wides + $noBalls + $byes + $legByes + $penaltyRuns;
+        $currentStrikerId = $stats['current_striker_id'];
+        $pending = $match->graphicSession?->pending_players;
+        if (is_array($pending)
+            && ! empty($pending['next_batter_id'])
+            && ! empty($pending['next_non_striker_id'])
+            && $balls->isNotEmpty()
+        ) {
+            $pb = (int) $pending['next_batter_id'];
+            $pn = (int) $pending['next_non_striker_id'];
+            $resolved = InningsStatsService::resolveCreaseAfterBalls($balls);
+            $pairBall = array_values(array_unique(array_filter(
+                [(int) ($resolved['striker_id'] ?? 0), (int) ($resolved['non_striker_id'] ?? 0)],
+                static fn (int $id) => $id > 0
+            )));
+            $pairPending = [$pb, $pn];
+            sort($pairBall);
+            sort($pairPending);
+            if (count($pairBall) === 2 && $pairBall === $pairPending) {
+                $currentStrikerId = $pb;
+            }
+        }
 
         return [
             'id' => $inn->id,
@@ -239,16 +261,22 @@ class ScorecardController extends Controller
                 ? ['id' => $inn->bowlingTeam->id, 'name' => $inn->bowlingTeam->name]
                 : null,
             'status' => $inn->status,
-            'total_runs' => $totalRuns,
-            'total_wickets' => $totalWickets,
-            'total_extras' => $totalExtras,
+            'total_runs' => $stats['total_runs'],
+            'total_wickets' => $stats['total_wickets'],
+            'total_extras' => $extras['total'],
             'extras_breakdown' => [
-                'wides' => $wides,
-                'no_balls' => $noBalls,
-                'byes' => $byes,
-                'leg_byes' => $legByes,
-                'penalty_runs' => $penaltyRuns,
+                'wides' => $extras['wides'],
+                'no_balls' => $extras['no_balls'],
+                'byes' => $extras['byes'],
+                'leg_byes' => $extras['leg_byes'],
+                'penalty_runs' => $extras['penalty_runs'],
             ],
+            'overs_display' => InningsStatsService::oversDisplay($stats['legal_balls']),
+            'run_rate' => InningsStatsService::runRate($stats['total_runs'], $stats['legal_balls']),
+            'current_striker_id' => $currentStrikerId,
+            'batting_stats' => $stats['batting'],
+            'bowling_stats' => $stats['bowling'],
+            'fall_of_wickets' => $stats['fall_of_wickets'],
             'balls_count' => $balls->count(),
             'partnerships' => $this->statsService->partnershipsForInnings($inn->id, $balls),
             'balls' => $balls->map(fn (Ball $b) => [
@@ -293,5 +321,25 @@ class ScorecardController extends Controller
             'ball_id' => $ballId,
             'meta' => $meta,
         ]);
+    }
+
+    /**
+     * Drop crease keys from graphic pending_players after a ball mutation so
+     * stale opener lines cannot override {@see InningsStatsService::resolveCreaseAfterBalls()}.
+     * Manual striker / non-striker taps re-populate pending before the next delivery.
+     */
+    private function clearGraphicPendingCreaseIds(TournamentMatch $match): void
+    {
+        $session = $match->graphicSession;
+        if ($session === null) {
+            return;
+        }
+        $pending = $session->pending_players;
+        if (! is_array($pending) || $pending === []) {
+            return;
+        }
+        unset($pending['next_batter_id'], $pending['next_non_striker_id']);
+        $session->update(['pending_players' => $pending === [] ? null : $pending]);
+        $match->unsetRelation('graphicSession');
     }
 }

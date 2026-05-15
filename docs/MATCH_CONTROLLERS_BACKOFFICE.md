@@ -106,7 +106,7 @@ Mirror the reference **card/grid** layout conceptually; implement with Tapeya’
 |--------------------|---------|------------------------------|
 | Lower third | Quick triggers for score/status/player lines | Button groups call API `POST .../commands` with typed codes |
 | Tournament block | Draw selection + league tables / leaders | Bind to tournament stage/draw enums + existing tournament data |
-| Charts | Worm, run rate, Manhattan, wagon wheel | Commands only unless you add chart data endpoints later |
+| Charts | Worm, run rate, Manhattan | Commands only unless you add chart data endpoints later |
 | Full screen | Squads, summaries, MOM, etc. | Same command pattern; `display_mode: FULL_SCREEN` |
 | Select batsman / bowler | Player + career-type dropdowns | Load roster via existing `GET /matches/{match}/teams/{team}/squad` and playing eleven via `.../playing-eleven`; stats via `GET /matches/{match}/player-stats` |
 | Tour hits & transitions | Milestones, replay, decision | Command types + optional animation id in payload |

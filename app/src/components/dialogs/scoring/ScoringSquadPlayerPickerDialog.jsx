@@ -45,14 +45,13 @@ function PlayingBenchRoleToggle({ playerId, role, onSetRole }) {
 }
 
 function SquadPickerSaveFooter({
-  isApiMatch,
   hideSquadSetup,
   saving,
   requiredPlayingCount,
   squad,
   onSave,
 }) {
-  if (!isApiMatch || hideSquadSetup) return null;
+  if (hideSquadSetup) return null;
 
   const playingCount = squad.filter((p) => p.role === 'playing').length;
   const remaining = requiredPlayingCount - playingCount;
@@ -236,7 +235,6 @@ export default function ScoringSquadPlayerPickerDialog({
   onOpenChange,
   players,
   hideSquadSetup = false,
-  isApiMatch,
   savingSquad,
   requiredPlayingCount,
   squad,
@@ -318,7 +316,6 @@ export default function ScoringSquadPlayerPickerDialog({
       </DialogScrollBody>
 
       <SquadPickerSaveFooter
-        isApiMatch={isApiMatch}
         hideSquadSetup={hideSquadSetup}
         saving={savingSquad}
         requiredPlayingCount={requiredPlayingCount}

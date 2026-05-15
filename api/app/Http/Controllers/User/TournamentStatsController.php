@@ -236,9 +236,8 @@ class TournamentStatsController extends Controller
             ? $innings->balls
             : $innings->balls()->get();
 
-        // Same as innings total for scorecard: use `runs` only (see MatchCompletionService).
-        $runs = (int) $balls->sum('runs');
-        $legalBalls = $balls->filter(fn (Ball $b) => ! $b->is_wide && ! $b->is_no_ball)->count();
+        $runs = (int) $balls->sum(fn (Ball $b) => (int) ($b->runs ?? 0) + (int) ($b->penalty_runs ?? 0));
+        $legalBalls = $balls->filter(fn (Ball $b) => $b->isLegalDelivery())->count();
 
         return ['runs' => $runs, 'legal_balls' => $legalBalls];
     }

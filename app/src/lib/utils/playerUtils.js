@@ -85,3 +85,17 @@ export function playerPickerMetaSegments(player, variant) {
   }
   return segments;
 }
+
+/**
+ * Which picker variant to use for lineup / Playing XI meta (role + one or both styles).
+ *
+ * @param {string|null|undefined} roleLabel Human-readable role (e.g. "Bowler", "All Rounder")
+ * @returns {'batting'|'bowling'|'fielder'}
+ */
+export function playingLineupMetaVariant(roleLabel) {
+  const r = String(roleLabel ?? '').toLowerCase();
+  if (r.includes('all') && r.includes('round')) return 'fielder';
+  if (r.includes('bowler')) return 'bowling';
+  if (r.includes('batsman') || r.includes('batter')) return 'batting';
+  return 'fielder';
+}

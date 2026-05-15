@@ -83,6 +83,7 @@ Route::prefix('admin')->group(function () {
         Route::get('matches/{match}/graphic-session', [MatchGraphicSessionController::class, 'show']);
         Route::get('matches/{match}/graphic-session/signed-url', [MatchGraphicSessionController::class, 'signedOverlayUrl']);
         Route::match(['put', 'patch'], 'matches/{match}/graphic-session', [MatchGraphicSessionController::class, 'update']);
+        Route::patch('matches/{match}/graphic-session/pending-players', [MatchGraphicSessionController::class, 'setPendingPlayers']);
         Route::get('matches/{match}/graphic-session/captions', [MatchGraphicCaptionController::class, 'index']);
         Route::post('matches/{match}/graphic-session/captions', [MatchGraphicCaptionController::class, 'store']);
         Route::match(['put', 'patch'], 'matches/{match}/graphic-session/captions/{caption}', [MatchGraphicCaptionController::class, 'update']);

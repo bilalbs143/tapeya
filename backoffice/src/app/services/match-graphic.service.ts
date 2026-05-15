@@ -70,6 +70,8 @@ export interface MatchGraphicPlayerListRow {
   user_id: number;
   name: string;
   playing_role: string | null;
+  batting_style?: string | null;
+  bowling_style?: string | null;
 }
 
 export interface MatchGraphicTeamPlayerList {

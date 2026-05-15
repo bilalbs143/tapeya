@@ -19,6 +19,7 @@ import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
   ballsToOvers,
   buildBallListWithMetaAndOverSummaries,
+  extraBallLabel,
 } from '@/lib/utils/scoringUtils';
 
 const ARROW_RIGHT_ORANGE = `${CLOUDFRONT_APP_BASE}/images/icons/arrow-right-orange.svg`;
@@ -46,25 +47,17 @@ function getBallDisplay(ball) {
     case 'retired_hurt':
       return { label: 'RH', variant: 'retired' };
     case 'wd':
-      return {
-        label: ball.runs > 1 ? `WD${ball.runs}` : 'WD',
-        variant: 'extra',
-      };
+      return { label: extraBallLabel('wd', ball.runs), variant: 'extra' };
     case 'nb':
-      return {
-        label: ball.runs > 1 ? `NB${ball.runs}` : 'NB',
-        variant: 'extra',
-      };
+      return { label: extraBallLabel('nb', ball.runs), variant: 'extra' };
     case 'bye':
-      return {
-        label: (ball.runs ?? 0) > 0 ? `B${ball.runs}` : 'B',
-        variant: 'extra',
-      };
+      return { label: extraBallLabel('bye', ball.runs), variant: 'extra' };
     case 'lb':
-      return {
-        label: (ball.runs ?? 0) > 0 ? `LB${ball.runs}` : 'LB',
-        variant: 'extra',
-      };
+      return { label: extraBallLabel('lb', ball.runs), variant: 'extra' };
+    case 'penalty': {
+      const pr = ball.penaltyRuns ?? 0;
+      return { label: pr > 0 ? `P${pr}` : 'P', variant: 'extra' };
+    }
     default:
       return { label: '0', variant: 'dot' };
   }
@@ -103,6 +96,10 @@ function getBallDescription(ball) {
       return (ball.runs ?? 0) > 0 ? `Bye — ${ball.runs} runs` : 'Bye';
     case 'lb':
       return (ball.runs ?? 0) > 0 ? `Leg bye — ${ball.runs} runs` : 'Leg bye';
+    case 'penalty': {
+      const pr = ball.penaltyRuns ?? 0;
+      return pr > 0 ? `Penalty — ${pr} runs` : 'Penalty';
+    }
     default:
       return DASH;
   }

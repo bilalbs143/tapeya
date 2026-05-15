@@ -17,6 +17,7 @@
 import { useRef } from 'react';
 
 import { isLegalDelivery } from '@/lib/utils/cricketRules';
+import { extraBallLabel, getRunsFromBall } from '@/lib/utils/scoringUtils';
 
 // ─── Ball display helpers ─────────────────────────────────────────────────────
 
@@ -35,25 +36,17 @@ function getBallDisplay(ball) {
     case 'retired_hurt':
       return { label: 'RH', variant: 'retired' };
     case 'wd':
-      return {
-        label: ball.runs > 1 ? `WD${ball.runs}` : 'WD',
-        variant: 'extra',
-      };
+      return { label: extraBallLabel('wd', ball.runs), variant: 'extra' };
     case 'nb':
-      return {
-        label: ball.runs > 1 ? `NB${ball.runs}` : 'NB',
-        variant: 'extra',
-      };
+      return { label: extraBallLabel('nb', ball.runs), variant: 'extra' };
     case 'bye':
-      return {
-        label: (ball.runs ?? 0) > 0 ? `B${ball.runs}` : 'B',
-        variant: 'extra',
-      };
+      return { label: extraBallLabel('bye', ball.runs), variant: 'extra' };
     case 'lb':
-      return {
-        label: (ball.runs ?? 0) > 0 ? `LB${ball.runs}` : 'LB',
-        variant: 'extra',
-      };
+      return { label: extraBallLabel('lb', ball.runs), variant: 'extra' };
+    case 'penalty': {
+      const pr = ball.penaltyRuns ?? 0;
+      return { label: pr > 0 ? `P${pr}` : 'P', variant: 'extra' };
+    }
     default:
       return { label: '•', variant: 'dot' };
   }
@@ -131,18 +124,10 @@ export function OverStrip({ oversFromBalls = [], scrollRef }) {
           const legalBallCount = balls.filter((b) =>
             isLegalDelivery(b.type),
           ).length;
-          const overRuns = balls.reduce((s, b) => {
-            if (!b) return s;
-            if (b.type === 'runs') return s + (b.runs ?? 0);
-            if (
-              b.type === 'wd' ||
-              b.type === 'nb' ||
-              b.type === 'bye' ||
-              b.type === 'lb'
-            )
-              return s + (b.runs ?? 0);
-            return s;
-          }, 0);
+          const overRuns = balls.reduce(
+            (s, b) => s + (b ? getRunsFromBall(b) : 0),
+            0,
+          );
 
           return (
             <div

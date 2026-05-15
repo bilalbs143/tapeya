@@ -1,6 +1,6 @@
 <app-dialog-wrapper [title]="title">
   <form
-    (ngSubmit)="save()"
+    (submit)="onSubmit($event)"
     aria-label="Attach teams to tournament"
   >
     <mat-dialog-content>

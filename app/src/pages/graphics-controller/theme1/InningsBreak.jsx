@@ -1,7 +1,7 @@
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 
 const controllerFrameBg = `${CLOUDFRONT_APP_BASE}/images/background/controller-frame.png`;
-const teamLogo = `${CLOUDFRONT_APP_BASE}/images/standard/team-logo.png`;
+const defaultTeamLogo = `${CLOUDFRONT_APP_BASE}/images/standard/team-logo.png`;
 
 const frameStyle = {
   backgroundImage: `url(${controllerFrameBg})`,
@@ -10,7 +10,10 @@ const frameStyle = {
   backgroundSize: 'cover',
 };
 
-export default function InningsBreak() {
+export default function InningsBreak({ homeTeam = {}, awayTeam = {} }) {
+  const homeLogo = homeTeam.logoUrl ?? defaultTeamLogo;
+  const awayLogo = awayTeam.logoUrl ?? defaultTeamLogo;
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#1D1E22] p-3 sm:p-5">
       <section
@@ -19,16 +22,16 @@ export default function InningsBreak() {
       >
         <div className="mb-12 flex w-full max-w-[460px] items-center justify-between">
           <img
-            src={teamLogo}
-            alt="Team one logo"
+            src={homeLogo}
+            alt={homeTeam.name || 'Home team'}
             className="h-[104px] w-[104px] rounded-full object-cover"
           />
           <span className="text-[54px] leading-none font-bold text-[#DA9811] uppercase">
             VS
           </span>
           <img
-            src={teamLogo}
-            alt="Team two logo"
+            src={awayLogo}
+            alt={awayTeam.name || 'Away team'}
             className="h-[104px] w-[104px] rounded-full object-cover"
           />
         </div>

@@ -4,6 +4,8 @@ import { useDispatch } from 'react-redux';
 
 import { graphicSessionApi, useGetGraphicSessionQuery } from '@/store/api/graphicSessionApi';
 import { getGraphicComponent } from './graphicRegistry';
+import { buildGraphicProps } from './buildGraphicProps';
+import { graphicLogger, isGraphicDebugEnabled } from './graphicDebugLog';
 import { useGraphicChannel } from '@/hooks/useGraphicChannel';
 
 /**
@@ -86,6 +88,12 @@ export default function GraphicOverlay() {
             payload: event.payload ?? null,
             id: event.command_id,
           };
+          // Keep the cached context in sync — the event carries the current
+          // session context so graphics that read ctx (team names, score, etc.)
+          // always have fresh data without a full HTTP re-fetch.
+          if (event.context != null) {
+            draft.context = event.context;
+          }
         }),
       );
     },
@@ -105,17 +113,33 @@ export default function GraphicOverlay() {
   const GraphicComponent = getGraphicComponent(commandKey, theme);
 
   // null means LT_EMPTY / intentionally clear — transparent screen.
-  if (!GraphicComponent) return null;
+  if (!GraphicComponent) {
+    return null;
+  }
 
-  const payload = session?.active_command?.payload;
-  const graphicProps =
-    commandKey === 'CUSTOM' && payload && typeof payload === 'object'
-      ? {
-          text: [payload.title, payload.description]
-            .filter((v) => v != null && String(v).trim() !== '')
-            .join('\n\n'),
-        }
-      : {};
+  const payload = session?.active_command?.payload ?? null;
+  const graphicProps = buildGraphicProps(commandKey, session, payload);
+
+  if (isGraphicDebugEnabled()) {
+    graphicLogger('log', 'GraphicOverlay.build', {
+      matchId,
+      theme,
+      commandKey,
+      commandType: session?.active_command?.command_type ?? null,
+      hasContext: Boolean(session?.context),
+      contextMatch: session?.context?.match ?? null,
+      payload,
+      graphicPropsKeys:
+        graphicProps && typeof graphicProps === 'object' ? Object.keys(graphicProps) : [],
+      ...(commandKey === 'TOSS_LT' && {
+        tossDecision: graphicProps?.decision ?? '',
+      }),
+      ...(commandKey === 'RESULT_LT' && {
+        resultLine: graphicProps?.resultLine,
+        winningTeam: graphicProps?.winningTeam,
+      }),
+    });
+  }
 
   return (
     // graphic-overlay-container: CSS in index.css strips the outer dark

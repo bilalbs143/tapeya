@@ -1,30 +1,50 @@
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 
-const teamLogo = `${CLOUDFRONT_APP_BASE}/images/standard/team-logo.png`;
-const controllerFrameBg = `${CLOUDFRONT_APP_BASE}/images/background/controller-frame.png`;
+import {
+  controllerFrameImageUrl,
+  statsDefaultBatterSeparatorStyle,
+  statsDefaultVerticalSeparatorStyle,
+} from './playerGraphicTheme';
+import {
+  ballChipClass,
+  BatterNameLabel,
+  FreeHitMicroBadge,
+} from './ScoreboardHeader';
+
+const defaultTeamLogo = `${CLOUDFRONT_APP_BASE}/images/standard/team-logo.png`;
 
 const rightHalfStyle = {
-  backgroundImage: `url(${controllerFrameBg})`,
+  backgroundImage: `url(${controllerFrameImageUrl})`,
   backgroundPosition: 'center',
   backgroundRepeat: 'no-repeat',
   backgroundSize: 'cover',
 };
 
-const batters = [
-  { name: 'Qadeer', runs: 36, balls: 21 },
-  { name: 'Haroon', runs: 42, balls: 17 },
-];
+const separatorStyle = statsDefaultVerticalSeparatorStyle;
+const batterSeparatorStyle = statsDefaultBatterSeparatorStyle;
 
-const overBalls = ['6', '2', 'Owd', 'Owd', '6'];
-const separatorStyle = {
-  background: 'linear-gradient(180deg, #080807 0%, #FFFFFF 50%, #080807 100%)',
-};
-const batterSeparatorStyle = {
-  background:
-    'linear-gradient(90deg, rgba(8,8,7,1) 0%, rgba(255,255,255,0.95) 50%, rgba(8,8,7,1) 100%)',
-};
+export default function StatsDefault({
+  battingTeam = {},
+  bowlingTeam = {},
+  batters = [],
+  bowler = {},
+  currentOverBalls = [],
+}) {
+  const battingLogo = battingTeam.logoUrl ?? defaultTeamLogo;
+  const bowlingLogo = bowlingTeam.logoUrl ?? defaultTeamLogo;
+  const batter0 = batters[0] ?? {
+    name: '',
+    runs: 0,
+    balls: 0,
+    onStrike: false,
+  };
+  const batter1 = batters[1] ?? {
+    name: '',
+    runs: 0,
+    balls: 0,
+    onStrike: false,
+  };
 
-export default function StatsDefault() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#1D1E22]">
       <section className="absolute right-0 bottom-0 left-0 overflow-hidden text-white">
@@ -39,20 +59,20 @@ export default function StatsDefault() {
         <div className="relative z-10 mx-auto flex w-full items-stretch px-1 py-0.5 sm:px-6 sm:py-3">
           <div className="flex items-center gap-1 pr-1 sm:gap-3 sm:pr-5">
             <img
-              src={teamLogo}
-              alt="Batting team logo"
+              src={battingLogo}
+              alt={battingTeam.name || 'Batting team'}
               className="h-7 w-7 rounded-full object-cover sm:h-14 sm:w-14"
             />
             <div>
               <p className="text-[10px] leading-none font-extrabold text-[#DA9811] sm:text-[30px]">
-                SC
+                {battingTeam.shortCode || battingTeam.name || '—'}
               </p>
               <p className="mt-0.5 text-[7px] leading-none whitespace-nowrap text-[#E2E2E2] sm:mt-1 sm:text-[14px]">
-                14.4 OVER
+                {battingTeam.overs ? `${battingTeam.overs} OVER` : ''}
               </p>
             </div>
             <p className="ml-1 text-[10px] leading-none font-extrabold text-white sm:ml-6 sm:text-[28px]">
-              196-7
+              {battingTeam.score || ''}
             </p>
           </div>
           <div
@@ -64,13 +84,17 @@ export default function StatsDefault() {
             <div>
               <div className="flex items-center gap-0.5 leading-none">
                 <span className="w-[34px] text-[7px] font-medium text-[#E8E8E8]">
-                  {batters[0].name}
+                  <BatterNameLabel
+                    name={batter0.name}
+                    onStrike={!!(batter0.onStrike ?? batter0.on_strike)}
+                    className="w-full text-[7px] font-medium text-[#E8E8E8]"
+                  />
                 </span>
                 <span className="text-[7px] font-bold text-[#DA9811]">
-                  {batters[0].runs}
+                  {batter0.runs}
                 </span>
                 <span className="text-[6px] font-bold text-[#DA9811]">
-                  {batters[0].balls}
+                  {batter0.balls}
                 </span>
               </div>
               <div
@@ -79,13 +103,17 @@ export default function StatsDefault() {
               />
               <div className="flex items-center gap-0.5 leading-none">
                 <span className="w-[34px] text-[7px] font-medium text-[#E8E8E8]">
-                  {batters[1].name}
+                  <BatterNameLabel
+                    name={batter1.name}
+                    onStrike={!!(batter1.onStrike ?? batter1.on_strike)}
+                    className="w-full text-[7px] font-medium text-[#E8E8E8]"
+                  />
                 </span>
                 <span className="text-[7px] font-bold text-[#DA9811]">
-                  {batters[1].runs}
+                  {batter1.runs}
                 </span>
                 <span className="text-[6px] font-bold text-[#DA9811]">
-                  {batters[1].balls}
+                  {batter1.balls}
                 </span>
               </div>
             </div>
@@ -100,13 +128,17 @@ export default function StatsDefault() {
             <div>
               <div className="flex items-center gap-3 leading-none">
                 <span className="w-[72px] text-[14px] font-medium text-[#E8E8E8]">
-                  {batters[0].name}
+                  <BatterNameLabel
+                    name={batter0.name}
+                    onStrike={!!(batter0.onStrike ?? batter0.on_strike)}
+                    className="w-full text-[14px] font-medium text-[#E8E8E8]"
+                  />
                 </span>
                 <span className="text-[24px] font-bold text-[#DA9811]">
-                  {batters[0].runs}
+                  {batter0.runs}
                 </span>
                 <span className="text-[16px] font-bold text-[#DA9811]">
-                  {batters[0].balls}
+                  {batter0.balls}
                 </span>
               </div>
 
@@ -117,13 +149,17 @@ export default function StatsDefault() {
 
               <div className="flex items-center gap-3 leading-none">
                 <span className="w-[72px] text-[14px] font-medium text-[#E8E8E8]">
-                  {batters[1].name}
+                  <BatterNameLabel
+                    name={batter1.name}
+                    onStrike={!!(batter1.onStrike ?? batter1.on_strike)}
+                    className="w-full text-[14px] font-medium text-[#E8E8E8]"
+                  />
                 </span>
                 <span className="text-[24px] font-bold text-[#DA9811]">
-                  {batters[1].runs}
+                  {batter1.runs}
                 </span>
                 <span className="text-[16px] font-bold text-[#DA9811]">
-                  {batters[1].balls}
+                  {batter1.balls}
                 </span>
               </div>
             </div>
@@ -135,14 +171,14 @@ export default function StatsDefault() {
                 v
               </p>
               <p className="text-[10px] leading-none font-extrabold uppercase sm:text-[24px]">
-                KKR
+                {bowlingTeam.shortCode || bowlingTeam.name || ''}
               </p>
             </div>
 
             <div className="flex items-center px-0.5 sm:px-3">
               <img
-                src={teamLogo}
-                alt="Bowling team logo"
+                src={bowlingLogo}
+                alt={bowlingTeam.name || 'Bowling team'}
                 className="h-7 w-7 rounded-full object-cover sm:h-14 sm:w-14"
               />
             </div>
@@ -156,7 +192,7 @@ export default function StatsDefault() {
                 <div className="mb-0.5 flex items-end justify-between gap-2 font-medium sm:mb-2 sm:gap-6">
                   <div>
                     <p className="text-[7px] leading-none text-[#E8E8E8] sm:text-[14px]">
-                      Arqam
+                      {bowler.name}
                     </p>
                     <div
                       className="mt-0.5 h-px w-[28px] sm:mt-2 sm:w-[72px]"
@@ -165,27 +201,26 @@ export default function StatsDefault() {
                   </div>
                   <div className="mb-1 flex items-baseline gap-1 sm:gap-4">
                     <p className="text-[7px] leading-none text-[#E8E8E8] sm:text-[18px]">
-                      0-44
+                      {bowler.figures}
                     </p>
                     <p className="text-[7px] leading-none text-[#E8E8E8] sm:text-[14px]">
-                      3.0
+                      {bowler.overs}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-0.5 sm:gap-2">
-                  {overBalls.map((ball, index) => {
-                    const isRunsBall = ball === '6' || ball === '2';
+                <div className="flex flex-wrap items-center gap-0.5 sm:gap-1">
+                  {currentOverBalls.map((ball, index) => {
+                    const isFreeHit = typeof ball === 'string' && ball.endsWith('*');
+                    const displayLabel = isFreeHit ? ball.slice(0, -1) : ball;
                     return (
-                      <span
-                        key={`${ball}-${index}`}
-                        className={`inline-flex items-center justify-center leading-none font-medium text-black ${
-                          isRunsBall
-                            ? 'h-4 min-w-[16px] rounded-full bg-[#DA9811] px-1 text-[8px] sm:h-6 sm:min-w-[20px] sm:px-2 sm:text-[14px]'
-                            : 'h-4 min-w-[22px] rounded-none bg-white px-1 text-[8px] sm:h-6 sm:min-w-[20px] sm:px-2 sm:text-[14px]'
-                        }`}
-                      >
-                        {ball}
-                      </span>
+                      <div key={index} className="relative shrink-0">
+                        <span
+                          className={`inline-flex items-center justify-center rounded-full leading-none font-bold h-[14px] min-w-[14px] px-[3px] text-[8px] sm:h-[24px] sm:min-w-[24px] sm:px-[5px] sm:text-[12px] ${ballChipClass(ball)}`}
+                        >
+                          {displayLabel}
+                        </span>
+                        {isFreeHit ? <FreeHitMicroBadge /> : null}
+                      </div>
                     );
                   })}
                 </div>
