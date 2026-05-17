@@ -54,7 +54,6 @@ const DIALOG_COMPONENTS = {
 // Per-dialog contentClassName overrides — height (!h-auto) and max-height (!max-h-[90vh])
 // are provided by BaseDialog; only add extras like min-height here.
 const DIALOG_CONTENT_CLASS_BY_KEY = {
-  deleteAccount: '!min-h-[300px]',
   inningsEnd: '!min-h-[260px]',
   manOfTheMatch: '!min-h-[260px]',
 };

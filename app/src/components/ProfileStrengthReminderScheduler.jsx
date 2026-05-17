@@ -10,8 +10,26 @@ import { selectIsAuthenticated, selectUser } from '@/store/selectors';
 import { store } from '@/store/store';
 
 /**
+ * @returns {null | { key: 'profileStrengthReminder' }}
+ */
+function resolveProfileStrengthReminderPayload(pathname, { isAuthenticated, user }) {
+  if (!isAuthenticated) {
+    return null;
+  }
+  if (pathname === '/profile' || pathname.startsWith('/overlay/')) {
+    return null;
+  }
+  if (!user?.id || calculateProfileStrength(user) >= 100) {
+    return null;
+  }
+
+  return { key: 'profileStrengthReminder' };
+}
+
+/**
  * While logged in with an incomplete profile, opens the profile reminder dialog
- * on a timer (unless another dialog is already open or the user is on /profile).
+ * on a timer (unless another dialog is already open, the user is on /profile,
+ * or the route is the graphic overlay /overlay/:matchId).
  */
 export function ProfileStrengthReminderScheduler() {
   const location = useLocation();
@@ -21,29 +39,23 @@ export function ProfileStrengthReminderScheduler() {
     skip: !userFromStore?.id,
   });
   const user = meResponse?.data ?? userFromStore;
-  const strength = user ? calculateProfileStrength(user) : 100;
 
   const userRef = useRef(user);
   userRef.current = user;
 
-  const enabled = isAuthenticated && Boolean(user?.id) && strength < 100 && location.pathname !== '/profile';
+  const enabled =
+    resolveProfileStrengthReminderPayload(location.pathname, { isAuthenticated, user }) !== null;
 
   useIntervalDialogPrompt({
     intervalMs: DIALOG_REMINDER_INTERVAL_MS,
     enabled,
     getOpenDialogPayload: () => {
       const st = store.getState();
-      if (!st.auth.isAuthenticated) {
-        return null;
-      }
-      if (window.location.pathname === '/profile') {
-        return null;
-      }
-      const u = userRef.current;
-      if (!u?.id || calculateProfileStrength(u) >= 100) {
-        return null;
-      }
-      return { key: 'profileStrengthReminder' };
+
+      return resolveProfileStrengthReminderPayload(window.location.pathname, {
+        isAuthenticated: st.auth.isAuthenticated,
+        user: userRef.current,
+      });
     },
   });
 
