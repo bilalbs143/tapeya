@@ -159,7 +159,10 @@ export function Sidebar({ open, onClose }) {
         inert={!open && !isDesktop ? '' : undefined}
       >
         <div className="flex flex-1 flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto px-4 py-6">
+          <div
+            className="flex-1 overflow-y-auto px-4 pb-6"
+            style={{ paddingTop: 'calc(env(safe-area-inset-top) + 24px)' }}
+          >
             <Link
               to="/profile"
               onClick={onClose}
