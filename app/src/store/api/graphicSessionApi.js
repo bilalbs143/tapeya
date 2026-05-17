@@ -7,7 +7,7 @@ import { baseApi } from './baseApi';
  * Signed (OBS): GET /matches/:matchId/graphic-session/overlay?expires=&signature=
  *
  * Primary consumer: GraphicOverlay — loads initial session over HTTP; live
- * updates arrive via Reverb (useGraphicChannel) which patches this cache.
+ * updates arrive via Reverb (`useGraphicSession` → `useGraphicChannel`) which patches this cache.
  */
 export const graphicSessionApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({

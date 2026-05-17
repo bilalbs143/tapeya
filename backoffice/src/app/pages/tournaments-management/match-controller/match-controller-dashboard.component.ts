@@ -33,11 +33,8 @@ import {
   ControllerSettingsDialogComponent,
   type ControllerSettingsDialogData,
 } from './controller-settings-dialog/controller-settings-dialog.component';
-import {
-  MatchCaptionDialogComponent,
-  type MatchCaptionDialogData,
-} from './match-caption-dialog/match-caption-dialog.component';
 import { LiveMatchStateComponent } from './live-match-state/live-match-state.component';
+import { MatchCaptionDialogComponent, type MatchCaptionDialogData } from './match-caption-dialog/match-caption-dialog.component';
 
 export interface MatchGraphicPlayerPick {
   team_id: number;
@@ -116,8 +113,6 @@ export class MatchControllerDashboardComponent implements OnInit {
   public loading = true;
   public sendingKey: string | null = null;
   public clearingRecent = false;
-  /** Tracks whether this is the first data load so we auto-open settings once. */
-  private firstLoad = true;
   /** Sent with every graphic command payload and stored in session `context`. */
   public selectedInnings: 1 | 2 = 1;
   /** Cleanup function returned by BackofficeReverbService.listenMatchGraphics. */
@@ -150,8 +145,7 @@ export class MatchControllerDashboardComponent implements OnInit {
       return fromRow;
     }
     const slice = this.session?.context?.['match'] as Record<string, unknown> | undefined;
-    const fromCtx =
-      typeof slice?.['result_summary'] === 'string' ? String(slice['result_summary']).trim() : '';
+    const fromCtx = typeof slice?.['result_summary'] === 'string' ? String(slice['result_summary']).trim() : '';
     if (fromCtx) {
       return fromCtx;
     }
@@ -204,13 +198,6 @@ export class MatchControllerDashboardComponent implements OnInit {
         this.syncInningsFromSession(session.data);
         this.loading = false;
         this.subscribeToGraphicsChannel();
-
-        // Auto-open settings on first page load so the operator picks a theme
-        // and copies the signed OBS overlay URL before starting to send commands.
-        if (this.firstLoad) {
-          this.firstLoad = false;
-          this.openSettings();
-        }
       },
       error: (err: unknown) => {
         this.loading = false;
@@ -434,18 +421,32 @@ export class MatchControllerDashboardComponent implements OnInit {
     // Leave any previously subscribed channel first.
     this.graphicsChannelCleanup?.();
 
+    // Ensure Echo exists (normally created from the shell header). Match controller
+    // can load before the header runs ngOnInit, or operators may deep-link here.
+    this.reverbService.connect();
+
     this.graphicsChannelCleanup = this.reverbService.listenMatchGraphics(
       this.matchId,
       (event) => {
         // Another operator activated a command — update the active graphic chip.
         if (this.session) {
           const ctx = event['context'] as Record<string, unknown> | null | undefined;
+          const graphicThemeId = event['graphic_theme_id'] as number | null | undefined;
+          const config = event['config'] as Record<string, unknown> | null | undefined;
+          const pendingPlayers = event['pending_players'] as Record<string, unknown> | null | undefined;
           this.session = {
             ...this.session,
             ...(ctx != null ? { context: ctx } : {}),
+            ...(graphicThemeId != null ? { graphic_theme_id: graphicThemeId } : {}),
+            ...('config' in event ? { config: config ?? null } : {}),
+            ...('pending_players' in event ? { pending_players: pendingPlayers ?? null } : {}),
             active_command: this.commandFromGraphicActivatedEvent(event),
             active_command_id: this.commandIdFromGraphicActivatedEvent(event),
           };
+          // Auto-follow innings transitions pushed from the scoring app via context.
+          if (ctx != null) {
+            this.syncInningsFromSession(this.session);
+          }
         }
       },
       () => {
@@ -461,9 +462,7 @@ export class MatchControllerDashboardComponent implements OnInit {
 
   public backLink(): string[] {
     const tid = this.match?.tournament_id;
-    return tid
-      ? ['/tournaments-management/tournaments', String(tid), 'matches']
-      : ['/tournaments-management/tournaments'];
+    return tid ? ['/tournaments-management/tournaments', String(tid), 'matches'] : ['/tournaments-management/tournaments'];
   }
 
   public async toggleFullscreen(): Promise<void> {
@@ -627,13 +626,15 @@ export class MatchControllerDashboardComponent implements OnInit {
     user_id?: number;
     team_id?: number;
   } | null {
-    return (this.session?.context?.['bowler'] as {
-      name: string;
-      figures: string;
-      overs: string;
-      user_id?: number;
-      team_id?: number;
-    } | null) ?? null;
+    return (
+      (this.session?.context?.['bowler'] as {
+        name: string;
+        figures: string;
+        overs: string;
+        user_id?: number;
+        team_id?: number;
+      } | null) ?? null
+    );
   }
 
   /**

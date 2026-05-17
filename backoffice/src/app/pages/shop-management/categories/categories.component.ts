@@ -160,7 +160,10 @@ export class CategoriesComponent implements OnInit, AfterViewInit, OnDestroy {
       ManageCategoryDialogComponent,
       { mode: 'create' },
       (result) => result && this.loadHttpData(),
-      { widthSize: 'md', disableClose: true }
+      {
+        widthSize: 'md',
+        disableClose: true,
+      }
     );
   }
 
@@ -169,7 +172,10 @@ export class CategoriesComponent implements OnInit, AfterViewInit, OnDestroy {
       ManageCategoryDialogComponent,
       { mode: 'edit', category },
       (result) => result && this.loadHttpData(),
-      { widthSize: 'md', disableClose: true }
+      {
+        widthSize: 'md',
+        disableClose: true,
+      }
     );
   }
 

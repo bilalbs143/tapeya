@@ -3,8 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { isUnauthorizedError } from '@/lib/apiErrors';
 import { clearCredentials } from '@/store/slices/authSlice';
 
-export const baseUrl =
-  import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1';
+export const baseUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1';
 
 /** Origin of the Laravel app (no `/api/v1`), for `/broadcasting/auth` and similar. */
 export function getApiOrigin() {
@@ -31,11 +30,7 @@ export const baseApi = createApi({
   reducerPath: 'api',
   baseQuery: async (args, api, extraOptions) => {
     // Ensure JSON Content-Type only when body is not FormData
-    const isFormDataRequest =
-      args &&
-      typeof args === 'object' &&
-      'body' in args &&
-      args.body instanceof FormData;
+    const isFormDataRequest = args && typeof args === 'object' && 'body' in args && args.body instanceof FormData;
 
     if (!isFormDataRequest && args && typeof args === 'object') {
       args.headers = {
@@ -64,6 +59,7 @@ export const baseApi = createApi({
     'TournamentMatches',
     'TeamSquad',
     'Match',
+    'MatchState',
     'Scorecard',
     'InterestCampaign',
   ],

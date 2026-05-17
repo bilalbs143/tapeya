@@ -54,12 +54,8 @@ export function DatePicker({
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const dayPickerDisabled = allowFuture
-    ? { before: today }
-    : { after: new Date() };
-  const endMonth = allowFuture
-    ? new Date(today.getFullYear() + 2, 11)
-    : new Date();
+  const dayPickerDisabled = allowFuture ? { before: today } : { after: new Date() };
+  const endMonth = allowFuture ? new Date(today.getFullYear() + 2, 11) : new Date();
 
   const handleSelect = (date) => {
     setSelectedDate(date);
@@ -90,9 +86,7 @@ export function DatePicker({
             aria-describedby={error && id ? `${id}-error` : undefined}
             {...props}
           >
-            <span className={displayValue ? 'text-white' : 'text-[#A2A6AB78]'}>
-              {displayValue || placeholder}
-            </span>
+            <span className={displayValue ? 'text-white' : 'text-[#A2A6AB78]'}>{displayValue || placeholder}</span>
             <CalendarIcon className="ml-auto shrink-0 text-white/70" />
           </button>
         </PopoverTrigger>
@@ -118,17 +112,13 @@ export function DatePicker({
               month_caption: 'flex items-center justify-center gap-3 flex-wrap',
               caption_label: 'sr-only',
               dropdowns: 'flex gap-2 items-center',
-              dropdown_root:
-                'inline-flex min-w-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+              dropdown_root: 'inline-flex min-w-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
               dropdown:
                 'rounded-lg border-0 bg-[#1f1f1d] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50 appearance-none cursor-pointer min-w-[5rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
-              chevron:
-                '!fill-white !text-white shrink-0 [&_polygon]:!fill-white',
+              chevron: '!fill-white !text-white shrink-0 [&_polygon]:!fill-white',
               nav: 'flex gap-1 shrink-0',
-              button_previous:
-                'h-8 w-8 rounded flex items-center justify-center !text-white hover:bg-white/10',
-              button_next:
-                'h-8 w-8 rounded flex items-center justify-center !text-white hover:bg-white/10',
+              button_previous: 'h-8 w-8 rounded flex items-center justify-center !text-white hover:bg-white/10',
+              button_next: 'h-8 w-8 rounded flex items-center justify-center !text-white hover:bg-white/10',
               weekdays: 'flex',
               weekday: 'w-9 text-center text-sm text-[#A2A6AB78]',
               week: 'flex',
@@ -145,11 +135,7 @@ export function DatePicker({
         </PopoverContent>
       </Popover>
       {error && (
-        <p
-          id={id ? `${id}-error` : undefined}
-          className="text-sm text-red-200"
-          role="alert"
-        >
+        <p id={id ? `${id}-error` : undefined} className="text-sm text-red-200" role="alert">
           {error}
         </p>
       )}

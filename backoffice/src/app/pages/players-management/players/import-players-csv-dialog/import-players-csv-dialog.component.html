@@ -14,9 +14,8 @@
         <h4 class="m-0 mb-2 text-base font-semibold">Bulk Import Players</h4>
         <p class="m-0 text-sm leading-relaxed text-muted">
           Each row creates an app user with the <strong>Player</strong> role only (same profile fields as
-          <strong>Add Player</strong>). <strong>Country</strong> and <strong>City</strong> are optional. If you set
-          country, use <strong>Pakistan</strong> only; with Pakistan + world city data, pick a city from the reference
-          list below.
+          <strong>Add Player</strong>). <strong>Country</strong> and <strong>City</strong> are optional. If you set country, use
+          <strong>Pakistan</strong> only; with Pakistan + world city data, pick a city from the reference list below.
           <a
             class="font-medium text-primary underline decoration-primary/40 underline-offset-2 hover:decoration-primary"
             [href]="sampleCsvHref"
@@ -48,8 +47,8 @@
                 email, date_of_birth, playing_role, bowling_style, batting_style, country, city
               </p>
               <p class="m-0 mt-2 text-xs leading-relaxed text-muted">
-                If <span class="font-mono">country</span> is set → <strong>Pakistan</strong> only. With Pakistan + DB
-                cities, <span class="font-mono">city</span> must match “Pakistan cities”.
+                If <span class="font-mono">country</span> is set → <strong>Pakistan</strong> only. With Pakistan + DB cities,
+                <span class="font-mono">city</span> must match “Pakistan cities”.
               </p>
             </mat-card-content>
           </mat-card>
@@ -265,8 +264,8 @@
           <p class="m-0 text-sm text-error">Could not load cities. Check the API or world data.</p>
         } @else if (pakistanCities.length === 0) {
           <p class="m-0 text-sm leading-relaxed text-muted">
-            No cities returned for Pakistan (<span class="font-mono">PK</span>). You may leave country/city blank, or
-            set <span class="font-mono">Pakistan</span> with any city text until world data is seeded.
+            No cities returned for Pakistan (<span class="font-mono">PK</span>). You may leave country/city blank, or set
+            <span class="font-mono">Pakistan</span> with any city text until world data is seeded.
           </p>
         } @else {
           <p class="m-0 text-sm leading-relaxed text-muted">

@@ -13,10 +13,7 @@ export const sponsorApi = baseApi.injectEndpoints({
     searchSponsors: builder.query({
       query: (search = '') => ({
         url: '/sponsors',
-        params:
-          search != null && String(search).trim() !== ''
-            ? { search: String(search).trim() }
-            : {},
+        params: search != null && String(search).trim() !== '' ? { search: String(search).trim() } : {},
       }),
       transformResponse: (response) => response?.data ?? response ?? [],
     }),

@@ -40,9 +40,7 @@
         </div>
 
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block"
-            >Tournament Name <span class="text-error">*</span></mat-label
-          >
+          <mat-label class="text-sm font-semibold mb-2 block">Tournament Name <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
@@ -53,8 +51,7 @@
               placeholder="Tournament Name"
             />
             @if (
-              form.get('tournament_name')?.invalid &&
-              (form.get('tournament_name')?.touched || form.get('tournament_name')?.dirty)
+              form.get('tournament_name')?.invalid && (form.get('tournament_name')?.touched || form.get('tournament_name')?.dirty)
             ) {
               <mat-error>
                 @if (form.get('tournament_name')?.hasError('required')) {
@@ -67,9 +64,7 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block"
-            >Tournament Type <span class="text-error">*</span></mat-label
-          >
+          <mat-label class="text-sm font-semibold mb-2 block">Tournament Type <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
@@ -85,8 +80,7 @@
               }
             </mat-select>
             @if (
-              form.get('tournament_type')?.invalid &&
-              (form.get('tournament_type')?.touched || form.get('tournament_type')?.dirty)
+              form.get('tournament_type')?.invalid && (form.get('tournament_type')?.touched || form.get('tournament_type')?.dirty)
             ) {
               <mat-error>Select a tournament type.</mat-error>
             }
@@ -94,9 +88,7 @@
         </div>
 
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block"
-            >Cricket Format <span class="text-error">*</span></mat-label
-          >
+          <mat-label class="text-sm font-semibold mb-2 block">Cricket Format <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
@@ -112,8 +104,7 @@
               }
             </mat-select>
             @if (
-              form.get('cricket_format')?.invalid &&
-              (form.get('cricket_format')?.touched || form.get('cricket_format')?.dirty)
+              form.get('cricket_format')?.invalid && (form.get('cricket_format')?.touched || form.get('cricket_format')?.dirty)
             ) {
               <mat-error>Select a cricket format.</mat-error>
             }
@@ -154,9 +145,7 @@
               [for]="startPicker"
             ></mat-datepicker-toggle>
             <mat-datepicker #startPicker></mat-datepicker>
-            @if (
-              form.get('start_date')?.invalid && (form.get('start_date')?.touched || form.get('start_date')?.dirty)
-            ) {
+            @if (form.get('start_date')?.invalid && (form.get('start_date')?.touched || form.get('start_date')?.dirty)) {
               <mat-error>
                 @if (form.get('start_date')?.hasError('required')) {
                   Select a start date.
@@ -199,9 +188,7 @@
         </div>
 
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block"
-            >Match Timings <span class="text-error">*</span></mat-label
-          >
+          <mat-label class="text-sm font-semibold mb-2 block">Match Timings <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
@@ -216,10 +203,7 @@
                 }
               }
             </mat-select>
-            @if (
-              form.get('match_timings')?.invalid &&
-              (form.get('match_timings')?.touched || form.get('match_timings')?.dirty)
-            ) {
+            @if (form.get('match_timings')?.invalid && (form.get('match_timings')?.touched || form.get('match_timings')?.dirty)) {
               <mat-error>Select match timings.</mat-error>
             }
           </mat-form-field>
@@ -247,9 +231,7 @@
         </div>
 
         <div class="col-span-12 lg:col-span-4">
-          <mat-label class="text-sm font-semibold mb-2 block"
-            >Number of Teams <span class="text-error">*</span></mat-label
-          >
+          <mat-label class="text-sm font-semibold mb-2 block">Number of Teams <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
@@ -263,8 +245,7 @@
               placeholder="e.g. 8"
             />
             @if (
-              form.get('number_of_teams')?.invalid &&
-              (form.get('number_of_teams')?.touched || form.get('number_of_teams')?.dirty)
+              form.get('number_of_teams')?.invalid && (form.get('number_of_teams')?.touched || form.get('number_of_teams')?.dirty)
             ) {
               <mat-error>
                 @if (form.get('number_of_teams')?.hasError('required')) {
@@ -342,9 +323,7 @@
               formControlName="venue_name"
               placeholder="Venue"
             />
-            @if (
-              form.get('venue_name')?.invalid && (form.get('venue_name')?.touched || form.get('venue_name')?.dirty)
-            ) {
+            @if (form.get('venue_name')?.invalid && (form.get('venue_name')?.touched || form.get('venue_name')?.dirty)) {
               <mat-error>
                 @if (form.get('venue_name')?.hasError('required')) {
                   Enter the venue name.
@@ -369,9 +348,7 @@
         </div>
         @if (isGroupWise) {
           <div class="col-span-12 lg:col-span-12">
-            <mat-label class="text-sm font-semibold mb-2 block"
-              >Number of groups <span class="text-error">*</span></mat-label
-            >
+            <mat-label class="text-sm font-semibold mb-2 block">Number of groups <span class="text-error">*</span></mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"

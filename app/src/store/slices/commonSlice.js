@@ -5,9 +5,6 @@ const initialState = {
   globalError: null,
   /** Key-value state for cross-screen API-related data */
   meta: {},
-  /** Global dialog key + props (managed by DialogManager) */
-  dialogKey: null,
-  dialogProps: null,
 };
 
 const commonSlice = createSlice({
@@ -31,30 +28,9 @@ const commonSlice = createSlice({
         state.meta = {};
       }
     },
-    openDialog: (state, action) => {
-      const payload = action.payload;
-      if (typeof payload === 'string') {
-        state.dialogKey = payload;
-        state.dialogProps = null;
-      } else if (payload && typeof payload === 'object') {
-        state.dialogKey = payload.key;
-        state.dialogProps = payload.props || null;
-      }
-    },
-    closeDialog: (state) => {
-      state.dialogKey = null;
-      state.dialogProps = null;
-    },
   },
 });
 
-export const {
-  setGlobalError,
-  clearGlobalError,
-  setMeta,
-  clearMeta,
-  openDialog,
-  closeDialog,
-} = commonSlice.actions;
+export const { setGlobalError, clearGlobalError, setMeta, clearMeta } = commonSlice.actions;
 
 export default commonSlice.reducer;

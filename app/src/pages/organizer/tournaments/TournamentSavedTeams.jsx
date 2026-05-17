@@ -3,14 +3,8 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
-import {
-  getTournamentTitle,
-  parseTournamentId,
-} from '@/lib/utils/tournamentUtils';
-import {
-  useGetTournamentQuery,
-  useGetTournamentTeamsQuery,
-} from '@/store/api/tournamentApi';
+import { getTournamentTitle, parseTournamentId } from '@/lib/utils/tournamentUtils';
+import { useGetTournamentQuery, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 
@@ -29,8 +23,7 @@ function TeamLogoIcon({ logo, teamName }) {
 }
 
 function teamDisplay(team) {
-  const owner =
-    team.sponsor?.name ?? (team.owner != null ? String(team.owner) : '—');
+  const owner = team.sponsor?.name ?? (team.owner != null ? String(team.owner) : '—');
   const iconPlayers =
     Array.isArray(team.icon_players) && team.icon_players.length > 0
       ? team.icon_players
@@ -46,19 +39,13 @@ function TeamCard({ team, index, highlight }) {
 
   return (
     <div
-      className={`flex items-start gap-3 rounded-[17px] bg-[#141412] p-4 ${
-        highlight ? 'ring-2 ring-[#DA9811] ring-offset-2 ring-offset-black' : ''
-      }`}
+      className={`flex items-start gap-3 rounded-[17px] bg-[#141412] p-4 ${highlight ? 'ring-2 ring-[#DA9811] ring-offset-2 ring-offset-black' : ''}`}
     >
       <TeamLogoIcon logo={team.logo} teamName={team.name} />
       <div className="min-w-0 flex-1">
         <h3 className="text-[16px] font-bold text-white">{team.name ?? '—'}</h3>
         <div className="mt-0.5 flex flex-wrap items-center gap-2">
-          {team.group_index != null && (
-            <span className="text-[12px] text-[#A2A6AB]">
-              Group {team.group_index}
-            </span>
-          )}
+          {team.group_index != null && <span className="text-[12px] text-[#A2A6AB]">Group {team.group_index}</span>}
         </div>
         <p className="mt-0.5 text-[14px] text-white">
           Owner: <span className="font-medium text-[#DA9811]">{owner}</span>
@@ -67,9 +54,7 @@ function TeamCard({ team, index, highlight }) {
           Icon Players: <span className="text-[#A2A6AB]">{iconPlayers}</span>
         </p>
       </div>
-      <span className="shrink-0 text-[28px] font-bold text-[#DA98113B]">
-        {index + 1}
-      </span>
+      <span className="shrink-0 text-[28px] font-bold text-[#DA98113B]">{index + 1}</span>
     </div>
   );
 }
@@ -87,27 +72,16 @@ export default function TournamentSavedTeams() {
   const newTeam = location.state?.newTeam ?? null;
   const newTeamListRef = useRef(null);
 
-  const tournamentIdNum = parseTournamentId(
-    tournamentId,
-    tournamentFromState?.id,
-  );
+  const tournamentIdNum = parseTournamentId(tournamentId, tournamentFromState?.id);
   const isValidId = tournamentIdNum != null;
 
-  const { data: tournamentFromApi } = useGetTournamentQuery(
-    { id: tournamentIdNum },
-    { skip: !isValidId },
-  );
+  const { data: tournamentFromApi } = useGetTournamentQuery({ id: tournamentIdNum }, { skip: !isValidId });
   const tournament = tournamentFromApi ?? tournamentFromState ?? null;
 
   const numberOfGroups = tournament?.number_of_groups ?? 1;
   const hasGroups = numberOfGroups > 1;
 
-  const {
-    data: teams = [],
-    isLoading,
-    isError,
-    isSuccess,
-  } = useGetTournamentTeamsQuery(tournamentIdNum, { skip: !isValidId });
+  const { data: teams = [], isLoading, isError, isSuccess } = useGetTournamentTeamsQuery(tournamentIdNum, { skip: !isValidId });
 
   const teamsByGroup = useMemo(() => {
     if (!hasGroups || numberOfGroups < 2) return null;
@@ -157,25 +131,13 @@ export default function TournamentSavedTeams() {
 
   return (
     <div className="bg-black">
-      <AppSubpageHeader
-        title={
-          tournament
-            ? `${getTournamentTitle(tournament)} - Teams`
-            : 'Tournaments - Teams'
-        }
-      />
+      <AppSubpageHeader title={tournament ? `${getTournamentTitle(tournament)} - Teams` : 'Tournaments - Teams'} />
       <Container>
-        {isLoading && (
-          <p className="mb-3 text-[13px] text-[#A2A6AB]">Loading teams…</p>
-        )}
-        {isError && (
-          <p className="mb-3 text-[13px] text-red-400">Failed to load teams.</p>
-        )}
+        {isLoading && <p className="mb-3 text-[13px] text-[#A2A6AB]">Loading teams…</p>}
+        {isError && <p className="mb-3 text-[13px] text-red-400">Failed to load teams.</p>}
 
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">
-            Teams
-          </h2>
+          <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">Teams</h2>
           <button
             type="button"
             onClick={handleNavigateToAddTeam}
@@ -184,9 +146,7 @@ export default function TournamentSavedTeams() {
             <span className="flex h-[27px] w-[27px] items-center justify-center rounded-full bg-[#DA9811] text-[18px] font-bold text-[#080807]">
               +
             </span>
-            <span className="text-[13px] font-bold text-[#A2A6AB]">
-              Create Team
-            </span>
+            <span className="text-[13px] font-bold text-[#A2A6AB]">Create Team</span>
           </button>
         </div>
 
@@ -198,59 +158,31 @@ export default function TournamentSavedTeams() {
 
         {!isLoading && teamsByGroup != null && (
           <div className="space-y-6 pb-6">
-            {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map(
-              (groupIndex) => (
-                <section key={groupIndex}>
-                  <h3 className="mb-2 text-[13px] font-bold tracking-wide text-[#DA9811] uppercase">
-                    Group {groupIndex}
-                  </h3>
-                  <ul className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
-                    {teamsByGroup[groupIndex].map((team, index) => (
-                      <li
-                        key={team.id ?? index}
-                        ref={
-                          newTeam?.id != null && team.id === newTeam.id
-                            ? newTeamListRef
-                            : undefined
-                        }
-                      >
-                        <TeamCard
-                          team={team}
-                          index={index}
-                          highlight={
-                            newTeam?.id != null && team.id === newTeam.id
-                          }
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                  {teamsByGroup[groupIndex].length === 0 && (
-                    <p className="rounded-[17px] bg-[#141412] px-4 py-4 text-center text-[13px] text-[#A2A6AB]">
-                      No teams in this group
-                    </p>
-                  )}
-                </section>
-              ),
-            )}
+            {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map((groupIndex) => (
+              <section key={groupIndex}>
+                <h3 className="mb-2 text-[13px] font-bold tracking-wide text-[#DA9811] uppercase">Group {groupIndex}</h3>
+                <ul className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
+                  {teamsByGroup[groupIndex].map((team, index) => (
+                    <li key={team.id ?? index} ref={newTeam?.id != null && team.id === newTeam.id ? newTeamListRef : undefined}>
+                      <TeamCard team={team} index={index} highlight={newTeam?.id != null && team.id === newTeam.id} />
+                    </li>
+                  ))}
+                </ul>
+                {teamsByGroup[groupIndex].length === 0 && (
+                  <p className="rounded-[17px] bg-[#141412] px-4 py-4 text-center text-[13px] text-[#A2A6AB]">
+                    No teams in this group
+                  </p>
+                )}
+              </section>
+            ))}
           </div>
         )}
 
         {!isLoading && teamsByGroup == null && teams.length > 0 && (
           <ul className="space-y-3 pb-6 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
             {teams.map((team, index) => (
-              <li
-                key={team.id ?? index}
-                ref={
-                  newTeam?.id != null && team.id === newTeam.id
-                    ? newTeamListRef
-                    : undefined
-                }
-              >
-                <TeamCard
-                  team={team}
-                  index={index}
-                  highlight={newTeam?.id != null && team.id === newTeam.id}
-                />
+              <li key={team.id ?? index} ref={newTeam?.id != null && team.id === newTeam.id ? newTeamListRef : undefined}>
+                <TeamCard team={team} index={index} highlight={newTeam?.id != null && team.id === newTeam.id} />
               </li>
             ))}
           </ul>
@@ -265,8 +197,7 @@ export default function TournamentSavedTeams() {
             disabled={
               isLoading ||
               teams.length === 0 ||
-              (tournament?.number_of_teams != null &&
-                teams.length < tournament.number_of_teams)
+              (tournament?.number_of_teams != null && teams.length < tournament.number_of_teams)
             }
           >
             Submit Teams

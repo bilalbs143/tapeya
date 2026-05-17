@@ -8,8 +8,7 @@ export function mapSystemSettingsByKey(rows) {
       continue;
     }
     const rawKey = row.key;
-    const key =
-      typeof rawKey === 'string' ? rawKey : rawKey?.value ?? rawKey?.name;
+    const key = typeof rawKey === 'string' ? rawKey : (rawKey?.value ?? rawKey?.name);
     if (typeof key !== 'string' || !key) {
       continue;
     }

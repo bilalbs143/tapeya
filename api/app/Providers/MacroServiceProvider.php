@@ -39,6 +39,7 @@ class MacroServiceProvider extends ServiceProvider
                 'UNAUTHORIZED' => 401,
                 'FORBIDDEN' => 403,
                 'NOT_FOUND' => 404,
+                'CONFLICT' => 409,
                 'VALIDATION_ERROR' => 422,
                 'SERVER_ERROR' => 500,
                 default => 400,

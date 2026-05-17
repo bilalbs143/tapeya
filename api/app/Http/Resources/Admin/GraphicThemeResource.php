@@ -18,7 +18,6 @@ class GraphicThemeResource extends JsonResource
             'name' => $this->name,
             'config_schema' => $this->config_schema,
             'default_config' => $this->default_config,
-            'graphics_url_template' => $this->graphics_url_template,
             'is_active' => (bool) $this->is_active,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

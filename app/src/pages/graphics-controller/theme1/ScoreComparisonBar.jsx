@@ -1,4 +1,5 @@
 import React from 'react';
+
 import ReactApexChart from 'react-apexcharts';
 
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
@@ -137,28 +138,14 @@ export default function ScoreComparisonBar({
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#1D1E22] p-3 sm:p-5">
-      <section
-        className="relative w-full max-w-[677px] overflow-hidden px-4 py-6 text-white sm:px-8 sm:py-8"
-        style={frameStyle}
-      >
+      <section className="relative w-full max-w-[677px] overflow-hidden px-4 py-6 text-white sm:px-8 sm:py-8" style={frameStyle}>
         <div className="relative z-10">
-          <h2 className="text-[20px] leading-none font-bold text-[#F5A623] uppercase sm:text-[21px]">
-            {chartTitle}
-          </h2>
-          {matchLabel ? (
-            <p className="mt-2 text-[14px] leading-none text-white sm:text-[18px]">
-              {matchLabel}
-            </p>
-          ) : null}
+          <h2 className="text-[20px] leading-none font-bold text-[#F5A623] uppercase sm:text-[21px]">{chartTitle}</h2>
+          {matchLabel ? <p className="mt-2 text-[14px] leading-none text-white sm:text-[18px]">{matchLabel}</p> : null}
 
           <div className="mt-5 rounded-[12px] bg-[#0C0601] p-2.5 sm:mt-6 sm:p-4">
             <div className="h-[220px] sm:h-[280px]">
-              <ReactApexChart
-                type="bar"
-                options={dynamicOptions}
-                series={series}
-                height="100%"
-              />
+              <ReactApexChart type="bar" options={dynamicOptions} series={series} height="100%" />
             </div>
           </div>
 

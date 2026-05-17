@@ -1,0 +1,58 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "API: Pint (format)",
+      "type": "shell",
+      "command": "./vendor/bin/pint",
+      "options": { "cwd": "${workspaceFolder}/api" },
+      "problemMatcher": []
+    },
+    {
+      "label": "App: ESLint fix",
+      "type": "shell",
+      "command": "npm run lint:fix",
+      "options": { "cwd": "${workspaceFolder}/app" },
+      "problemMatcher": ["$eslint-stylish"]
+    },
+    {
+      "label": "App: Prettier format",
+      "type": "shell",
+      "command": "npm run format",
+      "options": { "cwd": "${workspaceFolder}/app" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Backoffice: Lint fix",
+      "type": "shell",
+      "command": "npm run lint:fix",
+      "options": { "cwd": "${workspaceFolder}/backoffice" },
+      "problemMatcher": ["$eslint-stylish"]
+    },
+    {
+      "label": "Backoffice: Prettier format",
+      "type": "shell",
+      "command": "npm run format",
+      "options": { "cwd": "${workspaceFolder}/backoffice" },
+      "problemMatcher": []
+    },
+    {
+      "label": "App: Vite dev",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": { "cwd": "${workspaceFolder}/app" },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "Backoffice: ng serve",
+      "type": "shell",
+      "command": "npm start",
+      "options": { "cwd": "${workspaceFolder}/backoffice" },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    }
+  ]
+}

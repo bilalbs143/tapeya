@@ -41,13 +41,7 @@ export function FloatingCartButton() {
       aria-label={count > 0 ? `Go to cart (${count} items)` : 'Go to cart'}
     >
       <span className="relative inline-flex items-center justify-center">
-        <img
-          src={shoppingCartIcon}
-          alt=""
-          className="h-6 w-6"
-          width={24}
-          height={24}
-        />
+        <img src={shoppingCartIcon} alt="" className="h-6 w-6" width={24} height={24} />
         {count > 0 && (
           <span
             className={`absolute -top-3.5 -right-2.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-white px-1 py-0.5 text-[12px] leading-none font-bold text-[#DA9811] ${

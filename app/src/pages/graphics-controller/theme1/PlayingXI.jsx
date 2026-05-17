@@ -1,8 +1,4 @@
-import {
-  playerPickerMetaSegments,
-  playerProfileRoleLabel,
-  playingLineupMetaVariant,
-} from '@/lib/utils/playerUtils';
+import { playerPickerMetaSegments, playerProfileRoleLabel, playingLineupMetaVariant } from '@/lib/utils/playerUtils';
 
 /** @param {string | Record<string, unknown>} raw */
 function playingXiRowMeta(raw) {
@@ -27,24 +23,16 @@ function playingXiRowMeta(raw) {
 function TeamColumn({ teamName, players }) {
   return (
     <div className="w-full max-w-[340px]">
-      <h3 className="mb-3 text-[18px] leading-none font-normal text-[#D4D4D4]">
-        {teamName}
-      </h3>
+      <h3 className="mb-3 text-[18px] leading-none font-normal text-[#D4D4D4]">{teamName}</h3>
       <ul className="border border-[#1A1A1A] bg-black/55">
         {players.map((raw, index) => {
           const { name, metaText, userId } = playingXiRowMeta(raw);
-          const key =
-            userId != null && typeof userId === 'number' ? `p-${userId}` : `${teamName}-${index}`;
+          const key = userId != null && typeof userId === 'number' ? `p-${userId}` : `${teamName}-${index}`;
           return (
-            <li
-              key={key}
-              className="border-b border-[#1A1A1A] px-9 py-3 text-[14px] font-normal text-[#E8E8E8] last:border-b-0"
-            >
+            <li key={key} className="border-b border-[#1A1A1A] px-9 py-3 text-[14px] font-normal text-[#E8E8E8] last:border-b-0">
               <span className="block leading-none">{name}</span>
               {metaText ? (
-                <span className="mt-1.5 block text-[11px] leading-snug font-medium text-[#A2A6AB]">
-                  {metaText}
-                </span>
+                <span className="mt-1.5 block text-[11px] leading-snug font-medium text-[#A2A6AB]">{metaText}</span>
               ) : null}
             </li>
           );
@@ -54,13 +42,7 @@ function TeamColumn({ teamName, players }) {
   );
 }
 
-export default function PlayingXI({
-  homeTeam = {},
-  awayTeam = {},
-  matchLabel = '',
-  requiredRunRate = '',
-  side = 'both',
-}) {
+export default function PlayingXI({ homeTeam = {}, awayTeam = {}, matchLabel = '', requiredRunRate = '', side = 'both' }) {
   const homeName = homeTeam.name || homeTeam.shortCode || 'Home';
   const awayName = awayTeam.name || awayTeam.shortCode || 'Away';
   const homePlayers = homeTeam.players ?? [];
@@ -89,19 +71,11 @@ export default function PlayingXI({
         <div className="relative z-10">
           <div className="px-8 sm:px-12">
             <p className="mb-2 text-[18px] leading-none font-normal text-[#E9E9E9]">{title}</p>
-            {matchLabel ? (
-              <p className="mb-6 text-[24px] leading-none font-semibold text-[#D89A18]">
-                {matchLabel}
-              </p>
-            ) : null}
+            {matchLabel ? <p className="mb-6 text-[24px] leading-none font-semibold text-[#D89A18]">{matchLabel}</p> : null}
           </div>
           <div className="mb-6 h-px w-full bg-[#FFFFFF1C]" />
 
-          <div
-            className={`mb-2 flex items-start gap-10 px-8 sm:px-12 ${
-              both ? 'justify-between' : 'justify-center'
-            }`}
-          >
+          <div className={`mb-2 flex items-start gap-10 px-8 sm:px-12 ${both ? 'justify-between' : 'justify-center'}`}>
             {columns.map(([name, players], i) => (
               <TeamColumn key={`${name}-${i}`} teamName={name} players={players} />
             ))}

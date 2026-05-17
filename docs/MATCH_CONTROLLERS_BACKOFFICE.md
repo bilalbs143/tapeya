@@ -152,7 +152,6 @@ New tables below are **not** in the repo yet; add them via migrations. Foreign k
 | `name` | string | Display name |
 | `config_schema` | json | JSON Schema or internal DSL describing form fields |
 | `default_config` | json | Defaults for new sessions |
-| `graphics_url_template` | string, nullable | e.g. `https://graphics.example/{match_token}` — **no video coupling**; informational for operators |
 | `is_active` | boolean | |
 
 ### 5.2 `match_graphic_sessions`
@@ -304,7 +303,6 @@ The following are **not** required for the backoffice feature to ship:
 
 **Do** document for integrators:
 
-- How to obtain `graphics_url_template` and `match_token` (if you add tokens)
 - **Signed overlay URL** flow for OBS / vMix: §6.3 (`signed-url` admin route + public `graphic-session/overlay` bootstrap)
 - Command JSON shape and polling/WebSocket plan (when added)
 

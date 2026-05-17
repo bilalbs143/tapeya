@@ -24,12 +24,7 @@ export default function ShopProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
 
-  const {
-    data: product,
-    isLoading,
-    isError,
-    error,
-  } = useGetProductQuery(productSlug, { skip: !productSlug });
+  const { data: product, isLoading, isError, error } = useGetProductQuery(productSlug, { skip: !productSlug });
   const toast = useToast();
   const { addToCart, isAddingToCart } = useAddToCart();
 
@@ -37,19 +32,13 @@ export default function ShopProductDetail() {
     if (!product) return null;
     const imageUrls = getImageUrls(product.images);
     const displayPrice = product.sale_price ?? product.price;
-    const hasDiscount =
-      product.sale_price != null && product.sale_price < product.price;
-    const discountPercent =
-      hasDiscount && product.price > 0
-        ? Math.round((1 - product.sale_price / product.price) * 100)
-        : 0;
+    const hasDiscount = product.sale_price != null && product.sale_price < product.price;
+    const discountPercent = hasDiscount && product.price > 0 ? Math.round((1 - product.sale_price / product.price) * 100) : 0;
     return {
       ...product,
       imageUrls: imageUrls.length ? imageUrls : [],
       categoryName:
-        typeof product.category === 'object' && product.category?.name
-          ? product.category.name
-          : (product.category ?? 'Product'),
+        typeof product.category === 'object' && product.category?.name ? product.category.name : (product.category ?? 'Product'),
       displayPrice,
       hasDiscount,
       discountPercent,
@@ -81,9 +70,7 @@ export default function ShopProductDetail() {
         <AppSubpageHeader title="SHOP" onBack={() => navigate(backTo)} />
         <Container>
           <div className="flex min-h-[40vh] items-center justify-center">
-            {!isLoading && (
-              <p className="text-[14px] text-[#A2A6AB]">Product not found.</p>
-            )}
+            {!isLoading && <p className="text-[14px] text-[#A2A6AB]">Product not found.</p>}
           </div>
         </Container>
       </div>
@@ -96,9 +83,7 @@ export default function ShopProductDetail() {
         <AppSubpageHeader title="SHOP" onBack={() => navigate(backTo)} />
         <Container>
           <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
-            <p className="text-[14px] text-[#A2A6AB]">
-              {error?.data?.message ?? 'Something went wrong.'}
-            </p>
+            <p className="text-[14px] text-[#A2A6AB]">{error?.data?.message ?? 'Something went wrong.'}</p>
             <button
               type="button"
               onClick={() => navigate(backTo)}
@@ -112,8 +97,7 @@ export default function ShopProductDetail() {
     );
   }
 
-  const mainImage =
-    normalized.imageUrls[selectedImage] ?? normalized.imageUrls[0];
+  const mainImage = normalized.imageUrls[selectedImage] ?? normalized.imageUrls[0];
 
   return (
     <div className="bg-black">
@@ -135,16 +119,11 @@ export default function ShopProductDetail() {
                 {mainImage ? (
                   <img
                     src={mainImage}
-                    alt={
-                      normalized.images?.[selectedImage]?.alt ?? normalized.name
-                    }
+                    alt={normalized.images?.[selectedImage]?.alt ?? normalized.name}
                     className="aspect-square h-[280px] w-full object-contain"
                   />
                 ) : (
-                  <div
-                    className="aspect-square w-full bg-[#141412]"
-                    aria-hidden
-                  />
+                  <div className="aspect-square w-full bg-[#141412]" aria-hidden />
                 )}
                 {normalized.is_featured && (
                   <span className="absolute top-3 left-3 rounded-full bg-[#DA9811] px-4 py-1 text-[12px] font-bold text-black uppercase">
@@ -164,18 +143,10 @@ export default function ShopProductDetail() {
                       key={i}
                       type="button"
                       onClick={() => setSelectedImage(i)}
-                      className={`h-[45px] w-[45px] shrink-0 overflow-hidden rounded-full border-2 bg-white ${
-                        selectedImage === i
-                          ? 'border-[#DA9811]'
-                          : 'border-transparent'
-                      }`}
+                      className={`h-[45px] w-[45px] shrink-0 overflow-hidden rounded-full border-2 bg-white ${selectedImage === i ? 'border-[#DA9811]' : 'border-transparent'}`}
                       aria-label={`View image ${i + 1}`}
                     >
-                      <img
-                        src={url}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
+                      <img src={url} alt="" className="h-full w-full object-cover" />
                     </button>
                   ))}
                 </div>
@@ -183,29 +154,17 @@ export default function ShopProductDetail() {
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-[16px] font-bold text-white">
-                {normalized.name}
-              </h2>
+              <h2 className="text-[16px] font-bold text-white">{normalized.name}</h2>
               <div className="flex items-center gap-8">
                 {normalized.hasDiscount && (
-                  <span className="text-[16px] font-bold text-[#A2A6AB82] line-through">
-                    {formatPrice(normalized.price)}
-                  </span>
+                  <span className="text-[16px] font-bold text-[#A2A6AB82] line-through">{formatPrice(normalized.price)}</span>
                 )}
-                <span className="text-[16px] font-bold text-[#DA9811]">
-                  {formatPrice(normalized.displayPrice)}
-                </span>
+                <span className="text-[16px] font-bold text-[#DA9811]">{formatPrice(normalized.displayPrice)}</span>
               </div>
               <p className="text-[12px] font-bold text-[#A2A6AB]">
                 Availability:{' '}
-                <span
-                  className={`ml-2 text-[12px] ${
-                    normalized.stock > 0 ? 'text-[#FF3B30]' : 'text-[#A2A6AB]'
-                  }`}
-                >
-                  {normalized.stock > 0
-                    ? `Only ${normalized.stock} left in stock`
-                    : 'Out of stock'}
+                <span className={`ml-2 text-[12px] ${normalized.stock > 0 ? 'text-[#FF3B30]' : 'text-[#A2A6AB]'}`}>
+                  {normalized.stock > 0 ? `Only ${normalized.stock} left in stock` : 'Out of stock'}
                 </span>
               </p>
             </div>
@@ -241,21 +200,14 @@ export default function ShopProductDetail() {
                 disabled={normalized.stock < 1 || isAddingToCart}
                 className="flex flex-1 items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] py-3.5 text-base text-[16px] font-semibold text-black transition-opacity active:opacity-90 disabled:opacity-50"
               >
-                <img
-                  src={shoppingCartIcon}
-                  alt=""
-                  className="h-6 w-6 shrink-0"
-                  aria-hidden
-                />
+                <img src={shoppingCartIcon} alt="" className="h-6 w-6 shrink-0" aria-hidden />
                 {isAddingToCart ? 'Adding…' : 'Add to Cart'}
               </button>
             </div>
 
             {normalized.description && (
               <section className="pt-2">
-                <h3 className="mb-2 text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">
-                  Features
-                </h3>
+                <h3 className="mb-2 text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">Features</h3>
                 <div
                   className="product-description text-[14px] text-[#A2A6AB]"
                   dangerouslySetInnerHTML={{ __html: normalized.description }}
@@ -272,17 +224,11 @@ export default function ShopProductDetail() {
                   {mainImage ? (
                     <img
                       src={mainImage}
-                      alt={
-                        normalized.images?.[selectedImage]?.alt ??
-                        normalized.name
-                      }
+                      alt={normalized.images?.[selectedImage]?.alt ?? normalized.name}
                       className="aspect-square h-[280px] w-full object-contain"
                     />
                   ) : (
-                    <div
-                      className="aspect-square w-full bg-[#141412]"
-                      aria-hidden
-                    />
+                    <div className="aspect-square w-full bg-[#141412]" aria-hidden />
                   )}
                   {normalized.is_featured && (
                     <span className="absolute top-3 left-3 rounded-full bg-[#DA9811] px-4 py-1 text-[12px] font-bold text-black uppercase">
@@ -302,18 +248,10 @@ export default function ShopProductDetail() {
                         key={i}
                         type="button"
                         onClick={() => setSelectedImage(i)}
-                        className={`h-[45px] w-[45px] shrink-0 overflow-hidden rounded-full border-2 bg-white ${
-                          selectedImage === i
-                            ? 'border-[#DA9811]'
-                            : 'border-transparent'
-                        }`}
+                        className={`h-[45px] w-[45px] shrink-0 overflow-hidden rounded-full border-2 bg-white ${selectedImage === i ? 'border-[#DA9811]' : 'border-transparent'}`}
                         aria-label={`View image ${i + 1}`}
                       >
-                        <img
-                          src={url}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
+                        <img src={url} alt="" className="h-full w-full object-cover" />
                       </button>
                     ))}
                   </div>
@@ -323,29 +261,17 @@ export default function ShopProductDetail() {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <h2 className="text-[16px] font-bold text-white">
-                  {normalized.name}
-                </h2>
+                <h2 className="text-[16px] font-bold text-white">{normalized.name}</h2>
                 <div className="flex items-center gap-8">
                   {normalized.hasDiscount && (
-                    <span className="text-[16px] font-bold text-[#A2A6AB82] line-through">
-                      {formatPrice(normalized.price)}
-                    </span>
+                    <span className="text-[16px] font-bold text-[#A2A6AB82] line-through">{formatPrice(normalized.price)}</span>
                   )}
-                  <span className="text-[16px] font-bold text-[#DA9811]">
-                    {formatPrice(normalized.displayPrice)}
-                  </span>
+                  <span className="text-[16px] font-bold text-[#DA9811]">{formatPrice(normalized.displayPrice)}</span>
                 </div>
                 <p className="text-[12px] font-bold text-[#A2A6AB]">
                   Availability:{' '}
-                  <span
-                    className={`ml-2 text-[12px] ${
-                      normalized.stock > 0 ? 'text-[#FF3B30]' : 'text-[#A2A6AB]'
-                    }`}
-                  >
-                    {normalized.stock > 0
-                      ? `Only ${normalized.stock} left in stock`
-                      : 'Out of stock'}
+                  <span className={`ml-2 text-[12px] ${normalized.stock > 0 ? 'text-[#FF3B30]' : 'text-[#A2A6AB]'}`}>
+                    {normalized.stock > 0 ? `Only ${normalized.stock} left in stock` : 'Out of stock'}
                   </span>
                 </p>
               </div>
@@ -381,12 +307,7 @@ export default function ShopProductDetail() {
                   disabled={normalized.stock < 1 || isAddingToCart}
                   className="flex flex-1 items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] py-3.5 text-base text-[16px] font-semibold text-black transition-opacity active:opacity-90 disabled:opacity-50"
                 >
-                  <img
-                    src={shoppingCartIcon}
-                    alt=""
-                    className="h-6 w-6 shrink-0"
-                    aria-hidden
-                  />
+                  <img src={shoppingCartIcon} alt="" className="h-6 w-6 shrink-0" aria-hidden />
                   {isAddingToCart ? 'Adding…' : 'Add to Cart'}
                 </button>
               </div>
@@ -396,9 +317,7 @@ export default function ShopProductDetail() {
 
         {normalized.description && (
           <section className="hidden pt-2 lg:block">
-            <h3 className="mb-2 text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">
-              Features
-            </h3>
+            <h3 className="mb-2 text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">Features</h3>
             <div
               className="product-description text-[14px] text-[#A2A6AB]"
               dangerouslySetInnerHTML={{ __html: normalized.description }}

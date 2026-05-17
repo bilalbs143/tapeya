@@ -110,10 +110,7 @@ export class UsersService {
    * Unified admin user typeahead — `GET v1/admin/users/search`.
    * Examples: default picker (no extra), `{ app_role: 'sponsor' }` for organizer, `{ context: 'broadcaster', tournament_id }` for broadcast staff.
    */
-  public adminUserSearch(
-    search?: string | null,
-    extra: AdminUserSearchParams = {}
-  ): Observable<{ data: UserSearchRow[] }> {
+  public adminUserSearch(search?: string | null, extra: AdminUserSearchParams = {}): Observable<{ data: UserSearchRow[] }> {
     return this.http.get<{ data: UserSearchRow[] }>(`${this.baseUrl}/search`, {
       params: toHttpParams(extra as Record<string, unknown>, { search: search ?? '' }),
     });

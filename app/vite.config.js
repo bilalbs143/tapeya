@@ -33,8 +33,7 @@ function autoLazyImages() {
         if (hasLoading && hasDecoding) return match;
 
         let inject = '';
-        if (!hasLoading && !hasDecoding)
-          inject = ' loading="lazy" decoding="async"';
+        if (!hasLoading && !hasDecoding) inject = ' loading="lazy" decoding="async"';
         else if (!hasLoading) inject = ' loading="lazy"';
         else inject = ' decoding="async"';
 
@@ -75,8 +74,7 @@ export default defineConfig({
 
           // ApexCharts: split core vs React wrapper so neither chunk trips the
           // default Rollup size warning (~500 kB) as a single bundle.
-          if (id.includes('node_modules/react-apexcharts'))
-            return 'charts-react';
+          if (id.includes('node_modules/react-apexcharts')) return 'charts-react';
           if (id.includes('node_modules/apexcharts')) return 'charts-apex';
 
           // Swiper carousel — only on pages that use it
@@ -86,23 +84,13 @@ export default defineConfig({
           if (id.includes('@radix-ui')) return 'radix';
 
           // Redux ecosystem
-          if (
-            id.includes('@reduxjs') ||
-            id.includes('redux-persist') ||
-            id.includes('immer')
-          )
-            return 'redux';
+          if (id.includes('@reduxjs') || id.includes('redux-persist') || id.includes('immer')) return 'redux';
 
           // Capacitor bridge
           if (id.includes('@capacitor')) return 'capacitor';
 
           // React core — always needed, maximise long-term caching
-          if (
-            id.includes('react-dom') ||
-            id.includes('react-router') ||
-            id.includes('scheduler')
-          )
-            return 'vendor';
+          if (id.includes('react-dom') || id.includes('react-router') || id.includes('scheduler')) return 'vendor';
           if (id.includes('/react/') || id.includes('/react@')) return 'vendor';
         },
       },
@@ -111,12 +99,6 @@ export default defineConfig({
 
   // Pre-bundle the most-used deps so the dev server starts fast
   optimizeDeps: {
-    include: [
-      'react',
-      'react-dom',
-      'react-router-dom',
-      '@reduxjs/toolkit',
-      'react-redux',
-    ],
+    include: ['react', 'react-dom', 'react-router-dom', '@reduxjs/toolkit', 'react-redux'],
   },
 });

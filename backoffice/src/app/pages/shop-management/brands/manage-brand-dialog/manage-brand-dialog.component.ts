@@ -111,9 +111,7 @@ export class ManageBrandDialogComponent {
 
     this.isSubmitting = true;
     const request$ =
-      this.data.mode === 'create'
-        ? this.brandService.create(formData)
-        : this.brandService.update(this.data.brand!.id, formData);
+      this.data.mode === 'create' ? this.brandService.create(formData) : this.brandService.update(this.data.brand!.id, formData);
 
     request$.pipe(finalize(() => (this.isSubmitting = false))).subscribe({
       next: () => this.dialogRef.close(true),

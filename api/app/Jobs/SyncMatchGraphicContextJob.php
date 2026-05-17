@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\TournamentMatch;
-use App\Services\Broadcast\BuildMatchGraphicContextService;
+use App\Services\Broadcast\GraphicContextOrchestrator;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -29,7 +29,7 @@ class SyncMatchGraphicContextJob implements ShouldBeUnique, ShouldQueue
         return (string) $this->matchId;
     }
 
-    public function handle(BuildMatchGraphicContextService $service): void
+    public function handle(GraphicContextOrchestrator $orchestrator): void
     {
         $match = TournamentMatch::find($this->matchId);
         if (! $match) {
@@ -42,6 +42,6 @@ class SyncMatchGraphicContextJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        $service->syncAndBroadcast($match);
+        $orchestrator->syncAndBroadcast($match);
     }
 }

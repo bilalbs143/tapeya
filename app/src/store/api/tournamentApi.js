@@ -27,10 +27,7 @@ export const tournamentApi = baseApi.injectEndpoints({
       }),
       providesTags: (result) =>
         result?.data
-          ? [
-              ...result.data.map((t) => ({ type: 'Tournament', id: t.id })),
-              { type: 'Tournament', id: 'LIST' },
-            ]
+          ? [...result.data.map((t) => ({ type: 'Tournament', id: t.id })), { type: 'Tournament', id: 'LIST' }]
           : [{ type: 'Tournament', id: 'LIST' }],
     }),
     getTournament: builder.query({
@@ -41,8 +38,7 @@ export const tournamentApi = baseApi.injectEndpoints({
         },
       }),
       transformResponse: (response) => response?.data ?? response,
-      providesTags: (result) =>
-        result ? [{ type: 'Tournament', id: result.id }] : [],
+      providesTags: (result) => (result ? [{ type: 'Tournament', id: result.id }] : []),
     }),
     getTournamentTeams: builder.query({
       query: (tournamentId) => ({
@@ -70,18 +66,14 @@ export const tournamentApi = baseApi.injectEndpoints({
           standings: Array.isArray(data.standings) ? data.standings : [],
         };
       },
-      providesTags: (result, _err, tournamentId) =>
-        tournamentId ? [{ type: 'TournamentStandings', id: tournamentId }] : [],
+      providesTags: (result, _err, tournamentId) => (tournamentId ? [{ type: 'TournamentStandings', id: tournamentId }] : []),
     }),
     getTournamentSeasonStats: builder.query({
       query: (tournamentId) => ({
         url: `/tournaments/${tournamentId}/season-stats`,
       }),
       transformResponse: (response) => response?.data ?? response ?? null,
-      providesTags: (result, _err, tournamentId) =>
-        tournamentId
-          ? [{ type: 'TournamentSeasonStats', id: tournamentId }]
-          : [],
+      providesTags: (result, _err, tournamentId) => (tournamentId ? [{ type: 'TournamentSeasonStats', id: tournamentId }] : []),
     }),
     attachTeamsToTournament: builder.mutation({
       query: ({ tournamentId, team_ids, group_index }) => ({
@@ -153,8 +145,7 @@ export const tournamentApi = baseApi.injectEndpoints({
         method: 'POST',
       }),
       transformResponse: (response) => response?.data ?? response,
-      invalidatesTags: (_result, _err, tournamentId) =>
-        tournamentId ? [{ type: 'Tournament', id: tournamentId }] : [],
+      invalidatesTags: (_result, _err, tournamentId) => (tournamentId ? [{ type: 'Tournament', id: tournamentId }] : []),
     }),
     dislikeTournament: builder.mutation({
       query: (tournamentId) => ({
@@ -162,8 +153,7 @@ export const tournamentApi = baseApi.injectEndpoints({
         method: 'POST',
       }),
       transformResponse: (response) => response?.data ?? response,
-      invalidatesTags: (_result, _err, tournamentId) =>
-        tournamentId ? [{ type: 'Tournament', id: tournamentId }] : [],
+      invalidatesTags: (_result, _err, tournamentId) => (tournamentId ? [{ type: 'Tournament', id: tournamentId }] : []),
     }),
     shareTournament: builder.mutation({
       query: (tournamentId) => ({
@@ -171,8 +161,7 @@ export const tournamentApi = baseApi.injectEndpoints({
         method: 'POST',
       }),
       transformResponse: (response) => response?.data ?? response,
-      invalidatesTags: (_result, _err, tournamentId) =>
-        tournamentId ? [{ type: 'Tournament', id: tournamentId }] : [],
+      invalidatesTags: (_result, _err, tournamentId) => (tournamentId ? [{ type: 'Tournament', id: tournamentId }] : []),
     }),
   }),
 });

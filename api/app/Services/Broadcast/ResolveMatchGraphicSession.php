@@ -20,7 +20,7 @@ final class ResolveMatchGraphicSession
             abort(500, 'No graphic theme configured. Run database seeders (GraphicThemeSeeder).');
         }
 
-        return MatchGraphicSession::firstOrCreate(
+        $session = MatchGraphicSession::firstOrCreate(
             ['match_id' => $match->id],
             [
                 'graphic_theme_id' => $theme->id,
@@ -30,5 +30,14 @@ final class ResolveMatchGraphicSession
                 'updated_by' => auth()->id(),
             ]
         );
+
+        // First-time session: persist live match context immediately so admins see current
+        // score without waiting for the next ball (see docs/GRAPHICS_OVERLAY_ARCHITECTURE_ANALYSIS.md).
+        if ($session->wasRecentlyCreated) {
+            app(GraphicContextOrchestrator::class)->syncForMatch($match);
+            $session->refresh();
+        }
+
+        return $session;
     }
 }

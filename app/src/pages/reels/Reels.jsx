@@ -31,17 +31,12 @@ export default function Reels() {
   const navigate = useNavigate();
   const location = useLocation();
   const publishedReels = useAppSelector(selectPublishedReels);
-  const [activeTab, setActiveTab] = useState(
-    location.state?.tab === TAB_MY_VIDEOS ? TAB_MY_VIDEOS : TAB_EXPLORE,
-  );
+  const [activeTab, setActiveTab] = useState(location.state?.tab === TAB_MY_VIDEOS ? TAB_MY_VIDEOS : TAB_EXPLORE);
   const [likedIds, setLikedIds] = useState(new Set());
   const [activeIndex, setActiveIndex] = useState(0);
   const containerRef = useRef(null);
 
-  const reels =
-    activeTab === TAB_EXPLORE
-      ? EXPLORE_REELS
-      : [...publishedReels, ...MY_VIDEOS_REELS];
+  const reels = activeTab === TAB_EXPLORE ? EXPLORE_REELS : [...publishedReels, ...MY_VIDEOS_REELS];
 
   // Reset to first reel when switching tabs
   useEffect(() => {
@@ -78,10 +73,7 @@ export default function Reels() {
         {/* Tab bar — back left, Explore & My Videos centered */}
         <div className="absolute top-[64px] right-0 left-0 z-10 flex items-center justify-between px-4 py-2">
           {/* Back — left */}
-          <AppSubpageBackButton
-            onClick={() => navigate(-1)}
-            aria-label="Go back"
-          />
+          <AppSubpageBackButton onClick={() => navigate(-1)} aria-label="Go back" />
 
           {/* Explore & My Videos — center, text stays inline */}
           <div className="absolute left-1/2 flex -translate-x-1/2 flex-nowrap items-center gap-3">
@@ -93,11 +85,7 @@ export default function Reels() {
               }`}
             >
               <img
-                src={
-                  activeTab === TAB_EXPLORE
-                    ? exploreOrangeIcon
-                    : exploreWhiteIcon
-                }
+                src={activeTab === TAB_EXPLORE ? exploreOrangeIcon : exploreWhiteIcon}
                 alt=""
                 className="h-[18px] w-[18px] shrink-0"
                 aria-hidden
@@ -112,11 +100,7 @@ export default function Reels() {
               }`}
             >
               <img
-                src={
-                  activeTab === TAB_MY_VIDEOS
-                    ? myVideosOrangeIcon
-                    : myVideosWhiteIcon
-                }
+                src={activeTab === TAB_MY_VIDEOS ? myVideosOrangeIcon : myVideosWhiteIcon}
                 alt=""
                 className="h-[18px] w-[18px] shrink-0"
                 aria-hidden

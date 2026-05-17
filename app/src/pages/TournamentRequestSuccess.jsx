@@ -14,16 +14,10 @@ export default function TournamentRequestSuccess() {
 
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-8 text-center">
         <div className="mb-8 flex shrink-0 items-center justify-center overflow-hidden">
-          <img
-            src={successOrderGif}
-            alt=""
-            className="h-24 w-24 rounded-full object-contain"
-          />
+          <img src={successOrderGif} alt="" className="h-24 w-24 rounded-full object-contain" />
         </div>
 
-        <h2 className="mb-3 text-[18px] font-bold tracking-wide text-[#DA9811] uppercase sm:text-[20px]">
-          Thank you!
-        </h2>
+        <h2 className="mb-3 text-[18px] font-bold tracking-wide text-[#DA9811] uppercase sm:text-[20px]">Thank you!</h2>
 
         <p className="mb-8 max-w-[280px] text-[14px] leading-relaxed font-medium text-[#A2A6AB]">
           Your tournament request has been received. We will contact you shortly.

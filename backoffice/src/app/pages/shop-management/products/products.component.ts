@@ -192,7 +192,10 @@ export class ProductsComponent implements OnInit, AfterViewInit, OnDestroy {
       ManageProductDialogComponent,
       { mode: 'create' },
       (result) => result && this.loadHttpData(),
-      { widthSize: 'lg', disableClose: true }
+      {
+        widthSize: 'lg',
+        disableClose: true,
+      }
     );
   }
 
@@ -201,7 +204,10 @@ export class ProductsComponent implements OnInit, AfterViewInit, OnDestroy {
       ManageProductDialogComponent,
       { mode: 'edit', product },
       (result) => result && this.loadHttpData(),
-      { widthSize: 'lg', disableClose: true }
+      {
+        widthSize: 'lg',
+        disableClose: true,
+      }
     );
   }
 

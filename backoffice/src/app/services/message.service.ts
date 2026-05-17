@@ -196,8 +196,7 @@ export class MessageService implements OnDestroy {
 
     if (error.status === 422) {
       const allMessages = this.collectValidationErrors(data);
-      const message =
-        allMessages.length > 0 ? allMessages.join('\n') : ((data?.['message'] as string) ?? fallbackMessage);
+      const message = allMessages.length > 0 ? allMessages.join('\n') : ((data?.['message'] as string) ?? fallbackMessage);
       this.error(message, { durationMs: Math.max(4000, allMessages.length * 2000) });
       return;
     }

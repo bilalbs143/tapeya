@@ -2,10 +2,7 @@ import { useRef } from 'react';
 
 import { useLocation } from 'react-router-dom';
 
-import {
-  DIALOG_REMINDER_INTERVAL_MS,
-  useIntervalDialogPrompt,
-} from '@/hooks/useIntervalDialogPrompt';
+import { DIALOG_REMINDER_INTERVAL_MS, useIntervalDialogPrompt } from '@/hooks/useIntervalDialogPrompt';
 import { calculateProfileStrength } from '@/lib/profileStrength';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useAppSelector } from '@/store/hooks';
@@ -29,11 +26,7 @@ export function ProfileStrengthReminderScheduler() {
   const userRef = useRef(user);
   userRef.current = user;
 
-  const enabled =
-    isAuthenticated &&
-    Boolean(user?.id) &&
-    strength < 100 &&
-    location.pathname !== '/profile';
+  const enabled = isAuthenticated && Boolean(user?.id) && strength < 100 && location.pathname !== '/profile';
 
   useIntervalDialogPrompt({
     intervalMs: DIALOG_REMINDER_INTERVAL_MS,

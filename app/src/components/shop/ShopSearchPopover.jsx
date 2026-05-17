@@ -45,8 +45,7 @@ export function ShopSearchPopover() {
   };
 
   const hasResults = productsWithBrandSlug.length > 0;
-  const showEmpty =
-    debouncedSearch.length >= MIN_SEARCH_LENGTH && !isSearching && !hasResults;
+  const showEmpty = debouncedSearch.length >= MIN_SEARCH_LENGTH && !isSearching && !hasResults;
 
   const handleOpenChange = (open) => {
     if (!open) setSearchTerm('');
@@ -79,12 +78,7 @@ export function ShopSearchPopover() {
             </button>
           ) : null}
           <span className="pointer-events-none absolute top-0 right-0 bottom-0 flex w-10 items-center justify-center">
-            <img
-              src={searchIcon}
-              alt=""
-              className="h-5 w-5 shrink-0"
-              aria-hidden
-            />
+            <img src={searchIcon} alt="" className="h-5 w-5 shrink-0" aria-hidden />
           </span>
         </div>
       </PopoverAnchor>
@@ -98,11 +92,7 @@ export function ShopSearchPopover() {
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="max-h-[min(70vh,320px)] overflow-y-auto rounded-[6px] py-1">
-          {isSearching && (
-            <div className="px-4 py-6 text-center text-[13px] text-[#A2A6AB]">
-              Searching…
-            </div>
-          )}
+          {isSearching && <div className="px-4 py-6 text-center text-[13px] text-[#A2A6AB]">Searching…</div>}
           {!isSearching && showEmpty && (
             <div className="px-4 py-6 text-center text-[13px] text-[#A2A6AB]">
               No products found for &quot;{debouncedSearch}&quot;
@@ -112,9 +102,7 @@ export function ShopSearchPopover() {
             <ul className="list-none">
               {productsWithBrandSlug.map((product) => {
                 const imageUrl = product.images?.[0]?.path;
-                const hasDiscount =
-                  product.sale_price != null &&
-                  product.sale_price < product.price;
+                const hasDiscount = product.sale_price != null && product.sale_price < product.price;
                 const displayPrice = product.sale_price ?? product.price;
                 return (
                   <li key={product.id} role="option" aria-selected={false}>
@@ -125,24 +113,16 @@ export function ShopSearchPopover() {
                     >
                       <div className="h-12 w-12 shrink-0 overflow-hidden rounded-[6px] bg-white">
                         {imageUrl ? (
-                          <img
-                            src={imageUrl}
-                            alt=""
-                            className="h-full w-full object-contain"
-                          />
+                          <img src={imageUrl} alt="" className="h-full w-full object-contain" />
                         ) : (
                           <div className="h-full w-full bg-[#141412]" />
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[13px] font-medium text-white">
-                          {product.name}
-                        </p>
+                        <p className="truncate text-[13px] font-medium text-white">{product.name}</p>
                         <p className="mt-0.5 text-[12px] font-bold text-[#DA9811]">
                           {hasDiscount && (
-                            <span className="mr-1.5 text-[#A2A6AB] line-through">
-                              {formatPrice(product.price)}
-                            </span>
+                            <span className="mr-1.5 text-[#A2A6AB] line-through">{formatPrice(product.price)}</span>
                           )}
                           {formatPrice(displayPrice)}
                         </p>

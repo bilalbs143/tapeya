@@ -21,19 +21,13 @@ export default function RowTextBanner({
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#1D1E22]">
-      <section
-        className="absolute right-0 bottom-0 left-0 h-[56px] overflow-hidden text-white sm:h-[80px]"
-        style={rowStyle}
-      >
+      <section className="absolute right-0 bottom-0 left-0 h-[56px] overflow-hidden text-white sm:h-[80px]" style={rowStyle}>
         <div className="absolute inset-0 bg-black/25" />
 
         <div className="relative z-10 h-full overflow-hidden px-2 py-1 sm:hidden">
           <div className="row-marquee-right flex h-full">
             {[0, 1].map((copyIndex) => (
-              <div
-                key={copyIndex}
-                className="flex h-full w-full shrink-0 gap-1"
-              >
+              <div key={copyIndex} className="flex h-full w-full shrink-0 gap-1">
                 {mobileItems.map((_, itemIndex) => (
                   <div
                     key={`${copyIndex}-${itemIndex}`}
@@ -44,11 +38,7 @@ export default function RowTextBanner({
                     >
                       {text}
                     </span>
-                    <span
-                      className={`font-moul relative leading-none text-white uppercase ${mobileTextClass}`}
-                    >
-                      {text}
-                    </span>
+                    <span className={`font-moul relative leading-none text-white uppercase ${mobileTextClass}`}>{text}</span>
                   </div>
                 ))}
               </div>
@@ -59,10 +49,7 @@ export default function RowTextBanner({
         <div className="relative z-10 hidden h-full overflow-hidden px-6 py-4 sm:block">
           <div className="row-marquee-right flex h-full">
             {[0, 1].map((copyIndex) => (
-              <div
-                key={copyIndex}
-                className="flex h-full w-full shrink-0 gap-3"
-              >
+              <div key={copyIndex} className="flex h-full w-full shrink-0 gap-3">
                 {desktopItems.map((_, itemIndex) => (
                   <div
                     key={`${copyIndex}-${itemIndex}`}
@@ -71,9 +58,7 @@ export default function RowTextBanner({
                     <span className="font-moul pointer-events-none absolute inset-0 flex items-center justify-center text-[54px] leading-none text-[#FFFFFF0A] uppercase">
                       {text}
                     </span>
-                    <span className="font-moul relative text-[36px] leading-none text-white uppercase">
-                      {text}
-                    </span>
+                    <span className="font-moul relative text-[36px] leading-none text-white uppercase">{text}</span>
                   </div>
                 ))}
               </div>

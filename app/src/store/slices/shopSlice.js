@@ -38,12 +38,6 @@ const shopSlice = createSlice({
   },
 });
 
-export const {
-  setCartOpen,
-  setCheckoutStep,
-  setShopFilters,
-  resetShopFilters,
-  resetShopCheckout,
-} = shopSlice.actions;
+export const { setCartOpen, setCheckoutStep, setShopFilters, resetShopFilters, resetShopCheckout } = shopSlice.actions;
 
 export default shopSlice.reducer;

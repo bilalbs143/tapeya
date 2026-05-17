@@ -3,11 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import {
-  NAVBAR_HEIGHT,
-  NAVBAR_SCROLL_THRESHOLD,
-  NAVBAR_Z,
-} from '@/lib/constants/layout';
+import { NAVBAR_HEIGHT, NAVBAR_SCROLL_THRESHOLD, NAVBAR_Z } from '@/lib/constants/layout';
 import { BOTTOM_NAV_ITEMS } from '@/lib/constants/navigation';
 import { useGetNotificationUnreadCountQuery } from '@/store/api/notificationApi';
 import { useAppSelector } from '@/store/hooks';
@@ -20,8 +16,7 @@ const shopNavIcon = `${CLOUDFRONT_APP_BASE}/images/icons/shop-navigation.svg`;
 const upcomingIcon = `${CLOUDFRONT_APP_BASE}/images/icons/upcoming-bottom.svg`;
 const logo = `${CLOUDFRONT_APP_BASE}/images/logos/tapya-t.svg`;
 
-const iconBtn =
-  'flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#141412] transition-colors hover:bg-zinc-700';
+const iconBtn = 'flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#141412] transition-colors hover:bg-zinc-700';
 
 const DESKTOP_NAV_PATH_TO_ICON = {
   '/shop': shopNavIcon,
@@ -39,11 +34,7 @@ function isTabActive(pathname, tabPath) {
 // is always solid black so the AppSubpageHeader back button doesn't
 // peek through a transparent background as it scrolls upward.
 function isHeroPath(pathname) {
-  return (
-    pathname === '/home' ||
-    pathname === '/profile' ||
-    /^\/upcoming-tournaments\/[^/]+$/.test(pathname)
-  );
+  return pathname === '/home' || pathname === '/profile' || /^\/upcoming-tournaments\/[^/]+$/.test(pathname);
 }
 
 export function Navbar({ onMenuClick }) {
@@ -54,8 +45,7 @@ export function Navbar({ onMenuClick }) {
     skip: !accessToken,
   });
   const unreadCount = Math.max(0, unreadData?.unreadCount ?? 0);
-  const badgeLabel =
-    unreadCount > 99 ? '99+' : unreadCount > 0 ? String(unreadCount) : null;
+  const badgeLabel = unreadCount > 99 ? '99+' : unreadCount > 0 ? String(unreadCount) : null;
 
   // Re-run on pathname change so scrolled resets correctly when navigating
   // back to a hero page that starts at scroll position 0.
@@ -99,23 +89,11 @@ export function Navbar({ onMenuClick }) {
               <Link
                 key={path}
                 to={path}
-                className={`flex flex-col items-center gap-0.5 transition-opacity hover:opacity-100 lg:flex-row lg:items-center lg:gap-2 lg:opacity-100 ${
-                  isActive ? 'opacity-100' : 'opacity-70'
-                }`}
+                className={`flex flex-col items-center gap-0.5 transition-opacity hover:opacity-100 lg:flex-row lg:items-center lg:gap-2 lg:opacity-100 ${isActive ? 'opacity-100' : 'opacity-70'}`}
                 aria-current={isActive ? 'page' : undefined}
               >
-                <img
-                  src={icon}
-                  alt=""
-                  className="h-5 w-5 shrink-0 object-contain lg:h-4 lg:w-4"
-                />
-                <span
-                  className={`text-[13px] font-medium ${
-                    isActive ? 'text-[#DA9811]' : 'text-[#A2A6AB]'
-                  }`}
-                >
-                  {label}
-                </span>
+                <img src={icon} alt="" className="h-5 w-5 shrink-0 object-contain lg:h-4 lg:w-4" />
+                <span className={`text-[13px] font-medium ${isActive ? 'text-[#DA9811]' : 'text-[#A2A6AB]'}`}>{label}</span>
               </Link>
             );
           })}
@@ -126,11 +104,7 @@ export function Navbar({ onMenuClick }) {
         <Link
           to="/notification-center"
           className={`${iconBtn} relative`}
-          aria-label={
-            unreadCount > 0
-              ? `Notifications, ${unreadCount} unread`
-              : 'Notifications'
-          }
+          aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
         >
           <img src={notificationIcon} alt="" className="h-3.5 w-3.5" />
           {badgeLabel ? (
@@ -143,12 +117,7 @@ export function Navbar({ onMenuClick }) {
           ) : null}
         </Link>
 
-        <button
-          type="button"
-          className={`${iconBtn} lg:hidden`}
-          aria-label="Menu"
-          onClick={onMenuClick}
-        >
+        <button type="button" className={`${iconBtn} lg:hidden`} aria-label="Menu" onClick={onMenuClick}>
           <img src={hamburgerIcon} alt="" className="h-3 w-[17px]" />
         </button>
       </div>

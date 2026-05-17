@@ -25,8 +25,7 @@ export function controllerPanelSurfaceStyle() {
 
 /** Horizontal hairline used under player name / figures row. */
 export const playerGraphicHorizontalRuleStyle = {
-  background:
-    'linear-gradient(90deg, #080807 0%, #FFFFFF 50%, #080807 100%)',
+  background: 'linear-gradient(90deg, #080807 0%, #FFFFFF 50%, #080807 100%)',
 };
 
 /** Scoreboard lower-third vertical dividers (e.g. `StatsDefault`). */
@@ -35,25 +34,20 @@ export const statsDefaultVerticalSeparatorStyle = {
 };
 
 export const statsDefaultBatterSeparatorStyle = {
-  background:
-    'linear-gradient(90deg, rgba(8,8,7,1) 0%, rgba(255,255,255,0.95) 50%, rgba(8,8,7,1) 100%)',
+  background: 'linear-gradient(90deg, rgba(8,8,7,1) 0%, rgba(255,255,255,0.95) 50%, rgba(8,8,7,1) 100%)',
 };
 
 export const playerNameAccentClass =
   'text-[15px] leading-none font-extrabold tracking-wide text-[#DA9811] uppercase sm:text-[28px]';
 
-export const showcaseSectionClass =
-  'relative w-full max-w-[677px] overflow-hidden bg-black px-4 py-6 text-white sm:px-7 sm:py-8';
+export const showcaseSectionClass = 'relative w-full max-w-[677px] overflow-hidden bg-black px-4 py-6 text-white sm:px-7 sm:py-8';
 
-export const showcaseTitleClass =
-  'text-[16px] leading-none font-bold text-[#DA9811] uppercase sm:text-[21px]';
+export const showcaseTitleClass = 'text-[16px] leading-none font-bold text-[#DA9811] uppercase sm:text-[21px]';
 
-export const showcasePageWrapClass =
-  'flex min-h-screen items-center justify-center p-3 sm:p-5';
+export const showcasePageWrapClass = 'flex min-h-screen items-center justify-center p-3 sm:p-5';
 
 /** Avatar stage (silhouette panel) — shared by intro / career / tournament player cards. */
 export const avatarStageShellClass =
   'relative h-[290px] overflow-hidden rounded-tl-[140px] rounded-tr-[20px] bg-black sm:h-[300px] sm:rounded-tr-[24px]';
 
-export const avatarStageImageClass =
-  'absolute right-1/2 bottom-0 w-[55%] translate-x-1/2 object-contain sm:w-[60%]';
+export const avatarStageImageClass = 'absolute right-1/2 bottom-0 w-[55%] translate-x-1/2 object-contain sm:w-[60%]';

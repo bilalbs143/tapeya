@@ -3,20 +3,11 @@ import { useState } from 'react';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatDate } from '@/lib/format';
 import { formatAge } from '@/lib/utils/dateUtils';
-import {
-  getBattingStyleLabel,
-  getBowlingStyleLabel,
-  getPlayingRoleLabel,
-  usePlayerProfileEnums,
-} from '@/store/api/enumApi';
+import { getBattingStyleLabel, getBowlingStyleLabel, getPlayingRoleLabel, usePlayerProfileEnums } from '@/store/api/enumApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 
-import {
-  CONTENT_MAX_WIDTH,
-  FOCUS_RING,
-  PROFILE_OVERVIEW_ROLE,
-} from './constants';
+import { CONTENT_MAX_WIDTH, FOCUS_RING, PROFILE_OVERVIEW_ROLE } from './constants';
 import { UserEdit } from './UserEdit';
 
 const editProfileIcon = `${CLOUDFRONT_APP_BASE}/images/icons/edit-profile.svg`;
@@ -25,11 +16,7 @@ const EDIT_PROFILE_BUTTON_CLASS = `inline-flex items-center gap-2 rounded-[17px]
 
 function DetailRow({ label, value, withColon = true, truncateAt }) {
   const raw = value ?? '—';
-  const isTruncatable =
-    truncateAt != null &&
-    typeof raw === 'string' &&
-    raw !== '—' &&
-    raw.length > truncateAt;
+  const isTruncatable = truncateAt != null && typeof raw === 'string' && raw !== '—' && raw.length > truncateAt;
   const display = isTruncatable ? `${raw.slice(0, truncateAt)}...` : raw;
 
   return (
@@ -56,40 +43,18 @@ function DetailRow({ label, value, withColon = true, truncateAt }) {
  * @param {number} [props.tournaments] — organizer metrics
  * @param {number} [props.events] — organizer metrics
  */
-export function ProfileRoleOverview({
-  role,
-  tournaments: _tournaments,
-  events: _events,
-}) {
+export function ProfileRoleOverview({ role, tournaments: _tournaments, events: _events }) {
   const [editOpen, setEditOpen] = useState(false);
   const user = useAppSelector(selectUser);
-  const { battingStyleOptions, bowlingStyleOptions, playingRoleOptions } =
-    usePlayerProfileEnums();
+  const { battingStyleOptions, bowlingStyleOptions, playingRoleOptions } = usePlayerProfileEnums();
 
   const r = role ?? PROFILE_OVERVIEW_ROLE.PLAYER;
 
-  const battingLabel =
-    user?.batting_style ??
-    getBattingStyleLabel(
-      user?.batting_style_enum?.toLowerCase(),
-      battingStyleOptions,
-    );
-  const bowlingLabel =
-    user?.bowling_style ??
-    getBowlingStyleLabel(
-      user?.bowling_style_enum?.toLowerCase(),
-      bowlingStyleOptions,
-    );
-  const playingRoleLabel =
-    user?.playing_role ??
-    getPlayingRoleLabel(
-      user?.playing_role_enum?.toLowerCase(),
-      playingRoleOptions,
-    );
+  const battingLabel = user?.batting_style ?? getBattingStyleLabel(user?.batting_style_enum?.toLowerCase(), battingStyleOptions);
+  const bowlingLabel = user?.bowling_style ?? getBowlingStyleLabel(user?.bowling_style_enum?.toLowerCase(), bowlingStyleOptions);
+  const playingRoleLabel = user?.playing_role ?? getPlayingRoleLabel(user?.playing_role_enum?.toLowerCase(), playingRoleOptions);
 
-  const memberSince = user?.created_at
-    ? formatDate(user.created_at, { month: 'short', year: 'numeric' })
-    : '—';
+  const memberSince = user?.created_at ? formatDate(user.created_at, { month: 'short', year: 'numeric' }) : '—';
 
   let detailsLeft = [];
   let detailsRight = [];
@@ -138,41 +103,21 @@ export function ProfileRoleOverview({
       <UserEdit open={editOpen} onOpenChange={setEditOpen} />
 
       <div className="flex flex-wrap items-center justify-end gap-4 py-4">
-        <button
-          type="button"
-          className={EDIT_PROFILE_BUTTON_CLASS}
-          onClick={() => setEditOpen(true)}
-        >
+        <button type="button" className={EDIT_PROFILE_BUTTON_CLASS} onClick={() => setEditOpen(true)}>
           EDIT
-          <img
-            src={editProfileIcon}
-            alt=""
-            width={16}
-            height={16}
-            className="shrink-0"
-          />
+          <img src={editProfileIcon} alt="" width={16} height={16} className="shrink-0" />
         </button>
       </div>
 
       <div className="grid grid-cols-2 gap-x-8 gap-y-6 py-6">
         <div className="flex flex-col gap-5">
           {detailsLeft.map((item) => (
-            <DetailRow
-              key={item.label}
-              label={item.label}
-              value={item.value}
-              truncateAt={item.truncateAt}
-            />
+            <DetailRow key={item.label} label={item.label} value={item.value} truncateAt={item.truncateAt} />
           ))}
         </div>
         <div className="flex flex-col gap-5">
           {detailsRight.map((item) => (
-            <DetailRow
-              key={item.label}
-              label={item.label}
-              value={item.value}
-              withColon={item.withColon ?? true}
-            />
+            <DetailRow key={item.label} label={item.label} value={item.value} withColon={item.withColon ?? true} />
           ))}
         </div>
       </div>

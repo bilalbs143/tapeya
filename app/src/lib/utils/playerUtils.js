@@ -5,11 +5,7 @@
  * @returns {string}
  */
 export function playerDisplayRole(player) {
-  return (
-    player?.playing_role ??
-    player?.playing_role_enum ??
-    (player?.role != null ? String(player.role) : '—')
-  );
+  return player?.playing_role ?? player?.playing_role_enum ?? (player?.role != null ? String(player.role) : '—');
 }
 
 /** @param {unknown} v */

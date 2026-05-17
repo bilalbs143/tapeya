@@ -16,7 +16,7 @@ class SystemSettingController extends BaseAdminController
     }
 
     /** @phpstan-ignore-next-line */
-    protected function baseQuery() {    }
+    protected function baseQuery() {}
 
     public function index(): JsonResponse
     {

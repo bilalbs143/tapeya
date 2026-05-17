@@ -9,78 +9,39 @@
  *   • Wires useScoringEngine into inline innings state.
  *   • Computes derived values (overStrip, secondInningsChase, dismissal options).
  *   • Detects and emits innings-end events (onInningsComplete).
- *   • Manages dialog open/close state.
+ *   • Manages dialog open/close state via unified DialogContext.
  *   • Manages squad save / player-picker interactions.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import CustomScoreDialog from '@/components/dialogs/scoring/CustomScoreDialog';
-import ExtraRunsDialog from '@/components/dialogs/scoring/ExtraRunsDialog';
-import FielderPickerDialog from '@/components/dialogs/scoring/FielderPickerDialog';
-import OutReasonDialog from '@/components/dialogs/scoring/OutReasonDialog';
-import ScoringSquadPlayerPickerDialog from '@/components/dialogs/scoring/ScoringSquadPlayerPickerDialog';
 import { BatsmenTable } from '@/components/scoring/BatsmenTable';
 import { BowlerTable } from '@/components/scoring/BowlerTable';
 import { LiveScoreBox } from '@/components/scoring/LiveScoreBox';
 import { OverStrip } from '@/components/scoring/OverStrip';
 import { ScoringControls } from '@/components/scoring/ScoringControls';
-import { blankBatsman, blankBowler } from '@/hooks/useInningsState';
+import { useDialog } from '@/context/DialogContext';
 import { useScoringEngine } from '@/hooks/useScoringEngine';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { isLegalDelivery } from '@/lib/utils/cricketRules';
 import {
+  batsmenOnCreaseFromMatchState,
+  bowlersInTableForLiveScoring,
+  currentBowlerIndexInTable,
   dismissalRequiresFielder,
   getDismissalOptions,
   getExtraTypeOptions,
   getFreeHitDismissalOptions,
   getShotPositionOptions,
 } from '@/lib/utils/scoringMappers';
-import { getRunsFromBall } from '@/lib/utils/scoringUtils';
+import { buildOversFromBalls, buildPreBallCreasePatch } from '@/lib/utils/scoringUtils';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
-import {
-  useStoreMatchSquadMutation,
-  useStorePlayingElevenMutation,
-} from '@/store/api/matchApi';
+import { useStoreMatchSquadMutation, useStorePlayingElevenMutation } from '@/store/api/matchApi';
 
 import { MatchStatsRow, SecondInningsChaseRow } from '../MatchStatsRow';
-import { ShotAreaDialog } from '../ShotAreaDialog';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TEAM_MATCH_ICON = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
-
-const LEGAL_DELIVERIES_PER_OVER = 6;
-/** Max bowlers in the live table at once (must match useScoringEngine's rotation logic). */
-const MAX_BOWLERS_IN_TABLE = 2;
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-/**
- * Build the over-strip data from ball history.
- * Returns an array of { overIndex, runs, balls } — one entry per completed or current over.
- */
-function buildOversFromBalls(ballHistory) {
-  const list = [];
-  let currentOver = [];
-  let validCount = 0;
-
-  for (const ball of ballHistory) {
-    currentOver.push(ball);
-    if (isLegalDelivery(ball.type)) validCount += 1;
-    if (validCount === LEGAL_DELIVERIES_PER_OVER) {
-      const runs = currentOver.reduce((s, b) => s + getRunsFromBall(b), 0);
-      list.push({ overIndex: list.length + 1, runs, balls: currentOver });
-      currentOver = [];
-      validCount = 0;
-    }
-  }
-  if (currentOver.length > 0) {
-    const runs = currentOver.reduce((s, b) => s + getRunsFromBall(b), 0);
-    list.push({ overIndex: list.length + 1, runs, balls: currentOver });
-  }
-  return list;
-}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -95,35 +56,18 @@ function buildOversFromBalls(ballHistory) {
  * @param {number[]} [battingPlayingElevenIds]
  * @param {number[]} [bowlingPlayingElevenIds]
  *
- * Innings state (all from useInningsState of the active innings):
- * @param {object[]} ballHistory
- * @param {Function} setBallHistory
- * @param {object[]} batsmenOnCrease
- * @param {Function} setBatsmenOnCrease
- * @param {object[]} bowlersInTable
- * @param {Function} setBowlersInTable
- * @param {number}   strikerIndex
- * @param {Function} setStrikerIndex
- * @param {number}   currentBowlerIndex
- * @param {Function} setCurrentBowlerIndex
- * @param {object}   currentPartnership        { runs, balls }
- * @param {Function} setCurrentPartnership
- * @param {object[]} completedPartnerships
- * @param {Function} setCompletedPartnerships
- * @param {boolean}  pendingFreeHit
- * @param {Function} setPendingFreeHit
- * @param {object[]} retiredBatsmen
- * @param {Function} setRetiredBatsmen
+ * @param {object}   matchState              GET /match-state (live crease + flags)
+ * @param {object}   scorecardInnings        Active tab's innings slice
+ * @param {object[]} scorecardBalls          UI balls for over strip (from scorecard)
  * @param {object[]} battingSquad
- * @param {Function} setBattingSquad
  * @param {object[]} bowlingSquad
- * @param {Function} setBowlingSquad
- *
- * @param {object}   liveScore               From computeLiveScore(ballHistory)
- * @param {Function} [onInningsComplete]     ({ reason }) => void
+ * @param {object}   liveScore               From match_state or scorecard totals
  * @param {number}   [targetScore]           2nd innings: first innings total + 1
- * @param {Function} [syncBallToApi]
- * @param {Function} [syncUndoToApi]
+ * @param {string|null} [inningsId]
+ * @param {Function} [storeBall]
+ * @param {Function} [deleteLastBall]
+ * @param {Function} [onCreaseChange]      Partial PATCH /crease (manual picker actions).
+ * @param {Function} [syncPreBallCrease]     Full crease sync from match_state (XI save, effect).
  */
 export function ScoringTab({
   matchId,
@@ -136,120 +80,117 @@ export function ScoringTab({
   battingPlayingElevenIds = [],
   bowlingPlayingElevenIds = [],
 
-  ballHistory = [],
-  setBallHistory,
-  batsmenOnCrease = [],
-  setBatsmenOnCrease,
-  bowlersInTable = [],
-  setBowlersInTable,
-  strikerIndex = 0,
-  setStrikerIndex,
-  currentBowlerIndex = 0,
-  setCurrentBowlerIndex,
-  currentPartnership = { runs: 0, balls: 0 },
-  setCurrentPartnership,
-  completedPartnerships: _completedPartnerships = [],
-  setCompletedPartnerships,
-  pendingFreeHit = false,
-  setPendingFreeHit,
-  retiredBatsmen = [],
-  setRetiredBatsmen,
-  battingSquad = [],
-  setBattingSquad,
-  bowlingSquad = [],
-  setBowlingSquad,
+  matchState,
+  scorecardInnings,
+  scorecardBalls = [],
+  battingSquad: battingSquadFromProps = [],
+  bowlingSquad: bowlingSquadFromProps = [],
 
   liveScore,
-  onInningsComplete,
   targetScore,
-  syncBallToApi,
-  syncUndoToApi,
-  syncPendingToApi,
+  inningsId,
+  storeBall,
+  deleteLastBall,
+  onCreaseChange,
+  syncPreBallCrease,
 }) {
+  const [battingSquadDraft, setBattingSquadDraft] = useState(null);
+  const [bowlingSquadDraft, setBowlingSquadDraft] = useState(null);
+
+  useEffect(() => {
+    setBattingSquadDraft(null);
+  }, [battingSquadFromProps]);
+
+  useEffect(() => {
+    setBowlingSquadDraft(null);
+  }, [bowlingSquadFromProps]);
+
+  const battingSquad = battingSquadDraft ?? battingSquadFromProps;
+  const bowlingSquad = bowlingSquadDraft ?? bowlingSquadFromProps;
+  const setBattingSquad = useCallback(
+    (fn) => setBattingSquadDraft((prev) => fn(prev ?? battingSquadFromProps)),
+    [battingSquadFromProps],
+  );
+  const setBowlingSquad = useCallback(
+    (fn) => setBowlingSquadDraft((prev) => fn(prev ?? bowlingSquadFromProps)),
+    [bowlingSquadFromProps],
+  );
+
+  const tabInningsNum = Number(inningsNumber);
+  const activeInnings = matchState?.active_innings;
+  const isLiveInnings = activeInnings && activeInnings.innings_number === tabInningsNum;
+
+  const batsmenOnCrease = useMemo(
+    () => (isLiveInnings ? batsmenOnCreaseFromMatchState(activeInnings) : []),
+    [isLiveInnings, activeInnings],
+  );
+  const bowlersInTable = useMemo(
+    () => (isLiveInnings ? bowlersInTableForLiveScoring(activeInnings, scorecardInnings?.bowling_stats) : []),
+    [isLiveInnings, activeInnings, scorecardInnings?.bowling_stats],
+  );
+  const strikerIndex = 0;
+  const currentBowlerIndex = useMemo(
+    () => currentBowlerIndexInTable(bowlersInTable, activeInnings),
+    [bowlersInTable, activeInnings],
+  );
+  const pendingFreeHit = isLiveInnings ? Boolean(activeInnings.next_is_free_hit) : false;
+  const currentPartnership = isLiveInnings ? (activeInnings.current_partnership ?? { runs: 0, balls: 0 }) : { runs: 0, balls: 0 };
+
+  const hasBallsBowled = (scorecardBalls?.length ?? 0) > 0;
   // ── Enum data ────────────────────────────────────────────────────────────────
 
   const { data: enums = {} } = useGetEnumsQuery();
   const [storeMatchSquad] = useStoreMatchSquadMutation();
   const [storePlayingEleven] = useStorePlayingElevenMutation();
 
-  const allDismissalOptions = useMemo(
-    () => getDismissalOptions(enums.dismissal_type),
-    [enums.dismissal_type],
-  );
+  const allDismissalOptions = useMemo(() => getDismissalOptions(enums.dismissal_type), [enums.dismissal_type]);
 
   // On a free hit only run_out / obstructing / hit_ball_twice are valid.
   const activeDismissalOptions = useMemo(
-    () =>
-      pendingFreeHit
-        ? getFreeHitDismissalOptions(allDismissalOptions)
-        : allDismissalOptions,
+    () => (pendingFreeHit ? getFreeHitDismissalOptions(allDismissalOptions) : allDismissalOptions),
     [allDismissalOptions, pendingFreeHit],
   );
 
-  const extraTypeOptions = useMemo(
-    () => getExtraTypeOptions(enums.extra_type),
-    [enums.extra_type],
-  );
-  const shotPositionOptions = useMemo(
-    () => getShotPositionOptions(enums.shot_position),
-    [enums.shot_position],
-  );
+  const extraTypeOptions = useMemo(() => getExtraTypeOptions(enums.extra_type), [enums.extra_type]);
+  const shotPositionOptions = useMemo(() => getShotPositionOptions(enums.shot_position), [enums.shot_position]);
 
-  // ── Dialog state ─────────────────────────────────────────────────────────────
+  // ── Dialog context ───────────────────────────────────────────────────────────
 
-  const [addBatsmanOpen, setAddBatsmanOpen] = useState(false);
-  const [batsmanDialogReplaceStriker, setBatsmanDialogReplaceStriker] =
-    useState(false);
-  const [addBowlerOpen, setAddBowlerOpen] = useState(false);
-  const [bowlerDialogReplaceActive, setBowlerDialogReplaceActive] =
-    useState(false);
-  const [savingBatsmanSquad, setSavingBatsmanSquad] = useState(false);
-  const [savingBowlerSquad, setSavingBowlerSquad] = useState(false);
-  const [outReasonModalOpen, setOutReasonModalOpen] = useState(false);
-  const [retiredHurtConfirmOpen, setRetiredHurtConfirmOpen] = useState(false);
-  const [customScoreDialogOpen, setCustomScoreDialogOpen] = useState(false);
-  const [extraRunsDialogOpen, setExtraRunsDialogOpen] = useState(false);
-  const [pendingExtraType, setPendingExtraType] = useState(null);
-  const [customScoreInput, setCustomScoreInput] = useState('');
-  const [shotAreaDialogOpen, setShotAreaDialogOpen] = useState(false);
-  const [pendingRunsForShot, setPendingRunsForShot] = useState(null);
-  const [pendingDismissal, setPendingDismissal] = useState(null);
-  const [fielderPickerOpen, setFielderPickerOpen] = useState(false);
+  const { dialogKey, openDialog, closeDialog } = useDialog();
 
   // ── Derived ──────────────────────────────────────────────────────────────────
 
   const inningsLabel = inningsNumber === '2' ? '2nd Innings' : '1st Innings';
   const displayTeamName =
-    battingTeamName ||
-    (inningsNumber === '2'
-      ? match?.teamB?.name || 'Team B'
-      : match?.teamA?.name || 'Team A');
+    battingTeamName || (inningsNumber === '2' ? match?.teamB?.name || 'Team B' : match?.teamA?.name || 'Team A');
 
-  const oversFromBalls = useMemo(
-    () => buildOversFromBalls(ballHistory),
-    [ballHistory],
-  );
+  // Over strip reads from the RTK Scorecard cache (~4s lag after each ball — acceptable).
+  // If zero-lag on the current over becomes a requirement, matchState.active_innings.current_over_balls
+  // already contains the live over's balls in the same API shape and can be appended to the
+  // completed overs from scorecard without any additional state or hooks.
+  const oversFromBalls = useMemo(() => buildOversFromBalls(scorecardBalls), [scorecardBalls]);
 
   const secondInningsChase = useMemo(() => {
-    if (inningsNumber !== '2' || targetScore == null || liveScore == null)
-      return null;
-    const maxOversNum =
-      liveScore.maxOvers ??
-      (match?.overs != null && match.overs !== ''
-        ? Number(match.overs)
-        : undefined);
+    if (inningsNumber !== '2' || targetScore == null) return null;
+    // Prefer server-computed chase metrics (populated by matchState.active_innings)
+    if (liveScore?.serverRunsToWin != null) {
+      return {
+        target: targetScore,
+        requiredRunRate: liveScore.serverRequiredRunRate ?? '—',
+        ballsLeft: liveScore.serverBallsRemaining ?? 0,
+        runsToWin: liveScore.serverRunsToWin,
+      };
+    }
+    // Fallback: local computation for the pre-hydration window
+    if (liveScore == null) return null;
+    const maxOversNum = liveScore.maxOvers ?? (match?.overs != null && match.overs !== '' ? Number(match.overs) : undefined);
     if (maxOversNum == null || Number.isNaN(maxOversNum)) return null;
     const maxBalls = Math.floor(maxOversNum * 6);
     const valid = liveScore.validDeliveries ?? 0;
     const ballsLeft = Math.max(0, maxBalls - valid);
     const runsToWin = Math.max(0, targetScore - (liveScore.totalRuns ?? 0));
     const oversRemaining = ballsLeft / 6;
-    const requiredRunRate =
-      runsToWin <= 0
-        ? '0.0'
-        : ballsLeft <= 0
-          ? '—'
-          : (runsToWin / oversRemaining).toFixed(1);
+    const requiredRunRate = runsToWin <= 0 ? '0.0' : ballsLeft <= 0 ? '—' : (runsToWin / oversRemaining).toFixed(1);
     return { target: targetScore, requiredRunRate, ballsLeft, runsToWin };
   }, [inningsNumber, targetScore, liveScore, match?.overs]);
 
@@ -258,88 +199,26 @@ export function ScoringTab({
   const overStatsScrollRef = useRef(null);
   useEffect(() => {
     const el = overStatsScrollRef.current;
-    if (!el || ballHistory.length === 0) return;
+    if (!el || scorecardBalls.length === 0) return;
     requestAnimationFrame(() => {
       el.scrollLeft = el.scrollWidth - el.clientWidth;
     });
-  }, [ballHistory.length]);
+  }, [scorecardBalls.length]);
 
-  // ── Innings-end detection ────────────────────────────────────────────────────
-  //
-  // Fires onInningsComplete only for a SINGLE newly added live ball.
-  // Skips batch loads (0 → N), undo (N → N-1), and innings switch.
+  // Innings-end is signalled by match_state.innings_just_completed in ScoringMatch (useEffect).
+  // Do not close inningsEnd / manOfTheMatch here — ScoringMatch opens MOTM only after
+  // the user taps Continue on the innings-end dialog (see pendingInningsEndRef effect).
 
-  const baselineRef = useRef(ballHistory.length);
-  const prevLengthRef = useRef(ballHistory.length);
-  const inningsEndEmittedRef = useRef(false);
-
+  // Close in-progress scoring pickers when the match finishes (not flow dialogs).
   useEffect(() => {
-    baselineRef.current = ballHistory.length;
-    prevLengthRef.current = ballHistory.length;
-    inningsEndEmittedRef.current = false;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inningsNumber]);
-
-  useEffect(() => {
-    const curr = ballHistory.length;
-    const prev = prevLengthRef.current;
-    if (curr !== prev) {
-      if (curr - prev !== 1) baselineRef.current = curr;
-      prevLengthRef.current = curr;
-    }
-  }, [ballHistory.length]);
-
-  useEffect(() => {
-    if (!onInningsComplete) return;
-    const totalRuns = liveScore?.totalRuns ?? 0;
-    const maxWickets =
-      match?.playersPerSide != null ? match.playersPerSide - 1 : undefined;
-    const maxValidBalls =
-      match?.overs != null ? Number(match.overs) * 6 : undefined;
-
-    const targetMet = targetScore != null && totalRuns >= targetScore;
-    const wicketsMet =
-      maxWickets != null && (liveScore?.totalWickets ?? 0) >= maxWickets;
-    const oversMet =
-      maxValidBalls != null &&
-      (liveScore?.validDeliveries ?? 0) >= maxValidBalls;
-    const inningsEnded = targetMet || wicketsMet || oversMet;
-
-    if (!inningsEnded) {
-      inningsEndEmittedRef.current = false;
-      return;
-    }
-    if (ballHistory.length <= baselineRef.current) return;
-    if (inningsEndEmittedRef.current) return;
-
-    const reason = targetMet ? 'target' : wicketsMet ? 'wickets' : 'overs';
-    inningsEndEmittedRef.current = true;
-    onInningsComplete({ reason });
-  }, [
-    liveScore?.totalRuns,
-    liveScore?.totalWickets,
-    liveScore?.validDeliveries,
-    ballHistory.length,
-    onInningsComplete,
-    targetScore,
-    match?.playersPerSide,
-    match?.overs,
-  ]);
-
-  // Close dialogs when match completes
-  useEffect(() => {
-    if (matchComplete) {
-      setAddBowlerOpen(false);
-      setBowlerDialogReplaceActive(false);
-      setAddBatsmanOpen(false);
-      setBatsmanDialogReplaceStriker(false);
-    }
-  }, [matchComplete]);
+    if (!matchComplete || !dialogKey) return;
+    if (dialogKey === 'inningsEnd' || dialogKey === 'manOfTheMatch') return;
+    if (dialogKey.startsWith('scoring')) closeDialog();
+  }, [matchComplete, dialogKey, closeDialog]);
 
   // ── Capacity flags ────────────────────────────────────────────────────────────
 
   const canAddMoreBatsmen = batsmenOnCrease.length < 2;
-  const canAddMoreBowlers = bowlersInTable.length < MAX_BOWLERS_IN_TABLE;
 
   // ── Squad helpers ─────────────────────────────────────────────────────────────
 
@@ -359,416 +238,440 @@ export function ScoringTab({
     return Array.isArray(ids) && ids.length >= expectedXiSize;
   }, [bowlingPlayingElevenIds, expectedXiSize]);
 
-  const battingCount = battingSquad.filter((p) =>
-    Number.isFinite(Number(p.id)),
-  ).length;
-  const bowlingCount = bowlingSquad.filter((p) =>
-    Number.isFinite(Number(p.id)),
-  ).length;
-  const requiredBatting =
-    playersPerSide != null
-      ? Math.min(playersPerSide, battingCount)
-      : battingCount;
-  const requiredBowling =
-    playersPerSide != null
-      ? Math.min(playersPerSide, bowlingCount)
-      : bowlingCount;
+  const battingCount = battingSquad.filter((p) => Number.isFinite(Number(p.id))).length;
+  const bowlingCount = bowlingSquad.filter((p) => Number.isFinite(Number(p.id))).length;
+  const requiredBatting = playersPerSide != null ? Math.min(playersPerSide, battingCount) : battingCount;
+  const requiredBowling = playersPerSide != null ? Math.min(playersPerSide, bowlingCount) : bowlingCount;
 
   const addBatsmanDialogPlayers = useMemo(() => {
     if (!battingXiSavedOnApi) return battingSquad;
     const ids = new Set((battingPlayingElevenIds ?? []).map(String));
-    const filtered = battingSquad.filter(
-      (p) => p.id != null && ids.has(String(p.id)),
-    );
+    const filtered = battingSquad.filter((p) => p.id != null && ids.has(String(p.id)));
     return filtered.length > 0 ? filtered : battingSquad;
   }, [battingSquad, battingPlayingElevenIds, battingXiSavedOnApi]);
 
   const addBowlerDialogPlayers = useMemo(() => {
     if (!bowlingXiSavedOnApi) return bowlingSquad;
     const ids = new Set((bowlingPlayingElevenIds ?? []).map(String));
-    const filtered = bowlingSquad.filter(
-      (p) => p.id != null && ids.has(String(p.id)),
-    );
+    const filtered = bowlingSquad.filter((p) => p.id != null && ids.has(String(p.id)));
     return filtered.length > 0 ? filtered : bowlingSquad;
   }, [bowlingSquad, bowlingPlayingElevenIds, bowlingXiSavedOnApi]);
 
-  const battingOrder = useMemo(
-    () => battingSquad.filter((p) => p.role === 'playing'),
-    [battingSquad],
-  );
-  const bowlingOrder = useMemo(
-    () => bowlingSquad.filter((p) => p.role === 'playing'),
-    [bowlingSquad],
-  );
+  const battingOrder = useMemo(() => battingSquad.filter((p) => p.role === 'playing'), [battingSquad]);
+  const bowlingOrder = useMemo(() => bowlingSquad.filter((p) => p.role === 'playing'), [bowlingSquad]);
 
   // ── Player lookup helpers ─────────────────────────────────────────────────────
 
-  const isPlayerBattingOrOut = (playerId) =>
-    batsmenOnCrease.some((b) => b.id === playerId) ||
-    ballHistory.some(
-      (b) =>
-        (b.type === 'out' || b.type === 'retired_hurt') &&
-        b.striker?.id === playerId,
-    );
+  const isPlayerBattingOrOut = useCallback(
+    (playerId) => {
+      const onCrease = batsmenOnCrease.some((b) => String(b.id) === String(playerId));
+      if (onCrease) return true;
+      const batted = scorecardInnings?.batting?.find((b) => String(b.player_id) === String(playerId));
+      if (!batted) return false;
+      return batted.dismissal_type != null && batted.dismissal_type !== 'retired_hurt';
+    },
+    [batsmenOnCrease, scorecardInnings?.batting],
+  );
 
-  const getBatsmanDisplayStats = (playerId) => {
-    const onCrease = batsmenOnCrease.find((b) => b.id === playerId);
-    if (onCrease) {
-      const { runs = 0, balls = 0, fours = 0, sixes = 0 } = onCrease;
-      return {
-        runs,
-        balls,
-        fours,
-        sixes,
-        strikeRate: !balls ? '0.0' : ((runs / balls) * 100).toFixed(1),
-      };
-    }
-    const outBall = ballHistory.find(
-      (b) =>
-        (b.type === 'out' || b.type === 'retired_hurt') &&
-        b.striker?.id === playerId,
-    );
-    if (outBall?.striker) {
-      const { runs = 0, balls = 0, fours = 0, sixes = 0 } = outBall.striker;
-      return {
-        runs,
-        balls,
-        fours,
-        sixes,
-        strikeRate: !balls ? '0.0' : ((runs / balls) * 100).toFixed(1),
-      };
-    }
-    return null;
-  };
+  const getBatsmanDisplayStats = useCallback(
+    (playerId) => {
+      const onCrease = batsmenOnCrease.find((b) => String(b.id) === String(playerId));
+      if (onCrease) {
+        const { runs = 0, balls = 0, fours = 0, sixes = 0 } = onCrease;
+        return {
+          runs,
+          balls,
+          fours,
+          sixes,
+          strikeRate: !balls ? '0.0' : ((runs / balls) * 100).toFixed(1),
+        };
+      }
+      const row = scorecardInnings?.batting?.find((b) => String(b.player_id) === String(playerId));
+      if (row) {
+        const runs = row.runs ?? 0;
+        const balls = row.balls ?? 0;
+        const fours = row.fours ?? 0;
+        const sixes = row.sixes ?? 0;
+        return {
+          runs,
+          balls,
+          fours,
+          sixes,
+          strikeRate: !balls ? '0.0' : ((runs / balls) * 100).toFixed(1),
+        };
+      }
+      return null;
+    },
+    [batsmenOnCrease, scorecardInnings?.batting],
+  );
+
+  // ── Engine callback refs (break circular dep: dialog openers ↔ engine) ────────
+
+  const engineRef = useRef({});
+
+  // ── Dialog openers (declared BEFORE engine so they can be passed as callbacks) ──
+
+  const openOutReasonDialog = useCallback(() => {
+    openDialog('scoringOutReason', {
+      dismissalOptions: activeDismissalOptions,
+      onSelectOption: (opt) => {
+        engineRef.current.handleOut?.({
+          dismissalType: opt.value,
+          requiresFielder: dismissalRequiresFielder(opt),
+        });
+      },
+    });
+  }, [openDialog, activeDismissalOptions]);
+
+  const openFielderPickerDialog = useCallback(
+    (ball) => {
+      openDialog('scoringFielderPicker', {
+        message: 'Who was the fielder?',
+        players: addBowlerDialogPlayers,
+        onSelectFielder: (playerId) => {
+          engineRef.current.handleOutWithFielder?.(ball, playerId);
+        },
+      });
+    },
+    [openDialog, addBowlerDialogPlayers],
+  );
 
   // ── Scoring engine ────────────────────────────────────────────────────────────
+
+  const striker = batsmenOnCrease[strikerIndex] ?? null;
+  const nonStriker = batsmenOnCrease[1 - strikerIndex] ?? null;
+  const currentBowler = bowlersInTable[currentBowlerIndex] ?? null;
+
+  // Stable refs for dialog openers used in handleMatchState
+  const openBatsmanDialogRef = useRef(null);
+  const openBowlerDialogRef = useRef(null);
+
+  const prevNeedsBatterRef = useRef(false);
+  const prevNeedsBowlerRef = useRef(false);
+
+  useEffect(() => {
+    if (!isLiveInnings) return;
+    const needsBatter = Boolean(matchState?.needs_new_batter);
+    const needsBowler = Boolean(matchState?.needs_new_bowler);
+    if (needsBatter && !prevNeedsBatterRef.current) {
+      openBatsmanDialogRef.current?.();
+    }
+    if (needsBowler && !prevNeedsBowlerRef.current) {
+      openBowlerDialogRef.current?.();
+    }
+    prevNeedsBatterRef.current = needsBatter;
+    prevNeedsBowlerRef.current = needsBowler;
+  }, [isLiveInnings, matchState?.needs_new_batter, matchState?.needs_new_bowler]);
+
+  const scoringInningsId = isLiveInnings && activeInnings?.innings_id ? activeInnings.innings_id : inningsId;
 
   const {
     handleRuns,
     handleSpecial,
     handlePenaltyRuns,
+    initiateOut,
     handleOut,
+    handleOutWithFielder,
     handleRetiredHurt,
     handleUndo,
+    isSubmitting,
   } = useScoringEngine({
-    ballHistory,
-    setBallHistory,
-    batsmenOnCrease,
-    setBatsmenOnCrease,
-    bowlersInTable,
-    setBowlersInTable,
-    strikerIndex,
-    setStrikerIndex,
-    currentBowlerIndex,
-    setCurrentBowlerIndex,
-    currentPartnership,
-    setCurrentPartnership,
-    setCompletedPartnerships,
-    pendingFreeHit,
-    setPendingFreeHit,
-    retiredBatsmen,
-    setRetiredBatsmen,
-    setAddBowlerOpen,
-    setOutReasonModalOpen,
-    setPendingDismissal,
-    setFielderPickerOpen,
-    syncBallToApi,
-    syncUndoToApi,
-    matchOvers: match?.overs,
-    playersPerSide: match?.playersPerSide,
-    targetScore,
-    matchComplete,
+    matchId,
+    inningsId: scoringInningsId,
+    striker,
+    nonStriker,
+    currentBowler,
+    storeBall,
+    deleteLastBall,
+    onDismissalRequired: openOutReasonDialog,
+    onFielderRequired: openFielderPickerDialog,
+    matchComplete: matchComplete || !isLiveInnings,
   });
+
+  // Keep engine ref current (used by dialog opener closures)
+  engineRef.current = { handleRuns, handleOut, handleOutWithFielder };
+
+  // Push local openers / bowler to API before the first ball (overlay + match_state).
+  useEffect(() => {
+    if (!isLiveInnings || hasBallsBowled) return;
+    syncPreBallCrease?.();
+  }, [isLiveInnings, hasBallsBowled, syncPreBallCrease]);
 
   // ── API squad persistence ─────────────────────────────────────────────────────
 
-  const handleSaveBatsmanSquad = async () => {
-    if (!matchId || !battingTeamId) return;
-    const playingIds = battingSquad
-      .filter((p) => p.role === 'playing' && Number.isFinite(Number(p.id)))
-      .map((p) => Number(p.id));
-    if (playingIds.length !== requiredBatting) return;
-    setSavingBatsmanSquad(true);
-    try {
-      const allIds = battingSquad
-        .filter((p) => Number.isFinite(Number(p.id)))
-        .map((p) => Number(p.id));
-      await storeMatchSquad({
-        matchId,
-        teamId: battingTeamId,
-        player_ids: allIds,
-      }).unwrap();
-      await storePlayingEleven({
-        matchId,
-        teamId: battingTeamId,
-        player_ids: playingIds,
-      }).unwrap();
-      const playing = battingSquad.filter((p) => p.role === 'playing');
-      if (playing.length >= 2)
-        setBatsmenOnCrease(playing.slice(0, 2).map(blankBatsman));
-      setAddBatsmanOpen(false);
-    } finally {
-      setSavingBatsmanSquad(false);
-    }
-  };
+  const handleSaveBatsmanSquad = useCallback(
+    async (updatedPlayers) => {
+      if (!matchId || !battingTeamId) return;
+      // Prefer the up-to-date players passed from the dialog over the
+      // potentially-stale battingSquad closure value.
+      const squad = updatedPlayers ?? battingSquad;
+      const playingIds = squad.filter((p) => p.role === 'playing' && Number.isFinite(Number(p.id))).map((p) => Number(p.id));
+      if (playingIds.length !== requiredBatting) return;
+      try {
+        const allIds = squad.filter((p) => Number.isFinite(Number(p.id))).map((p) => Number(p.id));
+        await storeMatchSquad({
+          matchId,
+          teamId: battingTeamId,
+          player_ids: allIds,
+        }).unwrap();
+        await storePlayingEleven({
+          matchId,
+          teamId: battingTeamId,
+          player_ids: playingIds,
+        }).unwrap();
+        const playing = squad.filter((p) => p.role === 'playing');
+        closeDialog();
+        if (playing.length >= 2 && !hasBallsBowled) {
+          onCreaseChange?.({
+            next_batter_id: Number(playing[0].id),
+            next_non_striker_id: Number(playing[1].id),
+          });
+          syncPreBallCrease?.();
+        }
+      } catch {
+        // Errors handled by API layer / toasts
+      }
+    },
+    [
+      matchId,
+      battingTeamId,
+      battingSquad,
+      requiredBatting,
+      storeMatchSquad,
+      storePlayingEleven,
+      closeDialog,
+      hasBallsBowled,
+      onCreaseChange,
+      syncPreBallCrease,
+    ],
+  );
 
-  const handleSaveBowlerSquad = async () => {
-    if (!matchId || !bowlingTeamId) return;
-    const playingIds = bowlingSquad
-      .filter((p) => p.role === 'playing' && Number.isFinite(Number(p.id)))
-      .map((p) => Number(p.id));
-    if (playingIds.length !== requiredBowling) return;
-    setSavingBowlerSquad(true);
-    try {
-      const allIds = bowlingSquad
-        .filter((p) => Number.isFinite(Number(p.id)))
-        .map((p) => Number(p.id));
-      await storeMatchSquad({
-        matchId,
-        teamId: bowlingTeamId,
-        player_ids: allIds,
-      }).unwrap();
-      await storePlayingEleven({
-        matchId,
-        teamId: bowlingTeamId,
-        player_ids: playingIds,
-      }).unwrap();
-      const playing = bowlingSquad.filter((p) => p.role === 'playing');
-      if (playing.length > 0)
-        setBowlersInTable(playing.slice(0, 2).map(blankBowler));
-      setAddBowlerOpen(false);
-    } finally {
-      setSavingBowlerSquad(false);
-    }
-  };
+  const handleSaveBowlerSquad = useCallback(
+    async (updatedPlayers) => {
+      if (!matchId || !bowlingTeamId) return;
+      // Prefer the up-to-date players passed from the dialog over the
+      // potentially-stale bowlingSquad closure value.
+      const squad = updatedPlayers ?? bowlingSquad;
+      const playingIds = squad.filter((p) => p.role === 'playing' && Number.isFinite(Number(p.id))).map((p) => Number(p.id));
+      if (playingIds.length !== requiredBowling) return;
+      try {
+        const allIds = squad.filter((p) => Number.isFinite(Number(p.id))).map((p) => Number(p.id));
+        await storeMatchSquad({
+          matchId,
+          teamId: bowlingTeamId,
+          player_ids: allIds,
+        }).unwrap();
+        await storePlayingEleven({
+          matchId,
+          teamId: bowlingTeamId,
+          player_ids: playingIds,
+        }).unwrap();
+        const playing = squad.filter((p) => p.role === 'playing');
+        closeDialog();
+        if (playing.length > 0 && !hasBallsBowled) {
+          onCreaseChange?.({ next_bowler_id: Number(playing[0].id) });
+          syncPreBallCrease?.();
+        }
+      } catch {
+        // Errors handled by API layer / toasts
+      }
+    },
+    [
+      matchId,
+      bowlingTeamId,
+      bowlingSquad,
+      requiredBowling,
+      storeMatchSquad,
+      storePlayingEleven,
+      closeDialog,
+      hasBallsBowled,
+      onCreaseChange,
+      syncPreBallCrease,
+    ],
+  );
 
   // ── Squad role toggles ────────────────────────────────────────────────────────
 
-  const setBatsmanRole = (id, role) =>
-    setBattingSquad?.((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, role } : b)),
-    );
+  const setBatsmanRole = useCallback(
+    (id, role) => setBattingSquad((prev) => prev.map((b) => (b.id === id ? { ...b, role } : b))),
+    [setBattingSquad],
+  );
 
-  const setBowlerRole = (id, role) =>
-    setBowlingSquad?.((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, role } : b)),
-    );
-
-  const syncCreaseOrderToGraphicSession = useCallback(
-    (newStrikerIndex) => {
-      if (!syncPendingToApi) return;
-      if (ballHistory.length > 0) return;
-      const striker = batsmenOnCrease[newStrikerIndex];
-      const nonStriker = batsmenOnCrease[1 - newStrikerIndex];
-      if (!striker?.id || !nonStriker?.id) return;
-      syncPendingToApi({
-        next_batter_id: Number(striker.id),
-        next_non_striker_id: Number(nonStriker.id),
-      });
-    },
-    [syncPendingToApi, ballHistory.length, batsmenOnCrease],
+  const setBowlerRole = useCallback(
+    (id, role) => setBowlingSquad((prev) => prev.map((b) => (b.id === id ? { ...b, role } : b))),
+    [setBowlingSquad],
   );
 
   const handleStrikerIndexChange = useCallback(
     (newIndex) => {
-      setStrikerIndex?.(newIndex);
-      syncCreaseOrderToGraphicSession(newIndex);
+      if (hasBallsBowled || !onCreaseChange) return;
+      const patch = buildPreBallCreasePatch({
+        batsmenOnCrease,
+        strikerIndex: newIndex,
+      });
+      if (patch.next_batter_id && patch.next_non_striker_id) {
+        onCreaseChange({
+          next_batter_id: patch.next_batter_id,
+          next_non_striker_id: patch.next_non_striker_id,
+        });
+      }
     },
-    [setStrikerIndex, syncCreaseOrderToGraphicSession],
+    [hasBallsBowled, onCreaseChange, batsmenOnCrease],
   );
 
   // ── Add players to live tables ────────────────────────────────────────────────
 
-  const addBatsmanToCrease = (player) => {
-    if (batsmenOnCrease.length >= 2) return;
-    const isSecond = batsmenOnCrease.length === 1;
-    const newBatsman = blankBatsman(player);
-
-    setBatsmenOnCrease?.((prev) => {
-      if (isSecond) {
-        return [
-          ...prev.map((b) => ({
-            ...b,
-            partnerRunsAtStart: b.runs,
-            partnerBallsAtStart: b.balls,
-          })),
-          newBatsman,
-        ];
+  const addBatsmanToCrease = useCallback(
+    async (player) => {
+      if (batsmenOnCrease.length >= 2) return;
+      const isSecond = batsmenOnCrease.length === 1;
+      const key = isSecond ? (!hasBallsBowled ? 'next_non_striker_id' : 'next_batter_id') : 'next_batter_id';
+      const patch = { [key]: Number(player.id) };
+      try {
+        await onCreaseChange?.(patch);
+        closeDialog();
+      } catch {
+        // API layer / toasts handle errors; keep dialog open to retry.
       }
-      return [...prev, newBatsman];
-    });
+    },
+    [batsmenOnCrease, hasBallsBowled, onCreaseChange, closeDialog],
+  );
 
-    if (isSecond) {
-      setCurrentPartnership?.({ runs: 0, balls: 0 });
-      setAddBatsmanOpen(false);
-      const key = ballHistory.length === 0 ? 'next_non_striker_id' : 'next_batter_id';
-      syncPendingToApi?.({ [key]: player.id });
-    } else {
-      syncPendingToApi?.({ next_batter_id: player.id });
-    }
-  };
+  const replaceStrikerWith = useCallback(
+    (player) => {
+      const cur = batsmenOnCrease[strikerIndex];
+      if (!cur || String(cur.id) === String(player.id)) {
+        closeDialog();
+        return;
+      }
+      closeDialog();
+      if (!hasBallsBowled) {
+        onCreaseChange?.({ next_batter_id: Number(player.id) });
+      }
+    },
+    [batsmenOnCrease, strikerIndex, closeDialog, hasBallsBowled, onCreaseChange],
+  );
 
-  const replaceStrikerWith = (player) => {
-    const i = Math.min(
-      Math.max(0, Number(strikerIndex) || 0),
-      Math.max(0, batsmenOnCrease.length - 1),
-    );
-    const cur = batsmenOnCrease[i];
-    if (!cur || String(cur.id) === String(player.id)) {
-      setAddBatsmanOpen(false);
-      setBatsmanDialogReplaceStriker(false);
-      return;
-    }
-    setBatsmenOnCrease?.((prev) => {
-      const next = [...prev];
-      if (!next[i]) return prev;
-      next[i] = blankBatsman(player);
-      return next;
-    });
-    setAddBatsmanOpen(false);
-    setBatsmanDialogReplaceStriker(false);
-    syncPendingToApi?.({ next_batter_id: player.id });
-  };
+  const selectBowlerForNextOver = useCallback(
+    async (player) => {
+      const playingOk = bowlingXiSavedOnApi || player?.role === 'playing';
+      if (!playingOk) return;
+      try {
+        await onCreaseChange?.({ next_bowler_id: Number(player.id) });
+        closeDialog();
+      } catch {
+        // API layer / toasts handle errors; keep dialog open to retry.
+      }
+    },
+    [bowlingXiSavedOnApi, closeDialog, onCreaseChange],
+  );
 
-  const addBowlerToTable = (player) => {
-    if (!canAddMoreBowlers) return;
-    const newIndex = bowlersInTable.length;
-    const isLastSlot = newIndex === MAX_BOWLERS_IN_TABLE - 1;
-    setBowlersInTable?.((prev) => [...prev, blankBowler(player)]);
-    setCurrentBowlerIndex?.(newIndex);
-    syncPendingToApi?.({ next_bowler_id: Number(player.id) });
-    if (isLastSlot) setAddBowlerOpen(false);
-  };
+  const handleReplaceActiveBowlerPick = useCallback(
+    (player) => {
+      const playingOk = bowlingXiSavedOnApi || player?.role === 'playing';
+      if (!playingOk) return;
+      closeDialog();
+      onCreaseChange?.({ next_bowler_id: Number(player.id) });
+    },
+    [bowlingXiSavedOnApi, closeDialog, onCreaseChange],
+  );
 
-  const selectBowlerForNextOver = (player) => {
-    const playingOk = bowlingXiSavedOnApi || player?.role === 'playing';
-    if (!playingOk) return;
+  // ── Dialog openers for batsman/bowler pickers ─────────────────────────────────
 
-    const idx = bowlersInTable.findIndex(
-      (bt) => String(bt.id) === String(player.id),
-    );
-    if (idx >= 0) {
-      setCurrentBowlerIndex?.(idx);
-      setAddBowlerOpen(false);
-      syncPendingToApi?.({ next_bowler_id: player.id });
-      return;
-    }
-    if (canAddMoreBowlers) {
-      addBowlerToTable(player);
-      setAddBowlerOpen(false);
-      syncPendingToApi?.({ next_bowler_id: player.id });
-      return;
-    }
-    // Swap current slot with the new bowler
-    const table = bowlersInTable ?? [];
-    if (table.length === 0) return;
-    const cur = Math.min(
-      Math.max(0, Number(currentBowlerIndex) || 0),
-      table.length - 1,
-    );
-    setBowlersInTable?.((prev) => {
-      const next = [...prev];
-      next[cur] = blankBowler(player);
-      return next;
-    });
-    setAddBowlerOpen(false);
-    syncPendingToApi?.({ next_bowler_id: player.id });
-  };
+  const openBatsmanDialog = useCallback(
+    (replaceStriker = false) => {
+      // Once balls have been bowled the match is in progress — hide squad-setup
+      // controls even if the API-saved XI isn't available yet.
+      const matchInProgress = hasBallsBowled;
+      openDialog('scoringBatsman', {
+        variant: battingXiSavedOnApi ? 'picker' : 'squad',
+        hideSquadSetup: matchInProgress,
+        replaceStrikerMode: replaceStriker,
+        players: addBatsmanDialogPlayers,
+        ballHistory: scorecardBalls,
+        canAddMoreBatsmen,
+        isPlayerBattingOrOut,
+        getBatsmanDisplayStats,
+        strikerId: batsmenOnCrease[strikerIndex]?.id,
+        nonStrikerId: batsmenOnCrease.length > 1 ? batsmenOnCrease[1 - strikerIndex]?.id : undefined,
+        onPickBatsman: replaceStriker ? replaceStrikerWith : addBatsmanToCrease,
+        // Squad-setup props (only used when variant === 'squad' and !matchInProgress)
+        squad: battingSquad,
+        onSaveSquad: handleSaveBatsmanSquad,
+        onSetRole: setBatsmanRole,
+        requiredPlayingCount: requiredBatting,
+      });
+    },
+    [
+      openDialog,
+      battingXiSavedOnApi,
+      addBatsmanDialogPlayers,
+      scorecardBalls,
+      hasBallsBowled,
+      canAddMoreBatsmen,
+      isPlayerBattingOrOut,
+      getBatsmanDisplayStats,
+      batsmenOnCrease,
+      strikerIndex,
+      replaceStrikerWith,
+      addBatsmanToCrease,
+      battingSquad,
+      handleSaveBatsmanSquad,
+      setBatsmanRole,
+      requiredBatting,
+    ],
+  );
+  openBatsmanDialogRef.current = openBatsmanDialog;
 
-  const handleReplaceActiveBowlerPick = (player) => {
-    const playingOk = bowlingXiSavedOnApi || player?.role === 'playing';
-    if (!playingOk) return;
-    const table = bowlersInTable ?? [];
-    if (table.length === 0) return;
-    const cur = Math.min(
-      Math.max(0, Number(currentBowlerIndex) || 0),
-      table.length - 1,
-    );
-    const idxInTable = table.findIndex(
-      (bt) => String(bt.id) === String(player.id),
-    );
-    if (idxInTable >= 0 && idxInTable !== cur) {
-      setCurrentBowlerIndex?.(idxInTable);
-      setAddBowlerOpen(false);
-      setBowlerDialogReplaceActive(false);
-      syncPendingToApi?.({ next_bowler_id: player.id });
-      return;
-    }
-    setBowlersInTable?.((prev) => {
-      const next = [...prev];
-      const slot = next[cur];
-      if (!slot || String(slot.id) === String(player.id)) return prev;
-      next[cur] = blankBowler(player);
-      return next;
-    });
-    setAddBowlerOpen(false);
-    setBowlerDialogReplaceActive(false);
-    syncPendingToApi?.({ next_bowler_id: player.id });
-  };
-
-  // ── Shot area / custom score dialog flows ─────────────────────────────────────
-
-  const openCustomScore = () => {
-    setCustomScoreInput('');
-    setCustomScoreDialogOpen(true);
-  };
-  const closeCustomScore = () => {
-    setCustomScoreDialogOpen(false);
-    setCustomScoreInput('');
-  };
-  const handleCustomScoreDone = () => {
-    const n = parseInt(customScoreInput.trim(), 10);
-    if (Number.isNaN(n) || n < 0 || n > 99) return;
-    handleRuns(n);
-    closeCustomScore();
-  };
-
-  const openShotArea = (runs) => {
-    setPendingRunsForShot(runs);
-    setShotAreaDialogOpen(true);
-  };
-  const closeShotArea = () => {
-    setShotAreaDialogOpen(false);
-    setPendingRunsForShot(null);
-  };
-  const handleShotSelect = (zoneId) => {
-    if (pendingRunsForShot != null) handleRuns(pendingRunsForShot, zoneId);
-    closeShotArea();
-  };
+  const openBowlerDialog = useCallback(
+    (replaceActive = false) => {
+      const matchInProgress = hasBallsBowled;
+      openDialog('scoringBowler', {
+        variant: bowlingXiSavedOnApi ? 'picker' : 'squad',
+        hideSquadSetup: matchInProgress,
+        replaceActiveBowlerMode: replaceActive,
+        players: addBowlerDialogPlayers,
+        bowlersInTable,
+        activeBowlerId: bowlersInTable[Math.min(Math.max(0, currentBowlerIndex), bowlersInTable.length - 1)]?.id,
+        onSelectBowlerForNextOver: selectBowlerForNextOver,
+        onReplaceActiveBowlerPick: handleReplaceActiveBowlerPick,
+        // Squad-setup props (only used when variant === 'squad' and !matchInProgress)
+        squad: bowlingSquad,
+        onSaveSquad: handleSaveBowlerSquad,
+        onSetRole: setBowlerRole,
+        requiredPlayingCount: requiredBowling,
+      });
+    },
+    [
+      openDialog,
+      bowlingXiSavedOnApi,
+      addBowlerDialogPlayers,
+      hasBallsBowled,
+      bowlersInTable,
+      currentBowlerIndex,
+      selectBowlerForNextOver,
+      handleReplaceActiveBowlerPick,
+      bowlingSquad,
+      handleSaveBowlerSquad,
+      setBowlerRole,
+      requiredBowling,
+    ],
+  );
+  openBowlerDialogRef.current = openBowlerDialog;
 
   // ── Penalty runs ──────────────────────────────────────────────────────────────
   // Law 41.17: handled by useScoringEngine as type 'penalty' (not a wide).
 
-  const handleRetiredHurtConfirm = () => {
-    handleRetiredHurt();
-    setRetiredHurtConfirmOpen(false);
-  };
-
-  // ── Fielder / dismissal ───────────────────────────────────────────────────────
-
-  const needsFielder = (opt) =>
-    dismissalRequiresFielder(
-      typeof opt === 'object' && opt !== null ? opt : { value: opt },
-    );
-
   // ── Render ────────────────────────────────────────────────────────────────────
 
-  const isReadyToScore =
-    batsmenOnCrease.length === 2 && bowlersInTable.length > 0 && !matchComplete;
+  const isReadyToScore = isLiveInnings && batsmenOnCrease.length === 2 && bowlersInTable.length > 0 && !matchComplete;
 
   return (
     <div className="mt-4 space-y-4 pb-8">
       {/* Innings header */}
       <div className="flex items-center justify-center gap-2">
-        <img
-          src={TEAM_MATCH_ICON}
-          alt=""
-          className="h-8 w-8 shrink-0"
-          aria-hidden
-        />
-        <span className="text-[16px] font-bold tracking-wide text-white uppercase">
-          {displayTeamName}
-        </span>
+        <img src={TEAM_MATCH_ICON} alt="" className="h-8 w-8 shrink-0" aria-hidden />
+        <span className="text-[16px] font-bold tracking-wide text-white uppercase">{displayTeamName}</span>
         <span className="text-[13px] text-[#DA9811]">{inningsLabel}</span>
       </div>
 
@@ -805,14 +708,10 @@ export function ScoringTab({
         batsmenOnCrease={batsmenOnCrease}
         strikerIndex={strikerIndex}
         onStrikerChange={handleStrikerIndexChange}
-        retiredBatsmen={retiredBatsmen}
         hasSquad={battingOrder.length > 0}
         matchComplete={matchComplete}
-        onAddBatsman={() => setAddBatsmanOpen(true)}
-        onReplaceStriker={() => {
-          setBatsmanDialogReplaceStriker(true);
-          setAddBatsmanOpen(true);
-        }}
+        onAddBatsman={() => openBatsmanDialog(false)}
+        onReplaceStriker={() => openBatsmanDialog(true)}
       />
 
       {/* Bowler table */}
@@ -821,188 +720,47 @@ export function ScoringTab({
         currentBowlerIndex={currentBowlerIndex}
         hasSquad={bowlingOrder.length > 0}
         matchComplete={matchComplete}
-        onAddBowler={() => setAddBowlerOpen(true)}
-        onReplaceBowler={() => {
-          setBowlerDialogReplaceActive(true);
-          setAddBowlerOpen(true);
-        }}
+        onAddBowler={() => openBowlerDialog(false)}
+        onReplaceBowler={() => openBowlerDialog(true)}
       />
 
       {/* Over strip */}
-      <OverStrip
-        oversFromBalls={oversFromBalls}
-        scrollRef={overStatsScrollRef}
-      />
+      <OverStrip oversFromBalls={oversFromBalls} scrollRef={overStatsScrollRef} />
 
       {/* Scoring controls (hidden when match is complete or teams not ready) */}
       {isReadyToScore && (
         <ScoringControls
           pendingFreeHit={pendingFreeHit}
           extraTypeOptions={extraTypeOptions}
+          isSubmitting={isSubmitting}
           onRun={handleRuns}
-          onRunWithShot={openShotArea}
-          onExtra={(type) => {
-            setPendingExtraType(type);
-            setExtraRunsDialogOpen(true);
-          }}
+          onRunWithShot={(runs) =>
+            openDialog('scoringShotArea', {
+              zones: shotPositionOptions.length > 0 ? shotPositionOptions : undefined,
+              onSelect: (zoneId) => engineRef.current.handleRuns?.(runs, { shotDirection: zoneId }),
+            })
+          }
+          onExtra={(type) =>
+            openDialog('scoringExtraRuns', {
+              onSelect: (runs) => handleSpecial({ type, runs }),
+            })
+          }
           onPenaltyRuns={handlePenaltyRuns}
-          onOut={() => setOutReasonModalOpen(true)}
-          onRetiredHurt={() => setRetiredHurtConfirmOpen(true)}
+          onOut={initiateOut}
+          onRetiredHurt={() =>
+            openDialog('scoringRetiredHurt', {
+              batsmanName: striker?.name,
+              onConfirm: handleRetiredHurt,
+            })
+          }
           onUndo={handleUndo}
-          onCustomScore={openCustomScore}
+          onCustomScore={() =>
+            openDialog('scoringCustomScore', {
+              onSubmit: (n) => handleRuns(n),
+            })
+          }
         />
       )}
-
-      {/* ── Dialogs ──────────────────────────────────────────────────────────── */}
-
-      <ExtraRunsDialog
-        open={extraRunsDialogOpen}
-        onOpenChange={(open) => {
-          setExtraRunsDialogOpen(open);
-          if (!open) setPendingExtraType(null);
-        }}
-        onSelect={(runs) => {
-          if (pendingExtraType) handleSpecial(pendingExtraType, runs);
-        }}
-      />
-
-      <OutReasonDialog
-        open={outReasonModalOpen}
-        onOpenChange={setOutReasonModalOpen}
-        dismissalOptions={activeDismissalOptions}
-        onSelectOption={(opt) => {
-          if (needsFielder(opt)) {
-            setPendingDismissal(opt.value);
-            setOutReasonModalOpen(false);
-            setFielderPickerOpen(true);
-          } else {
-            handleOut(opt.value);
-          }
-        }}
-      />
-
-      <FielderPickerDialog
-        open={fielderPickerOpen}
-        onOpenChange={(open) => {
-          if (!open) setPendingDismissal(null);
-          setFielderPickerOpen(open);
-        }}
-        message="Who was the fielder?"
-        players={addBowlerDialogPlayers}
-        onSelectFielder={(playerId) => handleOut(pendingDismissal, playerId)}
-      />
-
-      {/* Retired Hurt confirmation */}
-      {retiredHurtConfirmOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 pb-8"
-          role="dialog"
-          aria-modal
-          aria-label="Confirm retired hurt"
-        >
-          <div className="w-full max-w-sm rounded-t-2xl bg-[#141412] px-6 pt-6 pb-8">
-            <p className="mb-1 text-center text-[15px] font-bold text-white">
-              Retired Hurt?
-            </p>
-            <p className="mb-6 text-center text-[12px] text-white/60">
-              {batsmenOnCrease[strikerIndex]?.name ?? 'Batsman'} will leave the
-              crease. This does NOT count as a wicket and they may return later.
-            </p>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setRetiredHurtConfirmOpen(false)}
-                className="flex-1 rounded-xl border border-[#3B3B35] py-3 text-[13px] font-bold text-white/70"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleRetiredHurtConfirm}
-                className="flex-1 rounded-xl bg-[#DA9811] py-3 text-[13px] font-bold text-[#080807]"
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <ShotAreaDialog
-        open={shotAreaDialogOpen}
-        onOpenChange={(open) => !open && closeShotArea()}
-        onSelect={handleShotSelect}
-        zones={shotPositionOptions.length > 0 ? shotPositionOptions : undefined}
-      />
-
-      <CustomScoreDialog
-        open={customScoreDialogOpen}
-        onOpenChange={(open) => {
-          if (!open) closeCustomScore();
-        }}
-        value={customScoreInput}
-        onChange={setCustomScoreInput}
-        onSubmit={handleCustomScoreDone}
-      />
-
-      <ScoringSquadPlayerPickerDialog
-        variant="batsman"
-        open={addBatsmanOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            setAddBatsmanOpen(false);
-            setBatsmanDialogReplaceStriker(false);
-          }
-        }}
-        players={addBatsmanDialogPlayers}
-        ballHistory={ballHistory}
-        canAddMoreBatsmen={canAddMoreBatsmen}
-        isPlayerBattingOrOut={isPlayerBattingOrOut}
-        getBatsmanDisplayStats={getBatsmanDisplayStats}
-        hideSquadSetup={battingXiSavedOnApi}
-        savingSquad={savingBatsmanSquad}
-        requiredPlayingCount={requiredBatting}
-        squad={battingSquad}
-        onSaveSquad={handleSaveBatsmanSquad}
-        onSetRole={setBatsmanRole}
-        onPickBatsman={
-          batsmanDialogReplaceStriker ? replaceStrikerWith : addBatsmanToCrease
-        }
-        replaceStrikerMode={batsmanDialogReplaceStriker}
-        strikerId={batsmenOnCrease[strikerIndex]?.id}
-        nonStrikerId={
-          batsmenOnCrease.length > 1
-            ? batsmenOnCrease[strikerIndex === 0 ? 1 : 0]?.id
-            : undefined
-        }
-      />
-
-      <ScoringSquadPlayerPickerDialog
-        variant="bowler"
-        open={addBowlerOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            setAddBowlerOpen(false);
-            setBowlerDialogReplaceActive(false);
-          }
-        }}
-        players={addBowlerDialogPlayers}
-        hideSquadSetup={bowlingXiSavedOnApi}
-        savingSquad={savingBowlerSquad}
-        requiredPlayingCount={requiredBowling}
-        squad={bowlingSquad}
-        onSaveSquad={handleSaveBowlerSquad}
-        onSetRole={setBowlerRole}
-        bowlersInTable={bowlersInTable}
-        onSelectBowlerForNextOver={selectBowlerForNextOver}
-        replaceActiveBowlerMode={bowlerDialogReplaceActive}
-        activeBowlerId={
-          bowlersInTable[
-            Math.min(Math.max(0, currentBowlerIndex), bowlersInTable.length - 1)
-          ]?.id
-        }
-        onReplaceActiveBowlerPick={handleReplaceActiveBowlerPick}
-      />
     </div>
   );
 }

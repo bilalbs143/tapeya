@@ -73,14 +73,7 @@ export const PRICING_PLANS = [
 ];
 
 function CheckIcon({ className = '' }) {
-  return (
-    <img
-      src={pricingListTickIcon}
-      alt=""
-      aria-hidden
-      className={`h-4 w-4 flex-none object-contain ${className}`}
-    />
-  );
+  return <img src={pricingListTickIcon} alt="" aria-hidden className={`h-4 w-4 flex-none object-contain ${className}`} />;
 }
 
 function PricingCard({ plan, isSelected, onSelect, onBuy }) {
@@ -127,49 +120,29 @@ function PricingCard({ plan, isSelected, onSelect, onBuy }) {
       <div className="relative mb-4 flex items-start justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-[14px] bg-black/60">
-            <img
-              src={icon}
-              alt={`${name} badge`}
-              className="h-8 w-8 object-contain"
-            />
+            <img src={icon} alt={`${name} badge`} className="h-8 w-8 object-contain" />
           </div>
-          <h2 className="text-[16px] font-bold text-[#DA9811] uppercase">
-            {name}
-          </h2>
+          <h2 className="text-[16px] font-bold text-[#DA9811] uppercase">{name}</h2>
         </div>
 
         <div className="text-right">
           <p className="mt-1 text-[16px] font-bold tracking-wide text-white">
-            {currency}{' '}
-            <span className="text-[16px] font-bold tracking-tight">
-              {price.toLocaleString('en-PK')}
-            </span>
+            {currency} <span className="text-[16px] font-bold tracking-tight">{price.toLocaleString('en-PK')}</span>
           </p>
-          <p className="text-[12px] font-bold text-white uppercase">
-            {billingCycleLabel}
-          </p>
+          <p className="text-[12px] font-bold text-white uppercase">{billingCycleLabel}</p>
         </div>
       </div>
 
       {isRecommended && badgeLabel ? (
         <div className="mb-4 inline-flex items-center rounded-full border border-[#DA9811] px-3 py-[6px]">
-          <img
-            src={recommendedIcon}
-            alt="Recommended"
-            className="mr-2 h-[18px] w-[18px] object-contain"
-          />
-          <span className="text-[12px] font-normal text-white uppercase">
-            {badgeLabel}
-          </span>
+          <img src={recommendedIcon} alt="Recommended" className="mr-2 h-[18px] w-[18px] object-contain" />
+          <span className="text-[12px] font-normal text-white uppercase">{badgeLabel}</span>
         </div>
       ) : null}
 
       <ul className="mb-5 space-y-2.5">
         {features.map((feature) => (
-          <li
-            key={feature}
-            className="flex items-start gap-2.5 text-[12px] text-[#A2A6AB]"
-          >
+          <li key={feature} className="flex items-start gap-2.5 text-[12px] text-[#A2A6AB]">
             <CheckIcon />
             <span className="leading-relaxed">{feature}</span>
           </li>
@@ -199,9 +172,7 @@ function PricingCard({ plan, isSelected, onSelect, onBuy }) {
 }
 
 export default function Pricing() {
-  const [selectedPlanId, setSelectedPlanId] = useState(
-    PRICING_PLANS[0]?.id ?? null,
-  );
+  const [selectedPlanId, setSelectedPlanId] = useState(PRICING_PLANS[0]?.id ?? null);
   const navigate = useNavigate();
 
   return (

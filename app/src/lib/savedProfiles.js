@@ -53,9 +53,7 @@ export function addSavedProfile(profile) {
 export function clearProfileToken(phone) {
   if (!phone) return;
   const list = getSavedProfiles();
-  const updated = list.map((p) =>
-    p.phone === phone ? { ...p, accessToken: null } : p,
-  );
+  const updated = list.map((p) => (p.phone === phone ? { ...p, accessToken: null } : p));
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ profiles: updated }));
   } catch {

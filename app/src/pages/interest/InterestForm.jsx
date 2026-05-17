@@ -5,17 +5,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
-import {
-  CLOUDFRONT_APP_BASE,
-  MAX_ID_DOCUMENT_BYTES,
-  MAX_PROFILE_PICTURE_BYTES,
-} from '@/lib/constants/assets';
+import { CLOUDFRONT_APP_BASE, MAX_ID_DOCUMENT_BYTES, MAX_PROFILE_PICTURE_BYTES } from '@/lib/constants/assets';
 import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
 import { formatIsoDateForDisplay, toApiDate } from '@/lib/utils/dateUtils';
-import {
-  useGetCitiesQuery,
-  useGetCountriesQuery,
-} from '@/store/api/locationApi';
+import { useGetCitiesQuery, useGetCountriesQuery } from '@/store/api/locationApi';
 import {
   useGetInterestCampaignQuery,
   useSubmitInterestMutation,
@@ -60,12 +53,7 @@ export default function InterestForm() {
   const navigate = useNavigate();
   const toast = useToast();
 
-  const {
-    data: payload,
-    isLoading,
-    isError,
-    error,
-  } = useGetInterestCampaignQuery({ slug }, { skip: !slug });
+  const { data: payload, isLoading, isError, error } = useGetInterestCampaignQuery({ slug }, { skip: !slug });
 
   const [submitInterest, { isLoading: isSubmitting }] = useSubmitInterestMutation();
   const [withdrawInterest, { isLoading: isWithdrawing }] = useWithdrawInterestMutation();
@@ -200,8 +188,8 @@ export default function InterestForm() {
     const missIdDocument = needsIdDocumentUpload && !idDocumentFile;
     if (missPicture || missIdDocument) {
       setErrors({
-        ...(missPicture     && { picture:    PROFILE_PICTURE_REQUIRED_MSG }),
-        ...(missIdDocument  && { idDocument: ID_DOCUMENT_REQUIRED_MSG }),
+        ...(missPicture && { picture: PROFILE_PICTURE_REQUIRED_MSG }),
+        ...(missIdDocument && { idDocument: ID_DOCUMENT_REQUIRED_MSG }),
       });
       return;
     }
@@ -238,19 +226,12 @@ export default function InterestForm() {
     try {
       await submitInterest({ slug, body }).unwrap();
       toast.success(
-        isActive
-          ? 'Your interest details have been updated.'
-          : 'Interest submitted. Our team will see your name shortly.',
+        isActive ? 'Your interest details have been updated.' : 'Interest submitted. Our team will see your name shortly.',
       );
       clearProfilePictureSelection();
       clearIdDocumentSelection();
     } catch (err) {
-      toast.error(
-        getApiErrorMessage(
-          err,
-          'Could not submit your interest. Please try again.',
-        ),
-      );
+      toast.error(getApiErrorMessage(err, 'Could not submit your interest. Please try again.'));
     }
   };
 
@@ -260,9 +241,7 @@ export default function InterestForm() {
       await withdrawInterest({ slug }).unwrap();
       toast.success('Interest withdrawn.');
     } catch (err) {
-      toast.error(
-        getApiErrorMessage(err, 'Could not withdraw your interest.'),
-      );
+      toast.error(getApiErrorMessage(err, 'Could not withdraw your interest.'));
     }
   };
 
@@ -271,16 +250,10 @@ export default function InterestForm() {
       <div className="bg-black">
         <AppSubpageHeader
           sticky
-          title={
-            <h1 className="min-w-0 truncate px-1 text-center text-[15px] font-bold leading-snug text-white/70">
-              Loading…
-            </h1>
-          }
+          title={<h1 className="min-w-0 truncate px-1 text-center text-[15px] leading-snug font-bold text-white/70">Loading…</h1>}
         />
         <Container className="pb-8">
-          <p className="py-8 text-center text-sm text-[#A2A6AB]">
-            Loading interest form…
-          </p>
+          <p className="py-8 text-center text-sm text-[#A2A6AB]">Loading interest form…</p>
         </Container>
       </div>
     );
@@ -295,11 +268,7 @@ export default function InterestForm() {
       <div className="bg-black">
         <AppSubpageHeader
           sticky
-          title={
-            <h1 className="min-w-0 truncate px-1 text-center text-[15px] font-bold leading-snug text-white/80">
-              Interest
-            </h1>
-          }
+          title={<h1 className="min-w-0 truncate px-1 text-center text-[15px] leading-snug font-bold text-white/80">Interest</h1>}
         />
         <Container className="pb-8">
           <p className="py-8 text-center text-sm text-red-300">{message}</p>
@@ -317,42 +286,31 @@ export default function InterestForm() {
     );
   }
 
-  const existingPictureUrl =
-    mySubmission?.profile_picture_url ?? profileDefaults?.avatar_url ?? null;
-  const profilePictureSrc =
-    profilePicturePreview ?? existingPictureUrl ?? DEFAULT_AVATAR;
+  const existingPictureUrl = mySubmission?.profile_picture_url ?? profileDefaults?.avatar_url ?? null;
+  const profilePictureSrc = profilePicturePreview ?? existingPictureUrl ?? DEFAULT_AVATAR;
 
   const headerTitle =
     campaign.tournament_name != null && campaign.tournament_name !== '' ? (
-      <h1 className="min-w-0 truncate px-1 text-center text-[15px] font-bold leading-snug text-white">
+      <h1 className="min-w-0 truncate px-1 text-center text-[15px] leading-snug font-bold text-white">
         {campaign.tournament_name}
       </h1>
     ) : (
-      <h1 className="min-w-0 truncate px-1 text-center text-[15px] font-bold leading-snug text-white/80">
-        Interest
-      </h1>
+      <h1 className="min-w-0 truncate px-1 text-center text-[15px] leading-snug font-bold text-white/80">Interest</h1>
     );
 
   return (
     <div className="relative bg-black">
       <AppSubpageHeader sticky title={headerTitle} />
       {campaign.logo_url && (
-        <div
-          className="pointer-events-none fixed inset-x-0 top-16 bottom-0 z-0 flex items-center justify-center"
-          aria-hidden
-        >
-          <img
-            src={campaign.logo_url}
-            alt=""
-            className="max-h-[55vh] max-w-[70vw] object-contain opacity-[0.2]"
-          />
+        <div className="pointer-events-none fixed inset-x-0 top-16 bottom-0 z-0 flex items-center justify-center" aria-hidden>
+          <img src={campaign.logo_url} alt="" className="max-h-[55vh] max-w-[70vw] object-contain opacity-[0.2]" />
         </div>
       )}
       <Container className="relative z-10 pb-8">
         {(campaign.description || !isOpen) && (
           <div className="mx-auto mb-6 max-w-2xl text-center">
             {campaign.description && (
-              <p className="mb-4 text-[13px] leading-snug text-[#A2A6AB] md:text-[14px] whitespace-pre-line">
+              <p className="mb-4 text-[13px] leading-snug whitespace-pre-line text-[#A2A6AB] md:text-[14px]">
                 {campaign.description}
               </p>
             )}
@@ -367,27 +325,22 @@ export default function InterestForm() {
         )}
 
         {isConfirmed ? (
-          <div className="mb-6 rounded-[6px] border border-[#DA9811]/45 bg-[#141412] p-4 text-center text-[12px] font-semibold leading-snug text-[#DA9811] shadow-[0_0_0_1px_rgba(218,152,17,0.12)]">
-            Your spot is confirmed. Our team has accepted your interest — these
-            are the details we have on file.
+          <div className="mb-6 rounded-[6px] border border-[#DA9811]/45 bg-[#141412] p-4 text-center text-[12px] leading-snug font-semibold text-[#DA9811] shadow-[0_0_0_1px_rgba(218,152,17,0.12)]">
+            Your spot is confirmed. Our team has accepted your interest — these are the details we have on file.
           </div>
         ) : isActive ? (
           <div className="mb-6 rounded-[6px] border border-emerald-700/45 bg-[#141412] p-4 text-center text-[12px] leading-snug text-emerald-200/95 shadow-[0_0_0_1px_rgba(16,185,129,0.1)]">
-            You&apos;re already on the interest list. Update your details below or
-            withdraw your interest.
+            You&apos;re already on the interest list. Update your details below or withdraw your interest.
           </div>
         ) : null}
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-x-6 lg:gap-y-4 lg:space-y-0"
-        >
+        <form onSubmit={handleSubmit} className="space-y-4 lg:grid lg:grid-cols-2 lg:space-y-0 lg:gap-x-6 lg:gap-y-4">
           <div className="flex flex-col items-center gap-3">
             <div className="relative inline-block">
               <img
                 src={profilePictureSrc}
                 alt="Profile preview"
-                className="h-24 w-24 rounded-full object-cover border-2 border-[#DA9811] bg-zinc-900"
+                className="h-24 w-24 rounded-full border-2 border-[#DA9811] bg-zinc-900 object-cover"
               />
               <span
                 className="pointer-events-none absolute right-0 bottom-0 z-20 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#080807] bg-[#DA9811] text-[#080807] shadow-md"
@@ -417,9 +370,7 @@ export default function InterestForm() {
               />
             </div>
             <p
-              className={`max-w-[350px] text-center text-[12px] leading-snug ${
-                errors.picture ? 'text-red-200' : 'text-[#A2A6AB]/90'
-              }`}
+              className={`max-w-[350px] text-center text-[12px] leading-snug ${errors.picture ? 'text-red-200' : 'text-[#A2A6AB]/90'}`}
               role={errors.picture ? 'alert' : undefined}
             >
               {errors.picture ??
@@ -439,19 +390,13 @@ export default function InterestForm() {
           </div>
 
           <div className="lg:col-span-2">
-            <h2 className="text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">
-              Personal Details
-            </h2>
+            <h2 className="text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">Personal Details</h2>
             <p className="mt-1 text-[12px] leading-snug text-[#A2A6AB]/90">
               From your account. To change these, update your profile.
             </p>
           </div>
 
-          <FormField
-            label="Full Name"
-            htmlFor="interest-name"
-            required
-          >
+          <FormField label="Full Name" htmlFor="interest-name" required>
             <Input
               id="interest-name"
               type="text"
@@ -466,11 +411,7 @@ export default function InterestForm() {
             />
           </FormField>
 
-          <FormField
-            label="Nickname"
-            htmlFor="interest-nickname"
-            required
-          >
+          <FormField label="Nickname" htmlFor="interest-nickname" required>
             <Input
               id="interest-nickname"
               type="text"
@@ -484,11 +425,7 @@ export default function InterestForm() {
             />
           </FormField>
 
-          <FormField
-            label="Phone"
-            htmlFor="interest-phone"
-            required
-          >
+          <FormField label="Phone" htmlFor="interest-phone" required>
             <Input
               id="interest-phone"
               type="tel"
@@ -504,16 +441,10 @@ export default function InterestForm() {
           </FormField>
 
           <div className="border-t border-[#FFFFFF14] pt-6 lg:col-span-2">
-            <h2 className="text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">
-              Other Details
-            </h2>
+            <h2 className="text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">Other Details</h2>
           </div>
 
-          <FormField
-            label="Email"
-            htmlFor="interest-email"
-            required
-          >
+          <FormField label="Email" htmlFor="interest-email" required>
             <Input
               id="interest-email"
               type="email"
@@ -526,42 +457,21 @@ export default function InterestForm() {
             />
           </FormField>
 
-          <FormField
-            label="Date of Birth"
-            htmlFor="interest-dob"
-            required
-          >
+          <FormField label="Date of Birth" htmlFor="interest-dob" required>
             <DatePicker
               id="interest-dob"
               value={form.date_of_birth}
-              onChange={(value) =>
-                setForm((prev) => ({ ...prev, date_of_birth: value }))
-              }
+              onChange={(value) => setForm((prev) => ({ ...prev, date_of_birth: value }))}
               placeholder="MM-DD-YYYY"
             />
           </FormField>
 
-          <FormField
-            label="Country"
-            htmlFor="interest-country"
-            required
-          >
-            <Select
-              value={form.country}
-              onValueChange={(v) =>
-                setForm((prev) => ({ ...prev, country: v, city: '' }))
-              }
-            >
-              <SelectTrigger
-                id="interest-country"
-                className={`w-full ${selectTriggerInputClass}`}
-              >
+          <FormField label="Country" htmlFor="interest-country" required>
+            <Select value={form.country} onValueChange={(v) => setForm((prev) => ({ ...prev, country: v, city: '' }))}>
+              <SelectTrigger id="interest-country" className={`w-full ${selectTriggerInputClass}`}>
                 <SelectValue placeholder="Select Country" />
               </SelectTrigger>
-              <SelectContent
-                className={`z-[100] ${selectContentInputClass}`}
-                viewportClassName={selectViewportInputClass}
-              >
+              <SelectContent className={`z-[100] ${selectContentInputClass}`} viewportClassName={selectViewportInputClass}>
                 {countriesList.map((c) => (
                   <SelectItem
                     key={c.id}
@@ -577,27 +487,12 @@ export default function InterestForm() {
             </Select>
           </FormField>
 
-          <FormField
-            label="City"
-            htmlFor="interest-city"
-            required
-          >
-            <Select
-              value={form.city}
-              onValueChange={(v) =>
-                setForm((prev) => ({ ...prev, city: v }))
-              }
-            >
-              <SelectTrigger
-                id="interest-city"
-                className={`w-full ${selectTriggerInputClass}`}
-              >
+          <FormField label="City" htmlFor="interest-city" required>
+            <Select value={form.city} onValueChange={(v) => setForm((prev) => ({ ...prev, city: v }))}>
+              <SelectTrigger id="interest-city" className={`w-full ${selectTriggerInputClass}`}>
                 <SelectValue placeholder="Select City" />
               </SelectTrigger>
-              <SelectContent
-                className={`z-[100] ${selectContentInputClass}`}
-                viewportClassName={selectViewportInputClass}
-              >
+              <SelectContent className={`z-[100] ${selectContentInputClass}`} viewportClassName={selectViewportInputClass}>
                 {citiesList.map((c) => (
                   <SelectItem
                     key={c.id}
@@ -629,9 +524,7 @@ export default function InterestForm() {
               className="block w-full text-[13px] text-[#A2A6AB] file:mr-3 file:rounded-[6px] file:border-0 file:bg-[#141412] file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-[#1a1a18]"
             />
             <p
-              className={`mt-1 text-[12px] leading-snug ${
-                errors.idDocument ? 'text-red-200' : 'text-[#A2A6AB]/90'
-              }`}
+              className={`mt-1 text-[12px] leading-snug ${errors.idDocument ? 'text-red-200' : 'text-[#A2A6AB]/90'}`}
               role={errors.idDocument ? 'alert' : undefined}
             >
               {errors.idDocument ??
@@ -642,9 +535,7 @@ export default function InterestForm() {
             <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] leading-snug text-[#A2A6AB]/80">
               {idDocumentFile ? (
                 <>
-                  <span className="truncate">
-                    Selected: {idDocumentFile.name}
-                  </span>
+                  <span className="truncate">Selected: {idDocumentFile.name}</span>
                   <button
                     type="button"
                     onClick={clearIdDocumentSelection}
@@ -670,7 +561,7 @@ export default function InterestForm() {
           </FormField>
 
           {!isConfirmed && (
-            <div className="flex flex-col gap-3 pt-2 lg:col-span-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between lg:col-span-2">
               <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
                 <Button
                   type="submit"
@@ -679,11 +570,7 @@ export default function InterestForm() {
                   disabled={!isOpen || isSubmitting}
                   className="w-full sm:w-[220px] sm:uppercase"
                 >
-                  {isSubmitting
-                    ? 'Submitting…'
-                    : isActive
-                      ? 'Update My Details'
-                      : "I'm Interested"}
+                  {isSubmitting ? 'Submitting…' : isActive ? 'Update My Details' : "I'm Interested"}
                 </Button>
                 {isActive && (
                   <button

@@ -4,14 +4,17 @@ namespace App\Services;
 
 use App\Models\Ball;
 use App\Models\User;
+use App\Services\Broadcast\GraphicContextBuilder;
+use App\Services\Broadcast\GraphicContextOrchestrator;
 use Illuminate\Support\Collection;
 
 /**
  * Centralized innings stats computation — single source of truth used by
- * ScorecardController (scorecard API) and BuildMatchGraphicContextService
- * (live graphic overlay).  Both consumers call compute() and use the parts
- * they need; graphic-specific output (over tracking, required RR, target) is
- * still built by BuildMatchGraphicContextService itself.
+ * ScorecardController (scorecard API) and the graphics overlay pipeline
+ * ({@see GraphicContextOrchestrator} →
+ * {@see GraphicContextBuilder}). Both consumers
+ * call compute() and use the parts they need; graphic-specific output (over
+ * tracking, required RR, target) is still built by GraphicContextBuilder.
  */
 class InningsStatsService
 {
@@ -120,6 +123,23 @@ class InningsStatsService
         return [$newSid ?: null, $newNid ?: null];
     }
 
+    /**
+     * Whether the *next* delivery after $ball should be a free-hit.
+     *
+     * Law 21.18: A free-hit carries over when the previous delivery was a no-ball,
+     * OR when the previous delivery was itself a free-hit bowled as a wide
+     * (a free-hit wide is still a no-ball equivalent — the free-hit repeats).
+     */
+    public static function isFreeHitDelivery(?Ball $ball): bool
+    {
+        if ($ball === null) {
+            return false;
+        }
+
+        return (bool) $ball->is_no_ball
+            || ((bool) $ball->is_free_hit && (bool) $ball->is_wide);
+    }
+
     private static function incomingBatsmanIdFromNextBall(?Ball $nextBall, ?int $staysId): ?int
     {
         if ($nextBall === null || $staysId === null) {
@@ -224,9 +244,13 @@ class InningsStatsService
 
             // ── Extras breakdown ──────────────────────────────────────────────
             if ($ball->is_wide) {
+                // All runs on a wide (penalty + overthrows) go to extras — batter cannot score.
                 $wides += (int) ($ball->runs ?? 0);
             } elseif ($ball->is_no_ball) {
-                $noBalls += (int) ($ball->runs ?? 0);
+                // Only the mandatory 1-run penalty + any non-batter extras go to NB extras.
+                // Batter runs are credited to the batter's individual account.
+                // ball.runs = runs_off_bat + extra_runs + 1  →  NB extras = runs - runs_off_bat.
+                $noBalls += max(1, (int) ($ball->runs ?? 1) - (int) ($ball->runs_off_bat ?? 0));
             }
             if ($isBye) {
                 $byes += (int) ($ball->runs ?? 0);
@@ -334,7 +358,10 @@ class InningsStatsService
                         $bowlerStats[$bid]['dots']++;
                     }
                 }
-                if ($ball->is_wicket && $ball->dismissal_type?->value !== 'retired_hurt') {
+                // Only credit the bowler when the dismissal type counts against them
+                // (run_out, obstructing_the_field, hit_ball_twice, over_the_fence are fielding
+                // dismissals — the bowler is NOT credited per cricket law).
+                if ($ball->is_wicket && $ball->dismissal_type?->countsAsBowlerWicket()) {
                     $bowlerStats[$bid]['wickets']++;
                 }
 
@@ -501,5 +528,112 @@ class InningsStatsService
         }
 
         return number_format($runs / ($legalBalls / 6), $decimals);
+    }
+
+    /**
+     * Compute the over/ball_in_over values for the NEXT delivery in this innings.
+     * Uses the existing sorted ball collection to determine current position.
+     *
+     * @param  Collection<int, Ball>  $balls  Pre-sorted: over → ball_in_over → id
+     * @return array{over: int, ball_in_over: int}
+     */
+    public static function nextBallPosition(Collection $balls): array
+    {
+        $legalBalls = $balls->filter(fn (Ball $b) => $b->isLegalDelivery())->count();
+        $overIndex = intdiv($legalBalls, 6);
+        $ballsInThisOver = $balls->where('over', $overIndex)->count();
+
+        return [
+            'over' => $overIndex,
+            'ball_in_over' => $ballsInThisOver + 1,
+        ];
+    }
+
+    /**
+     * Compute current-over display details for the MatchState response.
+     *
+     * Returns:
+     *   over_number            — 0-indexed over currently being bowled (= next delivery's over)
+     *   balls_in_current_over  — legal deliveries already bowled in this over (0-5)
+     *   over_complete          — true immediately after the 6th legal ball of an over
+     *   current_over_balls     — display labels for each ball in the current (in-progress) over
+     *   next_is_free_hit       — true when the last ball was a no-ball (next delivery is free-hit)
+     *
+     * @param  Collection<int, Ball>  $balls  Pre-sorted: over → ball_in_over → id
+     */
+    public static function currentOverDetails(Collection $balls): array
+    {
+        $legalBalls = 0;
+        $overComplete = false;
+        $currentOverBalls = [];
+
+        foreach ($balls as $ball) {
+            $currentOverBalls[] = $ball;
+
+            if ($ball->isLegalDelivery()) {
+                $legalBalls++;
+                if ($legalBalls % 6 === 0) {
+                    $overComplete = true;
+                    $currentOverBalls = [];
+                } else {
+                    $overComplete = false;
+                }
+            }
+        }
+
+        $overNumber = intdiv($legalBalls, 6);
+        $legalInCurrentOver = $legalBalls % 6;
+
+        $displayLabels = array_map(
+            fn (Ball $b) => self::ballDisplayLabel($b),
+            $currentOverBalls
+        );
+
+        $lastBall = $balls->last();
+        $nextIsFreeHit = self::isFreeHitDelivery($lastBall);
+
+        return [
+            'over_number' => $overNumber,
+            'balls_in_current_over' => $legalInCurrentOver,
+            'over_complete' => $overComplete,
+            'current_over_balls' => array_values($displayLabels),
+            'next_is_free_hit' => $nextIsFreeHit,
+        ];
+    }
+
+    /**
+     * Produce a short display label for a single ball (used in current_over_balls arrays).
+     * Examples: "0", "4", "6", "WD", "2WD", "NB", "3NB", "W", "B", "2LB", "RH", "P5"
+     */
+    public static function ballDisplayLabel(Ball $ball): string
+    {
+        $runs = (int) ($ball->runs ?? 0);
+
+        if ($ball->is_wicket) {
+            return $ball->isRetiredHurt() ? 'RH' : 'W';
+        }
+        if ($ball->isPenaltyOnlyAward()) {
+            return 'P'.(int) ($ball->penalty_runs ?? 0);
+        }
+        if ($ball->is_wide) {
+            $extra = max(1, $runs) - 1;
+
+            return $extra > 0 ? $extra.'WD' : 'WD';
+        }
+        if ($ball->is_no_ball) {
+            $extra = max(1, $runs) - 1;
+
+            return $extra > 0 ? $extra.'NB' : 'NB';
+        }
+        if ($ball->is_bye) {
+            return $runs > 1 ? $runs.'B' : 'B';
+        }
+        if ($ball->is_leg_bye) {
+            return $runs > 1 ? $runs.'LB' : 'LB';
+        }
+
+        $label = (string) $runs;
+
+        return $ball->is_free_hit ? $label.'*' : $label;
     }
 }

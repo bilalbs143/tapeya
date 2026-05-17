@@ -43,26 +43,14 @@ export const startMatchSchema = z
         message: 'Please enter a valid time (e.g. 14:30)',
       }),
     players_per_side: z
-      .union([
-        z.string().min(1, 'Players per side is required'),
-        z.number().int().min(2).max(20),
-      ])
+      .union([z.string().min(1, 'Players per side is required'), z.number().int().min(2).max(20)])
       .transform((v) => (typeof v === 'string' ? Number(v) : v))
       .refine((v) => Number.isInteger(v) && v >= 2 && v <= 20, {
         message: 'Select 2–20 players per side',
       }),
     overs: z
-      .union([
-        z.string().min(1, 'Overs is required'),
-        z.number().int().min(5).max(50),
-      ])
-      .transform((v) =>
-        v === '' || v == null
-          ? ''
-          : typeof v === 'number'
-            ? String(v)
-            : String(v),
-      )
+      .union([z.string().min(1, 'Overs is required'), z.number().int().min(5).max(50)])
+      .transform((v) => (v === '' || v == null ? '' : typeof v === 'number' ? String(v) : String(v)))
       .refine((v) => {
         const n = Number(v);
         return Number.isInteger(n) && n >= 5 && n <= 50;

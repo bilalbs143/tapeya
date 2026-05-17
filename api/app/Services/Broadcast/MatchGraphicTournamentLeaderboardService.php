@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * Top-N tournament aggregates for graphic overlays (runs, 4s, 6s, wickets).
+ *
+ * Row shape: `graphic_leaderboard_runs` uses numeric key `runs`; fours/sixes use `value`
+ * (see {@see self::mapRows}) so the overlay can use `row.runs ?? row.value` consistently.
  */
 final class MatchGraphicTournamentLeaderboardService
 {

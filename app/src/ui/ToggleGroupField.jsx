@@ -12,14 +12,7 @@ import { Controller } from 'react-hook-form';
 import { FormField } from '@/ui/FormField';
 import { ToggleGroup, ToggleGroupItem } from '@/ui/ToggleGroup';
 
-export function ToggleGroupField({
-  name,
-  control,
-  label,
-  options,
-  error,
-  required,
-}) {
+export function ToggleGroupField({ name, control, label, options, error, required }) {
   return (
     <FormField label={label} htmlFor={name} required={required}>
       <Controller
@@ -35,11 +28,7 @@ export function ToggleGroupField({
               aria-invalid={error ? 'true' : undefined}
             >
               {options.map((opt) => (
-                <ToggleGroupItem
-                  key={opt.value}
-                  value={opt.value}
-                  aria-label={opt.label}
-                >
+                <ToggleGroupItem key={opt.value} value={opt.value} aria-label={opt.label}>
                   {opt.label}
                 </ToggleGroupItem>
               ))}

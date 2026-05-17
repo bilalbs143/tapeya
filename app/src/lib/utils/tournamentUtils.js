@@ -6,8 +6,7 @@
  * @returns {number | null} Valid tournament ID or null
  */
 export function parseTournamentId(paramStr, fallbackId) {
-  const num =
-    paramStr != null && paramStr !== '' ? Number(paramStr) : fallbackId;
+  const num = paramStr != null && paramStr !== '' ? Number(paramStr) : fallbackId;
   return Number.isInteger(num) && num > 0 ? num : null;
 }
 
@@ -18,11 +17,7 @@ export function parseTournamentId(paramStr, fallbackId) {
  * @returns {boolean}
  */
 export function isValidTournamentId(id) {
-  return (
-    id != null &&
-    String(id).trim() !== '' &&
-    !String(id).startsWith('placeholder-')
-  );
+  return id != null && String(id).trim() !== '' && !String(id).startsWith('placeholder-');
 }
 
 /**

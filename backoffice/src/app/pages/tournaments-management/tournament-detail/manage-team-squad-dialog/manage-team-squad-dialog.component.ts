@@ -13,11 +13,7 @@ import { of, Subscription } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, finalize, switchMap } from 'rxjs/operators';
 
 import { MessageService } from 'src/app/services/message.service';
-import {
-  type SquadUser,
-  type TournamentTeamRow,
-  TournamentTeamsService,
-} from 'src/app/services/tournament-teams.service';
+import { type SquadUser, type TournamentTeamRow, TournamentTeamsService } from 'src/app/services/tournament-teams.service';
 import { UsersService } from 'src/app/services/users.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';

@@ -1,7 +1,6 @@
 import { formatNum } from '@/lib/utils/displayUtils';
 
-const LABEL_CLASS =
-  'text-[14px] font-bold uppercase tracking-wide text-[#A2A6AB]';
+const LABEL_CLASS = 'text-[14px] font-bold uppercase tracking-wide text-[#A2A6AB]';
 const VALUE_CLASS = 'text-sm font-normal text-white';
 
 export function StatItem({ label, value }) {

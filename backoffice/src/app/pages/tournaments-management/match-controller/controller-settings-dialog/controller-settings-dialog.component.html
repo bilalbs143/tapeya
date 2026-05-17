@@ -83,9 +83,7 @@
 
         <!-- Team colours: same two-column pattern as manage-user-dialog (lg:col-span-6) -->
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">
-            {{ data.match.home_team?.name ?? 'Home' }} — Text
-          </mat-label>
+          <mat-label class="text-sm font-semibold mb-2 block"> {{ data.match.home_team?.name ?? 'Home' }} — Text </mat-label>
           <input
             type="color"
             formControlName="home_text"
@@ -106,9 +104,7 @@
         </div>
 
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">
-            {{ data.match.away_team?.name ?? 'Away' }} — Text
-          </mat-label>
+          <mat-label class="text-sm font-semibold mb-2 block"> {{ data.match.away_team?.name ?? 'Away' }} — Text </mat-label>
           <input
             type="color"
             formControlName="away_text"
@@ -131,22 +127,6 @@
         <div class="col-span-12">
           <mat-slide-toggle formControlName="enable_images">Enable Images</mat-slide-toggle>
         </div>
-
-        @if (data.session.theme?.graphics_url_template; as urlTpl) {
-          <div class="col-span-12">
-            <mat-label class="text-sm font-semibold mb-2 block">Graphics URL Template</mat-label>
-            <mat-form-field
-              appearance="outline"
-              class="w-full"
-            >
-              <input
-                matInput
-                readonly
-                [value]="urlTpl"
-              />
-            </mat-form-field>
-          </div>
-        }
       </div>
     </mat-dialog-content>
 

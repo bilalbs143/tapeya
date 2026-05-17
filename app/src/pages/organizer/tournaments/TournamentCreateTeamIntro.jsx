@@ -3,14 +3,8 @@ import { useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
-import {
-  getTournamentTitle,
-  parseTournamentId,
-} from '@/lib/utils/tournamentUtils';
-import {
-  useGetTournamentMatchesQuery,
-  useGetTournamentQuery,
-} from '@/store/api/tournamentApi';
+import { getTournamentTitle, parseTournamentId } from '@/lib/utils/tournamentUtils';
+import { useGetTournamentMatchesQuery, useGetTournamentQuery } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
 
 export default function TournamentCreateTeamIntro() {
@@ -20,10 +14,7 @@ export default function TournamentCreateTeamIntro() {
 
   const tournamentFromState = location.state?.tournament ?? null;
 
-  const tournamentIdNum = parseTournamentId(
-    tournamentId,
-    tournamentFromState?.id,
-  );
+  const tournamentIdNum = parseTournamentId(tournamentId, tournamentFromState?.id);
   const isValidId = tournamentIdNum != null;
 
   const { data: tournamentFromApi } = useGetTournamentQuery(
@@ -32,10 +23,7 @@ export default function TournamentCreateTeamIntro() {
   );
   const tournament = tournamentFromState ?? tournamentFromApi ?? null;
 
-  const { data: matches = [] } = useGetTournamentMatchesQuery(
-    { tournamentId: tournamentIdNum, all: true },
-    { skip: !isValidId },
-  );
+  const { data: matches = [] } = useGetTournamentMatchesQuery({ tournamentId: tournamentIdNum, all: true }, { skip: !isValidId });
   const matchesCount = Array.isArray(matches) ? matches.length : 0;
 
   useEffect(() => {
@@ -101,9 +89,7 @@ export default function TournamentCreateTeamIntro() {
       <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4">
         {noTeams ? (
           <>
-            <p className="text-center text-[14px] text-[#A2A6AB]">
-              No teams yet. Create your first team to get started.
-            </p>
+            <p className="text-center text-[14px] text-[#A2A6AB]">No teams yet. Create your first team to get started.</p>
             <Button
               type="button"
               variant="card"
@@ -113,16 +99,12 @@ export default function TournamentCreateTeamIntro() {
               <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
                 +
               </span>
-              <span className="text-[16px] font-bold text-[#A2A6AB]">
-                Create Team
-              </span>
+              <span className="text-[16px] font-bold text-[#A2A6AB]">Create Team</span>
             </Button>
           </>
         ) : (
           <>
-            <p className="text-center text-[14px] text-[#A2A6AB]">
-              Teams are complete. Manage squads or add fixtures.
-            </p>
+            <p className="text-center text-[14px] text-[#A2A6AB]">Teams are complete. Manage squads or add fixtures.</p>
             <Button
               type="button"
               variant="card"
@@ -132,9 +114,7 @@ export default function TournamentCreateTeamIntro() {
               <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
                 +
               </span>
-              <span className="text-[16px] font-bold text-[#A2A6AB]">
-                View Teams
-              </span>
+              <span className="text-[16px] font-bold text-[#A2A6AB]">View Teams</span>
             </Button>
             <Button
               type="button"
@@ -145,9 +125,7 @@ export default function TournamentCreateTeamIntro() {
               <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
                 +
               </span>
-              <span className="text-[16px] font-bold text-[#A2A6AB]">
-                Add Fixtures
-              </span>
+              <span className="text-[16px] font-bold text-[#A2A6AB]">Add Fixtures</span>
             </Button>
             {matchesCount > 0 && (
               <Button
@@ -159,9 +137,7 @@ export default function TournamentCreateTeamIntro() {
                 <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
                   +
                 </span>
-                <span className="text-[16px] font-bold text-[#A2A6AB]">
-                  View Fixtures
-                </span>
+                <span className="text-[16px] font-bold text-[#A2A6AB]">View Fixtures</span>
               </Button>
             )}
           </>

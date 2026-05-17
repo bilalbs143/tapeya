@@ -11,9 +11,7 @@ function cleanGlobals(globalsObj) {
   if (!globalsObj || typeof globalsObj !== 'object') {
     return {};
   }
-  return Object.fromEntries(
-    Object.entries(globalsObj).map(([key, value]) => [key.trim(), value]),
-  );
+  return Object.fromEntries(Object.entries(globalsObj).map(([key, value]) => [key.trim(), value]));
 }
 
 export default [
@@ -39,10 +37,7 @@ export default [
       'react-refresh': reactRefresh,
     },
     rules: {
-      'react-refresh/only-export-components': [
-        'warn',
-        { allowConstantExport: true },
-      ],
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     },
   },
 
@@ -83,17 +78,14 @@ export default [
       'react/prop-types': 'off',
       'react/jsx-uses-react': 'error',
       'react/jsx-uses-vars': 'error',
-      'react/jsx-curly-brace-presence': [
-        'error',
-        { props: 'never', children: 'never' },
-      ],
+      'react/jsx-curly-brace-presence': ['error', { props: 'never', children: 'never' }],
       'react/self-closing-comp': ['error', { component: true, html: true }],
       'react/no-unescaped-entities': 'off',
       'jsx-a11y/click-events-have-key-events': 'off',
       'jsx-a11y/no-noninteractive-element-interactions': 'off',
       'jsx-a11y/no-static-element-interactions': 'off',
       'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
+      'react-hooks/exhaustive-deps': 'off',
     },
   },
 
@@ -172,11 +164,7 @@ export default [
       'object-curly-spacing': ['error', 'always'],
       'array-bracket-spacing': ['error', 'never'],
       'arrow-parens': ['error', 'always'],
-      indent: [
-        'error',
-        2,
-        { SwitchCase: 1, ignoredNodes: ['ConditionalExpression'] },
-      ],
+      indent: ['error', 2, { SwitchCase: 1, ignoredNodes: ['ConditionalExpression'] }],
     },
   },
 ];

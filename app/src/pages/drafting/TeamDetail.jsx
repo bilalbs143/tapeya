@@ -3,10 +3,9 @@ import { useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { useDialog } from '@/context/DialogContext';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
-import { useAppDispatch } from '@/store/hooks';
-import { openDialog } from '@/store/slices/commonSlice';
 import { Container } from '@/ui/Container';
 
 const searchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/searchicon.svg`;
@@ -29,7 +28,7 @@ const DEFAULT_TEAM = {
 
 export default function TeamDetail() {
   const location = useLocation();
-  const dispatch = useAppDispatch();
+  const { openDialog } = useDialog();
   const team = location.state?.team ?? DEFAULT_TEAM;
 
   const [findPlayer, setFindPlayer] = useState('');
@@ -38,20 +37,12 @@ export default function TeamDetail() {
   const filteredPlayers = useMemo(() => {
     if (!findPlayer.trim()) return MOCK_PLAYERS;
     const q = findPlayer.trim().toLowerCase();
-    return MOCK_PLAYERS.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) || p.role.toLowerCase().includes(q),
-    );
+    return MOCK_PLAYERS.filter((p) => p.name.toLowerCase().includes(q) || p.role.toLowerCase().includes(q));
   }, [findPlayer]);
 
   const handleSubmitSquad = () => {
     // TODO: Integrate API when backend is ready
-    dispatch(
-      openDialog({
-        key: 'draftingSubmitSquadSuccess',
-        props: { teamName: team.name },
-      }),
-    );
+    openDialog('draftingSubmitSquadSuccess', { teamName: team.name });
   };
 
   return (
@@ -60,28 +51,16 @@ export default function TeamDetail() {
       <Container>
         <div className="lg:grid lg:grid-cols-2 lg:gap-6">
           <div>
-            <p className="mb-3 text-[13px] font-medium tracking-wide text-[#A2A6AB] uppercase">
-              {team.name.toUpperCase()}
-            </p>
+            <p className="mb-3 text-[13px] font-medium tracking-wide text-[#A2A6AB] uppercase">{team.name.toUpperCase()}</p>
 
             <div className="mb-5 flex items-stretch gap-3 rounded-[17px] bg-[#141412] p-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg">
-                <img
-                  src={teamIcon}
-                  alt=""
-                  className="h-full w-full object-contain"
-                />
+                <img src={teamIcon} alt="" className="h-full w-full object-contain" />
               </div>
               <div className="min-w-0 flex-1">
-                <h2 className="text-[16px] font-bold text-white">
-                  {team.name}
-                </h2>
-                <p className="mt-0.5 text-[14px] text-[#DA9811]">
-                  Owner: {team.owner}
-                </p>
-                <p className="mt-0.5 text-[12px] text-white">
-                  Icon Players: {team.iconPlayer}
-                </p>
+                <h2 className="text-[16px] font-bold text-white">{team.name}</h2>
+                <p className="mt-0.5 text-[14px] text-[#DA9811]">Owner: {team.owner}</p>
+                <p className="mt-0.5 text-[12px] text-white">Icon Players: {team.iconPlayer}</p>
               </div>
               <span className="text-[28px] font-bold text-[#DA98113B]">1</span>
             </div>
@@ -96,11 +75,7 @@ export default function TeamDetail() {
                   className="h-12 w-full rounded-[6px] bg-[#141412] py-3 pr-12 pl-4 text-white placeholder:text-base placeholder:text-[#A2A6AB78] focus:ring-2 focus:ring-[#DA9811]/50 focus:outline-none"
                   aria-label="Find player"
                 />
-                <img
-                  src={searchIcon}
-                  alt=""
-                  className="absolute top-1/2 right-4 h-[19px] w-[19px] -translate-y-1/2 opacity-70"
-                />
+                <img src={searchIcon} alt="" className="absolute top-1/2 right-4 h-[19px] w-[19px] -translate-y-1/2 opacity-70" />
               </div>
             </div>
 
@@ -120,14 +95,10 @@ export default function TeamDetail() {
             <table className="w-full border-collapse text-[12px] text-white">
               <thead>
                 <tr className={HEADER_BG}>
-                  <th
-                    className={`${HEADER_BG} border-r border-b border-l py-2.5 pl-4 text-left font-bold text-white ${BORDER}`}
-                  >
+                  <th className={`${HEADER_BG} border-r border-b border-l py-2.5 pl-4 text-left font-bold text-white ${BORDER}`}>
                     Player
                   </th>
-                  <th
-                    className={`${HEADER_BG} border-r border-b py-2.5 pr-4 text-right font-bold text-white ${BORDER}`}
-                  >
+                  <th className={`${HEADER_BG} border-r border-b py-2.5 pr-4 text-right font-bold text-white ${BORDER}`}>
                     Playing Role
                   </th>
                 </tr>
@@ -135,18 +106,12 @@ export default function TeamDetail() {
               <tbody>
                 {filteredPlayers.map((player, index) => (
                   <tr key={player.id}>
-                    <td
-                      className={`border-r border-b border-l py-3 pl-4 ${BORDER}`}
-                    >
+                    <td className={`border-r border-b border-l py-3 pl-4 ${BORDER}`}>
                       <p className="text-[12px] font-medium text-white">
                         {index + 1} {player.name}
                       </p>
                     </td>
-                    <td
-                      className={`border-r border-b py-3 pr-4 text-right text-white ${BORDER}`}
-                    >
-                      {player.role}
-                    </td>
+                    <td className={`border-r border-b py-3 pr-4 text-right text-white ${BORDER}`}>{player.role}</td>
                   </tr>
                 ))}
               </tbody>

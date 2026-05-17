@@ -5,19 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useToast } from '@/hooks/useToast';
 import { formatPrice, toNumber } from '@/lib/format';
-import {
-  useGetCartQuery,
-  useRemoveCartItemMutation,
-  useUpdateCartItemMutation,
-} from '@/store/api/shopApi';
+import { useGetCartQuery, useRemoveCartItemMutation, useUpdateCartItemMutation } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 
-const CartItemCard = memo(function CartItemCard({
-  item,
-  onUpdateQty,
-  onRemove,
-  isUpdating,
-}) {
+const CartItemCard = memo(function CartItemCard({ item, onUpdateQty, onRemove, isUpdating }) {
   const imageUrl = item.product?.images?.[0]?.path;
   const name = item.product?.name ?? 'Product';
 
@@ -25,11 +16,7 @@ const CartItemCard = memo(function CartItemCard({
     <div className="flex gap-3 rounded-2xl bg-[#141412] p-4">
       <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-white">
         {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={item.product?.images?.[0]?.alt ?? name}
-            className="h-full w-full object-contain p-1.5"
-          />
+          <img src={imageUrl} alt={item.product?.images?.[0]?.alt ?? name} className="h-full w-full object-contain p-1.5" />
         ) : (
           <div className="h-full w-full bg-[#141412]" aria-hidden />
         )}
@@ -37,8 +24,7 @@ const CartItemCard = memo(function CartItemCard({
       <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5">
         <p className="text-[14px] font-normal text-white">{name}</p>
         <p className="text-[14px] font-bold text-[#DA9811]">
-          {formatPrice(item.price_snapshot)}{' '}
-          <span className="font-normal text-white">x {item.quantity}</span>
+          {formatPrice(item.price_snapshot)} <span className="font-normal text-white">x {item.quantity}</span>
         </p>
         <div className="mt-1 flex items-center gap-2">
           <select
@@ -80,20 +66,13 @@ export default function ShopCart() {
 
   const items = cart?.items ?? [];
   const subtotalFromApi = toNumber(cart?.subtotal);
-  const subtotalFromItems = items.reduce(
-    (sum, i) =>
-      sum + toNumber(i.price_snapshot) * Math.max(0, toNumber(i.quantity)),
-    0,
-  );
+  const subtotalFromItems = items.reduce((sum, i) => sum + toNumber(i.price_snapshot) * Math.max(0, toNumber(i.quantity)), 0);
   const subtotal = subtotalFromApi > 0 ? subtotalFromApi : subtotalFromItems;
   const shipping = toNumber(cart?.shipping_amount ?? cart?.shipping);
   const discount = toNumber(cart?.discount_amount ?? cart?.discount);
   const computedTotal = Math.max(0, subtotal + shipping - discount);
   const apiTotal = toNumber(cart?.total);
-  const grandTotal = Math.max(
-    0,
-    Number.isFinite(apiTotal) && apiTotal > 0 ? apiTotal : computedTotal,
-  );
+  const grandTotal = Math.max(0, Number.isFinite(apiTotal) && apiTotal > 0 ? apiTotal : computedTotal);
 
   const handleUpdateQty = useCallback(
     (cartItemId, quantity) => {
@@ -150,40 +129,24 @@ export default function ShopCart() {
               <div className="rounded-2xl bg-[#141412] p-4 shadow-sm">
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center justify-between gap-4">
-                    <span className="text-[14px] font-medium text-[#A2A6AB]">
-                      Subtotal:
-                    </span>
-                    <span className="text-[14px] font-bold text-white">
-                      {formatPrice(subtotal)}
-                    </span>
+                    <span className="text-[14px] font-medium text-[#A2A6AB]">Subtotal:</span>
+                    <span className="text-[14px] font-bold text-white">{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex items-center justify-between gap-4">
-                    <span className="text-[14px] font-medium text-[#A2A6AB]">
-                      Shipping:
-                    </span>
-                    <span className="text-[14px] font-bold text-white">
-                      {formatPrice(shipping)}
-                    </span>
+                    <span className="text-[14px] font-medium text-[#A2A6AB]">Shipping:</span>
+                    <span className="text-[14px] font-bold text-white">{formatPrice(shipping)}</span>
                   </div>
                   <div className="flex items-center justify-between gap-4">
-                    <span className="text-[14px] font-medium text-[#A2A6AB]">
-                      Discount:
-                    </span>
-                    <span className="text-[14px] font-bold text-white">
-                      {formatPrice(discount)}
-                    </span>
+                    <span className="text-[14px] font-medium text-[#A2A6AB]">Discount:</span>
+                    <span className="text-[14px] font-bold text-white">{formatPrice(discount)}</span>
                   </div>
                 </div>
 
                 <div className="mt-4 hidden border-t border-white/10 pt-4 lg:block">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-[12px] font-normal text-white">
-                        Grand Total:
-                      </p>
-                      <p className="text-[18px] font-bold text-[#DA9811]">
-                        {formatPrice(grandTotal)}
-                      </p>
+                      <p className="text-[12px] font-normal text-white">Grand Total:</p>
+                      <p className="text-[18px] font-bold text-[#DA9811]">{formatPrice(grandTotal)}</p>
                     </div>
                     <button
                       type="button"
@@ -207,9 +170,7 @@ export default function ShopCart() {
           <div className="flex w-full items-center justify-between gap-4 rounded-[17px] bg-[#141412] p-4">
             <div>
               <p className="text-[12px] font-normal text-white">Grand Total:</p>
-              <p className="text-[18px] font-bold text-[#DA9811]">
-                {formatPrice(grandTotal)}
-              </p>
+              <p className="text-[18px] font-bold text-[#DA9811]">{formatPrice(grandTotal)}</p>
             </div>
             <button
               type="button"

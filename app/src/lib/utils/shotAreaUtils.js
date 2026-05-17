@@ -42,19 +42,17 @@ export const SHOT_ZONE_GEOMETRY = {
 };
 
 /** Default zones when API not used: one entry per geometry key (order = object key order). */
-export const SHOT_DIRECTION_ZONES = Object.keys(SHOT_ZONE_GEOMETRY).map(
-  (id) => {
-    const label = id.replace(/_/g, ' ').toUpperCase();
-    const parts = label.split(/\s+/);
-    const mid = Math.ceil(parts.length / 2);
-    return {
-      id,
-      label,
-      labelLine1: parts.slice(0, mid).join(' '),
-      labelLine2: parts.slice(mid).join(' '),
-    };
-  },
-);
+export const SHOT_DIRECTION_ZONES = Object.keys(SHOT_ZONE_GEOMETRY).map((id) => {
+  const label = id.replace(/_/g, ' ').toUpperCase();
+  const parts = label.split(/\s+/);
+  const mid = Math.ceil(parts.length / 2);
+  return {
+    id,
+    label,
+    labelLine1: parts.slice(0, mid).join(' '),
+    labelLine2: parts.slice(mid).join(' '),
+  };
+});
 
 /**
  * From ball history, compute share of runs (off the bat, type `runs`) per shot direction.
@@ -64,12 +62,8 @@ export const SHOT_DIRECTION_ZONES = Object.keys(SHOT_ZONE_GEOMETRY).map(
  * @param {Array} [zones] - Zone list (from API or SHOT_DIRECTION_ZONES); order defines percentages index.
  * @returns {{ total: number, percentages: number[] }} total = sum of those runs; percentages[i] is 0–100 for zones[i].
  */
-export function getShotDirectionPercentages(
-  ballHistory = [],
-  zones = SHOT_DIRECTION_ZONES,
-) {
-  const list =
-    Array.isArray(zones) && zones.length > 0 ? zones : SHOT_DIRECTION_ZONES;
+export function getShotDirectionPercentages(ballHistory = [], zones = SHOT_DIRECTION_ZONES) {
+  const list = Array.isArray(zones) && zones.length > 0 ? zones : SHOT_DIRECTION_ZONES;
   const runTotals = list.map(() => 0);
   let totalRuns = 0;
   for (const ball of ballHistory) {
@@ -82,9 +76,6 @@ export function getShotDirectionPercentages(
       totalRuns += runs;
     }
   }
-  const percentages =
-    totalRuns > 0
-      ? runTotals.map((r) => Math.round((r / totalRuns) * 100))
-      : runTotals.map(() => 0);
+  const percentages = totalRuns > 0 ? runTotals.map((r) => Math.round((r / totalRuns) * 100)) : runTotals.map(() => 0);
   return { total: totalRuns, percentages };
 }

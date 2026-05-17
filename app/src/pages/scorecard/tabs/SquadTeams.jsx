@@ -36,9 +36,7 @@ export function SquadTeams({ tournamentId }) {
   if (isLoading) {
     return (
       <div className="mt-4 pb-6">
-        <p className="py-4 text-center text-[13px] text-[#A2A6AB]">
-          Loading squads…
-        </p>
+        <p className="py-4 text-center text-[13px] text-[#A2A6AB]">Loading squads…</p>
       </div>
     );
   }
@@ -46,9 +44,7 @@ export function SquadTeams({ tournamentId }) {
   if (isError) {
     return (
       <div className="mt-4 pb-6">
-        <p className="py-4 text-center text-[13px] text-red-400">
-          Failed to load teams for squads.
-        </p>
+        <p className="py-4 text-center text-[13px] text-red-400">Failed to load teams for squads.</p>
       </div>
     );
   }
@@ -56,9 +52,7 @@ export function SquadTeams({ tournamentId }) {
   if (!teams.length) {
     return (
       <div className="mt-4 pb-6">
-        <p className="py-8 text-center text-[13px] text-[#A2A6AB]">
-          No teams added yet.
-        </p>
+        <p className="py-8 text-center text-[13px] text-[#A2A6AB]">No teams added yet.</p>
       </div>
     );
   }
@@ -70,9 +64,7 @@ export function SquadTeams({ tournamentId }) {
       </h1>
 
       <div className="border border-[#1A1A1A]">
-        <div className="bg-[#141412] px-4 py-3 text-[13px] font-bold text-white">
-          Teams
-        </div>
+        <div className="bg-[#141412] px-4 py-3 text-[13px] font-bold text-white">Teams</div>
         <div className="divide-y divide-[#1A1A1A]">
           {teams.map((team) => (
             <button
@@ -84,9 +76,7 @@ export function SquadTeams({ tournamentId }) {
               <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1A1A1A] text-[11px] font-bold text-[#DA9811]">
                 {(team.name ?? 'T').charAt(0)}
               </span>
-              <span className="min-w-0 flex-1 truncate">
-                {team.name ?? team.code ?? 'Team'}
-              </span>
+              <span className="min-w-0 flex-1 truncate">{team.name ?? team.code ?? 'Team'}</span>
             </button>
           ))}
         </div>

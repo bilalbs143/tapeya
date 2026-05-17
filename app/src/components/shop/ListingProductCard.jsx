@@ -13,22 +13,14 @@ function ListingProductCardInner({ product, brandSlug }) {
   const isThisCardAdding = addingProductId === product.id;
   const stock = product.stock_quantity ?? 0;
   const imageUrl = product.images?.[0]?.path;
-  const hasDiscount =
-    product.sale_price != null && product.sale_price < product.price;
-  const discountPercent =
-    hasDiscount && product.price > 0
-      ? Math.round((1 - product.sale_price / product.price) * 100)
-      : 0;
+  const hasDiscount = product.sale_price != null && product.sale_price < product.price;
+  const discountPercent = hasDiscount && product.price > 0 ? Math.round((1 - product.sale_price / product.price) * 100) : 0;
 
   const content = (
     <>
       <div className="relative h-[138px] bg-white">
         {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={product.images?.[0]?.alt ?? product.name}
-            className="h-full w-full object-contain p-2"
-          />
+          <img src={imageUrl} alt={product.images?.[0]?.alt ?? product.name} className="h-full w-full object-contain p-2" />
         ) : (
           <div className="h-full w-full bg-[#141412]" aria-hidden />
         )}
@@ -44,24 +36,16 @@ function ListingProductCardInner({ product, brandSlug }) {
         )}
       </div>
       <div className="flex h-[110px] flex-col p-3">
-        <p className="line-clamp-2 shrink-0 text-[13px] leading-snug font-medium text-white">
-          {product.name}
-        </p>
+        <p className="line-clamp-2 shrink-0 text-[13px] leading-snug font-medium text-white">{product.name}</p>
         <div className="mt-auto flex min-h-[2.75rem] shrink-0 items-end justify-between gap-2">
           <div className="flex min-w-0 flex-col justify-end gap-0.5">
             {hasDiscount ? (
               <>
-                <span className="text-[11px] text-[#A2A6AB] line-through">
-                  {formatPrice(product.price)}
-                </span>
-                <span className="text-base font-bold text-[#DA9811]">
-                  {formatPrice(product.sale_price)}
-                </span>
+                <span className="text-[11px] text-[#A2A6AB] line-through">{formatPrice(product.price)}</span>
+                <span className="text-base font-bold text-[#DA9811]">{formatPrice(product.sale_price)}</span>
               </>
             ) : (
-              <span className="text-base font-bold text-[#DA9811]">
-                {formatPrice(product.price)}
-              </span>
+              <span className="text-base font-bold text-[#DA9811]">{formatPrice(product.price)}</span>
             )}
           </div>
           <button
@@ -79,18 +63,9 @@ function ListingProductCardInner({ product, brandSlug }) {
               strokeWidth={2}
               aria-hidden
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4v16m8-8H4"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            <img
-              src={productCartIcon}
-              alt=""
-              className="h-[17px] w-[17px]"
-              aria-hidden
-            />
+            <img src={productCartIcon} alt="" className="h-[17px] w-[17px]" aria-hidden />
           </button>
         </div>
       </div>
@@ -108,11 +83,7 @@ function ListingProductCardInner({ product, brandSlug }) {
     );
   }
 
-  return (
-    <article className="flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[17px] bg-[#1a1a18]">
-      {content}
-    </article>
-  );
+  return <article className="flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[17px] bg-[#1a1a18]">{content}</article>;
 }
 
 export const ListingProductCard = memo(ListingProductCardInner);

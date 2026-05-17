@@ -16,6 +16,7 @@
  * @param {boolean}  props.pendingFreeHit       Is the next delivery a free hit?
  * @param {object[]} props.extraTypeOptions     From getExtraTypeOptions(enums.extra_type)
  * @param {boolean}  [props.disabled]           Disable all controls (e.g. match complete).
+ * @param {boolean}  [props.isSubmitting]       Ball request in-flight — dim and block all inputs.
  * @param {Function} props.onRun               (runs: number) => void — called for 0 runs, or after shot-area skip
  * @param {Function} props.onRunWithShot       (runs: number) => void — called when shot-area dialog should open
  * @param {Function} props.onExtra             (type: 'wd'|'nb'|'bye'|'lb') => void — opens extra-runs dialog
@@ -33,15 +34,7 @@ import { FreeHitIndicator } from './FreeHitIndicator';
 const PENALTY_RUNS_AMOUNT = 5;
 
 /** Background colours for run buttons 0–6 (dark, progressively lighter). */
-const RUN_BUTTON_BG = [
-  '#10100F',
-  '#171715',
-  '#1F1F1C',
-  '#282824',
-  '#31312C',
-  '#3B3B35',
-  '#46463F',
-];
+const RUN_BUTTON_BG = ['#10100F', '#171715', '#1F1F1C', '#282824', '#31312C', '#3B3B35', '#46463F'];
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -83,6 +76,7 @@ export function ScoringControls({
   pendingFreeHit = false,
   extraTypeOptions = [],
   disabled = false,
+  isSubmitting = false,
   onRun,
   onRunWithShot,
   onExtra,
@@ -95,7 +89,10 @@ export function ScoringControls({
   if (disabled) return null;
 
   return (
-    <div className="mt-6 flex flex-col items-center gap-4 pb-8">
+    <div
+      className={`mt-6 flex flex-col items-center gap-4 pb-8 transition-opacity${isSubmitting ? 'pointer-events-none opacity-40' : ''}`}
+      aria-busy={isSubmitting}
+    >
       {/* Free Hit banner */}
       <FreeHitIndicator pendingFreeHit={pendingFreeHit} />
 
@@ -153,11 +150,7 @@ export function ScoringControls({
         )}
 
         {/* OUT */}
-        <ActionButton
-          onClick={onOut}
-          label="Wicket — select dismissal type"
-          className="bg-[#141412] text-[#DA9811]"
-        >
+        <ActionButton onClick={onOut} label="Wicket — select dismissal type" className="bg-[#141412] text-[#DA9811]">
           OUT
         </ActionButton>
 
@@ -177,11 +170,7 @@ export function ScoringControls({
         )}
 
         {/* UNDO */}
-        <ActionButton
-          onClick={onUndo}
-          label="Undo last ball"
-          className="border-2 border-red-500 bg-[#141412] text-red-500"
-        >
+        <ActionButton onClick={onUndo} label="Undo last ball" className="border-2 border-red-500 bg-[#141412] text-red-500">
           <span className="flex flex-col items-center gap-0.5">
             <UndoIcon />
             <span className="text-[8px]">UNDO</span>

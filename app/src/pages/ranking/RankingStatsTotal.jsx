@@ -92,10 +92,7 @@ function getRankingStatsTotalRows(rankingData, statType) {
       inns: p.stats?.innings ?? p.innings ?? NO_VALUE,
       balls: NO_VALUE,
       hs: NO_VALUE,
-      avg:
-        p.stats?.average != null || p.average != null
-          ? Number(p.stats?.average ?? p.average).toFixed(2)
-          : NO_VALUE,
+      avg: p.stats?.average != null || p.average != null ? Number(p.stats?.average ?? p.average).toFixed(2) : NO_VALUE,
       sr: NO_VALUE,
       six: NO_VALUE,
       four: NO_VALUE,
@@ -117,10 +114,7 @@ function getRankingStatsTotalRows(rankingData, statType) {
       inns: p.stats?.innings ?? p.innings ?? NO_VALUE,
       bbi: NO_VALUE,
       ave: NO_VALUE,
-      econ:
-        p.stats?.economy != null || p.economy != null
-          ? Number(p.stats?.economy ?? p.economy).toFixed(2)
-          : NO_VALUE,
+      econ: p.stats?.economy != null || p.economy != null ? Number(p.stats?.economy ?? p.economy).toFixed(2) : NO_VALUE,
       sr: NO_VALUE,
       four_wkt: NO_VALUE,
       five_wkt: NO_VALUE,
@@ -157,9 +151,7 @@ export default function RankingStatsTotal() {
   const toast = useToast();
 
   const isInvalidStatType = !statType || !VALID_STAT_TYPES.includes(statType);
-  const rankingData = Array.isArray(location.state?.rankingData)
-    ? location.state.rankingData
-    : [];
+  const rankingData = Array.isArray(location.state?.rankingData) ? location.state.rankingData : [];
   const normalizedType = isInvalidStatType ? 'fours' : statType;
   const rows = getRankingStatsTotalRows(rankingData, normalizedType);
   const fromRanking = location.state?.fromRanking === true;
@@ -184,14 +176,10 @@ export default function RankingStatsTotal() {
       <AppSubpageHeader title="Stats" />
 
       <Container className="pb-6">
-        <h3 className="mt-0 text-left text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
-          {subheading}
-        </h3>
+        <h3 className="mt-0 text-left text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">{subheading}</h3>
 
         {noDataDirectAccess ? (
-          <p className="mt-3 text-[13px] text-[#A2A6AB]">
-            No data available. Go back to Rankings to view stats.
-          </p>
+          <p className="mt-3 text-[13px] text-[#A2A6AB]">No data available. Go back to Rankings to view stats.</p>
         ) : (
           <div className="mt-3 overflow-x-auto overflow-y-hidden border border-[#1A1A1A] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <table className="w-full min-w-max border-collapse text-[12px] text-white">
@@ -200,9 +188,7 @@ export default function RankingStatsTotal() {
                   {columns.map((col, i) => (
                     <th
                       key={col.key}
-                      className={`${COL_TH} ${col.width ?? ''} ${HEADER_BG} border-r border-b ${BORDER} ${
-                        i === 0 ? 'border-l' : ''
-                      }`}
+                      className={`${COL_TH} ${col.width ?? ''} ${HEADER_BG} border-r border-b ${BORDER} ${i === 0 ? 'border-l' : ''}`}
                     >
                       {col.header}
                     </th>
@@ -215,13 +201,9 @@ export default function RankingStatsTotal() {
                     {columns.map((col, i) => (
                       <td
                         key={col.key}
-                        className={`${COL_TD} border-r border-b ${BORDER} bg-transparent ${
-                          i === 0 ? 'border-l' : ''
-                        }`}
+                        className={`${COL_TD} border-r border-b ${BORDER} bg-transparent ${i === 0 ? 'border-l' : ''}`}
                       >
-                        {col.key === 'player'
-                          ? `${row.rank} ${row.playerName}`
-                          : row[col.key]}
+                        {col.key === 'player' ? `${row.rank} ${row.playerName}` : row[col.key]}
                       </td>
                     ))}
                   </tr>

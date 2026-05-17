@@ -43,12 +43,6 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([apiPrefixInterceptor, authTokenInterceptor, errorInterceptor])),
     provideClientHydration(),
     provideAnimationsAsync(),
-    importProvidersFrom(
-      FormsModule,
-      ReactiveFormsModule,
-      MaterialModule,
-      TablerIconsModule.pick(TablerIcons),
-      NgScrollbarModule
-    ),
+    importProvidersFrom(FormsModule, ReactiveFormsModule, MaterialModule, TablerIconsModule.pick(TablerIcons), NgScrollbarModule),
   ],
 };

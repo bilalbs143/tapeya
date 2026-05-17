@@ -5,6 +5,7 @@ use App\Http\Controllers\User\Auth\UserAuthController;
 use App\Http\Controllers\User\EnumController;
 use App\Http\Controllers\User\HeroSliderController;
 use App\Http\Controllers\User\InterestCampaignController;
+use App\Http\Controllers\User\MatchCreaseController;
 use App\Http\Controllers\User\MatchGraphicSessionController;
 use App\Http\Controllers\User\MatchPlayerOfMatchController;
 use App\Http\Controllers\User\MatchSquadController;
@@ -112,13 +113,18 @@ Route::middleware('auth:api')->group(function () {
     Route::post('tournaments/{tournament}/matches', [TournamentMatchController::class, 'store']);
     Route::get('matches/{match}', [TournamentMatchController::class, 'show']);
     Route::get('matches/{match}/graphic-session', [MatchGraphicSessionController::class, 'show']);
-    Route::patch('matches/{match}/graphic-session/pending-players', [MatchGraphicSessionController::class, 'setPendingPlayers']);
+    // Scoring-domain crease endpoint — tells the overlay who is about to bat/bowl.
+    // Replaces the old graphic-session path so scoring code is decoupled from the
+    // graphics subsystem.  The old path is kept as an alias for backward compat.
+    Route::patch('matches/{match}/crease', [MatchCreaseController::class, 'update']);
     Route::patch('matches/{match}/toss', [MatchTossController::class, 'update']);
     Route::patch('matches/{match}/player-of-match', [MatchPlayerOfMatchController::class, 'update']);
+    Route::get('matches/{match}/match-state', [ScorecardController::class, 'matchState']);
     Route::get('matches/{match}/scorecard', [ScorecardController::class, 'scorecard']);
     Route::get('matches/{match}/player-stats', [ScorecardController::class, 'playerStats']);
     Route::post('matches/{match}/innings/{innings}/balls', [ScorecardController::class, 'storeBall']);
     Route::patch('matches/{match}/innings/{innings}/balls/{ball}', [ScorecardController::class, 'updateBall']);
+    Route::delete('matches/{match}/innings/{innings}/balls/last', [ScorecardController::class, 'deleteLastBall']);
     Route::delete('matches/{match}/innings/{innings}/balls/{ball}', [ScorecardController::class, 'deleteBall']);
     Route::get('users/{user}/stats', [PlayerStatsController::class, 'show']);
     Route::get('users/{user}/ranking-position', [PlayerStatsController::class, 'rankingPosition']);

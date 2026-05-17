@@ -7,24 +7,20 @@ import { Slot } from '@radix-ui/react-slot';
 
 const variants = {
   primary: 'bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800',
-  secondary:
-    'bg-slate-200 text-slate-800 hover:bg-slate-300 active:bg-slate-400',
+  secondary: 'bg-slate-200 text-slate-800 hover:bg-slate-300 active:bg-slate-400',
   outline: 'border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50',
   ghost: 'text-indigo-600 hover:bg-indigo-50',
   file: 'border border-[#FFB800] text-[#FFB800] bg-transparent hover:bg-transparent active:bg-transparent',
   card: 'bg-[#EBF2FF] text-[#A2A6AB]',
   auth: 'h-12 w-[358px] max-w-full rounded-[6px] bg-[#DA9811] font-bold text-[#080807] transition-opacity hover:opacity-95 active:opacity-90',
   /** Light grey/off-white background, dark text – e.g. Save Fixture */
-  fixture:
-    'rounded-[6px] bg-[#e8eafc] font-medium text-[#080807] transition-opacity hover:opacity-95 active:opacity-90',
+  fixture: 'rounded-[6px] bg-[#e8eafc] font-medium text-[#080807] transition-opacity hover:opacity-95 active:opacity-90',
   /** Orange primary action – e.g. Start Match */
-  orange:
-    'rounded-[6px] bg-[#DA9811] font-bold text-[#080807] transition-opacity hover:opacity-95 active:opacity-90',
+  orange: 'rounded-[6px] bg-[#DA9811] font-bold text-[#080807] transition-opacity hover:opacity-95 active:opacity-90',
   /** Scoring tab overlay – e.g. Add Batsman / Add Bowler table button */
   dark: 'rounded-[17px] bg-[#080807] text-white transition-opacity hover:opacity-95 active:opacity-90 focus:outline-none ',
   /** Unselected role toggle – e.g. Playing / Bench when inactive */
-  black:
-    'rounded-[6px] bg-black text-white transition-opacity hover:opacity-95 active:opacity-90 focus:outline-none',
+  black: 'rounded-[6px] bg-black text-white transition-opacity hover:opacity-95 active:opacity-90 focus:outline-none',
   /** Dialog primary – e.g. Create New (orange, dark text) */
   orangeDialog:
     'rounded-[6px] bg-[#DA9811] !capitalize font-bold text-[#080807] transition-opacity hover:opacity-95 active:opacity-90 focus:outline-none',

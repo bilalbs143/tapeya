@@ -7,11 +7,7 @@ import { formatDate, formatPrice } from '@/lib/format';
 import { useGetOrderQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 
-const OrderItemCard = memo(function OrderItemCard({
-  item,
-  orderStatus,
-  orderUpdatedAt,
-}) {
+const OrderItemCard = memo(function OrderItemCard({ item, orderStatus, orderUpdatedAt }) {
   const snapshot = item.product_snapshot ?? {};
   const name = snapshot.name ?? 'Product';
   const edition = snapshot.edition ?? snapshot.variant ?? '';
@@ -20,9 +16,7 @@ const OrderItemCard = memo(function OrderItemCard({
   const imageUrl = snapshot.image_url;
 
   const isDelivered = orderStatus === 'delivered';
-  const deliveryLabel = isDelivered
-    ? `Delivered on ${formatDate(orderUpdatedAt) || '—'}`
-    : 'Pending';
+  const deliveryLabel = isDelivered ? `Delivered on ${formatDate(orderUpdatedAt) || '—'}` : 'Pending';
 
   return (
     <div className="flex gap-3 rounded-[17px] bg-[#141412] p-4">
@@ -40,16 +34,12 @@ const OrderItemCard = memo(function OrderItemCard({
       </div>
       <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5">
         <p className="text-[14px] font-bold text-white">{name}</p>
-        {edition && (
-          <p className="text-[13px] font-normal text-white">{edition}</p>
-        )}
+        {edition && <p className="text-[13px] font-normal text-white">{edition}</p>}
         <p className="text-[14px] font-bold text-white">
           <span className="text-[#DA9811]">{formatPrice(unitPrice)}</span>
           <span className="font-bold text-white"> x {quantity}</span>
         </p>
-        <p
-          className={`flex items-center gap-1.5 text-[12px] font-normal ${isDelivered ? 'text-[#86efac]' : 'text-[#A2A6AB]'}`}
-        >
+        <p className={`flex items-center gap-1.5 text-[12px] font-normal ${isDelivered ? 'text-[#86efac]' : 'text-[#A2A6AB]'}`}>
           {isDelivered && (
             <svg
               className="h-3.5 w-3.5 shrink-0"
@@ -135,58 +125,36 @@ export default function OrderDetail() {
       <Container>
         <div className="pb-8">
           <p className="mb-4 text-[16px] font-bold tracking-wide text-[#DA9811] uppercase">
-            ORDER NUMBER:{' '}
-            <span className="font-bold text-[#DA9811] uppercase">
-              {orderNumber}
-            </span>
+            ORDER NUMBER: <span className="font-bold text-[#DA9811] uppercase">{orderNumber}</span>
           </p>
 
           <div className="flex flex-col gap-3">
             {items.length === 0 ? (
-              <p className="text-[13px] text-[#A2A6AB]">
-                No items in this order.
-              </p>
+              <p className="text-[13px] text-[#A2A6AB]">No items in this order.</p>
             ) : (
-              items.map((item) => (
-                <OrderItemCard
-                  key={item.id}
-                  item={item}
-                  orderStatus={status}
-                  orderUpdatedAt={updatedAt}
-                />
-              ))
+              items.map((item) => <OrderItemCard key={item.id} item={item} orderStatus={status} orderUpdatedAt={updatedAt} />)
             )}
           </div>
 
           <div className="mt-3 space-y-2 rounded-2xl bg-[#141412] p-4">
             <div className="flex justify-between text-[14px]">
               <span className="text-white">Subtotal:</span>
-              <span className="font-bold text-white">
-                {formatPrice(subtotal)}
-              </span>
+              <span className="font-bold text-white">{formatPrice(subtotal)}</span>
             </div>
             <div className="flex justify-between text-[14px]">
               <span className="text-white">Shipping:</span>
-              <span className="font-bold text-white">
-                {formatPrice(shipping)}
-              </span>
+              <span className="font-bold text-white">{formatPrice(shipping)}</span>
             </div>
             <div className="flex justify-between text-[14px]">
               <span className="text-white">Discount:</span>
-              <span className="font-bold text-white">
-                {formatPrice(discount)}
-              </span>
+              <span className="font-bold text-white">{formatPrice(discount)}</span>
             </div>
           </div>
 
           <div className="mt-3 flex items-center justify-between gap-4 rounded-xl bg-[#141412] p-4">
             <div>
-              <p className="text-[16px] font-semibold text-white">
-                Grand Total:
-              </p>
-              <p className="mt-1 text-[20px] font-bold text-[#DA9811]">
-                {formatPrice(total)}
-              </p>
+              <p className="text-[16px] font-semibold text-white">Grand Total:</p>
+              <p className="mt-1 text-[20px] font-bold text-[#DA9811]">{formatPrice(total)}</p>
             </div>
             {status === 'pending' && (
               <button

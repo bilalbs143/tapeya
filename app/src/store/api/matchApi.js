@@ -1,28 +1,46 @@
 import { baseApi } from './baseApi';
 
+const ballMutationInvalidates = (_result, _err, { matchId }) => [
+  { type: 'Scorecard', id: matchId },
+  { type: 'Match', id: matchId },
+];
+
+/** Shared lifecycle for ball mutations — response includes authoritative match_state. */
+const ballMutationConfig = {
+  transformResponse: (response) => response?.data ?? response,
+  async onQueryStarted({ matchId }, { dispatch, queryFulfilled }) {
+    try {
+      const { data } = await queryFulfilled;
+      if (data?.match_state) {
+        dispatch(matchApi.util.updateQueryData('getMatchState', String(matchId), () => data.match_state));
+      }
+    } catch {
+      /* ignore */
+    }
+  },
+  invalidatesTags: ballMutationInvalidates,
+};
+
 /**
  * Match & scoring API – get match, scorecard, balls, toss, playing eleven (auth required).
  * Used by organizer scoring flow.
- *
- * Endpoints:
- * - GET /matches/:matchId
- * - GET /matches/:matchId/scorecard
- * - GET /matches/:matchId/teams/:teamId/playing-eleven
- * - POST /matches/:matchId/innings/:inningsId/balls
- * - PATCH /matches/:matchId/innings/:inningsId/balls/:ballId
- * - DELETE /matches/:matchId/innings/:inningsId/balls/:ballId
- * - PATCH /matches/:matchId/toss
- * - PATCH /matches/:matchId/player-of-match
  */
 export const matchApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getMatchState: builder.query({
+      query: (matchId) => ({
+        url: `/matches/${matchId}/match-state`,
+      }),
+      transformResponse: (response) => response?.data ?? response,
+      providesTags: (result, _err, matchId) => (result ? [{ type: 'MatchState', id: matchId }] : []),
+    }),
+
     getMatch: builder.query({
       query: (matchId) => ({
         url: `/matches/${matchId}`,
       }),
       transformResponse: (response) => response?.data ?? response,
-      providesTags: (result, _err, matchId) =>
-        result ? [{ type: 'Match', id: matchId }] : [],
+      providesTags: (result, _err, matchId) => (result ? [{ type: 'Match', id: matchId }] : []),
     }),
 
     getScorecard: builder.query({
@@ -30,19 +48,7 @@ export const matchApi = baseApi.injectEndpoints({
         url: `/matches/${matchId}/scorecard`,
       }),
       transformResponse: (response) => response?.data ?? response,
-      providesTags: (result, _err, matchId) =>
-        matchId ? [{ type: 'Scorecard', id: matchId }] : [],
-    }),
-
-    getPlayingEleven: builder.query({
-      query: ({ matchId, teamId }) => ({
-        url: `/matches/${matchId}/teams/${teamId}/playing-eleven`,
-      }),
-      transformResponse: (response) => response?.data ?? response,
-      providesTags: (_result, _err, { matchId, teamId }) =>
-        matchId && teamId
-          ? [{ type: 'Match', id: `${matchId}-team-${teamId}` }]
-          : [],
+      providesTags: (result, _err, matchId) => (matchId ? [{ type: 'Scorecard', id: matchId }] : []),
     }),
 
     storeMatchSquad: builder.mutation({
@@ -55,9 +61,9 @@ export const matchApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _err, { matchId, teamId }) =>
         matchId && teamId
           ? [
-            { type: 'Match', id: matchId },
-            { type: 'Match', id: `${matchId}-team-${teamId}` },
-          ]
+              { type: 'Match', id: matchId },
+              { type: 'Match', id: `${matchId}-team-${teamId}` },
+            ]
           : [],
     }),
 
@@ -68,13 +74,12 @@ export const matchApi = baseApi.injectEndpoints({
         body: { player_ids },
       }),
       transformResponse: (response) => response?.data ?? response,
-      invalidatesTags: (_result, _err, { matchId, teamId }) =>
-        matchId && teamId
+      invalidatesTags: (_result, _err, { matchId }) =>
+        matchId
           ? [
-            { type: 'Match', id: matchId },
-            { type: 'Match', id: `${matchId}-team-${teamId}` },
-            { type: 'Scorecard', id: matchId },
-          ]
+              { type: 'MatchState', id: matchId },
+              { type: 'Scorecard', id: matchId },
+            ]
           : [],
     }),
 
@@ -84,11 +89,7 @@ export const matchApi = baseApi.injectEndpoints({
         method: 'POST',
         body: payload,
       }),
-      transformResponse: (response) => response?.data ?? response,
-      invalidatesTags: (_result, _err, { matchId }) => [
-        { type: 'Scorecard', id: matchId },
-        { type: 'Match', id: matchId },
-      ],
+      ...ballMutationConfig,
     }),
 
     updateBall: builder.mutation({
@@ -97,11 +98,7 @@ export const matchApi = baseApi.injectEndpoints({
         method: 'PATCH',
         body: payload,
       }),
-      transformResponse: (response) => response?.data ?? response,
-      invalidatesTags: (_result, _err, { matchId }) => [
-        { type: 'Scorecard', id: matchId },
-        { type: 'Match', id: matchId },
-      ],
+      ...ballMutationConfig,
     }),
 
     deleteBall: builder.mutation({
@@ -109,10 +106,15 @@ export const matchApi = baseApi.injectEndpoints({
         url: `/matches/${matchId}/innings/${inningsId}/balls/${ballId}`,
         method: 'DELETE',
       }),
-      invalidatesTags: (_result, _err, { matchId }) => [
-        { type: 'Scorecard', id: matchId },
-        { type: 'Match', id: matchId },
-      ],
+      ...ballMutationConfig,
+    }),
+
+    deleteLastBall: builder.mutation({
+      query: ({ matchId, inningsId }) => ({
+        url: `/matches/${matchId}/innings/${inningsId}/balls/last`,
+        method: 'DELETE',
+      }),
+      ...ballMutationConfig,
     }),
 
     updatePlayerOfMatch: builder.mutation({
@@ -122,9 +124,7 @@ export const matchApi = baseApi.injectEndpoints({
         body: { player_of_match_user_id },
       }),
       transformResponse: (response) => response?.data ?? response,
-      invalidatesTags: (_result, _err, { matchId }) => [
-        { type: 'Match', id: matchId },
-      ],
+      invalidatesTags: (_result, _err, { matchId }) => [{ type: 'Match', id: matchId }],
     }),
 
     updateToss: builder.mutation({
@@ -137,44 +137,35 @@ export const matchApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _err, { matchId }) => [
         { type: 'Match', id: matchId },
         { type: 'Scorecard', id: matchId },
+        { type: 'MatchState', id: matchId },
       ],
     }),
 
-    /**
-     * Notify the graphic session about the next batsman/bowler before they face
-     * their first ball, so the overlay graphic shows them immediately instead of
-     * showing a blank slot.
-     *
-     * Pass any subset of keys; each key omitted is left unchanged on the server.
-     * Body is sent as-is (after removing `matchId` from the mutation argument).
-     *
-     * Keys: `next_batter_id`, `next_non_striker_id`, `next_bowler_id` (use `null` to clear).
-     */
-    setPendingGraphicPlayers: builder.mutation({
+    updateCrease: builder.mutation({
       query: ({ matchId, ...patch }) => ({
-        url: `/matches/${matchId}/graphic-session/pending-players`,
+        url: `/matches/${matchId}/crease`,
         method: 'PATCH',
         body: patch,
       }),
-      invalidatesTags: (_result, _err, { matchId }) =>
-        matchId ? [{ type: 'Scorecard', id: matchId }] : [],
+      invalidatesTags: (_result, _err, { matchId }) => (matchId ? [{ type: 'MatchState', id: matchId }] : []),
     }),
   }),
 });
 
 export const {
+  useGetMatchStateQuery,
+  useLazyGetMatchStateQuery,
   useGetMatchQuery,
   useLazyGetMatchQuery,
   useGetScorecardQuery,
   useLazyGetScorecardQuery,
-  useGetPlayingElevenQuery,
-  useLazyGetPlayingElevenQuery,
   useStoreMatchSquadMutation,
   useStorePlayingElevenMutation,
   useStoreBallMutation,
   useUpdateBallMutation,
   useDeleteBallMutation,
+  useDeleteLastBallMutation,
   useUpdateTossMutation,
   useUpdatePlayerOfMatchMutation,
-  useSetPendingGraphicPlayersMutation,
+  useUpdateCreaseMutation,
 } = matchApi;

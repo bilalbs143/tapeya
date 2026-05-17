@@ -6,7 +6,6 @@ use App\Enums\Event\MatchStatusEnum;
 use App\Models\Ball;
 use App\Models\Innings;
 use App\Models\TournamentMatch;
-use App\Services\Broadcast\MatchGraphicCommandHistoryService;
 use Illuminate\Support\Collection;
 
 /**
@@ -18,9 +17,7 @@ use Illuminate\Support\Collection;
  */
 class MatchCompletionService
 {
-    public function __construct(
-        private readonly MatchGraphicCommandHistoryService $graphicCommandHistory,
-    ) {}
+    public function __construct() {}
 
     public function evaluate(TournamentMatch $match): void
     {
@@ -97,12 +94,13 @@ class MatchCompletionService
 
         if ($inn1->status !== 'completed' || $inn2->status !== 'completed') {
             if ($match->status === MatchStatusEnum::COMPLETED) {
+                // Revert match status but preserve POTM — the organiser set it
+                // deliberately and a ball undo should not silently erase it (§30.9).
                 $match->update([
                     'status' => MatchStatusEnum::IN_PROGRESS,
                     'winning_team_id' => $match->toss_winner_team_id,
                     'win_by_runs' => null,
                     'win_by_wickets' => null,
-                    'player_of_match_user_id' => null,
                 ]);
             }
 
@@ -134,18 +132,16 @@ class MatchCompletionService
             }
         }
 
-        $wasCompleted = $match->status === MatchStatusEnum::COMPLETED;
-
         $match->update([
             'status' => MatchStatusEnum::COMPLETED,
             'winning_team_id' => $winnerId,
             'win_by_runs' => $winByRuns,
             'win_by_wickets' => $winByWickets,
         ]);
-
-        if (! $wasCompleted) {
-            $this->graphicCommandHistory->clearForMatchIfSessionExists($match);
-        }
+        // §30.8: graphic command history is preserved on completion so the
+        // broadcast operator can re-send post-match graphics without rebuilding
+        // the full command list.  Use PurgeOldMatchGraphicCommands artisan
+        // command for scheduled cleanup instead.
     }
 
     /**
@@ -162,7 +158,8 @@ class MatchCompletionService
     private function totalsFromBalls(Collection $balls): array
     {
         $runs = (int) $balls->sum(fn (Ball $b) => (int) ($b->runs ?? 0) + (int) ($b->penalty_runs ?? 0));
-        $wickets = $balls->where('is_wicket', true)->count();
+        // retired_hurt is not a wicket — exclude it so an innings cannot end prematurely.
+        $wickets = $balls->filter(fn (Ball $b) => $b->is_wicket && ! $b->isRetiredHurt())->count();
         $validDeliveries = $balls->filter(fn (Ball $b) => $b->isLegalDelivery())->count();
 
         return [

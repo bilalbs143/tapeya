@@ -8,7 +8,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Placeholders only. Live overlay values come from {@see \App\Settings\OverlaySettings}.
-    | When signing_secret is empty, {@see \App\Services\Overlay\MatchGraphicOverlaySigner} uses APP_KEY.
+    | When signing_secret is empty, {@see \App\Services\Overlay\GraphicOverlaySigner} uses APP_KEY.
     |
     */
 

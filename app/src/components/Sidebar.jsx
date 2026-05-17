@@ -52,9 +52,7 @@ const MENU_ITEMS = [
 ];
 
 const overlay = (open) =>
-  `fixed inset-0 z-[60] bg-black/50 transition-opacity duration-200 lg:hidden ${
-    open ? 'opacity-100' : 'pointer-events-none opacity-0'
-  }`;
+  `fixed inset-0 z-[60] bg-black/50 transition-opacity duration-200 lg:hidden ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}`;
 
 const panel = (open) =>
   `fixed left-0 top-0 z-[70] h-full w-[280px] flex flex-col border-r border-[#FFFFFF12] bg-[#10110EA3] backdrop-blur-[26.5px] transition-transform duration-200 ease-out lg:translate-x-0 ${
@@ -79,11 +77,7 @@ export function Sidebar({ open, onClose }) {
   const profileUser = meResponse?.data ?? user;
   const strength = profileUser ? calculateProfileStrength(profileUser) : 0;
 
-  const {
-    isNativeMobile: showNativeVersions,
-    installedVersion,
-    configuredVersion,
-  } = useNativeStoreVersionInfo();
+  const { isNativeMobile: showNativeVersions, installedVersion, configuredVersion } = useNativeStoreVersionInfo();
 
   const hasOrganizerRole = useMemo(() => {
     const roles = profileUser?.roles;
@@ -107,15 +101,9 @@ export function Sidebar({ open, onClose }) {
     if (afterRequestIdx === -1) {
       return [...filtered, interestRow];
     }
-    return [
-      ...filtered.slice(0, afterRequestIdx + 1),
-      interestRow,
-      ...filtered.slice(afterRequestIdx + 1),
-    ];
+    return [...filtered.slice(0, afterRequestIdx + 1), interestRow, ...filtered.slice(afterRequestIdx + 1)];
   }, [hasOrganizerRole, sidebarCampaign]);
-  const [isDesktop, setIsDesktop] = useState(
-    () => typeof window !== 'undefined' && window.innerWidth >= 1024,
-  );
+  const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 1024);
 
   const isActivePath = (path) => {
     if (!path) return false;
@@ -132,11 +120,7 @@ export function Sidebar({ open, onClose }) {
   }, []);
 
   useEffect(() => {
-    if (
-      !open &&
-      overlayRef.current &&
-      document.activeElement?.closest?.('aside')
-    ) {
+    if (!open && overlayRef.current && document.activeElement?.closest?.('aside')) {
       overlayRef.current.focus({ preventScroll: true });
     }
   }, [open]);
@@ -199,14 +183,9 @@ export function Sidebar({ open, onClose }) {
             {profileUser && strength < 100 && (
               <div className="mt-2 flex items-center gap-2">
                 <div className="h-[4px] flex-1 overflow-hidden rounded-full bg-zinc-600">
-                  <div
-                    className="h-full rounded-full bg-[#DA9811]"
-                    style={{ width: `${strength}%` }}
-                  />
+                  <div className="h-full rounded-full bg-[#DA9811]" style={{ width: `${strength}%` }} />
                 </div>
-                <span className="shrink-0 text-[14px] font-bold text-white italic">
-                  {strength}% Complete
-                </span>
+                <span className="shrink-0 text-[14px] font-bold text-white italic">{strength}% Complete</span>
               </div>
             )}
 
@@ -225,14 +204,10 @@ export function Sidebar({ open, onClose }) {
                     <img
                       src={icon}
                       alt=""
-                      className={`h-5 w-5 shrink-0 ${
-                        isActivePath(path) ? 'brightness-0 filter' : ''
-                      } group-hover:brightness-0 group-hover:filter`}
+                      className={`h-5 w-5 shrink-0 ${isActivePath(path) ? 'brightness-0 filter' : ''} group-hover:brightness-0 group-hover:filter`}
                     />
                     <span
-                      className={`min-w-0 truncate text-[16px] font-medium ${
-                        isActivePath(path) ? 'text-[#080807]' : 'text-[#A2A6AB]'
-                      } group-hover:text-[#080807]`}
+                      className={`min-w-0 truncate text-[16px] font-medium ${isActivePath(path) ? 'text-[#080807]' : 'text-[#A2A6AB]'} group-hover:text-[#080807]`}
                     >
                       {label}
                     </span>
@@ -246,14 +221,8 @@ export function Sidebar({ open, onClose }) {
                     aria-disabled="true"
                     aria-label={`${label} (coming soon)`}
                   >
-                    <img
-                      src={icon}
-                      alt=""
-                      className="h-5 w-5 shrink-0 opacity-60"
-                    />
-                    <span className="text-[16px] font-medium text-[#A2A6AB] opacity-60">
-                      {label}
-                    </span>
+                    <img src={icon} alt="" className="h-5 w-5 shrink-0 opacity-60" />
+                    <span className="text-[16px] font-medium text-[#A2A6AB] opacity-60">{label}</span>
                   </button>
                 ),
               )}
@@ -267,15 +236,11 @@ export function Sidebar({ open, onClose }) {
                   className="text-center text-[9px] leading-snug tracking-tight text-[#55585e]"
                   title="Installed app version | Version from system settings"
                 >
-                  <span className="tabular-nums opacity-90">
-                    {installedVersion || '—'}
-                  </span>
-                  <span className="select-none px-1 opacity-35" aria-hidden>
+                  <span className="tabular-nums opacity-90">{installedVersion || '—'}</span>
+                  <span className="px-1 opacity-35 select-none" aria-hidden>
                     |
                   </span>
-                  <span className="tabular-nums opacity-90">
-                    {configuredVersion || '—'}
-                  </span>
+                  <span className="tabular-nums opacity-90">{configuredVersion || '—'}</span>
                 </p>
               </div>
             )}
@@ -284,14 +249,8 @@ export function Sidebar({ open, onClose }) {
               onClick={handleLogout}
               className="flex w-full cursor-pointer items-center justify-center gap-2 bg-[#DA9811] py-4"
             >
-              <img
-                src={logoutIcon}
-                alt=""
-                className="h-8 w-8 shrink-0 brightness-0 filter"
-              />
-              <span className="text-[16px] leading-none font-bold text-[#080807]">
-                Logout
-              </span>
+              <img src={logoutIcon} alt="" className="h-8 w-8 shrink-0 brightness-0 filter" />
+              <span className="text-[16px] leading-none font-bold text-[#080807]">Logout</span>
             </button>
           </div>
         </div>

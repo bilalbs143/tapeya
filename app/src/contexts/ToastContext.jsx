@@ -1,12 +1,6 @@
 import { createContext, useCallback, useState } from 'react';
 
-import {
-  Toast,
-  ToastDescriptionStyled,
-  ToastRootStyled,
-  ToastTitleStyled,
-  ToastViewportStyled,
-} from '@/ui/Toast';
+import { Toast, ToastDescriptionStyled, ToastRootStyled, ToastTitleStyled, ToastViewportStyled } from '@/ui/Toast';
 
 // Provider + context in one module is intentional; only ToastProvider is hot-reloaded as a component boundary.
 // eslint-disable-next-line react-refresh/only-export-components -- context instance must be shared with consumers
@@ -27,8 +21,7 @@ export function ToastProvider({ children }) {
   });
 
   const show = useCallback((options) => {
-    const opts =
-      typeof options === 'string' ? { description: options } : options;
+    const opts = typeof options === 'string' ? { description: options } : options;
     setState({
       open: true,
       title: opts.title ?? '',
@@ -43,12 +36,9 @@ export function ToastProvider({ children }) {
     },
     [show],
   );
-  toast.success = (description, title = 'Success') =>
-    show({ title, description, variant: 'success' });
-  toast.error = (description, title = 'Error') =>
-    show({ title, description, variant: 'error' });
-  toast.info = (description, title = '') =>
-    show({ title: title || 'Info', description, variant: 'default' });
+  toast.success = (description, title = 'Success') => show({ title, description, variant: 'success' });
+  toast.error = (description, title = 'Error') => show({ title, description, variant: 'error' });
+  toast.info = (description, title = '') => show({ title: title || 'Info', description, variant: 'default' });
 
   const handleOpenChange = useCallback((open) => {
     if (!open) setState((s) => ({ ...s, open: false }));

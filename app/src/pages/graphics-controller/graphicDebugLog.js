@@ -14,6 +14,7 @@
  */
 export function graphicLogger(level, tag, payload) {
   if (!isGraphicDebugEnabled()) return;
+
   const fn =
     typeof console[level] === 'function'
       ? /** @type {(this: unknown, ...args: unknown[]) => void} */ (console[level])

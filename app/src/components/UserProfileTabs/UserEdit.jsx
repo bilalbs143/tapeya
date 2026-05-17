@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { BaseDialog } from '@/components/dialogs/BaseDialog';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
@@ -9,22 +10,11 @@ import { enumNameToValue } from '@/lib/utils/enumUtils';
 import { updateProfileSchema } from '@/lib/validations/auth';
 import { useGetMeQuery, useUpdateProfileMutation } from '@/store/api/authApi';
 import { usePlayerProfileEnums } from '@/store/api/enumApi';
-import {
-  useGetCitiesQuery,
-  useGetCountriesQuery,
-} from '@/store/api/locationApi';
+import { useGetCitiesQuery, useGetCountriesQuery } from '@/store/api/locationApi';
 import { useAppDispatch } from '@/store/hooks';
 import { updateUser } from '@/store/slices/authSlice';
 import { DatePicker } from '@/ui/DatePicker';
-import {
-  Dialog,
-  DialogContentDark,
-  DialogHeaderRow,
-  dialogPrimaryTitleClass,
-  DialogSaveButton,
-  DialogScrollBody,
-  DialogTitle,
-} from '@/ui/Dialog';
+import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import {
@@ -77,8 +67,7 @@ export function UserEdit({ open, onOpenChange }) {
   const dispatch = useAppDispatch();
   const { data: meData } = useGetMeQuery(undefined, { skip: !open });
   const user = meData?.data ?? null;
-  const { battingStyleOptions, bowlingStyleOptions, playingRoleOptions } =
-    usePlayerProfileEnums();
+  const { battingStyleOptions, bowlingStyleOptions, playingRoleOptions } = usePlayerProfileEnums();
   const { data: countriesList = [] } = useGetCountriesQuery(undefined, {
     skip: !open,
   });
@@ -92,11 +81,9 @@ export function UserEdit({ open, onOpenChange }) {
   const [avatarRemove, setAvatarRemove] = useState(false);
   const fileInputRef = useRef(null);
 
-  const setField = (key) => (value) =>
-    setFields((prev) => ({ ...prev, [key]: value }));
+  const setField = (key) => (value) => setFields((prev) => ({ ...prev, [key]: value }));
 
-  const countryCode =
-    countriesList.find((c) => c.name === fields.country)?.country_code ?? null;
+  const countryCode = countriesList.find((c) => c.name === fields.country)?.country_code ?? null;
   const { data: citiesList = [] } = useGetCitiesQuery(countryCode, {
     skip: !open || !countryCode,
   });
@@ -106,10 +93,8 @@ export function UserEdit({ open, onOpenChange }) {
   // Pre-fill fields when the dialog opens.
   useEffect(() => {
     if (!open || !user) return;
-    const batting =
-      enumNameToValue(user.batting_style_enum) || user.batting_style;
-    const bowling =
-      enumNameToValue(user.bowling_style_enum) || user.bowling_style;
+    const batting = enumNameToValue(user.batting_style_enum) || user.batting_style;
+    const bowling = enumNameToValue(user.bowling_style_enum) || user.bowling_style;
     const playing = enumNameToValue(user.playing_role_enum);
     const countryFromProfile = user.country && String(user.country).trim();
     setFields({
@@ -118,31 +103,16 @@ export function UserEdit({ open, onOpenChange }) {
       city: user.city ?? '',
       nickname: user.nickname ?? '',
       dateOfBirth: user.date_of_birth ?? '',
-      battingStyle:
-        batting && battingStyleOptions.some((o) => o.value === batting)
-          ? batting
-          : '',
-      bowlingStyle:
-        bowling && bowlingStyleOptions.some((o) => o.value === bowling)
-          ? bowling
-          : '',
-      playingRole:
-        playing && playingRoleOptions.some((o) => o.value === playing)
-          ? playing
-          : '',
+      battingStyle: batting && battingStyleOptions.some((o) => o.value === batting) ? batting : '',
+      bowlingStyle: bowling && bowlingStyleOptions.some((o) => o.value === bowling) ? bowling : '',
+      playingRole: playing && playingRoleOptions.some((o) => o.value === playing) ? playing : '',
       email: user.email ?? '',
     });
     setNicknameError('');
     setAvatarFile(null);
     setAvatarPreview(null);
     setAvatarRemove(false);
-  }, [
-    open,
-    user,
-    battingStyleOptions,
-    bowlingStyleOptions,
-    playingRoleOptions,
-  ]);
+  }, [open, user, battingStyleOptions, bowlingStyleOptions, playingRoleOptions]);
 
   // Revoke blob URL on change / unmount to prevent memory leaks.
   useEffect(() => {
@@ -201,22 +171,15 @@ export function UserEdit({ open, onOpenChange }) {
     });
 
     if (!parsed.success) {
-      const nicknameIssue = parsed.error.issues.find((i) =>
-        i.path.includes('nickname'),
-      );
+      const nicknameIssue = parsed.error.issues.find((i) => i.path.includes('nickname'));
       if (nicknameIssue?.message) setNicknameError(nicknameIssue.message);
       return;
     }
 
     // Strip undefined and empty strings. Explicit nulls (role / styles) pass through.
-    const toSend = Object.fromEntries(
-      Object.entries(parsed.data).filter(
-        ([, v]) => v !== undefined && v !== '',
-      ),
-    );
+    const toSend = Object.fromEntries(Object.entries(parsed.data).filter(([, v]) => v !== undefined && v !== ''));
 
-    // Avatar — authApi.buildProfilePayload reads this key to choose encoding:
-    //   File → FormData (multipart), null → JSON { avatar: null }, absent → no change
+    // Avatar: File → multipart POST; null → JSON PATCH with avatar: null; omit → unchanged.
     if (avatarFile instanceof File) {
       toSend.avatar = avatarFile;
     } else if (avatarRemove) {
@@ -233,9 +196,7 @@ export function UserEdit({ open, onOpenChange }) {
       onOpenChange?.(false);
     } catch (err) {
       const errors = err?.data?.errors;
-      const nicknameMsg = Array.isArray(errors?.nickname)
-        ? errors.nickname[0]
-        : null;
+      const nicknameMsg = Array.isArray(errors?.nickname) ? errors.nickname[0] : null;
       if (nicknameMsg) {
         setNicknameError(nicknameMsg);
         return;
@@ -246,348 +207,278 @@ export function UserEdit({ open, onOpenChange }) {
 
   // ── Render ───────────────────────────────────────────────────────────────
 
-  const avatarSrc =
-    avatarPreview ??
-    (avatarRemove ? defaultAvatar : (user?.avatar_url ?? defaultAvatar));
+  const avatarSrc = avatarPreview ?? (avatarRemove ? defaultAvatar : (user?.avatar_url ?? defaultAvatar));
 
-  const avatarDisplayName =
-    fields.name?.trim() ||
-    user?.name?.trim() ||
-    user?.nickname?.trim() ||
-    'Profile';
+  const avatarDisplayName = fields.name?.trim() || user?.name?.trim() || user?.nickname?.trim() || 'Profile';
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContentDark className="!h-[min(90vh,600px)]">
-        <div className="flex min-h-0 flex-1 flex-col">
-          <DialogHeaderRow>
-            <DialogTitle className={dialogPrimaryTitleClass}>
-              EDIT PROFILE
-            </DialogTitle>
-          </DialogHeaderRow>
+    <BaseDialog open={open} onOpenChange={onOpenChange} height="!h-[min(90vh,600px)]">
+      <DialogHeaderRow>
+        <DialogTitle className={dialogPrimaryTitleClass}>EDIT PROFILE</DialogTitle>
+      </DialogHeaderRow>
 
-          <DialogScrollBody>
-            <div className="flex flex-col gap-4">
-              {/* Avatar picker */}
-              <FormField>
-                <div className="flex flex-col items-center gap-4">
-                  <div className="relative inline-block">
-                    <ProfileAvatar
-                      src={avatarSrc}
-                      name={avatarDisplayName}
-                      overlap={false}
-                    />
-                    <span
-                      className="pointer-events-none absolute right-0 bottom-0 z-20 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#080807] bg-[#DA9811] text-[#080807] shadow-md"
-                      aria-hidden
-                    >
-                      <svg
-                        className="h-4 w-4"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                      </svg>
-                    </span>
-                    <input
-                      ref={fileInputRef}
-                      id="avatar"
-                      type="file"
-                      accept="image/*"
-                      className="absolute inset-0 z-10 cursor-pointer rounded-full opacity-0"
-                      onChange={handleAvatarChange}
-                      aria-label="Choose profile photo"
-                    />
-                  </div>
-                  <div className="flex flex-col items-center gap-1 text-center">
-                    <span className="text-[13px] text-white/70">
-                      Click the photo to change. JPG or PNG, max 5MB.
-                    </span>
-                    {avatarFile ? (
-                      <button
-                        type="button"
-                        onClick={clearAvatarSelection}
-                        className="text-xs font-medium text-[#DA9811] underline hover:no-underline"
-                      >
-                        Clear selection
-                      </button>
-                    ) : user?.avatar_url && !avatarRemove ? (
-                      <button
-                        type="button"
-                        onClick={handleRemoveAvatar}
-                        className="text-xs font-medium text-red-400 underline hover:no-underline"
-                      >
-                        Remove photo
-                      </button>
-                    ) : avatarRemove ? (
-                      <button
-                        type="button"
-                        onClick={() => setAvatarRemove(false)}
-                        className="text-xs font-medium text-[#A2A6AB] underline hover:no-underline"
-                      >
-                        Keep existing photo
-                      </button>
-                    ) : null}
-                  </div>
-                </div>
-              </FormField>
-
-              <FormField label="Name" htmlFor="name">
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Full Name"
-                  value={fields.name}
-                  onChange={(e) => setField('name')(e.target.value)}
-                  className="max-w-none"
-                />
-              </FormField>
-
-              <FormField label="Nickname" htmlFor="nickname">
-                <Input
-                  id="nickname"
-                  type="text"
-                  placeholder="Letters, Numbers, Underscores Only"
-                  value={fields.nickname}
-                  onChange={(e) => {
-                    setField('nickname')(e.target.value);
-                    setNicknameError('');
-                  }}
-                  className="max-w-none"
-                  maxLength={NICKNAME_MAX}
-                  error={nicknameError || undefined}
-                />
-              </FormField>
-
-              <FormField label="Date Of Birth" htmlFor="dob">
-                <DatePicker
-                  id="dob"
-                  placeholder="MM-DD-YYYY"
-                  value={fields.dateOfBirth}
-                  onChange={setField('dateOfBirth')}
-                  className="max-w-none"
-                />
-              </FormField>
-
-              <FormField
-                label="Playing Role"
-                htmlFor="playing-role"
-               
-              >
-                <Select
-                  value={fields.playingRole || PROFILE_FIELD_NONE}
-                  onValueChange={(v) =>
-                    setField('playingRole')(v === PROFILE_FIELD_NONE ? '' : v)
-                  }
+      <DialogScrollBody>
+        <div className="flex flex-col gap-4">
+          {/* Avatar picker */}
+          <FormField>
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative inline-block">
+                <ProfileAvatar src={avatarSrc} name={avatarDisplayName} overlap={false} />
+                <span
+                  className="pointer-events-none absolute right-0 bottom-0 z-20 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#080807] bg-[#DA9811] text-[#080807] shadow-md"
+                  aria-hidden
                 >
-                  <SelectTrigger
-                    id="playing-role"
-                    className={`max-w-none ${selectTriggerInputClass}`}
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   >
-                    <SelectValue placeholder="Select Playing Role" />
-                  </SelectTrigger>
-                  <SelectContent
-                    className={`z-[100] ${selectContentInputClass}`}
-                    viewportClassName={selectViewportInputClass}
-                  >
-                    <SelectItem
-                      value={PROFILE_FIELD_NONE}
-                      className={selectItemInputClass}
-                      textClassName={selectItemTextInputClass}
-                      indicatorClassName={selectItemIndicatorInputClass}
-                    >
-                      Not Set
-                    </SelectItem>
-                    {playingRoleOptions.map((opt) => (
-                      <SelectItem
-                        key={opt.value}
-                        value={opt.value}
-                        className={selectItemInputClass}
-                        textClassName={selectItemTextInputClass}
-                        indicatorClassName={selectItemIndicatorInputClass}
-                      >
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormField>
-
-              <FormField
-                label="Batting Style"
-                htmlFor="batting-style"
-               
-              >
-                <Select
-                  value={fields.battingStyle || PROFILE_FIELD_NONE}
-                  onValueChange={(v) =>
-                    setField('battingStyle')(v === PROFILE_FIELD_NONE ? '' : v)
-                  }
-                >
-                  <SelectTrigger
-                    id="batting-style"
-                    className={`max-w-none ${selectTriggerInputClass}`}
-                  >
-                    <SelectValue placeholder="Select Batting Style" />
-                  </SelectTrigger>
-                  <SelectContent
-                    className={`z-[100] ${selectContentInputClass}`}
-                    viewportClassName={selectViewportInputClass}
-                  >
-                    <SelectItem
-                      value={PROFILE_FIELD_NONE}
-                      className={selectItemInputClass}
-                      textClassName={selectItemTextInputClass}
-                      indicatorClassName={selectItemIndicatorInputClass}
-                    >
-                      Not Set
-                    </SelectItem>
-                    {battingStyleOptions.map((opt) => (
-                      <SelectItem
-                        key={opt.value}
-                        value={opt.value}
-                        className={selectItemInputClass}
-                        textClassName={selectItemTextInputClass}
-                        indicatorClassName={selectItemIndicatorInputClass}
-                      >
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormField>
-
-              <FormField
-                label="Bowling Style"
-                htmlFor="bowling-style"
-               
-              >
-                <Select
-                  value={fields.bowlingStyle || PROFILE_FIELD_NONE}
-                  onValueChange={(v) =>
-                    setField('bowlingStyle')(v === PROFILE_FIELD_NONE ? '' : v)
-                  }
-                >
-                  <SelectTrigger
-                    id="bowling-style"
-                    className={`max-w-none ${selectTriggerInputClass}`}
-                  >
-                    <SelectValue placeholder="Select Bowling Style" />
-                  </SelectTrigger>
-                  <SelectContent
-                    className={`z-[100] ${selectContentInputClass}`}
-                    viewportClassName={selectViewportInputClass}
-                  >
-                    <SelectItem
-                      value={PROFILE_FIELD_NONE}
-                      className={selectItemInputClass}
-                      textClassName={selectItemTextInputClass}
-                      indicatorClassName={selectItemIndicatorInputClass}
-                    >
-                      Not Set
-                    </SelectItem>
-                    {bowlingStyleOptions.map((opt) => (
-                      <SelectItem
-                        key={opt.value}
-                        value={opt.value}
-                        className={selectItemInputClass}
-                        textClassName={selectItemTextInputClass}
-                        indicatorClassName={selectItemIndicatorInputClass}
-                      >
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormField>
-
-              <FormField label="Email" htmlFor="email">
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter Email"
-                  value={fields.email}
-                  onChange={(e) => setField('email')(e.target.value)}
-                  className="max-w-none"
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                </span>
+                <input
+                  ref={fileInputRef}
+                  id="avatar"
+                  type="file"
+                  accept="image/*"
+                  className="absolute inset-0 z-10 cursor-pointer rounded-full opacity-0"
+                  onChange={handleAvatarChange}
+                  aria-label="Choose profile photo"
                 />
-              </FormField>
-
-              <FormField label="Country" htmlFor="country">
-                <Select
-                  value={fields.country}
-                  onValueChange={(v) => {
-                    setField('country')(v);
-                    setField('city')('');
-                  }}
-                >
-                  <SelectTrigger
-                    id="country"
-                    className={`max-w-none ${selectTriggerInputClass}`}
+              </div>
+              <div className="flex flex-col items-center gap-1 text-center">
+                <span className="text-[13px] text-white/70">Click the photo to change. JPG or PNG, max 5MB.</span>
+                {avatarFile ? (
+                  <button
+                    type="button"
+                    onClick={clearAvatarSelection}
+                    className="text-xs font-medium text-[#DA9811] underline hover:no-underline"
                   >
-                    <SelectValue placeholder="Select Country" />
-                  </SelectTrigger>
-                  <SelectContent
-                    className={`z-[100] ${selectContentInputClass}`}
-                    viewportClassName={selectViewportInputClass}
+                    Clear selection
+                  </button>
+                ) : user?.avatar_url && !avatarRemove ? (
+                  <button
+                    type="button"
+                    onClick={handleRemoveAvatar}
+                    className="text-xs font-medium text-red-400 underline hover:no-underline"
                   >
-                    {countriesList.map((c) => (
-                      <SelectItem
-                        key={c.id}
-                        value={c.name}
-                        className={selectItemInputClass}
-                        textClassName={selectItemTextInputClass}
-                        indicatorClassName={selectItemIndicatorInputClass}
-                      >
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormField>
-
-              <FormField label="City" htmlFor="city">
-                <Select value={fields.city} onValueChange={setField('city')}>
-                  <SelectTrigger
-                    id="city"
-                    className={`max-w-none ${selectTriggerInputClass}`}
+                    Remove photo
+                  </button>
+                ) : avatarRemove ? (
+                  <button
+                    type="button"
+                    onClick={() => setAvatarRemove(false)}
+                    className="text-xs font-medium text-[#A2A6AB] underline hover:no-underline"
                   >
-                    <SelectValue placeholder="Select City" />
-                  </SelectTrigger>
-                  <SelectContent
-                    className={`z-[100] ${selectContentInputClass}`}
-                    viewportClassName={selectViewportInputClass}
-                  >
-                    {citiesList.map((c) => (
-                      <SelectItem
-                        key={c.id}
-                        value={c.name}
-                        className={selectItemInputClass}
-                        textClassName={selectItemTextInputClass}
-                        indicatorClassName={selectItemIndicatorInputClass}
-                      >
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormField>
+                    Keep existing photo
+                  </button>
+                ) : null}
+              </div>
             </div>
-          </DialogScrollBody>
+          </FormField>
 
-          <DialogSaveButton
-            onClick={handleSave}
-            className="shrink-0"
-            disabled={isSaving}
-          >
-            {isSaving ? 'Saving…' : 'Save'}
-          </DialogSaveButton>
+          <FormField label="Name" htmlFor="name">
+            <Input
+              id="name"
+              type="text"
+              placeholder="Full Name"
+              value={fields.name}
+              onChange={(e) => setField('name')(e.target.value)}
+              className="max-w-none"
+            />
+          </FormField>
+
+          <FormField label="Nickname" htmlFor="nickname">
+            <Input
+              id="nickname"
+              type="text"
+              placeholder="Letters, Numbers, Underscores Only"
+              value={fields.nickname}
+              onChange={(e) => {
+                setField('nickname')(e.target.value);
+                setNicknameError('');
+              }}
+              className="max-w-none"
+              maxLength={NICKNAME_MAX}
+              error={nicknameError || undefined}
+            />
+          </FormField>
+
+          <FormField label="Date Of Birth" htmlFor="dob">
+            <DatePicker
+              id="dob"
+              placeholder="MM-DD-YYYY"
+              value={fields.dateOfBirth}
+              onChange={setField('dateOfBirth')}
+              className="max-w-none"
+            />
+          </FormField>
+
+          <FormField label="Playing Role" htmlFor="playing-role">
+            <Select
+              value={fields.playingRole || PROFILE_FIELD_NONE}
+              onValueChange={(v) => setField('playingRole')(v === PROFILE_FIELD_NONE ? '' : v)}
+            >
+              <SelectTrigger id="playing-role" className={`max-w-none ${selectTriggerInputClass}`}>
+                <SelectValue placeholder="Select Playing Role" />
+              </SelectTrigger>
+              <SelectContent className={`z-[100] ${selectContentInputClass}`} viewportClassName={selectViewportInputClass}>
+                <SelectItem
+                  value={PROFILE_FIELD_NONE}
+                  className={selectItemInputClass}
+                  textClassName={selectItemTextInputClass}
+                  indicatorClassName={selectItemIndicatorInputClass}
+                >
+                  Not Set
+                </SelectItem>
+                {playingRoleOptions.map((opt) => (
+                  <SelectItem
+                    key={opt.value}
+                    value={opt.value}
+                    className={selectItemInputClass}
+                    textClassName={selectItemTextInputClass}
+                    indicatorClassName={selectItemIndicatorInputClass}
+                  >
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+
+          <FormField label="Batting Style" htmlFor="batting-style">
+            <Select
+              value={fields.battingStyle || PROFILE_FIELD_NONE}
+              onValueChange={(v) => setField('battingStyle')(v === PROFILE_FIELD_NONE ? '' : v)}
+            >
+              <SelectTrigger id="batting-style" className={`max-w-none ${selectTriggerInputClass}`}>
+                <SelectValue placeholder="Select Batting Style" />
+              </SelectTrigger>
+              <SelectContent className={`z-[100] ${selectContentInputClass}`} viewportClassName={selectViewportInputClass}>
+                <SelectItem
+                  value={PROFILE_FIELD_NONE}
+                  className={selectItemInputClass}
+                  textClassName={selectItemTextInputClass}
+                  indicatorClassName={selectItemIndicatorInputClass}
+                >
+                  Not Set
+                </SelectItem>
+                {battingStyleOptions.map((opt) => (
+                  <SelectItem
+                    key={opt.value}
+                    value={opt.value}
+                    className={selectItemInputClass}
+                    textClassName={selectItemTextInputClass}
+                    indicatorClassName={selectItemIndicatorInputClass}
+                  >
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+
+          <FormField label="Bowling Style" htmlFor="bowling-style">
+            <Select
+              value={fields.bowlingStyle || PROFILE_FIELD_NONE}
+              onValueChange={(v) => setField('bowlingStyle')(v === PROFILE_FIELD_NONE ? '' : v)}
+            >
+              <SelectTrigger id="bowling-style" className={`max-w-none ${selectTriggerInputClass}`}>
+                <SelectValue placeholder="Select Bowling Style" />
+              </SelectTrigger>
+              <SelectContent className={`z-[100] ${selectContentInputClass}`} viewportClassName={selectViewportInputClass}>
+                <SelectItem
+                  value={PROFILE_FIELD_NONE}
+                  className={selectItemInputClass}
+                  textClassName={selectItemTextInputClass}
+                  indicatorClassName={selectItemIndicatorInputClass}
+                >
+                  Not Set
+                </SelectItem>
+                {bowlingStyleOptions.map((opt) => (
+                  <SelectItem
+                    key={opt.value}
+                    value={opt.value}
+                    className={selectItemInputClass}
+                    textClassName={selectItemTextInputClass}
+                    indicatorClassName={selectItemIndicatorInputClass}
+                  >
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+
+          <FormField label="Email" htmlFor="email">
+            <Input
+              id="email"
+              type="email"
+              placeholder="Enter Email"
+              value={fields.email}
+              onChange={(e) => setField('email')(e.target.value)}
+              className="max-w-none"
+            />
+          </FormField>
+
+          <FormField label="Country" htmlFor="country">
+            <Select
+              value={fields.country}
+              onValueChange={(v) => {
+                setField('country')(v);
+                setField('city')('');
+              }}
+            >
+              <SelectTrigger id="country" className={`max-w-none ${selectTriggerInputClass}`}>
+                <SelectValue placeholder="Select Country" />
+              </SelectTrigger>
+              <SelectContent className={`z-[100] ${selectContentInputClass}`} viewportClassName={selectViewportInputClass}>
+                {countriesList.map((c) => (
+                  <SelectItem
+                    key={c.id}
+                    value={c.name}
+                    className={selectItemInputClass}
+                    textClassName={selectItemTextInputClass}
+                    indicatorClassName={selectItemIndicatorInputClass}
+                  >
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+
+          <FormField label="City" htmlFor="city">
+            <Select value={fields.city} onValueChange={setField('city')}>
+              <SelectTrigger id="city" className={`max-w-none ${selectTriggerInputClass}`}>
+                <SelectValue placeholder="Select City" />
+              </SelectTrigger>
+              <SelectContent className={`z-[100] ${selectContentInputClass}`} viewportClassName={selectViewportInputClass}>
+                {citiesList.map((c) => (
+                  <SelectItem
+                    key={c.id}
+                    value={c.name}
+                    className={selectItemInputClass}
+                    textClassName={selectItemTextInputClass}
+                    indicatorClassName={selectItemIndicatorInputClass}
+                  >
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
         </div>
-      </DialogContentDark>
-    </Dialog>
+      </DialogScrollBody>
+
+      <DialogSaveButton onClick={handleSave} disabled={isSaving}>
+        {isSaving ? 'Saving…' : 'Save'}
+      </DialogSaveButton>
+    </BaseDialog>
   );
 }

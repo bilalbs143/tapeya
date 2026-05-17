@@ -10,25 +10,13 @@ import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
 import { DEBOUNCE_MS, MIN_SEARCH_LENGTH } from '@/lib/constants/search';
-import {
-  getTournamentTitle,
-  parseTournamentId,
-} from '@/lib/utils/tournamentUtils';
+import { getTournamentTitle, parseTournamentId } from '@/lib/utils/tournamentUtils';
 import { teamFormSchema } from '@/lib/validations/team';
-import {
-  useGetCitiesQuery,
-  useGetCountriesQuery,
-} from '@/store/api/locationApi';
+import { useGetCitiesQuery, useGetCountriesQuery } from '@/store/api/locationApi';
 import { useSearchPlayersQuery } from '@/store/api/playerApi';
 import { useSearchSponsorsQuery } from '@/store/api/sponsorApi';
-import {
-  useCreateTeamMutation,
-  useSearchTeamsQuery,
-} from '@/store/api/teamApi';
-import {
-  useAttachTeamsToTournamentMutation,
-  useGetTournamentQuery,
-} from '@/store/api/tournamentApi';
+import { useCreateTeamMutation, useSearchTeamsQuery } from '@/store/api/teamApi';
+import { useAttachTeamsToTournamentMutation, useGetTournamentQuery } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
 import { Checkbox } from '@/ui/Checkbox';
 import { Container } from '@/ui/Container';
@@ -56,7 +44,6 @@ const DEFAULT_VALUES = {
   icon_player_ids: [],
 };
 
-
 export default function TournamentAddTeam() {
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -65,10 +52,7 @@ export default function TournamentAddTeam() {
 
   const tournamentFromState = state?.tournament ?? null;
 
-  const tournamentIdNum = parseTournamentId(
-    tournamentId,
-    tournamentFromState?.id,
-  );
+  const tournamentIdNum = parseTournamentId(tournamentId, tournamentFromState?.id);
   const isValidId = tournamentIdNum != null;
 
   const { data: tournamentFromApi } = useGetTournamentQuery(
@@ -116,15 +100,11 @@ export default function TournamentAddTeam() {
   }, [hasGroups, numberOfGroups, preferredGroupFromState]);
 
   const resolveGroupIndex = () =>
-    selectedGroupIndex === 'random'
-      ? Math.floor(Math.random() * numberOfGroups) + 1
-      : selectedGroupIndex;
+    selectedGroupIndex === 'random' ? Math.floor(Math.random() * numberOfGroups) + 1 : selectedGroupIndex;
 
   const [logoName, setLogoName] = useState('No File Selected');
   const [logoFile, setLogoFile] = useState(/** @type {File | null} */ (null));
-  const [selectedSponsor, setSelectedSponsor] = useState(
-    /** @type {{ id: number; name: string } | null} */ (null),
-  );
+  const [selectedSponsor, setSelectedSponsor] = useState(/** @type {{ id: number; name: string } | null} */ (null));
   const [sponsorSearch, setSponsorSearch] = useState('');
   const [iconPlayerSearch, setIconPlayerSearch] = useState('');
   const [iconPlayerIdToName, setIconPlayerIdToName] = useState({});
@@ -139,10 +119,7 @@ export default function TournamentAddTeam() {
   useEffect(() => {
     if (!iconPlayerPanelOpen) return undefined;
     const handleOutsideClick = (e) => {
-      if (
-        iconPlayersFieldRef.current &&
-        !iconPlayersFieldRef.current.contains(e.target)
-      ) {
+      if (iconPlayersFieldRef.current && !iconPlayersFieldRef.current.contains(e.target)) {
         closeIconPlayerPanel();
       }
     };
@@ -150,10 +127,7 @@ export default function TournamentAddTeam() {
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, [iconPlayerPanelOpen, closeIconPlayerPanel]);
   const debouncedSponsorSearch = useDebounce(sponsorSearch.trim(), DEBOUNCE_MS);
-  const debouncedIconPlayerSearch = useDebounce(
-    iconPlayerSearch.trim(),
-    DEBOUNCE_MS,
-  );
+  const debouncedIconPlayerSearch = useDebounce(iconPlayerSearch.trim(), DEBOUNCE_MS);
 
   // ------------------------------------------------------------------
   // Form
@@ -176,31 +150,26 @@ export default function TournamentAddTeam() {
   const nameValue = watch('name') ?? '';
   const searchQuery = nameValue.trim();
 
-  const { data: searchResults = [], isFetching: isSearching } =
-    useSearchTeamsQuery(searchQuery, {
-      skip: searchQuery.length < MIN_SEARCH_LENGTH || !!selectedTeam,
-    });
+  const { data: searchResults = [], isFetching: isSearching } = useSearchTeamsQuery(searchQuery, {
+    skip: searchQuery.length < MIN_SEARCH_LENGTH || !!selectedTeam,
+  });
 
   const [createTeam, { isLoading: isSubmitting }] = useCreateTeamMutation();
   const [attachTeamsToTournament] = useAttachTeamsToTournamentMutation();
 
   const selectedCountryName = watch('country');
 
-  const { data: sponsorsList = [], isFetching: isSearchingSponsors } =
-    useSearchSponsorsQuery(debouncedSponsorSearch, {
-      skip: debouncedSponsorSearch.length < MIN_SEARCH_LENGTH,
-    });
+  const { data: sponsorsList = [], isFetching: isSearchingSponsors } = useSearchSponsorsQuery(debouncedSponsorSearch, {
+    skip: debouncedSponsorSearch.length < MIN_SEARCH_LENGTH,
+  });
 
-  const { data: playersList = [], isFetching: isSearchingPlayers } =
-    useSearchPlayersQuery(debouncedIconPlayerSearch, {
-      skip: debouncedIconPlayerSearch.length < MIN_SEARCH_LENGTH,
-    });
+  const { data: playersList = [], isFetching: isSearchingPlayers } = useSearchPlayersQuery(debouncedIconPlayerSearch, {
+    skip: debouncedIconPlayerSearch.length < MIN_SEARCH_LENGTH,
+  });
 
   const { data: countriesList = [] } = useGetCountriesQuery();
 
-  const selectedCountry = countriesList.find(
-    (c) => c.name === selectedCountryName,
-  );
+  const selectedCountry = countriesList.find((c) => c.name === selectedCountryName);
   const countryCode = selectedCountry?.country_code ?? null;
 
   const { data: citiesList = [] } = useGetCitiesQuery(countryCode, {
@@ -214,18 +183,12 @@ export default function TournamentAddTeam() {
   // `isReadonly` is true when an existing team has been selected from search.
   const isReadonly = !!selectedTeam;
   const readonlyClass = isReadonly ? 'cursor-default opacity-90' : '';
-  const showTeamNameDropdown =
-    searchQuery.length >= MIN_SEARCH_LENGTH &&
-    !selectedTeam &&
-    teamNameDropdownOpen;
+  const showTeamNameDropdown = searchQuery.length >= MIN_SEARCH_LENGTH && !selectedTeam && teamNameDropdownOpen;
 
   useEffect(() => {
     if (!showTeamNameDropdown) return undefined;
     const handleOutsideClick = (e) => {
-      if (
-        teamNameFieldRef.current &&
-        !teamNameFieldRef.current.contains(e.target)
-      ) {
+      if (teamNameFieldRef.current && !teamNameFieldRef.current.contains(e.target)) {
         setTeamNameDropdownOpen(false);
       }
     };
@@ -234,19 +197,12 @@ export default function TournamentAddTeam() {
   }, [showTeamNameDropdown]);
 
   const sponsorQueryTrim = sponsorSearch.trim();
-  const showSponsorDropdown =
-    !isReadonly &&
-    !selectedSponsor &&
-    sponsorQueryTrim.length > 0 &&
-    sponsorDropdownOpen;
+  const showSponsorDropdown = !isReadonly && !selectedSponsor && sponsorQueryTrim.length > 0 && sponsorDropdownOpen;
 
   useEffect(() => {
     if (!showSponsorDropdown) return undefined;
     const handleOutsideClick = (e) => {
-      if (
-        sponsorFieldRef.current &&
-        !sponsorFieldRef.current.contains(e.target)
-      ) {
+      if (sponsorFieldRef.current && !sponsorFieldRef.current.contains(e.target)) {
         setSponsorDropdownOpen(false);
       }
     };
@@ -266,14 +222,8 @@ export default function TournamentAddTeam() {
     setValue('code', team.code ?? '');
     setValue('country', team.country ?? '');
     setValue('city', team.city ?? '');
-    setValue(
-      'sponsor_user_id',
-      team.sponsor_id != null ? String(team.sponsor_id) : '',
-    );
-    setValue(
-      'icon_player_ids',
-      Array.isArray(team.icon_player_ids) ? team.icon_player_ids : [],
-    );
+    setValue('sponsor_user_id', team.sponsor_id != null ? String(team.sponsor_id) : '');
+    setValue('icon_player_ids', Array.isArray(team.icon_player_ids) ? team.icon_player_ids : []);
     const fromTeam = {};
     if (Array.isArray(team.icon_players)) {
       for (const p of team.icon_players) {
@@ -285,11 +235,7 @@ export default function TournamentAddTeam() {
     setIconPlayerIdToName(fromTeam);
     setIconPlayerPanelOpen(false);
     setIconPlayerSearch('');
-    setSelectedSponsor(
-      team.sponsor_id != null && team.sponsor
-        ? { id: team.sponsor_id, name: team.sponsor.name ?? '' }
-        : null,
-    );
+    setSelectedSponsor(team.sponsor_id != null && team.sponsor ? { id: team.sponsor_id, name: team.sponsor.name ?? '' } : null);
   };
 
   /** Resets the form back to create-mode (clears selected team). */
@@ -343,9 +289,7 @@ export default function TournamentAddTeam() {
         country: data.country.trim(),
         city: data.city.trim(),
         sponsor_user_id: data.sponsor_user_id ?? null,
-        icon_player_ids: Array.isArray(data.icon_player_ids)
-          ? data.icon_player_ids
-          : [],
+        icon_player_ids: Array.isArray(data.icon_player_ids) ? data.icon_player_ids : [],
         logo: logoFile ?? undefined,
       };
 
@@ -361,11 +305,7 @@ export default function TournamentAddTeam() {
         }).unwrap();
       }
 
-      toast.success(
-        teamId && tournamentIdNum
-          ? 'Team created and added to tournament.'
-          : 'Team created.',
-      );
+      toast.success(teamId && tournamentIdNum ? 'Team created and added to tournament.' : 'Team created.');
       navigate(`/organizer/tournaments/${tournamentIdNum}/saved-teams`, {
         state: {
           newTeam: team,
@@ -379,34 +319,17 @@ export default function TournamentAddTeam() {
 
   return (
     <div className="bg-black">
-      <AppSubpageHeader
-        title={
-          tournament
-            ? `${getTournamentTitle(tournament)} - Add Team`
-            : 'Tournaments - Add Team'
-        }
-      />
+      <AppSubpageHeader title={tournament ? `${getTournamentTitle(tournament)} - Add Team` : 'Tournaments - Add Team'} />
       <Container>
         <form onSubmit={handleSubmit(onSubmit)} className="pb-10">
           <div className="space-y-5 lg:grid lg:grid-cols-3 lg:space-y-0 lg:gap-x-4 lg:gap-y-5">
             {hasGroups && (
-              <FormField
-                label="Group"
-                htmlFor="group_index"
-
-                required
-              >
+              <FormField label="Group" htmlFor="group_index" required>
                 <Select
                   value={String(selectedGroupIndex)}
-                  onValueChange={(v) =>
-                    setSelectedGroupIndex(v === 'random' ? 'random' : Number(v))
-                  }
+                  onValueChange={(v) => setSelectedGroupIndex(v === 'random' ? 'random' : Number(v))}
                 >
-                  <SelectTrigger
-                    id="group_index"
-                    className={selectTriggerInputClass}
-                    aria-label="Select group"
-                  >
+                  <SelectTrigger id="group_index" className={selectTriggerInputClass} aria-label="Select group">
                     <SelectValue placeholder="Select group" />
                   </SelectTrigger>
                   <SelectContent
@@ -422,10 +345,7 @@ export default function TournamentAddTeam() {
                     >
                       Random Group
                     </SelectItem>
-                    {Array.from(
-                      { length: numberOfGroups },
-                      (_, i) => i + 1,
-                    ).map((idx) => (
+                    {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map((idx) => (
                       <SelectItem
                         key={idx}
                         value={String(idx)}
@@ -441,12 +361,7 @@ export default function TournamentAddTeam() {
               </FormField>
             )}
             {/* Team Name — search + select or free type */}
-            <FormField
-              label="Team Name"
-              htmlFor="name"
-
-              required
-            >
+            <FormField label="Team Name" htmlFor="name" required>
               <div ref={teamNameFieldRef} className="relative">
                 <Input
                   id="name"
@@ -483,9 +398,7 @@ export default function TournamentAddTeam() {
                 {showTeamNameDropdown && (
                   <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-48 overflow-auto rounded-[6px] border border-[#141412] bg-[#141412] shadow-lg">
                     {isSearching ? (
-                      <p className="px-4 py-3 text-[13px] text-[#A2A6AB] capitalize">
-                        Searching…
-                      </p>
+                      <p className="px-4 py-3 text-[13px] text-[#A2A6AB] capitalize">Searching…</p>
                     ) : searchResults.length > 0 ? (
                       <ul className="py-1">
                         {searchResults.map((team) => (
@@ -495,14 +408,10 @@ export default function TournamentAddTeam() {
                               onClick={() => handleSelectTeam(team)}
                               className="flex w-full cursor-pointer flex-col gap-0.5 px-4 py-3 text-left transition-colors hover:bg-white/10"
                             >
-                              <span className="font-semibold text-white">
-                                {team.name}
-                              </span>
+                              <span className="font-semibold text-white">{team.name}</span>
                               <span className="text-[13px] text-[#A2A6AB]">
                                 Code: {team.code}
-                                {team.sponsor?.name
-                                  ? ` · ${team.sponsor.name}`
-                                  : ''}
+                                {team.sponsor?.name ? ` · ${team.sponsor.name}` : ''}
                               </span>
                             </button>
                           </li>
@@ -518,12 +427,7 @@ export default function TournamentAddTeam() {
               </div>
             </FormField>
 
-            <FormField
-              label="Team Code"
-              htmlFor="code"
-
-              required
-            >
+            <FormField label="Team Code" htmlFor="code" required>
               <Input
                 id="code"
                 placeholder="E.g. IND, MI"
@@ -536,18 +440,12 @@ export default function TournamentAddTeam() {
               />
             </FormField>
 
-            <FormField
-              label="Owner / Sponsor"
-              htmlFor="sponsor_user_id"
-
-            >
+            <FormField label="Owner / Sponsor" htmlFor="sponsor_user_id">
               <Controller
                 name="sponsor_user_id"
                 control={control}
                 render={({ field }) => {
-                  const sponsorInputValue = selectedSponsor
-                    ? selectedSponsor.name
-                    : sponsorSearch;
+                  const sponsorInputValue = selectedSponsor ? selectedSponsor.name : sponsorSearch;
                   return (
                     <div ref={sponsorFieldRef} className="relative">
                       <Input
@@ -594,17 +492,12 @@ export default function TournamentAddTeam() {
                         <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] bg-[#141412] shadow-lg">
                           {debouncedSponsorSearch.length < MIN_SEARCH_LENGTH ? (
                             <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
-                              Type at least {MIN_SEARCH_LENGTH} characters to
-                              search
+                              Type at least {MIN_SEARCH_LENGTH} characters to search
                             </p>
                           ) : isSearchingSponsors ? (
-                            <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
-                              Searching…
-                            </p>
+                            <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">Searching…</p>
                           ) : sponsorsList.length === 0 ? (
-                            <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
-                              No users found
-                            </p>
+                            <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">No users found</p>
                           ) : (
                             <ul className="space-y-0.5">
                               {sponsorsList.map((s) => (
@@ -642,12 +535,7 @@ export default function TournamentAddTeam() {
             </FormField>
 
             {/* Country */}
-            <FormField
-              label="Country"
-              htmlFor="country"
-
-              required
-            >
+            <FormField label="Country" htmlFor="country" required>
               <Controller
                 name="country"
                 control={control}
@@ -661,11 +549,7 @@ export default function TournamentAddTeam() {
                     }}
                     disabled={isReadonly}
                   >
-                    <SelectTrigger
-                      id="country"
-                      className={`${selectTriggerInputClass} ${readonlyClass}`}
-                      aria-label="Country"
-                    >
+                    <SelectTrigger id="country" className={`${selectTriggerInputClass} ${readonlyClass}`} aria-label="Country">
                       <SelectValue placeholder="Select Country" />
                     </SelectTrigger>
                     <SelectContent
@@ -696,29 +580,15 @@ export default function TournamentAddTeam() {
             )}
 
             {/* City — read-only Input when team is selected, Select otherwise */}
-            <FormField
-              label="City"
-              htmlFor="city"
-
-              required
-            >
+            <FormField label="City" htmlFor="city" required>
               {isReadonly ? (
-                <Input
-                  id="city"
-                  value={selectedTeam?.city ?? ''}
-                  readOnly
-                  className={readonlyClass}
-                />
+                <Input id="city" value={selectedTeam?.city ?? ''} readOnly className={readonlyClass} />
               ) : (
                 <Controller
                   name="city"
                   control={control}
                   render={({ field }) => (
-                    <Select
-                      value={field.value || ''}
-                      onValueChange={field.onChange}
-                      disabled={!countryCode}
-                    >
+                    <Select value={field.value || ''} onValueChange={field.onChange} disabled={!countryCode}>
                       <SelectTrigger
                         id="city"
                         className={`${selectTriggerInputClass} ${readonlyClass}`}
@@ -758,11 +628,7 @@ export default function TournamentAddTeam() {
             {/* Icon Players — multi-select typeahead with checkboxes */}
             {/* CURSOR: extract into <IconPlayersField> (see top) */}
             <div>
-              <FormField
-                label="Icon Players"
-                htmlFor="icon_player_ids"
-
-              >
+              <FormField label="Icon Players" htmlFor="icon_player_ids">
                 <Controller
                   name="icon_player_ids"
                   control={control}
@@ -776,11 +642,8 @@ export default function TournamentAddTeam() {
                       .join(', ');
                     // While the panel is open the input is a live search box.
                     // While closed it shows the comma-separated summary.
-                    const iconInputDisplayValue = iconPanelOpen
-                      ? iconPlayerSearch
-                      : displayIconPlayerNames;
-                    const playerLineLabel = (player) =>
-                      player.name ?? player.nickname ?? '—';
+                    const iconInputDisplayValue = iconPanelOpen ? iconPlayerSearch : displayIconPlayerNames;
+                    const playerLineLabel = (player) => player.name ?? player.nickname ?? '—';
                     return (
                       <div className="space-y-2">
                         <div ref={iconPlayersFieldRef} className="relative">
@@ -816,11 +679,7 @@ export default function TournamentAddTeam() {
                                 closeIconPlayerPanel();
                               }
                             }}
-                            className={
-                              field.value?.length > 0 && !isReadonly
-                                ? `${readonlyClass} pr-12`.trim()
-                                : readonlyClass
-                            }
+                            className={field.value?.length > 0 && !isReadonly ? `${readonlyClass} pr-12`.trim() : readonlyClass}
                           />
                           {field.value?.length > 0 && !isReadonly && (
                             <button
@@ -848,29 +707,19 @@ export default function TournamentAddTeam() {
                               aria-multiselectable="true"
                             >
                               {iconQuery.length === 0 ? (
+                                <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">Type to search players…</p>
+                              ) : debouncedIconPlayerSearch.length < MIN_SEARCH_LENGTH ? (
                                 <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
-                                  Type to search players…
-                                </p>
-                              ) : debouncedIconPlayerSearch.length <
-                                MIN_SEARCH_LENGTH ? (
-                                <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
-                                  Type at least {MIN_SEARCH_LENGTH} characters
-                                  to search
+                                  Type at least {MIN_SEARCH_LENGTH} characters to search
                                 </p>
                               ) : isSearchingPlayers ? (
-                                <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
-                                  Searching…
-                                </p>
+                                <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">Searching…</p>
                               ) : playersList.length === 0 ? (
-                                <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
-                                  No players found
-                                </p>
+                                <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">No players found</p>
                               ) : (
                                 <div className="space-y-0.5">
                                   {playersList.map((player) => {
-                                    const isSelected = field.value?.includes(
-                                      player.id,
-                                    );
+                                    const isSelected = field.value?.includes(player.id);
                                     return (
                                       <div
                                         key={player.id}
@@ -883,19 +732,14 @@ export default function TournamentAddTeam() {
                                             variant="input"
                                             checked={Boolean(isSelected)}
                                             onCheckedChange={(checked) => {
-                                              const pLabel =
-                                                playerLineLabel(player);
+                                              const pLabel = playerLineLabel(player);
                                               const prev = field.value ?? [];
                                               if (checked) {
                                                 setIconPlayerIdToName((m) => ({
                                                   ...m,
                                                   [player.id]: pLabel,
                                                 }));
-                                                const next = prev.includes(
-                                                  player.id,
-                                                )
-                                                  ? prev
-                                                  : [...prev, player.id];
+                                                const next = prev.includes(player.id) ? prev : [...prev, player.id];
                                                 field.onChange(next);
                                                 closeIconPlayerPanel();
                                                 return;
@@ -905,23 +749,15 @@ export default function TournamentAddTeam() {
                                                 delete nextM[player.id];
                                                 return nextM;
                                               });
-                                              field.onChange(
-                                                prev.filter(
-                                                  (id) => id !== player.id,
-                                                ),
-                                              );
+                                              field.onChange(prev.filter((id) => id !== player.id));
                                               closeIconPlayerPanel();
                                             }}
                                             disabled={isReadonly}
                                           />
-                                          <span className="truncate font-normal">
-                                            {playerLineLabel(player)}
-                                          </span>
-                                          {(player.playing_role ??
-                                            player.playing_role_enum) && (
+                                          <span className="truncate font-normal">{playerLineLabel(player)}</span>
+                                          {(player.playing_role ?? player.playing_role_enum) && (
                                             <span className="ml-auto shrink-0 text-[12px] text-[#A2A6AB]">
-                                              {player.playing_role ??
-                                                player.playing_role_enum}
+                                              {player.playing_role ?? player.playing_role_enum}
                                             </span>
                                           )}
                                         </label>
@@ -949,16 +785,9 @@ export default function TournamentAddTeam() {
             {/* Logo upload — hidden when team is selected (logo already set) */}
             {/* CURSOR: extract into <LogoUploadField> (see top) */}
             {!isReadonly && (
-              <FormField
-                label="Upload Logo"
-                htmlFor="team_logo_input"
-
-              >
+              <FormField label="Upload Logo" htmlFor="team_logo_input">
                 <div className="flex h-12 items-center justify-between rounded-[6px] bg-[#141412] px-4">
-                  <span
-                    className="truncate text-[16px] capitalize"
-                    style={{ color: '#A2A6AB78' }}
-                  >
+                  <span className="truncate text-[16px] capitalize" style={{ color: '#A2A6AB78' }}>
                     {logoName}
                   </span>
                   <div className="shrink-0">
@@ -986,21 +815,13 @@ export default function TournamentAddTeam() {
             )}
 
             {/* Logo indicator for selected team — only when logo URL is non-empty */}
-            {isReadonly &&
-              selectedTeam?.logo &&
-              String(selectedTeam.logo).trim() !== '' && (
-                <FormField
-                  label="Logo"
-                  htmlFor="team_logo_display"
-  
-                >
-                  <div className="flex h-12 items-center rounded-[6px] bg-[#141412] px-4">
-                    <span className="text-[16px] text-[#A2A6AB] capitalize">
-                      Logo uploaded
-                    </span>
-                  </div>
-                </FormField>
-              )}
+            {isReadonly && selectedTeam?.logo && String(selectedTeam.logo).trim() !== '' && (
+              <FormField label="Logo" htmlFor="team_logo_display">
+                <div className="flex h-12 items-center rounded-[6px] bg-[#141412] px-4">
+                  <span className="text-[16px] text-[#A2A6AB] capitalize">Logo uploaded</span>
+                </div>
+              </FormField>
+            )}
 
             <div className="flex justify-start pt-4 lg:col-span-3">
               <Button
@@ -1009,11 +830,7 @@ export default function TournamentAddTeam() {
                 disabled={isSubmitting}
                 className="h-12 w-full rounded-[8px] bg-[#E4E7F4] text-[15px] font-semibold tracking-wide text-[#1a1a1a] uppercase lg:w-auto"
               >
-                {isSubmitting
-                  ? 'Saving…'
-                  : isReadonly
-                    ? 'Add This Team to Tournament'
-                    : 'Create & Add to Tournament'}
+                {isSubmitting ? 'Saving…' : isReadonly ? 'Add This Team to Tournament' : 'Create & Add to Tournament'}
               </Button>
             </div>
           </div>

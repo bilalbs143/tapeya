@@ -10,14 +10,9 @@ export function useNativeStoreVersionInfo(options = {}) {
   const { refetchOnAppResume = false } = options;
 
   const platform = Capacitor.getPlatform();
-  const isNativeMobile =
-    Capacitor.isNativePlatform() &&
-    (platform === 'ios' || platform === 'android');
+  const isNativeMobile = Capacitor.isNativePlatform() && (platform === 'ios' || platform === 'android');
 
-  const { data: settingsRows, isSuccess, refetch } = useGetPublicSystemSettingsQuery(
-    undefined,
-    { skip: !isNativeMobile },
-  );
+  const { data: settingsRows, isSuccess, refetch } = useGetPublicSystemSettingsQuery(undefined, { skip: !isNativeMobile });
 
   const [installedVersion, setInstalledVersion] = useState('');
 

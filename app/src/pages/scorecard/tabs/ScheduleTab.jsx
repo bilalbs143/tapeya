@@ -12,17 +12,8 @@ function MatchCardList({ matches, tournamentId }) {
     <div className="space-y-3">
       {matches.map((match) => {
         const tid = tournamentId ?? match.tournament_id;
-        const to = tid
-          ? `/scorecard/${tid}/match/${match.id}`
-          : `/scorecard/match/${match.id}`;
-        return (
-          <MatchCard
-            key={match.id}
-            match={match}
-            showScheduleTableLinks={false}
-            to={to}
-          />
-        );
+        const to = tid ? `/scorecard/${tid}/match/${match.id}` : `/scorecard/match/${match.id}`;
+        return <MatchCard key={match.id} match={match} showScheduleTableLinks={false} to={to} />;
       })}
     </div>
   );
@@ -58,9 +49,7 @@ export function ScheduleTab({ matches, tournamentId, tournament }) {
   if (!matches?.length) {
     return (
       <div className="mt-4 space-y-3 pb-6">
-        <p className="py-8 text-center text-[13px] text-[#A2A6AB]">
-          No matches in this tournament
-        </p>
+        <p className="py-8 text-center text-[13px] text-[#A2A6AB]">No matches in this tournament</p>
       </div>
     );
   }
@@ -68,33 +57,21 @@ export function ScheduleTab({ matches, tournamentId, tournament }) {
   if (matchesByGroup != null) {
     return (
       <div className="mt-4 space-y-6 pb-6 focus-visible:outline-none">
-        {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map(
-          (groupIndex) => (
-            <section key={groupIndex}>
-              <h3 className="mb-2 text-[13px] font-bold tracking-wide text-[#DA9811] uppercase">
-                Group {groupIndex}
-              </h3>
-              <MatchCardList
-                matches={matchesByGroup[groupIndex]}
-                tournamentId={tournamentId}
-              />
-              {matchesByGroup[groupIndex].length === 0 && (
-                <p className="rounded-[17px] bg-[#141412] px-4 py-4 text-center text-[13px] text-[#A2A6AB]">
-                  No matches in this group
-                </p>
-              )}
-            </section>
-          ),
-        )}
+        {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map((groupIndex) => (
+          <section key={groupIndex}>
+            <h3 className="mb-2 text-[13px] font-bold tracking-wide text-[#DA9811] uppercase">Group {groupIndex}</h3>
+            <MatchCardList matches={matchesByGroup[groupIndex]} tournamentId={tournamentId} />
+            {matchesByGroup[groupIndex].length === 0 && (
+              <p className="rounded-[17px] bg-[#141412] px-4 py-4 text-center text-[13px] text-[#A2A6AB]">
+                No matches in this group
+              </p>
+            )}
+          </section>
+        ))}
         {knockoutMatches.length > 0 && (
           <section>
-            <h3 className="mb-2 text-[13px] font-bold tracking-wide text-[#DA9811] uppercase">
-              Knockout / Playoff
-            </h3>
-            <MatchCardList
-              matches={knockoutMatches}
-              tournamentId={tournamentId}
-            />
+            <h3 className="mb-2 text-[13px] font-bold tracking-wide text-[#DA9811] uppercase">Knockout / Playoff</h3>
+            <MatchCardList matches={knockoutMatches} tournamentId={tournamentId} />
           </section>
         )}
       </div>

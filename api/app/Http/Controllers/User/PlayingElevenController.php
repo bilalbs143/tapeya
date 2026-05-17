@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Events\Scoring\MatchStateUpdated;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StorePlayingElevenRequest;
 use App\Models\Team;
 use App\Models\TournamentMatch;
+use App\Services\MatchStateService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -59,7 +61,7 @@ class PlayingElevenController extends Controller
      * Only organizers can manage playing elevens.
      * Players must already be in the match squad for this match + team.
      */
-    public function store(StorePlayingElevenRequest $request, TournamentMatch $match, Team $team): JsonResponse
+    public function store(StorePlayingElevenRequest $request, TournamentMatch $match, Team $team, MatchStateService $matchStateService): JsonResponse
     {
         $authUser = $request->user();
 
@@ -73,6 +75,17 @@ class PlayingElevenController extends Controller
         }
 
         $playerIds = $request->validated('player_ids');
+
+        // Block changes once scoring has started — player IDs are referenced by
+        // existing ball records; replacing them mid-match corrupts the scorecard.
+        $hasBalls = DB::table('balls')
+            ->join('innings', 'innings.id', '=', 'balls.innings_id')
+            ->where('innings.match_id', $match->id)
+            ->exists();
+
+        if ($hasBalls) {
+            return $this->conflict('Playing eleven cannot be changed after scoring has started.');
+        }
 
         // Ensure all players are already in the match squad.
         $squadCount = DB::table('match_squads')
@@ -95,12 +108,22 @@ class PlayingElevenController extends Controller
             return $this->forbidden("Playing eleven cannot exceed {$playersPerSide} players.");
         }
 
-        // Replace existing playing eleven for this match+team.
-        DB::table('match_players')
-            ->where('match_id', $match->id)
-            ->where('team_id', $team->id)
-            ->delete();
+        // A player cannot appear in both teams' playing elevens for the same match.
+        $oppositeTeamId = $team->id === $match->home_team_id
+            ? $match->away_team_id
+            : $match->home_team_id;
 
+        $crossTeamConflict = DB::table('match_players')
+            ->where('match_id', $match->id)
+            ->where('team_id', $oppositeTeamId)
+            ->whereIn('user_id', $playerIds)
+            ->exists();
+
+        if ($crossTeamConflict) {
+            return $this->forbidden('One or more players are already in the opposing team\'s playing eleven.');
+        }
+
+        // Replace existing playing eleven atomically — delete + insert must both succeed or neither.
         $now = now();
         $rows = [];
         foreach ($playerIds as $userId) {
@@ -114,9 +137,22 @@ class PlayingElevenController extends Controller
             ];
         }
 
-        if ($rows) {
-            DB::table('match_players')->insert($rows);
-        }
+        DB::transaction(function () use ($match, $team, $rows) {
+            DB::table('match_players')
+                ->where('match_id', $match->id)
+                ->where('team_id', $team->id)
+                ->delete();
+
+            if ($rows) {
+                DB::table('match_players')->insert($rows);
+            }
+        });
+
+        // Broadcast the full match state so all subscribers (backoffice,
+        // graphic controller, scorecard) learn about the updated squad before
+        // the first ball is bowled.
+        $matchState = $matchStateService->build($match->fresh());
+        MatchStateUpdated::dispatch($match->id, $matchState);
 
         return $this->success(
             [

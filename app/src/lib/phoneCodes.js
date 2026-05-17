@@ -183,9 +183,7 @@ export const DIAL_TO_COUNTRY = {
   1: 'US',
 };
 
-const DIAL_ENTRIES = Object.entries(DIAL_TO_COUNTRY).sort(
-  (a, b) => b[0].length - a[0].length,
-);
+const DIAL_ENTRIES = Object.entries(DIAL_TO_COUNTRY).sort((a, b) => b[0].length - a[0].length);
 
 export function getCountryFromDialDigits(digits) {
   if (!digits || typeof digits !== 'string') return null;
@@ -198,9 +196,7 @@ export function getCountryFromDialDigits(digits) {
 
 export function getFlagEmoji(iso) {
   if (!iso || iso.length !== 2) return '';
-  return [...iso.toUpperCase()]
-    .map((c) => String.fromCodePoint(0x1f1e6 - 65 + c.charCodeAt(0)))
-    .join('');
+  return [...iso.toUpperCase()].map((c) => String.fromCodePoint(0x1f1e6 - 65 + c.charCodeAt(0))).join('');
 }
 
 /**

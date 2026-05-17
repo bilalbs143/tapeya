@@ -7,10 +7,7 @@ import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useToast } from '@/hooks/useToast';
 import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
 import { formatPrice } from '@/lib/format';
-import {
-  useGetCitiesQuery,
-  useGetCountriesQuery,
-} from '@/store/api/locationApi';
+import { useGetCitiesQuery, useGetCountriesQuery } from '@/store/api/locationApi';
 import { useCreateOrderMutation, useGetCartQuery } from '@/store/api/shopApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
@@ -51,9 +48,7 @@ export default function ShopCheckout() {
 
   const selectedCountryName = watch('country');
   const { data: countriesList = [] } = useGetCountriesQuery();
-  const selectedCountry = countriesList.find(
-    (c) => c.name === selectedCountryName,
-  );
+  const selectedCountry = countriesList.find((c) => c.name === selectedCountryName);
   const countryCode = selectedCountry?.country_code ?? null;
   const { data: citiesList = [] } = useGetCitiesQuery(countryCode, {
     skip: !countryCode,
@@ -91,10 +86,7 @@ export default function ShopCheckout() {
         navigate(`/shop/order-payment/${order.id}`, { replace: true });
       }
     } catch (err) {
-      const message =
-        err?.data?.message ??
-        err?.message ??
-        'Checkout failed. Please try again.';
+      const message = err?.data?.message ?? err?.message ?? 'Checkout failed. Please try again.';
       toast.error(message);
     }
   };
@@ -121,10 +113,7 @@ export default function ShopCheckout() {
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-              <FormField
-                label="Full Name"
-                htmlFor="fullName"
-              >
+              <FormField label="Full Name" htmlFor="fullName">
                 <Input
                   id="fullName"
                   type="text"
@@ -137,10 +126,7 @@ export default function ShopCheckout() {
                 />
               </FormField>
 
-              <FormField
-                label="Phone"
-                htmlFor="phone"
-              >
+              <FormField label="Phone" htmlFor="phone">
                 <Controller
                   name="phone"
                   control={control}
@@ -157,10 +143,7 @@ export default function ShopCheckout() {
                 />
               </FormField>
 
-              <FormField
-                label="Email Address"
-                htmlFor="email"
-              >
+              <FormField label="Email Address" htmlFor="email">
                 <Input
                   id="email"
                   type="email"
@@ -173,11 +156,7 @@ export default function ShopCheckout() {
                 />
               </FormField>
 
-              <FormField
-                label="Delivery Address"
-                htmlFor="address"
-                required
-              >
+              <FormField label="Delivery Address" htmlFor="address" required>
                 <Input
                   id="address"
                   type="text"
@@ -190,11 +169,7 @@ export default function ShopCheckout() {
                 />
               </FormField>
 
-              <FormField
-                label="Country"
-                htmlFor="country"
-                required
-              >
+              <FormField label="Country" htmlFor="country" required>
                 <Controller
                   name="country"
                   control={control}
@@ -207,11 +182,7 @@ export default function ShopCheckout() {
                         setValue('city', '');
                       }}
                     >
-                      <SelectTrigger
-                        id="country"
-                        className={selectTriggerInputClass}
-                        aria-label="Country"
-                      >
+                      <SelectTrigger id="country" className={selectTriggerInputClass} aria-label="Country">
                         <SelectValue placeholder="Select country" />
                       </SelectTrigger>
                       <SelectContent
@@ -236,27 +207,14 @@ export default function ShopCheckout() {
                 />
               </FormField>
 
-              <FormField
-                label="City"
-                htmlFor="city"
-                required
-              >
+              <FormField label="City" htmlFor="city" required>
                 <Controller
                   name="city"
                   control={control}
                   rules={{ required: true }}
                   render={({ field }) => (
-                    <Select
-                      value={field.value || ''}
-                      onValueChange={field.onChange}
-                      disabled={!countryCode}
-                    >
-                      <SelectTrigger
-                        id="city"
-                        className={selectTriggerInputClass}
-                        aria-label="City"
-                        disabled={!countryCode}
-                      >
+                    <Select value={field.value || ''} onValueChange={field.onChange} disabled={!countryCode}>
+                      <SelectTrigger id="city" className={selectTriggerInputClass} aria-label="City" disabled={!countryCode}>
                         <SelectValue placeholder="Select city" />
                       </SelectTrigger>
                       <SelectContent
@@ -281,25 +239,14 @@ export default function ShopCheckout() {
                 />
               </FormField>
 
-              <FormField
-                label="Notes (optional)"
-                htmlFor="notes"
-              >
-                <Input
-                  id="notes"
-                  type="text"
-                  placeholder="Order notes"
-                  {...register('notes')}
-                />
+              <FormField label="Notes (optional)" htmlFor="notes">
+                <Input id="notes" type="text" placeholder="Order notes" {...register('notes')} />
               </FormField>
             </div>
 
             <p className="text-[14px] text-[#A2A6AB]">
-              Subtotal:{' '}
-              <strong className="text-[#DA9811]">
-                {formatPrice(subtotal)}
-              </strong>{' '}
-              ({items.length} item{items.length !== 1 ? 's' : ''})
+              Subtotal: <strong className="text-[#DA9811]">{formatPrice(subtotal)}</strong> ({items.length} item
+              {items.length !== 1 ? 's' : ''})
             </p>
 
             <button

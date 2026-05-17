@@ -34,10 +34,7 @@ export class TournamentTeamsService {
     return this.http.post(`v1/admin/tournaments/${tournamentId}/teams/${teamId}/squad`, { player_ids: playerIds });
   }
 
-  public attachTeams(
-    tournamentId: number,
-    body: { team_ids: number[]; group_index?: number | null }
-  ): Observable<unknown> {
+  public attachTeams(tournamentId: number, body: { team_ids: number[]; group_index?: number | null }): Observable<unknown> {
     return this.http.post(`v1/admin/tournaments/${tournamentId}/teams`, body);
   }
 

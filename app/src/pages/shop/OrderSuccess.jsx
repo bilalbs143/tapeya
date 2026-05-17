@@ -21,12 +21,7 @@ export default function OrderSuccess() {
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-8 text-center">
         {/* White circle with success order image */}
         <div className="mb-8 flex shrink-0 items-center justify-center overflow-hidden">
-          <img
-            src={successOrderGif}
-            alt=""
-            className="h-24 w-24 rounded-full object-contain"
-            aria-hidden
-          />
+          <img src={successOrderGif} alt="" className="h-24 w-24 rounded-full object-contain" aria-hidden />
         </div>
 
         <h2 className="mb-3 text-[18px] font-bold tracking-wide text-[#DA9811] uppercase sm:text-[20px]">
@@ -34,8 +29,7 @@ export default function OrderSuccess() {
         </h2>
 
         <p className="mb-4 max-w-[280px] text-[14px] leading-relaxed font-medium text-[#A2A6AB]">
-          We will notify you of all the details via email or WhatsApp number you
-          provided.
+          We will notify you of all the details via email or WhatsApp number you provided.
         </p>
 
         <div className="flex w-full flex-col gap-4 lg:flex-row lg:justify-center lg:gap-4">

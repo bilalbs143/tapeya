@@ -14,10 +14,7 @@ import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import {
-  getTournamentTitle,
-  parseTournamentId,
-} from '@/lib/utils/tournamentUtils';
+import { getTournamentTitle, parseTournamentId } from '@/lib/utils/tournamentUtils';
 import {
   useGetTournamentQuery,
   useGetTournamentTeamsQuery,
@@ -29,8 +26,7 @@ import { Container } from '@/ui/Container';
 const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
 
 function teamDisplay(team) {
-  const owner =
-    team.sponsor?.name ?? (team.owner != null ? String(team.owner) : '—');
+  const owner = team.sponsor?.name ?? (team.owner != null ? String(team.owner) : '—');
   const iconPlayers =
     Array.isArray(team.icon_players) && team.icon_players.length > 0
       ? team.icon_players
@@ -68,9 +64,7 @@ function TeamCard({ team, index, onAddSquad, onDelete, isDeleting }) {
         <TeamLogoIcon logo={team.logo} teamName={team.name} />
         <div className="min-w-0 flex-1">
           {/* Fixed: was `text:white` (invalid) → `text-white` */}
-          <h3 className="text-[16px] font-bold text-white">
-            {team.name ?? '—'}
-          </h3>
+          <h3 className="text-[16px] font-bold text-white">{team.name ?? '—'}</h3>
           <p className="mt-0.5 text-[14px] text-white">
             Owner: <span className="font-medium text-[#DA9811]">{owner}</span>
           </p>
@@ -101,9 +95,7 @@ function TeamCard({ team, index, onAddSquad, onDelete, isDeleting }) {
               <img src={teamDeleteIcon} alt="" className="h-5 w-5" />
             </button>
           </div>
-          <span className="shrink-0 text-[28px] leading-none font-bold text-[#DA98113B]">
-            {index + 1}
-          </span>
+          <span className="shrink-0 text-[28px] leading-none font-bold text-[#DA98113B]">{index + 1}</span>
         </div>
       </div>
     </div>
@@ -123,10 +115,7 @@ export default function TournamentAddSquad() {
   const stateTeams = location.state?.teams;
   const tournamentFromState = location.state?.tournament ?? null;
 
-  const tournamentIdNum = parseTournamentId(
-    tournamentId,
-    tournamentFromState?.id,
-  );
+  const tournamentIdNum = parseTournamentId(tournamentId, tournamentFromState?.id);
   const isValidId = tournamentIdNum != null;
 
   const { data: tournamentFromApi } = useGetTournamentQuery(
@@ -136,10 +125,9 @@ export default function TournamentAddSquad() {
   const tournament = tournamentFromState ?? tournamentFromApi ?? null;
 
   // Skip the API fetch when teams were passed via location state.
-  const { data: fetchedTeams = [], isLoading } = useGetTournamentTeamsQuery(
-    tournamentIdNum,
-    { skip: !isValidId || stateTeams?.length > 0 },
-  );
+  const { data: fetchedTeams = [], isLoading } = useGetTournamentTeamsQuery(tournamentIdNum, {
+    skip: !isValidId || stateTeams?.length > 0,
+  });
 
   // Optimistic removal: filter out deleted teams immediately without refetch.
   const [removedTeamIds, setRemovedTeamIds] = useState([]);
@@ -157,8 +145,7 @@ export default function TournamentAddSquad() {
     return byGroup;
   }, [hasGroups, numberOfGroups, teams]);
 
-  const [removeTeam, { isLoading: isRemoving }] =
-    useRemoveTeamFromTournamentMutation();
+  const [removeTeam, { isLoading: isRemoving }] = useRemoveTeamFromTournamentMutation();
 
   useEffect(() => {
     if (!isValidId) {
@@ -195,10 +182,7 @@ export default function TournamentAddSquad() {
       setRemovedTeamIds((prev) => [...prev, teamToRemove.id]);
       toast.success('Team removed from tournament.');
     } catch (err) {
-      toast.error(
-        getApiErrorMessage(err) ??
-          'Could not remove team. It may not be allowed after toss.',
-      );
+      toast.error(getApiErrorMessage(err) ?? 'Could not remove team. It may not be allowed after toss.');
     }
   };
 
@@ -208,32 +192,19 @@ export default function TournamentAddSquad() {
 
   return (
     <div className="bg-black">
-      <AppSubpageHeader
-        title={
-          tournament
-            ? `${getTournamentTitle(tournament)} - Teams`
-            : 'Tournaments - Teams'
-        }
-      />
+      <AppSubpageHeader title={tournament ? `${getTournamentTitle(tournament)} - Teams` : 'Tournaments - Teams'} />
       <Container>
         {/* Loading indicator only shown when teams are not available from state */}
-        {!stateTeams?.length && isLoading && (
-          <p className="mb-3 text-[13px] text-[#A2A6AB]">Loading teams…</p>
-        )}
+        {!stateTeams?.length && isLoading && <p className="mb-3 text-[13px] text-[#A2A6AB]">Loading teams…</p>}
 
         <div className="mb-3">
-          <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">
-            Teams
-          </h2>
+          <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">Teams</h2>
         </div>
 
         {isLoading && teams.length === 0 && (
           <ul className="space-y-3 pb-10">
             {[1, 2, 3].map((i) => (
-              <li
-                key={i}
-                className="animate-pulse rounded-[17px] bg-[#141412] p-4"
-              >
+              <li key={i} className="animate-pulse rounded-[17px] bg-[#141412] p-4">
                 <div className="flex gap-3">
                   <div className="h-12 w-12 shrink-0 rounded-lg bg-[#1c1c1a]" />
                   <div className="flex-1 space-y-2">
@@ -248,33 +219,29 @@ export default function TournamentAddSquad() {
 
         {!isLoading && teamsByGroup != null && (
           <div className="space-y-6 pb-10">
-            {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map(
-              (groupIndex) => (
-                <section key={groupIndex}>
-                  <h3 className="mb-2 text-[13px] font-bold tracking-wide text-[#DA9811] uppercase">
-                    Group {groupIndex}
-                  </h3>
-                  <ul className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
-                    {teamsByGroup[groupIndex].map((team, index) => (
-                      <li key={team.id ?? index}>
-                        <TeamCard
-                          team={team}
-                          index={index}
-                          onAddSquad={handleAddSquad}
-                          onDelete={handleDelete}
-                          isDeleting={isRemoving}
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                  {teamsByGroup[groupIndex].length === 0 && (
-                    <p className="rounded-[17px] bg-[#141412] px-4 py-4 text-center text-[13px] text-[#A2A6AB]">
-                      No teams in this group
-                    </p>
-                  )}
-                </section>
-              ),
-            )}
+            {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map((groupIndex) => (
+              <section key={groupIndex}>
+                <h3 className="mb-2 text-[13px] font-bold tracking-wide text-[#DA9811] uppercase">Group {groupIndex}</h3>
+                <ul className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
+                  {teamsByGroup[groupIndex].map((team, index) => (
+                    <li key={team.id ?? index}>
+                      <TeamCard
+                        team={team}
+                        index={index}
+                        onAddSquad={handleAddSquad}
+                        onDelete={handleDelete}
+                        isDeleting={isRemoving}
+                      />
+                    </li>
+                  ))}
+                </ul>
+                {teamsByGroup[groupIndex].length === 0 && (
+                  <p className="rounded-[17px] bg-[#141412] px-4 py-4 text-center text-[13px] text-[#A2A6AB]">
+                    No teams in this group
+                  </p>
+                )}
+              </section>
+            ))}
           </div>
         )}
 
@@ -282,13 +249,7 @@ export default function TournamentAddSquad() {
           <ul className="space-y-3 pb-10 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
             {teams.map((team, index) => (
               <li key={team.id ?? index}>
-                <TeamCard
-                  team={team}
-                  index={index}
-                  onAddSquad={handleAddSquad}
-                  onDelete={handleDelete}
-                  isDeleting={isRemoving}
-                />
+                <TeamCard team={team} index={index} onAddSquad={handleAddSquad} onDelete={handleDelete} isDeleting={isRemoving} />
               </li>
             ))}
           </ul>

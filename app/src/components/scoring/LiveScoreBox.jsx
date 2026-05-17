@@ -9,12 +9,7 @@
  * @param {string} oversDisplay      e.g. "12.3"
  * @param {number|string|undefined} maxOvers
  */
-export function LiveScoreBox({
-  totalRuns = 0,
-  totalWickets = 0,
-  oversDisplay = '0',
-  maxOvers,
-}) {
+export function LiveScoreBox({ totalRuns = 0, totalWickets = 0, oversDisplay = '0', maxOvers }) {
   const maxOversDisplay = maxOvers != null && maxOvers !== '' ? maxOvers : '—';
 
   return (

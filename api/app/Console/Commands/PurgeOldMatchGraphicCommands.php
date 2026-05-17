@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Services\Broadcast\MatchGraphicCommandHistoryService;
+use App\Services\Broadcast\GraphicCommandHistoryService;
 use Illuminate\Console\Command;
 
 class PurgeOldMatchGraphicCommands extends Command
@@ -12,7 +12,7 @@ class PurgeOldMatchGraphicCommands extends Command
 
     protected $description = 'Delete match graphic commands older than the retention window (default 24h).';
 
-    public function handle(MatchGraphicCommandHistoryService $history): int
+    public function handle(GraphicCommandHistoryService $history): int
     {
         $hours = max(1, (int) $this->option('hours'));
         $cutoff = now()->subHours($hours);

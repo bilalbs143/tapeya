@@ -13,15 +13,7 @@ import { getStatusClass } from 'src/app/utils/status-class.util';
 @Component({
   selector: 'app-tournament-detail-shell',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterOutlet,
-    RouterLink,
-    RouterLinkActive,
-    MatCardModule,
-    MatTabsModule,
-    MatProgressSpinnerModule,
-  ],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, MatCardModule, MatTabsModule, MatProgressSpinnerModule],
   templateUrl: './tournament-detail-shell.component.html',
 })
 export class TournamentDetailShellComponent implements OnInit, OnDestroy {

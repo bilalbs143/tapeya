@@ -98,7 +98,7 @@ Tapeya is a mobile-first cricket platform. Its scoring subsystem spans three sep
 - Innings creation (on toss recording)
 - Broadcasting events via Reverb (`MatchGraphicCommandActivated`)
 - Graphic context enrichment (`BuildMatchGraphicContextService`)
-- Career stats enrichment (`MatchGraphicCareerPayloadEnricher`)
+- Career stats enrichment (`GraphicCareerEnricher`)
 - Win probability estimation (`WinProbabilitySimilarSituationsService`)
 - Tournament leaderboards (`MatchGraphicTournamentLeaderboardService`)
 - Audit trail (`MatchScoringAudit`)
@@ -664,7 +664,7 @@ Called after every ball mutation:
    - Innings 1 wins: `win_by_runs = innings1_runs - innings2_runs`
    - Tie: `winning_team_id = null`
 5. Match `status = 'completed'`
-6. **NEW (develop):** `MatchGraphicCommandHistoryService::clearForMatchIfSessionExists()` — clears all graphic commands + resets `active_command_id`
+6. **NEW (develop):** `GraphicCommandHistoryService::clearForMatchIfSessionExists()` — clears all graphic commands + resets `active_command_id`
 7. **NEW (develop):** Nulls `player_of_match_user_id` if status reverts back to `in_progress` (ball deletion reverts completion)
 
 ### 12.2 Match completion reverts
@@ -852,7 +852,7 @@ After each ball, `ScorecardController::clearGraphicPendingCreaseIds()` clears `n
     │ Selects command → POST /admin/.../graphic-session/commands
     ▼
 [API — MatchGraphicSessionController::storeCommand()]
-    ├─ Optionally enriches payload (career stats via MatchGraphicCareerPayloadEnricher)
+    ├─ Optionally enriches payload (career stats via GraphicCareerEnricher)
     ├─ Creates MatchGraphicCommand row (write-once)
     ├─ Sets active_command_id on session (if activate=true)
     └─ Fires MatchGraphicCommandActivated event
@@ -936,7 +936,7 @@ Write-once (`MatchGraphicCommand`). 120+ types across 11 categories:
 
 `LT_EMPTY` → clears overlay (no component rendered). `ADD_CAPTION` is backoffice-only and never sent to overlay.
 
-**Career stats enrichment:** For `BATSMAN_TOURNAMENT_*` and `BOWLER_TOURNAMENT_*` commands, `MatchGraphicCareerPayloadEnricher` fetches all-time career stats from `PlayerStatsService` and merges them into the payload at command creation time.
+**Career stats enrichment:** For `BATSMAN_TOURNAMENT_*` and `BOWLER_TOURNAMENT_*` commands, `GraphicCareerEnricher` fetches all-time career stats from `PlayerStatsService` and merges them into the payload at command creation time.
 
 ### 18.2 Captions
 
@@ -1346,7 +1346,7 @@ After each ball:
 
 ```
 php artisan match-graphic:purge-old-commands [--hours=24]
-Calls MatchGraphicCommandHistoryService::deleteCommandsCreatedBefore()
+Calls GraphicCommandHistoryService::deleteCommandsCreatedBefore()
 ```
 
 Cleans up old command rows. If the active command is deleted, `active_command_id` is nulled.

@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 
-import { COUNTRIES } from '@/lib/phoneMetadata';
 import { getFlagEmoji } from '@/lib/phoneCodes';
+import { COUNTRIES } from '@/lib/phoneMetadata';
 import { DialogOverlay } from '@/ui/Dialog';
 
 const SHEET =
@@ -13,8 +13,7 @@ const SHEET =
 const SEARCH_INPUT =
   'w-full rounded-[8px] bg-[#1C1C1A] px-4 py-3 text-[14px] text-white placeholder:text-[#A2A6AB78] focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50';
 
-const ROW_BASE =
-  'flex w-full items-center gap-3 px-5 py-3 text-left transition-colors active:bg-white/5';
+const ROW_BASE = 'flex w-full items-center gap-3 px-5 py-3 text-left transition-colors active:bg-white/5';
 
 const ROW_ACTIVE = 'bg-white/5';
 
@@ -41,11 +40,7 @@ export function CountryPickerSheet({ open, onClose, currentDialCode, onSelect })
     const q = search.trim().toLowerCase();
     if (!q) return COUNTRIES;
     const dialQ = q.replace(/\D/g, '');
-    return COUNTRIES.filter(
-      (c) =>
-        c.name.toLowerCase().includes(q) ||
-        (dialQ && c.dialCode.startsWith(dialQ)),
-    );
+    return COUNTRIES.filter((c) => c.name.toLowerCase().includes(q) || (dialQ && c.dialCode.startsWith(dialQ)));
   }, [search]);
 
   return (
@@ -62,7 +57,7 @@ export function CountryPickerSheet({ open, onClose, currentDialCode, onSelect })
           onEscapeKeyDown={onClose}
         >
           <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-5 py-4">
-            <DialogPrimitive.Title className="text-[14px] font-bold uppercase tracking-wide text-[#DA9811]">
+            <DialogPrimitive.Title className="text-[14px] font-bold tracking-wide text-[#DA9811] uppercase">
               Select Country
             </DialogPrimitive.Title>
             <DialogPrimitive.Close
@@ -77,7 +72,7 @@ export function CountryPickerSheet({ open, onClose, currentDialCode, onSelect })
             </DialogPrimitive.Close>
           </div>
 
-          <div className="shrink-0 px-4 pb-2 pt-3">
+          <div className="shrink-0 px-4 pt-3 pb-2">
             <input
               ref={searchRef}
               type="search"
@@ -97,9 +92,7 @@ export function CountryPickerSheet({ open, onClose, currentDialCode, onSelect })
             aria-label="Countries"
           >
             {filtered.length === 0 && (
-              <p className="px-5 py-6 text-center text-[13px] text-[#A2A6AB]">
-                No countries found for &quot;{search}&quot;
-              </p>
+              <p className="px-5 py-6 text-center text-[13px] text-[#A2A6AB]">No countries found for &quot;{search}&quot;</p>
             )}
 
             {filtered.map((country) => {
@@ -120,12 +113,8 @@ export function CountryPickerSheet({ open, onClose, currentDialCode, onSelect })
                   <span className="text-2xl leading-none" aria-hidden>
                     {getFlagEmoji(country.iso)}
                   </span>
-                  <span className="min-w-0 flex-1 truncate text-[14px] text-white">
-                    {country.name}
-                  </span>
-                  <span className="shrink-0 text-[13px] text-[#A2A6AB]">
-                    +{country.dialCode}
-                  </span>
+                  <span className="min-w-0 flex-1 truncate text-[14px] text-white">{country.name}</span>
+                  <span className="shrink-0 text-[13px] text-[#A2A6AB]">+{country.dialCode}</span>
                   {isActive && (
                     <span className="shrink-0 text-[#DA9811]" aria-hidden>
                       ✓

@@ -16,18 +16,13 @@
 import { Fragment, useMemo, useState } from 'react';
 
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import {
-  ballsToOvers,
-  buildBallListWithMetaAndOverSummaries,
-  extraBallLabel,
-} from '@/lib/utils/scoringUtils';
+import { ballsToOvers, buildBallListWithMetaAndOverSummaries, extraBallLabel } from '@/lib/utils/scoringUtils';
 
 const ARROW_RIGHT_ORANGE = `${CLOUDFRONT_APP_BASE}/images/icons/arrow-right-orange.svg`;
 
 const DASH = '—';
 
-const INNINGS_ACTIVE_CLASS =
-  'text-[#DA9811] font-bold border-b-2 border-[#DA9811] pb-1';
+const INNINGS_ACTIVE_CLASS = 'text-[#DA9811] font-bold border-b-2 border-[#DA9811] pb-1';
 const INNINGS_INACTIVE_CLASS = 'text-white font-bold';
 
 // ─── Ball display helpers ─────────────────────────────────────────────────────
@@ -82,15 +77,11 @@ function getBallDescription(ball) {
     }
     case 'wd': {
       const penalty = ball.penaltyRuns ? ` (+${ball.penaltyRuns} penalty)` : '';
-      return ball.runs > 1
-        ? `Wide — ${ball.runs} runs${penalty}`
-        : `Wide${penalty}`;
+      return ball.runs > 1 ? `Wide — ${ball.runs} runs${penalty}` : `Wide${penalty}`;
     }
     case 'nb': {
       const penalty = ball.penaltyRuns ? ` (+${ball.penaltyRuns} penalty)` : '';
-      return ball.runs > 1
-        ? `No ball — ${ball.runs} runs${penalty}`
-        : `No ball${penalty}`;
+      return ball.runs > 1 ? `No ball — ${ball.runs} runs${penalty}` : `No ball${penalty}`;
     }
     case 'bye':
       return (ball.runs ?? 0) > 0 ? `Bye — ${ball.runs} runs` : 'Bye';
@@ -132,9 +123,7 @@ function formatDescription(desc) {
   return (
     <>
       {desc.slice(0, byIndex + 4)}
-      <span className="font-semibold text-white">
-        {desc.slice(byIndex + 4)}
-      </span>
+      <span className="font-semibold text-white">{desc.slice(byIndex + 4)}</span>
     </>
   );
 }
@@ -142,10 +131,7 @@ function formatDescription(desc) {
 // ─── Player name helpers ──────────────────────────────────────────────────────
 
 function getStrikerName(ball, squad) {
-  if (
-    (ball.type === 'out' || ball.type === 'retired_hurt') &&
-    ball.striker?.name
-  ) {
+  if ((ball.type === 'out' || ball.type === 'retired_hurt') && ball.striker?.name) {
     return ball.striker.name;
   }
   if (ball.strikerId && squad?.length) {
@@ -176,13 +162,7 @@ function resolvePlayerName(id, squad, bowlersInTable, bowlerSquad) {
 
 // ─── Ball row ─────────────────────────────────────────────────────────────────
 
-function BallListRow({
-  overBallLabel,
-  ball,
-  squad,
-  bowlersInTable,
-  bowlerSquad,
-}) {
+function BallListRow({ overBallLabel, ball, squad, bowlersInTable, bowlerSquad }) {
   const { label, variant } = getBallDisplay(ball);
   const isFreeHit = Boolean(ball?.isFreeHit);
   const penaltyRuns = ball?.penaltyRuns ?? 0;
@@ -193,9 +173,7 @@ function BallListRow({
   return (
     <div className="flex items-center gap-3 px-4 py-3">
       {/* Over.ball label */}
-      <span className="w-5 shrink-0 text-[13px] font-medium text-[#9CA3AF]">
-        {overBallLabel}
-      </span>
+      <span className="w-5 shrink-0 text-[13px] font-medium text-[#9CA3AF]">{overBallLabel}</span>
 
       {/* Ball chip */}
       <div className="relative shrink-0">
@@ -228,15 +206,8 @@ function BallListRow({
 
       {/* Striker → Bowler */}
       <span className="flex shrink-0 items-center gap-1.5 text-[12px] font-bold text-white">
-        {strikerName !== DASH && (
-          <span className="shrink-0">{strikerName}</span>
-        )}
-        <img
-          src={ARROW_RIGHT_ORANGE}
-          alt=""
-          className="h-2 w-auto shrink-0"
-          aria-hidden
-        />
+        {strikerName !== DASH && <span className="shrink-0">{strikerName}</span>}
+        <img src={ARROW_RIGHT_ORANGE} alt="" className="h-2 w-auto shrink-0" aria-hidden />
         <span className="shrink-0">{bowlerName}</span>
       </span>
 
@@ -244,9 +215,7 @@ function BallListRow({
       <span className="min-w-[8px] flex-1 self-center border-b-2 border-dotted border-[#6B7280]" />
 
       {/* Description */}
-      <span className="shrink-0 text-right text-[12px] text-[#9CA3AF]">
-        {formatDescription(description)}
-      </span>
+      <span className="shrink-0 text-right text-[12px] text-[#9CA3AF]">{formatDescription(description)}</span>
     </div>
   );
 }
@@ -254,15 +223,7 @@ function BallListRow({
 // ─── Over summary block ───────────────────────────────────────────────────────
 
 function SummaryBlock({ summary, squad, bowlersInTable, bowlerSquad }) {
-  const {
-    balls,
-    overRuns,
-    cumulativeRuns,
-    cumulativeWickets,
-    completedOvers,
-    creaseSnapshot,
-    bowlerSnapshot,
-  } = summary;
+  const { balls, overRuns, cumulativeRuns, cumulativeWickets, completedOvers, creaseSnapshot, bowlerSnapshot } = summary;
 
   return (
     <div className="rounded-[17px] bg-[#141412] p-4">
@@ -289,27 +250,12 @@ function SummaryBlock({ summary, squad, bowlersInTable, bowlerSquad }) {
           {creaseSnapshot.length >= 2 ? (
             <>
               <SnapRow
-                name={resolvePlayerName(
-                  creaseSnapshot[0].id,
-                  squad,
-                  bowlersInTable,
-                  bowlerSquad,
-                )}
+                name={resolvePlayerName(creaseSnapshot[0].id, squad, bowlersInTable, bowlerSquad)}
                 value={`${creaseSnapshot[0].runs} (${creaseSnapshot[0].balls})`}
-                rightName={resolvePlayerName(
-                  creaseSnapshot[1].id,
-                  squad,
-                  bowlersInTable,
-                  bowlerSquad,
-                )}
+                rightName={resolvePlayerName(creaseSnapshot[1].id, squad, bowlersInTable, bowlerSquad)}
               />
               <SnapRow
-                name={resolvePlayerName(
-                  creaseSnapshot[1].id,
-                  squad,
-                  bowlersInTable,
-                  bowlerSquad,
-                )}
+                name={resolvePlayerName(creaseSnapshot[1].id, squad, bowlersInTable, bowlerSquad)}
                 value={`${creaseSnapshot[1].runs} (${creaseSnapshot[1].balls})`}
                 rightContent={
                   bowlerSnapshot
@@ -323,23 +269,13 @@ function SummaryBlock({ summary, squad, bowlersInTable, bowlerSquad }) {
               {creaseSnapshot.map((b, i) => (
                 <SnapRow
                   key={b.id ?? i}
-                  name={resolvePlayerName(
-                    b.id,
-                    squad,
-                    bowlersInTable,
-                    bowlerSquad,
-                  )}
+                  name={resolvePlayerName(b.id, squad, bowlersInTable, bowlerSquad)}
                   value={`${b.runs} (${b.balls})`}
                 />
               ))}
               {bowlerSnapshot && (
                 <SnapRow
-                  name={resolvePlayerName(
-                    bowlerSnapshot.id,
-                    squad,
-                    bowlersInTable,
-                    bowlerSquad,
-                  )}
+                  name={resolvePlayerName(bowlerSnapshot.id, squad, bowlersInTable, bowlerSquad)}
                   value={`${ballsToOvers(bowlerSnapshot.balls)} – ${bowlerSnapshot.maidens} – ${bowlerSnapshot.runs} – ${bowlerSnapshot.wickets}`}
                 />
               )}
@@ -352,10 +288,7 @@ function SummaryBlock({ summary, squad, bowlersInTable, bowlerSquad }) {
       <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-3">
         <StatChip label="Overs" value={completedOvers} />
         <StatChip label="Runs" value={overRuns} />
-        <StatChip
-          label="Score"
-          value={`${cumulativeRuns}-${cumulativeWickets}`}
-        />
+        <StatChip label="Score" value={`${cumulativeRuns}-${cumulativeWickets}`} />
       </div>
     </div>
   );
@@ -388,55 +321,37 @@ function isEndOfOver(validCount) {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function BallsTab({
-  ballHistory = [],
-  squad = [],
-  bowlersInTable = [],
-  bowlerSquad = [],
-  secondInningsBallHistory = [],
-  secondInningsBowlersInTable = [],
-  secondInningsSquad = [],
-  secondInningsBowlerSquad = [],
+  innings1BallHistory = [],
+  innings1Squad = [],
+  innings1BowlersInTable = [],
+  innings1BowlerSquad = [],
+  innings2BallHistory = [],
+  innings2BowlersInTable = [],
+  innings2Squad = [],
+  innings2BowlerSquad = [],
 }) {
   const [activeInnings, setActiveInnings] = useState('1');
 
   const { ballListWithMeta, overSummaries } = useMemo(
-    () => buildBallListWithMetaAndOverSummaries(ballHistory),
-    [ballHistory],
+    () => buildBallListWithMetaAndOverSummaries(innings1BallHistory),
+    [innings1BallHistory],
   );
 
-  const {
-    ballListWithMeta: ballListSecond,
-    overSummaries: overSummariesSecond,
-  } = useMemo(
-    () => buildBallListWithMetaAndOverSummaries(secondInningsBallHistory ?? []),
-    [secondInningsBallHistory],
+  const { ballListWithMeta: ballListSecond, overSummaries: overSummariesSecond } = useMemo(
+    () => buildBallListWithMetaAndOverSummaries(innings2BallHistory ?? []),
+    [innings2BallHistory],
   );
 
   const renderInnings = (list, summaries, sq, bowlerTbl, bowlerSq) => {
     if (list.length === 0) {
-      return (
-        <p className="py-6 text-center text-[13px] text-[#A2A6AB]">
-          No balls recorded yet.
-        </p>
-      );
+      return <p className="py-6 text-center text-[13px] text-[#A2A6AB]">No balls recorded yet.</p>;
     }
 
     return list.map(({ ball, overBallLabel, validCount, overIndex }, idx) => (
       <Fragment key={ball.id ?? `ball-${idx}`}>
-        <BallListRow
-          overBallLabel={overBallLabel}
-          ball={ball}
-          squad={sq}
-          bowlersInTable={bowlerTbl}
-          bowlerSquad={bowlerSq}
-        />
+        <BallListRow overBallLabel={overBallLabel} ball={ball} squad={sq} bowlersInTable={bowlerTbl} bowlerSquad={bowlerSq} />
         {isEndOfOver(validCount) && summaries[overIndex] && (
-          <SummaryBlock
-            summary={summaries[overIndex]}
-            squad={sq}
-            bowlersInTable={bowlerTbl}
-            bowlerSquad={bowlerSq}
-          />
+          <SummaryBlock summary={summaries[overIndex]} squad={sq} bowlersInTable={bowlerTbl} bowlerSquad={bowlerSq} />
         )}
       </Fragment>
     ));
@@ -461,21 +376,13 @@ export function BallsTab({
       {/* Ball list */}
       <div className="mt-4 flex flex-col gap-2">
         {activeInnings === '1'
-          ? renderInnings(
-              ballListWithMeta,
-              overSummaries,
-              squad,
-              bowlersInTable,
-              bowlerSquad,
-            )
+          ? renderInnings(ballListWithMeta, overSummaries, innings1Squad, innings1BowlersInTable, innings1BowlerSquad)
           : renderInnings(
               ballListSecond,
               overSummariesSecond,
-              secondInningsSquad.length ? secondInningsSquad : squad,
-              secondInningsBowlersInTable,
-              secondInningsBowlerSquad.length
-                ? secondInningsBowlerSquad
-                : bowlerSquad,
+              innings2Squad.length ? innings2Squad : innings1Squad,
+              innings2BowlersInTable,
+              innings2BowlerSquad.length ? innings2BowlerSquad : innings1BowlerSquad,
             )}
       </div>
     </div>

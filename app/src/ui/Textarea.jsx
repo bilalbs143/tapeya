@@ -8,10 +8,7 @@ const areaVariants = {
   error: 'focus:ring-red-500/50',
 };
 
-export const Textarea = forwardRef(function Textarea(
-  { className = '', error, rows = 6, ...props },
-  ref,
-) {
+export const Textarea = forwardRef(function Textarea({ className = '', error, rows = 6, ...props }, ref) {
   return (
     <div className="flex w-full flex-col gap-1">
       <textarea
@@ -19,18 +16,12 @@ export const Textarea = forwardRef(function Textarea(
         rows={rows}
         className={`${areaBase} ${error ? areaVariants.error : areaVariants.default} ${className}`}
         aria-invalid={error ? 'true' : undefined}
-        aria-describedby={
-          error ? `${props.id ?? props.name}-error` : undefined
-        }
+        aria-describedby={error ? `${props.id ?? props.name}-error` : undefined}
         {...props}
       />
       {error && (
         <p
-          id={
-            (props.id ?? props.name)
-              ? `${props.id ?? props.name}-error`
-              : undefined
-          }
+          id={(props.id ?? props.name) ? `${props.id ?? props.name}-error` : undefined}
           className="text-sm text-red-200"
           role="alert"
         >

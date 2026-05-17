@@ -4,15 +4,13 @@
 
 import * as ContextMenuPrimitive from '@radix-ui/react-context-menu';
 
-const content =
-  'z-50 min-w-[8rem] overflow-hidden rounded-md border bg-white p-1 shadow-md';
+const content = 'z-50 min-w-[8rem] overflow-hidden rounded-md border bg-white p-1 shadow-md';
 const item =
   'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-slate-100 focus:bg-slate-100 data-[disabled]:pointer-events-none data-[disabled]:opacity-50';
 const separator = '-mx-1 my-1 h-px bg-slate-200';
 const _subTrigger =
   'flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-slate-100 data-[state=open]:bg-slate-100';
-const _subContent =
-  'z-50 min-w-[8rem] overflow-hidden rounded-md border bg-white p-1 shadow-md';
+const _subContent = 'z-50 min-w-[8rem] overflow-hidden rounded-md border bg-white p-1 shadow-md';
 
 export const ContextMenu = ContextMenuPrimitive.Root;
 export const ContextMenuTrigger = ContextMenuPrimitive.Trigger;
@@ -30,10 +28,7 @@ export const ContextMenuSubContent = ContextMenuPrimitive.SubContent;
 export function ContextMenuContent({ className = '', children, ...props }) {
   return (
     <ContextMenuPrimitive.Portal>
-      <ContextMenuPrimitive.Content
-        className={`${content} ${className}`}
-        {...props}
-      >
+      <ContextMenuPrimitive.Content className={`${content} ${className}`} {...props}>
         {children}
       </ContextMenuPrimitive.Content>
     </ContextMenuPrimitive.Portal>
@@ -41,16 +36,9 @@ export function ContextMenuContent({ className = '', children, ...props }) {
 }
 
 export function ContextMenuItemStyled({ className = '', ...props }) {
-  return (
-    <ContextMenuPrimitive.Item className={`${item} ${className}`} {...props} />
-  );
+  return <ContextMenuPrimitive.Item className={`${item} ${className}`} {...props} />;
 }
 
 export function ContextMenuSeparatorStyled({ className = '', ...props }) {
-  return (
-    <ContextMenuPrimitive.Separator
-      className={`${separator} ${className}`}
-      {...props}
-    />
-  );
+  return <ContextMenuPrimitive.Separator className={`${separator} ${className}`} {...props} />;
 }

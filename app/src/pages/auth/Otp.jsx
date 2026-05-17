@@ -7,12 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import {
-  clearOtpPreview,
-  extractOtpFromAuthResponse,
-  getOtpPreview,
-  setOtpPreview,
-} from '@/lib/otpPreviewSession';
+import { clearOtpPreview, extractOtpFromAuthResponse, getOtpPreview, setOtpPreview } from '@/lib/otpPreviewSession';
 import { markReturningUser } from '@/lib/returningUser';
 import { addSavedProfile, bumpSavedProfile } from '@/lib/savedProfiles';
 import { formatPhoneFull } from '@/lib/utils/phoneUtils';
@@ -123,7 +118,10 @@ export default function Otp() {
       setServerError(null);
 
       try {
-        const result = await verifyOtp({ phone: phoneRaw, code: submittedCode }).unwrap();
+        const result = await verifyOtp({
+          phone: phoneRaw,
+          code: submittedCode,
+        }).unwrap();
         const { user, auth } = result?.data ?? result ?? {};
         const token = auth?.access_token;
 
@@ -233,8 +231,7 @@ export default function Otp() {
           <p className="text-center text-[14px] text-white">
             {phoneRaw ? (
               <>
-                Enter OTP sent to{' '}
-                <span className="font-bold text-[#DA9811]">{phone}</span>
+                Enter OTP sent to <span className="font-bold text-[#DA9811]">{phone}</span>
               </>
             ) : (
               'Enter the OTP you received'

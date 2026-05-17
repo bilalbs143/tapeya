@@ -16,18 +16,17 @@ const TEAM_MATCH_ICON = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg
 
 const DASH = '—';
 
-const STATS_SEPARATOR =
-  'w-px shrink-0 self-stretch bg-gradient-to-b from-[#00000000] via-[#FFFFFF66] to-[#00000000]';
+const STATS_SEPARATOR = 'w-px shrink-0 self-stretch bg-gradient-to-b from-[#00000000] via-[#FFFFFF66] to-[#00000000]';
 
 const BATSMAN_HEADERS = ['R', 'B', '4s', '6s', 'SR'];
-const BOWLER_HEADERS  = ['O', 'M', 'R', 'W', 'Econ'];
+const BOWLER_HEADERS = ['O', 'M', 'R', 'W', 'Econ'];
 
-const TABLE_CELL       = `border-r border-b ${BORDER} px-4 py-3 text-center text-white`;
-const TABLE_CELL_LEFT  = `border-r border-b border-l ${BORDER} bg-black px-4 py-3 text-white`;
-const TABLE_CELL_LA    = `border-r border-b ${BORDER} px-4 py-3 text-white`;
-const TABLE_HEADER_CELL  = `${HEADER_BG} w-[2.5rem] border-r border-b py-2.5 text-center font-bold text-white ${BORDER}`;
+const TABLE_CELL = `border-r border-b ${BORDER} px-4 py-3 text-center text-white`;
+const TABLE_CELL_LEFT = `border-r border-b border-l ${BORDER} bg-black px-4 py-3 text-white`;
+const TABLE_CELL_LA = `border-r border-b ${BORDER} px-4 py-3 text-white`;
+const TABLE_HEADER_CELL = `${HEADER_BG} w-[2.5rem] border-r border-b py-2.5 text-center font-bold text-white ${BORDER}`;
 const TABLE_HEADER_FIRST = `${HEADER_BG} border-r border-b border-l px-4 py-2.5 text-left text-[12px] font-bold text-[#DA9811] ${BORDER}`;
-const TABLE_EMPTY_CELL   = `border-r border-b border-l ${BORDER} px-4 py-3 text-center text-[#A2A6AB]`;
+const TABLE_EMPTY_CELL = `border-r border-b border-l ${BORDER} px-4 py-3 text-center text-[#A2A6AB]`;
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -37,37 +36,36 @@ const TABLE_EMPTY_CELL   = `border-r border-b border-l ${BORDER} px-4 py-3 text-
  * @param {object}  [props.innings1] Innings 1 from the scorecard API response.
  * @param {object}  [props.innings2] Innings 2 from the scorecard API response.
  */
-export function ScorecardTab({ match, innings1, innings2 }) {
+export function ScorecardTab({ match, innings1, innings2, activeBowlerId = null }) {
   const [activeScorecardTeam, setActiveScorecardTeam] = useState('teamA');
 
-  const teamAName     = match?.teamA?.name ?? '';
-  const teamBName     = match?.teamB?.name ?? '';
-  const isTeamBBatting = !!innings2;
-  const showTeamAData  = activeScorecardTeam === 'teamA';
+  const teamAName = match?.teamA?.name ?? '';
+  const teamBName = match?.teamB?.name ?? '';
+  const showTeamAData = activeScorecardTeam === 'teamA';
 
   const innings = showTeamAData ? innings1 : innings2;
 
   // Stats summary values — read directly from the API innings object
-  const totalRuns    = innings?.total_runs    ?? 0;
+  const totalRuns = innings?.total_runs ?? 0;
   const totalWickets = innings?.total_wickets ?? 0;
-  const totalExtras  = innings?.total_extras  ?? 0;
+  const totalExtras = innings?.total_extras ?? 0;
   const oversDisplay = innings?.overs_display ?? '0.0';
-  const runRate      = innings?.run_rate      ?? '0.00';
-  const strikerId    = innings?.current_striker_id;
+  const runRate = innings?.run_rate ?? '0.00';
+  const strikerId = innings?.current_striker_id;
 
   const hasData = !!innings;
   const totalDisplay = hasData ? `${totalRuns}/${totalWickets}` : DASH;
 
-  const extras  = innings?.extras_breakdown  ?? {};
-  const batting = innings?.batting_stats     ?? [];
-  const bowling = innings?.bowling_stats     ?? [];
-  const fow     = innings?.fall_of_wickets   ?? [];
+  const extras = innings?.extras_breakdown ?? {};
+  const batting = innings?.batting_stats ?? [];
+  const bowling = innings?.bowling_stats ?? [];
+  const fow = innings?.fall_of_wickets ?? [];
 
   const STATS_ROW = [
     { label: 'Extras', value: hasData ? totalExtras : DASH },
-    { label: 'Overs',  value: hasData ? oversDisplay : DASH },
-    { label: 'CRR',    value: hasData ? runRate : DASH },
-    { label: 'Total',  value: totalDisplay, highlight: true },
+    { label: 'Overs', value: hasData ? oversDisplay : DASH },
+    { label: 'CRR', value: hasData ? runRate : DASH },
+    { label: 'Total', value: totalDisplay, highlight: true },
   ];
 
   return (
@@ -92,12 +90,8 @@ export function ScorecardTab({ match, innings1, innings2 }) {
           <Fragment key={item.label}>
             {index > 0 && <div className={STATS_SEPARATOR} aria-hidden />}
             <div className="flex flex-1 flex-col items-center justify-center px-3 py-2.5">
-              <p className="text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">
-                {item.label}
-              </p>
-              <p className={`mt-0.5 text-[14px] font-bold ${item.highlight ? 'text-[#DA9811]' : 'text-white'}`}>
-                {item.value}
-              </p>
+              <p className="text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">{item.label}</p>
+              <p className={`mt-0.5 text-[14px] font-bold ${item.highlight ? 'text-[#DA9811]' : 'text-white'}`}>{item.value}</p>
             </div>
           </Fragment>
         ))}
@@ -106,17 +100,13 @@ export function ScorecardTab({ match, innings1, innings2 }) {
       {/* Extras breakdown */}
       {hasData && (
         <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1 rounded-xl bg-[#141412] px-4 py-3">
-          <span className="text-[11px] font-bold tracking-wide text-[#A2A6AB] uppercase">
-            Extras {totalExtras}
-          </span>
+          <span className="text-[11px] font-bold tracking-wide text-[#A2A6AB] uppercase">Extras {totalExtras}</span>
           <div className="flex flex-wrap gap-x-4 gap-y-0.5">
             <ExtrasItem label="WD" value={extras.wides ?? 0} />
             <ExtrasItem label="NB" value={extras.no_balls ?? 0} />
-            <ExtrasItem label="B"  value={extras.byes ?? 0} />
+            <ExtrasItem label="B" value={extras.byes ?? 0} />
             <ExtrasItem label="LB" value={extras.leg_byes ?? 0} />
-            {(extras.penalty_runs ?? 0) > 0 && (
-              <ExtrasItem label="P" value={extras.penalty_runs} />
-            )}
+            {(extras.penalty_runs ?? 0) > 0 && <ExtrasItem label="P" value={extras.penalty_runs} />}
           </div>
         </div>
       )}
@@ -128,30 +118,30 @@ export function ScorecardTab({ match, innings1, innings2 }) {
             <tr className={HEADER_BG}>
               <th className={TABLE_HEADER_FIRST}>Batsman</th>
               {BATSMAN_HEADERS.map((h) => (
-                <th key={h} className={TABLE_HEADER_CELL}>{h}</th>
+                <th key={h} className={TABLE_HEADER_CELL}>
+                  {h}
+                </th>
               ))}
             </tr>
           </thead>
           <tbody>
             {batting.length === 0 ? (
               <tr>
-                <td colSpan={6} className={TABLE_EMPTY_CELL}>{DASH}</td>
+                <td colSpan={6} className={TABLE_EMPTY_CELL}>
+                  {DASH}
+                </td>
               </tr>
             ) : (
               batting.map((b) => (
                 <tr key={b.id}>
                   <td className={TABLE_CELL_LEFT}>
                     <span className="flex items-center gap-2">
-                      <span className={b.is_on_crease ? 'text-[#DA9811]' : 'text-white'}>
-                        {b.name}
-                      </span>
+                      <span className={b.is_on_crease ? 'text-[#DA9811]' : 'text-white'}>{b.name}</span>
                       {b.is_on_crease && b.id === strikerId && (
                         <span className="inline-block h-2 w-2 rounded-full bg-red-500" aria-hidden />
                       )}
                       {b.is_retired_hurt && (
-                        <span className="rounded bg-[#3B3B35] px-1 py-0.5 text-[10px] text-[#A2A6AB]">
-                          ret hurt
-                        </span>
+                        <span className="rounded bg-[#3B3B35] px-1 py-0.5 text-[10px] text-[#A2A6AB]">ret hurt</span>
                       )}
                     </span>
                   </td>
@@ -174,26 +164,38 @@ export function ScorecardTab({ match, innings1, innings2 }) {
             <tr className={HEADER_BG}>
               <th className={TABLE_HEADER_FIRST}>Bowler</th>
               {BOWLER_HEADERS.map((h) => (
-                <th key={h} className={TABLE_HEADER_CELL}>{h}</th>
+                <th key={h} className={TABLE_HEADER_CELL}>
+                  {h}
+                </th>
               ))}
             </tr>
           </thead>
           <tbody>
             {bowling.length === 0 ? (
               <tr>
-                <td colSpan={6} className={TABLE_EMPTY_CELL}>{DASH}</td>
+                <td colSpan={6} className={TABLE_EMPTY_CELL}>
+                  {DASH}
+                </td>
               </tr>
             ) : (
-              bowling.map((b) => (
-                <tr key={b.id}>
-                  <td className={TABLE_CELL_LEFT}>{b.name}</td>
-                  <td className={TABLE_CELL}>{b.overs}</td>
-                  <td className={TABLE_CELL}>{b.maidens}</td>
-                  <td className={TABLE_CELL}>{b.runs}</td>
-                  <td className={TABLE_CELL}>{b.wickets}</td>
-                  <td className={TABLE_CELL}>{b.economy}</td>
-                </tr>
-              ))
+              bowling.map((b) => {
+                const isActiveBowler = activeBowlerId != null && b.id === activeBowlerId;
+                return (
+                  <tr key={b.id}>
+                    <td className={TABLE_CELL_LEFT}>
+                      <span className="flex items-center gap-2">
+                        <span className={isActiveBowler ? 'text-[#DA9811]' : 'text-white'}>{b.name}</span>
+                        {isActiveBowler && <span className="inline-block h-2 w-2 rounded-full bg-red-500" aria-hidden />}
+                      </span>
+                    </td>
+                    <td className={TABLE_CELL}>{b.overs}</td>
+                    <td className={TABLE_CELL}>{b.maidens}</td>
+                    <td className={TABLE_CELL}>{b.runs}</td>
+                    <td className={TABLE_CELL}>{b.wickets}</td>
+                    <td className={TABLE_CELL}>{b.economy}</td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
@@ -215,7 +217,9 @@ export function ScorecardTab({ match, innings1, innings2 }) {
           <tbody>
             {fow.length === 0 ? (
               <tr>
-                <td colSpan={3} className={TABLE_EMPTY_CELL}>{DASH}</td>
+                <td colSpan={3} className={TABLE_EMPTY_CELL}>
+                  {DASH}
+                </td>
               </tr>
             ) : (
               fow.map((f) => (
@@ -245,19 +249,12 @@ function TeamTabButton({ teamName, isActive, onSelect }) {
       className="flex cursor-pointer flex-col items-center gap-1 border-0 bg-transparent p-0"
       aria-pressed={isActive}
     >
-      <img
-        src={TEAM_MATCH_ICON}
-        alt=""
-        className={`h-8 w-8 shrink-0 ${isActive ? '' : 'opacity-70'}`}
-        aria-hidden
-      />
+      <img src={TEAM_MATCH_ICON} alt="" className={`h-8 w-8 shrink-0 ${isActive ? '' : 'opacity-70'}`} aria-hidden />
       <div className="flex flex-col items-center">
         <span className={`text-[16px] font-bold tracking-wide uppercase ${isActive ? 'text-[#DA9811]' : 'text-white'}`}>
           {teamName}
         </span>
-        {isActive && (
-          <span className="mt-0.5 block h-0.5 w-4/5 min-w-[2rem] rounded-full bg-[#DA9811]" aria-hidden />
-        )}
+        {isActive && <span className="mt-0.5 block h-0.5 w-4/5 min-w-[2rem] rounded-full bg-[#DA9811]" aria-hidden />}
       </div>
     </button>
   );

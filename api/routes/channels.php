@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\TournamentMatch;
 use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 
@@ -22,4 +23,14 @@ Broadcast::channel('backoffice.notifications', function (User $user) {
  */
 Broadcast::channel('match.{matchId}.graphics', function () {
     return true;
+});
+
+/*
+ * Private live-scoring channel — auth:api required.
+ * Broadcasts MatchStateUpdated after every ball mutation so all clients
+ * (scoring app, scorecard viewer, backoffice) stay in sync without polling.
+ * Any authenticated user may subscribe; only the scoring API writes to it.
+ */
+Broadcast::channel('match.{matchId}.scoring', function (User $user, int|string $matchId) {
+    return TournamentMatch::find((int) $matchId) !== null;
 });

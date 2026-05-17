@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources\Admin;
 
-use App\Services\Broadcast\BuildMatchGraphicContextService;
+use App\Services\Broadcast\GraphicContextOrchestrator;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\App;
@@ -18,7 +18,7 @@ class MatchGraphicSessionResource extends JsonResource
 
         $context = is_array($this->context) ? $this->context : [];
         if ($this->match !== null) {
-            $context = App::make(BuildMatchGraphicContextService::class)
+            $context = App::make(GraphicContextOrchestrator::class)
                 ->mergeSessionContext($this->resource, $this->match);
         }
 
@@ -27,6 +27,7 @@ class MatchGraphicSessionResource extends JsonResource
             'match_id' => $this->match_id,
             'graphic_theme_id' => $this->graphic_theme_id,
             'config' => $this->config,
+            'pending_players' => is_array($this->pending_players) ? $this->pending_players : null,
             'context' => $context,
             'active_command_id' => $this->active_command_id,
             'theme' => $this->whenLoaded('theme', fn () => new GraphicThemeResource($this->theme)),

@@ -76,9 +76,7 @@ export default function Support() {
         ...(attachment ? { attachment } : {}),
       }).unwrap();
 
-      toast.success(
-        result?.message ?? 'Your message has been sent. We will get back to you soon.',
-      );
+      toast.success(result?.message ?? 'Your message has been sent. We will get back to you soon.');
       clearErrors();
       setAttachment(null);
       if (attachmentInputRef.current) attachmentInputRef.current.value = '';
@@ -108,9 +106,8 @@ export default function Support() {
         <p className="mb-4 text-[13px] leading-snug text-[#A2A6AB] md:text-[14px]">
           {hasWhatsApp ? (
             <>
-              Have a question or need help? Message us on{' '}
-              <span className="font-semibold text-white">WhatsApp</span> for a quick reply, or
-              use the form below and our team will get back to you.
+              Have a question or need help? Message us on <span className="font-semibold text-white">WhatsApp</span> for a quick
+              reply, or use the form below and our team will get back to you.
             </>
           ) : (
             'Have a question or need help? Use the form below and our team will get back to you.'
@@ -128,9 +125,7 @@ export default function Support() {
                 className="mt-3 flex w-full items-center justify-between gap-3 rounded-[6px] bg-black/35 px-3 py-3 transition-colors hover:bg-black/50 focus-visible:ring-2 focus-visible:ring-[#FF9700]/50 focus-visible:outline-none"
               >
                 <span className="flex min-w-0 flex-col gap-0.5">
-                  <span className="text-[11px] font-medium text-[#A2A6AB]">
-                    Tap to open chat
-                  </span>
+                  <span className="text-[11px] font-medium text-[#A2A6AB]">Tap to open chat</span>
                   <span className="truncate text-[18px] font-bold tracking-wide text-[#FF9700] tabular-nums">
                     {whatsAppDisplay}
                   </span>
@@ -144,16 +139,12 @@ export default function Support() {
                   </svg>
                 </span>
               </a>
-              <p className="mt-3 text-[12px] leading-snug text-[#A2A6AB]/90">
-                Opens WhatsApp on your phone or web.
-              </p>
+              <p className="mt-3 text-[12px] leading-snug text-[#A2A6AB]/90">Opens WhatsApp on your phone or web.</p>
             </div>
 
             <div aria-hidden="true" className="mb-6 flex items-center gap-3">
               <div className="h-px flex-1 bg-[linear-gradient(to_right,transparent,#FFFFFF33,transparent)]" />
-              <span className="shrink-0 text-[11px] font-bold tracking-wider text-[#A2A6AB] uppercase">
-                Or use the form
-              </span>
+              <span className="shrink-0 text-[11px] font-bold tracking-wider text-[#A2A6AB] uppercase">Or use the form</span>
               <div className="h-px flex-1 bg-[linear-gradient(to_right,transparent,#FFFFFF33,transparent)]" />
             </div>
           </>
@@ -168,8 +159,7 @@ export default function Support() {
               autoComplete="name"
               error={errors.name?.message}
               {...register('name', {
-                validate: (v) =>
-                  String(v ?? '').trim().length >= 2 || 'Name is required.',
+                validate: (v) => String(v ?? '').trim().length >= 2 || 'Name is required.',
               })}
             />
           </FormField>
@@ -193,9 +183,7 @@ export default function Support() {
               placeholder="Write your message here..."
               error={errors.message?.message}
               {...register('message', {
-                validate: (v) =>
-                  String(v ?? '').trim().length >= 10 ||
-                  'Message should be at least 10 characters.',
+                validate: (v) => String(v ?? '').trim().length >= 10 || 'Message should be at least 10 characters.',
               })}
             />
           </FormField>
@@ -218,9 +206,7 @@ export default function Support() {
                 errors.attachment ? 'rounded-[6px] ring-2 ring-red-500/40' : ''
               }`}
             />
-            <p className="text-[11px] leading-snug text-[#A2A6AB]/80">
-              JPG, PNG, GIF, WebP, or PDF. Max 5&nbsp;MB.
-            </p>
+            <p className="text-[11px] leading-snug text-[#A2A6AB]/80">JPG, PNG, GIF, WebP, or PDF. Max 5&nbsp;MB.</p>
             {errors.attachment && (
               <p className="text-sm text-red-200" role="alert">
                 {errors.attachment.message}
@@ -229,9 +215,7 @@ export default function Support() {
           </FormField>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-[12px] text-[#A2A6AB]">
-              We will only use your details to respond to your request.
-            </p>
+            <p className="text-[12px] text-[#A2A6AB]">We will only use your details to respond to your request.</p>
             <Button
               type="submit"
               variant="orangeDialogWhite"

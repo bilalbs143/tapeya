@@ -15,15 +15,7 @@ import { CampaignDetailStateService } from './campaign-detail-state.service';
 @Component({
   selector: 'app-campaign-detail-shell',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterOutlet,
-    RouterLink,
-    RouterLinkActive,
-    MatCardModule,
-    MatTabsModule,
-    MatProgressSpinnerModule,
-  ],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, MatCardModule, MatTabsModule, MatProgressSpinnerModule],
   providers: [CampaignDetailStateService],
   templateUrl: './campaign-detail-shell.component.html',
 })

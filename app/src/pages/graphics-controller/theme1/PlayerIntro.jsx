@@ -1,28 +1,21 @@
 import { defaultTeamLogoUrl } from './playerGraphicTheme';
-import {
-  PlayerAvatarStage,
-  PlayerIdentityBlurb,
-  PlayerShowcasePage,
-  PlayerShowcaseSection,
-} from './PlayerShowcasePrimitives';
+import { PlayerAvatarStage, PlayerIdentityBlurb, PlayerShowcasePage, PlayerShowcaseSection } from './PlayerShowcasePrimitives';
 
 export default function PlayerIntro({
   playerName = '',
   playerTeam = '',
   playerRole = '',
   playerImageUrl = null,
+  playerTeamLogoUrl = null,
   stats: _stats = [],
 }) {
-  const teamLogo = defaultTeamLogoUrl;
+  const teamLogo = playerTeamLogoUrl || defaultTeamLogoUrl;
 
   return (
     <PlayerShowcasePage>
       <PlayerShowcaseSection title="Player Intro">
         <div className="mt-6 grid grid-cols-1 gap-5 sm:mt-7 sm:grid-cols-[1fr_0.85fr] sm:items-end sm:gap-6">
-          <PlayerAvatarStage
-            playerName={playerName}
-            playerImageUrl={playerImageUrl}
-          />
+          <PlayerAvatarStage playerName={playerName} playerImageUrl={playerImageUrl} />
 
           <div>
             <img

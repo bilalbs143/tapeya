@@ -55,6 +55,9 @@ class TournamentResource extends JsonResource
             ),
 
             'teams_count' => (int) $this->getTeamsCount(),
+            'can_manage' => $request->user()
+                ? $request->user()->canOperateTournamentInApp($this->resource)
+                : false,
             'matches' => $this->whenLoaded('matches', fn () => TournamentMatchResource::collection($this->matches)),
 
             'created_at' => $this->created_at?->toIso8601String(),

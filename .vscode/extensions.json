@@ -1,0 +1,39 @@
+{
+  "recommendations": [
+    // Core
+    "editorconfig.editorconfig",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "usernamehw.errorlens",
+
+    // PHP / Laravel (api/)
+    "bmewburn.vscode-intelephense-client",
+    "open-southeners.laravel-pint",
+    "amiralizadeh9480.laravel-extra-intellisense",
+    "onecentlin.laravel-blade",
+
+    // React (app/)
+    "bradlc.vscode-tailwindcss",
+
+    // Angular (backoffice/)
+    "angular.ng-template",
+
+    // Git
+    "eamodio.gitlens",
+    "mhutchie.git-graph",
+
+    // Remote development (Cursor ships anysphere.remote-ssh; VS Code uses ms-vscode-remote.remote-ssh)
+    "ms-vscode-remote.remote-ssh",
+
+    // Optional but useful
+    "xdebug.php-debug",
+    "ms-azuretools.vscode-docker",
+    "redhat.vscode-yaml",
+    "christian-kohler.path-intellisense"
+  ],
+  "unwantedRecommendations": [
+    "octref.vetur",
+    "hookyqr.beautify",
+    "ms-vscode.vscode-typescript-tslint-plugin"
+  ]
+}

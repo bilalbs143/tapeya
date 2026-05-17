@@ -20,20 +20,10 @@ export const AlertDialogTrigger = AlertDialogPrimitive.Trigger;
 export const AlertDialogPortal = AlertDialogPrimitive.Portal;
 
 export function AlertDialogOverlay({ className = '', ...props }) {
-  return (
-    <AlertDialogPrimitive.Overlay
-      className={`${overlay} ${className}`}
-      {...props}
-    />
-  );
+  return <AlertDialogPrimitive.Overlay className={`${overlay} ${className}`} {...props} />;
 }
 
-export function AlertDialogContent({
-  className = '',
-  children,
-  onPointerDownOutside,
-  ...props
-}) {
+export function AlertDialogContent({ className = '', children, onPointerDownOutside, ...props }) {
   return (
     <AlertDialogPortal>
       <AlertDialogOverlay />
@@ -52,12 +42,7 @@ export function AlertDialogContent({
 }
 
 export function AlertDialogHeader({ className = '', ...props }) {
-  return (
-    <div
-      className={`flex flex-col gap-2 text-center sm:text-left ${className}`}
-      {...props}
-    />
-  );
+  return <div className={`flex flex-col gap-2 text-center sm:text-left ${className}`} {...props} />;
 }
 
 export function AlertDialogFooter({ className = '', ...props }) {
@@ -65,37 +50,17 @@ export function AlertDialogFooter({ className = '', ...props }) {
 }
 
 export function AlertDialogTitle({ className = '', ...props }) {
-  return (
-    <AlertDialogPrimitive.Title
-      className={`${title} ${className}`}
-      {...props}
-    />
-  );
+  return <AlertDialogPrimitive.Title className={`${title} ${className}`} {...props} />;
 }
 
 export function AlertDialogDescription({ className = '', ...props }) {
-  return (
-    <AlertDialogPrimitive.Description
-      className={`${description} ${className}`}
-      {...props}
-    />
-  );
+  return <AlertDialogPrimitive.Description className={`${description} ${className}`} {...props} />;
 }
 
 export function AlertDialogAction({ className = '', ...props }) {
-  return (
-    <AlertDialogPrimitive.Action
-      className={`${actionButton} ${className}`}
-      {...props}
-    />
-  );
+  return <AlertDialogPrimitive.Action className={`${actionButton} ${className}`} {...props} />;
 }
 
 export function AlertDialogCancel({ className = '', ...props }) {
-  return (
-    <AlertDialogPrimitive.Cancel
-      className={`${cancelButton} ${className}`}
-      {...props}
-    />
-  );
+  return <AlertDialogPrimitive.Cancel className={`${cancelButton} ${className}`} {...props} />;
 }

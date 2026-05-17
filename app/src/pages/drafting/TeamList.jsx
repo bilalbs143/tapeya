@@ -29,9 +29,7 @@ function TeamCard({ team, index, onEdit, onDelete, onClick }) {
       <div className="min-w-0 flex-1">
         <h3 className="text-[16px] font-bold text-white">{team.name}</h3>
         <p className="mt-0.5 text-[14px] text-[#A2A6AB]">
-          <span className="font-medium text-[#DA9811]">
-            Owner: {team.owner}
-          </span>
+          <span className="font-medium text-[#DA9811]">Owner: {team.owner}</span>
         </p>
         <p className="mt-0.5 text-[12px] text-[#A2A6AB]">
           Icon Players: <span className="text-white">{team.iconPlayer}</span>
@@ -62,9 +60,7 @@ function TeamCard({ team, index, onEdit, onDelete, onClick }) {
             <img src={teamDeleteIcon} alt="" className="h-4 w-4" />
           </button>
         </div>
-        <span className="text-[28px] font-bold text-[#DA98113B]">
-          {index + 1}
-        </span>
+        <span className="text-[28px] font-bold text-[#DA98113B]">{index + 1}</span>
       </div>
     </div>
   );
@@ -126,9 +122,7 @@ export default function TeamList() {
       <AppSubpageHeader title="Drafting" />
       <Container>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">
-            Teams
-          </h2>
+          <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">Teams</h2>
           <button
             type="button"
             onClick={() => navigate('/drafting/add-team')}
@@ -137,22 +131,14 @@ export default function TeamList() {
             <span className="flex h-[27px] w-[27px] items-center justify-center rounded-full bg-[#DA9811] text-[18px] font-bold text-[#080807]">
               +
             </span>
-            <span className="text-[14px] font-semibold text-white">
-              Create Teams
-            </span>
+            <span className="text-[14px] font-semibold text-white">Create Teams</span>
           </button>
         </div>
 
         <ul className="space-y-3 pb-10 lg:grid lg:grid-cols-3 lg:gap-3 lg:space-y-0">
           {teams.map((team, index) => (
             <li key={team.id ?? index}>
-              <TeamCard
-                team={team}
-                index={index}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onClick={handleTeamClick}
-              />
+              <TeamCard team={team} index={index} onEdit={handleEdit} onDelete={handleDelete} onClick={handleTeamClick} />
             </li>
           ))}
         </ul>

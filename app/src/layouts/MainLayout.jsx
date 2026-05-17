@@ -14,9 +14,7 @@ export function MainLayout() {
   // Some pages (like profile header) need content to start at top,
   // behind the fixed navbar (no top padding).
   const isNavbarOverlayPage = location.pathname === '/profile';
-  const isTournamentDetails = /^\/upcoming-tournaments\/[^/]+$/.test(
-    location.pathname,
-  );
+  const isTournamentDetails = /^\/upcoming-tournaments\/[^/]+$/.test(location.pathname);
   const noTopPadding = isNavbarOverlayPage || isTournamentDetails;
 
   return (
@@ -29,9 +27,7 @@ export function MainLayout() {
           // Top: match navbar's real rendered height (64px content + status-bar inset).
           // Pages that need content behind the navbar (profile, tournament details)
           // opt out via noTopPadding.
-          paddingTop: noTopPadding
-            ? 0
-            : 'calc(env(safe-area-inset-top) + 56px)',
+          paddingTop: noTopPadding ? 0 : 'calc(env(safe-area-inset-top) + 56px)',
           // Bottom: BottomNav is 70px tall. Add home-indicator clearance so the
           // last item is never clipped on iPhone/newer Android.
           paddingBottom: 'calc(env(safe-area-inset-bottom) + 70px)',

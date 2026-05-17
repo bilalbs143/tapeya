@@ -13,14 +13,10 @@ import { Container } from '@/ui/Container';
 const FIXTURE_CARD_IMAGE = `${CLOUDFRONT_APP_BASE}/images/background/fixture-bg.png`;
 
 function TournamentCard({ tournament, showWinningTeam = false, onClick }) {
-  const imageUrl =
-    tournament.display_image || tournament.cover_image || FIXTURE_CARD_IMAGE;
+  const imageUrl = tournament.display_image || tournament.cover_image || FIXTURE_CARD_IMAGE;
   const dates = formatDateRange(tournament.start_date, tournament.end_date);
-  const location = [tournament.city, tournament.country]
-    .filter(Boolean)
-    .join(', ');
-  const venue =
-    [tournament.venue_name, location].filter(Boolean).join(', ') || '—';
+  const location = [tournament.city, tournament.country].filter(Boolean).join(', ');
+  const venue = [tournament.venue_name, location].filter(Boolean).join(', ') || '—';
 
   return (
     <div
@@ -54,42 +50,31 @@ function TournamentCard({ tournament, showWinningTeam = false, onClick }) {
         />
       </div>
       <div className="min-w-0 flex-1">
-        <h3 className="line-clamp-2 text-[13px] font-bold text-white">
-          {getTournamentTitle(tournament)}
-        </h3>
+        <h3 className="line-clamp-2 text-[13px] font-bold text-white">{getTournamentTitle(tournament)}</h3>
         {tournament.tournament_type_label && (
-          <p className="mt-0.5 text-[13px] font-bold text-white">
-            {tournament.tournament_type_label}
-          </p>
+          <p className="mt-0.5 text-[13px] font-bold text-white">{tournament.tournament_type_label}</p>
         )}
         <ul className="mt-1.5 space-y-0.5 text-xs">
           <li>
-            <span className="text-[#A2A6AB]">Dates:</span>{' '}
-            <span className="text-white">{dates}</span>
+            <span className="text-[#A2A6AB]">Dates:</span> <span className="text-white">{dates}</span>
           </li>
           <li>
             <span className="text-[#A2A6AB]">Format:</span>{' '}
             <span className="text-white">
-              {tournament.number_of_groups == null ||
-              tournament.number_of_groups <= 1
+              {tournament.number_of_groups == null || tournament.number_of_groups <= 1
                 ? 'Single Table'
                 : `Groups: ${tournament.number_of_groups}`}
             </span>
           </li>
           <li>
-            <span className="text-[#A2A6AB]">Venue:</span>{' '}
-            <span className="text-white">{venue}</span>
+            <span className="text-[#A2A6AB]">Venue:</span> <span className="text-white">{venue}</span>
           </li>
           <li>
-            <span className="text-[#A2A6AB]">Teams:</span>{' '}
-            <span className="text-white">
-              {tournament.number_of_teams ?? '—'}
-            </span>
+            <span className="text-[#A2A6AB]">Teams:</span> <span className="text-white">{tournament.number_of_teams ?? '—'}</span>
           </li>
           {tournament.prize != null && tournament.prize !== '' && (
             <li>
-              <span className="text-[#A2A6AB]">Prize:</span>{' '}
-              <span className="text-white">{tournament.prize}</span>
+              <span className="text-[#A2A6AB]">Prize:</span> <span className="text-white">{tournament.prize}</span>
             </li>
           )}
           {showWinningTeam && tournament.winning_team && (
@@ -115,17 +100,11 @@ function Section({ title, children, emptyMessage = 'No tournaments' }) {
   const count = Children.count(children);
   return (
     <section>
-      <h2 className="mb-3 text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
-        {title}
-      </h2>
+      <h2 className="mb-3 text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">{title}</h2>
       {count > 0 ? (
-        <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
-          {children}
-        </div>
+        <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">{children}</div>
       ) : (
-        <p className="rounded-[17px] bg-[#141412] px-4 py-6 text-center text-[13px] text-[#A2A6AB]">
-          {emptyMessage}
-        </p>
+        <p className="rounded-[17px] bg-[#141412] px-4 py-6 text-center text-[13px] text-[#A2A6AB]">{emptyMessage}</p>
       )}
     </section>
   );
@@ -152,11 +131,7 @@ export default function Tournaments() {
 
     list.forEach((t) => {
       // Append T12:00:00 for date-only strings to avoid UTC-midnight rollover in timezones west of UTC. Skip if end_date already contains 'T'.
-      const endStr = t.end_date?.includes?.('T')
-        ? t.end_date
-        : t.end_date
-          ? t.end_date + 'T12:00:00'
-          : null;
+      const endStr = t.end_date?.includes?.('T') ? t.end_date : t.end_date ? t.end_date + 'T12:00:00' : null;
       const endDate = endStr ? new Date(endStr) : null;
       if (endDate && endDate < today) {
         previous.push(t);
@@ -203,30 +178,15 @@ export default function Tournaments() {
       <AppSubpageHeader title="My Tournaments" />
       <Container>
         <div className="space-y-6 pb-6">
-          <Section
-            title="Scheduled Tournaments"
-            emptyMessage="No scheduled tournaments."
-          >
+          <Section title="Scheduled Tournaments" emptyMessage="No scheduled tournaments.">
             {scheduled.map((t) => (
-              <TournamentCard
-                key={t.id}
-                tournament={t}
-                onClick={handleTournamentClick}
-              />
+              <TournamentCard key={t.id} tournament={t} onClick={handleTournamentClick} />
             ))}
           </Section>
 
-          <Section
-            title="Previous Tournaments"
-            emptyMessage="No previous tournaments."
-          >
+          <Section title="Previous Tournaments" emptyMessage="No previous tournaments.">
             {previous.map((t) => (
-              <TournamentCard
-                key={t.id}
-                tournament={t}
-                showWinningTeam
-                onClick={handleTournamentClick}
-              />
+              <TournamentCard key={t.id} tournament={t} showWinningTeam onClick={handleTournamentClick} />
             ))}
           </Section>
         </div>

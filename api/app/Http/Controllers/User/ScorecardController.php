@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Enums\Event\DismissalTypeEnum;
+use App\Enums\Event\MatchStatusEnum;
+use App\Events\Scoring\MatchStateUpdated;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreBallRequest;
@@ -15,10 +18,13 @@ use App\Models\TournamentMatch;
 use App\Models\User;
 use App\Services\InningsStatsService;
 use App\Services\MatchCompletionService;
+use App\Services\MatchStateService;
 use App\Services\PlayerStatsService;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class ScorecardController extends Controller
 {
@@ -28,6 +34,7 @@ class ScorecardController extends Controller
         private readonly MatchCompletionService $completionService,
         private readonly PlayerStatsService $statsService,
         private readonly InningsStatsService $inningsStats,
+        private readonly MatchStateService $matchStateService,
     ) {}
 
     // ─── Mutation endpoints ───────────────────────────────────────────────────
@@ -45,28 +52,73 @@ class ScorecardController extends Controller
         }
 
         if ($innings->match_id !== $match->id) {
-            return $this->forbidden('Innings does not belong to this match.');
+            return $this->notFound('Innings does not belong to this match.');
+        }
+
+        if ($match->status === MatchStatusEnum::COMPLETED) {
+            return $this->conflict('Match is already completed.');
+        }
+
+        if ($innings->status === 'completed') {
+            return $this->conflict('Innings is already completed.');
         }
 
         $data = $request->validated();
-        $data['innings_id'] = $innings->id;
 
-        $ball = Ball::create($data);
+        // Compute server-side fields from existing innings ball history.
+        $existingBalls = $innings->balls()->get();
+        $data = $this->computeBallFields($data, $existingBalls);
+
+        // Law 21.18 — on a free-hit only run_out, obstructing_the_field, and
+        // hit_ball_twice are valid dismissals.  Enforced server-side because
+        // is_free_hit is now computed here, not sent by the client.
+        if ($data['is_free_hit'] && ($data['is_wicket'] ?? false)) {
+            $dismissal = $data['dismissal_type'] ?? null;
+            if ($dismissal !== null) {
+                $type = DismissalTypeEnum::tryFrom($dismissal);
+                if ($type !== null && ! $type->validOnFreeHit()) {
+                    return $this->failure(
+                        'On a free-hit delivery only run out, obstructing the field, or hitting the ball twice are valid dismissals.',
+                        'VALIDATION_ERROR',
+                    );
+                }
+            }
+        }
+
+        try {
+            $ball = DB::transaction(function () use ($data, $innings, $match) {
+                $ball = $innings->balls()->create($data);
+                $innings->update(['status' => 'in_progress']);
+                $this->completionService->evaluate($match->fresh());
+
+                return $ball;
+            });
+        } catch (QueryException $e) {
+            // Unique constraint violation on (innings_id, over, ball_in_over) means a
+            // concurrent request already recorded this delivery — safe to retry.
+            if ($e->getCode() === '23000') {
+                return $this->conflict('Delivery already recorded at this position. Please retry.');
+            }
+            throw $e;
+        }
 
         $this->logScoringAudit($match, $authUser, 'store_ball', $ball->id, ['innings_id' => $innings->id]);
 
         $this->clearGraphicPendingCreaseIds($match);
-
-        $innings->update(['status' => 'in_progress']);
-
-        $this->completionService->evaluate($match->fresh());
 
         RefreshMatchStatsJob::dispatch($match->id)->delay(now()->addSeconds(3));
         SyncMatchGraphicContextJob::dispatch($match->id);
 
         $ball->load(['striker', 'nonStriker', 'bowler', 'outPlayer', 'fielder']);
 
-        return $this->success($this->formatBall($ball), 'Ball added.', 'CREATED');
+        $matchState = $this->matchStateService->build($match->fresh(), $innings->fresh());
+        MatchStateUpdated::dispatch($match->id, $matchState);
+
+        return $this->success(
+            ['ball' => $this->formatBall($ball), 'match_state' => $matchState],
+            'Ball added.',
+            'CREATED'
+        );
     }
 
     /**
@@ -82,10 +134,40 @@ class ScorecardController extends Controller
         }
 
         if ($innings->match_id !== $match->id || $ball->innings_id !== $innings->id) {
-            return $this->forbidden('Ball does not belong to this innings and match.');
+            return $this->notFound('Ball does not belong to this innings and match.');
         }
 
-        $ball->update($request->validated());
+        if ($match->status === MatchStatusEnum::COMPLETED) {
+            return $this->conflict('Match is already completed.');
+        }
+
+        if ($innings->status === 'completed') {
+            return $this->conflict('Innings is already completed.');
+        }
+
+        $data = $request->validated();
+
+        // Recompute runs when any runs-affecting field is being corrected.
+        if ($this->hasRunsAffectingField($data)) {
+            $runsOffBat = (int) ($data['runs_off_bat'] ?? $ball->runs_off_bat ?? 0);
+            $isWide = isset($data['is_wide']) ? (bool) $data['is_wide'] : (bool) $ball->is_wide;
+            $isNoBall = isset($data['is_no_ball']) ? (bool) $data['is_no_ball'] : (bool) $ball->is_no_ball;
+            $widePenalty = ($isWide || $isNoBall) ? 1 : 0;
+
+            if (isset($data['extra_runs'])) {
+                $extraRuns = (int) $data['extra_runs'];
+            } else {
+                // Derive from existing stored value.
+                $oldPenalty = ((bool) $ball->is_wide || (bool) $ball->is_no_ball) ? 1 : 0;
+                $extraRuns = max(0, (int) ($ball->runs ?? 0) - (int) ($ball->runs_off_bat ?? 0) - $oldPenalty);
+            }
+
+            $data['runs'] = $runsOffBat + $extraRuns + $widePenalty;
+        }
+
+        unset($data['extra_runs']);
+
+        $ball->update($data);
 
         $this->logScoringAudit($match, $authUser, 'update_ball', $ball->id);
 
@@ -98,7 +180,13 @@ class ScorecardController extends Controller
 
         $ball->load(['striker', 'nonStriker', 'bowler', 'outPlayer', 'fielder']);
 
-        return $this->success($this->formatBall($ball), 'Ball updated.');
+        $matchState = $this->matchStateService->build($match->fresh(), $innings->fresh());
+        MatchStateUpdated::dispatch($match->id, $matchState);
+
+        return $this->success(
+            ['ball' => $this->formatBall($ball), 'match_state' => $matchState],
+            'Ball updated.'
+        );
     }
 
     /**
@@ -114,7 +202,7 @@ class ScorecardController extends Controller
         }
 
         if ($innings->match_id !== $match->id || $ball->innings_id !== $innings->id) {
-            return $this->forbidden('Ball does not belong to this innings and match.');
+            return $this->notFound('Ball does not belong to this innings and match.');
         }
 
         $this->logScoringAudit($match, $authUser, 'delete_ball', $ball->id);
@@ -128,10 +216,66 @@ class ScorecardController extends Controller
         RefreshMatchStatsJob::dispatch($match->id)->delay(now()->addSeconds(3));
         SyncMatchGraphicContextJob::dispatch($match->id);
 
-        return $this->success(null, 'Ball deleted.');
+        $matchState = $this->matchStateService->build($match->fresh(), $innings->fresh());
+        MatchStateUpdated::dispatch($match->id, $matchState);
+
+        return $this->success(['match_state' => $matchState], 'Ball deleted.');
+    }
+
+    /**
+     * Delete the most recent ball in an innings (semantic undo).
+     * Works regardless of whether the caller knows the ball ID — safe across
+     * page reloads, WebSocket reconnects, and multi-device scoring.
+     */
+    public function deleteLastBall(Request $request, TournamentMatch $match, Innings $innings): JsonResponse
+    {
+        $authUser = $request->user();
+
+        if (! $authUser || ! $authUser->canScoreMatchInApp($match)) {
+            return $this->forbidden('You cannot score this match.');
+        }
+
+        if ($innings->match_id !== $match->id) {
+            return $this->notFound('Innings does not belong to this match.');
+        }
+
+        $ball = $innings->balls()->orderByDesc('id')->first();
+        if (! $ball) {
+            return $this->failure('No balls to undo.', 'NOT_FOUND');
+        }
+
+        $this->logScoringAudit($match, $authUser, 'delete_last_ball', $ball->id);
+
+        $ball->delete();
+
+        $this->clearGraphicPendingCreaseIds($match);
+
+        $this->completionService->evaluate($match->fresh());
+
+        RefreshMatchStatsJob::dispatch($match->id)->delay(now()->addSeconds(3));
+        SyncMatchGraphicContextJob::dispatch($match->id);
+
+        $matchState = $this->matchStateService->build($match->fresh(), $innings->fresh());
+        MatchStateUpdated::dispatch($match->id, $matchState);
+
+        return $this->success(['match_state' => $matchState], 'Last ball deleted.');
     }
 
     // ─── Read endpoints ───────────────────────────────────────────────────────
+
+    /**
+     * Complete current match state — used for initial app hydration.
+     * Replaces the scorecard + replay approach.
+     */
+    public function matchState(Request $request, TournamentMatch $match): JsonResponse
+    {
+        $user = $request->user();
+        if (! $user || ! $user->canScoreMatchInApp($match)) {
+            return $this->forbidden('You cannot view this match state.');
+        }
+
+        return $this->success($this->matchStateService->build($match));
+    }
 
     /**
      * Full scorecard for a match (both innings with balls, partnerships, and extras breakdown).
@@ -185,8 +329,50 @@ class ScorecardController extends Controller
     // ─── Private helpers ──────────────────────────────────────────────────────
 
     /**
+     * Compute server-side ball fields (over, ball_in_over, runs, is_free_hit)
+     * and remove the client-only extra_runs field before DB insert.
+     *
+     * @param  array<string, mixed>  $data  Validated request data
+     * @param  Collection<int, Ball>  $existingBalls  All balls already in the innings
+     * @return array<string, mixed>
+     */
+    private function computeBallFields(array $data, Collection $existingBalls): array
+    {
+        $position = InningsStatsService::nextBallPosition($existingBalls);
+        $lastBall = $existingBalls->last();
+        $isFreeHit = InningsStatsService::isFreeHitDelivery($lastBall);
+
+        $runsOffBat = (int) ($data['runs_off_bat'] ?? 0);
+        $extraRuns = (int) ($data['extra_runs'] ?? 0);
+        $isWide = (bool) ($data['is_wide'] ?? false);
+        $isNoBall = (bool) ($data['is_no_ball'] ?? false);
+        $runs = $runsOffBat + $extraRuns + (($isWide || $isNoBall) ? 1 : 0);
+
+        unset($data['extra_runs']);
+
+        return array_merge($data, [
+            'over' => $position['over'],
+            'ball_in_over' => $position['ball_in_over'],
+            'runs' => $runs,
+            'is_free_hit' => $isFreeHit,
+        ]);
+    }
+
+    /**
+     * True when the update request contains any field that affects the runs total.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function hasRunsAffectingField(array $data): bool
+    {
+        return (bool) array_intersect_key(
+            $data,
+            array_flip(['runs_off_bat', 'extra_runs', 'is_wide', 'is_no_ball', 'is_bye', 'is_leg_bye']),
+        );
+    }
+
+    /**
      * Single source-of-truth shape for a ball in mutation responses.
-     * Includes is_free_hit so the app can replay free-hit state correctly.
      */
     private function formatBall(Ball $ball): array
     {
@@ -326,7 +512,6 @@ class ScorecardController extends Controller
     /**
      * Drop crease keys from graphic pending_players after a ball mutation so
      * stale opener lines cannot override {@see InningsStatsService::resolveCreaseAfterBalls()}.
-     * Manual striker / non-striker taps re-populate pending before the next delivery.
      */
     private function clearGraphicPendingCreaseIds(TournamentMatch $match): void
     {
@@ -338,7 +523,10 @@ class ScorecardController extends Controller
         if (! is_array($pending) || $pending === []) {
             return;
         }
-        unset($pending['next_batter_id'], $pending['next_non_striker_id']);
+        // Clear all pending crease slots — once a ball is stored the ball records
+        // are authoritative for crease and bowler, so pending data must not linger
+        // and accidentally override future reads (e.g. next over's between-over window).
+        unset($pending['next_batter_id'], $pending['next_non_striker_id'], $pending['next_bowler_id']);
         $session->update(['pending_players' => $pending === [] ? null : $pending]);
         $match->unsetRelation('graphicSession');
     }

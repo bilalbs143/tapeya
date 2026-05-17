@@ -56,6 +56,7 @@ use Illuminate\Support\Facades\Hash;
  *   - Attaches teams to tournaments (tournament_team with group_index when number_of_groups > 1)
  *   - Demo fixtures (matches): single-table tournaments get 2–3 scheduled games; two-group tournament
  *     gets one fixture per group. Several matches use today’s date for the scorecard schedule tab.
+ *     Scheduled fixtures use a short format (5 overs per side).
  *   - Two fully completed demo matches (first fixture in tournament 1 & 2): toss, 1st & 2nd innings,
  *     legal balls, completed result, match squads + playing elevens, then RefreshMatchStatsJob (sync)
  *     so scorecard + /rankings?tournament_type=… stay consistent with ball data.
@@ -67,6 +68,9 @@ class ScoringDemoSeeder extends Seeder
     private const SCOPE_TEAMS = 'teams';
 
     private const SCOPE_ALL = 'all';
+
+    /** Overs cap for scheduled demo fixtures (scorecard schedule tab). */
+    private const DEMO_FIXTURE_OVERS = 5;
 
     public function run(): void
     {
@@ -449,7 +453,7 @@ class ScoringDemoSeeder extends Seeder
                         'match_time' => $time,
                         'venue_name' => $venue,
                         'players_per_side' => 11,
-                        'overs' => 20,
+                        'overs' => self::DEMO_FIXTURE_OVERS,
                         'status' => MatchStatusEnum::SCHEDULED,
                     ]);
                     $created++;
@@ -475,7 +479,7 @@ class ScoringDemoSeeder extends Seeder
                     'match_time' => $time,
                     'venue_name' => $venue,
                     'players_per_side' => 11,
-                    'overs' => 20,
+                    'overs' => self::DEMO_FIXTURE_OVERS,
                     'status' => MatchStatusEnum::SCHEDULED,
                 ]);
                 $created++;

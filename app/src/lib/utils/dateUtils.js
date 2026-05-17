@@ -38,19 +38,19 @@ export function formatIsoDateForDisplay(iso) {
   return `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}-${year}`;
 }
 
-/**
- * Converts MM-DD-YYYY (e.g. from DatePicker) to YYYY-MM-DD for the API.
- * DatePicker (src/ui/DatePicker.jsx) always emits MM-DD-YYYY; this function
- * accepts that format (slashes allowed). Returns the original value when not a valid string
- * or when parts are missing.
- *
- * @param {string} value - Date string (MM-DD-YYYY or MM/DD/YYYY)
- * @returns {string} YYYY-MM-DD or unchanged value
- */
+/** DatePicker → MM-DD-YYYY; API expects YYYY-MM-DD. Leaves ISO dates unchanged. */
 export function toApiDate(value) {
   if (!value || typeof value !== 'string') return value;
-  const [mm, dd, yyyy] = value.split(/[-/]/);
+  const trimmed = value.trim();
+  const head = trimmed.split('T')[0] ?? '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(head)) {
+    return head;
+  }
+  const parts = trimmed.split(/[-/]/);
+  if (parts.length !== 3) return value;
+  const [mm, dd, yyyy] = parts;
   if (!yyyy || !mm || !dd) return value;
+  if (String(yyyy).length !== 4) return value;
   return `${yyyy}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
 }
 

@@ -19,10 +19,7 @@ const baseIndicator = 'flex items-center justify-center text-current';
 
 export function Checkbox({ className = '', variant = 'default', ...props }) {
   return (
-    <CheckboxPrimitive.Root
-      className={`${baseRoot} ${variants[variant] ?? variants.default} ${className}`}
-      {...props}
-    >
+    <CheckboxPrimitive.Root className={`${baseRoot} ${variants[variant] ?? variants.default} ${className}`} {...props}>
       <CheckboxPrimitive.Indicator className={baseIndicator}>
         <CheckIcon />
       </CheckboxPrimitive.Indicator>
@@ -32,14 +29,7 @@ export function Checkbox({ className = '', variant = 'default', ...props }) {
 
 function CheckIcon() {
   return (
-    <svg
-      width="12"
-      height="12"
-      viewBox="0 0 12 12"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-    >
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
       <polyline points="2,6 5,9 10,3" />
     </svg>
   );

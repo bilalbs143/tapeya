@@ -28,8 +28,7 @@ export default function Register() {
     mode: 'onChange',
   });
 
-  const [registerUser, { isLoading, error, reset: resetRegisterMutation }] =
-    useRegisterMutation();
+  const [registerUser, { isLoading, error, reset: resetRegisterMutation }] = useRegisterMutation();
 
   const onSubmit = async (data) => {
     try {
@@ -74,9 +73,7 @@ export default function Register() {
           onFocus={resetRegisterMutation}
           className="mt-10 w-full max-w-[358px] space-y-4 lg:mt-14 lg:max-w-[400px] lg:px-0"
         >
-          <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">
-            Create an account
-          </h2>
+          <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">Create an account</h2>
 
           <div className="rounded-[6px] border border-[#FF9700]/45 bg-[#141412] p-4 text-center shadow-[0_0_0_1px_rgba(255,151,0,0.12)]">
             <p className="text-[12px] leading-snug text-[#A2A6AB] md:text-[13px]">
@@ -85,7 +82,7 @@ export default function Register() {
             <p
               lang="ur"
               dir="rtl"
-              className="mt-2 font-[system-ui,'Noto Nastaliq Urdu','Geeza Pro',sans-serif] text-[13px] leading-relaxed text-[#A2A6AB] md:text-[14px]"
+              className="font-[system-ui,'Noto Nastaliq Urdu','Geeza Pro',sans-serif] mt-2 text-[13px] leading-relaxed text-[#A2A6AB] md:text-[14px]"
             >
               آپ کا دیا گیا فون نمبر واٹس ایپ پر موجود ہونا ضروری ہے۔
             </p>
@@ -95,14 +92,7 @@ export default function Register() {
             <Controller
               name="phone"
               control={control}
-              render={({ field }) => (
-                <PhoneInput
-                  id="phone"
-                  placeholder="3001234567"
-                  error={errors.phone?.message}
-                  {...field}
-                />
-              )}
+              render={({ field }) => <PhoneInput id="phone" placeholder="3001234567" error={errors.phone?.message} {...field} />}
             />
           </FormField>
 
@@ -140,10 +130,7 @@ export default function Register() {
           </FormField>
 
           {error && (
-            <p
-              className="rounded-[6px] border border-[#1A1A1A] bg-red-500/20 px-4 py-2.5 text-[14px] text-red-200"
-              role="alert"
-            >
+            <p className="rounded-[6px] border border-[#1A1A1A] bg-red-500/20 px-4 py-2.5 text-[14px] text-red-200" role="alert">
               {getApiErrorMessage(error, 'Registration failed. Please try again.')}
             </p>
           )}
@@ -152,7 +139,7 @@ export default function Register() {
             {busy ? 'Signing up…' : 'Sign up'}
           </Button>
 
-          <div className="mb-6 mt-6 space-y-3 text-center">
+          <div className="mt-6 mb-6 space-y-3 text-center">
             <p className="text-[14px] text-[#A2A6AB]">
               Already have an account?{' '}
               <Link

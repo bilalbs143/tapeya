@@ -1,15 +1,8 @@
-import {
-  AtStageOverChips,
-  ScoreboardAtStageMirror,
-  ScoreboardLeft,
-  rightHalfStyle,
-  separatorStyle,
-} from './ScoreboardHeader';
+import { AtStageOverChips, rightHalfStyle, ScoreboardAtStageMirror, ScoreboardLeft, separatorStyle } from './ScoreboardHeader';
 
 export default function AtThisStage({
   battingTeam = {},
   batters = [],
-  bowler = {},
   currentOverBalls = [],
   comparisonTeamName = '',
   comparisonScore = '',
@@ -28,10 +21,7 @@ export default function AtThisStage({
       <section className="absolute right-0 bottom-0 left-0 overflow-hidden text-white">
         <div className="absolute inset-0">
           <div className="absolute inset-0" style={rightHalfStyle} />
-          <div
-            className="absolute inset-y-0 left-0 w-1/2"
-            style={{ ...rightHalfStyle, filter: 'grayscale(1)' }}
-          />
+          <div className="absolute inset-y-0 left-0 w-1/2" style={{ ...rightHalfStyle, filter: 'grayscale(1)' }} />
         </div>
 
         <div className="relative z-10 mx-auto flex w-full items-stretch px-1.5 py-1 sm:px-6 sm:py-3">
@@ -72,18 +62,14 @@ export default function AtThisStage({
             ) : (
               <div className="flex max-w-[48%] flex-1 flex-col items-end justify-center px-1 sm:px-4">
                 {comparisonTeamName ? (
-                  <p className="max-w-full truncate text-right text-[6px] font-bold leading-none text-white uppercase sm:text-[20px]">
+                  <p className="max-w-full truncate text-right text-[6px] leading-none font-bold text-white uppercase sm:text-[20px]">
                     {comparisonTeamName}
                   </p>
                 ) : null}
                 <div className="mt-1 flex flex-wrap items-baseline justify-end gap-1 sm:mt-3 sm:gap-4">
-                  <p className="text-[9px] leading-none font-extrabold text-white sm:text-[24px]">
-                    {comparisonScore}
-                  </p>
+                  <p className="text-[9px] leading-none font-extrabold text-white sm:text-[24px]">{comparisonScore}</p>
                   {comparisonOvers ? (
-                    <p className="text-[6px] leading-none font-medium text-[#E2E2E2] sm:text-[14px]">
-                      {comparisonOvers} Over
-                    </p>
+                    <p className="text-[6px] leading-none font-medium text-[#E2E2E2] sm:text-[14px]">{comparisonOvers} Over</p>
                   ) : null}
                 </div>
               </div>

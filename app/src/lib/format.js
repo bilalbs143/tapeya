@@ -17,8 +17,7 @@ export function toNumber(value, fallback = 0) {
  * @returns {string} Formatted string e.g. "PKR 1,499"
  */
 export function formatPrice(value, currency = 'PKR') {
-  const code =
-    currency && String(currency).trim() ? String(currency).trim() : 'PKR';
+  const code = currency && String(currency).trim() ? String(currency).trim() : 'PKR';
   const num = Number(value);
   if (Number.isNaN(num) || num < 0) return `${code} 0`;
   return `${code} ${num.toLocaleString()}`;
@@ -30,10 +29,7 @@ export function formatPrice(value, currency = 'PKR') {
  * @param {Intl.DateTimeFormatOptions} [options] - Optional Intl options (default: day, short month, year)
  * @returns {string} Formatted string e.g. "08 Jan, 2025" or ""
  */
-export function formatDate(
-  value,
-  options = { day: '2-digit', month: 'short', year: 'numeric' },
-) {
+export function formatDate(value, options = { day: '2-digit', month: 'short', year: 'numeric' }) {
   if (value == null || value === '') return '';
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return '';
@@ -51,12 +47,7 @@ export function formatDateRange(startDate, endDate, options) {
   if (startDate == null || startDate === '') return '—';
   const start = formatDate(startDate, options);
   if (!start) return '—';
-  if (
-    endDate == null ||
-    endDate === '' ||
-    String(endDate) === String(startDate)
-  )
-    return start;
+  if (endDate == null || endDate === '' || String(endDate) === String(startDate)) return start;
   const end = formatDate(endDate, options);
   if (!end) return start;
   return `${start} – ${end}`;
@@ -95,12 +86,7 @@ export function formatOrdinalDateRange(startDate, endDate) {
   const startMonth = start.toLocaleDateString('en-GB', { month: 'long' });
   const startYear = start.getFullYear();
   const startStr = `${startDay}${ordinalSuffix(startDay)} ${startMonth} ${startYear}`;
-  if (
-    endDate == null ||
-    endDate === '' ||
-    String(endDate) === String(startDate)
-  )
-    return startStr;
+  if (endDate == null || endDate === '' || String(endDate) === String(startDate)) return startStr;
   const end = endDate instanceof Date ? endDate : new Date(endDate);
   if (Number.isNaN(end.getTime())) return startStr;
   const endDay = end.getDate();

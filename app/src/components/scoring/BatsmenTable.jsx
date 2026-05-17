@@ -34,13 +34,7 @@ function EditIcon() {
 /** Plus icon inside the Add button. */
 function PlusIcon() {
   return (
-    <svg
-      className="h-4 w-4"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={5}
-    >
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
     </svg>
   );
@@ -86,9 +80,7 @@ export function BatsmenTable({
               className={`${HEADER_BG} min-w-[8.5rem] border-r border-b border-l px-4 py-2.5 text-left font-bold text-white ${BORDER}`}
             >
               <div className="inline-flex max-w-full min-w-0 items-center gap-1.5 whitespace-nowrap">
-                {!matchComplete &&
-                batsmenOnCrease.length > 0 &&
-                onReplaceStriker ? (
+                {!matchComplete && batsmenOnCrease.length > 0 && onReplaceStriker ? (
                   <button
                     type="button"
                     className="inline-flex shrink-0 rounded p-0.5 text-[#DA9811] hover:text-[#f0b94a] focus-visible:outline focus-visible:outline-offset-1 focus-visible:outline-[#DA9811]"
@@ -105,10 +97,7 @@ export function BatsmenTable({
               </div>
             </th>
             {['R', 'B', '4s', '6s', 'SR'].map((h) => (
-              <th
-                key={h}
-                className={`${HEADER_BG} w-[2rem] border-r border-b py-2.5 text-center font-bold text-white ${BORDER}`}
-              >
+              <th key={h} className={`${HEADER_BG} w-[2rem] border-r border-b py-2.5 text-center font-bold text-white ${BORDER}`}>
                 {h}
               </th>
             ))}
@@ -116,9 +105,7 @@ export function BatsmenTable({
         </thead>
         <tbody>
           {showPlaceholder
-            ? Array.from({ length: PLACEHOLDER_ROWS }, (_, i) => (
-                <PlaceholderRow key={`bat-placeholder-${i}`} />
-              ))
+            ? Array.from({ length: PLACEHOLDER_ROWS }, (_, i) => <PlaceholderRow key={`bat-placeholder-${i}`} />)
             : batsmenOnCrease.slice(0, 2).map((b, idx) => {
                 const isStriker = idx === strikerIndex;
                 const sr = strikeRate(b.runs, b.balls);
@@ -136,13 +123,9 @@ export function BatsmenTable({
                     }}
                     className="cursor-pointer transition-opacity active:opacity-90"
                   >
-                    <td
-                      className={`border-r border-b border-l ${BORDER} px-4 py-3`}
-                    >
+                    <td className={`border-r border-b border-l ${BORDER} px-4 py-3`}>
                       <span className="flex items-center gap-2">
-                        <span
-                          className={`text-[12px] font-medium ${isStriker ? 'text-[#DA9811]' : 'text-white'}`}
-                        >
+                        <span className={`text-[12px] font-medium ${isStriker ? 'text-[#DA9811]' : 'text-white'}`}>
                           {b.name ?? DASH}
                         </span>
                         {isStriker && (
@@ -153,17 +136,8 @@ export function BatsmenTable({
                         )}
                       </span>
                     </td>
-                    {[
-                      b.runs ?? 0,
-                      b.balls ?? 0,
-                      b.fours ?? 0,
-                      b.sixes ?? 0,
-                      sr,
-                    ].map((val, i) => (
-                      <td
-                        key={i}
-                        className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white`}
-                      >
+                    {[b.runs ?? 0, b.balls ?? 0, b.fours ?? 0, b.sixes ?? 0, sr].map((val, i) => (
+                      <td key={i} className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white`}>
                         {val ?? DASH}
                       </td>
                     ))}
@@ -190,9 +164,7 @@ export function BatsmenTable({
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#DA9811] text-[#080807]">
               <PlusIcon />
             </span>
-            <span className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
-              Add Batsman
-            </span>
+            <span className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">Add Batsman</span>
           </Button>
         </div>
       )}
@@ -222,15 +194,10 @@ function PlaceholderRow() {
   return (
     <tr className="pointer-events-none" aria-hidden>
       <td className={`border-r border-b border-l ${BORDER} px-4 py-3`}>
-        <span className="block min-h-[1.125rem] text-[12px] text-white/20">
-          {' '}
-        </span>
+        <span className="block min-h-[1.125rem] text-[12px] text-white/20">{' '}</span>
       </td>
       {[0, 1, 2, 3, 4].map((j) => (
-        <td
-          key={j}
-          className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white/20`}
-        >
+        <td key={j} className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white/20`}>
           {' '}
         </td>
       ))}

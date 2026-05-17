@@ -1,12 +1,9 @@
 import { Fragment } from 'react';
 
-export const STAT_DIVIDER_CLASS =
-  'w-px shrink-0 self-stretch bg-gradient-to-b from-[#00000000] via-[#FFFFFF66] to-[#00000000]';
+export const STAT_DIVIDER_CLASS = 'w-px shrink-0 self-stretch bg-gradient-to-b from-[#00000000] via-[#FFFFFF66] to-[#00000000]';
 
-const CELL_CLASS =
-  'flex flex-1 flex-col items-center justify-center text-[11px] px-1 py-2.5';
-const LABEL_CLASS =
-  'text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase';
+const CELL_CLASS = 'flex flex-1 flex-col items-center justify-center text-[11px] px-1 py-2.5';
+const LABEL_CLASS = 'text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase';
 const VALUE_CLASS = 'mt-0.5 text-[14px] font-bold text-white';
 
 /**
@@ -72,12 +69,7 @@ export function MatchStatsRow({
  * Second innings chase row – TARGET | RRR | BALLS LEFT | TO WIN.
  * Same shell as {@link MatchStatsRow}; shown below it on the Scoring tab only.
  */
-export function SecondInningsChaseRow({
-  target,
-  requiredRunRate = '0.0',
-  ballsLeft = 0,
-  runsToWin = 0,
-}) {
+export function SecondInningsChaseRow({ target, requiredRunRate = '0.0', ballsLeft = 0, runsToWin = 0 }) {
   return (
     <StatGridRow
       className="mt-2 flex"

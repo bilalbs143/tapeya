@@ -62,10 +62,7 @@ function sponsorTabFromSearchParams(searchParams) {
 
 export function SponsorProfileTabs({ teams, partnerships, reach }) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = useMemo(
-    () => sponsorTabFromSearchParams(searchParams),
-    [searchParams],
-  );
+  const activeTab = useMemo(() => sponsorTabFromSearchParams(searchParams), [searchParams]);
 
   const handleSubTabChange = (value) => {
     setSearchParams(
@@ -88,25 +85,11 @@ export function SponsorProfileTabs({ teams, partnerships, reach }) {
       : SPONSOR_METRICS;
 
   return (
-    <Tabs
-      className="w-full"
-      value={activeTab}
-      onValueChange={handleSubTabChange}
-    >
+    <Tabs className="w-full" value={activeTab} onValueChange={handleSubTabChange}>
       <TabsList className={profileListClass}>
         {TABS.map(({ value, label, icon }) => (
-          <TabsTrigger
-            key={value}
-            value={value}
-            className={profileTriggerClass}
-          >
-            <img
-              src={icon}
-              alt=""
-              width={profileTabIconSize}
-              height={profileTabIconSize}
-              className={profileTabIconClass}
-            />
+          <TabsTrigger key={value} value={value} className={profileTriggerClass}>
+            <img src={icon} alt="" width={profileTabIconSize} height={profileTabIconSize} className={profileTabIconClass} />
             {label}
           </TabsTrigger>
         ))}
@@ -115,11 +98,7 @@ export function SponsorProfileTabs({ teams, partnerships, reach }) {
       <div className={CONTENT_WRAPPER_CLASS}>
         {TABS.map(({ value, Content }) => (
           <TabsContent key={value} value={value} className="focus:outline-none">
-            {value === 'overview' ? (
-              <ProfileRoleOverview role={PROFILE_OVERVIEW_ROLE.SPONSOR} />
-            ) : (
-              <Content />
-            )}
+            {value === 'overview' ? <ProfileRoleOverview role={PROFILE_OVERVIEW_ROLE.SPONSOR} /> : <Content />}
           </TabsContent>
         ))}
       </div>

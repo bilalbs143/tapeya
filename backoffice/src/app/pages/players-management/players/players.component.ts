@@ -148,7 +148,10 @@ export class PlayersComponent implements OnInit, AfterViewInit, OnDestroy {
       ManagePlayerDialogComponent,
       { mode: 'create' },
       (result) => result && this.loadHttpData(),
-      { widthSize: 'md', disableClose: true }
+      {
+        widthSize: 'md',
+        disableClose: true,
+      }
     );
   }
 
@@ -166,7 +169,10 @@ export class PlayersComponent implements OnInit, AfterViewInit, OnDestroy {
       ManagePlayerDialogComponent,
       { mode: 'edit', user },
       (result) => result && this.loadHttpData(),
-      { widthSize: 'md', disableClose: true }
+      {
+        widthSize: 'md',
+        disableClose: true,
+      }
     );
   }
 }

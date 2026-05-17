@@ -25,18 +25,10 @@ export function LiveMatchSlider() {
     <section className="space-y-3">
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span
-            className="h-2 w-2 shrink-0 rounded-full bg-red-500"
-            aria-hidden
-          />
-          <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase md:text-[16px]">
-            Live now
-          </h2>
+          <span className="h-2 w-2 shrink-0 rounded-full bg-red-500" aria-hidden />
+          <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase md:text-[16px]">Live now</h2>
         </div>
-        <Link
-          to="/live"
-          className="text-[12px] font-bold text-[#DA9811] transition-opacity active:opacity-80 md:text-[16px]"
-        >
+        <Link to="/live" className="text-[12px] font-bold text-[#DA9811] transition-opacity active:opacity-80 md:text-[16px]">
           View more
         </Link>
       </header>
@@ -56,11 +48,7 @@ export function LiveMatchSlider() {
         {SLIDES.map(({ id, image, alt }) => (
           <SwiperSlide key={id}>
             <div className="h-[116px] overflow-hidden rounded-[17px] md:h-[260px]">
-              <img
-                src={image}
-                alt={alt}
-                className="h-full w-full object-cover"
-              />
+              <img src={image} alt={alt} className="h-full w-full object-cover" />
             </div>
           </SwiperSlide>
         ))}

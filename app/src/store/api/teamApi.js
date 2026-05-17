@@ -63,8 +63,7 @@ export const teamApi = baseApi.injectEndpoints({
         url: `/teams/${teamId}/squad`,
       }),
       transformResponse: (response) => response?.data ?? response ?? [],
-      providesTags: (_result, _err, teamId) =>
-        teamId ? [{ type: 'TeamSquad', id: teamId }] : [],
+      providesTags: (_result, _err, teamId) => (teamId ? [{ type: 'TeamSquad', id: teamId }] : []),
     }),
     updateTeamSquad: builder.mutation({
       query: ({ teamId, player_ids }) => ({
@@ -72,15 +71,9 @@ export const teamApi = baseApi.injectEndpoints({
         method: 'POST',
         body: { player_ids },
       }),
-      invalidatesTags: (_result, _err, { teamId }) =>
-        teamId ? [{ type: 'TeamSquad', id: teamId }] : [],
+      invalidatesTags: (_result, _err, { teamId }) => (teamId ? [{ type: 'TeamSquad', id: teamId }] : []),
     }),
   }),
 });
 
-export const {
-  useSearchTeamsQuery,
-  useCreateTeamMutation,
-  useGetTeamSquadQuery,
-  useUpdateTeamSquadMutation,
-} = teamApi;
+export const { useSearchTeamsQuery, useCreateTeamMutation, useGetTeamSquadQuery, useUpdateTeamSquadMutation } = teamApi;

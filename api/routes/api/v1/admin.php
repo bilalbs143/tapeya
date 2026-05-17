@@ -5,11 +5,13 @@ use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\Admin\CricketDashboardController;
 use App\Http\Controllers\Admin\EnumController;
 use App\Http\Controllers\Admin\GraphicCommandCatalogController;
+use App\Http\Controllers\Admin\GraphicCommandController;
+use App\Http\Controllers\Admin\GraphicOverlayUrlController;
+use App\Http\Controllers\Admin\GraphicSessionController;
 use App\Http\Controllers\Admin\GraphicThemeController;
 use App\Http\Controllers\Admin\HeroSliderController;
 use App\Http\Controllers\Admin\MatchGraphicCaptionController;
 use App\Http\Controllers\Admin\MatchGraphicPlayerListController;
-use App\Http\Controllers\Admin\MatchGraphicSessionController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\Shop\BrandController as AdminBrandController;
@@ -80,19 +82,18 @@ Route::prefix('admin')->group(function () {
 
         Route::get('graphic-themes', [GraphicThemeController::class, 'index']);
         Route::get('graphic-command-catalog', [GraphicCommandCatalogController::class, 'index']);
-        Route::get('matches/{match}/graphic-session', [MatchGraphicSessionController::class, 'show']);
-        Route::get('matches/{match}/graphic-session/signed-url', [MatchGraphicSessionController::class, 'signedOverlayUrl']);
-        Route::match(['put', 'patch'], 'matches/{match}/graphic-session', [MatchGraphicSessionController::class, 'update']);
-        Route::patch('matches/{match}/graphic-session/pending-players', [MatchGraphicSessionController::class, 'setPendingPlayers']);
+        Route::get('matches/{match}/graphic-session', [GraphicSessionController::class, 'show']);
+        Route::get('matches/{match}/graphic-session/signed-url', [GraphicOverlayUrlController::class, 'signedOverlayUrl']);
+        Route::match(['put', 'patch'], 'matches/{match}/graphic-session', [GraphicSessionController::class, 'update']);
         Route::get('matches/{match}/graphic-session/captions', [MatchGraphicCaptionController::class, 'index']);
         Route::post('matches/{match}/graphic-session/captions', [MatchGraphicCaptionController::class, 'store']);
         Route::match(['put', 'patch'], 'matches/{match}/graphic-session/captions/{caption}', [MatchGraphicCaptionController::class, 'update']);
         Route::delete('matches/{match}/graphic-session/captions/{caption}', [MatchGraphicCaptionController::class, 'destroy']);
 
-        Route::get('matches/{match}/graphic-session/commands', [MatchGraphicSessionController::class, 'indexCommands']);
-        Route::delete('matches/{match}/graphic-session/commands', [MatchGraphicSessionController::class, 'clearCommandHistory']);
-        Route::post('matches/{match}/graphic-session/commands', [MatchGraphicSessionController::class, 'storeCommand']);
-        Route::post('matches/{match}/graphic-session/commands/{command}/activate', [MatchGraphicSessionController::class, 'activateCommand']);
+        Route::get('matches/{match}/graphic-session/commands', [GraphicCommandController::class, 'index']);
+        Route::delete('matches/{match}/graphic-session/commands', [GraphicCommandController::class, 'destroyHistory']);
+        Route::post('matches/{match}/graphic-session/commands', [GraphicCommandController::class, 'store']);
+        Route::post('matches/{match}/graphic-session/commands/{command}/activate', [GraphicCommandController::class, 'activate']);
 
         Route::get('cricket/dashboard-stats', CricketDashboardController::class);
 

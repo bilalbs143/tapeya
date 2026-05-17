@@ -9,13 +9,7 @@ import { parseDate, toDateStr } from '@/lib/utils/dateUtils';
 import { getTournamentTitle } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentsQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
-import {
-  scorecardListClass,
-  scorecardTriggerClass,
-  Tabs,
-  TabsList,
-  TabsTrigger,
-} from '@/ui/Tabs';
+import { scorecardListClass, scorecardTriggerClass, Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
 
 const MONTH_TABS_COUNT = 6;
 const FALLBACK_IMAGE = `${CLOUDFRONT_APP_BASE}/images/background/fixture-bg.png`;
@@ -48,12 +42,8 @@ function UpcomingTournamentCard({ tournament, onClick, disabled }) {
         />
       </div>
       <div className="flex flex-col gap-1 p-3">
-        <h3 className="line-clamp-2 text-[13px] font-bold text-white">
-          {title}
-        </h3>
-        <p className="text-[12px] text-[#A2A6AB]">
-          {formatDateRange(tournament.start_date, tournament.end_date)}
-        </p>
+        <h3 className="line-clamp-2 text-[13px] font-bold text-white">{title}</h3>
+        <p className="text-[12px] text-[#A2A6AB]">{formatDateRange(tournament.start_date, tournament.end_date)}</p>
       </div>
     </button>
   );
@@ -132,27 +122,13 @@ export default function UpcomingTournaments() {
     <div className="min-h-screen bg-black">
       <AppSubpageHeader title="UPCOMING TOURNAMENTS" />
       <Container>
-        <Tabs
-          value={activeMonth}
-          onValueChange={setActiveMonth}
-          className="w-full"
-        >
+        <Tabs value={activeMonth} onValueChange={setActiveMonth} className="w-full">
           <div className="-mx-4 bg-black px-4 pb-3">
-            <TabsList
-              className={`${scorecardListClass} lg:justify-center lg:gap-2`}
-            >
+            <TabsList className={`${scorecardListClass} lg:justify-center lg:gap-2`}>
               {monthTabs.map(({ value, monthShort, year }) => (
-                <TabsTrigger
-                  key={value}
-                  value={value}
-                  className={`${scorecardTriggerClass} ${upcomingTriggerClass}`}
-                >
-                  <span className="block text-[12px] leading-tight font-bold uppercase">
-                    {monthShort}
-                  </span>
-                  <span className="mt-1 block text-[12px] leading-tight font-medium uppercase opacity-90">
-                    {year}
-                  </span>
+                <TabsTrigger key={value} value={value} className={`${scorecardTriggerClass} ${upcomingTriggerClass}`}>
+                  <span className="block text-[12px] leading-tight font-bold uppercase">{monthShort}</span>
+                  <span className="mt-1 block text-[12px] leading-tight font-medium uppercase opacity-90">{year}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -161,10 +137,7 @@ export default function UpcomingTournaments() {
           <div className="grid grid-cols-2 gap-3 pt-1 pb-6 lg:grid-cols-3">
             {isLoading
               ? Array.from({ length: 4 }, (_, i) => (
-                  <div
-                    key={`skeleton-${i}`}
-                    className="flex animate-pulse flex-col overflow-hidden rounded-[17px] bg-[#141412]"
-                  >
+                  <div key={`skeleton-${i}`} className="flex animate-pulse flex-col overflow-hidden rounded-[17px] bg-[#141412]">
                     <div className="h-[148px] w-full bg-[#1A1A1A]" />
                     <div className="flex flex-col gap-2 p-3">
                       <div className="h-4 w-3/4 rounded bg-[#1A1A1A]" />
@@ -182,20 +155,10 @@ export default function UpcomingTournaments() {
                 ))}
           </div>
 
-          {isLoading && (
-            <p className="py-4 text-center text-[13px] text-[#A2A6AB]">
-              Loading tournaments…
-            </p>
-          )}
-          {isError && (
-            <p className="py-4 text-center text-[13px] text-red-400">
-              Failed to load tournaments. Try again later.
-            </p>
-          )}
+          {isLoading && <p className="py-4 text-center text-[13px] text-[#A2A6AB]">Loading tournaments…</p>}
+          {isError && <p className="py-4 text-center text-[13px] text-red-400">Failed to load tournaments. Try again later.</p>}
           {isEmpty && !isLoading && !isError && (
-            <p className="py-2 text-center text-[13px] text-[#A2A6AB]">
-              No upcoming tournaments for this month.
-            </p>
+            <p className="py-2 text-center text-[13px] text-[#A2A6AB]">No upcoming tournaments for this month.</p>
           )}
         </Tabs>
       </Container>

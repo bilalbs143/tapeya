@@ -12,17 +12,13 @@ const inputBase =
 
 /** 12h display order: 12, 1, 2, ..., 11 */
 const HOURS_12 = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-const MINUTES = Array.from({ length: 60 }, (_, i) =>
-  String(i).padStart(2, '0'),
-);
+const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
 const PERIODS = ['AM', 'PM'];
 
 function parseValue(value) {
-  if (!value || typeof value !== 'string')
-    return { hour12: 12, minute: 0, period: 'AM' };
+  if (!value || typeof value !== 'string') return { hour12: 12, minute: 0, period: 'AM' };
   const [h, m] = value.trim().split(':').map(Number);
-  if (Number.isNaN(h) || Number.isNaN(m))
-    return { hour12: 12, minute: 0, period: 'AM' };
+  if (Number.isNaN(h) || Number.isNaN(m)) return { hour12: 12, minute: 0, period: 'AM' };
   const hour24 = Math.max(0, Math.min(23, h));
   const minute = Math.max(0, Math.min(59, m));
   const period = hour24 < 12 ? 'AM' : 'PM';
@@ -43,15 +39,7 @@ function formatDisplay(value) {
   return `${h}:${m} ${period}`;
 }
 
-export function TimePicker({
-  id,
-  value = '',
-  onChange,
-  placeholder = 'Select time',
-  className = '',
-  disabled,
-  ...props
-}) {
+export function TimePicker({ id, value = '', onChange, placeholder = 'Select time', className = '', disabled, ...props }) {
   const [open, setOpen] = useState(false);
   const parsed = parseValue(value);
   const [hour12, setHour12] = useState(parsed.hour12);
@@ -113,9 +101,7 @@ export function TimePicker({
           aria-label={placeholder}
           {...props}
         >
-          <span className={displayValue ? 'text-white' : 'text-[#A2A6AB78]'}>
-            {displayValue || placeholder}
-          </span>
+          <span className={displayValue ? 'text-white' : 'text-[#A2A6AB78]'}>{displayValue || placeholder}</span>
           <ClockIcon className="ml-auto shrink-0 text-white/70" />
         </button>
       </PopoverTrigger>
@@ -141,10 +127,7 @@ export function TimePicker({
               );
             })}
           </div>
-          <div
-            ref={minuteRef}
-            className={`${columnClass} border-x border-[#1f1f1d]`}
-          >
+          <div ref={minuteRef} className={`${columnClass} border-x border-[#1f1f1d]`}>
             {MINUTES.map((m) => {
               const n = parseInt(m, 10);
               const isSelected = minute === n;

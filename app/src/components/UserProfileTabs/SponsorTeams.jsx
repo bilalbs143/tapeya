@@ -2,17 +2,10 @@ import { useState } from 'react';
 
 import { CONTENT_MAX_WIDTH } from './constants';
 
-const LABEL_CLASS =
-  'text-[14px] font-bold uppercase tracking-wide text-[#A2A6AB]';
+const LABEL_CLASS = 'text-[14px] font-bold uppercase tracking-wide text-[#A2A6AB]';
 const VALUE_CLASS = 'text-sm font-normal text-white';
 
-const TEAMS_FULL = [
-  'Team Alpha',
-  'Team Beta',
-  'Youth League A',
-  'Regional Champions',
-  'Community XI',
-];
+const TEAMS_FULL = ['Team Alpha', 'Team Beta', 'Youth League A', 'Regional Champions', 'Community XI'];
 const TEAMS_PREVIEW_COUNT = 3;
 
 const SUMMARY = [
@@ -33,9 +26,7 @@ function StatItemInline({ label, value }) {
 export function SponsorTeams() {
   const [expanded, setExpanded] = useState(false);
 
-  const teamsToShow = expanded
-    ? TEAMS_FULL
-    : TEAMS_FULL.slice(0, TEAMS_PREVIEW_COUNT);
+  const teamsToShow = expanded ? TEAMS_FULL : TEAMS_FULL.slice(0, TEAMS_PREVIEW_COUNT);
   const hasMore = TEAMS_FULL.length > TEAMS_PREVIEW_COUNT;
   const showMore = hasMore && !expanded;
   const showLess = hasMore && expanded;
@@ -76,12 +67,8 @@ export function SponsorTeams() {
 
       <div className="mt-5 h-px w-full bg-[linear-gradient(to_right,#00000000,#FFFFFF33,#00000000)]" />
 
-      <h2 className="mt-6 text-[12px] font-bold tracking-wide text-white uppercase">
-        BRANDING & PARTNERSHIPS
-      </h2>
-      <p className="mt-4 text-sm text-white/70">
-        Manage sponsored teams, logos, and partnership details here.
-      </p>
+      <h2 className="mt-6 text-[12px] font-bold tracking-wide text-white uppercase">BRANDING & PARTNERSHIPS</h2>
+      <p className="mt-4 text-sm text-white/70">Manage sponsored teams, logos, and partnership details here.</p>
     </div>
   );
 }

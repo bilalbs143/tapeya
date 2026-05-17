@@ -1,15 +1,9 @@
-import {
-  ScoreboardLeft,
-  rightHalfStyle,
-  separatorStyle,
-} from './ScoreboardHeader';
+import { rightHalfStyle, ScoreboardLeft, separatorStyle } from './ScoreboardHeader';
 
 export default function RunRate({
   battingTeam = {},
   bowlingTeam = {},
   batters = [],
-  bowler = {},
-  currentOverBalls = [],
   target = null,
   currentRR = '',
   requiredRR = '',
@@ -22,10 +16,7 @@ export default function RunRate({
       <section className="absolute right-0 bottom-0 left-0 overflow-hidden text-white">
         <div className="absolute inset-0">
           <div className="absolute inset-0" style={rightHalfStyle} />
-          <div
-            className="absolute inset-y-0 left-0 w-1/2"
-            style={{ ...rightHalfStyle, filter: 'grayscale(1)' }}
-          />
+          <div className="absolute inset-y-0 left-0 w-1/2" style={{ ...rightHalfStyle, filter: 'grayscale(1)' }} />
         </div>
 
         <div className="relative z-10 mx-auto flex w-full items-stretch px-1.5 py-1 sm:px-6 sm:py-3">
@@ -55,25 +46,17 @@ export default function RunRate({
 
           <div className="ml-auto flex items-center">
             <div className="px-1 sm:px-4">
-              <p className="text-[6px] leading-none font-bold text-white uppercase sm:text-[20px]">
-                Current
-              </p>
+              <p className="text-[6px] leading-none font-bold text-white uppercase sm:text-[20px]">Current</p>
               <div className="mt-1 flex items-baseline justify-center gap-1 sm:mt-3 sm:gap-4">
-                <p className="text-[9px] leading-none font-extrabold text-white sm:text-[24px]">
-                  {currentRR}
-                </p>
+                <p className="text-[9px] leading-none font-extrabold text-white sm:text-[24px]">{currentRR}</p>
               </div>
             </div>
             <div className="mx-1 w-px self-stretch sm:mx-3" style={separatorStyle} />
 
             <div className="px-1 sm:px-4">
-              <p className="text-[6px] leading-none font-bold text-white uppercase sm:text-[20px]">
-                Required
-              </p>
+              <p className="text-[6px] leading-none font-bold text-white uppercase sm:text-[20px]">Required</p>
               <div className="mt-1 flex items-baseline justify-center gap-1 sm:mt-3 sm:gap-4">
-                <p className="text-[9px] leading-none font-extrabold text-white sm:text-[24px]">
-                  {requiredRR}
-                </p>
+                <p className="text-[9px] leading-none font-extrabold text-white sm:text-[24px]">{requiredRR}</p>
               </div>
             </div>
             <div className="mx-1 w-px self-stretch sm:mx-3" style={separatorStyle} />

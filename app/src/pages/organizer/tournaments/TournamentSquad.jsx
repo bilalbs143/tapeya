@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { useDialog } from '@/context/DialogContext';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
@@ -10,15 +11,9 @@ import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { DEBOUNCE_MS, MIN_SEARCH_LENGTH } from '@/lib/constants/search';
 import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
 import { playerDisplayRole } from '@/lib/utils/playerUtils';
-import {
-  getTournamentTitle,
-  parseTournamentId,
-} from '@/lib/utils/tournamentUtils';
+import { getTournamentTitle, parseTournamentId } from '@/lib/utils/tournamentUtils';
 import { useSearchPlayersQuery } from '@/store/api/playerApi';
-import {
-  useGetTeamSquadQuery,
-  useUpdateTeamSquadMutation,
-} from '@/store/api/teamApi';
+import { useGetTeamSquadQuery, useUpdateTeamSquadMutation } from '@/store/api/teamApi';
 import { useGetTournamentQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
 import { formFieldLabelCheckoutClass } from '@/ui/FormField';
@@ -28,6 +23,7 @@ import { Label } from '@/ui/Label';
 const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
 
 export default function TournamentSquad() {
+  const { openDialog } = useDialog();
   const navigate = useNavigate();
   const location = useLocation();
   const { tournamentId } = useParams();
@@ -36,10 +32,7 @@ export default function TournamentSquad() {
   const teamFromState = location.state?.team;
   const tournamentFromState = location.state?.tournament ?? null;
 
-  const tournamentIdNum = parseTournamentId(
-    tournamentId,
-    tournamentFromState?.id,
-  );
+  const tournamentIdNum = parseTournamentId(tournamentId, tournamentFromState?.id);
   const isValidId = tournamentIdNum != null;
 
   const { data: tournamentFromApi } = useGetTournamentQuery(
@@ -56,8 +49,7 @@ export default function TournamentSquad() {
   // CURSOR: extract hasInitializedSquad + init effect into useSquadInit (see top).
   // ------------------------------------------------------------------
 
-  const { data: squadFromApi = [], isLoading: isLoadingSquad } =
-    useGetTeamSquadQuery(teamId, { skip: !teamId });
+  const { data: squadFromApi = [], isLoading: isLoadingSquad } = useGetTeamSquadQuery(teamId, { skip: !teamId });
 
   const [squad, setSquad] = useState([]);
   const hasInitializedSquad = useRef(false);
@@ -91,10 +83,9 @@ export default function TournamentSquad() {
   const trimmedFindPlayer = findPlayer.trim();
   const debouncedFindPlayer = useDebounce(trimmedFindPlayer, DEBOUNCE_MS);
 
-  const { data: playerSearchResults = [], isFetching: isSearchingPlayers } =
-    useSearchPlayersQuery(debouncedFindPlayer, {
-      skip: debouncedFindPlayer.length < MIN_SEARCH_LENGTH,
-    });
+  const { data: playerSearchResults = [], isFetching: isSearchingPlayers } = useSearchPlayersQuery(debouncedFindPlayer, {
+    skip: debouncedFindPlayer.length < MIN_SEARCH_LENGTH,
+  });
 
   const [updateSquad] = useUpdateTeamSquadMutation();
 
@@ -125,10 +116,7 @@ export default function TournamentSquad() {
 
   // Players from search results that are not already in the squad.
   const playersToAdd = useMemo(
-    () =>
-      playerSearchResults.filter(
-        (p) => p.id != null && !squadIds.has(Number(p.id)),
-      ),
+    () => playerSearchResults.filter((p) => p.id != null && !squadIds.has(Number(p.id))),
     [playerSearchResults, squadIds],
   );
 
@@ -168,7 +156,7 @@ export default function TournamentSquad() {
     const player_ids = list.map((p) => p.id).filter((id) => id != null);
     try {
       await updateSquad({ teamId, player_ids }).unwrap();
-      toast.success('Squad updated.');
+      openDialog('tournamentSquadUpdatedSuccess');
     } catch (err) {
       toast.error(getApiErrorMessage(err) ?? 'Failed to save squad.');
     }
@@ -178,33 +166,20 @@ export default function TournamentSquad() {
   // Render
   // ------------------------------------------------------------------
 
-  const squadEmptyMessage =
-    'No players in squad. Search for players above to add them.';
+  const squadEmptyMessage = 'No players in squad. Search for players above to add them.';
 
   return (
     <div className="bg-black">
-      <AppSubpageHeader
-        title={
-          tournament
-            ? `${getTournamentTitle(tournament)} - Squad`
-            : 'Tournaments - Squad'
-        }
-      />
+      <AppSubpageHeader title={tournament ? `${getTournamentTitle(tournament)} - Squad` : 'Tournaments - Squad'} />
       <Container>
-        {isLoadingSquad && (
-          <p className="mb-3 text-[13px] text-[#A2A6AB]">Loading squad…</p>
-        )}
+        {isLoadingSquad && <p className="mb-3 text-[13px] text-[#A2A6AB]">Loading squad…</p>}
 
         {/* Team info card */}
         {team && (
           <div className="mb-5 flex items-stretch gap-3 rounded-[17px] bg-[#141412] p-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#0d0d0b]">
               {team?.logo ? (
-                <img
-                  src={team.logo}
-                  alt=""
-                  className="h-full w-full object-contain"
-                />
+                <img src={team.logo} alt="" className="h-full w-full object-contain" />
               ) : (
                 <span className="flex h-full w-full items-center justify-center text-[18px] font-bold text-white">
                   {(team?.name ?? 'T').charAt(0).toUpperCase()}
@@ -212,16 +187,11 @@ export default function TournamentSquad() {
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <h2 className="text-[16px] font-bold text-white">
-                {team?.name ?? '—'}
-              </h2>
-              <p className="mt-0.5 text-[14px] text-[#DA9811]">
-                Owner: {team?.owner ?? team?.sponsor?.name ?? '—'}
-              </p>
+              <h2 className="text-[16px] font-bold text-white">{team?.name ?? '—'}</h2>
+              <p className="mt-0.5 text-[14px] text-[#DA9811]">Owner: {team?.owner ?? team?.sponsor?.name ?? '—'}</p>
               <p className="mt-0.5 text-[12px] text-white">
                 Icon Players:{' '}
-                {Array.isArray(team?.icon_players) &&
-                team.icon_players.length > 0
+                {Array.isArray(team?.icon_players) && team.icon_players.length > 0
                   ? team.icon_players
                       .map((p) => p.name)
                       .filter(Boolean)
@@ -261,13 +231,9 @@ export default function TournamentSquad() {
               {showPlayerSearchResults && (
                 <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] bg-[#141412] shadow-lg">
                   {trimmedFindPlayer.length < MIN_SEARCH_LENGTH ? (
-                    <p className="px-4 py-3 text-[13px] text-[#A2A6AB]">
-                      Type at least {MIN_SEARCH_LENGTH} characters to search
-                    </p>
+                    <p className="px-4 py-3 text-[13px] text-[#A2A6AB]">Type at least {MIN_SEARCH_LENGTH} characters to search</p>
                   ) : isSearchingPlayers ? (
-                    <p className="px-4 py-3 text-[13px] text-[#A2A6AB]">
-                      Searching…
-                    </p>
+                    <p className="px-4 py-3 text-[13px] text-[#A2A6AB]">Searching…</p>
                   ) : playersToAdd.length > 0 ? (
                     <ul className="py-1">
                       {playersToAdd.map((player) => (
@@ -277,14 +243,10 @@ export default function TournamentSquad() {
                             onClick={() => handleAddPlayer(player)}
                             className="flex w-full cursor-pointer flex-col gap-0.5 px-4 py-3 text-left text-white transition-colors hover:bg-white/10"
                           >
-                            <span className="font-semibold text-white">
-                              {player.name ?? player.nickname ?? '—'}
-                            </span>
-                            {(player.playing_role ??
-                              player.playing_role_enum) && (
+                            <span className="font-semibold text-white">{player.name ?? player.nickname ?? '—'}</span>
+                            {(player.playing_role ?? player.playing_role_enum) && (
                               <span className="text-[13px] text-[#A2A6AB]">
-                                {player.playing_role ??
-                                  player.playing_role_enum}
+                                {player.playing_role ?? player.playing_role_enum}
                               </span>
                             )}
                           </button>
@@ -310,19 +272,13 @@ export default function TournamentSquad() {
             <table className="w-full border-collapse text-[12px] text-white">
               <thead>
                 <tr className={HEADER_BG}>
-                  <th
-                    className={`${HEADER_BG} border-r border-b border-l py-2.5 pl-4 text-left font-bold text-white ${BORDER}`}
-                  >
+                  <th className={`${HEADER_BG} border-r border-b border-l py-2.5 pl-4 text-left font-bold text-white ${BORDER}`}>
                     Player
                   </th>
-                  <th
-                    className={`${HEADER_BG} border-r border-b py-2.5 text-center font-bold text-white ${BORDER}`}
-                  >
+                  <th className={`${HEADER_BG} border-r border-b py-2.5 text-center font-bold text-white ${BORDER}`}>
                     Playing Role
                   </th>
-                  <th
-                    className={`${HEADER_BG} border-r border-b py-2.5 pr-4 text-right font-bold text-white ${BORDER}`}
-                  >
+                  <th className={`${HEADER_BG} border-r border-b py-2.5 pr-4 text-right font-bold text-white ${BORDER}`}>
                     Action
                   </th>
                 </tr>
@@ -340,21 +296,13 @@ export default function TournamentSquad() {
                 )}
                 {squad.map((player, index) => (
                   <tr key={player.id}>
-                    <td
-                      className={`border-r border-b border-l py-3 pl-4 ${BORDER}`}
-                    >
+                    <td className={`border-r border-b border-l py-3 pl-4 ${BORDER}`}>
                       <p className="text-[12px] font-medium text-white">
                         {index + 1} {player.name}
                       </p>
                     </td>
-                    <td
-                      className={`border-r border-b py-3 text-center text-white ${BORDER}`}
-                    >
-                      {playerDisplayRole(player)}
-                    </td>
-                    <td
-                      className={`border-r border-b py-3 pr-4 text-right ${BORDER}`}
-                    >
+                    <td className={`border-r border-b py-3 text-center text-white ${BORDER}`}>{playerDisplayRole(player)}</td>
+                    <td className={`border-r border-b py-3 pr-4 text-right ${BORDER}`}>
                       <button
                         type="button"
                         onClick={() => handleRemovePlayer(player.id)}

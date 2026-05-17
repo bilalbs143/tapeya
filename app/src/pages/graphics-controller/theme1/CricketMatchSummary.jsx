@@ -10,12 +10,7 @@ const frameStyle = {
   backgroundSize: 'cover',
 };
 
-export default function CricketMatchSummary({
-  matchup = '',
-  tournamentLabel = '',
-  stats = [],
-  battingTeam = {},
-}) {
+export default function CricketMatchSummary({ matchup = '', tournamentLabel = '', stats = [], battingTeam = {} }) {
   const teamLogo = battingTeam.logoUrl ?? defaultTeamLogo;
 
   return (
@@ -31,15 +26,9 @@ export default function CricketMatchSummary({
         />
 
         <div className="relative z-10 pt-10">
-          {matchup ? (
-            <p className="text-[16px] leading-none font-bold text-[#DA9811] uppercase">
-              {matchup}
-            </p>
-          ) : null}
+          {matchup ? <p className="text-[16px] leading-none font-bold text-[#DA9811] uppercase">{matchup}</p> : null}
           {tournamentLabel ? (
-            <p className="mt-2 text-[14px] leading-none font-bold text-[#DA9811] uppercase">
-              {tournamentLabel}
-            </p>
+            <p className="mt-2 text-[14px] leading-none font-bold text-[#DA9811] uppercase">{tournamentLabel}</p>
           ) : null}
 
           {stats.length > 0 ? (
@@ -47,12 +36,8 @@ export default function CricketMatchSummary({
               <div className="grid grid-cols-2 gap-x-12 gap-y-12">
                 {stats.map(({ id, label, value }) => (
                   <div key={id ?? label} className="text-center">
-                    <p className="text-[16px] leading-none font-semibold text-white uppercase">
-                      {label}
-                    </p>
-                    <p className="mt-3 text-[28px] leading-none font-bold text-white">
-                      {value}
-                    </p>
+                    <p className="text-[16px] leading-none font-semibold text-white uppercase">{label}</p>
+                    <p className="mt-3 text-[28px] leading-none font-bold text-white">{value}</p>
                   </div>
                 ))}
               </div>

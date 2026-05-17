@@ -19,7 +19,11 @@
                 {{ match.match_date }} {{ match.match_time }}
               </p>
             }
-            <p class="text-sm m-0" [class.mt-1]="isMatchCompleted" [class.mt-2]="!isMatchCompleted">
+            <p
+              class="text-sm m-0"
+              [class.mt-1]="isMatchCompleted"
+              [class.mt-2]="!isMatchCompleted"
+            >
               Theme:
               <strong>{{ session.theme?.name ?? '—' }}</strong>
               @if (session.active_command) {
@@ -127,15 +131,20 @@
 
           @if (playerBatsmanGroup || playerBowlerGroup) {
             <div class="player-controllers">
-
               @if (playerBatsmanGroup) {
                 @for (card of batterCommandCards(); track card.roleLabel) {
                   <section class="player-ctrl-card">
                     <div class="player-ctrl-card__head">
                       <div class="player-ctrl-card__avatar">
                         <span class="player-ctrl-card__avatar-icon">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                          >
+                            <path
+                              d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"
+                            />
                           </svg>
                         </span>
                       </div>
@@ -148,7 +157,9 @@
                               <span class="player-ctrl-card__striker-mark">*</span>
                             }
                           </p>
-                          <p class="player-ctrl-card__stat">{{ b.runs }} <span class="player-ctrl-card__stat-sub">({{ b.balls }})</span></p>
+                          <p class="player-ctrl-card__stat">
+                            {{ b.runs }} <span class="player-ctrl-card__stat-sub">({{ b.balls }})</span>
+                          </p>
                         } @else {
                           <p class="player-ctrl-card__name text-muted">No batter yet</p>
                         }
@@ -165,7 +176,11 @@
                           [matTooltip]="playerBatsmanCardTooltip(a, card)"
                           (click)="sendWithPick(a, card.pick)"
                         >
-                          @if (sendingKey === a.command_type + ':' + a.command_key) { … } @else { {{ a.label }} }
+                          @if (sendingKey === a.command_type + ':' + a.command_key) {
+                            …
+                          } @else {
+                            {{ a.label }}
+                          }
                         </button>
                       }
                     </div>
@@ -178,8 +193,14 @@
                   <div class="player-ctrl-card__head">
                     <div class="player-ctrl-card__avatar player-ctrl-card__avatar--bowler">
                       <span class="player-ctrl-card__avatar-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                        >
+                          <path
+                            d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"
+                          />
                         </svg>
                       </span>
                     </div>
@@ -187,7 +208,10 @@
                       <p class="player-ctrl-card__role">Bowler</p>
                       @if (liveBowler?.name) {
                         <p class="player-ctrl-card__name">{{ liveBowler!.name }}</p>
-                        <p class="player-ctrl-card__stat">{{ liveBowler!.figures }} <span class="player-ctrl-card__stat-sub">({{ liveBowler!.overs }} ov)</span></p>
+                        <p class="player-ctrl-card__stat">
+                          {{ liveBowler!.figures }}
+                          <span class="player-ctrl-card__stat-sub">({{ liveBowler!.overs }} ov)</span>
+                        </p>
                       } @else {
                         <p class="player-ctrl-card__name text-muted">No bowler yet</p>
                       }
@@ -204,13 +228,16 @@
                         [matTooltip]="playerBowlerCardTooltip(a)"
                         (click)="sendWithPick(a, liveBowlerCommandPick())"
                       >
-                        @if (sendingKey === a.command_type + ':' + a.command_key) { … } @else { {{ a.label }} }
+                        @if (sendingKey === a.command_type + ':' + a.command_key) {
+                          …
+                        } @else {
+                          {{ a.label }}
+                        }
                       </button>
                     }
                   </div>
                 </section>
               }
-
             </div>
           }
         }

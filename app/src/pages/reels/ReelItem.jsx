@@ -99,10 +99,7 @@ export default function ReelItem({ reel, isActive, isLiked, onLike }) {
     const bar = barRef.current;
     if (!bar) return null;
     const rect = bar.getBoundingClientRect();
-    const clientX =
-      'touches' in event && event.touches.length
-        ? event.touches[0].clientX
-        : event.clientX;
+    const clientX = 'touches' in event && event.touches.length ? event.touches[0].clientX : event.clientX;
     const ratio = (clientX - rect.left) / rect.width;
     return Math.min(100, Math.max(0, ratio * 100));
   };
@@ -160,12 +157,7 @@ export default function ReelItem({ reel, isActive, isLiked, onLike }) {
       {paused && (
         <div className="pointer-events-none absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center">
           <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-[#da98115c] bg-black/35">
-            <img
-              src={playIcon}
-              alt=""
-              className="h-4 w-4 shrink-0 object-contain"
-              aria-hidden
-            />
+            <img src={playIcon} alt="" className="h-4 w-4 shrink-0 object-contain" aria-hidden />
           </div>
         </div>
       )}
@@ -193,10 +185,7 @@ export default function ReelItem({ reel, isActive, isLiked, onLike }) {
             />
           </div>
           {isScrubbing && (
-            <div
-              className="pointer-events-none absolute -top-5"
-              style={{ left: `calc(${scrubPercent}% - 18px)` }}
-            >
+            <div className="pointer-events-none absolute -top-5" style={{ left: `calc(${scrubPercent}% - 18px)` }}>
               <div className="rounded-full bg-black/80 px-2 py-0.5 text-[10px] font-medium text-white">
                 {formatTime(scrubTime)}
               </div>
@@ -214,12 +203,7 @@ export default function ReelItem({ reel, isActive, isLiked, onLike }) {
             className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow"
             aria-label="Upload reel"
           >
-            <img
-              src={reelCameraIcon}
-              alt=""
-              className="h-5 w-5 shrink-0 object-contain"
-              aria-hidden
-            />
+            <img src={reelCameraIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
           </Link>
           <span className="absolute -top-1 -right-1 flex h-[16px] w-[16px] items-center justify-center rounded-full bg-[#DA9811] text-[14px] leading-none font-bold text-white">
             +
@@ -242,23 +226,15 @@ export default function ReelItem({ reel, isActive, isLiked, onLike }) {
           className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow"
           aria-label="Share"
         >
-          <img
-            src={messageIcon}
-            alt=""
-            className="h-5 w-5 shrink-0 object-contain"
-            aria-hidden
-          />
+          <img src={messageIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
         </button>
       </div>
 
       {/* Bottom info */}
       <div className="absolute right-16 bottom-24 left-4">
-        <p className="text-[15px] leading-tight font-bold text-white">
-          {reel.username}
-        </p>
+        <p className="text-[15px] leading-tight font-bold text-white">{reel.username}</p>
         <p className="mt-1 text-[12px] leading-relaxed text-white/80">
-          {reel.caption}{' '}
-          <span className="font-semibold text-white">See More</span>
+          {reel.caption} <span className="font-semibold text-white">See More</span>
         </p>
       </div>
     </div>

@@ -67,12 +67,10 @@ export default function TournamentRequest() {
   const tournamentRequestSchema = useMemo(
     () => createTournamentRequestSchema(groupModeOptions.map((o) => o.value)),
     // enums is stable per query result; groupModeOptions is derived from it.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [enums],
   );
 
-  const [createTournamentRequest, { isLoading: isSubmitting, reset: resetApiError }] =
-    useCreateTournamentRequestMutation();
+  const [createTournamentRequest, { isLoading: isSubmitting, reset: resetApiError }] = useCreateTournamentRequestMutation();
 
   const {
     register,
@@ -114,16 +112,13 @@ export default function TournamentRequest() {
       group_mode: groupModeOptions[0]?.value ?? 'open',
       prize: '',
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enumsLoading, enums, user?.name, user?.phone, user?.country, user?.city]);
 
   const onSubmit = async (data) => {
     resetApiError();
     try {
       const number_of_groups =
-        data.group_mode === 'group_wise' && data.number_of_groups !== ''
-          ? Number(data.number_of_groups)
-          : 1;
+        data.group_mode === 'group_wise' && data.number_of_groups !== '' ? Number(data.number_of_groups) : 1;
 
       const payload = {
         ...data,
@@ -155,8 +150,8 @@ export default function TournamentRequest() {
       <AppSubpageHeader title="REQUEST TOURNAMENT" />
       <Container>
         <p className="mb-6 text-left text-[14px] text-white/90 lg:text-center">
-          Please fill in the details below to request tournament services. Our team will
-          review your request and contact you shortly.
+          Please fill in the details below to request tournament services. Our team will review your request and contact you
+          shortly.
         </p>
 
         <form
@@ -259,11 +254,7 @@ export default function TournamentRequest() {
                     setValue('city', '');
                   }}
                 >
-                  <SelectTrigger
-                    id="country"
-                    className={selectTriggerInputClass}
-                    aria-label="Country"
-                  >
+                  <SelectTrigger id="country" className={selectTriggerInputClass} aria-label="Country">
                     <SelectValue placeholder="Select Country" />
                   </SelectTrigger>
                   <SelectContent
@@ -298,17 +289,8 @@ export default function TournamentRequest() {
               name="city"
               control={control}
               render={({ field }) => (
-                <Select
-                  value={field.value || ''}
-                  onValueChange={field.onChange}
-                  disabled={!countryCode}
-                >
-                  <SelectTrigger
-                    id="city"
-                    className={selectTriggerInputClass}
-                    aria-label="City"
-                    disabled={!countryCode}
-                  >
+                <Select value={field.value || ''} onValueChange={field.onChange} disabled={!countryCode}>
+                  <SelectTrigger id="city" className={selectTriggerInputClass} aria-label="City" disabled={!countryCode}>
                     <SelectValue placeholder="Select City" />
                   </SelectTrigger>
                   <SelectContent
@@ -391,12 +373,7 @@ export default function TournamentRequest() {
           </FormField>
 
           <FormField label="Prize (optional):" htmlFor="prize">
-            <Input
-              id="prize"
-              placeholder="e.g. Car, Bike, 1 Lakh"
-              error={errors.prize?.message}
-              {...register('prize')}
-            />
+            <Input id="prize" placeholder="e.g. Car, Bike, 1 Lakh" error={errors.prize?.message} {...register('prize')} />
           </FormField>
 
           <Button

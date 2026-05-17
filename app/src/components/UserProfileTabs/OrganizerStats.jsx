@@ -1,7 +1,6 @@
 import { CONTENT_MAX_WIDTH } from './constants';
 
-const LABEL_CLASS =
-  'text-[14px] font-bold uppercase tracking-wide text-[#A2A6AB]';
+const LABEL_CLASS = 'text-[14px] font-bold uppercase tracking-wide text-[#A2A6AB]';
 const VALUE_CLASS = 'text-sm font-normal text-white';
 
 const STATS = [
@@ -25,9 +24,7 @@ function StatItem({ label, value }) {
 export function OrganizerStats() {
   return (
     <div className={`mx-auto w-full ${CONTENT_MAX_WIDTH} py-6`}>
-      <h2 className="text-[12px] font-bold tracking-wide text-white uppercase">
-        ORGANIZER STATS
-      </h2>
+      <h2 className="text-[12px] font-bold tracking-wide text-white uppercase">ORGANIZER STATS</h2>
       <div className="mt-4 grid grid-cols-3 gap-x-8 gap-y-5">
         {STATS.map(({ label, value }) => (
           <StatItem key={label} label={label} value={value} />

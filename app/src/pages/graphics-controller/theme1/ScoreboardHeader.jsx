@@ -4,7 +4,7 @@
  * Props — all optional, fall back gracefully when session.context is not yet set:
  *   battingTeam   { name, shortCode, logoUrl, score, overs }
  *   bowlingTeam   { name, shortCode, logoUrl }
- *   batters       [{ name, runs, balls, onStrike? }, ...]
+ *   batters       [{ name, runs, balls, onStrike }, ...] — use {@link normalizeBatters} upstream
  *   bowler        { name, figures, overs }
  *   currentOverBalls  ["6", "2", "W", ...]
  *
@@ -16,6 +16,7 @@ import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 const defaultTeamLogo = `${CLOUDFRONT_APP_BASE}/images/standard/team-logo.png`;
 const controllerFrameBg = `${CLOUDFRONT_APP_BASE}/images/background/controller-frame.png`;
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const rightHalfStyle = {
   backgroundImage: `url(${controllerFrameBg})`,
   backgroundPosition: 'center',
@@ -23,13 +24,14 @@ export const rightHalfStyle = {
   backgroundSize: 'cover',
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const separatorStyle = {
   background: 'linear-gradient(180deg, #080807 0%, #FFFFFF 50%, #080807 100%)',
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const batterSeparatorStyle = {
-  background:
-    'linear-gradient(90deg, rgba(8,8,7,1) 0%, rgba(255,255,255,0.95) 50%, rgba(8,8,7,1) 100%)',
+  background: 'linear-gradient(90deg, rgba(8,8,7,1) 0%, rgba(255,255,255,0.95) 50%, rgba(8,8,7,1) 100%)',
 };
 
 /** Truncated batter name + gold asterisk when on strike (synced from graphic context). */
@@ -39,15 +41,12 @@ export function BatterNameLabel({ name, onStrike, className = '' }) {
   }
   return (
     <span
-      className={`inline-flex min-w-0 max-w-full items-baseline gap-0 ${className}`.trim()}
+      className={`inline-flex max-w-full min-w-0 items-baseline gap-0 ${className}`.trim()}
       title={onStrike ? 'On strike' : undefined}
     >
       <span className="min-w-0 truncate">{name}</span>
       {onStrike ? (
-        <span
-          className="shrink-0 font-black leading-none text-[#DA9811]"
-          aria-hidden
-        >
+        <span className="shrink-0 leading-none font-black text-[#DA9811]" aria-hidden>
           *
         </span>
       ) : null}
@@ -75,16 +74,17 @@ export function FreeHitMicroBadge() {
  * scheme exactly.  Free-hit deliveries end with "*" (e.g. "4*") and receive a
  * gold ring plus the FreeHitMicroBadge overlay in the caller.
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function ballChipClass(ball) {
   const isFreeHit = typeof ball === 'string' && ball.endsWith('*');
   const key = isFreeHit ? ball.slice(0, -1) : ball;
   const ring = isFreeHit ? ' ring-2 ring-[#DA9811]' : '';
 
-  if (key === 'W')  return `bg-red-600 text-white${ring}`;
+  if (key === 'W') return `bg-red-600 text-white${ring}`;
   if (key === 'RH') return `bg-[#6B7280] text-white${ring}`;
-  if (key === '4')  return `bg-[#22C55E] text-white${ring}`;
-  if (key === '6')  return `bg-[#A855F7] text-white${ring}`;
-  if (key === '0')  return `border border-[#3B3B35] bg-[#141412] text-white/60${ring}`;
+  if (key === '4') return `bg-[#22C55E] text-white${ring}`;
+  if (key === '6') return `bg-[#A855F7] text-white${ring}`;
+  if (key === '0') return `border border-[#3B3B35] bg-[#141412] text-white/60${ring}`;
   if (/(WD|NB|LB|B)$/.test(key)) return `bg-[#1E1E1C] border border-[#DA9811] text-[#DA9811]${ring}`;
   return `bg-[#DA9811] text-[#080807]${ring}`;
 }
@@ -100,11 +100,9 @@ export function AtStageOverChips({ balls = [], align = 'start' }) {
   }
   const end = align === 'end';
   return (
-    <div
-      className={`mt-0.5 flex w-full min-w-0 flex-col gap-0.5 sm:mt-1 ${end ? 'items-end' : 'items-start'}`}
-    >
+    <div className={`mt-0.5 flex w-full min-w-0 flex-col gap-0.5 sm:mt-1 ${end ? 'items-end' : 'items-start'}`}>
       <span
-        className={`text-[5px] font-semibold uppercase tracking-wide text-[#9CA3AF] sm:text-[9px] ${end ? 'text-right' : ''}`}
+        className={`text-[5px] font-semibold tracking-wide text-[#9CA3AF] uppercase sm:text-[9px] ${end ? 'text-right' : ''}`}
       >
         This over
       </span>
@@ -115,7 +113,7 @@ export function AtStageOverChips({ balls = [], align = 'start' }) {
           return (
             <span key={index} className="relative inline-block shrink-0">
               <span
-                className={`inline-flex h-[14px] min-w-[14px] items-center justify-center rounded-md px-[3px] text-[7px] font-bold leading-none sm:h-[22px] sm:min-w-[22px] sm:rounded-md sm:px-1 sm:text-[11px] ${ballChipClass(ball)}`}
+                className={`inline-flex h-[14px] min-w-[14px] items-center justify-center rounded-md px-[3px] text-[7px] leading-none font-bold sm:h-[22px] sm:min-w-[22px] sm:rounded-md sm:px-1 sm:text-[11px] ${ballChipClass(ball)}`}
               >
                 {displayLabel === '0' ? '•' : displayLabel}
               </span>
@@ -144,9 +142,9 @@ export function ScoreboardAtStageMirror({
   const batter1 = batters[1] ?? null;
 
   return (
-    <div className="flex min-w-0 max-w-[48%] flex-1 flex-col items-end gap-0.5 sm:max-w-none sm:gap-1">
+    <div className="flex max-w-[48%] min-w-0 flex-1 flex-col items-end gap-0.5 sm:max-w-none sm:gap-1">
       {inningsLabel ? (
-        <p className="m-0 max-w-full truncate text-right text-[5px] font-bold uppercase leading-none text-[#DA9811] sm:text-[10px]">
+        <p className="m-0 max-w-full truncate text-right text-[5px] leading-none font-bold text-[#DA9811] uppercase sm:text-[10px]">
           {inningsLabel}
         </p>
       ) : null}
@@ -183,7 +181,7 @@ export function ScoreboardAtStageMirror({
                   <span className="max-w-[36px] truncate text-[8px] font-medium text-[#E8E8E8]">
                     <BatterNameLabel
                       name={batter0.name}
-                      onStrike={!!(batter0.onStrike ?? batter0.on_strike)}
+                      onStrike={!!batter0.onStrike}
                       className="text-[8px] font-medium text-[#E8E8E8]"
                     />
                   </span>
@@ -198,7 +196,7 @@ export function ScoreboardAtStageMirror({
                     <span className="max-w-[36px] truncate text-[8px] font-medium text-[#E8E8E8]">
                       <BatterNameLabel
                         name={batter1.name}
-                        onStrike={!!(batter1.onStrike ?? batter1.on_strike)}
+                        onStrike={!!batter1.onStrike}
                         className="text-[8px] font-medium text-[#E8E8E8]"
                       />
                     </span>
@@ -216,7 +214,7 @@ export function ScoreboardAtStageMirror({
                 <span className="max-w-[72px] truncate text-right text-[14px] font-medium text-[#E8E8E8]">
                   <BatterNameLabel
                     name={batter0.name}
-                    onStrike={!!(batter0.onStrike ?? batter0.on_strike)}
+                    onStrike={!!batter0.onStrike}
                     className="text-[14px] font-medium text-[#E8E8E8]"
                   />
                 </span>
@@ -231,7 +229,7 @@ export function ScoreboardAtStageMirror({
                   <span className="max-w-[72px] truncate text-right text-[14px] font-medium text-[#E8E8E8]">
                     <BatterNameLabel
                       name={batter1.name}
-                      onStrike={!!(batter1.onStrike ?? batter1.on_strike)}
+                      onStrike={!!batter1.onStrike}
                       className="text-[14px] font-medium text-[#E8E8E8]"
                     />
                   </span>
@@ -290,7 +288,7 @@ export function ScoreboardLeft({ battingTeam = {}, batters = [] }) {
               <span className="w-[30px] text-[8px] font-medium text-[#E8E8E8]">
                 <BatterNameLabel
                   name={batter0.name}
-                  onStrike={!!(batter0.onStrike ?? batter0.on_strike)}
+                  onStrike={!!batter0.onStrike}
                   className="w-full text-[8px] font-medium text-[#E8E8E8]"
                 />
               </span>
@@ -305,7 +303,7 @@ export function ScoreboardLeft({ battingTeam = {}, batters = [] }) {
                 <span className="w-[30px] text-[8px] font-medium text-[#E8E8E8]">
                   <BatterNameLabel
                     name={batter1.name}
-                    onStrike={!!(batter1.onStrike ?? batter1.on_strike)}
+                    onStrike={!!batter1.onStrike}
                     className="w-full text-[8px] font-medium text-[#E8E8E8]"
                   />
                 </span>
@@ -325,7 +323,7 @@ export function ScoreboardLeft({ battingTeam = {}, batters = [] }) {
               <span className="w-[72px] text-[14px] font-medium text-[#E8E8E8]">
                 <BatterNameLabel
                   name={batter0.name}
-                  onStrike={!!(batter0.onStrike ?? batter0.on_strike)}
+                  onStrike={!!batter0.onStrike}
                   className="w-full text-[14px] font-medium text-[#E8E8E8]"
                 />
               </span>
@@ -340,7 +338,7 @@ export function ScoreboardLeft({ battingTeam = {}, batters = [] }) {
                 <span className="w-[72px] text-[14px] font-medium text-[#E8E8E8]">
                   <BatterNameLabel
                     name={batter1.name}
-                    onStrike={!!(batter1.onStrike ?? batter1.on_strike)}
+                    onStrike={!!batter1.onStrike}
                     className="w-full text-[14px] font-medium text-[#E8E8E8]"
                   />
                 </span>
@@ -374,22 +372,16 @@ export function BowlingTeamBadge({ bowlingTeam = {} }) {
 /** Bowler name + figures + over balls — right-side bowling block. */
 export function BowlerBlock({ bowler = {}, currentOverBalls = [] }) {
   return (
-    <div className="flex items-center pl-1 sm:pl-6">
+    <div className="flex items-center pl-0.5 sm:pl-6">
       <div>
         <div className="mb-0.5 flex items-end justify-between gap-2 font-medium sm:mb-2 sm:gap-6">
           <div>
-            <p className="text-[8px] leading-none text-[#E8E8E8] sm:text-[14px]">
-              {bowler.name}
-            </p>
+            <p className="text-[7px] leading-none text-[#E8E8E8] sm:text-[14px]">{bowler.name}</p>
             <div className="mt-0.5 h-px w-[28px] sm:mt-2 sm:w-[72px]" style={batterSeparatorStyle} />
           </div>
           <div className="mb-1 flex items-baseline gap-1 sm:gap-4">
-            <p className="text-[8px] leading-none text-[#E8E8E8] sm:text-[18px]">
-              {bowler.figures}
-            </p>
-            <p className="text-[8px] leading-none text-[#E8E8E8] sm:text-[14px]">
-              {bowler.overs}
-            </p>
+            <p className="text-[7px] leading-none text-[#E8E8E8] sm:text-[18px]">{bowler.figures}</p>
+            <p className="text-[7px] leading-none text-[#E8E8E8] sm:text-[14px]">{bowler.overs}</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-0.5 sm:gap-1">
@@ -399,7 +391,7 @@ export function BowlerBlock({ bowler = {}, currentOverBalls = [] }) {
             return (
               <div key={index} className="relative shrink-0">
                 <span
-                  className={`inline-flex items-center justify-center rounded-full leading-none font-bold h-[14px] min-w-[14px] px-[3px] text-[8px] sm:h-[24px] sm:min-w-[24px] sm:px-[5px] sm:text-[12px] ${ballChipClass(ball)}`}
+                  className={`inline-flex h-[14px] min-w-[14px] items-center justify-center rounded-full px-[3px] text-[8px] leading-none font-bold sm:h-[24px] sm:min-w-[24px] sm:px-[5px] sm:text-[12px] ${ballChipClass(ball)}`}
                 >
                   {displayLabel}
                 </span>
@@ -412,4 +404,3 @@ export function BowlerBlock({ bowler = {}, currentOverBalls = [] }) {
     </div>
   );
 }
-

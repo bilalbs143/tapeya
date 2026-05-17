@@ -24,6 +24,7 @@
  *
  *      {/* optional — fused to bottom of panel *\/}
  *      <DialogSaveButton onClick={handleSave}>Save</DialogSaveButton>
+
  *
  *    </DialogContentDark>
  *  </Dialog>
@@ -72,18 +73,15 @@ const OVERLAY = 'fixed inset-0 z-50 bg-black/50';
 const CONTENT_DARK =
   'fixed left-1/2 top-1/2 z-50 flex h-[447px] w-full max-w-[380px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[17px] border-2 p-0 shadow-xl';
 
-const SCROLL_BODY =
-  'min-h-0 flex-1 overflow-y-auto px-5 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden';
+const SCROLL_BODY = 'min-h-0 flex-1 overflow-y-auto px-5 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden';
 
 const SAVE_BUTTON =
-  'w-full shrink-0 rounded-b-[17px] bg-[#E8E8E8] py-4 text-base font-bold uppercase tracking-wide text-black transition-colors hover:bg-[#d8d8d8] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#FFB703]';
+  'w-full shrink-0 rounded-b-[17px] bg-[#E8E8E8] py-4 text-base font-bold uppercase tracking-wide text-black transition-colors hover:bg-[#d8d8d8] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#FFB703] disabled:pointer-events-none disabled:opacity-50';
 
-const HEADER_ROW =
-  'flex min-h-[52px] shrink-0 items-center justify-between gap-3 px-5 py-3';
+const HEADER_ROW = 'flex min-h-[52px] shrink-0 items-center justify-between gap-3 px-5 py-3';
 
 // Golden uppercase title — the standard style for every dialog header.
-const TITLE_PRIMARY =
-  'text-left text-[14px] font-bold uppercase leading-tight tracking-wide text-[#DA9811]';
+const TITLE_PRIMARY = 'text-left text-[14px] font-bold uppercase leading-tight tracking-wide text-[#DA9811]';
 
 const CLOSE_BUTTON =
   'inline-flex size-9 shrink-0 items-center justify-center rounded-md text-[#A2A6AB] transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFB703] focus-visible:ring-offset-2 focus-visible:ring-offset-[#080807] disabled:pointer-events-none disabled:opacity-30';
@@ -105,15 +103,7 @@ export const dialogPrimaryTitleClass = TITLE_PRIMARY;
 
 function CloseIcon() {
   return (
-    <svg
-      width={15}
-      height={15}
-      viewBox="0 0 15 15"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      aria-hidden
-    >
+    <svg width={15} height={15} viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
       <path d={CLOSE_ICON_PATH} />
     </svg>
   );
@@ -123,17 +113,8 @@ function CloseIcon() {
 // Overlay
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const DialogOverlay = forwardRef(function DialogOverlay(
-  { className = '', ...props },
-  ref,
-) {
-  return (
-    <DialogPrimitive.Overlay
-      ref={ref}
-      className={`${OVERLAY} ${className}`.trim()}
-      {...props}
-    />
-  );
+export const DialogOverlay = forwardRef(function DialogOverlay({ className = '', ...props }, ref) {
+  return <DialogPrimitive.Overlay ref={ref} className={`${OVERLAY} ${className}`.trim()} {...props} />;
 });
 
 DialogOverlay.displayName = 'DialogOverlay';
@@ -152,12 +133,7 @@ DialogOverlay.displayName = 'DialogOverlay';
  * Outside taps do not dismiss the dialog (overlay is still visible for context);
  * use the header close control, in-content actions, or Escape to dismiss.
  */
-export function DialogContentDark({
-  className = '',
-  children,
-  onPointerDownOutside,
-  ...props
-}) {
+export function DialogContentDark({ className = '', children, onPointerDownOutside, ...props }) {
   return (
     <DialogPrimitive.Portal>
       <DialogOverlay />
@@ -185,10 +161,7 @@ export function DialogContentDark({
  * Styled × close button for dark modal headers.
  * Used automatically by DialogHeaderRow unless hideClose / closeSlot is passed.
  */
-export const DialogHeaderClose = forwardRef(function DialogHeaderClose(
-  { className = '', ...props },
-  ref,
-) {
+export const DialogHeaderClose = forwardRef(function DialogHeaderClose({ className = '', ...props }, ref) {
   return (
     <DialogPrimitive.Close
       ref={ref}
@@ -271,8 +244,8 @@ export function DialogScrollBody({ className = '', ...props }) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Light-coloured primary action button fused to the bottom of the panel.
- * Not a form submit by default — wire an onClick handler.
+ * Primary action button fused to the bottom of the panel.
+ * Single consistent style across all dialogs — matches the User Edit Dialog "Save" button.
  *
  * For async saves:
  *   <DialogSaveButton onClick={handleSave} disabled={isSaving}>
@@ -280,13 +253,7 @@ export function DialogScrollBody({ className = '', ...props }) {
  *   </DialogSaveButton>
  */
 export function DialogSaveButton({ className = '', ...props }) {
-  return (
-    <button
-      type="button"
-      className={`${SAVE_BUTTON} ${className}`.trim()}
-      {...props}
-    />
-  );
+  return <button type="button" className={`${SAVE_BUTTON} ${className}`.trim()} {...props} />;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -309,10 +276,5 @@ export function DialogTitle({ className = '', ...props }) {
  * Renders in the app's standard secondary text colour (#A2A6AB).
  */
 export function DialogDescription({ className = '', ...props }) {
-  return (
-    <DialogPrimitive.Description
-      className={`text-sm text-[#A2A6AB] ${className}`.trim()}
-      {...props}
-    />
-  );
+  return <DialogPrimitive.Description className={`text-sm text-[#A2A6AB] ${className}`.trim()} {...props} />;
 }

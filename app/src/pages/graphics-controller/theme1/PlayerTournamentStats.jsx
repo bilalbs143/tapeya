@@ -20,10 +20,7 @@ export default function PlayerTournamentStats({
     <PlayerShowcasePage>
       <PlayerShowcaseSection title="This Tournament">
         <div className="mt-6 grid grid-cols-1 gap-4 sm:mt-7 sm:grid-cols-[1fr_114px_0.7fr] sm:items-end sm:gap-2">
-          <PlayerAvatarStage
-            playerName={playerName}
-            playerImageUrl={playerImageUrl}
-          />
+          <PlayerAvatarStage playerName={playerName} playerImageUrl={playerImageUrl} />
           <PlayerVerticalStatList stats={stats} />
           <div>
             <img

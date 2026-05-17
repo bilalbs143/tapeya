@@ -5,8 +5,7 @@
 
 import * as ToastPrimitive from '@radix-ui/react-toast';
 
-const viewport =
-  'fixed top-0 right-0 z-[100] flex max-h-screen w-full flex-col p-4 md:max-w-[420px]';
+const viewport = 'fixed top-0 right-0 z-[100] flex max-h-screen w-full flex-col p-4 md:max-w-[420px]';
 const root =
   'group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border bg-white p-4 shadow-lg transition-all';
 const title = 'text-sm font-semibold';
@@ -25,12 +24,7 @@ export const ToastAction = ToastPrimitive.Action;
 export const ToastClose = ToastPrimitive.Close;
 
 export function ToastViewportStyled({ className = '', ...props }) {
-  return (
-    <ToastPrimitive.Viewport
-      className={`${viewport} ${className}`}
-      {...props}
-    />
-  );
+  return <ToastPrimitive.Viewport className={`${viewport} ${className}`} {...props} />;
 }
 
 export function ToastRootStyled({ className = '', ...props }) {
@@ -38,32 +32,17 @@ export function ToastRootStyled({ className = '', ...props }) {
 }
 
 export function ToastTitleStyled({ className = '', ...props }) {
-  return (
-    <ToastPrimitive.Title className={`${title} ${className}`} {...props} />
-  );
+  return <ToastPrimitive.Title className={`${title} ${className}`} {...props} />;
 }
 
 export function ToastDescriptionStyled({ className = '', ...props }) {
-  return (
-    <ToastPrimitive.Description
-      className={`${description} ${className}`}
-      {...props}
-    />
-  );
+  return <ToastPrimitive.Description className={`${description} ${className}`} {...props} />;
 }
 
 export function ToastActionStyled({ className = '', altText, ...props }) {
-  return (
-    <ToastPrimitive.Action
-      altText={altText}
-      className={`${action} ${className}`}
-      {...props}
-    />
-  );
+  return <ToastPrimitive.Action altText={altText} className={`${action} ${className}`} {...props} />;
 }
 
 export function ToastCloseStyled({ className = '', ...props }) {
-  return (
-    <ToastPrimitive.Close className={`${close} ${className}`} {...props} />
-  );
+  return <ToastPrimitive.Close className={`${close} ${className}`} {...props} />;
 }

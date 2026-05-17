@@ -20,9 +20,7 @@ export default function DraftingHome() {
           <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
             +
           </span>
-          <span className="text-[16px] font-bold text-[#A2A6AB]">
-            Create Teams
-          </span>
+          <span className="text-[16px] font-bold text-[#A2A6AB]">Create Teams</span>
         </Button>
       </div>
     </div>

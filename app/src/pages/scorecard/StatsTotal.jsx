@@ -192,10 +192,7 @@ function getStatsTotalRows(stats, normalizedType) {
       inns: p.innings ?? 0,
       balls: p.balls_faced ?? '-',
       hs: '-',
-      avg:
-        p.average != null && !Number.isNaN(p.average)
-          ? Number(p.average).toFixed(2)
-          : '-',
+      avg: p.average != null && !Number.isNaN(p.average) ? Number(p.average).toFixed(2) : '-',
       sr: '-',
       six: p.sixes ?? '-',
       four: p.fours ?? '-',
@@ -217,10 +214,7 @@ function getStatsTotalRows(stats, normalizedType) {
       inns: '-',
       bbi: '-',
       ave: '-',
-      econ:
-        p.economy != null && !Number.isNaN(p.economy)
-          ? Number(p.economy).toFixed(2)
-          : '-',
+      econ: p.economy != null && !Number.isNaN(p.economy) ? Number(p.economy).toFixed(2) : '-',
       sr: '-',
       4: '-',
       5: '-',
@@ -257,8 +251,7 @@ export default function StatsTotal() {
   const navigate = useNavigate();
   const { tournamentId, statType } = useParams();
 
-  const normalizedType =
-    statType && VALID_STAT_TYPES.includes(statType) ? statType : 'fours';
+  const normalizedType = statType && VALID_STAT_TYPES.includes(statType) ? statType : 'fours';
 
   const {
     data: stats,
@@ -290,9 +283,7 @@ export default function StatsTotal() {
       <div className="bg-black">
         {header}
         <Container className="pb-6">
-          <p className="mt-4 text-center text-[13px] text-[#A2A6AB]">
-            Select a tournament to view stats.
-          </p>
+          <p className="mt-4 text-center text-[13px] text-[#A2A6AB]">Select a tournament to view stats.</p>
         </Container>
       </div>
     );
@@ -303,9 +294,7 @@ export default function StatsTotal() {
       <div className="bg-black">
         {header}
         <Container className="pb-6">
-          <p className="mt-4 text-center text-[13px] text-[#A2A6AB]">
-            Loading stats…
-          </p>
+          <p className="mt-4 text-center text-[13px] text-[#A2A6AB]">Loading stats…</p>
         </Container>
       </div>
     );
@@ -316,9 +305,7 @@ export default function StatsTotal() {
       <div className="bg-black">
         {header}
         <Container className="pb-6">
-          <p className="mt-4 text-center text-[13px] text-red-400">
-            Failed to load stats.
-          </p>
+          <p className="mt-4 text-center text-[13px] text-red-400">Failed to load stats.</p>
         </Container>
       </div>
     );
@@ -340,13 +327,9 @@ export default function StatsTotal() {
       {header}
 
       <Container className="pb-6">
-        <h2 className="text-center text-base font-bold tracking-wide text-white uppercase">
-          {mainTitle}
-        </h2>
+        <h2 className="text-center text-base font-bold tracking-wide text-white uppercase">{mainTitle}</h2>
 
-        <h3 className="mt-4 text-left text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
-          {subheading}
-        </h3>
+        <h3 className="mt-4 text-left text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">{subheading}</h3>
 
         {/* CURSOR: extract into <StatsTable columns rows> shared with
                    RankingStatsTotal.jsx (see top). */}
@@ -382,9 +365,7 @@ export default function StatsTotal() {
                       key={col.key}
                       className={`${COL_TD} border-r border-b ${BORDER} bg-transparent ${i === 0 ? 'border-l' : ''}`}
                     >
-                      {col.key === 'player'
-                        ? `${row.rank} ${row.playerName}`
-                        : row[col.key]}
+                      {col.key === 'player' ? `${row.rank} ${row.playerName}` : row[col.key]}
                     </td>
                   ))}
                 </tr>

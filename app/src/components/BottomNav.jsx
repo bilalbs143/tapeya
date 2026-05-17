@@ -27,12 +27,7 @@ export function BottomNav() {
     const isActive = isTabActive(location.pathname, path);
 
     return (
-      <Link
-        key={path}
-        to={path}
-        className="flex flex-col items-center gap-1"
-        aria-current={isActive ? 'page' : undefined}
-      >
+      <Link key={path} to={path} className="flex flex-col items-center gap-1" aria-current={isActive ? 'page' : undefined}>
         <img src={icon} alt="" className="h-6 w-6 shrink-0 object-contain" />
         <span className="text-[13px] font-medium text-[#A2A6AB]">{label}</span>
       </Link>
@@ -64,16 +59,10 @@ export function BottomNav() {
         <Link
           to="/home"
           aria-current={isLogoActive ? 'page' : undefined}
-          className={`flex -translate-y-6 items-center justify-center transition-opacity active:opacity-80 ${
-            isLogoActive ? 'opacity-100' : 'opacity-90'
-          }`}
+          className={`flex -translate-y-6 items-center justify-center transition-opacity active:opacity-80 ${isLogoActive ? 'opacity-100' : 'opacity-90'}`}
         >
           <div className="flex h-[60px] w-[60px] items-center justify-center rounded-full bg-[#003C71] outline-[6px] outline-offset-0 outline-black">
-            <img
-              src={logo}
-              alt="Tapeya"
-              className="ml-1 h-[25px] w-auto object-contain"
-            />
+            <img src={logo} alt="Tapeya" className="ml-1 h-[25px] w-auto object-contain" />
           </div>
         </Link>
 

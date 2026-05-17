@@ -10,23 +10,17 @@ import { useGetHeroSlidersQuery } from '@/store/api/heroSliderApi';
 const AUTOPLAY_DELAY_MS = 5000;
 
 // Resolved once at module load — avoids <picture> clone issues in Swiper loop.
-const isDesktopOnLoad =
-  typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
+const isDesktopOnLoad = typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
 
 export function HeroSlider() {
   const { data: slides = [], isLoading } = useGetHeroSlidersQuery();
   const [activeIndex, setActiveIndex] = useState(0);
 
   if (isLoading) {
-    return (
-      <div className="h-[160px] animate-pulse overflow-hidden rounded-[17px] bg-[#141412] lg:h-[250px]" />
-    );
+    return <div className="h-[160px] animate-pulse overflow-hidden rounded-[17px] bg-[#141412] lg:h-[250px]" />;
   }
 
-  const list =
-    Array.isArray(slides) && slides.length > 0
-      ? slides.filter((s) => s?.image_mobile)
-      : null;
+  const list = Array.isArray(slides) && slides.length > 0 ? slides.filter((s) => s?.image_mobile) : null;
   if (!list?.length) return null;
 
   // Pad to at least 9 items so Swiper loop always has real slides (not just
@@ -57,23 +51,15 @@ export function HeroSlider() {
         }}
         loop
         // realIndex mod list.length gives the correct dot to highlight
-        onRealIndexChange={(swiper) =>
-          setActiveIndex(swiper.realIndex % list.length)
-        }
+        onRealIndexChange={(swiper) => setActiveIndex(swiper.realIndex % list.length)}
         className="hero-swiper"
       >
         {loopItems.map((slide, index) => {
-          const src = isDesktopOnLoad
-            ? (slide.image_desktop || slide.image_mobile)
-            : slide.image_mobile;
+          const src = isDesktopOnLoad ? slide.image_desktop || slide.image_mobile : slide.image_mobile;
           return (
             <SwiperSlide key={`${slide.id}-${index}`}>
               <div className="h-[160px] overflow-hidden rounded-[17px] lg:h-[300px]">
-                <img
-                  src={src}
-                  alt={slide.alt ?? slide.title ?? ''}
-                  className="h-full w-full object-cover"
-                />
+                <img src={src} alt={slide.alt ?? slide.title ?? ''} className="h-full w-full object-cover" />
               </div>
             </SwiperSlide>
           );
@@ -86,9 +72,7 @@ export function HeroSlider() {
           {list.map((_, i) => (
             <span
               key={i}
-              className={`inline-block h-2 rounded-full transition-all duration-300 ${
-                i === activeIndex ? 'w-4 bg-[#fdb022]' : 'w-2 bg-white/40'
-              }`}
+              className={`inline-block h-2 rounded-full transition-all duration-300 ${i === activeIndex ? 'w-4 bg-[#fdb022]' : 'w-2 bg-white/40'}`}
             />
           ))}
         </div>

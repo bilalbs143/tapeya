@@ -1,10 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
-import {
-  useGetNotificationsQuery,
-  useMarkAllNotificationsReadMutation,
-} from '@/store/api/notificationApi';
+import { useGetNotificationsQuery, useMarkAllNotificationsReadMutation } from '@/store/api/notificationApi';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 import { Container } from '@/ui/Container';
 
@@ -46,7 +43,13 @@ function mapApiNotificationToCard(notification) {
 
   const nameSource = data.customer_name || data.user_name || data.tournament_name || '';
   const fallback = nameSource
-    ? nameSource.split(' ').filter(Boolean).map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+    ? nameSource
+        .split(' ')
+        .filter(Boolean)
+        .map((w) => w[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase()
     : 'NT';
 
   return {
@@ -55,9 +58,7 @@ function mapApiNotificationToCard(notification) {
     fallback,
     boldText,
     regularText,
-    timestamp: notification.created_at
-      ? new Date(notification.created_at).toLocaleString()
-      : '',
+    timestamp: notification.created_at ? new Date(notification.created_at).toLocaleString() : '',
     // actionLabel is reserved for future use
     actionLabel: null,
     unread: !notification.read_at,
@@ -71,9 +72,7 @@ function NotificationCard({ notification, onActionClick }) {
     <article className="flex items-start gap-3 rounded-[17px] bg-[#141412] p-4">
       <Avatar className="h-12 w-12 shrink-0 rounded-full bg-[#252520]">
         {avatar && <AvatarImage src={avatar} alt="" />}
-        <AvatarFallback className="bg-[#252520] text-sm font-semibold text-[#141412]">
-          {fallback}
-        </AvatarFallback>
+        <AvatarFallback className="bg-[#252520] text-sm font-semibold text-[#141412]">{fallback}</AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1">
         <p className="text-[12px] leading-snug text-white">
@@ -93,9 +92,7 @@ function NotificationCard({ notification, onActionClick }) {
               {actionLabel}
             </button>
           )}
-          {unread && (
-            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#4CAF50]" aria-hidden />
-          )}
+          {unread && <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#4CAF50]" aria-hidden />}
         </div>
       )}
     </article>
@@ -107,13 +104,17 @@ export default function NotificationCenter() {
   const [items, setItems] = useState([]);
   const [markAllError, setMarkAllError] = useState(false);
 
-  const { data: apiResponse, isLoading, isFetching, isError } = useGetNotificationsQuery({
+  const {
+    data: apiResponse,
+    isLoading,
+    isFetching,
+    isError,
+  } = useGetNotificationsQuery({
     page,
     per_page: PAGE_SIZE,
   });
 
-  const [markAllNotificationsRead, { isLoading: isMarkingAll }] =
-    useMarkAllNotificationsReadMutation();
+  const [markAllNotificationsRead, { isLoading: isMarkingAll }] = useMarkAllNotificationsReadMutation();
 
   // Merge incoming page data into `items`, deduplicating by id.
   // Page 1 refetches update the top of the list without discarding loaded pages.
@@ -144,8 +145,7 @@ export default function NotificationCenter() {
     [items],
   );
 
-  const hasMoreOlder =
-    (apiResponse?.meta?.current_page ?? 0) < (apiResponse?.meta?.last_page ?? 0);
+  const hasMoreOlder = (apiResponse?.meta?.current_page ?? 0) < (apiResponse?.meta?.last_page ?? 0);
 
   const loadOlder = () => {
     if (!hasMoreOlder || isFetching) return;
@@ -170,9 +170,7 @@ export default function NotificationCenter() {
 
       <Container>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
-            LATEST
-          </h2>
+          <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">LATEST</h2>
           <button
             type="button"
             onClick={handleMarkAllAsRead}
@@ -183,9 +181,7 @@ export default function NotificationCenter() {
           </button>
         </div>
 
-        {isLoading && (
-          <p className="mb-3 text-[12px] text-[#A2A6AB]">Loading notifications…</p>
-        )}
+        {isLoading && <p className="mb-3 text-[12px] text-[#A2A6AB]">Loading notifications…</p>}
 
         {(isError || markAllError) && (
           <p className="mb-3 text-[12px] text-[#DA9811]">
@@ -204,9 +200,7 @@ export default function NotificationCenter() {
             ))}
           </ul>
         ) : (
-          !isLoading && (
-            <p className="text-[12px] text-[#A2A6AB]">You have no notifications yet.</p>
-          )
+          !isLoading && <p className="text-[12px] text-[#A2A6AB]">You have no notifications yet.</p>
         )}
 
         {hasMoreOlder && (

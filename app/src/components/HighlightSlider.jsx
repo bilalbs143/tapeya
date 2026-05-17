@@ -19,9 +19,7 @@ export function HighlightSlider() {
   return (
     <section className="space-y-3">
       <header className="flex items-center justify-between">
-        <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase md:text-[16px]">
-          Highlights
-        </h2>
+        <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase md:text-[16px]">Highlights</h2>
         <Link
           to="/highlights"
           className="text-[12px] font-bold text-[#DA9811] transition-opacity active:opacity-80 md:text-[16px]"
@@ -47,11 +45,7 @@ export function HighlightSlider() {
         {SLIDES.map(({ id, image, alt }) => (
           <SwiperSlide key={id}>
             <div className="h-[160px] overflow-hidden rounded-[17px] sm:h-[180px] md:h-[300px]">
-              <img
-                src={image}
-                alt={alt}
-                className="h-full w-full object-cover"
-              />
+              <img src={image} alt={alt} className="h-full w-full object-cover" />
             </div>
           </SwiperSlide>
         ))}

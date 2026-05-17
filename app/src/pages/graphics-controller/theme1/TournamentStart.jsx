@@ -10,18 +10,11 @@ const frameStyle = {
   backgroundSize: 'cover',
 };
 
-const teamLogoClassName =
-  'h-[88px] w-[88px] rounded-full object-cover sm:h-[104px] sm:w-[104px]';
+const teamLogoClassName = 'h-[88px] w-[88px] rounded-full object-cover sm:h-[104px] sm:w-[104px]';
 const teamNameClassName =
   'w-[120px] text-center text-[20px] leading-none font-semibold tracking-[0.02em] text-[#DA9811] uppercase sm:w-[150px] sm:text-[24px]';
 
-export default function TournamentStart({
-  homeTeam = {},
-  awayTeam = {},
-  matchNumber = '',
-  venue = '',
-  tournamentName = '',
-}) {
+export default function TournamentStart({ homeTeam = {}, awayTeam = {}, matchNumber = '', venue = '', tournamentName = '' }) {
   const homeLogo = homeTeam.logoUrl ?? defaultTeamLogo;
   const awayLogo = awayTeam.logoUrl ?? defaultTeamLogo;
   const homeName = homeTeam.shortCode || homeTeam.name || 'Home';
@@ -42,9 +35,7 @@ export default function TournamentStart({
 
         <div className="mb-6 flex w-full max-w-[448px] items-center justify-between sm:mb-8">
           <img src={homeLogo} alt={homeTeam.name || 'Home team'} className={teamLogoClassName} />
-          <span className="px-3 text-[45px] leading-none font-bold text-[#DA9811] uppercase sm:text-[54px]">
-            VS
-          </span>
+          <span className="px-3 text-[45px] leading-none font-bold text-[#DA9811] uppercase sm:text-[54px]">VS</span>
           <img src={awayLogo} alt={awayTeam.name || 'Away team'} className={teamLogoClassName} />
         </div>
 

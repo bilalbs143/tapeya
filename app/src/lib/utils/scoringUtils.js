@@ -5,7 +5,7 @@
  * Used by: ScoringMatch, ScoringTab, PartnershipTab, StartMatch, ScorecardTab.
  */
 
-import { checkInningsEnd, isLegalDelivery } from './cricketRules';
+import { isLegalDelivery } from './cricketRules';
 
 // ─── Date / time formatting ───────────────────────────────────────────────────
 
@@ -15,8 +15,7 @@ import { checkInningsEnd, isLegalDelivery } from './cricketRules';
  */
 export function formatDateForApi(value) {
   if (!value) return '';
-  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value))
-    return value;
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
   const mmdd = (value ?? '').match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
   if (mmdd) {
     const [, mm, dd, yyyy] = mmdd;
@@ -58,14 +57,47 @@ function normaliseBallType(ball) {
   if (ball.is_bye) return { ...ball, type: 'bye' };
   if (ball.is_leg_bye) return { ...ball, type: 'lb' };
   const pr = Number(ball.penalty_runs ?? ball.penaltyRuns ?? 0) || 0;
-  if (
-    pr > 0 &&
-    !ball.is_wicket &&
-    Number(ball.runs ?? 0) === 0
-  ) {
+  if (pr > 0 && !ball.is_wicket && Number(ball.runs ?? 0) === 0) {
     return { ...ball, type: 'penalty', penaltyRuns: pr, runs: 0 };
   }
   return { ...ball, type: 'runs' };
+}
+
+// ─── Pre-ball crease (PATCH /matches/:id/crease) ─────────────────────────────
+
+/**
+ * Build the API patch for pending openers / bowler before the first ball.
+ * Striker is always `batsmenOnCrease[strikerIndex]`; non-striker is the other slot.
+ *
+ * @returns {{ next_batter_id?: number, next_non_striker_id?: number, next_bowler_id?: number }}
+ */
+export function buildPreBallCreasePatch({
+  batsmenOnCrease = [],
+  bowlersInTable = [],
+  strikerIndex = 0,
+  currentBowlerIndex = 0,
+} = {}) {
+  const si = Math.min(Math.max(0, Number(strikerIndex) || 0), Math.max(0, batsmenOnCrease.length - 1));
+  const striker = batsmenOnCrease[si];
+  const nonStriker = batsmenOnCrease.length >= 2 ? batsmenOnCrease[1 - si] : null;
+
+  const bi = Math.min(Math.max(0, Number(currentBowlerIndex) || 0), Math.max(0, bowlersInTable.length - 1));
+  const bowler = bowlersInTable[bi];
+
+  /** @type {{ next_batter_id?: number, next_non_striker_id?: number, next_bowler_id?: number }} */
+  const patch = {};
+
+  if (striker?.id != null && striker.id !== '') {
+    patch.next_batter_id = Number(striker.id);
+  }
+  if (nonStriker?.id != null && nonStriker.id !== '') {
+    patch.next_non_striker_id = Number(nonStriker.id);
+  }
+  if (bowler?.id != null && bowler.id !== '') {
+    patch.next_bowler_id = Number(bowler.id);
+  }
+
+  return patch;
 }
 
 // ─── Per-ball run extraction ──────────────────────────────────────────────────
@@ -111,9 +143,12 @@ export function extraBallLabel(type, runs) {
       const extra = Math.max(1, r) - 1;
       return extra > 0 ? `${extra}NB` : 'NB';
     }
-    case 'bye':  return r > 1 ? `${r}B`  : 'B';
-    case 'lb':   return r > 1 ? `${r}LB` : 'LB';
-    default:     return type.toUpperCase();
+    case 'bye':
+      return r > 1 ? `${r}B` : 'B';
+    case 'lb':
+      return r > 1 ? `${r}LB` : 'LB';
+    default:
+      return type.toUpperCase();
   }
 }
 
@@ -126,175 +161,6 @@ export function ballsToOvers(balls) {
   const b = Number(balls) || 0;
   if (b === 0) return '0';
   return `${Math.floor(b / 6)}.${b % 6}`;
-}
-
-// ─── Extras breakdown ─────────────────────────────────────────────────────────
-
-/**
- * Compute a detailed extras breakdown from ball history.
- *
- * @param {object[]} ballHistory  UI-shape balls
- * @returns {{
- *   wides:        number,
- *   noBalls:      number,
- *   byes:         number,
- *   legByes:      number,
- *   penaltyRuns:  number,
- *   total:        number,
- * }}
- */
-export function computeExtrasBreakdown(ballHistory) {
-  const list = ballHistory ?? [];
-  let wides = 0;
-  let noBalls = 0;
-  let byes = 0;
-  let legByes = 0;
-  let penaltyRuns = 0;
-
-  for (const ball of list) {
-    const b = normaliseBallType(ball);
-    if (!b) continue;
-    const r = b.runs ?? 0;
-    switch (b.type) {
-      case 'wd':
-        wides += r;
-        break;
-      case 'nb':
-        noBalls += r;
-        break;
-      case 'bye':
-        byes += r;
-        break;
-      case 'lb':
-        legByes += r;
-        break;
-      default:
-        break;
-    }
-    penaltyRuns +=
-      Number(b.penaltyRuns ?? b.penalty_runs ?? 0) || 0;
-  }
-
-  return {
-    wides,
-    noBalls,
-    byes,
-    legByes,
-    penaltyRuns,
-    total: wides + noBalls + byes + legByes + penaltyRuns,
-  };
-}
-
-// ─── Live score computation ───────────────────────────────────────────────────
-
-/**
- * Compute live innings score from ball history.
- *
- * Wicket count excludes 'retired_hurt' (does not count as a dismissal).
- *
- * @param {object[]} ballHistory
- * @param {number|string|undefined} maxOvers  match.overs
- * @returns {{
- *   totalRuns: number,
- *   totalWickets: number,
- *   totalBalls: number,
- *   validDeliveries: number,
- *   oversDisplay: string,
- *   maxOvers: number|undefined,
- *   extras: number,
- *   extrasBreakdown: object,
- *   crr: string,
- * }}
- */
-export function computeLiveScore(ballHistory, maxOvers) {
-  const list = ballHistory ?? [];
-  let totalRuns = 0;
-  let totalWickets = 0;
-  let validDeliveries = 0;
-
-  for (const ball of list) {
-    const b = normaliseBallType(ball);
-    if (!b) continue;
-
-    totalRuns += getRunsFromBall(ball);
-
-    // Retired hurt does NOT count as a wicket.
-    if (b.type === 'out' && b.dismissalType !== 'retired_hurt')
-      totalWickets += 1;
-
-    if (isLegalDelivery(b.type)) validDeliveries += 1;
-  }
-
-  const extrasBreakdown = computeExtrasBreakdown(list);
-  const oversDisplay = ballsToOvers(validDeliveries);
-  const max =
-    maxOvers != null && maxOvers !== '' ? Number(maxOvers) : undefined;
-  const crr =
-    validDeliveries > 0
-      ? (totalRuns / (validDeliveries / 6)).toFixed(1)
-      : '0.0';
-
-  return {
-    totalRuns,
-    totalWickets,
-    totalBalls: list.length,
-    validDeliveries,
-    oversDisplay,
-    maxOvers: max,
-    extras: extrasBreakdown.total,
-    extrasBreakdown,
-    crr,
-  };
-}
-
-// ─── Innings-end projection ───────────────────────────────────────────────────
-
-/**
- * If `pendingBall` were appended to `ballHistory`, would the innings be over?
- *
- * @param {object} p
- * @param {object[]} p.ballHistory
- * @param {object}   p.pendingBall
- * @param {number|string|undefined} p.maxOvers
- * @param {number|undefined} p.playersPerSide
- * @param {number|undefined} p.targetScore
- */
-export function wouldInningsEndAfterBall({
-  ballHistory = [],
-  pendingBall,
-  maxOvers,
-  playersPerSide,
-  targetScore,
-}) {
-  if (!pendingBall) return false;
-  const next = [...ballHistory, pendingBall];
-  const live = computeLiveScore(next, maxOvers);
-  const { ended } = checkInningsEnd({
-    totalRuns: live.totalRuns,
-    totalWickets: live.totalWickets,
-    validDeliveries: live.validDeliveries,
-    maxOvers: live.maxOvers,
-    playersPerSide,
-    targetScore,
-  });
-  return ended;
-}
-
-// ─── Partnership ──────────────────────────────────────────────────────────────
-
-/**
- * Compute current partnership from two batsmen on the crease.
- * Partnership resets on wicket; with only one batsman → 0(0).
- *
- * @param {object[]} batsmenOnCrease
- * @returns {{ runs: number, balls: number }}
- */
-export function computePartnership(batsmenOnCrease) {
-  const list = batsmenOnCrease ?? [];
-  if (list.length !== 2) return { runs: 0, balls: 0 };
-  const runs = list.reduce((s, b) => s + (b?.runs ?? 0), 0);
-  const balls = list.reduce((s, b) => s + (b?.balls ?? 0), 0);
-  return { runs, balls };
 }
 
 // ─── Ball list + over summaries (for BallsTab) ────────────────────────────────
@@ -335,10 +201,8 @@ export function buildBallListWithMetaAndOverSummaries(ballHistory) {
 
     // Batsman stats accumulation
     if (strikerId) {
-      if (!activeBatsmen.find((b) => b.id === strikerId))
-        activeBatsmen.push({ id: strikerId });
-      if (!batsmanStatsMap.has(strikerId))
-        batsmanStatsMap.set(strikerId, { runs: 0, balls: 0 });
+      if (!activeBatsmen.find((b) => b.id === strikerId)) activeBatsmen.push({ id: strikerId });
+      if (!batsmanStatsMap.has(strikerId)) batsmanStatsMap.set(strikerId, { runs: 0, balls: 0 });
       const bs = batsmanStatsMap.get(strikerId);
       if (ball.type === 'runs') bs.runs += ballRuns;
       else if (ball.type === 'nb') bs.runs += ball.runsOffBat ?? Math.max(0, ballRuns - 1);
@@ -366,36 +230,27 @@ export function buildBallListWithMetaAndOverSummaries(ballHistory) {
       const bws = bowlerStatsMap.get(bowlerId);
       bws.runs += ballRuns;
       if (!isExtra) bws.balls += 1;
-      if (ball.type === 'out' && ball.dismissalType !== 'retired_hurt')
-        bws.wickets += 1;
+      if (ball.type === 'out' && ball.dismissalType !== 'retired_hurt') bws.wickets += 1;
       currentOverBowlerId = bowlerId;
       currentOverBowlerRuns = ballRuns;
     }
 
     cumulativeRuns += getRunsFromBall(ball);
-    if (ball.type === 'out' && ball.dismissalType !== 'retired_hurt')
-      cumulativeWickets += 1;
+    if (ball.type === 'out' && ball.dismissalType !== 'retired_hurt') cumulativeWickets += 1;
     currentOverRuns += getRunsFromBall(ball);
     currentOverBalls.push(ball);
 
     if (!isExtra) validCount += 1;
 
     // Over-ball label: e.g. "2.3" = 3rd ball of 2nd over
-    const overBallLabel =
-      validCount > 0
-        ? `${Math.floor((validCount - 1) / 6) + 1}.${((validCount - 1) % 6) + 1}`
-        : '0.0';
+    const overBallLabel = validCount > 0 ? `${Math.floor((validCount - 1) / 6) + 1}.${((validCount - 1) % 6) + 1}` : '0.0';
 
     list.push({ ball, overBallLabel, validCount, overIndex: currentOverIdx });
 
     // End of a completed over (every 6th legal delivery)
     if (!isExtra && validCount % 6 === 0) {
       // Maiden detection: over bowler conceded 0 runs this over
-      if (
-        currentOverBowlerId &&
-        bowlerStatsMap.has(currentOverBowlerId) &&
-        currentOverBowlerRuns === 0
-      ) {
+      if (currentOverBowlerId && bowlerStatsMap.has(currentOverBowlerId) && currentOverBowlerRuns === 0) {
         bowlerStatsMap.get(currentOverBowlerId).maidens += 1;
       }
 
@@ -431,4 +286,187 @@ export function buildBallListWithMetaAndOverSummaries(ballHistory) {
   }
 
   return { ballListWithMeta: list, overSummaries: summaries };
+}
+
+// ─── Over strip ───────────────────────────────────────────────────────────────
+
+const LEGAL_DELIVERIES_PER_OVER = 6;
+
+/**
+ * Build the over-strip data from ball history.
+ * Returns an array of { overIndex, runs, balls } — one entry per completed or
+ * current over.
+ *
+ * @param {object[]} ballHistory  UI-shape balls
+ * @returns {{ overIndex: number, runs: number, balls: object[] }[]}
+ */
+export function buildOversFromBalls(ballHistory) {
+  const list = [];
+  let currentOver = [];
+  let validCount = 0;
+
+  for (const ball of ballHistory ?? []) {
+    currentOver.push(ball);
+    if (isLegalDelivery(ball.type)) validCount += 1;
+    if (validCount === LEGAL_DELIVERIES_PER_OVER) {
+      const runs = currentOver.reduce((s, b) => s + getRunsFromBall(b), 0);
+      list.push({ overIndex: list.length + 1, runs, balls: currentOver });
+      currentOver = [];
+      validCount = 0;
+    }
+  }
+  if (currentOver.length > 0) {
+    const runs = currentOver.reduce((s, b) => s + getRunsFromBall(b), 0);
+    list.push({ overIndex: list.length + 1, runs, balls: currentOver });
+  }
+  return list;
+}
+
+// ─── Match result helpers ─────────────────────────────────────────────────────
+
+/**
+ * Compute a human-readable match result summary from live scores.
+ * Used by MatchResultBanner and the innings-end dialog.
+ *
+ * @param {object|null} match
+ * @param {{ totalRuns, totalWickets }|null} liveScore1
+ * @param {{ totalRuns, totalWickets }|null} liveScore2
+ * @returns {{ tie, winningTeamId, titleLine, marginLine?, detailLine?, scoresLine? }}
+ */
+export function computeMatchResultSummary(match, liveScore1, liveScore2) {
+  const inn1 = liveScore1?.totalRuns ?? 0;
+  const inn2 = liveScore2?.totalRuns ?? 0;
+  const wickets2 = liveScore2?.totalWickets ?? 0;
+  const target = inn1 + 1;
+  const maxWickets = match?.playersPerSide != null ? Number(match.playersPerSide) - 1 : 10;
+  const teamA = match?.teamA?.name?.trim() ?? '';
+  const teamB = match?.teamB?.name?.trim() ?? '';
+  const teamAId = match?.teamA?.id != null ? Number(match.teamA.id) : null;
+  const teamBId = match?.teamB?.id != null ? Number(match.teamB.id) : null;
+
+  const chasingWon = inn2 >= target;
+  const runsShort = target - 1 - inn2;
+
+  if (!chasingWon && runsShort === 0) {
+    return {
+      tie: true,
+      winningTeamId: null,
+      titleLine: 'Match tied',
+      detailLine: [teamA, teamB].filter(Boolean).length
+        ? `${teamA || 'Team A'} ${inn1} · ${teamB || 'Team B'} ${inn2}`
+        : `Scores level at ${inn1} runs each.`,
+    };
+  }
+
+  if (chasingWon) {
+    const wkts = maxWickets - wickets2;
+    const margin = `${wkts} wicket${wkts !== 1 ? 's' : ''}`;
+    return {
+      tie: false,
+      winningTeamId: teamBId,
+      titleLine: teamB ? `${teamB} won` : 'Chasing team won',
+      marginLine: `by ${margin}`,
+      scoresLine: `${teamA || 'Team A'} ${inn1} · ${teamB || 'Team B'} ${inn2}`,
+    };
+  }
+
+  const margin = `${runsShort} run${runsShort !== 1 ? 's' : ''}`;
+  return {
+    tie: false,
+    winningTeamId: teamAId,
+    titleLine: teamA ? `${teamA} won` : 'Defending team won',
+    marginLine: `by ${margin}`,
+    scoresLine: `${teamA || 'Team A'} ${inn1} · ${teamB || 'Team B'} ${inn2}`,
+  };
+}
+
+/**
+ * Resolve the Man of the Match winner scope (single team vs both teams).
+ *
+ * @param {number|null|undefined} winningTeamIdFromApi
+ * @param {{ tie?: boolean, winningTeamId?: number|null }|undefined} liveSummary
+ * @returns {{ winnerId: number|null, useBothTeams: boolean }}
+ */
+export function resolveManOfMatchWinnerScope(winningTeamIdFromApi, liveSummary) {
+  const apiWinner = winningTeamIdFromApi != null ? Number(winningTeamIdFromApi) : null;
+  const liveWinner = liveSummary?.tie || liveSummary?.winningTeamId == null ? null : Number(liveSummary.winningTeamId);
+  const winnerId = apiWinner ?? liveWinner;
+  const useBothTeams = winnerId == null || Number.isNaN(winnerId);
+
+  return { winnerId: useBothTeams ? null : winnerId, useBothTeams };
+}
+
+/**
+ * Pure helper — merge two player arrays, deduplicating by id.
+ *
+ * @param {object[]} teamAPlayers
+ * @param {object[]} teamBPlayers
+ * @returns {object[]}
+ */
+export function mergeDedupedPlayerRows(teamAPlayers, teamBPlayers) {
+  const map = new Map();
+  for (const p of [...teamAPlayers, ...teamBPlayers]) {
+    if (p && Number.isFinite(p.id)) map.set(p.id, p);
+  }
+  return [...map.values()];
+}
+
+/**
+ * Playing-eleven players eligible for Man of the Match.
+ * Winner: winning team only. Tie / no decisive winner: both teams (deduped).
+ *
+ * @param {object} params
+ * @param {number|null} params.winningTeamIdFromApi
+ * @param {object|null} params.liveSummary
+ * @param {number|null} params.homeTeamId
+ * @param {number|null} params.awayTeamId
+ * @param {{ player_ids: number[] }|undefined} params.playingElevenHome
+ * @param {{ player_ids: number[] }|undefined} params.playingElevenAway
+ * @param {object[]} params.squadHome
+ * @param {object[]} params.squadAway
+ * @returns {{ id: number, name: string, teamId: number|null }[]}
+ */
+export function buildPlayerOfMatchCandidates({
+  winningTeamIdFromApi,
+  liveSummary,
+  homeTeamId,
+  awayTeamId,
+  playingElevenHome,
+  playingElevenAway,
+  squadHome,
+  squadAway,
+}) {
+  const squadArr = (s) => (Array.isArray(s) ? s : []);
+  const nameFor = (squad, uid) => {
+    const u = squadArr(squad).find((p) => String(p.id ?? p.user_id) === String(uid));
+    return u?.name ?? u?.nickname ?? `Player ${uid}`;
+  };
+  const mapTeam = (teamId, ids, squad) =>
+    (ids ?? [])
+      .map((rawId) => {
+        const id = Number(rawId);
+        if (!Number.isFinite(id)) return null;
+        return {
+          id,
+          name: nameFor(squad, rawId),
+          teamId: teamId != null ? Number(teamId) : null,
+        };
+      })
+      .filter(Boolean);
+
+  const hid = homeTeamId != null ? Number(homeTeamId) : null;
+  const aid = awayTeamId != null ? Number(awayTeamId) : null;
+  const homeIds = playingElevenHome?.player_ids ?? [];
+  const awayIds = playingElevenAway?.player_ids ?? [];
+
+  const { winnerId, useBothTeams } = resolveManOfMatchWinnerScope(winningTeamIdFromApi, liveSummary);
+
+  if (useBothTeams) {
+    return mergeDedupedPlayerRows(mapTeam(hid, homeIds, squadHome), mapTeam(aid, awayIds, squadAway));
+  }
+
+  if (hid != null && winnerId === hid) return mapTeam(hid, homeIds, squadHome);
+  if (aid != null && winnerId === aid) return mapTeam(aid, awayIds, squadAway);
+
+  return mergeDedupedPlayerRows(mapTeam(hid, homeIds, squadHome), mapTeam(aid, awayIds, squadAway));
 }

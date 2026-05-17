@@ -56,9 +56,7 @@ export class SubmissionDetailDialogComponent implements OnInit {
   public isSubmitting = false;
   public readonly emptyCell = EMPTY_CELL;
   public readonly statusClass = getStatusClass;
-  public statusOptions$: Observable<EnumOption[]> = this.enumsService.getOptions(
-    'tournament_interest_submission_status'
-  );
+  public statusOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('tournament_interest_submission_status');
 
   public ngOnInit(): void {
     this.submission = this.data.submission;

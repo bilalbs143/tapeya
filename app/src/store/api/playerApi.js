@@ -9,20 +9,14 @@ export const playerApi = baseApi.injectEndpoints({
     getPlayers: builder.query({
       query: (params = {}) => ({
         url: '/players',
-        params:
-          params?.search != null && String(params.search).trim() !== ''
-            ? { search: String(params.search).trim() }
-            : {},
+        params: params?.search != null && String(params.search).trim() !== '' ? { search: String(params.search).trim() } : {},
       }),
       transformResponse: (response) => response?.data ?? response ?? [],
     }),
     searchPlayers: builder.query({
       query: (search = '') => ({
         url: '/players',
-        params:
-          search != null && String(search).trim() !== ''
-            ? { search: String(search).trim() }
-            : {},
+        params: search != null && String(search).trim() !== '' ? { search: String(search).trim() } : {},
       }),
       transformResponse: (response) => response?.data ?? response ?? [],
     }),
@@ -32,21 +26,14 @@ export const playerApi = baseApi.injectEndpoints({
         params: { tournament_type },
       }),
       transformResponse: (response) => response?.data ?? response ?? null,
-      providesTags: (result, error, { userId }) =>
-        result ? [{ type: 'User', id: `stats-${userId}` }] : [],
+      providesTags: (result, error, { userId }) => (result ? [{ type: 'User', id: `stats-${userId}` }] : []),
     }),
     /**
      * Open-tournament rank; pass category + sort from user playing role (see getProfileRankingParamsByPlayingRole).
      * Params may be omitted — API derives category/sort from the user's profile when absent.
      */
     getPlayerRankingPosition: builder.query({
-      query: ({
-        userId,
-        tournament_type = 'open_tournament',
-        category,
-        sort,
-        min_innings,
-      }) => ({
+      query: ({ userId, tournament_type = 'open_tournament', category, sort, min_innings }) => ({
         url: `/users/${userId}/ranking-position`,
         params: {
           tournament_type,
@@ -62,8 +49,7 @@ export const playerApi = baseApi.injectEndpoints({
         url: `/users/${userId}/teams`,
       }),
       transformResponse: (response) => response?.data ?? response ?? [],
-      providesTags: (result, error, userId) =>
-        result?.length ? [{ type: 'User', id: `teams-${userId}` }] : [],
+      providesTags: (result, error, userId) => (result?.length ? [{ type: 'User', id: `teams-${userId}` }] : []),
     }),
   }),
 });

@@ -22,8 +22,7 @@ export const dashboardRoutes: Routes = [
   },
   {
     path: '',
-    loadComponent: () =>
-      import('./cricket-dashboard/cricket-dashboard.component').then((m) => m.CricketDashboardComponent),
+    loadComponent: () => import('./cricket-dashboard/cricket-dashboard.component').then((m) => m.CricketDashboardComponent),
     data: {
       title: 'Cricket Dashboard',
       urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Cricket Dashboard' }],

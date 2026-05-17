@@ -103,9 +103,7 @@ export default function Login() {
         }),
       );
 
-      const result = await dispatch(
-        authApi.endpoints.getMe.initiate(undefined, { forceRefetch: true }),
-      );
+      const result = await dispatch(authApi.endpoints.getMe.initiate(undefined, { forceRefetch: true }));
 
       if (isUnauthorizedError(result.error)) {
         // Token expired or invalid — drop saved profile (stale token) and continue with OTP.
@@ -202,9 +200,7 @@ export default function Login() {
 function ProfilePicker({ profiles, tappingProfile, busy, onTap, onRemove, onUseOther }) {
   return (
     <>
-      <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">
-        Choose an account
-      </h2>
+      <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">Choose an account</h2>
 
       <div className="scrollbar-hide mb-2 flex max-h-[280px] flex-col gap-3 overflow-y-auto p-[10px]">
         {profiles.map((profile) => {
@@ -231,22 +227,15 @@ function ProfilePicker({ profiles, tappingProfile, busy, onTap, onRemove, onUseO
                 className="flex min-w-0 flex-1 items-center gap-4 pr-8 text-left transition-opacity focus:ring-2 focus:ring-[#DA9811] focus:ring-offset-2 focus:ring-offset-black focus:outline-none active:opacity-90 disabled:opacity-60"
               >
                 <Avatar className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-[#1A1A1A]">
-                  <AvatarImage
-                    src={profile.avatarUrl ?? profile.avatar_url ?? defaultAvatar}
-                    alt=""
-                  />
+                  <AvatarImage src={profile.avatarUrl ?? profile.avatar_url ?? defaultAvatar} alt="" />
                   <AvatarFallback className="bg-[#DA9811] text-sm font-bold text-[#080807]">
                     {getInitials(profile.name, profile.nickname)}
                   </AvatarFallback>
                 </Avatar>
 
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[14px] font-bold text-white">
-                    {isTapping ? 'Signing in…' : profile.name}
-                  </p>
-                  <p className="truncate text-[12px] font-medium text-[#A2A6AB]">
-                    {formatPhoneMasked(profile.phone)}
-                  </p>
+                  <p className="truncate text-[14px] font-bold text-white">{isTapping ? 'Signing in…' : profile.name}</p>
+                  <p className="truncate text-[12px] font-medium text-[#A2A6AB]">{formatPhoneMasked(profile.phone)}</p>
                 </div>
               </button>
             </div>
@@ -269,14 +258,8 @@ function ProfilePicker({ profiles, tappingProfile, busy, onTap, onRemove, onUseO
 
 function PhoneForm({ control, errors, error, busy, hasSavedProfiles, onSubmit, onFocus, onBack }) {
   return (
-    <form
-      onSubmit={onSubmit}
-      onFocus={onFocus}
-      className="space-y-4 lg:mx-auto lg:max-w-[400px]"
-    >
-      <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">
-        Login with your account
-      </h2>
+    <form onSubmit={onSubmit} onFocus={onFocus} className="space-y-4 lg:mx-auto lg:max-w-[400px]">
+      <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">Login with your account</h2>
 
       {hasSavedProfiles && (
         <button
@@ -292,22 +275,12 @@ function PhoneForm({ control, errors, error, busy, hasSavedProfiles, onSubmit, o
         <Controller
           name="phone"
           control={control}
-          render={({ field }) => (
-            <PhoneInput
-              id="phone"
-              placeholder="3001234567"
-              error={errors.phone?.message}
-              {...field}
-            />
-          )}
+          render={({ field }) => <PhoneInput id="phone" placeholder="3001234567" error={errors.phone?.message} {...field} />}
         />
       </FormField>
 
       {error && (
-        <p
-          className="rounded-[6px] border border-[#1A1A1A] bg-red-500/20 px-4 py-2.5 text-[14px] text-red-200"
-          role="alert"
-        >
+        <p className="rounded-[6px] border border-[#1A1A1A] bg-red-500/20 px-4 py-2.5 text-[14px] text-red-200" role="alert">
           {getApiErrorMessage(error, 'Could not send OTP. Please try again.')}
         </p>
       )}

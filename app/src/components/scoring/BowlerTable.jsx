@@ -7,7 +7,6 @@
  */
 
 import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
-import { ballsToOvers } from '@/lib/utils/scoringUtils';
 import { Button } from '@/ui/Button';
 
 const DASH = '—';
@@ -32,13 +31,7 @@ function EditIcon() {
 
 function PlusIcon() {
   return (
-    <svg
-      className="h-4 w-4"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={5}
-    >
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
     </svg>
   );
@@ -68,18 +61,16 @@ export function BowlerTable({
   onAddBowler,
   onReplaceBowler,
 }) {
-  const safeIdx = Math.min(
-    Math.max(0, currentBowlerIndex),
-    Math.max(0, bowlersInTable.length - 1),
-  );
+  const safeIdx = Math.min(Math.max(0, currentBowlerIndex), Math.max(0, bowlersInTable.length - 1));
   const activeBowler = bowlersInTable[safeIdx] ?? null;
   const showPlaceholder = !hasSquad || !activeBowler;
   const showAddOverlay = bowlersInTable.length === 0 && !matchComplete;
 
-  const overs = activeBowler ? ballsToOvers(activeBowler.balls ?? 0) : DASH;
-  const econ = activeBowler
-    ? economyRate(activeBowler.runs ?? 0, activeBowler.balls ?? 0)
-    : DASH;
+  // Use the overs string from the API/state directly — it is already correctly
+  // formatted (e.g. "0.3"). ballsToOvers() would return "0" because the raw
+  // ball count is not tracked in this table shape.
+  const overs = activeBowler ? (activeBowler.overs ?? '0') : DASH;
+  const econ = activeBowler ? economyRate(activeBowler.runs ?? 0, activeBowler.balls ?? 0) : DASH;
 
   return (
     <div className="relative overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -118,35 +109,20 @@ export function BowlerTable({
         </thead>
         <tbody>
           {showPlaceholder ? (
-            Array.from({ length: PLACEHOLDER_ROWS }, (_, i) => (
-              <PlaceholderRow key={`bowler-placeholder-${i}`} />
-            ))
+            Array.from({ length: PLACEHOLDER_ROWS }, (_, i) => <PlaceholderRow key={`bowler-placeholder-${i}`} />)
           ) : (
             <tr key={activeBowler.id} aria-current="true">
-              <td
-                className={`border-r border-b border-l ${BORDER} bg-black px-4 py-3`}
-              >
+              <td className={`border-r border-b border-l ${BORDER} bg-black px-4 py-3`}>
                 <span className="flex items-center gap-2">
-                  <span className="text-[12px] font-medium text-[#DA9811]">
-                    {activeBowler.name ?? DASH}
-                  </span>
+                  <span className="text-[12px] font-medium text-[#DA9811]">{activeBowler.name ?? DASH}</span>
                   <span
                     className="scoring-blink-dot inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full bg-red-500"
                     aria-label="Bowling"
                   />
                 </span>
               </td>
-              {[
-                overs,
-                activeBowler.maidens ?? 0,
-                activeBowler.runs ?? 0,
-                activeBowler.wickets ?? 0,
-                econ,
-              ].map((val, i) => (
-                <td
-                  key={i}
-                  className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white`}
-                >
+              {[overs, activeBowler.maidens ?? 0, activeBowler.runs ?? 0, activeBowler.wickets ?? 0, econ].map((val, i) => (
+                <td key={i} className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white`}>
                   {val ?? DASH}
                 </td>
               ))}
@@ -172,9 +148,7 @@ export function BowlerTable({
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#DA9811] text-[#080807]">
               <PlusIcon />
             </span>
-            <span className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
-              Add Bowler
-            </span>
+            <span className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">Add Bowler</span>
           </Button>
         </div>
       )}
@@ -186,15 +160,10 @@ function PlaceholderRow() {
   return (
     <tr className="pointer-events-none" aria-hidden>
       <td className={`border-r border-b border-l ${BORDER} bg-black px-4 py-3`}>
-        <span className="block min-h-[1.125rem] text-[12px] text-white/20">
-          {' '}
-        </span>
+        <span className="block min-h-[1.125rem] text-[12px] text-white/20"> </span>
       </td>
       {[0, 1, 2, 3, 4].map((j) => (
-        <td
-          key={j}
-          className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white/20`}
-        >
+        <td key={j} className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white/20`}>
           {' '}
         </td>
       ))}

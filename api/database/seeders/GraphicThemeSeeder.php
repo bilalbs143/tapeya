@@ -34,7 +34,6 @@ class GraphicThemeSeeder extends Seeder
             'name' => 'Tapeya Basic',
             'config_schema' => null,
             'default_config' => $defaults,
-            'graphics_url_template' => null,
             'is_active' => true,
         ]);
 
@@ -51,7 +50,6 @@ class GraphicThemeSeeder extends Seeder
             'name' => 'Tapeya Broadcast Static',
             'config_schema' => null,
             'default_config' => $broadcastDefaults,
-            'graphics_url_template' => null,
             'is_active' => true,
         ]);
     }

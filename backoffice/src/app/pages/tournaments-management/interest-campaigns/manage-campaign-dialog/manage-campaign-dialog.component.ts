@@ -1,13 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import {
-  AbstractControl,
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
-} from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -128,9 +121,7 @@ export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
     this.tournamentSearch$.next('');
 
     this.sub.add(
-      this.form
-        .get('tournament_name')
-        ?.valueChanges.subscribe((v) => this.maybeSyncSlug(typeof v === 'string' ? v : ''))
+      this.form.get('tournament_name')?.valueChanges.subscribe((v) => this.maybeSyncSlug(typeof v === 'string' ? v : ''))
     );
     this.sub.add(
       this.form.get('tournament')?.valueChanges.subscribe((v: TournamentPickerRow | string | null) => {
@@ -286,9 +277,7 @@ export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
     const body: CreateInterestCampaignPayload | FormData = usesMultipart ? this.toFormData(payload) : payload;
 
     this.isSubmitting = true;
-    const obs$ = this.isEdit
-      ? this.campaignService.update(this.data.campaign!.id, body)
-      : this.campaignService.create(body);
+    const obs$ = this.isEdit ? this.campaignService.update(this.data.campaign!.id, body) : this.campaignService.create(body);
 
     obs$.pipe(finalize(() => (this.isSubmitting = false))).subscribe({
       next: () => this.dialogRef.close(true),

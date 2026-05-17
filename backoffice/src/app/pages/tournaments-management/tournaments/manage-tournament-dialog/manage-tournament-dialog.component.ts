@@ -1,13 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
-import {
-  AbstractControl,
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
-} from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -143,9 +136,7 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
     this.setupOrganizerSearch();
     // Load initial organizer options (for create mode dropdown)
     this.organizerSearch$.next('');
-    this.sub.add(
-      this.form.get('country')?.valueChanges.subscribe((countryName) => this.loadCitiesForCountry(countryName))
-    );
+    this.sub.add(this.form.get('country')?.valueChanges.subscribe((countryName) => this.loadCitiesForCountry(countryName)));
   }
 
   private setupOrganizerSearch(): void {
@@ -259,18 +250,12 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
         venue_name: [source?.venue_name ?? '', [Validators.required, Validators.maxLength(255)]],
         start_date: [source?.start_date ? this.parseDate(String(source.start_date)) : null, [Validators.required]],
         end_date: [source?.end_date ? this.parseDate(String(source.end_date)) : null, [Validators.required]],
-        number_of_teams: [
-          source?.number_of_teams ?? null,
-          [Validators.required, Validators.min(1), Validators.max(500)],
-        ],
+        number_of_teams: [source?.number_of_teams ?? null, [Validators.required, Validators.min(1), Validators.max(500)]],
         group_mode: [groupMode, [Validators.required]],
         number_of_groups: [numberOfGroups, [Validators.min(2), Validators.max(16)]],
         country: [source?.country ?? '', [Validators.required, Validators.maxLength(100)]],
         // City starts disabled until a country is selected; enabled reactively via loadCitiesForCountry.
-        city: [
-          { value: source?.city ?? '', disabled: !source?.country },
-          [Validators.required, Validators.maxLength(100)],
-        ],
+        city: [{ value: source?.city ?? '', disabled: !source?.country }, [Validators.required, Validators.maxLength(100)]],
         match_timings: [normalizeEnumValue(source?.match_timings, ''), [Validators.required]],
         status: [normalizeEnumValue(tournament?.status_enum ?? tournament?.status, 'active'), [Validators.required]],
         prize: [source?.prize ?? '', [Validators.maxLength(255)]],
@@ -280,10 +265,7 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
   }
 
   public endDateOrderShowError(): boolean {
-    return !!(
-      this.form.errors?.['dateOrder'] &&
-      (this.form.get('end_date')?.touched || this.form.get('start_date')?.touched)
-    );
+    return !!(this.form.errors?.['dateOrder'] && (this.form.get('end_date')?.touched || this.form.get('start_date')?.touched));
   }
 
   public onDisplayImageSelected(ev: unknown): void {

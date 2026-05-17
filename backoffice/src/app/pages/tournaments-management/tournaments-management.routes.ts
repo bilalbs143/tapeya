@@ -16,11 +16,7 @@ export const TournamentsManagementRoutes: Routes = [
       import('./tournament-requests/tournament-requests-list.component').then((m) => m.TournamentRequestsListComponent),
     data: {
       title: 'Tournament Requests',
-      urls: [
-        { title: 'Dashboard', url: '/dashboard' },
-        { title: 'Tournaments Management' },
-        { title: 'Tournament Requests' },
-      ],
+      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Tournaments Management' }, { title: 'Tournament Requests' }],
     },
   },
   {
@@ -29,19 +25,13 @@ export const TournamentsManagementRoutes: Routes = [
       import('./interest-campaigns/interest-campaigns-list.component').then((m) => m.InterestCampaignsListComponent),
     data: {
       title: 'Interest Campaigns',
-      urls: [
-        { title: 'Dashboard', url: '/dashboard' },
-        { title: 'Tournaments Management' },
-        { title: 'Interest Campaigns' },
-      ],
+      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Tournaments Management' }, { title: 'Interest Campaigns' }],
     },
   },
   {
     path: 'interest-campaigns/:campaignId',
     loadComponent: () =>
-      import('./interest-campaigns/campaign-detail/campaign-detail-shell.component').then(
-        (m) => m.CampaignDetailShellComponent
-      ),
+      import('./interest-campaigns/campaign-detail/campaign-detail-shell.component').then((m) => m.CampaignDetailShellComponent),
     data: {
       title: 'Interest Campaign',
       urls: [
@@ -139,9 +129,7 @@ export const TournamentsManagementRoutes: Routes = [
   {
     path: 'match-controller/:matchId',
     loadComponent: () =>
-      import('./match-controller/match-controller-dashboard.component').then(
-        (m) => m.MatchControllerDashboardComponent
-      ),
+      import('./match-controller/match-controller-dashboard.component').then((m) => m.MatchControllerDashboardComponent),
     data: {
       title: 'Match Controller',
       urls: [

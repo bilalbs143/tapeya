@@ -11,14 +11,7 @@ import { statsTotalPaths } from '@/pages/scorecard/statsTotalFlow';
 import { useGetRankingsQuery } from '@/store/api/rankingApi';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 import { Container } from '@/ui/Container';
-import {
-  profileListClass,
-  profileTriggerClass,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/ui/Tabs';
+import { profileListClass, profileTriggerClass, Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/Tabs';
 
 const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
@@ -78,73 +71,39 @@ function toOtherCard(row, key) {
 function PlayerCard({ player, rank, variant = 'batter' }) {
   const isBowler = variant === 'bowler';
   const isOther = variant === 'other';
-  const keyStat = isBowler
-    ? player.wickets
-    : isOther
-      ? player.stat
-      : player.score;
+  const keyStat = isBowler ? player.wickets : isOther ? player.stat : player.score;
   const detailText = isBowler
-    ? `Innings: ${player.innings} Economy: ${
-        player.economy != null ? Number(player.economy).toFixed(2) : '-'
-      }`
-    : `Innings: ${player.innings} Average: ${
-        player.average != null ? Number(player.average).toFixed(2) : '-'
-      }`;
+    ? `Innings: ${player.innings} Economy: ${player.economy != null ? Number(player.economy).toFixed(2) : '-'}`
+    : `Innings: ${player.innings} Average: ${player.average != null ? Number(player.average).toFixed(2) : '-'}`;
 
   return (
     <div className="flex items-center gap-3 rounded-[17px] bg-[#141412] p-3">
       <Avatar className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-white/10">
-        <AvatarImage
-          src={player.image || defaultAvatar}
-          alt=""
-          className="object-cover"
-        />
-        <AvatarFallback className="bg-zinc-700 text-white">
-          {(player.name ?? '').slice(0, 2).toUpperCase()}
-        </AvatarFallback>
+        <AvatarImage src={player.image || defaultAvatar} alt="" className="object-cover" />
+        <AvatarFallback className="bg-zinc-700 text-white">{(player.name ?? '').slice(0, 2).toUpperCase()}</AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
-          <span className="truncate text-[16px] font-bold text-white">
-            {player.name}
-          </span>
-          <span className="shrink-0 text-[12px] font-medium text-[#DEDEDE]">
-            {player.type}
-          </span>
+          <span className="truncate text-[16px] font-bold text-white">{player.name}</span>
+          <span className="shrink-0 text-[12px] font-medium text-[#DEDEDE]">{player.type}</span>
         </div>
         <p className="mt-0.5 text-[18px] font-bold text-[#DA9811]">{keyStat}</p>
         <p className="text-[12px] font-medium text-[#A2A6AB]">{detailText}</p>
       </div>
-      <span
-        className="text-[48px] leading-none font-bold text-[#DA9811]/40"
-        aria-hidden
-      >
+      <span className="text-[48px] leading-none font-bold text-[#DA9811]/40" aria-hidden>
         {rank}
       </span>
     </div>
   );
 }
 
-function RankingSection({
-  title,
-  linkTo,
-  linkState,
-  rows,
-  variant = 'batter',
-  loading,
-  error,
-  emptyMessage,
-}) {
+function RankingSection({ title, linkTo, linkState, rows, variant = 'batter', loading, error, emptyMessage }) {
   const desktopCardWidthClass = 'lg:w-[calc((100%-0.75rem)/2)]';
 
   return (
     <>
-      <div
-        className={`flex items-center justify-between pb-3 lg:mx-auto ${desktopCardWidthClass}`}
-      >
-        <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
-          {title}
-        </h2>
+      <div className={`flex items-center justify-between pb-3 lg:mx-auto ${desktopCardWidthClass}`}>
+        <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">{title}</h2>
         <Link
           to={linkTo}
           state={linkState}
@@ -153,23 +112,13 @@ function RankingSection({
           View More
         </Link>
       </div>
-      {loading && (
-        <p className="text-[13px] text-[#A2A6AB]">Loading rankings…</p>
-      )}
-      {error && !loading && (
-        <p className="text-[13px] text-red-400">Failed to load rankings.</p>
-      )}
-      {!loading && !error && rows.length === 0 && (
-        <p className="text-[13px] text-[#A2A6AB]">{emptyMessage}</p>
-      )}
-      <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-1 lg:gap-3 lg:justify-items-center">
+      {loading && <p className="text-[13px] text-[#A2A6AB]">Loading rankings…</p>}
+      {error && !loading && <p className="text-[13px] text-red-400">Failed to load rankings.</p>}
+      {!loading && !error && rows.length === 0 && <p className="text-[13px] text-[#A2A6AB]">{emptyMessage}</p>}
+      <div className="space-y-3 lg:grid lg:grid-cols-1 lg:justify-items-center lg:gap-3 lg:space-y-0">
         {rows.slice(0, TOP_RANKINGS_LIMIT).map((player, index) => (
           <div key={player.id} className={desktopCardWidthClass}>
-            <PlayerCard
-              player={player}
-              rank={index + 1}
-              variant={variant}
-            />
+            <PlayerCard player={player} rank={index + 1} variant={variant} />
           </div>
         ))}
       </div>
@@ -188,16 +137,8 @@ export default function Ranking() {
     isLoading: isLoadingBowling,
     isError: isErrorBowling,
   } = useOpenTournamentRankings('bowling', 'wickets');
-  const {
-    data: sixesData,
-    isLoading: isLoadingSixes,
-    isError: isErrorSixes,
-  } = useOpenTournamentRankings('batting', 'sixes');
-  const {
-    data: foursData,
-    isLoading: isLoadingFours,
-    isError: isErrorFours,
-  } = useOpenTournamentRankings('batting', 'fours');
+  const { data: sixesData, isLoading: isLoadingSixes, isError: isErrorSixes } = useOpenTournamentRankings('batting', 'sixes');
+  const { data: foursData, isLoading: isLoadingFours, isError: isErrorFours } = useOpenTournamentRankings('batting', 'fours');
 
   const rawBatters = safeRankings(battingData);
   const rawBowlers = safeRankings(bowlingData);

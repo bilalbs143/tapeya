@@ -227,9 +227,7 @@ export class ScheduleTournamentMatchDialogComponent implements OnInit {
       return;
     }
     const groupIndex =
-      this.showMatchGroupMode && v.match_group_mode === 'group_wise' && v.group_index != null
-        ? Number(v.group_index)
-        : null;
+      this.showMatchGroupMode && v.match_group_mode === 'group_wise' && v.group_index != null ? Number(v.group_index) : null;
 
     this.isSubmitting = true;
     const payload = {

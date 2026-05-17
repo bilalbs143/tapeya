@@ -62,16 +62,7 @@ export class BrandsComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(MatSort) public sort!: MatSort;
 
   public searchForm: FormGroup;
-  public readonly displayedColumns: string[] = [
-    'sr',
-    'name',
-    'slug',
-    'logo',
-    'sort_order',
-    'status',
-    'created_at',
-    'actions',
-  ];
+  public readonly displayedColumns: string[] = ['sr', 'name', 'slug', 'logo', 'sort_order', 'status', 'created_at', 'actions'];
   public dataSource = new MatTableDataSource<Brand>([]);
   public readonly emptyCell = EMPTY_CELL;
   public readonly statusClass = getStatusClass;
@@ -159,7 +150,10 @@ export class BrandsComponent implements OnInit, AfterViewInit, OnDestroy {
       ManageBrandDialogComponent,
       { mode: 'create' },
       (result) => result && this.loadHttpData(),
-      { widthSize: 'md', disableClose: true }
+      {
+        widthSize: 'md',
+        disableClose: true,
+      }
     );
   }
 
@@ -168,7 +162,10 @@ export class BrandsComponent implements OnInit, AfterViewInit, OnDestroy {
       ManageBrandDialogComponent,
       { mode: 'edit', brand },
       (result) => result && this.loadHttpData(),
-      { widthSize: 'md', disableClose: true }
+      {
+        widthSize: 'md',
+        disableClose: true,
+      }
     );
   }
 

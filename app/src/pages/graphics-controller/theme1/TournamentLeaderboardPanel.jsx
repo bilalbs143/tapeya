@@ -41,14 +41,10 @@ export default function TournamentLeaderboardPanel({
 
         <Panel className="relative z-10">
           <h2 className={showcaseTitleClass}>{title}</h2>
-          <p className="mt-2 text-[12px] leading-none font-normal text-white sm:text-[18px]">
-            {subtitle}
-          </p>
+          <p className="mt-2 text-[12px] leading-none font-normal text-white sm:text-[18px]">{subtitle}</p>
 
           {rows.length === 0 ? (
-            <p className="mt-6 text-center text-[13px] leading-snug text-white/70 sm:text-[16px]">
-              {emptyMessage}
-            </p>
+            <p className="mt-6 text-center text-[13px] leading-snug text-white/70 sm:text-[16px]">{emptyMessage}</p>
           ) : null}
 
           <Panel className="mt-5 grid grid-cols-[1fr_140px] gap-3 sm:mt-7 sm:grid-cols-[1fr_228px] sm:gap-7">
@@ -60,20 +56,12 @@ export default function TournamentLeaderboardPanel({
                     key={row.rank ?? index}
                     className="relative grid grid-cols-[30px_96px_1fr] items-center py-2.5 sm:grid-cols-[44px_120px_1fr] sm:py-3"
                   >
-                    <span className="text-[12px] leading-none font-bold text-white sm:text-[20px]">
-                      {row.rank}
-                    </span>
-                    <span className="text-[20px] leading-none font-bold text-[#DA9811] sm:text-[30px]">
-                      {stat}
-                    </span>
+                    <span className="text-[12px] leading-none font-bold text-white sm:text-[20px]">{row.rank}</span>
+                    <span className="text-[20px] leading-none font-bold text-[#DA9811] sm:text-[30px]">{stat}</span>
                     <Panel className="leading-none">
-                      <p className="text-[14px] font-bold text-white sm:text-[20px]">
-                        {row.name}
-                      </p>
+                      <p className="text-[14px] font-bold text-white sm:text-[20px]">{row.name}</p>
                       {row.team ? (
-                        <p className="mt-1 text-[12px] font-normal text-white sm:mt-2 sm:text-[18px]">
-                          {row.team}
-                        </p>
+                        <p className="mt-1 text-[12px] font-normal text-white sm:mt-2 sm:text-[18px]">{row.team}</p>
                       ) : null}
                     </Panel>
                     {index < rows.length - 1 ? (
@@ -93,12 +81,8 @@ export default function TournamentLeaderboardPanel({
                     className="h-[150px] w-full rounded-[8px] object-cover sm:h-[250px] sm:rounded-[10px]"
                   />
                   <Panel className="pt-4 pb-2 text-center leading-none">
-                    <p className="text-[16px] font-semibold text-[#DA9811] sm:text-[18px]">
-                      {featuredName}
-                    </p>
-                    <p className="mt-2 text-[16px] font-semibold text-[#DA9811] sm:mt-3 sm:text-[18px]">
-                      {featuredValue}
-                    </p>
+                    <p className="text-[16px] font-semibold text-[#DA9811] sm:text-[18px]">{featuredName}</p>
+                    <p className="mt-2 text-[16px] font-semibold text-[#DA9811] sm:mt-3 sm:text-[18px]">{featuredValue}</p>
                   </Panel>
                 </Panel>
               </Panel>

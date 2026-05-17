@@ -1,0 +1,156 @@
+{
+  // ── Editor (shared) ─────────────────────────────────────────────────────────
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": false,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": true,
+  "editor.rulers": [100, 130],
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+  "editor.linkedEditing": true,
+  "editor.suggestSelection": "first",
+  "editor.quickSuggestions": { "strings": true },
+  "editor.minimap.enabled": true,
+  "editor.stickyScroll.enabled": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "never"
+  },
+
+  // ── Files ───────────────────────────────────────────────────────────────────
+  "files.eol": "\n",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.autoSave": "onFocusChange",
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/node_modules": true,
+    "**/vendor": true,
+    "api/storage": true,
+    "api/bootstrap/cache": true,
+    "app/dist": true,
+    "app/www": true,
+    "app/ios/App/Pods": true,
+    "backoffice/dist": true,
+    "backoffice/.angular": true,
+    "laravel/storage": true,
+    "laravel/vendor": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/vendor": true,
+    "**/dist": true,
+    "**/.angular": true,
+    "api/storage": true,
+    "laravel/storage": true,
+    "package-lock.json": true
+  },
+
+  // ── Git ─────────────────────────────────────────────────────────────────────
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  "git.enableSmartCommit": true,
+  "git.openRepositoryInParentFolders": "always",
+  "diffEditor.ignoreTrimWhitespace": false,
+
+  // ── Terminal ────────────────────────────────────────────────────────────────
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.scrollback": 10000,
+
+  // ── ESLint (app + backoffice) ───────────────────────────────────────────────
+  "eslint.useFlatConfig": true,
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "html"
+  ],
+  "eslint.workingDirectories": [
+    { "directory": "app", "changeProcessCWD": true },
+    { "directory": "backoffice", "changeProcessCWD": true }
+  ],
+
+  // ── Prettier (app + backoffice; each folder has its own config) ─────────────
+  "prettier.requireConfig": true,
+  "prettier.useEditorConfig": true,
+
+  // ── PHP / Laravel (api/) ────────────────────────────────────────────────────
+  "[php]": {
+    "editor.tabSize": 4,
+    "editor.defaultFormatter": "open-southeners.laravel-pint"
+  },
+  "php.validate.enable": true,
+  "intelephense.environment.phpVersion": "8.2.0",
+  "intelephense.files.maxSize": 3,
+  "intelephense.format.enable": false,
+  "intelephense.diagnostics.undefinedTypes": false,
+  "intelephense.diagnostics.undefinedFunctions": false,
+  "intelephense.diagnostics.undefinedConstants": false,
+  "intelephense.diagnostics.undefinedClassConstants": false,
+  "intelephense.diagnostics.undefinedProperties": false,
+  "intelephense.diagnostics.undefinedMethods": false,
+  "laravel-pint.enable": true,
+  "laravel-pint.configPath": "api/pint.json",
+  "laravel-pint.executablePath": "api/vendor/bin/pint",
+
+  // ── JavaScript / React (app/) ───────────────────────────────────────────────
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  // ── TypeScript / Angular (backoffice/) ────────────────────────────────────────
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2
+  },
+  "[scss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2
+  },
+  "typescript.tsdk": "backoffice/node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "angular.enable-strict-mode-prompt": false,
+  "angular.experimental-ivy": true,
+
+  // ── Tailwind (app + backoffice) ───────────────────────────────────────────────
+  "tailwindCSS.emmetCompletions": true,
+  "tailwindCSS.includeLanguages": {
+    "javascript": "javascript",
+    "javascriptreact": "javascript"
+  },
+
+  // ── Remote SSH (when developing on a server) ────────────────────────────────
+  "remote.SSH.useLocalServer": true,
+  "remote.SSH.showLoginTerminal": true,
+  "remote.SSH.connectTimeout": 60,
+  "remote.SSH.enableDynamicForwarding": true,
+  "remote.SSH.serverInstallPath": {
+    "linux": "~/.cursor-server"
+  },
+
+  // ── Explorer / workbench ────────────────────────────────────────────────────
+  "explorer.confirmDelete": true,
+  "explorer.confirmDragAndDrop": true,
+  "workbench.editor.enablePreview": false,
+  "workbench.tree.indent": 16
+}

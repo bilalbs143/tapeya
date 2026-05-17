@@ -121,13 +121,8 @@ export function OverStrip({ oversFromBalls = [], scrollRef }) {
         className="flex flex-1 flex-nowrap items-center gap-3 overflow-x-auto py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {oversFromBalls.map(({ overIndex, balls }) => {
-          const legalBallCount = balls.filter((b) =>
-            isLegalDelivery(b.type),
-          ).length;
-          const overRuns = balls.reduce(
-            (s, b) => s + (b ? getRunsFromBall(b) : 0),
-            0,
-          );
+          const legalBallCount = balls.filter((b) => isLegalDelivery(b.type)).length;
+          const overRuns = balls.reduce((s, b) => s + (b ? getRunsFromBall(b) : 0), 0);
 
           return (
             <div
@@ -139,11 +134,7 @@ export function OverStrip({ oversFromBalls = [], scrollRef }) {
                 <span className="text-[11px] font-medium tracking-wide text-[#6B7280] uppercase">
                   {overOrdinal(overIndex)} over
                 </span>
-                {legalBallCount === 6 && (
-                  <span className="text-[11px] text-white/40">
-                    {overRuns} runs
-                  </span>
-                )}
+                {legalBallCount === 6 && <span className="text-[11px] text-white/40">{overRuns} runs</span>}
               </div>
 
               {/* Ball chips */}

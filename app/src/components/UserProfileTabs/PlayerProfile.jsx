@@ -50,22 +50,14 @@ const TABS = [
  */
 export function PlayerProfile({ user }) {
   const userId = user?.id;
-  const { category, sort } = getProfileRankingParamsByPlayingRole(
-    user?.playing_role_enum,
+  const { category, sort } = getProfileRankingParamsByPlayingRole(user?.playing_role_enum);
+  const { data: rankData, isLoading: rankLoading } = useGetPlayerRankingPositionQuery(
+    { userId, category, sort },
+    { skip: !userId },
   );
-  const { data: rankData, isLoading: rankLoading } =
-    useGetPlayerRankingPositionQuery(
-      { userId, category, sort },
-      { skip: !userId },
-    );
 
-  const rankingDisplay = !userId
-    ? '—'
-    : rankLoading
-      ? '…'
-      : (rankData?.rank ?? '—');
-  const followersDisplay =
-    user?.followers_count != null ? String(user.followers_count) : '—';
+  const rankingDisplay = !userId ? '—' : rankLoading ? '…' : (rankData?.rank ?? '—');
+  const followersDisplay = user?.followers_count != null ? String(user.followers_count) : '—';
   /** No player-level “likes received” API yet; keep placeholder. */
   const likesDisplay = '—';
 
@@ -82,18 +74,8 @@ export function PlayerProfile({ user }) {
     <Tabs className="w-full" defaultValue="overview">
       <TabsList className={profileListClass}>
         {TABS.map(({ value, label, icon }) => (
-          <TabsTrigger
-            key={value}
-            value={value}
-            className={profileTriggerClass}
-          >
-            <img
-              src={icon}
-              alt=""
-              width={profileTabIconSize}
-              height={profileTabIconSize}
-              className={profileTabIconClass}
-            />
+          <TabsTrigger key={value} value={value} className={profileTriggerClass}>
+            <img src={icon} alt="" width={profileTabIconSize} height={profileTabIconSize} className={profileTabIconClass} />
             {label}
           </TabsTrigger>
         ))}
@@ -103,16 +85,8 @@ export function PlayerProfile({ user }) {
 
       <div className={CONTENT_WRAPPER_CLASS}>
         {TABS.map(({ value, Content }) => (
-          <TabsContent
-            key={value}
-            value={value}
-            className="focus-visible:outline-none"
-          >
-            {value === 'overview' ? (
-              <ProfileRoleOverview role={PROFILE_OVERVIEW_ROLE.PLAYER} />
-            ) : (
-              <Content />
-            )}
+          <TabsContent key={value} value={value} className="focus-visible:outline-none">
+            {value === 'overview' ? <ProfileRoleOverview role={PROFILE_OVERVIEW_ROLE.PLAYER} /> : <Content />}
           </TabsContent>
         ))}
       </div>

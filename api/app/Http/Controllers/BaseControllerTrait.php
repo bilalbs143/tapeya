@@ -27,6 +27,16 @@ trait BaseControllerTrait
         return response()->forbidden($message);
     }
 
+    protected function notFound(?string $message = null)
+    {
+        return $this->failure($message ?? 'Not found.', 'NOT_FOUND');
+    }
+
+    protected function conflict(?string $message = null)
+    {
+        return $this->failure($message ?? 'Conflict.', 'CONFLICT');
+    }
+
     /**
      * 204 with no body, as JSON-capable response (JsonResponse) for controllers typed to JsonResponse.
      */

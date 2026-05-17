@@ -6,14 +6,8 @@ import { z } from 'zod';
  * - code uniqueness is enforced by API.
  */
 export const teamFormSchema = z.object({
-  name: z
-    .string()
-    .min(1, 'Team name is required')
-    .max(255, 'Team name must be 255 characters or less'),
-  code: z
-    .string()
-    .min(1, 'Team code is required')
-    .max(20, 'Team code must be 20 characters or less'),
+  name: z.string().min(1, 'Team name is required').max(255, 'Team name must be 255 characters or less'),
+  code: z.string().min(1, 'Team code is required').max(20, 'Team code must be 20 characters or less'),
   sponsor_user_id: z
     .string()
     .optional()

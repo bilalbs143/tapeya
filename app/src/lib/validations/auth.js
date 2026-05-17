@@ -4,10 +4,7 @@ import { z } from 'zod';
 import { normalizePhoneE164 } from '@/lib/phoneCodes';
 
 const emailSchema = z
-  .union([
-    z.string().email('Please enter a valid email address'),
-    z.literal(''),
-  ])
+  .union([z.string().email('Please enter a valid email address'), z.literal('')])
   .optional()
   .transform((v) => (v === '' ? undefined : v));
 
@@ -33,10 +30,7 @@ const nicknameSchema = z
   .string()
   .min(1, 'Nickname is required')
   .max(50, 'Nickname must be at most 50 characters')
-  .regex(
-    /^[a-zA-Z0-9_]+$/,
-    'Nickname may only contain letters, numbers and underscores',
-  );
+  .regex(/^[a-zA-Z0-9_]+$/, 'Nickname may only contain letters, numbers and underscores');
 
 export const registerSchema = z.object({
   phone: phoneSchema,
@@ -69,17 +63,9 @@ export const updateProfileSchema = z.object({
 });
 
 export const otpSchema = z.object({
-  code: z
-    .string()
-    .min(1, 'Code is required')
-    .regex(/^\d+$/, 'Code must contain only digits')
-    .length(4, 'Code must be 4 digits'),
+  code: z.string().min(1, 'Code is required').regex(/^\d+$/, 'Code must contain only digits').length(4, 'Code must be 4 digits'),
 });
 
 export const otp5Schema = z.object({
-  code: z
-    .string()
-    .min(1, 'Code is required')
-    .regex(/^\d+$/, 'Code must contain only digits')
-    .length(5, 'Code must be 5 digits'),
+  code: z.string().min(1, 'Code is required').regex(/^\d+$/, 'Code must contain only digits').length(5, 'Code must be 5 digits'),
 });

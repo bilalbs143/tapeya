@@ -9,9 +9,7 @@ export function ProfileMetrics({ metrics }) {
         {metrics.map(({ value, label }) => (
           <div key={label} className={CARD_CLASS}>
             <div className="text-[16px] font-bold text-white">{value}</div>
-            <div className="mt-1 text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">
-              {label}
-            </div>
+            <div className="mt-1 text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">{label}</div>
           </div>
         ))}
       </div>

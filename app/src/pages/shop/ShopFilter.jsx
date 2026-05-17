@@ -6,11 +6,7 @@ import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { ListingProductCard } from '@/components/shop/ListingProductCard';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { NAVBAR_HEIGHT } from '@/lib/constants/layout';
-import {
-  useGetBrandsQuery,
-  useGetCategoriesQuery,
-  useGetProductsQuery,
-} from '@/store/api/shopApi';
+import { useGetBrandsQuery, useGetCategoriesQuery, useGetProductsQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 
 const searchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/searchicon.svg`;
@@ -40,19 +36,10 @@ export default function ShopFilter() {
   const { data: categoriesResponse } = useGetCategoriesQuery({ all: true });
   const allCategories = categoriesResponse?.data ?? [];
 
-  const { data: allProductsResponse } = useGetProductsQuery(
-    { ...config?.params, all: true },
-    { skip: !config },
-  );
+  const { data: allProductsResponse } = useGetProductsQuery({ ...config?.params, all: true }, { skip: !config });
   const allProductsForFilter = allProductsResponse?.data ?? [];
-  const categoryIdsWithProducts = [
-    ...new Set(
-      allProductsForFilter.map((p) => p.category_id).filter((id) => id != null),
-    ),
-  ];
-  const categoriesWithProducts = allCategories.filter((c) =>
-    categoryIdsWithProducts.includes(c.id),
-  );
+  const categoryIdsWithProducts = [...new Set(allProductsForFilter.map((p) => p.category_id).filter((id) => id != null))];
+  const categoriesWithProducts = allCategories.filter((c) => categoryIdsWithProducts.includes(c.id));
 
   const { data: productsResponse } = useGetProductsQuery(
     {
@@ -91,10 +78,7 @@ export default function ShopFilter() {
         <Container>
           <div className="py-8 text-center text-white">
             <p>Invalid filter.</p>
-            <Link
-              to="/shop"
-              className="mt-4 inline-block text-[#DA9811] underline"
-            >
+            <Link to="/shop" className="mt-4 inline-block text-[#DA9811] underline">
               Back to Shop
             </Link>
           </div>
@@ -131,12 +115,7 @@ export default function ShopFilter() {
               aria-label="Search shop"
             />
             <span className="pointer-events-none absolute top-0 right-5 bottom-0 flex items-center">
-              <img
-                src={searchIcon}
-                alt=""
-                className="h-5 w-5 shrink-0"
-                aria-hidden
-              />
+              <img src={searchIcon} alt="" className="h-5 w-5 shrink-0" aria-hidden />
             </span>
           </div>
 
@@ -148,9 +127,7 @@ export default function ShopFilter() {
                   type="button"
                   onClick={() => setActiveCategoryId(null)}
                   className={`shrink-0 rounded-[6px] px-4 py-2.5 text-[13px] font-semibold tracking-wide transition-colors ${
-                    activeCategoryId === null
-                      ? 'bg-[#DA9811] text-black'
-                      : 'bg-[#141412] text-white'
+                    activeCategoryId === null ? 'bg-[#DA9811] text-black' : 'bg-[#141412] text-white'
                   }`}
                   aria-pressed={activeCategoryId === null}
                 >
@@ -162,9 +139,7 @@ export default function ShopFilter() {
                     type="button"
                     onClick={() => setActiveCategoryId(cat.id)}
                     className={`shrink-0 rounded-[6px] px-4 py-2.5 text-[13px] font-semibold tracking-wide transition-colors ${
-                      activeCategoryId === cat.id
-                        ? 'bg-[#DA9811] text-black'
-                        : 'bg-[#141412] text-white'
+                      activeCategoryId === cat.id ? 'bg-[#DA9811] text-black' : 'bg-[#141412] text-white'
                     }`}
                     aria-pressed={activeCategoryId === cat.id}
                   >
@@ -176,19 +151,14 @@ export default function ShopFilter() {
           </div>
 
           {tabsFixedVisible && (
-            <div
-              className="fixed right-0 left-0 z-10 bg-black pt-1 pb-2 lg:left-[280px]"
-              style={{ top: NAVBAR_HEIGHT }}
-            >
+            <div className="fixed right-0 left-0 z-10 bg-black pt-1 pb-2 lg:left-[280px]" style={{ top: NAVBAR_HEIGHT }}>
               <div className="mx-auto max-w-2xl px-4 lg:max-w-none lg:px-4">
                 <div className="flex gap-2 overflow-x-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   <button
                     type="button"
                     onClick={() => setActiveCategoryId(null)}
                     className={`shrink-0 rounded-[6px] px-4 py-2.5 text-[13px] font-semibold tracking-wide transition-colors ${
-                      activeCategoryId === null
-                        ? 'bg-[#DA9811] text-black'
-                        : 'bg-[#141412] text-white'
+                      activeCategoryId === null ? 'bg-[#DA9811] text-black' : 'bg-[#141412] text-white'
                     }`}
                     aria-pressed={activeCategoryId === null}
                   >
@@ -200,9 +170,7 @@ export default function ShopFilter() {
                       type="button"
                       onClick={() => setActiveCategoryId(cat.id)}
                       className={`shrink-0 rounded-[6px] px-4 py-2.5 text-[13px] font-semibold tracking-wide transition-colors ${
-                        activeCategoryId === cat.id
-                          ? 'bg-[#DA9811] text-black'
-                          : 'bg-[#141412] text-white'
+                        activeCategoryId === cat.id ? 'bg-[#DA9811] text-black' : 'bg-[#141412] text-white'
                       }`}
                       aria-pressed={activeCategoryId === cat.id}
                     >
@@ -216,11 +184,7 @@ export default function ShopFilter() {
 
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {productsWithBrandSlug.map((product) => (
-              <ListingProductCard
-                key={product.id}
-                product={product}
-                brandSlug={product.brandSlug}
-              />
+              <ListingProductCard key={product.id} product={product} brandSlug={product.brandSlug} />
             ))}
           </div>
         </div>

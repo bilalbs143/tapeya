@@ -1,46 +1,38 @@
 import { useEffect, useRef } from 'react';
 
-import { useAppDispatch } from '@/store/hooks';
-import { openDialog } from '@/store/slices/commonSlice';
-import { store } from '@/store/store';
+import { useDialog } from '@/context/DialogContext';
 
 /** Default cadence for repeating reminder dialogs (e.g. profile, app update). */
 export const DIALOG_REMINDER_INTERVAL_MS = 2 * 60 * 1000;
 
 /**
- * While `enabled`, runs `getOpenDialogPayload` on a fixed interval. Dispatches
- * `openDialog` when the callback returns a payload and no dialog is open.
+ * While `enabled`, runs `getOpenDialogPayload` on a fixed interval. Opens a
+ * dialog when the callback returns a payload and no dialog is currently open.
  *
  * @param {object} options
  * @param {number} options.intervalMs
  * @param {boolean} options.enabled
  * @param {() => null | { key: string, props?: object }} options.getOpenDialogPayload
  */
-export function useIntervalDialogPrompt({
-  intervalMs,
-  enabled,
-  getOpenDialogPayload,
-}) {
-  const dispatch = useAppDispatch();
+export function useIntervalDialogPrompt({ intervalMs, enabled, getOpenDialogPayload }) {
+  const { openDialog, dialogKey } = useDialog();
   const getPayloadRef = useRef(getOpenDialogPayload);
   getPayloadRef.current = getOpenDialogPayload;
+  const dialogKeyRef = useRef(dialogKey);
+  dialogKeyRef.current = dialogKey;
 
   useEffect(() => {
-    if (!enabled) {
-      return undefined;
-    }
+    if (!enabled) return undefined;
 
     const tick = () => {
-      if (store.getState().common.dialogKey) {
-        return;
-      }
+      if (dialogKeyRef.current) return;
       const payload = getPayloadRef.current();
       if (payload) {
-        dispatch(openDialog(payload));
+        openDialog(payload.key, payload.props ?? {});
       }
     };
 
     const id = window.setInterval(tick, intervalMs);
     return () => window.clearInterval(id);
-  }, [dispatch, enabled, intervalMs]);
+  }, [openDialog, enabled, intervalMs]);
 }

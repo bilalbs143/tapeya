@@ -3,15 +3,9 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
 import { BORDER_ALT as BORDER } from '@/lib/constants/tableStyles';
 import { playerDisplayRole } from '@/lib/utils/playerUtils';
-import {
-  getTournamentTitle,
-  isValidTournamentId,
-} from '@/lib/utils/tournamentUtils';
+import { getTournamentTitle, isValidTournamentId } from '@/lib/utils/tournamentUtils';
 import { useGetTeamSquadQuery } from '@/store/api/teamApi';
-import {
-  useGetTournamentQuery,
-  useGetTournamentTeamsQuery,
-} from '@/store/api/tournamentApi';
+import { useGetTournamentQuery, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
 
 function SquadTeams({ tournamentId }) {
   const [searchParams] = useSearchParams();
@@ -43,34 +37,20 @@ function SquadTeams({ tournamentId }) {
 
   if (!hasValidId) {
     return wrap(
-      <p className="py-4 text-center text-[13px] text-[#A2A6AB]">
-        Squads are not available for this sample tournament.
-      </p>,
+      <p className="py-4 text-center text-[13px] text-[#A2A6AB]">Squads are not available for this sample tournament.</p>,
     );
   }
 
   if (isLoading) {
-    return wrap(
-      <p className="py-4 text-center text-[13px] text-[#A2A6AB]">
-        Loading squads…
-      </p>,
-    );
+    return wrap(<p className="py-4 text-center text-[13px] text-[#A2A6AB]">Loading squads…</p>);
   }
 
   if (isError) {
-    return wrap(
-      <p className="py-4 text-center text-[13px] text-red-400">
-        Failed to load teams for squads.
-      </p>,
-    );
+    return wrap(<p className="py-4 text-center text-[13px] text-red-400">Failed to load teams for squads.</p>);
   }
 
   if (!teams.length) {
-    return wrap(
-      <p className="py-8 text-center text-[13px] text-[#A2A6AB]">
-        No teams added yet.
-      </p>,
-    );
+    return wrap(<p className="py-8 text-center text-[13px] text-[#A2A6AB]">No teams added yet.</p>);
   }
 
   // ------------------------------------------------------------------
@@ -84,9 +64,7 @@ function SquadTeams({ tournamentId }) {
       </h2>
 
       <div className="border border-[#1A1A1A]">
-        <div className="bg-[#141412] px-4 py-3 text-[13px] font-bold text-white">
-          Teams
-        </div>
+        <div className="bg-[#141412] px-4 py-3 text-[13px] font-bold text-white">Teams</div>
         <div className="divide-y divide-[#1A1A1A]">
           {teams.map((team) => (
             <button
@@ -98,9 +76,7 @@ function SquadTeams({ tournamentId }) {
               <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1A1A1A] text-[11px] font-bold text-[#DA9811]">
                 {(team.name ?? 'T').charAt(0)}
               </span>
-              <span className="min-w-0 flex-1 truncate">
-                {team.name ?? team.code ?? 'Team'}
-              </span>
+              <span className="min-w-0 flex-1 truncate">{team.name ?? team.code ?? 'Team'}</span>
             </button>
           ))}
         </div>
@@ -141,64 +117,37 @@ function SquadSingle({ tournamentId, teamId }) {
   }
 
   if (isLoading) {
-    return wrap(
-      <p className="py-4 text-center text-[13px] text-[#A2A6AB]">
-        Loading squad…
-      </p>,
-    );
+    return wrap(<p className="py-4 text-center text-[13px] text-[#A2A6AB]">Loading squad…</p>);
   }
 
   if (isError) {
-    return wrap(
-      <p className="py-4 text-center text-[13px] text-red-400">
-        Failed to load squad.
-      </p>,
-    );
+    return wrap(<p className="py-4 text-center text-[13px] text-red-400">Failed to load squad.</p>);
   }
 
   if (!squad.length) {
-    return wrap(
-      <p className="py-8 text-center text-[13px] text-[#A2A6AB]">
-        No players in this squad yet.
-      </p>,
-    );
+    return wrap(<p className="py-8 text-center text-[13px] text-[#A2A6AB]">No players in this squad yet.</p>);
   }
 
-  const title = tournament
-    ? `${getTournamentTitle(tournament)} - Squad`
-    : 'Squad';
+  const title = tournament ? `${getTournamentTitle(tournament)} - Squad` : 'Squad';
 
   return (
     <div className="mt-4 pb-6">
       <div className="flex items-center gap-2 border-b border-[#1A1A1A] pb-4">
         <AppSubpageBackButton onClick={clearTeam} aria-label="Back to teams" />
-        <h2 className="min-w-0 flex-1 text-left text-[13px] font-bold tracking-wide text-white uppercase">
-          {title}
-        </h2>
+        <h2 className="min-w-0 flex-1 text-left text-[13px] font-bold tracking-wide text-white uppercase">{title}</h2>
       </div>
 
       <div className="overflow-hidden border border-[#1A1A1A]">
-        <div className="bg-[#141412] px-4 py-3 text-[13px] font-bold text-white">
-          Players
-        </div>
+        <div className="bg-[#141412] px-4 py-3 text-[13px] font-bold text-white">Players</div>
         <div className="border-t border-[#1A1A1A]">
           {squad.map((player, index) => (
-            <div
-              key={player.id ?? index}
-              className={`flex border-b ${BORDER} last:border-b-0`}
-            >
-              <div
-                className={`flex w-10 shrink-0 items-center justify-center border-r ${BORDER} py-3 text-[13px] text-white`}
-              >
+            <div key={player.id ?? index} className={`flex border-b ${BORDER} last:border-b-0`}>
+              <div className={`flex w-10 shrink-0 items-center justify-center border-r ${BORDER} py-3 text-[13px] text-white`}>
                 {index + 1}
               </div>
               <div className="min-w-0 flex-1 px-4 py-3">
-                <p className="text-[13px] font-bold text-white">
-                  {player.name ?? player.nickname ?? 'Player'}
-                </p>
-                <p className="mt-0.5 text-[12px] text-[#A2A6AB]">
-                  {playerDisplayRole(player)}
-                </p>
+                <p className="text-[13px] font-bold text-white">{player.name ?? player.nickname ?? 'Player'}</p>
+                <p className="mt-0.5 text-[12px] text-[#A2A6AB]">{playerDisplayRole(player)}</p>
               </div>
             </div>
           ))}
