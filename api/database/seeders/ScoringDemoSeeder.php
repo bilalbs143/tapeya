@@ -47,7 +47,7 @@ use Illuminate\Support\Facades\Hash;
  * Prerequisites: RoleSeeder must have been run (Roles exist).
  *
  * Creates:
- *   - 20 players (user + player role; playing_role / batting_style / bowling_style), password: password
+ *   - 36 players (6 per team, no cross-team overlap; playing_role / batting_style / bowling_style), password: password
  *   - 3 organizers (organizer role + cricket profile fields), password: password
  *   - 3 sponsors (sponsor role + cricket profile fields), password: password
  *   - 4 tournaments (organizer_id; number_of_groups / prize per schema; first three single-group, fourth two-group demo)
@@ -71,6 +71,12 @@ class ScoringDemoSeeder extends Seeder
 
     /** Overs cap for scheduled demo fixtures (scorecard schedule tab). */
     private const DEMO_FIXTURE_OVERS = 5;
+
+    private const DEMO_TEAM_COUNT = 6;
+
+    private const DEMO_PLAYERS_PER_TEAM = 6;
+
+    private const DEMO_PLAYER_COUNT = self::DEMO_TEAM_COUNT * self::DEMO_PLAYERS_PER_TEAM;
 
     public function run(): void
     {
@@ -181,7 +187,7 @@ class ScoringDemoSeeder extends Seeder
 
         $players = [];
         $numBase = is_numeric($base) ? (int) $base : crc32($base);
-        for ($i = 1; $i <= 20; $i++) {
+        for ($i = 1; $i <= self::DEMO_PLAYER_COUNT; $i++) {
             $email = "player{$i}_{$base}@demo.local";
             $nick = "player{$i}_{$base}";
             $phone = '+92300'.str_pad((string) (abs($numBase) % 10000000 + $i), 7, '0', STR_PAD_LEFT);
@@ -342,7 +348,7 @@ class ScoringDemoSeeder extends Seeder
         $teamNames = ['Lions', 'Tigers', 'Eagles', 'Hawks', 'Falcons', 'Panthers'];
         $teams = [];
 
-        for ($i = 0; $i < 6; $i++) {
+        for ($i = 0; $i < self::DEMO_TEAM_COUNT; $i++) {
             $sponsor = $sponsors[$i % count($sponsors)];
             $code = strtoupper(substr($teamNames[$i], 0, 3)).$base.$i;
             $team = Team::create([
@@ -356,11 +362,17 @@ class ScoringDemoSeeder extends Seeder
             $teams[] = $team;
         }
 
-        // Attach players to teams (each team gets 6 players; overlap allowed)
-        foreach ($teams as $idx => $team) {
-            $perTeam = 6;
-            for ($j = 0; $j < $perTeam; $j++) {
-                $player = $players[($idx * 3 + $j) % count($players)];
+        // Attach players to teams — disjoint squads (each player belongs to one team only).
+        if (count($players) < self::DEMO_PLAYER_COUNT) {
+            throw new \RuntimeException(
+                'Expected '.self::DEMO_PLAYER_COUNT.' demo players for '.self::DEMO_TEAM_COUNT.' teams; got '.count($players).'.'
+            );
+        }
+
+        $playerOffset = 0;
+        foreach ($teams as $team) {
+            for ($j = 0; $j < self::DEMO_PLAYERS_PER_TEAM; $j++) {
+                $player = $players[$playerOffset++];
                 DB::table('team_user')->insertOrIgnore([
                     'team_id' => $team->id,
                     'user_id' => $player->id,
