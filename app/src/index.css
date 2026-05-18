@@ -1,5 +1,11 @@
 @import 'tailwindcss';
 
+/* Prevent iOS overscroll bounce from revealing white WebView background */
+html,
+body {
+  background-color: #000;
+}
+
 /*
  * Graphic overlay page — used as a browser source in OBS/vMix.
  *
