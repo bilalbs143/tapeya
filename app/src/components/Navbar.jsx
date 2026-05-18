@@ -2,9 +2,14 @@ import { useEffect, useState } from 'react';
 
 import { Link, useLocation } from 'react-router-dom';
 
+import { NavbarCartButton } from '@/components/navbar/NavbarCartButton';
+import { NavbarIconBadge } from '@/components/navbar/NavbarIconBadge';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { NAVBAR_HEIGHT, NAVBAR_SCROLL_THRESHOLD, NAVBAR_Z } from '@/lib/constants/layout';
+import { NAVBAR_ICON_BTN_CLASS } from '@/lib/constants/navbar';
 import { BOTTOM_NAV_ITEMS } from '@/lib/constants/navigation';
+import { formatCountBadge } from '@/lib/utils/badgeUtils';
+import { isHeroNavbarPath } from '@/lib/utils/routeUtils';
 import { useGetNotificationUnreadCountQuery } from '@/store/api/notificationApi';
 import { useAppSelector } from '@/store/hooks';
 
@@ -15,8 +20,6 @@ const scoreIcon = `${CLOUDFRONT_APP_BASE}/images/icons/score-bottom.svg`;
 const shopNavIcon = `${CLOUDFRONT_APP_BASE}/images/icons/shop-navigation.svg`;
 const upcomingIcon = `${CLOUDFRONT_APP_BASE}/images/icons/upcoming-bottom.svg`;
 const logo = `${CLOUDFRONT_APP_BASE}/images/logos/tapya-t.svg`;
-
-const iconBtn = 'flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#141412] transition-colors hover:bg-zinc-700';
 
 const DESKTOP_NAV_PATH_TO_ICON = {
   '/shop': shopNavIcon,
@@ -29,14 +32,6 @@ function isTabActive(pathname, tabPath) {
   return pathname === tabPath || pathname.startsWith(tabPath + '/');
 }
 
-// Pages where the navbar intentionally starts transparent so the hero
-// image / cover art can bleed behind it. On every other page the navbar
-// is always solid black so the AppSubpageHeader back button doesn't
-// peek through a transparent background as it scrolls upward.
-function isHeroPath(pathname) {
-  return pathname === '/home' || pathname === '/profile' || /^\/upcoming-tournaments\/[^/]+$/.test(pathname);
-}
-
 export function Navbar({ onMenuClick }) {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
@@ -45,7 +40,7 @@ export function Navbar({ onMenuClick }) {
     skip: !accessToken,
   });
   const unreadCount = Math.max(0, unreadData?.unreadCount ?? 0);
-  const badgeLabel = unreadCount > 99 ? '99+' : unreadCount > 0 ? String(unreadCount) : null;
+  const badgeLabel = formatCountBadge(unreadCount);
 
   // Re-run on pathname change so scrolled resets correctly when navigating
   // back to a hero page that starts at scroll position 0.
@@ -60,7 +55,7 @@ export function Navbar({ onMenuClick }) {
   }, [location.pathname]);
 
   // Non-hero pages are always solid — no transparent phase.
-  const alwaysSolid = !isHeroPath(location.pathname);
+  const alwaysSolid = !isHeroNavbarPath(location.pathname);
 
   return (
     <nav
@@ -101,23 +96,18 @@ export function Navbar({ onMenuClick }) {
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
+        <NavbarCartButton />
+
         <Link
           to="/notification-center"
-          className={`${iconBtn} relative`}
+          className={`${NAVBAR_ICON_BTN_CLASS} relative`}
           aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
         >
           <img src={notificationIcon} alt="" className="h-3.5 w-3.5" />
-          {badgeLabel ? (
-            <span
-              className="absolute -top-0.5 -right-0.5 flex min-h-[16px] min-w-[16px] items-center justify-center rounded-full bg-[#DA9811] px-1 text-[10px] leading-none font-bold text-[#080807]"
-              aria-hidden
-            >
-              {badgeLabel}
-            </span>
-          ) : null}
+          <NavbarIconBadge label={badgeLabel} />
         </Link>
 
-        <button type="button" className={`${iconBtn} lg:hidden`} aria-label="Menu" onClick={onMenuClick}>
+        <button type="button" className={`${NAVBAR_ICON_BTN_CLASS} lg:hidden`} aria-label="Menu" onClick={onMenuClick}>
           <img src={hamburgerIcon} alt="" className="h-3 w-[17px]" />
         </button>
       </div>

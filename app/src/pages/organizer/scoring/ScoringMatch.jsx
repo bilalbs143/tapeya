@@ -12,10 +12,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
-import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
+import { MatchCenterHero } from '@/components/MatchCenterHero';
 import { useDialog } from '@/context/DialogContext';
 import { useMatchScoringChannel } from '@/hooks/useMatchScoringChannel';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { MATCH_CENTER_HEADER_DESKTOP, MATCH_CENTER_HEADER_MOBILE } from '@/lib/constants/assets';
+import { LG_MEDIA_QUERY } from '@/lib/constants/layout';
 import {
   apiMatchToUiMatchConfig,
   apiPartnershipsToUiState,
@@ -48,9 +50,6 @@ import { BallsTab, InfoTab, PartnershipTab, ScorecardTab, ScoringTab, StatsTab }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const matchCenterHeader = `${CLOUDFRONT_APP_BASE}/images/background/match-center-header.png`;
-const matchCenterHeaderDesktop = `${CLOUDFRONT_APP_BASE}/images/background/match-center-header-desktop.png`;
-
 const SCORING_TABS = [
   { value: 'scoring', label: 'Scoring' },
   { value: 'scorecard', label: 'Scorecard' },
@@ -75,11 +74,8 @@ export default function ScoringMatch() {
   const navigate = useNavigate();
   const { matchId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [headerImageSrc] = useState(() =>
-    typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches
-      ? matchCenterHeaderDesktop
-      : matchCenterHeader,
-  );
+  const isDesktop = useMediaQuery(LG_MEDIA_QUERY);
+  const headerImageSrc = isDesktop ? MATCH_CENTER_HEADER_DESKTOP : MATCH_CENTER_HEADER_MOBILE;
 
   // ── API queries ────────────────────────────────────────────────────────────
 
@@ -713,33 +709,17 @@ export default function ScoringMatch() {
     <div className="bg-black">
       <Container className="!px-4 !py-0">
         <Tabs value={activeTab} onValueChange={(value) => setSearchParams({ tab: value })} className="w-full">
-          {/* Header + tab strip */}
-          <header className="-mx-4 pb-10">
-            <div className="relative w-full">
-              <img
-                src={headerImageSrc}
-                alt=""
-                className="h-auto w-full lg:h-[350px] lg:object-cover lg:object-bottom"
-                aria-hidden
-              />
-
-              <div className="absolute inset-0 flex items-start px-4 pt-6">
-                <AppSubpageBackButton onClick={() => navigate(-1)} />
-              </div>
-
-              <div className="pointer-events-auto absolute inset-x-0 bottom-0 translate-y-1/2 px-4">
-                <div className="rounded-[24px] bg-black/0">
-                  <TabsList className={`${scorecardListClass} lg:justify-center lg:overflow-x-visible`}>
-                    {SCORING_TABS.map(({ value, label }) => (
-                      <TabsTrigger key={value} value={value} className={scorecardTriggerClass}>
-                        {label}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                </div>
-              </div>
+          <MatchCenterHero imageSrc={headerImageSrc} onBack={() => navigate(-1)}>
+            <div className="pointer-events-auto absolute inset-x-0 bottom-0 translate-y-1/2 px-4">
+              <TabsList className={`${scorecardListClass} lg:justify-center lg:overflow-x-visible`}>
+                {SCORING_TABS.map(({ value, label }) => (
+                  <TabsTrigger key={value} value={value} className={scorecardTriggerClass}>
+                    {label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
             </div>
-          </header>
+          </MatchCenterHero>
 
           {/* Active tab view */}
           <div className="-mx-4 bg-black px-4 pb-2">
