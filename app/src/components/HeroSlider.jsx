@@ -17,7 +17,7 @@ export function HeroSlider() {
   const [activeIndex, setActiveIndex] = useState(0);
 
   if (isLoading) {
-    return <div className="h-[160px] animate-pulse overflow-hidden rounded-[17px] bg-[#141412] lg:h-[250px]" />;
+    return <div className="aspect-[16/5] w-full animate-pulse overflow-hidden rounded-[17px] bg-[#141412]" />;
   }
 
   const list = Array.isArray(slides) && slides.length > 0 ? slides.filter((s) => s?.image_mobile) : null;
@@ -58,8 +58,8 @@ export function HeroSlider() {
           const src = isDesktopOnLoad ? slide.image_desktop || slide.image_mobile : slide.image_mobile;
           return (
             <SwiperSlide key={`${slide.id}-${index}`}>
-              <div className="h-[160px] overflow-hidden rounded-[17px] lg:h-[300px]">
-                <img src={src} alt={slide.alt ?? slide.title ?? ''} className="h-full w-full object-cover" />
+              <div className="overflow-hidden rounded-[17px]">
+                <img src={src} alt={slide.alt ?? slide.title ?? ''} className="block h-auto w-full" />
               </div>
             </SwiperSlide>
           );
