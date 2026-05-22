@@ -5,7 +5,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { NavbarCartButton } from '@/components/navbar/NavbarCartButton';
 import { NavbarIconBadge } from '@/components/navbar/NavbarIconBadge';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { NAVBAR_HEIGHT, NAVBAR_SCROLL_THRESHOLD, NAVBAR_Z } from '@/lib/constants/layout';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { LG_MEDIA_QUERY, NAVBAR_HEIGHT, NAVBAR_SCROLL_THRESHOLD, NAVBAR_Z } from '@/lib/constants/layout';
 import { NAVBAR_ICON_BTN_CLASS } from '@/lib/constants/navbar';
 import { BOTTOM_NAV_ITEMS } from '@/lib/constants/navigation';
 import { formatCountBadge } from '@/lib/utils/badgeUtils';
@@ -41,6 +42,7 @@ export function Navbar({ onMenuClick }) {
   });
   const unreadCount = Math.max(0, unreadData?.unreadCount ?? 0);
   const badgeLabel = formatCountBadge(unreadCount);
+  const isDesktop = useMediaQuery(LG_MEDIA_QUERY);
 
   // Re-run on pathname change so scrolled resets correctly when navigating
   // back to a hero page that starts at scroll position 0.
@@ -55,12 +57,12 @@ export function Navbar({ onMenuClick }) {
   }, [location.pathname]);
 
   // Non-hero pages are always solid — no transparent phase.
-  const alwaysSolid = !isHeroNavbarPath(location.pathname);
+  const alwaysSolid = !isHeroNavbarPath(location.pathname, isDesktop);
 
   return (
     <nav
-      className={`fixed top-0 right-0 left-0 flex items-center justify-between border-b border-transparent px-4 transition-colors duration-300 lg:left-[280px] lg:border-[#1A1A1A] lg:bg-black ${
-        scrolled || alwaysSolid ? 'bg-black' : 'bg-transparent'
+      className={`fixed top-0 right-0 left-0 flex items-center justify-between border-b border-transparent px-4 transition-colors duration-300 lg:left-[280px] lg:border-[#1A1A1A] ${
+        scrolled || alwaysSolid ? 'bg-black lg:bg-black' : 'bg-transparent lg:bg-transparent'
       }`}
       style={{
         // paddingTop pushes the navbar *content* (logo, icons) below the status
