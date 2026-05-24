@@ -33,12 +33,7 @@ class TournamentRequestResource extends JsonResource
             'status' => $this->status?->value,
             'status_label' => $this->status?->label(),
             'created_at' => $this->created_at?->toIso8601String(),
-            $this->mergeWhen(
-                $this->resource->relationLoaded('tournament'),
-                [
-                    'tournament' => new TournamentResource($this->resource->getRelation('tournament')),
-                ]
-            ),
+            'tournament' => $this->whenLoaded('tournament', fn () => new TournamentResource($this->tournament)),
         ];
     }
 }
