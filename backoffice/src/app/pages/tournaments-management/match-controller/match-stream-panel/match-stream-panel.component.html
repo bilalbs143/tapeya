@@ -15,12 +15,11 @@
       }
       @if (isPresenceEligible) {
         <span
-          class="inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-muted"
+          class="inline-flex items-center text-[0.8125rem] font-semibold text-muted"
           aria-live="polite"
           [attr.aria-label]="viewerCount + ' watching'"
         >
-          <mat-icon class="!size-4 !text-base">visibility</mat-icon>
-          {{ viewerCount }} watching
+          {{ viewerCount }} Watching
         </span>
       }
     </div>

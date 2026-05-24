@@ -19,7 +19,7 @@ class SyncStreamStatuses extends Command
             ->whereNotIn('status', ['ended', 'error'])
             ->whereNotNull('provider_stream_id')
             ->with('match.tournament')
-            ->get()
+            ->lazy()
             ->each(function (MatchStream $stream) use ($service, $resolver) {
                 if ($resolver->forMatch($stream->match)->supportsWebhooks()) {
                     return;

@@ -48,6 +48,22 @@ class TournamentController extends Controller
             ]);
         }
 
+        $user = request()->user();
+        if ($user?->isUser()) {
+            request()->attributes->set(
+                'manageable_tournament_ids',
+                Tournament::query()
+                    ->where(function ($q) use ($user) {
+                        $uid = $user->id;
+                        $q->where('organizer_id', $uid)
+                            ->orWhere('created_by', $uid)
+                            ->orWhereHas('broadcasters', fn ($b) => $b->whereKey($uid));
+                    })
+                    ->pluck('id')
+                    ->flip()
+            );
+        }
+
         return $this->success(TournamentResource::collection($this->paginateOrAll($query)));
     }
 

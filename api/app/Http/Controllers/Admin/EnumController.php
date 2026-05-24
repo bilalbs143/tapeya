@@ -27,6 +27,7 @@ use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 
 class EnumController extends Controller
 {
@@ -38,7 +39,17 @@ class EnumController extends Controller
      */
     public function index(): JsonResponse
     {
-        $enums = [
+        $enums = Cache::remember('admin:enums:v1', 600, fn () => $this->buildEnums());
+
+        return $this->success($enums);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildEnums(): array
+    {
+        return [
             'user_type' => $this->toOptions(UserTypeEnum::cases(), [UserTypeEnum::SYSTEM]),
             'user_status' => $this->toOptions(UserStatusEnum::cases()),
             'status' => $this->toOptions(StatusEnum::cases()),
@@ -70,8 +81,6 @@ class EnumController extends Controller
                 'slug' => $r->slug,
             ])->values()->all(),
         ];
-
-        return $this->success($enums);
     }
 
     /**

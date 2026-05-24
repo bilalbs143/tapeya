@@ -103,10 +103,10 @@ class NotificationController extends Controller
             return $this->failure('Notifications not available.', 'NOT_FOUND');
         }
 
-        $systemUser->unreadNotifications()->each(function (DatabaseNotification $n) {
-            $n->markAsRead();
-            $n->forceFill(['read_by' => Auth::id()])->save();
-        });
+        $systemUser->unreadNotifications()->update([
+            'read_at' => now(),
+            'read_by' => Auth::id(),
+        ]);
 
         return $this->success(null, 'All notifications marked as read.');
     }

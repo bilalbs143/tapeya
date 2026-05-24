@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Admin\User;
 
+use App\Enums\User\RoleGuardEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -13,8 +14,12 @@ class UserResource extends JsonResource
     public function toArray(Request $request): array
     {
         $user = $this->resource;
-        $appRoles = $user->getAppRoles();
-        $adminRoles = $user->getAdminRoles();
+        $appRoles = $user->relationLoaded('roles')
+            ? $user->roles->where('guard', RoleGuardEnum::APP->value)->values()
+            : $user->getAppRoles();
+        $adminRoles = $user->relationLoaded('roles')
+            ? $user->roles->where('guard', RoleGuardEnum::ADMIN->value)->values()
+            : $user->getAdminRoles();
 
         return [
             'id' => $this->id,
