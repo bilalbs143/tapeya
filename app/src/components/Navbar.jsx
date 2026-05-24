@@ -4,8 +4,8 @@ import { Link, useLocation } from 'react-router-dom';
 
 import { NavbarCartButton } from '@/components/navbar/NavbarCartButton';
 import { NavbarIconBadge } from '@/components/navbar/NavbarIconBadge';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { LG_MEDIA_QUERY, NAVBAR_HEIGHT, NAVBAR_SCROLL_THRESHOLD, NAVBAR_Z } from '@/lib/constants/layout';
 import { NAVBAR_ICON_BTN_CLASS } from '@/lib/constants/navbar';
 import { BOTTOM_NAV_ITEMS } from '@/lib/constants/navigation';

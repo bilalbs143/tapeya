@@ -38,6 +38,12 @@ enum SystemSettingGroupEnum: string
     /** WhatsApp Business channel configuration. */
     case WHATSAPP = 'whatsapp';
 
+    /** Live streaming provider configuration. */
+    case STREAMING = 'streaming';
+
+    /** Live match chat (rate limits, kill switch). */
+    case LIVE_CHAT = 'live_chat';
+
     public function label(): string
     {
         return match ($this) {
@@ -51,6 +57,8 @@ enum SystemSettingGroupEnum: string
             self::SMS => 'SMS',
             self::SMS_VEEVOTECH => 'SMS (VeevoTech)',
             self::WHATSAPP => 'WhatsApp',
+            self::STREAMING => 'Live Streaming',
+            self::LIVE_CHAT => 'Live Match Chat',
         };
     }
 }

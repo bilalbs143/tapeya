@@ -26,9 +26,12 @@ const APP_DATE_FORMATS = {
   },
 };
 
+/** English month names in the calendar; en-CA keeps ISO-style YYYY-MM-DD in inputs. */
+const APP_DATE_LOCALE = 'en-CA';
+
 export const appConfig: ApplicationConfig = {
   providers: [
-    { provide: MAT_DATE_LOCALE, useValue: 'sv-SE' },
+    { provide: MAT_DATE_LOCALE, useValue: APP_DATE_LOCALE },
     provideNativeDateAdapter(APP_DATE_FORMATS),
     provideAnimationsAsync(),
     provideZoneChangeDetection({ eventCoalescing: true }),

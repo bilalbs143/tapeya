@@ -24,8 +24,6 @@ class UpdateTournamentInterestCampaignRequest extends FormRequest
             'tournament_name' => ['sometimes', 'required', 'string', 'max:191'],
             'slug' => ['sometimes', 'required', 'string', 'max:191', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/'],
             'description' => ['nullable', 'string', 'max:5000'],
-            'logo' => ['sometimes', 'nullable', 'image', 'max:5120'],
-            'remove_logo' => ['sometimes', 'boolean'],
             'show_in_sidebar' => ['sometimes', 'boolean'],
             'show_dialog' => ['sometimes', 'boolean'],
             'status' => ['sometimes', Rule::enum(TournamentInterestCampaignStatusEnum::class)],

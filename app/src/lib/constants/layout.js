@@ -13,6 +13,9 @@ export const NAVBAR_SCROLL_THRESHOLD = 20;
 /** Bottom navigation bar height. Used for main content bottom padding in MainLayout. */
 export const BOTTOM_NAV_HEIGHT = 70;
 
+/** Bottom inset for full-bleed pages above BottomNav (bar + safe area + raised center tab). */
+export const BOTTOM_NAV_CLEARANCE = 90;
+
 /** Z-index for Select/dropdown content so it renders above Dialog overlay (e.g. UserEdit). Use Tailwind class z-[100]. */
 export const DROPDOWN_ABOVE_DIALOG_Z = 100;
 

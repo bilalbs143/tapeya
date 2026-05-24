@@ -1,36 +1,43 @@
 /**
- * Single live broadcast — full-screen cover or centered landscape (minimized) layout.
+ * Live broadcast player — portrait or 90° landscape inside the parent player zone.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import CommentList from '@/features/stream/CommentList';
+import { FloatingHeartsOverlay } from '@/features/stream/FloatingHeartsOverlay';
+import { useFloatingHearts } from '@/features/stream/hooks/useFloatingHearts';
+import { useMatchComments } from '@/features/stream/hooks/useMatchComments';
+import { StreamPlayer } from '@/features/stream/StreamPlayer';
+import { useToast } from '@/hooks/useToast';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { defaultAvatar } from '@/pages/live/liveBroadcastData';
-import { useAppSelector } from '@/store/hooks';
-import { selectUser } from '@/store/selectors';
+import { mapSystemSettingsByKey } from '@/lib/mapSystemSettingsByKey';
+import { useSendLiveCommentMutation } from '@/store/api/matchApi';
+import { useGetPublicSystemSettingsQuery } from '@/store/api/systemSettingsApi';
+
+import LandscapeRotatedStage from './LandscapeRotatedStage';
 
 const maxMinIcon = `${CLOUDFRONT_APP_BASE}/images/icons/max-min-icon.svg`;
-const emojiIcon = `${CLOUDFRONT_APP_BASE}/images/icons/emoji-icon.svg`;
+const commentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/comment-icon.svg`;
 
-const MAX_VISIBLE_COMMENTS = 4;
+const BOTTOM_OVERLAY = 'pointer-events-none absolute right-0 bottom-0 left-0 z-10 px-4 pb-2';
 
-const BOTTOM_PANEL_CLASS =
-  'absolute right-0 left-0 z-10 flex flex-col gap-3 px-4 bottom-[calc(90px+env(safe-area-inset-bottom)+10px)] lg:bottom-6';
+const TOGGLE_BTN =
+  'flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/[0.13] backdrop-blur-[9.7px] transition-opacity active:opacity-80';
 
-const COMMENT_LIST_CLASS =
-  'flex max-h-[168px] flex-col justify-end gap-2.5 overflow-hidden [mask-image:linear-gradient(to_top,black_75%,transparent)]';
+// ---------------------------------------------------------------------------
+// Icons
+// ---------------------------------------------------------------------------
 
-function HeartIcon({ filled }) {
-  const color = filled ? '#ef4444' : '#000';
+function HeartIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
       <path
         d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-        stroke={color}
+        stroke="#000"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        fill={filled ? color : 'none'}
       />
     </svg>
   );
@@ -50,195 +57,274 @@ function SendIcon() {
   );
 }
 
-function CommentList({ comments }) {
-  const visibleComments = comments.slice(-MAX_VISIBLE_COMMENTS);
+// ---------------------------------------------------------------------------
+// BroadcastFloatingToggles
+// ---------------------------------------------------------------------------
 
+function BroadcastFloatingToggles({ className = '', isLandscape, onToggleLayout, bottomPanelVisible, onToggleBottomPanel }) {
   return (
-    <ul className={COMMENT_LIST_CLASS}>
-      {visibleComments.map((entry) => (
-        <li key={entry.id} className="flex items-start gap-2">
-          <img src={entry.avatar} alt="" className="h-8 w-8 shrink-0 rounded-full object-cover" />
-          <div className="min-w-0 pt-0.5">
-            <p className="text-[13px] leading-tight font-bold text-white">{entry.username}</p>
-            <p className="text-[12px] leading-snug text-white/75">{entry.text}</p>
-          </div>
-        </li>
-      ))}
-    </ul>
+    <div className={`flex shrink-0 items-center gap-2 ${className}`}>
+      <button
+        type="button"
+        onClick={onToggleBottomPanel}
+        className={`${TOGGLE_BTN} ${bottomPanelVisible ? '' : 'ring-1 ring-white/25'}`}
+        aria-label={bottomPanelVisible ? 'Hide match info and comments' : 'Show match info and comments'}
+        aria-pressed={bottomPanelVisible}
+      >
+        <img
+          src={commentIcon}
+          alt=""
+          className={`h-5 w-5 shrink-0 object-contain ${bottomPanelVisible ? 'opacity-100' : 'opacity-45'}`}
+          aria-hidden
+        />
+      </button>
+      <button
+        type="button"
+        onClick={onToggleLayout}
+        className={TOGGLE_BTN}
+        aria-label={isLandscape ? 'Rotate to portrait' : 'Rotate to landscape'}
+      >
+        <img src={maxMinIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
+      </button>
+    </div>
   );
 }
 
-function CommentInputBar({
-  comment,
-  onCommentChange,
-  onSend,
-  canSend,
-  isLiked,
-  onLike,
-  onToggleView,
-  isMinimized,
-}) {
+// ---------------------------------------------------------------------------
+// CommentInputRow — owns its own comment state so keystrokes never
+// re-render the parent (and therefore never re-render the StreamPlayer).
+// ---------------------------------------------------------------------------
+
+function CommentInputRow({ onSend, onSendHeart, disabled = false }) {
+  const [comment, setComment] = useState('');
+  const canSend = comment.trim().length > 0 && !disabled;
+
+  const handleSend = () => {
+    const text = comment.trim();
+    if (!text) return;
+    onSend(text);
+    setComment('');
+  };
+
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && canSend) {
       e.preventDefault();
-      onSend();
+      handleSend();
     }
   };
 
   return (
-    <div className="relative w-full">
-      <button
-        type="button"
-        onClick={onToggleView}
-        className="absolute right-0 bottom-full mb-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.13] backdrop-blur-[9.7px] transition-opacity active:opacity-80"
-        aria-label={isMinimized ? 'Maximize video' : 'Minimize video'}
-      >
-        <img src={maxMinIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
-      </button>
-
-      <div className="flex w-full items-center gap-2 rounded-[12px] bg-white/[0.13] py-2 pr-2 pl-4 backdrop-blur-[9.7px]">
-        <input
-          type="text"
-          value={comment}
-          onChange={(e) => onCommentChange(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Add a comment..."
-          className="min-w-0 flex-1 border-0 bg-transparent text-[13px] text-white placeholder:text-white/60 focus:outline-none"
-        />
-        <div className="flex shrink-0 items-center gap-1.5">
-          <button
-            type="button"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white transition-transform active:scale-95"
-            aria-label="Add emoji"
-          >
-            <img src={emojiIcon} alt="" className="h-[18px] w-[18px] shrink-0 object-contain" aria-hidden />
-          </button>
-          <button
-            type="button"
-            onClick={onSend}
-            disabled={!canSend}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white transition-transform active:scale-95 disabled:opacity-50"
-            aria-label="Send comment"
-          >
-            <SendIcon />
-          </button>
-          <button
-            type="button"
-            onClick={onLike}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white transition-transform active:scale-95"
-            aria-label={isLiked ? 'Unlike' : 'Like'}
-          >
-            <HeartIcon filled={isLiked} />
-          </button>
-        </div>
+    <div className="flex w-full items-center gap-2 rounded-[12px] bg-white/[0.13] py-2 pr-2 pl-4 backdrop-blur-[9.7px]">
+      <input
+        type="text"
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder={disabled ? 'Chat unavailable' : 'Add a comment…'}
+        disabled={disabled}
+        className="min-w-0 flex-1 border-0 bg-transparent text-[13px] text-white placeholder:text-white/60 focus:outline-none disabled:opacity-50"
+      />
+      <div className="flex shrink-0 items-center gap-1.5">
+        <button
+          type="button"
+          onClick={handleSend}
+          disabled={!canSend}
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-white transition-transform active:scale-95 disabled:opacity-50"
+          aria-label="Send comment"
+        >
+          <SendIcon />
+        </button>
+        <button
+          type="button"
+          onClick={onSendHeart}
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-white transition-transform active:scale-95"
+          aria-label="Send heart"
+        >
+          <HeartIcon />
+        </button>
       </div>
     </div>
   );
 }
 
-export default function LiveBroadcastItem({ broadcast, isLiked, onLike }) {
-  const videoRef = useRef(null);
-  const user = useAppSelector(selectUser);
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [comment, setComment] = useState('');
-  const [comments, setComments] = useState(broadcast.comments);
+// ---------------------------------------------------------------------------
+// BroadcastBottomPanel
+// ---------------------------------------------------------------------------
+
+function BroadcastBottomPanel({
+  homeTeam,
+  awayTeam,
+  tournament,
+  messages,
+  chatEnabled,
+  streamStatus,
+  inputDisabled,
+  onSend,
+  onSendHeart,
+  isLandscape,
+  onToggleLayout,
+  bottomPanelVisible,
+  onToggleBottomPanel,
+}) {
+  return (
+    <div className="relative flex w-full flex-col gap-2">
+      {bottomPanelVisible && chatEnabled && <CommentList messages={messages} isLandscape={isLandscape} />}
+
+      <div className={`flex gap-2 ${bottomPanelVisible ? 'items-start' : 'items-center justify-end'}`}>
+        {bottomPanelVisible && (
+          <div className="min-w-0 flex-1 px-1">
+            <p className={`leading-snug font-bold text-white drop-shadow ${isLandscape ? 'text-[13px]' : 'text-[14px]'}`}>
+              {homeTeam} vs {awayTeam}
+            </p>
+            {tournament && (
+              <p className={`mt-0.5 text-white/70 drop-shadow ${isLandscape ? 'text-[11px]' : 'text-[12px]'}`}>{tournament}</p>
+            )}
+            {streamStatus === 'ended' && <p className="mt-1 text-[11px] text-white/60 drop-shadow">Stream has ended</p>}
+          </div>
+        )}
+        <BroadcastFloatingToggles
+          className={bottomPanelVisible ? 'ml-auto shrink-0' : ''}
+          isLandscape={isLandscape}
+          onToggleLayout={onToggleLayout}
+          bottomPanelVisible={bottomPanelVisible}
+          onToggleBottomPanel={onToggleBottomPanel}
+        />
+      </div>
+
+      {bottomPanelVisible && chatEnabled && (
+        <CommentInputRow onSend={onSend} onSendHeart={onSendHeart} disabled={inputDisabled} />
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// BroadcastViewport — video, hearts, and comments share one rotated box
+// ---------------------------------------------------------------------------
+
+const GRADIENT_VISIBLE = 'bg-gradient-to-t from-black/80 via-black/10 to-transparent';
+const GRADIENT_HIDDEN = 'bg-gradient-to-t from-black/25 to-transparent';
+
+function BroadcastViewport({ stream, bottomPanel, bottomPanelVisible, isLandscape, floatingHearts, onHeartEnd }) {
+  return (
+    <div className="relative size-full overflow-hidden bg-black">
+      <div className="absolute inset-0 flex items-center justify-center">
+        <StreamPlayer stream={stream} className="max-h-full w-full" fill={isLandscape} />
+      </div>
+
+      <FloatingHeartsOverlay hearts={floatingHearts} onHeartEnd={onHeartEnd} isLandscape={isLandscape} />
+
+      <div className={`pointer-events-none absolute inset-0 ${bottomPanelVisible ? GRADIENT_VISIBLE : GRADIENT_HIDDEN}`} />
+
+      <div className={BOTTOM_OVERLAY}>
+        <div className="pointer-events-auto">{bottomPanel}</div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main component
+// ---------------------------------------------------------------------------
+
+export default function LiveBroadcastItem({ match, isLandscape, onToggleLandscape }) {
+  const toast = useToast();
+  const [bottomPanelVisible, setBottomPanelVisible] = useState(true);
+  const [sendCooldown, setSendCooldown] = useState(false);
+  const cooldownTimerRef = useRef(null);
+  const { hearts: floatingHearts, spawnBurst, removeHeart, clearHearts } = useFloatingHearts();
+
+  const matchId = match?.id ?? null;
+  const streamStatus = match?.stream?.status;
+  const streamChatActive = streamStatus === 'live' || streamStatus === 'starting';
+
+  const { data: settingsRows } = useGetPublicSystemSettingsQuery();
+  const settingsByKey = useMemo(() => mapSystemSettingsByKey(settingsRows), [settingsRows]);
+  const liveChatGloballyEnabled = settingsByKey.live_chat_enabled !== '0';
+
+  const chatEnabled = liveChatGloballyEnabled && streamChatActive;
+  const { messages } = useMatchComments(matchId, chatEnabled);
+  const [sendComment, { isLoading: isSending }] = useSendLiveCommentMutation();
 
   useEffect(() => {
-    setComments(broadcast.comments);
-    setComment('');
-  }, [broadcast.id, broadcast.comments]);
+    clearHearts();
+  }, [isLandscape, clearHearts]);
 
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    video.play().catch(() => {});
-    return () => {
-      video.pause();
-    };
-  }, [broadcast.videoUrl, isMinimized]);
+  useEffect(
+    () => () => {
+      if (cooldownTimerRef.current) {
+        window.clearTimeout(cooldownTimerRef.current);
+      }
+    },
+    [],
+  );
 
-  const handleToggleView = useCallback(() => {
-    setIsMinimized((v) => !v);
-  }, []);
+  const handleSendHeart = useCallback(() => spawnBurst(), [spawnBurst]);
 
-  const canSend = comment.trim().length > 0;
+  const handleSend = useCallback(
+    async (text) => {
+      const body = text.trim();
+      if (!body || !matchId || !chatEnabled || isSending || sendCooldown) {
+        return;
+      }
 
-  const handleSend = useCallback(() => {
-    const text = comment.trim();
-    if (!text) return;
+      setSendCooldown(true);
+      cooldownTimerRef.current = window.setTimeout(() => {
+        setSendCooldown(false);
+      }, 2000);
 
-    const username = user?.name?.trim() || user?.nickname?.trim() || 'You';
-    const avatar = user?.avatar_url || defaultAvatar;
+      try {
+        await sendComment({ matchId, body }).unwrap();
+      } catch (err) {
+        const type = err?.data?.type;
+        if (type === 'TOO_MANY_REQUESTS') {
+          toast.error('Slow down a little');
+        }
+      }
+    },
+    [matchId, chatEnabled, isSending, sendCooldown, sendComment, toast],
+  );
 
-    setComments((prev) => [
-      ...prev,
-      { id: `local-${Date.now()}`, username, avatar, text },
-    ]);
-    setComment('');
-  }, [comment, user]);
+  const toggleBottomPanel = useCallback(() => setBottomPanelVisible((v) => !v), []);
 
-  const inputBar = (
-    <CommentInputBar
-      comment={comment}
-      onCommentChange={setComment}
+  const stream = match?.stream ?? null;
+  const homeTeam = match?.home_team?.name ?? 'Home';
+  const awayTeam = match?.away_team?.name ?? 'Away';
+  const tournament = match?.tournament?.name ?? null;
+  const inputDisabled = isSending || sendCooldown;
+
+  const bottomPanel = (
+    <BroadcastBottomPanel
+      homeTeam={homeTeam}
+      awayTeam={awayTeam}
+      tournament={tournament}
+      messages={messages}
+      chatEnabled={chatEnabled}
+      streamStatus={streamStatus}
+      inputDisabled={inputDisabled}
       onSend={handleSend}
-      canSend={canSend}
-      isLiked={isLiked}
-      onLike={onLike}
-      onToggleView={handleToggleView}
-      isMinimized={isMinimized}
+      onSendHeart={handleSendHeart}
+      isLandscape={isLandscape}
+      onToggleLayout={onToggleLandscape}
+      bottomPanelVisible={bottomPanelVisible}
+      onToggleBottomPanel={toggleBottomPanel}
     />
   );
 
-  if (isMinimized) {
-    return (
-      <div className="absolute inset-0 overflow-hidden bg-black lg:top-14">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="aspect-video w-full max-h-full overflow-hidden">
-            <video
-              ref={videoRef}
-              src={broadcast.videoUrl}
-              autoPlay
-              muted={false}
-              loop
-              playsInline
-              preload="metadata"
-              className="pointer-events-none h-full w-full object-cover object-center"
-            >
-              <track kind="captions" />
-            </video>
-          </div>
-        </div>
-
-        <div className={`pointer-events-none ${BOTTOM_PANEL_CLASS}`}>
-          <CommentList comments={comments} />
-          <div className="pointer-events-auto">{inputBar}</div>
-        </div>
-      </div>
-    );
-  }
+  const viewport = (
+    <BroadcastViewport
+      stream={stream}
+      bottomPanel={bottomPanel}
+      bottomPanelVisible={bottomPanelVisible}
+      isLandscape={isLandscape}
+      floatingHearts={floatingHearts}
+      onHeartEnd={removeHeart}
+    />
+  );
 
   return (
-    <div className="absolute inset-0 overflow-hidden bg-black lg:top-14">
-      <video
-        ref={videoRef}
-        src={broadcast.videoUrl}
-        autoPlay
-        muted={false}
-        loop
-        playsInline
-        preload="metadata"
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
-      >
-        <track kind="captions" />
-      </video>
-
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-black/30" />
-
-      <div className={`pointer-events-none ${BOTTOM_PANEL_CLASS}`}>
-        <CommentList comments={comments} />
-        <div className="pointer-events-auto">{inputBar}</div>
-      </div>
+    <div className="relative h-full w-full overflow-hidden bg-black">
+      <LandscapeRotatedStage rotated={isLandscape}>{viewport}</LandscapeRotatedStage>
     </div>
   );
 }

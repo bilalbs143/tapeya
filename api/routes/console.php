@@ -13,3 +13,5 @@ Artisan::command('inspire', function () {
  * Tune the time if it overlaps with heavy jobs on your host.
  */
 Schedule::command('match-graphic:purge-old-commands --hours=24')->dailyAt('03:30');
+
+Schedule::command('streams:sync')->everyMinute()->withoutOverlapping()->runInBackground();

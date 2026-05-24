@@ -16,8 +16,6 @@ use Illuminate\Support\Str;
 
 class TournamentInterestCampaignController extends BaseAdminController
 {
-    private const LOGO_DIR = 'interest-campaigns/logos';
-
     public function __construct()
     {
         parent::__construct(
@@ -53,11 +51,7 @@ class TournamentInterestCampaignController extends BaseAdminController
         $data['status'] = $data['status'] ?? TournamentInterestCampaignStatusEnum::OPEN->value;
         $data['created_by'] = $request->user()?->id;
 
-        $this->storeImage($request, 'logo', self::LOGO_DIR, $data);
-        if (array_key_exists('logo', $data)) {
-            $data['logo_path'] = $data['logo'];
-            unset($data['logo']);
-        }
+        unset($data['logo']);
 
         try {
             $campaign = DB::transaction(function () use ($data) {
@@ -83,8 +77,7 @@ class TournamentInterestCampaignController extends BaseAdminController
         TournamentInterestCampaign $campaign,
     ): JsonResponse {
         $data = $request->validated();
-        $removeLogo = (bool) ($data['remove_logo'] ?? false);
-        unset($data['remove_logo']);
+        unset($data['logo']); // File field — handled by the generic media endpoint
 
         if (array_key_exists('tournament_id', $data)) {
             if (! empty($data['tournament_id'])) {
@@ -99,21 +92,6 @@ class TournamentInterestCampaignController extends BaseAdminController
                 $data['tournament_name'] ?? $campaign->tournament_name,
                 $campaign->id,
             );
-        }
-
-        if ($request->hasFile('logo')) {
-            $this->storeImage($request, 'logo', self::LOGO_DIR, $data);
-            if (array_key_exists('logo', $data)) {
-                $this->deleteLogo($campaign->logo_path);
-                $data['logo_path'] = $data['logo'];
-                unset($data['logo']);
-            }
-        } else {
-            unset($data['logo']);
-            if ($removeLogo) {
-                $this->deleteLogo($campaign->logo_path);
-                $data['logo_path'] = null;
-            }
         }
 
         DB::transaction(function () use ($campaign, $data) {
@@ -133,7 +111,9 @@ class TournamentInterestCampaignController extends BaseAdminController
     {
         $logoPath = $campaign->logo_path;
         $response = $this->_destroy($campaign, 'Interest campaign deleted.');
-        $this->deleteLogo($logoPath);
+        if ($logoPath) {
+            Storage::disk(config('filesystems.media_disk'))->delete($logoPath);
+        }
 
         return $response;
     }
@@ -158,13 +138,6 @@ class TournamentInterestCampaignController extends BaseAdminController
         }
 
         return $slug;
-    }
-
-    private function deleteLogo(?string $path): void
-    {
-        if ($path) {
-            Storage::disk(config('filesystems.media_disk'))->delete($path);
-        }
     }
 
     /**

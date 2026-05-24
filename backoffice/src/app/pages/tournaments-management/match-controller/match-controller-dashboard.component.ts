@@ -35,6 +35,7 @@ import {
 } from './controller-settings-dialog/controller-settings-dialog.component';
 import { LiveMatchStateComponent } from './live-match-state/live-match-state.component';
 import { MatchCaptionDialogComponent, type MatchCaptionDialogData } from './match-caption-dialog/match-caption-dialog.component';
+import { MatchStreamPanelComponent } from './match-stream-panel/match-stream-panel.component';
 
 export interface MatchGraphicPlayerPick {
   team_id: number;
@@ -73,6 +74,7 @@ export interface BatterCommandCardView {
     MatProgressSpinnerModule,
     MatTooltipModule,
     LiveMatchStateComponent,
+    MatchStreamPanelComponent,
   ],
   templateUrl: './match-controller-dashboard.component.html',
   styleUrl: './match-controller-dashboard.component.scss',
@@ -549,22 +551,21 @@ export class MatchControllerDashboardComponent implements OnInit {
 
   /**
    * Public Reverb payload uses `command_id`; admin API resources use `id`.
-   * Payload shape is not fully typed at the Echo layer — use `any` here only.
    */
-  private commandIdFromGraphicActivatedEvent(event: any): number | null {
+  private commandIdFromGraphicActivatedEvent(event: Record<string, unknown>): number | null {
     const raw = event['command_id'] ?? event['id'];
     return typeof raw === 'number' ? raw : Number(raw) || null;
   }
 
-  private commandFromGraphicActivatedEvent(event: any): MatchGraphicCommand {
+  private commandFromGraphicActivatedEvent(event: Record<string, unknown>): MatchGraphicCommand {
     const id = this.commandIdFromGraphicActivatedEvent(event);
     const sidRaw = event['session_id'] ?? event['match_graphic_session_id'];
     const sessionId = typeof sidRaw === 'number' ? sidRaw : Number(sidRaw) || 0;
     return {
       id: id ?? 0,
       match_graphic_session_id: sessionId,
-      command_type: String(event['command_type'] ?? ''),
-      command_key: String(event['command_key'] ?? ''),
+      command_type: typeof event['command_type'] === 'string' ? event['command_type'] : '',
+      command_key: typeof event['command_key'] === 'string' ? event['command_key'] : '',
       payload: (event['payload'] as Record<string, unknown> | null) ?? null,
       display_mode: (event['display_mode'] as string | null) ?? null,
       created_at: null,

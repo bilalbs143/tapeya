@@ -10,10 +10,7 @@ export function NavbarIconBadge({ label, animatePop = false }) {
   }
 
   return (
-    <span
-      className={`${NAVBAR_ICON_BADGE_CLASS}${animatePop ? ' animate-badge-pop origin-top-right' : ''}`}
-      aria-hidden
-    >
+    <span className={`${NAVBAR_ICON_BADGE_CLASS}${animatePop ? 'animate-badge-pop origin-top-right' : ''}`} aria-hidden>
       {label}
     </span>
   );

@@ -4,23 +4,18 @@ import { Link } from 'react-router-dom';
 import { Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { liveMatchWatchPath } from '@/lib/utils/liveStreamUtils';
 
-const liveImg1 = `${CLOUDFRONT_APP_BASE}/images/standard/live-img-1.png`;
-const liveImg2 = `${CLOUDFRONT_APP_BASE}/images/standard/live-img-2.png`;
-const liveImg3 = `${CLOUDFRONT_APP_BASE}/images/standard/live-img-3.png`;
-const liveImg4 = `${CLOUDFRONT_APP_BASE}/images/standard/live-img-4.png`;
+/**
+ * @param {object} props
+ * @param {Array<{ id: number, tournament_id: number, thumbnail_url?: string|null, matchId: string, stream?: { status?: string } }>} props.matches
+ * @param {boolean} [props.showViewMore]
+ */
+export function LiveMatchSlider({ matches = [], showViewMore = true }) {
+  if (!matches.length) {
+    return null;
+  }
 
-const SLIDES = [
-  { id: 1, image: liveImg1, alt: 'Live match 1' },
-  { id: 2, image: liveImg2, alt: 'Live match 2' },
-  { id: 3, image: liveImg3, alt: 'Live match 3' },
-  { id: 4, image: liveImg4, alt: 'Live match 4' },
-  { id: 5, image: liveImg1, alt: 'Live match 5' },
-  { id: 6, image: liveImg2, alt: 'Live match 6' },
-];
-
-export function LiveMatchSlider() {
   return (
     <section className="space-y-3">
       <header className="flex items-center justify-between">
@@ -28,30 +23,58 @@ export function LiveMatchSlider() {
           <span className="h-2 w-2 shrink-0 rounded-full bg-red-500" aria-hidden />
           <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase md:text-[16px]">Live now</h2>
         </div>
-        <Link to="/live" className="text-[12px] font-bold text-[#DA9811] transition-opacity active:opacity-80 md:text-[16px]">
-          View more
-        </Link>
+        {showViewMore && (
+          <Link to="/live" className="text-[12px] font-bold text-[#DA9811] transition-opacity active:opacity-80 md:text-[16px]">
+            View more
+          </Link>
+        )}
       </header>
 
       <Swiper
         modules={[Autoplay]}
         spaceBetween={15}
-        slidesPerView={4}
+        slidesPerView={1.35}
         breakpoints={{
-          768: { slidesPerView: 4.5 },
+          480: { slidesPerView: 2.2 },
+          768: { slidesPerView: 3.2 },
+          1024: { slidesPerView: 4 },
         }}
         autoplay={{ delay: 4000, disableOnInteraction: false }}
-        loop
+        loop={matches.length > 1}
         grabCursor
         className="live-match-swiper -mx-4 px-4"
       >
-        {SLIDES.map(({ id, image, alt }) => (
-          <SwiperSlide key={id}>
-            <div className="h-[116px] overflow-hidden rounded-[17px] md:h-[260px]">
-              <img src={image} alt={alt} className="h-full w-full object-cover" />
-            </div>
-          </SwiperSlide>
-        ))}
+        {matches.map((match) => {
+          const isLive = match.stream?.status === 'live';
+          const watchPath = liveMatchWatchPath(match.tournament_id, match.id);
+
+          return (
+            <SwiperSlide key={match.id}>
+              <Link to={watchPath} className="group relative block h-[116px] overflow-hidden rounded-[17px] md:h-[200px]">
+                {match.thumbnail_url ? (
+                  <img
+                    src={match.thumbnail_url}
+                    alt=""
+                    className="h-full w-full object-cover transition-transform duration-300 group-active:scale-[1.02]"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1a1a18] to-[#2c2418] px-3">
+                    <p className="line-clamp-2 text-center text-[13px] font-semibold text-white">{match.matchId}</p>
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute right-2 bottom-2 left-2">
+                  {isLive && (
+                    <span className="mb-1 inline-block rounded bg-[#E53935] px-1.5 py-0.5 text-[10px] font-bold text-white uppercase">
+                      Live
+                    </span>
+                  )}
+                  <p className="line-clamp-2 text-[12px] font-semibold text-white md:text-[14px]">{match.matchId}</p>
+                </div>
+              </Link>
+            </SwiperSlide>
+          );
+        })}
       </Swiper>
     </section>
   );

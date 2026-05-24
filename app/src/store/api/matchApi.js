@@ -149,6 +149,15 @@ export const matchApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (_result, _err, { matchId }) => (matchId ? [{ type: 'MatchState', id: matchId }] : []),
     }),
+
+    sendLiveComment: builder.mutation({
+      query: ({ matchId, body }) => ({
+        url: `/matches/${matchId}/live-comments`,
+        method: 'POST',
+        body: { body },
+      }),
+      transformResponse: (response) => response?.data ?? response,
+    }),
   }),
 });
 
@@ -168,4 +177,5 @@ export const {
   useUpdateTossMutation,
   useUpdatePlayerOfMatchMutation,
   useUpdateCreaseMutation,
+  useSendLiveCommentMutation,
 } = matchApi;

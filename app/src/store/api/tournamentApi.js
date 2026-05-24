@@ -1,5 +1,18 @@
 import { baseApi } from './baseApi';
 
+function buildMatchFormData({ tournamentId: _tournamentId, thumbnail, ...body }) {
+  const fd = new FormData();
+  Object.entries(body).forEach(([key, value]) => {
+    if (value != null && value !== '') {
+      fd.append(key, String(value));
+    }
+  });
+  if (thumbnail instanceof File) {
+    fd.append('thumbnail', thumbnail);
+  }
+  return fd;
+}
+
 /**
  * Tournament API – list and show tournaments (user app, auth required).
  * GET /tournaments, GET /tournaments/:id
@@ -125,11 +138,14 @@ export const tournamentApi = baseApi.injectEndpoints({
           : [],
     }),
     createTournamentMatch: builder.mutation({
-      query: ({ tournamentId, ...body }) => ({
-        url: `/tournaments/${tournamentId}/matches`,
-        method: 'POST',
-        body,
-      }),
+      query: ({ tournamentId, thumbnail, ...body }) => {
+        const hasFile = thumbnail instanceof File;
+        return {
+          url: `/tournaments/${tournamentId}/matches`,
+          method: 'POST',
+          body: hasFile ? buildMatchFormData({ tournamentId, thumbnail, ...body }) : body,
+        };
+      },
       transformResponse: (response) => response?.data ?? response,
       invalidatesTags: (_result, _err, { tournamentId }) =>
         tournamentId

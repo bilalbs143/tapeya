@@ -1,4 +1,4 @@
-<app-dialog-wrapper title="Schedule Match">
+<app-dialog-wrapper [title]="dialogTitle">
   @if (isLoading) {
     <mat-dialog-content>
       <div class="flex justify-center py-10">
@@ -242,6 +242,18 @@
             </mat-form-field>
           </div>
         </div>
+
+        <!-- Optional thumbnail -->
+        <div>
+          <app-file-upload
+            formControlName="thumbnail"
+            label="Stream Thumbnail"
+            accept="image/jpeg,image/png,image/webp"
+            acceptLabel="JPG, PNG, WebP"
+            hint="Shown on the Live hub. 360×185 px recommended."
+            [maxSizeMb]="2"
+          ></app-file-upload>
+        </div>
       </mat-dialog-content>
       <mat-divider></mat-divider>
       <mat-dialog-actions>
@@ -257,7 +269,7 @@
         <app-submit-button
           [disabled]="form.invalid"
           [isSubmitting]="isSubmitting"
-          text="Schedule"
+          [text]="submitLabel"
           color="primary"
         />
       </mat-dialog-actions>

@@ -43,8 +43,7 @@ export function ProfileStrengthReminderScheduler() {
   const userRef = useRef(user);
   userRef.current = user;
 
-  const enabled =
-    resolveProfileStrengthReminderPayload(location.pathname, { isAuthenticated, user }) !== null;
+  const enabled = resolveProfileStrengthReminderPayload(location.pathname, { isAuthenticated, user }) !== null;
 
   useIntervalDialogPrompt({
     intervalMs: DIALOG_REMINDER_INTERVAL_MS,

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Enums\Tournament\TournamentInterestCampaignStatusEnum;
+use App\Enums\Tournament\TournamentTypeEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\User\TournamentResource;
@@ -37,8 +38,9 @@ class TournamentController extends Controller
             });
         }
 
-        // Optionally eager-load matches for each tournament (for user scorecard views).
+        // Scorecard hub: with_matches loads fixtures and is limited to open tournaments.
         if (request()->boolean('with_matches')) {
+            $query->where('tournament_type', TournamentTypeEnum::OPEN_TOURNAMENT);
             $query->with([
                 'matches.homeTeam',
                 'matches.awayTeam',

@@ -25,7 +25,6 @@ class CategoryController extends BaseAdminController
     public function store(StoreCategoryRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $this->storeImage($request, 'image', 'shop/categories', $data);
         $record = $this->model->create($data);
         $record = $this->refresh($record);
 
@@ -40,7 +39,6 @@ class CategoryController extends BaseAdminController
     public function update(UpdateCategoryRequest $request, Category $category): JsonResponse
     {
         $data = $request->validated();
-        $this->storeImage($request, 'image', 'shop/categories', $data, $category);
         $category = $this->refresh($category);
         $category->update($data);
         $category = $this->refresh($category);

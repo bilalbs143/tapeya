@@ -160,7 +160,7 @@ function App() {
                       <Route path="/ranking" element={<Ranking />} />
                       <Route path="/ranking/stats-total/:statType" element={<RankingStatsTotal />} />
                       <Route path="/live" element={<Live />} />
-                      <Route path="/live/broadcast/:broadcastId" element={<LiveBroadcast />} />
+                      <Route path="/live/broadcast/:matchId" element={<LiveBroadcast />} />
                       <Route path="/notification-center" element={<NotificationCenter />} />
                       <Route path="/support" element={<Support />} />
                       <Route path="/reels" element={<Reels />} />

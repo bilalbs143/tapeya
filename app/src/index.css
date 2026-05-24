@@ -66,3 +66,44 @@ body {
     }
   }
 }
+
+/* Live broadcast — hearts float up from the like button area */
+@keyframes live-float-heart {
+  0% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--heart-drift, 0px)), 0) scale(0.35);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--heart-drift, 0px)), -8px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--heart-drift, 0px)), min(-72vh, -280px)) scale(0.9);
+  }
+}
+
+.live-float-heart {
+  animation: live-float-heart 2.2s ease-out forwards;
+  will-change: transform, opacity;
+}
+
+/* Landscape stage rotates 90° CW — hearts travel left on screen (content "up") with vertical wiggle. */
+@keyframes live-float-heart-landscape {
+  0% {
+    opacity: 0;
+    transform: translate(0, calc(-50% + var(--heart-drift, 0px))) scale(0.35);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-8px, calc(-50% + var(--heart-drift, 0px))) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(min(-72vh, -280px), calc(-50% + var(--heart-drift, 0px))) scale(0.9);
+  }
+}
+
+.live-float-heart--landscape {
+  animation-name: live-float-heart-landscape;
+}

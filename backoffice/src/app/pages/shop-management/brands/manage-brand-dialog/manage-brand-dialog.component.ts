@@ -7,12 +7,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatDivider } from '@angular/material/list';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { finalize } from 'rxjs/operators';
+import { finalize, switchMap } from 'rxjs/operators';
 
+import { MediaService } from 'src/app/services/media.service';
 import type { Brand } from 'src/app/services/shop/brand.service';
 import { BrandService } from 'src/app/services/shop/brand.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { toKebabCase } from 'src/app/shared/functions/slug.function';
 
@@ -33,7 +34,7 @@ export interface ManageBrandDialogData {
     MatFormFieldModule,
     MatInputModule,
     MatSlideToggleModule,
-    TablerIconsModule,
+    FileUploadComponent,
     DialogWrapperComponent,
     SubmitButtonComponent,
   ],
@@ -42,13 +43,14 @@ export interface ManageBrandDialogData {
 export class ManageBrandDialogComponent {
   public readonly data = inject<ManageBrandDialogData>(MAT_DIALOG_DATA);
   private readonly brandService = inject(BrandService);
+  private readonly mediaService = inject(MediaService);
   private readonly dialogRef = inject<MatDialogRef<ManageBrandDialogComponent>>(MatDialogRef);
   private readonly fb = inject(FormBuilder);
 
   public form!: FormGroup;
   public isSubmitting = false;
-  public selectedFile: File | null = null;
-  public previewUrl: string | null = null;
+
+  private readonly originalHasLogo = !!this.data.brand?.logo;
 
   public get title(): string {
     return this.data.mode === 'edit' ? 'Edit Brand' : 'Add Brand';
@@ -72,28 +74,11 @@ export class ManageBrandDialogComponent {
       slug: [brand?.slug ?? '', [Validators.required]],
       sort_order: [brand?.sort_order ?? 0, [Validators.min(0)]],
       is_active: [brand?.is_active ?? true],
-      logo: [null as File | null],
+      // logo: FileUploadValue | null — null means nothing selected/kept.
+      // Initialise with existing URL so the component shows the current logo.
+      logo: [brand?.logo ? ({ files: [], existingUrls: [brand.logo] } as FileUploadValue) : null],
     });
-    if (brand?.logo) {
-      this.previewUrl = brand.logo;
-    }
     this.form.patchValue({ slug: toKebabCase(this.form.get('name')?.value) }, { emitEvent: false });
-  }
-
-  public onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (file) {
-      this.selectedFile = file;
-      this.previewUrl = URL.createObjectURL(file);
-      this.form.patchValue({ logo: file });
-    }
-  }
-
-  public clearFile(): void {
-    this.selectedFile = null;
-    this.previewUrl = this.data.brand?.logo ?? null;
-    this.form.patchValue({ logo: null });
   }
 
   public onSubmit(): void {
@@ -107,15 +92,21 @@ export class ManageBrandDialogComponent {
     formData.append('slug', (raw.slug ?? '').trim());
     formData.append('sort_order', String(raw.sort_order ?? 0));
     formData.append('is_active', raw.is_active ? '1' : '0');
-    if (this.selectedFile) formData.append('logo', this.selectedFile);
+
+    const logoValue = raw.logo as FileUploadValue | null;
 
     this.isSubmitting = true;
     const request$ =
       this.data.mode === 'create' ? this.brandService.create(formData) : this.brandService.update(this.data.brand!.id, formData);
 
-    request$.pipe(finalize(() => (this.isSubmitting = false))).subscribe({
-      next: () => this.dialogRef.close(true),
-      error: () => this.dialogRef.close(false),
-    });
+    request$
+      .pipe(
+        switchMap((res) => this.mediaService.applyField('brand', res.data.id, 'logo', logoValue, this.originalHasLogo)),
+        finalize(() => (this.isSubmitting = false))
+      )
+      .subscribe({
+        next: () => this.dialogRef.close(true),
+        error: () => this.dialogRef.close(false),
+      });
   }
 }

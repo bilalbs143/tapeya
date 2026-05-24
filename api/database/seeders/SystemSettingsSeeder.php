@@ -6,9 +6,11 @@ use App\Settings\AdminNotificationSettings;
 use App\Settings\AppStoreSettings;
 use App\Settings\ContactSettings;
 use App\Settings\GeneralSettings;
+use App\Settings\LiveChatSettings;
 use App\Settings\OtpSettings;
 use App\Settings\OverlaySettings;
 use App\Settings\SmsSettings;
+use App\Settings\StreamingSettings;
 use App\Settings\VeevoTechSmsSettings;
 use App\Settings\WhatsAppSettings;
 use App\Support\EnsureSpatieSettingsDatabaseProperties;
@@ -29,6 +31,8 @@ class SystemSettingsSeeder extends Seeder
         $this->seedSms();
         $this->seedVeevoTechSms();
         $this->seedWhatsApp();
+        $this->seedStreaming();
+        $this->seedLiveChat();
     }
 
     private function seedGeneral(): void
@@ -116,5 +120,30 @@ class SystemSettingsSeeder extends Seeder
         $whatsApp->authTemplateName ??= 'otp';
         $whatsApp->authTemplateLanguage ??= 'en_US';
         $whatsApp->save();
+    }
+
+    private function seedStreaming(): void
+    {
+        $streaming = app(StreamingSettings::class);
+        if (! isset($streaming->defaultProvider) || $streaming->defaultProvider === '') {
+            $streaming->defaultProvider = 'youtube';
+        }
+        $streaming->youtubeClientId ??= null;
+        $streaming->youtubeClientSecret ??= null;
+        $streaming->youtubeRefreshToken ??= null;
+        $streaming->youtubeChannelId ??= null;
+        $streaming->youtubeDefaultPrivacy ??= 'public';
+        $streaming->save();
+    }
+
+    private function seedLiveChat(): void
+    {
+        $chat = app(LiveChatSettings::class);
+        $chat->enabled ??= 1;
+        $chat->minIntervalSec ??= 2;
+        $chat->burstMax ??= 20;
+        $chat->burstWindowSec ??= 600;
+        $chat->bodyMax ??= 200;
+        $chat->save();
     }
 }
