@@ -47,9 +47,6 @@ class TournamentController extends BaseAdminController
             $data['created_by'] = $user->id;
         }
 
-        $this->storeImage($request, 'display_image', self::TOURNAMENTS_IMAGE_DIR, $data);
-        $this->storeImage($request, 'cover_image', self::TOURNAMENTS_IMAGE_DIR, $data);
-
         $record = $this->model->create($data);
         $this->ensureOrganizerRole($record->organizer_id);
         if ($user && $user->hasBroadcastBackofficeRole()) {
@@ -69,9 +66,6 @@ class TournamentController extends BaseAdminController
     public function update(UpdateTournamentRequest $request, Tournament $tournament): JsonResponse
     {
         $data = $request->validated();
-
-        $this->storeImage($request, 'display_image', self::TOURNAMENTS_IMAGE_DIR, $data, $tournament);
-        $this->storeImage($request, 'cover_image', self::TOURNAMENTS_IMAGE_DIR, $data, $tournament);
 
         $tournament = $this->refresh($tournament);
         $tournament->update($data);

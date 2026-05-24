@@ -42,6 +42,9 @@ const PricingDetail = lazy(() => import('@/pages/pricing/PricingDetail'));
 const Ranking = lazy(() => import('@/pages/ranking/Ranking'));
 const RankingStatsTotal = lazy(() => import('@/pages/ranking/RankingStatsTotal'));
 
+const Live = lazy(() => import('@/pages/live/Live'));
+const LiveBroadcast = lazy(() => import('@/pages/live/LiveBroadcast'));
+
 const Reels = lazy(() => import('@/pages/reels/Reels'));
 const UploadReels = lazy(() => import('@/pages/reels/UploadReels'));
 
@@ -156,6 +159,8 @@ function App() {
                       <Route path="/tournament-request/success" element={<TournamentRequestSuccess />} />
                       <Route path="/ranking" element={<Ranking />} />
                       <Route path="/ranking/stats-total/:statType" element={<RankingStatsTotal />} />
+                      <Route path="/live" element={<Live />} />
+                      <Route path="/live/broadcast/:matchId" element={<LiveBroadcast />} />
                       <Route path="/notification-center" element={<NotificationCenter />} />
                       <Route path="/support" element={<Support />} />
                       <Route path="/reels" element={<Reels />} />

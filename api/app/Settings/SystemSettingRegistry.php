@@ -164,6 +164,39 @@ final class SystemSettingRegistry
             SystemSettingKeyEnum::WHATSAPP_TEMPLATE_AUTH_LANGUAGE => [
                 'value' => ['nullable', 'string', 'max:16'],
             ],
+            SystemSettingKeyEnum::STREAM_DEFAULT_PROVIDER => [
+                'value' => ['required', 'string', 'in:youtube'],
+            ],
+            SystemSettingKeyEnum::STREAM_YOUTUBE_CLIENT_ID => [
+                'value' => ['nullable', 'string', 'max:256'],
+            ],
+            SystemSettingKeyEnum::STREAM_YOUTUBE_CLIENT_SECRET => [
+                'value' => ['nullable', 'string', 'max:512'],
+            ],
+            SystemSettingKeyEnum::STREAM_YOUTUBE_REFRESH_TOKEN => [
+                'value' => ['nullable', 'string', 'max:2048'],
+            ],
+            SystemSettingKeyEnum::STREAM_YOUTUBE_CHANNEL_ID => [
+                'value' => ['nullable', 'string', 'max:64', 'regex:/^UC[A-Za-z0-9_-]{22}$/'],
+            ],
+            SystemSettingKeyEnum::STREAM_YOUTUBE_DEFAULT_PRIVACY => [
+                'value' => ['nullable', 'string', Rule::in(['public', 'unlisted'])],
+            ],
+            SystemSettingKeyEnum::LIVE_CHAT_ENABLED => [
+                'value' => ['required', 'integer', 'in:0,1'],
+            ],
+            SystemSettingKeyEnum::LIVE_CHAT_MIN_INTERVAL_SEC => [
+                'value' => ['required', 'integer', 'min:1', 'max:60'],
+            ],
+            SystemSettingKeyEnum::LIVE_CHAT_BURST_MAX => [
+                'value' => ['required', 'integer', 'min:1', 'max:200'],
+            ],
+            SystemSettingKeyEnum::LIVE_CHAT_BURST_WINDOW_SEC => [
+                'value' => ['required', 'integer', 'min:60', 'max:3600'],
+            ],
+            SystemSettingKeyEnum::LIVE_CHAT_BODY_MAX => [
+                'value' => ['required', 'integer', 'min:50', 'max:500'],
+            ],
         };
     }
 
@@ -455,6 +488,105 @@ final class SystemSettingRegistry
                 'settings_class' => WhatsAppSettings::class,
                 'property' => 'authTemplateLanguage',
                 'nullable_string' => true,
+            ],
+            SystemSettingKeyEnum::STREAM_DEFAULT_PROVIDER->value => [
+                'group' => SystemSettingGroupEnum::STREAMING,
+                'type' => SystemSettingTypeEnum::STRING,
+                'label' => 'Default Stream Provider',
+                'description' => 'Active streaming provider. Currently: youtube.',
+                'settings_class' => StreamingSettings::class,
+                'property' => 'defaultProvider',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::STREAM_YOUTUBE_CLIENT_ID->value => [
+                'group' => SystemSettingGroupEnum::STREAMING,
+                'type' => SystemSettingTypeEnum::STRING,
+                'label' => 'YouTube OAuth Client ID',
+                'description' => 'Google Cloud Console OAuth2 Client ID.',
+                'settings_class' => StreamingSettings::class,
+                'property' => 'youtubeClientId',
+                'nullable_string' => true,
+            ],
+            SystemSettingKeyEnum::STREAM_YOUTUBE_CLIENT_SECRET->value => [
+                'group' => SystemSettingGroupEnum::STREAMING,
+                'type' => SystemSettingTypeEnum::TEXT,
+                'label' => 'YouTube OAuth Client Secret',
+                'description' => 'Google Cloud Console OAuth2 Client Secret (stored encrypted).',
+                'settings_class' => StreamingSettings::class,
+                'property' => 'youtubeClientSecret',
+                'nullable_string' => true,
+            ],
+            SystemSettingKeyEnum::STREAM_YOUTUBE_REFRESH_TOKEN->value => [
+                'group' => SystemSettingGroupEnum::STREAMING,
+                'type' => SystemSettingTypeEnum::TEXT,
+                'label' => 'YouTube Platform Refresh Token',
+                'description' => 'Generated via: php artisan youtube:authorize (stored encrypted).',
+                'settings_class' => StreamingSettings::class,
+                'property' => 'youtubeRefreshToken',
+                'nullable_string' => true,
+            ],
+            SystemSettingKeyEnum::STREAM_YOUTUBE_CHANNEL_ID->value => [
+                'group' => SystemSettingGroupEnum::STREAMING,
+                'type' => SystemSettingTypeEnum::STRING,
+                'label' => 'YouTube Channel ID',
+                'description' => 'UCxxxxxxxxxxxx — the Tapeya platform channel.',
+                'settings_class' => StreamingSettings::class,
+                'property' => 'youtubeChannelId',
+                'nullable_string' => true,
+            ],
+            SystemSettingKeyEnum::STREAM_YOUTUBE_DEFAULT_PRIVACY->value => [
+                'group' => SystemSettingGroupEnum::STREAMING,
+                'type' => SystemSettingTypeEnum::STRING,
+                'label' => 'YouTube Default Broadcast Privacy',
+                'description' => 'Default for new broadcasts: public or unlisted.',
+                'settings_class' => StreamingSettings::class,
+                'property' => 'youtubeDefaultPrivacy',
+                'nullable_string' => true,
+            ],
+            SystemSettingKeyEnum::LIVE_CHAT_ENABLED->value => [
+                'group' => SystemSettingGroupEnum::LIVE_CHAT,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Live Chat Enabled',
+                'description' => '1 = chat on, 0 = kill switch (POST and UI disabled).',
+                'settings_class' => LiveChatSettings::class,
+                'property' => 'enabled',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::LIVE_CHAT_MIN_INTERVAL_SEC->value => [
+                'group' => SystemSettingGroupEnum::LIVE_CHAT,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Min Interval (seconds)',
+                'description' => 'Minimum seconds between sends per user per match.',
+                'settings_class' => LiveChatSettings::class,
+                'property' => 'minIntervalSec',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::LIVE_CHAT_BURST_MAX->value => [
+                'group' => SystemSettingGroupEnum::LIVE_CHAT,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Burst Max',
+                'description' => 'Max messages per user per burst window.',
+                'settings_class' => LiveChatSettings::class,
+                'property' => 'burstMax',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::LIVE_CHAT_BURST_WINDOW_SEC->value => [
+                'group' => SystemSettingGroupEnum::LIVE_CHAT,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Burst Window (seconds)',
+                'description' => 'Duration of the burst rate-limit window.',
+                'settings_class' => LiveChatSettings::class,
+                'property' => 'burstWindowSec',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::LIVE_CHAT_BODY_MAX->value => [
+                'group' => SystemSettingGroupEnum::LIVE_CHAT,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Body Max (characters)',
+                'description' => 'Maximum comment length in characters.',
+                'settings_class' => LiveChatSettings::class,
+                'property' => 'bodyMax',
+                'nullable_string' => false,
             ],
         ];
     }

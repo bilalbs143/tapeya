@@ -104,7 +104,9 @@ class ScorecardController extends Controller
 
         $this->logScoringAudit($match, $authUser, 'store_ball', $ball->id, ['innings_id' => $innings->id]);
 
-        $this->clearGraphicPendingCreaseIds($match);
+        // Pass the wicket flag so consecutive wickets don't erase the pending
+        // batsman selected after the previous dismissal before they face a ball.
+        $this->clearGraphicPendingCreaseIds($match, isWicket: (bool) ($data['is_wicket'] ?? false));
 
         RefreshMatchStatsJob::dispatch($match->id)->delay(now()->addSeconds(3));
         SyncMatchGraphicContextJob::dispatch($match->id);
@@ -512,8 +514,24 @@ class ScorecardController extends Controller
     /**
      * Drop crease keys from graphic pending_players after a ball mutation so
      * stale opener lines cannot override {@see InningsStatsService::resolveCreaseAfterBalls()}.
+     *
+     * @param  bool  $isWicket  True when the ball just stored is a dismissal.
+     *
+     * When a wicket ball is stored, the pending batter slots are intentionally
+     * preserved.  The admin may have already selected the incoming batsman via
+     * PATCH /crease after the previous dismissal, and that selection must remain
+     * visible to {@see MatchStateService::buildActiveInnings()} for the next
+     * delivery.  Without this, back-to-back wickets cause the second dismissal to
+     * erase the pending selection and the crease resolves to null — no batsman on
+     * strike is shown anywhere until a new non-wicket ball is recorded.
+     *
+     * The next_bowler_id is always cleared because it is captured on the ball row
+     * itself and must not linger between overs.
+     *
+     * On non-wicket balls the ball record is now authoritative for the full crease
+     * (the pending selection has "landed"), so batter slots are safe to clear.
      */
-    private function clearGraphicPendingCreaseIds(TournamentMatch $match): void
+    private function clearGraphicPendingCreaseIds(TournamentMatch $match, bool $isWicket = false): void
     {
         $session = $match->graphicSession;
         if ($session === null) {
@@ -523,10 +541,17 @@ class ScorecardController extends Controller
         if (! is_array($pending) || $pending === []) {
             return;
         }
-        // Clear all pending crease slots — once a ball is stored the ball records
-        // are authoritative for crease and bowler, so pending data must not linger
-        // and accidentally override future reads (e.g. next over's between-over window).
-        unset($pending['next_batter_id'], $pending['next_non_striker_id'], $pending['next_bowler_id']);
+
+        // Always clear the pending bowler — it is stored on the ball row.
+        unset($pending['next_bowler_id']);
+
+        // Only clear batter slots when this is a normal (non-wicket) ball.
+        // On a wicket ball we keep them so consecutive dismissals don't lose
+        // the batsman that was selected after the previous wicket.
+        if (! $isWicket) {
+            unset($pending['next_batter_id'], $pending['next_non_striker_id']);
+        }
+
         $session->update(['pending_players' => $pending === [] ? null : $pending]);
         $match->unsetRelation('graphicSession');
     }

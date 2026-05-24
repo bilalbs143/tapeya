@@ -34,6 +34,7 @@ class Tournament extends BaseModel
         'city',
         'match_timings',
         'status',
+        'stream_provider',
         'display_image',
         'cover_image',
         'prize',

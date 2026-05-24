@@ -28,7 +28,7 @@ const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
 const oversInputBase =
   'flex h-12 w-full items-center rounded-[6px] bg-[#141412] px-4 py-3 text-left text-white focus:outline-none focus:ring-2 focus:ring-[#DA9811]/50 cursor-pointer';
 
-function buildMatchPayload(data, groupIndex = null) {
+function buildMatchPayload(data, groupIndex = null, thumbnailFile = null) {
   const payload = {
     tournamentId: data.tournament_id,
     home_team_id: Number(data.team_a_id),
@@ -41,6 +41,9 @@ function buildMatchPayload(data, groupIndex = null) {
   };
   if (groupIndex != null && groupIndex > 0) {
     payload.group_index = groupIndex;
+  }
+  if (thumbnailFile instanceof File) {
+    payload.thumbnail = thumbnailFile;
   }
   return payload;
 }
@@ -91,6 +94,9 @@ export default function StartMatch() {
   });
 
   const validatedFormDataRef = useRef(null);
+  const thumbnailInputRef = useRef(null);
+  const [thumbnailName, setThumbnailName] = useState('No file selected');
+  const [thumbnailFile, setThumbnailFile] = useState(/** @type {File | null} */ (null));
 
   const { tournament_id: tournamentId, team_a_id, team_b_id, overs, players_per_side: playersPerSide } = watch();
   const { data: tournamentTeams = [] } = useGetTournamentTeamsQuery(tournamentId || undefined, { skip: !tournamentId });
@@ -119,9 +125,15 @@ export default function StartMatch() {
 
   const handleBack = () => navigate(-1);
 
+  const handleThumbnailChange = (event) => {
+    const file = event.target.files?.[0] ?? null;
+    setThumbnailFile(file);
+    setThumbnailName(file?.name ?? 'No file selected');
+  };
+
   const onSaveFixture = async (data) => {
     try {
-      await createMatch(buildMatchPayload(data, matchGroupIndex)).unwrap();
+      await createMatch(buildMatchPayload(data, matchGroupIndex, thumbnailFile)).unwrap();
       toast.success('Fixture saved. You can start scoring from the match later.');
       navigate('/organizer/tournaments');
     } catch (err) {
@@ -144,7 +156,7 @@ export default function StartMatch() {
     const data = validatedFormDataRef.current;
     if (!data) return;
     try {
-      const created = await createMatch(buildMatchPayload(data, matchGroupIndex)).unwrap();
+      const created = await createMatch(buildMatchPayload(data, matchGroupIndex, thumbnailFile)).unwrap();
       const matchId = created?.id;
       if (matchId) {
         const winningTeamId = tossWinner === 'A' ? Number(data.team_a_id) : Number(data.team_b_id);
@@ -372,6 +384,35 @@ export default function StartMatch() {
               </FormField>
             </div>
           </div>
+
+          <FormField label="Stream Thumbnail" htmlFor="stream_thumbnail_input">
+            <div className="flex h-12 items-center justify-between rounded-[6px] bg-[#141412] px-4">
+              <span className="truncate text-[16px] capitalize" style={{ color: '#A2A6AB78' }}>
+                {thumbnailName}
+              </span>
+              <div className="shrink-0">
+                <input
+                  ref={thumbnailInputRef}
+                  id="stream_thumbnail_input"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="sr-only"
+                  onChange={handleThumbnailChange}
+                  aria-label="Upload stream thumbnail"
+                />
+                <Button
+                  type="button"
+                  variant="file"
+                  size="sm"
+                  className="h-8 rounded-[6px] px-2 text-[12px] font-semibold tracking-wide capitalize"
+                  onClick={() => thumbnailInputRef.current?.click()}
+                >
+                  Attach File
+                </Button>
+              </div>
+            </div>
+            <p className="mt-1 text-[13px] text-[#A2A6AB]">Shown on the Live hub. JPG, PNG, or WebP up to 5 MB.</p>
+          </FormField>
 
           {/* Actions */}
           <div className="flex gap-3 pt-2 lg:justify-start">

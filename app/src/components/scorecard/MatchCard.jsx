@@ -110,6 +110,7 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
   const { status, matchId, league, t1, t2, score1, score2, meta } = getMatchDisplay(match);
   const isUpcoming = status === 'upcoming';
   const isLive = status === 'live';
+  const isStreamLive = match.stream?.status === 'live';
   const isResult = status === 'result';
   const useLiveLayout = isLive || isResult;
   const liveScore2 = useLiveLayout ? parseLiveScore2(score2) : null;
@@ -119,8 +120,11 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
       {/* Top row: status left, group badge (optional), match title right */}
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          {isLive && <LiveIcon />}
+          {(isLive || isStreamLive) && <LiveIcon />}
           <span className={`text-[12px] font-bold uppercase ${STATUS_STYLES[status]}`}>{status}</span>
+          {isStreamLive && (
+            <span className="rounded bg-[#E53935] px-1.5 py-0.5 text-[10px] font-bold text-white uppercase">Live</span>
+          )}
           {match.group_index != null && (
             <span className="rounded bg-[#1A1A1A] px-2 py-0.5 text-[11px] font-medium text-[#A2A6AB]">
               Group {match.group_index}

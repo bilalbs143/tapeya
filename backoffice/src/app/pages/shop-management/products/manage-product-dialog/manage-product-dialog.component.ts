@@ -12,10 +12,11 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { Editor, NgxEditorComponent, NgxEditorMenuComponent, type Toolbar } from 'ngx-editor';
 import { Observable } from 'rxjs';
-import { finalize } from 'rxjs/operators';
+import { finalize, switchMap } from 'rxjs/operators';
 
 import { EnumsService } from 'src/app/services/enums.service';
 import type { EnumOption } from 'src/app/services/enums.service';
+import { MediaService } from 'src/app/services/media.service';
 import type { Brand } from 'src/app/services/shop/brand.service';
 import { BrandService } from 'src/app/services/shop/brand.service';
 import type { Category } from 'src/app/services/shop/category.service';
@@ -23,6 +24,11 @@ import { CategoryService } from 'src/app/services/shop/category.service';
 import type { Product } from 'src/app/services/shop/product.service';
 import { ProductService } from 'src/app/services/shop/product.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import {
+  FileUploadComponent,
+  fileUploadRequired,
+  type FileUploadValue,
+} from 'src/app/shared/components/file-upload/file-upload.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { NGX_EDITOR_TOOLBAR } from 'src/app/shared/constants/editor.constants';
 import { toKebabCase } from 'src/app/shared/functions/slug.function';
@@ -49,6 +55,7 @@ export interface ManageProductDialogData {
     TablerIconsModule,
     NgxEditorComponent,
     NgxEditorMenuComponent,
+    FileUploadComponent,
     DialogWrapperComponent,
     SubmitButtonComponent,
   ],
@@ -57,18 +64,20 @@ export interface ManageProductDialogData {
 export class ManageProductDialogComponent implements OnInit, OnDestroy {
   public readonly data = inject<ManageProductDialogData>(MAT_DIALOG_DATA);
   private readonly productService = inject(ProductService);
+  private readonly mediaService = inject(MediaService);
   private readonly brandService = inject(BrandService);
   private readonly categoryService = inject(CategoryService);
   private readonly enumsService = inject(EnumsService);
   private readonly dialogRef = inject<MatDialogRef<ManageProductDialogComponent>>(MatDialogRef);
   private readonly fb = inject(FormBuilder);
 
+  /** Full image URLs the product had when the dialog was opened (for diffing on update). */
+  private readonly originalImageUrls: string[] = this.data.product?.images?.map((img) => img.path) ?? [];
+
   public form!: FormGroup;
   public isSubmitting = false;
   public brands: Brand[] = [];
   public categories: Category[] = [];
-  public selectedFiles: File[] = [];
-  public previewUrls: string[] = [];
   public discountTypeOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('product_discount_type');
   public editor!: Editor;
   public toolbar: Toolbar = NGX_EDITOR_TOOLBAR;
@@ -106,6 +115,11 @@ export class ManageProductDialogComponent implements OnInit, OnDestroy {
       is_featured: [p?.is_featured ?? false],
       is_popular: [p?.is_popular ?? false],
       is_special_offer: [p?.is_special_offer ?? false],
+      // images: FileUploadValue | null — required; existing server URLs pre-populated in edit mode
+      images: [
+        p?.images?.length ? ({ files: [], existingUrls: p.images.map((img) => img.path) } as FileUploadValue) : null,
+        [fileUploadRequired],
+      ],
       discount_type: [p?.discount_type ?? ''],
       discount_value: [p?.discount_value ?? null, [Validators.min(0)]],
       discount_starts_at_date: [this.parseDateTimeToDate(p?.discount_starts_at)],
@@ -116,9 +130,6 @@ export class ManageProductDialogComponent implements OnInit, OnDestroy {
     this.form.patchValue({ slug: toKebabCase(this.form.get('name')?.value) }, { emitEvent: false });
     this.applyDiscountValidators(this.form.get('discount_type')?.value);
     this.form.get('discount_type')?.valueChanges.subscribe((type) => this.applyDiscountValidators(type));
-    if (p?.images?.length) {
-      this.previewUrls = p.images.map((img) => img.path);
-    }
   }
 
   /** When discount type is selected, require value (number min 0) and start/end dates. When cleared, clear discount fields. */
@@ -192,49 +203,11 @@ export class ManageProductDialogComponent implements OnInit, OnDestroy {
     });
   }
 
-  public onFilesSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const files = input.files;
-    if (!files?.length) return;
-    this.showImagesError = false;
-    const newFiles = Array.from(files);
-    const newUrls = newFiles.map((f) => URL.createObjectURL(f));
-    this.selectedFiles.push(...newFiles);
-    this.previewUrls.push(...newUrls);
-    input.value = '';
-  }
-
-  public removeNewFile(index: number): void {
-    if (index >= 0 && index < this.selectedFiles.length) {
-      if (this.previewUrls[this.existingImageCount + index]) {
-        URL.revokeObjectURL(this.previewUrls[this.existingImageCount + index]);
-      }
-      this.selectedFiles.splice(index, 1);
-      this.previewUrls.splice(this.existingImageCount + index, 1);
-    }
-  }
-
-  public get existingImageCount(): number {
-    return this.data.product?.images?.length ?? 0;
-  }
-
-  /** At least one image required: existing when editing or new files. */
-  public get hasAtLeastOneImage(): boolean {
-    return this.existingImageCount + this.selectedFiles.length >= 1;
-  }
-
-  public showImagesError = false;
-
   public onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
-    if (!this.hasAtLeastOneImage) {
-      this.showImagesError = true;
-      return;
-    }
-    this.showImagesError = false;
     const formData = new FormData();
     const raw = this.form.getRawValue();
     formData.append('name', raw.name);
@@ -257,7 +230,7 @@ export class ManageProductDialogComponent implements OnInit, OnDestroy {
       if (startsAt) formData.append('discount_starts_at', startsAt);
       if (endsAt) formData.append('discount_ends_at', endsAt);
     }
-    this.selectedFiles.forEach((file) => formData.append('images[]', file));
+    const imagesValue = raw.images as FileUploadValue | null;
 
     this.isSubmitting = true;
     const request$ =
@@ -265,9 +238,16 @@ export class ManageProductDialogComponent implements OnInit, OnDestroy {
         ? this.productService.create(formData)
         : this.productService.update(this.data.product!.id, formData);
 
-    request$.pipe(finalize(() => (this.isSubmitting = false))).subscribe({
-      next: () => this.dialogRef.close(true),
-      error: () => this.dialogRef.close(false),
-    });
+    request$
+      .pipe(
+        switchMap((res) =>
+          this.mediaService.applyMultipleField('product', res.data.id, 'images', imagesValue, this.originalImageUrls)
+        ),
+        finalize(() => (this.isSubmitting = false))
+      )
+      .subscribe({
+        next: () => this.dialogRef.close(true),
+        error: () => this.dialogRef.close(false),
+      });
   }
 }

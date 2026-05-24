@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\AsFile;
 use App\Enums\Event\MatchStatusEnum;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -29,6 +30,8 @@ class TournamentMatch extends BaseModel
         'win_by_runs',
         'win_by_wickets',
         'player_of_match_user_id',
+        'stream_provider_override',
+        'stream_thumbnail',
     ];
 
     /**
@@ -40,6 +43,7 @@ class TournamentMatch extends BaseModel
             'match_date' => 'date',
             'status' => MatchStatusEnum::class,
             'is_no_result' => 'boolean',
+            'stream_thumbnail' => AsFile::class.':match-stream-thumbnails,false,media',
         ];
     }
 
@@ -95,6 +99,31 @@ class TournamentMatch extends BaseModel
     public function graphicSession(): HasOne
     {
         return $this->hasOne(MatchGraphicSession::class, 'match_id');
+    }
+
+    public function stream(): HasOne
+    {
+        return $this->hasOne(MatchStream::class, 'match_id');
+    }
+
+    /**
+     * Custom upload URL when set; otherwise YouTube auto-thumbnail when a broadcast exists.
+     */
+    public function streamThumbnailUrl(): ?string
+    {
+        if ($this->getRawOriginal('stream_thumbnail')) {
+            return $this->stream_thumbnail;
+        }
+
+        $embedId = $this->relationLoaded('stream')
+            ? $this->stream?->provider_playback_id
+            : $this->stream()->value('provider_playback_id');
+
+        if (! $embedId) {
+            return null;
+        }
+
+        return 'https://i.ytimg.com/vi/'.rawurlencode($embedId).'/hqdefault.jpg';
     }
 
     /**

@@ -25,7 +25,6 @@ class BrandController extends BaseAdminController
     public function store(StoreBrandRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $this->storeImage($request, 'logo', 'shop/brands', $data);
         $record = $this->model->create($data);
         $record = $this->refresh($record);
 
@@ -40,7 +39,6 @@ class BrandController extends BaseAdminController
     public function update(UpdateBrandRequest $request, Brand $brand): JsonResponse
     {
         $data = $request->validated();
-        $this->storeImage($request, 'logo', 'shop/brands', $data, $brand);
         $brand = $this->refresh($brand);
         $brand->update($data);
         $brand = $this->refresh($brand);

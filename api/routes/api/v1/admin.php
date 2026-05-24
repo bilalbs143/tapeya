@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\GraphicThemeController;
 use App\Http\Controllers\Admin\HeroSliderController;
 use App\Http\Controllers\Admin\MatchGraphicCaptionController;
 use App\Http\Controllers\Admin\MatchGraphicPlayerListController;
+use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\Shop\BrandController as AdminBrandController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Admin\Shop\EcommerceDashboardController;
 use App\Http\Controllers\Admin\Shop\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\Shop\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\StaticPageController;
+use App\Http\Controllers\Admin\StreamController;
 use App\Http\Controllers\Admin\SystemSettingController;
 use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\TournamentBroadcasterController;
@@ -76,6 +78,13 @@ Route::prefix('admin')->group(function () {
         Route::get('tournaments/{tournament}/matches', [TournamentMatchController::class, 'index']);
         Route::post('tournaments/{tournament}/matches', [TournamentMatchController::class, 'store']);
         Route::get('matches/{match}', [TournamentMatchController::class, 'show']);
+        Route::match(['post', 'patch'], 'matches/{match}', [TournamentMatchController::class, 'update']);
+        Route::post('matches/{match}/stream', [StreamController::class, 'create']);
+        Route::get('matches/{match}/stream', [StreamController::class, 'show']);
+        Route::post('matches/{match}/stream/end', [StreamController::class, 'end']);
+        Route::delete('matches/{match}/stream', [StreamController::class, 'destroy']);
+        Route::post('matches/{match}/stream/sync', [StreamController::class, 'sync']);
+        Route::patch('matches/{match}/stream/provider', [StreamController::class, 'setProvider']);
         Route::get('matches/{match}/teams/{team}/squad', [TournamentMatchSquadController::class, 'show']);
         Route::post('matches/{match}/teams/{team}/squad', [TournamentMatchSquadController::class, 'store']);
         Route::get('matches/{match}/graphic-player-lists', MatchGraphicPlayerListController::class);
@@ -94,6 +103,9 @@ Route::prefix('admin')->group(function () {
         Route::delete('matches/{match}/graphic-session/commands', [GraphicCommandController::class, 'destroyHistory']);
         Route::post('matches/{match}/graphic-session/commands', [GraphicCommandController::class, 'store']);
         Route::post('matches/{match}/graphic-session/commands/{command}/activate', [GraphicCommandController::class, 'activate']);
+
+        Route::post('media/{type}/{id}/{field}', [MediaController::class, 'upload']);
+        Route::delete('media/{type}/{id}/{field}', [MediaController::class, 'delete']);
 
         Route::get('cricket/dashboard-stats', CricketDashboardController::class);
 

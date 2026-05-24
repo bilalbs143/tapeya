@@ -15,7 +15,7 @@ export const EXPLORE_CATEGORIES = [
   { path: '/ranking', label: 'Rankings' },
   { path: '/upcoming-tournaments', label: 'Upcoming' },
 
-  // { path: '/live', label: 'Live' },
+  { path: '/live', label: 'Live' },
   // { path: '/drafting', label: 'Drafting' },
   // { path: '/reels', label: 'Reels' },
   // { path: '/highlights', label: 'Highlights' },

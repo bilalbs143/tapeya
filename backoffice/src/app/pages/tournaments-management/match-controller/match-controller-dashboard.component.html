@@ -84,6 +84,12 @@
           </div>
         </div>
 
+        <app-match-stream-panel
+          [matchId]="matchId"
+          [homeTeamName]="match.home_team?.name ?? 'Home'"
+          [awayTeamName]="match.away_team?.name ?? 'Away'"
+        />
+
         <section class="controller-dashboard__caption">
           <h2 class="controller-dashboard__caption-title">Saved Caption</h2>
           @if (!caption) {

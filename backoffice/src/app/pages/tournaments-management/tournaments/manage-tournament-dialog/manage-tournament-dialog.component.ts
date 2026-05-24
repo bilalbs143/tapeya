@@ -11,17 +11,19 @@ import { MatDivider } from '@angular/material/list';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { Subject, Subscription } from 'rxjs';
+import { forkJoin, Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, finalize, switchMap } from 'rxjs/operators';
 
 import { EnumsService } from 'src/app/services/enums.service';
 import { type Country, LocationService } from 'src/app/services/location.service';
+import { MediaService } from 'src/app/services/media.service';
 import { MessageService } from 'src/app/services/message.service';
 import type { TournamentRequest } from 'src/app/services/tournament-request.service';
 import type { Tournament } from 'src/app/services/tournaments.service';
 import { TournamentsService } from 'src/app/services/tournaments.service';
 import { UsersService, type UserSearchRow } from 'src/app/services/users.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { normalizeEnumValue } from 'src/app/shared/functions/enum.function';
 
@@ -73,6 +75,7 @@ export interface ManageTournamentDialogData {
     MatSelectModule,
     MatDatepickerModule,
     TablerIconsModule,
+    FileUploadComponent,
     DialogWrapperComponent,
     MatDivider,
     SubmitButtonComponent,
@@ -82,6 +85,7 @@ export interface ManageTournamentDialogData {
 export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
   public readonly data = inject<ManageTournamentDialogData>(MAT_DIALOG_DATA);
   private readonly tournamentsService = inject(TournamentsService);
+  private readonly mediaService = inject(MediaService);
   private readonly usersService = inject(UsersService);
   private readonly locationService = inject(LocationService);
   private readonly dialogRef = inject<MatDialogRef<ManageTournamentDialogComponent>>(MatDialogRef);
@@ -90,17 +94,15 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
   private readonly messageService = inject(MessageService);
   private readonly sub = new Subscription();
 
+  private readonly originalHasDisplayImage = !!this.data.tournament?.display_image;
+  private readonly originalHasCoverImage = !!this.data.tournament?.cover_image;
+
   public form!: FormGroup;
   public isSubmitting = false;
   public countriesList: Country[] = [];
   public cities: { id: number; name: string }[] = [];
   public organizerOptions: OrganizerOption[] = [];
   public organizerSearch$ = new Subject<string>();
-  public displayImageFile: File | null = null;
-  public coverImageFile: File | null = null;
-  public displayImagePreview: string | null = null;
-  public coverImagePreview: string | null = null;
-
   public readonly tournamentTypeOptions$ = this.enumsService.getOptions('tournament_type');
   public readonly groupModeOptions$ = this.enumsService.getOptions('group_mode');
   public readonly cricketFormatOptions$ = this.enumsService.getOptions('cricket_format');
@@ -113,14 +115,6 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
 
   public get isEdit(): boolean {
     return this.data.mode === 'edit';
-  }
-
-  public get displayImageUrl(): string | null {
-    return this.displayImagePreview ?? this.data.tournament?.display_image ?? null;
-  }
-
-  public get coverImageUrl(): string | null {
-    return this.coverImagePreview ?? this.data.tournament?.cover_image ?? null;
   }
 
   public get isGroupWise(): boolean {
@@ -259,6 +253,12 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
         match_timings: [normalizeEnumValue(source?.match_timings, ''), [Validators.required]],
         status: [normalizeEnumValue(tournament?.status_enum ?? tournament?.status, 'active'), [Validators.required]],
         prize: [source?.prize ?? '', [Validators.maxLength(255)]],
+        display_image: [
+          tournament?.display_image ? ({ files: [], existingUrls: [tournament.display_image] } as FileUploadValue) : null,
+        ],
+        cover_image: [
+          tournament?.cover_image ? ({ files: [], existingUrls: [tournament.cover_image] } as FileUploadValue) : null,
+        ],
       },
       { validators: [tournamentDateOrderValidator] }
     );
@@ -266,42 +266,6 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
 
   public endDateOrderShowError(): boolean {
     return !!(this.form.errors?.['dateOrder'] && (this.form.get('end_date')?.touched || this.form.get('start_date')?.touched));
-  }
-
-  public onDisplayImageSelected(ev: unknown): void {
-    const input = (ev as { target: HTMLInputElement | null }).target;
-    if (!input) return;
-    const file = input.files?.[0];
-    if (file) {
-      this.displayImageFile = file;
-      this.displayImagePreview = null;
-      const reader = new FileReader();
-      reader.onload = () => (this.displayImagePreview = reader.result as string);
-      reader.readAsDataURL(file);
-    }
-  }
-
-  public clearDisplayImage(): void {
-    this.displayImageFile = null;
-    this.displayImagePreview = null;
-  }
-
-  public onCoverImageSelected(ev: unknown): void {
-    const input = (ev as { target: HTMLInputElement | null }).target;
-    if (!input) return;
-    const file = input.files?.[0];
-    if (file) {
-      this.coverImageFile = file;
-      this.coverImagePreview = null;
-      const reader = new FileReader();
-      reader.onload = () => (this.coverImagePreview = reader.result as string);
-      reader.readAsDataURL(file);
-    }
-  }
-
-  public clearCoverImage(): void {
-    this.coverImageFile = null;
-    this.coverImagePreview = null;
   }
 
   private parseDate(value: string): Date | null {
@@ -357,8 +321,8 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
     if (v.prize != null && String(v.prize).trim() !== '') {
       formData.append('prize', String(v.prize).trim());
     }
-    if (this.displayImageFile) formData.append('display_image', this.displayImageFile);
-    if (this.coverImageFile) formData.append('cover_image', this.coverImageFile);
+    const displayImageVal = v.display_image as FileUploadValue | null;
+    const coverImageVal = v.cover_image as FileUploadValue | null;
 
     this.isSubmitting = true;
 
@@ -367,9 +331,25 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
         ? this.tournamentsService.create(formData)
         : this.tournamentsService.update(this.data.tournament!.id, formData);
 
-    request$.pipe(finalize(() => (this.isSubmitting = false))).subscribe({
-      next: () => this.dialogRef.close(true),
-      error: () => this.messageService.error('Failed to save tournament.'),
-    });
+    request$
+      .pipe(
+        switchMap((res) =>
+          forkJoin([
+            this.mediaService.applyField(
+              'tournament',
+              res.data.id,
+              'display_image',
+              displayImageVal,
+              this.originalHasDisplayImage
+            ),
+            this.mediaService.applyField('tournament', res.data.id, 'cover_image', coverImageVal, this.originalHasCoverImage),
+          ])
+        ),
+        finalize(() => (this.isSubmitting = false))
+      )
+      .subscribe({
+        next: () => this.dialogRef.close(true),
+        error: () => this.messageService.error('Failed to save tournament.'),
+      });
   }
 }

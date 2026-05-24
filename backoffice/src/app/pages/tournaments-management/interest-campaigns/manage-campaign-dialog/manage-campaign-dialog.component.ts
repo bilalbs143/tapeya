@@ -10,7 +10,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, finalize, switchMap } from 'rxjs/operators';
 
@@ -20,8 +19,10 @@ import {
   type InterestCampaign,
   InterestCampaignService,
 } from 'src/app/services/interest-campaign.service';
+import { MediaService } from 'src/app/services/media.service';
 import { TournamentsService, type Tournament } from 'src/app/services/tournaments.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 
 export interface ManageCampaignDialogData {
@@ -68,7 +69,7 @@ function slugify(input: string): string {
     MatSelectModule,
     MatSlideToggleModule,
     MatDivider,
-    TablerIconsModule,
+    FileUploadComponent,
     DialogWrapperComponent,
     SubmitButtonComponent,
   ],
@@ -77,21 +78,20 @@ function slugify(input: string): string {
 export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
   public readonly data = inject<ManageCampaignDialogData>(MAT_DIALOG_DATA);
   private readonly campaignService = inject(InterestCampaignService);
+  private readonly mediaService = inject(MediaService);
   private readonly tournamentsService = inject(TournamentsService);
   private readonly enumsService = inject(EnumsService);
   private readonly dialogRef = inject<MatDialogRef<ManageCampaignDialogComponent, boolean>>(MatDialogRef);
   private readonly fb = inject(FormBuilder);
   private readonly sub = new Subscription();
 
+  private readonly originalHasLogo = !!this.data.campaign?.logo_url;
+
   public form!: FormGroup;
   public isSubmitting = false;
   public tournamentOptions: TournamentPickerRow[] = [];
   public tournamentSearch$ = new Subject<string>();
   public slugDirty = false;
-
-  public logoFile: File | null = null;
-  public logoPreviewUrl: string | null = null;
-  public removeExistingLogo = false;
 
   public readonly statusOptions$ = this.enumsService.getOptions('tournament_interest_campaign_status');
 
@@ -113,7 +113,6 @@ export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
 
   constructor() {
     this.initialiseForm();
-    this.logoPreviewUrl = this.data.campaign?.logo_url ?? null;
   }
 
   public ngOnInit(): void {
@@ -135,31 +134,6 @@ export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
 
   public ngOnDestroy(): void {
     this.sub.unsubscribe();
-    if (this.logoPreviewUrl?.startsWith('blob:')) {
-      URL.revokeObjectURL(this.logoPreviewUrl);
-    }
-  }
-
-  public onLogoSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] ?? null;
-    if (this.logoPreviewUrl?.startsWith('blob:')) {
-      URL.revokeObjectURL(this.logoPreviewUrl);
-    }
-    this.logoFile = file;
-    this.logoPreviewUrl = file ? URL.createObjectURL(file) : (this.data.campaign?.logo_url ?? null);
-    if (file) {
-      this.removeExistingLogo = false;
-    }
-  }
-
-  public clearLogo(): void {
-    if (this.logoPreviewUrl?.startsWith('blob:')) {
-      URL.revokeObjectURL(this.logoPreviewUrl);
-    }
-    this.logoFile = null;
-    this.removeExistingLogo = !!this.data.campaign?.logo_url;
-    this.logoPreviewUrl = null;
   }
 
   private initialiseForm(): void {
@@ -182,6 +156,7 @@ export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
       show_in_sidebar: [c?.show_in_sidebar ?? false],
       show_dialog: [c?.show_dialog ?? false],
       status: [c?.status ?? 'open', [Validators.required]],
+      logo: [c?.logo_url ? ({ files: [], existingUrls: [c.logo_url] } as FileUploadValue) : null],
     });
 
     this.applyKindRules(initialKind);
@@ -273,17 +248,23 @@ export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
     }
 
     const payload = this.buildPayload();
-    const usesMultipart = this.logoFile !== null || (this.isEdit && this.removeExistingLogo);
-    const body: CreateInterestCampaignPayload | FormData = usesMultipart ? this.toFormData(payload) : payload;
+    const logoVal = this.form.getRawValue().logo as FileUploadValue | null;
 
     this.isSubmitting = true;
-    const obs$ = this.isEdit ? this.campaignService.update(this.data.campaign!.id, body) : this.campaignService.create(body);
+    const save$ = this.isEdit
+      ? this.campaignService.update(this.data.campaign!.id, payload)
+      : this.campaignService.create(payload);
 
-    obs$.pipe(finalize(() => (this.isSubmitting = false))).subscribe({
-      next: () => this.dialogRef.close(true),
-      // The HTTP error interceptor surfaces 422 / server messages; nothing to do here.
-      error: () => undefined,
-    });
+    save$
+      .pipe(
+        switchMap((res) => this.mediaService.applyField('campaign', res.data.id, 'logo', logoVal, this.originalHasLogo)),
+        finalize(() => (this.isSubmitting = false))
+      )
+      .subscribe({
+        next: () => this.dialogRef.close(true),
+        // The HTTP error interceptor surfaces 422 / server messages; nothing to do here.
+        error: () => undefined,
+      });
   }
 
   /**
@@ -313,23 +294,5 @@ export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
     }
 
     return payload;
-  }
-
-  private toFormData(payload: CreateInterestCampaignPayload): FormData {
-    const fd = new FormData();
-    if (payload.tournament_id != null) fd.append('tournament_id', String(payload.tournament_id));
-    if (payload.tournament_name) fd.append('tournament_name', payload.tournament_name);
-    if (payload.slug) fd.append('slug', payload.slug);
-    if (payload.description != null) fd.append('description', payload.description);
-    fd.append('show_in_sidebar', payload.show_in_sidebar ? '1' : '0');
-    fd.append('show_dialog', payload.show_dialog ? '1' : '0');
-    if (payload.status) fd.append('status', payload.status);
-    if (this.logoFile) {
-      fd.append('logo', this.logoFile, this.logoFile.name);
-    }
-    if (this.isEdit && this.removeExistingLogo && !this.logoFile) {
-      fd.append('remove_logo', '1');
-    }
-    return fd;
   }
 }

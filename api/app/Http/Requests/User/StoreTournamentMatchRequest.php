@@ -25,6 +25,7 @@ class StoreTournamentMatchRequest extends FormRequest
             'players_per_side' => ['required', 'integer', 'min:2', 'max:20'],
             'overs' => ['required', 'integer', 'min:5', 'max:50'],
             'group_index' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:16'],
+            'thumbnail' => ['nullable', 'image', 'max:5120'],
         ];
     }
 }

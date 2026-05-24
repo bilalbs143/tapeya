@@ -15,11 +15,16 @@
 export function graphicLogger(level, tag, payload) {
   if (!isGraphicDebugEnabled()) return;
 
-  const fn =
-    typeof console[level] === 'function'
-      ? /** @type {(this: unknown, ...args: unknown[]) => void} */ (console[level])
-      : console.warn;
-  fn.call(console, `[graphic:${tag}]`, payload);
+  const message = `[graphic:${tag}]`;
+  if (level === 'log') {
+    console.log(message, payload);
+    return;
+  }
+  if (level === 'error') {
+    console.error(message, payload);
+    return;
+  }
+  console.warn(message, payload);
 }
 
 /**

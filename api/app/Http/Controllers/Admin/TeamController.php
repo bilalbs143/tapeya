@@ -33,14 +33,12 @@ class TeamController extends BaseAdminController
         $iconPlayerIds = $data['icon_player_ids'] ?? [];
 
         unset($data['sponsor_user_id'], $data['icon_player_ids']);
-        $this->storeImage($request, 'logo', 'teams', $data);
 
         $owner = User::findOrFail($sponsorId);
         $this->ensureAppUserHasSponsorRole($owner);
 
         $team = Team::create([
             'name' => $data['name'],
-            'logo' => $data['logo'] ?? null,
             'code' => $data['code'],
             'country' => $data['country'],
             'city' => $data['city'],
@@ -69,7 +67,6 @@ class TeamController extends BaseAdminController
         $sponsorId = $data['sponsor_user_id'] ?? null;
 
         unset($data['icon_player_ids'], $data['sponsor_user_id'], $data['logo']);
-        $this->storeImage($request, 'logo', 'teams', $data, $team);
 
         $team = $this->refresh($team);
         $team->fill($data);

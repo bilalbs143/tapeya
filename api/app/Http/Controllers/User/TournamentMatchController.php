@@ -16,7 +16,7 @@ class TournamentMatchController extends Controller
     use BaseControllerTrait;
 
     public function __construct(
-        protected TournamentMatchSchedulingService $tournamentMatchSchedulingService
+        protected TournamentMatchSchedulingService $tournamentMatchSchedulingService,
     ) {}
 
     /**
@@ -26,7 +26,7 @@ class TournamentMatchController extends Controller
     public function index(Tournament $tournament): JsonResponse
     {
         $query = $tournament->matches()
-            ->with(['homeTeam', 'awayTeam', 'winningTeam', 'tossWinnerTeam'])
+            ->with(['homeTeam', 'awayTeam', 'winningTeam', 'tossWinnerTeam', 'stream'])
             ->orderBy('match_date')
             ->orderBy('match_time');
 
@@ -38,7 +38,7 @@ class TournamentMatchController extends Controller
      */
     public function show(TournamentMatch $match): JsonResponse
     {
-        $match->load(['homeTeam', 'awayTeam', 'winningTeam', 'tossWinnerTeam', 'tournament', 'playerOfMatch']);
+        $match->load(['homeTeam', 'awayTeam', 'winningTeam', 'tossWinnerTeam', 'tournament', 'playerOfMatch', 'stream']);
 
         return $this->success(new TournamentMatchResource($match));
     }
@@ -56,7 +56,10 @@ class TournamentMatchController extends Controller
             return $this->forbidden('You cannot manage matches for this tournament.');
         }
 
-        $result = $this->tournamentMatchSchedulingService->schedule($tournament, $request->validated());
+        $result = $this->tournamentMatchSchedulingService->schedule(
+            $tournament,
+            $request->validated(),
+        );
 
         if (! $result['ok']) {
             return $result['reason'] === 'forbidden'
@@ -64,8 +67,18 @@ class TournamentMatchController extends Controller
                 : $this->failure($result['message'], 'VALIDATION_ERROR');
         }
 
+        $match = $result['match'];
+
+        $thumbnailData = [];
+        $this->storeImage($request, 'thumbnail', 'match-stream-thumbnails', $thumbnailData);
+        if (! empty($thumbnailData['thumbnail'])) {
+            $match->update(['stream_thumbnail' => $thumbnailData['thumbnail']]);
+        }
+
+        $match->refresh()->load(['homeTeam', 'awayTeam', 'stream']);
+
         return $this->success(
-            new TournamentMatchResource($result['match']),
+            new TournamentMatchResource($match),
             'Match created.',
             'CREATED'
         );

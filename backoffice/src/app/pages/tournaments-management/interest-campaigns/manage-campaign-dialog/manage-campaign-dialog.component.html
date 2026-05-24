@@ -148,38 +148,13 @@
         </div>
 
         <div class="col-span-12 mt-6">
-          <mat-label class="text-sm font-semibold mb-2 block">
-            Logo {{ isEdit ? '(Leave Empty to Keep Current)' : '' }}
-          </mat-label>
-          <div class="flex flex-col gap-2 items-start">
-            @if (logoPreviewUrl) {
-              <div class="grid shrink-0">
-                <img
-                  [src]="logoPreviewUrl"
-                  alt="Logo Preview"
-                  class="col-start-1 row-start-1 block max-h-40 max-w-full object-contain rounded border border-default-border"
-                />
-                <button
-                  type="button"
-                  mat-icon-button
-                  class="col-start-1 row-start-1 justify-self-end self-start m-2 size-8 min-w-8 rounded-full bg-white shadow-md border border-error text-error hover:bg-error hover:text-white hover:border-error"
-                  aria-label="Remove logo"
-                  (click)="clearLogo()"
-                >
-                  <i-tabler
-                    name="trash"
-                    class="size-4!"
-                  ></i-tabler>
-                </button>
-              </div>
-            }
-            <input
-              type="file"
-              accept="image/*"
-              (change)="onLogoSelected($event)"
-              class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-primary file:text-white file:font-medium"
-            />
-          </div>
+          <app-file-upload
+            formControlName="logo"
+            label="Logo"
+            accept="image/jpeg,image/png,image/webp"
+            acceptLabel="JPG, PNG, WebP"
+            [maxSizeMb]="2"
+          ></app-file-upload>
         </div>
       </div>
     </mat-dialog-content>

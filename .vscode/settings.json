@@ -11,7 +11,7 @@
   "editor.linkedEditing": true,
   "editor.suggestSelection": "first",
   "editor.quickSuggestions": { "strings": true },
-  "editor.minimap.enabled": true,
+  "editor.minimap.enabled": false,
   "editor.stickyScroll.enabled": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit",

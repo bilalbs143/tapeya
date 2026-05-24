@@ -378,65 +378,25 @@
         }
 
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block"
-            >Display Image {{ isEdit ? '(optional – leave empty to keep current)' : '' }}</mat-label
-          >
-          @if (displayImageUrl) {
-            <div class="flex flex-wrap gap-2 mb-2">
-              <div class="relative inline-block">
-                <img
-                  [src]="displayImageUrl"
-                  alt="Display"
-                  class="h-20 w-20 object-cover border rounded"
-                />
-                <button
-                  type="button"
-                  class="absolute -top-1 -right-1 rounded-full bg-error text-white w-5 h-5 flex items-center justify-center text-xs border-0 cursor-pointer"
-                  (click)="clearDisplayImage()"
-                  aria-label="Remove display image"
-                >
-                  &times;
-                </button>
-              </div>
-            </div>
-          }
-          <input
-            type="file"
-            accept="image/*"
-            (change)="onDisplayImageSelected($event)"
-            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-primary file:text-white file:font-medium"
-          />
+          <app-file-upload
+            formControlName="display_image"
+            label="Display Image"
+            accept="image/jpeg,image/png,image/webp"
+            acceptLabel="JPG, PNG, WebP"
+            hint="Shown on the tournament listing card. 800×600 px recommended."
+            [maxSizeMb]="5"
+          ></app-file-upload>
         </div>
 
-        <div class="col-span-12 mt-4">
-          <mat-label class="text-sm font-semibold mb-2 block"
-            >Cover Image {{ isEdit ? '(optional – leave empty to keep current)' : '' }}</mat-label
-          >
-          @if (coverImageUrl) {
-            <div class="flex flex-wrap gap-2 mb-2">
-              <div class="relative inline-block">
-                <img
-                  [src]="coverImageUrl"
-                  alt="Cover"
-                  class="h-20 w-20 object-cover border rounded"
-                />
-                <button
-                  type="button"
-                  class="absolute -top-1 -right-1 rounded-full bg-error text-white w-5 h-5 flex items-center justify-center text-xs border-0 cursor-pointer"
-                  (click)="clearCoverImage()"
-                  aria-label="Remove cover image"
-                >
-                  &times;
-                </button>
-              </div>
-            </div>
-          }
-          <input
-            type="file"
-            accept="image/*"
-            (change)="onCoverImageSelected($event)"
-            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-primary file:text-white file:font-medium"
-          />
+        <div class="col-span-12">
+          <app-file-upload
+            formControlName="cover_image"
+            label="Cover Image"
+            accept="image/jpeg,image/png,image/webp"
+            acceptLabel="JPG, PNG, WebP"
+            hint="Full-width banner shown on the tournament detail page. 1920×600 px recommended."
+            [maxSizeMb]="5"
+          ></app-file-upload>
         </div>
       </div>
     </mat-dialog-content>

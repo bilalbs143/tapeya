@@ -101,6 +101,63 @@ export class BackofficeReverbService {
     };
   }
 
+  /**
+   * Subscribe to the public `match.{matchId}.stream` channel for live status updates.
+   */
+  public listenMatchStream(matchId: number, onStatusUpdated: (event: Record<string, unknown>) => void): () => void {
+    if (!this.echo || !environment.reverb.enabled) {
+      return (): void => {
+        return;
+      };
+    }
+    const channelName = `match.${matchId}.stream`;
+    const channel = this.echo.channel(channelName);
+    channel.listen('.match.stream.status.updated', onStatusUpdated);
+    return () => {
+      this.echo?.leaveChannel(channelName);
+    };
+  }
+
+  /**
+   * Join `match.{matchId}.presence` for live viewer count (operators see "X watching").
+   * Does not subscribe to chat — separate channel per architecture.
+   */
+  public listenMatchPresence(matchId: number, onCountChange: (count: number) => void): () => void {
+    if (!this.echo || !environment.reverb.enabled) {
+      return (): void => {
+        return;
+      };
+    }
+
+    const channelName = `match.${matchId}.presence`;
+    let count = 0;
+
+    const channel = this.echo.join(channelName) as {
+      here: (cb: (members: unknown[]) => void) => typeof channel;
+      joining: (cb: (member: unknown) => void) => typeof channel;
+      leaving: (cb: (member: unknown) => void) => typeof channel;
+    };
+
+    channel
+      .here((members: unknown[]) => {
+        count = members.length;
+        onCountChange(count);
+      })
+      .joining(() => {
+        count += 1;
+        onCountChange(count);
+      })
+      .leaving(() => {
+        count = Math.max(0, count - 1);
+        onCountChange(count);
+      });
+
+    return () => {
+      this.echo?.leave(channelName);
+      onCountChange(0);
+    };
+  }
+
   public disconnect(): void {
     if (!this.echo) {
       return;

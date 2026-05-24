@@ -6,13 +6,15 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatDivider } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { finalize } from 'rxjs/operators';
+import { forkJoin } from 'rxjs';
+import { finalize, switchMap } from 'rxjs/operators';
 
 import { EnumsService } from 'src/app/services/enums.service';
 import type { HeroSlider } from 'src/app/services/hero-slider.service';
 import { HeroSliderService } from 'src/app/services/hero-slider.service';
+import { MediaService } from 'src/app/services/media.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { normalizeEnumValue } from 'src/app/shared/functions/enum.function';
 
@@ -32,7 +34,7 @@ export interface ManageHeroSliderDialogData {
     MatDivider,
     MatFormFieldModule,
     MatSelectModule,
-    TablerIconsModule,
+    FileUploadComponent,
     DialogWrapperComponent,
     SubmitButtonComponent,
   ],
@@ -41,16 +43,16 @@ export interface ManageHeroSliderDialogData {
 export class ManageHeroSliderDialogComponent {
   public readonly data = inject<ManageHeroSliderDialogData>(MAT_DIALOG_DATA);
   private readonly heroSliderService = inject(HeroSliderService);
+  private readonly mediaService = inject(MediaService);
   private readonly dialogRef = inject<MatDialogRef<ManageHeroSliderDialogComponent>>(MatDialogRef);
   private readonly fb = inject(FormBuilder);
   private readonly enumsService = inject(EnumsService);
 
   public form!: FormGroup;
   public isSubmitting = false;
-  public selectedFileMobile: File | null = null;
-  public previewUrlMobile: string | null = null;
-  public selectedFileDesktop: File | null = null;
-  public previewUrlDesktop: string | null = null;
+
+  private readonly originalHasMobile = !!this.data.heroSlider?.image_mobile;
+  private readonly originalHasDesktop = !!this.data.heroSlider?.image_desktop;
 
   public readonly statusOptions$ = this.enumsService.getOptions('status');
 
@@ -62,69 +64,22 @@ export class ManageHeroSliderDialogComponent {
     return this.data.mode === 'edit';
   }
 
-  public get mobilePreviewUrl(): string | null {
-    return this.previewUrlMobile ?? this.data.heroSlider?.image_mobile ?? null;
-  }
-
-  public get desktopPreviewUrl(): string | null {
-    return this.previewUrlDesktop ?? this.data.heroSlider?.image_desktop ?? null;
-  }
-
   constructor() {
     this.initializeForm();
   }
 
   private initializeForm(): void {
     const slide = this.data.heroSlider;
+    // In create mode, image_mobile is required (no existing URL → control starts null → Validators.required fires).
+    // In edit mode, pre-fill with the existing URL so the component shows the current image.
     this.form = this.fb.group({
-      image_mobile: [null, this.data.mode === 'create' ? [Validators.required] : []],
-      image_desktop: [null],
+      image_mobile: [
+        slide?.image_mobile ? ({ files: [], existingUrls: [slide.image_mobile] } as FileUploadValue) : null,
+        this.data.mode === 'create' ? [Validators.required] : [],
+      ],
+      image_desktop: [slide?.image_desktop ? ({ files: [], existingUrls: [slide.image_desktop] } as FileUploadValue) : null],
       status: [normalizeEnumValue(slide?.status_enum, 'active'), [Validators.required]],
     });
-  }
-
-  public onMobileFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (file) {
-      this.selectedFileMobile = file;
-      this.previewUrlMobile = null;
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.previewUrlMobile = reader.result as string;
-      };
-      reader.readAsDataURL(file);
-      this.form.patchValue({ image_mobile: file });
-      this.form.get('image_mobile')?.updateValueAndValidity();
-    }
-  }
-
-  public onDesktopFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (file) {
-      this.selectedFileDesktop = file;
-      this.previewUrlDesktop = null;
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.previewUrlDesktop = reader.result as string;
-      };
-      reader.readAsDataURL(file);
-      this.form.patchValue({ image_desktop: file });
-    }
-  }
-
-  public clearMobileFile(): void {
-    this.selectedFileMobile = null;
-    this.previewUrlMobile = null;
-    this.form.patchValue({ image_mobile: null });
-    this.form.get('image_mobile')?.updateValueAndValidity();
-  }
-
-  public clearDesktopFile(): void {
-    this.selectedFileDesktop = null;
-    this.previewUrlDesktop = null;
-    this.form.patchValue({ image_desktop: null });
   }
 
   public onSubmit(): void {
@@ -133,20 +88,12 @@ export class ManageHeroSliderDialogComponent {
       return;
     }
 
-    if (this.data.mode === 'create' && !this.selectedFileMobile) {
-      return;
-    }
+    const raw = this.form.getRawValue();
+    const mobileVal = raw.image_mobile as FileUploadValue | null;
+    const desktopVal = raw.image_desktop as FileUploadValue | null;
 
     const formData = new FormData();
-    formData.append('status', this.form.get('status')?.value ?? 'active');
-    if (this.selectedFileMobile) {
-      formData.append('image_mobile', this.selectedFileMobile);
-    } else if (this.data.mode === 'create') {
-      return;
-    }
-    if (this.selectedFileDesktop) {
-      formData.append('image_desktop', this.selectedFileDesktop);
-    }
+    formData.append('status', raw.status ?? 'active');
 
     this.isSubmitting = true;
 
@@ -155,11 +102,21 @@ export class ManageHeroSliderDialogComponent {
         ? this.heroSliderService.create(formData)
         : this.heroSliderService.update(this.data.heroSlider!.id, formData);
 
-    request$.pipe(finalize(() => (this.isSubmitting = false))).subscribe({
-      next: () => this.dialogRef.close(true),
-      error: () => {
-        // Validation/API errors are handled by the global error interceptor
-      },
-    });
+    request$
+      .pipe(
+        switchMap((res) =>
+          forkJoin([
+            this.mediaService.applyField('hero-slider', res.data.id, 'image_mobile', mobileVal, this.originalHasMobile),
+            this.mediaService.applyField('hero-slider', res.data.id, 'image_desktop', desktopVal, this.originalHasDesktop),
+          ])
+        ),
+        finalize(() => (this.isSubmitting = false))
+      )
+      .subscribe({
+        next: () => this.dialogRef.close(true),
+        error: () => {
+          // Validation/API errors are handled by the global error interceptor
+        },
+      });
   }
 }

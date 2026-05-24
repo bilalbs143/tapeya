@@ -3,7 +3,9 @@
 namespace App\Support;
 
 use App\Settings\GeneralSettings;
+use App\Settings\LiveChatSettings;
 use App\Settings\OverlaySettings;
+use App\Settings\StreamingSettings;
 use ReflectionProperty;
 use Spatie\LaravelSettings\Settings;
 use Spatie\LaravelSettings\SettingsConfig;
@@ -52,6 +54,17 @@ final class EnsureSpatieSettingsDatabaseProperties
                     return 86400;
                 }
 
+                if ($settingsClass === LiveChatSettings::class) {
+                    return match ($name) {
+                        'enabled' => 1,
+                        'minIntervalSec' => 2,
+                        'burstMax' => 20,
+                        'burstWindowSec' => 600,
+                        'bodyMax' => 200,
+                        default => 0,
+                    };
+                }
+
                 return 0;
             }
 
@@ -60,6 +73,10 @@ final class EnsureSpatieSettingsDatabaseProperties
                     GeneralSettings::class => match ($name) {
                         'currency' => 'PKR',
                         'timezone' => 'Asia/Karachi',
+                        default => '',
+                    },
+                    StreamingSettings::class => match ($name) {
+                        'defaultProvider' => 'youtube',
                         default => '',
                     },
                     default => '',
