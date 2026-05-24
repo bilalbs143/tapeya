@@ -130,7 +130,7 @@
             <p class="text-xs text-muted m-0 mt-0.5">
               @if (entry.type === 'existing') {
                 Currently saved
-              } @else if (entry.sizeBytes !== null) {
+              } @else if (typeof entry.sizeBytes === 'number') {
                 {{ formatSize(entry.sizeBytes) }}
               }
             </p>
