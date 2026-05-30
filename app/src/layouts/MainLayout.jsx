@@ -5,12 +5,15 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { BottomNav } from '@/components/BottomNav';
 import { Navbar } from '@/components/Navbar';
 import { Sidebar } from '@/components/Sidebar';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { LG_MEDIA_QUERY } from '@/lib/constants/layout';
 import { isNavbarOverlayPath } from '@/lib/utils/routeUtils';
 
 export function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const noTopPadding = isNavbarOverlayPath(location.pathname);
+  const isDesktop = useMediaQuery(LG_MEDIA_QUERY);
+  const noTopPadding = isNavbarOverlayPath(location.pathname, isDesktop);
 
   return (
     <div className="bg-black">

@@ -67,6 +67,9 @@ const OrderSuccess = lazy(() => import('@/pages/shop/OrderSuccess'));
 const UpcomingTournaments = lazy(() => import('@/pages/upcoming-tournaments/UpcomingTournaments'));
 const UpcomingTournamentDetails = lazy(() => import('@/pages/upcoming-tournaments/UpcomingTournamentDetails'));
 
+const Highlights = lazy(() => import('@/pages/highlights/Highlights'));
+const HighlightDetails = lazy(() => import('@/pages/highlights/HighlightDetails'));
+
 const InterestForm = lazy(() => import('@/pages/interest/InterestForm'));
 
 const Tournaments = lazy(() => import('@/pages/organizer/tournaments/Tournaments'));
@@ -161,6 +164,8 @@ function App() {
                       <Route path="/ranking/stats-total/:statType" element={<RankingStatsTotal />} />
                       <Route path="/live" element={<Live />} />
                       <Route path="/live/broadcast/:matchId" element={<LiveBroadcast />} />
+                      <Route path="/highlights" element={<Highlights />} />
+                      <Route path="/highlights/:highlightId" element={<HighlightDetails />} />
                       <Route path="/notification-center" element={<NotificationCenter />} />
                       <Route path="/support" element={<Support />} />
                       <Route path="/reels" element={<Reels />} />

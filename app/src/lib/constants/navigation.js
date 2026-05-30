@@ -18,5 +18,5 @@ export const EXPLORE_CATEGORIES = [
   { path: '/live', label: 'Live' },
   // { path: '/drafting', label: 'Drafting' },
   // { path: '/reels', label: 'Reels' },
-  // { path: '/highlights', label: 'Highlights' },
+  { path: '/highlights', label: 'Highlights' },
 ];
