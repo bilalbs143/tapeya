@@ -14,6 +14,12 @@ import { PhoneInput } from '@/ui/PhoneInput';
 
 const tapeyaLogo = `${CLOUDFRONT_APP_BASE}/images/logos/tapeya-logo-white.svg`;
 
+const normalizeOptionalString = (value) => {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed === '' ? undefined : trimmed;
+};
+
 export default function Register() {
   const navigate = useNavigate();
 
@@ -36,7 +42,7 @@ export default function Register() {
         name: data.name,
         nickname: data.nickname,
         phone: data.phone,
-        email: data.email.trim() || undefined,
+        email: normalizeOptionalString(data.email),
       }).unwrap();
 
       const otp = extractOtpFromAuthResponse(result);

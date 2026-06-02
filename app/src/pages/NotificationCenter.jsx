@@ -171,14 +171,16 @@ export default function NotificationCenter() {
       <Container>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">LATEST</h2>
-          <button
-            type="button"
-            onClick={handleMarkAllAsRead}
-            disabled={isMarkingAll}
-            className="text-[12px] font-normal text-[#DA9811] underline transition-opacity active:opacity-90"
-          >
-            {isMarkingAll ? 'Marking…' : 'Mark all as read'}
-          </button>
+          {notifications.length > 0 && (
+            <button
+              type="button"
+              onClick={handleMarkAllAsRead}
+              disabled={isMarkingAll}
+              className="text-[12px] font-normal text-[#DA9811] underline transition-opacity active:opacity-90"
+            >
+              {isMarkingAll ? 'Marking…' : 'Mark all as read'}
+            </button>
+          )}
         </div>
 
         {isLoading && <p className="mb-3 text-[12px] text-[#A2A6AB]">Loading notifications…</p>}

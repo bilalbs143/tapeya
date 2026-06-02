@@ -3,12 +3,27 @@ import { z } from 'zod';
 
 import { normalizePhoneE164 } from '@/lib/phoneCodes';
 
+const EMAIL_WITH_VALID_TLD_REGEX =
+  /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,24}$/;
+const NAME_TEXT_ONLY_REGEX = /^[A-Za-z]+(?:\s+[A-Za-z]+)*$/;
+
 const emailSchema = z
-  .union([z.string().email('Please enter a valid email address'), z.literal('')])
+  .union([
+    z
+      .string()
+      .trim()
+      .email('Please enter a valid email address')
+      .refine((value) => EMAIL_WITH_VALID_TLD_REGEX.test(value), 'Please enter a valid email address'),
+    z.literal(''),
+  ])
   .optional()
   .transform((v) => (v === '' ? undefined : v));
 
-const nameSchema = z.string().min(1, 'Name is required');
+const nameSchema = z
+  .string()
+  .trim()
+  .min(1, 'Name is required')
+  .regex(NAME_TEXT_ONLY_REGEX, 'Name may only contain letters and spaces');
 
 const phoneSchema = z
   .string()
@@ -40,7 +55,12 @@ export const registerSchema = z.object({
 });
 
 export const updateProfileSchema = z.object({
-  name: z.string().min(1).optional(),
+  name: z
+    .string()
+    .trim()
+    .min(1, 'Name is required')
+    .regex(NAME_TEXT_ONLY_REGEX, 'Name may only contain letters and spaces')
+    .optional(),
   nickname: nicknameSchema,
   email: emailSchema.optional(),
   phone: z

@@ -22,6 +22,10 @@ class RegisterRequest extends FormRequest
         if ($this->has('email') && $this->input('email') === '') {
             $this->merge(['email' => null]);
         }
+
+        if ($this->filled('name')) {
+            $this->merge(['name' => trim((string) $this->input('name'))]);
+        }
     }
 
     /**
@@ -32,7 +36,7 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z]+(?:\s+[A-Za-z]+)*$/'],
             'nickname' => ['required', 'string', 'max:50', 'regex:/^[a-zA-Z0-9_]+$/', Rule::unique('users', 'nickname')],
             'phone' => ['required', 'string', 'regex:/^\+[1-9]\d{6,14}$/', Rule::unique('users', 'phone')],
             'email' => ['nullable', 'string', 'email', 'max:255', Rule::unique('users', 'email')],
@@ -42,6 +46,7 @@ class RegisterRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'name.regex' => 'Name may only contain letters and spaces.',
             'nickname.regex' => 'Nickname may only contain letters, numbers and underscores.',
             'nickname.unique' => 'This nickname is already taken. Please choose another.',
             'phone.regex' => 'Phone must include country code (e.g. +923001234567).',
