@@ -6,7 +6,6 @@ dist/
 www/
 
 # Capacitor
-android/
 .capacitor/
 
 # Logs
