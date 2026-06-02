@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\User\Auth\UserAuthController;
 use App\Http\Controllers\User\EnumController;
 use App\Http\Controllers\User\HeroSliderController;
+use App\Http\Controllers\User\HighlightController;
 use App\Http\Controllers\User\InterestCampaignController;
 use App\Http\Controllers\User\LiveMatchCommentController;
 use App\Http\Controllers\User\LiveStreamController;
@@ -47,6 +48,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('enums', [EnumController::class, 'index']);
+
+// Highlights — public list; reactions require auth (wired below)
+Route::get('highlights', [HighlightController::class, 'index']);
+Route::get('highlights/{highlight}', [HighlightController::class, 'show']);
 Route::get('hero-sliders', [HeroSliderController::class, 'index']);
 Route::get('system-settings', [SystemSettingController::class, 'index']);
 Route::get('static-pages/{slug}', [StaticPageController::class, 'show'])
@@ -141,6 +146,11 @@ Route::middleware('auth:api')->group(function () {
     Route::post('matches/{match}/teams/{team}/squad', [MatchSquadController::class, 'store']);
     Route::get('matches/{match}/teams/{team}/playing-eleven', [PlayingElevenController::class, 'show']);
     Route::post('matches/{match}/teams/{team}/playing-eleven', [PlayingElevenController::class, 'store']);
+    // Highlight reactions
+    Route::post('highlights/{highlight}/like', [HighlightController::class, 'like']);
+    Route::post('highlights/{highlight}/dislike', [HighlightController::class, 'dislike']);
+    Route::post('highlights/{highlight}/share', [HighlightController::class, 'share']);
+
     Route::get('notifications', [NotificationController::class, 'index']);
     Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
     Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead']);

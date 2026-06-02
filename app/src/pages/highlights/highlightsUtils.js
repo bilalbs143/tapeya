@@ -1,4 +1,7 @@
-import { HIGHLIGHTS } from '@/pages/highlights/highlightsData';
+/**
+ * Pure utility helpers for the Highlights module.
+ * No static data imports — all data comes from the API.
+ */
 
 /**
  * @param {string|number|null|undefined} id
@@ -10,35 +13,36 @@ export function isValidHighlightId(id) {
 }
 
 /**
- * @param {string|number|null|undefined} id
- * @returns {(typeof HIGHLIGHTS)[number]|null}
- */
-export function getHighlightById(id) {
-  if (!isValidHighlightId(id)) return null;
-  return HIGHLIGHTS.find((highlight) => highlight.id === Number(id)) ?? null;
-}
-
-/**
+ * Return up to `limit` highlights from the list, excluding the one currently shown.
+ *
+ * @param {Array<{ id: number }>} highlights
  * @param {number|null|undefined} currentId
  * @param {number} [limit=5]
- * @returns {typeof HIGHLIGHTS}
+ * @returns {typeof highlights}
  */
-export function getMoreHighlights(currentId, limit = 5) {
-  return HIGHLIGHTS.filter((highlight) => highlight.id !== currentId).slice(0, limit);
+export function getMoreHighlights(highlights, currentId, limit = 5) {
+  return highlights.filter((h) => h.id !== Number(currentId)).slice(0, limit);
 }
 
 /**
- * @param {number|null|undefined} minutes
+ * Format a duration value into a display label, e.g. "20 min".
+ * Accepts a string ("20", "20 min") or a number (20).
+ * Appends " min" when the value is purely numeric.
+ * Returns an empty string for null/undefined/empty input.
+ *
+ * @param {string|number|null|undefined} raw
  * @returns {string}
  */
-export function formatHighlightDuration(minutes) {
-  const value = Number(minutes);
-  if (!Number.isFinite(value) || value < 1) return '';
-  return `${value} min`;
+export function formatHighlightDuration(raw) {
+  if (raw == null || raw === '') return '';
+  const str = String(raw).trim();
+  if (!str) return '';
+  return /^\d+$/.test(str) ? `${str} min` : str;
 }
 
 /**
  * Display title for cards and detail views.
+ *
  * @param {{ title?: string, detailTitle?: string }|null|undefined} highlight
  * @returns {string}
  */
@@ -47,7 +51,8 @@ export function getHighlightTitle(highlight) {
 }
 
 /**
- * Format highlight date for list cards: "October 18, 2026".
+ * Format a highlight date for display: "October 18, 2026".
+ *
  * @param {string|Date|null|undefined} value
  * @returns {string}
  */
@@ -59,6 +64,8 @@ export function formatHighlightDate(value) {
 }
 
 /**
+ * Client-side title search filter.
+ *
  * @param {Array<{ title?: string }>} highlights
  * @param {string} query
  * @returns {typeof highlights}
@@ -70,6 +77,8 @@ export function filterHighlights(highlights, query) {
 }
 
 /**
+ * Sort a copy of the array by created_at descending (newest first).
+ *
  * @param {Array<{ publishedAt?: string }>} highlights
  * @returns {typeof highlights}
  */
@@ -82,6 +91,8 @@ export function sortHighlightsByRecent(highlights) {
 }
 
 /**
+ * Sort a copy of the array by views_count descending (most viewed first).
+ *
  * @param {Array<{ viewsCount?: number }>} highlights
  * @returns {typeof highlights}
  */

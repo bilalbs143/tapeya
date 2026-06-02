@@ -1,10 +1,10 @@
-import { HIGHLIGHTS_FALLBACK_IMAGE } from '@/pages/highlights/highlightsData';
+import { FIXTURE_BG_IMAGE } from '@/lib/constants/assets';
 import { formatHighlightDuration, getHighlightTitle } from '@/pages/highlights/highlightsUtils';
 
 export function MoreHighlightRow({ highlight, onClick }) {
-  const imageUrl = highlight.thumbnailUrl || HIGHLIGHTS_FALLBACK_IMAGE;
+  const imageUrl = highlight.thumbnailUrl || FIXTURE_BG_IMAGE;
   const title = getHighlightTitle(highlight);
-  const durationLabel = formatHighlightDuration(highlight.durationMinutes);
+  const durationLabel = formatHighlightDuration(highlight.duration);
 
   return (
     <button
@@ -18,8 +18,8 @@ export function MoreHighlightRow({ highlight, onClick }) {
           alt={title}
           className="h-full w-full object-cover"
           onError={(e) => {
-            if (e.currentTarget.src !== HIGHLIGHTS_FALLBACK_IMAGE) {
-              e.currentTarget.src = HIGHLIGHTS_FALLBACK_IMAGE;
+            if (e.currentTarget.src !== FIXTURE_BG_IMAGE) {
+              e.currentTarget.src = FIXTURE_BG_IMAGE;
             }
           }}
         />

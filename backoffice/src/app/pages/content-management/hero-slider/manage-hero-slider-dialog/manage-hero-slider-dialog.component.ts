@@ -92,15 +92,14 @@ export class ManageHeroSliderDialogComponent {
     const mobileVal = raw.image_mobile as FileUploadValue | null;
     const desktopVal = raw.image_desktop as FileUploadValue | null;
 
-    const formData = new FormData();
-    formData.append('status', raw.status ?? 'active');
+    const payload = { status: raw.status ?? 'active' };
 
     this.isSubmitting = true;
 
     const request$ =
       this.data.mode === 'create'
-        ? this.heroSliderService.create(formData)
-        : this.heroSliderService.update(this.data.heroSlider!.id, formData);
+        ? this.heroSliderService.create(payload)
+        : this.heroSliderService.update(this.data.heroSlider!.id, payload);
 
     request$
       .pipe(

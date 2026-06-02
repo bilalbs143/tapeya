@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\HeroSlider;
+use App\Models\Highlight;
 use App\Models\Shop\Brand;
 use App\Models\Shop\Category;
 use App\Models\Shop\Product;
@@ -76,6 +77,22 @@ class MediaRegistry
                 'model' => TournamentMatch::class,
                 'fields' => [
                     'thumbnail' => ['dir' => 'match-stream-thumbnails', 'column' => 'stream_thumbnail'],
+                ],
+            ],
+            'highlight' => [
+                'model' => Highlight::class,
+                'fields' => [
+                    'thumbnail' => ['dir' => 'highlights', 'column' => 'thumbnail'],
+                    'video' => [
+                        'dir' => 'highlights/videos',
+                        'column' => 'video',
+                        'file_rules' => [
+                            'required',
+                            'file',
+                            'mimetypes:video/mp4,video/webm,video/quicktime',
+                            'max:102400',
+                        ],
+                    ],
                 ],
             ],
             'product' => [

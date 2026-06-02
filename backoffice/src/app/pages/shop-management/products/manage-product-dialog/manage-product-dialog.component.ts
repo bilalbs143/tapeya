@@ -21,7 +21,7 @@ import type { Brand } from 'src/app/services/shop/brand.service';
 import { BrandService } from 'src/app/services/shop/brand.service';
 import type { Category } from 'src/app/services/shop/category.service';
 import { CategoryService } from 'src/app/services/shop/category.service';
-import type { Product } from 'src/app/services/shop/product.service';
+import type { Product, ProductSavePayload } from 'src/app/services/shop/product.service';
 import { ProductService } from 'src/app/services/shop/product.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import {
@@ -115,7 +115,6 @@ export class ManageProductDialogComponent implements OnInit, OnDestroy {
       is_featured: [p?.is_featured ?? false],
       is_popular: [p?.is_popular ?? false],
       is_special_offer: [p?.is_special_offer ?? false],
-      // images: FileUploadValue | null — required; existing server URLs pre-populated in edit mode
       images: [
         p?.images?.length ? ({ files: [], existingUrls: p.images.map((img) => img.path) } as FileUploadValue) : null,
         [fileUploadRequired],
@@ -208,35 +207,34 @@ export class ManageProductDialogComponent implements OnInit, OnDestroy {
       this.form.markAllAsTouched();
       return;
     }
-    const formData = new FormData();
     const raw = this.form.getRawValue();
-    formData.append('name', raw.name);
-    formData.append('slug', (raw.slug ?? '').trim());
-    formData.append('description', raw.description ?? '');
-    formData.append('price', String(raw.price));
-    formData.append('brand_id', String(raw.brand_id));
-    formData.append('category_id', String(raw.category_id));
-    formData.append('stock_quantity', String(raw.stock_quantity ?? 0));
-    formData.append('low_stock_threshold', String(raw.low_stock_threshold ?? 5));
-    formData.append('is_active', raw.is_active ? '1' : '0');
-    formData.append('is_featured', raw.is_featured ? '1' : '0');
-    formData.append('is_popular', raw.is_popular ? '1' : '0');
-    formData.append('is_special_offer', raw.is_special_offer ? '1' : '0');
-    if (raw.discount_type) {
-      formData.append('discount_type', raw.discount_type);
-      if (raw.discount_value != null) formData.append('discount_value', String(raw.discount_value));
-      const startsAt = this.toDateTimeString(raw.discount_starts_at_date, raw.discount_starts_at_time);
-      const endsAt = this.toDateTimeString(raw.discount_ends_at_date, raw.discount_ends_at_time);
-      if (startsAt) formData.append('discount_starts_at', startsAt);
-      if (endsAt) formData.append('discount_ends_at', endsAt);
-    }
+    const startsAt = raw.discount_type ? this.toDateTimeString(raw.discount_starts_at_date, raw.discount_starts_at_time) : '';
+    const endsAt = raw.discount_type ? this.toDateTimeString(raw.discount_ends_at_date, raw.discount_ends_at_time) : '';
+    const payload: ProductSavePayload = {
+      name: raw.name,
+      slug: (raw.slug ?? '').trim(),
+      description: raw.description ?? '',
+      price: Number(raw.price),
+      brand_id: Number(raw.brand_id),
+      category_id: Number(raw.category_id),
+      stock_quantity: Number(raw.stock_quantity ?? 0),
+      low_stock_threshold: Number(raw.low_stock_threshold ?? 5),
+      is_active: !!raw.is_active,
+      is_featured: !!raw.is_featured,
+      is_popular: !!raw.is_popular,
+      is_special_offer: !!raw.is_special_offer,
+      discount_type: raw.discount_type || null,
+      discount_value: raw.discount_type && raw.discount_value != null ? Number(raw.discount_value) : null,
+      discount_starts_at: startsAt || null,
+      discount_ends_at: endsAt || null,
+    };
     const imagesValue = raw.images as FileUploadValue | null;
 
     this.isSubmitting = true;
     const request$ =
       this.data.mode === 'create'
-        ? this.productService.create(formData)
-        : this.productService.update(this.data.product!.id, formData);
+        ? this.productService.create(payload)
+        : this.productService.update(this.data.product!.id, payload);
 
     request$
       .pipe(

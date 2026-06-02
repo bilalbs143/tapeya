@@ -1,36 +1,31 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { CLOUDFRONT_APP_BASE, FIXTURE_BG_IMAGE } from '@/lib/constants/assets';
 import { LG_MEDIA_QUERY, NAVBAR_HERO_CONTROL_OFFSET } from '@/lib/constants/layout';
-import { MoreHighlightRow } from '@/pages/highlights/components/MoreHighlightRow';
-import { HIGHLIGHTS_FALLBACK_IMAGE } from '@/pages/highlights/highlightsData';
+import { formatCount, ThumbsUpIcon } from '@/pages/feed/PostCard';
+import {
+  useDislikeHighlightMutation,
+  useGetHighlightQuery,
+  useGetHighlightsQuery,
+  useLikeHighlightMutation,
+  useShareHighlightMutation,
+} from '@/store/api/highlightApi';
+import { Container } from '@/ui/Container';
+
+import { MoreHighlightRow } from './components/MoreHighlightRow';
 import {
   formatHighlightDate,
-  getHighlightById,
+  formatHighlightDuration,
   getHighlightTitle,
   getMoreHighlights,
   isValidHighlightId,
-} from '@/pages/highlights/highlightsUtils';
-import { formatCount, ThumbsUpIcon } from '@/pages/feed/PostCard';
-import { Container } from '@/ui/Container';
+} from './highlightsUtils';
 
 const feedShareIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-share.svg`;
-const playIcon = `${CLOUDFRONT_APP_BASE}/images/icons/video-play.svg`;
-
-const DEFAULT_HIGHLIGHT = {
-  title: 'Highlight',
-  detailTitle: 'Highlight',
-  publishedAt: '',
-  description: '',
-  thumbnailUrl: HIGHLIGHTS_FALLBACK_IMAGE,
-  likesCount: 0,
-  dislikesCount: 0,
-  sharesCount: 0,
-};
 
 function ThumbsDownIcon({ className = '' }) {
   return (
@@ -60,99 +55,136 @@ export default function HighlightDetails() {
   const { highlightId } = useParams();
   const location = useLocation();
   const stateHighlight = location.state?.highlight;
-  const videoRef = useRef(null);
-
   const hasValidId = isValidHighlightId(highlightId);
-  const highlightFromData = hasValidId ? getHighlightById(highlightId) : null;
-  const highlight = highlightFromData ?? stateHighlight ?? { id: highlightId, ...DEFAULT_HIGHLIGHT };
 
-  const bannerImage = highlight.thumbnailUrl || HIGHLIGHTS_FALLBACK_IMAGE;
-  const displayTitle = getHighlightTitle(highlight);
-  const dateLabel = formatHighlightDate(highlight.publishedAt);
-  const description = highlight.description ?? '';
-  const moreHighlights = useMemo(() => getMoreHighlights(highlight.id), [highlight.id]);
+  // Fetch the full highlight from the API (also increments views_count on the server)
+  const { data: apiHighlight, isLoading, isError } = useGetHighlightQuery(highlightId, { skip: !hasValidId });
 
-  const [counts, setCounts] = useState({
-    likes_count: highlight.likesCount ?? 0,
-    dislikes_count: highlight.dislikesCount ?? 0,
-    shares_count: highlight.sharesCount ?? 0,
-  });
+  // Fallback to router state while API loads
+  const highlight = apiHighlight ?? stateHighlight ?? null;
+
+  // Fetch all highlights for "More Highlights" section
+  const { data: allHighlights = [] } = useGetHighlightsQuery({ per_page: 50 });
+  const moreHighlights = useMemo(() => getMoreHighlights(allHighlights, highlight?.id), [allHighlights, highlight?.id]);
+
+  const [likeHighlight, { isLoading: isLiking }] = useLikeHighlightMutation();
+  const [dislikeHighlight, { isLoading: isDisliking }] = useDislikeHighlightMutation();
+  const [shareHighlight] = useShareHighlightMutation();
+
+  const [counts, setCounts] = useState({ likes_count: 0, dislikes_count: 0, shares_count: 0 });
   const [myReaction, setMyReaction] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
+  // Reset player when the URL changes (navigating to a different highlight).
+  // Use highlightId from params — it's a stable string, never undefined.
   useEffect(() => {
-    setCounts({
-      likes_count: highlight.likesCount ?? 0,
-      dislikes_count: highlight.dislikesCount ?? 0,
-      shares_count: highlight.sharesCount ?? 0,
-    });
-    setMyReaction(null);
     setIsPlaying(false);
-  }, [highlight.id, highlight.likesCount, highlight.dislikesCount, highlight.sharesCount]);
+  }, [highlightId]);
 
+  // Sync counts + reaction when fresh API data arrives.
+  // Intentionally uses apiHighlight only — stateHighlight is router-state and never updates.
   useEffect(() => {
-    if (!isPlaying || !videoRef.current) return;
-    videoRef.current.play().catch(() => {});
-  }, [isPlaying]);
-
-  const handleLike = () => {
-    setMyReaction((prev) => {
-      if (prev === 'like') {
-        setCounts((current) => ({ ...current, likes_count: Math.max(0, current.likes_count - 1) }));
-        return null;
-      }
-      setCounts((current) => ({
-        ...current,
-        likes_count: current.likes_count + 1,
-        dislikes_count: prev === 'dislike' ? Math.max(0, current.dislikes_count - 1) : current.dislikes_count,
-      }));
-      return 'like';
+    if (!apiHighlight) return;
+    setCounts({
+      likes_count: apiHighlight.likes_count ?? 0,
+      dislikes_count: apiHighlight.dislikes_count ?? 0,
+      shares_count: apiHighlight.shares_count ?? 0,
     });
+    setMyReaction(apiHighlight.my_reaction ?? null);
+  }, [apiHighlight]);
+
+  const handleLike = async () => {
+    if (!highlight || isLiking || isDisliking || myReaction === 'like') return;
+
+    // Optimistic update
+    const prevReaction = myReaction;
+    setMyReaction('like');
+    setCounts((prev) => ({
+      ...prev,
+      likes_count: prev.likes_count + 1,
+      dislikes_count: prevReaction === 'dislike' ? Math.max(0, prev.dislikes_count - 1) : prev.dislikes_count,
+    }));
+
+    try {
+      const result = await likeHighlight(highlight.id).unwrap();
+      // Sync with server response
+      setCounts({
+        likes_count: result.likes_count ?? 0,
+        dislikes_count: result.dislikes_count ?? 0,
+        shares_count: result.shares_count ?? counts.shares_count,
+      });
+      setMyReaction(result.my_reaction ?? null);
+    } catch {
+      // Revert on error
+      setMyReaction(prevReaction);
+      setCounts((prev) => ({
+        ...prev,
+        likes_count: highlight.likes_count ?? 0,
+        dislikes_count: highlight.dislikes_count ?? 0,
+      }));
+    }
   };
 
-  const handleDislike = () => {
-    setMyReaction((prev) => {
-      if (prev === 'dislike') {
-        setCounts((current) => ({ ...current, dislikes_count: Math.max(0, current.dislikes_count - 1) }));
-        return null;
-      }
-      setCounts((current) => ({
-        ...current,
-        dislikes_count: current.dislikes_count + 1,
-        likes_count: prev === 'like' ? Math.max(0, current.likes_count - 1) : current.likes_count,
+  const handleDislike = async () => {
+    if (!highlight || isLiking || isDisliking || myReaction === 'dislike') return;
+
+    const prevReaction = myReaction;
+    setMyReaction('dislike');
+    setCounts((prev) => ({
+      ...prev,
+      dislikes_count: prev.dislikes_count + 1,
+      likes_count: prevReaction === 'like' ? Math.max(0, prev.likes_count - 1) : prev.likes_count,
+    }));
+
+    try {
+      const result = await dislikeHighlight(highlight.id).unwrap();
+      setCounts({
+        likes_count: result.likes_count ?? 0,
+        dislikes_count: result.dislikes_count ?? 0,
+        shares_count: result.shares_count ?? counts.shares_count,
+      });
+      setMyReaction(result.my_reaction ?? null);
+    } catch {
+      setMyReaction(prevReaction);
+      setCounts((prev) => ({
+        ...prev,
+        likes_count: highlight.likes_count ?? 0,
+        dislikes_count: highlight.dislikes_count ?? 0,
       }));
-      return 'dislike';
-    });
+    }
   };
 
   const handleShare = async () => {
+    if (!highlight) return;
+
     try {
       if (typeof navigator !== 'undefined' && navigator.share) {
         await navigator.share({
-          title: displayTitle,
-          text: description || displayTitle,
+          title: getHighlightTitle(highlight),
+          text: highlight.description || getHighlightTitle(highlight),
           url: window.location.href,
         });
-        setCounts((current) => ({ ...current, shares_count: current.shares_count + 1 }));
       }
+      // Call API regardless of whether Web Share succeeded
+      const result = await shareHighlight(highlight.id).unwrap();
+      setCounts((prev) => ({ ...prev, shares_count: result.shares_count ?? prev.shares_count + 1 }));
     } catch {
-      // User cancelled or share failed.
+      // User cancelled share or API failed — no-op
     }
   };
 
   const handlePlay = () => {
-    if (highlight.videoUrl) {
-      setIsPlaying(true);
-      return;
-    }
+    if (highlight?.videoUrl) setIsPlaying(true);
   };
 
+  const hasVideo = !!highlight?.videoUrl;
+
   const handleMoreHighlightClick = (item) => {
-    if (item.id == null) return;
     navigate(`/highlights/${item.id}`, { state: { highlight: item } });
   };
 
-  if (!hasValidId && !stateHighlight) {
+  // ── Not found ──────────────────────────────────────────────────────────────
+  if (!hasValidId || (isError && !stateHighlight)) {
     return (
       <div className="min-h-screen bg-black">
         <Container className="py-8 text-center">
@@ -169,32 +201,72 @@ export default function HighlightDetails() {
     );
   }
 
+  const bannerImage = highlight?.thumbnailUrl || FIXTURE_BG_IMAGE;
+  const displayTitle = getHighlightTitle(highlight);
+  const dateLabel = formatHighlightDate(highlight?.publishedAt);
+  const durationLabel = formatHighlightDuration(highlight?.duration);
+  const description = highlight?.description ?? '';
+
+  // video_source from the API tells us the type; video_url is already a ready-to-use embed URL
+  // for YouTube or a direct storage URL for uploaded videos.
+  const isYouTube = highlight?.videoSource === 'youtube';
+  const isDirectVideo = highlight?.videoSource === 'upload';
+
   return (
     <div className="bg-black">
+      {/* Hero banner / video player */}
       <div className="relative h-[200px] w-full overflow-hidden bg-black lg:h-[400px]">
-        {isPlaying && highlight.videoUrl ? (
+        {isPlaying && isYouTube ? (
+          <iframe
+            src={`${highlight.videoUrl}${highlight.videoUrl?.includes('?') ? '&' : '?'}autoplay=1`}
+            title={displayTitle}
+            allow="autoplay; encrypted-media; picture-in-picture"
+            allowFullScreen
+            className="h-full w-full border-0"
+          />
+        ) : isPlaying && isDirectVideo ? (
+          /* Direct video file */
           <div className="flex h-full w-full items-center justify-center bg-black">
             <video
-              ref={videoRef}
               src={highlight.videoUrl}
               controls
               playsInline
               className="max-h-full max-w-full object-contain"
               poster={bannerImage}
-            />
+            >
+              <track kind="captions" />
+            </video>
           </div>
         ) : (
-          <img
-            src={bannerImage}
-            alt=""
-            className="h-full w-full object-cover"
-            onError={(e) => {
-              if (e.currentTarget.src !== HIGHLIGHTS_FALLBACK_IMAGE) {
-                e.currentTarget.src = HIGHLIGHTS_FALLBACK_IMAGE;
-              }
-            }}
-          />
+          /* Thumbnail / poster with centered play button overlay */
+          <>
+            <img
+              src={bannerImage}
+              alt={displayTitle}
+              className="h-full w-full object-cover"
+              onError={(e) => {
+                if (e.currentTarget.src !== FIXTURE_BG_IMAGE) {
+                  e.currentTarget.src = FIXTURE_BG_IMAGE;
+                }
+              }}
+            />
+            {hasVideo ? (
+              <button
+                type="button"
+                onClick={handlePlay}
+                className="absolute inset-0 flex items-center justify-center transition-opacity active:opacity-70"
+                aria-label="Play Video"
+              >
+                {/* Simple play triangle */}
+                <svg viewBox="0 0 80 80" className="h-16 w-16 drop-shadow-lg" aria-hidden>
+                  <circle cx="40" cy="40" r="40" fill="black" fillOpacity="0.45" />
+                  <polygon points="32,24 32,56 60,40" fill="white" />
+                </svg>
+              </button>
+            ) : null}
+          </>
         )}
+
         <AppSubpageBackButton
           onClick={() => navigate(-1)}
           className={`absolute left-4 z-10 ${isDesktop ? 'top-4' : ''}`}
@@ -204,74 +276,89 @@ export default function HighlightDetails() {
       </div>
 
       <Container className="!px-4 !py-0">
-        <div className="mt-4">
-          <h1 className="text-[16px] leading-tight font-bold text-white">{displayTitle}</h1>
-          {dateLabel ? <p className="mt-1 text-[14px] text-[#A2A6AB]">{dateLabel}</p> : null}
-        </div>
-
-        <div className="mt-4 flex items-center gap-8">
-          <button
-            type="button"
-            onClick={handlePlay}
-            disabled={!highlight.videoUrl}
-            className="flex min-w-0 flex-1 items-center justify-center gap-3 rounded-[10px] border border-[#DA9811] bg-black px-5 py-3 text-[14px] font-medium text-[#DA9811] transition-opacity active:opacity-90 disabled:cursor-default disabled:opacity-50"
-          >
-            <img src={playIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
-            Play
-          </button>
-
-          <div className="flex shrink-0 items-start gap-4">
-            <button
-              type="button"
-              onClick={handleLike}
-              className="flex flex-col items-center gap-1.5 transition-opacity active:opacity-80"
-              aria-label={`Like. ${formatCount(counts.likes_count)} likes`}
-              aria-pressed={myReaction === 'like'}
-            >
-              <div
-                className={`flex h-[44px] w-[44px] items-center justify-center rounded-full ${myReaction === 'like' ? 'bg-[#DA9811]' : 'bg-[#141412]'}`}
-              >
-                <ThumbsUpIcon filled={myReaction === 'like'} className={myReaction === 'like' ? 'text-black' : 'text-white'} />
-              </div>
-              <span className="text-[12px] font-medium text-white">{formatCount(counts.likes_count)}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleDislike}
-              className="flex flex-col items-center gap-1.5 transition-opacity active:opacity-80"
-              aria-label={`Dislike. ${formatCount(counts.dislikes_count)} dislikes`}
-              aria-pressed={myReaction === 'dislike'}
-            >
-              <div
-                className={`flex h-[44px] w-[44px] items-center justify-center rounded-full ${myReaction === 'dislike' ? 'bg-[#DA9811]' : 'bg-[#141412]'}`}
-              >
-                <ThumbsDownIcon className={myReaction === 'dislike' ? 'text-black' : 'text-white'} />
-              </div>
-              <span className="text-[12px] font-medium text-white">{formatCount(counts.dislikes_count)}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleShare}
-              className="flex flex-col items-center gap-1.5 transition-opacity active:opacity-80"
-              aria-label={`Share. ${formatCount(counts.shares_count)} shares`}
-            >
-              <div className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#141412]">
-                <img src={feedShareIcon} alt="" className="h-5 w-5 brightness-0 invert" aria-hidden />
-              </div>
-              <span className="text-[12px] font-medium text-white">{formatCount(counts.shares_count)}</span>
-            </button>
+        {/* Loading skeleton for text content */}
+        {isLoading && !highlight ? (
+          <div className="mt-4 animate-pulse space-y-2">
+            <div className="h-5 w-3/4 rounded bg-[#141412]" />
+            <div className="h-4 w-1/3 rounded bg-[#141412]" />
           </div>
-        </div>
+        ) : null}
 
+        {/* Title & date */}
+        {highlight ? (
+          <div className="mt-4">
+            <h1 className="text-[16px] leading-tight font-bold text-white">{displayTitle}</h1>
+            {dateLabel || durationLabel ? (
+              <p className="mt-1 text-[14px] text-[#A2A6AB]">{[dateLabel, durationLabel].filter(Boolean).join(' · ')}</p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {/* Reactions — centered */}
+        {highlight ? (
+          <div className="mt-4 flex justify-center">
+            <div className="flex items-start gap-8">
+              {/* Like */}
+              <button
+                type="button"
+                onClick={handleLike}
+                disabled={isLiking || isDisliking}
+                className="flex flex-col items-center gap-1.5 transition-opacity active:opacity-80 disabled:opacity-60"
+                aria-label={`Like. ${formatCount(counts.likes_count)} likes`}
+                aria-pressed={myReaction === 'like'}
+              >
+                <div
+                  className={`flex h-[44px] w-[44px] items-center justify-center rounded-full transition-colors ${
+                    myReaction === 'like' ? 'bg-[#DA9811]' : 'bg-[#141412]'
+                  }`}
+                >
+                  <ThumbsUpIcon filled={myReaction === 'like'} className={myReaction === 'like' ? 'text-black' : 'text-white'} />
+                </div>
+                <span className="text-[12px] font-medium text-white">{formatCount(counts.likes_count)}</span>
+              </button>
+
+              {/* Dislike */}
+              <button
+                type="button"
+                onClick={handleDislike}
+                disabled={isLiking || isDisliking}
+                className="flex flex-col items-center gap-1.5 transition-opacity active:opacity-80 disabled:opacity-60"
+                aria-label={`Dislike. ${formatCount(counts.dislikes_count)} dislikes`}
+                aria-pressed={myReaction === 'dislike'}
+              >
+                <div
+                  className={`flex h-[44px] w-[44px] items-center justify-center rounded-full transition-colors ${
+                    myReaction === 'dislike' ? 'bg-[#DA9811]' : 'bg-[#141412]'
+                  }`}
+                >
+                  <ThumbsDownIcon className={myReaction === 'dislike' ? 'text-black' : 'text-white'} />
+                </div>
+                <span className="text-[12px] font-medium text-white">{formatCount(counts.dislikes_count)}</span>
+              </button>
+
+              {/* Share */}
+              <button
+                type="button"
+                onClick={handleShare}
+                className="flex flex-col items-center gap-1.5 transition-opacity active:opacity-80"
+                aria-label={`Share. ${formatCount(counts.shares_count)} shares`}
+              >
+                <div className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#141412]">
+                  <img src={feedShareIcon} alt="" className="h-5 w-5 brightness-0 invert" aria-hidden />
+                </div>
+                <span className="text-[12px] font-medium text-white">{formatCount(counts.shares_count)}</span>
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {/* Description */}
         {description ? <p className="mt-4 text-left text-[14px] leading-relaxed text-white/95">{description}</p> : null}
 
+        {/* More Highlights */}
         {moreHighlights.length > 0 ? (
           <section className="mt-6 border-t border-[#1A1A1A] pt-6 pb-6">
-            <h2 className="mb-3 text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase md:text-[16px]">
-              More Highlights
-            </h2>
+            <h2 className="mb-3 text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase md:text-[16px]">More Highlights</h2>
             <div className="space-y-3">
               {moreHighlights.map((item) => (
                 <MoreHighlightRow key={item.id} highlight={item} onClick={handleMoreHighlightClick} />

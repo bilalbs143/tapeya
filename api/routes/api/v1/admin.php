@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\GraphicOverlayUrlController;
 use App\Http\Controllers\Admin\GraphicSessionController;
 use App\Http\Controllers\Admin\GraphicThemeController;
 use App\Http\Controllers\Admin\HeroSliderController;
+use App\Http\Controllers\Admin\HighlightController as AdminHighlightController;
 use App\Http\Controllers\Admin\MatchGraphicCaptionController;
 use App\Http\Controllers\Admin\MatchGraphicPlayerListController;
 use App\Http\Controllers\Admin\MediaController;
@@ -49,6 +50,7 @@ Route::prefix('admin')->group(function () {
 
     Route::middleware(['auth:api', 'admin.only'])->group(function () {
         Route::get('enums', [EnumController::class, 'index']);
+        Route::apiResource('highlights', AdminHighlightController::class);
         Route::get('notifications', [NotificationController::class, 'index']);
         Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
         Route::delete('notifications', [NotificationController::class, 'flush']);

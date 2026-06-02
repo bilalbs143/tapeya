@@ -1,8 +1,8 @@
+import { FIXTURE_BG_IMAGE } from '@/lib/constants/assets';
 import { formatHighlightDate } from '@/pages/highlights/highlightsUtils';
-import { HIGHLIGHTS_FALLBACK_IMAGE } from '@/pages/highlights/highlightsData';
 
 export function HighlightCard({ highlight, onClick, disabled = false }) {
-  const imageUrl = highlight.thumbnailUrl || HIGHLIGHTS_FALLBACK_IMAGE;
+  const imageUrl = highlight.thumbnailUrl || FIXTURE_BG_IMAGE;
   const title = highlight.title ?? 'Highlight';
   const dateLabel = formatHighlightDate(highlight.publishedAt);
 
@@ -19,8 +19,8 @@ export function HighlightCard({ highlight, onClick, disabled = false }) {
           alt={title}
           className="h-full w-full object-cover"
           onError={(e) => {
-            if (e.currentTarget.src !== HIGHLIGHTS_FALLBACK_IMAGE) {
-              e.currentTarget.src = HIGHLIGHTS_FALLBACK_IMAGE;
+            if (e.currentTarget.src !== FIXTURE_BG_IMAGE) {
+              e.currentTarget.src = FIXTURE_BG_IMAGE;
             }
           }}
         />

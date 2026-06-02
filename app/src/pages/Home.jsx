@@ -8,6 +8,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 
 import { ExploreCategories } from '@/components/ExploreCategories';
 import { HeroSlider } from '@/components/HeroSlider';
+import { HighlightSlider } from '@/components/HighlightSlider';
 import { LiveMatchSlider } from '@/components/LiveMatchSlider';
 import { ListingProductCard } from '@/components/shop/ListingProductCard';
 import { normaliseLiveStreamMatches } from '@/lib/utils/liveStreamUtils';
@@ -78,6 +79,7 @@ export default function Home() {
         <HeroSlider />
         <ExploreCategories />
         <LiveMatchSlider matches={liveMatches} />
+        <HighlightSlider />
         <ShopSlider title="Most popular" viewMorePath="/shop/filter/popular" products={popularProducts} brands={brands} />
         <ShopSlider
           title="Special offer"

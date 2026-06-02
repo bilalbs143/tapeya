@@ -63,6 +63,7 @@ export const baseApi = createApi({
     'Scorecard',
     'InterestCampaign',
     'LiveStreams',
+    'Highlight',
   ],
   endpoints: () => ({}),
 });

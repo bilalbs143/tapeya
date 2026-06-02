@@ -5,8 +5,7 @@
 
 import * as ToastPrimitive from '@radix-ui/react-toast';
 
-const viewport =
-  'fixed top-[env(safe-area-inset-top)] right-0 z-[100] flex max-h-screen w-full flex-col p-4 md:max-w-[420px]';
+const viewport = 'fixed top-[env(safe-area-inset-top)] right-0 z-[100] flex max-h-screen w-full flex-col p-4 md:max-w-[420px]';
 const root =
   'group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border bg-white p-4 shadow-lg transition-all';
 const title = 'text-sm font-semibold';

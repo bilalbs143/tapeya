@@ -18,4 +18,12 @@ export const ContentManagementRoutes: Routes = [
       urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Content Management' }, { title: 'Static Pages' }],
     },
   },
+  {
+    path: 'highlights',
+    loadComponent: () => import('./highlights/highlights.component').then((m) => m.HighlightsComponent),
+    data: {
+      title: 'Highlights',
+      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Content Management' }, { title: 'Highlights' }],
+    },
+  },
 ];

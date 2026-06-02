@@ -30,6 +30,10 @@ export interface HeroSlidersListResponse {
   links?: Record<string, string | null>;
 }
 
+export interface HeroSliderSavePayload {
+  status: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class HeroSliderService {
   private readonly http = inject(HttpClient);
@@ -47,17 +51,16 @@ export class HeroSliderService {
     return this.http.get<{ data: HeroSlider }>(`${this.baseUrl}/${id}`);
   }
 
-  public create(formData: FormData): Observable<{ data: HeroSlider }> {
-    return this.http.post<{ data: HeroSlider }>(this.baseUrl, formData).pipe(
+  public create(payload: HeroSliderSavePayload): Observable<{ data: HeroSlider }> {
+    return this.http.post<{ data: HeroSlider }>(this.baseUrl, payload).pipe(
       tap(() => {
         this.messageService.success('Hero slider created successfully.');
       })
     );
   }
 
-  public update(id: number, formData: FormData): Observable<{ data: HeroSlider }> {
-    formData.append('_method', 'PUT');
-    return this.http.post<{ data: HeroSlider }>(`${this.baseUrl}/${id}`, formData).pipe(
+  public update(id: number, payload: HeroSliderSavePayload): Observable<{ data: HeroSlider }> {
+    return this.http.put<{ data: HeroSlider }>(`${this.baseUrl}/${id}`, payload).pipe(
       tap(() => {
         this.messageService.success('Hero slider updated successfully.');
       })

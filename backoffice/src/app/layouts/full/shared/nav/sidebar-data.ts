@@ -57,6 +57,11 @@ export const navItems: NavItem[] = [
         iconName: 'tabler:point',
         route: '/content-management/static-pages',
       },
+      {
+        displayName: 'Highlights',
+        iconName: 'tabler:point',
+        route: '/content-management/highlights',
+      },
     ],
   },
   {

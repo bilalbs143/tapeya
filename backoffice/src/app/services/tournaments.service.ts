@@ -54,6 +54,8 @@ export interface TournamentsListResponse {
   links?: Record<string, string | null>;
 }
 
+export type TournamentUpdatePayload = Record<string, string | number | null>;
+
 @Injectable({ providedIn: 'root' })
 export class TournamentsService {
   private readonly http = inject(HttpClient);
@@ -71,17 +73,16 @@ export class TournamentsService {
     return this.http.get<{ data: Tournament }>(`${this.baseUrl}/${id}`);
   }
 
-  public create(formData: FormData): Observable<{ data: Tournament }> {
-    return this.http.post<{ data: Tournament }>(this.baseUrl, formData).pipe(
+  public create(payload: TournamentUpdatePayload): Observable<{ data: Tournament }> {
+    return this.http.post<{ data: Tournament }>(this.baseUrl, payload).pipe(
       tap(() => {
         this.messageService.success('Tournament created successfully.');
       })
     );
   }
 
-  public update(id: number, formData: FormData): Observable<{ data: Tournament }> {
-    formData.append('_method', 'PATCH');
-    return this.http.post<{ data: Tournament }>(`${this.baseUrl}/${id}`, formData).pipe(
+  public update(id: number, payload: TournamentUpdatePayload): Observable<{ data: Tournament }> {
+    return this.http.patch<{ data: Tournament }>(`${this.baseUrl}/${id}`, payload).pipe(
       tap(() => {
         this.messageService.success('Tournament updated successfully.');
       })

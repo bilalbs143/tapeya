@@ -10,7 +10,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { finalize, switchMap } from 'rxjs/operators';
 
 import { MediaService } from 'src/app/services/media.service';
-import type { Brand } from 'src/app/services/shop/brand.service';
+import type { Brand, SaveBrandPayload } from 'src/app/services/shop/brand.service';
 import { BrandService } from 'src/app/services/shop/brand.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
@@ -74,8 +74,6 @@ export class ManageBrandDialogComponent {
       slug: [brand?.slug ?? '', [Validators.required]],
       sort_order: [brand?.sort_order ?? 0, [Validators.min(0)]],
       is_active: [brand?.is_active ?? true],
-      // logo: FileUploadValue | null — null means nothing selected/kept.
-      // Initialise with existing URL so the component shows the current logo.
       logo: [brand?.logo ? ({ files: [], existingUrls: [brand.logo] } as FileUploadValue) : null],
     });
     this.form.patchValue({ slug: toKebabCase(this.form.get('name')?.value) }, { emitEvent: false });
@@ -86,18 +84,19 @@ export class ManageBrandDialogComponent {
       this.form.markAllAsTouched();
       return;
     }
-    const formData = new FormData();
     const raw = this.form.getRawValue();
-    formData.append('name', raw.name);
-    formData.append('slug', (raw.slug ?? '').trim());
-    formData.append('sort_order', String(raw.sort_order ?? 0));
-    formData.append('is_active', raw.is_active ? '1' : '0');
+    const payload: SaveBrandPayload = {
+      name: raw.name,
+      slug: (raw.slug ?? '').trim(),
+      sort_order: Number(raw.sort_order ?? 0),
+      is_active: !!raw.is_active,
+    };
 
     const logoValue = raw.logo as FileUploadValue | null;
 
     this.isSubmitting = true;
     const request$ =
-      this.data.mode === 'create' ? this.brandService.create(formData) : this.brandService.update(this.data.brand!.id, formData);
+      this.data.mode === 'create' ? this.brandService.create(payload) : this.brandService.update(this.data.brand!.id, payload);
 
     request$
       .pipe(

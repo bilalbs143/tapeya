@@ -65,7 +65,8 @@ class MediaController extends Controller
         }
 
         // Single-file replacement
-        $request->validate(['file' => ['required', 'image', 'max:5120']]);
+        $fileRules = $config['file_rules'] ?? ['required', 'image', 'max:5120'];
+        $request->validate(['file' => $fileRules]);
 
         $column = $config['column'];
         $oldPath = $record->getRawOriginal($column);

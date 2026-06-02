@@ -19,7 +19,7 @@ import { type Country, LocationService } from 'src/app/services/location.service
 import { MediaService } from 'src/app/services/media.service';
 import { MessageService } from 'src/app/services/message.service';
 import type { TournamentRequest } from 'src/app/services/tournament-request.service';
-import type { Tournament } from 'src/app/services/tournaments.service';
+import type { Tournament, TournamentUpdatePayload } from 'src/app/services/tournaments.service';
 import { TournamentsService } from 'src/app/services/tournaments.service';
 import { UsersService, type UserSearchRow } from 'src/app/services/users.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
@@ -303,24 +303,23 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
 
     // Use getRawValue() to include disabled controls (e.g., city while cities are loading).
     const v = this.form.getRawValue();
-    const formData = new FormData();
-    formData.append('organizer_id', String((v.organizer as OrganizerOption)?.id ?? ''));
-    formData.append('tournament_name', v.tournament_name);
-    formData.append('tournament_type', v.tournament_type);
-    formData.append('cricket_format', v.cricket_format);
-    formData.append('venue_name', v.venue_name);
-    formData.append('start_date', this.formatDateForApi(v.start_date) ?? '');
-    formData.append('end_date', this.formatDateForApi(v.end_date) ?? '');
-    formData.append('number_of_teams', String(Number(v.number_of_teams)));
     const numGroups: number = v.group_mode === 'group_wise' ? Number(v.number_of_groups) || 2 : 1;
-    formData.append('number_of_groups', String(Math.max(1, Math.min(16, numGroups))));
-    formData.append('country', v.country ?? '');
-    formData.append('city', v.city);
-    formData.append('match_timings', v.match_timings);
-    formData.append('status', v.status);
-    if (v.prize != null && String(v.prize).trim() !== '') {
-      formData.append('prize', String(v.prize).trim());
-    }
+    const payload: TournamentUpdatePayload = {
+      organizer_id: String((v.organizer as OrganizerOption)?.id ?? ''),
+      tournament_name: v.tournament_name,
+      tournament_type: v.tournament_type,
+      cricket_format: v.cricket_format,
+      venue_name: v.venue_name,
+      start_date: this.formatDateForApi(v.start_date) ?? '',
+      end_date: this.formatDateForApi(v.end_date) ?? '',
+      number_of_teams: String(Number(v.number_of_teams)),
+      number_of_groups: String(Math.max(1, Math.min(16, numGroups))),
+      country: v.country ?? '',
+      city: v.city,
+      match_timings: v.match_timings,
+      status: v.status,
+      prize: String(v.prize ?? '').trim(),
+    };
     const displayImageVal = v.display_image as FileUploadValue | null;
     const coverImageVal = v.cover_image as FileUploadValue | null;
 
@@ -328,8 +327,8 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
 
     const request$ =
       this.data.mode === 'create'
-        ? this.tournamentsService.create(formData)
-        : this.tournamentsService.update(this.data.tournament!.id, formData);
+        ? this.tournamentsService.create(payload)
+        : this.tournamentsService.update(this.data.tournament!.id, payload);
 
     request$
       .pipe(

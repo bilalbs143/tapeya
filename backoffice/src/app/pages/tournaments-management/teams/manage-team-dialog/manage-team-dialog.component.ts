@@ -17,7 +17,7 @@ import { catchError, debounceTime, distinctUntilChanged, finalize, startWith, sw
 import { Country, LocationService } from 'src/app/services/location.service';
 import { MediaService } from 'src/app/services/media.service';
 import { MessageService } from 'src/app/services/message.service';
-import { type TeamRow, type TeamUserCandidate, TeamsService } from 'src/app/services/teams.service';
+import { type TeamRow, type TeamSavePayload, type TeamUserCandidate, TeamsService } from 'src/app/services/teams.service';
 import { UsersService } from 'src/app/services/users.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
@@ -276,16 +276,16 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
     this.iconPlayers = this.iconPlayers.filter((p) => p.id !== user.id);
   }
 
-  private buildFormData(): FormData {
-    const fd = new FormData();
+  private buildPayload(): TeamSavePayload {
     const v = this.form.getRawValue();
-    fd.append('name', String(v.name).trim());
-    fd.append('code', String(v.code).trim());
-    fd.append('country', String(v.country).trim());
-    fd.append('city', String(v.city).trim());
-    fd.append('sponsor_user_id', String(v.sponsor_user_id));
-    this.iconPlayers.forEach((p) => fd.append('icon_player_ids[]', String(p.id)));
-    return fd;
+    return {
+      name: String(v.name).trim(),
+      code: String(v.code).trim(),
+      country: String(v.country).trim(),
+      city: String(v.city).trim(),
+      sponsor_user_id: Number(v.sponsor_user_id),
+      icon_player_ids: this.iconPlayers.map((p) => p.id),
+    };
   }
 
   public onSubmit(): void {
@@ -294,12 +294,12 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
       this.messageService.error('Fill all required fields and choose a sponsor (app user).');
       return;
     }
-    const fd = this.buildFormData();
+    const payload = this.buildPayload();
     const logoVal = this.form.getRawValue().logo as FileUploadValue | null;
 
     this.isSubmitting = true;
     const request$ =
-      this.data.mode === 'create' ? this.teamsService.create(fd) : this.teamsService.update(this.data.team!.id, fd);
+      this.data.mode === 'create' ? this.teamsService.create(payload) : this.teamsService.update(this.data.team!.id, payload);
 
     request$
       .pipe(
