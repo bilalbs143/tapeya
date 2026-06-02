@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Tapeya</string>
+    <string name="title_activity_main">Tapeya</string>
+    <string name="package_name">com.tapeya.app</string>
+    <string name="custom_url_scheme">com.tapeya.app</string>
+</resources>
