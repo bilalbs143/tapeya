@@ -23,7 +23,7 @@ class StoreTournamentMatchRequest extends FormRequest
             'match_time' => ['required', 'date_format:H:i'],
             'venue_name' => ['required', 'string', 'max:255'],
             'players_per_side' => ['required', 'integer', 'min:2', 'max:20'],
-            'overs' => ['required', 'integer', 'min:5', 'max:50'],
+            'overs' => ['required', 'integer', 'min:1', 'max:255'],
             'group_index' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:16'],
         ];
     }

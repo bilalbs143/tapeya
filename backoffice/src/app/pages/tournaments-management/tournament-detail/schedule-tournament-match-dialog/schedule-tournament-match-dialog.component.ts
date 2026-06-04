@@ -102,7 +102,7 @@ export class ScheduleTournamentMatchDialogComponent implements OnInit {
     match_time: ['14:00', Validators.required],
     venue_name: ['', [Validators.required, Validators.maxLength(255)]],
     players_per_side: [11, [Validators.required, Validators.min(2), Validators.max(20)]],
-    overs: [20, [Validators.required, Validators.min(5), Validators.max(50)]],
+    overs: [20, [Validators.required, Validators.min(1), Validators.max(255)]],
     thumbnail: [null as FileUploadValue | null],
   });
 

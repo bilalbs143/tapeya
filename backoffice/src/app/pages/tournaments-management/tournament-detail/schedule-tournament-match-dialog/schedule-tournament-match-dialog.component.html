@@ -233,9 +233,9 @@
                   @if (form.get('overs')?.hasError('required')) {
                     Enter overs.
                   } @else if (form.get('overs')?.hasError('min')) {
-                    Overs must be at least 5.
+                    Overs must be at least 1.
                   } @else if (form.get('overs')?.hasError('max')) {
-                    Overs cannot exceed 50.
+                    Overs cannot exceed 255.
                   }
                 </mat-error>
               }

@@ -23,7 +23,7 @@ class UpdateTournamentMatchRequest extends FormRequest
             'match_time' => ['sometimes', 'required', 'date_format:H:i'],
             'venue_name' => ['sometimes', 'required', 'string', 'max:255'],
             'players_per_side' => ['sometimes', 'required', 'integer', 'min:2', 'max:20'],
-            'overs' => ['sometimes', 'required', 'integer', 'min:5', 'max:50'],
+            'overs' => ['sometimes', 'required', 'integer', 'min:1', 'max:255'],
             'group_index' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:16'],
         ];
     }
