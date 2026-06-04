@@ -123,7 +123,7 @@ export default function UploadReels() {
           <textarea
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
-            placeholder="What do you want to talk about?"
+            placeholder="What Do You Want to Talk About?"
             rows={3}
             className="mb-4 w-full resize-none rounded-lg border-0 bg-transparent text-[15px] text-white placeholder:text-[#A2A6AB] focus:ring-0 focus:outline-none"
           />
@@ -152,7 +152,7 @@ export default function UploadReels() {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     className="flex h-[25px] w-[25px] items-center justify-center rounded-full bg-white"
-                    aria-label="Change video"
+                    aria-label="Change Video"
                   >
                     <img src={editReelIcon} alt="" className="h-3.5 w-3.5 shrink-0" aria-hidden />
                   </button>
@@ -160,7 +160,7 @@ export default function UploadReels() {
                     type="button"
                     onClick={handleDelete}
                     className="flex h-[25px] w-[25px] items-center justify-center rounded-full bg-[#FF2424]"
-                    aria-label="Remove video"
+                    aria-label="Remove Video"
                   >
                     <CloseIcon />
                   </button>
@@ -173,7 +173,7 @@ export default function UploadReels() {
                 className="flex h-full w-full flex-col items-center justify-center gap-2 text-[#A2A6AB]"
               >
                 <img src={reelCameraIcon} alt="" className="h-8 w-8 shrink-0 opacity-80 brightness-0 invert" aria-hidden />
-                <span className="text-sm">Select video</span>
+                <span className="text-sm">Select Video</span>
               </button>
             )}
             <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileChange} className="hidden" aria-hidden />
@@ -186,7 +186,7 @@ export default function UploadReels() {
             type="button"
             onClick={() => fileInputRef.current?.click()}
             className="flex h-[37px] w-[37px] shrink-0 items-center justify-center rounded-full bg-white"
-            aria-label="Add or change video"
+            aria-label="Add or Change Video"
           >
             <img src={reelCameraIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
           </button>

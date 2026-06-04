@@ -57,14 +57,14 @@ export function InningsEndDialog({
           </>
         ) : isMatchOver ? (
           <>
-            <DialogTitle className="text-[14px] font-bold text-white capitalize">Match ended</DialogTitle>
+            <DialogTitle className="text-[14px] font-bold text-white">Match Ended</DialogTitle>
             <p className="mt-2 text-[13px] leading-snug text-[#A2A6AB]">
               {reasonDescription({ reason, matchOvers, battingTeamName })}
             </p>
           </>
         ) : (
           <>
-            <DialogTitle className="text-[14px] font-bold text-white capitalize">Innings ended</DialogTitle>
+            <DialogTitle className="text-[14px] font-bold text-white">Innings Ended</DialogTitle>
             <p className="mt-2 text-[13px] leading-snug text-[#A2A6AB]">
               The first innings is complete. Continue when you are ready to set up the second innings.
             </p>

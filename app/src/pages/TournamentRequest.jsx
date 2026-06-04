@@ -224,14 +224,14 @@ export default function TournamentRequest() {
           <ToggleGroupField
             name="group_mode"
             control={control}
-            label="Group mode:"
+            label="Group Mode:"
             options={groupModeOptions}
             error={errors.group_mode?.message}
             required
           />
 
           {groupMode === 'group_wise' && (
-            <FormField label="Number of groups:" htmlFor="number_of_groups" required>
+            <FormField label="Number of Groups:" htmlFor="number_of_groups" required>
               <Input
                 id="number_of_groups"
                 inputMode="numeric"

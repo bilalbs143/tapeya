@@ -75,7 +75,7 @@ export function StatusDetailsScorecardTab({ details }) {
   const [teamIndex, setTeamIndex] = useState(0);
 
   if (!details?.teams?.length) {
-    return <StatusDetailsPlaceholderTab label="Scorecard data unavailable" />;
+    return <StatusDetailsPlaceholderTab label="Scorecard Data Unavailable" />;
   }
 
   const teams = details.teams;

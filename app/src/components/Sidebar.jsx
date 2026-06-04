@@ -167,7 +167,7 @@ export function Sidebar({ open, onClose }) {
       <button
         ref={overlayRef}
         type="button"
-        aria-label="Close menu"
+        aria-label="Close Menu"
         onClick={onClose}
         className={overlay(open)}
         tabIndex={open ? 0 : -1}

@@ -175,7 +175,7 @@ export default function ShopProductDetail() {
                   type="button"
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                   className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full bg-[#141412] text-[#A2A6AB] transition-opacity active:opacity-80"
-                  aria-label="Decrease quantity"
+                  aria-label="Decrease Quantity"
                 >
                   <span className="text-xl leading-none font-bold">−</span>
                 </button>
@@ -189,7 +189,7 @@ export default function ShopProductDetail() {
                   type="button"
                   onClick={() => setQuantity((q) => q + 1)}
                   className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full bg-[#141412] text-[#A2A6AB] transition-opacity active:opacity-80"
-                  aria-label="Increase quantity"
+                  aria-label="Increase Quantity"
                 >
                   <span className="text-xl leading-none font-bold">+</span>
                 </button>
@@ -282,7 +282,7 @@ export default function ShopProductDetail() {
                     type="button"
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                     className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full bg-[#141412] text-[#A2A6AB] transition-opacity active:opacity-80"
-                    aria-label="Decrease quantity"
+                    aria-label="Decrease Quantity"
                   >
                     <span className="text-xl leading-none font-bold">−</span>
                   </button>
@@ -296,7 +296,7 @@ export default function ShopProductDetail() {
                     type="button"
                     onClick={() => setQuantity((q) => q + 1)}
                     className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full bg-[#141412] text-[#A2A6AB] transition-opacity active:opacity-80"
-                    aria-label="Increase quantity"
+                    aria-label="Increase Quantity"
                   >
                     <span className="text-xl leading-none font-bold">+</span>
                   </button>

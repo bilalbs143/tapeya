@@ -33,7 +33,7 @@ export function OversDialog({ initialOvers, options, onChange }) {
         <Input
           type="text"
           inputMode="numeric"
-          placeholder="Enter overs (e.g. 20)"
+          placeholder="Enter Overs (e.g. 20)"
           value={overs}
           onChange={(e) => setOvers(e.target.value)}
           className="h-12 rounded-[6px] bg-[#141412] text-white placeholder:text-[#A2A6AB]"

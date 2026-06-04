@@ -7,7 +7,7 @@ export function FielderPickerDialog({ message, players = [], onSelectFielder }) 
   return (
     <>
       <DialogHeaderRow>
-        <DialogTitle className={dialogPrimaryTitleClass}>{message?.trim() ? message : 'Choose fielder'}</DialogTitle>
+        <DialogTitle className={dialogPrimaryTitleClass}>{message?.trim() ? message : 'Choose Fielder'}</DialogTitle>
       </DialogHeaderRow>
       <DialogScrollBody>
         <div className="flex flex-col gap-2">

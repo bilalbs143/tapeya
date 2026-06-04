@@ -200,7 +200,7 @@ export default function Login() {
 function ProfilePicker({ profiles, tappingProfile, busy, onTap, onRemove, onUseOther }) {
   return (
     <>
-      <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">Choose an account</h2>
+      <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">Choose an Account</h2>
 
       <div className="scrollbar-hide mb-2 flex max-h-[280px] flex-col gap-3 overflow-y-auto p-[10px]">
         {profiles.map((profile) => {
@@ -250,7 +250,7 @@ function ProfilePicker({ profiles, tappingProfile, busy, onTap, onRemove, onUseO
         onClick={onUseOther}
         className="w-full py-3 text-center text-[14px] font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820]"
       >
-        Login with other account
+        Login With Other Account
       </button>
     </>
   );
@@ -259,7 +259,7 @@ function ProfilePicker({ profiles, tappingProfile, busy, onTap, onRemove, onUseO
 function PhoneForm({ control, errors, error, busy, hasSavedProfiles, onSubmit, onFocus, onBack }) {
   return (
     <form onSubmit={onSubmit} onFocus={onFocus} className="space-y-4 lg:mx-auto lg:max-w-[400px]">
-      <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">Login with your account</h2>
+      <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">Login With Your Account</h2>
 
       {hasSavedProfiles && (
         <button
@@ -267,7 +267,7 @@ function PhoneForm({ control, errors, error, busy, hasSavedProfiles, onSubmit, o
           onClick={onBack}
           className="text-[14px] font-medium text-[#A2A6AB] transition-colors hover:text-white"
         >
-          ← Back to saved accounts
+          ← Back to Saved Accounts
         </button>
       )}
 

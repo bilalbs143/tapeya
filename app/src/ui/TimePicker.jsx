@@ -39,7 +39,7 @@ function formatDisplay(value) {
   return `${h}:${m} ${period}`;
 }
 
-export function TimePicker({ id, value = '', onChange, placeholder = 'Select time', className = '', disabled, ...props }) {
+export function TimePicker({ id, value = '', onChange, placeholder = 'Select Time', className = '', disabled, ...props }) {
   const [open, setOpen] = useState(false);
   const parsed = parseValue(value);
   const [hour12, setHour12] = useState(parsed.hour12);

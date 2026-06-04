@@ -201,7 +201,7 @@ export default function ReelItem({ reel, isActive, isLiked, onLike }) {
           <Link
             to="/reels/upload"
             className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow"
-            aria-label="Upload reel"
+            aria-label="Upload Reel"
           >
             <img src={reelCameraIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
           </Link>

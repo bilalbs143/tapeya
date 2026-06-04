@@ -358,8 +358,8 @@ export default function TournamentAddTeam() {
                   value={String(selectedGroupIndex)}
                   onValueChange={(v) => setSelectedGroupIndex(v === 'random' ? 'random' : Number(v))}
                 >
-                  <SelectTrigger id="group_index" className={selectTriggerInputClass} aria-label="Select group">
-                    <SelectValue placeholder="Select group" />
+                  <SelectTrigger id="group_index" className={selectTriggerInputClass} aria-label="Select Group">
+                    <SelectValue placeholder="Select Group" />
                   </SelectTrigger>
                   <SelectContent
                     className={selectContentInputClass}
@@ -394,7 +394,7 @@ export default function TournamentAddTeam() {
               <div ref={teamNameFieldRef} className="relative">
                 <Input
                   id="name"
-                  placeholder="Type team name or code to search"
+                  placeholder="Type Team Name or Code to Search"
                   autoComplete="off"
                   maxLength={255}
                   error={errors.name?.message}
@@ -418,7 +418,7 @@ export default function TournamentAddTeam() {
                     type="button"
                     onClick={handleChangeTeam}
                     className="absolute top-0 right-0 bottom-0 flex w-10 items-center justify-center text-[#A2A6AB] transition-colors hover:text-white active:opacity-80"
-                    aria-label="Change team"
+                    aria-label="Change Team"
                   >
                     <CloseIcon />
                   </button>
@@ -479,7 +479,7 @@ export default function TournamentAddTeam() {
                     <div ref={sponsorFieldRef} className="relative">
                       <Input
                         id="sponsor_user_id"
-                        placeholder="Search by name, nickname or phone…"
+                        placeholder="Search by Name, Nickname, or Phone…"
                         autoComplete="off"
                         disabled={isReadonly}
                         value={sponsorInputValue}
@@ -511,7 +511,7 @@ export default function TournamentAddTeam() {
                             setSponsorDropdownOpen(true);
                           }}
                           className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-[#A2A6AB] transition-colors hover:text-white active:opacity-80"
-                          aria-label="Clear sponsor"
+                          aria-label="Clear Sponsor"
                         >
                           <CloseIcon />
                         </button>
@@ -720,7 +720,7 @@ export default function TournamentAddTeam() {
                                 setIconPlayerPanelOpen(false);
                               }}
                               className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-[#A2A6AB] transition-colors hover:text-white active:opacity-80"
-                              aria-label="Clear selected icon players"
+                              aria-label="Clear Selected Icon Players"
                             >
                               <CloseIcon />
                             </button>
@@ -732,7 +732,7 @@ export default function TournamentAddTeam() {
                               className="absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] bg-[#141412] shadow-lg"
                               role="listbox"
                               tabIndex={-1}
-                              aria-label="Search players"
+                              aria-label="Search Players"
                               aria-multiselectable="true"
                             >
                               {iconQuery.length === 0 ? (

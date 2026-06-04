@@ -14,7 +14,7 @@ const CommentList = memo(function CommentList({ messages, isLandscape = false })
       className={`mb-2 flex flex-col gap-2 overflow-hidden [mask-image:linear-gradient(to_top,black_75%,transparent)] ${
         isLandscape ? 'max-h-36' : 'max-h-28'
       }`}
-      aria-label="Live comments"
+      aria-label="Live Comments"
       aria-live="polite"
       aria-atomic="false"
     >

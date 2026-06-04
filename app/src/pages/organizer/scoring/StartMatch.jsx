@@ -200,10 +200,10 @@ export default function StartMatch() {
                   setValue('team_b_id', '');
                 }}
                 className={`${oversInputBase} w-full ${errors.tournament_id ? 'border-red-500' : ''}`}
-                aria-label="Select tournament"
+                aria-label="Select Tournament"
                 aria-invalid={!!errors.tournament_id}
               >
-                <option value="">Select tournament</option>
+                <option value="">Select Tournament</option>
                 {tournaments.map((t) => (
                   <option key={t.id} value={String(t.id)}>
                     {t.tournament_name ?? t.name ?? `Tournament ${t.id}`}
@@ -219,7 +219,7 @@ export default function StartMatch() {
           )}
 
           {hasGroups && (
-            <FormField htmlFor="match_group" label="Match type">
+            <FormField htmlFor="match_group" label="Match Type">
               <select
                 id="match_group"
                 value={matchGroupKey}
@@ -230,7 +230,7 @@ export default function StartMatch() {
                   setValue('team_b_id', '');
                 }}
                 className={`${oversInputBase} w-full`}
-                aria-label="Match type (group or knockout)"
+                aria-label="Match Type (Group or Knockout)"
               >
                 <option value="knockout">Knockout / Playoff</option>
                 {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map((idx) => (
@@ -263,7 +263,7 @@ export default function StartMatch() {
                 {team_a_id && teams.length > 0 ? (teams.find((t) => String(t.id) === team_a_id)?.name ?? 'Team A') : 'Team A'}
               </span>
               <span className="text-[13px] font-normal text-[#A2A6AB]">
-                {!tournamentId ? 'Select tournament' : team_a_id ? null : 'Select Team'}
+                {!tournamentId ? 'Select Tournament' : team_a_id ? null : 'Select Team'}
               </span>
             </button>
             <div className="relative z-10 -mx-3 flex shrink-0 items-center">
@@ -290,7 +290,7 @@ export default function StartMatch() {
                 {team_b_id && teams.length > 0 ? (teams.find((t) => String(t.id) === team_b_id)?.name ?? 'Team B') : 'Team B'}
               </span>
               <span className="text-[13px] font-normal text-[#A2A6AB]">
-                {!tournamentId ? 'Select tournament' : team_b_id ? null : 'Select Team'}
+                {!tournamentId ? 'Select Tournament' : team_b_id ? null : 'Select Team'}
               </span>
             </button>
           </div>
@@ -356,7 +356,7 @@ export default function StartMatch() {
                     })
                   }
                   className={`${oversInputBase} ${!overs ? '!text-[#A2A6AB78]' : ''}`}
-                  aria-label="Select overs"
+                  aria-label="Select Overs"
                 >
                   {overs || 'Select Overs'}
                 </button>
@@ -382,7 +382,7 @@ export default function StartMatch() {
                     })
                   }
                   className={`${oversInputBase} ${!playersPerSide ? '!text-[#A2A6AB78]' : ''}`}
-                  aria-label="Select players per side"
+                  aria-label="Select Players Per Side"
                 >
                   {playersPerSide || 'Select Players Per Side'}
                 </button>

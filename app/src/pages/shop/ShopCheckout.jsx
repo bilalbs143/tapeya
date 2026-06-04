@@ -183,7 +183,7 @@ export default function ShopCheckout() {
                       }}
                     >
                       <SelectTrigger id="country" className={selectTriggerInputClass} aria-label="Country">
-                        <SelectValue placeholder="Select country" />
+                        <SelectValue placeholder="Select Country" />
                       </SelectTrigger>
                       <SelectContent
                         className={selectContentInputClass}
@@ -215,7 +215,7 @@ export default function ShopCheckout() {
                   render={({ field }) => (
                     <Select value={field.value || ''} onValueChange={field.onChange} disabled={!countryCode}>
                       <SelectTrigger id="city" className={selectTriggerInputClass} aria-label="City" disabled={!countryCode}>
-                        <SelectValue placeholder="Select city" />
+                        <SelectValue placeholder="Select City" />
                       </SelectTrigger>
                       <SelectContent
                         className={selectContentInputClass}

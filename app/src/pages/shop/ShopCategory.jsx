@@ -76,7 +76,7 @@ export default function ShopCategory() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="What are you looking for?"
               className="h-12 w-full rounded-[6px] bg-[#141412] pr-14 pl-4 text-white placeholder:text-[#A2A6AB78] focus:ring-2 focus:ring-[#DA9811]/50 focus:outline-none"
-              aria-label="Search shop"
+              aria-label="Search Shop"
             />
             <span className="pointer-events-none absolute top-0 right-5 bottom-0 flex items-center">
               <img src={searchIcon} alt="" className="h-5 w-5 shrink-0" aria-hidden />

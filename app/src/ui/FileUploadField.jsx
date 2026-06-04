@@ -214,7 +214,7 @@ function DropzoneVariant({
         <div
           role="button"
           tabIndex={disabled ? -1 : 0}
-          aria-label="Upload file — click or drag and drop"
+          aria-label="Upload File — Click or Drag and Drop"
           aria-disabled={disabled}
           onClick={disabled ? undefined : onZoneClick}
           onKeyDown={(e) => {
@@ -327,7 +327,7 @@ function CompactVariant({
             type="button"
             onClick={() => first?.onRemove()}
             className="ml-auto shrink-0 rounded p-0.5 text-[#A2A6AB] transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFB703]"
-            aria-label="Remove file"
+            aria-label="Remove File"
           >
             <XIcon size={12} />
           </button>

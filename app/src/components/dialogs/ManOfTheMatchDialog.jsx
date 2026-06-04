@@ -59,7 +59,7 @@ export function ManOfTheMatchDialog({ matchId, tournamentId, manOfMatchPickerUse
   return (
     <>
       <DialogHeaderRow>
-        <DialogTitle className={dialogPrimaryTitleClass}>Man of the match</DialogTitle>
+        <DialogTitle className={dialogPrimaryTitleClass}>Man of the Match</DialogTitle>
       </DialogHeaderRow>
 
       <DialogScrollBody className="flex flex-col text-center">

@@ -21,9 +21,9 @@ enum ExtraTypeEnum: string
     {
         return match ($this) {
             self::WIDE => 'Wide',
-            self::NO_BALL => 'No ball',
+            self::NO_BALL => 'No Ball',
             self::BYE => 'Bye',
-            self::LEG_BYE => 'Leg bye',
+            self::LEG_BYE => 'Leg Bye',
         };
     }
 

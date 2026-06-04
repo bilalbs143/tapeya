@@ -14,7 +14,7 @@ import { z } from 'zod';
  */
 export const startMatchSchema = z
   .object({
-    tournament_id: z.string().min(1, 'Select a tournament'),
+    tournament_id: z.string().min(1, 'Select a Tournament'),
     team_a_id: z.string().min(1, 'Select Team A'),
     team_b_id: z.string().min(1, 'Select Team B'),
     venue: z

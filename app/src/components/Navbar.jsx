@@ -74,7 +74,7 @@ export function Navbar({ onMenuClick }) {
       }}
     >
       <div className="flex min-w-0 flex-1 items-center gap-4 lg:gap-6">
-        <Link to="/home" className="shrink-0" aria-label="Tapeya home">
+        <Link to="/home" className="shrink-0" aria-label="Tapeya Home">
           <img src={logo} alt="" className="h-8 w-auto" />
         </Link>
 

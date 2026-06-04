@@ -120,7 +120,7 @@ function CommentInputRow({ onSend, onSendHeart, disabled = false }) {
         value={comment}
         onChange={(e) => setComment(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder={disabled ? 'Chat unavailable' : 'Add a comment…'}
+        placeholder={disabled ? 'Chat Unavailable' : 'Add a Comment…'}
         disabled={disabled}
         className="min-w-0 flex-1 border-0 bg-transparent text-[13px] text-white placeholder:text-white/60 focus:outline-none disabled:opacity-50"
       />
@@ -130,7 +130,7 @@ function CommentInputRow({ onSend, onSendHeart, disabled = false }) {
           onClick={handleSend}
           disabled={!canSend}
           className="flex h-8 w-8 items-center justify-center rounded-full bg-white transition-transform active:scale-95 disabled:opacity-50"
-          aria-label="Send comment"
+          aria-label="Send Comment"
         >
           <SendIcon />
         </button>
@@ -138,7 +138,7 @@ function CommentInputRow({ onSend, onSendHeart, disabled = false }) {
           type="button"
           onClick={onSendHeart}
           className="flex h-8 w-8 items-center justify-center rounded-full bg-white transition-transform active:scale-95"
-          aria-label="Send heart"
+          aria-label="Send Heart"
         >
           <HeartIcon />
         </button>

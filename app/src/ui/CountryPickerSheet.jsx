@@ -52,7 +52,7 @@ export function CountryPickerSheet({ open, onClose, currentDialCode, onSelect })
           className={SHEET}
           style={{ backgroundColor: '#080807', borderColor: '#141412' }}
           aria-describedby={undefined}
-          aria-label="Select country"
+          aria-label="Select Country"
           onPointerDownOutside={onClose}
           onEscapeKeyDown={onClose}
         >
@@ -82,7 +82,7 @@ export function CountryPickerSheet({ open, onClose, currentDialCode, onSelect })
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className={SEARCH_INPUT}
-              aria-label="Search countries"
+              aria-label="Search Countries"
             />
           </div>
 

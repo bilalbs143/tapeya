@@ -66,7 +66,7 @@ function CommentItem({ comment, onLike, onDislike, likedByUser, dislikedByUser }
               type="button"
               onClick={() => onLike(comment.id)}
               className={`flex items-center gap-1.5 transition-colors ${likedByUser ? 'text-[#DA9811]' : ''}`}
-              aria-label="Like comment"
+              aria-label="Like Comment"
             >
               <ThumbsUpIcon filled={likedByUser} />
               <span className="text-[14px] font-normal">{formatCount(displayLikes)}</span>
@@ -82,7 +82,7 @@ function CommentItem({ comment, onLike, onDislike, likedByUser, dislikedByUser }
               type="button"
               onClick={() => onDislike(comment.id)}
               className={`flex items-center gap-1.5 transition-colors ${dislikedByUser ? 'text-red-500' : ''}`}
-              aria-label="Dislike comment"
+              aria-label="Dislike Comment"
             >
               <ThumbsDownIcon filled={dislikedByUser} />
               <span className="text-[14px] font-normal">{formatCount(displayDislikes)}</span>
@@ -285,9 +285,9 @@ export default function ActivityFeedDetail() {
               type="text"
               value={commentInput}
               onChange={(e) => setCommentInput(e.target.value)}
-              placeholder="Add a comment..."
+              placeholder="Add a Comment…"
               className="min-w-0 flex-1 bg-transparent text-[14px] text-white placeholder:text-[#A2A6AB] focus:outline-none"
-              aria-label="Add a comment"
+              aria-label="Add a Comment"
             />
             <button
               type="button"

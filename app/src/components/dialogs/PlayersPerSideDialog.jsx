@@ -27,11 +27,11 @@ export function PlayersPerSideDialog({ initialPlayersPerSide, options, onSelect 
         <Input
           type="text"
           inputMode="numeric"
-          placeholder="Enter number (e.g. 11)"
+          placeholder="Enter Number (e.g. 11)"
           value={playersPerSide}
           onChange={(e) => setPlayersPerSide(e.target.value)}
           className="h-12 rounded-[6px] bg-[#141412] text-white placeholder:text-[#A2A6AB]"
-          aria-label="Players per side"
+          aria-label="Players Per Side"
         />
         <div className="flex flex-col gap-2">
           {options.map((opt) => {

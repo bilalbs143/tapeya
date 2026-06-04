@@ -128,7 +128,7 @@ export default function Register() {
             <Input
               id="email"
               type="email"
-              placeholder="Enter your email"
+              placeholder="Enter Your Email"
               autoComplete="email"
               error={errors.email?.message}
               {...register('email')}

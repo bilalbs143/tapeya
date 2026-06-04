@@ -7,7 +7,7 @@ import { formatListIndex } from '@/lib/format';
 import { StatusDetailsPlaceholderTab } from './PlaceholderTab';
 
 export function StatusDetailsPlayingXITab({ match, details }) {
-  if (!match) return <StatusDetailsPlaceholderTab label="Match data unavailable" />;
+  if (!match) return <StatusDetailsPlaceholderTab label="Match Data Unavailable" />;
 
   const playingXI = details?.playingXI;
   const team1Name = match.team1?.name ?? '';
@@ -15,7 +15,7 @@ export function StatusDetailsPlayingXITab({ match, details }) {
   const matchTitle = match.matchId ? String(match.matchId).toUpperCase() : '';
 
   if (!playingXI?.team1?.length && !playingXI?.team2?.length) {
-    return <StatusDetailsPlaceholderTab label="Playing XI data unavailable" />;
+    return <StatusDetailsPlaceholderTab label="Playing XI Data Unavailable" />;
   }
 
   const team1Players = playingXI.team1 ?? [];

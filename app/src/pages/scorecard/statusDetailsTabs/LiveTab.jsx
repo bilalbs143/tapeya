@@ -94,7 +94,7 @@ export function StatusDetailsLiveTab({ details }) {
   const batters = details?.batters;
   const bowlers = details?.bowlers;
   if (!details || ((!batters || batters.length === 0) && (!bowlers || bowlers.length === 0))) {
-    return <StatusDetailsPlaceholderTab label="Live data unavailable" />;
+    return <StatusDetailsPlaceholderTab label="Live Data Unavailable" />;
   }
   return (
     <div className="pb-6">

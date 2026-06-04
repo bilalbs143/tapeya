@@ -73,7 +73,7 @@ export default function Reels() {
         {/* Tab bar — back left, Explore & My Videos centered */}
         <div className="absolute top-[64px] right-0 left-0 z-10 flex items-center justify-between px-4 py-2">
           {/* Back — left */}
-          <AppSubpageBackButton onClick={() => navigate(-1)} aria-label="Go back" />
+          <AppSubpageBackButton onClick={() => navigate(-1)} aria-label="Go Back" />
 
           {/* Explore & My Videos — center, text stays inline */}
           <div className="absolute left-1/2 flex -translate-x-1/2 flex-nowrap items-center gap-3">

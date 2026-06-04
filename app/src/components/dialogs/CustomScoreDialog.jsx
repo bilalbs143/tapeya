@@ -22,13 +22,13 @@ export function CustomScoreDialog({ onSubmit }) {
         <DialogTitle className={dialogPrimaryTitleClass}>Add Score</DialogTitle>
       </DialogHeaderRow>
       <DialogScrollBody className="flex flex-col">
-        <FormField htmlFor="custom-score-input" label="Custom score">
+        <FormField htmlFor="custom-score-input" label="Custom Score">
           <Input
             id="custom-score-input"
             type="number"
             min={0}
             max={99}
-            placeholder="Enter custom score"
+            placeholder="Enter Custom Score"
             value={value}
             onChange={(e) => setValue(e.target.value)}
             className="input-no-spinner !mb-0 !border-[#DA9811]"

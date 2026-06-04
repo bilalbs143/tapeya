@@ -32,14 +32,14 @@ function ScoreCell({ overRuns, overWickets, totalRuns, totalWickets }) {
 }
 
 export function StatusDetailsOversTab({ match, details }) {
-  if (!match) return <StatusDetailsPlaceholderTab label="Match data unavailable" />;
+  if (!match) return <StatusDetailsPlaceholderTab label="Match Data Unavailable" />;
 
   const overs = details?.overs;
   const team1Name = match.team1?.name ?? '';
   const team2Name = match.team2?.name ?? '';
 
   if (!overs?.length) {
-    return <StatusDetailsPlaceholderTab label="Overs data unavailable" />;
+    return <StatusDetailsPlaceholderTab label="Overs Data Unavailable" />;
   }
 
   let run1 = 0;

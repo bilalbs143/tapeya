@@ -248,7 +248,7 @@ export function UserEdit({ open, onOpenChange }) {
                   accept="image/*"
                   className="absolute inset-0 z-10 cursor-pointer rounded-full opacity-0"
                   onChange={handleAvatarChange}
-                  aria-label="Choose profile photo"
+                  aria-label="Choose Profile Photo"
                 />
               </div>
               <div className="flex flex-col items-center gap-1 text-center">

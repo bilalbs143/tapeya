@@ -26,7 +26,7 @@ export function ProfileStrengthReminderDialog() {
   return (
     <>
       <DialogHeaderRow>
-        <DialogTitle className={dialogPrimaryTitleClass}>Complete your profile</DialogTitle>
+        <DialogTitle className={dialogPrimaryTitleClass}>Complete Your Profile</DialogTitle>
       </DialogHeaderRow>
 
       <DialogScrollBody className="flex flex-col items-stretch justify-center text-center">

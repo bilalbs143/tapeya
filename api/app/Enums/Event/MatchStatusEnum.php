@@ -18,8 +18,8 @@ enum MatchStatusEnum: string
     {
         return match ($this) {
             self::SCHEDULED => 'Scheduled',
-            self::TOSS_DONE => 'Toss done',
-            self::IN_PROGRESS => 'In progress',
+            self::TOSS_DONE => 'Toss Done',
+            self::IN_PROGRESS => 'In Progress',
             self::COMPLETED => 'Completed',
             self::CANCELLED => 'Cancelled',
         };

@@ -44,10 +44,10 @@ export function InfoTab({ match, matchId, liveScore: liveScoreProp }) {
           <InfoRow label="Playing" value={playersPerSide ? `${playersPerSide} per side` : DASH} />
           <InfoRow label="Overs" value={overs ?? DASH} />
           <InfoRow label="Venue" value={venue || DASH} />
-          <InfoRow label="Date & time" value={dateTimeLabel} />
-          <InfoRow label="Toss won by" value={tossWinnerName} />
-          <InfoRow label="Decided to" value={tossDecisionLabel} />
-          {currentScoreLabel != null && <InfoRow label="Current score" value={currentScoreLabel} />}
+          <InfoRow label="Date & Time" value={dateTimeLabel} />
+          <InfoRow label="Toss Won By" value={tossWinnerName} />
+          <InfoRow label="Decided To" value={tossDecisionLabel} />
+          {currentScoreLabel != null && <InfoRow label="Current Score" value={currentScoreLabel} />}
           <InfoRow label="Match ID" value={matchIdLabel} />
         </div>
       </div>
