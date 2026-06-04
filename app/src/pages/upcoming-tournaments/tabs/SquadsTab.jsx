@@ -1,7 +1,9 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
+import { TeamLogo } from '@/components/TeamLogo';
 import { BORDER_ALT as BORDER } from '@/lib/constants/tableStyles';
+import { formatListIndex } from '@/lib/format';
 import { playerDisplayRole } from '@/lib/utils/playerUtils';
 import { getTournamentTitle, isValidTournamentId } from '@/lib/utils/tournamentUtils';
 import { useGetTeamSquadQuery } from '@/store/api/teamApi';
@@ -73,9 +75,7 @@ function SquadTeams({ tournamentId }) {
               onClick={() => handleTeamClick(team.id)}
               className="flex w-full items-center gap-2.5 bg-transparent px-4 py-3.5 text-left text-[13px] text-white focus:ring-2 focus:ring-[#DA9811] focus:outline-none focus:ring-inset active:bg-[#1A1A1A]"
             >
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1A1A1A] text-[11px] font-bold text-[#DA9811]">
-                {(team.name ?? 'T').charAt(0)}
-              </span>
+              <TeamLogo team={team} variant="list" />
               <span className="min-w-0 flex-1 truncate">{team.name ?? team.code ?? 'Team'}</span>
             </button>
           ))}
@@ -143,7 +143,7 @@ function SquadSingle({ tournamentId, teamId }) {
           {squad.map((player, index) => (
             <div key={player.id ?? index} className={`flex border-b ${BORDER} last:border-b-0`}>
               <div className={`flex w-10 shrink-0 items-center justify-center border-r ${BORDER} py-3 text-[13px] text-white`}>
-                {index + 1}
+                {formatListIndex(index + 1)}
               </div>
               <div className="min-w-0 flex-1 px-4 py-3">
                 <p className="text-[13px] font-bold text-white">{player.name ?? player.nickname ?? 'Player'}</p>

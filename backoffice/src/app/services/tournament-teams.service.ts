@@ -18,6 +18,13 @@ export interface TournamentTeamRow {
 /** Player row on a tournament team squad (same minimal fields as admin user search). */
 export type SquadUser = UserSearchRow;
 
+export interface SquadOccupancyRow {
+  player_id: number;
+  player_name: string;
+  team_id: number;
+  team_name: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class TournamentTeamsService {
   private readonly http = inject(HttpClient);
@@ -28,6 +35,13 @@ export class TournamentTeamsService {
 
   public getTeamSquad(tournamentId: number, teamId: number): Observable<{ data: SquadUser[] }> {
     return this.http.get<{ data: SquadUser[] }>(`v1/admin/tournaments/${tournamentId}/teams/${teamId}/squad`);
+  }
+
+  public getSquadOccupancy(tournamentId: number, excludeTeamId?: number): Observable<{ data: SquadOccupancyRow[] }> {
+    const params = excludeTeamId != null ? { exclude_team_id: excludeTeamId } : {};
+    return this.http.get<{ data: SquadOccupancyRow[] }>(`v1/admin/tournaments/${tournamentId}/squad-occupancy`, {
+      params,
+    });
   }
 
   public saveTeamSquad(tournamentId: number, teamId: number, playerIds: number[]): Observable<unknown> {

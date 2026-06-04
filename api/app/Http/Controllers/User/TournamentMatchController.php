@@ -69,12 +69,6 @@ class TournamentMatchController extends Controller
 
         $match = $result['match'];
 
-        $thumbnailData = [];
-        $this->storeImage($request, 'thumbnail', 'match-stream-thumbnails', $thumbnailData);
-        if (! empty($thumbnailData['thumbnail'])) {
-            $match->update(['stream_thumbnail' => $thumbnailData['thumbnail']]);
-        }
-
         $match->refresh()->load(['homeTeam', 'awayTeam', 'stream']);
 
         return $this->success(

@@ -447,6 +447,7 @@ export function apiMatchToUiMatchConfig(apiMatch, battingPlayers = [], bowlingPl
     teamA: {
       name: battingTeam.name ?? '',
       id: battingTeam.id,
+      logo: battingTeam.logo ?? null,
       players: battingPlayers.map((p) => ({
         id: p.id,
         name: p.name ?? p.nickname ?? '',
@@ -455,10 +456,21 @@ export function apiMatchToUiMatchConfig(apiMatch, battingPlayers = [], bowlingPl
     teamB: {
       name: bowlingTeam.name ?? '',
       id: bowlingTeam.id,
+      logo: bowlingTeam.logo ?? null,
       players: bowlingPlayers.map((p) => ({
         id: p.id,
         name: p.name ?? p.nickname ?? '',
       })),
+    },
+    homeTeam: {
+      name: home.name ?? '',
+      id: home.id,
+      logo: home.logo ?? null,
+    },
+    awayTeam: {
+      name: away.name ?? '',
+      id: away.id,
+      logo: away.logo ?? null,
     },
     venue: apiMatch.venue_name ?? '',
     matchDate: apiMatch.match_date ?? '',

@@ -39,6 +39,7 @@ use App\Http\Controllers\User\TournamentRequestController;
 use App\Http\Controllers\User\TournamentStatsController;
 use App\Http\Controllers\User\TournamentTeamController;
 use App\Http\Controllers\User\UserFollowController;
+use App\Http\Controllers\User\UserMediaController;
 use App\Http\Controllers\User\UserTeamController;
 use Illuminate\Support\Facades\Route;
 
@@ -91,7 +92,12 @@ Route::middleware('auth:api')->group(function () {
     Route::match(['patch', 'post'], 'profile', [ProfileController::class, 'update']);
     Route::get('countries', [CountryController::class, 'index']);
     Route::get('countries/cities', [CountryController::class, 'cities']);
+    Route::get('tournament-requests', [TournamentRequestController::class, 'index']);
     Route::post('tournament-requests', [TournamentRequestController::class, 'store']);
+
+    // User-scoped media upload / delete (Phase B deferred uploads).
+    Route::post('media/{type}/{id}/{field}', [UserMediaController::class, 'upload']);
+    Route::delete('media/{type}/{id}/{field}', [UserMediaController::class, 'delete']);
 
     Route::get('interest-campaigns/{slug}', [InterestCampaignController::class, 'show'])
         ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*');
@@ -115,6 +121,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('tournaments/{tournament}/dislike', [TournamentReactionController::class, 'dislike']);
     Route::post('tournaments/{tournament}/share', [TournamentReactionController::class, 'share']);
     Route::get('tournaments/{tournament}/teams', [TournamentTeamController::class, 'index']);
+    Route::get('tournaments/{tournament}/squad-occupancy', [TournamentTeamController::class, 'squadOccupancy']);
     Route::post('tournaments/{tournament}/teams', [TournamentTeamController::class, 'store']);
     Route::patch('tournaments/{tournament}/teams/{team}', [TournamentTeamController::class, 'update']);
     Route::delete('tournaments/{tournament}/teams/{team}', [TournamentTeamController::class, 'destroy']);

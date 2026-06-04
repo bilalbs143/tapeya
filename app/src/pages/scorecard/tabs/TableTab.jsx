@@ -59,6 +59,7 @@
  */
 
 import { BORDER_ALT as BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
+import { formatListIndex } from '@/lib/format';
 import { useGetTournamentStandingsQuery } from '@/store/api/tournamentApi';
 
 // ---------------------------------------------------------------------------
@@ -94,7 +95,7 @@ function StandingsTable({ standings }) {
             <tr key={team.team_id ?? index}>
               <td className={`${STICKY_TEAMS} ${STICKY_BODY_BG} border-r border-b border-l ${BORDER} py-3.5 pl-4`}>
                 <div className="flex items-center gap-2.5">
-                  <span>{index + 1}</span>
+                  <span>{formatListIndex(index + 1)}</span>
                   <span>{team.team_name}</span>
                 </div>
               </td>

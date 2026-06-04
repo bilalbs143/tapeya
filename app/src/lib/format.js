@@ -107,3 +107,13 @@ export function formatOrdinalMatch(n) {
   if (!Number.isFinite(num) || num < 1) return 'Match';
   return `${num}${ordinalSuffix(num)} Match`;
 }
+
+/**
+ * 1-based list index with trailing period (e.g. "1.", "12.") for numbered roster rows.
+ *
+ * @param {number} position - 1-based index
+ * @returns {string}
+ */
+export function formatListIndex(position) {
+  return `${position}.`;
+}

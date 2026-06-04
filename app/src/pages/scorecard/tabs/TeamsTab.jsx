@@ -1,3 +1,5 @@
+import { TeamLogo } from '@/components/TeamLogo';
+import { formatListIndex } from '@/lib/format';
 import { useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
 
 export function TeamsTab({ tournamentId, tournament }) {
@@ -26,9 +28,9 @@ export function TeamsTab({ tournamentId, tournament }) {
                 key={team.id ?? `${team.name}-${index}`}
                 className="flex items-center gap-2.5 bg-transparent px-4 py-3.5 text-[13px] text-white"
               >
-                <span>{index + 1}</span>
+                <span>{formatListIndex(index + 1)}</span>
+                <TeamLogo team={team} variant="teamsTab" />
                 <span>{team.name}</span>
-                {team.logo && <img src={team.logo} alt="" className="h-5 w-5 shrink-0 rounded-full object-cover" aria-hidden />}
               </div>
             ))}
           </div>

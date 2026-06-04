@@ -142,7 +142,7 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
           distinctUntilChanged(),
           switchMap((term) =>
             this.usersService
-              .adminUserSearch(term ?? '', { app_role: 'player' })
+              .adminUserSearch(term ?? '', { for_squad: true })
               .pipe(catchError(() => of({ data: [] as TeamUserCandidate[] })))
           )
         )

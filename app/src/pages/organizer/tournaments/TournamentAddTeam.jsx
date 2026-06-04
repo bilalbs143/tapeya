@@ -10,16 +10,24 @@ import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
 import { DEBOUNCE_MS, MIN_SEARCH_LENGTH } from '@/lib/constants/search';
-import { getTournamentTitle, parseTournamentId } from '@/lib/utils/tournamentUtils';
+import { EMPTY_FILE_UPLOAD } from '@/lib/utils/fileUploadUtils';
+import {
+  areTournamentTeamsComplete,
+  canAddTournamentTeams,
+  getTournamentTitle,
+  parseTournamentId,
+} from '@/lib/utils/tournamentUtils';
 import { teamFormSchema } from '@/lib/validations/team';
 import { useGetCitiesQuery, useGetCountriesQuery } from '@/store/api/locationApi';
-import { useSearchPlayersQuery } from '@/store/api/playerApi';
+import { uploadMediaFile, useUploadMediaMutation } from '@/store/api/mediaApi';
+import { useSearchSquadMembersQuery } from '@/store/api/playerApi';
 import { useSearchSponsorsQuery } from '@/store/api/sponsorApi';
 import { useCreateTeamMutation, useSearchTeamsQuery } from '@/store/api/teamApi';
-import { useAttachTeamsToTournamentMutation, useGetTournamentQuery } from '@/store/api/tournamentApi';
+import { useAttachTeamsToTournamentMutation, useGetTournamentQuery, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
 import { Checkbox } from '@/ui/Checkbox';
 import { Container } from '@/ui/Container';
+import { FileUploadField } from '@/ui/FileUploadField';
 import { FormField } from '@/ui/FormField';
 import { CloseIcon } from '@/ui/icons/CloseIcon';
 import { Input } from '@/ui/Input';
@@ -61,17 +69,30 @@ export default function TournamentAddTeam() {
   );
   const tournament = tournamentFromState ?? tournamentFromApi ?? null;
 
+  const { data: existingTeams = [], isSuccess: teamsLoaded } = useGetTournamentTeamsQuery(tournamentIdNum, {
+    skip: !isValidId,
+  });
+  const teamsComplete = areTournamentTeamsComplete(tournament, existingTeams.length);
+
   useEffect(() => {
     if (!isValidId) {
       navigate('/organizer/tournaments', { replace: true });
     }
   }, [isValidId, navigate]);
 
+  useEffect(() => {
+    if (!isValidId || !teamsLoaded || !teamsComplete) return;
+    toast.error('This tournament already has the maximum number of teams.');
+    navigate(`/organizer/tournaments/${tournamentIdNum}/saved-teams`, {
+      replace: true,
+      state: { tournament: tournament ?? { id: tournamentIdNum } },
+    });
+  }, [isValidId, teamsLoaded, teamsComplete, tournamentIdNum, tournament, navigate, toast]);
+
   // ------------------------------------------------------------------
   // Local state
   // ------------------------------------------------------------------
 
-  const fileInputRef = useRef(null);
   const iconPlayersFieldRef = useRef(null);
   const teamNameFieldRef = useRef(null);
   const sponsorFieldRef = useRef(null);
@@ -102,8 +123,7 @@ export default function TournamentAddTeam() {
   const resolveGroupIndex = () =>
     selectedGroupIndex === 'random' ? Math.floor(Math.random() * numberOfGroups) + 1 : selectedGroupIndex;
 
-  const [logoName, setLogoName] = useState('No File Selected');
-  const [logoFile, setLogoFile] = useState(/** @type {File | null} */ (null));
+  const [logoUpload, setLogoUpload] = useState(EMPTY_FILE_UPLOAD);
   const [selectedSponsor, setSelectedSponsor] = useState(/** @type {{ id: number; name: string } | null} */ (null));
   const [sponsorSearch, setSponsorSearch] = useState('');
   const [iconPlayerSearch, setIconPlayerSearch] = useState('');
@@ -155,6 +175,7 @@ export default function TournamentAddTeam() {
   });
 
   const [createTeam, { isLoading: isSubmitting }] = useCreateTeamMutation();
+  const [uploadMedia] = useUploadMediaMutation();
   const [attachTeamsToTournament] = useAttachTeamsToTournamentMutation();
 
   const selectedCountryName = watch('country');
@@ -163,7 +184,7 @@ export default function TournamentAddTeam() {
     skip: debouncedSponsorSearch.length < MIN_SEARCH_LENGTH,
   });
 
-  const { data: playersList = [], isFetching: isSearchingPlayers } = useSearchPlayersQuery(debouncedIconPlayerSearch, {
+  const { data: playersList = [], isFetching: isSearchingPlayers } = useSearchSquadMembersQuery(debouncedIconPlayerSearch, {
     skip: debouncedIconPlayerSearch.length < MIN_SEARCH_LENGTH,
   });
 
@@ -249,14 +270,7 @@ export default function TournamentAddTeam() {
     setIconPlayerIdToName({});
     setIconPlayerPanelOpen(false);
     reset(DEFAULT_VALUES);
-    setLogoName('No File Selected');
-    setLogoFile(null);
-  };
-
-  const handleFileChange = (event) => {
-    const file = event.target.files?.[0];
-    setLogoName(file ? file.name : 'No File Selected');
-    setLogoFile(file ?? null);
+    setLogoUpload(EMPTY_FILE_UPLOAD);
   };
 
   // ------------------------------------------------------------------
@@ -264,6 +278,11 @@ export default function TournamentAddTeam() {
   // ------------------------------------------------------------------
 
   const onSubmit = async (data) => {
+    if (!canAddTournamentTeams(tournament, existingTeams.length)) {
+      toast.error('This tournament already has the maximum number of teams.');
+      return;
+    }
+
     try {
       // Attach-only path: an existing team was selected from search.
       if (selectedTeam?.id) {
@@ -282,7 +301,7 @@ export default function TournamentAddTeam() {
         return;
       }
 
-      // Create-and-attach path: build a new team then attach it.
+      // Create-and-attach path: build a new team (no logo yet), then upload logo.
       const payload = {
         name: data.name.trim(),
         code: data.code.trim(),
@@ -290,12 +309,22 @@ export default function TournamentAddTeam() {
         city: data.city.trim(),
         sponsor_user_id: data.sponsor_user_id ?? null,
         icon_player_ids: Array.isArray(data.icon_player_ids) ? data.icon_player_ids : [],
-        logo: logoFile ?? undefined,
       };
 
       const result = await createTeam(payload).unwrap();
       const team = result?.data ?? result;
       const teamId = team?.id;
+
+      // Upload logo via deferred media endpoint (after we have the team ID).
+      const logoFile = logoUpload.files[0] ?? null;
+      if (teamId && logoFile) {
+        try {
+          await uploadMediaFile(uploadMedia, { type: 'team', id: teamId, field: 'logo', file: logoFile });
+        } catch {
+          // Logo upload failed — team was created; warn but don't block navigation.
+          toast.error('Team created but logo upload failed. You can retry from the team settings.');
+        }
+      }
 
       if (teamId && tournamentIdNum) {
         await attachTeamsToTournament({
@@ -783,35 +812,16 @@ export default function TournamentAddTeam() {
             </div>
 
             {/* Logo upload — hidden when team is selected (logo already set) */}
-            {/* CURSOR: extract into <LogoUploadField> (see top) */}
             {!isReadonly && (
-              <FormField label="Upload Logo" htmlFor="team_logo_input">
-                <div className="flex h-12 items-center justify-between rounded-[6px] bg-[#141412] px-4">
-                  <span className="truncate text-[16px] capitalize" style={{ color: '#A2A6AB78' }}>
-                    {logoName}
-                  </span>
-                  <div className="shrink-0">
-                    <input
-                      ref={fileInputRef}
-                      id="team_logo_input"
-                      type="file"
-                      accept="image/*"
-                      className="sr-only"
-                      onChange={handleFileChange}
-                      aria-label="Upload Team Logo"
-                    />
-                    <Button
-                      type="button"
-                      variant="file"
-                      size="sm"
-                      className="h-8 rounded-[6px] px-2 text-[12px] font-semibold tracking-wide capitalize"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      Attach File
-                    </Button>
-                  </div>
-                </div>
-              </FormField>
+              <FileUploadField
+                label="Upload Logo"
+                variant="compact"
+                value={logoUpload}
+                onChange={setLogoUpload}
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                acceptLabel="JPG, PNG, WebP"
+                maxSizeMb={5}
+              />
             )}
 
             {/* Logo indicator for selected team — only when logo URL is non-empty */}

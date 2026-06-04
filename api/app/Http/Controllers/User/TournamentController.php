@@ -27,7 +27,7 @@ class TournamentController extends Controller
             ->allowedFilters(Tournament::getFilters())
             ->defaultSort('-start_date')
             ->allowedSorts(Tournament::getSorts())
-            ->withCount('teams');
+            ->withCount(['teams', 'matches']);
 
         if (request()->boolean('organizer_tournaments')) {
             $uid = request()->user()->id;
@@ -82,6 +82,8 @@ class TournamentController extends Controller
         if ($with !== []) {
             $tournament->load($with);
         }
+
+        $tournament->loadCount('matches');
 
         if (request()->user()) {
             $myReaction = TournamentUserReaction::query()

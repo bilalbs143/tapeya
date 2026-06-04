@@ -1,17 +1,5 @@
 import { baseApi } from './baseApi';
-
-function buildMatchFormData({ tournamentId: _tournamentId, thumbnail, ...body }) {
-  const fd = new FormData();
-  Object.entries(body).forEach(([key, value]) => {
-    if (value != null && value !== '') {
-      fd.append(key, String(value));
-    }
-  });
-  if (thumbnail instanceof File) {
-    fd.append('thumbnail', thumbnail);
-  }
-  return fd;
-}
+import { stripDeferredMediaFields } from './mediaApi';
 
 /**
  * Tournament API – list and show tournaments (user app, auth required).
@@ -65,6 +53,15 @@ export const tournamentApi = baseApi.injectEndpoints({
               { type: 'Tournament', id: tournamentId },
             ]
           : [],
+    }),
+    getTournamentSquadOccupancy: builder.query({
+      query: ({ tournamentId, excludeTeamId }) => ({
+        url: `/tournaments/${tournamentId}/squad-occupancy`,
+        params: excludeTeamId != null ? { exclude_team_id: excludeTeamId } : undefined,
+      }),
+      transformResponse: (response) => response?.data ?? response ?? [],
+      providesTags: (_result, _err, { tournamentId }) =>
+        tournamentId ? [{ type: 'TournamentSquadOccupancy', id: tournamentId }] : [],
     }),
     getTournamentStandings: builder.query({
       query: (tournamentId) => ({
@@ -138,12 +135,12 @@ export const tournamentApi = baseApi.injectEndpoints({
           : [],
     }),
     createTournamentMatch: builder.mutation({
-      query: ({ tournamentId, thumbnail, ...body }) => {
-        const hasFile = thumbnail instanceof File;
+      query: (payload) => {
+        const { tournamentId, ...body } = stripDeferredMediaFields(payload);
         return {
           url: `/tournaments/${tournamentId}/matches`,
           method: 'POST',
-          body: hasFile ? buildMatchFormData({ tournamentId, thumbnail, ...body }) : body,
+          body,
         };
       },
       transformResponse: (response) => response?.data ?? response,
@@ -187,6 +184,7 @@ export const {
   useGetTournamentQuery,
   useLazyGetTournamentQuery,
   useGetTournamentTeamsQuery,
+  useGetTournamentSquadOccupancyQuery,
   useGetTournamentMatchesQuery,
   useGetTournamentStandingsQuery,
   useGetTournamentSeasonStatsQuery,

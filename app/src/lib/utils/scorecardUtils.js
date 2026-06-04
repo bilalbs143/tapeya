@@ -37,10 +37,12 @@ export function normaliseTournamentMatches(tournaments) {
         team1: {
           name: home.name || 'Home team',
           initial: (home.name || 'H').charAt(0).toUpperCase(),
+          logo: home.logo ?? null,
         },
         team2: {
           name: away.name || 'Away team',
           initial: (away.name || 'A').charAt(0).toUpperCase(),
+          logo: away.logo ?? null,
         },
         score1: null,
         score2: null,
@@ -88,12 +90,14 @@ export function apiTournamentMatchToStatusDetailsMatch(apiMatch, scorecard) {
     initial: String(home.name || 'H')
       .charAt(0)
       .toUpperCase(),
+    logo: home.logo ?? null,
   };
   const team2 = {
     name: away.name || 'Away team',
     initial: String(away.name || 'A')
       .charAt(0)
       .toUpperCase(),
+    logo: away.logo ?? null,
   };
 
   const formattedDate = apiMatch.match_date ? formatDate(apiMatch.match_date) : '';

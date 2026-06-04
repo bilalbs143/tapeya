@@ -23,24 +23,22 @@ export default function TournamentRequestSuccess() {
           Your tournament request has been received. We will contact you shortly.
         </p>
 
-        <button
-          type="button"
-          onClick={() => navigate('/home')}
-          className="flex w-full items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] px-8 py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90 lg:w-auto"
-        >
-          Go to Home
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        <div className="flex w-full max-w-[320px] flex-col gap-3">
+          <button
+            type="button"
+            onClick={() => navigate('/organizer/tournaments')}
+            className="flex w-full items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] px-8 py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90"
           >
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
-        </button>
+            Track My Request
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/home')}
+            className="flex w-full items-center justify-center gap-2 rounded-[6px] border border-[#2A2A28] bg-[#141412] px-8 py-3.5 text-[16px] font-medium text-white transition-opacity active:opacity-90"
+          >
+            Go to Home
+          </button>
+        </div>
       </div>
     </div>
   );

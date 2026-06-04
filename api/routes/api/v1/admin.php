@@ -82,6 +82,7 @@ Route::prefix('admin')->group(function () {
         Route::get('tournaments/{tournament}/teams', [TournamentTeamsController::class, 'index']);
         Route::post('tournaments/{tournament}/teams', [TournamentTeamsController::class, 'store']);
         Route::get('tournaments/{tournament}/teams/{team}/squad', [TournamentTeamSquadController::class, 'show']);
+        Route::get('tournaments/{tournament}/squad-occupancy', [TournamentTeamSquadController::class, 'occupancy']);
         Route::post('tournaments/{tournament}/teams/{team}/squad', [TournamentTeamSquadController::class, 'store']);
         Route::patch('tournaments/{tournament}/teams/{team}', [TournamentTeamsController::class, 'update']);
         Route::delete('tournaments/{tournament}/teams/{team}', [TournamentTeamsController::class, 'destroy']);

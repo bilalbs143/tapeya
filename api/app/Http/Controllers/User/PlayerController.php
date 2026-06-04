@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\User;
 
-use App\Enums\User\AppRoleEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -13,15 +12,16 @@ class PlayerController extends Controller
     use BaseControllerTrait;
 
     /**
-     * List users with player role (for icon players, squad picker, etc.).
+     * List users eligible for tournament team squads (players, sponsors, organizers).
      * GET /players?search=... — optional search by name, nickname, or phone (partial match).
      */
     public function index(): JsonResponse
     {
         $search = request()->str('search')->trim();
+
         $query = User::query()
             ->appUsers()
-            ->withRole(AppRoleEnum::PLAYER)
+            ->eligibleForTournamentSquad()
             ->orderBy('name');
 
         if ($search->isNotEmpty()) {

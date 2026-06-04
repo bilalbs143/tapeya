@@ -2,6 +2,7 @@ import { useDialog } from '@/context/DialogContext';
 
 import AppUpdateDialog from './AppUpdateDialog';
 import BaseDialog from './BaseDialog';
+import ConfirmDialog from './ConfirmDialog';
 import CustomScoreDialog from './CustomScoreDialog';
 import DeleteAccountDialog from './DeleteAccountDialog';
 import DraftingSubmitSquadSuccessDialog from './DraftingSubmitSquadSuccessDialog';
@@ -21,7 +22,6 @@ import { ScoringTossDialog } from './ScoringTossDialog';
 import { ShotAreaDialog } from './ShotAreaDialog';
 import TeamSelectDialog from './TeamSelectDialog';
 import TossDialog from './TossDialog';
-import TournamentSquadUpdatedSuccessDialog from './TournamentSquadUpdatedSuccessDialog';
 
 // All dialogs are body-only — DialogManager is the single provider of <BaseDialog>.
 const DIALOG_COMPONENTS = {
@@ -31,9 +31,9 @@ const DIALOG_COMPONENTS = {
   manOfTheMatch: ManOfTheMatchDialog,
   pricingSuccess: PricingSuccessDialog,
   draftingSubmitSquadSuccess: DraftingSubmitSquadSuccessDialog,
-  tournamentSquadUpdatedSuccess: TournamentSquadUpdatedSuccessDialog,
   profileStrengthReminder: ProfileStrengthReminderDialog,
   deleteAccount: DeleteAccountDialog,
+  confirm: ConfirmDialog,
   // Start Match dialogs
   startMatchOvers: OversDialog,
   startMatchPlayersPerSide: PlayersPerSideDialog,

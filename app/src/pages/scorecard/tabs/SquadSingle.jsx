@@ -1,4 +1,5 @@
 import { BORDER_ALT } from '@/lib/constants/tableStyles';
+import { formatListIndex } from '@/lib/format';
 import { playerDisplayRole } from '@/lib/utils/playerUtils';
 import { useGetTeamSquadQuery } from '@/store/api/teamApi';
 
@@ -55,7 +56,7 @@ export function SquadSingle({ tournamentId, teamId }) {
               <div
                 className={`flex w-10 shrink-0 items-center justify-center border-r ${BORDER_ALT} py-3 text-[13px] text-white`}
               >
-                {index + 1}
+                {formatListIndex(index + 1)}
               </div>
               <div className="min-w-0 flex-1 px-4 py-3">
                 <p className="text-[13px] font-bold text-white">{player.name ?? player.nickname ?? 'Player'}</p>

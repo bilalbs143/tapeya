@@ -7,12 +7,10 @@
 
 import { Fragment, useState } from 'react';
 
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { TeamLogo } from '@/components/TeamLogo';
 import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-
-const TEAM_MATCH_ICON = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
 
 const DASH = '—';
 
@@ -41,6 +39,8 @@ export function ScorecardTab({ match, innings1, innings2, activeBowlerId = null 
 
   const teamAName = match?.teamA?.name ?? '';
   const teamBName = match?.teamB?.name ?? '';
+  const teamA = match?.teamA;
+  const teamB = match?.teamB;
   const showTeamAData = activeScorecardTeam === 'teamA';
 
   const innings = showTeamAData ? innings1 : innings2;
@@ -73,11 +73,13 @@ export function ScorecardTab({ match, innings1, innings2, activeBowlerId = null 
       {/* Team selector tabs */}
       <div className="flex items-center justify-center gap-12">
         <TeamTabButton
+          team={teamA}
           teamName={teamAName || DASH}
           isActive={activeScorecardTeam === 'teamA'}
           onSelect={() => setActiveScorecardTeam('teamA')}
         />
         <TeamTabButton
+          team={teamB}
           teamName={teamBName || DASH}
           isActive={activeScorecardTeam === 'teamB'}
           onSelect={() => setActiveScorecardTeam('teamB')}
@@ -241,7 +243,7 @@ export function ScorecardTab({ match, innings1, innings2, activeBowlerId = null 
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function TeamTabButton({ teamName, isActive, onSelect }) {
+function TeamTabButton({ team, teamName, isActive, onSelect }) {
   return (
     <button
       type="button"
@@ -249,7 +251,7 @@ function TeamTabButton({ teamName, isActive, onSelect }) {
       className="flex cursor-pointer flex-col items-center gap-1 border-0 bg-transparent p-0"
       aria-pressed={isActive}
     >
-      <img src={TEAM_MATCH_ICON} alt="" className={`h-8 w-8 shrink-0 ${isActive ? '' : 'opacity-70'}`} aria-hidden />
+      <TeamLogo team={team} name={teamName} variant="scoring" dimmed={!isActive} />
       <div className="flex flex-col items-center">
         <span className={`text-[16px] font-bold tracking-wide uppercase ${isActive ? 'text-[#DA9811]' : 'text-white'}`}>
           {teamName}

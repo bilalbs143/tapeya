@@ -1,16 +1,10 @@
 import { createContext, useCallback, useState } from 'react';
 
-import { Toast, ToastDescriptionStyled, ToastRootStyled, ToastTitleStyled, ToastViewportStyled } from '@/ui/Toast';
+import { ToastDescriptionStyled, ToastRootStyled, ToastTitleStyled, ToastViewportStyled } from '@/ui/Toast';
 
 // Provider + context in one module is intentional; only ToastProvider is hot-reloaded as a component boundary.
 // eslint-disable-next-line react-refresh/only-export-components -- context instance must be shared with consumers
 export const ToastContext = createContext(null);
-
-const variantStyles = {
-  default: 'border-slate-200 bg-white text-slate-900',
-  success: 'border-emerald-500/50 bg-emerald-50 text-emerald-900',
-  error: 'border-red-500/50 bg-red-50 text-red-900',
-};
 
 export function ToastProvider({ children }) {
   const [state, setState] = useState({
@@ -44,18 +38,14 @@ export function ToastProvider({ children }) {
     if (!open) setState((s) => ({ ...s, open: false }));
   }, []);
 
-  const rootClass = variantStyles[state.variant] ?? variantStyles.default;
-
   return (
     <ToastContext.Provider value={toast}>
       {children}
       <ToastViewportStyled />
-      <Toast open={state.open} onOpenChange={handleOpenChange} duration={5000}>
-        <ToastRootStyled className={rootClass}>
-          {state.title && <ToastTitleStyled>{state.title}</ToastTitleStyled>}
-          <ToastDescriptionStyled>{state.description}</ToastDescriptionStyled>
-        </ToastRootStyled>
-      </Toast>
+      <ToastRootStyled variant={state.variant} open={state.open} onOpenChange={handleOpenChange} duration={5000}>
+        {state.title && <ToastTitleStyled>{state.title}</ToastTitleStyled>}
+        <ToastDescriptionStyled descriptionOnly={!state.title}>{state.description}</ToastDescriptionStyled>
+      </ToastRootStyled>
     </ToastContext.Provider>
   );
 }

@@ -1,31 +1,10 @@
 import { baseApi } from './baseApi';
-
-/**
- * Build FormData for team create when logo is a File (API accepts multipart like other endpoints).
- */
-function buildTeamFormData(payload) {
-  const fd = new FormData();
-  fd.append('name', payload.name);
-  fd.append('code', payload.code);
-  fd.append('country', payload.country);
-  fd.append('city', payload.city);
-  if (payload.sponsor_user_id != null && payload.sponsor_user_id !== '') {
-    fd.append('sponsor_user_id', String(payload.sponsor_user_id));
-  }
-  const iconIds = payload.icon_player_ids ?? [];
-  if (Array.isArray(iconIds) && iconIds.length > 0) {
-    iconIds.forEach((id) => fd.append('icon_player_ids[]', String(id)));
-  }
-  if (payload.logo instanceof File) {
-    fd.append('logo', payload.logo);
-  }
-  return fd;
-}
+import { stripDeferredMediaFields } from './mediaApi';
 
 /**
  * Team API – search teams, create team (auth required).
  * GET /teams?search=... — search by code or name.
- * POST /teams — create team (JSON or multipart).
+ * POST /teams — create team (JSON). Logo via POST /media/team/{id}/logo after create.
  */
 export const teamApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -38,22 +17,18 @@ export const teamApi = baseApi.injectEndpoints({
     }),
     createTeam: builder.mutation({
       query: (payload) => {
-        const hasFile = payload.logo instanceof File;
-        const body = hasFile
-          ? buildTeamFormData(payload)
-          : {
-              name: payload.name,
-              code: payload.code,
-              country: payload.country,
-              city: payload.city,
-              sponsor_user_id: payload.sponsor_user_id ?? null,
-              icon_player_ids: payload.icon_player_ids ?? [],
-            };
-
+        const body = stripDeferredMediaFields(payload);
         return {
           url: '/teams',
           method: 'POST',
-          body,
+          body: {
+            name: body.name,
+            code: body.code,
+            country: body.country,
+            city: body.city,
+            sponsor_user_id: body.sponsor_user_id ?? null,
+            icon_player_ids: body.icon_player_ids ?? [],
+          },
         };
       },
       invalidatesTags: ['Tournament'],
@@ -71,7 +46,13 @@ export const teamApi = baseApi.injectEndpoints({
         method: 'POST',
         body: { player_ids },
       }),
-      invalidatesTags: (_result, _err, { teamId }) => (teamId ? [{ type: 'TeamSquad', id: teamId }] : []),
+      invalidatesTags: (_result, _err, { teamId, tournamentId }) => {
+        const tags = teamId ? [{ type: 'TeamSquad', id: teamId }] : [];
+        if (tournamentId) {
+          tags.push({ type: 'TournamentSquadOccupancy', id: tournamentId });
+        }
+        return tags;
+      },
     }),
   }),
 });

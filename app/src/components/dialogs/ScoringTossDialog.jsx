@@ -1,17 +1,15 @@
 import { useState } from 'react';
 
+import { TeamLogo } from '@/components/TeamLogo';
 import { useDialog } from '@/context/DialogContext';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
 import { ToggleGroup, ToggleGroupItem } from '@/ui/ToggleGroup';
-
-const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
 
 /**
  * Body-only toss picker for live scoring (home/away team keys).
  * DialogManager provides the BaseDialog wrapper.
  */
-export function ScoringTossDialog({ homeTeamName, awayTeamName, onSave }) {
+export function ScoringTossDialog({ homeTeamName, awayTeamName, homeTeamLogo, awayTeamLogo, onSave }) {
   const { closeDialog } = useDialog();
   const [tossWinner, setTossWinner] = useState('');
   const [tossDecision, setTossDecision] = useState('');
@@ -41,9 +39,9 @@ export function ScoringTossDialog({ homeTeamName, awayTeamName, onSave }) {
       <DialogScrollBody className="flex flex-col gap-6">
         <div className="flex gap-3">
           {[
-            { key: 'home', label: homeTeamName || 'Home Team' },
-            { key: 'away', label: awayTeamName || 'Away Team' },
-          ].map(({ key, label }) => (
+            { key: 'home', label: homeTeamName || 'Home Team', logo: homeTeamLogo },
+            { key: 'away', label: awayTeamName || 'Away Team', logo: awayTeamLogo },
+          ].map(({ key, label, logo }) => (
             <button
               key={key}
               type="button"
@@ -52,7 +50,7 @@ export function ScoringTossDialog({ homeTeamName, awayTeamName, onSave }) {
                 tossWinner === key ? 'border-[#DA9811] bg-[#DA9811] text-white' : 'border-[#141412] bg-[#141412] text-white'
               }`}
             >
-              <img src={teamMatchIcon} alt="" className="h-8 w-8 shrink-0" aria-hidden />
+              <TeamLogo name={label} logo={logo} variant="dialog" />
               <span className="text-[14px] font-bold uppercase">{label}</span>
             </button>
           ))}

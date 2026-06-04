@@ -93,6 +93,7 @@ import { useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { CommentaryText } from '@/components/scorecard/CommentaryText';
+import { TeamLogo } from '@/components/TeamLogo';
 import { useMatchStreamChannel } from '@/features/stream/hooks/useMatchStreamChannel';
 import { StreamPlayer } from '@/features/stream/StreamPlayer';
 import { useMatchScoringChannel } from '@/hooks/useMatchScoringChannel';
@@ -122,14 +123,9 @@ import { ScheduleTab, StatsTab, TableTab } from './tabs';
 
 // ---------------------------------------------------------------------------
 // Constants
-// CURSOR: move FLAGS to src/lib/constants/teamFlags.js (see top).
 // ---------------------------------------------------------------------------
 
-const karachiFlag = `${CLOUDFRONT_APP_BASE}/images/icons/karachi-flag.png`;
-const rawalpindiFlag = `${CLOUDFRONT_APP_BASE}/images/icons/rawalpindi-flag.png`;
 const winProbabilityIcon = `${CLOUDFRONT_APP_BASE}/images/icons/win-probabilty.svg`;
-
-const FLAGS = { karachi: karachiFlag, rawalpindi: rawalpindiFlag };
 
 const STATUS_TABS = {
   live: [
@@ -210,20 +206,11 @@ function ResultTextHighlighted({ text, highlight }) {
 }
 
 /**
- * TeamFlag — team flag image with coloured-initial fallback.
- * CURSOR: move to src/features/scorecard/components/TeamFlag.jsx
- * TODO: add DEV console.warn when team.flag is set but not in FLAGS (see top).
+ * TeamFlag — team logo with coloured-initial fallback.
+ * CURSOR: replaced by shared TeamLogo; keep alias for local readability.
  */
 function TeamFlag({ team }) {
-  const src = team.flag ? FLAGS[team.flag] : null;
-  if (src) {
-    return <img src={src} alt="" className="h-5 w-5 shrink-0 rounded-sm object-cover" aria-hidden />;
-  }
-  return (
-    <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm bg-emerald-600 text-[10px] font-bold text-white">
-      {team.initial}
-    </div>
-  );
+  return <TeamLogo team={team} variant="scorecardInline" accent="green" />;
 }
 
 /**

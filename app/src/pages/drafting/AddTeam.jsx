@@ -1,26 +1,18 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { EMPTY_FILE_UPLOAD } from '@/lib/utils/fileUploadUtils';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { FileUploadField } from '@/ui/FileUploadField';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 
 export default function AddTeam() {
   const navigate = useNavigate();
-  const fileInputRef = useRef(null);
-  const [logoName, setLogoName] = useState('No file selected');
-
-  const handleFileChange = (event) => {
-    const file = event.target.files?.[0];
-    setLogoName(file ? file.name : 'No file selected');
-  };
-
-  const handleAttachClick = () => {
-    fileInputRef.current?.click();
-  };
+  const [logoUpload, setLogoUpload] = useState(EMPTY_FILE_UPLOAD);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -53,33 +45,15 @@ export default function AddTeam() {
               <Input id="icon_player" name="icon_player" placeholder="Enter icon player name" autoComplete="off" />
             </FormField>
 
-            <FormField label="Upload Logo" htmlFor="team_logo_input">
-              <div className="flex h-12 items-center justify-between rounded-[6px] bg-[#141412] px-4">
-                <span className="truncate text-[16px]" style={{ color: '#A2A6AB78' }}>
-                  {logoName}
-                </span>
-                <div className="shrink-0">
-                  <input
-                    ref={fileInputRef}
-                    id="team_logo_input"
-                    type="file"
-                    accept="image/*"
-                    className="sr-only"
-                    onChange={handleFileChange}
-                    aria-label="Upload team logo"
-                  />
-                  <Button
-                    type="button"
-                    variant="file"
-                    size="sm"
-                    className="h-8 rounded-[6px] px-2 text-[12px] font-semibold tracking-wide"
-                    onClick={handleAttachClick}
-                  >
-                    Attach file
-                  </Button>
-                </div>
-              </div>
-            </FormField>
+            <FileUploadField
+              label="Upload Logo"
+              variant="compact"
+              value={logoUpload}
+              onChange={setLogoUpload}
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              acceptLabel="JPG, PNG, WebP"
+              maxSizeMb={5}
+            />
           </div>
 
           <div className="pt-4 lg:flex lg:justify-start">

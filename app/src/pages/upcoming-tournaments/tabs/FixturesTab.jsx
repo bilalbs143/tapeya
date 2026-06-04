@@ -2,6 +2,7 @@ import { Fragment, useMemo } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
+import { TeamLogo } from '@/components/TeamLogo';
 import { formatDate } from '@/lib/format';
 import { normaliseMatchStatus } from '@/lib/utils/scorecardUtils';
 import { isValidTournamentId } from '@/lib/utils/tournamentUtils';
@@ -10,18 +11,28 @@ import { Button } from '@/ui/Button';
 
 const STATUS_LABELS = { upcoming: 'Upcoming', live: 'Live', result: 'Result' };
 
-export function FixturesTab({ tournamentId, numberOfGroups, canManageTournament = false }) {
+export function FixturesTab({
+  tournamentId,
+  numberOfGroups,
+  canManageTournament = false,
+  preloadedMatches,
+  isLoadingMatches = false,
+}) {
   const navigate = useNavigate();
 
   const hasValidId = isValidTournamentId(tournamentId);
   const nGroups = numberOfGroups != null ? Number(numberOfGroups) : 1;
   const hasGroups = nGroups > 1;
+  const hasEmbeddedMatches = Array.isArray(preloadedMatches);
 
   const {
-    data: matches = [],
-    isLoading,
+    data: fetchedMatches = [],
+    isLoading: isFetchingMatches,
     isError,
-  } = useGetTournamentMatchesQuery({ tournamentId, all: true }, { skip: !hasValidId });
+  } = useGetTournamentMatchesQuery({ tournamentId, all: true }, { skip: !hasValidId || hasEmbeddedMatches || isLoadingMatches });
+
+  const matches = hasEmbeddedMatches ? preloadedMatches : fetchedMatches;
+  const isLoading = isLoadingMatches || (!hasEmbeddedMatches && isFetchingMatches);
 
   const { matchesByGroup, knockoutMatches } = useMemo(() => {
     if (!hasGroups || !matches.length) {
@@ -98,12 +109,14 @@ export function FixturesTab({ tournamentId, numberOfGroups, canManageTournament 
           </span>
         </div>
         <div className="mb-3 flex items-center justify-between gap-3">
-          <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <TeamLogo team={home} variant="fixture" />
             <p className="truncate text-[14px] font-semibold">{home.name}</p>
           </div>
           <span className="shrink-0 text-[14px] font-semibold text-[#DA9811]">VS</span>
-          <div className="min-w-0 flex-1 text-right">
+          <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
             <p className="truncate text-[14px] font-semibold">{away.name}</p>
+            <TeamLogo team={away} variant="fixture" />
           </div>
         </div>
         {venue && (

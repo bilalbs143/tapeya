@@ -11,6 +11,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useToast } from '@/hooks/useToast';
 import { BORDER_ALT as BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
+import { formatListIndex } from '@/lib/format';
 import { VALID_STAT_TYPES } from '@/pages/scorecard/statsTotalFlow';
 import { Container } from '@/ui/Container';
 
@@ -203,7 +204,7 @@ export default function RankingStatsTotal() {
                         key={col.key}
                         className={`${COL_TD} border-r border-b ${BORDER} bg-transparent ${i === 0 ? 'border-l' : ''}`}
                       >
-                        {col.key === 'player' ? `${row.rank} ${row.playerName}` : row[col.key]}
+                        {col.key === 'player' ? `${formatListIndex(row.rank)} ${row.playerName}` : row[col.key]}
                       </td>
                     ))}
                   </tr>

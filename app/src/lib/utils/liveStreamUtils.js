@@ -37,10 +37,12 @@ export function normaliseLiveStreamMatches(matches) {
       team1: {
         name: home.name || 'Home team',
         initial: (home.name || 'H').charAt(0).toUpperCase(),
+        logo: home.logo ?? null,
       },
       team2: {
         name: away.name || 'Away team',
         initial: (away.name || 'A').charAt(0).toUpperCase(),
+        logo: away.logo ?? null,
       },
       score1: null,
       score2: null,

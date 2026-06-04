@@ -1,6 +1,4 @@
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-
-const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
+import { TeamLogo } from '@/components/TeamLogo';
 
 const DASH = '—';
 
@@ -27,7 +25,7 @@ export function InfoTab({ match, matchId, liveScore: liveScoreProp }) {
     <div className="mt-6 pb-10">
       <div className="flex items-stretch">
         <div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] bg-[#141412] p-4">
-          <img src={teamMatchIcon} alt="" className="h-10 w-10 shrink-0" aria-hidden />
+          <TeamLogo team={teamA} variant="match" />
           <span className="text-[16px] font-bold tracking-wide text-white uppercase">{teamATitle || DASH}</span>
         </div>
         <div className="relative z-10 -mx-3 flex shrink-0 items-center">
@@ -36,7 +34,7 @@ export function InfoTab({ match, matchId, liveScore: liveScoreProp }) {
           </span>
         </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] bg-[#141412] p-4">
-          <img src={teamMatchIcon} alt="" className="h-10 w-10 shrink-0" aria-hidden />
+          <TeamLogo team={teamB} variant="match" />
           <span className="text-[16px] font-bold tracking-wide text-white uppercase">{teamBTitle || DASH}</span>
         </div>
       </div>

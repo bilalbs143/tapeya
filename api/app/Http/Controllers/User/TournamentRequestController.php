@@ -17,6 +17,25 @@ class TournamentRequestController extends Controller
 {
     use BaseControllerTrait;
 
+    /** List the authenticated user's tournament requests (newest first). */
+    public function index(): JsonResponse
+    {
+        $userId = request()->user()?->id;
+        if ($userId === null) {
+            return $this->forbidden('Authentication required.');
+        }
+
+        $query = TournamentRequest::query()
+            ->where('user_id', $userId)
+            ->orderByDesc('created_at');
+
+        if (request()->filled('status')) {
+            $query->where('status', request()->string('status')->toString());
+        }
+
+        return $this->success(TournamentRequestResource::collection($query->get()));
+    }
+
     /** Submit a new tournament service request. */
     public function store(
         StoreTournamentRequestRequest $request,

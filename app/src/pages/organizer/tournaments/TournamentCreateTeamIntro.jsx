@@ -3,8 +3,13 @@ import { useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
-import { getTournamentTitle, parseTournamentId } from '@/lib/utils/tournamentUtils';
-import { useGetTournamentMatchesQuery, useGetTournamentQuery } from '@/store/api/tournamentApi';
+import {
+  areTournamentTeamsComplete,
+  canAddTournamentTeams,
+  getTournamentTitle,
+  parseTournamentId,
+} from '@/lib/utils/tournamentUtils';
+import { useGetTournamentQuery, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
 
 export default function TournamentCreateTeamIntro() {
@@ -17,14 +22,20 @@ export default function TournamentCreateTeamIntro() {
   const tournamentIdNum = parseTournamentId(tournamentId, tournamentFromState?.id);
   const isValidId = tournamentIdNum != null;
 
-  const { data: tournamentFromApi } = useGetTournamentQuery(
+  const { data: tournamentFromApi, isLoading: isLoadingTournament } = useGetTournamentQuery(
     { id: tournamentIdNum },
-    { skip: !isValidId || !!tournamentFromState },
+    { skip: !isValidId },
   );
-  const tournament = tournamentFromState ?? tournamentFromApi ?? null;
+  const tournament = tournamentFromApi ?? tournamentFromState ?? null;
 
-  const { data: matches = [] } = useGetTournamentMatchesQuery({ tournamentId: tournamentIdNum, all: true }, { skip: !isValidId });
-  const matchesCount = Array.isArray(matches) ? matches.length : 0;
+  const { data: teams = [], isLoading: teamsLoading } = useGetTournamentTeamsQuery(tournamentIdNum, { skip: !isValidId });
+  const teamsCount = teamsLoading ? (tournament?.teams_count ?? 0) : teams.length;
+  const noTeams = teamsCount === 0;
+  const teamsComplete = areTournamentTeamsComplete(tournament, teamsCount);
+  const canAddTeam = canAddTournamentTeams(tournament, teamsCount);
+
+  const matchesCount = tournament?.matches_count ?? 0;
+  const showViewFixtures = !isLoadingTournament && matchesCount > 0;
 
   useEffect(() => {
     if (!isValidId) {
@@ -32,11 +43,17 @@ export default function TournamentCreateTeamIntro() {
     }
   }, [isValidId, navigate]);
 
+  useEffect(() => {
+    if (!isValidId || noTeams || teamsComplete) return;
+    navigate(`/organizer/tournaments/${tournamentIdNum}/saved-teams`, {
+      replace: true,
+      state: { tournament: tournament ?? { id: tournamentIdNum } },
+    });
+  }, [isValidId, noTeams, teamsComplete, tournamentIdNum, tournament, navigate]);
+
   if (!isValidId) return null;
 
   const title = getTournamentTitle(tournament, 'Tournaments');
-  const teamsCount = tournament?.teams_count ?? 0;
-  const noTeams = teamsCount === 0;
 
   const handleCreateTeam = () => {
     navigate(`/organizer/tournaments/${tournamentIdNum}/add-team`, {
@@ -87,7 +104,7 @@ export default function TournamentCreateTeamIntro() {
       <AppSubpageHeader title={title} titleClassName="truncate" />
 
       <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4">
-        {noTeams ? (
+        {noTeams && canAddTeam ? (
           <>
             <p className="text-center text-[14px] text-[#A2A6AB]">No teams yet. Create your first team to get started.</p>
             <Button
@@ -102,7 +119,7 @@ export default function TournamentCreateTeamIntro() {
               <span className="text-[16px] font-bold text-[#A2A6AB]">Create Team</span>
             </Button>
           </>
-        ) : (
+        ) : teamsComplete ? (
           <>
             <p className="text-center text-[14px] text-[#A2A6AB]">Teams are complete. Manage squads or add fixtures.</p>
             <Button
@@ -127,7 +144,7 @@ export default function TournamentCreateTeamIntro() {
               </span>
               <span className="text-[16px] font-bold text-[#A2A6AB]">Add Fixtures</span>
             </Button>
-            {matchesCount > 0 && (
+            {showViewFixtures && (
               <Button
                 type="button"
                 variant="card"
@@ -141,7 +158,7 @@ export default function TournamentCreateTeamIntro() {
               </Button>
             )}
           </>
-        )}
+        ) : null}
       </div>
     </div>
   );

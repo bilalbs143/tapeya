@@ -79,6 +79,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { BORDER_ALT as BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
+import { formatListIndex } from '@/lib/format';
 import { useGetTournamentSeasonStatsQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
 
@@ -365,7 +366,7 @@ export default function StatsTotal() {
                       key={col.key}
                       className={`${COL_TD} border-r border-b ${BORDER} bg-transparent ${i === 0 ? 'border-l' : ''}`}
                     >
-                      {col.key === 'player' ? `${row.rank} ${row.playerName}` : row[col.key]}
+                      {col.key === 'player' ? `${formatListIndex(row.rank)} ${row.playerName}` : row[col.key]}
                     </td>
                   ))}
                 </tr>

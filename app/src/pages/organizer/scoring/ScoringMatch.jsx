@@ -264,6 +264,8 @@ export default function ScoringMatch() {
       openDialog('scoringToss', {
         homeTeamName: apiMatch.home_team?.name,
         awayTeamName: apiMatch.away_team?.name,
+        homeTeamLogo: apiMatch.home_team?.logo ?? null,
+        awayTeamLogo: apiMatch.away_team?.logo ?? null,
         onSave: handleSaveToss,
       });
     }
@@ -569,6 +571,7 @@ export default function ScoringMatch() {
     return {
       inningsNumber: currentInnings,
       battingTeamName: isInnings2 ? match?.teamB?.name || '' : match?.teamA?.name || '',
+      battingTeamLogo: isInnings2 ? (match?.teamB?.logo ?? null) : (match?.teamA?.logo ?? null),
       battingTeamId,
       bowlingTeamId,
       battingPlayingElevenIds,

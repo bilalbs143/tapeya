@@ -13,7 +13,12 @@ import { of, Subscription } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, finalize, switchMap } from 'rxjs/operators';
 
 import { MessageService } from 'src/app/services/message.service';
-import { type SquadUser, type TournamentTeamRow, TournamentTeamsService } from 'src/app/services/tournament-teams.service';
+import {
+  type SquadOccupancyRow,
+  type SquadUser,
+  type TournamentTeamRow,
+  TournamentTeamsService,
+} from 'src/app/services/tournament-teams.service';
 import { UsersService } from 'src/app/services/users.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
@@ -54,8 +59,15 @@ export class ManageTeamSquadDialogComponent implements OnInit, OnDestroy {
   public selected: SquadUser[] = [];
   public readonly searchControl = new FormControl('', { nonNullable: true });
   public candidates: SquadUser[] = [];
+  private occupiedByPlayerId = new Map<number, SquadOccupancyRow>();
 
   public isSubmitting = false;
+
+  public get visibleCandidates(): SquadUser[] {
+    return this.candidates.filter(
+      (candidate) => !this.selected.some((player) => player.id === candidate.id) && !this.occupiedByPlayerId.has(candidate.id)
+    );
+  }
 
   public get title(): string {
     return `Team Squad — ${this.data.team.name}`;
@@ -63,6 +75,7 @@ export class ManageTeamSquadDialogComponent implements OnInit, OnDestroy {
 
   public ngOnInit(): void {
     this.loadSquad();
+    this.loadOccupancy();
     this.sub.add(
       this.searchControl.valueChanges
         .pipe(
@@ -70,7 +83,7 @@ export class ManageTeamSquadDialogComponent implements OnInit, OnDestroy {
           distinctUntilChanged(),
           switchMap((term) =>
             this.usersService
-              .adminUserSearch(term ?? '', { app_role: 'player' })
+              .adminUserSearch(term ?? '', { for_squad: true })
               .pipe(catchError(() => of({ data: [] as SquadUser[] })))
           )
         )
@@ -93,6 +106,15 @@ export class ManageTeamSquadDialogComponent implements OnInit, OnDestroy {
     });
   }
 
+  private loadOccupancy(): void {
+    this.teamsService.getSquadOccupancy(this.data.tournamentId, this.data.team.id).subscribe({
+      next: (res) => {
+        this.occupiedByPlayerId = new Map((res.data ?? []).map((row) => [row.player_id, row]));
+      },
+      error: () => this.messageService.error('Could not load squad roster for this tournament.'),
+    });
+  }
+
   public removePlayer(user: SquadUser): void {
     this.selected = this.selected.filter((u) => u.id !== user.id);
   }
@@ -102,6 +124,18 @@ export class ManageTeamSquadDialogComponent implements OnInit, OnDestroy {
     if (!user?.id || this.selected.some((u) => u.id === user.id)) {
       return;
     }
+
+    const occupied = this.occupiedByPlayerId.get(user.id);
+    if (occupied) {
+      const playerName = user.name || user.nickname || occupied.player_name;
+      this.messageService.error(
+        `${playerName} is already on ${occupied.team_name} in this tournament. A player can only be on one team per tournament.`
+      );
+      this.searchControl.setValue('', { emitEvent: false });
+      this.candidates = [];
+      return;
+    }
+
     this.selected = [...this.selected, user];
     this.searchControl.setValue('', { emitEvent: false });
     this.candidates = [];
@@ -114,10 +148,6 @@ export class ManageTeamSquadDialogComponent implements OnInit, OnDestroy {
     event.preventDefault();
     event.stopPropagation();
 
-    if (this.selected.length === 0) {
-      this.messageService.error('Add at least one player to the Team Squad.');
-      return;
-    }
     this.isSubmitting = true;
     this.teamsService
       .saveTeamSquad(
@@ -128,10 +158,10 @@ export class ManageTeamSquadDialogComponent implements OnInit, OnDestroy {
       .pipe(finalize(() => (this.isSubmitting = false)))
       .subscribe({
         next: () => {
-          this.messageService.success('Team Squad updated.');
+          this.messageService.success(this.selected.length === 0 ? 'Team Squad cleared.' : 'Team Squad updated.');
           this.dialogRef.close(true);
         },
-        error: () => this.messageService.error('Could not save Team Squad.'),
+        error: (err) => this.messageService.httpError(err, 'Could not save Team Squad.'),
       });
   }
 }

@@ -28,7 +28,6 @@ const MENU_ITEMS = [
     label: 'My Tournaments',
     icon: requestTournamentIcon,
     path: '/organizer/tournaments',
-    organizerOnly: true,
   },
   { label: 'My Orders', icon: myOrderIcon, path: '/shop/orders' },
   {
@@ -79,17 +78,8 @@ export function Sidebar({ open, onClose }) {
 
   const { isNativeMobile: showNativeVersions, installedVersion, configuredVersion } = useNativeStoreVersionInfo();
 
-  const hasOrganizerRole = useMemo(() => {
-    const roles = profileUser?.roles;
-    if (!roles || !Array.isArray(roles)) return false;
-    return roles.some((r) => r?.slug === 'organizer');
-  }, [profileUser]);
   const navItems = useMemo(() => {
-    const filtered = MENU_ITEMS.filter((item) => {
-      if (item.label === 'Logout') return false;
-      if (item.organizerOnly && !hasOrganizerRole) return false;
-      return true;
-    });
+    const filtered = MENU_ITEMS.filter((item) => item.label !== 'Logout');
     const slug = sidebarCampaign?.slug;
     if (!slug) return filtered;
     const afterRequestIdx = filtered.findIndex((i) => i.path === '/tournament-request');
@@ -102,7 +92,7 @@ export function Sidebar({ open, onClose }) {
       return [...filtered, interestRow];
     }
     return [...filtered.slice(0, afterRequestIdx + 1), interestRow, ...filtered.slice(afterRequestIdx + 1)];
-  }, [hasOrganizerRole, sidebarCampaign]);
+  }, [sidebarCampaign]);
   const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 1024);
 
   const isActivePath = (path) => {

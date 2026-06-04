@@ -5,30 +5,31 @@ import { Controller, useForm } from 'react-hook-form';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { TeamLogo } from '@/components/TeamLogo';
 import { useDialog } from '@/context/DialogContext';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { EMPTY_FILE_UPLOAD } from '@/lib/utils/fileUploadUtils';
 import { getMatchOversOptions, getPlayersPerSideOptions } from '@/lib/utils/scoringMappers';
 import { formatDateForApi, formatTimeForApi } from '@/lib/utils/scoringUtils';
 import { startMatchSchema } from '@/lib/validations/startMatch';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
 import { useUpdateTossMutation } from '@/store/api/matchApi';
+import { uploadMediaFile, useUploadMediaMutation } from '@/store/api/mediaApi';
 import { useCreateTournamentMatchMutation, useGetTournamentsQuery, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 import { DatePicker } from '@/ui/DatePicker';
+import { FileUploadField } from '@/ui/FileUploadField';
 import { FormField, formFieldLabelCheckoutClass } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import { Label } from '@/ui/Label';
 import { TimePicker } from '@/ui/TimePicker';
 
-const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
-
 const oversInputBase =
   'flex h-12 w-full items-center rounded-[6px] bg-[#141412] px-4 py-3 text-left text-white focus:outline-none focus:ring-2 focus:ring-[#DA9811]/50 cursor-pointer';
 
-function buildMatchPayload(data, groupIndex = null, thumbnailFile = null) {
+function buildMatchPayload(data, groupIndex = null) {
   const payload = {
     tournamentId: data.tournament_id,
     home_team_id: Number(data.team_a_id),
@@ -41,9 +42,6 @@ function buildMatchPayload(data, groupIndex = null, thumbnailFile = null) {
   };
   if (groupIndex != null && groupIndex > 0) {
     payload.group_index = groupIndex;
-  }
-  if (thumbnailFile instanceof File) {
-    payload.thumbnail = thumbnailFile;
   }
   return payload;
 }
@@ -66,6 +64,7 @@ export default function StartMatch() {
   const toast = useToast();
   const [createMatch, { isLoading: isCreatingMatch }] = useCreateTournamentMatchMutation();
   const [updateToss, { isLoading: isUpdatingToss }] = useUpdateTossMutation();
+  const [uploadMedia] = useUploadMediaMutation();
 
   const oversOptions = useMemo(() => getMatchOversOptions(enums.match_overs), [enums.match_overs]);
   const playersPerSideOptions = useMemo(() => getPlayersPerSideOptions(enums.players_per_side), [enums.players_per_side]);
@@ -94,9 +93,7 @@ export default function StartMatch() {
   });
 
   const validatedFormDataRef = useRef(null);
-  const thumbnailInputRef = useRef(null);
-  const [thumbnailName, setThumbnailName] = useState('No file selected');
-  const [thumbnailFile, setThumbnailFile] = useState(/** @type {File | null} */ (null));
+  const [thumbnailUpload, setThumbnailUpload] = useState(EMPTY_FILE_UPLOAD);
 
   const { tournament_id: tournamentId, team_a_id, team_b_id, overs, players_per_side: playersPerSide } = watch();
   const { data: tournamentTeams = [] } = useGetTournamentTeamsQuery(tournamentId || undefined, { skip: !tournamentId });
@@ -125,15 +122,18 @@ export default function StartMatch() {
 
   const handleBack = () => navigate(-1);
 
-  const handleThumbnailChange = (event) => {
-    const file = event.target.files?.[0] ?? null;
-    setThumbnailFile(file);
-    setThumbnailName(file?.name ?? 'No file selected');
-  };
-
   const onSaveFixture = async (data) => {
     try {
-      await createMatch(buildMatchPayload(data, matchGroupIndex, thumbnailFile)).unwrap();
+      const created = await createMatch(buildMatchPayload(data, matchGroupIndex)).unwrap();
+      const matchId = created?.data?.id ?? created?.id;
+      const thumbnailFile = thumbnailUpload.files[0] ?? null;
+      if (matchId && thumbnailFile) {
+        try {
+          await uploadMediaFile(uploadMedia, { type: 'match', id: matchId, field: 'thumbnail', file: thumbnailFile });
+        } catch {
+          // Thumbnail upload failed — fixture was saved; non-blocking.
+        }
+      }
       toast.success('Fixture saved. You can start scoring from the match later.');
       navigate('/organizer/tournaments');
     } catch (err) {
@@ -143,11 +143,13 @@ export default function StartMatch() {
 
   const onOpenToss = (data) => {
     validatedFormDataRef.current = data;
-    const teamAName = teams.find((t) => String(t.id) === data.team_a_id)?.name ?? 'Team A';
-    const teamBName = teams.find((t) => String(t.id) === data.team_b_id)?.name ?? 'Team B';
+    const teamA = teams.find((t) => String(t.id) === data.team_a_id);
+    const teamB = teams.find((t) => String(t.id) === data.team_b_id);
     openDialog('startMatchToss', {
-      teamAName,
-      teamBName,
+      teamAName: teamA?.name ?? 'Team A',
+      teamBName: teamB?.name ?? 'Team B',
+      teamALogo: teamA?.logo ?? null,
+      teamBLogo: teamB?.logo ?? null,
       onStartScoring: handleStartScoring,
     });
   };
@@ -156,8 +158,16 @@ export default function StartMatch() {
     const data = validatedFormDataRef.current;
     if (!data) return;
     try {
-      const created = await createMatch(buildMatchPayload(data, matchGroupIndex, thumbnailFile)).unwrap();
-      const matchId = created?.id;
+      const created = await createMatch(buildMatchPayload(data, matchGroupIndex)).unwrap();
+      const matchId = created?.data?.id ?? created?.id;
+      const thumbnailFile = thumbnailUpload.files[0] ?? null;
+      if (matchId && thumbnailFile) {
+        try {
+          await uploadMediaFile(uploadMedia, { type: 'match', id: matchId, field: 'thumbnail', file: thumbnailFile });
+        } catch {
+          // Thumbnail upload failed — match was created; non-blocking.
+        }
+      }
       if (matchId) {
         const winningTeamId = tossWinner === 'A' ? Number(data.team_a_id) : Number(data.team_b_id);
         await updateToss({
@@ -248,7 +258,7 @@ export default function StartMatch() {
               className={`flex flex-1 flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] bg-[#141412] p-4 transition-opacity active:opacity-90 disabled:cursor-default disabled:opacity-60 ${errors.team_a_id ? 'border-red-500' : ''}`}
               aria-label="Select Team A"
             >
-              <img src={teamMatchIcon} alt="" className="h-10 w-10 shrink-0" aria-hidden />
+              <TeamLogo team={teams.find((t) => String(t.id) === team_a_id)} variant="match" />
               <span className="text-[16px] font-bold tracking-wide text-white uppercase">
                 {team_a_id && teams.length > 0 ? (teams.find((t) => String(t.id) === team_a_id)?.name ?? 'Team A') : 'Team A'}
               </span>
@@ -275,7 +285,7 @@ export default function StartMatch() {
               className={`flex flex-1 flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] bg-[#141412] p-4 transition-opacity active:opacity-90 disabled:cursor-default disabled:opacity-60 ${errors.team_b_id ? 'border-red-500' : ''}`}
               aria-label="Select Team B"
             >
-              <img src={teamMatchIcon} alt="" className="h-10 w-10 shrink-0" aria-hidden />
+              <TeamLogo team={teams.find((t) => String(t.id) === team_b_id)} variant="match" />
               <span className="text-[16px] font-bold tracking-wide text-white uppercase">
                 {team_b_id && teams.length > 0 ? (teams.find((t) => String(t.id) === team_b_id)?.name ?? 'Team B') : 'Team B'}
               </span>
@@ -385,34 +395,16 @@ export default function StartMatch() {
             </div>
           </div>
 
-          <FormField label="Stream Thumbnail" htmlFor="stream_thumbnail_input">
-            <div className="flex h-12 items-center justify-between rounded-[6px] bg-[#141412] px-4">
-              <span className="truncate text-[16px] capitalize" style={{ color: '#A2A6AB78' }}>
-                {thumbnailName}
-              </span>
-              <div className="shrink-0">
-                <input
-                  ref={thumbnailInputRef}
-                  id="stream_thumbnail_input"
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="sr-only"
-                  onChange={handleThumbnailChange}
-                  aria-label="Upload stream thumbnail"
-                />
-                <Button
-                  type="button"
-                  variant="file"
-                  size="sm"
-                  className="h-8 rounded-[6px] px-2 text-[12px] font-semibold tracking-wide capitalize"
-                  onClick={() => thumbnailInputRef.current?.click()}
-                >
-                  Attach File
-                </Button>
-              </div>
-            </div>
-            <p className="mt-1 text-[13px] text-[#A2A6AB]">Shown on the Live hub. JPG, PNG, or WebP up to 5 MB.</p>
-          </FormField>
+          <FileUploadField
+            label="Stream Thumbnail"
+            variant="compact"
+            value={thumbnailUpload}
+            onChange={setThumbnailUpload}
+            accept="image/jpeg,image/png,image/webp"
+            acceptLabel="JPG, PNG, WebP"
+            maxSizeMb={5}
+            hint="Shown on the Live hub."
+          />
 
           {/* Actions */}
           <div className="flex gap-3 pt-2 lg:justify-start">

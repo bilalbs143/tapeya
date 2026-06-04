@@ -13,11 +13,16 @@ use App\Http\Resources\User\UserResource;
 use App\Models\Role;
 use App\Models\Team;
 use App\Models\User;
+use App\Services\Tournament\TournamentTeamSquadValidator;
 use Illuminate\Http\JsonResponse;
 
 class TeamController extends Controller
 {
     use BaseControllerTrait;
+
+    public function __construct(
+        private readonly TournamentTeamSquadValidator $squadValidator,
+    ) {}
 
     /**
      * List/search teams (e.g. for organizer to find a team to attach to tournament).
@@ -59,7 +64,6 @@ class TeamController extends Controller
         $iconPlayerIds = $data['icon_player_ids'] ?? [];
 
         unset($data['sponsor_user_id'], $data['icon_player_ids']);
-        $this->storeImage($request, 'logo', 'teams', $data);
 
         $isOrganizer = $authUser->hasRole(AppRoleEnum::ORGANIZER);
         if ((int) $sponsorId !== (int) $authUser->id && ! $isOrganizer) {
@@ -71,7 +75,6 @@ class TeamController extends Controller
 
         $team = Team::create([
             'name' => $data['name'],
-            'logo' => $data['logo'] ?? null,
             'code' => $data['code'],
             'country' => $data['country'],
             'city' => $data['city'],
@@ -129,6 +132,13 @@ class TeamController extends Controller
         }
 
         $playerIds = $request->validated('player_ids');
+
+        $conflictMessage = $this->squadValidator->conflictMessageForTeam($team, $playerIds);
+        if ($conflictMessage !== null) {
+            return $this->failure($conflictMessage, 'VALIDATION_ERROR', [
+                'player_ids' => [$conflictMessage],
+            ]);
+        }
 
         // Set the team-level squad: replace existing squad with given players
         $team->players()->sync($playerIds);

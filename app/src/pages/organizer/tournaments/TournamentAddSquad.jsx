@@ -11,6 +11,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { TeamLogo } from '@/components/TeamLogo';
+import { useDialog } from '@/context/DialogContext';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
@@ -37,20 +39,6 @@ function teamDisplay(team) {
   return { owner, iconPlayers };
 }
 
-function TeamLogoIcon({ logo, teamName }) {
-  return (
-    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#0d0d0b]">
-      {logo ? (
-        <img src={logo} alt="" className="h-full w-full object-contain" />
-      ) : (
-        <span className="flex h-full w-full items-center justify-center text-[18px] font-bold text-white">
-          {(teamName ?? 'T').charAt(0).toUpperCase()}
-        </span>
-      )}
-    </div>
-  );
-}
-
 /**
  * TeamCard — displays team metadata with Add Squad and Remove actions.
  * CURSOR: move to src/features/teams/components/TeamCard.jsx
@@ -61,7 +49,7 @@ function TeamCard({ team, index, onAddSquad, onDelete, isDeleting }) {
   return (
     <div className="rounded-[17px] bg-[#141412] p-4">
       <div className="flex items-start gap-3">
-        <TeamLogoIcon logo={team.logo} teamName={team.name} />
+        <TeamLogo team={team} variant="organizerCard" />
         <div className="min-w-0 flex-1">
           {/* Fixed: was `text:white` (invalid) → `text-white` */}
           <h3 className="text-[16px] font-bold text-white">{team.name ?? '—'}</h3>
@@ -83,7 +71,7 @@ function TeamCard({ team, index, onAddSquad, onDelete, isDeleting }) {
               onClick={() => onAddSquad?.(team)}
               disabled={isDeleting}
             >
-              Add Squad
+              Manage Squad
             </Button>
             <button
               type="button"
@@ -111,6 +99,7 @@ export default function TournamentAddSquad() {
   const location = useLocation();
   const { tournamentId } = useParams();
   const toast = useToast();
+  const { openDialog } = useDialog();
 
   const stateTeams = location.state?.teams;
   const tournamentFromState = location.state?.tournament ?? null;
@@ -158,32 +147,31 @@ export default function TournamentAddSquad() {
   // ------------------------------------------------------------------
 
   const handleAddSquad = (team) => {
-    navigate(`/organizer/tournaments/${tournamentIdNum}/squad`, {
-      state: { team, tournament: tournament ?? { id: tournamentIdNum } },
+    navigate(`/organizer/tournaments/${tournamentIdNum}/squad?team=${team.id}`, {
+      state: { tournament: tournament ?? { id: tournamentIdNum } },
     });
   };
 
-  const handleDelete = async (teamToRemove) => {
+  const handleDelete = (teamToRemove) => {
     const teamName = teamToRemove?.name ?? 'this team';
 
-    if (
-      !window.confirm(
-        `Remove ${teamName} from the tournament? Scheduled matches involving this team will be deleted. This cannot be undone.`,
-      )
-    ) {
-      return;
-    }
-
-    try {
-      await removeTeam({
-        tournamentId: tournamentIdNum,
-        teamId: teamToRemove.id,
-      }).unwrap();
-      setRemovedTeamIds((prev) => [...prev, teamToRemove.id]);
-      toast.success('Team removed from tournament.');
-    } catch (err) {
-      toast.error(getApiErrorMessage(err) ?? 'Could not remove team. It may not be allowed after toss.');
-    }
+    openDialog('confirm', {
+      title: 'Remove Team',
+      message: `Remove ${teamName} from the tournament? Scheduled matches involving this team will be deleted. This cannot be undone.`,
+      onConfirm: async () => {
+        try {
+          await removeTeam({
+            tournamentId: tournamentIdNum,
+            teamId: teamToRemove.id,
+          }).unwrap();
+          setRemovedTeamIds((prev) => [...prev, teamToRemove.id]);
+          toast.success('Team removed from tournament.');
+        } catch (err) {
+          toast.error(getApiErrorMessage(err) ?? 'Could not remove team. It may not be allowed after toss.');
+          throw err;
+        }
+      },
+    });
   };
 
   // ------------------------------------------------------------------
@@ -197,8 +185,23 @@ export default function TournamentAddSquad() {
         {/* Loading indicator only shown when teams are not available from state */}
         {!stateTeams?.length && isLoading && <p className="mb-3 text-[13px] text-[#A2A6AB]">Loading teams…</p>}
 
-        <div className="mb-3">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">Teams</h2>
+          {teams.length > 0 && (
+            <Button
+              type="button"
+              variant="file"
+              size="sm"
+              className="h-9 rounded-full border border-[#DA9811] bg-transparent px-4 text-[12px] font-semibold text-[#DA9811]"
+              onClick={() =>
+                navigate(`/organizer/tournaments/${tournamentIdNum}/squad?team=${teams[0].id}`, {
+                  state: { tournament: tournament ?? { id: tournamentIdNum } },
+                })
+              }
+            >
+              Manage all squads
+            </Button>
+          )}
         </div>
 
         {isLoading && teams.length === 0 && (

@@ -1,32 +1,87 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
-import { useDialog } from '@/context/DialogContext';
+import { TeamLogo } from '@/components/TeamLogo';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { DEBOUNCE_MS, MIN_SEARCH_LENGTH } from '@/lib/constants/search';
 import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
+import { formatListIndex } from '@/lib/format';
 import { playerDisplayRole } from '@/lib/utils/playerUtils';
 import { getTournamentTitle, parseTournamentId } from '@/lib/utils/tournamentUtils';
-import { useSearchPlayersQuery } from '@/store/api/playerApi';
+import { useSearchSquadMembersQuery } from '@/store/api/playerApi';
 import { useGetTeamSquadQuery, useUpdateTeamSquadMutation } from '@/store/api/teamApi';
-import { useGetTournamentQuery } from '@/store/api/tournamentApi';
+import {
+  useGetTournamentQuery,
+  useGetTournamentSquadOccupancyQuery,
+  useGetTournamentTeamsQuery,
+} from '@/store/api/tournamentApi';
+import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
-import { formFieldLabelCheckoutClass } from '@/ui/FormField';
+import { FormField, formFieldLabelCheckoutClass } from '@/ui/FormField';
 import { CloseIcon } from '@/ui/icons/CloseIcon';
 import { Label } from '@/ui/Label';
+import {
+  Select,
+  SelectContent,
+  selectContentInputClass,
+  SelectGroup,
+  SelectItem,
+  selectItemIndicatorInputClass,
+  selectItemInputClass,
+  selectItemTextInputClass,
+  SelectLabel,
+  SelectTrigger,
+  selectTriggerInputClass,
+  SelectValue,
+  selectViewportInputClass,
+} from '@/ui/Select';
 
 const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
 
+function teamDisplayMeta(team) {
+  const owner = team?.sponsor?.name ?? (team?.owner != null ? String(team.owner) : '—');
+  const iconPlayers =
+    Array.isArray(team?.icon_players) && team.icon_players.length > 0
+      ? team.icon_players
+          .map((p) => p.name)
+          .filter(Boolean)
+          .join(', ')
+      : (team?.iconPlayer ?? '—');
+  return { owner, iconPlayers };
+}
+
+function TeamSelectItem({ team, hasGroups }) {
+  const label = team.name ?? `Team ${team.id}`;
+  const groupSuffix = hasGroups && team.group_index != null && team.group_index !== '' ? ` · Group ${team.group_index}` : '';
+
+  return (
+    <SelectItem
+      value={String(team.id)}
+      className={selectItemInputClass}
+      textClassName={selectItemTextInputClass}
+      indicatorClassName={selectItemIndicatorInputClass}
+    >
+      <span className="flex min-w-0 items-center gap-2">
+        <TeamLogo team={team} variant="dialogSelect" />
+        <span className="truncate">
+          {label}
+          {groupSuffix}
+        </span>
+      </span>
+    </SelectItem>
+  );
+}
+
 export default function TournamentSquad() {
-  const { openDialog } = useDialog();
   const navigate = useNavigate();
   const location = useLocation();
   const { tournamentId } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const toast = useToast();
 
   const teamFromState = location.state?.team;
@@ -35,21 +90,63 @@ export default function TournamentSquad() {
   const tournamentIdNum = parseTournamentId(tournamentId, tournamentFromState?.id);
   const isValidId = tournamentIdNum != null;
 
-  const { data: tournamentFromApi } = useGetTournamentQuery(
-    { id: tournamentIdNum },
-    { skip: !isValidId || !!tournamentFromState },
-  );
-  const tournament = tournamentFromState ?? tournamentFromApi ?? null;
+  const { data: tournamentFromApi } = useGetTournamentQuery({ id: tournamentIdNum }, { skip: !isValidId });
+  const tournament = tournamentFromApi ?? tournamentFromState ?? null;
 
-  const team = teamFromState ?? null;
-  const teamId = team?.id;
+  const { data: teams = [], isLoading: isLoadingTeams } = useGetTournamentTeamsQuery(tournamentIdNum, {
+    skip: !isValidId,
+  });
 
-  // ------------------------------------------------------------------
-  // Squad state
-  // CURSOR: extract hasInitializedSquad + init effect into useSquadInit (see top).
-  // ------------------------------------------------------------------
+  const numberOfGroups = tournament?.number_of_groups ?? 1;
+  const hasGroups = numberOfGroups > 1;
+
+  const teamIdFromUrl = searchParams.get('team');
+
+  const selectedTeam = useMemo(() => {
+    if (!teams.length) return null;
+    if (teamIdFromUrl) {
+      const fromUrl = teams.find((t) => String(t.id) === teamIdFromUrl);
+      if (fromUrl) return fromUrl;
+    }
+    if (teamFromState?.id != null) {
+      const fromState = teams.find((t) => String(t.id) === String(teamFromState.id));
+      if (fromState) return fromState;
+    }
+    return teams[0];
+  }, [teams, teamIdFromUrl, teamFromState]);
+
+  const teamId = selectedTeam?.id ?? null;
+  const selectedTeamId = teamId != null ? String(teamId) : '';
+
+  // Keep ?team= in the URL so refresh and back/forward preserve the active team.
+  useEffect(() => {
+    if (!isValidId || isLoadingTeams || !selectedTeam) return;
+    const nextId = String(selectedTeam.id);
+    if (teamIdFromUrl === nextId) return;
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('team', nextId);
+        return next;
+      },
+      { replace: true },
+    );
+  }, [isValidId, isLoadingTeams, selectedTeam, teamIdFromUrl, setSearchParams]);
 
   const { data: squadFromApi = [], isLoading: isLoadingSquad } = useGetTeamSquadQuery(teamId, { skip: !teamId });
+
+  const { data: squadOccupancy = [] } = useGetTournamentSquadOccupancyQuery(
+    { tournamentId: tournamentIdNum, excludeTeamId: teamId },
+    { skip: !isValidId || !teamId },
+  );
+
+  const occupiedByPlayerId = useMemo(() => {
+    const map = new Map();
+    for (const row of squadOccupancy) {
+      map.set(Number(row.player_id), row);
+    }
+    return map;
+  }, [squadOccupancy]);
 
   const [squad, setSquad] = useState([]);
   const hasInitializedSquad = useRef(false);
@@ -73,25 +170,19 @@ export default function TournamentSquad() {
     hasInitializedSquad.current = false;
   }, [teamId]);
 
-  // ------------------------------------------------------------------
-  // Find-player search
-  // CURSOR: move debounce effect into useDebounce hook (src/hooks/useDebounce.js)
-  //         same pattern as TournamentAddTeam.jsx.
-  // ------------------------------------------------------------------
-
   const [findPlayer, setFindPlayer] = useState('');
   const trimmedFindPlayer = findPlayer.trim();
   const debouncedFindPlayer = useDebounce(trimmedFindPlayer, DEBOUNCE_MS);
 
-  const { data: playerSearchResults = [], isFetching: isSearchingPlayers } = useSearchPlayersQuery(debouncedFindPlayer, {
+  useEffect(() => {
+    setFindPlayer('');
+  }, [selectedTeamId]);
+
+  const { data: playerSearchResults = [], isFetching: isSearchingPlayers } = useSearchSquadMembersQuery(debouncedFindPlayer, {
     skip: debouncedFindPlayer.length < MIN_SEARCH_LENGTH,
   });
 
   const [updateSquad] = useUpdateTeamSquadMutation();
-
-  // ------------------------------------------------------------------
-  // Navigation guard
-  // ------------------------------------------------------------------
 
   useEffect(() => {
     if (!isValidId) {
@@ -100,44 +191,65 @@ export default function TournamentSquad() {
   }, [isValidId, navigate]);
 
   useEffect(() => {
-    if (isValidId && !teamFromState) {
+    if (!isValidId || isLoadingTeams) return;
+    if (teams.length === 0) {
       navigate(`/organizer/tournaments/${tournamentIdNum}/add-squad`, {
         replace: true,
         state: { tournament: tournament ?? { id: tournamentIdNum } },
       });
     }
-  }, [isValidId, tournamentIdNum, teamFromState, tournament, navigate]);
-
-  // ------------------------------------------------------------------
-  // Derived state
-  // ------------------------------------------------------------------
+  }, [isValidId, isLoadingTeams, teams.length, tournamentIdNum, tournament, navigate]);
 
   const squadIds = useMemo(() => new Set(squad.map((p) => p.id)), [squad]);
 
-  // Players from search results that are not already in the squad.
+  const getSquadConflictMessage = (player) => {
+    const row = occupiedByPlayerId.get(Number(player.id));
+    if (!row) return null;
+    const playerName = player.name ?? player.nickname ?? row.player_name ?? 'This player';
+    return `${playerName} is already on ${row.team_name} in this tournament. A player can only be on one team per tournament.`;
+  };
+
   const playersToAdd = useMemo(
-    () => playerSearchResults.filter((p) => p.id != null && !squadIds.has(Number(p.id))),
-    [playerSearchResults, squadIds],
+    () => playerSearchResults.filter((p) => p.id != null && !squadIds.has(Number(p.id)) && !occupiedByPlayerId.has(Number(p.id))),
+    [playerSearchResults, squadIds, occupiedByPlayerId],
+  );
+
+  const occupiedSearchMatches = useMemo(
+    () => playerSearchResults.filter((p) => p.id != null && !squadIds.has(Number(p.id)) && occupiedByPlayerId.has(Number(p.id))),
+    [playerSearchResults, squadIds, occupiedByPlayerId],
   );
 
   const showPlayerSearchResults = trimmedFindPlayer.length > 0;
 
-  if (!isValidId || !teamFromState) {
-    return null;
-  }
+  const { owner, iconPlayers } = teamDisplayMeta(selectedTeam);
 
-  // ------------------------------------------------------------------
-  // Handlers
-  // ------------------------------------------------------------------
+  const handleTeamChange = (nextTeamId) => {
+    if (!nextTeamId || nextTeamId === selectedTeamId) return;
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('team', nextTeamId);
+        return next;
+      },
+      { replace: true },
+    );
+  };
 
   const handleRemovePlayer = (playerId) => {
     const nextSquad = squad.filter((p) => p.id !== playerId);
     setSquad(nextSquad);
-    saveSquad(nextSquad);
+    saveSquad(nextSquad, squad);
   };
 
   const handleAddPlayer = (player) => {
     if (!player || squadIds.has(player.id)) return;
+
+    const conflictMessage = getSquadConflictMessage(player);
+    if (conflictMessage) {
+      toast.error(conflictMessage);
+      return;
+    }
+
     const newPlayer = {
       id: player.id,
       name: player.name ?? player.nickname ?? '—',
@@ -147,177 +259,211 @@ export default function TournamentSquad() {
     const nextSquad = [...squad, newPlayer];
     setSquad(nextSquad);
     setFindPlayer('');
-    saveSquad(nextSquad);
+    saveSquad(nextSquad, squad);
   };
 
-  const saveSquad = async (squadOverride) => {
+  const saveSquad = async (squadOverride, previousSquad) => {
     if (!teamId) return;
     const list = squadOverride ?? squad;
     const player_ids = list.map((p) => p.id).filter((id) => id != null);
     try {
-      await updateSquad({ teamId, player_ids }).unwrap();
-      openDialog('tournamentSquadUpdatedSuccess');
+      await updateSquad({ teamId, player_ids, tournamentId: tournamentIdNum }).unwrap();
+      toast.success(player_ids.length === 0 ? 'Squad cleared.' : 'Squad updated.');
     } catch (err) {
-      toast.error(getApiErrorMessage(err) ?? 'Failed to save squad.');
+      if (previousSquad) {
+        setSquad(previousSquad);
+      }
+      toast.error(getApiErrorMessage(err, 'Failed to save squad.'));
     }
   };
 
-  // ------------------------------------------------------------------
-  // Render
-  // ------------------------------------------------------------------
+  if (!isValidId || (isLoadingTeams && teams.length === 0)) {
+    return (
+      <div className="bg-black">
+        <AppSubpageHeader title={tournament ? `${getTournamentTitle(tournament)} - Squad` : 'Tournaments - Squad'} />
+        <Container>
+          <p className="py-6 text-center text-[13px] text-[#A2A6AB]">Loading teams…</p>
+        </Container>
+      </div>
+    );
+  }
+
+  if (!selectedTeam) {
+    return null;
+  }
 
   const squadEmptyMessage = 'No players in squad. Search for players above to add them.';
+
+  const teamSelectOptions =
+    hasGroups && numberOfGroups > 1
+      ? Array.from({ length: numberOfGroups }, (_, i) => i + 1).map((groupIndex) => {
+          const groupTeams = teams.filter((t) => Number(t.group_index) === groupIndex);
+          if (groupTeams.length === 0) return null;
+          return (
+            <SelectGroup key={groupIndex}>
+              <SelectLabel className="px-3 py-1.5 text-[11px] font-bold tracking-wide text-[#DA9811] uppercase">
+                Group {groupIndex}
+              </SelectLabel>
+              {groupTeams.map((t) => (
+                <TeamSelectItem key={t.id} team={t} hasGroups={hasGroups} />
+              ))}
+            </SelectGroup>
+          );
+        })
+      : teams.map((t) => <TeamSelectItem key={t.id} team={t} hasGroups={false} />);
 
   return (
     <div className="bg-black">
       <AppSubpageHeader title={tournament ? `${getTournamentTitle(tournament)} - Squad` : 'Tournaments - Squad'} />
       <Container>
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <FormField label="Team" htmlFor="squad-team-select" className="mb-0 flex-1">
+            <Select value={selectedTeamId} onValueChange={handleTeamChange} disabled={teams.length <= 1}>
+              <SelectTrigger id="squad-team-select" className={selectTriggerInputClass} aria-label="Select team">
+                <span className="flex min-w-0 flex-1 items-center gap-2">
+                  <TeamLogo team={selectedTeam} variant="dialogSelect" />
+                  <SelectValue placeholder="Select team" />
+                </span>
+              </SelectTrigger>
+              <SelectContent className={selectContentInputClass} viewportClassName={selectViewportInputClass} position="popper">
+                {teamSelectOptions}
+              </SelectContent>
+            </Select>
+          </FormField>
+          <Button
+            type="button"
+            variant="file"
+            size="sm"
+            className="h-12 shrink-0 rounded-[6px] border border-[#FFFFFF1A] bg-transparent px-4 text-[13px] font-semibold text-[#A2A6AB]"
+            onClick={() =>
+              navigate(`/organizer/tournaments/${tournamentIdNum}/add-squad`, {
+                state: { tournament: tournament ?? { id: tournamentIdNum }, teams },
+              })
+            }
+          >
+            Manage teams
+          </Button>
+        </div>
+
         {isLoadingSquad && <p className="mb-3 text-[13px] text-[#A2A6AB]">Loading squad…</p>}
 
-        {/* Team info card */}
-        {team && (
-          <div className="mb-5 flex items-stretch gap-3 rounded-[17px] bg-[#141412] p-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#0d0d0b]">
-              {team?.logo ? (
-                <img src={team.logo} alt="" className="h-full w-full object-contain" />
-              ) : (
-                <span className="flex h-full w-full items-center justify-center text-[18px] font-bold text-white">
-                  {(team?.name ?? 'T').charAt(0).toUpperCase()}
-                </span>
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <h2 className="text-[16px] font-bold text-white">{team?.name ?? '—'}</h2>
-              <p className="mt-0.5 text-[14px] text-[#DA9811]">Owner: {team?.owner ?? team?.sponsor?.name ?? '—'}</p>
-              <p className="mt-0.5 text-[12px] text-white">
-                Icon Players:{' '}
-                {Array.isArray(team?.icon_players) && team.icon_players.length > 0
-                  ? team.icon_players
-                      .map((p) => p.name)
-                      .filter(Boolean)
-                      .join(', ')
-                  : (team?.iconPlayer ?? '—')}
-              </p>
-            </div>
+        <div className="mb-5 flex items-stretch gap-3 rounded-[17px] bg-[#141412] p-4">
+          <TeamLogo team={selectedTeam} variant="organizerCard" />
+          <div className="min-w-0 flex-1">
+            <h2 className="text-[16px] font-bold text-white">{selectedTeam.name ?? '—'}</h2>
+            <p className="mt-0.5 text-[14px] text-[#DA9811]">Owner: {owner}</p>
+            <p className="mt-0.5 text-[12px] text-white">
+              Icon Players: <span className="text-[#A2A6AB]">{iconPlayers}</span>
+            </p>
           </div>
-        )}
+        </div>
 
-        {team && (
-          <div className="mb-4 flex flex-col gap-1">
-            <Label htmlFor="find-player" className={formFieldLabelCheckoutClass}>
-              Find Player
-            </Label>
-            <div className="relative">
-              <input
-                id="find-player"
-                type="text"
-                value={findPlayer}
-                onChange={(e) => setFindPlayer(e.target.value)}
-                placeholder="Search by name, nickname or phone…"
-                autoComplete="off"
-                className="h-12 w-full rounded-[6px] bg-[#141412] py-3 pr-10 pl-4 text-white placeholder:text-base placeholder:text-[#A2A6AB78] focus:ring-2 focus:ring-[#DA9811]/50 focus:outline-none"
-                aria-label="Find player"
-              />
-              {findPlayer && (
-                <button
-                  type="button"
-                  onClick={() => setFindPlayer('')}
-                  className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-[#A2A6AB] transition-colors hover:text-white active:opacity-80"
-                  aria-label="Clear search"
-                >
-                  <CloseIcon className="h-4 w-4" />
-                </button>
-              )}
-              {showPlayerSearchResults && (
-                <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] bg-[#141412] shadow-lg">
-                  {trimmedFindPlayer.length < MIN_SEARCH_LENGTH ? (
-                    <p className="px-4 py-3 text-[13px] text-[#A2A6AB]">Type at least {MIN_SEARCH_LENGTH} characters to search</p>
-                  ) : isSearchingPlayers ? (
-                    <p className="px-4 py-3 text-[13px] text-[#A2A6AB]">Searching…</p>
-                  ) : playersToAdd.length > 0 ? (
-                    <ul className="py-1">
-                      {playersToAdd.map((player) => (
-                        <li key={player.id}>
-                          <button
-                            type="button"
-                            onClick={() => handleAddPlayer(player)}
-                            className="flex w-full cursor-pointer flex-col gap-0.5 px-4 py-3 text-left text-white transition-colors hover:bg-white/10"
-                          >
-                            <span className="font-semibold text-white">{player.name ?? player.nickname ?? '—'}</span>
-                            {(player.playing_role ?? player.playing_role_enum) && (
-                              <span className="text-[13px] text-[#A2A6AB]">
-                                {player.playing_role ?? player.playing_role_enum}
-                              </span>
-                            )}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="px-4 py-3 text-[13px] text-[#A2A6AB]">
-                      {playerSearchResults.length > 0
+        <div className="mb-4 flex flex-col gap-1">
+          <Label htmlFor="find-player" className={formFieldLabelCheckoutClass}>
+            Find Squad Member
+          </Label>
+          <div className="relative">
+            <input
+              id="find-player"
+              type="text"
+              value={findPlayer}
+              onChange={(e) => setFindPlayer(e.target.value)}
+              placeholder="Search by name, nickname, or phone…"
+              autoComplete="off"
+              className="h-12 w-full rounded-[6px] bg-[#141412] py-3 pr-10 pl-4 text-white placeholder:text-base placeholder:text-[#A2A6AB78] focus:ring-2 focus:ring-[#DA9811]/50 focus:outline-none"
+              aria-label="Find player"
+            />
+            {findPlayer && (
+              <button
+                type="button"
+                onClick={() => setFindPlayer('')}
+                className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-[#A2A6AB] transition-colors hover:text-white active:opacity-80"
+                aria-label="Clear search"
+              >
+                <CloseIcon className="h-4 w-4" />
+              </button>
+            )}
+            {showPlayerSearchResults && (
+              <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] bg-[#141412] shadow-lg">
+                {trimmedFindPlayer.length < MIN_SEARCH_LENGTH ? (
+                  <p className="px-4 py-3 text-[13px] text-[#A2A6AB]">Type at least {MIN_SEARCH_LENGTH} characters to search</p>
+                ) : isSearchingPlayers ? (
+                  <p className="px-4 py-3 text-[13px] text-[#A2A6AB]">Searching…</p>
+                ) : playersToAdd.length > 0 ? (
+                  <ul className="py-1">
+                    {playersToAdd.map((player) => (
+                      <li key={player.id}>
+                        <button
+                          type="button"
+                          onClick={() => handleAddPlayer(player)}
+                          className="flex w-full cursor-pointer flex-col gap-0.5 px-4 py-3 text-left text-white transition-colors hover:bg-white/10"
+                        >
+                          <span className="font-semibold text-white">{player.name ?? player.nickname ?? '—'}</span>
+                          {(player.playing_role ?? player.playing_role_enum) && (
+                            <span className="text-[13px] text-[#A2A6AB]">{player.playing_role ?? player.playing_role_enum}</span>
+                          )}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="px-4 py-3 text-[13px] text-[#A2A6AB]">
+                    {occupiedSearchMatches.length > 0
+                      ? `${occupiedSearchMatches[0].name ?? occupiedSearchMatches[0].nickname ?? 'This player'} is already on another team in this tournament.`
+                      : playerSearchResults.length > 0
                         ? 'All matching players are already in the squad.'
                         : 'No players found. Try a different search.'}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Squad table — CURSOR: extract into <SquadTable> (see top) */}
-        {team && (
-          <div className="mb-6 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <table className="w-full border-collapse text-[12px] text-white">
-              <thead>
-                <tr className={HEADER_BG}>
-                  <th className={`${HEADER_BG} border-r border-b border-l py-2.5 pl-4 text-left font-bold text-white ${BORDER}`}>
-                    Player
-                  </th>
-                  <th className={`${HEADER_BG} border-r border-b py-2.5 text-center font-bold text-white ${BORDER}`}>
-                    Playing Role
-                  </th>
-                  <th className={`${HEADER_BG} border-r border-b py-2.5 pr-4 text-right font-bold text-white ${BORDER}`}>
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {!isLoadingSquad && squad.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={3}
-                      className={`border-r border-b border-l py-6 text-center text-[13px] text-[#A2A6AB] ${BORDER}`}
-                    >
-                      {squadEmptyMessage}
-                    </td>
-                  </tr>
+                  </p>
                 )}
-                {squad.map((player, index) => (
-                  <tr key={player.id}>
-                    <td className={`border-r border-b border-l py-3 pl-4 ${BORDER}`}>
-                      <p className="text-[12px] font-medium text-white">
-                        {index + 1} {player.name}
-                      </p>
-                    </td>
-                    <td className={`border-r border-b py-3 text-center text-white ${BORDER}`}>{playerDisplayRole(player)}</td>
-                    <td className={`border-r border-b py-3 pr-4 text-right ${BORDER}`}>
-                      <button
-                        type="button"
-                        onClick={() => handleRemovePlayer(player.id)}
-                        className="inline-flex items-center justify-center transition-opacity active:opacity-80"
-                        aria-label={`Remove ${player.name}`}
-                      >
-                        <img src={teamDeleteIcon} alt="" className="h-5 w-5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              </div>
+            )}
           </div>
-        )}
+        </div>
+
+        <div className="mb-6 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <table className="w-full border-collapse text-[12px] text-white">
+            <thead>
+              <tr className={HEADER_BG}>
+                <th className={`${HEADER_BG} border-r border-b border-l py-2.5 pl-4 text-left font-bold text-white ${BORDER}`}>
+                  Player
+                </th>
+                <th className={`${HEADER_BG} border-r border-b py-2.5 text-center font-bold text-white ${BORDER}`}>
+                  Playing Role
+                </th>
+                <th className={`${HEADER_BG} border-r border-b py-2.5 pr-4 text-right font-bold text-white ${BORDER}`}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {!isLoadingSquad && squad.length === 0 && (
+                <tr>
+                  <td colSpan={3} className={`border-r border-b border-l py-6 text-center text-[13px] text-[#A2A6AB] ${BORDER}`}>
+                    {squadEmptyMessage}
+                  </td>
+                </tr>
+              )}
+              {squad.map((player, index) => (
+                <tr key={player.id}>
+                  <td className={`border-r border-b border-l py-3 pl-4 ${BORDER}`}>
+                    <p className="text-[12px] font-medium text-white">
+                      {formatListIndex(index + 1)} {player.name}
+                    </p>
+                  </td>
+                  <td className={`border-r border-b py-3 text-center text-white ${BORDER}`}>{playerDisplayRole(player)}</td>
+                  <td className={`border-r border-b py-3 pr-4 text-right ${BORDER}`}>
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePlayer(player.id)}
+                      className="inline-flex items-center justify-center transition-opacity active:opacity-80"
+                      aria-label={`Remove ${player.name}`}
+                    >
+                      <img src={teamDeleteIcon} alt="" className="h-5 w-5" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </Container>
     </div>
   );

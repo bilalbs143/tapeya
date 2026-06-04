@@ -5,7 +5,7 @@ import { useLocation, useNavigate, useParams, useSearchParams } from 'react-rout
 import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatOrdinalDateRange } from '@/lib/format';
-import { getTournamentImage, getTournamentTitle, isValidTournamentId } from '@/lib/utils/tournamentUtils';
+import { getTournamentCoverImage, getTournamentTitle, isValidTournamentId } from '@/lib/utils/tournamentUtils';
 import { formatCount, ThumbsUpIcon } from '@/pages/feed/PostCard';
 import { FixturesTab } from '@/pages/upcoming-tournaments/tabs/FixturesTab';
 import { SquadsTab } from '@/pages/upcoming-tournaments/tabs/SquadsTab';
@@ -93,15 +93,16 @@ export default function UpcomingTournamentDetails() {
   const hasValidNumericId = typeof numericId === 'number' && Number.isInteger(numericId) && numericId > 0;
 
   const { data: tournamentFromApi, isLoading: isLoadingTournament } = useGetTournamentQuery(
-    { id: numericId },
+    { id: numericId, with_matches: true },
     { skip: !hasValidId || !hasValidNumericId },
   );
 
   const tournament = tournamentFromApi ?? stateTournament ?? { id: tournamentId, ...DEFAULT_TOURNAMENT };
+  const embeddedMatches = Array.isArray(tournamentFromApi?.matches) ? tournamentFromApi.matches : undefined;
+  const fixturesLoading = isLoadingTournament && embeddedMatches === undefined;
 
-  const bannerImage = getTournamentImage(tournament, FALLBACK_IMAGE);
-  /** When Fixtures tab is active, show dedicated fixture art in the top banner. */
-  const headerImageSrc = activeTab === DETAIL_TABS.FIXTURES ? FIXTURE_TAB_BG : bannerImage;
+  /** Backoffice cover image — full-width detail banner (1920×600). */
+  const headerImageSrc = getTournamentCoverImage(tournament, FALLBACK_IMAGE);
   const displayName = getTournamentTitle(tournament);
   const startDate = tournament.start_date ?? '';
   const endDate = tournament.end_date ?? '';
@@ -204,15 +205,8 @@ export default function UpcomingTournamentDetails() {
           alt=""
           className="h-full w-full object-cover"
           onError={(e) => {
-            const el = e.currentTarget;
-            if (activeTab === DETAIL_TABS.FIXTURES) {
-              if (el.src.includes('fixture-bg')) {
-                el.src = bannerImage;
-                return;
-              }
-            }
-            if (el.src !== FALLBACK_IMAGE) {
-              el.src = FALLBACK_IMAGE;
+            if (e.currentTarget.src !== FALLBACK_IMAGE) {
+              e.currentTarget.src = FALLBACK_IMAGE;
             }
           }}
         />
@@ -320,6 +314,8 @@ export default function UpcomingTournamentDetails() {
                 tournamentId={tournamentId}
                 numberOfGroups={tournament.number_of_groups}
                 canManageTournament={tournament.can_manage === true}
+                preloadedMatches={embeddedMatches}
+                isLoadingMatches={fixturesLoading}
               />
             )}
             {activeTab === DETAIL_TABS.TEAMS && <TeamsTab tournamentId={tournamentId} />}

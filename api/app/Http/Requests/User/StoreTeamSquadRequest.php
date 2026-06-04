@@ -11,13 +11,20 @@ class StoreTeamSquadRequest extends FormRequest
         return $this->user() !== null;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'player_ids' => $this->input('player_ids', []),
+        ]);
+    }
+
     /**
      * @return array<string, mixed>
      */
     public function rules(): array
     {
         return [
-            'player_ids' => ['required', 'array', 'min:1'],
+            'player_ids' => ['array'],
             'player_ids.*' => ['integer', 'exists:users,id'],
         ];
     }

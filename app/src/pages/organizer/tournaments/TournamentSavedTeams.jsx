@@ -3,24 +3,17 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
-import { getTournamentTitle, parseTournamentId } from '@/lib/utils/tournamentUtils';
+import { TeamLogo } from '@/components/TeamLogo';
+import {
+  areTournamentTeamsComplete,
+  canAddTournamentTeams,
+  getTournamentTeamLimit,
+  getTournamentTitle,
+  parseTournamentId,
+} from '@/lib/utils/tournamentUtils';
 import { useGetTournamentQuery, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
-
-function TeamLogoIcon({ logo, teamName }) {
-  return (
-    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#0d0d0b]">
-      {logo ? (
-        <img src={logo} alt="" className="h-full w-full object-contain" />
-      ) : (
-        <span className="flex h-full w-full items-center justify-center text-[18px] font-bold text-white">
-          {(teamName ?? 'T').charAt(0).toUpperCase()}
-        </span>
-      )}
-    </div>
-  );
-}
 
 function teamDisplay(team) {
   const owner = team.sponsor?.name ?? (team.owner != null ? String(team.owner) : '—');
@@ -41,7 +34,7 @@ function TeamCard({ team, index, highlight }) {
     <div
       className={`flex items-start gap-3 rounded-[17px] bg-[#141412] p-4 ${highlight ? 'ring-2 ring-[#DA9811] ring-offset-2 ring-offset-black' : ''}`}
     >
-      <TeamLogoIcon logo={team.logo} teamName={team.name} />
+      <TeamLogo team={team} variant="organizerCard" />
       <div className="min-w-0 flex-1">
         <h3 className="text-[16px] font-bold text-white">{team.name ?? '—'}</h3>
         <div className="mt-0.5 flex flex-wrap items-center gap-2">
@@ -82,6 +75,10 @@ export default function TournamentSavedTeams() {
   const hasGroups = numberOfGroups > 1;
 
   const { data: teams = [], isLoading, isError, isSuccess } = useGetTournamentTeamsQuery(tournamentIdNum, { skip: !isValidId });
+
+  const teamLimit = getTournamentTeamLimit(tournament);
+  const canAddTeam = canAddTournamentTeams(tournament, teams.length);
+  const teamsComplete = areTournamentTeamsComplete(tournament, teams.length);
 
   const teamsByGroup = useMemo(() => {
     if (!hasGroups || numberOfGroups < 2) return null;
@@ -137,18 +134,33 @@ export default function TournamentSavedTeams() {
         {isError && <p className="mb-3 text-[13px] text-red-400">Failed to load teams.</p>}
 
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">Teams</h2>
-          <button
-            type="button"
-            onClick={handleNavigateToAddTeam}
-            className="flex shrink-0 items-center gap-2 transition-opacity active:opacity-80"
-          >
-            <span className="flex h-[27px] w-[27px] items-center justify-center rounded-full bg-[#DA9811] text-[18px] font-bold text-[#080807]">
-              +
-            </span>
-            <span className="text-[13px] font-bold text-[#A2A6AB]">Create Team</span>
-          </button>
+          <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">
+            Teams
+            {teamLimit != null && (
+              <span className="ml-2 font-semibold text-[#A2A6AB] normal-case">
+                ({teams.length}/{teamLimit})
+              </span>
+            )}
+          </h2>
+          {canAddTeam && (
+            <button
+              type="button"
+              onClick={handleNavigateToAddTeam}
+              className="flex shrink-0 items-center gap-2 transition-opacity active:opacity-80"
+            >
+              <span className="flex h-[27px] w-[27px] items-center justify-center rounded-full bg-[#DA9811] text-[18px] font-bold text-[#080807]">
+                +
+              </span>
+              <span className="text-[13px] font-bold text-[#A2A6AB]">Create Team</span>
+            </button>
+          )}
         </div>
+
+        {!isLoading && teamsComplete && (
+          <p className="mb-4 rounded-[17px] bg-[#141412] px-4 py-3 text-center text-[13px] text-[#A2A6AB]">
+            All {teamLimit} teams have been added. Submit teams to continue.
+          </p>
+        )}
 
         {!isLoading && isSuccess && teams.length === 0 && (
           <p className="mb-6 rounded-[17px] bg-[#141412] px-4 py-6 text-center text-[13px] text-[#A2A6AB]">
@@ -194,11 +206,7 @@ export default function TournamentSavedTeams() {
             variant="auth"
             className="h-12 w-full rounded-[8px] bg-[#E4E7F4] text-[15px] font-semibold tracking-wide text-[#1a1a1a] uppercase lg:w-auto"
             onClick={handleSubmitTeams}
-            disabled={
-              isLoading ||
-              teams.length === 0 ||
-              (tournament?.number_of_teams != null && teams.length < tournament.number_of_teams)
-            }
+            disabled={isLoading || teams.length === 0 || !teamsComplete}
           >
             Submit Teams
           </Button>

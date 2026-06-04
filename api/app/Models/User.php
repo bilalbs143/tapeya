@@ -6,6 +6,7 @@ namespace App\Models;
 use App\Builders\UserBuilder;
 use App\Contracts\RoleEnumInterface;
 use App\Enums\User\AdminRoleEnum;
+use App\Enums\User\AppRoleEnum;
 use App\Enums\User\BattingStyleEnum;
 use App\Enums\User\BowlingStyleEnum;
 use App\Enums\User\PlayingRoleEnum;
@@ -349,6 +350,21 @@ class User extends Authenticatable
         }
 
         return $query->whereHas('roles', fn (Builder $q) => $q->where('slug', $slug)->where('guard', $guard));
+    }
+
+    /**
+     * Scope: app users with player, sponsor, or organizer role (tournament team squad pickers).
+     */
+    public function scopeEligibleForTournamentSquad(Builder $query): Builder
+    {
+        return $query->whereHas('roles', function (Builder $q): void {
+            $q->where('roles.guard', RoleGuardEnum::APP->value)
+                ->whereIn('roles.slug', [
+                    AppRoleEnum::PLAYER->value,
+                    AppRoleEnum::SPONSOR->value,
+                    AppRoleEnum::ORGANIZER->value,
+                ]);
+        });
     }
 
     /**

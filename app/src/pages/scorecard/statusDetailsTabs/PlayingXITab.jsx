@@ -2,6 +2,7 @@
  * Playing XI tab: two-column squad list with match title (ScorecardStatusDetails).
  */
 import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
+import { formatListIndex } from '@/lib/format';
 
 import { StatusDetailsPlaceholderTab } from './PlaceholderTab';
 
@@ -62,7 +63,7 @@ export function StatusDetailsPlayingXITab({ match, details }) {
               return (
                 <tr key={startIndex + i}>
                   <td className={`w-8 shrink-0 border-r border-b border-l py-3 pl-3 text-white ${BORDER}${topBorderClass}`}>
-                    {startIndex + i}
+                    {formatListIndex(startIndex + i)}
                   </td>
                   <td className={`border-r border-b px-4 py-3 ${BORDER}${topBorderClass}`}>
                     {players1[i] ? (

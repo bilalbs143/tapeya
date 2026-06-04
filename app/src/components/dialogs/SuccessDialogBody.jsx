@@ -29,7 +29,7 @@ function SuccessIcon() {
 }
 
 /**
- * Shared body for success dialogs (Pricing, DraftingSubmitSquad, TournamentSquadUpdated).
+ * Shared body for success dialogs (Pricing, DraftingSubmitSquad).
  */
 export function SuccessDialogBody({ title, description }) {
   return (

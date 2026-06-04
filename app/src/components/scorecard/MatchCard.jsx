@@ -1,12 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import { CommentaryText } from '@/components/scorecard/CommentaryText';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-
-const karachiFlag = `${CLOUDFRONT_APP_BASE}/images/icons/karachi-flag.png`;
-const rawalpindiFlag = `${CLOUDFRONT_APP_BASE}/images/icons/rawalpindi-flag.png`;
-
-const FLAGS = { karachi: karachiFlag, rawalpindi: rawalpindiFlag };
+import { TeamLogo } from '@/components/TeamLogo';
 
 const STATUS_STYLES = {
   upcoming: 'text-[#DA9811]',
@@ -35,21 +30,8 @@ function LiveIcon() {
   );
 }
 
-function TeamLogo({ initial, accent = 'green' }) {
-  const bg = accent === 'green' ? 'bg-emerald-600' : 'bg-amber-500';
-  return (
-    <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${bg} text-xs font-bold text-white`}>
-      {initial}
-    </div>
-  );
-}
-
 function TeamAvatar({ team, accent }) {
-  const flagSrc = team.flag ? FLAGS[team.flag] : null;
-  if (flagSrc) {
-    return <img src={flagSrc} alt="" className="h-5 w-5 shrink-0 rounded-md object-cover" aria-hidden />;
-  }
-  return <TeamLogo initial={team.initial} accent={accent} />;
+  return <TeamLogo team={team} variant="scorecardCard" accent={accent} />;
 }
 
 /** Parse score2 like "27/1 (4.4/50 OV, T:235)" into current score and overs */
@@ -69,9 +51,10 @@ function normalizeTeam(team, fallbackName = 'Team', fallbackInitial = 'T') {
       name: team.name ?? fallbackName,
       initial: (team.initial ?? String(fallbackName).charAt(0)).toUpperCase(),
       flag: team.flag ?? null,
+      logo: team.logo ?? null,
     };
   }
-  return { name: fallbackName, initial: fallbackInitial, flag: null };
+  return { name: fallbackName, initial: fallbackInitial, flag: null, logo: null };
 }
 
 /** Normalise API status to MatchCard status */

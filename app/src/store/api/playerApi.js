@@ -1,22 +1,19 @@
 import { baseApi } from './baseApi';
 
 /**
- * Players API – list/search users with player role, and player stats for profile.
- * GET /players, GET /players?search=..., GET /users/{user}/stats, GET /users/{user}/teams
+ * Players API – search users for squad/icon pickers, and player stats for profile.
+ * GET /players?for_squad=1&search=... — all eligible squad members (player, sponsor, organizer)
+ * GET /users/{user}/stats, GET /users/{user}/teams
  */
 export const playerApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getPlayers: builder.query({
-      query: (params = {}) => ({
-        url: '/players',
-        params: params?.search != null && String(params.search).trim() !== '' ? { search: String(params.search).trim() } : {},
-      }),
-      transformResponse: (response) => response?.data ?? response ?? [],
-    }),
-    searchPlayers: builder.query({
+    searchSquadMembers: builder.query({
       query: (search = '') => ({
         url: '/players',
-        params: search != null && String(search).trim() !== '' ? { search: String(search).trim() } : {},
+        params: {
+          for_squad: 1,
+          ...(search != null && String(search).trim() !== '' ? { search: String(search).trim() } : {}),
+        },
       }),
       transformResponse: (response) => response?.data ?? response ?? [],
     }),
@@ -54,10 +51,5 @@ export const playerApi = baseApi.injectEndpoints({
   }),
 });
 
-export const {
-  useGetPlayersQuery,
-  useSearchPlayersQuery,
-  useGetPlayerStatsQuery,
-  useGetPlayerRankingPositionQuery,
-  useGetPlayerTeamsQuery,
-} = playerApi;
+export const { useSearchSquadMembersQuery, useGetPlayerStatsQuery, useGetPlayerRankingPositionQuery, useGetPlayerTeamsQuery } =
+  playerApi;

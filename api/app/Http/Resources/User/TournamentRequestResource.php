@@ -26,6 +26,7 @@ class TournamentRequestResource extends JsonResource
             'end_date' => $this->end_date?->format('Y-m-d'),
             'number_of_teams' => $this->number_of_teams,
             'number_of_groups' => (int) ($this->number_of_groups ?? 1),
+            'country' => $this->country,
             'city' => $this->city,
             'match_timings' => $this->match_timings?->value,
             'match_timings_label' => $this->match_timings?->label(),

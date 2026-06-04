@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useForm } from 'react-hook-form';
 
@@ -6,12 +6,14 @@ import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useSupportWhatsAppContact } from '@/hooks/useSupportWhatsAppContact';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { EMPTY_FILE_UPLOAD } from '@/lib/utils/fileUploadUtils';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useSubmitSupportMessageMutation } from '@/store/api/supportApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { FileUploadField } from '@/ui/FileUploadField';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import { Textarea } from '@/ui/Textarea';
@@ -39,8 +41,7 @@ export default function Support() {
     mode: 'onChange',
   });
 
-  const [attachment, setAttachment] = useState(null);
-  const attachmentInputRef = useRef(null);
+  const [attachment, setAttachment] = useState(EMPTY_FILE_UPLOAD);
 
   const [submitSupport, { isLoading: isSubmitting }] = useSubmitSupportMessageMutation();
 
@@ -55,31 +56,19 @@ export default function Support() {
     });
   }, [me?.id]);
 
-  const handleAttachmentChange = (e) => {
-    const file = e.target.files?.[0] ?? null;
-    if (file && file.size > 5 * 1024 * 1024) {
-      setError('attachment', { message: 'File must be under 5 MB.' });
-      setAttachment(null);
-      e.target.value = '';
-      return;
-    }
-    setAttachment(file);
-    clearErrors('attachment');
-  };
-
   const onSubmit = async (data) => {
     try {
+      const file = attachment.files[0] ?? null;
       const result = await submitSupport({
         name: data.name.trim(),
         phone: data.phone.trim() || undefined,
         message: data.message.trim(),
-        ...(attachment ? { attachment } : {}),
+        ...(file ? { attachment: file } : {}),
       }).unwrap();
 
       toast.success(result?.message ?? 'Your message has been sent. We will get back to you soon.');
       clearErrors();
-      setAttachment(null);
-      if (attachmentInputRef.current) attachmentInputRef.current.value = '';
+      setAttachment(EMPTY_FILE_UPLOAD);
       reset({
         name: me?.name?.trim() || me?.nickname?.trim() || '',
         phone: me?.phone?.trim() || '',
@@ -188,31 +177,21 @@ export default function Support() {
             />
           </FormField>
 
-          <FormField
+          <FileUploadField
             label={
               <>
-                Attachment <span className="font-normal">(optional)</span>
+                Attachment <span className="font-normal text-[#A2A6AB]/70">(optional)</span>
               </>
             }
-            htmlFor="support-attachment"
-          >
-            <input
-              ref={attachmentInputRef}
-              id="support-attachment"
-              type="file"
-              accept="image/jpeg,image/png,image/gif,image/webp,application/pdf"
-              onChange={handleAttachmentChange}
-              className={`block w-full text-[13px] text-[#A2A6AB] file:mr-3 file:rounded-[6px] file:border-0 file:bg-[#141412] file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-[#1a1a18] ${
-                errors.attachment ? 'rounded-[6px] ring-2 ring-red-500/40' : ''
-              }`}
-            />
-            <p className="text-[11px] leading-snug text-[#A2A6AB]/80">JPG, PNG, GIF, WebP, or PDF. Max 5&nbsp;MB.</p>
-            {errors.attachment && (
-              <p className="text-sm text-red-200" role="alert">
-                {errors.attachment.message}
-              </p>
-            )}
-          </FormField>
+            value={attachment}
+            onChange={setAttachment}
+            accept="image/jpeg,image/png,image/gif,image/webp,application/pdf"
+            acceptLabel="JPG, PNG, GIF, WebP, PDF"
+            maxSizeMb={5}
+            error={errors.attachment?.message}
+            name="attachment"
+            disabled={isSubmitting}
+          />
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-[12px] text-[#A2A6AB]">We will only use your details to respond to your request.</p>

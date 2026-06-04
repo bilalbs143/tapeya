@@ -1,3 +1,5 @@
+import { TeamLogo } from '@/components/TeamLogo';
+import { formatListIndex } from '@/lib/format';
 import { isValidTournamentId } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
 
@@ -53,8 +55,8 @@ export function TeamsTab({ tournamentId }) {
         <div className="divide-y divide-[#1A1A1A]">
           {teams.map((team, index) => (
             <div key={team.id ?? index} className="flex items-center gap-2.5 bg-transparent px-4 py-3.5 text-[13px] text-white">
-              <span className="w-6 text-xs text-[#A2A6AB]">{index + 1}</span>
-              {team.logo && <img src={team.logo} alt="" className="h-5 w-5 shrink-0 rounded-full object-cover" aria-hidden />}
+              <span className="w-6 text-xs text-[#A2A6AB]">{formatListIndex(index + 1)}</span>
+              <TeamLogo team={team} variant="teamsTab" />
               <span className="truncate">{team.name ?? team.code ?? 'Team'}</span>
             </div>
           ))}

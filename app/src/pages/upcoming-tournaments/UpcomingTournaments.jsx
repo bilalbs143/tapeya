@@ -6,7 +6,7 @@ import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatDateRange } from '@/lib/format';
 import { parseDate, toDateStr } from '@/lib/utils/dateUtils';
-import { getTournamentTitle } from '@/lib/utils/tournamentUtils';
+import { getTournamentDisplayImage, getTournamentTitle } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentsQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
 import { scorecardListClass, scorecardTriggerClass, Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
@@ -18,7 +18,7 @@ const upcomingTriggerClass =
   'min-w-[72px] flex-col items-center justify-center gap-0 rounded-xl px-4 py-2.5 text-white data-[state=active]:text-black lg:min-w-[96px]';
 
 function UpcomingTournamentCard({ tournament, onClick, disabled }) {
-  const imageUrl = tournament.display_image || FALLBACK_IMAGE;
+  const imageUrl = getTournamentDisplayImage(tournament, FALLBACK_IMAGE);
   const title = getTournamentTitle(tournament);
 
   return (

@@ -1,11 +1,9 @@
 import { useState } from 'react';
 
+import { TeamLogo } from '@/components/TeamLogo';
 import { useDialog } from '@/context/DialogContext';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
 import { ToggleGroup, ToggleGroupItem } from '@/ui/ToggleGroup';
-
-const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
 
 /**
  * Body-only — DialogManager provides the BaseDialog wrapper.
@@ -13,7 +11,7 @@ const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
  * Calls onStartScoring({ tossWinner, tossDecision }) on confirm.
  * Tracks its own saving state so the disabled prop isn't needed.
  */
-export function TossDialog({ teamAName, teamBName, onStartScoring }) {
+export function TossDialog({ teamAName, teamBName, teamALogo, teamBLogo, onStartScoring }) {
   const { closeDialog } = useDialog();
   const [tossWinner, setTossWinner] = useState('');
   const [tossDecision, setTossDecision] = useState('');
@@ -49,7 +47,7 @@ export function TossDialog({ teamAName, teamBName, onStartScoring }) {
               tossWinner === 'A' ? 'border-[#DA9811] bg-[#DA9811] text-white' : 'border-[#141412] bg-[#141412] text-white'
             }`}
           >
-            <img src={teamMatchIcon} alt="" className="h-8 w-8 shrink-0" aria-hidden />
+            <TeamLogo name={teamAName} logo={teamALogo} variant="dialog" />
             <span className="text-[14px] font-bold uppercase">{teamAName || 'Team A'}</span>
           </button>
           <button
@@ -59,7 +57,7 @@ export function TossDialog({ teamAName, teamBName, onStartScoring }) {
               tossWinner === 'B' ? 'border-[#DA9811] bg-[#DA9811] text-white' : 'border-[#141412] bg-[#141412] text-white'
             }`}
           >
-            <img src={teamMatchIcon} alt="" className="h-8 w-8 shrink-0" aria-hidden />
+            <TeamLogo name={teamBName} logo={teamBLogo} variant="dialog" />
             <span className="text-[14px] font-bold uppercase">{teamBName || 'Team B'}</span>
           </button>
         </div>

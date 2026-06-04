@@ -20,9 +20,9 @@ import { BowlerTable } from '@/components/scoring/BowlerTable';
 import { LiveScoreBox } from '@/components/scoring/LiveScoreBox';
 import { OverStrip } from '@/components/scoring/OverStrip';
 import { ScoringControls } from '@/components/scoring/ScoringControls';
+import { TeamLogo } from '@/components/TeamLogo';
 import { useDialog } from '@/context/DialogContext';
 import { useScoringEngine } from '@/hooks/useScoringEngine';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
   batsmenOnCreaseFromMatchState,
   bowlersInTableForLiveScoring,
@@ -39,10 +39,6 @@ import { useStoreMatchSquadMutation, useStorePlayingElevenMutation } from '@/sto
 
 import { MatchStatsRow, SecondInningsChaseRow } from '../MatchStatsRow';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const TEAM_MATCH_ICON = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 /**
@@ -51,6 +47,7 @@ const TEAM_MATCH_ICON = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg
  * @param {boolean}  [matchComplete]
  * @param {string}   inningsNumber           '1' | '2'
  * @param {string}   [battingTeamName]       Display name for the batting team
+ * @param {string|null} [battingTeamLogo]    Logo URL for the batting team
  * @param {number}   battingTeamId
  * @param {number}   bowlingTeamId
  * @param {number[]} [battingPlayingElevenIds]
@@ -75,6 +72,7 @@ export function ScoringTab({
   matchComplete = false,
   inningsNumber = '1',
   battingTeamName,
+  battingTeamLogo,
   battingTeamId,
   bowlingTeamId,
   battingPlayingElevenIds = [],
@@ -670,7 +668,7 @@ export function ScoringTab({
     <div className="mt-4 space-y-4 pb-8">
       {/* Innings header */}
       <div className="flex items-center justify-center gap-2">
-        <img src={TEAM_MATCH_ICON} alt="" className="h-8 w-8 shrink-0" aria-hidden />
+        <TeamLogo name={battingTeamName} logo={battingTeamLogo} variant="scoring" />
         <span className="text-[16px] font-bold tracking-wide text-white uppercase">{displayTeamName}</span>
         <span className="text-[13px] text-[#DA9811]">{inningsLabel}</span>
       </div>
