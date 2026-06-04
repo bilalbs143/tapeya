@@ -1,0 +1,102 @@
+<app-dialog-wrapper [title]="'Edit Template: ' + data.template.name">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="submit()"
+    aria-label="Edit push template form"
+  >
+    <mat-dialog-content>
+      <div class="grid grid-cols-12 gap-x-6">
+        @if (availableVariables.length) {
+          <div class="col-span-12 mb-4">
+            <mat-label class="text-sm font-semibold mb-2 block">Available Variables</mat-label>
+            <div class="flex flex-wrap gap-1.5">
+              @for (variable of availableVariables; track variable) {
+                <code class="font-mono text-xs text-muted">{{ formatVariable(variable) }}</code>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Title Template -->
+        <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">Title Template <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              formControlName="title_template"
+              maxlength="255"
+              placeholder="e.g. Order #{{ '{{' }}order_number{{ '}}' }} Placed"
+            />
+            <mat-hint align="end">{{ form.get('title_template')?.value?.length || 0 }}/255</mat-hint>
+            @if (form.get('title_template')?.hasError('required') && form.get('title_template')?.touched) {
+              <mat-error>Title template is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <!-- Body Template -->
+        <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">Body Template <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <textarea
+              matInput
+              rows="4"
+              formControlName="body_template"
+              maxlength="2000"
+              placeholder="e.g. Your order has been placed successfully."
+            ></textarea>
+            <mat-hint align="end">{{ form.get('body_template')?.value?.length || 0 }}/2000</mat-hint>
+            @if (form.get('body_template')?.hasError('required') && form.get('body_template')?.touched) {
+              <mat-error>Body template is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <!-- Active toggle -->
+        <div class="col-span-12 flex items-center pt-1">
+          <mat-slide-toggle
+            formControlName="is_active"
+            color="primary"
+          >
+            <span class="text-sm font-semibold">Active</span>
+          </mat-slide-toggle>
+        </div>
+
+        <!-- Live Preview -->
+        <div class="col-span-12 mt-2">
+          <p class="text-sm font-semibold mb-2">Live Preview</p>
+          <div class="rounded-md bg-[#111827] px-4 py-3 text-white shadow-sm">
+            <p class="mb-1 text-sm font-semibold">{{ previewTitle || '—' }}</p>
+            <p class="m-0 text-sm text-[#D1D5DB]">{{ previewBody || '—' }}</p>
+          </div>
+          <p class="mt-1.5 text-xs text-muted">Preview uses sample data from the API for this template key.</p>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions>
+      <button
+        type="button"
+        mat-stroked-button
+        class="border border-error! text-error"
+        [mat-dialog-close]="false"
+      >
+        Cancel
+      </button>
+
+      <app-submit-button
+        [disabled]="form.invalid"
+        [isSubmitting]="isSubmitting"
+        text="Save Template"
+        color="primary"
+      />
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

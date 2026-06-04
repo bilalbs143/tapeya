@@ -166,6 +166,7 @@ export function Sidebar({ open, onClose }) {
         accessToken,
       });
     }
+
     dispatch(clearCredentials());
     onClose();
     navigate('/login', { replace: true });

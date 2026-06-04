@@ -9,6 +9,7 @@ use App\Settings\GeneralSettings;
 use App\Settings\LiveChatSettings;
 use App\Settings\OtpSettings;
 use App\Settings\OverlaySettings;
+use App\Settings\PushSettings;
 use App\Settings\SmsSettings;
 use App\Settings\StreamingSettings;
 use App\Settings\VeevoTechSmsSettings;
@@ -33,6 +34,7 @@ class SystemSettingsSeeder extends Seeder
         $this->seedWhatsApp();
         $this->seedStreaming();
         $this->seedLiveChat();
+        $this->seedPush();
     }
 
     private function seedGeneral(): void
@@ -145,5 +147,15 @@ class SystemSettingsSeeder extends Seeder
         $chat->burstWindowSec ??= 600;
         $chat->bodyMax ??= 200;
         $chat->save();
+    }
+
+    private function seedPush(): void
+    {
+        $push = app(PushSettings::class);
+        $push->enabled ??= 0;
+        $push->provider ??= 'fcm';
+        $push->fcmProjectId ??= null;
+        $push->fcmServiceAccountJson ??= null;
+        $push->save();
     }
 }

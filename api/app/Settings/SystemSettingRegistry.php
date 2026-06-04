@@ -197,6 +197,18 @@ final class SystemSettingRegistry
             SystemSettingKeyEnum::LIVE_CHAT_BODY_MAX => [
                 'value' => ['required', 'integer', 'min:50', 'max:500'],
             ],
+            SystemSettingKeyEnum::PUSH_ENABLED => [
+                'value' => ['required', 'integer', 'in:0,1'],
+            ],
+            SystemSettingKeyEnum::PUSH_PROVIDER => [
+                'value' => ['required', 'string', 'in:fcm'],
+            ],
+            SystemSettingKeyEnum::PUSH_FCM_PROJECT_ID => [
+                'value' => ['nullable', 'string', 'max:128'],
+            ],
+            SystemSettingKeyEnum::PUSH_FCM_SERVICE_ACCOUNT_JSON => [
+                'value' => ['nullable', 'string', 'max:8192'],
+            ],
         };
     }
 
@@ -252,6 +264,15 @@ final class SystemSettingRegistry
         if ($key === SystemSettingKeyEnum::SMS_OTP_MESSAGE && is_string($raw) && trim($raw) !== '') {
             if (! str_contains($raw, ':code')) {
                 $validator->errors()->add('value', 'The OTP Message Must Contain the :code Placeholder.');
+            }
+        }
+
+        if ($key === SystemSettingKeyEnum::PUSH_FCM_SERVICE_ACCOUNT_JSON && is_string($raw) && trim($raw) !== '') {
+            $decoded = json_decode($raw, true);
+            if (! is_array($decoded)) {
+                $validator->errors()->add('value', 'The FCM Service Account JSON Must Be Valid JSON.');
+            } elseif (! isset($decoded['project_id'], $decoded['private_key'], $decoded['client_email'])) {
+                $validator->errors()->add('value', 'The FCM Service Account JSON Must Include project_id, private_key, and client_email.');
             }
         }
     }
@@ -587,6 +608,42 @@ final class SystemSettingRegistry
                 'settings_class' => LiveChatSettings::class,
                 'property' => 'bodyMax',
                 'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::PUSH_ENABLED->value => [
+                'group' => SystemSettingGroupEnum::PUSH_NOTIFICATIONS,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Push Notifications Enabled',
+                'description' => '1 = push on, 0 = kill switch (audit log only, no FCM delivery).',
+                'settings_class' => PushSettings::class,
+                'property' => 'enabled',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::PUSH_PROVIDER->value => [
+                'group' => SystemSettingGroupEnum::PUSH_NOTIFICATIONS,
+                'type' => SystemSettingTypeEnum::STRING,
+                'label' => 'Push Provider',
+                'description' => 'Active push provider. Currently: fcm.',
+                'settings_class' => PushSettings::class,
+                'property' => 'provider',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::PUSH_FCM_PROJECT_ID->value => [
+                'group' => SystemSettingGroupEnum::PUSH_NOTIFICATIONS,
+                'type' => SystemSettingTypeEnum::STRING,
+                'label' => 'FCM Project ID',
+                'description' => 'Firebase project ID for FCM HTTP v1 API.',
+                'settings_class' => PushSettings::class,
+                'property' => 'fcmProjectId',
+                'nullable_string' => true,
+            ],
+            SystemSettingKeyEnum::PUSH_FCM_SERVICE_ACCOUNT_JSON->value => [
+                'group' => SystemSettingGroupEnum::PUSH_NOTIFICATIONS,
+                'type' => SystemSettingTypeEnum::TEXT,
+                'label' => 'FCM Service Account JSON',
+                'description' => 'Full Firebase service account JSON key (stored encrypted).',
+                'settings_class' => PushSettings::class,
+                'property' => 'fcmServiceAccountJson',
+                'nullable_string' => true,
             ],
         ];
     }

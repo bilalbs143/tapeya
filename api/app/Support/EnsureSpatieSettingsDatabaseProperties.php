@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Settings\GeneralSettings;
 use App\Settings\LiveChatSettings;
 use App\Settings\OverlaySettings;
+use App\Settings\PushSettings;
 use App\Settings\StreamingSettings;
 use ReflectionProperty;
 use Spatie\LaravelSettings\Settings;
@@ -77,6 +78,10 @@ final class EnsureSpatieSettingsDatabaseProperties
                     },
                     StreamingSettings::class => match ($name) {
                         'defaultProvider' => 'youtube',
+                        default => '',
+                    },
+                    PushSettings::class => match ($name) {
+                        'provider' => 'fcm',
                         default => '',
                     },
                     default => '',

@@ -68,6 +68,11 @@ enum SystemSettingKeyEnum: string
     case LIVE_CHAT_BURST_WINDOW_SEC = 'live_chat_burst_window_sec';
     case LIVE_CHAT_BODY_MAX = 'live_chat_body_max';
 
+    case PUSH_ENABLED = 'push_enabled';
+    case PUSH_PROVIDER = 'push_provider';
+    case PUSH_FCM_PROJECT_ID = 'push_fcm_project_id';
+    case PUSH_FCM_SERVICE_ACCOUNT_JSON = 'push_fcm_service_account_json';
+
     public function group(): SystemSettingGroupEnum
     {
         return SystemSettingRegistry::group($this);

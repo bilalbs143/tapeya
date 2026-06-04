@@ -86,6 +86,22 @@ export const navItems: NavItem[] = [
     route: '/notifications',
   },
   {
+    displayName: 'Engagement',
+    iconName: 'solar:chat-round-dots-line-duotone',
+    children: [
+      {
+        displayName: 'Push Notifications',
+        iconName: 'tabler:point',
+        route: '/engagement/push-notifications',
+      },
+      {
+        displayName: 'Push Templates',
+        iconName: 'tabler:point',
+        route: '/engagement/push-notification-templates',
+      },
+    ],
+  },
+  {
     displayName: 'Shop',
     iconName: 'solar:cart-large-2-line-duotone',
     children: [

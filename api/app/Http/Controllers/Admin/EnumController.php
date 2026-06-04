@@ -8,6 +8,8 @@ use App\Enums\Event\MatchStatusEnum;
 use App\Enums\Event\MatchTimingEnum;
 use App\Enums\Event\ShotPositionEnum;
 use App\Enums\Notification\AdminNotificationTypeEnum;
+use App\Enums\Push\PushNotificationStatusEnum;
+use App\Enums\Push\PushTriggeredByEnum;
 use App\Enums\Shop\OrderStatusEnum;
 use App\Enums\Shop\ProductDiscountTypeEnum;
 use App\Enums\SystemSetting\SystemSettingGroupEnum;
@@ -70,6 +72,8 @@ class EnumController extends Controller
             'tournament_interest_submission_status' => $this->toOptions(TournamentInterestSubmissionStatusEnum::cases()),
             'shot_position' => $this->toOptions(ShotPositionEnum::cases()),
             'notification_type' => $this->toOptions(AdminNotificationTypeEnum::cases()),
+            'push_notification_status' => $this->toOptions(PushNotificationStatusEnum::cases()),
+            'push_triggered_by' => $this->toOptions(PushTriggeredByEnum::cases()),
             'app_roles' => Role::forGuard(RoleGuardEnum::APP->value)->orderBy('name')->get()->map(fn (Role $r) => [
                 'value' => (string) $r->id,
                 'label' => $r->name,

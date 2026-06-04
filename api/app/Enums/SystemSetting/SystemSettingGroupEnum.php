@@ -44,6 +44,9 @@ enum SystemSettingGroupEnum: string
     /** Live match chat (rate limits, kill switch). */
     case LIVE_CHAT = 'live_chat';
 
+    /** Push notification provider credentials and kill switch. */
+    case PUSH_NOTIFICATIONS = 'push_notifications';
+
     public function label(): string
     {
         return match ($this) {
@@ -59,6 +62,7 @@ enum SystemSettingGroupEnum: string
             self::WHATSAPP => 'WhatsApp',
             self::STREAMING => 'Live Streaming',
             self::LIVE_CHAT => 'Live Match Chat',
+            self::PUSH_NOTIFICATIONS => 'Push Notifications',
         };
     }
 }

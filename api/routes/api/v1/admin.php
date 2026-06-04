@@ -16,6 +16,8 @@ use App\Http\Controllers\Admin\MatchGraphicPlayerListController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PlayerController;
+use App\Http\Controllers\Admin\PushNotificationController;
+use App\Http\Controllers\Admin\PushNotificationTemplateController;
 use App\Http\Controllers\Admin\Shop\BrandController as AdminBrandController;
 use App\Http\Controllers\Admin\Shop\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\Shop\EcommerceDashboardController;
@@ -51,6 +53,12 @@ Route::prefix('admin')->group(function () {
     Route::middleware(['auth:api', 'admin.only'])->group(function () {
         Route::get('enums', [EnumController::class, 'index']);
         Route::apiResource('highlights', AdminHighlightController::class);
+        Route::get('push-notifications', [PushNotificationController::class, 'index']);
+        Route::post('push-notifications/send', [PushNotificationController::class, 'send']);
+        Route::get('push-notifications/{pushNotificationLog}', [PushNotificationController::class, 'show']);
+        Route::get('push-notification-templates', [PushNotificationTemplateController::class, 'index']);
+        Route::get('push-notification-templates/{pushNotificationTemplate}', [PushNotificationTemplateController::class, 'show']);
+        Route::patch('push-notification-templates/{pushNotificationTemplate}', [PushNotificationTemplateController::class, 'update']);
         Route::get('notifications', [NotificationController::class, 'index']);
         Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
         Route::delete('notifications', [NotificationController::class, 'flush']);

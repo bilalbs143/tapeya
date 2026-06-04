@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\User\Auth\UserAuthController;
+use App\Http\Controllers\User\DeviceTokenController;
 use App\Http\Controllers\User\EnumController;
 use App\Http\Controllers\User\HeroSliderController;
 use App\Http\Controllers\User\HighlightController;
@@ -85,6 +86,7 @@ Route::middleware('auth:api')->prefix('shop')->group(function () {
 
 Route::middleware('auth:api')->group(function () {
     Route::get('/me', [UserAuthController::class, 'me']);
+    Route::post('device-tokens', [DeviceTokenController::class, 'store'])->middleware('throttle:60,1');
     Route::delete('profile', [ProfileController::class, 'destroy']);
     Route::match(['patch', 'post'], 'profile', [ProfileController::class, 'update']);
     Route::get('countries', [CountryController::class, 'index']);
@@ -106,8 +108,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('teams/{team}/squad', [TeamController::class, 'showSquad']);
     Route::post('teams/{team}/squad', [TeamController::class, 'storeSquad']);
     Route::get('live/matches', [LiveStreamController::class, 'index']);
-    Route::post('matches/{match}/live-comments', [LiveMatchCommentController::class, 'store'])
-        ->middleware('throttle:120,1');
+    Route::post('matches/{match}/live-comments', [LiveMatchCommentController::class, 'store'])->middleware('throttle:120,1');
     Route::get('tournaments', [TournamentController::class, 'index']);
     Route::get('tournaments/{tournament}', [TournamentController::class, 'show']);
     Route::post('tournaments/{tournament}/like', [TournamentReactionController::class, 'like']);

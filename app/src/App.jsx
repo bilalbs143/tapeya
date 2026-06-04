@@ -10,6 +10,7 @@ import { ScrollRestoration } from '@/components/ScrollRestoration';
 import SplashScreen from '@/components/SplashScreen';
 import { DialogProvider } from '@/context/DialogContext';
 import { ToastProvider } from '@/contexts/ToastContext';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useReverbNotifications } from '@/hooks/useReverbNotifications';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { MainLayout } from '@/layouts/MainLayout';
@@ -91,6 +92,12 @@ function PageFallback() {
   );
 }
 
+/** Hooks that require React Router context (must render inside BrowserRouter). */
+function RouterEffects() {
+  usePushNotifications();
+  return null;
+}
+
 function App() {
   useReverbNotifications();
 
@@ -105,6 +112,7 @@ function App() {
                 v7_startTransition: true,
               }}
             >
+              <RouterEffects />
               <ScrollRestoration />
               <DialogManager />
               <AppUpdatePrompt />

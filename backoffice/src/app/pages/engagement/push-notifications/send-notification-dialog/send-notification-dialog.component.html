@@ -1,0 +1,96 @@
+<app-dialog-wrapper title="Send Push Notification">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="submit()"
+    aria-label="Send notification form"
+  >
+    <mat-dialog-content>
+      <div class="grid grid-cols-12 gap-x-6">
+        <!-- Title -->
+        <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">Title <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              formControlName="title"
+              maxlength="100"
+              placeholder="Notification title"
+            />
+            <mat-hint align="end">{{ form.get('title')?.value?.length || 0 }}/100</mat-hint>
+            @if (form.get('title')?.hasError('required') && form.get('title')?.touched) {
+              <mat-error>Title is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <!-- Body -->
+        <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">Body <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <textarea
+              matInput
+              rows="3"
+              formControlName="body"
+              maxlength="200"
+              placeholder="Notification message"
+            ></textarea>
+            <mat-hint align="end">{{ form.get('body')?.value?.length || 0 }}/200</mat-hint>
+            @if (form.get('body')?.hasError('required') && form.get('body')?.touched) {
+              <mat-error>Body is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <!-- Image URL -->
+        <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">
+            Image URL
+            <span class="text-xs font-normal text-muted ml-1">(1024×512 JPG/PNG, under 1 MB, public HTTPS URL)</span>
+          </mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              formControlName="image_url"
+              placeholder="https://..."
+            />
+          </mat-form-field>
+        </div>
+
+        <!-- Info -->
+        <div class="col-span-12">
+          <p class="text-sm text-muted m-0">
+            This broadcast will be sent to <strong>all users</strong> with active device tokens.
+          </p>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions>
+      <button
+        type="button"
+        mat-stroked-button
+        class="border border-error! text-error"
+        [mat-dialog-close]="false"
+      >
+        Cancel
+      </button>
+
+      <app-submit-button
+        [disabled]="form.invalid"
+        [isSubmitting]="isSubmitting"
+        text="Send Notification"
+        color="primary"
+      />
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>
