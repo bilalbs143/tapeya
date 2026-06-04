@@ -3,11 +3,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
-import { useAddToCart } from '@/hooks/shop/useAddToCart';
 import { useToast } from '@/hooks/useToast';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatPrice } from '@/lib/format';
-import { useGetProductQuery } from '@/store/api/shopApi';
+import { useAddCartItemMutation, useGetProductQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 
 const shoppingCartIcon = `${CLOUDFRONT_APP_BASE}/images/icons/shopping-cart.svg`;
@@ -26,7 +25,7 @@ export default function ShopProductDetail() {
 
   const { data: product, isLoading, isError, error } = useGetProductQuery(productSlug, { skip: !productSlug });
   const toast = useToast();
-  const { addToCart, isAddingToCart } = useAddToCart();
+  const [addToCart, { isLoading: isAddingToCart }] = useAddCartItemMutation();
 
   const normalized = useMemo(() => {
     if (!product) return null;

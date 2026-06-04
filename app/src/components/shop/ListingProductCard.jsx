@@ -2,16 +2,13 @@ import { memo } from 'react';
 
 import { Link } from 'react-router-dom';
 
-import { useAddToCart } from '@/hooks/shop/useAddToCart';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatPrice } from '@/lib/format';
 
 const productCartIcon = `${CLOUDFRONT_APP_BASE}/images/icons/product-cart-icon.svg`;
 
 function ListingProductCardInner({ product, brandSlug }) {
-  const { addingProductId, handleAddToCartForCard } = useAddToCart();
-  const isThisCardAdding = addingProductId === product.id;
-  const stock = product.stock_quantity ?? 0;
+  const detailPath = brandSlug && product.slug ? `/shop/${brandSlug}/product/${product.slug}` : null;
   const imageUrl = product.images?.[0]?.path;
   const hasDiscount = product.sale_price != null && product.sale_price < product.price;
   const discountPercent = hasDiscount && product.price > 0 ? Math.round((1 - product.sale_price / product.price) * 100) : 0;
@@ -48,35 +45,31 @@ function ListingProductCardInner({ product, brandSlug }) {
               <span className="text-base font-bold text-[#DA9811]">{formatPrice(product.price)}</span>
             )}
           </div>
-          <button
-            type="button"
-            onClick={(e) => handleAddToCartForCard(e, product.id)}
-            disabled={stock < 1 || isThisCardAdding}
-            className="flex shrink-0 items-center gap-0.5 rounded p-1 transition-opacity active:opacity-80 disabled:opacity-50"
-            aria-label={`Add ${product.name} to cart`}
-          >
-            <svg
-              className="h-3 w-3 font-bold text-[#DA9811]"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-              aria-hidden
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            <img src={productCartIcon} alt="" className="h-[17px] w-[17px]" aria-hidden />
-          </button>
+          {detailPath && (
+            <span className="flex shrink-0 items-center gap-0.5 rounded p-1" aria-hidden>
+              <svg
+                className="h-3 w-3 font-bold text-[#DA9811]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              <img src={productCartIcon} alt="" className="h-[17px] w-[17px]" />
+            </span>
+          )}
         </div>
       </div>
     </>
   );
 
-  if (brandSlug && product.slug) {
+  if (detailPath) {
     return (
       <Link
-        to={`/shop/${brandSlug}/product/${product.slug}`}
+        to={detailPath}
         className="flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[17px] bg-[#1a1a18] transition-opacity active:opacity-90"
+        aria-label={`View ${product.name}`}
       >
         {content}
       </Link>
