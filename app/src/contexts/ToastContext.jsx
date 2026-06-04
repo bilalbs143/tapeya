@@ -42,7 +42,7 @@ export function ToastProvider({ children }) {
     <ToastContext.Provider value={toast}>
       {children}
       <ToastViewportStyled />
-      <ToastRootStyled variant={state.variant} open={state.open} onOpenChange={handleOpenChange} duration={5000}>
+      <ToastRootStyled variant={state.variant} open={state.open} onOpenChange={handleOpenChange} duration={3000}>
         {state.title && <ToastTitleStyled>{state.title}</ToastTitleStyled>}
         <ToastDescriptionStyled descriptionOnly={!state.title}>{state.description}</ToastDescriptionStyled>
       </ToastRootStyled>
