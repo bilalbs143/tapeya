@@ -2,6 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { toHttpParams } from 'src/app/shared/functions/http-params.function';
+
 import type { UserSearchRow } from './users.service';
 
 export interface TournamentTeamRow {
@@ -38,9 +40,12 @@ export class TournamentTeamsService {
   }
 
   public getSquadOccupancy(tournamentId: number, excludeTeamId?: number): Observable<{ data: SquadOccupancyRow[] }> {
-    const params = excludeTeamId != null ? { exclude_team_id: excludeTeamId } : {};
+    const params: Record<string, unknown> = {};
+    if (excludeTeamId != null) {
+      params['exclude_team_id'] = excludeTeamId;
+    }
     return this.http.get<{ data: SquadOccupancyRow[] }>(`v1/admin/tournaments/${tournamentId}/squad-occupancy`, {
-      params,
+      params: toHttpParams(params),
     });
   }
 

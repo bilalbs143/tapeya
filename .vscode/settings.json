@@ -31,14 +31,12 @@
     "**/.DS_Store": true,
     "**/node_modules": true,
     "**/vendor": true,
-    "api/storage": true,
     "api/bootstrap/cache": true,
     "app/dist": true,
     "app/www": true,
     "app/ios/App/Pods": true,
     "backoffice/dist": true,
     "backoffice/.angular": true,
-    "laravel/storage": true,
     "laravel/vendor": true
   },
   "search.exclude": {
@@ -46,8 +44,6 @@
     "**/vendor": true,
     "**/dist": true,
     "**/.angular": true,
-    "api/storage": true,
-    "laravel/storage": true,
     "package-lock.json": true
   },
 
