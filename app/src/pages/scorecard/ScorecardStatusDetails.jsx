@@ -94,8 +94,6 @@ import { useParams } from 'react-router-dom';
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { CommentaryText } from '@/components/scorecard/CommentaryText';
 import { TeamLogo } from '@/components/TeamLogo';
-import { useMatchStreamChannel } from '@/features/stream/hooks/useMatchStreamChannel';
-import { StreamPlayer } from '@/features/stream/StreamPlayer';
 import { useMatchScoringChannel } from '@/hooks/useMatchScoringChannel';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
@@ -357,9 +355,6 @@ export default function ScorecardStatusDetails() {
   // handles reconnection recovery (see useMatchScoringChannel).
   useMatchScoringChannel(isActive ? matchId : null);
 
-  const hasStream = Boolean(apiMatch?.stream);
-  useMatchStreamChannel(hasStream ? matchId : null);
-
   const scheduleMatches = useMemo(
     () => normaliseTournamentMatches([{ id: tournamentId, matches: rawTournamentMatches }]),
     [tournamentId, rawTournamentMatches],
@@ -492,11 +487,6 @@ export default function ScorecardStatusDetails() {
     <div className="bg-black">
       <AppSubpageHeader title="SCORE CARD" />
 
-      {apiMatch?.stream && (
-        <Container className="!py-0">
-          <StreamPlayer stream={apiMatch.stream} />
-        </Container>
-      )}
 
       <MatchHeader match={liveMatch} details={details} />
 

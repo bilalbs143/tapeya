@@ -15,6 +15,7 @@ export function IframeStreamPlayer({ playback, className = '', fill = false }) {
         src={src}
         title="Live Match"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
       />
     </div>
   );

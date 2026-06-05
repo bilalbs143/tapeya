@@ -34,10 +34,11 @@ function makeReducer() {
  * Local ephemeral comment state — never touches RTK Query cache.
  *
  * @param {string|number|null} matchId
- * @param {boolean} [enabled] Pass false when stream is idle/ended
+ * @param {boolean}   [enabled]  Pass false when stream is idle/ended
+ * @param {() => void} [onHeart] Stable callback fired when any viewer sends a heart
  * @returns {{ messages: object[], reset: () => void }}
  */
-export function useMatchComments(matchId, enabled = true) {
+export function useMatchComments(matchId, enabled = true, onHeart) {
   const reducerRef = useRef(makeReducer());
 
   const [messages, dispatch] = useReducer((state, action) => reducerRef.current(state, action), []);
@@ -62,7 +63,7 @@ export function useMatchComments(matchId, enabled = true) {
     dispatch({ type: 'ADD', msg });
   }, []);
 
-  useMatchChatChannel(enabled && matchId ? matchId : null, handleMessage);
+  useMatchChatChannel(enabled && matchId ? matchId : null, handleMessage, onHeart);
 
   return { messages, reset };
 }

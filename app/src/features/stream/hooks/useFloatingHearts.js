@@ -1,26 +1,32 @@
 import { useCallback, useState } from 'react';
 
-const HEART_COLORS = ['#ef4444', '#f87171', '#fb7185', '#e11d48', '#fda4af'];
+const BUBBLE_GRADIENTS = [
+  'from-pink-500 to-rose-400',
+  'from-purple-500 to-pink-400',
+  'from-orange-400 to-rose-500',
+  'from-red-500 to-pink-400',
+  'from-fuchsia-500 to-purple-400',
+];
 
 let heartId = 0;
+const MAX_FLOATING_HEARTS = 20;
 
-const MAX_FLOATING_HEARTS = 25;
-
-/** Spawns floating hearts over the player (YouTube / Facebook live style). */
+/** Spawns Facebook-style avatar bubbles with heart badge over the player. */
 export function useFloatingHearts() {
   const [hearts, setHearts] = useState([]);
 
-  const spawnBurst = useCallback((count = 5) => {
-    const batch = Array.from({ length: count }, () => ({
+  const spawnBurst = useCallback((avatarUrl = null, initials = '?') => {
+    const bubble = {
       id: ++heartId,
-      left: 68 + Math.random() * 24,
-      bottom: 14 + Math.random() * 16,
-      size: 20 + Math.random() * 16,
-      drift: -40 + Math.random() * 80,
-      delay: Math.random() * 0.35,
-      color: HEART_COLORS[Math.floor(Math.random() * HEART_COLORS.length)],
-    }));
-    setHearts((prev) => [...prev, ...batch].slice(-MAX_FLOATING_HEARTS));
+      left: 72 + Math.random() * 18,
+      bottom: 16 + Math.random() * 10,
+      drift: -20 + Math.random() * 40,
+      delay: 0,
+      gradient: BUBBLE_GRADIENTS[Math.floor(Math.random() * BUBBLE_GRADIENTS.length)],
+      avatarUrl,
+      initials,
+    };
+    setHearts((prev) => [...prev, bubble].slice(-MAX_FLOATING_HEARTS));
   }, []);
 
   const removeHeart = useCallback((id) => {

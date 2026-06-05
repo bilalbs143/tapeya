@@ -11,8 +11,10 @@ import { useMatchComments } from '@/features/stream/hooks/useMatchComments';
 import { StreamPlayer } from '@/features/stream/StreamPlayer';
 import { useToast } from '@/hooks/useToast';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { useAppSelector } from '@/store/hooks';
+import { getInitials } from '@/lib/utils/displayUtils';
 import { mapSystemSettingsByKey } from '@/lib/mapSystemSettingsByKey';
-import { useSendLiveCommentMutation } from '@/store/api/matchApi';
+import { useSendLiveCommentMutation, useSendLiveHeartMutation } from '@/store/api/matchApi';
 import { useGetPublicSystemSettingsQuery } from '@/store/api/systemSettingsApi';
 
 import LandscapeRotatedStage from './LandscapeRotatedStage';
@@ -20,7 +22,7 @@ import LandscapeRotatedStage from './LandscapeRotatedStage';
 const maxMinIcon = `${CLOUDFRONT_APP_BASE}/images/icons/max-min-icon.svg`;
 const commentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/comment-icon.svg`;
 
-const BOTTOM_OVERLAY = 'pointer-events-none absolute right-0 bottom-0 left-0 z-10 px-4 pb-2';
+const BOTTOM_OVERLAY = 'pointer-events-none absolute right-0 bottom-[12px] left-0 z-10 px-4 pb-2';
 
 const TOGGLE_BTN =
   'flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/[0.13] backdrop-blur-[9.7px] transition-opacity active:opacity-80';
@@ -152,9 +154,6 @@ function CommentInputRow({ onSend, onSendHeart, disabled = false }) {
 // ---------------------------------------------------------------------------
 
 function BroadcastBottomPanel({
-  homeTeam,
-  awayTeam,
-  tournament,
   messages,
   chatEnabled,
   streamStatus,
@@ -167,19 +166,13 @@ function BroadcastBottomPanel({
   onToggleBottomPanel,
 }) {
   return (
-    <div className="relative flex w-full flex-col gap-2">
+    <div className={`flex w-full flex-col gap-2 ${isLandscape ? '' : 'relative'}`}>
       {bottomPanelVisible && chatEnabled && <CommentList messages={messages} isLandscape={isLandscape} />}
 
       <div className={`flex gap-2 ${bottomPanelVisible ? 'items-start' : 'items-center justify-end'}`}>
-        {bottomPanelVisible && (
+        {bottomPanelVisible && streamStatus === 'ended' && (
           <div className="min-w-0 flex-1 px-1">
-            <p className={`leading-snug font-bold text-white drop-shadow ${isLandscape ? 'text-[13px]' : 'text-[14px]'}`}>
-              {homeTeam} vs {awayTeam}
-            </p>
-            {tournament && (
-              <p className={`mt-0.5 text-white/70 drop-shadow ${isLandscape ? 'text-[11px]' : 'text-[12px]'}`}>{tournament}</p>
-            )}
-            {streamStatus === 'ended' && <p className="mt-1 text-[11px] text-white/60 drop-shadow">Stream has ended</p>}
+            <p className="mt-1 text-[11px] text-white/60 drop-shadow">Stream has ended</p>
           </div>
         )}
         <BroadcastFloatingToggles
@@ -205,16 +198,30 @@ function BroadcastBottomPanel({
 const GRADIENT_VISIBLE = 'bg-gradient-to-t from-black/80 via-black/10 to-transparent';
 const GRADIENT_HIDDEN = 'bg-gradient-to-t from-black/25 to-transparent';
 
-function BroadcastViewport({ stream, bottomPanel, bottomPanelVisible, isLandscape, floatingHearts, onHeartEnd }) {
+function BroadcastViewport({ stream, bottomPanel, bottomPanelVisible, isLandscape, floatingHearts, onHeartEnd, headerSlot }) {
   return (
     <div className="relative size-full overflow-hidden bg-black">
-      <div className="absolute inset-0 flex items-center justify-center">
-        <StreamPlayer stream={stream} className="max-h-full w-full" fill={isLandscape} />
-      </div>
+      {isLandscape ? (
+        <div className="absolute inset-0">
+          <StreamPlayer stream={stream} className="h-full w-full" fill />
+        </div>
+      ) : (
+        <div className="absolute inset-0 flex items-start justify-center">
+          <StreamPlayer stream={stream} className="max-h-full w-full" fill={false} />
+        </div>
+      )}
 
       <FloatingHeartsOverlay hearts={floatingHearts} onHeartEnd={onHeartEnd} isLandscape={isLandscape} />
 
       <div className={`pointer-events-none absolute inset-0 ${bottomPanelVisible ? GRADIENT_VISIBLE : GRADIENT_HIDDEN}`} />
+
+      {headerSlot && (
+        <div className="pointer-events-none absolute top-0 right-0 left-0 z-10 px-4 py-2">
+          <div className="pointer-events-auto relative flex items-center justify-between">
+            {headerSlot}
+          </div>
+        </div>
+      )}
 
       <div className={BOTTOM_OVERLAY}>
         <div className="pointer-events-auto">{bottomPanel}</div>
@@ -227,8 +234,10 @@ function BroadcastViewport({ stream, bottomPanel, bottomPanelVisible, isLandscap
 // Main component
 // ---------------------------------------------------------------------------
 
-export default function LiveBroadcastItem({ match, isLandscape, onToggleLandscape }) {
+export default function LiveBroadcastItem({ match, isLandscape, onToggleLandscape, landscapeHeader = null }) {
   const toast = useToast();
+  const myAvatar = useAppSelector((s) => s.auth?.user?.avatar ?? null);
+  const myInitials = useAppSelector((s) => getInitials(s.auth?.user?.name, s.auth?.user?.nickname));
   const [bottomPanelVisible, setBottomPanelVisible] = useState(true);
   const [sendCooldown, setSendCooldown] = useState(false);
   const cooldownTimerRef = useRef(null);
@@ -243,8 +252,10 @@ export default function LiveBroadcastItem({ match, isLandscape, onToggleLandscap
   const liveChatGloballyEnabled = settingsByKey.live_chat_enabled !== '0';
 
   const chatEnabled = liveChatGloballyEnabled && streamChatActive;
-  const { messages } = useMatchComments(matchId, chatEnabled);
+  const handleRemoteHeart = useCallback(() => spawnBurst(), [spawnBurst]);
+  const { messages } = useMatchComments(matchId, chatEnabled, handleRemoteHeart);
   const [sendComment, { isLoading: isSending }] = useSendLiveCommentMutation();
+  const [sendHeart] = useSendLiveHeartMutation();
 
   useEffect(() => {
     clearHearts();
@@ -259,7 +270,11 @@ export default function LiveBroadcastItem({ match, isLandscape, onToggleLandscap
     [],
   );
 
-  const handleSendHeart = useCallback(() => spawnBurst(), [spawnBurst]);
+  const handleSendHeart = useCallback(() => {
+    if (!matchId || !chatEnabled) return;
+    spawnBurst(myAvatar, myInitials);
+    sendHeart({ matchId });
+  }, [spawnBurst, myAvatar, myInitials, matchId, chatEnabled, sendHeart]);
 
   const handleSend = useCallback(
     async (text) => {
@@ -288,16 +303,10 @@ export default function LiveBroadcastItem({ match, isLandscape, onToggleLandscap
   const toggleBottomPanel = useCallback(() => setBottomPanelVisible((v) => !v), []);
 
   const stream = match?.stream ?? null;
-  const homeTeam = match?.home_team?.name ?? 'Home';
-  const awayTeam = match?.away_team?.name ?? 'Away';
-  const tournament = match?.tournament?.name ?? null;
   const inputDisabled = isSending || sendCooldown;
 
   const bottomPanel = (
     <BroadcastBottomPanel
-      homeTeam={homeTeam}
-      awayTeam={awayTeam}
-      tournament={tournament}
       messages={messages}
       chatEnabled={chatEnabled}
       streamStatus={streamStatus}
@@ -319,6 +328,7 @@ export default function LiveBroadcastItem({ match, isLandscape, onToggleLandscap
       isLandscape={isLandscape}
       floatingHearts={floatingHearts}
       onHeartEnd={removeHeart}
+      headerSlot={landscapeHeader}
     />
   );
 

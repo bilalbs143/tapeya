@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-import { liveMatchWatchPath } from '@/lib/utils/liveStreamUtils';
+import { liveBroadcastPath } from '@/lib/utils/liveStreamUtils';
 
 /**
  * @param {object} props
@@ -46,7 +46,7 @@ export function LiveMatchSlider({ matches = [], showViewMore = true }) {
       >
         {matches.map((match) => {
           const isLive = match.stream?.status === 'live';
-          const watchPath = liveMatchWatchPath(match.tournament_id, match.id);
+          const watchPath = liveBroadcastPath(match.id);
 
           return (
             <SwiperSlide key={match.id}>

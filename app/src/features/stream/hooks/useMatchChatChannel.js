@@ -7,12 +7,15 @@ import { useAppSelector } from '@/store/hooks';
  * Subscribe to the public `match.{matchId}.chat` Reverb channel.
  *
  * @param {string|number|null} matchId
- * @param {(msg: object) => void} onMessage Stable callback (useCallback or dispatch)
+ * @param {(msg: object) => void} onMessage  Stable callback for chat messages
+ * @param {() => void}           [onHeart]   Stable callback fired on heart events
  */
-export function useMatchChatChannel(matchId, onMessage) {
+export function useMatchChatChannel(matchId, onMessage, onHeart) {
   const accessToken = useAppSelector((s) => s.auth?.accessToken);
-  const callbackRef = useRef(onMessage);
-  callbackRef.current = onMessage;
+  const messageRef = useRef(onMessage);
+  const heartRef = useRef(onHeart);
+  messageRef.current = onMessage;
+  heartRef.current = onHeart;
 
   useEffect(() => {
     if (!matchId) {
@@ -26,9 +29,14 @@ export function useMatchChatChannel(matchId, onMessage) {
 
     const channelName = `match.${matchId}.chat`;
 
-    echo.channel(channelName).listen('.match.chat.message', (payload) => {
-      callbackRef.current?.(payload);
-    });
+    echo
+      .channel(channelName)
+      .listen('.match.chat.message', (payload) => {
+        messageRef.current?.(payload);
+      })
+      .listen('.match.chat.heart', () => {
+        heartRef.current?.();
+      });
 
     return () => {
       echo.leave(channelName);

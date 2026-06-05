@@ -8,6 +8,7 @@ use App\Http\Controllers\User\HeroSliderController;
 use App\Http\Controllers\User\HighlightController;
 use App\Http\Controllers\User\InterestCampaignController;
 use App\Http\Controllers\User\LiveMatchCommentController;
+use App\Http\Controllers\User\LiveMatchHeartController;
 use App\Http\Controllers\User\LiveStreamController;
 use App\Http\Controllers\User\MatchCreaseController;
 use App\Http\Controllers\User\MatchGraphicSessionController;
@@ -115,6 +116,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('teams/{team}/squad', [TeamController::class, 'storeSquad']);
     Route::get('live/matches', [LiveStreamController::class, 'index']);
     Route::post('matches/{match}/live-comments', [LiveMatchCommentController::class, 'store'])->middleware('throttle:120,1');
+    Route::post('matches/{match}/live-hearts', [LiveMatchHeartController::class, 'store'])->middleware('throttle:60,1');
     Route::get('tournaments', [TournamentController::class, 'index']);
     Route::get('tournaments/{tournament}', [TournamentController::class, 'show']);
     Route::post('tournaments/{tournament}/like', [TournamentReactionController::class, 'like']);

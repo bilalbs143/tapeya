@@ -30,21 +30,29 @@ export default function LandscapeRotatedStage({ children, rotated = false }) {
 
   return (
     <div ref={zoneRef} className="flex h-full w-full items-center justify-center overflow-hidden bg-black">
-      {ready &&
-        (rotated ? (
-          <div
-            className="absolute top-1/2 left-1/2 overflow-hidden bg-black"
-            style={{
-              width: size.h,
-              height: size.w,
-              transform: 'translate(-50%, -50%) rotate(90deg)',
-            }}
-          >
-            <div className="relative size-full">{children}</div>
-          </div>
-        ) : (
-          <div className="relative h-full w-full overflow-hidden">{children}</div>
-        ))}
+      {ready && (
+        <div
+          className="overflow-hidden bg-black"
+          style={
+            rotated
+              ? {
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  width: size.h,
+                  height: size.w,
+                  transform: 'translate(-50%, -50%) rotate(90deg)',
+                }
+              : {
+                  position: 'relative',
+                  width: '100%',
+                  height: '100%',
+                }
+          }
+        >
+          <div className="relative size-full">{children}</div>
+        </div>
+      )}
     </div>
   );
 }

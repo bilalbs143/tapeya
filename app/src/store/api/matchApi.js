@@ -158,6 +158,13 @@ export const matchApi = baseApi.injectEndpoints({
       }),
       transformResponse: (response) => response?.data ?? response,
     }),
+    sendLiveHeart: builder.mutation({
+      query: ({ matchId }) => ({
+        url: `/matches/${matchId}/live-hearts`,
+        method: 'POST',
+      }),
+      transformResponse: (response) => response?.data ?? response,
+    }),
   }),
 });
 
@@ -178,4 +185,5 @@ export const {
   useUpdatePlayerOfMatchMutation,
   useUpdateCreaseMutation,
   useSendLiveCommentMutation,
+  useSendLiveHeartMutation,
 } = matchApi;
