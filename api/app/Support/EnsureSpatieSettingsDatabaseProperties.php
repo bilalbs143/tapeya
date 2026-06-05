@@ -16,7 +16,7 @@ final class EnsureSpatieSettingsDatabaseProperties
 {
     public static function ensure(): void
     {
-        foreach (config('settings.settings', []) as $settingsClass) {
+        foreach (self::settingsClasses() as $settingsClass) {
             if (! is_string($settingsClass) || ! is_subclass_of($settingsClass, Settings::class)) {
                 continue;
             }
@@ -66,6 +66,13 @@ final class EnsureSpatieSettingsDatabaseProperties
                     };
                 }
 
+                if ($settingsClass === PushSettings::class) {
+                    return match ($name) {
+                        'enabled' => 0,
+                        default => 0,
+                    };
+                }
+
                 return 0;
             }
 
@@ -90,5 +97,20 @@ final class EnsureSpatieSettingsDatabaseProperties
         }
 
         return null;
+    }
+
+    /**
+     * Registered Settings classes. Merges runtime config with settings.php so a stale
+     * config cache cannot skip newly added groups (e.g. PushSettings).
+     *
+     * @return list<class-string<Settings>>
+     */
+    private static function settingsClasses(): array
+    {
+        $fromConfig = config('settings.settings', []);
+        $fromFile = require config_path('settings.php');
+        $fromFile = is_array($fromFile['settings'] ?? null) ? $fromFile['settings'] : [];
+
+        return array_values(array_unique([...$fromConfig, ...$fromFile], SORT_REGULAR));
     }
 }
