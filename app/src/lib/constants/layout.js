@@ -1,5 +1,14 @@
+/** Tailwind `md` breakpoint — keep in sync with tailwind config. */
+export const MD_MEDIA_QUERY = '(min-width: 768px)';
+
+/** Viewports below `md` — phones only; tablets use the `md`–`lg` range. */
+export const MOBILE_MEDIA_QUERY = '(max-width: 767px)';
+
 /** Tailwind `lg` breakpoint — keep in sync with tailwind config. */
 export const LG_MEDIA_QUERY = '(min-width: 1024px)';
+
+/** Fixed sidebar width on desktop — keep in sync with Sidebar panel width. */
+export const SIDEBAR_WIDTH = 280;
 
 /** Top navbar height. Used for sticky tab offset in ScorecardHome, ScorecardDetails, and Navbar. */
 export const NAVBAR_HEIGHT = 56;

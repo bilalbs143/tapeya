@@ -149,7 +149,7 @@ export default function ScorecardDetails() {
           </div>
 
           {tabsFixedVisible && (
-            <div className="fixed right-0 left-0 z-[100] bg-black pt-1 pb-2 lg:left-[280px]" style={{ top: NAVBAR_HEIGHT }}>
+            <div className="fixed right-0 left-0 z-[100] bg-black pt-1 pb-2 lg-left-sidebar" style={{ top: NAVBAR_HEIGHT }}>
               <div className="mx-auto w-full max-w-2xl min-w-0 px-4 lg:mx-0 lg:max-w-none">{tabsContent}</div>
             </div>
           )}

@@ -13,11 +13,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
 import { useMatchPresenceChannel } from '@/features/stream/hooks/useMatchPresenceChannel';
 import { useMatchStreamChannel } from '@/features/stream/hooks/useMatchStreamChannel';
-import { formatViewerCount, useVanityViewerCount } from './useVanityViewerCount';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { MOBILE_MEDIA_QUERY } from '@/lib/constants/layout';
 import { LIVE_BROADCAST_SHELL_CLASS, LIVE_BROADCAST_SHELL_STYLE } from '@/lib/constants/liveBroadcastLayout';
 import { useGetMatchQuery } from '@/store/api/matchApi';
 
 import LiveBroadcastItem from './LiveBroadcastItem';
+import { formatViewerCount, useVanityViewerCount } from './useVanityViewerCount';
 
 const STATUS_BADGE = {
   live: { dot: 'animate-pulse bg-red-500', label: 'Live' },
@@ -54,6 +56,7 @@ export default function LiveBroadcast() {
   const navigate = useNavigate();
   const { matchId } = useParams();
   const [isLandscape, setIsLandscape] = useState(false);
+  const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY);
 
   const { data: match, isError, refetch } = useGetMatchQuery(matchId, { skip: !matchId });
 
@@ -69,6 +72,8 @@ export default function LiveBroadcast() {
   }, [matchId]);
 
   const toggleLandscape = useCallback(() => setIsLandscape((prev) => !prev), []);
+
+  const isMobileLandscape = isMobile && isLandscape;
 
   const shellStyle = isLandscape
     ? { top: 0, bottom: 0, zIndex: 51 }
@@ -106,7 +111,7 @@ export default function LiveBroadcast() {
 
   return (
     <div className={LIVE_BROADCAST_SHELL_CLASS} style={shellStyle}>
-      <div className="relative flex h-full w-full flex-col overflow-hidden lg:mx-auto lg:max-w-[430px] lg:border-x lg:border-[#1A1A1A]">
+      <div className="relative flex h-full w-full flex-col overflow-hidden">
         {!isLandscape && (
           <header className="relative z-20 flex shrink-0 items-center justify-between px-4 py-2">
             {headerContent}
@@ -121,8 +126,9 @@ export default function LiveBroadcast() {
             <LiveBroadcastItem
               match={match}
               isLandscape={isLandscape}
+              isMobileLandscape={isMobileLandscape}
               onToggleLandscape={toggleLandscape}
-              landscapeHeader={isLandscape ? headerContent : null}
+              landscapeHeader={isLandscape && !isMobile ? headerContent : null}
             />
           )}
         </div>

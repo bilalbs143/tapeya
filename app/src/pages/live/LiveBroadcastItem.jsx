@@ -9,13 +9,15 @@ import { FloatingHeartsOverlay } from '@/features/stream/FloatingHeartsOverlay';
 import { useFloatingHearts } from '@/features/stream/hooks/useFloatingHearts';
 import { useMatchComments } from '@/features/stream/hooks/useMatchComments';
 import { StreamPlayer } from '@/features/stream/StreamPlayer';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useToast } from '@/hooks/useToast';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { useAppSelector } from '@/store/hooks';
-import { getInitials } from '@/lib/utils/displayUtils';
+import { LG_MEDIA_QUERY } from '@/lib/constants/layout';
 import { mapSystemSettingsByKey } from '@/lib/mapSystemSettingsByKey';
+import { getInitials } from '@/lib/utils/displayUtils';
 import { useSendLiveCommentMutation, useSendLiveHeartMutation } from '@/store/api/matchApi';
 import { useGetPublicSystemSettingsQuery } from '@/store/api/systemSettingsApi';
+import { useAppSelector } from '@/store/hooks';
 
 import LandscapeRotatedStage from './LandscapeRotatedStage';
 
@@ -23,6 +25,8 @@ const maxMinIcon = `${CLOUDFRONT_APP_BASE}/images/icons/max-min-icon.svg`;
 const commentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/comment-icon.svg`;
 
 const BOTTOM_OVERLAY = 'pointer-events-none absolute right-0 bottom-[12px] left-0 z-10 px-4 pb-2';
+const BOTTOM_OVERLAY_IMMERSIVE =
+  'pointer-events-none absolute right-0 bottom-0 z-10 p-4 pb-[calc(env(safe-area-inset-bottom)+12px)]';
 
 const TOGGLE_BTN =
   'flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/[0.13] backdrop-blur-[9.7px] transition-opacity active:opacity-80';
@@ -63,23 +67,32 @@ function SendIcon() {
 // BroadcastFloatingToggles
 // ---------------------------------------------------------------------------
 
-function BroadcastFloatingToggles({ className = '', isLandscape, onToggleLayout, bottomPanelVisible, onToggleBottomPanel }) {
+function BroadcastFloatingToggles({
+  className = '',
+  isLandscape,
+  onToggleLayout,
+  bottomPanelVisible,
+  onToggleBottomPanel,
+  immersiveLandscape = false,
+}) {
   return (
     <div className={`flex shrink-0 items-center gap-2 ${className}`}>
-      <button
-        type="button"
-        onClick={onToggleBottomPanel}
-        className={`${TOGGLE_BTN} ${bottomPanelVisible ? '' : 'ring-1 ring-white/25'}`}
-        aria-label={bottomPanelVisible ? 'Hide match info and comments' : 'Show match info and comments'}
-        aria-pressed={bottomPanelVisible}
-      >
-        <img
-          src={commentIcon}
-          alt=""
-          className={`h-5 w-5 shrink-0 object-contain ${bottomPanelVisible ? 'opacity-100' : 'opacity-45'}`}
-          aria-hidden
-        />
-      </button>
+      {!immersiveLandscape && (
+        <button
+          type="button"
+          onClick={onToggleBottomPanel}
+          className={`${TOGGLE_BTN} ${bottomPanelVisible ? '' : 'ring-1 ring-white/25'}`}
+          aria-label={bottomPanelVisible ? 'Hide match info and comments' : 'Show match info and comments'}
+          aria-pressed={bottomPanelVisible}
+        >
+          <img
+            src={commentIcon}
+            alt=""
+            className={`h-5 w-5 shrink-0 object-contain ${bottomPanelVisible ? 'opacity-100' : 'opacity-45'}`}
+            aria-hidden
+          />
+        </button>
+      )}
       <button
         type="button"
         onClick={onToggleLayout}
@@ -164,7 +177,18 @@ function BroadcastBottomPanel({
   onToggleLayout,
   bottomPanelVisible,
   onToggleBottomPanel,
+  immersiveLandscape = false,
 }) {
+  if (immersiveLandscape) {
+    return (
+      <BroadcastFloatingToggles
+        isLandscape={isLandscape}
+        onToggleLayout={onToggleLayout}
+        immersiveLandscape
+      />
+    );
+  }
+
   return (
     <div className={`flex w-full flex-col gap-2 ${isLandscape ? '' : 'relative'}`}>
       {bottomPanelVisible && chatEnabled && <CommentList messages={messages} isLandscape={isLandscape} />}
@@ -198,24 +222,42 @@ function BroadcastBottomPanel({
 const GRADIENT_VISIBLE = 'bg-gradient-to-t from-black/80 via-black/10 to-transparent';
 const GRADIENT_HIDDEN = 'bg-gradient-to-t from-black/25 to-transparent';
 
-function BroadcastViewport({ stream, bottomPanel, bottomPanelVisible, isLandscape, floatingHearts, onHeartEnd, headerSlot }) {
+function BroadcastViewport({
+  stream,
+  bottomPanel,
+  bottomPanelVisible,
+  isLandscape,
+  floatingHearts,
+  onHeartEnd,
+  headerSlot,
+  isDesktop,
+  immersiveLandscape = false,
+}) {
+  const videoLayer = isDesktop || isLandscape ? (
+    <div className="absolute inset-0">
+      <StreamPlayer stream={stream} className="h-full w-full" fill />
+    </div>
+  ) : (
+    <div className="absolute inset-0 flex items-start justify-center">
+      <StreamPlayer stream={stream} className="max-h-full w-full" fill={false} />
+    </div>
+  );
+
+  const overlayClass = immersiveLandscape ? BOTTOM_OVERLAY_IMMERSIVE : BOTTOM_OVERLAY;
+
   return (
     <div className="relative size-full overflow-hidden bg-black">
-      {isLandscape ? (
-        <div className="absolute inset-0">
-          <StreamPlayer stream={stream} className="h-full w-full" fill />
-        </div>
-      ) : (
-        <div className="absolute inset-0 flex items-start justify-center">
-          <StreamPlayer stream={stream} className="max-h-full w-full" fill={false} />
-        </div>
+      {videoLayer}
+
+      {!isDesktop && !immersiveLandscape && (
+        <FloatingHeartsOverlay hearts={floatingHearts} onHeartEnd={onHeartEnd} isLandscape={isLandscape} />
       )}
 
-      <FloatingHeartsOverlay hearts={floatingHearts} onHeartEnd={onHeartEnd} isLandscape={isLandscape} />
+      {!isDesktop && !immersiveLandscape && (
+        <div className={`pointer-events-none absolute inset-0 ${bottomPanelVisible ? GRADIENT_VISIBLE : GRADIENT_HIDDEN}`} />
+      )}
 
-      <div className={`pointer-events-none absolute inset-0 ${bottomPanelVisible ? GRADIENT_VISIBLE : GRADIENT_HIDDEN}`} />
-
-      {headerSlot && (
+      {headerSlot && !immersiveLandscape && (
         <div className="pointer-events-none absolute top-0 right-0 left-0 z-10 px-4 py-2">
           <div className="pointer-events-auto relative flex items-center justify-between">
             {headerSlot}
@@ -223,9 +265,11 @@ function BroadcastViewport({ stream, bottomPanel, bottomPanelVisible, isLandscap
         </div>
       )}
 
-      <div className={BOTTOM_OVERLAY}>
-        <div className="pointer-events-auto">{bottomPanel}</div>
-      </div>
+      {!isDesktop && (
+        <div className={overlayClass}>
+          <div className={`pointer-events-auto ${immersiveLandscape ? 'flex justify-end' : ''}`}>{bottomPanel}</div>
+        </div>
+      )}
     </div>
   );
 }
@@ -234,8 +278,15 @@ function BroadcastViewport({ stream, bottomPanel, bottomPanelVisible, isLandscap
 // Main component
 // ---------------------------------------------------------------------------
 
-export default function LiveBroadcastItem({ match, isLandscape, onToggleLandscape, landscapeHeader = null }) {
+export default function LiveBroadcastItem({
+  match,
+  isLandscape,
+  isMobileLandscape = false,
+  onToggleLandscape,
+  landscapeHeader = null,
+}) {
   const toast = useToast();
+  const isDesktop = useMediaQuery(LG_MEDIA_QUERY);
   const myAvatar = useAppSelector((s) => s.auth?.user?.avatar ?? null);
   const myInitials = useAppSelector((s) => getInitials(s.auth?.user?.name, s.auth?.user?.nickname));
   const [bottomPanelVisible, setBottomPanelVisible] = useState(true);
@@ -252,14 +303,17 @@ export default function LiveBroadcastItem({ match, isLandscape, onToggleLandscap
   const liveChatGloballyEnabled = settingsByKey.live_chat_enabled !== '0';
 
   const chatEnabled = liveChatGloballyEnabled && streamChatActive;
-  const handleRemoteHeart = useCallback(() => spawnBurst(), [spawnBurst]);
+  const handleRemoteHeart = useCallback(() => {
+    if (isMobileLandscape) return;
+    spawnBurst();
+  }, [spawnBurst, isMobileLandscape]);
   const { messages } = useMatchComments(matchId, chatEnabled, handleRemoteHeart);
   const [sendComment, { isLoading: isSending }] = useSendLiveCommentMutation();
   const [sendHeart] = useSendLiveHeartMutation();
 
   useEffect(() => {
     clearHearts();
-  }, [isLandscape, clearHearts]);
+  }, [isLandscape, isMobileLandscape, clearHearts]);
 
   useEffect(
     () => () => {
@@ -317,6 +371,7 @@ export default function LiveBroadcastItem({ match, isLandscape, onToggleLandscap
       onToggleLayout={onToggleLandscape}
       bottomPanelVisible={bottomPanelVisible}
       onToggleBottomPanel={toggleBottomPanel}
+      immersiveLandscape={isMobileLandscape}
     />
   );
 
@@ -329,6 +384,8 @@ export default function LiveBroadcastItem({ match, isLandscape, onToggleLandscap
       floatingHearts={floatingHearts}
       onHeartEnd={removeHeart}
       headerSlot={landscapeHeader}
+      isDesktop={isDesktop}
+      immersiveLandscape={isMobileLandscape}
     />
   );
 
