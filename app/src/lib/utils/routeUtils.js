@@ -13,7 +13,6 @@ export function isHighlightDetailsPath(pathname) {
 
 /** Pages whose main content starts at the viewport top (hero sits behind the fixed navbar). */
 export function isNavbarOverlayPath(pathname, isDesktop = false) {
-  if (isLiveBroadcastPath(pathname) && isDesktop) return false;
   if (isHighlightDetailsPath(pathname) && isDesktop) return false;
   return (
     pathname === '/profile' ||
@@ -24,9 +23,13 @@ export function isNavbarOverlayPath(pathname, isDesktop = false) {
   );
 }
 
-/** Pages where the navbar may start transparent over a hero image (mobile live broadcast only). */
+/** Routes where the incomplete-profile reminder dialog must not appear. */
+export function isProfileStrengthReminderBlockedPath(pathname) {
+  return pathname === '/profile' || pathname.startsWith('/overlay/') || isLiveBroadcastPath(pathname);
+}
+
+/** Pages where the navbar may start transparent over a hero image. */
 export function isHeroNavbarPath(pathname, isDesktop = false) {
-  if (isLiveBroadcastPath(pathname) && isDesktop) return false;
   if (isHighlightDetailsPath(pathname) && isDesktop) return false;
   return (
     pathname === '/home' ||

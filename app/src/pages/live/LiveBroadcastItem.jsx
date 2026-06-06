@@ -9,10 +9,14 @@ import { FloatingHeartsOverlay } from '@/features/stream/FloatingHeartsOverlay';
 import { useFloatingHearts } from '@/features/stream/hooks/useFloatingHearts';
 import { useMatchComments } from '@/features/stream/hooks/useMatchComments';
 import { StreamPlayer } from '@/features/stream/StreamPlayer';
-import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useToast } from '@/hooks/useToast';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { LG_MEDIA_QUERY } from '@/lib/constants/layout';
+import { NAVBAR_HERO_CONTROL_OFFSET } from '@/lib/constants/layout';
+import {
+  LIVE_BROADCAST_CONTROLS_OVERLAY_Z,
+  LIVE_BROADCAST_HEADER_OVERLAY_Z,
+  LIVE_BROADCAST_HEADER_SCRIM,
+} from '@/lib/constants/liveBroadcastLayout';
 import { mapSystemSettingsByKey } from '@/lib/mapSystemSettingsByKey';
 import { getInitials } from '@/lib/utils/displayUtils';
 import { useSendLiveCommentMutation, useSendLiveHeartMutation } from '@/store/api/matchApi';
@@ -24,9 +28,9 @@ import LandscapeRotatedStage from './LandscapeRotatedStage';
 const maxMinIcon = `${CLOUDFRONT_APP_BASE}/images/icons/max-min-icon.svg`;
 const commentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/comment-icon.svg`;
 
-const BOTTOM_OVERLAY = 'pointer-events-none absolute right-0 bottom-[12px] left-0 z-10 px-4 pb-2';
+const BOTTOM_OVERLAY = 'pointer-events-none absolute right-0 bottom-[12px] left-0 px-4 pb-2';
 const BOTTOM_OVERLAY_IMMERSIVE =
-  'pointer-events-none absolute right-0 bottom-0 z-10 p-4 pb-[calc(env(safe-area-inset-bottom)+12px)]';
+  'pointer-events-none absolute right-0 bottom-0 p-4 pb-[calc(env(safe-area-inset-bottom)+12px)]';
 
 const TOGGLE_BTN =
   'flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/[0.13] backdrop-blur-[9.7px] transition-opacity active:opacity-80';
@@ -233,21 +237,16 @@ function BroadcastViewport({
   isDesktop,
   immersiveLandscape = false,
 }) {
-  const videoLayer = isDesktop || isLandscape ? (
-    <div className="absolute inset-0">
-      <StreamPlayer stream={stream} className="h-full w-full" fill />
-    </div>
-  ) : (
-    <div className="absolute inset-0 flex items-start justify-center">
-      <StreamPlayer stream={stream} className="max-h-full w-full" fill={false} />
-    </div>
-  );
-
   const overlayClass = immersiveLandscape ? BOTTOM_OVERLAY_IMMERSIVE : BOTTOM_OVERLAY;
+  const headerOffset = isLandscape
+    ? 'calc(env(safe-area-inset-top) + 8px)'
+    : NAVBAR_HERO_CONTROL_OFFSET;
 
   return (
     <div className="relative size-full overflow-hidden bg-black">
-      {videoLayer}
+      <div className="absolute inset-0">
+        <StreamPlayer stream={stream} className="h-full w-full" fill />
+      </div>
 
       {!isDesktop && !immersiveLandscape && (
         <FloatingHeartsOverlay hearts={floatingHearts} onHeartEnd={onHeartEnd} isLandscape={isLandscape} />
@@ -258,15 +257,18 @@ function BroadcastViewport({
       )}
 
       {headerSlot && !immersiveLandscape && (
-        <div className="pointer-events-none absolute top-0 right-0 left-0 z-10 px-4 py-2">
-          <div className="pointer-events-auto relative flex items-center justify-between">
+        <div className={LIVE_BROADCAST_HEADER_SCRIM} style={{ zIndex: LIVE_BROADCAST_HEADER_OVERLAY_Z }}>
+          <div
+            className="pointer-events-auto relative flex items-center justify-between"
+            style={{ paddingTop: headerOffset }}
+          >
             {headerSlot}
           </div>
         </div>
       )}
 
       {!isDesktop && (
-        <div className={overlayClass}>
+        <div className={overlayClass} style={{ zIndex: LIVE_BROADCAST_CONTROLS_OVERLAY_Z }}>
           <div className={`pointer-events-auto ${immersiveLandscape ? 'flex justify-end' : ''}`}>{bottomPanel}</div>
         </div>
       )}
@@ -281,12 +283,12 @@ function BroadcastViewport({
 export default function LiveBroadcastItem({
   match,
   isLandscape,
+  isDesktop = false,
   isMobileLandscape = false,
   onToggleLandscape,
-  landscapeHeader = null,
+  headerSlot = null,
 }) {
   const toast = useToast();
-  const isDesktop = useMediaQuery(LG_MEDIA_QUERY);
   const myAvatar = useAppSelector((s) => s.auth?.user?.avatar ?? null);
   const myInitials = useAppSelector((s) => getInitials(s.auth?.user?.name, s.auth?.user?.nickname));
   const [bottomPanelVisible, setBottomPanelVisible] = useState(true);
@@ -383,7 +385,7 @@ export default function LiveBroadcastItem({
       isLandscape={isLandscape}
       floatingHearts={floatingHearts}
       onHeartEnd={removeHeart}
-      headerSlot={landscapeHeader}
+      headerSlot={headerSlot}
       isDesktop={isDesktop}
       immersiveLandscape={isMobileLandscape}
     />
