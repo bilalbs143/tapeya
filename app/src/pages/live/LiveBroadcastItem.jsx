@@ -3,6 +3,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import CommentList from '@/features/stream/CommentList';
 import { FloatingHeartsOverlay } from '@/features/stream/FloatingHeartsOverlay';
@@ -11,11 +12,11 @@ import { useMatchComments } from '@/features/stream/hooks/useMatchComments';
 import { StreamPlayer } from '@/features/stream/StreamPlayer';
 import { useToast } from '@/hooks/useToast';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { NAVBAR_HERO_CONTROL_OFFSET } from '@/lib/constants/layout';
 import {
   LIVE_BROADCAST_CONTROLS_OVERLAY_Z,
   LIVE_BROADCAST_HEADER_OVERLAY_Z,
   LIVE_BROADCAST_HEADER_SCRIM,
+  LIVE_BROADCAST_IMMERSIVE_TOGGLE_Z,
 } from '@/lib/constants/liveBroadcastLayout';
 import { mapSystemSettingsByKey } from '@/lib/mapSystemSettingsByKey';
 import { getInitials } from '@/lib/utils/displayUtils';
@@ -29,11 +30,9 @@ const maxMinIcon = `${CLOUDFRONT_APP_BASE}/images/icons/max-min-icon.svg`;
 const commentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/comment-icon.svg`;
 
 const BOTTOM_OVERLAY = 'pointer-events-none absolute right-0 bottom-[12px] left-0 px-4 pb-2';
-const BOTTOM_OVERLAY_IMMERSIVE =
-  'pointer-events-none absolute right-0 bottom-0 p-4 pb-[calc(env(safe-area-inset-bottom)+12px)]';
 
 const TOGGLE_BTN =
-  'flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/[0.13] backdrop-blur-[9.7px] transition-opacity active:opacity-80';
+  'flex h-9 w-9 shrink-0 touch-manipulation items-center justify-center rounded-full bg-white/[0.13] backdrop-blur-[9.7px] transition-opacity active:opacity-80';
 
 // ---------------------------------------------------------------------------
 // Icons
@@ -67,6 +66,23 @@ function SendIcon() {
   );
 }
 
+function LandscapeExitToggle({ onClick }) {
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
+    <button
+      type="button"
+      onClick={onClick}
+      className={`fixed right-4 touch-manipulation ${TOGGLE_BTN}`}
+      style={{ bottom: 'calc(env(safe-area-inset-bottom) + 12px)', zIndex: LIVE_BROADCAST_IMMERSIVE_TOGGLE_Z }}
+      aria-label="Rotate to portrait"
+    >
+      <img src={maxMinIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
+    </button>,
+    document.body,
+  );
+}
+
 // ---------------------------------------------------------------------------
 // BroadcastFloatingToggles
 // ---------------------------------------------------------------------------
@@ -77,26 +93,23 @@ function BroadcastFloatingToggles({
   onToggleLayout,
   bottomPanelVisible,
   onToggleBottomPanel,
-  immersiveLandscape = false,
 }) {
   return (
     <div className={`flex shrink-0 items-center gap-2 ${className}`}>
-      {!immersiveLandscape && (
-        <button
-          type="button"
-          onClick={onToggleBottomPanel}
-          className={`${TOGGLE_BTN} ${bottomPanelVisible ? '' : 'ring-1 ring-white/25'}`}
-          aria-label={bottomPanelVisible ? 'Hide match info and comments' : 'Show match info and comments'}
-          aria-pressed={bottomPanelVisible}
-        >
-          <img
-            src={commentIcon}
-            alt=""
-            className={`h-5 w-5 shrink-0 object-contain ${bottomPanelVisible ? 'opacity-100' : 'opacity-45'}`}
-            aria-hidden
-          />
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={onToggleBottomPanel}
+        className={`${TOGGLE_BTN} ${bottomPanelVisible ? '' : 'ring-1 ring-white/25'}`}
+        aria-label={bottomPanelVisible ? 'Hide match info and comments' : 'Show match info and comments'}
+        aria-pressed={bottomPanelVisible}
+      >
+        <img
+          src={commentIcon}
+          alt=""
+          className={`h-5 w-5 shrink-0 object-contain ${bottomPanelVisible ? 'opacity-100' : 'opacity-45'}`}
+          aria-hidden
+        />
+      </button>
       <button
         type="button"
         onClick={onToggleLayout}
@@ -181,18 +194,7 @@ function BroadcastBottomPanel({
   onToggleLayout,
   bottomPanelVisible,
   onToggleBottomPanel,
-  immersiveLandscape = false,
 }) {
-  if (immersiveLandscape) {
-    return (
-      <BroadcastFloatingToggles
-        isLandscape={isLandscape}
-        onToggleLayout={onToggleLayout}
-        immersiveLandscape
-      />
-    );
-  }
-
   return (
     <div className={`flex w-full flex-col gap-2 ${isLandscape ? '' : 'relative'}`}>
       {bottomPanelVisible && chatEnabled && <CommentList messages={messages} isLandscape={isLandscape} />}
@@ -237,16 +239,21 @@ function BroadcastViewport({
   isDesktop,
   immersiveLandscape = false,
 }) {
-  const overlayClass = immersiveLandscape ? BOTTOM_OVERLAY_IMMERSIVE : BOTTOM_OVERLAY;
-  const headerOffset = isLandscape
-    ? 'calc(env(safe-area-inset-top) + 8px)'
-    : NAVBAR_HERO_CONTROL_OFFSET;
+  const blockVideoPointer = !isDesktop;
+  const videoLayer =
+    isDesktop || isLandscape ? (
+      <div className={`absolute inset-0 ${blockVideoPointer ? 'pointer-events-none' : ''}`}>
+        <StreamPlayer stream={stream} className="h-full w-full" fill />
+      </div>
+    ) : (
+      <div className={`absolute inset-0 flex items-start justify-center ${blockVideoPointer ? 'pointer-events-none' : ''}`}>
+        <StreamPlayer stream={stream} className="max-h-full w-full" fill={false} />
+      </div>
+    );
 
   return (
     <div className="relative size-full overflow-hidden bg-black">
-      <div className="absolute inset-0">
-        <StreamPlayer stream={stream} className="h-full w-full" fill />
-      </div>
+      {videoLayer}
 
       {!isDesktop && !immersiveLandscape && (
         <FloatingHeartsOverlay hearts={floatingHearts} onHeartEnd={onHeartEnd} isLandscape={isLandscape} />
@@ -256,20 +263,20 @@ function BroadcastViewport({
         <div className={`pointer-events-none absolute inset-0 ${bottomPanelVisible ? GRADIENT_VISIBLE : GRADIENT_HIDDEN}`} />
       )}
 
-      {headerSlot && !immersiveLandscape && (
+      {headerSlot && (
         <div className={LIVE_BROADCAST_HEADER_SCRIM} style={{ zIndex: LIVE_BROADCAST_HEADER_OVERLAY_Z }}>
           <div
-            className="pointer-events-auto relative flex items-center justify-between"
-            style={{ paddingTop: headerOffset }}
+            className="pointer-events-none relative flex items-center justify-between"
+            style={{ paddingTop: isLandscape ? 'calc(env(safe-area-inset-top) + 8px)' : '8px' }}
           >
             {headerSlot}
           </div>
         </div>
       )}
 
-      {!isDesktop && (
-        <div className={overlayClass} style={{ zIndex: LIVE_BROADCAST_CONTROLS_OVERLAY_Z }}>
-          <div className={`pointer-events-auto ${immersiveLandscape ? 'flex justify-end' : ''}`}>{bottomPanel}</div>
+      {!isDesktop && !isLandscape && (
+        <div className={BOTTOM_OVERLAY} style={{ zIndex: LIVE_BROADCAST_CONTROLS_OVERLAY_Z }}>
+          <div className="pointer-events-auto">{bottomPanel}</div>
         </div>
       )}
     </div>
@@ -373,7 +380,6 @@ export default function LiveBroadcastItem({
       onToggleLayout={onToggleLandscape}
       bottomPanelVisible={bottomPanelVisible}
       onToggleBottomPanel={toggleBottomPanel}
-      immersiveLandscape={isMobileLandscape}
     />
   );
 
@@ -391,9 +397,13 @@ export default function LiveBroadcastItem({
     />
   );
 
+  const showFixedLandscapeToggle = isLandscape && !isDesktop;
+
   return (
     <div className="relative h-full w-full overflow-hidden bg-black">
       <LandscapeRotatedStage rotated={isLandscape}>{viewport}</LandscapeRotatedStage>
+
+      {showFixedLandscapeToggle && <LandscapeExitToggle onClick={onToggleLandscape} />}
     </div>
   );
 }

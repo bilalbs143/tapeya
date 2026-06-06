@@ -18,8 +18,7 @@ export function isNavbarOverlayPath(pathname, isDesktop = false) {
     pathname === '/profile' ||
     TOURNAMENT_DETAILS_PATH.test(pathname) ||
     HIGHLIGHT_DETAILS_PATH.test(pathname) ||
-    SCORING_MATCH_PATH.test(pathname) ||
-    LIVE_BROADCAST_PATH.test(pathname)
+    SCORING_MATCH_PATH.test(pathname)
   );
 }
 
@@ -36,8 +35,7 @@ export function isHeroNavbarPath(pathname, isDesktop = false) {
     pathname === '/profile' ||
     TOURNAMENT_DETAILS_PATH.test(pathname) ||
     HIGHLIGHT_DETAILS_PATH.test(pathname) ||
-    SCORING_MATCH_PATH.test(pathname) ||
-    LIVE_BROADCAST_PATH.test(pathname)
+    SCORING_MATCH_PATH.test(pathname)
   );
 }
 
