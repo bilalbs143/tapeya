@@ -70,15 +70,19 @@ function LandscapeExitToggle({ onClick }) {
   if (typeof document === 'undefined') return null;
 
   return createPortal(
-    <button
-      type="button"
-      onClick={onClick}
-      className={`fixed right-4 touch-manipulation ${TOGGLE_BTN}`}
-      style={{ bottom: 'calc(env(safe-area-inset-bottom) + 12px)', zIndex: LIVE_BROADCAST_IMMERSIVE_TOGGLE_Z }}
-      aria-label="Rotate to portrait"
+    <div
+      className="pointer-events-none fixed right-0 bottom-0 p-4 pb-[calc(env(safe-area-inset-bottom)+12px)]"
+      style={{ zIndex: LIVE_BROADCAST_IMMERSIVE_TOGGLE_Z }}
     >
-      <img src={maxMinIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
-    </button>,
+      <button
+        type="button"
+        onClick={onClick}
+        className={`pointer-events-auto touch-manipulation ${TOGGLE_BTN}`}
+        aria-label="Rotate to portrait"
+      >
+        <img src={maxMinIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
+      </button>
+    </div>,
     document.body,
   );
 }
@@ -239,14 +243,17 @@ function BroadcastViewport({
   isDesktop,
   immersiveLandscape = false,
 }) {
-  const blockVideoPointer = !isDesktop;
+  // Portrait: keep iframe interactive so mobile playback/tap-to-start works.
+  // Landscape: block iframe touches so the portaled exit toggle stays tappable.
+  const blockLandscapeVideoPointer = !isDesktop && isLandscape;
+  const blockLandscapeVideoClass = blockLandscapeVideoPointer ? 'pointer-events-none [&_iframe]:pointer-events-none' : '';
   const videoLayer =
     isDesktop || isLandscape ? (
-      <div className={`absolute inset-0 ${blockVideoPointer ? 'pointer-events-none' : ''}`}>
+      <div className={`absolute inset-0 ${blockLandscapeVideoClass}`}>
         <StreamPlayer stream={stream} className="h-full w-full" fill />
       </div>
     ) : (
-      <div className={`absolute inset-0 flex items-start justify-center ${blockVideoPointer ? 'pointer-events-none' : ''}`}>
+      <div className="absolute inset-0 flex items-start justify-center">
         <StreamPlayer stream={stream} className="max-h-full w-full" fill={false} />
       </div>
     );
