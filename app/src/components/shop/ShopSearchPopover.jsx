@@ -47,8 +47,8 @@ export function ShopSearchPopover() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onClear={clear}
-          placeholder="What are you looking for?"
-          aria-label="Search shop"
+          placeholder="What Are You Looking For?"
+          aria-label="Search Shop"
           aria-controls="shop-search-results"
         />
       </PopoverAnchor>

@@ -124,11 +124,11 @@ export function DatePicker({
               week: 'flex',
               day: 'h-9 w-9 text-center text-sm',
               day_button:
-                'h-9 w-9 rounded text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50',
+                'h-9 w-9 rounded text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:pointer-events-none disabled:hover:bg-transparent disabled:focus:ring-0',
               selected: '!bg-[#FF9700] !text-white hover:!bg-[#FF9700]/90',
               today: 'font-semibold text-[#FFB703]',
               outside: 'text-white/40',
-              disabled: 'text-white/30 cursor-not-allowed',
+              disabled: 'cursor-not-allowed',
               hidden: 'invisible',
             }}
           />

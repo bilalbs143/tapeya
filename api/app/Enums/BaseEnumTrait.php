@@ -30,4 +30,19 @@ trait BaseEnumTrait
 
         return self::tryFrom($raw)?->label();
     }
+
+    /**
+     * Find a case whose label() matches $label (case-insensitive), or return null.
+     * Useful for import/export flows where the human-readable label is the input.
+     */
+    public static function tryFromLabel(string $label): ?static
+    {
+        foreach (self::cases() as $case) {
+            if (method_exists($case, 'label') && strcasecmp($case->label(), $label) === 0) {
+                return $case;
+            }
+        }
+
+        return null;
+    }
 }

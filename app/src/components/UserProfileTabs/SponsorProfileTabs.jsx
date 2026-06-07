@@ -26,12 +26,6 @@ const userStatsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/user-stats.svg`;
 
 const CONTENT_WRAPPER_CLASS = 'px-4 pb-6 pt-1';
 
-const SPONSOR_METRICS = [
-  { value: '—', label: 'TEAMS' },
-  { value: '—', label: 'FOLLOWERS' },
-  { value: '—', label: 'REACH' },
-];
-
 const TABS = [
   {
     value: 'overview',
@@ -75,14 +69,11 @@ export function SponsorProfileTabs({ teams, partnerships, reach }) {
     );
   };
 
-  const metrics =
-    teams != null || partnerships != null || reach != null
-      ? [
-          { value: String(teams ?? '—'), label: 'TEAMS' },
-          { value: String(partnerships ?? '—'), label: 'PARTNERSHIPS' },
-          { value: String(reach ?? '—'), label: 'REACH' },
-        ]
-      : SPONSOR_METRICS;
+  const metrics = [
+    { value: String(teams ?? '—'), label: 'TEAMS' },
+    { value: String(partnerships ?? '—'), label: 'PARTNERSHIPS' },
+    { value: String(reach ?? '—'), label: 'REACH' },
+  ];
 
   return (
     <Tabs className="w-full" value={activeTab} onValueChange={handleSubTabChange}>
@@ -98,7 +89,11 @@ export function SponsorProfileTabs({ teams, partnerships, reach }) {
       <div className={CONTENT_WRAPPER_CLASS}>
         {TABS.map(({ value, Content }) => (
           <TabsContent key={value} value={value} className="focus:outline-none">
-            {value === 'overview' ? <ProfileRoleOverview role={PROFILE_OVERVIEW_ROLE.SPONSOR} /> : <Content />}
+            {value === 'overview' ? (
+              <ProfileRoleOverview role={PROFILE_OVERVIEW_ROLE.SPONSOR} />
+            ) : Content ? (
+              <Content />
+            ) : null}
           </TabsContent>
         ))}
       </div>

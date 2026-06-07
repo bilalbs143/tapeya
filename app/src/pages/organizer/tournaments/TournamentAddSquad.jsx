@@ -22,28 +22,28 @@ import {
   useGetTournamentTeamsQuery,
   useRemoveTeamFromTournamentMutation,
 } from '@/store/api/tournamentApi';
-import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 
 const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
+const teamEditIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-edit-icon.svg`;
 
 function teamDisplay(team) {
   const owner = team.sponsor?.name ?? (team.owner != null ? String(team.owner) : '—');
   const iconPlayers =
     Array.isArray(team.icon_players) && team.icon_players.length > 0
       ? team.icon_players
-          .map((p) => p.name)
-          .filter(Boolean)
-          .join(', ')
+        .map((p) => p.name)
+        .filter(Boolean)
+        .join(', ')
       : '—';
   return { owner, iconPlayers };
 }
 
 /**
- * TeamCard — displays team metadata with Add Squad and Remove actions.
+ * TeamCard — displays team metadata with remove action.
  * CURSOR: move to src/features/teams/components/TeamCard.jsx
  */
-function TeamCard({ team, index, onAddSquad, onDelete, isDeleting }) {
+function TeamCard({ team, index, onEdit, onDelete, isDeleting }) {
   const { owner, iconPlayers } = teamDisplay(team);
 
   return (
@@ -51,34 +51,31 @@ function TeamCard({ team, index, onAddSquad, onDelete, isDeleting }) {
       <div className="flex items-start gap-3">
         <TeamLogo team={team} variant="organizerCard" />
         <div className="min-w-0 flex-1">
-          {/* Fixed: was `text:white` (invalid) → `text-white` */}
           <h3 className="text-[16px] font-bold text-white">{team.name ?? '—'}</h3>
           <p className="mt-0.5 text-[14px] text-white">
             Owner: <span className="font-medium text-[#DA9811]">{owner}</span>
           </p>
-          {/* Fixed: was `text:white` (invalid) → correct colour via parent `text-white` */}
           <p className="mt-0.5 text-[12px] text-white">
             Icon Players: <span className="text-[#A2A6AB]">{iconPlayers}</span>
           </p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-3">
-          <div className="flex gap-1.5">
-            <Button
+          <div className="flex items-center gap-1">
+            <button
               type="button"
-              variant="file"
-              size="sm"
-              className="h-8 rounded-full border border-[#DA9811] bg-transparent px-3 text-[12px] font-semibold text-[#DA9811]"
-              onClick={() => onAddSquad?.(team)}
+              onClick={() => onEdit?.(team)}
               disabled={isDeleting}
+              className="flex h-8 w-8 shrink-0 items-center justify-center transition-opacity active:opacity-80 disabled:opacity-50"
+              aria-label="Edit Team"
             >
-              Manage Squad
-            </Button>
+              <img src={teamEditIcon} alt="" className="h-4 w-4" />
+            </button>
             <button
               type="button"
               onClick={() => onDelete?.(team)}
               disabled={isDeleting}
-              className="flex h-8 w-8 shrink-0 items-center justify-end transition-opacity active:opacity-80 disabled:opacity-50"
-              aria-label="Remove team from tournament"
+              className="flex h-8 w-8 shrink-0 items-center justify-center transition-opacity active:opacity-80 disabled:opacity-50"
+              aria-label="Remove Team From Tournament"
             >
               <img src={teamDeleteIcon} alt="" className="h-5 w-5" />
             </button>
@@ -114,7 +111,7 @@ export default function TournamentAddSquad() {
   const tournament = tournamentFromState ?? tournamentFromApi ?? null;
 
   // Skip the API fetch when teams were passed via location state.
-  const { data: fetchedTeams = [], isLoading } = useGetTournamentTeamsQuery(tournamentIdNum, {
+  const { data: fetchedTeams = [], isLoading, refetch } = useGetTournamentTeamsQuery(tournamentIdNum, {
     skip: !isValidId || stateTeams?.length > 0,
   });
 
@@ -146,9 +143,13 @@ export default function TournamentAddSquad() {
   // Handlers
   // ------------------------------------------------------------------
 
-  const handleAddSquad = (team) => {
-    navigate(`/organizer/tournaments/${tournamentIdNum}/squad?team=${team.id}`, {
-      state: { tournament: tournament ?? { id: tournamentIdNum } },
+  const handleEdit = (team) => {
+    openDialog('manageTeam', {
+      mode: 'edit',
+      team,
+      onSuccess: () => {
+        if (!stateTeams?.length) refetch();
+      },
     });
   };
 
@@ -185,22 +186,23 @@ export default function TournamentAddSquad() {
         {/* Loading indicator only shown when teams are not available from state */}
         {!stateTeams?.length && isLoading && <p className="mb-3 text-[13px] text-[#A2A6AB]">Loading teams…</p>}
 
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="mb-3 flex items-center justify-between">
           <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">Teams</h2>
           {teams.length > 0 && (
-            <Button
+            <button
               type="button"
-              variant="file"
-              size="sm"
-              className="h-9 rounded-full border border-[#DA9811] bg-transparent px-4 text-[12px] font-semibold text-[#DA9811]"
               onClick={() =>
                 navigate(`/organizer/tournaments/${tournamentIdNum}/squad?team=${teams[0].id}`, {
                   state: { tournament: tournament ?? { id: tournamentIdNum } },
                 })
               }
+              className="flex shrink-0 items-center gap-2 transition-opacity active:opacity-80"
             >
-              Manage all squads
-            </Button>
+              <span className="flex h-[22px] w-[22px] items-center justify-center rounded-full bg-[#DA9811] text-[15px] font-bold leading-none text-[#080807]">
+                +
+              </span>
+              <span className="text-[13px] font-bold text-[#A2A6AB]">Manage Squads</span>
+            </button>
           )}
         </div>
 
@@ -228,13 +230,7 @@ export default function TournamentAddSquad() {
                 <ul className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
                   {teamsByGroup[groupIndex].map((team, index) => (
                     <li key={team.id ?? index}>
-                      <TeamCard
-                        team={team}
-                        index={index}
-                        onAddSquad={handleAddSquad}
-                        onDelete={handleDelete}
-                        isDeleting={isRemoving}
-                      />
+                      <TeamCard team={team} index={index} onEdit={handleEdit} onDelete={handleDelete} isDeleting={isRemoving} />
                     </li>
                   ))}
                 </ul>
@@ -252,7 +248,7 @@ export default function TournamentAddSquad() {
           <ul className="space-y-3 pb-10 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
             {teams.map((team, index) => (
               <li key={team.id ?? index}>
-                <TeamCard team={team} index={index} onAddSquad={handleAddSquad} onDelete={handleDelete} isDeleting={isRemoving} />
+                <TeamCard team={team} index={index} onEdit={handleEdit} onDelete={handleDelete} isDeleting={isRemoving} />
               </li>
             ))}
           </ul>

@@ -18,7 +18,9 @@ export type ToHttpParamsOptions = {
 function stringifyParamValue(value: unknown): string | null {
   if (value === undefined || value === '') return null;
   if (typeof value === 'string') return value;
-  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  // Laravel `boolean` rule accepts 1/0 but not string "true"/"false" in query strings.
+  if (typeof value === 'boolean') return value ? '1' : '0';
+  if (typeof value === 'number') return String(value);
   return null;
 }
 

@@ -1,9 +1,3 @@
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-
-const TEAM_MATCH_ICON = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
-const TEAM_ICON = `${CLOUDFRONT_APP_BASE}/images/icons/team-icon.svg`;
-const TEAM_LOGO_STANDARD = `${CLOUDFRONT_APP_BASE}/images/standard/team-logo.png`;
-
 /**
  * Per-context team logo fallbacks. Update a variant here to retune one surface
  * without touching shared TeamLogo usage.
@@ -22,35 +16,35 @@ export const TEAM_LOGO_VARIANTS = {
   },
   /** Team picker rows (Select Team dialog). */
   dialogSelect: {
-    fallbackType: 'image',
-    fallbackSrc: TEAM_MATCH_ICON,
-    containerClass: 'flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden',
+    fallbackType: 'initial',
+    fallbackSrc: null,
+    containerClass: 'flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#0d0d0b]',
     imgClass: 'h-6 w-6 object-contain',
-    initialClass: '',
+    initialClass: 'text-[8px] font-bold text-white',
   },
   /** Toss / match setup dialogs. */
   dialog: {
-    fallbackType: 'image',
-    fallbackSrc: TEAM_MATCH_ICON,
-    containerClass: null,
+    fallbackType: 'initial',
+    fallbackSrc: null,
+    containerClass: 'flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#0d0d0b]',
     imgClass: 'h-8 w-8 shrink-0 object-contain',
-    initialClass: '',
+    initialClass: 'text-[9px] font-bold text-white',
   },
   /** Create fixture team cards. */
   match: {
-    fallbackType: 'image',
-    fallbackSrc: TEAM_MATCH_ICON,
-    containerClass: null,
+    fallbackType: 'initial',
+    fallbackSrc: null,
+    containerClass: 'flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#0d0d0b]',
     imgClass: 'h-10 w-10 shrink-0 object-contain',
-    initialClass: '',
+    initialClass: 'text-[11px] font-bold text-white',
   },
   /** Fixture list rows. */
   fixture: {
-    fallbackType: 'image',
-    fallbackSrc: TEAM_MATCH_ICON,
-    containerClass: 'flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden',
+    fallbackType: 'initial',
+    fallbackSrc: null,
+    containerClass: 'flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#0d0d0b]',
     imgClass: 'h-6 w-6 object-contain',
-    initialClass: '',
+    initialClass: 'text-[8px] font-bold text-white',
   },
   /** Scorecard match cards (inline avatar). */
   scorecardCard: {
@@ -79,34 +73,34 @@ export const TEAM_LOGO_VARIANTS = {
   },
   /** Teams tab (scorecard + upcoming). */
   teamsTab: {
-    fallbackType: 'image',
-    fallbackSrc: TEAM_MATCH_ICON,
-    containerClass: 'flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full',
+    fallbackType: 'initial',
+    fallbackSrc: null,
+    containerClass: 'flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#0d0d0b]',
     imgClass: 'h-5 w-5 shrink-0 rounded-full object-cover',
-    initialClass: '',
+    initialClass: 'text-[7px] font-bold text-white',
   },
   /** Live scoring header + scorecard team tabs. */
   scoring: {
-    fallbackType: 'image',
-    fallbackSrc: TEAM_MATCH_ICON,
-    containerClass: null,
+    fallbackType: 'initial',
+    fallbackSrc: null,
+    containerClass: 'flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#0d0d0b]',
     imgClass: 'h-8 w-8 shrink-0 object-contain',
-    initialClass: '',
+    initialClass: 'text-[9px] font-bold text-white',
   },
   /** Drafting team list / detail. */
   draft: {
-    fallbackType: 'image',
-    fallbackSrc: TEAM_ICON,
-    containerClass: 'flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg',
+    fallbackType: 'initial',
+    fallbackSrc: null,
+    containerClass: 'flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#0d0d0b]',
     imgClass: 'h-full w-full object-contain',
-    initialClass: '',
+    initialClass: 'text-[16px] font-bold text-white',
   },
   /** Default / graphics-style fallback. */
   default: {
-    fallbackType: 'image',
-    fallbackSrc: TEAM_LOGO_STANDARD,
-    containerClass: 'flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden',
+    fallbackType: 'initial',
+    fallbackSrc: null,
+    containerClass: 'flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#0d0d0b]',
     imgClass: 'h-full w-full object-contain',
-    initialClass: '',
+    initialClass: 'text-[11px] font-bold text-white',
   },
 };

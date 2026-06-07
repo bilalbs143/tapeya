@@ -115,8 +115,8 @@ export function FixturesTab({
           </div>
           <span className="shrink-0 text-[14px] font-semibold text-[#DA9811]">VS</span>
           <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
-            <p className="truncate text-[14px] font-semibold">{away.name}</p>
             <TeamLogo team={away} variant="fixture" />
+            <p className="truncate text-[14px] font-semibold">{away.name}</p>
           </div>
         </div>
         {venue && (

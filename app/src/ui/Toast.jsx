@@ -1,11 +1,6 @@
-/**
- * Radix Toast — dark panel notifications aligned with Dialog theme tokens.
- * Wrap app with Toaster (ToastProvider + ToastViewport)
- */
-
 import * as ToastPrimitive from '@radix-ui/react-toast';
 
-// ─── Design tokens (match Dialog.jsx: #080807 / #141412 / #DA9811) ─────────
+import { CLOSE_ICON_PATH } from '@/lib/constants/assets';
 
 const viewport =
   'fixed top-[calc(env(safe-area-inset-top)+12px)] left-4 right-4 z-[100] flex max-h-screen w-auto flex-col gap-2 outline-none md:left-auto md:right-4 md:max-w-[380px]';
@@ -127,7 +122,7 @@ export function ToastCloseStyled({ className = '', ...props }) {
   return (
     <ToastPrimitive.Close className={`${close} ${className}`} {...props}>
       <svg width={14} height={14} viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
-        <path d="M11.78 4.03a1 1 0 0 0-1.41-1.41L7.5 5.69 4.74 2.93a1 1 0 0 0-1.41 1.41L6.09 7.12l-2.76 2.76a1 1 0 1 0 1.41 1.41L7.5 8.53l2.76 2.76a1 1 0 0 0 1.41-1.41L8.91 7.12l2.87-2.09Z" />
+        <path d={CLOSE_ICON_PATH} />
       </svg>
     </ToastPrimitive.Close>
   );

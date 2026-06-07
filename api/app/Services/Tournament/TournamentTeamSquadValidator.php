@@ -30,7 +30,7 @@ class TournamentTeamSquadValidator
             ->whereIn('team_user.user_id', $playerIds)
             ->select([
                 'users.id as player_id',
-                DB::raw('COALESCE(NULLIF(users.name, ""), NULLIF(users.nickname, ""), CONCAT("Player #", users.id)) as player_name'),
+                DB::raw("COALESCE(NULLIF(users.name, ''), NULLIF(users.nickname, ''), CONCAT('Player #', users.id)) as player_name"),
                 'teams.id as team_id',
                 'teams.name as team_name',
             ])
@@ -53,7 +53,7 @@ class TournamentTeamSquadValidator
             ->where('tournament_team.tournament_id', $tournament->id)
             ->select([
                 'users.id as player_id',
-                DB::raw('COALESCE(NULLIF(users.name, ""), NULLIF(users.nickname, ""), CONCAT("Player #", users.id)) as player_name'),
+                DB::raw("COALESCE(NULLIF(users.name, ''), NULLIF(users.nickname, ''), CONCAT('Player #', users.id)) as player_name"),
                 'teams.id as team_id',
                 'teams.name as team_name',
             ])
@@ -77,9 +77,22 @@ class TournamentTeamSquadValidator
 
     /**
      * Human-readable validation message for cross-team roster conflicts, or null when valid.
+     *
+     * When $currentPlayerIds is provided (squad sync), only newly added players are checked.
      */
-    public function conflictMessage(Tournament $tournament, int $excludeTeamId, array $playerIds): ?string
-    {
+    public function conflictMessage(
+        Tournament $tournament,
+        int $excludeTeamId,
+        array $playerIds,
+        ?array $currentPlayerIds = null,
+    ): ?string {
+        if ($currentPlayerIds !== null) {
+            $playerIds = array_values(array_diff(
+                array_map('intval', $playerIds),
+                array_map('intval', $currentPlayerIds),
+            ));
+        }
+
         $conflicts = $this->crossTeamConflicts($tournament, $excludeTeamId, $playerIds);
         if ($conflicts->isEmpty()) {
             return null;
@@ -89,14 +102,14 @@ class TournamentTeamSquadValidator
     }
 
     /**
-     * Validate squad for a team across every tournament it participates in.
+     * Squad sync validation across every tournament the team participates in.
      */
-    public function conflictMessageForTeam(Team $team, array $playerIds): ?string
+    public function conflictMessageForTeam(Team $team, array $requestedPlayerIds): ?string
     {
-        $tournaments = $team->tournaments()->get(['tournaments.id', 'tournaments.tournament_name']);
+        $currentPlayerIds = $team->players()->pluck('users.id')->all();
 
-        foreach ($tournaments as $tournament) {
-            $message = $this->conflictMessage($tournament, $team->id, $playerIds);
+        foreach ($team->tournaments()->get(['tournaments.id', 'tournaments.tournament_name']) as $tournament) {
+            $message = $this->conflictMessage($tournament, $team->id, $requestedPlayerIds, $currentPlayerIds);
             if ($message !== null) {
                 return $message;
             }

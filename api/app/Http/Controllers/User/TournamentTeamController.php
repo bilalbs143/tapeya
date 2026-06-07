@@ -67,6 +67,11 @@ class TournamentTeamController extends Controller
         $groupIndex = $request->validated('group_index');
 
         $alreadyAttached = $tournament->teams()->pluck('teams.id')->all();
+        $duplicates = array_values(array_intersect($teamIds, $alreadyAttached));
+        if (! empty($duplicates)) {
+            return $this->failure('Team is already added to this tournament.', 'VALIDATION_ERROR');
+        }
+
         $newTeamIds = array_values(array_diff($teamIds, $alreadyAttached));
         $currentCount = count($alreadyAttached);
 

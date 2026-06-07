@@ -53,10 +53,10 @@ export function OrganizerProfileTabs({ tournaments, events, teams }) {
   const metrics =
     tournaments != null || events != null || teams != null
       ? [
-          { value: String(tournaments ?? '—'), label: 'TOURNAMENTS' },
-          { value: String(events ?? '—'), label: 'EVENTS' },
-          { value: String(teams ?? '—'), label: 'TEAMS' },
-        ]
+        { value: String(tournaments ?? '—'), label: 'TOURNAMENTS' },
+        { value: String(events ?? '—'), label: 'EVENTS' },
+        { value: String(teams ?? '—'), label: 'TEAMS' },
+      ]
       : ORGANIZER_METRICS;
 
   return (
@@ -75,9 +75,9 @@ export function OrganizerProfileTabs({ tournaments, events, teams }) {
           <TabsContent key={value} value={value} className="focus:outline-none">
             {value === 'overview' ? (
               <ProfileRoleOverview role={PROFILE_OVERVIEW_ROLE.ORGANIZER} tournaments={tournaments} events={events} />
-            ) : (
+            ) : Content ? (
               <Content tournaments={tournaments} events={events} teams={teams} />
-            )}
+            ) : null}
           </TabsContent>
         ))}
       </div>

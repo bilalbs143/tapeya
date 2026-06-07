@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { useSearchParams } from 'react-router-dom';
 
@@ -7,6 +7,7 @@ import { OrganizerProfileTabs } from '@/components/UserProfileTabs/OrganizerProf
 import { PlayerProfile } from '@/components/UserProfileTabs/PlayerProfile';
 import { SponsorProfileTabs } from '@/components/UserProfileTabs/SponsorProfileTabs';
 import { useDialog } from '@/context/DialogContext';
+import { useToast } from '@/hooks/useToast';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
@@ -42,6 +43,7 @@ function ProfileContent({ activeRole, user }) {
 
 export default function Profile() {
   const { openDialog } = useDialog();
+  const toast = useToast();
   const userFromStore = useAppSelector(selectUser);
   const { data: meResponse } = useGetMeQuery(undefined, {
     skip: !userFromStore?.id,
@@ -61,6 +63,29 @@ export default function Profile() {
     return userRoleSlugs[0] ?? null;
   }, [searchParams, userRoleSlugs]);
 
+  // TODO: replace window.location.href with a public profile URL (e.g. /players/:id)
+  // once a public profile route exists.
+  const handleShare = useCallback(async () => {
+    const url = window.location.href;
+
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({ url });
+      } catch {
+        // User cancelled native share — no-op
+      }
+      return;
+    }
+
+    // No Web Share API (desktop) — copy link to clipboard
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Link copied');
+    } catch {
+      // Clipboard blocked — silent
+    }
+  }, [toast]);
+
   const setActiveRole = (value) => {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
@@ -72,7 +97,7 @@ export default function Profile() {
 
   return (
     <div className="bg-black">
-      <ProfileHeader user={user} />
+      <ProfileHeader user={user} onShare={handleShare} />
 
       {hasMultipleRoles && (
         <Tabs className="w-full" value={activeRole ?? ''} onValueChange={setActiveRole}>

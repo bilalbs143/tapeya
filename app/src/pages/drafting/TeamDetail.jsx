@@ -27,9 +27,9 @@ function teamDisplayMeta(team) {
   const iconPlayers =
     Array.isArray(team?.icon_players) && team.icon_players.length > 0
       ? team.icon_players
-          .map((p) => p.name)
-          .filter(Boolean)
-          .join(', ')
+        .map((p) => p.name)
+        .filter(Boolean)
+        .join(', ')
       : '—';
   return { owner, iconPlayers };
 }
@@ -169,7 +169,7 @@ export default function TeamDetail() {
             onClick={() => navigate('/drafting/teams')}
             className="mx-auto mt-2 block text-[13px] font-semibold text-[#DA9811]"
           >
-            Back to teams
+            Back to Teams
           </button>
         </Container>
       </div>
@@ -208,11 +208,11 @@ export default function TeamDetail() {
                   type="search"
                   value={findPlayer}
                   onChange={(e) => setFindPlayer(e.target.value)}
-                  placeholder="Search by name, nickname, or phone…"
+                  placeholder="Search by Name, Nickname, or Phone…"
                   autoComplete="off"
                   disabled={isSavingSquad}
                   className="h-12 w-full rounded-[6px] bg-[#141412] py-3 pr-12 pl-4 text-white placeholder:text-base placeholder:text-[#A2A6AB78] focus:ring-2 focus:ring-[#DA9811]/50 focus:outline-none disabled:opacity-60"
-                  aria-label="Find player"
+                  aria-label="Find Player"
                 />
                 <img src={searchIcon} alt="" className="absolute top-1/2 right-4 h-[19px] w-[19px] -translate-y-1/2 opacity-70" />
                 {findPlayer && (
@@ -220,7 +220,7 @@ export default function TeamDetail() {
                     type="button"
                     onClick={() => setFindPlayer('')}
                     className="absolute inset-y-0 right-10 flex w-8 items-center justify-center text-[#A2A6AB] hover:text-white"
-                    aria-label="Clear search"
+                    aria-label="Clear Search"
                   >
                     <CloseIcon className="h-4 w-4" />
                   </button>
@@ -324,7 +324,7 @@ export default function TeamDetail() {
           onClick={() => navigate('/drafting/teams')}
           className="m-auto flex h-12 max-w-fit items-center justify-center rounded-[6px] border border-[#DA9811] px-4 text-center text-[16px] font-bold tracking-wide text-[#DA9811] uppercase transition-opacity active:opacity-90 lg:m-0"
         >
-          Back to teams
+          Back to Teams
         </button>
       </Container>
     </div>

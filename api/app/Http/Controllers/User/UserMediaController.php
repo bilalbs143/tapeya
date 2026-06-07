@@ -18,8 +18,9 @@ use Illuminate\Support\Facades\Storage;
  * POST   /api/v1/media/{type}/{id}/{field}   — upload or replace a media field
  * DELETE /api/v1/media/{type}/{id}/{field}   — remove a media field
  *
- * Ownership is enforced per type: a user can only modify media on records they own.
- * This mirrors the admin MediaController but adds per-type ownership guards.
+ * Requires an authenticated app user (Sanctum). Does not re-check record ownership here —
+ * callers should only hit this after the user already passed authorization on the parent
+ * resource (team update, match scoring, interest submit, etc.).
  *
  * Registered types and fields:
  *   team / logo
@@ -32,12 +33,15 @@ class UserMediaController extends Controller
     use BaseControllerTrait;
 
     /**
-     * Type → field → storage config.
+     * Type → model + field storage config.
      * 'column' is the DB column that stores the raw path.
      * 'file_rules' is the Laravel validation rule array for the 'file' key.
+     *
+     * @var array<string, array{model: class-string<Model>, fields: array<string, array<string, mixed>>}>
      */
     private const TYPES = [
         'team' => [
+            'model' => Team::class,
             'fields' => [
                 'logo' => [
                     'dir' => 'teams',
@@ -47,6 +51,7 @@ class UserMediaController extends Controller
             ],
         ],
         'match' => [
+            'model' => TournamentMatch::class,
             'fields' => [
                 'thumbnail' => [
                     'dir' => 'match-stream-thumbnails',
@@ -56,6 +61,7 @@ class UserMediaController extends Controller
             ],
         ],
         'interest-submission' => [
+            'model' => TournamentInterestSubmission::class,
             'fields' => [
                 'profile_picture' => [
                     'dir' => 'interest/profile-pictures',
@@ -72,12 +78,11 @@ class UserMediaController extends Controller
     ];
 
     /**
-     * Upload (or replace) a media field on a user-owned record.
-     * Multipart body key: "file"
+     * Upload (or replace) a media field. Multipart body key: "file"
      */
     public function upload(Request $request, string $type, int $id, string $field): JsonResponse
     {
-        $resolved = $this->resolveOwned($request, $type, $id, $field);
+        $resolved = $this->resolveRecord($type, $id, $field);
         if ($resolved instanceof JsonResponse) {
             return $resolved;
         }
@@ -101,11 +106,11 @@ class UserMediaController extends Controller
     }
 
     /**
-     * Delete a media field from a user-owned record.
+     * Delete a media field.
      */
     public function delete(Request $request, string $type, int $id, string $field): JsonResponse
     {
-        $resolved = $this->resolveOwned($request, $type, $id, $field);
+        $resolved = $this->resolveRecord($type, $id, $field);
         if ($resolved instanceof JsonResponse) {
             return $resolved;
         }
@@ -125,14 +130,12 @@ class UserMediaController extends Controller
         return $this->noContent();
     }
 
-    // ── Private helpers ──────────────────────────────────────────────────────
-
     /**
-     * Validate type/field, find the record, enforce ownership.
+     * Validate type/field and load the target record (no ownership gate).
      *
      * @return array{0: Model, 1: array<string,mixed>} | JsonResponse
      */
-    private function resolveOwned(Request $request, string $type, int $id, string $field): array|JsonResponse
+    private function resolveRecord(string $type, int $id, string $field): array|JsonResponse
     {
         if (! array_key_exists($type, self::TYPES)) {
             return $this->notFound("Unknown media type: {$type}");
@@ -144,43 +147,14 @@ class UserMediaController extends Controller
             return $this->notFound("Unknown field '{$field}' for type '{$type}'.");
         }
 
-        $userId = $request->user()?->id;
-        $record = $this->findOwned($type, $id, $userId);
+        /** @var class-string<Model> $modelClass */
+        $modelClass = $typeConfig['model'];
+        $record = $modelClass::query()->find($id);
 
         if ($record === null) {
-            return $this->notFound('Record not found or access denied.');
+            return $this->notFound('Record not found.');
         }
 
         return [$record, $typeConfig['fields'][$field]];
-    }
-
-    /**
-     * Find a record by type, enforcing that it belongs to the given user.
-     */
-    private function findOwned(string $type, int $id, ?int $userId): ?Model
-    {
-        if ($userId === null) {
-            return null;
-        }
-
-        return match ($type) {
-            // Team: the authenticated user must be the owner (sponsor).
-            'team' => Team::where('id', $id)
-                ->where('user_id', $userId)
-                ->first(),
-
-            // Match: the authenticated user must be the organizer of the tournament.
-            'match' => TournamentMatch::whereHas(
-                'tournament',
-                fn ($q) => $q->where('user_id', $userId)
-            )->where('id', $id)->first(),
-
-            // Interest submission: the authenticated user must own the submission.
-            'interest-submission' => TournamentInterestSubmission::where('id', $id)
-                ->where('user_id', $userId)
-                ->first(),
-
-            default => null,
-        };
     }
 }

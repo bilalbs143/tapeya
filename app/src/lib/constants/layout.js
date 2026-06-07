@@ -25,6 +25,9 @@ export const BOTTOM_NAV_HEIGHT = 70;
 /** Bottom inset for full-bleed pages above BottomNav (bar + safe area + raised center tab). */
 export const BOTTOM_NAV_CLEARANCE = 90;
 
+/** Z-index for fixed/sticky tab bars — below navbar (50) and dialogs (50). */
+export const STICKY_TABS_Z = 40;
+
 /** Z-index for Select/dropdown content so it renders above Dialog overlay (e.g. UserEdit). Use Tailwind class z-[100]. */
 export const DROPDOWN_ABOVE_DIALOG_Z = 100;
 

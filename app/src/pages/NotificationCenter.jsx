@@ -44,12 +44,12 @@ function mapApiNotificationToCard(notification) {
   const nameSource = data.customer_name || data.user_name || data.tournament_name || '';
   const fallback = nameSource
     ? nameSource
-        .split(' ')
-        .filter(Boolean)
-        .map((w) => w[0])
-        .join('')
-        .slice(0, 2)
-        .toUpperCase()
+      .split(' ')
+      .filter(Boolean)
+      .map((w) => w[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase()
     : 'NT';
 
   return {

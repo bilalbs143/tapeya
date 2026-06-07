@@ -22,9 +22,12 @@ export function extractTeamLogo(team) {
  * @returns {string}
  */
 export function getTeamInitial(name, fallback = 'T') {
-  return String(name || fallback)
-    .charAt(0)
-    .toUpperCase();
+  const str = String(name || fallback).trim();
+  const words = str.split(/\s+/).filter(Boolean);
+  if (words.length >= 2) {
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+  return str.slice(0, 2).toUpperCase();
 }
 
 /**

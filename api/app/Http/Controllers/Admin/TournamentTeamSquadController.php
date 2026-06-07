@@ -47,7 +47,12 @@ class TournamentTeamSquadController extends Controller
 
         $playerIds = $request->validated('player_ids');
 
-        $conflictMessage = $this->squadValidator->conflictMessage($tournament, $team->id, $playerIds);
+        $conflictMessage = $this->squadValidator->conflictMessage(
+            $tournament,
+            $team->id,
+            $playerIds,
+            $team->players()->pluck('users.id')->all(),
+        );
         if ($conflictMessage !== null) {
             return $this->failure($conflictMessage, 'VALIDATION_ERROR', [
                 'player_ids' => [$conflictMessage],

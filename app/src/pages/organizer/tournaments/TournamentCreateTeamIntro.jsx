@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { useDialog } from '@/context/DialogContext';
 import {
   areTournamentTeamsComplete,
   canAddTournamentTeams,
@@ -11,11 +12,13 @@ import {
 } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentQuery, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
+import { Container } from '@/ui/Container';
 
 export default function TournamentCreateTeamIntro() {
   const navigate = useNavigate();
   const location = useLocation();
   const { tournamentId } = useParams();
+  const { openDialog } = useDialog();
 
   const tournamentFromState = location.state?.tournament ?? null;
 
@@ -26,7 +29,10 @@ export default function TournamentCreateTeamIntro() {
     { id: tournamentIdNum },
     { skip: !isValidId },
   );
-  const tournament = tournamentFromApi ?? tournamentFromState ?? null;
+  const tournament = useMemo(() => {
+    if (!tournamentFromState && !tournamentFromApi) return null;
+    return { ...tournamentFromState, ...tournamentFromApi };
+  }, [tournamentFromState, tournamentFromApi]);
 
   const { data: teams = [], isLoading: teamsLoading } = useGetTournamentTeamsQuery(tournamentIdNum, { skip: !isValidId });
   const teamsCount = teamsLoading ? (tournament?.teams_count ?? 0) : teams.length;
@@ -34,8 +40,11 @@ export default function TournamentCreateTeamIntro() {
   const teamsComplete = areTournamentTeamsComplete(tournament, teamsCount);
   const canAddTeam = canAddTournamentTeams(tournament, teamsCount);
 
-  const matchesCount = tournament?.matches_count ?? 0;
-  const showViewFixtures = !isLoadingTournament && matchesCount > 0;
+  const showViewFixtures = (tournament?.matches_count ?? 0) > 0;
+
+  const isPageLoading =
+    (!tournament && isLoadingTournament) ||
+    (teamsLoading && tournament?.teams_count == null);
 
   useEffect(() => {
     if (!isValidId) {
@@ -44,40 +53,51 @@ export default function TournamentCreateTeamIntro() {
   }, [isValidId, navigate]);
 
   useEffect(() => {
-    if (!isValidId || noTeams || teamsComplete) return;
+    if (!isValidId || isPageLoading || noTeams || teamsComplete) return;
     navigate(`/organizer/tournaments/${tournamentIdNum}/saved-teams`, {
       replace: true,
       state: { tournament: tournament ?? { id: tournamentIdNum } },
     });
-  }, [isValidId, noTeams, teamsComplete, tournamentIdNum, tournament, navigate]);
+  }, [isValidId, isPageLoading, noTeams, teamsComplete, tournamentIdNum, tournament, navigate]);
 
   if (!isValidId) return null;
 
   const title = getTournamentTitle(tournament, 'Tournaments');
 
+  const tournamentStatePayload = tournament
+    ? {
+      ...tournament,
+      name: tournament.tournament_name ?? tournament.name,
+    }
+    : { id: tournamentIdNum };
+
+  if (isPageLoading) {
+    return (
+      <div className="flex min-h-[calc(100vh-144px)] flex-col bg-black">
+        <AppSubpageHeader title={title} titleClassName="truncate" />
+        <Container>
+          <p className="py-6 text-center text-[13px] text-[#A2A6AB]">Loading…</p>
+        </Container>
+      </div>
+    );
+  }
+
   const handleCreateTeam = () => {
-    navigate(`/organizer/tournaments/${tournamentIdNum}/add-team`, {
-      state: {
-        tournament: tournament
-          ? {
-              ...tournament,
-              name: tournament.tournament_name ?? tournament.name,
-            }
-          : { id: tournamentIdNum },
+    openDialog('manageTeam', {
+      mode: 'create',
+      tournamentId: tournamentIdNum,
+      tournament: tournamentStatePayload,
+      onSuccess: () => {
+        navigate(`/organizer/tournaments/${tournamentIdNum}/saved-teams`, {
+          state: { tournament: tournamentStatePayload },
+        });
       },
     });
   };
 
   const handleViewTeams = () => {
     navigate(`/organizer/tournaments/${tournamentIdNum}/add-squad`, {
-      state: {
-        tournament: tournament
-          ? {
-              ...tournament,
-              name: tournament.tournament_name ?? tournament.name,
-            }
-          : { id: tournamentIdNum },
-      },
+      state: { tournament: tournamentStatePayload },
     });
   };
 
@@ -85,12 +105,7 @@ export default function TournamentCreateTeamIntro() {
     navigate('/organizer/scoring/start-match', {
       state: {
         tournamentId: tournamentIdNum,
-        tournament: tournament
-          ? {
-              ...tournament,
-              name: tournament.tournament_name ?? tournament.name,
-            }
-          : { id: tournamentIdNum },
+        tournament: tournamentStatePayload,
       },
     });
   };
@@ -144,7 +159,7 @@ export default function TournamentCreateTeamIntro() {
               </span>
               <span className="text-[16px] font-bold text-[#A2A6AB]">Add Fixtures</span>
             </Button>
-            {showViewFixtures && (
+            {showViewFixtures ? (
               <Button
                 type="button"
                 variant="card"
@@ -156,7 +171,7 @@ export default function TournamentCreateTeamIntro() {
                 </span>
                 <span className="text-[16px] font-bold text-[#A2A6AB]">View Fixtures</span>
               </Button>
-            )}
+            ) : null}
           </>
         ) : null}
       </div>

@@ -27,7 +27,6 @@ class UserSearchController extends Controller
         $validated = $request->validate([
             'search' => ['sometimes', 'nullable', 'string', 'max:255'],
             'app_role' => ['sometimes', 'nullable', Rule::enum(AppRoleEnum::class)],
-            'for_squad' => ['sometimes', 'boolean'],
             'context' => ['sometimes', 'nullable', 'string', Rule::in(['broadcaster'])],
             'tournament_id' => ['required_if:context,broadcaster', 'nullable', 'integer', 'exists:tournaments,id'],
         ]);

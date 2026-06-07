@@ -133,7 +133,7 @@ function SquadSingle({ tournamentId, teamId }) {
   return (
     <div className="mt-4 pb-6">
       <div className="flex items-center gap-2 border-b border-[#1A1A1A] pb-4">
-        <AppSubpageBackButton onClick={clearTeam} aria-label="Back to teams" />
+        <AppSubpageBackButton onClick={clearTeam} aria-label="Back to Teams" />
         <h2 className="min-w-0 flex-1 text-left text-[13px] font-bold tracking-wide text-white uppercase">{title}</h2>
       </div>
 

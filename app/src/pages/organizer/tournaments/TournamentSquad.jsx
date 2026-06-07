@@ -20,7 +20,6 @@ import {
   useGetTournamentSquadOccupancyQuery,
   useGetTournamentTeamsQuery,
 } from '@/store/api/tournamentApi';
-import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 import { FormField, formFieldLabelCheckoutClass } from '@/ui/FormField';
 import { CloseIcon } from '@/ui/icons/CloseIcon';
@@ -48,9 +47,9 @@ function teamDisplayMeta(team) {
   const iconPlayers =
     Array.isArray(team?.icon_players) && team.icon_players.length > 0
       ? team.icon_players
-          .map((p) => p.name)
-          .filter(Boolean)
-          .join(', ')
+        .map((p) => p.name)
+        .filter(Boolean)
+        .join(', ')
       : (team?.iconPlayer ?? '—');
   return { owner, iconPlayers };
 }
@@ -297,52 +296,36 @@ export default function TournamentSquad() {
   const teamSelectOptions =
     hasGroups && numberOfGroups > 1
       ? Array.from({ length: numberOfGroups }, (_, i) => i + 1).map((groupIndex) => {
-          const groupTeams = teams.filter((t) => Number(t.group_index) === groupIndex);
-          if (groupTeams.length === 0) return null;
-          return (
-            <SelectGroup key={groupIndex}>
-              <SelectLabel className="px-3 py-1.5 text-[11px] font-bold tracking-wide text-[#DA9811] uppercase">
+        const groupTeams = teams.filter((t) => Number(t.group_index) === groupIndex);
+        if (groupTeams.length === 0) return null;
+        return (
+          <SelectGroup key={groupIndex}>
+            <SelectLabel className="px-3 py-1.5 text-[11px] font-bold tracking-wide text-[#DA9811] uppercase">
                 Group {groupIndex}
-              </SelectLabel>
-              {groupTeams.map((t) => (
-                <TeamSelectItem key={t.id} team={t} hasGroups={hasGroups} />
-              ))}
-            </SelectGroup>
-          );
-        })
+            </SelectLabel>
+            {groupTeams.map((t) => (
+              <TeamSelectItem key={t.id} team={t} hasGroups={hasGroups} />
+            ))}
+          </SelectGroup>
+        );
+      })
       : teams.map((t) => <TeamSelectItem key={t.id} team={t} hasGroups={false} />);
 
   return (
     <div className="bg-black">
       <AppSubpageHeader title={tournament ? `${getTournamentTitle(tournament)} - Squad` : 'Tournaments - Squad'} />
       <Container>
-        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <FormField label="Team" htmlFor="squad-team-select" className="mb-0 flex-1">
+        <div className="mb-5">
+          <FormField label="Team" htmlFor="squad-team-select" className="mb-0">
             <Select value={selectedTeamId} onValueChange={handleTeamChange} disabled={teams.length <= 1}>
-              <SelectTrigger id="squad-team-select" className={selectTriggerInputClass} aria-label="Select team">
-                <span className="flex min-w-0 flex-1 items-center gap-2">
-                  <TeamLogo team={selectedTeam} variant="dialogSelect" />
-                  <SelectValue placeholder="Select team" />
-                </span>
+              <SelectTrigger id="squad-team-select" className={selectTriggerInputClass} aria-label="Select Team">
+                <SelectValue placeholder="Select Team" />
               </SelectTrigger>
               <SelectContent className={selectContentInputClass} viewportClassName={selectViewportInputClass} position="popper">
                 {teamSelectOptions}
               </SelectContent>
             </Select>
           </FormField>
-          <Button
-            type="button"
-            variant="file"
-            size="sm"
-            className="h-12 shrink-0 rounded-[6px] border border-[#FFFFFF1A] bg-transparent px-4 text-[13px] font-semibold text-[#A2A6AB]"
-            onClick={() =>
-              navigate(`/organizer/tournaments/${tournamentIdNum}/add-squad`, {
-                state: { tournament: tournament ?? { id: tournamentIdNum }, teams },
-              })
-            }
-          >
-            Manage teams
-          </Button>
         </div>
 
         {isLoadingSquad && <p className="mb-3 text-[13px] text-[#A2A6AB]">Loading squad…</p>}
@@ -368,17 +351,17 @@ export default function TournamentSquad() {
               type="text"
               value={findPlayer}
               onChange={(e) => setFindPlayer(e.target.value)}
-              placeholder="Search by name, nickname, or phone…"
+              placeholder="Search by Name, Nickname, or Phone…"
               autoComplete="off"
               className="h-12 w-full rounded-[6px] bg-[#141412] py-3 pr-10 pl-4 text-white placeholder:text-base placeholder:text-[#A2A6AB78] focus:ring-2 focus:ring-[#DA9811]/50 focus:outline-none"
-              aria-label="Find player"
+              aria-label="Find Player"
             />
             {findPlayer && (
               <button
                 type="button"
                 onClick={() => setFindPlayer('')}
                 className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-[#A2A6AB] transition-colors hover:text-white active:opacity-80"
-                aria-label="Clear search"
+                aria-label="Clear Search"
               >
                 <CloseIcon className="h-4 w-4" />
               </button>

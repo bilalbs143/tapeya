@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { TeamLogo } from '@/components/TeamLogo';
+import { useDialog } from '@/context/DialogContext';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { useSearchTeamsQuery } from '@/store/api/teamApi';
 import { Container } from '@/ui/Container';
@@ -14,9 +15,9 @@ function teamDisplayMeta(team) {
   const iconPlayers =
     Array.isArray(team?.icon_players) && team.icon_players.length > 0
       ? team.icon_players
-          .map((p) => p.name)
-          .filter(Boolean)
-          .join(', ')
+        .map((p) => p.name)
+        .filter(Boolean)
+        .join(', ')
       : '—';
   return { owner, iconPlayers };
 }
@@ -51,7 +52,7 @@ function TeamCard({ team, index, onEdit, onDelete, onClick }) {
               onEdit?.(team);
             }}
             className="flex h-4 w-4 items-center justify-end rounded-lg transition-opacity active:opacity-80"
-            aria-label="Edit team"
+            aria-label="Edit Team"
           >
             <img src={teamEditIcon} alt="" className="h-4 w-4" />
           </button>
@@ -62,7 +63,7 @@ function TeamCard({ team, index, onEdit, onDelete, onClick }) {
               onDelete?.(team);
             }}
             className="flex h-4 w-4 items-center justify-end rounded-lg transition-opacity active:opacity-80"
-            aria-label="Delete team"
+            aria-label="Delete Team"
           >
             <img src={teamDeleteIcon} alt="" className="h-4 w-4" />
           </button>
@@ -75,6 +76,7 @@ function TeamCard({ team, index, onEdit, onDelete, onClick }) {
 
 export default function TeamList() {
   const navigate = useNavigate();
+  const { openDialog } = useDialog();
 
   const { data: teams = [], isLoading, isError } = useSearchTeamsQuery('');
 
@@ -82,9 +84,9 @@ export default function TeamList() {
     navigate(`/drafting/teams/${team.id}`, { state: { team } });
   };
 
-  const handleEdit = (_team) => {
-    // TODO: Navigate to edit team when API supports update
-  };
+  const handleEdit = (team) => openDialog('manageTeam', { mode: 'edit', team });
+
+  const handleCreate = () => openDialog('manageTeam', { mode: 'create' });
 
   const handleDelete = (_team) => {
     // TODO: Confirm and delete team when API supports delete for app users
@@ -98,7 +100,7 @@ export default function TeamList() {
           <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">Teams</h2>
           <button
             type="button"
-            onClick={() => navigate('/drafting/add-team')}
+            onClick={handleCreate}
             className="flex shrink-0 items-center gap-2 transition-opacity active:opacity-80"
           >
             <span className="flex h-[27px] w-[27px] items-center justify-center rounded-full bg-[#DA9811] text-[18px] font-bold text-[#080807]">

@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { TeamLogo } from '@/components/TeamLogo';
+import { useDialog } from '@/context/DialogContext';
 import {
   areTournamentTeamsComplete,
   canAddTournamentTeams,
@@ -20,20 +21,18 @@ function teamDisplay(team) {
   const iconPlayers =
     Array.isArray(team.icon_players) && team.icon_players.length > 0
       ? team.icon_players
-          .map((p) => p.name)
-          .filter(Boolean)
-          .join(', ')
+        .map((p) => p.name)
+        .filter(Boolean)
+        .join(', ')
       : '—';
   return { owner, iconPlayers };
 }
 
-function TeamCard({ team, index, highlight }) {
+function TeamCard({ team, index }) {
   const { owner, iconPlayers } = teamDisplay(team);
 
   return (
-    <div
-      className={`flex items-start gap-3 rounded-[17px] bg-[#141412] p-4 ${highlight ? 'ring-2 ring-[#DA9811] ring-offset-2 ring-offset-black' : ''}`}
-    >
+    <div className="flex items-start gap-3 rounded-[17px] bg-[#141412] p-4">
       <TeamLogo team={team} variant="organizerCard" />
       <div className="min-w-0 flex-1">
         <h3 className="text-[16px] font-bold text-white">{team.name ?? '—'}</h3>
@@ -60,9 +59,10 @@ export default function TournamentSavedTeams() {
   const navigate = useNavigate();
   const location = useLocation();
   const { tournamentId } = useParams();
+  const { openDialog } = useDialog();
 
   const tournamentFromState = location.state?.tournament ?? null;
-  const newTeam = location.state?.newTeam ?? null;
+  const [highlightTeamId, setHighlightTeamId] = useState(null);
   const newTeamListRef = useRef(null);
 
   const tournamentIdNum = parseTournamentId(tournamentId, tournamentFromState?.id);
@@ -96,13 +96,13 @@ export default function TournamentSavedTeams() {
   }, [isValidId, navigate]);
 
   useEffect(() => {
-    if (newTeam && !isLoading && newTeamListRef.current) {
+    if (highlightTeamId && !isLoading && newTeamListRef.current) {
       newTeamListRef.current.scrollIntoView({
         behavior: 'smooth',
         block: 'nearest',
       });
     }
-  }, [newTeam, isLoading]);
+  }, [highlightTeamId, isLoading]);
 
   // ------------------------------------------------------------------
   // Handlers
@@ -114,10 +114,13 @@ export default function TournamentSavedTeams() {
     });
   };
 
-  const handleNavigateToAddTeam = () => {
-    navigate(`/organizer/tournaments/${tournamentIdNum}/add-team`, {
-      state: {
-        tournament: tournament ?? { id: tournamentIdNum },
+  const handleOpenAddTeam = () => {
+    openDialog('manageTeam', {
+      mode: 'create',
+      tournamentId: tournamentIdNum,
+      tournament,
+      onSuccess: (team) => {
+        if (team?.id != null) setHighlightTeamId(team.id);
       },
     });
   };
@@ -145,10 +148,10 @@ export default function TournamentSavedTeams() {
           {canAddTeam && (
             <button
               type="button"
-              onClick={handleNavigateToAddTeam}
+              onClick={handleOpenAddTeam}
               className="flex shrink-0 items-center gap-2 transition-opacity active:opacity-80"
             >
-              <span className="flex h-[27px] w-[27px] items-center justify-center rounded-full bg-[#DA9811] text-[18px] font-bold text-[#080807]">
+              <span className="flex h-[22px] w-[22px] items-center justify-center rounded-full bg-[#DA9811] text-[15px] font-bold leading-none text-[#080807]">
                 +
               </span>
               <span className="text-[13px] font-bold text-[#A2A6AB]">Create Team</span>
@@ -175,8 +178,8 @@ export default function TournamentSavedTeams() {
                 <h3 className="mb-2 text-[13px] font-bold tracking-wide text-[#DA9811] uppercase">Group {groupIndex}</h3>
                 <ul className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
                   {teamsByGroup[groupIndex].map((team, index) => (
-                    <li key={team.id ?? index} ref={newTeam?.id != null && team.id === newTeam.id ? newTeamListRef : undefined}>
-                      <TeamCard team={team} index={index} highlight={newTeam?.id != null && team.id === newTeam.id} />
+                    <li key={team.id ?? index} ref={highlightTeamId != null && team.id === highlightTeamId ? newTeamListRef : undefined}>
+                      <TeamCard team={team} index={index} />
                     </li>
                   ))}
                 </ul>
@@ -193,8 +196,8 @@ export default function TournamentSavedTeams() {
         {!isLoading && teamsByGroup == null && teams.length > 0 && (
           <ul className="space-y-3 pb-6 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
             {teams.map((team, index) => (
-              <li key={team.id ?? index} ref={newTeam?.id != null && team.id === newTeam.id ? newTeamListRef : undefined}>
-                <TeamCard team={team} index={index} highlight={newTeam?.id != null && team.id === newTeam.id} />
+              <li key={team.id ?? index} ref={highlightTeamId != null && team.id === highlightTeamId ? newTeamListRef : undefined}>
+                <TeamCard team={team} index={index} />
               </li>
             ))}
           </ul>

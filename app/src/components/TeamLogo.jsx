@@ -44,9 +44,13 @@ export function TeamLogo({ team, logo, name, variant = 'default', accent, classN
   }
 
   if (useInitialFallback) {
-    const initialClasses = [config.containerClass, config.initialClass, accentClass, className].filter(Boolean).join(' ');
-    if (initialClasses) {
-      return <span className={initialClasses}>{initial}</span>;
+    const containerClasses = [config.containerClass, accentClass, className].filter(Boolean).join(' ');
+    if (containerClasses) {
+      return (
+        <span className={containerClasses}>
+          <span className={config.initialClass || ''}>{initial}</span>
+        </span>
+      );
     }
     return <span>{initial}</span>;
   }

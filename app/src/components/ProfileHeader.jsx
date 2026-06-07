@@ -24,6 +24,7 @@ export function ProfileHeader({
   role: roleProp,
   strength: strengthProp,
   avatarSrc: avatarSrcProp,
+  onShare,
 }) {
   const name = nameProp ?? (userProp?.name?.trim() || userProp?.nickname?.trim() || 'Guest');
   const role = roleProp ?? getPrimaryRoleLabel(userProp);
@@ -35,6 +36,20 @@ export function ProfileHeader({
     <header className="relative isolate mb-6 overflow-visible" style={{ height: BANNER_HEIGHT }}>
       <img src={profileHeaderBg} alt="" className="absolute inset-0 -z-20 size-full object-cover object-center" />
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#000000] to-[#00000073]" />
+
+      {onShare && (
+        <button
+          type="button"
+          onClick={onShare}
+          aria-label="Share profile"
+          className="absolute top-[90px] right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-sm transition-opacity hover:opacity-80 active:opacity-60"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+          </svg>
+        </button>
+      )}
 
       <div className="relative flex h-full flex-col px-4 pt-16">
         <div className={`mx-auto flex w-full flex-1 ${CONTENT_MAX} flex-col`}>

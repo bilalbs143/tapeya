@@ -9,11 +9,11 @@ function SuccessIcon() {
         </svg>
       </div>
       <div
-        className="absolute -top-0.5 -right-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-[#22C55E]"
+        className="absolute -top-0.5 -right-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-[#DA9811]"
         aria-hidden
       >
         <svg
-          className="h-4 w-4 text-white"
+          className="h-4 w-4 text-[#080807]"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"

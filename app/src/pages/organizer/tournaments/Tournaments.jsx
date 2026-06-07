@@ -158,14 +158,25 @@ function Section({ title, children, emptyMessage = 'No tournaments' }) {
 
 export default function Tournaments() {
   const navigate = useNavigate();
-  const { data: tournamentsData } = useGetTournamentsQuery({
+  const {
+    data: tournamentsData,
+    isLoading: isLoadingTournaments,
+    isError: isTournamentsError,
+  } = useGetTournamentsQuery({
     all: true,
     organizer_tournaments: true,
   });
-  const { data: myRequests = [] } = useGetMyTournamentRequestsQuery();
+  const {
+    data: myRequests = [],
+    isLoading: isLoadingRequests,
+    isError: isRequestsError,
+  } = useGetMyTournamentRequestsQuery();
+
+  const isLoading = isLoadingTournaments || isLoadingRequests;
+  const isError = isTournamentsError || isRequestsError;
 
   /**
-   * Show pending + rejected requests so the player can track their request status.
+   * Show pending + rejected requests so the organizer can track their request status.
    * Approved requests that have been converted to a tournament appear in the
    * Scheduled / Previous sections below — no need to duplicate them here.
    */
@@ -219,10 +230,24 @@ export default function Tournaments() {
   const hasTournaments = scheduled.length > 0 || previous.length > 0;
   const isEmpty = trackedRequests.length === 0 && !hasTournaments;
 
+  if (isLoading) {
+    return (
+      <div className="bg-black">
+        <AppSubpageHeader title="My Tournaments" />
+        <Container>
+          <p className="py-6 text-center text-[13px] text-[#A2A6AB]">Loading tournaments…</p>
+        </Container>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-black">
       <AppSubpageHeader title="My Tournaments" />
       <Container>
+        {isError && (
+          <p className="mb-3 text-center text-[13px] text-red-400">Failed to load tournaments. Try again later.</p>
+        )}
         <div className="space-y-6 pb-6">
           {/* Pending / rejected requests — visible until the request becomes a real tournament */}
           {trackedRequests.length > 0 && (
@@ -251,7 +276,7 @@ export default function Tournaments() {
           )}
 
           {/* Nothing at all — prompt to request */}
-          {isEmpty && (
+          {isEmpty && !isError && (
             <div className="rounded-[17px] bg-[#141412] px-4 py-8 text-center">
               <p className="text-[14px] text-[#A2A6AB]">You have no tournaments yet.</p>
               <button
