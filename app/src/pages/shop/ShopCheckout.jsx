@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useToast } from '@/hooks/useToast';
+import { getApiErrorMessage } from '@/lib/apiErrors';
 import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
 import { formatPrice } from '@/lib/format';
 import { useCreateOrderMutation, useGetCartQuery } from '@/store/api/shopApi';
@@ -75,8 +76,7 @@ export default function ShopCheckout() {
         navigate(`/shop/order-payment/${order.id}`, { replace: true });
       }
     } catch (err) {
-      const message = err?.data?.message ?? err?.message ?? 'Checkout failed. Please try again.';
-      toast.error(message);
+      toast.error(getApiErrorMessage(err, 'Checkout failed. Please try again.'));
     }
   };
 
@@ -90,11 +90,11 @@ export default function ShopCheckout() {
       <Container>
         {cartLoading ? null : !canCheckout ? (
           <div className="py-8 text-center">
-            <p className="text-[14px] text-[#A2A6AB]">Your cart is empty.</p>
+            <p className="text-[14px] text-muted">Your cart is empty.</p>
             <button
               type="button"
               onClick={() => navigate('/shop/cart')}
-              className="mt-4 rounded-full bg-[#DA9811] px-6 py-3 text-[14px] font-bold text-black"
+              className="mt-4 rounded-full bg-brand px-6 py-3 text-[14px] font-bold text-black"
             >
               View Cart
             </button>
@@ -171,15 +171,15 @@ export default function ShopCheckout() {
               </FormField>
             </div>
 
-            <p className="text-[14px] text-[#A2A6AB]">
-              Subtotal: <strong className="text-[#DA9811]">{formatPrice(subtotal)}</strong> ({items.length} item
+            <p className="text-[14px] text-muted">
+              Subtotal: <strong className="text-brand">{formatPrice(subtotal)}</strong> ({items.length} item
               {items.length !== 1 ? 's' : ''})
             </p>
 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex w-full items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90 disabled:opacity-50 lg:w-auto lg:justify-start lg:px-4"
+              className="flex w-full items-center justify-center gap-2 rounded-[6px] bg-brand py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90 disabled:opacity-50 lg:w-auto lg:justify-start lg:px-4"
             >
               {isSubmitting ? 'Placing Order…' : 'Place Order'}
               <svg

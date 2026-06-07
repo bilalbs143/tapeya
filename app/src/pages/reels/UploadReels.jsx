@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { getInitials } from '@/lib/utils/displayUtils';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 import { addReel } from '@/store/slices/reelsSlice';
@@ -113,19 +114,19 @@ export default function UploadReels() {
         <div className="mb-4 flex items-center gap-3">
           <Avatar className="h-12 w-12 shrink-0">
             <AvatarImage src={avatarUrl} alt="" />
-            <AvatarFallback className="bg-[#141412] text-white">{displayName.slice(0, 2).toUpperCase()}</AvatarFallback>
+            <AvatarFallback className="bg-surface text-white">{getInitials(displayName)}</AvatarFallback>
           </Avatar>
           <span className="text-[15px] font-medium text-white">{displayName}</span>
         </div>
 
         {/* Card: caption + video preview */}
-        <div className="rounded-[17px] bg-[#141412] p-4">
+        <div className="rounded-[17px] bg-surface p-4">
           <textarea
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             placeholder="What Do You Want to Talk About?"
             rows={3}
-            className="mb-4 w-full resize-none rounded-lg border-0 bg-transparent text-[15px] text-white placeholder:text-[#A2A6AB] focus:ring-0 focus:outline-none"
+            className="mb-4 w-full resize-none rounded-lg border-0 bg-transparent text-[15px] text-white placeholder:text-muted focus:ring-0 focus:outline-none"
           />
           <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black">
             {previewUrl ? (
@@ -170,7 +171,7 @@ export default function UploadReels() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex h-full w-full flex-col items-center justify-center gap-2 text-[#A2A6AB]"
+                className="flex h-full w-full flex-col items-center justify-center gap-2 text-muted"
               >
                 <img src={reelCameraIcon} alt="" className="h-8 w-8 shrink-0 opacity-80 brightness-0 invert" aria-hidden />
                 <span className="text-sm">Select Video</span>

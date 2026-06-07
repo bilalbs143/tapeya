@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { formatDateRange } from '@/lib/format';
+import { formatDateRange } from '@/lib/utils/dateUtils';
 import { areTournamentTeamsComplete, getTournamentDisplayImage, getTournamentTitle } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentsQuery } from '@/store/api/tournamentApi';
 import { useGetMyTournamentRequestsQuery } from '@/store/api/tournamentRequestApi';
@@ -14,7 +14,7 @@ import { Container } from '@/ui/Container';
 const FIXTURE_CARD_IMAGE = `${CLOUDFRONT_APP_BASE}/images/background/fixture-bg.png`;
 
 const STATUS_STYLES = {
-  pending: 'bg-[#DA9811]/15 text-[#DA9811] border-[#DA9811]/40',
+  pending: 'bg-brand/15 text-brand border-brand/40',
   approved: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40',
   rejected: 'bg-red-500/15 text-red-400 border-red-500/40',
 };
@@ -34,8 +34,8 @@ function PendingRequestCard({ request }) {
   const venue = [request.venue_name, location].filter(Boolean).join(', ') || '—';
 
   return (
-    <div className="flex gap-3 rounded-[17px] border border-[#DA9811]/25 bg-[#141412] p-3">
-      <div className="flex h-[117px] w-[100px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#0d0d0b]">
+    <div className="flex gap-3 rounded-[17px] border border-brand/25 bg-surface p-3">
+      <div className="flex h-[117px] w-[100px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-surface-deep">
         <img src={FIXTURE_CARD_IMAGE} alt="" className="h-full w-full object-cover opacity-80" />
       </div>
       <div className="min-w-0 flex-1">
@@ -43,25 +43,25 @@ function PendingRequestCard({ request }) {
           <StatusBadge status={request.status} label={request.status_label} />
         </div>
         <h3 className="line-clamp-2 text-[13px] font-bold text-white">{request.tournament_name}</h3>
-        {request.tournament_type_label && <p className="mt-0.5 text-[12px] text-[#A2A6AB]">{request.tournament_type_label}</p>}
+        {request.tournament_type_label && <p className="mt-0.5 text-[12px] text-muted">{request.tournament_type_label}</p>}
         <ul className="mt-1.5 space-y-0.5 text-xs">
           <li>
-            <span className="text-[#A2A6AB]">Dates:</span> <span className="text-white">{dates}</span>
+            <span className="text-muted">Dates:</span> <span className="text-white">{dates}</span>
           </li>
           <li>
-            <span className="text-[#A2A6AB]">Venue:</span> <span className="text-white">{venue}</span>
+            <span className="text-muted">Venue:</span> <span className="text-white">{venue}</span>
           </li>
           <li>
-            <span className="text-[#A2A6AB]">Teams:</span> <span className="text-white">{request.number_of_teams ?? '—'}</span>
+            <span className="text-muted">Teams:</span> <span className="text-white">{request.number_of_teams ?? '—'}</span>
           </li>
         </ul>
         {request.status === 'pending' && (
-          <p className="mt-2 text-[11px] leading-snug text-[#A2A6AB]">
+          <p className="mt-2 text-[11px] leading-snug text-muted">
             Our team is reviewing your request. We will contact you shortly.
           </p>
         )}
         {request.status === 'rejected' && (
-          <p className="mt-2 text-[11px] leading-snug text-[#A2A6AB]">
+          <p className="mt-2 text-[11px] leading-snug text-muted">
             This request was not approved. Contact support for more information.
           </p>
         )}
@@ -78,7 +78,7 @@ function TournamentCard({ tournament, showWinningTeam = false, onClick }) {
 
   return (
     <div
-      className="flex cursor-pointer gap-3 rounded-[17px] bg-[#141412] p-3"
+      className="flex cursor-pointer gap-3 rounded-[17px] bg-surface p-3"
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       onClick={() => onClick?.(tournament)}
@@ -90,7 +90,7 @@ function TournamentCard({ tournament, showWinningTeam = false, onClick }) {
         }
       }}
     >
-      <div className="flex h-[117px] w-[100px] shrink-0 overflow-hidden rounded-xl bg-[#0d0d0b]">
+      <div className="flex h-[117px] w-[100px] shrink-0 overflow-hidden rounded-xl bg-surface-deep">
         <img
           src={imageUrl}
           alt=""
@@ -109,10 +109,10 @@ function TournamentCard({ tournament, showWinningTeam = false, onClick }) {
         )}
         <ul className="mt-1.5 space-y-0.5 text-xs">
           <li>
-            <span className="text-[#A2A6AB]">Dates:</span> <span className="text-white">{dates}</span>
+            <span className="text-muted">Dates:</span> <span className="text-white">{dates}</span>
           </li>
           <li>
-            <span className="text-[#A2A6AB]">Format:</span>{' '}
+            <span className="text-muted">Format:</span>{' '}
             <span className="text-white">
               {tournament.number_of_groups == null || tournament.number_of_groups <= 1
                 ? 'Single Table'
@@ -120,20 +120,20 @@ function TournamentCard({ tournament, showWinningTeam = false, onClick }) {
             </span>
           </li>
           <li>
-            <span className="text-[#A2A6AB]">Venue:</span> <span className="text-white">{venue}</span>
+            <span className="text-muted">Venue:</span> <span className="text-white">{venue}</span>
           </li>
           <li>
-            <span className="text-[#A2A6AB]">Teams:</span> <span className="text-white">{tournament.number_of_teams ?? '—'}</span>
+            <span className="text-muted">Teams:</span> <span className="text-white">{tournament.number_of_teams ?? '—'}</span>
           </li>
           {tournament.prize != null && tournament.prize !== '' && (
             <li>
-              <span className="text-[#A2A6AB]">Prize:</span> <span className="text-white">{tournament.prize}</span>
+              <span className="text-muted">Prize:</span> <span className="text-white">{tournament.prize}</span>
             </li>
           )}
           {showWinningTeam && tournament.winning_team && (
             <li>
-              <span className="text-[#DA9811]">Winning Team:</span>{' '}
-              <span className="text-[#DA9811]">{tournament.winning_team}</span>
+              <span className="text-brand">Winning Team:</span>{' '}
+              <span className="text-brand">{tournament.winning_team}</span>
             </li>
           )}
         </ul>
@@ -146,11 +146,11 @@ function Section({ title, children, emptyMessage = 'No tournaments' }) {
   const count = Children.count(children);
   return (
     <section>
-      <h2 className="mb-3 text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">{title}</h2>
+      <h2 className="mb-3 text-[13px] font-bold tracking-wide text-muted uppercase">{title}</h2>
       {count > 0 ? (
         <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">{children}</div>
       ) : (
-        <p className="rounded-[17px] bg-[#141412] px-4 py-6 text-center text-[13px] text-[#A2A6AB]">{emptyMessage}</p>
+        <p className="rounded-[17px] bg-surface px-4 py-6 text-center text-[13px] text-muted">{emptyMessage}</p>
       )}
     </section>
   );
@@ -166,11 +166,7 @@ export default function Tournaments() {
     all: true,
     organizer_tournaments: true,
   });
-  const {
-    data: myRequests = [],
-    isLoading: isLoadingRequests,
-    isError: isRequestsError,
-  } = useGetMyTournamentRequestsQuery();
+  const { data: myRequests = [], isLoading: isLoadingRequests, isError: isRequestsError } = useGetMyTournamentRequestsQuery();
 
   const isLoading = isLoadingTournaments || isLoadingRequests;
   const isError = isTournamentsError || isRequestsError;
@@ -235,7 +231,7 @@ export default function Tournaments() {
       <div className="bg-black">
         <AppSubpageHeader title="My Tournaments" />
         <Container>
-          <p className="py-6 text-center text-[13px] text-[#A2A6AB]">Loading tournaments…</p>
+          <p className="py-6 text-center text-[13px] text-muted">Loading tournaments…</p>
         </Container>
       </div>
     );
@@ -245,9 +241,7 @@ export default function Tournaments() {
     <div className="bg-black">
       <AppSubpageHeader title="My Tournaments" />
       <Container>
-        {isError && (
-          <p className="mb-3 text-center text-[13px] text-red-400">Failed to load tournaments. Try again later.</p>
-        )}
+        {isError && <p className="mb-3 text-center text-[13px] text-red-400">Failed to load tournaments. Try again later.</p>}
         <div className="space-y-6 pb-6">
           {/* Pending / rejected requests — visible until the request becomes a real tournament */}
           {trackedRequests.length > 0 && (
@@ -277,12 +271,12 @@ export default function Tournaments() {
 
           {/* Nothing at all — prompt to request */}
           {isEmpty && !isError && (
-            <div className="rounded-[17px] bg-[#141412] px-4 py-8 text-center">
-              <p className="text-[14px] text-[#A2A6AB]">You have no tournaments yet.</p>
+            <div className="rounded-[17px] bg-surface px-4 py-8 text-center">
+              <p className="text-[14px] text-muted">You have no tournaments yet.</p>
               <button
                 type="button"
                 onClick={() => navigate('/tournament-request')}
-                className="mt-4 rounded-[6px] bg-[#DA9811] px-6 py-2.5 text-[14px] font-bold text-black transition-opacity active:opacity-90"
+                className="mt-4 rounded-[6px] bg-brand px-6 py-2.5 text-[14px] font-bold text-black transition-opacity active:opacity-90"
               >
                 Request a Tournament
               </button>

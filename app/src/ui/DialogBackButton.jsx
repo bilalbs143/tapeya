@@ -11,7 +11,7 @@ export function DialogBackButton({ onClick, ariaLabel = 'Back', className = '' }
       type="button"
       onClick={onClick}
       aria-label={ariaLabel}
-      className={`inline-flex size-11 shrink-0 items-center justify-center rounded-full text-white transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA9811] ${className}`.trim()}
+      className={`inline-flex size-11 shrink-0 items-center justify-center rounded-full text-white transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand ${className}`.trim()}
     >
       <svg
         className="h-5 w-5"

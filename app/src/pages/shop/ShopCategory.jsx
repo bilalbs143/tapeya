@@ -63,7 +63,7 @@ export default function ShopCategory() {
         title={
           <h1 className="min-w-0 text-[16px] font-bold tracking-wide uppercase">
             <span className="text-white">SHOP - </span>
-            <span className="text-[#DA9811]">{displayTitle || 'Brand'}</span>
+            <span className="text-brand">{displayTitle || 'Brand'}</span>
           </h1>
         }
       />
@@ -75,7 +75,7 @@ export default function ShopCategory() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="What are you looking for?"
-              className="h-12 w-full rounded-[6px] bg-[#141412] pr-14 pl-4 text-white placeholder:text-[#A2A6AB78] focus:ring-2 focus:ring-[#DA9811]/50 focus:outline-none"
+              className="h-12 w-full rounded-[6px] bg-surface pr-14 pl-4 text-white placeholder:text-muted/47 focus:ring-2 focus:ring-brand/50 focus:outline-none"
               aria-label="Search Shop"
             />
             <span className="pointer-events-none absolute top-0 right-5 bottom-0 flex items-center">
@@ -91,7 +91,7 @@ export default function ShopCategory() {
                   type="button"
                   onClick={() => setActiveCategoryId(null)}
                   className={`shrink-0 rounded-[6px] px-4 py-2.5 text-[13px] font-semibold tracking-wide transition-colors lg:min-w-[96px] ${
-                    activeCategoryId === null ? 'bg-[#DA9811] text-black' : 'bg-[#141412] text-white'
+                    activeCategoryId === null ? 'bg-brand text-black' : 'bg-surface text-white'
                   }`}
                   aria-pressed={activeCategoryId === null}
                 >
@@ -103,7 +103,7 @@ export default function ShopCategory() {
                     type="button"
                     onClick={() => setActiveCategoryId(cat.id)}
                     className={`shrink-0 rounded-[6px] px-4 py-2.5 text-[13px] font-semibold tracking-wide transition-colors lg:min-w-[96px] ${
-                      activeCategoryId === cat.id ? 'bg-[#DA9811] text-black' : 'bg-[#141412] text-white'
+                      activeCategoryId === cat.id ? 'bg-brand text-black' : 'bg-surface text-white'
                     }`}
                     aria-pressed={activeCategoryId === cat.id}
                   >
@@ -122,7 +122,7 @@ export default function ShopCategory() {
                     type="button"
                     onClick={() => setActiveCategoryId(null)}
                     className={`shrink-0 rounded-[6px] px-4 py-2.5 text-[13px] font-semibold tracking-wide transition-colors lg:min-w-[96px] ${
-                      activeCategoryId === null ? 'bg-[#DA9811] text-black' : 'bg-[#141412] text-white'
+                      activeCategoryId === null ? 'bg-brand text-black' : 'bg-surface text-white'
                     }`}
                     aria-pressed={activeCategoryId === null}
                   >
@@ -134,7 +134,7 @@ export default function ShopCategory() {
                       type="button"
                       onClick={() => setActiveCategoryId(cat.id)}
                       className={`shrink-0 rounded-[6px] px-4 py-2.5 text-[13px] font-semibold tracking-wide transition-colors lg:min-w-[96px] ${
-                        activeCategoryId === cat.id ? 'bg-[#DA9811] text-black' : 'bg-[#141412] text-white'
+                        activeCategoryId === cat.id ? 'bg-brand text-black' : 'bg-surface text-white'
                       }`}
                       aria-pressed={activeCategoryId === cat.id}
                     >

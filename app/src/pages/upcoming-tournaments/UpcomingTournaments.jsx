@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { formatDateRange } from '@/lib/format';
+import { formatDateRange } from '@/lib/utils/dateUtils';
 import { parseDate, toDateStr } from '@/lib/utils/dateUtils';
 import { getTournamentDisplayImage, getTournamentTitle } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentsQuery } from '@/store/api/tournamentApi';
@@ -26,9 +26,9 @@ function UpcomingTournamentCard({ tournament, onClick, disabled }) {
       type="button"
       onClick={() => !disabled && onClick(tournament)}
       disabled={disabled}
-      className="flex w-full flex-col overflow-hidden rounded-[17px] bg-[#141412] text-left transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA9811] focus-visible:ring-offset-2 focus-visible:ring-offset-black active:opacity-90 disabled:cursor-default disabled:opacity-60"
+      className="flex w-full flex-col overflow-hidden rounded-[17px] bg-surface text-left transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black active:opacity-90 disabled:cursor-default disabled:opacity-60"
     >
-      <div className="h-[148px] w-full overflow-hidden bg-[#0d0d0b]">
+      <div className="h-[148px] w-full overflow-hidden bg-surface-deep">
         <img
           src={imageUrl}
           alt={title}
@@ -43,7 +43,7 @@ function UpcomingTournamentCard({ tournament, onClick, disabled }) {
       </div>
       <div className="flex flex-col gap-1 p-3">
         <h3 className="line-clamp-2 text-[13px] font-bold text-white">{title}</h3>
-        <p className="text-[12px] text-[#A2A6AB]">{formatDateRange(tournament.start_date, tournament.end_date)}</p>
+        <p className="text-[12px] text-muted">{formatDateRange(tournament.start_date, tournament.end_date)}</p>
       </div>
     </button>
   );
@@ -137,11 +137,11 @@ export default function UpcomingTournaments() {
           <div className="grid grid-cols-2 gap-3 pt-1 pb-6 lg:grid-cols-3">
             {isLoading
               ? Array.from({ length: 4 }, (_, i) => (
-                  <div key={`skeleton-${i}`} className="flex animate-pulse flex-col overflow-hidden rounded-[17px] bg-[#141412]">
-                    <div className="h-[148px] w-full bg-[#1A1A1A]" />
+                  <div key={`skeleton-${i}`} className="flex animate-pulse flex-col overflow-hidden rounded-[17px] bg-surface">
+                    <div className="h-[148px] w-full bg-surface-border" />
                     <div className="flex flex-col gap-2 p-3">
-                      <div className="h-4 w-3/4 rounded bg-[#1A1A1A]" />
-                      <div className="h-3 w-1/2 rounded bg-[#1A1A1A]" />
+                      <div className="h-4 w-3/4 rounded bg-surface-border" />
+                      <div className="h-3 w-1/2 rounded bg-surface-border" />
                     </div>
                   </div>
                 ))
@@ -155,10 +155,10 @@ export default function UpcomingTournaments() {
                 ))}
           </div>
 
-          {isLoading && <p className="py-4 text-center text-[13px] text-[#A2A6AB]">Loading tournaments…</p>}
+          {isLoading && <p className="py-4 text-center text-[13px] text-muted">Loading tournaments…</p>}
           {isError && <p className="py-4 text-center text-[13px] text-red-400">Failed to load tournaments. Try again later.</p>}
           {isEmpty && !isLoading && !isError && (
-            <p className="py-2 text-center text-[13px] text-[#A2A6AB]">No upcoming tournaments for this month.</p>
+            <p className="py-2 text-center text-[13px] text-muted">No upcoming tournaments for this month.</p>
           )}
         </Tabs>
       </Container>

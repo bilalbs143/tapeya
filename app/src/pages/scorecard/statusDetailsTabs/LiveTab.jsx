@@ -103,11 +103,11 @@ export function StatusDetailsLiveTab({ details }) {
       {details.partnership && (
         <div className="space-y-1 pt-3">
           <p className="text-[14px]">
-            <span className="text-[#A2A6AB]">P&apos;SHIP:</span> <span className="text-white">{details.partnership}</span>
+            <span className="text-muted">P&apos;SHIP:</span> <span className="text-white">{details.partnership}</span>
           </p>
           {details.batters?.[0] && (
             <p className="text-[14px]">
-              <span className="text-[#A2A6AB]">L&apos;BAT:</span>{' '}
+              <span className="text-muted">L&apos;BAT:</span>{' '}
               <span className="text-white">
                 {details.batters[0].name} {details.batters[0].r} ({details.batters[0].b}b)
               </span>

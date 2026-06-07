@@ -10,7 +10,7 @@ import { CONTENT_MAX_WIDTH } from './constants';
 
 const TEAMS_PREVIEW_COUNT = 3;
 
-const LABEL_CLASS = 'text-[14px] font-bold uppercase tracking-wide text-[#A2A6AB]';
+const LABEL_CLASS = 'text-[14px] font-bold uppercase tracking-wide text-muted';
 
 export function ProfileStats() {
   const [teamsExpanded, setTeamsExpanded] = useState(false);
@@ -93,7 +93,7 @@ export function ProfileStats() {
                 {showMoreLink && (
                   <button
                     type="button"
-                    className="text-sm font-normal text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#f0b94a] focus-visible:ring-2 focus-visible:ring-[#DA9811] focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-none"
+                    className="text-sm font-normal text-brand underline underline-offset-2 transition-colors hover:text-brand-hover focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-none"
                     onClick={() => setTeamsExpanded(true)}
                   >
                     MORE
@@ -102,7 +102,7 @@ export function ProfileStats() {
                 {showLessLink && (
                   <button
                     type="button"
-                    className="ml-1 text-sm font-normal text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#f0b94a] focus-visible:ring-2 focus-visible:ring-[#DA9811] focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-none"
+                    className="ml-1 text-sm font-normal text-brand underline underline-offset-2 transition-colors hover:text-brand-hover focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-none"
                     onClick={() => setTeamsExpanded(false)}
                   >
                     LESS

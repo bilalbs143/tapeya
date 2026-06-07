@@ -3,7 +3,7 @@ import { Fragment, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { TeamLogo } from '@/components/TeamLogo';
-import { formatDate } from '@/lib/format';
+import { formatDate } from '@/lib/utils/dateUtils';
 import { normaliseMatchStatus } from '@/lib/utils/scorecardUtils';
 import { isValidTournamentId } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentMatchesQuery } from '@/store/api/tournamentApi';
@@ -57,12 +57,12 @@ export function FixturesTab({
 
   if (!hasValidId) {
     return wrap(
-      <p className="py-4 text-center text-[13px] text-[#A2A6AB]">Fixtures are not available for this sample tournament.</p>,
+      <p className="py-4 text-center text-[13px] text-muted">Fixtures are not available for this sample tournament.</p>,
     );
   }
 
   if (isLoading) {
-    return wrap(<p className="py-4 text-center text-[13px] text-[#A2A6AB]">Loading fixtures…</p>);
+    return wrap(<p className="py-4 text-center text-[13px] text-muted">Loading fixtures…</p>);
   }
 
   if (isError) {
@@ -72,7 +72,7 @@ export function FixturesTab({
   if (!matches.length) {
     return wrap(
       <div className="py-8 text-center">
-        <p className="text-[13px] text-[#A2A6AB]">No upcoming fixtures scheduled yet.</p>
+        <p className="text-[13px] text-muted">No upcoming fixtures scheduled yet.</p>
       </div>,
     );
   }
@@ -90,20 +90,20 @@ export function FixturesTab({
     const venue = match.venue_name ?? '';
 
     return (
-      <div className="rounded-[17px] bg-[#141412] p-4 text-white">
+      <div className="rounded-[17px] bg-surface p-4 text-white">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-[12px] font-bold text-[#DA9811] uppercase">{STATUS_LABELS[status] ?? 'Upcoming'}</span>
+            <span className="text-[12px] font-bold text-brand uppercase">{STATUS_LABELS[status] ?? 'Upcoming'}</span>
             {showGroupChip &&
               (match.group_index != null ? (
-                <span className="rounded bg-[#1A1A1A] px-2 py-0.5 text-[11px] font-medium text-[#A2A6AB]">
+                <span className="rounded bg-surface-border px-2 py-0.5 text-[11px] font-medium text-muted">
                   Group {match.group_index}
                 </span>
               ) : hasGroups ? (
-                <span className="rounded bg-[#1A1A1A] px-2 py-0.5 text-[11px] font-medium text-[#A2A6AB]">Knockout</span>
+                <span className="rounded bg-surface-border px-2 py-0.5 text-[11px] font-medium text-muted">Knockout</span>
               ) : null)}
           </div>
-          <span className="text-[12px] text-[#A2A6AB]">
+          <span className="text-[12px] text-muted">
             {dateLabel}
             {timePart}
           </span>
@@ -113,14 +113,14 @@ export function FixturesTab({
             <TeamLogo team={home} variant="fixture" />
             <p className="truncate text-[14px] font-semibold">{home.name}</p>
           </div>
-          <span className="shrink-0 text-[14px] font-semibold text-[#DA9811]">VS</span>
+          <span className="shrink-0 text-[14px] font-semibold text-brand">VS</span>
           <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
             <TeamLogo team={away} variant="fixture" />
             <p className="truncate text-[14px] font-semibold">{away.name}</p>
           </div>
         </div>
         {venue && (
-          <p className="text-[12px] text-[#A2A6AB]">
+          <p className="text-[12px] text-muted">
             <span className="text-white">{venue}</span>
           </p>
         )}
@@ -149,9 +149,9 @@ export function FixturesTab({
             const groupMatches = matchesByGroup[groupIndex] ?? [];
             return (
               <section key={groupIndex}>
-                <h3 className="mb-2 text-[13px] font-bold tracking-wide text-[#DA9811] uppercase">Group {groupIndex}</h3>
+                <h3 className="mb-2 text-[13px] font-bold tracking-wide text-brand uppercase">Group {groupIndex}</h3>
                 {groupMatches.length === 0 ? (
-                  <p className="rounded-[17px] bg-[#141412] px-4 py-4 text-center text-[13px] text-[#A2A6AB]">
+                  <p className="rounded-[17px] bg-surface px-4 py-4 text-center text-[13px] text-muted">
                     No fixtures in this group yet.
                   </p>
                 ) : (
@@ -166,7 +166,7 @@ export function FixturesTab({
           })}
           {knockoutMatches.length > 0 && (
             <section>
-              <h3 className="mb-2 text-[13px] font-bold tracking-wide text-[#DA9811] uppercase">Knockout</h3>
+              <h3 className="mb-2 text-[13px] font-bold tracking-wide text-brand uppercase">Knockout</h3>
               <div className="space-y-3">
                 {knockoutMatches.map((m) => (
                   <Fragment key={m.id}>{renderFixtureCard(m, { showGroupChip: false })}</Fragment>

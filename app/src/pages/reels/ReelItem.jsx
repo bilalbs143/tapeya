@@ -156,7 +156,7 @@ export default function ReelItem({ reel, isActive, isLiked, onLike }) {
       {/* Center play overlay when video is stopped */}
       {paused && (
         <div className="pointer-events-none absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-[#da98115c] bg-black/35">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-[#DA98115C] bg-black/35">
             <img src={playIcon} alt="" className="h-4 w-4 shrink-0 object-contain" aria-hidden />
           </div>
         </div>
@@ -205,7 +205,7 @@ export default function ReelItem({ reel, isActive, isLiked, onLike }) {
           >
             <img src={reelCameraIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
           </Link>
-          <span className="absolute -top-1 -right-1 flex h-[16px] w-[16px] items-center justify-center rounded-full bg-[#DA9811] text-[14px] leading-none font-bold text-white">
+          <span className="absolute -top-1 -right-1 flex h-[16px] w-[16px] items-center justify-center rounded-full bg-brand text-[14px] leading-none font-bold text-white">
             +
           </span>
         </div>

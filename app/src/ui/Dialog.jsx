@@ -81,15 +81,15 @@ const CONTENT_DARK =
 const SCROLL_BODY = 'min-h-0 flex-1 overflow-y-auto px-5 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden';
 
 const SAVE_BUTTON =
-  'w-full shrink-0 rounded-b-[17px] bg-[#DB9811] py-4 text-base font-bold uppercase tracking-wide text-black transition-colors hover:bg-[#c48910] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#FFB703] disabled:pointer-events-none disabled:opacity-50';
+  'w-full shrink-0 rounded-b-[17px] bg-[#DB9811] py-4 text-base font-bold uppercase tracking-wide text-black transition-colors hover:bg-[#C48910] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#FFB703] disabled:pointer-events-none disabled:opacity-50';
 
 const HEADER_ROW = 'flex min-h-[52px] shrink-0 items-center justify-between gap-3 px-5 py-3';
 
 // Golden uppercase title — the standard style for every dialog header.
-const TITLE_PRIMARY = 'text-left text-[14px] font-bold uppercase leading-tight tracking-wide text-[#DA9811]';
+const TITLE_PRIMARY = 'text-left text-[14px] font-bold uppercase leading-tight tracking-wide text-brand';
 
 const CLOSE_BUTTON =
-  'inline-flex size-9 shrink-0 items-center justify-center rounded-md text-[#A2A6AB] transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFB703] focus-visible:ring-offset-2 focus-visible:ring-offset-[#080807] disabled:pointer-events-none disabled:opacity-30';
+  'inline-flex size-9 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFB703] focus-visible:ring-offset-2 focus-visible:ring-offset-[#080807] disabled:pointer-events-none disabled:opacity-30';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Exported class-name constants
@@ -278,5 +278,5 @@ export function DialogTitle({ className = '', ...props }) {
  * Renders in the app's standard secondary text colour (#A2A6AB).
  */
 export function DialogDescription({ className = '', ...props }) {
-  return <DialogPrimitive.Description className={`text-sm text-[#A2A6AB] ${className}`.trim()} {...props} />;
+  return <DialogPrimitive.Description className={`text-sm text-muted ${className}`.trim()} {...props} />;
 }

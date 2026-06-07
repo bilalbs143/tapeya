@@ -9,11 +9,11 @@ function SuccessIcon() {
         </svg>
       </div>
       <div
-        className="absolute -top-0.5 -right-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-[#DA9811]"
+        className="absolute -top-0.5 -right-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-brand"
         aria-hidden
       >
         <svg
-          className="h-4 w-4 text-[#080807]"
+          className="h-4 w-4 text-ink"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -38,7 +38,7 @@ export function SuccessDialogBody({ title, description }) {
       <DialogTitle className="mb-1.5 text-[14px] font-bold text-white">{title}</DialogTitle>
       {description != null && description !== '' ? (
         typeof description === 'string' ? (
-          <DialogDescription className="text-[13px] leading-snug text-[#A2A6AB]">{description}</DialogDescription>
+          <DialogDescription className="text-[13px] leading-snug text-muted">{description}</DialogDescription>
         ) : (
           description
         )

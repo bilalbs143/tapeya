@@ -1,7 +1,7 @@
 /**
  * Renders a CDN-hosted SVG as a CSS-masked element.
  * Inherits its color from the parent's text color (`currentColor`),
- * so wrapping in `<span className="text-[#DA9811]">` renders gold,
+ * so wrapping in `<span className="text-brand">` renders gold,
  * `text-white` renders white, `text-red-500` renders red, etc.
  *
  * Use this instead of <img> for icons that need to respect currentColor.

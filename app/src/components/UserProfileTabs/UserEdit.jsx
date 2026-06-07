@@ -168,9 +168,7 @@ export function UserEdit({ open, onOpenChange }) {
               maxSizeMb={5}
               avatarSize={96}
             />
-            <p className="max-w-[280px] text-center text-[12px] leading-snug text-[#A2A6AB]/80">
-              JPG, PNG or WebP, max 5 MB.
-            </p>
+            <p className="max-w-[280px] text-center text-[12px] leading-snug text-muted/80">JPG, PNG or WebP, max 5 MB.</p>
           </div>
 
           <FormField label="Name" htmlFor="name">

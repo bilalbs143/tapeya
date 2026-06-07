@@ -44,7 +44,7 @@ export function TossDialog({ teamAName, teamBName, teamALogo, teamBLogo, onStart
             type="button"
             onClick={() => setTossWinner('A')}
             className={`flex flex-1 flex-col items-center justify-center gap-2 rounded-[17px] border-2 px-4 py-4 transition-colors focus:outline-none ${
-              tossWinner === 'A' ? 'border-[#DA9811] bg-[#DA9811] text-white' : 'border-[#141412] bg-[#141412] text-white'
+              tossWinner === 'A' ? 'border-brand bg-brand text-white' : 'border-[#141412] bg-surface text-white'
             }`}
           >
             <TeamLogo name={teamAName} logo={teamALogo} variant="dialog" />
@@ -54,7 +54,7 @@ export function TossDialog({ teamAName, teamBName, teamALogo, teamBLogo, onStart
             type="button"
             onClick={() => setTossWinner('B')}
             className={`flex flex-1 flex-col items-center justify-center gap-2 rounded-[17px] border-2 px-4 py-4 transition-colors focus:outline-none ${
-              tossWinner === 'B' ? 'border-[#DA9811] bg-[#DA9811] text-white' : 'border-[#141412] bg-[#141412] text-white'
+              tossWinner === 'B' ? 'border-brand bg-brand text-white' : 'border-[#141412] bg-surface text-white'
             }`}
           >
             <TeamLogo name={teamBName} logo={teamBLogo} variant="dialog" />

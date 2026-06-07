@@ -5,7 +5,7 @@
 
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 
-export const PLAYER_PAGE_BG_CLASS = 'bg-[#1D1E22]';
+export const PLAYER_PAGE_BG_CLASS = 'bg-page';
 
 export const controllerFrameImageUrl = `${CLOUDFRONT_APP_BASE}/images/background/controller-frame.png`;
 
@@ -38,11 +38,11 @@ export const statsDefaultBatterSeparatorStyle = {
 };
 
 export const playerNameAccentClass =
-  'text-[15px] leading-none font-extrabold tracking-wide text-[#DA9811] uppercase sm:text-[28px]';
+  'text-[15px] leading-none font-extrabold tracking-wide text-brand uppercase sm:text-[28px]';
 
 export const showcaseSectionClass = 'relative w-full max-w-[677px] overflow-hidden bg-black px-4 py-6 text-white sm:px-7 sm:py-8';
 
-export const showcaseTitleClass = 'text-[16px] leading-none font-bold text-[#DA9811] uppercase sm:text-[21px]';
+export const showcaseTitleClass = 'text-[16px] leading-none font-bold text-brand uppercase sm:text-[21px]';
 
 export const showcasePageWrapClass = 'flex min-h-screen items-center justify-center p-3 sm:p-5';
 

@@ -40,7 +40,6 @@ function StatusBadge({ status }) {
   );
 }
 
-
 function BroadcastError({ onRetry }) {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-black px-4">
@@ -75,52 +74,56 @@ export default function LiveBroadcast() {
 
   const isMobileLandscape = isMobile && isLandscape;
 
-  const shellStyle = isLandscape
-    ? { top: 0, bottom: 0, zIndex: 51 }
-    : { ...LIVE_BROADCAST_SHELL_STYLE, bottom: 0, zIndex: 50 };
+  const shellStyle = isLandscape ? { top: 0, bottom: 0, zIndex: 51 } : { ...LIVE_BROADCAST_SHELL_STYLE, bottom: 0, zIndex: 50 };
 
-  const headerContent = useMemo(() => (
-    <>
-      <AppSubpageBackButton onClick={() => navigate(-1)} aria-label="Go back" />
+  const headerContent = useMemo(
+    () => (
+      <>
+        <AppSubpageBackButton onClick={() => navigate(-1)} aria-label="Go back" />
 
-      {streamStatus && (
-        <div className="pointer-events-none absolute left-1/2 -translate-x-1/2">
-          <StatusBadge status={streamStatus} />
-        </div>
-      )}
+        {streamStatus && (
+          <div className="pointer-events-none absolute left-1/2 -translate-x-1/2">
+            <StatusBadge status={streamStatus} />
+          </div>
+        )}
 
-      {presenceEnabled ? (
-        <span
-          className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] font-extrabold text-black"
-          aria-live="polite"
-          aria-label={`${viewerCount} watching`}
-        >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <circle cx="12" cy="12" r="3" stroke="black" strokeWidth="2" />
-          </svg>
-          <span key={formatViewerCount(viewerCount)} className="animate-[fadeSlideIn_0.4s_ease_forwards]">
-            {formatViewerCount(viewerCount)}
+        {presenceEnabled ? (
+          <span
+            className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] font-extrabold text-black"
+            aria-live="polite"
+            aria-label={`${viewerCount} watching`}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path
+                d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                stroke="black"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <circle cx="12" cy="12" r="3" stroke="black" strokeWidth="2" />
+            </svg>
+            <span key={formatViewerCount(viewerCount)} className="animate-[fadeSlideIn_0.4s_ease_forwards]">
+              {formatViewerCount(viewerCount)}
+            </span>
           </span>
-        </span>
-      ) : (
-        <div className="w-9 shrink-0" aria-hidden />
-      )}
-    </>
-  ), [navigate, streamStatus, presenceEnabled, viewerCount]);
+        ) : (
+          <div className="w-9 shrink-0" aria-hidden />
+        )}
+      </>
+    ),
+    [navigate, streamStatus, presenceEnabled, viewerCount],
+  );
 
   return (
     <div className={LIVE_BROADCAST_SHELL_CLASS} style={shellStyle}>
       <div className="relative flex h-full w-full flex-col overflow-hidden">
         {!isLandscape && (
-          <header className="relative z-20 flex shrink-0 items-center justify-between px-4 py-2">
-            {headerContent}
-          </header>
+          <header className="relative z-20 flex shrink-0 items-center justify-between px-4 py-2">{headerContent}</header>
         )}
 
         {/* Defined player + rotation zone — fills space between toolbar and bottom nav */}
         <div className="relative min-h-0 flex-1 overflow-hidden">
-
           {isError && <BroadcastError onRetry={refetch} />}
           {match && (
             <LiveBroadcastItem

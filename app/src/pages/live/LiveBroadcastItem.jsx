@@ -13,7 +13,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useToast } from '@/hooks/useToast';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { LG_MEDIA_QUERY } from '@/lib/constants/layout';
-import { mapSystemSettingsByKey } from '@/lib/mapSystemSettingsByKey';
+import { mapSystemSettingsByKey } from '@/lib/utils/settingsUtils';
 import { getInitials } from '@/lib/utils/displayUtils';
 import { useSendLiveCommentMutation, useSendLiveHeartMutation } from '@/store/api/matchApi';
 import { useGetPublicSystemSettingsQuery } from '@/store/api/systemSettingsApi';
@@ -180,13 +180,7 @@ function BroadcastBottomPanel({
   immersiveLandscape = false,
 }) {
   if (immersiveLandscape) {
-    return (
-      <BroadcastFloatingToggles
-        isLandscape={isLandscape}
-        onToggleLayout={onToggleLayout}
-        immersiveLandscape
-      />
-    );
+    return <BroadcastFloatingToggles isLandscape={isLandscape} onToggleLayout={onToggleLayout} immersiveLandscape />;
   }
 
   return (
@@ -233,15 +227,16 @@ function BroadcastViewport({
   isDesktop,
   immersiveLandscape = false,
 }) {
-  const videoLayer = isDesktop || isLandscape ? (
-    <div className="absolute inset-0">
-      <StreamPlayer stream={stream} className="h-full w-full" fill />
-    </div>
-  ) : (
-    <div className="absolute inset-0 flex items-start justify-center">
-      <StreamPlayer stream={stream} className="max-h-full w-full" fill={false} />
-    </div>
-  );
+  const videoLayer =
+    isDesktop || isLandscape ? (
+      <div className="absolute inset-0">
+        <StreamPlayer stream={stream} className="h-full w-full" fill />
+      </div>
+    ) : (
+      <div className="absolute inset-0 flex items-start justify-center">
+        <StreamPlayer stream={stream} className="max-h-full w-full" fill={false} />
+      </div>
+    );
 
   const overlayClass = immersiveLandscape ? BOTTOM_OVERLAY_IMMERSIVE : BOTTOM_OVERLAY;
 
@@ -259,9 +254,7 @@ function BroadcastViewport({
 
       {headerSlot && !immersiveLandscape && (
         <div className="pointer-events-none absolute top-0 right-0 left-0 z-10 px-4 py-2">
-          <div className="pointer-events-auto relative flex items-center justify-between">
-            {headerSlot}
-          </div>
+          <div className="pointer-events-auto relative flex items-center justify-between">{headerSlot}</div>
         </div>
       )}
 

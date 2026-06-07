@@ -6,7 +6,7 @@
 import { forwardRef, useCallback, useState } from 'react';
 
 const inputBase =
-  'h-12 w-full rounded-[6px] bg-[#141412] px-4 py-3 text-white placeholder:text-base placeholder:text-[#A2A6AB78] focus:outline-none focus:ring-2 transition-colors';
+  'h-12 w-full rounded-[6px] bg-surface px-4 py-3 text-white placeholder:text-base placeholder:text-muted/47 focus:outline-none focus:ring-2 transition-colors';
 
 const inputVariants = {
   default: 'focus:ring-[#FF9700]/50',

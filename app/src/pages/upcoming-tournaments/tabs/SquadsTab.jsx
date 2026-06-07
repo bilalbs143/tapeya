@@ -2,7 +2,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
 import { TeamLogo } from '@/components/TeamLogo';
-import { BORDER_ALT as BORDER } from '@/lib/constants/tableStyles';
+import { BORDER_ALT } from '@/lib/constants/tableStyles';
 import { formatListIndex } from '@/lib/format';
 import { playerDisplayRole } from '@/lib/utils/playerUtils';
 import { getTournamentTitle, isValidTournamentId } from '@/lib/utils/tournamentUtils';
@@ -39,12 +39,12 @@ function SquadTeams({ tournamentId }) {
 
   if (!hasValidId) {
     return wrap(
-      <p className="py-4 text-center text-[13px] text-[#A2A6AB]">Squads are not available for this sample tournament.</p>,
+      <p className="py-4 text-center text-[13px] text-muted">Squads are not available for this sample tournament.</p>,
     );
   }
 
   if (isLoading) {
-    return wrap(<p className="py-4 text-center text-[13px] text-[#A2A6AB]">Loading squads…</p>);
+    return wrap(<p className="py-4 text-center text-[13px] text-muted">Loading squads…</p>);
   }
 
   if (isError) {
@@ -52,7 +52,7 @@ function SquadTeams({ tournamentId }) {
   }
 
   if (!teams.length) {
-    return wrap(<p className="py-8 text-center text-[13px] text-[#A2A6AB]">No teams added yet.</p>);
+    return wrap(<p className="py-8 text-center text-[13px] text-muted">No teams added yet.</p>);
   }
 
   // ------------------------------------------------------------------
@@ -61,19 +61,19 @@ function SquadTeams({ tournamentId }) {
 
   return (
     <div className="mt-4 pb-6">
-      <h2 className="border-b border-[#1A1A1A] pb-4 text-left text-[13px] font-bold tracking-wide text-white uppercase">
+      <h2 className="border-b border-surface-border pb-4 text-left text-[13px] font-bold tracking-wide text-white uppercase">
         Squads
       </h2>
 
-      <div className="border border-[#1A1A1A]">
-        <div className="bg-[#141412] px-4 py-3 text-[13px] font-bold text-white">Teams</div>
+      <div className="border border-surface-border">
+        <div className="bg-surface px-4 py-3 text-[13px] font-bold text-white">Teams</div>
         <div className="divide-y divide-[#1A1A1A]">
           {teams.map((team) => (
             <button
               key={team.id}
               type="button"
               onClick={() => handleTeamClick(team.id)}
-              className="flex w-full items-center gap-2.5 bg-transparent px-4 py-3.5 text-left text-[13px] text-white focus:ring-2 focus:ring-[#DA9811] focus:outline-none focus:ring-inset active:bg-[#1A1A1A]"
+              className="flex w-full items-center gap-2.5 bg-transparent px-4 py-3.5 text-left text-[13px] text-white focus:ring-2 focus:ring-brand focus:outline-none focus:ring-inset active:bg-surface-border"
             >
               <TeamLogo team={team} variant="list" />
               <span className="min-w-0 flex-1 truncate">{team.name ?? team.code ?? 'Team'}</span>
@@ -117,7 +117,7 @@ function SquadSingle({ tournamentId, teamId }) {
   }
 
   if (isLoading) {
-    return wrap(<p className="py-4 text-center text-[13px] text-[#A2A6AB]">Loading squad…</p>);
+    return wrap(<p className="py-4 text-center text-[13px] text-muted">Loading squad…</p>);
   }
 
   if (isError) {
@@ -125,29 +125,29 @@ function SquadSingle({ tournamentId, teamId }) {
   }
 
   if (!squad.length) {
-    return wrap(<p className="py-8 text-center text-[13px] text-[#A2A6AB]">No players in this squad yet.</p>);
+    return wrap(<p className="py-8 text-center text-[13px] text-muted">No players in this squad yet.</p>);
   }
 
   const title = tournament ? `${getTournamentTitle(tournament)} - Squad` : 'Squad';
 
   return (
     <div className="mt-4 pb-6">
-      <div className="flex items-center gap-2 border-b border-[#1A1A1A] pb-4">
+      <div className="flex items-center gap-2 border-b border-surface-border pb-4">
         <AppSubpageBackButton onClick={clearTeam} aria-label="Back to Teams" />
         <h2 className="min-w-0 flex-1 text-left text-[13px] font-bold tracking-wide text-white uppercase">{title}</h2>
       </div>
 
-      <div className="overflow-hidden border border-[#1A1A1A]">
-        <div className="bg-[#141412] px-4 py-3 text-[13px] font-bold text-white">Players</div>
-        <div className="border-t border-[#1A1A1A]">
+      <div className="overflow-hidden border border-surface-border">
+        <div className="bg-surface px-4 py-3 text-[13px] font-bold text-white">Players</div>
+        <div className="border-t border-surface-border">
           {squad.map((player, index) => (
-            <div key={player.id ?? index} className={`flex border-b ${BORDER} last:border-b-0`}>
-              <div className={`flex w-10 shrink-0 items-center justify-center border-r ${BORDER} py-3 text-[13px] text-white`}>
+            <div key={player.id ?? index} className={`flex border-b ${BORDER_ALT} last:border-b-0`}>
+              <div className={`flex w-10 shrink-0 items-center justify-center border-r ${BORDER_ALT} py-3 text-[13px] text-white`}>
                 {formatListIndex(index + 1)}
               </div>
               <div className="min-w-0 flex-1 px-4 py-3">
                 <p className="text-[13px] font-bold text-white">{player.name ?? player.nickname ?? 'Player'}</p>
-                <p className="mt-0.5 text-[12px] text-[#A2A6AB]">{playerDisplayRole(player)}</p>
+                <p className="mt-0.5 text-[12px] text-muted">{playerDisplayRole(player)}</p>
               </div>
             </div>
           ))}

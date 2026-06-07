@@ -9,7 +9,7 @@ import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { LG_MEDIA_QUERY, NAVBAR_HEIGHT, NAVBAR_SCROLL_THRESHOLD, NAVBAR_Z } from '@/lib/constants/layout';
 import { NAVBAR_ICON_BTN_CLASS } from '@/lib/constants/navbar';
 import { BOTTOM_NAV_ITEMS } from '@/lib/constants/navigation';
-import { formatCountBadge } from '@/lib/utils/badgeUtils';
+import { formatCountBadge } from '@/lib/utils/displayUtils';
 import { isHeroNavbarPath } from '@/lib/utils/routeUtils';
 import { useGetNotificationUnreadCountQuery } from '@/store/api/notificationApi';
 import { useAppSelector } from '@/store/hooks';
@@ -61,7 +61,7 @@ export function Navbar({ onMenuClick }) {
 
   return (
     <nav
-      className={`fixed top-0 right-0 left-0 flex items-center justify-between border-b border-transparent px-4 transition-colors duration-300 lg:left-[280px] lg:border-[#1A1A1A] ${
+      className={`fixed top-0 right-0 left-0 flex items-center justify-between border-b border-transparent px-4 transition-colors duration-300 lg:left-[280px] lg:border-surface-border ${
         scrolled || alwaysSolid ? 'bg-black lg:bg-black' : 'bg-transparent lg:bg-transparent'
       }`}
       style={{
@@ -90,7 +90,7 @@ export function Navbar({ onMenuClick }) {
                 aria-current={isActive ? 'page' : undefined}
               >
                 <img src={icon} alt="" className="h-5 w-5 shrink-0 object-contain lg:h-4 lg:w-4" />
-                <span className={`text-[13px] font-medium ${isActive ? 'text-[#DA9811]' : 'text-[#A2A6AB]'}`}>{label}</span>
+                <span className={`text-[13px] font-medium ${isActive ? 'text-brand' : 'text-muted'}`}>{label}</span>
               </Link>
             );
           })}

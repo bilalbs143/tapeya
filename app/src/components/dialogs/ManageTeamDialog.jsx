@@ -19,13 +19,7 @@ import { useCreateTeamMutation, useSearchTeamsQuery, useUpdateTeamMutation } fro
 import { useAttachTeamsToTournamentMutation, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
 import { Checkbox } from '@/ui/Checkbox';
 import { CountryCityFields } from '@/ui/CountryCityFields';
-import {
-  DialogHeaderRow,
-  dialogPrimaryTitleClass,
-  DialogSaveButton,
-  DialogScrollBody,
-  DialogTitle,
-} from '@/ui/Dialog';
+import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
 import { FileUploadField } from '@/ui/FileUploadField';
 import { FormField } from '@/ui/FormField';
 import { CloseIcon } from '@/ui/icons/CloseIcon';
@@ -65,14 +59,7 @@ const EMPTY_FORM = {
  * @param {number} [props.preferredGroupIndex]
  * @param {(team: object) => void} [props.onSuccess]
  */
-export function ManageTeamDialog({
-  mode = 'create',
-  team,
-  tournamentId,
-  tournament,
-  preferredGroupIndex,
-  onSuccess,
-}) {
+export function ManageTeamDialog({ mode = 'create', team, tournamentId, tournament, preferredGroupIndex, onSuccess }) {
   const isEdit = mode === 'edit';
   const isTournamentCreate = !isEdit && tournamentId != null;
   const { closeDialog } = useDialog();
@@ -168,11 +155,7 @@ export function ManageTeamDialog({
       });
 
       setIconPlayerIdToName(iconIdToName);
-      setSelectedSponsor(
-        team.sponsor_id != null && team.sponsor
-          ? { id: team.sponsor_id, name: team.sponsor.name ?? '' }
-          : null,
-      );
+      setSelectedSponsor(team.sponsor_id != null && team.sponsor ? { id: team.sponsor_id, name: team.sponsor.name ?? '' } : null);
     } else {
       reset(EMPTY_FORM);
       setIconPlayerIdToName({});
@@ -390,114 +373,108 @@ export function ManageTeamDialog({
       <DialogScrollBody>
         <form id="manage-team-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4 pb-2">
           {isTournamentCreate && hasGroups ? (
-              <FormField label="Group" htmlFor="manage-group" required>
-                <Select
-                  value={String(selectedGroupIndex)}
-                  onValueChange={(v) => setSelectedGroupIndex(v === 'random' ? 'random' : Number(v))}
-                >
-                  <SelectTrigger id="manage-group" className={selectTriggerInputClass} aria-label="Select Group">
-                    <SelectValue placeholder="Select Group" />
-                  </SelectTrigger>
-                  <SelectContent
-                    className={selectContentInputClass}
-                    viewportClassName={selectViewportInputClass}
-                    position="popper"
+            <FormField label="Group" htmlFor="manage-group" required>
+              <Select
+                value={String(selectedGroupIndex)}
+                onValueChange={(v) => setSelectedGroupIndex(v === 'random' ? 'random' : Number(v))}
+              >
+                <SelectTrigger id="manage-group" className={selectTriggerInputClass} aria-label="Select Group">
+                  <SelectValue placeholder="Select Group" />
+                </SelectTrigger>
+                <SelectContent className={selectContentInputClass} viewportClassName={selectViewportInputClass} position="popper">
+                  <SelectItem
+                    value="random"
+                    className={selectItemInputClass}
+                    textClassName="!text-white"
+                    indicatorClassName="!text-white"
                   >
+                    Random Group
+                  </SelectItem>
+                  {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map((idx) => (
                     <SelectItem
-                      value="random"
+                      key={idx}
+                      value={String(idx)}
                       className={selectItemInputClass}
                       textClassName="!text-white"
                       indicatorClassName="!text-white"
                     >
-                      Random Group
+                      Group {idx}
                     </SelectItem>
-                    {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map((idx) => (
-                      <SelectItem
-                        key={idx}
-                        value={String(idx)}
-                        className={selectItemInputClass}
-                        textClassName="!text-white"
-                        indicatorClassName="!text-white"
-                      >
-                        Group {idx}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormField>
-            ) : null}
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormField>
+          ) : null}
 
           {/* Team Name */}
           <FormField label="Team Name" htmlFor="manage-name" required>
             {isTournamentCreate ? (
-                <div ref={teamNameFieldRef} className="relative">
-                  <Input
-                    id="manage-name"
-                    placeholder="Type Team Name or Code to Search"
-                    autoComplete="off"
-                    maxLength={255}
-                    error={errors.name?.message}
-                    readOnly={isReadonly}
-                    className={isReadonly ? `${readonlyClass} pr-12` : ''}
-                    {...register('name', {
-                      onFocus: () => {
-                        if (!isReadonly) setTeamNameDropdownOpen(true);
-                      },
-                      onChange: () => {
-                        if (!isReadonly) setTeamNameDropdownOpen(true);
-                      },
-                    })}
-                  />
-                  {selectedTeam ? (
-                    <button
-                      type="button"
-                      onClick={handleChangeTeam}
-                      className="absolute top-0 right-0 bottom-0 flex w-10 items-center justify-center text-[#A2A6AB] transition-colors hover:text-white active:opacity-80"
-                      aria-label="Change Team"
-                    >
-                      <CloseIcon />
-                    </button>
-                  ) : null}
-                  {showTeamNameDropdown ? (
-                    <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-48 overflow-auto rounded-[6px] border border-[#141412] bg-[#141412] shadow-lg">
-                      {isSearchingTeams ? (
-                        <p className="px-4 py-3 text-[13px] text-[#A2A6AB] capitalize">Searching…</p>
-                      ) : searchResults.length > 0 ? (
-                        <ul className="py-1">
-                          {searchResults.map((result) => (
-                            <li key={result.id}>
-                              <button
-                                type="button"
-                                onClick={() => handleSelectTeam(result)}
-                                className="flex w-full cursor-pointer flex-col gap-0.5 px-4 py-3 text-left transition-colors hover:bg-white/10"
-                              >
-                                <span className="font-semibold text-white">{result.name}</span>
-                                <span className="text-[13px] text-[#A2A6AB]">
-                                  Code: {result.code}
-                                  {result.sponsor?.name ? ` · ${result.sponsor.name}` : ''}
-                                </span>
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="px-4 py-3 text-[13px] text-[#A2A6AB] capitalize">
-                          No team found. Add new team below.
-                        </p>
-                      )}
-                    </div>
-                  ) : null}
-                </div>
-              ) : (
+              <div ref={teamNameFieldRef} className="relative">
                 <Input
                   id="manage-name"
-                  placeholder="Team name"
+                  placeholder="Type Team Name or Code to Search"
                   autoComplete="off"
                   maxLength={255}
                   error={errors.name?.message}
-                  {...register('name')}
+                  readOnly={isReadonly}
+                  className={isReadonly ? `${readonlyClass} pr-12` : ''}
+                  {...register('name', {
+                    onFocus: () => {
+                      if (!isReadonly) setTeamNameDropdownOpen(true);
+                    },
+                    onChange: () => {
+                      if (!isReadonly) setTeamNameDropdownOpen(true);
+                    },
+                  })}
                 />
-              )}
+                {selectedTeam ? (
+                  <button
+                    type="button"
+                    onClick={handleChangeTeam}
+                    className="absolute top-0 right-0 bottom-0 flex w-10 items-center justify-center text-muted transition-colors hover:text-white active:opacity-80"
+                    aria-label="Change Team"
+                  >
+                    <CloseIcon />
+                  </button>
+                ) : null}
+                {showTeamNameDropdown ? (
+                  <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-48 overflow-auto rounded-[6px] border border-[#141412] bg-surface shadow-lg">
+                    {isSearchingTeams ? (
+                      <p className="px-4 py-3 text-[13px] text-muted capitalize">Searching…</p>
+                    ) : searchResults.length > 0 ? (
+                      <ul className="py-1">
+                        {searchResults.map((result) => (
+                          <li key={result.id}>
+                            <button
+                              type="button"
+                              onClick={() => handleSelectTeam(result)}
+                              className="flex w-full cursor-pointer flex-col gap-0.5 px-4 py-3 text-left transition-colors hover:bg-white/10"
+                            >
+                              <span className="font-semibold text-white">{result.name}</span>
+                              <span className="text-[13px] text-muted">
+                                Code: {result.code}
+                                {result.sponsor?.name ? ` · ${result.sponsor.name}` : ''}
+                              </span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="px-4 py-3 text-[13px] text-muted capitalize">No team found. Add new team below.</p>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <Input
+                id="manage-name"
+                placeholder="Team name"
+                autoComplete="off"
+                maxLength={255}
+                error={errors.name?.message}
+                {...register('name')}
+              />
+            )}
           </FormField>
 
           {/* Team Code */}
@@ -549,42 +526,42 @@ export function ManageTeamDialog({
                         setSponsorSearch('');
                         setSponsorDropdownOpen(true);
                       }}
-                      className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-[#A2A6AB] transition-colors hover:text-white"
+                      className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted transition-colors hover:text-white"
                       aria-label="Clear Sponsor"
                     >
                       <CloseIcon />
                     </button>
                   )}
                   {showSponsorDropdown && (
-                    <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] bg-[#141412] shadow-lg">
+                    <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] bg-surface shadow-lg">
                       {debouncedSponsorSearch.length < MIN_SEARCH_LENGTH ? (
-                          <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
-                            Type at least {MIN_SEARCH_LENGTH} characters to search
-                          </p>
-                        ) : isSearchingSponsors ? (
-                          <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">Searching…</p>
-                        ) : sponsorsList.length === 0 ? (
-                          <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">No users found</p>
-                        ) : (
-                          <ul>
-                            {sponsorsList.map((s) => (
-                              <li key={s.id}>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    field.onChange(String(s.id));
-                                    setSelectedSponsor({ id: s.id, name: s.name ?? '' });
-                                    setSponsorSearch('');
-                                    setSponsorDropdownOpen(false);
-                                  }}
-                                  className="flex w-full cursor-pointer items-center rounded-sm px-3 py-2.5 text-left text-base text-white transition-colors hover:bg-white/10 focus:bg-white/10 focus:outline-none"
-                                >
-                                  {s.name}
-                                </button>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
+                        <p className="px-3 py-4 text-center text-[13px] text-muted">
+                          Type at least {MIN_SEARCH_LENGTH} characters to search
+                        </p>
+                      ) : isSearchingSponsors ? (
+                        <p className="px-3 py-4 text-center text-[13px] text-muted">Searching…</p>
+                      ) : sponsorsList.length === 0 ? (
+                        <p className="px-3 py-4 text-center text-[13px] text-muted">No users found</p>
+                      ) : (
+                        <ul>
+                          {sponsorsList.map((s) => (
+                            <li key={s.id}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  field.onChange(String(s.id));
+                                  setSelectedSponsor({ id: s.id, name: s.name ?? '' });
+                                  setSponsorSearch('');
+                                  setSponsorDropdownOpen(false);
+                                }}
+                                className="flex w-full cursor-pointer items-center rounded-sm px-3 py-2.5 text-left text-base text-white transition-colors hover:bg-white/10 focus:bg-white/10 focus:outline-none"
+                              >
+                                {s.name}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   )}
                 </div>
@@ -643,9 +620,7 @@ export function ManageTeamDialog({
                             closeIconPlayerPanel();
                           }
                         }}
-                        className={
-                            field.value?.length > 0 && !isReadonly ? 'pr-12' : isReadonly ? readonlyClass : ''
-                        }
+                        className={field.value?.length > 0 && !isReadonly ? 'pr-12' : isReadonly ? readonlyClass : ''}
                       />
                       {field.value?.length > 0 && !isReadonly && (
                         <button
@@ -655,71 +630,71 @@ export function ManageTeamDialog({
                             setIconPlayerIdToName({});
                             closeIconPlayerPanel();
                           }}
-                          className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-[#A2A6AB] transition-colors hover:text-white"
+                          className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted transition-colors hover:text-white"
                           aria-label="Clear Icon Players"
                         >
                           <CloseIcon />
                         </button>
                       )}
                       {iconPlayerPanelOpen && !isReadonly && (
-                        <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] bg-[#141412] shadow-lg">
+                        <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] bg-surface shadow-lg">
                           {iconPlayerSearch.trim().length === 0 ? (
-                              <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">Type to search players…</p>
-                            ) : debouncedIconPlayerSearch.length < MIN_SEARCH_LENGTH ? (
-                              <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">
-                                Type at least {MIN_SEARCH_LENGTH} characters
-                              </p>
-                            ) : isSearchingPlayers ? (
-                              <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">Searching…</p>
-                            ) : playersList.length === 0 ? (
-                              <p className="px-3 py-4 text-center text-[13px] text-[#A2A6AB]">No players found</p>
-                            ) : (
-                              <div>
-                                {playersList.map((player) => {
-                                  const isSelected = field.value?.includes(player.id);
-                                  return (
-                                    <div
-                                      key={player.id}
-                                      role="option"
-                                      aria-selected={Boolean(isSelected)}
-                                      className="rounded-sm hover:bg-white/10"
-                                    >
-                                      <label className="flex cursor-pointer items-center gap-3 py-2.5 pl-4 pr-4 text-base text-white">
-                                        <Checkbox
-                                          checked={Boolean(isSelected)}
-                                          onCheckedChange={(checked) => {
-                                            const prev = field.value ?? [];
-                                            if (checked) {
-                                              setIconPlayerIdToName((m) => ({ ...m, [player.id]: playerLineLabel(player) }));
-                                              field.onChange(prev.includes(player.id) ? prev : [...prev, player.id]);
-                                            } else {
-                                              setIconPlayerIdToName((m) => {
-                                                const next = { ...m };
-                                                delete next[player.id];
-                                                return next;
-                                              });
-                                              field.onChange(prev.filter((id) => id !== player.id));
-                                            }
-                                            closeIconPlayerPanel();
-                                          }}
-                                        />
-                                        <span className="truncate">{playerLineLabel(player)}</span>
-                                        {(player.playing_role ?? player.playing_role_enum) && (
-                                          <span className="ml-auto shrink-0 text-[12px] text-[#A2A6AB]">
-                                            {player.playing_role ?? player.playing_role_enum}
-                                          </span>
-                                        )}
-                                      </label>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
+                            <p className="px-3 py-4 text-center text-[13px] text-muted">Type to search players…</p>
+                          ) : debouncedIconPlayerSearch.length < MIN_SEARCH_LENGTH ? (
+                            <p className="px-3 py-4 text-center text-[13px] text-muted">
+                              Type at least {MIN_SEARCH_LENGTH} characters
+                            </p>
+                          ) : isSearchingPlayers ? (
+                            <p className="px-3 py-4 text-center text-[13px] text-muted">Searching…</p>
+                          ) : playersList.length === 0 ? (
+                            <p className="px-3 py-4 text-center text-[13px] text-muted">No players found</p>
+                          ) : (
+                            <div>
+                              {playersList.map((player) => {
+                                const isSelected = field.value?.includes(player.id);
+                                return (
+                                  <div
+                                    key={player.id}
+                                    role="option"
+                                    aria-selected={Boolean(isSelected)}
+                                    className="rounded-sm hover:bg-white/10"
+                                  >
+                                    <label className="flex cursor-pointer items-center gap-3 py-2.5 pr-4 pl-4 text-base text-white">
+                                      <Checkbox
+                                        checked={Boolean(isSelected)}
+                                        onCheckedChange={(checked) => {
+                                          const prev = field.value ?? [];
+                                          if (checked) {
+                                            setIconPlayerIdToName((m) => ({ ...m, [player.id]: playerLineLabel(player) }));
+                                            field.onChange(prev.includes(player.id) ? prev : [...prev, player.id]);
+                                          } else {
+                                            setIconPlayerIdToName((m) => {
+                                              const next = { ...m };
+                                              delete next[player.id];
+                                              return next;
+                                            });
+                                            field.onChange(prev.filter((id) => id !== player.id));
+                                          }
+                                          closeIconPlayerPanel();
+                                        }}
+                                      />
+                                      <span className="truncate">{playerLineLabel(player)}</span>
+                                      {(player.playing_role ?? player.playing_role_enum) && (
+                                        <span className="ml-auto shrink-0 text-[12px] text-muted">
+                                          {player.playing_role ?? player.playing_role_enum}
+                                        </span>
+                                      )}
+                                    </label>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
                     {(field.value?.length ?? 0) > 0 && (
-                      <p className="text-[13px] text-[#A2A6AB]">
+                      <p className="text-[13px] text-muted">
                         {field.value.length} player{field.value.length === 1 ? '' : 's'} selected
                       </p>
                     )}
@@ -731,30 +706,25 @@ export function ManageTeamDialog({
 
           {/* Logo */}
           {!isReadonly ? (
-              <FileUploadField
-                label={isEdit ? 'Update Logo' : 'Upload Logo'}
-                value={logoUpload}
-                onChange={setLogoUpload}
-                accept="image/jpeg,image/png,image/webp,image/gif"
-                acceptLabel="JPG, PNG, WebP"
-                maxSizeMb={5}
-              />
-            ) : selectedTeam?.logo && String(selectedTeam.logo).trim() !== '' ? (
-              <FormField label="Logo" htmlFor="team_logo_display">
-                <div className="flex h-12 items-center rounded-[6px] bg-[#141412] px-4">
-                  <span className="text-[16px] text-[#A2A6AB] capitalize">Logo uploaded</span>
-                </div>
-              </FormField>
-            ) : null}
-
+            <FileUploadField
+              label={isEdit ? 'Update Logo' : 'Upload Logo'}
+              value={logoUpload}
+              onChange={setLogoUpload}
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              acceptLabel="JPG, PNG, WebP"
+              maxSizeMb={5}
+            />
+          ) : selectedTeam?.logo && String(selectedTeam.logo).trim() !== '' ? (
+            <FormField label="Logo" htmlFor="team_logo_display">
+              <div className="flex h-12 items-center rounded-[6px] bg-surface px-4">
+                <span className="text-[16px] text-muted capitalize">Logo uploaded</span>
+              </div>
+            </FormField>
+          ) : null}
         </form>
       </DialogScrollBody>
 
-      <DialogSaveButton
-        form="manage-team-form"
-        type="submit"
-        disabled={isSaving}
-      >
+      <DialogSaveButton form="manage-team-form" type="submit" disabled={isSaving}>
         {saveLabel}
       </DialogSaveButton>
     </>

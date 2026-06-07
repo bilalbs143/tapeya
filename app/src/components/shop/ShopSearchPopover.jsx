@@ -1,13 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 
 import { useSearchPopover } from '@/hooks/useSearchPopover';
-import { MIN_SEARCH_LENGTH } from '@/lib/constants/search';
+import { MIN_SEARCH_LENGTH, SEARCH_RESULTS_LIMIT } from '@/lib/constants/search';
 import { formatPrice } from '@/lib/format';
 import { useGetBrandsQuery, useGetProductsQuery } from '@/store/api/shopApi';
 import { Popover, PopoverAnchor, PopoverContent } from '@/ui/Popover';
 import { SearchInput } from '@/ui/SearchInput';
-
-const SEARCH_RESULTS_LIMIT = 8;
 
 export function ShopSearchPopover() {
   const navigate = useNavigate();
@@ -58,13 +56,13 @@ export function ShopSearchPopover() {
         side="bottom"
         align="start"
         sideOffset={6}
-        className="max-h-[min(70vh,320px)] w-[var(--radix-popover-trigger-width)] overflow-hidden rounded-[6px] border border-[#252520] p-0 shadow-xl outline-none [background:#1a1a18]"
+        className="max-h-[min(70vh,320px)] w-[var(--radix-popover-trigger-width)] overflow-hidden rounded-[6px] border border-border p-0 shadow-xl outline-none bg-surface-elevated"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="max-h-[min(70vh,320px)] overflow-y-auto rounded-[6px] py-1">
-          {isSearching && <div className="px-4 py-6 text-center text-[13px] text-[#A2A6AB]">Searching…</div>}
+          {isSearching && <div className="px-4 py-6 text-center text-[13px] text-muted">Searching…</div>}
           {!isSearching && showEmpty && (
-            <div className="px-4 py-6 text-center text-[13px] text-[#A2A6AB]">
+            <div className="px-4 py-6 text-center text-[13px] text-muted">
               No products found for &quot;{debouncedSearch}&quot;
             </div>
           )}
@@ -85,14 +83,14 @@ export function ShopSearchPopover() {
                         {imageUrl ? (
                           <img src={imageUrl} alt="" className="h-full w-full object-contain" />
                         ) : (
-                          <div className="h-full w-full bg-[#141412]" />
+                          <div className="h-full w-full bg-surface" />
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[13px] font-medium text-white">{product.name}</p>
-                        <p className="mt-0.5 text-[12px] font-bold text-[#DA9811]">
+                        <p className="mt-0.5 text-[12px] font-bold text-brand">
                           {hasDiscount && (
-                            <span className="mr-1.5 text-[#A2A6AB] line-through">{formatPrice(product.price)}</span>
+                            <span className="mr-1.5 text-muted line-through">{formatPrice(product.price)}</span>
                           )}
                           {formatPrice(displayPrice)}
                         </p>

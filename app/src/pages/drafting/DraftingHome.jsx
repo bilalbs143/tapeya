@@ -14,12 +14,12 @@ export default function DraftingHome() {
           type="button"
           variant="card"
           onClick={() => openDialog('manageTeam', { mode: 'create' })}
-          className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
+          className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-surface px-0 py-0"
         >
-          <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
+          <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-brand text-[32px] font-bold text-ink">
             +
           </span>
-          <span className="text-[16px] font-bold text-[#A2A6AB]">Create Teams</span>
+          <span className="text-[16px] font-bold text-muted">Create Teams</span>
         </Button>
       </div>
     </div>

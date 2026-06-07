@@ -21,10 +21,10 @@ export function LiveMatchSlider({ matches = [], showViewMore = true }) {
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 shrink-0 rounded-full bg-red-500" aria-hidden />
-          <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase md:text-[16px]">Live now</h2>
+          <h2 className="text-[13px] font-bold tracking-wide text-muted uppercase md:text-[16px]">Live now</h2>
         </div>
         {showViewMore && (
-          <Link to="/live" className="text-[12px] font-bold text-[#DA9811] transition-opacity active:opacity-80 md:text-[16px]">
+          <Link to="/live" className="text-[12px] font-bold text-brand transition-opacity active:opacity-80 md:text-[16px]">
             View more
           </Link>
         )}
@@ -58,7 +58,7 @@ export function LiveMatchSlider({ matches = [], showViewMore = true }) {
                     className="h-full w-full object-cover transition-transform duration-300 group-active:scale-[1.02]"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1a1a18] to-[#2c2418] px-3">
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1A1A18] to-[#2C2418] px-3">
                     <p className="line-clamp-2 text-center text-[13px] font-semibold text-white">{match.matchId}</p>
                   </div>
                 )}

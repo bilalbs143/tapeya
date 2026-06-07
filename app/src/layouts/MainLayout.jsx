@@ -20,13 +20,11 @@ export function MainLayout() {
       <Navbar onMenuClick={() => setSidebarOpen(true)} />
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <main
-        className="lg:ml-[280px] lg:pb-0"
+        className="lg:ml-[280px]"
         style={{
-          // Top: match navbar height + safe area. Hero pages opt out via isNavbarOverlayPath.
           paddingTop: noTopPadding ? 0 : 'calc(env(safe-area-inset-top) + 56px)',
-          // Bottom: BottomNav is 70px tall. Add home-indicator clearance so the
-          // last item is never clipped on iPhone/newer Android.
-          paddingBottom: 'calc(env(safe-area-inset-bottom) + 70px)',
+          // Desktop has no BottomNav — inline style must handle this since it overrides Tailwind classes.
+          paddingBottom: isDesktop ? 0 : 'calc(env(safe-area-inset-bottom) + 70px)',
         }}
       >
         <Outlet />

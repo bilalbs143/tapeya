@@ -62,7 +62,7 @@ export function PlayerVerticalStatList({ stats = [] }) {
   );
 }
 
-const identityCardClass = 'rounded-[10px] bg-[#0C0601] px-4 py-4 text-[#DA9811] sm:px-5 sm:py-5';
+const identityCardClass = 'rounded-[10px] bg-[#0C0601] px-4 py-4 text-brand sm:px-5 sm:py-5';
 
 const identityMutedLineClass = 'mt-3 text-[13px] leading-none font-medium text-white sm:text-[14px]';
 

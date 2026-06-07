@@ -42,9 +42,7 @@ export default function TournamentCreateTeamIntro() {
 
   const showViewFixtures = (tournament?.matches_count ?? 0) > 0;
 
-  const isPageLoading =
-    (!tournament && isLoadingTournament) ||
-    (teamsLoading && tournament?.teams_count == null);
+  const isPageLoading = (!tournament && isLoadingTournament) || (teamsLoading && tournament?.teams_count == null);
 
   useEffect(() => {
     if (!isValidId) {
@@ -66,9 +64,9 @@ export default function TournamentCreateTeamIntro() {
 
   const tournamentStatePayload = tournament
     ? {
-      ...tournament,
-      name: tournament.tournament_name ?? tournament.name,
-    }
+        ...tournament,
+        name: tournament.tournament_name ?? tournament.name,
+      }
     : { id: tournamentIdNum };
 
   if (isPageLoading) {
@@ -76,7 +74,7 @@ export default function TournamentCreateTeamIntro() {
       <div className="flex min-h-[calc(100vh-144px)] flex-col bg-black">
         <AppSubpageHeader title={title} titleClassName="truncate" />
         <Container>
-          <p className="py-6 text-center text-[13px] text-[#A2A6AB]">Loading…</p>
+          <p className="py-6 text-center text-[13px] text-muted">Loading…</p>
         </Container>
       </div>
     );
@@ -121,55 +119,55 @@ export default function TournamentCreateTeamIntro() {
       <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4">
         {noTeams && canAddTeam ? (
           <>
-            <p className="text-center text-[14px] text-[#A2A6AB]">No teams yet. Create your first team to get started.</p>
+            <p className="text-center text-[14px] text-muted">No teams yet. Create your first team to get started.</p>
             <Button
               type="button"
               variant="card"
               onClick={handleCreateTeam}
-              className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
+              className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-surface px-0 py-0"
             >
-              <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
+              <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-brand text-[32px] font-bold text-ink">
                 +
               </span>
-              <span className="text-[16px] font-bold text-[#A2A6AB]">Create Team</span>
+              <span className="text-[16px] font-bold text-muted">Create Team</span>
             </Button>
           </>
         ) : teamsComplete ? (
           <>
-            <p className="text-center text-[14px] text-[#A2A6AB]">Teams are complete. Manage squads or add fixtures.</p>
+            <p className="text-center text-[14px] text-muted">Teams are complete. Manage squads or add fixtures.</p>
             <Button
               type="button"
               variant="card"
               onClick={handleViewTeams}
-              className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
+              className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-surface px-0 py-0"
             >
-              <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
+              <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-brand text-[32px] font-bold text-ink">
                 +
               </span>
-              <span className="text-[16px] font-bold text-[#A2A6AB]">View Teams</span>
+              <span className="text-[16px] font-bold text-muted">View Teams</span>
             </Button>
             <Button
               type="button"
               variant="card"
               onClick={handleAddFixtures}
-              className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
+              className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-surface px-0 py-0"
             >
-              <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
+              <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-brand text-[32px] font-bold text-ink">
                 +
               </span>
-              <span className="text-[16px] font-bold text-[#A2A6AB]">Add Fixtures</span>
+              <span className="text-[16px] font-bold text-muted">Add Fixtures</span>
             </Button>
             {showViewFixtures ? (
               <Button
                 type="button"
                 variant="card"
                 onClick={handleViewFixtures}
-                className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
+                className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-surface px-0 py-0"
               >
-                <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
+                <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-brand text-[32px] font-bold text-ink">
                   +
                 </span>
-                <span className="text-[16px] font-bold text-[#A2A6AB]">View Fixtures</span>
+                <span className="text-[16px] font-bold text-muted">View Fixtures</span>
               </Button>
             ) : null}
           </>

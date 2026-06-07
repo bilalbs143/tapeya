@@ -19,10 +19,10 @@ function ListingProductCardInner({ product, brandSlug }) {
         {imageUrl ? (
           <img src={imageUrl} alt={product.images?.[0]?.alt ?? product.name} className="h-full w-full object-contain p-2" />
         ) : (
-          <div className="h-full w-full bg-[#141412]" aria-hidden />
+          <div className="h-full w-full bg-surface" aria-hidden />
         )}
         {product.is_featured && (
-          <span className="absolute top-2 left-2 rounded-full bg-[#DA9811] px-2 py-0.5 text-[11px] font-bold text-black uppercase">
+          <span className="absolute top-2 left-2 rounded-full bg-brand px-2 py-0.5 text-[11px] font-bold text-black uppercase">
             Featured
           </span>
         )}
@@ -38,17 +38,17 @@ function ListingProductCardInner({ product, brandSlug }) {
           <div className="flex min-w-0 flex-col justify-end gap-0.5">
             {hasDiscount ? (
               <>
-                <span className="text-[11px] text-[#A2A6AB] line-through">{formatPrice(product.price)}</span>
-                <span className="text-base font-bold text-[#DA9811]">{formatPrice(product.sale_price)}</span>
+                <span className="text-[11px] text-muted line-through">{formatPrice(product.price)}</span>
+                <span className="text-base font-bold text-brand">{formatPrice(product.sale_price)}</span>
               </>
             ) : (
-              <span className="text-base font-bold text-[#DA9811]">{formatPrice(product.price)}</span>
+              <span className="text-base font-bold text-brand">{formatPrice(product.price)}</span>
             )}
           </div>
           {detailPath && (
             <span className="flex shrink-0 items-center gap-0.5 rounded p-1" aria-hidden>
               <svg
-                className="h-3 w-3 font-bold text-[#DA9811]"
+                className="h-3 w-3 font-bold text-brand"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -68,7 +68,7 @@ function ListingProductCardInner({ product, brandSlug }) {
     return (
       <Link
         to={detailPath}
-        className="flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[17px] bg-[#1a1a18] transition-opacity active:opacity-90"
+        className="flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[17px] bg-surface-elevated transition-opacity active:opacity-90"
         aria-label={`View ${product.name}`}
       >
         {content}
@@ -76,7 +76,7 @@ function ListingProductCardInner({ product, brandSlug }) {
     );
   }
 
-  return <article className="flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[17px] bg-[#1a1a18]">{content}</article>;
+  return <article className="flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[17px] bg-surface-elevated">{content}</article>;
 }
 
 export const ListingProductCard = memo(ListingProductCardInner);

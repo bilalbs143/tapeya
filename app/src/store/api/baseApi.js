@@ -29,7 +29,6 @@ const rawBaseQuery = fetchBaseQuery({
 export const baseApi = createApi({
   reducerPath: 'api',
   baseQuery: async (args, api, extraOptions) => {
-    // Ensure JSON Content-Type only when body is not FormData
     const isFormDataRequest = args && typeof args === 'object' && 'body' in args && args.body instanceof FormData;
 
     if (!isFormDataRequest && args && typeof args === 'object') {
@@ -41,7 +40,6 @@ export const baseApi = createApi({
 
     const result = await rawBaseQuery(args, api, extraOptions);
 
-    // On 401, clear auth so RequireAuth redirects to login (handles expired/invalid token or cleared session)
     if (isUnauthorizedError(result.error)) {
       api.dispatch(clearCredentials());
     }

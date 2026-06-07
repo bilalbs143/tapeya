@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { formatPrice } from '@/lib/format';
 
 const eliteRankingIcon = `${CLOUDFRONT_APP_BASE}/images/icons/elite-ranking-icon.svg`;
 const goldRankingIcon = `${CLOUDFRONT_APP_BASE}/images/icons/gold-ranking-icon.svg`;
@@ -122,19 +123,19 @@ function PricingCard({ plan, isSelected, onSelect, onBuy }) {
           <div className="flex h-9 w-9 items-center justify-center rounded-[14px] bg-black/60">
             <img src={icon} alt={`${name} badge`} className="h-8 w-8 object-contain" />
           </div>
-          <h2 className="text-[16px] font-bold text-[#DA9811] uppercase">{name}</h2>
+          <h2 className="text-[16px] font-bold text-brand uppercase">{name}</h2>
         </div>
 
         <div className="text-right">
           <p className="mt-1 text-[16px] font-bold tracking-wide text-white">
-            {currency} <span className="text-[16px] font-bold tracking-tight">{price.toLocaleString('en-PK')}</span>
+            <span className="text-[16px] font-bold tracking-tight">{formatPrice(price, currency)}</span>
           </p>
           <p className="text-[12px] font-bold text-white uppercase">{billingCycleLabel}</p>
         </div>
       </div>
 
       {isRecommended && badgeLabel ? (
-        <div className="mb-4 inline-flex items-center rounded-full border border-[#DA9811] px-3 py-[6px]">
+        <div className="mb-4 inline-flex items-center rounded-full border border-brand px-3 py-[6px]">
           <img src={recommendedIcon} alt="Recommended" className="mr-2 h-[18px] w-[18px] object-contain" />
           <span className="text-[12px] font-normal text-white uppercase">{badgeLabel}</span>
         </div>
@@ -142,7 +143,7 @@ function PricingCard({ plan, isSelected, onSelect, onBuy }) {
 
       <ul className="mb-5 space-y-2.5">
         {features.map((feature) => (
-          <li key={feature} className="flex items-start gap-2.5 text-[12px] text-[#A2A6AB]">
+          <li key={feature} className="flex items-start gap-2.5 text-[12px] text-muted">
             <CheckIcon />
             <span className="leading-relaxed">{feature}</span>
           </li>
@@ -150,12 +151,12 @@ function PricingCard({ plan, isSelected, onSelect, onBuy }) {
       </ul>
 
       <div className="flex items-center justify-between gap-3">
-        <p className="text-[14px] font-semibold text-[#DA9811]">
+        <p className="text-[14px] font-semibold text-brand">
           {yearlyLabel}: {yearlyPrice} ({yearlyNote})
         </p>
         <button
           type="button"
-          className="inline-flex items-center gap-2 rounded-[6px] bg-[#DA9811] px-4 py-1.5 text-[12px] font-semibold tracking-wide text-black shadow-[0_10px_25px_rgba(0,0,0,0.6)]"
+          className="inline-flex items-center gap-2 rounded-[6px] bg-brand px-4 py-1.5 text-[12px] font-semibold tracking-wide text-black shadow-[0_10px_25px_rgba(0,0,0,0.6)]"
           onClick={(event) => {
             event.stopPropagation();
             onBuy?.();

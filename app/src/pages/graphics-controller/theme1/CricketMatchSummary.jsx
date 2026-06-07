@@ -14,7 +14,7 @@ export default function CricketMatchSummary({ matchup = '', tournamentLabel = ''
   const teamLogo = battingTeam.logoUrl ?? defaultTeamLogo;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#1D1E22] p-3 sm:p-5">
+    <div className="flex min-h-screen items-center justify-center bg-page p-3 sm:p-5">
       <section
         className="relative w-full max-w-[677px] overflow-hidden px-10 py-8 text-white sm:px-12 sm:pb-10"
         style={frameStyle}
@@ -26,9 +26,9 @@ export default function CricketMatchSummary({ matchup = '', tournamentLabel = ''
         />
 
         <div className="relative z-10 pt-10">
-          {matchup ? <p className="text-[16px] leading-none font-bold text-[#DA9811] uppercase">{matchup}</p> : null}
+          {matchup ? <p className="text-[16px] leading-none font-bold text-brand uppercase">{matchup}</p> : null}
           {tournamentLabel ? (
-            <p className="mt-2 text-[14px] leading-none font-bold text-[#DA9811] uppercase">{tournamentLabel}</p>
+            <p className="mt-2 text-[14px] leading-none font-bold text-brand uppercase">{tournamentLabel}</p>
           ) : null}
 
           {stats.length > 0 ? (

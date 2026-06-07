@@ -134,7 +134,7 @@ export default function ScoreComparison({
   );
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#1D1E22] p-3 sm:p-5">
+    <div className="flex min-h-screen items-center justify-center bg-page p-3 sm:p-5">
       <section className="relative w-full max-w-[677px] overflow-hidden px-4 py-6 text-white sm:px-8 sm:py-8" style={frameStyle}>
         <div className="relative z-10">
           <h2 className="text-[20px] leading-none font-bold text-[#F5A623] uppercase sm:text-[21px]">{chartTitle}</h2>

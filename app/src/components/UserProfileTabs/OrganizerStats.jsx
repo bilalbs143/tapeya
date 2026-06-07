@@ -1,6 +1,6 @@
 import { CONTENT_MAX_WIDTH } from './constants';
 
-const LABEL_CLASS = 'text-[14px] font-bold uppercase tracking-wide text-[#A2A6AB]';
+const LABEL_CLASS = 'text-[14px] font-bold uppercase tracking-wide text-muted';
 const VALUE_CLASS = 'text-sm font-normal text-white';
 
 const STATS = [

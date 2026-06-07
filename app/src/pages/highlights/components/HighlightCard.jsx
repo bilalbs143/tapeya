@@ -11,9 +11,9 @@ export function HighlightCard({ highlight, onClick, disabled = false }) {
       type="button"
       onClick={() => !disabled && onClick?.(highlight)}
       disabled={disabled}
-      className="flex w-full flex-col overflow-hidden rounded-[17px] bg-[#141412] text-left transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA9811] focus-visible:ring-offset-2 focus-visible:ring-offset-black active:opacity-90 disabled:cursor-default disabled:opacity-60"
+      className="flex w-full flex-col overflow-hidden rounded-[17px] bg-surface text-left transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black active:opacity-90 disabled:cursor-default disabled:opacity-60"
     >
-      <div className="h-[148px] w-full overflow-hidden bg-[#0d0d0b]">
+      <div className="h-[148px] w-full overflow-hidden bg-surface-deep">
         <img
           src={imageUrl}
           alt={title}
@@ -27,7 +27,7 @@ export function HighlightCard({ highlight, onClick, disabled = false }) {
       </div>
       <div className="flex flex-col gap-1 p-3">
         <h3 className="line-clamp-2 text-[13px] font-bold text-white">{title}</h3>
-        {dateLabel ? <p className="text-[12px] text-[#A2A6AB]">{dateLabel}</p> : null}
+        {dateLabel ? <p className="text-[12px] text-muted">{dateLabel}</p> : null}
       </div>
     </button>
   );

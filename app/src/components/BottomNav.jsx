@@ -29,7 +29,7 @@ export function BottomNav() {
     return (
       <Link key={path} to={path} className="flex flex-col items-center gap-1" aria-current={isActive ? 'page' : undefined}>
         <img src={icon} alt="" className="h-6 w-6 shrink-0 object-contain" />
-        <span className="text-[13px] font-medium text-[#A2A6AB]">{label}</span>
+        <span className="text-[13px] font-medium text-muted">{label}</span>
       </Link>
     );
   };
@@ -42,7 +42,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed right-0 bottom-0 left-0 rounded-tl-[17px] rounded-tr-[17px] bg-[#141412] px-2 pt-1 shadow-[0_-2px_10px_rgba(0,0,0,0.2)]"
+      className="fixed right-0 bottom-0 left-0 rounded-tl-[17px] rounded-tr-[17px] bg-surface px-2 pt-1 shadow-[0_-2px_10px_rgba(0,0,0,0.2)]"
       style={{
         // Pad below the nav grid to cover the iPhone home indicator / Android
         // gesture bar so tab labels never disappear behind it.

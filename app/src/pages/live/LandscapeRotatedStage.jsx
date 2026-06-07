@@ -36,18 +36,18 @@ export default function LandscapeRotatedStage({ children, rotated = false }) {
           style={
             rotated
               ? {
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                width: size.h,
-                height: size.w,
-                transform: 'translate(-50%, -50%) rotate(90deg)',
-              }
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  width: size.h,
+                  height: size.w,
+                  transform: 'translate(-50%, -50%) rotate(90deg)',
+                }
               : {
-                position: 'relative',
-                width: '100%',
-                height: '100%',
-              }
+                  position: 'relative',
+                  width: '100%',
+                  height: '100%',
+                }
           }
         >
           <div className="relative size-full">{children}</div>

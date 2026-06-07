@@ -4,7 +4,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { formatCount, formatPostTimestamp, ThumbsUpIcon } from '@/pages/feed/PostCard';
+import { formatCount } from '@/lib/format';
+import { formatPostTimestamp } from '@/lib/utils/feedUtils';
+import { ThumbsUpIcon } from '@/pages/feed/PostCard';
 import { Container } from '@/ui/Container';
 
 import { getPostDetail } from './feedData';
@@ -49,7 +51,7 @@ function CommentItem({ comment, onLike, onDislike, likedByUser, dislikedByUser }
   const displayDislikes = dislikedByUser !== undefined ? comment.dislikesCount + (dislikedByUser ? 1 : 0) : comment.dislikesCount;
 
   return (
-    <div className="flex gap-2 border-b border-[#1A1A1A] py-3 last:border-b-0">
+    <div className="flex gap-2 border-b border-surface-border py-3 last:border-b-0">
       <img
         src={avatarError ? AVATAR_PLACEHOLDER : comment.commenterAvatarUrl}
         alt=""
@@ -60,12 +62,12 @@ function CommentItem({ comment, onLike, onDislike, likedByUser, dislikedByUser }
       <div className="min-w-0 flex-1">
         <p className="text-[14px] font-bold text-white">{comment.commenterName}</p>
         <p className="mt-0.5 text-[14px] leading-relaxed font-normal text-[#B0B0B0]">{comment.text}</p>
-        <div className="mt-2 flex items-center gap-4 text-[#A2A6AB]">
+        <div className="mt-2 flex items-center gap-4 text-muted">
           {typeof onLike === 'function' ? (
             <button
               type="button"
               onClick={() => onLike(comment.id)}
-              className={`flex items-center gap-1.5 transition-colors ${likedByUser ? 'text-[#DA9811]' : ''}`}
+              className={`flex items-center gap-1.5 transition-colors ${likedByUser ? 'text-brand' : ''}`}
               aria-label="Like Comment"
             >
               <ThumbsUpIcon filled={likedByUser} />
@@ -186,8 +188,8 @@ export default function ActivityFeedDetail() {
         <AppSubpageHeader sticky divider title="ACTIVITY FEED" onBack={() => navigate('/feed')} />
         <Container>
           <div className="py-8 text-center">
-            <p className="text-[#A2A6AB]">Post not found.</p>
-            <button type="button" onClick={() => navigate('/feed')} className="mt-4 text-[#DA9811] underline">
+            <p className="text-muted">Post not found.</p>
+            <button type="button" onClick={() => navigate('/feed')} className="mt-4 text-brand underline">
               Back to feed
             </button>
           </div>
@@ -204,7 +206,7 @@ export default function ActivityFeedDetail() {
 
       <Container className="flex flex-col gap-0 pb-24">
         {/* Post block - consistent with PostCard */}
-        <article className="overflow-hidden rounded-2xl bg-[#141412] shadow-[0_18px_40px_rgba(0,0,0,0.9)]">
+        <article className="overflow-hidden rounded-2xl bg-surface shadow-[0_18px_40px_rgba(0,0,0,0.9)]">
           <div className="relative aspect-[4/3] w-full overflow-hidden bg-black">
             <img
               src={imageError ? IMAGE_PLACEHOLDER : imageUrl}
@@ -219,7 +221,7 @@ export default function ActivityFeedDetail() {
           </div>
 
           <div className="p-4">
-            <div className="mb-3 flex items-center gap-2 border-b border-[#1A1A1A] pb-3">
+            <div className="mb-3 flex items-center gap-2 border-b border-surface-border pb-3">
               <img
                 src={authorAvatarError ? AVATAR_PLACEHOLDER : authorAvatarUrl}
                 alt=""
@@ -229,18 +231,18 @@ export default function ActivityFeedDetail() {
               />
               <div className="min-w-0">
                 <span className="block text-[14px] font-medium text-white">{authorName}</span>
-                <span className="block text-[12px] font-normal text-[#A2A6AB]">{formattedTimestamp}</span>
+                <span className="block text-[12px] font-normal text-muted">{formattedTimestamp}</span>
               </div>
             </div>
 
             <h2 className="mb-1.5 text-[14px] leading-snug font-bold text-white">{title}</h2>
             <p className="mb-4 text-[14px] leading-relaxed font-normal text-[#B0B0B0]">{description}</p>
 
-            <div className="mb-4 flex items-center justify-between border-t border-b border-[#1A1A1A] py-3 text-[#A2A6AB]">
+            <div className="mb-4 flex items-center justify-between border-t border-b border-surface-border py-3 text-muted">
               <button
                 type="button"
                 onClick={togglePostLike}
-                className={`flex items-center gap-1.5 transition-transform ${postLiked ? 'text-[#DA9811]' : ''}`}
+                className={`flex items-center gap-1.5 transition-transform ${postLiked ? 'text-brand' : ''}`}
                 aria-label={postLiked ? 'Unlike' : 'Like'}
               >
                 <ThumbsUpIcon filled={postLiked} />
@@ -259,9 +261,9 @@ export default function ActivityFeedDetail() {
         </article>
 
         {/* Comments */}
-        <div className="mt-4 rounded-2xl bg-[#141412] px-4 py-3 shadow-[0_18px_40px_rgba(0,0,0,0.9)]">
+        <div className="mt-4 rounded-2xl bg-surface px-4 py-3 shadow-[0_18px_40px_rgba(0,0,0,0.9)]">
           {commentsToShow.length === 0 ? (
-            <p className="py-4 text-center text-[14px] text-[#A2A6AB]">No comments yet. Be the first to comment.</p>
+            <p className="py-4 text-center text-[14px] text-muted">No comments yet. Be the first to comment.</p>
           ) : (
             <div className="divide-y divide-[#1A1A1A]">
               {commentsToShow.map((comment) => (
@@ -280,18 +282,18 @@ export default function ActivityFeedDetail() {
 
         {/* Add comment - fixed at bottom above nav */}
         <form onSubmit={handleAddComment} className="fixed right-0 bottom-20 left-0 z-10 mx-auto max-w-2xl px-4">
-          <div className="flex items-center gap-2 rounded-2xl border border-[#2A2A2A] bg-[#1A1A1A] px-4 py-3">
+          <div className="flex items-center gap-2 rounded-2xl border border-[#2A2A2A] bg-surface-border px-4 py-3">
             <input
               type="text"
               value={commentInput}
               onChange={(e) => setCommentInput(e.target.value)}
               placeholder="Add a Comment…"
-              className="min-w-0 flex-1 bg-transparent text-[14px] text-white placeholder:text-[#A2A6AB] focus:outline-none"
+              className="min-w-0 flex-1 bg-transparent text-[14px] text-white placeholder:text-muted focus:outline-none"
               aria-label="Add a Comment"
             />
             <button
               type="button"
-              className="flex h-8 w-8 shrink-0 items-center justify-center text-[#A2A6AB] transition-opacity hover:opacity-80"
+              className="flex h-8 w-8 shrink-0 items-center justify-center text-muted transition-opacity hover:opacity-80"
               aria-label="Emoji"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -303,7 +305,7 @@ export default function ActivityFeedDetail() {
             </button>
             <button
               type="button"
-              className="flex h-8 w-8 shrink-0 items-center justify-center text-[#A2A6AB] transition-opacity hover:opacity-80"
+              className="flex h-8 w-8 shrink-0 items-center justify-center text-muted transition-opacity hover:opacity-80"
               aria-label="Like"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">

@@ -30,7 +30,7 @@ export function PlayersPerSideDialog({ initialPlayersPerSide, options, onSelect 
           placeholder="Enter Number (e.g. 11)"
           value={playersPerSide}
           onChange={(e) => setPlayersPerSide(e.target.value)}
-          className="h-12 rounded-[6px] bg-[#141412] text-white placeholder:text-[#A2A6AB]"
+          className="h-12 rounded-[6px] bg-surface text-white placeholder:text-muted"
           aria-label="Players Per Side"
         />
         <div className="flex flex-col gap-2">
@@ -43,7 +43,7 @@ export function PlayersPerSideDialog({ initialPlayersPerSide, options, onSelect 
                 type="button"
                 onClick={() => handleSelect(val)}
                 className={`flex w-full items-center rounded-full px-4 py-3 text-[14px] font-medium transition-colors focus:outline-none ${
-                  isSelected ? 'bg-[#DA9811] text-[#080807]' : 'bg-[#141412] text-white'
+                  isSelected ? 'bg-brand text-ink' : 'bg-surface text-white'
                 }`}
               >
                 {opt.label}

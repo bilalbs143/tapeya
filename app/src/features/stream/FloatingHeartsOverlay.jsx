@@ -28,9 +28,7 @@ function FloatingAvatarBubble({ id, left, bottom, drift, delay, gradient, avatar
           {avatarUrl ? (
             <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
           ) : (
-            <span className="flex h-full w-full items-center justify-center text-[10px] font-bold text-white">
-              {initials}
-            </span>
+            <span className="flex h-full w-full items-center justify-center text-[10px] font-bold text-white">{initials}</span>
           )}
         </span>
 

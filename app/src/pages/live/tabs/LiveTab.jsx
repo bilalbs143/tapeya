@@ -5,7 +5,7 @@ import { liveBroadcastPath } from '@/lib/utils/liveStreamUtils';
 
 export function LiveTab({ matches = [] }) {
   if (matches.length === 0) {
-    return <p className="py-6 text-center text-[13px] text-[#A2A6AB]">No live broadcasts right now.</p>;
+    return <p className="py-6 text-center text-[13px] text-muted">No live broadcasts right now.</p>;
   }
 
   return (

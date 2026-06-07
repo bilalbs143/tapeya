@@ -37,7 +37,7 @@ export function SquadTeams({ tournamentId }) {
   if (isLoading) {
     return (
       <div className="mt-4 pb-6">
-        <p className="py-4 text-center text-[13px] text-[#A2A6AB]">Loading squads…</p>
+        <p className="py-4 text-center text-[13px] text-muted">Loading squads…</p>
       </div>
     );
   }
@@ -53,26 +53,26 @@ export function SquadTeams({ tournamentId }) {
   if (!teams.length) {
     return (
       <div className="mt-4 pb-6">
-        <p className="py-8 text-center text-[13px] text-[#A2A6AB]">No teams added yet.</p>
+        <p className="py-8 text-center text-[13px] text-muted">No teams added yet.</p>
       </div>
     );
   }
 
   return (
     <div className="mt-4 pb-6 focus:outline-none">
-      <h1 className="border-b border-[#1A1A1A] pb-4 text-left text-[13px] font-bold tracking-wide text-white uppercase">
+      <h1 className="border-b border-surface-border pb-4 text-left text-[13px] font-bold tracking-wide text-white uppercase">
         {title}
       </h1>
 
-      <div className="border border-[#1A1A1A]">
-        <div className="bg-[#141412] px-4 py-3 text-[13px] font-bold text-white">Teams</div>
+      <div className="border border-surface-border">
+        <div className="bg-surface px-4 py-3 text-[13px] font-bold text-white">Teams</div>
         <div className="divide-y divide-[#1A1A1A]">
           {teams.map((team) => (
             <button
               type="button"
               key={team.id}
               onClick={() => handleTeamClick(team.id)}
-              className="flex w-full items-center gap-2.5 bg-transparent px-4 py-3.5 text-left text-[13px] text-white focus:ring-2 focus:ring-[#DA9811] focus:outline-none focus:ring-inset active:bg-[#1A1A1A]"
+              className="flex w-full items-center gap-2.5 bg-transparent px-4 py-3.5 text-left text-[13px] text-white focus:ring-2 focus:ring-brand focus:outline-none focus:ring-inset active:bg-surface-border"
             >
               <TeamLogo team={team} variant="list" />
               <span className="min-w-0 flex-1 truncate">{team.name ?? team.code ?? 'Team'}</span>

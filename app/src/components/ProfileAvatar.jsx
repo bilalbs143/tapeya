@@ -9,7 +9,7 @@
 export function ProfileAvatar({ src, name, overlap = true }) {
   return (
     <div className={overlap ? 'shrink-0 translate-y-[25%]' : 'shrink-0'}>
-      <div className="rounded-full border-[3px] border-[#DA9811] bg-[#141412] p-1 shadow-[0_10px_36px_rgba(0,0,0,0.55),0_0_28px_rgba(218,152,17,0.18)]">
+      <div className="rounded-full border-[3px] border-brand bg-surface p-1 shadow-[0_10px_36px_rgba(0,0,0,0.55),0_0_28px_rgba(218,152,17,0.18)]">
         <div className="overflow-hidden rounded-full ring-1 ring-white/10">
           <img
             src={src}

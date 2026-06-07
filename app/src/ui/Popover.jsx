@@ -4,7 +4,7 @@
 
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 
-const content = 'z-50 w-72 rounded-md border bg-white p-4 shadow-md outline-none';
+const content = 'z-50 w-72 rounded-md border p-4 shadow-md outline-none';
 
 export const Popover = PopoverPrimitive.Root;
 export const PopoverTrigger = PopoverPrimitive.Trigger;

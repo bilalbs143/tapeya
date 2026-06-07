@@ -75,11 +75,11 @@ export function ProfileHeader({
                 </span>
               </div>
               {showStrengthBar && (
-                <div className="absolute bottom-[-22px] left-0 z-0 w-full max-w-[358px] rounded-full bg-[#141412] px-4 py-3 backdrop-blur">
+                <div className="absolute bottom-[-22px] left-0 z-0 w-full max-w-[358px] rounded-full bg-surface px-4 py-3 backdrop-blur">
                   <div className="flex items-center gap-3 sm:gap-4">
-                    <span className="text-[13px] text-[#A2A6AB]">Your Profile Strength</span>
+                    <span className="text-[13px] text-muted">Your Profile Strength</span>
                     <div className="flex flex-1 items-center gap-3">
-                      <Progress value={strength} className="h-2 flex-1 bg-white/20" indicatorClassName="bg-[#d8a11e]" />
+                      <Progress value={strength} className="h-2 flex-1 bg-white/20" indicatorClassName="bg-brand-dark" />
                       <span className="shrink-0 text-sm font-bold text-white italic">{strength}%</span>
                     </div>
                   </div>

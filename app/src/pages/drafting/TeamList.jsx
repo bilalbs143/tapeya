@@ -15,9 +15,9 @@ function teamDisplayMeta(team) {
   const iconPlayers =
     Array.isArray(team?.icon_players) && team.icon_players.length > 0
       ? team.icon_players
-        .map((p) => p.name)
-        .filter(Boolean)
-        .join(', ')
+          .map((p) => p.name)
+          .filter(Boolean)
+          .join(', ')
       : '—';
   return { owner, iconPlayers };
 }
@@ -31,15 +31,15 @@ function TeamCard({ team, index, onEdit, onDelete, onClick }) {
       tabIndex={0}
       onClick={() => onClick?.(team)}
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onClick?.(team)}
-      className="flex cursor-pointer items-start gap-3 rounded-[17px] bg-[#141412] p-4 transition-opacity active:opacity-90"
+      className="flex cursor-pointer items-start gap-3 rounded-[17px] bg-surface p-4 transition-opacity active:opacity-90"
     >
       <TeamLogo team={team} variant="draft" />
       <div className="min-w-0 flex-1">
         <h3 className="text-[16px] font-bold text-white">{team.name ?? '—'}</h3>
-        <p className="mt-0.5 text-[14px] text-[#A2A6AB]">
-          <span className="font-medium text-[#DA9811]">Owner: {owner}</span>
+        <p className="mt-0.5 text-[14px] text-muted">
+          <span className="font-medium text-brand">Owner: {owner}</span>
         </p>
-        <p className="mt-0.5 text-[12px] text-[#A2A6AB]">
+        <p className="mt-0.5 text-[12px] text-muted">
           Icon Players: <span className="text-white">{iconPlayers}</span>
         </p>
       </div>
@@ -103,7 +103,7 @@ export default function TeamList() {
             onClick={handleCreate}
             className="flex shrink-0 items-center gap-2 transition-opacity active:opacity-80"
           >
-            <span className="flex h-[27px] w-[27px] items-center justify-center rounded-full bg-[#DA9811] text-[18px] font-bold text-[#080807]">
+            <span className="flex h-[27px] w-[27px] items-center justify-center rounded-full bg-brand text-[18px] font-bold text-ink">
               +
             </span>
             <span className="text-[14px] font-semibold text-white">Create Teams</span>
@@ -113,12 +113,12 @@ export default function TeamList() {
         {isLoading && (
           <ul className="space-y-3 pb-10">
             {[1, 2, 3].map((i) => (
-              <li key={i} className="animate-pulse rounded-[17px] bg-[#141412] p-4">
+              <li key={i} className="animate-pulse rounded-[17px] bg-surface p-4">
                 <div className="flex gap-3">
-                  <div className="h-12 w-12 shrink-0 rounded-lg bg-[#1c1c1a]" />
+                  <div className="h-12 w-12 shrink-0 rounded-lg bg-surface-raised" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 w-24 rounded bg-[#1c1c1a]" />
-                    <div className="h-3 w-32 rounded bg-[#1c1c1a]" />
+                    <div className="h-4 w-24 rounded bg-surface-raised" />
+                    <div className="h-3 w-32 rounded bg-surface-raised" />
                   </div>
                 </div>
               </li>
@@ -127,7 +127,7 @@ export default function TeamList() {
         )}
 
         {isError && !isLoading && (
-          <p className="rounded-[17px] bg-[#141412] px-4 py-6 text-center text-[13px] text-red-400">Failed to load teams.</p>
+          <p className="rounded-[17px] bg-surface px-4 py-6 text-center text-[13px] text-red-400">Failed to load teams.</p>
         )}
 
         {!isLoading && !isError && teams.length > 0 && (
@@ -141,7 +141,7 @@ export default function TeamList() {
         )}
 
         {!isLoading && !isError && teams.length === 0 && (
-          <p className="rounded-[17px] bg-[#141412] px-4 py-6 text-center text-[13px] text-[#A2A6AB]">
+          <p className="rounded-[17px] bg-surface px-4 py-6 text-center text-[13px] text-muted">
             No teams yet. Create your first team to get started.
           </p>
         )}

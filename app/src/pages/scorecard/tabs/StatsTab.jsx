@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { formatDecimal, getInitials } from '@/lib/utils/displayUtils';
 import { statsTotalPaths } from '@/pages/scorecard/statsTotalFlow';
 import { useGetTournamentSeasonStatsQuery } from '@/store/api/tournamentApi';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
@@ -8,33 +9,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 const defaultPlayerImage = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
 // ---------------------------------------------------------------------------
-// Utils
-// CURSOR: consolidate with getInitials in Login.jsx →
-//         src/lib/utils/displayUtils.js → export { getInitials }
-// ---------------------------------------------------------------------------
-
-/**
- * Safely derives 2-character initials from a player name string.
- * Guards against null/undefined and empty name segments.
- * CURSOR: merge with getInitials(name, nickname) from Login.jsx into
- *         src/lib/utils/displayUtils.js once extracted.
- */
-function getPlayerInitials(name) {
-  if (!name) return '?';
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return '?';
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
-
-// ---------------------------------------------------------------------------
 // Sub-components
-// CURSOR: move to individual files once extracted (see top).
 // ---------------------------------------------------------------------------
 
 /**
  * SummaryCard — stat value card, renders as Link or button.
- * CURSOR: move to src/features/scorecard/components/SummaryCard.jsx
  * TODO: fix the dead <button> when `to` is absent (see top).
  */
 function SummaryCard({ value, label, accent = 'yellow', to }) {
@@ -45,7 +24,7 @@ function SummaryCard({ value, label, accent = 'yellow', to }) {
     <>
       <div>
         <div className="text-[16px] font-bold text-white">{value}</div>
-        <div className="mt-0.5 text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">{label}</div>
+        <div className="mt-0.5 text-[12px] font-bold tracking-wide text-muted uppercase">{label}</div>
       </div>
       {to && (
         <svg
@@ -76,23 +55,22 @@ function SummaryCard({ value, label, accent = 'yellow', to }) {
 
 /**
  * PlayerStatCard — avatar + name/role + primary stat + innings/average.
- * CURSOR: move to src/features/scorecard/components/PlayerStatCard.jsx
  * TODO: decide whether to render or remove _primaryLabel (see top).
  */
 function PlayerStatCard({ player, primaryStat, statSuffix = '' }) {
   // Fixed: was `player.name.split(' ').map((n) => n[0])` — throws when name
   //        is null/undefined; also undefined for empty name segments.
-  const initials = getPlayerInitials(player.name);
+  const initials = getInitials(player.name);
 
-  const averageValue = typeof player.average === 'number' && !Number.isNaN(player.average) ? player.average.toFixed(2) : '—';
+  const averageValue = formatDecimal(player.average, 2);
 
   return (
-    <div className="flex items-start gap-3 rounded-[17px] bg-[#141412] p-3">
-      <Avatar className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-[#1A1A1A]">
+    <div className="flex items-start gap-3 rounded-[17px] bg-surface p-3">
+      <Avatar className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-surface-border">
         {/* Fixed: was two conditional AvatarImage renders — simplified to one
             since AvatarImage handles a falsy src via the AvatarFallback. */}
         <AvatarImage src={player.image || defaultPlayerImage} alt="" />
-        <AvatarFallback className="bg-[#1A1A1A] text-xs font-medium text-white">{initials}</AvatarFallback>
+        <AvatarFallback className="bg-surface-border text-xs font-medium text-white">{initials}</AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-3">
@@ -101,11 +79,11 @@ function PlayerStatCard({ player, primaryStat, statSuffix = '' }) {
             {player.teamAbbr}, {player.playing_role}
           </span>
         </div>
-        <div className="mt-1 text-[18px] font-bold text-[#DA9811]">
+        <div className="mt-1 text-[18px] font-bold text-brand">
           {primaryStat}
           {statSuffix}
         </div>
-        <div className="mt-0.5 flex flex-wrap gap-x-4 gap-y-0 text-[12px] text-[#A2A6AB]">
+        <div className="mt-0.5 flex flex-wrap gap-x-4 gap-y-0 text-[12px] text-muted">
           <div>Innings: {player.innings}</div>
           <div>Average: {averageValue}</div>
         </div>
@@ -116,16 +94,15 @@ function PlayerStatCard({ player, primaryStat, statSuffix = '' }) {
 
 /**
  * SectionHeader — section title with an optional View More link.
- * CURSOR: move to src/ui/SectionHeader.jsx → export { SectionHeader }
  */
 function SectionHeader({ title, viewMoreTo }) {
   return (
     <div className="mb-3 flex items-center justify-between">
-      <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">{title}</h2>
+      <h2 className="text-[13px] font-bold tracking-wide text-muted uppercase">{title}</h2>
       {viewMoreTo && (
         <Link
           to={viewMoreTo}
-          className="text-[12px] font-bold tracking-wide text-[#DA9811] uppercase transition-opacity hover:opacity-90"
+          className="text-[12px] font-bold tracking-wide text-brand uppercase transition-opacity hover:opacity-90"
         >
           VIEW MORE
         </Link>
@@ -152,7 +129,6 @@ export function StatsTab({ tournamentId }) {
   const statsTotalWicketTakers = id ? statsTotalPaths.scorecard(id, 'wicket-takers') : null;
 
   // Shared title node — avoids copy-pasting the <h1> in every early return.
-  // CURSOR: once <StatsTabShell> is extracted, pass title as a prop instead.
   const titleNode = <h1 className="text-center text-base font-bold tracking-wide text-white uppercase">{title}</h1>;
 
   // ------------------------------------------------------------------
@@ -163,7 +139,7 @@ export function StatsTab({ tournamentId }) {
     return (
       <div className="mt-4 pb-6 focus:outline-none">
         {titleNode}
-        <p className="mt-4 text-center text-[13px] text-[#A2A6AB]">Select a tournament to view season stats.</p>
+        <p className="mt-4 text-center text-[13px] text-muted">Select a tournament to view season stats.</p>
       </div>
     );
   }
@@ -172,7 +148,7 @@ export function StatsTab({ tournamentId }) {
     return (
       <div className="mt-4 pb-6 focus:outline-none">
         {titleNode}
-        <p className="mt-4 text-center text-[13px] text-[#A2A6AB]">Loading season stats…</p>
+        <p className="mt-4 text-center text-[13px] text-muted">Loading season stats…</p>
       </div>
     );
   }
