@@ -53,10 +53,10 @@ export function OrganizerProfileTabs({ tournaments, events, teams }) {
   const metrics =
     tournaments != null || events != null || teams != null
       ? [
-        { value: String(tournaments ?? '—'), label: 'TOURNAMENTS' },
-        { value: String(events ?? '—'), label: 'EVENTS' },
-        { value: String(teams ?? '—'), label: 'TEAMS' },
-      ]
+          { value: String(tournaments ?? '—'), label: 'TOURNAMENTS' },
+          { value: String(events ?? '—'), label: 'EVENTS' },
+          { value: String(teams ?? '—'), label: 'TEAMS' },
+        ]
       : ORGANIZER_METRICS;
 
   return (

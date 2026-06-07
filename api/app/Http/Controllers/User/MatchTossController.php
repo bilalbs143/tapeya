@@ -63,7 +63,7 @@ class MatchTossController extends Controller
             ]);
         }
 
-        $match->load(['homeTeam', 'awayTeam', 'winningTeam', 'tossWinnerTeam', 'innings', 'playerOfMatch']);
+        $match->load(['homeTeam', 'awayTeam', 'winningTeam', 'tossWinnerTeam', 'innings', 'playerOfMatch', 'stream']);
 
         // Broadcast the full match state now that toss result and both innings
         // rows are persisted, so subscribers can show batting/bowling teams and

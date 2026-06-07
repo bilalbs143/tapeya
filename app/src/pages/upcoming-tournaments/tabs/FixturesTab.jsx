@@ -121,7 +121,7 @@ export function FixturesTab({
         </div>
         {venue && (
           <p className="text-[12px] text-[#A2A6AB]">
-            Venue: <span className="text-white">{venue}</span>
+            <span className="text-white">{venue}</span>
           </p>
         )}
         {canManageTournament && match.id != null && (

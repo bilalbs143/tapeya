@@ -1,20 +1,31 @@
 <?php
 
 use App\Http\Controllers\Admin\CountryController;
+use App\Http\Controllers\User\AdditionalRunsController;
 use App\Http\Controllers\User\Auth\UserAuthController;
 use App\Http\Controllers\User\DeviceTokenController;
 use App\Http\Controllers\User\EnumController;
 use App\Http\Controllers\User\HeroSliderController;
 use App\Http\Controllers\User\HighlightController;
+use App\Http\Controllers\User\InningsBattingStatController;
+use App\Http\Controllers\User\InningsBowlingStatController;
+use App\Http\Controllers\User\InningsLifecycleController;
 use App\Http\Controllers\User\InterestCampaignController;
 use App\Http\Controllers\User\LiveMatchCommentController;
 use App\Http\Controllers\User\LiveMatchHeartController;
 use App\Http\Controllers\User\LiveStreamController;
+use App\Http\Controllers\User\MatchAnalyticsSettingsController;
+use App\Http\Controllers\User\MatchBreakController;
+use App\Http\Controllers\User\MatchCaptainController;
 use App\Http\Controllers\User\MatchCreaseController;
 use App\Http\Controllers\User\MatchGraphicSessionController;
+use App\Http\Controllers\User\MatchLifecycleController;
+use App\Http\Controllers\User\MatchNoteController;
 use App\Http\Controllers\User\MatchPlayerOfMatchController;
 use App\Http\Controllers\User\MatchSquadController;
+use App\Http\Controllers\User\MatchSubstituteController;
 use App\Http\Controllers\User\MatchTossController;
+use App\Http\Controllers\User\MatchWicketKeeperController;
 use App\Http\Controllers\User\NotificationController;
 use App\Http\Controllers\User\PlayerController;
 use App\Http\Controllers\User\PlayerStatsController;
@@ -112,6 +123,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('players', [PlayerController::class, 'index']);
     Route::get('teams', [TeamController::class, 'index']);
     Route::post('teams', [TeamController::class, 'store']);
+    Route::put('teams/{team}', [TeamController::class, 'update']);
     Route::get('teams/{team}/squad', [TeamController::class, 'showSquad']);
     Route::post('teams/{team}/squad', [TeamController::class, 'storeSquad']);
     Route::get('live/matches', [LiveStreamController::class, 'index']);
@@ -139,13 +151,49 @@ Route::middleware('auth:api')->group(function () {
     Route::patch('matches/{match}/crease', [MatchCreaseController::class, 'update']);
     Route::patch('matches/{match}/toss', [MatchTossController::class, 'update']);
     Route::patch('matches/{match}/player-of-match', [MatchPlayerOfMatchController::class, 'update']);
-    Route::get('matches/{match}/match-state', [ScorecardController::class, 'matchState']);
-    Route::get('matches/{match}/scorecard', [ScorecardController::class, 'scorecard']);
-    Route::get('matches/{match}/player-stats', [ScorecardController::class, 'playerStats']);
-    Route::post('matches/{match}/innings/{innings}/balls', [ScorecardController::class, 'storeBall']);
-    Route::patch('matches/{match}/innings/{innings}/balls/{ball}', [ScorecardController::class, 'updateBall']);
-    Route::delete('matches/{match}/innings/{innings}/balls/last', [ScorecardController::class, 'deleteLastBall']);
-    Route::delete('matches/{match}/innings/{innings}/balls/{ball}', [ScorecardController::class, 'deleteBall']);
+    // 60 req/min — read-only but potentially expensive (full ball computation).
+    Route::middleware('throttle:60,1')->group(function () {
+        Route::get('matches/{match}/match-state', [ScorecardController::class, 'matchState']);
+        Route::get('matches/{match}/scorecard', [ScorecardController::class, 'scorecard']);
+        Route::get('matches/{match}/player-stats', [ScorecardController::class, 'playerStats']);
+    });
+    // ── Match / innings lifecycle ────────────────────────────────────────────
+    // Strict limit — these should be called at most once or twice per match.
+    Route::middleware('throttle:10,1')->group(function () {
+        Route::post('matches/{match}/end', [MatchLifecycleController::class, 'end']);
+        Route::post('matches/{match}/declare-result', [MatchLifecycleController::class, 'declareResult']);
+        Route::post('matches/{match}/target-revision', [MatchLifecycleController::class, 'reviseTarget']);
+        Route::post('matches/{match}/innings/{innings}/end', [InningsLifecycleController::class, 'end']);
+    });
+
+    // ── Ball-by-ball scoring ─────────────────────────────────────────────────
+    // 90 req/min — well above any realistic scoring pace (~4–6 balls/min),
+    // but prevents flooding from misbehaving clients or retries.
+    Route::middleware('throttle:90,1')->group(function () {
+        Route::post('matches/{match}/innings/{innings}/balls', [ScorecardController::class, 'storeBall']);
+        Route::patch('matches/{match}/innings/{innings}/balls/{ball}', [ScorecardController::class, 'updateBall']);
+        Route::delete('matches/{match}/innings/{innings}/balls/last', [ScorecardController::class, 'deleteLastBall']);
+        Route::delete('matches/{match}/innings/{innings}/balls/{ball}', [ScorecardController::class, 'deleteBall']);
+    });
+
+    // ── Supplementary scoring ────────────────────────────────────────────────
+    // 30 req/min — infrequent actions; generous enough for manual corrections.
+    Route::middleware('throttle:30,1')->group(function () {
+        Route::post('matches/{match}/innings/{innings}/additional-runs', [AdditionalRunsController::class, 'store']);
+        Route::put('matches/{match}/innings/{innings}/batting-stats/{player}', [InningsBattingStatController::class, 'update']);
+        Route::put('matches/{match}/innings/{innings}/bowling-stats/{player}', [InningsBowlingStatController::class, 'update']);
+        Route::patch('matches/{match}/wicket-keeper', [MatchWicketKeeperController::class, 'update']);
+        Route::patch('matches/{match}/captain', [MatchCaptainController::class, 'update']);
+        Route::post('matches/{match}/substitutes', [MatchSubstituteController::class, 'store']);
+    });
+
+    Route::patch('matches/{match}/analytics-settings', [MatchAnalyticsSettingsController::class, 'update']);
+    Route::get('matches/{match}/breaks', [MatchBreakController::class, 'index']);
+    Route::post('matches/{match}/breaks', [MatchBreakController::class, 'store']);
+    Route::patch('matches/{match}/breaks/{break}', [MatchBreakController::class, 'update']);
+    Route::get('matches/{match}/notes', [MatchNoteController::class, 'index']);
+    Route::post('matches/{match}/notes', [MatchNoteController::class, 'store']);
+    Route::delete('matches/{match}/notes/{note}', [MatchNoteController::class, 'destroy']);
     Route::get('users/{user}/stats', [PlayerStatsController::class, 'show']);
     Route::get('users/{user}/ranking-position', [PlayerStatsController::class, 'rankingPosition']);
     Route::get('users/{user}/teams', [UserTeamController::class, 'index']);

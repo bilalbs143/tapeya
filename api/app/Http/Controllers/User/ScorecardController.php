@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Enums\Event\DismissalTypeEnum;
+use App\Enums\Event\InningsStatusEnum;
 use App\Enums\Event\MatchStatusEnum;
 use App\Events\Scoring\MatchStateUpdated;
 use App\Http\Controllers\BaseControllerTrait;
@@ -16,6 +17,7 @@ use App\Models\Innings;
 use App\Models\MatchScoringAudit;
 use App\Models\TournamentMatch;
 use App\Models\User;
+use App\Services\BallDeliveryNormalizer;
 use App\Services\InningsStatsService;
 use App\Services\MatchCompletionService;
 use App\Services\MatchStateService;
@@ -59,11 +61,11 @@ class ScorecardController extends Controller
             return $this->conflict('Match is already completed.');
         }
 
-        if ($innings->status === 'completed') {
+        if ($innings->status === InningsStatusEnum::COMPLETED) {
             return $this->conflict('Innings is already completed.');
         }
 
-        $data = $request->validated();
+        $data = BallDeliveryNormalizer::normalize($request->validated());
 
         // Compute server-side fields from existing innings ball history.
         $existingBalls = $innings->balls()->get();
@@ -85,10 +87,32 @@ class ScorecardController extends Controller
             }
         }
 
+        if (($data['is_wicket'] ?? false) && ($data['is_wide'] ?? false)) {
+            $dismissal = $data['dismissal_type'] ?? null;
+            $type = $dismissal !== null ? DismissalTypeEnum::tryFrom($dismissal) : null;
+            if ($type === null || ! $type->validOnWideDelivery()) {
+                return $this->failure(
+                    'On a wide delivery only run out and stumped are valid dismissals.',
+                    'VALIDATION_ERROR',
+                );
+            }
+        }
+
+        if (($data['is_wicket'] ?? false) && ($data['is_no_ball'] ?? false) && ! ($data['is_free_hit'] ?? false)) {
+            $dismissal = $data['dismissal_type'] ?? null;
+            $type = $dismissal !== null ? DismissalTypeEnum::tryFrom($dismissal) : null;
+            if ($type === null || ! $type->validOnNoBallDelivery()) {
+                return $this->failure(
+                    'On a no-ball delivery only run out, obstructing the field, or hitting the ball twice are valid dismissals.',
+                    'VALIDATION_ERROR',
+                );
+            }
+        }
+
         try {
             $ball = DB::transaction(function () use ($data, $innings, $match) {
                 $ball = $innings->balls()->create($data);
-                $innings->update(['status' => 'in_progress']);
+                $innings->update(['status' => InningsStatusEnum::IN_PROGRESS]);
                 $this->completionService->evaluate($match->fresh());
 
                 return $ball;
@@ -117,7 +141,7 @@ class ScorecardController extends Controller
         MatchStateUpdated::dispatch($match->id, $matchState);
 
         return $this->success(
-            ['ball' => $this->formatBall($ball), 'match_state' => $matchState],
+            ['ball' => $this->formatBallWithCreaseTime($ball, $innings->fresh()), 'match_state' => $matchState],
             'Ball added.',
             'CREATED'
         );
@@ -143,11 +167,23 @@ class ScorecardController extends Controller
             return $this->conflict('Match is already completed.');
         }
 
-        if ($innings->status === 'completed') {
+        if ($innings->status === InningsStatusEnum::COMPLETED) {
             return $this->conflict('Innings is already completed.');
         }
 
-        $data = $request->validated();
+        $data = BallDeliveryNormalizer::normalize(array_merge(
+            [
+                'is_no_ball' => $ball->is_no_ball,
+                'no_ball_type' => $ball->no_ball_type,
+                'no_ball_runs_type' => $ball->no_ball_runs_type,
+                'overthrow_delivery_type' => $ball->overthrow_delivery_type,
+                'is_bye' => $ball->is_bye,
+                'is_leg_bye' => $ball->is_leg_bye,
+                'runs_off_bat' => $ball->runs_off_bat,
+                'extra_runs' => max(0, (int) $ball->runs - (int) $ball->runs_off_bat - (($ball->is_wide || $ball->is_no_ball) ? 1 : 0)),
+            ],
+            $request->validated(),
+        ));
 
         // Recompute runs when any runs-affecting field is being corrected.
         if ($this->hasRunsAffectingField($data)) {
@@ -169,13 +205,13 @@ class ScorecardController extends Controller
 
         unset($data['extra_runs']);
 
-        $ball->update($data);
+        DB::transaction(function () use ($ball, $data, $match) {
+            $ball->update($data);
+            $this->clearGraphicPendingCreaseIds($match);
+            $this->completionService->evaluate($match->fresh());
+        });
 
         $this->logScoringAudit($match, $authUser, 'update_ball', $ball->id);
-
-        $this->clearGraphicPendingCreaseIds($match);
-
-        $this->completionService->evaluate($match->fresh());
 
         RefreshMatchStatsJob::dispatch($match->id)->delay(now()->addSeconds(3));
         SyncMatchGraphicContextJob::dispatch($match->id);
@@ -241,7 +277,12 @@ class ScorecardController extends Controller
             return $this->notFound('Innings does not belong to this match.');
         }
 
-        $ball = $innings->balls()->orderByDesc('id')->first();
+        $ball = $innings->balls()
+            ->reorder()
+            ->orderByDesc('over')
+            ->orderByDesc('ball_in_over')
+            ->orderByDesc('id')
+            ->first();
         if (! $ball) {
             return $this->failure('No balls to undo.', 'NOT_FOUND');
         }
@@ -389,18 +430,75 @@ class ScorecardController extends Controller
             'runs' => $ball->runs,
             'runs_off_bat' => $ball->runs_off_bat,
             'is_no_ball' => $ball->is_no_ball,
+            'no_ball_type' => $ball->no_ball_type,
+            'no_ball_runs_type' => $ball->no_ball_runs_type,
+            'overthrow_delivery_type' => $ball->overthrow_delivery_type,
             'is_wide' => $ball->is_wide,
             'is_leg_bye' => $ball->is_leg_bye,
             'is_bye' => $ball->is_bye,
             'is_free_hit' => $ball->is_free_hit,
             'penalty_runs' => $ball->penalty_runs,
+            'penalty_team' => $ball->penalty_team,
+            'penalty_reason' => $ball->penalty_reason,
+            'additional_runs' => $ball->additional_runs,
             'is_wicket' => $ball->is_wicket,
             'dismissal_type' => $ball->dismissal_type?->value,
             'dismissal_type_label' => $ball->dismissal_type?->label(),
             'out_player_id' => $ball->out_player_id,
             'fielder_id' => $ball->fielder_id,
+            'runout_extra_runs' => $ball->runout_extra_runs,
+            'runout_run_type' => $ball->runout_run_type,
+            'batter_crossed' => $ball->batter_crossed,
+            'dont_count_ball' => $ball->dont_count_ball,
+            'dismissal_delivery_type' => $ball->dismissal_delivery_type,
             'shot_position' => $ball->shot_position?->value,
         ];
+    }
+
+    /**
+     * Include crease time for dismissed batters on wicket balls.
+     */
+    private function formatBallWithCreaseTime(Ball $ball, Innings $innings): array
+    {
+        $formatted = $this->formatBall($ball);
+
+        if (
+            ! $ball->is_wicket
+            || $ball->out_player_id === null
+            || $ball->dismissal_type === DismissalTypeEnum::RETIRED_HURT
+        ) {
+            return $formatted;
+        }
+
+        $allBalls = $innings->balls()
+            ->orderBy('over')
+            ->orderBy('ball_in_over')
+            ->orderBy('id')
+            ->get();
+
+        $names = InningsStatsService::namesFromRelations($allBalls);
+        $stats = $this->inningsStats->compute($allBalls, $names, (int) $innings->id, applyOverrides: false);
+        $outId = (int) $ball->out_player_id;
+        $outRow = $stats['batting_by_id'][$outId] ?? null;
+
+        $formatted['out_player_crease_time_seconds'] = $outRow['crease_time_seconds'] ?? null;
+        $formatted['out_player_name'] = $ball->outPlayer?->name ?? ($names[$outId] ?? null);
+
+        if ($outRow !== null) {
+            $balls = (int) ($outRow['balls'] ?? 0);
+            $runs = (int) ($outRow['runs'] ?? 0);
+            $formatted['out_player_stats'] = [
+                'runs' => $runs,
+                'balls' => $balls,
+                'fours' => (int) ($outRow['fours'] ?? 0),
+                'sixes' => (int) ($outRow['sixes'] ?? 0),
+                'strike_rate' => $balls > 0
+                    ? number_format(($runs / $balls) * 100, 1, '.', '')
+                    : '0.0',
+            ];
+        }
+
+        return $formatted;
     }
 
     /**
@@ -412,28 +510,26 @@ class ScorecardController extends Controller
         $balls = $inn->balls;
 
         $names = InningsStatsService::namesFromRelations($balls);
-        $stats = $this->inningsStats->compute($balls, $names);
+        $stats = $this->inningsStats->compute($balls, $names, (int) $inn->id);
+        $crossPenalty = InningsStatsService::crossInningsPenaltyRunsForBattingTeam(
+            $match,
+            (int) $inn->batting_team_id,
+        );
+        $stats = InningsStatsService::applyCrossInningsPenalties($stats, $crossPenalty);
         $extras = $stats['extras_breakdown'];
 
         $currentStrikerId = $stats['current_striker_id'];
         $pending = $match->graphicSession?->pending_players;
-        if (is_array($pending)
-            && ! empty($pending['next_batter_id'])
-            && ! empty($pending['next_non_striker_id'])
-            && $balls->isNotEmpty()
-        ) {
-            $pb = (int) $pending['next_batter_id'];
-            $pn = (int) $pending['next_non_striker_id'];
+        if (is_array($pending) && $balls->isNotEmpty()) {
             $resolved = InningsStatsService::resolveCreaseAfterBalls($balls);
-            $pairBall = array_values(array_unique(array_filter(
-                [(int) ($resolved['striker_id'] ?? 0), (int) ($resolved['non_striker_id'] ?? 0)],
-                static fn (int $id) => $id > 0
-            )));
-            $pairPending = [$pb, $pn];
-            sort($pairBall);
-            sort($pairPending);
-            if (count($pairBall) === 2 && $pairBall === $pairPending) {
-                $currentStrikerId = $pb;
+            $merged = InningsStatsService::applyPendingCreaseSelection(
+                $resolved['striker_id'],
+                $resolved['non_striker_id'],
+                $pending,
+                true,
+            );
+            if ($merged['striker_id'] !== null) {
+                $currentStrikerId = $merged['striker_id'];
             }
         }
 
@@ -482,11 +578,17 @@ class ScorecardController extends Controller
                 'is_bye' => $b->is_bye,
                 'is_free_hit' => $b->is_free_hit,
                 'penalty_runs' => $b->penalty_runs,
+                'penalty_team' => $b->penalty_team,
+                'penalty_reason' => $b->penalty_reason,
+                'additional_runs' => $b->additional_runs,
                 'is_wicket' => $b->is_wicket,
                 'dismissal_type' => $b->dismissal_type?->value,
                 'dismissal_type_label' => $b->dismissal_type?->label(),
                 'out_player_id' => $b->out_player_id,
                 'fielder_id' => $b->fielder_id,
+                'runout_extra_runs' => $b->runout_extra_runs,
+                'runout_run_type' => $b->runout_run_type,
+                'batter_crossed' => $b->batter_crossed,
                 'shot_position' => $b->shot_position?->value,
             ])->values(),
         ];
@@ -551,6 +653,8 @@ class ScorecardController extends Controller
         if (! $isWicket) {
             unset($pending['next_batter_id'], $pending['next_non_striker_id']);
         }
+
+        unset($pending['substitute_replaced_id'], $pending['substitute_player_id']);
 
         $session->update(['pending_players' => $pending === [] ? null : $pending]);
         $match->unsetRelation('graphicSession');

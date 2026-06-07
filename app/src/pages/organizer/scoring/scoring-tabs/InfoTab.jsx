@@ -1,8 +1,10 @@
 import { TeamLogo } from '@/components/TeamLogo';
+import { useScoringMatch } from '@/context/ScoringMatchContext';
 
 const DASH = '—';
 
-export function InfoTab({ match, matchId, liveScore: liveScoreProp }) {
+export function InfoTab({ liveScore: liveScoreProp }) {
+  const { match, matchId } = useScoringMatch();
   if (!match) return null;
   const { teamA, teamB, venue, overs, playersPerSide, matchDate, matchTime, toss } = match;
   const teamATitle = teamA?.name ?? '';

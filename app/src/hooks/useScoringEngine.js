@@ -24,24 +24,43 @@
 
 import { useCallback, useRef, useState } from 'react';
 
+import { useScoringMatch } from '@/context/ScoringMatchContext';
 import { useToast } from '@/hooks/useToast';
 import { uiBallToStoreBallPayload } from '@/lib/utils/scoringMappers';
+import { useDeleteLastBallMutation, useStoreBallMutation } from '@/store/api/matchApi';
 
 export function useScoringEngine({
-  matchId,
+  // matchId → useScoringMatch(); storeBall/deleteLastBall → owned internally
   inningsId,
   striker,
   nonStriker,
   currentBowler,
-  storeBall,
-  deleteLastBall,
   /** Called when the OUT button is tapped — caller is responsible for opening the dismissal dialog. */
   onDismissalRequired,
   /** Called with the pending ball when a fielder must be chosen — caller opens the fielder dialog. */
   onFielderRequired,
+  /** Called after a ball is stored successfully — e.g. to show wicket summary. */
+  onBallStored,
+  /**
+   * Called SYNCHRONOUSLY before a wicket ball is dispatched to the API.
+   * Fired before the HTTP request is sent, so the gate is guaranteed to be
+   * set before any WebSocket broadcast from the server can arrive.
+   * Use this to set the wicket-summary gate and force-close any open dialog.
+   */
+  onWicketPending,
+  /**
+   * Called SYNCHRONOUSLY if a wicket dispatch fails (API error).
+   * Use this to reset the gate so normal dialog auto-open resumes.
+   */
+  onWicketFailed,
   matchComplete = false,
 }) {
+  const { matchId } = useScoringMatch();
+  const [storeBall] = useStoreBallMutation();
+  const [deleteLastBall] = useDeleteLastBallMutation();
+
   const isSubmittingRef = useRef(false);
+  // ref: synchronous gate; state: UI feedback
   const [isSubmitting, setIsSubmitting] = useState(false);
   const toast = useToast();
 
@@ -50,26 +69,43 @@ export function useScoringEngine({
     async (uiBall, fielderIdOverride) => {
       if (isSubmittingRef.current) return;
       isSubmittingRef.current = true;
+
+      // Wicket balls need the summary gate set BEFORE the HTTP request is sent.
+      // The server cannot broadcast a WebSocket event until it receives the request,
+      // so setting the gate here makes the race condition structurally impossible.
+      const isWicketBall = uiBall?.type === 'out';
+      if (isWicketBall) onWicketPending?.();
+
       setIsSubmitting(true);
       try {
+        if (!striker?.id || !nonStriker?.id) {
+          throw new Error('Both batters must be on crease — cannot submit ball. Please select striker and non-striker first.');
+        }
         const payload = uiBallToStoreBallPayload({
           ball: uiBall,
-          nonStrikerId: nonStriker?.id,
+          nonStrikerId: nonStriker.id,
           fielderId: fielderIdOverride ?? uiBall.fielderId,
         });
-        await storeBall({
+        const result = await storeBall({
           matchId,
           inningsId,
           payload,
         }).unwrap();
-      } catch {
-        toast.error('Ball not saved — check your connection and try again.', 'Sync Failed');
+        onBallStored?.({ ball: result?.ball, matchState: result?.match_state, uiBall, payload });
+        return result;
+      } catch (err) {
+        if (isWicketBall) onWicketFailed?.();
+        const message =
+          err instanceof Error && err.message && !err.message.includes('fetch')
+            ? err.message
+            : 'Ball not saved — check your connection and try again.';
+        toast.error(message, 'Scoring Error');
       } finally {
         isSubmittingRef.current = false;
         setIsSubmitting(false);
       }
     },
-    [matchId, inningsId, nonStriker, storeBall, toast],
+    [matchId, inningsId, striker, nonStriker, storeBall, toast, onBallStored, onWicketPending, onWicketFailed],
   );
 
   const handleRuns = useCallback(
@@ -88,8 +124,40 @@ export function useScoringEngine({
   );
 
   const handleSpecial = useCallback(
-    ({ type, runs = 0, penaltyRuns = 0 } = {}) => {
+    (opts = {}) => {
       if (matchComplete) return;
+      const { type, runs = 0, penaltyRuns = 0 } = opts;
+
+      if (opts.type === 'nb' && opts.noBallType != null) {
+        return dispatch({
+          ...opts,
+          strikerId: striker?.id,
+          bowlerId: currentBowler?.id,
+          penaltyRuns,
+        });
+      }
+
+      if (opts.type === 'wd' && opts.extraRuns != null) {
+        return dispatch({
+          type: 'wd',
+          extraRuns: opts.extraRuns,
+          strikerId: striker?.id,
+          bowlerId: currentBowler?.id,
+          penaltyRuns,
+        });
+      }
+
+      if (opts.type === 'overthrow' && opts.overthrowDeliveryType != null) {
+        return dispatch({
+          type: 'overthrow',
+          overthrowDeliveryType: opts.overthrowDeliveryType,
+          overthrowRuns: opts.overthrowRuns ?? 0,
+          strikerId: striker?.id,
+          bowlerId: currentBowler?.id,
+          penaltyRuns,
+        });
+      }
+
       const ball = {
         type,
         runs,
@@ -105,14 +173,16 @@ export function useScoringEngine({
   );
 
   const handlePenaltyRuns = useCallback(
-    (runs) => {
+    (opts = {}) => {
       if (matchComplete) return;
+      const { penaltyRuns, penaltyTeam, penaltyReason } = opts;
       return dispatch({
-        type: 'runs',
-        runs: 0,
+        type: 'penalty',
+        penaltyRuns: penaltyRuns ?? 0,
+        penaltyTeam: penaltyTeam ?? 'batting',
+        penaltyReason,
         strikerId: striker?.id,
         bowlerId: currentBowler?.id,
-        penaltyRuns: runs,
       });
     },
     [matchComplete, dispatch, striker, currentBowler],
@@ -133,7 +203,7 @@ export function useScoringEngine({
    * pending ball instead of firing immediately.
    */
   const handleOut = useCallback(
-    ({ dismissalType, requiresFielder, penaltyRuns = 0 }) => {
+    ({ dismissalType, requiresFielder, penaltyRuns = 0, isWide = false, isNoBall = false, fielderId = null }) => {
       if (matchComplete) return;
       const ball = {
         type: 'out',
@@ -142,18 +212,23 @@ export function useScoringEngine({
         bowlerId: currentBowler?.id,
         dismissalType,
         penaltyRuns,
+        isWide,
+        isNoBall,
         striker,
       };
-      if (requiresFielder) {
+      if (requiresFielder && fielderId == null) {
         onFielderRequired?.(ball);
         return;
+      }
+      if (fielderId != null) {
+        return dispatch({ ...ball, fielderId }, fielderId);
       }
       return dispatch(ball);
     },
     [matchComplete, dispatch, striker, currentBowler, onFielderRequired],
   );
 
-  /** Called once the fielder is chosen for caught / run-out / stumped. */
+  /** Called once the fielder is chosen for caught / stumped (not run-out — use handleRunOut). */
   const handleOutWithFielder = useCallback(
     (pendingBall, fielderId) => {
       if (matchComplete) return;
@@ -162,17 +237,112 @@ export function useScoringEngine({
     [matchComplete, dispatch],
   );
 
-  const handleRetiredHurt = useCallback(() => {
-    if (matchComplete) return;
-    return dispatch({
-      type: 'retired_hurt',
-      runs: 0,
-      strikerId: striker?.id,
-      bowlerId: currentBowler?.id,
-      dismissalType: 'retired_hurt',
-      striker,
-    });
-  }, [matchComplete, dispatch, striker, currentBowler]);
+  /** Obstructing the field from {@link ObstructTheFieldDialog}. */
+  const handleObstructTheField = useCallback(
+    (uiFields) => {
+      if (matchComplete) return;
+      return dispatch(
+        {
+          ...uiFields,
+          strikerId: uiFields.strikerId ?? striker?.id,
+          nonStrikerId: uiFields.nonStrikerId ?? nonStriker?.id,
+          bowlerId: uiFields.bowlerId ?? currentBowler?.id,
+        },
+        uiFields.fielderId,
+      );
+    },
+    [matchComplete, dispatch, striker, nonStriker, currentBowler],
+  );
+
+  /** Run-out with full metadata from {@link RunOutDialog}. */
+  const handleRunOut = useCallback(
+    (uiFields) => {
+      if (matchComplete) return;
+      return dispatch(
+        {
+          ...uiFields,
+          strikerId: uiFields.strikerId ?? striker?.id,
+          nonStrikerId: uiFields.nonStrikerId ?? nonStriker?.id,
+          bowlerId: uiFields.bowlerId ?? currentBowler?.id,
+          fielderId: uiFields.fielderId,
+        },
+        uiFields.fielderId,
+      );
+    },
+    [matchComplete, dispatch, striker, nonStriker, currentBowler],
+  );
+
+  /** Caught out from {@link CaughtOutDialog}. */
+  const handleCaughtOut = useCallback(
+    (uiFields) => {
+      if (matchComplete) return;
+      return dispatch(
+        {
+          ...uiFields,
+          type: 'out',
+          runs: 0,
+          dismissalType: 'caught',
+          strikerId: uiFields.strikerId ?? striker?.id,
+          nonStrikerId: uiFields.nonStrikerId ?? nonStriker?.id,
+          bowlerId: uiFields.bowlerId ?? currentBowler?.id,
+          fielderId: uiFields.fielderId,
+          outPlayerId: uiFields.outPlayerId,
+        },
+        uiFields.fielderId,
+      );
+    },
+    [matchComplete, dispatch, striker, nonStriker, currentBowler],
+  );
+
+  const handleSpecialDismissal = useCallback(
+    (uiFields) => {
+      if (matchComplete) return;
+      return dispatch(
+        {
+          ...uiFields,
+          type: 'out',
+          runs: 0,
+          strikerId: uiFields.strikerId ?? striker?.id,
+          nonStrikerId: uiFields.nonStrikerId ?? nonStriker?.id,
+          bowlerId: uiFields.bowlerId ?? currentBowler?.id,
+        },
+        uiFields.fielderId,
+      );
+    },
+    [matchComplete, dispatch, striker, nonStriker, currentBowler],
+  );
+
+  const handleRetiredOut = useCallback(
+    (uiFields) => {
+      if (matchComplete) return;
+      return dispatch({
+        ...uiFields,
+        type: 'out',
+        runs: 0,
+        dismissalType: 'retired',
+        strikerId: uiFields.strikerId ?? striker?.id,
+        nonStrikerId: uiFields.nonStrikerId ?? nonStriker?.id,
+        bowlerId: uiFields.bowlerId ?? currentBowler?.id,
+      });
+    },
+    [matchComplete, dispatch, striker, nonStriker, currentBowler],
+  );
+
+  const handleRetiredHurt = useCallback(
+    (uiFields) => {
+      if (matchComplete) return;
+      return dispatch({
+        type: 'retired_hurt',
+        runs: 0,
+        ...uiFields,
+        dismissalType: 'retired_hurt',
+        strikerId: uiFields.strikerId ?? striker?.id,
+        nonStrikerId: uiFields.nonStrikerId ?? nonStriker?.id,
+        bowlerId: uiFields.bowlerId ?? currentBowler?.id,
+      });
+    },
+    [matchComplete, dispatch, striker, nonStriker, currentBowler],
+  );
 
   const handleUndo = useCallback(async () => {
     if (!inningsId) return;
@@ -196,6 +366,11 @@ export function useScoringEngine({
     initiateOut,
     handleOut,
     handleOutWithFielder,
+    handleObstructTheField,
+    handleSpecialDismissal,
+    handleRunOut,
+    handleCaughtOut,
+    handleRetiredOut,
     handleRetiredHurt,
     handleUndo,
     isSubmitting,

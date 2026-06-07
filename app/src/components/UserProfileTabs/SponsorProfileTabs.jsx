@@ -89,11 +89,7 @@ export function SponsorProfileTabs({ teams, partnerships, reach }) {
       <div className={CONTENT_WRAPPER_CLASS}>
         {TABS.map(({ value, Content }) => (
           <TabsContent key={value} value={value} className="focus:outline-none">
-            {value === 'overview' ? (
-              <ProfileRoleOverview role={PROFILE_OVERVIEW_ROLE.SPONSOR} />
-            ) : Content ? (
-              <Content />
-            ) : null}
+            {value === 'overview' ? <ProfileRoleOverview role={PROFILE_OVERVIEW_ROLE.SPONSOR} /> : Content ? <Content /> : null}
           </TabsContent>
         ))}
       </div>

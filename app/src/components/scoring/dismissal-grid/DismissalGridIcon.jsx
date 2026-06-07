@@ -1,7 +1,7 @@
 import dismissalBowledUrl from '@/assets/images/icons/dismissal-bowled.svg';
 import dismissalCaughtUrl from '@/assets/images/icons/dismissal-caught.svg';
-import dismissalCaughtBowledUrl from '@/assets/images/icons/dismissal-caught-bowled.svg';
 import dismissalCaughtBehindUrl from '@/assets/images/icons/dismissal-caught-behind.svg';
+import dismissalCaughtBowledUrl from '@/assets/images/icons/dismissal-caught-bowled.svg';
 import dismissalDefaultUrl from '@/assets/images/icons/dismissal-default.svg';
 import dismissalHitBallTwiceUrl from '@/assets/images/icons/dismissal-hit-ball-twice.svg';
 import dismissalHitWicketUrl from '@/assets/images/icons/dismissal-hit-wicket.svg';
@@ -18,23 +18,23 @@ import dismissalWideWicketUrl from '@/assets/images/icons/dismissal-wide-wicket.
 import { CdnIcon } from '@/ui/CdnIcon';
 
 const DISMISSAL_ICON_URLS = {
-  bowled:                dismissalBowledUrl,
-  caught:                dismissalCaughtUrl,
-  caught_bowled:         dismissalCaughtBowledUrl,
-  caught_behind:         dismissalCaughtBehindUrl,
-  lbw:                   dismissalLbwUrl,
+  bowled: dismissalBowledUrl,
+  caught: dismissalCaughtUrl,
+  caught_bowled: dismissalCaughtBowledUrl,
+  caught_behind: dismissalCaughtBehindUrl,
+  lbw: dismissalLbwUrl,
   obstructing_the_field: dismissalObstructingUrl,
-  run_out:               dismissalRunOutUrl,
-  mankad:                dismissalMankadUrl,
-  stumped:               dismissalStumpedUrl,
-  retired_hurt:          dismissalRetiredHurtUrl,
-  retired:               dismissalRetiredUrl,
-  hit_wicket:            dismissalHitWicketUrl,
-  hit_ball_twice:        dismissalHitBallTwiceUrl,
-  timed_out:             dismissalTimedOutUrl,
-  wide_wicket:           dismissalWideWicketUrl,
-  no_ball_wicket:        dismissalNoBallWicketUrl,
-  default:               dismissalDefaultUrl,
+  run_out: dismissalRunOutUrl,
+  mankad: dismissalMankadUrl,
+  stumped: dismissalStumpedUrl,
+  retired_hurt: dismissalRetiredHurtUrl,
+  retired: dismissalRetiredUrl,
+  hit_wicket: dismissalHitWicketUrl,
+  hit_ball_twice: dismissalHitBallTwiceUrl,
+  timed_out: dismissalTimedOutUrl,
+  wide_wicket: dismissalWideWicketUrl,
+  no_ball_wicket: dismissalNoBallWicketUrl,
+  default: dismissalDefaultUrl,
 };
 
 /**

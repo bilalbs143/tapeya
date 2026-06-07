@@ -176,7 +176,7 @@ export default function Pricing() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex min-h-screen flex-col bg-black text-white">
+    <div className="flex flex-col text-white">
       <AppSubpageHeader title="Choose Plan" />
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center gap-4 px-4 py-4 lg:max-w-none">
         <div className="space-y-4">

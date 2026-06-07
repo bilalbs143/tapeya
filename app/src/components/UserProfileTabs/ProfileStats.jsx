@@ -34,33 +34,33 @@ export function ProfileStats() {
   const summaryStats =
     batting != null
       ? [
-        { label: 'SCORE', value: batting.runs },
-        { label: 'CENTURIES', value: batting.hundreds },
-        { label: 'SIXES', value: batting.sixes },
-      ]
+          { label: 'SCORE', value: batting.runs },
+          { label: 'CENTURIES', value: batting.hundreds },
+          { label: 'SIXES', value: batting.sixes },
+        ]
       : [];
 
   const careerAverages =
     batting != null
       ? [
-        { label: 'MAT', value: batting.matches },
-        { label: 'INNS', value: batting.innings },
-        { label: 'RUNS', value: batting.runs },
-        { label: 'HS', value: batting.highest_score },
-        {
-          label: 'AVG',
-          value: batting.average != null ? formatDecimal(batting.average) : '—',
-        },
-        {
-          label: 'SR',
-          value: batting.strike_rate != null ? formatDecimal(batting.strike_rate) : '—',
-        },
-        { label: '100S', value: batting.hundreds },
-        { label: '50S', value: batting.fifties },
-        { label: 'DOTS', value: batting.dots },
-        { label: '4S', value: batting.fours },
-        { label: '6S', value: batting.sixes },
-      ]
+          { label: 'MAT', value: batting.matches },
+          { label: 'INNS', value: batting.innings },
+          { label: 'RUNS', value: batting.runs },
+          { label: 'HS', value: batting.highest_score },
+          {
+            label: 'AVG',
+            value: batting.average != null ? formatDecimal(batting.average) : '—',
+          },
+          {
+            label: 'SR',
+            value: batting.strike_rate != null ? formatDecimal(batting.strike_rate) : '—',
+          },
+          { label: '100S', value: batting.hundreds },
+          { label: '50S', value: batting.fifties },
+          { label: 'DOTS', value: batting.dots },
+          { label: '4S', value: batting.fours },
+          { label: '6S', value: batting.sixes },
+        ]
       : [];
 
   const isLoading = statsLoading;
@@ -93,7 +93,7 @@ export function ProfileStats() {
                 {showMoreLink && (
                   <button
                     type="button"
-                    className="text-sm font-normal text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#f0b94a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA9811] focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                    className="text-sm font-normal text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#f0b94a] focus-visible:ring-2 focus-visible:ring-[#DA9811] focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-none"
                     onClick={() => setTeamsExpanded(true)}
                   >
                     MORE
@@ -102,7 +102,7 @@ export function ProfileStats() {
                 {showLessLink && (
                   <button
                     type="button"
-                    className="ml-1 text-sm font-normal text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#f0b94a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA9811] focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                    className="ml-1 text-sm font-normal text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#f0b94a] focus-visible:ring-2 focus-visible:ring-[#DA9811] focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-none"
                     onClick={() => setTeamsExpanded(false)}
                   >
                     LESS

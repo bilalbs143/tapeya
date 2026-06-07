@@ -91,7 +91,7 @@ export function DatePicker({
           </button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-auto !rounded-xl !border-[#141412] !bg-[#141412] p-0 shadow-lg"
+          className="z-[100] w-auto !rounded-xl !border-[#141412] !bg-[#141412] p-0 shadow-lg"
           align="start"
           onOpenAutoFocus={(e) => e.preventDefault()}
         >

@@ -82,7 +82,7 @@ export function ballChipClass(ball) {
 
   if (key === 'W') return `bg-red-600 text-white${ring}`;
   if (key === 'RH') return `bg-[#6B7280] text-white${ring}`;
-  if (key === '4') return `bg-[#22C55E] text-white${ring}`;
+  if (key === '4') return `bg-[#DA9811] text-[#080807]${ring}`;
   if (key === '6') return `bg-[#A855F7] text-white${ring}`;
   if (key === '0') return `border border-[#3B3B35] bg-[#141412] text-white/60${ring}`;
   if (/(WD|NB|LB|B)$/.test(key)) return `bg-[#1E1E1C] border border-[#DA9811] text-[#DA9811]${ring}`;

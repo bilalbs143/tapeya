@@ -65,7 +65,7 @@ export default function Live() {
   const startingMatches = useMemo(() => matches.filter((m) => m.stream?.status === 'starting'), [matches]);
 
   return (
-    <div className="min-h-screen bg-black">
+    <div>
       <AppSubpageHeader title="LIVE" />
       <Container className="pt-2">
         {isLoading ? (

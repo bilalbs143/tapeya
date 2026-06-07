@@ -487,7 +487,6 @@ export default function ScorecardStatusDetails() {
     <div className="bg-black">
       <AppSubpageHeader title="SCORE CARD" />
 
-
       <MatchHeader match={liveMatch} details={details} />
 
       {status === 'live' && details?.winProb && <WinProbabilityCard match={match} winProb={details.winProb} />}

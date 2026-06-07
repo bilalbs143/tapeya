@@ -397,7 +397,6 @@ export default function StartMatch() {
 
           <FileUploadField
             label="Stream Thumbnail"
-            variant="compact"
             value={thumbnailUpload}
             onChange={setThumbnailUpload}
             accept="image/jpeg,image/png,image/webp"

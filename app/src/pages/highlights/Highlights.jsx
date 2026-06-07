@@ -23,7 +23,7 @@ export default function Highlights() {
   };
 
   return (
-    <div className="min-h-screen bg-black">
+    <div>
       <AppSubpageHeader title="HIGHLIGHTS" />
       <Container>
         <div className="flex flex-col gap-6 pb-6">
