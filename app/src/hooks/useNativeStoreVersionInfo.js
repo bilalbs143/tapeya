@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 
-import { mapSystemSettingsByKey } from '@/lib/mapSystemSettingsByKey';
+import { mapSystemSettingsByKey } from '@/lib/utils/settingsUtils';
 import { useGetPublicSystemSettingsQuery } from '@/store/api/systemSettingsApi';
 
 export function useNativeStoreVersionInfo(options = {}) {

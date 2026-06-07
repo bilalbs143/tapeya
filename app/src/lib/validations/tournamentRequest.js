@@ -1,12 +1,9 @@
 import { z } from 'zod';
 
+import { phoneSchema } from './shared';
+
 /** Fallback when API group_mode enum is not yet loaded (must match API GroupModeEnum). */
 const DEFAULT_GROUP_MODE_VALUES = ['open', 'group_wise'];
-
-const phoneSchema = z
-  .string()
-  .min(1, 'Phone is required')
-  .refine((v) => /^\+[1-9]\d{6,}$/.test(v), 'Enter a valid phone number (e.g. +923001234567)');
 
 /**
  * Parse date string (MM-DD-YYYY or YYYY-MM-DD) to Date without relying on browser's

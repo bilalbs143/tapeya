@@ -30,10 +30,19 @@ export function formatNum(n) {
  * Formats a decimal to 2 dp; returns '—' for null/undefined/empty.
  *
  * @param {number|string|null|undefined} n
+ * @param {number} [decimals=2]
  * @returns {string}
  */
-export function formatDecimal(n) {
+export function formatDecimal(n, decimals = 2) {
   if (n == null || n === '') return '—';
-  if (typeof n === 'number' && Number.isFinite(n)) return n.toFixed(2);
+  if (typeof n === 'number' && Number.isFinite(n)) return n.toFixed(decimals);
+  const parsed = Number(n);
+  if (Number.isFinite(parsed)) return parsed.toFixed(decimals);
   return String(n);
+}
+
+/** Format a numeric count for display on notification/cart badges (e.g. "99+"). */
+export function formatCountBadge(count, max = 99) {
+  if (count <= 0) return null;
+  return count > max ? `${max}+` : String(count);
 }

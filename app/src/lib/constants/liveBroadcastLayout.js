@@ -7,5 +7,4 @@ export const LIVE_BROADCAST_SHELL_STYLE = {
 };
 
 /** Desktop: no bottom nav; toolbar uses lg top offset only. */
-export const LIVE_BROADCAST_SHELL_CLASS =
-  'fixed right-0 left-0 z-30 overflow-hidden bg-black lg:left-[280px] lg:bottom-0';
+export const LIVE_BROADCAST_SHELL_CLASS = 'fixed right-0 left-0 z-30 overflow-hidden bg-black lg:left-[280px] lg:bottom-0';

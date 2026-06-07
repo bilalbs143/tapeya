@@ -10,7 +10,7 @@ export const TEAM_LOGO_VARIANTS = {
   organizerCard: {
     fallbackType: 'initial',
     fallbackSrc: null,
-    containerClass: 'flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#0d0d0b]',
+    containerClass: 'flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-surface-deep',
     imgClass: 'h-full w-full object-contain',
     initialClass: 'flex h-full w-full items-center justify-center text-[18px] font-bold text-white',
   },
@@ -18,7 +18,7 @@ export const TEAM_LOGO_VARIANTS = {
   dialogSelect: {
     fallbackType: 'initial',
     fallbackSrc: null,
-    containerClass: 'flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#0d0d0b]',
+    containerClass: 'flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-md bg-surface-deep',
     imgClass: 'h-6 w-6 object-contain',
     initialClass: 'text-[8px] font-bold text-white',
   },
@@ -26,7 +26,7 @@ export const TEAM_LOGO_VARIANTS = {
   dialog: {
     fallbackType: 'initial',
     fallbackSrc: null,
-    containerClass: 'flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#0d0d0b]',
+    containerClass: 'flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-surface-deep',
     imgClass: 'h-8 w-8 shrink-0 object-contain',
     initialClass: 'text-[9px] font-bold text-white',
   },
@@ -34,7 +34,7 @@ export const TEAM_LOGO_VARIANTS = {
   match: {
     fallbackType: 'initial',
     fallbackSrc: null,
-    containerClass: 'flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#0d0d0b]',
+    containerClass: 'flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-surface-deep',
     imgClass: 'h-10 w-10 shrink-0 object-contain',
     initialClass: 'text-[11px] font-bold text-white',
   },
@@ -42,7 +42,7 @@ export const TEAM_LOGO_VARIANTS = {
   fixture: {
     fallbackType: 'initial',
     fallbackSrc: null,
-    containerClass: 'flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#0d0d0b]',
+    containerClass: 'flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-md bg-surface-deep',
     imgClass: 'h-6 w-6 object-contain',
     initialClass: 'text-[8px] font-bold text-white',
   },
@@ -67,7 +67,7 @@ export const TEAM_LOGO_VARIANTS = {
     fallbackType: 'initial',
     fallbackSrc: null,
     containerClass:
-      'flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1A1A1A] text-[11px] font-bold text-[#DA9811]',
+      'flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-surface-border text-[11px] font-bold text-brand',
     imgClass: 'h-5 w-5 shrink-0 rounded-full object-cover',
     initialClass: '',
   },
@@ -75,7 +75,7 @@ export const TEAM_LOGO_VARIANTS = {
   teamsTab: {
     fallbackType: 'initial',
     fallbackSrc: null,
-    containerClass: 'flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#0d0d0b]',
+    containerClass: 'flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-deep',
     imgClass: 'h-5 w-5 shrink-0 rounded-full object-cover',
     initialClass: 'text-[7px] font-bold text-white',
   },
@@ -83,7 +83,7 @@ export const TEAM_LOGO_VARIANTS = {
   scoring: {
     fallbackType: 'initial',
     fallbackSrc: null,
-    containerClass: 'flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#0d0d0b]',
+    containerClass: 'flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-surface-deep',
     imgClass: 'h-8 w-8 shrink-0 object-contain',
     initialClass: 'text-[9px] font-bold text-white',
   },
@@ -91,7 +91,7 @@ export const TEAM_LOGO_VARIANTS = {
   draft: {
     fallbackType: 'initial',
     fallbackSrc: null,
-    containerClass: 'flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#0d0d0b]',
+    containerClass: 'flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-surface-deep',
     imgClass: 'h-full w-full object-contain',
     initialClass: 'text-[16px] font-bold text-white',
   },
@@ -99,7 +99,7 @@ export const TEAM_LOGO_VARIANTS = {
   default: {
     fallbackType: 'initial',
     fallbackSrc: null,
-    containerClass: 'flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#0d0d0b]',
+    containerClass: 'flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-surface-deep',
     imgClass: 'h-full w-full object-contain',
     initialClass: 'text-[11px] font-bold text-white',
   },
