@@ -155,6 +155,17 @@ export function dismissalValueToLabel(value, enumOptions) {
   return found ? found.label : (value ?? '—');
 }
 
+/**
+ * Dismissal label for compact UI badges — uses scorecard label or enum lookup.
+ *
+ * @param {{ dismissalType?: string|null, label?: string, enumOptions?: object[] }} [opts]
+ */
+export function dismissalBadgeLabel({ dismissalType, label = '', enumOptions } = {}) {
+  if (label) return label;
+  const fromEnum = dismissalValueToLabel(dismissalType, enumOptions);
+  return fromEnum !== '—' ? fromEnum : 'Out';
+}
+
 // ─── API ball → UI ball ───────────────────────────────────────────────────────
 
 /**
@@ -583,9 +594,9 @@ export function apiMatchToUiMatchConfig(apiMatch, battingPlayers = [], bowlingPl
     toss:
       wid != null
         ? {
-            winner: wid === hid ? 'A' : 'B',
-            decision: choseBat ? 'bat' : 'bowl',
-          }
+          winner: wid === hid ? 'A' : 'B',
+          decision: choseBat ? 'bat' : 'bowl',
+        }
         : null,
     battingTeamId,
     bowlingTeamId,

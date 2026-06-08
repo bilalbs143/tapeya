@@ -40,7 +40,6 @@ export function usePlayerDialogs({
   currentBowlerIndex,
   hasBallsBowled,
   strikerIndex,
-  scorecardBalls,
   canAddMoreBatsmen,
   needsNewBatter = false,
   isPlayerBattingOrOut,
@@ -48,6 +47,9 @@ export function usePlayerDialogs({
   handleSaveBatsmanSquad,
   handleSaveBowlerSquad,
   openBatsmanDialogRef,
+  battingStats = [],
+  bowlingStats = [],
+  dismissalTypeOptions = [],
 }) {
   const { matchId } = useScoringMatch();
   const { openDialog, closeDialog } = useDialog();
@@ -185,7 +187,8 @@ export function usePlayerDialogs({
         replaceStrikerMode: replaceStriker,
         teamName: squadSetup ? battingTeamName : undefined,
         players: squadSetup ? battingSquad : addBatsmanDialogPlayers,
-        ballHistory: scorecardBalls,
+        battingStats,
+        dismissalTypeOptions,
         canAddMoreBatsmen: allowPick,
         isPlayerBattingOrOut,
         getBatsmanDisplayStats,
@@ -212,7 +215,9 @@ export function usePlayerDialogs({
       battingSquad,
       battingCaptainId,
       battingWicketKeeperId,
-      scorecardBalls,
+
+      battingStats,
+      dismissalTypeOptions,
       hasBallsBowled,
       canAddMoreBatsmen,
       isPlayerBattingOrOut,
@@ -243,6 +248,7 @@ export function usePlayerDialogs({
         teamName: squadSetup || inWizard ? bowlingTeamName : undefined,
         players: squadSetup || inWizard ? bowlingSquad : addBowlerDialogPlayers,
         bowlersInTable,
+        bowlingStats,
         activeBowlerId: bowlersInTable[Math.min(Math.max(0, currentBowlerIndex), bowlersInTable.length - 1)]?.id,
         onSelectBowlerForNextOver: selectBowlerForNextOver,
         onReplaceActiveBowlerPick: handleReplaceActiveBowlerPick,
@@ -257,9 +263,9 @@ export function usePlayerDialogs({
         squadFlowTotal: inWizard ? 2 : null,
         onSquadFlowBack: inWizard
           ? () => {
-              closeDialog();
-              openBatsmanDialogRef.current?.(false);
-            }
+            closeDialog();
+            openBatsmanDialogRef.current?.(false);
+          }
           : undefined,
       });
     },
@@ -273,6 +279,7 @@ export function usePlayerDialogs({
       bowlingSquad,
       hasBallsBowled,
       bowlersInTable,
+      bowlingStats,
       currentBowlerIndex,
       selectBowlerForNextOver,
       handleReplaceActiveBowlerPick,
@@ -335,7 +342,8 @@ export function usePlayerDialogs({
       squadFlowTotal: 2,
       teamName: battingTeamName,
       players: battingSquad,
-      ballHistory: scorecardBalls,
+      battingStats,
+      dismissalTypeOptions,
       canAddMoreBatsmen: false,
       isPlayerBattingOrOut,
       getBatsmanDisplayStats,
@@ -356,7 +364,8 @@ export function usePlayerDialogs({
     battingSquad,
     battingCaptainId,
     battingWicketKeeperId,
-    scorecardBalls,
+    battingStats,
+    dismissalTypeOptions,
     isPlayerBattingOrOut,
     getBatsmanDisplayStats,
     handleSaveBatsmanSquad,

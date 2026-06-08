@@ -1,113 +1,6 @@
-import { ScoringPlayerPickerMeta } from '@/components/scoring/ScoringPlayerPickerMeta';
+import { ScoringBatsmanPickerRow, ScoringBowlerPickerRow } from '@/components/scoring/ScoringPlayerPickerRows';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
 import { FormStack } from '@/ui/form/FormStack';
-
-const toStr = (v) => (v == null ? '' : String(v));
-
-function BatsmanRow({
-  player,
-  ballHistory,
-  replaceStrikerMode,
-  strikerId,
-  nonStrikerId,
-  canAddMoreBatsmen,
-  isPlayerBattingOrOut,
-  getBatsmanDisplayStats,
-  onPick,
-}) {
-  const sid = toStr(player.id);
-  const isCurrentStriker = replaceStrikerMode && sid === toStr(strikerId);
-  const isNonStriker = replaceStrikerMode && nonStrikerId != null && sid === toStr(nonStrikerId);
-  const dismissed = replaceStrikerMode && ballHistory.some((ball) => ball.type === 'out' && toStr(ball.striker?.id) === sid);
-
-  const hasBattingStats = replaceStrikerMode ? isCurrentStriker || isNonStriker || dismissed : isPlayerBattingOrOut(player.id);
-
-  const canAdd = !hasBattingStats && (replaceStrikerMode || canAddMoreBatsmen);
-
-  const stats = getBatsmanDisplayStats(player.id);
-
-  return (
-    <div
-      role="button"
-      tabIndex={canAdd ? 0 : -1}
-      aria-disabled={!canAdd}
-      onClick={() => canAdd && onPick(player)}
-      onKeyDown={(e) => {
-        if (canAdd && (e.key === 'Enter' || e.key === ' ')) {
-          e.preventDefault();
-          onPick(player);
-        }
-      }}
-      className={`bg-surface flex flex-col gap-2 rounded-[10px] px-4 py-3 ${
-        canAdd ? 'cursor-pointer transition-opacity active:opacity-90' : ''
-      } ${hasBattingStats ? 'cursor-not-allowed opacity-60' : ''}`}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <span className="text-[14px] font-bold text-white">{player.name}</span>
-          <ScoringPlayerPickerMeta player={player} variant="batting" />
-        </div>
-        {hasBattingStats && stats ? (
-          <div className="text-muted flex shrink-0 gap-4 text-[12px]">
-            <span>R: {stats.runs}</span>
-            <span>B: {stats.balls}</span>
-            <span>4s: {stats.fours}</span>
-            <span>6s: {stats.sixes}</span>
-            <span>SR: {stats.strikeRate}</span>
-          </div>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
-function BowlerRow({
-  player,
-  bowlersInTable,
-  replaceActiveBowlerMode,
-  activeBowlerId,
-  onReplaceActiveBowlerPick,
-  onSelectBowlerForNextOver,
-}) {
-  const sid = toStr(player.id);
-  const table = bowlersInTable ?? [];
-  const inTable = table.some((bt) => toStr(bt.id) === sid);
-  const isActiveBowler = replaceActiveBowlerMode && sid === toStr(activeBowlerId);
-
-  const canSelect = replaceActiveBowlerMode ? !isActiveBowler : inTable || !inTable;
-
-  const handlePick = () => {
-    if (!canSelect) return;
-    if (replaceActiveBowlerMode) {
-      onReplaceActiveBowlerPick?.(player);
-    } else {
-      onSelectBowlerForNextOver(player);
-    }
-  };
-
-  return (
-    <div
-      role="button"
-      tabIndex={canSelect ? 0 : -1}
-      aria-disabled={!canSelect}
-      onClick={handlePick}
-      onKeyDown={(e) => {
-        if (canSelect && (e.key === 'Enter' || e.key === ' ')) {
-          e.preventDefault();
-          handlePick();
-        }
-      }}
-      className={`bg-surface flex flex-col gap-2 rounded-[10px] px-4 py-3 ${
-        canSelect ? 'cursor-pointer transition-opacity active:opacity-90' : 'cursor-default'
-      } ${replaceActiveBowlerMode && isActiveBowler ? 'opacity-60' : ''}`}
-    >
-      <div className="min-w-0 flex-1">
-        <span className="text-[14px] font-bold text-white">{player.name}</span>
-        <ScoringPlayerPickerMeta player={player} variant="bowling" />
-      </div>
-    </div>
-  );
-}
 
 /**
  * Lightweight in-match player picker — shows only active Playing XI members.
@@ -119,7 +12,8 @@ export default function MatchPlayerPickerDialog({
   variant,
   players,
   // batsman-only
-  ballHistory = [],
+  battingStats = [],
+  dismissalTypeOptions = [],
   canAddMoreBatsmen,
   isPlayerBattingOrOut,
   getBatsmanDisplayStats,
@@ -129,6 +23,7 @@ export default function MatchPlayerPickerDialog({
   nonStrikerId,
   // bowler-only
   bowlersInTable,
+  bowlingStats = [],
   onSelectBowlerForNextOver,
   replaceActiveBowlerMode = false,
   activeBowlerId,
@@ -156,23 +51,25 @@ export default function MatchPlayerPickerDialog({
           {players.length === 0 && <p className="text-muted py-6 text-center text-sm">No Players Available</p>}
           {players.map((player) =>
             isBatsman ? (
-              <BatsmanRow
+              <ScoringBatsmanPickerRow
                 key={player.id}
                 player={player}
-                ballHistory={ballHistory}
-                replaceStrikerMode={replaceStrikerMode}
                 strikerId={strikerId}
                 nonStrikerId={nonStrikerId}
+                replaceStrikerMode={replaceStrikerMode}
                 canAddMoreBatsmen={canAddMoreBatsmen}
                 isPlayerBattingOrOut={isPlayerBattingOrOut}
                 getBatsmanDisplayStats={getBatsmanDisplayStats}
+                battingStats={battingStats}
+                dismissalTypeOptions={dismissalTypeOptions}
                 onPick={onPickBatsman}
               />
             ) : (
-              <BowlerRow
+              <ScoringBowlerPickerRow
                 key={player.id}
                 player={player}
                 bowlersInTable={bowlersInTable}
+                bowlingStats={bowlingStats}
                 replaceActiveBowlerMode={replaceActiveBowlerMode}
                 activeBowlerId={activeBowlerId}
                 onReplaceActiveBowlerPick={onReplaceActiveBowlerPick}

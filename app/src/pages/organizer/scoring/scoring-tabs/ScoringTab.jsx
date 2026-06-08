@@ -537,6 +537,9 @@ export function ScoringTab({
     handleSaveBatsmanSquad,
     handleSaveBowlerSquad,
     openBatsmanDialogRef,
+    battingStats: scorecardInnings?.batting_stats ?? [],
+    bowlingStats: scorecardInnings?.bowling_stats ?? [],
+    dismissalTypeOptions: allDismissalOptions,
   });
 
   // Assign refs so effects and wicket-summary can fire dialogs by ref.

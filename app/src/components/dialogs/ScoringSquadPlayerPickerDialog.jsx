@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { ScoringPlayerPickerMeta } from '@/components/scoring/ScoringPlayerPickerMeta';
+import { ScoringBatsmanPickerRow, ScoringBowlerPickerRow } from '@/components/scoring/ScoringPlayerPickerRows';
 import { SquadSetupPlayerRow } from '@/components/scoring/SquadSetupPlayerRow';
 import { useDialog } from '@/context/DialogContext';
 import { useDebounce } from '@/hooks/useDebounce';
 import { DEBOUNCE_MS, MIN_SEARCH_LENGTH } from '@/lib/constants/search';
 import { squadPlayerProfileFields } from '@/lib/utils/playerUtils';
 import { useSearchSquadMembersQuery } from '@/store/api/playerApi';
-import { Button } from '@/ui/Button';
 import {
   DialogHeaderClose,
   DialogHeaderRow,
@@ -17,10 +16,6 @@ import {
   DialogTitle,
 } from '@/ui/Dialog';
 import { FormStack } from '@/ui/form/FormStack';
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-const toStr = (v) => (v == null ? '' : String(v));
 
 // ─── Nav icons ───────────────────────────────────────────────────────────────
 
@@ -37,37 +32,6 @@ function ChevronRight() {
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
       <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
-  );
-}
-
-// ─── Sub-components ─────────────────────────────────────────────────────────
-
-function PlayingBenchRoleToggle({ playerId, role, onSetRole }) {
-  return (
-    <div className="flex shrink-0 gap-1" onClick={(e) => e.stopPropagation()}>
-      <Button
-        type="button"
-        size="sm"
-        variant={role === 'playing' ? 'orange' : 'black'}
-        aria-pressed={role === 'playing'}
-        aria-label="Set as Playing"
-        onClick={() => onSetRole(playerId, 'playing')}
-        className="text-[12px] font-bold uppercase"
-      >
-        Playing
-      </Button>
-      <Button
-        type="button"
-        size="sm"
-        variant={role === 'bench' ? 'orange' : 'black'}
-        aria-pressed={role === 'bench'}
-        aria-label="Set as Bench"
-        onClick={() => onSetRole(playerId, 'bench')}
-        className="text-[12px] font-bold uppercase"
-      >
-        Bench
-      </Button>
-    </div>
   );
 }
 
@@ -175,129 +139,6 @@ function AddPlayerSearch({ squadIds, onAdd }) {
   );
 }
 
-function BatsmanSquadPickerRow({
-  b,
-  ballHistory,
-  hideSquadSetup,
-  squadEditOnly = false,
-  replaceStrikerMode,
-  strikerId,
-  nonStrikerId,
-  canAddMoreBatsmen,
-  isPlayerBattingOrOut,
-  getBatsmanDisplayStats,
-  onPickBatsman,
-  onSetRole,
-}) {
-  const sid = toStr(b.id);
-
-  const isCurrentStriker = replaceStrikerMode && sid === toStr(strikerId);
-  const isNonStrikerOnCrease = replaceStrikerMode && nonStrikerId != null && sid === toStr(nonStrikerId);
-  const dismissed = replaceStrikerMode && ballHistory.some((ball) => ball.type === 'out' && toStr(ball.striker?.id) === sid);
-
-  const hasBattingStats = replaceStrikerMode ? isCurrentStriker || isNonStrikerOnCrease || dismissed : isPlayerBattingOrOut(b.id);
-
-  const isEligible = hideSquadSetup || b.role === 'playing';
-  const canAdd = !squadEditOnly && !hasBattingStats && isEligible && (replaceStrikerMode || canAddMoreBatsmen);
-
-  const stats = getBatsmanDisplayStats(b.id);
-
-  return (
-    <div
-      role="button"
-      tabIndex={canAdd ? 0 : -1}
-      aria-disabled={!canAdd}
-      onClick={() => canAdd && onPickBatsman(b)}
-      onKeyDown={(e) => {
-        if (canAdd && (e.key === 'Enter' || e.key === ' ')) {
-          e.preventDefault();
-          onPickBatsman(b);
-        }
-      }}
-      className={`bg-surface flex flex-col gap-2 rounded-[10px] px-4 py-3 ${
-        canAdd ? 'cursor-pointer transition-opacity active:opacity-90' : ''
-      } ${hasBattingStats ? 'cursor-not-allowed opacity-90' : ''}`}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <span className="text-[14px] font-bold text-white">{b.name}</span>
-          <ScoringPlayerPickerMeta player={b} variant="batting" />
-        </div>
-        {hasBattingStats && stats ? (
-          <div className="text-muted flex shrink-0 gap-4 text-[12px]">
-            <span>R: {stats.runs}</span>
-            <span>B: {stats.balls}</span>
-            <span>4s: {stats.fours}</span>
-            <span>6s: {stats.sixes}</span>
-            <span>SR: {stats.strikeRate}</span>
-          </div>
-        ) : hideSquadSetup ? null : (
-          <PlayingBenchRoleToggle playerId={b.id} role={b.role} onSetRole={onSetRole} />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function BowlerSquadPickerRow({
-  b,
-  hideSquadSetup,
-  squadEditOnly = false,
-  bowlersInTable,
-  replaceActiveBowlerMode,
-  activeBowlerId,
-  onReplaceActiveBowlerPick,
-  onSelectBowlerForNextOver,
-  onSetRole,
-}) {
-  const sid = toStr(b.id);
-  const table = bowlersInTable ?? [];
-  const inTable = table.some((bt) => toStr(bt.id) === sid);
-  const isActiveBowler = replaceActiveBowlerMode && sid === toStr(activeBowlerId);
-  const isEligible = hideSquadSetup || b.role === 'playing';
-
-  const canSelect = squadEditOnly
-    ? false
-    : replaceActiveBowlerMode
-      ? isEligible && !isActiveBowler
-      : inTable || (isEligible && !inTable);
-
-  const handlePick = () => {
-    if (!canSelect) return;
-    if (replaceActiveBowlerMode) {
-      onReplaceActiveBowlerPick?.(b);
-    } else {
-      onSelectBowlerForNextOver(b);
-    }
-  };
-
-  return (
-    <div
-      role="button"
-      tabIndex={canSelect ? 0 : -1}
-      aria-disabled={!canSelect}
-      onClick={handlePick}
-      onKeyDown={(e) => {
-        if (canSelect && (e.key === 'Enter' || e.key === ' ')) {
-          e.preventDefault();
-          handlePick();
-        }
-      }}
-      className={`bg-surface flex flex-col gap-2 rounded-[10px] px-4 py-3 ${
-        canSelect ? 'cursor-pointer transition-opacity active:opacity-90' : 'cursor-default'
-      } ${replaceActiveBowlerMode && isActiveBowler ? 'opacity-60' : ''}`}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <span className="text-[14px] font-bold text-white">{b.name}</span>
-          <ScoringPlayerPickerMeta player={b} variant="bowling" />
-        </div>
-        {hideSquadSetup ? null : <PlayingBenchRoleToggle playerId={b.id} role={b.role} onSetRole={onSetRole} />}
-      </div>
-    </div>
-  );
-}
-
 // ─── Main export ─────────────────────────────────────────────────────────────
 
 export default function ScoringSquadPlayerPickerDialog({
@@ -319,7 +160,8 @@ export default function ScoringSquadPlayerPickerDialog({
   onAddPlayerToSquad,
   onRemovePlayerFromSquad,
   // batsman-only
-  ballHistory = [],
+  battingStats = [],
+  dismissalTypeOptions = [],
   canAddMoreBatsmen,
   isPlayerBattingOrOut,
   getBatsmanDisplayStats,
@@ -329,6 +171,7 @@ export default function ScoringSquadPlayerPickerDialog({
   nonStrikerId,
   // bowler-only
   bowlersInTable,
+  bowlingStats = [],
   onSelectBowlerForNextOver,
   replaceActiveBowlerMode = false,
   activeBowlerId,
@@ -445,33 +288,29 @@ export default function ScoringSquadPlayerPickerDialog({
                 onRemove={onRemovePlayerFromSquad ? handleRemovePlayer : null}
               />
             ) : isBatsman ? (
-              <BatsmanSquadPickerRow
+              <ScoringBatsmanPickerRow
                 key={b.id}
-                b={b}
-                ballHistory={ballHistory}
-                hideSquadSetup={hideSquadSetup}
-                squadEditOnly={squadEditOnly}
-                replaceStrikerMode={replaceStrikerMode}
+                player={b}
                 strikerId={strikerId}
                 nonStrikerId={nonStrikerId}
+                replaceStrikerMode={replaceStrikerMode}
                 canAddMoreBatsmen={canAddMoreBatsmen}
                 isPlayerBattingOrOut={isPlayerBattingOrOut}
                 getBatsmanDisplayStats={getBatsmanDisplayStats}
-                onPickBatsman={onPickBatsman}
-                onSetRole={handleSetRole}
+                battingStats={battingStats}
+                dismissalTypeOptions={dismissalTypeOptions}
+                onPick={onPickBatsman}
               />
             ) : (
-              <BowlerSquadPickerRow
+              <ScoringBowlerPickerRow
                 key={b.id}
-                b={b}
-                hideSquadSetup={hideSquadSetup}
-                squadEditOnly={squadEditOnly}
+                player={b}
                 bowlersInTable={bowlersInTable}
+                bowlingStats={bowlingStats}
                 replaceActiveBowlerMode={replaceActiveBowlerMode}
                 activeBowlerId={activeBowlerId}
                 onReplaceActiveBowlerPick={onReplaceActiveBowlerPick}
                 onSelectBowlerForNextOver={onSelectBowlerForNextOver}
-                onSetRole={handleSetRole}
               />
             ),
           )}
