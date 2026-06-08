@@ -99,7 +99,11 @@ class MatchStateService
                     && (bool) $lastBall->is_wicket
                     && ! $lastBall->isRetiredHurt()
                     && ($activeInningsData['striker'] === null || $activeInningsData['non_striker'] === null);
-                $needsNewBowler = $overDetails['over_complete'] && empty($pending['next_bowler_id']);
+                // A new bowler is needed only when the last delivery actually ended an over —
+                // i.e. it was a legal ball AND legal_balls is a multiple of 6.
+                // Using over_complete alone is wrong: that flag stays true after a Wide/NB
+                // opens the new over, falsely re-triggering the picker.
+                $needsNewBowler = $lastBall !== null && $lastBall->isLegalDelivery() && ($stats['legal_balls'] % 6 === 0) && empty($pending['next_bowler_id']);
 
                 if ($lastBall !== null && (bool) $lastBall->is_wicket && ! $lastBall->isRetiredHurt()) {
                     $lastDismissalBallId = (int) $lastBall->id;

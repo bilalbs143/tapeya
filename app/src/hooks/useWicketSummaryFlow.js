@@ -55,6 +55,13 @@ export function useWicketSummaryFlow({
         return;
       }
       const resolvedMs = ms ?? matchState;
+
+      if (resolvedMs?.innings_just_completed != null) {
+        wicketSummaryGateRef.current = false;
+        postWicketMatchStateRef.current = null;
+        return;
+      }
+
       postWicketMatchStateRef.current = resolvedMs;
       wicketSummaryGateRef.current = true;
       const outId = ball.out_player_id;
