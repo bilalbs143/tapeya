@@ -1,6 +1,5 @@
 const TOURNAMENT_DETAILS_PATH = /^\/upcoming-tournaments\/[^/]+$/;
 const HIGHLIGHT_DETAILS_PATH = /^\/highlights\/[^/]+$/;
-const SCORING_MATCH_PATH = /^\/organizer\/scoring\/match\/[^/]+$/;
 const LIVE_BROADCAST_PATH = /^\/live\/broadcast\/[^/]+$/;
 
 export function isLiveBroadcastPath(pathname) {
@@ -17,8 +16,7 @@ export function isNavbarOverlayPath(pathname, isDesktop = false) {
   return (
     pathname === '/profile' ||
     TOURNAMENT_DETAILS_PATH.test(pathname) ||
-    HIGHLIGHT_DETAILS_PATH.test(pathname) ||
-    SCORING_MATCH_PATH.test(pathname)
+    HIGHLIGHT_DETAILS_PATH.test(pathname)
   );
 }
 
@@ -34,8 +32,7 @@ export function isHeroNavbarPath(pathname, isDesktop = false) {
     pathname === '/home' ||
     pathname === '/profile' ||
     TOURNAMENT_DETAILS_PATH.test(pathname) ||
-    HIGHLIGHT_DETAILS_PATH.test(pathname) ||
-    SCORING_MATCH_PATH.test(pathname)
+    HIGHLIGHT_DETAILS_PATH.test(pathname)
   );
 }
 
