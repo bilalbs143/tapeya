@@ -9,11 +9,7 @@ function PickerStatusBadge({ badge }) {
       : badge.tone === 'active'
         ? 'bg-[#6B7280]/25 text-[#D1D5DB]'
         : 'bg-brand/15 text-brand';
-  return (
-    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${toneClass}`}>
-      {badge.label}
-    </span>
-  );
+  return <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${toneClass}`}>{badge.label}</span>;
 }
 
 function pickerRowClass(canSelect) {

@@ -31,10 +31,7 @@ export function resolveBatsmanPickerRow({
   const statRow = findBattingStat(playerId, battingStats);
   const isDismissed =
     !isOnCrease &&
-    (
-      (statRow?.dismissal_type != null && !statRow?.is_retired_hurt) ||
-      (!statRow && isPlayerBattingOrOut?.(playerId))
-    );
+    ((statRow?.dismissal_type != null && !statRow?.is_retired_hurt) || (!statRow && isPlayerBattingOrOut?.(playerId)));
 
   const isUnavailable = replaceStrikerMode ? isOnCrease || isDismissed : Boolean(isPlayerBattingOrOut?.(playerId));
 
@@ -57,10 +54,7 @@ export function resolveBatsmanPickerRow({
   }
 
   const stats = getBatsmanDisplayStats?.(playerId);
-  const scoreLine =
-    stats && (stats.runs > 0 || stats.balls > 0 || isUnavailable)
-      ? `${stats.runs} (${stats.balls})`
-      : null;
+  const scoreLine = stats && (stats.runs > 0 || stats.balls > 0 || isUnavailable) ? `${stats.runs} (${stats.balls})` : null;
 
   return { canSelect, isUnavailable, statusBadge, scoreLine };
 }

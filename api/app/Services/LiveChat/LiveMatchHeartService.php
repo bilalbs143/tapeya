@@ -18,7 +18,7 @@ class LiveMatchHeartService
         }
 
         // Throttle: one heart broadcast per user every 2 seconds
-        $key = 'live_heart:' . $match->id . ':' . $user->id;
+        $key = 'live_heart:'.$match->id.':'.$user->id;
         $set = Redis::set($key, '1', 'NX', 'EX', 2);
 
         if ($set === null || $set === false) {
@@ -52,7 +52,7 @@ class LiveMatchHeartService
         $parts = preg_split('/\s+/', $name, -1, PREG_SPLIT_NO_EMPTY) ?: [];
 
         if (count($parts) >= 2) {
-            return mb_strtoupper(mb_substr($parts[0], 0, 1) . mb_substr($parts[count($parts) - 1], 0, 1));
+            return mb_strtoupper(mb_substr($parts[0], 0, 1).mb_substr($parts[count($parts) - 1], 0, 1));
         }
 
         return mb_strtoupper(mb_substr($name !== '' ? $name : 'U', 0, 2));

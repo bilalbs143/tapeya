@@ -402,7 +402,13 @@ export const matchApi = baseApi.injectEndpoints({
         method: 'PATCH',
         body: patch,
       }),
-      invalidatesTags: (_result, _err, { matchId }) => (matchId ? [{ type: 'MatchState', id: matchId }] : []),
+      invalidatesTags: (_result, _err, { matchId }) =>
+        matchId
+          ? [
+              { type: 'MatchState', id: matchId },
+              { type: 'Scorecard', id: matchId },
+            ]
+          : [],
     }),
 
     updateMatchAnalyticsSettings: builder.mutation({

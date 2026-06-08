@@ -594,9 +594,9 @@ export function apiMatchToUiMatchConfig(apiMatch, battingPlayers = [], bowlingPl
     toss:
       wid != null
         ? {
-          winner: wid === hid ? 'A' : 'B',
-          decision: choseBat ? 'bat' : 'bowl',
-        }
+            winner: wid === hid ? 'A' : 'B',
+            decision: choseBat ? 'bat' : 'bowl',
+          }
         : null,
     battingTeamId,
     bowlingTeamId,

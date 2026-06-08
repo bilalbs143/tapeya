@@ -541,12 +541,17 @@ class ScorecardController extends Controller
         $extras = $stats['extras_breakdown'];
 
         $currentStrikerId = $stats['current_striker_id'];
-        $pending = $match->graphicSession?->pending_players;
-        if (is_array($pending) && $balls->isNotEmpty()) {
+        $pending = is_array($match->graphicSession?->pending_players)
+            ? $match->graphicSession->pending_players
+            : [];
+        $battingStats = $stats['batting'];
+
+        if ($pending !== [] && $inn->status === InningsStatusEnum::IN_PROGRESS) {
             $merged = InningsStatsService::resolveExpectedCrease($balls, $pending);
             if ($merged['striker_id'] !== null) {
                 $currentStrikerId = $merged['striker_id'];
             }
+            $battingStats = InningsStatsService::mergePendingBattersIntoBattingList($battingStats, $merged, $names);
         }
 
         return [
@@ -574,7 +579,7 @@ class ScorecardController extends Controller
             'overs_display' => InningsStatsService::oversDisplay($stats['legal_balls']),
             'run_rate' => InningsStatsService::runRate($stats['total_runs'], $stats['legal_balls']),
             'current_striker_id' => $currentStrikerId,
-            'batting_stats' => $stats['batting'],
+            'batting_stats' => $battingStats,
             'bowling_stats' => $stats['bowling'],
             'fall_of_wickets' => $stats['fall_of_wickets'],
             'balls_count' => $balls->count(),
@@ -686,7 +691,7 @@ class ScorecardController extends Controller
      *
      * @param  bool  $isWicket  True when the ball just stored/updated is a dismissal.
      * @param  int|null  $outPlayerId  Dismissed player on a wicket ball — pending IDs matching
-     *                                  this player are cleared so they are not re-applied.
+     *                                 this player are cleared so they are not re-applied.
      *
      * On a wicket ball, pending batter slots are preserved **unless** they match
      * `out_player_id` (the incoming batter was dismissed before facing a ball).

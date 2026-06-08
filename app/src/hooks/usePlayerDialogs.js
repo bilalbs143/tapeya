@@ -263,9 +263,9 @@ export function usePlayerDialogs({
         squadFlowTotal: inWizard ? 2 : null,
         onSquadFlowBack: inWizard
           ? () => {
-            closeDialog();
-            openBatsmanDialogRef.current?.(false);
-          }
+              closeDialog();
+              openBatsmanDialogRef.current?.(false);
+            }
           : undefined,
       });
     },
