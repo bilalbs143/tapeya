@@ -444,7 +444,6 @@ export function ScoringTab({
     onWicketPending,
     onWicketFailed,
     matchComplete: matchComplete || !isLiveInnings,
-    needsNewBatter,
   });
 
   // Keep engine ref current (dialog opener closures read it after render).
