@@ -13,11 +13,7 @@ export function isHighlightDetailsPath(pathname) {
 /** Pages whose main content starts at the viewport top (hero sits behind the fixed navbar). */
 export function isNavbarOverlayPath(pathname, isDesktop = false) {
   if (isHighlightDetailsPath(pathname) && isDesktop) return false;
-  return (
-    pathname === '/profile' ||
-    TOURNAMENT_DETAILS_PATH.test(pathname) ||
-    HIGHLIGHT_DETAILS_PATH.test(pathname)
-  );
+  return pathname === '/profile' || TOURNAMENT_DETAILS_PATH.test(pathname) || HIGHLIGHT_DETAILS_PATH.test(pathname);
 }
 
 /** Routes where the incomplete-profile reminder dialog must not appear. */

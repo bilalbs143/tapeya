@@ -1,5 +1,6 @@
 import { ScoringPlayerPickerMeta } from '@/components/scoring/ScoringPlayerPickerMeta';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { FormStack } from '@/ui/form/FormStack';
 
 const toStr = (v) => (v == null ? '' : String(v));
 
@@ -150,34 +151,36 @@ export default function MatchPlayerPickerDialog({
         <DialogTitle className={dialogPrimaryTitleClass}>{title}</DialogTitle>
       </DialogHeaderRow>
 
-      <DialogScrollBody className="flex flex-col gap-3">
-        {players.length === 0 && <p className="text-muted py-6 text-center text-sm">No Players Available</p>}
-        {players.map((player) =>
-          isBatsman ? (
-            <BatsmanRow
-              key={player.id}
-              player={player}
-              ballHistory={ballHistory}
-              replaceStrikerMode={replaceStrikerMode}
-              strikerId={strikerId}
-              nonStrikerId={nonStrikerId}
-              canAddMoreBatsmen={canAddMoreBatsmen}
-              isPlayerBattingOrOut={isPlayerBattingOrOut}
-              getBatsmanDisplayStats={getBatsmanDisplayStats}
-              onPick={onPickBatsman}
-            />
-          ) : (
-            <BowlerRow
-              key={player.id}
-              player={player}
-              bowlersInTable={bowlersInTable}
-              replaceActiveBowlerMode={replaceActiveBowlerMode}
-              activeBowlerId={activeBowlerId}
-              onReplaceActiveBowlerPick={onReplaceActiveBowlerPick}
-              onSelectBowlerForNextOver={onSelectBowlerForNextOver}
-            />
-          ),
-        )}
+      <DialogScrollBody>
+        <FormStack density="compact">
+          {players.length === 0 && <p className="text-muted py-6 text-center text-sm">No Players Available</p>}
+          {players.map((player) =>
+            isBatsman ? (
+              <BatsmanRow
+                key={player.id}
+                player={player}
+                ballHistory={ballHistory}
+                replaceStrikerMode={replaceStrikerMode}
+                strikerId={strikerId}
+                nonStrikerId={nonStrikerId}
+                canAddMoreBatsmen={canAddMoreBatsmen}
+                isPlayerBattingOrOut={isPlayerBattingOrOut}
+                getBatsmanDisplayStats={getBatsmanDisplayStats}
+                onPick={onPickBatsman}
+              />
+            ) : (
+              <BowlerRow
+                key={player.id}
+                player={player}
+                bowlersInTable={bowlersInTable}
+                replaceActiveBowlerMode={replaceActiveBowlerMode}
+                activeBowlerId={activeBowlerId}
+                onReplaceActiveBowlerPick={onReplaceActiveBowlerPick}
+                onSelectBowlerForNextOver={onSelectBowlerForNextOver}
+              />
+            ),
+          )}
+        </FormStack>
       </DialogScrollBody>
     </>
   );

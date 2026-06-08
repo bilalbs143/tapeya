@@ -9,7 +9,7 @@ import { RequireAuth } from '@/components/RequireAuth';
 import { ScrollRestoration } from '@/components/ScrollRestoration';
 import SplashScreen from '@/components/SplashScreen';
 import { DialogProvider } from '@/context/DialogContext';
-import { ToastProvider } from '@/contexts/ToastContext';
+import { ToastProvider } from '@/context/ToastContext';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useReverbNotifications } from '@/hooks/useReverbNotifications';
 import { AuthLayout } from '@/layouts/AuthLayout';

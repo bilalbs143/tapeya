@@ -5,19 +5,11 @@ import { getDismissalDeliveryOptions } from '@/lib/utils/overthrowExtras';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
 import { DialogBackButton } from '@/ui/DialogBackButton';
+import { DialogFormSection } from '@/ui/form/DialogFormSection';
+import { FormStack } from '@/ui/form/FormStack';
 
 /**
  * Shared base for RetiredHurt and RetiredOut.
- *
- * @param {boolean}  countAsWicket   true → RetiredOut; false → RetiredHurt
- * @param {object[]} batsmen
- * @param {Function} useFlow         useRetiredHurtFlow | useRetiredOutFlow
- * @param {Function} selectionToUiFields  serialiser for the scoring engine
- * @param {number}   strikerId
- * @param {number}   nonStrikerId
- * @param {number}   bowlerId
- * @param {Function} onConfirm
- * @param {Function} [onBack]
  */
 export function RetiredDismissalDialog({
   countAsWicket,
@@ -67,44 +59,44 @@ export function RetiredDismissalDialog({
         <DialogTitle className={dialogPrimaryTitleClass}>{title}</DialogTitle>
       </DialogHeaderRow>
 
-      <DialogScrollBody className="flex flex-col gap-4">
-        <div>
-          <p className="text-[13px] font-medium text-white">Who Is Out?</p>
-          <div className="mt-3 flex gap-3">
-            <BatterCard batter={striker} selected={outPlayerId === striker?.id} onSelect={setOutPlayerId} />
-            <BatterCard batter={nonStriker} selected={outPlayerId === nonStriker?.id} onSelect={setOutPlayerId} />
-          </div>
-        </div>
+      <DialogScrollBody>
+        <FormStack density="compact">
+          <DialogFormSection label="Who Is Out?" controlOffset="md">
+            <div className="flex gap-3">
+              <BatterCard batter={striker} selected={outPlayerId === striker?.id} onSelect={setOutPlayerId} />
+              <BatterCard batter={nonStriker} selected={outPlayerId === nonStriker?.id} onSelect={setOutPlayerId} />
+            </div>
+          </DialogFormSection>
 
-        <DontCountBallField checked={dontCountBall} onCheckedChange={setDontCountBall} />
+          <DontCountBallField checked={dontCountBall} onCheckedChange={setDontCountBall} />
 
-        <div>
-          <p className="text-[13px] font-medium text-white">Select Delivery Type</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {deliveryOptions.map((opt) => {
-              const selected = dismissalDeliveryType === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setDismissalDeliveryType(opt.value)}
-                  aria-pressed={selected}
-                  className={`focus-visible:ring-brand rounded-full px-4 py-2 text-[13px] font-bold transition-colors focus:outline-none focus-visible:ring-2 ${
-                    selected ? 'bg-brand text-black' : 'bg-surface text-white'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+          <DialogFormSection label="Select Delivery Type" controlOffset="md">
+            <div className="flex flex-wrap gap-2">
+              {deliveryOptions.map((opt) => {
+                const selected = dismissalDeliveryType === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setDismissalDeliveryType(opt.value)}
+                    aria-pressed={selected}
+                    className={`focus-visible:ring-brand rounded-full px-4 py-2 text-[13px] font-bold transition-colors focus:outline-none focus-visible:ring-2 ${
+                      selected ? 'bg-brand text-black' : 'bg-surface text-white'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </DialogFormSection>
 
-        <p className="text-muted text-center text-[12px]">
-          {countAsWicket
-            ? 'Counts as a wicket. The batter cannot return in this innings.'
-            : 'Does not count as a wicket. The batter may return later in the innings.'}
-        </p>
+          <p className="text-muted text-center text-[12px]">
+            {countAsWicket
+              ? 'Counts as a wicket. The batter cannot return in this innings.'
+              : 'Does not count as a wicket. The batter may return later in the innings.'}
+          </p>
+        </FormStack>
       </DialogScrollBody>
 
       <DialogSaveButton onClick={handleSubmit} disabled={!canSubmit}>

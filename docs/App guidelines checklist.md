@@ -84,7 +84,7 @@ Use this with **docs/Coding guidelines.md** when preparing or updating the app. 
 ## Other quick checks
 
 - **text:white** — Must be `text-white` (§17).
-- **Forms** — react-hook-form + zodResolver; `onFocus={resetApiError}`; dates via `toApiDate()` (§12).
+- **Forms** — react-hook-form + zodResolver; `onFocus={resetApiError}`; dates via `toApiDate()` (§12); layout via `FormStack` / `FormSection` / `FormActions` — see [FORM_LAYOUT_STANDARDS.md](./FORM_LAYOUT_STANDARDS.md) §10.
 - **API errors** — `toast.error(getApiErrorMessage(err, 'Fallback'))`; never swallow in empty `catch` (§15, §26).
 - **Placeholder / temp code** — Mark with `// TODO:` and describe what will replace it (§20).
 - **Env / dev-only** — Gate with `import.meta.env.DEV` (§32).

@@ -7,7 +7,11 @@ import { formatDate } from '@/lib/utils/dateUtils';
 import { useGetMatchNotesQuery } from '@/store/api/matchApi';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
 import { DialogBackButton } from '@/ui/DialogBackButton';
+import { FormStack } from '@/ui/form/FormStack';
+import { FormField } from '@/ui/FormField';
+import { Input } from '@/ui/Input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/Popover';
+import { Textarea } from '@/ui/Textarea';
 
 function FilterIcon() {
   return (
@@ -41,21 +45,17 @@ function NoteCard({ note, onDelete, isDeleting }) {
 
 function AddNoteForm({ body, onBodyChange }) {
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <label htmlFor="match-note-body" className="text-[13px] font-medium text-white">
-          Note
-        </label>
-        <textarea
+    <FormStack density="compact">
+      <FormField label="Note" htmlFor="match-note-body">
+        <Textarea
           id="match-note-body"
           value={body}
           onChange={(e) => onBodyChange(e.target.value)}
           placeholder="Write Here..."
           rows={6}
-          className="bg-surface-raised placeholder:text-muted/47 focus-visible:ring-brand mt-2 w-full resize-none rounded-[8px] border border-[#141412] px-4 py-3 text-[14px] text-white focus:ring-2 focus:outline-none"
         />
-      </div>
-    </div>
+      </FormField>
+    </FormStack>
   );
 }
 
@@ -141,23 +141,24 @@ export function MatchNotesDialog({ matchId }) {
                 align="end"
                 sideOffset={8}
               >
-                <label className="flex flex-col gap-1.5">
-                  <span className="text-muted text-[11px] font-medium tracking-wide uppercase">Search</span>
-                  <input
-                    type="search"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Filter Notes…"
-                    className="border-border-subtle bg-surface placeholder:text-muted/47 rounded-[6px] border px-3 py-2 text-[13px] text-white focus:ring-2 focus:ring-[#FF9700]/50 focus:outline-none"
-                  />
-                </label>
-                <button
-                  type="button"
-                  onClick={toggleSort}
-                  className="border-border-subtle bg-surface mt-3 w-full rounded-[6px] border px-3 py-2 text-left text-[13px] text-white hover:bg-[#282824]"
-                >
-                  Sort: {sortOrder === 'desc' ? 'Newest First' : 'Oldest First'}
-                </button>
+                <FormStack density="compact">
+                  <FormField label="Search" htmlFor="match-notes-filter">
+                    <Input
+                      id="match-notes-filter"
+                      type="search"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Filter Notes…"
+                    />
+                  </FormField>
+                  <button
+                    type="button"
+                    onClick={toggleSort}
+                    className="border-border-subtle bg-surface w-full rounded-[6px] border px-3 py-2 text-left text-[13px] text-white hover:bg-[#282824]"
+                  >
+                    Sort: {sortOrder === 'desc' ? 'Newest First' : 'Oldest First'}
+                  </button>
+                </FormStack>
               </PopoverContent>
             </Popover>
           ) : null
@@ -167,30 +168,32 @@ export function MatchNotesDialog({ matchId }) {
         <DialogTitle className={dialogPrimaryTitleClass}>Notes</DialogTitle>
       </DialogHeaderRow>
 
-      <DialogScrollBody className="flex flex-col gap-4">
-        {view === 'add' ? (
-          <AddNoteForm body={draftBody} onBodyChange={setDraftBody} />
-        ) : isLoading ? (
-          <p className="text-muted py-8 text-center text-[13px]">Loading notes…</p>
-        ) : notes.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-8 text-center">
-            <p className="text-[14px] font-medium text-white">{emptyMessage ?? "You don't have any Notes added yet."}</p>
-            {!emptyMessage ? (
-              <p className="text-muted max-w-[260px] text-[13px] leading-relaxed">
-                Please click on the below button to Add Notes for matches.
-              </p>
-            ) : null}
-          </div>
-        ) : (
-          <ul className="flex flex-col gap-3">
-            {notes.map((note) => (
-              <li key={note.id}>
-                <NoteCard note={note} onDelete={handleDelete} isDeleting={deletingId === note.id} />
-              </li>
-            ))}
-          </ul>
-        )}
-        {isFetching && !isLoading ? <p className="text-muted text-center text-[11px]">Updating…</p> : null}
+      <DialogScrollBody>
+        <FormStack density="compact">
+          {view === 'add' ? (
+            <AddNoteForm body={draftBody} onBodyChange={setDraftBody} />
+          ) : isLoading ? (
+            <p className="text-muted py-8 text-center text-[13px]">Loading notes…</p>
+          ) : notes.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 py-8 text-center">
+              <p className="text-[14px] font-medium text-white">{emptyMessage ?? "You don't have any Notes added yet."}</p>
+              {!emptyMessage ? (
+                <p className="text-muted max-w-[260px] text-[13px] leading-relaxed">
+                  Please click on the below button to Add Notes for matches.
+                </p>
+              ) : null}
+            </div>
+          ) : (
+            <ul className="flex flex-col gap-3">
+              {notes.map((note) => (
+                <li key={note.id}>
+                  <NoteCard note={note} onDelete={handleDelete} isDeleting={deletingId === note.id} />
+                </li>
+              ))}
+            </ul>
+          )}
+          {isFetching && !isLoading ? <p className="text-muted text-center text-[11px]">Updating…</p> : null}
+        </FormStack>
       </DialogScrollBody>
 
       {view === 'add' ? (

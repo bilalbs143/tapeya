@@ -6,7 +6,10 @@ import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { DialogFormSection } from '@/ui/form/DialogFormSection';
+import { FormStack } from '@/ui/form/FormStack';
 import { RadioOptionList } from '@/ui/RadioOptionList';
+import { Textarea } from '@/ui/Textarea';
 
 /**
  * Action menu → Add Breaks.
@@ -48,31 +51,29 @@ export function AddBreakDialog({ matchId, inningsId = null }) {
         <DialogTitle className={dialogPrimaryTitleClass}>Add Breaks</DialogTitle>
       </DialogHeaderRow>
 
-      <DialogScrollBody className="flex flex-col gap-4">
-        <div>
-          <p className="text-[13px] font-medium text-white">Select Break Type</p>
-          <RadioOptionList
-            className="mt-3 max-h-64 overflow-y-auto"
-            options={breakOptions}
-            value={breakType}
-            onChange={setBreakType}
-            ariaLabel="Break Type"
-          />
-        </div>
+      <DialogScrollBody>
+        <FormStack density="compact">
+          <DialogFormSection label="Select Break Type" controlOffset="md">
+            <RadioOptionList
+              className="max-h-64 overflow-y-auto"
+              options={breakOptions}
+              value={breakType}
+              onChange={setBreakType}
+              ariaLabel="Break Type"
+            />
+          </DialogFormSection>
 
-        <div>
-          <label htmlFor="add-break-notes" className="text-[13px] font-medium text-white">
-            Notes
-          </label>
-          <textarea
-            id="add-break-notes"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Write Here..."
-            rows={3}
-            className="bg-surface-raised placeholder:text-muted/47 focus-visible:ring-brand mt-2 w-full resize-none rounded-[8px] border border-[#141412] px-4 py-3 text-[14px] text-white focus:ring-2 focus:outline-none"
-          />
-        </div>
+          <DialogFormSection label="Notes" controlOffset="sm">
+            <Textarea
+              id="add-break-notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Write Here..."
+              rows={3}
+              className="min-h-0 resize-none"
+            />
+          </DialogFormSection>
+        </FormStack>
       </DialogScrollBody>
 
       <DialogSaveButton disabled={!canSubmit} onClick={handleDone}>

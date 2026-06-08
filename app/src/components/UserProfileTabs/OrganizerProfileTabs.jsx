@@ -1,4 +1,5 @@
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { PROFILE_OVERVIEW_ROLE } from '@/lib/constants/profile';
 import {
   profileListClass,
   profileTabIconClass,
@@ -10,7 +11,6 @@ import {
   TabsTrigger,
 } from '@/ui/Tabs';
 
-import { PROFILE_OVERVIEW_ROLE } from './constants';
 import { OrganizerEvents } from './OrganizerEvents';
 import { OrganizerStats } from './OrganizerStats';
 import { ProfileMetrics } from './ProfileMetrics';

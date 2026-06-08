@@ -5,6 +5,9 @@ import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { useStoreAdditionalRunsMutation } from '@/store/api/matchApi';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { DialogFormSection } from '@/ui/form/DialogFormSection';
+import { FormStack } from '@/ui/form/FormStack';
+import { Input } from '@/ui/Input';
 
 /**
  * Action menu → Add Additional Runs.
@@ -21,6 +24,7 @@ export function AdditionalRunsDialog({ matchId, inningsId }) {
   const parsedRuns = Number.parseInt(runsInput, 10);
   const runsValid = Number.isFinite(parsedRuns) && parsedRuns > 0 && parsedRuns <= 999;
   const canSubmit = runsValid && !isLoading;
+  const runsError = runsInput !== '' && !runsValid ? 'Enter a value between 1 and 999.' : undefined;
 
   const handleAdd = async () => {
     if (!canSubmit) return;
@@ -39,22 +43,20 @@ export function AdditionalRunsDialog({ matchId, inningsId }) {
         <DialogTitle className={dialogPrimaryTitleClass}>Add Additional Runs</DialogTitle>
       </DialogHeaderRow>
 
-      <DialogScrollBody className="flex flex-col gap-4">
-        <div>
-          <label htmlFor="additional-runs-input" className="text-[13px] font-medium text-white">
-            Enter Runs
-          </label>
-          <input
-            id="additional-runs-input"
-            type="text"
-            inputMode="numeric"
-            value={runsInput}
-            onChange={(e) => setRunsInput(e.target.value.replace(/[^0-9]/g, '').slice(0, 3))}
-            placeholder="Enter Additional Runs"
-            className="bg-surface-raised placeholder:text-muted/47 focus-visible:ring-brand mt-2 w-full rounded-[8px] border border-[#141412] px-4 py-3 text-[14px] text-white focus:ring-2 focus:outline-none"
-          />
-          {runsInput !== '' && !runsValid && <p className="mt-1.5 text-[11px] text-red-400">Enter a value between 1 and 999.</p>}
-        </div>
+      <DialogScrollBody>
+        <FormStack density="compact">
+          <DialogFormSection label="Enter Runs" controlOffset="sm">
+            <Input
+              id="additional-runs-input"
+              type="text"
+              inputMode="numeric"
+              value={runsInput}
+              onChange={(e) => setRunsInput(e.target.value.replace(/[^0-9]/g, '').slice(0, 3))}
+              placeholder="Enter Additional Runs"
+              error={runsError}
+            />
+          </DialogFormSection>
+        </FormStack>
       </DialogScrollBody>
 
       <DialogSaveButton disabled={!canSubmit} onClick={handleAdd}>

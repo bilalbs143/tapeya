@@ -18,6 +18,8 @@ import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 import { CountryCityFields } from '@/ui/CountryCityFields';
 import { DatePicker } from '@/ui/DatePicker';
+import { FormActions } from '@/ui/form/FormActions';
+import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import { PhoneInput } from '@/ui/PhoneInput';
@@ -137,12 +139,8 @@ export default function TournamentRequest() {
           shortly.
         </p>
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          onFocus={resetApiError}
-          className="space-y-6 pb-8 lg:grid lg:grid-cols-3 lg:gap-6 lg:space-y-0"
-        >
-          <FormField label="Contact Person Name:" htmlFor="contact_person_name" required>
+        <FormStack as="form" layout="grid-3" className="pb-8" onSubmit={handleSubmit(onSubmit)} onFocus={resetApiError}>
+          <FormField label="Contact Person Name" htmlFor="contact_person_name" required>
             <Input
               id="contact_person_name"
               placeholder="Enter Name"
@@ -152,7 +150,7 @@ export default function TournamentRequest() {
             />
           </FormField>
 
-          <FormField label="Mobile / WhatsApp Number:" htmlFor="contact_phone" required>
+          <FormField label="Mobile / WhatsApp Number" htmlFor="contact_phone" required>
             <Controller
               name="contact_phone"
               control={control}
@@ -167,7 +165,7 @@ export default function TournamentRequest() {
             />
           </FormField>
 
-          <FormField label="Tournament Name:" htmlFor="tournament_name" required>
+          <FormField label="Tournament Name" htmlFor="tournament_name" required>
             <Input
               id="tournament_name"
               placeholder="Enter Tournament Name"
@@ -179,7 +177,7 @@ export default function TournamentRequest() {
           <ToggleGroupField
             name="tournament_type"
             control={control}
-            label="Tournament Type:"
+            label="Tournament Type"
             options={tournamentTypeOptions}
             error={errors.tournament_type?.message}
             required
@@ -188,13 +186,13 @@ export default function TournamentRequest() {
           <ToggleGroupField
             name="cricket_format"
             control={control}
-            label="Cricket Format:"
+            label="Cricket Format"
             options={cricketFormatOptions}
             error={errors.cricket_format?.message}
             required
           />
 
-          <FormField label="Number of Teams:" htmlFor="number_of_teams" required>
+          <FormField label="Number of Teams" htmlFor="number_of_teams" required>
             <Input
               id="number_of_teams"
               inputMode="numeric"
@@ -207,14 +205,14 @@ export default function TournamentRequest() {
           <ToggleGroupField
             name="group_mode"
             control={control}
-            label="Group Mode:"
+            label="Group Mode"
             options={groupModeOptions}
             error={errors.group_mode?.message}
             required
           />
 
           {groupMode === 'group_wise' && (
-            <FormField label="Number of Groups:" htmlFor="number_of_groups" required>
+            <FormField label="Number of Groups" htmlFor="number_of_groups" required>
               <Input
                 id="number_of_groups"
                 inputMode="numeric"
@@ -230,8 +228,9 @@ export default function TournamentRequest() {
             city={city ?? ''}
             onCountryChange={(v) => setValue('country', v, { shouldValidate: true })}
             onCityChange={(v) => setValue('city', v, { shouldValidate: true })}
-            countryLabel="Country:"
-            cityLabel="City:"
+            countryLabel="Country"
+            cityLabel="City"
+            density="relaxed"
             countryError={errors.country?.message}
             cityError={errors.city?.message}
             required
@@ -240,13 +239,13 @@ export default function TournamentRequest() {
           <ToggleGroupField
             name="match_timings"
             control={control}
-            label="Match Timings:"
+            label="Match Timings"
             options={matchTimingsOptions}
             error={errors.match_timings?.message}
             required
           />
 
-          <FormField label="Ground / Venue Name:" htmlFor="venue_name" required>
+          <FormField label="Ground / Venue Name" htmlFor="venue_name" required>
             <Input
               id="venue_name"
               placeholder="Name of the Venue"
@@ -255,7 +254,7 @@ export default function TournamentRequest() {
             />
           </FormField>
 
-          <FormField label="Start Date:" htmlFor="start_date" required>
+          <FormField label="Start Date" htmlFor="start_date" required>
             <Controller
               name="start_date"
               control={control}
@@ -272,7 +271,7 @@ export default function TournamentRequest() {
             />
           </FormField>
 
-          <FormField label="End Date:" htmlFor="end_date" required>
+          <FormField label="End Date" htmlFor="end_date" required>
             <Controller
               name="end_date"
               control={control}
@@ -289,19 +288,16 @@ export default function TournamentRequest() {
             />
           </FormField>
 
-          <FormField label="Prize (optional):" htmlFor="prize">
+          <FormField label="Prize (optional)" htmlFor="prize">
             <Input id="prize" placeholder="e.g. Car, Bike, 1 Lakh" error={errors.prize?.message} {...register('prize')} />
           </FormField>
 
-          <Button
-            type="submit"
-            disabled={busy}
-            variant="auth"
-            className="w-full lg:col-span-3 lg:w-[150px] lg:justify-self-start"
-          >
-            {isSubmitting ? 'Submitting…' : 'Submit'}
-          </Button>
-        </form>
+          <FormActions align="start" className="lg:col-span-3">
+            <Button type="submit" disabled={busy} variant="auth" className="w-full lg:w-[150px]">
+              {isSubmitting ? 'Submitting…' : 'Submit'}
+            </Button>
+          </FormActions>
+        </FormStack>
       </Container>
     </div>
   );

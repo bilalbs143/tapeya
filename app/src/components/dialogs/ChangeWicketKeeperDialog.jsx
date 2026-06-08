@@ -5,13 +5,10 @@ import { useChangeWicketKeeper } from '@/hooks/useChangeWicketKeeper';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { FormStack } from '@/ui/form/FormStack';
 
 /**
  * Action menu → Change Wicket Keeper (bowling team playing XI).
- *
- * @param {string} matchId
- * @param {string|number} teamId — bowling team
- * @param {Array<{ id: string|number, name?: string }>} players
  */
 export function ChangeWicketKeeperDialog({ matchId, teamId, players = [] }) {
   const { closeDialog } = useDialog();
@@ -54,46 +51,48 @@ export function ChangeWicketKeeperDialog({ matchId, teamId, players = [] }) {
         <DialogTitle className={dialogPrimaryTitleClass}>Change Wicket Keeper</DialogTitle>
       </DialogHeaderRow>
 
-      <DialogScrollBody className="flex flex-col gap-4">
-        {isLoadingSquad && (
-          <div className="flex flex-col gap-2">
-            {[1, 2, 3].map((n) => (
-              <div key={n} className="bg-surface-raised h-[52px] animate-pulse rounded-[10px]" />
-            ))}
-          </div>
-        )}
-        {!isLoadingSquad && (
-          <ul className="flex flex-col gap-2" role="radiogroup" aria-label="Wicket Keeper">
-            {sortedPlayers.length === 0 && <li className="text-muted text-[13px]">No players found in squad.</li>}
-            {sortedPlayers.map((player) => {
-              const id = String(player.id);
-              const selected = selectedId === id;
-              return (
-                <li key={id}>
-                  <button
-                    type="button"
-                    role="radio"
-                    aria-checked={selected}
-                    onClick={() => setSelectedId(id)}
-                    className={`focus-visible:ring-brand flex w-full items-center gap-3 rounded-[10px] border-2 px-4 py-3 text-left text-[13px] text-white transition-colors focus:outline-none focus-visible:ring-2 ${
-                      selected ? 'border-brand bg-surface-raised' : 'bg-surface border-[#141412]'
-                    }`}
-                  >
-                    <span
-                      className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${
-                        selected ? 'border-brand' : 'border-[#A2A6AB]'
+      <DialogScrollBody>
+        <FormStack density="compact">
+          {isLoadingSquad && (
+            <div className="flex flex-col gap-2">
+              {[1, 2, 3].map((n) => (
+                <div key={n} className="bg-surface-raised h-[52px] animate-pulse rounded-[10px]" />
+              ))}
+            </div>
+          )}
+          {!isLoadingSquad && (
+            <ul className="flex flex-col gap-2" role="radiogroup" aria-label="Wicket Keeper">
+              {sortedPlayers.length === 0 && <li className="text-muted text-[13px]">No players found in squad.</li>}
+              {sortedPlayers.map((player) => {
+                const id = String(player.id);
+                const selected = selectedId === id;
+                return (
+                  <li key={id}>
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() => setSelectedId(id)}
+                      className={`focus-visible:ring-brand flex w-full items-center gap-3 rounded-[10px] border-2 px-4 py-3 text-left text-[13px] text-white transition-colors focus:outline-none focus-visible:ring-2 ${
+                        selected ? 'border-brand bg-surface-raised' : 'bg-surface border-[#141412]'
                       }`}
-                      aria-hidden
                     >
-                      {selected ? <span className="bg-brand h-2 w-2 rounded-full" /> : null}
-                    </span>
-                    {player.name ?? `Player ${id}`}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+                      <span
+                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${
+                          selected ? 'border-brand' : 'border-[#A2A6AB]'
+                        }`}
+                        aria-hidden
+                      >
+                        {selected ? <span className="bg-brand h-2 w-2 rounded-full" /> : null}
+                      </span>
+                      {player.name ?? `Player ${id}`}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </FormStack>
       </DialogScrollBody>
 
       <DialogSaveButton disabled={!canSubmit} onClick={handleDone}>

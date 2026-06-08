@@ -19,6 +19,10 @@ import { addReel } from '@/store/slices/reelsSlice';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { FormActions } from '@/ui/form/FormActions';
+import { FormStack } from '@/ui/form/FormStack';
+import { FormField } from '@/ui/FormField';
+import { Textarea } from '@/ui/Textarea';
 
 const editReelIcon = `${CLOUDFRONT_APP_BASE}/images/icons/edit-reel.svg`;
 const playIcon = `${CLOUDFRONT_APP_BASE}/images/icons/play-icon.svg`;
@@ -110,97 +114,103 @@ export default function UploadReels() {
     <div className="bg-black">
       <AppSubpageHeader title="Upload Reel" backAriaLabel="Go back" />
       <Container>
-        {/* User row */}
-        <div className="mb-4 flex items-center gap-3">
-          <Avatar className="h-12 w-12 shrink-0">
-            <AvatarImage src={avatarUrl} alt="" />
-            <AvatarFallback className="bg-surface text-white">{getInitials(displayName)}</AvatarFallback>
-          </Avatar>
-          <span className="text-[15px] font-medium text-white">{displayName}</span>
-        </div>
+        <FormStack
+          as="form"
+          density="compact"
+          className="pb-8"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handlePublish();
+          }}
+        >
+          {/* User row */}
+          <div className="flex items-center gap-3">
+            <Avatar className="h-12 w-12 shrink-0">
+              <AvatarImage src={avatarUrl} alt="" />
+              <AvatarFallback className="bg-surface text-white">{getInitials(displayName)}</AvatarFallback>
+            </Avatar>
+            <span className="text-[15px] font-medium text-white">{displayName}</span>
+          </div>
 
-        {/* Card: caption + video preview */}
-        <div className="bg-surface rounded-[17px] p-4">
-          <textarea
-            value={caption}
-            onChange={(e) => setCaption(e.target.value)}
-            placeholder="What Do You Want to Talk About?"
-            rows={3}
-            className="placeholder:text-muted mb-4 w-full resize-none rounded-lg border-0 bg-transparent text-[15px] text-white focus:ring-0 focus:outline-none"
-          />
-          <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black">
-            {previewUrl ? (
-              <>
-                <video
-                  ref={videoPreviewRef}
-                  src={previewUrl}
-                  playsInline
-                  preload="metadata"
-                  className="h-full w-full object-contain"
-                >
-                  <track kind="captions" />
-                </video>
+          {/* Card: caption + video preview */}
+          <div className="bg-surface rounded-[17px] p-4">
+            <FormField label="Caption" htmlFor="reel-caption">
+              <Textarea
+                id="reel-caption"
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+                placeholder="What Do You Want to Talk About?"
+                rows={3}
+                className="min-h-0 resize-none border-0 bg-transparent !px-0 !py-0 text-[15px] focus:ring-0"
+              />
+            </FormField>
+            <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black">
+              {previewUrl ? (
+                <>
+                  <video
+                    ref={videoPreviewRef}
+                    src={previewUrl}
+                    playsInline
+                    preload="metadata"
+                    className="h-full w-full object-contain"
+                  >
+                    <track kind="captions" />
+                  </video>
+                  <button
+                    type="button"
+                    onClick={() => videoPreviewRef.current?.play()}
+                    className="absolute top-1/2 left-1/2 flex h-[30px] w-[30px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow"
+                    aria-label="Play"
+                  >
+                    <img src={playIcon} alt="" className="h-3 w-3 object-contain" aria-hidden />
+                  </button>
+                  <div className="absolute top-2 right-2 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex h-[25px] w-[25px] items-center justify-center rounded-full bg-white"
+                      aria-label="Change Video"
+                    >
+                      <img src={editReelIcon} alt="" className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDelete}
+                      className="flex h-[25px] w-[25px] items-center justify-center rounded-full bg-[#FF2424]"
+                      aria-label="Remove Video"
+                    >
+                      <CloseIcon />
+                    </button>
+                  </div>
+                </>
+              ) : (
                 <button
                   type="button"
-                  onClick={() => videoPreviewRef.current?.play()}
-                  className="absolute top-1/2 left-1/2 flex h-[30px] w-[30px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow"
-                  aria-label="Play"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-muted flex h-full w-full flex-col items-center justify-center gap-2"
                 >
-                  <img src={playIcon} alt="" className="h-3 w-3 object-contain" aria-hidden />
+                  <img src={reelCameraIcon} alt="" className="h-8 w-8 shrink-0 opacity-80 brightness-0 invert" aria-hidden />
+                  <span className="text-sm">Select Video</span>
                 </button>
-                <div className="absolute top-2 right-2 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex h-[25px] w-[25px] items-center justify-center rounded-full bg-white"
-                    aria-label="Change Video"
-                  >
-                    <img src={editReelIcon} alt="" className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDelete}
-                    className="flex h-[25px] w-[25px] items-center justify-center rounded-full bg-[#FF2424]"
-                    aria-label="Remove Video"
-                  >
-                    <CloseIcon />
-                  </button>
-                </div>
-              </>
-            ) : (
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="text-muted flex h-full w-full flex-col items-center justify-center gap-2"
-              >
-                <img src={reelCameraIcon} alt="" className="h-8 w-8 shrink-0 opacity-80 brightness-0 invert" aria-hidden />
-                <span className="text-sm">Select Video</span>
-              </button>
-            )}
-            <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileChange} className="hidden" aria-hidden />
+              )}
+              <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileChange} className="hidden" aria-hidden />
+            </div>
           </div>
-        </div>
 
-        {/* Actions */}
-        <div className="mt-6 flex items-center justify-center gap-4 lg:my-5 lg:justify-start">
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="flex h-[37px] w-[37px] shrink-0 items-center justify-center rounded-full bg-white"
-            aria-label="Add or Change Video"
-          >
-            <img src={reelCameraIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
-          </button>
-          <Button
-            type="button"
-            onClick={handlePublish}
-            disabled={!selectedFile || isPublishing}
-            variant="auth"
-            className="!w-auto min-w-[160px]"
-          >
-            {isPublishing ? 'Publishing…' : 'Publish Now'}
-          </Button>
-        </div>
+          <FormActions className="flex-row items-center justify-center gap-4 pt-2 lg:my-5 lg:justify-start">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex h-[37px] w-[37px] shrink-0 items-center justify-center rounded-full bg-white"
+              aria-label="Add or Change Video"
+            >
+              <img src={reelCameraIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
+            </button>
+            <Button type="submit" disabled={!selectedFile || isPublishing} variant="auth" className="!w-auto min-w-[160px]">
+              {isPublishing ? 'Publishing…' : 'Publish Now'}
+            </Button>
+          </FormActions>
+        </FormStack>
       </Container>
     </div>
   );

@@ -1,4 +1,4 @@
-import { CONTENT_MAX_WIDTH } from './constants';
+import { CONTENT_MAX_WIDTH } from '@/lib/constants/profile';
 
 export function ProfilePosts() {
   return (

@@ -2,6 +2,7 @@ import { useId, useState } from 'react';
 
 import { buildMatchRulesViewModel } from '@/lib/utils/matchRulesViewModel';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { FormStack } from '@/ui/form/FormStack';
 import { ToggleChevron } from '@/ui/ToggleChevron';
 
 function RulesRow({ label, value }) {
@@ -54,10 +55,17 @@ export function MatchRulesDialog({ match }) {
         <DialogTitle className={dialogPrimaryTitleClass}>{dialogTitle}</DialogTitle>
       </DialogHeaderRow>
 
-      <DialogScrollBody className="flex flex-col gap-4">
-        {sections.map((section) => (
-          <CollapsibleRulesSection key={section.id} title={section.title} defaultOpen={section.defaultOpen} rows={section.rows} />
-        ))}
+      <DialogScrollBody>
+        <FormStack density="compact">
+          {sections.map((section) => (
+            <CollapsibleRulesSection
+              key={section.id}
+              title={section.title}
+              defaultOpen={section.defaultOpen}
+              rows={section.rows}
+            />
+          ))}
+        </FormStack>
       </DialogScrollBody>
     </>
   );

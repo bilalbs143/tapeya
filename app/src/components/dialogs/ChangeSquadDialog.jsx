@@ -1,5 +1,6 @@
 import { useDialog } from '@/context/DialogContext';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { FormStack } from '@/ui/form/FormStack';
 
 function TeamCard({ name, label, onSelect }) {
   return (
@@ -35,10 +36,12 @@ export function ChangeSquadDialog({ battingTeamName, bowlingTeamName, onSelectTe
         <DialogTitle className={dialogPrimaryTitleClass}>Change Squad</DialogTitle>
       </DialogHeaderRow>
 
-      <DialogScrollBody className="flex flex-col gap-4">
-        <p className="text-muted text-[13px]">Choose which team&apos;s squad to update.</p>
-        <TeamCard name={battingTeamName || 'Batting Team'} label="Batting Team" onSelect={() => handleSelect('batting')} />
-        <TeamCard name={bowlingTeamName || 'Bowling Team'} label="Bowling Team" onSelect={() => handleSelect('bowling')} />
+      <DialogScrollBody>
+        <FormStack density="compact">
+          <p className="text-muted text-[13px]">Choose which team&apos;s squad to update.</p>
+          <TeamCard name={battingTeamName || 'Batting Team'} label="Batting Team" onSelect={() => handleSelect('batting')} />
+          <TeamCard name={bowlingTeamName || 'Bowling Team'} label="Bowling Team" onSelect={() => handleSelect('bowling')} />
+        </FormStack>
       </DialogScrollBody>
     </>
   );

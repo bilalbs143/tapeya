@@ -5,9 +5,9 @@ export const PROFILE_OVERVIEW_ROLE = {
   SPONSOR: 'sponsor',
 };
 
-/** Max width for profile tab content, aligned with app layout */
+/** Max width for profile tab content, aligned with app layout. */
 export const CONTENT_MAX_WIDTH = 'max-w-[1100px]';
 
-/** Reusable focus ring for interactive elements in dark profile UI */
+/** Reusable focus ring for interactive elements in dark profile UI. */
 export const FOCUS_RING =
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D8A11E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F0F0F]';

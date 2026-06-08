@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { RunPickerRow } from '@/components/scoring/RunPickerRow';
 import { useDialog } from '@/context/DialogContext';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { DialogFormSection } from '@/ui/form/DialogFormSection';
+import { FormStack } from '@/ui/form/FormStack';
 
 const TITLES = {
   bye: 'Bye',
@@ -30,9 +32,12 @@ export function ExtraRunsDialog({ extraType, onSelect }) {
       <DialogHeaderRow>
         <DialogTitle className={dialogPrimaryTitleClass}>{title}</DialogTitle>
       </DialogHeaderRow>
-      <DialogScrollBody className="flex flex-col gap-4">
-        <p className="text-[13px] font-medium text-white">Select Extra Run</p>
-        <RunPickerRow className="px-1" value={selectedRuns} onChange={setSelectedRuns} />
+      <DialogScrollBody>
+        <FormStack density="compact">
+          <DialogFormSection label="Select Extra Run" controlOffset="md">
+            <RunPickerRow className="px-1" value={selectedRuns} onChange={setSelectedRuns} />
+          </DialogFormSection>
+        </FormStack>
       </DialogScrollBody>
       <DialogSaveButton type="button" onClick={handleContinue}>
         Continue

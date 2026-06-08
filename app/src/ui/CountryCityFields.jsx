@@ -1,4 +1,5 @@
 import { useCountryCity } from '@/hooks/useCountryCity';
+import { COUNTRY_CITY_DENSITY } from '@/lib/constants/formLayout';
 import { FormField } from '@/ui/FormField';
 import { SearchableSelect } from '@/ui/SearchableSelect';
 
@@ -20,6 +21,7 @@ import { SearchableSelect } from '@/ui/SearchableSelect';
  * @param {string} [props.countryId]
  * @param {string} [props.cityId]
  * @param {string} [props.className]
+ * @param {'default' | 'relaxed'} [props.density='default'] — gap between country and city (16px or 24px)
  */
 export function CountryCityFields({
   country,
@@ -36,6 +38,7 @@ export function CountryCityFields({
   countryId = 'country',
   cityId = 'city',
   className = '',
+  density = 'default',
 }) {
   const { countries, cities, citiesLoading } = useCountryCity({
     countryName: country,
@@ -51,8 +54,10 @@ export function CountryCityFields({
     onCityChange('');
   }
 
+  const densityClass = COUNTRY_CITY_DENSITY[density] ?? COUNTRY_CITY_DENSITY.default;
+
   return (
-    <div className={`flex flex-col gap-6 ${className}`.trim()}>
+    <div className={`flex flex-col ${densityClass} ${className}`.trim()}>
       <FormField label={countryLabel} htmlFor={countryId} required={required}>
         <SearchableSelect
           id={countryId}

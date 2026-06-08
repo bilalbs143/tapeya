@@ -8,15 +8,11 @@ import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { playerNameById } from '@/lib/utils/dismissalUtils';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { DialogFormSection } from '@/ui/form/DialogFormSection';
+import { FormStack } from '@/ui/form/FormStack';
 
 /**
  * Action menu → Substitute Player.
- *
- * @param {string} matchId
- * @param {string|number} inningsId
- * @param {object[]} batsmen — striker at index 0
- * @param {object[]} substitutePlayers — batting XI not on crease / not out
- * @param {object[]} fieldingPlayers — bowling XI for optional fielder
  */
 export function SubstitutePlayerDialog({ matchId, inningsId, batsmen = [], substitutePlayers = [], fieldingPlayers = [] }) {
   const { closeDialog } = useDialog();
@@ -55,56 +51,57 @@ export function SubstitutePlayerDialog({ matchId, inningsId, batsmen = [], subst
         <DialogTitle className={dialogPrimaryTitleClass}>Substitute Player</DialogTitle>
       </DialogHeaderRow>
 
-      <DialogScrollBody className="flex flex-col gap-4">
-        <section>
-          <p className="text-[13px] font-medium text-white">Current Striker And Non-Striker</p>
-          <div className="mt-3 flex gap-3">
-            <BatterCard
-              batter={striker}
-              selected={String(replacedPlayerId) === String(striker?.id)}
-              onSelect={setReplacedPlayerId}
-            />
-            <BatterCard
-              batter={nonStriker}
-              selected={String(replacedPlayerId) === String(nonStriker?.id)}
-              onSelect={setReplacedPlayerId}
-            />
-          </div>
-        </section>
+      <DialogScrollBody>
+        <FormStack density="compact">
+          <DialogFormSection label="Current Striker And Non-Striker" controlOffset="md">
+            <div className="flex gap-3">
+              <BatterCard
+                batter={striker}
+                selected={String(replacedPlayerId) === String(striker?.id)}
+                onSelect={setReplacedPlayerId}
+              />
+              <BatterCard
+                batter={nonStriker}
+                selected={String(replacedPlayerId) === String(nonStriker?.id)}
+                onSelect={setReplacedPlayerId}
+              />
+            </div>
+          </DialogFormSection>
 
-        <CollapsibleSection
-          title="Select Substitute Player"
-          subtitle={playerNameById(substitutePlayers, substitutePlayerId)}
-          open={substituteOpen}
-          onToggle={() => setSubstituteOpen((v) => !v)}
-        >
-          <ScoringPlayerList
-            players={substitutePlayers}
-            selectedId={substitutePlayerId}
-            onSelect={(id) => {
-              setSubstitutePlayerId(id);
-              setSubstituteOpen(false);
-            }}
-            emptyMessage="No substitute players available."
-          />
-        </CollapsibleSection>
+          <CollapsibleSection
+            title="Select Substitute Player"
+            subtitle={playerNameById(substitutePlayers, substitutePlayerId)}
+            open={substituteOpen}
+            onToggle={() => setSubstituteOpen((v) => !v)}
+          >
+            <ScoringPlayerList
+              players={substitutePlayers}
+              selectedId={substitutePlayerId}
+              onSelect={(id) => {
+                setSubstitutePlayerId(id);
+                setSubstituteOpen(false);
+              }}
+              emptyMessage="No substitute players available."
+            />
+          </CollapsibleSection>
 
-        <CollapsibleSection
-          title="Select Fielder"
-          subtitle={playerNameById(fieldingPlayers, fielderId)}
-          open={fielderOpen}
-          onToggle={() => setFielderOpen((v) => !v)}
-        >
-          <ScoringPlayerList
-            players={fieldingPlayers}
-            selectedId={fielderId}
-            onSelect={(id) => {
-              setFielderId(id);
-              setFielderOpen(false);
-            }}
-            variant="fielder"
-          />
-        </CollapsibleSection>
+          <CollapsibleSection
+            title="Select Fielder"
+            subtitle={playerNameById(fieldingPlayers, fielderId)}
+            open={fielderOpen}
+            onToggle={() => setFielderOpen((v) => !v)}
+          >
+            <ScoringPlayerList
+              players={fieldingPlayers}
+              selectedId={fielderId}
+              onSelect={(id) => {
+                setFielderId(id);
+                setFielderOpen(false);
+              }}
+              variant="fielder"
+            />
+          </CollapsibleSection>
+        </FormStack>
       </DialogScrollBody>
 
       <DialogSaveButton disabled={!canSubmit} onClick={handleDone}>

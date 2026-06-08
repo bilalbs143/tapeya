@@ -4,8 +4,11 @@ import { useDialog } from '@/context/DialogContext';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { DialogFormSection } from '@/ui/form/DialogFormSection';
+import { FormStack } from '@/ui/form/FormStack';
 import { RadioOptionList } from '@/ui/RadioOptionList';
 import { Switch } from '@/ui/Switch';
+import { Textarea } from '@/ui/Textarea';
 
 /**
  * Shared base for EndInningsDialog and EndMatchDialog.
@@ -58,36 +61,28 @@ export function EndEventDialog({
         <DialogTitle className={dialogPrimaryTitleClass}>{title}</DialogTitle>
       </DialogHeaderRow>
 
-      <DialogScrollBody className="flex flex-col gap-4">
-        <div>
-          <p className="text-[13px] font-medium text-white">{reasonLabel}</p>
-          <RadioOptionList
-            className="mt-3"
-            options={reasonOptions}
-            value={reason}
-            onChange={setReason}
-            ariaLabel={reasonAriaLabel}
-          />
-        </div>
+      <DialogScrollBody>
+        <FormStack density="compact">
+          <DialogFormSection label={reasonLabel} controlOffset="md">
+            <RadioOptionList options={reasonOptions} value={reason} onChange={setReason} ariaLabel={reasonAriaLabel} />
+          </DialogFormSection>
 
-        <div>
-          <label htmlFor={commentsId} className="text-[13px] font-medium text-white">
-            Comments
-          </label>
-          <textarea
-            id={commentsId}
-            value={comments}
-            onChange={(e) => setComments(e.target.value)}
-            placeholder="Write Here"
-            rows={3}
-            className="bg-surface-raised placeholder:text-muted/47 focus-visible:ring-brand mt-2 w-full resize-none rounded-[8px] border border-[#141412] px-4 py-3 text-[14px] text-white focus:ring-2 focus:outline-none"
-          />
-        </div>
+          <DialogFormSection label="Comments" controlOffset="sm">
+            <Textarea
+              id={commentsId}
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+              placeholder="Write Here"
+              rows={3}
+              className="min-h-0 resize-none"
+            />
+          </DialogFormSection>
 
-        <div className="bg-surface flex items-center justify-between gap-3 rounded-[10px] border border-[#141412] px-4 py-3">
-          <span className="text-muted text-[12px] leading-snug">Do you want to give 1/1 point to each team.</span>
-          <Switch checked={pointsEach} onCheckedChange={setPointsEach} aria-label="Award One Point to Each Team" />
-        </div>
+          <div className="bg-surface flex items-center justify-between gap-3 rounded-[10px] border border-[#141412] px-4 py-3">
+            <span className="text-muted text-[12px] leading-snug">Do you want to give 1/1 point to each team.</span>
+            <Switch checked={pointsEach} onCheckedChange={setPointsEach} aria-label="Award One Point to Each Team" />
+          </div>
+        </FormStack>
       </DialogScrollBody>
 
       <DialogSaveButton disabled={!canSubmit} onClick={handleDone}>

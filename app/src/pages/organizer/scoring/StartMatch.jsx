@@ -22,9 +22,10 @@ import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 import { DatePicker } from '@/ui/DatePicker';
 import { FileUploadField } from '@/ui/FileUploadField';
-import { FormField, formFieldLabelCheckoutClass } from '@/ui/FormField';
+import { FormActions } from '@/ui/form/FormActions';
+import { FormStack } from '@/ui/form/FormStack';
+import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
-import { Label } from '@/ui/Label';
 import { TimePicker } from '@/ui/TimePicker';
 
 const oversInputBase =
@@ -187,7 +188,7 @@ export default function StartMatch() {
     <div className="bg-black">
       <AppSubpageHeader title="Start A Match" onBack={handleBack} titleClassName="truncate" />
       <Container>
-        <div className="space-y-6 pb-8">
+        <FormStack className="pb-8">
           {/* Tournament selection (hidden when opened from tournament hub with pre-selected tournament) */}
           {!tournamentPreSelected && (
             <FormField htmlFor="tournament_id" label="Tournament">
@@ -310,9 +311,7 @@ export default function StartMatch() {
             <Input id="venue" placeholder="Venue Name" error={errors.venue?.message} className="!mb-0" {...register('venue')} />
           </FormField>
 
-          {/* Match date and time */}
-          <div className="flex flex-col gap-1">
-            <Label className={formFieldLabelCheckoutClass}>Match Date and Time</Label>
+          <FormField label="Match Date and Time" htmlFor="match_date">
             <div className="grid grid-cols-2 gap-3">
               <Controller
                 name="match_date"
@@ -340,61 +339,55 @@ export default function StartMatch() {
                 {errors.match_date?.message || errors.match_time?.message}
               </p>
             )}
-          </div>
+          </FormField>
 
-          {/* Overs + Wickets */}
-          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-            <div className="space-y-6">
-              <FormField htmlFor="overs" label="Overs">
-                <button
-                  type="button"
-                  id="overs"
-                  onClick={() =>
-                    openDialog('startMatchOvers', {
-                      initialOvers: overs,
-                      options: oversOptions,
-                      onChange: (v) => setValue('overs', v),
-                    })
-                  }
-                  className={`${oversInputBase} ${!overs ? '!text-muted/47' : ''}`}
-                  aria-label="Select Overs"
-                >
-                  {overs || 'Select Overs'}
-                </button>
-                {errors.overs?.message && (
-                  <p className="text-sm text-red-200" role="alert">
-                    {errors.overs.message}
-                  </p>
-                )}
-              </FormField>
-            </div>
+          <FormStack layout="grid-2" className="!gap-3 lg:!gap-6">
+            <FormField htmlFor="overs" label="Overs">
+              <button
+                type="button"
+                id="overs"
+                onClick={() =>
+                  openDialog('startMatchOvers', {
+                    initialOvers: overs,
+                    options: oversOptions,
+                    onChange: (v) => setValue('overs', v),
+                  })
+                }
+                className={`${oversInputBase} ${!overs ? '!text-muted/47' : ''}`}
+                aria-label="Select Overs"
+              >
+                {overs || 'Select Overs'}
+              </button>
+              {errors.overs?.message && (
+                <p className="text-sm text-red-200" role="alert">
+                  {errors.overs.message}
+                </p>
+              )}
+            </FormField>
 
-            <div className="space-y-6">
-              {/* Wickets / players per side */}
-              <FormField htmlFor="players-per-side" label="Wickets">
-                <button
-                  type="button"
-                  id="players-per-side"
-                  onClick={() =>
-                    openDialog('startMatchPlayersPerSide', {
-                      initialPlayersPerSide: playersPerSide,
-                      options: playersPerSideOptions,
-                      onSelect: (val) => setValue('players_per_side', val),
-                    })
-                  }
-                  className={`${oversInputBase} ${!playersPerSide ? '!text-muted/47' : ''}`}
-                  aria-label="Select Players Per Side"
-                >
-                  {playersPerSide || 'Select Players Per Side'}
-                </button>
-                {errors.players_per_side?.message && (
-                  <p className="text-sm text-red-200" role="alert">
-                    {errors.players_per_side.message}
-                  </p>
-                )}
-              </FormField>
-            </div>
-          </div>
+            <FormField htmlFor="players-per-side" label="Wickets">
+              <button
+                type="button"
+                id="players-per-side"
+                onClick={() =>
+                  openDialog('startMatchPlayersPerSide', {
+                    initialPlayersPerSide: playersPerSide,
+                    options: playersPerSideOptions,
+                    onSelect: (val) => setValue('players_per_side', val),
+                  })
+                }
+                className={`${oversInputBase} ${!playersPerSide ? '!text-muted/47' : ''}`}
+                aria-label="Select Players Per Side"
+              >
+                {playersPerSide || 'Select Players Per Side'}
+              </button>
+              {errors.players_per_side?.message && (
+                <p className="text-sm text-red-200" role="alert">
+                  {errors.players_per_side.message}
+                </p>
+              )}
+            </FormField>
+          </FormStack>
 
           <FileUploadField
             label="Stream Thumbnail"
@@ -406,8 +399,7 @@ export default function StartMatch() {
             hint="Shown on the Live hub."
           />
 
-          {/* Actions */}
-          <div className="flex gap-3 pt-2 lg:justify-start">
+          <FormActions align="start">
             <Button
               type="button"
               variant="fixture"
@@ -426,8 +418,8 @@ export default function StartMatch() {
             >
               {isCreatingMatch || isUpdatingToss ? 'Starting…' : 'Start Match'}
             </Button>
-          </div>
-        </div>
+          </FormActions>
+        </FormStack>
       </Container>
     </div>
   );

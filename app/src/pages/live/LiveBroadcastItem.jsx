@@ -91,13 +91,7 @@ function LandscapeExitToggle({ onClick }) {
 // BroadcastFloatingToggles
 // ---------------------------------------------------------------------------
 
-function BroadcastFloatingToggles({
-  className = '',
-  isLandscape,
-  onToggleLayout,
-  bottomPanelVisible,
-  onToggleBottomPanel,
-}) {
+function BroadcastFloatingToggles({ className = '', isLandscape, onToggleLayout, bottomPanelVisible, onToggleBottomPanel }) {
   return (
     <div className={`flex shrink-0 items-center gap-2 ${className}`}>
       <button

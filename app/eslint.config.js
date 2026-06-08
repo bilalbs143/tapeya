@@ -7,6 +7,8 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import globals from 'globals';
 
+import tapeyaFormLayout from './eslint-rules/index.js';
+
 function cleanGlobals(globalsObj) {
   if (!globalsObj || typeof globalsObj !== 'object') {
     return {};
@@ -151,6 +153,25 @@ export default [
       'no-console': ['warn', { allow: ['warn', 'log', 'error'] }],
       'no-var': 'error',
       'prefer-const': 'error',
+    },
+  },
+
+  // Form layout
+  {
+    files: ['**/*.{js,jsx}'],
+    plugins: {
+      'tapeya-form-layout': tapeyaFormLayout,
+    },
+    rules: {
+      'tapeya-form-layout/no-raw-form-field-spacing': 'error',
+    },
+  },
+
+  // OTP verify — digit-cell layout, not FormStack field stack (FORM_LAYOUT_STANDARDS §4.1)
+  {
+    files: ['src/pages/auth/Otp.jsx'],
+    rules: {
+      'tapeya-form-layout/no-raw-form-field-spacing': 'off',
     },
   },
 

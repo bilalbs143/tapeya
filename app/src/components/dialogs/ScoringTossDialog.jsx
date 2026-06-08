@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { TeamLogo } from '@/components/TeamLogo';
 import { useDialog } from '@/context/DialogContext';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { DialogFormSection } from '@/ui/form/DialogFormSection';
+import { FormStack } from '@/ui/form/FormStack';
 import { ToggleGroup, ToggleGroupItem } from '@/ui/ToggleGroup';
 
 /**
@@ -36,42 +38,38 @@ export function ScoringTossDialog({ homeTeamName, awayTeamName, homeTeamLogo, aw
         <DialogTitle className={dialogPrimaryTitleClass}>Who Won the Toss?</DialogTitle>
       </DialogHeaderRow>
 
-      <DialogScrollBody className="flex flex-col gap-6">
-        <div className="flex gap-3">
-          {[
-            { key: 'home', label: homeTeamName || 'Home Team', logo: homeTeamLogo },
-            { key: 'away', label: awayTeamName || 'Away Team', logo: awayTeamLogo },
-          ].map(({ key, label, logo }) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setTossWinner(key)}
-              className={`flex flex-1 flex-col items-center justify-center gap-2 rounded-[17px] border-2 px-4 py-4 transition-colors focus:outline-none ${
-                tossWinner === key ? 'border-brand bg-brand text-white' : 'bg-surface border-[#141412] text-white'
-              }`}
-            >
-              <TeamLogo name={label} logo={logo} variant="dialog" />
-              <span className="text-[14px] font-bold uppercase">{label}</span>
-            </button>
-          ))}
-        </div>
+      <DialogScrollBody>
+        <FormStack>
+          <div className="flex gap-3">
+            {[
+              { key: 'home', label: homeTeamName || 'Home Team', logo: homeTeamLogo },
+              { key: 'away', label: awayTeamName || 'Away Team', logo: awayTeamLogo },
+            ].map(({ key, label, logo }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setTossWinner(key)}
+                className={`flex flex-1 flex-col items-center justify-center gap-2 rounded-[17px] border-2 px-4 py-4 transition-colors focus:outline-none ${
+                  tossWinner === key ? 'border-brand bg-brand text-white' : 'bg-surface border-[#141412] text-white'
+                }`}
+              >
+                <TeamLogo name={label} logo={logo} variant="dialog" />
+                <span className="text-[14px] font-bold uppercase">{label}</span>
+              </button>
+            ))}
+          </div>
 
-        <div>
-          <p className="text-[14px] font-medium text-white">Decided To?</p>
-          <ToggleGroup
-            type="single"
-            value={tossDecision}
-            onValueChange={(v) => v && setTossDecision(v)}
-            className="mt-2 flex gap-2"
-          >
-            <ToggleGroupItem value="bat" aria-label="Bat">
-              Bat
-            </ToggleGroupItem>
-            <ToggleGroupItem value="bowl" aria-label="Bowl">
-              Bowl
-            </ToggleGroupItem>
-          </ToggleGroup>
-        </div>
+          <DialogFormSection label="Decided To?" controlOffset="sm">
+            <ToggleGroup type="single" value={tossDecision} onValueChange={(v) => v && setTossDecision(v)} className="flex gap-2">
+              <ToggleGroupItem value="bat" aria-label="Bat">
+                Bat
+              </ToggleGroupItem>
+              <ToggleGroupItem value="bowl" aria-label="Bowl">
+                Bowl
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </DialogFormSection>
+        </FormStack>
       </DialogScrollBody>
 
       <DialogSaveButton onClick={handleSave} disabled={!canSave}>

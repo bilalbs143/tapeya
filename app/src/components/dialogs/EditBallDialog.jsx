@@ -4,6 +4,8 @@ import { RunPickerRow } from '@/components/scoring/RunPickerRow';
 import { useDialog } from '@/context/DialogContext';
 import { buildBallRunsUpdatePayload, editBallDialogTitle, getBallEditableRunsValue } from '@/lib/utils/editBallUtils';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { DialogFormSection } from '@/ui/form/DialogFormSection';
+import { FormStack } from '@/ui/form/FormStack';
 
 /**
  * Correct runs on an existing delivery (PATCH …/balls/{ball}).
@@ -29,10 +31,13 @@ export function EditBallDialog({ ball, ballLabel, onSave }) {
       <DialogHeaderRow>
         <DialogTitle className={dialogPrimaryTitleClass}>{editBallDialogTitle(ball)}</DialogTitle>
       </DialogHeaderRow>
-      <DialogScrollBody className="flex flex-col gap-4">
-        {ballLabel ? <p className="text-muted text-center text-[13px] font-medium">Ball {ballLabel}</p> : null}
-        <p className="text-center text-[13px] font-medium text-white">Select Runs</p>
-        <RunPickerRow className="px-1" value={selectedRuns} onChange={setSelectedRuns} />
+      <DialogScrollBody>
+        <FormStack density="compact">
+          {ballLabel ? <p className="text-muted text-center text-[13px] font-medium">Ball {ballLabel}</p> : null}
+          <DialogFormSection label="Select Runs" controlOffset="md">
+            <RunPickerRow className="px-1" value={selectedRuns} onChange={setSelectedRuns} />
+          </DialogFormSection>
+        </FormStack>
       </DialogScrollBody>
       <DialogSaveButton type="button" onClick={handleSave} disabled={!ball}>
         Save

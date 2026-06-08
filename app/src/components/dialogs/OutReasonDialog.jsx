@@ -2,6 +2,8 @@ import { DismissalGridIcon } from '@/components/scoring/dismissal-grid/Dismissal
 import { useDialog } from '@/context/DialogContext';
 import { getDismissalGridIconKey } from '@/lib/utils/dismissalUtils';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { DialogFormSection } from '@/ui/form/DialogFormSection';
+import { FormStack } from '@/ui/form/FormStack';
 
 function DismissalGridButton({ option, onSelect }) {
   const iconKey = getDismissalGridIconKey(option);
@@ -39,12 +41,23 @@ export function OutReasonDialog({ dismissalOptions = [], onSelectOption, title =
         <DialogTitle className={dialogPrimaryTitleClass}>{title}</DialogTitle>
       </DialogHeaderRow>
       <DialogScrollBody className="pb-4">
-        {subtitle ? <p className="mb-3 text-[13px] font-medium text-white">{subtitle}</p> : null}
-        <div className="grid grid-cols-3 gap-2">
-          {dismissalOptions.map((opt) => (
-            <DismissalGridButton key={opt.value} option={opt} onSelect={handleSelect} />
-          ))}
-        </div>
+        <FormStack density="compact">
+          {subtitle ? (
+            <DialogFormSection label={subtitle} controlOffset="md">
+              <div className="grid grid-cols-3 gap-2">
+                {dismissalOptions.map((opt) => (
+                  <DismissalGridButton key={opt.value} option={opt} onSelect={handleSelect} />
+                ))}
+              </div>
+            </DialogFormSection>
+          ) : (
+            <div className="grid grid-cols-3 gap-2">
+              {dismissalOptions.map((opt) => (
+                <DismissalGridButton key={opt.value} option={opt} onSelect={handleSelect} />
+              ))}
+            </div>
+          )}
+        </FormStack>
       </DialogScrollBody>
     </>
   );

@@ -9,6 +9,9 @@ import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { CdnIcon } from '@/ui/CdnIcon';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { DialogFormSection } from '@/ui/form/DialogFormSection';
+import { FormStack } from '@/ui/form/FormStack';
+import { Textarea } from '@/ui/Textarea';
 
 const PROCEED_BUTTON_BASE =
   'flex flex-1 flex-col items-center justify-center gap-2 rounded-[17px] border-2 px-4 py-5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand';
@@ -69,78 +72,75 @@ export function DeclareResultDialog({ matchId, teamAName, teamBName, teamALogo, 
         <DialogTitle className={dialogPrimaryTitleClass}>Declare Result</DialogTitle>
       </DialogHeaderRow>
 
-      <DialogScrollBody className="flex flex-col gap-4">
-        <div>
-          <p className="text-[13px] font-medium text-white">How You Want to Proceed</p>
-          <div className="mt-3 flex gap-3">
-            <button
-              type="button"
-              onClick={() => setProceedType('award')}
-              className={proceedButtonClass(isAward)}
-              aria-pressed={isAward}
-            >
-              <CdnIcon src={declareAwardIconUrl} className="h-7 w-7" />
-              <span className="text-[13px] font-bold uppercase">Award</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setProceedType('draw')}
-              className={proceedButtonClass(isDraw)}
-              aria-pressed={isDraw}
-            >
-              <CdnIcon src={declareDrawIconUrl} className="h-7 w-7" />
-              <span className="text-[13px] font-bold uppercase">Draw</span>
-            </button>
-          </div>
-        </div>
-
-        {isDraw && (
-          <p className="border-border-subtle bg-surface text-muted rounded-lg border px-3 py-2.5 text-[12px] leading-snug">
-            This will declare the match a <span className="font-semibold text-white">draw</span>. This action cannot be undone.
-          </p>
-        )}
-
-        {isAward ? (
-          <>
-            <div>
-              <p className="text-[13px] font-medium text-white">Choose Winner Team</p>
-              <div className="mt-3 flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setWinnerTeamId(String(homeTeamId))}
-                  className={teamCardClass(winnerTeamId === String(homeTeamId))}
-                  aria-pressed={winnerTeamId === String(homeTeamId)}
-                >
-                  <TeamLogo name={teamAName} logo={teamALogo} variant="dialog" />
-                  <span className="text-center text-[12px] font-bold uppercase">{teamAName || 'Team A'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setWinnerTeamId(String(awayTeamId))}
-                  className={teamCardClass(winnerTeamId === String(awayTeamId))}
-                  aria-pressed={winnerTeamId === String(awayTeamId)}
-                >
-                  <TeamLogo name={teamBName} logo={teamBLogo} variant="dialog" />
-                  <span className="text-center text-[12px] font-bold uppercase">{teamBName || 'Team B'}</span>
-                </button>
-              </div>
+      <DialogScrollBody>
+        <FormStack density="compact">
+          <DialogFormSection label="How You Want to Proceed" controlOffset="md">
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setProceedType('award')}
+                className={proceedButtonClass(isAward)}
+                aria-pressed={isAward}
+              >
+                <CdnIcon src={declareAwardIconUrl} className="h-7 w-7" />
+                <span className="text-[13px] font-bold uppercase">Award</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setProceedType('draw')}
+                className={proceedButtonClass(isDraw)}
+                aria-pressed={isDraw}
+              >
+                <CdnIcon src={declareDrawIconUrl} className="h-7 w-7" />
+                <span className="text-[13px] font-bold uppercase">Draw</span>
+              </button>
             </div>
+          </DialogFormSection>
 
-            <div>
-              <label htmlFor="declare-result-note" className="text-[13px] font-medium text-white">
-                Note
-              </label>
-              <textarea
-                id="declare-result-note"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Write Here..."
-                rows={3}
-                className="bg-surface-raised placeholder:text-muted/47 focus-visible:ring-brand mt-2 w-full resize-none rounded-[8px] border border-[#141412] px-4 py-3 text-[14px] text-white focus:ring-2 focus:outline-none"
-              />
-            </div>
-          </>
-        ) : null}
+          {isDraw && (
+            <p className="border-border-subtle bg-surface text-muted rounded-lg border px-3 py-2.5 text-[12px] leading-snug">
+              This will declare the match a <span className="font-semibold text-white">draw</span>. This action cannot be undone.
+            </p>
+          )}
+
+          {isAward ? (
+            <>
+              <DialogFormSection label="Choose Winner Team" controlOffset="md">
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setWinnerTeamId(String(homeTeamId))}
+                    className={teamCardClass(winnerTeamId === String(homeTeamId))}
+                    aria-pressed={winnerTeamId === String(homeTeamId)}
+                  >
+                    <TeamLogo name={teamAName} logo={teamALogo} variant="dialog" />
+                    <span className="text-center text-[12px] font-bold uppercase">{teamAName || 'Team A'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setWinnerTeamId(String(awayTeamId))}
+                    className={teamCardClass(winnerTeamId === String(awayTeamId))}
+                    aria-pressed={winnerTeamId === String(awayTeamId)}
+                  >
+                    <TeamLogo name={teamBName} logo={teamBLogo} variant="dialog" />
+                    <span className="text-center text-[12px] font-bold uppercase">{teamBName || 'Team B'}</span>
+                  </button>
+                </div>
+              </DialogFormSection>
+
+              <DialogFormSection label="Note" controlOffset="sm">
+                <Textarea
+                  id="declare-result-note"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Write Here..."
+                  rows={3}
+                  className="min-h-0 resize-none"
+                />
+              </DialogFormSection>
+            </>
+          ) : null}
+        </FormStack>
       </DialogScrollBody>
 
       <DialogSaveButton disabled={!canApply} onClick={handleApply}>

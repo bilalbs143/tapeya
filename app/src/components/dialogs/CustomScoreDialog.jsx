@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { useDialog } from '@/context/DialogContext';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 
@@ -21,19 +22,21 @@ export function CustomScoreDialog({ onSubmit }) {
       <DialogHeaderRow>
         <DialogTitle className={dialogPrimaryTitleClass}>Add Score</DialogTitle>
       </DialogHeaderRow>
-      <DialogScrollBody className="flex flex-col">
-        <FormField htmlFor="custom-score-input" label="Custom Score">
-          <Input
-            id="custom-score-input"
-            type="number"
-            min={0}
-            max={99}
-            placeholder="Enter Custom Score"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            className="input-no-spinner !border-brand !mb-0"
-          />
-        </FormField>
+      <DialogScrollBody>
+        <FormStack density="compact">
+          <FormField htmlFor="custom-score-input" label="Custom Score">
+            <Input
+              id="custom-score-input"
+              type="number"
+              min={0}
+              max={99}
+              placeholder="Enter Custom Score"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              className="input-no-spinner !border-brand"
+            />
+          </FormField>
+        </FormStack>
       </DialogScrollBody>
       <DialogSaveButton disabled={!String(value).trim()} onClick={handleDone}>
         Done

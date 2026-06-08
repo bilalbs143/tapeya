@@ -9,6 +9,7 @@ import { useDialog } from '@/context/DialogContext';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { SHOT_DIRECTION_ZONES, SHOT_ZONE_GEOMETRY } from '@/lib/utils/shotAreaUtils';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { FormStack } from '@/ui/form/FormStack';
 
 export { WagonWheelChart as ShotDirectionStats } from '@/components/scoring/WagonWheelChart';
 
@@ -137,16 +138,18 @@ export function ShotAreaDialog({ onSelect, title = 'Select Shot Area', stadiumSr
       <DialogHeaderRow>
         <DialogTitle className={`${dialogPrimaryTitleClass} w-full text-center`}>{title}</DialogTitle>
       </DialogHeaderRow>
-      <DialogScrollBody className="flex flex-col items-center gap-4 py-4">
-        <ShotDirectionPicker
-          zones={zonesProp}
-          stadiumSrc={stadiumSrc}
-          onSelect={(zoneId) => {
-            onSelect?.(zoneId);
-            closeDialog();
-          }}
-          className="max-h-[50vh]"
-        />
+      <DialogScrollBody className="py-4">
+        <FormStack density="compact" className="items-center">
+          <ShotDirectionPicker
+            zones={zonesProp}
+            stadiumSrc={stadiumSrc}
+            onSelect={(zoneId) => {
+              onSelect?.(zoneId);
+              closeDialog();
+            }}
+            className="max-h-[50vh]"
+          />
+        </FormStack>
       </DialogScrollBody>
     </>
   );

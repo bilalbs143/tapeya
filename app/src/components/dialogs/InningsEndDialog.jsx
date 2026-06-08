@@ -1,5 +1,6 @@
 import { useDialog } from '@/context/DialogContext';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { FormStack } from '@/ui/form/FormStack';
 
 function reasonDescription({ reason, matchOvers, battingTeamName }) {
   if (reason === 'target_reached') {
@@ -44,38 +45,40 @@ export function InningsEndDialog({
         <DialogTitle className={dialogPrimaryTitleClass}>{isMatchOver ? 'Match Over' : 'Innings Complete'}</DialogTitle>
       </DialogHeaderRow>
 
-      <DialogScrollBody className="flex flex-col text-center">
-        {isMatchOver && matchResult ? (
-          <>
-            <p className="text-brand text-[12px] font-bold tracking-wide uppercase">Match result</p>
-            <DialogTitle className="mt-3 text-[16px] leading-snug font-bold text-white capitalize">
-              {matchResult.tie ? matchResult.titleLine : `${matchResult.titleLine} ${matchResult.marginLine ?? ''}`.trim()}
-            </DialogTitle>
-            {!matchResult.tie && matchResult.scoresLine ? (
-              <p className="text-muted mt-3 text-[13px] leading-snug">{matchResult.scoresLine}</p>
-            ) : null}
-            {matchResult.tie && matchResult.detailLine ? (
-              <p className="text-muted mt-3 text-[13px] leading-snug">{matchResult.detailLine}</p>
-            ) : null}
-          </>
-        ) : isMatchOver ? (
-          <>
-            <DialogTitle className="text-[14px] font-bold text-white">Match Ended</DialogTitle>
-            <p className="text-muted mt-2 text-[13px] leading-snug">
-              {reasonDescription({ reason, matchOvers, battingTeamName })}
-            </p>
-          </>
-        ) : (
-          <>
-            <DialogTitle className="text-[14px] font-bold text-white">Innings Ended</DialogTitle>
-            <p className="text-muted mt-2 text-[13px] leading-snug">
-              The first innings is complete. Continue when you are ready to set up the second innings.
-            </p>
-            <p className="text-muted mt-2 text-[13px] leading-snug">
-              {reasonDescription({ reason, matchOvers, battingTeamName })}
-            </p>
-          </>
-        )}
+      <DialogScrollBody>
+        <FormStack density="compact" className="text-center">
+          {isMatchOver && matchResult ? (
+            <>
+              <p className="text-brand text-[12px] font-bold tracking-wide uppercase">Match result</p>
+              <DialogTitle className="mt-3 text-[16px] leading-snug font-bold text-white capitalize">
+                {matchResult.tie ? matchResult.titleLine : `${matchResult.titleLine} ${matchResult.marginLine ?? ''}`.trim()}
+              </DialogTitle>
+              {!matchResult.tie && matchResult.scoresLine ? (
+                <p className="text-muted mt-3 text-[13px] leading-snug">{matchResult.scoresLine}</p>
+              ) : null}
+              {matchResult.tie && matchResult.detailLine ? (
+                <p className="text-muted mt-3 text-[13px] leading-snug">{matchResult.detailLine}</p>
+              ) : null}
+            </>
+          ) : isMatchOver ? (
+            <>
+              <DialogTitle className="text-[14px] font-bold text-white">Match Ended</DialogTitle>
+              <p className="text-muted mt-2 text-[13px] leading-snug">
+                {reasonDescription({ reason, matchOvers, battingTeamName })}
+              </p>
+            </>
+          ) : (
+            <>
+              <DialogTitle className="text-[14px] font-bold text-white">Innings Ended</DialogTitle>
+              <p className="text-muted mt-2 text-[13px] leading-snug">
+                The first innings is complete. Continue when you are ready to set up the second innings.
+              </p>
+              <p className="text-muted mt-2 text-[13px] leading-snug">
+                {reasonDescription({ reason, matchOvers, battingTeamName })}
+              </p>
+            </>
+          )}
+        </FormStack>
       </DialogScrollBody>
 
       <DialogSaveButton onClick={handleContinue}>Continue</DialogSaveButton>

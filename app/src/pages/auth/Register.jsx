@@ -9,6 +9,8 @@ import { extractOtpFromAuthResponse, setOtpPreview } from '@/lib/otpPreviewSessi
 import { registerSchema } from '@/lib/validations/auth';
 import { useRegisterMutation } from '@/store/api/authApi';
 import { Button } from '@/ui/Button';
+import { FormActions } from '@/ui/form/FormActions';
+import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import { PhoneInput } from '@/ui/PhoneInput';
@@ -76,10 +78,12 @@ export default function Register() {
           Live Cricket &amp; Instant Updates, Anytime!
         </p>
 
-        <form
+        <FormStack
+          as="form"
+          density="compact"
+          className="mt-10 w-full max-w-[358px] lg:mt-14 lg:max-w-[400px] lg:px-0"
           onSubmit={handleSubmit(onSubmit)}
           onFocus={resetRegisterMutation}
-          className="mt-10 w-full max-w-[358px] space-y-4 lg:mt-14 lg:max-w-[400px] lg:px-0"
         >
           <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">Create an account</h2>
 
@@ -144,11 +148,13 @@ export default function Register() {
             </p>
           )}
 
-          <Button type="submit" disabled={busy} variant="auth" className="mt-4 lg:w-full">
-            {busy ? 'Signing up…' : 'Sign up'}
-          </Button>
+          <FormActions align="stack" className="pt-0">
+            <Button type="submit" disabled={busy} variant="auth" className="lg:w-full">
+              {busy ? 'Signing up…' : 'Sign up'}
+            </Button>
+          </FormActions>
 
-          <div className="mt-6 mb-6 space-y-3 text-center">
+          <div className="mb-6 space-y-3 text-center">
             <p className="text-muted text-[14px]">
               Already have an account?{' '}
               <Link
@@ -176,7 +182,7 @@ export default function Register() {
               .
             </p>
           </div>
-        </form>
+        </FormStack>
       </div>
     </>
   );

@@ -16,6 +16,7 @@ import {
   DialogScrollBody,
   DialogTitle,
 } from '@/ui/Dialog';
+import { FormStack } from '@/ui/form/FormStack';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -426,53 +427,55 @@ export default function ScoringSquadPlayerPickerDialog({
         </div>
       ) : null}
 
-      <DialogScrollBody className={`flex flex-col gap-3 ${showSquadFlowFooter ? '!pb-2' : ''}`}>
-        {players.length === 0 && <p className="text-muted py-6 text-center text-sm">No players available</p>}
+      <DialogScrollBody className={showSquadFlowFooter ? '!pb-2' : ''}>
+        <FormStack density="compact">
+          {players.length === 0 && <p className="text-muted py-6 text-center text-sm">No players available</p>}
 
-        {players.map((b) =>
-          showSquadSetupChrome ? (
-            <SquadSetupPlayerRow
-              key={b.id}
-              player={b}
-              isCaptain={captainId != null && String(captainId) === String(b.id)}
-              isWicketKeeper={wicketKeeperId != null && String(wicketKeeperId) === String(b.id)}
-              isPlaying={b.role === 'playing'}
-              onSetRole={handleSetRole}
-              onSetCaptain={setCaptainId}
-              onSetWicketKeeper={setWicketKeeperId}
-              onRemove={onRemovePlayerFromSquad ? handleRemovePlayer : null}
-            />
-          ) : isBatsman ? (
-            <BatsmanSquadPickerRow
-              key={b.id}
-              b={b}
-              ballHistory={ballHistory}
-              hideSquadSetup={hideSquadSetup}
-              squadEditOnly={squadEditOnly}
-              replaceStrikerMode={replaceStrikerMode}
-              strikerId={strikerId}
-              nonStrikerId={nonStrikerId}
-              canAddMoreBatsmen={canAddMoreBatsmen}
-              isPlayerBattingOrOut={isPlayerBattingOrOut}
-              getBatsmanDisplayStats={getBatsmanDisplayStats}
-              onPickBatsman={onPickBatsman}
-              onSetRole={handleSetRole}
-            />
-          ) : (
-            <BowlerSquadPickerRow
-              key={b.id}
-              b={b}
-              hideSquadSetup={hideSquadSetup}
-              squadEditOnly={squadEditOnly}
-              bowlersInTable={bowlersInTable}
-              replaceActiveBowlerMode={replaceActiveBowlerMode}
-              activeBowlerId={activeBowlerId}
-              onReplaceActiveBowlerPick={onReplaceActiveBowlerPick}
-              onSelectBowlerForNextOver={onSelectBowlerForNextOver}
-              onSetRole={handleSetRole}
-            />
-          ),
-        )}
+          {players.map((b) =>
+            showSquadSetupChrome ? (
+              <SquadSetupPlayerRow
+                key={b.id}
+                player={b}
+                isCaptain={captainId != null && String(captainId) === String(b.id)}
+                isWicketKeeper={wicketKeeperId != null && String(wicketKeeperId) === String(b.id)}
+                isPlaying={b.role === 'playing'}
+                onSetRole={handleSetRole}
+                onSetCaptain={setCaptainId}
+                onSetWicketKeeper={setWicketKeeperId}
+                onRemove={onRemovePlayerFromSquad ? handleRemovePlayer : null}
+              />
+            ) : isBatsman ? (
+              <BatsmanSquadPickerRow
+                key={b.id}
+                b={b}
+                ballHistory={ballHistory}
+                hideSquadSetup={hideSquadSetup}
+                squadEditOnly={squadEditOnly}
+                replaceStrikerMode={replaceStrikerMode}
+                strikerId={strikerId}
+                nonStrikerId={nonStrikerId}
+                canAddMoreBatsmen={canAddMoreBatsmen}
+                isPlayerBattingOrOut={isPlayerBattingOrOut}
+                getBatsmanDisplayStats={getBatsmanDisplayStats}
+                onPickBatsman={onPickBatsman}
+                onSetRole={handleSetRole}
+              />
+            ) : (
+              <BowlerSquadPickerRow
+                key={b.id}
+                b={b}
+                hideSquadSetup={hideSquadSetup}
+                squadEditOnly={squadEditOnly}
+                bowlersInTable={bowlersInTable}
+                replaceActiveBowlerMode={replaceActiveBowlerMode}
+                activeBowlerId={activeBowlerId}
+                onReplaceActiveBowlerPick={onReplaceActiveBowlerPick}
+                onSelectBowlerForNextOver={onSelectBowlerForNextOver}
+                onSetRole={handleSetRole}
+              />
+            ),
+          )}
+        </FormStack>
       </DialogScrollBody>
 
       {showSquadFlowFooter ? (

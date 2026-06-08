@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, useForm } from 'react-hook-form';
+
 import { BaseDialog } from '@/components/dialogs/BaseDialog';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
 import { enumNameToValue } from '@/lib/utils/enumUtils';
 import { EMPTY_FILE_UPLOAD, fileUploadValueFromUrl } from '@/lib/utils/fileUploadUtils';
-import { updateProfileSchema } from '@/lib/validations/auth';
+import { updateProfileSchema, userEditFormSchema } from '@/lib/validations/auth';
 import { useGetMeQuery, useUpdateProfileMutation } from '@/store/api/authApi';
 import { usePlayerProfileEnums } from '@/store/api/enumApi';
 import { useAppDispatch } from '@/store/hooks';
@@ -15,6 +18,7 @@ import { CountryCityFields } from '@/ui/CountryCityFields';
 import { DatePicker } from '@/ui/DatePicker';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
 import { FileUploadField } from '@/ui/FileUploadField';
+import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import {
@@ -31,19 +35,14 @@ import {
   selectViewportInputClass,
 } from '@/ui/Select';
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
+const USER_EDIT_FORM_ID = 'user-edit-form';
 
 const NICKNAME_MAX = 50;
 
-/**
- * Sentinel for "Not set" in profile Selects (Radix needs a non-empty value).
- * Maps to '' in state and null in the API, same pattern as playing role.
- */
+/** Sentinel for "Not set" in profile Selects (Radix needs a non-empty value). */
 const PROFILE_FIELD_NONE = '__none__';
 
-const DEFAULT_FIELDS = {
+const DEFAULT_VALUES = {
   name: '',
   country: DEFAULT_COUNTRY,
   city: '',
@@ -55,9 +54,38 @@ const DEFAULT_FIELDS = {
   email: '',
 };
 
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
+function ProfileEnumSelect({ label, htmlFor, value, onChange, options }) {
+  return (
+    <FormField label={label} htmlFor={htmlFor}>
+      <Select value={value || PROFILE_FIELD_NONE} onValueChange={(v) => onChange(v === PROFILE_FIELD_NONE ? '' : v)}>
+        <SelectTrigger id={htmlFor} className={`max-w-none ${selectTriggerInputClass}`}>
+          <SelectValue placeholder={`Select ${label}`} />
+        </SelectTrigger>
+        <SelectContent className={`z-[100] ${selectContentInputClass}`} viewportClassName={selectViewportInputClass}>
+          <SelectItem
+            value={PROFILE_FIELD_NONE}
+            className={selectItemInputClass}
+            textClassName={selectItemTextInputClass}
+            indicatorClassName={selectItemIndicatorInputClass}
+          >
+            Not Set
+          </SelectItem>
+          {options.map((opt) => (
+            <SelectItem
+              key={opt.value}
+              value={opt.value}
+              className={selectItemInputClass}
+              textClassName={selectItemTextInputClass}
+              indicatorClassName={selectItemIndicatorInputClass}
+            >
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </FormField>
+  );
+}
 
 export function UserEdit({ open, onOpenChange }) {
   const dispatch = useAppDispatch();
@@ -65,22 +93,35 @@ export function UserEdit({ open, onOpenChange }) {
   const user = meData?.data ?? null;
   const { battingStyleOptions, bowlingStyleOptions, playingRoleOptions } = usePlayerProfileEnums();
   const toast = useToast();
-  const [fields, setFields] = useState(DEFAULT_FIELDS);
-  const [nicknameError, setNicknameError] = useState('');
   const [avatarUpload, setAvatarUpload] = useState(EMPTY_FILE_UPLOAD);
 
-  const setField = (key) => (value) => setFields((prev) => ({ ...prev, [key]: value }));
+  const {
+    control,
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    setValue,
+    setError,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(userEditFormSchema),
+    defaultValues: DEFAULT_VALUES,
+    mode: 'onChange',
+  });
+
+  const country = watch('country');
+  const city = watch('city');
 
   const [updateProfile, { isLoading: isSaving }] = useUpdateProfileMutation();
 
-  // Pre-fill fields when the dialog opens.
   useEffect(() => {
     if (!open || !user) return;
     const batting = enumNameToValue(user.batting_style_enum) || user.batting_style;
     const bowling = enumNameToValue(user.bowling_style_enum) || user.bowling_style;
     const playing = enumNameToValue(user.playing_role_enum);
     const countryFromProfile = user.country && String(user.country).trim();
-    setFields({
+    reset({
       name: user.name ?? '',
       country: countryFromProfile || DEFAULT_COUNTRY,
       city: user.city ?? '',
@@ -91,37 +132,26 @@ export function UserEdit({ open, onOpenChange }) {
       playingRole: playing && playingRoleOptions.some((o) => o.value === playing) ? playing : '',
       email: user.email ?? '',
     });
-    setNicknameError('');
     setAvatarUpload(fileUploadValueFromUrl(user.avatar_url));
-  }, [open, user, battingStyleOptions, bowlingStyleOptions, playingRoleOptions]);
+  }, [open, user, battingStyleOptions, bowlingStyleOptions, playingRoleOptions, reset]);
 
-  // ── Save ────────────────────────────────────────────────────────────────
-
-  const handleSave = async () => {
-    setNicknameError('');
-
+  const onSubmit = async (data) => {
     const parsed = updateProfileSchema.safeParse({
-      name: fields.name.trim() || undefined,
-      nickname: fields.nickname.trim(),
-      email: fields.email.trim() || undefined,
-      date_of_birth: fields.dateOfBirth || undefined,
-      bowling_style: fields.bowlingStyle || null,
-      batting_style: fields.battingStyle || null,
-      playing_role: fields.playingRole || null,
-      country: fields.country.trim() || undefined,
-      city: fields.city.trim() || undefined,
+      name: data.name.trim() || undefined,
+      nickname: data.nickname.trim(),
+      email: data.email.trim() || undefined,
+      date_of_birth: data.dateOfBirth || undefined,
+      bowling_style: data.bowlingStyle || null,
+      batting_style: data.battingStyle || null,
+      playing_role: data.playingRole || null,
+      country: data.country.trim() || undefined,
+      city: data.city.trim() || undefined,
     });
 
-    if (!parsed.success) {
-      const nicknameIssue = parsed.error.issues.find((i) => i.path.includes('nickname'));
-      if (nicknameIssue?.message) setNicknameError(nicknameIssue.message);
-      return;
-    }
+    if (!parsed.success) return;
 
-    // Strip undefined and empty strings. Explicit nulls (role / styles) pass through.
     const toSend = Object.fromEntries(Object.entries(parsed.data).filter(([, v]) => v !== undefined && v !== ''));
 
-    // Avatar: File → multipart POST; null → JSON PATCH with avatar: null; omit → unchanged.
     const avatarFile = avatarUpload.files[0];
     if (avatarFile instanceof File) {
       toSend.avatar = avatarFile;
@@ -138,17 +168,15 @@ export function UserEdit({ open, onOpenChange }) {
       setAvatarUpload(fileUploadValueFromUrl(updatedUser?.avatar_url));
       onOpenChange?.(false);
     } catch (err) {
-      const errors = err?.data?.errors;
-      const nicknameMsg = Array.isArray(errors?.nickname) ? errors.nickname[0] : null;
+      const apiErrors = err?.data?.errors;
+      const nicknameMsg = Array.isArray(apiErrors?.nickname) ? apiErrors.nickname[0] : null;
       if (nicknameMsg) {
-        setNicknameError(nicknameMsg);
+        setError('nickname', { message: nicknameMsg });
         return;
       }
       toast.error(getApiErrorMessage(err, 'Failed to save profile.'));
     }
   };
-
-  // ── Render ───────────────────────────────────────────────────────────────
 
   return (
     <BaseDialog open={open} onOpenChange={onOpenChange} height="!h-[min(90vh,600px)]">
@@ -157,7 +185,7 @@ export function UserEdit({ open, onOpenChange }) {
       </DialogHeaderRow>
 
       <DialogScrollBody>
-        <div className="flex flex-col gap-4">
+        <FormStack as="form" id={USER_EDIT_FORM_ID} onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col items-center gap-2">
             <FileUploadField
               variant="avatar"
@@ -176,9 +204,9 @@ export function UserEdit({ open, onOpenChange }) {
               id="name"
               type="text"
               placeholder="Full Name"
-              value={fields.name}
-              onChange={(e) => setField('name')(e.target.value)}
               className="max-w-none"
+              error={errors.name?.message}
+              {...register('name')}
             />
           </FormField>
 
@@ -187,145 +215,94 @@ export function UserEdit({ open, onOpenChange }) {
               id="nickname"
               type="text"
               placeholder="Letters, Numbers, Underscores Only"
-              value={fields.nickname}
-              onChange={(e) => {
-                setField('nickname')(e.target.value);
-                setNicknameError('');
-              }}
               className="max-w-none"
               maxLength={NICKNAME_MAX}
-              error={nicknameError || undefined}
+              error={errors.nickname?.message}
+              {...register('nickname')}
             />
           </FormField>
 
           <FormField label="Date Of Birth" htmlFor="dob">
-            <DatePicker
-              id="dob"
-              placeholder="MM-DD-YYYY"
-              value={fields.dateOfBirth}
-              onChange={setField('dateOfBirth')}
-              className="max-w-none"
+            <Controller
+              name="dateOfBirth"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  id="dob"
+                  placeholder="MM-DD-YYYY"
+                  value={field.value}
+                  onChange={field.onChange}
+                  className="max-w-none"
+                />
+              )}
             />
           </FormField>
 
-          <FormField label="Playing Role" htmlFor="playing-role">
-            <Select
-              value={fields.playingRole || PROFILE_FIELD_NONE}
-              onValueChange={(v) => setField('playingRole')(v === PROFILE_FIELD_NONE ? '' : v)}
-            >
-              <SelectTrigger id="playing-role" className={`max-w-none ${selectTriggerInputClass}`}>
-                <SelectValue placeholder="Select Playing Role" />
-              </SelectTrigger>
-              <SelectContent className={`z-[100] ${selectContentInputClass}`} viewportClassName={selectViewportInputClass}>
-                <SelectItem
-                  value={PROFILE_FIELD_NONE}
-                  className={selectItemInputClass}
-                  textClassName={selectItemTextInputClass}
-                  indicatorClassName={selectItemIndicatorInputClass}
-                >
-                  Not Set
-                </SelectItem>
-                {playingRoleOptions.map((opt) => (
-                  <SelectItem
-                    key={opt.value}
-                    value={opt.value}
-                    className={selectItemInputClass}
-                    textClassName={selectItemTextInputClass}
-                    indicatorClassName={selectItemIndicatorInputClass}
-                  >
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </FormField>
+          <Controller
+            name="playingRole"
+            control={control}
+            render={({ field }) => (
+              <ProfileEnumSelect
+                htmlFor="playing-role"
+                label="Playing Role"
+                value={field.value}
+                onChange={field.onChange}
+                options={playingRoleOptions}
+              />
+            )}
+          />
 
-          <FormField label="Batting Style" htmlFor="batting-style">
-            <Select
-              value={fields.battingStyle || PROFILE_FIELD_NONE}
-              onValueChange={(v) => setField('battingStyle')(v === PROFILE_FIELD_NONE ? '' : v)}
-            >
-              <SelectTrigger id="batting-style" className={`max-w-none ${selectTriggerInputClass}`}>
-                <SelectValue placeholder="Select Batting Style" />
-              </SelectTrigger>
-              <SelectContent className={`z-[100] ${selectContentInputClass}`} viewportClassName={selectViewportInputClass}>
-                <SelectItem
-                  value={PROFILE_FIELD_NONE}
-                  className={selectItemInputClass}
-                  textClassName={selectItemTextInputClass}
-                  indicatorClassName={selectItemIndicatorInputClass}
-                >
-                  Not Set
-                </SelectItem>
-                {battingStyleOptions.map((opt) => (
-                  <SelectItem
-                    key={opt.value}
-                    value={opt.value}
-                    className={selectItemInputClass}
-                    textClassName={selectItemTextInputClass}
-                    indicatorClassName={selectItemIndicatorInputClass}
-                  >
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </FormField>
+          <Controller
+            name="battingStyle"
+            control={control}
+            render={({ field }) => (
+              <ProfileEnumSelect
+                htmlFor="batting-style"
+                label="Batting Style"
+                value={field.value}
+                onChange={field.onChange}
+                options={battingStyleOptions}
+              />
+            )}
+          />
 
-          <FormField label="Bowling Style" htmlFor="bowling-style">
-            <Select
-              value={fields.bowlingStyle || PROFILE_FIELD_NONE}
-              onValueChange={(v) => setField('bowlingStyle')(v === PROFILE_FIELD_NONE ? '' : v)}
-            >
-              <SelectTrigger id="bowling-style" className={`max-w-none ${selectTriggerInputClass}`}>
-                <SelectValue placeholder="Select Bowling Style" />
-              </SelectTrigger>
-              <SelectContent className={`z-[100] ${selectContentInputClass}`} viewportClassName={selectViewportInputClass}>
-                <SelectItem
-                  value={PROFILE_FIELD_NONE}
-                  className={selectItemInputClass}
-                  textClassName={selectItemTextInputClass}
-                  indicatorClassName={selectItemIndicatorInputClass}
-                >
-                  Not Set
-                </SelectItem>
-                {bowlingStyleOptions.map((opt) => (
-                  <SelectItem
-                    key={opt.value}
-                    value={opt.value}
-                    className={selectItemInputClass}
-                    textClassName={selectItemTextInputClass}
-                    indicatorClassName={selectItemIndicatorInputClass}
-                  >
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </FormField>
+          <Controller
+            name="bowlingStyle"
+            control={control}
+            render={({ field }) => (
+              <ProfileEnumSelect
+                htmlFor="bowling-style"
+                label="Bowling Style"
+                value={field.value}
+                onChange={field.onChange}
+                options={bowlingStyleOptions}
+              />
+            )}
+          />
 
           <FormField label="Email" htmlFor="email">
             <Input
               id="email"
               type="email"
               placeholder="Enter Email"
-              value={fields.email}
-              onChange={(e) => setField('email')(e.target.value)}
               className="max-w-none"
+              error={errors.email?.message}
+              {...register('email')}
             />
           </FormField>
 
           <CountryCityFields
-            country={fields.country}
-            city={fields.city}
-            onCountryChange={setField('country')}
-            onCityChange={setField('city')}
+            country={country ?? ''}
+            city={city ?? ''}
+            onCountryChange={(v) => setValue('country', v, { shouldValidate: true })}
+            onCityChange={(v) => setValue('city', v, { shouldValidate: true })}
             enabled={open}
+            density="relaxed"
           />
-        </div>
+        </FormStack>
       </DialogScrollBody>
 
-      <DialogSaveButton onClick={handleSave} disabled={isSaving}>
+      <DialogSaveButton form={USER_EDIT_FORM_ID} type="submit" disabled={isSaving}>
         {isSaving ? 'Saving…' : 'Save'}
       </DialogSaveButton>
     </BaseDialog>

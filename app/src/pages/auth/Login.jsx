@@ -19,6 +19,8 @@ import { useAppDispatch } from '@/store/hooks';
 import { clearCredentials, setCredentials } from '@/store/slices/authSlice';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 import { Button } from '@/ui/Button';
+import { FormActions } from '@/ui/form/FormActions';
+import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { PhoneInput } from '@/ui/PhoneInput';
 
@@ -259,7 +261,7 @@ function ProfilePicker({ profiles, tappingProfile, busy, onTap, onRemove, onUseO
 
 function PhoneForm({ control, errors, error, busy, hasSavedProfiles, onSubmit, onFocus, onBack }) {
   return (
-    <form onSubmit={onSubmit} onFocus={onFocus} className="space-y-4 lg:mx-auto lg:max-w-[400px]">
+    <FormStack as="form" density="compact" className="lg:mx-auto lg:max-w-[400px]" onSubmit={onSubmit} onFocus={onFocus}>
       <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">Login With Your Account</h2>
 
       {hasSavedProfiles && (
@@ -282,9 +284,11 @@ function PhoneForm({ control, errors, error, busy, hasSavedProfiles, onSubmit, o
         </p>
       )}
 
-      <Button type="submit" disabled={busy} variant="auth" className="mt-4 lg:w-full">
-        {busy ? 'Signing in…' : 'Login'}
-      </Button>
-    </form>
+      <FormActions align="stack" className="pt-0">
+        <Button type="submit" disabled={busy} variant="auth" className="lg:w-full">
+          {busy ? 'Signing in…' : 'Login'}
+        </Button>
+      </FormActions>
+    </FormStack>
   );
 }

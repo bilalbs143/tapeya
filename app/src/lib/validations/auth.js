@@ -72,6 +72,34 @@ export const updateProfileSchema = z.object({
   city: z.string().optional(),
 });
 
+/** RHF form shape for UserEdit dialog (camelCase field names). */
+export const userEditFormSchema = z.object({
+  name: z.union([
+    z.literal(''),
+    z.string().trim().min(1, 'Name is required').regex(NAME_TEXT_ONLY_REGEX, 'Name may only contain letters and spaces'),
+  ]),
+  nickname: nicknameSchema,
+  email: z
+    .string()
+    .trim()
+    .superRefine((value, ctx) => {
+      if (!value) return;
+      const result = emailSchema.safeParse(value);
+      if (!result.success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: result.error.issues[0]?.message ?? 'Please enter a valid email address',
+        });
+      }
+    }),
+  dateOfBirth: z.string(),
+  battingStyle: z.string(),
+  bowlingStyle: z.string(),
+  playingRole: z.string(),
+  country: z.string(),
+  city: z.string(),
+});
+
 export const otpSchema = z.object({
   code: z.string().min(1, 'Code is required').regex(/^\d+$/, 'Code must contain only digits').length(4, 'Code must be 4 digits'),
 });

@@ -5,6 +5,7 @@ cross-component duplication, enforce consistent patterns, and standardize the de
 without changing any runtime behaviour. Each step is independently safe to ship.
 
 **Two phases:**
+
 - **Phase A (Steps 1–15):** Reorganise the `lib/` layer — file moves, merges, deduplication.
 - **Phase B (Steps 16–27):** Broader codebase cleanup — inline logic extraction, missing-utility
   adoption, pattern standardization, and design-token consolidation.
@@ -101,6 +102,7 @@ src/lib/
 **Risk: Zero.** Nothing imports these.
 
 **Files to delete:**
+
 - `src/lib/constants.js` — exports `APP_NAME`, `APP_ID`; zero importers
 - `src/lib/constants/ui.js` — exports `DASH = '—'`; zero importers
 
@@ -112,13 +114,14 @@ src/lib/
 
 Three files sit loose at `src/lib/` but are utility functions that belong in `utils/`:
 
-| File | Move to | Merge into |
-|---|---|---|
-| `lib/profileStrength.js` | `lib/utils/playerUtils.js` | Add `calculateProfileStrength` export |
-| `lib/playerRankingProfile.js` | `lib/utils/playerUtils.js` | Add `getProfileRankingParamsByPlayingRole` export |
-| `lib/mapSystemSettingsByKey.js` | `lib/utils/settingsUtils.js` (new) | New file, single export |
+| File                            | Move to                            | Merge into                                        |
+| ------------------------------- | ---------------------------------- | ------------------------------------------------- |
+| `lib/profileStrength.js`        | `lib/utils/playerUtils.js`         | Add `calculateProfileStrength` export             |
+| `lib/playerRankingProfile.js`   | `lib/utils/playerUtils.js`         | Add `getProfileRankingParamsByPlayingRole` export |
+| `lib/mapSystemSettingsByKey.js` | `lib/utils/settingsUtils.js` (new) | New file, single export                           |
 
 **Import path changes (2 files):**
+
 - `profileStrength.js` → 5 files: `from '@/lib/profileStrength'` → `from '@/lib/utils/playerUtils'`
 - `playerRankingProfile.js` → 1 file: update import path
 - `mapSystemSettingsByKey.js` → 3 files: `from '@/lib/mapSystemSettingsByKey'` → `from '@/lib/utils/settingsUtils'`
@@ -129,11 +132,11 @@ Three files sit loose at `src/lib/` but are utility functions that belong in `ut
 
 Three `constants/` files export **functions**, not just constants. Functions belong in `utils/`.
 
-| File | What's wrong | Action |
-|---|---|---|
-| `constants/dismissalGridIcons.js` | Exports only `getDismissalGridIconKey` (a function) | Move to `utils/dismissalUtils.js` (new) |
+| File                                   | What's wrong                                                                                | Action                                                      |
+| -------------------------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `constants/dismissalGridIcons.js`      | Exports only `getDismissalGridIconKey` (a function)                                         | Move to `utils/dismissalUtils.js` (new)                     |
 | `constants/dismissalCaughtVariants.js` | Exports constants + `injectCaughtDismissalVariants`, `isCaughtDismissalVariant` (functions) | Keep constants, move functions to `utils/dismissalUtils.js` |
-| `constants/dismissalGridShortcuts.js` | Exports constants + `appendDismissalGridShortcuts` (function) | Keep constants, move function to `utils/dismissalUtils.js` |
+| `constants/dismissalGridShortcuts.js`  | Exports constants + `appendDismissalGridShortcuts` (function)                               | Keep constants, move function to `utils/dismissalUtils.js`  |
 
 **Result:** New `src/lib/utils/dismissalUtils.js` containing the three extracted functions.
 Constants stay in their respective `constants/` files.
@@ -147,6 +150,7 @@ Constants stay in their respective `constants/` files.
 `phoneSchema` is defined independently in both `validations/auth.js` and `validations/tournamentRequest.js`.
 
 **Action:**
+
 - Extract shared `phoneSchema` into `validations/shared.js` (new file)
 - Import it in both `auth.js` and `tournamentRequest.js`
 
@@ -183,6 +187,7 @@ same domain as `liveStreamUtils.js`.
 to `YYYY-MM-DD`. They have slightly different implementations serving the same purpose.
 
 **Action:**
+
 - Verify both implementations handle the same edge cases (read both carefully)
 - Consolidate into `dateUtils.toApiDate` (it's the correctly-named, correctly-located one)
 - Remove `formatDateForApi` from `scoringUtils.js`
@@ -198,6 +203,7 @@ to `YYYY-MM-DD`. They have slightly different implementations serving the same p
 both apply `toFixed` with a `'—'` null fallback. The stat one is a single-decimal specialisation.
 
 **Action:**
+
 - Keep `displayUtils.formatDecimal` as the canonical version
 - Replace `matchPlayerStatsUtils.formatMatchStatRate` with a call to `formatDecimal(val, 1)`
 - Or keep `formatMatchStatRate` as a one-liner wrapper around `formatDecimal` for clarity
@@ -249,6 +255,7 @@ Both have 1 importer each, tightly coupled domain, and small file size.
 `extraRunOptions.EXTRA_RUN_OPTIONS`.
 
 **Action:**
+
 - Remove `RUNOUT_EXTRA_RUN_OPTIONS` from `runOutUtils.js`
 - Import `EXTRA_RUN_OPTIONS` from `lib/utils/extraRunOptions.js` in `runOutUtils.js`
 
@@ -260,12 +267,12 @@ Both have 1 importer each, tightly coupled domain, and small file size.
 
 A collection of single-function files can be absorbed into existing or new grouped files:
 
-| File | Action |
-|---|---|
-| `badgeUtils.js` (`formatCountBadge`) | Merge into `displayUtils.js` |
-| `enumUtils.js` (`enumNameToValue`) | Keep standalone — used across multiple domains |
-| `ballDisplay.js` (`getBallDisplay`) | Keep standalone — imported by both scoring + balls tab |
-| `dismissalSharedUtils.js` | Done in Step 9 |
+| File                                 | Action                                                 |
+| ------------------------------------ | ------------------------------------------------------ |
+| `badgeUtils.js` (`formatCountBadge`) | Merge into `displayUtils.js`                           |
+| `enumUtils.js` (`enumNameToValue`)   | Keep standalone — used across multiple domains         |
+| `ballDisplay.js` (`getBallDisplay`)  | Keep standalone — imported by both scoring + balls tab |
+| `dismissalSharedUtils.js`            | Done in Step 9                                         |
 
 ---
 
@@ -406,24 +413,24 @@ Step 7 requires careful manual verification before execution.
 
 ## Risk notes per step
 
-| Step | Risk | Mitigation |
-|---|---|---|
-| 1 | Zero — confirmed zero importers | Run lint after to confirm |
-| 2–6 | Very low — file moves + import updates | Lint after each step |
-| 7 | Medium — behavioural equivalence must be verified | Read both implementations side by side before deleting |
-| 8–14 | Low — consolidation only, no logic changes | Lint after each step |
+| Step | Risk                                              | Mitigation                                             |
+| ---- | ------------------------------------------------- | ------------------------------------------------------ |
+| 1    | Zero — confirmed zero importers                   | Run lint after to confirm                              |
+| 2–6  | Very low — file moves + import updates            | Lint after each step                                   |
+| 7    | Medium — behavioural equivalence must be verified | Read both implementations side by side before deleting |
+| 8–14 | Low — consolidation only, no logic changes        | Lint after each step                                   |
 
 ---
 
 ## Measuring success
 
-| Metric | Before | Target |
-|---|---|---|
-| Files in `lib/` root | 12 | 8 |
-| Files in `lib/utils/` | 38 | 28 |
-| Duplicate logic instances | 5 | 0 |
-| Functions in `constants/` | 3 files | 0 |
-| Dead files | 2 | 0 |
+| Metric                    | Before  | Target |
+| ------------------------- | ------- | ------ |
+| Files in `lib/` root      | 12      | 8      |
+| Files in `lib/utils/`     | 38      | 28     |
+| Duplicate logic instances | 5       | 0      |
+| Functions in `constants/` | 3 files | 0      |
+| Dead files                | 2       | 0      |
 
 ---
 
@@ -433,7 +440,7 @@ Step 7 requires careful manual verification before execution.
 
 **Goal:** Eliminate duplicated inline logic across components, enforce adoption of existing
 utilities, standardize UX patterns, and consolidate the design system. These are the technical
-debts that exist *before* the lib migration and should be resolved alongside it.
+debts that exist _before_ the lib migration and should be resolved alongside it.
 
 ---
 
@@ -442,6 +449,7 @@ debts that exist *before* the lib migration and should be resolved alongside it.
 `displayUtils.getInitials` exists but is only used in 2 of 6 call sites.
 
 **Problem locations:**
+
 - `pages/NotificationCenter.jsx` — full reimplementation (`.split(' ').filter().map().join()`)
 - `pages/scorecard/tabs/StatsTab.jsx` — local `getPlayerInitials()` (has a `// CURSOR` comment noting it should be merged)
 - `pages/ranking/Ranking.jsx` — inline `.slice(0, 2).toUpperCase()` in `AvatarFallback`
@@ -459,12 +467,14 @@ Strike rate `(runs / balls * 100).toFixed(N)` is computed inline in 4 separate f
 inconsistent precision.
 
 **Problem locations:**
+
 - `components/scoring/BatsmenTable.jsx` — standalone `calcSR()`, `toFixed(1)`
 - `pages/organizer/scoring/scoring-tabs/ScoringTab.jsx` — inline in `getBatsmanDisplayStats`, `toFixed(1)`
 - `pages/scorecard/ScorecardStatusDetails.jsx` — inline in `toBatter()` `useMemo`, `toFixed(2)` ← different precision
 - `pages/organizer/scoring/scoring-tabs/StatsTab.jsx` — inline, `toFixed(1)`
 
 **Action:**
+
 - Add `calculateStrikeRate(runs, balls, decimals = 1)` to `lib/utils/matchPlayerStatsUtils.js`
 - Returns `'—'` for 0 balls (consistent with other stat formatters)
 - Replace all 4 inline implementations
@@ -477,6 +487,7 @@ inconsistent precision.
 `ActivityFeedDetail.jsx` imports them directly from a page component — a structural anti-pattern.
 
 **Action:**
+
 - Move `formatCount` → `lib/format.js` (alongside `formatPrice`, `formatDate`)
 - Move `formatPostTimestamp` → `lib/utils/feedUtils.js` (new file) — it does date humanisation
   specific to the feed domain
@@ -487,12 +498,14 @@ inconsistent precision.
 ## Step 19 — Add `formatRelativeDate` to eliminate divergent humanized-date implementations
 
 **Problem:** Two files roll their own relative-time logic:
+
 - `pages/shop/MyOrders.jsx` — `getHumanizedDate()` (minutes/hours/days ago → falls back to `formatDate`)
 - `pages/NotificationCenter.jsx` — uses `new Date().toLocaleString()` with no humanization
 
 These produce different formats, different timezone handling, and different fallback behaviour.
 
 **Action:**
+
 - Add `formatRelativeDate(dateString)` to `lib/format.js`
 - Consistent logic: seconds/minutes/hours/days ago → fallback to `formatDate`
 - Replace `getHumanizedDate` in `MyOrders.jsx` and the `toLocaleString` call in `NotificationCenter.jsx`
@@ -504,6 +517,7 @@ These produce different formats, different timezone handling, and different fall
 `lib/format.js → formatPrice` is correctly used across all shop pages, but the pricing pages bypass it.
 
 **Problem locations:**
+
 - `pages/pricing/Pricing.jsx` — `{price.toLocaleString('en-PK')}` inline
 - `pages/pricing/PricingDetail.jsx` — `{price.toLocaleString('en-PK')}` inline
 
@@ -532,6 +546,7 @@ mapping 4 stat categories (run-scorers, wicket-takers, fours, sixes) to table ro
 even has a `// CURSOR: move to src/lib/utils/rankingUtils.js` comment at line 181 acknowledging this.
 
 **Action:**
+
 - Create `lib/utils/rankingUtils.js` (new file)
 - Extract shared logic into `buildStatsTotalRows(statType, data, nameMap)` accepting both API shapes
 - Both pages call the shared utility; page-specific API normalization stays in the page
@@ -548,6 +563,7 @@ even has a `// CURSOR: move to src/lib/utils/rankingUtils.js` comment at line 18
 3. `toast.error(hardcodedString)` — shop pages — bypass the API error message utility
 
 **Action:**
+
 - `Login.jsx`, `Register.jsx`: add `toast.error(getApiErrorMessage(err, ...))` — auth errors should surface
 - Shop pages using raw strings: replace with `getApiErrorMessage(err, fallback)`
 - Document the standard in a comment in `lib/apiErrors.js` as the canonical pattern
@@ -557,6 +573,7 @@ even has a `// CURSOR: move to src/lib/utils/rankingUtils.js` comment at line 18
 ## Step 24 — Add `SEARCH_RESULTS_LIMIT` to `lib/constants/search.js`
 
 **Problem:** Two components independently define the same constant:
+
 - `components/shop/ShopSearchPopover.jsx` line 10 — `const SEARCH_RESULTS_LIMIT = 8`
 - `components/highlights/HighlightSearchPopover.jsx` line 11 — `const SEARCH_RESULTS_LIMIT = 8`
 
@@ -574,6 +591,7 @@ Four files import `BORDER_ALT` but alias it as `BORDER` — `import { BORDER_ALT
 indicating the split is unintentional and both constants serve the same purpose.
 
 **Action:**
+
 - Audit visually: confirm `BORDER` and `BORDER_ALT` are indistinguishable
 - If identical purpose: remove `BORDER_ALT`, update 4 aliases to plain `BORDER`
 - If intentionally different: document why in `tableStyles.js`
@@ -583,6 +601,7 @@ indicating the split is unintentional and both constants serve the same purpose.
 ## Step 26 — Fix Tailwind hex-case inconsistency
 
 **Problem:** The same logical color appears in mixed case across the codebase:
+
 - `bg-[#1c1c1a]` vs `bg-[#1C1C1A]` — 37 occurrences split between cases
 - `bg-[#1a1a18]` / `bg-[#1a1a1a]` / `bg-[#1A1A1A]` — 23 occurrences mixed
 
@@ -599,15 +618,16 @@ Run a global find-replace for each mixed-case pair.
 
 The most pervasive technical debt in the UI layer is raw hex strings hardcoded everywhere:
 
-| Value | Occurrences | Semantic meaning |
-|---|---|---|
-| `text-[#A2A6AB]` | 378 | Muted / secondary text |
-| `text-[#DA9811]` | 211 | Brand gold / primary accent |
-| `bg-[#DA9811]` | 95 | Brand gold background |
-| `bg-[#141412]` | 196 | Card / surface background |
-| `text-[13px] text-[#A2A6AB]` | 115 | Secondary label (combined) |
+| Value                        | Occurrences | Semantic meaning            |
+| ---------------------------- | ----------- | --------------------------- |
+| `text-[#A2A6AB]`             | 378         | Muted / secondary text      |
+| `text-[#DA9811]`             | 211         | Brand gold / primary accent |
+| `bg-[#DA9811]`               | 95          | Brand gold background       |
+| `bg-[#141412]`               | 196         | Card / surface background   |
+| `text-[13px] text-[#A2A6AB]` | 115         | Secondary label (combined)  |
 
 **Ideal action:** Extend `tailwind.config.js` with semantic color tokens:
+
 ```js
 colors: {
   brand: '#DA9811',
@@ -650,14 +670,14 @@ Steps 20–21 can be done in minutes. Steps 17, 18, 22 require more care.
 
 ## Updated measuring success
 
-| Metric | Before | Target |
-|---|---|---|
-| Files in `lib/` root | 12 | 8 |
-| Files in `lib/utils/` | 38 | 28 |
-| Duplicate utility implementations | 10 | 0 |
-| Functions in `constants/` | 3 files | 0 |
-| Dead files | 2 | 0 |
-| Existing utilities bypassed | 6 | 0 |
-| Inconsistent error handling sites | 8 | 0 |
-| Inline constants needing extraction | 4 | 0 |
-| Mixed-case Tailwind hex classes | 60 | 0 |
+| Metric                              | Before  | Target |
+| ----------------------------------- | ------- | ------ |
+| Files in `lib/` root                | 12      | 8      |
+| Files in `lib/utils/`               | 38      | 28     |
+| Duplicate utility implementations   | 10      | 0      |
+| Functions in `constants/`           | 3 files | 0      |
+| Dead files                          | 2       | 0      |
+| Existing utilities bypassed         | 6       | 0      |
+| Inconsistent error handling sites   | 8       | 0      |
+| Inline constants needing extraction | 4       | 0      |
+| Mixed-case Tailwind hex classes     | 60      | 0      |

@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { PROFILE_OVERVIEW_ROLE } from '@/lib/constants/profile';
 import {
   profileListClass,
   profileTabIconClass,
@@ -14,7 +15,6 @@ import {
   TabsTrigger,
 } from '@/ui/Tabs';
 
-import { PROFILE_OVERVIEW_ROLE } from './constants';
 import { ProfileMetrics } from './ProfileMetrics';
 import { ProfileRoleOverview } from './ProfileRoleOverview';
 import { SponsorStats } from './SponsorStats';

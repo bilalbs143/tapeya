@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { CONTENT_MAX_WIDTH } from './constants';
+import { CONTENT_MAX_WIDTH } from '@/lib/constants/profile';
 
 const LABEL_CLASS = 'text-[14px] font-bold uppercase tracking-wide text-muted';
 const VALUE_CLASS = 'text-sm font-normal text-white';

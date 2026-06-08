@@ -1,6 +1,7 @@
 import { ScoringPlayerPickerMeta } from '@/components/scoring/ScoringPlayerPickerMeta';
 import { useDialog } from '@/context/DialogContext';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { FormStack } from '@/ui/form/FormStack';
 
 export function FielderPickerDialog({ message, players = [], onSelectFielder }) {
   const { closeDialog } = useDialog();
@@ -10,7 +11,7 @@ export function FielderPickerDialog({ message, players = [], onSelectFielder }) 
         <DialogTitle className={dialogPrimaryTitleClass}>{message?.trim() ? message : 'Choose Fielder'}</DialogTitle>
       </DialogHeaderRow>
       <DialogScrollBody>
-        <div className="flex flex-col gap-2">
+        <FormStack density="compact">
           {players.map((player) => (
             <button
               key={player.id}
@@ -25,7 +26,7 @@ export function FielderPickerDialog({ message, players = [], onSelectFielder }) 
               <ScoringPlayerPickerMeta player={player} variant="fielder" />
             </button>
           ))}
-        </div>
+        </FormStack>
       </DialogScrollBody>
     </>
   );

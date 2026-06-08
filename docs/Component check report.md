@@ -31,7 +31,7 @@ Every JSX component checked against **docs/Coding guidelines.md**.
 | # | File | Guidelines | C/T | Notes |
 |---|------|------------|-----|--------|
 | 5 | providers/StoreProvider.jsx | ✅ | 0 | Header added. |
-| 6 | contexts/ToastContext.jsx | ✅ | 0 | Guidelines line added. |
+| 6 | context/ToastContext.jsx | ✅ | 0 | Guidelines line added. |
 
 ---
 

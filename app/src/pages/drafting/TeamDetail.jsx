@@ -15,9 +15,8 @@ import { playerDisplayRole } from '@/lib/utils/playerUtils';
 import { useSearchSquadMembersQuery } from '@/store/api/playerApi';
 import { useGetTeamSquadQuery, useSearchTeamsQuery, useUpdateTeamSquadMutation } from '@/store/api/teamApi';
 import { Container } from '@/ui/Container';
-import { formFieldLabelCheckoutClass } from '@/ui/FormField';
+import { FormField } from '@/ui/FormField';
 import { CloseIcon } from '@/ui/icons/CloseIcon';
-import { Label } from '@/ui/Label';
 
 const searchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/searchicon.svg`;
 const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
@@ -198,10 +197,7 @@ export default function TeamDetail() {
               </div>
             </div>
 
-            <div className="mb-4 flex flex-col gap-1">
-              <Label htmlFor="find-player" className={formFieldLabelCheckoutClass}>
-                Find Squad Member
-              </Label>
+            <FormField label="Find Squad Member" htmlFor="find-player" className="mb-4">
               <div className="relative">
                 <input
                   id="find-player"
@@ -259,7 +255,7 @@ export default function TeamDetail() {
                   </div>
                 )}
               </div>
-            </div>
+            </FormField>
           </div>
 
           <div className="mb-6 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

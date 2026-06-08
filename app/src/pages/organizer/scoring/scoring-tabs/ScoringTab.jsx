@@ -556,8 +556,7 @@ export function ScoringTab({
     const needsBatter = Boolean(matchState?.needs_new_batter);
     const needsBowler = Boolean(matchState?.needs_new_bowler);
     const dismissalBallId = matchState?.last_dismissal_ball_id ?? null;
-    const newDismissal =
-      dismissalBallId != null && dismissalBallId !== prevDismissalBallIdRef.current;
+    const newDismissal = dismissalBallId != null && dismissalBallId !== prevDismissalBallIdRef.current;
 
     // Safety net: open picker on every new dismissal (even if needs_new_batter stayed true).
     if (needsBatter && newDismissal && !wicketSummaryGateRef.current && !summaryIsOpen) {
@@ -679,10 +678,7 @@ export function ScoringTab({
   // ── Render ────────────────────────────────────────────────────────────────
 
   const isReadyToScore =
-    isLiveInnings &&
-    (batsmenOnCrease.length === 2 || needsNewBatter) &&
-    bowlersInTable.length > 0 &&
-    !matchComplete;
+    isLiveInnings && (batsmenOnCrease.length === 2 || needsNewBatter) && bowlersInTable.length > 0 && !matchComplete;
 
   return (
     <InningsContext.Provider value={inningsContextValue}>

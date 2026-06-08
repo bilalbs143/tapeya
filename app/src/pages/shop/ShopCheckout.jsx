@@ -13,6 +13,8 @@ import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 import { Container } from '@/ui/Container';
 import { CountryCityFields } from '@/ui/CountryCityFields';
+import { FormActions } from '@/ui/form/FormActions';
+import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import { PhoneInput } from '@/ui/PhoneInput';
@@ -100,101 +102,102 @@ export default function ShopCheckout() {
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-              <FormField label="Full Name" htmlFor="fullName">
-                <Input
-                  id="fullName"
-                  type="text"
-                  placeholder="Enter full name"
-                  autoComplete="name"
-                  readOnly={hasName}
-                  aria-readonly={hasName}
-                  className={hasName ? 'cursor-default opacity-90' : ''}
-                  {...register('fullName')}
-                />
-              </FormField>
-
-              <FormField label="Phone" htmlFor="phone">
-                <Controller
-                  name="phone"
-                  control={control}
-                  render={({ field }) => (
-                    <PhoneInput
-                      id="phone"
-                      placeholder="Enter phone number"
-                      readOnly={hasPhone}
-                      aria-readonly={hasPhone}
-                      className={hasPhone ? 'cursor-default opacity-90' : ''}
-                      {...field}
-                    />
-                  )}
-                />
-              </FormField>
-
-              <FormField label="Email Address" htmlFor="email">
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter email address"
-                  autoComplete="email"
-                  readOnly={hasEmail}
-                  aria-readonly={hasEmail}
-                  className={hasEmail ? 'cursor-default opacity-90' : ''}
-                  {...register('email')}
-                />
-              </FormField>
-
-              <FormField label="Delivery Address" htmlFor="address" required>
-                <Input
-                  id="address"
-                  type="text"
-                  placeholder="Street address"
-                  autoComplete="street-address"
-                  aria-required="true"
-                  {...register('address', {
-                    required: 'Delivery address is required',
-                  })}
-                />
-              </FormField>
-
-              <CountryCityFields
-                country={country ?? ''}
-                city={city ?? ''}
-                onCountryChange={(v) => setValue('country', v, { shouldValidate: true })}
-                onCityChange={(v) => setValue('city', v, { shouldValidate: true })}
-                required
+          <FormStack as="form" layout="grid-3" onSubmit={handleSubmit(onSubmit)}>
+            <FormField label="Full Name" htmlFor="fullName">
+              <Input
+                id="fullName"
+                type="text"
+                placeholder="Enter full name"
+                autoComplete="name"
+                readOnly={hasName}
+                aria-readonly={hasName}
+                className={hasName ? 'cursor-default opacity-90' : ''}
+                {...register('fullName')}
               />
+            </FormField>
 
-              <FormField label="Notes (optional)" htmlFor="notes">
-                <Input id="notes" type="text" placeholder="Order notes" {...register('notes')} />
-              </FormField>
-            </div>
+            <FormField label="Phone" htmlFor="phone">
+              <Controller
+                name="phone"
+                control={control}
+                render={({ field }) => (
+                  <PhoneInput
+                    id="phone"
+                    placeholder="Enter phone number"
+                    readOnly={hasPhone}
+                    aria-readonly={hasPhone}
+                    className={hasPhone ? 'cursor-default opacity-90' : ''}
+                    {...field}
+                  />
+                )}
+              />
+            </FormField>
 
-            <p className="text-muted text-[14px]">
+            <FormField label="Email Address" htmlFor="email">
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter email address"
+                autoComplete="email"
+                readOnly={hasEmail}
+                aria-readonly={hasEmail}
+                className={hasEmail ? 'cursor-default opacity-90' : ''}
+                {...register('email')}
+              />
+            </FormField>
+
+            <FormField label="Delivery Address" htmlFor="address" required>
+              <Input
+                id="address"
+                type="text"
+                placeholder="Street address"
+                autoComplete="street-address"
+                aria-required="true"
+                {...register('address', {
+                  required: 'Delivery address is required',
+                })}
+              />
+            </FormField>
+
+            <CountryCityFields
+              country={country ?? ''}
+              city={city ?? ''}
+              onCountryChange={(v) => setValue('country', v, { shouldValidate: true })}
+              onCityChange={(v) => setValue('city', v, { shouldValidate: true })}
+              required
+              density="relaxed"
+            />
+
+            <FormField label="Notes (optional)" htmlFor="notes">
+              <Input id="notes" type="text" placeholder="Order notes" {...register('notes')} />
+            </FormField>
+
+            <p className="text-muted text-[14px] lg:col-span-3">
               Subtotal: <strong className="text-brand">{formatPrice(subtotal)}</strong> ({items.length} item
               {items.length !== 1 ? 's' : ''})
             </p>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-brand flex w-full items-center justify-center gap-2 rounded-[6px] py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90 disabled:opacity-50 lg:w-auto lg:justify-start lg:px-4"
-            >
-              {isSubmitting ? 'Placing Order…' : 'Place Order'}
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
+            <FormActions align="start" className="lg:col-span-3">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-brand flex w-full items-center justify-center gap-2 rounded-[6px] py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90 disabled:opacity-50 lg:w-auto lg:px-4"
               >
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </button>
-          </form>
+                {isSubmitting ? 'Placing Order…' : 'Place Order'}
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </button>
+            </FormActions>
+          </FormStack>
         )}
       </Container>
     </div>

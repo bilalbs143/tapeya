@@ -21,9 +21,8 @@ import {
   useGetTournamentTeamsQuery,
 } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
-import { FormField, formFieldLabelCheckoutClass } from '@/ui/FormField';
+import { FormField } from '@/ui/FormField';
 import { CloseIcon } from '@/ui/icons/CloseIcon';
-import { Label } from '@/ui/Label';
 import {
   Select,
   SelectContent,
@@ -341,10 +340,7 @@ export default function TournamentSquad() {
           </div>
         </div>
 
-        <div className="mb-4 flex flex-col gap-1">
-          <Label htmlFor="find-player" className={formFieldLabelCheckoutClass}>
-            Find Squad Member
-          </Label>
+        <FormField label="Find Squad Member" htmlFor="find-player" className="mb-4">
           <div className="relative">
             <input
               id="find-player"
@@ -401,7 +397,7 @@ export default function TournamentSquad() {
               </div>
             )}
           </div>
-        </div>
+        </FormField>
 
         <div className="mb-6 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <table className="w-full border-collapse text-[12px] text-white">

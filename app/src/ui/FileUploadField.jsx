@@ -33,13 +33,17 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
+import {
+  FORM_FIELD_ERROR_CLASS,
+  FORM_FIELD_LABEL_CLASS,
+  FORM_FIELD_REQUIRED_CLASS,
+  FORM_FIELD_WRAPPER_CLASS,
+} from '@/lib/constants/formLayout';
 import { isImageFile, isImageUrl, normaliseFileUploadValue } from '@/lib/utils/fileUploadUtils';
 import { Label } from '@/ui/Label';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 // Aligned with Dialog.jsx (#080807 / #141412 / #DA9811) and Toast.jsx (#FFB703 ring).
-
-const LABEL_CLASS = 'mb-1 block text-[14px] text-muted';
 
 const ZONE_BASE = [
   'relative flex w-full items-center gap-3 rounded-[10px]',
@@ -666,11 +670,11 @@ export function FileUploadField({
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className={FORM_FIELD_WRAPPER_CLASS}>
       {label && (
-        <Label htmlFor={inputId} className={LABEL_CLASS}>
+        <Label htmlFor={inputId} className={FORM_FIELD_LABEL_CLASS}>
           {label}
-          {required && <span className="text-red-300"> *</span>}
+          {required && <span className={FORM_FIELD_REQUIRED_CLASS}> *</span>}
         </Label>
       )}
 
@@ -681,7 +685,7 @@ export function FileUploadField({
       {hint && !error && <p className="text-muted/80 text-[11px] leading-snug">{hint}</p>}
 
       {error && (
-        <p id={name ? `${name}-error` : undefined} className="text-sm text-red-300" role="alert">
+        <p id={name ? `${name}-error` : undefined} className={FORM_FIELD_ERROR_CLASS} role="alert">
           {error}
         </p>
       )}

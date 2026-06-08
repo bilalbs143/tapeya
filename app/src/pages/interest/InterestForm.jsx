@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { FORM_SECTION_MUTED_TITLE_CLASS } from '@/lib/constants/formLayout';
 import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
 import { formatIsoDateForDisplay, toApiDate } from '@/lib/utils/dateUtils';
 import { EMPTY_FILE_UPLOAD, fileUploadValueFromUrl } from '@/lib/utils/fileUploadUtils';
@@ -19,6 +20,9 @@ import { Container } from '@/ui/Container';
 import { CountryCityFields } from '@/ui/CountryCityFields';
 import { DatePicker } from '@/ui/DatePicker';
 import { FileUploadField } from '@/ui/FileUploadField';
+import { FormActions } from '@/ui/form/FormActions';
+import { FormSection } from '@/ui/form/FormSection';
+import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 
@@ -268,8 +272,8 @@ export default function InterestForm() {
           </div>
         ) : null}
 
-        <form onSubmit={handleSubmit} className="space-y-4 lg:grid lg:grid-cols-2 lg:space-y-0 lg:gap-x-6 lg:gap-y-4">
-          <div className="flex flex-col items-center gap-2">
+        <FormStack as="form" layout="grid-2" onSubmit={handleSubmit}>
+          <div className="flex flex-col items-center gap-2 lg:col-span-2">
             <FileUploadField
               variant="avatar"
               value={profilePictureUpload}
@@ -298,12 +302,12 @@ export default function InterestForm() {
             )}
           </div>
 
-          <div className="lg:col-span-2">
-            <h2 className="text-muted text-[12px] font-bold tracking-wide uppercase">Personal Details</h2>
-            <p className="text-muted/90 mt-1 text-[12px] leading-snug">
-              From your account. To change these, update your profile.
-            </p>
-          </div>
+          <FormSection
+            title="Personal Details"
+            subtitle="From your account. To change these, update your profile."
+            titleClassName={FORM_SECTION_MUTED_TITLE_CLASS}
+            className="lg:col-span-2"
+          />
 
           <FormField label="Full Name" htmlFor="interest-name" required>
             <Input
@@ -349,9 +353,7 @@ export default function InterestForm() {
             />
           </FormField>
 
-          <div className="border-t border-[#FFFFFF14] pt-6 lg:col-span-2">
-            <h2 className="text-muted text-[12px] font-bold tracking-wide uppercase">Other Details</h2>
-          </div>
+          <FormSection title="Other Details" divider titleClassName={FORM_SECTION_MUTED_TITLE_CLASS} className="lg:col-span-2" />
 
           <FormField label="Email" htmlFor="interest-email" required>
             <Input
@@ -383,6 +385,7 @@ export default function InterestForm() {
             countryId="interest-country"
             cityId="interest-city"
             required
+            density="relaxed"
           />
 
           <div className="lg:col-span-2">
@@ -418,7 +421,7 @@ export default function InterestForm() {
           </div>
 
           {!isConfirmed && (
-            <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between lg:col-span-2">
+            <FormActions align="between" className="lg:col-span-2">
               <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
                 <Button
                   type="submit"
@@ -440,9 +443,9 @@ export default function InterestForm() {
                   </button>
                 )}
               </div>
-            </div>
+            </FormActions>
           )}
-        </form>
+        </FormStack>
       </Container>
     </div>
   );

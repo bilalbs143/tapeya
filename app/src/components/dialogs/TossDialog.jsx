@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { TeamLogo } from '@/components/TeamLogo';
 import { useDialog } from '@/context/DialogContext';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { DialogFormSection } from '@/ui/form/DialogFormSection';
+import { FormStack } from '@/ui/form/FormStack';
 import { ToggleGroup, ToggleGroupItem } from '@/ui/ToggleGroup';
 
 /**
@@ -38,46 +40,42 @@ export function TossDialog({ teamAName, teamBName, teamALogo, teamBLogo, onStart
         <DialogTitle className={dialogPrimaryTitleClass}>Who Won the Toss?</DialogTitle>
       </DialogHeaderRow>
 
-      <DialogScrollBody className="flex flex-col gap-6">
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => setTossWinner('A')}
-            className={`flex flex-1 flex-col items-center justify-center gap-2 rounded-[17px] border-2 px-4 py-4 transition-colors focus:outline-none ${
-              tossWinner === 'A' ? 'border-brand bg-brand text-white' : 'bg-surface border-[#141412] text-white'
-            }`}
-          >
-            <TeamLogo name={teamAName} logo={teamALogo} variant="dialog" />
-            <span className="text-[14px] font-bold uppercase">{teamAName || 'Team A'}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setTossWinner('B')}
-            className={`flex flex-1 flex-col items-center justify-center gap-2 rounded-[17px] border-2 px-4 py-4 transition-colors focus:outline-none ${
-              tossWinner === 'B' ? 'border-brand bg-brand text-white' : 'bg-surface border-[#141412] text-white'
-            }`}
-          >
-            <TeamLogo name={teamBName} logo={teamBLogo} variant="dialog" />
-            <span className="text-[14px] font-bold uppercase">{teamBName || 'Team B'}</span>
-          </button>
-        </div>
+      <DialogScrollBody>
+        <FormStack>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setTossWinner('A')}
+              className={`flex flex-1 flex-col items-center justify-center gap-2 rounded-[17px] border-2 px-4 py-4 transition-colors focus:outline-none ${
+                tossWinner === 'A' ? 'border-brand bg-brand text-white' : 'bg-surface border-[#141412] text-white'
+              }`}
+            >
+              <TeamLogo name={teamAName} logo={teamALogo} variant="dialog" />
+              <span className="text-[14px] font-bold uppercase">{teamAName || 'Team A'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTossWinner('B')}
+              className={`flex flex-1 flex-col items-center justify-center gap-2 rounded-[17px] border-2 px-4 py-4 transition-colors focus:outline-none ${
+                tossWinner === 'B' ? 'border-brand bg-brand text-white' : 'bg-surface border-[#141412] text-white'
+              }`}
+            >
+              <TeamLogo name={teamBName} logo={teamBLogo} variant="dialog" />
+              <span className="text-[14px] font-bold uppercase">{teamBName || 'Team B'}</span>
+            </button>
+          </div>
 
-        <div>
-          <p className="text-[14px] font-medium text-white">Decided To?</p>
-          <ToggleGroup
-            type="single"
-            value={tossDecision}
-            onValueChange={(v) => v && setTossDecision(v)}
-            className="mt-2 flex gap-2"
-          >
-            <ToggleGroupItem value="bat" aria-label="Bat">
-              Bat
-            </ToggleGroupItem>
-            <ToggleGroupItem value="bowl" aria-label="Bowl">
-              Bowl
-            </ToggleGroupItem>
-          </ToggleGroup>
-        </div>
+          <DialogFormSection label="Decided To?" controlOffset="sm">
+            <ToggleGroup type="single" value={tossDecision} onValueChange={(v) => v && setTossDecision(v)} className="flex gap-2">
+              <ToggleGroupItem value="bat" aria-label="Bat">
+                Bat
+              </ToggleGroupItem>
+              <ToggleGroupItem value="bowl" aria-label="Bowl">
+                Bowl
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </DialogFormSection>
+        </FormStack>
       </DialogScrollBody>
 
       <DialogSaveButton disabled={!canConfirm || isStarting} onClick={handleConfirm}>

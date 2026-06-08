@@ -14,6 +14,8 @@ import { selectUser } from '@/store/selectors';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 import { FileUploadField } from '@/ui/FileUploadField';
+import { FormActions } from '@/ui/form/FormActions';
+import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import { Textarea } from '@/ui/Textarea';
@@ -139,7 +141,7 @@ export default function Support() {
           </>
         ) : null}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <FormStack as="form" density="default" onSubmit={handleSubmit(onSubmit)}>
           <FormField label="Name" htmlFor="support-name">
             <Input
               id="support-name"
@@ -193,7 +195,7 @@ export default function Support() {
             disabled={isSubmitting}
           />
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <FormActions align="between">
             <p className="text-muted text-[12px]">We will only use your details to respond to your request.</p>
             <Button
               type="submit"
@@ -204,8 +206,8 @@ export default function Support() {
             >
               {isSubmitting ? 'Sending…' : 'Send Message'}
             </Button>
-          </div>
-        </form>
+          </FormActions>
+        </FormStack>
       </Container>
     </div>
   );

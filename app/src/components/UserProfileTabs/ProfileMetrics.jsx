@@ -1,4 +1,4 @@
-import { CONTENT_MAX_WIDTH } from './constants';
+import { CONTENT_MAX_WIDTH } from '@/lib/constants/profile';
 
 const CARD_CLASS = 'rounded-[17px] bg-surface px-4 py-4 text-center';
 

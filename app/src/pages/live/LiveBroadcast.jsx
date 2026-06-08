@@ -58,7 +58,13 @@ function ViewerCountBadge({ viewerCount }) {
       aria-label={`${viewerCount} watching`}
     >
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden>
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+          stroke="black"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
         <circle cx="12" cy="12" r="3" stroke="black" strokeWidth="2" />
       </svg>
       <span key={formatViewerCount(viewerCount)} className="animate-[fadeSlideIn_0.4s_ease_forwards]">
@@ -125,11 +131,7 @@ export default function LiveBroadcast() {
   const portraitHeaderContent = useMemo(
     () => (
       <>
-        <AppSubpageBackButton
-          onClick={() => navigate(-1)}
-          aria-label="Go back"
-          className="pointer-events-auto"
-        />
+        <AppSubpageBackButton onClick={() => navigate(-1)} aria-label="Go back" className="pointer-events-auto" />
         {centeredStatusContent}
         <span className="h-7 w-7 shrink-0" aria-hidden />
       </>
@@ -157,9 +159,7 @@ export default function LiveBroadcast() {
     <div className={shellClass} style={shellStyle}>
       <div className={`relative h-full w-full overflow-hidden ${useInFlowHeader ? 'flex flex-col' : ''}`}>
         {useInFlowHeader && (
-          <header className="relative z-20 flex shrink-0 items-center justify-between px-4 py-2">
-            {portraitHeaderContent}
-          </header>
+          <header className="relative z-20 flex shrink-0 items-center justify-between px-4 py-2">{portraitHeaderContent}</header>
         )}
 
         <div className={`relative overflow-hidden ${useInFlowHeader ? 'min-h-0 flex-1' : 'h-full w-full'}`}>

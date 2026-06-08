@@ -2,6 +2,8 @@ import { useState } from 'react';
 
 import { useDialog } from '@/context/DialogContext';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { FormStack } from '@/ui/form/FormStack';
+import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 
 /**
@@ -23,34 +25,37 @@ export function PlayersPerSideDialog({ initialPlayersPerSide, options, onSelect 
         <DialogTitle className={dialogPrimaryTitleClass}>Select Players Per Side</DialogTitle>
       </DialogHeaderRow>
 
-      <DialogScrollBody className="flex flex-col gap-4">
-        <Input
-          type="text"
-          inputMode="numeric"
-          placeholder="Enter Number (e.g. 11)"
-          value={playersPerSide}
-          onChange={(e) => setPlayersPerSide(e.target.value)}
-          className="bg-surface placeholder:text-muted h-12 rounded-[6px] text-white"
-          aria-label="Players Per Side"
-        />
-        <div className="flex flex-col gap-2">
-          {options.map((opt) => {
-            const val = String(opt.value);
-            const isSelected = playersPerSide === val;
-            return (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => handleSelect(val)}
-                className={`flex w-full items-center rounded-full px-4 py-3 text-[14px] font-medium transition-colors focus:outline-none ${
-                  isSelected ? 'bg-brand text-ink' : 'bg-surface text-white'
-                }`}
-              >
-                {opt.label}
-              </button>
-            );
-          })}
-        </div>
+      <DialogScrollBody>
+        <FormStack density="compact">
+          <FormField label="Players Per Side" htmlFor="players-per-side-input">
+            <Input
+              id="players-per-side-input"
+              type="text"
+              inputMode="numeric"
+              placeholder="Enter Number (e.g. 11)"
+              value={playersPerSide}
+              onChange={(e) => setPlayersPerSide(e.target.value)}
+            />
+          </FormField>
+          <div className="flex flex-col gap-2">
+            {options.map((opt) => {
+              const val = String(opt.value);
+              const isSelected = playersPerSide === val;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => handleSelect(val)}
+                  className={`flex w-full items-center rounded-full px-4 py-3 text-[14px] font-medium transition-colors focus:outline-none ${
+                    isSelected ? 'bg-brand text-ink' : 'bg-surface text-white'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        </FormStack>
       </DialogScrollBody>
 
       <DialogSaveButton onClick={() => closeDialog()}>Done</DialogSaveButton>

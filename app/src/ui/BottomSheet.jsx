@@ -76,7 +76,7 @@ export function BottomSheet({
             </div>
           ) : null}
 
-          {toolbar ? <div className="shrink-0 px-4 pt-3 pb-2">{toolbar}</div> : null}
+          {toolbar ? <div className="shrink-0 px-5 pt-3 pb-2">{toolbar}</div> : null}
 
           <div className={bodyClassName}>{children}</div>
 

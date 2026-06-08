@@ -1,12 +1,11 @@
 import { useState } from 'react';
 
 import { StatItem, StatItemInline } from '@/features/profile/components/StatItem';
+import { CONTENT_MAX_WIDTH } from '@/lib/constants/profile';
 import { formatDecimal } from '@/lib/utils/displayUtils';
 import { useGetPlayerStatsQuery, useGetPlayerTeamsQuery } from '@/store/api/playerApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
-
-import { CONTENT_MAX_WIDTH } from './constants';
 
 const TEAMS_PREVIEW_COUNT = 3;
 

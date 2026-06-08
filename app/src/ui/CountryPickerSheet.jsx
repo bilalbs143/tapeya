@@ -2,9 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { COUNTRIES, getFlagEmoji } from '@/lib/phoneCodes';
 import { BottomSheet } from '@/ui/BottomSheet';
-
-const SEARCH_INPUT =
-  'w-full rounded-[8px] bg-[#1C1C1A] px-4 py-3 text-[14px] text-white placeholder:text-[#A2A6AB78] focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50';
+import { Input } from '@/ui/Input';
 
 const ROW_BASE = 'flex w-full items-center gap-3 px-5 py-3 text-left transition-colors active:bg-white/5';
 
@@ -48,7 +46,7 @@ export function CountryPickerSheet({ open, onClose, currentDialCode, onSelect })
       ariaLabel="Select Country"
       bodyClassName={LIST_BODY_CLASS}
       toolbar={
-        <input
+        <Input
           ref={searchRef}
           type="search"
           inputMode="search"
@@ -56,7 +54,6 @@ export function CountryPickerSheet({ open, onClose, currentDialCode, onSelect })
           placeholder="Search country or dial code…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className={SEARCH_INPUT}
           aria-label="Search Countries"
         />
       }

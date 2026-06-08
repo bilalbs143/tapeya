@@ -4,6 +4,8 @@ import { EXTRA_RUN_OPTIONS } from '@/lib/utils/extraRunOptions';
 import { noBallSelectionToUiFields } from '@/lib/utils/noBallExtras';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { DialogFormSection } from '@/ui/form/DialogFormSection';
+import { FormStack } from '@/ui/form/FormStack';
 
 const TYPE_ICONS = {
   over_footed: '👣',
@@ -80,61 +82,58 @@ export function NoBallDialog({ onConfirm }) {
         <DialogTitle className={dialogPrimaryTitleClass}>No Ball</DialogTitle>
       </DialogHeaderRow>
 
-      <DialogScrollBody className="flex flex-col gap-4">
-        <section>
-          <p className="text-[13px] font-medium text-white" id="no-ball-type-label">
-            No Ball Type
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2" role="group" aria-labelledby="no-ball-type-label">
-            {noBallTypeOptions.map((opt) => (
-              <IconOptionButton
-                key={opt.value}
-                active={noBallType === opt.value}
-                onClick={() => setNoBallType(opt.value)}
-                icon={TYPE_ICONS[opt.value] ?? '•'}
-                label={opt.label}
-              />
-            ))}
-          </div>
-        </section>
+      <DialogScrollBody>
+        <FormStack density="compact">
+          <DialogFormSection label="No Ball Type" labelId="no-ball-type-label" controlOffset="md">
+            <div className="flex flex-wrap gap-2" role="group" aria-labelledby="no-ball-type-label">
+              {noBallTypeOptions.map((opt) => (
+                <IconOptionButton
+                  key={opt.value}
+                  active={noBallType === opt.value}
+                  onClick={() => setNoBallType(opt.value)}
+                  icon={TYPE_ICONS[opt.value] ?? '•'}
+                  label={opt.label}
+                />
+              ))}
+            </div>
+          </DialogFormSection>
 
-        <section>
-          <p className="text-[13px] font-medium text-white">Runs(s) Type</p>
-          <div className="mt-3 grid grid-cols-3 gap-3">
-            {noBallRunsTypeOptions.map((opt) => (
-              <IconOptionButton
-                key={opt.value}
-                active={noBallRunsType === opt.value}
-                onClick={() => setNoBallRunsType(opt.value)}
-                icon={RUNS_TYPE_ICONS[opt.value] ?? '•'}
-                label={opt.label}
-              />
-            ))}
-          </div>
-        </section>
+          <DialogFormSection label="Runs(s) Type" controlOffset="md">
+            <div className="grid grid-cols-3 gap-3">
+              {noBallRunsTypeOptions.map((opt) => (
+                <IconOptionButton
+                  key={opt.value}
+                  active={noBallRunsType === opt.value}
+                  onClick={() => setNoBallRunsType(opt.value)}
+                  icon={RUNS_TYPE_ICONS[opt.value] ?? '•'}
+                  label={opt.label}
+                />
+              ))}
+            </div>
+          </DialogFormSection>
 
-        <section>
-          <p className="text-[13px] font-medium text-white">Select Extra Run</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {EXTRA_RUN_OPTIONS.map((runs) => {
-              const selected = extraRuns === runs;
-              return (
-                <button
-                  key={runs}
-                  type="button"
-                  onClick={() => setExtraRuns(runs)}
-                  aria-pressed={selected}
-                  className={`focus-visible:ring-brand rounded-full px-4 py-2 text-[13px] font-bold transition-colors focus:outline-none focus-visible:ring-2 ${
-                    selected ? 'bg-brand text-black' : 'bg-surface text-white'
-                  }`}
-                >
-                  NB+{runs}
-                </button>
-              );
-            })}
-          </div>
-          <p className="text-muted mt-4 text-center text-[12px] leading-snug">{equation.text}</p>
-        </section>
+          <DialogFormSection label="Select Extra Run" controlOffset="md">
+            <div className="flex flex-wrap gap-2">
+              {EXTRA_RUN_OPTIONS.map((runs) => {
+                const selected = extraRuns === runs;
+                return (
+                  <button
+                    key={runs}
+                    type="button"
+                    onClick={() => setExtraRuns(runs)}
+                    aria-pressed={selected}
+                    className={`focus-visible:ring-brand rounded-full px-4 py-2 text-[13px] font-bold transition-colors focus:outline-none focus-visible:ring-2 ${
+                      selected ? 'bg-brand text-black' : 'bg-surface text-white'
+                    }`}
+                  >
+                    NB+{runs}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-muted mt-4 text-center text-[12px] leading-snug">{equation.text}</p>
+          </DialogFormSection>
+        </FormStack>
       </DialogScrollBody>
 
       <DialogSaveButton disabled={!canContinue} onClick={handleContinue}>

@@ -5,6 +5,8 @@ import { useWhoIsOutDismissalFlow } from '@/hooks/useWhoIsOutDismissalFlow';
 import { timedOutSelectionToUiFields } from '@/lib/utils/dismissalSelectionUtils';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
 import { DialogBackButton } from '@/ui/DialogBackButton';
+import { DialogFormSection } from '@/ui/form/DialogFormSection';
+import { FormStack } from '@/ui/form/FormStack';
 
 const TITLES = {
   timed_out: 'Timed Out',
@@ -12,14 +14,6 @@ const TITLES = {
 
 /**
  * Timed out — pick batter from XI; ball usually not counted.
- *
- * @param {'timed_out'} dismissalType
- * @param {object[]} players Batting XI eligible to select
- * @param {number} strikerId
- * @param {number} nonStrikerId
- * @param {number} bowlerId
- * @param {Function} onConfirm
- * @param {Function} [onBack]
  */
 export function WhoIsOutDismissalDialog({ dismissalType, players = [], strikerId, nonStrikerId, bowlerId, onConfirm, onBack }) {
   const { closeDialog } = useDialog();
@@ -46,19 +40,14 @@ export function WhoIsOutDismissalDialog({ dismissalType, players = [], strikerId
         <DialogTitle className={dialogPrimaryTitleClass}>{title}</DialogTitle>
       </DialogHeaderRow>
 
-      <DialogScrollBody className="flex flex-col gap-4">
-        <section>
-          <p className="text-[13px] font-medium text-white">Who Is Out?</p>
-          <ScoringPlayerList
-            className="mt-3"
-            players={players}
-            selectedId={outPlayerId}
-            onSelect={setOutPlayerId}
-            ariaLabel="Who Is Out?"
-          />
-        </section>
+      <DialogScrollBody>
+        <FormStack density="compact">
+          <DialogFormSection label="Who Is Out?" controlOffset="md">
+            <ScoringPlayerList players={players} selectedId={outPlayerId} onSelect={setOutPlayerId} ariaLabel="Who Is Out?" />
+          </DialogFormSection>
 
-        <DontCountBallField checked={dontCountBall} onCheckedChange={setDontCountBall} />
+          <DontCountBallField checked={dontCountBall} onCheckedChange={setDontCountBall} />
+        </FormStack>
       </DialogScrollBody>
 
       <DialogSaveButton onClick={handleSubmit} disabled={!canSubmit}>

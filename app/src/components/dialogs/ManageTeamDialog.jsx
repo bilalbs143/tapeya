@@ -21,6 +21,7 @@ import { Checkbox } from '@/ui/Checkbox';
 import { CountryCityFields } from '@/ui/CountryCityFields';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
 import { FileUploadField } from '@/ui/FileUploadField';
+import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { CloseIcon } from '@/ui/icons/CloseIcon';
 import { Input } from '@/ui/Input';
@@ -371,7 +372,7 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
       </DialogHeaderRow>
 
       <DialogScrollBody>
-        <form id="manage-team-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4 pb-2">
+        <FormStack as="form" id="manage-team-form" density="default" className="pb-2" onSubmit={handleSubmit(onSubmit)}>
           {isTournamentCreate && hasGroups ? (
             <FormField label="Group" htmlFor="manage-group" required>
               <Select
@@ -721,7 +722,7 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
               </div>
             </FormField>
           ) : null}
-        </form>
+        </FormStack>
       </DialogScrollBody>
 
       <DialogSaveButton form="manage-team-form" type="submit" disabled={isSaving}>

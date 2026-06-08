@@ -5,6 +5,10 @@ import { useMatchAdmin } from '@/hooks/useMatchAdmin';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { DialogFormSection } from '@/ui/form/DialogFormSection';
+import { FormActions } from '@/ui/form/FormActions';
+import { FormStack } from '@/ui/form/FormStack';
+import { Input } from '@/ui/Input';
 
 /**
  * Revise 2nd innings chase target (DLS) — set new target, then continue or end innings.
@@ -25,6 +29,7 @@ export function ReviseTargetDialog({ matchId, currentTarget, onInningsEnded }) {
 
   const parsedTarget = Number.parseInt(revisedTarget, 10);
   const targetValid = Number.isFinite(parsedTarget) && parsedTarget >= 1;
+  const targetError = revisedTarget !== '' && !targetValid ? 'Enter a whole number between 1 and 999.' : undefined;
 
   const submit = async (action) => {
     if (!targetValid || isRevisingTarget) return;
@@ -51,51 +56,48 @@ export function ReviseTargetDialog({ matchId, currentTarget, onInningsEnded }) {
         <DialogTitle className={dialogPrimaryTitleClass}>Revise 2nd Innings Target</DialogTitle>
       </DialogHeaderRow>
 
-      <DialogScrollBody className="flex flex-col gap-4">
-        {currentTarget != null ? (
-          <p className="text-muted text-[13px]">
-            Current target: <span className="text-brand font-bold">{currentTarget}</span>
-          </p>
-        ) : null}
+      <DialogScrollBody>
+        <FormStack density="compact">
+          {currentTarget != null ? (
+            <p className="text-muted text-[13px]">
+              Current target: <span className="text-brand font-bold">{currentTarget}</span>
+            </p>
+          ) : null}
 
-        <div>
-          <label htmlFor="revised-target-input" className="text-[13px] font-medium text-white">
-            New Target (Runs to Win)
-          </label>
-          <input
-            id="revised-target-input"
-            type="number"
-            min={1}
-            max={999}
-            inputMode="numeric"
-            value={revisedTarget}
-            onChange={(e) => setRevisedTarget(e.target.value)}
-            className="bg-surface-raised placeholder:text-muted/47 focus-visible:ring-brand mt-2 w-full rounded-[8px] border border-[#141412] px-4 py-3 text-[14px] text-white focus:ring-2 focus:outline-none"
-          />
-          {revisedTarget !== '' && !targetValid && (
-            <p className="mt-1 text-[12px] text-red-400">Enter a whole number between 1 and 999.</p>
-          )}
-        </div>
+          <DialogFormSection label="New Target (Runs to Win)" controlOffset="sm">
+            <Input
+              id="revised-target-input"
+              type="number"
+              min={1}
+              max={999}
+              inputMode="numeric"
+              value={revisedTarget}
+              onChange={(e) => setRevisedTarget(e.target.value)}
+              error={targetError}
+            />
+          </DialogFormSection>
 
-        <p className="text-[13px] font-medium text-white">How Do You Want to Proceed?</p>
-        <div className="flex gap-3">
-          <button
-            type="button"
-            disabled={!targetValid || isRevisingTarget}
-            onClick={() => submit('continue')}
-            className="border-border-subtle bg-surface focus-visible:ring-brand enabled:active:bg-surface-raised flex flex-1 items-center justify-center rounded-[10px] border-2 px-3 py-3 text-[12px] font-bold tracking-wide text-white uppercase transition-colors focus:outline-none focus-visible:ring-2 disabled:opacity-40"
-          >
-            {pendingAction === 'continue' && isRevisingTarget ? 'Saving…' : 'Continue Innings'}
-          </button>
-          <button
-            type="button"
-            disabled={!targetValid || isRevisingTarget}
-            onClick={() => submit('end_innings')}
-            className="border-border-subtle bg-surface focus-visible:ring-brand enabled:active:bg-surface-raised flex flex-1 items-center justify-center rounded-[10px] border-2 px-3 py-3 text-[12px] font-bold tracking-wide text-white uppercase transition-colors focus:outline-none focus-visible:ring-2 disabled:opacity-40"
-          >
-            {pendingAction === 'end_innings' && isRevisingTarget ? 'Saving…' : 'End Innings'}
-          </button>
-        </div>
+          <DialogFormSection label="How Do You Want to Proceed?" controlOffset="sm">
+            <FormActions className="flex-row gap-3 pt-0">
+              <button
+                type="button"
+                disabled={!targetValid || isRevisingTarget}
+                onClick={() => submit('continue')}
+                className="border-border-subtle bg-surface focus-visible:ring-brand enabled:active:bg-surface-raised flex flex-1 items-center justify-center rounded-[10px] border-2 px-3 py-3 text-[12px] font-bold tracking-wide text-white uppercase transition-colors focus:outline-none focus-visible:ring-2 disabled:opacity-40"
+              >
+                {pendingAction === 'continue' && isRevisingTarget ? 'Saving…' : 'Continue Innings'}
+              </button>
+              <button
+                type="button"
+                disabled={!targetValid || isRevisingTarget}
+                onClick={() => submit('end_innings')}
+                className="border-border-subtle bg-surface focus-visible:ring-brand enabled:active:bg-surface-raised flex flex-1 items-center justify-center rounded-[10px] border-2 px-3 py-3 text-[12px] font-bold tracking-wide text-white uppercase transition-colors focus:outline-none focus-visible:ring-2 disabled:opacity-40"
+              >
+                {pendingAction === 'end_innings' && isRevisingTarget ? 'Saving…' : 'End Innings'}
+              </button>
+            </FormActions>
+          </DialogFormSection>
+        </FormStack>
       </DialogScrollBody>
     </>
   );
