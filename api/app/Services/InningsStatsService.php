@@ -883,7 +883,7 @@ class InningsStatsService
 
     /**
      * Produce a short display label for a single ball (used in current_over_balls arrays).
-     * Examples: "0", "4", "6", "WD", "2WD", "NB", "3NB", "W", "B", "2LB", "RH", "P5"
+     * Examples: "0", "4", "6", "WD", "2WD", "NB", "3NB", "W", "1B", "2LB", "RH", "P5"
      */
     public static function ballDisplayLabel(Ball $ball): string
     {
@@ -909,10 +909,10 @@ class InningsStatsService
             return $extra > 0 ? $extra.'NB' : 'NB';
         }
         if ($ball->is_bye) {
-            return $runs > 1 ? $runs.'B' : 'B';
+            return $runs > 0 ? $runs.'B' : 'B';
         }
         if ($ball->is_leg_bye) {
-            return $runs > 1 ? $runs.'LB' : 'LB';
+            return $runs > 0 ? $runs.'LB' : 'LB';
         }
 
         $label = (string) $runs;

@@ -277,10 +277,10 @@ final class GraphicLiveStatsBuilder
                 return $extra > 0 ? $extra.'NB' : 'NB';
             }
             if ($b->is_bye) {
-                return $runs > 1 ? $runs.'B' : 'B';
+                return $runs > 0 ? $runs.'B' : 'B';
             }
             if ($b->is_leg_bye) {
-                return $runs > 1 ? $runs.'LB' : 'LB';
+                return $runs > 0 ? $runs.'LB' : 'LB';
             }
 
             $label = match (true) {

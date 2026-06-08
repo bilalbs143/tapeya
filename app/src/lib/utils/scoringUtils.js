@@ -110,9 +110,11 @@ export function getRunsFromBall(ball) {
  *   NB        → 'NB'   (1 no-ball penalty, 0 off bat)
  *   1NB       → '1NB'  (1 off bat  + 1 NB penalty  = 2 total)
  *   2NB       → '2NB'  (2 off bat  + 1 NB penalty  = 3 total)
- *   B         → 'B'    (1 bye)
+ *   B         → 'B'    (0 byes — edge case)
+ *   1B        → '1B'   (1 bye)
  *   2B        → '2B'   (2 byes)
- *   LB        → 'LB'   (1 leg bye)
+ *   LB        → 'LB'   (0 leg byes — edge case)
+ *   1LB       → '1LB'  (1 leg bye)
  *   2LB       → '2LB'  (2 leg byes)
  *
  * @param {'wd'|'nb'|'bye'|'lb'} type
@@ -130,9 +132,9 @@ export function extraBallLabel(type, runs) {
       return extra > 0 ? `${extra}NB` : 'NB';
     }
     case 'bye':
-      return r > 1 ? `${r}B` : 'B';
+      return r > 0 ? `${r}B` : 'B';
     case 'lb':
-      return r > 1 ? `${r}LB` : 'LB';
+      return r > 0 ? `${r}LB` : 'LB';
     default:
       return type.toUpperCase();
   }
