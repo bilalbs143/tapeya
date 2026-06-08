@@ -237,11 +237,12 @@ export function ScoringTab({
   const isPlayerBattingOrOut = useCallback(
     (playerId) => {
       if (batsmenOnCrease.some((b) => String(b.id) === String(playerId))) return true;
-      const batted = scorecardInnings?.batting?.find((b) => String(b.player_id) === String(playerId));
+      const rows = scorecardInnings?.batting_stats ?? scorecardInnings?.batting ?? [];
+      const batted = rows.find((b) => String(b.id ?? b.player_id) === String(playerId));
       if (!batted) return false;
       return batted.dismissal_type != null && batted.dismissal_type !== 'retired_hurt';
     },
-    [batsmenOnCrease, scorecardInnings?.batting],
+    [batsmenOnCrease, scorecardInnings?.batting_stats, scorecardInnings?.batting],
   );
 
   const eligibleTimedOutPlayers = useMemo(

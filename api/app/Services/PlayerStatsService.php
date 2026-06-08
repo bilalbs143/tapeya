@@ -1169,7 +1169,7 @@ class PlayerStatsService
     {
         // Descending sorts: higher = better.
         $desc = in_array($sort, [
-            'runs', 'balls_faced', 'wickets', 'hundreds', 'fifties',
+            'runs', 'balls_faced', 'fours', 'sixes', 'wickets', 'hundreds', 'fifties',
             'five_wickets', 'ten_wickets', 'catches', 'run_outs', 'stumpings',
         ], true);
 
@@ -1179,6 +1179,8 @@ class PlayerStatsService
             'average' => 'average',
             'strike_rate' => 'strike_rate',
             'balls_faced' => 'balls_faced',
+            'fours' => 'fours',
+            'sixes' => 'sixes',
             'hundreds' => 'hundreds',
             'fifties' => 'fifties',
             'wickets' => 'wickets',
