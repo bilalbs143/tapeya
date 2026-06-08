@@ -111,7 +111,7 @@ export function ScoringTab({
         validDeliveries: ai.legal_balls ?? 0,
         oversDisplay: ai.overs_display ?? '0.0',
         maxOvers: match?.overs ?? null,
-        extras: null,
+        extras: ai.extras_breakdown?.total ?? 0,
         extrasBreakdown: ai.extras_breakdown ?? {},
         crr: ai.current_run_rate ?? '0.00',
         serverTarget: ai.target ?? null,
@@ -121,15 +121,13 @@ export function ScoringTab({
       };
     }
     if (scInnings) {
-      const e = scInnings.extras ?? {};
-      const extras = (e.wides ?? 0) + (e.no_balls ?? 0) + (e.byes ?? 0) + (e.leg_byes ?? 0) + (e.penalty_runs ?? 0);
       return {
         totalRuns: scInnings.total_runs ?? 0,
         totalWickets: scInnings.total_wickets ?? 0,
         oversDisplay: scInnings.overs_display ?? '0.0',
         maxOvers: match?.overs ?? null,
-        extras,
-        extrasBreakdown: e,
+        extras: scInnings.total_extras ?? 0,
+        extrasBreakdown: scInnings.extras_breakdown ?? {},
         crr: scInnings.run_rate ?? '0.00',
       };
     }
