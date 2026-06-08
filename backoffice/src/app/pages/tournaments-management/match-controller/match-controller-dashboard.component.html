@@ -94,7 +94,7 @@
           <h2 class="controller-dashboard__caption-title">Saved Caption</h2>
           @if (!caption) {
             <p class="controller-dashboard__caption-body">
-              No caption yet. One caption per match. Add it from <strong>Custom Messages</strong> below.
+              No caption yet. One caption per match. Add it from <strong>Caption</strong> below.
             </p>
           } @else {
             <div class="controller-dashboard__caption-card">
@@ -267,9 +267,9 @@
                       appearance="outline"
                       class="catalog-group__player-select"
                     >
-                      <mat-label>{{ group.id === 'PLAYER_BATSMAN' ? 'Batsman' : 'Bowler' }}</mat-label>
+                      <mat-label>{{ group.id === 'BATSMAN_STATS' ? 'Batsman' : 'Bowler' }}</mat-label>
                       <mat-select
-                        [ngModel]="group.id === 'PLAYER_BATSMAN' ? selectedBatsman : selectedBowler"
+                        [ngModel]="group.id === 'BATSMAN_STATS' ? selectedBatsman : selectedBowler"
                         (ngModelChange)="onPlayerPickChange(group, $event)"
                         [compareWith]="comparePlayerPick"
                         placeholder="Choose player"

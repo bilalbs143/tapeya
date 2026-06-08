@@ -26,11 +26,6 @@ final class GraphicCommandCatalog
                 continue;
             }
 
-            usort(
-                $actions,
-                static fn (GraphicCommandKeyEnum $a, GraphicCommandKeyEnum $b) => strcmp($a->label(), $b->label())
-            );
-
             $groups[] = [
                 'id' => $type->value,
                 'title' => $type->controllerGroupTitle(),

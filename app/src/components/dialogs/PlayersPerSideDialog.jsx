@@ -19,6 +19,11 @@ export function PlayersPerSideDialog({ initialPlayersPerSide, options, onSelect 
     closeDialog();
   };
 
+  const handleDone = () => {
+    if (playersPerSide) onSelect?.(playersPerSide);
+    closeDialog();
+  };
+
   return (
     <>
       <DialogHeaderRow>
@@ -58,7 +63,7 @@ export function PlayersPerSideDialog({ initialPlayersPerSide, options, onSelect 
         </FormStack>
       </DialogScrollBody>
 
-      <DialogSaveButton onClick={() => closeDialog()}>Done</DialogSaveButton>
+      <DialogSaveButton onClick={handleDone}>Done</DialogSaveButton>
     </>
   );
 }

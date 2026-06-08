@@ -540,6 +540,7 @@ class InningsStatsService
                         'sixes' => 0,
                         'dismissal_type' => null,
                         'dismissal_label' => null,
+                        'dismissal_compact_label' => null,
                         'bowler_name' => null,
                         'fielder_name' => null,
                         'crease_time_seconds' => null,
@@ -827,63 +828,6 @@ class InningsStatsService
             'over' => $overIndex,
             'ball_in_over' => $ballsInThisOver + 1,
         ];
-    }
-
-    /**
-     * Append pending on-crease batters to scorecard batting_stats (0s until first ball).
-     *
-     * @param  list<array<string, mixed>>  $battingList
-     * @param  array{striker_id: int|null, non_striker_id: int|null}  $crease
-     * @param  array<int, string>  $names
-     * @return list<array<string, mixed>>
-     */
-    public static function mergePendingBattersIntoBattingList(array $battingList, array $crease, array $names): array
-    {
-        $existingIds = array_column($battingList, 'id');
-        $missingIds = array_values(array_unique(array_filter(
-            [$crease['striker_id'] ?? null, $crease['non_striker_id'] ?? null],
-            fn ($id) => $id !== null && ! in_array($id, $existingIds, true),
-        )));
-
-        if ($missingIds === []) {
-            return $battingList;
-        }
-
-        $lookup = $names;
-        $needFetch = array_values(array_filter($missingIds, fn ($id) => ! isset($lookup[$id])));
-        if ($needFetch !== []) {
-            DB::table('users')
-                ->whereIn('id', $needFetch)
-                ->get(['id', 'name'])
-                ->each(function ($u) use (&$lookup) {
-                    $lookup[(int) $u->id] = $u->name ?? '';
-                });
-        }
-
-        foreach ($missingIds as $pid) {
-            $battingList[] = [
-                'id' => $pid,
-                'name' => $lookup[$pid] ?? '',
-                'runs' => 0,
-                'balls' => 0,
-                'dots' => 0,
-                'ones' => 0,
-                'twos' => 0,
-                'threes' => 0,
-                'fours' => 0,
-                'sixes' => 0,
-                'strike_rate' => 0.0,
-                'dismissal_type' => null,
-                'dismissal_label' => null,
-                'bowler_name' => null,
-                'fielder_name' => null,
-                'crease_time_seconds' => null,
-                'is_on_crease' => true,
-                'is_retired_hurt' => false,
-            ];
-        }
-
-        return $battingList;
     }
 
     /**

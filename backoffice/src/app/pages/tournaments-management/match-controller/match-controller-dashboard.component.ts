@@ -282,16 +282,12 @@ export class MatchControllerDashboardComponent implements OnInit {
     }
 
     // Playing XI — attach both teams' player name lists from the fetched roster.
-    if (
-      action.command_key === 'PLAYING_11' ||
-      action.command_key === 'PLAYING_ELEVEN_HOME' ||
-      action.command_key === 'PLAYING_ELEVEN_AWAY'
-    ) {
+    if (action.command_key === 'PLAYING_11') {
       this.dispatchGraphicCommand(action, this.buildPlayingElevenPayload());
       return;
     }
 
-    if (action.command_type === 'PLAYER_BATSMAN') {
+    if (action.command_type === 'BATSMAN_STATS') {
       if (!this.selectedBatsman) {
         this.messageService.warning('Select a batsman first.');
         return;
@@ -303,7 +299,7 @@ export class MatchControllerDashboardComponent implements OnInit {
       return;
     }
 
-    if (action.command_type === 'PLAYER_BOWLER') {
+    if (action.command_type === 'BOWLER_STATS') {
       if (!this.selectedBowler) {
         this.messageService.warning('Select a bowler first.');
         return;
@@ -603,14 +599,14 @@ export class MatchControllerDashboardComponent implements OnInit {
     this.dispatchGraphicCommand(action, { user_id: pick.user_id, team_id: pick.team_id });
   }
 
-  /** Convenience getter — PLAYER_BATSMAN catalog group for the player cards. */
+  /** Convenience getter — BATSMAN_STATS catalog group for the player cards. */
   public get playerBatsmanGroup(): GraphicCatalogGroup | null {
-    return this.catalogGroups.find((g) => g.id === 'PLAYER_BATSMAN') ?? null;
+    return this.catalogGroups.find((g) => g.id === 'BATSMAN_STATS') ?? null;
   }
 
-  /** Convenience getter — PLAYER_BOWLER catalog group for the player cards. */
+  /** Convenience getter — BOWLER_STATS catalog group for the player cards. */
   public get playerBowlerGroup(): GraphicCatalogGroup | null {
-    return this.catalogGroups.find((g) => g.id === 'PLAYER_BOWLER') ?? null;
+    return this.catalogGroups.find((g) => g.id === 'BOWLER_STATS') ?? null;
   }
 
   /** Live batter array straight from the graphic session context. */
@@ -712,13 +708,13 @@ export class MatchControllerDashboardComponent implements OnInit {
   }
 
   public isPlayerPickGroup(group: GraphicCatalogGroup): boolean {
-    return group.id === 'PLAYER_BATSMAN' || group.id === 'PLAYER_BOWLER';
+    return group.id === 'BATSMAN_STATS' || group.id === 'BOWLER_STATS';
   }
 
   public onPlayerPickChange(group: GraphicCatalogGroup, value: MatchGraphicPlayerPick | null): void {
-    if (group.id === 'PLAYER_BATSMAN') {
+    if (group.id === 'BATSMAN_STATS') {
       this.selectedBatsman = value;
-    } else if (group.id === 'PLAYER_BOWLER') {
+    } else if (group.id === 'BOWLER_STATS') {
       this.selectedBowler = value;
     }
   }
@@ -742,10 +738,10 @@ export class MatchControllerDashboardComponent implements OnInit {
   }
 
   public pickOptionsForGroup(group: GraphicCatalogGroup): { value: MatchGraphicPlayerPick; label: string }[] {
-    if (group.id === 'PLAYER_BATSMAN') {
+    if (group.id === 'BATSMAN_STATS') {
       return this.batsmanPickOptions();
     }
-    if (group.id === 'PLAYER_BOWLER') {
+    if (group.id === 'BOWLER_STATS') {
       return this.bowlerPickOptions();
     }
     return [];
@@ -802,13 +798,13 @@ export class MatchControllerDashboardComponent implements OnInit {
     if (!this.hasPlayerPickRoster) {
       return true;
     }
-    if (group.id === 'PLAYER_BATSMAN') {
+    if (group.id === 'BATSMAN_STATS') {
       if (this.batsmanPickOptions().length === 0) {
         return true;
       }
       return this.selectedBatsman === null;
     }
-    if (group.id === 'PLAYER_BOWLER') {
+    if (group.id === 'BOWLER_STATS') {
       if (this.bowlerPickOptions().length === 0) {
         return true;
       }

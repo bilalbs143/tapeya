@@ -541,17 +541,12 @@ class ScorecardController extends Controller
         $extras = $stats['extras_breakdown'];
 
         $currentStrikerId = $stats['current_striker_id'];
-        $pending = is_array($match->graphicSession?->pending_players)
-            ? $match->graphicSession->pending_players
-            : [];
-        $battingStats = $stats['batting'];
-
-        if ($pending !== [] && $inn->status === InningsStatusEnum::IN_PROGRESS) {
+        $pending = $match->graphicSession?->pending_players;
+        if (is_array($pending) && $balls->isNotEmpty()) {
             $merged = InningsStatsService::resolveExpectedCrease($balls, $pending);
             if ($merged['striker_id'] !== null) {
                 $currentStrikerId = $merged['striker_id'];
             }
-            $battingStats = InningsStatsService::mergePendingBattersIntoBattingList($battingStats, $merged, $names);
         }
 
         return [
@@ -579,7 +574,7 @@ class ScorecardController extends Controller
             'overs_display' => InningsStatsService::oversDisplay($stats['legal_balls']),
             'run_rate' => InningsStatsService::runRate($stats['total_runs'], $stats['legal_balls']),
             'current_striker_id' => $currentStrikerId,
-            'batting_stats' => $battingStats,
+            'batting_stats' => $stats['batting'],
             'bowling_stats' => $stats['bowling'],
             'fall_of_wickets' => $stats['fall_of_wickets'],
             'balls_count' => $balls->count(),
