@@ -22,7 +22,7 @@ class LiveMatchHeartController extends Controller
     {
         $this->service->send(
             match: $match->loadMissing('stream'),
-            userId: (int) $request->user()->id,
+            user: $request->user(),
         );
 
         return $this->success([], null, 'CREATED');

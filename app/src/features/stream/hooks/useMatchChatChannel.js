@@ -8,7 +8,7 @@ import { useAppSelector } from '@/store/hooks';
  *
  * @param {string|number|null} matchId
  * @param {(msg: object) => void} onMessage  Stable callback for chat messages
- * @param {() => void}           [onHeart]   Stable callback fired on heart events
+ * @param {(payload: object) => void} [onHeart] Stable callback fired on heart events
  */
 export function useMatchChatChannel(matchId, onMessage, onHeart) {
   const accessToken = useAppSelector((s) => s.auth?.accessToken);
@@ -34,8 +34,8 @@ export function useMatchChatChannel(matchId, onMessage, onHeart) {
       .listen('.match.chat.message', (payload) => {
         messageRef.current?.(payload);
       })
-      .listen('.match.chat.heart', () => {
-        heartRef.current?.();
+      .listen('.match.chat.heart', (payload) => {
+        heartRef.current?.(payload);
       });
 
     return () => {

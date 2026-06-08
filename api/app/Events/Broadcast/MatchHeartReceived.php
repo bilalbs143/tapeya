@@ -17,7 +17,12 @@ final class MatchHeartReceived implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets;
 
-    public function __construct(public readonly int $matchId) {}
+    public function __construct(
+        public readonly int $matchId,
+        public readonly int $userId,
+        public readonly ?string $avatarUrl,
+        public readonly string $initials,
+    ) {}
 
     /** @return array<int, Channel> */
     public function broadcastOn(): array
@@ -33,6 +38,10 @@ final class MatchHeartReceived implements ShouldBroadcastNow
     /** @return array<string, mixed> */
     public function broadcastWith(): array
     {
-        return [];
+        return [
+            'user_id' => $this->userId,
+            'avatar_url' => $this->avatarUrl,
+            'initials' => $this->initials,
+        ];
     }
 }

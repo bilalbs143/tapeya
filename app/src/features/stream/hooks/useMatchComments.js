@@ -35,7 +35,7 @@ function makeReducer() {
  *
  * @param {string|number|null} matchId
  * @param {boolean}   [enabled]  Pass false when stream is idle/ended
- * @param {() => void} [onHeart] Stable callback fired when any viewer sends a heart
+ * @param {(payload: object) => void} [onHeart] Stable callback fired when any viewer sends a heart
  * @returns {{ messages: object[], reset: () => void }}
  */
 export function useMatchComments(matchId, enabled = true, onHeart) {

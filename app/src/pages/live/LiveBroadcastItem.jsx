@@ -303,7 +303,8 @@ export default function LiveBroadcastItem({
   headerSlot = null,
 }) {
   const toast = useToast();
-  const myAvatar = useAppSelector((s) => s.auth?.user?.avatar ?? null);
+  const myUserId = useAppSelector((s) => s.auth?.user?.id ?? null);
+  const myAvatar = useAppSelector((s) => s.auth?.user?.avatar_url ?? s.auth?.user?.avatar ?? null);
   const myInitials = useAppSelector((s) => getInitials(s.auth?.user?.name, s.auth?.user?.nickname));
   const [bottomPanelVisible, setBottomPanelVisible] = useState(true);
   const [sendCooldown, setSendCooldown] = useState(false);
@@ -319,10 +320,16 @@ export default function LiveBroadcastItem({
   const liveChatGloballyEnabled = settingsByKey.live_chat_enabled !== '0';
 
   const chatEnabled = liveChatGloballyEnabled && streamChatActive;
-  const handleRemoteHeart = useCallback(() => {
-    if (isMobileLandscape) return;
-    spawnBurst();
-  }, [spawnBurst, isMobileLandscape]);
+  const handleRemoteHeart = useCallback(
+    (payload) => {
+      if (isMobileLandscape) return;
+      if (payload?.user_id != null && myUserId != null && Number(payload.user_id) === Number(myUserId)) {
+        return;
+      }
+      spawnBurst(payload?.avatar_url ?? null, payload?.initials ?? '?');
+    },
+    [spawnBurst, isMobileLandscape, myUserId],
+  );
   const { messages } = useMatchComments(matchId, chatEnabled, handleRemoteHeart);
   const [sendComment, { isLoading: isSending }] = useSendLiveCommentMutation();
   const [sendHeart] = useSendLiveHeartMutation();
