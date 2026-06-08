@@ -1,9 +1,11 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { useLocation } from 'react-router-dom';
 
+import { useDialog } from '@/context/DialogContext';
 import { DIALOG_REMINDER_INTERVAL_MS, useIntervalDialogPrompt } from '@/hooks/useIntervalDialogPrompt';
 import { calculateProfileStrength } from '@/lib/utils/playerUtils';
+import { isProfileStrengthReminderBlockedPath } from '@/lib/utils/routeUtils';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated, selectUser } from '@/store/selectors';
@@ -16,7 +18,7 @@ function resolveProfileStrengthReminderPayload(pathname, { isAuthenticated, user
   if (!isAuthenticated) {
     return null;
   }
-  if (pathname === '/profile' || pathname.startsWith('/overlay/')) {
+  if (isProfileStrengthReminderBlockedPath(pathname)) {
     return null;
   }
   if (!user?.id || calculateProfileStrength(user) >= 100) {
@@ -29,10 +31,11 @@ function resolveProfileStrengthReminderPayload(pathname, { isAuthenticated, user
 /**
  * While logged in with an incomplete profile, opens the profile reminder dialog
  * on a timer (unless another dialog is already open, the user is on /profile,
- * or the route is the graphic overlay /overlay/:matchId).
+ * the route is the graphic overlay /overlay/:matchId, or a live broadcast page).
  */
 export function ProfileStrengthReminderScheduler() {
   const location = useLocation();
+  const { closeDialog, dialogKey } = useDialog();
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const userFromStore = useAppSelector(selectUser);
   const { data: meResponse } = useGetMeQuery(undefined, {
@@ -44,6 +47,12 @@ export function ProfileStrengthReminderScheduler() {
   userRef.current = user;
 
   const enabled = resolveProfileStrengthReminderPayload(location.pathname, { isAuthenticated, user }) !== null;
+
+  useEffect(() => {
+    if (isProfileStrengthReminderBlockedPath(location.pathname) && dialogKey === 'profileStrengthReminder') {
+      closeDialog();
+    }
+  }, [location.pathname, dialogKey, closeDialog]);
 
   useIntervalDialogPrompt({
     intervalMs: DIALOG_REMINDER_INTERVAL_MS,

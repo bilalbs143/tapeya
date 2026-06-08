@@ -2,8 +2,11 @@
  * Live broadcast viewer — single stream fetched by matchId.
  * Route: /live/broadcast/:matchId
  *
- * Data is loaded via RTK Query (`getMatch`) and kept in sync with real-time
- * Reverb events (`useMatchStreamChannel`).  No mock data is used.
+ * Layout model:
+ * - Solid global navbar; video fills the main content area below it.
+ * - Mobile/tablet portrait: in-flow header row (back · live · viewers) above the video.
+ * - Desktop: page header floats over the video; back hidden.
+ * - Mobile landscape (phones only): immersive controls, but LIVE + viewers stay visible.
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -14,8 +17,16 @@ import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
 import { useMatchPresenceChannel } from '@/features/stream/hooks/useMatchPresenceChannel';
 import { useMatchStreamChannel } from '@/features/stream/hooks/useMatchStreamChannel';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
-import { MOBILE_MEDIA_QUERY } from '@/lib/constants/layout';
-import { LIVE_BROADCAST_SHELL_CLASS, LIVE_BROADCAST_SHELL_STYLE } from '@/lib/constants/liveBroadcastLayout';
+import { LG_MEDIA_QUERY, MOBILE_MEDIA_QUERY } from '@/lib/constants/layout';
+import {
+  LIVE_BROADCAST_LANDSCAPE_SHELL_CLASS,
+  LIVE_BROADCAST_LANDSCAPE_SHELL_STYLE,
+  LIVE_BROADCAST_LANDSCAPE_SHELL_Z,
+  LIVE_BROADCAST_SHELL_CLASS,
+  LIVE_BROADCAST_SHELL_DESKTOP_CLASS,
+  LIVE_BROADCAST_SHELL_HEIGHT,
+  LIVE_BROADCAST_SHELL_HEIGHT_DESKTOP,
+} from '@/lib/constants/liveBroadcastLayout';
 import { useGetMatchQuery } from '@/store/api/matchApi';
 
 import LiveBroadcastItem from './LiveBroadcastItem';
@@ -27,7 +38,6 @@ const STATUS_BADGE = {
   ended: { dot: 'bg-white/50', label: 'Ended' },
 };
 
-/** Status indicator shown in the top-centre of the viewer. */
 function StatusBadge({ status }) {
   const cfg = STATUS_BADGE[status];
   if (!cfg) return null;
@@ -36,6 +46,24 @@ function StatusBadge({ status }) {
     <span className="inline-flex items-center gap-1.5 rounded-full bg-black/70 px-2.5 py-1 text-[11px] font-bold tracking-wide text-white uppercase backdrop-blur-sm">
       <span className={`h-2 w-2 shrink-0 rounded-full ${cfg.dot}`} aria-hidden />
       {cfg.label}
+    </span>
+  );
+}
+
+function ViewerCountBadge({ viewerCount }) {
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] font-extrabold text-black"
+      aria-live="polite"
+      aria-label={`${viewerCount} watching`}
+    >
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden>
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="12" cy="12" r="3" stroke="black" strokeWidth="2" />
+      </svg>
+      <span key={formatViewerCount(viewerCount)} className="animate-[fadeSlideIn_0.4s_ease_forwards]">
+        {formatViewerCount(viewerCount)}
+      </span>
     </span>
   );
 }
@@ -55,6 +83,7 @@ export default function LiveBroadcast() {
   const navigate = useNavigate();
   const { matchId } = useParams();
   const [isLandscape, setIsLandscape] = useState(false);
+  const isDesktop = useMediaQuery(LG_MEDIA_QUERY);
   const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY);
 
   const { data: match, isError, refetch } = useGetMatchQuery(matchId, { skip: !matchId });
@@ -73,65 +102,76 @@ export default function LiveBroadcast() {
   const toggleLandscape = useCallback(() => setIsLandscape((prev) => !prev), []);
 
   const isMobileLandscape = isMobile && isLandscape;
+  const useInFlowHeader = !isDesktop && !isLandscape;
 
-  const shellStyle = isLandscape ? { top: 0, bottom: 0, zIndex: 51 } : { ...LIVE_BROADCAST_SHELL_STYLE, bottom: 0, zIndex: 50 };
+  const shellClass = isLandscape
+    ? LIVE_BROADCAST_LANDSCAPE_SHELL_CLASS
+    : `${LIVE_BROADCAST_SHELL_CLASS} ${LIVE_BROADCAST_SHELL_DESKTOP_CLASS}`;
 
-  const headerContent = useMemo(
+  const shellStyle = isLandscape
+    ? { ...LIVE_BROADCAST_LANDSCAPE_SHELL_STYLE, zIndex: LIVE_BROADCAST_LANDSCAPE_SHELL_Z }
+    : { height: isDesktop ? LIVE_BROADCAST_SHELL_HEIGHT_DESKTOP : LIVE_BROADCAST_SHELL_HEIGHT };
+
+  const centeredStatusContent = useMemo(
     () => (
-      <>
-        <AppSubpageBackButton onClick={() => navigate(-1)} aria-label="Go back" />
-
-        {streamStatus && (
-          <div className="pointer-events-none absolute left-1/2 -translate-x-1/2">
-            <StatusBadge status={streamStatus} />
-          </div>
-        )}
-
-        {presenceEnabled ? (
-          <span
-            className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] font-extrabold text-black"
-            aria-live="polite"
-            aria-label={`${viewerCount} watching`}
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path
-                d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                stroke="black"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <circle cx="12" cy="12" r="3" stroke="black" strokeWidth="2" />
-            </svg>
-            <span key={formatViewerCount(viewerCount)} className="animate-[fadeSlideIn_0.4s_ease_forwards]">
-              {formatViewerCount(viewerCount)}
-            </span>
-          </span>
-        ) : (
-          <div className="w-9 shrink-0" aria-hidden />
-        )}
-      </>
+      <div className="pointer-events-none flex min-w-0 flex-1 items-center justify-center gap-2">
+        {streamStatus && <StatusBadge status={streamStatus} />}
+        {presenceEnabled && <ViewerCountBadge viewerCount={viewerCount} />}
+      </div>
     ),
-    [navigate, streamStatus, presenceEnabled, viewerCount],
+    [streamStatus, presenceEnabled, viewerCount],
   );
 
+  const portraitHeaderContent = useMemo(
+    () => (
+      <>
+        <AppSubpageBackButton
+          onClick={() => navigate(-1)}
+          aria-label="Go back"
+          className="pointer-events-auto"
+        />
+        {centeredStatusContent}
+        <span className="h-7 w-7 shrink-0" aria-hidden />
+      </>
+    ),
+    [navigate, centeredStatusContent],
+  );
+
+  const desktopOverlayHeader = useMemo(
+    () => (
+      <>
+        <span className="h-7 w-7 shrink-0" aria-hidden />
+        {centeredStatusContent}
+        <span className="h-7 w-7 shrink-0" aria-hidden />
+      </>
+    ),
+    [centeredStatusContent],
+  );
+
+  const overlayHeaderSlot =
+    isDesktop || isLandscape ? (isDesktop || isMobileLandscape ? desktopOverlayHeader : portraitHeaderContent) : null;
+
+  const showError = isError && !match;
+
   return (
-    <div className={LIVE_BROADCAST_SHELL_CLASS} style={shellStyle}>
-      <div className="relative flex h-full w-full flex-col overflow-hidden">
-        {!isLandscape && (
-          <header className="relative z-20 flex shrink-0 items-center justify-between px-4 py-2">{headerContent}</header>
+    <div className={shellClass} style={shellStyle}>
+      <div className={`relative h-full w-full overflow-hidden ${useInFlowHeader ? 'flex flex-col' : ''}`}>
+        {useInFlowHeader && (
+          <header className="relative z-20 flex shrink-0 items-center justify-between px-4 py-2">
+            {portraitHeaderContent}
+          </header>
         )}
 
-        {/* Defined player + rotation zone — fills space between toolbar and bottom nav */}
-        <div className="relative min-h-0 flex-1 overflow-hidden">
-          {isError && <BroadcastError onRetry={refetch} />}
+        <div className={`relative overflow-hidden ${useInFlowHeader ? 'min-h-0 flex-1' : 'h-full w-full'}`}>
+          {showError && <BroadcastError onRetry={refetch} />}
           {match && (
             <LiveBroadcastItem
               match={match}
               isLandscape={isLandscape}
+              isDesktop={isDesktop}
               isMobileLandscape={isMobileLandscape}
               onToggleLandscape={toggleLandscape}
-              landscapeHeader={isLandscape && !isMobile ? headerContent : null}
+              headerSlot={overlayHeaderSlot}
             />
           )}
         </div>
