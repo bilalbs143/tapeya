@@ -400,12 +400,9 @@ export function mergeDedupedPlayerRows(teamAPlayers, teamBPlayers) {
 }
 
 /**
- * Playing-eleven players eligible for Man of the Match.
- * Winner: winning team only. Tie / no decisive winner: both teams (deduped).
+ * Playing-eleven players eligible for Man of the Match (both teams, deduped).
  *
  * @param {object} params
- * @param {number|null} params.winningTeamIdFromApi
- * @param {object|null} params.liveSummary
  * @param {number|null} params.homeTeamId
  * @param {number|null} params.awayTeamId
  * @param {{ player_ids: number[] }|undefined} params.playingElevenHome
@@ -415,8 +412,6 @@ export function mergeDedupedPlayerRows(teamAPlayers, teamBPlayers) {
  * @returns {{ id: number, name: string, teamId: number|null }[]}
  */
 export function buildPlayerOfMatchCandidates({
-  winningTeamIdFromApi,
-  liveSummary,
   homeTeamId,
   awayTeamId,
   playingElevenHome,
@@ -446,15 +441,6 @@ export function buildPlayerOfMatchCandidates({
   const aid = awayTeamId != null ? Number(awayTeamId) : null;
   const homeIds = playingElevenHome?.player_ids ?? [];
   const awayIds = playingElevenAway?.player_ids ?? [];
-
-  const { winnerId, useBothTeams } = resolveManOfMatchWinnerScope(winningTeamIdFromApi, liveSummary);
-
-  if (useBothTeams) {
-    return mergeDedupedPlayerRows(mapTeam(hid, homeIds, squadHome), mapTeam(aid, awayIds, squadAway));
-  }
-
-  if (hid != null && winnerId === hid) return mapTeam(hid, homeIds, squadHome);
-  if (aid != null && winnerId === aid) return mapTeam(aid, awayIds, squadAway);
 
   return mergeDedupedPlayerRows(mapTeam(hid, homeIds, squadHome), mapTeam(aid, awayIds, squadAway));
 }

@@ -54,16 +54,11 @@ class MatchPlayerOfMatchController extends Controller
 
     private function userIsEligible(TournamentMatch $match, int $userId): bool
     {
-        $winnerId = $match->winning_team_id;
-
-        $allowedTeamIds = $winnerId !== null
-            ? [(int) $winnerId]
-            : [(int) $match->home_team_id, (int) $match->away_team_id];
-
+        // Man of the Match may come from either team — no winner restriction.
         return DB::table('match_players')
             ->where('match_id', $match->id)
             ->where('user_id', $userId)
-            ->whereIn('team_id', $allowedTeamIds)
+            ->whereIn('team_id', [(int) $match->home_team_id, (int) $match->away_team_id])
             ->exists();
     }
 }

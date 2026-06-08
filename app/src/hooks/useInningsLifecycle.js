@@ -138,8 +138,6 @@ export function useInningsLifecycle({
       );
       const manOfMatchCandidates = isMatchOver
         ? buildPlayerOfMatchCandidates({
-            winningTeamIdFromApi: apiMatch?.winning_team_id,
-            liveSummary: matchResultForDialog,
             homeTeamId,
             awayTeamId,
             playingElevenHome,
