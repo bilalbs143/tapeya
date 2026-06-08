@@ -10,7 +10,7 @@ function findBattingStat(playerId, battingStats = []) {
 /**
  * Row state for batsman picker dialogs (Select Batsman / Replace Striker).
  *
- * @returns {{ canSelect: boolean, statusBadge: { label: string, tone: 'out'|'crease' }|null, scoreLine: string|null }}
+ * @returns {{ canSelect: boolean, isDismissed: boolean, isOnCrease: boolean, statusBadge: { label: string, tone: 'out'|'crease'|'active' }|null, scoreLine: string|null }}
  */
 export function resolveBatsmanPickerRow({
   playerId,
@@ -56,7 +56,7 @@ export function resolveBatsmanPickerRow({
   const stats = getBatsmanDisplayStats?.(playerId);
   const scoreLine = stats && (stats.runs > 0 || stats.balls > 0 || isUnavailable) ? `${stats.runs} (${stats.balls})` : null;
 
-  return { canSelect, isUnavailable, statusBadge, scoreLine };
+  return { canSelect, isDismissed, isOnCrease, statusBadge, scoreLine };
 }
 
 function findBowlerStats(playerId, bowlersInTable = [], bowlingStats = []) {

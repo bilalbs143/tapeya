@@ -5,7 +5,7 @@ function PickerStatusBadge({ badge }) {
   if (!badge) return null;
   const toneClass =
     badge.tone === 'out'
-      ? 'bg-red-500/15 text-red-300'
+      ? 'bg-red-500/15 text-red-400'
       : badge.tone === 'active'
         ? 'bg-[#6B7280]/25 text-[#D1D5DB]'
         : 'bg-brand/15 text-brand';
@@ -33,7 +33,7 @@ export function ScoringBatsmanPickerRow({
   dismissalTypeOptions = [],
   onPick,
 }) {
-  const { canSelect, isUnavailable, statusBadge, scoreLine } = resolveBatsmanPickerRow({
+  const { canSelect, isDismissed, statusBadge, scoreLine } = resolveBatsmanPickerRow({
     playerId: player.id,
     strikerId,
     nonStrikerId,
@@ -61,13 +61,19 @@ export function ScoringBatsmanPickerRow({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={`text-[14px] font-bold ${isUnavailable ? 'text-white/70' : 'text-white'}`}>{player.name}</span>
-            <PickerStatusBadge badge={statusBadge} />
-          </div>
-          {!isUnavailable ? <ScoringPlayerPickerMeta player={player} variant="batting" /> : null}
+          <span className={`text-[14px] font-bold ${isDismissed ? 'text-white/70' : 'text-white'}`}>{player.name}</span>
+          <ScoringPlayerPickerMeta player={player} variant="batting" />
         </div>
-        {scoreLine ? <span className="text-muted shrink-0 text-[12px] tabular-nums">{scoreLine}</span> : null}
+        {scoreLine || statusBadge ? (
+          <div className="shrink-0 text-right">
+            {scoreLine ? <span className="text-muted text-[12px] tabular-nums">{scoreLine}</span> : null}
+            {statusBadge ? (
+              <div className="mt-1 flex justify-end">
+                <PickerStatusBadge badge={statusBadge} />
+              </div>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </div>
   );
