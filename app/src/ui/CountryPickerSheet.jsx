@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { getFlagEmoji } from '@/lib/phoneCodes';
-import { COUNTRIES } from '@/lib/phoneMetadata';
+import { COUNTRIES, getFlagEmoji } from '@/lib/phoneCodes';
 import { BottomSheet } from '@/ui/BottomSheet';
 
 const SEARCH_INPUT =
