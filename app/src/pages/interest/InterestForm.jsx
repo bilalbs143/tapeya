@@ -8,7 +8,6 @@ import { getApiErrorMessage } from '@/lib/apiErrors';
 import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
 import { formatIsoDateForDisplay, toApiDate } from '@/lib/utils/dateUtils';
 import { EMPTY_FILE_UPLOAD, fileUploadValueFromUrl } from '@/lib/utils/fileUploadUtils';
-import { useGetCitiesQuery, useGetCountriesQuery } from '@/store/api/locationApi';
 import { uploadMediaFile, useDeleteMediaMutation, useUploadMediaMutation } from '@/store/api/mediaApi';
 import {
   useGetInterestCampaignQuery,
@@ -17,23 +16,11 @@ import {
 } from '@/store/api/tournamentInterestApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { CountryCityFields } from '@/ui/CountryCityFields';
 import { DatePicker } from '@/ui/DatePicker';
 import { FileUploadField } from '@/ui/FileUploadField';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
-import {
-  Select,
-  SelectContent,
-  selectContentInputClass,
-  SelectItem,
-  selectItemIndicatorInputClass,
-  selectItemInputClass,
-  selectItemTextInputClass,
-  SelectTrigger,
-  selectTriggerInputClass,
-  SelectValue,
-  selectViewportInputClass,
-} from '@/ui/Select';
 
 const PROFILE_PICTURE_REQUIRED_MSG = 'Please add a profile picture.';
 const ID_DOCUMENT_REQUIRED_MSG = 'Please add your CNIC or B-Form.';
@@ -61,12 +48,6 @@ export default function InterestForm() {
   const [deleteMedia] = useDeleteMediaMutation();
 
   const [form, setForm] = useState(EMPTY_FORM);
-
-  const { data: countriesList = [] } = useGetCountriesQuery();
-  const countryCode = countriesList.find((c) => c.name === form.country)?.country_code ?? null;
-  const { data: citiesList = [] } = useGetCitiesQuery(countryCode, {
-    skip: !countryCode,
-  });
 
   const [profilePictureUpload, setProfilePictureUpload] = useState(EMPTY_FILE_UPLOAD);
   const [idDocumentUpload, setIdDocumentUpload] = useState(EMPTY_FILE_UPLOAD);
@@ -209,7 +190,7 @@ export default function InterestForm() {
           title={<h1 className="min-w-0 truncate px-1 text-center text-[15px] leading-snug font-bold text-white/70">Loading…</h1>}
         />
         <Container className="pb-8">
-          <p className="py-8 text-center text-sm text-[#A2A6AB]">Loading interest form…</p>
+          <p className="text-muted py-8 text-center text-sm">Loading interest form…</p>
         </Container>
       </div>
     );
@@ -263,12 +244,12 @@ export default function InterestForm() {
         {(campaign.description || !isOpen) && (
           <div className="mx-auto mb-6 max-w-2xl text-center">
             {campaign.description && (
-              <p className="mb-4 text-[13px] leading-snug whitespace-pre-line text-[#A2A6AB] md:text-[14px]">
+              <p className="text-muted mb-4 text-[13px] leading-snug whitespace-pre-line md:text-[14px]">
                 {campaign.description}
               </p>
             )}
             {!isOpen && (
-              <div className="rounded-[6px] border border-amber-500/45 bg-[#141412] p-4 shadow-[0_0_0_1px_rgba(251,191,36,0.12)]">
+              <div className="bg-surface rounded-[6px] border border-amber-500/45 p-4 shadow-[0_0_0_1px_rgba(251,191,36,0.12)]">
                 <p className="text-[12px] leading-snug text-amber-200/95">
                   This interest form is closed. New submissions are not accepted.
                 </p>
@@ -278,11 +259,11 @@ export default function InterestForm() {
         )}
 
         {isConfirmed ? (
-          <div className="mb-6 rounded-[6px] border border-[#DA9811]/45 bg-[#141412] p-4 text-center text-[12px] leading-snug font-semibold text-[#DA9811] shadow-[0_0_0_1px_rgba(218,152,17,0.12)]">
+          <div className="border-brand/45 bg-surface text-brand mb-6 rounded-[6px] border p-4 text-center text-[12px] leading-snug font-semibold shadow-[0_0_0_1px_rgba(218,152,17,0.12)]">
             Your spot is confirmed. Our team has accepted your interest — these are the details we have on file.
           </div>
         ) : isActive ? (
-          <div className="mb-6 rounded-[6px] border border-emerald-700/45 bg-[#141412] p-4 text-center text-[12px] leading-snug text-emerald-200/95 shadow-[0_0_0_1px_rgba(16,185,129,0.1)]">
+          <div className="bg-surface mb-6 rounded-[6px] border border-emerald-700/45 p-4 text-center text-[12px] leading-snug text-emerald-200/95 shadow-[0_0_0_1px_rgba(16,185,129,0.1)]">
             You&apos;re already on the interest list. Update your details below or withdraw your interest.
           </div>
         ) : null}
@@ -309,7 +290,7 @@ export default function InterestForm() {
               }
             />
             {!errors.picture && (
-              <p className="max-w-[280px] text-center text-[12px] leading-snug text-[#A2A6AB]/80">
+              <p className="text-muted/80 max-w-[280px] text-center text-[12px] leading-snug">
                 {needsProfilePictureUpload && !profilePictureUpload.files.length && !profilePictureUpload.existingUrls.length
                   ? 'Profile picture required — JPG, PNG or WebP, max 5 MB.'
                   : 'JPG, PNG or WebP, max 5 MB.'}
@@ -318,8 +299,8 @@ export default function InterestForm() {
           </div>
 
           <div className="lg:col-span-2">
-            <h2 className="text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">Personal Details</h2>
-            <p className="mt-1 text-[12px] leading-snug text-[#A2A6AB]/90">
+            <h2 className="text-muted text-[12px] font-bold tracking-wide uppercase">Personal Details</h2>
+            <p className="text-muted/90 mt-1 text-[12px] leading-snug">
               From your account. To change these, update your profile.
             </p>
           </div>
@@ -329,7 +310,7 @@ export default function InterestForm() {
               id="interest-name"
               type="text"
               value={form.name}
-              placeholder="Your name"
+              placeholder="Your Name"
               maxLength={191}
               autoComplete="name"
               required
@@ -344,7 +325,7 @@ export default function InterestForm() {
               id="interest-nickname"
               type="text"
               value={form.nickname}
-              placeholder="Your nickname"
+              placeholder="Your Nickname"
               maxLength={191}
               required
               readOnly
@@ -358,7 +339,7 @@ export default function InterestForm() {
               id="interest-phone"
               type="tel"
               value={form.phone}
-              placeholder="Phone / WhatsApp number"
+              placeholder="Phone / WhatsApp Number"
               maxLength={30}
               autoComplete="tel"
               required
@@ -369,7 +350,7 @@ export default function InterestForm() {
           </FormField>
 
           <div className="border-t border-[#FFFFFF14] pt-6 lg:col-span-2">
-            <h2 className="text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">Other Details</h2>
+            <h2 className="text-muted text-[12px] font-bold tracking-wide uppercase">Other Details</h2>
           </div>
 
           <FormField label="Email" htmlFor="interest-email" required>
@@ -385,7 +366,7 @@ export default function InterestForm() {
             />
           </FormField>
 
-          <FormField label="Date of Birth" htmlFor="interest-dob" required>
+          <FormField label="Date Of Birth" htmlFor="interest-dob" required>
             <DatePicker
               id="interest-dob"
               value={form.date_of_birth}
@@ -394,47 +375,15 @@ export default function InterestForm() {
             />
           </FormField>
 
-          <FormField label="Country" htmlFor="interest-country" required>
-            <Select value={form.country} onValueChange={(v) => setForm((prev) => ({ ...prev, country: v, city: '' }))}>
-              <SelectTrigger id="interest-country" className={`w-full ${selectTriggerInputClass}`}>
-                <SelectValue placeholder="Select Country" />
-              </SelectTrigger>
-              <SelectContent className={`z-[100] ${selectContentInputClass}`} viewportClassName={selectViewportInputClass}>
-                {countriesList.map((c) => (
-                  <SelectItem
-                    key={c.id}
-                    value={c.name}
-                    className={selectItemInputClass}
-                    textClassName={selectItemTextInputClass}
-                    indicatorClassName={selectItemIndicatorInputClass}
-                  >
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </FormField>
-
-          <FormField label="City" htmlFor="interest-city" required>
-            <Select value={form.city} onValueChange={(v) => setForm((prev) => ({ ...prev, city: v }))}>
-              <SelectTrigger id="interest-city" className={`w-full ${selectTriggerInputClass}`}>
-                <SelectValue placeholder="Select City" />
-              </SelectTrigger>
-              <SelectContent className={`z-[100] ${selectContentInputClass}`} viewportClassName={selectViewportInputClass}>
-                {citiesList.map((c) => (
-                  <SelectItem
-                    key={c.id}
-                    value={c.name}
-                    className={selectItemInputClass}
-                    textClassName={selectItemTextInputClass}
-                    indicatorClassName={selectItemIndicatorInputClass}
-                  >
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </FormField>
+          <CountryCityFields
+            country={form.country}
+            city={form.city}
+            onCountryChange={(v) => setForm((prev) => ({ ...prev, country: v }))}
+            onCityChange={(v) => setForm((prev) => ({ ...prev, city: v }))}
+            countryId="interest-country"
+            cityId="interest-city"
+            required
+          />
 
           <div className="lg:col-span-2">
             <FileUploadField
@@ -461,7 +410,7 @@ export default function InterestForm() {
                 href={mySubmission.id_document_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-1.5 inline-block text-[12px] font-medium text-[#DA9811] underline underline-offset-2 hover:no-underline"
+                className="text-brand mt-1.5 inline-block text-[12px] font-medium underline underline-offset-2 hover:no-underline"
               >
                 View uploaded document
               </a>
@@ -485,7 +434,7 @@ export default function InterestForm() {
                     type="button"
                     onClick={handleWithdraw}
                     disabled={isWithdrawing}
-                    className="w-full rounded-[6px] border border-red-500/40 bg-[#141412] py-3 text-sm font-semibold text-red-300 transition hover:bg-red-950/20 disabled:cursor-not-allowed disabled:opacity-60 sm:w-[180px]"
+                    className="bg-surface w-full rounded-[6px] border border-red-500/40 py-3 text-sm font-semibold text-red-300 transition hover:bg-red-950/20 disabled:cursor-not-allowed disabled:opacity-60 sm:w-[180px]"
                   >
                     {isWithdrawing ? 'Withdrawing…' : 'Withdraw'}
                   </button>

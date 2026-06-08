@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { TeamLogo } from '@/components/TeamLogo';
+import { useDialog } from '@/context/DialogContext';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { useSearchTeamsQuery } from '@/store/api/teamApi';
 import { Container } from '@/ui/Container';
@@ -30,15 +31,15 @@ function TeamCard({ team, index, onEdit, onDelete, onClick }) {
       tabIndex={0}
       onClick={() => onClick?.(team)}
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onClick?.(team)}
-      className="flex cursor-pointer items-start gap-3 rounded-[17px] bg-[#141412] p-4 transition-opacity active:opacity-90"
+      className="bg-surface flex cursor-pointer items-start gap-3 rounded-[17px] p-4 transition-opacity active:opacity-90"
     >
       <TeamLogo team={team} variant="draft" />
       <div className="min-w-0 flex-1">
         <h3 className="text-[16px] font-bold text-white">{team.name ?? '—'}</h3>
-        <p className="mt-0.5 text-[14px] text-[#A2A6AB]">
-          <span className="font-medium text-[#DA9811]">Owner: {owner}</span>
+        <p className="text-muted mt-0.5 text-[14px]">
+          <span className="text-brand font-medium">Owner: {owner}</span>
         </p>
-        <p className="mt-0.5 text-[12px] text-[#A2A6AB]">
+        <p className="text-muted mt-0.5 text-[12px]">
           Icon Players: <span className="text-white">{iconPlayers}</span>
         </p>
       </div>
@@ -51,7 +52,7 @@ function TeamCard({ team, index, onEdit, onDelete, onClick }) {
               onEdit?.(team);
             }}
             className="flex h-4 w-4 items-center justify-end rounded-lg transition-opacity active:opacity-80"
-            aria-label="Edit team"
+            aria-label="Edit Team"
           >
             <img src={teamEditIcon} alt="" className="h-4 w-4" />
           </button>
@@ -62,7 +63,7 @@ function TeamCard({ team, index, onEdit, onDelete, onClick }) {
               onDelete?.(team);
             }}
             className="flex h-4 w-4 items-center justify-end rounded-lg transition-opacity active:opacity-80"
-            aria-label="Delete team"
+            aria-label="Delete Team"
           >
             <img src={teamDeleteIcon} alt="" className="h-4 w-4" />
           </button>
@@ -75,6 +76,7 @@ function TeamCard({ team, index, onEdit, onDelete, onClick }) {
 
 export default function TeamList() {
   const navigate = useNavigate();
+  const { openDialog } = useDialog();
 
   const { data: teams = [], isLoading, isError } = useSearchTeamsQuery('');
 
@@ -82,9 +84,9 @@ export default function TeamList() {
     navigate(`/drafting/teams/${team.id}`, { state: { team } });
   };
 
-  const handleEdit = (_team) => {
-    // TODO: Navigate to edit team when API supports update
-  };
+  const handleEdit = (team) => openDialog('manageTeam', { mode: 'edit', team });
+
+  const handleCreate = () => openDialog('manageTeam', { mode: 'create' });
 
   const handleDelete = (_team) => {
     // TODO: Confirm and delete team when API supports delete for app users
@@ -98,10 +100,10 @@ export default function TeamList() {
           <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">Teams</h2>
           <button
             type="button"
-            onClick={() => navigate('/drafting/add-team')}
+            onClick={handleCreate}
             className="flex shrink-0 items-center gap-2 transition-opacity active:opacity-80"
           >
-            <span className="flex h-[27px] w-[27px] items-center justify-center rounded-full bg-[#DA9811] text-[18px] font-bold text-[#080807]">
+            <span className="bg-brand text-ink flex h-[27px] w-[27px] items-center justify-center rounded-full text-[18px] font-bold">
               +
             </span>
             <span className="text-[14px] font-semibold text-white">Create Teams</span>
@@ -111,12 +113,12 @@ export default function TeamList() {
         {isLoading && (
           <ul className="space-y-3 pb-10">
             {[1, 2, 3].map((i) => (
-              <li key={i} className="animate-pulse rounded-[17px] bg-[#141412] p-4">
+              <li key={i} className="bg-surface animate-pulse rounded-[17px] p-4">
                 <div className="flex gap-3">
-                  <div className="h-12 w-12 shrink-0 rounded-lg bg-[#1c1c1a]" />
+                  <div className="bg-surface-raised h-12 w-12 shrink-0 rounded-lg" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 w-24 rounded bg-[#1c1c1a]" />
-                    <div className="h-3 w-32 rounded bg-[#1c1c1a]" />
+                    <div className="bg-surface-raised h-4 w-24 rounded" />
+                    <div className="bg-surface-raised h-3 w-32 rounded" />
                   </div>
                 </div>
               </li>
@@ -125,7 +127,7 @@ export default function TeamList() {
         )}
 
         {isError && !isLoading && (
-          <p className="rounded-[17px] bg-[#141412] px-4 py-6 text-center text-[13px] text-red-400">Failed to load teams.</p>
+          <p className="bg-surface rounded-[17px] px-4 py-6 text-center text-[13px] text-red-400">Failed to load teams.</p>
         )}
 
         {!isLoading && !isError && teams.length > 0 && (
@@ -139,7 +141,7 @@ export default function TeamList() {
         )}
 
         {!isLoading && !isError && teams.length === 0 && (
-          <p className="rounded-[17px] bg-[#141412] px-4 py-6 text-center text-[13px] text-[#A2A6AB]">
+          <p className="bg-surface text-muted rounded-[17px] px-4 py-6 text-center text-[13px]">
             No teams yet. Create your first team to get started.
           </p>
         )}

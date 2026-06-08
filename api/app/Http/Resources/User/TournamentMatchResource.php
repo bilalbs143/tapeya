@@ -35,13 +35,25 @@ class TournamentMatchResource extends JsonResource
             'tournament' => $this->whenLoaded('tournament', fn () => [
                 'id' => $match->tournament->id,
                 'name' => $match->tournament->tournament_name ?? '',
-                'logo_url' => null,
+                'logo_url' => $match->tournament->logoUrl(),
             ]),
 
             'winning_team_id' => $match->winning_team_id,
             'toss_winner_team_id' => $match->toss_winner_team_id,
             'chose_to_bat_or_bowl' => $match->chose_to_bat_or_bowl,
             'is_no_result' => (bool) ($match->is_no_result ?? false),
+            'revised_target' => $match->revised_target !== null ? (int) $match->revised_target : null,
+            'revised_target_at' => $match->revised_target_at?->toIso8601String(),
+
+            'cancel_reason' => $match->cancel_reason,
+            'cancel_comments' => $match->cancel_comments,
+            'cancel_points_awarded_each' => (bool) ($match->cancel_points_awarded_each ?? false),
+
+            'declare_result_type' => $match->declare_result_type,
+            'declare_winner_team_id' => $match->declare_winner_team_id !== null ? (int) $match->declare_winner_team_id : null,
+            'declare_result_note' => $match->declare_result_note,
+            'declare_winner_team' => $this->whenLoaded('declareWinnerTeam', fn () => new TeamResource($match->declareWinnerTeam)),
+
             'winning_team' => $this->whenLoaded('winningTeam', fn () => new TeamResource($match->winningTeam)),
             'toss_winner_team' => $this->whenLoaded('tossWinnerTeam', fn () => new TeamResource($match->tossWinnerTeam)),
 
@@ -62,6 +74,8 @@ class TournamentMatchResource extends JsonResource
                 ];
             }),
             'result_summary' => $match->resultSummary(),
+
+            'analytics_settings' => $match->analyticsSettings(),
 
             'thumbnail_url' => $match->streamThumbnailUrl(),
             'has_custom_thumbnail' => (bool) $match->getRawOriginal('stream_thumbnail'),

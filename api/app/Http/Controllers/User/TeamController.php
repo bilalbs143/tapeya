@@ -8,6 +8,7 @@ use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreTeamRequest;
 use App\Http\Requests\User\StoreTeamSquadRequest;
+use App\Http\Requests\User\UpdateTeamRequest;
 use App\Http\Resources\User\TeamResource;
 use App\Http\Resources\User\UserResource;
 use App\Models\Role;
@@ -93,6 +94,47 @@ class TeamController extends Controller
             'Team created.',
             'CREATED'
         );
+    }
+
+    /**
+     * Update team metadata (name, code, country, city, sponsor, icon players).
+     *
+     * Only the team owner (sponsor) or an organizer can update.
+     * Only organizers may change team ownership.
+     */
+    public function update(UpdateTeamRequest $request, Team $team): JsonResponse
+    {
+        $authUser = $request->user();
+        $isOrganizer = $authUser->hasRole(AppRoleEnum::ORGANIZER);
+
+        if ((int) $team->user_id !== (int) $authUser->id && ! $isOrganizer) {
+            return $this->forbidden('Only the team owner or an organizer can edit this team.');
+        }
+
+        $data = $request->validated();
+        $sponsorId = isset($data['sponsor_user_id']) ? (int) $data['sponsor_user_id'] : (int) $team->user_id;
+        $iconPlayerIds = $data['icon_player_ids'] ?? [];
+
+        if ($sponsorId !== (int) $team->user_id) {
+            if (! $isOrganizer) {
+                return $this->forbidden('Only organizers can change team ownership.');
+            }
+            $newOwner = User::findOrFail($sponsorId);
+            $this->ensureAppUserHasSponsorRole($newOwner);
+        }
+
+        $team->update([
+            'name' => $data['name'],
+            'code' => $data['code'],
+            'country' => $data['country'],
+            'city' => $data['city'],
+            'user_id' => $sponsorId,
+        ]);
+
+        $team->iconPlayers()->sync($iconPlayerIds);
+        $team->load(['sponsor', 'creator', 'iconPlayers']);
+
+        return $this->success(new TeamResource($team), 'Team updated.', 'SUCCESS');
     }
 
     /**

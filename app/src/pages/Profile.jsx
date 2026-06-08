@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { useSearchParams } from 'react-router-dom';
 
@@ -7,6 +7,7 @@ import { OrganizerProfileTabs } from '@/components/UserProfileTabs/OrganizerProf
 import { PlayerProfile } from '@/components/UserProfileTabs/PlayerProfile';
 import { SponsorProfileTabs } from '@/components/UserProfileTabs/SponsorProfileTabs';
 import { useDialog } from '@/context/DialogContext';
+import { useToast } from '@/hooks/useToast';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
@@ -36,12 +37,13 @@ function ProfileContent({ activeRole, user }) {
     case 'player':
       return <PlayerProfile user={user} />;
     default:
-      return <p className="text-[13px] text-[#A2A6AB]">Unknown profile role. Select a tab above or go back.</p>;
+      return <p className="text-muted text-[13px]">Unknown profile role. Select a tab above or go back.</p>;
   }
 }
 
 export default function Profile() {
   const { openDialog } = useDialog();
+  const toast = useToast();
   const userFromStore = useAppSelector(selectUser);
   const { data: meResponse } = useGetMeQuery(undefined, {
     skip: !userFromStore?.id,
@@ -61,6 +63,29 @@ export default function Profile() {
     return userRoleSlugs[0] ?? null;
   }, [searchParams, userRoleSlugs]);
 
+  // TODO: replace window.location.href with a public profile URL (e.g. /players/:id)
+  // once a public profile route exists.
+  const handleShare = useCallback(async () => {
+    const url = window.location.href;
+
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({ url });
+      } catch {
+        // User cancelled native share — no-op
+      }
+      return;
+    }
+
+    // No Web Share API (desktop) — copy link to clipboard
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Link copied');
+    } catch {
+      // Clipboard blocked — silent
+    }
+  }, [toast]);
+
   const setActiveRole = (value) => {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
@@ -72,7 +97,7 @@ export default function Profile() {
 
   return (
     <div className="bg-black">
-      <ProfileHeader user={user} />
+      <ProfileHeader user={user} onShare={handleShare} />
 
       {hasMultipleRoles && (
         <Tabs className="w-full" value={activeRole ?? ''} onValueChange={setActiveRole}>
@@ -90,7 +115,7 @@ export default function Profile() {
 
       <div className="px-4 pt-6 pb-6">
         {userRoleSlugs.length === 0 ? (
-          <p className="text-[13px] text-[#A2A6AB]">You don&apos;t have any profile roles yet.</p>
+          <p className="text-muted text-[13px]">You don&apos;t have any profile roles yet.</p>
         ) : (
           <ProfileContent activeRole={activeRole ?? 'player'} user={user} />
         )}
@@ -100,7 +125,7 @@ export default function Profile() {
         <h2 id="account-danger-heading" className="text-xs font-semibold tracking-wide text-white/50 uppercase">
           Account
         </h2>
-        <p className="mt-2 text-[13px] leading-relaxed text-[#A2A6AB]">
+        <p className="text-muted mt-2 text-[13px] leading-relaxed">
           Permanently delete your Tapeya account and associated profile data. This action cannot be undone.
         </p>
         <button

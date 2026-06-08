@@ -1,90 +1,6 @@
 /**
- * ScorecardStatusDetails.jsx
- *
- * Match detail screen showing live/result/upcoming match info with a
- * tab-based view switcher.  The available tabs and the default tab depend
- * on the current match status.
- *
+ * Match detail screen — live, result, or upcoming match info with tab navigation.
  * Route: /scorecard/:tournamentId/match/:matchId
- *
- * -----------------------------------------------------------------------------
- * CURSOR — File structure guide
- * -----------------------------------------------------------------------------
- *
- * Data source
- * ───────────
- *   GET /matches/:matchId, GET /matches/:matchId/scorecard,
- *   GET /tournaments/:tournamentId/matches — see scorecardUtils mappers.
- *
- * Utils to move out of this file
- * ───────────────────────────────
- *   parseLiveScore(score)
- *     → move to: src/lib/utils/scorecardUtils.js → export { parseLiveScore }
- *     reason: pure string transform, unit-testable, potentially reused on
- *             match-card components.
- *
- * Components to extract into their own files
- * ───────────────────────────────────────────
- *   <ResultTextHighlighted>
- *     → move to: src/features/scorecard/components/ResultTextHighlighted.jsx
- *     reason: highlight-a-word-in-gold is a self-contained display component
- *             that may be reused in match summaries or notification cards.
- *
- *   <TeamFlag>
- *     → move to: src/features/scorecard/components/TeamFlag.jsx
- *     reason: flag-with-initial-fallback will appear on every screen that
- *             shows team identities (match cards, standings table).
- *
- *   <WinProbabilityCard>
- *     → move to: src/features/scorecard/components/WinProbabilityCard.jsx
- *     reason: self-contained card with its own layout and conditional colour
- *             logic — extracting makes it independently testable.
- *
- *   <MatchHeader>
- *     → move to: src/features/scorecard/components/MatchHeader.jsx
- *     reason: the largest sub-component here — renders differently for all
- *             three statuses (upcoming / live / result) and already accepts
- *             clean props.
- *
- * Hooks to extract
- * ─────────────────
- *   Sentinel-based sticky tabs visibility (tabsFixedVisible + IntersectionObserver)
- *     → move to: src/hooks/useFixedOnScroll.js → export { useFixedOnScroll }
- *     reason: **identical** pattern in ScorecardHome.jsx and ScorecardDetails.jsx.
- *             One hook replaces all three:
- *               const { sentinelRef, isFixed } = useFixedOnScroll(NAVBAR_HEIGHT);
- *     NOTE: ScorecardStatusDetails does NOT currently use this pattern — the
- *           fixed tab bar is not implemented here yet.  Add when needed and use
- *           the shared hook from the start.
- *
- * Constants to move
- * ──────────────────
- *   FLAGS
- *     → move to: src/lib/constants/teamFlags.js
- *     reason: hardcoded to `karachi` and `rawalpindi` only — needs to grow as
- *             more teams are added.  A constants file is easier to maintain
- *             than hunting through this component.
- *
- * Behaviour notes for Cursor
- * ──────────────────────────
- *   TODO: `tabProps` is rebuilt on every render and includes props for all
- *         tab keys even though only one tab is active at a time.  This is
- *         harmless for plain objects but could cause unnecessary re-renders if
- *         any value is a derived object/array.  Lazily compute only the active
- *         tab's props:
- *           const activeTabProps = tabProps[activeTab] ?? {};
- *
- *   TODO: The `useEffect([status, matchId])` that resets `activeTab` will
- *         silently reset the tab if `status` changes while the user is viewing
- *         a non-default tab (e.g. reading the scorecard when a live match ends).
- *         If that behaviour is undesired, gate the reset on `matchId` only and
- *         let the user stay on their current tab after a status change.
- *
- *   TODO: `FLAGS` only maps `karachi` and `rawalpindi`.  When new teams are
- *         added the `TeamFlag` fallback (coloured initial square) will be used
- *         silently.  Add a DEV-only console.warn when `team.flag` is set but
- *         not found in `FLAGS` so missing entries are caught early.
- * -----------------------------------------------------------------------------
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -96,6 +12,7 @@ import { CommentaryText } from '@/components/scorecard/CommentaryText';
 import { TeamLogo } from '@/components/TeamLogo';
 import { useMatchScoringChannel } from '@/hooks/useMatchScoringChannel';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { calculateStrikeRate } from '@/lib/utils/matchPlayerStatsUtils';
 import {
   apiTournamentMatchToStatusDetailsMatch,
   buildMatchStatusDetails,
@@ -165,13 +82,11 @@ const TAB_VIEWS = {
 
 // ---------------------------------------------------------------------------
 // Utils
-// CURSOR: move parseLiveScore to src/lib/utils/scorecardUtils.js (see top).
 // ---------------------------------------------------------------------------
 
 /**
  * Parses a live score string into current score and overs context.
  * e.g. "27/1 (4.4/50 OV, T:235)" → { current: "27/1", overs: "(4.4/50 OV, T:235)" }
- * CURSOR: move to src/lib/utils/scorecardUtils.js → export { parseLiveScore }
  */
 function parseLiveScore(score) {
   if (!score || typeof score !== 'string') return { current: score, overs: null };
@@ -182,12 +97,10 @@ function parseLiveScore(score) {
 
 // ---------------------------------------------------------------------------
 // Sub-components
-// CURSOR: move each to its own file once extracted (see top).
 // ---------------------------------------------------------------------------
 
 /**
  * ResultTextHighlighted — highlights a specific word/phrase in gold.
- * CURSOR: move to src/features/scorecard/components/ResultTextHighlighted.jsx
  */
 function ResultTextHighlighted({ text, highlight }) {
   if (!highlight || !text.includes(highlight)) {
@@ -197,23 +110,19 @@ function ResultTextHighlighted({ text, highlight }) {
   return (
     <span className="text-[14px] font-normal text-white">
       {before}
-      <span className="font-semibold text-[#DA9811]">{highlight}</span>
+      <span className="text-brand font-semibold">{highlight}</span>
       {after}
     </span>
   );
 }
 
-/**
- * TeamFlag — team logo with coloured-initial fallback.
- * CURSOR: replaced by shared TeamLogo; keep alias for local readability.
- */
+/** TeamFlag — team logo with coloured-initial fallback. Alias for local readability. */
 function TeamFlag({ team }) {
   return <TeamLogo team={team} variant="scorecardInline" accent="green" />;
 }
 
 /**
  * WinProbabilityCard — win probability bar shown only for LIVE matches.
- * CURSOR: move to src/features/scorecard/components/WinProbabilityCard.jsx
  */
 function WinProbabilityCard({ match, winProb }) {
   const p1 = winProb.team1;
@@ -221,20 +130,20 @@ function WinProbabilityCard({ match, winProb }) {
   const higherIsTeam2 = p2 >= p1;
 
   return (
-    <div className="border-t border-[#1A1A1A] px-4 py-4">
+    <div className="border-surface-border border-t px-4 py-4">
       <div className="mt-2 mb-6 flex items-center justify-center gap-2">
         <img src={winProbabilityIcon} alt="" className="h-5 w-5 shrink-0" aria-hidden />
-        <span className="text-[14px] font-bold text-[#A2A6AB]">Win Probability</span>
+        <span className="text-muted text-[14px] font-bold">Win Probability</span>
       </div>
       <div className="flex items-stretch">
         <div className="flex flex-1 flex-col items-center justify-center">
-          <span className="mb-1 text-[14px] text-[#A2A6AB]">{match.team1.name}</span>
-          <span className={`text-[14px] font-bold ${higherIsTeam2 ? 'text-white' : 'text-[#DA9811]'}`}>{p1}%</span>
+          <span className="text-muted mb-1 text-[14px]">{match.team1.name}</span>
+          <span className={`text-[14px] font-bold ${higherIsTeam2 ? 'text-white' : 'text-brand'}`}>{p1}%</span>
         </div>
         <div className="w-px shrink-0 self-stretch bg-gradient-to-b from-transparent via-white/40 to-transparent" aria-hidden />
         <div className="flex flex-1 flex-col items-center justify-center">
-          <span className="mb-1 text-[12px] text-[#A2A6AB]">{match.team2.name}</span>
-          <span className={`text-[18px] font-bold ${higherIsTeam2 ? 'text-[#DA9811]' : 'text-white'}`}>{p2}%</span>
+          <span className="text-muted mb-1 text-[12px]">{match.team2.name}</span>
+          <span className={`text-[18px] font-bold ${higherIsTeam2 ? 'text-brand' : 'text-white'}`}>{p2}%</span>
         </div>
       </div>
     </div>
@@ -243,7 +152,6 @@ function WinProbabilityCard({ match, winProb }) {
 
 /**
  * MatchHeader — renders match identity and score differently per status.
- * CURSOR: move to src/features/scorecard/components/MatchHeader.jsx
  */
 function MatchHeader({ match, details }) {
   const { status, matchId, team1, team2, score1, score2, meta } = match;
@@ -257,12 +165,12 @@ function MatchHeader({ match, details }) {
       {isUpcoming ? (
         <>
           <p className="mb-1 text-[13px] font-bold text-white uppercase">{status}</p>
-          <p className="mb-3 text-[12px] text-[#A2A6AB]">{matchId}</p>
+          <p className="text-muted mb-3 text-[12px]">{matchId}</p>
         </>
       ) : (
         <div className="mb-4">
           <span className="shrink-0 text-[13px] font-bold text-white uppercase">{isLive ? 'LIVE' : 'RESULT'}</span>
-          <p className="mt-2 text-[12px] text-[#A2A6AB]">{matchId}</p>
+          <p className="text-muted mt-2 text-[12px]">{matchId}</p>
         </div>
       )}
 
@@ -273,9 +181,9 @@ function MatchHeader({ match, details }) {
             <span className="truncate text-[14px] font-semibold text-white">{team1.name}</span>
           </div>
           {isUpcoming ? (
-            <span className="shrink-0 text-[14px] text-[#A2A6AB]">{meta?.time}</span>
+            <span className="text-muted shrink-0 text-[14px]">{meta?.time}</span>
           ) : (
-            score1 && <span className="shrink-0 text-[14px] font-medium text-[#A2A6AB]">{score1}</span>
+            score1 && <span className="text-muted shrink-0 text-[14px] font-medium">{score1}</span>
           )}
         </div>
 
@@ -289,8 +197,8 @@ function MatchHeader({ match, details }) {
           ) : (
             score2 && (
               <span className="shrink-0 text-right">
-                {liveScore2?.overs && <span className="text-[14px] text-[#A2A6AB]">{liveScore2.overs} </span>}
-                <span className="text-[14px] font-bold text-[#DA9811]">{liveScore2?.current ?? score2}</span>
+                {liveScore2?.overs && <span className="text-muted text-[14px]">{liveScore2.overs} </span>}
+                <span className="text-brand text-[14px] font-bold">{liveScore2?.current ?? score2}</span>
               </span>
             )
           )}
@@ -305,8 +213,8 @@ function MatchHeader({ match, details }) {
 
       {isLive && details?.crr && (
         <div className="mb-1 flex gap-2">
-          <span className="rounded-full bg-[#141412] px-3 py-3 text-[12px] font-medium text-[#A2A6AB]">CRR: {details.crr}</span>
-          <span className="rounded-full bg-[#141412] px-3 py-3 text-[12px] font-medium text-[#A2A6AB]">RRR: {details.rrr}</span>
+          <span className="bg-surface text-muted rounded-full px-3 py-3 text-[12px] font-medium">CRR: {details.crr}</span>
+          <span className="bg-surface text-muted rounded-full px-3 py-3 text-[12px] font-medium">RRR: {details.rrr}</span>
         </div>
       )}
 
@@ -385,7 +293,7 @@ export default function ScorecardStatusDetails() {
 
     const toBatter = (b) => {
       if (!b) return null;
-      const sr = b.balls ? ((b.runs / b.balls) * 100).toFixed(2) : '0.00';
+      const sr = calculateStrikeRate(b.runs, b.balls, 2);
       return {
         name: b.name ?? '',
         r: b.runs ?? 0,
@@ -446,7 +354,7 @@ export default function ScorecardStatusDetails() {
   if (!matchIdOk || !tournamentOk) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center bg-black px-4">
-        <p className="text-center text-[13px] text-[#A2A6AB]">Invalid match or tournament link.</p>
+        <p className="text-muted text-center text-[13px]">Invalid match or tournament link.</p>
       </div>
     );
   }
@@ -454,7 +362,7 @@ export default function ScorecardStatusDetails() {
   if (matchLoading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center bg-black">
-        <p className="text-[13px] text-[#A2A6AB]">Loading match…</p>
+        <p className="text-muted text-[13px]">Loading match…</p>
       </div>
     );
   }
@@ -462,7 +370,7 @@ export default function ScorecardStatusDetails() {
   if (matchIsError || tournamentMismatch || !apiMatch || !match) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center bg-black px-4">
-        <p className="text-center text-[13px] text-[#A2A6AB]">
+        <p className="text-muted text-center text-[13px]">
           {tournamentMismatch ? 'This match does not belong to this tournament.' : 'Match not found.'}
         </p>
       </div>
@@ -486,7 +394,6 @@ export default function ScorecardStatusDetails() {
   return (
     <div className="bg-black">
       <AppSubpageHeader title="SCORE CARD" />
-
 
       <MatchHeader match={liveMatch} details={details} />
 

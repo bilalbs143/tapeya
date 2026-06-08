@@ -3,7 +3,7 @@ import { Fragment } from 'react';
 export const STAT_DIVIDER_CLASS = 'w-px shrink-0 self-stretch bg-gradient-to-b from-[#00000000] via-[#FFFFFF66] to-[#00000000]';
 
 const CELL_CLASS = 'flex flex-1 flex-col items-center justify-center text-[11px] px-1 py-2.5';
-const LABEL_CLASS = 'text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase';
+const LABEL_CLASS = 'text-[11px] font-bold tracking-wide text-muted uppercase';
 const VALUE_CLASS = 'mt-0.5 text-[14px] font-bold text-white';
 
 /**
@@ -50,7 +50,7 @@ export function MatchStatsRow({
         {
           label: 'Overs',
           value: (
-            <span className="text-[#DA9811]">
+            <span className="text-brand">
               {oversDisplay} / {maxOvers ?? ''}
             </span>
           ),
@@ -75,9 +75,12 @@ export function SecondInningsChaseRow({ target, requiredRunRate = '0.0', ballsLe
       className="mt-2 flex"
       columns={[
         { label: 'Target', value: target },
-        { label: 'RRR', value: requiredRunRate },
-        { label: 'Balls left', value: ballsLeft },
-        { label: 'To win', value: runsToWin },
+        {
+          label: 'RRR',
+          value: <span className="text-brand">{requiredRunRate}</span>,
+        },
+        { label: 'Balls Left', value: ballsLeft },
+        { label: 'To Win', value: runsToWin },
       ]}
     />
   );

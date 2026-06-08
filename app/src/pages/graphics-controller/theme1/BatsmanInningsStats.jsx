@@ -14,11 +14,11 @@ const bottomBorderStyle = {
 
 export default function BatsmanInningsStats({ playerName = '', headline = 'This Tournament', stats = [] }) {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#1D1E22]">
+    <div className="bg-page relative min-h-screen overflow-hidden">
       <section className="absolute right-0 bottom-0 left-0 text-white">
         <div className="relative w-full overflow-hidden px-3 py-2 sm:px-10 sm:py-4" style={panelStyle}>
           <div className="flex items-start justify-between gap-2 sm:gap-6">
-            <p className="text-[15px] leading-none font-extrabold tracking-wide text-[#DA9811] uppercase sm:text-[28px]">
+            <p className="text-brand text-[15px] leading-none font-extrabold tracking-wide uppercase sm:text-[28px]">
               {playerName}
             </p>
 

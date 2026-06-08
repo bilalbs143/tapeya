@@ -8,7 +8,9 @@
 import { Fragment, useState } from 'react';
 
 import { TeamLogo } from '@/components/TeamLogo';
+import { useScoringMatch } from '@/context/ScoringMatchContext';
 import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
+import { useGetMatchStateQuery, useGetScorecardQuery } from '@/store/api/matchApi';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -23,8 +25,8 @@ const TABLE_CELL = `border-r border-b ${BORDER} px-4 py-3 text-center text-white
 const TABLE_CELL_LEFT = `border-r border-b border-l ${BORDER} bg-black px-4 py-3 text-white`;
 const TABLE_CELL_LA = `border-r border-b ${BORDER} px-4 py-3 text-white`;
 const TABLE_HEADER_CELL = `${HEADER_BG} w-[2.5rem] border-r border-b py-2.5 text-center font-bold text-white ${BORDER}`;
-const TABLE_HEADER_FIRST = `${HEADER_BG} border-r border-b border-l px-4 py-2.5 text-left text-[12px] font-bold text-[#DA9811] ${BORDER}`;
-const TABLE_EMPTY_CELL = `border-r border-b border-l ${BORDER} px-4 py-3 text-center text-[#A2A6AB]`;
+const TABLE_HEADER_FIRST = `${HEADER_BG} border-r border-b border-l px-4 py-2.5 text-left text-[12px] font-bold text-brand ${BORDER}`;
+const TABLE_EMPTY_CELL = `border-r border-b border-l ${BORDER} px-4 py-3 text-center text-muted`;
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -34,7 +36,15 @@ const TABLE_EMPTY_CELL = `border-r border-b border-l ${BORDER} px-4 py-3 text-ce
  * @param {object}  [props.innings1] Innings 1 from the scorecard API response.
  * @param {object}  [props.innings2] Innings 2 from the scorecard API response.
  */
-export function ScorecardTab({ match, innings1, innings2, activeBowlerId = null }) {
+export function ScorecardTab() {
+  const { matchId, match } = useScoringMatch();
+  const { data: scorecard } = useGetScorecardQuery(matchId, { skip: !matchId });
+  const { data: matchState } = useGetMatchStateQuery(matchId, { skip: !matchId });
+
+  const innings1 = scorecard?.innings?.[0] ?? null;
+  const innings2 = scorecard?.innings?.[1] ?? null;
+  const activeBowlerId = matchState?.active_innings?.bowler?.id ?? null;
+
   const [activeScorecardTeam, setActiveScorecardTeam] = useState('teamA');
 
   const teamAName = match?.teamA?.name ?? '';
@@ -92,8 +102,8 @@ export function ScorecardTab({ match, innings1, innings2, activeBowlerId = null 
           <Fragment key={item.label}>
             {index > 0 && <div className={STATS_SEPARATOR} aria-hidden />}
             <div className="flex flex-1 flex-col items-center justify-center px-3 py-2.5">
-              <p className="text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">{item.label}</p>
-              <p className={`mt-0.5 text-[14px] font-bold ${item.highlight ? 'text-[#DA9811]' : 'text-white'}`}>{item.value}</p>
+              <p className="text-muted text-[12px] font-bold tracking-wide uppercase">{item.label}</p>
+              <p className={`mt-0.5 text-[14px] font-bold ${item.highlight ? 'text-brand' : 'text-white'}`}>{item.value}</p>
             </div>
           </Fragment>
         ))}
@@ -101,8 +111,8 @@ export function ScorecardTab({ match, innings1, innings2, activeBowlerId = null 
 
       {/* Extras breakdown */}
       {hasData && (
-        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1 rounded-xl bg-[#141412] px-4 py-3">
-          <span className="text-[11px] font-bold tracking-wide text-[#A2A6AB] uppercase">Extras {totalExtras}</span>
+        <div className="bg-surface flex flex-wrap items-center justify-center gap-x-6 gap-y-1 rounded-xl px-4 py-3">
+          <span className="text-muted text-[11px] font-bold tracking-wide uppercase">Extras {totalExtras}</span>
           <div className="flex flex-wrap gap-x-4 gap-y-0.5">
             <ExtrasItem label="WD" value={extras.wides ?? 0} />
             <ExtrasItem label="NB" value={extras.no_balls ?? 0} />
@@ -138,12 +148,12 @@ export function ScorecardTab({ match, innings1, innings2, activeBowlerId = null 
                 <tr key={b.id}>
                   <td className={TABLE_CELL_LEFT}>
                     <span className="flex items-center gap-2">
-                      <span className={b.is_on_crease ? 'text-[#DA9811]' : 'text-white'}>{b.name}</span>
+                      <span className={b.is_on_crease ? 'text-brand' : 'text-white'}>{b.name}</span>
                       {b.is_on_crease && b.id === strikerId && (
                         <span className="inline-block h-2 w-2 rounded-full bg-red-500" aria-hidden />
                       )}
                       {b.is_retired_hurt && (
-                        <span className="rounded bg-[#3B3B35] px-1 py-0.5 text-[10px] text-[#A2A6AB]">ret hurt</span>
+                        <span className="text-muted rounded bg-[#3B3B35] px-1 py-0.5 text-[10px]">ret hurt</span>
                       )}
                     </span>
                   </td>
@@ -186,7 +196,7 @@ export function ScorecardTab({ match, innings1, innings2, activeBowlerId = null 
                   <tr key={b.id}>
                     <td className={TABLE_CELL_LEFT}>
                       <span className="flex items-center gap-2">
-                        <span className={isActiveBowler ? 'text-[#DA9811]' : 'text-white'}>{b.name}</span>
+                        <span className={isActiveBowler ? 'text-brand' : 'text-white'}>{b.name}</span>
                         {isActiveBowler && <span className="inline-block h-2 w-2 rounded-full bg-red-500" aria-hidden />}
                       </span>
                     </td>
@@ -210,7 +220,7 @@ export function ScorecardTab({ match, innings1, innings2, activeBowlerId = null 
             <tr className={HEADER_BG}>
               <th
                 colSpan={3}
-                className={`${HEADER_BG} border-r border-b border-l px-4 py-2.5 text-left text-[12px] font-bold tracking-wide text-[#DA9811] uppercase ${BORDER}`}
+                className={`${HEADER_BG} text-brand border-r border-b border-l px-4 py-2.5 text-left text-[12px] font-bold tracking-wide uppercase ${BORDER}`}
               >
                 Fall of Wickets
               </th>
@@ -253,10 +263,10 @@ function TeamTabButton({ team, teamName, isActive, onSelect }) {
     >
       <TeamLogo team={team} name={teamName} variant="scoring" dimmed={!isActive} />
       <div className="flex flex-col items-center">
-        <span className={`text-[16px] font-bold tracking-wide uppercase ${isActive ? 'text-[#DA9811]' : 'text-white'}`}>
+        <span className={`text-[16px] font-bold tracking-wide uppercase ${isActive ? 'text-brand' : 'text-white'}`}>
           {teamName}
         </span>
-        {isActive && <span className="mt-0.5 block h-0.5 w-4/5 min-w-[2rem] rounded-full bg-[#DA9811]" aria-hidden />}
+        {isActive && <span className="bg-brand mt-0.5 block h-0.5 w-4/5 min-w-[2rem] rounded-full" aria-hidden />}
       </div>
     </button>
   );

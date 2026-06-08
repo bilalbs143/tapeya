@@ -1,4 +1,4 @@
-import { buildYoutubeEmbedUrl } from '@/lib/utils/youtubeEmbedUtils';
+import { buildYoutubeEmbedUrl } from '@/lib/utils/liveStreamUtils';
 
 export function IframeStreamPlayer({ playback, className = '', fill = false }) {
   const boxClass = fill ? 'relative h-full w-full bg-black' : 'relative w-full aspect-video bg-black';

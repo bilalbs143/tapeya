@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { TeamLogo } from '@/components/TeamLogo';
+import { useDialog } from '@/context/DialogContext';
 import {
   areTournamentTeamsComplete,
   canAddTournamentTeams,
@@ -27,24 +28,22 @@ function teamDisplay(team) {
   return { owner, iconPlayers };
 }
 
-function TeamCard({ team, index, highlight }) {
+function TeamCard({ team, index }) {
   const { owner, iconPlayers } = teamDisplay(team);
 
   return (
-    <div
-      className={`flex items-start gap-3 rounded-[17px] bg-[#141412] p-4 ${highlight ? 'ring-2 ring-[#DA9811] ring-offset-2 ring-offset-black' : ''}`}
-    >
+    <div className="bg-surface flex items-start gap-3 rounded-[17px] p-4">
       <TeamLogo team={team} variant="organizerCard" />
       <div className="min-w-0 flex-1">
         <h3 className="text-[16px] font-bold text-white">{team.name ?? '—'}</h3>
         <div className="mt-0.5 flex flex-wrap items-center gap-2">
-          {team.group_index != null && <span className="text-[12px] text-[#A2A6AB]">Group {team.group_index}</span>}
+          {team.group_index != null && <span className="text-muted text-[12px]">Group {team.group_index}</span>}
         </div>
         <p className="mt-0.5 text-[14px] text-white">
-          Owner: <span className="font-medium text-[#DA9811]">{owner}</span>
+          Owner: <span className="text-brand font-medium">{owner}</span>
         </p>
         <p className="mt-0.5 text-[12px] text-white">
-          Icon Players: <span className="text-[#A2A6AB]">{iconPlayers}</span>
+          Icon Players: <span className="text-muted">{iconPlayers}</span>
         </p>
       </div>
       <span className="shrink-0 text-[28px] font-bold text-[#DA98113B]">{index + 1}</span>
@@ -60,9 +59,10 @@ export default function TournamentSavedTeams() {
   const navigate = useNavigate();
   const location = useLocation();
   const { tournamentId } = useParams();
+  const { openDialog } = useDialog();
 
   const tournamentFromState = location.state?.tournament ?? null;
-  const newTeam = location.state?.newTeam ?? null;
+  const [highlightTeamId, setHighlightTeamId] = useState(null);
   const newTeamListRef = useRef(null);
 
   const tournamentIdNum = parseTournamentId(tournamentId, tournamentFromState?.id);
@@ -96,13 +96,13 @@ export default function TournamentSavedTeams() {
   }, [isValidId, navigate]);
 
   useEffect(() => {
-    if (newTeam && !isLoading && newTeamListRef.current) {
+    if (highlightTeamId && !isLoading && newTeamListRef.current) {
       newTeamListRef.current.scrollIntoView({
         behavior: 'smooth',
         block: 'nearest',
       });
     }
-  }, [newTeam, isLoading]);
+  }, [highlightTeamId, isLoading]);
 
   // ------------------------------------------------------------------
   // Handlers
@@ -114,10 +114,13 @@ export default function TournamentSavedTeams() {
     });
   };
 
-  const handleNavigateToAddTeam = () => {
-    navigate(`/organizer/tournaments/${tournamentIdNum}/add-team`, {
-      state: {
-        tournament: tournament ?? { id: tournamentIdNum },
+  const handleOpenAddTeam = () => {
+    openDialog('manageTeam', {
+      mode: 'create',
+      tournamentId: tournamentIdNum,
+      tournament,
+      onSuccess: (team) => {
+        if (team?.id != null) setHighlightTeamId(team.id);
       },
     });
   };
@@ -130,14 +133,14 @@ export default function TournamentSavedTeams() {
     <div className="bg-black">
       <AppSubpageHeader title={tournament ? `${getTournamentTitle(tournament)} - Teams` : 'Tournaments - Teams'} />
       <Container>
-        {isLoading && <p className="mb-3 text-[13px] text-[#A2A6AB]">Loading teams…</p>}
+        {isLoading && <p className="text-muted mb-3 text-[13px]">Loading teams…</p>}
         {isError && <p className="mb-3 text-[13px] text-red-400">Failed to load teams.</p>}
 
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">
             Teams
             {teamLimit != null && (
-              <span className="ml-2 font-semibold text-[#A2A6AB] normal-case">
+              <span className="text-muted ml-2 font-semibold normal-case">
                 ({teams.length}/{teamLimit})
               </span>
             )}
@@ -145,25 +148,25 @@ export default function TournamentSavedTeams() {
           {canAddTeam && (
             <button
               type="button"
-              onClick={handleNavigateToAddTeam}
+              onClick={handleOpenAddTeam}
               className="flex shrink-0 items-center gap-2 transition-opacity active:opacity-80"
             >
-              <span className="flex h-[27px] w-[27px] items-center justify-center rounded-full bg-[#DA9811] text-[18px] font-bold text-[#080807]">
+              <span className="bg-brand text-ink flex h-[22px] w-[22px] items-center justify-center rounded-full text-[15px] leading-none font-bold">
                 +
               </span>
-              <span className="text-[13px] font-bold text-[#A2A6AB]">Create Team</span>
+              <span className="text-muted text-[13px] font-bold">Create Team</span>
             </button>
           )}
         </div>
 
         {!isLoading && teamsComplete && (
-          <p className="mb-4 rounded-[17px] bg-[#141412] px-4 py-3 text-center text-[13px] text-[#A2A6AB]">
+          <p className="bg-surface text-muted mb-4 rounded-[17px] px-4 py-3 text-center text-[13px]">
             All {teamLimit} teams have been added. Submit teams to continue.
           </p>
         )}
 
         {!isLoading && isSuccess && teams.length === 0 && (
-          <p className="mb-6 rounded-[17px] bg-[#141412] px-4 py-6 text-center text-[13px] text-[#A2A6AB]">
+          <p className="bg-surface text-muted mb-6 rounded-[17px] px-4 py-6 text-center text-[13px]">
             No teams added yet. Create a team to get started.
           </p>
         )}
@@ -172,18 +175,19 @@ export default function TournamentSavedTeams() {
           <div className="space-y-6 pb-6">
             {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map((groupIndex) => (
               <section key={groupIndex}>
-                <h3 className="mb-2 text-[13px] font-bold tracking-wide text-[#DA9811] uppercase">Group {groupIndex}</h3>
+                <h3 className="text-brand mb-2 text-[13px] font-bold tracking-wide uppercase">Group {groupIndex}</h3>
                 <ul className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
                   {teamsByGroup[groupIndex].map((team, index) => (
-                    <li key={team.id ?? index} ref={newTeam?.id != null && team.id === newTeam.id ? newTeamListRef : undefined}>
-                      <TeamCard team={team} index={index} highlight={newTeam?.id != null && team.id === newTeam.id} />
+                    <li
+                      key={team.id ?? index}
+                      ref={highlightTeamId != null && team.id === highlightTeamId ? newTeamListRef : undefined}
+                    >
+                      <TeamCard team={team} index={index} />
                     </li>
                   ))}
                 </ul>
                 {teamsByGroup[groupIndex].length === 0 && (
-                  <p className="rounded-[17px] bg-[#141412] px-4 py-4 text-center text-[13px] text-[#A2A6AB]">
-                    No teams in this group
-                  </p>
+                  <p className="bg-surface text-muted rounded-[17px] px-4 py-4 text-center text-[13px]">No teams in this group</p>
                 )}
               </section>
             ))}
@@ -193,8 +197,11 @@ export default function TournamentSavedTeams() {
         {!isLoading && teamsByGroup == null && teams.length > 0 && (
           <ul className="space-y-3 pb-6 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
             {teams.map((team, index) => (
-              <li key={team.id ?? index} ref={newTeam?.id != null && team.id === newTeam.id ? newTeamListRef : undefined}>
-                <TeamCard team={team} index={index} highlight={newTeam?.id != null && team.id === newTeam.id} />
+              <li
+                key={team.id ?? index}
+                ref={highlightTeamId != null && team.id === highlightTeamId ? newTeamListRef : undefined}
+              >
+                <TeamCard team={team} index={index} />
               </li>
             ))}
           </ul>
@@ -204,7 +211,7 @@ export default function TournamentSavedTeams() {
           <Button
             type="button"
             variant="auth"
-            className="h-12 w-full rounded-[8px] bg-[#E4E7F4] text-[15px] font-semibold tracking-wide text-[#1a1a1a] uppercase lg:w-auto"
+            className="h-12 w-full rounded-[8px] bg-[#E4E7F4] text-[15px] font-semibold tracking-wide text-[#1A1A1A] uppercase lg:w-auto"
             onClick={handleSubmitTeams}
             disabled={isLoading || teams.length === 0 || !teamsComplete}
           >

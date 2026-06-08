@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { useDialog } from '@/context/DialogContext';
 import {
   areTournamentTeamsComplete,
   canAddTournamentTeams,
@@ -11,11 +12,13 @@ import {
 } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentQuery, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
+import { Container } from '@/ui/Container';
 
 export default function TournamentCreateTeamIntro() {
   const navigate = useNavigate();
   const location = useLocation();
   const { tournamentId } = useParams();
+  const { openDialog } = useDialog();
 
   const tournamentFromState = location.state?.tournament ?? null;
 
@@ -26,7 +29,10 @@ export default function TournamentCreateTeamIntro() {
     { id: tournamentIdNum },
     { skip: !isValidId },
   );
-  const tournament = tournamentFromApi ?? tournamentFromState ?? null;
+  const tournament = useMemo(() => {
+    if (!tournamentFromState && !tournamentFromApi) return null;
+    return { ...tournamentFromState, ...tournamentFromApi };
+  }, [tournamentFromState, tournamentFromApi]);
 
   const { data: teams = [], isLoading: teamsLoading } = useGetTournamentTeamsQuery(tournamentIdNum, { skip: !isValidId });
   const teamsCount = teamsLoading ? (tournament?.teams_count ?? 0) : teams.length;
@@ -34,8 +40,9 @@ export default function TournamentCreateTeamIntro() {
   const teamsComplete = areTournamentTeamsComplete(tournament, teamsCount);
   const canAddTeam = canAddTournamentTeams(tournament, teamsCount);
 
-  const matchesCount = tournament?.matches_count ?? 0;
-  const showViewFixtures = !isLoadingTournament && matchesCount > 0;
+  const showViewFixtures = (tournament?.matches_count ?? 0) > 0;
+
+  const isPageLoading = (!tournament && isLoadingTournament) || (teamsLoading && tournament?.teams_count == null);
 
   useEffect(() => {
     if (!isValidId) {
@@ -44,40 +51,51 @@ export default function TournamentCreateTeamIntro() {
   }, [isValidId, navigate]);
 
   useEffect(() => {
-    if (!isValidId || noTeams || teamsComplete) return;
+    if (!isValidId || isPageLoading || noTeams || teamsComplete) return;
     navigate(`/organizer/tournaments/${tournamentIdNum}/saved-teams`, {
       replace: true,
       state: { tournament: tournament ?? { id: tournamentIdNum } },
     });
-  }, [isValidId, noTeams, teamsComplete, tournamentIdNum, tournament, navigate]);
+  }, [isValidId, isPageLoading, noTeams, teamsComplete, tournamentIdNum, tournament, navigate]);
 
   if (!isValidId) return null;
 
   const title = getTournamentTitle(tournament, 'Tournaments');
 
+  const tournamentStatePayload = tournament
+    ? {
+        ...tournament,
+        name: tournament.tournament_name ?? tournament.name,
+      }
+    : { id: tournamentIdNum };
+
+  if (isPageLoading) {
+    return (
+      <div className="flex min-h-[calc(100vh-144px)] flex-col bg-black">
+        <AppSubpageHeader title={title} titleClassName="truncate" />
+        <Container>
+          <p className="text-muted py-6 text-center text-[13px]">Loading…</p>
+        </Container>
+      </div>
+    );
+  }
+
   const handleCreateTeam = () => {
-    navigate(`/organizer/tournaments/${tournamentIdNum}/add-team`, {
-      state: {
-        tournament: tournament
-          ? {
-              ...tournament,
-              name: tournament.tournament_name ?? tournament.name,
-            }
-          : { id: tournamentIdNum },
+    openDialog('manageTeam', {
+      mode: 'create',
+      tournamentId: tournamentIdNum,
+      tournament: tournamentStatePayload,
+      onSuccess: () => {
+        navigate(`/organizer/tournaments/${tournamentIdNum}/saved-teams`, {
+          state: { tournament: tournamentStatePayload },
+        });
       },
     });
   };
 
   const handleViewTeams = () => {
     navigate(`/organizer/tournaments/${tournamentIdNum}/add-squad`, {
-      state: {
-        tournament: tournament
-          ? {
-              ...tournament,
-              name: tournament.tournament_name ?? tournament.name,
-            }
-          : { id: tournamentIdNum },
-      },
+      state: { tournament: tournamentStatePayload },
     });
   };
 
@@ -85,12 +103,7 @@ export default function TournamentCreateTeamIntro() {
     navigate('/organizer/scoring/start-match', {
       state: {
         tournamentId: tournamentIdNum,
-        tournament: tournament
-          ? {
-              ...tournament,
-              name: tournament.tournament_name ?? tournament.name,
-            }
-          : { id: tournamentIdNum },
+        tournament: tournamentStatePayload,
       },
     });
   };
@@ -106,57 +119,57 @@ export default function TournamentCreateTeamIntro() {
       <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4">
         {noTeams && canAddTeam ? (
           <>
-            <p className="text-center text-[14px] text-[#A2A6AB]">No teams yet. Create your first team to get started.</p>
+            <p className="text-muted text-center text-[14px]">No teams yet. Create your first team to get started.</p>
             <Button
               type="button"
               variant="card"
               onClick={handleCreateTeam}
-              className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
+              className="!bg-surface flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] px-0 py-0"
             >
-              <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
+              <span className="bg-brand text-ink flex h-[44px] w-[44px] items-center justify-center rounded-full text-[32px] font-bold">
                 +
               </span>
-              <span className="text-[16px] font-bold text-[#A2A6AB]">Create Team</span>
+              <span className="text-muted text-[16px] font-bold">Create Team</span>
             </Button>
           </>
         ) : teamsComplete ? (
           <>
-            <p className="text-center text-[14px] text-[#A2A6AB]">Teams are complete. Manage squads or add fixtures.</p>
+            <p className="text-muted text-center text-[14px]">Teams are complete. Manage squads or add fixtures.</p>
             <Button
               type="button"
               variant="card"
               onClick={handleViewTeams}
-              className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
+              className="!bg-surface flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] px-0 py-0"
             >
-              <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
+              <span className="bg-brand text-ink flex h-[44px] w-[44px] items-center justify-center rounded-full text-[32px] font-bold">
                 +
               </span>
-              <span className="text-[16px] font-bold text-[#A2A6AB]">View Teams</span>
+              <span className="text-muted text-[16px] font-bold">View Teams</span>
             </Button>
             <Button
               type="button"
               variant="card"
               onClick={handleAddFixtures}
-              className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
+              className="!bg-surface flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] px-0 py-0"
             >
-              <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
+              <span className="bg-brand text-ink flex h-[44px] w-[44px] items-center justify-center rounded-full text-[32px] font-bold">
                 +
               </span>
-              <span className="text-[16px] font-bold text-[#A2A6AB]">Add Fixtures</span>
+              <span className="text-muted text-[16px] font-bold">Add Fixtures</span>
             </Button>
-            {showViewFixtures && (
+            {showViewFixtures ? (
               <Button
                 type="button"
                 variant="card"
                 onClick={handleViewFixtures}
-                className="flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] !bg-[#141412] px-0 py-0"
+                className="!bg-surface flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] px-0 py-0"
               >
-                <span className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-[#DA9811] text-[32px] font-bold text-[#080807]">
+                <span className="bg-brand text-ink flex h-[44px] w-[44px] items-center justify-center rounded-full text-[32px] font-bold">
                   +
                 </span>
-                <span className="text-[16px] font-bold text-[#A2A6AB]">View Fixtures</span>
+                <span className="text-muted text-[16px] font-bold">View Fixtures</span>
               </Button>
-            )}
+            ) : null}
           </>
         ) : null}
       </div>

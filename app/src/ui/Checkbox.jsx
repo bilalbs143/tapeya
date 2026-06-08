@@ -1,26 +1,18 @@
 /**
- * Radix Checkbox - toggle checkbox input.
- * variant: 'default' (light) | 'input' (dark form theme: #141412 bg, #FF9700 accent)
+ * Radix Checkbox — gold primary on dark surfaces (dialogs, scoring, forms).
  */
 
 import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
 
-const baseRoot =
-  'peer h-4 w-4 shrink-0 rounded border focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50';
+const root =
+  'peer inline-flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded-[4px] border border-[#2A2A28] bg-surface text-ink transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFB703] focus-visible:ring-offset-2 focus-visible:ring-offset-[#080807] disabled:cursor-not-allowed disabled:opacity-50 hover:border-brand/45 data-[state=checked]:border-brand data-[state=checked]:bg-brand';
 
-const variants = {
-  default:
-    'border-slate-300 focus:ring-indigo-500 focus:ring-offset-2 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600 data-[state=checked]:text-white',
-  input:
-    'border-white/50 focus:ring-[#FF9700]/50 focus:ring-offset-0 data-[state=checked]:bg-[#FF9700] data-[state=checked]:border-[#FF9700] data-[state=checked]:text-white',
-};
+const indicator = 'flex items-center justify-center text-current';
 
-const baseIndicator = 'flex items-center justify-center text-current';
-
-export function Checkbox({ className = '', variant = 'default', ...props }) {
+export function Checkbox({ className = '', ...props }) {
   return (
-    <CheckboxPrimitive.Root className={`${baseRoot} ${variants[variant] ?? variants.default} ${className}`} {...props}>
-      <CheckboxPrimitive.Indicator className={baseIndicator}>
+    <CheckboxPrimitive.Root className={`${root} ${className}`} {...props}>
+      <CheckboxPrimitive.Indicator className={indicator}>
         <CheckIcon />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
@@ -29,7 +21,17 @@ export function Checkbox({ className = '', variant = 'default', ...props }) {
 
 function CheckIcon() {
   return (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg
+      width="10"
+      height="10"
+      viewBox="0 0 12 12"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.25"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
       <polyline points="2,6 5,9 10,3" />
     </svg>
   );

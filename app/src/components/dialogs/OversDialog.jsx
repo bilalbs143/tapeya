@@ -36,7 +36,7 @@ export function OversDialog({ initialOvers, options, onChange }) {
           placeholder="Enter Overs (e.g. 20)"
           value={overs}
           onChange={(e) => setOvers(e.target.value)}
-          className="h-12 rounded-[6px] bg-[#141412] text-white placeholder:text-[#A2A6AB]"
+          className="bg-surface placeholder:text-muted h-12 rounded-[6px] text-white"
           aria-label="Overs"
         />
         <ToggleGroup

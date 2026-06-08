@@ -1,39 +1,20 @@
-import { playerPickerMetaSegments, playerProfileRoleLabel, playingLineupMetaVariant } from '@/lib/utils/playerUtils';
-
-/** @param {string | Record<string, unknown>} raw */
-function playingXiRowMeta(raw) {
-  if (raw == null || typeof raw === 'string') {
-    return { name: String(raw ?? ''), metaText: null };
-  }
-  const name = typeof raw.name === 'string' ? raw.name : '';
-  const metaPlayer = {
-    playing_role: raw.playing_role,
-    playing_role_enum: raw.playing_role_enum,
-    batting_style: raw.batting_style,
-    batting_style_enum: raw.batting_style_enum,
-    bowling_style: raw.bowling_style,
-    bowling_style_enum: raw.bowling_style_enum,
-  };
-  const variant = playingLineupMetaVariant(playerProfileRoleLabel(metaPlayer));
-  const segments = playerPickerMetaSegments(metaPlayer, variant);
-  const metaText = segments.length > 0 ? segments.join(' · ') : null;
-  return { name, metaText, userId: raw.user_id };
-}
+import { playingXiRowMeta } from '@/lib/utils/playerUtils';
 
 function TeamColumn({ teamName, players }) {
   return (
     <div className="w-full max-w-[340px]">
       <h3 className="mb-3 text-[18px] leading-none font-normal text-[#D4D4D4]">{teamName}</h3>
-      <ul className="border border-[#1A1A1A] bg-black/55">
+      <ul className="border-surface-border border bg-black/55">
         {players.map((raw, index) => {
           const { name, metaText, userId } = playingXiRowMeta(raw);
           const key = userId != null && typeof userId === 'number' ? `p-${userId}` : `${teamName}-${index}`;
           return (
-            <li key={key} className="border-b border-[#1A1A1A] px-9 py-3 text-[14px] font-normal text-[#E8E8E8] last:border-b-0">
+            <li
+              key={key}
+              className="border-surface-border border-b px-9 py-3 text-[14px] font-normal text-[#E8E8E8] last:border-b-0"
+            >
               <span className="block leading-none">{name}</span>
-              {metaText ? (
-                <span className="mt-1.5 block text-[11px] leading-snug font-medium text-[#A2A6AB]">{metaText}</span>
-              ) : null}
+              {metaText ? <span className="text-muted mt-1.5 block text-[11px] leading-snug font-medium">{metaText}</span> : null}
             </li>
           );
         })}
@@ -59,7 +40,7 @@ export default function PlayingXI({ homeTeam = {}, awayTeam = {}, matchLabel = '
   const title = both ? 'Playing XI' : `Playing XI — ${columns[0][0]}`;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#1D1E22] p-3 sm:p-5">
+    <div className="bg-page flex min-h-screen items-center justify-center p-3 sm:p-5">
       <section className="relative w-full max-w-[677px] overflow-hidden bg-[#0D0806] pt-10 pb-8 text-white sm:pt-11 sm:pb-10">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -top-16 left-1/3 h-40 w-40 rounded-full bg-[#C57A12]/35 blur-3xl" />

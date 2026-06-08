@@ -31,7 +31,7 @@ export const SearchInput = forwardRef(function SearchInput(
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="h-12 w-full rounded-[6px] bg-[#141412] pr-20 pl-4 text-white placeholder:text-[#A2A6AB78] focus:ring-2 focus:ring-[#DA9811]/50 focus:outline-none [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden"
+        className="bg-surface placeholder:text-muted/47 focus:ring-brand/50 h-12 w-full rounded-[6px] pr-20 pl-4 text-white focus:ring-2 focus:outline-none [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden"
         style={{ WebkitAppearance: 'none', appearance: 'none' }}
         aria-autocomplete="list"
         {...aria}
@@ -40,7 +40,7 @@ export const SearchInput = forwardRef(function SearchInput(
         <button
           type="button"
           onClick={onClear}
-          className="absolute top-0 right-10 bottom-0 flex w-10 items-center justify-center text-[#A2A6AB] transition-colors hover:text-white active:opacity-80"
+          className="text-muted absolute top-0 right-10 bottom-0 flex w-10 items-center justify-center transition-colors hover:text-white active:opacity-80"
           aria-label="Clear Search"
         >
           <CloseIcon />

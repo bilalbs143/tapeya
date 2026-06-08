@@ -14,7 +14,7 @@ export default function TournamentOverview({ tournamentName = '', tournamentLogo
   const logo = tournamentLogoUrl ?? defaultLogo;
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#1D1E22]">
+    <div className="bg-page relative min-h-screen overflow-hidden">
       <section className="absolute right-0 bottom-0 left-0 text-white">
         <div className="relative w-full overflow-hidden px-4 py-2 sm:px-10 sm:py-4" style={panelStyle}>
           <div className="flex items-center gap-2 sm:gap-6">

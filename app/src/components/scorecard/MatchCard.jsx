@@ -4,9 +4,9 @@ import { CommentaryText } from '@/components/scorecard/CommentaryText';
 import { TeamLogo } from '@/components/TeamLogo';
 
 const STATUS_STYLES = {
-  upcoming: 'text-[#DA9811]',
-  live: 'text-[#DA9811]',
-  result: 'text-[#DA9811]',
+  upcoming: 'text-brand',
+  live: 'text-brand',
+  result: 'text-brand',
 };
 
 /** Live indicator: circle with white border, white & red waving bars */
@@ -109,12 +109,12 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
             <span className="rounded bg-[#E53935] px-1.5 py-0.5 text-[10px] font-bold text-white uppercase">Live</span>
           )}
           {match.group_index != null && (
-            <span className="rounded bg-[#1A1A1A] px-2 py-0.5 text-[11px] font-medium text-[#A2A6AB]">
+            <span className="bg-surface-border text-muted rounded px-2 py-0.5 text-[11px] font-medium">
               Group {match.group_index}
             </span>
           )}
         </div>
-        <p className={`text-right text-[13px] ${useLiveLayout ? 'text-[#A2A6AB]' : 'text-white'}`}>{matchId}</p>
+        <p className={`text-right text-[13px] ${useLiveLayout ? 'text-muted' : 'text-white'}`}>{matchId}</p>
       </div>
 
       {/* Middle: horizontal for UPCOMING, vertical stacked for LIVE/RESULT */}
@@ -124,7 +124,7 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
             <TeamAvatar team={t1} accent="green" />
             <span className="truncate text-[14px] font-semibold text-white">{t1.name}</span>
           </div>
-          <span className="shrink-0 text-[14px] font-semibold text-[#DA9811]">VS</span>
+          <span className="text-brand shrink-0 text-[14px] font-semibold">VS</span>
           <div className="flex min-w-0 items-center justify-end gap-2">
             <TeamAvatar team={t2} accent="orange" />
             <span className="truncate text-[14px] font-semibold text-white">{t2.name}</span>
@@ -146,9 +146,9 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
             </div>
             {score2 != null && score2 !== '' && (
               <span className="shrink-0 text-right">
-                {liveScore2?.overs && <span className="text-[13px] text-[#A2A6AB]">{liveScore2.overs}</span>}
+                {liveScore2?.overs && <span className="text-muted text-[13px]">{liveScore2.overs}</span>}
                 {liveScore2?.overs && ' '}
-                <span className="text-[14px] font-bold text-[#DA9811]">{liveScore2?.current ?? score2}</span>
+                <span className="text-brand text-[14px] font-bold">{liveScore2?.current ?? score2}</span>
               </span>
             )}
           </div>
@@ -159,7 +159,7 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
       {isUpcoming && (meta?.startsIn || meta?.time) && (
         <div className="mb-3 flex items-center gap-4 text-[13px]">
           {meta?.startsIn && <span className="text-[#BBBBBB]">Starts in {meta.startsIn}</span>}
-          {meta?.time && <span className="text-[#DA9811]">{meta.time}</span>}
+          {meta?.time && <span className="text-brand">{meta.time}</span>}
         </div>
       )}
       {(isLive || isResult) && meta?.commentary && (
@@ -179,13 +179,10 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
             if (!leagueId) return null;
             return (
               <>
-                <Link
-                  to={`/scorecard/${leagueId}?tab=schedule`}
-                  className="text-[14px] text-[#A2A6AB] underline underline-offset-2"
-                >
+                <Link to={`/scorecard/${leagueId}?tab=schedule`} className="text-muted text-[14px] underline underline-offset-2">
                   Schedule
                 </Link>
-                <Link to={`/scorecard/${leagueId}?tab=table`} className="text-[14px] text-[#A2A6AB] underline underline-offset-2">
+                <Link to={`/scorecard/${leagueId}?tab=table`} className="text-muted text-[14px] underline underline-offset-2">
                   Table
                 </Link>
               </>
@@ -198,11 +195,11 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
 
   if (to) {
     return (
-      <Link to={to} className="block rounded-[17px] bg-[#141412] p-4 transition-opacity active:opacity-90">
+      <Link to={to} className="bg-surface block rounded-[17px] p-4 transition-opacity active:opacity-90">
         {cardInner}
       </Link>
     );
   }
 
-  return <div className="rounded-[17px] bg-[#141412] p-4">{cardInner}</div>;
+  return <div className="bg-surface rounded-[17px] p-4">{cardInner}</div>;
 }

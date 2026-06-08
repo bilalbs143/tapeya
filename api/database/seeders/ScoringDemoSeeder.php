@@ -6,7 +6,6 @@ use App\Enums\Common\StatusEnum;
 use App\Enums\Event\CricketFormatEnum;
 use App\Enums\Event\MatchStatusEnum;
 use App\Enums\Event\MatchTimingEnum;
-use App\Enums\Event\TossChoiceEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
 use App\Enums\User\AppRoleEnum;
 use App\Enums\User\BattingStyleEnum;
@@ -15,17 +14,12 @@ use App\Enums\User\PlayingRoleEnum;
 use App\Enums\User\RoleGuardEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
-use App\Jobs\RefreshMatchStatsJob;
-use App\Models\Ball;
-use App\Models\Innings;
 use App\Models\Role;
 use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentMatch;
 use App\Models\User;
-use App\Services\MatchCompletionService;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -47,19 +41,16 @@ use Illuminate\Support\Facades\Hash;
  * Prerequisites: RoleSeeder must have been run (Roles exist).
  *
  * Creates:
- *   - 36 players (6 per team, no cross-team overlap; playing_role / batting_style / bowling_style), password: password
- *   - 3 organizers (organizer role + cricket profile fields), password: password
- *   - 3 sponsors (sponsor role + cricket profile fields), password: password
+ *   - 36 players (6 per team, no cross-team overlap; real names; playing_role / batting_style / bowling_style), password: password
+ *   - 3 organizers (real names; organizer role + cricket profile fields), password: password
+ *   - 3 sponsors (real names; sponsor role + cricket profile fields), password: password
  *   - 4 tournaments (organizer_id; number_of_groups / prize per schema; first three single-group, fourth two-group demo)
- *   - 6 teams (owned by sponsors; optional logo left null)
+ *   - 6 teams (PSL-style names; 3-letter uppercase codes; owned by sponsors; optional logo left null)
  *   - Attaches players to teams (team_user), two icon players per team (team_icon_players)
  *   - Attaches teams to tournaments (tournament_team with group_index when number_of_groups > 1)
  *   - Demo fixtures (matches): single-table tournaments get 2–3 scheduled games; two-group tournament
  *     gets one fixture per group. Several matches use today’s date for the scorecard schedule tab.
- *     Scheduled fixtures use a short format (5 overs per side).
- *   - Two fully completed demo matches (first fixture in tournament 1 & 2): toss, 1st & 2nd innings,
- *     legal balls, completed result, match squads + playing elevens, then RefreshMatchStatsJob (sync)
- *     so scorecard + /rankings?tournament_type=… stay consistent with ball data.
+ *     All matches remain SCHEDULED (no toss, innings, balls, or stats materialization).
  */
 class ScoringDemoSeeder extends Seeder
 {
@@ -78,6 +69,92 @@ class ScoringDemoSeeder extends Seeder
 
     private const DEMO_PLAYER_COUNT = self::DEMO_TEAM_COUNT * self::DEMO_PLAYERS_PER_TEAM;
 
+    /** @var list<string> Six players per team in order (Karachi → Quetta); each name used once. */
+    private const DEMO_PLAYER_NAMES = [
+        // Karachi Kings
+        'Babar Azam',
+        'Imad Wasim',
+        'Mohammad Abbas',
+        'Amir Yamin',
+        'Sahibzada Farhan',
+        'Usman Shan',
+        // Lahore Qalandars
+        'Shaheen Afridi',
+        'Fakhar Zaman',
+        'Haris Rauf',
+        'Abdullah Shafique',
+        'Salman Mirza',
+        'Zaman Khan',
+        // Islamabad United
+        'Mohammad Rizwan',
+        'Shadab Khan',
+        'Naseem Shah',
+        'Faheem Ashraf',
+        'Azam Khan',
+        'Haider Ali',
+        // Peshawar Zalmi
+        'Saim Ayub',
+        'Usama Mir',
+        'Abrar Ahmed',
+        'Khushdil Shah',
+        'Waqar Salam Bhatti',
+        'Rumman Raees',
+        // Multan Sultans
+        'Mohammad Nawaz',
+        'Iftikhar Ahmed',
+        'Usman Qadir',
+        'Mohammad Wasim',
+        'Agha Salman',
+        'Tayyab Tahir',
+        // Quetta Gladiators
+        'Sarfaraz Ahmed',
+        'Hasan Ali',
+        'Mohammad Amir',
+        'Saud Shakeel',
+        'Mohammad Hafeez',
+        'Umar Akmal',
+    ];
+
+    /** @var list<string> */
+    private const DEMO_ORGANIZER_NAMES = [
+        'Ramiz Raja',
+        'Wasim Akram',
+        'Shoaib Malik',
+    ];
+
+    /** @var list<string> */
+    private const DEMO_SPONSOR_NAMES = [
+        'Imran Khan',
+        'Inzamam-ul-Haq',
+        'Younis Khan',
+    ];
+
+    /** @var list<array{name: string, code: string}> */
+    private const DEMO_TEAMS = [
+        ['name' => 'Karachi Kings', 'code' => 'KNG'],
+        ['name' => 'Lahore Qalandars', 'code' => 'LQR'],
+        ['name' => 'Islamabad United', 'code' => 'ISU'],
+        ['name' => 'Peshawar Zalmi', 'code' => 'ZLM'],
+        ['name' => 'Multan Sultans', 'code' => 'SLT'],
+        ['name' => 'Quetta Gladiators', 'code' => 'GLD'],
+    ];
+
+    /** @var list<string> */
+    private const DEMO_TOURNAMENT_NAMES = [
+        'Karachi Premier League',
+        'Lahore Summer Cup',
+        'Islamabad T20 Challenge',
+        'National Club Championship',
+    ];
+
+    /** @var list<string> */
+    private const DEMO_VENUES = [
+        'National Stadium Karachi',
+        'Gaddafi Stadium Lahore',
+        'Rawalpindi Cricket Stadium',
+        'Multan Cricket Stadium',
+    ];
+
     public function run(): void
     {
         $scope = $this->resolveScope();
@@ -94,7 +171,6 @@ class ScoringDemoSeeder extends Seeder
             $tournaments = $this->createTournaments($organizers);
             $this->createTeamsAndAttach($sponsors, $players, $tournaments);
             $matchCount = $this->createDemoMatches($tournaments);
-            $this->seedDemoCompletedScorecards($tournaments);
             $this->command->info('Done (teams). Tournaments: '.count($tournaments).', Matches: '.$matchCount);
 
             return;
@@ -113,7 +189,6 @@ class ScoringDemoSeeder extends Seeder
         $tournaments = $this->createTournaments($organizers);
         $this->createTeamsAndAttach($sponsors, $players, $tournaments);
         $matchCount = $this->createDemoMatches($tournaments);
-        $this->seedDemoCompletedScorecards($tournaments);
         $this->command->info('Done (all). Players: '.count($players).', Organizers: '.count($organizers).', Sponsors: '.count($sponsors).', Tournaments: '.count($tournaments).', Matches: '.$matchCount);
     }
 
@@ -152,6 +227,13 @@ class ScoringDemoSeeder extends Seeder
         }
     }
 
+    private function slugFromName(string $name): string
+    {
+        $slug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '_', $name) ?? '', '_'));
+
+        return $slug !== '' ? $slug : 'user';
+    }
+
     /**
      * @return array{playing_role: PlayingRoleEnum, batting_style: BattingStyleEnum, bowling_style: ?BowlingStyleEnum}
      */
@@ -188,14 +270,16 @@ class ScoringDemoSeeder extends Seeder
         $players = [];
         $numBase = is_numeric($base) ? (int) $base : crc32($base);
         for ($i = 1; $i <= self::DEMO_PLAYER_COUNT; $i++) {
-            $email = "player{$i}_{$base}@demo.local";
-            $nick = "player{$i}_{$base}";
+            $displayName = self::DEMO_PLAYER_NAMES[$i - 1];
+            $slug = $this->slugFromName($displayName);
+            $email = "{$slug}_{$base}@demo.local";
+            $nick = "{$slug}_{$base}";
             $phone = '+92300'.str_pad((string) (abs($numBase) % 10000000 + $i), 7, '0', STR_PAD_LEFT);
 
             $user = User::updateOrCreate(
                 ['email' => $email],
                 array_merge([
-                    'name' => "Demo Player {$i}",
+                    'name' => $displayName,
                     'nickname' => $nick,
                     'phone' => $phone,
                     'password' => Hash::make('password'),
@@ -227,15 +311,17 @@ class ScoringDemoSeeder extends Seeder
 
         $organizers = [];
         $numBase = is_numeric($base) ? (int) $base : crc32($base);
-        for ($i = 1; $i <= 3; $i++) {
-            $email = "organizer{$i}_{$base}@demo.local";
-            $nick = "organizer{$i}_{$base}";
+        for ($i = 1; $i <= count(self::DEMO_ORGANIZER_NAMES); $i++) {
+            $displayName = self::DEMO_ORGANIZER_NAMES[$i - 1];
+            $slug = $this->slugFromName($displayName);
+            $email = "{$slug}_{$base}@demo.local";
+            $nick = "{$slug}_{$base}";
             $phone = '+92301'.str_pad((string) (abs($numBase) % 10000000 + $i), 7, '0', STR_PAD_LEFT);
 
             $user = User::updateOrCreate(
                 ['email' => $email],
                 array_merge([
-                    'name' => "Organizer {$i}",
+                    'name' => $displayName,
                     'nickname' => $nick,
                     'phone' => $phone,
                     'password' => Hash::make('password'),
@@ -267,15 +353,17 @@ class ScoringDemoSeeder extends Seeder
 
         $sponsors = [];
         $numBase = is_numeric($base) ? (int) $base : crc32($base);
-        for ($i = 1; $i <= 3; $i++) {
-            $email = "sponsor{$i}_{$base}@demo.local";
-            $nick = "sponsor{$i}_{$base}";
+        for ($i = 1; $i <= count(self::DEMO_SPONSOR_NAMES); $i++) {
+            $displayName = self::DEMO_SPONSOR_NAMES[$i - 1];
+            $slug = $this->slugFromName($displayName);
+            $email = "{$slug}_{$base}@demo.local";
+            $nick = "{$slug}_{$base}";
             $phone = '+92302'.str_pad((string) (abs($numBase) % 10000000 + $i), 7, '0', STR_PAD_LEFT);
 
             $user = User::updateOrCreate(
                 ['email' => $email],
                 array_merge([
-                    'name' => "Sponsor {$i}",
+                    'name' => $displayName,
                     'nickname' => $nick,
                     'phone' => $phone,
                     'password' => Hash::make('password'),
@@ -314,15 +402,14 @@ class ScoringDemoSeeder extends Seeder
             $start = now()->addDays(7 + $i * 3);
             $end = $start->copy()->addDays(7);
 
-            $typeLabel = $type->label();
             $numberOfGroups = $i === 4 ? 2 : 1;
             $t = Tournament::create([
                 'organizer_id' => $org->id,
                 'created_by' => $org->id,
-                'tournament_name' => "Demo {$typeLabel} {$i}",
+                'tournament_name' => self::DEMO_TOURNAMENT_NAMES[$i - 1],
                 'tournament_type' => $type->value,
                 'cricket_format' => $format->value,
-                'venue_name' => "Venue {$i}",
+                'venue_name' => self::DEMO_VENUES[$i - 1],
                 'start_date' => $start,
                 'end_date' => $end,
                 'number_of_teams' => 4,
@@ -331,7 +418,7 @@ class ScoringDemoSeeder extends Seeder
                 'city' => ['Karachi', 'Lahore', 'Islamabad', 'Rawalpindi'][$i - 1],
                 'match_timings' => $timing->value,
                 'status' => StatusEnum::ACTIVE->value,
-                'prize' => $i === 4 ? 'Demo trophy + prize pool' : 'Participation medals (demo)',
+                'prize' => $i === 4 ? 'Championship trophy + prize pool' : 'Participation medals',
             ]);
             $tournaments[] = $t;
         }
@@ -344,16 +431,14 @@ class ScoringDemoSeeder extends Seeder
     /** @param array<Tournament> $tournaments */
     private function createTeamsAndAttach(array $sponsors, array $players, array $tournaments): void
     {
-        $base = 'SC'.substr((string) time(), -4);
-        $teamNames = ['Lions', 'Tigers', 'Eagles', 'Hawks', 'Falcons', 'Panthers'];
         $teams = [];
 
         for ($i = 0; $i < self::DEMO_TEAM_COUNT; $i++) {
             $sponsor = $sponsors[$i % count($sponsors)];
-            $code = strtoupper(substr($teamNames[$i], 0, 3)).$base.$i;
+            $teamDef = self::DEMO_TEAMS[$i];
             $team = Team::create([
-                'name' => "Demo {$teamNames[$i]}",
-                'code' => $code,
+                'name' => $teamDef['name'],
+                'code' => $teamDef['code'],
                 'country' => 'Pakistan',
                 'city' => 'Karachi',
                 'user_id' => $sponsor->id,
@@ -429,7 +514,7 @@ class ScoringDemoSeeder extends Seeder
 
         foreach ($tournaments as $tournament) {
             $tournament->refresh();
-            $venue = $tournament->venue_name ?: 'Demo ground';
+            $venue = $tournament->venue_name ?: 'National Stadium Karachi';
             $numberOfGroups = max(1, (int) ($tournament->number_of_groups ?? 1));
 
             if ($numberOfGroups <= 1) {
@@ -499,198 +584,5 @@ class ScoringDemoSeeder extends Seeder
         }
 
         return $created;
-    }
-
-    /**
-     * Full score path for two sample matches (league + open_tournament types) so UI scorecard,
-     * player-stats, and rankings have materialized stats rows aligned with balls.
-     *
-     * @param  array<Tournament>  $tournaments
-     */
-    private function seedDemoCompletedScorecards(array $tournaments): void
-    {
-        if (count($tournaments) < 2) {
-            return;
-        }
-
-        $first = $this->firstScheduledMatchForTournament($tournaments[0]->id);
-        $second = $this->firstScheduledMatchForTournament($tournaments[1]->id);
-
-        if ($first) {
-            $this->seedCompletedDemoMatch($first);
-        }
-        if ($second) {
-            $this->seedCompletedDemoMatch($second);
-        }
-    }
-
-    private function firstScheduledMatchForTournament(int $tournamentId): ?TournamentMatch
-    {
-        return TournamentMatch::query()
-            ->where('tournament_id', $tournamentId)
-            ->orderBy('match_date')
-            ->orderBy('match_time')
-            ->orderBy('id')
-            ->first();
-    }
-
-    /**
-     * Toss → two innings → short ball-by-ball (1 over cap) chase so MatchCompletionService marks COMPLETED.
-     * Mirrors MatchTossController + organizer scoring rules (legal ball = not wide / not no-ball).
-     */
-    private function seedCompletedDemoMatch(TournamentMatch $match): void
-    {
-        $match->loadMissing(['tournament']);
-        $homeId = (int) $match->home_team_id;
-        $awayId = (int) $match->away_team_id;
-
-        $homeSquad = $this->squadUserIdsForTeam($homeId);
-        $awaySquad = $this->squadUserIdsForTeam($awayId);
-        if (count($homeSquad) < 2 || count($awaySquad) < 2) {
-            return;
-        }
-
-        DB::transaction(function () use ($match, $homeId, $awayId, $homeSquad, $awaySquad) {
-            Innings::query()->where('match_id', $match->id)->delete();
-            DB::table('match_squads')->where('match_id', $match->id)->delete();
-            DB::table('match_players')->where('match_id', $match->id)->delete();
-
-            $strikerHome = $homeSquad[0];
-            $nonHome = $homeSquad[1];
-            $bowlerAway = $awaySquad[0];
-            $strikerAway = $awaySquad[0];
-            $nonAway = $awaySquad[1];
-            $bowlerHome = $homeSquad[1] ?? $homeSquad[0];
-
-            $match->update([
-                'overs' => 1,
-                'players_per_side' => 11,
-                'match_date' => now()->startOfDay(),
-                'match_time' => '10:00',
-                'toss_winner_team_id' => $homeId,
-                'winning_team_id' => $homeId,
-                'chose_to_bat_or_bowl' => TossChoiceEnum::BAT->value,
-                'status' => MatchStatusEnum::TOSS_DONE,
-                'is_no_result' => false,
-                'win_by_runs' => null,
-                'win_by_wickets' => null,
-            ]);
-
-            $match->innings()->createMany([
-                [
-                    'innings_number' => 1,
-                    'batting_team_id' => $homeId,
-                    'bowling_team_id' => $awayId,
-                    'status' => 'not_started',
-                ],
-                [
-                    'innings_number' => 2,
-                    'batting_team_id' => $awayId,
-                    'bowling_team_id' => $homeId,
-                    'status' => 'not_started',
-                ],
-            ]);
-
-            $now = now();
-            foreach ($homeSquad as $uid) {
-                DB::table('match_squads')->insert([
-                    'match_id' => $match->id,
-                    'team_id' => $homeId,
-                    'user_id' => $uid,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ]);
-            }
-            foreach ($awaySquad as $uid) {
-                DB::table('match_squads')->insert([
-                    'match_id' => $match->id,
-                    'team_id' => $awayId,
-                    'user_id' => $uid,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ]);
-            }
-
-            foreach ($homeSquad as $uid) {
-                DB::table('match_players')->insert([
-                    'match_id' => $match->id,
-                    'team_id' => $homeId,
-                    'user_id' => $uid,
-                    'playing_role' => null,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ]);
-            }
-            foreach ($awaySquad as $uid) {
-                DB::table('match_players')->insert([
-                    'match_id' => $match->id,
-                    'team_id' => $awayId,
-                    'user_id' => $uid,
-                    'playing_role' => null,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ]);
-            }
-
-            $match->refresh();
-            $inn1 = $match->innings()->where('innings_number', 1)->firstOrFail();
-            $inn2 = $match->innings()->where('innings_number', 2)->firstOrFail();
-
-            // Innings 1: 6 legal balls, 1 run total (last ball scores 1) — completes when overs (1) filled.
-            for ($b = 1; $b <= 5; $b++) {
-                $this->createDemoBall($inn1->id, 0, $b, $strikerHome, $nonHome, $bowlerAway, 0);
-            }
-            $this->createDemoBall($inn1->id, 0, 6, $strikerHome, $nonHome, $bowlerAway, 1);
-
-            // Innings 2: chase — 2 runs off first ball beats target (1); innings completes on runs > target.
-            $this->createDemoBall($inn2->id, 0, 1, $strikerAway, $nonAway, $bowlerHome, 2);
-        });
-
-        $match->refresh();
-        app(MatchCompletionService::class)->evaluate($match->fresh(['innings.balls']));
-
-        Bus::dispatchSync(new RefreshMatchStatsJob($match->id));
-    }
-
-    /** @return list<int> */
-    private function squadUserIdsForTeam(int $teamId): array
-    {
-        return Team::query()
-            ->findOrFail($teamId)
-            ->players()
-            ->orderBy('users.id')
-            ->limit(11)
-            ->pluck('users.id')
-            ->map(fn ($id) => (int) $id)
-            ->values()
-            ->all();
-    }
-
-    private function createDemoBall(
-        int $inningsId,
-        int $over,
-        int $ballInOver,
-        int $strikerId,
-        int $nonStrikerId,
-        int $bowlerId,
-        int $runsOffBat,
-    ): void {
-        Ball::create([
-            'innings_id' => $inningsId,
-            'over' => $over,
-            'ball_in_over' => $ballInOver,
-            'striker_id' => $strikerId,
-            'non_striker_id' => $nonStrikerId,
-            'bowler_id' => $bowlerId,
-            'runs' => $runsOffBat,
-            'runs_off_bat' => $runsOffBat,
-            'is_no_ball' => false,
-            'is_wide' => false,
-            'is_leg_bye' => false,
-            'is_bye' => false,
-            'is_free_hit' => false,
-            'penalty_runs' => 0,
-            'is_wicket' => false,
-        ]);
     }
 }

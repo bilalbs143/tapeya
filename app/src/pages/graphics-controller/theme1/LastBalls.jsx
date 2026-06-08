@@ -11,7 +11,7 @@ export default function LastBalls({
   runs = 0,
 }) {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#1D1E22]">
+    <div className="bg-page relative min-h-screen overflow-hidden">
       <section className="absolute right-0 bottom-0 left-0 overflow-hidden text-white">
         <div className="absolute inset-0">
           <div className="absolute inset-0" style={rightHalfStyle} />
@@ -25,7 +25,7 @@ export default function LastBalls({
 
           <div className="px-2 text-center sm:px-10">
             {ballsLabel.split(' ').map((word, i) => (
-              <p key={i} className="text-[8px] leading-none font-extrabold text-[#DA9811] sm:text-[28px]">
+              <p key={i} className="text-brand text-[8px] leading-none font-extrabold sm:text-[28px]">
                 {word}
               </p>
             ))}

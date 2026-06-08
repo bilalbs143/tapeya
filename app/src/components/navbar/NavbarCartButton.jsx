@@ -4,7 +4,7 @@ import { NavbarIconBadge } from '@/components/navbar/NavbarIconBadge';
 import { useCartItemCount } from '@/hooks/shop/useCartItemCount';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { NAVBAR_ICON_BTN_CLASS } from '@/lib/constants/navbar';
-import { formatCountBadge } from '@/lib/utils/badgeUtils';
+import { formatCountBadge } from '@/lib/utils/displayUtils';
 
 const shoppingCartIcon = `${CLOUDFRONT_APP_BASE}/images/icons/product-cart-icon.svg`;
 

@@ -11,27 +11,16 @@ import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
 import { toApiDate } from '@/lib/utils/dateUtils';
 import { createTournamentRequestSchema } from '@/lib/validations/tournamentRequest';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
-import { useGetCitiesQuery, useGetCountriesQuery } from '@/store/api/locationApi';
 import { useCreateTournamentRequestMutation } from '@/store/api/tournamentRequestApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { CountryCityFields } from '@/ui/CountryCityFields';
 import { DatePicker } from '@/ui/DatePicker';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import { PhoneInput } from '@/ui/PhoneInput';
-import {
-  Select,
-  SelectContent,
-  selectContentInputClass,
-  SelectItem,
-  selectItemInputClass,
-  SelectTrigger,
-  selectTriggerInputClass,
-  SelectValue,
-  selectViewportInputClass,
-} from '@/ui/Select';
 import { ToggleGroupField } from '@/ui/ToggleGroupField';
 
 const DEFAULT_VALUES = {
@@ -87,14 +76,8 @@ export default function TournamentRequest() {
   });
 
   const groupMode = watch('group_mode');
-  const selectedCountryName = watch('country');
-
-  const { data: countriesList = [] } = useGetCountriesQuery();
-  const selectedCountry = countriesList.find((c) => c.name === selectedCountryName);
-  const countryCode = selectedCountry?.country_code ?? null;
-  const { data: citiesList = [] } = useGetCitiesQuery(countryCode, {
-    skip: !countryCode,
-  });
+  const country = watch('country');
+  const city = watch('city');
 
   // Pre-fill contact details and default enum selections once enums are loaded.
   // Depends on `enums` (not derived arrays) to avoid re-firing on reference changes.
@@ -242,83 +225,17 @@ export default function TournamentRequest() {
             </FormField>
           )}
 
-          <FormField label="Country:" htmlFor="country" required>
-            <Controller
-              name="country"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  value={field.value || ''}
-                  onValueChange={(val) => {
-                    field.onChange(val);
-                    setValue('city', '');
-                  }}
-                >
-                  <SelectTrigger id="country" className={selectTriggerInputClass} aria-label="Country">
-                    <SelectValue placeholder="Select Country" />
-                  </SelectTrigger>
-                  <SelectContent
-                    className={selectContentInputClass}
-                    viewportClassName={selectViewportInputClass}
-                    position="popper"
-                  >
-                    {countriesList.map((c) => (
-                      <SelectItem
-                        key={c.country_code}
-                        value={c.name}
-                        className={selectItemInputClass}
-                        textClassName="!text-white"
-                        indicatorClassName="!text-white"
-                      >
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            {errors.country?.message && (
-              <p className="text-sm text-red-200" role="alert">
-                {errors.country.message}
-              </p>
-            )}
-          </FormField>
-
-          <FormField label="City:" htmlFor="city" required>
-            <Controller
-              name="city"
-              control={control}
-              render={({ field }) => (
-                <Select value={field.value || ''} onValueChange={field.onChange} disabled={!countryCode}>
-                  <SelectTrigger id="city" className={selectTriggerInputClass} aria-label="City" disabled={!countryCode}>
-                    <SelectValue placeholder="Select City" />
-                  </SelectTrigger>
-                  <SelectContent
-                    className={selectContentInputClass}
-                    viewportClassName={selectViewportInputClass}
-                    position="popper"
-                  >
-                    {citiesList.map((c) => (
-                      <SelectItem
-                        key={c.id}
-                        value={c.name}
-                        className={selectItemInputClass}
-                        textClassName="!text-white"
-                        indicatorClassName="!text-white"
-                      >
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            {errors.city?.message && (
-              <p className="text-sm text-red-200" role="alert">
-                {errors.city.message}
-              </p>
-            )}
-          </FormField>
+          <CountryCityFields
+            country={country ?? ''}
+            city={city ?? ''}
+            onCountryChange={(v) => setValue('country', v, { shouldValidate: true })}
+            onCityChange={(v) => setValue('city', v, { shouldValidate: true })}
+            countryLabel="Country:"
+            cityLabel="City:"
+            countryError={errors.country?.message}
+            cityError={errors.city?.message}
+            required
+          />
 
           <ToggleGroupField
             name="match_timings"

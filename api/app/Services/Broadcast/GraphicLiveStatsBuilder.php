@@ -128,7 +128,7 @@ final class GraphicLiveStatsBuilder
 
         foreach ($balls as $ball) {
             $isLegal = $ball->isLegalDelivery();
-            $ballRuns = ($ball->runs ?? 0) + ($ball->penalty_runs ?? 0);
+            $ballRuns = ($ball->runs ?? 0) + ($ball->penalty_runs ?? 0) + ($ball->additional_runs ?? 0);
 
             $currentOverBalls[] = $ball;
             $currentOverRuns += $ballRuns;
@@ -172,6 +172,15 @@ final class GraphicLiveStatsBuilder
             if (! in_array($nextNonStrikerId, $dismissedIds, true) && ! in_array($nextNonStrikerId, $creaseIds, true)) {
                 $creaseIds[] = $nextNonStrikerId;
             }
+        }
+
+        if (! empty($pending['substitute_replaced_id']) && ! empty($pending['substitute_player_id'])) {
+            $replaced = (int) $pending['substitute_replaced_id'];
+            $sub = (int) $pending['substitute_player_id'];
+            $creaseIds = array_values(array_map(
+                static fn (int $id) => $id === $replaced ? $sub : $id,
+                $creaseIds,
+            ));
         }
 
         foreach ($creaseIds as $id) {
@@ -253,6 +262,9 @@ final class GraphicLiveStatsBuilder
             }
             if ($b->isPenaltyOnlyAward()) {
                 return 'P'.(int) ($b->penalty_runs ?? 0);
+            }
+            if ($b->isAdditionalRunsOnlyAward()) {
+                return '+'.(int) ($b->additional_runs ?? 0);
             }
             if ($b->is_wide) {
                 $extra = max(1, $runs) - 1;
@@ -456,9 +468,12 @@ final class GraphicLiveStatsBuilder
         if ((int) $active->innings_number === 2 && $first !== null) {
             // Use InningsStatsService so the target matches the scorecard API exactly
             // (penalty_runs are included in total_runs but NOT in a plain ->sum('runs')).
-            $firstStats = $this->inningsStats->compute($first->balls, []);
+            // S18: resolve names from DB so name fields are populated (not empty strings).
+            $firstBalls = $first->balls;
+            $firstNames = InningsStatsService::namesFromDatabase($firstBalls);
+            $firstStats = $this->inningsStats->compute($firstBalls, $firstNames);
             $firstInningsRuns = $firstStats['total_runs'];
-            $target = $firstInningsRuns + 1;
+            $target = $match->chaseTargetForSecondInnings($firstInningsRuns);
             $runsToWin = max(0, $target - $totalRuns);
             $maxBalls = (int) $match->overs * 6;
             $ballsRemaining = max(0, $maxBalls - $legalBalls);
@@ -547,7 +562,7 @@ final class GraphicLiveStatsBuilder
         $runs = 0;
 
         foreach ($window as $ball) {
-            $ballRuns = ($ball->runs ?? 0) + ($ball->penalty_runs ?? 0);
+            $ballRuns = ($ball->runs ?? 0) + ($ball->penalty_runs ?? 0) + ($ball->additional_runs ?? 0);
 
             $runs += $ballRuns;
 
@@ -615,7 +630,7 @@ final class GraphicLiveStatsBuilder
 
             foreach ($balls as $ball) {
                 $isLegal = $ball->isLegalDelivery();
-                $ballRuns = ($ball->runs ?? 0) + ($ball->penalty_runs ?? 0);
+                $ballRuns = ($ball->runs ?? 0) + ($ball->penalty_runs ?? 0) + ($ball->additional_runs ?? 0);
 
                 $currentOverIdx = (int) floor($validBalls / 6);
 

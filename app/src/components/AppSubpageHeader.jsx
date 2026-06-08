@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
  * (e.g. tournament hero image, live-scoring screen).
  */
 export const appSubpageBackButtonClassName =
-  'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-[#1a1a18] transition-opacity active:opacity-80';
+  'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-[#1A1A18] transition-opacity active:opacity-80';
 
 function BackChevron() {
   return (
@@ -119,7 +119,7 @@ export function AppSubpageHeader({
         <h1 className={`${baseStringClass} ${titleClassName}`.trim()}>
           <span className="text-white">{title}</span>
           <span className="mx-1 text-white/40">-</span>
-          <span className="text-[#DA9811] normal-case">{subtitle}</span>
+          <span className="text-brand normal-case">{subtitle}</span>
         </h1>
       ) : (
         <h1 className={`${baseStringClass} ${titleClassName}`.trim()}>{title}</h1>

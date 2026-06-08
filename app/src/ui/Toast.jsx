@@ -1,11 +1,6 @@
-/**
- * Radix Toast — dark panel notifications aligned with Dialog theme tokens.
- * Wrap app with Toaster (ToastProvider + ToastViewport)
- */
-
 import * as ToastPrimitive from '@radix-ui/react-toast';
 
-// ─── Design tokens (match Dialog.jsx: #080807 / #141412 / #DA9811) ─────────
+import { CLOSE_ICON_PATH } from '@/lib/constants/assets';
 
 const viewport =
   'fixed top-[calc(env(safe-area-inset-top)+12px)] left-4 right-4 z-[100] flex max-h-screen w-auto flex-col gap-2 outline-none md:left-auto md:right-4 md:max-w-[380px]';
@@ -13,19 +8,19 @@ const viewport =
 const root =
   'group pointer-events-auto relative flex w-full items-start gap-3 overflow-hidden rounded-[12px] border-2 border-[#141412] bg-[#080807] p-4 shadow-[0_10px_40px_rgba(0,0,0,0.55)] transition-all duration-300 ease-out data-[swipe=cancel]:translate-x-0 data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[state=closed]:opacity-0 data-[state=open]:opacity-100 data-[state=closed]:translate-y-[-6px] data-[state=open]:translate-y-0';
 
-const title = 'text-[13px] font-bold uppercase leading-snug tracking-wide text-[#DA9811]';
+const title = 'text-[13px] font-bold uppercase leading-snug tracking-wide text-brand';
 const description = 'text-[13px] leading-snug text-[#D4D4D2]';
 const descriptionOnly = 'text-[13px] font-medium leading-snug text-white';
 
 const action =
-  'inline-flex h-8 shrink-0 items-center justify-center rounded-[6px] border border-[#2A2A28] bg-[#141412] px-3 text-[12px] font-semibold text-[#DA9811] transition-colors hover:bg-[#1a1a18]';
+  'inline-flex h-8 shrink-0 items-center justify-center rounded-[6px] border border-[#2A2A28] bg-surface px-3 text-[12px] font-semibold text-brand transition-colors hover:bg-surface-elevated';
 
 const close =
-  'absolute right-2 top-2 inline-flex size-7 shrink-0 items-center justify-center rounded-md text-[#A2A6AB] transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFB703] focus-visible:ring-offset-2 focus-visible:ring-offset-[#080807]';
+  'absolute right-2 top-2 inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFB703] focus-visible:ring-offset-2 focus-visible:ring-offset-[#080807]';
 
 const accentBar = 'absolute bottom-0 left-0 top-0 w-[3px] shrink-0';
 
-const iconWrap = 'mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-[#141412]';
+const iconWrap = 'mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-surface';
 
 // ─── Variants ─────────────────────────────────────────────────────────────────
 
@@ -64,13 +59,13 @@ function InfoIcon({ className = '' }) {
 
 const TOAST_VARIANTS = {
   default: {
-    accent: `${accentBar} bg-[#DA9811]`,
-    iconClass: 'text-[#DA9811]',
+    accent: `${accentBar} bg-brand`,
+    iconClass: 'text-brand',
     Icon: InfoIcon,
   },
   success: {
-    accent: `${accentBar} bg-[#DA9811]`,
-    iconClass: 'text-[#DA9811]',
+    accent: `${accentBar} bg-brand`,
+    iconClass: 'text-brand',
     Icon: CheckIcon,
   },
   error: {
@@ -127,7 +122,7 @@ export function ToastCloseStyled({ className = '', ...props }) {
   return (
     <ToastPrimitive.Close className={`${close} ${className}`} {...props}>
       <svg width={14} height={14} viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
-        <path d="M11.78 4.03a1 1 0 0 0-1.41-1.41L7.5 5.69 4.74 2.93a1 1 0 0 0-1.41 1.41L6.09 7.12l-2.76 2.76a1 1 0 1 0 1.41 1.41L7.5 8.53l2.76 2.76a1 1 0 0 0 1.41-1.41L8.91 7.12l2.87-2.09Z" />
+        <path d={CLOSE_ICON_PATH} />
       </svg>
     </ToastPrimitive.Close>
   );

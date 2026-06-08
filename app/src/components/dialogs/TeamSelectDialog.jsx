@@ -30,7 +30,7 @@ export function TeamSelectDialog({ title, teams, selectedTeamId, onSelect }) {
                 closeDialog();
               }}
               className={`flex w-full items-center gap-3 rounded-full px-4 py-3 text-left text-[14px] font-medium transition-colors focus:outline-none ${
-                isSelected ? 'bg-[#DA9811] text-[#080807]' : 'bg-[#141412] text-white'
+                isSelected ? 'bg-brand text-ink' : 'bg-surface text-white'
               }`}
             >
               <TeamLogo team={team} variant="dialogSelect" />

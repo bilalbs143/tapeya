@@ -78,8 +78,9 @@
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
-import { BORDER_ALT as BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
+import { BORDER_ALT, HEADER_BG } from '@/lib/constants/tableStyles';
 import { formatListIndex } from '@/lib/format';
+import { buildStatsTotalRows } from '@/lib/utils/rankingUtils';
 import { useGetTournamentSeasonStatsQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
 
@@ -87,9 +88,6 @@ import { VALID_STAT_TYPES } from './statsTotalFlow';
 
 // ---------------------------------------------------------------------------
 // Constants
-// CURSOR: move COL_TH / COL_TD and all COLUMNS_* / TITLES
-//         to src/lib/constants/rankingColumns.js — exact duplicates exist in
-//         RankingStatsTotal.jsx; consolidate both files to import from there.
 // ---------------------------------------------------------------------------
 
 const COL_TH = 'min-w-[80px] py-3.5 pl-4 text-left font-bold';
@@ -170,79 +168,6 @@ const TITLES = {
 };
 
 // ---------------------------------------------------------------------------
-// Utils
-// CURSOR: move getStatsTotalRows to src/lib/utils/rankingUtils.js (see top).
-// ---------------------------------------------------------------------------
-
-/**
- * Converts tournament season-stats API data into table rows for a given statType.
- * CURSOR: move to src/lib/utils/rankingUtils.js → export { getStatsTotalRows }
- *
- * Note: '4' and '5' keys in wicket-takers are intentional numeric strings for
- * now — see TODO at top before renaming.
- */
-function getStatsTotalRows(stats, normalizedType) {
-  if (!stats) return [];
-
-  if (normalizedType === 'run-scorers') {
-    return (stats.top_run_scorers ?? []).map((p, index) => ({
-      rank: index + 1,
-      playerName: p.name,
-      mat: p.innings ?? 0,
-      runs: p.runs ?? 0,
-      inns: p.innings ?? 0,
-      balls: p.balls_faced ?? '-',
-      hs: '-',
-      avg: p.average != null && !Number.isNaN(p.average) ? Number(p.average).toFixed(2) : '-',
-      sr: '-',
-      six: p.sixes ?? '-',
-      four: p.fours ?? '-',
-      '50s': '-',
-      '100s': '-',
-    }));
-  }
-
-  if (normalizedType === 'wicket-takers') {
-    return (stats.top_wicket_takers ?? []).map((p, index) => ({
-      rank: index + 1,
-      playerName: p.name,
-      mat: '-',
-      wkts: p.wickets ?? 0,
-      balls: '-',
-      overs: p.overs ?? '-',
-      mdns: '-',
-      runs: p.runs_conceded ?? '-',
-      inns: '-',
-      bbi: '-',
-      ave: '-',
-      econ: p.economy != null && !Number.isNaN(p.economy) ? Number(p.economy).toFixed(2) : '-',
-      sr: '-',
-      4: '-',
-      5: '-',
-    }));
-  }
-
-  if (normalizedType === 'fours') {
-    return (stats.most_fours ?? []).map((p, index) => ({
-      rank: index + 1,
-      playerName: p.name,
-      mat: p.innings ?? 0,
-      inns: p.innings ?? 0,
-      four: p.fours ?? 0,
-    }));
-  }
-
-  // sixes (default)
-  return (stats.most_sixes ?? []).map((p, index) => ({
-    rank: index + 1,
-    playerName: p.name,
-    mat: p.innings ?? 0,
-    inns: p.innings ?? 0,
-    six: p.sixes ?? 0,
-  }));
-}
-
-// ---------------------------------------------------------------------------
 // Page component
 // Fixed: removed the pointless StatsTotalContent wrapper — StatsTotal is now
 //        the direct default export.
@@ -284,7 +209,7 @@ export default function StatsTotal() {
       <div className="bg-black">
         {header}
         <Container className="pb-6">
-          <p className="mt-4 text-center text-[13px] text-[#A2A6AB]">Select a tournament to view stats.</p>
+          <p className="text-muted mt-4 text-center text-[13px]">Select a tournament to view stats.</p>
         </Container>
       </div>
     );
@@ -295,7 +220,7 @@ export default function StatsTotal() {
       <div className="bg-black">
         {header}
         <Container className="pb-6">
-          <p className="mt-4 text-center text-[13px] text-[#A2A6AB]">Loading stats…</p>
+          <p className="text-muted mt-4 text-center text-[13px]">Loading stats…</p>
         </Container>
       </div>
     );
@@ -312,12 +237,7 @@ export default function StatsTotal() {
     );
   }
 
-  // ------------------------------------------------------------------
-  // Derive rows above the return — was a 4-level nested ternary in JSX.
-  // CURSOR: move to getStatsTotalRows() in src/lib/utils/rankingUtils.js (see top).
-  // ------------------------------------------------------------------
-
-  const rows = getStatsTotalRows(stats, normalizedType);
+  const rows = buildStatsTotalRows(normalizedType, stats);
 
   // ------------------------------------------------------------------
   // Render
@@ -330,18 +250,16 @@ export default function StatsTotal() {
       <Container className="pb-6">
         <h2 className="text-center text-base font-bold tracking-wide text-white uppercase">{mainTitle}</h2>
 
-        <h3 className="mt-4 text-left text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">{subheading}</h3>
+        <h3 className="text-muted mt-4 text-left text-[13px] font-bold tracking-wide uppercase">{subheading}</h3>
 
-        {/* CURSOR: extract into <StatsTable columns rows> shared with
-                   RankingStatsTotal.jsx (see top). */}
-        <div className="mt-3 overflow-x-auto overflow-y-hidden border border-[#1A1A1A] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="border-surface-border mt-3 overflow-x-auto overflow-y-hidden border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <table className="w-full min-w-max border-collapse text-[12px] text-white">
             <thead>
               <tr className={HEADER_BG}>
                 {columns.map((col, i) => (
                   <th
                     key={col.key}
-                    className={`${COL_TH} ${col.width ?? ''} ${HEADER_BG} border-r border-b ${BORDER} ${i === 0 ? 'border-l' : ''}`}
+                    className={`${COL_TH} ${col.width ?? ''} ${HEADER_BG} border-r border-b ${BORDER_ALT} ${i === 0 ? 'border-l' : ''}`}
                   >
                     {col.header}
                   </th>
@@ -353,7 +271,7 @@ export default function StatsTotal() {
                 <tr>
                   <td
                     colSpan={columns.length}
-                    className={`border-r border-b border-l py-6 text-center text-[13px] text-[#A2A6AB] ${BORDER}`}
+                    className={`text-muted border-r border-b border-l py-6 text-center text-[13px] ${BORDER_ALT}`}
                   >
                     No stats available yet.
                   </td>
@@ -364,7 +282,7 @@ export default function StatsTotal() {
                   {columns.map((col, i) => (
                     <td
                       key={col.key}
-                      className={`${COL_TD} border-r border-b ${BORDER} bg-transparent ${i === 0 ? 'border-l' : ''}`}
+                      className={`${COL_TD} border-r border-b ${BORDER_ALT} bg-transparent ${i === 0 ? 'border-l' : ''}`}
                     >
                       {col.key === 'player' ? `${formatListIndex(row.rank)} ${row.playerName}` : row[col.key]}
                     </td>

@@ -8,8 +8,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StorePlayingElevenRequest;
 use App\Models\Team;
 use App\Models\TournamentMatch;
+use App\Services\MatchParticipationService;
 use App\Services\MatchStateService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -61,8 +63,13 @@ class PlayingElevenController extends Controller
      * Only organizers can manage playing elevens.
      * Players must already be in the match squad for this match + team.
      */
-    public function store(StorePlayingElevenRequest $request, TournamentMatch $match, Team $team, MatchStateService $matchStateService): JsonResponse
-    {
+    public function store(
+        StorePlayingElevenRequest $request,
+        TournamentMatch $match,
+        Team $team,
+        MatchStateService $matchStateService,
+        MatchParticipationService $participationService,
+    ): JsonResponse {
         $authUser = $request->user();
 
         if (! $authUser->canOperateTournamentInApp($match->tournament)) {
@@ -76,15 +83,16 @@ class PlayingElevenController extends Controller
 
         $playerIds = $request->validated('player_ids');
 
-        // Block changes once scoring has started — player IDs are referenced by
-        // existing ball records; replacing them mid-match corrupts the scorecard.
-        $hasBalls = DB::table('balls')
-            ->join('innings', 'innings.id', '=', 'balls.innings_id')
-            ->where('innings.match_id', $match->id)
-            ->exists();
+        $hasBalls = $participationService->matchHasBalls($match);
 
         if ($hasBalls) {
-            return $this->conflict('Playing eleven cannot be changed after scoring has started.');
+            $participated = $participationService->participatedPlayerIds($match, (int) $team->id);
+            $missing = array_diff($participated, $playerIds);
+            if ($missing !== []) {
+                return $this->conflict(
+                    'Players who have already participated must remain in the playing eleven.',
+                );
+            }
         }
 
         // Ensure all players are already in the match squad.
@@ -147,6 +155,9 @@ class PlayingElevenController extends Controller
                 DB::table('match_players')->insert($rows);
             }
         });
+
+        // Invalidate the playing-eleven cache so MatchStateService::build() re-reads the new XI.
+        Cache::forget("match:{$match->id}:playing_eleven");
 
         // Broadcast the full match state so all subscribers (backoffice,
         // graphic controller, scorecard) learn about the updated squad before

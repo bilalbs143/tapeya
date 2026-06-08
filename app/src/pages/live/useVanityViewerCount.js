@@ -22,15 +22,18 @@ export function useVanityViewerCount(realCount = 0) {
   useEffect(() => {
     let cancelled = false;
     function schedule() {
-      timerRef.current = setTimeout(() => {
-        if (cancelled) return;
-        setBase((prev) => {
-          const delta = randomInt(DELTA_MIN, DELTA_MAX);
-          const direction = Math.random() < 0.6 ? 1 : -1;
-          return Math.max(BASE_MIN, Math.min(BASE_MAX, prev + direction * delta));
-        });
-        schedule();
-      }, randomInt(INTERVAL_MIN, INTERVAL_MAX));
+      timerRef.current = setTimeout(
+        () => {
+          if (cancelled) return;
+          setBase((prev) => {
+            const delta = randomInt(DELTA_MIN, DELTA_MAX);
+            const direction = Math.random() < 0.6 ? 1 : -1;
+            return Math.max(BASE_MIN, Math.min(BASE_MAX, prev + direction * delta));
+          });
+          schedule();
+        },
+        randomInt(INTERVAL_MIN, INTERVAL_MAX),
+      );
     }
     schedule();
     return () => {

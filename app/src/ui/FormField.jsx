@@ -6,7 +6,7 @@
 import { Label } from '@/ui/Label';
 
 /** Single label style used across the entire app. */
-const labelClass = 'mb-2 block text-[14px] text-[#A2A6AB]';
+const labelClass = 'mb-2 block text-[14px] text-muted';
 
 /** Named exports for pages that import the class directly. */
 // eslint-disable-next-line react-refresh/only-export-components

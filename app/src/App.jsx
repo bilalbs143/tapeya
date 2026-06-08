@@ -30,7 +30,6 @@ const TournamentRequest = lazy(() => import('@/pages/TournamentRequest'));
 const TournamentRequestSuccess = lazy(() => import('@/pages/TournamentRequestSuccess'));
 
 const DraftingHome = lazy(() => import('@/pages/drafting/DraftingHome'));
-const AddTeam = lazy(() => import('@/pages/drafting/AddTeam'));
 const TeamList = lazy(() => import('@/pages/drafting/TeamList'));
 const TeamDetail = lazy(() => import('@/pages/drafting/TeamDetail'));
 
@@ -75,7 +74,6 @@ const InterestForm = lazy(() => import('@/pages/interest/InterestForm'));
 
 const Tournaments = lazy(() => import('@/pages/organizer/tournaments/Tournaments'));
 const TournamentCreateTeamIntro = lazy(() => import('@/pages/organizer/tournaments/TournamentCreateTeamIntro'));
-const TournamentAddTeam = lazy(() => import('@/pages/organizer/tournaments/TournamentAddTeam'));
 const TournamentSavedTeams = lazy(() => import('@/pages/organizer/tournaments/TournamentSavedTeams'));
 const TournamentAddSquad = lazy(() => import('@/pages/organizer/tournaments/TournamentAddSquad'));
 const TournamentSquad = lazy(() => import('@/pages/organizer/tournaments/TournamentSquad'));
@@ -132,7 +130,6 @@ function App() {
                       <Route path="/home" element={<Home />} />
                       <Route path="/profile" element={<Profile />} />
                       <Route path="/drafting" element={<DraftingHome />} />
-                      <Route path="/drafting/add-team" element={<AddTeam />} />
                       <Route path="/drafting/teams" element={<TeamList />} />
                       <Route path="/drafting/teams/:teamId" element={<TeamDetail />} />
                       <Route path="/upcoming-tournaments" element={<UpcomingTournaments />} />
@@ -144,7 +141,6 @@ function App() {
                         path="/organizer/tournaments/:tournamentId/create-team-intro"
                         element={<TournamentCreateTeamIntro />}
                       />
-                      <Route path="/organizer/tournaments/:tournamentId/add-team" element={<TournamentAddTeam />} />
                       <Route path="/organizer/tournaments/:tournamentId/saved-teams" element={<TournamentSavedTeams />} />
                       <Route path="/organizer/tournaments/:tournamentId/add-squad" element={<TournamentAddSquad />} />
                       <Route path="/organizer/tournaments/:tournamentId/squad" element={<TournamentSquad />} />

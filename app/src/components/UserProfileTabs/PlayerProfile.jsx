@@ -1,5 +1,5 @@
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { getProfileRankingParamsByPlayingRole } from '@/lib/playerRankingProfile';
+import { getProfileRankingParamsByPlayingRole } from '@/lib/utils/playerUtils';
 import { useGetPlayerRankingPositionQuery } from '@/store/api/playerApi';
 import {
   profileListClass,

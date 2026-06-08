@@ -1,4 +1,4 @@
-import { formatDate } from '@/lib/format';
+import { formatDate } from '@/lib/utils/dateUtils';
 
 /**
  * Maps raw API status to internal status union ('live' | 'result' | 'upcoming').

@@ -18,8 +18,8 @@ import {
   LIVE_BROADCAST_HEADER_SCRIM,
   LIVE_BROADCAST_IMMERSIVE_TOGGLE_Z,
 } from '@/lib/constants/liveBroadcastLayout';
-import { mapSystemSettingsByKey } from '@/lib/mapSystemSettingsByKey';
 import { getInitials } from '@/lib/utils/displayUtils';
+import { mapSystemSettingsByKey } from '@/lib/utils/settingsUtils';
 import { useSendLiveCommentMutation, useSendLiveHeartMutation } from '@/store/api/matchApi';
 import { useGetPublicSystemSettingsQuery } from '@/store/api/systemSettingsApi';
 import { useAppSelector } from '@/store/hooks';

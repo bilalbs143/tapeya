@@ -15,14 +15,14 @@ export default function InningsBreak({ homeTeam = {}, awayTeam = {} }) {
   const awayLogo = awayTeam.logoUrl ?? defaultTeamLogo;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#1D1E22] p-3 sm:p-5">
+    <div className="bg-page flex min-h-screen items-center justify-center p-3 sm:p-5">
       <section
         className="relative flex h-[481px] w-full max-w-[677px] flex-col items-center justify-center overflow-hidden px-8 text-white sm:px-12"
         style={frameStyle}
       >
         <div className="mb-12 flex w-full max-w-[460px] items-center justify-between">
           <img src={homeLogo} alt={homeTeam.name || 'Home team'} className="h-[104px] w-[104px] rounded-full object-cover" />
-          <span className="text-[54px] leading-none font-bold text-[#DA9811] uppercase">VS</span>
+          <span className="text-brand text-[54px] leading-none font-bold uppercase">VS</span>
           <img src={awayLogo} alt={awayTeam.name || 'Away team'} className="h-[104px] w-[104px] rounded-full object-cover" />
         </div>
 

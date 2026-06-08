@@ -75,9 +75,9 @@ export function OrganizerProfileTabs({ tournaments, events, teams }) {
           <TabsContent key={value} value={value} className="focus:outline-none">
             {value === 'overview' ? (
               <ProfileRoleOverview role={PROFILE_OVERVIEW_ROLE.ORGANIZER} tournaments={tournaments} events={events} />
-            ) : (
+            ) : Content ? (
               <Content tournaments={tournaments} events={events} teams={teams} />
-            )}
+            ) : null}
           </TabsContent>
         ))}
       </div>

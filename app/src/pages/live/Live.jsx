@@ -36,7 +36,7 @@ function LiveHubSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-4 pb-6 lg:grid-cols-3">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="h-[200px] animate-pulse rounded-[20px] bg-[#1A1A1A]" />
+        <div key={i} className="bg-surface-border h-[200px] animate-pulse rounded-[20px]" />
       ))}
     </div>
   );
@@ -45,7 +45,7 @@ function LiveHubSkeleton() {
 function LiveHubError({ onRetry }) {
   return (
     <div className="py-12 text-center">
-      <p className="text-[13px] text-[#A2A6AB]">Failed to load live matches.</p>
+      <p className="text-muted text-[13px]">Failed to load live matches.</p>
       <button type="button" onClick={onRetry} className="mt-3 text-[13px] font-medium text-white underline underline-offset-2">
         Try again
       </button>
@@ -65,7 +65,7 @@ export default function Live() {
   const startingMatches = useMemo(() => matches.filter((m) => m.stream?.status === 'starting'), [matches]);
 
   return (
-    <div className="min-h-screen bg-black">
+    <div>
       <AppSubpageHeader title="LIVE" />
       <Container className="pt-2">
         {isLoading ? (

@@ -1,8 +1,10 @@
 import { TeamLogo } from '@/components/TeamLogo';
+import { useScoringMatch } from '@/context/ScoringMatchContext';
 
 const DASH = '—';
 
-export function InfoTab({ match, matchId, liveScore: liveScoreProp }) {
+export function InfoTab({ liveScore: liveScoreProp }) {
+  const { match, matchId } = useScoringMatch();
   if (!match) return null;
   const { teamA, teamB, venue, overs, playersPerSide, matchDate, matchTime, toss } = match;
   const teamATitle = teamA?.name ?? '';
@@ -24,16 +26,16 @@ export function InfoTab({ match, matchId, liveScore: liveScoreProp }) {
   return (
     <div className="mt-6 pb-10">
       <div className="flex items-stretch">
-        <div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] bg-[#141412] p-4">
+        <div className="bg-surface flex flex-1 flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] p-4">
           <TeamLogo team={teamA} variant="match" />
           <span className="text-[16px] font-bold tracking-wide text-white uppercase">{teamATitle || DASH}</span>
         </div>
         <div className="relative z-10 -mx-3 flex shrink-0 items-center">
-          <span className="flex h-13 w-13 shrink-0 items-center justify-center rounded-full border-[8px] border-black bg-[#DA9811] text-[12px] font-bold tracking-wide text-[#080807] uppercase">
+          <span className="bg-brand text-ink flex h-13 w-13 shrink-0 items-center justify-center rounded-full border-[8px] border-black text-[12px] font-bold tracking-wide uppercase">
             VS
           </span>
         </div>
-        <div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] bg-[#141412] p-4">
+        <div className="bg-surface flex flex-1 flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] p-4">
           <TeamLogo team={teamB} variant="match" />
           <span className="text-[16px] font-bold tracking-wide text-white uppercase">{teamBTitle || DASH}</span>
         </div>
@@ -58,9 +60,9 @@ export function InfoTab({ match, matchId, liveScore: liveScoreProp }) {
 function InfoRow({ label, value }) {
   return (
     <div className="flex items-center text-[12px]">
-      <span className="text-[12px] font-bold whitespace-nowrap text-[#A2A6AB] uppercase">{label}</span>
+      <span className="text-muted text-[12px] font-bold whitespace-nowrap uppercase">{label}</span>
       <span className="mx-4 flex-1 border-b-2 border-dotted border-[#FFFFFF66]" />
-      <span className="text-[12px] font-normal whitespace-nowrap text-[#A2A6AB]">{value}</span>
+      <span className="text-muted text-[12px] font-normal whitespace-nowrap">{value}</span>
     </div>
   );
 }

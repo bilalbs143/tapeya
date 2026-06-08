@@ -1,48 +1,27 @@
 /**
  * ScoringMatch – live scoring page (backend-first).
  *
- * Server data: RTK Query caches for Match, MatchState, Scorecard, squads.
- * Local UI state only: currentInnings tab, innings-end flow (toss via DialogManager).
- * ScoringTab reads crease/score from match_state and balls from scorecard.
+ * Data fetching:  useScoringMatchData  (RTK Query + derived config)
+ * Lifecycle:      useInningsLifecycle  (toss, innings-end, MOTM, crease sync)
+ * Tab routing:    URL ?tab= param → active view component
  */
-
-// ─── Imports ──────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
-import { MatchCenterHero } from '@/components/MatchCenterHero';
+import { ScoringMatchHeader } from '@/components/scoring/ScoringMatchHeader';
+import { WagonWheelIcon } from '@/components/scoring/WagonWheelIcon';
 import { useDialog } from '@/context/DialogContext';
+import { ScoringMatchContext } from '@/context/ScoringMatchContext';
+import { useInningsLifecycle } from '@/hooks/useInningsLifecycle';
 import { useMatchScoringChannel } from '@/hooks/useMatchScoringChannel';
-import { useMediaQuery } from '@/hooks/useMediaQuery';
-import { MATCH_CENTER_HEADER_DESKTOP, MATCH_CENTER_HEADER_MOBILE } from '@/lib/constants/assets';
-import { LG_MEDIA_QUERY } from '@/lib/constants/layout';
-import {
-  apiMatchToUiMatchConfig,
-  apiPartnershipsToUiState,
-  batsmenOnCreaseFromMatchState,
-  bowlersInTableFromMatchState,
-  buildInningsSquads,
-  getDefaultInnings1TeamIds,
-  scorecardInningsToBallHistory,
-} from '@/lib/utils/scoringMappers';
-import {
-  buildPlayerOfMatchCandidates,
-  buildPreBallCreasePatch,
-  computeMatchResultSummary,
-  resolveManOfMatchWinnerScope,
-} from '@/lib/utils/scoringUtils';
-import {
-  useDeleteLastBallMutation,
-  useGetMatchQuery,
-  useGetMatchStateQuery,
-  useGetScorecardQuery,
-  useStoreBallMutation,
-  useUpdateCreaseMutation,
-  useUpdateTossMutation,
-} from '@/store/api/matchApi';
-import { useGetTeamSquadQuery } from '@/store/api/teamApi';
+import { useScoringMatchData } from '@/hooks/useScoringMatchData';
+import { useToast } from '@/hooks/useToast';
+import { getApiErrorMessage } from '@/lib/apiErrors';
+import { NAVBAR_HEIGHT, STICKY_TABS_Z } from '@/lib/constants/layout';
+import { computeMatchResultSummary } from '@/lib/utils/scoringUtils';
+import { useUpdateMatchAnalyticsSettingsMutation } from '@/store/api/matchApi';
 import { Container } from '@/ui/Container';
 import { scorecardListClass, scorecardTriggerClass, Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
 
@@ -73,243 +52,171 @@ const TAB_VIEWS = {
 export default function ScoringMatch() {
   const navigate = useNavigate();
   const { matchId } = useParams();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const isDesktop = useMediaQuery(LG_MEDIA_QUERY);
-  const headerImageSrc = isDesktop ? MATCH_CENTER_HEADER_DESKTOP : MATCH_CENTER_HEADER_MOBILE;
-
-  // ── API queries ────────────────────────────────────────────────────────────
-
-  const { data: apiMatch, isLoading: matchLoading, isError: matchError } = useGetMatchQuery(matchId, { skip: !matchId });
-
-  const { data: scorecard } = useGetScorecardQuery(matchId, {
-    skip: !matchId || !apiMatch,
-  });
-
-  const homeTeamId = apiMatch?.home_team_id ?? apiMatch?.home_team?.id;
-  const awayTeamId = apiMatch?.away_team_id ?? apiMatch?.away_team?.id;
-
-  const { data: squadHome } = useGetTeamSquadQuery(homeTeamId, {
-    skip: !matchId || !homeTeamId,
-  });
-  const { data: squadAway } = useGetTeamSquadQuery(awayTeamId, {
-    skip: !matchId || !awayTeamId,
-  });
-
-  const { data: matchState } = useGetMatchStateQuery(matchId, {
-    skip: !matchId || !apiMatch,
-  });
-
-  const playingElevenHome = matchState?.playing_eleven?.home;
-  const playingElevenAway = matchState?.playing_eleven?.away;
-
-  // ── Derived match config ───────────────────────────────────────────────────
-
-  const match = useMemo(() => {
-    if (!apiMatch) return null;
-    const needsScorecardForLegacyToss =
-      apiMatch.status === 'completed' && apiMatch.toss_winner_team_id == null && apiMatch.chose_to_bat_or_bowl != null;
-    if (needsScorecardForLegacyToss && !scorecard?.innings?.[0]) return null;
-    const homeSquadArr = Array.isArray(squadHome) ? squadHome : [];
-    const awaySquadArr = Array.isArray(squadAway) ? squadAway : [];
-
-    const { battingTeamId } = getDefaultInnings1TeamIds(apiMatch, scorecard);
-    const hid = apiMatch.home_team_id != null ? Number(apiMatch.home_team_id) : null;
-    const homeIsBatting = battingTeamId != null && hid != null && Number(battingTeamId) === hid;
-
-    const batSquadArr = homeIsBatting ? homeSquadArr : awaySquadArr;
-    const bowlSquadArr = homeIsBatting ? awaySquadArr : homeSquadArr;
-    const batIds = homeIsBatting ? (playingElevenHome?.player_ids ?? []) : (playingElevenAway?.player_ids ?? []);
-    const bowlIds = homeIsBatting ? (playingElevenAway?.player_ids ?? []) : (playingElevenHome?.player_ids ?? []);
-
-    const battingPlayers = batIds.map((id) => {
-      const u = batSquadArr.find((x) => x.id === id);
-      return { id, name: u?.name ?? u?.nickname ?? `Player ${id}` };
-    });
-    const bowlingPlayers = bowlIds.map((id) => {
-      const u = bowlSquadArr.find((x) => x.id === id);
-      return { id, name: u?.name ?? u?.nickname ?? `Player ${id}` };
-    });
-    return apiMatchToUiMatchConfig(apiMatch, battingPlayers, bowlingPlayers, scorecard);
-  }, [apiMatch, scorecard, playingElevenHome?.player_ids, playingElevenAway?.player_ids, squadHome, squadAway]);
-
-  // Which innings tab is shown (UI only — not cricket authority)
-  const [currentInnings, setCurrentInnings] = useState('1');
-  /** Declared here (not below live scores) so no hook/useMemo deps hit TDZ before init. */
-  const isInnings2 = currentInnings === '2';
-
-  // ── API mutations ──────────────────────────────────────────────────────────
-
-  const [storeBall] = useStoreBallMutation();
-  const [deleteLastBall] = useDeleteLastBallMutation();
-  const [updateCrease] = useUpdateCreaseMutation();
-  const [updateToss] = useUpdateTossMutation();
-
   const { dialogKey, openDialog } = useDialog();
-  const tossPromptedRef = useRef(false);
+  const toast = useToast();
+  const [updateAnalyticsSettings] = useUpdateMatchAnalyticsSettingsMutation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const activeTab = VALID_TABS.includes(tabParam) ? tabParam : 'scoring';
+  const [tabsFixedVisible, setTabsFixedVisible] = useState(false);
+  const tabsSentinelRef = useRef(null);
+  const openActionMenuRef = useRef(null);
+  const pendingOpenActionMenuRef = useRef(false);
 
-  /** Dedupes PATCH /crease when pre-ball crease is unchanged (XI save + effect). */
-  const lastPreBallCreaseSyncRef = useRef(null);
+  // ── Server data ────────────────────────────────────────────────────────────
+
+  const {
+    apiMatch,
+    matchLoading,
+    matchError,
+    scorecard,
+    matchState,
+    match,
+    homeTeamId,
+    awayTeamId,
+    wagonWheelEnabled,
+    innings1Id,
+    innings2Id,
+    matchComplete,
+  } = useScoringMatchData(matchId);
+
+  // ── Innings lifecycle ──────────────────────────────────────────────────────
+
+  const { currentInnings, isInnings2, requestInningsEndUI, onMatchEnded, onMatchDeclared, onTargetRevisionEnded } =
+    useInningsLifecycle({
+      matchId,
+      apiMatch,
+      match,
+      matchState,
+      scorecard,
+      dialogKey,
+      openDialog,
+      homeTeamId,
+      awayTeamId,
+      navigate,
+    });
+
+  useMatchScoringChannel(matchId);
 
   useEffect(() => {
-    lastPreBallCreaseSyncRef.current = null;
-  }, [matchId, currentInnings]);
+    const sentinel = tabsSentinelRef.current;
+    if (!sentinel) return;
 
-  /**
-   * Sync pre-ball crease from match_state (pending_players + broadcast).
-   * Skips once the active innings has legal deliveries.
-   */
-  const syncPreBallCrease = useCallback(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setTabsFixedVisible(!entry.isIntersecting);
+      },
+      {
+        root: null,
+        rootMargin: `-${NAVBAR_HEIGHT}px 0px 0px 0px`,
+        threshold: 0,
+      },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
+
+  // ── Header actions ─────────────────────────────────────────────────────────
+
+  const handleWagonWheelToggle = useCallback(() => {
     if (!matchId) return;
-    const ai = matchState?.active_innings;
-    if (!ai || (ai.legal_balls ?? 0) > 0) {
-      lastPreBallCreaseSyncRef.current = null;
+
+    const enabling = !wagonWheelEnabled;
+    openDialog('confirm', {
+      title: enabling ? 'Enable Wagon Wheel?' : 'Disable Wagon Wheel?',
+      message: enabling
+        ? 'You will be prompted to pick shot direction after scoring runs.'
+        : 'Shot direction prompts will no longer appear during scoring.',
+      confirmLabel: enabling ? 'Enable' : 'Disable',
+      onConfirm: async () => {
+        try {
+          await updateAnalyticsSettings({ matchId, wagon_wheel_enabled: enabling }).unwrap();
+        } catch (err) {
+          toast.error(getApiErrorMessage(err, 'Could not update wagon wheel setting. Please try again.'));
+          throw err;
+        }
+      },
+    });
+  }, [matchId, wagonWheelEnabled, openDialog, updateAnalyticsSettings, toast]);
+
+  const registerOpenActionMenu = useCallback((openFn) => {
+    openActionMenuRef.current = openFn ?? null;
+    if (openFn && pendingOpenActionMenuRef.current) {
+      pendingOpenActionMenuRef.current = false;
+      openFn();
+    }
+  }, []);
+
+  const handleOpenActionMenu = useCallback(() => {
+    if (activeTab !== 'scoring') {
+      pendingOpenActionMenuRef.current = true;
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set('tab', 'scoring');
+          return next;
+        },
+        { replace: true },
+      );
       return;
     }
+    openActionMenuRef.current?.();
+  }, [activeTab, setSearchParams]);
 
-    const patch = buildPreBallCreasePatch({
-      batsmenOnCrease: batsmenOnCreaseFromMatchState(ai),
-      bowlersInTable: bowlersInTableFromMatchState(ai),
-      strikerIndex: 0,
-      currentBowlerIndex: 0,
-    });
-    if (Object.keys(patch).length === 0) return;
+  const headerTrailingActions = useMemo(() => {
+    if (!matchId || matchLoading || matchError) return null;
+    return (
+      <>
+        <button
+          type="button"
+          onClick={handleWagonWheelToggle}
+          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-opacity active:opacity-80 ${
+            wagonWheelEnabled ? 'bg-brand text-[#1A1A18]' : 'bg-white text-[#1A1A18]'
+          }`}
+          aria-label={wagonWheelEnabled ? 'Wagon wheel enabled' : 'Enable wagon wheel'}
+          aria-pressed={wagonWheelEnabled}
+        >
+          <WagonWheelIcon size={16} />
+        </button>
+        <button
+          type="button"
+          onClick={handleOpenActionMenu}
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-[#1A1A18] transition-opacity active:opacity-80"
+          aria-label="Open scoring actions"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+            <circle cx="7" cy="7" r="1.75" />
+            <circle cx="12" cy="7" r="1.75" />
+            <circle cx="17" cy="7" r="1.75" />
+            <circle cx="7" cy="12" r="1.75" />
+            <circle cx="12" cy="12" r="1.75" />
+            <circle cx="17" cy="12" r="1.75" />
+            <circle cx="7" cy="17" r="1.75" />
+            <circle cx="12" cy="17" r="1.75" />
+            <circle cx="17" cy="17" r="1.75" />
+          </svg>
+        </button>
+      </>
+    );
+  }, [matchId, matchLoading, matchError, handleOpenActionMenu, handleWagonWheelToggle, wagonWheelEnabled]);
 
-    const fingerprint = JSON.stringify(patch);
-    if (lastPreBallCreaseSyncRef.current === fingerprint) return;
-    lastPreBallCreaseSyncRef.current = fingerprint;
+  const ActiveView = TAB_VIEWS[activeTab];
 
-    updateCrease({ matchId, ...patch }).catch(() => {});
-  }, [matchId, matchState?.active_innings, updateCrease]);
-
-  // Scorecard innings IDs
-  const innings1Id = useMemo(() => (scorecard?.innings?.[0] ? scorecard.innings[0].id : null), [scorecard?.innings]);
-  const innings2Id = useMemo(() => (scorecard?.innings?.[1] ? scorecard.innings[1].id : null), [scorecard?.innings]);
-
-  const defaultTeams = useMemo(() => getDefaultInnings1TeamIds(apiMatch, scorecard), [apiMatch, scorecard]);
-
-  const innings1Squads = useMemo(() => {
-    const sc = scorecard?.innings?.[0];
-    const bat1TeamId = sc?.batting_team_id ?? defaultTeams.battingTeamId;
-    const bowl1TeamId = sc?.bowling_team_id ?? defaultTeams.bowlingTeamId;
-    if (bat1TeamId == null || bowl1TeamId == null) {
-      return { battingSquad: [], bowlingSquad: [], nameMap: {} };
-    }
-    return buildInningsSquads({
-      battingTeamId: bat1TeamId,
-      bowlingTeamId: bowl1TeamId,
-      homeTeamId,
-      squadHome,
-      squadAway,
-      playingElevenHome,
-      playingElevenAway,
-    });
-  }, [scorecard?.innings, defaultTeams, homeTeamId, squadHome, squadAway, playingElevenHome, playingElevenAway]);
-
-  const innings2Squads = useMemo(() => {
-    const sc1 = scorecard?.innings?.[0];
-    const sc2 = scorecard?.innings?.[1];
-    const ai = matchState?.active_innings;
-    const bat2TeamId = sc2?.batting_team_id ?? ai?.batting_team_id ?? sc1?.bowling_team_id;
-    const bowl2TeamId = sc2?.bowling_team_id ?? ai?.bowling_team_id ?? sc1?.batting_team_id;
-    if (bat2TeamId == null || bowl2TeamId == null) {
-      return { battingSquad: [], bowlingSquad: [], nameMap: {} };
-    }
-    return buildInningsSquads({
-      battingTeamId: bat2TeamId,
-      bowlingTeamId: bowl2TeamId,
-      homeTeamId,
-      squadHome,
-      squadAway,
-      playingElevenHome,
-      playingElevenAway,
-    });
-  }, [scorecard?.innings, matchState?.active_innings, homeTeamId, squadHome, squadAway, playingElevenHome, playingElevenAway]);
-
-  const activeSquads = isInnings2 ? innings2Squads : innings1Squads;
-
-  // Auto-switch to innings 2 when the server advances (e.g. last ball of innings 1).
-  // Manual tab changes are still allowed for read-only view of a completed innings.
-  useEffect(() => {
-    if (matchState?.active_innings?.innings_number === 2) {
-      setCurrentInnings('2');
-    }
-  }, [matchState?.active_innings?.innings_number]);
-
-  const handleSaveToss = useCallback(
-    async ({ tossWinner, tossDecision }) => {
-      if (!matchId || !apiMatch || !tossWinner || !tossDecision) return;
-      const winningTeamId = tossWinner === 'home' ? apiMatch.home_team_id : apiMatch.away_team_id;
-      await updateToss({
-        matchId,
-        winning_team_id: winningTeamId,
-        chose_to_bat_or_bowl: tossDecision,
-      }).unwrap();
+  const onNavigateToTab = useCallback(
+    (tab) => {
+      if (!VALID_TABS.includes(tab)) return;
+      setSearchParams(
+        (prev) => {
+          const n = new URLSearchParams(prev);
+          n.set('tab', tab);
+          return n;
+        },
+        { replace: true },
+      );
     },
-    [matchId, apiMatch, updateToss],
+    [setSearchParams],
   );
-
-  useEffect(() => {
-    tossPromptedRef.current = false;
-  }, [matchId]);
-
-  // ── Toss dialog trigger ────────────────────────────────────────────────────
-
-  useEffect(() => {
-    if (!apiMatch) return;
-    const hasToss =
-      apiMatch.chose_to_bat_or_bowl != null &&
-      (apiMatch.toss_winner_team_id != null || (apiMatch.status !== 'completed' && apiMatch.winning_team_id != null));
-    if (!hasToss && apiMatch.status === 'scheduled' && !tossPromptedRef.current) {
-      tossPromptedRef.current = true;
-      openDialog('scoringToss', {
-        homeTeamName: apiMatch.home_team?.name,
-        awayTeamName: apiMatch.away_team?.name,
-        homeTeamLogo: apiMatch.home_team?.logo ?? null,
-        awayTeamLogo: apiMatch.away_team?.logo ?? null,
-        onSave: handleSaveToss,
-      });
-    }
-  }, [
-    apiMatch,
-    apiMatch?.id,
-    apiMatch?.status,
-    apiMatch?.winning_team_id,
-    apiMatch?.toss_winner_team_id,
-    apiMatch?.chose_to_bat_or_bowl,
-    handleSaveToss,
-    openDialog,
-  ]);
-
-  // ── Innings 1 → 2 transition ───────────────────────────────────────────────
-  //
-  // Invoked from the Redux dialog effect when `inningsEnd` closes after the first
-  // innings (`pendingInningsEndRef.kind === 'first_break'`) — not from ScoringTab directly.
-  //
-  // Team flip logic:
-  //   innings 1 bowling squad → innings 2 batting squad
-  //   innings 1 batting squad → innings 2 bowling squad
-  //
-  // We use the ALREADY-RESOLVED innings1 squads (which have correct names from API)
-  // and re-derive roles from the playing-eleven IDs (source of truth).
-  //
-  // Note: innings1.battingSquad and innings1.bowlingSquad already have { id, name }
-  // from API hydration. buildRoleSquad handles them correctly whether or not they
-  // already have a role field — roles are always re-derived from playingIds.
-
-  /** Match finished — from API / scorecard only (no local scoring flag). */
-  const matchComplete = useMemo(() => {
-    if (!apiMatch) return false;
-    if (apiMatch.status === 'completed') return true;
-    const i1 = scorecard?.innings?.[0];
-    const i2 = scorecard?.innings?.[1];
-    if (!i1 || !i2) return false;
-    return i1.status === 'completed' && i2.status === 'completed';
-  }, [apiMatch, scorecard?.innings]);
-
-  const handleInnings1Complete = useCallback(() => {
-    setCurrentInnings('2');
-    syncPreBallCrease();
-  }, [syncPreBallCrease]);
 
   const scorecardLiveScore = useMemo(() => {
     const inn = (idx) => scorecard?.innings?.[idx];
@@ -317,241 +224,30 @@ export default function ScoringMatch() {
       (e?.wides ?? 0) + (e?.no_balls ?? 0) + (e?.byes ?? 0) + (e?.leg_byes ?? 0) + (e?.penalty_runs ?? 0);
     return {
       innings1: inn(0)
-        ? {
-            totalRuns: inn(0).total_runs ?? 0,
-            totalWickets: inn(0).total_wickets ?? 0,
-            extras: extrasTotal(inn(0).extras),
-          }
+        ? { totalRuns: inn(0).total_runs ?? 0, totalWickets: inn(0).total_wickets ?? 0, extras: extrasTotal(inn(0).extras) }
         : null,
       innings2: inn(1)
-        ? {
-            totalRuns: inn(1).total_runs ?? 0,
-            totalWickets: inn(1).total_wickets ?? 0,
-            extras: extrasTotal(inn(1).extras),
-          }
+        ? { totalRuns: inn(1).total_runs ?? 0, totalWickets: inn(1).total_wickets ?? 0, extras: extrasTotal(inn(1).extras) }
         : null,
     };
   }, [scorecard?.innings]);
 
-  const activeLiveScore = useMemo(() => {
-    const ai = matchState?.active_innings;
-    const tabInningsNum = isInnings2 ? 2 : 1;
-    const scIdx = tabInningsNum - 1;
-    const scInnings = scorecard?.innings?.[scIdx];
+  // ── Context value ─────────────────────────────────────────────────────────
 
-    if (ai && ai.innings_number === tabInningsNum) {
-      return {
-        totalRuns: ai.total_runs ?? 0,
-        totalWickets: ai.total_wickets ?? 0,
-        totalBalls: ai.legal_balls ?? 0,
-        validDeliveries: ai.legal_balls ?? 0,
-        oversDisplay: ai.overs_display ?? '0.0',
-        maxOvers: match?.overs ?? null,
-        extras: null,
-        extrasBreakdown: ai.extras_breakdown ?? {},
-        crr: ai.current_run_rate ?? '0.00',
-        serverTarget: ai.target ?? null,
-        serverRunsToWin: ai.runs_to_win ?? null,
-        serverBallsRemaining: ai.balls_remaining ?? null,
-        serverRequiredRunRate: ai.required_run_rate ?? null,
-      };
-    }
-
-    if (scInnings) {
-      const e = scInnings.extras ?? {};
-      const extras = (e.wides ?? 0) + (e.no_balls ?? 0) + (e.byes ?? 0) + (e.leg_byes ?? 0) + (e.penalty_runs ?? 0);
-      return {
-        totalRuns: scInnings.total_runs ?? 0,
-        totalWickets: scInnings.total_wickets ?? 0,
-        oversDisplay: scInnings.overs_display ?? '0.0',
-        maxOvers: match?.overs ?? null,
-        extras,
-        extrasBreakdown: e,
-        crr: scInnings.run_rate ?? '0.00',
-      };
-    }
-
-    return {
-      totalRuns: 0,
-      totalWickets: 0,
-      oversDisplay: '0.0',
-      maxOvers: match?.overs ?? null,
-      extras: 0,
-      crr: '0.00',
-    };
-  }, [matchState?.active_innings, isInnings2, scorecard?.innings, match?.overs]);
-
-  // Over strip reads from the RTK Scorecard cache (~4s lag after each ball — acceptable).
-  // If zero-lag on the current over becomes a requirement, matchState.active_innings.current_over_balls
-  // already contains the live over's balls in the same API shape and can be appended to the
-  // completed overs from scorecard without any additional state or hooks.
-  const activeScorecardBalls = useMemo(() => {
-    const idx = isInnings2 ? 1 : 0;
-    const scInnings = scorecard?.innings?.[idx];
-    const nameMap = isInnings2 ? innings2Squads.nameMap : innings1Squads.nameMap;
-    return scInnings ? scorecardInningsToBallHistory(scInnings, nameMap) : [];
-  }, [scorecard?.innings, isInnings2, innings1Squads.nameMap, innings2Squads.nameMap]);
-
-  // Snapshot written when opening `inningsEnd`, consumed when that dialog closes
-  // (single source of truth for what happens next — keeps Dialog bodies stateless).
-  // Shapes:
-  //   { kind: 'first_break' } → run handleInnings1Complete
-  //   { kind: 'match_over', openManOfTheMatch?, manOfTheMatchProps?, tournamentIdForNavigate? }
-  //     → optional `openDialog({ key: 'manOfTheMatch' })`, else navigate to fixtures.
-  const pendingInningsEndRef = useRef(null);
-  const prevDialogKeyRef = useRef(null);
-
-  const requestInningsEndUI = useCallback(
-    (payload) => {
-      if (dialogKey === 'inningsEnd' || dialogKey === 'manOfTheMatch') return;
-
-      const isMatchOver = payload?.completedInnings === 2;
-      const battingTeamName = isInnings2 ? match?.teamB?.name || '' : match?.teamA?.name || '';
-      // Same string as GET /matches after refresh — already on match_state when the match ends.
-      const serverResult = matchState?.match_result ?? apiMatch?.result_summary;
-      const matchResultForDialog =
-        isMatchOver && serverResult
-          ? {
-              tie: /^tie$/i.test(String(serverResult).trim()),
-              winningTeamId: apiMatch?.winning_team_id ?? null,
-              titleLine: serverResult,
-            }
-          : isMatchOver && scorecardLiveScore.innings1 && scorecardLiveScore.innings2
-            ? computeMatchResultSummary(match, scorecardLiveScore.innings1, scorecardLiveScore.innings2)
-            : undefined;
-      const playerOfMatchAlreadySet = apiMatch?.player_of_match_user_id != null || apiMatch?.player_of_match?.id != null;
-      const { useBothTeams: manOfMatchPickerUsesBothTeams } = resolveManOfMatchWinnerScope(
-        apiMatch?.winning_team_id,
-        matchResultForDialog,
-      );
-      const manOfMatchCandidates = isMatchOver
-        ? buildPlayerOfMatchCandidates({
-            winningTeamIdFromApi: apiMatch?.winning_team_id,
-            liveSummary: matchResultForDialog,
-            homeTeamId,
-            awayTeamId,
-            playingElevenHome,
-            playingElevenAway,
-            squadHome,
-            squadAway,
-          })
-        : [];
-
-      if (!isMatchOver) {
-        pendingInningsEndRef.current = { kind: 'first_break' };
-      } else {
-        pendingInningsEndRef.current = {
-          kind: 'match_over',
-          openManOfTheMatch: !playerOfMatchAlreadySet && manOfMatchCandidates.length > 0,
-          manOfTheMatchProps: {
-            matchId,
-            tournamentId: apiMatch?.tournament_id,
-            manOfMatchPickerUsesBothTeams,
-            manOfMatchCandidates,
-          },
-          tournamentIdForNavigate: apiMatch?.tournament_id ?? null,
-        };
-      }
-
-      openDialog('inningsEnd', {
-        variant: isMatchOver ? 'match_over' : 'first_innings_break',
-        reason: payload?.reason ?? 'overs',
-        battingTeamName,
-        matchOvers: match?.overs != null ? Number(match.overs) : undefined,
-        matchResult: matchResultForDialog,
-      });
-    },
-    [
-      apiMatch?.tournament_id,
-      apiMatch?.winning_team_id,
-      apiMatch?.player_of_match_user_id,
-      apiMatch?.player_of_match,
-      awayTeamId,
-      currentInnings,
-      dialogKey,
-      openDialog,
-      homeTeamId,
-      isInnings2,
-      scorecardLiveScore,
-      match,
+  const scoringMatchContextValue = useMemo(
+    () => ({
       matchId,
-      matchState,
-      playingElevenAway,
-      playingElevenHome,
-      squadAway,
-      squadHome,
-    ],
+      match,
+      matchComplete,
+      wagonWheelEnabled,
+      innings1Id,
+      innings2Id,
+    }),
+    [matchId, match, matchComplete, wagonWheelEnabled, innings1Id, innings2Id],
   );
 
-  // When `inningsEnd` closes: first-innings break → team flip; match over → MOTM or navigate.
-  useEffect(() => {
-    const prev = prevDialogKeyRef.current;
-    if (prev === 'inningsEnd' && dialogKey != null && dialogKey !== 'inningsEnd' && dialogKey !== 'manOfTheMatch') {
-      pendingInningsEndRef.current = null;
-    }
-    if (prev === 'inningsEnd' && dialogKey == null) {
-      const pending = pendingInningsEndRef.current;
-      pendingInningsEndRef.current = null;
-      if (pending?.kind === 'first_break') {
-        handleInnings1Complete();
-      } else if (pending?.kind === 'match_over') {
-        if (pending.openManOfTheMatch && pending.manOfTheMatchProps) {
-          openDialog('manOfTheMatch', pending.manOfTheMatchProps);
-        } else if (pending.tournamentIdForNavigate != null && pending.tournamentIdForNavigate !== '') {
-          navigate(`/upcoming-tournaments/${pending.tournamentIdForNavigate}?tab=fixtures`, { replace: true });
-        }
-      }
-    }
-    prevDialogKeyRef.current = dialogKey;
-  }, [dialogKey, openDialog, handleInnings1Complete, navigate]);
+  // ── Scoring tab props ──────────────────────────────────────────────────────
 
-  const lastInningsEndShownRef = useRef(null);
-
-  useEffect(() => {
-    lastInningsEndShownRef.current = null;
-  }, [matchId]);
-
-  useEffect(() => {
-    const completedInnings = matchState?.innings_just_completed;
-    if (completedInnings == null || lastInningsEndShownRef.current === completedInnings) {
-      return;
-    }
-    lastInningsEndShownRef.current = completedInnings;
-    requestInningsEndUI({
-      completedInnings,
-      reason: matchState?.active_innings?.innings_complete_reason ?? 'overs',
-    });
-  }, [matchState?.innings_just_completed, matchState?.active_innings?.innings_complete_reason, requestInningsEndUI]);
-
-  useMatchScoringChannel(matchId);
-
-  // Tell the API (and, by side-effect, the graphic overlay) which player is
-  // about to bat or bowl, before they face or bowl their first ball.
-  // Fire-and-forget — a failure only means the overlay briefly shows a blank
-  // slot; it does not affect scoring correctness.
-  const onCreaseChange = useCallback(
-    (patch = {}) => {
-      if (!matchId) return Promise.resolve();
-      if (!patch || typeof patch !== 'object' || Object.keys(patch).length === 0) {
-        return Promise.resolve();
-      }
-      return updateCrease({ matchId, ...patch }).unwrap();
-    },
-    [matchId, updateCrease],
-  );
-
-  // ── Tab routing ────────────────────────────────────────────────────────────
-
-  const tabParam = searchParams.get('tab');
-  const activeTab = VALID_TABS.includes(tabParam) ? tabParam : 'scoring';
-  const ActiveView = TAB_VIEWS[activeTab];
-
-  // ── Tab view props ─────────────────────────────────────────────────────────
-  //
-  // ScoringTab receives ONLY the active innings props — flat, no innings2* prefix.
-  // Other tabs receive only what they need (per-tab scoped).
-  //
-  // Props specifically for ScoringTab — derived from the ACTIVE innings
   const scoringProps = useMemo(() => {
     const battingTeamId = isInnings2
       ? (scorecard?.innings?.[1]?.batting_team_id ?? match?.teamB?.id ?? awayTeamId)
@@ -559,42 +255,19 @@ export default function ScoringMatch() {
     const bowlingTeamId = isInnings2
       ? (scorecard?.innings?.[1]?.bowling_team_id ?? match?.teamA?.id ?? homeTeamId)
       : (scorecard?.innings?.[0]?.bowling_team_id ?? match?.teamB?.id ?? awayTeamId);
-    const hid = homeTeamId != null ? Number(homeTeamId) : NaN;
-    const battingPlayingElevenIds =
-      Number(battingTeamId) === hid ? (playingElevenHome?.player_ids ?? []) : (playingElevenAway?.player_ids ?? []);
-    const bowlingPlayingElevenIds =
-      Number(bowlingTeamId) === hid ? (playingElevenHome?.player_ids ?? []) : (playingElevenAway?.player_ids ?? []);
-
-    const scIdx = isInnings2 ? 1 : 0;
-    const scInnings = scorecard?.innings?.[scIdx];
-
     return {
       inningsNumber: currentInnings,
       battingTeamName: isInnings2 ? match?.teamB?.name || '' : match?.teamA?.name || '',
       battingTeamLogo: isInnings2 ? (match?.teamB?.logo ?? null) : (match?.teamA?.logo ?? null),
+      bowlingTeamName: isInnings2 ? match?.teamA?.name || '' : match?.teamB?.name || '',
+      bowlingTeamLogo: isInnings2 ? (match?.teamA?.logo ?? null) : (match?.teamB?.logo ?? null),
       battingTeamId,
       bowlingTeamId,
-      battingPlayingElevenIds,
-      bowlingPlayingElevenIds,
-
-      matchState,
-      scorecardInnings: scInnings,
-      scorecardBalls: activeScorecardBalls,
-      battingSquad: activeSquads.battingSquad,
-      bowlingSquad: activeSquads.bowlingSquad,
-      liveScore: activeLiveScore,
-
-      onInningsComplete: currentInnings === '1' || currentInnings === '2' ? requestInningsEndUI : undefined,
-      targetScore: isInnings2
-        ? (matchState?.active_innings?.target ??
-          (scorecard?.innings?.[0]?.total_runs != null ? scorecard.innings[0].total_runs + 1 : undefined))
-        : undefined,
-
-      inningsId: isInnings2 ? innings2Id : innings1Id,
-      storeBall,
-      deleteLastBall,
-      onCreaseChange,
-      syncPreBallCrease,
+      onInningsComplete: requestInningsEndUI,
+      onMatchEnded,
+      onMatchDeclared,
+      onTargetRevisionEnded,
+      registerOpenActionMenu,
     };
   }, [
     currentInnings,
@@ -603,172 +276,100 @@ export default function ScoringMatch() {
     scorecard,
     homeTeamId,
     awayTeamId,
-    playingElevenHome?.player_ids,
-    playingElevenAway?.player_ids,
-    activeSquads,
-    activeLiveScore,
-    activeScorecardBalls,
-    matchState,
     requestInningsEndUI,
-    innings1Id,
-    innings2Id,
-    storeBall,
-    deleteLastBall,
-    onCreaseChange,
-    syncPreBallCrease,
+    onMatchEnded,
+    onMatchDeclared,
+    onTargetRevisionEnded,
+    registerOpenActionMenu,
   ]);
 
-  // ── Tab view props (per-tab scoped — no 65-prop blob) ─────────────────────
-  //
-  // Each tab receives only what it needs.
-  // ScoringTab: active innings state + engine actions (from scoringProps)
-  // Display tabs: read-only pre-computed data only
+  const tabViewProps = activeTab === 'scoring' ? scoringProps : {};
 
-  // Player name maps for scorecard → UI ball conversion.
-  // Used by Stats/Balls tabs to resolve wicket-ball player names when the
-  // scorecard is the data source (post-reconnect fresh data path).
-  const nameMap1 = innings1Squads.nameMap;
-  const nameMap2 = innings2Squads.nameMap;
+  const tabsContent = (
+    <TabsList className={`${scorecardListClass} lg:justify-center lg:overflow-x-visible`}>
+      {SCORING_TABS.map(({ value, label }) => (
+        <TabsTrigger key={value} value={value} className={scorecardTriggerClass}>
+          {label}
+        </TabsTrigger>
+      ))}
+    </TabsList>
+  );
 
-  const tabViewProps = useMemo(() => {
-    switch (activeTab) {
-      case 'scoring':
-        return {
-          matchId,
-          match,
-          matchComplete,
-          ...scoringProps,
-        };
-
-      case 'scorecard':
-        return {
-          match,
-          innings1: scorecard?.innings?.[0] ?? null,
-          innings2: scorecard?.innings?.[1] ?? null,
-          // Active bowler from live match_state — used to show the red-dot
-          // indicator on the currently bowling player in the scorecard table.
-          activeBowlerId: matchState?.active_innings?.bowler?.id ?? null,
-        };
-
-      case 'partnership': {
-        const sc1 = scorecard?.innings?.[0];
-        const sc2 = scorecard?.innings?.[1];
-        return {
-          innings1: {
-            partnerships: apiPartnershipsToUiState(sc1?.partnerships ?? [], nameMap1, sc1?.batting_stats ?? []),
-          },
-          innings2: {
-            partnerships: apiPartnershipsToUiState(sc2?.partnerships ?? [], nameMap2, sc2?.batting_stats ?? []),
-          },
-        };
-      }
-
-      case 'stats':
-        return {
-          match,
-          innings1BallHistory: scorecard?.innings?.[0] ? scorecardInningsToBallHistory(scorecard.innings[0], nameMap1) : [],
-          innings2BallHistory: scorecard?.innings?.[1] ? scorecardInningsToBallHistory(scorecard.innings[1], nameMap2) : [],
-        };
-
-      case 'balls':
-        return {
-          innings1BallHistory: scorecard?.innings?.[0] ? scorecardInningsToBallHistory(scorecard.innings[0], nameMap1) : [],
-          innings1Squad: innings1Squads.battingSquad,
-          innings1BowlersInTable: [],
-          innings1BowlerSquad: innings1Squads.bowlingSquad,
-          innings2BallHistory: scorecard?.innings?.[1] ? scorecardInningsToBallHistory(scorecard.innings[1], nameMap2) : [],
-          innings2BowlersInTable: [],
-          innings2Squad: innings2Squads.battingSquad,
-          innings2BowlerSquad: innings2Squads.bowlingSquad,
-        };
-
-      case 'info':
-      default:
-        return { match };
-    }
-  }, [
-    activeTab,
-    matchId,
-    match,
-    matchComplete,
-    scoringProps,
-    scorecard,
-    matchState,
-    activeLiveScore,
-    currentInnings,
-    isInnings2,
-    innings1Squads,
-    innings2Squads,
-    nameMap1,
-    nameMap2,
-  ]);
-
-  // ── Render ────────────────────────────────────────────────────────────────
-
-  const isLoadingMatch = matchLoading;
-  const isMatchError = matchError;
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="bg-black">
-      <Container className="!px-4 !py-0">
-        <Tabs value={activeTab} onValueChange={(value) => setSearchParams({ tab: value })} className="w-full">
-          <MatchCenterHero imageSrc={headerImageSrc} onBack={() => navigate(-1)}>
-            <div className="pointer-events-auto absolute inset-x-0 bottom-0 translate-y-1/2 px-4">
-              <TabsList className={`${scorecardListClass} lg:justify-center lg:overflow-x-visible`}>
-                {SCORING_TABS.map(({ value, label }) => (
-                  <TabsTrigger key={value} value={value} className={scorecardTriggerClass}>
-                    {label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </div>
-          </MatchCenterHero>
+    <ScoringMatchContext.Provider value={scoringMatchContextValue}>
+      <div className="bg-black">
+        <ScoringMatchHeader onBack={() => navigate(-1)} trailing={headerTrailingActions} />
 
-          {/* Active tab view */}
-          <div className="-mx-4 bg-black px-4 pb-2">
-            {isLoadingMatch && (
-              <div className="flex min-h-[200px] items-center justify-center py-8 text-[14px] text-[#A2A6AB]">Loading match…</div>
-            )}
-            {isMatchError && (
-              <div className="flex min-h-[200px] flex-col items-center justify-center gap-2 py-8 text-center">
-                <p className="text-[14px] text-red-400">Failed to load match.</p>
-                <button type="button" onClick={() => navigate(-1)} className="text-[14px] font-medium text-[#DA9811] underline">
-                  Go back
-                </button>
+        <Container className="!px-4 !py-0">
+          <Tabs value={activeTab} onValueChange={onNavigateToTab} className="w-full">
+            <div className="flex flex-col">
+              <div ref={tabsSentinelRef} className="h-px w-full" aria-hidden />
+              <div className="-mx-4 bg-black px-4 pt-0.5 pb-2">{tabsContent}</div>
+            </div>
+
+            {tabsFixedVisible ? (
+              <div
+                className="fixed right-0 left-0 bg-black pt-1 pb-2 lg:left-[280px]"
+                style={{ top: NAVBAR_HEIGHT, zIndex: STICKY_TABS_Z }}
+              >
+                <div className="mx-auto w-full max-w-2xl min-w-0 px-4 lg:mx-0 lg:max-w-none">{tabsContent}</div>
               </div>
-            )}
-            {matchComplete && !isLoadingMatch && !isMatchError && (
-              <MatchResultBanner
-                match={match}
-                liveScore1={scorecardLiveScore.innings1}
-                liveScore2={scorecardLiveScore.innings2}
-                playerOfMatch={apiMatch?.player_of_match ?? null}
-              />
-            )}
-            {!isLoadingMatch && !isMatchError && <ActiveView {...tabViewProps} />}
-          </div>
-        </Tabs>
-      </Container>
-    </div>
+            ) : null}
+
+            <div className="-mx-4 bg-black px-4 pb-2">
+              {matchLoading && (
+                <div className="text-muted flex min-h-[200px] items-center justify-center py-8 text-[14px]">Loading match…</div>
+              )}
+              {matchError && (
+                <div className="flex min-h-[200px] flex-col items-center justify-center gap-2 py-8 text-center">
+                  <p className="text-[14px] text-red-400">Failed to load match.</p>
+                  <button type="button" onClick={() => navigate(-1)} className="text-brand text-[14px] font-medium underline">
+                    Go back
+                  </button>
+                </div>
+              )}
+              {matchComplete && !matchLoading && !matchError && (
+                <MatchResultBanner
+                  match={match}
+                  liveScore1={scorecardLiveScore.innings1}
+                  liveScore2={scorecardLiveScore.innings2}
+                  playerOfMatch={apiMatch?.player_of_match ?? null}
+                  serverResultSummary={apiMatch?.result_summary ?? null}
+                />
+              )}
+              {!matchLoading && !matchError && <ActiveView {...tabViewProps} />}
+            </div>
+          </Tabs>
+        </Container>
+      </div>
+    </ScoringMatchContext.Provider>
   );
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-/** Displays match result when innings 2 completes (target achieved, all wickets, or all overs). */
-function MatchResultBanner({ match, liveScore1, liveScore2, playerOfMatch }) {
-  const s = computeMatchResultSummary(match, liveScore1, liveScore2);
+function MatchResultBanner({ match, liveScore1, liveScore2, playerOfMatch, serverResultSummary }) {
+  const s = serverResultSummary
+    ? {
+        tie: /^tie$/i.test(String(serverResultSummary).trim()),
+        titleLine: serverResultSummary,
+        marginLine: null,
+        detailLine: null,
+      }
+    : computeMatchResultSummary(match, liveScore1, liveScore2);
 
   return (
-    <div className="mb-6 rounded-[17px] bg-[#141412] p-8 text-center">
-      <p className="text-[12px] font-bold tracking-wide text-[#DA9811] uppercase">Match Complete</p>
+    <div className="bg-surface mb-6 rounded-[17px] p-8 text-center">
+      <p className="text-brand text-[12px] font-bold tracking-wide uppercase">Match Complete</p>
       <p className="mt-3 text-[18px] font-bold text-white capitalize">
         {s.tie ? s.titleLine : `${s.titleLine} ${s.marginLine ?? ''}`}
       </p>
-      {s.tie && s.detailLine ? <p className="mt-2 text-[13px] text-[#A2A6AB]">{s.detailLine}</p> : null}
+      {s.tie && s.detailLine ? <p className="text-muted mt-2 text-[13px]">{s.detailLine}</p> : null}
       {playerOfMatch?.name ? (
         <>
-          <p className="mt-6 text-[12px] font-bold tracking-wide text-[#DA9811] uppercase">Man of the match</p>
+          <p className="text-brand mt-6 text-[12px] font-bold tracking-wide uppercase">Man of the match</p>
           <p className="mt-3 text-[16px] font-bold text-white capitalize">{playerOfMatch.name}</p>
         </>
       ) : null}

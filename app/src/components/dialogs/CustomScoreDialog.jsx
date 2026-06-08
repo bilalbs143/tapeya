@@ -31,7 +31,7 @@ export function CustomScoreDialog({ onSubmit }) {
             placeholder="Enter Custom Score"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            className="input-no-spinner !mb-0 !border-[#DA9811]"
+            className="input-no-spinner !border-brand !mb-0"
           />
         </FormField>
       </DialogScrollBody>

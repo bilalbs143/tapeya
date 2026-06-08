@@ -3,6 +3,8 @@ import { z } from 'zod';
 
 import { normalizePhoneE164 } from '@/lib/phoneCodes';
 
+import { phoneSchema } from './shared';
+
 const EMAIL_WITH_VALID_TLD_REGEX =
   /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,24}$/;
 const NAME_TEXT_ONLY_REGEX = /^[A-Za-z]+(?:\s+[A-Za-z]+)*$/;
@@ -24,18 +26,6 @@ const nameSchema = z
   .trim()
   .min(1, 'Name is required')
   .regex(NAME_TEXT_ONLY_REGEX, 'Name may only contain letters and spaces');
-
-const phoneSchema = z
-  .string()
-  .min(1, 'Phone is required')
-  .transform((v) => normalizePhoneE164(v))
-  .refine((v) => {
-    try {
-      return isValidPhoneNumber(v);
-    } catch {
-      return false;
-    }
-  }, 'Enter a valid phone number for the selected country');
 
 export const loginSchema = z.object({
   phone: phoneSchema,

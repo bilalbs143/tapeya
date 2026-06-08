@@ -1,5 +1,5 @@
 /**
- * Shot area geometry and helpers – shared by ShotAreaDialog and ShotDirectionStats.
+ * Shot area geometry and helpers – shared by ShotAreaDialog and WagonWheelChart.
  * Keys must match backend ShotPositionEnum values (shot_position API).
  */
 

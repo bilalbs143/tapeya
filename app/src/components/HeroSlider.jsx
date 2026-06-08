@@ -17,7 +17,7 @@ export function HeroSlider() {
   const [activeIndex, setActiveIndex] = useState(0);
 
   if (isLoading) {
-    return <div className="aspect-[16/5] w-full animate-pulse overflow-hidden rounded-[17px] bg-[#141412]" />;
+    return <div className="bg-surface aspect-[16/5] w-full animate-pulse overflow-hidden rounded-[17px]" />;
   }
 
   const list = Array.isArray(slides) && slides.length > 0 ? slides.filter((s) => s?.image_mobile) : null;
@@ -72,7 +72,7 @@ export function HeroSlider() {
           {list.map((_, i) => (
             <span
               key={i}
-              className={`inline-block h-2 rounded-full transition-all duration-300 ${i === activeIndex ? 'w-4 bg-[#fdb022]' : 'w-2 bg-white/40'}`}
+              className={`inline-block h-2 rounded-full transition-all duration-300 ${i === activeIndex ? 'w-4 bg-[#FDB022]' : 'w-2 bg-white/40'}`}
             />
           ))}
         </div>

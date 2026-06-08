@@ -45,6 +45,7 @@ class TournamentController extends Controller
                 'matches.homeTeam',
                 'matches.awayTeam',
                 'matches.winningTeam',
+                'matches.stream',
             ]);
         }
 
@@ -78,6 +79,7 @@ class TournamentController extends Controller
             $with[] = 'matches.homeTeam';
             $with[] = 'matches.awayTeam';
             $with[] = 'matches.winningTeam';
+            $with[] = 'matches.stream';
         }
         if ($with !== []) {
             $tournament->load($with);

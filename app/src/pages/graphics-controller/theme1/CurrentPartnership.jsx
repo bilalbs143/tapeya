@@ -15,7 +15,7 @@ export default function CurrentPartnership({
   const bowlingName = bowlingTeam.shortCode || bowlingTeam.name || '';
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#1D1E22]">
+    <div className="bg-page relative min-h-screen overflow-hidden">
       <section className="absolute right-0 bottom-0 left-0 overflow-hidden text-white">
         <div className="absolute inset-0">
           <div className="absolute inset-0" style={rightHalfStyle} />

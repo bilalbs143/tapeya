@@ -1,43 +1,13 @@
-/* eslint-disable react-refresh/only-export-components */
 import { useMemo, useState } from 'react';
 
 import { Link } from 'react-router-dom';
 
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { formatCount } from '@/lib/format';
+import { formatPostTimestamp } from '@/lib/utils/feedUtils';
 
 const feedCommentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-comment.svg`;
 const feedShareIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-share.svg`;
-
-/**
- * Format ISO date string to "Feb 11, 2026 • 12:15 AM"
- */
-export function formatPostTimestamp(isoString) {
-  if (!isoString) return '';
-  const date = new Date(isoString);
-  if (Number.isNaN(date.getTime())) return '';
-  const datePart = date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-  const timePart = date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  });
-  return `${datePart} • ${timePart}`;
-}
-
-/**
- * Format engagement count: 5000 -> "5K", 1240 -> "1.2K", 68 -> "68"
- */
-export function formatCount(count) {
-  if (count >= 1000) {
-    const k = count / 1000;
-    return k % 1 === 0 ? `${k}K` : `${k.toFixed(1)}K`;
-  }
-  return String(count);
-}
 
 export function ThumbsUpIcon({ filled, className = '' }) {
   return (
@@ -105,7 +75,7 @@ export default function PostCard({ post, isLiked = false, likesCountOverride, on
 
   return (
     <Link to={`/feed/${id}`} className="block">
-      <article className="overflow-hidden rounded-2xl bg-[#141412] shadow-[0_18px_40px_rgba(0,0,0,0.9)]" data-post-id={id}>
+      <article className="bg-surface overflow-hidden rounded-2xl shadow-[0_18px_40px_rgba(0,0,0,0.9)]" data-post-id={id}>
         {/* Post image with timestamp overlay - bottom-left corner */}
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-black">
           <img
@@ -122,7 +92,7 @@ export default function PostCard({ post, isLiked = false, likesCountOverride, on
 
         <div className="p-4">
           {/* Author */}
-          <div className="mb-3 flex items-center gap-2 border-b border-[#1A1A1A] pb-3">
+          <div className="border-surface-border mb-3 flex items-center gap-2 border-b pb-3">
             <img
               src={authorAvatarError ? avatarPlaceholder : authorAvatarUrl}
               alt=""
@@ -138,11 +108,11 @@ export default function PostCard({ post, isLiked = false, likesCountOverride, on
           <p className="mb-4 line-clamp-3 text-[14px] leading-relaxed font-normal text-[#B0B0B0]">{description}</p>
 
           {/* Engagement row - icons & text #A2A6AB, evenly spaced */}
-          <div className="mb-4 flex items-center justify-between border-t border-b border-[#1A1A1A] py-3 text-[#A2A6AB]">
+          <div className="border-surface-border text-muted mb-4 flex items-center justify-between border-t border-b py-3">
             <button
               type="button"
               onClick={handleLikeClick}
-              className={`flex items-center gap-1.5 transition-transform ${isLiked ? 'text-[#DA9811]' : ''}`}
+              className={`flex items-center gap-1.5 transition-transform ${isLiked ? 'text-brand' : ''}`}
               aria-label={isLiked ? 'Unlike' : 'Like'}
             >
               <ThumbsUpIcon filled={isLiked} />

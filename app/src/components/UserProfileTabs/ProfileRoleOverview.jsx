@@ -1,8 +1,7 @@
 import { useState } from 'react';
 
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { formatDate } from '@/lib/format';
-import { formatAge } from '@/lib/utils/dateUtils';
+import { formatAge, formatDate } from '@/lib/utils/dateUtils';
 import { getBattingStyleLabel, getBowlingStyleLabel, getPlayingRoleLabel, usePlayerProfileEnums } from '@/store/api/enumApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';

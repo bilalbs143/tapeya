@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 
+import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { extractOtpFromAuthResponse, setOtpPreview } from '@/lib/otpPreviewSession';
@@ -22,6 +23,7 @@ const normalizeOptionalString = (value) => {
 
 export default function Register() {
   const navigate = useNavigate();
+  const toast = useToast();
 
   const {
     register,
@@ -50,7 +52,7 @@ export default function Register() {
       // otp is intentionally excluded from nav state; setOtpPreview handles the preview.
       navigate('/otp', { state: { phone: data.phone }, replace: true });
     } catch (err) {
-      console.error('Register failed:', err);
+      toast.error(getApiErrorMessage(err, 'Registration failed. Please try again.'));
     }
   };
 
@@ -81,14 +83,12 @@ export default function Register() {
         >
           <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">Create an account</h2>
 
-          <div className="rounded-[6px] border border-[#FF9700]/45 bg-[#141412] p-4 text-center shadow-[0_0_0_1px_rgba(255,151,0,0.12)]">
-            <p className="text-[12px] leading-snug text-[#A2A6AB] md:text-[13px]">
-              Your provided phone number must be on WhatsApp.
-            </p>
+          <div className="bg-surface rounded-[6px] border border-[#FF9700]/45 p-4 text-center shadow-[0_0_0_1px_rgba(255,151,0,0.12)]">
+            <p className="text-muted text-[12px] leading-snug md:text-[13px]">Your provided phone number must be on WhatsApp.</p>
             <p
               lang="ur"
               dir="rtl"
-              className="font-[system-ui,'Noto Nastaliq Urdu','Geeza Pro',sans-serif] mt-2 text-[13px] leading-relaxed text-[#A2A6AB] md:text-[14px]"
+              className="font-[system-ui,'Noto Nastaliq Urdu','Geeza Pro',sans-serif] text-muted mt-2 text-[13px] leading-relaxed md:text-[14px]"
             >
               آپ کا دیا گیا فون نمبر واٹس ایپ پر موجود ہونا ضروری ہے۔
             </p>
@@ -136,7 +136,10 @@ export default function Register() {
           </FormField>
 
           {error && (
-            <p className="rounded-[6px] border border-[#1A1A1A] bg-red-500/20 px-4 py-2.5 text-[14px] text-red-200" role="alert">
+            <p
+              className="border-surface-border rounded-[6px] border bg-red-500/20 px-4 py-2.5 text-[14px] text-red-200"
+              role="alert"
+            >
               {getApiErrorMessage(error, 'Registration failed. Please try again.')}
             </p>
           )}
@@ -146,27 +149,27 @@ export default function Register() {
           </Button>
 
           <div className="mt-6 mb-6 space-y-3 text-center">
-            <p className="text-[14px] text-[#A2A6AB]">
+            <p className="text-muted text-[14px]">
               Already have an account?{' '}
               <Link
                 to="/login"
-                className="font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820]"
+                className="text-brand font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820]"
               >
                 Login
               </Link>
             </p>
-            <p className="text-[14px] text-[#A2A6AB]">
+            <p className="text-muted text-[14px]">
               By signing up, you agree to the{' '}
               <Link
                 to="/pages/terms-of-use"
-                className="font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820]"
+                className="text-brand font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820]"
               >
                 Terms of Use
               </Link>{' '}
               and{' '}
               <Link
                 to="/pages/privacy-policy"
-                className="font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820]"
+                className="text-brand font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820]"
               >
                 Privacy Policy
               </Link>

@@ -1,4 +1,8 @@
 /**
+ * Canonical API error handling pattern:
+ *   try { await mutation().unwrap(); }
+ *   catch (err) { toast.error(getApiErrorMessage(err, 'Fallback message.')); }
+ *
  * RTK Query / fetchBaseQuery errors may expose HTTP status as number or string.
  *
  * @param {unknown} error

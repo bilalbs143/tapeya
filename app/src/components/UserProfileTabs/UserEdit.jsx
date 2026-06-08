@@ -1,20 +1,20 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { BaseDialog } from '@/components/dialogs/BaseDialog';
-import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
 import { enumNameToValue } from '@/lib/utils/enumUtils';
+import { EMPTY_FILE_UPLOAD, fileUploadValueFromUrl } from '@/lib/utils/fileUploadUtils';
 import { updateProfileSchema } from '@/lib/validations/auth';
 import { useGetMeQuery, useUpdateProfileMutation } from '@/store/api/authApi';
 import { usePlayerProfileEnums } from '@/store/api/enumApi';
-import { useGetCitiesQuery, useGetCountriesQuery } from '@/store/api/locationApi';
 import { useAppDispatch } from '@/store/hooks';
 import { updateUser } from '@/store/slices/authSlice';
+import { CountryCityFields } from '@/ui/CountryCityFields';
 import { DatePicker } from '@/ui/DatePicker';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { FileUploadField } from '@/ui/FileUploadField';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import {
@@ -35,11 +35,7 @@ import {
 // Constants
 // ---------------------------------------------------------------------------
 
-const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
-
 const NICKNAME_MAX = 50;
-/** Must match the UI copy and backend limit. */
-const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5 MB
 
 /**
  * Sentinel for "Not set" in profile Selects (Radix needs a non-empty value).
@@ -68,25 +64,12 @@ export function UserEdit({ open, onOpenChange }) {
   const { data: meData } = useGetMeQuery(undefined, { skip: !open });
   const user = meData?.data ?? null;
   const { battingStyleOptions, bowlingStyleOptions, playingRoleOptions } = usePlayerProfileEnums();
-  const { data: countriesList = [] } = useGetCountriesQuery(undefined, {
-    skip: !open,
-  });
-
   const toast = useToast();
   const [fields, setFields] = useState(DEFAULT_FIELDS);
   const [nicknameError, setNicknameError] = useState('');
-
-  const [avatarFile, setAvatarFile] = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState(null);
-  const [avatarRemove, setAvatarRemove] = useState(false);
-  const fileInputRef = useRef(null);
+  const [avatarUpload, setAvatarUpload] = useState(EMPTY_FILE_UPLOAD);
 
   const setField = (key) => (value) => setFields((prev) => ({ ...prev, [key]: value }));
-
-  const countryCode = countriesList.find((c) => c.name === fields.country)?.country_code ?? null;
-  const { data: citiesList = [] } = useGetCitiesQuery(countryCode, {
-    skip: !open || !countryCode,
-  });
 
   const [updateProfile, { isLoading: isSaving }] = useUpdateProfileMutation();
 
@@ -109,49 +92,8 @@ export function UserEdit({ open, onOpenChange }) {
       email: user.email ?? '',
     });
     setNicknameError('');
-    setAvatarFile(null);
-    setAvatarPreview(null);
-    setAvatarRemove(false);
+    setAvatarUpload(fileUploadValueFromUrl(user.avatar_url));
   }, [open, user, battingStyleOptions, bowlingStyleOptions, playingRoleOptions]);
-
-  // Revoke blob URL on change / unmount to prevent memory leaks.
-  useEffect(() => {
-    return () => {
-      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
-    };
-  }, [avatarPreview]);
-
-  // ── Avatar handlers ──────────────────────────────────────────────────────
-
-  const handleAvatarChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please choose an image file (e.g. JPG, PNG).');
-      return;
-    }
-    if (file.size > MAX_AVATAR_BYTES) {
-      toast.error('Image must be smaller than 5MB.');
-      return;
-    }
-    if (avatarPreview) URL.revokeObjectURL(avatarPreview);
-    setAvatarFile(file);
-    setAvatarPreview(URL.createObjectURL(file));
-    setAvatarRemove(false);
-  };
-
-  const clearAvatarSelection = () => {
-    if (avatarPreview) URL.revokeObjectURL(avatarPreview);
-    setAvatarFile(null);
-    setAvatarPreview(null);
-    setAvatarRemove(false);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
-  const handleRemoveAvatar = () => {
-    clearAvatarSelection();
-    setAvatarRemove(true);
-  };
 
   // ── Save ────────────────────────────────────────────────────────────────
 
@@ -180,9 +122,10 @@ export function UserEdit({ open, onOpenChange }) {
     const toSend = Object.fromEntries(Object.entries(parsed.data).filter(([, v]) => v !== undefined && v !== ''));
 
     // Avatar: File → multipart POST; null → JSON PATCH with avatar: null; omit → unchanged.
+    const avatarFile = avatarUpload.files[0];
     if (avatarFile instanceof File) {
       toSend.avatar = avatarFile;
-    } else if (avatarRemove) {
+    } else if (user?.avatar_url && avatarUpload.existingUrls.length === 0) {
       toSend.avatar = null;
     }
 
@@ -192,7 +135,7 @@ export function UserEdit({ open, onOpenChange }) {
       if (updatedUser && typeof updatedUser === 'object') {
         dispatch(updateUser(updatedUser));
       }
-      clearAvatarSelection();
+      setAvatarUpload(fileUploadValueFromUrl(updatedUser?.avatar_url));
       onOpenChange?.(false);
     } catch (err) {
       const errors = err?.data?.errors;
@@ -207,10 +150,6 @@ export function UserEdit({ open, onOpenChange }) {
 
   // ── Render ───────────────────────────────────────────────────────────────
 
-  const avatarSrc = avatarPreview ?? (avatarRemove ? defaultAvatar : (user?.avatar_url ?? defaultAvatar));
-
-  const avatarDisplayName = fields.name?.trim() || user?.name?.trim() || user?.nickname?.trim() || 'Profile';
-
   return (
     <BaseDialog open={open} onOpenChange={onOpenChange} height="!h-[min(90vh,600px)]">
       <DialogHeaderRow>
@@ -219,68 +158,18 @@ export function UserEdit({ open, onOpenChange }) {
 
       <DialogScrollBody>
         <div className="flex flex-col gap-4">
-          {/* Avatar picker */}
-          <FormField>
-            <div className="flex flex-col items-center gap-4">
-              <div className="relative inline-block">
-                <ProfileAvatar src={avatarSrc} name={avatarDisplayName} overlap={false} />
-                <span
-                  className="pointer-events-none absolute right-0 bottom-0 z-20 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#080807] bg-[#DA9811] text-[#080807] shadow-md"
-                  aria-hidden
-                >
-                  <svg
-                    className="h-4 w-4"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                  </svg>
-                </span>
-                <input
-                  ref={fileInputRef}
-                  id="avatar"
-                  type="file"
-                  accept="image/*"
-                  className="absolute inset-0 z-10 cursor-pointer rounded-full opacity-0"
-                  onChange={handleAvatarChange}
-                  aria-label="Choose Profile Photo"
-                />
-              </div>
-              <div className="flex flex-col items-center gap-1 text-center">
-                <span className="text-[13px] text-white/70">Click the photo to change. JPG or PNG, max 5MB.</span>
-                {avatarFile ? (
-                  <button
-                    type="button"
-                    onClick={clearAvatarSelection}
-                    className="text-xs font-medium text-[#DA9811] underline hover:no-underline"
-                  >
-                    Clear selection
-                  </button>
-                ) : user?.avatar_url && !avatarRemove ? (
-                  <button
-                    type="button"
-                    onClick={handleRemoveAvatar}
-                    className="text-xs font-medium text-red-400 underline hover:no-underline"
-                  >
-                    Remove photo
-                  </button>
-                ) : avatarRemove ? (
-                  <button
-                    type="button"
-                    onClick={() => setAvatarRemove(false)}
-                    className="text-xs font-medium text-[#A2A6AB] underline hover:no-underline"
-                  >
-                    Keep existing photo
-                  </button>
-                ) : null}
-              </div>
-            </div>
-          </FormField>
+          <div className="flex flex-col items-center gap-2">
+            <FileUploadField
+              variant="avatar"
+              value={avatarUpload}
+              onChange={setAvatarUpload}
+              accept="image/jpeg,image/png,image/webp"
+              acceptLabel="JPG, PNG, WebP"
+              maxSizeMb={5}
+              avatarSize={96}
+            />
+            <p className="text-muted/80 max-w-[280px] text-center text-[12px] leading-snug">JPG, PNG or WebP, max 5 MB.</p>
+          </div>
 
           <FormField label="Name" htmlFor="name">
             <Input
@@ -426,53 +315,13 @@ export function UserEdit({ open, onOpenChange }) {
             />
           </FormField>
 
-          <FormField label="Country" htmlFor="country">
-            <Select
-              value={fields.country}
-              onValueChange={(v) => {
-                setField('country')(v);
-                setField('city')('');
-              }}
-            >
-              <SelectTrigger id="country" className={`max-w-none ${selectTriggerInputClass}`}>
-                <SelectValue placeholder="Select Country" />
-              </SelectTrigger>
-              <SelectContent className={`z-[100] ${selectContentInputClass}`} viewportClassName={selectViewportInputClass}>
-                {countriesList.map((c) => (
-                  <SelectItem
-                    key={c.id}
-                    value={c.name}
-                    className={selectItemInputClass}
-                    textClassName={selectItemTextInputClass}
-                    indicatorClassName={selectItemIndicatorInputClass}
-                  >
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </FormField>
-
-          <FormField label="City" htmlFor="city">
-            <Select value={fields.city} onValueChange={setField('city')}>
-              <SelectTrigger id="city" className={`max-w-none ${selectTriggerInputClass}`}>
-                <SelectValue placeholder="Select City" />
-              </SelectTrigger>
-              <SelectContent className={`z-[100] ${selectContentInputClass}`} viewportClassName={selectViewportInputClass}>
-                {citiesList.map((c) => (
-                  <SelectItem
-                    key={c.id}
-                    value={c.name}
-                    className={selectItemInputClass}
-                    textClassName={selectItemTextInputClass}
-                    indicatorClassName={selectItemIndicatorInputClass}
-                  >
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </FormField>
+          <CountryCityFields
+            country={fields.country}
+            city={fields.city}
+            onCountryChange={setField('country')}
+            onCityChange={setField('city')}
+            enabled={open}
+          />
         </div>
       </DialogScrollBody>
 

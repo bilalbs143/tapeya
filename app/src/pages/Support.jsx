@@ -92,7 +92,7 @@ export default function Support() {
       <AppSubpageHeader sticky title="CONTACT US" />
 
       <Container className="pb-8">
-        <p className="mb-4 text-[13px] leading-snug text-[#A2A6AB] md:text-[14px]">
+        <p className="text-muted mb-4 text-[13px] leading-snug md:text-[14px]">
           {hasWhatsApp ? (
             <>
               Have a question or need help? Message us on <span className="font-semibold text-white">WhatsApp</span> for a quick
@@ -105,8 +105,8 @@ export default function Support() {
 
         {hasWhatsApp ? (
           <>
-            <div className="mb-6 rounded-[6px] border border-[#FF9700]/45 bg-[#141412] p-4 shadow-[0_0_0_1px_rgba(255,151,0,0.12)]">
-              <p className="text-[12px] font-bold tracking-wide text-[#A2A6AB]">WhatsApp</p>
+            <div className="bg-surface mb-6 rounded-[6px] border border-[#FF9700]/45 p-4 shadow-[0_0_0_1px_rgba(255,151,0,0.12)]">
+              <p className="text-muted text-[12px] font-bold tracking-wide">WhatsApp</p>
               <a
                 href={whatsAppHref}
                 target="_blank"
@@ -114,7 +114,7 @@ export default function Support() {
                 className="mt-3 flex w-full items-center justify-between gap-3 rounded-[6px] bg-black/35 px-3 py-3 transition-colors hover:bg-black/50 focus-visible:ring-2 focus-visible:ring-[#FF9700]/50 focus-visible:outline-none"
               >
                 <span className="flex min-w-0 flex-col gap-0.5">
-                  <span className="text-[11px] font-medium text-[#A2A6AB]">Tap to open chat</span>
+                  <span className="text-muted text-[11px] font-medium">Tap to open chat</span>
                   <span className="truncate text-[18px] font-bold tracking-wide text-[#FF9700] tabular-nums">
                     {whatsAppDisplay}
                   </span>
@@ -128,12 +128,12 @@ export default function Support() {
                   </svg>
                 </span>
               </a>
-              <p className="mt-3 text-[12px] leading-snug text-[#A2A6AB]/90">Opens WhatsApp on your phone or web.</p>
+              <p className="text-muted/90 mt-3 text-[12px] leading-snug">Opens WhatsApp on your phone or web.</p>
             </div>
 
             <div aria-hidden="true" className="mb-6 flex items-center gap-3">
               <div className="h-px flex-1 bg-[linear-gradient(to_right,transparent,#FFFFFF33,transparent)]" />
-              <span className="shrink-0 text-[11px] font-bold tracking-wider text-[#A2A6AB] uppercase">Or use the form</span>
+              <span className="text-muted shrink-0 text-[11px] font-bold tracking-wider uppercase">Or use the form</span>
               <div className="h-px flex-1 bg-[linear-gradient(to_right,transparent,#FFFFFF33,transparent)]" />
             </div>
           </>
@@ -180,7 +180,7 @@ export default function Support() {
           <FileUploadField
             label={
               <>
-                Attachment <span className="font-normal text-[#A2A6AB]/70">(optional)</span>
+                Attachment <span className="text-muted/70 font-normal">(optional)</span>
               </>
             }
             value={attachment}
@@ -194,7 +194,7 @@ export default function Support() {
           />
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-[12px] text-[#A2A6AB]">We will only use your details to respond to your request.</p>
+            <p className="text-muted text-[12px]">We will only use your details to respond to your request.</p>
             <Button
               type="submit"
               variant="orangeDialogWhite"

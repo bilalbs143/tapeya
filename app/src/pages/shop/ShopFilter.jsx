@@ -78,7 +78,7 @@ export default function ShopFilter() {
         <Container>
           <div className="py-8 text-center text-white">
             <p>Invalid filter.</p>
-            <Link to="/shop" className="mt-4 inline-block text-[#DA9811] underline">
+            <Link to="/shop" className="text-brand mt-4 inline-block underline">
               Back to Shop
             </Link>
           </div>
@@ -99,7 +99,7 @@ export default function ShopFilter() {
         title={
           <h1 className="min-w-0 text-[16px] font-bold tracking-wide uppercase">
             <span className="text-white">SHOP - </span>
-            <span className="text-[#DA9811]">{displayTitle}</span>
+            <span className="text-brand">{displayTitle}</span>
           </h1>
         }
       />
@@ -111,7 +111,7 @@ export default function ShopFilter() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="What Are You Looking For?"
-              className="h-12 w-full rounded-[6px] bg-[#141412] pr-14 pl-4 text-white placeholder:text-[#A2A6AB78] focus:ring-2 focus:ring-[#DA9811]/50 focus:outline-none"
+              className="bg-surface placeholder:text-muted/47 focus:ring-brand/50 h-12 w-full rounded-[6px] pr-14 pl-4 text-white focus:ring-2 focus:outline-none"
               aria-label="Search Shop"
             />
             <span className="pointer-events-none absolute top-0 right-5 bottom-0 flex items-center">
@@ -127,7 +127,7 @@ export default function ShopFilter() {
                   type="button"
                   onClick={() => setActiveCategoryId(null)}
                   className={`shrink-0 rounded-[6px] px-4 py-2.5 text-[13px] font-semibold tracking-wide transition-colors ${
-                    activeCategoryId === null ? 'bg-[#DA9811] text-black' : 'bg-[#141412] text-white'
+                    activeCategoryId === null ? 'bg-brand text-black' : 'bg-surface text-white'
                   }`}
                   aria-pressed={activeCategoryId === null}
                 >
@@ -139,7 +139,7 @@ export default function ShopFilter() {
                     type="button"
                     onClick={() => setActiveCategoryId(cat.id)}
                     className={`shrink-0 rounded-[6px] px-4 py-2.5 text-[13px] font-semibold tracking-wide transition-colors ${
-                      activeCategoryId === cat.id ? 'bg-[#DA9811] text-black' : 'bg-[#141412] text-white'
+                      activeCategoryId === cat.id ? 'bg-brand text-black' : 'bg-surface text-white'
                     }`}
                     aria-pressed={activeCategoryId === cat.id}
                   >
@@ -158,7 +158,7 @@ export default function ShopFilter() {
                     type="button"
                     onClick={() => setActiveCategoryId(null)}
                     className={`shrink-0 rounded-[6px] px-4 py-2.5 text-[13px] font-semibold tracking-wide transition-colors ${
-                      activeCategoryId === null ? 'bg-[#DA9811] text-black' : 'bg-[#141412] text-white'
+                      activeCategoryId === null ? 'bg-brand text-black' : 'bg-surface text-white'
                     }`}
                     aria-pressed={activeCategoryId === null}
                   >
@@ -170,7 +170,7 @@ export default function ShopFilter() {
                       type="button"
                       onClick={() => setActiveCategoryId(cat.id)}
                       className={`shrink-0 rounded-[6px] px-4 py-2.5 text-[13px] font-semibold tracking-wide transition-colors ${
-                        activeCategoryId === cat.id ? 'bg-[#DA9811] text-black' : 'bg-[#141412] text-white'
+                        activeCategoryId === cat.id ? 'bg-brand text-black' : 'bg-surface text-white'
                       }`}
                       aria-pressed={activeCategoryId === cat.id}
                     >

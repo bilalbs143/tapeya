@@ -8,7 +8,7 @@ export default function FallofWickets({ battingTeam = {}, wickets = [] }) {
   const battingLogo = battingTeam.logoUrl ?? defaultTeamLogo;
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#1D1E22]">
+    <div className="bg-page relative min-h-screen overflow-hidden">
       <section className="absolute right-0 bottom-0 left-0 overflow-hidden text-white">
         <div className="absolute inset-0">
           <div className="absolute inset-0" style={rightHalfStyle} />
@@ -23,7 +23,7 @@ export default function FallofWickets({ battingTeam = {}, wickets = [] }) {
               className="h-6 w-6 rounded-full object-cover sm:h-14 sm:w-14"
             />
             <div>
-              <p className="text-[10px] leading-none font-extrabold text-[#DA9811] sm:text-[30px]">
+              <p className="text-brand text-[10px] leading-none font-extrabold sm:text-[30px]">
                 {battingTeam.shortCode || battingTeam.name || '—'}
               </p>
               <p className="mt-0.5 text-[7px] leading-none text-[#E2E2E2] sm:mt-1 sm:text-[14px]">

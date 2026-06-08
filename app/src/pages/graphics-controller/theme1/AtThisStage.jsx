@@ -17,7 +17,7 @@ export default function AtThisStage({
   const useMirror = mirrorBattingTeam != null && typeof mirrorBattingTeam === 'object';
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#1D1E22]">
+    <div className="bg-page relative min-h-screen overflow-hidden">
       <section className="absolute right-0 bottom-0 left-0 overflow-hidden text-white">
         <div className="absolute inset-0">
           <div className="absolute inset-0" style={rightHalfStyle} />
@@ -36,7 +36,7 @@ export default function AtThisStage({
 
           {/* Mobile "At This Stage" badge */}
           <div className="relative z-20 flex shrink-0 items-center px-0.5 sm:hidden">
-            <div className="rounded-[5px] bg-[#DA9811] px-1 py-0.5 text-center leading-none font-extrabold text-black uppercase shadow-[0_0_0_1px_rgba(255,255,255,0.25)]">
+            <div className="bg-brand rounded-[5px] px-1 py-0.5 text-center leading-none font-extrabold text-black uppercase shadow-[0_0_0_1px_rgba(255,255,255,0.25)]">
               <p className="text-[6px] font-bold">At This</p>
               <p className="mt-0.5 text-[9px] font-bold">Stage</p>
             </div>
@@ -44,7 +44,7 @@ export default function AtThisStage({
 
           {/* Desktop "At This Stage" badge */}
           <div className="pointer-events-none absolute top-1/2 left-1/2 z-20 hidden -translate-x-1/2 -translate-y-1/2 sm:block">
-            <div className="rounded-[10px] bg-[#DA9811] px-4 py-2 text-center leading-none font-extrabold text-black uppercase shadow-[0_0_0_1px_rgba(255,255,255,0.25)]">
+            <div className="bg-brand rounded-[10px] px-4 py-2 text-center leading-none font-extrabold text-black uppercase shadow-[0_0_0_1px_rgba(255,255,255,0.25)]">
               <p className="text-[14px] font-bold">At This</p>
               <p className="mt-0.5 text-[19px] font-bold">Stage</p>
             </div>

@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { CONTENT_MAX_WIDTH } from './constants';
 
-const LABEL_CLASS = 'text-[14px] font-bold uppercase tracking-wide text-[#A2A6AB]';
+const LABEL_CLASS = 'text-[14px] font-bold uppercase tracking-wide text-muted';
 const VALUE_CLASS = 'text-sm font-normal text-white';
 
 const TEAMS_FULL = ['Team Alpha', 'Team Beta', 'Youth League A', 'Regional Champions', 'Community XI'];
@@ -48,7 +48,7 @@ export function SponsorTeams() {
         {showMore && (
           <button
             type="button"
-            className="text-sm font-normal text-[#d8a11e] underline underline-offset-2 transition-colors hover:text-[#e5b42a] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d8a11e] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f0f0f]"
+            className="text-sm font-normal text-[#D8A11E] underline underline-offset-2 transition-colors hover:text-[#E5B42A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D8A11E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F0F0F]"
             onClick={() => setExpanded(true)}
           >
             MORE
@@ -57,7 +57,7 @@ export function SponsorTeams() {
         {showLess && (
           <button
             type="button"
-            className="ml-1 text-sm font-normal text-[#d8a11e] underline underline-offset-2 transition-colors hover:text-[#e5b42a] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d8a11e] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f0f0f]"
+            className="ml-1 text-sm font-normal text-[#D8A11E] underline underline-offset-2 transition-colors hover:text-[#E5B42A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D8A11E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F0F0F]"
             onClick={() => setExpanded(false)}
           >
             LESS

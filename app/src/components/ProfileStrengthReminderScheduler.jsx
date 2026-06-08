@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 
 import { useDialog } from '@/context/DialogContext';
 import { DIALOG_REMINDER_INTERVAL_MS, useIntervalDialogPrompt } from '@/hooks/useIntervalDialogPrompt';
-import { calculateProfileStrength } from '@/lib/profileStrength';
+import { calculateProfileStrength } from '@/lib/utils/playerUtils';
 import { isProfileStrengthReminderBlockedPath } from '@/lib/utils/routeUtils';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useAppSelector } from '@/store/hooks';

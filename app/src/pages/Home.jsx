@@ -22,8 +22,8 @@ function ShopSlider({ title, viewMorePath, products, brands, reverseDirection = 
   return (
     <section className="mb-10 space-y-3">
       <header className="flex items-center justify-between">
-        <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">{title}</h2>
-        <Link to={viewMorePath} className="text-[12px] font-bold text-[#DA9811] uppercase transition-opacity active:opacity-80">
+        <h2 className="text-muted text-[13px] font-bold tracking-wide uppercase">{title}</h2>
+        <Link to={viewMorePath} className="text-brand text-[12px] font-bold uppercase transition-opacity active:opacity-80">
           View More
         </Link>
       </header>

@@ -2,11 +2,14 @@ import { useDialog } from '@/context/DialogContext';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
 
 function reasonDescription({ reason, matchOvers, battingTeamName }) {
-  if (reason === 'target_reached' || reason === 'target') {
+  if (reason === 'target_reached') {
     return 'The target score has been reached.';
   }
-  if (reason === 'all_out' || reason === 'wickets') {
+  if (reason === 'all_out') {
     return 'All wickets have fallen for this innings.';
+  }
+  if (reason === 'manual') {
+    return 'The innings has been ended by the organiser.';
   }
   // overs_complete or any fallback
   if (matchOvers != null && Number.isFinite(matchOvers)) {
@@ -23,7 +26,7 @@ function reasonDescription({ reason, matchOvers, battingTeamName }) {
  */
 export function InningsEndDialog({
   variant = 'first_innings_break',
-  reason = 'overs',
+  reason = 'overs_complete',
   battingTeamName = '',
   matchOvers,
   matchResult,
@@ -44,31 +47,31 @@ export function InningsEndDialog({
       <DialogScrollBody className="flex flex-col text-center">
         {isMatchOver && matchResult ? (
           <>
-            <p className="text-[12px] font-bold tracking-wide text-[#DA9811] uppercase">Match result</p>
+            <p className="text-brand text-[12px] font-bold tracking-wide uppercase">Match result</p>
             <DialogTitle className="mt-3 text-[16px] leading-snug font-bold text-white capitalize">
               {matchResult.tie ? matchResult.titleLine : `${matchResult.titleLine} ${matchResult.marginLine ?? ''}`.trim()}
             </DialogTitle>
             {!matchResult.tie && matchResult.scoresLine ? (
-              <p className="mt-3 text-[13px] leading-snug text-[#A2A6AB]">{matchResult.scoresLine}</p>
+              <p className="text-muted mt-3 text-[13px] leading-snug">{matchResult.scoresLine}</p>
             ) : null}
             {matchResult.tie && matchResult.detailLine ? (
-              <p className="mt-3 text-[13px] leading-snug text-[#A2A6AB]">{matchResult.detailLine}</p>
+              <p className="text-muted mt-3 text-[13px] leading-snug">{matchResult.detailLine}</p>
             ) : null}
           </>
         ) : isMatchOver ? (
           <>
             <DialogTitle className="text-[14px] font-bold text-white">Match Ended</DialogTitle>
-            <p className="mt-2 text-[13px] leading-snug text-[#A2A6AB]">
+            <p className="text-muted mt-2 text-[13px] leading-snug">
               {reasonDescription({ reason, matchOvers, battingTeamName })}
             </p>
           </>
         ) : (
           <>
             <DialogTitle className="text-[14px] font-bold text-white">Innings Ended</DialogTitle>
-            <p className="mt-2 text-[13px] leading-snug text-[#A2A6AB]">
+            <p className="text-muted mt-2 text-[13px] leading-snug">
               The first innings is complete. Continue when you are ready to set up the second innings.
             </p>
-            <p className="mt-2 text-[13px] leading-snug text-[#A2A6AB]">
+            <p className="text-muted mt-2 text-[13px] leading-snug">
               {reasonDescription({ reason, matchOvers, battingTeamName })}
             </p>
           </>

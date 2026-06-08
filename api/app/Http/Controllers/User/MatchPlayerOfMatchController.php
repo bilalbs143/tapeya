@@ -44,7 +44,7 @@ class MatchPlayerOfMatchController extends Controller
         }
 
         $match->update(['player_of_match_user_id' => $userId]);
-        $match->load(['homeTeam', 'awayTeam', 'winningTeam', 'tossWinnerTeam', 'playerOfMatch']);
+        $match->load(['homeTeam', 'awayTeam', 'winningTeam', 'tossWinnerTeam', 'playerOfMatch', 'stream']);
 
         return $this->success(
             new TournamentMatchResource($match),
