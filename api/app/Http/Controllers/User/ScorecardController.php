@@ -71,6 +71,16 @@ class ScorecardController extends Controller
         $existingBalls = $innings->balls()->get();
         $data = $this->computeBallFields($data, $existingBalls);
 
+        $match->loadMissing('graphicSession');
+        $pending = is_array($match->graphicSession?->pending_players)
+            ? $match->graphicSession->pending_players
+            : [];
+
+        $creaseError = $this->applyAuthoritativeCreaseToBallData($data, $existingBalls, $pending);
+        if ($creaseError !== null) {
+            return $creaseError;
+        }
+
         // Law 21.18 — on a free-hit only run_out, obstructing_the_field, and
         // hit_ball_twice are valid dismissals.  Enforced server-side because
         // is_free_hit is now computed here, not sent by the client.
@@ -128,9 +138,14 @@ class ScorecardController extends Controller
 
         $this->logScoringAudit($match, $authUser, 'store_ball', $ball->id, ['innings_id' => $innings->id]);
 
-        // Pass the wicket flag so consecutive wickets don't erase the pending
-        // batsman selected after the previous dismissal before they face a ball.
-        $this->clearGraphicPendingCreaseIds($match, isWicket: (bool) ($data['is_wicket'] ?? false));
+        // Clear pending batter slots when they match the dismissed player on this wicket.
+        $this->clearGraphicPendingCreaseIds(
+            $match,
+            isWicket: (bool) ($data['is_wicket'] ?? false),
+            outPlayerId: ($data['is_wicket'] ?? false) && ! empty($data['out_player_id'])
+                ? (int) $data['out_player_id']
+                : null,
+        );
 
         RefreshMatchStatsJob::dispatch($match->id)->delay(now()->addSeconds(3));
         SyncMatchGraphicContextJob::dispatch($match->id);
@@ -207,7 +222,14 @@ class ScorecardController extends Controller
 
         DB::transaction(function () use ($ball, $data, $match) {
             $ball->update($data);
-            $this->clearGraphicPendingCreaseIds($match);
+            $isWicket = (bool) ($data['is_wicket'] ?? $ball->is_wicket);
+            $this->clearGraphicPendingCreaseIds(
+                $match,
+                isWicket: $isWicket,
+                outPlayerId: $isWicket && ($data['out_player_id'] ?? $ball->out_player_id)
+                    ? (int) ($data['out_player_id'] ?? $ball->out_player_id)
+                    : null,
+            );
             $this->completionService->evaluate($match->fresh());
         });
 
@@ -521,13 +543,7 @@ class ScorecardController extends Controller
         $currentStrikerId = $stats['current_striker_id'];
         $pending = $match->graphicSession?->pending_players;
         if (is_array($pending) && $balls->isNotEmpty()) {
-            $resolved = InningsStatsService::resolveCreaseAfterBalls($balls);
-            $merged = InningsStatsService::applyPendingCreaseSelection(
-                $resolved['striker_id'],
-                $resolved['non_striker_id'],
-                $pending,
-                true,
-            );
+            $merged = InningsStatsService::resolveExpectedCrease($balls, $pending);
             if ($merged['striker_id'] !== null) {
                 $currentStrikerId = $merged['striker_id'];
             }
@@ -614,27 +630,76 @@ class ScorecardController extends Controller
     }
 
     /**
+     * Derive authoritative striker/non-striker for the next delivery and validate wicket metadata.
+     *
+     * @param  array<string, mixed>  $data  Normalized ball payload (mutated in place).
+     * @param  Collection<int, Ball>  $existingBalls
+     * @param  array<string, mixed>  $pending
+     */
+    private function applyAuthoritativeCreaseToBallData(array &$data, Collection $existingBalls, array $pending): ?JsonResponse
+    {
+        $merged = InningsStatsService::resolveExpectedCrease($existingBalls, $pending);
+        $expectedStriker = $merged['striker_id'];
+        $expectedNonStriker = $merged['non_striker_id'];
+
+        if ($expectedStriker === null || $expectedNonStriker === null) {
+            return $this->failure(
+                'Select incoming batsman before recording the next delivery.',
+                'NEEDS_NEW_BATTER',
+            );
+        }
+
+        $data['striker_id'] = $expectedStriker;
+        $data['non_striker_id'] = $expectedNonStriker;
+
+        if (! ($data['is_wicket'] ?? false)) {
+            return null;
+        }
+
+        $outId = (int) ($data['out_player_id'] ?? 0);
+        if ($outId <= 0) {
+            return $this->failure('Dismissed batter is required for a wicket ball.', 'VALIDATION_ERROR');
+        }
+
+        $onCrease = [(int) $expectedStriker, (int) $expectedNonStriker];
+        if (! in_array($outId, $onCrease, true)) {
+            return $this->failure(
+                'The dismissed batter must be one of the two batters on crease for this delivery.',
+                'OUT_PLAYER_NOT_ON_CREASE',
+            );
+        }
+
+        $dismissedIds = InningsStatsService::dismissedPlayerIdsFromBalls($existingBalls);
+        if (in_array($outId, $dismissedIds, true)) {
+            return $this->failure(
+                'This batter has already been dismissed in this innings.',
+                'PLAYER_ALREADY_DISMISSED',
+            );
+        }
+
+        return null;
+    }
+
+    /**
      * Drop crease keys from graphic pending_players after a ball mutation so
      * stale opener lines cannot override {@see InningsStatsService::resolveCreaseAfterBalls()}.
      *
-     * @param  bool  $isWicket  True when the ball just stored is a dismissal.
+     * @param  bool  $isWicket  True when the ball just stored/updated is a dismissal.
+     * @param  int|null  $outPlayerId  Dismissed player on a wicket ball — pending IDs matching
+     *                                  this player are cleared so they are not re-applied.
      *
-     * When a wicket ball is stored, the pending batter slots are intentionally
-     * preserved.  The admin may have already selected the incoming batsman via
-     * PATCH /crease after the previous dismissal, and that selection must remain
-     * visible to {@see MatchStateService::buildActiveInnings()} for the next
-     * delivery.  Without this, back-to-back wickets cause the second dismissal to
-     * erase the pending selection and the crease resolves to null — no batsman on
-     * strike is shown anywhere until a new non-wicket ball is recorded.
+     * On a wicket ball, pending batter slots are preserved **unless** they match
+     * `out_player_id` (the incoming batter was dismissed before facing a ball).
+     * On non-wicket balls the ball record is authoritative — batter pending is cleared.
      *
      * The next_bowler_id is always cleared because it is captured on the ball row
      * itself and must not linger between overs.
-     *
-     * On non-wicket balls the ball record is now authoritative for the full crease
-     * (the pending selection has "landed"), so batter slots are safe to clear.
      */
-    private function clearGraphicPendingCreaseIds(TournamentMatch $match, bool $isWicket = false): void
-    {
+    private function clearGraphicPendingCreaseIds(
+        TournamentMatch $match,
+        bool $isWicket = false,
+        ?int $outPlayerId = null,
+    ): void {
         $session = $match->graphicSession;
         if ($session === null) {
             return;
@@ -647,10 +712,14 @@ class ScorecardController extends Controller
         // Always clear the pending bowler — it is stored on the ball row.
         unset($pending['next_bowler_id']);
 
-        // Only clear batter slots when this is a normal (non-wicket) ball.
-        // On a wicket ball we keep them so consecutive dismissals don't lose
-        // the batsman that was selected after the previous wicket.
-        if (! $isWicket) {
+        if ($isWicket && $outPlayerId !== null && $outPlayerId > 0) {
+            if (isset($pending['next_batter_id']) && (int) $pending['next_batter_id'] === $outPlayerId) {
+                unset($pending['next_batter_id']);
+            }
+            if (isset($pending['next_non_striker_id']) && (int) $pending['next_non_striker_id'] === $outPlayerId) {
+                unset($pending['next_non_striker_id']);
+            }
+        } elseif (! $isWicket) {
             unset($pending['next_batter_id'], $pending['next_non_striker_id']);
         }
 

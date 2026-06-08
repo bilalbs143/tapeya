@@ -384,8 +384,8 @@ export function ScoringTab({
   // ── Scoring engine ────────────────────────────────────────────────────────
   // Must be called before useWicketSummaryFlow (which provides handleUndo).
 
-  const prevNeedsBatterRef = useRef(false);
   const prevNeedsBowlerRef = useRef(false);
+  const prevDismissalBallIdRef = useRef(null);
 
   // Declared before useScoringEngine so onWicketPending can reference it.
   const setWicketGateRef = useRef(null);
@@ -444,6 +444,7 @@ export function ScoringTab({
     onWicketPending,
     onWicketFailed,
     matchComplete: matchComplete || !isLiveInnings,
+    needsNewBatter,
   });
 
   // Keep engine ref current (dialog opener closures read it after render).
@@ -555,10 +556,16 @@ export function ScoringTab({
     if (!isLiveInnings) return;
     const needsBatter = Boolean(matchState?.needs_new_batter);
     const needsBowler = Boolean(matchState?.needs_new_bowler);
+    const dismissalBallId = matchState?.last_dismissal_ball_id ?? null;
+    const newDismissal =
+      dismissalBallId != null && dismissalBallId !== prevDismissalBallIdRef.current;
 
-    // Suppress batsman dialog while wicket summary is showing (ref + state gate).
-    if (needsBatter && !prevNeedsBatterRef.current && !wicketSummaryGateRef.current && !summaryIsOpen) {
+    // Safety net: open picker on every new dismissal (even if needs_new_batter stayed true).
+    if (needsBatter && newDismissal && !wicketSummaryGateRef.current && !summaryIsOpen) {
+      prevDismissalBallIdRef.current = dismissalBallId;
       openBatsmanDialogRef.current?.(false, { afterWicket: true });
+    } else if (!needsBatter) {
+      prevDismissalBallIdRef.current = dismissalBallId;
     }
 
     // Suppress bowler dialog while wicket summary is showing, AND while a new
@@ -567,9 +574,15 @@ export function ScoringTab({
       openBowlerDialogRef.current?.();
     }
 
-    prevNeedsBatterRef.current = needsBatter;
     prevNeedsBowlerRef.current = needsBowler;
-  }, [isLiveInnings, matchState?.needs_new_batter, matchState?.needs_new_bowler, summaryIsOpen, wicketSummaryGateRef]);
+  }, [
+    isLiveInnings,
+    matchState?.needs_new_batter,
+    matchState?.needs_new_bowler,
+    matchState?.last_dismissal_ball_id,
+    summaryIsOpen,
+    wicketSummaryGateRef,
+  ]);
 
   // ── Penalty runs dialog ───────────────────────────────────────────────────
 
@@ -666,7 +679,11 @@ export function ScoringTab({
 
   // ── Render ────────────────────────────────────────────────────────────────
 
-  const isReadyToScore = isLiveInnings && batsmenOnCrease.length === 2 && bowlersInTable.length > 0 && !matchComplete;
+  const isReadyToScore =
+    isLiveInnings &&
+    (batsmenOnCrease.length === 2 || needsNewBatter) &&
+    bowlersInTable.length > 0 &&
+    !matchComplete;
 
   return (
     <InningsContext.Provider value={inningsContextValue}>

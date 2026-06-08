@@ -176,6 +176,49 @@ class InningsStatsService
     }
 
     /**
+     * Player IDs dismissed in this innings (excludes retired_hurt — they may return).
+     *
+     * @param  Collection<int, Ball>  $balls
+     * @return list<int>
+     */
+    public static function dismissedPlayerIdsFromBalls(Collection $balls): array
+    {
+        $ids = [];
+        foreach ($balls as $ball) {
+            if (! $ball->is_wicket || $ball->out_player_id === null) {
+                continue;
+            }
+            if ($ball->isRetiredHurt()) {
+                continue;
+            }
+            $ids[] = (int) $ball->out_player_id;
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    /**
+     * Merge ball-history crease with pending_players, skipping dismissed pending IDs.
+     *
+     * @param  Collection<int, Ball>  $balls
+     * @param  array<string, mixed>  $pending
+     * @return array{striker_id: int|null, non_striker_id: int|null}
+     */
+    public static function resolveExpectedCrease(Collection $balls, array $pending): array
+    {
+        $dismissedIds = self::dismissedPlayerIdsFromBalls($balls);
+        $crease = self::resolveCreaseAfterBalls($balls);
+
+        return self::applyPendingCreaseSelection(
+            $crease['striker_id'],
+            $crease['non_striker_id'],
+            $pending,
+            $balls->isNotEmpty(),
+            $dismissedIds,
+        );
+    }
+
+    /**
      * Merge graphic_session pending_players onto crease resolved from ball history.
      *
      * Pre-innings: pending ids replace empty slots directly.
@@ -184,6 +227,7 @@ class InningsStatsService
      * Otherwise fill any vacant slot (incoming batter after a wicket).
      *
      * @param  array<string, mixed>  $pending
+     * @param  list<int>  $dismissedIds  Out players who must not re-enter via pending.
      * @return array{striker_id: int|null, non_striker_id: int|null}
      */
     public static function applyPendingCreaseSelection(
@@ -191,13 +235,20 @@ class InningsStatsService
         ?int $nonStrikerId,
         array $pending,
         bool $inningsStarted,
+        array $dismissedIds = [],
     ): array {
         if (! $inningsStarted) {
             if (! empty($pending['next_batter_id'])) {
-                $strikerId = (int) $pending['next_batter_id'];
+                $id = (int) $pending['next_batter_id'];
+                if (! in_array($id, $dismissedIds, true)) {
+                    $strikerId = $id;
+                }
             }
             if (! empty($pending['next_non_striker_id'])) {
-                $nonStrikerId = (int) $pending['next_non_striker_id'];
+                $id = (int) $pending['next_non_striker_id'];
+                if (! in_array($id, $dismissedIds, true)) {
+                    $nonStrikerId = $id;
+                }
             }
 
             return ['striker_id' => $strikerId, 'non_striker_id' => $nonStrikerId];
@@ -222,7 +273,7 @@ class InningsStatsService
                 continue;
             }
             $id = (int) $pending[$key];
-            if ($id <= 0 || $strikerId === $id || $nonStrikerId === $id) {
+            if ($id <= 0 || in_array($id, $dismissedIds, true) || $strikerId === $id || $nonStrikerId === $id) {
                 continue;
             }
             if ($strikerId === null) {
@@ -947,7 +998,7 @@ class InningsStatsService
         $bowlerId = $balls->last()?->bowler_id;
 
         if ($balls->isEmpty()) {
-            $merged = self::applyPendingCreaseSelection($strikerId, $nonStrikerId, $pending, false);
+            $merged = self::applyPendingCreaseSelection($strikerId, $nonStrikerId, $pending, false, self::dismissedPlayerIdsFromBalls($balls));
             $strikerId = $merged['striker_id'];
             $nonStrikerId = $merged['non_striker_id'];
             if (! empty($pending['next_bowler_id'])) {
@@ -957,7 +1008,7 @@ class InningsStatsService
             if ($overDetails['over_complete'] && ! empty($pending['next_bowler_id'])) {
                 $bowlerId = (int) $pending['next_bowler_id'];
             }
-            $merged = self::applyPendingCreaseSelection($strikerId, $nonStrikerId, $pending, true);
+            $merged = self::applyPendingCreaseSelection($strikerId, $nonStrikerId, $pending, true, self::dismissedPlayerIdsFromBalls($balls));
             $strikerId = $merged['striker_id'];
             $nonStrikerId = $merged['non_striker_id'];
         }

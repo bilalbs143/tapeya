@@ -53,6 +53,8 @@ class MatchStateService
         $activeInningsData = null;
         $needsNewBatter = false;
         $needsNewBowler = false;
+        $lastDismissalBallId = null;
+        $vacantEnd = null;
         $activeInningsComplete = false;
         $matchComplete = in_array($match->status, [MatchStatusEnum::COMPLETED, MatchStatusEnum::CANCELLED], true);
 
@@ -98,6 +100,15 @@ class MatchStateService
                     && ! $lastBall->isRetiredHurt()
                     && ($activeInningsData['striker'] === null || $activeInningsData['non_striker'] === null);
                 $needsNewBowler = $overDetails['over_complete'] && empty($pending['next_bowler_id']);
+
+                if ($lastBall !== null && (bool) $lastBall->is_wicket && ! $lastBall->isRetiredHurt()) {
+                    $lastDismissalBallId = (int) $lastBall->id;
+                    if ($activeInningsData['striker'] === null) {
+                        $vacantEnd = 'striker';
+                    } elseif ($activeInningsData['non_striker'] === null) {
+                        $vacantEnd = 'non_striker';
+                    }
+                }
             }
         }
 
@@ -157,6 +168,8 @@ class MatchStateService
             'active_innings' => $activeInningsData,
             'needs_new_batter' => $needsNewBatter,
             'needs_new_bowler' => $needsNewBowler,
+            'last_dismissal_ball_id' => $lastDismissalBallId,
+            'vacant_end' => $vacantEnd,
             'innings_just_completed' => $inningsJustCompleted,
             'match_complete' => $matchComplete,
             'match_result' => $matchComplete ? $match->resultSummary() : null,
@@ -196,13 +209,14 @@ class MatchStateService
         $crease = InningsStatsService::resolveCreaseAfterBalls($balls);
         $strikerId = $crease['striker_id'];
         $nonStrikerId = $crease['non_striker_id'];
+        $dismissedIds = InningsStatsService::dismissedPlayerIdsFromBalls($balls);
 
         // PATCH /crease pending_players: openers (no balls yet), vacant slot after wicket,
         // or next bowler between overs.
         $lastBowlerId = $balls->last()?->bowler_id;
 
         if ($balls->isEmpty()) {
-            $merged = InningsStatsService::applyPendingCreaseSelection($strikerId, $nonStrikerId, $pending, false);
+            $merged = InningsStatsService::applyPendingCreaseSelection($strikerId, $nonStrikerId, $pending, false, $dismissedIds);
             $strikerId = $merged['striker_id'];
             $nonStrikerId = $merged['non_striker_id'];
             if (! empty($pending['next_bowler_id'])) {
@@ -212,7 +226,7 @@ class MatchStateService
             if ($overDetails['over_complete'] && ! empty($pending['next_bowler_id'])) {
                 $lastBowlerId = (int) $pending['next_bowler_id'];
             }
-            $merged = InningsStatsService::applyPendingCreaseSelection($strikerId, $nonStrikerId, $pending, true);
+            $merged = InningsStatsService::applyPendingCreaseSelection($strikerId, $nonStrikerId, $pending, true, $dismissedIds);
             $strikerId = $merged['striker_id'];
             $nonStrikerId = $merged['non_striker_id'];
         }

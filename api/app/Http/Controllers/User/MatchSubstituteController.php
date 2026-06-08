@@ -81,30 +81,17 @@ class MatchSubstituteController extends Controller
         $crease = InningsStatsService::resolveCreaseAfterBalls($balls);
         $strikerId = $crease['striker_id'];
         $nonStrikerId = $crease['non_striker_id'];
+        $dismissedIds = InningsStatsService::dismissedPlayerIdsFromBalls($balls);
 
-        if ($balls->isEmpty()) {
-            if (! empty($pending['next_batter_id'])) {
-                $strikerId = (int) $pending['next_batter_id'];
-            }
-            if (! empty($pending['next_non_striker_id'])) {
-                $nonStrikerId = (int) $pending['next_non_striker_id'];
-            }
-        } else {
-            foreach (['next_batter_id', 'next_non_striker_id'] as $key) {
-                if (empty($pending[$key])) {
-                    continue;
-                }
-                $id = (int) $pending[$key];
-                if ($id <= 0 || $strikerId === $id || $nonStrikerId === $id) {
-                    continue;
-                }
-                if ($strikerId === null) {
-                    $strikerId = $id;
-                } elseif ($nonStrikerId === null) {
-                    $nonStrikerId = $id;
-                }
-            }
-        }
+        $merged = InningsStatsService::applyPendingCreaseSelection(
+            $strikerId,
+            $nonStrikerId,
+            $pending,
+            $balls->isNotEmpty(),
+            $dismissedIds,
+        );
+        $strikerId = $merged['striker_id'];
+        $nonStrikerId = $merged['non_striker_id'];
 
         if ($replacedId !== $strikerId && $replacedId !== $nonStrikerId) {
             return $this->failure('The replaced player must be on the crease.', 'VALIDATION_ERROR');

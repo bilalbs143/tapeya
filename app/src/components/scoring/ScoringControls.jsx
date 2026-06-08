@@ -207,7 +207,6 @@ export function ScoringControls({
 }) {
   if (disabled) return null;
 
-  /** Page 1: core extras, overthrow, undo. Page 2: OT variants, penalty, combined wickets, retired hurt. */
   const extrasPage1 = [
     ...extraTypeOptions.map((opt) => (
       <ActionButton key={opt.value} onClick={() => onExtra?.(opt.value)} label={opt.label} className="bg-surface text-white">
