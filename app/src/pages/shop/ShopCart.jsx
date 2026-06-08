@@ -98,22 +98,24 @@ export default function ShopCart() {
   const emptyCart = !isLoading && items.length === 0;
 
   return (
-    <div className="flex flex-col bg-black">
+    <div className="flex flex-1 flex-col bg-black">
       <AppSubpageHeader title="SELECTED ITEMS" />
-      <Container fullWidth>
+      <Container fullWidth className="flex flex-1 flex-col">
         {isLoading ? null : emptyCart ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-4 py-12 text-center">
-            <p className="text-muted text-[14px]">Your cart is empty.</p>
-            <button
-              type="button"
-              onClick={() => navigate('/shop')}
-              className="bg-brand rounded-full px-6 py-3 text-[14px] font-bold text-black"
-            >
-              Continue Shopping
-            </button>
+          <div className="flex flex-1 items-center justify-center">
+            <div className="flex flex-col items-center gap-4 text-center">
+              <p className="text-muted text-[14px]">Your cart is empty.</p>
+              <button
+                type="button"
+                onClick={() => navigate('/shop')}
+                className="bg-brand rounded-full px-6 py-3 text-[14px] font-bold text-black"
+              >
+                Continue Shopping
+              </button>
+            </div>
           </div>
         ) : (
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:gap-6">
+          <div className="flex flex-col gap-3 pb-28 lg:flex-row lg:items-start lg:gap-6 lg:pb-0">
             <div className="min-w-0 flex-1 space-y-3">
               {items.map((item) => (
                 <CartItemCard
@@ -160,8 +162,6 @@ export default function ShopCart() {
                 </div>
               </div>
             </div>
-
-            <div className="h-24 lg:hidden" />
           </div>
         )}
       </Container>
