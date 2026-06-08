@@ -1,5 +1,6 @@
 import { Fragment, useCallback, useMemo, useState } from 'react';
 
+import { FreeHitMicroBadge } from '@/components/scoring/FreeHitIndicator';
 import { useDialog } from '@/context/DialogContext';
 import { useScoringMatch } from '@/context/ScoringMatchContext';
 import { useMatchSquads } from '@/hooks/useMatchSquads';
@@ -61,23 +62,22 @@ function getBallDescription(ball) {
   }
 }
 
-function chipBgClass(variant, isFreeHit) {
-  const ring = isFreeHit ? ' ring-2 ring-brand' : '';
+function chipBgClass(variant) {
   switch (variant) {
     case 'wicket':
-      return `bg-red-600 text-white${ring}`;
+      return 'bg-red-600 text-white';
     case 'retired':
-      return `bg-[#6B7280] text-white${ring}`;
+      return 'bg-[#6B7280] text-white';
     case 'four':
-      return `bg-brand text-ink${ring}`;
+      return 'bg-brand text-ink';
     case 'six':
-      return `bg-[#A855F7] text-white${ring}`;
+      return 'bg-[#A855F7] text-white';
     case 'extra':
-      return `bg-[#1E1E1C] border border-brand text-white${ring}`;
+      return 'bg-[#1E1E1C] border border-brand text-white';
     case 'dot':
-      return `border-2 border-[#3B3B35] bg-surface text-white/60${ring}`;
+      return 'border-2 border-[#3B3B35] bg-surface text-white/60';
     default:
-      return `bg-brand text-ink${ring}`;
+      return 'bg-brand text-ink';
   }
 }
 
@@ -145,19 +145,11 @@ function BallListRow({ overBallLabel, ball, squad, bowlersInTable, bowlerSquad, 
       {/* Ball chip */}
       <div className="relative shrink-0">
         <span
-          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${chipBgClass(variant, isFreeHit)}`}
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${chipBgClass(variant)}`}
         >
           {label}
         </span>
-        {isFreeHit && (
-          <span
-            className="bg-brand text-ink absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full text-[6px] font-black"
-            title="Free Hit"
-            aria-label="Free Hit Delivery"
-          >
-            ⚡
-          </span>
-        )}
+        {isFreeHit ? <FreeHitMicroBadge /> : null}
         {penaltyRuns > 0 && (
           <span
             className="absolute -right-1 -bottom-1 flex h-3 min-w-[12px] items-center justify-center rounded-full bg-[#EF4444] px-0.5 text-[6px] font-black text-white"

@@ -2,7 +2,7 @@
  * OverStrip
  *
  * Horizontal scrollable strip showing ball-by-ball breakdown per over.
- * Free-hit deliveries use the same gold ring + ⚡ badge as BallsTab.
+ * Free-hit deliveries use the bolt corner badge only (no ring on the chip).
  * Left/right arrow buttons scroll the strip.  The strip auto-scrolls to
  * the newest over whenever the ball history changes (done via the
  * onScrollRef callback pattern — see ScoringTab for usage).
@@ -16,24 +16,12 @@
 
 import { useRef } from 'react';
 
+import { FreeHitMicroBadge } from '@/components/scoring/FreeHitIndicator';
 import { getBallDisplay } from '@/lib/utils/ballDisplay';
 import { isLegalDelivery } from '@/lib/utils/cricketRules';
 import { getRunsFromBall } from '@/lib/utils/scoringUtils';
 
-function chipClass(variant, isFreeHit) {
-  if (isFreeHit) {
-    // Gold ring to mark free-hit deliveries (match BallsTab ring weight)
-    switch (variant) {
-      case 'four':
-        return 'bg-brand text-ink ring-1 ring-inset ring-brand';
-      case 'six':
-        return 'bg-[#A855F7] text-white ring-1 ring-inset ring-brand';
-      case 'wicket':
-        return 'bg-[#EF4444] text-white ring-1 ring-inset ring-brand';
-      default:
-        return 'bg-[#2A2A28] text-[#E5E7EB] ring-1 ring-inset ring-brand';
-    }
-  }
+function chipClass(variant) {
   switch (variant) {
     case 'four':
       return 'bg-brand text-ink';
@@ -113,19 +101,11 @@ export function OverStrip({ oversFromBalls = [], scrollRef }) {
                   return (
                     <div key={i} className="relative shrink-0">
                       <span
-                        className={`flex h-7 min-w-[1.75rem] items-center justify-center rounded-md px-1 text-[11px] font-bold ${chipClass(variant, isFreeHit)}`}
+                        className={`flex h-7 min-w-[1.75rem] items-center justify-center rounded-md px-1 text-[11px] font-bold ${chipClass(variant)}`}
                       >
                         {label}
                       </span>
-                      {isFreeHit && (
-                        <span
-                          className="bg-brand text-ink absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[7px] font-black"
-                          title="Free Hit"
-                          aria-label="Free Hit Delivery"
-                        >
-                          ⚡
-                        </span>
-                      )}
+                      {isFreeHit ? <FreeHitMicroBadge /> : null}
                     </div>
                   );
                 })}

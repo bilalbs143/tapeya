@@ -11,6 +11,7 @@
  * Consumers place children after importing this and wrapping with their own
  * outer layout — or use the exported style tokens directly.
  */
+import { FreeHitMicroBadge } from '@/components/scoring/FreeHitIndicator';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 
 const defaultTeamLogo = `${CLOUDFRONT_APP_BASE}/images/standard/team-logo.png`;
@@ -55,38 +56,21 @@ export function BatterNameLabel({ name, onStrike, className = '' }) {
 }
 
 /**
- * Lightning badge on free-hit ball chips (same markup as BallsTab / OverStrip / backoffice).
- */
-export function FreeHitMicroBadge() {
-  return (
-    <span
-      className="bg-brand text-ink absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[7px] font-black"
-      title="Free Hit"
-      aria-label="Free Hit delivery"
-    >
-      ⚡
-    </span>
-  );
-}
-
-/**
  * Returns Tailwind classes for a ball chip, matching the app's BallsTab colour
- * scheme exactly.  Free-hit deliveries end with "*" (e.g. "4*") and receive a
- * gold ring plus the FreeHitMicroBadge overlay in the caller.
+ * scheme exactly. Free-hit deliveries end with "*" (e.g. "4*") and show FreeHitMicroBadge only.
  */
 // eslint-disable-next-line react-refresh/only-export-components
 export function ballChipClass(ball) {
   const isFreeHit = typeof ball === 'string' && ball.endsWith('*');
   const key = isFreeHit ? ball.slice(0, -1) : ball;
-  const ring = isFreeHit ? ' ring-2 ring-brand' : '';
 
-  if (key === 'W') return `bg-red-600 text-white${ring}`;
-  if (key === 'RH') return `bg-[#6B7280] text-white${ring}`;
-  if (key === '4') return `bg-brand text-ink${ring}`;
-  if (key === '6') return `bg-[#A855F7] text-white${ring}`;
-  if (key === '0') return `border border-[#3B3B35] bg-surface text-white/60${ring}`;
-  if (/(WD|NB|LB|B)$/.test(key)) return `bg-[#1E1E1C] border border-brand text-brand${ring}`;
-  return `bg-brand text-ink${ring}`;
+  if (key === 'W') return 'bg-red-600 text-white';
+  if (key === 'RH') return 'bg-[#6B7280] text-white';
+  if (key === '4') return 'bg-brand text-ink';
+  if (key === '6') return 'bg-[#A855F7] text-white';
+  if (key === '0') return 'border border-[#3B3B35] bg-surface text-white/60';
+  if (/(WD|NB|LB|B)$/.test(key)) return 'bg-[#1E1E1C] border border-brand text-brand';
+  return 'bg-brand text-ink';
 }
 
 /**
