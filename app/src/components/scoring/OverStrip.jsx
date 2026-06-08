@@ -20,32 +20,30 @@ import { getBallDisplay } from '@/lib/utils/ballDisplay';
 import { isLegalDelivery } from '@/lib/utils/cricketRules';
 import { getRunsFromBall } from '@/lib/utils/scoringUtils';
 
+const FREE_HIT_INSET_BORDER = 'shadow-[inset_0_0_0_2px_var(--color-brand)]';
+const FREE_HIT_INSET_BORDER_ON_BRAND = 'shadow-[inset_0_0_0_2px_var(--color-ink)]';
+
 function chipClass(variant, isFreeHit) {
-  if (isFreeHit) {
-    // Gold ring to mark free-hit deliveries (match BallsTab ring weight)
-    switch (variant) {
-      case 'four':
-        return 'bg-brand text-ink ring-1 ring-inset ring-brand';
-      case 'six':
-        return 'bg-[#A855F7] text-white ring-1 ring-inset ring-brand';
-      case 'wicket':
-        return 'bg-[#EF4444] text-white ring-1 ring-inset ring-brand';
-      default:
-        return 'bg-[#2A2A28] text-[#E5E7EB] ring-1 ring-inset ring-brand';
-    }
-  }
+  let base;
   switch (variant) {
     case 'four':
-      return 'bg-brand text-ink';
+      base = 'bg-brand text-ink';
+      break;
     case 'six':
-      return 'bg-[#A855F7] text-white';
+      base = 'bg-[#A855F7] text-white';
+      break;
     case 'wicket':
-      return 'bg-[#EF4444] text-white';
+      base = 'bg-[#EF4444] text-white';
+      break;
     case 'retired':
-      return 'bg-[#6B7280] text-white';
+      base = 'bg-[#6B7280] text-white';
+      break;
     default:
-      return 'bg-[#2A2A28] text-[#E5E7EB]';
+      base = 'bg-[#2A2A28] text-[#E5E7EB]';
   }
+  if (!isFreeHit) return base;
+  const inset = variant === 'four' ? FREE_HIT_INSET_BORDER_ON_BRAND : FREE_HIT_INSET_BORDER;
+  return `${base} ${inset}`;
 }
 
 function overOrdinal(n) {
