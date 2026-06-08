@@ -57,7 +57,7 @@ export default function TournamentLeaderboardPanel({
                     className="relative grid grid-cols-[30px_96px_1fr] items-center py-2.5 sm:grid-cols-[44px_120px_1fr] sm:py-3"
                   >
                     <span className="text-[12px] leading-none font-bold text-white sm:text-[20px]">{row.rank}</span>
-                    <span className="text-[20px] leading-none font-bold text-brand sm:text-[30px]">{stat}</span>
+                    <span className="text-brand text-[20px] leading-none font-bold sm:text-[30px]">{stat}</span>
                     <Panel className="leading-none">
                       <p className="text-[14px] font-bold text-white sm:text-[20px]">{row.name}</p>
                       {row.team ? (
@@ -81,8 +81,8 @@ export default function TournamentLeaderboardPanel({
                     className="h-[150px] w-full rounded-[8px] object-cover sm:h-[250px] sm:rounded-[10px]"
                   />
                   <Panel className="pt-4 pb-2 text-center leading-none">
-                    <p className="text-[16px] font-semibold text-brand sm:text-[18px]">{featuredName}</p>
-                    <p className="mt-2 text-[16px] font-semibold text-brand sm:mt-3 sm:text-[18px]">{featuredValue}</p>
+                    <p className="text-brand text-[16px] font-semibold sm:text-[18px]">{featuredName}</p>
+                    <p className="text-brand mt-2 text-[16px] font-semibold sm:mt-3 sm:text-[18px]">{featuredValue}</p>
                   </Panel>
                 </Panel>
               </Panel>

@@ -11,7 +11,7 @@ export default function MatchSummary({ battingTeam = {}, bowlingTeam = {} }) {
   const bowlingCode = bowlingTeam.shortCode || bowlingTeam.name || '—';
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-page">
+    <div className="bg-page relative min-h-screen overflow-hidden">
       <section className="absolute right-0 bottom-0 left-0 overflow-hidden text-white">
         <div className="absolute inset-0">
           <div className="absolute inset-0" style={rightHalfStyle} />
@@ -24,7 +24,7 @@ export default function MatchSummary({ battingTeam = {}, bowlingTeam = {} }) {
               alt={battingTeam.name || 'Batting team'}
               className="h-9 w-9 rounded-full object-cover sm:h-14 sm:w-14"
             />
-            <span className="text-[12px] leading-none font-extrabold text-brand sm:text-[30px]">{battingCode}</span>
+            <span className="text-brand text-[12px] leading-none font-extrabold sm:text-[30px]">{battingCode}</span>
             <div className="ml-1 sm:ml-8">
               <p className="text-[12px] leading-none font-extrabold text-white sm:text-[28px]">{battingTeam.score || ''}</p>
               {battingTeam.overs ? (
@@ -49,7 +49,7 @@ export default function MatchSummary({ battingTeam = {}, bowlingTeam = {} }) {
                 <p className="mt-0.5 text-[9px] leading-none text-[#E2E2E2] sm:mt-1 sm:text-[14px]">{bowlingTeam.overs} Over</p>
               ) : null}
             </div>
-            <span className="text-[12px] leading-none font-extrabold text-brand sm:text-[30px]">{bowlingCode}</span>
+            <span className="text-brand text-[12px] leading-none font-extrabold sm:text-[30px]">{bowlingCode}</span>
             <img
               src={bowlingLogo}
               alt={bowlingTeam.name || 'Bowling team'}

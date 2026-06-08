@@ -63,14 +63,14 @@ export function ManOfTheMatchDialog({ matchId, tournamentId, manOfMatchPickerUse
       </DialogHeaderRow>
 
       <DialogScrollBody className="flex flex-col text-center">
-        <p className="text-[13px] leading-snug text-[#A2A6AB]">{motmSubtitle}</p>
+        <p className="text-muted text-[13px] leading-snug">{motmSubtitle}</p>
         {saveError ? (
           <p className="mt-3 text-[13px] leading-snug text-red-400" role="alert">
             {saveError}
           </p>
         ) : null}
         {manOfMatchCandidates.length === 0 ? (
-          <p className="mt-4 text-[13px] leading-snug text-[#A2A6AB]">
+          <p className="text-muted mt-4 text-[13px] leading-snug">
             No playing eleven found for this match. You can set man of the match later from match details if needed.
           </p>
         ) : (
@@ -87,7 +87,7 @@ export function ManOfTheMatchDialog({ matchId, tournamentId, manOfMatchPickerUse
                       setSaveError(null);
                     }}
                     className={`w-full rounded-[14px] border-2 px-4 py-3 text-left text-[14px] font-medium transition-colors focus:outline-none ${
-                      picked ? 'border-[#DA9811] bg-[#1a1a18] text-white' : 'border-[#141412] bg-[#141412] text-white'
+                      picked ? 'border-brand bg-surface-elevated text-white' : 'bg-surface border-[#141412] text-white'
                     }`}
                   >
                     {p.name}

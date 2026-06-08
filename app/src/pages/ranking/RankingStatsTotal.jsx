@@ -111,12 +111,12 @@ export default function RankingStatsTotal() {
       <AppSubpageHeader title="Stats" />
 
       <Container className="pb-6">
-        <h3 className="mt-0 text-left text-[13px] font-bold tracking-wide text-muted uppercase">{subheading}</h3>
+        <h3 className="text-muted mt-0 text-left text-[13px] font-bold tracking-wide uppercase">{subheading}</h3>
 
         {noDataDirectAccess ? (
-          <p className="mt-3 text-[13px] text-muted">No data available. Go back to Rankings to view stats.</p>
+          <p className="text-muted mt-3 text-[13px]">No data available. Go back to Rankings to view stats.</p>
         ) : (
-          <div className="mt-3 overflow-x-auto overflow-y-hidden border border-surface-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="border-surface-border mt-3 overflow-x-auto overflow-y-hidden border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <table className="w-full min-w-max border-collapse text-[12px] text-white">
               <thead>
                 <tr className={HEADER_BG}>

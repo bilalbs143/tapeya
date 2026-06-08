@@ -281,7 +281,7 @@ export default function TournamentSquad() {
       <div className="bg-black">
         <AppSubpageHeader title={tournament ? `${getTournamentTitle(tournament)} - Squad` : 'Tournaments - Squad'} />
         <Container>
-          <p className="py-6 text-center text-[13px] text-muted">Loading teams…</p>
+          <p className="text-muted py-6 text-center text-[13px]">Loading teams…</p>
         </Container>
       </div>
     );
@@ -300,7 +300,7 @@ export default function TournamentSquad() {
           if (groupTeams.length === 0) return null;
           return (
             <SelectGroup key={groupIndex}>
-              <SelectLabel className="px-3 py-1.5 text-[11px] font-bold tracking-wide text-brand uppercase">
+              <SelectLabel className="text-brand px-3 py-1.5 text-[11px] font-bold tracking-wide uppercase">
                 Group {groupIndex}
               </SelectLabel>
               {groupTeams.map((t) => (
@@ -328,13 +328,13 @@ export default function TournamentSquad() {
           </FormField>
         </div>
 
-        {isLoadingSquad && <p className="mb-3 text-[13px] text-muted">Loading squad…</p>}
+        {isLoadingSquad && <p className="text-muted mb-3 text-[13px]">Loading squad…</p>}
 
-        <div className="mb-5 flex items-stretch gap-3 rounded-[17px] bg-surface p-4">
+        <div className="bg-surface mb-5 flex items-stretch gap-3 rounded-[17px] p-4">
           <TeamLogo team={selectedTeam} variant="organizerCard" />
           <div className="min-w-0 flex-1">
             <h2 className="text-[16px] font-bold text-white">{selectedTeam.name ?? '—'}</h2>
-            <p className="mt-0.5 text-[14px] text-brand">Owner: {owner}</p>
+            <p className="text-brand mt-0.5 text-[14px]">Owner: {owner}</p>
             <p className="mt-0.5 text-[12px] text-white">
               Icon Players: <span className="text-muted">{iconPlayers}</span>
             </p>
@@ -353,25 +353,25 @@ export default function TournamentSquad() {
               onChange={(e) => setFindPlayer(e.target.value)}
               placeholder="Search by Name, Nickname, or Phone…"
               autoComplete="off"
-              className="h-12 w-full rounded-[6px] bg-surface py-3 pr-10 pl-4 text-white placeholder:text-base placeholder:text-muted/47 focus:ring-2 focus:ring-brand/50 focus:outline-none"
+              className="bg-surface placeholder:text-muted/47 focus:ring-brand/50 h-12 w-full rounded-[6px] py-3 pr-10 pl-4 text-white placeholder:text-base focus:ring-2 focus:outline-none"
               aria-label="Find Player"
             />
             {findPlayer && (
               <button
                 type="button"
                 onClick={() => setFindPlayer('')}
-                className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted transition-colors hover:text-white active:opacity-80"
+                className="text-muted absolute inset-y-0 right-0 flex w-10 items-center justify-center transition-colors hover:text-white active:opacity-80"
                 aria-label="Clear Search"
               >
                 <CloseIcon className="h-4 w-4" />
               </button>
             )}
             {showPlayerSearchResults && (
-              <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] bg-surface shadow-lg">
+              <div className="bg-surface absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] shadow-lg">
                 {trimmedFindPlayer.length < MIN_SEARCH_LENGTH ? (
-                  <p className="px-4 py-3 text-[13px] text-muted">Type at least {MIN_SEARCH_LENGTH} characters to search</p>
+                  <p className="text-muted px-4 py-3 text-[13px]">Type at least {MIN_SEARCH_LENGTH} characters to search</p>
                 ) : isSearchingPlayers ? (
-                  <p className="px-4 py-3 text-[13px] text-muted">Searching…</p>
+                  <p className="text-muted px-4 py-3 text-[13px]">Searching…</p>
                 ) : playersToAdd.length > 0 ? (
                   <ul className="py-1">
                     {playersToAdd.map((player) => (
@@ -383,14 +383,14 @@ export default function TournamentSquad() {
                         >
                           <span className="font-semibold text-white">{player.name ?? player.nickname ?? '—'}</span>
                           {(player.playing_role ?? player.playing_role_enum) && (
-                            <span className="text-[13px] text-muted">{player.playing_role ?? player.playing_role_enum}</span>
+                            <span className="text-muted text-[13px]">{player.playing_role ?? player.playing_role_enum}</span>
                           )}
                         </button>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="px-4 py-3 text-[13px] text-muted">
+                  <p className="text-muted px-4 py-3 text-[13px]">
                     {occupiedSearchMatches.length > 0
                       ? `${occupiedSearchMatches[0].name ?? occupiedSearchMatches[0].nickname ?? 'This player'} is already on another team in this tournament.`
                       : playerSearchResults.length > 0
@@ -419,7 +419,7 @@ export default function TournamentSquad() {
             <tbody>
               {!isLoadingSquad && squad.length === 0 && (
                 <tr>
-                  <td colSpan={3} className={`border-r border-b border-l py-6 text-center text-[13px] text-muted ${BORDER}`}>
+                  <td colSpan={3} className={`text-muted border-r border-b border-l py-6 text-center text-[13px] ${BORDER}`}>
                     {squadEmptyMessage}
                   </td>
                 </tr>

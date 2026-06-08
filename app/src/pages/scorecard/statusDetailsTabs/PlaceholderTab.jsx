@@ -4,7 +4,7 @@
 export function StatusDetailsPlaceholderTab({ label = 'Coming soon' }) {
   return (
     <div className="flex items-center justify-center py-16">
-      <p className="text-[13px] text-muted">{label}</p>
+      <p className="text-muted text-[13px]">{label}</p>
     </div>
   );
 }

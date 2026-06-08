@@ -49,6 +49,15 @@ export function getFreeHitDismissalOptions(options) {
   return options.filter((o) => (o.valid_on_free_hit !== undefined ? o.valid_on_free_hit : FREE_HIT_TYPES.has(o.value)));
 }
 
+/**
+ * @param {object[]} options
+ * @param {Set<string>} allowedValues
+ */
+export function filterDismissalOptions(options, allowedValues) {
+  if (!Array.isArray(options) || !(allowedValues instanceof Set)) return [];
+  return options.filter((o) => allowedValues.has(o.value));
+}
+
 // ─── Extra type options ───────────────────────────────────────────────────────
 
 /**
@@ -182,10 +191,14 @@ export function apiBallToUiBall(apiBall, playerIdToName = {}) {
     is_leg_bye: isLegBye = false,
     is_free_hit: isFreeHit = false,
     penalty_runs: penaltyRuns = 0,
+    additional_runs: additionalRuns = 0,
     dismissal_type: dismissalType = null,
     dismissal_type_label: dismissalLabel,
     fielder_id: fielderId,
+    dont_count_ball: dontCountBall = false,
+    dismissal_delivery_type: dismissalDeliveryType = null,
     shot_position: shotPosition,
+    overthrow_delivery_type: overthrowDeliveryType = null,
     striker_id: strikerId,
     non_striker_id: nonStrikerId,
     bowler_id: bowlerId,
@@ -195,11 +208,22 @@ export function apiBallToUiBall(apiBall, playerIdToName = {}) {
   const penaltyOnly =
     !isWicket && !isWide && !isNoBall && !isBye && !isLegBye && (Number(penaltyRuns) || 0) > 0 && (Number(runs) || 0) === 0;
 
+  const additionalOnly =
+    !isWicket &&
+    !isWide &&
+    !isNoBall &&
+    !isBye &&
+    !isLegBye &&
+    (Number(additionalRuns) || 0) > 0 &&
+    (Number(penaltyRuns) || 0) === 0 &&
+    (Number(runs) || 0) === 0;
+
   // Determine UI ball type
   let type = 'runs';
   if (isWicket) {
     type = dismissalType === 'retired_hurt' ? 'retired_hurt' : 'out';
   } else if (penaltyOnly) type = 'penalty';
+  else if (additionalOnly) type = 'additional_runs';
   else if (isWide) type = 'wd';
   else if (isNoBall) type = 'nb';
   else if (isBye) type = 'bye';
@@ -208,12 +232,16 @@ export function apiBallToUiBall(apiBall, playerIdToName = {}) {
   const ui = {
     type,
     // WD/NB always contribute at least 1 run even if API sends 0.
-    runs: type === 'wd' || type === 'nb' ? Math.max(1, runs) : type === 'penalty' ? 0 : runs,
+    runs: type === 'wd' || type === 'nb' ? Math.max(1, runs) : type === 'penalty' || type === 'additional_runs' ? 0 : runs,
     // Carry runs_off_bat so uiBallToStoreBallPayload round-trips correctly
     // can distinguish batter runs from the implicit NB/WD penalty without arithmetic.
     runsOffBat: Number(apiBall.runs_off_bat ?? 0),
+    noBallType: apiBall.no_ball_type ?? undefined,
+    noBallRunsType: apiBall.no_ball_runs_type ?? undefined,
+    overthrowDeliveryType: overthrowDeliveryType ?? undefined,
     isFreeHit: Boolean(isFreeHit),
     penaltyRuns: penaltyRuns || 0,
+    additionalRuns: additionalRuns || 0,
     strikerId,
     nonStrikerId,
     bowlerId,
@@ -226,6 +254,12 @@ export function apiBallToUiBall(apiBall, playerIdToName = {}) {
     ui.dismissalType = dismissalType ?? null;
     ui.dismissalLabel = dismissalLabel ?? undefined;
     ui.fielderId = fielderId ?? undefined;
+    ui.dontCountBall = dontCountBall ?? undefined;
+    ui.dismissalDeliveryType = dismissalDeliveryType ?? undefined;
+    if (isWide) {
+      ui.isWide = true;
+      ui.runs = Math.max(1, Number(runs) || 0);
+    }
     ui.striker = {
       id: outId,
       name: playerIdToName[outId] ?? '',
@@ -335,8 +369,32 @@ export function uiBallToStoreBallPayload({ ball, nonStrikerId, fielderId }) {
   const isNoBall = type === 'nb';
   const isBye = type === 'bye';
   const isLegBye = type === 'lb';
+  const isOverthrow = type === 'overthrow';
+  const isPenalty = type === 'penalty';
   const isWicket = type === 'out';
   const isRetiredHurt = type === 'retired_hurt';
+
+  if (isPenalty) {
+    return {
+      striker_id: Number(ball.strikerId ?? ball.striker?.id),
+      non_striker_id: Number(nonStrikerId),
+      bowler_id: Number(ball.bowlerId),
+      runs_off_bat: 0,
+      extra_runs: 0,
+      is_no_ball: false,
+      is_wide: false,
+      is_leg_bye: false,
+      is_bye: false,
+      penalty_runs: Number(ball.penaltyRuns ?? 0),
+      penalty_team: ball.penaltyTeam ?? 'batting',
+      penalty_reason: ball.penaltyReason ?? null,
+      is_wicket: false,
+      dismissal_type: null,
+      out_player_id: null,
+      fielder_id: null,
+      shot_position: null,
+    };
+  }
 
   // runs_off_bat: batter-scored runs only (0 for all extras).
   // extra_runs: byes/leg-byes/overthrows on top of the mandatory WD/NB penalty.
@@ -346,10 +404,16 @@ export function uiBallToStoreBallPayload({ ball, nonStrikerId, fielderId }) {
   if (type === 'runs') {
     runsOffBat = ball.runs ?? 0;
   } else if (isNoBall) {
-    // ball.runsOffBat is set explicitly by handleSpecial (new ball) and apiBallToUiBall
-    // (round-trip from API). Prefer it; fall back to subtracting the implicit 1-run
-    // penalty from the total only when the field is absent (legacy data).
-    runsOffBat = ball.runsOffBat != null ? Number(ball.runsOffBat) : Math.max(0, (ball.runs ?? 1) - 1);
+    if (ball.byeOnNoBall || ball.noBallRunsType === 'bye') {
+      runsOffBat = 0;
+      extraRuns = ball.extraRuns != null ? Number(ball.extraRuns) : Math.max(0, (ball.runs ?? 1) - 1);
+    } else if (ball.legByeOnNoBall || ball.noBallRunsType === 'leg_bye') {
+      runsOffBat = 0;
+      extraRuns = ball.extraRuns != null ? Number(ball.extraRuns) : Math.max(0, (ball.runs ?? 1) - 1);
+    } else {
+      runsOffBat = ball.runsOffBat != null ? Number(ball.runsOffBat) : Math.max(0, (ball.runs ?? 1) - 1);
+      extraRuns = 0;
+    }
   } else if (isWide) {
     // ball.extraRuns is set explicitly by handleSpecial (new ball) as the overthrow/extra
     // runs selected in the dialog. Fall back to total-minus-penalty for the update path
@@ -357,28 +421,61 @@ export function uiBallToStoreBallPayload({ ball, nonStrikerId, fielderId }) {
     extraRuns = ball.extraRuns != null ? Number(ball.extraRuns) : Math.max(0, (ball.runs ?? 1) - 1);
   } else if (isBye || isLegBye) {
     extraRuns = ball.runs ?? 0;
+  } else if (isOverthrow) {
+    extraRuns = ball.overthrowRuns != null ? Number(ball.overthrowRuns) : 0;
   }
 
   const rawDismissal = isWicket || isRetiredHurt ? (ball.dismissalType ?? null) : null;
   const dismissalValue = rawDismissal
     ? typeof rawDismissal === 'string' && rawDismissal.includes('_')
       ? rawDismissal
-      : dismissalLabelToValue(rawDismissal)
+      : // Fallback slugify path — only for legacy/custom string labels without enum underscores.
+        dismissalLabelToValue(rawDismissal)
     : null;
 
-  const outPlayerId = isWicket || isRetiredHurt ? Number(ball.striker?.id ?? ball.strikerId) : null;
+  const isRunOut = dismissalValue === 'run_out';
+  const isObstruct = dismissalValue === 'obstructing_the_field';
+  const isRetiredHurtDismissal = dismissalValue === 'retired_hurt';
+  const isRetiredOut = dismissalValue === 'retired';
+  const isMankad = dismissalValue === 'mankad';
+  const isTimedOut = dismissalValue === 'timed_out';
+  const usesExplicitOutPlayer = isRunOut || isObstruct || isRetiredHurtDismissal || isRetiredOut || isMankad || isTimedOut;
+  const usesDismissalDeliveryMeta = isObstruct || isRetiredHurtDismissal || isRetiredOut;
+  const usesDontCountBallOnly = isTimedOut;
+  const combinedWideWicket = isWicket && Boolean(ball.isWide);
+  const combinedNoBallWicket = isWicket && Boolean(ball.isNoBall);
 
-  const resolvedFielderId =
+  const _rawOutPlayerId =
+    isWicket || isRetiredHurt
+      ? (ball.outPlayerId ??
+        (usesExplicitOutPlayer ? (ball.strikerId ?? ball.striker?.id) : (ball.striker?.id ?? ball.strikerId)))
+      : null;
+
+  if ((isWicket || isRetiredHurt) && (_rawOutPlayerId == null || Number.isNaN(Number(_rawOutPlayerId)))) {
+    throw new Error('Cannot determine dismissed batter — outPlayerId is missing. Please select who is out before submitting.');
+  }
+
+  const outPlayerId = _rawOutPlayerId != null ? Number(_rawOutPlayerId) : null;
+
+  let resolvedFielderId =
     (isWicket || isRetiredHurt) && (fielderId ?? ball.fielderId) != null ? Number(fielderId ?? ball.fielderId) : null;
+  if (isMankad) {
+    resolvedFielderId = Number(ball.fielderId ?? ball.bowlerId);
+  }
+
+  const resolvedNonStrikerId = ball.nonStrikerId != null ? Number(ball.nonStrikerId) : Number(nonStrikerId);
 
   return {
     striker_id: Number(ball.strikerId ?? ball.striker?.id),
-    non_striker_id: Number(nonStrikerId),
+    non_striker_id: resolvedNonStrikerId,
     bowler_id: Number(ball.bowlerId),
     runs_off_bat: runsOffBat,
     extra_runs: extraRuns,
-    is_no_ball: isNoBall,
-    is_wide: isWide,
+    is_no_ball: isNoBall || combinedNoBallWicket,
+    no_ball_type: isNoBall || combinedNoBallWicket ? (ball.noBallType ?? null) : null,
+    no_ball_runs_type: isNoBall || combinedNoBallWicket ? (ball.noBallRunsType ?? null) : null,
+    overthrow_delivery_type: isOverthrow ? (ball.overthrowDeliveryType ?? null) : null,
+    is_wide: isWide || combinedWideWicket,
     is_leg_bye: isLegBye,
     is_bye: isBye,
     penalty_runs: Number(ball.penaltyRuns ?? 0),
@@ -388,6 +485,12 @@ export function uiBallToStoreBallPayload({ ball, nonStrikerId, fielderId }) {
     dismissal_type: dismissalValue,
     out_player_id: outPlayerId,
     fielder_id: resolvedFielderId,
+    runout_extra_runs: isRunOut ? Number(ball.runoutExtraRuns ?? 0) : null,
+    runout_run_type: isRunOut ? (ball.runoutRunType ?? 'from_bat') : null,
+    batter_crossed: isRunOut && ball.batterCrossed != null ? Boolean(ball.batterCrossed) : null,
+    dont_count_ball:
+      (usesDismissalDeliveryMeta || usesDontCountBallOnly) && ball.dontCountBall != null ? Boolean(ball.dontCountBall) : null,
+    dismissal_delivery_type: usesDismissalDeliveryMeta ? (ball.dismissalDeliveryType ?? null) : null,
     shot_position: ball.shotDirection ?? null,
   };
 }

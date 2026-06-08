@@ -109,7 +109,7 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
             <span className="rounded bg-[#E53935] px-1.5 py-0.5 text-[10px] font-bold text-white uppercase">Live</span>
           )}
           {match.group_index != null && (
-            <span className="rounded bg-surface-border px-2 py-0.5 text-[11px] font-medium text-muted">
+            <span className="bg-surface-border text-muted rounded px-2 py-0.5 text-[11px] font-medium">
               Group {match.group_index}
             </span>
           )}
@@ -124,7 +124,7 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
             <TeamAvatar team={t1} accent="green" />
             <span className="truncate text-[14px] font-semibold text-white">{t1.name}</span>
           </div>
-          <span className="shrink-0 text-[14px] font-semibold text-brand">VS</span>
+          <span className="text-brand shrink-0 text-[14px] font-semibold">VS</span>
           <div className="flex min-w-0 items-center justify-end gap-2">
             <TeamAvatar team={t2} accent="orange" />
             <span className="truncate text-[14px] font-semibold text-white">{t2.name}</span>
@@ -146,9 +146,9 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
             </div>
             {score2 != null && score2 !== '' && (
               <span className="shrink-0 text-right">
-                {liveScore2?.overs && <span className="text-[13px] text-muted">{liveScore2.overs}</span>}
+                {liveScore2?.overs && <span className="text-muted text-[13px]">{liveScore2.overs}</span>}
                 {liveScore2?.overs && ' '}
-                <span className="text-[14px] font-bold text-brand">{liveScore2?.current ?? score2}</span>
+                <span className="text-brand text-[14px] font-bold">{liveScore2?.current ?? score2}</span>
               </span>
             )}
           </div>
@@ -179,13 +179,10 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
             if (!leagueId) return null;
             return (
               <>
-                <Link
-                  to={`/scorecard/${leagueId}?tab=schedule`}
-                  className="text-[14px] text-muted underline underline-offset-2"
-                >
+                <Link to={`/scorecard/${leagueId}?tab=schedule`} className="text-muted text-[14px] underline underline-offset-2">
                   Schedule
                 </Link>
-                <Link to={`/scorecard/${leagueId}?tab=table`} className="text-[14px] text-muted underline underline-offset-2">
+                <Link to={`/scorecard/${leagueId}?tab=table`} className="text-muted text-[14px] underline underline-offset-2">
                   Table
                 </Link>
               </>
@@ -198,11 +195,11 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
 
   if (to) {
     return (
-      <Link to={to} className="block rounded-[17px] bg-surface p-4 transition-opacity active:opacity-90">
+      <Link to={to} className="bg-surface block rounded-[17px] p-4 transition-opacity active:opacity-90">
         {cardInner}
       </Link>
     );
   }
 
-  return <div className="rounded-[17px] bg-surface p-4">{cardInner}</div>;
+  return <div className="bg-surface rounded-[17px] p-4">{cardInner}</div>;
 }

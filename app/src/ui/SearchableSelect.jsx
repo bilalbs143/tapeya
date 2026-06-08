@@ -1,11 +1,22 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 
+import { RemoveScroll } from 'react-remove-scroll';
+
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/Popover';
 import { selectItemInputClass, selectTriggerInputClass } from '@/ui/Select';
 
 function ChevronIcon({ className = '' }) {
   return (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden>
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className={className}
+      aria-hidden
+    >
       <path d="M3 4.5L6 7.5L9 4.5" />
     </svg>
   );
@@ -66,7 +77,7 @@ export function SearchableSelect({
       setQuery('');
       setHighlightIndex(options.findIndex((o) => o.value === value));
     }
-  }, [open]);  
+  }, [open]);
 
   useEffect(() => {
     setHighlightIndex(-1);
@@ -131,7 +142,9 @@ export function SearchableSelect({
           aria-controls={open ? listId : undefined}
           className={`flex items-center justify-between ${selectTriggerInputClass} ${className}`.trim()}
         >
-          <span className={displayValue ? 'min-w-0 flex-1 truncate text-left' : 'min-w-0 flex-1 truncate text-left text-[#A2A6AB78]'}>
+          <span
+            className={displayValue ? 'min-w-0 flex-1 truncate text-left' : 'min-w-0 flex-1 truncate text-left text-[#A2A6AB78]'}
+          >
             {displayValue || placeholder}
           </span>
           {loading ? <SpinnerIcon /> : <ChevronIcon className="shrink-0 text-white" />}
@@ -143,52 +156,57 @@ export function SearchableSelect({
         sideOffset={4}
         className="z-[110] w-[var(--radix-popover-trigger-width)] !rounded-xl !border-0 !bg-[#141412] !p-0 shadow-lg"
       >
-        <div className="border-b border-white/10 p-2">
-          <input
-            ref={searchRef}
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleSearchKeyDown}
-            placeholder={searchPlaceholder}
-            autoComplete="off"
-            className="h-10 w-full rounded-md bg-[#1C1C1A] px-3 text-sm text-white placeholder:text-[#A2A6AB78] focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50"
-            aria-controls={listId}
-            aria-label={searchPlaceholder}
-          />
-        </div>
+        {/* RemoveScroll takes over the lockStack when this portal is open so that
+            react-remove-scroll (mounted by the parent Dialog) no longer treats
+            touch/wheel events here as "outside" and calls preventDefault on them. */}
+        <RemoveScroll enabled={open} removeScrollBar={false} className="flex flex-col">
+          <div className="border-b border-white/10 p-2">
+            <input
+              ref={searchRef}
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              placeholder={searchPlaceholder}
+              autoComplete="off"
+              className="h-10 w-full rounded-md bg-[#1C1C1A] px-3 text-sm text-white placeholder:text-[#A2A6AB78] focus:ring-2 focus:ring-[#FF9700]/50 focus:outline-none"
+              aria-controls={listId}
+              aria-label={searchPlaceholder}
+            />
+          </div>
 
-        <ul
-          id={listId}
-          role="listbox"
-          className="max-h-60 overflow-y-auto p-1 [scrollbar-width:thin]"
-          aria-label={ariaLabel ?? placeholder}
-        >
-          {filtered.length === 0 ? (
-            <li className="px-4 py-3 text-center text-sm text-[#A2A6AB]">No results found</li>
-          ) : (
-            filtered.map((option, index) => {
-              const isSelected = option.value === value;
-              const isHighlighted = index === highlightIndex;
-              return (
-                <li key={`${option.value}-${option.label}`} role="presentation">
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={isSelected}
-                    onMouseEnter={() => setHighlightIndex(index)}
-                    onClick={() => selectOption(option.value)}
-                    className={`${selectItemInputClass} w-full text-left ${
-                      isHighlighted || isSelected ? '!bg-white/10' : ''
-                    }`.trim()}
-                  >
-                    {option.label}
-                  </button>
-                </li>
-              );
-            })
-          )}
-        </ul>
+          <ul
+            id={listId}
+            role="listbox"
+            className="max-h-60 overflow-y-auto p-1 [scrollbar-width:thin]"
+            aria-label={ariaLabel ?? placeholder}
+          >
+            {filtered.length === 0 ? (
+              <li className="px-4 py-3 text-center text-sm text-[#A2A6AB]">No results found</li>
+            ) : (
+              filtered.map((option, index) => {
+                const isSelected = option.value === value;
+                const isHighlighted = index === highlightIndex;
+                return (
+                  <li key={`${option.value}-${option.label}`} role="presentation">
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      onMouseEnter={() => setHighlightIndex(index)}
+                      onClick={() => selectOption(option.value)}
+                      className={`${selectItemInputClass} w-full text-left ${
+                        isHighlighted || isSelected ? '!bg-white/10' : ''
+                      }`.trim()}
+                    >
+                      {option.label}
+                    </button>
+                  </li>
+                );
+              })
+            )}
+          </ul>
+        </RemoveScroll>
       </PopoverContent>
     </Popover>
   );

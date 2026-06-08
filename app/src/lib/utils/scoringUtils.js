@@ -10,26 +10,6 @@ import { isLegalDelivery } from './cricketRules';
 // ─── Date / time formatting ───────────────────────────────────────────────────
 
 /**
- * Format date for API (YYYY-MM-DD).
- * Accepts YYYY-MM-DD, MM-DD-YYYY, or Date objects.
- */
-export function formatDateForApi(value) {
-  if (!value) return '';
-  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
-  const mmdd = (value ?? '').match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
-  if (mmdd) {
-    const [, mm, dd, yyyy] = mmdd;
-    return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
-  }
-  try {
-    const d = value instanceof Date ? value : new Date(value);
-    return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
-  } catch {
-    return '';
-  }
-}
-
-/**
  * Format time for API (HH:mm). Normalises single-digit minutes ("2:5" → "2:05").
  */
 export function formatTimeForApi(value) {
@@ -60,13 +40,18 @@ function normaliseBallType(ball) {
   if (pr > 0 && !ball.is_wicket && Number(ball.runs ?? 0) === 0) {
     return { ...ball, type: 'penalty', penaltyRuns: pr, runs: 0 };
   }
+  const ar = Number(ball.additional_runs ?? ball.additionalRuns ?? 0) || 0;
+  if (ar > 0 && !ball.is_wicket && Number(ball.runs ?? 0) === 0) {
+    return { ...ball, type: 'additional_runs', additionalRuns: ar, runs: 0 };
+  }
   return { ...ball, type: 'runs' };
 }
 
 // ─── Pre-ball crease (PATCH /matches/:id/crease) ─────────────────────────────
 
 /**
- * Build the API patch for pending openers / bowler before the first ball.
+ * Build the API patch for pending striker / non-striker (and optional bowler).
+ * Used before the first ball and mid-innings to swap ends via PATCH /crease.
  * Striker is always `batsmenOnCrease[strikerIndex]`; non-striker is the other slot.
  *
  * @returns {{ next_batter_id?: number, next_non_striker_id?: number, next_bowler_id?: number }}
@@ -110,6 +95,7 @@ export function getRunsFromBall(ball) {
   if (!b) return 0;
   // 'out' and 'retired_hurt' contribute 0 batting runs (runs field may be absent).
   if (b.type === 'out' || b.type === 'retired_hurt') return 0;
+  if (b.type === 'additional_runs') return Number(b.additionalRuns ?? b.additional_runs ?? 0) || 0;
   const pr = Number(b.penaltyRuns ?? b.penalty_runs ?? 0) || 0;
   return (b.runs ?? 0) + pr;
 }
@@ -232,7 +218,7 @@ export function buildBallListWithMetaAndOverSummaries(ballHistory) {
       if (!isExtra) bws.balls += 1;
       if (ball.type === 'out' && ball.dismissalType !== 'retired_hurt') bws.wickets += 1;
       currentOverBowlerId = bowlerId;
-      currentOverBowlerRuns = ballRuns;
+      currentOverBowlerRuns += ballRuns;
     }
 
     cumulativeRuns += getRunsFromBall(ball);

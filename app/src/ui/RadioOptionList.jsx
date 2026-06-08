@@ -11,7 +11,7 @@
 export function RadioOptionList({ options, value, onChange, ariaLabel, className = '' }) {
   return (
     <ul className={`flex flex-col gap-2 ${className}`} role="radiogroup" aria-label={ariaLabel}>
-      {options.length === 0 && <li className="text-[13px] text-muted">Loading options…</li>}
+      {options.length === 0 && <li className="text-muted text-[13px]">Loading options…</li>}
       {options.map((opt) => {
         const selected = value === opt.value;
         return (
@@ -21,8 +21,8 @@ export function RadioOptionList({ options, value, onChange, ariaLabel, className
               role="radio"
               aria-checked={selected}
               onClick={() => onChange(opt.value)}
-              className={`flex w-full items-center gap-3 rounded-[10px] border-2 px-4 py-3 text-left text-[13px] text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
-                selected ? 'border-brand bg-surface-raised' : 'border-[#141412] bg-surface'
+              className={`focus-visible:ring-brand flex w-full items-center gap-3 rounded-[10px] border-2 px-4 py-3 text-left text-[13px] text-white transition-colors focus:outline-none focus-visible:ring-2 ${
+                selected ? 'border-brand bg-surface-raised' : 'bg-surface border-[#141412]'
               }`}
             >
               <span
@@ -31,7 +31,7 @@ export function RadioOptionList({ options, value, onChange, ariaLabel, className
                 }`}
                 aria-hidden
               >
-                {selected ? <span className="h-2 w-2 rounded-full bg-brand" /> : null}
+                {selected ? <span className="bg-brand h-2 w-2 rounded-full" /> : null}
               </span>
               {opt.label}
             </button>

@@ -24,13 +24,13 @@ export default function TournamentOver({ homeTeam = {}, awayTeam = {} }) {
   const awayOvers = awayTeam.overs || '';
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-page">
+    <div className="bg-page relative min-h-screen overflow-hidden">
       <section className="absolute right-0 bottom-0 left-0 text-white">
         <div className="relative w-full overflow-hidden px-4 py-2 sm:px-10 sm:py-4" style={panelStyle}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 sm:gap-4">
               <img src={homeLogo} alt={homeName} className="h-14 w-14 rounded-full object-cover sm:h-18 sm:w-18" />
-              <p className="text-[12px] leading-none font-extrabold text-brand sm:text-[24px]">{homeName}</p>
+              <p className="text-brand text-[12px] leading-none font-extrabold sm:text-[24px]">{homeName}</p>
             </div>
 
             <div className="mx-2 flex items-center sm:mx-6">
@@ -50,7 +50,7 @@ export default function TournamentOver({ homeTeam = {}, awayTeam = {} }) {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-4">
-              <p className="text-right text-[12px] leading-none font-extrabold text-brand sm:text-[24px]">{awayName}</p>
+              <p className="text-brand text-right text-[12px] leading-none font-extrabold sm:text-[24px]">{awayName}</p>
               <img src={awayLogo} alt={awayName} className="h-14 w-14 rounded-full object-cover sm:h-18 sm:w-18" />
             </div>
           </div>

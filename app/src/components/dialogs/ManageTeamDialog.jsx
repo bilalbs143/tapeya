@@ -431,16 +431,16 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
                   <button
                     type="button"
                     onClick={handleChangeTeam}
-                    className="absolute top-0 right-0 bottom-0 flex w-10 items-center justify-center text-muted transition-colors hover:text-white active:opacity-80"
+                    className="text-muted absolute top-0 right-0 bottom-0 flex w-10 items-center justify-center transition-colors hover:text-white active:opacity-80"
                     aria-label="Change Team"
                   >
                     <CloseIcon />
                   </button>
                 ) : null}
                 {showTeamNameDropdown ? (
-                  <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-48 overflow-auto rounded-[6px] border border-[#141412] bg-surface shadow-lg">
+                  <div className="bg-surface absolute top-full right-0 left-0 z-10 mt-1 max-h-48 overflow-auto rounded-[6px] border border-[#141412] shadow-lg">
                     {isSearchingTeams ? (
-                      <p className="px-4 py-3 text-[13px] text-muted capitalize">Searching…</p>
+                      <p className="text-muted px-4 py-3 text-[13px] capitalize">Searching…</p>
                     ) : searchResults.length > 0 ? (
                       <ul className="py-1">
                         {searchResults.map((result) => (
@@ -451,7 +451,7 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
                               className="flex w-full cursor-pointer flex-col gap-0.5 px-4 py-3 text-left transition-colors hover:bg-white/10"
                             >
                               <span className="font-semibold text-white">{result.name}</span>
-                              <span className="text-[13px] text-muted">
+                              <span className="text-muted text-[13px]">
                                 Code: {result.code}
                                 {result.sponsor?.name ? ` · ${result.sponsor.name}` : ''}
                               </span>
@@ -460,7 +460,7 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
                         ))}
                       </ul>
                     ) : (
-                      <p className="px-4 py-3 text-[13px] text-muted capitalize">No team found. Add new team below.</p>
+                      <p className="text-muted px-4 py-3 text-[13px] capitalize">No team found. Add new team below.</p>
                     )}
                   </div>
                 ) : null}
@@ -526,22 +526,22 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
                         setSponsorSearch('');
                         setSponsorDropdownOpen(true);
                       }}
-                      className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted transition-colors hover:text-white"
+                      className="text-muted absolute inset-y-0 right-0 flex w-10 items-center justify-center transition-colors hover:text-white"
                       aria-label="Clear Sponsor"
                     >
                       <CloseIcon />
                     </button>
                   )}
                   {showSponsorDropdown && (
-                    <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] bg-surface shadow-lg">
+                    <div className="bg-surface absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] shadow-lg">
                       {debouncedSponsorSearch.length < MIN_SEARCH_LENGTH ? (
-                        <p className="px-3 py-4 text-center text-[13px] text-muted">
+                        <p className="text-muted px-3 py-4 text-center text-[13px]">
                           Type at least {MIN_SEARCH_LENGTH} characters to search
                         </p>
                       ) : isSearchingSponsors ? (
-                        <p className="px-3 py-4 text-center text-[13px] text-muted">Searching…</p>
+                        <p className="text-muted px-3 py-4 text-center text-[13px]">Searching…</p>
                       ) : sponsorsList.length === 0 ? (
-                        <p className="px-3 py-4 text-center text-[13px] text-muted">No users found</p>
+                        <p className="text-muted px-3 py-4 text-center text-[13px]">No users found</p>
                       ) : (
                         <ul>
                           {sponsorsList.map((s) => (
@@ -630,24 +630,24 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
                             setIconPlayerIdToName({});
                             closeIconPlayerPanel();
                           }}
-                          className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted transition-colors hover:text-white"
+                          className="text-muted absolute inset-y-0 right-0 flex w-10 items-center justify-center transition-colors hover:text-white"
                           aria-label="Clear Icon Players"
                         >
                           <CloseIcon />
                         </button>
                       )}
                       {iconPlayerPanelOpen && !isReadonly && (
-                        <div className="absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] bg-surface shadow-lg">
+                        <div className="bg-surface absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-auto rounded-[6px] border border-[#141412] shadow-lg">
                           {iconPlayerSearch.trim().length === 0 ? (
-                            <p className="px-3 py-4 text-center text-[13px] text-muted">Type to search players…</p>
+                            <p className="text-muted px-3 py-4 text-center text-[13px]">Type to search players…</p>
                           ) : debouncedIconPlayerSearch.length < MIN_SEARCH_LENGTH ? (
-                            <p className="px-3 py-4 text-center text-[13px] text-muted">
+                            <p className="text-muted px-3 py-4 text-center text-[13px]">
                               Type at least {MIN_SEARCH_LENGTH} characters
                             </p>
                           ) : isSearchingPlayers ? (
-                            <p className="px-3 py-4 text-center text-[13px] text-muted">Searching…</p>
+                            <p className="text-muted px-3 py-4 text-center text-[13px]">Searching…</p>
                           ) : playersList.length === 0 ? (
-                            <p className="px-3 py-4 text-center text-[13px] text-muted">No players found</p>
+                            <p className="text-muted px-3 py-4 text-center text-[13px]">No players found</p>
                           ) : (
                             <div>
                               {playersList.map((player) => {
@@ -680,7 +680,7 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
                                       />
                                       <span className="truncate">{playerLineLabel(player)}</span>
                                       {(player.playing_role ?? player.playing_role_enum) && (
-                                        <span className="ml-auto shrink-0 text-[12px] text-muted">
+                                        <span className="text-muted ml-auto shrink-0 text-[12px]">
                                           {player.playing_role ?? player.playing_role_enum}
                                         </span>
                                       )}
@@ -694,7 +694,7 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
                       )}
                     </div>
                     {(field.value?.length ?? 0) > 0 && (
-                      <p className="text-[13px] text-muted">
+                      <p className="text-muted text-[13px]">
                         {field.value.length} player{field.value.length === 1 ? '' : 's'} selected
                       </p>
                     )}
@@ -716,8 +716,8 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
             />
           ) : selectedTeam?.logo && String(selectedTeam.logo).trim() !== '' ? (
             <FormField label="Logo" htmlFor="team_logo_display">
-              <div className="flex h-12 items-center rounded-[6px] bg-surface px-4">
-                <span className="text-[16px] text-muted capitalize">Logo uploaded</span>
+              <div className="bg-surface flex h-12 items-center rounded-[6px] px-4">
+                <span className="text-muted text-[16px] capitalize">Logo uploaded</span>
               </div>
             </FormField>
           ) : null}

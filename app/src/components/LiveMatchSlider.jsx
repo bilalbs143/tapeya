@@ -21,10 +21,10 @@ export function LiveMatchSlider({ matches = [], showViewMore = true }) {
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 shrink-0 rounded-full bg-red-500" aria-hidden />
-          <h2 className="text-[13px] font-bold tracking-wide text-muted uppercase md:text-[16px]">Live now</h2>
+          <h2 className="text-muted text-[13px] font-bold tracking-wide uppercase md:text-[16px]">Live now</h2>
         </div>
         {showViewMore && (
-          <Link to="/live" className="text-[12px] font-bold text-brand transition-opacity active:opacity-80 md:text-[16px]">
+          <Link to="/live" className="text-brand text-[12px] font-bold transition-opacity active:opacity-80 md:text-[16px]">
             View more
           </Link>
         )}

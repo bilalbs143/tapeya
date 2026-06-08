@@ -7,8 +7,8 @@ const FALLBACK_IMAGE = `${CLOUDFRONT_APP_BASE}/images/standard/live-img-1.png`;
  */
 export function LiveEventCard({ image, title, line2, line3, isLive = false }) {
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-[20px] bg-surface-border">
-      <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden bg-surface-deep">
+    <article className="bg-surface-border flex h-full flex-col overflow-hidden rounded-[20px]">
+      <div className="bg-surface-deep relative aspect-[16/10] w-full shrink-0 overflow-hidden">
         <img
           src={image}
           alt=""

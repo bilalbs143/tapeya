@@ -18,24 +18,3 @@ export const DISMISSAL_GRID_CAUGHT_BEHIND = {
   requires_fielder: true,
   caughtVariant: 'behind',
 };
-
-/**
- * Inserts Caught Bowled / Caught Behind immediately after the generic Caught option.
- *
- * @param {object[]} dismissalOptions From {@link getDismissalOptions}
- */
-export function injectCaughtDismissalVariants(dismissalOptions) {
-  if (!Array.isArray(dismissalOptions)) return [];
-  const caughtIdx = dismissalOptions.findIndex((o) => o.value === 'caught');
-  if (caughtIdx === -1) return dismissalOptions;
-  const next = [...dismissalOptions];
-  next.splice(caughtIdx + 1, 0, DISMISSAL_GRID_CAUGHT_BOWLED, DISMISSAL_GRID_CAUGHT_BEHIND);
-  return next;
-}
-
-/**
- * @param {{ caughtVariant?: string }|null|undefined} option
- */
-export function isCaughtDismissalVariant(option) {
-  return option?.caughtVariant === 'bowled' || option?.caughtVariant === 'behind';
-}

@@ -46,13 +46,13 @@ function TeamCard({ team, index, onEdit, onDelete, isDeleting }) {
   const { owner, iconPlayers } = teamDisplay(team);
 
   return (
-    <div className="rounded-[17px] bg-surface p-4">
+    <div className="bg-surface rounded-[17px] p-4">
       <div className="flex items-start gap-3">
         <TeamLogo team={team} variant="organizerCard" />
         <div className="min-w-0 flex-1">
           <h3 className="text-[16px] font-bold text-white">{team.name ?? '—'}</h3>
           <p className="mt-0.5 text-[14px] text-white">
-            Owner: <span className="font-medium text-brand">{owner}</span>
+            Owner: <span className="text-brand font-medium">{owner}</span>
           </p>
           <p className="mt-0.5 text-[12px] text-white">
             Icon Players: <span className="text-muted">{iconPlayers}</span>
@@ -187,7 +187,7 @@ export default function TournamentAddSquad() {
       <AppSubpageHeader title={tournament ? `${getTournamentTitle(tournament)} - Teams` : 'Tournaments - Teams'} />
       <Container>
         {/* Loading indicator only shown when teams are not available from state */}
-        {!stateTeams?.length && isLoading && <p className="mb-3 text-[13px] text-muted">Loading teams…</p>}
+        {!stateTeams?.length && isLoading && <p className="text-muted mb-3 text-[13px]">Loading teams…</p>}
 
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">Teams</h2>
@@ -201,10 +201,10 @@ export default function TournamentAddSquad() {
               }
               className="flex shrink-0 items-center gap-2 transition-opacity active:opacity-80"
             >
-              <span className="flex h-[22px] w-[22px] items-center justify-center rounded-full bg-brand text-[15px] leading-none font-bold text-ink">
+              <span className="bg-brand text-ink flex h-[22px] w-[22px] items-center justify-center rounded-full text-[15px] leading-none font-bold">
                 +
               </span>
-              <span className="text-[13px] font-bold text-muted">Manage Squads</span>
+              <span className="text-muted text-[13px] font-bold">Manage Squads</span>
             </button>
           )}
         </div>
@@ -212,12 +212,12 @@ export default function TournamentAddSquad() {
         {isLoading && teams.length === 0 && (
           <ul className="space-y-3 pb-10">
             {[1, 2, 3].map((i) => (
-              <li key={i} className="animate-pulse rounded-[17px] bg-surface p-4">
+              <li key={i} className="bg-surface animate-pulse rounded-[17px] p-4">
                 <div className="flex gap-3">
-                  <div className="h-12 w-12 shrink-0 rounded-lg bg-surface-raised" />
+                  <div className="bg-surface-raised h-12 w-12 shrink-0 rounded-lg" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 w-24 rounded bg-surface-raised" />
-                    <div className="h-3 w-32 rounded bg-surface-raised" />
+                    <div className="bg-surface-raised h-4 w-24 rounded" />
+                    <div className="bg-surface-raised h-3 w-32 rounded" />
                   </div>
                 </div>
               </li>
@@ -229,7 +229,7 @@ export default function TournamentAddSquad() {
           <div className="space-y-6 pb-10">
             {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map((groupIndex) => (
               <section key={groupIndex}>
-                <h3 className="mb-2 text-[13px] font-bold tracking-wide text-brand uppercase">Group {groupIndex}</h3>
+                <h3 className="text-brand mb-2 text-[13px] font-bold tracking-wide uppercase">Group {groupIndex}</h3>
                 <ul className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
                   {teamsByGroup[groupIndex].map((team, index) => (
                     <li key={team.id ?? index}>
@@ -238,9 +238,7 @@ export default function TournamentAddSquad() {
                   ))}
                 </ul>
                 {teamsByGroup[groupIndex].length === 0 && (
-                  <p className="rounded-[17px] bg-surface px-4 py-4 text-center text-[13px] text-muted">
-                    No teams in this group
-                  </p>
+                  <p className="bg-surface text-muted rounded-[17px] px-4 py-4 text-center text-[13px]">No teams in this group</p>
                 )}
               </section>
             ))}
@@ -258,7 +256,7 @@ export default function TournamentAddSquad() {
         )}
 
         {!isLoading && teams.length === 0 && (
-          <p className="rounded-[17px] bg-surface px-4 py-6 text-center text-[13px] text-muted">
+          <p className="bg-surface text-muted rounded-[17px] px-4 py-6 text-center text-[13px]">
             No teams yet. Add teams from the saved teams step first.
           </p>
         )}

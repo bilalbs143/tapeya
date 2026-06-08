@@ -9,9 +9,10 @@ import { TeamLogo } from '@/components/TeamLogo';
 import { useDialog } from '@/context/DialogContext';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { toApiDate } from '@/lib/utils/dateUtils';
 import { EMPTY_FILE_UPLOAD } from '@/lib/utils/fileUploadUtils';
 import { getMatchOversOptions, getPlayersPerSideOptions } from '@/lib/utils/scoringMappers';
-import { formatDateForApi, formatTimeForApi } from '@/lib/utils/scoringUtils';
+import { formatTimeForApi } from '@/lib/utils/scoringUtils';
 import { startMatchSchema } from '@/lib/validations/startMatch';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
 import { useUpdateTossMutation } from '@/store/api/matchApi';
@@ -27,14 +28,14 @@ import { Label } from '@/ui/Label';
 import { TimePicker } from '@/ui/TimePicker';
 
 const oversInputBase =
-  'flex h-12 w-full items-center rounded-[6px] bg-[#141412] px-4 py-3 text-left text-white focus:outline-none focus:ring-2 focus:ring-[#DA9811]/50 cursor-pointer';
+  'flex h-12 w-full items-center rounded-[6px] bg-surface px-4 py-3 text-left text-white focus:outline-none focus:ring-2 focus:ring-brand/50 cursor-pointer';
 
 function buildMatchPayload(data, groupIndex = null) {
   const payload = {
     tournamentId: data.tournament_id,
     home_team_id: Number(data.team_a_id),
     away_team_id: Number(data.team_b_id),
-    match_date: formatDateForApi(data.match_date),
+    match_date: toApiDate(data.match_date),
     match_time: formatTimeForApi(data.match_time),
     venue_name: data.venue.trim(),
     players_per_side: Number(data.players_per_side),
@@ -255,19 +256,19 @@ export default function StartMatch() {
                   onSelect: (id) => setValue('team_a_id', id),
                 })
               }
-              className={`flex flex-1 flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] bg-[#141412] p-4 transition-opacity active:opacity-90 disabled:cursor-default disabled:opacity-60 ${errors.team_a_id ? 'border-red-500' : ''}`}
+              className={`bg-surface flex flex-1 flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] p-4 transition-opacity active:opacity-90 disabled:cursor-default disabled:opacity-60 ${errors.team_a_id ? 'border-red-500' : ''}`}
               aria-label="Select Team A"
             >
               <TeamLogo team={teams.find((t) => String(t.id) === team_a_id)} variant="match" />
               <span className="text-[16px] font-bold tracking-wide text-white uppercase">
                 {team_a_id && teams.length > 0 ? (teams.find((t) => String(t.id) === team_a_id)?.name ?? 'Team A') : 'Team A'}
               </span>
-              <span className="text-[13px] font-normal text-[#A2A6AB]">
+              <span className="text-muted text-[13px] font-normal">
                 {!tournamentId ? 'Select Tournament' : team_a_id ? null : 'Select Team'}
               </span>
             </button>
             <div className="relative z-10 -mx-3 flex shrink-0 items-center">
-              <span className="flex h-13 w-13 shrink-0 items-center justify-center rounded-full border-[8px] border-black bg-[#DA9811] text-[12px] font-bold tracking-wide text-[#080807] uppercase">
+              <span className="bg-brand text-ink flex h-13 w-13 shrink-0 items-center justify-center rounded-full border-[8px] border-black text-[12px] font-bold tracking-wide uppercase">
                 VS
               </span>
             </div>
@@ -282,14 +283,14 @@ export default function StartMatch() {
                   onSelect: (id) => setValue('team_b_id', id),
                 })
               }
-              className={`flex flex-1 flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] bg-[#141412] p-4 transition-opacity active:opacity-90 disabled:cursor-default disabled:opacity-60 ${errors.team_b_id ? 'border-red-500' : ''}`}
+              className={`bg-surface flex flex-1 flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] p-4 transition-opacity active:opacity-90 disabled:cursor-default disabled:opacity-60 ${errors.team_b_id ? 'border-red-500' : ''}`}
               aria-label="Select Team B"
             >
               <TeamLogo team={teams.find((t) => String(t.id) === team_b_id)} variant="match" />
               <span className="text-[16px] font-bold tracking-wide text-white uppercase">
                 {team_b_id && teams.length > 0 ? (teams.find((t) => String(t.id) === team_b_id)?.name ?? 'Team B') : 'Team B'}
               </span>
-              <span className="text-[13px] font-normal text-[#A2A6AB]">
+              <span className="text-muted text-[13px] font-normal">
                 {!tournamentId ? 'Select Tournament' : team_b_id ? null : 'Select Team'}
               </span>
             </button>
@@ -355,7 +356,7 @@ export default function StartMatch() {
                       onChange: (v) => setValue('overs', v),
                     })
                   }
-                  className={`${oversInputBase} ${!overs ? '!text-[#A2A6AB78]' : ''}`}
+                  className={`${oversInputBase} ${!overs ? '!text-muted/47' : ''}`}
                   aria-label="Select Overs"
                 >
                   {overs || 'Select Overs'}
@@ -381,7 +382,7 @@ export default function StartMatch() {
                       onSelect: (val) => setValue('players_per_side', val),
                     })
                   }
-                  className={`${oversInputBase} ${!playersPerSide ? '!text-[#A2A6AB78]' : ''}`}
+                  className={`${oversInputBase} ${!playersPerSide ? '!text-muted/47' : ''}`}
                   aria-label="Select Players Per Side"
                 >
                   {playersPerSide || 'Select Players Per Side'}

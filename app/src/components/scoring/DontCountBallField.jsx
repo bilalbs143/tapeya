@@ -9,7 +9,7 @@ export function DontCountBallField({ checked, onCheckedChange }) {
   return (
     <label
       htmlFor={id}
-      className="flex cursor-pointer items-center gap-3 rounded-lg border border-[#282824] bg-[#141412] px-3 py-3"
+      className="border-border-subtle bg-surface flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-3"
     >
       <Checkbox id={id} checked={checked} onCheckedChange={onCheckedChange} />
       <span className="text-[13px] font-medium text-white">Don&apos;t Count the Ball</span>

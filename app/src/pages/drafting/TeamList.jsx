@@ -31,15 +31,15 @@ function TeamCard({ team, index, onEdit, onDelete, onClick }) {
       tabIndex={0}
       onClick={() => onClick?.(team)}
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onClick?.(team)}
-      className="flex cursor-pointer items-start gap-3 rounded-[17px] bg-surface p-4 transition-opacity active:opacity-90"
+      className="bg-surface flex cursor-pointer items-start gap-3 rounded-[17px] p-4 transition-opacity active:opacity-90"
     >
       <TeamLogo team={team} variant="draft" />
       <div className="min-w-0 flex-1">
         <h3 className="text-[16px] font-bold text-white">{team.name ?? '—'}</h3>
-        <p className="mt-0.5 text-[14px] text-muted">
-          <span className="font-medium text-brand">Owner: {owner}</span>
+        <p className="text-muted mt-0.5 text-[14px]">
+          <span className="text-brand font-medium">Owner: {owner}</span>
         </p>
-        <p className="mt-0.5 text-[12px] text-muted">
+        <p className="text-muted mt-0.5 text-[12px]">
           Icon Players: <span className="text-white">{iconPlayers}</span>
         </p>
       </div>
@@ -103,7 +103,7 @@ export default function TeamList() {
             onClick={handleCreate}
             className="flex shrink-0 items-center gap-2 transition-opacity active:opacity-80"
           >
-            <span className="flex h-[27px] w-[27px] items-center justify-center rounded-full bg-brand text-[18px] font-bold text-ink">
+            <span className="bg-brand text-ink flex h-[27px] w-[27px] items-center justify-center rounded-full text-[18px] font-bold">
               +
             </span>
             <span className="text-[14px] font-semibold text-white">Create Teams</span>
@@ -113,12 +113,12 @@ export default function TeamList() {
         {isLoading && (
           <ul className="space-y-3 pb-10">
             {[1, 2, 3].map((i) => (
-              <li key={i} className="animate-pulse rounded-[17px] bg-surface p-4">
+              <li key={i} className="bg-surface animate-pulse rounded-[17px] p-4">
                 <div className="flex gap-3">
-                  <div className="h-12 w-12 shrink-0 rounded-lg bg-surface-raised" />
+                  <div className="bg-surface-raised h-12 w-12 shrink-0 rounded-lg" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 w-24 rounded bg-surface-raised" />
-                    <div className="h-3 w-32 rounded bg-surface-raised" />
+                    <div className="bg-surface-raised h-4 w-24 rounded" />
+                    <div className="bg-surface-raised h-3 w-32 rounded" />
                   </div>
                 </div>
               </li>
@@ -127,7 +127,7 @@ export default function TeamList() {
         )}
 
         {isError && !isLoading && (
-          <p className="rounded-[17px] bg-surface px-4 py-6 text-center text-[13px] text-red-400">Failed to load teams.</p>
+          <p className="bg-surface rounded-[17px] px-4 py-6 text-center text-[13px] text-red-400">Failed to load teams.</p>
         )}
 
         {!isLoading && !isError && teams.length > 0 && (
@@ -141,7 +141,7 @@ export default function TeamList() {
         )}
 
         {!isLoading && !isError && teams.length === 0 && (
-          <p className="rounded-[17px] bg-surface px-4 py-6 text-center text-[13px] text-muted">
+          <p className="bg-surface text-muted rounded-[17px] px-4 py-6 text-center text-[13px]">
             No teams yet. Create your first team to get started.
           </p>
         )}

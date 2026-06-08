@@ -9,7 +9,7 @@ export default function PreviousOrder({ battingTeam = {}, bowlingTeam = {}, batt
   const bowlingName = bowlingTeam.shortCode || bowlingTeam.name || '';
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-page">
+    <div className="bg-page relative min-h-screen overflow-hidden">
       <section className="absolute right-0 bottom-0 left-0 overflow-hidden text-white">
         <div className="absolute inset-0">
           <div className="absolute inset-0" style={rightHalfStyle} />

@@ -37,8 +37,7 @@ export const statsDefaultBatterSeparatorStyle = {
   background: 'linear-gradient(90deg, rgba(8,8,7,1) 0%, rgba(255,255,255,0.95) 50%, rgba(8,8,7,1) 100%)',
 };
 
-export const playerNameAccentClass =
-  'text-[15px] leading-none font-extrabold tracking-wide text-brand uppercase sm:text-[28px]';
+export const playerNameAccentClass = 'text-[15px] leading-none font-extrabold tracking-wide text-brand uppercase sm:text-[28px]';
 
 export const showcaseSectionClass = 'relative w-full max-w-[677px] overflow-hidden bg-black px-4 py-6 text-white sm:px-7 sm:py-8';
 

@@ -78,9 +78,7 @@ export function BottomSheet({
 
           {toolbar ? <div className="shrink-0 px-4 pt-3 pb-2">{toolbar}</div> : null}
 
-          <div className={bodyClassName}>
-            {children}
-          </div>
+          <div className={bodyClassName}>{children}</div>
 
           {footer ? <div className="shrink-0 border-t border-white/10 px-4 py-4">{footer}</div> : null}
         </DialogPrimitive.Content>

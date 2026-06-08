@@ -30,7 +30,7 @@ export default function Toss({ homeTeam = {}, awayTeam = {}, decision = '' }) {
   }, [homeName, awayName, decision]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-page">
+    <div className="bg-page relative min-h-screen overflow-hidden">
       <section className="absolute right-0 bottom-0 left-0 text-white">
         <div className="relative w-full overflow-hidden px-4 py-2 sm:px-10 sm:py-4" style={panelStyle}>
           <div className="flex items-center justify-between gap-2">
@@ -38,9 +38,9 @@ export default function Toss({ homeTeam = {}, awayTeam = {}, decision = '' }) {
 
             <div className="flex flex-1 flex-col items-center px-1 sm:px-8">
               <div className="flex w-full items-center justify-center gap-2 sm:gap-10">
-                <p className="text-[8px] leading-none font-extrabold text-brand sm:text-[28px]">{homeName}</p>
+                <p className="text-brand text-[8px] leading-none font-extrabold sm:text-[28px]">{homeName}</p>
                 <p className="text-[8px] leading-none font-extrabold text-white uppercase sm:text-[30px]">VS</p>
-                <p className="text-[8px] leading-none font-extrabold text-brand sm:text-[28px]">{awayName}</p>
+                <p className="text-brand text-[8px] leading-none font-extrabold sm:text-[28px]">{awayName}</p>
               </div>
 
               {decision ? (

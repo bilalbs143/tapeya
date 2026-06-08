@@ -46,7 +46,7 @@ export function BatterNameLabel({ name, onStrike, className = '' }) {
     >
       <span className="min-w-0 truncate">{name}</span>
       {onStrike ? (
-        <span className="shrink-0 leading-none font-black text-brand" aria-hidden>
+        <span className="text-brand shrink-0 leading-none font-black" aria-hidden>
           *
         </span>
       ) : null}
@@ -60,7 +60,7 @@ export function BatterNameLabel({ name, onStrike, className = '' }) {
 export function FreeHitMicroBadge() {
   return (
     <span
-      className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-brand text-[7px] font-black text-ink"
+      className="bg-brand text-ink absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[7px] font-black"
       title="Free Hit"
       aria-label="Free Hit delivery"
     >
@@ -144,7 +144,7 @@ export function ScoreboardAtStageMirror({
   return (
     <div className="flex max-w-[48%] min-w-0 flex-1 flex-col items-end gap-0.5 sm:max-w-none sm:gap-1">
       {inningsLabel ? (
-        <p className="m-0 max-w-full truncate text-right text-[5px] leading-none font-bold text-brand uppercase sm:text-[10px]">
+        <p className="text-brand m-0 max-w-full truncate text-right text-[5px] leading-none font-bold uppercase sm:text-[10px]">
           {inningsLabel}
         </p>
       ) : null}
@@ -157,7 +157,7 @@ export function ScoreboardAtStageMirror({
             className="h-8 w-8 shrink-0 rounded-full object-cover sm:h-14 sm:w-14"
           />
           <div className="text-right">
-            <p className="text-[11px] leading-none font-extrabold text-brand sm:text-[30px]">
+            <p className="text-brand text-[11px] leading-none font-extrabold sm:text-[30px]">
               {battingTeam.shortCode || battingTeam.name || '—'}
             </p>
             <p className="mt-0.5 text-[8px] leading-none text-[#E2E2E2] sm:mt-1 sm:text-[14px]">
@@ -176,8 +176,8 @@ export function ScoreboardAtStageMirror({
             <div className="text-right">
               {batter0 && (
                 <div className="flex flex-row-reverse items-center gap-1 leading-none">
-                  <span className="text-[11px] font-bold text-brand">{batter0.runs}</span>
-                  <span className="text-[9px] font-bold text-brand">{batter0.balls}</span>
+                  <span className="text-brand text-[11px] font-bold">{batter0.runs}</span>
+                  <span className="text-brand text-[9px] font-bold">{batter0.balls}</span>
                   <span className="max-w-[36px] truncate text-[8px] font-medium text-[#E8E8E8]">
                     <BatterNameLabel
                       name={batter0.name}
@@ -191,8 +191,8 @@ export function ScoreboardAtStageMirror({
                 <>
                   <div className="my-0.5 ml-auto h-px w-[42px]" style={batterSeparatorStyle} />
                   <div className="flex flex-row-reverse items-center gap-1 leading-none">
-                    <span className="text-[11px] font-bold text-brand">{batter1.runs}</span>
-                    <span className="text-[9px] font-bold text-brand">{batter1.balls}</span>
+                    <span className="text-brand text-[11px] font-bold">{batter1.runs}</span>
+                    <span className="text-brand text-[9px] font-bold">{batter1.balls}</span>
                     <span className="max-w-[36px] truncate text-[8px] font-medium text-[#E8E8E8]">
                       <BatterNameLabel
                         name={batter1.name}
@@ -209,8 +209,8 @@ export function ScoreboardAtStageMirror({
           <div className="hidden w-full flex-col items-end px-1 sm:flex sm:px-2">
             {batter0 && (
               <div className="flex w-full flex-row-reverse items-center gap-2 leading-none sm:gap-3">
-                <span className="text-[24px] font-bold text-brand">{batter0.runs}</span>
-                <span className="text-[16px] font-bold text-brand">{batter0.balls}</span>
+                <span className="text-brand text-[24px] font-bold">{batter0.runs}</span>
+                <span className="text-brand text-[16px] font-bold">{batter0.balls}</span>
                 <span className="max-w-[72px] truncate text-right text-[14px] font-medium text-[#E8E8E8]">
                   <BatterNameLabel
                     name={batter0.name}
@@ -224,8 +224,8 @@ export function ScoreboardAtStageMirror({
               <>
                 <div className="my-1 mr-0 h-px w-[72px]" style={batterSeparatorStyle} />
                 <div className="flex w-full flex-row-reverse items-center gap-2 leading-none sm:gap-3">
-                  <span className="text-[24px] font-bold text-brand">{batter1.runs}</span>
-                  <span className="text-[16px] font-bold text-brand">{batter1.balls}</span>
+                  <span className="text-brand text-[24px] font-bold">{batter1.runs}</span>
+                  <span className="text-brand text-[16px] font-bold">{batter1.balls}</span>
                   <span className="max-w-[72px] truncate text-right text-[14px] font-medium text-[#E8E8E8]">
                     <BatterNameLabel
                       name={batter1.name}
@@ -266,7 +266,7 @@ export function ScoreboardLeft({ battingTeam = {}, batters = [] }) {
           className="h-8 w-8 rounded-full object-cover sm:h-14 sm:w-14"
         />
         <div>
-          <p className="text-[11px] leading-none font-extrabold text-brand sm:text-[30px]">
+          <p className="text-brand text-[11px] leading-none font-extrabold sm:text-[30px]">
             {battingTeam.shortCode || battingTeam.name || '—'}
           </p>
           <p className="mt-0.5 text-[8px] leading-none text-[#E2E2E2] sm:mt-1 sm:text-[14px]">
@@ -292,8 +292,8 @@ export function ScoreboardLeft({ battingTeam = {}, batters = [] }) {
                   className="w-full text-[8px] font-medium text-[#E8E8E8]"
                 />
               </span>
-              <span className="text-[11px] font-bold text-brand">{batter0.runs}</span>
-              <span className="text-[9px] font-bold text-brand">{batter0.balls}</span>
+              <span className="text-brand text-[11px] font-bold">{batter0.runs}</span>
+              <span className="text-brand text-[9px] font-bold">{batter0.balls}</span>
             </div>
           )}
           {batter1 && (
@@ -307,8 +307,8 @@ export function ScoreboardLeft({ battingTeam = {}, batters = [] }) {
                     className="w-full text-[8px] font-medium text-[#E8E8E8]"
                   />
                 </span>
-                <span className="text-[11px] font-bold text-brand">{batter1.runs}</span>
-                <span className="text-[9px] font-bold text-brand">{batter1.balls}</span>
+                <span className="text-brand text-[11px] font-bold">{batter1.runs}</span>
+                <span className="text-brand text-[9px] font-bold">{batter1.balls}</span>
               </div>
             </>
           )}
@@ -327,8 +327,8 @@ export function ScoreboardLeft({ battingTeam = {}, batters = [] }) {
                   className="w-full text-[14px] font-medium text-[#E8E8E8]"
                 />
               </span>
-              <span className="text-[24px] font-bold text-brand">{batter0.runs}</span>
-              <span className="text-[16px] font-bold text-brand">{batter0.balls}</span>
+              <span className="text-brand text-[24px] font-bold">{batter0.runs}</span>
+              <span className="text-brand text-[16px] font-bold">{batter0.balls}</span>
             </div>
           )}
           {batter1 && (
@@ -342,8 +342,8 @@ export function ScoreboardLeft({ battingTeam = {}, batters = [] }) {
                     className="w-full text-[14px] font-medium text-[#E8E8E8]"
                   />
                 </span>
-                <span className="text-[24px] font-bold text-brand">{batter1.runs}</span>
-                <span className="text-[16px] font-bold text-brand">{batter1.balls}</span>
+                <span className="text-brand text-[24px] font-bold">{batter1.runs}</span>
+                <span className="text-brand text-[16px] font-bold">{batter1.balls}</span>
               </div>
             </>
           )}

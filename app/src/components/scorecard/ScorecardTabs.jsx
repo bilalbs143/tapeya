@@ -53,7 +53,7 @@ export function ScorecardTabs({ matches, tournaments = [], fixedVisible = false,
       <TournamentLinks tournaments={tournaments} />
       <TabsContent value="all" className="mt-4 focus:outline-none">
         {matches.length === 0 ? (
-          <p className="py-8 text-center text-[13px] text-muted">No matches in this category</p>
+          <p className="text-muted py-8 text-center text-[13px]">No matches in this category</p>
         ) : (
           <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
             {matches.map((match) => (

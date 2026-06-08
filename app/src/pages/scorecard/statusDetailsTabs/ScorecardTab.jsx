@@ -28,7 +28,7 @@ function BattingScorecardTable({ team }) {
             <tr key={i}>
               <td className={`border-r border-b border-l ${BORDER} px-4 py-3`}>
                 <p className="text-[12px] font-medium text-white">{player.name}</p>
-                {player.dismissal && <p className="mt-0.5 text-[12px] text-muted">{player.dismissal}</p>}
+                {player.dismissal && <p className="text-muted mt-0.5 text-[12px]">{player.dismissal}</p>}
               </td>
               <td className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white`}>{player.r}</td>
               <td className={`border-r border-b ${BORDER} px-4 py-3 text-center text-white`}>{player.b}</td>
@@ -42,7 +42,7 @@ function BattingScorecardTable({ team }) {
             <tr>
               <td className={`border-r border-b border-l ${BORDER} px-4 py-3`}>
                 <p className="text-[13px] font-medium text-white">Extras</p>
-                <p className="mt-0.5 text-[12px] text-muted">({team.extras.detail})</p>
+                <p className="text-muted mt-0.5 text-[12px]">({team.extras.detail})</p>
               </td>
               <td className={`border-r border-b ${BORDER} py-3 text-center text-white`}>{team.extras.runs}</td>
               <td className={`border-r border-b ${BORDER} py-3 text-center`} />
@@ -91,7 +91,7 @@ export function StatusDetailsScorecardTab({ details }) {
             onClick={() => setTeamIndex(i)}
             className={`mr-6 text-[14px] font-normal transition-colors ${i === teamIndex ? 'text-brand' : 'text-muted'}`}
           >
-            <span className={i === teamIndex ? 'inline-block border-b-4 border-brand pb-2.5' : 'inline-block pb-3'}>
+            <span className={i === teamIndex ? 'border-brand inline-block border-b-4 pb-2.5' : 'inline-block pb-3'}>
               {team.name}
             </span>
           </button>

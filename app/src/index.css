@@ -38,17 +38,6 @@ body {
   }
 }
 
-/*
- * Radix Dialog sets body { pointer-events: none } when open (disableOutsidePointerEvents).
- * On iOS WKWebView this suppresses native scroll gesture recognition for all body descendants,
- * even ones with pointer-events: auto — including Popper portals.
- * Force the Radix Popper wrapper back to auto so touch-scroll inside popovers
- * opened from within dialogs works correctly.
- */
-[data-radix-popper-content-wrapper] {
-  pointer-events: auto !important;
-}
-
 /* Safe area spacing for iOS notch / Android navigation */
 @theme {
   --spacing-safe-top: env(safe-area-inset-top);
@@ -57,19 +46,19 @@ body {
   --spacing-safe-right: env(safe-area-inset-right);
 
   /* Semantic design tokens (Step 27) */
-  --color-brand: #DA9811;
-  --color-brand-hover: #F0B94A;
-  --color-brand-dark: #D8A11E;
+  --color-brand: #da9811;
+  --color-brand-hover: #f0b94a;
+  --color-brand-dark: #d8a11e;
   --color-surface: #141412;
-  --color-surface-raised: #1C1C1A;
-  --color-surface-border: #1A1A1A;
-  --color-surface-elevated: #1A1A18;
-  --color-muted: #A2A6AB;
+  --color-surface-raised: #1c1c1a;
+  --color-surface-border: #1a1a1a;
+  --color-surface-elevated: #1a1a18;
+  --color-muted: #a2a6ab;
   --color-ink: #080807;
   --color-border: #252520;
   --color-border-subtle: #282824;
-  --color-page: #1D1E22;
-  --color-surface-deep: #0D0D0B;
+  --color-page: #1d1e22;
+  --color-surface-deep: #0d0d0b;
 
   --animate-splash-slide-up: splash-slide-up 0.6s ease-out forwards;
   --animate-splash-slide-up-delayed: splash-slide-up 0.6s ease-out 0.35s forwards;

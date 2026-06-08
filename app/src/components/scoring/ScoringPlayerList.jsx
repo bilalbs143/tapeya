@@ -19,7 +19,7 @@ export function ScoringPlayerList({
   onSelect,
   variant = 'batsman',
   ariaLabel = 'Select Player',
-  emptyMessage = 'No players available.',
+  emptyMessage = 'No Players Available.',
   className = '',
 }) {
   const sorted = useMemo(
@@ -36,7 +36,7 @@ export function ScoringPlayerList({
       role="radiogroup"
       aria-label={ariaLabel}
     >
-      {sorted.length === 0 && <p className="py-2 text-center text-[13px] text-[#A2A6AB]">{emptyMessage}</p>}
+      {sorted.length === 0 && <p className="text-muted py-2 text-center text-[13px]">{emptyMessage}</p>}
       {sorted.map((player) => {
         const id = String(player.id);
         const isSelected = String(selectedId) === id;
@@ -47,7 +47,7 @@ export function ScoringPlayerList({
             onClick={() => onSelect(player.id)}
             aria-pressed={isSelected}
             className={`cursor-pointer rounded-[6px] px-4 py-3 text-left transition-opacity active:opacity-90 ${
-              isSelected ? 'bg-[#1C1C1A] ring-1 ring-[#DA9811]' : 'bg-[#141412] hover:bg-[#1a1a18]'
+              isSelected ? 'bg-surface-raised ring-brand ring-1' : 'bg-surface hover:bg-surface-elevated'
             }`}
           >
             <span className="block text-[14px] font-medium text-white">{player.name}</span>

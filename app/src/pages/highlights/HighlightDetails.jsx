@@ -189,11 +189,11 @@ export default function HighlightDetails() {
     return (
       <div className="min-h-screen bg-black">
         <Container className="py-8 text-center">
-          <p className="text-[14px] text-muted">Highlight not found.</p>
+          <p className="text-muted text-[14px]">Highlight not found.</p>
           <button
             type="button"
             onClick={() => navigate('/highlights')}
-            className="mt-4 text-[14px] font-bold text-brand transition-opacity active:opacity-80"
+            className="text-brand mt-4 text-[14px] font-bold transition-opacity active:opacity-80"
           >
             Back to Highlights
           </button>
@@ -280,8 +280,8 @@ export default function HighlightDetails() {
         {/* Loading skeleton for text content */}
         {isLoading && !highlight ? (
           <div className="mt-4 animate-pulse space-y-2">
-            <div className="h-5 w-3/4 rounded bg-surface" />
-            <div className="h-4 w-1/3 rounded bg-surface" />
+            <div className="bg-surface h-5 w-3/4 rounded" />
+            <div className="bg-surface h-4 w-1/3 rounded" />
           </div>
         ) : null}
 
@@ -290,7 +290,7 @@ export default function HighlightDetails() {
           <div className="mt-4">
             <h1 className="text-[16px] leading-tight font-bold text-white">{displayTitle}</h1>
             {dateLabel || durationLabel ? (
-              <p className="mt-1 text-[14px] text-muted">{[dateLabel, durationLabel].filter(Boolean).join(' · ')}</p>
+              <p className="text-muted mt-1 text-[14px]">{[dateLabel, durationLabel].filter(Boolean).join(' · ')}</p>
             ) : null}
           </div>
         ) : null}
@@ -344,7 +344,7 @@ export default function HighlightDetails() {
                 className="flex flex-col items-center gap-1.5 transition-opacity active:opacity-80"
                 aria-label={`Share. ${formatCount(counts.shares_count)} shares`}
               >
-                <div className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-surface">
+                <div className="bg-surface flex h-[44px] w-[44px] items-center justify-center rounded-full">
                   <img src={feedShareIcon} alt="" className="h-5 w-5 brightness-0 invert" aria-hidden />
                 </div>
                 <span className="text-[12px] font-medium text-white">{formatCount(counts.shares_count)}</span>
@@ -358,8 +358,8 @@ export default function HighlightDetails() {
 
         {/* More Highlights */}
         {moreHighlights.length > 0 ? (
-          <section className="mt-6 border-t border-surface-border pt-6 pb-6">
-            <h2 className="mb-3 text-[13px] font-bold tracking-wide text-muted uppercase md:text-[16px]">More Highlights</h2>
+          <section className="border-surface-border mt-6 border-t pt-6 pb-6">
+            <h2 className="text-muted mb-3 text-[13px] font-bold tracking-wide uppercase md:text-[16px]">More Highlights</h2>
             <div className="space-y-3">
               {moreHighlights.map((item) => (
                 <MoreHighlightRow key={item.id} highlight={item} onClick={handleMoreHighlightClick} />

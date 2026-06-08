@@ -4,9 +4,9 @@ import { useLocation, useNavigate, useParams, useSearchParams } from 'react-rout
 
 import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { formatCount } from '@/lib/format';
 import { formatOrdinalDateRange } from '@/lib/utils/dateUtils';
 import { getTournamentCoverImage, getTournamentTitle, isValidTournamentId } from '@/lib/utils/tournamentUtils';
-import { formatCount } from '@/lib/format';
 import { ThumbsUpIcon } from '@/pages/feed/PostCard';
 import { FixturesTab } from '@/pages/upcoming-tournaments/tabs/FixturesTab';
 import { SquadsTab } from '@/pages/upcoming-tournaments/tabs/SquadsTab';
@@ -199,7 +199,7 @@ export default function UpcomingTournamentDetails() {
   return (
     <div className="">
       {/* Banner: extends behind navbar; back button positioned within the image */}
-      <div className="relative h-[250px] w-full overflow-hidden bg-surface-deep lg:h-[400px]">
+      <div className="bg-surface-deep relative h-[250px] w-full overflow-hidden lg:h-[400px]">
         <img
           key={headerImageSrc}
           src={headerImageSrc}
@@ -219,9 +219,9 @@ export default function UpcomingTournamentDetails() {
         {/* Title & date */}
         <div className="mt-4">
           <h1 className="text-[22px] leading-tight font-bold text-white">{displayName}</h1>
-          <p className="mt-1 text-[14px] text-muted">{formatOrdinalDateRange(startDate, endDate)}</p>
+          <p className="text-muted mt-1 text-[14px]">{formatOrdinalDateRange(startDate, endDate)}</p>
           {isLoadingTournament && !stateTournament && hasValidId && (
-            <p className="mt-1 text-[12px] text-muted">Refreshing tournament details…</p>
+            <p className="text-muted mt-1 text-[12px]">Refreshing tournament details…</p>
           )}
         </div>
 
@@ -229,7 +229,7 @@ export default function UpcomingTournamentDetails() {
           <button
             type="button"
             onClick={handleInterestClick}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-[10px] bg-brand py-3 text-[14px] font-bold tracking-wide text-black uppercase transition-opacity active:opacity-90"
+            className="bg-brand mt-4 flex w-full items-center justify-center gap-2 rounded-[10px] py-3 text-[14px] font-bold tracking-wide text-black uppercase transition-opacity active:opacity-90"
           >
             I'm Interested
           </button>
@@ -275,7 +275,7 @@ export default function UpcomingTournamentDetails() {
             className="flex flex-col items-center gap-1.5 transition-opacity active:opacity-80 disabled:cursor-default disabled:opacity-60"
             aria-label={`Share. ${formatCount(counts.shares_count)} shares`}
           >
-            <div className="flex h-[44px] w-[44px] items-center justify-center rounded-full bg-surface">
+            <div className="bg-surface flex h-[44px] w-[44px] items-center justify-center rounded-full">
               <img src={feedShareIcon} alt="" className="h-5 w-5 brightness-0 invert" aria-hidden />
             </div>
             <span className="text-[12px] font-medium text-white">{formatCount(counts.shares_count)}</span>
@@ -290,19 +290,19 @@ export default function UpcomingTournamentDetails() {
             <TabsList className="flex justify-center gap-2 p-1">
               <TabsTrigger
                 value={DETAIL_TABS.FIXTURES}
-                className="rounded-lg px-3 py-2.5 text-[13px] font-bold uppercase transition-colors focus:outline-none data-[state=active]:bg-brand data-[state=active]:text-black data-[state=inactive]:bg-surface-border data-[state=inactive]:text-white"
+                className="data-[state=active]:bg-brand data-[state=inactive]:bg-surface-border rounded-lg px-3 py-2.5 text-[13px] font-bold uppercase transition-colors focus:outline-none data-[state=active]:text-black data-[state=inactive]:text-white"
               >
                 Fixtures
               </TabsTrigger>
               <TabsTrigger
                 value={DETAIL_TABS.TEAMS}
-                className="rounded-lg px-3 py-2.5 text-[13px] font-bold uppercase transition-colors focus:outline-none data-[state=active]:bg-brand data-[state=active]:text-black data-[state=inactive]:bg-surface-border data-[state=inactive]:text-white"
+                className="data-[state=active]:bg-brand data-[state=inactive]:bg-surface-border rounded-lg px-3 py-2.5 text-[13px] font-bold uppercase transition-colors focus:outline-none data-[state=active]:text-black data-[state=inactive]:text-white"
               >
                 Teams
               </TabsTrigger>
               <TabsTrigger
                 value={DETAIL_TABS.SQUADS}
-                className="rounded-lg px-3 py-2.5 text-[13px] font-bold uppercase transition-colors focus:outline-none data-[state=active]:bg-brand data-[state=active]:text-black data-[state=inactive]:bg-surface-border data-[state=inactive]:text-white"
+                className="data-[state=active]:bg-brand data-[state=inactive]:bg-surface-border rounded-lg px-3 py-2.5 text-[13px] font-bold uppercase transition-colors focus:outline-none data-[state=active]:text-black data-[state=inactive]:text-white"
               >
                 Squads
               </TabsTrigger>

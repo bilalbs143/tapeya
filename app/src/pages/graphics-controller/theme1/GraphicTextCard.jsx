@@ -11,7 +11,7 @@ function GlowBackground() {
 
 export default function GraphicTextCard({ text, fontSize = 140 }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-page p-3 sm:p-5">
+    <div className="bg-page flex min-h-screen items-center justify-center p-3 sm:p-5">
       <section className="relative flex h-[481px] w-full max-w-[677px] items-center justify-center overflow-hidden bg-[#0D0806]">
         <GlowBackground />
         <div className="relative z-10 flex items-center justify-center">

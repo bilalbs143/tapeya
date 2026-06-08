@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import { useMemo, useState } from 'react';
 
 import { Link } from 'react-router-dom';
@@ -76,7 +75,7 @@ export default function PostCard({ post, isLiked = false, likesCountOverride, on
 
   return (
     <Link to={`/feed/${id}`} className="block">
-      <article className="overflow-hidden rounded-2xl bg-surface shadow-[0_18px_40px_rgba(0,0,0,0.9)]" data-post-id={id}>
+      <article className="bg-surface overflow-hidden rounded-2xl shadow-[0_18px_40px_rgba(0,0,0,0.9)]" data-post-id={id}>
         {/* Post image with timestamp overlay - bottom-left corner */}
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-black">
           <img
@@ -93,7 +92,7 @@ export default function PostCard({ post, isLiked = false, likesCountOverride, on
 
         <div className="p-4">
           {/* Author */}
-          <div className="mb-3 flex items-center gap-2 border-b border-surface-border pb-3">
+          <div className="border-surface-border mb-3 flex items-center gap-2 border-b pb-3">
             <img
               src={authorAvatarError ? avatarPlaceholder : authorAvatarUrl}
               alt=""
@@ -109,7 +108,7 @@ export default function PostCard({ post, isLiked = false, likesCountOverride, on
           <p className="mb-4 line-clamp-3 text-[14px] leading-relaxed font-normal text-[#B0B0B0]">{description}</p>
 
           {/* Engagement row - icons & text #A2A6AB, evenly spaced */}
-          <div className="mb-4 flex items-center justify-between border-t border-b border-surface-border py-3 text-muted">
+          <div className="border-surface-border text-muted mb-4 flex items-center justify-between border-t border-b py-3">
             <button
               type="button"
               onClick={handleLikeClick}

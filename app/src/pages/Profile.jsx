@@ -37,7 +37,7 @@ function ProfileContent({ activeRole, user }) {
     case 'player':
       return <PlayerProfile user={user} />;
     default:
-      return <p className="text-[13px] text-muted">Unknown profile role. Select a tab above or go back.</p>;
+      return <p className="text-muted text-[13px]">Unknown profile role. Select a tab above or go back.</p>;
   }
 }
 
@@ -115,7 +115,7 @@ export default function Profile() {
 
       <div className="px-4 pt-6 pb-6">
         {userRoleSlugs.length === 0 ? (
-          <p className="text-[13px] text-muted">You don&apos;t have any profile roles yet.</p>
+          <p className="text-muted text-[13px]">You don&apos;t have any profile roles yet.</p>
         ) : (
           <ProfileContent activeRole={activeRole ?? 'player'} user={user} />
         )}
@@ -125,7 +125,7 @@ export default function Profile() {
         <h2 id="account-danger-heading" className="text-xs font-semibold tracking-wide text-white/50 uppercase">
           Account
         </h2>
-        <p className="mt-2 text-[13px] leading-relaxed text-muted">
+        <p className="text-muted mt-2 text-[13px] leading-relaxed">
           Permanently delete your Tapeya account and associated profile data. This action cannot be undone.
         </p>
         <button

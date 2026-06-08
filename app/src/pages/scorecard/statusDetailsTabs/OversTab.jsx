@@ -23,7 +23,7 @@ function ScoreCell({ overRuns, overWickets, totalRuns, totalWickets }) {
       <span className="font-bold text-white">
         {overRuns}/{overWickets}
       </span>
-      <span className="font-normal text-muted">
+      <span className="text-muted font-normal">
         {' '}
         ({totalRuns} runs, {totalWickets} {wktLabel})
       </span>

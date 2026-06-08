@@ -94,10 +94,7 @@ function buildRankingStatsTotalRows(statType, rankingData, nameMap) {
       inns: p.stats?.innings ?? p.innings ?? NO_VALUE,
       balls: NO_VALUE,
       hs: NO_VALUE,
-      avg:
-        formatDecimal(p.stats?.average ?? p.average, 2) === '—'
-          ? NO_VALUE
-          : formatDecimal(p.stats?.average ?? p.average, 2),
+      avg: formatDecimal(p.stats?.average ?? p.average, 2) === '—' ? NO_VALUE : formatDecimal(p.stats?.average ?? p.average, 2),
       sr: NO_VALUE,
       six: NO_VALUE,
       four: NO_VALUE,
@@ -119,10 +116,7 @@ function buildRankingStatsTotalRows(statType, rankingData, nameMap) {
       inns: p.stats?.innings ?? p.innings ?? NO_VALUE,
       bbi: NO_VALUE,
       ave: NO_VALUE,
-      econ:
-        formatDecimal(p.stats?.economy ?? p.economy, 2) === '—'
-          ? NO_VALUE
-          : formatDecimal(p.stats?.economy ?? p.economy, 2),
+      econ: formatDecimal(p.stats?.economy ?? p.economy, 2) === '—' ? NO_VALUE : formatDecimal(p.stats?.economy ?? p.economy, 2),
       sr: NO_VALUE,
       four_wkt: NO_VALUE,
       five_wkt: NO_VALUE,

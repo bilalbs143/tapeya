@@ -190,7 +190,7 @@ export default function InterestForm() {
           title={<h1 className="min-w-0 truncate px-1 text-center text-[15px] leading-snug font-bold text-white/70">Loading…</h1>}
         />
         <Container className="pb-8">
-          <p className="py-8 text-center text-sm text-muted">Loading interest form…</p>
+          <p className="text-muted py-8 text-center text-sm">Loading interest form…</p>
         </Container>
       </div>
     );
@@ -244,12 +244,12 @@ export default function InterestForm() {
         {(campaign.description || !isOpen) && (
           <div className="mx-auto mb-6 max-w-2xl text-center">
             {campaign.description && (
-              <p className="mb-4 text-[13px] leading-snug whitespace-pre-line text-muted md:text-[14px]">
+              <p className="text-muted mb-4 text-[13px] leading-snug whitespace-pre-line md:text-[14px]">
                 {campaign.description}
               </p>
             )}
             {!isOpen && (
-              <div className="rounded-[6px] border border-amber-500/45 bg-surface p-4 shadow-[0_0_0_1px_rgba(251,191,36,0.12)]">
+              <div className="bg-surface rounded-[6px] border border-amber-500/45 p-4 shadow-[0_0_0_1px_rgba(251,191,36,0.12)]">
                 <p className="text-[12px] leading-snug text-amber-200/95">
                   This interest form is closed. New submissions are not accepted.
                 </p>
@@ -259,11 +259,11 @@ export default function InterestForm() {
         )}
 
         {isConfirmed ? (
-          <div className="mb-6 rounded-[6px] border border-brand/45 bg-surface p-4 text-center text-[12px] leading-snug font-semibold text-brand shadow-[0_0_0_1px_rgba(218,152,17,0.12)]">
+          <div className="border-brand/45 bg-surface text-brand mb-6 rounded-[6px] border p-4 text-center text-[12px] leading-snug font-semibold shadow-[0_0_0_1px_rgba(218,152,17,0.12)]">
             Your spot is confirmed. Our team has accepted your interest — these are the details we have on file.
           </div>
         ) : isActive ? (
-          <div className="mb-6 rounded-[6px] border border-emerald-700/45 bg-surface p-4 text-center text-[12px] leading-snug text-emerald-200/95 shadow-[0_0_0_1px_rgba(16,185,129,0.1)]">
+          <div className="bg-surface mb-6 rounded-[6px] border border-emerald-700/45 p-4 text-center text-[12px] leading-snug text-emerald-200/95 shadow-[0_0_0_1px_rgba(16,185,129,0.1)]">
             You&apos;re already on the interest list. Update your details below or withdraw your interest.
           </div>
         ) : null}
@@ -290,7 +290,7 @@ export default function InterestForm() {
               }
             />
             {!errors.picture && (
-              <p className="max-w-[280px] text-center text-[12px] leading-snug text-muted/80">
+              <p className="text-muted/80 max-w-[280px] text-center text-[12px] leading-snug">
                 {needsProfilePictureUpload && !profilePictureUpload.files.length && !profilePictureUpload.existingUrls.length
                   ? 'Profile picture required — JPG, PNG or WebP, max 5 MB.'
                   : 'JPG, PNG or WebP, max 5 MB.'}
@@ -299,8 +299,8 @@ export default function InterestForm() {
           </div>
 
           <div className="lg:col-span-2">
-            <h2 className="text-[12px] font-bold tracking-wide text-muted uppercase">Personal Details</h2>
-            <p className="mt-1 text-[12px] leading-snug text-muted/90">
+            <h2 className="text-muted text-[12px] font-bold tracking-wide uppercase">Personal Details</h2>
+            <p className="text-muted/90 mt-1 text-[12px] leading-snug">
               From your account. To change these, update your profile.
             </p>
           </div>
@@ -350,7 +350,7 @@ export default function InterestForm() {
           </FormField>
 
           <div className="border-t border-[#FFFFFF14] pt-6 lg:col-span-2">
-            <h2 className="text-[12px] font-bold tracking-wide text-muted uppercase">Other Details</h2>
+            <h2 className="text-muted text-[12px] font-bold tracking-wide uppercase">Other Details</h2>
           </div>
 
           <FormField label="Email" htmlFor="interest-email" required>
@@ -410,7 +410,7 @@ export default function InterestForm() {
                 href={mySubmission.id_document_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-1.5 inline-block text-[12px] font-medium text-brand underline underline-offset-2 hover:no-underline"
+                className="text-brand mt-1.5 inline-block text-[12px] font-medium underline underline-offset-2 hover:no-underline"
               >
                 View uploaded document
               </a>
@@ -434,7 +434,7 @@ export default function InterestForm() {
                     type="button"
                     onClick={handleWithdraw}
                     disabled={isWithdrawing}
-                    className="w-full rounded-[6px] border border-red-500/40 bg-surface py-3 text-sm font-semibold text-red-300 transition hover:bg-red-950/20 disabled:cursor-not-allowed disabled:opacity-60 sm:w-[180px]"
+                    className="bg-surface w-full rounded-[6px] border border-red-500/40 py-3 text-sm font-semibold text-red-300 transition hover:bg-red-950/20 disabled:cursor-not-allowed disabled:opacity-60 sm:w-[180px]"
                   >
                     {isWithdrawing ? 'Withdrawing…' : 'Withdraw'}
                   </button>

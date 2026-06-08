@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreMatchSquadRequest;
 use App\Models\Team;
 use App\Models\TournamentMatch;
+use App\Services\MatchParticipationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
@@ -30,10 +31,17 @@ class MatchSquadController extends Controller
             ->values()
             ->all();
 
+        $teamSettings = DB::table('match_team_settings')
+            ->where('match_id', $match->id)
+            ->where('team_id', $team->id)
+            ->first(['wicket_keeper_id', 'captain_id']);
+
         return $this->success([
             'match_id' => $match->id,
             'team_id' => $team->id,
             'player_ids' => $playerIds,
+            'wicket_keeper_id' => $teamSettings?->wicket_keeper_id !== null ? (int) $teamSettings->wicket_keeper_id : null,
+            'captain_id' => $teamSettings?->captain_id !== null ? (int) $teamSettings->captain_id : null,
         ]);
     }
 
@@ -43,8 +51,12 @@ class MatchSquadController extends Controller
      * Only organizers can manage match squads.
      * Players must belong to the team's team-level squad (team_user).
      */
-    public function store(StoreMatchSquadRequest $request, TournamentMatch $match, Team $team): JsonResponse
-    {
+    public function store(
+        StoreMatchSquadRequest $request,
+        TournamentMatch $match,
+        Team $team,
+        MatchParticipationService $participationService,
+    ): JsonResponse {
         $authUser = $request->user();
 
         if (! $authUser->canOperateTournamentInApp($match->tournament)) {
@@ -58,6 +70,16 @@ class MatchSquadController extends Controller
 
         $playerIds = $request->validated('player_ids');
 
+        if ($participationService->matchHasBalls($match)) {
+            $participated = $participationService->participatedPlayerIds($match, (int) $team->id);
+            $missing = array_diff($participated, $playerIds);
+            if ($missing !== []) {
+                return $this->conflict(
+                    'Players who have already participated cannot be removed from the match squad.',
+                );
+            }
+        }
+
         // Ensure all players are in the team-level squad (team_user).
         $squadCount = $team->players()
             ->whereIn('users.id', $playerIds)
@@ -67,12 +89,9 @@ class MatchSquadController extends Controller
             return $this->forbidden('All players must belong to the team-level squad before being added to the match squad.');
         }
 
-        // Replace existing match squad for this match+team with new players.
-        DB::table('match_squads')
-            ->where('match_id', $match->id)
-            ->where('team_id', $team->id)
-            ->delete();
-
+        // Replace existing match squad for this match+team atomically.
+        // Both the delete and insert must succeed together to avoid leaving the match
+        // squad in an empty state if the process crashes between the two statements.
         $now = now();
         $rows = [];
         foreach ($playerIds as $userId) {
@@ -85,9 +104,16 @@ class MatchSquadController extends Controller
             ];
         }
 
-        if ($rows) {
-            DB::table('match_squads')->insert($rows);
-        }
+        DB::transaction(function () use ($match, $team, $rows) {
+            DB::table('match_squads')
+                ->where('match_id', $match->id)
+                ->where('team_id', $team->id)
+                ->delete();
+
+            if ($rows) {
+                DB::table('match_squads')->insert($rows);
+            }
+        });
 
         return $this->success(
             [

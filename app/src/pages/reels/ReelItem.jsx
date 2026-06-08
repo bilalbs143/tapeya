@@ -205,7 +205,7 @@ export default function ReelItem({ reel, isActive, isLiked, onLike }) {
           >
             <img src={reelCameraIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
           </Link>
-          <span className="absolute -top-1 -right-1 flex h-[16px] w-[16px] items-center justify-center rounded-full bg-brand text-[14px] leading-none font-bold text-white">
+          <span className="bg-brand absolute -top-1 -right-1 flex h-[16px] w-[16px] items-center justify-center rounded-full text-[14px] leading-none font-bold text-white">
             +
           </span>
         </div>

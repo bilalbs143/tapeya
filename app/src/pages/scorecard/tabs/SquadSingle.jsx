@@ -19,7 +19,7 @@ export function SquadSingle({ tournamentId, teamId }) {
   if (isLoading) {
     return (
       <div className="mt-4 pb-6">
-        <p className="py-4 text-center text-[13px] text-muted">Loading squad…</p>
+        <p className="text-muted py-4 text-center text-[13px]">Loading squad…</p>
       </div>
     );
   }
@@ -35,7 +35,7 @@ export function SquadSingle({ tournamentId, teamId }) {
   if (!squad.length) {
     return (
       <div className="mt-4 pb-6">
-        <p className="py-8 text-center text-[13px] text-muted">No players in this squad yet.</p>
+        <p className="text-muted py-8 text-center text-[13px]">No players in this squad yet.</p>
       </div>
     );
   }
@@ -44,13 +44,13 @@ export function SquadSingle({ tournamentId, teamId }) {
 
   return (
     <div className="mt-4 pb-6 focus:outline-none">
-      <h1 className="border-b border-surface-border pb-4 text-left text-[13px] font-bold tracking-wide text-white uppercase">
+      <h1 className="border-surface-border border-b pb-4 text-left text-[13px] font-bold tracking-wide text-white uppercase">
         {title}
       </h1>
 
-      <div className="overflow-hidden border border-surface-border">
+      <div className="border-surface-border overflow-hidden border">
         <div className="bg-surface px-4 py-3 text-[13px] font-bold text-white">Players</div>
-        <div className="border-t border-surface-border">
+        <div className="border-surface-border border-t">
           {squad.map((player, index) => (
             <div key={player.id ?? index} className={`flex border-b ${BORDER_ALT} last:border-b-0`}>
               <div
@@ -60,7 +60,7 @@ export function SquadSingle({ tournamentId, teamId }) {
               </div>
               <div className="min-w-0 flex-1 px-4 py-3">
                 <p className="text-[13px] font-bold text-white">{player.name ?? player.nickname ?? 'Player'}</p>
-                <div className="mt-0.5 text-[12px] text-muted">{playerDisplayRole(player)}</div>
+                <div className="text-muted mt-0.5 text-[12px]">{playerDisplayRole(player)}</div>
               </div>
             </div>
           ))}

@@ -14,14 +14,3 @@ export const DISMISSAL_GRID_NO_BALL_WICKET = {
   label: 'No Ball (Wicket)',
   gridShortcut: 'no_ball',
 };
-
-const SHORTCUTS = [DISMISSAL_GRID_WIDE_WICKET, DISMISSAL_GRID_NO_BALL_WICKET];
-
-/**
- * @param {object[]} dismissalOptions From {@link getDismissalOptions}
- * @param {{ includeShortcuts?: boolean }} [opts]
- */
-export function appendDismissalGridShortcuts(dismissalOptions, { includeShortcuts = true } = {}) {
-  if (!includeShortcuts || !Array.isArray(dismissalOptions)) return dismissalOptions ?? [];
-  return [...dismissalOptions, ...SHORTCUTS];
-}

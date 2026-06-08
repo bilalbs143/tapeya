@@ -278,5 +278,5 @@ export function DialogTitle({ className = '', ...props }) {
  * Renders in the app's standard secondary text colour (#A2A6AB).
  */
 export function DialogDescription({ className = '', ...props }) {
-  return <DialogPrimitive.Description className={`text-sm text-muted ${className}`.trim()} {...props} />;
+  return <DialogPrimitive.Description className={`text-muted text-sm ${className}`.trim()} {...props} />;
 }

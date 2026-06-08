@@ -244,15 +244,19 @@ class PlayerStatsService
                     'wickets' => 0,
                     'no_balls' => 0,
                     'wides' => 0,
-                    'balls_bowled' => 0, // FIX: track here, not via collection re-scan
+                    'balls_bowled' => 0,
+                    'legal_balls' => 0, // legal deliveries (excl. wide/no-ball/extras-only) — used for overs, economy, SR
                     'overs_runs' => [],
                     'overs_balls' => [],
-                    'innings_balls' => [], // innings_id => Collection-like list for bowlingInningsWicketsRuns
+                    'innings_balls' => [], // innings_id => {wickets, runs} for best-bowling figures
                 ];
             }
 
             $byPlayer[$pid]['runs_conceded'] += $ball->runs + $ball->penalty_runs;
             $byPlayer[$pid]['balls_bowled'] += 1;
+            if ($ball->isLegalDelivery()) {
+                $byPlayer[$pid]['legal_balls'] += 1;
+            }
 
             // retired_hurt is stored with is_wicket=true but must NOT credit the
             // bowler with a wicket — the batsman was not dismissed by the bowler.
@@ -279,8 +283,11 @@ class PlayerStatsService
 
         $result = [];
         foreach ($byPlayer as $playerId => $raw) {
-            $ballsBowled = $raw['balls_bowled'];
-            $overs = round($ballsBowled / 6, 2);
+            $legalBalls = max(0, (int) $raw['legal_balls']);
+            // Cricket-notation overs: 4.2 = 4 overs + 2 balls (not the float 4.33).
+            // RefreshMatchStatsJob converts back via (wholeOvers * 6 + remainingBalls)
+            // so the decimal part must represent balls 0–5, not a fraction of 6.
+            $overs = intdiv($legalBalls, 6) + ($legalBalls % 6) * 0.1;
 
             $maidens = 0;
             foreach ($raw['overs_runs'] as $overKey => $runsInOver) {
@@ -318,8 +325,8 @@ class PlayerStatsService
                 'five_wickets' => $fiveWickets,
                 'ten_wickets' => $tenWickets,
                 'average' => $wickets > 0 ? round($runsConceded / $wickets, 2) : null,
-                'economy' => $overs > 0 ? round($runsConceded / $overs, 2) : null,
-                'strike_rate' => $wickets > 0 ? round($ballsBowled / $wickets, 2) : null,
+                'economy' => $legalBalls > 0 ? round($runsConceded / ($legalBalls / 6), 2) : null,
+                'strike_rate' => ($wickets > 0 && $legalBalls > 0) ? round($legalBalls / $wickets, 2) : null,
             ];
         }
 

@@ -30,7 +30,7 @@ export default function ActivityFeed() {
       <AppSubpageHeader title="ACTIVITY FEED" />
       <Container>
         <div className="flex flex-col gap-3 pb-8">
-          <h2 className="text-[13px] font-bold tracking-wide text-muted uppercase">{ACTIVITY_FEED_SECTION_TITLE}</h2>
+          <h2 className="text-muted text-[13px] font-bold tracking-wide uppercase">{ACTIVITY_FEED_SECTION_TITLE}</h2>
 
           <div className="flex flex-col gap-6">
             {ACTIVITY_FEED_POSTS.map((post) => (

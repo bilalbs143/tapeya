@@ -7,8 +7,6 @@ use App\Http\Controllers\User\DeviceTokenController;
 use App\Http\Controllers\User\EnumController;
 use App\Http\Controllers\User\HeroSliderController;
 use App\Http\Controllers\User\HighlightController;
-use App\Http\Controllers\User\InningsBattingStatController;
-use App\Http\Controllers\User\InningsBowlingStatController;
 use App\Http\Controllers\User\InningsLifecycleController;
 use App\Http\Controllers\User\InterestCampaignController;
 use App\Http\Controllers\User\LiveMatchCommentController;
@@ -180,8 +178,6 @@ Route::middleware('auth:api')->group(function () {
     // 30 req/min — infrequent actions; generous enough for manual corrections.
     Route::middleware('throttle:30,1')->group(function () {
         Route::post('matches/{match}/innings/{innings}/additional-runs', [AdditionalRunsController::class, 'store']);
-        Route::put('matches/{match}/innings/{innings}/batting-stats/{player}', [InningsBattingStatController::class, 'update']);
-        Route::put('matches/{match}/innings/{innings}/bowling-stats/{player}', [InningsBowlingStatController::class, 'update']);
         Route::patch('matches/{match}/wicket-keeper', [MatchWicketKeeperController::class, 'update']);
         Route::patch('matches/{match}/captain', [MatchCaptainController::class, 'update']);
         Route::post('matches/{match}/substitutes', [MatchSubstituteController::class, 'store']);

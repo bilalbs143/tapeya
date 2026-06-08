@@ -78,7 +78,7 @@ export default function ShopFilter() {
         <Container>
           <div className="py-8 text-center text-white">
             <p>Invalid filter.</p>
-            <Link to="/shop" className="mt-4 inline-block text-brand underline">
+            <Link to="/shop" className="text-brand mt-4 inline-block underline">
               Back to Shop
             </Link>
           </div>
@@ -111,7 +111,7 @@ export default function ShopFilter() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="What Are You Looking For?"
-              className="h-12 w-full rounded-[6px] bg-surface pr-14 pl-4 text-white placeholder:text-muted/47 focus:ring-2 focus:ring-brand/50 focus:outline-none"
+              className="bg-surface placeholder:text-muted/47 focus:ring-brand/50 h-12 w-full rounded-[6px] pr-14 pl-4 text-white focus:ring-2 focus:outline-none"
               aria-label="Search Shop"
             />
             <span className="pointer-events-none absolute top-0 right-5 bottom-0 flex items-center">

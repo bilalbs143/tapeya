@@ -16,24 +16,22 @@ import { ToggleChevron } from '@/ui/ToggleChevron';
 export function CollapsibleSection({ title, subtitle, open, onToggle, children }) {
   const panelId = useId();
   return (
-    <section className="rounded-lg border border-[#282824] bg-[#141412]">
+    <section className="border-border-subtle bg-surface rounded-lg border">
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA9811]"
+        className="focus-visible:ring-brand flex w-full items-center justify-between gap-3 px-3 py-3 text-left focus:outline-none focus-visible:ring-2"
         aria-expanded={open}
         aria-controls={panelId}
       >
         <span className="min-w-0 flex-1">
           <span className="block text-[13px] font-medium text-white">{title}</span>
-          {!open && subtitle ? (
-            <span className="mt-1 block truncate text-[12px] font-medium text-[#DA9811]">{subtitle}</span>
-          ) : null}
+          {!open && subtitle ? <span className="text-brand mt-1 block truncate text-[12px] font-medium">{subtitle}</span> : null}
         </span>
         <ToggleChevron open={open} />
       </button>
       {open ? (
-        <div id={panelId} className="border-t border-[#282824] px-3 pt-2 pb-3">
+        <div id={panelId} className="border-border-subtle border-t px-3 pt-2 pb-3">
           {children}
         </div>
       ) : null}
@@ -56,16 +54,16 @@ export function BatterCard({ batter, selected, onSelect }) {
       type="button"
       onClick={() => onSelect(batter.id)}
       aria-pressed={selected}
-      className={`flex flex-1 flex-col items-center gap-2 rounded-[17px] border-2 px-3 py-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA9811] ${
-        selected ? 'border-[#DA9811] bg-[#1C1C1A]' : 'border-[#141412] bg-[#141412]'
+      className={`focus-visible:ring-brand flex flex-1 flex-col items-center gap-2 rounded-[17px] border-2 px-3 py-4 transition-colors focus:outline-none focus-visible:ring-2 ${
+        selected ? 'border-brand bg-surface-raised' : 'bg-surface border-[#141412]'
       }`}
     >
-      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#10100F] text-lg font-bold text-[#DA9811]">
+      <span className="text-brand flex h-12 w-12 items-center justify-center rounded-full bg-[#10100F] text-lg font-bold">
         {(batter.name ?? '?').charAt(0)}
       </span>
       <span className="text-center text-[11px] font-semibold text-white">{batter.name}</span>
       {batter.runs != null ? (
-        <span className="text-[10px] text-[#A2A6AB]">
+        <span className="text-muted text-[10px]">
           {batter.runs} ({batter.balls ?? 0})
         </span>
       ) : null}
@@ -87,7 +85,7 @@ export function FielderList({ players, selectedId, onSelect }) {
       role="radiogroup"
       aria-label="Select Fielder"
     >
-      {players.length === 0 && <p className="py-2 text-center text-[13px] text-[#A2A6AB]">No fielders available.</p>}
+      {players.length === 0 && <p className="text-muted py-2 text-center text-[13px]">No fielders available.</p>}
       {players.map((player) => (
         <button
           key={player.id}
@@ -95,7 +93,7 @@ export function FielderList({ players, selectedId, onSelect }) {
           onClick={() => onSelect(player.id)}
           aria-pressed={selectedId === player.id}
           className={`cursor-pointer rounded-[6px] px-4 py-3 text-left transition-opacity active:opacity-90 ${
-            selectedId === player.id ? 'bg-[#1C1C1A] ring-1 ring-[#DA9811]' : 'bg-[#141412] hover:bg-[#1a1a18]'
+            selectedId === player.id ? 'bg-surface-raised ring-brand ring-1' : 'bg-surface hover:bg-surface-elevated'
           }`}
         >
           <span className="block text-[14px] font-medium text-white">{player.name}</span>

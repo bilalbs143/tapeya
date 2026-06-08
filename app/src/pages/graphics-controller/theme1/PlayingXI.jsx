@@ -4,16 +4,17 @@ function TeamColumn({ teamName, players }) {
   return (
     <div className="w-full max-w-[340px]">
       <h3 className="mb-3 text-[18px] leading-none font-normal text-[#D4D4D4]">{teamName}</h3>
-      <ul className="border border-surface-border bg-black/55">
+      <ul className="border-surface-border border bg-black/55">
         {players.map((raw, index) => {
           const { name, metaText, userId } = playingXiRowMeta(raw);
           const key = userId != null && typeof userId === 'number' ? `p-${userId}` : `${teamName}-${index}`;
           return (
-            <li key={key} className="border-b border-surface-border px-9 py-3 text-[14px] font-normal text-[#E8E8E8] last:border-b-0">
+            <li
+              key={key}
+              className="border-surface-border border-b px-9 py-3 text-[14px] font-normal text-[#E8E8E8] last:border-b-0"
+            >
               <span className="block leading-none">{name}</span>
-              {metaText ? (
-                <span className="mt-1.5 block text-[11px] leading-snug font-medium text-muted">{metaText}</span>
-              ) : null}
+              {metaText ? <span className="text-muted mt-1.5 block text-[11px] leading-snug font-medium">{metaText}</span> : null}
             </li>
           );
         })}
@@ -39,7 +40,7 @@ export default function PlayingXI({ homeTeam = {}, awayTeam = {}, matchLabel = '
   const title = both ? 'Playing XI' : `Playing XI — ${columns[0][0]}`;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-page p-3 sm:p-5">
+    <div className="bg-page flex min-h-screen items-center justify-center p-3 sm:p-5">
       <section className="relative w-full max-w-[677px] overflow-hidden bg-[#0D0806] pt-10 pb-8 text-white sm:pt-11 sm:pb-10">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -top-16 left-1/3 h-40 w-40 rounded-full bg-[#C57A12]/35 blur-3xl" />

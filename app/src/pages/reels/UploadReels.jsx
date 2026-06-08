@@ -120,13 +120,13 @@ export default function UploadReels() {
         </div>
 
         {/* Card: caption + video preview */}
-        <div className="rounded-[17px] bg-surface p-4">
+        <div className="bg-surface rounded-[17px] p-4">
           <textarea
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             placeholder="What Do You Want to Talk About?"
             rows={3}
-            className="mb-4 w-full resize-none rounded-lg border-0 bg-transparent text-[15px] text-white placeholder:text-muted focus:ring-0 focus:outline-none"
+            className="placeholder:text-muted mb-4 w-full resize-none rounded-lg border-0 bg-transparent text-[15px] text-white focus:ring-0 focus:outline-none"
           />
           <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black">
             {previewUrl ? (
@@ -171,7 +171,7 @@ export default function UploadReels() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex h-full w-full flex-col items-center justify-center gap-2 text-muted"
+                className="text-muted flex h-full w-full flex-col items-center justify-center gap-2"
               >
                 <img src={reelCameraIcon} alt="" className="h-8 w-8 shrink-0 opacity-80 brightness-0 invert" aria-hidden />
                 <span className="text-sm">Select Video</span>

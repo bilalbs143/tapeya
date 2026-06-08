@@ -1,50 +1,3 @@
-/**
- * ScorecardDetails.jsx
- *
- * Tournament detail screen with a URL-synced tab bar (schedule, table, stats,
- * teams, squads).  Also implements a sentinel-based sticky tab bar that
- * becomes fixed once the user scrolls past it.
- *
- * Route: /scorecard/:tournamentId
- *
- * -----------------------------------------------------------------------------
- * CURSOR — File structure guide
- * -----------------------------------------------------------------------------
- *
- * Constants to move
- * ──────────────────
- *   NAVBAR_HEIGHT = 64
- *     → move to: src/lib/constants/layout.js → export { NAVBAR_HEIGHT }
- *     reason: **duplicated** in ScorecardHome.jsx — one source of truth
- *             prevents drift if the nav height changes.
- *
- * Hooks to extract
- * ─────────────────
- *   Sentinel IntersectionObserver (tabsSentinelRef + setTabsFixedVisible effect)
- *     → move to: src/hooks/useFixedOnScroll.js → export { useFixedOnScroll }
- *     reason: **identical** pattern in ScorecardHome.jsx.  One hook:
- *               const { sentinelRef, isFixed } = useFixedOnScroll(NAVBAR_HEIGHT);
- *             replaces the duplicated useRef + useEffect + IntersectionObserver
- *             blocks in both files.
- *
- * Behaviour notes for Cursor
- * ──────────────────────────
- *   FIXED: fixed tab bar div had both `z-10` and `z-[100]` — `z-10` is
- *          redundant because `z-[100]` always wins.  Removed `z-10`.
- *
- *   FIXED: `TabsList` + `TabsTrigger` rendering was copy-pasted for the
- *          inline and fixed tab bars.  Extracted into a `tabsContent` variable
- *          to eliminate the duplication and keep both bars in sync when tabs
- *          change.
- *
- *   TODO: There is no empty state when `!isLoading && !isError &&
- *         matches.length === 0`.  Add a "No matches scheduled yet" message
- *         for tournaments that exist but have no matches.
- *
- * Coding guidelines: docs/Coding guidelines.md
- * -----------------------------------------------------------------------------
- */
-
 import { useEffect, useRef, useState } from 'react';
 
 import { useParams, useSearchParams } from 'react-router-dom';
@@ -107,7 +60,6 @@ export default function ScorecardDetails() {
 
   const ActiveView = TAB_VIEWS[activeTab];
 
-  // CURSOR: replace with useFixedOnScroll(NAVBAR_HEIGHT) once extracted (see top).
   useEffect(() => {
     const sentinel = tabsSentinelRef.current;
     if (!sentinel) return;
@@ -157,7 +109,7 @@ export default function ScorecardDetails() {
             </div>
           )}
 
-          {isLoading && <p className="mt-4 pb-6 text-center text-[13px] text-[#A2A6AB]">Loading matches…</p>}
+          {isLoading && <p className="text-muted mt-4 pb-6 text-center text-[13px]">Loading matches…</p>}
 
           {isError && !isLoading && <p className="mt-4 pb-6 text-center text-[13px] text-red-400">Failed to load matches.</p>}
 

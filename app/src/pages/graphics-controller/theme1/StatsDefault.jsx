@@ -25,7 +25,7 @@ export default function StatsDefault({ battingTeam = {}, bowlingTeam = {}, batte
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-page">
+    <div className="bg-page relative min-h-screen overflow-hidden">
       <section className="absolute right-0 bottom-0 left-0 overflow-hidden text-white">
         <div className="absolute inset-0">
           <div className="absolute inset-0" style={rightHalfStyle} />
@@ -40,7 +40,7 @@ export default function StatsDefault({ battingTeam = {}, bowlingTeam = {}, batte
               className="h-7 w-7 rounded-full object-cover sm:h-14 sm:w-14"
             />
             <div>
-              <p className="text-[10px] leading-none font-extrabold text-brand sm:text-[30px]">
+              <p className="text-brand text-[10px] leading-none font-extrabold sm:text-[30px]">
                 {battingTeam.shortCode || battingTeam.name || '—'}
               </p>
               <p className="mt-0.5 text-[7px] leading-none whitespace-nowrap text-[#E2E2E2] sm:mt-1 sm:text-[14px]">
@@ -63,8 +63,8 @@ export default function StatsDefault({ battingTeam = {}, bowlingTeam = {}, batte
                     className="w-full text-[7px] font-medium text-[#E8E8E8]"
                   />
                 </span>
-                <span className="text-[7px] font-bold text-brand">{batter0.runs}</span>
-                <span className="text-[6px] font-bold text-brand">{batter0.balls}</span>
+                <span className="text-brand text-[7px] font-bold">{batter0.runs}</span>
+                <span className="text-brand text-[6px] font-bold">{batter0.balls}</span>
               </div>
               <div className="my-0.5 h-px w-[34px]" style={batterSeparatorStyle} />
               <div className="flex items-center gap-0.5 leading-none">
@@ -75,8 +75,8 @@ export default function StatsDefault({ battingTeam = {}, bowlingTeam = {}, batte
                     className="w-full text-[7px] font-medium text-[#E8E8E8]"
                   />
                 </span>
-                <span className="text-[7px] font-bold text-brand">{batter1.runs}</span>
-                <span className="text-[6px] font-bold text-brand">{batter1.balls}</span>
+                <span className="text-brand text-[7px] font-bold">{batter1.runs}</span>
+                <span className="text-brand text-[6px] font-bold">{batter1.balls}</span>
               </div>
             </div>
           </div>
@@ -93,8 +93,8 @@ export default function StatsDefault({ battingTeam = {}, bowlingTeam = {}, batte
                     className="w-full text-[14px] font-medium text-[#E8E8E8]"
                   />
                 </span>
-                <span className="text-[24px] font-bold text-brand">{batter0.runs}</span>
-                <span className="text-[16px] font-bold text-brand">{batter0.balls}</span>
+                <span className="text-brand text-[24px] font-bold">{batter0.runs}</span>
+                <span className="text-brand text-[16px] font-bold">{batter0.balls}</span>
               </div>
 
               <div className="my-1 h-px w-[72px]" style={batterSeparatorStyle} />
@@ -107,8 +107,8 @@ export default function StatsDefault({ battingTeam = {}, bowlingTeam = {}, batte
                     className="w-full text-[14px] font-medium text-[#E8E8E8]"
                   />
                 </span>
-                <span className="text-[24px] font-bold text-brand">{batter1.runs}</span>
-                <span className="text-[16px] font-bold text-brand">{batter1.balls}</span>
+                <span className="text-brand text-[24px] font-bold">{batter1.runs}</span>
+                <span className="text-brand text-[16px] font-bold">{batter1.balls}</span>
               </div>
             </div>
           </div>

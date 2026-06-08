@@ -44,13 +44,13 @@ export function HighlightSearchPopover() {
         side="bottom"
         align="start"
         sideOffset={6}
-        className="max-h-[min(70vh,320px)] w-[var(--radix-popover-trigger-width)] overflow-hidden rounded-[6px] border border-border p-0 shadow-xl outline-none bg-surface-elevated"
+        className="border-border bg-surface-elevated max-h-[min(70vh,320px)] w-[var(--radix-popover-trigger-width)] overflow-hidden rounded-[6px] border p-0 shadow-xl outline-none"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="max-h-[min(70vh,320px)] overflow-y-auto rounded-[6px] py-1">
-          {isLoading && <div className="px-4 py-6 text-center text-[13px] text-muted">Searching…</div>}
+          {isLoading && <div className="text-muted px-4 py-6 text-center text-[13px]">Searching…</div>}
           {!isLoading && showEmpty && (
-            <div className="px-4 py-6 text-center text-[13px] text-muted">
+            <div className="text-muted px-4 py-6 text-center text-[13px]">
               No highlights found for &quot;{debouncedSearch}&quot;
             </div>
           )}
@@ -63,7 +63,7 @@ export function HighlightSearchPopover() {
                     onClick={() => handleSelect(highlight)}
                     className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[#252520] active:bg-[#252520]"
                   >
-                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-[6px] bg-surface">
+                    <div className="bg-surface h-12 w-12 shrink-0 overflow-hidden rounded-[6px]">
                       <img
                         src={highlight.thumbnailUrl || FIXTURE_BG_IMAGE}
                         alt=""
@@ -76,7 +76,7 @@ export function HighlightSearchPopover() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[13px] font-medium text-white">{highlight.title}</p>
                       {highlight.publishedAt ? (
-                        <p className="mt-0.5 text-[12px] text-muted">{formatHighlightDate(highlight.publishedAt)}</p>
+                        <p className="text-muted mt-0.5 text-[12px]">{formatHighlightDate(highlight.publishedAt)}</p>
                       ) : null}
                     </div>
                   </button>

@@ -69,7 +69,7 @@ export default function Reels() {
      * and BottomNav (z-40), so both remain visible on top.
      */
     <div className="fixed inset-0 z-30 bg-black lg:left-[280px]">
-      <div className="relative h-full w-full lg:mx-auto lg:max-w-[430px] lg:border-x lg:border-surface-border">
+      <div className="lg:border-surface-border relative h-full w-full lg:mx-auto lg:max-w-[430px] lg:border-x">
         {/* Tab bar — back left, Explore & My Videos centered */}
         <div className="absolute top-[64px] right-0 left-0 z-10 flex items-center justify-between px-4 py-2">
           {/* Back — left */}

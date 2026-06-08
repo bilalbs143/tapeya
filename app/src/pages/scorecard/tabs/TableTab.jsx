@@ -75,11 +75,13 @@ const STICKY_BODY_BG = 'bg-black';
 
 function StandingsTable({ standings }) {
   return (
-    <div className="overflow-x-auto overflow-y-hidden border border-surface-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div className="border-surface-border overflow-x-auto overflow-y-hidden border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <table className="w-full min-w-max border-collapse text-[12px] text-white">
         <thead>
           <tr className={HEADER_BG}>
-            <th className={`${STICKY_TEAMS} ${HEADER_BG} border-r border-b border-l ${BORDER_ALT} py-3.5 pl-4 text-left font-bold`}>
+            <th
+              className={`${STICKY_TEAMS} ${HEADER_BG} border-r border-b border-l ${BORDER_ALT} py-3.5 pl-4 text-left font-bold`}
+            >
               Teams
             </th>
             <th className={`border-r border-b ${BORDER_ALT} w-12 py-3.5 text-center font-bold`}>M</th>
@@ -135,7 +137,7 @@ export function TableTab({ tournamentId }) {
     return (
       <div className="mt-4 pb-6 focus:outline-none">
         {titleNode}
-        <p className="mt-4 text-[13px] text-muted">No tournament selected.</p>
+        <p className="text-muted mt-4 text-[13px]">No tournament selected.</p>
       </div>
     );
   }
@@ -144,7 +146,7 @@ export function TableTab({ tournamentId }) {
     return (
       <div className="mt-4 pb-6 focus:outline-none">
         {titleNode}
-        <p className="mt-4 text-[13px] text-muted">Loading points table…</p>
+        <p className="text-muted mt-4 text-[13px]">Loading points table…</p>
       </div>
     );
   }
@@ -162,7 +164,7 @@ export function TableTab({ tournamentId }) {
     return (
       <div className="mt-4 pb-6 focus:outline-none">
         {titleNode}
-        <p className="mt-4 text-[13px] text-muted">No matches have been completed yet.</p>
+        <p className="text-muted mt-4 text-[13px]">No matches have been completed yet.</p>
       </div>
     );
   }

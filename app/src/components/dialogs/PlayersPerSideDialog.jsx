@@ -30,7 +30,7 @@ export function PlayersPerSideDialog({ initialPlayersPerSide, options, onSelect 
           placeholder="Enter Number (e.g. 11)"
           value={playersPerSide}
           onChange={(e) => setPlayersPerSide(e.target.value)}
-          className="h-12 rounded-[6px] bg-surface text-white placeholder:text-muted"
+          className="bg-surface placeholder:text-muted h-12 rounded-[6px] text-white"
           aria-label="Players Per Side"
         />
         <div className="flex flex-col gap-2">

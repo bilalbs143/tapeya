@@ -142,7 +142,7 @@ function RemoveCornerButton({ onClick, label }) {
         e.stopPropagation();
         onClick();
       }}
-      className="absolute -top-1.5 -right-1.5 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-[#080807] text-muted ring-1 ring-[#2A2A28] transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFB703]"
+      className="text-muted absolute -top-1.5 -right-1.5 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-[#080807] ring-1 ring-[#2A2A28] transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFB703]"
       aria-label={label}
     >
       <XIcon size={9} />
@@ -155,13 +155,13 @@ function RemoveCornerButton({ onClick, label }) {
 function PreviewCard({ src, name, isImage, isSaved, onRemove, disabled }) {
   return (
     <div className="group relative shrink-0">
-      <div className="relative h-[56px] w-[56px] overflow-hidden rounded-[8px] border border-[#2A2A28] bg-surface-deep">
+      <div className="bg-surface-deep relative h-[56px] w-[56px] overflow-hidden rounded-[8px] border border-[#2A2A28]">
         {isImage && src ? (
           <img src={src} alt={name} className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center gap-1 px-1">
             <FileIcon className="text-muted" />
-            <span className="line-clamp-2 w-full text-center text-[9px] leading-tight text-muted">{name}</span>
+            <span className="text-muted line-clamp-2 w-full text-center text-[9px] leading-tight">{name}</span>
           </div>
         )}
         {isSaved && (
@@ -237,11 +237,11 @@ function DropzoneVariant({
         >
           <UploadIcon className={`shrink-0 ${isDragging ? 'text-brand' : 'text-muted'}`} />
           <div className="flex min-w-0 flex-col gap-0.5">
-            <p className="text-[13px] text-muted">
-              Drop here or <span className="font-semibold text-brand">browse</span>
+            <p className="text-muted text-[13px]">
+              Drop here or <span className="text-brand font-semibold">browse</span>
             </p>
             {(acceptLabel || maxSizeMb) && (
-              <p className="text-[11px] text-muted/60">
+              <p className="text-muted/60 text-[11px]">
                 {[acceptLabel, maxSizeMb && `Max ${maxSizeMb} MB`].filter(Boolean).join(' · ')}
               </p>
             )}
@@ -300,7 +300,7 @@ function CompactVariant({
           type="button"
           onClick={disabled ? undefined : onZoneClick}
           disabled={disabled}
-          className="shrink-0 rounded-[4px] border border-[#2A2A28] bg-surface-deep px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:border-brand/50 hover:text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFB703] disabled:cursor-not-allowed"
+          className="bg-surface-deep hover:border-brand/50 hover:text-brand shrink-0 rounded-[4px] border border-[#2A2A28] px-3 py-1.5 text-[12px] font-medium text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFB703] disabled:cursor-not-allowed"
         >
           {hasContent ? 'Change' : 'Attach file'}
         </button>
@@ -316,7 +316,7 @@ function CompactVariant({
             <span className="truncate text-[12px] text-white">{first?.name}</span>
           </div>
         ) : (
-          <span className="min-w-0 flex-1 truncate text-[12px] text-muted">
+          <span className="text-muted min-w-0 flex-1 truncate text-[12px]">
             {[acceptLabel, maxSizeMb && `Max ${maxSizeMb} MB`].filter(Boolean).join(' · ') || 'No file selected'}
           </span>
         )}
@@ -326,7 +326,7 @@ function CompactVariant({
           <button
             type="button"
             onClick={() => first?.onRemove()}
-            className="ml-auto shrink-0 rounded p-0.5 text-muted transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFB703]"
+            className="text-muted ml-auto shrink-0 rounded p-0.5 transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFB703]"
             aria-label="Remove File"
           >
             <XIcon size={12} />
@@ -376,7 +376,7 @@ function AvatarVariant({ inputRef, inputId, accept, error, disabled, onInputChan
         className={[
           'group relative overflow-hidden rounded-full border-2 transition-colors',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFB703] focus-visible:ring-offset-2 focus-visible:ring-offset-[#080807]',
-          error ? 'border-red-500/50' : 'border-[#2A2A28] hover:border-brand/60',
+          error ? 'border-red-500/50' : 'hover:border-brand/60 border-[#2A2A28]',
           disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
         ]
           .filter(Boolean)
@@ -385,7 +385,7 @@ function AvatarVariant({ inputRef, inputId, accept, error, disabled, onInputChan
         {hasSrc ? (
           <img src={src} alt="" className="h-full w-full object-cover" aria-hidden />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-surface">
+          <div className="bg-surface flex h-full w-full items-center justify-center">
             {/* Generic person placeholder */}
             <svg
               width={Math.round(avatarSize * 0.4)}
@@ -416,7 +416,7 @@ function AvatarVariant({ inputRef, inputId, accept, error, disabled, onInputChan
         <button
           type="button"
           onClick={() => first?.onRemove()}
-          className="text-[12px] leading-none text-muted underline underline-offset-2 transition-colors hover:text-red-300 focus:outline-none focus-visible:rounded focus-visible:ring-2 focus-visible:ring-[#FFB703]"
+          className="text-muted text-[12px] leading-none underline underline-offset-2 transition-colors hover:text-red-300 focus:outline-none focus-visible:rounded focus-visible:ring-2 focus-visible:ring-[#FFB703]"
         >
           Remove photo
         </button>
@@ -678,7 +678,7 @@ export function FileUploadField({
       {variant === 'compact' && <CompactVariant {...sharedProps} />}
       {(variant === 'dropzone' || !variant) && <DropzoneVariant {...sharedProps} />}
 
-      {hint && !error && <p className="text-[11px] leading-snug text-muted/80">{hint}</p>}
+      {hint && !error && <p className="text-muted/80 text-[11px] leading-snug">{hint}</p>}
 
       {error && (
         <p id={name ? `${name}-error` : undefined} className="text-sm text-red-300" role="alert">

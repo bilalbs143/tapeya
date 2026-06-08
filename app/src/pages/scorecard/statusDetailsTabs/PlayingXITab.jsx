@@ -39,7 +39,7 @@ export function StatusDetailsPlayingXITab({ match, details }) {
             <thead>
               <tr className={HEADER_BG}>
                 <th
-                  className={`w-8 shrink-0 border-t border-r border-b border-l py-2.5 pl-3 text-left text-muted ${BORDER} ${HEADER_BG}`}
+                  className={`text-muted w-8 shrink-0 border-t border-r border-b border-l py-2.5 pl-3 text-left ${BORDER} ${HEADER_BG}`}
                   aria-label="Index"
                 />
                 <th
@@ -69,7 +69,7 @@ export function StatusDetailsPlayingXITab({ match, details }) {
                     {players1[i] ? (
                       <>
                         <p className="text-[12px] font-bold text-white">{players1[i].name}</p>
-                        <p className="mt-0.5 text-[12px] text-muted">{players1[i].playing_role}</p>
+                        <p className="text-muted mt-0.5 text-[12px]">{players1[i].playing_role}</p>
                       </>
                     ) : (
                       <span className="text-muted">—</span>
@@ -79,7 +79,7 @@ export function StatusDetailsPlayingXITab({ match, details }) {
                     {players2[i] ? (
                       <>
                         <p className="text-[12px] font-bold text-white">{players2[i].name}</p>
-                        <p className="mt-0.5 text-[12px] text-muted">{players2[i].playing_role}</p>
+                        <p className="text-muted mt-0.5 text-[12px]">{players2[i].playing_role}</p>
                       </>
                     ) : (
                       <span className="text-muted">—</span>
@@ -96,13 +96,13 @@ export function StatusDetailsPlayingXITab({ match, details }) {
 
   return (
     <div className="pb-6">
-      {matchTitle && <p className="mb-4 text-[13px] font-bold tracking-wide text-muted uppercase">{matchTitle}</p>}
+      {matchTitle && <p className="text-muted mb-4 text-[13px] font-bold tracking-wide uppercase">{matchTitle}</p>}
 
       {renderTable(mainTeam1, mainTeam2, 1)}
 
       {benchRowCount > 0 && (
         <>
-          <p className="mt-6 mb-2 text-[13px] font-bold tracking-wide text-muted uppercase">Bench</p>
+          <p className="text-muted mt-6 mb-2 text-[13px] font-bold tracking-wide uppercase">Bench</p>
           {renderTable(benchTeam1, benchTeam2, MAIN_XI_COUNT + 1, false)}
         </>
       )}

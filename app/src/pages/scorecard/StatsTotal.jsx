@@ -209,7 +209,7 @@ export default function StatsTotal() {
       <div className="bg-black">
         {header}
         <Container className="pb-6">
-          <p className="mt-4 text-center text-[13px] text-muted">Select a tournament to view stats.</p>
+          <p className="text-muted mt-4 text-center text-[13px]">Select a tournament to view stats.</p>
         </Container>
       </div>
     );
@@ -220,7 +220,7 @@ export default function StatsTotal() {
       <div className="bg-black">
         {header}
         <Container className="pb-6">
-          <p className="mt-4 text-center text-[13px] text-muted">Loading stats…</p>
+          <p className="text-muted mt-4 text-center text-[13px]">Loading stats…</p>
         </Container>
       </div>
     );
@@ -250,9 +250,9 @@ export default function StatsTotal() {
       <Container className="pb-6">
         <h2 className="text-center text-base font-bold tracking-wide text-white uppercase">{mainTitle}</h2>
 
-        <h3 className="mt-4 text-left text-[13px] font-bold tracking-wide text-muted uppercase">{subheading}</h3>
+        <h3 className="text-muted mt-4 text-left text-[13px] font-bold tracking-wide uppercase">{subheading}</h3>
 
-        <div className="mt-3 overflow-x-auto overflow-y-hidden border border-surface-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="border-surface-border mt-3 overflow-x-auto overflow-y-hidden border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <table className="w-full min-w-max border-collapse text-[12px] text-white">
             <thead>
               <tr className={HEADER_BG}>
@@ -271,7 +271,7 @@ export default function StatsTotal() {
                 <tr>
                   <td
                     colSpan={columns.length}
-                    className={`border-r border-b border-l py-6 text-center text-[13px] text-muted ${BORDER_ALT}`}
+                    className={`text-muted border-r border-b border-l py-6 text-center text-[13px] ${BORDER_ALT}`}
                   >
                     No stats available yet.
                   </td>

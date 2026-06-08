@@ -33,14 +33,14 @@ export default function Highlights() {
           {isLoading ? (
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-[200px] animate-pulse rounded-[17px] bg-surface" />
+                <div key={i} className="bg-surface h-[200px] animate-pulse rounded-[17px]" />
               ))}
             </div>
           ) : null}
 
           {/* Error */}
           {isError && !isLoading ? (
-            <p className="py-4 text-center text-[13px] text-muted">Failed to load highlights. Please try again later.</p>
+            <p className="text-muted py-4 text-center text-[13px]">Failed to load highlights. Please try again later.</p>
           ) : null}
 
           {/* Sections */}
@@ -53,7 +53,7 @@ export default function Highlights() {
 
           {/* Empty state */}
           {!isLoading && !isError && highlights.length === 0 ? (
-            <p className="py-2 text-center text-[13px] text-muted">No highlights available yet.</p>
+            <p className="text-muted py-2 text-center text-[13px]">No highlights available yet.</p>
           ) : null}
         </div>
       </Container>

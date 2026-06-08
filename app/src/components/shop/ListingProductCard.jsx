@@ -19,10 +19,10 @@ function ListingProductCardInner({ product, brandSlug }) {
         {imageUrl ? (
           <img src={imageUrl} alt={product.images?.[0]?.alt ?? product.name} className="h-full w-full object-contain p-2" />
         ) : (
-          <div className="h-full w-full bg-surface" aria-hidden />
+          <div className="bg-surface h-full w-full" aria-hidden />
         )}
         {product.is_featured && (
-          <span className="absolute top-2 left-2 rounded-full bg-brand px-2 py-0.5 text-[11px] font-bold text-black uppercase">
+          <span className="bg-brand absolute top-2 left-2 rounded-full px-2 py-0.5 text-[11px] font-bold text-black uppercase">
             Featured
           </span>
         )}
@@ -38,22 +38,16 @@ function ListingProductCardInner({ product, brandSlug }) {
           <div className="flex min-w-0 flex-col justify-end gap-0.5">
             {hasDiscount ? (
               <>
-                <span className="text-[11px] text-muted line-through">{formatPrice(product.price)}</span>
-                <span className="text-base font-bold text-brand">{formatPrice(product.sale_price)}</span>
+                <span className="text-muted text-[11px] line-through">{formatPrice(product.price)}</span>
+                <span className="text-brand text-base font-bold">{formatPrice(product.sale_price)}</span>
               </>
             ) : (
-              <span className="text-base font-bold text-brand">{formatPrice(product.price)}</span>
+              <span className="text-brand text-base font-bold">{formatPrice(product.price)}</span>
             )}
           </div>
           {detailPath && (
             <span className="flex shrink-0 items-center gap-0.5 rounded p-1" aria-hidden>
-              <svg
-                className="h-3 w-3 font-bold text-brand"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
+              <svg className="text-brand h-3 w-3 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
               <img src={productCartIcon} alt="" className="h-[17px] w-[17px]" />
@@ -68,7 +62,7 @@ function ListingProductCardInner({ product, brandSlug }) {
     return (
       <Link
         to={detailPath}
-        className="flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[17px] bg-surface-elevated transition-opacity active:opacity-90"
+        className="bg-surface-elevated flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[17px] transition-opacity active:opacity-90"
         aria-label={`View ${product.name}`}
       >
         {content}
@@ -76,7 +70,11 @@ function ListingProductCardInner({ product, brandSlug }) {
     );
   }
 
-  return <article className="flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[17px] bg-surface-elevated">{content}</article>;
+  return (
+    <article className="bg-surface-elevated flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[17px]">
+      {content}
+    </article>
+  );
 }
 
 export const ListingProductCard = memo(ListingProductCardInner);

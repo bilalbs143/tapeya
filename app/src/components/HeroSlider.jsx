@@ -17,7 +17,7 @@ export function HeroSlider() {
   const [activeIndex, setActiveIndex] = useState(0);
 
   if (isLoading) {
-    return <div className="aspect-[16/5] w-full animate-pulse overflow-hidden rounded-[17px] bg-surface" />;
+    return <div className="bg-surface aspect-[16/5] w-full animate-pulse overflow-hidden rounded-[17px]" />;
   }
 
   const list = Array.isArray(slides) && slides.length > 0 ? slides.filter((s) => s?.image_mobile) : null;

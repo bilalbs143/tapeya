@@ -17,9 +17,9 @@ export default function TournamentRequestSuccess() {
           <img src={successOrderGif} alt="" className="h-24 w-24 rounded-full object-contain" />
         </div>
 
-        <h2 className="mb-3 text-[18px] font-bold tracking-wide text-brand uppercase sm:text-[20px]">Thank you!</h2>
+        <h2 className="text-brand mb-3 text-[18px] font-bold tracking-wide uppercase sm:text-[20px]">Thank you!</h2>
 
-        <p className="mb-8 max-w-[280px] text-[14px] leading-relaxed font-medium text-muted">
+        <p className="text-muted mb-8 max-w-[280px] text-[14px] leading-relaxed font-medium">
           Your tournament request has been received. We will contact you shortly.
         </p>
 
@@ -27,14 +27,14 @@ export default function TournamentRequestSuccess() {
           <button
             type="button"
             onClick={() => navigate('/organizer/tournaments')}
-            className="flex w-full items-center justify-center gap-2 rounded-[6px] bg-brand px-8 py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90"
+            className="bg-brand flex w-full items-center justify-center gap-2 rounded-[6px] px-8 py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90"
           >
             Track My Request
           </button>
           <button
             type="button"
             onClick={() => navigate('/home')}
-            className="flex w-full items-center justify-center gap-2 rounded-[6px] border border-[#2A2A28] bg-surface px-8 py-3.5 text-[16px] font-medium text-white transition-opacity active:opacity-90"
+            className="bg-surface flex w-full items-center justify-center gap-2 rounded-[6px] border border-[#2A2A28] px-8 py-3.5 text-[16px] font-medium text-white transition-opacity active:opacity-90"
           >
             Go to Home
           </button>

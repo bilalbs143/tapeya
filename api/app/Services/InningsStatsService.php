@@ -2,11 +2,16 @@
 
 namespace App\Services;
 
+use App\Enums\Event\DismissalTypeEnum;
+use App\Enums\Event\PenaltyTeamEnum;
 use App\Models\Ball;
+use App\Models\TournamentMatch;
 use App\Models\User;
 use App\Services\Broadcast\GraphicContextBuilder;
 use App\Services\Broadcast\GraphicContextOrchestrator;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Centralized innings stats computation — single source of truth used by
@@ -20,10 +25,16 @@ class InningsStatsService
 {
     /**
      * Walk ball-by-ball and return who is on strike / non-strike for the *next*
-     * delivery — i.e. after applying the same strike-rotation rules as the
-     * scoring app (odd runs off bat, odd legal byes/leg-byes, dismissals, and
-     * change of ends when six legal deliveries complete without an odd-run flip
-     * on that delivery).
+     * delivery — i.e. after applying all MCC strike-rotation rules:
+     *
+     *   • Odd runs off the bat on any delivery (fair, no-ball) → rotate.
+     *   • Odd bye / leg-bye runs on any delivery (fair or no-ball) → rotate.
+     *   • Odd runs beyond the wide penalty → rotate (batters physically ran).
+     *   • Penalty-only / additional-runs-only awards → no rotation (not a delivery).
+     *   • 6th legal delivery of an over with no odd-run rotation → change of ends.
+     *   • Dismissal: incoming batter takes the vacant end; run-out crossing logic
+     *     uses the post-run-rotation positions to determine the correct end.
+     *   • Wicket on the last ball of an over → ALSO applies the change of ends.
      *
      * Each ball row stores striker/non-striker at the *start* of that delivery,
      * so {@see compute()} must not use the last row's striker_id alone as
@@ -51,6 +62,8 @@ class InningsStatsService
             $ball = $arr[$i];
             $nextBall = $arr[$i + 1] ?? null;
 
+            // Absorb the stored crease at the start of each delivery. This lets
+            // manual scorer corrections propagate through historical re-computation.
             if ($ball->striker_id) {
                 $sid = (int) $ball->striker_id;
             }
@@ -58,40 +71,48 @@ class InningsStatsService
                 $nid = (int) $ball->non_striker_id;
             }
 
+            $isLegal = $ball->isLegalDelivery();
+
             if ($ball->is_wicket) {
+                // Step 1 — rotate for any runs completed before the dismissal.
+                [$sid, $nid] = self::applyOddRunRotation($ball, $sid, $nid);
+
+                // Step 2 — resolve who occupies each end after the dismissal, using
+                // the post-rotation positions so run-out end logic is accurate.
                 [$sid, $nid] = self::creaseAfterDismissalBall($ball, $nextBall, $sid, $nid);
-                if ($ball->isLegalDelivery()) {
+
+                // Step 3 — if this was the 6th legal ball, also change ends (the
+                // new batter and surviving batter walk to the opposite ends for the
+                // next over). The `continue` below would otherwise skip this.
+                if ($isLegal) {
                     $legalInOver++;
                     if ($legalInOver === 6) {
                         $legalInOver = 0;
+                        if ($sid && $nid) {
+                            [$sid, $nid] = [$nid, $sid];
+                        }
                     }
                 }
 
                 continue;
             }
 
-            $isLegal = $ball->isLegalDelivery();
-            $oddRot = false;
+            $oddRot = self::computeStrikeRotation($ball);
 
-            // Legal runs off the bat (not wide / NB / bye / LB)
-            if (! $ball->is_wide && ! $ball->is_no_ball && ! $ball->is_bye && ! $ball->is_leg_bye) {
-                $rob = self::strikerRunsOffBat($ball);
-                if ($rob % 2 === 1 && $sid && $nid) {
-                    [$sid, $nid] = [$nid, $sid];
-                    $oddRot = true;
-                }
-            } elseif (($ball->is_bye || $ball->is_leg_bye) && $isLegal) {
-                $runs = (int) ($ball->runs ?? 0);
-                if ($runs % 2 === 1 && $sid && $nid) {
-                    [$sid, $nid] = [$nid, $sid];
-                    $oddRot = true;
-                }
+            if ($oddRot && $sid && $nid) {
+                [$sid, $nid] = [$nid, $sid];
             }
 
             if ($isLegal) {
                 $legalInOver++;
                 if ($legalInOver === 6) {
-                    if (! $oddRot && $sid && $nid) {
+                    // End of over: ALWAYS change ends. The odd-run rotation and the
+                    // over-end change are independent — both always apply. Odd runs
+                    // on the last ball mean the batters crossed once (oddRot), then
+                    // change of ends crosses them again — net result: original striker
+                    // faces the next over. Skipping the swap here when oddRot=true
+                    // would leave the wrong batter on strike.
+                    if ($sid && $nid) {
                         [$sid, $nid] = [$nid, $sid];
                     }
                     $legalInOver = 0;
@@ -103,7 +124,133 @@ class InningsStatsService
     }
 
     /**
-     * @return array{0: int|null, 1: int|null}
+     * Determine whether a delivery causes a strike rotation.
+     *
+     * Cricket rotation rules (MCC Laws):
+     *   – Normal delivery: odd runs off bat → rotate.
+     *   – Bye / leg-bye (legal delivery): odd total runs → rotate (batters ran).
+     *   – No-ball + runs off bat: odd runs off bat → rotate.
+     *   – No-ball + bye / leg-bye: odd bye/LB runs (runs − 1 penalty) → rotate.
+     *   – Wide: odd runs beyond the mandatory 1-run penalty → rotate.
+     *   – Penalty-only / additional-runs-only awards: no delivery, no rotation.
+     *
+     * @internal Used by resolveCreaseAfterBalls and applyOddRunRotation.
+     */
+    private static function computeStrikeRotation(Ball $ball): bool
+    {
+        // Penalty-only / additional-runs-only awards are not deliveries; batters
+        // do not run and the crease state must not change.
+        if ($ball->isPenaltyOnlyAward() || $ball->isAdditionalRunsOnlyAward()) {
+            return false;
+        }
+
+        // Wide delivery: the mandatory 1-run penalty does not involve running.
+        // Any runs beyond the penalty (batters chose to run) determine rotation.
+        if ($ball->is_wide) {
+            $runsRun = max(0, (int) ($ball->runs ?? 0) - 1);
+
+            return ($runsRun % 2) === 1;
+        }
+
+        // No-ball + bye or leg-bye: the 1-run NB penalty does not involve
+        // running. The bye/LB runs (stored in runs − 1) determine rotation.
+        if ($ball->is_no_ball && ($ball->is_bye || $ball->is_leg_bye)) {
+            $byeRuns = max(0, (int) ($ball->runs ?? 0) - 1);
+
+            return ($byeRuns % 2) === 1;
+        }
+
+        // No-ball + runs off bat: treat like a fair delivery for rotation
+        // (the striker physically ran; the 1-run penalty is not a physical run).
+        if ($ball->is_no_ball) {
+            return (self::strikerRunsOffBat($ball) % 2) === 1;
+        }
+
+        // Bye or leg-bye on a fair delivery: total runs = physical runs run.
+        if ($ball->is_bye || $ball->is_leg_bye) {
+            return ((int) ($ball->runs ?? 0) % 2) === 1;
+        }
+
+        // Fair delivery: runs off the bat determine rotation.
+        return (self::strikerRunsOffBat($ball) % 2) === 1;
+    }
+
+    /**
+     * Merge graphic_session pending_players onto crease resolved from ball history.
+     *
+     * Pre-innings: pending ids replace empty slots directly.
+     * Mid-innings: when both pending batter ids match the two on-crease players,
+     * treat them as an explicit striker / non-striker assignment (end swap).
+     * Otherwise fill any vacant slot (incoming batter after a wicket).
+     *
+     * @param  array<string, mixed>  $pending
+     * @return array{striker_id: int|null, non_striker_id: int|null}
+     */
+    public static function applyPendingCreaseSelection(
+        ?int $strikerId,
+        ?int $nonStrikerId,
+        array $pending,
+        bool $inningsStarted,
+    ): array {
+        if (! $inningsStarted) {
+            if (! empty($pending['next_batter_id'])) {
+                $strikerId = (int) $pending['next_batter_id'];
+            }
+            if (! empty($pending['next_non_striker_id'])) {
+                $nonStrikerId = (int) $pending['next_non_striker_id'];
+            }
+
+            return ['striker_id' => $strikerId, 'non_striker_id' => $nonStrikerId];
+        }
+
+        $pendingStriker = ! empty($pending['next_batter_id']) ? (int) $pending['next_batter_id'] : null;
+        $pendingNonStriker = ! empty($pending['next_non_striker_id']) ? (int) $pending['next_non_striker_id'] : null;
+
+        if ($pendingStriker && $pendingNonStriker && $strikerId && $nonStrikerId) {
+            $onCrease = [(int) $strikerId, (int) $nonStrikerId];
+            sort($onCrease);
+            $pendingPair = [$pendingStriker, $pendingNonStriker];
+            sort($pendingPair);
+
+            if ($onCrease === $pendingPair && $pendingStriker !== $pendingNonStriker) {
+                return ['striker_id' => $pendingStriker, 'non_striker_id' => $pendingNonStriker];
+            }
+        }
+
+        foreach (['next_batter_id', 'next_non_striker_id'] as $key) {
+            if (empty($pending[$key])) {
+                continue;
+            }
+            $id = (int) $pending[$key];
+            if ($id <= 0 || $strikerId === $id || $nonStrikerId === $id) {
+                continue;
+            }
+            if ($strikerId === null) {
+                $strikerId = $id;
+            } elseif ($nonStrikerId === null) {
+                $nonStrikerId = $id;
+            }
+        }
+
+        return ['striker_id' => $strikerId, 'non_striker_id' => $nonStrikerId];
+    }
+
+    /**
+     * Resolve the crease immediately after a dismissal ball.
+     *
+     * $sid / $nid are the POST-run-rotation positions — i.e. where each batter
+     * physically is when the dismissal moment occurs. Using these (rather than
+     * the delivery's stored striker_id) is essential for run-outs where runs
+     * completed before the dismissal have already moved the batters.
+     *
+     * Run-out crossing rules:
+     *   batter_crossed = false → out batter was dismissed at the end they started
+     *                            from (they turned back or never fully committed).
+     *   batter_crossed = true  → both batters fully crossed; out batter reached
+     *                            the far end and was dismissed there; survivor is
+     *                            therefore at the end the out batter vacated.
+     *
+     * @return array{0: int|null, 1: int|null} [next-striker, next-non-striker]
      */
     private static function creaseAfterDismissalBall(Ball $ball, ?Ball $nextBall, ?int $sid, ?int $nid): array
     {
@@ -112,15 +259,66 @@ class InningsStatsService
             return [$sid, $nid];
         }
 
-        $deliveryStriker = $ball->striker_id ? (int) $ball->striker_id : ($sid ?? 0);
-        $staysId = ((int) $outId === (int) $sid) ? $nid : $sid;
-        $nextId = self::incomingBatsmanIdFromNextBall($nextBall, $staysId);
+        // Determine which end the out batter occupies at the moment of dismissal,
+        // based on the post-run-rotation crease ($sid = striker's end).
+        $outAtStrikersEnd = ((int) $outId === (int) $sid);
+        $survivor = $outAtStrikersEnd ? $nid : $sid;
+        $nextId = self::incomingBatsmanIdFromNextBall($nextBall, $survivor);
 
-        $outWasStriker = ((int) $outId === (int) $deliveryStriker);
-        $newSid = $outWasStriker ? $nextId : $staysId;
-        $newNid = $outWasStriker ? $staysId : $nextId;
+        if ($ball->dismissal_type === DismissalTypeEnum::RUN_OUT && $ball->batter_crossed !== null) {
+            if ((bool) $ball->batter_crossed) {
+                // Batters crossed during the dismissal run: each batter reached the
+                // far end, flipping their positions one more time.
+                if ($outAtStrikersEnd) {
+                    // Out batter crossed from striker's end → dismissed at non-striker's end.
+                    // Survivor crossed from non-striker's end → now at striker's end → faces next.
+                    // Incoming batter C fills the non-striker's end.
+                    return [$survivor ?: null, $nextId ?: null];
+                }
 
-        return [$newSid ?: null, $newNid ?: null];
+                // Out batter crossed from non-striker's end → dismissed at striker's end.
+                // Survivor crossed from striker's end → now at non-striker's end.
+                // Incoming batter C comes in at striker's end → faces next.
+                return [$nextId ?: null, $survivor ?: null];
+            }
+
+            // Not crossed: out batter dismissed at the end they were already at.
+            if ($outAtStrikersEnd) {
+                // Out at striker's end: C takes that end → faces next.
+                return [$nextId ?: null, $survivor ?: null];
+            }
+
+            // Out at non-striker's end: survivor stays at striker's end → faces next.
+            return [$survivor ?: null, $nextId ?: null];
+        }
+
+        // All non-run-out dismissals (caught, bowled, LBW, stumped, hit-wicket,
+        // mankad, obstructing, retired, timed-out, hit-ball-twice):
+        // The ball ends at the striker's crease or due to the striker's action.
+        if ($outAtStrikersEnd) {
+            // Striker dismissed: incoming batter C takes the striker's end → faces next.
+            return [$nextId ?: null, $survivor ?: null];
+        }
+
+        // Non-striker dismissed (mankad, obstructing at non-striker's end):
+        // striker remains at striker's end → continues to face.
+        return [$survivor ?: null, $nextId ?: null];
+    }
+
+    /**
+     * Rotate strike for runs completed on a wicket delivery before the dismissal.
+     * Uses the same rules as computeStrikeRotation so that run-outs on wides /
+     * no-balls are handled correctly.
+     *
+     * @return array{0: int|null, 1: int|null}
+     */
+    private static function applyOddRunRotation(Ball $ball, ?int $sid, ?int $nid): array
+    {
+        if (! $sid || ! $nid) {
+            return [$sid, $nid];
+        }
+
+        return self::computeStrikeRotation($ball) ? [$nid, $sid] : [$sid, $nid];
     }
 
     /**
@@ -169,6 +367,8 @@ class InningsStatsService
             return 0;
         }
         if ($ball->is_no_ball) {
+            // S11: the outer `is_bye || is_leg_bye` guard at lines above already
+            // returned 0 before this branch — the inner check was unreachable dead code.
             $total = (int) ($ball->runs ?? 0);
             $snip = (int) ($ball->runs_off_bat ?? 0);
             if ($snip > 0) {
@@ -228,16 +428,25 @@ class InningsStatsService
         $fallOfWickets = [];
         $wicketNum = 0;
 
+        /** @var array<int, Carbon|null> First ball timestamp when each batter arrived at the crease. */
+        $creaseArrivalAt = [];
+
         foreach ($balls as $ball) {
             $isLegal = $ball->isLegalDelivery();
             $isBye = $ball->is_bye;
             $isLb = $ball->is_leg_bye;
 
-            // Total runs include penalty runs (awarded separately, e.g. Law 41.17).
-            $ballRuns = ($ball->runs ?? 0) + ($ball->penalty_runs ?? 0);
+            $deliveryRuns = (int) ($ball->runs ?? 0);
+            $pr = (int) ($ball->penalty_runs ?? 0);
+            $ar = (int) ($ball->additional_runs ?? 0);
+            $penaltyTeam = $ball->penalty_team ?? PenaltyTeamEnum::BATTING->value;
 
             // ── Totals ────────────────────────────────────────────────────────
-            $totalRuns += $ballRuns;
+            $totalRuns += $deliveryRuns + $ar;
+            if ($pr !== 0 && $penaltyTeam === PenaltyTeamEnum::BATTING->value) {
+                // Positive → award; negative → deduction. Both are applied directly.
+                $totalRuns += $pr;
+            }
             if ($isLegal) {
                 $legalBalls++;
             }
@@ -258,10 +467,15 @@ class InningsStatsService
             if ($isLb) {
                 $legByes += (int) ($ball->runs ?? 0);
             }
-            $penaltyRuns += (int) ($ball->penalty_runs ?? 0);
+            if ($pr !== 0 && $penaltyTeam === PenaltyTeamEnum::BATTING->value) {
+                $penaltyRuns += $pr;
+            }
 
             // ── Batting ───────────────────────────────────────────────────────
             foreach (array_filter([$ball->striker_id, $ball->non_striker_id]) as $pid) {
+                if ($pid && ! isset($creaseArrivalAt[$pid]) && $ball->created_at !== null) {
+                    $creaseArrivalAt[$pid] = $ball->created_at;
+                }
                 if (! isset($batsmenStats[$pid])) {
                     $batterOrder[] = $pid;
                     $batsmenStats[$pid] = [
@@ -277,6 +491,7 @@ class InningsStatsService
                         'dismissal_label' => null,
                         'bowler_name' => null,
                         'fielder_name' => null,
+                        'crease_time_seconds' => null,
                     ];
                 }
             }
@@ -326,6 +541,18 @@ class InningsStatsService
                                 : null;
                         }
                     }
+
+                    if ($isRetiredHurt) {
+                        unset($creaseArrivalAt[$outId]);
+                    } elseif (
+                        isset($creaseArrivalAt[$outId], $batsmenStats[$outId])
+                        && $ball->created_at !== null
+                    ) {
+                        $batsmenStats[$outId]['crease_time_seconds'] = max(
+                            0,
+                            $creaseArrivalAt[$outId]->diffInSeconds($ball->created_at),
+                        );
+                    }
                 }
 
                 if (! $isRetiredHurt) {
@@ -359,7 +586,7 @@ class InningsStatsService
                     }
                 }
                 // Only credit the bowler when the dismissal type counts against them
-                // (run_out, obstructing_the_field, hit_ball_twice, over_the_fence are fielding
+                // (run_out, obstructing_the_field, hit_ball_twice are fielding
                 // dismissals — the bowler is NOT credited per cricket law).
                 if ($ball->is_wicket && $ball->dismissal_type?->countsAsBowlerWicket()) {
                     $bowlerStats[$bid]['wickets']++;
@@ -408,6 +635,7 @@ class InningsStatsService
             'dismissal_label' => $batsmenStats[$id]['dismissal_label'],
             'bowler_name' => $batsmenStats[$id]['bowler_name'],
             'fielder_name' => $batsmenStats[$id]['fielder_name'],
+            'crease_time_seconds' => $batsmenStats[$id]['crease_time_seconds'],
             'is_on_crease' => ! in_array($id, $dismissedIds, true),
             'is_retired_hurt' => ($batsmenStats[$id]['dismissal_type'] ?? null) === 'retired_hurt',
         ], $batterOrder);
@@ -433,7 +661,7 @@ class InningsStatsService
         $crease = self::resolveCreaseAfterBalls($balls);
         $currentStrikerId = $crease['striker_id'];
 
-        return [
+        $result = [
             'total_runs' => $totalRuns,
             'total_wickets' => $totalWickets,
             'legal_balls' => $legalBalls,
@@ -450,10 +678,11 @@ class InningsStatsService
             'fall_of_wickets' => $fallOfWickets,
             'current_striker_id' => $currentStrikerId,
             'dismissed_ids' => $dismissedIds,
-            // Raw keyed maps for consumers that need O(1) lookups (e.g. graphic service).
             'batting_by_id' => $batsmenStats,
             'bowling_by_id' => $bowlerStats,
         ];
+
+        return $result;
     }
 
     /**
@@ -615,6 +844,9 @@ class InningsStatsService
         if ($ball->isPenaltyOnlyAward()) {
             return 'P'.(int) ($ball->penalty_runs ?? 0);
         }
+        if ($ball->isAdditionalRunsOnlyAward()) {
+            return '+'.(int) ($ball->additional_runs ?? 0);
+        }
         if ($ball->is_wide) {
             $extra = max(1, $runs) - 1;
 
@@ -635,5 +867,119 @@ class InningsStatsService
         $label = (string) $runs;
 
         return $ball->is_free_hit ? $label.'*' : $label;
+    }
+
+    /**
+     * Penalty runs awarded to the bowling side during an innings are stored on that
+     * innings' ball rows but credited when that team bats (same or later innings).
+     *
+     * S14: loadMissing is skipped when both innings and balls are already loaded by
+     * the caller (e.g. MatchCompletionService which has balls pre-fetched), avoiding
+     * redundant I/O on every evaluate() call.
+     */
+    public static function crossInningsPenaltyRunsForBattingTeam(TournamentMatch $match, int $battingTeamId): int
+    {
+        // Only load if innings or their balls are not already in memory.
+        if (! $match->relationLoaded('innings') || $match->innings->contains(fn ($i) => ! $i->relationLoaded('balls'))) {
+            $match->loadMissing(['innings.balls']);
+        }
+
+        $sum = 0;
+        foreach ($match->innings as $inn) {
+            if ((int) $inn->bowling_team_id !== $battingTeamId) {
+                continue;
+            }
+            foreach ($inn->balls as $ball) {
+                if (($ball->penalty_team ?? PenaltyTeamEnum::BATTING->value) !== PenaltyTeamEnum::BOWLING->value) {
+                    continue;
+                }
+                $sum += (int) ($ball->penalty_runs ?? 0);
+            }
+        }
+
+        return $sum;
+    }
+
+    /**
+     * Apply cross-innings penalty credits to computed innings stats.
+     *
+     * @param  array<string, mixed>  $stats
+     * @return array<string, mixed>
+     */
+    public static function applyCrossInningsPenalties(array $stats, int $crossPenaltyRuns): array
+    {
+        if ($crossPenaltyRuns <= 0) {
+            return $stats;
+        }
+
+        $stats['total_runs'] = (int) ($stats['total_runs'] ?? 0) + $crossPenaltyRuns;
+        $extras = $stats['extras_breakdown'] ?? [];
+        $penalty = (int) ($extras['penalty_runs'] ?? 0) + $crossPenaltyRuns;
+        $stats['extras_breakdown'] = array_merge($extras, [
+            'penalty_runs' => $penalty,
+            'total' => (int) ($extras['wides'] ?? 0)
+                + (int) ($extras['no_balls'] ?? 0)
+                + (int) ($extras['byes'] ?? 0)
+                + (int) ($extras['leg_byes'] ?? 0)
+                + $penalty,
+        ]);
+
+        return $stats;
+    }
+
+    /**
+     * S16: Resolve the live crease (striker, non-striker, bowler) from ball history
+     * plus a pending_players snapshot, returning null when any slot is unfilled.
+     *
+     * Extracted from the duplicated private helpers in AdditionalRunsController and
+     * MatchSubstituteController so all crease-resolution logic lives in one place.
+     *
+     * @param  Collection<int, Ball>  $balls  Pre-sorted ball history for the active innings.
+     * @param  array<string, mixed>  $pending  graphic_session.pending_players snapshot.
+     * @return array{striker_id: int, non_striker_id: int, bowler_id: int}|null
+     */
+    public static function resolveLiveCrease(Collection $balls, array $pending): ?array
+    {
+        $overDetails = self::currentOverDetails($balls);
+        $crease = self::resolveCreaseAfterBalls($balls);
+        $strikerId = $crease['striker_id'];
+        $nonStrikerId = $crease['non_striker_id'];
+        $bowlerId = $balls->last()?->bowler_id;
+
+        if ($balls->isEmpty()) {
+            $merged = self::applyPendingCreaseSelection($strikerId, $nonStrikerId, $pending, false);
+            $strikerId = $merged['striker_id'];
+            $nonStrikerId = $merged['non_striker_id'];
+            if (! empty($pending['next_bowler_id'])) {
+                $bowlerId = (int) $pending['next_bowler_id'];
+            }
+        } else {
+            if ($overDetails['over_complete'] && ! empty($pending['next_bowler_id'])) {
+                $bowlerId = (int) $pending['next_bowler_id'];
+            }
+            $merged = self::applyPendingCreaseSelection($strikerId, $nonStrikerId, $pending, true);
+            $strikerId = $merged['striker_id'];
+            $nonStrikerId = $merged['non_striker_id'];
+        }
+
+        if (! empty($pending['substitute_replaced_id']) && ! empty($pending['substitute_player_id'])) {
+            $replaced = (int) $pending['substitute_replaced_id'];
+            $sub = (int) $pending['substitute_player_id'];
+            if ($strikerId === $replaced) {
+                $strikerId = $sub;
+            } elseif ($nonStrikerId === $replaced) {
+                $nonStrikerId = $sub;
+            }
+        }
+
+        if ($strikerId === null || $nonStrikerId === null || $bowlerId === null) {
+            return null;
+        }
+
+        return [
+            'striker_id' => (int) $strikerId,
+            'non_striker_id' => (int) $nonStrikerId,
+            'bowler_id' => (int) $bowlerId,
+        ];
     }
 }

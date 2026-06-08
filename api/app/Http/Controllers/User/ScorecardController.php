@@ -477,7 +477,7 @@ class ScorecardController extends Controller
             ->get();
 
         $names = InningsStatsService::namesFromRelations($allBalls);
-        $stats = $this->inningsStats->compute($allBalls, $names, (int) $innings->id, applyOverrides: false);
+        $stats = $this->inningsStats->compute($allBalls, $names);
         $outId = (int) $ball->out_player_id;
         $outRow = $stats['batting_by_id'][$outId] ?? null;
 
@@ -510,7 +510,7 @@ class ScorecardController extends Controller
         $balls = $inn->balls;
 
         $names = InningsStatsService::namesFromRelations($balls);
-        $stats = $this->inningsStats->compute($balls, $names, (int) $inn->id);
+        $stats = $this->inningsStats->compute($balls, $names);
         $crossPenalty = InningsStatsService::crossInningsPenaltyRunsForBattingTeam(
             $match,
             (int) $inn->batting_team_id,

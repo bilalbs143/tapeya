@@ -70,7 +70,7 @@ export default function ShopProductDetail() {
         <AppSubpageHeader title="SHOP" onBack={() => navigate(backTo)} />
         <Container>
           <div className="flex min-h-[40vh] items-center justify-center">
-            {!isLoading && <p className="text-[14px] text-muted">Product not found.</p>}
+            {!isLoading && <p className="text-muted text-[14px]">Product not found.</p>}
           </div>
         </Container>
       </div>
@@ -83,11 +83,11 @@ export default function ShopProductDetail() {
         <AppSubpageHeader title="SHOP" onBack={() => navigate(backTo)} />
         <Container>
           <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
-            <p className="text-[14px] text-muted">{error?.data?.message ?? 'Something went wrong.'}</p>
+            <p className="text-muted text-[14px]">{error?.data?.message ?? 'Something went wrong.'}</p>
             <button
               type="button"
               onClick={() => navigate(backTo)}
-              className="rounded-full bg-brand px-6 py-2.5 text-[14px] font-bold text-black"
+              className="bg-brand rounded-full px-6 py-2.5 text-[14px] font-bold text-black"
             >
               Go Back
             </button>
@@ -123,10 +123,10 @@ export default function ShopProductDetail() {
                     className="aspect-square h-[280px] w-full object-contain"
                   />
                 ) : (
-                  <div className="aspect-square w-full bg-surface" aria-hidden />
+                  <div className="bg-surface aspect-square w-full" aria-hidden />
                 )}
                 {normalized.is_featured && (
-                  <span className="absolute top-3 left-3 rounded-full bg-brand px-4 py-1 text-[12px] font-bold text-black uppercase">
+                  <span className="bg-brand absolute top-3 left-3 rounded-full px-4 py-1 text-[12px] font-bold text-black uppercase">
                     Featured
                   </span>
                 )}
@@ -159,9 +159,9 @@ export default function ShopProductDetail() {
                 {normalized.hasDiscount && (
                   <span className="text-[16px] font-bold text-[#A2A6AB82] line-through">{formatPrice(normalized.price)}</span>
                 )}
-                <span className="text-[16px] font-bold text-brand">{formatPrice(normalized.displayPrice)}</span>
+                <span className="text-brand text-[16px] font-bold">{formatPrice(normalized.displayPrice)}</span>
               </div>
-              <p className="text-[12px] font-bold text-muted">
+              <p className="text-muted text-[12px] font-bold">
                 Availability:{' '}
                 <span className={`ml-2 text-[12px] ${normalized.stock > 0 ? 'text-[#FF3B30]' : 'text-muted'}`}>
                   {normalized.stock > 0 ? `Only ${normalized.stock} left in stock` : 'Out of stock'}
@@ -169,18 +169,18 @@ export default function ShopProductDetail() {
               </p>
             </div>
 
-            <div className="flex items-center gap-4 border-t border-b border-surface-border py-4">
+            <div className="border-surface-border flex items-center gap-4 border-t border-b py-4">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full bg-surface text-muted transition-opacity active:opacity-80"
+                  className="bg-surface text-muted flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full transition-opacity active:opacity-80"
                   aria-label="Decrease Quantity"
                 >
                   <span className="text-xl leading-none font-bold">−</span>
                 </button>
                 <span
-                  className="flex h-[48px] w-[86px] min-w-[3rem] items-center justify-center rounded-[6px] bg-surface px-5 text-base font-bold text-muted"
+                  className="bg-surface text-muted flex h-[48px] w-[86px] min-w-[3rem] items-center justify-center rounded-[6px] px-5 text-base font-bold"
                   aria-live="polite"
                 >
                   {quantity}
@@ -188,7 +188,7 @@ export default function ShopProductDetail() {
                 <button
                   type="button"
                   onClick={() => setQuantity((q) => q + 1)}
-                  className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full bg-surface text-muted transition-opacity active:opacity-80"
+                  className="bg-surface text-muted flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full transition-opacity active:opacity-80"
                   aria-label="Increase Quantity"
                 >
                   <span className="text-xl leading-none font-bold">+</span>
@@ -198,7 +198,7 @@ export default function ShopProductDetail() {
                 type="button"
                 onClick={handleAddToCart}
                 disabled={normalized.stock < 1 || isAddingToCart}
-                className="flex flex-1 items-center justify-center gap-2 rounded-[6px] bg-brand py-3.5 text-base text-[16px] font-semibold text-black transition-opacity active:opacity-90 disabled:opacity-50"
+                className="bg-brand flex flex-1 items-center justify-center gap-2 rounded-[6px] py-3.5 text-base text-[16px] font-semibold text-black transition-opacity active:opacity-90 disabled:opacity-50"
               >
                 <img src={shoppingCartIcon} alt="" className="h-6 w-6 shrink-0" aria-hidden />
                 {isAddingToCart ? 'Adding…' : 'Add to Cart'}
@@ -207,9 +207,9 @@ export default function ShopProductDetail() {
 
             {normalized.description && (
               <section className="pt-2">
-                <h3 className="mb-2 text-[12px] font-bold tracking-wide text-muted uppercase">Features</h3>
+                <h3 className="text-muted mb-2 text-[12px] font-bold tracking-wide uppercase">Features</h3>
                 <div
-                  className="product-description text-[14px] text-muted"
+                  className="product-description text-muted text-[14px]"
                   dangerouslySetInnerHTML={{ __html: normalized.description }}
                 />
               </section>
@@ -228,10 +228,10 @@ export default function ShopProductDetail() {
                       className="aspect-square h-[280px] w-full object-contain"
                     />
                   ) : (
-                    <div className="aspect-square w-full bg-surface" aria-hidden />
+                    <div className="bg-surface aspect-square w-full" aria-hidden />
                   )}
                   {normalized.is_featured && (
-                    <span className="absolute top-3 left-3 rounded-full bg-brand px-4 py-1 text-[12px] font-bold text-black uppercase">
+                    <span className="bg-brand absolute top-3 left-3 rounded-full px-4 py-1 text-[12px] font-bold text-black uppercase">
                       Featured
                     </span>
                   )}
@@ -266,9 +266,9 @@ export default function ShopProductDetail() {
                   {normalized.hasDiscount && (
                     <span className="text-[16px] font-bold text-[#A2A6AB82] line-through">{formatPrice(normalized.price)}</span>
                   )}
-                  <span className="text-[16px] font-bold text-brand">{formatPrice(normalized.displayPrice)}</span>
+                  <span className="text-brand text-[16px] font-bold">{formatPrice(normalized.displayPrice)}</span>
                 </div>
-                <p className="text-[12px] font-bold text-muted">
+                <p className="text-muted text-[12px] font-bold">
                   Availability:{' '}
                   <span className={`ml-2 text-[12px] ${normalized.stock > 0 ? 'text-[#FF3B30]' : 'text-muted'}`}>
                     {normalized.stock > 0 ? `Only ${normalized.stock} left in stock` : 'Out of stock'}
@@ -276,18 +276,18 @@ export default function ShopProductDetail() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-4 border-t border-b border-surface-border py-4">
+              <div className="border-surface-border flex items-center gap-4 border-t border-b py-4">
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full bg-surface text-muted transition-opacity active:opacity-80"
+                    className="bg-surface text-muted flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full transition-opacity active:opacity-80"
                     aria-label="Decrease Quantity"
                   >
                     <span className="text-xl leading-none font-bold">−</span>
                   </button>
                   <span
-                    className="flex h-[48px] w-[86px] min-w-[3rem] items-center justify-center rounded-[6px] bg-surface px-5 text-base font-bold text-muted"
+                    className="bg-surface text-muted flex h-[48px] w-[86px] min-w-[3rem] items-center justify-center rounded-[6px] px-5 text-base font-bold"
                     aria-live="polite"
                   >
                     {quantity}
@@ -295,7 +295,7 @@ export default function ShopProductDetail() {
                   <button
                     type="button"
                     onClick={() => setQuantity((q) => q + 1)}
-                    className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full bg-surface text-muted transition-opacity active:opacity-80"
+                    className="bg-surface text-muted flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full transition-opacity active:opacity-80"
                     aria-label="Increase Quantity"
                   >
                     <span className="text-xl leading-none font-bold">+</span>
@@ -305,7 +305,7 @@ export default function ShopProductDetail() {
                   type="button"
                   onClick={handleAddToCart}
                   disabled={normalized.stock < 1 || isAddingToCart}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-[6px] bg-brand py-3.5 text-base text-[16px] font-semibold text-black transition-opacity active:opacity-90 disabled:opacity-50"
+                  className="bg-brand flex flex-1 items-center justify-center gap-2 rounded-[6px] py-3.5 text-base text-[16px] font-semibold text-black transition-opacity active:opacity-90 disabled:opacity-50"
                 >
                   <img src={shoppingCartIcon} alt="" className="h-6 w-6 shrink-0" aria-hidden />
                   {isAddingToCart ? 'Adding…' : 'Add to Cart'}
@@ -317,9 +317,9 @@ export default function ShopProductDetail() {
 
         {normalized.description && (
           <section className="hidden pt-2 lg:block">
-            <h3 className="mb-2 text-[12px] font-bold tracking-wide text-muted uppercase">Features</h3>
+            <h3 className="text-muted mb-2 text-[12px] font-bold tracking-wide uppercase">Features</h3>
             <div
-              className="product-description text-[14px] text-muted"
+              className="product-description text-muted text-[14px]"
               dangerouslySetInnerHTML={{ __html: normalized.description }}
             />
           </section>

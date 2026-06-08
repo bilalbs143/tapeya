@@ -34,8 +34,8 @@ function PendingRequestCard({ request }) {
   const venue = [request.venue_name, location].filter(Boolean).join(', ') || '—';
 
   return (
-    <div className="flex gap-3 rounded-[17px] border border-brand/25 bg-surface p-3">
-      <div className="flex h-[117px] w-[100px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-surface-deep">
+    <div className="border-brand/25 bg-surface flex gap-3 rounded-[17px] border p-3">
+      <div className="bg-surface-deep flex h-[117px] w-[100px] shrink-0 items-center justify-center overflow-hidden rounded-xl">
         <img src={FIXTURE_CARD_IMAGE} alt="" className="h-full w-full object-cover opacity-80" />
       </div>
       <div className="min-w-0 flex-1">
@@ -43,7 +43,7 @@ function PendingRequestCard({ request }) {
           <StatusBadge status={request.status} label={request.status_label} />
         </div>
         <h3 className="line-clamp-2 text-[13px] font-bold text-white">{request.tournament_name}</h3>
-        {request.tournament_type_label && <p className="mt-0.5 text-[12px] text-muted">{request.tournament_type_label}</p>}
+        {request.tournament_type_label && <p className="text-muted mt-0.5 text-[12px]">{request.tournament_type_label}</p>}
         <ul className="mt-1.5 space-y-0.5 text-xs">
           <li>
             <span className="text-muted">Dates:</span> <span className="text-white">{dates}</span>
@@ -56,12 +56,12 @@ function PendingRequestCard({ request }) {
           </li>
         </ul>
         {request.status === 'pending' && (
-          <p className="mt-2 text-[11px] leading-snug text-muted">
+          <p className="text-muted mt-2 text-[11px] leading-snug">
             Our team is reviewing your request. We will contact you shortly.
           </p>
         )}
         {request.status === 'rejected' && (
-          <p className="mt-2 text-[11px] leading-snug text-muted">
+          <p className="text-muted mt-2 text-[11px] leading-snug">
             This request was not approved. Contact support for more information.
           </p>
         )}
@@ -78,7 +78,7 @@ function TournamentCard({ tournament, showWinningTeam = false, onClick }) {
 
   return (
     <div
-      className="flex cursor-pointer gap-3 rounded-[17px] bg-surface p-3"
+      className="bg-surface flex cursor-pointer gap-3 rounded-[17px] p-3"
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       onClick={() => onClick?.(tournament)}
@@ -90,7 +90,7 @@ function TournamentCard({ tournament, showWinningTeam = false, onClick }) {
         }
       }}
     >
-      <div className="flex h-[117px] w-[100px] shrink-0 overflow-hidden rounded-xl bg-surface-deep">
+      <div className="bg-surface-deep flex h-[117px] w-[100px] shrink-0 overflow-hidden rounded-xl">
         <img
           src={imageUrl}
           alt=""
@@ -132,8 +132,7 @@ function TournamentCard({ tournament, showWinningTeam = false, onClick }) {
           )}
           {showWinningTeam && tournament.winning_team && (
             <li>
-              <span className="text-brand">Winning Team:</span>{' '}
-              <span className="text-brand">{tournament.winning_team}</span>
+              <span className="text-brand">Winning Team:</span> <span className="text-brand">{tournament.winning_team}</span>
             </li>
           )}
         </ul>
@@ -146,11 +145,11 @@ function Section({ title, children, emptyMessage = 'No tournaments' }) {
   const count = Children.count(children);
   return (
     <section>
-      <h2 className="mb-3 text-[13px] font-bold tracking-wide text-muted uppercase">{title}</h2>
+      <h2 className="text-muted mb-3 text-[13px] font-bold tracking-wide uppercase">{title}</h2>
       {count > 0 ? (
         <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">{children}</div>
       ) : (
-        <p className="rounded-[17px] bg-surface px-4 py-6 text-center text-[13px] text-muted">{emptyMessage}</p>
+        <p className="bg-surface text-muted rounded-[17px] px-4 py-6 text-center text-[13px]">{emptyMessage}</p>
       )}
     </section>
   );
@@ -231,7 +230,7 @@ export default function Tournaments() {
       <div className="bg-black">
         <AppSubpageHeader title="My Tournaments" />
         <Container>
-          <p className="py-6 text-center text-[13px] text-muted">Loading tournaments…</p>
+          <p className="text-muted py-6 text-center text-[13px]">Loading tournaments…</p>
         </Container>
       </div>
     );
@@ -271,12 +270,12 @@ export default function Tournaments() {
 
           {/* Nothing at all — prompt to request */}
           {isEmpty && !isError && (
-            <div className="rounded-[17px] bg-surface px-4 py-8 text-center">
-              <p className="text-[14px] text-muted">You have no tournaments yet.</p>
+            <div className="bg-surface rounded-[17px] px-4 py-8 text-center">
+              <p className="text-muted text-[14px]">You have no tournaments yet.</p>
               <button
                 type="button"
                 onClick={() => navigate('/tournament-request')}
-                className="mt-4 rounded-[6px] bg-brand px-6 py-2.5 text-[14px] font-bold text-black transition-opacity active:opacity-90"
+                className="bg-brand mt-4 rounded-[6px] px-6 py-2.5 text-[14px] font-bold text-black transition-opacity active:opacity-90"
               >
                 Request a Tournament
               </button>

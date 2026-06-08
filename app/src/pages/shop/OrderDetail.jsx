@@ -3,8 +3,8 @@ import { memo, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
-import { formatDate } from '@/lib/utils/dateUtils';
 import { formatPrice } from '@/lib/format';
+import { formatDate } from '@/lib/utils/dateUtils';
 import { useGetOrderQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 
@@ -20,13 +20,13 @@ const OrderItemCard = memo(function OrderItemCard({ item, orderStatus, orderUpda
   const deliveryLabel = isDelivered ? `Delivered on ${formatDate(orderUpdatedAt) || '—'}` : 'Pending';
 
   return (
-    <div className="flex gap-3 rounded-[17px] bg-surface p-4">
+    <div className="bg-surface flex gap-3 rounded-[17px] p-4">
       <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-white">
         {imageUrl ? (
           <img src={imageUrl} alt="" className="h-full w-full object-contain" />
         ) : (
           <div
-            className="flex h-full w-full items-center justify-center bg-surface-border text-[20px] font-bold text-brand"
+            className="bg-surface-border text-brand flex h-full w-full items-center justify-center text-[20px] font-bold"
             aria-hidden
           >
             {name.charAt(0).toUpperCase() || '#'}
@@ -84,7 +84,7 @@ export default function OrderDetail() {
         <AppSubpageHeader title="ORDER DETAIL" />
         <Container>
           <div className="flex min-h-[40vh] items-center justify-center py-12">
-            <p className="text-[14px] text-muted">Loading order…</p>
+            <p className="text-muted text-[14px]">Loading order…</p>
           </div>
         </Container>
       </div>
@@ -97,11 +97,11 @@ export default function OrderDetail() {
         <AppSubpageHeader title="ORDER DETAIL" />
         <Container>
           <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 py-12">
-            <p className="text-[14px] text-muted">Order not found.</p>
+            <p className="text-muted text-[14px]">Order not found.</p>
             <button
               type="button"
               onClick={() => navigate('/shop/orders')}
-              className="rounded-full bg-brand px-6 py-2.5 text-[14px] font-bold text-black"
+              className="bg-brand rounded-full px-6 py-2.5 text-[14px] font-bold text-black"
             >
               My Orders
             </button>
@@ -125,19 +125,19 @@ export default function OrderDetail() {
       <AppSubpageHeader title="ORDER DETAIL" />
       <Container>
         <div className="pb-8">
-          <p className="mb-4 text-[16px] font-bold tracking-wide text-brand uppercase">
-            ORDER NUMBER: <span className="font-bold text-brand uppercase">{orderNumber}</span>
+          <p className="text-brand mb-4 text-[16px] font-bold tracking-wide uppercase">
+            ORDER NUMBER: <span className="text-brand font-bold uppercase">{orderNumber}</span>
           </p>
 
           <div className="flex flex-col gap-3">
             {items.length === 0 ? (
-              <p className="text-[13px] text-muted">No items in this order.</p>
+              <p className="text-muted text-[13px]">No items in this order.</p>
             ) : (
               items.map((item) => <OrderItemCard key={item.id} item={item} orderStatus={status} orderUpdatedAt={updatedAt} />)
             )}
           </div>
 
-          <div className="mt-3 space-y-2 rounded-2xl bg-surface p-4">
+          <div className="bg-surface mt-3 space-y-2 rounded-2xl p-4">
             <div className="flex justify-between text-[14px]">
               <span className="text-white">Subtotal:</span>
               <span className="font-bold text-white">{formatPrice(subtotal)}</span>
@@ -152,16 +152,16 @@ export default function OrderDetail() {
             </div>
           </div>
 
-          <div className="mt-3 flex items-center justify-between gap-4 rounded-xl bg-surface p-4">
+          <div className="bg-surface mt-3 flex items-center justify-between gap-4 rounded-xl p-4">
             <div>
               <p className="text-[16px] font-semibold text-white">Grand Total:</p>
-              <p className="mt-1 text-[20px] font-bold text-brand">{formatPrice(total)}</p>
+              <p className="text-brand mt-1 text-[20px] font-bold">{formatPrice(total)}</p>
             </div>
             {status === 'pending' && (
               <button
                 type="button"
                 onClick={() => navigate(`/shop/order-payment/${order.id}`)}
-                className="shrink-0 rounded-[6px] bg-brand px-6 py-3.5 text-[16px] font-semibold text-black transition-opacity active:opacity-90"
+                className="bg-brand shrink-0 rounded-[6px] px-6 py-3.5 text-[16px] font-semibold text-black transition-opacity active:opacity-90"
               >
                 Pay Now
               </button>

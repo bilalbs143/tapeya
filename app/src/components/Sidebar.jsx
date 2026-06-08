@@ -4,9 +4,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { useNativeStoreVersionInfo } from '@/hooks/useNativeStoreVersionInfo';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { addSavedProfile } from '@/lib/savedProfiles';
 // import starMatchIcon from '@/assets/images/icons/star-match.svg';
 import { calculateProfileStrength } from '@/lib/utils/playerUtils';
-import { addSavedProfile } from '@/lib/savedProfiles';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useGetSidebarInterestCampaignQuery } from '@/store/api/tournamentInterestApi';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -195,16 +195,14 @@ export function Sidebar({ open, onClose }) {
                 <p className="truncate text-[14px] font-bold text-white">
                   {profileUser?.name || profileUser?.nickname || 'Profile'}
                 </p>
-                <p className="truncate text-[12px] font-medium text-muted">
-                  {profileUser?.email || profileUser?.phone || ''}
-                </p>
+                <p className="text-muted truncate text-[12px] font-medium">{profileUser?.email || profileUser?.phone || ''}</p>
               </div>
             </Link>
 
             {profileUser && strength < 100 && (
               <div className="mt-2 flex items-center gap-2">
                 <div className="h-[4px] flex-1 overflow-hidden rounded-full bg-zinc-600">
-                  <div className="h-full rounded-full bg-brand" style={{ width: `${strength}%` }} />
+                  <div className="bg-brand h-full rounded-full" style={{ width: `${strength}%` }} />
                 </div>
                 <span className="shrink-0 text-[14px] font-bold text-white italic">{strength}% Complete</span>
               </div>
@@ -243,7 +241,7 @@ export function Sidebar({ open, onClose }) {
                     aria-label={`${label} (coming soon)`}
                   >
                     <img src={icon} alt="" className="h-5 w-5 shrink-0 opacity-60" />
-                    <span className="text-[16px] font-medium text-muted opacity-60">{label}</span>
+                    <span className="text-muted text-[16px] font-medium opacity-60">{label}</span>
                   </button>
                 ),
               )}
@@ -268,10 +266,10 @@ export function Sidebar({ open, onClose }) {
             <button
               type="button"
               onClick={handleLogout}
-              className="flex w-full cursor-pointer items-center justify-center gap-2 bg-brand py-4"
+              className="bg-brand flex w-full cursor-pointer items-center justify-center gap-2 py-4"
             >
               <img src={logoutIcon} alt="" className="h-8 w-8 shrink-0 brightness-0 filter" />
-              <span className="text-[16px] leading-none font-bold text-ink">Logout</span>
+              <span className="text-ink text-[16px] leading-none font-bold">Logout</span>
             </button>
           </div>
         </div>

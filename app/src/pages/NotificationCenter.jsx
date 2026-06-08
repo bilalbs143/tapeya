@@ -11,7 +11,7 @@ const PAGE_SIZE = 10;
 
 const ChevronDown = () => (
   <svg
-    className="h-4 w-4 text-muted"
+    className="text-muted h-4 w-4"
     fill="none"
     viewBox="0 0 24 24"
     stroke="currentColor"
@@ -64,7 +64,7 @@ function NotificationCard({ notification, onActionClick }) {
   const { avatar, fallback, boldText, regularText, timestamp, actionLabel, unread } = notification;
 
   return (
-    <article className="flex items-start gap-3 rounded-[17px] bg-surface p-4">
+    <article className="bg-surface flex items-start gap-3 rounded-[17px] p-4">
       <Avatar className="h-12 w-12 shrink-0 rounded-full bg-[#252520]">
         {avatar && <AvatarImage src={avatar} alt="" />}
         <AvatarFallback className="bg-[#252520] text-sm font-semibold text-[#141412]">{fallback}</AvatarFallback>
@@ -74,7 +74,7 @@ function NotificationCard({ notification, onActionClick }) {
           <span className="font-bold">{boldText}</span>
           <span className="font-normal">{regularText}</span>
         </p>
-        <p className="mt-1 text-[12px] text-muted">{timestamp}</p>
+        <p className="text-muted mt-1 text-[12px]">{timestamp}</p>
       </div>
       {(actionLabel || unread) && (
         <div className="flex shrink-0 items-center gap-2">
@@ -82,7 +82,7 @@ function NotificationCard({ notification, onActionClick }) {
             <button
               type="button"
               onClick={() => onActionClick(notification)}
-              className="rounded-[6px] border border-brand bg-transparent px-3 py-1 text-[13px] font-bold text-brand transition-opacity active:opacity-90"
+              className="border-brand text-brand rounded-[6px] border bg-transparent px-3 py-1 text-[13px] font-bold transition-opacity active:opacity-90"
             >
               {actionLabel}
             </button>
@@ -165,23 +165,23 @@ export default function NotificationCenter() {
 
       <Container>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-[13px] font-bold tracking-wide text-muted uppercase">LATEST</h2>
+          <h2 className="text-muted text-[13px] font-bold tracking-wide uppercase">LATEST</h2>
           {notifications.length > 0 && (
             <button
               type="button"
               onClick={handleMarkAllAsRead}
               disabled={isMarkingAll}
-              className="text-[12px] font-normal text-brand underline transition-opacity active:opacity-90"
+              className="text-brand text-[12px] font-normal underline transition-opacity active:opacity-90"
             >
               {isMarkingAll ? 'Marking…' : 'Mark all as read'}
             </button>
           )}
         </div>
 
-        {isLoading && <p className="mb-3 text-[12px] text-muted">Loading notifications…</p>}
+        {isLoading && <p className="text-muted mb-3 text-[12px]">Loading notifications…</p>}
 
         {(isError || markAllError) && (
-          <p className="mb-3 text-[12px] text-brand">
+          <p className="text-brand mb-3 text-[12px]">
             {isError
               ? 'Failed to load notifications. Please try again.'
               : 'Failed to mark notifications as read. Please try again.'}
@@ -197,7 +197,7 @@ export default function NotificationCenter() {
             ))}
           </ul>
         ) : (
-          !isLoading && <p className="text-[12px] text-muted">You have no notifications yet.</p>
+          !isLoading && <p className="text-muted text-[12px]">You have no notifications yet.</p>
         )}
 
         {hasMoreOlder && (
@@ -206,7 +206,7 @@ export default function NotificationCenter() {
               type="button"
               onClick={loadOlder}
               disabled={isFetching}
-              className="text-[12px] font-normal text-muted transition-opacity active:opacity-90 disabled:opacity-60"
+              className="text-muted text-[12px] font-normal transition-opacity active:opacity-90 disabled:opacity-60"
             >
               {isFetching ? 'Loading…' : 'View Older'}
             </button>

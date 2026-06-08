@@ -93,7 +93,7 @@ export function ProfileStats() {
                 {showMoreLink && (
                   <button
                     type="button"
-                    className="text-sm font-normal text-brand underline underline-offset-2 transition-colors hover:text-brand-hover focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-none"
+                    className="text-brand hover:text-brand-hover focus-visible:ring-brand text-sm font-normal underline underline-offset-2 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-none"
                     onClick={() => setTeamsExpanded(true)}
                   >
                     MORE
@@ -102,7 +102,7 @@ export function ProfileStats() {
                 {showLessLink && (
                   <button
                     type="button"
-                    className="ml-1 text-sm font-normal text-brand underline underline-offset-2 transition-colors hover:text-brand-hover focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-none"
+                    className="text-brand hover:text-brand-hover focus-visible:ring-brand ml-1 text-sm font-normal underline underline-offset-2 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-none"
                     onClick={() => setTeamsExpanded(false)}
                   >
                     LESS

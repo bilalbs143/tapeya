@@ -90,11 +90,11 @@ export default function ShopCheckout() {
       <Container>
         {cartLoading ? null : !canCheckout ? (
           <div className="py-8 text-center">
-            <p className="text-[14px] text-muted">Your cart is empty.</p>
+            <p className="text-muted text-[14px]">Your cart is empty.</p>
             <button
               type="button"
               onClick={() => navigate('/shop/cart')}
-              className="mt-4 rounded-full bg-brand px-6 py-3 text-[14px] font-bold text-black"
+              className="bg-brand mt-4 rounded-full px-6 py-3 text-[14px] font-bold text-black"
             >
               View Cart
             </button>
@@ -171,7 +171,7 @@ export default function ShopCheckout() {
               </FormField>
             </div>
 
-            <p className="text-[14px] text-muted">
+            <p className="text-muted text-[14px]">
               Subtotal: <strong className="text-brand">{formatPrice(subtotal)}</strong> ({items.length} item
               {items.length !== 1 ? 's' : ''})
             </p>
@@ -179,7 +179,7 @@ export default function ShopCheckout() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex w-full items-center justify-center gap-2 rounded-[6px] bg-brand py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90 disabled:opacity-50 lg:w-auto lg:justify-start lg:px-4"
+              className="bg-brand flex w-full items-center justify-center gap-2 rounded-[6px] py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90 disabled:opacity-50 lg:w-auto lg:justify-start lg:px-4"
             >
               {isSubmitting ? 'Placing Order…' : 'Place Order'}
               <svg

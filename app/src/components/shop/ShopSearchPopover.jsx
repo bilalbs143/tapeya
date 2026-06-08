@@ -56,13 +56,13 @@ export function ShopSearchPopover() {
         side="bottom"
         align="start"
         sideOffset={6}
-        className="max-h-[min(70vh,320px)] w-[var(--radix-popover-trigger-width)] overflow-hidden rounded-[6px] border border-border p-0 shadow-xl outline-none bg-surface-elevated"
+        className="border-border bg-surface-elevated max-h-[min(70vh,320px)] w-[var(--radix-popover-trigger-width)] overflow-hidden rounded-[6px] border p-0 shadow-xl outline-none"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="max-h-[min(70vh,320px)] overflow-y-auto rounded-[6px] py-1">
-          {isSearching && <div className="px-4 py-6 text-center text-[13px] text-muted">Searching…</div>}
+          {isSearching && <div className="text-muted px-4 py-6 text-center text-[13px]">Searching…</div>}
           {!isSearching && showEmpty && (
-            <div className="px-4 py-6 text-center text-[13px] text-muted">
+            <div className="text-muted px-4 py-6 text-center text-[13px]">
               No products found for &quot;{debouncedSearch}&quot;
             </div>
           )}
@@ -83,15 +83,13 @@ export function ShopSearchPopover() {
                         {imageUrl ? (
                           <img src={imageUrl} alt="" className="h-full w-full object-contain" />
                         ) : (
-                          <div className="h-full w-full bg-surface" />
+                          <div className="bg-surface h-full w-full" />
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[13px] font-medium text-white">{product.name}</p>
-                        <p className="mt-0.5 text-[12px] font-bold text-brand">
-                          {hasDiscount && (
-                            <span className="mr-1.5 text-muted line-through">{formatPrice(product.price)}</span>
-                          )}
+                        <p className="text-brand mt-0.5 text-[12px] font-bold">
+                          {hasDiscount && <span className="text-muted mr-1.5 line-through">{formatPrice(product.price)}</span>}
                           {formatPrice(displayPrice)}
                         </p>
                       </div>

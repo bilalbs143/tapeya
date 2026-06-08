@@ -78,7 +78,7 @@ function PlayerCard({ player, rank, variant = 'batter' }) {
     : `Innings: ${player.innings} Average: ${formatDecimal(player.average, 2)}`;
 
   return (
-    <div className="flex items-center gap-3 rounded-[17px] bg-surface p-3">
+    <div className="bg-surface flex items-center gap-3 rounded-[17px] p-3">
       <Avatar className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-white/10">
         <AvatarImage src={player.image || defaultAvatar} alt="" className="object-cover" />
         <AvatarFallback className="bg-zinc-700 text-white">{getInitials(player.name)}</AvatarFallback>
@@ -88,10 +88,10 @@ function PlayerCard({ player, rank, variant = 'batter' }) {
           <span className="truncate text-[16px] font-bold text-white">{player.name}</span>
           <span className="shrink-0 text-[12px] font-medium text-[#DEDEDE]">{player.type}</span>
         </div>
-        <p className="mt-0.5 text-[18px] font-bold text-brand">{keyStat}</p>
-        <p className="text-[12px] font-medium text-muted">{detailText}</p>
+        <p className="text-brand mt-0.5 text-[18px] font-bold">{keyStat}</p>
+        <p className="text-muted text-[12px] font-medium">{detailText}</p>
       </div>
-      <span className="text-[48px] leading-none font-bold text-brand/40" aria-hidden>
+      <span className="text-brand/40 text-[48px] leading-none font-bold" aria-hidden>
         {rank}
       </span>
     </div>
@@ -104,18 +104,18 @@ function RankingSection({ title, linkTo, linkState, rows, variant = 'batter', lo
   return (
     <>
       <div className={`flex items-center justify-between pb-3 lg:mx-auto ${desktopCardWidthClass}`}>
-        <h2 className="text-[13px] font-bold tracking-wide text-muted uppercase">{title}</h2>
+        <h2 className="text-muted text-[13px] font-bold tracking-wide uppercase">{title}</h2>
         <Link
           to={linkTo}
           state={linkState}
-          className="text-[12px] font-bold tracking-wide text-brand uppercase transition-opacity active:opacity-80"
+          className="text-brand text-[12px] font-bold tracking-wide uppercase transition-opacity active:opacity-80"
         >
           View More
         </Link>
       </div>
-      {loading && <p className="text-[13px] text-muted">Loading rankings…</p>}
+      {loading && <p className="text-muted text-[13px]">Loading rankings…</p>}
       {error && !loading && <p className="text-[13px] text-red-400">Failed to load rankings.</p>}
-      {!loading && !error && rows.length === 0 && <p className="text-[13px] text-muted">{emptyMessage}</p>}
+      {!loading && !error && rows.length === 0 && <p className="text-muted text-[13px]">{emptyMessage}</p>}
       <div className="space-y-3 lg:grid lg:grid-cols-1 lg:justify-items-center lg:gap-3 lg:space-y-0">
         {rows.slice(0, TOP_RANKINGS_LIMIT).map((player, index) => (
           <div key={player.id} className={desktopCardWidthClass}>

@@ -9,7 +9,7 @@ import { liveBroadcastPath } from '@/lib/utils/liveStreamUtils';
  */
 export function UpcomingTab({ matches = [] }) {
   if (matches.length === 0) {
-    return <p className="py-6 text-center text-[13px] text-muted">No streams starting soon.</p>;
+    return <p className="text-muted py-6 text-center text-[13px]">No streams starting soon.</p>;
   }
 
   return (

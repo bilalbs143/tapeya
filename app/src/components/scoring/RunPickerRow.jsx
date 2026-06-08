@@ -2,7 +2,7 @@
 const RUN_PICKER_OPTIONS = [0, 1, 2, 3, 4, 5, 6];
 
 const CIRCLE_CLASS =
-  'flex aspect-square min-w-0 flex-1 cursor-pointer items-center justify-center rounded-full text-[14px] font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA9811]';
+  'flex aspect-square min-w-0 flex-1 cursor-pointer items-center justify-center rounded-full text-[14px] font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand';
 
 /**
  * Compact single-row circular run picker (0–6).
@@ -24,7 +24,7 @@ export function RunPickerRow({ value, onChange, options = RUN_PICKER_OPTIONS, cl
             onClick={() => onChange(n)}
             aria-pressed={selected}
             aria-label={`${n} run${n !== 1 ? 's' : ''}`}
-            className={`${CIRCLE_CLASS} ${selected ? 'bg-[#DA9811] text-black' : 'bg-[#141412] text-white'}`}
+            className={`${CIRCLE_CLASS} ${selected ? 'bg-brand text-black' : 'bg-surface text-white'}`}
           >
             {n}
           </button>
@@ -51,7 +51,7 @@ export function RunPickerActionRow({ onSelect, disabled = false, options = RUN_P
           type="button"
           disabled={disabled}
           onClick={() => onSelect(n)}
-          className={`${CIRCLE_CLASS} border border-[#282824] bg-[#141412] text-white transition-opacity hover:bg-[#1C1C1A] active:opacity-80 disabled:pointer-events-none disabled:opacity-50`}
+          className={`${CIRCLE_CLASS} border-border-subtle bg-surface hover:bg-surface-raised border text-white transition-opacity active:opacity-80 disabled:pointer-events-none disabled:opacity-50`}
           aria-label={`${n} run${n !== 1 ? 's' : ''}`}
         >
           {n}

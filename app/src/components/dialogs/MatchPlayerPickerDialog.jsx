@@ -37,7 +37,7 @@ function BatsmanRow({
           onPick(player);
         }
       }}
-      className={`flex flex-col gap-2 rounded-[10px] bg-surface px-4 py-3 ${
+      className={`bg-surface flex flex-col gap-2 rounded-[10px] px-4 py-3 ${
         canAdd ? 'cursor-pointer transition-opacity active:opacity-90' : ''
       } ${hasBattingStats ? 'cursor-not-allowed opacity-60' : ''}`}
     >
@@ -47,7 +47,7 @@ function BatsmanRow({
           <ScoringPlayerPickerMeta player={player} variant="batting" />
         </div>
         {hasBattingStats && stats ? (
-          <div className="flex shrink-0 gap-4 text-[12px] text-muted">
+          <div className="text-muted flex shrink-0 gap-4 text-[12px]">
             <span>R: {stats.runs}</span>
             <span>B: {stats.balls}</span>
             <span>4s: {stats.fours}</span>
@@ -96,7 +96,7 @@ function BowlerRow({
           handlePick();
         }
       }}
-      className={`flex flex-col gap-2 rounded-[10px] bg-surface px-4 py-3 ${
+      className={`bg-surface flex flex-col gap-2 rounded-[10px] px-4 py-3 ${
         canSelect ? 'cursor-pointer transition-opacity active:opacity-90' : 'cursor-default'
       } ${replaceActiveBowlerMode && isActiveBowler ? 'opacity-60' : ''}`}
     >
@@ -151,7 +151,7 @@ export default function MatchPlayerPickerDialog({
       </DialogHeaderRow>
 
       <DialogScrollBody className="flex flex-col gap-3">
-        {players.length === 0 && <p className="py-6 text-center text-sm text-muted">No Players Available</p>}
+        {players.length === 0 && <p className="text-muted py-6 text-center text-sm">No Players Available</p>}
         {players.map((player) =>
           isBatsman ? (
             <BatsmanRow

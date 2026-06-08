@@ -83,14 +83,12 @@ export default function Register() {
         >
           <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">Create an account</h2>
 
-          <div className="rounded-[6px] border border-[#FF9700]/45 bg-surface p-4 text-center shadow-[0_0_0_1px_rgba(255,151,0,0.12)]">
-            <p className="text-[12px] leading-snug text-muted md:text-[13px]">
-              Your provided phone number must be on WhatsApp.
-            </p>
+          <div className="bg-surface rounded-[6px] border border-[#FF9700]/45 p-4 text-center shadow-[0_0_0_1px_rgba(255,151,0,0.12)]">
+            <p className="text-muted text-[12px] leading-snug md:text-[13px]">Your provided phone number must be on WhatsApp.</p>
             <p
               lang="ur"
               dir="rtl"
-              className="font-[system-ui,'Noto Nastaliq Urdu','Geeza Pro',sans-serif] mt-2 text-[13px] leading-relaxed text-muted md:text-[14px]"
+              className="font-[system-ui,'Noto Nastaliq Urdu','Geeza Pro',sans-serif] text-muted mt-2 text-[13px] leading-relaxed md:text-[14px]"
             >
               آپ کا دیا گیا فون نمبر واٹس ایپ پر موجود ہونا ضروری ہے۔
             </p>
@@ -138,7 +136,10 @@ export default function Register() {
           </FormField>
 
           {error && (
-            <p className="rounded-[6px] border border-surface-border bg-red-500/20 px-4 py-2.5 text-[14px] text-red-200" role="alert">
+            <p
+              className="border-surface-border rounded-[6px] border bg-red-500/20 px-4 py-2.5 text-[14px] text-red-200"
+              role="alert"
+            >
               {getApiErrorMessage(error, 'Registration failed. Please try again.')}
             </p>
           )}
@@ -148,27 +149,27 @@ export default function Register() {
           </Button>
 
           <div className="mt-6 mb-6 space-y-3 text-center">
-            <p className="text-[14px] text-muted">
+            <p className="text-muted text-[14px]">
               Already have an account?{' '}
               <Link
                 to="/login"
-                className="font-medium text-brand underline underline-offset-2 transition-colors hover:text-[#E8A820]"
+                className="text-brand font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820]"
               >
                 Login
               </Link>
             </p>
-            <p className="text-[14px] text-muted">
+            <p className="text-muted text-[14px]">
               By signing up, you agree to the{' '}
               <Link
                 to="/pages/terms-of-use"
-                className="font-medium text-brand underline underline-offset-2 transition-colors hover:text-[#E8A820]"
+                className="text-brand font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820]"
               >
                 Terms of Use
               </Link>{' '}
               and{' '}
               <Link
                 to="/pages/privacy-policy"
-                className="font-medium text-brand underline underline-offset-2 transition-colors hover:text-[#E8A820]"
+                className="text-brand font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820]"
               >
                 Privacy Policy
               </Link>

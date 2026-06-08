@@ -2,11 +2,14 @@
 
 namespace App\Services;
 
+use App\Enums\Event\InningsEndReasonEnum;
+use App\Enums\Event\InningsStatusEnum;
 use App\Enums\Event\MatchStatusEnum;
 use App\Models\Ball;
 use App\Models\Innings;
 use App\Models\TournamentMatch;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -42,7 +45,7 @@ class MatchStateService
         $allInnings = $match->innings;
 
         /** @var Innings|null $activeInnings First in_progress, else first not completed, else last. */
-        $activeInnings = $allInnings->firstWhere('status', 'in_progress') ?? $allInnings->first(fn (Innings $i) => $i->status !== 'completed') ?? $allInnings->last();
+        $activeInnings = $allInnings->firstWhere('status', InningsStatusEnum::IN_PROGRESS) ?? $allInnings->first(fn (Innings $i) => $i->status !== InningsStatusEnum::COMPLETED) ?? $allInnings->last();
 
         /** @var Innings|null $firstInnings */
         $firstInnings = $allInnings->firstWhere('innings_number', 1);
@@ -51,7 +54,7 @@ class MatchStateService
         $needsNewBatter = false;
         $needsNewBowler = false;
         $activeInningsComplete = false;
-        $matchComplete = $match->status === MatchStatusEnum::COMPLETED;
+        $matchComplete = in_array($match->status, [MatchStatusEnum::COMPLETED, MatchStatusEnum::CANCELLED], true);
 
         if ($activeInnings) {
             $match->loadMissing('graphicSession');
@@ -63,9 +66,14 @@ class MatchStateService
 
             $names = InningsStatsService::namesFromRelations($balls);
             $stats = $this->inningsStats->compute($balls, $names);
+            $crossPenalty = InningsStatsService::crossInningsPenaltyRunsForBattingTeam(
+                $match,
+                (int) $activeInnings->batting_team_id,
+            );
+            $stats = InningsStatsService::applyCrossInningsPenalties($stats, $crossPenalty);
             $overDetails = InningsStatsService::currentOverDetails($balls);
 
-            $activeInningsComplete = $activeInnings->status === 'completed';
+            $activeInningsComplete = $activeInnings->status === InningsStatusEnum::COMPLETED;
 
             $lastBall = $balls->last();
             $pending = is_array($match->graphicSession?->pending_players)
@@ -94,24 +102,39 @@ class MatchStateService
         }
 
         // Set only on ball mutations when that innings just completed (null on GET).
-        $inningsJustCompleted = ($scoredInnings !== null && $scoredInnings->status === 'completed')
+        $inningsJustCompleted = ($scoredInnings !== null && $scoredInnings->status === InningsStatusEnum::COMPLETED)
             ? (int) $scoredInnings->innings_number
             : null;
 
-        // Playing XI for both teams — avoids 2 separate client round-trips
-        $playingElevenRows = DB::table('match_players as mp')
-            ->join('users as u', 'u.id', '=', 'mp.user_id')
-            ->where('mp.match_id', $match->id)
-            ->whereIn('mp.team_id', [$match->home_team_id, $match->away_team_id])
-            ->orderBy('mp.id')
-            ->get(['mp.user_id', 'mp.team_id', 'mp.playing_role', 'u.name', 'u.nickname']);
+        // S10: Playing XI is cached for 60 s — it changes rarely mid-match (only on
+        // PlayingElevenController::store() which dispatches MatchStateUpdated and
+        // overwrites the cache key via PlayingElevenController's broadcast).
+        $playingElevenRows = Cache::remember(
+            "match:{$match->id}:playing_eleven",
+            60,
+            fn () => DB::table('match_players as mp')
+                ->join('users as u', 'u.id', '=', 'mp.user_id')
+                ->where('mp.match_id', $match->id)
+                ->whereIn('mp.team_id', [$match->home_team_id, $match->away_team_id])
+                ->orderBy('mp.id')
+                ->get(['mp.user_id', 'mp.team_id', 'mp.playing_role', 'u.name', 'u.nickname']),
+        );
 
-        $buildXi = function (int $teamId) use ($playingElevenRows): array {
+        $teamSettingsRows = DB::table('match_team_settings')
+            ->where('match_id', $match->id)
+            ->whereIn('team_id', [$match->home_team_id, $match->away_team_id])
+            ->get(['team_id', 'wicket_keeper_id', 'captain_id'])
+            ->keyBy('team_id');
+
+        $buildXi = function (int $teamId) use ($playingElevenRows, $teamSettingsRows): array {
             $rows = $playingElevenRows->where('team_id', $teamId)->values();
+            $settings = $teamSettingsRows->get($teamId);
 
             return [
                 'team_id' => $teamId,
                 'player_ids' => $rows->pluck('user_id')->map(fn ($id) => (int) $id)->values()->all(),
+                'captain_id' => $settings?->captain_id !== null ? (int) $settings->captain_id : null,
+                'wicket_keeper_id' => $settings?->wicket_keeper_id !== null ? (int) $settings->wicket_keeper_id : null,
                 'players' => $rows->map(function ($r) {
                     $role = $r->playing_role
                         ? Str::headline(str_replace('_', ' ', $r->playing_role))
@@ -137,10 +160,12 @@ class MatchStateService
             'innings_just_completed' => $inningsJustCompleted,
             'match_complete' => $matchComplete,
             'match_result' => $matchComplete ? $match->resultSummary() : null,
+            'match_cancelled' => $match->status === MatchStatusEnum::CANCELLED,
             'playing_eleven' => [
                 'home' => $buildXi((int) $match->home_team_id),
                 'away' => $buildXi((int) $match->away_team_id),
             ],
+            'analytics_settings' => $match->analyticsSettings(),
         ];
     }
 
@@ -177,12 +202,9 @@ class MatchStateService
         $lastBowlerId = $balls->last()?->bowler_id;
 
         if ($balls->isEmpty()) {
-            if (! empty($pending['next_batter_id'])) {
-                $strikerId = (int) $pending['next_batter_id'];
-            }
-            if (! empty($pending['next_non_striker_id'])) {
-                $nonStrikerId = (int) $pending['next_non_striker_id'];
-            }
+            $merged = InningsStatsService::applyPendingCreaseSelection($strikerId, $nonStrikerId, $pending, false);
+            $strikerId = $merged['striker_id'];
+            $nonStrikerId = $merged['non_striker_id'];
             if (! empty($pending['next_bowler_id'])) {
                 $lastBowlerId = (int) $pending['next_bowler_id'];
             }
@@ -190,33 +212,34 @@ class MatchStateService
             if ($overDetails['over_complete'] && ! empty($pending['next_bowler_id'])) {
                 $lastBowlerId = (int) $pending['next_bowler_id'];
             }
-            foreach (['next_batter_id', 'next_non_striker_id'] as $key) {
-                if (empty($pending[$key])) {
-                    continue;
-                }
-                $id = (int) $pending[$key];
-                if ($id <= 0 || $strikerId === $id || $nonStrikerId === $id) {
-                    continue;
-                }
-                if ($strikerId === null) {
-                    $strikerId = $id;
-                } elseif ($nonStrikerId === null) {
-                    $nonStrikerId = $id;
-                }
+            $merged = InningsStatsService::applyPendingCreaseSelection($strikerId, $nonStrikerId, $pending, true);
+            $strikerId = $merged['striker_id'];
+            $nonStrikerId = $merged['non_striker_id'];
+        }
+
+        if (! empty($pending['substitute_replaced_id']) && ! empty($pending['substitute_player_id'])) {
+            $replaced = (int) $pending['substitute_replaced_id'];
+            $sub = (int) $pending['substitute_player_id'];
+            if ($strikerId === $replaced) {
+                $strikerId = $sub;
+            } elseif ($nonStrikerId === $replaced) {
+                $nonStrikerId = $sub;
             }
         }
 
-        // Resolve player names for pending IDs that have no ball history yet.
-        // batterSlice / bowlerSlice fall back to an empty stats array, so runs
-        // and balls will be 0 — correct for a player who hasn't faced a ball.
-        if ($strikerId !== null && ! isset($names[$strikerId])) {
-            $names[$strikerId] = DB::table('users')->where('id', $strikerId)->value('name') ?? '';
-        }
-        if ($nonStrikerId !== null && ! isset($names[$nonStrikerId])) {
-            $names[$nonStrikerId] = DB::table('users')->where('id', $nonStrikerId)->value('name') ?? '';
-        }
-        if ($lastBowlerId !== null && ! isset($names[$lastBowlerId])) {
-            $names[$lastBowlerId] = DB::table('users')->where('id', $lastBowlerId)->value('name') ?? '';
+        // S9: Resolve player names for pending IDs that have no ball history yet.
+        // Batch into a single whereIn query instead of 3 separate selects.
+        $missingIds = array_values(array_filter(
+            array_unique([$strikerId, $nonStrikerId, $lastBowlerId]),
+            fn (?int $id) => $id !== null && ! isset($names[$id]),
+        ));
+        if ($missingIds !== []) {
+            DB::table('users')
+                ->whereIn('id', $missingIds)
+                ->get(['id', 'name'])
+                ->each(function ($u) use (&$names) {
+                    $names[(int) $u->id] = $u->name ?? '';
+                });
         }
 
         $striker = $this->batterSlice($strikerId, $names, $batsmenById);
@@ -233,9 +256,9 @@ class MatchStateService
         $requiredRunRate = null;
 
         $isSecondInnings = (int) $innings->innings_number === 2;
-        if ($isSecondInnings && $firstInnings?->status === 'completed') {
-            $firstRuns = $this->computeInningsRuns($firstInnings);
-            $target = $firstRuns + 1;
+        if ($isSecondInnings && $firstInnings?->status === InningsStatusEnum::COMPLETED) {
+            $firstRuns = $this->computeInningsRuns($match, $firstInnings);
+            $target = $match->chaseTargetForSecondInnings($firstRuns);
             $runsToWin = max(0, $target - $stats['total_runs']);
             $oversLimit = max(1, (int) ($match->overs ?: 20));
             $ballsRemaining = max(0, ($oversLimit * 6) - $stats['legal_balls']);
@@ -247,19 +270,33 @@ class MatchStateService
         // Reason why innings ended
         $inningsCompleteReason = null;
         if ($inningsComplete) {
-            $pps = max(1, (int) ($match->players_per_side ?: 11));
-            $maxWickets = $pps - 1;
-            $oversLimit = max(1, (int) ($match->overs ?: 20));
+            $storedReason = $innings->end_reason
+                ? InningsEndReasonEnum::tryFrom($innings->end_reason)
+                : null;
 
-            if ($stats['total_wickets'] >= $maxWickets) {
-                $inningsCompleteReason = 'all_out';
-            } elseif ($isSecondInnings && isset($firstRuns) && $stats['total_runs'] > $firstRuns) {
-                $inningsCompleteReason = 'target_reached';
-            } elseif ($stats['legal_balls'] >= $oversLimit * 6) {
-                $inningsCompleteReason = 'overs_complete';
+            if ($storedReason !== null) {
+                $inningsCompleteReason = $storedReason->matchStateReason();
             } else {
-                // Innings completed via admin action or direct DB write — no statistical reason.
-                $inningsCompleteReason = 'manual';
+                $pps = max(1, (int) ($match->players_per_side ?: 11));
+                $maxWickets = $pps - 1;
+                $oversLimit = max(1, (int) ($match->overs ?: 20));
+
+                if ($stats['total_wickets'] >= $maxWickets) {
+                    $inningsCompleteReason = 'all_out';
+                } elseif ($isSecondInnings && isset($firstRuns)) {
+                    $chaseTarget = $match->chaseTargetForSecondInnings($firstRuns);
+                    if ($chaseTarget !== null && $stats['total_runs'] >= $chaseTarget) {
+                        $inningsCompleteReason = 'target_reached';
+                    } elseif ($stats['legal_balls'] >= $oversLimit * 6) {
+                        $inningsCompleteReason = 'overs_complete';
+                    } else {
+                        $inningsCompleteReason = 'manual';
+                    }
+                } elseif ($stats['legal_balls'] >= $oversLimit * 6) {
+                    $inningsCompleteReason = 'overs_complete';
+                } else {
+                    $inningsCompleteReason = 'manual';
+                }
             }
         }
 
@@ -355,9 +392,13 @@ class MatchStateService
 
         foreach ($balls as $ball) {
             $runs += (int) ($ball->runs ?? 0);
-            $ballCount++;
+            if ($ball->isLegalDelivery()) {
+                $ballCount++;
+            }
 
-            if ($ball->is_wicket && $ball->out_player_id) {
+            // S3: retired_hurt is stored with is_wicket=true but does NOT end a partnership
+            // — the batter may return. Only genuine wickets reset the counter.
+            if ($ball->is_wicket && $ball->out_player_id && ! $ball->isRetiredHurt()) {
                 $runs = 0;
                 $ballCount = 0;
             }
@@ -368,12 +409,17 @@ class MatchStateService
 
     /**
      * Sum total runs for a completed innings (used for 2nd-innings target).
+     *
+     * S17: Uses loadMissing('balls') so the query is skipped if balls are already
+     * loaded on the innings model, avoiding a redundant DB round-trip.
      */
-    private function computeInningsRuns(Innings $innings): int
+    private function computeInningsRuns(TournamentMatch $match, Innings $innings): int
     {
-        return (int) $innings->balls()
-            ->reorder()
-            ->selectRaw('SUM(COALESCE(runs,0) + COALESCE(penalty_runs,0)) as total')
-            ->value('total');
+        $innings->loadMissing('balls');
+        $balls = $innings->balls;
+        $stats = $this->inningsStats->compute($balls, InningsStatsService::namesFromRelations($balls));
+        $cross = InningsStatsService::crossInningsPenaltyRunsForBattingTeam($match, (int) $innings->batting_team_id);
+
+        return (int) InningsStatsService::applyCrossInningsPenalties($stats, $cross)['total_runs'];
     }
 }

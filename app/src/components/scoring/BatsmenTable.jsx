@@ -7,43 +7,12 @@
  * Shows a retired-hurt indicator for any batsmen who have retired.
  */
 
+import { ScoringTableAddButton } from '@/components/scoring/ScoringTableAddButton';
 import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
-import { Button } from '@/ui/Button';
+import { calculateStrikeRate } from '@/lib/utils/matchPlayerStatsUtils';
+import { EditIcon } from '@/ui/icons/ScoringTableIcons';
 
 const DASH = '—';
-
-/** Pencil/edit icon used in table headers. */
-function EditIcon() {
-  return (
-    <svg
-      className="block h-4 w-4"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-    </svg>
-  );
-}
-
-/** Plus icon inside the Add button. */
-function PlusIcon() {
-  return (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-    </svg>
-  );
-}
-
-function strikeRate(runs, balls) {
-  if (!balls) return '0.0';
-  return ((Number(runs) / Number(balls)) * 100).toFixed(1);
-}
 
 const PLACEHOLDER_ROWS = 2;
 
@@ -70,11 +39,13 @@ export function BatsmenTable({
 }) {
   const canAdd = batsmenOnCrease.length < 2;
   const showPlaceholder = !hasSquad || batsmenOnCrease.length === 0;
+  // Always use the overlay for the Add button — whether zero or one batsman on crease.
+  const showAddOverlay = canAdd && !matchComplete && onAddBatsman;
 
   return (
     <div className="relative overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <table className="w-full border-collapse text-[12px]">
-        <thead>
+        <thead className="relative z-10">
           <tr className={HEADER_BG}>
             <th
               className={`${HEADER_BG} min-w-[8.5rem] border-r border-b border-l px-4 py-2.5 text-left font-bold text-white ${BORDER}`}
@@ -83,8 +54,8 @@ export function BatsmenTable({
                 {!matchComplete && batsmenOnCrease.length > 0 && onReplaceStriker ? (
                   <button
                     type="button"
-                    className="inline-flex shrink-0 rounded p-0.5 text-[#DA9811] hover:text-[#f0b94a] focus-visible:outline focus-visible:outline-offset-1 focus-visible:outline-[#DA9811]"
-                    aria-label="Replace striker"
+                    className="text-brand hover:text-brand-hover focus-visible:outline-brand inline-flex shrink-0 rounded p-0.5 focus-visible:outline focus-visible:outline-offset-1"
+                    aria-label="Replace Striker"
                     onClick={(e) => {
                       e.stopPropagation();
                       onReplaceStriker?.();
@@ -108,12 +79,13 @@ export function BatsmenTable({
             ? Array.from({ length: PLACEHOLDER_ROWS }, (_, i) => <PlaceholderRow key={`bat-placeholder-${i}`} />)
             : batsmenOnCrease.slice(0, 2).map((b, idx) => {
                 const isStriker = idx === strikerIndex;
-                const sr = strikeRate(b.runs, b.balls);
+                const sr = calculateStrikeRate(b.runs, b.balls);
                 return (
                   <tr
                     key={b.id}
                     role="button"
                     tabIndex={0}
+                    aria-label={`Switch strike to ${b.name ?? 'batsman'}`}
                     onClick={() => onStrikerChange?.(idx)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
@@ -125,15 +97,15 @@ export function BatsmenTable({
                   >
                     <td className={`border-r border-b border-l ${BORDER} px-4 py-3`}>
                       <span className="flex items-center gap-2">
-                        <span className={`text-[12px] font-medium ${isStriker ? 'text-[#DA9811]' : 'text-white'}`}>
+                        <span className={`text-[12px] font-medium ${isStriker ? 'text-brand' : 'text-white'}`}>
                           {b.name ?? DASH}
                         </span>
-                        {isStriker && (
+                        {isStriker ? (
                           <span
-                            className="scoring-blink-dot inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full bg-red-500"
+                            className="scoring-blink-dot inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-red-500"
                             aria-label="On strike"
                           />
-                        )}
+                        ) : null}
                       </span>
                     </td>
                     {[b.runs ?? 0, b.balls ?? 0, b.fours ?? 0, b.sixes ?? 0, sr].map((val, i) => (
@@ -144,30 +116,16 @@ export function BatsmenTable({
                   </tr>
                 );
               })}
+          {/* Empty slot when only one batsman is on crease — gives the overlay a row to sit over */}
+          {!showPlaceholder && canAdd ? <PlaceholderRow key="bat-slot-empty" /> : null}
         </tbody>
       </table>
 
-      {/* Add Batsman CTA */}
-      {canAdd && !matchComplete && onAddBatsman && (
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 bottom-0 z-0 flex min-h-[5rem] items-center justify-center"
-          aria-hidden
-        >
-          <Button
-            type="button"
-            variant="dark"
-            size="md"
-            className="pointer-events-auto flex flex-col items-center gap-1.5"
-            aria-label="Add Batsman"
-            onClick={onAddBatsman}
-          >
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#DA9811] text-[#080807]">
-              <PlusIcon />
-            </span>
-            <span className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">Add Batsman</span>
-          </Button>
+      {showAddOverlay ? (
+        <div className="pointer-events-none absolute inset-x-0 top-10 bottom-0 flex items-center justify-center" aria-hidden>
+          <ScoringTableAddButton label="Batsman" onClick={onAddBatsman} className="pointer-events-auto" />
         </div>
-      )}
+      ) : null}
 
       {/* Retired Hurt indicator */}
       {retiredBatsmen.length > 0 && (
@@ -175,10 +133,10 @@ export function BatsmenTable({
           {retiredBatsmen.map((b) => (
             <span
               key={b.id}
-              className="inline-flex items-center gap-1 rounded-md border border-[#3B3B35] bg-[#1A1A18] px-2 py-0.5 text-[11px] text-[#A2A6AB]"
+              className="bg-surface-elevated text-muted inline-flex items-center gap-1 rounded-md border border-[#3B3B35] px-2 py-0.5 text-[11px]"
             >
               <span className="font-medium text-white/70">{b.name}</span>
-              <span className="text-[#DA9811]">ret hurt</span>
+              <span className="text-brand">ret hurt</span>
               <span className="text-white/50">
                 {b.runs}({b.balls})
               </span>

@@ -37,7 +37,7 @@ export function SquadTeams({ tournamentId }) {
   if (isLoading) {
     return (
       <div className="mt-4 pb-6">
-        <p className="py-4 text-center text-[13px] text-muted">Loading squads…</p>
+        <p className="text-muted py-4 text-center text-[13px]">Loading squads…</p>
       </div>
     );
   }
@@ -53,18 +53,18 @@ export function SquadTeams({ tournamentId }) {
   if (!teams.length) {
     return (
       <div className="mt-4 pb-6">
-        <p className="py-8 text-center text-[13px] text-muted">No teams added yet.</p>
+        <p className="text-muted py-8 text-center text-[13px]">No teams added yet.</p>
       </div>
     );
   }
 
   return (
     <div className="mt-4 pb-6 focus:outline-none">
-      <h1 className="border-b border-surface-border pb-4 text-left text-[13px] font-bold tracking-wide text-white uppercase">
+      <h1 className="border-surface-border border-b pb-4 text-left text-[13px] font-bold tracking-wide text-white uppercase">
         {title}
       </h1>
 
-      <div className="border border-surface-border">
+      <div className="border-surface-border border">
         <div className="bg-surface px-4 py-3 text-[13px] font-bold text-white">Teams</div>
         <div className="divide-y divide-[#1A1A1A]">
           {teams.map((team) => (
@@ -72,7 +72,7 @@ export function SquadTeams({ tournamentId }) {
               type="button"
               key={team.id}
               onClick={() => handleTeamClick(team.id)}
-              className="flex w-full items-center gap-2.5 bg-transparent px-4 py-3.5 text-left text-[13px] text-white focus:ring-2 focus:ring-brand focus:outline-none focus:ring-inset active:bg-surface-border"
+              className="focus:ring-brand active:bg-surface-border flex w-full items-center gap-2.5 bg-transparent px-4 py-3.5 text-left text-[13px] text-white focus:ring-2 focus:outline-none focus:ring-inset"
             >
               <TeamLogo team={team} variant="list" />
               <span className="min-w-0 flex-1 truncate">{team.name ?? team.code ?? 'Team'}</span>

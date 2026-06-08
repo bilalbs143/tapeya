@@ -106,7 +106,7 @@ export function TimePicker({ id, value = '', onChange, placeholder = 'Select Tim
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-auto !rounded-xl !border-[#141412] !bg-surface p-0 shadow-lg"
+        className="!bg-surface w-auto !rounded-xl !border-[#141412] p-0 shadow-lg"
         align="start"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
@@ -165,7 +165,7 @@ export function TimePicker({ id, value = '', onChange, placeholder = 'Select Tim
           <button
             type="button"
             onClick={handleConfirm}
-            className="w-full rounded-lg bg-brand py-2 text-sm font-bold text-ink transition-colors hover:bg-brand/90 focus:ring-2 focus:ring-brand/50 focus:outline-none"
+            className="bg-brand text-ink hover:bg-brand/90 focus:ring-brand/50 w-full rounded-lg py-2 text-sm font-bold transition-colors focus:ring-2 focus:outline-none"
           >
             Done
           </button>

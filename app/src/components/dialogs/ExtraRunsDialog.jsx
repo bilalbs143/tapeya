@@ -1,36 +1,42 @@
-import { useDialog } from '@/context/DialogContext';
-import { DialogHeaderRow, dialogPrimaryTitleClass, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { useState } from 'react';
 
-const RUNS_OPTIONS = [0, 1, 2, 3, 4, 5, 6];
+import { RunPickerRow } from '@/components/scoring/RunPickerRow';
+import { useDialog } from '@/context/DialogContext';
+import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+
+const TITLES = {
+  bye: 'Bye',
+  lb: 'Leg-Bye',
+};
 
 /**
- * Shown when organizer taps WD, NB, Bye or LB. They can choose runs from this delivery (0–6).
+ * Bye / Leg-bye run picker — dedicated titled dialog with circular 0–6 buttons (no equation).
+ *
+ * @param {'bye'|'lb'} [extraType]
+ * @param {Function} [onSelect]  Called with runs when user taps Continue
  */
-export function ExtraRunsDialog({ onSelect }) {
+export function ExtraRunsDialog({ extraType, onSelect }) {
   const { closeDialog } = useDialog();
+  const [selectedRuns, setSelectedRuns] = useState(0);
+  const title = TITLES[extraType] ?? 'Extra Runs';
+
+  const handleContinue = () => {
+    onSelect?.(selectedRuns);
+    closeDialog();
+  };
+
   return (
     <>
       <DialogHeaderRow>
-        <DialogTitle className={dialogPrimaryTitleClass}>Runs from this delivery?</DialogTitle>
+        <DialogTitle className={dialogPrimaryTitleClass}>{title}</DialogTitle>
       </DialogHeaderRow>
-      <DialogScrollBody className="flex flex-col">
-        <div className="flex flex-wrap justify-center gap-2 py-2">
-          {RUNS_OPTIONS.map((runs) => (
-            <button
-              key={runs}
-              type="button"
-              onClick={() => {
-                onSelect?.(runs);
-                closeDialog();
-              }}
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#141412] text-[16px] font-bold text-white transition-opacity hover:bg-[#1c1c1a] active:opacity-80"
-              aria-label={`${runs} run${runs !== 1 ? 's' : ''}`}
-            >
-              {runs}
-            </button>
-          ))}
-        </div>
+      <DialogScrollBody className="flex flex-col gap-4">
+        <p className="text-[13px] font-medium text-white">Select Extra Run</p>
+        <RunPickerRow className="px-1" value={selectedRuns} onChange={setSelectedRuns} />
       </DialogScrollBody>
+      <DialogSaveButton type="button" onClick={handleContinue}>
+        Continue
+      </DialogSaveButton>
     </>
   );
 }

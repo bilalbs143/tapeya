@@ -5,7 +5,7 @@
 export function ToggleChevron({ open }) {
   return (
     <svg
-      className={`h-4 w-4 shrink-0 text-brand transition-transform duration-200 ${open ? 'rotate-90' : ''}`}
+      className={`text-brand h-4 w-4 shrink-0 transition-transform duration-200 ${open ? 'rotate-90' : ''}`}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"

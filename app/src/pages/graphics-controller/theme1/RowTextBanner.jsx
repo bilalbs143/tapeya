@@ -20,7 +20,7 @@ export default function RowTextBanner({
   const desktopItems = Array.from({ length: desktopCount });
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-page">
+    <div className="bg-page relative min-h-screen overflow-hidden">
       <section className="absolute right-0 bottom-0 left-0 h-[56px] overflow-hidden text-white sm:h-[80px]" style={rowStyle}>
         <div className="absolute inset-0 bg-black/25" />
 

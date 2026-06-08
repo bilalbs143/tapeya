@@ -19,7 +19,7 @@ export function FielderPickerDialog({ message, players = [], onSelectFielder }) 
                 onSelectFielder?.(player.id);
                 closeDialog();
               }}
-              className="cursor-pointer rounded-[6px] bg-[#141412] px-4 py-3 text-left transition-opacity hover:bg-[#1a1a18] active:opacity-90"
+              className="bg-surface hover:bg-surface-elevated cursor-pointer rounded-[6px] px-4 py-3 text-left transition-opacity active:opacity-90"
             >
               <span className="block text-[14px] font-medium text-white">{player.name}</span>
               <ScoringPlayerPickerMeta player={player} variant="fielder" />

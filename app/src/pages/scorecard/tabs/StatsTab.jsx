@@ -24,7 +24,7 @@ function SummaryCard({ value, label, accent = 'yellow', to }) {
     <>
       <div>
         <div className="text-[16px] font-bold text-white">{value}</div>
-        <div className="mt-0.5 text-[12px] font-bold tracking-wide text-muted uppercase">{label}</div>
+        <div className="text-muted mt-0.5 text-[12px] font-bold tracking-wide uppercase">{label}</div>
       </div>
       {to && (
         <svg
@@ -65,8 +65,8 @@ function PlayerStatCard({ player, primaryStat, statSuffix = '' }) {
   const averageValue = formatDecimal(player.average, 2);
 
   return (
-    <div className="flex items-start gap-3 rounded-[17px] bg-surface p-3">
-      <Avatar className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-surface-border">
+    <div className="bg-surface flex items-start gap-3 rounded-[17px] p-3">
+      <Avatar className="border-surface-border h-12 w-12 shrink-0 overflow-hidden rounded-full border">
         {/* Fixed: was two conditional AvatarImage renders — simplified to one
             since AvatarImage handles a falsy src via the AvatarFallback. */}
         <AvatarImage src={player.image || defaultPlayerImage} alt="" />
@@ -79,11 +79,11 @@ function PlayerStatCard({ player, primaryStat, statSuffix = '' }) {
             {player.teamAbbr}, {player.playing_role}
           </span>
         </div>
-        <div className="mt-1 text-[18px] font-bold text-brand">
+        <div className="text-brand mt-1 text-[18px] font-bold">
           {primaryStat}
           {statSuffix}
         </div>
-        <div className="mt-0.5 flex flex-wrap gap-x-4 gap-y-0 text-[12px] text-muted">
+        <div className="text-muted mt-0.5 flex flex-wrap gap-x-4 gap-y-0 text-[12px]">
           <div>Innings: {player.innings}</div>
           <div>Average: {averageValue}</div>
         </div>
@@ -98,11 +98,11 @@ function PlayerStatCard({ player, primaryStat, statSuffix = '' }) {
 function SectionHeader({ title, viewMoreTo }) {
   return (
     <div className="mb-3 flex items-center justify-between">
-      <h2 className="text-[13px] font-bold tracking-wide text-muted uppercase">{title}</h2>
+      <h2 className="text-muted text-[13px] font-bold tracking-wide uppercase">{title}</h2>
       {viewMoreTo && (
         <Link
           to={viewMoreTo}
-          className="text-[12px] font-bold tracking-wide text-brand uppercase transition-opacity hover:opacity-90"
+          className="text-brand text-[12px] font-bold tracking-wide uppercase transition-opacity hover:opacity-90"
         >
           VIEW MORE
         </Link>
@@ -139,7 +139,7 @@ export function StatsTab({ tournamentId }) {
     return (
       <div className="mt-4 pb-6 focus:outline-none">
         {titleNode}
-        <p className="mt-4 text-center text-[13px] text-muted">Select a tournament to view season stats.</p>
+        <p className="text-muted mt-4 text-center text-[13px]">Select a tournament to view season stats.</p>
       </div>
     );
   }
@@ -148,7 +148,7 @@ export function StatsTab({ tournamentId }) {
     return (
       <div className="mt-4 pb-6 focus:outline-none">
         {titleNode}
-        <p className="mt-4 text-center text-[13px] text-muted">Loading season stats…</p>
+        <p className="text-muted mt-4 text-center text-[13px]">Loading season stats…</p>
       </div>
     );
   }
