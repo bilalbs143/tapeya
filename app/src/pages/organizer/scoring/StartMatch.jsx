@@ -341,7 +341,7 @@ export default function StartMatch() {
             )}
           </FormField>
 
-          <FormStack layout="grid-2" className="!gap-3 lg:!gap-6">
+          <FormStack layout="grid-2">
             <FormField htmlFor="overs" label="Overs">
               <button
                 type="button"

@@ -25,13 +25,13 @@ function chipClass(variant, isFreeHit) {
     // Gold ring to mark free-hit deliveries (match BallsTab ring weight)
     switch (variant) {
       case 'four':
-        return 'bg-brand text-ink ring-2 ring-brand';
+        return 'bg-brand text-ink ring-1 ring-inset ring-brand';
       case 'six':
-        return 'bg-[#A855F7] text-white ring-2 ring-brand';
+        return 'bg-[#A855F7] text-white ring-1 ring-inset ring-brand';
       case 'wicket':
-        return 'bg-[#EF4444] text-white ring-2 ring-brand';
+        return 'bg-[#EF4444] text-white ring-1 ring-inset ring-brand';
       default:
-        return 'bg-[#2A2A28] text-[#E5E7EB] ring-2 ring-brand';
+        return 'bg-[#2A2A28] text-[#E5E7EB] ring-1 ring-inset ring-brand';
     }
   }
   switch (variant) {
