@@ -35,7 +35,7 @@ export const TEAM_LOGO_VARIANTS = {
     fallbackType: 'initial',
     fallbackSrc: null,
     containerClass: 'flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-surface-deep',
-    imgClass: 'h-10 w-10 shrink-0 object-contain',
+    imgClass: 'block h-full w-full object-contain',
     initialClass: 'text-[11px] font-bold text-white',
   },
   /** Fixture list rows. */
@@ -84,7 +84,7 @@ export const TEAM_LOGO_VARIANTS = {
     fallbackType: 'initial',
     fallbackSrc: null,
     containerClass: 'flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-surface-deep',
-    imgClass: 'h-8 w-8 shrink-0 object-contain',
+    imgClass: 'block h-full w-full object-contain',
     initialClass: 'text-[9px] font-bold text-white',
   },
   /** Drafting team list / detail. */

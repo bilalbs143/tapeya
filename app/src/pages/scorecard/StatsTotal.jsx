@@ -84,7 +84,7 @@ import { buildStatsTotalRows } from '@/lib/utils/rankingUtils';
 import { useGetTournamentSeasonStatsQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
 
-import { VALID_STAT_TYPES } from './statsTotalFlow';
+import { getStatsTotalBackPath, SCORECARD_FLOW, VALID_STAT_TYPES } from './statsTotalFlow';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -192,10 +192,8 @@ export default function StatsTotal() {
   const subheading = titles.sub;
   const columns = COLUMNS_BY_STAT_TYPE[normalizedType] ?? COLUMNS_FOURS;
 
-  // TODO: simplify to always navigate to `/scorecard/${tournamentId}` —
-  //       the fallback to `/scorecard` is dead code here (see top).
   const backToStats = () => {
-    navigate(tournamentId ? `/scorecard/${tournamentId}` : '/scorecard');
+    navigate(getStatsTotalBackPath(SCORECARD_FLOW, tournamentId));
   };
 
   const header = <AppSubpageHeader title={subheading} onBack={backToStats} />;

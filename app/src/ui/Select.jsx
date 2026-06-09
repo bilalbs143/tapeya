@@ -10,6 +10,10 @@ const trigger =
 /** Matches Input style: h-12, rounded-[160px], bg-surface, focus ring [#FF9700]/50 */
 export const selectTriggerInputClass =
   '!h-12 !rounded-[6px] !border-0 !bg-surface !px-4 !py-3 w-full !text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 [&>span]:!text-white [&>span]:!text-base [&_svg]:!text-white data-[placeholder]:!text-muted/47';
+
+/** SearchableSelect trigger — span text color is set per value/placeholder on the child. */
+export const searchableSelectTriggerClass =
+  '!h-12 !rounded-[6px] !border-0 !bg-surface !px-4 !py-3 w-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 [&>span]:!text-base [&_svg]:!text-white';
 export const selectContentInputClass =
   '!rounded-xl !border-[#141412] !bg-surface !w-[var(--radix-select-trigger-width)] shadow-lg';
 export const selectViewportInputClass = '!bg-transparent p-1';

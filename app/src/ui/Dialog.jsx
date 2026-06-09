@@ -78,7 +78,7 @@ const OVERLAY_DIALOG = 'fixed inset-0 z-[60] bg-black/50';
 const CONTENT_DARK =
   'fixed left-1/2 top-1/2 z-[60] flex h-[447px] w-full max-w-[380px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[17px] border-2 p-0 shadow-xl';
 
-const SCROLL_BODY = 'min-h-0 flex-1 overflow-y-auto px-5 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden';
+const SCROLL_BODY = 'min-h-0 flex-1 pt-0 overflow-y-auto px-5 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden';
 
 const SAVE_BUTTON =
   'w-full shrink-0 rounded-b-[17px] bg-[#DB9811] py-4 text-base font-bold uppercase tracking-wide text-black transition-colors hover:bg-[#C48910] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#FFB703] disabled:pointer-events-none disabled:opacity-50';

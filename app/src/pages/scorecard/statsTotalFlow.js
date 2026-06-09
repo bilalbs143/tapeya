@@ -61,6 +61,6 @@ export function getFlowFromPath(pathname) {
  */
 export function getStatsTotalBackPath(flow, tournamentId) {
   if (flow === RANKING_FLOW) return '/ranking';
-  if (flow === SCORECARD_FLOW && tournamentId) return `/scorecard/${tournamentId}`;
+  if (flow === SCORECARD_FLOW && tournamentId) return `/scorecard/${tournamentId}?tab=stats`;
   return '/scorecard';
 }

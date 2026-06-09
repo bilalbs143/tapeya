@@ -7,6 +7,7 @@ import { BaseDialog } from '@/components/dialogs/BaseDialog';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
+import { formatIsoDateForDisplay, toApiDate } from '@/lib/utils/dateUtils';
 import { enumNameToValue } from '@/lib/utils/enumUtils';
 import { EMPTY_FILE_UPLOAD, fileUploadValueFromUrl } from '@/lib/utils/fileUploadUtils';
 import { updateProfileSchema, userEditFormSchema } from '@/lib/validations/auth';
@@ -126,7 +127,7 @@ export function UserEdit({ open, onOpenChange }) {
       country: countryFromProfile || DEFAULT_COUNTRY,
       city: user.city ?? '',
       nickname: user.nickname ?? '',
-      dateOfBirth: user.date_of_birth ?? '',
+      dateOfBirth: formatIsoDateForDisplay(user.date_of_birth),
       battingStyle: batting && battingStyleOptions.some((o) => o.value === batting) ? batting : '',
       bowlingStyle: bowling && bowlingStyleOptions.some((o) => o.value === bowling) ? bowling : '',
       playingRole: playing && playingRoleOptions.some((o) => o.value === playing) ? playing : '',
@@ -140,7 +141,7 @@ export function UserEdit({ open, onOpenChange }) {
       name: data.name.trim() || undefined,
       nickname: data.nickname.trim(),
       email: data.email.trim() || undefined,
-      date_of_birth: data.dateOfBirth || undefined,
+      date_of_birth: toApiDate(data.dateOfBirth) || undefined,
       bowling_style: data.bowlingStyle || null,
       batting_style: data.battingStyle || null,
       playing_role: data.playingRole || null,

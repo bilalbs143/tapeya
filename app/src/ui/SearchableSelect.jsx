@@ -3,7 +3,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { RemoveScroll } from 'react-remove-scroll';
 
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/Popover';
-import { selectItemInputClass, selectTriggerInputClass } from '@/ui/Select';
+import { searchableSelectTriggerClass, selectItemInputClass } from '@/ui/Select';
 
 function ChevronIcon({ className = '' }) {
   return (
@@ -90,7 +90,7 @@ export function SearchableSelect({
         type="text"
         readOnly
         value={value}
-        className={`${selectTriggerInputClass} ${className}`.trim()}
+        className={`${searchableSelectTriggerClass} text-white ${className}`.trim()}
         aria-readonly="true"
       />
     );
@@ -140,11 +140,9 @@ export function SearchableSelect({
           aria-haspopup="listbox"
           aria-expanded={open}
           aria-controls={open ? listId : undefined}
-          className={`flex items-center justify-between ${selectTriggerInputClass} ${className}`.trim()}
+          className={`flex items-center justify-between ${searchableSelectTriggerClass} ${className}`.trim()}
         >
-          <span
-            className={displayValue ? 'min-w-0 flex-1 truncate text-left' : 'min-w-0 flex-1 truncate text-left text-[#A2A6AB78]'}
-          >
+          <span className={`min-w-0 flex-1 truncate text-left ${displayValue ? 'text-white' : 'text-muted/47'}`}>
             {displayValue || placeholder}
           </span>
           {loading ? <SpinnerIcon /> : <ChevronIcon className="shrink-0 text-white" />}
