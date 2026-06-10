@@ -253,7 +253,7 @@ class BallDeliveryNormalizer
         $extra = (int) ($data['runout_extra_runs'] ?? 0);
         $runType = $data['runout_run_type'] ?? null;
 
-        if ($extra > 0 && $runType !== null && $runTapp / docs / scoring - refactor - plan.md.ype !== '') {
+        if ($extra > 0 && $runType !== null && $runType !== '') {
             $runsTypeEnum = NoBallRunsTypeEnum::from($runType);
             // S6: use shared helper instead of a duplicated inline switch.
             $data = self::applyRunsType(

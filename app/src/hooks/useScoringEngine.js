@@ -261,6 +261,8 @@ export function useScoringEngine({
       return dispatch(
         {
           ...uiFields,
+          type: 'out',
+          dismissalType: 'run_out',
           strikerId: uiFields.strikerId ?? striker?.id,
           nonStrikerId: uiFields.nonStrikerId ?? nonStriker?.id,
           bowlerId: uiFields.bowlerId ?? currentBowler?.id,
