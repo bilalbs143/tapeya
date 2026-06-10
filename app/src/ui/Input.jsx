@@ -6,7 +6,7 @@
 import { forwardRef, useCallback, useState } from 'react';
 
 const inputBase =
-  'h-12 w-full rounded-[6px] bg-[#141412] px-4 py-3 text-white placeholder:text-base placeholder:text-[#A2A6AB78] focus:outline-none focus:ring-2 transition-colors';
+  'h-12 w-full rounded-[6px] bg-surface px-4 py-3 text-white placeholder:text-base placeholder:text-muted/47 focus:outline-none focus:ring-2 transition-colors';
 
 const inputVariants = {
   default: 'focus:ring-[#FF9700]/50',
@@ -14,13 +14,7 @@ const inputVariants = {
 };
 
 export const Input = forwardRef(function Input(
-  {
-    className = '',
-    type = 'text',
-    error,
-    showPasswordToggle = false,
-    ...props
-  },
+  { className = '', type = 'text', error, showPasswordToggle = false, ...props },
   ref,
 ) {
   const [isPasswordVisible, setPasswordVisible] = useState(false);
@@ -39,9 +33,7 @@ export const Input = forwardRef(function Input(
           type={inputType}
           className={`${inputBase} ${error ? inputVariants.error : inputVariants.default} ${isPasswordType ? 'pr-12' : ''} ${className}`}
           aria-invalid={error ? 'true' : undefined}
-          aria-describedby={
-            error ? `${props.id ?? props.name}-error` : undefined
-          }
+          aria-describedby={error ? `${props.id ?? props.name}-error` : undefined}
           {...props}
         />
         {isPasswordType && (
@@ -57,11 +49,7 @@ export const Input = forwardRef(function Input(
       </div>
       {error && (
         <p
-          id={
-            (props.id ?? props.name)
-              ? `${props.id ?? props.name}-error`
-              : undefined
-          }
+          id={(props.id ?? props.name) ? `${props.id ?? props.name}-error` : undefined}
           className="text-sm text-red-200"
           role="alert"
         >
@@ -74,19 +62,8 @@ export const Input = forwardRef(function Input(
 
 function EyeIcon() {
   return (
-    <svg
-      className="h-5 w-5"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      aria-hidden
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-      />
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -99,13 +76,7 @@ function EyeIcon() {
 
 function EyeOffIcon() {
   return (
-    <svg
-      className="h-5 w-5"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      aria-hidden
-    >
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
       <path
         strokeLinecap="round"
         strokeLinejoin="round"

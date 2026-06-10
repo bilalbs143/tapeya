@@ -26,6 +26,7 @@ class TournamentRequestResource extends JsonResource
             'end_date' => $this->end_date?->format('Y-m-d'),
             'number_of_teams' => $this->number_of_teams,
             'number_of_groups' => (int) ($this->number_of_groups ?? 1),
+            'country' => $this->country,
             'city' => $this->city,
             'match_timings' => $this->match_timings?->value,
             'match_timings_label' => $this->match_timings?->label(),
@@ -33,11 +34,9 @@ class TournamentRequestResource extends JsonResource
             'status' => $this->status?->value,
             'status_label' => $this->status?->label(),
             'created_at' => $this->created_at?->toIso8601String(),
-            $this->mergeWhen(
-                $this->resource->relationLoaded('tournament'),
-                [
-                    'tournament' => new TournamentResource($this->resource->getRelation('tournament')),
-                ]
+            'tournament' => $this->whenLoaded(
+                'tournament',
+                fn () => new TournamentResource($this->resource->tournament)
             ),
         ];
     }

@@ -136,7 +136,10 @@ export class StaticPagesComponent implements OnInit, AfterViewInit, OnDestroy {
       ManageStaticPageDialogComponent,
       { mode: 'create' },
       (result) => result && this.loadHttpData(),
-      { widthSize: 'lg', disableClose: true }
+      {
+        widthSize: 'lg',
+        disableClose: true,
+      }
     );
   }
 
@@ -145,7 +148,10 @@ export class StaticPagesComponent implements OnInit, AfterViewInit, OnDestroy {
       ManageStaticPageDialogComponent,
       { mode: 'edit', staticPage: item },
       (result) => result && this.loadHttpData(),
-      { widthSize: 'lg', disableClose: true }
+      {
+        widthSize: 'lg',
+        disableClose: true,
+      }
     );
   }
 

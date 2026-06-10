@@ -1,6 +1,11 @@
 # IDE
 .idea/
-.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/remote-ssh.example.json
 *.swp
 *.swo
 .DS_Store
@@ -42,7 +47,6 @@ app/node_modules/
 app/package-lock.json
 app/dist/
 app/www/
-app/android/
 app/.capacitor/
 
 # ===================

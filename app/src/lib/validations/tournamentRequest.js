@@ -1,15 +1,9 @@
 import { z } from 'zod';
 
+import { phoneSchema } from './shared';
+
 /** Fallback when API group_mode enum is not yet loaded (must match API GroupModeEnum). */
 const DEFAULT_GROUP_MODE_VALUES = ['open', 'group_wise'];
-
-const phoneSchema = z
-  .string()
-  .min(1, 'Phone is required')
-  .refine(
-    (v) => /^\+[1-9]\d{6,}$/.test(v),
-    'Enter a valid phone number (e.g. +923001234567)',
-  );
 
 /**
  * Parse date string (MM-DD-YYYY or YYYY-MM-DD) to Date without relying on browser's
@@ -48,21 +42,13 @@ function parseDateString(str) {
  */
 export function createTournamentRequestSchema(groupModeValues = []) {
   const groupModeEnum =
-    Array.isArray(groupModeValues) && groupModeValues.length >= 2
-      ? groupModeValues
-      : DEFAULT_GROUP_MODE_VALUES;
+    Array.isArray(groupModeValues) && groupModeValues.length >= 2 ? groupModeValues : DEFAULT_GROUP_MODE_VALUES;
 
   return z
     .object({
-      contact_person_name: z
-        .string()
-        .min(1, 'Contact person name is required')
-        .max(255),
-      contact_phone: phoneSchema.max(30),
-      tournament_name: z
-        .string()
-        .min(1, 'Tournament name is required')
-        .max(255),
+      contact_person_name: z.string().min(1, 'Contact person name is required').max(255),
+      contact_phone: phoneSchema,
+      tournament_name: z.string().min(1, 'Tournament name is required').max(255),
       tournament_type: z.string().min(1, 'Tournament type is required'),
       cricket_format: z.string().min(1, 'Cricket format is required'),
       venue_name: z.string().min(1, 'Venue name is required').max(255),
@@ -92,16 +78,13 @@ export function createTournamentRequestSchema(groupModeValues = []) {
     })
     .refine(
       (data) => {
-        const groupWiseValue = groupModeEnum.includes('group_wise')
-          ? 'group_wise'
-          : groupModeEnum[groupModeEnum.length - 1];
+        const groupWiseValue = groupModeEnum.includes('group_wise') ? 'group_wise' : groupModeEnum[groupModeEnum.length - 1];
         if (data.group_mode !== groupWiseValue) return true;
         const n = data.number_of_groups;
         return n != null && Number(n) >= 2 && Number(n) <= 16;
       },
       {
-        message:
-          'Number of groups is required (2–16) when Group Wise is selected',
+        message: 'Number of groups is required (2–16) when Group Wise is selected',
         path: ['number_of_groups'],
       },
     )

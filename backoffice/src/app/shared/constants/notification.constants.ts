@@ -17,7 +17,8 @@ export const ADMIN_NOTIFICATION_TYPE_LABELS: Record<AdminNotificationTypeValue, 
 
 export const ADMIN_NOTIFICATION_TYPE_OPTIONS: { value: string; label: string }[] = [
   { value: '', label: 'All' },
-  ...(Object.entries(ADMIN_NOTIFICATION_TYPE_LABELS) as [AdminNotificationTypeValue, string][]).map(
-    ([value, label]) => ({ value, label })
-  ),
+  ...(Object.entries(ADMIN_NOTIFICATION_TYPE_LABELS) as [AdminNotificationTypeValue, string][]).map(([value, label]) => ({
+    value,
+    label,
+  })),
 ];

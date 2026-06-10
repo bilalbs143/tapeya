@@ -1,4 +1,4 @@
-<app-dialog-wrapper title="Schedule Match">
+<app-dialog-wrapper [title]="dialogTitle">
   @if (isLoading) {
     <mat-dialog-content>
       <div class="flex justify-center py-10">
@@ -31,9 +31,7 @@
         <div class="grid grid-cols-12 gap-x-6">
           @if (showMatchGroupMode) {
             <div class="col-span-12">
-              <mat-label class="text-sm font-semibold mb-2 block"
-                >Match Type <span class="text-error">*</span></mat-label
-              >
+              <mat-label class="text-sm font-semibold mb-2 block">Match Type <span class="text-error">*</span></mat-label>
               <mat-radio-group
                 formControlName="match_group_mode"
                 class="flex flex-wrap gap-4"
@@ -59,16 +57,11 @@
                       <mat-option [value]="g">Group {{ g }}</mat-option>
                     }
                   </mat-select>
-                  @if (
-                    form.get('group_index')?.invalid &&
-                    (form.get('group_index')?.touched || form.get('group_index')?.dirty)
-                  ) {
+                  @if (form.get('group_index')?.invalid && (form.get('group_index')?.touched || form.get('group_index')?.dirty)) {
                     <mat-error>
                       @if (form.get('group_index')?.hasError('required')) {
                         Select which group this fixture belongs to.
-                      } @else if (
-                        form.get('group_index')?.hasError('min') || form.get('group_index')?.hasError('max')
-                      ) {
+                      } @else if (form.get('group_index')?.hasError('min') || form.get('group_index')?.hasError('max')) {
                         Choose a valid group.
                       }
                     </mat-error>
@@ -91,16 +84,11 @@
                   <mat-option [value]="t.id">{{ t.name }}</mat-option>
                 }
               </mat-select>
-              @if (
-                form.get('home_team_id')?.invalid &&
-                (form.get('home_team_id')?.touched || form.get('home_team_id')?.dirty)
-              ) {
+              @if (form.get('home_team_id')?.invalid && (form.get('home_team_id')?.touched || form.get('home_team_id')?.dirty)) {
                 <mat-error>
                   @if (form.get('home_team_id')?.hasError('sameFixture')) {
                     Home and away must be different teams.
-                  } @else if (
-                    form.get('home_team_id')?.hasError('required') || form.get('home_team_id')?.hasError('min')
-                  ) {
+                  } @else if (form.get('home_team_id')?.hasError('required') || form.get('home_team_id')?.hasError('min')) {
                     Choose the home team.
                   }
                 </mat-error>
@@ -120,16 +108,11 @@
                   <mat-option [value]="t.id">{{ t.name }}</mat-option>
                 }
               </mat-select>
-              @if (
-                form.get('away_team_id')?.invalid &&
-                (form.get('away_team_id')?.touched || form.get('away_team_id')?.dirty)
-              ) {
+              @if (form.get('away_team_id')?.invalid && (form.get('away_team_id')?.touched || form.get('away_team_id')?.dirty)) {
                 <mat-error>
                   @if (form.get('away_team_id')?.hasError('sameFixture')) {
                     Home and away must be different teams.
-                  } @else if (
-                    form.get('away_team_id')?.hasError('required') || form.get('away_team_id')?.hasError('min')
-                  ) {
+                  } @else if (form.get('away_team_id')?.hasError('required') || form.get('away_team_id')?.hasError('min')) {
                     Choose the away team.
                   }
                 </mat-error>
@@ -154,9 +137,7 @@
                 [for]="matchDatePicker"
               ></mat-datepicker-toggle>
               <mat-datepicker #matchDatePicker></mat-datepicker>
-              @if (
-                form.get('match_date')?.invalid && (form.get('match_date')?.touched || form.get('match_date')?.dirty)
-              ) {
+              @if (form.get('match_date')?.invalid && (form.get('match_date')?.touched || form.get('match_date')?.dirty)) {
                 <mat-error>
                   @if (form.get('match_date')?.hasError('required')) {
                     Pick a match date.
@@ -179,9 +160,7 @@
                 type="time"
                 formControlName="match_time"
               />
-              @if (
-                form.get('match_time')?.invalid && (form.get('match_time')?.touched || form.get('match_time')?.dirty)
-              ) {
+              @if (form.get('match_time')?.invalid && (form.get('match_time')?.touched || form.get('match_time')?.dirty)) {
                 <mat-error>Pick a match time.</mat-error>
               }
             </mat-form-field>
@@ -199,9 +178,7 @@
                 placeholder="Venue"
                 autocomplete="off"
               />
-              @if (
-                form.get('venue_name')?.invalid && (form.get('venue_name')?.touched || form.get('venue_name')?.dirty)
-              ) {
+              @if (form.get('venue_name')?.invalid && (form.get('venue_name')?.touched || form.get('venue_name')?.dirty)) {
                 <mat-error>
                   @if (form.get('venue_name')?.hasError('required')) {
                     Enter the venue name.
@@ -214,9 +191,7 @@
           </div>
 
           <div class="col-span-12 sm:col-span-6">
-            <mat-label class="text-sm font-semibold mb-2 block"
-              >Players Per Side <span class="text-error">*</span></mat-label
-            >
+            <mat-label class="text-sm font-semibold mb-2 block">Players Per Side <span class="text-error">*</span></mat-label>
             <mat-form-field
               appearance="outline"
               class="w-full"
@@ -258,14 +233,26 @@
                   @if (form.get('overs')?.hasError('required')) {
                     Enter overs.
                   } @else if (form.get('overs')?.hasError('min')) {
-                    Overs must be at least 5.
+                    Overs must be at least 1.
                   } @else if (form.get('overs')?.hasError('max')) {
-                    Overs cannot exceed 50.
+                    Overs cannot exceed 255.
                   }
                 </mat-error>
               }
             </mat-form-field>
           </div>
+        </div>
+
+        <!-- Optional thumbnail -->
+        <div>
+          <app-file-upload
+            formControlName="thumbnail"
+            label="Stream Thumbnail"
+            accept="image/jpeg,image/png,image/webp"
+            acceptLabel="JPG, PNG, WebP"
+            hint="Shown on the Live hub. 360×185 px recommended."
+            [maxSizeMb]="2"
+          ></app-file-upload>
         </div>
       </mat-dialog-content>
       <mat-divider></mat-divider>
@@ -282,7 +269,7 @@
         <app-submit-button
           [disabled]="form.invalid"
           [isSubmitting]="isSubmitting"
-          text="Schedule"
+          [text]="submitLabel"
           color="primary"
         />
       </mat-dialog-actions>

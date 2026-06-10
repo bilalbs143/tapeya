@@ -9,6 +9,12 @@ import { lazy } from 'react';
  * (the contract).  This file defines *how* the frontend renders each
  * command — i.e. which React component filename to use.
  *
+ * Human-readable map: `COMMAND_COMPONENT_MAP.md`.
+ *
+ * Enum parity: every `GraphicCommandKeyEnum` case has exactly one entry in
+ * `KEY_TO_FILE` (same string keys as PHP). Run a drift check when adding commands on
+ * either side — mismatches surface as missing overlay components or dead registry keys.
+ *
  * Two things the backend can never know:
  *   1. Which component file to render for a given key.
  *   2. That several keys share one component (e.g. DRINKS / TEA_BREAK /
@@ -37,144 +43,137 @@ const KEY_TO_FILE = {
   LT_EMPTY: null,
 
   // tournament / match context
-  THIS_MATCH:       'TournamentStart',
-  MATCH_INFO:       'TournamentStart',
-  SCORECARD_FULL:   'TournamentStart',
-  INTRO_LT:         'TournamentIntro',
-  TOURNAMENT_NAME:  'TournamentOverview',
-  SELECT_DRAW:      'TournamentOverview',
-  POINT_TABLE:      'TournamentOverview',
+  THIS_MATCH: 'TournamentStart',
+  MATCH_INFO: 'TournamentStart',
+  SCORECARD_FULL: 'TournamentStart',
+  INTRO_LT: 'TournamentIntro',
+  TOURNAMENT_NAME: 'TournamentOverview',
+  SELECT_DRAW: 'TournamentOverview',
+  POINT_TABLE: 'TournamentOverview',
   MATCH_SUMMARY_FS: 'TournamentOver',
-  RESULT_LT:        'ResultIntro',
-  TOSS_LT:          'Toss',
+  RESULT_LT: 'ResultIntro',
+  TOSS_LT: 'Toss',
 
   // playing XI
-  PLAYING_11:          'PlayingXI',
+  PLAYING_11: 'PlayingXI',
   PLAYING_ELEVEN_HOME: 'PlayingXI',
   PLAYING_ELEVEN_AWAY: 'PlayingXI',
 
   // lower-third transitions
-  LT_FOUR:          'Four',
-  LT_SIX:           'Six',
-  LT_OUT:           'Out',
-  LT_NOT_OUT:       'NotOut',
-  LT_NO_BALL:       'NoBall',
-  LT_WIDE:          'Wide',
-  FIFTY_UP:         'FiftyRow',
-  HUNDRED_UP:       'HundredRow',
-  LT_REPLAY:        'ReplayRow',
+  LT_FOUR: 'Four',
+  LT_SIX: 'Six',
+  LT_OUT: 'Out',
+  LT_NOT_OUT: 'NotOut',
+  LT_NO_BALL: 'NoBall',
+  LT_WIDE: 'Wide',
+  FIFTY_UP: 'FiftyRow',
+  HUNDRED_UP: 'HundredRow',
+  LT_REPLAY: 'ReplayRow',
   DECISION_PENDING: 'DecisionPending',
 
   // moment (full-screen) transitions
-  FOUR:    'Four',
-  SIX:     'Six',
-  WICKET:  'WicketRow',
-  FIFTY:   'Fifty',
+  FOUR: 'Four',
+  SIX: 'Six',
+  WICKET: 'WicketRow',
+  FIFTY: 'Fifty',
   HUNDRED: 'Hundred',
-  REPLAY:  'Replay',
+  REPLAY: 'Replay',
 
   // full-screen transitions (FST_*)
-  FST_FOUR:     'FourRow',
-  FST_SIX:      'SixRow',
-  FST_OUT:      'Out',
-  FST_NOT_OUT:  'NotOutRow',
-  FST_NO_BALL:  'NoBallRow',
-  FST_WIDE:     'WideRow',
-  FST_FIFTY:    'FiftyRow',
-  FST_HUNDRED:  'HundredRow',
-  FST_REPLAY:   'ReplayRow',
+  FST_FOUR: 'FourRow',
+  FST_SIX: 'SixRow',
+  FST_OUT: 'Out',
+  FST_NOT_OUT: 'NotOutRow',
+  FST_NO_BALL: 'NoBallRow',
+  FST_WIDE: 'WideRow',
+  FST_FIFTY: 'FiftyRow',
+  FST_HUNDRED: 'HundredRow',
+  FST_REPLAY: 'ReplayRow',
   FST_DECISION: 'DecisionPendingRow',
 
   // scoring lower-thirds
-  LT_DEFAULT:             'StatsDefault',
-  MINI_SCORECARD:         'MatchSummary',
-  MATCH_SUMMARY:          'CricketMatchSummary',
-  AT_STAGE:               'AtThisStage',
-  RUN_RATE:               'RunRate',
-  WIN_PREDICTION:         'WinPredictor',
-  CURRENT_PARTNERSHIP:    'CurrentPartnership',
+  LT_DEFAULT: 'StatsDefault',
+  MINI_SCORECARD: 'MatchSummary',
+  MATCH_SUMMARY: 'CricketMatchSummary',
+  AT_STAGE: 'AtThisStage',
+  RUN_RATE: 'RunRate',
+  WIN_PREDICTION: 'WinPredictor',
+  CURRENT_PARTNERSHIP: 'CurrentPartnership',
   CURRENT_PARTNERSHIP_FS: 'CurrentPartnership',
-  LAST_12_BALLS:          'LastBalls',
-  LAST_30_BALLS:          'LastBalls',
-  THIS_OVER:              'LastBalls',
-  PREVIOUS_OVER:          'PreviousOrder',
-  NEED_TARGET:            'TargetNeeded',
-  NEED_TARGET_FS:         'TargetNeeded',
-  FDR:                    'TargetNeeded',
-  LAST_WICKET:            'FallofWickets',
-  LAST_WICKET_FS:         'FallofWickets',
+  LAST_12_BALLS: 'LastBalls',
+  LAST_30_BALLS: 'LastBalls',
+  THIS_OVER: 'LastBalls',
+  PREVIOUS_OVER: 'PreviousOrder',
+  NEED_TARGET: 'TargetNeeded',
+  NEED_TARGET_FS: 'TargetNeeded',
+  FDR: 'TargetNeeded',
+  LAST_WICKET: 'FallofWickets',
+  LAST_WICKET_FS: 'FallofWickets',
 
   // breaks
-  INNINGS_BREAK:     'InningsBreak',
-  DRINKS:            'TeaBreak',
-  TEA_BREAK:         'TeaBreak',
-  LUNCH_BREAK:       'TeaBreak',
-  RAIN:              'TeaBreak',
-  RAIN_STOPPED:      'TeaBreak',
+  INNINGS_BREAK: 'InningsBreak',
+  DRINKS: 'TeaBreak',
+  TEA_BREAK: 'TeaBreak',
+  LUNCH_BREAK: 'TeaBreak',
+  RAIN: 'TeaBreak',
+  RAIN_STOPPED: 'TeaBreak',
   STRATEGIC_TIMEOUT: 'TeaBreak',
 
   // charts
-  WORM:           'ScoreComparison',
-  RUN_RATE_CHART: 'ScoreComparison',
-  MANHATTAN:      'ScoreComparisonBar',
-  WAGON_WHEEL:    'ScoreComparisonBar',
+  WORM: 'ScoreComparison',
+  RUN_RATE_CHART: 'RunRateChart',
+  MANHATTAN: 'ScoreComparisonBar',
 
   // tournament leaderboards
-  HIGHEST_RUNS:    'HighestRuns',
-  HIGHEST_SIXES:   'HighestRuns',
-  HIGHEST_FOURS:   'HighestRuns',
-  TOP_BATTER:      'HighestRuns',
+  HIGHEST_RUNS: 'HighestRuns',
+  HIGHEST_SIXES: 'HighestRuns',
+  HIGHEST_FOURS: 'HighestRuns',
+  TOP_BATTER: 'HighestRuns',
   HIGHEST_WICKETS: 'HighestWickets',
-  TOP_BOWLER:      'HighestWickets',
+  TOP_BOWLER: 'HighestWickets',
 
   // player — batsman
-  BATSMAN_NAME_LT:       'PlayerIntro',
-  BATSMAN_NAME_FS:       'PlayerIntro',
-  BATSMAN_MATCH_LT:      'BatsmanCurrentStats',
-  BATSMAN_MATCH_FS:      'BatsmanCurrentStats',
+  BATSMAN_NAME_LT: 'PlayerIntro',
+  BATSMAN_NAME_FS: 'PlayerIntro',
+  BATSMAN_MATCH_LT: 'BatsmanCurrentStats',
+  BATSMAN_MATCH_FS: 'BatsmanCurrentStats',
   BATSMAN_TOURNAMENT_LT: 'BatsmanCareerStats',
   BATSMAN_TOURNAMENT_FS: 'BatsmanCareerStats',
-  BATSMAN_WAGON_WHEEL:   'PlayerCareerStats',
-  BATTING_SUMMARY:       'BatsmanInningsStats',
-  BATTING_SQUAD:         'BatsmanInningsStats',
+  BATTING_SUMMARY: 'BatsmanInningsStats',
+  BATTING_SQUAD: 'BatsmanInningsStats',
 
   // player — bowler
-  BOWLER_NAME_LT:       'PlayerIntro',
-  BOWLER_NAME_FS:       'PlayerIntro',
-  BOWLER_MATCH_LT:      'BowlerCurrentStats',
-  BOWLER_MATCH_FS:      'BowlerCurrentStats',
+  BOWLER_NAME_LT: 'PlayerIntro',
+  BOWLER_NAME_FS: 'PlayerIntro',
+  BOWLER_MATCH_LT: 'BowlerCurrentStats',
+  BOWLER_MATCH_FS: 'BowlerCurrentStats',
   BOWLER_TOURNAMENT_LT: 'BowlerCareerStats',
   BOWLER_TOURNAMENT_FS: 'BowlerCareerStats',
-  BOWLING_SUMMARY:      'BowlerCareerStats',
-  BOWLING_SQUAD:        'BowlerCareerStats',
+  BOWLING_SUMMARY: 'BowlerCareerStats',
+  BOWLING_SQUAD: 'BowlerCareerStats',
 
   // tour milestones
-  TOUR_FOURS:    'PlayerTournamentStats',
-  TOUR_SIXES:    'PlayerTournamentStats',
-  TOUR_FIFTIES:  'PlayerTournamentStats',
+  TOUR_FOURS: 'PlayerTournamentStats',
+  TOUR_SIXES: 'PlayerTournamentStats',
+  TOUR_FIFTIES: 'PlayerTournamentStats',
   TOUR_HUNDREDS: 'PlayerTournamentStats',
-  TOUR_RUNS:     'PlayerTournamentStats',
-  TOUR_WICKETS:  'PlayerTournamentStats',
+  TOUR_RUNS: 'PlayerTournamentStats',
+  TOUR_WICKETS: 'PlayerTournamentStats',
 
   // full screen — stats & awards
-  INNING_FIGURES:   'BatsmanInningsStats',
+  INNING_FIGURES: 'BatsmanInningsStats',
   PARTNERSHIP_LIST: 'CurrentPartnership',
-  MOM:              'PlayerIntro',
-  NEXT_MATCH:       'TournamentStart',
-
-  // personnel lower-thirds (text card)
-  UMPIRES: 'GraphicTextCard',
-  SCORERS: 'GraphicTextCard',
-  COMM:    'GraphicTextCard',
+  MOM: 'PlayerIntro',
+  NEXT_MATCH: 'TournamentStart',
 
   // platform promo banners
-  FOLLOW_PLATFORM:   'RowTextBanner',
+  FOLLOW_PLATFORM: 'RowTextBanner',
   DOWNLOAD_PLATFORM: 'RowTextBanner',
 
   // captions — CUSTOM renders the saved caption text from the command payload;
   // ADD_CAPTION is a backoffice-only action (opens the caption dialog) and
   // never reaches the overlay, so it resolves to null (transparent).
-  CUSTOM:      'GraphicTextCard',
+  CUSTOM: 'GraphicTextCard',
   ADD_CAPTION: null,
 };
 

@@ -147,9 +147,7 @@ export class TournamentOverviewTabComponent implements OnInit, OnDestroy {
             if (!this.tournamentId) {
               return of({ data: [] as UserSearchRow[] });
             }
-            return this.usersService
-              .adminUserSearch(term ?? '')
-              .pipe(catchError(() => of({ data: [] as UserSearchRow[] })));
+            return this.usersService.adminUserSearch(term ?? '').pipe(catchError(() => of({ data: [] as UserSearchRow[] })));
           })
         )
         .subscribe((res) => {
@@ -324,10 +322,8 @@ export class TournamentOverviewTabComponent implements OnInit, OnDestroy {
     if (!user?.id) {
       return;
     }
-    const fd = new FormData();
-    fd.append('organizer_id', String(user.id));
     this.tournamentsService
-      .update(this.tournamentId, fd)
+      .update(this.tournamentId, { organizer_id: user.id })
       .pipe(take(1))
       .subscribe({
         next: () => {

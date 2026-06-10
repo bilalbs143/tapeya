@@ -10,9 +10,7 @@ const item =
 const indicator = 'flex items-center justify-center';
 
 export function RadioGroup({ className = '', ...props }) {
-  return (
-    <RadioGroupPrimitive.Root className={`${root} ${className}`} {...props} />
-  );
+  return <RadioGroupPrimitive.Root className={`${root} ${className}`} {...props} />;
 }
 
 export function RadioGroupItem({ className = '', ...props }) {

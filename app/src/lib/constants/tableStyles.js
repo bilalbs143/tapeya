@@ -1,8 +1,11 @@
 /** Border class for tables (default dark border). */
-export const BORDER = 'border-[#1C1C1A]';
+export const BORDER = 'border-surface-raised';
 
-/** Alternate border class (slightly different shade, used in scorecard/ranking tables). */
-export const BORDER_ALT = 'border-[#1A1A1A]';
+/**
+ * Alternate border for scorecard/ranking tables — slightly lighter than {@link BORDER}
+ * (#1A1A1A vs #1C1C1A) for contrast on nested row dividers.
+ */
+export const BORDER_ALT = 'border-surface-border';
 
 /** Table header background class. */
-export const HEADER_BG = 'bg-[#141412]';
+export const HEADER_BG = 'bg-surface';

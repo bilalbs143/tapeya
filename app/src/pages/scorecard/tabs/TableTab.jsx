@@ -12,11 +12,11 @@
  *
  * Constants to consolidate
  * ─────────────────────────
- *   BORDER / HEADER_BG
+ *   BORDER_ALT / HEADER_BG
  *     → move to: src/lib/constants/tableStyles.js
- *             (or src/lib/constants/rankingColumns.js where BORDER and
+ *             (or src/lib/constants/rankingColumns.js where BORDER_ALT and
  *             HEADER_BG already exist with the same values)
- *     reason: identical constants (`border-[#1A1A1A]`, `bg-[#141412]`) exist
+ *     reason: identical constants (`border-surface-border`, `bg-surface`) exist
  *             in StatsTotal.jsx, RankingStatsTotal.jsx, TournamentSquad.jsx,
  *             and TournamentFinalSquad.jsx.  One export used everywhere
  *             prevents silent drift.
@@ -58,7 +58,8 @@
  * -----------------------------------------------------------------------------
  */
 
-import { BORDER_ALT as BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
+import { BORDER_ALT, HEADER_BG } from '@/lib/constants/tableStyles';
+import { formatListIndex } from '@/lib/format';
 import { useGetTournamentStandingsQuery } from '@/store/api/tournamentApi';
 
 // ---------------------------------------------------------------------------
@@ -74,88 +75,38 @@ const STICKY_BODY_BG = 'bg-black';
 
 function StandingsTable({ standings }) {
   return (
-    <div className="overflow-x-auto overflow-y-hidden border border-[#1A1A1A] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div className="border-surface-border overflow-x-auto overflow-y-hidden border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <table className="w-full min-w-max border-collapse text-[12px] text-white">
         <thead>
           <tr className={HEADER_BG}>
             <th
-              className={`${STICKY_TEAMS} ${HEADER_BG} border-r border-b border-l ${BORDER} py-3.5 pl-4 text-left font-bold`}
+              className={`${STICKY_TEAMS} ${HEADER_BG} border-r border-b border-l ${BORDER_ALT} py-3.5 pl-4 text-left font-bold`}
             >
               Teams
             </th>
-            <th
-              className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-bold`}
-            >
-              M
-            </th>
-            <th
-              className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-bold`}
-            >
-              W
-            </th>
-            <th
-              className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-bold`}
-            >
-              L
-            </th>
-            <th
-              className={`border-r border-b ${BORDER} w-12 py-3.5 text-center font-bold`}
-            >
-              T
-            </th>
-            <th
-              className={`border-r border-b ${BORDER} w-14 py-3.5 text-center font-bold`}
-            >
-              PTS
-            </th>
-            <th
-              className={`border-r border-b ${BORDER} w-14 py-3.5 text-center font-bold`}
-            >
-              NRR
-            </th>
+            <th className={`border-r border-b ${BORDER_ALT} w-12 py-3.5 text-center font-bold`}>M</th>
+            <th className={`border-r border-b ${BORDER_ALT} w-12 py-3.5 text-center font-bold`}>W</th>
+            <th className={`border-r border-b ${BORDER_ALT} w-12 py-3.5 text-center font-bold`}>L</th>
+            <th className={`border-r border-b ${BORDER_ALT} w-12 py-3.5 text-center font-bold`}>T</th>
+            <th className={`border-r border-b ${BORDER_ALT} w-14 py-3.5 text-center font-bold`}>PTS</th>
+            <th className={`border-r border-b ${BORDER_ALT} w-14 py-3.5 text-center font-bold`}>NRR</th>
           </tr>
         </thead>
         <tbody>
           {standings.map((team, index) => (
             <tr key={team.team_id ?? index}>
-              <td
-                className={`${STICKY_TEAMS} ${STICKY_BODY_BG} border-r border-b border-l ${BORDER} py-3.5 pl-4`}
-              >
+              <td className={`${STICKY_TEAMS} ${STICKY_BODY_BG} border-r border-b border-l ${BORDER_ALT} py-3.5 pl-4`}>
                 <div className="flex items-center gap-2.5">
-                  <span>{index + 1}</span>
+                  <span>{formatListIndex(index + 1)}</span>
                   <span>{team.team_name}</span>
                 </div>
               </td>
-              <td
-                className={`border-r border-b ${BORDER} bg-transparent py-3.5 text-center`}
-              >
-                {team.played}
-              </td>
-              <td
-                className={`border-r border-b ${BORDER} bg-transparent py-3.5 text-center`}
-              >
-                {team.won}
-              </td>
-              <td
-                className={`border-r border-b ${BORDER} bg-transparent py-3.5 text-center`}
-              >
-                {team.lost}
-              </td>
-              <td
-                className={`border-r border-b ${BORDER} bg-transparent py-3.5 text-center`}
-              >
-                {team.tied}
-              </td>
-              <td
-                className={`border-r border-b ${BORDER} bg-transparent py-3.5 text-center`}
-              >
-                {team.points}
-              </td>
-              <td
-                className={`border-r border-b ${BORDER} bg-transparent py-3.5 text-center`}
-              >
-                {team.nrr ?? '—'}
-              </td>
+              <td className={`border-r border-b ${BORDER_ALT} bg-transparent py-3.5 text-center`}>{team.played}</td>
+              <td className={`border-r border-b ${BORDER_ALT} bg-transparent py-3.5 text-center`}>{team.won}</td>
+              <td className={`border-r border-b ${BORDER_ALT} bg-transparent py-3.5 text-center`}>{team.lost}</td>
+              <td className={`border-r border-b ${BORDER_ALT} bg-transparent py-3.5 text-center`}>{team.tied}</td>
+              <td className={`border-r border-b ${BORDER_ALT} bg-transparent py-3.5 text-center`}>{team.points}</td>
+              <td className={`border-r border-b ${BORDER_ALT} bg-transparent py-3.5 text-center`}>{team.nrr ?? '—'}</td>
             </tr>
           ))}
         </tbody>
@@ -165,9 +116,7 @@ function StandingsTable({ standings }) {
 }
 
 export function TableTab({ tournamentId }) {
-  const title = tournamentId
-    ? `${tournamentId} 2026 - POINTS TABLE`
-    : 'POINTS TABLE';
+  const title = tournamentId ? `${tournamentId} 2026 - POINTS TABLE` : 'POINTS TABLE';
 
   const {
     data: standingsData = {},
@@ -177,30 +126,18 @@ export function TableTab({ tournamentId }) {
     skip: !tournamentId,
   });
 
-  const hasGroups =
-    Array.isArray(standingsData.groups) && standingsData.groups.length > 0;
-  const singleStandings = Array.isArray(standingsData.standings)
-    ? standingsData.standings
-    : [];
+  const hasGroups = Array.isArray(standingsData.groups) && standingsData.groups.length > 0;
+  const singleStandings = Array.isArray(standingsData.standings) ? standingsData.standings : [];
   const hasSingleStandings = singleStandings.length > 0;
-  const hasAnyStandings =
-    hasSingleStandings ||
-    (hasGroups &&
-      standingsData.groups.some((g) => (g.standings?.length ?? 0) > 0));
+  const hasAnyStandings = hasSingleStandings || (hasGroups && standingsData.groups.some((g) => (g.standings?.length ?? 0) > 0));
 
-  const titleNode = (
-    <h1 className="text-left text-[13px] font-bold tracking-wide text-white uppercase">
-      {title}
-    </h1>
-  );
+  const titleNode = <h1 className="text-left text-[13px] font-bold tracking-wide text-white uppercase">{title}</h1>;
 
   if (!tournamentId) {
     return (
       <div className="mt-4 pb-6 focus:outline-none">
         {titleNode}
-        <p className="mt-4 text-[13px] text-[#A2A6AB]">
-          No tournament selected.
-        </p>
+        <p className="text-muted mt-4 text-[13px]">No tournament selected.</p>
       </div>
     );
   }
@@ -209,7 +146,7 @@ export function TableTab({ tournamentId }) {
     return (
       <div className="mt-4 pb-6 focus:outline-none">
         {titleNode}
-        <p className="mt-4 text-[13px] text-[#A2A6AB]">Loading points table…</p>
+        <p className="text-muted mt-4 text-[13px]">Loading points table…</p>
       </div>
     );
   }
@@ -218,9 +155,7 @@ export function TableTab({ tournamentId }) {
     return (
       <div className="mt-4 pb-6 focus:outline-none">
         {titleNode}
-        <p className="mt-4 text-[13px] text-red-400">
-          Failed to load points table.
-        </p>
+        <p className="mt-4 text-[13px] text-red-400">Failed to load points table.</p>
       </div>
     );
   }
@@ -229,9 +164,7 @@ export function TableTab({ tournamentId }) {
     return (
       <div className="mt-4 pb-6 focus:outline-none">
         {titleNode}
-        <p className="mt-4 text-[13px] text-[#A2A6AB]">
-          No matches have been completed yet.
-        </p>
+        <p className="text-muted mt-4 text-[13px]">No matches have been completed yet.</p>
       </div>
     );
   }
@@ -239,13 +172,7 @@ export function TableTab({ tournamentId }) {
   return (
     <div className="mt-4 pb-6 focus:outline-none">
       {titleNode}
-      <section
-        className={
-          hasGroups
-            ? 'mt-4 space-y-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-4 lg:space-y-0'
-            : 'mt-4'
-        }
-      >
+      <section className={hasGroups ? 'mt-4 space-y-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-4 lg:space-y-0' : 'mt-4'}>
         {hasGroups ? (
           standingsData.groups.map((group) => (
             <div key={group.group_index ?? group.group_name}>

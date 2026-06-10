@@ -12,12 +12,18 @@
         <div class="controller-dashboard__header flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 class="text-xl font-semibold m-0">Match Graphics Controller</h1>
-            <p class="text-sm text-muted m-0 mt-1">
-              {{ match.home_team?.name }} · vs · {{ match.away_team?.name }}
-              <span class="mx-1">—</span>
-              {{ match.match_date }} {{ match.match_time }}
-            </p>
-            <p class="text-sm m-0 mt-2">
+            @if (!isMatchCompleted) {
+              <p class="text-sm text-muted m-0 mt-1">
+                {{ match.home_team?.name }} · vs · {{ match.away_team?.name }}
+                <span class="mx-1">—</span>
+                {{ match.match_date }} {{ match.match_time }}
+              </p>
+            }
+            <p
+              class="text-sm m-0"
+              [class.mt-1]="isMatchCompleted"
+              [class.mt-2]="!isMatchCompleted"
+            >
               Theme:
               <strong>{{ session.theme?.name ?? '—' }}</strong>
               @if (session.active_command) {
@@ -28,27 +34,29 @@
                 </span>
               }
             </p>
-            <div class="controller-dashboard__innings flex flex-wrap items-center gap-2 mt-3">
-              <span class="text-sm text-muted m-0">Innings</span>
-              <mat-button-toggle-group
-                class="controller-dashboard__innings-toggle"
-                [ngModel]="selectedInnings"
-                (ngModelChange)="onInningsSelectionChange($event)"
-              >
-                <mat-button-toggle
-                  [value]="1"
-                  class="!text-sm"
+            @if (!isMatchCompleted) {
+              <div class="controller-dashboard__innings flex flex-wrap items-center gap-2 mt-3">
+                <span class="text-sm text-muted m-0">Innings</span>
+                <mat-button-toggle-group
+                  class="controller-dashboard__innings-toggle"
+                  [ngModel]="selectedInnings"
+                  (ngModelChange)="onInningsSelectionChange($event)"
                 >
-                  1st Innings
-                </mat-button-toggle>
-                <mat-button-toggle
-                  [value]="2"
-                  class="!text-sm"
-                >
-                  2nd Innings
-                </mat-button-toggle>
-              </mat-button-toggle-group>
-            </div>
+                  <mat-button-toggle
+                    [value]="1"
+                    class="!text-sm"
+                  >
+                    1st Innings
+                  </mat-button-toggle>
+                  <mat-button-toggle
+                    [value]="2"
+                    class="!text-sm"
+                  >
+                    2nd Innings
+                  </mat-button-toggle>
+                </mat-button-toggle-group>
+              </div>
+            }
           </div>
           <div class="flex flex-wrap gap-2 shrink-0 items-center">
             <a
@@ -76,11 +84,17 @@
           </div>
         </div>
 
+        <app-match-stream-panel
+          [matchId]="matchId"
+          [homeTeamName]="match.home_team?.name ?? 'Home'"
+          [awayTeamName]="match.away_team?.name ?? 'Away'"
+        />
+
         <section class="controller-dashboard__caption">
           <h2 class="controller-dashboard__caption-title">Saved Caption</h2>
           @if (!caption) {
             <p class="controller-dashboard__caption-body">
-              No caption yet. One caption per match. Add it from <strong>Custom Messages</strong> below.
+              No caption yet. One caption per match. Add it from <strong>Caption</strong> below.
             </p>
           } @else {
             <div class="controller-dashboard__caption-card">
@@ -109,6 +123,131 @@
           }
         </section>
 
+        <!-- Live score (in progress) or match result (completed) -->
+        @if (isMatchCompleted) {
+          <section
+            class="controller-dashboard__caption controller-dashboard__result-callout"
+            aria-label="Match result"
+          >
+            <h2 class="controller-dashboard__caption-title">Match result</h2>
+            <p class="controller-dashboard__caption-body m-0">{{ matchResultDescription }}</p>
+          </section>
+        } @else {
+          <app-live-match-state [context]="session.context" />
+
+          @if (playerBatsmanGroup || playerBowlerGroup) {
+            <div class="player-controllers">
+              @if (playerBatsmanGroup) {
+                @for (card of batterCommandCards(); track card.roleLabel) {
+                  <section class="player-ctrl-card">
+                    <div class="player-ctrl-card__head">
+                      <div class="player-ctrl-card__avatar">
+                        <span class="player-ctrl-card__avatar-icon">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                          >
+                            <path
+                              d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"
+                            />
+                          </svg>
+                        </span>
+                      </div>
+                      <div class="player-ctrl-card__info">
+                        <p class="player-ctrl-card__role">{{ card.roleLabel }}</p>
+                        @if (card.batter; as b) {
+                          <p class="player-ctrl-card__name">
+                            {{ b.name }}
+                            @if (b.on_strike) {
+                              <span class="player-ctrl-card__striker-mark">*</span>
+                            }
+                          </p>
+                          <p class="player-ctrl-card__stat">
+                            {{ b.runs }} <span class="player-ctrl-card__stat-sub">({{ b.balls }})</span>
+                          </p>
+                        } @else {
+                          <p class="player-ctrl-card__name text-muted">No batter yet</p>
+                        }
+                      </div>
+                    </div>
+
+                    <div class="catalog-group__actions player-ctrl-card__actions">
+                      @for (a of playerBatsmanGroup.actions; track a.command_type + ':' + a.command_key) {
+                        <button
+                          mat-stroked-button
+                          type="button"
+                          class="catalog-group__btn"
+                          [disabled]="!card.pick || isActionSending(a)"
+                          [matTooltip]="playerBatsmanCardTooltip(a, card)"
+                          (click)="sendWithPick(a, card.pick)"
+                        >
+                          @if (sendingKey === a.command_type + ':' + a.command_key) {
+                            …
+                          } @else {
+                            {{ a.label }}
+                          }
+                        </button>
+                      }
+                    </div>
+                  </section>
+                }
+              }
+
+              @if (playerBowlerGroup) {
+                <section class="player-ctrl-card">
+                  <div class="player-ctrl-card__head">
+                    <div class="player-ctrl-card__avatar player-ctrl-card__avatar--bowler">
+                      <span class="player-ctrl-card__avatar-icon">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                        >
+                          <path
+                            d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"
+                          />
+                        </svg>
+                      </span>
+                    </div>
+                    <div class="player-ctrl-card__info">
+                      <p class="player-ctrl-card__role">Bowler</p>
+                      @if (liveBowler?.name) {
+                        <p class="player-ctrl-card__name">{{ liveBowler!.name }}</p>
+                        <p class="player-ctrl-card__stat">
+                          {{ liveBowler!.figures }}
+                          <span class="player-ctrl-card__stat-sub">({{ liveBowler!.overs }} ov)</span>
+                        </p>
+                      } @else {
+                        <p class="player-ctrl-card__name text-muted">No bowler yet</p>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="catalog-group__actions player-ctrl-card__actions">
+                    @for (a of playerBowlerGroup.actions; track a.command_type + ':' + a.command_key) {
+                      <button
+                        mat-stroked-button
+                        type="button"
+                        class="catalog-group__btn"
+                        [disabled]="!liveBowlerCommandPick() || isActionSending(a)"
+                        [matTooltip]="playerBowlerCardTooltip(a)"
+                        (click)="sendWithPick(a, liveBowlerCommandPick())"
+                      >
+                        @if (sendingKey === a.command_type + ':' + a.command_key) {
+                          …
+                        } @else {
+                          {{ a.label }}
+                        }
+                      </button>
+                    }
+                  </div>
+                </section>
+              }
+            </div>
+          }
+        }
+
         <div class="controller-dashboard__catalog">
           @for (group of catalogGroups; track group.id) {
             <section
@@ -128,9 +267,9 @@
                       appearance="outline"
                       class="catalog-group__player-select"
                     >
-                      <mat-label>{{ group.id === 'PLAYER_BATSMAN' ? 'Batsman' : 'Bowler' }}</mat-label>
+                      <mat-label>{{ group.id === 'BATSMAN_STATS' ? 'Batsman' : 'Bowler' }}</mat-label>
                       <mat-select
-                        [ngModel]="group.id === 'PLAYER_BATSMAN' ? selectedBatsman : selectedBowler"
+                        [ngModel]="group.id === 'BATSMAN_STATS' ? selectedBatsman : selectedBowler"
                         (ngModelChange)="onPlayerPickChange(group, $event)"
                         [compareWith]="comparePlayerPick"
                         placeholder="Choose player"

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\TournamentMatch;
 use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 
@@ -22,4 +23,43 @@ Broadcast::channel('backoffice.notifications', function (User $user) {
  */
 Broadcast::channel('match.{matchId}.graphics', function () {
     return true;
+});
+
+/*
+ * Private live-scoring channel — auth:api required.
+ * Broadcasts MatchStateUpdated after every ball mutation so all clients
+ * (scoring app, scorecard viewer, backoffice) stay in sync without polling.
+ * Any authenticated user may subscribe; only the scoring API writes to it.
+ */
+Broadcast::channel('match.{matchId}.scoring', function (User $user, int|string $matchId) {
+    return TournamentMatch::find((int) $matchId) !== null;
+});
+
+/*
+ * Public match chat channel — no WebSocket auth required.
+ * Comments are sent via authenticated HTTP POST; receiving is unrestricted.
+ * Isolated from scoring, stream-status, and graphics channels.
+ */
+Broadcast::channel('match.{matchId}.chat', function () {
+    return true;
+});
+
+/*
+ * Presence channel — live broadcast viewer count (Phase 2).
+ * Separate from chat; requires auth:api at WebSocket handshake.
+ * Only while the match stream is live or starting.
+ */
+Broadcast::channel('match.{matchId}.presence', function (User $user, int|string $matchId) {
+    $match = TournamentMatch::query()
+        ->with('stream')
+        ->find((int) $matchId);
+
+    if (! $match?->stream || ! in_array($match->stream->status, ['live', 'starting'], true)) {
+        return false;
+    }
+
+    return [
+        'id' => $user->id,
+        'name' => $user->name ?: ($user->nickname ?: 'Viewer'),
+    ];
 });

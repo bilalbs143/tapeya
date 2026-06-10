@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\Event\InningsStatusEnum;
 use App\Enums\Event\MatchStatusEnum;
 use App\Models\Ball;
 use App\Models\Innings;
@@ -12,14 +13,22 @@ use Illuminate\Support\Collection;
  * Marks innings and the match as completed from ball data, sets match winner for standings.
  * Re-evaluates on every change (including ball delete) so completion and winner can revert.
  *
- * Rules (aligned with organizer scoring): legal ball = not wide and not no-ball;
+ * Rules (aligned with organizer scoring): legal ball = {@see Ball::isLegalDelivery()};
  * innings ends on max wickets, allocated overs exhausted, or (2nd innings only) runs > target.
  */
 class MatchCompletionService
 {
+    public function __construct(
+        private readonly InningsStatsService $inningsStats,
+    ) {}
+
     public function evaluate(TournamentMatch $match): void
     {
         if ($match->status === MatchStatusEnum::CANCELLED) {
+            return;
+        }
+
+        if ($match->status === MatchStatusEnum::COMPLETED && $match->declare_result_type !== null) {
             return;
         }
 
@@ -43,6 +52,8 @@ class MatchCompletionService
         $maxWickets = max(0, $pps - 1);
         $oversLimit = max(1, (int) ($match->overs ?: 20));
 
+        // S2: fetch each innings' balls exactly once — balls do not change during evaluate().
+        // Only innings.status changes; we refresh the status-only model after each update.
         $balls1 = $this->orderedBalls($inn1);
         $balls2 = $this->orderedBalls($inn2);
 
@@ -50,51 +61,50 @@ class MatchCompletionService
         $hasBalls2 = $balls2->isNotEmpty();
 
         $inn1ShouldComplete = $this->shouldCompleteInnings(
-            $balls1,
-            $maxWickets,
-            $oversLimit,
-            null,
-            false,
+            $match, $inn1, $balls1, $maxWickets, $oversLimit, null, false,
         );
 
         if ($inn1ShouldComplete) {
-            if ($inn1->status !== 'completed') {
-                $inn1->update(['status' => 'completed']);
+            if ($inn1->status !== InningsStatusEnum::COMPLETED) {
+                $inn1->update(['status' => InningsStatusEnum::COMPLETED]);
             }
-        } elseif ($inn1->status === 'completed') {
-            $inn1->update(['status' => $hasBalls1 ? 'in_progress' : 'not_started']);
+        } elseif ($inn1->status === InningsStatusEnum::COMPLETED) {
+            $inn1->update(['status' => $hasBalls1 ? InningsStatusEnum::IN_PROGRESS : InningsStatusEnum::NOT_STARTED]);
         }
 
+        // Refresh status only — balls collection is reused (it hasn't changed).
         $inn1->refresh();
 
-        $balls1 = $this->orderedBalls($inn1);
-        $inn1IsComplete = $inn1->status === 'completed';
-        $firstRuns = $inn1IsComplete ? $this->totalsFromBalls($balls1)['runs'] : 0;
+        $inn1IsComplete = $inn1->status === InningsStatusEnum::COMPLETED;
+        $firstRuns = $inn1IsComplete ? $this->inningsRuns($match, $inn1, $balls1) : 0;
+
+        $chaseTarget = $inn1IsComplete
+            ? $match->chaseTargetForSecondInnings($firstRuns)
+            : null;
 
         $inn2ShouldComplete = $inn1IsComplete && $this->shouldCompleteInnings(
-            $balls2,
-            $maxWickets,
-            $oversLimit,
-            $firstRuns,
-            true,
+            $match, $inn2, $balls2, $maxWickets, $oversLimit, $chaseTarget, true,
         );
 
         if ($inn2ShouldComplete) {
-            if ($inn2->status !== 'completed') {
-                $inn2->update(['status' => 'completed']);
+            if ($inn2->status !== InningsStatusEnum::COMPLETED) {
+                $inn2->update(['status' => InningsStatusEnum::COMPLETED]);
             }
-        } elseif ($inn2->status === 'completed') {
-            $inn2->update(['status' => $hasBalls2 ? 'in_progress' : 'not_started']);
+        } elseif ($inn2->status === InningsStatusEnum::COMPLETED) {
+            $inn2->update(['status' => $hasBalls2 ? InningsStatusEnum::IN_PROGRESS : InningsStatusEnum::NOT_STARTED]);
         }
 
         $inn1->refresh();
         $inn2->refresh();
 
-        if ($inn1->status !== 'completed' || $inn2->status !== 'completed') {
+        if ($inn1->status !== InningsStatusEnum::COMPLETED || $inn2->status !== InningsStatusEnum::COMPLETED) {
             if ($match->status === MatchStatusEnum::COMPLETED) {
+                // Revert match to in_progress. winning_team_id → null because there is
+                // currently no winner (the match is incomplete). S15: was incorrectly
+                // set to toss_winner_team_id, which is unrelated to the previous winner.
                 $match->update([
                     'status' => MatchStatusEnum::IN_PROGRESS,
-                    'winning_team_id' => $match->toss_winner_team_id,
+                    'winning_team_id' => null,
                     'win_by_runs' => null,
                     'win_by_wickets' => null,
                 ]);
@@ -103,8 +113,15 @@ class MatchCompletionService
             return;
         }
 
-        $r1 = $this->totalsFromBalls($this->orderedBalls($inn1));
-        $r2 = $this->totalsFromBalls($this->orderedBalls($inn2));
+        // Both innings complete — compute final result using the already-loaded ball collections.
+        $r1 = [
+            'runs' => $this->inningsRuns($match, $inn1, $balls1),
+            'wickets' => $this->totalsFromBalls($balls1)['wickets'],
+        ];
+        $r2 = [
+            'runs' => $this->inningsRuns($match, $inn2, $balls2),
+            'wickets' => $this->totalsFromBalls($balls2)['wickets'],
+        ];
 
         $batFirstId = (int) $inn1->batting_team_id;
         $batSecondId = (int) $inn2->batting_team_id;
@@ -134,6 +151,10 @@ class MatchCompletionService
             'win_by_runs' => $winByRuns,
             'win_by_wickets' => $winByWickets,
         ]);
+        // §30.8: graphic command history is preserved on completion so the
+        // broadcast operator can re-send post-match graphics without rebuilding
+        // the full command list.  Use PurgeOldMatchGraphicCommands artisan
+        // command for scheduled cleanup instead.
     }
 
     /**
@@ -141,10 +162,18 @@ class MatchCompletionService
      */
     private function orderedBalls(Innings $innings): Collection
     {
-        return $innings->balls()
-            ->orderBy('over')
-            ->orderBy('ball_in_over')
-            ->get();
+        return $innings->balls()->get();
+    }
+
+    private function inningsRuns(TournamentMatch $match, Innings $innings, Collection $balls): int
+    {
+        $stats = $this->inningsStats->compute(
+            $balls,
+            InningsStatsService::namesFromRelations($balls),
+        );
+        $cross = InningsStatsService::crossInningsPenaltyRunsForBattingTeam($match, (int) $innings->batting_team_id);
+
+        return (int) InningsStatsService::applyCrossInningsPenalties($stats, $cross)['total_runs'];
     }
 
     /**
@@ -152,12 +181,10 @@ class MatchCompletionService
      */
     private function totalsFromBalls(Collection $balls): array
     {
-        // Batting total per innings: `runs` is the runs credited on that delivery from scoring
-        // (extras, no-ball + runs, etc.). Do not add `penalty_runs` on top — that double-counts
-        // if the same award is stored in both columns (organizer UI sends penalty_runs: 0).
-        $runs = (int) $balls->sum('runs');
-        $wickets = $balls->where('is_wicket', true)->count();
-        $validDeliveries = $balls->filter(fn (Ball $b) => ! $b->is_wide && ! $b->is_no_ball)->count();
+        $runs = (int) $balls->sum(fn (Ball $b) => (int) ($b->runs ?? 0) + (int) ($b->penalty_runs ?? 0));
+        // retired_hurt is not a wicket — exclude it so an innings cannot end prematurely.
+        $wickets = $balls->filter(fn (Ball $b) => $b->is_wicket && ! $b->isRetiredHurt())->count();
+        $validDeliveries = $balls->filter(fn (Ball $b) => $b->isLegalDelivery())->count();
 
         return [
             'runs' => $runs,
@@ -170,10 +197,12 @@ class MatchCompletionService
      * @param  Collection<int, Ball>  $balls
      */
     private function shouldCompleteInnings(
+        TournamentMatch $match,
+        Innings $innings,
         Collection $balls,
         int $maxWickets,
         int $oversLimit,
-        ?int $firstInningsRuns,
+        ?int $chaseTarget,
         bool $isSecondInnings,
     ): bool {
         if ($balls->isEmpty()) {
@@ -181,6 +210,7 @@ class MatchCompletionService
         }
 
         $t = $this->totalsFromBalls($balls);
+        $runs = $this->inningsRuns($match, $innings, $balls);
 
         if ($maxWickets > 0 && $t['wickets'] >= $maxWickets) {
             return true;
@@ -190,7 +220,7 @@ class MatchCompletionService
             return true;
         }
 
-        if ($isSecondInnings && $firstInningsRuns !== null && $t['runs'] > $firstInningsRuns) {
+        if ($isSecondInnings && $chaseTarget !== null && $runs >= $chaseTarget) {
             return true;
         }
 

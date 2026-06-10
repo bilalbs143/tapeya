@@ -2,7 +2,7 @@
  * OverStrip
  *
  * Horizontal scrollable strip showing ball-by-ball breakdown per over.
- * Free-hit deliveries use the same gold ring + ⚡ badge as BallsTab.
+ * Free-hit deliveries use the bolt corner badge only (no ring on the chip).
  * Left/right arrow buttons scroll the strip.  The strip auto-scrolls to
  * the newest over whenever the ball history changes (done via the
  * onScrollRef callback pattern — see ScoringTab for usage).
@@ -16,66 +16,15 @@
 
 import { useRef } from 'react';
 
+import { FreeHitMicroBadge } from '@/components/scoring/FreeHitIndicator';
+import { getBallDisplay } from '@/lib/utils/ballDisplay';
 import { isLegalDelivery } from '@/lib/utils/cricketRules';
+import { getRunsFromBall } from '@/lib/utils/scoringUtils';
 
-// ─── Ball display helpers ─────────────────────────────────────────────────────
-
-function getBallDisplay(ball) {
-  if (!ball) return { label: '•', variant: 'dot' };
-  switch (ball.type) {
-    case 'runs': {
-      const r = ball.runs ?? 0;
-      if (r === 0) return { label: '•', variant: 'dot' };
-      if (r === 4) return { label: '4', variant: 'four' };
-      if (r === 6) return { label: '6', variant: 'six' };
-      return { label: String(r), variant: 'runs' };
-    }
-    case 'out':
-      return { label: 'W', variant: 'wicket' };
-    case 'retired_hurt':
-      return { label: 'RH', variant: 'retired' };
-    case 'wd':
-      return {
-        label: ball.runs > 1 ? `WD${ball.runs}` : 'WD',
-        variant: 'extra',
-      };
-    case 'nb':
-      return {
-        label: ball.runs > 1 ? `NB${ball.runs}` : 'NB',
-        variant: 'extra',
-      };
-    case 'bye':
-      return {
-        label: (ball.runs ?? 0) > 0 ? `B${ball.runs}` : 'B',
-        variant: 'extra',
-      };
-    case 'lb':
-      return {
-        label: (ball.runs ?? 0) > 0 ? `LB${ball.runs}` : 'LB',
-        variant: 'extra',
-      };
-    default:
-      return { label: '•', variant: 'dot' };
-  }
-}
-
-function chipClass(variant, isFreeHit) {
-  if (isFreeHit) {
-    // Gold ring to mark free-hit deliveries (match BallsTab ring weight)
-    switch (variant) {
-      case 'four':
-        return 'bg-[#22C55E] text-white ring-2 ring-[#DA9811]';
-      case 'six':
-        return 'bg-[#A855F7] text-white ring-2 ring-[#DA9811]';
-      case 'wicket':
-        return 'bg-[#EF4444] text-white ring-2 ring-[#DA9811]';
-      default:
-        return 'bg-[#2a2a28] text-[#E5E7EB] ring-2 ring-[#DA9811]';
-    }
-  }
+function chipClass(variant) {
   switch (variant) {
     case 'four':
-      return 'bg-[#22C55E] text-white';
+      return 'bg-brand text-ink';
     case 'six':
       return 'bg-[#A855F7] text-white';
     case 'wicket':
@@ -83,7 +32,7 @@ function chipClass(variant, isFreeHit) {
     case 'retired':
       return 'bg-[#6B7280] text-white';
     default:
-      return 'bg-[#2a2a28] text-[#E5E7EB]';
+      return 'bg-[#2A2A28] text-[#E5E7EB]';
   }
 }
 
@@ -116,8 +65,8 @@ export function OverStrip({ oversFromBalls = [], scrollRef }) {
       <button
         type="button"
         onClick={() => scroll(-1)}
-        className="flex h-13 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1C1C1A] text-white transition-opacity hover:opacity-90 active:opacity-80"
-        aria-label="Scroll to previous overs"
+        className="bg-surface-raised flex h-13 w-11 shrink-0 items-center justify-center rounded-lg text-white transition-opacity hover:opacity-90 active:opacity-80"
+        aria-label="Scroll to Previous Overs"
       >
         <span className="text-lg font-bold">&lsaquo;</span>
       </button>
@@ -128,37 +77,20 @@ export function OverStrip({ oversFromBalls = [], scrollRef }) {
         className="flex flex-1 flex-nowrap items-center gap-3 overflow-x-auto py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {oversFromBalls.map(({ overIndex, balls }) => {
-          const legalBallCount = balls.filter((b) =>
-            isLegalDelivery(b.type),
-          ).length;
-          const overRuns = balls.reduce((s, b) => {
-            if (!b) return s;
-            if (b.type === 'runs') return s + (b.runs ?? 0);
-            if (
-              b.type === 'wd' ||
-              b.type === 'nb' ||
-              b.type === 'bye' ||
-              b.type === 'lb'
-            )
-              return s + (b.runs ?? 0);
-            return s;
-          }, 0);
+          const legalBallCount = balls.filter((b) => isLegalDelivery(b.type)).length;
+          const overRuns = balls.reduce((s, b) => s + (b ? getRunsFromBall(b) : 0), 0);
 
           return (
             <div
               key={overIndex}
-              className="flex shrink-0 flex-col items-start gap-1 border-r border-[#1C1C1A] pr-3 last:border-r-0 last:pr-0"
+              className="border-surface-raised flex shrink-0 flex-col items-start gap-1 border-r pr-3 last:border-r-0 last:pr-0"
             >
               {/* Header: "1st Over • 7 runs" */}
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-medium tracking-wide text-[#6B7280] uppercase">
                   {overOrdinal(overIndex)} over
                 </span>
-                {legalBallCount === 6 && (
-                  <span className="text-[11px] text-white/40">
-                    {overRuns} runs
-                  </span>
-                )}
+                {legalBallCount === 6 && <span className="text-[11px] text-white/40">{overRuns} runs</span>}
               </div>
 
               {/* Ball chips */}
@@ -169,19 +101,11 @@ export function OverStrip({ oversFromBalls = [], scrollRef }) {
                   return (
                     <div key={i} className="relative shrink-0">
                       <span
-                        className={`flex h-7 min-w-[1.75rem] items-center justify-center rounded-md px-1 text-[11px] font-bold ${chipClass(variant, isFreeHit)}`}
+                        className={`flex h-7 min-w-[1.75rem] items-center justify-center rounded-md px-1 text-[11px] font-bold ${chipClass(variant)}`}
                       >
                         {label}
                       </span>
-                      {isFreeHit && (
-                        <span
-                          className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#DA9811] text-[7px] font-black text-[#080807]"
-                          title="Free Hit"
-                          aria-label="Free Hit delivery"
-                        >
-                          ⚡
-                        </span>
-                      )}
+                      {isFreeHit ? <FreeHitMicroBadge /> : null}
                     </div>
                   );
                 })}
@@ -195,8 +119,8 @@ export function OverStrip({ oversFromBalls = [], scrollRef }) {
       <button
         type="button"
         onClick={() => scroll(1)}
-        className="flex h-13 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1C1C1A] text-white transition-opacity hover:opacity-90 active:opacity-80"
-        aria-label="Scroll to next overs"
+        className="bg-surface-raised flex h-13 w-11 shrink-0 items-center justify-center rounded-lg text-white transition-opacity hover:opacity-90 active:opacity-80"
+        aria-label="Scroll to Next Overs"
       >
         <span className="text-lg font-bold">&rsaquo;</span>
       </button>

@@ -22,55 +22,25 @@ export const NavigationMenuLink = NavigationMenuPrimitive.Link;
 export const NavigationMenuViewport = NavigationMenuPrimitive.Viewport;
 
 export function NavigationMenuRoot({ className = '', ...props }) {
-  return (
-    <NavigationMenuPrimitive.Root
-      className={`${root} ${className}`}
-      {...props}
-    />
-  );
+  return <NavigationMenuPrimitive.Root className={`${root} ${className}`} {...props} />;
 }
 
 export function NavigationMenuListStyled({ className = '', ...props }) {
-  return (
-    <NavigationMenuPrimitive.List
-      className={`${list} ${className}`}
-      {...props}
-    />
-  );
+  return <NavigationMenuPrimitive.List className={`${list} ${className}`} {...props} />;
 }
 
 export function NavigationMenuItemStyled({ className = '', ...props }) {
-  return (
-    <NavigationMenuPrimitive.Item
-      className={`${item} ${className}`}
-      {...props}
-    />
-  );
+  return <NavigationMenuPrimitive.Item className={`${item} ${className}`} {...props} />;
 }
 
 export function NavigationMenuTriggerStyled({ className = '', ...props }) {
-  return (
-    <NavigationMenuPrimitive.Trigger
-      className={`${trigger} ${className}`}
-      {...props}
-    />
-  );
+  return <NavigationMenuPrimitive.Trigger className={`${trigger} ${className}`} {...props} />;
 }
 
 export function NavigationMenuContentStyled({ className = '', ...props }) {
-  return (
-    <NavigationMenuPrimitive.Content
-      className={`${content} ${className}`}
-      {...props}
-    />
-  );
+  return <NavigationMenuPrimitive.Content className={`${content} ${className}`} {...props} />;
 }
 
 export function NavigationMenuLinkStyled({ className = '', ...props }) {
-  return (
-    <NavigationMenuPrimitive.Link
-      className={`${link} ${className}`}
-      {...props}
-    />
-  );
+  return <NavigationMenuPrimitive.Link className={`${link} ${className}`} {...props} />;
 }

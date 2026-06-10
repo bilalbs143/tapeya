@@ -23,7 +23,7 @@ function ScoreCell({ overRuns, overWickets, totalRuns, totalWickets }) {
       <span className="font-bold text-white">
         {overRuns}/{overWickets}
       </span>
-      <span className="font-normal text-[#A2A6AB]">
+      <span className="text-muted font-normal">
         {' '}
         ({totalRuns} runs, {totalWickets} {wktLabel})
       </span>
@@ -32,15 +32,14 @@ function ScoreCell({ overRuns, overWickets, totalRuns, totalWickets }) {
 }
 
 export function StatusDetailsOversTab({ match, details }) {
-  if (!match)
-    return <StatusDetailsPlaceholderTab label="Match data unavailable" />;
+  if (!match) return <StatusDetailsPlaceholderTab label="Match Data Unavailable" />;
 
   const overs = details?.overs;
   const team1Name = match.team1?.name ?? '';
   const team2Name = match.team2?.name ?? '';
 
   if (!overs?.length) {
-    return <StatusDetailsPlaceholderTab label="Overs data unavailable" />;
+    return <StatusDetailsPlaceholderTab label="Overs Data Unavailable" />;
   }
 
   let run1 = 0;
@@ -59,14 +58,10 @@ export function StatusDetailsOversTab({ match, details }) {
               >
                 Ovs
               </th>
-              <th
-                className={`border-t border-r border-b px-4 py-2.5 text-left font-bold text-white ${BORDER} ${HEADER_BG}`}
-              >
+              <th className={`border-t border-r border-b px-4 py-2.5 text-left font-bold text-white ${BORDER} ${HEADER_BG}`}>
                 {team1Name}
               </th>
-              <th
-                className={`border-t border-r border-b px-4 py-2.5 text-left font-bold text-white ${BORDER} ${HEADER_BG}`}
-              >
+              <th className={`border-t border-r border-b px-4 py-2.5 text-left font-bold text-white ${BORDER} ${HEADER_BG}`}>
                 {team2Name}
               </th>
             </tr>
@@ -83,30 +78,14 @@ export function StatusDetailsOversTab({ match, details }) {
               wkt2 += overW2;
               return (
                 <tr key={row.over}>
-                  <td
-                    className={`w-14 shrink-0 border-r border-b border-l py-3 pl-3 ${BORDER}`}
-                  >
+                  <td className={`w-14 shrink-0 border-r border-b border-l py-3 pl-3 ${BORDER}`}>
                     <OverBadge number={row.over} />
                   </td>
-                  <td
-                    className={`border-r border-b px-4 py-3 text-white ${BORDER}`}
-                  >
-                    <ScoreCell
-                      overRuns={overR1}
-                      overWickets={overW1}
-                      totalRuns={run1}
-                      totalWickets={wkt1}
-                    />
+                  <td className={`border-r border-b px-4 py-3 text-white ${BORDER}`}>
+                    <ScoreCell overRuns={overR1} overWickets={overW1} totalRuns={run1} totalWickets={wkt1} />
                   </td>
-                  <td
-                    className={`border-r border-b px-4 py-3 text-white ${BORDER}`}
-                  >
-                    <ScoreCell
-                      overRuns={overR2}
-                      overWickets={overW2}
-                      totalRuns={run2}
-                      totalWickets={wkt2}
-                    />
+                  <td className={`border-r border-b px-4 py-3 text-white ${BORDER}`}>
+                    <ScoreCell overRuns={overR2} overWickets={overW2} totalRuns={run2} totalWickets={wkt2} />
                   </td>
                 </tr>
               );

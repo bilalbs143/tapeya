@@ -1,0 +1,156 @@
+/**
+ * Shot area dialog – reusable "Select Shot Area" modal with stadium and shot-direction zones.
+ * Used in Scoring tab (when recording runs) and Stats tab.
+ */
+
+import { useId } from 'react';
+
+import { useDialog } from '@/context/DialogContext';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { SHOT_DIRECTION_ZONES, SHOT_ZONE_GEOMETRY } from '@/lib/utils/shotAreaUtils';
+import { DialogHeaderRow, dialogPrimaryTitleClass, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { FormStack } from '@/ui/form/FormStack';
+
+export { WagonWheelChart as ShotDirectionStats } from '@/components/scoring/WagonWheelChart';
+
+const stadiumBg = `${CLOUDFRONT_APP_BASE}/images/standard/stadium-bg.png`;
+
+// ─── Shot zone geometry constants ─────────────────────────────────────────
+const SVG_VIEWBOX = { width: 273, height: 274 };
+const CX = 136.5;
+const CY = 136.5;
+
+// ─── ShotDirectionPicker ──────────────────────────────────────────────────
+
+/**
+ * Stadium image with overlaid selectable shot-direction zones.
+ * @param {Array} [zones] - Zones from API (getShotPositionOptions) or default SHOT_DIRECTION_ZONES. Each { id, label, labelLine1, labelLine2 }.
+ */
+export function ShotDirectionPicker({ zones: zonesProp, stadiumSrc, onSelect, className = '' }) {
+  const filterId = `shot-zone-text-shadow-${useId().replace(/[^a-zA-Z0-9-]/g, '')}`;
+  const zones =
+    Array.isArray(zonesProp) && zonesProp.length > 0
+      ? zonesProp.filter((z) => SHOT_ZONE_GEOMETRY[z.id ?? z.value])
+      : SHOT_DIRECTION_ZONES;
+
+  return (
+    <div className={`relative mx-auto w-full max-w-[273px] ${className}`}>
+      <img
+        src={stadiumSrc}
+        alt=""
+        className="block h-auto w-full rounded-lg"
+        style={{ aspectRatio: `${SVG_VIEWBOX.width} / ${SVG_VIEWBOX.height}` }}
+      />
+      <svg
+        className="pointer-events-none absolute inset-0 h-full w-full rounded-lg"
+        viewBox={`0 0 ${SVG_VIEWBOX.width} ${SVG_VIEWBOX.height}`}
+        preserveAspectRatio="xMidYMid meet"
+        aria-hidden
+      >
+        <defs>
+          <filter id={filterId} x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="0" stdDeviation="1" floodColor="#000" floodOpacity="0.8" />
+          </filter>
+        </defs>
+        {zones.map((zone) => {
+          const geom = SHOT_ZONE_GEOMETRY[zone.id ?? zone.value];
+          if (!geom?.position) return null;
+          const { angleDeg, r } = geom.position;
+          const angleRad = (angleDeg * Math.PI) / 180;
+          const x = CX + r * Math.cos(angleRad);
+          const y = CY + r * Math.sin(angleRad);
+          const lineHeight = 11;
+          const rotation = 0;
+          return (
+            <g key={zone.id ?? zone.value} transform={`rotate(${rotation}, ${x}, ${y})`} style={{ filter: `url(#${filterId})` }}>
+              <text
+                x={x}
+                y={y - lineHeight / 2}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                className="pointer-events-none fill-white font-bold uppercase"
+                style={{ fontSize: 10, letterSpacing: '0.05em' }}
+              >
+                {zone.labelLine1 ?? zone.label ?? ''}
+              </text>
+              {(zone.labelLine2 ?? '') && (
+                <text
+                  x={x}
+                  y={y + lineHeight / 2}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  className="pointer-events-none fill-white font-bold uppercase"
+                  style={{ fontSize: 10, letterSpacing: '0.05em' }}
+                >
+                  {zone.labelLine2}
+                </text>
+              )}
+            </g>
+          );
+        })}
+      </svg>
+      <svg
+        className="absolute inset-0 h-full w-full cursor-pointer rounded-lg"
+        viewBox={`0 0 ${SVG_VIEWBOX.width} ${SVG_VIEWBOX.height}`}
+        preserveAspectRatio="xMidYMid meet"
+      >
+        {zones.map((zone) => {
+          const geom = SHOT_ZONE_GEOMETRY[zone.id ?? zone.value];
+          if (!geom?.path) return null;
+          const zoneId = zone.id ?? zone.value;
+          return (
+            <path
+              key={zoneId}
+              d={geom.path}
+              fill="transparent"
+              stroke="white"
+              strokeWidth="2"
+              className="fill-transparent stroke-white opacity-40 transition-all duration-200 hover:fill-white/20 hover:stroke-white/90 hover:opacity-80 focus:fill-white/20 focus:opacity-80 focus:outline-none"
+              onClick={() => onSelect(zoneId)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelect(zoneId);
+                }
+              }}
+              role="button"
+              tabIndex={-1}
+              aria-label={zone.label ?? zoneId}
+            />
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+// ─── ShotAreaDialog ───────────────────────────────────────────────────────
+
+/**
+ * Dialog that shows "Select Shot Area" with the stadium picker.
+ * Body-only — rendered by DialogManager inside BaseDialog.
+ * zones: from getShotPositionOptions(enums.shot_position) when using API; otherwise default zones used.
+ */
+export function ShotAreaDialog({ onSelect, title = 'Select Shot Area', stadiumSrc = stadiumBg, zones: zonesProp }) {
+  const { closeDialog } = useDialog();
+  return (
+    <>
+      <DialogHeaderRow>
+        <DialogTitle className={`${dialogPrimaryTitleClass} w-full text-center`}>{title}</DialogTitle>
+      </DialogHeaderRow>
+      <DialogScrollBody className="py-4">
+        <FormStack density="compact" className="items-center">
+          <ShotDirectionPicker
+            zones={zonesProp}
+            stadiumSrc={stadiumSrc}
+            onSelect={(zoneId) => {
+              onSelect?.(zoneId);
+              closeDialog();
+            }}
+            className="max-h-[50vh]"
+          />
+        </FormStack>
+      </DialogScrollBody>
+    </>
+  );
+}

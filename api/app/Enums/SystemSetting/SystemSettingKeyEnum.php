@@ -55,6 +55,24 @@ enum SystemSettingKeyEnum: string
     case WHATSAPP_TEMPLATE_AUTH_NAME = 'whatsapp_template_auth_name';
     case WHATSAPP_TEMPLATE_AUTH_LANGUAGE = 'whatsapp_template_auth_language';
 
+    case STREAM_DEFAULT_PROVIDER = 'stream_default_provider';
+    case STREAM_YOUTUBE_CLIENT_ID = 'stream_youtube_client_id';
+    case STREAM_YOUTUBE_CLIENT_SECRET = 'stream_youtube_client_secret';
+    case STREAM_YOUTUBE_REFRESH_TOKEN = 'stream_youtube_refresh_token';
+    case STREAM_YOUTUBE_CHANNEL_ID = 'stream_youtube_channel_id';
+    case STREAM_YOUTUBE_DEFAULT_PRIVACY = 'stream_youtube_default_privacy';
+
+    case LIVE_CHAT_ENABLED = 'live_chat_enabled';
+    case LIVE_CHAT_MIN_INTERVAL_SEC = 'live_chat_min_interval_sec';
+    case LIVE_CHAT_BURST_MAX = 'live_chat_burst_max';
+    case LIVE_CHAT_BURST_WINDOW_SEC = 'live_chat_burst_window_sec';
+    case LIVE_CHAT_BODY_MAX = 'live_chat_body_max';
+
+    case PUSH_ENABLED = 'push_enabled';
+    case PUSH_PROVIDER = 'push_provider';
+    case PUSH_FCM_PROJECT_ID = 'push_fcm_project_id';
+    case PUSH_FCM_SERVICE_ACCOUNT_JSON = 'push_fcm_service_account_json';
+
     public function group(): SystemSettingGroupEnum
     {
         return SystemSettingRegistry::group($this);
@@ -90,6 +108,7 @@ enum SystemSettingKeyEnum: string
             self::SUPPORT_EMAIL,
             self::SUPPORT_PHONE,
             self::PUBLIC_WEBSITE_URL,
+            self::LIVE_CHAT_ENABLED,
         ];
     }
 

@@ -229,8 +229,8 @@ class PlayerStatsService
         $inningsIds = Innings::where('match_id', $matchId)->pluck('id');
         $balls = Ball::whereIn('innings_id', $inningsIds)
             ->orderBy('innings_id')
-            ->orderBy('over')
-            ->orderBy('ball_in_over')
+
+            ->orderBy('over')->orderBy('ball_in_over')->orderBy('id')
             ->get();
 
         $byPlayer = [];
@@ -244,15 +244,19 @@ class PlayerStatsService
                     'wickets' => 0,
                     'no_balls' => 0,
                     'wides' => 0,
-                    'balls_bowled' => 0, // FIX: track here, not via collection re-scan
+                    'balls_bowled' => 0,
+                    'legal_balls' => 0, // legal deliveries (excl. wide/no-ball/extras-only) — used for overs, economy, SR
                     'overs_runs' => [],
                     'overs_balls' => [],
-                    'innings_balls' => [], // innings_id => Collection-like list for bowlingInningsWicketsRuns
+                    'innings_balls' => [], // innings_id => {wickets, runs} for best-bowling figures
                 ];
             }
 
             $byPlayer[$pid]['runs_conceded'] += $ball->runs + $ball->penalty_runs;
             $byPlayer[$pid]['balls_bowled'] += 1;
+            if ($ball->isLegalDelivery()) {
+                $byPlayer[$pid]['legal_balls'] += 1;
+            }
 
             // retired_hurt is stored with is_wicket=true but must NOT credit the
             // bowler with a wicket — the batsman was not dismissed by the bowler.
@@ -279,8 +283,11 @@ class PlayerStatsService
 
         $result = [];
         foreach ($byPlayer as $playerId => $raw) {
-            $ballsBowled = $raw['balls_bowled'];
-            $overs = round($ballsBowled / 6, 2);
+            $legalBalls = max(0, (int) $raw['legal_balls']);
+            // Cricket-notation overs: 4.2 = 4 overs + 2 balls (not the float 4.33).
+            // RefreshMatchStatsJob converts back via (wholeOvers * 6 + remainingBalls)
+            // so the decimal part must represent balls 0–5, not a fraction of 6.
+            $overs = intdiv($legalBalls, 6) + ($legalBalls % 6) * 0.1;
 
             $maidens = 0;
             foreach ($raw['overs_runs'] as $overKey => $runsInOver) {
@@ -318,8 +325,8 @@ class PlayerStatsService
                 'five_wickets' => $fiveWickets,
                 'ten_wickets' => $tenWickets,
                 'average' => $wickets > 0 ? round($runsConceded / $wickets, 2) : null,
-                'economy' => $overs > 0 ? round($runsConceded / $overs, 2) : null,
-                'strike_rate' => $wickets > 0 ? round($ballsBowled / $wickets, 2) : null,
+                'economy' => $legalBalls > 0 ? round($runsConceded / ($legalBalls / 6), 2) : null,
+                'strike_rate' => ($wickets > 0 && $legalBalls > 0) ? round($legalBalls / $wickets, 2) : null,
             ];
         }
 
@@ -377,18 +384,30 @@ class PlayerStatsService
     // ─── Partnerships ─────────────────────────────────────────────────────────
 
     /**
-     * Partnership stats for one innings: runs and balls for each batting pair (stand).
-     * Derived from ball-by-ball: striker + non_striker per ball; when a wicket falls the stand ends.
+     * Partnership stats for one innings: runs and balls for each batting pair (stand),
+     * including per-player contributions (player_1_runs, player_1_balls, etc.).
      *
-     * FIX: penalty_runs are awarded to the team, not the partnership — excluded here.
+     * player_1_id / player_2_id are ordered by ascending ID (consistent ordering).
+     * player_1_runs / player_1_balls track the runs scored and legal deliveries faced
+     * by that specific player during the stand.
      *
-     * @return array<int, array{player_1_id: int, player_2_id: int, runs: int, balls: int, wicket_number: int|null}>
+     * Rules:
+     *  - Partnership runs = runs_off_bat + non-penalty extras (byes, leg-byes).
+     *    Penalty runs belong to the team, not the stand.
+     *  - Per-player runs  = runs_off_bat for the striker only (extras are not credited
+     *    to either batter personally).
+     *  - Per-player balls = legal deliveries faced (wides excluded; no-balls count).
+     *
+     * @return array<int, array{
+     *   player_1_id: int, player_1_runs: int, player_1_balls: int,
+     *   player_2_id: int, player_2_runs: int, player_2_balls: int,
+     *   runs: int, balls: int, wicket_number: int|null
+     * }>
      */
     public function partnershipsForInnings(int $inningsId, ?Collection $balls = null): array
     {
         $balls ??= Ball::where('innings_id', $inningsId)
-            ->orderBy('over')
-            ->orderBy('ball_in_over')
+            ->orderBy('over')->orderBy('ball_in_over')->orderBy('id')
             ->get();
 
         $partnerships = [];
@@ -396,6 +415,9 @@ class PlayerStatsService
         $currentNonStriker = null;
         $runs = 0;
         $ballsCount = 0;
+        // Per-player stats keyed by player_id
+        $playerRuns = [];
+        $playerBalls = [];
         $wicketNumber = 1;
 
         foreach ($balls as $ball) {
@@ -405,19 +427,38 @@ class PlayerStatsService
             if ($currentStriker === null) {
                 $currentStriker = $striker;
                 $currentNonStriker = $nonStriker;
+                $playerRuns[$striker] = 0;
+                $playerRuns[$nonStriker] = 0;
+                $playerBalls[$striker] = 0;
+                $playerBalls[$nonStriker] = 0;
             }
 
-            // FIX: penalty_runs belong to the team, not the batting pair.
-            // runs_off_bat + extras (leg byes, byes) are the correct partnership credit.
-            $runs += $ball->runs; // $ball->runs = runs_off_bat + non-penalty extras
+            // Partnership total: runs_off_bat + non-penalty extras (byes, leg-byes).
+            // Penalty runs belong to the team, not the stand.
+            $runs += $ball->runs;
             $ballsCount += 1;
+
+            // Per-player: only the striker earns runs_off_bat.
+            // Wides don't count as a ball faced; no-balls do.
+            if (! isset($playerRuns[$striker])) {
+                $playerRuns[$striker] = 0;
+                $playerBalls[$striker] = 0;
+            }
+            $playerRuns[$striker] += $ball->runs_off_bat ?? 0;
+            if (! $ball->is_wide) {
+                $playerBalls[$striker] = ($playerBalls[$striker] ?? 0) + 1;
+            }
 
             if ($ball->is_wicket && $ball->out_player_id) {
                 $p1 = min($currentStriker, $currentNonStriker);
                 $p2 = max($currentStriker, $currentNonStriker);
                 $partnerships[] = [
                     'player_1_id' => $p1,
+                    'player_1_runs' => $playerRuns[$p1] ?? 0,
+                    'player_1_balls' => $playerBalls[$p1] ?? 0,
                     'player_2_id' => $p2,
+                    'player_2_runs' => $playerRuns[$p2] ?? 0,
+                    'player_2_balls' => $playerBalls[$p2] ?? 0,
                     'runs' => $runs,
                     'balls' => $ballsCount,
                     'wicket_number' => $wicketNumber,
@@ -425,18 +466,24 @@ class PlayerStatsService
                 $wicketNumber++;
                 $runs = 0;
                 $ballsCount = 0;
+                $playerRuns = [];
+                $playerBalls = [];
                 $currentStriker = null;
                 $currentNonStriker = null;
             }
         }
 
-        // Unfinished / last partnership (not-out stand)
+        // Unfinished / current partnership (not-out stand)
         if ($currentStriker !== null && ($runs > 0 || $ballsCount > 0)) {
             $p1 = min($currentStriker, $currentNonStriker ?? $currentStriker);
             $p2 = max($currentStriker, $currentNonStriker ?? $currentStriker);
             $partnerships[] = [
                 'player_1_id' => $p1,
+                'player_1_runs' => $playerRuns[$p1] ?? 0,
+                'player_1_balls' => $playerBalls[$p1] ?? 0,
                 'player_2_id' => $p2,
+                'player_2_runs' => $playerRuns[$p2] ?? 0,
+                'player_2_balls' => $playerBalls[$p2] ?? 0,
                 'runs' => $runs,
                 'balls' => $ballsCount,
                 'wicket_number' => null,
@@ -796,7 +843,7 @@ class PlayerStatsService
         foreach ($balls as $b) {
             $k = $b->innings_id.'_'.$b->over;
             $oversRuns[$k] = ($oversRuns[$k] ?? 0) + $b->runs + $b->penalty_runs;
-            if (! $b->is_wide && ! $b->is_no_ball) {
+            if ($b->isLegalDelivery()) {
                 $oversBalls[$k] = ($oversBalls[$k] ?? 0) + 1;
             }
         }
@@ -1122,7 +1169,7 @@ class PlayerStatsService
     {
         // Descending sorts: higher = better.
         $desc = in_array($sort, [
-            'runs', 'balls_faced', 'wickets', 'hundreds', 'fifties',
+            'runs', 'balls_faced', 'fours', 'sixes', 'wickets', 'hundreds', 'fifties',
             'five_wickets', 'ten_wickets', 'catches', 'run_outs', 'stumpings',
         ], true);
 
@@ -1132,6 +1179,8 @@ class PlayerStatsService
             'average' => 'average',
             'strike_rate' => 'strike_rate',
             'balls_faced' => 'balls_faced',
+            'fours' => 'fours',
+            'sixes' => 'sixes',
             'hundreds' => 'hundreds',
             'fifties' => 'fifties',
             'wickets' => 'wickets',

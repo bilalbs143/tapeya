@@ -10,7 +10,7 @@ body {
  * Graphic overlay page — used as a browser source in OBS/vMix.
  *
  * Each graphic component wraps its card in a full-screen dark div
- * (bg-[#1D1E22]) for standalone preview. On the overlay page we strip
+ * (bg-page) for standalone preview. On the overlay page we strip
  * that outer background so only the graphic card floats over the video
  * stream with a transparent surround.
  *
@@ -45,9 +45,23 @@ body {
   --spacing-safe-left: env(safe-area-inset-left);
   --spacing-safe-right: env(safe-area-inset-right);
 
+  /* Semantic design tokens (Step 27) */
+  --color-brand: #da9811;
+  --color-brand-hover: #f0b94a;
+  --color-brand-dark: #d8a11e;
+  --color-surface: #141412;
+  --color-surface-raised: #1c1c1a;
+  --color-surface-border: #1a1a1a;
+  --color-surface-elevated: #1a1a18;
+  --color-muted: #a2a6ab;
+  --color-ink: #080807;
+  --color-border: #252520;
+  --color-border-subtle: #282824;
+  --color-page: #1d1e22;
+  --color-surface-deep: #0d0d0b;
+
   --animate-splash-slide-up: splash-slide-up 0.6s ease-out forwards;
-  --animate-splash-slide-up-delayed: splash-slide-up 0.6s ease-out 0.35s
-    forwards;
+  --animate-splash-slide-up-delayed: splash-slide-up 0.6s ease-out 0.35s forwards;
   --animate-splash-fade-out: splash-fade-out 0.35s ease-out forwards;
 
   @keyframes splash-slide-up {
@@ -65,5 +79,57 @@ body {
     to {
       opacity: 0;
     }
+  }
+}
+
+/* Live broadcast — hearts float up from the like button area */
+@keyframes live-float-heart {
+  0% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--heart-drift, 0px)), 0) scale(0.35);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--heart-drift, 0px)), -8px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--heart-drift, 0px)), min(-72vh, -280px)) scale(0.9);
+  }
+}
+
+.live-float-heart {
+  animation: live-float-heart 2.2s ease-out forwards;
+  will-change: transform, opacity;
+}
+
+/* Landscape stage rotates 90° CW — hearts travel left on screen (content "up") with vertical wiggle. */
+@keyframes live-float-heart-landscape {
+  0% {
+    opacity: 0;
+    transform: translate(0, calc(-50% + var(--heart-drift, 0px))) scale(0.35);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-8px, calc(-50% + var(--heart-drift, 0px))) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(min(-72vh, -280px), calc(-50% + var(--heart-drift, 0px))) scale(0.9);
+  }
+}
+
+.live-float-heart--landscape {
+  animation-name: live-float-heart-landscape;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

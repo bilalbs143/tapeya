@@ -35,7 +35,7 @@ export interface CreateCategoryPayload {
   is_active?: boolean;
 }
 
-export type UpdateCategoryPayload = Omit<CreateCategoryPayload, 'image'> & { image?: File | null };
+export type SaveCategoryPayload = Omit<CreateCategoryPayload, 'image'>;
 
 @Injectable({ providedIn: 'root' })
 export class CategoryService {
@@ -53,16 +53,15 @@ export class CategoryService {
     return this.http.get<{ data: Category }>(`${this.baseUrl}/${id}`);
   }
 
-  public create(formData: FormData): Observable<{ data: Category }> {
+  public create(formData: FormData | SaveCategoryPayload): Observable<{ data: Category }> {
     return this.http
       .post<{ data: Category }>(this.baseUrl, formData)
       .pipe(tap(() => this.messageService.success('Category created successfully.')));
   }
 
-  public update(id: number, formData: FormData): Observable<{ data: Category }> {
-    formData.append('_method', 'PUT');
+  public update(id: number, formData: SaveCategoryPayload): Observable<{ data: Category }> {
     return this.http
-      .post<{ data: Category }>(`${this.baseUrl}/${id}`, formData)
+      .put<{ data: Category }>(`${this.baseUrl}/${id}`, formData)
       .pipe(tap(() => this.messageService.success('Category updated successfully.')));
   }
 

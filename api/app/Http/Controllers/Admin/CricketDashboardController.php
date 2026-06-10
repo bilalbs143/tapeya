@@ -24,6 +24,14 @@ class CricketDashboardController extends Controller
 
     public function __invoke(): JsonResponse
     {
+        return $this->success($this->buildDashboardPayload());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildDashboardPayload(): array
+    {
         $today = now()->toDateString();
         $now = Carbon::now();
         $thirtyAgo = $now->copy()->subDays(29)->startOfDay();
@@ -270,7 +278,7 @@ class CricketDashboardController extends Controller
             ->values()
             ->all();
 
-        return $this->success([
+        return [
             // KPIs
             'tournaments_total' => $tournamentsTotal,
             'tournaments_active' => $tournamentsActive,
@@ -319,7 +327,7 @@ class CricketDashboardController extends Controller
 
             // Recent tournament requests
             'recent_tournament_requests' => $recentRequests,
-        ]);
+        ];
     }
 
     private function formatLabel(mixed $value): string

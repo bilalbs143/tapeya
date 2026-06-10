@@ -21,7 +21,7 @@ class UserController extends BaseAdminController
 
     protected function baseQuery()
     {
-        return User::query()->user()->with(['creator:id,name,nickname']);
+        return User::query()->user()->with(['creator:id,name,nickname', 'roles']);
     }
 
     public function store(StoreUserRequest $request): JsonResponse

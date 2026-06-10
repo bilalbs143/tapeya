@@ -1,0 +1,15 @@
+{
+  "_comment": "Copy relevant keys into ~/.ssh/config (not committed). Then: Cmd+Shift+P → Remote-SSH: Connect to Host",
+  "hosts": {
+    "tapeya": {
+      "HostName": "95.111.245.160",
+      "User": "root",
+      "Port": 22,
+      "IdentityFile": "~/.ssh/id_ed25519",
+      "ForwardAgent": "yes",
+      "ServerAliveInterval": 60,
+      "ServerAliveCountMax": 3
+    }
+  },
+  "ssh_config_snippet": "Host tapeya\n  HostName 95.111.245.160\n  User root\n  IdentityFile ~/.ssh/id_ed25519\n  ForwardAgent yes\n  ServerAliveInterval 60\n"
+}

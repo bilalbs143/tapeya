@@ -21,8 +21,6 @@ class StoreTeamRequest extends FormRequest
             'code' => ['required', 'string', 'max:20', 'unique:teams,code'],
             'country' => ['required', 'string', 'max:100'],
             'city' => ['required', 'string', 'max:100'],
-            'logo' => ['nullable', 'image', 'max:2048'],
-
             // Owner/sponsor user id; if omitted, defaults to authenticated user.
             'sponsor_user_id' => ['nullable', 'integer', 'exists:users,id'],
 

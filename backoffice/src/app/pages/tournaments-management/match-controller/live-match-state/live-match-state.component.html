@@ -1,0 +1,38 @@
+@if (scoreStr) {
+  <section class="live-state">
+    <span class="live-state__label">
+      Live
+      @if (inningsLabel) {
+        <span class="live-state__innings"> · {{ inningsLabel }}</span>
+      }
+      <span> · {{ battingTeam }}</span>
+    </span>
+
+    <span class="live-state__score">
+      {{ scoreRuns }}/{{ scoreWickets }}
+      <span class="live-state__meta">{{ overs }} ov · CRR {{ runRate }}</span>
+    </span>
+
+    <div class="live-state__over">
+      <span class="live-state__over-label">This Over</span>
+      <div class="live-state__balls">
+        @for (ball of overBalls; track $index) {
+          <span class="relative inline-block">
+            <span [class]="ballChipClass(ball)">{{ displayBall(ball) }}</span>
+            @if (isFreeHit(ball)) {
+              <span
+                class="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#DA9811] text-[7px] font-black text-[#080807]"
+                title="Free Hit"
+                aria-label="Free Hit delivery"
+                >⚡</span
+              >
+            }
+          </span>
+        }
+        @if (!overBalls.length) {
+          <span class="text-muted text-sm">—</span>
+        }
+      </div>
+    </div>
+  </section>
+}

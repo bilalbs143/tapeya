@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\User;
 
 use App\Enums\Event\TossChoiceEnum;
+use App\Events\Scoring\MatchStateUpdated;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\UpdateMatchTossRequest;
 use App\Http\Resources\User\TournamentMatchResource;
 use App\Models\TournamentMatch;
+use App\Services\MatchStateService;
 use Illuminate\Http\JsonResponse;
 
 class MatchTossController extends Controller
@@ -19,7 +21,7 @@ class MatchTossController extends Controller
      *
      * Only organizers. Winning team must be home or away in this match.
      */
-    public function update(UpdateMatchTossRequest $request, TournamentMatch $match): JsonResponse
+    public function update(UpdateMatchTossRequest $request, TournamentMatch $match, MatchStateService $matchStateService): JsonResponse
     {
         $authUser = $request->user();
 
@@ -61,7 +63,13 @@ class MatchTossController extends Controller
             ]);
         }
 
-        $match->load(['homeTeam', 'awayTeam', 'winningTeam', 'tossWinnerTeam', 'innings']);
+        $match->load(['homeTeam', 'awayTeam', 'winningTeam', 'tossWinnerTeam', 'innings', 'playerOfMatch', 'stream']);
+
+        // Broadcast the full match state now that toss result and both innings
+        // rows are persisted, so subscribers can show batting/bowling teams and
+        // match status before the first ball is bowled.
+        $matchState = $matchStateService->build($match->fresh());
+        MatchStateUpdated::dispatch($match->id, $matchState);
 
         return $this->success(
             new TournamentMatchResource($match),

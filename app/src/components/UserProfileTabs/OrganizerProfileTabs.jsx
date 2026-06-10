@@ -1,4 +1,5 @@
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { PROFILE_OVERVIEW_ROLE } from '@/lib/constants/profile';
 import {
   profileListClass,
   profileTabIconClass,
@@ -10,7 +11,6 @@ import {
   TabsTrigger,
 } from '@/ui/Tabs';
 
-import { PROFILE_OVERVIEW_ROLE } from './constants';
 import { OrganizerEvents } from './OrganizerEvents';
 import { OrganizerStats } from './OrganizerStats';
 import { ProfileMetrics } from './ProfileMetrics';
@@ -63,18 +63,8 @@ export function OrganizerProfileTabs({ tournaments, events, teams }) {
     <Tabs className="w-full" defaultValue="overview">
       <TabsList className={profileListClass}>
         {TABS.map(({ value, label, icon }) => (
-          <TabsTrigger
-            key={value}
-            value={value}
-            className={profileTriggerClass}
-          >
-            <img
-              src={icon}
-              alt=""
-              width={profileTabIconSize}
-              height={profileTabIconSize}
-              className={profileTabIconClass}
-            />
+          <TabsTrigger key={value} value={value} className={profileTriggerClass}>
+            <img src={icon} alt="" width={profileTabIconSize} height={profileTabIconSize} className={profileTabIconClass} />
             {label}
           </TabsTrigger>
         ))}
@@ -84,18 +74,10 @@ export function OrganizerProfileTabs({ tournaments, events, teams }) {
         {TABS.map(({ value, Content }) => (
           <TabsContent key={value} value={value} className="focus:outline-none">
             {value === 'overview' ? (
-              <ProfileRoleOverview
-                role={PROFILE_OVERVIEW_ROLE.ORGANIZER}
-                tournaments={tournaments}
-                events={events}
-              />
-            ) : (
-              <Content
-                tournaments={tournaments}
-                events={events}
-                teams={teams}
-              />
-            )}
+              <ProfileRoleOverview role={PROFILE_OVERVIEW_ROLE.ORGANIZER} tournaments={tournaments} events={events} />
+            ) : Content ? (
+              <Content tournaments={tournaments} events={events} teams={teams} />
+            ) : null}
           </TabsContent>
         ))}
       </div>

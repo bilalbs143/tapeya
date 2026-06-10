@@ -5,12 +5,7 @@ import { TablerIconsModule } from 'angular-tabler-icons';
 import { NgApexchartsModule } from 'ng-apexcharts';
 
 import { MaterialModule } from 'src/app/material.module';
-import type {
-  CricketDashboardStats,
-  LiveMatchRow,
-  RecentMatchRow,
-  TopTeamRow,
-} from 'src/app/models/cricket-dashboard.models';
+import type { CricketDashboardStats, LiveMatchRow, RecentMatchRow, TopTeamRow } from 'src/app/models/cricket-dashboard.models';
 import { AuthService } from 'src/app/services/auth.service';
 import { CricketDashboardService } from 'src/app/services/cricket/cricket-dashboard.service';
 
@@ -71,9 +66,7 @@ export class CricketDashboardComponent implements OnInit {
   public readonly requestsMonthlyCounts = computed(() => this.stats()?.requests_monthly_counts ?? []);
 
   // ── Request pipeline ──────────────────────────────────────────────────────
-  public readonly requestPipeline = computed(
-    () => this.stats()?.request_pipeline ?? { pending: 0, approved: 0, rejected: 0 }
-  );
+  public readonly requestPipeline = computed(() => this.stats()?.request_pipeline ?? { pending: 0, approved: 0, rejected: 0 });
 
   // ── Live / recent matches ─────────────────────────────────────────────────
   public readonly liveMatches = computed(() => this.stats()?.live_matches ?? []);

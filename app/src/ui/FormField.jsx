@@ -3,36 +3,20 @@
  * Use with react-hook-form: pass label and htmlFor; render Input with {...register(name)} and error from formState.errors.
  */
 
+import { FORM_FIELD_LABEL_CLASS, FORM_FIELD_REQUIRED_CLASS, FORM_FIELD_WRAPPER_CLASS } from '@/lib/constants/formLayout';
 import { Label } from '@/ui/Label';
 
-/** Single label style used across the entire app. */
-const labelClass = 'mb-2 block text-[14px] text-[#A2A6AB]';
-
-/** Named exports for pages that import the class directly. */
-export const formFieldLabelCheckoutClass = labelClass;
-export const formFieldLabelEditClass = labelClass;
-
 function getLabelClass(labelClassName) {
-  return labelClassName || labelClass;
+  return labelClassName || FORM_FIELD_LABEL_CLASS;
 }
 
-export function FormField({
-  htmlFor,
-  label,
-  children,
-  className = '',
-  labelClassName = '',
-  required,
-}) {
+export function FormField({ htmlFor, label, children, className = '', labelClassName = '', required }) {
   return (
-    <div className={`flex flex-col gap-1 ${className}`}>
+    <div className={`${FORM_FIELD_WRAPPER_CLASS} ${className}`.trim()}>
       {label && (
-        <Label
-          htmlFor={htmlFor}
-          className={getLabelClass(labelClassName)}
-        >
+        <Label htmlFor={htmlFor} className={getLabelClass(labelClassName)}>
           {label}
-          {required && <span className="text-red-300"> *</span>}
+          {required && <span className={FORM_FIELD_REQUIRED_CLASS}> *</span>}
         </Label>
       )}
       {children}

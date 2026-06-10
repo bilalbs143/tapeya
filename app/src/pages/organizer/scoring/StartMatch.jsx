@@ -5,45 +5,38 @@ import { Controller, useForm } from 'react-hook-form';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
-import OversDialog from '@/components/dialogs/scoring/OversDialog';
-import PlayersPerSideDialog from '@/components/dialogs/scoring/PlayersPerSideDialog';
-import TeamSelectDialog from '@/components/dialogs/scoring/TeamSelectDialog';
-import TossDialog from '@/components/dialogs/scoring/TossDialog';
+import { TeamLogo } from '@/components/TeamLogo';
+import { useDialog } from '@/context/DialogContext';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import {
-  getMatchOversOptions,
-  getPlayersPerSideOptions,
-} from '@/lib/utils/scoringMappers';
-import { formatDateForApi, formatTimeForApi } from '@/lib/utils/scoringUtils';
+import { toApiDate } from '@/lib/utils/dateUtils';
+import { EMPTY_FILE_UPLOAD } from '@/lib/utils/fileUploadUtils';
+import { getMatchOversOptions, getPlayersPerSideOptions } from '@/lib/utils/scoringMappers';
+import { formatTimeForApi } from '@/lib/utils/scoringUtils';
 import { startMatchSchema } from '@/lib/validations/startMatch';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
 import { useUpdateTossMutation } from '@/store/api/matchApi';
-import {
-  useCreateTournamentMatchMutation,
-  useGetTournamentsQuery,
-  useGetTournamentTeamsQuery,
-} from '@/store/api/tournamentApi';
+import { uploadMediaFile, useUploadMediaMutation } from '@/store/api/mediaApi';
+import { useCreateTournamentMatchMutation, useGetTournamentsQuery, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 import { DatePicker } from '@/ui/DatePicker';
-import { FormField, formFieldLabelCheckoutClass } from '@/ui/FormField';
+import { FileUploadField } from '@/ui/FileUploadField';
+import { FormActions } from '@/ui/form/FormActions';
+import { FormStack } from '@/ui/form/FormStack';
+import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
-import { Label } from '@/ui/Label';
 import { TimePicker } from '@/ui/TimePicker';
 
-const teamMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-match-icon.svg`;
-
 const oversInputBase =
-  'flex h-12 w-full items-center rounded-[6px] bg-[#141412] px-4 py-3 text-left text-white focus:outline-none focus:ring-2 focus:ring-[#DA9811]/50 cursor-pointer';
+  'flex h-12 w-full items-center rounded-[6px] bg-surface px-4 py-3 text-left text-white focus:outline-none focus:ring-2 focus:ring-brand/50 cursor-pointer';
 
 function buildMatchPayload(data, groupIndex = null) {
   const payload = {
     tournamentId: data.tournament_id,
     home_team_id: Number(data.team_a_id),
     away_team_id: Number(data.team_b_id),
-    match_date: formatDateForApi(data.match_date),
+    match_date: toApiDate(data.match_date),
     match_time: formatTimeForApi(data.match_time),
     venue_name: data.venue.trim(),
     players_per_side: Number(data.players_per_side),
@@ -56,11 +49,11 @@ function buildMatchPayload(data, groupIndex = null) {
 }
 
 export default function StartMatch() {
+  const { openDialog } = useDialog();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const tournamentIdFromUrl =
-    searchParams.get('tournamentId') || location.state?.tournamentId;
+  const tournamentIdFromUrl = searchParams.get('tournamentId') || location.state?.tournamentId;
   const tournamentPreSelected = !!tournamentIdFromUrl;
 
   const { data: enums = {} } = useGetEnumsQuery();
@@ -71,18 +64,12 @@ export default function StartMatch() {
   const tournaments = tournamentsData?.data ?? [];
 
   const toast = useToast();
-  const [createMatch, { isLoading: isCreatingMatch }] =
-    useCreateTournamentMatchMutation();
+  const [createMatch, { isLoading: isCreatingMatch }] = useCreateTournamentMatchMutation();
   const [updateToss, { isLoading: isUpdatingToss }] = useUpdateTossMutation();
+  const [uploadMedia] = useUploadMediaMutation();
 
-  const oversOptions = useMemo(
-    () => getMatchOversOptions(enums.match_overs),
-    [enums.match_overs],
-  );
-  const playersPerSideOptions = useMemo(
-    () => getPlayersPerSideOptions(enums.players_per_side),
-    [enums.players_per_side],
-  );
+  const oversOptions = useMemo(() => getMatchOversOptions(enums.match_overs), [enums.match_overs]);
+  const playersPerSideOptions = useMemo(() => getPlayersPerSideOptions(enums.players_per_side), [enums.players_per_side]);
 
   const {
     control,
@@ -108,40 +95,22 @@ export default function StartMatch() {
   });
 
   const validatedFormDataRef = useRef(null);
+  const [thumbnailUpload, setThumbnailUpload] = useState(EMPTY_FILE_UPLOAD);
 
-  const {
-    tournament_id: tournamentId,
-    team_a_id,
-    team_b_id,
-    overs,
-    players_per_side: playersPerSide,
-  } = watch();
-  const { data: tournamentTeams = [] } = useGetTournamentTeamsQuery(
-    tournamentId || undefined,
-    { skip: !tournamentId },
-  );
+  const { tournament_id: tournamentId, team_a_id, team_b_id, overs, players_per_side: playersPerSide } = watch();
+  const { data: tournamentTeams = [] } = useGetTournamentTeamsQuery(tournamentId || undefined, { skip: !tournamentId });
   const allTeams = Array.isArray(tournamentTeams) ? tournamentTeams : [];
-  const selectedTournament = tournaments.find(
-    (t) => String(t.id) === tournamentId,
-  );
+  const selectedTournament = tournaments.find((t) => String(t.id) === tournamentId);
   const numberOfGroups = selectedTournament?.number_of_groups ?? 1;
   const hasGroups = numberOfGroups > 1;
 
   const [matchGroupKey, setMatchGroupKey] = useState('knockout');
-  const matchGroupIndex =
-    matchGroupKey !== '' && matchGroupKey !== 'knockout'
-      ? Number(matchGroupKey)
-      : null;
+  const matchGroupIndex = matchGroupKey !== '' && matchGroupKey !== 'knockout' ? Number(matchGroupKey) : null;
   const teams =
-    hasGroups && matchGroupIndex != null
-      ? allTeams.filter((t) => Number(t.group_index) === matchGroupIndex)
-      : allTeams;
+    hasGroups && matchGroupIndex != null ? allTeams.filter((t) => Number(t.group_index) === matchGroupIndex) : allTeams;
 
   useEffect(() => {
-    if (
-      tournamentIdFromUrl &&
-      getValues('tournament_id') !== String(tournamentIdFromUrl)
-    )
+    if (tournamentIdFromUrl && getValues('tournament_id') !== String(tournamentIdFromUrl))
       setValue('tournament_id', String(tournamentIdFromUrl));
   }, [tournamentIdFromUrl, setValue, getValues]);
 
@@ -153,83 +122,76 @@ export default function StartMatch() {
     if (!bInList) setValue('team_b_id', '');
   }, [hasGroups, matchGroupKey, teams, team_a_id, team_b_id, setValue]);
 
-  const [teamSelectDialogOpen, setTeamSelectDialogOpen] = useState(false);
-  const [teamSelectSide, setTeamSelectSide] = useState(null); // 'A' | 'B'
-  const [oversDialogOpen, setOversDialogOpen] = useState(false);
-  const [wicketsDialogOpen, setWicketsDialogOpen] = useState(false);
-  const [tossDialogOpen, setTossDialogOpen] = useState(false);
-  const [tossWinner, setTossWinner] = useState('');
-  const [tossDecision, setTossDecision] = useState('');
-
   const handleBack = () => navigate(-1);
+
   const onSaveFixture = async (data) => {
     try {
-      await createMatch(buildMatchPayload(data, matchGroupIndex)).unwrap();
-      toast.success(
-        'Fixture saved. You can start scoring from the match later.',
-      );
+      const created = await createMatch(buildMatchPayload(data, matchGroupIndex)).unwrap();
+      const matchId = created?.data?.id ?? created?.id;
+      const thumbnailFile = thumbnailUpload.files[0] ?? null;
+      if (matchId && thumbnailFile) {
+        try {
+          await uploadMediaFile(uploadMedia, { type: 'match', id: matchId, field: 'thumbnail', file: thumbnailFile });
+        } catch {
+          // Thumbnail upload failed — fixture was saved; non-blocking.
+        }
+      }
+      toast.success('Fixture saved. You can start scoring from the match later.');
       navigate('/organizer/tournaments');
     } catch (err) {
-      toast.error(
-        getApiErrorMessage(err) ?? 'Could not save fixture. Please try again.',
-      );
+      toast.error(getApiErrorMessage(err) ?? 'Could not save fixture. Please try again.');
     }
   };
 
   const onOpenToss = (data) => {
     validatedFormDataRef.current = data;
-    setTossDialogOpen(true);
+    const teamA = teams.find((t) => String(t.id) === data.team_a_id);
+    const teamB = teams.find((t) => String(t.id) === data.team_b_id);
+    openDialog('startMatchToss', {
+      teamAName: teamA?.name ?? 'Team A',
+      teamBName: teamB?.name ?? 'Team B',
+      teamALogo: teamA?.logo ?? null,
+      teamBLogo: teamB?.logo ?? null,
+      onStartScoring: handleStartScoring,
+    });
   };
 
-  const handleStartScoring = async () => {
+  const handleStartScoring = async ({ tossWinner, tossDecision }) => {
     const data = validatedFormDataRef.current;
     if (!data) return;
-
-    if (!tossWinner || !tossDecision) return;
-
-    setTossDialogOpen(false);
-    setTossWinner('');
-    setTossDecision('');
-
     try {
-      const created = await createMatch(
-        buildMatchPayload(data, matchGroupIndex),
-      ).unwrap();
-      const matchId = created?.id;
+      const created = await createMatch(buildMatchPayload(data, matchGroupIndex)).unwrap();
+      const matchId = created?.data?.id ?? created?.id;
+      const thumbnailFile = thumbnailUpload.files[0] ?? null;
+      if (matchId && thumbnailFile) {
+        try {
+          await uploadMediaFile(uploadMedia, { type: 'match', id: matchId, field: 'thumbnail', file: thumbnailFile });
+        } catch {
+          // Thumbnail upload failed — match was created; non-blocking.
+        }
+      }
       if (matchId) {
-        const winningTeamId =
-          tossWinner === 'A' ? Number(data.team_a_id) : Number(data.team_b_id);
+        const winningTeamId = tossWinner === 'A' ? Number(data.team_a_id) : Number(data.team_b_id);
         await updateToss({
           matchId,
           winning_team_id: winningTeamId,
           chose_to_bat_or_bowl: tossDecision,
         }).unwrap();
         navigate(`/organizer/scoring/match/${matchId}`);
-        return;
       }
     } catch (err) {
-      toast.error(
-        getApiErrorMessage(err) ?? 'Could not create match. Please try again.',
-      );
-      return;
+      toast.error(getApiErrorMessage(err) ?? 'Could not create match. Please try again.');
     }
   };
 
   return (
     <div className="bg-black">
-      <AppSubpageHeader
-        title="Start A Match"
-        onBack={handleBack}
-        titleClassName="truncate"
-      />
+      <AppSubpageHeader title="Start A Match" onBack={handleBack} titleClassName="truncate" />
       <Container>
-        <div className="space-y-6 pb-8">
+        <FormStack className="pb-8">
           {/* Tournament selection (hidden when opened from tournament hub with pre-selected tournament) */}
           {!tournamentPreSelected && (
-            <FormField
-              htmlFor="tournament_id"
-              label="Tournament"
-            >
+            <FormField htmlFor="tournament_id" label="Tournament">
               <select
                 id="tournament_id"
                 value={tournamentId}
@@ -240,10 +202,10 @@ export default function StartMatch() {
                   setValue('team_b_id', '');
                 }}
                 className={`${oversInputBase} w-full ${errors.tournament_id ? 'border-red-500' : ''}`}
-                aria-label="Select tournament"
+                aria-label="Select Tournament"
                 aria-invalid={!!errors.tournament_id}
               >
-                <option value="">Select tournament</option>
+                <option value="">Select Tournament</option>
                 {tournaments.map((t) => (
                   <option key={t.id} value={String(t.id)}>
                     {t.tournament_name ?? t.name ?? `Tournament ${t.id}`}
@@ -259,10 +221,7 @@ export default function StartMatch() {
           )}
 
           {hasGroups && (
-            <FormField
-              htmlFor="match_group"
-              label="Match type"
-            >
+            <FormField htmlFor="match_group" label="Match Type">
               <select
                 id="match_group"
                 value={matchGroupKey}
@@ -273,16 +232,14 @@ export default function StartMatch() {
                   setValue('team_b_id', '');
                 }}
                 className={`${oversInputBase} w-full`}
-                aria-label="Match type (group or knockout)"
+                aria-label="Match Type (Group or Knockout)"
               >
                 <option value="knockout">Knockout / Playoff</option>
-                {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map(
-                  (idx) => (
-                    <option key={idx} value={String(idx)}>
-                      Group {idx}
-                    </option>
-                  ),
-                )}
+                {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map((idx) => (
+                  <option key={idx} value={String(idx)}>
+                    Group {idx}
+                  </option>
+                ))}
               </select>
             </FormField>
           )}
@@ -292,66 +249,50 @@ export default function StartMatch() {
             <button
               type="button"
               disabled={!tournamentId || teams.length === 0}
-              onClick={() => {
-                setTeamSelectSide('A');
-                setTeamSelectDialogOpen(true);
-              }}
-              className={`flex flex-1 flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] bg-[#141412] p-4 transition-opacity active:opacity-90 disabled:cursor-default disabled:opacity-60 ${errors.team_a_id ? 'border-red-500' : ''}`}
+              onClick={() =>
+                openDialog('startMatchTeamSelect', {
+                  title: 'Select Team A',
+                  teams: teams.filter((t) => String(t.id) !== team_b_id),
+                  selectedTeamId: team_a_id,
+                  onSelect: (id) => setValue('team_a_id', id),
+                })
+              }
+              className={`bg-surface flex flex-1 flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] p-4 transition-opacity active:opacity-90 disabled:cursor-default disabled:opacity-60 ${errors.team_a_id ? 'border-red-500' : ''}`}
               aria-label="Select Team A"
             >
-              <img
-                src={teamMatchIcon}
-                alt=""
-                className="h-10 w-10 shrink-0"
-                aria-hidden
-              />
+              <TeamLogo team={teams.find((t) => String(t.id) === team_a_id)} variant="match" />
               <span className="text-[16px] font-bold tracking-wide text-white uppercase">
-                {team_a_id && teams.length > 0
-                  ? (teams.find((t) => String(t.id) === team_a_id)?.name ??
-                    'Team A')
-                  : 'Team A'}
+                {team_a_id && teams.length > 0 ? (teams.find((t) => String(t.id) === team_a_id)?.name ?? 'Team A') : 'Team A'}
               </span>
-              <span className="text-[13px] font-normal text-[#A2A6AB]">
-                {!tournamentId
-                  ? 'Select tournament'
-                  : team_a_id
-                    ? null
-                    : 'Select Team'}
+              <span className="text-muted text-[13px] font-normal">
+                {!tournamentId ? 'Select Tournament' : team_a_id ? null : 'Select Team'}
               </span>
             </button>
             <div className="relative z-10 -mx-3 flex shrink-0 items-center">
-              <span className="flex h-13 w-13 shrink-0 items-center justify-center rounded-full border-[8px] border-black bg-[#DA9811] text-[12px] font-bold tracking-wide text-[#080807] uppercase">
+              <span className="bg-brand text-ink flex h-13 w-13 shrink-0 items-center justify-center rounded-full border-[8px] border-black text-[12px] font-bold tracking-wide uppercase">
                 VS
               </span>
             </div>
             <button
               type="button"
               disabled={!tournamentId || teams.length === 0}
-              onClick={() => {
-                setTeamSelectSide('B');
-                setTeamSelectDialogOpen(true);
-              }}
-              className={`flex flex-1 flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] bg-[#141412] p-4 transition-opacity active:opacity-90 disabled:cursor-default disabled:opacity-60 ${errors.team_b_id ? 'border-red-500' : ''}`}
+              onClick={() =>
+                openDialog('startMatchTeamSelect', {
+                  title: 'Select Team B',
+                  teams: teams.filter((t) => String(t.id) !== team_a_id),
+                  selectedTeamId: team_b_id,
+                  onSelect: (id) => setValue('team_b_id', id),
+                })
+              }
+              className={`bg-surface flex flex-1 flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] p-4 transition-opacity active:opacity-90 disabled:cursor-default disabled:opacity-60 ${errors.team_b_id ? 'border-red-500' : ''}`}
               aria-label="Select Team B"
             >
-              <img
-                src={teamMatchIcon}
-                alt=""
-                className="h-10 w-10 shrink-0"
-                aria-hidden
-              />
+              <TeamLogo team={teams.find((t) => String(t.id) === team_b_id)} variant="match" />
               <span className="text-[16px] font-bold tracking-wide text-white uppercase">
-                {team_b_id && teams.length > 0
-                  ? (teams.find((t) => String(t.id) === team_b_id)?.name ??
-                    'Team B')
-                  : 'Team B'}
+                {team_b_id && teams.length > 0 ? (teams.find((t) => String(t.id) === team_b_id)?.name ?? 'Team B') : 'Team B'}
               </span>
-              <span className="text-[13px] font-normal text-[#A2A6AB]">
-                {!tournamentId
-                  ? 'Select tournament'
-                  : team_b_id
-                    ? null
-                    : 'Select Team'}
+              <span className="text-muted text-[13px] font-normal">
+                {!tournamentId ? 'Select Tournament' : team_b_id ? null : 'Select Team'}
               </span>
             </button>
           </div>
@@ -366,24 +307,11 @@ export default function StartMatch() {
             </p>
           )}
 
-          <FormField
-            htmlFor="venue"
-            label="Select a Venue"
-          >
-            <Input
-              id="venue"
-              placeholder="Venue Name"
-              error={errors.venue?.message}
-              className="!mb-0"
-              {...register('venue')}
-            />
+          <FormField htmlFor="venue" label="Select a Venue">
+            <Input id="venue" placeholder="Venue Name" error={errors.venue?.message} className="!mb-0" {...register('venue')} />
           </FormField>
 
-          {/* Match date and time */}
-          <div className="flex flex-col gap-1">
-            <Label className={formFieldLabelCheckoutClass}>
-              Match Date and Time
-            </Label>
+          <FormField label="Match Date and Time" htmlFor="match_date">
             <div className="grid grid-cols-2 gap-3">
               <Controller
                 name="match_date"
@@ -402,12 +330,7 @@ export default function StartMatch() {
                 name="match_time"
                 control={control}
                 render={({ field }) => (
-                  <TimePicker
-                    id={field.name}
-                    value={field.value}
-                    onChange={field.onChange}
-                    placeholder="Select Time"
-                  />
+                  <TimePicker id={field.name} value={field.value} onChange={field.onChange} placeholder="Select Time" />
                 )}
               />
             </div>
@@ -416,76 +339,67 @@ export default function StartMatch() {
                 {errors.match_date?.message || errors.match_time?.message}
               </p>
             )}
-          </div>
+          </FormField>
 
-          {/* Overs + Wickets */}
-          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-            <div className="space-y-6">
-              <FormField
-                htmlFor="overs"
-                label="Overs"
+          <FormStack layout="grid-2">
+            <FormField htmlFor="overs" label="Overs">
+              <button
+                type="button"
+                id="overs"
+                onClick={() =>
+                  openDialog('startMatchOvers', {
+                    initialOvers: overs,
+                    options: oversOptions,
+                    onChange: (v) => setValue('overs', v),
+                  })
+                }
+                className={`${oversInputBase} ${!overs ? '!text-muted/47' : ''}`}
+                aria-label="Select Overs"
               >
-                <button
-                  type="button"
-                  id="overs"
-                  onClick={() => setOversDialogOpen(true)}
-                  className={`${oversInputBase} ${!overs ? '!text-[#A2A6AB78]' : ''}`}
-                  aria-label="Select overs"
-                >
-                  {overs || 'Select Overs'}
-                </button>
-                {errors.overs?.message && (
-                  <p className="text-sm text-red-200" role="alert">
-                    {errors.overs.message}
-                  </p>
-                )}
-              </FormField>
+                {overs || 'Select Overs'}
+              </button>
+              {errors.overs?.message && (
+                <p className="text-sm text-red-200" role="alert">
+                  {errors.overs.message}
+                </p>
+              )}
+            </FormField>
 
-              <OversDialog
-                open={oversDialogOpen}
-                onOpenChange={setOversDialogOpen}
-                overs={overs}
-                options={oversOptions}
-                onChange={(v) => setValue('overs', v)}
-              />
-            </div>
-
-            <div className="space-y-6">
-              {/* Wickets / players per side */}
-              <FormField
-                htmlFor="players-per-side"
-                label="Wickets"
+            <FormField htmlFor="players-per-side" label="Wickets">
+              <button
+                type="button"
+                id="players-per-side"
+                onClick={() =>
+                  openDialog('startMatchPlayersPerSide', {
+                    initialPlayersPerSide: playersPerSide,
+                    options: playersPerSideOptions,
+                    onSelect: (val) => setValue('players_per_side', val),
+                  })
+                }
+                className={`${oversInputBase} ${!playersPerSide ? '!text-muted/47' : ''}`}
+                aria-label="Select Players Per Side"
               >
-                <button
-                  type="button"
-                  id="players-per-side"
-                  onClick={() => setWicketsDialogOpen(true)}
-                  className={`${oversInputBase} ${
-                    !playersPerSide ? '!text-[#A2A6AB78]' : ''
-                  }`}
-                  aria-label="Select players per side"
-                >
-                  {playersPerSide || 'Select Players Per Side'}
-                </button>
-                {errors.players_per_side?.message && (
-                  <p className="text-sm text-red-200" role="alert">
-                    {errors.players_per_side.message}
-                  </p>
-                )}
-              </FormField>
+                {playersPerSide || 'Select Players Per Side'}
+              </button>
+              {errors.players_per_side?.message && (
+                <p className="text-sm text-red-200" role="alert">
+                  {errors.players_per_side.message}
+                </p>
+              )}
+            </FormField>
+          </FormStack>
 
-              <PlayersPerSideDialog
-                open={wicketsDialogOpen}
-                onOpenChange={setWicketsDialogOpen}
-                playersPerSide={playersPerSide}
-                options={playersPerSideOptions}
-                onSelect={(val) => setValue('players_per_side', val)}
-              />
-            </div>
-          </div>
+          <FileUploadField
+            label="Stream Thumbnail"
+            value={thumbnailUpload}
+            onChange={setThumbnailUpload}
+            accept="image/jpeg,image/png,image/webp"
+            acceptLabel="JPG, PNG, WebP"
+            maxSizeMb={5}
+            hint="Shown on the Live hub."
+          />
 
-          {/* Actions */}
-          <div className="flex gap-3 pt-2 lg:justify-start">
+          <FormActions align="start">
             <Button
               type="button"
               variant="fixture"
@@ -504,52 +418,9 @@ export default function StartMatch() {
             >
               {isCreatingMatch || isUpdatingToss ? 'Starting…' : 'Start Match'}
             </Button>
-          </div>
-        </div>
+          </FormActions>
+        </FormStack>
       </Container>
-
-      <TeamSelectDialog
-        open={teamSelectDialogOpen}
-        onOpenChange={(open) => {
-          setTeamSelectDialogOpen(open);
-          if (!open) setTeamSelectSide(null);
-        }}
-        title={teamSelectSide === 'A' ? 'Select Team A' : 'Select Team B'}
-        teams={
-          teamSelectSide === 'B'
-            ? teams.filter((t) => String(t.id) !== team_a_id)
-            : teams.filter((t) => String(t.id) !== team_b_id)
-        }
-        selectedTeamId={teamSelectSide === 'A' ? team_a_id : team_b_id}
-        onSelect={(id) => {
-          if (teamSelectSide === 'A') setValue('team_a_id', id);
-          else if (teamSelectSide === 'B') setValue('team_b_id', id);
-        }}
-      />
-
-      <TossDialog
-        open={tossDialogOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            setTossWinner('');
-            setTossDecision('');
-          }
-          setTossDialogOpen(open);
-        }}
-        teamAName={
-          teams.find((t) => String(t.id) === team_a_id)?.name ?? 'Team A'
-        }
-        teamBName={
-          teams.find((t) => String(t.id) === team_b_id)?.name ?? 'Team B'
-        }
-        tossWinner={tossWinner}
-        setTossWinner={setTossWinner}
-        tossDecision={tossDecision}
-        setTossDecision={setTossDecision}
-        onStartScoring={handleStartScoring}
-        disabled={isCreatingMatch || isUpdatingToss}
-        canConfirm={!!tossWinner && !!tossDecision}
-      />
     </div>
   );
 }

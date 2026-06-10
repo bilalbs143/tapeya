@@ -8,12 +8,7 @@ import { baseApi } from './baseApi';
 export const rankingApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getRankings: builder.query({
-      query: ({
-        tournament_type = 'open_tournament',
-        category = 'batting',
-        sort,
-        min_innings,
-      } = {}) => ({
+      query: ({ tournament_type = 'open_tournament', category = 'batting', sort, min_innings } = {}) => ({
         url: '/rankings',
         params: {
           tournament_type,

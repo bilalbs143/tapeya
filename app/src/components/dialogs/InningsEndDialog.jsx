@@ -1,125 +1,88 @@
-import { useNavigate } from 'react-router-dom';
-
-import { useAppDispatch } from '@/store/hooks';
-import { closeDialog } from '@/store/slices/commonSlice';
-import { Button } from '@/ui/Button';
-import {
-  DialogHeaderRow,
-  dialogPrimaryTitleClass,
-  DialogScrollBody,
-  DialogTitle,
-} from '@/ui/Dialog';
+import { useDialog } from '@/context/DialogContext';
+import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
+import { FormStack } from '@/ui/form/FormStack';
 
 function reasonDescription({ reason, matchOvers, battingTeamName }) {
-  if (reason === 'target') {
+  if (reason === 'target_reached') {
     return 'The target score has been reached.';
   }
-  if (reason === 'wickets') {
+  if (reason === 'all_out') {
     return 'All wickets have fallen for this innings.';
   }
+  if (reason === 'manual') {
+    return 'The innings has been ended by the organiser.';
+  }
+  // overs_complete or any fallback
   if (matchOvers != null && Number.isFinite(matchOvers)) {
-    return `All ${matchOvers} overs have been completed${
-      battingTeamName ? ` for ${battingTeamName}` : ''
-    }.`;
+    return `All ${matchOvers} overs have been completed${battingTeamName ? ` for ${battingTeamName}` : ''}.`;
   }
   return 'All scheduled overs for this innings have been completed.';
 }
 
 /**
  * Shown when live scoring detects the end of an innings (overs, wickets, or chase).
- * Match over + `tournamentId`: **Continue** goes to that tournament's fixtures tab.
+ * Man of the Match is handled by {@link ManOfTheMatchDialog} when opened from the parent.
  *
- * @param {object} [matchResult] – Second innings only: `{ tie, titleLine, marginLine?, scoresLine?, detailLine? }`.
+ * @param {object} [matchResult] – Second innings only: summary + `tie`, `winningTeamId`, lines.
  */
 export function InningsEndDialog({
   variant = 'first_innings_break',
-  reason = 'overs',
+  reason = 'overs_complete',
   battingTeamName = '',
   matchOvers,
   matchResult,
-  tournamentId,
 }) {
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
-
+  const { closeDialog } = useDialog();
   const isMatchOver = variant === 'match_over';
 
   const handleContinue = () => {
-    if (isMatchOver && tournamentId != null && tournamentId !== '') {
-      navigate(`/upcoming-tournaments/${tournamentId}?tab=fixtures`, {
-        replace: true,
-      });
-    }
-    dispatch(closeDialog());
+    closeDialog();
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <>
       <DialogHeaderRow>
-        <DialogTitle className={dialogPrimaryTitleClass}>
-          {isMatchOver ? 'Match Over' : 'Innings Complete'}
-        </DialogTitle>
+        <DialogTitle className={dialogPrimaryTitleClass}>{isMatchOver ? 'Match Over' : 'Innings Complete'}</DialogTitle>
       </DialogHeaderRow>
 
-      <DialogScrollBody className="flex min-h-0 flex-1 flex-col px-5 pb-4 text-center">
-        {isMatchOver && matchResult ? (
-          <>
-            <p className="text-[12px] font-bold tracking-wide text-[#DA9811] uppercase">
-              Match result
-            </p>
-            <DialogTitle className="mt-3 text-[16px] leading-snug font-bold text-white capitalize">
-              {matchResult.tie
-                ? matchResult.titleLine
-                : `${matchResult.titleLine} ${matchResult.marginLine ?? ''}`.trim()}
-            </DialogTitle>
-            {!matchResult.tie && matchResult.scoresLine ? (
-              <p className="mt-3 text-[13px] leading-snug text-[#A2A6AB]">
-                {matchResult.scoresLine}
+      <DialogScrollBody>
+        <FormStack density="compact" className="text-center">
+          {isMatchOver && matchResult ? (
+            <>
+              <p className="text-brand text-[12px] font-bold tracking-wide uppercase">Match result</p>
+              <DialogTitle className="mt-3 text-[16px] leading-snug font-bold text-white capitalize">
+                {matchResult.tie ? matchResult.titleLine : `${matchResult.titleLine} ${matchResult.marginLine ?? ''}`.trim()}
+              </DialogTitle>
+              {!matchResult.tie && matchResult.scoresLine ? (
+                <p className="text-muted mt-3 text-[13px] leading-snug">{matchResult.scoresLine}</p>
+              ) : null}
+              {matchResult.tie && matchResult.detailLine ? (
+                <p className="text-muted mt-3 text-[13px] leading-snug">{matchResult.detailLine}</p>
+              ) : null}
+            </>
+          ) : isMatchOver ? (
+            <>
+              <DialogTitle className="text-[14px] font-bold text-white">Match Ended</DialogTitle>
+              <p className="text-muted mt-2 text-[13px] leading-snug">
+                {reasonDescription({ reason, matchOvers, battingTeamName })}
               </p>
-            ) : null}
-            {matchResult.tie && matchResult.detailLine ? (
-              <p className="mt-3 text-[13px] leading-snug text-[#A2A6AB]">
-                {matchResult.detailLine}
+            </>
+          ) : (
+            <>
+              <DialogTitle className="text-[14px] font-bold text-white">Innings Ended</DialogTitle>
+              <p className="text-muted mt-2 text-[13px] leading-snug">
+                The first innings is complete. Continue when you are ready to set up the second innings.
               </p>
-            ) : null}
-          </>
-        ) : isMatchOver ? (
-          <>
-            <DialogTitle className="text-[14px] font-bold text-white capitalize">
-              Match ended
-            </DialogTitle>
-            <p className="mt-2 text-[13px] leading-snug text-[#A2A6AB]">
-              {reasonDescription({ reason, matchOvers, battingTeamName })}
-            </p>
-          </>
-        ) : (
-          <>
-            <DialogTitle className="text-[14px] font-bold text-white capitalize">
-              Innings ended
-            </DialogTitle>
-            <p className="mt-2 text-[13px] leading-snug text-[#A2A6AB]">
-              The first innings is complete. Continue when you are ready to set
-              up the second innings.
-            </p>
-            <p className="mt-2 text-[13px] leading-snug text-[#A2A6AB]">
-              {reasonDescription({ reason, matchOvers, battingTeamName })}
-            </p>
-          </>
-        )}
+              <p className="text-muted mt-2 text-[13px] leading-snug">
+                {reasonDescription({ reason, matchOvers, battingTeamName })}
+              </p>
+            </>
+          )}
+        </FormStack>
       </DialogScrollBody>
 
-      <div className="shrink-0 px-5 pt-4 pb-5">
-        <Button
-          type="button"
-          variant="orangeDialog"
-          size="dialog"
-          className="w-full"
-          onClick={handleContinue}
-        >
-          Continue
-        </Button>
-      </div>
-    </div>
+      <DialogSaveButton onClick={handleContinue}>Continue</DialogSaveButton>
+    </>
   );
 }
 

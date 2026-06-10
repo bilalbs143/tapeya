@@ -56,9 +56,7 @@ export class InterestSubmissionService {
   private readonly messageService = inject(MessageService);
   private readonly baseUrl = 'v1/admin/interest-submissions';
 
-  public getList(
-    params: Partial<ListParams> & Record<string, unknown> = {}
-  ): Observable<InterestSubmissionListResponse> {
+  public getList(params: Partial<ListParams> & Record<string, unknown> = {}): Observable<InterestSubmissionListResponse> {
     return this.http.get<InterestSubmissionListResponse>(this.baseUrl, {
       params: toHttpParams(params as Record<string, unknown>),
     });

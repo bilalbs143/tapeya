@@ -84,10 +84,7 @@ export function addSearchFilter<T extends BaseListParams>(
 /**
  * Add name filter. Only adds filter[name] when value is non-empty.
  */
-export function addNameFilter<T extends BaseListParams>(
-  params: T,
-  name: string
-): T & Partial<Record<'filter[name]', string>> {
+export function addNameFilter<T extends BaseListParams>(params: T, name: string): T & Partial<Record<'filter[name]', string>> {
   const value = typeof name === 'string' ? name.trim() : '';
   if (!value) return params as T & Partial<Record<'filter[name]', string>>;
   return { ...params, 'filter[name]': value } as T & Record<'filter[name]', string>;
@@ -96,10 +93,7 @@ export function addNameFilter<T extends BaseListParams>(
 /**
  * Add phone filter. Only adds filter[phone] when value is non-empty.
  */
-export function addPhoneFilter<T extends BaseListParams>(
-  params: T,
-  phone: string
-): T & Partial<Record<'filter[phone]', string>> {
+export function addPhoneFilter<T extends BaseListParams>(params: T, phone: string): T & Partial<Record<'filter[phone]', string>> {
   const value = typeof phone === 'string' ? phone.trim() : '';
   if (!value) return params as T & Partial<Record<'filter[phone]', string>>;
   return { ...params, 'filter[phone]': value } as T & Record<'filter[phone]', string>;

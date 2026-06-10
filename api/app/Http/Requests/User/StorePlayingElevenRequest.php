@@ -17,7 +17,7 @@ class StorePlayingElevenRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'player_ids' => ['required', 'array', 'min:1'],
+            'player_ids' => ['required', 'array', 'min:1', 'distinct'],
             'player_ids.*' => ['integer', 'exists:users,id'],
         ];
     }

@@ -7,12 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import {
-  clearOtpPreview,
-  extractOtpFromAuthResponse,
-  getOtpPreview,
-  setOtpPreview,
-} from '@/lib/otpPreviewSession';
+import { clearOtpPreview, extractOtpFromAuthResponse, getOtpPreview, setOtpPreview } from '@/lib/otpPreviewSession';
 import { markReturningUser } from '@/lib/returningUser';
 import { addSavedProfile, bumpSavedProfile } from '@/lib/savedProfiles';
 import { formatPhoneFull } from '@/lib/utils/phoneUtils';
@@ -123,7 +118,10 @@ export default function Otp() {
       setServerError(null);
 
       try {
-        const result = await verifyOtp({ phone: phoneRaw, code: submittedCode }).unwrap();
+        const result = await verifyOtp({
+          phone: phoneRaw,
+          code: submittedCode,
+        }).unwrap();
         const { user, auth } = result?.data ?? result ?? {};
         const token = auth?.access_token;
 
@@ -233,8 +231,7 @@ export default function Otp() {
           <p className="text-center text-[14px] text-white">
             {phoneRaw ? (
               <>
-                Enter OTP sent to{' '}
-                <span className="font-bold text-[#DA9811]">{phone}</span>
+                Enter OTP sent to <span className="text-brand font-bold">{phone}</span>
               </>
             ) : (
               'Enter the OTP you received'
@@ -244,7 +241,7 @@ export default function Otp() {
           {/* Shown in non-production environments when the API returns the OTP directly */}
           {latestOtp && (
             <p
-              className="rounded-[6px] border border-[#1A1A1A] bg-[#DA9811]/20 px-4 py-2.5 text-center text-[14px] text-[#E8A820]"
+              className="border-surface-border bg-brand/20 rounded-[6px] border px-4 py-2.5 text-center text-[14px] text-[#E8A820]"
               role="status"
             >
               Use this OTP Below: <strong className="tabular-nums">{latestOtp}</strong>
@@ -264,7 +261,7 @@ export default function Otp() {
                   onChange={(e) => setDigit(i, e.target.value)}
                   onKeyDown={(e) => onKeyDown(i, e)}
                   onPaste={onPaste}
-                  className="!h-[55px] !max-w-full rounded-full border border-[#1A1A1A] text-center text-lg tabular-nums"
+                  className="border-surface-border !h-[55px] !max-w-full rounded-full border text-center text-lg tabular-nums"
                   aria-label={`Digit ${i + 1}`}
                 />
               </div>
@@ -284,7 +281,7 @@ export default function Otp() {
                 type="button"
                 onClick={handleResend}
                 disabled={!phoneRaw || isResendLoading || resendCooldown > 0}
-                className="font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820] disabled:cursor-not-allowed disabled:opacity-50"
+                className="text-brand font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : isResendLoading ? 'Sending…' : 'Resend'}
               </button>

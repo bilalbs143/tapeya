@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Http\ApiErrorCatalog;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\ServiceProvider;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class MacroServiceProvider extends ServiceProvider
 {
@@ -35,14 +37,8 @@ class MacroServiceProvider extends ServiceProvider
         });
 
         Response::macro('failure', function (?string $message = null, string $type = 'BAD_REQUEST', $errors = null) {
-            $status = match ($type) {
-                'UNAUTHORIZED' => 401,
-                'FORBIDDEN' => 403,
-                'NOT_FOUND' => 404,
-                'VALIDATION_ERROR' => 422,
-                'SERVER_ERROR' => 500,
-                default => 400,
-            };
+            $status = ApiErrorCatalog::statusForType($type);
+
             $payload = array_filter(
                 [
                     'message' => $message,
@@ -55,8 +51,12 @@ class MacroServiceProvider extends ServiceProvider
             return response()->json($payload, $status);
         });
 
+        Response::macro('fromHttpException', function (HttpExceptionInterface $e) {
+            return ApiErrorCatalog::jsonFromHttpException($e);
+        });
+
         Response::macro('forbidden', function (?string $message = null) {
-            return response()->json(['message' => $message ?? 'Forbidden'], 403);
+            return response()->failure($message ?? 'This action is unauthorized.', 'FORBIDDEN');
         });
 
         Response::macro('noContent', function () {

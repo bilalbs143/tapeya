@@ -57,6 +57,11 @@ export const navItems: NavItem[] = [
         iconName: 'tabler:point',
         route: '/content-management/static-pages',
       },
+      {
+        displayName: 'Highlights',
+        iconName: 'tabler:point',
+        route: '/content-management/highlights',
+      },
     ],
   },
   {
@@ -79,6 +84,22 @@ export const navItems: NavItem[] = [
     displayName: 'Notifications',
     iconName: 'solar:bell-line-duotone',
     route: '/notifications',
+  },
+  {
+    displayName: 'Engagement',
+    iconName: 'solar:chat-round-dots-line-duotone',
+    children: [
+      {
+        displayName: 'Push Notifications',
+        iconName: 'tabler:point',
+        route: '/engagement/push-notifications',
+      },
+      {
+        displayName: 'Push Templates',
+        iconName: 'tabler:point',
+        route: '/engagement/push-notification-templates',
+      },
+    ],
   },
   {
     displayName: 'Shop',

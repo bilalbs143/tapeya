@@ -14,9 +14,7 @@ const thumb =
 export function ScrollArea({ className = '', children, ...props }) {
   return (
     <ScrollAreaPrimitive.Root className={`${root} ${className}`} {...props}>
-      <ScrollAreaPrimitive.Viewport className={viewport}>
-        {children}
-      </ScrollAreaPrimitive.Viewport>
+      <ScrollAreaPrimitive.Viewport className={viewport}>{children}</ScrollAreaPrimitive.Viewport>
       <ScrollBar />
     </ScrollAreaPrimitive.Root>
   );
@@ -24,11 +22,7 @@ export function ScrollArea({ className = '', children, ...props }) {
 
 export function ScrollBar({ orientation = 'vertical', ...props }) {
   return (
-    <ScrollAreaPrimitive.Scrollbar
-      orientation={orientation}
-      className={scrollbar}
-      {...props}
-    >
+    <ScrollAreaPrimitive.Scrollbar orientation={orientation} className={scrollbar} {...props}>
       <ScrollAreaPrimitive.Thumb className={thumb} />
     </ScrollAreaPrimitive.Scrollbar>
   );

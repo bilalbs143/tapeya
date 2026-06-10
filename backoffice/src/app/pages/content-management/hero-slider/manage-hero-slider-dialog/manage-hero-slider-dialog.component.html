@@ -7,83 +7,29 @@
     <mat-dialog-content>
       <div class="grid grid-cols-12 gap-x-6">
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block">
-            Mobile Image (default)
-            @if (!isEdit) {
-              <span class="text-error">*</span>
-            }
-            @if (isEdit) {
-              <span class="text-xs font-normal text-gray-500"> — Leave empty to keep current</span>
-            }
-          </mat-label>
-          <div class="flex flex-col gap-2 items-start">
-            @if (mobilePreviewUrl) {
-              <div class="grid shrink-0">
-                <img
-                  [src]="mobilePreviewUrl"
-                  alt="Mobile Preview"
-                  class="col-start-1 row-start-1 block max-h-40 max-w-full object-cover rounded border border-default-border"
-                />
-                <button
-                  type="button"
-                  mat-icon-button
-                  class="col-start-1 row-start-1 justify-self-end self-start m-2 size-8 min-w-8 rounded-full bg-white shadow-md border border-error text-error hover:bg-error hover:text-white hover:border-error"
-                  aria-label="Remove mobile image"
-                  (click)="clearMobileFile()"
-                >
-                  <i-tabler
-                    name="trash"
-                    class="size-5"
-                  ></i-tabler>
-                </button>
-              </div>
-            }
-            <input
-              type="file"
-              accept="image/*"
-              (change)="onMobileFileSelected($event)"
-              class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-primary file:text-white file:font-medium"
-            />
-            @if (form.get('image_mobile')?.invalid && form.get('image_mobile')?.touched && !isEdit) {
-              <span class="text-error text-sm">Mobile Image is required</span>
-            }
-          </div>
+          <app-file-upload
+            formControlName="image_mobile"
+            label="Mobile Image (default)"
+            accept="image/jpeg,image/png,image/webp"
+            acceptLabel="JPG, PNG, WebP"
+            hint="Shown on mobile devices and used as fallback on desktop. 1200×628 px recommended."
+            [required]="!isEdit"
+            [maxSizeMb]="5"
+          ></app-file-upload>
+          @if (form.get('image_mobile')?.invalid && form.get('image_mobile')?.touched) {
+            <p class="text-xs text-error mt-1 m-0">Mobile image is required.</p>
+          }
         </div>
 
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block">
-            Desktop Image
-            <span class="text-xs font-normal text-gray-500"> — Optional; app uses Mobile Image if empty</span>
-          </mat-label>
-          <div class="flex flex-col gap-2 items-start">
-            @if (desktopPreviewUrl) {
-              <div class="grid shrink-0">
-                <img
-                  [src]="desktopPreviewUrl"
-                  alt="Desktop Preview"
-                  class="col-start-1 row-start-1 block max-h-40 max-w-full object-cover rounded border border-default-border"
-                />
-                <button
-                  type="button"
-                  mat-icon-button
-                  class="col-start-1 row-start-1 justify-self-end self-start m-2 size-8 min-w-8 rounded-full bg-white shadow-md border border-error text-error hover:bg-error hover:text-white hover:border-error"
-                  aria-label="Remove desktop image"
-                  (click)="clearDesktopFile()"
-                >
-                  <i-tabler
-                    name="trash"
-                    class="size-5"
-                  ></i-tabler>
-                </button>
-              </div>
-            }
-            <input
-              type="file"
-              accept="image/*"
-              (change)="onDesktopFileSelected($event)"
-              class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-primary file:text-white file:font-medium"
-            />
-          </div>
+          <app-file-upload
+            formControlName="image_desktop"
+            label="Desktop Image"
+            accept="image/jpeg,image/png,image/webp"
+            acceptLabel="JPG, PNG, WebP"
+            hint="Optional — app uses the mobile image if this is not set. 1920×600 px recommended."
+            [maxSizeMb]="5"
+          ></app-file-upload>
         </div>
 
         <div class="col-span-12">

@@ -83,9 +83,7 @@ export class CampaignSubmissionsComponent implements OnInit, AfterViewInit, OnDe
     'actions',
   ];
 
-  public statusOptions$: Observable<EnumOption[]> = this.enumsService.getOptions(
-    'tournament_interest_submission_status'
-  );
+  public statusOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('tournament_interest_submission_status');
 
   public totalRecords = 0;
   public currentPage = 0;
@@ -173,7 +171,10 @@ export class CampaignSubmissionsComponent implements OnInit, AfterViewInit, OnDe
       SubmissionDetailDialogComponent,
       { submission },
       (saved) => saved && this.loadHttpData(),
-      { widthSize: 'md', disableClose: true }
+      {
+        widthSize: 'md',
+        disableClose: true,
+      }
     );
   }
 

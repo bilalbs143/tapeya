@@ -33,14 +33,29 @@ import {
   ControllerSettingsDialogComponent,
   type ControllerSettingsDialogData,
 } from './controller-settings-dialog/controller-settings-dialog.component';
-import {
-  MatchCaptionDialogComponent,
-  type MatchCaptionDialogData,
-} from './match-caption-dialog/match-caption-dialog.component';
+import { LiveMatchStateComponent } from './live-match-state/live-match-state.component';
+import { MatchCaptionDialogComponent, type MatchCaptionDialogData } from './match-caption-dialog/match-caption-dialog.component';
+import { MatchStreamPanelComponent } from './match-stream-panel/match-stream-panel.component';
 
 export interface MatchGraphicPlayerPick {
   team_id: number;
   user_id: number;
+}
+
+/** Batter row from graphic session `context.batters` (ids for command payloads). */
+export interface LiveBatterContextRow {
+  id: number;
+  team_id?: number;
+  name: string;
+  runs: number;
+  balls: number;
+  on_strike?: boolean;
+}
+
+export interface BatterCommandCardView {
+  roleLabel: string;
+  batter: LiveBatterContextRow | null;
+  pick: MatchGraphicPlayerPick | null;
 }
 
 @Component({
@@ -58,6 +73,8 @@ export interface MatchGraphicPlayerPick {
     MatSelectModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
+    LiveMatchStateComponent,
+    MatchStreamPanelComponent,
   ],
   templateUrl: './match-controller-dashboard.component.html',
   styleUrl: './match-controller-dashboard.component.scss',
@@ -98,8 +115,6 @@ export class MatchControllerDashboardComponent implements OnInit {
   public loading = true;
   public sendingKey: string | null = null;
   public clearingRecent = false;
-  /** Tracks whether this is the first data load so we auto-open settings once. */
-  private firstLoad = true;
   /** Sent with every graphic command payload and stored in session `context`. */
   public selectedInnings: 1 | 2 = 1;
   /** Cleanup function returned by BackofficeReverbService.listenMatchGraphics. */
@@ -111,6 +126,32 @@ export class MatchControllerDashboardComponent implements OnInit {
   /** At most one caption per match; API enforces the same. */
   public get caption(): MatchGraphicCaption | null {
     return this.captions[0] ?? null;
+  }
+
+  /**
+   * Match row or merged graphics context — used to swap live score for a
+   * compact result callout after the game ends.
+   */
+  public get isMatchCompleted(): boolean {
+    if (this.match?.status === 'completed') {
+      return true;
+    }
+    const slice = this.session?.context?.['match'] as Record<string, unknown> | undefined;
+    return slice?.['is_completed'] === true;
+  }
+
+  /** Plain-language result for the description-style callout. */
+  public get matchResultDescription(): string {
+    const fromRow = this.match?.result_summary?.trim();
+    if (fromRow) {
+      return fromRow;
+    }
+    const slice = this.session?.context?.['match'] as Record<string, unknown> | undefined;
+    const fromCtx = typeof slice?.['result_summary'] === 'string' ? String(slice['result_summary']).trim() : '';
+    if (fromCtx) {
+      return fromCtx;
+    }
+    return 'This match is complete.';
   }
 
   public ngOnInit(): void {
@@ -159,13 +200,6 @@ export class MatchControllerDashboardComponent implements OnInit {
         this.syncInningsFromSession(session.data);
         this.loading = false;
         this.subscribeToGraphicsChannel();
-
-        // Auto-open settings on first page load so the operator picks a theme
-        // and copies the signed OBS overlay URL before starting to send commands.
-        if (this.firstLoad) {
-          this.firstLoad = false;
-          this.openSettings();
-        }
       },
       error: (err: unknown) => {
         this.loading = false;
@@ -247,7 +281,13 @@ export class MatchControllerDashboardComponent implements OnInit {
       return;
     }
 
-    if (action.command_type === 'PLAYER_BATSMAN') {
+    // Playing XI — attach both teams' player name lists from the fetched roster.
+    if (action.command_key === 'PLAYING_11') {
+      this.dispatchGraphicCommand(action, this.buildPlayingElevenPayload());
+      return;
+    }
+
+    if (action.command_type === 'BATSMAN_STATS') {
       if (!this.selectedBatsman) {
         this.messageService.warning('Select a batsman first.');
         return;
@@ -259,7 +299,7 @@ export class MatchControllerDashboardComponent implements OnInit {
       return;
     }
 
-    if (action.command_type === 'PLAYER_BOWLER') {
+    if (action.command_type === 'BOWLER_STATS') {
       if (!this.selectedBowler) {
         this.messageService.warning('Select a bowler first.');
         return;
@@ -272,6 +312,33 @@ export class MatchControllerDashboardComponent implements OnInit {
     }
 
     this.dispatchGraphicCommand(action, null);
+  }
+
+  /** Build the Playing XI payload from the already-loaded player roster. */
+  private buildPlayingElevenPayload(): Record<string, unknown> {
+    const home = this.playerLists?.home_team;
+    const away = this.playerLists?.away_team;
+    const mapRow = (p: {
+      name: string;
+      playing_role: string | null;
+      batting_style?: string | null;
+      bowling_style?: string | null;
+    }) => ({
+      name: p.name,
+      playing_role: p.playing_role ?? null,
+      batting_style: p.batting_style ?? null,
+      bowling_style: p.bowling_style ?? null,
+    });
+    return {
+      home_team: {
+        name: home?.name ?? '',
+        players: (home?.players ?? []).map(mapRow),
+      },
+      away_team: {
+        name: away?.name ?? '',
+        players: (away?.players ?? []).map(mapRow),
+      },
+    };
   }
 
   /** Only the command in-flight is disabled; avoids dimming the whole catalog. */
@@ -352,16 +419,32 @@ export class MatchControllerDashboardComponent implements OnInit {
     // Leave any previously subscribed channel first.
     this.graphicsChannelCleanup?.();
 
+    // Ensure Echo exists (normally created from the shell header). Match controller
+    // can load before the header runs ngOnInit, or operators may deep-link here.
+    this.reverbService.connect();
+
     this.graphicsChannelCleanup = this.reverbService.listenMatchGraphics(
       this.matchId,
       (event) => {
         // Another operator activated a command — update the active graphic chip.
         if (this.session) {
+          const ctx = event['context'] as Record<string, unknown> | null | undefined;
+          const graphicThemeId = event['graphic_theme_id'] as number | null | undefined;
+          const config = event['config'] as Record<string, unknown> | null | undefined;
+          const pendingPlayers = event['pending_players'] as Record<string, unknown> | null | undefined;
           this.session = {
             ...this.session,
+            ...(ctx != null ? { context: ctx } : {}),
+            ...(graphicThemeId != null ? { graphic_theme_id: graphicThemeId } : {}),
+            ...('config' in event ? { config: config ?? null } : {}),
+            ...('pending_players' in event ? { pending_players: pendingPlayers ?? null } : {}),
             active_command: this.commandFromGraphicActivatedEvent(event),
             active_command_id: this.commandIdFromGraphicActivatedEvent(event),
           };
+          // Auto-follow innings transitions pushed from the scoring app via context.
+          if (ctx != null) {
+            this.syncInningsFromSession(this.session);
+          }
         }
       },
       () => {
@@ -377,9 +460,7 @@ export class MatchControllerDashboardComponent implements OnInit {
 
   public backLink(): string[] {
     const tid = this.match?.tournament_id;
-    return tid
-      ? ['/tournaments-management/tournaments', String(tid), 'matches']
-      : ['/tournaments-management/tournaments'];
+    return tid ? ['/tournaments-management/tournaments', String(tid), 'matches'] : ['/tournaments-management/tournaments'];
   }
 
   public async toggleFullscreen(): Promise<void> {
@@ -466,22 +547,21 @@ export class MatchControllerDashboardComponent implements OnInit {
 
   /**
    * Public Reverb payload uses `command_id`; admin API resources use `id`.
-   * Payload shape is not fully typed at the Echo layer — use `any` here only.
    */
-  private commandIdFromGraphicActivatedEvent(event: any): number | null {
+  private commandIdFromGraphicActivatedEvent(event: Record<string, unknown>): number | null {
     const raw = event['command_id'] ?? event['id'];
     return typeof raw === 'number' ? raw : Number(raw) || null;
   }
 
-  private commandFromGraphicActivatedEvent(event: any): MatchGraphicCommand {
+  private commandFromGraphicActivatedEvent(event: Record<string, unknown>): MatchGraphicCommand {
     const id = this.commandIdFromGraphicActivatedEvent(event);
     const sidRaw = event['session_id'] ?? event['match_graphic_session_id'];
     const sessionId = typeof sidRaw === 'number' ? sidRaw : Number(sidRaw) || 0;
     return {
       id: id ?? 0,
       match_graphic_session_id: sessionId,
-      command_type: String(event['command_type'] ?? ''),
-      command_key: String(event['command_key'] ?? ''),
+      command_type: typeof event['command_type'] === 'string' ? event['command_type'] : '',
+      command_key: typeof event['command_key'] === 'string' ? event['command_key'] : '',
       payload: (event['payload'] as Record<string, unknown> | null) ?? null,
       display_mode: (event['display_mode'] as string | null) ?? null,
       created_at: null,
@@ -510,14 +590,131 @@ export class MatchControllerDashboardComponent implements OnInit {
     return group.actions.length > 12;
   }
 
+  /** Firing a graphic command for a player-controller card with an explicit pick. */
+  public sendWithPick(action: GraphicCatalogAction, pick: MatchGraphicPlayerPick | null): void {
+    if (!pick) {
+      this.messageService.warning('No player in this slot yet — wait for live line-up or pick pending players in scoring.');
+      return;
+    }
+    this.dispatchGraphicCommand(action, { user_id: pick.user_id, team_id: pick.team_id });
+  }
+
+  /** Convenience getter — BATSMAN_STATS catalog group for the player cards. */
+  public get playerBatsmanGroup(): GraphicCatalogGroup | null {
+    return this.catalogGroups.find((g) => g.id === 'BATSMAN_STATS') ?? null;
+  }
+
+  /** Convenience getter — BOWLER_STATS catalog group for the player cards. */
+  public get playerBowlerGroup(): GraphicCatalogGroup | null {
+    return this.catalogGroups.find((g) => g.id === 'BOWLER_STATS') ?? null;
+  }
+
+  /** Live batter array straight from the graphic session context. */
+  public get liveBatters(): LiveBatterContextRow[] {
+    const raw = this.session?.context?.['batters'];
+    return Array.isArray(raw) ? (raw as LiveBatterContextRow[]) : [];
+  }
+
+  /** Live bowler straight from the graphic session context. */
+  public get liveBowler(): {
+    name: string;
+    figures: string;
+    overs: string;
+    user_id?: number;
+    team_id?: number;
+  } | null {
+    return (
+      (this.session?.context?.['bowler'] as {
+        name: string;
+        figures: string;
+        overs: string;
+        user_id?: number;
+        team_id?: number;
+      } | null) ?? null
+    );
+  }
+
+  /**
+   * Striker / non-striker quick-action cards: each row uses the live crease batter
+   * (from session context), not the manual catalog dropdown.
+   */
+  public batterCommandCards(): BatterCommandCardView[] {
+    const rows = this.liveBatters;
+    const striker = rows.find((b) => b.on_strike) ?? rows[0] ?? null;
+    const nonStriker =
+      rows.length < 2 ? null : (rows.find((b) => striker == null || Number(b.id) !== Number(striker.id)) ?? null);
+    return [
+      {
+        roleLabel: 'Striker',
+        batter: striker,
+        pick: this.pickFromLiveBatter(striker),
+      },
+      {
+        roleLabel: 'Non-Striker',
+        batter: nonStriker,
+        pick: this.pickFromLiveBatter(nonStriker),
+      },
+    ];
+  }
+
+  /** Payload pick for the live bowler card (falls back to manual bowler pick). */
+  public liveBowlerCommandPick(): MatchGraphicPlayerPick | null {
+    const b = this.liveBowler;
+    // JSON may stringify ids — `typeof x === 'number'` was too strict for the card buttons.
+    const uid = Number(b?.user_id);
+    const tid = Number(b?.team_id);
+    if (uid > 0 && tid > 0) {
+      return { user_id: uid, team_id: tid };
+    }
+    return this.selectedBowler;
+  }
+
+  public playerBatsmanCardTooltip(action: GraphicCatalogAction, card: BatterCommandCardView): string {
+    const who = card.batter?.name?.trim() ? ` — ${card.batter.name}` : '';
+    return `${action.label}${who}`;
+  }
+
+  public playerBowlerCardTooltip(action: GraphicCatalogAction): string {
+    const nm = this.liveBowler?.name?.trim();
+    const who = nm ? ` — ${nm}` : '';
+    return `${action.label}${who}`;
+  }
+
+  private pickFromLiveBatter(b: LiveBatterContextRow | null): MatchGraphicPlayerPick | null {
+    if (!b) {
+      return null;
+    }
+    const id = Number(b.id);
+    if (!Number.isFinite(id) || id <= 0) {
+      return null;
+    }
+    const tid = Number(b.team_id);
+    if (Number.isFinite(tid) && tid > 0) {
+      return { user_id: id, team_id: tid };
+    }
+    return this.resolvePickFromRoster(id);
+  }
+
+  private resolvePickFromRoster(userId: number): MatchGraphicPlayerPick | null {
+    if (!this.playerLists) {
+      return null;
+    }
+    for (const side of [this.playerLists.home_team, this.playerLists.away_team]) {
+      if (side.players.some((p) => Number(p.user_id) === userId)) {
+        return { user_id: userId, team_id: side.id };
+      }
+    }
+    return null;
+  }
+
   public isPlayerPickGroup(group: GraphicCatalogGroup): boolean {
-    return group.id === 'PLAYER_BATSMAN' || group.id === 'PLAYER_BOWLER';
+    return group.id === 'BATSMAN_STATS' || group.id === 'BOWLER_STATS';
   }
 
   public onPlayerPickChange(group: GraphicCatalogGroup, value: MatchGraphicPlayerPick | null): void {
-    if (group.id === 'PLAYER_BATSMAN') {
+    if (group.id === 'BATSMAN_STATS') {
       this.selectedBatsman = value;
-    } else if (group.id === 'PLAYER_BOWLER') {
+    } else if (group.id === 'BOWLER_STATS') {
       this.selectedBowler = value;
     }
   }
@@ -541,10 +738,10 @@ export class MatchControllerDashboardComponent implements OnInit {
   }
 
   public pickOptionsForGroup(group: GraphicCatalogGroup): { value: MatchGraphicPlayerPick; label: string }[] {
-    if (group.id === 'PLAYER_BATSMAN') {
+    if (group.id === 'BATSMAN_STATS') {
       return this.batsmanPickOptions();
     }
-    if (group.id === 'PLAYER_BOWLER') {
+    if (group.id === 'BOWLER_STATS') {
       return this.bowlerPickOptions();
     }
     return [];
@@ -601,13 +798,13 @@ export class MatchControllerDashboardComponent implements OnInit {
     if (!this.hasPlayerPickRoster) {
       return true;
     }
-    if (group.id === 'PLAYER_BATSMAN') {
+    if (group.id === 'BATSMAN_STATS') {
       if (this.batsmanPickOptions().length === 0) {
         return true;
       }
       return this.selectedBatsman === null;
     }
-    if (group.id === 'PLAYER_BOWLER') {
+    if (group.id === 'BOWLER_STATS') {
       if (this.bowlerPickOptions().length === 0) {
         return true;
       }
@@ -624,4 +821,7 @@ export class MatchControllerDashboardComponent implements OnInit {
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
       .join(' ');
   }
+
+  // ── Live match state (read from session.context, updated via Reverb) ──────
+  // Logic lives in LiveMatchStateComponent; parent only passes session.context.
 }

@@ -2,12 +2,16 @@ import { useMemo, useState } from 'react';
 
 import ReactApexChart from 'react-apexcharts';
 
+import { MatchPlayerStatsTables } from '@/components/scoring/MatchPlayerStatsTables';
+import { WagonWheelChart } from '@/components/scoring/WagonWheelChart';
+import { useScoringMatch } from '@/context/ScoringMatchContext';
+import { useMatchSquads } from '@/hooks/useMatchSquads';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { getShotPositionOptions } from '@/lib/utils/scoringMappers';
+import { buildMatchPlayerNameMap, calculateStrikeRate } from '@/lib/utils/matchPlayerStatsUtils';
+import { getShotPositionOptions, scorecardInningsToBallHistory } from '@/lib/utils/scoringMappers';
 import { getRunsFromBall } from '@/lib/utils/scoringUtils';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
-
-import { ShotDirectionStats } from '../ShotAreaDialog';
+import { useGetMatchPlayerStatsQuery, useGetScorecardQuery } from '@/store/api/matchApi';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -92,7 +96,6 @@ function makeChartOptions(type, categories, overrides = {}) {
     },
     yaxis: {
       min: 0,
-      max: 50,
       tickAmount: 5,
       labels: { style: BASE_AXIS_STYLE },
       axisBorder: { show: false },
@@ -161,7 +164,7 @@ function computeBattingStatsBar(ballHistory) {
     }
   }
 
-  const sr = legalBalls > 0 ? ((runs / legalBalls) * 100).toFixed(1) : '0.0';
+  const sr = calculateStrikeRate(runs, legalBalls);
   return {
     runs,
     balls: legalBalls,
@@ -175,21 +178,49 @@ function computeBattingStatsBar(ballHistory) {
 
 /**
  * @param {object}   props
- * @param {object[]} props.ballHistory          Innings 1 ball history.
+ * @param {object[]} props.innings1BallHistory  Innings 1 ball history.
  * @param {object[]} props.innings2BallHistory  Innings 2 ball history (team B batting).
  * @param {object}   props.match
+ * @param {string}   [props.matchId]
+ * @param {Record<string, string>} [props.playerNameMap]
+ * @param {boolean}  [props.wagonWheelEnabled]
  */
-export function StatsTab({
-  ballHistory = [],
-  innings2BallHistory = [],
-  match,
-}) {
-  const { data: enums = {} } = useGetEnumsQuery();
+export function StatsTab() {
+  const { matchId, match, wagonWheelEnabled } = useScoringMatch();
+  const { data: scorecard } = useGetScorecardQuery(matchId, { skip: !matchId });
+  const { innings1Squads, innings2Squads } = useMatchSquads();
 
-  const shotPositionZones = useMemo(
-    () => getShotPositionOptions(enums.shot_position),
-    [enums.shot_position],
+  const innings1BallHistory = useMemo(
+    () => (scorecard?.innings?.[0] ? scorecardInningsToBallHistory(scorecard.innings[0], innings1Squads.nameMap) : []),
+    [scorecard?.innings, innings1Squads.nameMap],
   );
+  const innings2BallHistory = useMemo(
+    () => (scorecard?.innings?.[1] ? scorecardInningsToBallHistory(scorecard.innings[1], innings2Squads.nameMap) : []),
+    [scorecard?.innings, innings2Squads.nameMap],
+  );
+  const playerNameMap = useMemo(
+    () =>
+      buildMatchPlayerNameMap(
+        [
+          ...innings1Squads.battingSquad,
+          ...innings1Squads.bowlingSquad,
+          ...innings2Squads.battingSquad,
+          ...innings2Squads.bowlingSquad,
+        ],
+        scorecard?.innings ?? [],
+      ),
+    [innings1Squads, innings2Squads, scorecard?.innings],
+  );
+
+  const ballHistory = innings1BallHistory;
+  const { data: enums = {} } = useGetEnumsQuery();
+  const {
+    data: matchPlayerStats,
+    isLoading: isLoadingPlayerStats,
+    isError: isPlayerStatsError,
+  } = useGetMatchPlayerStatsQuery(matchId, { skip: !matchId });
+
+  const shotPositionZones = useMemo(() => getShotPositionOptions(enums.shot_position), [enums.shot_position]);
 
   const teamA = match?.teamA;
   const teamB = match?.teamB;
@@ -200,49 +231,26 @@ export function StatsTab({
 
   // ── Stats bar ────────────────────────────────────────────────────────────────
 
-  const statsA = useMemo(
-    () => computeBattingStatsBar(ballHistory),
-    [ballHistory],
-  );
-  const statsB = useMemo(
-    () => computeBattingStatsBar(innings2BallHistory),
-    [innings2BallHistory],
-  );
+  const statsA = useMemo(() => computeBattingStatsBar(ballHistory), [ballHistory]);
+  const statsB = useMemo(() => computeBattingStatsBar(innings2BallHistory), [innings2BallHistory]);
 
   // ── Runs per over ────────────────────────────────────────────────────────────
 
-  const teamARunsPerOver = useMemo(
-    () => getRunsPerOver(ballHistory),
-    [ballHistory],
-  );
-  const teamBRunsPerOver = useMemo(
-    () => getRunsPerOver(innings2BallHistory),
-    [innings2BallHistory],
-  );
+  const teamARunsPerOver = useMemo(() => getRunsPerOver(ballHistory), [ballHistory]);
+  const teamBRunsPerOver = useMemo(() => getRunsPerOver(innings2BallHistory), [innings2BallHistory]);
 
-  const hasChartData =
-    teamARunsPerOver.length > 0 || teamBRunsPerOver.length > 0;
-  const displayLength = hasChartData
-    ? Math.min(
-        20,
-        Math.max(5, teamARunsPerOver.length, teamBRunsPerOver.length),
-      )
-    : 0;
+  const hasChartData = teamARunsPerOver.length > 0 || teamBRunsPerOver.length > 0;
+  const displayLength = hasChartData ? Math.min(20, Math.max(5, teamARunsPerOver.length, teamBRunsPerOver.length)) : 0;
 
-  const categories = useMemo(
-    () => Array.from({ length: displayLength }, (_, i) => String(i + 1)),
-    [displayLength],
-  );
+  const categories = useMemo(() => Array.from({ length: displayLength }, (_, i) => String(i + 1)), [displayLength]);
 
   const seriesDataA = useMemo(
-    () =>
-      Array.from({ length: displayLength }, (_, i) => teamARunsPerOver[i] ?? 0),
+    () => Array.from({ length: displayLength }, (_, i) => teamARunsPerOver[i] ?? 0),
     [displayLength, teamARunsPerOver],
   );
 
   const seriesDataB = useMemo(
-    () =>
-      Array.from({ length: displayLength }, (_, i) => teamBRunsPerOver[i] ?? 0),
+    () => Array.from({ length: displayLength }, (_, i) => teamBRunsPerOver[i] ?? 0),
     [displayLength, teamBRunsPerOver],
   );
 
@@ -295,29 +303,38 @@ export function StatsTab({
 
   return (
     <div className="mt-4 space-y-6 pb-6">
-      {/* Shot-direction wheel: innings 1. zones=undefined uses component's
-          built-in default zones when enums aren't loaded yet. */}
-      <ShotDirectionStats
-        ballHistory={ballHistory}
-        zones={shotPositionZones.length > 0 ? shotPositionZones : undefined}
-        stadiumSrc={stadiumBg}
-        className="max-h-[50vh]"
-      />
+      {wagonWheelEnabled ? (
+        <div className="space-y-2">
+          <p className="text-brand text-center text-[11px] font-semibold tracking-wide uppercase">Wagon Wheel</p>
+          <WagonWheelChart
+            ballHistory={ballHistory}
+            zones={shotPositionZones.length > 0 ? shotPositionZones : undefined}
+            stadiumSrc={stadiumBg}
+            className="max-h-[50vh]"
+          />
+        </div>
+      ) : null}
 
-      {/* Stats bar: both teams side-by-side for comparison */}
+      {/* Team-aggregate bars (client ball history) */}
       <div className="space-y-4">
         <div>
-          <p className="mb-1 text-[11px] font-semibold tracking-wide text-[#DA9811] uppercase">
-            {teamAName}
-          </p>
+          <p className="text-brand mb-1 text-[11px] font-semibold tracking-wide uppercase">{teamAName}</p>
           <BattingStatsBar stats={statsA} />
         </div>
         <div>
-          <p className="mb-1 text-[11px] font-semibold tracking-wide text-[#DA9811] uppercase">
-            {teamBName}
-          </p>
+          <p className="text-brand mb-1 text-[11px] font-semibold tracking-wide uppercase">{teamBName}</p>
           <BattingStatsBar stats={statsB} />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-brand text-center text-[11px] font-semibold tracking-wide uppercase">Player Stats (Match)</p>
+        <MatchPlayerStatsTables
+          data={matchPlayerStats}
+          playerNameMap={playerNameMap}
+          isLoading={isLoadingPlayerStats}
+          isError={isPlayerStatsError}
+        />
       </div>
 
       {hasChartData ? (
@@ -330,12 +347,7 @@ export function StatsTab({
             chartTeam={chartTeam}
             onSelectTeam={setChartTeam}
           >
-            <ReactApexChart
-              type="line"
-              series={chartSeries}
-              options={lineChartOptions}
-              height={220}
-            />
+            <ReactApexChart type="line" series={chartSeries} options={lineChartOptions} height={220} />
           </ChartSection>
           <ChartSection
             ariaLabel="Run comparison chart"
@@ -345,22 +357,12 @@ export function StatsTab({
             chartTeam={chartTeam}
             onSelectTeam={setChartTeam}
           >
-            <ReactApexChart
-              type="bar"
-              series={chartSeries}
-              options={barChartOptions}
-              height={220}
-            />
+            <ReactApexChart type="bar" series={chartSeries} options={barChartOptions} height={220} />
           </ChartSection>
         </>
       ) : (
-        <section
-          className="mt-6 rounded-lg bg-[#141412] px-4 py-8 text-center"
-          aria-label="No chart data yet"
-        >
-          <p className="text-[14px] font-medium text-[#A2A6AB]">
-            No over data yet. Start scoring to see comparison charts.
-          </p>
+        <section className="bg-surface mt-6 rounded-lg px-4 py-8 text-center" aria-label="No Chart Data Yet">
+          <p className="text-muted text-[14px] font-medium">No over data yet. Start scoring to see comparison charts.</p>
         </section>
       )}
     </div>
@@ -374,18 +376,14 @@ export function StatsTab({
  */
 function BattingStatsBar({ stats }) {
   return (
-    <section className="mt-4 flex" aria-label="Batting statistics">
+    <section className="mt-4 flex" aria-label="Batting Statistics">
       {STAT_ITEMS.map((item, index) => (
         <span key={item.key} className="contents">
           <div className="flex flex-1 flex-col items-center justify-center px-3 py-2.5">
-            <p className="text-[12px] font-bold tracking-wide text-[#A2A6AB] uppercase">
-              {item.label}
-            </p>
+            <p className="text-muted text-[12px] font-bold tracking-wide uppercase">{item.label}</p>
             {/* Fixed: was stats[item.valueKey] with no fallback — would render
                 "undefined" as text if the key is missing. */}
-            <p className="mt-0.5 text-[14px] font-bold text-white">
-              {stats[item.valueKey] ?? '—'}
-            </p>
+            <p className="mt-0.5 text-[14px] font-bold text-white">{stats[item.valueKey] ?? '—'}</p>
           </div>
           {index < STAT_ITEMS.length - 1 && (
             <div
@@ -404,47 +402,25 @@ function BattingStatsBar({ stats }) {
  * Toggle: Team A | Team B (default shows both teams; neither button highlighted).
  * When onSelectTeam is not passed, no toggle is shown.
  */
-function ChartSection({
-  ariaLabel,
-  title,
-  teamAName,
-  teamBName,
-  chartTeam,
-  onSelectTeam,
-  children,
-}) {
+function ChartSection({ ariaLabel, title, teamAName, teamBName, chartTeam, onSelectTeam, children }) {
   const showTeamToggle = typeof onSelectTeam === 'function';
   return (
     <section className="mt-6" aria-label={ariaLabel}>
-      <div className="flex items-center justify-between gap-4 rounded-t-lg bg-[#141412] px-3 py-2">
-        <h2 className="text-[12px] font-bold tracking-wide text-[#DA9811]">
-          {title}
-        </h2>
+      <div className="bg-surface flex items-center justify-between gap-4 rounded-t-lg px-3 py-2">
+        <h2 className="text-brand text-[12px] font-bold tracking-wide">{title}</h2>
         {showTeamToggle && (
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() =>
-                onSelectTeam(chartTeam === 'teamA' ? 'both' : 'teamA')
-              }
-              className={`text-[12px] font-semibold transition-colors ${
-                chartTeam === 'teamA' || chartTeam === 'both'
-                  ? 'text-[#DA9811]'
-                  : 'text-white'
-              }`}
+              onClick={() => onSelectTeam(chartTeam === 'teamA' ? 'both' : 'teamA')}
+              className={`text-[12px] font-semibold transition-colors ${chartTeam === 'teamA' ? 'text-brand' : 'text-white'}`}
             >
               {teamAName}
             </button>
             <button
               type="button"
-              onClick={() =>
-                onSelectTeam(chartTeam === 'teamB' ? 'both' : 'teamB')
-              }
-              className={`text-[12px] font-semibold transition-colors ${
-                chartTeam === 'teamB' || chartTeam === 'both'
-                  ? 'text-[#DA9811]'
-                  : 'text-white'
-              }`}
+              onClick={() => onSelectTeam(chartTeam === 'teamB' ? 'both' : 'teamB')}
+              className={`text-[12px] font-semibold transition-colors ${chartTeam === 'teamB' ? 'text-brand' : 'text-white'}`}
             >
               {teamBName}
             </button>

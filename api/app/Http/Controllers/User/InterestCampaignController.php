@@ -20,12 +20,6 @@ class InterestCampaignController extends Controller
 {
     use BaseControllerTrait;
 
-    private const PROFILE_PICTURE_DIR = 'interest-submissions/profile-pictures';
-
-    private const ID_DOCUMENT_DIR = 'interest-submissions/id-documents';
-
-    private const PROFILE_AVATAR_DIR = 'profiles/avatars';
-
     /**
      * Featured interest campaign for the app sidebar: open status and show_in_sidebar.
      */
@@ -94,7 +88,6 @@ class InterestCampaignController extends Controller
 
         $user = $request->user();
         $payload = $request->validated();
-        $disk = config('filesystems.media_disk');
 
         $data = [
             'name' => $payload['name'] ?? $user->name,
@@ -103,8 +96,7 @@ class InterestCampaignController extends Controller
             'phone' => $payload['phone'] ?? $user->phone,
             'country' => $payload['country'] ?? $user->country,
             'city' => $payload['city'] ?? $user->city,
-            'date_of_birth' => $payload['date_of_birth']
-                ?? $user->date_of_birth?->format('Y-m-d'),
+            'date_of_birth' => $payload['date_of_birth'] ?? $user->date_of_birth?->format('Y-m-d'),
             'status' => TournamentInterestSubmissionStatusEnum::PENDING->value,
             'withdrawn_at' => null,
         ];
@@ -114,24 +106,10 @@ class InterestCampaignController extends Controller
             ->where('user_id', $user->id)
             ->first();
 
-        if ($request->hasFile('profile_picture')) {
-            if ($submission?->profile_picture_path) {
-                Storage::disk($disk)->delete($submission->profile_picture_path);
-            }
-            $data['profile_picture_path'] = $request
-                ->file('profile_picture')
-                ->store(self::PROFILE_PICTURE_DIR, $disk);
-        } elseif ($submission === null && $user->avatar) {
+        // On first submission, seed profile picture from the user's existing avatar
+        // when they haven't uploaded one yet (upload happens via the media endpoint).
+        if ($submission === null && $user->avatar) {
             $data['profile_picture_path'] = $user->avatar;
-        }
-
-        if ($request->hasFile('id_document')) {
-            if ($submission?->id_document_path) {
-                Storage::disk($disk)->delete($submission->id_document_path);
-            }
-            $data['id_document_path'] = $request
-                ->file('id_document')
-                ->store(self::ID_DOCUMENT_DIR, $disk);
         }
 
         $isNew = $submission === null;
@@ -145,7 +123,7 @@ class InterestCampaignController extends Controller
             $submission = $submission->fresh();
         }
 
-        $this->backfillUserProfile($user, $request, $payload);
+        $this->backfillUserProfile($user, $payload);
 
         return $this->success(
             new InterestSubmissionResource($submission),
@@ -181,22 +159,11 @@ class InterestCampaignController extends Controller
     }
 
     /**
-     * Fill in profile fields the player left blank. Never overwrites existing values.
-     * The avatar is re-stored under the avatars folder so deleting the submission
-     * upload later doesn't break the user's profile picture.
+     * Fill in profile scalar fields the player left blank. Never overwrites existing values.
      */
-    private function backfillUserProfile(
-        User $user,
-        StoreInterestSubmissionRequest $request,
-        array $payload,
-    ): void {
+    private function backfillUserProfile(User $user, array $payload): void
+    {
         $updates = [];
-
-        if (! $user->avatar && $request->hasFile('profile_picture')) {
-            $updates['avatar'] = $request
-                ->file('profile_picture')
-                ->store(self::PROFILE_AVATAR_DIR, config('filesystems.media_disk'));
-        }
 
         foreach (['email', 'country', 'city', 'date_of_birth'] as $key) {
             if ($user->{$key} || empty($payload[$key])) {

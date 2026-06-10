@@ -56,7 +56,7 @@ flowchart LR
 ### Tapeya API (implemented)
 
 - **Package:** `laravel/reverb` (Composer). Config: `config/broadcasting.php`, `config/reverb.php`, `routes/channels.php`.
-- **Env:** See `api/.env.example` — `BROADCAST_CONNECTION=reverb`, `REVERB_APP_*`, `REVERB_HOST` / `REVERB_PORT` / `REVERB_SCHEME`, optional `REVERB_ALLOWED_ORIGINS` (comma-separated; default `*` via config).
+- **Env:** See `api/.env.example` — `BROADCAST_CONNECTION=reverb`, `REVERB_APP_*`, `REVERB_HOST` / `REVERB_PORT` / `REVERB_SCHEME`, optional `REVERB_ALLOWED_ORIGINS` (comma-separated hostnames, e.g. `dev-backoffice.example.com`; full URLs are normalized in `config/reverb.php`; default `*`).
 - **Auth for private channels:** `POST/GET /broadcasting/auth` is registered with **`api` + `auth:api`** (Sanctum bearer token). Point **Laravel Echo** `authEndpoint` at `{APP_URL}/broadcasting/auth` and send the same `Authorization` header as other API calls.
 - **Run Reverb:** `composer reverb` from `api/` or **`php artisan reverb:start`**. **`composer dev`** in `api/` also starts Reverb alongside `serve`, queue, pail, and Vite.
 - **Live events (current):** Database notifications are mapped to **named** broadcast events via `ResolveAdminInboxBroadcast` / `ResolveUserNotificationBroadcast` (see `App\Support\Broadcast\BroadcastEventNames`). **Admin inbox** (`private-backoffice.notifications`): e.g. `.admin.order.placed`, `.admin.tournament_request.submitted`, `.admin.user.registered`. **App user** (`private-App.Models.User.{id}`): e.g. `.user.order.placed`, `.user.order.status_updated`. Clients subscribe to **all** names listed in their `broadcast-events` config and refetch / invalidate on any match. Match graphics are **not** broadcast yet.

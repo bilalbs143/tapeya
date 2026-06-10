@@ -6,8 +6,7 @@
  * @returns {number | null} Valid tournament ID or null
  */
 export function parseTournamentId(paramStr, fallbackId) {
-  const num =
-    paramStr != null && paramStr !== '' ? Number(paramStr) : fallbackId;
+  const num = paramStr != null && paramStr !== '' ? Number(paramStr) : fallbackId;
   return Number.isInteger(num) && num > 0 ? num : null;
 }
 
@@ -18,11 +17,7 @@ export function parseTournamentId(paramStr, fallbackId) {
  * @returns {boolean}
  */
 export function isValidTournamentId(id) {
-  return (
-    id != null &&
-    String(id).trim() !== '' &&
-    !String(id).startsWith('placeholder-')
-  );
+  return id != null && String(id).trim() !== '' && !String(id).startsWith('placeholder-');
 }
 
 /**
@@ -37,12 +32,65 @@ export function getTournamentTitle(tournament, fallback = 'Tournament') {
 }
 
 /**
- * Tournament cover/display image URL with fallback.
+ * Listing-card image — backoffice "Display Image" (800×600), with cover as fallback.
  *
  * @param {object | null | undefined} tournament
- * @param {string} [fallback] - Default image URL when tournament has no cover
+ * @param {string} [fallback]
  * @returns {string}
  */
-export function getTournamentImage(tournament, fallback = '') {
+export function getTournamentDisplayImage(tournament, fallback = '') {
+  return tournament?.display_image ?? tournament?.cover_image ?? fallback;
+}
+
+/**
+ * Detail-page banner — backoffice "Cover Image" (1920×600), with display as fallback.
+ *
+ * @param {object | null | undefined} tournament
+ * @param {string} [fallback]
+ * @returns {string}
+ */
+export function getTournamentCoverImage(tournament, fallback = '') {
   return tournament?.cover_image ?? tournament?.display_image ?? fallback;
+}
+
+/** @alias getTournamentCoverImage */
+export function getTournamentImage(tournament, fallback = '') {
+  return getTournamentCoverImage(tournament, fallback);
+}
+
+/**
+ * Configured team capacity for a tournament (from request / backoffice), or null if unknown.
+ *
+ * @param {object | null | undefined} tournament
+ * @returns {number | null}
+ */
+export function getTournamentTeamLimit(tournament) {
+  const limit = tournament?.number_of_teams;
+  return limit != null && limit > 0 ? limit : null;
+}
+
+/**
+ * Whether the tournament already has the required number of teams attached.
+ *
+ * @param {object | null | undefined} tournament
+ * @param {number} currentCount
+ * @returns {boolean}
+ */
+export function areTournamentTeamsComplete(tournament, currentCount) {
+  const limit = getTournamentTeamLimit(tournament);
+  if (limit == null) return false;
+  return currentCount >= limit;
+}
+
+/**
+ * Whether another team can still be added to the tournament.
+ *
+ * @param {object | null | undefined} tournament
+ * @param {number} currentCount
+ * @returns {boolean}
+ */
+export function canAddTournamentTeams(tournament, currentCount) {
+  const limit = getTournamentTeamLimit(tournament);
+  if (limit == null) return true;
+  return currentCount < limit;
 }

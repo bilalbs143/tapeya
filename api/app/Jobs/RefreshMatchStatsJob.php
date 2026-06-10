@@ -47,8 +47,10 @@ class RefreshMatchStatsJob implements ShouldQueue
             PlayerMatchBowling::where('match_id', $this->matchId)->delete();
             PlayerMatchFielding::where('match_id', $this->matchId)->delete();
 
-            foreach ($batting as $row) {
-                PlayerMatchBatting::create([
+            $now = now();
+
+            if ($batting !== []) {
+                PlayerMatchBatting::insert(array_map(fn (array $row) => [
                     'player_id' => $row['player_id'],
                     'match_id' => $this->matchId,
                     'matches' => 1,
@@ -64,11 +66,13 @@ class RefreshMatchStatsJob implements ShouldQueue
                     'fifties' => $row['fifties'],
                     'average' => $row['average'],
                     'strike_rate' => $row['strike_rate'],
-                ]);
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ], $batting));
             }
 
-            foreach ($bowling as $row) {
-                PlayerMatchBowling::create([
+            if ($bowling !== []) {
+                PlayerMatchBowling::insert(array_map(fn (array $row) => [
                     'player_id' => $row['player_id'],
                     'match_id' => $this->matchId,
                     'matches' => 1,
@@ -86,18 +90,22 @@ class RefreshMatchStatsJob implements ShouldQueue
                     'average' => $row['average'],
                     'economy' => $row['economy'],
                     'strike_rate' => $row['strike_rate'],
-                ]);
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ], $bowling));
             }
 
-            foreach ($fielding as $row) {
-                PlayerMatchFielding::create([
+            if ($fielding !== []) {
+                PlayerMatchFielding::insert(array_map(fn (array $row) => [
                     'player_id' => $row['player_id'],
                     'match_id' => $this->matchId,
                     'matches' => 1,
                     'catches' => $row['catches'],
                     'run_outs' => $row['run_outs'],
                     'stumpings' => $row['stumpings'],
-                ]);
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ], $fielding));
             }
 
             // ── Refresh accumulative stats for every affected player ───────────

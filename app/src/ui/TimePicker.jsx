@@ -8,21 +8,17 @@ import { useEffect, useRef, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/Popover';
 
 const inputBase =
-  'flex h-12 w-full items-center rounded-[6px] bg-[#141412] px-4 py-3 text-white placeholder:text-base placeholder:text-[#A2A6AB78] focus:outline-none focus:ring-2 focus:ring-[#DA9811]/50 transition-colors cursor-pointer text-left';
+  'flex h-12 w-full items-center rounded-[6px] bg-surface px-4 py-3 text-white placeholder:text-base placeholder:text-muted/47 focus:outline-none focus:ring-2 focus:ring-brand/50 transition-colors cursor-pointer text-left';
 
 /** 12h display order: 12, 1, 2, ..., 11 */
 const HOURS_12 = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-const MINUTES = Array.from({ length: 60 }, (_, i) =>
-  String(i).padStart(2, '0'),
-);
+const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
 const PERIODS = ['AM', 'PM'];
 
 function parseValue(value) {
-  if (!value || typeof value !== 'string')
-    return { hour12: 12, minute: 0, period: 'AM' };
+  if (!value || typeof value !== 'string') return { hour12: 12, minute: 0, period: 'AM' };
   const [h, m] = value.trim().split(':').map(Number);
-  if (Number.isNaN(h) || Number.isNaN(m))
-    return { hour12: 12, minute: 0, period: 'AM' };
+  if (Number.isNaN(h) || Number.isNaN(m)) return { hour12: 12, minute: 0, period: 'AM' };
   const hour24 = Math.max(0, Math.min(23, h));
   const minute = Math.max(0, Math.min(59, m));
   const period = hour24 < 12 ? 'AM' : 'PM';
@@ -43,15 +39,7 @@ function formatDisplay(value) {
   return `${h}:${m} ${period}`;
 }
 
-export function TimePicker({
-  id,
-  value = '',
-  onChange,
-  placeholder = 'Select time',
-  className = '',
-  disabled,
-  ...props
-}) {
+export function TimePicker({ id, value = '', onChange, placeholder = 'Select Time', className = '', disabled, ...props }) {
   const [open, setOpen] = useState(false);
   const parsed = parseValue(value);
   const [hour12, setHour12] = useState(parsed.hour12);
@@ -98,7 +86,7 @@ export function TimePicker({
     'flex flex-col overflow-y-auto max-h-[180px] min-w-[52px] py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden';
   const itemClass =
     'flex h-9 shrink-0 cursor-pointer items-center justify-center rounded text-sm transition-colors hover:bg-white/10 focus:bg-white/10 focus:outline-none';
-  const selectedClass = '!bg-[#DA9811] !text-white font-medium';
+  const selectedClass = '!bg-brand !text-white font-medium';
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -113,18 +101,16 @@ export function TimePicker({
           aria-label={placeholder}
           {...props}
         >
-          <span className={displayValue ? 'text-white' : 'text-[#A2A6AB78]'}>
-            {displayValue || placeholder}
-          </span>
+          <span className={displayValue ? 'text-white' : 'text-muted/47'}>{displayValue || placeholder}</span>
           <ClockIcon className="ml-auto shrink-0 text-white/70" />
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-auto !rounded-xl !border-[#141412] !bg-[#141412] p-0 shadow-lg"
+        className="!bg-surface w-auto !rounded-xl !border-[#141412] p-0 shadow-lg"
         align="start"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
-        <div className="flex border-b border-[#1f1f1d]">
+        <div className="flex border-b border-[#1F1F1D]">
           <div ref={hourRef} className={columnClass}>
             {HOURS_12.map((h) => {
               const isSelected = hour12 === h;
@@ -141,10 +127,7 @@ export function TimePicker({
               );
             })}
           </div>
-          <div
-            ref={minuteRef}
-            className={`${columnClass} border-x border-[#1f1f1d]`}
-          >
+          <div ref={minuteRef} className={`${columnClass} border-x border-[#1F1F1D]`}>
             {MINUTES.map((m) => {
               const n = parseInt(m, 10);
               const isSelected = minute === n;
@@ -182,7 +165,7 @@ export function TimePicker({
           <button
             type="button"
             onClick={handleConfirm}
-            className="w-full rounded-lg bg-[#DA9811] py-2 text-sm font-bold text-[#080807] transition-colors hover:bg-[#DA9811]/90 focus:ring-2 focus:ring-[#DA9811]/50 focus:outline-none"
+            className="bg-brand text-ink hover:bg-brand/90 focus:ring-brand/50 w-full rounded-lg py-2 text-sm font-bold transition-colors focus:ring-2 focus:outline-none"
           >
             Done
           </button>

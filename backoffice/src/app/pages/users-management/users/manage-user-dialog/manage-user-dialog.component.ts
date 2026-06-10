@@ -73,9 +73,7 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
   public ngOnInit(): void {
     this.initializeForm();
     this.loadCountries();
-    this.sub.add(
-      this.form.get('country')?.valueChanges.subscribe((countryName) => this.loadCitiesForCountry(countryName))
-    );
+    this.sub.add(this.form.get('country')?.valueChanges.subscribe((countryName) => this.loadCitiesForCountry(countryName)));
   }
 
   public ngOnDestroy(): void {
@@ -88,17 +86,12 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
     // When editing, the API returns full role objects (roles/admin_roles).
     // Fall back to mapping those to IDs if the flat role_ids array is absent.
     const roleIds = user?.role_ids?.length ? user.role_ids : (user?.roles?.map((r) => r.id) ?? []);
-    const adminRoleIds = user?.admin_role_ids?.length
-      ? user.admin_role_ids
-      : (user?.admin_roles?.map((r) => r.id) ?? []);
+    const adminRoleIds = user?.admin_role_ids?.length ? user.admin_role_ids : (user?.admin_roles?.map((r) => r.id) ?? []);
 
     this.form = this.fb.group({
       id: [user?.id ?? null],
       name: [user?.name ?? '', [Validators.required]],
-      nickname: [
-        user?.nickname ?? '',
-        [Validators.required, Validators.maxLength(50), Validators.pattern(/^[a-zA-Z0-9_]+$/)],
-      ],
+      nickname: [user?.nickname ?? '', [Validators.required, Validators.maxLength(50), Validators.pattern(/^[a-zA-Z0-9_]+$/)]],
       email: [user?.email ?? ''],
       phone: [user?.phone ?? '', [Validators.required, Validators.pattern(PHONE_PATTERN)]],
       date_of_birth: [user?.date_of_birth ?? null],

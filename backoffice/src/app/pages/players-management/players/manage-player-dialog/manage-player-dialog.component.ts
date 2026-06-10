@@ -71,9 +71,7 @@ export class ManagePlayerDialogComponent implements OnInit, OnDestroy {
   public ngOnInit(): void {
     this.initializeForm();
     this.loadCountries();
-    this.sub.add(
-      this.form.get('country')?.valueChanges.subscribe((countryName) => this.loadCitiesForCountry(countryName))
-    );
+    this.sub.add(this.form.get('country')?.valueChanges.subscribe((countryName) => this.loadCitiesForCountry(countryName)));
   }
 
   public ngOnDestroy(): void {
@@ -84,10 +82,7 @@ export class ManagePlayerDialogComponent implements OnInit, OnDestroy {
     const u = this.data.user;
     this.form = this.fb.group({
       name: [u?.name ?? '', [Validators.required]],
-      nickname: [
-        u?.nickname ?? '',
-        [Validators.required, Validators.maxLength(50), Validators.pattern(/^[a-zA-Z0-9_]+$/)],
-      ],
+      nickname: [u?.nickname ?? '', [Validators.required, Validators.maxLength(50), Validators.pattern(/^[a-zA-Z0-9_]+$/)]],
       email: [u?.email ?? ''],
       phone: [u?.phone ?? '', [Validators.required, Validators.pattern(PHONE_PATTERN)]],
       date_of_birth: [u?.date_of_birth ?? null],

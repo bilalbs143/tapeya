@@ -184,6 +184,9 @@ useEffect(() => { setIsOpen(searchTerm.trim().length >= MIN_SEARCH_LENGTH); }, [
 - Use `react-hook-form` + `zodResolver` for all forms. Do not manage form fields with individual `useState` calls.
 - Reset the RTK Query mutation error on form focus: `onFocus={resetApiError}` (not `onFocus={() => resetApiError()}`).
 - Date/picker fields: convert MM-DD-YYYY → YYYY-MM-DD before sending to the API via `toApiDate()` in `src/lib/utils/dateUtils.js`.
+- **Layout & spacing:** Import `FormStack`, `FormSection`, and `FormActions` from `@/ui/form/*` for all data-entry forms (pages and dialogs). Do not add ad-hoc `space-y-*` on `<form>` elements. Full token reference, inventory, and migration plan: [FORM_LAYOUT_STANDARDS.md](./FORM_LAYOUT_STANDARDS.md).
+- **Labels:** `FormField` with `text-[14px] text-muted`; no trailing colons; use `required` prop for asterisk.
+- **Validation:** Pass `error` to `Input` / `Textarea` / `PhoneInput` — renders `text-sm text-red-200` below the control.
 
 ---
 

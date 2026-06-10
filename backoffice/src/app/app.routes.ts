@@ -26,34 +26,32 @@ export const routes: Routes = [
       },
       {
         path: 'content-management',
-        loadChildren: () =>
-          import('./pages/content-management/content-management.routes').then((m) => m.ContentManagementRoutes),
+        loadChildren: () => import('./pages/content-management/content-management.routes').then((m) => m.ContentManagementRoutes),
       },
       {
         path: 'users-management',
-        loadChildren: () =>
-          import('./pages/users-management/users-management.routes').then((m) => m.UsersManagementRoutes),
+        loadChildren: () => import('./pages/users-management/users-management.routes').then((m) => m.UsersManagementRoutes),
       },
       {
         path: 'players-management',
-        loadChildren: () =>
-          import('./pages/players-management/players-management.routes').then((m) => m.playersManagementRoutes),
+        loadChildren: () => import('./pages/players-management/players-management.routes').then((m) => m.playersManagementRoutes),
       },
       {
         path: 'shop-management',
-        loadChildren: () =>
-          import('./pages/shop-management/shop-management.routes').then((m) => m.ShopManagementRoutes),
+        loadChildren: () => import('./pages/shop-management/shop-management.routes').then((m) => m.ShopManagementRoutes),
       },
       {
         path: 'tournaments-management',
         loadChildren: () =>
-          import('./pages/tournaments-management/tournaments-management.routes').then(
-            (m) => m.TournamentsManagementRoutes
-          ),
+          import('./pages/tournaments-management/tournaments-management.routes').then((m) => m.TournamentsManagementRoutes),
       },
       {
         path: 'notifications',
         loadChildren: () => import('./pages/notifications/notifications.routes').then((m) => m.NotificationsRoutes),
+      },
+      {
+        path: 'engagement',
+        loadChildren: () => import('./pages/engagement/engagement.routes').then((m) => m.EngagementRoutes),
       },
       {
         path: 'settings',

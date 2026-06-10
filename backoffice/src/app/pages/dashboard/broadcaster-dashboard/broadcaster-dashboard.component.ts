@@ -139,11 +139,7 @@ export class BroadcasterDashboardComponent implements OnInit {
   };
 
   /** M3 palette roles — track theme / dark mode with Material tokens */
-  public readonly tournamentBarColors = [
-    'var(--mat-sys-primary)',
-    'var(--mat-sys-secondary)',
-    'var(--mat-sys-tertiary)',
-  ];
+  public readonly tournamentBarColors = ['var(--mat-sys-primary)', 'var(--mat-sys-secondary)', 'var(--mat-sys-tertiary)'];
 
   public readonly tournamentBarLegend = { show: false };
 
@@ -208,13 +204,7 @@ export class BroadcasterDashboardComponent implements OnInit {
     this.loadPhaseCounts();
     this.loadMatchMix();
     this.fetchScheduleWindow('live', this.liveTournaments, this.loadingLive, this.liveListError, '-start_date');
-    this.fetchScheduleWindow(
-      'upcoming',
-      this.upcomingTournaments,
-      this.loadingUpcoming,
-      this.upcomingListError,
-      'start_date'
-    );
+    this.fetchScheduleWindow('upcoming', this.upcomingTournaments, this.loadingUpcoming, this.upcomingListError, 'start_date');
   }
 
   public hasAnyMatchData(): boolean {
@@ -283,8 +273,7 @@ export class BroadcasterDashboardComponent implements OnInit {
           const empty = this.emptyMatchMix();
           return from(ids).pipe(
             mergeMap(
-              (id) =>
-                this.matchesApi.listByTournament(id).pipe(catchError(() => of({ data: [] as TournamentMatchRow[] }))),
+              (id) => this.matchesApi.listByTournament(id).pipe(catchError(() => of({ data: [] as TournamentMatchRow[] }))),
               4
             ),
             reduce(

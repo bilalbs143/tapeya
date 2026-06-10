@@ -18,15 +18,9 @@ export const { useGetEnumsQuery } = enumApi;
 export function usePlayerProfileEnums() {
   const { data: enums = {}, isLoading } = useGetEnumsQuery();
   return {
-    battingStyleOptions: Array.isArray(enums.batting_style)
-      ? enums.batting_style
-      : [],
-    bowlingStyleOptions: Array.isArray(enums.bowling_style)
-      ? enums.bowling_style
-      : [],
-    playingRoleOptions: Array.isArray(enums.playing_role)
-      ? enums.playing_role
-      : [],
+    battingStyleOptions: Array.isArray(enums.batting_style) ? enums.batting_style : [],
+    bowlingStyleOptions: Array.isArray(enums.bowling_style) ? enums.bowling_style : [],
+    playingRoleOptions: Array.isArray(enums.playing_role) ? enums.playing_role : [],
     isLoading,
   };
 }

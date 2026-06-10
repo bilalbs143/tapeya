@@ -4,9 +4,12 @@ use App\Settings\AdminNotificationSettings;
 use App\Settings\AppStoreSettings;
 use App\Settings\ContactSettings;
 use App\Settings\GeneralSettings;
+use App\Settings\LiveChatSettings;
 use App\Settings\OtpSettings;
 use App\Settings\OverlaySettings;
+use App\Settings\PushSettings;
 use App\Settings\SmsSettings;
+use App\Settings\StreamingSettings;
 use App\Settings\VeevoTechSmsSettings;
 use App\Settings\WhatsAppSettings;
 use Spatie\LaravelSettings\Encryption\DefaultEncryptor;
@@ -36,6 +39,9 @@ return [
         SmsSettings::class,
         VeevoTechSmsSettings::class,
         WhatsAppSettings::class,
+        StreamingSettings::class,
+        LiveChatSettings::class,
+        PushSettings::class,
     ],
 
     /*

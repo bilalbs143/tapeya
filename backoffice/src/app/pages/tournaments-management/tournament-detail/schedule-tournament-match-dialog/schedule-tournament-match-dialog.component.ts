@@ -13,20 +13,24 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { forkJoin, merge } from 'rxjs';
-import { finalize } from 'rxjs/operators';
+import { finalize, switchMap } from 'rxjs/operators';
 
 import { EnumsService } from 'src/app/services/enums.service';
+import { MediaService } from 'src/app/services/media.service';
 import { MessageService } from 'src/app/services/message.service';
-import { TournamentMatchesService } from 'src/app/services/tournament-matches.service';
+import { TournamentMatchesService, type TournamentMatchRow } from 'src/app/services/tournament-matches.service';
 import type { TournamentTeamRow } from 'src/app/services/tournament-teams.service';
 import { TournamentTeamsService } from 'src/app/services/tournament-teams.service';
 import { TournamentsService } from 'src/app/services/tournaments.service';
 import type { Tournament } from 'src/app/services/tournaments.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 
 export interface ScheduleTournamentMatchDialogData {
   tournamentId: number;
+  mode?: 'create' | 'edit';
+  match?: TournamentMatchRow;
 }
 
 @Component({
@@ -45,6 +49,7 @@ export interface ScheduleTournamentMatchDialogData {
     MatIconModule,
     MatDividerModule,
     MatProgressSpinnerModule,
+    FileUploadComponent,
     DialogWrapperComponent,
     SubmitButtonComponent,
   ],
@@ -57,9 +62,12 @@ export class ScheduleTournamentMatchDialogComponent implements OnInit {
   private readonly tournamentsService = inject(TournamentsService);
   private readonly teamsService = inject(TournamentTeamsService);
   private readonly matchesService = inject(TournamentMatchesService);
+  private readonly mediaService = inject(MediaService);
   private readonly messageService = inject(MessageService);
   private readonly enumsService = inject(EnumsService);
   private readonly destroyRef = inject(DestroyRef);
+
+  private readonly originalHasThumbnail = !!this.data.match?.has_custom_thumbnail;
 
   public readonly groupModeOptions$ = this.enumsService.getOptions('group_mode');
 
@@ -67,6 +75,23 @@ export class ScheduleTournamentMatchDialogComponent implements OnInit {
   public numberOfGroups = 1;
   public isLoading = true;
   public isSubmitting = false;
+
+  public get isEditMode(): boolean {
+    return this.data.mode === 'edit' && !!this.data.match;
+  }
+
+  public get dialogTitle(): string {
+    if (!this.isEditMode) {
+      return 'Schedule Match';
+    }
+    const home = this.data.match?.home_team?.name ?? 'Home';
+    const away = this.data.match?.away_team?.name ?? 'Away';
+    return `Edit Match — ${home} v ${away}`;
+  }
+
+  public get submitLabel(): string {
+    return this.isEditMode ? 'Save' : 'Schedule';
+  }
 
   public form = this.fb.nonNullable.group({
     match_group_mode: ['open' as 'open' | 'group_wise'],
@@ -77,7 +102,8 @@ export class ScheduleTournamentMatchDialogComponent implements OnInit {
     match_time: ['14:00', Validators.required],
     venue_name: ['', [Validators.required, Validators.maxLength(255)]],
     players_per_side: [11, [Validators.required, Validators.min(2), Validators.max(20)]],
-    overs: [20, [Validators.required, Validators.min(5), Validators.max(50)]],
+    overs: [20, [Validators.required, Validators.min(1), Validators.max(255)]],
+    thumbnail: [null as FileUploadValue | null],
   });
 
   constructor() {
@@ -123,12 +149,16 @@ export class ScheduleTournamentMatchDialogComponent implements OnInit {
       next: ({ tournament, teams }) => {
         this.applyTournament(tournament.data);
         this.teams = teams.data ?? [];
-        this.form.patchValue({
-          venue_name: tournament.data.venue_name?.trim() ?? '',
-          match_date: new Date(),
-          match_group_mode: 'open',
-          group_index: null,
-        });
+        if (this.isEditMode && this.data.match) {
+          this.patchFormFromMatch(this.data.match);
+        } else {
+          this.form.patchValue({
+            venue_name: tournament.data.venue_name?.trim() ?? '',
+            match_date: new Date(),
+            match_group_mode: 'open',
+            group_index: null,
+          });
+        }
         this.applyGroupModeValidators();
         this.pruneTeamSelections();
         this.isLoading = false;
@@ -142,6 +172,30 @@ export class ScheduleTournamentMatchDialogComponent implements OnInit {
 
   private applyTournament(t: Tournament): void {
     this.numberOfGroups = Math.max(1, t.number_of_groups ?? 1);
+  }
+
+  private patchFormFromMatch(match: TournamentMatchRow): void {
+    const groupIndex = match.group_index != null ? Number(match.group_index) : null;
+    const matchDate = match.match_date ? new Date(`${match.match_date}T00:00:00`) : new Date();
+
+    this.form.patchValue({
+      match_group_mode: groupIndex != null ? 'group_wise' : 'open',
+      group_index: groupIndex,
+      home_team_id: match.home_team_id,
+      away_team_id: match.away_team_id,
+      match_date: matchDate,
+      match_time: (match.match_time ?? '').slice(0, 5),
+      venue_name: match.venue_name,
+      players_per_side: match.players_per_side,
+      overs: match.overs,
+    });
+
+    if (match.thumbnail_url && match.has_custom_thumbnail) {
+      this.form.patchValue(
+        { thumbnail: { files: [], existingUrls: [match.thumbnail_url] } as FileUploadValue },
+        { emitEvent: false }
+      );
+    }
   }
 
   public get showMatchGroupMode(): boolean {
@@ -216,44 +270,59 @@ export class ScheduleTournamentMatchDialogComponent implements OnInit {
       return;
     }
     const rawDate = v.match_date;
-    let matchDateStr: string;
-    if (rawDate instanceof Date) {
-      matchDateStr = formatDate(rawDate, 'yyyy-MM-dd', 'en-US');
-    } else if (typeof rawDate === 'string' && rawDate) {
-      matchDateStr = rawDate;
-    } else {
+    if (!(rawDate instanceof Date) && !(typeof rawDate === 'string' && rawDate)) {
       this.form.controls.match_date.setErrors({ ...(this.form.controls.match_date.errors ?? {}), required: true });
       this.form.markAllAsTouched();
       return;
     }
     const groupIndex =
-      this.showMatchGroupMode && v.match_group_mode === 'group_wise' && v.group_index != null
-        ? Number(v.group_index)
-        : null;
+      this.showMatchGroupMode && v.match_group_mode === 'group_wise' && v.group_index != null ? Number(v.group_index) : null;
+
+    const thumbnailVal = this.form.getRawValue().thumbnail;
 
     this.isSubmitting = true;
-    const payload = {
-      home_team_id: v.home_team_id,
-      away_team_id: v.away_team_id,
-      match_date: matchDateStr,
-      match_time: v.match_time,
-      venue_name: v.venue_name.trim(),
-      players_per_side: v.players_per_side,
-      overs: v.overs,
-      group_index: groupIndex,
-    };
-    this.matchesService
-      .createMatch(this.data.tournamentId, payload)
-      .pipe(finalize(() => (this.isSubmitting = false)))
+    const formData = this.buildFormData(groupIndex);
+    const request$ = this.isEditMode
+      ? this.matchesService.updateMatch(this.data.match!.id, formData)
+      : this.matchesService.createMatch(this.data.tournamentId, formData);
+
+    request$
+      .pipe(
+        switchMap((res) =>
+          this.mediaService.applyField('match', res.data.id, 'thumbnail', thumbnailVal, this.originalHasThumbnail)
+        ),
+        finalize(() => (this.isSubmitting = false))
+      )
       .subscribe({
         next: () => {
-          this.messageService.success('Match scheduled.');
+          this.messageService.success(this.isEditMode ? 'Match updated.' : 'Match scheduled.');
           this.dialogRef.close(true);
         },
         error: () =>
           this.messageService.error(
-            'Could not schedule match. Ensure both teams are in the tournament (and in the chosen group for group-wise fixtures).'
+            this.isEditMode
+              ? 'Could not update match.'
+              : 'Could not schedule match. Ensure both teams are in the tournament (and in the chosen group for group-wise fixtures).'
           ),
       });
+  }
+
+  private buildFormData(groupIndex: number | null): FormData {
+    const v = this.form.getRawValue();
+    const rawDate = v.match_date;
+    const matchDateStr = rawDate instanceof Date ? formatDate(rawDate, 'yyyy-MM-dd', 'en-US') : String(rawDate ?? '');
+
+    const fd = new FormData();
+    fd.append('home_team_id', String(v.home_team_id));
+    fd.append('away_team_id', String(v.away_team_id));
+    fd.append('match_date', matchDateStr);
+    fd.append('match_time', v.match_time);
+    fd.append('venue_name', v.venue_name.trim());
+    fd.append('players_per_side', String(v.players_per_side));
+    fd.append('overs', String(v.overs));
+    if (groupIndex != null) {
+      fd.append('group_index', String(groupIndex));
+    }
+    return fd;
   }
 }

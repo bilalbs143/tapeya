@@ -1,43 +1,13 @@
-/* eslint-disable react-refresh/only-export-components */
 import { useMemo, useState } from 'react';
 
 import { Link } from 'react-router-dom';
 
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { formatCount } from '@/lib/format';
+import { formatPostTimestamp } from '@/lib/utils/feedUtils';
 
 const feedCommentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-comment.svg`;
 const feedShareIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-share.svg`;
-
-/**
- * Format ISO date string to "Feb 11, 2026 • 12:15 AM"
- */
-export function formatPostTimestamp(isoString) {
-  if (!isoString) return '';
-  const date = new Date(isoString);
-  if (Number.isNaN(date.getTime())) return '';
-  const datePart = date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-  const timePart = date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  });
-  return `${datePart} • ${timePart}`;
-}
-
-/**
- * Format engagement count: 5000 -> "5K", 1240 -> "1.2K", 68 -> "68"
- */
-export function formatCount(count) {
-  if (count >= 1000) {
-    const k = count / 1000;
-    return k % 1 === 0 ? `${k}K` : `${k.toFixed(1)}K`;
-  }
-  return String(count);
-}
 
 export function ThumbsUpIcon({ filled, className = '' }) {
   return (
@@ -70,12 +40,7 @@ export function ThumbsUpIcon({ filled, className = '' }) {
  * @param {number} likesCountOverride - Optional override for displayed like count (e.g. after optimistic update)
  * @param {function(string)} onLike - Callback when like is toggled (receives post id)
  */
-export default function PostCard({
-  post,
-  isLiked = false,
-  likesCountOverride,
-  onLike,
-}) {
+export default function PostCard({ post, isLiked = false, likesCountOverride, onLike }) {
   const {
     id,
     imageUrl,
@@ -95,10 +60,7 @@ export default function PostCard({
   const [commenterAvatarError, setCommenterAvatarError] = useState(false);
 
   const displayLikesCount = likesCountOverride ?? likesCount;
-  const formattedTimestamp = useMemo(
-    () => formatPostTimestamp(publishedAt),
-    [publishedAt],
-  );
+  const formattedTimestamp = useMemo(() => formatPostTimestamp(publishedAt), [publishedAt]);
 
   const handleLikeClick = (e) => {
     e.preventDefault();
@@ -113,10 +75,7 @@ export default function PostCard({
 
   return (
     <Link to={`/feed/${id}`} className="block">
-      <article
-        className="overflow-hidden rounded-2xl bg-[#141412] shadow-[0_18px_40px_rgba(0,0,0,0.9)]"
-        data-post-id={id}
-      >
+      <article className="bg-surface overflow-hidden rounded-2xl shadow-[0_18px_40px_rgba(0,0,0,0.9)]" data-post-id={id}>
         {/* Post image with timestamp overlay - bottom-left corner */}
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-black">
           <img
@@ -127,15 +86,13 @@ export default function PostCard({
             onError={() => setImageError(true)}
           />
           <div className="absolute bottom-0 left-0 w-fit max-w-full px-3 py-2">
-            <span className="text-[12px] font-normal text-white">
-              {formattedTimestamp}
-            </span>
+            <span className="text-[12px] font-normal text-white">{formattedTimestamp}</span>
           </div>
         </div>
 
         <div className="p-4">
           {/* Author */}
-          <div className="mb-3 flex items-center gap-2 border-b border-[#1A1A1A] pb-3">
+          <div className="border-surface-border mb-3 flex items-center gap-2 border-b pb-3">
             <img
               src={authorAvatarError ? avatarPlaceholder : authorAvatarUrl}
               alt=""
@@ -143,53 +100,31 @@ export default function PostCard({
               loading="lazy"
               onError={() => setAuthorAvatarError(true)}
             />
-            <span className="text-[14px] font-medium text-white">
-              {authorName}
-            </span>
+            <span className="text-[14px] font-medium text-white">{authorName}</span>
           </div>
 
           {/* Title & description */}
-          <h2 className="mb-1.5 text-[14px] leading-snug font-bold text-white">
-            {title}
-          </h2>
-          <p className="mb-4 line-clamp-3 text-[14px] leading-relaxed font-normal text-[#B0B0B0]">
-            {description}
-          </p>
+          <h2 className="mb-1.5 text-[14px] leading-snug font-bold text-white">{title}</h2>
+          <p className="mb-4 line-clamp-3 text-[14px] leading-relaxed font-normal text-[#B0B0B0]">{description}</p>
 
           {/* Engagement row - icons & text #A2A6AB, evenly spaced */}
-          <div className="mb-4 flex items-center justify-between border-t border-b border-[#1A1A1A] py-3 text-[#A2A6AB]">
+          <div className="border-surface-border text-muted mb-4 flex items-center justify-between border-t border-b py-3">
             <button
               type="button"
               onClick={handleLikeClick}
-              className={`flex items-center gap-1.5 transition-transform ${isLiked ? 'text-[#DA9811]' : ''}`}
+              className={`flex items-center gap-1.5 transition-transform ${isLiked ? 'text-brand' : ''}`}
               aria-label={isLiked ? 'Unlike' : 'Like'}
             >
               <ThumbsUpIcon filled={isLiked} />
-              <span className="text-[14px] font-normal">
-                {formatCount(displayLikesCount)}
-              </span>
+              <span className="text-[14px] font-normal">{formatCount(displayLikesCount)}</span>
             </button>
             <span className="flex items-center gap-1.5" aria-hidden>
-              <img
-                src={feedCommentIcon}
-                alt=""
-                className="h-[17px] w-[17px] object-contain"
-                aria-hidden
-              />
-              <span className="text-[14px] font-normal">
-                {formatCount(commentsCount)}
-              </span>
+              <img src={feedCommentIcon} alt="" className="h-[17px] w-[17px] object-contain" aria-hidden />
+              <span className="text-[14px] font-normal">{formatCount(commentsCount)}</span>
             </span>
             <span className="flex items-center gap-1.5" aria-hidden>
-              <img
-                src={feedShareIcon}
-                alt=""
-                className="h-5 w-5 object-contain"
-                aria-hidden
-              />
-              <span className="text-[14px] font-normal">
-                {formatCount(sharesCount)}
-              </span>
+              <img src={feedShareIcon} alt="" className="h-5 w-5 object-contain" aria-hidden />
+              <span className="text-[14px] font-normal">{formatCount(sharesCount)}</span>
             </span>
           </div>
 
@@ -197,23 +132,15 @@ export default function PostCard({
           {latestComment && (
             <div className="flex gap-2 p-3">
               <img
-                src={
-                  commenterAvatarError
-                    ? avatarPlaceholder
-                    : latestComment.commenterAvatarUrl
-                }
+                src={commenterAvatarError ? avatarPlaceholder : latestComment.commenterAvatarUrl}
                 alt=""
                 className="h-9 w-9 flex-shrink-0 rounded-full object-cover"
                 loading="lazy"
                 onError={() => setCommenterAvatarError(true)}
               />
               <div className="min-w-0 flex-1">
-                <p className="text-[14px] font-bold text-white">
-                  {latestComment.commenterName}
-                </p>
-                <p className="mt-0.5 text-[14px] leading-relaxed font-normal text-[#B0B0B0]">
-                  {latestComment.text}
-                </p>
+                <p className="text-[14px] font-bold text-white">{latestComment.commenterName}</p>
+                <p className="mt-0.5 text-[14px] leading-relaxed font-normal text-[#B0B0B0]">{latestComment.text}</p>
               </div>
             </div>
           )}

@@ -38,13 +38,17 @@ class UserSearchController extends Controller
         $term = trim((string) ($validated['search'] ?? $request->query('search', '')));
         $query = User::query()->user()->notBlocked();
 
-        $appRole = $validated['app_role'] ?? $request->query('app_role');
-        $appRoleSlug = $appRole instanceof AppRoleEnum ? $appRole->value : (is_string($appRole) ? $appRole : null);
-        if ($appRoleSlug !== null && $appRoleSlug !== '') {
-            $query->whereHas('roles', function ($q) use ($appRoleSlug): void {
-                $q->where('roles.guard', RoleGuardEnum::APP->value)
-                    ->where('roles.slug', $appRoleSlug);
-            });
+        if ($request->boolean('for_squad')) {
+            $query->eligibleForTournamentSquad();
+        } else {
+            $appRole = $validated['app_role'] ?? $request->query('app_role');
+            $appRoleSlug = $appRole instanceof AppRoleEnum ? $appRole->value : (is_string($appRole) ? $appRole : null);
+            if ($appRoleSlug !== null && $appRoleSlug !== '') {
+                $query->whereHas('roles', function ($q) use ($appRoleSlug): void {
+                    $q->where('roles.guard', RoleGuardEnum::APP->value)
+                        ->where('roles.slug', $appRoleSlug);
+                });
+            }
         }
 
         if ($term !== '') {

@@ -105,9 +105,7 @@
       </div>
     } @else if (hasFilterEmpty) {
       <div class="flex min-h-[18rem] w-full flex-col items-center justify-center px-4 py-10 text-center text-muted">
-        <p class="m-0 max-w-md text-sm">
-          No matches match your filters. Try adjusting search, date, status, or Live today.
-        </p>
+        <p class="m-0 max-w-md text-sm">No matches match your filters. Try adjusting search, date, status, or Live today.</p>
       </div>
     } @else {
       <div class="sticky-header-table-container relative overflow-auto">
@@ -232,6 +230,18 @@
                 *matCellDef="let row"
                 class="action-link text-sm whitespace-nowrap"
               >
+                <button
+                  type="button"
+                  class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                  aria-label="Edit match"
+                  matTooltip="Edit match"
+                  (click)="openEditDialog(row)"
+                >
+                  <i-tabler
+                    name="edit"
+                    class="size-4.5!"
+                  ></i-tabler>
+                </button>
                 <a
                   class="me-2.5 inline-flex cursor-pointer border-0 bg-transparent p-0 align-middle no-underline"
                   [routerLink]="['/tournaments-management/match-controller', row.id]"

@@ -1,35 +1,31 @@
 import { useEffect, useRef } from 'react';
 
-import { createEcho } from '@/config/reverb';
+import { useGraphicEcho } from '@/pages/graphics-controller/GraphicEchoContext';
 
 /**
  * Subscribes to the **public** Reverb channel `match.{matchId}.graphics` and
  * calls `onCommand(event)` whenever a `.match.graphic.activated` event arrives.
  *
- * No auth token is required — the channel is public so the overlay page can
- * subscribe without a user session (OBS/vMix browser source).
+ * Uses the shared Echo instance from {@link GraphicEchoProvider} — do not call
+ * outside that provider.
  *
  * @param {string|number|undefined} matchId
  * @param {(event: object) => void} onCommand
  */
 export function useGraphicChannel(matchId, onCommand) {
+  const echo = useGraphicEcho();
   const onCommandRef = useRef(onCommand);
   onCommandRef.current = onCommand;
 
   useEffect(() => {
-    if (!matchId) return undefined;
+    if (!matchId || !echo) return undefined;
 
-    const echo = createEcho();
-    if (!echo) return undefined;
-
-    echo
-      .channel(`match.${matchId}.graphics`)
-      .listen('.match.graphic.activated', (event) => {
-        onCommandRef.current(event);
-      });
+    echo.channel(`match.${matchId}.graphics`).listen('.match.graphic.activated', (event) => {
+      onCommandRef.current(event);
+    });
 
     return () => {
-      echo.disconnect();
+      echo.leave(`match.${matchId}.graphics`);
     };
-  }, [matchId]);
+  }, [matchId, echo]);
 }

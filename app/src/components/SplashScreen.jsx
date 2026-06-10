@@ -49,9 +49,7 @@ export default function SplashScreen() {
       />
 
       <div
-        className={`relative z-10 flex min-h-full flex-col items-center justify-center gap-6 ${
-          exiting ? 'motion-safe:animate-splash-fade-out' : ''
-        }`}
+        className={`relative z-10 flex min-h-full flex-col items-center justify-center gap-6 ${exiting ? 'motion-safe:animate-splash-fade-out' : ''}`}
       >
         <img
           src={tapeyaLogo}

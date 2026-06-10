@@ -11,15 +11,16 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { of, Subscription } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, finalize, startWith, switchMap } from 'rxjs/operators';
 
 import { Country, LocationService } from 'src/app/services/location.service';
+import { MediaService } from 'src/app/services/media.service';
 import { MessageService } from 'src/app/services/message.service';
-import { type TeamRow, type TeamUserCandidate, TeamsService } from 'src/app/services/teams.service';
+import { type TeamRow, type TeamSavePayload, type TeamUserCandidate, TeamsService } from 'src/app/services/teams.service';
 import { UsersService } from 'src/app/services/users.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 
 export interface ManageTeamDialogData {
@@ -42,7 +43,7 @@ export interface ManageTeamDialogData {
     MatAutocompleteModule,
     MatChipsModule,
     MatIconModule,
-    TablerIconsModule,
+    FileUploadComponent,
     DialogWrapperComponent,
     SubmitButtonComponent,
   ],
@@ -53,10 +54,13 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
   private readonly dialogRef = inject(MatDialogRef<ManageTeamDialogComponent, boolean>);
   private readonly fb = inject(FormBuilder);
   private readonly teamsService = inject(TeamsService);
+  private readonly mediaService = inject(MediaService);
   private readonly usersService = inject(UsersService);
   private readonly locationService = inject(LocationService);
   private readonly messageService = inject(MessageService);
   private readonly sub = new Subscription();
+
+  private readonly originalHasLogo = !!this.data.team?.logo;
 
   public form!: FormGroup;
   public readonly sponsorSearch = this.fb.nonNullable.control('');
@@ -72,8 +76,6 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
   /** Same chip-input behaviour as tournament overview (Broadcaster / Organizer). */
   public readonly roleChipSeparatorKeys = [ENTER, COMMA] as const;
   public readonly roleChipInputAddOnBlur = false;
-  public logoFile: File | null = null;
-  public logoPreviewUrl: string | null = null;
   public isSubmitting = false;
 
   public get title(): string {
@@ -124,9 +126,7 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
           debounceTime(250),
           distinctUntilChanged(),
           switchMap((term) =>
-            this.usersService
-              .adminUserSearch(term ?? '')
-              .pipe(catchError(() => of({ data: [] as TeamUserCandidate[] })))
+            this.usersService.adminUserSearch(term ?? '').pipe(catchError(() => of({ data: [] as TeamUserCandidate[] })))
           )
         )
         .subscribe((res) => {
@@ -142,7 +142,7 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
           distinctUntilChanged(),
           switchMap((term) =>
             this.usersService
-              .adminUserSearch(term ?? '', { app_role: 'player' })
+              .adminUserSearch(term ?? '', { for_squad: true })
               .pipe(catchError(() => of({ data: [] as TeamUserCandidate[] })))
           )
         )
@@ -153,13 +153,14 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
   }
 
   private initializeForm(): void {
-    this.form = this.fb.nonNullable.group({
+    this.form = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(255)]],
       code: ['', [Validators.required, Validators.maxLength(20)]],
       country: ['', [Validators.required, Validators.maxLength(100)]],
       // City starts disabled; enabled reactively once a country is selected and cities are loaded.
       city: [{ value: '', disabled: true }, [Validators.required, Validators.maxLength(100)]],
       sponsor_user_id: [0, [Validators.required, Validators.min(1)]],
+      logo: [null as FileUploadValue | null],
     });
   }
 
@@ -211,7 +212,7 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
     const icons = t.icon_players?.length ? t.icon_players : [];
     this.iconPlayers = [...icons];
     if (t.logo) {
-      this.logoPreviewUrl = t.logo;
+      this.form.patchValue({ logo: { files: [], existingUrls: [t.logo] } as FileUploadValue }, { emitEvent: false });
     }
     this.fillCitiesForCountry(t.country || null);
   }
@@ -233,24 +234,6 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
   public userOptionLabel(c: TeamUserCandidate): string {
     const tail = c.email || c.phone || c.nickname || `#${c.id}`;
     return `${c.name} — ${tail}`;
-  }
-
-  public onLogoSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] ?? null;
-    this.logoFile = file;
-    if (this.logoPreviewUrl && this.logoPreviewUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(this.logoPreviewUrl);
-    }
-    this.logoPreviewUrl = file ? URL.createObjectURL(file) : (this.data.team?.logo ?? null);
-  }
-
-  public clearLogo(): void {
-    this.logoFile = null;
-    if (this.logoPreviewUrl && this.logoPreviewUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(this.logoPreviewUrl);
-    }
-    this.logoPreviewUrl = this.data.team?.logo ?? null;
   }
 
   public onSponsorChipInputTokenEnd(event: MatChipInputEvent): void {
@@ -293,19 +276,16 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
     this.iconPlayers = this.iconPlayers.filter((p) => p.id !== user.id);
   }
 
-  private buildFormData(): FormData {
-    const fd = new FormData();
+  private buildPayload(): TeamSavePayload {
     const v = this.form.getRawValue();
-    fd.append('name', String(v.name).trim());
-    fd.append('code', String(v.code).trim());
-    fd.append('country', String(v.country).trim());
-    fd.append('city', String(v.city).trim());
-    fd.append('sponsor_user_id', String(v.sponsor_user_id));
-    this.iconPlayers.forEach((p) => fd.append('icon_player_ids[]', String(p.id)));
-    if (this.logoFile) {
-      fd.append('logo', this.logoFile, this.logoFile.name);
-    }
-    return fd;
+    return {
+      name: String(v.name).trim(),
+      code: String(v.code).trim(),
+      country: String(v.country).trim(),
+      city: String(v.city).trim(),
+      sponsor_user_id: Number(v.sponsor_user_id),
+      icon_player_ids: this.iconPlayers.map((p) => p.id),
+    };
   }
 
   public onSubmit(): void {
@@ -314,17 +294,24 @@ export class ManageTeamDialogComponent implements OnInit, OnDestroy {
       this.messageService.error('Fill all required fields and choose a sponsor (app user).');
       return;
     }
-    const fd = this.buildFormData();
+    const payload = this.buildPayload();
+    const logoVal = this.form.getRawValue().logo as FileUploadValue | null;
+
     this.isSubmitting = true;
     const request$ =
-      this.data.mode === 'create' ? this.teamsService.create(fd) : this.teamsService.update(this.data.team!.id, fd);
+      this.data.mode === 'create' ? this.teamsService.create(payload) : this.teamsService.update(this.data.team!.id, payload);
 
-    request$.pipe(finalize(() => (this.isSubmitting = false))).subscribe({
-      next: () => {
-        this.messageService.success(this.data.mode === 'create' ? 'Team created.' : 'Team updated.');
-        this.dialogRef.close(true);
-      },
-      error: () => this.messageService.error('Could not save team.'),
-    });
+    request$
+      .pipe(
+        switchMap((res) => this.mediaService.applyField('team', res.data.id, 'logo', logoVal, this.originalHasLogo)),
+        finalize(() => (this.isSubmitting = false))
+      )
+      .subscribe({
+        next: () => {
+          this.messageService.success(this.data.mode === 'create' ? 'Team created.' : 'Team updated.');
+          this.dialogRef.close(true);
+        },
+        error: () => this.messageService.error('Could not save team.'),
+      });
   }
 }

@@ -1,7 +1,3 @@
-/**
- * Date picker with calendar popover. Matches Input styling (pill shape, dark theme).
- */
-
 import { useEffect, useState } from 'react';
 
 import { DayPicker } from 'react-day-picker';
@@ -9,7 +5,7 @@ import { DayPicker } from 'react-day-picker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/Popover';
 
 const inputBase =
-  'flex h-12 w-full items-center rounded-[6px] bg-[#141412] px-4 py-3 text-white placeholder:text-base placeholder:text-[#A2A6AB78] focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50 transition-colors cursor-pointer text-left';
+  'flex h-12 w-full items-center rounded-[6px] bg-surface px-4 py-3 text-white placeholder:text-base placeholder:text-muted/47 focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50 transition-colors cursor-pointer text-left';
 
 function formatDisplay(value) {
   if (!value || typeof value !== 'string') return '';
@@ -54,12 +50,8 @@ export function DatePicker({
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const dayPickerDisabled = allowFuture
-    ? { before: today }
-    : { after: new Date() };
-  const endMonth = allowFuture
-    ? new Date(today.getFullYear() + 2, 11)
-    : new Date();
+  const dayPickerDisabled = allowFuture ? { before: today } : { after: new Date() };
+  const endMonth = allowFuture ? new Date(today.getFullYear() + 2, 11) : new Date();
 
   const handleSelect = (date) => {
     setSelectedDate(date);
@@ -90,14 +82,12 @@ export function DatePicker({
             aria-describedby={error && id ? `${id}-error` : undefined}
             {...props}
           >
-            <span className={displayValue ? 'text-white' : 'text-[#A2A6AB78]'}>
-              {displayValue || placeholder}
-            </span>
+            <span className={displayValue ? 'text-white' : 'text-muted/47'}>{displayValue || placeholder}</span>
             <CalendarIcon className="ml-auto shrink-0 text-white/70" />
           </button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-auto !rounded-xl !border-[#141412] !bg-[#141412] p-0 shadow-lg"
+          className="!bg-surface z-[100] w-auto !rounded-xl !border-[#141412] p-0 shadow-lg"
           align="start"
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
@@ -118,38 +108,30 @@ export function DatePicker({
               month_caption: 'flex items-center justify-center gap-3 flex-wrap',
               caption_label: 'sr-only',
               dropdowns: 'flex gap-2 items-center',
-              dropdown_root:
-                'inline-flex min-w-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+              dropdown_root: 'inline-flex min-w-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
               dropdown:
-                'rounded-lg border-0 bg-[#1f1f1d] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50 appearance-none cursor-pointer min-w-[5rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
-              chevron:
-                '!fill-white !text-white shrink-0 [&_polygon]:!fill-white',
+                'rounded-lg border-0 bg-[#1F1F1D] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50 appearance-none cursor-pointer min-w-[5rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+              chevron: '!fill-white !text-white shrink-0 [&_polygon]:!fill-white',
               nav: 'flex gap-1 shrink-0',
-              button_previous:
-                'h-8 w-8 rounded flex items-center justify-center !text-white hover:bg-white/10',
-              button_next:
-                'h-8 w-8 rounded flex items-center justify-center !text-white hover:bg-white/10',
+              button_previous: 'h-8 w-8 rounded flex items-center justify-center !text-white hover:bg-white/10',
+              button_next: 'h-8 w-8 rounded flex items-center justify-center !text-white hover:bg-white/10',
               weekdays: 'flex',
-              weekday: 'w-9 text-center text-sm text-[#A2A6AB78]',
+              weekday: 'w-9 text-center text-sm text-muted/47',
               week: 'flex',
               day: 'h-9 w-9 text-center text-sm',
               day_button:
-                'h-9 w-9 rounded text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50',
+                'h-9 w-9 rounded text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:pointer-events-none disabled:hover:bg-transparent disabled:focus:ring-0',
               selected: '!bg-[#FF9700] !text-white hover:!bg-[#FF9700]/90',
               today: 'font-semibold text-[#FFB703]',
               outside: 'text-white/40',
-              disabled: 'text-white/30 cursor-not-allowed',
+              disabled: 'cursor-not-allowed',
               hidden: 'invisible',
             }}
           />
         </PopoverContent>
       </Popover>
       {error && (
-        <p
-          id={id ? `${id}-error` : undefined}
-          className="text-sm text-red-200"
-          role="alert"
-        >
+        <p id={id ? `${id}-error` : undefined} className="text-sm text-red-200" role="alert">
           {error}
         </p>
       )}

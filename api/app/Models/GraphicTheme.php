@@ -11,7 +11,6 @@ class GraphicTheme extends BaseModel
         'name',
         'config_schema',
         'default_config',
-        'graphics_url_template',
         'is_active',
     ];
 

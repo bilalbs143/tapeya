@@ -48,6 +48,25 @@ export interface ProductsListResponse {
   links?: Record<string, string | null>;
 }
 
+export interface ProductSavePayload {
+  name: string;
+  slug: string;
+  description: string;
+  price: number;
+  brand_id: number;
+  category_id: number;
+  stock_quantity: number;
+  low_stock_threshold: number;
+  is_active: boolean;
+  is_featured: boolean;
+  is_popular: boolean;
+  is_special_offer: boolean;
+  discount_type?: string | null;
+  discount_value?: number | null;
+  discount_starts_at?: string | null;
+  discount_ends_at?: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ProductService {
   private readonly http = inject(HttpClient);
@@ -64,16 +83,15 @@ export class ProductService {
     return this.http.get<{ data: Product }>(`${this.baseUrl}/${id}`);
   }
 
-  public create(formData: FormData): Observable<{ data: Product }> {
+  public create(formData: FormData | ProductSavePayload): Observable<{ data: Product }> {
     return this.http
       .post<{ data: Product }>(this.baseUrl, formData)
       .pipe(tap(() => this.messageService.success('Product created successfully.')));
   }
 
-  public update(id: number, formData: FormData): Observable<{ data: Product }> {
-    formData.append('_method', 'PUT');
+  public update(id: number, formData: ProductSavePayload): Observable<{ data: Product }> {
     return this.http
-      .post<{ data: Product }>(`${this.baseUrl}/${id}`, formData)
+      .put<{ data: Product }>(`${this.baseUrl}/${id}`, formData)
       .pipe(tap(() => this.messageService.success('Product updated successfully.')));
   }
 

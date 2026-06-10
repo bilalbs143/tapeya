@@ -17,6 +17,19 @@ class TournamentResource extends JsonResource
         return (int) ($this->resource->teams_count ?? 0);
     }
 
+    private function getMatchesCount(): int
+    {
+        if ($this->resource->relationLoaded('matches')) {
+            return $this->resource->matches->count();
+        }
+
+        if (! array_key_exists('matches_count', $this->resource->getAttributes())) {
+            $this->resource->loadCount('matches');
+        }
+
+        return (int) ($this->resource->matches_count ?? 0);
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -55,10 +68,27 @@ class TournamentResource extends JsonResource
             ),
 
             'teams_count' => (int) $this->getTeamsCount(),
+            'matches_count' => (int) $this->getMatchesCount(),
+            'can_manage' => $this->canManage($request),
             'matches' => $this->whenLoaded('matches', fn () => TournamentMatchResource::collection($this->matches)),
 
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
+    }
+
+    private function canManage(Request $request): bool
+    {
+        $user = $request->user();
+        if (! $user) {
+            return false;
+        }
+
+        $preloaded = $request->attributes->get('manageable_tournament_ids');
+        if ($preloaded !== null) {
+            return isset($preloaded[$this->id]);
+        }
+
+        return $user->canOperateTournamentInApp($this->resource);
     }
 }

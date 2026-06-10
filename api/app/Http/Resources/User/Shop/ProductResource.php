@@ -27,6 +27,7 @@ class ProductResource extends JsonResource
             'category_id' => $this->category_id,
             'category' => $this->whenLoaded('category', fn () => new CategoryResource($this->category)),
             'stock_quantity' => $this->stock_quantity,
+            'low_stock_threshold' => $this->low_stock_threshold ?? 5,
             'is_featured' => $this->is_featured,
             'is_popular' => $this->is_popular,
             'is_special_offer' => $this->is_special_offer,

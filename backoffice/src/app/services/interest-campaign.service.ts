@@ -85,16 +85,10 @@ export class InterestCampaignService {
       .pipe(tap(() => this.messageService.success('Interest Campaign Created.')));
   }
 
-  public update(id: number, payload: UpdateInterestCampaignPayload | FormData): Observable<{ data: InterestCampaign }> {
-    const url = `${this.baseUrl}/${id}`;
-    let request$: Observable<{ data: InterestCampaign }>;
-    if (payload instanceof FormData) {
-      payload.append('_method', 'PATCH');
-      request$ = this.http.post<{ data: InterestCampaign }>(url, payload);
-    } else {
-      request$ = this.http.patch<{ data: InterestCampaign }>(url, payload);
-    }
-    return request$.pipe(tap(() => this.messageService.success('Interest Campaign Updated.')));
+  public update(id: number, payload: UpdateInterestCampaignPayload): Observable<{ data: InterestCampaign }> {
+    return this.http
+      .patch<{ data: InterestCampaign }>(`${this.baseUrl}/${id}`, payload)
+      .pipe(tap(() => this.messageService.success('Interest Campaign Updated.')));
   }
 
   public delete(id: number): Observable<void> {

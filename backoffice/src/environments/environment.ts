@@ -1,4 +1,4 @@
-const apiBaseUrl = 'https://api.tapeya.com/api';
+const apiBaseUrl = 'https://dev-api.tapeya.com/api';
 const apiOrigin = new URL(apiBaseUrl);
 const useTls = apiOrigin.protocol === 'https:';
 
@@ -6,7 +6,7 @@ export const environment = {
   production: true,
   apiBaseUrl,
   /** Base URL of the React user-facing app (used to generate overlay URLs). */
-  appUrl: 'https://tapeya.com',
+  appUrl: 'https://dev.tapeya.com',
   reverb: {
     enabled: true,
     /** Must equal `REVERB_APP_KEY` in `api/.env` */

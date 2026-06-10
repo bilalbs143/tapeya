@@ -10,7 +10,6 @@ export interface GraphicTheme {
   name: string;
   config_schema: unknown;
   default_config: Record<string, unknown> | null;
-  graphics_url_template: string | null;
   is_active: boolean;
 }
 
@@ -43,6 +42,7 @@ export interface MatchGraphicSession {
   graphic_theme_id: number;
   config: Record<string, unknown> | null;
   context: Record<string, unknown> | null;
+  pending_players?: Record<string, unknown> | null;
   active_command_id: number | null;
   theme?: GraphicTheme;
   active_command?: MatchGraphicCommand | null;
@@ -70,6 +70,8 @@ export interface MatchGraphicPlayerListRow {
   user_id: number;
   name: string;
   playing_role: string | null;
+  batting_style?: string | null;
+  bowling_style?: string | null;
 }
 
 export interface MatchGraphicTeamPlayerList {

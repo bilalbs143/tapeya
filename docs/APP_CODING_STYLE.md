@@ -35,7 +35,7 @@ Short reference for the `app/` folder (Vite + React, Redux Toolkit, Tailwind, Ra
 - **UI primitives**: Prefer named exports (`export function Button(...)`). Add a short JSDoc when behavior is non-obvious (e.g. `asChild` with Radix).
 - **Props**: Use defaults for optional props (`className = ''`, `variant = 'primary'`). Spread rest props onto the root element where appropriate.
 - **Styling**: Tailwind only. Prefer utilities; use `className` for overrides. No inline styles except when necessary (e.g. dynamic values or design tokens).
-- **Forms**: Use `react-hook-form` + `@hookform/resolvers/zod`. One Zod schema per form (or shared in `lib/validations/`). Use `FormField` + `Input` (or other UI) with `register()` and `formState.errors`.
+- **Forms**: Use `react-hook-form` + `@hookform/resolvers/zod`. One Zod schema per form (or shared in `lib/validations/`). Use `FormField` + `Input` (or other UI) with `register()` and `formState.errors`. Layout spacing: import `FormStack`, `FormSection`, `FormActions` from `@/ui/form/*` — see [FORM_LAYOUT_STANDARDS.md](./FORM_LAYOUT_STANDARDS.md). ESLint enforces no raw `space-y-*` / `gap-*` on `<form>` (`tapeya-form-layout/no-raw-form-field-spacing`).
 
 ---
 

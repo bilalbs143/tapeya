@@ -10,11 +10,11 @@ import { z } from 'zod';
  * - match_date: required (Y-m-d or MM-DD-YYYY)
  * - match_time: required (HH:mm)
  * - players_per_side: required, 2–20
- * - overs: required, 5–50
+ * - overs: required, 1–255 (matches matches.overs unsigned tinyint)
  */
 export const startMatchSchema = z
   .object({
-    tournament_id: z.string().min(1, 'Select a tournament'),
+    tournament_id: z.string().min(1, 'Select a Tournament'),
     team_a_id: z.string().min(1, 'Select Team A'),
     team_b_id: z.string().min(1, 'Select Team B'),
     venue: z
@@ -43,30 +43,18 @@ export const startMatchSchema = z
         message: 'Please enter a valid time (e.g. 14:30)',
       }),
     players_per_side: z
-      .union([
-        z.string().min(1, 'Players per side is required'),
-        z.number().int().min(2).max(20),
-      ])
+      .union([z.string().min(1, 'Players per side is required'), z.number().int().min(2).max(20)])
       .transform((v) => (typeof v === 'string' ? Number(v) : v))
       .refine((v) => Number.isInteger(v) && v >= 2 && v <= 20, {
         message: 'Select 2–20 players per side',
       }),
     overs: z
-      .union([
-        z.string().min(1, 'Overs is required'),
-        z.number().int().min(5).max(50),
-      ])
-      .transform((v) =>
-        v === '' || v == null
-          ? ''
-          : typeof v === 'number'
-            ? String(v)
-            : String(v),
-      )
+      .union([z.string().min(1, 'Overs is required'), z.number().int().min(1).max(255)])
+      .transform((v) => (v === '' || v == null ? '' : typeof v === 'number' ? String(v) : String(v)))
       .refine((v) => {
         const n = Number(v);
-        return Number.isInteger(n) && n >= 5 && n <= 50;
-      }, 'Select 5–50 overs'),
+        return Number.isInteger(n) && n >= 1 && n <= 255;
+      }, 'Enter 1–255 overs'),
   })
   .refine((data) => data.team_a_id !== data.team_b_id, {
     message: 'Team A and Team B must be different',

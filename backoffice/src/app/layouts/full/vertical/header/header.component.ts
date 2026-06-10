@@ -25,11 +25,7 @@ import type { Notification } from 'src/app/services/notifications.service';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { HEADER_NOTIFICATION_PREVIEW_PER_PAGE } from 'src/app/shared/config/paginator.config';
 import { ADMIN_NOTIFICATION_TYPE_LABELS, AdminNotificationType } from 'src/app/shared/constants/notification.constants';
-import {
-  authUserDisplayName,
-  authUserDisplayRole,
-  isAdmin as authUserIsAdmin,
-} from 'src/app/shared/functions/auth-user-display';
+import { authUserDisplayName, authUserDisplayRole, isAdmin as authUserIsAdmin } from 'src/app/shared/functions/auth-user-display';
 
 interface profiledd {
   id: number;

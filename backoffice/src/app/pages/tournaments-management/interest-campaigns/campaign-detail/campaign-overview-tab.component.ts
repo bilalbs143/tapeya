@@ -60,9 +60,7 @@ export class CampaignOverviewTabComponent implements OnInit, OnDestroy {
     this.isLoading = true;
 
     // Reuse the campaign already fetched by the shell when available.
-    const campaign$ = this.state.campaign
-      ? of({ data: this.state.campaign })
-      : this.campaignService.getById(this.campaignId);
+    const campaign$ = this.state.campaign ? of({ data: this.state.campaign }) : this.campaignService.getById(this.campaignId);
 
     forkJoin({
       campaign: campaign$,

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Enums\Tournament\TournamentInterestCampaignStatusEnum;
+use App\Enums\Tournament\TournamentTypeEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\User\TournamentResource;
@@ -26,7 +27,7 @@ class TournamentController extends Controller
             ->allowedFilters(Tournament::getFilters())
             ->defaultSort('-start_date')
             ->allowedSorts(Tournament::getSorts())
-            ->withCount('teams');
+            ->withCount(['teams', 'matches']);
 
         if (request()->boolean('organizer_tournaments')) {
             $uid = request()->user()->id;
@@ -37,13 +38,31 @@ class TournamentController extends Controller
             });
         }
 
-        // Optionally eager-load matches for each tournament (for user scorecard views).
+        // Scorecard hub: with_matches loads fixtures and is limited to open tournaments.
         if (request()->boolean('with_matches')) {
+            $query->where('tournament_type', TournamentTypeEnum::OPEN_TOURNAMENT);
             $query->with([
                 'matches.homeTeam',
                 'matches.awayTeam',
                 'matches.winningTeam',
+                'matches.stream',
             ]);
+        }
+
+        $user = request()->user();
+        if ($user?->isUser()) {
+            request()->attributes->set(
+                'manageable_tournament_ids',
+                Tournament::query()
+                    ->where(function ($q) use ($user) {
+                        $uid = $user->id;
+                        $q->where('organizer_id', $uid)
+                            ->orWhere('created_by', $uid)
+                            ->orWhereHas('broadcasters', fn ($b) => $b->whereKey($uid));
+                    })
+                    ->pluck('id')
+                    ->flip()
+            );
         }
 
         return $this->success(TournamentResource::collection($this->paginateOrAll($query)));
@@ -60,10 +79,13 @@ class TournamentController extends Controller
             $with[] = 'matches.homeTeam';
             $with[] = 'matches.awayTeam';
             $with[] = 'matches.winningTeam';
+            $with[] = 'matches.stream';
         }
         if ($with !== []) {
             $tournament->load($with);
         }
+
+        $tournament->loadCount('matches');
 
         if (request()->user()) {
             $myReaction = TournamentUserReaction::query()

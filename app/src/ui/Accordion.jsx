@@ -11,20 +11,9 @@ const baseTrigger =
 const baseContent = 'overflow-hidden text-sm';
 const baseChevron = 'h-4 w-4 shrink-0 transition-transform duration-200';
 
-export function Accordion({
-  type = 'single',
-  collapsible,
-  className = '',
-  children,
-  ...props
-}) {
+export function Accordion({ type = 'single', collapsible, className = '', children, ...props }) {
   return (
-    <AccordionPrimitive.Root
-      type={type}
-      collapsible={collapsible}
-      className={className}
-      {...props}
-    >
+    <AccordionPrimitive.Root type={type} collapsible={collapsible} className={className} {...props}>
       {children}
     </AccordionPrimitive.Root>
   );
@@ -32,11 +21,7 @@ export function Accordion({
 
 export function AccordionItem({ value, className = '', children, ...props }) {
   return (
-    <AccordionPrimitive.Item
-      value={value}
-      className={`${baseItem} ${className}`}
-      {...props}
-    >
+    <AccordionPrimitive.Item value={value} className={`${baseItem} ${className}`} {...props}>
       {children}
     </AccordionPrimitive.Item>
   );
@@ -45,10 +30,7 @@ export function AccordionItem({ value, className = '', children, ...props }) {
 export function AccordionTrigger({ className = '', children, ...props }) {
   return (
     <AccordionPrimitive.Header>
-      <AccordionPrimitive.Trigger
-        className={`${baseTrigger} ${className}`}
-        {...props}
-      >
+      <AccordionPrimitive.Trigger className={`${baseTrigger} ${className}`} {...props}>
         {children}
         <ChevronIcon />
       </AccordionPrimitive.Trigger>
@@ -58,10 +40,7 @@ export function AccordionTrigger({ className = '', children, ...props }) {
 
 export function AccordionContent({ className = '', children, ...props }) {
   return (
-    <AccordionPrimitive.Content
-      className={`${baseContent} ${className}`}
-      {...props}
-    >
+    <AccordionPrimitive.Content className={`${baseContent} ${className}`} {...props}>
       <div className="pt-0 pb-4">{children}</div>
     </AccordionPrimitive.Content>
   );
@@ -69,18 +48,8 @@ export function AccordionContent({ className = '', children, ...props }) {
 
 function ChevronIcon() {
   return (
-    <svg
-      className={baseChevron}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M19 9l-7 7-7-7"
-      />
+    <svg className={baseChevron} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
     </svg>
   );
 }

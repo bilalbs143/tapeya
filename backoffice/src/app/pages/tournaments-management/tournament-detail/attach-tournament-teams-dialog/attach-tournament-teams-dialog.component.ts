@@ -151,7 +151,14 @@ export class AttachTournamentTeamsDialogComponent implements OnInit, OnDestroy {
     return `${t.name} (${t.code})`;
   }
 
-  public save(): void {
+  /**
+   * Form submit: prevents native GET reload (outer form has no [formGroup] when numberOfGroups is 1),
+   * then validates and attaches teams.
+   */
+  public onSubmit(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+
     this.attachAttempted = true;
     if (this.selected.length === 0) {
       return;

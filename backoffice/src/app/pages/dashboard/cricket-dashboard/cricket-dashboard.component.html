@@ -35,11 +35,9 @@
               >
                 Welcome{{ user()?.name ? ', ' + user()?.name : '' }}
               </mat-card-title>
-              <mat-card-subtitle
-                class="!m-0 mt-3 block max-w-2xl text-base leading-normal whitespace-normal text-muted"
-              >
-                Full picture of every tournament, match, team, and player on the platform. Live matches update in
-                real-time — open a tournament to schedule fixtures, manage squads, or launch the match controller.
+              <mat-card-subtitle class="!m-0 mt-3 block max-w-2xl text-base leading-normal whitespace-normal text-muted">
+                Full picture of every tournament, match, team, and player on the platform. Live matches update in real-time — open
+                a tournament to schedule fixtures, manage squads, or launch the match controller.
               </mat-card-subtitle>
               <div class="mt-5 flex flex-wrap gap-2">
                 <a
@@ -94,9 +92,7 @@
             <mat-card-content>
               <div class="flex items-start justify-between gap-3">
                 <div class="flex flex-col min-w-0">
-                  <mat-card-title class="!m-0 text-2xl font-semibold leading-tight">{{
-                    tournamentsTotal()
-                  }}</mat-card-title>
+                  <mat-card-title class="!m-0 text-2xl font-semibold leading-tight">{{ tournamentsTotal() }}</mat-card-title>
                   <mat-card-subtitle class="!m-0 mt-1 text-xs font-medium text-muted">Tournaments</mat-card-subtitle>
                   <span class="mt-1 block text-xs text-muted leading-snug">{{ tournamentsActive() }} active</span>
                 </div>
@@ -124,9 +120,7 @@
             <mat-card-content>
               <div class="flex items-start justify-between gap-3">
                 <div class="flex flex-col min-w-0">
-                  <mat-card-title class="!m-0 text-2xl font-semibold leading-tight">{{
-                    matchesTotal()
-                  }}</mat-card-title>
+                  <mat-card-title class="!m-0 text-2xl font-semibold leading-tight">{{ matchesTotal() }}</mat-card-title>
                   <mat-card-subtitle class="!m-0 mt-1 text-xs font-medium text-muted">Matches</mat-card-subtitle>
                   <span class="mt-1 block text-xs text-muted leading-snug">{{ matchesCompleted() }} completed</span>
                 </div>
@@ -182,9 +176,7 @@
             <mat-card-content>
               <div class="flex items-start justify-between gap-3">
                 <div class="flex flex-col min-w-0">
-                  <mat-card-title class="!m-0 text-2xl font-semibold leading-tight">{{
-                    playersTotal()
-                  }}</mat-card-title>
+                  <mat-card-title class="!m-0 text-2xl font-semibold leading-tight">{{ playersTotal() }}</mat-card-title>
                   <mat-card-subtitle class="!m-0 mt-1 text-xs font-medium text-muted">Players</mat-card-subtitle>
                   <span class="mt-1 block text-xs text-muted leading-snug">Registered</span>
                 </div>
@@ -215,9 +207,7 @@
                   <mat-card-title class="!m-0 text-2xl font-semibold leading-tight">{{
                     requestPipeline().pending
                   }}</mat-card-title>
-                  <mat-card-subtitle class="!m-0 mt-1 text-xs font-medium text-muted"
-                    >Pending Requests</mat-card-subtitle
-                  >
+                  <mat-card-subtitle class="!m-0 mt-1 text-xs font-medium text-muted">Pending Requests</mat-card-subtitle>
                   <span class="mt-1 block text-xs text-muted leading-snug">Awaiting review</span>
                 </div>
                 <span
@@ -281,9 +271,7 @@
         </mat-card-header>
         <mat-card-content class="flex min-h-0 flex-1 flex-col">
           @if (!hasPhaseData()) {
-            <div
-              class="flex min-h-[200px] flex-1 flex-col items-center justify-center text-center text-muted px-4 py-10"
-            >
+            <div class="flex min-h-[200px] flex-1 flex-col items-center justify-center text-center text-muted px-4 py-10">
               <i-tabler
                 name="calendar-off"
                 class="mb-3 size-10 opacity-60"
@@ -327,9 +315,7 @@
         </mat-card-header>
         <mat-card-content class="flex min-h-0 flex-1 flex-col">
           @if (!hasMatchStatusData()) {
-            <div
-              class="flex min-h-[200px] flex-1 flex-col items-center justify-center text-center text-muted px-4 py-10"
-            >
+            <div class="flex min-h-[200px] flex-1 flex-col items-center justify-center text-center text-muted px-4 py-10">
               <i-tabler
                 name="chart-donut-3"
                 class="mb-3 size-10 opacity-60"
@@ -372,9 +358,7 @@
         </mat-card-header>
         <mat-card-content class="flex min-h-0 flex-1 flex-col">
           @if (!hasFormatData()) {
-            <div
-              class="flex min-h-[160px] flex-1 flex-col items-center justify-center text-center text-muted px-4 py-8"
-            >
+            <div class="flex min-h-[160px] flex-1 flex-col items-center justify-center text-center text-muted px-4 py-8">
               <p class="m-0 text-sm">No format data yet.</p>
             </div>
           } @else {
@@ -415,9 +399,7 @@
         </mat-card-header>
         <mat-card-content class="flex min-h-0 flex-1 flex-col">
           @if (!hasMatchFormatData()) {
-            <div
-              class="flex min-h-[160px] flex-1 flex-col items-center justify-center text-center text-muted px-4 py-8"
-            >
+            <div class="flex min-h-[160px] flex-1 flex-col items-center justify-center text-center text-muted px-4 py-8">
               <p class="m-0 text-sm">No format data yet.</p>
             </div>
           } @else {
@@ -459,9 +441,7 @@
         </mat-card-header>
         <mat-card-content class="flex min-h-0 flex-1 flex-col">
           @if (!hasActivityData()) {
-            <div
-              class="flex min-h-[200px] flex-1 flex-col items-center justify-center text-center text-muted px-4 py-10"
-            >
+            <div class="flex min-h-[200px] flex-1 flex-col items-center justify-center text-center text-muted px-4 py-10">
               <i-tabler
                 name="chart-area"
                 class="mb-3 size-10 opacity-60"
@@ -513,9 +493,7 @@
         </mat-card-header>
         <mat-card-content class="flex min-h-0 flex-1 flex-col">
           @if (!hasPlayerGrowthData()) {
-            <div
-              class="flex min-h-[200px] flex-1 flex-col items-center justify-center text-center text-muted px-4 py-10"
-            >
+            <div class="flex min-h-[200px] flex-1 flex-col items-center justify-center text-center text-muted px-4 py-10">
               <p class="m-0 text-sm">No new players in this period.</p>
             </div>
           } @else {
@@ -558,9 +536,7 @@
         </mat-card-header>
         <mat-card-content class="flex min-h-0 flex-1 flex-col">
           @if (!hasRequestsData()) {
-            <div
-              class="flex min-h-[200px] flex-1 flex-col items-center justify-center text-center text-muted px-4 py-10"
-            >
+            <div class="flex min-h-[200px] flex-1 flex-col items-center justify-center text-center text-muted px-4 py-10">
               <p class="m-0 text-sm">No requests in this period.</p>
             </div>
           } @else {
@@ -724,9 +700,7 @@
               Live Now
             </mat-card-title>
           </div>
-          <mat-card-subtitle class="!m-0 mb-4 block text-sm whitespace-normal">
-            Matches currently in progress
-          </mat-card-subtitle>
+          <mat-card-subtitle class="!m-0 mb-4 block text-sm whitespace-normal"> Matches currently in progress </mat-card-subtitle>
 
           @if (liveMatches().length === 0) {
             <div class="flex flex-1 flex-col items-center justify-center py-10 text-center text-muted">
@@ -747,16 +721,12 @@
                 <li class="py-3">
                   <div class="flex items-center justify-between gap-2 mb-1">
                     <span class="text-xs text-muted truncate">{{ m.tournament_name ?? '—' }}</span>
-                    <span class="text-xs font-semibold text-error bg-light-error rounded px-1.5 py-0.5 shrink-0"
-                      >LIVE</span
-                    >
+                    <span class="text-xs font-semibold text-error bg-light-error rounded px-1.5 py-0.5 shrink-0">LIVE</span>
                   </div>
                   <div class="flex items-center gap-2">
                     <span class="text-sm font-medium text-dark truncate flex-1">{{ m.home_team ?? '—' }}</span>
                     <span class="text-xs font-semibold text-muted shrink-0">vs</span>
-                    <span class="text-sm font-medium text-dark truncate flex-1 text-right">{{
-                      m.away_team ?? '—'
-                    }}</span>
+                    <span class="text-sm font-medium text-dark truncate flex-1 text-right">{{ m.away_team ?? '—' }}</span>
                   </div>
                   @if (subtitle) {
                     <p class="m-0 mt-0.5 text-xs text-muted">{{ subtitle }}</p>
@@ -782,9 +752,7 @@
           >
             Recent Results
           </mat-card-title>
-          <mat-card-subtitle class="!m-0 mb-4 block text-sm whitespace-normal">
-            Last 8 completed matches
-          </mat-card-subtitle>
+          <mat-card-subtitle class="!m-0 mb-4 block text-sm whitespace-normal"> Last 8 completed matches </mat-card-subtitle>
 
           @if (recentMatches().length === 0) {
             <div class="flex flex-1 items-center justify-center py-8 text-center text-muted">
@@ -806,9 +774,7 @@
                   <div class="flex items-center gap-2 mt-0.5">
                     <span class="text-sm font-medium text-dark truncate flex-1">{{ m.home_team ?? '—' }}</span>
                     <span class="text-xs text-muted shrink-0">vs</span>
-                    <span class="text-sm font-medium text-dark truncate flex-1 text-right">{{
-                      m.away_team ?? '—'
-                    }}</span>
+                    <span class="text-sm font-medium text-dark truncate flex-1 text-right">{{ m.away_team ?? '—' }}</span>
                   </div>
                   <p class="m-0 mt-0.5 text-xs text-success font-medium">{{ matchResultLine(m) }}</p>
                 </li>

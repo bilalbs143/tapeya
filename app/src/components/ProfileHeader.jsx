@@ -1,6 +1,6 @@
 import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { calculateProfileStrength } from '@/lib/profileStrength';
+import { calculateProfileStrength } from '@/lib/utils/playerUtils';
 import { Progress } from '@/ui/Progress';
 
 const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
@@ -24,27 +24,42 @@ export function ProfileHeader({
   role: roleProp,
   strength: strengthProp,
   avatarSrc: avatarSrcProp,
+  onShare,
 }) {
-  const name =
-    nameProp ??
-    (userProp?.name?.trim() || userProp?.nickname?.trim() || 'Guest');
+  const name = nameProp ?? (userProp?.name?.trim() || userProp?.nickname?.trim() || 'Guest');
   const role = roleProp ?? getPrimaryRoleLabel(userProp);
   const avatarSrc = avatarSrcProp ?? userProp?.avatar_url ?? defaultAvatar;
-  const strength =
-    strengthProp ?? (userProp ? calculateProfileStrength(userProp) : 0);
+  const strength = strengthProp ?? (userProp ? calculateProfileStrength(userProp) : 0);
   const showStrengthBar = strength < 100;
 
   return (
-    <header
-      className="relative isolate mb-6 overflow-visible"
-      style={{ height: BANNER_HEIGHT }}
-    >
-      <img
-        src={profileHeaderBg}
-        alt=""
-        className="absolute inset-0 -z-20 size-full object-cover object-center"
-      />
+    <header className="relative isolate mb-6 overflow-visible" style={{ height: BANNER_HEIGHT }}>
+      <img src={profileHeaderBg} alt="" className="absolute inset-0 -z-20 size-full object-cover object-center" />
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#000000] to-[#00000073]" />
+
+      {onShare && (
+        <button
+          type="button"
+          onClick={onShare}
+          aria-label="Share profile"
+          className="absolute top-[90px] right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-sm transition-opacity hover:opacity-80 active:opacity-60"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+          </svg>
+        </button>
+      )}
 
       <div className="relative flex h-full flex-col px-4 pt-16">
         <div className={`mx-auto flex w-full flex-1 ${CONTENT_MAX} flex-col`}>
@@ -52,40 +67,20 @@ export function ProfileHeader({
             <div className="relative z-10 shrink-0">
               <ProfileAvatar src={avatarSrc} name={name} />
             </div>
-            <div
-              className={
-                showStrengthBar
-                  ? 'relative min-w-0 flex-1 pb-10'
-                  : 'min-w-0 flex-1'
-              }
-            >
-              <div
-                className={`flex flex-col items-start gap-1.5 ${
-                  showStrengthBar ? '' : 'translate-y-[25%]'
-                }`}
-              >
-                <h1 className="max-w-full truncate text-base font-semibold tracking-tight text-white">
-                  {name}
-                </h1>
+            <div className={showStrengthBar ? 'relative min-w-0 flex-1 pb-10' : 'min-w-0 flex-1'}>
+              <div className={`flex flex-col items-start gap-1.5 ${showStrengthBar ? '' : 'translate-y-[25%]'}`}>
+                <h1 className="max-w-full truncate text-base font-semibold tracking-tight text-white">{name}</h1>
                 <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold tracking-wide text-black">
                   {role}
                 </span>
               </div>
               {showStrengthBar && (
-                <div className="absolute bottom-[-22px] left-0 z-0 w-full max-w-[358px] rounded-full bg-[#141412] px-4 py-3 backdrop-blur">
+                <div className="bg-surface absolute bottom-[-22px] left-0 z-0 w-full max-w-[358px] rounded-full px-4 py-3 backdrop-blur">
                   <div className="flex items-center gap-3 sm:gap-4">
-                    <span className="text-[13px] text-[#A2A6AB]">
-                      Your Profile Strength
-                    </span>
+                    <span className="text-muted text-[13px]">Your Profile Strength</span>
                     <div className="flex flex-1 items-center gap-3">
-                      <Progress
-                        value={strength}
-                        className="h-2 flex-1 bg-white/20"
-                        indicatorClassName="bg-[#d8a11e]"
-                      />
-                      <span className="shrink-0 text-sm font-bold text-white italic">
-                        {strength}%
-                      </span>
+                      <Progress value={strength} className="h-2 flex-1 bg-white/20" indicatorClassName="bg-brand-dark" />
+                      <span className="shrink-0 text-sm font-bold text-white italic">{strength}%</span>
                     </div>
                   </div>
                 </div>

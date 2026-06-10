@@ -1,40 +1,46 @@
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { TeamLogo } from '@/components/TeamLogo';
+import { useDialog } from '@/context/DialogContext';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { useSearchTeamsQuery } from '@/store/api/teamApi';
 import { Container } from '@/ui/Container';
 
 const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
 const teamEditIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-edit-icon.svg`;
-const teamIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-icon.svg`;
 
-function TeamLogoIcon() {
-  return (
-    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg">
-      <img src={teamIcon} alt="" className="h-full w-full object-contain" />
-    </div>
-  );
+function teamDisplayMeta(team) {
+  const owner = team?.sponsor?.name ?? '—';
+  const iconPlayers =
+    Array.isArray(team?.icon_players) && team.icon_players.length > 0
+      ? team.icon_players
+          .map((p) => p.name)
+          .filter(Boolean)
+          .join(', ')
+      : '—';
+  return { owner, iconPlayers };
 }
 
 function TeamCard({ team, index, onEdit, onDelete, onClick }) {
+  const { owner, iconPlayers } = teamDisplayMeta(team);
+
   return (
     <div
       role="button"
       tabIndex={0}
       onClick={() => onClick?.(team)}
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onClick?.(team)}
-      className="flex cursor-pointer items-start gap-3 rounded-[17px] bg-[#141412] p-4 transition-opacity active:opacity-90"
+      className="bg-surface flex cursor-pointer items-start gap-3 rounded-[17px] p-4 transition-opacity active:opacity-90"
     >
-      <TeamLogoIcon />
+      <TeamLogo team={team} variant="draft" />
       <div className="min-w-0 flex-1">
-        <h3 className="text-[16px] font-bold text-white">{team.name}</h3>
-        <p className="mt-0.5 text-[14px] text-[#A2A6AB]">
-          <span className="font-medium text-[#DA9811]">
-            Owner: {team.owner}
-          </span>
+        <h3 className="text-[16px] font-bold text-white">{team.name ?? '—'}</h3>
+        <p className="text-muted mt-0.5 text-[14px]">
+          <span className="text-brand font-medium">Owner: {owner}</span>
         </p>
-        <p className="mt-0.5 text-[12px] text-[#A2A6AB]">
-          Icon Players: <span className="text-white">{team.iconPlayer}</span>
+        <p className="text-muted mt-0.5 text-[12px]">
+          Icon Players: <span className="text-white">{iconPlayers}</span>
         </p>
       </div>
       <div className="flex shrink-0 flex-col items-end gap-1">
@@ -46,7 +52,7 @@ function TeamCard({ team, index, onEdit, onDelete, onClick }) {
               onEdit?.(team);
             }}
             className="flex h-4 w-4 items-center justify-end rounded-lg transition-opacity active:opacity-80"
-            aria-label="Edit team"
+            aria-label="Edit Team"
           >
             <img src={teamEditIcon} alt="" className="h-4 w-4" />
           </button>
@@ -57,68 +63,33 @@ function TeamCard({ team, index, onEdit, onDelete, onClick }) {
               onDelete?.(team);
             }}
             className="flex h-4 w-4 items-center justify-end rounded-lg transition-opacity active:opacity-80"
-            aria-label="Delete team"
+            aria-label="Delete Team"
           >
             <img src={teamDeleteIcon} alt="" className="h-4 w-4" />
           </button>
         </div>
-        <span className="text-[28px] font-bold text-[#DA98113B]">
-          {index + 1}
-        </span>
+        <span className="text-[28px] font-bold text-[#DA98113B]">{index + 1}</span>
       </div>
     </div>
   );
 }
 
-const MOCK_TEAMS = [
-  {
-    id: '1',
-    name: 'Al Fareed - Mian Channu',
-    owner: 'Mian Asif Naddem',
-    iconPlayer: 'Asif Butt',
-  },
-  {
-    id: '2',
-    name: 'Al Fareed - Mian Channu',
-    owner: 'Mian Asif Naddem',
-    iconPlayer: 'Asif Butt',
-  },
-  {
-    id: '3',
-    name: 'Al Fareed - Mian Channu',
-    owner: 'Mian Asif Naddem',
-    iconPlayer: 'Asif Butt',
-  },
-  {
-    id: '4',
-    name: 'Al Fareed - Mian Channu',
-    owner: 'Mian Asif Naddem',
-    iconPlayer: 'Asif Butt',
-  },
-  {
-    id: '5',
-    name: 'Al Fareed - Mian Channu',
-    owner: 'Mian Asif Naddem',
-    iconPlayer: 'Asif Butt',
-  },
-];
-
 export default function TeamList() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const newTeam = location.state?.newTeam;
-  const teams = newTeam ? [newTeam, ...MOCK_TEAMS] : MOCK_TEAMS;
+  const { openDialog } = useDialog();
+
+  const { data: teams = [], isLoading, isError } = useSearchTeamsQuery('');
 
   const handleTeamClick = (team) => {
     navigate(`/drafting/teams/${team.id}`, { state: { team } });
   };
 
-  const handleEdit = (_team) => {
-    // TODO: Navigate to edit team or open edit modal
-  };
+  const handleEdit = (team) => openDialog('manageTeam', { mode: 'edit', team });
+
+  const handleCreate = () => openDialog('manageTeam', { mode: 'create' });
 
   const handleDelete = (_team) => {
-    // TODO: Confirm and delete team
+    // TODO: Confirm and delete team when API supports delete for app users
   };
 
   return (
@@ -126,36 +97,54 @@ export default function TeamList() {
       <AppSubpageHeader title="Drafting" />
       <Container>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">
-            Teams
-          </h2>
+          <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">Teams</h2>
           <button
             type="button"
-            onClick={() => navigate('/drafting/add-team')}
+            onClick={handleCreate}
             className="flex shrink-0 items-center gap-2 transition-opacity active:opacity-80"
           >
-            <span className="flex h-[27px] w-[27px] items-center justify-center rounded-full bg-[#DA9811] text-[18px] font-bold text-[#080807]">
+            <span className="bg-brand text-ink flex h-[27px] w-[27px] items-center justify-center rounded-full text-[18px] font-bold">
               +
             </span>
-            <span className="text-[14px] font-semibold text-white">
-              Create Teams
-            </span>
+            <span className="text-[14px] font-semibold text-white">Create Teams</span>
           </button>
         </div>
 
-        <ul className="space-y-3 pb-10 lg:grid lg:grid-cols-3 lg:gap-3 lg:space-y-0">
-          {teams.map((team, index) => (
-            <li key={team.id ?? index}>
-              <TeamCard
-                team={team}
-                index={index}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onClick={handleTeamClick}
-              />
-            </li>
-          ))}
-        </ul>
+        {isLoading && (
+          <ul className="space-y-3 pb-10">
+            {[1, 2, 3].map((i) => (
+              <li key={i} className="bg-surface animate-pulse rounded-[17px] p-4">
+                <div className="flex gap-3">
+                  <div className="bg-surface-raised h-12 w-12 shrink-0 rounded-lg" />
+                  <div className="flex-1 space-y-2">
+                    <div className="bg-surface-raised h-4 w-24 rounded" />
+                    <div className="bg-surface-raised h-3 w-32 rounded" />
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {isError && !isLoading && (
+          <p className="bg-surface rounded-[17px] px-4 py-6 text-center text-[13px] text-red-400">Failed to load teams.</p>
+        )}
+
+        {!isLoading && !isError && teams.length > 0 && (
+          <ul className="space-y-3 pb-10 lg:grid lg:grid-cols-3 lg:gap-3 lg:space-y-0">
+            {teams.map((team, index) => (
+              <li key={team.id ?? index}>
+                <TeamCard team={team} index={index} onEdit={handleEdit} onDelete={handleDelete} onClick={handleTeamClick} />
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {!isLoading && !isError && teams.length === 0 && (
+          <p className="bg-surface text-muted rounded-[17px] px-4 py-6 text-center text-[13px]">
+            No teams yet. Create your first team to get started.
+          </p>
+        )}
       </Container>
     </div>
   );

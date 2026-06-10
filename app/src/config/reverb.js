@@ -11,8 +11,7 @@ function deriveFromApiBase() {
   try {
     const apiOrigin = new URL(baseUrl);
     const useTls = apiOrigin.protocol === 'https:';
-    const local =
-      apiOrigin.hostname === 'localhost' || apiOrigin.hostname === '127.0.0.1';
+    const local = apiOrigin.hostname === 'localhost' || apiOrigin.hostname === '127.0.0.1';
     // Production HTTPS → WSS on 443. Local HTTP API → Reverb usually on 8080 (not the API port).
     const port = useTls ? 443 : local ? 8080 : 80;
     const scheme = useTls ? 'https' : 'http';

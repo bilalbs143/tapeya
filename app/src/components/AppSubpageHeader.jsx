@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
  * (e.g. tournament hero image, live-scoring screen).
  */
 export const appSubpageBackButtonClassName =
-  'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-[#1a1a18] transition-opacity active:opacity-80';
+  'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-[#1A1A18] transition-opacity active:opacity-80';
 
 function BackChevron() {
   return (
@@ -29,12 +29,7 @@ function BackChevron() {
  * White circular back button — use directly only when the full header
  * cannot be used (overlay layouts, custom match headers, etc.).
  */
-export function AppSubpageBackButton({
-  onClick,
-  className = '',
-  'aria-label': ariaLabel = 'Back',
-  ...rest
-}) {
+export function AppSubpageBackButton({ onClick, className = '', 'aria-label': ariaLabel = 'Back', ...rest }) {
   return (
     <button
       type="button"
@@ -116,8 +111,7 @@ export function AppSubpageHeader({
     .filter(Boolean)
     .join(' ');
 
-  const baseStringClass =
-    'min-w-0 flex-1 text-center text-[16px] font-bold tracking-wide text-white uppercase';
+  const baseStringClass = 'min-w-0 flex-1 text-center text-[16px] font-bold tracking-wide text-white uppercase';
 
   const titleSlot =
     typeof title === 'string' || typeof title === 'number' ? (
@@ -125,29 +119,21 @@ export function AppSubpageHeader({
         <h1 className={`${baseStringClass} ${titleClassName}`.trim()}>
           <span className="text-white">{title}</span>
           <span className="mx-1 text-white/40">-</span>
-          <span className="text-[#DA9811] normal-case">{subtitle}</span>
+          <span className="text-brand normal-case">{subtitle}</span>
         </h1>
       ) : (
-        <h1 className={`${baseStringClass} ${titleClassName}`.trim()}>
-          {title}
-        </h1>
+        <h1 className={`${baseStringClass} ${titleClassName}`.trim()}>{title}</h1>
       )
     ) : (
       <div className="min-w-0 flex-1 text-center">{title}</div>
     );
 
   // Invisible spacer keeps title optically centred when no right slot is given.
-  const rightElement = right ?? (
-    <span className="h-7 w-7 shrink-0" aria-hidden />
-  );
+  const rightElement = right ?? <span className="h-7 w-7 shrink-0" aria-hidden />;
 
   return (
     <header className={headerClass}>
-      <AppSubpageBackButton
-        onClick={handleBack}
-        className={backClassName}
-        aria-label={backAriaLabel ?? 'Back'}
-      />
+      <AppSubpageBackButton onClick={handleBack} className={backClassName} aria-label={backAriaLabel ?? 'Back'} />
       {titleSlot}
       {rightElement}
     </header>

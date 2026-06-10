@@ -1,0 +1,296 @@
+<mat-card class="cardWithShadow mb-3!">
+  <mat-card-content class="p-6">
+    <form
+      (ngSubmit)="loadHttpData()"
+      [formGroup]="searchForm"
+      aria-label="Filter form"
+    >
+      <div class="grid grid-cols-12 gap-4 items-end">
+        <div class="col-span-12 sm:col-span-6 lg:col-span-4">
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Search by Title</mat-label>
+            <input
+              matInput
+              formControlName="search"
+              placeholder="Search Highlights..."
+            />
+            <mat-icon matSuffix>
+              <i-tabler
+                name="search"
+                class="size-4.5!"
+              ></i-tabler>
+            </mat-icon>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 sm:col-span-6 lg:col-span-8 flex flex-wrap items-center justify-end gap-2">
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="resetSearchForm()"
+          >
+            Clear
+          </button>
+          <button
+            mat-flat-button
+            color="primary"
+            type="submit"
+          >
+            Search
+          </button>
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            (click)="openCreateDialog()"
+          >
+            Add Highlight
+          </button>
+        </div>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="cardWithShadow table-header-theme">
+  <mat-card-content class="p-0">
+    <div class="sticky-header-table-container relative overflow-auto">
+      <app-table-wrapper>
+        <table
+          mat-table
+          matSort
+          aria-label="Highlights list"
+          matSortActive="created_at"
+          matSortStart="desc"
+          matSortDirection="desc"
+          [dataSource]="dataSource"
+          class="min-w-full"
+        >
+          <!-- # -->
+          <ng-container matColumnDef="sr">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              #
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row; let i = index"
+              class="text-sm"
+            >
+              {{ totalRecords - currentPage * pageSize - i }}
+            </td>
+          </ng-container>
+
+          <!-- Thumbnail -->
+          <ng-container matColumnDef="thumbnail">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Thumbnail
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm"
+            >
+              @if (row.thumbnail) {
+                <app-table-image
+                  [src]="row.thumbnail"
+                  alt="Highlight Thumbnail"
+                />
+              } @else {
+                {{ emptyCell }}
+              }
+            </td>
+          </ng-container>
+
+          <!-- Title -->
+          <ng-container matColumnDef="title">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Title
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm max-w-[260px]"
+            >
+              <span
+                class="line-clamp-2 leading-snug"
+                [title]="row.title"
+              >
+                {{ row.title }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Duration -->
+          <ng-container matColumnDef="duration">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Duration
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm whitespace-nowrap"
+            >
+              {{ row.duration || emptyCell }}
+            </td>
+          </ng-container>
+
+          <!-- Views -->
+          <ng-container matColumnDef="views_count">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Views
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm whitespace-nowrap"
+            >
+              {{ row.views_count | number }}
+            </td>
+          </ng-container>
+
+          <!-- Likes -->
+          <ng-container matColumnDef="likes_count">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Likes
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm whitespace-nowrap"
+            >
+              {{ row.likes_count | number }}
+            </td>
+          </ng-container>
+
+          <!-- Active -->
+          <ng-container matColumnDef="is_active">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Active
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm whitespace-nowrap"
+            >
+              <span
+                class="rounded-sm font-semibold px-1.5 py-1 text-xs"
+                [ngClass]="row.is_active ? 'bg-light-success text-success' : 'bg-light-error text-error'"
+              >
+                {{ row.is_active ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Created At -->
+          <ng-container matColumnDef="created_at">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Created At
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm whitespace-nowrap"
+            >
+              {{ row.created_at ? (row.created_at | date: 'yyyy-MM-dd') : emptyCell }}
+            </td>
+          </ng-container>
+
+          <!-- Actions -->
+          <ng-container matColumnDef="actions">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Action
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="action-link text-sm whitespace-nowrap"
+            >
+              <button
+                type="button"
+                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                aria-label="Edit Highlight"
+                (click)="openEditDialog(row)"
+              >
+                <i-tabler
+                  name="edit"
+                  class="size-4.5!"
+                ></i-tabler>
+              </button>
+              <button
+                type="button"
+                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                aria-label="Delete Highlight"
+                (click)="openDeleteDialog(row)"
+              >
+                <i-tabler
+                  name="trash"
+                  class="size-4.5!"
+                ></i-tabler>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr
+            mat-header-row
+            *matHeaderRowDef="displayedColumns; sticky: true"
+          ></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: displayedColumns"
+          ></tr>
+        </table>
+      </app-table-wrapper>
+    </div>
+
+    <app-paginator
+      [length]="totalRecords"
+      [pageIndex]="currentPage"
+      [pageSize]="pageSize"
+      [loading]="isLoading"
+      (page)="onPaginationChange($event)"
+    ></app-paginator>
+  </mat-card-content>
+</mat-card>

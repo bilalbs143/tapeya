@@ -4,9 +4,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { useNativeStoreVersionInfo } from '@/hooks/useNativeStoreVersionInfo';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-// import starMatchIcon from '@/assets/images/icons/star-match.svg';
-import { calculateProfileStrength } from '@/lib/profileStrength';
 import { addSavedProfile } from '@/lib/savedProfiles';
+// import starMatchIcon from '@/assets/images/icons/star-match.svg';
+import { calculateProfileStrength } from '@/lib/utils/playerUtils';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useGetSidebarInterestCampaignQuery } from '@/store/api/tournamentInterestApi';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -28,7 +28,6 @@ const MENU_ITEMS = [
     label: 'My Tournaments',
     icon: requestTournamentIcon,
     path: '/organizer/tournaments',
-    organizerOnly: true,
   },
   { label: 'My Orders', icon: myOrderIcon, path: '/shop/orders' },
   {
@@ -52,9 +51,7 @@ const MENU_ITEMS = [
 ];
 
 const overlay = (open) =>
-  `fixed inset-0 z-[60] bg-black/50 transition-opacity duration-200 lg:hidden ${
-    open ? 'opacity-100' : 'pointer-events-none opacity-0'
-  }`;
+  `fixed inset-0 z-[60] bg-black/50 transition-opacity duration-200 lg:hidden ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}`;
 
 const panel = (open) =>
   `fixed left-0 top-0 z-[70] h-full w-[280px] flex flex-col border-r border-[#FFFFFF12] bg-[#10110EA3] backdrop-blur-[26.5px] transition-transform duration-200 ease-out lg:translate-x-0 ${
@@ -62,7 +59,7 @@ const panel = (open) =>
   }`;
 
 const menuBtn =
-  'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-white transition-colors hover:bg-[#DA9811]';
+  'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-white transition-colors hover:bg-brand';
 
 export function Sidebar({ open, onClose }) {
   const navigate = useNavigate();
@@ -79,23 +76,10 @@ export function Sidebar({ open, onClose }) {
   const profileUser = meResponse?.data ?? user;
   const strength = profileUser ? calculateProfileStrength(profileUser) : 0;
 
-  const {
-    isNativeMobile: showNativeVersions,
-    installedVersion,
-    configuredVersion,
-  } = useNativeStoreVersionInfo();
+  const { isNativeMobile: showNativeVersions, installedVersion, configuredVersion } = useNativeStoreVersionInfo();
 
-  const hasOrganizerRole = useMemo(() => {
-    const roles = profileUser?.roles;
-    if (!roles || !Array.isArray(roles)) return false;
-    return roles.some((r) => r?.slug === 'organizer');
-  }, [profileUser]);
   const navItems = useMemo(() => {
-    const filtered = MENU_ITEMS.filter((item) => {
-      if (item.label === 'Logout') return false;
-      if (item.organizerOnly && !hasOrganizerRole) return false;
-      return true;
-    });
+    const filtered = MENU_ITEMS.filter((item) => item.label !== 'Logout');
     const slug = sidebarCampaign?.slug;
     if (!slug) return filtered;
     const afterRequestIdx = filtered.findIndex((i) => i.path === '/tournament-request');
@@ -107,15 +91,9 @@ export function Sidebar({ open, onClose }) {
     if (afterRequestIdx === -1) {
       return [...filtered, interestRow];
     }
-    return [
-      ...filtered.slice(0, afterRequestIdx + 1),
-      interestRow,
-      ...filtered.slice(afterRequestIdx + 1),
-    ];
-  }, [hasOrganizerRole, sidebarCampaign]);
-  const [isDesktop, setIsDesktop] = useState(
-    () => typeof window !== 'undefined' && window.innerWidth >= 1024,
-  );
+    return [...filtered.slice(0, afterRequestIdx + 1), interestRow, ...filtered.slice(afterRequestIdx + 1)];
+  }, [sidebarCampaign]);
+  const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 1024);
 
   const isActivePath = (path) => {
     if (!path) return false;
@@ -132,14 +110,40 @@ export function Sidebar({ open, onClose }) {
   }, []);
 
   useEffect(() => {
-    if (
-      !open &&
-      overlayRef.current &&
-      document.activeElement?.closest?.('aside')
-    ) {
+    if (!open && overlayRef.current && document.activeElement?.closest?.('aside')) {
       overlayRef.current.focus({ preventScroll: true });
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!open || isDesktop) return;
+
+    const scrollY = window.scrollY;
+    const { body, documentElement: html } = document;
+
+    const prev = {
+      bodyOverflow: body.style.overflow,
+      bodyPosition: body.style.position,
+      bodyTop: body.style.top,
+      bodyWidth: body.style.width,
+      htmlOverflow: html.style.overflow,
+    };
+
+    body.style.overflow = 'hidden';
+    html.style.overflow = 'hidden';
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.width = '100%';
+
+    return () => {
+      body.style.overflow = prev.bodyOverflow;
+      body.style.position = prev.bodyPosition;
+      body.style.top = prev.bodyTop;
+      body.style.width = prev.bodyWidth;
+      html.style.overflow = prev.htmlOverflow;
+      window.scrollTo(0, scrollY);
+    };
+  }, [open, isDesktop]);
 
   const handleLogout = () => {
     if (user?.phone && accessToken) {
@@ -152,6 +156,7 @@ export function Sidebar({ open, onClose }) {
         accessToken,
       });
     }
+
     dispatch(clearCredentials());
     onClose();
     navigate('/login', { replace: true });
@@ -162,7 +167,7 @@ export function Sidebar({ open, onClose }) {
       <button
         ref={overlayRef}
         type="button"
-        aria-label="Close menu"
+        aria-label="Close Menu"
         onClick={onClose}
         className={overlay(open)}
         tabIndex={open ? 0 : -1}
@@ -175,10 +180,7 @@ export function Sidebar({ open, onClose }) {
         inert={!open && !isDesktop ? '' : undefined}
       >
         <div className="flex flex-1 flex-col overflow-hidden">
-          <div
-            className="flex-1 overflow-y-auto px-4 pb-6"
-            style={{ paddingTop: 'calc(env(safe-area-inset-top) + 24px)' }}
-          >
+          <div className="flex-1 overflow-y-auto px-4 pb-6" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 24px)' }}>
             <Link
               to="/profile"
               onClick={onClose}
@@ -193,23 +195,16 @@ export function Sidebar({ open, onClose }) {
                 <p className="truncate text-[14px] font-bold text-white">
                   {profileUser?.name || profileUser?.nickname || 'Profile'}
                 </p>
-                <p className="truncate text-[12px] font-medium text-[#A2A6AB]">
-                  {profileUser?.email || profileUser?.phone || ''}
-                </p>
+                <p className="text-muted truncate text-[12px] font-medium">{profileUser?.email || profileUser?.phone || ''}</p>
               </div>
             </Link>
 
             {profileUser && strength < 100 && (
               <div className="mt-2 flex items-center gap-2">
                 <div className="h-[4px] flex-1 overflow-hidden rounded-full bg-zinc-600">
-                  <div
-                    className="h-full rounded-full bg-[#DA9811]"
-                    style={{ width: `${strength}%` }}
-                  />
+                  <div className="bg-brand h-full rounded-full" style={{ width: `${strength}%` }} />
                 </div>
-                <span className="shrink-0 text-[14px] font-bold text-white italic">
-                  {strength}% Complete
-                </span>
+                <span className="shrink-0 text-[14px] font-bold text-white italic">{strength}% Complete</span>
               </div>
             )}
 
@@ -223,19 +218,15 @@ export function Sidebar({ open, onClose }) {
                     to={path}
                     title={label}
                     onClick={onClose}
-                    className={`group ${menuBtn} ${isActivePath(path) ? 'bg-[#DA9811]' : ''}`}
+                    className={`group ${menuBtn} ${isActivePath(path) ? 'bg-brand' : ''}`}
                   >
                     <img
                       src={icon}
                       alt=""
-                      className={`h-5 w-5 shrink-0 ${
-                        isActivePath(path) ? 'brightness-0 filter' : ''
-                      } group-hover:brightness-0 group-hover:filter`}
+                      className={`h-5 w-5 shrink-0 ${isActivePath(path) ? 'brightness-0 filter' : ''} group-hover:brightness-0 group-hover:filter`}
                     />
                     <span
-                      className={`min-w-0 truncate text-[16px] font-medium ${
-                        isActivePath(path) ? 'text-[#080807]' : 'text-[#A2A6AB]'
-                      } group-hover:text-[#080807]`}
+                      className={`min-w-0 truncate text-[16px] font-medium ${isActivePath(path) ? 'text-ink' : 'text-muted'} group-hover:text-ink`}
                     >
                       {label}
                     </span>
@@ -249,14 +240,8 @@ export function Sidebar({ open, onClose }) {
                     aria-disabled="true"
                     aria-label={`${label} (coming soon)`}
                   >
-                    <img
-                      src={icon}
-                      alt=""
-                      className="h-5 w-5 shrink-0 opacity-60"
-                    />
-                    <span className="text-[16px] font-medium text-[#A2A6AB] opacity-60">
-                      {label}
-                    </span>
+                    <img src={icon} alt="" className="h-5 w-5 shrink-0 opacity-60" />
+                    <span className="text-muted text-[16px] font-medium opacity-60">{label}</span>
                   </button>
                 ),
               )}
@@ -267,34 +252,24 @@ export function Sidebar({ open, onClose }) {
             {showNativeVersions && (
               <div className="border-t border-white/[0.06] px-3 py-2 lg:hidden">
                 <p
-                  className="text-center text-[9px] leading-snug tracking-tight text-[#55585e]"
+                  className="text-center text-[9px] leading-snug tracking-tight text-[#55585E]"
                   title="Installed app version | Version from system settings"
                 >
-                  <span className="tabular-nums opacity-90">
-                    {installedVersion || '—'}
-                  </span>
-                  <span className="select-none px-1 opacity-35" aria-hidden>
+                  <span className="tabular-nums opacity-90">{installedVersion || '—'}</span>
+                  <span className="px-1 opacity-35 select-none" aria-hidden>
                     |
                   </span>
-                  <span className="tabular-nums opacity-90">
-                    {configuredVersion || '—'}
-                  </span>
+                  <span className="tabular-nums opacity-90">{configuredVersion || '—'}</span>
                 </p>
               </div>
             )}
             <button
               type="button"
               onClick={handleLogout}
-              className="flex w-full cursor-pointer items-center justify-center gap-2 bg-[#DA9811] py-4"
+              className="bg-brand flex w-full cursor-pointer items-center justify-center gap-2 py-4"
             >
-              <img
-                src={logoutIcon}
-                alt=""
-                className="h-8 w-8 shrink-0 brightness-0 filter"
-              />
-              <span className="text-[16px] leading-none font-bold text-[#080807]">
-                Logout
-              </span>
+              <img src={logoutIcon} alt="" className="h-8 w-8 shrink-0 brightness-0 filter" />
+              <span className="text-ink text-[16px] leading-none font-bold">Logout</span>
             </button>
           </div>
         </div>

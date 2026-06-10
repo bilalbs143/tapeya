@@ -9,9 +9,16 @@ export interface TournamentMatchTeam {
   code?: string | null;
 }
 
+export interface TournamentMatchTournament {
+  id: number;
+  name: string;
+  logo_url: string | null;
+}
+
 export interface TournamentMatchRow {
   id: number;
   tournament_id: number;
+  tournament?: TournamentMatchTournament;
   group_index: number | null;
   match_date: string;
   match_time: string;
@@ -30,6 +37,8 @@ export interface TournamentMatchRow {
   win_by_wickets?: number | null;
   /** Plain-language result when available (completed, no-result, cancelled). */
   result_summary?: string | null;
+  thumbnail_url?: string | null;
+  has_custom_thumbnail?: boolean;
 }
 
 export interface TournamentMatchesListResponse {
@@ -71,8 +80,15 @@ export class TournamentMatchesService {
 
   public createMatch(
     tournamentId: number,
-    body: CreateTournamentMatchPayload
+    body: CreateTournamentMatchPayload | FormData
   ): Observable<{ data: TournamentMatchRow }> {
     return this.http.post<{ data: TournamentMatchRow }>(`v1/admin/tournaments/${tournamentId}/matches`, body);
+  }
+
+  public updateMatch(matchId: number, body: FormData): Observable<{ data: TournamentMatchRow }> {
+    // PHP only populates $_FILES for POST requests; PATCH multipart file uploads are silently
+    // dropped. Append _method=PATCH so Laravel routes correctly while PHP parses files properly.
+    body.append('_method', 'PATCH');
+    return this.http.post<{ data: TournamentMatchRow }>(`v1/admin/matches/${matchId}`, body);
   }
 }

@@ -18,4 +18,31 @@ trait BaseEnumTrait
 
         return $out;
     }
+
+    /**
+     * Map a stored backing value (e.g. from the database) to a display label, or null if empty / not a known case.
+     */
+    public static function tryLabelFromValue(string|int|null $raw): ?string
+    {
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+
+        return self::tryFrom($raw)?->label();
+    }
+
+    /**
+     * Find a case whose label() matches $label (case-insensitive), or return null.
+     * Useful for import/export flows where the human-readable label is the input.
+     */
+    public static function tryFromLabel(string $label): ?static
+    {
+        foreach (self::cases() as $case) {
+            if (method_exists($case, 'label') && strcasecmp($case->label(), $label) === 0) {
+                return $case;
+            }
+        }
+
+        return null;
+    }
 }

@@ -21,6 +21,14 @@ class EcommerceDashboardController extends Controller
      */
     public function __invoke(): JsonResponse
     {
+        return $this->success($this->buildDashboardPayload());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildDashboardPayload(): array
+    {
         $now = Carbon::now();
         $todayStart = $now->copy()->startOfDay();
         $yesterdayStart = $now->copy()->subDay()->startOfDay();
@@ -113,14 +121,19 @@ class EcommerceDashboardController extends Controller
         $revenue7d = array_sum($weeklySalesValues);
 
         // Monthly earnings (last 6 months)
+        $sixMonthsStart = $now->copy()->subMonths(5)->startOfMonth();
+        $monthlyTotalsByKey = Order::query()
+            ->where('created_at', '>=', $sixMonthsStart)
+            ->whereIn('status', $completedStatuses)
+            ->selectRaw("TO_CHAR(created_at, 'YYYY-MM') as month, COALESCE(SUM(total), 0) as total")
+            ->groupBy('month')
+            ->pluck('total', 'month')
+            ->all();
+
         $monthlyEarnings = [];
         for ($i = 5; $i >= 0; $i--) {
-            $monthStart = $now->copy()->subMonths($i)->startOfMonth();
-            $monthEnd = $monthStart->copy()->endOfMonth();
-            $monthlyEarnings[] = (float) Order::query()
-                ->whereBetween('created_at', [$monthStart, $monthEnd])
-                ->whereIn('status', $completedStatuses)
-                ->sum('total');
+            $key = $now->copy()->subMonths($i)->format('Y-m');
+            $monthlyEarnings[] = (float) ($monthlyTotalsByKey[$key] ?? 0);
         }
 
         // Orders by day of week (Mon–Sun). Postgres EXTRACT(DOW): 0=Sun, 1=Mon, ..., 6=Sat.
@@ -319,7 +332,7 @@ class EcommerceDashboardController extends Controller
             ])
             ->all();
 
-        return $this->success([
+        return [
             'today_sales' => round($todayRevenue, 2),
             'today_orders_count' => $todayOrdersCount,
             'today_sales_percent_change' => round($todaySalesPercentChange, 1),
@@ -348,6 +361,6 @@ class EcommerceDashboardController extends Controller
             'products_total' => $productsTotal,
             'customers_total' => $customersTotal,
             'low_stock_products' => $lowStockProducts,
-        ]);
+        ];
     }
 }

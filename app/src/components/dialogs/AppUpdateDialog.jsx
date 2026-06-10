@@ -3,22 +3,16 @@ import { useCallback } from 'react';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 
-import { Button } from '@/ui/Button';
 import {
   DialogDescription,
   DialogHeaderRow,
   dialogPrimaryTitleClass,
+  DialogSaveButton,
   DialogScrollBody,
   DialogTitle,
 } from '@/ui/Dialog';
 
-const OPENABLE_STORE_URL_PROTOCOLS = new Set([
-  'http:',
-  'https:',
-  'market:',
-  'itms-apps:',
-  'itms:',
-]);
+const OPENABLE_STORE_URL_PROTOCOLS = new Set(['http:', 'https:', 'market:', 'itms-apps:', 'itms:']);
 
 function isOpenableStoreUrl(value) {
   try {
@@ -86,31 +80,19 @@ export function AppUpdateDialog({ storeUrl = '', storeName = '' }) {
   }, [storeUrl]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <>
       <DialogHeaderRow>
-        <DialogTitle className={dialogPrimaryTitleClass}>
-          Update Available
-        </DialogTitle>
+        <DialogTitle className={dialogPrimaryTitleClass}>Update Available</DialogTitle>
       </DialogHeaderRow>
 
-      <DialogScrollBody className="flex flex-col px-5 pb-1">
+      <DialogScrollBody>
         <DialogDescription className="text-center text-[13px] leading-relaxed">
-          A new version of Tapeya is available on the {storeName}. Please update
-          the app for a better experience.
+          A new version of Tapeya is available on the {storeName}. Please update the app for a better experience.
         </DialogDescription>
       </DialogScrollBody>
 
-      <div className="flex shrink-0 flex-col gap-2 border-t border-white/10 px-4 py-4">
-        <Button
-          type="button"
-          variant="orangeDialog"
-          size="dialog"
-          onClick={handleUpdate}
-        >
-          Open in {storeName}
-        </Button>
-      </div>
-    </div>
+      <DialogSaveButton onClick={handleUpdate}>Open in {storeName}</DialogSaveButton>
+    </>
   );
 }
 

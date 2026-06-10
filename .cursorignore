@@ -1,0 +1,36 @@
+# Dependencies (largest indexing cost)
+**/node_modules/
+**/vendor/
+
+# Build output
+**/dist/
+**/.angular/
+app/www/
+app/android/
+app/ios/App/Pods/
+backoffice/.angular/
+
+# Laravel runtime / cache
+api/storage/
+api/bootstrap/cache/
+laravel/storage/
+laravel/vendor/
+
+# Lock files (large, low signal for AI)
+**/package-lock.json
+**/composer.lock
+
+# Logs and temp
+**/*.log
+**/.capacitor/
+
+# Mobile / native binaries
+**/*.xcworkspace/
+**/*.xcodeproj/
+**/Pods/
+
+# Media and archives
+**/*.{png,jpg,jpeg,gif,webp,svg,ico,mp4,webm,pdf,zip,tgz}
+
+# Git internals (if present in workspace scans)
+**/.git/

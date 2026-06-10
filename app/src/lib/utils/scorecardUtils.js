@@ -1,4 +1,4 @@
-import { formatDate } from '@/lib/format';
+import { formatDate } from '@/lib/utils/dateUtils';
 
 /**
  * Maps raw API status to internal status union ('live' | 'result' | 'upcoming').
@@ -28,23 +28,21 @@ export function normaliseTournamentMatches(tournaments) {
       const matchDate = match.match_date || null;
       const matchTime = match.match_time || '';
       const formattedDate = matchDate ? formatDate(matchDate) : '';
-      const timeLabel =
-        formattedDate || matchTime
-          ? [formattedDate, matchTime].filter(Boolean).join(' • ')
-          : '';
+      const timeLabel = formattedDate || matchTime ? [formattedDate, matchTime].filter(Boolean).join(' • ') : '';
       return {
         id: match.id,
         tournament_id: match.tournament_id,
         status,
-        matchId:
-          home.name && away.name ? `${home.name} vs ${away.name}` : 'Match',
+        matchId: home.name && away.name ? `${home.name} vs ${away.name}` : 'Match',
         team1: {
           name: home.name || 'Home team',
           initial: (home.name || 'H').charAt(0).toUpperCase(),
+          logo: home.logo ?? null,
         },
         team2: {
           name: away.name || 'Away team',
           initial: (away.name || 'A').charAt(0).toUpperCase(),
+          logo: away.logo ?? null,
         },
         score1: null,
         score2: null,
@@ -92,24 +90,20 @@ export function apiTournamentMatchToStatusDetailsMatch(apiMatch, scorecard) {
     initial: String(home.name || 'H')
       .charAt(0)
       .toUpperCase(),
+    logo: home.logo ?? null,
   };
   const team2 = {
     name: away.name || 'Away team',
     initial: String(away.name || 'A')
       .charAt(0)
       .toUpperCase(),
+    logo: away.logo ?? null,
   };
 
-  const formattedDate = apiMatch.match_date
-    ? formatDate(apiMatch.match_date)
-    : '';
-  const timeLabel = [formattedDate, apiMatch.match_time || '']
-    .filter(Boolean)
-    .join(' • ');
+  const formattedDate = apiMatch.match_date ? formatDate(apiMatch.match_date) : '';
+  const timeLabel = [formattedDate, apiMatch.match_time || ''].filter(Boolean).join(' • ');
   const matchIdLabel =
-    [apiMatch.venue_name, formattedDate || apiMatch.match_date]
-      .filter(Boolean)
-      .join(' • ') || `Match ${apiMatch.id}`;
+    [apiMatch.venue_name, formattedDate || apiMatch.match_date].filter(Boolean).join(' • ') || `Match ${apiMatch.id}`;
 
   let score1 = null;
   let score2 = null;
@@ -180,17 +174,11 @@ export function oversDetailsFromScorecard(scorecard, homeTeamId, awayTeamId) {
   const innings = scorecard?.innings;
   if (!Array.isArray(innings) || innings.length === 0) return [];
 
-  const hid =
-    homeTeamId != null && homeTeamId !== '' ? Number(homeTeamId) : NaN;
-  const aid =
-    awayTeamId != null && awayTeamId !== '' ? Number(awayTeamId) : NaN;
+  const hid = homeTeamId != null && homeTeamId !== '' ? Number(homeTeamId) : NaN;
+  const aid = awayTeamId != null && awayTeamId !== '' ? Number(awayTeamId) : NaN;
 
-  const homeInn = Number.isFinite(hid)
-    ? innings.find((i) => Number(i?.batting_team_id) === hid)
-    : null;
-  const awayInn = Number.isFinite(aid)
-    ? innings.find((i) => Number(i?.batting_team_id) === aid)
-    : null;
+  const homeInn = Number.isFinite(hid) ? innings.find((i) => Number(i?.batting_team_id) === hid) : null;
+  const awayInn = Number.isFinite(aid) ? innings.find((i) => Number(i?.batting_team_id) === aid) : null;
 
   const homeMap = aggregateBallsByOver(homeInn?.balls);
   const awayMap = aggregateBallsByOver(awayInn?.balls);
@@ -247,8 +235,7 @@ export function playingXIFromPlayingElevenResponses(xiHome, xiAway) {
 export function buildMatchStatusDetails(resultDetails, overs, playingXI) {
   /** @type {Record<string, unknown>} */
   const out = {};
-  if (resultDetails && typeof resultDetails === 'object')
-    Object.assign(out, resultDetails);
+  if (resultDetails && typeof resultDetails === 'object') Object.assign(out, resultDetails);
   if (overs.length > 0) out.overs = overs;
   if (playingXI) out.playingXI = playingXI;
   return Object.keys(out).length > 0 ? out : null;

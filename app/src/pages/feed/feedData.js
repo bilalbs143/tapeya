@@ -67,8 +67,7 @@ export const ACTIVITY_FEED_POSTS = [
     authorName: 'Sohaib Amjad',
     authorAvatarUrl: 'https://i.pravatar.cc/128?img=12',
     title: 'Night match energy is something else',
-    description:
-      'Under the lights, every ball matters. The crowd, the pressure, the thrill of the chase....',
+    description: 'Under the lights, every ball matters. The crowd, the pressure, the thrill of the chase....',
     likesCount: 1240,
     commentsCount: 24,
     sharesCount: 31,
@@ -85,8 +84,7 @@ export const ACTIVITY_FEED_POSTS = [
     authorName: 'Cricket Nation',
     authorAvatarUrl: 'https://i.pravatar.cc/128?img=52',
     title: 'That cover drive feeling',
-    description:
-      'Timing, balance, and the sound off the bat. Nothing quite like it when everything clicks....',
+    description: 'Timing, balance, and the sound off the bat. Nothing quite like it when everything clicks....',
     likesCount: 892,
     commentsCount: 15,
     sharesCount: 22,

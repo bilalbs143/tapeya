@@ -1,0 +1,27 @@
+{
+  "folders": [
+    { "name": "tapeya (root)", "path": "." },
+    { "name": "API — Laravel", "path": "api" },
+    { "name": "App — React / Capacitor", "path": "app" },
+    { "name": "Backoffice — Angular", "path": "backoffice" }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/vendor": true
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "editorconfig.editorconfig",
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "bmewburn.vscode-intelephense-client",
+      "open-southeners.laravel-pint",
+      "angular.ng-template",
+      "bradlc.vscode-tailwindcss",
+      "eamodio.gitlens",
+      "ms-vscode-remote.remote-ssh"
+    ]
+  }
+}

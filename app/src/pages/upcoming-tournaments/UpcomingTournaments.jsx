@@ -4,18 +4,11 @@ import { useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { formatDateRange } from '@/lib/format';
-import { parseDate, toDateStr } from '@/lib/utils/dateUtils';
-import { getTournamentTitle } from '@/lib/utils/tournamentUtils';
+import { formatDateRange, parseDate, toDateStr } from '@/lib/utils/dateUtils';
+import { getTournamentDisplayImage, getTournamentTitle } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentsQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
-import {
-  scorecardListClass,
-  scorecardTriggerClass,
-  Tabs,
-  TabsList,
-  TabsTrigger,
-} from '@/ui/Tabs';
+import { scorecardListClass, scorecardTriggerClass, Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
 
 const MONTH_TABS_COUNT = 6;
 const FALLBACK_IMAGE = `${CLOUDFRONT_APP_BASE}/images/background/fixture-bg.png`;
@@ -24,7 +17,7 @@ const upcomingTriggerClass =
   'min-w-[72px] flex-col items-center justify-center gap-0 rounded-xl px-4 py-2.5 text-white data-[state=active]:text-black lg:min-w-[96px]';
 
 function UpcomingTournamentCard({ tournament, onClick, disabled }) {
-  const imageUrl = tournament.display_image || FALLBACK_IMAGE;
+  const imageUrl = getTournamentDisplayImage(tournament, FALLBACK_IMAGE);
   const title = getTournamentTitle(tournament);
 
   return (
@@ -32,9 +25,9 @@ function UpcomingTournamentCard({ tournament, onClick, disabled }) {
       type="button"
       onClick={() => !disabled && onClick(tournament)}
       disabled={disabled}
-      className="flex w-full flex-col overflow-hidden rounded-[17px] bg-[#141412] text-left transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA9811] focus-visible:ring-offset-2 focus-visible:ring-offset-black active:opacity-90 disabled:cursor-default disabled:opacity-60"
+      className="bg-surface focus-visible:ring-brand flex w-full flex-col overflow-hidden rounded-[17px] text-left transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black active:opacity-90 disabled:cursor-default disabled:opacity-60"
     >
-      <div className="h-[148px] w-full overflow-hidden bg-[#0d0d0b]">
+      <div className="bg-surface-deep h-[148px] w-full overflow-hidden">
         <img
           src={imageUrl}
           alt={title}
@@ -48,12 +41,8 @@ function UpcomingTournamentCard({ tournament, onClick, disabled }) {
         />
       </div>
       <div className="flex flex-col gap-1 p-3">
-        <h3 className="line-clamp-2 text-[13px] font-bold text-white">
-          {title}
-        </h3>
-        <p className="text-[12px] text-[#A2A6AB]">
-          {formatDateRange(tournament.start_date, tournament.end_date)}
-        </p>
+        <h3 className="line-clamp-2 text-[13px] font-bold text-white">{title}</h3>
+        <p className="text-muted text-[12px]">{formatDateRange(tournament.start_date, tournament.end_date)}</p>
       </div>
     </button>
   );
@@ -129,30 +118,16 @@ export default function UpcomingTournaments() {
   };
 
   return (
-    <div className="min-h-screen bg-black">
+    <div>
       <AppSubpageHeader title="UPCOMING TOURNAMENTS" />
       <Container>
-        <Tabs
-          value={activeMonth}
-          onValueChange={setActiveMonth}
-          className="w-full"
-        >
+        <Tabs value={activeMonth} onValueChange={setActiveMonth} className="w-full">
           <div className="-mx-4 bg-black px-4 pb-3">
-            <TabsList
-              className={`${scorecardListClass} lg:justify-center lg:gap-2`}
-            >
+            <TabsList className={`${scorecardListClass} lg:justify-center lg:gap-2`}>
               {monthTabs.map(({ value, monthShort, year }) => (
-                <TabsTrigger
-                  key={value}
-                  value={value}
-                  className={`${scorecardTriggerClass} ${upcomingTriggerClass}`}
-                >
-                  <span className="block text-[12px] leading-tight font-bold uppercase">
-                    {monthShort}
-                  </span>
-                  <span className="mt-1 block text-[12px] leading-tight font-medium uppercase opacity-90">
-                    {year}
-                  </span>
+                <TabsTrigger key={value} value={value} className={`${scorecardTriggerClass} ${upcomingTriggerClass}`}>
+                  <span className="block text-[12px] leading-tight font-bold uppercase">{monthShort}</span>
+                  <span className="mt-1 block text-[12px] leading-tight font-medium uppercase opacity-90">{year}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -161,14 +136,11 @@ export default function UpcomingTournaments() {
           <div className="grid grid-cols-2 gap-3 pt-1 pb-6 lg:grid-cols-3">
             {isLoading
               ? Array.from({ length: 4 }, (_, i) => (
-                  <div
-                    key={`skeleton-${i}`}
-                    className="flex animate-pulse flex-col overflow-hidden rounded-[17px] bg-[#141412]"
-                  >
-                    <div className="h-[148px] w-full bg-[#1A1A1A]" />
+                  <div key={`skeleton-${i}`} className="bg-surface flex animate-pulse flex-col overflow-hidden rounded-[17px]">
+                    <div className="bg-surface-border h-[148px] w-full" />
                     <div className="flex flex-col gap-2 p-3">
-                      <div className="h-4 w-3/4 rounded bg-[#1A1A1A]" />
-                      <div className="h-3 w-1/2 rounded bg-[#1A1A1A]" />
+                      <div className="bg-surface-border h-4 w-3/4 rounded" />
+                      <div className="bg-surface-border h-3 w-1/2 rounded" />
                     </div>
                   </div>
                 ))
@@ -182,20 +154,10 @@ export default function UpcomingTournaments() {
                 ))}
           </div>
 
-          {isLoading && (
-            <p className="py-4 text-center text-[13px] text-[#A2A6AB]">
-              Loading tournaments…
-            </p>
-          )}
-          {isError && (
-            <p className="py-4 text-center text-[13px] text-red-400">
-              Failed to load tournaments. Try again later.
-            </p>
-          )}
+          {isLoading && <p className="text-muted py-4 text-center text-[13px]">Loading tournaments…</p>}
+          {isError && <p className="py-4 text-center text-[13px] text-red-400">Failed to load tournaments. Try again later.</p>}
           {isEmpty && !isLoading && !isError && (
-            <p className="py-2 text-center text-[13px] text-[#A2A6AB]">
-              No upcoming tournaments for this month.
-            </p>
+            <p className="text-muted py-2 text-center text-[13px]">No upcoming tournaments for this month.</p>
           )}
         </Tabs>
       </Container>

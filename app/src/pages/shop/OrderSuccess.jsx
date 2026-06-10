@@ -21,21 +21,15 @@ export default function OrderSuccess() {
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-8 text-center">
         {/* White circle with success order image */}
         <div className="mb-8 flex shrink-0 items-center justify-center overflow-hidden">
-          <img
-            src={successOrderGif}
-            alt=""
-            className="h-24 w-24 rounded-full object-contain"
-            aria-hidden
-          />
+          <img src={successOrderGif} alt="" className="h-24 w-24 rounded-full object-contain" aria-hidden />
         </div>
 
-        <h2 className="mb-3 text-[18px] font-bold tracking-wide text-[#DA9811] uppercase sm:text-[20px]">
+        <h2 className="text-brand mb-3 text-[18px] font-bold tracking-wide uppercase sm:text-[20px]">
           THANK YOU FOR YOUR ORDER!
         </h2>
 
-        <p className="mb-4 max-w-[280px] text-[14px] leading-relaxed font-medium text-[#A2A6AB]">
-          We will notify you of all the details via email or WhatsApp number you
-          provided.
+        <p className="text-muted mb-4 max-w-[280px] text-[14px] leading-relaxed font-medium">
+          We will notify you of all the details via email or WhatsApp number you provided.
         </p>
 
         <div className="flex w-full flex-col gap-4 lg:flex-row lg:justify-center lg:gap-4">
@@ -43,7 +37,7 @@ export default function OrderSuccess() {
             <button
               type="button"
               onClick={handleViewOrders}
-              className="flex w-full items-center justify-center gap-2 rounded-[6px] border-2 border-[#DA9811] bg-transparent py-3.5 text-[16px] font-bold text-[#DA9811] transition-opacity active:opacity-90 lg:w-auto lg:px-8"
+              className="border-brand text-brand flex w-full items-center justify-center gap-2 rounded-[6px] border-2 bg-transparent py-3.5 text-[16px] font-bold transition-opacity active:opacity-90 lg:w-auto lg:px-8"
             >
               View My Orders
               <svg
@@ -63,7 +57,7 @@ export default function OrderSuccess() {
           <button
             type="button"
             onClick={handleShopAgain}
-            className="flex w-full items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] px-8 py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90 lg:w-auto"
+            className="bg-brand flex w-full items-center justify-center gap-2 rounded-[6px] px-8 py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90 lg:w-auto"
           >
             Shop Again
             <svg

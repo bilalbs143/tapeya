@@ -138,7 +138,16 @@ export class TournamentMatchesComponent implements OnInit {
   public openScheduleDialog(): void {
     this.messageService.openDialog<ScheduleTournamentMatchDialogComponent, boolean>(
       ScheduleTournamentMatchDialogComponent,
-      { tournamentId: this.tournamentId },
+      { tournamentId: this.tournamentId, mode: 'create' },
+      (saved) => saved && this.loadMatches(),
+      { widthSize: 'md', disableClose: true }
+    );
+  }
+
+  public openEditDialog(match: TournamentMatchRow): void {
+    this.messageService.openDialog<ScheduleTournamentMatchDialogComponent, boolean>(
+      ScheduleTournamentMatchDialogComponent,
+      { tournamentId: this.tournamentId, mode: 'edit', match },
       (saved) => saved && this.loadMatches(),
       { widthSize: 'md', disableClose: true }
     );

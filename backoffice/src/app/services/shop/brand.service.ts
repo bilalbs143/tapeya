@@ -31,7 +31,7 @@ export interface CreateBrandPayload {
   is_active?: boolean;
 }
 
-export type UpdateBrandPayload = Omit<CreateBrandPayload, 'logo'> & { logo?: File | null };
+export type SaveBrandPayload = Omit<CreateBrandPayload, 'logo'> & { sort_order?: number };
 
 @Injectable({ providedIn: 'root' })
 export class BrandService {
@@ -49,16 +49,15 @@ export class BrandService {
     return this.http.get<{ data: Brand }>(`${this.baseUrl}/${id}`);
   }
 
-  public create(formData: FormData): Observable<{ data: Brand }> {
+  public create(formData: FormData | SaveBrandPayload): Observable<{ data: Brand }> {
     return this.http
       .post<{ data: Brand }>(this.baseUrl, formData)
       .pipe(tap(() => this.messageService.success('Brand created successfully.')));
   }
 
-  public update(id: number, formData: FormData): Observable<{ data: Brand }> {
-    formData.append('_method', 'PUT');
+  public update(id: number, formData: SaveBrandPayload): Observable<{ data: Brand }> {
     return this.http
-      .post<{ data: Brand }>(`${this.baseUrl}/${id}`, formData)
+      .put<{ data: Brand }>(`${this.baseUrl}/${id}`, formData)
       .pipe(tap(() => this.messageService.success('Brand updated successfully.')));
   }
 

@@ -13,13 +13,7 @@ import { NAVBAR_HEIGHT } from '@/lib/constants/layout';
 import { useGetBrandsQuery, useGetProductsQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 
-function ShopSlider({
-  title,
-  viewMorePath,
-  products,
-  brands,
-  reverseDirection = false,
-}) {
+function ShopSlider({ title, viewMorePath, products, brands, reverseDirection = false }) {
   const productsWithBrandSlug = products.map((p) => ({
     ...p,
     brandSlug: brands.find((b) => b.id === p.brand_id)?.slug,
@@ -30,13 +24,8 @@ function ShopSlider({
   return (
     <section className="mb-10 space-y-3">
       <header className="flex items-center justify-between">
-        <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase">
-          {title}
-        </h2>
-        <Link
-          to={viewMorePath}
-          className="text-[12px] font-bold text-[#DA9811] uppercase transition-opacity active:opacity-80"
-        >
+        <h2 className="text-muted text-[13px] font-bold tracking-wide uppercase">{title}</h2>
+        <Link to={viewMorePath} className="text-brand text-[12px] font-bold uppercase transition-opacity active:opacity-80">
           View More
         </Link>
       </header>
@@ -58,10 +47,7 @@ function ShopSlider({
       >
         {productsWithBrandSlug.map((product) => (
           <SwiperSlide key={product.id}>
-            <ListingProductCard
-              product={product}
-              brandSlug={product.brandSlug}
-            />
+            <ListingProductCard product={product} brandSlug={product.brandSlug} />
           </SwiperSlide>
         ))}
       </Swiper>
@@ -117,16 +103,10 @@ export default function ShopHome() {
                   <Link
                     key={id}
                     to={`/shop/${slug}`}
-                    className="flex shrink-0 items-center gap-2 rounded-[6px] bg-[#141412] px-[13px] py-[10px] text-[13px] font-semibold tracking-wide text-white uppercase transition-colors hover:bg-[#252520] lg:min-w-[96px] lg:justify-center lg:px-4"
+                    className="bg-surface flex shrink-0 items-center gap-2 rounded-[6px] px-[13px] py-[10px] text-[13px] font-semibold tracking-wide text-white uppercase transition-colors hover:bg-[#252520] lg:min-w-[96px] lg:justify-center lg:px-4"
                     aria-label={`Shop ${name} products`}
                   >
-                    {logo ? (
-                      <img
-                        src={logo}
-                        alt={`${name} logo`}
-                        className="h-5 w-5 shrink-0 object-contain"
-                      />
-                    ) : null}
+                    {logo ? <img src={logo} alt={`${name} logo`} className="h-5 w-5 shrink-0 object-contain" /> : null}
                     {name}
                   </Link>
                 ))}
@@ -135,26 +115,17 @@ export default function ShopHome() {
           </div>
 
           {tabsFixedVisible && (
-            <div
-              className="fixed right-0 left-0 z-10 bg-black pt-1 pb-2 lg:left-[280px]"
-              style={{ top: NAVBAR_HEIGHT }}
-            >
+            <div className="fixed right-0 left-0 z-10 bg-black pt-1 pb-2 lg:left-[280px]" style={{ top: NAVBAR_HEIGHT }}>
               <div className="mx-auto max-w-2xl px-4 lg:max-w-none lg:px-4">
                 <div className="flex gap-2 overflow-x-auto py-1 [scrollbar-width:none] lg:gap-3 [&::-webkit-scrollbar]:hidden">
                   {brands.map(({ id, name, slug, logo }) => (
                     <Link
                       key={id}
                       to={`/shop/${slug}`}
-                      className="flex shrink-0 items-center gap-2 rounded-[6px] bg-[#141412] px-[13px] py-[10px] text-[13px] font-semibold tracking-wide text-white uppercase transition-colors hover:bg-[#252520] lg:min-w-[96px] lg:justify-center lg:px-4"
+                      className="bg-surface flex shrink-0 items-center gap-2 rounded-[6px] px-[13px] py-[10px] text-[13px] font-semibold tracking-wide text-white uppercase transition-colors hover:bg-[#252520] lg:min-w-[96px] lg:justify-center lg:px-4"
                       aria-label={`Shop ${name} products`}
                     >
-                      {logo ? (
-                        <img
-                          src={logo}
-                          alt={`${name} logo`}
-                          className="h-5 w-5 shrink-0 object-contain"
-                        />
-                      ) : null}
+                      {logo ? <img src={logo} alt={`${name} logo`} className="h-5 w-5 shrink-0 object-contain" /> : null}
                       {name}
                     </Link>
                   ))}

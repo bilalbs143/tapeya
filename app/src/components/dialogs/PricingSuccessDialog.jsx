@@ -1,59 +1,17 @@
-import {
-  DialogHeaderRow,
-  dialogPrimaryTitleClass,
-  DialogScrollBody,
-  DialogTitle,
-} from '@/ui/Dialog';
+import { DialogHeaderRow, dialogPrimaryTitleClass, DialogTitle } from '@/ui/Dialog';
+
+import { SuccessDialogBody } from './SuccessDialogBody';
 
 export function PricingSuccessDialog({ planName }) {
+  const description = planName ? `Our team will contact you soon about the ${planName} plan.` : 'Our team will contact you soon.';
+
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <>
       <DialogHeaderRow>
-        <DialogTitle className={dialogPrimaryTitleClass}>
-          Pricing Request
-        </DialogTitle>
+        <DialogTitle className={dialogPrimaryTitleClass}>Pricing Request</DialogTitle>
       </DialogHeaderRow>
-
-      <DialogScrollBody className="flex flex-col items-center justify-center py-2 text-center">
-        <div className="relative mb-4 flex h-16 w-16 shrink-0 items-center justify-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white">
-            <svg
-              className="h-8 w-8 text-[#E8A857]"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              aria-hidden
-            >
-              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 11V4a3 3 0 0 1 3-3h2v10z" />
-            </svg>
-          </div>
-          <div
-            className="absolute -top-0.5 -right-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-[#22C55E]"
-            aria-hidden
-          >
-            <svg
-              className="h-4 w-4 text-white"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={3}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M20 6L9 17l-5-5" />
-            </svg>
-          </div>
-        </div>
-
-        <DialogTitle className="mb-1.5 text-[14px] font-bold text-white">
-          Thank you for your request
-        </DialogTitle>
-        <p className="text-[13px] leading-snug text-[#A2A6AB]">
-          {planName
-            ? `Our team will contact you soon about the ${planName} plan.`
-            : 'Our team will contact you soon.'}
-        </p>
-      </DialogScrollBody>
-    </div>
+      <SuccessDialogBody title="Thank you for your request" description={description} />
+    </>
   );
 }
 

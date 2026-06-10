@@ -46,9 +46,7 @@ export class TournamentRequestService {
   private readonly messageService = inject(MessageService);
   private readonly baseUrl = 'v1/admin/tournament-requests';
 
-  public getList(
-    params: Partial<ListParams> & Record<string, unknown> = {}
-  ): Observable<TournamentRequestsListResponse> {
+  public getList(params: Partial<ListParams> & Record<string, unknown> = {}): Observable<TournamentRequestsListResponse> {
     return this.http.get<TournamentRequestsListResponse>(this.baseUrl, {
       params: toHttpParams(params as Record<string, unknown>),
     });

@@ -5,8 +5,16 @@ namespace App\Http\Controllers\User;
 use App\Enums\Event\CricketFormatEnum;
 use App\Enums\Event\DismissalTypeEnum;
 use App\Enums\Event\ExtraTypeEnum;
+use App\Enums\Event\InningsEndReasonEnum;
+use App\Enums\Event\MatchBreakTypeEnum;
+use App\Enums\Event\MatchEndReasonEnum;
 use App\Enums\Event\MatchOversEnum;
 use App\Enums\Event\MatchTimingEnum;
+use App\Enums\Event\NoBallRunsTypeEnum;
+use App\Enums\Event\NoBallTypeEnum;
+use App\Enums\Event\OverthrowDeliveryTypeEnum;
+use App\Enums\Event\PenaltyReasonEnum;
+use App\Enums\Event\PenaltyTeamEnum;
 use App\Enums\Event\PlayersPerSideEnum;
 use App\Enums\Event\ShotPositionEnum;
 use App\Enums\Event\TossChoiceEnum;
@@ -20,6 +28,7 @@ use App\Enums\User\PlayingRoleEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 
 class EnumController extends Controller
 {
@@ -28,10 +37,19 @@ class EnumController extends Controller
     /**
      * Return enum options (value + label) for app forms (tournament request, profile, etc.).
      * Public so the form can load options before auth.
+     * Cached for 10 minutes — enum values only change on a deploy, so stale cache risk is zero.
      */
     public function index(): JsonResponse
     {
-        $enums = [
+        $enums = Cache::remember('user:enums:v9', 600, fn () => $this->buildEnums());
+
+        return $this->success($enums);
+    }
+
+    /** @return array<string, mixed> */
+    private function buildEnums(): array
+    {
+        return [
             'tournament_type' => $this->toOptions(TournamentTypeEnum::cases()),
             'group_mode' => $this->toOptions(GroupModeEnum::cases()),
             'cricket_format' => $this->toOptions(CricketFormatEnum::cases()),
@@ -40,6 +58,14 @@ class EnumController extends Controller
             'toss_choice' => $this->toOptions(TossChoiceEnum::cases()),
             'dismissal_type' => $this->toDismissalOptions(DismissalTypeEnum::cases()),
             'extra_type' => $this->toExtraTypeOptions(ExtraTypeEnum::cases()),
+            'no_ball_type' => $this->toOptions(NoBallTypeEnum::cases()),
+            'no_ball_runs_type' => $this->toOptions(NoBallRunsTypeEnum::cases()),
+            'overthrow_delivery_type' => $this->toOverthrowDeliveryOptions(OverthrowDeliveryTypeEnum::cases()),
+            'penalty_team' => $this->toOptions(PenaltyTeamEnum::cases()),
+            'penalty_reason' => $this->toOptions(PenaltyReasonEnum::cases()),
+            'innings_end_reason' => $this->toOptions(InningsEndReasonEnum::cases()),
+            'match_end_reason' => $this->toOptions(MatchEndReasonEnum::cases()),
+            'match_break_type' => $this->toOptions(MatchBreakTypeEnum::cases()),
             'match_overs' => $this->toOptions(MatchOversEnum::cases()),
             'players_per_side' => $this->toOptions(PlayersPerSideEnum::cases()),
             'batting_style' => $this->toOptions(BattingStyleEnum::cases()),
@@ -48,8 +74,6 @@ class EnumController extends Controller
             'tournament_interest_campaign_status' => $this->toOptions(TournamentInterestCampaignStatusEnum::cases()),
             'tournament_interest_submission_status' => $this->toOptions(TournamentInterestSubmissionStatusEnum::cases()),
         ];
-
-        return $this->success($enums);
     }
 
     /**
@@ -72,7 +96,7 @@ class EnumController extends Controller
 
     /**
      * @param  array<int, DismissalTypeEnum>  $cases
-     * @return array<int, array{value: string, label: string, requires_fielder: bool}>
+     * @return array<int, array{value: string, label: string, requires_fielder: bool, valid_on_free_hit: bool, counts_as_wicket: bool, counts_as_bowler_wicket: bool}>
      */
     private function toDismissalOptions(array $cases): array
     {
@@ -83,6 +107,28 @@ class EnumController extends Controller
                 'value' => $case->value,
                 'label' => $case->label(),
                 'requires_fielder' => $case->requiresFielder(),
+                'valid_on_free_hit' => $case->validOnFreeHit(),
+                'counts_as_wicket' => $case->countsAsWicket(),
+                'counts_as_bowler_wicket' => $case->countsAsBowlerWicket(),
+            ];
+        }
+
+        return $options;
+    }
+
+    /**
+     * @param  array<int, OverthrowDeliveryTypeEnum>  $cases
+     * @return array<int, array{value: string, label: string, valid_for_dismissal_delivery_context: bool}>
+     */
+    private function toOverthrowDeliveryOptions(array $cases): array
+    {
+        $options = [];
+
+        foreach ($cases as $case) {
+            $options[] = [
+                'value' => $case->value,
+                'label' => $case->label(),
+                'valid_for_dismissal_delivery_context' => $case->validForDismissalDeliveryContext(),
             ];
         }
 

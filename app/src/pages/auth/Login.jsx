@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
+import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage, isUnauthorizedError } from '@/lib/apiErrors';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { extractOtpFromAuthResponse, setOtpPreview } from '@/lib/otpPreviewSession';
@@ -18,6 +19,8 @@ import { useAppDispatch } from '@/store/hooks';
 import { clearCredentials, setCredentials } from '@/store/slices/authSlice';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 import { Button } from '@/ui/Button';
+import { FormActions } from '@/ui/form/FormActions';
+import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { PhoneInput } from '@/ui/PhoneInput';
 
@@ -28,6 +31,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useAppDispatch();
+  const toast = useToast();
 
   const [showOtherAccount, setShowOtherAccount] = useState(false);
   const [tappingProfile, setTappingProfile] = useState(null);
@@ -72,7 +76,7 @@ export default function Login() {
     try {
       await requestOtpAndNavigate(data.phone);
     } catch (err) {
-      console.error('Login failed:', err);
+      toast.error(getApiErrorMessage(err, 'Could not send OTP. Please try again.'));
     }
   };
 
@@ -103,9 +107,7 @@ export default function Login() {
         }),
       );
 
-      const result = await dispatch(
-        authApi.endpoints.getMe.initiate(undefined, { forceRefetch: true }),
-      );
+      const result = await dispatch(authApi.endpoints.getMe.initiate(undefined, { forceRefetch: true }));
 
       if (isUnauthorizedError(result.error)) {
         // Token expired or invalid — drop saved profile (stale token) and continue with OTP.
@@ -125,7 +127,6 @@ export default function Login() {
       markReturningUser();
       navigate(getRedirectPath(location.state), { replace: true });
     } catch (err) {
-      console.error('Profile tap failed:', err);
       if (isUnauthorizedError(err)) {
         removeSavedProfile(profile.phone);
         setSavedProfiles(getSavedProfiles());
@@ -184,11 +185,11 @@ export default function Login() {
             />
           )}
 
-          <p className="pt-2 text-center text-[14px] text-[#A2A6AB] lg:pt-0">
+          <p className="text-muted pt-2 text-center text-[14px] lg:pt-0">
             Don&apos;t have an account?{' '}
             <Link
               to="/register"
-              className="font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820]"
+              className="text-brand font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820]"
             >
               Sign up
             </Link>
@@ -202,9 +203,7 @@ export default function Login() {
 function ProfilePicker({ profiles, tappingProfile, busy, onTap, onRemove, onUseOther }) {
   return (
     <>
-      <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">
-        Choose an account
-      </h2>
+      <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">Choose an Account</h2>
 
       <div className="scrollbar-hide mb-2 flex max-h-[280px] flex-col gap-3 overflow-y-auto p-[10px]">
         {profiles.map((profile) => {
@@ -213,13 +212,13 @@ function ProfilePicker({ profiles, tappingProfile, busy, onTap, onRemove, onUseO
           return (
             <div
               key={profile.phone}
-              className="relative flex w-full rounded-[18px] border border-[#1A1A1A] bg-[#141412] px-4 py-3.5"
+              className="border-surface-border bg-surface relative flex w-full rounded-[18px] border px-4 py-3.5"
             >
               <button
                 type="button"
                 onClick={(e) => onRemove(e, profile.phone)}
                 aria-label={`Remove ${profile.name ?? profile.phone} from saved accounts`}
-                className="absolute top-[5px] right-[5px] flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#DA9811] text-[20px] leading-none font-bold text-[#080807] shadow-sm transition-opacity hover:opacity-90 focus:ring-2 focus:ring-[#DA9811] focus:ring-offset-2 focus:ring-offset-[#141412] focus:outline-none active:opacity-80"
+                className="bg-brand text-ink focus:ring-brand absolute top-[5px] right-[5px] flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[20px] leading-none font-bold shadow-sm transition-opacity hover:opacity-90 focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#141412] focus:outline-none active:opacity-80"
               >
                 ×
               </button>
@@ -228,25 +227,18 @@ function ProfilePicker({ profiles, tappingProfile, busy, onTap, onRemove, onUseO
                 type="button"
                 onClick={() => onTap(profile)}
                 disabled={busy}
-                className="flex min-w-0 flex-1 items-center gap-4 pr-8 text-left transition-opacity focus:ring-2 focus:ring-[#DA9811] focus:ring-offset-2 focus:ring-offset-black focus:outline-none active:opacity-90 disabled:opacity-60"
+                className="focus:ring-brand flex min-w-0 flex-1 items-center gap-4 pr-8 text-left transition-opacity focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:outline-none active:opacity-90 disabled:opacity-60"
               >
-                <Avatar className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-[#1A1A1A]">
-                  <AvatarImage
-                    src={profile.avatarUrl ?? profile.avatar_url ?? defaultAvatar}
-                    alt=""
-                  />
-                  <AvatarFallback className="bg-[#DA9811] text-sm font-bold text-[#080807]">
+                <Avatar className="border-surface-border h-12 w-12 shrink-0 overflow-hidden rounded-full border">
+                  <AvatarImage src={profile.avatarUrl ?? profile.avatar_url ?? defaultAvatar} alt="" />
+                  <AvatarFallback className="bg-brand text-ink text-sm font-bold">
                     {getInitials(profile.name, profile.nickname)}
                   </AvatarFallback>
                 </Avatar>
 
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[14px] font-bold text-white">
-                    {isTapping ? 'Signing in…' : profile.name}
-                  </p>
-                  <p className="truncate text-[12px] font-medium text-[#A2A6AB]">
-                    {formatPhoneMasked(profile.phone)}
-                  </p>
+                  <p className="truncate text-[14px] font-bold text-white">{isTapping ? 'Signing in…' : profile.name}</p>
+                  <p className="text-muted truncate text-[12px] font-medium">{formatPhoneMasked(profile.phone)}</p>
                 </div>
               </button>
             </div>
@@ -259,9 +251,9 @@ function ProfilePicker({ profiles, tappingProfile, busy, onTap, onRemove, onUseO
       <button
         type="button"
         onClick={onUseOther}
-        className="w-full py-3 text-center text-[14px] font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820]"
+        className="text-brand w-full py-3 text-center text-[14px] font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820]"
       >
-        Login with other account
+        Login With Other Account
       </button>
     </>
   );
@@ -269,22 +261,12 @@ function ProfilePicker({ profiles, tappingProfile, busy, onTap, onRemove, onUseO
 
 function PhoneForm({ control, errors, error, busy, hasSavedProfiles, onSubmit, onFocus, onBack }) {
   return (
-    <form
-      onSubmit={onSubmit}
-      onFocus={onFocus}
-      className="space-y-4 lg:mx-auto lg:max-w-[400px]"
-    >
-      <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">
-        Login with your account
-      </h2>
+    <FormStack as="form" density="compact" className="lg:mx-auto lg:max-w-[400px]" onSubmit={onSubmit} onFocus={onFocus}>
+      <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">Login With Your Account</h2>
 
       {hasSavedProfiles && (
-        <button
-          type="button"
-          onClick={onBack}
-          className="text-[14px] font-medium text-[#A2A6AB] transition-colors hover:text-white"
-        >
-          ← Back to saved accounts
+        <button type="button" onClick={onBack} className="text-muted text-[14px] font-medium transition-colors hover:text-white">
+          ← Back to Saved Accounts
         </button>
       )}
 
@@ -292,29 +274,21 @@ function PhoneForm({ control, errors, error, busy, hasSavedProfiles, onSubmit, o
         <Controller
           name="phone"
           control={control}
-          render={({ field }) => (
-            <PhoneInput
-              id="phone"
-              placeholder="3001234567"
-              error={errors.phone?.message}
-              {...field}
-            />
-          )}
+          render={({ field }) => <PhoneInput id="phone" placeholder="3001234567" error={errors.phone?.message} {...field} />}
         />
       </FormField>
 
       {error && (
-        <p
-          className="rounded-[6px] border border-[#1A1A1A] bg-red-500/20 px-4 py-2.5 text-[14px] text-red-200"
-          role="alert"
-        >
+        <p className="border-surface-border rounded-[6px] border bg-red-500/20 px-4 py-2.5 text-[14px] text-red-200" role="alert">
           {getApiErrorMessage(error, 'Could not send OTP. Please try again.')}
         </p>
       )}
 
-      <Button type="submit" disabled={busy} variant="auth" className="mt-4 lg:w-full">
-        {busy ? 'Signing in…' : 'Login'}
-      </Button>
-    </form>
+      <FormActions align="stack" className="pt-0">
+        <Button type="submit" disabled={busy} variant="auth" className="lg:w-full">
+          {busy ? 'Signing in…' : 'Login'}
+        </Button>
+      </FormActions>
+    </FormStack>
   );
 }

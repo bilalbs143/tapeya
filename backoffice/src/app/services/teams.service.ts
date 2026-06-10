@@ -39,6 +39,15 @@ export interface TeamsListResponse {
   links?: Record<string, string | null>;
 }
 
+export interface TeamSavePayload {
+  name: string;
+  code: string;
+  country: string;
+  city: string;
+  sponsor_user_id: number;
+  icon_player_ids: number[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class TeamsService {
   private readonly http = inject(HttpClient);
@@ -54,12 +63,12 @@ export class TeamsService {
     return this.http.get<{ data: TeamRow }>(`${this.baseUrl}/${id}`);
   }
 
-  public create(formData: FormData): Observable<{ data: TeamRow }> {
-    return this.http.post<{ data: TeamRow }>(this.baseUrl, formData);
+  public create(payload: TeamSavePayload): Observable<{ data: TeamRow }> {
+    return this.http.post<{ data: TeamRow }>(this.baseUrl, payload);
   }
 
-  public update(id: number, formData: FormData): Observable<{ data: TeamRow }> {
-    return this.http.patch<{ data: TeamRow }>(`${this.baseUrl}/${id}`, formData);
+  public update(id: number, payload: TeamSavePayload): Observable<{ data: TeamRow }> {
+    return this.http.patch<{ data: TeamRow }>(`${this.baseUrl}/${id}`, payload);
   }
 
   public delete(id: number): Observable<void> {

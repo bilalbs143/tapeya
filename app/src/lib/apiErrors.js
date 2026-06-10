@@ -1,4 +1,8 @@
 /**
+ * Canonical API error handling pattern:
+ *   try { await mutation().unwrap(); }
+ *   catch (err) { toast.error(getApiErrorMessage(err, 'Fallback message.')); }
+ *
  * RTK Query / fetchBaseQuery errors may expose HTTP status as number or string.
  *
  * @param {unknown} error
@@ -18,10 +22,7 @@ export function isUnauthorizedError(error) {
  * @param {string} [fallback] - Fallback message when nothing can be extracted
  * @returns {string}
  */
-export function getApiErrorMessage(
-  error,
-  fallback = 'Something went wrong. Please try again.',
-) {
+export function getApiErrorMessage(error, fallback = 'Something went wrong. Please try again.') {
   if (error == null) return fallback;
   const data = error?.data;
   if (data?.errors && typeof data.errors === 'object') {

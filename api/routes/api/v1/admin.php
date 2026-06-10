@@ -5,19 +5,26 @@ use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\Admin\CricketDashboardController;
 use App\Http\Controllers\Admin\EnumController;
 use App\Http\Controllers\Admin\GraphicCommandCatalogController;
+use App\Http\Controllers\Admin\GraphicCommandController;
+use App\Http\Controllers\Admin\GraphicOverlayUrlController;
+use App\Http\Controllers\Admin\GraphicSessionController;
 use App\Http\Controllers\Admin\GraphicThemeController;
 use App\Http\Controllers\Admin\HeroSliderController;
+use App\Http\Controllers\Admin\HighlightController as AdminHighlightController;
 use App\Http\Controllers\Admin\MatchGraphicCaptionController;
 use App\Http\Controllers\Admin\MatchGraphicPlayerListController;
-use App\Http\Controllers\Admin\MatchGraphicSessionController;
+use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PlayerController;
+use App\Http\Controllers\Admin\PushNotificationController;
+use App\Http\Controllers\Admin\PushNotificationTemplateController;
 use App\Http\Controllers\Admin\Shop\BrandController as AdminBrandController;
 use App\Http\Controllers\Admin\Shop\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\Shop\EcommerceDashboardController;
 use App\Http\Controllers\Admin\Shop\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\Shop\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\StaticPageController;
+use App\Http\Controllers\Admin\StreamController;
 use App\Http\Controllers\Admin\SystemSettingController;
 use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\TournamentBroadcasterController;
@@ -45,6 +52,13 @@ Route::prefix('admin')->group(function () {
 
     Route::middleware(['auth:api', 'admin.only'])->group(function () {
         Route::get('enums', [EnumController::class, 'index']);
+        Route::apiResource('highlights', AdminHighlightController::class);
+        Route::get('push-notifications', [PushNotificationController::class, 'index']);
+        Route::post('push-notifications/send', [PushNotificationController::class, 'send']);
+        Route::get('push-notifications/{pushNotificationLog}', [PushNotificationController::class, 'show']);
+        Route::get('push-notification-templates', [PushNotificationTemplateController::class, 'index']);
+        Route::get('push-notification-templates/{pushNotificationTemplate}', [PushNotificationTemplateController::class, 'show']);
+        Route::patch('push-notification-templates/{pushNotificationTemplate}', [PushNotificationTemplateController::class, 'update']);
         Route::get('notifications', [NotificationController::class, 'index']);
         Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
         Route::delete('notifications', [NotificationController::class, 'flush']);
@@ -68,30 +82,41 @@ Route::prefix('admin')->group(function () {
         Route::get('tournaments/{tournament}/teams', [TournamentTeamsController::class, 'index']);
         Route::post('tournaments/{tournament}/teams', [TournamentTeamsController::class, 'store']);
         Route::get('tournaments/{tournament}/teams/{team}/squad', [TournamentTeamSquadController::class, 'show']);
+        Route::get('tournaments/{tournament}/squad-occupancy', [TournamentTeamSquadController::class, 'occupancy']);
         Route::post('tournaments/{tournament}/teams/{team}/squad', [TournamentTeamSquadController::class, 'store']);
         Route::patch('tournaments/{tournament}/teams/{team}', [TournamentTeamsController::class, 'update']);
         Route::delete('tournaments/{tournament}/teams/{team}', [TournamentTeamsController::class, 'destroy']);
         Route::get('tournaments/{tournament}/matches', [TournamentMatchController::class, 'index']);
         Route::post('tournaments/{tournament}/matches', [TournamentMatchController::class, 'store']);
         Route::get('matches/{match}', [TournamentMatchController::class, 'show']);
+        Route::match(['post', 'patch'], 'matches/{match}', [TournamentMatchController::class, 'update']);
+        Route::post('matches/{match}/stream', [StreamController::class, 'create']);
+        Route::get('matches/{match}/stream', [StreamController::class, 'show']);
+        Route::post('matches/{match}/stream/end', [StreamController::class, 'end']);
+        Route::delete('matches/{match}/stream', [StreamController::class, 'destroy']);
+        Route::post('matches/{match}/stream/sync', [StreamController::class, 'sync']);
+        Route::patch('matches/{match}/stream/provider', [StreamController::class, 'setProvider']);
         Route::get('matches/{match}/teams/{team}/squad', [TournamentMatchSquadController::class, 'show']);
         Route::post('matches/{match}/teams/{team}/squad', [TournamentMatchSquadController::class, 'store']);
         Route::get('matches/{match}/graphic-player-lists', MatchGraphicPlayerListController::class);
 
         Route::get('graphic-themes', [GraphicThemeController::class, 'index']);
         Route::get('graphic-command-catalog', [GraphicCommandCatalogController::class, 'index']);
-        Route::get('matches/{match}/graphic-session', [MatchGraphicSessionController::class, 'show']);
-        Route::get('matches/{match}/graphic-session/signed-url', [MatchGraphicSessionController::class, 'signedOverlayUrl']);
-        Route::match(['put', 'patch'], 'matches/{match}/graphic-session', [MatchGraphicSessionController::class, 'update']);
+        Route::get('matches/{match}/graphic-session', [GraphicSessionController::class, 'show']);
+        Route::get('matches/{match}/graphic-session/signed-url', [GraphicOverlayUrlController::class, 'signedOverlayUrl']);
+        Route::match(['put', 'patch'], 'matches/{match}/graphic-session', [GraphicSessionController::class, 'update']);
         Route::get('matches/{match}/graphic-session/captions', [MatchGraphicCaptionController::class, 'index']);
         Route::post('matches/{match}/graphic-session/captions', [MatchGraphicCaptionController::class, 'store']);
         Route::match(['put', 'patch'], 'matches/{match}/graphic-session/captions/{caption}', [MatchGraphicCaptionController::class, 'update']);
         Route::delete('matches/{match}/graphic-session/captions/{caption}', [MatchGraphicCaptionController::class, 'destroy']);
 
-        Route::get('matches/{match}/graphic-session/commands', [MatchGraphicSessionController::class, 'indexCommands']);
-        Route::delete('matches/{match}/graphic-session/commands', [MatchGraphicSessionController::class, 'clearCommandHistory']);
-        Route::post('matches/{match}/graphic-session/commands', [MatchGraphicSessionController::class, 'storeCommand']);
-        Route::post('matches/{match}/graphic-session/commands/{command}/activate', [MatchGraphicSessionController::class, 'activateCommand']);
+        Route::get('matches/{match}/graphic-session/commands', [GraphicCommandController::class, 'index']);
+        Route::delete('matches/{match}/graphic-session/commands', [GraphicCommandController::class, 'destroyHistory']);
+        Route::post('matches/{match}/graphic-session/commands', [GraphicCommandController::class, 'store']);
+        Route::post('matches/{match}/graphic-session/commands/{command}/activate', [GraphicCommandController::class, 'activate']);
+
+        Route::post('media/{type}/{id}/{field}', [MediaController::class, 'upload']);
+        Route::delete('media/{type}/{id}/{field}', [MediaController::class, 'delete']);
 
         Route::get('cricket/dashboard-stats', CricketDashboardController::class);
 

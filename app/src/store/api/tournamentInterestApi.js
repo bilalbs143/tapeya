@@ -10,9 +10,7 @@ export const tournamentInterestApi = baseApi.injectEndpoints({
     getInterestCampaign: builder.query({
       query: ({ slug }) => `/interest-campaigns/${slug}`,
       transformResponse: (response) => response?.data ?? response,
-      providesTags: (_result, _err, { slug }) => [
-        { type: 'InterestCampaign', id: slug },
-      ],
+      providesTags: (_result, _err, { slug }) => [{ type: 'InterestCampaign', id: slug }],
     }),
     submitInterest: builder.mutation({
       query: ({ slug, body }) => ({

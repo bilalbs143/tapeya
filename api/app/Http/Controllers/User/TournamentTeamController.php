@@ -9,12 +9,17 @@ use App\Http\Requests\User\UpdateTournamentTeamRequest;
 use App\Http\Resources\User\TeamResource;
 use App\Models\Team;
 use App\Models\Tournament;
+use App\Services\Tournament\TournamentTeamSquadValidator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
 class TournamentTeamController extends Controller
 {
     use BaseControllerTrait;
+
+    public function __construct(
+        private readonly TournamentTeamSquadValidator $squadValidator,
+    ) {}
 
     /**
      * List teams attached to a tournament.
@@ -29,6 +34,19 @@ class TournamentTeamController extends Controller
             ->get();
 
         return $this->success(TeamResource::collection($teams));
+    }
+
+    /**
+     * Players already rostered on other teams in this tournament (for squad pickers).
+     * GET /tournaments/{tournament}/squad-occupancy?exclude_team_id=
+     */
+    public function squadOccupancy(Tournament $tournament): JsonResponse
+    {
+        $excludeTeamId = request()->integer('exclude_team_id') ?: null;
+
+        return $this->success(
+            $this->squadValidator->tournamentOccupancy($tournament, $excludeTeamId),
+        );
     }
 
     /**
@@ -47,6 +65,23 @@ class TournamentTeamController extends Controller
 
         $teamIds = $request->validated('team_ids');
         $groupIndex = $request->validated('group_index');
+
+        $alreadyAttached = $tournament->teams()->pluck('teams.id')->all();
+        $duplicates = array_values(array_intersect($teamIds, $alreadyAttached));
+        if (! empty($duplicates)) {
+            return $this->failure('Team is already added to this tournament.', 'VALIDATION_ERROR');
+        }
+
+        $newTeamIds = array_values(array_diff($teamIds, $alreadyAttached));
+        $currentCount = count($alreadyAttached);
+
+        $teamLimit = $tournament->number_of_teams;
+        if ($teamLimit !== null && $currentCount + count($newTeamIds) > $teamLimit) {
+            return $this->failure(
+                'This tournament already has the maximum number of teams ('.$teamLimit.').',
+                'VALIDATION_ERROR'
+            );
+        }
 
         if ($tournament->number_of_groups > 1 && ($groupIndex === null || $groupIndex < 1 || $groupIndex > $tournament->number_of_groups)) {
             return $this->failure('Group index is required and must be between 1 and '.$tournament->number_of_groups.' for this tournament.', 'VALIDATION_ERROR');

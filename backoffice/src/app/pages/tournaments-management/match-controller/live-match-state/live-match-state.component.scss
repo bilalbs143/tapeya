@@ -1,0 +1,69 @@
+:host {
+  display: block;
+}
+
+.live-state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12));
+  border-left: 3px solid #2e7d32;
+  background: var(--mat-sys-surface-container-low, rgba(255, 255, 255, 0.9));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.live-state__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #2e7d32;
+  white-space: nowrap;
+}
+
+.live-state__innings {
+  text-transform: none;
+  font-weight: 500;
+  letter-spacing: normal;
+  color: var(--mat-sys-on-surface-variant, rgba(0, 0, 0, 0.55));
+}
+
+.live-state__score {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--mat-sys-on-surface, rgba(0, 0, 0, 0.87));
+  white-space: nowrap;
+}
+
+.live-state__meta {
+  margin-left: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--mat-sys-on-surface-variant, rgba(0, 0, 0, 0.6));
+}
+
+.live-state__over {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 8rem;
+}
+
+.live-state__over-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--mat-sys-on-surface-variant, rgba(0, 0, 0, 0.5));
+  white-space: nowrap;
+}
+
+.live-state__balls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}

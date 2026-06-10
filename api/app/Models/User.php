@@ -6,6 +6,7 @@ namespace App\Models;
 use App\Builders\UserBuilder;
 use App\Contracts\RoleEnumInterface;
 use App\Enums\User\AdminRoleEnum;
+use App\Enums\User\AppRoleEnum;
 use App\Enums\User\BattingStyleEnum;
 use App\Enums\User\BowlingStyleEnum;
 use App\Enums\User\PlayingRoleEnum;
@@ -162,6 +163,10 @@ class User extends Authenticatable
             return true;
         }
 
+        if ($tournament->relationLoaded('broadcasters')) {
+            return $tournament->broadcasters->contains('id', $this->id);
+        }
+
         return $tournament->broadcasters()->whereKey($this->id)->exists();
     }
 
@@ -274,6 +279,10 @@ class User extends Authenticatable
      */
     public function getAppRoles(): Collection
     {
+        if ($this->relationLoaded('roles')) {
+            return $this->roles->where('guard', RoleGuardEnum::APP->value)->values();
+        }
+
         return $this->roles()->where('roles.guard', RoleGuardEnum::APP->value)->get();
     }
 
@@ -282,6 +291,10 @@ class User extends Authenticatable
      */
     public function getAdminRoles(): Collection
     {
+        if ($this->relationLoaded('roles')) {
+            return $this->roles->where('guard', RoleGuardEnum::ADMIN->value)->values();
+        }
+
         return $this->roles()->where('roles.guard', RoleGuardEnum::ADMIN->value)->get();
     }
 
@@ -296,6 +309,12 @@ class User extends Authenticatable
         } else {
             $slug = $role;
             $guard ??= RoleGuardEnum::APP->value;
+        }
+
+        if ($this->relationLoaded('roles')) {
+            return $this->roles->contains(
+                fn ($r) => $r->slug === $slug && $r->guard === $guard
+            );
         }
 
         return $this->roles()->where('slug', $slug)->where('guard', $guard)->exists();
@@ -331,6 +350,21 @@ class User extends Authenticatable
         }
 
         return $query->whereHas('roles', fn (Builder $q) => $q->where('slug', $slug)->where('guard', $guard));
+    }
+
+    /**
+     * Scope: app users with player, sponsor, or organizer role (tournament team squad pickers).
+     */
+    public function scopeEligibleForTournamentSquad(Builder $query): Builder
+    {
+        return $query->whereHas('roles', function (Builder $q): void {
+            $q->where('roles.guard', RoleGuardEnum::APP->value)
+                ->whereIn('roles.slug', [
+                    AppRoleEnum::PLAYER->value,
+                    AppRoleEnum::SPONSOR->value,
+                    AppRoleEnum::ORGANIZER->value,
+                ]);
+        });
     }
 
     /**

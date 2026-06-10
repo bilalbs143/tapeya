@@ -96,9 +96,7 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block"
-            >Stock Quantity <span class="text-error">*</span></mat-label
-          >
+          <mat-label class="text-sm font-semibold mb-2 block">Stock Quantity <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
@@ -115,9 +113,7 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block"
-            >Low Stock Threshold <span class="text-error">*</span></mat-label
-          >
+          <mat-label class="text-sm font-semibold mb-2 block">Low Stock Threshold <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
             class="w-full"
@@ -214,9 +210,7 @@
               step="0.01"
               placeholder="E.g. 20 Or 500"
             />
-            @if (
-              hasDiscountTypeSelected && form.get('discount_value')?.invalid && form.get('discount_value')?.touched
-            ) {
+            @if (hasDiscountTypeSelected && form.get('discount_value')?.invalid && form.get('discount_value')?.touched) {
               <mat-error>Required, number min 0</mat-error>
             }
           </mat-form-field>
@@ -308,43 +302,18 @@
           </div>
         </div>
         <div class="col-span-12">
-          <mat-label class="text-sm font-semibold mb-2 block">Images <span class="text-error">*</span></mat-label>
-          <p class="text-muted text-sm mb-2">
-            At Least One Image Required. On Edit, Adding New Images Replaces All Existing Images.
-          </p>
-          @if (showImagesError) {
-            <p class="text-error text-xs my-0 mt-[5px] px-4">At least one image is required.</p>
+          <app-file-upload
+            formControlName="images"
+            label="Images"
+            accept="image/jpeg,image/png,image/webp"
+            acceptLabel="JPG, PNG, WebP"
+            [multiple]="true"
+            [maxSizeMb]="5"
+            [required]="true"
+          ></app-file-upload>
+          @if (form.get('images')?.invalid && form.get('images')?.touched) {
+            <p class="text-xs text-error mt-1 m-0">At least one image is required.</p>
           }
-          @if (previewUrls.length) {
-            <div class="flex flex-wrap gap-2 mb-2">
-              @for (url of previewUrls; track url; let i = $index) {
-                <div class="relative inline-block">
-                  <img
-                    [src]="url"
-                    alt="Preview"
-                    class="h-20 w-20 object-cover border rounded"
-                  />
-                  @if (i >= existingImageCount) {
-                    <button
-                      type="button"
-                      class="absolute -top-1 -right-1 rounded-full bg-error text-white w-5 h-5 flex items-center justify-center text-xs border-0 cursor-pointer"
-                      (click)="removeNewFile(i - existingImageCount)"
-                      aria-label="Remove image"
-                    >
-                      &times;
-                    </button>
-                  }
-                </div>
-              }
-            </div>
-          }
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            (change)="onFilesSelected($event)"
-            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-primary file:text-white file:font-medium"
-          />
         </div>
       </div>
     </mat-dialog-content>
@@ -360,7 +329,7 @@
         Cancel
       </button>
       <app-submit-button
-        [disabled]="form.invalid || !hasAtLeastOneImage"
+        [disabled]="form.invalid"
         [isSubmitting]="isSubmitting"
         text="Submit"
         color="primary"

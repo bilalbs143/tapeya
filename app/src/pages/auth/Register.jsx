@@ -2,20 +2,30 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 
+import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { extractOtpFromAuthResponse, setOtpPreview } from '@/lib/otpPreviewSession';
 import { registerSchema } from '@/lib/validations/auth';
 import { useRegisterMutation } from '@/store/api/authApi';
 import { Button } from '@/ui/Button';
+import { FormActions } from '@/ui/form/FormActions';
+import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import { PhoneInput } from '@/ui/PhoneInput';
 
 const tapeyaLogo = `${CLOUDFRONT_APP_BASE}/images/logos/tapeya-logo-white.svg`;
 
+const normalizeOptionalString = (value) => {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed === '' ? undefined : trimmed;
+};
+
 export default function Register() {
   const navigate = useNavigate();
+  const toast = useToast();
 
   const {
     register,
@@ -28,8 +38,7 @@ export default function Register() {
     mode: 'onChange',
   });
 
-  const [registerUser, { isLoading, error, reset: resetRegisterMutation }] =
-    useRegisterMutation();
+  const [registerUser, { isLoading, error, reset: resetRegisterMutation }] = useRegisterMutation();
 
   const onSubmit = async (data) => {
     try {
@@ -37,7 +46,7 @@ export default function Register() {
         name: data.name,
         nickname: data.nickname,
         phone: data.phone,
-        email: data.email.trim() || undefined,
+        email: normalizeOptionalString(data.email),
       }).unwrap();
 
       const otp = extractOtpFromAuthResponse(result);
@@ -45,7 +54,7 @@ export default function Register() {
       // otp is intentionally excluded from nav state; setOtpPreview handles the preview.
       navigate('/otp', { state: { phone: data.phone }, replace: true });
     } catch (err) {
-      console.error('Register failed:', err);
+      toast.error(getApiErrorMessage(err, 'Registration failed. Please try again.'));
     }
   };
 
@@ -69,23 +78,21 @@ export default function Register() {
           Live Cricket &amp; Instant Updates, Anytime!
         </p>
 
-        <form
+        <FormStack
+          as="form"
+          density="compact"
+          className="mt-10 w-full max-w-[358px] lg:mt-14 lg:max-w-[400px] lg:px-0"
           onSubmit={handleSubmit(onSubmit)}
           onFocus={resetRegisterMutation}
-          className="mt-10 w-full max-w-[358px] space-y-4 lg:mt-14 lg:max-w-[400px] lg:px-0"
         >
-          <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">
-            Create an account
-          </h2>
+          <h2 className="text-center text-[16px] font-bold tracking-wide text-white uppercase">Create an account</h2>
 
-          <div className="rounded-[6px] border border-[#FF9700]/45 bg-[#141412] p-4 text-center shadow-[0_0_0_1px_rgba(255,151,0,0.12)]">
-            <p className="text-[12px] leading-snug text-[#A2A6AB] md:text-[13px]">
-              Your provided phone number must be on WhatsApp.
-            </p>
+          <div className="bg-surface rounded-[6px] border border-[#FF9700]/45 p-4 text-center shadow-[0_0_0_1px_rgba(255,151,0,0.12)]">
+            <p className="text-muted text-[12px] leading-snug md:text-[13px]">Your provided phone number must be on WhatsApp.</p>
             <p
               lang="ur"
               dir="rtl"
-              className="mt-2 font-[system-ui,'Noto Nastaliq Urdu','Geeza Pro',sans-serif] text-[13px] leading-relaxed text-[#A2A6AB] md:text-[14px]"
+              className="font-[system-ui,'Noto Nastaliq Urdu','Geeza Pro',sans-serif] text-muted mt-2 text-[13px] leading-relaxed md:text-[14px]"
             >
               آپ کا دیا گیا فون نمبر واٹس ایپ پر موجود ہونا ضروری ہے۔
             </p>
@@ -95,14 +102,7 @@ export default function Register() {
             <Controller
               name="phone"
               control={control}
-              render={({ field }) => (
-                <PhoneInput
-                  id="phone"
-                  placeholder="3001234567"
-                  error={errors.phone?.message}
-                  {...field}
-                />
-              )}
+              render={({ field }) => <PhoneInput id="phone" placeholder="3001234567" error={errors.phone?.message} {...field} />}
             />
           </FormField>
 
@@ -132,7 +132,7 @@ export default function Register() {
             <Input
               id="email"
               type="email"
-              placeholder="Enter your email"
+              placeholder="Enter Your Email"
               autoComplete="email"
               error={errors.email?.message}
               {...register('email')}
@@ -141,46 +141,48 @@ export default function Register() {
 
           {error && (
             <p
-              className="rounded-[6px] border border-[#1A1A1A] bg-red-500/20 px-4 py-2.5 text-[14px] text-red-200"
+              className="border-surface-border rounded-[6px] border bg-red-500/20 px-4 py-2.5 text-[14px] text-red-200"
               role="alert"
             >
               {getApiErrorMessage(error, 'Registration failed. Please try again.')}
             </p>
           )}
 
-          <Button type="submit" disabled={busy} variant="auth" className="mt-4 lg:w-full">
-            {busy ? 'Signing up…' : 'Sign up'}
-          </Button>
+          <FormActions align="stack" className="pt-0">
+            <Button type="submit" disabled={busy} variant="auth" className="lg:w-full">
+              {busy ? 'Signing up…' : 'Sign up'}
+            </Button>
+          </FormActions>
 
-          <div className="mb-6 mt-6 space-y-3 text-center">
-            <p className="text-[14px] text-[#A2A6AB]">
+          <div className="mb-6 space-y-3 text-center">
+            <p className="text-muted text-[14px]">
               Already have an account?{' '}
               <Link
                 to="/login"
-                className="font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820]"
+                className="text-brand font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820]"
               >
                 Login
               </Link>
             </p>
-            <p className="text-[14px] text-[#A2A6AB]">
+            <p className="text-muted text-[14px]">
               By signing up, you agree to the{' '}
               <Link
                 to="/pages/terms-of-use"
-                className="font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820]"
+                className="text-brand font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820]"
               >
                 Terms of Use
               </Link>{' '}
               and{' '}
               <Link
                 to="/pages/privacy-policy"
-                className="font-medium text-[#DA9811] underline underline-offset-2 transition-colors hover:text-[#E8A820]"
+                className="text-brand font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820]"
               >
                 Privacy Policy
               </Link>
               .
             </p>
           </div>
-        </form>
+        </FormStack>
       </div>
     </>
   );

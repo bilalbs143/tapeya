@@ -1,15 +1,5 @@
 import { CommonModule } from '@angular/common';
-import {
-  AfterViewInit,
-  Component,
-  Input,
-  OnChanges,
-  OnDestroy,
-  OnInit,
-  SimpleChanges,
-  ViewChild,
-  inject,
-} from '@angular/core';
+import { AfterViewInit, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -201,7 +191,10 @@ export class InterestCampaignsListComponent implements OnInit, OnChanges, AfterV
       ManageCampaignDialogComponent,
       { mode: 'edit', campaign },
       (saved) => saved && this.loadHttpData(),
-      { widthSize: 'md', disableClose: true }
+      {
+        widthSize: 'md',
+        disableClose: true,
+      }
     );
   }
 

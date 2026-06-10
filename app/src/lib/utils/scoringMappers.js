@@ -5,6 +5,8 @@
  * Pure functions — no React, no side effects.
  */
 
+import { squadPlayerProfileFields } from '@/lib/utils/playerUtils';
+
 // ─── Dismissal options ────────────────────────────────────────────────────────
 
 /**
@@ -30,11 +32,7 @@ export function getDismissalOptions(enumOptions) {
  * @param {{ requires_fielder: boolean }|string} option
  */
 export function dismissalRequiresFielder(option) {
-  return Boolean(
-    typeof option === 'object' && option !== null
-      ? option.requires_fielder
-      : false,
-  );
+  return Boolean(typeof option === 'object' && option !== null ? option.requires_fielder : false);
 }
 
 /**
@@ -47,25 +45,17 @@ export function dismissalRequiresFielder(option) {
  */
 export function getFreeHitDismissalOptions(options) {
   if (!Array.isArray(options)) return [];
-  const FREE_HIT_TYPES = new Set([
-    'run_out',
-    'obstructing_the_field',
-    'hit_ball_twice',
-  ]);
-  return options.filter((o) =>
-    o.valid_on_free_hit !== undefined
-      ? o.valid_on_free_hit
-      : FREE_HIT_TYPES.has(o.value),
-  );
+  const FREE_HIT_TYPES = new Set(['run_out', 'obstructing_the_field', 'hit_ball_twice']);
+  return options.filter((o) => (o.valid_on_free_hit !== undefined ? o.valid_on_free_hit : FREE_HIT_TYPES.has(o.value)));
 }
 
 /**
- * Dismissal options that do NOT count as a wicket (for retired_hurt).
  * @param {object[]} options
+ * @param {Set<string>} allowedValues
  */
-export function getNonWicketDismissalOptions(options) {
-  if (!Array.isArray(options)) return [];
-  return options.filter((o) => o.counts_as_wicket === false);
+export function filterDismissalOptions(options, allowedValues) {
+  if (!Array.isArray(options) || !(allowedValues instanceof Set)) return [];
+  return options.filter((o) => allowedValues.has(o.value));
 }
 
 // ─── Extra type options ───────────────────────────────────────────────────────
@@ -165,6 +155,17 @@ export function dismissalValueToLabel(value, enumOptions) {
   return found ? found.label : (value ?? '—');
 }
 
+/**
+ * Dismissal label for compact UI badges — uses scorecard label or enum lookup.
+ *
+ * @param {{ dismissalType?: string|null, label?: string, enumOptions?: object[] }} [opts]
+ */
+export function dismissalBadgeLabel({ dismissalType, label = '', enumOptions } = {}) {
+  if (label) return label;
+  const fromEnum = dismissalValueToLabel(dismissalType, enumOptions);
+  return fromEnum !== '—' ? fromEnum : 'Out';
+}
+
 // ─── API ball → UI ball ───────────────────────────────────────────────────────
 
 /**
@@ -172,7 +173,7 @@ export function dismissalValueToLabel(value, enumOptions) {
  *
  * UI shape:
  *   {
- *     type: 'runs'|'out'|'wd'|'nb'|'bye'|'lb'|'retired_hurt',
+ *     type: 'runs'|'out'|'wd'|'nb'|'bye'|'lb'|'retired_hurt'|'penalty',
  *     runs?: number,
  *     isFreeHit?: boolean,
  *     penaltyRuns?: number,
@@ -201,21 +202,40 @@ export function apiBallToUiBall(apiBall, playerIdToName = {}) {
     is_leg_bye: isLegBye = false,
     is_free_hit: isFreeHit = false,
     penalty_runs: penaltyRuns = 0,
+    additional_runs: additionalRuns = 0,
     dismissal_type: dismissalType = null,
     dismissal_type_label: dismissalLabel,
     fielder_id: fielderId,
+    dont_count_ball: dontCountBall = false,
+    dismissal_delivery_type: dismissalDeliveryType = null,
     shot_position: shotPosition,
+    overthrow_delivery_type: overthrowDeliveryType = null,
     striker_id: strikerId,
     non_striker_id: nonStrikerId,
     bowler_id: bowlerId,
     out_player_id: outPlayerId,
   } = apiBall;
 
+  const penaltyOnly =
+    !isWicket && !isWide && !isNoBall && !isBye && !isLegBye && (Number(penaltyRuns) || 0) > 0 && (Number(runs) || 0) === 0;
+
+  const additionalOnly =
+    !isWicket &&
+    !isWide &&
+    !isNoBall &&
+    !isBye &&
+    !isLegBye &&
+    (Number(additionalRuns) || 0) > 0 &&
+    (Number(penaltyRuns) || 0) === 0 &&
+    (Number(runs) || 0) === 0;
+
   // Determine UI ball type
   let type = 'runs';
   if (isWicket) {
     type = dismissalType === 'retired_hurt' ? 'retired_hurt' : 'out';
-  } else if (isWide) type = 'wd';
+  } else if (penaltyOnly) type = 'penalty';
+  else if (additionalOnly) type = 'additional_runs';
+  else if (isWide) type = 'wd';
   else if (isNoBall) type = 'nb';
   else if (isBye) type = 'bye';
   else if (isLegBye) type = 'lb';
@@ -223,9 +243,16 @@ export function apiBallToUiBall(apiBall, playerIdToName = {}) {
   const ui = {
     type,
     // WD/NB always contribute at least 1 run even if API sends 0.
-    runs: type === 'wd' || type === 'nb' ? Math.max(1, runs) : runs,
+    runs: type === 'wd' || type === 'nb' ? Math.max(1, runs) : type === 'penalty' || type === 'additional_runs' ? 0 : runs,
+    // Carry runs_off_bat so uiBallToStoreBallPayload round-trips correctly
+    // can distinguish batter runs from the implicit NB/WD penalty without arithmetic.
+    runsOffBat: Number(apiBall.runs_off_bat ?? 0),
+    noBallType: apiBall.no_ball_type ?? undefined,
+    noBallRunsType: apiBall.no_ball_runs_type ?? undefined,
+    overthrowDeliveryType: overthrowDeliveryType ?? undefined,
     isFreeHit: Boolean(isFreeHit),
     penaltyRuns: penaltyRuns || 0,
+    additionalRuns: additionalRuns || 0,
     strikerId,
     nonStrikerId,
     bowlerId,
@@ -238,6 +265,12 @@ export function apiBallToUiBall(apiBall, playerIdToName = {}) {
     ui.dismissalType = dismissalType ?? null;
     ui.dismissalLabel = dismissalLabel ?? undefined;
     ui.fielderId = fielderId ?? undefined;
+    ui.dontCountBall = dontCountBall ?? undefined;
+    ui.dismissalDeliveryType = dismissalDeliveryType ?? undefined;
+    if (isWide) {
+      ui.isWide = true;
+      ui.runs = Math.max(1, Number(runs) || 0);
+    }
     ui.striker = {
       id: outId,
       name: playerIdToName[outId] ?? '',
@@ -271,141 +304,204 @@ export function scorecardInningsToBallHistory(innings, playerIdToName = {}) {
  * Convert API partnerships array to UI state.
  * wicket_number === null → open (current) partnership.
  *
+ * Name resolution order:
+ *   1. playerIdToName (built from squad + playing-eleven)
+ *   2. battingStats   (scorecard batting_stats — covers players who came in after
+ *      a wicket but were not in the saved playing XI)
+ *
+ * Per-player runs/balls come from player_1_runs, player_1_balls, player_2_runs,
+ * player_2_balls fields that the backend computes in partnershipsForInnings().
+ *
  * @param {object[]} partnerships
  * @param {Record<string,string>} playerIdToName
- * @returns {{ completed: object[], current: { runs: number, balls: number }|null }}
+ * @param {object[]} battingStats  scorecard innings batting_stats array
+ * @returns {{ completed: object[], current: object|null }}
  */
-export function apiPartnershipsToUiState(partnerships, playerIdToName = {}) {
+export function apiPartnershipsToUiState(partnerships, playerIdToName = {}, battingStats = []) {
   const list = Array.isArray(partnerships) ? partnerships : [];
-  const label = (id) =>
-    playerIdToName[String(id)] ?? (id != null ? `Player ${id}` : '—');
+
+  // Name fallback: batting_stats always has every player who actually batted,
+  // regardless of playing-XI status.
+  const statsByPlayerId = {};
+  for (const s of battingStats) {
+    if (s.id != null) statsByPlayerId[String(s.id)] = s;
+  }
+
+  const label = (id) => {
+    if (id == null) return '—';
+    const idStr = String(id);
+    return playerIdToName[idStr] ?? statsByPlayerId[idStr]?.name ?? `Player ${id}`;
+  };
+
   const completed = [];
   let current = null;
 
   list.forEach((p, i) => {
     const row = {
       id: `api-p-${i}-${p.player_1_id}-${p.player_2_id}`,
-      batter1: { name: label(p.player_1_id), runs: null, balls: null },
-      batter2: { name: label(p.player_2_id), runs: null, balls: null },
+      batter1: {
+        name: label(p.player_1_id),
+        runs: p.player_1_runs ?? null,
+        balls: p.player_1_balls ?? null,
+      },
+      batter2: {
+        name: label(p.player_2_id),
+        runs: p.player_2_runs ?? null,
+        balls: p.player_2_balls ?? null,
+      },
       runs: p.runs ?? 0,
       balls: p.balls ?? 0,
     };
     if (p.wicket_number != null) {
       completed.push(row);
     } else {
-      current = { runs: p.runs ?? 0, balls: p.balls ?? 0 };
+      current = row;
     }
   });
 
   return { completed, current };
 }
 
-// ─── Ball position helpers ────────────────────────────────────────────────────
-
-/**
- * Compute over number and ball-in-over from ball history (for storeBall payload).
- * Only legal deliveries count. ball_in_over is 1-based (1-6).
- *
- * @param {object[]} ballHistory  current history BEFORE appending this ball
- * @returns {{ over: number, ball_in_over: number }}
- */
-export function computeOverAndBallInOver(ballHistory) {
-  let validCount = 0;
-  for (const b of ballHistory) {
-    if (b.type !== 'wd' && b.type !== 'nb') validCount += 1;
-  }
-  const over = Math.floor(validCount / 6);
-  const ballInOver = validCount % 6 || 6;
-  return { over, ball_in_over: ballInOver };
-}
-
 // ─── UI ball → API storeBall payload ─────────────────────────────────────────
 
 /**
  * Build the API storeBall request body from a UI ball object.
+ * Backend computes over/ball_in_over, is_free_hit, and total runs — we only
+ * send the raw inputs.
  *
  * @param {object} params
- * @param {object[]} params.ballHistory     history BEFORE this ball
- * @param {object}   params.ball            UI ball being added
- * @param {number}   params.nonStrikerId    non-striker player ID
- * @param {number}   [params.fielderId]     required for caught / run_out / stumped
- * @param {boolean}  [params.isFreeHit]     whether this is a free-hit delivery
+ * @param {object} params.ball          UI ball being added
+ * @param {number} params.nonStrikerId  non-striker player ID
+ * @param {number} [params.fielderId]   required for caught / run_out / stumped
  */
-export function uiBallToStoreBallPayload({
-  ballHistory,
-  ball,
-  nonStrikerId,
-  fielderId,
-  isFreeHit = false,
-}) {
-  const { over, ball_in_over } = computeOverAndBallInOver(ballHistory);
+export function uiBallToStoreBallPayload({ ball, nonStrikerId, fielderId }) {
   const type = ball.type;
   const isWide = type === 'wd';
   const isNoBall = type === 'nb';
   const isBye = type === 'bye';
   const isLegBye = type === 'lb';
+  const isOverthrow = type === 'overthrow';
+  const isPenalty = type === 'penalty';
   const isWicket = type === 'out';
   const isRetiredHurt = type === 'retired_hurt';
 
-  let runs = 0;
-  let runsOffBat = 0;
-
-  if (type === 'runs') {
-    runs = ball.runs ?? 0;
-    runsOffBat = runs;
-  } else if (isWide || isNoBall) {
-    // ball.runs is the TOTAL (batting/overthrow runs + mandatory 1 penalty),
-    // as computed by useScoringEngine.  Minimum is always 1.
-    runs = Math.max(1, Number(ball.runs) || 1);
-    // For NB: runs_off_bat = total − 1 penalty. For WD: 0 (runs_off_bat stay 0).
-    runsOffBat = isNoBall ? Math.max(0, runs - 1) : 0;
-  } else if (isBye || isLegBye) {
-    runs = Math.max(0, Number(ball.runs) || 0);
-    runsOffBat = 0;
-  } else if (isRetiredHurt) {
-    runs = 0;
-    runsOffBat = 0;
+  if (isPenalty) {
+    return {
+      striker_id: Number(ball.strikerId ?? ball.striker?.id),
+      non_striker_id: Number(nonStrikerId),
+      bowler_id: Number(ball.bowlerId),
+      runs_off_bat: 0,
+      extra_runs: 0,
+      is_no_ball: false,
+      is_wide: false,
+      is_leg_bye: false,
+      is_bye: false,
+      penalty_runs: Number(ball.penaltyRuns ?? 0),
+      penalty_team: ball.penaltyTeam ?? 'batting',
+      penalty_reason: ball.penaltyReason ?? null,
+      is_wicket: false,
+      dismissal_type: null,
+      out_player_id: null,
+      fielder_id: null,
+      shot_position: null,
+    };
   }
 
-  // Resolve dismissal value (API expects snake_case value, not a label).
-  const rawDismissal =
-    isWicket || isRetiredHurt ? (ball.dismissalType ?? null) : null;
+  // runs_off_bat: batter-scored runs only (0 for all extras).
+  // extra_runs: byes/leg-byes/overthrows on top of the mandatory WD/NB penalty.
+  let runsOffBat = 0;
+  let extraRuns = 0;
+
+  if (type === 'runs') {
+    runsOffBat = ball.runs ?? 0;
+  } else if (isNoBall) {
+    if (ball.byeOnNoBall || ball.noBallRunsType === 'bye') {
+      runsOffBat = 0;
+      extraRuns = ball.extraRuns != null ? Number(ball.extraRuns) : Math.max(0, (ball.runs ?? 1) - 1);
+    } else if (ball.legByeOnNoBall || ball.noBallRunsType === 'leg_bye') {
+      runsOffBat = 0;
+      extraRuns = ball.extraRuns != null ? Number(ball.extraRuns) : Math.max(0, (ball.runs ?? 1) - 1);
+    } else {
+      runsOffBat = ball.runsOffBat != null ? Number(ball.runsOffBat) : Math.max(0, (ball.runs ?? 1) - 1);
+      extraRuns = 0;
+    }
+  } else if (isWide) {
+    // ball.extraRuns is set explicitly by handleSpecial (new ball) as the overthrow/extra
+    // runs selected in the dialog. Fall back to total-minus-penalty for the update path
+    // (apiBallToUiBall does not set extraRuns for wides since all WD runs are extras).
+    extraRuns = ball.extraRuns != null ? Number(ball.extraRuns) : Math.max(0, (ball.runs ?? 1) - 1);
+  } else if (isBye || isLegBye) {
+    extraRuns = ball.runs ?? 0;
+  } else if (isOverthrow) {
+    extraRuns = ball.overthrowRuns != null ? Number(ball.overthrowRuns) : 0;
+  }
+
+  const rawDismissal = isWicket || isRetiredHurt ? (ball.dismissalType ?? null) : null;
   const dismissalValue = rawDismissal
     ? typeof rawDismissal === 'string' && rawDismissal.includes('_')
       ? rawDismissal
-      : dismissalLabelToValue(rawDismissal)
+      : // Fallback slugify path — only for legacy/custom string labels without enum underscores.
+        dismissalLabelToValue(rawDismissal)
     : null;
 
-  const outPlayerId =
+  const isRunOut = dismissalValue === 'run_out';
+  const isObstruct = dismissalValue === 'obstructing_the_field';
+  const isRetiredHurtDismissal = dismissalValue === 'retired_hurt';
+  const isRetiredOut = dismissalValue === 'retired';
+  const isMankad = dismissalValue === 'mankad';
+  const isTimedOut = dismissalValue === 'timed_out';
+  const usesExplicitOutPlayer = isRunOut || isObstruct || isRetiredHurtDismissal || isRetiredOut || isMankad || isTimedOut;
+  const usesDismissalDeliveryMeta = isObstruct || isRetiredHurtDismissal || isRetiredOut;
+  const usesDontCountBallOnly = isTimedOut;
+  const combinedWideWicket = isWicket && Boolean(ball.isWide);
+  const combinedNoBallWicket = isWicket && Boolean(ball.isNoBall);
+
+  const _rawOutPlayerId =
     isWicket || isRetiredHurt
-      ? Number(ball.striker?.id ?? ball.strikerId)
+      ? (ball.outPlayerId ??
+        (usesExplicitOutPlayer ? (ball.strikerId ?? ball.striker?.id) : (ball.striker?.id ?? ball.strikerId)))
       : null;
 
-  const resolvedFielderId =
-    (isWicket || isRetiredHurt) && (fielderId ?? ball.fielderId) != null
-      ? Number(fielderId ?? ball.fielderId)
-      : null;
+  if ((isWicket || isRetiredHurt) && (_rawOutPlayerId == null || Number.isNaN(Number(_rawOutPlayerId)))) {
+    throw new Error('Cannot determine dismissed batter — outPlayerId is missing. Please select who is out before submitting.');
+  }
+
+  const outPlayerId = _rawOutPlayerId != null ? Number(_rawOutPlayerId) : null;
+
+  let resolvedFielderId =
+    (isWicket || isRetiredHurt) && (fielderId ?? ball.fielderId) != null ? Number(fielderId ?? ball.fielderId) : null;
+  if (isMankad) {
+    resolvedFielderId = Number(ball.fielderId ?? ball.bowlerId);
+  }
+
+  const resolvedNonStrikerId = ball.nonStrikerId != null ? Number(ball.nonStrikerId) : Number(nonStrikerId);
 
   return {
-    over,
-    ball_in_over: Math.min(ball_in_over, 7),
     striker_id: Number(ball.strikerId ?? ball.striker?.id),
-    non_striker_id: Number(nonStrikerId),
+    non_striker_id: resolvedNonStrikerId,
     bowler_id: Number(ball.bowlerId),
-    runs,
     runs_off_bat: runsOffBat,
-    is_no_ball: isNoBall,
-    is_wide: isWide,
+    extra_runs: extraRuns,
+    is_no_ball: isNoBall || combinedNoBallWicket,
+    no_ball_type: isNoBall || combinedNoBallWicket ? (ball.noBallType ?? null) : null,
+    no_ball_runs_type: isNoBall || combinedNoBallWicket ? (ball.noBallRunsType ?? null) : null,
+    overthrow_delivery_type: isOverthrow ? (ball.overthrowDeliveryType ?? null) : null,
+    is_wide: isWide || combinedWideWicket,
     is_leg_bye: isLegBye,
     is_bye: isBye,
-    is_free_hit: Boolean(isFreeHit || ball.isFreeHit),
     penalty_runs: Number(ball.penaltyRuns ?? 0),
-    // retired_hurt is stored as is_wicket=true with dismissal_type='retired_hurt'.
-    // This is the API convention: isRetiredHurt() on the model checks the dismissal_type.
+    // retired_hurt uses is_wicket=true to signal a player left the crease;
+    // MatchCompletionService and InningsStatsService exclude it from wicket counts.
     is_wicket: isWicket || isRetiredHurt,
     dismissal_type: dismissalValue,
     out_player_id: outPlayerId,
     fielder_id: resolvedFielderId,
+    runout_extra_runs: isRunOut ? Number(ball.runoutExtraRuns ?? 0) : null,
+    runout_run_type: isRunOut ? (ball.runoutRunType ?? 'from_bat') : null,
+    batter_crossed: isRunOut && ball.batterCrossed != null ? Boolean(ball.batterCrossed) : null,
+    dont_count_ball:
+      (usesDismissalDeliveryMeta || usesDontCountBallOnly) && ball.dontCountBall != null ? Boolean(ball.dontCountBall) : null,
+    dismissal_delivery_type: usesDismissalDeliveryMeta ? (ball.dismissalDeliveryType ?? null) : null,
     shot_position: ball.shotDirection ?? null,
   };
 }
@@ -422,23 +518,16 @@ export function uiBallToStoreBallPayload({
  */
 export function getTossWinnerTeamId(apiMatch, scorecard) {
   if (!apiMatch) return null;
-  if (apiMatch.toss_winner_team_id != null)
-    return Number(apiMatch.toss_winner_team_id);
+  if (apiMatch.toss_winner_team_id != null) return Number(apiMatch.toss_winner_team_id);
   if (apiMatch.status !== 'completed') {
-    return apiMatch.winning_team_id != null
-      ? Number(apiMatch.winning_team_id)
-      : null;
+    return apiMatch.winning_team_id != null ? Number(apiMatch.winning_team_id) : null;
   }
   const inn1 = scorecard?.innings?.[0];
   if (inn1?.batting_team_id != null && apiMatch.chose_to_bat_or_bowl) {
     const choseBat = apiMatch.chose_to_bat_or_bowl === 'bat';
-    return choseBat
-      ? Number(inn1.batting_team_id)
-      : Number(inn1.bowling_team_id);
+    return choseBat ? Number(inn1.batting_team_id) : Number(inn1.bowling_team_id);
   }
-  return apiMatch.winning_team_id != null
-    ? Number(apiMatch.winning_team_id)
-    : null;
+  return apiMatch.winning_team_id != null ? Number(apiMatch.winning_team_id) : null;
 }
 
 // ─── API match → UI match config ──────────────────────────────────────────────
@@ -452,12 +541,7 @@ export function getTossWinnerTeamId(apiMatch, scorecard) {
  * @param {object|null} [scorecard]   Used to infer toss on legacy completed matches
  * @returns {object|null}
  */
-export function apiMatchToUiMatchConfig(
-  apiMatch,
-  battingPlayers = [],
-  bowlingPlayers = [],
-  scorecard = null,
-) {
+export function apiMatchToUiMatchConfig(apiMatch, battingPlayers = [], bowlingPlayers = [], scorecard = null) {
   if (!apiMatch) return null;
   const home = apiMatch.home_team ?? {};
   const away = apiMatch.away_team ?? {};
@@ -469,20 +553,15 @@ export function apiMatchToUiMatchConfig(
   const battingTeamId = wid != null && choseBat ? wid : wid === hid ? aid : hid;
   const bowlingTeamId = battingTeamId === hid ? aid : hid;
 
-  const battingTeam =
-    battingTeamId != null && hid != null && Number(battingTeamId) === hid
-      ? home
-      : away;
-  const bowlingTeam =
-    bowlingTeamId != null && hid != null && Number(bowlingTeamId) === hid
-      ? home
-      : away;
+  const battingTeam = battingTeamId != null && hid != null && Number(battingTeamId) === hid ? home : away;
+  const bowlingTeam = bowlingTeamId != null && hid != null && Number(bowlingTeamId) === hid ? home : away;
 
   return {
     id: apiMatch.id,
     teamA: {
       name: battingTeam.name ?? '',
       id: battingTeam.id,
+      logo: battingTeam.logo ?? null,
       players: battingPlayers.map((p) => ({
         id: p.id,
         name: p.name ?? p.nickname ?? '',
@@ -491,10 +570,21 @@ export function apiMatchToUiMatchConfig(
     teamB: {
       name: bowlingTeam.name ?? '',
       id: bowlingTeam.id,
+      logo: bowlingTeam.logo ?? null,
       players: bowlingPlayers.map((p) => ({
         id: p.id,
         name: p.name ?? p.nickname ?? '',
       })),
+    },
+    homeTeam: {
+      name: home.name ?? '',
+      id: home.id,
+      logo: home.logo ?? null,
+    },
+    awayTeam: {
+      name: away.name ?? '',
+      id: away.id,
+      logo: away.logo ?? null,
     },
     venue: apiMatch.venue_name ?? '',
     matchDate: apiMatch.match_date ?? '',
@@ -524,9 +614,7 @@ export function apiMatchToUiMatchConfig(
  */
 export function buildPlayerIdToName(squadList = [], playingElevenIds = []) {
   const map = {};
-  const ids = new Set(
-    Array.isArray(playingElevenIds) ? playingElevenIds.map(String) : [],
-  );
+  const ids = new Set(Array.isArray(playingElevenIds) ? playingElevenIds.map(String) : []);
   for (const p of squadList) {
     const id = p.id ?? p.user_id;
     if (id && ids.has(String(id))) {
@@ -534,4 +622,179 @@ export function buildPlayerIdToName(squadList = [], playingElevenIds = []) {
     }
   }
   return map;
+}
+
+// ─── Squad role helpers ───────────────────────────────────────────────────────
+
+/**
+ * Build a squad array with correct playing/bench roles.
+ * Roles are ALWAYS re-derived from playingIds — never trusted from the input
+ * object — so team-flip re-mapping is safe.
+ *
+ * @param {object[]} squadList    Array of { id, name, ... } objects.
+ * @param {number[]} playingIds   IDs that should be marked 'playing'.
+ * @returns {{ id, name, role }[]}
+ */
+export function buildRoleSquad(squadList, playingIds) {
+  const playingSet = new Set((playingIds ?? []).map(String));
+  return (squadList ?? [])
+    .filter((p) => p.id != null)
+    .map((p) => {
+      const id = p.id ?? p.user_id;
+      return {
+        ...squadPlayerProfileFields(p),
+        id,
+        name: p.name ?? p.nickname ?? `Player ${id}`,
+        role: playingSet.has(String(id)) ? 'playing' : 'bench',
+      };
+    });
+}
+
+// ─── Live scoring UI helpers (backend-first) ─────────────────────────────────
+
+export const INITIAL_PARTNERSHIP = { runs: 0, balls: 0 };
+
+/** Map match_state batter slice → UI batter shape. */
+function stateBatterToUi(b) {
+  if (!b) return null;
+  return {
+    id: b.id,
+    name: b.name ?? '',
+    runs: b.runs ?? 0,
+    balls: b.balls ?? 0,
+    fours: b.fours ?? 0,
+    sixes: b.sixes ?? 0,
+    partnerRunsAtStart: 0,
+    partnerBallsAtStart: 0,
+  };
+}
+
+/** Map match_state bowler slice → UI bowler shape. */
+function stateBowlerToUi(b) {
+  if (!b) return null;
+  return {
+    id: b.id,
+    name: b.name ?? '',
+    overs: b.overs ?? '0',
+    maidens: b.maidens ?? 0,
+    runs: b.runs ?? 0,
+    wickets: b.wickets ?? 0,
+    balls: 0,
+  };
+}
+
+/** Striker + non-striker array from `active_innings` (striker always index 0). */
+export function batsmenOnCreaseFromMatchState(activeInnings) {
+  if (!activeInnings) return [];
+  return [stateBatterToUi(activeInnings.striker), stateBatterToUi(activeInnings.non_striker)].filter(Boolean);
+}
+
+/** Legal balls bowled from an overs display string (e.g. "3.2" → 20). */
+export function oversDisplayToLegalBalls(oversDisplay) {
+  if (oversDisplay == null || oversDisplay === '') return 0;
+  const parts = String(oversDisplay).split('.');
+  const whole = parseInt(parts[0], 10) || 0;
+  const partial = parseInt(parts[1], 10) || 0;
+  return whole * 6 + Math.min(Math.max(partial, 0), 5);
+}
+
+/** Completed full overs only (integer part of overs display). */
+export function oversDisplayToCompletedOvers(oversDisplay) {
+  const whole = parseInt(String(oversDisplay ?? '0').split('.')[0], 10);
+  return Number.isFinite(whole) ? whole : 0;
+}
+
+/** Scorecard `bowling_stats` row → UI bowler shape for the live table. */
+export function scorecardBowlerToUi(row) {
+  if (!row?.id) return null;
+  return {
+    id: row.id,
+    name: row.name ?? '',
+    overs: row.overs ?? '0',
+    maidens: row.maidens ?? 0,
+    runs: row.runs ?? 0,
+    wickets: row.wickets ?? 0,
+    balls: oversDisplayToLegalBalls(row.overs),
+  };
+}
+
+/**
+ * Live bowler table (max 2): current bowler from match_state; previous from scorecard
+ * bowling_stats (most completed overs among others).
+ */
+export function bowlersInTableForLiveScoring(activeInnings, bowlingStats = []) {
+  const current = stateBowlerToUi(activeInnings?.bowler);
+  if (!current) return [];
+
+  const currentId = String(current.id);
+  const others = (bowlingStats ?? []).filter((b) => b?.id != null && String(b.id) !== currentId);
+
+  if (others.length === 0) return [current];
+
+  const previousRow = others.reduce((best, b) => {
+    if (!best) return b;
+    const bestOvers = oversDisplayToCompletedOvers(best.overs);
+    const bOvers = oversDisplayToCompletedOvers(b.overs);
+    if (bOvers !== bestOvers) return bOvers > bestOvers ? b : best;
+    return oversDisplayToLegalBalls(b.overs) > oversDisplayToLegalBalls(best.overs) ? b : best;
+  }, null);
+
+  const previous = scorecardBowlerToUi(previousRow);
+  return previous ? [previous, current] : [current];
+}
+
+/** Current bowler only (e.g. pre-ball PATCH /crease sync). */
+export function bowlersInTableFromMatchState(activeInnings) {
+  const bowler = stateBowlerToUi(activeInnings?.bowler);
+  return bowler ? [bowler] : [];
+}
+
+/** Index of the active bowler in a `bowlersInTable` array (defaults to last slot). */
+export function currentBowlerIndexInTable(bowlersInTable, activeInnings) {
+  const currentId = activeInnings?.bowler?.id;
+  if (currentId == null) return 0;
+  const idx = bowlersInTable.findIndex((b) => b?.id != null && String(b.id) === String(currentId));
+  return idx >= 0 ? idx : Math.max(0, bowlersInTable.length - 1);
+}
+
+/**
+ * Squads + name map for one innings (batting/bowling team IDs from scorecard).
+ */
+export function buildInningsSquads({
+  battingTeamId,
+  bowlingTeamId,
+  homeTeamId,
+  squadHome = [],
+  squadAway = [],
+  playingElevenHome,
+  playingElevenAway,
+}) {
+  const homeSquadArr = Array.isArray(squadHome) ? squadHome : [];
+  const awaySquadArr = Array.isArray(squadAway) ? squadAway : [];
+  const batSquadArr = battingTeamId === homeTeamId ? homeSquadArr : awaySquadArr;
+  const bowlSquadArr = bowlingTeamId === homeTeamId ? homeSquadArr : awaySquadArr;
+  const batIds = battingTeamId === homeTeamId ? (playingElevenHome?.player_ids ?? []) : (playingElevenAway?.player_ids ?? []);
+  const bowlIds = bowlingTeamId === homeTeamId ? (playingElevenHome?.player_ids ?? []) : (playingElevenAway?.player_ids ?? []);
+  const battingSquad = buildRoleSquad(batSquadArr, batIds);
+  const bowlingSquad = buildRoleSquad(bowlSquadArr, bowlIds);
+  const nameMap = {
+    ...buildPlayerIdToName(batSquadArr, batIds),
+    ...buildPlayerIdToName(bowlSquadArr, bowlIds),
+  };
+  return { battingSquad, bowlingSquad, nameMap };
+}
+
+/** Default innings-1 batting/bowling team IDs from toss when scorecard is empty. */
+export function getDefaultInnings1TeamIds(apiMatch, scorecard) {
+  if (!apiMatch) return { battingTeamId: null, bowlingTeamId: null };
+  const homeId = apiMatch.home_team_id;
+  const awayId = apiMatch.away_team_id;
+  const tossWinnerId = getTossWinnerTeamId(apiMatch, scorecard);
+  const choseBat = apiMatch.chose_to_bat_or_bowl === 'bat';
+  const tw = tossWinnerId != null ? Number(tossWinnerId) : null;
+  const hid = homeId != null ? Number(homeId) : null;
+  const aid = awayId != null ? Number(awayId) : null;
+  const battingTeamId = tw != null && choseBat ? tw : tw === hid ? aid : hid;
+  const bowlingTeamId = battingTeamId === hid ? aid : hid;
+  return { battingTeamId, bowlingTeamId };
 }

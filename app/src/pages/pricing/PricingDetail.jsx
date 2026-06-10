@@ -12,33 +12,23 @@ import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { useDialog } from '@/context/DialogContext';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { formatPrice } from '@/lib/format';
 import { PRICING_PLANS } from '@/pages/pricing/Pricing';
-import { useAppDispatch } from '@/store/hooks';
-import { openDialog } from '@/store/slices/commonSlice';
 import { Container } from '@/ui/Container';
 
 const pricingListTickIcon = `${CLOUDFRONT_APP_BASE}/images/icons/pricing-list-tick.svg`;
 
 function DetailCheckIcon() {
-  return (
-    <img
-      src={pricingListTickIcon}
-      alt=""
-      aria-hidden
-      className="h-4 w-4 flex-none object-contain"
-    />
-  );
+  return <img src={pricingListTickIcon} alt="" aria-hidden className="h-4 w-4 flex-none object-contain" />;
 }
 
 export default function PricingDetail() {
   const { planId } = useParams();
-  const dispatch = useAppDispatch();
+  const { openDialog } = useDialog();
 
-  const plan = useMemo(
-    () => PRICING_PLANS.find((p) => p.id === planId) ?? PRICING_PLANS[0],
-    [planId],
-  );
+  const plan = useMemo(() => PRICING_PLANS.find((p) => p.id === planId) ?? PRICING_PLANS[0], [planId]);
 
   if (!plan) {
     return null;
@@ -50,28 +40,19 @@ export default function PricingDetail() {
     <div className="bg-black text-white">
       <AppSubpageHeader title="Plan Detail" />
       <Container>
-        <div className="mx-auto w-full max-w-md rounded-[18px] bg-[#141412] p-6 shadow-[0_18px_40px_rgba(0,0,0,0.9)]">
+        <div className="bg-surface mx-auto w-full max-w-md rounded-[18px] p-6 shadow-[0_18px_40px_rgba(0,0,0,0.9)]">
           <div className="mb-4 flex items-center gap-3">
             {plan.icon ? (
               <div className="flex h-9 w-9 items-center justify-center rounded-[14px] bg-black/60">
-                <img
-                  src={plan.icon}
-                  alt={`${name} badge`}
-                  className="h-8 w-8 object-contain"
-                />
+                <img src={plan.icon} alt={`${name} badge`} className="h-8 w-8 object-contain" />
               </div>
             ) : null}
-            <h2 className="text-[18px] font-extrabold tracking-[0.18em] text-[#DA9811] uppercase">
-              {name}
-            </h2>
+            <h2 className="text-brand text-[18px] font-extrabold tracking-[0.18em] uppercase">{name}</h2>
           </div>
 
           <ul className="mb-5 space-y-2.5">
             {features.map((feature) => (
-              <li
-                key={feature}
-                className="flex items-start gap-2.5 text-[12px] text-[#A2A6AB]"
-              >
+              <li key={feature} className="text-muted flex items-start gap-2.5 text-[12px]">
                 <DetailCheckIcon />
                 <span className="leading-relaxed">{feature}</span>
               </li>
@@ -79,23 +60,13 @@ export default function PricingDetail() {
           </ul>
 
           <p className="mb-4 text-[16px] font-extrabold text-white">
-            {currency} {price.toLocaleString('en-PK')}{' '}
-            <span className="text-[12px] font-medium text-white/80">
-              Per Month
-            </span>
+            {formatPrice(price, currency)} <span className="text-[12px] font-medium text-white/80">Per Month</span>
           </p>
 
           <button
             type="button"
-            onClick={() =>
-              dispatch(
-                openDialog({
-                  key: 'pricingSuccess',
-                  props: { planName: name },
-                }),
-              )
-            }
-            className="mt-2 flex w-full items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] py-3 text-center text-[14px] font-semibold text-black shadow-[0_10px_25px_rgba(0,0,0,0.7)]"
+            onClick={() => openDialog('pricingSuccess', { planName: name })}
+            className="bg-brand mt-2 flex w-full items-center justify-center gap-2 rounded-[6px] py-3 text-center text-[14px] font-semibold text-black shadow-[0_10px_25px_rgba(0,0,0,0.7)]"
           >
             Submit Request
             <svg

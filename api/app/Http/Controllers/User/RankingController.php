@@ -17,7 +17,7 @@ class RankingController extends Controller
      *
      * Query: tournament_type = league | open_tournament | emerging (required for ranking)
      *        category = batting | bowling | fielding
-     *        sort = runs | average | strike_rate | wickets | economy | catches | run_outs | stumpings (or short: ave, sr, econ, ct, ro, st)
+     *        sort = runs | average | strike_rate | fours | sixes | wickets | economy | catches | run_outs | stumpings (or short: ave, sr, econ, ct, ro, st)
      *        min_innings = optional minimum innings (batting) or matches (bowling) to qualify
      */
     public function index(): JsonResponse

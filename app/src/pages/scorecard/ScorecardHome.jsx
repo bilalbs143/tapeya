@@ -98,12 +98,7 @@ export default function ScorecardHome() {
         <div className="flex flex-col">
           <div ref={tabsSentinelRef} className="h-px w-full" aria-hidden />
           <div className="-mx-4 bg-black px-4 pt-0.5 pb-2">
-            <ScorecardTabs
-              matches={matches}
-              tournaments={tournaments}
-              fixedVisible={tabsFixedVisible}
-              fixedTop={NAVBAR_HEIGHT}
-            />
+            <ScorecardTabs matches={matches} tournaments={tournaments} fixedVisible={tabsFixedVisible} fixedTop={NAVBAR_HEIGHT} />
           </div>
         </div>
       </Container>

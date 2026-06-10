@@ -11,7 +11,6 @@ use App\Utils\Services\SystemUserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 
@@ -103,10 +102,10 @@ class NotificationController extends Controller
             return $this->failure('Notifications not available.', 'NOT_FOUND');
         }
 
-        $systemUser->unreadNotifications()->each(function (DatabaseNotification $n) {
-            $n->markAsRead();
-            $n->forceFill(['read_by' => Auth::id()])->save();
-        });
+        $systemUser->unreadNotifications()->update([
+            'read_at' => now(),
+            'read_by' => Auth::id(),
+        ]);
 
         return $this->success(null, 'All notifications marked as read.');
     }

@@ -1,0 +1,157 @@
+<app-dialog-wrapper [title]="title">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    aria-label="Highlight form"
+  >
+    <mat-dialog-content>
+      <div class="grid grid-cols-12 gap-x-6">
+        <!-- Title -->
+        <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">Title <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              formControlName="title"
+              placeholder="e.g. 7th Match Rawalpindi Royal vs Karachi Kids – Season 2"
+            />
+            @if (form.get('title')?.invalid && form.get('title')?.touched) {
+              <mat-error>Title is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <!-- Description -->
+        <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">Description</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <textarea
+              matInput
+              formControlName="description"
+              placeholder="Short Description Shown On the Detail Page…"
+              rows="3"
+            ></textarea>
+          </mat-form-field>
+        </div>
+
+        <!-- Video source -->
+        <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">Video Source <span class="text-error">*</span></mat-label>
+          <mat-radio-group
+            formControlName="video_source"
+            class="flex flex-wrap items-center gap-4"
+          >
+            <mat-radio-button value="youtube">YouTube</mat-radio-button>
+            <mat-radio-button value="upload">Upload Video</mat-radio-button>
+          </mat-radio-group>
+        </div>
+
+        @if (isYouTubeSource) {
+          <!-- YouTube URL -->
+          <div class="col-span-12 lg:col-span-8">
+            <mat-label class="text-sm font-semibold mb-2 block">YouTube URL <span class="text-error">*</span></mat-label>
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <input
+                matInput
+                formControlName="video_url"
+                type="url"
+                placeholder="https://www.youtube.com/embed/VIDEO_ID"
+              />
+              @if (form.get('video_url')?.hasError('required') && form.get('video_url')?.touched) {
+                <mat-error>YouTube embed URL is required</mat-error>
+              }
+              @if (form.get('video_url')?.hasError('youtubeUrl')) {
+                <mat-error>Enter a YouTube embed URL (e.g. https://www.youtube.com/embed/VIDEO_ID)</mat-error>
+              }
+              @if (form.get('video_url')?.hasError('maxlength')) {
+                <mat-error>URL is too long</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        }
+
+        @if (isUploadSource) {
+          <!-- Uploaded video -->
+          <div class="col-span-12">
+            <app-file-upload
+              formControlName="video"
+              label="Video File"
+              accept="video/mp4,video/webm,video/quicktime"
+              acceptLabel="MP4, WebM, MOV"
+              hint="Upload the highlight video. Max 100 MB."
+              [maxSizeMb]="100"
+            ></app-file-upload>
+            @if (form.get('video')?.hasError('required') && form.get('video')?.touched) {
+              <p class="text-error text-xs mt-1">Video file is required</p>
+            }
+          </div>
+        }
+
+        <!-- Duration -->
+        <div class="col-span-12 lg:col-span-4">
+          <mat-label class="text-sm font-semibold mb-2 block">Duration</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              formControlName="duration"
+              placeholder="e.g. 20 Min"
+            />
+          </mat-form-field>
+        </div>
+
+        <!-- Active toggle -->
+        <div class="col-span-12 flex items-center pt-2">
+          <mat-slide-toggle
+            formControlName="is_active"
+            color="primary"
+          >
+            <span class="text-sm font-semibold">Active (Visible in the App)</span>
+          </mat-slide-toggle>
+        </div>
+
+        <!-- Thumbnail -->
+        <div class="col-span-12">
+          <app-file-upload
+            formControlName="thumbnail"
+            label="Thumbnail"
+            accept="image/jpeg,image/png,image/webp"
+            acceptLabel="JPG, PNG, WebP"
+            hint="Cover image shown on the highlights list and detail page. 16:9 ratio recommended."
+            [maxSizeMb]="5"
+          ></app-file-upload>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions>
+      <button
+        type="button"
+        mat-stroked-button
+        class="border border-error! text-error"
+        [mat-dialog-close]="false"
+      >
+        Cancel
+      </button>
+
+      <app-submit-button
+        [disabled]="form.invalid"
+        [isSubmitting]="isSubmitting"
+        text="Submit"
+        color="primary"
+      />
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

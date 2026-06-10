@@ -1,22 +1,12 @@
 import { useRef } from 'react';
 
-import {
-  DIALOG_REMINDER_INTERVAL_MS,
-  useIntervalDialogPrompt,
-} from '@/hooks/useIntervalDialogPrompt';
+import { DIALOG_REMINDER_INTERVAL_MS, useIntervalDialogPrompt } from '@/hooks/useIntervalDialogPrompt';
 import { useNativeStoreVersionInfo } from '@/hooks/useNativeStoreVersionInfo';
 import { shouldPromptAppUpdate } from '@/lib/appVersionCompare';
 
 export function AppUpdatePrompt() {
-  const {
-    isNativeMobile,
-    isSettingsReady,
-    settingsRows,
-    installedVersion,
-    configuredVersion,
-    storeUrl,
-    storeName,
-  } = useNativeStoreVersionInfo({ refetchOnAppResume: true });
+  const { isNativeMobile, isSettingsReady, settingsRows, installedVersion, configuredVersion, storeUrl, storeName } =
+    useNativeStoreVersionInfo({ refetchOnAppResume: true });
 
   const ctxRef = useRef({
     isNativeMobile,

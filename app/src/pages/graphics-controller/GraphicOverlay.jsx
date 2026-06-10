@@ -1,10 +1,63 @@
-import { Suspense, useCallback, useEffect, useMemo } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { Suspense, useEffect } from 'react';
 
-import { graphicSessionApi, useGetGraphicSessionQuery } from '@/store/api/graphicSessionApi';
+import { useParams, useSearchParams } from 'react-router-dom';
+
+import { useGraphicSession } from '@/hooks/useGraphicSession';
+
+import { buildGraphicProps } from './buildGraphicProps';
+import { graphicLogger, isGraphicDebugEnabled } from './graphicDebugLog';
+import { GraphicEchoProvider } from './GraphicEchoContext';
 import { getGraphicComponent } from './graphicRegistry';
-import { useGraphicChannel } from '@/hooks/useGraphicChannel';
+
+/**
+ * Inner overlay: must sit under {@link GraphicEchoProvider} so Reverb uses a
+ * single Echo instance (see `useGraphicChannel`).
+ */
+function GraphicOverlayInner({ matchId, searchParams, theme }) {
+  const { session, isError, isLoading, sessionQueryArg } = useGraphicSession(matchId, searchParams);
+
+  if (!sessionQueryArg || isLoading) return null;
+
+  if (isError || !session) return null;
+
+  const commandKey = session?.active_command?.command_key ?? null;
+  const GraphicComponent = getGraphicComponent(commandKey, theme);
+
+  if (!GraphicComponent) {
+    return null;
+  }
+
+  const payload = session?.active_command?.payload ?? null;
+  const graphicProps = buildGraphicProps(commandKey, session, payload);
+
+  if (isGraphicDebugEnabled()) {
+    graphicLogger('log', 'GraphicOverlay.build', {
+      matchId,
+      theme,
+      commandKey,
+      commandType: session?.active_command?.command_type ?? null,
+      hasContext: Boolean(session?.context),
+      contextMatch: session?.context?.match ?? null,
+      payload,
+      graphicPropsKeys: graphicProps && typeof graphicProps === 'object' ? Object.keys(graphicProps) : [],
+      ...(commandKey === 'TOSS_LT' && {
+        tossDecision: graphicProps?.decision ?? '',
+      }),
+      ...(commandKey === 'RESULT_LT' && {
+        resultLine: graphicProps?.resultLine,
+        winningTeam: graphicProps?.winningTeam,
+      }),
+    });
+  }
+
+  return (
+    <div className="graphic-overlay-container">
+      <Suspense fallback={null}>
+        <GraphicComponent {...graphicProps} />
+      </Suspense>
+    </div>
+  );
+}
 
 /**
  * GraphicOverlay
@@ -30,21 +83,7 @@ export default function GraphicOverlay() {
   const { matchId } = useParams();
   const [searchParams] = useSearchParams();
   const theme = searchParams.get('theme') ?? 'tapeya-basic';
-  const dispatch = useDispatch();
 
-  // searchParams identity can change every render; .toString() stabilizes deps.
-  const sessionQueryArg = useMemo(() => {
-    if (!matchId) return null;
-    const expires = searchParams.get('expires');
-    const signature = searchParams.get('signature');
-    if (expires && signature) {
-      return { matchId, expires, signature };
-    }
-    return matchId;
-  }, [matchId, searchParams.toString()]);
-
-  // Make the full stack transparent — essential for OBS browser source.
-  // style.scss sets html, body, and #root to #000; inline styles override that.
   useEffect(() => {
     const html = document.documentElement;
     const body = document.body;
@@ -68,63 +107,11 @@ export default function GraphicOverlay() {
     };
   }, []);
 
-  const { data: session, isError, isLoading } = useGetGraphicSessionQuery(sessionQueryArg, {
-    skip: !sessionQueryArg,
-  });
-
-  // When Reverb delivers a real-time event, patch the cached session in-place
-  // so the component re-renders immediately.
-  const handleReverbEvent = useCallback(
-    (event) => {
-      if (!sessionQueryArg) return;
-      dispatch(
-        graphicSessionApi.util.updateQueryData('getGraphicSession', sessionQueryArg, (draft) => {
-          draft.active_command = {
-            command_key: event.command_key,
-            command_type: event.command_type,
-            display_mode: event.display_mode ?? null,
-            payload: event.payload ?? null,
-            id: event.command_id,
-          };
-        }),
-      );
-    },
-    [dispatch, sessionQueryArg],
-  );
-
-  useGraphicChannel(matchId, handleReverbEvent);
-
-  // Before we have data, render nothing (fully transparent).
-  if (!sessionQueryArg || isLoading) return null;
-
-  // On error or no session, stay transparent — never show an error overlay
-  // over a live stream.
-  if (isError || !session) return null;
-
-  const commandKey = session?.active_command?.command_key ?? null;
-  const GraphicComponent = getGraphicComponent(commandKey, theme);
-
-  // null means LT_EMPTY / intentionally clear — transparent screen.
-  if (!GraphicComponent) return null;
-
-  const payload = session?.active_command?.payload;
-  const graphicProps =
-    commandKey === 'CUSTOM' && payload && typeof payload === 'object'
-      ? {
-          text: [payload.title, payload.description]
-            .filter((v) => v != null && String(v).trim() !== '')
-            .join('\n\n'),
-        }
-      : {};
+  if (!matchId) return null;
 
   return (
-    // graphic-overlay-container: CSS in index.css strips the outer dark
-    // background wrapper that each component uses for standalone preview,
-    // leaving only the graphic card visible against a transparent page.
-    <div className="graphic-overlay-container">
-      <Suspense fallback={null}>
-        <GraphicComponent {...graphicProps} />
-      </Suspense>
-    </div>
+    <GraphicEchoProvider matchId={matchId}>
+      <GraphicOverlayInner matchId={matchId} searchParams={searchParams} theme={theme} />
+    </GraphicEchoProvider>
   );
 }

@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\User\BattingStyleEnum;
+use App\Enums\User\BowlingStyleEnum;
+use App\Enums\User\PlayingRoleEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Models\TournamentMatch;
@@ -16,7 +19,7 @@ class MatchGraphicPlayerListController extends Controller
     /**
      * Playing eleven for each side, or match squad if playing eleven is not set.
      *
-     * @return array{id: int, name: string|null, players: list<array{user_id: int, name: string, playing_role: string|null}>}
+     * @return array{id: int, name: string|null, players: list<array{user_id: int, name: string, playing_role: string|null, batting_style: string|null, bowling_style: string|null}>}
      */
     public function __invoke(TournamentMatch $match): JsonResponse
     {
@@ -38,7 +41,7 @@ class MatchGraphicPlayerListController extends Controller
     }
 
     /**
-     * @return array{id: int, name: string|null, players: list<array{user_id: int, name: string, playing_role: string|null}>}
+     * @return array{id: int, name: string|null, players: list<array{user_id: int, name: string, playing_role: string|null, batting_style: string|null, bowling_style: string|null}>}
      */
     private function teamPayload(TournamentMatch $match, int $teamId): array
     {
@@ -49,7 +52,15 @@ class MatchGraphicPlayerListController extends Controller
             ->where('mp.match_id', $match->id)
             ->where('mp.team_id', $teamId)
             ->orderBy('mp.id')
-            ->get(['mp.user_id', 'mp.playing_role', 'u.name', 'u.nickname']);
+            ->get([
+                'mp.user_id',
+                'mp.playing_role as match_playing_role',
+                'u.name',
+                'u.nickname',
+                'u.playing_role as user_playing_role',
+                'u.batting_style',
+                'u.bowling_style',
+            ]);
 
         $collection = $fromPlaying->isNotEmpty()
             ? $fromPlaying
@@ -58,17 +69,28 @@ class MatchGraphicPlayerListController extends Controller
                 ->where('ms.match_id', $match->id)
                 ->where('ms.team_id', $teamId)
                 ->orderBy('u.name')
-                ->get(['ms.user_id', DB::raw('null as playing_role'), 'u.name', 'u.nickname']);
+                ->get([
+                    'ms.user_id',
+                    DB::raw('null as match_playing_role'),
+                    'u.name',
+                    'u.nickname',
+                    'u.playing_role as user_playing_role',
+                    'u.batting_style',
+                    'u.bowling_style',
+                ]);
 
         $players = $collection->map(function ($r) {
-            $role = $r->playing_role
-                ? Str::headline(str_replace('_', ' ', (string) $r->playing_role))
-                : null;
+            $playingRoleDisplay = $this->resolvePlayingRoleDisplay(
+                $r->match_playing_role ?? null,
+                $r->user_playing_role ?? null,
+            );
 
             return [
                 'user_id' => (int) $r->user_id,
                 'name' => $r->name ?: $r->nickname ?: 'Player',
-                'playing_role' => $role,
+                'playing_role' => $playingRoleDisplay,
+                'batting_style' => BattingStyleEnum::tryLabelFromValue($r->batting_style ?? null),
+                'bowling_style' => BowlingStyleEnum::tryLabelFromValue($r->bowling_style ?? null),
             ];
         })->values()->all();
 
@@ -77,5 +99,19 @@ class MatchGraphicPlayerListController extends Controller
             'name' => $team?->name,
             'players' => $players,
         ];
+    }
+
+    private function resolvePlayingRoleDisplay(?string $matchRole, ?string $userRole): ?string
+    {
+        if ($matchRole !== null && $matchRole !== '') {
+            return Str::headline(str_replace('_', ' ', (string) $matchRole));
+        }
+
+        if ($userRole === null || $userRole === '') {
+            return null;
+        }
+
+        return PlayingRoleEnum::tryFrom((string) $userRole)?->label()
+            ?? Str::headline(str_replace('_', ' ', (string) $userRole));
     }
 }

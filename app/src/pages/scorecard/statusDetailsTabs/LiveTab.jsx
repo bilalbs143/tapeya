@@ -19,9 +19,7 @@ function BattingLiveTable({ batters }) {
       <table className="w-full min-w-[24rem] border-collapse text-[12px]">
         <thead>
           <tr className={HEADER_BG}>
-            <th
-              className={`${STICKY_FIRST} ${HEADER_BG} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-left font-bold text-white`}
-            >
+            <th className={`${STICKY_FIRST} ${HEADER_BG} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-left font-bold text-white`}>
               Batters
             </th>
             {['R', 'B', '4s', '6s', 'SR'].map((h) => (
@@ -37,38 +35,14 @@ function BattingLiveTable({ batters }) {
         <tbody>
           {batters.map((b, i) => (
             <tr key={i}>
-              <td
-                className={`${STICKY_FIRST} ${STICKY_BG} ${BORDER_B} ${BORDER_R} ${CELL_PADDING}`}
-              >
-                <span className="block truncate text-[12px] font-medium text-white">
-                  {b.name}
-                </span>
+              <td className={`${STICKY_FIRST} ${STICKY_BG} ${BORDER_B} ${BORDER_R} ${CELL_PADDING}`}>
+                <span className="block truncate text-[12px] font-medium text-white">{b.name}</span>
               </td>
-              <td
-                className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}
-              >
-                {b.r}
-              </td>
-              <td
-                className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}
-              >
-                {b.b}
-              </td>
-              <td
-                className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}
-              >
-                {b.fours}
-              </td>
-              <td
-                className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}
-              >
-                {b.sixes}
-              </td>
-              <td
-                className={`${SR_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}
-              >
-                {b.sr}
-              </td>
+              <td className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}>{b.r}</td>
+              <td className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}>{b.b}</td>
+              <td className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}>{b.fours}</td>
+              <td className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}>{b.sixes}</td>
+              <td className={`${SR_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}>{b.sr}</td>
             </tr>
           ))}
         </tbody>
@@ -83,9 +57,7 @@ function BowlingLiveTable({ bowlers }) {
       <table className="w-full min-w-[20rem] border-collapse text-[12px]">
         <thead>
           <tr className={HEADER_BG}>
-            <th
-              className={`${STICKY_FIRST} ${HEADER_BG} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-left font-bold text-white`}
-            >
+            <th className={`${STICKY_FIRST} ${HEADER_BG} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-left font-bold text-white`}>
               Bowlers
             </th>
             {['O', 'M', 'R', 'W'].map((h) => (
@@ -101,31 +73,13 @@ function BowlingLiveTable({ bowlers }) {
         <tbody>
           {bowlers.map((b, i) => (
             <tr key={i}>
-              <td
-                className={`${STICKY_FIRST} ${STICKY_BG} ${BORDER_B} ${BORDER_R} ${CELL_PADDING}`}
-              >
-                <span className="block truncate text-[12px] font-medium text-white">
-                  {b.name}
-                </span>
+              <td className={`${STICKY_FIRST} ${STICKY_BG} ${BORDER_B} ${BORDER_R} ${CELL_PADDING}`}>
+                <span className="block truncate text-[12px] font-medium text-white">{b.name}</span>
               </td>
-              <td
-                className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}
-              >
-                {b.o}
-              </td>
-              <td
-                className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}
-              >
-                {b.m}
-              </td>
-              <td
-                className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}
-              >
-                {b.r}
-              </td>
-              <td
-                className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center font-semibold text-white`}
-              >
+              <td className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}>{b.o}</td>
+              <td className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}>{b.m}</td>
+              <td className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center text-white`}>{b.r}</td>
+              <td className={`${STAT_COL_WIDTH} ${BORDER_B} ${BORDER_R} ${CELL_PADDING} text-center font-semibold text-white`}>
                 {b.w}
               </td>
             </tr>
@@ -139,11 +93,8 @@ function BowlingLiveTable({ bowlers }) {
 export function StatusDetailsLiveTab({ details }) {
   const batters = details?.batters;
   const bowlers = details?.bowlers;
-  if (
-    !details ||
-    ((!batters || batters.length === 0) && (!bowlers || bowlers.length === 0))
-  ) {
-    return <StatusDetailsPlaceholderTab label="Live data unavailable" />;
+  if (!details || ((!batters || batters.length === 0) && (!bowlers || bowlers.length === 0))) {
+    return <StatusDetailsPlaceholderTab label="Live Data Unavailable" />;
   }
   return (
     <div className="pb-6">
@@ -152,15 +103,13 @@ export function StatusDetailsLiveTab({ details }) {
       {details.partnership && (
         <div className="space-y-1 pt-3">
           <p className="text-[14px]">
-            <span className="text-[#A2A6AB]">P&apos;SHIP:</span>{' '}
-            <span className="text-white">{details.partnership}</span>
+            <span className="text-muted">P&apos;SHIP:</span> <span className="text-white">{details.partnership}</span>
           </p>
           {details.batters?.[0] && (
             <p className="text-[14px]">
-              <span className="text-[#A2A6AB]">L&apos;BAT:</span>{' '}
+              <span className="text-muted">L&apos;BAT:</span>{' '}
               <span className="text-white">
-                {details.batters[0].name} {details.batters[0].r} (
-                {details.batters[0].b}b)
+                {details.batters[0].name} {details.batters[0].r} ({details.batters[0].b}b)
               </span>
             </p>
           )}

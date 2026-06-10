@@ -5,30 +5,19 @@ import { useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useToast } from '@/hooks/useToast';
+import { getApiErrorMessage } from '@/lib/apiErrors';
 import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
 import { formatPrice } from '@/lib/format';
-import {
-  useGetCitiesQuery,
-  useGetCountriesQuery,
-} from '@/store/api/locationApi';
 import { useCreateOrderMutation, useGetCartQuery } from '@/store/api/shopApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 import { Container } from '@/ui/Container';
+import { CountryCityFields } from '@/ui/CountryCityFields';
+import { FormActions } from '@/ui/form/FormActions';
+import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import { PhoneInput } from '@/ui/PhoneInput';
-import {
-  Select,
-  SelectContent,
-  selectContentInputClass,
-  SelectItem,
-  selectItemInputClass,
-  SelectTrigger,
-  selectTriggerInputClass,
-  SelectValue,
-  selectViewportInputClass,
-} from '@/ui/Select';
 
 export default function ShopCheckout() {
   const navigate = useNavigate();
@@ -49,15 +38,13 @@ export default function ShopCheckout() {
     },
   });
 
-  const selectedCountryName = watch('country');
-  const { data: countriesList = [] } = useGetCountriesQuery();
-  const selectedCountry = countriesList.find(
-    (c) => c.name === selectedCountryName,
-  );
-  const countryCode = selectedCountry?.country_code ?? null;
-  const { data: citiesList = [] } = useGetCitiesQuery(countryCode, {
-    skip: !countryCode,
-  });
+  const country = watch('country');
+  const city = watch('city');
+
+  useEffect(() => {
+    register('country', { required: true });
+    register('city', { required: true });
+  }, [register]);
 
   useEffect(() => {
     const countryFromProfile = user?.country && String(user.country).trim();
@@ -91,11 +78,7 @@ export default function ShopCheckout() {
         navigate(`/shop/order-payment/${order.id}`, { replace: true });
       }
     } catch (err) {
-      const message =
-        err?.data?.message ??
-        err?.message ??
-        'Checkout failed. Please try again.';
-      toast.error(message);
+      toast.error(getApiErrorMessage(err, 'Checkout failed. Please try again.'));
     }
   };
 
@@ -109,218 +92,112 @@ export default function ShopCheckout() {
       <Container>
         {cartLoading ? null : !canCheckout ? (
           <div className="py-8 text-center">
-            <p className="text-[14px] text-[#A2A6AB]">Your cart is empty.</p>
+            <p className="text-muted text-[14px]">Your cart is empty.</p>
             <button
               type="button"
               onClick={() => navigate('/shop/cart')}
-              className="mt-4 rounded-full bg-[#DA9811] px-6 py-3 text-[14px] font-bold text-black"
+              className="bg-brand mt-4 rounded-full px-6 py-3 text-[14px] font-bold text-black"
             >
               View Cart
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-              <FormField
-                label="Full Name"
-                htmlFor="fullName"
-              >
-                <Input
-                  id="fullName"
-                  type="text"
-                  placeholder="Enter full name"
-                  autoComplete="name"
-                  readOnly={hasName}
-                  aria-readonly={hasName}
-                  className={hasName ? 'cursor-default opacity-90' : ''}
-                  {...register('fullName')}
-                />
-              </FormField>
+          <FormStack as="form" layout="grid-3" onSubmit={handleSubmit(onSubmit)}>
+            <FormField label="Full Name" htmlFor="fullName">
+              <Input
+                id="fullName"
+                type="text"
+                placeholder="Enter full name"
+                autoComplete="name"
+                readOnly={hasName}
+                aria-readonly={hasName}
+                className={hasName ? 'cursor-default opacity-90' : ''}
+                {...register('fullName')}
+              />
+            </FormField>
 
-              <FormField
-                label="Phone"
-                htmlFor="phone"
-              >
-                <Controller
-                  name="phone"
-                  control={control}
-                  render={({ field }) => (
-                    <PhoneInput
-                      id="phone"
-                      placeholder="Enter phone number"
-                      readOnly={hasPhone}
-                      aria-readonly={hasPhone}
-                      className={hasPhone ? 'cursor-default opacity-90' : ''}
-                      {...field}
-                    />
-                  )}
-                />
-              </FormField>
+            <FormField label="Phone" htmlFor="phone">
+              <Controller
+                name="phone"
+                control={control}
+                render={({ field }) => (
+                  <PhoneInput
+                    id="phone"
+                    placeholder="Enter phone number"
+                    readOnly={hasPhone}
+                    aria-readonly={hasPhone}
+                    className={hasPhone ? 'cursor-default opacity-90' : ''}
+                    {...field}
+                  />
+                )}
+              />
+            </FormField>
 
-              <FormField
-                label="Email Address"
-                htmlFor="email"
-              >
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter email address"
-                  autoComplete="email"
-                  readOnly={hasEmail}
-                  aria-readonly={hasEmail}
-                  className={hasEmail ? 'cursor-default opacity-90' : ''}
-                  {...register('email')}
-                />
-              </FormField>
+            <FormField label="Email Address" htmlFor="email">
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter email address"
+                autoComplete="email"
+                readOnly={hasEmail}
+                aria-readonly={hasEmail}
+                className={hasEmail ? 'cursor-default opacity-90' : ''}
+                {...register('email')}
+              />
+            </FormField>
 
-              <FormField
-                label="Delivery Address"
-                htmlFor="address"
-                required
-              >
-                <Input
-                  id="address"
-                  type="text"
-                  placeholder="Street address"
-                  autoComplete="street-address"
-                  aria-required="true"
-                  {...register('address', {
-                    required: 'Delivery address is required',
-                  })}
-                />
-              </FormField>
+            <FormField label="Delivery Address" htmlFor="address" required>
+              <Input
+                id="address"
+                type="text"
+                placeholder="Street address"
+                autoComplete="street-address"
+                aria-required="true"
+                {...register('address', {
+                  required: 'Delivery address is required',
+                })}
+              />
+            </FormField>
 
-              <FormField
-                label="Country"
-                htmlFor="country"
-                required
-              >
-                <Controller
-                  name="country"
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field }) => (
-                    <Select
-                      value={field.value || ''}
-                      onValueChange={(val) => {
-                        field.onChange(val);
-                        setValue('city', '');
-                      }}
-                    >
-                      <SelectTrigger
-                        id="country"
-                        className={selectTriggerInputClass}
-                        aria-label="Country"
-                      >
-                        <SelectValue placeholder="Select country" />
-                      </SelectTrigger>
-                      <SelectContent
-                        className={selectContentInputClass}
-                        viewportClassName={selectViewportInputClass}
-                        position="popper"
-                      >
-                        {countriesList.map((c) => (
-                          <SelectItem
-                            key={c.country_code}
-                            value={c.name}
-                            className={selectItemInputClass}
-                            textClassName="!text-white"
-                            indicatorClassName="!text-white"
-                          >
-                            {c.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </FormField>
+            <CountryCityFields
+              country={country ?? ''}
+              city={city ?? ''}
+              onCountryChange={(v) => setValue('country', v, { shouldValidate: true })}
+              onCityChange={(v) => setValue('city', v, { shouldValidate: true })}
+              required
+              density="relaxed"
+            />
 
-              <FormField
-                label="City"
-                htmlFor="city"
-                required
-              >
-                <Controller
-                  name="city"
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field }) => (
-                    <Select
-                      value={field.value || ''}
-                      onValueChange={field.onChange}
-                      disabled={!countryCode}
-                    >
-                      <SelectTrigger
-                        id="city"
-                        className={selectTriggerInputClass}
-                        aria-label="City"
-                        disabled={!countryCode}
-                      >
-                        <SelectValue placeholder="Select city" />
-                      </SelectTrigger>
-                      <SelectContent
-                        className={selectContentInputClass}
-                        viewportClassName={selectViewportInputClass}
-                        position="popper"
-                      >
-                        {citiesList.map((c) => (
-                          <SelectItem
-                            key={c.id}
-                            value={c.name}
-                            className={selectItemInputClass}
-                            textClassName="!text-white"
-                            indicatorClassName="!text-white"
-                          >
-                            {c.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </FormField>
+            <FormField label="Notes (optional)" htmlFor="notes">
+              <Input id="notes" type="text" placeholder="Order notes" {...register('notes')} />
+            </FormField>
 
-              <FormField
-                label="Notes (optional)"
-                htmlFor="notes"
-              >
-                <Input
-                  id="notes"
-                  type="text"
-                  placeholder="Order notes"
-                  {...register('notes')}
-                />
-              </FormField>
-            </div>
-
-            <p className="text-[14px] text-[#A2A6AB]">
-              Subtotal:{' '}
-              <strong className="text-[#DA9811]">
-                {formatPrice(subtotal)}
-              </strong>{' '}
-              ({items.length} item{items.length !== 1 ? 's' : ''})
+            <p className="text-muted text-[14px] lg:col-span-3">
+              Subtotal: <strong className="text-brand">{formatPrice(subtotal)}</strong> ({items.length} item
+              {items.length !== 1 ? 's' : ''})
             </p>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex w-full items-center justify-center gap-2 rounded-[6px] bg-[#DA9811] py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90 disabled:opacity-50 lg:w-auto lg:justify-start lg:px-4"
-            >
-              {isSubmitting ? 'Placing Order…' : 'Place Order'}
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
+            <FormActions align="start" className="lg:col-span-3">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-brand flex w-full items-center justify-center gap-2 rounded-[6px] py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90 disabled:opacity-50 lg:w-auto lg:px-4"
               >
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </button>
-          </form>
+                {isSubmitting ? 'Placing Order…' : 'Place Order'}
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </button>
+            </FormActions>
+          </FormStack>
         )}
       </Container>
     </div>

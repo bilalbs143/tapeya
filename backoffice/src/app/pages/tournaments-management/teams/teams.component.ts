@@ -149,7 +149,10 @@ export class TeamsComponent implements OnInit, AfterViewInit, OnDestroy {
       ManageTeamDialogComponent,
       { mode: 'create' },
       (result) => result && this.loadHttpData(),
-      { widthSize: 'lg', disableClose: true }
+      {
+        widthSize: 'lg',
+        disableClose: true,
+      }
     );
   }
 
@@ -158,7 +161,10 @@ export class TeamsComponent implements OnInit, AfterViewInit, OnDestroy {
       ManageTeamDialogComponent,
       { mode: 'edit', team },
       (result) => result && this.loadHttpData(),
-      { widthSize: 'lg', disableClose: true }
+      {
+        widthSize: 'lg',
+        disableClose: true,
+      }
     );
   }
 

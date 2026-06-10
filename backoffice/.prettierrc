@@ -7,7 +7,7 @@
   "arrowParens": "always",
   "trailingComma": "es5",
   "bracketSameLine": false,
-  "printWidth": 120,
+  "printWidth": 130,
   "endOfLine": "lf",
   "singleAttributePerLine": false,
   "overrides": [
@@ -15,7 +15,7 @@
       "files": "*.html",
       "options": {
         "parser": "angular",
-        "printWidth": 120,
+        "printWidth": 130,
         "singleAttributePerLine": true
       }
     },
@@ -23,13 +23,13 @@
       "files": "*.ts",
       "options": {
         "parser": "typescript",
-        "printWidth": 120
+        "printWidth": 130
       }
     },
     {
       "files": "*.scss",
       "options": {
-        "printWidth": 120
+        "printWidth": 130
       }
     }
   ]

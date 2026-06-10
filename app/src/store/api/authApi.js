@@ -20,24 +20,32 @@ const PROFILE_TEXT_FIELDS = [
   'city',
 ];
 
+function appendProfileTextFields(payload, target) {
+  const isFormData = target instanceof FormData;
+  for (const key of PROFILE_TEXT_FIELDS) {
+    if (payload[key] == null) continue;
+    if (isFormData) {
+      target.append(key, payload[key]);
+    } else {
+      target[key] = payload[key];
+    }
+  }
+}
+
 function buildProfilePayload(payload) {
   const hasFile = payload.avatar instanceof File;
   const hasRemoval = 'avatar' in payload && payload.avatar === null;
 
   if (hasFile) {
     const fd = new FormData();
-    for (const key of PROFILE_TEXT_FIELDS) {
-      if (payload[key] != null) fd.append(key, payload[key]);
-    }
+    appendProfileTextFields(payload, fd);
     fd.append('avatar', payload.avatar);
     return fd;
   }
 
   if (hasRemoval) {
     const body = {};
-    for (const key of PROFILE_TEXT_FIELDS) {
-      if (payload[key] != null) body[key] = payload[key];
-    }
+    appendProfileTextFields(payload, body);
     body.avatar = null;
     return body;
   }

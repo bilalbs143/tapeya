@@ -7,19 +7,22 @@ import * as SelectPrimitive from '@radix-ui/react-select';
 const trigger =
   'flex h-10 w-full items-center justify-between rounded-[6px] border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF9700] disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1';
 
-/** Matches Input style: h-12, rounded-[160px], bg-[#141412], focus ring [#FF9700]/50 */
+/** Matches Input style: h-12, rounded-[160px], bg-surface, focus ring [#FF9700]/50 */
 export const selectTriggerInputClass =
-  '!h-12 !rounded-[6px] !border-0 !bg-[#141412] !px-4 !py-3 w-full !text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 [&>span]:!text-white [&>span]:!text-base [&_svg]:!text-white data-[placeholder]:!text-[#A2A6AB78]';
+  '!h-12 !rounded-[6px] !border-0 !bg-surface !px-4 !py-3 w-full !text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 [&>span]:!text-white [&>span]:!text-base [&_svg]:!text-white data-[placeholder]:!text-muted/47';
+
+/** SearchableSelect trigger — span text color is set per value/placeholder on the child. */
+export const searchableSelectTriggerClass =
+  '!h-12 !rounded-[6px] !border-0 !bg-surface !px-4 !py-3 w-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 [&>span]:!text-base [&_svg]:!text-white';
 export const selectContentInputClass =
-  '!rounded-xl !border-[#141412] !bg-[#141412] !w-[var(--radix-select-trigger-width)] shadow-lg';
+  '!rounded-xl !border-[#141412] !bg-surface !w-[var(--radix-select-trigger-width)] shadow-lg';
 export const selectViewportInputClass = '!bg-transparent p-1';
 export const selectItemInputClass =
   '!text-white !bg-transparent rounded-sm py-2.5 pl-4 pr-8 text-base outline-none hover:!bg-white/10 focus:!bg-white/10 data-[highlighted]:!bg-white/10 data-[state=checked]:!bg-white/5 data-[disabled]:pointer-events-none data-[disabled]:opacity-50';
 export const selectItemTextInputClass = '!text-white';
 export const selectItemIndicatorInputClass = '!text-white';
 
-const content =
-  'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-white shadow-md';
+const content = 'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-white shadow-md';
 const viewport = 'p-1';
 const item =
   'relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none hover:bg-slate-100 focus:bg-slate-100 data-[disabled]:pointer-events-none data-[disabled]:opacity-50';
@@ -41,41 +44,20 @@ export function SelectTrigger({ className = '', children, ...props }) {
   );
 }
 
-export function SelectContent({
-  className = '',
-  viewportClassName = '',
-  position = 'popper',
-  ...props
-}) {
+export function SelectContent({ className = '', viewportClassName = '', position = 'popper', ...props }) {
   return (
     <SelectPrimitive.Portal>
-      <SelectPrimitive.Content
-        position={position}
-        className={`${content} ${className}`}
-        {...props}
-      >
-        <SelectPrimitive.Viewport
-          className={`${viewport} ${viewportClassName}`}
-        >
-          {props.children}
-        </SelectPrimitive.Viewport>
+      <SelectPrimitive.Content position={position} className={`${content} ${className}`} {...props}>
+        <SelectPrimitive.Viewport className={`${viewport} ${viewportClassName}`}>{props.children}</SelectPrimitive.Viewport>
       </SelectPrimitive.Content>
     </SelectPrimitive.Portal>
   );
 }
 
-export function SelectItem({
-  className = '',
-  textClassName = '',
-  indicatorClassName = '',
-  children,
-  ...props
-}) {
+export function SelectItem({ className = '', textClassName = '', indicatorClassName = '', children, ...props }) {
   return (
     <SelectPrimitive.Item className={`${item} ${className}`} {...props}>
-      <SelectPrimitive.ItemText className={textClassName}>
-        {children}
-      </SelectPrimitive.ItemText>
+      <SelectPrimitive.ItemText className={textClassName}>{children}</SelectPrimitive.ItemText>
       <SelectPrimitive.ItemIndicator
         className={`absolute right-2 flex h-3.5 w-3.5 items-center justify-center ${indicatorClassName}`}
       >
@@ -86,30 +68,16 @@ export function SelectItem({
 }
 
 export function SelectLabel({ className = '', ...props }) {
-  return (
-    <SelectPrimitive.Label className={`${label} ${className}`} {...props} />
-  );
+  return <SelectPrimitive.Label className={`${label} ${className}`} {...props} />;
 }
 
 export function SelectSeparator({ className = '', ...props }) {
-  return (
-    <SelectPrimitive.Separator
-      className={`${separator} ${className}`}
-      {...props}
-    />
-  );
+  return <SelectPrimitive.Separator className={`${separator} ${className}`} {...props} />;
 }
 
 function ChevronIcon() {
   return (
-    <svg
-      width="12"
-      height="12"
-      viewBox="0 0 12 12"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-    >
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M3 4.5L6 7.5L9 4.5" />
     </svg>
   );
@@ -117,14 +85,7 @@ function ChevronIcon() {
 
 function CheckIcon() {
   return (
-    <svg
-      width="12"
-      height="12"
-      viewBox="0 0 12 12"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-    >
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
       <polyline points="2,6 5,9 10,3" />
     </svg>
   );

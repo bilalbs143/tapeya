@@ -179,7 +179,10 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
       ManageUserDialogComponent,
       { mode: 'create' },
       (result) => result && this.loadHttpData(),
-      { widthSize: 'md', disableClose: true }
+      {
+        widthSize: 'md',
+        disableClose: true,
+      }
     );
   }
 
@@ -188,7 +191,10 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
       ManageUserDialogComponent,
       { mode: 'edit', user },
       (result) => result && this.loadHttpData(),
-      { widthSize: 'md', disableClose: true }
+      {
+        widthSize: 'md',
+        disableClose: true,
+      }
     );
   }
 

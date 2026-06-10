@@ -1,23 +1,15 @@
 import { useState } from 'react';
 
-import {
-  StatItem,
-  StatItemInline,
-} from '@/features/profile/components/StatItem';
+import { StatItem, StatItemInline } from '@/features/profile/components/StatItem';
+import { CONTENT_MAX_WIDTH } from '@/lib/constants/profile';
 import { formatDecimal } from '@/lib/utils/displayUtils';
-import {
-  useGetPlayerStatsQuery,
-  useGetPlayerTeamsQuery,
-} from '@/store/api/playerApi';
+import { useGetPlayerStatsQuery, useGetPlayerTeamsQuery } from '@/store/api/playerApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 
-import { CONTENT_MAX_WIDTH } from './constants';
-
 const TEAMS_PREVIEW_COUNT = 3;
 
-const LABEL_CLASS =
-  'text-[14px] font-bold uppercase tracking-wide text-[#A2A6AB]';
+const LABEL_CLASS = 'text-[14px] font-bold uppercase tracking-wide text-muted';
 
 export function ProfileStats() {
   const [teamsExpanded, setTeamsExpanded] = useState(false);
@@ -28,15 +20,12 @@ export function ProfileStats() {
     { userId, tournament_type: 'all' },
     { skip: !userId },
   );
-  const { data: teamsData = [], isLoading: teamsLoading } =
-    useGetPlayerTeamsQuery(userId, { skip: !userId });
+  const { data: teamsData = [], isLoading: teamsLoading } = useGetPlayerTeamsQuery(userId, { skip: !userId });
 
   const batting = statsData?.batting ?? null;
   const teams = Array.isArray(teamsData) ? teamsData : [];
   const teamNames = teams.map((t) => t?.name).filter(Boolean);
-  const teamsToShow = teamsExpanded
-    ? teamNames
-    : teamNames.slice(0, TEAMS_PREVIEW_COUNT);
+  const teamsToShow = teamsExpanded ? teamNames : teamNames.slice(0, TEAMS_PREVIEW_COUNT);
   const hasMoreTeams = teamNames.length > TEAMS_PREVIEW_COUNT;
   const showMoreLink = hasMoreTeams && !teamsExpanded;
   const showLessLink = hasMoreTeams && teamsExpanded;
@@ -59,15 +48,11 @@ export function ProfileStats() {
           { label: 'HS', value: batting.highest_score },
           {
             label: 'AVG',
-            value:
-              batting.average != null ? formatDecimal(batting.average) : '—',
+            value: batting.average != null ? formatDecimal(batting.average) : '—',
           },
           {
             label: 'SR',
-            value:
-              batting.strike_rate != null
-                ? formatDecimal(batting.strike_rate)
-                : '—',
+            value: batting.strike_rate != null ? formatDecimal(batting.strike_rate) : '—',
           },
           { label: '100S', value: batting.hundreds },
           { label: '50S', value: batting.fifties },
@@ -88,13 +73,9 @@ export function ProfileStats() {
         <>
           <div className="flex flex-wrap items-baseline gap-x-8">
             {summaryStats.length > 0 ? (
-              summaryStats.map(({ label, value }) => (
-                <StatItemInline key={label} label={label} value={value} />
-              ))
+              summaryStats.map(({ label, value }) => <StatItemInline key={label} label={label} value={value} />)
             ) : (
-              <span className="text-sm text-white/60">
-                No batting stats yet.
-              </span>
+              <span className="text-sm text-white/60">No batting stats yet.</span>
             )}
           </div>
 
@@ -111,7 +92,7 @@ export function ProfileStats() {
                 {showMoreLink && (
                   <button
                     type="button"
-                    className="text-sm font-normal text-[#d8a11e] underline underline-offset-2 transition-colors hover:text-[#e5b42a] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d8a11e] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f0f0f]"
+                    className="text-brand hover:text-brand-hover focus-visible:ring-brand text-sm font-normal underline underline-offset-2 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-none"
                     onClick={() => setTeamsExpanded(true)}
                   >
                     MORE
@@ -120,7 +101,7 @@ export function ProfileStats() {
                 {showLessLink && (
                   <button
                     type="button"
-                    className="ml-1 text-sm font-normal text-[#d8a11e] underline underline-offset-2 transition-colors hover:text-[#e5b42a] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d8a11e] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f0f0f]"
+                    className="text-brand hover:text-brand-hover focus-visible:ring-brand ml-1 text-sm font-normal underline underline-offset-2 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-none"
                     onClick={() => setTeamsExpanded(false)}
                   >
                     LESS
@@ -134,9 +115,7 @@ export function ProfileStats() {
 
           <div className="mt-5 h-px w-full bg-[linear-gradient(to_right,#00000000,#FFFFFF33,#00000000)]" />
 
-          <h2 className="mt-6 text-[12px] font-bold tracking-wide text-white uppercase">
-            CAREER AVERAGES (BATTING)
-          </h2>
+          <h2 className="mt-6 text-[12px] font-bold tracking-wide text-white uppercase">CAREER AVERAGES (BATTING)</h2>
           {careerAverages.length > 0 ? (
             <div className="mt-4 grid grid-cols-3 gap-x-8 gap-y-5">
               {careerAverages.map(({ label, value }) => (
@@ -144,9 +123,7 @@ export function ProfileStats() {
               ))}
             </div>
           ) : (
-            <p className="mt-4 text-sm text-white/60">
-              No career stats recorded yet.
-            </p>
+            <p className="mt-4 text-sm text-white/60">No career stats recorded yet.</p>
           )}
         </>
       )}

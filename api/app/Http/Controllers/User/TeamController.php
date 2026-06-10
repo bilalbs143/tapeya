@@ -8,16 +8,22 @@ use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreTeamRequest;
 use App\Http\Requests\User\StoreTeamSquadRequest;
+use App\Http\Requests\User\UpdateTeamRequest;
 use App\Http\Resources\User\TeamResource;
 use App\Http\Resources\User\UserResource;
 use App\Models\Role;
 use App\Models\Team;
 use App\Models\User;
+use App\Services\Tournament\TournamentTeamSquadValidator;
 use Illuminate\Http\JsonResponse;
 
 class TeamController extends Controller
 {
     use BaseControllerTrait;
+
+    public function __construct(
+        private readonly TournamentTeamSquadValidator $squadValidator,
+    ) {}
 
     /**
      * List/search teams (e.g. for organizer to find a team to attach to tournament).
@@ -59,7 +65,6 @@ class TeamController extends Controller
         $iconPlayerIds = $data['icon_player_ids'] ?? [];
 
         unset($data['sponsor_user_id'], $data['icon_player_ids']);
-        $this->storeImage($request, 'logo', 'teams', $data);
 
         $isOrganizer = $authUser->hasRole(AppRoleEnum::ORGANIZER);
         if ((int) $sponsorId !== (int) $authUser->id && ! $isOrganizer) {
@@ -71,7 +76,6 @@ class TeamController extends Controller
 
         $team = Team::create([
             'name' => $data['name'],
-            'logo' => $data['logo'] ?? null,
             'code' => $data['code'],
             'country' => $data['country'],
             'city' => $data['city'],
@@ -90,6 +94,47 @@ class TeamController extends Controller
             'Team created.',
             'CREATED'
         );
+    }
+
+    /**
+     * Update team metadata (name, code, country, city, sponsor, icon players).
+     *
+     * Only the team owner (sponsor) or an organizer can update.
+     * Only organizers may change team ownership.
+     */
+    public function update(UpdateTeamRequest $request, Team $team): JsonResponse
+    {
+        $authUser = $request->user();
+        $isOrganizer = $authUser->hasRole(AppRoleEnum::ORGANIZER);
+
+        if ((int) $team->user_id !== (int) $authUser->id && ! $isOrganizer) {
+            return $this->forbidden('Only the team owner or an organizer can edit this team.');
+        }
+
+        $data = $request->validated();
+        $sponsorId = isset($data['sponsor_user_id']) ? (int) $data['sponsor_user_id'] : (int) $team->user_id;
+        $iconPlayerIds = $data['icon_player_ids'] ?? [];
+
+        if ($sponsorId !== (int) $team->user_id) {
+            if (! $isOrganizer) {
+                return $this->forbidden('Only organizers can change team ownership.');
+            }
+            $newOwner = User::findOrFail($sponsorId);
+            $this->ensureAppUserHasSponsorRole($newOwner);
+        }
+
+        $team->update([
+            'name' => $data['name'],
+            'code' => $data['code'],
+            'country' => $data['country'],
+            'city' => $data['city'],
+            'user_id' => $sponsorId,
+        ]);
+
+        $team->iconPlayers()->sync($iconPlayerIds);
+        $team->load(['sponsor', 'creator', 'iconPlayers']);
+
+        return $this->success(new TeamResource($team), 'Team updated.', 'SUCCESS');
     }
 
     /**
@@ -129,6 +174,13 @@ class TeamController extends Controller
         }
 
         $playerIds = $request->validated('player_ids');
+
+        $conflictMessage = $this->squadValidator->conflictMessageForTeam($team, $playerIds);
+        if ($conflictMessage !== null) {
+            return $this->failure($conflictMessage, 'VALIDATION_ERROR', [
+                'player_ids' => [$conflictMessage],
+            ]);
+        }
 
         // Set the team-level squad: replace existing squad with given players
         $team->players()->sync($playerIds);

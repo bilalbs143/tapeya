@@ -1,32 +1,24 @@
 import 'swiper/css';
 
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-
-const highlight1 = `${CLOUDFRONT_APP_BASE}/images/standard/highlight-1.png`;
-const highlight2 = `${CLOUDFRONT_APP_BASE}/images/standard/highlight-2.jpg`;
-
-const SLIDES = [
-  { id: 1, image: highlight1, alt: 'Highlight 1' },
-  { id: 2, image: highlight2, alt: 'Highlight 2' },
-  { id: 3, image: highlight1, alt: 'Highlight 3' },
-];
+import { HighlightCard } from '@/pages/highlights/components/HighlightCard';
+import { useGetHighlightsQuery } from '@/store/api/highlightApi';
 
 export function HighlightSlider() {
+  const navigate = useNavigate();
+  const { data: highlights = [] } = useGetHighlightsQuery({ per_page: 10 });
+
+  if (highlights.length === 0) return null;
+
   return (
     <section className="space-y-3">
       <header className="flex items-center justify-between">
-        <h2 className="text-[13px] font-bold tracking-wide text-[#A2A6AB] uppercase md:text-[16px]">
-          Highlights
-        </h2>
-        <Link
-          to="/highlights"
-          className="text-[12px] font-bold text-[#DA9811] transition-opacity active:opacity-80 md:text-[16px]"
-        >
-          View more
+        <h2 className="text-muted text-[13px] font-bold tracking-wide uppercase md:text-[16px]">Highlights</h2>
+        <Link to="/highlights" className="text-brand text-[12px] font-bold transition-opacity active:opacity-80 md:text-[16px]">
+          View More
         </Link>
       </header>
 
@@ -34,25 +26,15 @@ export function HighlightSlider() {
         modules={[Autoplay]}
         spaceBetween={12}
         slidesPerView={1.5}
-        breakpoints={{
-          768: { slidesPerView: 2.5 },
-        }}
-        centeredSlides={false}
-        initialSlide={0}
+        breakpoints={{ 768: { slidesPerView: 2.5 } }}
         autoplay={{ delay: 4000, disableOnInteraction: false }}
-        loop
+        loop={highlights.length > 2}
         grabCursor
         className="highlight-swiper -mx-4 px-4"
       >
-        {SLIDES.map(({ id, image, alt }) => (
-          <SwiperSlide key={id}>
-            <div className="h-[160px] overflow-hidden rounded-[17px] sm:h-[180px] md:h-[300px]">
-              <img
-                src={image}
-                alt={alt}
-                className="h-full w-full object-cover"
-              />
-            </div>
+        {highlights.map((highlight) => (
+          <SwiperSlide key={highlight.id}>
+            <HighlightCard highlight={highlight} onClick={(h) => navigate(`/highlights/${h.id}`, { state: { highlight: h } })} />
           </SwiperSlide>
         ))}
       </Swiper>

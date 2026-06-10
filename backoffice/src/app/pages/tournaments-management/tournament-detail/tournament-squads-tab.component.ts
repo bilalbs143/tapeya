@@ -79,7 +79,10 @@ export class TournamentSquadsTabComponent implements OnInit, OnDestroy {
       ManageTeamSquadDialogComponent,
       { tournamentId: this.tournamentId, team },
       (saved) => saved && this.load(),
-      { widthSize: 'sm', disableClose: true }
+      {
+        widthSize: 'sm',
+        disableClose: true,
+      }
     );
   }
 }

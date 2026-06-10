@@ -11,27 +11,18 @@ import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
 import { toApiDate } from '@/lib/utils/dateUtils';
 import { createTournamentRequestSchema } from '@/lib/validations/tournamentRequest';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
-import { useGetCitiesQuery, useGetCountriesQuery } from '@/store/api/locationApi';
 import { useCreateTournamentRequestMutation } from '@/store/api/tournamentRequestApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { CountryCityFields } from '@/ui/CountryCityFields';
 import { DatePicker } from '@/ui/DatePicker';
+import { FormActions } from '@/ui/form/FormActions';
+import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import { PhoneInput } from '@/ui/PhoneInput';
-import {
-  Select,
-  SelectContent,
-  selectContentInputClass,
-  SelectItem,
-  selectItemInputClass,
-  SelectTrigger,
-  selectTriggerInputClass,
-  SelectValue,
-  selectViewportInputClass,
-} from '@/ui/Select';
 import { ToggleGroupField } from '@/ui/ToggleGroupField';
 
 const DEFAULT_VALUES = {
@@ -67,12 +58,10 @@ export default function TournamentRequest() {
   const tournamentRequestSchema = useMemo(
     () => createTournamentRequestSchema(groupModeOptions.map((o) => o.value)),
     // enums is stable per query result; groupModeOptions is derived from it.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [enums],
   );
 
-  const [createTournamentRequest, { isLoading: isSubmitting, reset: resetApiError }] =
-    useCreateTournamentRequestMutation();
+  const [createTournamentRequest, { isLoading: isSubmitting, reset: resetApiError }] = useCreateTournamentRequestMutation();
 
   const {
     register,
@@ -89,14 +78,8 @@ export default function TournamentRequest() {
   });
 
   const groupMode = watch('group_mode');
-  const selectedCountryName = watch('country');
-
-  const { data: countriesList = [] } = useGetCountriesQuery();
-  const selectedCountry = countriesList.find((c) => c.name === selectedCountryName);
-  const countryCode = selectedCountry?.country_code ?? null;
-  const { data: citiesList = [] } = useGetCitiesQuery(countryCode, {
-    skip: !countryCode,
-  });
+  const country = watch('country');
+  const city = watch('city');
 
   // Pre-fill contact details and default enum selections once enums are loaded.
   // Depends on `enums` (not derived arrays) to avoid re-firing on reference changes.
@@ -114,16 +97,13 @@ export default function TournamentRequest() {
       group_mode: groupModeOptions[0]?.value ?? 'open',
       prize: '',
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enumsLoading, enums, user?.name, user?.phone, user?.country, user?.city]);
 
   const onSubmit = async (data) => {
     resetApiError();
     try {
       const number_of_groups =
-        data.group_mode === 'group_wise' && data.number_of_groups !== ''
-          ? Number(data.number_of_groups)
-          : 1;
+        data.group_mode === 'group_wise' && data.number_of_groups !== '' ? Number(data.number_of_groups) : 1;
 
       const payload = {
         ...data,
@@ -155,16 +135,12 @@ export default function TournamentRequest() {
       <AppSubpageHeader title="REQUEST TOURNAMENT" />
       <Container>
         <p className="mb-6 text-left text-[14px] text-white/90 lg:text-center">
-          Please fill in the details below to request tournament services. Our team will
-          review your request and contact you shortly.
+          Please fill in the details below to request tournament services. Our team will review your request and contact you
+          shortly.
         </p>
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          onFocus={resetApiError}
-          className="space-y-6 pb-8 lg:grid lg:grid-cols-3 lg:gap-6 lg:space-y-0"
-        >
-          <FormField label="Contact Person Name:" htmlFor="contact_person_name" required>
+        <FormStack as="form" layout="grid-3" className="pb-8" onSubmit={handleSubmit(onSubmit)} onFocus={resetApiError}>
+          <FormField label="Contact Person Name" htmlFor="contact_person_name" required>
             <Input
               id="contact_person_name"
               placeholder="Enter Name"
@@ -174,7 +150,7 @@ export default function TournamentRequest() {
             />
           </FormField>
 
-          <FormField label="Mobile / WhatsApp Number:" htmlFor="contact_phone" required>
+          <FormField label="Mobile / WhatsApp Number" htmlFor="contact_phone" required>
             <Controller
               name="contact_phone"
               control={control}
@@ -189,7 +165,7 @@ export default function TournamentRequest() {
             />
           </FormField>
 
-          <FormField label="Tournament Name:" htmlFor="tournament_name" required>
+          <FormField label="Tournament Name" htmlFor="tournament_name" required>
             <Input
               id="tournament_name"
               placeholder="Enter Tournament Name"
@@ -201,7 +177,7 @@ export default function TournamentRequest() {
           <ToggleGroupField
             name="tournament_type"
             control={control}
-            label="Tournament Type:"
+            label="Tournament Type"
             options={tournamentTypeOptions}
             error={errors.tournament_type?.message}
             required
@@ -210,13 +186,13 @@ export default function TournamentRequest() {
           <ToggleGroupField
             name="cricket_format"
             control={control}
-            label="Cricket Format:"
+            label="Cricket Format"
             options={cricketFormatOptions}
             error={errors.cricket_format?.message}
             required
           />
 
-          <FormField label="Number of Teams:" htmlFor="number_of_teams" required>
+          <FormField label="Number of Teams" htmlFor="number_of_teams" required>
             <Input
               id="number_of_teams"
               inputMode="numeric"
@@ -229,14 +205,14 @@ export default function TournamentRequest() {
           <ToggleGroupField
             name="group_mode"
             control={control}
-            label="Group mode:"
+            label="Group Mode"
             options={groupModeOptions}
             error={errors.group_mode?.message}
             required
           />
 
           {groupMode === 'group_wise' && (
-            <FormField label="Number of groups:" htmlFor="number_of_groups" required>
+            <FormField label="Number of Groups" htmlFor="number_of_groups" required>
               <Input
                 id="number_of_groups"
                 inputMode="numeric"
@@ -247,107 +223,29 @@ export default function TournamentRequest() {
             </FormField>
           )}
 
-          <FormField label="Country:" htmlFor="country" required>
-            <Controller
-              name="country"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  value={field.value || ''}
-                  onValueChange={(val) => {
-                    field.onChange(val);
-                    setValue('city', '');
-                  }}
-                >
-                  <SelectTrigger
-                    id="country"
-                    className={selectTriggerInputClass}
-                    aria-label="Country"
-                  >
-                    <SelectValue placeholder="Select Country" />
-                  </SelectTrigger>
-                  <SelectContent
-                    className={selectContentInputClass}
-                    viewportClassName={selectViewportInputClass}
-                    position="popper"
-                  >
-                    {countriesList.map((c) => (
-                      <SelectItem
-                        key={c.country_code}
-                        value={c.name}
-                        className={selectItemInputClass}
-                        textClassName="!text-white"
-                        indicatorClassName="!text-white"
-                      >
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            {errors.country?.message && (
-              <p className="text-sm text-red-200" role="alert">
-                {errors.country.message}
-              </p>
-            )}
-          </FormField>
-
-          <FormField label="City:" htmlFor="city" required>
-            <Controller
-              name="city"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  value={field.value || ''}
-                  onValueChange={field.onChange}
-                  disabled={!countryCode}
-                >
-                  <SelectTrigger
-                    id="city"
-                    className={selectTriggerInputClass}
-                    aria-label="City"
-                    disabled={!countryCode}
-                  >
-                    <SelectValue placeholder="Select City" />
-                  </SelectTrigger>
-                  <SelectContent
-                    className={selectContentInputClass}
-                    viewportClassName={selectViewportInputClass}
-                    position="popper"
-                  >
-                    {citiesList.map((c) => (
-                      <SelectItem
-                        key={c.id}
-                        value={c.name}
-                        className={selectItemInputClass}
-                        textClassName="!text-white"
-                        indicatorClassName="!text-white"
-                      >
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            {errors.city?.message && (
-              <p className="text-sm text-red-200" role="alert">
-                {errors.city.message}
-              </p>
-            )}
-          </FormField>
+          <CountryCityFields
+            country={country ?? ''}
+            city={city ?? ''}
+            onCountryChange={(v) => setValue('country', v, { shouldValidate: true })}
+            onCityChange={(v) => setValue('city', v, { shouldValidate: true })}
+            countryLabel="Country"
+            cityLabel="City"
+            density="relaxed"
+            countryError={errors.country?.message}
+            cityError={errors.city?.message}
+            required
+          />
 
           <ToggleGroupField
             name="match_timings"
             control={control}
-            label="Match Timings:"
+            label="Match Timings"
             options={matchTimingsOptions}
             error={errors.match_timings?.message}
             required
           />
 
-          <FormField label="Ground / Venue Name:" htmlFor="venue_name" required>
+          <FormField label="Ground / Venue Name" htmlFor="venue_name" required>
             <Input
               id="venue_name"
               placeholder="Name of the Venue"
@@ -356,7 +254,7 @@ export default function TournamentRequest() {
             />
           </FormField>
 
-          <FormField label="Start Date:" htmlFor="start_date" required>
+          <FormField label="Start Date" htmlFor="start_date" required>
             <Controller
               name="start_date"
               control={control}
@@ -373,7 +271,7 @@ export default function TournamentRequest() {
             />
           </FormField>
 
-          <FormField label="End Date:" htmlFor="end_date" required>
+          <FormField label="End Date" htmlFor="end_date" required>
             <Controller
               name="end_date"
               control={control}
@@ -390,24 +288,16 @@ export default function TournamentRequest() {
             />
           </FormField>
 
-          <FormField label="Prize (optional):" htmlFor="prize">
-            <Input
-              id="prize"
-              placeholder="e.g. Car, Bike, 1 Lakh"
-              error={errors.prize?.message}
-              {...register('prize')}
-            />
+          <FormField label="Prize (optional)" htmlFor="prize">
+            <Input id="prize" placeholder="e.g. Car, Bike, 1 Lakh" error={errors.prize?.message} {...register('prize')} />
           </FormField>
 
-          <Button
-            type="submit"
-            disabled={busy}
-            variant="auth"
-            className="w-full lg:col-span-3 lg:w-[150px] lg:justify-self-start"
-          >
-            {isSubmitting ? 'Submitting…' : 'Submit'}
-          </Button>
-        </form>
+          <FormActions align="start" className="lg:col-span-3">
+            <Button type="submit" disabled={busy} variant="auth" className="w-full lg:w-[150px]">
+              {isSubmitting ? 'Submitting…' : 'Submit'}
+            </Button>
+          </FormActions>
+        </FormStack>
       </Container>
     </div>
   );

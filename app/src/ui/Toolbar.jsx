@@ -18,34 +18,17 @@ export const ToolbarLink = ToolbarPrimitive.Link;
 export const ToolbarButton = ToolbarPrimitive.Button;
 
 export function ToolbarRoot({ className = '', ...props }) {
-  return (
-    <ToolbarPrimitive.Root className={`${root} ${className}`} {...props} />
-  );
+  return <ToolbarPrimitive.Root className={`${root} ${className}`} {...props} />;
 }
 
 export function ToolbarToggleGroupStyled({ className = '', ...props }) {
-  return (
-    <ToolbarPrimitive.ToggleGroup
-      className={`${toggleGroup} ${className}`}
-      {...props}
-    />
-  );
+  return <ToolbarPrimitive.ToggleGroup className={`${toggleGroup} ${className}`} {...props} />;
 }
 
 export function ToolbarToggleItemStyled({ className = '', ...props }) {
-  return (
-    <ToolbarPrimitive.ToggleItem
-      className={`${toggleItem} ${className}`}
-      {...props}
-    />
-  );
+  return <ToolbarPrimitive.ToggleItem className={`${toggleItem} ${className}`} {...props} />;
 }
 
 export function ToolbarSeparatorStyled({ className = '', ...props }) {
-  return (
-    <ToolbarPrimitive.Separator
-      className={`${separator} ${className}`}
-      {...props}
-    />
-  );
+  return <ToolbarPrimitive.Separator className={`${separator} ${className}`} {...props} />;
 }

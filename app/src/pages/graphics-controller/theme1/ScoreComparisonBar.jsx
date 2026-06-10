@@ -1,3 +1,5 @@
+import React from 'react';
+
 import ReactApexChart from 'react-apexcharts';
 
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
@@ -11,61 +13,10 @@ const frameStyle = {
   backgroundSize: 'cover',
 };
 
-const TEAM_COLORS = Object.freeze({
-  A: '#2ACE7C',
-  B: '#E6E6E6',
-});
-
-const chartSeries = [
-  {
-    name: 'Team A',
-    data: [18, 14, 35, 27, 55, 51],
-  },
-  {
-    name: 'Team B',
-    data: [10, 29, 64, 56, 68, 87],
-  },
+const DEFAULT_CHART_SERIES = [
+  { name: 'Team A', data: [] },
+  { name: 'Team B', data: [] },
 ];
-
-const OVER_CATEGORIES = ['01', '02', '03', '04', '05', '06'];
-const SUMMARY_CARDS = [
-  { team: 'KKR', score: '197-4', overs: 'Over 7.4', six: '10', four: '12' },
-  { team: 'KKR', score: '197-4', overs: 'Over 7.4', six: '10', four: '12' },
-];
-
-// Wicket marker dots rendered above bars.
-const wicketEvents = [
-  { overIndex: 2, team: 'A', count: 2 }, // Over 03, Team A
-  { overIndex: 2, team: 'B', count: 1 }, // Over 03, Team B
-  { overIndex: 4, team: 'B', count: 1 }, // Over 05, Team B
-];
-
-function buildWicketAnnotationPoints({ markerSize = 8, xOffsetScale = 2 }) {
-  return wicketEvents.flatMap(({ overIndex, team, count }) => {
-    const seriesIndex = team === 'A' ? 0 : 1;
-    const y = chartSeries[seriesIndex].data[overIndex] + 4;
-
-    return Array.from({ length: count }, (_, markerIndex) => ({
-      x: OVER_CATEGORIES[overIndex],
-      y,
-      seriesIndex,
-      marker: {
-        size: markerSize,
-        fillColor: TEAM_COLORS[team],
-        strokeWidth: 0,
-        // For multiple wickets, start from bar-left with a minor gap.
-        offsetX: (count === 1 ? 0 : -7 + markerIndex * 5) * xOffsetScale,
-        offsetY: 0,
-      },
-    }));
-  });
-}
-
-const wicketAnnotationPoints = buildWicketAnnotationPoints({ markerSize: 5 });
-const mobileWicketAnnotationPoints = buildWicketAnnotationPoints({
-  markerSize: 3,
-  xOffsetScale: 0.85,
-});
 
 const chartOptions = {
   chart: {
@@ -125,9 +76,6 @@ const chartOptions = {
   tooltip: {
     theme: 'dark',
   },
-  annotations: {
-    points: wicketAnnotationPoints,
-  },
   responsive: [
     {
       breakpoint: 640,
@@ -139,9 +87,6 @@ const chartOptions = {
             columnWidth: '70%',
             borderRadius: 0,
           },
-        },
-        annotations: {
-          points: mobileWicketAnnotationPoints,
         },
         xaxis: {
           title: { style: { fontSize: '12px' } },
@@ -164,55 +109,71 @@ const chartOptions = {
   ],
 };
 
-export default function ScoreComparisonBar() {
+export default function ScoreComparisonBar({
+  chartSeries = DEFAULT_CHART_SERIES,
+  summaryCards = [],
+  matchLabel = '',
+  overCategories = [],
+  yAxisMax = 100,
+  chartTitle = 'Score Comparison',
+  yAxisLabel = 'Runs',
+}) {
+  const series = chartSeries.length > 0 ? chartSeries : DEFAULT_CHART_SERIES;
+
+  const dynamicOptions = React.useMemo(
+    () => ({
+      ...chartOptions,
+      xaxis: {
+        ...chartOptions.xaxis,
+        categories: overCategories.length > 0 ? overCategories : chartOptions.xaxis.categories,
+      },
+      yaxis: {
+        ...chartOptions.yaxis,
+        max: yAxisMax,
+        title: { ...chartOptions.yaxis.title, text: yAxisLabel },
+      },
+    }),
+    [overCategories, yAxisMax, yAxisLabel],
+  );
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#1D1E22] p-3 sm:p-5">
-      <section
-        className="relative w-full max-w-[677px] overflow-hidden px-4 py-6 text-white sm:px-8 sm:py-8"
-        style={frameStyle}
-      >
+    <div className="bg-page flex min-h-screen items-center justify-center p-3 sm:p-5">
+      <section className="relative w-full max-w-[677px] overflow-hidden px-4 py-6 text-white sm:px-8 sm:py-8" style={frameStyle}>
         <div className="relative z-10">
-          <h2 className="text-[20px] leading-none font-bold text-[#DA9811] uppercase sm:text-[21px]">
-            Score Comparison
-          </h2>
-          <p className="mt-2 text-[14px] leading-none text-white sm:text-[18px]">
-            Tournament (Match -7)
-          </p>
+          <h2 className="text-[20px] leading-none font-bold text-[#F5A623] uppercase sm:text-[21px]">{chartTitle}</h2>
+          {matchLabel ? <p className="mt-2 text-[14px] leading-none text-white sm:text-[18px]">{matchLabel}</p> : null}
 
           <div className="mt-5 rounded-[12px] bg-[#0C0601] p-2.5 sm:mt-6 sm:p-4">
             <div className="h-[220px] sm:h-[280px]">
-              <ReactApexChart
-                type="bar"
-                options={chartOptions}
-                series={chartSeries}
-                height="100%"
-              />
+              <ReactApexChart type="bar" options={dynamicOptions} series={series} height="100%" />
             </div>
           </div>
 
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-4 sm:flex sm:items-start sm:justify-between sm:gap-4">
-            {SUMMARY_CARDS.map((card, index) => (
-              <div
-                key={index}
-                className="w-full rounded-[10px] bg-[#0C0601] px-2.5 py-2 text-[#DA9811] sm:max-w-[214px] sm:px-4 sm:py-3"
-              >
-                <div className="flex items-center justify-between text-[12px] leading-none font-medium sm:text-[16px]">
-                  <span>{card.team}</span>
-                  <span>{card.score}</span>
-                  <span>{card.overs}</span>
+          {summaryCards.length > 0 ? (
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-4 sm:flex sm:items-start sm:justify-between sm:gap-4">
+              {summaryCards.map((card, index) => (
+                <div
+                  key={index}
+                  className="w-full rounded-[10px] bg-[#0C0601] px-2.5 py-2 text-[#F5A623] sm:max-w-[214px] sm:px-4 sm:py-3"
+                >
+                  <div className="flex items-center justify-between text-[12px] leading-none font-medium sm:text-[16px]">
+                    <span>{card.team}</span>
+                    <span>{card.score}</span>
+                    <span>{card.overs}</span>
+                  </div>
+                  <div className="mt-2 h-px bg-white/20" />
+                  <div className="mt-2 flex items-center justify-between text-[12px] leading-none font-medium sm:text-[14px]">
+                    <span>Six</span>
+                    <span>{card.six}</span>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between text-[12px] leading-none font-medium sm:text-[14px]">
+                    <span>Four</span>
+                    <span>{card.four}</span>
+                  </div>
                 </div>
-                <div className="mt-2 h-px bg-white/20" />
-                <div className="mt-2 flex items-center justify-between text-[12px] leading-none font-medium sm:text-[14px]">
-                  <span>Six</span>
-                  <span>{card.six}</span>
-                </div>
-                <div className="mt-2 flex items-center justify-between text-[12px] leading-none font-medium sm:text-[14px]">
-                  <span>Four</span>
-                  <span>{card.four}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : null}
         </div>
       </section>
     </div>

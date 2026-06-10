@@ -27,8 +27,6 @@ class HeroSliderController extends BaseAdminController
         $data = [
             'status' => StatusEnum::from($request->validated('status')),
         ];
-        $this->storeImage($request, 'image_mobile', 'hero-sliders', $data);
-        $this->storeImage($request, 'image_desktop', 'hero-sliders', $data);
         $record = $this->model->create($data);
         $record = $this->refresh($record);
 
@@ -45,8 +43,6 @@ class HeroSliderController extends BaseAdminController
         $data = [
             'status' => StatusEnum::from($request->validated('status')),
         ];
-        $this->storeImage($request, 'image_mobile', 'hero-sliders', $data, $hero_slider);
-        $this->storeImage($request, 'image_desktop', 'hero-sliders', $data, $hero_slider);
         $hero_slider = $this->refresh($hero_slider);
         $hero_slider->update($data);
         $hero_slider = $this->refresh($hero_slider);

@@ -31,17 +31,12 @@ export default function Reels() {
   const navigate = useNavigate();
   const location = useLocation();
   const publishedReels = useAppSelector(selectPublishedReels);
-  const [activeTab, setActiveTab] = useState(
-    location.state?.tab === TAB_MY_VIDEOS ? TAB_MY_VIDEOS : TAB_EXPLORE,
-  );
+  const [activeTab, setActiveTab] = useState(location.state?.tab === TAB_MY_VIDEOS ? TAB_MY_VIDEOS : TAB_EXPLORE);
   const [likedIds, setLikedIds] = useState(new Set());
   const [activeIndex, setActiveIndex] = useState(0);
   const containerRef = useRef(null);
 
-  const reels =
-    activeTab === TAB_EXPLORE
-      ? EXPLORE_REELS
-      : [...publishedReels, ...MY_VIDEOS_REELS];
+  const reels = activeTab === TAB_EXPLORE ? EXPLORE_REELS : [...publishedReels, ...MY_VIDEOS_REELS];
 
   // Reset to first reel when switching tabs
   useEffect(() => {
@@ -74,14 +69,11 @@ export default function Reels() {
      * and BottomNav (z-40), so both remain visible on top.
      */
     <div className="fixed inset-0 z-30 bg-black lg:left-[280px]">
-      <div className="relative h-full w-full lg:mx-auto lg:max-w-[430px] lg:border-x lg:border-[#1A1A1A]">
+      <div className="lg:border-surface-border relative h-full w-full lg:mx-auto lg:max-w-[430px] lg:border-x">
         {/* Tab bar — back left, Explore & My Videos centered */}
         <div className="absolute top-[64px] right-0 left-0 z-10 flex items-center justify-between px-4 py-2">
           {/* Back — left */}
-          <AppSubpageBackButton
-            onClick={() => navigate(-1)}
-            aria-label="Go back"
-          />
+          <AppSubpageBackButton onClick={() => navigate(-1)} aria-label="Go Back" />
 
           {/* Explore & My Videos — center, text stays inline */}
           <div className="absolute left-1/2 flex -translate-x-1/2 flex-nowrap items-center gap-3">
@@ -89,15 +81,11 @@ export default function Reels() {
               type="button"
               onClick={() => setActiveTab(TAB_EXPLORE)}
               className={`flex shrink-0 items-center gap-1.5 text-[13px] font-bold tracking-wide whitespace-nowrap uppercase transition-colors ${
-                activeTab === TAB_EXPLORE ? 'text-[#DA9811]' : 'text-white'
+                activeTab === TAB_EXPLORE ? 'text-brand' : 'text-white'
               }`}
             >
               <img
-                src={
-                  activeTab === TAB_EXPLORE
-                    ? exploreOrangeIcon
-                    : exploreWhiteIcon
-                }
+                src={activeTab === TAB_EXPLORE ? exploreOrangeIcon : exploreWhiteIcon}
                 alt=""
                 className="h-[18px] w-[18px] shrink-0"
                 aria-hidden
@@ -108,15 +96,11 @@ export default function Reels() {
               type="button"
               onClick={() => setActiveTab(TAB_MY_VIDEOS)}
               className={`flex shrink-0 items-center gap-1.5 text-[13px] font-bold tracking-wide whitespace-nowrap uppercase transition-colors ${
-                activeTab === TAB_MY_VIDEOS ? 'text-[#DA9811]' : 'text-white'
+                activeTab === TAB_MY_VIDEOS ? 'text-brand' : 'text-white'
               }`}
             >
               <img
-                src={
-                  activeTab === TAB_MY_VIDEOS
-                    ? myVideosOrangeIcon
-                    : myVideosWhiteIcon
-                }
+                src={activeTab === TAB_MY_VIDEOS ? myVideosOrangeIcon : myVideosWhiteIcon}
                 alt=""
                 className="h-[18px] w-[18px] shrink-0"
                 aria-hidden

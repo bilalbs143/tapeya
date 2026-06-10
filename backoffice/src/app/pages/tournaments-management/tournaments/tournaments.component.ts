@@ -166,7 +166,10 @@ export class TournamentsComponent implements OnInit, AfterViewInit, OnDestroy {
       ManageTournamentDialogComponent,
       { mode: 'create' },
       (result) => result && this.loadHttpData(),
-      { widthSize: 'md', disableClose: true }
+      {
+        widthSize: 'md',
+        disableClose: true,
+      }
     );
   }
 
@@ -175,7 +178,10 @@ export class TournamentsComponent implements OnInit, AfterViewInit, OnDestroy {
       ManageTournamentDialogComponent,
       { mode: 'edit', tournament: item },
       (result) => result && this.loadHttpData(),
-      { widthSize: 'md', disableClose: true }
+      {
+        widthSize: 'md',
+        disableClose: true,
+      }
     );
   }
 

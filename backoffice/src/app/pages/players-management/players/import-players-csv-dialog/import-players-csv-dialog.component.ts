@@ -194,9 +194,7 @@ export class ImportPlayersCsvDialogComponent implements OnInit, OnDestroy {
       }
     }
     const msg =
-      (typeof data['message'] === 'string' && data['message']) ||
-      (typeof data['error'] === 'string' && data['error']) ||
-      null;
+      (typeof data['message'] === 'string' && data['message']) || (typeof data['error'] === 'string' && data['error']) || null;
     return msg || 'Import failed.';
   }
 }

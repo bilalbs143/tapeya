@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             GraphicThemeSeeder::class,
             StaticPageSeeder::class,
             SystemSettingsSeeder::class,
+            PushNotificationTemplateSeeder::class,
         ]);
     }
 }
