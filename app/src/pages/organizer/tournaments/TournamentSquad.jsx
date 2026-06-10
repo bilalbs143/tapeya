@@ -4,6 +4,7 @@ import { useLocation, useNavigate, useParams, useSearchParams } from 'react-rout
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { TeamLogo } from '@/components/TeamLogo';
+import { useDialog } from '@/context/DialogContext';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
@@ -81,6 +82,7 @@ export default function TournamentSquad() {
   const { tournamentId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const toast = useToast();
+  const { openDialog } = useDialog();
 
   const teamFromState = location.state?.team;
   const tournamentFromState = location.state?.tournament ?? null;
@@ -233,10 +235,17 @@ export default function TournamentSquad() {
     );
   };
 
-  const handleRemovePlayer = (playerId) => {
-    const nextSquad = squad.filter((p) => p.id !== playerId);
-    setSquad(nextSquad);
-    saveSquad(nextSquad, squad);
+  const handleRemovePlayer = (player) => {
+    openDialog('confirm', {
+      title: 'Remove Player',
+      message: `Remove ${player.name} from the squad?`,
+      confirmLabel: 'Remove',
+      onConfirm: async () => {
+        const nextSquad = squad.filter((p) => p.id !== player.id);
+        setSquad(nextSquad);
+        await saveSquad(nextSquad, squad);
+      },
+    });
   };
 
   const handleAddPlayer = (player) => {
@@ -409,7 +418,7 @@ export default function TournamentSquad() {
                 <th className={`${HEADER_BG} border-r border-b py-2.5 text-center font-bold text-white ${BORDER}`}>
                   Playing Role
                 </th>
-                <th className={`${HEADER_BG} border-r border-b py-2.5 pr-4 text-right font-bold text-white ${BORDER}`}>Action</th>
+                <th className={`${HEADER_BG} border-r border-b py-2.5  text-center font-bold text-white ${BORDER}`}>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -428,10 +437,10 @@ export default function TournamentSquad() {
                     </p>
                   </td>
                   <td className={`border-r border-b py-3 text-center text-white ${BORDER}`}>{playerDisplayRole(player)}</td>
-                  <td className={`border-r border-b py-3 pr-4 text-right ${BORDER}`}>
+                  <td className={`border-r border-b py-3 text-center ${BORDER}`}>
                     <button
                       type="button"
-                      onClick={() => handleRemovePlayer(player.id)}
+                      onClick={() => handleRemovePlayer(player)}
                       className="inline-flex items-center justify-center transition-opacity active:opacity-80"
                       aria-label={`Remove ${player.name}`}
                     >

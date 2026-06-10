@@ -13,22 +13,17 @@ const editProfileIcon = `${CLOUDFRONT_APP_BASE}/images/icons/edit-profile.svg`;
 
 const EDIT_PROFILE_BUTTON_CLASS = `inline-flex items-center gap-2 rounded-[17px] border border-white bg-transparent px-4 py-1 text-[12px] font-semibold uppercase tracking-wide text-white/70 transition-colors hover:border-white/60 hover:text-white/90 ${FOCUS_RING}`;
 
-function DetailRow({ label, value, withColon = true, truncateAt }) {
-  const raw = value ?? '—';
-  const isTruncatable = truncateAt != null && typeof raw === 'string' && raw !== '—' && raw.length > truncateAt;
-  const display = isTruncatable ? `${raw.slice(0, truncateAt)}...` : raw;
-
+function DetailRow({ label, value, withColon = true, wrap = false }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1">
+    <div className="flex min-w-0 max-w-full flex-col gap-1">
       <span className="text-xs font-bold tracking-wide text-white/60 uppercase">
         {label}
         {withColon ? ':' : ''}
       </span>
       <span
-        className={`min-w-0 text-[16px] font-normal text-white ${truncateAt != null ? 'break-all' : ''}`}
-        title={isTruncatable ? raw : undefined}
+        className={`min-w-0 max-w-full text-[16px] font-normal text-white ${wrap ? 'break-all' : ''}`}
       >
-        {display}
+        {value ?? '—'}
       </span>
     </div>
   );
@@ -63,7 +58,7 @@ export function ProfileRoleOverview({ role, tournaments: _tournaments, events: _
       { label: 'PHONE', value: user?.phone ?? '—' },
       { label: 'NICKNAME', value: user?.nickname ?? '—' },
       { label: 'BATTING STYLE', value: battingLabel },
-      { label: 'EMAIL', value: user?.email ?? '—', truncateAt: 15 },
+      { label: 'EMAIL', value: user?.email ?? '—', wrap: true },
       { label: 'MEMBER SINCE', value: memberSince, withColon: true },
     ];
     detailsRight = [
@@ -77,7 +72,7 @@ export function ProfileRoleOverview({ role, tournaments: _tournaments, events: _
     detailsLeft = [
       { label: 'PHONE', value: user?.phone ?? '—' },
       { label: 'NICKNAME', value: user?.nickname ?? '—' },
-      { label: 'EMAIL', value: user?.email ?? '—', truncateAt: 15 },
+      { label: 'EMAIL', value: user?.email ?? '—', wrap: true },
     ];
     detailsRight = [
       { label: 'CITY', value: user?.city ?? '—', withColon: false },
@@ -88,7 +83,7 @@ export function ProfileRoleOverview({ role, tournaments: _tournaments, events: _
     detailsLeft = [
       { label: 'PHONE', value: user?.phone ?? '—' },
       { label: 'NICKNAME', value: user?.nickname ?? '—' },
-      { label: 'EMAIL', value: user?.email ?? '—', truncateAt: 15 },
+      { label: 'EMAIL', value: user?.email ?? '—', wrap: true },
     ];
     detailsRight = [
       { label: 'CITY', value: user?.city ?? '—', withColon: false },
@@ -108,15 +103,21 @@ export function ProfileRoleOverview({ role, tournaments: _tournaments, events: _
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-x-8 gap-y-6 py-6">
-        <div className="flex flex-col gap-5">
+      <div className="grid min-w-0 grid-cols-2 gap-x-8 gap-y-6 py-6">
+        <div className="flex min-w-0 flex-col gap-5">
           {detailsLeft.map((item) => (
-            <DetailRow key={item.label} label={item.label} value={item.value} truncateAt={item.truncateAt} />
+            <DetailRow key={item.label} label={item.label} value={item.value} wrap={item.wrap} />
           ))}
         </div>
-        <div className="flex flex-col gap-5">
+        <div className="flex min-w-0 flex-col gap-5">
           {detailsRight.map((item) => (
-            <DetailRow key={item.label} label={item.label} value={item.value} withColon={item.withColon ?? true} />
+            <DetailRow
+              key={item.label}
+              label={item.label}
+              value={item.value}
+              withColon={item.withColon ?? true}
+              wrap={item.wrap}
+            />
           ))}
         </div>
       </div>

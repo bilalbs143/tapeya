@@ -43,6 +43,8 @@ export default function ShopProductDetail() {
       hasDiscount,
       discountPercent,
       stock: product.stock_quantity ?? 0,
+      isLowStock:
+        (product.stock_quantity ?? 0) > 0 && (product.stock_quantity ?? 0) <= (product.low_stock_threshold ?? 5),
     };
   }, [product]);
 
@@ -98,6 +100,8 @@ export default function ShopProductDetail() {
   }
 
   const mainImage = normalized.imageUrls[selectedImage] ?? normalized.imageUrls[0];
+  const availabilityText = normalized.stock > 0 ? `Only ${normalized.stock} left in stock` : 'Out of stock';
+  const availabilityClass = normalized.isLowStock ? 'text-[#FF3B30]' : 'text-muted';
 
   return (
     <div className="bg-black">
@@ -163,9 +167,7 @@ export default function ShopProductDetail() {
               </div>
               <p className="text-muted text-[12px] font-bold">
                 Availability:{' '}
-                <span className={`ml-2 text-[12px] ${normalized.stock > 0 ? 'text-[#FF3B30]' : 'text-muted'}`}>
-                  {normalized.stock > 0 ? `Only ${normalized.stock} left in stock` : 'Out of stock'}
-                </span>
+                <span className={`ml-1 text-[12px] ${availabilityClass}`}>{availabilityText}</span>
               </p>
             </div>
 
@@ -270,9 +272,7 @@ export default function ShopProductDetail() {
                 </div>
                 <p className="text-muted text-[12px] font-bold">
                   Availability:{' '}
-                  <span className={`ml-2 text-[12px] ${normalized.stock > 0 ? 'text-[#FF3B30]' : 'text-muted'}`}>
-                    {normalized.stock > 0 ? `Only ${normalized.stock} left in stock` : 'Out of stock'}
-                  </span>
+                  <span className={`ml-1 text-[12px] ${availabilityClass}`}>{availabilityText}</span>
                 </p>
               </div>
 

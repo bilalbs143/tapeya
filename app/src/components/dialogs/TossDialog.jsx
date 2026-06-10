@@ -46,22 +46,30 @@ export function TossDialog({ teamAName, teamBName, teamALogo, teamBLogo, onStart
             <button
               type="button"
               onClick={() => setTossWinner('A')}
-              className={`flex flex-1 flex-col items-center justify-center gap-2 rounded-[17px] border-2 px-4 py-4 transition-colors focus:outline-none ${
+              className={`flex flex-1 flex-col items-center gap-1 rounded-[17px] border-2 px-3 py-4 transition-colors focus:outline-none ${
                 tossWinner === 'A' ? 'border-brand bg-brand text-white' : 'bg-surface border-[#141412] text-white'
               }`}
             >
-              <TeamLogo name={teamAName} logo={teamALogo} variant="dialog" />
-              <span className="text-[14px] font-bold uppercase">{teamAName || 'Team A'}</span>
+              <div className="flex w-full items-center justify-center">
+                <TeamLogo name={teamAName} logo={teamALogo} variant="match" />
+              </div>
+              <span className="flex min-h-[2.5rem] w-full items-center justify-center px-1 text-center text-[14px] font-bold leading-tight uppercase">
+                {teamAName || 'Team A'}
+              </span>
             </button>
             <button
               type="button"
               onClick={() => setTossWinner('B')}
-              className={`flex flex-1 flex-col items-center justify-center gap-2 rounded-[17px] border-2 px-4 py-4 transition-colors focus:outline-none ${
+              className={`flex flex-1 flex-col items-center gap-1 rounded-[17px] border-2 px-3 py-4 transition-colors focus:outline-none ${
                 tossWinner === 'B' ? 'border-brand bg-brand text-white' : 'bg-surface border-[#141412] text-white'
               }`}
             >
-              <TeamLogo name={teamBName} logo={teamBLogo} variant="dialog" />
-              <span className="text-[14px] font-bold uppercase">{teamBName || 'Team B'}</span>
+              <div className="flex w-full items-center justify-center">
+                <TeamLogo name={teamBName} logo={teamBLogo} variant="match" />
+              </div>
+              <span className="flex min-h-[2.5rem] w-full items-center justify-center px-1 text-center text-[14px] font-bold leading-tight uppercase">
+                {teamBName || 'Team B'}
+              </span>
             </button>
           </div>
 

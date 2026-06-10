@@ -49,12 +49,16 @@ export function ScoringTossDialog({ homeTeamName, awayTeamName, homeTeamLogo, aw
                 key={key}
                 type="button"
                 onClick={() => setTossWinner(key)}
-                className={`flex flex-1 flex-col items-center justify-center gap-2 rounded-[17px] border-2 px-4 py-4 transition-colors focus:outline-none ${
+                className={`flex flex-1 flex-col items-center gap-1 rounded-[17px] border-2 px-3 py-4 transition-colors focus:outline-none ${
                   tossWinner === key ? 'border-brand bg-brand text-white' : 'bg-surface border-[#141412] text-white'
                 }`}
               >
-                <TeamLogo name={label} logo={logo} variant="dialog" />
-                <span className="text-[14px] font-bold uppercase">{label}</span>
+                <div className="flex w-full items-center justify-center">
+                  <TeamLogo name={label} logo={logo} variant="match" />
+                </div>
+                <span className="flex min-h-[2.5rem] w-full items-center justify-center px-1 text-center text-[14px] font-bold leading-tight uppercase">
+                  {label}
+                </span>
               </button>
             ))}
           </div>
