@@ -785,9 +785,10 @@ export function ScoringTab({
           model={wicketSummaryModel}
           onUndo={requestWicketSummaryUndo}
           onProceed={() => {
-            // Reset so the bowler dialog can re-trigger via the effect once
-            // needs_new_batter clears (i.e. after the new batsman is confirmed).
-            prevNeedsBowlerRef.current = false;
+            // Note: prevNeedsBowlerRef is NOT reset here. The API no longer sets
+            // needs_new_bowler=true when an over ends on a wicket, so the bowler
+            // dialog must not be forced after the incoming batsman is selected.
+            // The scorer can change the bowler manually via Add/Replace Bowler.
             handleWicketSummaryProceed();
           }}
           isUndoing={wicketSummaryUndoing}

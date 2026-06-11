@@ -103,7 +103,21 @@ class MatchStateService
                 // i.e. it was a legal ball AND legal_balls is a multiple of 6.
                 // Using over_complete alone is wrong: that flag stays true after a Wide/NB
                 // opens the new over, falsely re-triggering the picker.
-                $needsNewBowler = $lastBall !== null && $lastBall->isLegalDelivery() && ($stats['legal_balls'] % 6 === 0) && empty($pending['next_bowler_id']);
+                //
+                // Exception: when the over ends on a countable wicket, do NOT prompt for a
+                // new bowler — the same bowler continues by default for the next over, and
+                // the scorer can change them manually via Add/Replace Bowler if needed.
+                // (Retired hurt on ball 6 is excluded: it is not a crease-vacating wicket,
+                // so the over ends normally and a bowler change prompt is still appropriate.)
+                $overEndedOnWicket = $lastBall !== null
+                    && (bool) $lastBall->is_wicket
+                    && ! $lastBall->isRetiredHurt();
+
+                $needsNewBowler = $lastBall !== null
+                    && $lastBall->isLegalDelivery()
+                    && ($stats['legal_balls'] % 6 === 0)
+                    && empty($pending['next_bowler_id'])
+                    && ! $overEndedOnWicket;
 
                 if ($lastBall !== null && (bool) $lastBall->is_wicket && ! $lastBall->isRetiredHurt()) {
                     $lastDismissalBallId = (int) $lastBall->id;
