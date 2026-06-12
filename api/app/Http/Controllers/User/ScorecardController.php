@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Enums\Event\DismissalTypeEnum;
 use App\Enums\Event\InningsStatusEnum;
 use App\Enums\Event\MatchStatusEnum;
+use App\Events\Broadcast\Graphics\MatchGraphicFlashDispatched;
 use App\Events\Scoring\MatchStateUpdated;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
@@ -14,10 +15,12 @@ use App\Jobs\RefreshMatchStatsJob;
 use App\Jobs\SyncMatchGraphicContextJob;
 use App\Models\Ball;
 use App\Models\Innings;
+use App\Models\MatchGraphicSession;
 use App\Models\MatchScoringAudit;
 use App\Models\TournamentMatch;
 use App\Models\User;
 use App\Services\BallDeliveryNormalizer;
+use App\Services\Broadcast\ScoringFlashResolver;
 use App\Services\InningsStatsService;
 use App\Services\MatchCompletionService;
 use App\Services\MatchStateService;
@@ -150,6 +153,8 @@ class ScorecardController extends Controller
         RefreshMatchStatsJob::dispatch($match->id)->delay(now()->addSeconds(3));
         SyncMatchGraphicContextJob::dispatch($match->id);
 
+        $this->dispatchScoringFlash($match, $ball);
+
         $ball->load(['striker', 'nonStriker', 'bowler', 'outPlayer', 'fielder']);
 
         $matchState = $this->matchStateService->build($match->fresh(), $innings->fresh());
@@ -267,6 +272,8 @@ class ScorecardController extends Controller
 
         $this->logScoringAudit($match, $authUser, 'delete_ball', $ball->id);
 
+        $ballId = $ball->id;
+
         $ball->delete();
 
         $this->clearGraphicPendingCreaseIds($match);
@@ -275,6 +282,8 @@ class ScorecardController extends Controller
 
         RefreshMatchStatsJob::dispatch($match->id)->delay(now()->addSeconds(3));
         SyncMatchGraphicContextJob::dispatch($match->id);
+
+        $this->cancelScoringFlash($match, $ballId);
 
         $matchState = $this->matchStateService->build($match->fresh(), $innings->fresh());
         MatchStateUpdated::dispatch($match->id, $matchState);
@@ -311,6 +320,8 @@ class ScorecardController extends Controller
 
         $this->logScoringAudit($match, $authUser, 'delete_last_ball', $ball->id);
 
+        $ballId = $ball->id;
+
         $ball->delete();
 
         $this->clearGraphicPendingCreaseIds($match);
@@ -319,6 +330,8 @@ class ScorecardController extends Controller
 
         RefreshMatchStatsJob::dispatch($match->id)->delay(now()->addSeconds(3));
         SyncMatchGraphicContextJob::dispatch($match->id);
+
+        $this->cancelScoringFlash($match, $ballId);
 
         $matchState = $this->matchStateService->build($match->fresh(), $innings->fresh());
         MatchStateUpdated::dispatch($match->id, $matchState);
@@ -727,5 +740,35 @@ class ScorecardController extends Controller
 
         $session->update(['pending_players' => $pending === [] ? null : $pending]);
         $match->unsetRelation('graphicSession');
+    }
+
+    private function dispatchScoringFlash(TournamentMatch $match, Ball $ball): void
+    {
+        $session = $match->graphicSession;
+        if (! $session instanceof MatchGraphicSession) {
+            return;
+        }
+
+        $config = is_array($session->config) ? $session->config : [];
+        if (($config['scoring_flash_enabled'] ?? true) === false) {
+            return;
+        }
+
+        $commands = ScoringFlashResolver::resolve($ball);
+        if ($commands === []) {
+            return;
+        }
+
+        MatchGraphicFlashDispatched::dispatchFromSession($session, $ball->id, $commands);
+    }
+
+    private function cancelScoringFlash(TournamentMatch $match, int $ballId): void
+    {
+        $session = $match->loadMissing('graphicSession')->graphicSession;
+        if (! $session instanceof MatchGraphicSession) {
+            return;
+        }
+
+        MatchGraphicFlashDispatched::dispatchFromSession($session, $ballId, []);
     }
 }
