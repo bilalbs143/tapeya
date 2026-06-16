@@ -1,6 +1,9 @@
 /**
  * Capacitor push notification lifecycle: permission, token registration, tap routing.
  * No-op on web — push is native-only in Phase 1.
+ *
+ * iOS: Capacitor returns a raw APNs token; we fetch the FCM registration token via FcmTokenPlugin.
+ * Android: Capacitor registration event already provides an FCM token.
  */
 
 import { useEffect, useRef } from 'react';
@@ -8,6 +11,11 @@ import { useEffect, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { useNavigate } from 'react-router-dom';
 
+import {
+  addIosFcmTokenRefreshListener,
+  getIosFcmTokenWithRetry,
+  isLikelyApnsToken,
+} from '@/native/fcmToken';
 import { isNative } from '@/platform/platform';
 import { useRegisterDeviceTokenMutation } from '@/store/api/deviceTokenApi';
 import { useAppSelector } from '@/store/hooks';
@@ -47,6 +55,10 @@ async function syncDeviceTokenWithApi(registerToken, token) {
     return;
   }
 
+  if (isLikelyApnsToken(token)) {
+    return;
+  }
+
   setStoredPushToken(token);
 
   try {
@@ -58,6 +70,23 @@ async function syncDeviceTokenWithApi(registerToken, token) {
   } catch {
     // best-effort — registration event or next login may retry
   }
+}
+
+/**
+ * @returns {Promise<string | null>}
+ */
+async function resolvePushTokenForApi(registrationToken) {
+  const platform = Capacitor.getPlatform();
+
+  if (platform === 'ios') {
+    return getIosFcmTokenWithRetry();
+  }
+
+  if (platform === 'android' && registrationToken && !isLikelyApnsToken(registrationToken)) {
+    return registrationToken;
+  }
+
+  return null;
 }
 
 function routeFromPushData(navigate, data) {
@@ -118,11 +147,22 @@ export function usePushNotifications() {
           return;
         }
 
+        listeners.push(
+          await addIosFcmTokenRefreshListener(async (token) => {
+            if (cancelled) return;
+            await syncDeviceTokenWithApi(registerToken, token);
+          }),
+        );
+
         // Listeners must be attached before register() or the token event may be missed.
         listeners.push(
           await PushNotifications.addListener('registration', async (tokenEvent) => {
-            if (cancelled || !tokenEvent.value) return;
-            await syncDeviceTokenWithApi(registerToken, tokenEvent.value);
+            if (cancelled) return;
+
+            const token = await resolvePushTokenForApi(tokenEvent.value);
+            if (!token) return;
+
+            await syncDeviceTokenWithApi(registerToken, token);
           }),
         );
 
@@ -145,9 +185,16 @@ export function usePushNotifications() {
         initializedRef.current = true;
 
         // Re-login often reuses the same OS token without firing registration again.
-        const storedToken = getStoredPushToken();
-        if (storedToken && !cancelled) {
-          await syncDeviceTokenWithApi(registerToken, storedToken);
+        if (Capacitor.getPlatform() === 'ios') {
+          const fcmToken = await getIosFcmTokenWithRetry();
+          if (fcmToken && !cancelled) {
+            await syncDeviceTokenWithApi(registerToken, fcmToken);
+          }
+        } else {
+          const storedToken = getStoredPushToken();
+          if (storedToken && !cancelled) {
+            await syncDeviceTokenWithApi(registerToken, storedToken);
+          }
         }
       } catch {
         // plugin unavailable or web build
