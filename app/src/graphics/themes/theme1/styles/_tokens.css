@@ -16,8 +16,8 @@
   --ambient-color-a: rgba(255, 55, 110, 0.06);
   --ambient-color-b: rgba(255, 70, 120, 0.34);
   --ambient-color-c: rgba(220, 40, 90, 0.44);
-  --panel-base: rgba(22, 28, 42, 0.88);
-  --panel-deep: rgba(11, 15, 24, 0.92);
+  --panel-base: rgba(22,28,42,0.88);
+  --panel-deep: rgba(11,15,24,0.92);
   --score-color: #dbe8ff;
-  --score-shadow: rgba(90, 140, 255, 0.85);
+  --score-shadow: rgba(90,140,255,.85);
 }
