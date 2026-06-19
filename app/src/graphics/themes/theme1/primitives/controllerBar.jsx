@@ -244,7 +244,7 @@ function HorizontalBar({
                 </div>
                 <BowlerSubRow chipSize={ballTrackSize}>
                   {isPreviousOver ? (
-                    <LastOverRunsLabel runs={frame.lastOverRuns} rowHeight={ballTrackSize} />
+                    <LastOverRunsLabel runs={frame.lastOverRuns} wickets={frame.lastOverWickets} rowHeight={ballTrackSize} />
                   ) : (
                     <BallTrack chips={frame.thisOverChips} size={ballTrackSize} max={6} />
                   )}
@@ -325,24 +325,36 @@ function BowlerSubRow({ chipSize, children }) {
   );
 }
 
-function LastOverRunsLabel({ runs, rowHeight }) {
+function LastOverRunsLabel({ runs, wickets = 0, rowHeight }) {
   if (runs == null) return null;
+  const wicketCount = Number(wickets) || 0;
+  const showWickets = wicketCount > 0;
+  const labelClass = 'font-bold tracking-[0.08em] text-white';
+  const valueClass = cn(
+    SCORE_DISPLAY_CLASS,
+    'leading-none text-[var(--score-color)] [text-shadow:0_0_calc(10px*var(--glow))_var(--score-shadow)]',
+  );
+
   return (
     <div className="flex items-center gap-[0.4rem] [font-family:var(--font-ui)] whitespace-nowrap" style={{ height: rowHeight }}>
-      <span className="font-bold tracking-[0.08em] text-white" style={{ fontSize: lt.lastOverLabel }}>
+      <span className={labelClass} style={{ fontSize: lt.lastOverLabel }}>
         Last Over
       </span>
-      <AnimatedNumber
-        value={runs}
-        className={cn(
-          SCORE_DISPLAY_CLASS,
-          'leading-none text-[var(--score-color)] [text-shadow:0_0_calc(10px*var(--glow))_var(--score-shadow)]',
-        )}
-        style={{ fontSize: lt.lastOverRuns }}
-      />
-      <span className="font-bold tracking-[0.08em] text-white" style={{ fontSize: lt.lastOverLabel }}>
+      <AnimatedNumber value={runs} className={valueClass} style={{ fontSize: lt.lastOverRuns }} />
+      <span className={labelClass} style={{ fontSize: lt.lastOverLabel }}>
         Runs
       </span>
+      {showWickets ? (
+        <>
+          <span className={cn(labelClass, 'text-white/75')} style={{ fontSize: lt.lastOverLabel }}>
+            and
+          </span>
+          <AnimatedNumber value={wicketCount} className={valueClass} style={{ fontSize: lt.lastOverRuns }} />
+          <span className={labelClass} style={{ fontSize: lt.lastOverLabel }}>
+            {wicketCount === 1 ? 'Wicket' : 'Wickets'}
+          </span>
+        </>
+      ) : null}
     </div>
   );
 }

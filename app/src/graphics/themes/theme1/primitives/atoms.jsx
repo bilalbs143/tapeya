@@ -138,15 +138,42 @@ export const Crest = memo(function Crest({ team, size = 86, accent, borderPulseO
   );
 });
 
+/** Compound delivery tokens (e.g. WD+W, 2NB+W) need a pill chip + smaller type. */
+function resolveBallChipLayout(display, size) {
+  const text = String(display ?? '');
+  const compound = text !== '•' && (text.includes('+') || text.length > 3);
+
+  if (!compound) {
+    return { compound: false, style: { width: size, height: size, fontSize: size * 0.42 } };
+  }
+
+  const len = text.length;
+  // Tighter type + no horizontal padding so pill width stays close to the circular chip size.
+  const fontScale = len >= 6 ? 0.29 : len >= 5 ? 0.31 : len >= 4 ? 0.34 : 0.36;
+
+  return {
+    compound: true,
+    style: {
+      width: 'auto',
+      minWidth: size,
+      height: size,
+      paddingInline: 0,
+      fontSize: size * fontScale,
+      letterSpacing: '-0.045em',
+    },
+  };
+}
+
 export const BallChip = memo(function BallChip({ code, chipType, size = 28, animate = true }) {
   const variant = chipType ? overlayVariantFor({ chip_type: chipType }) : overlayVariantFor(code);
   const display = code === '•' || code === '0' || code === '' ? '•' : code;
+  const { compound, style } = resolveBallChipLayout(display, size);
 
   return (
     <span
       data-variant={variant}
-      className={cn('bc-ball-chip', animate && 'bc-animate-chip-in')}
-      style={{ width: size, height: size, fontSize: size * 0.42 }}
+      className={cn('bc-ball-chip', compound && 'bc-ball-chip--compound', animate && 'bc-animate-chip-in')}
+      style={style}
     >
       {display}
     </span>

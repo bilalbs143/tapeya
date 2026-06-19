@@ -93,7 +93,10 @@ export function normalizeLive(ctx, teams) {
     requiredRR: ctx.required_rr ?? '',
     winProbability: normalizeWinProbability(ctx.win_probability),
     fallOfWickets: Array.isArray(ctx.fall_of_wickets) ? ctx.fall_of_wickets : [],
-    previousOver: { runs: ctx.previous_over?.runs ?? 0 },
+    previousOver: {
+      runs: ctx.previous_over?.runs ?? 0,
+      wickets: ctx.previous_over?.wickets ?? 0,
+    },
     last12Balls: normalizeBallSummary(ctx.last_12_balls),
     last30Balls: normalizeBallSummary(ctx.last_30_balls),
     thisOver: normalizeBallSummary(ctx.this_over),

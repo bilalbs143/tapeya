@@ -758,6 +758,17 @@ describe('PREVIOUS_OVER processor', () => {
     });
     const props = processPreviousOver(snapshot);
     expect(props.lastOverRuns).toBe(12);
+    expect(props.lastOverWickets).toBe(0);
+  });
+
+  it('reads previousOver wickets from normalized live', () => {
+    const snapshot = createTestSnapshot({
+      active_command: { command_key: 'PREVIOUS_OVER' },
+      context: { previous_over: { runs: 8, wickets: 2 } },
+    });
+    const props = processPreviousOver(snapshot);
+    expect(props.lastOverRuns).toBe(8);
+    expect(props.lastOverWickets).toBe(2);
   });
 });
 

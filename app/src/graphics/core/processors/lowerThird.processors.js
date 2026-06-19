@@ -155,6 +155,7 @@ export function processPreviousOver(snapshot) {
   return {
     ...scoreboardBase(snapshot),
     lastOverRuns: snapshot.live.previousOver.runs ?? p.last_over_runs ?? 0,
+    lastOverWickets: snapshot.live.previousOver.wickets ?? p.last_over_wickets ?? 0,
   };
 }
 

@@ -121,6 +121,7 @@ export function toScoreBarBundle(props, tokens, options = {}) {
     partnershipBalls: props.partnershipBalls,
     partnership: props.partnershipRuns != null ? { runs: props.partnershipRuns, balls: props.partnershipBalls ?? 0 } : null,
     lastOverRuns: props.lastOverRuns,
+    lastOverWickets: props.lastOverWickets ?? 0,
     winProbHome: props.winProbHome,
     winProbAway: props.winProbAway,
     deliveries: props.deliveries,

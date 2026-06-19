@@ -33,7 +33,8 @@ final class GraphicLiveStatsBuilder
      *   current_over_ball_models: list<Ball>,
      *   batters: list<array{id: int, team_id?: int, name: string, runs: int, balls: int, ones: int, twos: int, threes: int, fours: int, sixes: int, dots: int, on_strike: bool, is_dismissed: bool}>,
      *   bowler: array{name: string, figures: string, overs: string, user_id?: int|null, team_id?: int|null, runs_conceded?: int, balls_bowled?: int, dots?: int, wickets?: int, economy?: string|null},
-     *   previous_over_runs: int
+     *   previous_over_runs: int,
+     *   previous_over_wickets: int
      * }
      */
     private function graphicOverBattersBowlerStrip(
@@ -116,6 +117,7 @@ final class GraphicLiveStatsBuilder
                 'batters' => $batters,
                 'bowler' => $bowler,
                 'previous_over_runs' => 0,
+                'previous_over_wickets' => 0,
             ];
         }
 
@@ -125,7 +127,9 @@ final class GraphicLiveStatsBuilder
 
         $currentOverBalls = [];
         $previousOverRuns = 0;
+        $previousOverWickets = 0;
         $currentOverRuns = 0;
+        $currentOverWickets = 0;
         $legalInCurrentOver = 0;
 
         foreach ($balls as $ball) {
@@ -134,11 +138,16 @@ final class GraphicLiveStatsBuilder
 
             $currentOverBalls[] = $ball;
             $currentOverRuns += $ballRuns;
+            if ($ball->is_wicket) {
+                $currentOverWickets++;
+            }
 
             if ($isLegal && ++$legalInCurrentOver === 6) {
                 $previousOverRuns = $currentOverRuns;
+                $previousOverWickets = $currentOverWickets;
                 $currentOverBalls = [];
                 $currentOverRuns = 0;
+                $currentOverWickets = 0;
                 $legalInCurrentOver = 0;
             }
         }
@@ -267,6 +276,7 @@ final class GraphicLiveStatsBuilder
             'batters' => array_values($batters),
             'bowler' => $bowler,
             'previous_over_runs' => $previousOverRuns,
+            'previous_over_wickets' => $previousOverWickets,
         ];
     }
 
@@ -388,6 +398,7 @@ final class GraphicLiveStatsBuilder
         $currentOverBallModels = $strip['current_over_ball_models'];
         $batters = $strip['batters'];
         $previousOverRuns = $strip['previous_over_runs'];
+        $previousOverWickets = $strip['previous_over_wickets'] ?? 0;
 
         // ── Fall of wickets in graphic format ─────────────────────────────────
         // Convert from shared {wicket_number, batsman_name, score, overs}
@@ -527,7 +538,7 @@ final class GraphicLiveStatsBuilder
             'required_rr' => $requiredRR,
             'win_probability' => $winProbability,
             'fall_of_wickets' => $fallOfWickets,
-            'previous_over' => ['runs' => $previousOverRuns],
+            'previous_over' => ['runs' => $previousOverRuns, 'wickets' => $previousOverWickets],
             'last_12_balls' => $this->buildDeliveryWindow($balls, 12),
             'last_30_balls' => $this->computeBallStats($balls, 30),
             'this_over' => array_merge(
