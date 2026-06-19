@@ -46,6 +46,13 @@ const EMPTY_FORM = {
   icon_player_ids: [],
 };
 
+/** @param {number|undefined} preferred @param {number} numberOfGroups */
+function normalizeGroupIndex(preferred, numberOfGroups) {
+  const n = Number(preferred);
+  if (Number.isInteger(n) && n >= 1 && n <= numberOfGroups) return n;
+  return 1;
+}
+
 /**
  * Body-only dialog — rendered by DialogManager inside BaseDialog.
  * Open via:
@@ -99,11 +106,7 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
   const [logoUpload, setLogoUpload] = useState(EMPTY_FILE_UPLOAD);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [teamNameDropdownOpen, setTeamNameDropdownOpen] = useState(isTournamentCreate);
-  const [selectedGroupIndex, setSelectedGroupIndex] = useState(() => {
-    const n = Number(preferredGroupIndex);
-    if (Number.isInteger(n) && n >= 1 && n <= 16) return n;
-    return 'random';
-  });
+  const [selectedGroupIndex, setSelectedGroupIndex] = useState(() => normalizeGroupIndex(preferredGroupIndex, numberOfGroups));
   const [selectedSponsor, setSelectedSponsor] = useState(null);
   const [sponsorSearch, setSponsorSearch] = useState('');
   const [sponsorDropdownOpen, setSponsorDropdownOpen] = useState(false);
@@ -125,9 +128,6 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
   const showSponsorDropdown = !isReadonly && !selectedSponsor && sponsorSearch.trim().length > 0 && sponsorDropdownOpen;
   const showTeamNameDropdown =
     isTournamentCreate && searchQuery.length >= MIN_SEARCH_LENGTH && !selectedTeam && teamNameDropdownOpen;
-
-  const resolveGroupIndex = () =>
-    selectedGroupIndex === 'random' ? Math.floor(Math.random() * numberOfGroups) + 1 : selectedGroupIndex;
 
   // ── Prefill form (edit) or reset (create) ───────────────────────────────────
 
@@ -163,8 +163,7 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
       setSelectedSponsor(null);
       setSelectedTeam(null);
       setTeamNameDropdownOpen(isTournamentCreate);
-      const n = Number(preferredGroupIndex);
-      setSelectedGroupIndex(Number.isInteger(n) && n >= 1 && n <= numberOfGroups ? n : 'random');
+      setSelectedGroupIndex(normalizeGroupIndex(preferredGroupIndex, numberOfGroups));
     }
 
     setLogoUpload(isEdit && team?.logo ? fileUploadValueFromUrl(team.logo) : EMPTY_FILE_UPLOAD);
@@ -278,7 +277,7 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
     await attachTeamsToTournament({
       tournamentId,
       team_ids: [teamId],
-      ...(hasGroups ? { group_index: resolveGroupIndex() } : {}),
+      ...(hasGroups ? { group_index: selectedGroupIndex } : {}),
     }).unwrap();
     return attachedTeam;
   };
@@ -287,6 +286,13 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
 
   const onSubmit = async (data) => {
     const logoFile = logoUpload.files[0] ?? null;
+
+    if (isTournamentCreate && hasGroups) {
+      if (!Number.isInteger(selectedGroupIndex) || selectedGroupIndex < 1 || selectedGroupIndex > numberOfGroups) {
+        toast.error('Please select a group for this team.');
+        return;
+      }
+    }
 
     if (isTournamentCreate && !canAddTournamentTeams(tournament, existingTeams.length)) {
       toast.error('This tournament already has the maximum number of teams.');
@@ -375,22 +381,11 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
         <FormStack as="form" id="manage-team-form" density="default" className="pb-2" onSubmit={handleSubmit(onSubmit)}>
           {isTournamentCreate && hasGroups ? (
             <FormField label="Group" htmlFor="manage-group" required>
-              <Select
-                value={String(selectedGroupIndex)}
-                onValueChange={(v) => setSelectedGroupIndex(v === 'random' ? 'random' : Number(v))}
-              >
+              <Select value={String(selectedGroupIndex)} onValueChange={(v) => setSelectedGroupIndex(Number(v))}>
                 <SelectTrigger id="manage-group" className={selectTriggerInputClass} aria-label="Select Group">
                   <SelectValue placeholder="Select Group" />
                 </SelectTrigger>
                 <SelectContent className={selectContentInputClass} viewportClassName={selectViewportInputClass} position="popper">
-                  <SelectItem
-                    value="random"
-                    className={selectItemInputClass}
-                    textClassName="!text-white"
-                    indicatorClassName="!text-white"
-                  >
-                    Random Group
-                  </SelectItem>
                   {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map((idx) => (
                     <SelectItem
                       key={idx}

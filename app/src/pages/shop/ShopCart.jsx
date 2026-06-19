@@ -8,6 +8,19 @@ import { getApiErrorMessage } from '@/lib/apiErrors';
 import { formatPrice, toNumber } from '@/lib/format';
 import { useGetCartQuery, useRemoveCartItemMutation, useUpdateCartItemMutation } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
+import {
+  Select,
+  SelectContent,
+  selectContentInputClass,
+  SelectItem,
+  selectItemInputClass,
+  SelectTrigger,
+  SelectValue,
+  selectViewportInputClass,
+} from '@/ui/Select';
+
+const qtySelectTriggerClass =
+  '!h-8 !w-[4.25rem] !min-w-0 !rounded-[6px] !border-0 !bg-surface !px-2 !py-1 !text-[12px] !text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF9700]/50 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:!text-[12px] [&>span]:!text-white [&_svg]:!text-white';
 
 const CartItemCard = memo(function CartItemCard({ item, onUpdateQty, onRemove, isUpdating }) {
   const imageUrl = item.product?.images?.[0]?.path;
@@ -28,22 +41,31 @@ const CartItemCard = memo(function CartItemCard({ item, onUpdateQty, onRemove, i
           {formatPrice(item.price_snapshot)} <span className="font-normal text-white">x {item.quantity}</span>
         </p>
         <div className="mt-1 flex items-center gap-2">
-          <select
-            value={item.quantity}
-            onChange={(e) => {
-              const qty = parseInt(e.target.value, 10);
+          <Select
+            value={String(item.quantity)}
+            onValueChange={(v) => {
+              const qty = parseInt(v, 10);
               if (qty >= 1) onUpdateQty(item.id, qty);
             }}
             disabled={isUpdating}
-            className="bg-surface rounded px-2 py-1 text-[12px] text-white"
-            aria-label="Quantity"
           >
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className={qtySelectTriggerClass} aria-label="Quantity">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className={selectContentInputClass} viewportClassName={selectViewportInputClass} position="popper">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                <SelectItem
+                  key={n}
+                  value={String(n)}
+                  className={selectItemInputClass}
+                  textClassName="!text-white"
+                  indicatorClassName="!text-white"
+                >
+                  {n}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <button
             type="button"
             onClick={() => onRemove(item.id)}

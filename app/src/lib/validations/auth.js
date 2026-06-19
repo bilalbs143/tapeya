@@ -2,6 +2,7 @@ import { isValidPhoneNumber } from 'libphonenumber-js/min';
 import { z } from 'zod';
 
 import { normalizePhoneE164 } from '@/lib/phoneCodes';
+import { toApiDate } from '@/lib/utils/dateUtils';
 
 import { phoneSchema } from './shared';
 
@@ -64,7 +65,10 @@ export const updateProfileSchema = z.object({
       }
     }, 'Enter a valid phone number for the selected country')
     .optional(),
-  date_of_birth: z.string().optional(),
+  date_of_birth: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Please enter a valid date of birth')
+    .optional(),
   bowling_style: z.union([z.string().min(1), z.null()]).optional(),
   batting_style: z.union([z.string().min(1), z.null()]).optional(),
   playing_role: z.union([z.string().min(1), z.null()]).optional(),
@@ -92,7 +96,16 @@ export const userEditFormSchema = z.object({
         });
       }
     }),
-  dateOfBirth: z.string(),
+  dateOfBirth: z.string().superRefine((value, ctx) => {
+    if (!value || !value.trim()) return;
+    const api = toApiDate(value);
+    if (!api || !/^\d{4}-\d{2}-\d{2}$/.test(api)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Please enter a valid date of birth',
+      });
+    }
+  }),
   battingStyle: z.string(),
   bowlingStyle: z.string(),
   playingRole: z.string(),

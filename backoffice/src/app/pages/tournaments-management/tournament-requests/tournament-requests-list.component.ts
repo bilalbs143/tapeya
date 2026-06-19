@@ -165,7 +165,7 @@ export class TournamentRequestsListComponent implements OnInit, AfterViewInit, O
     this.messageService.openDialog<TournamentRequestDetailDialogComponent, boolean>(
       TournamentRequestDetailDialogComponent,
       { tournamentRequest: request },
-      (result) => result && this.loadHttpData(),
+      undefined,
       {
         widthSize: 'md',
         disableClose: true,

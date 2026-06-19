@@ -118,23 +118,40 @@ export function UserEdit({ open, onOpenChange }) {
 
   useEffect(() => {
     if (!open || !user) return;
-    const batting = enumNameToValue(user.batting_style_enum) || user.batting_style;
-    const bowling = enumNameToValue(user.bowling_style_enum) || user.bowling_style;
-    const playing = enumNameToValue(user.playing_role_enum);
+
     const countryFromProfile = user.country && String(user.country).trim();
+
     reset({
       name: user.name ?? '',
       country: countryFromProfile || DEFAULT_COUNTRY,
       city: user.city ?? '',
       nickname: user.nickname ?? '',
       dateOfBirth: formatIsoDateForDisplay(user.date_of_birth),
-      battingStyle: batting && battingStyleOptions.some((o) => o.value === batting) ? batting : '',
-      bowlingStyle: bowling && bowlingStyleOptions.some((o) => o.value === bowling) ? bowling : '',
-      playingRole: playing && playingRoleOptions.some((o) => o.value === playing) ? playing : '',
+      battingStyle: '',
+      bowlingStyle: '',
+      playingRole: '',
       email: user.email ?? '',
     });
     setAvatarUpload(fileUploadValueFromUrl(user.avatar_url));
-  }, [open, user, battingStyleOptions, bowlingStyleOptions, playingRoleOptions, reset]);
+  }, [open, user, reset]);
+
+  useEffect(() => {
+    if (!open || !user) return;
+
+    const batting = enumNameToValue(user.batting_style_enum) || user.batting_style;
+    const bowling = enumNameToValue(user.bowling_style_enum) || user.bowling_style;
+    const playing = enumNameToValue(user.playing_role_enum);
+
+    setValue('battingStyle', batting && battingStyleOptions.some((o) => o.value === batting) ? batting : '', {
+      shouldValidate: false,
+    });
+    setValue('bowlingStyle', bowling && bowlingStyleOptions.some((o) => o.value === bowling) ? bowling : '', {
+      shouldValidate: false,
+    });
+    setValue('playingRole', playing && playingRoleOptions.some((o) => o.value === playing) ? playing : '', {
+      shouldValidate: false,
+    });
+  }, [open, user, battingStyleOptions, bowlingStyleOptions, playingRoleOptions, setValue]);
 
   const onSubmit = async (data) => {
     const parsed = updateProfileSchema.safeParse({
@@ -171,8 +188,13 @@ export function UserEdit({ open, onOpenChange }) {
     } catch (err) {
       const apiErrors = err?.data?.errors;
       const nicknameMsg = Array.isArray(apiErrors?.nickname) ? apiErrors.nickname[0] : null;
+      const dobMsg = Array.isArray(apiErrors?.date_of_birth) ? apiErrors.date_of_birth[0] : null;
       if (nicknameMsg) {
         setError('nickname', { message: nicknameMsg });
+        return;
+      }
+      if (dobMsg) {
+        setError('dateOfBirth', { message: dobMsg });
         return;
       }
       toast.error(getApiErrorMessage(err, 'Failed to save profile.'));
@@ -234,6 +256,7 @@ export function UserEdit({ open, onOpenChange }) {
                   value={field.value}
                   onChange={field.onChange}
                   className="max-w-none"
+                  error={errors.dateOfBirth?.message}
                 />
               )}
             />

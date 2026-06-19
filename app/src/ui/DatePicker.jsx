@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { DayPicker } from 'react-day-picker';
 
+import { parseDisplayOrIsoDate } from '@/lib/utils/dateUtils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/Popover';
 
 const inputBase =
@@ -18,11 +19,7 @@ function formatDisplay(value) {
 }
 
 function parseValue(value) {
-  if (!value || typeof value !== 'string') return undefined;
-  const [month, day, year] = value.split(/[-/]/).map(Number);
-  if (!month || !day || !year) return undefined;
-  const d = new Date(year, month - 1, day);
-  return isNaN(d.getTime()) ? undefined : d;
+  return parseDisplayOrIsoDate(value);
 }
 
 const triggerVariants = {

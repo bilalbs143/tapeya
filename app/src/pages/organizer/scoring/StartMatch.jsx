@@ -26,6 +26,17 @@ import { FormActions } from '@/ui/form/FormActions';
 import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
+import {
+  Select,
+  SelectContent,
+  selectContentInputClass,
+  SelectItem,
+  selectItemInputClass,
+  SelectTrigger,
+  selectTriggerInputClass,
+  SelectValue,
+  selectViewportInputClass,
+} from '@/ui/Select';
 import { TimePicker } from '@/ui/TimePicker';
 
 const oversInputBase =
@@ -192,26 +203,36 @@ export default function StartMatch() {
           {/* Tournament selection (hidden when opened from tournament hub with pre-selected tournament) */}
           {!tournamentPreSelected && (
             <FormField htmlFor="tournament_id" label="Tournament">
-              <select
-                id="tournament_id"
-                value={tournamentId}
-                onChange={(e) => {
-                  const v = e.target.value;
+              <Select
+                value={tournamentId || undefined}
+                onValueChange={(v) => {
                   setValue('tournament_id', v || '');
                   setValue('team_a_id', '');
                   setValue('team_b_id', '');
                 }}
-                className={`${oversInputBase} w-full ${errors.tournament_id ? 'border-red-500' : ''}`}
-                aria-label="Select Tournament"
-                aria-invalid={!!errors.tournament_id}
               >
-                <option value="">Select Tournament</option>
-                {tournaments.map((t) => (
-                  <option key={t.id} value={String(t.id)}>
-                    {t.tournament_name ?? t.name ?? `Tournament ${t.id}`}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger
+                  id="tournament_id"
+                  className={`${selectTriggerInputClass} ${errors.tournament_id ? 'ring-2 ring-red-500' : ''}`}
+                  aria-label="Select Tournament"
+                  aria-invalid={!!errors.tournament_id}
+                >
+                  <SelectValue placeholder="Select Tournament" />
+                </SelectTrigger>
+                <SelectContent className={selectContentInputClass} viewportClassName={selectViewportInputClass} position="popper">
+                  {tournaments.map((t) => (
+                    <SelectItem
+                      key={t.id}
+                      value={String(t.id)}
+                      className={selectItemInputClass}
+                      textClassName="!text-white"
+                      indicatorClassName="!text-white"
+                    >
+                      {t.tournament_name ?? t.name ?? `Tournament ${t.id}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {errors.tournament_id?.message && (
                 <p className="text-sm text-red-200" role="alert">
                   {errors.tournament_id.message}
@@ -222,25 +243,39 @@ export default function StartMatch() {
 
           {hasGroups && (
             <FormField htmlFor="match_group" label="Match Type">
-              <select
-                id="match_group"
+              <Select
                 value={matchGroupKey}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setMatchGroupKey(v ?? '');
+                onValueChange={(v) => {
+                  setMatchGroupKey(v ?? 'knockout');
                   setValue('team_a_id', '');
                   setValue('team_b_id', '');
                 }}
-                className={`${oversInputBase} w-full`}
-                aria-label="Match Type (Group or Knockout)"
               >
-                <option value="knockout">Knockout / Playoff</option>
-                {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map((idx) => (
-                  <option key={idx} value={String(idx)}>
-                    Group {idx}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger id="match_group" className={selectTriggerInputClass} aria-label="Match Type (Group or Knockout)">
+                  <SelectValue placeholder="Select Match Type" />
+                </SelectTrigger>
+                <SelectContent className={selectContentInputClass} viewportClassName={selectViewportInputClass} position="popper">
+                  <SelectItem
+                    value="knockout"
+                    className={selectItemInputClass}
+                    textClassName="!text-white"
+                    indicatorClassName="!text-white"
+                  >
+                    Knockout / Playoff
+                  </SelectItem>
+                  {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map((idx) => (
+                    <SelectItem
+                      key={idx}
+                      value={String(idx)}
+                      className={selectItemInputClass}
+                      textClassName="!text-white"
+                      indicatorClassName="!text-white"
+                    >
+                      Group {idx}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </FormField>
           )}
 

@@ -114,11 +114,12 @@ export default function TournamentSavedTeams() {
     });
   };
 
-  const handleOpenAddTeam = () => {
+  const handleOpenAddTeam = (groupIndex) => {
     openDialog('manageTeam', {
       mode: 'create',
       tournamentId: tournamentIdNum,
       tournament,
+      ...(groupIndex != null ? { preferredGroupIndex: groupIndex } : {}),
       onSuccess: (team) => {
         if (team?.id != null) setHighlightTeamId(team.id);
       },
@@ -148,7 +149,7 @@ export default function TournamentSavedTeams() {
           {canAddTeam && (
             <button
               type="button"
-              onClick={handleOpenAddTeam}
+              onClick={() => handleOpenAddTeam()}
               className="flex shrink-0 items-center gap-2 transition-opacity active:opacity-80"
             >
               <span className="bg-brand text-ink flex h-[22px] w-[22px] items-center justify-center rounded-full text-[15px] leading-none font-bold">
@@ -175,7 +176,21 @@ export default function TournamentSavedTeams() {
           <div className="space-y-6 pb-6">
             {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map((groupIndex) => (
               <section key={groupIndex}>
-                <h3 className="text-brand mb-2 text-[13px] font-bold tracking-wide uppercase">Group {groupIndex}</h3>
+                <div className="mb-2 flex items-center justify-between">
+                  <h3 className="text-brand text-[13px] font-bold tracking-wide uppercase">Group {groupIndex}</h3>
+                  {canAddTeam ? (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenAddTeam(groupIndex)}
+                      className="flex shrink-0 items-center gap-2 transition-opacity active:opacity-80"
+                    >
+                      <span className="bg-brand text-ink flex h-[22px] w-[22px] items-center justify-center rounded-full text-[15px] leading-none font-bold">
+                        +
+                      </span>
+                      <span className="text-muted text-[13px] font-bold">Add Team</span>
+                    </button>
+                  ) : null}
+                </div>
                 <ul className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
                   {teamsByGroup[groupIndex].map((team, index) => (
                     <li

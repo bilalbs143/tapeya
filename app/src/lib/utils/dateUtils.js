@@ -9,6 +9,48 @@ export function toDateStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+/** @param {string} s */
+function isoDateHead(s) {
+  return String(s).trim().split('T')[0] ?? '';
+}
+
+/** @param {string} s */
+export function isIsoDateString(s) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(isoDateHead(s));
+}
+
+/** MM-DD-YYYY (DatePicker display format). */
+export function isDisplayDateString(s) {
+  return /^\d{1,2}-\d{1,2}-\d{4}$/.test(String(s).trim());
+}
+
+/**
+ * Parse MM-DD-YYYY or YYYY-MM-DD to a local Date. Returns undefined when invalid.
+ *
+ * @param {string} [value]
+ * @returns {Date | undefined}
+ */
+export function parseDisplayOrIsoDate(value) {
+  if (!value || typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  const head = isoDateHead(trimmed);
+
+  if (isIsoDateString(head)) {
+    const [year, month, day] = head.split('-').map(Number);
+    const d = new Date(year, month - 1, day);
+    return Number.isNaN(d.getTime()) ? undefined : d;
+  }
+
+  const display = trimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  if (display) {
+    const [, mm, dd, yyyy] = display.map(Number);
+    const d = new Date(yyyy, mm - 1, dd);
+    return Number.isNaN(d.getTime()) ? undefined : d;
+  }
+
+  return undefined;
+}
+
 /**
  * Parses a date string to a Date (noon UTC to avoid timezone rollover). Returns null for invalid.
  *
@@ -32,49 +74,54 @@ export function parseDate(str) {
  */
 export function formatIsoDateForDisplay(iso) {
   if (!iso || typeof iso !== 'string') return '';
-  const head = iso.split('T')[0] ?? '';
-  const [year, month, day] = head.split('-');
-  if (!year || !month || !day) return '';
-  return `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}-${year}`;
+  const head = isoDateHead(iso);
+
+  if (isIsoDateString(head)) {
+    const [year, month, day] = head.split('-');
+    return `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}-${year}`;
+  }
+
+  if (isDisplayDateString(head)) {
+    const match = head.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+    if (!match) return '';
+    const [, mm, dd, yyyy] = match;
+    return `${mm.padStart(2, '0')}-${dd.padStart(2, '0')}-${yyyy}`;
+  }
+
+  return '';
 }
 
-/** DatePicker → MM-DD-YYYY; API expects YYYY-MM-DD. Leaves ISO dates unchanged. */
+/** DatePicker → MM-DD-YYYY; API expects YYYY-MM-DD. Returns '' when unparseable. */
 export function toApiDate(value) {
-  if (!value) return value === undefined || value === null ? value : '';
+  if (value == null || value === '') return '';
+
   if (value instanceof Date) {
-    return Number.isNaN(value.getTime()) ? '' : value.toISOString().slice(0, 10);
+    return toDateStr(value);
   }
-  if (typeof value !== 'string') {
-    try {
-      const d = new Date(value);
-      return Number.isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
-    } catch {
-      return '';
-    }
-  }
+
+  if (typeof value !== 'string') return '';
+
   const trimmed = value.trim();
-  const head = trimmed.split('T')[0] ?? '';
-  if (/^\d{4}-\d{2}-\d{2}$/.test(head)) {
+  const head = isoDateHead(trimmed);
+
+  if (isIsoDateString(head)) {
     return head;
   }
-  const mmdd = trimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
-  if (mmdd) {
-    const [, mm, dd, yyyy] = mmdd;
+
+  const display = trimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  if (display) {
+    const [, mm, dd, yyyy] = display;
     return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
   }
-  const parts = trimmed.split(/[-/]/);
-  if (parts.length !== 3) {
-    try {
-      const d = new Date(trimmed);
-      return Number.isNaN(d.getTime()) ? value : d.toISOString().slice(0, 10);
-    } catch {
-      return value;
-    }
+
+  const slash = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (slash) {
+    const [, mm, dd, yyyy] = slash;
+    return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
   }
-  const [mm, dd, yyyy] = parts;
-  if (!yyyy || !mm || !dd) return value;
-  if (String(yyyy).length !== 4) return value;
-  return `${yyyy}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+
+  const parsed = parseDisplayOrIsoDate(trimmed);
+  return parsed ? toDateStr(parsed) : '';
 }
 
 /**
