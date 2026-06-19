@@ -41,6 +41,14 @@ export const SHOT_ZONE_GEOMETRY = {
   },
 };
 
+/**
+ * Convert shot-zone math angle (see {@link SHOT_ZONE_GEOMETRY} position.angleDeg)
+ * to wagon-wheel graphic angle: degrees clockwise from straight down (0 = bottom).
+ */
+export function shotZoneAngleToWagonWheel(angleDeg) {
+  return 90 - angleDeg;
+}
+
 /** Default zones when API not used: one entry per geometry key (order = object key order). */
 export const SHOT_DIRECTION_ZONES = Object.keys(SHOT_ZONE_GEOMETRY).map((id) => {
   const label = id.replace(/_/g, ' ').toUpperCase();
@@ -53,6 +61,41 @@ export const SHOT_DIRECTION_ZONES = Object.keys(SHOT_ZONE_GEOMETRY).map((id) => 
     labelLine2: parts.slice(mid).join(' '),
   };
 });
+
+export function resolveShotDirection(ball) {
+  return ball?.shotDirection ?? ball?.shot_direction ?? ball?.shot_position ?? null;
+}
+
+/**
+ * Runs scored per shot zone (only zones with at least one tagged ball).
+ * Sorted by runs descending — for wagon wheel FS stats panel.
+ *
+ * @param {Array} ballHistory
+ * @returns {Array<{ id: string, label: string, runs: number, pct: number }>}
+ */
+export function getShotZoneRunBreakdown(ballHistory = []) {
+  const totals = new Map();
+  let totalRuns = 0;
+
+  for (const ball of ballHistory) {
+    if (ball.type !== 'runs') continue;
+    const dir = resolveShotDirection(ball);
+    if (!dir || !SHOT_ZONE_GEOMETRY[dir]) continue;
+    const runs = getRunsFromBall(ball);
+    if (runs <= 0) continue;
+    totals.set(dir, (totals.get(dir) ?? 0) + runs);
+    totalRuns += runs;
+  }
+
+  return [...totals.entries()]
+    .map(([id, runs]) => ({
+      id,
+      label: id.replace(/_/g, ' ').toUpperCase(),
+      runs,
+      pct: totalRuns > 0 ? Math.round((runs / totalRuns) * 100) : 0,
+    }))
+    .sort((a, b) => b.runs - a.runs);
+}
 
 /**
  * From ball history, compute share of runs (off the bat, type `runs`) per shot direction.
@@ -67,10 +110,11 @@ export function getShotDirectionPercentages(ballHistory = [], zones = SHOT_DIREC
   const runTotals = list.map(() => 0);
   let totalRuns = 0;
   for (const ball of ballHistory) {
-    if (ball.type !== 'runs' || !ball.shotDirection) continue;
+    const dir = resolveShotDirection(ball);
+    if (ball.type !== 'runs' || !dir) continue;
     const runs = getRunsFromBall(ball);
     if (runs <= 0) continue;
-    const idx = list.findIndex((z) => (z.id ?? z.value) === ball.shotDirection);
+    const idx = list.findIndex((z) => (z.id ?? z.value) === dir);
     if (idx >= 0) {
       runTotals[idx] += runs;
       totalRuns += runs;

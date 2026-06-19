@@ -1158,8 +1158,14 @@ describe('theme1 chart adapter', () => {
     expect(wheel?.title).toBe('WAGON WHEEL');
     expect(wheel?.shots).toHaveLength(2);
     expect(wheel?.shots[0].runs).toBe(4);
+    expect(wheel?.shots[0].angle).toBe(22.5);
+    expect(wheel?.shots[1].angle).toBe(-67.5);
     expect(typeof wheel?.shots[0].angle).toBe('number');
     expect(wheel?.shots[0].dist).toBeGreaterThan(0);
+    expect(wheel?.zoneBreakdown).toEqual([
+      { id: 'long_on', label: 'LONG ON', runs: 6, pct: 60 },
+      { id: 'deep_cover', label: 'DEEP COVER', runs: 4, pct: 40 },
+    ]);
   });
 });
 

@@ -1,7 +1,12 @@
 /**
  * Chart processors → Tapeya chart graphic data shapes.
  */
-import { SHOT_ZONE_GEOMETRY } from '@/lib/utils/shotAreaUtils';
+import {
+  getShotZoneRunBreakdown,
+  resolveShotDirection,
+  SHOT_ZONE_GEOMETRY,
+  shotZoneAngleToWagonWheel,
+} from '@/lib/utils/shotAreaUtils';
 
 import { tournamentSub } from './_shared';
 import { chartLabelsForCommand } from './presentationLabels';
@@ -220,12 +225,12 @@ export function toPhaseChartData(props, tokens) {
  * @param {Record<string, unknown>} ball
  */
 function ballToShot(ball) {
-  const dir = ball.shotDirection ?? ball.shot_direction;
+  const dir = resolveShotDirection(ball);
   const geom = dir ? SHOT_ZONE_GEOMETRY[dir] : null;
   const angleDeg = geom?.position?.angleDeg ?? 0;
   const runs = ball.runs ?? 0;
   return {
-    angle: angleDeg - 90,
+    angle: shotZoneAngleToWagonWheel(angleDeg),
     dist: Math.min(0.35 + runs * 0.1, 1),
     runs,
   };
@@ -256,5 +261,6 @@ export function toWagonWheelData(props, tokens, options = {}) {
       teamName,
     },
     shots: ballHistory.map(ballToShot),
+    zoneBreakdown: getShotZoneRunBreakdown(ballHistory),
   };
 }

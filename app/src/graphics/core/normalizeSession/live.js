@@ -120,7 +120,7 @@ export function normalizeLive(ctx, teams) {
           b && typeof b === 'object'
             ? {
                 type: typeof b.type === 'string' ? b.type : 'runs',
-                shotDirection: b.shot_direction ?? b.shotDirection ?? null,
+                shotDirection: b.shot_direction ?? b.shotDirection ?? b.shot_position ?? null,
                 runs: Number(b.runs ?? 0) || 0,
                 strikerId: toNum(b.striker_id ?? b.strikerId),
               }

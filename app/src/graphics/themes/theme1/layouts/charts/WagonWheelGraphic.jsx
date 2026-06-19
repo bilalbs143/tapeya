@@ -59,6 +59,8 @@ function shotPoint(angle, dist, size) {
   return [cx + radius * dist * Math.sin(rad), cy + radius * dist * Math.cos(rad)];
 }
 
+const ZONE_BAR_COLORS = ['#5aa0ff', '#9d7bff', '#5fd0a8', '#f5c85a', '#ff7eb3', '#7ec8ff', '#c8a0ff', '#ffd27e'];
+
 /**
  * @param {Array<{ angle: number, runs: number }>} shots
  */
@@ -66,10 +68,8 @@ function summarizeShots(shots) {
   const total = shots.reduce((sum, shot) => sum + shot.runs, 0);
   const fours = shots.filter((shot) => shot.runs === 4).length;
   const sixes = shots.filter((shot) => shot.runs === 6).length;
-  const offSide = shots.filter((shot) => shot.angle > 0).reduce((sum, shot) => sum + shot.runs, 0);
-  const legSide = shots.filter((shot) => shot.angle <= 0).reduce((sum, shot) => sum + shot.runs, 0);
 
-  return { total, fours, sixes, offSide, legSide };
+  return { total, fours, sixes };
 }
 
 /** @param {number} runs */
@@ -223,11 +223,16 @@ function WagonZoneBar({ label, value, total, color }) {
   const pct = total ? Math.round((value / total) * 100) : 0;
 
   return (
-    <div>
-      <div className="mb-1.5 flex justify-between">
-        <span className={cn('text-[16px] font-semibold tracking-[0.08em] text-[var(--muted)] uppercase', UI_FONT)}>{label}</span>
-        <span className={cn('text-[16px] text-[var(--text)]', '[font-family:var(--font-mono)]')}>
-          {value} runs · {pct}%
+    <div className="min-w-0">
+      <div className="mb-1.5 flex items-baseline justify-between gap-2">
+        <span
+          className={cn('min-w-0 truncate text-[14px] font-semibold tracking-[0.07em] text-[var(--muted)] uppercase', UI_FONT)}
+          title={label}
+        >
+          {label}
+        </span>
+        <span className={cn('shrink-0 text-[15px] font-bold text-white tabular-nums', '[font-family:var(--font-mono)]')}>
+          {value} · {pct}%
         </span>
       </div>
       <div className="h-2.5 overflow-hidden rounded-md bg-white/[0.06]">
@@ -248,7 +253,7 @@ function WagonZoneBar({ label, value, total, color }) {
   );
 }
 
-function WagonStatsPanel({ player, stats }) {
+function WagonStatsPanel({ player, stats, zoneBreakdown = [] }) {
   return (
     <div className="flex flex-col gap-[26px]">
       <div>
@@ -267,16 +272,25 @@ function WagonStatsPanel({ player, stats }) {
         <WagonBigStat label="SIXES" value={stats.sixes} accent="#f5c85a" />
       </div>
 
-      <div className="flex flex-col gap-3">
-        <WagonZoneBar label="OFF SIDE" value={stats.offSide} total={stats.total} color="#5aa0ff" />
-        <WagonZoneBar label="LEG SIDE" value={stats.legSide} total={stats.total} color="#9d7bff" />
-      </div>
+      {zoneBreakdown.length > 0 ? (
+        <div className={cn('grid gap-x-6 gap-y-2', zoneBreakdown.length > 4 ? 'grid-cols-2' : 'grid-cols-1')}>
+          {zoneBreakdown.map((zone, index) => (
+            <WagonZoneBar
+              key={zone.id}
+              label={zone.label}
+              value={zone.runs}
+              total={stats.total}
+              color={ZONE_BAR_COLORS[index % ZONE_BAR_COLORS.length]}
+            />
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
 
 export function WagonWheelGraphic({ data }) {
-  const { title, sub, teams, player, shots } = data;
+  const { title, sub, teams, player, shots, zoneBreakdown = [] } = data;
   const stats = summarizeShots(shots);
 
   return (
@@ -307,7 +321,7 @@ export function WagonWheelGraphic({ data }) {
             <WagonLegend />
           </div>
 
-          <WagonStatsPanel player={player} stats={stats} />
+          <WagonStatsPanel player={player} stats={stats} zoneBreakdown={zoneBreakdown} />
         </GlowPanel>
       </div>
     </FSStage>
