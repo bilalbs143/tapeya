@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -20,12 +19,19 @@ import { MessageService } from 'src/app/services/message.service';
 import type { TournamentMatchRow } from 'src/app/services/tournament-matches.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
+
 export interface ControllerSettingsDialogData {
   matchId: number;
   match: TournamentMatchRow;
-  session: MatchGraphicSession;
+  session: MatchGraphicSession | null;
   themes: GraphicTheme[];
 }
+
+type TeamColors = { text_color?: string; bg_color?: string };
+type ConfigShape = {
+  teams?: { home?: TeamColors; away?: TeamColors };
+  enable_images?: boolean;
+};
 
 @Component({
   selector: 'app-controller-settings-dialog',
@@ -59,14 +65,21 @@ export class ControllerSettingsDialogComponent {
 
   public saving = false;
   public urlCopied = false;
+  private mutated = false;
 
-  /** Raw signed URL from API (theme updated client-side via overlayUrl). */
-  private readonly signedLinkBaseUrl = signal<string | null>(null);
-  public readonly signedLinkLoading = signal(true);
+  /** False until a graphic session exists (on open or after first save). */
+  public readonly sessionReady = signal(this.data.session !== null);
+
+  private readonly defaultTheme = this.data.themes.find((t) => t.is_active) ?? this.data.themes[0] ?? null;
+
+  private readonly initialThemeId = this.data.session?.graphic_theme_id ?? this.defaultTheme?.id ?? null;
+
+  public readonly signedOverlayUrl = signal<string | null>(null);
+  public readonly signedLinkLoading = signal(false);
   public readonly signedLinkError = signal(false);
 
   public readonly form = this.fb.nonNullable.group({
-    graphic_theme_id: [this.data.session.graphic_theme_id, Validators.required],
+    graphic_theme_id: [this.initialThemeId, Validators.required],
     home_text: ['#ffffff'],
     home_bg: ['#0d3320'],
     away_text: ['#ffffff'],
@@ -74,63 +87,33 @@ export class ControllerSettingsDialogComponent {
     enable_images: [false],
   });
 
-  /** Reactive theme-id value for computing the overlay URL. */
-  private readonly selectedThemeId = toSignal(this.form.controls.graphic_theme_id.valueChanges, {
-    initialValue: this.data.session.graphic_theme_id,
-  });
+  public readonly saveButtonLabel = computed(() => 'Save');
 
-  /** Signed overlay URL — theme query updates live as the theme selection changes. */
-  public readonly overlayUrl = computed(() => {
-    const base = this.signedLinkBaseUrl();
-    const themeId = this.selectedThemeId();
-    const theme = this.data.themes.find((t) => t.id === themeId);
-    if (!theme || !base) {
-      return null;
-    }
-    try {
-      const u = new URL(base);
-      u.searchParams.set('theme', theme.slug);
-      return u.toString();
-    } catch {
-      return null;
-    }
-  });
+  public readonly dialogTitle = computed(() => 'Graphics Settings');
+
+  public readonly dismissLabel = computed(() => (this.sessionReady() && this.data.session === null ? 'Done' : 'Cancel'));
 
   constructor() {
-    // Priority: session.config → active theme's default_config → hardcoded fallback.
-    // The fallback is only reached on brand-new sessions where neither the config
-    // nor the theme default_config has been set yet.
-    type TeamColors = { text_color?: string; bg_color?: string };
-    type ConfigShape = {
-      teams?: { home?: TeamColors; away?: TeamColors };
-      enable_images?: boolean;
-    };
-
-    const cfg = (this.data.session.config ?? {}) as ConfigShape;
-    const activeTheme = this.data.themes.find((t) => t.id === this.data.session.graphic_theme_id);
-    const themeCfg = (activeTheme?.default_config ?? {}) as ConfigShape;
-
-    this.form.patchValue({
-      home_text: cfg.teams?.home?.text_color ?? themeCfg.teams?.home?.text_color ?? '#ffffff',
-      home_bg: cfg.teams?.home?.bg_color ?? themeCfg.teams?.home?.bg_color ?? '#0d3320',
-      away_text: cfg.teams?.away?.text_color ?? themeCfg.teams?.away?.text_color ?? '#ffffff',
-      away_bg: cfg.teams?.away?.bg_color ?? themeCfg.teams?.away?.bg_color ?? '#4a0e0e',
-      enable_images: Boolean(cfg.enable_images ?? themeCfg.enable_images),
-    });
-
-    this.refreshSignedOverlayUrl();
+    this.patchFormFromConfig();
+    if (this.sessionReady()) {
+      this.refreshSignedOverlayUrl();
+    }
   }
 
-  public refreshSignedOverlayUrl(): void {
-    const themeId = this.selectedThemeId();
-    const theme = this.data.themes.find((t) => t.id === themeId);
-    const themeSlug = theme?.slug ?? 'tapeya-basic';
+  public refreshSignedOverlayUrl(autoCopy = false): void {
+    if (!this.sessionReady()) {
+      return;
+    }
+
     this.signedLinkLoading.set(true);
     this.signedLinkError.set(false);
-    this.matchGraphicService.getSignedOverlayUrl(this.data.matchId, { theme: themeSlug }).subscribe({
+    this.matchGraphicService.getSignedOverlayUrl(this.data.matchId).subscribe({
       next: (res) => {
-        this.signedLinkBaseUrl.set(res.data.url);
+        this.signedOverlayUrl.set(res.data.url);
         this.signedLinkLoading.set(false);
+        if (autoCopy) {
+          this.copyUrlToClipboard(res.data.url);
+        }
       },
       error: (err: unknown) => {
         this.signedLinkLoading.set(false);
@@ -140,11 +123,19 @@ export class ControllerSettingsDialogComponent {
     });
   }
 
+  public closeDialog(): void {
+    this.dialogRef.close(this.mutated);
+  }
+
   public copyOverlayUrl(): void {
-    const url = this.overlayUrl();
+    const url = this.signedOverlayUrl();
     if (!url) {
       return;
     }
+    this.copyUrlToClipboard(url);
+  }
+
+  private copyUrlToClipboard(url: string): void {
     void navigator.clipboard.writeText(url).then(() => {
       this.urlCopied = true;
       this.snackBar.open('Overlay URL Copied', undefined, { duration: 2000 });
@@ -156,30 +147,54 @@ export class ControllerSettingsDialogComponent {
     if (this.form.invalid || this.saving) {
       return;
     }
+
     const v = this.form.getRawValue();
-    const config: Record<string, unknown> = {
-      teams: {
-        home: { text_color: v.home_text, bg_color: v.home_bg },
-        away: { text_color: v.away_text, bg_color: v.away_bg },
+    const body = {
+      graphic_theme_id: v.graphic_theme_id,
+      config: {
+        teams: {
+          home: { text_color: v.home_text, bg_color: v.home_bg },
+          away: { text_color: v.away_text, bg_color: v.away_bg },
+        },
+        enable_images: v.enable_images,
       },
-      enable_images: v.enable_images,
     };
 
     this.saving = true;
-    this.matchGraphicService
-      .updateSession(this.data.matchId, {
-        graphic_theme_id: v.graphic_theme_id,
-        config,
-      })
-      .subscribe({
-        next: () => {
-          this.saving = false;
-          this.dialogRef.close(true);
-        },
-        error: (err: unknown) => {
-          this.saving = false;
-          this.messageService.httpError(err);
-        },
-      });
+    const isFirstSave = !this.sessionReady();
+    const request$ = isFirstSave
+      ? this.matchGraphicService.createSession(this.data.matchId, body)
+      : this.matchGraphicService.updateSession(this.data.matchId, body);
+
+    request$.subscribe({
+      next: () => {
+        this.saving = false;
+        this.mutated = true;
+        if (isFirstSave) {
+          this.sessionReady.set(true);
+          this.refreshSignedOverlayUrl(true);
+          return;
+        }
+        this.dialogRef.close(true);
+      },
+      error: (err: unknown) => {
+        this.saving = false;
+        this.messageService.httpError(err);
+      },
+    });
+  }
+
+  private patchFormFromConfig(): void {
+    const cfg = (this.data.session?.config ?? {}) as ConfigShape;
+    const activeTheme = this.data.themes.find((t) => t.id === this.initialThemeId) ?? this.defaultTheme;
+    const themeCfg = (activeTheme?.default_config ?? {}) as ConfigShape;
+
+    this.form.patchValue({
+      home_text: cfg.teams?.home?.text_color ?? themeCfg.teams?.home?.text_color ?? '#ffffff',
+      home_bg: cfg.teams?.home?.bg_color ?? themeCfg.teams?.home?.bg_color ?? '#0d3320',
+      away_text: cfg.teams?.away?.text_color ?? themeCfg.teams?.away?.text_color ?? '#ffffff',
+      away_bg: cfg.teams?.away?.bg_color ?? themeCfg.teams?.away?.bg_color ?? '#4a0e0e',
+      enable_images: Boolean(cfg.enable_images ?? themeCfg.enable_images),
+    });
   }
 }

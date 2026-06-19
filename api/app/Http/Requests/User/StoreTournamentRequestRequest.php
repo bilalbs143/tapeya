@@ -24,6 +24,7 @@ class StoreTournamentRequestRequest extends FormRequest
             'contact_person_name' => ['required', 'string', 'max:255'],
             'contact_phone' => ['required', 'string', 'regex:/^\+[1-9]\d{6,}$/', 'max:30'],
             'tournament_name' => ['required', 'string', 'max:255'],
+            'short_name' => ['nullable', 'string', 'max:64'],
             'tournament_type' => ['required', Rule::enum(TournamentTypeEnum::class)],
             'cricket_format' => ['required', Rule::enum(CricketFormatEnum::class)],
             'venue_name' => ['required', 'string', 'max:255'],

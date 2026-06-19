@@ -5,13 +5,13 @@ namespace App\Events\Broadcast\Graphics;
 use App\Models\MatchGraphicCommand;
 use App\Models\MatchGraphicSession;
 use App\Models\TournamentMatch;
-use App\Services\Broadcast\GraphicContextOrchestrator;
+use App\Support\Broadcast\GraphicContextHash;
+use App\Support\Scoring\MatchPendingState;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\App;
 
 /**
  * Broadcast on the public channel `match.{matchId}.graphics` whenever the
@@ -19,10 +19,9 @@ use Illuminate\Support\Facades\App;
  *
  * This is intentionally a **public** channel — the overlay page runs as an
  * OBS/vMix browser source with no user auth context, so it cannot join a
- * private channel. The broadcast carries command metadata, merged live
- * `context`, and a small session slice (`graphic_theme_id`, `config`,
- * `pending_players`) so the overlay cache stays aligned with the DB without
- * an extra HTTP round-trip.
+ * private channel. The broadcast carries command metadata and
+ * `context_hash` (not the full context blob) so overlays stay under the
+ * Pusher payload limit and refetch context over HTTP when the hash changes.
  */
 class MatchGraphicCommandActivated implements ShouldBroadcastNow
 {
@@ -42,8 +41,6 @@ class MatchGraphicCommandActivated implements ShouldBroadcastNow
 
     public int $commandId;
 
-    public ?array $context;
-
     public ?int $graphicThemeId;
 
     /** @var array<string, mixed>|null */
@@ -51,6 +48,8 @@ class MatchGraphicCommandActivated implements ShouldBroadcastNow
 
     /** @var array<string, mixed>|null */
     public ?array $pendingPlayers;
+
+    public ?string $contextHash;
 
     public function __construct(MatchGraphicSession $session, MatchGraphicCommand $command)
     {
@@ -67,36 +66,13 @@ class MatchGraphicCommandActivated implements ShouldBroadcastNow
             ? $command->display_mode->value
             : $command->display_mode;
         $this->payload = $command->payload;
-        $this->context = self::broadcastContext($session);
+        $this->contextHash = self::contextHashFromSession($session);
         $this->graphicThemeId = $session->graphic_theme_id !== null ? (int) $session->graphic_theme_id : null;
         $this->sessionConfig = is_array($session->config) ? $session->config : null;
-        $this->pendingPlayers = is_array($session->pending_players) ? $session->pending_players : null;
+        $this->pendingPlayers = null;
     }
 
     /**
-     * Full live context from the DB (same as {@see GraphicContextBuilder::build}),
-     * merged over any persisted JSON so overlays never show stale `batters` / `bowler`
-     * when a command activates — activating a command does not run {@see SyncMatchGraphicContextJob}.
-     */
-    private static function broadcastContext(MatchGraphicSession $session): ?array
-    {
-        $match = $session->relationLoaded('match')
-            ? $session->getRelation('match')
-            : TournamentMatch::query()->find($session->match_id);
-
-        if (! $match instanceof TournamentMatch) {
-            $base = is_array($session->context) ? $session->context : [];
-
-            return $base !== [] ? $base : null;
-        }
-
-        return App::make(GraphicContextOrchestrator::class)
-            ->mergeSessionContext($session, $match);
-    }
-
-    /**
-     * Public channel — no authentication required on the subscriber side.
-     *
      * @return array<int, Channel>
      */
     public function broadcastOn(): array
@@ -117,6 +93,12 @@ class MatchGraphicCommandActivated implements ShouldBroadcastNow
      */
     public function broadcastWith(): array
     {
+        $match = TournamentMatch::query()->with('graphicSession')->find($this->matchId);
+        $pendingPlayers = $match ? MatchPendingState::resolve($match) : $this->pendingPlayers;
+        if ($pendingPlayers === []) {
+            $pendingPlayers = null;
+        }
+
         return [
             'match_id' => $this->matchId,
             'session_id' => $this->sessionId,
@@ -125,10 +107,21 @@ class MatchGraphicCommandActivated implements ShouldBroadcastNow
             'command_type' => $this->commandType,
             'display_mode' => $this->displayMode,
             'payload' => $this->payload,
-            'context' => $this->context,
+            'context_hash' => $this->contextHash,
             'graphic_theme_id' => $this->graphicThemeId,
             'config' => $this->sessionConfig,
-            'pending_players' => $this->pendingPlayers,
+            'pending_players' => $pendingPlayers,
         ];
+    }
+
+    private static function contextHashFromSession(MatchGraphicSession $session): ?string
+    {
+        $context = is_array($session->context) ? $session->context : null;
+
+        if ($context === null || $context === []) {
+            return null;
+        }
+
+        return GraphicContextHash::hash($context);
     }
 }

@@ -5,9 +5,10 @@ namespace App\Http\Controllers\User;
 use App\Events\Scoring\MatchStateUpdated;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
+use App\Jobs\SyncMatchGraphicContextJob;
 use App\Models\TournamentMatch;
-use App\Services\Broadcast\GraphicContextOrchestrator;
 use App\Services\MatchStateService;
+use App\Support\Scoring\MatchPendingState;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -32,7 +33,6 @@ class MatchCreaseController extends Controller
     public function update(
         Request $request,
         TournamentMatch $match,
-        GraphicContextOrchestrator $orchestrator,
         MatchStateService $matchStateService,
     ): JsonResponse {
         if (! $request->user()?->canScoreMatchInApp($match)) {
@@ -45,11 +45,10 @@ class MatchCreaseController extends Controller
             'next_bowler_id' => 'sometimes|nullable|integer|min:1',
         ]);
 
-        $orchestrator->setPendingAndBroadcast($match, $data);
+        MatchPendingState::merge($match, $data);
 
-        // Also broadcast the full match state so the backoffice, graphic
-        // controller, and real-time scorecard receive opener / bowler
-        // assignments before the first ball is recorded.
+        SyncMatchGraphicContextJob::dispatch($match->id);
+
         $matchState = $matchStateService->build($match->fresh());
         MatchStateUpdated::dispatch($match->id, $matchState);
 

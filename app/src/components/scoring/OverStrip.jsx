@@ -17,8 +17,7 @@
 import { useRef } from 'react';
 
 import { FreeHitMicroBadge } from '@/components/scoring/FreeHitIndicator';
-import { getBallDisplay } from '@/lib/utils/ballDisplay';
-import { isLegalDelivery } from '@/lib/utils/cricketRules';
+import { ballIsLegalDelivery, resolveBallChip } from '@/lib/utils/ballDisplay';
 import { getRunsFromBall } from '@/lib/utils/scoringUtils';
 
 function chipClass(variant) {
@@ -77,7 +76,7 @@ export function OverStrip({ oversFromBalls = [], scrollRef }) {
         className="flex flex-1 flex-nowrap items-center gap-3 overflow-x-auto py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {oversFromBalls.map(({ overIndex, balls }) => {
-          const legalBallCount = balls.filter((b) => isLegalDelivery(b.type)).length;
+          const legalBallCount = balls.filter((b) => ballIsLegalDelivery(b)).length;
           const overRuns = balls.reduce((s, b) => s + (b ? getRunsFromBall(b) : 0), 0);
 
           return (
@@ -96,8 +95,8 @@ export function OverStrip({ oversFromBalls = [], scrollRef }) {
               {/* Ball chips */}
               <div className="flex gap-1">
                 {balls.map((b, i) => {
-                  const { label, variant } = getBallDisplay(b);
-                  const isFreeHit = Boolean(b?.isFreeHit);
+                  const { label, variant } = resolveBallChip(b, { dotStyle: 'bullet' });
+                  const isFreeHit = Boolean(b?.presentation?.show_free_hit_badge ?? b?.isFreeHit);
                   return (
                     <div key={i} className="relative shrink-0">
                       <span

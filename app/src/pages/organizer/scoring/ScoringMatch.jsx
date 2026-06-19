@@ -11,17 +11,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { ScoringMatchHeader } from '@/components/scoring/ScoringMatchHeader';
-import { WagonWheelIcon } from '@/components/scoring/WagonWheelIcon';
 import { useDialog } from '@/context/DialogContext';
 import { ScoringMatchContext } from '@/context/ScoringMatchContext';
 import { useInningsLifecycle } from '@/hooks/useInningsLifecycle';
 import { useMatchScoringChannel } from '@/hooks/useMatchScoringChannel';
 import { useScoringMatchData } from '@/hooks/useScoringMatchData';
-import { useToast } from '@/hooks/useToast';
-import { getApiErrorMessage } from '@/lib/apiErrors';
 import { NAVBAR_HEIGHT, STICKY_TABS_Z } from '@/lib/constants/layout';
 import { computeMatchResultSummary } from '@/lib/utils/scoringUtils';
-import { useUpdateMatchAnalyticsSettingsMutation } from '@/store/api/matchApi';
 import { Container } from '@/ui/Container';
 import { scorecardListClass, scorecardTriggerClass, Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
 
@@ -53,8 +49,6 @@ export default function ScoringMatch() {
   const navigate = useNavigate();
   const { matchId } = useParams();
   const { dialogKey, openDialog } = useDialog();
-  const toast = useToast();
-  const [updateAnalyticsSettings] = useUpdateMatchAnalyticsSettingsMutation();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab');
   const activeTab = VALID_TABS.includes(tabParam) ? tabParam : 'scoring';
@@ -119,26 +113,13 @@ export default function ScoringMatch() {
 
   // ── Header actions ─────────────────────────────────────────────────────────
 
-  const handleWagonWheelToggle = useCallback(() => {
+  const handleOpenMatchSettings = useCallback(() => {
     if (!matchId) return;
-
-    const enabling = !wagonWheelEnabled;
-    openDialog('confirm', {
-      title: enabling ? 'Enable Wagon Wheel?' : 'Disable Wagon Wheel?',
-      message: enabling
-        ? 'You will be prompted to pick shot direction after scoring runs.'
-        : 'Shot direction prompts will no longer appear during scoring.',
-      confirmLabel: enabling ? 'Enable' : 'Disable',
-      onConfirm: async () => {
-        try {
-          await updateAnalyticsSettings({ matchId, wagon_wheel_enabled: enabling }).unwrap();
-        } catch (err) {
-          toast.error(getApiErrorMessage(err, 'Could not update wagon wheel setting. Please try again.'));
-          throw err;
-        }
-      },
+    openDialog('scoringMatchSettings', {
+      matchId,
+      settings: apiMatch?.analytics_settings ?? {},
     });
-  }, [matchId, wagonWheelEnabled, openDialog, updateAnalyticsSettings, toast]);
+  }, [matchId, apiMatch?.analytics_settings, openDialog]);
 
   const registerOpenActionMenu = useCallback((openFn) => {
     openActionMenuRef.current = openFn ?? null;
@@ -170,14 +151,13 @@ export default function ScoringMatch() {
       <>
         <button
           type="button"
-          onClick={handleWagonWheelToggle}
-          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-opacity active:opacity-80 ${
-            wagonWheelEnabled ? 'bg-brand text-[#1A1A18]' : 'bg-white text-[#1A1A18]'
-          }`}
-          aria-label={wagonWheelEnabled ? 'Wagon wheel enabled' : 'Enable wagon wheel'}
-          aria-pressed={wagonWheelEnabled}
+          onClick={handleOpenMatchSettings}
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-[#1A1A18] transition-opacity active:opacity-80"
+          aria-label="Match settings"
         >
-          <WagonWheelIcon size={16} />
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54C14.57 2.17 14.37 2 14.13 2h-3.84c-.24 0-.44.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.94 8.47c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.04.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.02-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+          </svg>
         </button>
         <button
           type="button"
@@ -199,7 +179,7 @@ export default function ScoringMatch() {
         </button>
       </>
     );
-  }, [matchId, matchLoading, matchError, handleOpenActionMenu, handleWagonWheelToggle, wagonWheelEnabled]);
+  }, [matchId, matchLoading, matchError, handleOpenActionMenu, handleOpenMatchSettings]);
 
   const ActiveView = TAB_VIEWS[activeTab];
 

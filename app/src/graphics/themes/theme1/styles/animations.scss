@@ -1,0 +1,326 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Theme-01 keyframe animations
+// Keyframes use literal values or var() where supported; timing tokens live in
+// config.js and are exposed on :root via _tokens.css.
+//
+// Ambient controller sequence (30s cycle, active ~0–21%):
+//   0%     left crest pulse begins; gradient starts immediately from the left
+//   ~2.5%  left crest peak
+//   ~6–15% gradient sweeps left → right
+//   ~16%   right crest peak (triggered as gradient arrives)
+//   ~21%   sequence ends; idle until next cycle
+// ─────────────────────────────────────────────────────────────────────────────
+
+@keyframes numPop {
+  0% {
+    transform: translateY(-6px) scale(1.18);
+    color: #fff;
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@keyframes chipIn {
+  0% {
+    transform: scale(0.3);
+  }
+  60% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes barRise {
+  0% {
+    transform: translateY(34px);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@keyframes rowIn {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes wormDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes barGrow {
+  0% {
+    transform: scaleY(0.001);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes fadeUp {
+  0% {
+    transform: translateY(22px) scale(0.99);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@keyframes growW {
+  0% {
+    width: 0;
+  }
+}
+
+@keyframes wktSweep {
+  0% {
+    transform: translateX(-30%);
+  }
+  100% {
+    transform: translateX(30%);
+  }
+}
+
+@keyframes wktUp {
+  from {
+    transform: translateY(20px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes sixPop {
+  0% {
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes sparkRise {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-46vh) scale(0.3);
+    opacity: 0;
+  }
+}
+
+@keyframes livePulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes nbSweep {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+// Event strap title — one-shot enter (first phase of strapTextLoop, synced with vapor).
+@keyframes strapTextEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(70px) scale(0.84);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// Event strap title: rise from bottom → hold 3s with zoom pulse → exit upward → loop
+// Phase splits match config.js strapTextEnterS / HoldS / ExitS on --strap-text-loop.
+@keyframes strapTextLoop {
+  0% {
+    opacity: 0;
+    transform: translateY(70px) scale(0.84);
+  }
+  13.4% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(0) scale(1.06);
+  }
+  37% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  49% {
+    opacity: 1;
+    transform: translateY(0) scale(1.06);
+  }
+  61% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  73% {
+    opacity: 1;
+    transform: translateY(0) scale(1.06);
+  }
+  86.6% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  93% {
+    opacity: 0;
+    transform: translateY(-70px) scale(0.88);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(70px) scale(0.84);
+  }
+}
+
+// Left crest — pulses once at the start of each 30s cycle.
+@keyframes crestRingPulseFirst {
+  0%,
+  5%,
+  100% {
+    opacity: calc(0.55 + 0.45 * var(--glow, 1));
+    filter: saturate(1.2);
+    box-shadow: 0 0 calc(16px * var(--glow, 1)) var(--crest-ring);
+    transform: rotate(0deg) scale(1);
+  }
+  2.5% {
+    opacity: 1;
+    filter: saturate(1.85) brightness(1.18);
+    box-shadow:
+      0 0 calc(34px * var(--glow, 1)) var(--crest-ring),
+      0 0 calc(52px * var(--glow, 1)) var(--crest-ring-alt, var(--accentB));
+    transform: rotate(200deg) scale(1.1);
+  }
+}
+
+// Right crest — pulses once when the gradient sweep reaches the right edge.
+@keyframes crestRingPulseSecond {
+  0%,
+  13%,
+  21%,
+  100% {
+    opacity: calc(0.55 + 0.45 * var(--glow, 1));
+    filter: saturate(1.2);
+    box-shadow: 0 0 calc(16px * var(--glow, 1)) var(--crest-ring);
+    transform: rotate(0deg) scale(1);
+  }
+  16% {
+    opacity: 1;
+    filter: saturate(1.85) brightness(1.18);
+    box-shadow:
+      0 0 calc(34px * var(--glow, 1)) var(--crest-ring),
+      0 0 calc(52px * var(--glow, 1)) var(--crest-ring-alt, var(--accentB));
+    transform: rotate(200deg) scale(1.1);
+  }
+}
+
+// Full-screen stage — diagonal stripe layers drift at different speeds for depth.
+// Translation distance matches each layer's 125deg repeat period for seamless loops.
+@keyframes fsDiagonalStripesDriftA {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(122.9px, 86px, 0);
+  }
+}
+
+@keyframes fsDiagonalStripesDriftB {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-180.2px, -126.3px, 0);
+  }
+}
+
+// Soft bottom glow pulse on the full-screen stage.
+@keyframes fsDiagonalGlowPulse {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+// Tour Hits — tournament short-code badge reveal (scale only — never hide with opacity).
+@keyframes tourCodeReveal {
+  0% {
+    transform: scale(0.82);
+  }
+  65% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+// Gentle glow pulse on the tour short-code badge after reveal.
+@keyframes tourCodeGlow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 calc(12px * var(--glow, 1)) color-mix(in srgb, var(--accentA) 35%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+  50% {
+    box-shadow:
+      0 0 calc(24px * var(--glow, 1)) color-mix(in srgb, var(--accentA) 55%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  }
+}
+
+// Background gradient — starts with the left crest and travels smoothly to the right.
+@keyframes controllerGradientSweep {
+  0%,
+  22%,
+  100% {
+    opacity: 0;
+    transform: translateX(-52%);
+  }
+  0.2% {
+    opacity: 1;
+    transform: translateX(-48%);
+  }
+  19% {
+    opacity: 1;
+    transform: translateX(148%);
+  }
+  20.5% {
+    opacity: 0;
+    transform: translateX(158%);
+  }
+}

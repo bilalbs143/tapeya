@@ -53,7 +53,7 @@ export function TossDialog({ teamAName, teamBName, teamALogo, teamBLogo, onStart
               <div className="flex w-full items-center justify-center">
                 <TeamLogo name={teamAName} logo={teamALogo} variant="match" />
               </div>
-              <span className="flex min-h-[2.5rem] w-full items-center justify-center px-1 text-center text-[14px] font-bold leading-tight uppercase">
+              <span className="flex min-h-[2.5rem] w-full items-center justify-center px-1 text-center text-[14px] leading-tight font-bold uppercase">
                 {teamAName || 'Team A'}
               </span>
             </button>
@@ -67,7 +67,7 @@ export function TossDialog({ teamAName, teamBName, teamALogo, teamBLogo, onStart
               <div className="flex w-full items-center justify-center">
                 <TeamLogo name={teamBName} logo={teamBLogo} variant="match" />
               </div>
-              <span className="flex min-h-[2.5rem] w-full items-center justify-center px-1 text-center text-[14px] font-bold leading-tight uppercase">
+              <span className="flex min-h-[2.5rem] w-full items-center justify-center px-1 text-center text-[14px] leading-tight font-bold uppercase">
                 {teamBName || 'Team B'}
               </span>
             </button>

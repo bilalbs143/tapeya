@@ -20,11 +20,14 @@ use App\Models\MatchScoringAudit;
 use App\Models\TournamentMatch;
 use App\Models\User;
 use App\Services\BallDeliveryNormalizer;
+use App\Services\Broadcast\GraphicContextOrchestrator;
 use App\Services\Broadcast\ScoringFlashResolver;
 use App\Services\InningsStatsService;
 use App\Services\MatchCompletionService;
 use App\Services\MatchStateService;
 use App\Services\PlayerStatsService;
+use App\Support\BallDelivery\BallDeliveryPresenter;
+use App\Support\Scoring\MatchPendingState;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -40,6 +43,7 @@ class ScorecardController extends Controller
         private readonly PlayerStatsService $statsService,
         private readonly InningsStatsService $inningsStats,
         private readonly MatchStateService $matchStateService,
+        private readonly GraphicContextOrchestrator $graphicContextOrchestrator,
     ) {}
 
     // ─── Mutation endpoints ───────────────────────────────────────────────────
@@ -75,9 +79,7 @@ class ScorecardController extends Controller
         $data = $this->computeBallFields($data, $existingBalls);
 
         $match->loadMissing('graphicSession');
-        $pending = is_array($match->graphicSession?->pending_players)
-            ? $match->graphicSession->pending_players
-            : [];
+        $pending = MatchPendingState::resolve($match);
 
         $creaseError = $this->applyAuthoritativeCreaseToBallData($data, $existingBalls, $pending);
         if ($creaseError !== null) {
@@ -142,7 +144,7 @@ class ScorecardController extends Controller
         $this->logScoringAudit($match, $authUser, 'store_ball', $ball->id, ['innings_id' => $innings->id]);
 
         // Clear pending batter slots when they match the dismissed player on this wicket.
-        $this->clearGraphicPendingCreaseIds(
+        $this->clearPendingCreaseIds(
             $match,
             isWicket: (bool) ($data['is_wicket'] ?? false),
             outPlayerId: ($data['is_wicket'] ?? false) && ! empty($data['out_player_id'])
@@ -228,7 +230,7 @@ class ScorecardController extends Controller
         DB::transaction(function () use ($ball, $data, $match) {
             $ball->update($data);
             $isWicket = (bool) ($data['is_wicket'] ?? $ball->is_wicket);
-            $this->clearGraphicPendingCreaseIds(
+            $this->clearPendingCreaseIds(
                 $match,
                 isWicket: $isWicket,
                 outPlayerId: $isWicket && ($data['out_player_id'] ?? $ball->out_player_id)
@@ -276,7 +278,7 @@ class ScorecardController extends Controller
 
         $ball->delete();
 
-        $this->clearGraphicPendingCreaseIds($match);
+        $this->clearPendingCreaseIds($match);
 
         $this->completionService->evaluate($match->fresh());
 
@@ -324,7 +326,7 @@ class ScorecardController extends Controller
 
         $ball->delete();
 
-        $this->clearGraphicPendingCreaseIds($match);
+        $this->clearPendingCreaseIds($match);
 
         $this->completionService->evaluate($match->fresh());
 
@@ -487,6 +489,7 @@ class ScorecardController extends Controller
             'dont_count_ball' => $ball->dont_count_ball,
             'dismissal_delivery_type' => $ball->dismissal_delivery_type,
             'shot_position' => $ball->shot_position?->value,
+            'presentation' => BallDeliveryPresenter::present($ball),
         ];
     }
 
@@ -554,8 +557,8 @@ class ScorecardController extends Controller
         $extras = $stats['extras_breakdown'];
 
         $currentStrikerId = $stats['current_striker_id'];
-        $pending = $match->graphicSession?->pending_players;
-        if (is_array($pending) && $balls->isNotEmpty()) {
+        $pending = MatchPendingState::resolve($match);
+        if ($balls->isNotEmpty()) {
             $merged = InningsStatsService::resolveExpectedCrease($balls, $pending);
             if ($merged['striker_id'] !== null) {
                 $currentStrikerId = $merged['striker_id'];
@@ -619,6 +622,7 @@ class ScorecardController extends Controller
                 'runout_run_type' => $b->runout_run_type,
                 'batter_crossed' => $b->batter_crossed,
                 'shot_position' => $b->shot_position?->value,
+                'presentation' => BallDeliveryPresenter::present($b),
             ])->values(),
         ];
     }
@@ -694,52 +698,18 @@ class ScorecardController extends Controller
     }
 
     /**
-     * Drop crease keys from graphic pending_players after a ball mutation so
-     * stale opener lines cannot override {@see InningsStatsService::resolveCreaseAfterBalls()}.
+     * Drop stale crease / substitute hints after a ball mutation.
      *
      * @param  bool  $isWicket  True when the ball just stored/updated is a dismissal.
      * @param  int|null  $outPlayerId  Dismissed player on a wicket ball — pending IDs matching
      *                                 this player are cleared so they are not re-applied.
-     *
-     * On a wicket ball, pending batter slots are preserved **unless** they match
-     * `out_player_id` (the incoming batter was dismissed before facing a ball).
-     * On non-wicket balls the ball record is authoritative — batter pending is cleared.
-     *
-     * The next_bowler_id is always cleared because it is captured on the ball row
-     * itself and must not linger between overs.
      */
-    private function clearGraphicPendingCreaseIds(
+    private function clearPendingCreaseIds(
         TournamentMatch $match,
         bool $isWicket = false,
         ?int $outPlayerId = null,
     ): void {
-        $session = $match->graphicSession;
-        if ($session === null) {
-            return;
-        }
-        $pending = $session->pending_players;
-        if (! is_array($pending) || $pending === []) {
-            return;
-        }
-
-        // Always clear the pending bowler — it is stored on the ball row.
-        unset($pending['next_bowler_id']);
-
-        if ($isWicket && $outPlayerId !== null && $outPlayerId > 0) {
-            if (isset($pending['next_batter_id']) && (int) $pending['next_batter_id'] === $outPlayerId) {
-                unset($pending['next_batter_id']);
-            }
-            if (isset($pending['next_non_striker_id']) && (int) $pending['next_non_striker_id'] === $outPlayerId) {
-                unset($pending['next_non_striker_id']);
-            }
-        } elseif (! $isWicket) {
-            unset($pending['next_batter_id'], $pending['next_non_striker_id']);
-        }
-
-        unset($pending['substitute_replaced_id'], $pending['substitute_player_id']);
-
-        $session->update(['pending_players' => $pending === [] ? null : $pending]);
-        $match->unsetRelation('graphicSession');
+        MatchPendingState::clearCreaseAfterBall($match, $isWicket, $outPlayerId);
     }
 
     private function dispatchScoringFlash(TournamentMatch $match, Ball $ball): void
@@ -758,6 +728,10 @@ class ScorecardController extends Controller
         if ($commands === []) {
             return;
         }
+
+        // Persist fresh context before the flash so context_hash matches the ball
+        // just stored. The flash payload is slim (hash only) to stay under Pusher limits.
+        $session = $this->graphicContextOrchestrator->syncForMatch($match->fresh());
 
         MatchGraphicFlashDispatched::dispatchFromSession($session, $ball->id, $commands);
     }

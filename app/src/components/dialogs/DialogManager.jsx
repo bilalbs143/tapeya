@@ -23,6 +23,7 @@ import MankadDialog from './MankadDialog';
 import ManOfTheMatchDialog from './ManOfTheMatchDialog';
 import MatchNotesDialog from './MatchNotesDialog';
 import { MatchRulesDialog } from './MatchRulesDialog';
+import MatchSettingsDialog from './MatchSettingsDialog';
 import NoBallDialog from './NoBallDialog';
 import ObstructTheFieldDialog from './ObstructTheFieldDialog';
 import OutReasonDialog from './OutReasonDialog';
@@ -85,6 +86,7 @@ const DIALOG_COMPONENTS = {
   scoringToss: ScoringTossDialog,
   scoringAddBreaks: AddBreakDialog,
   scoringAdditionalRuns: AdditionalRunsDialog,
+  scoringMatchSettings: MatchSettingsDialog,
   scoringMatchNotes: MatchNotesDialog,
   scoringMatchRules: MatchRulesDialog,
   scoringChangeSquad: ChangeSquadDialog,
@@ -104,6 +106,7 @@ const DIALOG_CONTENT_CLASS_BY_KEY = {
   inningsEnd: '!min-h-[260px]',
   scoringAddBreaks: '!min-h-[480px] !max-h-[90vh]',
   scoringAdditionalRuns: '!min-h-[240px]',
+  scoringMatchSettings: '!min-h-[420px] !max-h-[90vh]',
   scoringMatchNotes: '!min-h-[420px] !max-h-[90vh]',
   scoringMatchRules: '!min-h-[360px] !max-h-[90vh]',
   scoringExtraRuns: '!min-h-[280px] !max-h-[90vh]',

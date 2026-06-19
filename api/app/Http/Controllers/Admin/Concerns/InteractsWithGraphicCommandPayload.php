@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Admin\Concerns;
 
 use App\Enums\Broadcast\GraphicCommandKeyEnum;
 use App\Models\MatchGraphicCommand;
+use App\Models\TournamentMatch;
 use App\Services\Broadcast\GraphicCareerEnricher;
+use App\Services\Broadcast\GraphicPlayerProfileEnricher;
 
 /**
  * Shared helpers for creating and mutating {@see MatchGraphicCommand} records.
  *
  * @property GraphicCareerEnricher $careerPayloadEnricher
+ * @property GraphicPlayerProfileEnricher $playerProfileEnricher
  */
 trait InteractsWithGraphicCommandPayload
 {
@@ -31,14 +34,17 @@ trait InteractsWithGraphicCommandPayload
      * @param  array<string, mixed>  $data
      * @return array{0: array<string, mixed>, 1: bool, 2: mixed}
      */
-    protected function prepareCommandPayload(array $data, ?GraphicCommandKeyEnum $key): array
+    protected function prepareCommandPayload(array $data, ?GraphicCommandKeyEnum $key, ?TournamentMatch $match = null): array
     {
         $hadPayloadKey = array_key_exists('payload', $data);
         $originalPayload = $hadPayloadKey ? $data['payload'] : null;
         $payload = is_array($originalPayload) ? $originalPayload : [];
 
+        $payload = $this->injectMomUserId($payload, $key, $match);
+
         if ($key !== null) {
-            $payload = $this->careerPayloadEnricher->enrichForCommandKey($payload, $key);
+            $payload = $this->playerProfileEnricher->enrichForCommandKey($payload, $key, $match);
+            $payload = $this->careerPayloadEnricher->enrichForCommandKey($payload, $key, $match);
         }
 
         return [$payload, $hadPayloadKey, $originalPayload];
@@ -69,7 +75,12 @@ trait InteractsWithGraphicCommandPayload
 
         $original = $command->payload;
         $payload = is_array($original) ? $original : [];
-        $enriched = $this->careerPayloadEnricher->enrichForCommandKey($payload, $key);
+        $match = $command->session?->match;
+        if ($match instanceof TournamentMatch) {
+            $payload = $this->injectMomUserId($payload, $key, $match);
+            $payload = $this->playerProfileEnricher->enrichForCommandKey($payload, $key, $match);
+        }
+        $enriched = $this->careerPayloadEnricher->enrichForCommandKey($payload, $key, $match instanceof TournamentMatch ? $match : null);
 
         if ($enriched === $payload) {
             return;
@@ -77,5 +88,20 @@ trait InteractsWithGraphicCommandPayload
 
         $command->update(['payload' => $enriched]);
         $command->refresh();
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private function injectMomUserId(array $payload, ?GraphicCommandKeyEnum $key, ?TournamentMatch $match): array
+    {
+        if ($key !== GraphicCommandKeyEnum::MOM || ! $match?->player_of_match_user_id) {
+            return $payload;
+        }
+
+        $payload['user_id'] ??= (int) $match->player_of_match_user_id;
+
+        return $payload;
     }
 }

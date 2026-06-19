@@ -5,8 +5,10 @@ namespace App\Services\Broadcast;
 use App\Enums\Event\MatchStatusEnum;
 use App\Models\Innings;
 use App\Models\MatchGraphicSession;
+use App\Models\MatchSetting;
 use App\Models\TournamentMatch;
 use App\Services\InningsStatsService;
+use App\Support\Scoring\MatchPendingState;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -20,6 +22,10 @@ final class GraphicContextBuilder
     public function __construct(
         private readonly GraphicLiveStatsBuilder $liveStats,
         private readonly GraphicLeaderboardBuilder $leaderboards,
+        private readonly GraphicStandingsBuilder $standings,
+        private readonly TournamentGraphicAggregatesService $tournamentAggregates,
+        private readonly GraphicSquadBuilder $squadBuilder,
+        private readonly NextMatchFixtureBuilder $nextMatchFixture,
     ) {}
 
     /**
@@ -62,11 +68,19 @@ final class GraphicContextBuilder
             $context = array_merge(
                 $context,
                 $this->liveStats->buildLive($match, $active, $first, $playerNames, $pending),
-                ['innings_chart' => $this->liveStats->buildInningsChart($match, $innings)],
+                [
+                    'innings_chart' => $this->liveStats->buildInningsChart($match, $innings),
+                    'innings_summaries' => $this->liveStats->buildCompletedInningsSummaries($match, $innings),
+                ],
             );
         }
 
-        return array_merge($context, $this->leaderboards->leaderboardFragment($match));
+        return array_merge(
+            $context,
+            $this->leaderboards->leaderboardFragment($match),
+            $this->standings->standingsFragment($match),
+            $this->squadBuilder->buildForMatch($match),
+        );
     }
 
     private function buildBase(TournamentMatch $match): array
@@ -92,23 +106,29 @@ final class GraphicContextBuilder
             ]);
         }
 
+        $tournamentId = (int) ($match->tournament_id ?? 0);
+
         return [
             'match' => $matchContext,
             'tournament' => [
                 'name' => $tournament?->tournament_name ?? '',
-                'short' => $tournament?->tournament_name ?? '',
+                'short' => $tournament?->short_name ?? '',
                 'logo_url' => $tournament ? $logoUrl($tournament->display_image) : null,
             ],
+            'tournament_aggregates' => $this->tournamentAggregates->buildForTournament($tournamentId),
+            'next_match_fixture' => $this->nextMatchFixture->buildForMatch($match),
             'home_team' => [
                 'id' => $match->home_team_id !== null ? (int) $match->home_team_id : null,
                 'name' => $home?->name ?? '',
                 'short_code' => $home?->code ?? '',
+                'abbrev_display' => $home?->code ?? '',
                 'logo_url' => $logoUrl($home?->logo),
             ],
             'away_team' => [
                 'id' => $match->away_team_id !== null ? (int) $match->away_team_id : null,
                 'name' => $away?->name ?? '',
                 'short_code' => $away?->code ?? '',
+                'abbrev_display' => $away?->code ?? '',
                 'logo_url' => $logoUrl($away?->logo),
             ],
         ];
@@ -122,6 +142,7 @@ final class GraphicContextBuilder
      * @return array{
      *   number: string,
      *   venue: string,
+     *   venue_display_line: string,
      *   status: string,
      *   is_completed: bool,
      *   result_summary: string|null,
@@ -135,12 +156,20 @@ final class GraphicContextBuilder
      *   home_team_short_code: string,
      *   away_team_short_code: string,
      *   home_team_logo_url: string|null,
-     *   away_team_logo_url: string|null
+     *   away_team_logo_url: string|null,
+     *   wagon_wheel_enabled: bool,
+     *   officials: array{
+     *     umpires: array{text: string, lines: list<string>},
+     *     scorers: array{text: string, lines: list<string>},
+     *     commentators: array{text: string, lines: list<string>}
+     *   }
      * }
      */
     public static function graphicSessionMatchSlice(TournamentMatch $match): array
     {
-        $match->loadMissing(['homeTeam', 'awayTeam']);
+        $match->loadMissing(['homeTeam', 'awayTeam', 'playerOfMatch']);
+
+        $settings = MatchSetting::resolveFor($match);
 
         $disk = Storage::disk(config('filesystems.media_disk', 'public'));
 
@@ -170,9 +199,13 @@ final class GraphicContextBuilder
         $chose = $match->chose_to_bat_or_bowl;
         $choseStr = is_string($chose) && $chose !== '' ? $chose : null;
 
+        $venue = trim((string) ($match->venue_name ?? $match->tournament?->venue_name ?? ''));
+        $venueDisplayLine = $venue !== '' ? 'LIVE FROM '.$venue : '';
+
         return [
             'number' => (string) ($match->group_index ?? $match->id),
-            'venue' => $match->venue_name ?? '',
+            'venue' => $venue,
+            'venue_display_line' => $venueDisplayLine,
             'status' => $match->status?->value ?? 'scheduled',
             'is_completed' => $match->status === MatchStatusEnum::COMPLETED,
             'result_summary' => $match->resultSummary(),
@@ -187,6 +220,16 @@ final class GraphicContextBuilder
             'away_team_short_code' => $away?->code ?? '',
             'home_team_logo_url' => $logoUrl($home?->logo),
             'away_team_logo_url' => $logoUrl($away?->logo),
+            'wagon_wheel_enabled' => (bool) ($match->wagon_wheel_enabled ?? false),
+            'player_of_match_user_id' => $match->player_of_match_user_id !== null
+                ? (int) $match->player_of_match_user_id
+                : null,
+            'player_of_match_name' => $match->playerOfMatch?->name
+                ?? $match->playerOfMatch?->nickname
+                ?? null,
+            'max_overs_per_innings' => (int) ($match->overs ?? 0),
+            'players_per_side' => (int) ($match->players_per_side ?? 11),
+            'officials' => $settings->toContextOfficialsFragment(),
         ];
     }
 
@@ -209,8 +252,7 @@ final class GraphicContextBuilder
     public function mergeSessionContext(MatchGraphicSession $session, TournamentMatch $match): array
     {
         $persisted = is_array($session->context) ? $session->context : [];
-        $pending = is_array($session->pending_players) ? $session->pending_players : [];
 
-        return array_merge($persisted, $this->build($match, $pending));
+        return array_merge($persisted, $this->build($match, MatchPendingState::resolve($match)));
     }
 }

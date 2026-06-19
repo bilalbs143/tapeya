@@ -8,6 +8,7 @@ use App\Enums\Event\MatchStatusEnum;
 use App\Models\Ball;
 use App\Models\Innings;
 use App\Models\TournamentMatch;
+use App\Support\Scoring\MatchPendingState;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -78,9 +79,7 @@ class MatchStateService
             $activeInningsComplete = $activeInnings->status === InningsStatusEnum::COMPLETED;
 
             $lastBall = $balls->last();
-            $pending = is_array($match->graphicSession?->pending_players)
-                ? $match->graphicSession->pending_players
-                : [];
+            $pending = MatchPendingState::resolve($match);
 
             $activeInningsData = $this->buildActiveInnings(
                 match: $match,
@@ -229,7 +228,7 @@ class MatchStateService
         $nonStrikerId = $crease['non_striker_id'];
         $dismissedIds = InningsStatsService::dismissedPlayerIdsFromBalls($balls);
 
-        // PATCH /crease pending_players: openers (no balls yet), vacant slot after wicket,
+        // PATCH /crease pending_crease: openers (no balls yet), vacant slot after wicket,
         // or next bowler between overs.
         $lastBowlerId = $balls->last()?->bowler_id;
 
@@ -349,7 +348,7 @@ class MatchStateService
             'over_number' => $overDetails['over_number'],
             'balls_in_current_over' => $overDetails['balls_in_current_over'],
             'over_complete' => $overDetails['over_complete'],
-            'current_over_balls' => $overDetails['current_over_balls'],
+            'current_over_deliveries' => $overDetails['current_over_deliveries'],
             'next_is_free_hit' => $overDetails['next_is_free_hit'],
             'current_partnership' => $currentPartnership,
             'innings_complete' => $inningsComplete,

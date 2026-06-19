@@ -19,6 +19,9 @@ class UpdateMatchAnalyticsSettingsRequest extends FormRequest
     {
         return [
             'wagon_wheel_enabled' => ['sometimes', 'boolean'],
+            'umpires' => ['sometimes', 'nullable', 'string', 'max:2000'],
+            'scorers' => ['sometimes', 'nullable', 'string', 'max:2000'],
+            'commentators' => ['sometimes', 'nullable', 'string', 'max:2000'],
         ];
     }
 
@@ -29,12 +32,21 @@ class UpdateMatchAnalyticsSettingsRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
-            if (! $this->has('wagon_wheel_enabled')) {
-                $validator->errors()->add(
-                    'settings',
-                    'At least one analytics setting must be provided.',
-                );
+            foreach ([
+                'wagon_wheel_enabled',
+                'umpires',
+                'scorers',
+                'commentators',
+            ] as $field) {
+                if ($this->has($field)) {
+                    return;
+                }
             }
+
+            $validator->errors()->add(
+                'settings',
+                'At least one analytics setting must be provided.',
+            );
         });
     }
 }

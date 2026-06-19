@@ -24,6 +24,7 @@ class UpdateTournamentRequest extends FormRequest
         return [
             'organizer_id' => ['sometimes', 'integer', 'exists:users,id'],
             'tournament_name' => ['sometimes', 'string', 'max:255'],
+            'short_name' => ['sometimes', 'nullable', 'string', 'max:64'],
             'tournament_type' => ['sometimes', Rule::enum(TournamentTypeEnum::class)],
             'cricket_format' => ['sometimes', Rule::enum(CricketFormatEnum::class)],
             'venue_name' => ['sometimes', 'string', 'max:255'],

@@ -40,7 +40,7 @@ enum GraphicCommandKeyEnum: string
     case DECISION_PENDING = 'DECISION_PENDING';
     case UMPIRES = 'UMPIRES';
     case SCORERS = 'SCORERS';
-    case COMM = 'COMM';
+    case COMMENTATORS = 'COMMENTATORS';
     case FOLLOW_PLATFORM = 'FOLLOW_PLATFORM';
     case DOWNLOAD_PLATFORM = 'DOWNLOAD_PLATFORM';
 
@@ -68,6 +68,7 @@ enum GraphicCommandKeyEnum: string
     case TOUR_FIFTIES = 'TOUR_FIFTIES';
     case TOUR_HUNDREDS = 'TOUR_HUNDREDS';
     case TOUR_RUNS = 'TOUR_RUNS';
+    case TOUR_WICKETS = 'TOUR_WICKETS';
 
     // --- Full Screen Transitions ---
     case FST_FOUR = 'FST_FOUR';
@@ -156,7 +157,7 @@ enum GraphicCommandKeyEnum: string
             self::DECISION_PENDING,
             self::UMPIRES,
             self::SCORERS,
-            self::COMM,
+            self::COMMENTATORS,
             self::FOLLOW_PLATFORM,
             self::DOWNLOAD_PLATFORM => GraphicCommandTypeEnum::LOWER_THIRD,
 
@@ -181,7 +182,8 @@ enum GraphicCommandKeyEnum: string
             self::TOUR_SIXES,
             self::TOUR_FIFTIES,
             self::TOUR_HUNDREDS,
-            self::TOUR_RUNS => GraphicCommandTypeEnum::TOUR_HITS,
+            self::TOUR_RUNS,
+            self::TOUR_WICKETS => GraphicCommandTypeEnum::TOUR_HITS,
 
             self::FST_FOUR,
             self::FST_SIX,
@@ -265,7 +267,7 @@ enum GraphicCommandKeyEnum: string
             self::DECISION_PENDING => 'Decision Pending',
             self::UMPIRES => 'Umpires',
             self::SCORERS => 'Scorers',
-            self::COMM => 'Comm',
+            self::COMMENTATORS => 'Commentators',
             self::FOLLOW_PLATFORM => 'Follow Tapeya',
             self::DOWNLOAD_PLATFORM => 'Download Tapeya',
 
@@ -275,7 +277,7 @@ enum GraphicCommandKeyEnum: string
             self::BOWLING_SQUAD => 'Bowling Squad',
             self::NEXT_MATCH => 'Next Match',
             self::LAST_WICKET_FS => 'Last Wicket',
-            self::CURRENT_PARTNERSHIP_FS => 'Curr Partnership',
+            self::CURRENT_PARTNERSHIP_FS => 'Current Partnership',
             self::PARTNERSHIP_LIST => 'Partnership List',
             self::NEED_TARGET_FS => 'Need/Target',
             self::BATTING_SUMMARY => 'Batting Summary',
@@ -291,6 +293,7 @@ enum GraphicCommandKeyEnum: string
             self::TOUR_FIFTIES => "50's",
             self::TOUR_HUNDREDS => "100's",
             self::TOUR_RUNS => "Run's",
+            self::TOUR_WICKETS => "Wkt's",
 
             self::FST_FOUR => '4',
             self::FST_SIX => '6',
@@ -374,7 +377,7 @@ enum GraphicCommandKeyEnum: string
             self::DECISION_PENDING,
             self::UMPIRES,
             self::SCORERS,
-            self::COMM,
+            self::COMMENTATORS,
             self::FOLLOW_PLATFORM,
             self::DOWNLOAD_PLATFORM,
             self::CUSTOM,
@@ -384,7 +387,13 @@ enum GraphicCommandKeyEnum: string
             self::BATSMAN_TOURNAMENT_LT,
             self::BOWLER_NAME_LT,
             self::BOWLER_MATCH_LT,
-            self::BOWLER_TOURNAMENT_LT => GraphicCommandDisplayModeEnum::LT,
+            self::BOWLER_TOURNAMENT_LT,
+            self::TOUR_FOURS,
+            self::TOUR_SIXES,
+            self::TOUR_FIFTIES,
+            self::TOUR_HUNDREDS,
+            self::TOUR_RUNS,
+            self::TOUR_WICKETS => GraphicCommandDisplayModeEnum::LT,
 
             self::BATSMAN_NAME_FS,
             self::BATSMAN_MATCH_FS,

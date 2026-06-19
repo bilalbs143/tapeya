@@ -45,3 +45,7 @@ Use `@/` for `src/`:
 - `@/ui/Button` → `src/ui/Button`
 - `@/hooks/usePlatform` → `src/hooks/usePlatform`
 - etc.
+
+## Broadcast graphics overlay
+
+OBS overlay route: `/overlay/:matchId?expires=…&signature=…` (theme from session). Architecture: [`src/graphics/ARCHITECTURE.md`](src/graphics/ARCHITECTURE.md).

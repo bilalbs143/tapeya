@@ -34,6 +34,7 @@ class TournamentResource extends JsonResource
                 'phone' => $this->organizer?->phone,
             ] : null),
             'tournament_name' => $this->tournament_name,
+            'short_name' => $this->short_name,
             'tournament_type' => $this->tournament_type?->value,
             'tournament_type_label' => $this->tournament_type?->label(),
             'cricket_format' => $this->cricket_format?->value,

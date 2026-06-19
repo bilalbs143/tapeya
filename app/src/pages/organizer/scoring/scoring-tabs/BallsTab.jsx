@@ -6,7 +6,7 @@ import { useScoringMatch } from '@/context/ScoringMatchContext';
 import { useMatchSquads } from '@/hooks/useMatchSquads';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
-import { getBallDisplay } from '@/lib/utils/ballDisplay';
+import { resolveBallChip } from '@/lib/utils/ballDisplay';
 import { isBallDeletable, isBallRunsEditable } from '@/lib/utils/editBallUtils';
 import { scorecardInningsToBallHistory } from '@/lib/utils/scoringMappers';
 import { ballsToOvers, buildBallListWithMetaAndOverSummaries } from '@/lib/utils/scoringUtils';
@@ -128,7 +128,7 @@ function resolvePlayerName(id, squad, bowlersInTable, bowlerSquad) {
 // ─── Ball row ─────────────────────────────────────────────────────────────────
 
 function BallListRow({ overBallLabel, ball, squad, bowlersInTable, bowlerSquad, canManage, onEdit, onDelete }) {
-  const { label, variant } = getBallDisplay(ball, { dotLabel: '0' });
+  const { label, variant } = resolveBallChip(ball, { dotStyle: 'zero' });
   const isFreeHit = Boolean(ball?.isFreeHit);
   const penaltyRuns = ball?.penaltyRuns ?? 0;
   const strikerName = getStrikerName(ball, squad);
@@ -234,7 +234,7 @@ function SummaryBlock({ summary, squad, bowlersInTable, bowlerSquad }) {
       {balls.length > 0 && (
         <div className="mb-4 flex flex-wrap justify-center gap-3">
           {balls.map((b, i) => {
-            const { label } = getBallDisplay(b, { dotLabel: '0' });
+            const { label } = resolveBallChip(b, { dotStyle: 'zero' });
             return (
               <span
                 key={i}

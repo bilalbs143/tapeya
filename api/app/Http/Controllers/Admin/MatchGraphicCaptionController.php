@@ -10,7 +10,7 @@ use App\Http\Requests\Admin\UpdateMatchGraphicCaptionRequest;
 use App\Http\Resources\Admin\MatchGraphicCaptionResource;
 use App\Models\MatchGraphicCaption;
 use App\Models\TournamentMatch;
-use App\Services\Broadcast\ResolveMatchGraphicSession;
+use App\Services\Broadcast\FindMatchGraphicSession;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -30,7 +30,14 @@ class MatchGraphicCaptionController extends Controller
 
     public function store(StoreMatchGraphicCaptionRequest $request, TournamentMatch $match): JsonResponse
     {
-        $session = ResolveMatchGraphicSession::forMatch($match);
+        $session = FindMatchGraphicSession::forMatch($match);
+        if (! $session) {
+            return $this->failure(
+                'Configure graphics settings before saving a caption.',
+                'VALIDATION_ERROR',
+            );
+        }
+
         if ($session->captions()->exists()) {
             return $this->failure('A caption already exists for this match. Edit or delete it first.', 'VALIDATION_ERROR');
         }

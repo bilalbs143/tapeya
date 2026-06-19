@@ -21,35 +21,17 @@ class GraphicThemeSeeder extends Seeder
             Schema::enableForeignKeyConstraints();
         }
 
-        $defaults = [
-            'teams' => [
-                'home' => ['text_color' => '#ffffff', 'bg_color' => '#0d3320'],
-                'away' => ['text_color' => '#ffffff', 'bg_color' => '#4a0e0e'],
-            ],
-            'enable_images' => false,
-        ];
-
         GraphicTheme::query()->create([
-            'slug' => 'tapeya-basic',
-            'name' => 'Tapeya Basic',
+            'slug' => 'theme1',
+            'name' => 'Midnight Neon Premium Theme',
             'config_schema' => null,
-            'default_config' => $defaults,
-            'is_active' => true,
-        ]);
-
-        $broadcastDefaults = [
-            'teams' => [
-                'home' => ['text_color' => '#ffffff', 'bg_color' => '#1e3a5f'],
-                'away' => ['text_color' => '#ffffff', 'bg_color' => '#5c3d1e'],
+            'default_config' => [
+                'teams' => [
+                    'home' => ['text_color' => '#ffffff', 'bg_color' => '#1e3a5f'],
+                    'away' => ['text_color' => '#ffffff', 'bg_color' => '#5c3d1e'],
+                ],
+                'enable_images' => false,
             ],
-            'enable_images' => false,
-        ];
-
-        GraphicTheme::query()->create([
-            'slug' => 'tapeya-broadcast-static',
-            'name' => 'Tapeya Broadcast Static',
-            'config_schema' => null,
-            'default_config' => $broadcastDefaults,
             'is_active' => true,
         ]);
     }

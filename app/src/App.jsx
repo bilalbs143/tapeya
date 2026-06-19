@@ -10,6 +10,7 @@ import { ScrollRestoration } from '@/components/ScrollRestoration';
 import SplashScreen from '@/components/SplashScreen';
 import { DialogProvider } from '@/context/DialogContext';
 import { ToastProvider } from '@/context/ToastContext';
+import GraphicOverlay from '@/graphics/entry/GraphicOverlay';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useReverbNotifications } from '@/hooks/useReverbNotifications';
 import { AuthLayout } from '@/layouts/AuthLayout';
@@ -79,8 +80,6 @@ const TournamentAddSquad = lazy(() => import('@/pages/organizer/tournaments/Tour
 const TournamentSquad = lazy(() => import('@/pages/organizer/tournaments/TournamentSquad'));
 const StartMatch = lazy(() => import('@/pages/organizer/scoring/StartMatch'));
 const ScoringMatch = lazy(() => import('@/pages/organizer/scoring/ScoringMatch'));
-
-const GraphicOverlay = lazy(() => import('@/pages/graphics-controller/GraphicOverlay'));
 
 function PageFallback() {
   return (

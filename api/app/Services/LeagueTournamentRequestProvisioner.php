@@ -33,6 +33,7 @@ class LeagueTournamentRequestProvisioner
                 'organizer_id' => $userId,
                 'created_by' => $userId,
                 'tournament_name' => $tournamentRequest->tournament_name,
+                'short_name' => $tournamentRequest->short_name,
                 'tournament_type' => $tournamentRequest->tournament_type,
                 'cricket_format' => $tournamentRequest->cricket_format,
                 'venue_name' => $tournamentRequest->venue_name,

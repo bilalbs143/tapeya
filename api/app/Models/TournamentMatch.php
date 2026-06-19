@@ -41,6 +41,7 @@ class TournamentMatch extends BaseModel
         'player_of_match_user_id',
         'stream_provider_override',
         'stream_thumbnail',
+        'pending_crease',
     ];
 
     /**
@@ -56,6 +57,7 @@ class TournamentMatch extends BaseModel
             'is_no_result' => 'boolean',
             'revised_target_at' => 'timestamp',
             'stream_thumbnail' => AsFile::class.':match-stream-thumbnails,false,media',
+            'pending_crease' => 'array',
         ];
     }
 
@@ -133,6 +135,11 @@ class TournamentMatch extends BaseModel
     public function graphicSession(): HasOne
     {
         return $this->hasOne(MatchGraphicSession::class, 'match_id');
+    }
+
+    public function matchSetting(): HasOne
+    {
+        return $this->hasOne(MatchSetting::class, 'match_id');
     }
 
     public function stream(): HasOne
@@ -230,12 +237,18 @@ class TournamentMatch extends BaseModel
      * Centralised here instead of on the controller so resources, services,
      * and controllers all read from one place.
      *
-     * @return array{wagon_wheel_enabled: bool}
+     * @return array{
+     *   wagon_wheel_enabled: bool,
+     *   umpires: string|null,
+     *   scorers: string|null,
+     *   commentators: string|null
+     * }
      */
     public function analyticsSettings(): array
     {
-        return [
-            'wagon_wheel_enabled' => (bool) ($this->wagon_wheel_enabled ?? false),
-        ];
+        return array_merge(
+            ['wagon_wheel_enabled' => (bool) ($this->wagon_wheel_enabled ?? false)],
+            MatchSetting::resolveFor($this)->toApiArray(),
+        );
     }
 }

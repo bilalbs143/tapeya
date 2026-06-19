@@ -2,9 +2,10 @@
   mat-flat-button
   [class]="className"
   [color]="color"
-  type="submit"
+  [type]="buttonType"
   [disabled]="isSubmitting || disabled"
   [attr.cdkFocusInitial]="focusInitial ? '' : null"
+  (click)="onClick()"
 >
   @if (!isSubmitting) {
     {{ text }}

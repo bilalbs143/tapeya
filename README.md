@@ -80,6 +80,7 @@ npm start
 - [API Documentation](docs/API.md)
 - [Setup Guide](docs/SETUP.md)
 - [Deployment Guide](docs/DEPLOYMENT.md)
+- [Broadcast graphics architecture](app/src/graphics/ARCHITECTURE.md) — overlay pipeline, themes, theme 2, tests (SSOT)
 
 ## License
 

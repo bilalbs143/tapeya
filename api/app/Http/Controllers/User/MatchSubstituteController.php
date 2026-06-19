@@ -13,6 +13,7 @@ use App\Models\TournamentMatch;
 use App\Services\Broadcast\GraphicContextOrchestrator;
 use App\Services\InningsStatsService;
 use App\Services\MatchStateService;
+use App\Support\Scoring\MatchPendingState;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
@@ -74,9 +75,7 @@ class MatchSubstituteController extends Controller
 
         $match->loadMissing('graphicSession');
         $balls = $innings->balls()->orderBy('over')->orderBy('ball_in_over')->orderBy('id')->get();
-        $pending = is_array($match->graphicSession?->pending_players)
-            ? $match->graphicSession->pending_players
-            : [];
+        $pending = MatchPendingState::resolve($match);
 
         $crease = InningsStatsService::resolveCreaseAfterBalls($balls);
         $strikerId = $crease['striker_id'];

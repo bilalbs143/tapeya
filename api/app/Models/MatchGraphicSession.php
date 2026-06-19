@@ -12,7 +12,6 @@ class MatchGraphicSession extends BaseModel
         'graphic_theme_id',
         'config',
         'context',
-        'pending_players',
         'active_command_id',
         'created_by',
         'updated_by',
@@ -26,7 +25,6 @@ class MatchGraphicSession extends BaseModel
         return [
             'config' => 'array',
             'context' => 'array',
-            'pending_players' => 'array',
         ];
     }
 

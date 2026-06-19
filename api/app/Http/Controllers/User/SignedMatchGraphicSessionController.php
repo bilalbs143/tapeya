@@ -6,7 +6,6 @@ use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Concerns\ResolvesMatchGraphicSession;
 use App\Http\Controllers\Controller;
 use App\Models\TournamentMatch;
-use App\Services\Broadcast\ResolveMatchGraphicSession;
 use App\Services\Overlay\GraphicOverlaySigner;
 use App\Settings\OverlaySettings;
 use Illuminate\Http\JsonResponse;
@@ -38,8 +37,6 @@ class SignedMatchGraphicSessionController extends Controller
             return $this->failure('Invalid or expired overlay link.', 'FORBIDDEN');
         }
 
-        $session = ResolveMatchGraphicSession::forMatch($match);
-
-        return $this->successWithGraphicSession($session);
+        return $this->matchGraphicSessionShowResponse($match);
     }
 }

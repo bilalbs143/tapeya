@@ -418,7 +418,7 @@ export default function TournamentSquad() {
                 <th className={`${HEADER_BG} border-r border-b py-2.5 text-center font-bold text-white ${BORDER}`}>
                   Playing Role
                 </th>
-                <th className={`${HEADER_BG} border-r border-b py-2.5  text-center font-bold text-white ${BORDER}`}>Action</th>
+                <th className={`${HEADER_BG} border-r border-b py-2.5 text-center font-bold text-white ${BORDER}`}>Action</th>
               </tr>
             </thead>
             <tbody>

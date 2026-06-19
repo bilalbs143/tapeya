@@ -14,8 +14,8 @@ enum BattingStyleEnum: string
     public function label(): string
     {
         return match ($this) {
-            self::RIGHT_HAND => 'Right Hand',
-            self::LEFT_HAND => 'Left Hand',
+            self::RIGHT_HAND => 'Right Handed Batter',
+            self::LEFT_HAND => 'Left Handed Batter',
         };
     }
 }

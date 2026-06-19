@@ -5,7 +5,7 @@
  * Used by: ScoringMatch, ScoringTab, PartnershipTab, StartMatch, ScorecardTab.
  */
 
-import { isLegalDelivery } from './cricketRules';
+import { ballIsLegalDelivery } from '@/lib/utils/ballDisplay';
 
 // ─── Date / time formatting ───────────────────────────────────────────────────
 
@@ -101,44 +101,9 @@ export function getRunsFromBall(ball) {
 }
 
 // ─── Extra-ball display label ─────────────────────────────────────────────────
+export { extraBallLabel } from '../../../../shared/ball-delivery/index.js';
 
-/**
- * Returns the chip label for an extra delivery in international format:
- *
- *   WD        → 'WD'   (1 wide penalty, no additional run)
- *   1WD       → '1WD'  (1 extra run + 1 wide penalty = 2 total)
- *   NB        → 'NB'   (1 no-ball penalty, 0 off bat)
- *   1NB       → '1NB'  (1 off bat  + 1 NB penalty  = 2 total)
- *   2NB       → '2NB'  (2 off bat  + 1 NB penalty  = 3 total)
- *   B         → 'B'    (0 byes — edge case)
- *   1B        → '1B'   (1 bye)
- *   2B        → '2B'   (2 byes)
- *   LB        → 'LB'   (0 leg byes — edge case)
- *   1LB       → '1LB'  (1 leg bye)
- *   2LB       → '2LB'  (2 leg byes)
- *
- * @param {'wd'|'nb'|'bye'|'lb'} type
- * @param {number} runs  total runs as stored (WD/NB include the 1-run penalty)
- */
-export function extraBallLabel(type, runs) {
-  const r = runs ?? 0;
-  switch (type) {
-    case 'wd': {
-      const extra = Math.max(1, r) - 1;
-      return extra > 0 ? `${extra}WD` : 'WD';
-    }
-    case 'nb': {
-      const extra = Math.max(1, r) - 1;
-      return extra > 0 ? `${extra}NB` : 'NB';
-    }
-    case 'bye':
-      return r > 0 ? `${r}B` : 'B';
-    case 'lb':
-      return r > 0 ? `${r}LB` : 'LB';
-    default:
-      return type.toUpperCase();
-  }
-}
+// Legacy inline implementation removed — canonical source: shared/ball-delivery/core.js
 
 // ─── Over formatting ──────────────────────────────────────────────────────────
 
@@ -182,7 +147,7 @@ export function buildBallListWithMetaAndOverSummaries(ballHistory) {
   let currentOverBowlerRuns = 0;
 
   for (const ball of ballHistory ?? []) {
-    const isExtra = !isLegalDelivery(ball.type);
+    const isExtra = !ballIsLegalDelivery(ball);
     const ballRuns = ball.runs ?? 0;
     const strikerId = ball.strikerId ?? ball.striker?.id;
     const bowlerId = ball.bowlerId;
@@ -295,7 +260,7 @@ export function buildOversFromBalls(ballHistory) {
 
   for (const ball of ballHistory ?? []) {
     currentOver.push(ball);
-    if (isLegalDelivery(ball.type)) validCount += 1;
+    if (ballIsLegalDelivery(ball)) validCount += 1;
     if (validCount === LEGAL_DELIVERIES_PER_OVER) {
       const runs = currentOver.reduce((s, b) => s + getRunsFromBall(b), 0);
       list.push({ overIndex: list.length + 1, runs, balls: currentOver });

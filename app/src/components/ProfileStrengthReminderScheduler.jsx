@@ -31,7 +31,7 @@ function resolveProfileStrengthReminderPayload(pathname, { isAuthenticated, user
 /**
  * While logged in with an incomplete profile, opens the profile reminder dialog
  * on a timer (unless another dialog is already open, the user is on /profile,
- * the route is the graphic overlay /overlay/:matchId, or a live broadcast page).
+ * the route is the graphic overlay /overlay/:matchId, a live broadcast page, or live scoring.
  */
 export function ProfileStrengthReminderScheduler() {
   const location = useLocation();

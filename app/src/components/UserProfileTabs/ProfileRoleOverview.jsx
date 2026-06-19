@@ -15,16 +15,12 @@ const EDIT_PROFILE_BUTTON_CLASS = `inline-flex items-center gap-2 rounded-[17px]
 
 function DetailRow({ label, value, withColon = true, wrap = false }) {
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-1">
+    <div className="flex max-w-full min-w-0 flex-col gap-1">
       <span className="text-xs font-bold tracking-wide text-white/60 uppercase">
         {label}
         {withColon ? ':' : ''}
       </span>
-      <span
-        className={`min-w-0 max-w-full text-[16px] font-normal text-white ${wrap ? 'break-all' : ''}`}
-      >
-        {value ?? '—'}
-      </span>
+      <span className={`max-w-full min-w-0 text-[16px] font-normal text-white ${wrap ? 'break-all' : ''}`}>{value ?? '—'}</span>
     </div>
   );
 }

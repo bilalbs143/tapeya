@@ -1,6 +1,6 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, catchError, of, tap, throwError } from 'rxjs';
 
 import { MessageService } from './message.service';
 
@@ -13,11 +13,21 @@ export interface GraphicTheme {
   is_active: boolean;
 }
 
+export interface GraphicCatalogRequires {
+  caption?: boolean;
+  playing_eleven_payload?: boolean;
+  player_pick?: 'batsman' | 'bowler';
+  player_of_match?: boolean;
+}
+
 export interface GraphicCatalogAction {
   command_type: string;
   command_key: string;
   label: string;
   display_mode: string;
+  category: 'data' | 'animation' | 'clear' | 'backoffice_only';
+  status: 'active' | 'pending_frontend' | 'pending_full_stack' | 'placeholder';
+  requires: GraphicCatalogRequires;
 }
 
 export interface GraphicCatalogGroup {
@@ -42,6 +52,7 @@ export interface MatchGraphicSession {
   graphic_theme_id: number;
   config: Record<string, unknown> | null;
   context: Record<string, unknown> | null;
+  context_hash?: string | null;
   pending_players?: Record<string, unknown> | null;
   active_command_id: number | null;
   theme?: GraphicTheme;
@@ -93,6 +104,26 @@ export interface MatchGraphicPlayerListsPayload {
   innings_sides?: MatchGraphicInningsSide[];
 }
 
+export interface SignedOverlayUrlPayload {
+  url: string;
+  expires_at: string;
+  theme_slug: string;
+}
+
+export interface StoreMatchGraphicSessionBody {
+  graphic_theme_id: number;
+  config: Record<string, unknown>;
+}
+
+/** True when the API reports graphics are not configured for this match yet. */
+export function isGraphicSessionNotConfigured(err: unknown): boolean {
+  if (!err || typeof err !== 'object') {
+    return false;
+  }
+  const status = (err as { status?: number }).status;
+  return status === 404;
+}
+
 @Injectable({ providedIn: 'root' })
 export class MatchGraphicService {
   private readonly http = inject(HttpClient);
@@ -110,19 +141,37 @@ export class MatchGraphicService {
     return this.http.get<{ data: MatchGraphicSession }>(`v1/admin/matches/${matchId}/graphic-session`);
   }
 
-  /** Signed overlay URL for OBS — paste into browser source (no app login). */
-  public getSignedOverlayUrl(
-    matchId: number,
-    params?: { theme?: string }
-  ): Observable<{ data: { url: string; expires_at: string } }> {
-    let httpParams = new HttpParams();
-    if (params?.theme != null && params.theme !== '') {
-      httpParams = httpParams.set('theme', params.theme);
-    }
-    return this.http.get<{ data: { url: string; expires_at: string } }>(
-      `v1/admin/matches/${matchId}/graphic-session/signed-url`,
-      { params: httpParams }
+  /**
+   * Returns null when graphics are not configured (HTTP 404).
+   */
+  public getSessionOptional(matchId: number): Observable<{ data: MatchGraphicSession | null }> {
+    return this.getSession(matchId).pipe(
+      catchError((err: unknown) => {
+        if (isGraphicSessionNotConfigured(err)) {
+          return of({ data: null });
+        }
+        return throwError(() => err);
+      })
     );
+  }
+
+  public createSession(
+    matchId: number,
+    body: StoreMatchGraphicSessionBody,
+    options?: { notify?: boolean }
+  ): Observable<{ data: MatchGraphicSession }> {
+    const notify = options?.notify !== false;
+    return this.http.post<{ data: MatchGraphicSession }>(`v1/admin/matches/${matchId}/graphic-session`, body).pipe(
+      tap(() => {
+        if (notify) {
+          this.messageService.success('Graphics configured.');
+        }
+      })
+    );
+  }
+
+  public getSignedOverlayUrl(matchId: number): Observable<{ data: SignedOverlayUrlPayload }> {
+    return this.http.get<{ data: SignedOverlayUrlPayload }>(`v1/admin/matches/${matchId}/graphic-session/signed-url`);
   }
 
   public getGraphicPlayerLists(matchId: number): Observable<{ data: MatchGraphicPlayerListsPayload }> {

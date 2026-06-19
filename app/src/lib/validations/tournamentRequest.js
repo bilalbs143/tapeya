@@ -49,6 +49,7 @@ export function createTournamentRequestSchema(groupModeValues = []) {
       contact_person_name: z.string().min(1, 'Contact person name is required').max(255),
       contact_phone: phoneSchema,
       tournament_name: z.string().min(1, 'Tournament name is required').max(255),
+      short_name: z.string().max(64).optional(),
       tournament_type: z.string().min(1, 'Tournament type is required'),
       cricket_format: z.string().min(1, 'Cricket format is required'),
       venue_name: z.string().min(1, 'Venue name is required').max(255),

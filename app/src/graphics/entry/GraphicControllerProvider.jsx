@@ -1,48 +1,27 @@
-import { createContext, useContext, useEffect, useMemo } from 'react';
-
-import { useGraphicFlash } from '@/hooks/useGraphicFlash';
-import { useGraphicSession } from '@/hooks/useGraphicSession';
-import { graphicDebugLog, isGraphicDebugEnabled } from '@/pages/graphics-controller/graphicDebugLog';
+import { useEffect, useMemo } from 'react';
 
 import { processGraphicCommand } from '../core/GraphicCommandProcessor';
+import { applyFlashToSnapshot } from '../core/manifestCommandMeta';
 import { normalizeSession } from '../core/normalizeSession';
-
-/** @typedef {import('../types.js').GraphicRenderPlan} GraphicRenderPlan */
-/** @typedef {import('../types.js').GraphicSessionSnapshot} GraphicSessionSnapshot */
-
-/**
- * @typedef {Object} GraphicControllerContextValue
- * @property {GraphicSessionSnapshot|null} snapshot
- * @property {GraphicRenderPlan|null} renderPlan
- * @property {boolean} isLoading
- * @property {boolean} isError
- */
-
-const GraphicControllerContext = createContext(null);
-
-/**
- * @returns {GraphicControllerContextValue}
- */
-export function useGraphicController() {
-  const value = useContext(GraphicControllerContext);
-  if (!value) {
-    throw new Error('useGraphicController must be used within GraphicControllerProvider');
-  }
-  return value;
-}
+import { graphicDebugLog, isGraphicDebugEnabled } from './debugLog';
+import { GraphicControllerContext } from './graphicControllerContext';
+import { useGraphicFlash } from './hooks/useGraphicFlash';
+import { useGraphicSession } from './hooks/useGraphicSession';
 
 /**
  * Entry layer: loads session, normalizes once, runs processor, exposes render plan.
+ * Theme slug is read from `session.theme.slug` (graphic session SSOT).
  *
- * @param {{ matchId: string, searchParams: URLSearchParams, theme: string, children?: import('react').ReactNode }} props
+ * @param {{ matchId: string, searchParams: URLSearchParams, children?: import('react').ReactNode }} props
  */
-export function GraphicControllerProvider({ matchId, searchParams, theme, children }) {
+export function GraphicControllerProvider({ matchId, searchParams, children }) {
   const { session, isError, isLoading, sessionQueryArg } = useGraphicSession(matchId, searchParams);
+  const themeSlug = session?.theme?.slug ?? '';
 
   const snapshot = useMemo(() => {
-    if (!session) return null;
-    return normalizeSession(session, theme);
-  }, [session, theme]);
+    if (!session || !themeSlug) return null;
+    return normalizeSession(session, themeSlug);
+  }, [session, themeSlug]);
 
   const flashItem = useGraphicFlash(matchId);
 
@@ -50,16 +29,7 @@ export function GraphicControllerProvider({ matchId, searchParams, theme, childr
    * When a flash is active, override commandKey on the real snapshot.
    * Falls back to the persistent Layer-1 snapshot when the queue is empty.
    */
-  const activeSnapshot = useMemo(() => {
-    if (!flashItem || !snapshot) return snapshot;
-
-    return {
-      ...snapshot,
-      commandKey: flashItem.commandKey,
-      commandType: 'LOWER_THIRD',
-      displayMode: null,
-    };
-  }, [snapshot, flashItem]);
+  const activeSnapshot = useMemo(() => applyFlashToSnapshot(snapshot, flashItem), [snapshot, flashItem]);
 
   const renderPlan = useMemo(() => {
     if (!activeSnapshot?.commandKey) return null;
@@ -87,10 +57,11 @@ export function GraphicControllerProvider({ matchId, searchParams, theme, childr
     () => ({
       snapshot,
       renderPlan,
-      isLoading: Boolean(sessionQueryArg && isLoading),
-      isError,
+      themeSlug,
+      isLoading: Boolean(sessionQueryArg && isLoading && !session),
+      isError: Boolean(isError && !session),
     }),
-    [snapshot, renderPlan, sessionQueryArg, isLoading, isError],
+    [snapshot, renderPlan, themeSlug, sessionQueryArg, isLoading, isError, session],
   );
 
   return <GraphicControllerContext.Provider value={value}>{children}</GraphicControllerContext.Provider>;

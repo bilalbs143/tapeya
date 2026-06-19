@@ -9,6 +9,7 @@ use App\Models\TournamentMatch;
 use App\Models\User;
 use App\Services\Broadcast\GraphicContextBuilder;
 use App\Services\Broadcast\GraphicContextOrchestrator;
+use App\Support\BallDelivery\BallDeliveryPresenter;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -198,7 +199,7 @@ class InningsStatsService
     }
 
     /**
-     * Merge ball-history crease with pending_players, skipping dismissed pending IDs.
+     * Merge ball-history crease with pending_crease, skipping dismissed pending IDs.
      *
      * @param  Collection<int, Ball>  $balls
      * @param  array<string, mixed>  $pending
@@ -219,7 +220,7 @@ class InningsStatsService
     }
 
     /**
-     * Merge graphic_session pending_players onto crease resolved from ball history.
+     * Merge pending crease onto crease resolved from ball history.
      *
      * Pre-innings: pending ids replace empty slots directly.
      * Mid-innings: when both pending batter ids match the two on-crease players,
@@ -837,7 +838,7 @@ class InningsStatsService
      *   over_number            — 0-indexed over currently being bowled (= next delivery's over)
      *   balls_in_current_over  — legal deliveries already bowled in this over (0-5)
      *   over_complete          — true immediately after the 6th legal ball of an over
-     *   current_over_balls     — display labels for each ball in the current (in-progress) over
+     *   current_over_deliveries — structured chips for the current (in-progress) over
      *   next_is_free_hit       — true when the last ball was a no-ball (next delivery is free-hit)
      *
      * @param  Collection<int, Ball>  $balls  Pre-sorted: over → ball_in_over → id
@@ -865,8 +866,8 @@ class InningsStatsService
         $overNumber = intdiv($legalBalls, 6);
         $legalInCurrentOver = $legalBalls % 6;
 
-        $displayLabels = array_map(
-            fn (Ball $b) => self::ballDisplayLabel($b),
+        $currentOverDeliveries = array_map(
+            fn (Ball $b) => BallDeliveryPresenter::toDelivery($b),
             $currentOverBalls
         );
 
@@ -877,48 +878,9 @@ class InningsStatsService
             'over_number' => $overNumber,
             'balls_in_current_over' => $legalInCurrentOver,
             'over_complete' => $overComplete,
-            'current_over_balls' => array_values($displayLabels),
+            'current_over_deliveries' => array_values($currentOverDeliveries),
             'next_is_free_hit' => $nextIsFreeHit,
         ];
-    }
-
-    /**
-     * Produce a short display label for a single ball (used in current_over_balls arrays).
-     * Examples: "0", "4", "6", "WD", "2WD", "NB", "3NB", "W", "1B", "2LB", "RH", "P5"
-     */
-    public static function ballDisplayLabel(Ball $ball): string
-    {
-        $runs = (int) ($ball->runs ?? 0);
-
-        if ($ball->is_wicket) {
-            return $ball->isRetiredHurt() ? 'RH' : 'W';
-        }
-        if ($ball->isPenaltyOnlyAward()) {
-            return 'P'.(int) ($ball->penalty_runs ?? 0);
-        }
-        if ($ball->isAdditionalRunsOnlyAward()) {
-            return '+'.(int) ($ball->additional_runs ?? 0);
-        }
-        if ($ball->is_wide) {
-            $extra = max(1, $runs) - 1;
-
-            return $extra > 0 ? $extra.'WD' : 'WD';
-        }
-        if ($ball->is_no_ball) {
-            $extra = max(1, $runs) - 1;
-
-            return $extra > 0 ? $extra.'NB' : 'NB';
-        }
-        if ($ball->is_bye) {
-            return $runs > 0 ? $runs.'B' : 'B';
-        }
-        if ($ball->is_leg_bye) {
-            return $runs > 0 ? $runs.'LB' : 'LB';
-        }
-
-        $label = (string) $runs;
-
-        return $ball->is_free_hit ? $label.'*' : $label;
     }
 
     /**
@@ -981,13 +943,13 @@ class InningsStatsService
 
     /**
      * S16: Resolve the live crease (striker, non-striker, bowler) from ball history
-     * plus a pending_players snapshot, returning null when any slot is unfilled.
+     * plus a pending crease snapshot, returning null when any slot is unfilled.
      *
      * Extracted from the duplicated private helpers in AdditionalRunsController and
      * MatchSubstituteController so all crease-resolution logic lives in one place.
      *
      * @param  Collection<int, Ball>  $balls  Pre-sorted ball history for the active innings.
-     * @param  array<string, mixed>  $pending  graphic_session.pending_players snapshot.
+     * @param  array<string, mixed>  $pending  matches.pending_crease (+ substitute overlay hints)
      * @return array{striker_id: int, non_striker_id: int, bowler_id: int}|null
      */
     public static function resolveLiveCrease(Collection $balls, array $pending): ?array

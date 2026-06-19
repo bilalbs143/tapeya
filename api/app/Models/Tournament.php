@@ -24,6 +24,7 @@ class Tournament extends BaseModel
         'organizer_id',
         'created_by',
         'tournament_name',
+        'short_name',
         'tournament_type',
         'cricket_format',
         'venue_name',

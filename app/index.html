@@ -20,11 +20,7 @@
     />
     <link rel="apple-touch-icon" href="https://d1nmw2vhka3zp0.cloudfront.net/app/images/icons/tapeya-favicon-latest.png" />
 
-    <!--
-      Google Fonts — single request for both typefaces (was 2 separate requests).
-      preconnect hints are declared first so the TCP handshake starts before
-      the browser parses the <link rel="stylesheet">.
-    -->
+    <!-- App fonts only (Montserrat, Moul). Graphics fonts load per-theme via themeRegistry. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -36,6 +32,11 @@
     <link rel="preconnect" href="https://d1nmw2vhka3zp0.cloudfront.net" />
 
     <title>Tapeya</title>
+
+    <!-- OBS overlay: transparent background from first paint -->
+    <script>
+      if (location.pathname.startsWith('/overlay/')) document.documentElement.dataset.overlayRoute = '';
+    </script>
   </head>
   <body>
     <div id="root"></div>

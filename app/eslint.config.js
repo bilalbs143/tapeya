@@ -32,6 +32,16 @@ export default [
   },
   js.configs.recommended,
 
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        ...cleanGlobals(globals.node),
+      },
+      sourceType: 'module',
+    },
+  },
+
   // React + Vite
   {
     files: ['**/*.{js,jsx}'],

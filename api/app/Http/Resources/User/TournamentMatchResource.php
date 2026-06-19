@@ -35,6 +35,7 @@ class TournamentMatchResource extends JsonResource
             'tournament' => $this->whenLoaded('tournament', fn () => [
                 'id' => $match->tournament->id,
                 'name' => $match->tournament->tournament_name ?? '',
+                'short_name' => $match->tournament->short_name ?? '',
                 'logo_url' => $match->tournament->logoUrl(),
             ]),
 

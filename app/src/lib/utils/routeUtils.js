@@ -1,6 +1,7 @@
 const TOURNAMENT_DETAILS_PATH = /^\/upcoming-tournaments\/[^/]+$/;
 const HIGHLIGHT_DETAILS_PATH = /^\/highlights\/[^/]+$/;
 const LIVE_BROADCAST_PATH = /^\/live\/broadcast\/[^/]+$/;
+const ORGANIZER_SCORING_MATCH_PATH = /^\/organizer\/scoring\/match\/[^/]+$/;
 
 export function isLiveBroadcastPath(pathname) {
   return LIVE_BROADCAST_PATH.test(pathname);
@@ -18,7 +19,12 @@ export function isNavbarOverlayPath(pathname, isDesktop = false) {
 
 /** Routes where the incomplete-profile reminder dialog must not appear. */
 export function isProfileStrengthReminderBlockedPath(pathname) {
-  return pathname === '/profile' || pathname.startsWith('/overlay/') || isLiveBroadcastPath(pathname);
+  return (
+    pathname === '/profile' ||
+    pathname.startsWith('/overlay/') ||
+    isLiveBroadcastPath(pathname) ||
+    ORGANIZER_SCORING_MATCH_PATH.test(pathname)
+  );
 }
 
 /** Pages where the navbar may start transparent over a hero image. */

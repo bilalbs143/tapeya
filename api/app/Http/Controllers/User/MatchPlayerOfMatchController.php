@@ -7,6 +7,7 @@ use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\UpdateMatchPlayerOfMatchRequest;
 use App\Http\Resources\User\TournamentMatchResource;
+use App\Jobs\SyncMatchGraphicContextJob;
 use App\Models\TournamentMatch;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -45,6 +46,8 @@ class MatchPlayerOfMatchController extends Controller
 
         $match->update(['player_of_match_user_id' => $userId]);
         $match->load(['homeTeam', 'awayTeam', 'winningTeam', 'tossWinnerTeam', 'playerOfMatch', 'stream']);
+
+        SyncMatchGraphicContextJob::dispatch($match->id);
 
         return $this->success(
             new TournamentMatchResource($match),

@@ -103,6 +103,7 @@ Route::prefix('admin')->group(function () {
         Route::get('graphic-themes', [GraphicThemeController::class, 'index']);
         Route::get('graphic-command-catalog', [GraphicCommandCatalogController::class, 'index']);
         Route::get('matches/{match}/graphic-session', [GraphicSessionController::class, 'show']);
+        Route::post('matches/{match}/graphic-session', [GraphicSessionController::class, 'store']);
         Route::get('matches/{match}/graphic-session/signed-url', [GraphicOverlayUrlController::class, 'signedOverlayUrl']);
         Route::match(['put', 'patch'], 'matches/{match}/graphic-session', [GraphicSessionController::class, 'update']);
         Route::get('matches/{match}/graphic-session/captions', [MatchGraphicCaptionController::class, 'index']);

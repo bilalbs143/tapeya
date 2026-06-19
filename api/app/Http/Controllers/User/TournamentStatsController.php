@@ -2,22 +2,24 @@
 
 namespace App\Http\Controllers\User;
 
-use App\Enums\Event\MatchStatusEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Models\Ball;
 use App\Models\Innings;
-use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentMatch;
 use App\Models\User;
 use App\Services\PlayerStatsService;
+use App\Services\TournamentStandingsService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Collection;
 
 class TournamentStatsController extends Controller
 {
     use BaseControllerTrait;
+
+    public function __construct(
+        private readonly TournamentStandingsService $standingsService,
+    ) {}
 
     /**
      * Tournament standings / points table for a single tournament.
@@ -33,18 +35,17 @@ class TournamentStatsController extends Controller
     public function standings(Tournament $tournament): JsonResponse
     {
         $numberOfGroups = max(1, (int) ($tournament->number_of_groups ?? 1));
-        $matchWith = $this->matchRelationsForStandings();
 
         if ($numberOfGroups <= 1) {
             return $this->success([
                 'tournament_id' => $tournament->id,
-                'standings' => $this->computeStandingsForTeamsAndMatches($tournament->teams()->get(), $tournament->matches()->with($matchWith)->get()),
+                'standings' => $this->standingsService->computeForTournament($tournament),
             ]);
         }
 
         $groups = [];
         $tournamentTeams = $tournament->teams()->get();
-        $allMatches = $tournament->matches()->with($matchWith)->get();
+        $allMatches = $tournament->matches()->with($this->standingsService->matchRelationsForStandings())->get();
 
         for ($groupIndex = 1; $groupIndex <= $numberOfGroups; $groupIndex++) {
             $teamsInGroup = $tournamentTeams->filter(fn ($t) => (int) ($t->pivot->group_index ?? 0) === $groupIndex);
@@ -53,7 +54,7 @@ class TournamentStatsController extends Controller
             $groups[] = [
                 'group_index' => $groupIndex,
                 'group_name' => 'Group '.$groupIndex,
-                'standings' => $this->computeStandingsForTeamsAndMatches($teamsInGroup->values(), $matchesInGroup->values()),
+                'standings' => $this->standingsService->computeStandingsForTeamsAndMatches($teamsInGroup->values(), $matchesInGroup->values()),
             ];
         }
 
@@ -62,184 +63,6 @@ class TournamentStatsController extends Controller
             'number_of_groups' => $numberOfGroups,
             'groups' => $groups,
         ]);
-    }
-
-    /**
-     * @param  Collection<int, Team>  $teams
-     * @param  Collection<int, TournamentMatch>  $matches
-     * @return array<int, array<string, mixed>>
-     */
-    private function computeStandingsForTeamsAndMatches($teams, $matches): array
-    {
-        $table = [];
-
-        foreach ($teams as $team) {
-            $table[$team->id] = $this->defaultStandingsTeamRow($team->id, $team->name);
-        }
-
-        foreach ($matches as $match) {
-            $homeId = $match->home_team_id;
-            $awayId = $match->away_team_id;
-
-            if (! $homeId || ! $awayId) {
-                continue;
-            }
-
-            if (! isset($table[$homeId])) {
-                $table[$homeId] = $this->defaultStandingsTeamRow(
-                    (int) $homeId,
-                    $match->homeTeam?->name ?? 'Team '.$homeId
-                );
-            }
-            if (! isset($table[$awayId])) {
-                $table[$awayId] = $this->defaultStandingsTeamRow(
-                    (int) $awayId,
-                    $match->awayTeam?->name ?? 'Team '.$awayId
-                );
-            }
-
-            $isCompleted = $match->status === MatchStatusEnum::COMPLETED;
-            $hasResult = $isCompleted && $match->winning_team_id !== null;
-
-            if (! $isCompleted) {
-                continue;
-            }
-
-            $table[$homeId]['played']++;
-            $table[$awayId]['played']++;
-
-            if ($hasResult) {
-                $winnerId = (int) $match->winning_team_id;
-                $loserId = $winnerId === (int) $homeId ? $awayId : $homeId;
-
-                if (isset($table[$winnerId])) {
-                    $table[$winnerId]['won']++;
-                    $table[$winnerId]['points'] += 2;
-                }
-                if (isset($table[$loserId])) {
-                    $table[$loserId]['lost']++;
-                }
-            } else {
-                if ($match->is_no_result) {
-                    $table[$homeId]['no_result']++;
-                    $table[$awayId]['no_result']++;
-                } else {
-                    $table[$homeId]['tied']++;
-                    $table[$awayId]['tied']++;
-                }
-                $table[$homeId]['points'] += 1;
-                $table[$awayId]['points'] += 1;
-            }
-
-            foreach ($match->innings as $innings) {
-                $batId = (int) $innings->batting_team_id;
-                $bowlId = (int) $innings->bowling_team_id;
-                $tot = $this->inningsRunsAndLegalBalls($innings);
-                if ($tot['legal_balls'] === 0) {
-                    continue;
-                }
-                if (isset($table[$batId])) {
-                    $table[$batId]['_runs_for'] += $tot['runs'];
-                    $table[$batId]['_legal_balls_for'] += $tot['legal_balls'];
-                }
-                if (isset($table[$bowlId])) {
-                    $table[$bowlId]['_runs_against'] += $tot['runs'];
-                    $table[$bowlId]['_legal_balls_against'] += $tot['legal_balls'];
-                }
-            }
-        }
-
-        foreach ($table as $tid => $row) {
-            $rf = (int) $row['_runs_for'];
-            $bf = (int) $row['_legal_balls_for'];
-            $ra = (int) $row['_runs_against'];
-            $ba = (int) $row['_legal_balls_against'];
-            unset($table[$tid]['_runs_for'], $table[$tid]['_legal_balls_for'], $table[$tid]['_runs_against'], $table[$tid]['_legal_balls_against']);
-
-            if ($row['played'] > 0 && $bf > 0 && $ba > 0) {
-                $runRateFor = $rf / ($bf / 6.0);
-                $runRateAgainst = $ra / ($ba / 6.0);
-                $table[$tid]['nrr'] = round($runRateFor - $runRateAgainst, 3);
-            } else {
-                $table[$tid]['nrr'] = null;
-            }
-        }
-
-        $sorted = array_values($table);
-        usort($sorted, function (array $a, array $b) {
-            if ($a['points'] !== $b['points']) {
-                return $b['points'] <=> $a['points'];
-            }
-            $nrrA = $a['nrr'];
-            $nrrB = $b['nrr'];
-            if ($nrrA !== null || $nrrB !== null) {
-                if ($nrrA === null) {
-                    return 1;
-                }
-                if ($nrrB === null) {
-                    return -1;
-                }
-                if ($nrrB !== $nrrA) {
-                    return $nrrB <=> $nrrA;
-                }
-            }
-
-            return strcmp($a['team_name'], $b['team_name']);
-        });
-
-        return $sorted;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function defaultStandingsTeamRow(int $teamId, string $teamName): array
-    {
-        return [
-            'team_id' => $teamId,
-            'team_name' => $teamName,
-            'played' => 0,
-            'won' => 0,
-            'lost' => 0,
-            'tied' => 0,
-            'no_result' => 0,
-            'points' => 0,
-            'nrr' => null,
-            '_runs_for' => 0,
-            '_legal_balls_for' => 0,
-            '_runs_against' => 0,
-            '_legal_balls_against' => 0,
-        ];
-    }
-
-    /**
-     * @return array<int|string, mixed>
-     */
-    private function matchRelationsForStandings(): array
-    {
-        return [
-            'homeTeam',
-            'awayTeam',
-            'innings' => fn ($q) => $q->orderBy('innings_number'),
-            'innings.balls',
-        ];
-    }
-
-    /**
-     * Total runs and legal delivery count for one innings (NRR inputs).
-     *
-     * @return array{runs: int, legal_balls: int}
-     */
-    private function inningsRunsAndLegalBalls(Innings $innings): array
-    {
-        $balls = $innings->relationLoaded('balls')
-            ? $innings->balls
-            : $innings->balls()->get();
-
-        $runs = (int) $balls->sum(fn (Ball $b) => (int) ($b->runs ?? 0) + (int) ($b->penalty_runs ?? 0));
-        $legalBalls = $balls->filter(fn (Ball $b) => $b->isLegalDelivery())->count();
-
-        return ['runs' => $runs, 'legal_balls' => $legalBalls];
     }
 
     /**

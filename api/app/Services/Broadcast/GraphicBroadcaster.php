@@ -7,6 +7,9 @@ use App\Models\MatchGraphicSession;
 
 /**
  * Re-broadcasts the active graphic command after context changes.
+ *
+ * Callers must persist fresh context ({@see GraphicContextOrchestrator::syncForMatch})
+ * before broadcasting so `context_hash` on the wire matches the DB.
  */
 final class GraphicBroadcaster
 {

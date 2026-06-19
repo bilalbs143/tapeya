@@ -1,0 +1,165 @@
+<app-dialog-wrapper title="YouTube Live Stream">
+  <mat-dialog-content>
+    <div class="grid grid-cols-12 gap-x-6">
+      <div class="col-span-12">
+        <p class="text-sm text-muted m-0 mb-2 leading-snug">
+          Set up RTMP for OBS or vMix. Status and viewers update live in the header.
+        </p>
+      </div>
+
+      @if (loading) {
+        <div class="col-span-12 flex items-center gap-3 py-1">
+          <mat-spinner diameter="28" />
+          <span class="text-sm text-muted">Loading stream…</span>
+        </div>
+      } @else if (!hasStream) {
+        <div class="col-span-12 sm:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Broadcast Privacy</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-select
+              [(ngModel)]="privacy"
+              [disabled]="!!activeAction"
+              placeholder="Select Privacy"
+            >
+              <mat-option value="public">Public</mat-option>
+              <mat-option value="unlisted">Unlisted</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      } @else {
+        <div class="col-span-12 sm:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Provider</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              readonly
+              [value]="stream!.provider"
+            />
+          </mat-form-field>
+        </div>
+
+        @if (stream!.provider_playback_id) {
+          <div class="col-span-12 sm:col-span-6">
+            <mat-label class="text-sm font-semibold mb-2 block">Broadcast ID</mat-label>
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <input
+                matInput
+                readonly
+                [value]="stream!.provider_playback_id"
+                class="text-xs font-mono"
+              />
+            </mat-form-field>
+          </div>
+        }
+
+        @for (row of copyFields; track row.field) {
+          <div class="col-span-12">
+            <mat-label class="text-sm font-semibold mb-2 block">{{ row.label }}</mat-label>
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <input
+                matInput
+                readonly
+                [value]="row.value"
+                class="text-xs font-mono"
+              />
+              <button
+                mat-icon-button
+                matSuffix
+                type="button"
+                [matTooltip]="copiedField === row.field ? 'Copied!' : 'Copy ' + row.label"
+                [attr.aria-label]="'Copy ' + row.label"
+                (click)="copyField(row.field, row.value)"
+              >
+                <mat-icon>{{ copiedField === row.field ? 'check' : 'content_copy' }}</mat-icon>
+              </button>
+            </mat-form-field>
+          </div>
+        }
+      }
+    </div>
+  </mat-dialog-content>
+
+  <mat-divider></mat-divider>
+  <mat-dialog-actions class="!flex flex-wrap items-center gap-4 [&_button]:!m-0">
+    <button
+      type="button"
+      mat-stroked-button
+      class="border border-error! text-error"
+      (click)="close()"
+    >
+      Close
+    </button>
+
+    @if (!loading && !hasStream) {
+      <app-submit-button
+        buttonType="button"
+        className="!m-0"
+        color="primary"
+        text="Start Stream"
+        [disabled]="!!activeAction"
+        [isSubmitting]="activeAction === 'start'"
+        (action)="startStream()"
+      />
+    }
+
+    @if (!loading && hasStream) {
+      @if (!isLive) {
+        <button
+          mat-stroked-button
+          class="border border-error! text-error"
+          type="button"
+          [disabled]="!!activeAction"
+          (click)="deleteStream()"
+        >
+          @if (activeAction === 'delete') {
+            <mat-spinner diameter="20" />
+          } @else {
+            Delete Stream
+          }
+        </button>
+      }
+      <app-submit-button
+        buttonType="button"
+        className="!m-0"
+        color="primary"
+        text="Sync Status"
+        [disabled]="!!activeAction"
+        [isSubmitting]="activeAction === 'sync'"
+        (action)="syncStatus()"
+      />
+      @if (isLive) {
+        <app-submit-button
+          buttonType="button"
+          className="!m-0"
+          color="warn"
+          text="End Stream"
+          [disabled]="!!activeAction"
+          [isSubmitting]="activeAction === 'end'"
+          (action)="endStream()"
+        />
+      } @else {
+        <app-submit-button
+          buttonType="button"
+          className="!m-0"
+          color="primary"
+          text="New RTMP Setup"
+          [disabled]="!!activeAction"
+          [isSubmitting]="activeAction === 'start'"
+          (action)="startStream()"
+        />
+      }
+    }
+  </mat-dialog-actions>
+</app-dialog-wrapper>

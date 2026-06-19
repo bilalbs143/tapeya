@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Concerns;
 use App\Http\Resources\Admin\MatchGraphicSessionResource;
 use App\Models\MatchGraphicSession;
 use App\Models\TournamentMatch;
-use App\Services\Broadcast\ResolveMatchGraphicSession;
+use App\Services\Broadcast\FindMatchGraphicSession;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -14,13 +14,30 @@ use Illuminate\Http\JsonResponse;
 trait ResolvesMatchGraphicSession
 {
     /**
-     * Resolve or create the graphic session and return the standard session payload.
+     * Return the session payload or 404 when graphics are not configured yet.
      */
     protected function matchGraphicSessionShowResponse(TournamentMatch $match): JsonResponse
     {
-        $session = ResolveMatchGraphicSession::forMatch($match);
+        $session = $this->requireMatchGraphicSession($match);
+        if ($session instanceof JsonResponse) {
+            return $session;
+        }
 
         return $this->successWithGraphicSession($session);
+    }
+
+    /**
+     * Require an existing session or return 404.
+     */
+    protected function requireMatchGraphicSession(TournamentMatch $match): MatchGraphicSession|JsonResponse
+    {
+        $session = FindMatchGraphicSession::forMatch($match);
+
+        if (! $session) {
+            return $this->notFound('Graphic session not configured for this match.');
+        }
+
+        return $session;
     }
 
     /**

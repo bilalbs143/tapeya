@@ -28,18 +28,6 @@
   border-bottom: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.08));
 }
 
-.controller-dashboard__innings-toggle.mat-button-toggle-group {
-  border-radius: 8px;
-}
-
-.controller-dashboard__innings-toggle .mat-button-toggle {
-  font-size: 0.8125rem;
-}
-
-.controller-dashboard__innings-toggle .mat-button-toggle-appearance-standard {
-  min-width: 5.5rem;
-}
-
 /* Light callout — reads as “hint” not a heavy bar in dark sidebar themes */
 .controller-dashboard__caption {
   padding: 0.75rem 1rem;
@@ -69,14 +57,6 @@
 
 .controller-dashboard__result-callout {
   border-left-color: var(--mat-sys-tertiary, #00695c);
-}
-
-.controller-dashboard__caption-card {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.75rem;
 }
 
 .controller-dashboard__catalog {

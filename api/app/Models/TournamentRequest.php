@@ -18,6 +18,7 @@ class TournamentRequest extends BaseModel
         'contact_person_name',
         'contact_phone',
         'tournament_name',
+        'short_name',
         'tournament_type',
         'cricket_format',
         'venue_name',

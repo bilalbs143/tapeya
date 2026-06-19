@@ -1,10 +1,16 @@
-import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
+
+type DeliveryChip = {
+  trackKey: string;
+  display_token: string;
+  chip_type: string;
+  is_free_hit: boolean;
+};
 
 @Component({
   selector: 'app-live-match-state',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './live-match-state.component.html',
   styleUrl: './live-match-state.component.scss',
 })
@@ -15,12 +21,15 @@ export class LiveMatchStateComponent {
     return this.context ?? {};
   }
 
+  private unknownStr(value: unknown, fallback = ''): string {
+    if (value == null) return fallback;
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+    return fallback;
+  }
+
   private ctxStr(key: string): string {
-    const raw = this.ctx[key];
-    if (raw == null) return '';
-    if (typeof raw === 'string') return raw;
-    if (typeof raw === 'number' || typeof raw === 'boolean') return String(raw);
-    return '';
+    return this.unknownStr(this.ctx[key]);
   }
 
   public get scoreStr(): string {
@@ -43,8 +52,25 @@ export class LiveMatchStateComponent {
     return this.ctxStr('current_rr');
   }
 
-  public get overBalls(): string[] {
-    return (this.ctx['current_over_balls'] as string[]) ?? [];
+  /** Structured deliveries from graphic session context (backend SOT). */
+  public get overDeliveries(): DeliveryChip[] {
+    const structured = this.ctx['current_over_deliveries'];
+    if (!Array.isArray(structured)) return [];
+
+    return structured.map((row, index) => {
+      const item = row as Record<string, unknown>;
+      const overNumber = this.unknownStr(item['over_number']);
+      const ballInOver = this.unknownStr(item['ball_in_over']);
+      const displayToken = this.unknownStr(item['display_token']);
+      const trackKey = overNumber !== '' && ballInOver !== '' ? `${overNumber}-${ballInOver}` : `${displayToken}-${index}`;
+
+      return {
+        trackKey,
+        display_token: displayToken,
+        chip_type: this.unknownStr(item['chip_type'], 'single'),
+        is_free_hit: Boolean(item['is_free_hit']),
+      };
+    });
   }
 
   public get battingTeam(): string {
@@ -68,31 +94,7 @@ export class LiveMatchStateComponent {
     return '';
   }
 
-  public ballChipClass(ball: string): string {
-    const isFh = ball.endsWith('*');
-    const b = ball.replace(/\*$/, '');
-    const base =
-      'inline-flex shrink-0 items-center justify-center h-7 min-w-[1.75rem] px-1 rounded-md text-[11px] font-bold leading-none';
-
-    let body = '';
-    if (b === 'W') body = 'bg-[#EF4444] text-white';
-    else if (b === 'RH') body = 'bg-[#6B7280] text-white';
-    else if (b === '0') body = 'border-2 border-[#3B3B35] bg-[#141412] text-white/60';
-    else if (b === '4') body = 'bg-[#22C55E] text-white';
-    else if (b === '6') body = 'bg-[#A855F7] text-white';
-    else if (/(WD|NB|LB|B)$/.test(b)) body = 'bg-[#1E1E1C] border border-[#DA9811] text-white';
-    else body = 'bg-[#2a2a28] text-[#E5E7EB]';
-
-    const ring = isFh ? ' ring-2 ring-[#DA9811]' : '';
-    return `${base} ${body}${ring}`;
-  }
-
-  public displayBall(ball: string): string {
-    const raw = ball.replace(/\*$/, '');
-    return raw === '0' ? '•' : raw;
-  }
-
-  public isFreeHit(ball: string): boolean {
-    return ball.endsWith('*');
+  public displayBall(delivery: DeliveryChip): string {
+    return delivery.display_token === '0' ? '•' : delivery.display_token;
   }
 }

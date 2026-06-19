@@ -5,6 +5,10 @@ node_modules/
 dist/
 www/
 
+# Playwright
+test-results/
+e2e/fixtures/*.html
+
 # Capacitor
 .capacitor/
 

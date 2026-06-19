@@ -6,6 +6,13 @@ body {
   background-color: #000;
 }
 
+/* OBS overlay route — transparent surround (set via data-overlay-route in index.html). */
+html[data-overlay-route],
+html[data-overlay-route] body,
+html[data-overlay-route] #root {
+  background-color: transparent !important;
+}
+
 /*
  * Graphic overlay page — used as a browser source in OBS/vMix.
  *

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Events\Broadcast\Graphics\MatchGraphicCommandActivated;
+use App\Enums\Broadcast\GraphicCommandKeyEnum;
 use App\Http\Controllers\Admin\Concerns\InteractsWithGraphicCommandPayload;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
@@ -10,11 +10,12 @@ use App\Http\Requests\Admin\StoreMatchGraphicCommandRequest;
 use App\Http\Resources\Admin\MatchGraphicCommandResource;
 use App\Http\Resources\Admin\MatchGraphicSessionResource;
 use App\Models\MatchGraphicCommand;
-use App\Models\MatchGraphicSession;
 use App\Models\TournamentMatch;
+use App\Services\Broadcast\FindMatchGraphicSession;
 use App\Services\Broadcast\GraphicCareerEnricher;
 use App\Services\Broadcast\GraphicCommandHistoryService;
-use App\Services\Broadcast\ResolveMatchGraphicSession;
+use App\Services\Broadcast\GraphicContextOrchestrator;
+use App\Services\Broadcast\GraphicPlayerProfileEnricher;
 use App\Utils\Constants\ApiConstants;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -32,6 +33,8 @@ class GraphicCommandController extends Controller
     public function __construct(
         private readonly GraphicCommandHistoryService $graphicCommandHistory,
         private readonly GraphicCareerEnricher $careerPayloadEnricher,
+        private readonly GraphicPlayerProfileEnricher $playerProfileEnricher,
+        private readonly GraphicContextOrchestrator $graphicContextOrchestrator,
     ) {}
 
     public function index(TournamentMatch $match): JsonResponse
@@ -39,7 +42,7 @@ class GraphicCommandController extends Controller
         $perPage = (int) request('per_page', ApiConstants::PER_PAGE);
         $perPage = max(1, min(100, $perPage));
 
-        $session = $match->graphicSession;
+        $session = FindMatchGraphicSession::forMatch($match);
         if (! $session) {
             $empty = new LengthAwarePaginator([], 0, $perPage, 1);
 
@@ -53,12 +56,27 @@ class GraphicCommandController extends Controller
 
     public function store(StoreMatchGraphicCommandRequest $request, TournamentMatch $match): JsonResponse
     {
-        $session = $this->resolveOrCreateSession($match);
+        $session = FindMatchGraphicSession::forMatch($match);
+        if (! $session) {
+            return $this->failure(
+                'Configure graphics settings before sending commands.',
+                'VALIDATION_ERROR',
+            );
+        }
+
         $data = $request->validated();
 
-        $command = DB::transaction(function () use ($session, $data, $request, $match) {
-            $key = $this->resolveCommandKey($data['command_key'] ?? null);
-            [$payload, $hadPayloadKey, $originalPayload] = $this->prepareCommandPayload($data, $key);
+        $match->refresh();
+        $key = $this->resolveCommandKey($data['command_key'] ?? null);
+        if ($key === GraphicCommandKeyEnum::MOM && $match->player_of_match_user_id === null) {
+            return $this->failure(
+                'Set Man of the Match in the scoring app first.',
+                'VALIDATION_ERROR',
+            );
+        }
+
+        $command = DB::transaction(function () use ($session, $data, $request, $match, $key) {
+            [$payload, $hadPayloadKey, $originalPayload] = $this->prepareCommandPayload($data, $key, $match);
 
             $cmd = MatchGraphicCommand::query()->create([
                 'match_graphic_session_id' => $session->id,
@@ -77,10 +95,7 @@ class GraphicCommandController extends Controller
                     'updated_by' => $request->user()?->id,
                 ]);
 
-                // Pre-load the match relation so MatchGraphicCommandActivated::broadcastContext
-                // does not fire an extra DB query.
-                $session->setRelation('match', $match);
-                MatchGraphicCommandActivated::dispatch($session, $cmd);
+                $this->graphicContextOrchestrator->syncAndBroadcast($match);
             }
 
             return $cmd->fresh();
@@ -91,7 +106,7 @@ class GraphicCommandController extends Controller
 
     public function activate(Request $request, TournamentMatch $match, MatchGraphicCommand $command): JsonResponse
     {
-        $session = $match->graphicSession;
+        $session = FindMatchGraphicSession::forMatch($match);
         if (! $session || (int) $command->match_graphic_session_id !== (int) $session->id) {
             return $this->failure('Command does not belong to this match session.', 'NOT_FOUND');
         }
@@ -104,9 +119,7 @@ class GraphicCommandController extends Controller
                 'updated_by' => $request->user()?->id,
             ]);
 
-            // Pre-load the match relation so broadcastContext avoids an extra query.
-            $session->setRelation('match', $match);
-            MatchGraphicCommandActivated::dispatch($session, $command);
+            $this->graphicContextOrchestrator->syncAndBroadcast($match);
         });
 
         $command->load('session');
@@ -119,7 +132,7 @@ class GraphicCommandController extends Controller
      */
     public function destroyHistory(TournamentMatch $match): JsonResponse
     {
-        $session = $match->graphicSession;
+        $session = FindMatchGraphicSession::forMatch($match);
         if (! $session) {
             return $this->success(null, 'No command history for this match.');
         }
@@ -134,10 +147,5 @@ class GraphicCommandController extends Controller
         ]);
 
         return $this->success(new MatchGraphicSessionResource($session), 'Recent commands cleared.');
-    }
-
-    private function resolveOrCreateSession(TournamentMatch $match): MatchGraphicSession
-    {
-        return ResolveMatchGraphicSession::forMatch($match);
     }
 }

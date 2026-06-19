@@ -15,6 +15,7 @@ export interface Tournament {
   creator?: { id: number; name: string; nickname: string | null; email: string | null; phone: string | null } | null;
   organizer?: { id: number; name: string; nickname: string | null; email: string | null; phone: string | null };
   tournament_name: string;
+  short_name?: string | null;
   tournament_type: string;
   tournament_type_label: string;
   cricket_format: string;

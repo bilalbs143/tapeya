@@ -3,6 +3,8 @@
 namespace App\Http\Resources\Admin;
 
 use App\Services\Broadcast\GraphicContextOrchestrator;
+use App\Support\Broadcast\GraphicContextHash;
+use App\Support\Scoring\MatchPendingState;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\App;
@@ -22,13 +24,16 @@ class MatchGraphicSessionResource extends JsonResource
                 ->mergeSessionContext($this->resource, $this->match);
         }
 
+        $resolvedPending = $this->match !== null ? MatchPendingState::resolve($this->match) : [];
+
         return [
             'id' => $this->id,
             'match_id' => $this->match_id,
             'graphic_theme_id' => $this->graphic_theme_id,
             'config' => $this->config,
-            'pending_players' => is_array($this->pending_players) ? $this->pending_players : null,
+            'pending_players' => $resolvedPending === [] ? null : $resolvedPending,
             'context' => $context,
+            'context_hash' => GraphicContextHash::hash($context),
             'active_command_id' => $this->active_command_id,
             'theme' => $this->whenLoaded('theme', fn () => new GraphicThemeResource($this->theme)),
             'active_command' => $this->whenLoaded('activeCommand', fn () => new MatchGraphicCommandResource($this->activeCommand)),

@@ -1,0 +1,16 @@
+@if (loading) {
+  YouTube:
+  <strong>…</strong>
+} @else {
+  @if (showWatching) {
+    Watching:
+    <strong>{{ viewerCount }}</strong>
+    <span class="ms-2">
+      YouTube:
+      <strong>{{ headerStatusLabel() }}</strong>
+    </span>
+  } @else {
+    YouTube:
+    <strong>{{ headerStatusLabel() }}</strong>
+  }
+}

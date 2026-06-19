@@ -29,6 +29,7 @@ const DEFAULT_VALUES = {
   contact_person_name: '',
   contact_phone: '+92',
   tournament_name: '',
+  short_name: '',
   tournament_type: '',
   cricket_format: '',
   venue_name: '',
@@ -112,6 +113,7 @@ export default function TournamentRequest() {
         number_of_teams: Number(data.number_of_teams),
         number_of_groups,
         ...(data.prize?.trim() ? { prize: data.prize.trim() } : {}),
+        ...(data.short_name?.trim() ? { short_name: data.short_name.trim() } : {}),
       };
 
       const res = await createTournamentRequest(payload).unwrap();
@@ -171,6 +173,16 @@ export default function TournamentRequest() {
               placeholder="Enter Tournament Name"
               error={errors.tournament_name?.message}
               {...register('tournament_name')}
+            />
+          </FormField>
+
+          <FormField label="Short Name" htmlFor="short_name">
+            <Input
+              id="short_name"
+              placeholder="e.g. PSL"
+              maxLength={64}
+              error={errors.short_name?.message}
+              {...register('short_name')}
             />
           </FormField>
 

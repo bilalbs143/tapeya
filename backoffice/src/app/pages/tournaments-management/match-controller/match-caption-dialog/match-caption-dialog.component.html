@@ -1,10 +1,20 @@
-<app-dialog-wrapper [title]="data.caption ? 'Edit Caption' : 'Add Caption'">
+<app-dialog-wrapper title="Manage Caption">
   <form
     [formGroup]="form"
     (ngSubmit)="save()"
   >
     <mat-dialog-content>
       <div class="grid grid-cols-12 gap-x-6 min-w-[min(100%,420px)]">
+        <div class="col-span-12">
+          <p class="text-sm text-muted m-0 mb-2 leading-snug">
+            @if (data.caption) {
+              One caption per match. Update the fields below or delete to remove it.
+            } @else {
+              One caption per match. Used by Custom overlay commands.
+            }
+          </p>
+        </div>
+
         <div class="col-span-12">
           <mat-label class="text-sm font-semibold mb-2 block">Title <span class="text-error">*</span></mat-label>
           <mat-form-field
@@ -44,7 +54,7 @@
     </mat-dialog-content>
 
     <mat-divider></mat-divider>
-    <mat-dialog-actions>
+    <mat-dialog-actions class="!flex flex-wrap items-center gap-4 [&_button]:!m-0">
       <button
         type="button"
         mat-stroked-button
@@ -53,6 +63,18 @@
       >
         Cancel
       </button>
+
+      @if (data.caption) {
+        <button
+          type="button"
+          mat-stroked-button
+          class="border border-error! text-error"
+          [disabled]="saving"
+          (click)="deleteCaption()"
+        >
+          Delete
+        </button>
+      }
 
       <app-submit-button
         [disabled]="form.invalid"

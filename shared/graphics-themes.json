@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "themes": [
+    {
+      "slug": "theme1",
+      "folder": "theme1",
+      "label": "Midnight Neon Premium Theme",
+      "completeness": "full"
+    }
+  ]
+}

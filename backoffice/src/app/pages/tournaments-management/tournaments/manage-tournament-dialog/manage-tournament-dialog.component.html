@@ -64,6 +64,23 @@
           </mat-form-field>
         </div>
         <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Short Name</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              formControlName="short_name"
+              placeholder="e.g. PSL"
+              maxlength="64"
+            />
+            @if (form.get('short_name')?.invalid && (form.get('short_name')?.touched || form.get('short_name')?.dirty)) {
+              <mat-error>Short name is too long (max 64 characters).</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
           <mat-label class="text-sm font-semibold mb-2 block">Tournament Type <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
@@ -230,7 +247,7 @@
           </mat-form-field>
         </div>
 
-        <div class="col-span-12 lg:col-span-4">
+        <div class="col-span-12 lg:col-span-6">
           <mat-label class="text-sm font-semibold mb-2 block">Number of Teams <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"

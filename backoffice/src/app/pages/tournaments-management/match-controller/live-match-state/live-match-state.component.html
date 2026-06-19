@@ -16,12 +16,18 @@
     <div class="live-state__over">
       <span class="live-state__over-label">This Over</span>
       <div class="live-state__balls">
-        @for (ball of overBalls; track $index) {
-          <span class="relative inline-block">
-            <span [class]="ballChipClass(ball)">{{ displayBall(ball) }}</span>
-            @if (isFreeHit(ball)) {
+        @for (delivery of overDeliveries; track delivery.trackKey) {
+          <span class="live-state__ball-wrap">
+            <span
+              class="live-state__ball"
+              [attr.data-chip-type]="delivery.chip_type"
+              [attr.data-free-hit]="delivery.is_free_hit ? '' : null"
+            >
+              {{ displayBall(delivery) }}
+            </span>
+            @if (delivery.is_free_hit) {
               <span
-                class="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#DA9811] text-[7px] font-black text-[#080807]"
+                class="live-state__free-hit"
                 title="Free Hit"
                 aria-label="Free Hit delivery"
                 >⚡</span
@@ -29,7 +35,7 @@
             }
           </span>
         }
-        @if (!overBalls.length) {
+        @if (!overDeliveries.length) {
           <span class="text-muted text-sm">—</span>
         }
       </div>

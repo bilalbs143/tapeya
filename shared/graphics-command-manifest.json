@@ -1,0 +1,990 @@
+{
+    "version": 1,
+    "generated_at": "2026-06-11T11:17:31+00:00",
+    "commands": [
+        {
+            "key": "LT_EMPTY",
+            "type": "LOWER_THIRD",
+            "label": "Empty",
+            "displayMode": "LT",
+            "category": "clear",
+            "requires": [],
+            "status": "active",
+            "processorId": "LT_EMPTY"
+        },
+        {
+            "key": "LT_DEFAULT",
+            "type": "LOWER_THIRD",
+            "label": "Default",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "LT_DEFAULT"
+        },
+        {
+            "key": "MINI_SCORECARD",
+            "type": "LOWER_THIRD",
+            "label": "Mini ScoreCard",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "MINI_SCORECARD"
+        },
+        {
+            "key": "MATCH_SUMMARY",
+            "type": "LOWER_THIRD",
+            "label": "Match Summary",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "MATCH_SUMMARY"
+        },
+        {
+            "key": "INTRO_LT",
+            "type": "LOWER_THIRD",
+            "label": "Intro LT",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "INTRO_LT"
+        },
+        {
+            "key": "TOSS_LT",
+            "type": "LOWER_THIRD",
+            "label": "Toss LT",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "TOSS_LT"
+        },
+        {
+            "key": "NEED_TARGET",
+            "type": "LOWER_THIRD",
+            "label": "Need/Target",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "NEED_TARGET"
+        },
+        {
+            "key": "AT_STAGE",
+            "type": "LOWER_THIRD",
+            "label": "At Stage",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "AT_STAGE"
+        },
+        {
+            "key": "RUN_RATE",
+            "type": "LOWER_THIRD",
+            "label": "Run Rate",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "RUN_RATE"
+        },
+        {
+            "key": "THIS_OVER",
+            "type": "LOWER_THIRD",
+            "label": "This Over",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "THIS_OVER"
+        },
+        {
+            "key": "PREVIOUS_OVER",
+            "type": "LOWER_THIRD",
+            "label": "Previous Over",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "PREVIOUS_OVER"
+        },
+        {
+            "key": "FOW",
+            "type": "LOWER_THIRD",
+            "label": "FOW",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "FOW"
+        },
+        {
+            "key": "LAST_WICKET",
+            "type": "LOWER_THIRD",
+            "label": "Last Wicket",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "LAST_WICKET"
+        },
+        {
+            "key": "LAST_12_BALLS",
+            "type": "LOWER_THIRD",
+            "label": "Last 12 Balls",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "LAST_12_BALLS"
+        },
+        {
+            "key": "LAST_30_BALLS",
+            "type": "LOWER_THIRD",
+            "label": "Last 30 Balls",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "LAST_30_BALLS"
+        },
+        {
+            "key": "CURRENT_PARTNERSHIP",
+            "type": "LOWER_THIRD",
+            "label": "Current Partnership",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "CURRENT_PARTNERSHIP"
+        },
+        {
+            "key": "TOURNAMENT_NAME",
+            "type": "LOWER_THIRD",
+            "label": "Tournament Name",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "TOURNAMENT_NAME"
+        },
+        {
+            "key": "RESULT_LT",
+            "type": "LOWER_THIRD",
+            "label": "Result LT",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "RESULT_LT"
+        },
+        {
+            "key": "WIN_PREDICTION",
+            "type": "LOWER_THIRD",
+            "label": "Win Prediction",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "WIN_PREDICTION"
+        },
+        {
+            "key": "LT_FOUR",
+            "type": "LOWER_THIRD",
+            "label": "4",
+            "displayMode": null,
+            "category": "animation",
+            "requires": [],
+            "status": "active",
+            "processorId": "LT_FOUR"
+        },
+        {
+            "key": "LT_SIX",
+            "type": "LOWER_THIRD",
+            "label": "6",
+            "displayMode": null,
+            "category": "animation",
+            "requires": [],
+            "status": "active",
+            "processorId": "LT_SIX"
+        },
+        {
+            "key": "LT_WIDE",
+            "type": "LOWER_THIRD",
+            "label": "Wide",
+            "displayMode": null,
+            "category": "animation",
+            "requires": [],
+            "status": "active",
+            "processorId": "LT_WIDE"
+        },
+        {
+            "key": "LT_NO_BALL",
+            "type": "LOWER_THIRD",
+            "label": "No-Ball",
+            "displayMode": null,
+            "category": "animation",
+            "requires": [],
+            "status": "active",
+            "processorId": "LT_NO_BALL"
+        },
+        {
+            "key": "LT_NOT_OUT",
+            "type": "LOWER_THIRD",
+            "label": "Not Out",
+            "displayMode": null,
+            "category": "animation",
+            "requires": [],
+            "status": "active",
+            "processorId": "LT_NOT_OUT"
+        },
+        {
+            "key": "LT_OUT",
+            "type": "LOWER_THIRD",
+            "label": "Out",
+            "displayMode": null,
+            "category": "animation",
+            "requires": [],
+            "status": "active",
+            "processorId": "LT_OUT"
+        },
+        {
+            "key": "FIFTY_UP",
+            "type": "LOWER_THIRD",
+            "label": "50 Up",
+            "displayMode": null,
+            "category": "animation",
+            "requires": [],
+            "status": "active",
+            "processorId": "FIFTY_UP"
+        },
+        {
+            "key": "HUNDRED_UP",
+            "type": "LOWER_THIRD",
+            "label": "100 Up",
+            "displayMode": null,
+            "category": "animation",
+            "requires": [],
+            "status": "active",
+            "processorId": "HUNDRED_UP"
+        },
+        {
+            "key": "LT_REPLAY",
+            "type": "LOWER_THIRD",
+            "label": "Replay",
+            "displayMode": null,
+            "category": "animation",
+            "requires": [],
+            "status": "active",
+            "processorId": "LT_REPLAY"
+        },
+        {
+            "key": "DECISION_PENDING",
+            "type": "LOWER_THIRD",
+            "label": "Decision Pending",
+            "displayMode": null,
+            "category": "animation",
+            "requires": [],
+            "status": "active",
+            "processorId": "DECISION_PENDING"
+        },
+        {
+            "key": "UMPIRES",
+            "type": "LOWER_THIRD",
+            "label": "Umpires",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "UMPIRES"
+        },
+        {
+            "key": "SCORERS",
+            "type": "LOWER_THIRD",
+            "label": "Scorers",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "SCORERS"
+        },
+        {
+            "key": "COMMENTATORS",
+            "type": "LOWER_THIRD",
+            "label": "Commentators",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "COMMENTATORS"
+        },
+        {
+            "key": "FOLLOW_PLATFORM",
+            "type": "LOWER_THIRD",
+            "label": "Follow Tapeya",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "FOLLOW_PLATFORM"
+        },
+        {
+            "key": "DOWNLOAD_PLATFORM",
+            "type": "LOWER_THIRD",
+            "label": "Download Tapeya",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "DOWNLOAD_PLATFORM"
+        },
+        {
+            "key": "THIS_MATCH",
+            "type": "FULL_SCREEN",
+            "label": "This Match",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "THIS_MATCH"
+        },
+        {
+            "key": "PLAYING_11",
+            "type": "FULL_SCREEN",
+            "label": "Playing 11",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": {
+                "playing_eleven_payload": true
+            },
+            "status": "active",
+            "processorId": "PLAYING_11"
+        },
+        {
+            "key": "BATTING_SQUAD",
+            "type": "FULL_SCREEN",
+            "label": "Batting Squad",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "BATTING_SQUAD"
+        },
+        {
+            "key": "BOWLING_SQUAD",
+            "type": "FULL_SCREEN",
+            "label": "Bowling Squad",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "BOWLING_SQUAD"
+        },
+        {
+            "key": "NEXT_MATCH",
+            "type": "FULL_SCREEN",
+            "label": "Next Match",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "NEXT_MATCH"
+        },
+        {
+            "key": "LAST_WICKET_FS",
+            "type": "FULL_SCREEN",
+            "label": "Last Wicket",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "LAST_WICKET_FS"
+        },
+        {
+            "key": "CURRENT_PARTNERSHIP_FS",
+            "type": "FULL_SCREEN",
+            "label": "Curr Partnership",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "CURRENT_PARTNERSHIP_FS"
+        },
+        {
+            "key": "PARTNERSHIP_LIST",
+            "type": "FULL_SCREEN",
+            "label": "Partnership List",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "PARTNERSHIP_LIST"
+        },
+        {
+            "key": "NEED_TARGET_FS",
+            "type": "FULL_SCREEN",
+            "label": "Need/Target",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "NEED_TARGET_FS"
+        },
+        {
+            "key": "BATTING_SUMMARY",
+            "type": "FULL_SCREEN",
+            "label": "Batting Summary",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "BATTING_SUMMARY"
+        },
+        {
+            "key": "BOWLING_SUMMARY",
+            "type": "FULL_SCREEN",
+            "label": "Bowling Summary",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "BOWLING_SUMMARY"
+        },
+        {
+            "key": "MATCH_SUMMARY_FS",
+            "type": "FULL_SCREEN",
+            "label": "Match Summary",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "MATCH_SUMMARY_FS"
+        },
+        {
+            "key": "TOP_BOWLER",
+            "type": "FULL_SCREEN",
+            "label": "Top Bowler",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "TOP_BOWLER"
+        },
+        {
+            "key": "TOP_BATTER",
+            "type": "FULL_SCREEN",
+            "label": "Top Batter",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "TOP_BATTER"
+        },
+        {
+            "key": "INNING_FIGURES",
+            "type": "FULL_SCREEN",
+            "label": "Inning Figures",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "INNING_FIGURES"
+        },
+        {
+            "key": "MOM",
+            "type": "FULL_SCREEN",
+            "label": "MOM",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": {
+                "player_of_match": true
+            },
+            "status": "active",
+            "processorId": "MOM"
+        },
+        {
+            "key": "TOUR_FOURS",
+            "type": "TOUR_HITS",
+            "label": "4's",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "TOUR_FOURS"
+        },
+        {
+            "key": "TOUR_SIXES",
+            "type": "TOUR_HITS",
+            "label": "6's",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "TOUR_SIXES"
+        },
+        {
+            "key": "TOUR_FIFTIES",
+            "type": "TOUR_HITS",
+            "label": "50's",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "TOUR_FIFTIES"
+        },
+        {
+            "key": "TOUR_HUNDREDS",
+            "type": "TOUR_HITS",
+            "label": "100's",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "TOUR_HUNDREDS"
+        },
+        {
+            "key": "TOUR_RUNS",
+            "type": "TOUR_HITS",
+            "label": "Run's",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "TOUR_RUNS"
+        },
+        {
+            "key": "TOUR_WICKETS",
+            "type": "TOUR_HITS",
+            "label": "Wkt's",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "TOUR_WICKETS"
+        },
+        {
+            "key": "FST_FOUR",
+            "type": "FULL_SCREEN_TRANSITION",
+            "label": "4",
+            "displayMode": null,
+            "category": "animation",
+            "requires": [],
+            "status": "active",
+            "processorId": "FST_FOUR"
+        },
+        {
+            "key": "FST_SIX",
+            "type": "FULL_SCREEN_TRANSITION",
+            "label": "6",
+            "displayMode": null,
+            "category": "animation",
+            "requires": [],
+            "status": "active",
+            "processorId": "FST_SIX"
+        },
+        {
+            "key": "FST_NOT_OUT",
+            "type": "FULL_SCREEN_TRANSITION",
+            "label": "Not Out",
+            "displayMode": null,
+            "category": "animation",
+            "requires": [],
+            "status": "active",
+            "processorId": "FST_NOT_OUT"
+        },
+        {
+            "key": "FST_OUT",
+            "type": "FULL_SCREEN_TRANSITION",
+            "label": "Out",
+            "displayMode": null,
+            "category": "animation",
+            "requires": [],
+            "status": "active",
+            "processorId": "FST_OUT"
+        },
+        {
+            "key": "FST_NO_BALL",
+            "type": "FULL_SCREEN_TRANSITION",
+            "label": "No Ball",
+            "displayMode": null,
+            "category": "animation",
+            "requires": [],
+            "status": "active",
+            "processorId": "FST_NO_BALL"
+        },
+        {
+            "key": "FST_WIDE",
+            "type": "FULL_SCREEN_TRANSITION",
+            "label": "Wide",
+            "displayMode": null,
+            "category": "animation",
+            "requires": [],
+            "status": "active",
+            "processorId": "FST_WIDE"
+        },
+        {
+            "key": "FST_FIFTY",
+            "type": "FULL_SCREEN_TRANSITION",
+            "label": "50",
+            "displayMode": null,
+            "category": "animation",
+            "requires": [],
+            "status": "active",
+            "processorId": "FST_FIFTY"
+        },
+        {
+            "key": "FST_HUNDRED",
+            "type": "FULL_SCREEN_TRANSITION",
+            "label": "100",
+            "displayMode": null,
+            "category": "animation",
+            "requires": [],
+            "status": "active",
+            "processorId": "FST_HUNDRED"
+        },
+        {
+            "key": "FST_REPLAY",
+            "type": "FULL_SCREEN_TRANSITION",
+            "label": "Replay",
+            "displayMode": null,
+            "category": "animation",
+            "requires": [],
+            "status": "active",
+            "processorId": "FST_REPLAY"
+        },
+        {
+            "key": "FST_DECISION",
+            "type": "FULL_SCREEN_TRANSITION",
+            "label": "Decision Pending",
+            "displayMode": null,
+            "category": "animation",
+            "requires": [],
+            "status": "active",
+            "processorId": "FST_DECISION"
+        },
+        {
+            "key": "INNINGS_BREAK",
+            "type": "BREAK",
+            "label": "Innings Break",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "INNINGS_BREAK"
+        },
+        {
+            "key": "TEA_BREAK",
+            "type": "BREAK",
+            "label": "Tea Break",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "TEA_BREAK"
+        },
+        {
+            "key": "LUNCH_BREAK",
+            "type": "BREAK",
+            "label": "Lunch Break",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "LUNCH_BREAK"
+        },
+        {
+            "key": "RAIN_STOPPED",
+            "type": "BREAK",
+            "label": "Rain Stopped",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "RAIN_STOPPED"
+        },
+        {
+            "key": "STRATEGIC_TIMEOUT",
+            "type": "BREAK",
+            "label": "Strategic Timeout",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "STRATEGIC_TIMEOUT"
+        },
+        {
+            "key": "POINT_TABLE",
+            "type": "TOURNAMENT",
+            "label": "Point Table",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "POINT_TABLE"
+        },
+        {
+            "key": "HIGHEST_RUNS",
+            "type": "TOURNAMENT",
+            "label": "Highest Runs",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "HIGHEST_RUNS"
+        },
+        {
+            "key": "HIGHEST_WICKETS",
+            "type": "TOURNAMENT",
+            "label": "Highest Wickets",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "HIGHEST_WICKETS"
+        },
+        {
+            "key": "HIGHEST_SIXES",
+            "type": "TOURNAMENT",
+            "label": "Highest Sixes",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "HIGHEST_SIXES"
+        },
+        {
+            "key": "HIGHEST_FOURS",
+            "type": "TOURNAMENT",
+            "label": "Highest Fours",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "HIGHEST_FOURS"
+        },
+        {
+            "key": "WORM",
+            "type": "CHART",
+            "label": "Worm Chart",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "WORM"
+        },
+        {
+            "key": "RUN_RATE_CHART",
+            "type": "CHART",
+            "label": "Run Rate",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "RUN_RATE_CHART"
+        },
+        {
+            "key": "MANHATTAN",
+            "type": "CHART",
+            "label": "Manhatt",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "MANHATTAN"
+        },
+        {
+            "key": "WAGON_WHEEL",
+            "type": "CHART",
+            "label": "Wagon Wheel",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": [],
+            "status": "active",
+            "processorId": "WAGON_WHEEL"
+        },
+        {
+            "key": "BATSMAN_NAME_LT",
+            "type": "BATSMAN_STATS",
+            "label": "Name LT",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": {
+                "player_pick": "batsman"
+            },
+            "status": "active",
+            "processorId": "BATSMAN_NAME_LT"
+        },
+        {
+            "key": "BATSMAN_NAME_FS",
+            "type": "BATSMAN_STATS",
+            "label": "Name FS",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": {
+                "player_pick": "batsman"
+            },
+            "status": "active",
+            "processorId": "BATSMAN_NAME_FS"
+        },
+        {
+            "key": "BATSMAN_MATCH_LT",
+            "type": "BATSMAN_STATS",
+            "label": "Match LT",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": {
+                "player_pick": "batsman"
+            },
+            "status": "active",
+            "processorId": "BATSMAN_MATCH_LT"
+        },
+        {
+            "key": "BATSMAN_MATCH_FS",
+            "type": "BATSMAN_STATS",
+            "label": "Match FS",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": {
+                "player_pick": "batsman"
+            },
+            "status": "active",
+            "processorId": "BATSMAN_MATCH_FS"
+        },
+        {
+            "key": "BATSMAN_TOURNAMENT_LT",
+            "type": "BATSMAN_STATS",
+            "label": "Tournament LT",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": {
+                "player_pick": "batsman"
+            },
+            "status": "active",
+            "processorId": "BATSMAN_TOURNAMENT_LT"
+        },
+        {
+            "key": "BATSMAN_TOURNAMENT_FS",
+            "type": "BATSMAN_STATS",
+            "label": "Tournament FS",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": {
+                "player_pick": "batsman"
+            },
+            "status": "active",
+            "processorId": "BATSMAN_TOURNAMENT_FS"
+        },
+        {
+            "key": "BATSMAN_WAGON_WHEEL",
+            "type": "BATSMAN_STATS",
+            "label": "Player Wagon Wheel",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": {
+                "player_pick": "batsman"
+            },
+            "status": "active",
+            "processorId": "BATSMAN_WAGON_WHEEL"
+        },
+        {
+            "key": "BOWLER_NAME_LT",
+            "type": "BOWLER_STATS",
+            "label": "Name LT",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": {
+                "player_pick": "bowler"
+            },
+            "status": "active",
+            "processorId": "BOWLER_NAME_LT"
+        },
+        {
+            "key": "BOWLER_NAME_FS",
+            "type": "BOWLER_STATS",
+            "label": "Name FS",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": {
+                "player_pick": "bowler"
+            },
+            "status": "active",
+            "processorId": "BOWLER_NAME_FS"
+        },
+        {
+            "key": "BOWLER_MATCH_LT",
+            "type": "BOWLER_STATS",
+            "label": "Match LT",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": {
+                "player_pick": "bowler"
+            },
+            "status": "active",
+            "processorId": "BOWLER_MATCH_LT"
+        },
+        {
+            "key": "BOWLER_MATCH_FS",
+            "type": "BOWLER_STATS",
+            "label": "Match FS",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": {
+                "player_pick": "bowler"
+            },
+            "status": "active",
+            "processorId": "BOWLER_MATCH_FS"
+        },
+        {
+            "key": "BOWLER_TOURNAMENT_LT",
+            "type": "BOWLER_STATS",
+            "label": "Tournament LT",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": {
+                "player_pick": "bowler"
+            },
+            "status": "active",
+            "processorId": "BOWLER_TOURNAMENT_LT"
+        },
+        {
+            "key": "BOWLER_TOURNAMENT_FS",
+            "type": "BOWLER_STATS",
+            "label": "Tournament FS",
+            "displayMode": "FS",
+            "category": "data",
+            "requires": {
+                "player_pick": "bowler"
+            },
+            "status": "active",
+            "processorId": "BOWLER_TOURNAMENT_FS"
+        },
+        {
+            "key": "CUSTOM",
+            "type": "CAPTION",
+            "label": "Custom Message",
+            "displayMode": "LT",
+            "category": "data",
+            "requires": {
+                "caption": true
+            },
+            "status": "active",
+            "processorId": "CUSTOM"
+        },
+        {
+            "key": "ADD_CAPTION",
+            "type": "CAPTION",
+            "label": "Add Caption",
+            "displayMode": "LT",
+            "category": "backoffice_only",
+            "requires": {
+                "caption": true
+            },
+            "status": "active",
+            "processorId": "ADD_CAPTION"
+        }
+    ]
+}

@@ -17,6 +17,7 @@ class TournamentRequestResource extends JsonResource
             'contact_person_name' => $this->contact_person_name,
             'contact_phone' => $this->contact_phone,
             'tournament_name' => $this->tournament_name,
+            'short_name' => $this->short_name,
             'tournament_type' => $this->tournament_type?->value,
             'tournament_type_label' => $this->tournament_type?->label(),
             'cricket_format' => $this->cricket_format?->value,

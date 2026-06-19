@@ -54,6 +54,32 @@ export class MatchCaptionDialogComponent {
     }
   }
 
+  public deleteCaption(): void {
+    const existing = this.data.caption;
+    if (!existing || this.saving) {
+      return;
+    }
+    this.messageService
+      .prompt('Delete caption', `Remove "${existing.title}"?`, 'Delete', 'Cancel')
+      .afterClosed()
+      .subscribe((ok) => {
+        if (!ok) {
+          return;
+        }
+        this.saving = true;
+        this.graphicService.deleteCaption(this.data.matchId, existing.id).subscribe({
+          next: () => {
+            this.saving = false;
+            this.dialogRef.close(true);
+          },
+          error: (err: unknown) => {
+            this.saving = false;
+            this.messageService.httpError(err);
+          },
+        });
+      });
+  }
+
   public save(): void {
     if (this.form.invalid || this.saving) {
       return;

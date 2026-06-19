@@ -2,7 +2,7 @@
   <div class="flex justify-center py-24">
     <mat-spinner diameter="48" />
   </div>
-} @else if (match && session) {
+} @else if (match) {
   <div
     class="match-controller-host"
     #fullscreenHost
@@ -25,46 +25,39 @@
               [class.mt-2]="!isMatchCompleted"
             >
               Theme:
-              <strong>{{ session.theme?.name ?? '—' }}</strong>
-              @if (session.active_command) {
+              <strong>{{ session?.theme?.name ?? 'Not configured' }}</strong>
+              @if (session?.active_command; as activeCommand) {
                 <span class="text-muted ms-2">
                   On Air:
-                  {{ formatCommandToken(session.active_command.command_type) }} ·
-                  {{ formatCommandToken(session.active_command.command_key) }}
+                  {{ formatCommandToken(activeCommand.command_type) }} ·
+                  {{ formatCommandToken(activeCommand.command_key) }}
                 </span>
               }
             </p>
-            @if (!isMatchCompleted) {
-              <div class="controller-dashboard__innings flex flex-wrap items-center gap-2 mt-3">
-                <span class="text-sm text-muted m-0">Innings</span>
-                <mat-button-toggle-group
-                  class="controller-dashboard__innings-toggle"
-                  [ngModel]="selectedInnings"
-                  (ngModelChange)="onInningsSelectionChange($event)"
-                >
-                  <mat-button-toggle
-                    [value]="1"
-                    class="!text-sm"
-                  >
-                    1st Innings
-                  </mat-button-toggle>
-                  <mat-button-toggle
-                    [value]="2"
-                    class="!text-sm"
-                  >
-                    2nd Innings
-                  </mat-button-toggle>
-                </mat-button-toggle-group>
-              </div>
-            }
+            <p class="text-sm m-0 mt-2">
+              <app-match-stream-header-status
+                [matchId]="matchId"
+                [refreshToken]="streamRefreshToken()"
+              />
+            </p>
           </div>
           <div class="flex flex-wrap gap-2 shrink-0 items-center">
-            <a
+            <button
               mat-stroked-button
-              [routerLink]="backLink()"
+              type="button"
+              (click)="openCaptionDialog()"
+              [matTooltip]="captionManageTooltip()"
             >
-              Back to Matches
-            </a>
+              Manage Caption
+            </button>
+            <button
+              mat-stroked-button
+              type="button"
+              (click)="openStreamDialog()"
+              matTooltip="YouTube live stream setup and RTMP credentials"
+            >
+              YouTube Stream
+            </button>
             <button
               mat-flat-button
               color="primary"
@@ -84,45 +77,6 @@
           </div>
         </div>
 
-        <app-match-stream-panel
-          [matchId]="matchId"
-          [homeTeamName]="match.home_team?.name ?? 'Home'"
-          [awayTeamName]="match.away_team?.name ?? 'Away'"
-        />
-
-        <section class="controller-dashboard__caption">
-          <h2 class="controller-dashboard__caption-title">Saved Caption</h2>
-          @if (!caption) {
-            <p class="controller-dashboard__caption-body">
-              No caption yet. One caption per match. Add it from <strong>Caption</strong> below.
-            </p>
-          } @else {
-            <div class="controller-dashboard__caption-card">
-              <div class="min-w-0 flex-1">
-                <div class="font-medium text-sm">{{ caption.title }}</div>
-                <div class="text-sm text-muted whitespace-pre-wrap mt-1 leading-snug">{{ caption.description }}</div>
-              </div>
-              <div class="flex flex-wrap gap-2 shrink-0">
-                <button
-                  mat-stroked-button
-                  type="button"
-                  (click)="openCaptionDialog(caption)"
-                >
-                  Edit
-                </button>
-                <button
-                  mat-stroked-button
-                  class="text-error border-error"
-                  type="button"
-                  (click)="deleteCaption(caption)"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          }
-        </section>
-
         <!-- Live score (in progress) or match result (completed) -->
         @if (isMatchCompleted) {
           <section
@@ -133,7 +87,7 @@
             <p class="controller-dashboard__caption-body m-0">{{ matchResultDescription }}</p>
           </section>
         } @else {
-          <app-live-match-state [context]="session.context" />
+          <app-live-match-state [context]="session?.context ?? null" />
 
           @if (playerBatsmanGroup || playerBowlerGroup) {
             <div class="player-controllers">
@@ -267,9 +221,9 @@
                       appearance="outline"
                       class="catalog-group__player-select"
                     >
-                      <mat-label>{{ group.id === 'BATSMAN_STATS' ? 'Batsman' : 'Bowler' }}</mat-label>
+                      <mat-label>{{ playerPickLabel(group) }}</mat-label>
                       <mat-select
-                        [ngModel]="group.id === 'BATSMAN_STATS' ? selectedBatsman : selectedBowler"
+                        [ngModel]="playerPickValue(group)"
                         (ngModelChange)="onPlayerPickChange(group, $event)"
                         [compareWith]="comparePlayerPick"
                         placeholder="Choose player"
@@ -313,7 +267,7 @@
           }
         </div>
 
-        @if (session.recent_commands?.length) {
+        @if (session?.recent_commands?.length) {
           <section class="controller-dashboard__recent">
             <div class="controller-dashboard__recent-head flex flex-wrap items-center justify-between gap-2">
               <h2 class="controller-dashboard__recent-title">Recent Commands</h2>
@@ -328,7 +282,7 @@
               </button>
             </div>
             <mat-chip-set>
-              @for (c of session.recent_commands; track c.id) {
+              @for (c of session!.recent_commands; track c.id) {
                 <mat-chip>{{ formatCommandToken(c.command_type) }} · {{ formatCommandToken(c.command_key) }}</mat-chip>
               }
             </mat-chip-set>

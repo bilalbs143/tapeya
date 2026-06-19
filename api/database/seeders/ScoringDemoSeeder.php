@@ -44,7 +44,7 @@ use Illuminate\Support\Facades\Hash;
  *   - 36 players (6 per team, no cross-team overlap; real names; playing_role / batting_style / bowling_style), password: password
  *   - 3 organizers (real names; organizer role + cricket profile fields), password: password
  *   - 3 sponsors (real names; sponsor role + cricket profile fields), password: password
- *   - 4 tournaments (organizer_id; number_of_groups / prize per schema; first three single-group, fourth two-group demo)
+ *   - 4 tournaments (organizer_id; short_name e.g. KPL/LSC; number_of_groups / prize per schema; first three single-group, fourth two-group demo)
  *   - 6 teams (PSL-style names; 3-letter uppercase codes; owned by sponsors; optional logo left null)
  *   - Attaches players to teams (team_user), two icon players per team (team_icon_players)
  *   - Attaches teams to tournaments (tournament_team with group_index when number_of_groups > 1)
@@ -145,6 +145,14 @@ class ScoringDemoSeeder extends Seeder
         'Lahore Summer Cup',
         'Islamabad T20 Challenge',
         'National Club Championship',
+    ];
+
+    /** @var list<string> */
+    private const DEMO_TOURNAMENT_SHORT_NAMES = [
+        'KPL',
+        'LSC',
+        'ITC',
+        'NCC',
     ];
 
     /** @var list<string> */
@@ -403,23 +411,28 @@ class ScoringDemoSeeder extends Seeder
             $end = $start->copy()->addDays(7);
 
             $numberOfGroups = $i === 4 ? 2 : 1;
-            $t = Tournament::create([
-                'organizer_id' => $org->id,
-                'created_by' => $org->id,
-                'tournament_name' => self::DEMO_TOURNAMENT_NAMES[$i - 1],
-                'tournament_type' => $type->value,
-                'cricket_format' => $format->value,
-                'venue_name' => self::DEMO_VENUES[$i - 1],
-                'start_date' => $start,
-                'end_date' => $end,
-                'number_of_teams' => 4,
-                'number_of_groups' => $numberOfGroups,
-                'country' => 'Pakistan',
-                'city' => ['Karachi', 'Lahore', 'Islamabad', 'Rawalpindi'][$i - 1],
-                'match_timings' => $timing->value,
-                'status' => StatusEnum::ACTIVE->value,
-                'prize' => $i === 4 ? 'Championship trophy + prize pool' : 'Participation medals',
-            ]);
+            $t = Tournament::updateOrCreate(
+                [
+                    'tournament_name' => self::DEMO_TOURNAMENT_NAMES[$i - 1],
+                    'organizer_id' => $org->id,
+                ],
+                [
+                    'created_by' => $org->id,
+                    'short_name' => self::DEMO_TOURNAMENT_SHORT_NAMES[$i - 1],
+                    'tournament_type' => $type->value,
+                    'cricket_format' => $format->value,
+                    'venue_name' => self::DEMO_VENUES[$i - 1],
+                    'start_date' => $start,
+                    'end_date' => $end,
+                    'number_of_teams' => 4,
+                    'number_of_groups' => $numberOfGroups,
+                    'country' => 'Pakistan',
+                    'city' => ['Karachi', 'Lahore', 'Islamabad', 'Rawalpindi'][$i - 1],
+                    'match_timings' => $timing->value,
+                    'status' => StatusEnum::ACTIVE->value,
+                    'prize' => $i === 4 ? 'Championship trophy + prize pool' : 'Participation medals',
+                ]
+            );
             $tournaments[] = $t;
         }
 

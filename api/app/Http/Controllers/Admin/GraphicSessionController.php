@@ -5,48 +5,65 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Concerns\ResolvesMatchGraphicSession;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreMatchGraphicSessionRequest;
 use App\Http\Requests\Admin\UpdateMatchGraphicSessionRequest;
-use App\Models\GraphicTheme;
-use App\Models\MatchGraphicSession;
 use App\Models\TournamentMatch;
-use App\Services\Broadcast\ResolveMatchGraphicSession;
+use App\Services\Broadcast\CreateMatchGraphicSession;
+use App\Services\Broadcast\FindMatchGraphicSession;
 use Illuminate\Http\JsonResponse;
 
 /**
- * Admin graphic session read and theme/config updates.
+ * Admin graphic session read, create (settings save), and theme/config updates.
  */
 class GraphicSessionController extends Controller
 {
     use BaseControllerTrait;
     use ResolvesMatchGraphicSession;
 
+    public function __construct(
+        private readonly CreateMatchGraphicSession $createMatchGraphicSession,
+    ) {}
+
     /**
-     * Get or create the graphic session for this match.
+     * Read the graphic session for this match (404 when not configured).
      */
     public function show(TournamentMatch $match): JsonResponse
     {
         return $this->matchGraphicSessionShowResponse($match);
     }
 
-    public function update(UpdateMatchGraphicSessionRequest $request, TournamentMatch $match): JsonResponse
+    /**
+     * Create the graphic session when a broadcaster saves settings for the first time.
+     */
+    public function store(StoreMatchGraphicSessionRequest $request, TournamentMatch $match): JsonResponse
     {
-        $session = $match->graphicSession ?? $this->resolveOrCreateSession($match);
+        if (FindMatchGraphicSession::forMatch($match)) {
+            return $this->conflict('Graphic session already exists for this match. Use PATCH to update.');
+        }
 
         $data = $request->validated();
-        if (isset($data['graphic_theme_id'])) {
-            $theme = GraphicTheme::query()->whereKey($data['graphic_theme_id'])->where('is_active', true)->first();
-            if (! $theme) {
-                return $this->failure('Theme not found or inactive.', 'VALIDATION_ERROR');
-            }
+
+        $session = $this->createMatchGraphicSession->create(
+            $match,
+            (int) $data['graphic_theme_id'],
+            $data['config'],
+            $request->user()?->id,
+        );
+
+        return $this->successWithGraphicSession($session, 'Graphic session created.', 'CREATED');
+    }
+
+    public function update(UpdateMatchGraphicSessionRequest $request, TournamentMatch $match): JsonResponse
+    {
+        $session = $this->requireMatchGraphicSession($match);
+        if ($session instanceof JsonResponse) {
+            return $session;
         }
+
+        $data = $request->validated();
         $data['updated_by'] = $request->user()?->id;
         $session->update($data);
 
         return $this->successWithGraphicSession($session, 'Graphic session updated.');
-    }
-
-    private function resolveOrCreateSession(TournamentMatch $match): MatchGraphicSession
-    {
-        return ResolveMatchGraphicSession::forMatch($match);
     }
 }

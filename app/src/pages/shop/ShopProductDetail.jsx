@@ -43,8 +43,7 @@ export default function ShopProductDetail() {
       hasDiscount,
       discountPercent,
       stock: product.stock_quantity ?? 0,
-      isLowStock:
-        (product.stock_quantity ?? 0) > 0 && (product.stock_quantity ?? 0) <= (product.low_stock_threshold ?? 5),
+      isLowStock: (product.stock_quantity ?? 0) > 0 && (product.stock_quantity ?? 0) <= (product.low_stock_threshold ?? 5),
     };
   }, [product]);
 
@@ -166,8 +165,7 @@ export default function ShopProductDetail() {
                 <span className="text-brand text-[16px] font-bold">{formatPrice(normalized.displayPrice)}</span>
               </div>
               <p className="text-muted text-[12px] font-bold">
-                Availability:{' '}
-                <span className={`ml-1 text-[12px] ${availabilityClass}`}>{availabilityText}</span>
+                Availability: <span className={`ml-1 text-[12px] ${availabilityClass}`}>{availabilityText}</span>
               </p>
             </div>
 
@@ -271,8 +269,7 @@ export default function ShopProductDetail() {
                   <span className="text-brand text-[16px] font-bold">{formatPrice(normalized.displayPrice)}</span>
                 </div>
                 <p className="text-muted text-[12px] font-bold">
-                  Availability:{' '}
-                  <span className={`ml-1 text-[12px] ${availabilityClass}`}>{availabilityText}</span>
+                  Availability: <span className={`ml-1 text-[12px] ${availabilityClass}`}>{availabilityText}</span>
                 </p>
               </div>
 

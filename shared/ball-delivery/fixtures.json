@@ -1,0 +1,263 @@
+{
+  "cases": [
+    {
+      "name": "dot ball",
+      "input": { "runs": 0, "runs_off_bat": 0 },
+      "expected": {
+        "display_token": "0",
+        "chip_type": "dot",
+        "variant": "dot",
+        "is_free_hit": false,
+        "is_legal": true
+      }
+    },
+    {
+      "name": "single",
+      "input": { "runs": 2, "runs_off_bat": 2 },
+      "expected": {
+        "display_token": "2",
+        "chip_type": "single",
+        "variant": "runs",
+        "is_legal": true
+      }
+    },
+    {
+      "name": "boundary four",
+      "input": { "runs": 4, "runs_off_bat": 4 },
+      "expected": {
+        "display_token": "4",
+        "chip_type": "boundary_four",
+        "variant": "four",
+        "is_legal": true
+      }
+    },
+    {
+      "name": "boundary six",
+      "input": { "runs": 6, "runs_off_bat": 6 },
+      "expected": {
+        "display_token": "6",
+        "chip_type": "boundary_six",
+        "variant": "six",
+        "is_legal": true
+      }
+    },
+    {
+      "name": "free hit four uses badge not asterisk",
+      "input": { "runs": 4, "runs_off_bat": 4, "is_free_hit": true },
+      "expected": {
+        "display_token": "4",
+        "chip_type": "boundary_four",
+        "variant": "four",
+        "is_free_hit": true,
+        "show_free_hit_badge": true,
+        "is_legal": true
+      }
+    },
+    {
+      "name": "wicket",
+      "input": { "runs": 0, "is_wicket": true, "dismissal_type": "bowled" },
+      "expected": {
+        "display_token": "W",
+        "chip_type": "wicket",
+        "variant": "wicket",
+        "is_legal": true
+      }
+    },
+    {
+      "name": "retired hurt",
+      "input": { "runs": 0, "is_wicket": true, "dismissal_type": "retired_hurt" },
+      "expected": {
+        "display_token": "RH",
+        "chip_type": "retired",
+        "variant": "retired",
+        "is_legal": true
+      }
+    },
+    {
+      "name": "retired out",
+      "input": { "runs": 0, "is_wicket": true, "dismissal_type": "retired" },
+      "expected": {
+        "display_token": "RO",
+        "chip_type": "retired",
+        "variant": "retired",
+        "is_legal": true
+      }
+    },
+    {
+      "name": "mankad",
+      "input": { "runs": 0, "is_wicket": true, "dismissal_type": "mankad" },
+      "expected": {
+        "display_token": "M",
+        "chip_type": "wicket",
+        "variant": "wicket",
+        "is_legal": true
+      }
+    },
+    {
+      "name": "timed out",
+      "input": { "runs": 0, "is_wicket": true, "dismissal_type": "timed_out" },
+      "expected": {
+        "display_token": "TO",
+        "chip_type": "retired",
+        "variant": "retired",
+        "is_legal": true
+      }
+    },
+    {
+      "name": "wide wicket combo",
+      "input": { "runs": 3, "is_wicket": true, "is_wide": true, "dismissal_type": "stumped" },
+      "expected": {
+        "display_token": "2WD+W",
+        "chip_type": "wicket",
+        "variant": "wicket",
+        "is_legal": false
+      }
+    },
+    {
+      "name": "no ball wicket combo (run out off no-ball)",
+      "input": { "runs": 1, "is_wicket": true, "is_no_ball": true, "dismissal_type": "run_out" },
+      "expected": {
+        "display_token": "NB+W",
+        "chip_type": "wicket",
+        "variant": "wicket",
+        "is_legal": false
+      }
+    },
+    {
+      "name": "no ball wicket with extra runs (2NB+W)",
+      "input": { "runs": 3, "is_wicket": true, "is_no_ball": true, "dismissal_type": "run_out" },
+      "expected": {
+        "display_token": "2NB+W",
+        "chip_type": "wicket",
+        "variant": "wicket",
+        "is_legal": false
+      }
+    },
+    {
+      "name": "wide only",
+      "input": { "runs": 1, "is_wide": true },
+      "expected": {
+        "display_token": "WD",
+        "chip_type": "wide",
+        "variant": "extra",
+        "is_legal": false
+      }
+    },
+    {
+      "name": "wide with extra run",
+      "input": { "runs": 2, "is_wide": true },
+      "expected": {
+        "display_token": "1WD",
+        "chip_type": "wide",
+        "variant": "extra",
+        "is_legal": false
+      }
+    },
+    {
+      "name": "no ball",
+      "input": { "runs": 1, "is_no_ball": true },
+      "expected": {
+        "display_token": "NB",
+        "chip_type": "no_ball",
+        "variant": "extra",
+        "is_legal": false
+      }
+    },
+    {
+      "name": "no ball with bat runs",
+      "input": { "runs": 3, "runs_off_bat": 2, "is_no_ball": true },
+      "expected": {
+        "display_token": "2NB",
+        "chip_type": "no_ball",
+        "variant": "extra",
+        "is_legal": false
+      }
+    },
+    {
+      "name": "bye",
+      "input": { "runs": 1, "is_bye": true },
+      "expected": {
+        "display_token": "1B",
+        "chip_type": "other_extra",
+        "variant": "extra",
+        "is_legal": true
+      }
+    },
+    {
+      "name": "leg bye",
+      "input": { "runs": 2, "is_leg_bye": true },
+      "expected": {
+        "display_token": "2LB",
+        "chip_type": "other_extra",
+        "variant": "extra",
+        "is_legal": true
+      }
+    },
+    {
+      "name": "penalty only",
+      "input": { "runs": 0, "penalty_runs": 5 },
+      "expected": {
+        "display_token": "P5",
+        "chip_type": "penalty",
+        "variant": "extra",
+        "is_legal": false
+      }
+    },
+    {
+      "name": "additional runs only",
+      "input": { "runs": 0, "additional_runs": 3 },
+      "expected": {
+        "display_token": "+3",
+        "chip_type": "other_extra",
+        "variant": "extra",
+        "is_legal": false
+      }
+    },
+    {
+      "name": "free hit dot uses badge not asterisk",
+      "input": { "runs": 0, "runs_off_bat": 0, "is_free_hit": true },
+      "expected": {
+        "display_token": "0",
+        "chip_type": "dot",
+        "variant": "dot",
+        "is_free_hit": true,
+        "show_free_hit_badge": true,
+        "is_legal": true
+      }
+    },
+    {
+      "name": "free hit wide uses badge not asterisk",
+      "input": { "runs": 1, "is_wide": true, "is_free_hit": true },
+      "expected": {
+        "display_token": "WD",
+        "chip_type": "wide",
+        "variant": "extra",
+        "is_free_hit": true,
+        "show_free_hit_badge": true,
+        "is_legal": false
+      }
+    },
+    {
+      "name": "free hit no ball uses badge not asterisk",
+      "input": { "runs": 1, "is_no_ball": true, "is_free_hit": true },
+      "expected": {
+        "display_token": "NB",
+        "chip_type": "no_ball",
+        "variant": "extra",
+        "is_free_hit": true,
+        "show_free_hit_badge": true,
+        "is_legal": false
+      }
+    },
+    {
+      "name": "dont count ball",
+      "input": { "runs": 1, "dont_count_ball": true },
+      "expected": {
+        "display_token": "1",
+        "chip_type": "single",
+        "variant": "runs",
+        "is_legal": false
+      }
+    }
+  ]
+}

@@ -258,6 +258,7 @@ export function apiBallToUiBall(apiBall, playerIdToName = {}) {
     bowlerId,
     shotDirection: shotPosition ?? undefined,
     id,
+    presentation: apiBall.presentation ?? undefined,
   };
 
   if (type === 'out' || type === 'retired_hurt') {
@@ -269,6 +270,10 @@ export function apiBallToUiBall(apiBall, playerIdToName = {}) {
     ui.dismissalDeliveryType = dismissalDeliveryType ?? undefined;
     if (isWide) {
       ui.isWide = true;
+      ui.runs = Math.max(1, Number(runs) || 0);
+    }
+    if (isNoBall) {
+      ui.isNoBall = true;
       ui.runs = Math.max(1, Number(runs) || 0);
     }
     ui.striker = {

@@ -1,49 +1,45 @@
-import { extraBallLabel } from '@/lib/utils/scoringUtils';
+import { getBallDisplay, isLegalDelivery, normalizeBall, presentBall } from '../../../../shared/ball-delivery/index.js';
+
+export { getBallDisplay, presentBall };
 
 /**
- * Map a UI ball to over-strip / balls-tab chip label and colour variant.
+ * Resolve chip label/variant for a ball — prefers API `presentation` when present,
+ * falls back to shared JS for optimistic pre-save UI.
  *
- * @param {object|null} ball
- * @param {{ dotLabel?: string }} [options]
+ * @param {object|null|undefined} ball
+ * @param {{ dotStyle?: 'zero'|'bullet' }} [options]
+ * @returns {{ label: string, variant: string, chipType?: string }}
  */
-export function getBallDisplay(ball, { dotLabel = '•' } = {}) {
-  if (!ball) return { label: dotLabel, variant: 'dot' };
-  switch (ball.type) {
-    case 'runs': {
-      const r = ball.runs ?? 0;
-      if (r === 0) return { label: dotLabel, variant: 'dot' };
-      if (r === 4) return { label: '4', variant: 'four' };
-      if (r === 6) return { label: '6', variant: 'six' };
-      return { label: String(r), variant: 'runs' };
+export function resolveBallChip(ball, options = {}) {
+  const dotStyle = options.dotStyle ?? 'zero';
+  const presentation = ball?.presentation;
+
+  if (presentation && typeof presentation === 'object') {
+    let label = presentation.label ?? presentation.display_token ?? '';
+    if (presentation.chip_type === 'dot' && dotStyle === 'bullet') {
+      label = '•';
     }
-    case 'out':
-      if (ball.isWide) {
-        const wideLabel = extraBallLabel('wd', ball.runs ?? 0);
-        return { label: `${wideLabel}+W`, variant: 'wicket' };
-      }
-      if (ball.dismissalType === 'retired') return { label: 'RO', variant: 'retired' };
-      if (ball.dismissalType === 'mankad') return { label: 'M', variant: 'wicket' };
-      if (ball.dismissalType === 'timed_out') return { label: 'TO', variant: 'retired' };
-      return { label: 'W', variant: 'wicket' };
-    case 'retired_hurt':
-      return { label: 'RH', variant: 'retired' };
-    case 'wd':
-      return { label: extraBallLabel('wd', ball.runs), variant: 'extra' };
-    case 'nb':
-      return { label: extraBallLabel('nb', ball.runs), variant: 'extra' };
-    case 'bye':
-      return { label: extraBallLabel('bye', ball.runs), variant: 'extra' };
-    case 'lb':
-      return { label: extraBallLabel('lb', ball.runs), variant: 'extra' };
-    case 'penalty': {
-      const pr = ball.penaltyRuns ?? 0;
-      return { label: pr > 0 ? `P${pr}` : 'P', variant: 'extra' };
-    }
-    case 'additional_runs': {
-      const ar = ball.additionalRuns ?? 0;
-      return { label: ar > 0 ? `+${ar}` : '+', variant: 'extra' };
-    }
-    default:
-      return { label: dotLabel, variant: 'dot' };
+
+    return {
+      label,
+      variant: presentation.variant ?? 'runs',
+      chipType: presentation.chip_type,
+    };
   }
+
+  return getBallDisplay(ball, options);
+}
+
+/**
+ * Whether a delivery counts toward the over — prefers API presentation when present.
+ *
+ * @param {object|null|undefined} ball
+ * @returns {boolean}
+ */
+export function ballIsLegalDelivery(ball) {
+  if (ball?.presentation && typeof ball.presentation.is_legal === 'boolean') {
+    return ball.presentation.is_legal;
+  }
+
+  return isLegalDelivery(normalizeBall(ball));
 }

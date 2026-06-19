@@ -14,6 +14,7 @@ export interface TournamentRequest {
   contact_person_name: string;
   contact_phone: string;
   tournament_name: string;
+  short_name?: string | null;
   tournament_type: string;
   tournament_type_label: string;
   cricket_format: string;

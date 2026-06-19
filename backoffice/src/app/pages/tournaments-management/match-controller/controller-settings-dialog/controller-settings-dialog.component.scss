@@ -1,1 +1,9 @@
 @use '../overlay-url-action';
+
+// Matches vertical gap between stacked mat-form-field rows (subscript reserve).
+$form-field-row-gap: 22px;
+
+.settings-form-row--after-overlay,
+.settings-form-row + .settings-form-row {
+  margin-top: $form-field-row-gap;
+}

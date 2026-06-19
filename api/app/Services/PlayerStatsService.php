@@ -616,6 +616,127 @@ class PlayerStatsService
         return $this->computeFieldingForPlayer($playerId, $eventType);
     }
 
+    /**
+     * Accumulative batting for a player across all matches in one tournament.
+     *
+     * @return array{matches: int, innings: int, not_outs: int, runs: int, balls_faced: int, fours: int, sixes: int, dots: int, highest_score: string, hundreds: int, fifties: int, average: float|null, strike_rate: float|null}
+     */
+    public function battingForPlayerInTournament(int $playerId, int $tournamentId): array
+    {
+        $matchIds = TournamentMatch::query()
+            ->where('tournament_id', $tournamentId)
+            ->pluck('id');
+
+        if ($matchIds->isEmpty()) {
+            return $this->emptyBattingAggregate();
+        }
+
+        $rows = PlayerMatchBatting::query()
+            ->where('player_id', $playerId)
+            ->whereIn('match_id', $matchIds)
+            ->get();
+
+        if ($rows->isEmpty()) {
+            return $this->emptyBattingAggregate();
+        }
+
+        $matches = $rows->count();
+        $innings = (int) $rows->sum('innings');
+        $notOuts = (int) $rows->sum('not_outs');
+        $runs = (int) $rows->sum('runs');
+        $ballsFaced = (int) $rows->sum('balls_faced');
+        $fours = (int) $rows->sum('fours');
+        $sixes = (int) $rows->sum('sixes');
+        $dots = (int) $rows->sum('dots');
+        $hundreds = (int) $rows->sum('hundreds');
+        $fifties = (int) $rows->sum('fifties');
+        $highestScore = $rows
+            ->sortByDesc(fn ($row) => (int) rtrim((string) $row->highest_score, '*'))
+            ->first()
+            ?->highest_score ?? '0';
+
+        return [
+            'matches' => $matches,
+            'innings' => $innings,
+            'not_outs' => $notOuts,
+            'runs' => $runs,
+            'balls_faced' => $ballsFaced,
+            'fours' => $fours,
+            'sixes' => $sixes,
+            'dots' => $dots,
+            'highest_score' => $highestScore,
+            'hundreds' => $hundreds,
+            'fifties' => $fifties,
+            'average' => self::battingAverage($runs, $innings, $notOuts),
+            'strike_rate' => $ballsFaced > 0 ? round(100 * $runs / $ballsFaced, 2) : null,
+        ];
+    }
+
+    /**
+     * Accumulative bowling for a player across all matches in one tournament.
+     *
+     * @return array{matches: int, innings: int, overs: float, maidens: int, runs_conceded: int, wickets: int, no_balls: int, wides: int, best_bowling_innings: string, best_bowling_match: string, five_wickets: int, ten_wickets: int, average: float|null, economy: float|null, strike_rate: float|null}
+     */
+    public function bowlingForPlayerInTournament(int $playerId, int $tournamentId): array
+    {
+        $matchIds = TournamentMatch::query()
+            ->where('tournament_id', $tournamentId)
+            ->pluck('id');
+
+        if ($matchIds->isEmpty()) {
+            return $this->emptyBowlingAggregate();
+        }
+
+        $rows = PlayerMatchBowling::query()
+            ->where('player_id', $playerId)
+            ->whereIn('match_id', $matchIds)
+            ->get();
+
+        if ($rows->isEmpty()) {
+            return $this->emptyBowlingAggregate();
+        }
+
+        $matches = $rows->count();
+        $innings = (int) $rows->sum('innings');
+        $runsConceded = (int) $rows->sum('runs_conceded');
+        $wickets = (int) $rows->sum('wickets');
+        $noBalls = (int) $rows->sum('no_balls');
+        $wides = (int) $rows->sum('wides');
+        $fiveWickets = (int) $rows->sum('five_wickets');
+        $tenWickets = (int) $rows->sum('ten_wickets');
+        $maidens = (int) $rows->sum('maidens');
+
+        $totalBalls = $rows->sum(function ($row) {
+            $wholeOvers = (int) $row->overs;
+            $remainingBalls = (int) round(($row->overs - $wholeOvers) * 10);
+
+            return $wholeOvers * 6 + $remainingBalls;
+        });
+        $overs = floor($totalBalls / 6) + round(($totalBalls % 6) / 10, 1);
+
+        $average = $wickets > 0 ? round($runsConceded / $wickets, 2) : null;
+        $economy = $overs > 0 ? round($runsConceded / $overs, 2) : null;
+        $strikeRate = ($wickets > 0 && $totalBalls > 0) ? round($totalBalls / $wickets, 2) : null;
+
+        return [
+            'matches' => $matches,
+            'innings' => $innings,
+            'overs' => $overs,
+            'maidens' => $maidens,
+            'runs_conceded' => $runsConceded,
+            'wickets' => $wickets,
+            'no_balls' => $noBalls,
+            'wides' => $wides,
+            'best_bowling_innings' => $this->pickBestBowlingFigure($rows->pluck('best_bowling_innings')->all()),
+            'best_bowling_match' => $this->pickBestBowlingFigure($rows->pluck('best_bowling_match')->all()),
+            'five_wickets' => $fiveWickets,
+            'ten_wickets' => $tenWickets,
+            'average' => $average,
+            'economy' => $economy,
+            'strike_rate' => $strikeRate,
+        ];
+    }
+
     // ─── Rankings ─────────────────────────────────────────────────────────────
 
     /**
@@ -1212,5 +1333,72 @@ class PlayerStatsService
         });
 
         return $out;
+    }
+
+    /**
+     * @return array{matches: int, innings: int, not_outs: int, runs: int, balls_faced: int, fours: int, sixes: int, dots: int, highest_score: string, hundreds: int, fifties: int, average: null, strike_rate: null}
+     */
+    private function emptyBattingAggregate(): array
+    {
+        return [
+            'matches' => 0,
+            'innings' => 0,
+            'not_outs' => 0,
+            'runs' => 0,
+            'balls_faced' => 0,
+            'fours' => 0,
+            'sixes' => 0,
+            'dots' => 0,
+            'highest_score' => '0',
+            'hundreds' => 0,
+            'fifties' => 0,
+            'average' => null,
+            'strike_rate' => null,
+        ];
+    }
+
+    /**
+     * @return array{matches: int, innings: int, overs: float, maidens: int, runs_conceded: int, wickets: int, no_balls: int, wides: int, best_bowling_innings: string, best_bowling_match: string, five_wickets: int, ten_wickets: int, average: null, economy: null, strike_rate: null}
+     */
+    private function emptyBowlingAggregate(): array
+    {
+        return [
+            'matches' => 0,
+            'innings' => 0,
+            'overs' => 0.0,
+            'maidens' => 0,
+            'runs_conceded' => 0,
+            'wickets' => 0,
+            'no_balls' => 0,
+            'wides' => 0,
+            'best_bowling_innings' => '0/0',
+            'best_bowling_match' => '0/0',
+            'five_wickets' => 0,
+            'ten_wickets' => 0,
+            'average' => null,
+            'economy' => null,
+            'strike_rate' => null,
+        ];
+    }
+
+    /**
+     * @param  list<string|null>  $figures
+     */
+    private function pickBestBowlingFigure(array $figures): string
+    {
+        $figures = array_values(array_filter($figures, fn ($f) => is_string($f) && $f !== ''));
+        if ($figures === []) {
+            return '0/0';
+        }
+
+        $parsed = array_map(function (string $figure) {
+            [$wickets, $runs] = explode('/', $figure.'/0');
+
+            return ['wickets' => (int) $wickets, 'runs' => (int) $runs, 'raw' => $figure];
+        }, $figures);
+
+        usort($parsed, fn ($a, $b) => $b['wickets'] <=> $a['wickets'] ?: $a['runs'] <=> $b['runs']);
+
+        return $parsed[0]['raw'];
     }
 }

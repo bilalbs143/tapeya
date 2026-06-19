@@ -17,6 +17,8 @@ use App\Models\TournamentMatch;
 use App\Services\InningsStatsService;
 use App\Services\MatchCompletionService;
 use App\Services\MatchStateService;
+use App\Support\BallDelivery\BallDeliveryPresenter;
+use App\Support\Scoring\MatchPendingState;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -52,9 +54,7 @@ class AdditionalRunsController extends Controller
 
         $match->loadMissing('graphicSession');
         $existingBalls = $innings->balls()->orderBy('over')->orderBy('ball_in_over')->orderBy('id')->get();
-        $pending = is_array($match->graphicSession?->pending_players)
-            ? $match->graphicSession->pending_players
-            : [];
+        $pending = MatchPendingState::resolve($match);
 
         // S16: use the shared InningsStatsService::resolveLiveCrease() method.
         $crease = InningsStatsService::resolveLiveCrease($existingBalls, $pending);
@@ -112,6 +112,8 @@ class AdditionalRunsController extends Controller
             throw $e;
         }
 
+        MatchPendingState::clearCreaseAfterBall($match);
+
         RefreshMatchStatsJob::dispatch($match->id)->delay(now()->addSeconds(3));
         SyncMatchGraphicContextJob::dispatch($match->id);
 
@@ -150,6 +152,7 @@ class AdditionalRunsController extends Controller
             'is_free_hit' => $ball->is_free_hit,
             'penalty_runs' => $ball->penalty_runs,
             'is_wicket' => $ball->is_wicket,
+            'presentation' => BallDeliveryPresenter::present($ball),
         ];
     }
 }

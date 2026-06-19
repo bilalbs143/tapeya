@@ -239,6 +239,7 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
       {
         organizer: [initialOrganizer, [organizerRequiredValidator]],
         tournament_name: [source?.tournament_name ?? '', [Validators.required, Validators.maxLength(255)]],
+        short_name: [source?.short_name ?? '', [Validators.maxLength(64)]],
         tournament_type: [normalizeEnumValue(source?.tournament_type, ''), [Validators.required]],
         cricket_format: [normalizeEnumValue(source?.cricket_format, ''), [Validators.required]],
         venue_name: [source?.venue_name ?? '', [Validators.required, Validators.maxLength(255)]],
@@ -307,6 +308,7 @@ export class ManageTournamentDialogComponent implements OnInit, OnDestroy {
     const payload: TournamentUpdatePayload = {
       organizer_id: String((v.organizer as OrganizerOption)?.id ?? ''),
       tournament_name: v.tournament_name,
+      short_name: String(v.short_name ?? '').trim() || null,
       tournament_type: v.tournament_type,
       cricket_format: v.cricket_format,
       venue_name: v.venue_name,
