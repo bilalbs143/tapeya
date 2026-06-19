@@ -141,7 +141,19 @@ final class GraphicCommandManifestBuilder
             $allKeys,
         ));
 
-        $toJsSet = static fn (array $keys): string => 'new Set(['.implode(', ', array_map(fn ($k) => "'{$k}'", $keys)).'])';
+        $toJsSet = static function (array $keys): string {
+            if ($keys === []) {
+                return 'new Set([])';
+            }
+
+            if (count($keys) <= 2) {
+                return 'new Set(['.implode(', ', array_map(static fn (string $k) => "'{$k}'", $keys)).'])';
+            }
+
+            $lines = array_map(static fn (string $k) => "  '{$k}',", $keys);
+
+            return "new Set([\n".implode("\n", $lines)."\n])";
+        };
 
         return <<<JS
         // AUTO-GENERATED — do not edit manually.
