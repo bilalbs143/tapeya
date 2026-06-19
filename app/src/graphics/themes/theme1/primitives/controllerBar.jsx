@@ -55,7 +55,6 @@ const DESIGN_W = ltBar.designWidth;
 const lt = ltTypography;
 const SCORE_DISPLAY_CLASS = '[font-family:var(--font-display)] leading-[0.92] font-extrabold';
 const PANEL_SHELL_STYLE = { paddingInline: lt.columnPaddingX, gap: lt.columnGap };
-const PANEL_SHELL_PADDING = { paddingInline: lt.columnPaddingX };
 
 /** 4-zone grid: A (fixed) | B (1fr — all remainder) | C (max-content) | D (fixed). */
 const ZONE_GRID_STYLE = { gridTemplateColumns: 'auto minmax(0, 1fr) auto auto' };
@@ -106,10 +105,9 @@ function HorizontalBar({
   const showBowlTeamOnly = hideCrr && !isAtStage && !isWinPrediction && !isNeedTarget && !isCurrentPartnership;
   const density = VARIANT_DENSITY[barVariant] ?? 'standard';
   const isCompact = density === 'compact';
-  const bowlerCompact = isCompact && !isNeedTarget;
-  const ballTrackSize = bowlerCompact ? lt.ballChipCompact : lt.ballChip;
+  const ballTrackSize = lt.ballChip;
   const batsmenTruncate = truncatePlayerNames;
-  const bowlerTruncate = truncatePlayerNames || bowlerCompact;
+  const bowlerTruncate = truncatePlayerNames;
 
   const innerRef = useRef(null);
   const [natH, setNatH] = useState(0);
@@ -211,7 +209,7 @@ function HorizontalBar({
                   teams={teams}
                 />
               ) : isNeedTarget ? (
-                <NeedTargetPanel runsToWin={frame.runsToWin} ballsRemaining={frame.ballsRemaining} compact={isCompact} />
+                <NeedTargetPanel runsToWin={frame.runsToWin} ballsRemaining={frame.ballsRemaining} />
               ) : isCurrentPartnership ? (
                 <PartnershipPanel partnership={frame.partnership} team={bowl} />
               ) : !hideCrr ? (
@@ -461,7 +459,7 @@ function PanelHeadingLines({ label }) {
   const lines = splitStageLabel(label);
   return (
     <div
-      className="flex shrink-0 flex-col items-center justify-center gap-px leading-[1.1]"
+      className="flex shrink-0 flex-col items-center justify-center gap-1 leading-[1.1]"
       style={{ paddingInline: lt.columnPaddingX }}
     >
       {lines.map((line, index) => {
@@ -484,42 +482,42 @@ function PanelHeadingLines({ label }) {
   );
 }
 
-/** Shared column label — CRR / RRR / TO WIN / BALLS headings. */
+/** KPI column label — CRR / RRR / TO WIN / team codes / RUNS. */
 const PANEL_COLUMN_LABEL_CLASS =
   'max-w-full overflow-hidden [font-family:var(--font-ui)] leading-none font-extrabold tracking-[0.1em] text-ellipsis whitespace-nowrap text-white [text-shadow:0_0_calc(8px*var(--glow))_rgba(255,255,255,0.2)]';
 
-/** Team short code — primary label in team metric columns. */
+/** Team short code — standalone column or column header above a KPI value. */
 const PANEL_TEAM_CODE_CLASS =
-  'whitespace-nowrap [font-family:var(--font-ui)] leading-none font-extrabold tracking-[0.1em] text-white [text-shadow:0_0_calc(8px*var(--glow))_rgba(255,255,255,0.2)]';
+  'max-w-full overflow-hidden whitespace-nowrap [font-family:var(--font-ui)] leading-none font-black tracking-[0.1em] text-ellipsis text-white [text-shadow:0_0_calc(10px*var(--glow))_rgba(255,255,255,0.35)]';
 
 const PANEL_METRIC_VALUE_CLASS =
-  '[font-family:var(--font-display)] leading-[0.92] font-extrabold text-white [text-shadow:0_0_calc(12px*var(--glow))_rgba(255,255,255,0.22)]';
+  '[font-family:var(--font-display)] leading-[0.9] font-extrabold text-white [text-shadow:0_0_calc(14px*var(--glow))_rgba(255,255,255,0.28)]';
 
-function PanelMetricColumn({ label, value, suffix, hideLabel = false, compact = false }) {
+/**
+ * Standard Zone C KPI block — label above value, consistent padding and hierarchy.
+ * Used by Need Target, Run Rate, Win Prediction, At Stage, and Current Partnership.
+ */
+function PanelMetricColumn({ label, value, suffix, hideLabel = false, suffixBright = false, teamLabel = false }) {
   const showLabel = !hideLabel && label != null;
   return (
-    <div
-      className="flex shrink-0 flex-col items-center justify-center text-center"
-      style={{
-        gap: compact ? 6 : lt.columnGap,
-        paddingInline: compact ? lt.columnPaddingXCompact : lt.columnPaddingX,
-      }}
-    >
+    <div className="flex shrink-0 flex-col items-center justify-center text-center" style={PANEL_SHELL_STYLE}>
       {showLabel ? (
-        <span className={PANEL_COLUMN_LABEL_CLASS} style={{ fontSize: compact ? lt.columnLabelCompact : lt.columnLabel }}>
+        <span
+          className={teamLabel ? PANEL_TEAM_CODE_CLASS : PANEL_COLUMN_LABEL_CLASS}
+          style={{ fontSize: teamLabel ? lt.teamCodeAsLabel : lt.columnLabel }}
+        >
           {label}
         </span>
       ) : null}
-      <div className={cn('flex items-baseline justify-center', suffix != null && 'gap-2')}>
-        <AnimatedNumber
-          value={value ?? '—'}
-          className={PANEL_METRIC_VALUE_CLASS}
-          style={{ fontSize: compact ? lt.metricValueCompact : lt.metricValue }}
-        />
+      <div className="flex items-baseline justify-center" style={suffix != null ? { gap: lt.kpiValueGap } : undefined}>
+        <AnimatedNumber value={value ?? '—'} className={PANEL_METRIC_VALUE_CLASS} style={{ fontSize: lt.metricValue }} />
         {suffix != null ? (
           <span
-            className="[font-family:var(--font-mono)] font-medium text-[var(--muted)]"
-            style={{ fontSize: lt.partnershipBalls }}
+            className={cn(
+              '[font-family:var(--font-mono)] font-semibold tabular-nums',
+              suffixBright ? 'text-white/90' : 'text-[var(--muted)]',
+            )}
+            style={{ fontSize: suffixBright ? lt.winPredictionPercentSuffix : lt.kpiSuffix }}
           >
             {suffix}
           </span>
@@ -591,13 +589,13 @@ function RunRateMetricsPanel({ frame, bowl, includeRrr = false, teamFirst = fals
 function AtStageTeamColumn({ entry }) {
   const separator = entry.scoreSep ?? '-';
   return (
-    <div className={PANEL_TEAM_COLUMN_SHELL_CLASS} style={PANEL_SHELL_STYLE}>
-      <span className={PANEL_TEAM_CODE_CLASS} style={{ fontSize: lt.teamCode }}>
+    <div className="flex shrink-0 flex-col items-center justify-center text-center" style={PANEL_SHELL_STYLE}>
+      <span className={PANEL_TEAM_CODE_CLASS} style={{ fontSize: lt.teamCodeAsLabel }}>
         {entry.label}
       </span>
-      <div className="flex items-baseline justify-center gap-px">
+      <div className="flex items-baseline justify-center" style={{ gap: lt.kpiValueGap }}>
         <AnimatedNumber value={entry.total} className={PANEL_METRIC_VALUE_CLASS} style={{ fontSize: lt.metricValue }} />
-        <span className={cn(SCORE_DISPLAY_CLASS, 'text-white/90')} style={{ fontSize: lt.atStageSep }}>
+        <span className={cn(SCORE_DISPLAY_CLASS, 'text-white/75')} style={{ fontSize: lt.atStageSep }}>
           {separator}
         </span>
         <AnimatedNumber
@@ -610,8 +608,7 @@ function AtStageTeamColumn({ entry }) {
   );
 }
 
-/** Compact tier is always driven by {@link HorizontalBar} via `compact={isCompact}` — no default here. */
-function NeedTargetPanel({ runsToWin, ballsRemaining, runsLabel = 'TO WIN', ballsLabel = 'BALLS', compact = false }) {
+function NeedTargetPanel({ runsToWin, ballsRemaining, runsLabel = 'TO WIN', ballsLabel = 'BALLS' }) {
   if (runsToWin == null && ballsRemaining == null) return null;
 
   return (
@@ -619,9 +616,9 @@ function NeedTargetPanel({ runsToWin, ballsRemaining, runsLabel = 'TO WIN', ball
       className="flex w-fit shrink-0 items-center self-stretch"
       aria-label={`${runsLabel} ${runsToWin}, ${ballsLabel} ${ballsRemaining}`}
     >
-      <PanelMetricColumn label={runsLabel} value={runsToWin} compact={compact} />
+      <PanelMetricColumn label={runsLabel} value={runsToWin} />
       <PartialDivider />
-      <PanelMetricColumn label={ballsLabel} value={ballsRemaining} compact={compact} />
+      <PanelMetricColumn label={ballsLabel} value={ballsRemaining} />
       <PartialDivider />
     </div>
   );
@@ -643,22 +640,7 @@ function AtStagePanel({ label = 'AT THIS STAGE', comparisons }) {
 
 function WinPredictionTeamColumn({ team, entry }) {
   const code = team.code ?? team.name;
-  return (
-    <div className="flex w-max shrink-0 flex-col items-center justify-center text-center" style={PANEL_SHELL_PADDING}>
-      {/* Shrink-wrapped stack — label + metric share one vertical center axis */}
-      <div className="inline-flex flex-col items-center" style={{ gap: lt.columnGap }}>
-        <span className={PANEL_TEAM_CODE_CLASS} style={{ fontSize: lt.teamCode }}>
-          {code}
-        </span>
-        <div className="flex items-baseline justify-center gap-[2px] tabular-nums">
-          <AnimatedNumber value={entry.percent} className={PANEL_METRIC_VALUE_CLASS} style={{ fontSize: lt.metricValue }} />
-          <span className={cn(SCORE_DISPLAY_CLASS, 'text-white/90')} style={{ fontSize: lt.winPredictionPercentSuffix }}>
-            %
-          </span>
-        </div>
-      </div>
-    </div>
-  );
+  return <PanelMetricColumn label={code} value={entry.percent} suffix="%" suffixBright teamLabel />;
 }
 
 function WinPredictionPanel({ label = 'WIN PREDICTION', predictions, teams }) {
@@ -679,6 +661,7 @@ function WinPredictionPanel({ label = 'WIN PREDICTION', predictions, teams }) {
 
 function PartnershipPanel({ partnership, team }) {
   if (!partnership || !team) return null;
+  const ballsSuffix = partnership.balls != null ? `(${partnership.balls})` : null;
   return (
     <PanelRoot>
       <PanelColumnSlot>
@@ -688,7 +671,7 @@ function PartnershipPanel({ partnership, team }) {
       <PanelHeadingLines label="CURRENT PARTNERSHIP" />
       <PartialDivider />
       <PanelColumnSlot>
-        <PanelMetricColumn value={partnership.runs} suffix={partnership.balls} hideLabel compact />
+        <PanelMetricColumn label="RUNS" value={partnership.runs} suffix={ballsSuffix} />
       </PanelColumnSlot>
       <PartialDivider />
     </PanelRoot>

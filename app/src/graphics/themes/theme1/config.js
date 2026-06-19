@@ -243,18 +243,20 @@ export const ltTypography = {
   batRunsCompact: 30,
   batBalls: 17,
 
-  // Zone C — panel system
-  sideHeadingLine1: 15,
-  sideHeadingLine2: 19,
+  // Zone C — vertical side headings (AT THIS STAGE, WIN PREDICTION, CURRENT PARTNERSHIP, …)
+  sideHeadingLine1: 17,
+  sideHeadingLine2: 22,
   columnLabel: 19,
-  columnLabelCompact: 17,
-  teamCode: 24,
-  teamNameSecondary: 22,
-  metricValue: 36,
-  metricValueCompact: 38,
-  atStageSep: 24,
-  atStageWkts: 28,
-  winPredictionPercentSuffix: 28,
+  columnLabelCompact: 19,
+  teamCode: 32, // standalone Zone C column only (e.g. bowling team between dividers)
+  teamCodeAsLabel: 20,
+  teamNameSecondary: 20,
+  metricValue: 40,
+  metricValueCompact: 40,
+  atStageSep: 22,
+  atStageWkts: 26,
+  winPredictionPercentSuffix: 24,
+  kpiSuffix: 22,
 
   // Zone C — Last 30 / Last 12
   last30Label: 13,
@@ -272,13 +274,14 @@ export const ltTypography = {
   ballChipCompact: 24,
   lastOverLabel: 16,
   lastOverRuns: 24,
-  partnershipBalls: 21,
+  partnershipBalls: 22,
 
-  // Spacing (px)
-  columnPaddingX: 22,
-  columnPaddingXCompact: 16,
+  // Spacing (px) — Zone C column rhythm
+  columnPaddingX: 28,
+  columnPaddingXCompact: 28,
   last30PaddingX: 6,
-  columnGap: 8,
+  columnGap: 11,
+  kpiValueGap: 6,
 };
 
 /** Full-screen stat chip tokens — PlayerNameFSGraphic and shared StatTile. */
