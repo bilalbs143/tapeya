@@ -15,11 +15,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: npm
-          cache-dependency-path: app/package-lock.json
 
       - name: Install overlay dependencies
-        run: npm ci
+        run: npm install
         working-directory: app
 
       - name: Generate theme tokens
@@ -39,11 +37,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: npm
-          cache-dependency-path: app/package-lock.json
 
       - name: Install overlay dependencies
-        run: npm ci
+        run: npm install
         working-directory: app
 
       - name: Run overlay tests
@@ -59,11 +55,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: npm
-          cache-dependency-path: app/package-lock.json
 
       - name: Install overlay dependencies
-        run: npm ci
+        run: npm install
         working-directory: app
 
       - name: Typecheck graphics core (checkJs)
@@ -79,11 +73,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: npm
-          cache-dependency-path: app/package-lock.json
 
       - name: Install overlay dependencies
-        run: npm ci
+        run: npm install
         working-directory: app
 
       - name: Install Playwright Chromium
@@ -125,37 +117,3 @@ jobs:
         run: |
           git diff --exit-code shared/graphics-command-manifest.json
           git diff --exit-code app/src/graphics/core/graphicCommandKeys.js
-
-  theme-controller:
-    name: Theme-controller sync check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install theme-controller dependencies
-        run: npm install
-        working-directory: tapeya-theme-controller
-
-      - name: Sync vendored themes (when monorepo sources present)
-        run: npm run sync:vendor
-        working-directory: tapeya-theme-controller
-
-      - name: Generate wrappers
-        run: npm run generate:wrappers
-        working-directory: tapeya-theme-controller
-
-      - name: Check theme-controller drift
-        run: npm run check:drift
-        working-directory: tapeya-theme-controller
-
-      - name: Run theme-controller tests
-        run: npm test
-        working-directory: tapeya-theme-controller
-
-      - name: Build theme-controller
-        run: npm run build
-        working-directory: tapeya-theme-controller

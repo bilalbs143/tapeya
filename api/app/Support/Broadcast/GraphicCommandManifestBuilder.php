@@ -14,7 +14,6 @@ final class GraphicCommandManifestBuilder
     /**
      * @return array{
      *     version: int,
-     *     generated_at: string,
      *     commands: list<array{
      *         key: string,
      *         type: string,
@@ -37,7 +36,6 @@ final class GraphicCommandManifestBuilder
 
         return [
             'version' => 1,
-            'generated_at' => now()->toIso8601String(),
             'commands' => $commands,
         ];
     }
@@ -138,8 +136,6 @@ final class GraphicCommandManifestBuilder
             }
         }
 
-        $now = now()->toIso8601String();
-
         $keyLines = implode("\n", array_map(
             fn (string $k) => "  {$k}: '{$k}',",
             $allKeys,
@@ -151,7 +147,6 @@ final class GraphicCommandManifestBuilder
         // AUTO-GENERATED — do not edit manually.
         // Source of truth: api/app/Enums/Broadcast/GraphicCommandKeyEnum.php
         // Regenerate  : cd api && php artisan graphics:export-manifest
-        // Generated at: {$now}
 
         /** All graphic command key strings, mirroring GraphicCommandKeyEnum.php. */
         export const GRAPHIC_KEYS = /** @type {const} */ ({

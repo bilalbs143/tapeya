@@ -1,6 +1,5 @@
 {
     "version": 1,
-    "generated_at": "2026-06-11T11:17:31+00:00",
     "commands": [
         {
             "key": "LT_EMPTY",
@@ -407,7 +406,7 @@
         {
             "key": "CURRENT_PARTNERSHIP_FS",
             "type": "FULL_SCREEN",
-            "label": "Curr Partnership",
+            "label": "Current Partnership",
             "displayMode": "FS",
             "category": "data",
             "requires": [],
