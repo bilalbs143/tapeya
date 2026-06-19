@@ -596,10 +596,7 @@ export function ScoringTab({
     if (!firstInningsComplete || !isLiveInnings || hasBallsBowled) return;
     if (!battingXiSavedOnApi || !bowlingXiSavedOnApi) return;
     if (dialogKey || summaryIsOpen) return;
-    if (batsmenOnCrease.length > 0) {
-      innings2SetupPromptedRef.current = true;
-      return;
-    }
+    if (batsmenOnCrease.length > 0) return;
     if (innings2SetupPromptedRef.current) return;
 
     innings2SetupPromptedRef.current = true;

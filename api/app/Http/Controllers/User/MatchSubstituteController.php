@@ -110,7 +110,17 @@ class MatchSubstituteController extends Controller
             }
         }
 
-        DB::transaction(function () use ($match, $innings, $replacedId, $substituteId, $fielderId, $balls, $strikerId, $orchestrator) {
+        // Determine the pending-crease patch before the transaction so it can be
+        // used both inside (DB write) and outside (broadcast) without capturing
+        // $orchestrator in the closure — keeping the Pusher call out of the
+        // transaction to prevent broadcasting uncommitted state on rollback.
+        $creasePatch = $balls->isEmpty()
+            ? ($replacedId === $strikerId
+                ? ['next_batter_id' => $substituteId]
+                : ['next_non_striker_id' => $substituteId])
+            : ['substitute_replaced_id' => $replacedId, 'substitute_player_id' => $substituteId];
+
+        DB::transaction(function () use ($match, $innings, $replacedId, $substituteId, $fielderId, $creasePatch) {
             DB::table('match_substitutes')->insert([
                 'match_id' => $match->id,
                 'innings_id' => $innings->id,
@@ -121,18 +131,10 @@ class MatchSubstituteController extends Controller
                 'updated_at' => now(),
             ]);
 
-            if ($balls->isEmpty()) {
-                $creasePatch = $replacedId === $strikerId
-                    ? ['next_batter_id' => $substituteId]
-                    : ['next_non_striker_id' => $substituteId];
-                $orchestrator->setPendingAndBroadcast($match, $creasePatch);
-            } else {
-                $orchestrator->setPendingAndBroadcast($match, [
-                    'substitute_replaced_id' => $replacedId,
-                    'substitute_player_id' => $substituteId,
-                ]);
-            }
+            MatchPendingState::merge($match, $creasePatch);
         });
+
+        $orchestrator->syncAndBroadcast($match);
 
         $matchState = $matchStateService->build($match->fresh(), $innings);
         MatchStateUpdated::dispatch($match->id, $matchState);

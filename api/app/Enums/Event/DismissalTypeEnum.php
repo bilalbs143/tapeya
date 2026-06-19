@@ -86,6 +86,7 @@ enum DismissalTypeEnum: string
             self::HIT_BALL_TWICE,
             self::MANKAD,
             self::RETIRED,       // retired-out is not a bowler wicket
+            self::RETIRED_HURT,  // not a dismissal; must not credit bowler
             self::TIMED_OUT => false,
             default => true,
         };

@@ -55,10 +55,6 @@ export function patchSessionFromReverbEvent(draft, event) {
     draft.config = event.config ?? null;
   }
 
-  if (Object.prototype.hasOwnProperty.call(event, 'pending_players')) {
-    draft.pending_players = event.pending_players ?? null;
-  }
-
   return { shouldRefetchContext };
 }
 

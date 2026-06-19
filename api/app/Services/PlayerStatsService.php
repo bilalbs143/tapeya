@@ -433,23 +433,24 @@ class PlayerStatsService
                 $playerBalls[$nonStriker] = 0;
             }
 
-            // Partnership total: runs_off_bat + non-penalty extras (byes, leg-byes).
-            // Penalty runs belong to the team, not the stand.
-            $runs += $ball->runs;
-            $ballsCount += 1;
+            // Partnership total: team runs on this delivery (excludes penalty_runs column;
+            // those belong to the team, not the stand). Aligns with MatchStateService::currentPartnership().
+            $runs += (int) ($ball->runs ?? 0);
+            if ($ball->isLegalDelivery()) {
+                $ballsCount++;
+            }
 
-            // Per-player: only the striker earns runs_off_bat.
-            // Wides don't count as a ball faced; no-balls do.
+            // Per-player: striker runs/balls — same rules as InningsStatsService batting card.
             if (! isset($playerRuns[$striker])) {
                 $playerRuns[$striker] = 0;
                 $playerBalls[$striker] = 0;
             }
-            $playerRuns[$striker] += $ball->runs_off_bat ?? 0;
-            if (! $ball->is_wide) {
+            $playerRuns[$striker] += InningsStatsService::strikerRunsOffBat($ball);
+            if ($ball->isLegalDelivery()) {
                 $playerBalls[$striker] = ($playerBalls[$striker] ?? 0) + 1;
             }
 
-            if ($ball->is_wicket && $ball->out_player_id) {
+            if ($ball->is_wicket && $ball->out_player_id && ! $ball->isRetiredHurt()) {
                 $p1 = min($currentStriker, $currentNonStriker);
                 $p2 = max($currentStriker, $currentNonStriker);
                 $partnerships[] = [

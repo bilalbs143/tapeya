@@ -85,4 +85,28 @@ class BallDeliveryPresenterTest extends TestCase
 
         $this->assertSame('2WD+W', $token);
     }
+
+    public function test_present_uses_ball_model_is_legal_delivery(): void
+    {
+        $wide = new Ball(['is_wide' => true, 'runs' => 1]);
+        $this->assertFalse($wide->isLegalDelivery());
+        $this->assertFalse(BallDeliveryPresenter::present($wide)['is_legal']);
+
+        $legal = new Ball(['runs' => 1, 'runs_off_bat' => 1]);
+        $this->assertTrue($legal->isLegalDelivery());
+        $this->assertTrue(BallDeliveryPresenter::present($legal)['is_legal']);
+    }
+
+    public function test_present_array_accepts_over_column_name(): void
+    {
+        $presented = BallDeliveryPresenter::present([
+            'runs' => 2,
+            'runs_off_bat' => 2,
+            'over' => 3,
+            'ball_in_over' => 4,
+        ]);
+
+        $this->assertSame(3, $presented['over_number']);
+        $this->assertSame(4, $presented['ball_in_over']);
+    }
 }

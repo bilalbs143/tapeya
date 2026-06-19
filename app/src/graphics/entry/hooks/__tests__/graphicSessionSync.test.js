@@ -105,7 +105,7 @@ describe('patchSessionFromReverbEvent', () => {
     expect(result.shouldRefetchContext).toBe(true);
   });
 
-  it('patches optional config and pending_players when present on event', () => {
+  it('patches optional config when present on event', () => {
     const draft = { active_command: {}, config: { home_text_color: '#111' } };
 
     patchSessionFromReverbEvent(draft, {
@@ -113,11 +113,9 @@ describe('patchSessionFromReverbEvent', () => {
       command_type: 'LOWER_THIRD',
       command_id: 1,
       config: { home_text_color: '#fff' },
-      pending_players: [{ id: 5 }],
     });
 
     expect(draft.config).toEqual({ home_text_color: '#fff' });
-    expect(draft.pending_players).toEqual([{ id: 5 }]);
   });
 });
 

@@ -103,14 +103,16 @@ class MatchStateService
                 // Using over_complete alone is wrong: that flag stays true after a Wide/NB
                 // opens the new over, falsely re-triggering the picker.
                 //
-                // Exception: when the over ends on a countable wicket, do NOT prompt for a
-                // new bowler — the same bowler continues by default for the next over, and
-                // the scorer can change them manually via Add/Replace Bowler if needed.
-                // (Retired hurt on ball 6 is excluded: it is not a crease-vacating wicket,
-                // so the over ends normally and a bowler change prompt is still appropriate.)
+                // Exception: when the over ends on a bowler-credited wicket (caught, bowled,
+                // LBW, stumped, hit-wicket), do NOT prompt for a new bowler — the scorer
+                // can change them manually via Add/Replace Bowler if needed.
+                // Fielding dismissals (run-out, obstructing, hit-ball-twice) and
+                // administrative ones (retired, timed-out) are excluded because the bowler
+                // is not credited, so a bowler-change prompt is still appropriate.
                 $overEndedOnWicket = $lastBall !== null
                     && (bool) $lastBall->is_wicket
-                    && ! $lastBall->isRetiredHurt();
+                    && ($lastBall->dismissal_type instanceof \App\Enums\Event\DismissalTypeEnum)
+                    && $lastBall->dismissal_type->countsAsBowlerWicket();
 
                 $needsNewBowler = $lastBall !== null
                     && $lastBall->isLegalDelivery()

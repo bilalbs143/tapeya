@@ -68,7 +68,7 @@ class MatchCompletionService
             if ($inn1->status !== InningsStatusEnum::COMPLETED) {
                 $inn1->update(['status' => InningsStatusEnum::COMPLETED]);
             }
-        } elseif ($inn1->status === InningsStatusEnum::COMPLETED) {
+        } elseif ($inn1->status === InningsStatusEnum::COMPLETED && ! $this->isManuallyEnded($inn1)) {
             $inn1->update(['status' => $hasBalls1 ? InningsStatusEnum::IN_PROGRESS : InningsStatusEnum::NOT_STARTED]);
         }
 
@@ -76,7 +76,7 @@ class MatchCompletionService
         $inn1->refresh();
 
         $inn1IsComplete = $inn1->status === InningsStatusEnum::COMPLETED;
-        $firstRuns = $inn1IsComplete ? $this->inningsRuns($match, $inn1, $balls1) : 0;
+        $firstRuns = $inn1IsComplete ? $this->inningsTotals($match, $inn1, $balls1)['runs'] : 0;
 
         $chaseTarget = $inn1IsComplete
             ? $match->chaseTargetForSecondInnings($firstRuns)
@@ -90,7 +90,7 @@ class MatchCompletionService
             if ($inn2->status !== InningsStatusEnum::COMPLETED) {
                 $inn2->update(['status' => InningsStatusEnum::COMPLETED]);
             }
-        } elseif ($inn2->status === InningsStatusEnum::COMPLETED) {
+        } elseif ($inn2->status === InningsStatusEnum::COMPLETED && ! $this->isManuallyEnded($inn2)) {
             $inn2->update(['status' => $hasBalls2 ? InningsStatusEnum::IN_PROGRESS : InningsStatusEnum::NOT_STARTED]);
         }
 
@@ -114,14 +114,10 @@ class MatchCompletionService
         }
 
         // Both innings complete — compute final result using the already-loaded ball collections.
-        $r1 = [
-            'runs' => $this->inningsRuns($match, $inn1, $balls1),
-            'wickets' => $this->totalsFromBalls($balls1)['wickets'],
-        ];
-        $r2 = [
-            'runs' => $this->inningsRuns($match, $inn2, $balls2),
-            'wickets' => $this->totalsFromBalls($balls2)['wickets'],
-        ];
+        $t1 = $this->inningsTotals($match, $inn1, $balls1);
+        $t2 = $this->inningsTotals($match, $inn2, $balls2);
+        $r1 = ['runs' => $t1['runs'], 'wickets' => $t1['wickets']];
+        $r2 = ['runs' => $t2['runs'], 'wickets' => $t2['wickets']];
 
         $batFirstId = (int) $inn1->batting_team_id;
         $batSecondId = (int) $inn2->batting_team_id;
@@ -165,31 +161,25 @@ class MatchCompletionService
         return $innings->balls()->get();
     }
 
-    private function inningsRuns(TournamentMatch $match, Innings $innings, Collection $balls): int
+    /**
+     * Full innings totals via {@see InningsStatsService::compute()} — single source for
+     * runs, wickets, and legal-ball count (replaces the old simplified totalsFromBalls).
+     *
+     * @return array{runs: int, wickets: int, valid_deliveries: int}
+     */
+    private function inningsTotals(TournamentMatch $match, Innings $innings, Collection $balls): array
     {
         $stats = $this->inningsStats->compute(
             $balls,
             InningsStatsService::namesFromRelations($balls),
         );
         $cross = InningsStatsService::crossInningsPenaltyRunsForBattingTeam($match, (int) $innings->batting_team_id);
-
-        return (int) InningsStatsService::applyCrossInningsPenalties($stats, $cross)['total_runs'];
-    }
-
-    /**
-     * @return array{runs: int, wickets: int, valid_deliveries: int}
-     */
-    private function totalsFromBalls(Collection $balls): array
-    {
-        $runs = (int) $balls->sum(fn (Ball $b) => (int) ($b->runs ?? 0) + (int) ($b->penalty_runs ?? 0));
-        // retired_hurt is not a wicket — exclude it so an innings cannot end prematurely.
-        $wickets = $balls->filter(fn (Ball $b) => $b->is_wicket && ! $b->isRetiredHurt())->count();
-        $validDeliveries = $balls->filter(fn (Ball $b) => $b->isLegalDelivery())->count();
+        $stats = InningsStatsService::applyCrossInningsPenalties($stats, $cross);
 
         return [
-            'runs' => $runs,
-            'wickets' => $wickets,
-            'valid_deliveries' => $validDeliveries,
+            'runs' => (int) $stats['total_runs'],
+            'wickets' => (int) $stats['total_wickets'],
+            'valid_deliveries' => (int) $stats['legal_balls'],
         ];
     }
 
@@ -209,8 +199,7 @@ class MatchCompletionService
             return false;
         }
 
-        $t = $this->totalsFromBalls($balls);
-        $runs = $this->inningsRuns($match, $innings, $balls);
+        $t = $this->inningsTotals($match, $innings, $balls);
 
         if ($maxWickets > 0 && $t['wickets'] >= $maxWickets) {
             return true;
@@ -220,10 +209,16 @@ class MatchCompletionService
             return true;
         }
 
-        if ($isSecondInnings && $chaseTarget !== null && $runs >= $chaseTarget) {
+        if ($isSecondInnings && $chaseTarget !== null && $t['runs'] >= $chaseTarget) {
             return true;
         }
 
         return false;
+    }
+
+    /** Innings ended via organizer action (InningsLifecycleService) — do not auto-revert. */
+    private function isManuallyEnded(Innings $innings): bool
+    {
+        return $innings->end_reason !== null;
     }
 }

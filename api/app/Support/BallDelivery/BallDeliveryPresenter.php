@@ -43,7 +43,7 @@ final class BallDeliveryPresenter
             'runs_total' => (int) ($ball['runs'] ?? 0)
                 + (int) ($ball['penalty_runs'] ?? 0)
                 + (int) ($ball['additional_runs'] ?? 0),
-            'is_legal' => self::isLegalDelivery($ball),
+            'is_legal' => $raw instanceof Ball ? $raw->isLegalDelivery() : self::isLegalDelivery($ball),
             'over_number' => isset($ball['over_number']) ? (int) $ball['over_number'] : null,
             'ball_in_over' => isset($ball['ball_in_over']) ? (int) $ball['ball_in_over'] : null,
         ];
@@ -121,6 +121,12 @@ final class BallDeliveryPresenter
     }
 
     /**
+     * Array-path equivalent of {@see Ball::isLegalDelivery()}.
+     * Used when presenting raw arrays (e.g. fixture data, JS shared layer).
+     * When a Ball model is available, prefer $ball->isLegalDelivery() directly —
+     * present() does this automatically so the two implementations cannot diverge
+     * for production Ball inputs.
+     *
      * @param  array<string, mixed>  $ball
      */
     public static function isLegalDelivery(array $ball): bool
@@ -187,7 +193,7 @@ final class BallDeliveryPresenter
             'additional_runs' => (int) ($raw['additional_runs'] ?? 0),
             'dismissal_type' => $dismissal instanceof \BackedEnum ? $dismissal->value : $dismissal,
             'dont_count_ball' => (bool) ($raw['dont_count_ball'] ?? false),
-            'over_number' => isset($raw['over_number']) ? (int) $raw['over_number'] : null,
+            'over_number' => isset($raw['over_number']) ? (int) $raw['over_number'] : (isset($raw['over']) ? (int) $raw['over'] : null),
             'ball_in_over' => isset($raw['ball_in_over']) ? (int) $raw['ball_in_over'] : null,
         ];
     }
