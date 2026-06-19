@@ -105,6 +105,10 @@ jobs:
           php-version: '8.3'
           coverage: none
 
+      - name: Prepare Laravel writable directories
+        run: mkdir -p bootstrap/cache storage/framework/{cache,sessions,views} storage/logs
+        working-directory: api
+
       - name: Install API dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
         working-directory: api

@@ -30,7 +30,8 @@ api/composer.lock
 api/.env
 api/storage/*.key
 api/storage/logs/
-api/bootstrap/cache/
+api/bootstrap/cache/*
+!api/bootstrap/cache/.gitignore
 
 # ===================
 # Backoffice (Angular)
