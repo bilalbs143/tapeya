@@ -1,12 +1,16 @@
 /**
  * Generates :root CSS custom properties from a graphics theme config.js.
  *
+ * Output is formatted with Prettier so `npm run format` does not rewrite _tokens.css.
+ *
  * Usage:
  *   node scripts/generate-theme-tokens.mjs --theme theme1
  */
 import { writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import prettier from 'prettier';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -30,5 +34,8 @@ const lines = Object.entries(ROOT_CSS_VARS)
 
 const css = `/* Auto-generated from src/graphics/themes/${themeSlug}/config.js — do not edit by hand */\n:root {\n${lines}\n}\n`;
 
-writeFileSync(outPath, css, 'utf8');
+const prettierConfig = (await prettier.resolveConfig(outPath)) ?? {};
+const formatted = await prettier.format(css, { ...prettierConfig, parser: 'css', filepath: outPath });
+
+writeFileSync(outPath, formatted, 'utf8');
 process.stdout.write(`Wrote ${outPath}\n`);
