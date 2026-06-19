@@ -49,6 +49,30 @@ describe('graphics pipeline integration', () => {
     expect(resolveDisplayModeShell('FS')).toBe(FullScreenShell);
   });
 
+  it('renders PLAYING_11 from live squad when payload XI arrays are empty', () => {
+    const { plan, component } = runGraphicPipeline(
+      createRawSession({
+        active_command: {
+          command_key: 'PLAYING_11',
+          command_type: 'FULL_SCREEN',
+          display_mode: 'FS',
+          payload: {
+            home_team: { players: [] },
+            away_team: { players: [] },
+          },
+        },
+        context: {
+          squad_home: [{ display_name: 'Home Player' }],
+          squad_away: [{ display_name: 'Away Player' }],
+        },
+      }),
+    );
+
+    expect(plan?.componentProps.homeTeam.players).toEqual([{ display_name: 'Home Player' }]);
+    expect(plan?.componentProps.awayTeam.players).toEqual([{ display_name: 'Away Player' }]);
+    expect(component).not.toBeNull();
+  });
+
   it('wires FST animation commands to scoreboard props with event kind', () => {
     const { plan, component } = runGraphicPipeline(
       createRawSession({

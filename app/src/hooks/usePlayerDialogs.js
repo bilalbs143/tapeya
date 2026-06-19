@@ -3,6 +3,7 @@ import { useCallback, useRef } from 'react';
 import { useDialog } from '@/context/DialogContext';
 import { useScoringMatch } from '@/context/ScoringMatchContext';
 import { useCreaseSync } from '@/hooks/useCreaseSync';
+import { resolveBatsmanPickerDialogOptions, resolveBowlerPickerDialogOptions } from '@/lib/utils/scoringDialogMode';
 import { buildPreBallCreasePatch } from '@/lib/utils/scoringUtils';
 import { useGetMatchTeamSquadQuery } from '@/store/api/matchApi';
 
@@ -68,15 +69,21 @@ export function usePlayerDialogs({
   const battingWicketKeeperId = battingTeamSquadMeta?.wicket_keeper_id ?? null;
   const bowlingWicketKeeperId = bowlingTeamSquadMeta?.wicket_keeper_id ?? null;
 
+  const openBatsmanForSecondOpenerRef = useRef(null);
+
   const addBatsmanToCrease = useCallback(
     async (player, { afterWicket = false } = {}) => {
       const fillingVacantSlot = afterWicket || needsNewBatter;
       if (batsmenOnCrease.length >= 2 && !fillingVacantSlot) return;
       const isSecond = batsmenOnCrease.length === 1;
+      const wasAddingFirstOpener = batsmenOnCrease.length === 0;
       const key = isSecond ? (!hasBallsBowled ? 'next_non_striker_id' : 'next_batter_id') : 'next_batter_id';
       try {
         await onCreaseChange?.({ [key]: Number(player.id) });
         closeDialog();
+        if (!hasBallsBowled && !afterWicket && wasAddingFirstOpener) {
+          openBatsmanForSecondOpenerRef.current?.(false);
+        }
       } catch {
         // API layer / toasts handle errors; keep dialog open to retry.
       }
@@ -177,13 +184,17 @@ export function usePlayerDialogs({
 
   const openBatsmanDialog = useCallback(
     (replaceStriker = false, { afterWicket = false } = {}) => {
-      const matchInProgress = hasBallsBowled;
-      const squadSetup = !matchInProgress && !battingXiSavedOnApi && !replaceStriker;
+      const { squadSetup, variant, hideSquadSetup, declareSquadMode } = resolveBatsmanPickerDialogOptions({
+        hasBallsBowled,
+        battingXiSavedOnApi,
+        replaceStriker,
+        afterWicket,
+      });
       const allowPick = afterWicket || canAddMoreBatsmen;
       openDialog('scoringBatsman', {
-        variant: battingXiSavedOnApi ? 'picker' : 'squad',
-        hideSquadSetup: matchInProgress,
-        declareSquadMode: squadSetup,
+        variant,
+        hideSquadSetup,
+        declareSquadMode,
         replaceStrikerMode: replaceStriker,
         teamName: squadSetup ? battingTeamName : undefined,
         players: squadSetup ? battingSquad : addBatsmanDialogPlayers,
@@ -234,16 +245,21 @@ export function usePlayerDialogs({
       openBowlingSquadWizardStep,
     ],
   );
+  openBatsmanForSecondOpenerRef.current = openBatsmanDialog;
 
   const openBowlerDialog = useCallback(
     (replaceActive = false, { wizardStep = null } = {}) => {
-      const matchInProgress = hasBallsBowled;
-      const squadSetup = !matchInProgress && !bowlingXiSavedOnApi && !replaceActive;
-      const inWizard = squadSetup && (wizardStep === 2 || (battingXiSavedOnApi && !bowlingXiSavedOnApi));
+      const { squadSetup, inWizard, variant, hideSquadSetup, declareSquadMode } = resolveBowlerPickerDialogOptions({
+        hasBallsBowled,
+        bowlingXiSavedOnApi,
+        battingXiSavedOnApi,
+        replaceActive,
+        wizardStep,
+      });
       openDialog('scoringBowler', {
-        variant: bowlingXiSavedOnApi ? 'picker' : 'squad',
-        hideSquadSetup: matchInProgress,
-        declareSquadMode: inWizard,
+        variant,
+        hideSquadSetup,
+        declareSquadMode,
         replaceActiveBowlerMode: replaceActive,
         teamName: squadSetup || inWizard ? bowlingTeamName : undefined,
         players: squadSetup || inWizard ? bowlingSquad : addBowlerDialogPlayers,

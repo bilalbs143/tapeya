@@ -107,7 +107,28 @@ export const GRAPHIC_KEYS = /** @type {const} */ ({
 export const NULL_COMPONENT_KEYS = new Set(['LT_EMPTY', 'ADD_CAPTION']);
 
 /** Keys registered via the manifest animation loop in processorMap.js, not the static block. */
-export const ANIMATION_KEYS = new Set(['LT_FOUR', 'LT_SIX', 'LT_WIDE', 'LT_NO_BALL', 'LT_NOT_OUT', 'LT_OUT', 'FIFTY_UP', 'HUNDRED_UP', 'LT_REPLAY', 'DECISION_PENDING', 'FST_FOUR', 'FST_SIX', 'FST_NOT_OUT', 'FST_OUT', 'FST_NO_BALL', 'FST_WIDE', 'FST_FIFTY', 'FST_HUNDRED', 'FST_REPLAY', 'FST_DECISION']);
+export const ANIMATION_KEYS = new Set([
+  'LT_FOUR',
+  'LT_SIX',
+  'LT_WIDE',
+  'LT_NO_BALL',
+  'LT_NOT_OUT',
+  'LT_OUT',
+  'FIFTY_UP',
+  'HUNDRED_UP',
+  'LT_REPLAY',
+  'DECISION_PENDING',
+  'FST_FOUR',
+  'FST_SIX',
+  'FST_NOT_OUT',
+  'FST_OUT',
+  'FST_NO_BALL',
+  'FST_WIDE',
+  'FST_FIFTY',
+  'FST_HUNDRED',
+  'FST_REPLAY',
+  'FST_DECISION',
+]);
 
 /** Keys that are backoffice-only and never dispatched to the overlay. */
 export const BACKOFFICE_ONLY_KEYS = new Set(['ADD_CAPTION']);

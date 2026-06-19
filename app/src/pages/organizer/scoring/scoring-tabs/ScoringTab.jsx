@@ -385,6 +385,8 @@ export function ScoringTab({
 
   const prevNeedsBowlerRef = useRef(false);
   const prevDismissalBallIdRef = useRef(null);
+  const innings2SetupPromptedRef = useRef(false);
+  const preBallBowlerPromptedRef = useRef(false);
 
   // Declared before useScoringEngine so onWicketPending can reference it.
   const setWicketGateRef = useRef(null);
@@ -582,6 +584,65 @@ export function ScoringTab({
     matchState?.last_dismissal_ball_id,
     summaryIsOpen,
     wicketSummaryGateRef,
+  ]);
+
+  // ── Pre-ball / innings-2 opening setup ────────────────────────────────────
+
+  useEffect(() => {
+    if (inningsNumber !== '2') {
+      innings2SetupPromptedRef.current = false;
+      return;
+    }
+    if (!firstInningsComplete || !isLiveInnings || hasBallsBowled) return;
+    if (!battingXiSavedOnApi || !bowlingXiSavedOnApi) return;
+    if (dialogKey || summaryIsOpen) return;
+    if (batsmenOnCrease.length > 0) {
+      innings2SetupPromptedRef.current = true;
+      return;
+    }
+    if (innings2SetupPromptedRef.current) return;
+
+    innings2SetupPromptedRef.current = true;
+    openBatsmanDialogRef.current?.(false);
+  }, [
+    inningsNumber,
+    firstInningsComplete,
+    isLiveInnings,
+    hasBallsBowled,
+    battingXiSavedOnApi,
+    bowlingXiSavedOnApi,
+    dialogKey,
+    summaryIsOpen,
+    batsmenOnCrease.length,
+  ]);
+
+  useEffect(() => {
+    if (!isLiveInnings || hasBallsBowled) {
+      preBallBowlerPromptedRef.current = false;
+      return;
+    }
+    if (!battingXiSavedOnApi || !bowlingXiSavedOnApi) return;
+    if (batsmenOnCrease.length < 2) {
+      preBallBowlerPromptedRef.current = false;
+      return;
+    }
+    if (bowlersInTable.length > 0) return;
+    if (dialogKey || summaryIsOpen || matchState?.needs_new_batter || matchState?.needs_new_bowler) return;
+    if (preBallBowlerPromptedRef.current) return;
+
+    preBallBowlerPromptedRef.current = true;
+    openBowlerDialogRef.current?.();
+  }, [
+    isLiveInnings,
+    hasBallsBowled,
+    battingXiSavedOnApi,
+    bowlingXiSavedOnApi,
+    batsmenOnCrease.length,
+    bowlersInTable.length,
+    dialogKey,
+    summaryIsOpen,
+    matchState?.needs_new_batter,
+    matchState?.needs_new_bowler,
   ]);
 
   // ── Penalty runs dialog ───────────────────────────────────────────────────

@@ -528,7 +528,7 @@ final class GraphicLiveStatsBuilder
             'win_probability' => $winProbability,
             'fall_of_wickets' => $fallOfWickets,
             'previous_over' => ['runs' => $previousOverRuns],
-            'last_12_balls' => $this->buildLegalDeliveryWindow($balls, 12),
+            'last_12_balls' => $this->buildDeliveryWindow($balls, 12),
             'last_30_balls' => $this->computeBallStats($balls, 30),
             'this_over' => array_merge(
                 $this->computeBallStats(collect($currentOverBallModels), null),
@@ -637,15 +637,18 @@ final class GraphicLiveStatsBuilder
     }
 
     /**
-     * Last N legal deliveries with per-ball chip metadata for Last 12 Balls LT.
+     * Last N deliveries (legal and illegal) with per-ball chip metadata for Last 12 Balls LT.
+     *
+     * Includes wides, no-balls, etc. — same delivery set as the scorecard ball list and
+     * {@see graphicOverBattersBowlerStrip()} current-over chips. Stats are computed on
+     * the same window so runs total matches the chips shown.
      *
      * @param  Collection<int, Ball>  $allBalls
      * @return array{dots:int, fours:int, sixes:int, wickets:int, runs:int, deliveries:list<array<string, mixed>>}
      */
-    private function buildLegalDeliveryWindow(Collection $allBalls, int $count): array
+    private function buildDeliveryWindow(Collection $allBalls, int $count): array
     {
-        $legal = $allBalls->filter(fn (Ball $b) => $b->isLegalDelivery())->values();
-        $window = $legal->slice(max(0, $legal->count() - $count));
+        $window = $allBalls->values()->slice(max(0, $allBalls->count() - $count));
         $deliveries = $window
             ->map(static fn (Ball $b): array => BallDeliveryPresenter::toDelivery($b))
             ->values()

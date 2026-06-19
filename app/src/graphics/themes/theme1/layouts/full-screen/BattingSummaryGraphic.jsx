@@ -20,7 +20,10 @@ const PANEL_WIDTH = 1020;
 const HERO_CREST_WIDTH = 700;
 const HERO_CREST_SIZE = 460;
 const PANEL_HEAD_CREST_SIZE = 92;
-
+const BATTED_ROW_HEIGHT = 66;
+const YET_TO_BAT_ROW_HEIGHT = 48;
+const ROW_PADDING_X = 22;
+const BATTED_ROW_GAP = 4;
 const BATTED_ROW_STAGGER_MS = 80;
 const YET_TO_BAT_ROW_STAGGER_MS = 60;
 
@@ -28,15 +31,15 @@ const panelTitleClass = cn('m-0 text-[46px] font-extrabold leading-[0.98] tracki
 
 const panelSubClass = cn('mt-1.5 mb-0 text-[24px] font-semibold tracking-[0.06em] text-[var(--muted)] uppercase', UI_FONT);
 
-const battedNameClass = cn('flex-1 text-[40px] font-extrabold text-white uppercase', DISPLAY_FONT);
+const battedNameClass = cn('flex-1 text-[36px] font-extrabold leading-none text-white uppercase', DISPLAY_FONT);
 
-const dismissalClass = cn('flex-1 text-[26px] font-semibold tracking-[0.08em] text-[var(--muted)]', UI_FONT);
+const dismissalClass = cn('flex-1 text-[22px] font-semibold tracking-[0.08em] text-[var(--muted)]', UI_FONT);
 
-const battedRunsClass = cn('w-[110px] text-right text-[44px] font-extrabold text-white', DISPLAY_FONT);
+const battedRunsClass = cn('w-[100px] text-right text-[38px] font-extrabold leading-none text-white', DISPLAY_FONT);
 
-const battedBallsClass = cn('w-[90px] text-right text-[28px] font-medium text-[var(--faint)]', MONO_FONT);
+const battedBallsClass = cn('w-[80px] text-right text-[24px] font-medium text-[var(--faint)]', MONO_FONT);
 
-const yetToBatNameClass = cn('flex-1 text-[34px] font-bold text-[var(--muted)] uppercase', DISPLAY_FONT);
+const yetToBatNameClass = cn('flex-1 text-[30px] font-bold leading-none text-[var(--muted)] uppercase', DISPLAY_FONT);
 
 const scoreStripLabelClass = cn('text-[22px] font-semibold tracking-[0.14em] text-[var(--faint)] whitespace-nowrap', UI_FONT);
 
@@ -107,8 +110,11 @@ function BattingSummaryScoreStrip({ extras, overs, total, accent }) {
 function BattedRow({ name, dismissal, runs, balls, notOut, accent, index }) {
   return (
     <div
-      className="bc-animate-row-in mb-2 flex h-[78px] items-center rounded-xl px-[26px]"
+      className="bc-animate-row-in flex items-center rounded-xl"
       style={{
+        height: BATTED_ROW_HEIGHT,
+        marginBottom: BATTED_ROW_GAP,
+        paddingInline: ROW_PADDING_X,
         animationDelay: `${getBattedRowDelay(index)}ms`,
         background: `linear-gradient(100deg, color-mix(in srgb, ${accent} 20%, transparent), rgba(18, 24, 40, 0.7) 70%)`,
         border: `1px solid color-mix(in srgb, ${accent} 33%, transparent)`,
@@ -129,8 +135,12 @@ function BattedRow({ name, dismissal, runs, balls, notOut, accent, index }) {
 function YetToBatRow({ name, outCount, index }) {
   return (
     <div
-      className="bc-animate-row-in flex h-14 items-center border-b border-white/10 px-[26px]"
-      style={{ animationDelay: `${getYetToBatRowDelay(outCount, index)}ms` }}
+      className="bc-animate-row-in flex items-center border-b border-white/10"
+      style={{
+        height: YET_TO_BAT_ROW_HEIGHT,
+        paddingInline: ROW_PADDING_X,
+        animationDelay: `${getYetToBatRowDelay(outCount, index)}ms`,
+      }}
     >
       <span className={yetToBatNameClass}>{name}</span>
     </div>

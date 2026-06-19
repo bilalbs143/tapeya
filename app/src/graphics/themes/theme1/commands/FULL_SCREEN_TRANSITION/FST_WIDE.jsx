@@ -1,17 +1,8 @@
 import { toScoreBarBundle } from '../../adapters/scoreBar.adapter';
-import { animation } from '../../config';
-import { ControllerBar, useFrameTransition, WideFlash } from '../../primitives';
-import { BroadcastShell } from '../../primitives/BroadcastShell';
+import { FstScoreBarTransition } from '../../layouts/FstScoreBarTransition';
+import { WideFlash } from '../../primitives';
 
 export default function FST_WIDE({ isOverlay, tokens, ...props }) {
   const bundle = toScoreBarBundle(props, tokens);
-  const resolvedFrame = useFrameTransition(bundle?.frame ?? null, bundle?.frame ?? null, animation.revealDelayMs.boundary);
-  if (!bundle) return null;
-  const { teams, match } = bundle;
-
-  return (
-    <BroadcastShell stage="flash" header={() => (resolvedFrame.event ? <WideFlash compact={false} fixed /> : null)}>
-      <ControllerBar edgeToEdge={isOverlay} frame={resolvedFrame} teams={teams} match={match} />
-    </BroadcastShell>
-  );
+  return <FstScoreBarTransition Flash={WideFlash} isOverlay={isOverlay} bundle={bundle} />;
 }

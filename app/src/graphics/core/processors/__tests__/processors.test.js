@@ -112,6 +112,29 @@ describe('PLAYING_11 processor', () => {
     expect(props.awayTeam.players).toEqual([{ name: 'Player B' }]);
     expect(props.side).toBe('both');
   });
+
+  it('falls back to live squad when payload playing XI arrays are empty', () => {
+    const snapshot = createTestSnapshot({
+      active_command: {
+        command_key: 'PLAYING_11',
+        command_type: 'FULL_SCREEN',
+        display_mode: 'FS',
+        payload: {
+          home_team: { players: [] },
+          away_team: { players: [] },
+        },
+      },
+      context: {
+        squad_home: [{ display_name: 'Home Batter', is_captain: true }],
+        squad_away: [{ display_name: 'Away Batter', is_wicket_keeper: true }],
+      },
+    });
+
+    const props = processPlaying11(snapshot);
+
+    expect(props.homeTeam.players).toEqual([{ display_name: 'Home Batter', is_captain: true }]);
+    expect(props.awayTeam.players).toEqual([{ display_name: 'Away Batter', is_wicket_keeper: true }]);
+  });
 });
 
 describe('HIGHEST_RUNS processor', () => {

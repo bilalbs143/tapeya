@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 
 import { colors } from '../../config';
 import { accentGlowShadow, DISPLAY_FONT, FSStage, ROW_ANIMATE_IN, UI_FONT } from '../../primitives';
+import { POINT_TABLE_ROW_GAP, resolvePointTableRowHeight } from './pointTableLayout';
 
 const LEADER_GOLD = colors.gold;
 const LEADER_ACCENT_A = colors.accentA;
@@ -142,15 +143,16 @@ function PointTableColumnHeader() {
   );
 }
 
-/** @param {{ row: object, delay?: number }} props */
-function PointTableRow({ row, delay = 0 }) {
+/** @param {{ row: object, delay?: number, rowHeight: number }} props */
+function PointTableRow({ row, delay = 0, rowHeight }) {
   const filled = true;
   const top = row.rank === 1;
 
   return (
     <div
-      className={cn('flex min-h-[64px] w-full flex-1 items-stretch overflow-hidden rounded-[16px]', ROW_ANIMATE_IN)}
+      className={cn('flex w-full shrink-0 items-stretch overflow-hidden rounded-[16px]', ROW_ANIMATE_IN)}
       style={{
+        height: rowHeight,
         ...getRowShellStyle(filled, top),
         animationDelay: `${delay}ms`,
       }}
@@ -203,12 +205,12 @@ function PointTableFooter({ text }) {
   );
 }
 
-/** @param {{ rows: object[] }} props */
-function PointTableRows({ rows }) {
+/** @param {{ rows: object[], rowHeight: number }} props */
+function PointTableRows({ rows, rowHeight }) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-2">
+    <div className="flex w-full shrink-0 flex-col" style={{ gap: POINT_TABLE_ROW_GAP }}>
       {rows.map((row, index) => (
-        <PointTableRow key={row.code ?? row.rank} row={row} delay={getLeaderRowDelay(index)} />
+        <PointTableRow key={row.code ?? row.rank} row={row} delay={getLeaderRowDelay(index)} rowHeight={rowHeight} />
       ))}
     </div>
   );
@@ -227,15 +229,18 @@ function PointTableRows({ rows }) {
  */
 export function PointTableGraphic({ title, sub, data }) {
   const { rows, qualifyCount = 4, footerText = `TOP ${qualifyCount} TEAMS QUALIFY FOR PLAYOFFS` } = data;
+  const rowHeight = resolvePointTableRowHeight(rows.length);
 
   return (
     <FSStage>
       <LeaderboardHeader title={title} sub={sub} compact />
 
-      <div className="absolute top-[168px] right-16 bottom-14 left-16 flex min-h-0 flex-col gap-2">
-        <PointTableColumnHeader />
-        <PointTableRows rows={rows} />
-        <PointTableFooter text={footerText} />
+      <div className="absolute top-[168px] right-16 bottom-14 left-16 flex flex-col justify-center">
+        <div className="flex w-full flex-col gap-2">
+          <PointTableColumnHeader />
+          <PointTableRows rows={rows} rowHeight={rowHeight} />
+          <PointTableFooter text={footerText} />
+        </div>
       </div>
     </FSStage>
   );

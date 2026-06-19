@@ -93,6 +93,32 @@ describe('theme1 scoreBar adapter', () => {
     expect(toTeams(props, tokens)?.batting?.code).toBeTruthy();
   });
 
+  it('maps all current-over deliveries including extras onto thisOverChips', () => {
+    const deliveries = [
+      { display_token: '6', chip_type: 'boundary_six', over_number: 1, ball_in_over: 1 },
+      { display_token: '6', chip_type: 'boundary_six', over_number: 1, ball_in_over: 2 },
+      { display_token: '1', chip_type: 'single', over_number: 1, ball_in_over: 3 },
+      { display_token: '4', chip_type: 'boundary_four', over_number: 1, ball_in_over: 4 },
+      { display_token: 'WD', chip_type: 'wide', over_number: 1, ball_in_over: 5 },
+      { display_token: '0', chip_type: 'dot', over_number: 1, ball_in_over: 6 },
+      { display_token: 'WD', chip_type: 'wide', over_number: 1, ball_in_over: 7 },
+    ];
+    const snapshot = createTestSnapshot({
+      active_command: { command_key: 'LT_DEFAULT' },
+      context: {
+        score: '55-0',
+        overs: '1.5',
+        current_over_deliveries: deliveries,
+      },
+    });
+
+    const props = PROCESSOR_MAP.LT_DEFAULT(snapshot);
+    const bundle = toScoreBarBundle(props, undefined);
+
+    expect(bundle?.frame.thisOverChips).toHaveLength(7);
+    expect(bundle?.frame.thisOverChips.map((chip) => chip.code)).toEqual(['6', '6', '1', '4', 'WD', '0', 'WD']);
+  });
+
   it('maps last 12 balls runs onto frame for LastBallsPanel', () => {
     const snapshot = createTestSnapshot({
       active_command: { command_key: 'LAST_12_BALLS' },
@@ -114,6 +140,38 @@ describe('theme1 scoreBar adapter', () => {
     expect(bundle?.frame.last12Runs).toBe(24);
     expect(bundle?.frame.runs).toBe(24);
     expect(bundle?.frame.last12ByOver).toEqual([{ over: '6.3', balls: ['4'], chips: [{ code: '4', chipType: 'single' }] }]);
+  });
+
+  it('keeps illegal deliveries such as wides in last 12 balls strip', () => {
+    const deliveries = [
+      { over_number: 0, ball_in_over: 1, display_token: '4', chip_type: 'boundary_four' },
+      { over_number: 0, ball_in_over: 2, display_token: '1', chip_type: 'single' },
+      { over_number: 0, ball_in_over: 3, display_token: '6', chip_type: 'boundary_six' },
+      { over_number: 0, ball_in_over: 4, display_token: '2', chip_type: 'single' },
+      { over_number: 0, ball_in_over: 5, display_token: 'WD', chip_type: 'wide' },
+      { over_number: 0, ball_in_over: 6, display_token: '0', chip_type: 'dot' },
+      { over_number: 0, ball_in_over: 7, display_token: '6', chip_type: 'boundary_six' },
+    ];
+    const snapshot = createTestSnapshot({
+      active_command: { command_key: 'LAST_12_BALLS' },
+      context: {
+        last_12_balls: {
+          dots: 1,
+          fours: 1,
+          sixes: 2,
+          wickets: 0,
+          runs: 20,
+          deliveries,
+        },
+      },
+    });
+
+    const props = PROCESSOR_MAP.LAST_12_BALLS(snapshot);
+    const bundle = toScoreBarBundle(props, undefined, { barVariant: 'last12Balls' });
+
+    expect(bundle?.frame.last12ByOver).toHaveLength(1);
+    expect(bundle?.frame.last12ByOver[0].balls).toEqual(['4', '1', '6', '2', 'WD', '0', '6']);
+    expect(bundle?.frame.last12ByOver[0].balls).toHaveLength(7);
   });
 
   it('maps win prediction processor output onto frame.predictions', () => {
@@ -1253,6 +1311,18 @@ describe('theme1 playing11 adapter', () => {
 
     expect(bundle?.data?.teams?.[0]?.accent).toBe('var(--accentA)');
     expect(bundle?.data?.teams?.[1]?.accent).toBe('var(--accentB)');
+  });
+
+  it('builds bundle from squad-shaped players with display_name', () => {
+    const bundle = toPlaying11Bundle({
+      homeTeam: { name: 'Home XI', players: [{ display_name: 'Batter A', is_captain: true }] },
+      awayTeam: { name: 'Away XI', players: [{ display_name: 'Batter B' }] },
+      tournamentLabel: 'Demo League',
+    });
+
+    expect(bundle?.data?.teams).toHaveLength(2);
+    expect(bundle?.data?.teams?.[0]?.players).toEqual(['Batter A (C)']);
+    expect(bundle?.data?.teams?.[1]?.players).toEqual(['Batter B']);
   });
 });
 

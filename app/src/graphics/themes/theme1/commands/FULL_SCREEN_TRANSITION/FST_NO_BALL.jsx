@@ -1,17 +1,8 @@
 import { toScoreBarBundle } from '../../adapters/scoreBar.adapter';
-import { animation } from '../../config';
-import { ControllerBar, NoBallFlash, useFrameTransition } from '../../primitives';
-import { BroadcastShell } from '../../primitives/BroadcastShell';
+import { FstScoreBarTransition } from '../../layouts/FstScoreBarTransition';
+import { NoBallFlash } from '../../primitives';
 
 export default function FST_NO_BALL({ isOverlay, tokens, ...props }) {
   const bundle = toScoreBarBundle(props, tokens);
-  const resolvedFrame = useFrameTransition(bundle?.frame ?? null, bundle?.frame ?? null, animation.revealDelayMs.boundary);
-  if (!bundle) return null;
-  const { teams, match } = bundle;
-
-  return (
-    <BroadcastShell stage="flash" header={() => (resolvedFrame.event ? <NoBallFlash compact={false} fixed /> : null)}>
-      <ControllerBar edgeToEdge={isOverlay} frame={resolvedFrame} teams={teams} match={match} />
-    </BroadcastShell>
-  );
+  return <FstScoreBarTransition Flash={NoBallFlash} isOverlay={isOverlay} bundle={bundle} />;
 }

@@ -1,17 +1,8 @@
 import { toScoreBarBundle } from '../../adapters/scoreBar.adapter';
-import { animation } from '../../config';
-import { ControllerBar, FourFlash, useFrameTransition } from '../../primitives';
-import { BroadcastShell } from '../../primitives/BroadcastShell';
+import { FstScoreBarTransition } from '../../layouts/FstScoreBarTransition';
+import { FourFlash } from '../../primitives';
 
 export default function FST_FOUR({ isOverlay, tokens, ...props }) {
   const bundle = toScoreBarBundle(props, tokens);
-  const resolvedFrame = useFrameTransition(bundle?.frame ?? null, bundle?.frame ?? null, animation.revealDelayMs.boundary);
-  if (!bundle) return null;
-  const { teams, match } = bundle;
-
-  return (
-    <BroadcastShell stage="flash" header={() => (resolvedFrame.event ? <FourFlash compact={false} fixed /> : null)}>
-      <ControllerBar edgeToEdge={isOverlay} frame={resolvedFrame} teams={teams} match={match} />
-    </BroadcastShell>
-  );
+  return <FstScoreBarTransition Flash={FourFlash} isOverlay={isOverlay} bundle={bundle} />;
 }

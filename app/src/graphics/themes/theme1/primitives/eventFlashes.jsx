@@ -127,13 +127,15 @@ function BoundaryFlash({ variant, shot, compact, fixed = false }) {
 
   return (
     <FlashOverlay fixed={fixed} leaving={leaving} glow={theme.glow}>
-      <StrapVapor
-        sparkInner={theme.sparkInner}
-        sparkOuter={theme.sparkOuter}
-        sparkShadow={theme.sparkShadow}
-        bottom="34%"
-        syncEnter
-      />
+      {!fixed && (
+        <StrapVapor
+          sparkInner={theme.sparkInner}
+          sparkOuter={theme.sparkOuter}
+          sparkShadow={theme.sparkShadow}
+          bottom="34%"
+          syncEnter
+        />
+      )}
       <div className="relative px-4 text-center">
         <div
           className="bc-flash-title bc-animate-strap-text-enter"

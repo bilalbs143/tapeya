@@ -5,7 +5,7 @@ export function processAnimation() {
   return {};
 }
 
-/** Maps FST command keys to the event.kind the ControllerBar and flash overlays expect. */
+/** Maps FST command keys to the event.kind full-screen flash overlays expect. */
 const FST_EVENT_KIND = {
   FST_FOUR: 'four',
   FST_SIX: 'six',
@@ -21,8 +21,8 @@ const FST_EVENT_KIND = {
 
 /**
  * Full-screen transition animations show the live scoreboard bar + a full-screen
- * flash overlay. They need scorecard data AND an event object so the FST component
- * can activate the correct flash header.
+ * flash overlay. They need scorecard data AND an event object so FstScoreBarTransition
+ * can activate the correct flash header (event is not applied to the score bar).
  *
  * @type {import('../../types.js').GraphicProcessor}
  */

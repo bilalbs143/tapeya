@@ -24,6 +24,7 @@ const CREST_SIZE = 300;
 const CREST_VS_SIZE = 120;
 const MAX_INNINGS_ROWS = 4;
 const INNINGS_BLOCK_GAP = 22;
+const STATS_COLUMNS_GAP = 76;
 
 const pageTitleClass = cn('m-0 text-[80px] font-extrabold leading-[0.95] text-white uppercase', DISPLAY_FONT);
 
@@ -144,7 +145,7 @@ function InningsBlock({ shortName, total, wickets, overs, accent, batsmen, bowle
     <div>
       <InningsHeaderBar shortName={shortName} overs={overs} total={total} wickets={wickets} accent={accent} />
 
-      <div className="flex gap-10">
+      <div className="flex" style={{ gap: STATS_COLUMNS_GAP }}>
         <div className="min-w-0 flex-1">
           {Array.from({ length: rows }).map((_, index) => {
             const batter = bats[index];

@@ -1,17 +1,8 @@
 import { toScoreBarBundle } from '../../adapters/scoreBar.adapter';
-import { animation } from '../../config';
-import { ControllerBar, NotOutFlash, useFrameTransition } from '../../primitives';
-import { BroadcastShell } from '../../primitives/BroadcastShell';
+import { FstScoreBarTransition } from '../../layouts/FstScoreBarTransition';
+import { NotOutFlash } from '../../primitives';
 
 export default function FST_NOT_OUT({ isOverlay, tokens, ...props }) {
   const bundle = toScoreBarBundle(props, tokens);
-  const resolvedFrame = useFrameTransition(bundle?.frame ?? null, bundle?.frame ?? null, animation.revealDelayMs.boundary);
-  if (!bundle) return null;
-  const { teams, match } = bundle;
-
-  return (
-    <BroadcastShell stage="flash" header={() => (resolvedFrame.event ? <NotOutFlash compact={false} fixed /> : null)}>
-      <ControllerBar edgeToEdge={isOverlay} frame={resolvedFrame} teams={teams} match={match} />
-    </BroadcastShell>
-  );
+  return <FstScoreBarTransition Flash={NotOutFlash} isOverlay={isOverlay} bundle={bundle} />;
 }

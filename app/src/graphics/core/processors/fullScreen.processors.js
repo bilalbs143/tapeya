@@ -3,6 +3,21 @@ import { buildMatchContext, tournamentLabelOnly, withMatchTeams } from './_share
 import { processMatchIntro } from './tournament.processors';
 
 /**
+ * Prefer explicit payload XI when non-empty; otherwise use live squad from context.
+ *
+ * @param {{ players?: unknown[] }|null|undefined} payloadTeam
+ * @param {unknown[]} squad
+ */
+function resolvePlayingElevenPlayers(payloadTeam, squad) {
+  const payloadPlayers = payloadTeam?.players;
+  if (Array.isArray(payloadPlayers) && payloadPlayers.length > 0) {
+    return payloadPlayers;
+  }
+
+  return Array.isArray(squad) ? squad : [];
+}
+
+/**
  * Batting Squad FS — shows the batting team's squad grid.
  * @type {import('../../types.js').GraphicProcessor}
  */
@@ -93,11 +108,13 @@ export function processPlaying11(snapshot) {
   return {
     homeTeam: {
       ...mc.homeTeam,
-      players: p.home_team?.players ?? live.squadHome ?? [],
+      name: p.home_team?.name ?? mc.homeTeam.name,
+      players: resolvePlayingElevenPlayers(p.home_team, live.squadHome),
     },
     awayTeam: {
       ...mc.awayTeam,
-      players: p.away_team?.players ?? live.squadAway ?? [],
+      name: p.away_team?.name ?? mc.awayTeam.name,
+      players: resolvePlayingElevenPlayers(p.away_team, live.squadAway),
     },
     tournamentLabel: tournamentLabelOnly(snapshot),
     requiredRunRate: live.requiredRR ?? '',

@@ -162,9 +162,11 @@ export const BallTrack = memo(function BallTrack({ balls = [], chips, size = 28,
         : { code: entry, chipType: null },
     );
 
+  const slotCount = Math.max(max, items.length);
+
   return (
     <div className="flex gap-1.5">
-      {Array.from({ length: max }, (_, index) => {
+      {Array.from({ length: slotCount }, (_, index) => {
         const item = items[index];
         if (!item?.code) {
           return (
