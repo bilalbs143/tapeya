@@ -58,8 +58,10 @@ export function processPlayerIntro(snapshot) {
 /** @type {Record<string, string>} */
 const STATS_SCOPE_BY_COMMAND = {
   [K.BATSMAN_MATCH_FS]: 'Match Career',
+  [K.BATSMAN_TOURNAMENT_LT]: 'Tournament Career',
   [K.BATSMAN_TOURNAMENT_FS]: 'Tournament Career',
   [K.BOWLER_MATCH_FS]: 'Match Career',
+  [K.BOWLER_TOURNAMENT_LT]: 'Tournament Career',
   [K.BOWLER_TOURNAMENT_FS]: 'Tournament Career',
 };
 
@@ -68,6 +70,7 @@ function statsScopeLabel(snapshot, fallback = 'Career Overview') {
   return STATS_SCOPE_BY_COMMAND[key] ?? fallback;
 }
 
+/** @type {import('../../types.js').GraphicProcessor} */
 export function processBatsmanTournament(snapshot) {
   const p = snapshot.payload ?? {};
   const tournamentBatting = p.tournament_batting ?? null;
@@ -141,13 +144,34 @@ export function processBowlerMatch(snapshot) {
 }
 
 /** @type {import('../../types.js').GraphicProcessor} */
-export function processBowlerCareer(snapshot) {
+export function processBowlerTournament(snapshot) {
   const p = snapshot.payload ?? {};
+  const tournamentBowling = p.tournament_bowling ?? null;
+  const stats =
+    Array.isArray(p.stats) && p.stats.length > 0
+      ? p.stats
+      : tournamentBowling
+        ? buildTournamentBowlingStats(tournamentBowling)
+        : [];
+
   return withMatchTeams(snapshot, {
     ...mergePlayerPropsFromSession(snapshot, p),
-    headline: p.headline ?? 'Career Stats',
+    headline: p.headline ?? statsScopeLabel(snapshot),
+    stats,
+    tournamentBowling,
     tournamentLabel: tournamentLabelOnly(snapshot),
   });
+}
+
+function buildTournamentBowlingStats(tb) {
+  return [
+    { label: 'Matches', value: tb.matches ?? 0 },
+    { label: 'Overs', value: tb.overs ?? '0.0' },
+    { label: 'Wkts', value: tb.wickets ?? 0 },
+    { label: 'Runs', value: tb.runs_conceded ?? 0 },
+    { label: 'Avg', value: tb.average ?? '—' },
+    { label: 'Econ', value: tb.economy ?? '—' },
+  ];
 }
 
 function normalizeBattingOrderRow(row) {

@@ -30,16 +30,17 @@ const statValueClass = cn('mt-0.5 text-[26px] font-bold leading-none text-[var(-
  *   statFields: Array<{ key: string, label: string }>,
  *   statValues: Record<string, string | number>,
  *   header: import('react').ReactNode,
+ *   statRowClass?: string,
  * }} props
  */
-export function PlayerStatLTBar({ accent, edgeToEdge = true, statFields, statValues, header }) {
+export function PlayerStatLTBar({ accent, edgeToEdge = true, statFields, statValues, header, statRowClass }) {
   return (
     <ScaledBarSurface designWidth={DESIGN_WIDTH} edgeToEdge={edgeToEdge} barRadius={BAR_RADIUS}>
       {({ radius }) => (
         <GlowPanel ambientPulse hideRing radius={radius} accent={accent} className="w-full overflow-hidden">
           <div className={headRowClass}>{header}</div>
 
-          <div className={statsRowClass}>
+          <div className={cn(statsRowClass, statRowClass)}>
             {statFields.map((field) => (
               <div key={field.key} className={statCellClass}>
                 <div className={statLabelClass}>{field.label}</div>

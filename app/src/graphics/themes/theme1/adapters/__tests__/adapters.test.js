@@ -22,7 +22,14 @@ import { toMatchFixtureBundle, toTournamentNameBundle } from '../matchFixture.ad
 import { toMatchSummaryLtBundle } from '../matchSummary.adapter';
 import { toMiniScoreCardBundle } from '../miniScoreCard.adapter';
 import { toOfficialsData } from '../officials.adapter';
-import { toBatsmanMatchLt, toBowlerMatchLt, toMomPlayer, toPlayer } from '../player.adapter';
+import {
+  toBatsmanMatchLt,
+  toBatsmanTournamentLt,
+  toBowlerMatchLt,
+  toBowlerTournamentLt,
+  toMomPlayer,
+  toPlayer,
+} from '../player.adapter';
 import { toPointTableData } from '../pointTable.adapter';
 import { toScoreBarBundle, toTourHitBundle } from '../scoreBar.adapter';
 import { toSquadBundle } from '../squad.adapter';
@@ -856,6 +863,130 @@ describe('theme1 player match LT adapters', () => {
     expect(resolved?.bowler.dots).toBe(2);
     expect(resolved?.bowler.extras).toBe(2);
     expect(resolved?.bowler.econ).toBe('18.00');
+  });
+
+  it('maps batsman tournament processor output to BatsmanTournamentLTBar shape', () => {
+    const snapshot = createTestSnapshot({
+      active_command: {
+        command_key: 'BATSMAN_TOURNAMENT_LT',
+        payload: {
+          user_id: 10,
+          team_id: 1,
+          player: { name: 'Taimoor Mirza', team: 'HOM', role: 'Batsman' },
+          tournament_batting: {
+            matches: 6,
+            runs: 198,
+            fours: 4,
+            sixes: 27,
+            fifties: 0,
+            hundreds: 1,
+            strike_rate: 295.52,
+          },
+          stats: [
+            { label: 'Matches', value: 6 },
+            { label: 'Runs', value: 198 },
+            { label: '4s', value: 4 },
+            { label: '6s', value: 27 },
+            { label: '50s', value: 0 },
+            { label: '100s', value: 1 },
+            { label: 'SR', value: 295.52 },
+          ],
+        },
+      },
+    });
+
+    const props = PROCESSOR_MAP.BATSMAN_TOURNAMENT_LT(snapshot);
+    const resolved = toBatsmanTournamentLt(props, tokens);
+
+    expect(resolved?.batter.name).toBe('Taimoor Mirza');
+    expect(resolved?.batter.runs).toBe(198);
+    expect(resolved?.batter.matches).toBe(6);
+    expect(resolved?.batter.fours).toBe(4);
+    expect(resolved?.batter.sixes).toBe(27);
+    expect(resolved?.batter.fifties).toBe(0);
+    expect(resolved?.batter.hundreds).toBe(1);
+    expect(resolved?.batter.sr).toBe(295.52);
+  });
+
+  it('maps bowler tournament processor output to BowlerTournamentLTBar shape', () => {
+    const snapshot = createTestSnapshot({
+      active_command: {
+        command_key: 'BOWLER_TOURNAMENT_LT',
+        payload: {
+          user_id: 20,
+          team_id: 2,
+          player: { name: 'Itsham Satti', team: 'AWY', role: 'Bowler' },
+          tournament_bowling: {
+            matches: 4,
+            overs: 6,
+            wickets: 1,
+            runs_conceded: 107,
+            average: 107,
+            economy: 17.83,
+          },
+          stats: [
+            { label: 'Matches', value: 4 },
+            { label: 'Overs', value: 6 },
+            { label: 'Wkts', value: 1 },
+            { label: 'Runs', value: 107 },
+            { label: 'Avg', value: 107 },
+            { label: 'Econ', value: 17.83 },
+          ],
+        },
+      },
+    });
+
+    const props = PROCESSOR_MAP.BOWLER_TOURNAMENT_LT(snapshot);
+    const resolved = toBowlerTournamentLt(props, tokens);
+
+    expect(resolved?.bowler.name).toBe('Itsham Satti');
+    expect(resolved?.bowler.w).toBe(1);
+    expect(resolved?.bowler.wickets).toBe(1);
+    expect(resolved?.bowler.r).toBe(107);
+    expect(resolved?.bowler.overs).toBe('6');
+    expect(resolved?.bowler.matches).toBe(4);
+    expect(resolved?.bowler.avg).toBe(107);
+    expect(resolved?.bowler.econ).toBe(17.83);
+  });
+
+  it('falls back to stats[] when tournament objects are absent', () => {
+    const props = {
+      playerName: 'Stats Only',
+      playerTeam: 'HOM',
+      teamCode: 'home',
+      stats: [
+        { label: 'Matches', value: 3 },
+        { label: 'Runs', value: 88 },
+        { label: '4s', value: 5 },
+        { label: '6s', value: 2 },
+        { label: '50s', value: 1 },
+        { label: '100s', value: 0 },
+        { label: 'SR', value: 142.5 },
+      ],
+    };
+
+    const batsman = toBatsmanTournamentLt(props, tokens);
+    expect(batsman?.batter.runs).toBe(88);
+    expect(batsman?.batter.sr).toBe(142.5);
+
+    const bowlerProps = {
+      playerName: 'Stats Only Bowler',
+      playerTeam: 'AWY',
+      teamCode: 'away',
+      stats: [
+        { label: 'Matches', value: 2 },
+        { label: 'Overs', value: '4.0' },
+        { label: 'Wkts', value: 3 },
+        { label: 'Runs', value: 45 },
+        { label: 'Avg', value: 15 },
+        { label: 'Econ', value: 11.25 },
+      ],
+    };
+
+    const bowler = toBowlerTournamentLt(bowlerProps, tokens);
+    expect(bowler?.bowler.wickets).toBe(3);
+    expect(bowler?.bowler.overs).toBe('4.0');
+    expect(bowler?.bowler.econ).toBe(11.25);
   });
 });
 

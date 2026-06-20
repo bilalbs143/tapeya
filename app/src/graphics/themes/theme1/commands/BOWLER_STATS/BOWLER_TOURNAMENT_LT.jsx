@@ -1,14 +1,14 @@
-import { toPlayer } from '../../adapters/player.adapter';
-import { PlayerNameLTBar } from '../../layouts/bars/PlayerNameLTBar';
+import { toBowlerTournamentLt } from '../../adapters/player.adapter';
+import { BowlerTournamentLTBar } from '../../layouts/bars/BowlerTournamentLTBar';
 import { BroadcastShell } from '../../primitives/BroadcastShell';
 
 export default function BOWLER_TOURNAMENT_LT({ isOverlay, tokens, ...props }) {
-  const resolved = toPlayer(props, tokens);
+  const resolved = toBowlerTournamentLt(props, tokens);
   if (!resolved) return null;
 
   return (
     <BroadcastShell stage="bar">
-      <PlayerNameLTBar player={resolved.player} teams={resolved.teams} edgeToEdge={isOverlay} />
+      <BowlerTournamentLTBar bowler={resolved.bowler} teams={resolved.teams} edgeToEdge={isOverlay} />
     </BroadcastShell>
   );
 }

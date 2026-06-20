@@ -40,8 +40,9 @@ import {
   createLeaderboardProcessor,
   processBatsmanMatchFs,
   processBatsmanMatchLt,
+  processBatsmanTournament,
   processBattingSummary,
-  processBowlerCareer,
+  processBowlerTournament,
   processInningFigures,
   processMom,
   processPlayerIntro,
@@ -938,17 +939,135 @@ describe('officials banner processor', () => {
 // Player processors
 // ---------------------------------------------------------------------------
 
-describe('BOWLER_TOURNAMENT_LT processor (processBowlerCareer)', () => {
-  it('returns player base and a headline', () => {
+describe('BOWLER_TOURNAMENT_LT processor (processBowlerTournament)', () => {
+  it('returns player base, headline, and stats from payload', () => {
     const snapshot = createTestSnapshot({
       active_command: {
         command_key: 'BOWLER_TOURNAMENT_LT',
-        payload: { player: { name: 'Speed Demon', team: 'AWY', role: 'Bowler' } },
+        payload: {
+          player: { name: 'Speed Demon', team: 'AWY', role: 'Bowler' },
+          stats: [
+            { label: 'Matches', value: 4 },
+            { label: 'Overs', value: 6 },
+            { label: 'Wkts', value: 1 },
+            { label: 'Runs', value: 107 },
+            { label: 'Avg', value: 107 },
+            { label: 'Econ', value: 17.83 },
+          ],
+          headline: 'Tournament Career',
+        },
       },
     });
-    const props = processBowlerCareer(snapshot);
+    const props = processBowlerTournament(snapshot);
     expect(props.playerName).toBe('Speed Demon');
-    expect(props.headline).toBe('Career Stats');
+    expect(props.headline).toBe('Tournament Career');
+    expect(props.stats).toHaveLength(6);
+    expect(props.stats[2].value).toBe(1);
+  });
+
+  it('builds stats from tournament_bowling when stats array is absent', () => {
+    const snapshot = createTestSnapshot({
+      active_command: {
+        command_key: 'BOWLER_TOURNAMENT_LT',
+        payload: {
+          user_id: 3,
+          player: { name: 'Pace Merchant', team: 'HOM', role: 'Bowler' },
+          tournament_bowling: {
+            matches: 4,
+            overs: 6,
+            wickets: 1,
+            runs_conceded: 107,
+            average: 107,
+            economy: 17.83,
+          },
+        },
+      },
+    });
+    const props = processBowlerTournament(snapshot);
+    expect(props.tournamentBowling.wickets).toBe(1);
+    expect(props.stats).toEqual([
+      { label: 'Matches', value: 4 },
+      { label: 'Overs', value: 6 },
+      { label: 'Wkts', value: 1 },
+      { label: 'Runs', value: 107 },
+      { label: 'Avg', value: 107 },
+      { label: 'Econ', value: 17.83 },
+    ]);
+    expect(props.headline).toBe('Tournament Career');
+  });
+
+  it('rebuilds stats when stats array is empty but tournament_bowling is present', () => {
+    const snapshot = createTestSnapshot({
+      active_command: {
+        command_key: 'BOWLER_TOURNAMENT_LT',
+        payload: {
+          user_id: 3,
+          stats: [],
+          tournament_bowling: {
+            matches: 4,
+            overs: 6,
+            wickets: 1,
+            runs_conceded: 107,
+            average: 107,
+            economy: 17.83,
+          },
+        },
+      },
+    });
+    const props = processBowlerTournament(snapshot);
+    expect(props.stats).toHaveLength(6);
+    expect(props.stats[2].value).toBe(1);
+  });
+});
+
+describe('BATSMAN_TOURNAMENT_LT processor (processBatsmanTournament)', () => {
+  it('builds stats from tournament_batting when stats array is absent', () => {
+    const snapshot = createTestSnapshot({
+      active_command: {
+        command_key: 'BATSMAN_TOURNAMENT_LT',
+        payload: {
+          user_id: 7,
+          player: { name: 'Taimoor Mirza', team: 'HOM', role: 'Batsman' },
+          tournament_batting: {
+            matches: 6,
+            runs: 198,
+            fours: 4,
+            sixes: 27,
+            fifties: 0,
+            hundreds: 1,
+            strike_rate: 295.52,
+          },
+        },
+      },
+    });
+    const props = processBatsmanTournament(snapshot);
+    expect(props.tournamentBatting.runs).toBe(198);
+    expect(props.stats).toEqual([
+      { label: 'Matches', value: 6 },
+      { label: 'Runs', value: 198 },
+      { label: '4s', value: 4 },
+      { label: '6s', value: 27 },
+      { label: '50s', value: 0 },
+      { label: '100s', value: 1 },
+      { label: 'SR', value: 295.52 },
+    ]);
+    expect(props.headline).toBe('Tournament Career');
+  });
+
+  it('rebuilds stats when stats array is empty but tournament_batting is present', () => {
+    const snapshot = createTestSnapshot({
+      active_command: {
+        command_key: 'BATSMAN_TOURNAMENT_LT',
+        payload: {
+          user_id: 7,
+          stats: [],
+          tournament_batting: { matches: 2, runs: 50, fours: 1, sixes: 2, fifties: 0, hundreds: 0, strike_rate: 120 },
+        },
+      },
+    });
+    const props = processBatsmanTournament(snapshot);
+    expect(props.stats).toHaveLength(7);
+    expect(props.stats[1].value).toBe(50);
   });
 });
 

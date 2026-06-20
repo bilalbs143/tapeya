@@ -21,6 +21,16 @@ function findStat(stats, ...labels) {
   return null;
 }
 
+function statOrDash(value) {
+  if (value == null || value === '') return '—';
+  return value;
+}
+
+function formatOversDisplay(value) {
+  if (value == null || value === '') return '0.0';
+  return String(value);
+}
+
 function splitName(full) {
   const parts = String(full ?? '')
     .trim()
@@ -183,6 +193,69 @@ export function toBowlerMatchLt(props, tokens) {
       dots: toNum(props.dots) ?? toNum(findStat(stats, 'dots')) ?? 0,
       extras: toNum(props.extras) ?? toNum(props.extras_conceded) ?? toNum(findStat(stats, 'extras')) ?? 0,
       econ: props.econ ?? props.economy ?? findStat(stats, 'econ') ?? null,
+    },
+  };
+}
+
+/**
+ * @param {Record<string, unknown>} props
+ * @param {import('../../../types.js').ThemeTokens|undefined} tokens
+ */
+export function toBatsmanTournamentLt(props, tokens) {
+  const base = toPlayer(props, tokens);
+  if (!base) return null;
+
+  const stats = Array.isArray(props.stats) ? props.stats : [];
+  const tb = props.tournamentBatting ?? props.tournament_batting ?? null;
+
+  const runs = toNum(tb?.runs) ?? toNum(findStat(stats, 'runs')) ?? 0;
+  const matches = toNum(tb?.matches) ?? toNum(findStat(stats, 'matches')) ?? 0;
+
+  return {
+    teams: base.teams,
+    batter: {
+      name: base.player.name,
+      teamCode: base.player.teamCode,
+      runs,
+      matches,
+      fours: toNum(tb?.fours) ?? toNum(findStat(stats, '4s', 'fours')) ?? 0,
+      sixes: toNum(tb?.sixes) ?? toNum(findStat(stats, '6s', 'sixes')) ?? 0,
+      fifties: toNum(tb?.fifties) ?? toNum(findStat(stats, '50s', 'fifties')) ?? 0,
+      hundreds: toNum(tb?.hundreds) ?? toNum(findStat(stats, '100s', 'hundreds')) ?? 0,
+      sr: statOrDash(tb?.strike_rate ?? findStat(stats, 'sr', 's/r')),
+    },
+  };
+}
+
+/**
+ * @param {Record<string, unknown>} props
+ * @param {import('../../../types.js').ThemeTokens|undefined} tokens
+ */
+export function toBowlerTournamentLt(props, tokens) {
+  const base = toPlayer(props, tokens);
+  if (!base) return null;
+
+  const stats = Array.isArray(props.stats) ? props.stats : [];
+  const tb = props.tournamentBowling ?? props.tournament_bowling ?? null;
+
+  const wickets = toNum(tb?.wickets) ?? toNum(props.wickets) ?? toNum(props.w) ?? toNum(findStat(stats, 'wkts', 'wickets')) ?? 0;
+  const runs = toNum(tb?.runs_conceded) ?? toNum(props.runs_conceded) ?? toNum(props.r) ?? toNum(findStat(stats, 'runs')) ?? 0;
+  const overs = formatOversDisplay(tb?.overs ?? props.overs ?? props.o ?? findStat(stats, 'overs'));
+
+  return {
+    teams: base.teams,
+    bowler: {
+      name: base.player.name,
+      teamCode: base.player.teamCode,
+      w: wickets,
+      wickets,
+      r: runs,
+      runs,
+      o: overs,
+      overs,
+      matches: toNum(tb?.matches) ?? toNum(findStat(stats, 'matches')) ?? 0,
+      avg: statOrDash(tb?.average ?? findStat(stats, 'avg', 'average')),
+      econ: statOrDash(tb?.economy ?? props.econ ?? props.economy ?? findStat(stats, 'econ')),
     },
   };
 }

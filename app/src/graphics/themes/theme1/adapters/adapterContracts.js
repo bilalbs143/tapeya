@@ -20,7 +20,7 @@ import { toLeaderboardData } from './leaderboard.adapter';
 import { toMatchFixtureBundle } from './matchFixture.adapter';
 import { toMiniScoreCardBundle } from './miniScoreCard.adapter';
 import { toOfficialsData } from './officials.adapter';
-import { toBatsmanMatchLt } from './player.adapter';
+import { toBatsmanMatchLt, toBatsmanTournamentLt, toBowlerTournamentLt } from './player.adapter';
 import { toPointTableData } from './pointTable.adapter';
 import { toScoreBarBundle, toTourHitBundle } from './scoreBar.adapter';
 import { toSquadBundle } from './squad.adapter';
@@ -273,6 +273,53 @@ export const THEME1_ADAPTER_CONTRACTS = [
       },
       context: {
         batters: [{ id: 10, name: 'Taimoor Mirza', runs: 28, balls: 10, is_dismissed: false }],
+      },
+    },
+  },
+  {
+    commandKey: 'BATSMAN_TOURNAMENT_LT',
+    adapter: (props, tokens) => toBatsmanTournamentLt(props, tokens),
+    requireKeys: ['batter', 'teams'],
+    snapshotOverrides: {
+      active_command: {
+        command_key: 'BATSMAN_TOURNAMENT_LT',
+        payload: {
+          user_id: 10,
+          team_id: 1,
+          player: { name: 'Taimoor Mirza', team: 'HOM', role: 'Batsman' },
+          tournament_batting: {
+            matches: 6,
+            runs: 198,
+            fours: 4,
+            sixes: 27,
+            fifties: 0,
+            hundreds: 1,
+            strike_rate: 295.52,
+          },
+        },
+      },
+    },
+  },
+  {
+    commandKey: 'BOWLER_TOURNAMENT_LT',
+    adapter: (props, tokens) => toBowlerTournamentLt(props, tokens),
+    requireKeys: ['bowler', 'teams'],
+    snapshotOverrides: {
+      active_command: {
+        command_key: 'BOWLER_TOURNAMENT_LT',
+        payload: {
+          user_id: 20,
+          team_id: 2,
+          player: { name: 'Itsham Satti', team: 'AWY', role: 'Bowler' },
+          tournament_bowling: {
+            matches: 4,
+            overs: 6,
+            wickets: 1,
+            runs_conceded: 107,
+            average: 107,
+            economy: 17.83,
+          },
+        },
       },
     },
   },
