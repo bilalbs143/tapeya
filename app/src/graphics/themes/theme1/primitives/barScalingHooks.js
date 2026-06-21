@@ -1,10 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { geometry, ltBar } from '../config';
+import { computeScaledBarLayout, ZERO_OVERLAY_INSETS } from './computeScaledBarLayout';
+import { useOverlayLayout } from './useOverlayLayout';
 
 /**
  * Measures a fixed-design-width bar and returns the scale needed to fit it
- * inside the container.
+ * inside the container. With overlay horizontal insets, uses native safe-area layout at scale 1.
  */
 export function useScaledBarSurface(
   designWidth,
@@ -12,6 +14,7 @@ export function useScaledBarSurface(
   barRadius = geometry.barRadius,
   previewGutter = ltBar.previewGutter,
 ) {
+  const overlayLayout = useOverlayLayout();
   const containerRef = useRef(null);
   const innerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -37,16 +40,31 @@ export function useScaledBarSurface(
     return () => ro.disconnect();
   }, []);
 
-  const isNarrow = containerWidth > 0 && containerWidth < ltBar.mobileBreakpoint;
-  const scale =
-    edgeToEdge || isNarrow ? containerWidth / designWidth : Math.min((containerWidth - previewGutter) / designWidth, 1);
+  const referenceWidth = overlayLayout?.referenceWidth ?? containerWidth;
+  const insets = overlayLayout?.insets ?? ZERO_OVERLAY_INSETS;
+
+  const { scale, surfaceHeight, containerStyle, innerStyle, radius, renderWidth, insetNative } = computeScaledBarLayout({
+    referenceWidth,
+    containerWidth,
+    designWidth,
+    edgeToEdge,
+    naturalHeight,
+    insets,
+    previewGutter,
+    mobileBreakpoint: ltBar.mobileBreakpoint,
+    barRadius,
+  });
 
   return {
     containerRef,
     innerRef,
     scale,
-    surfaceHeight: naturalHeight * scale,
-    radius: edgeToEdge ? 0 : barRadius,
+    renderWidth,
+    insetNative,
+    surfaceHeight,
+    radius,
+    containerStyle,
+    innerStyle,
   };
 }
 
@@ -92,6 +110,8 @@ export function useContentFitBarSurface(edgeToEdge = true, barRadius = geometry.
     radius: edgeToEdge ? 0 : barRadius,
   };
 }
+
+export { computeScaledBarLayout } from './computeScaledBarLayout';
 
 export function useFrameTransition(pre, post, delayMs = 800) {
   const [frame, setFrame] = useState(pre);

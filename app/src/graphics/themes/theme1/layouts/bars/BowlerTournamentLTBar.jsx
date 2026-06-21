@@ -2,10 +2,9 @@
  * Bowler tournament lower-third — tournament-scoped career bowling stats.
  * Layout: [name · w-r · overs] / [matches · overs · wickets · runs · avg · econ]
  */
-import { cn } from '@/lib/utils';
-
-import { DISPLAY_FONT, MONO_FONT, UI_FONT } from '../../primitives';
+import { formatBroadcastBowlingFigures } from '../../../../core/domain/player';
 import { PlayerStatLTBar } from './PlayerStatLTBar';
+import { ltPlayerStatBar, playerStatLtHeroClass, playerStatLtNameClass, playerStatLtSecondaryClass } from './playerStatLtStyles';
 
 const STAT_FIELDS = [
   { key: 'matches', label: 'MATCHES' },
@@ -16,23 +15,9 @@ const STAT_FIELDS = [
   { key: 'econ', label: 'ECON' },
 ];
 
-const STAT_ROW_CLASS = 'gap-x-10 px-4';
-
-const nameClass = cn(
-  'min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap',
-  'text-[25px] font-bold leading-none text-white uppercase',
-  UI_FONT,
-);
+const STAT_ROW_OVERRIDE_STYLE = { gap: `${ltPlayerStatBar.statRowGapDense * 4}px` };
 
 const scoreClusterClass = 'ml-2 flex shrink-0 items-baseline gap-[5px]';
-
-const figuresClass = cn(
-  'text-[34px] font-extrabold leading-none text-white',
-  DISPLAY_FONT,
-  '[text-shadow:0_0_calc(18px*var(--glow))_var(--score-shadow)]',
-);
-
-const oversClass = cn('text-[17px] font-medium text-[var(--faint)]', MONO_FONT);
 
 function resolveBowler(bowler, teams) {
   if (!bowler?.name) return null;
@@ -46,11 +31,11 @@ function resolveBowler(bowler, teams) {
 
 function formatFigures(bowler) {
   if (bowler.figText) {
-    const [figures] = bowler.figText.trim().split(/\s+/);
-    return figures ?? bowler.figText;
+    const [rawFigures] = bowler.figText.trim().split(/\s+/);
+    return formatBroadcastBowlingFigures(rawFigures, { w: bowler.w, r: bowler.r });
   }
 
-  return `${bowler.w ?? 0}-${bowler.r ?? 0}`;
+  return formatBroadcastBowlingFigures(null, { w: bowler.w, r: bowler.r });
 }
 
 function formatOvers(bowler) {
@@ -86,13 +71,19 @@ export function BowlerTournamentLTBar({ bowler, teams, edgeToEdge = true }) {
       edgeToEdge={edgeToEdge}
       statFields={STAT_FIELDS}
       statValues={statValues}
-      statRowClass={STAT_ROW_CLASS}
+      statRowStyle={STAT_ROW_OVERRIDE_STYLE}
       header={
         <>
-          <span className={nameClass}>{player.name}</span>
+          <span className={playerStatLtNameClass} style={{ fontSize: ltPlayerStatBar.nameSize }}>
+            {player.name}
+          </span>
           <span className={scoreClusterClass}>
-            <span className={figuresClass}>{formatFigures(player)}</span>
-            <span className={oversClass}>{oversDisplay}</span>
+            <span className={playerStatLtHeroClass} style={{ fontSize: ltPlayerStatBar.heroSize }}>
+              {formatFigures(player)}
+            </span>
+            <span className={playerStatLtSecondaryClass} style={{ fontSize: ltPlayerStatBar.secondarySize }}>
+              {oversDisplay}
+            </span>
           </span>
         </>
       }

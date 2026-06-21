@@ -3,15 +3,24 @@
  */
 import { cn } from '@/lib/utils';
 
-import { DISPLAY_FONT, fmt, GlowPanel, PlayerAvatarImage, TeamLogoOrCrest, UI_FONT } from '../../primitives';
+import { resolveBroadcastNameParts } from '../../../../core/domain/playerNameResolver';
+import { fsPlayerCard, fsSummaryPanel } from '../../config';
+import { fmt, GlowPanel, PlayerAvatarImage, TeamLogoOrCrest } from '../../primitives';
+import { resolveFsStatLayout } from '../shared/fsStatLayout';
+import {
+  FS_DISMISSAL,
+  FS_HEADER_SUB,
+  FS_PLAYER_FIRST,
+  FS_PLAYER_LAST,
+  FS_PLAYER_ROLE,
+  fsFont,
+} from '../shared/fsTypographyStyles';
 import { StatTile } from '../shared/StatTile';
 
 const AVATAR_W = 560;
 const AVATAR_H = 760;
 const PANEL_W = 560;
 const CREST_SIZE = 210;
-const STAT_TILE_H = 126;
-const STAT_TILE_GAP = 16;
 
 const STAT_FIELDS = [
   { key: 'runs', label: 'RUNS' },
@@ -20,18 +29,6 @@ const STAT_FIELDS = [
   { key: 'sixes', label: 'SIXES' },
   { key: 'sr', label: 'S - RATE' },
 ];
-
-const firstNameClass = cn('text-[46px] font-semibold leading-none tracking-[0.02em] text-[var(--text)] uppercase', DISPLAY_FONT);
-
-const lastNameClass = cn(
-  'text-[92px] font-extrabold leading-[0.95] tracking-[0.01em] text-white uppercase',
-  DISPLAY_FONT,
-  '[text-shadow:0_0_calc(20px*var(--glow))_rgba(120,140,255,0.5)]',
-);
-
-const dismissalClass = cn('mt-3 text-[28px] font-semibold tracking-[0.08em] text-[var(--muted)] uppercase', UI_FONT);
-
-const headerSubClass = cn('m-0 text-[26px] font-semibold tracking-[0.06em] text-[var(--muted)] uppercase', UI_FONT);
 
 function resolveBatter(batter, teams) {
   if (!batter?.name && !batter?.firstName) return null;
@@ -44,18 +41,8 @@ function resolveBatter(batter, teams) {
 }
 
 function resolveContent(batter) {
-  if (batter.firstName) {
-    return {
-      firstName: batter.firstName,
-      lastName: batter.lastName ?? '',
-    };
-  }
-
-  const parts = (batter.name ?? '').trim().split(/\s+/);
-  return {
-    firstName: parts[0] ?? '',
-    lastName: parts.slice(1).join(' '),
-  };
+  const { firstName, lastName } = resolveBroadcastNameParts(batter);
+  return { firstName, lastName };
 }
 
 /**
@@ -69,7 +56,8 @@ export function LastWicketFSGraphic({ batter, teams, sub }) {
   const { firstName, lastName } = resolveContent(b);
   const logoUrl = b.logoUrl ?? team?.logoUrl;
   const avatarUrl = b.avatarUrl;
-  const statsColumnHeight = STAT_FIELDS.length * STAT_TILE_H + (STAT_FIELDS.length - 1) * STAT_TILE_GAP;
+  const statLayout = resolveFsStatLayout(STAT_FIELDS.length);
+  const statsColumnHeight = statLayout.columnH;
 
   const statValues = {
     runs: b.runs ?? 0,
@@ -81,15 +69,31 @@ export function LastWicketFSGraphic({ batter, teams, sub }) {
 
   return (
     <>
-      {sub ? <p className={cn('absolute top-14 right-16 left-16 z-[3] text-center', headerSubClass)}>{sub}</p> : null}
+      {sub ? (
+        <p
+          className={cn('absolute top-14 right-16 left-16 z-[3] text-center', FS_HEADER_SUB)}
+          style={fsFont(fsSummaryPanel.headerSub)}
+        >
+          {sub}
+        </p>
+      ) : null}
       <div className="absolute inset-0 flex items-center justify-center gap-10 px-16">
         <div className="relative shrink-0 overflow-hidden" style={{ width: AVATAR_W, height: AVATAR_H }}>
           <PlayerAvatarImage src={avatarUrl} alt={b.name ?? `${firstName} ${lastName}`} fit="cover-top" />
         </div>
 
-        <div className="flex flex-col gap-4" style={{ height: AVATAR_H }}>
+        <div className="flex flex-col justify-center" style={{ height: AVATAR_H, gap: statLayout.gap }}>
           {STAT_FIELDS.map((field) => (
-            <StatTile key={field.key} label={field.label} value={statValues[field.key]} accent={accent} />
+            <StatTile
+              key={field.key}
+              label={field.label}
+              value={statValues[field.key]}
+              accent={accent}
+              height={statLayout.tileH}
+              width={statLayout.tileW}
+              labelSize={statLayout.labelSize}
+              valueSize={statLayout.valueSize}
+            />
           ))}
         </div>
 
@@ -98,10 +102,22 @@ export function LastWicketFSGraphic({ batter, teams, sub }) {
             <TeamLogoOrCrest logoUrl={logoUrl} team={team} accent={accent} size={CREST_SIZE} borderPulseOrder={1} />
           </div>
           <div className="mt-8">
-            <p className={firstNameClass}>{firstName}</p>
-            <p className={lastNameClass}>{lastName}</p>
-            {b.dismissal ? <p className={dismissalClass}>{b.dismissal}</p> : null}
-            {b.role ? <p className={cn('mt-2 text-[32px] font-bold text-white capitalize', DISPLAY_FONT)}>{b.role}</p> : null}
+            <p className={FS_PLAYER_FIRST} style={fsFont(fsPlayerCard.firstName)}>
+              {firstName}
+            </p>
+            <p className={FS_PLAYER_LAST} style={fsFont(fsPlayerCard.lastName)}>
+              {lastName}
+            </p>
+            {b.dismissal ? (
+              <p className={cn(FS_DISMISSAL, 'mt-3')} style={fsFont(fsPlayerCard.dismissalHero)}>
+                {b.dismissal}
+              </p>
+            ) : null}
+            {b.role ? (
+              <p className={cn(FS_PLAYER_ROLE, 'mt-2')} style={fsFont(fsPlayerCard.roleSm)}>
+                {b.role}
+              </p>
+            ) : null}
           </div>
         </GlowPanel>
       </div>

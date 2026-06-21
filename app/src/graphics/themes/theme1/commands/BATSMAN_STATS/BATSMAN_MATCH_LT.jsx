@@ -7,7 +7,7 @@ export default function BATSMAN_MATCH_LT({ isOverlay, tokens, ...props }) {
   if (!resolved) return null;
 
   return (
-    <BroadcastShell stage="bar">
+    <BroadcastShell stage="bar" overlayInset="stats" isOverlay={isOverlay}>
       <BatsmanMatchLTBar batter={resolved.batter} teams={resolved.teams} edgeToEdge={isOverlay} />
     </BroadcastShell>
   );

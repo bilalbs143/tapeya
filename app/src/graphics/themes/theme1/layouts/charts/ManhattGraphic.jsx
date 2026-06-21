@@ -3,8 +3,12 @@
  */
 import { cn } from '@/lib/utils';
 
-import { accentGlowShadow, accentMix, DISPLAY_FONT, FSStage, UI_FONT } from '../../primitives';
+import { fsChart } from '../../config';
+import { accentGlowShadow, accentMix, DISPLAY_FONT, fsFont, FSStage } from '../../primitives';
+import { isChartGlowEnabled } from '../../visualEffects';
+import { ChartHeader } from './ChartHeader';
 import { ChartRightCrests } from './ChartRightCrests';
+import { CHART_AXIS_LABEL, CHART_AXIS_TICK, CHART_X_LABEL } from './chartTypographyStyles';
 
 /** Manhattan chart plot area — design canvas pixels (PSL reference). */
 const CHART_W = 1180;
@@ -25,25 +29,6 @@ const CHART_PAD_T = 24;
 const CHART_PAD_B = 64;
 const CHART_PAD_R = 24;
 
-const chartTitleClass = cn('m-0 text-[76px] font-extrabold leading-[0.95] text-white uppercase whitespace-nowrap', DISPLAY_FONT);
-
-const chartSubClass = cn('mt-2.5 mb-0 text-[24px] font-semibold tracking-[0.06em] text-[var(--muted)] uppercase', UI_FONT);
-
-const axisTickClass = cn('text-[30px] font-bold text-[var(--muted)]', DISPLAY_FONT);
-
-const axisLabelClass = cn('text-[18px] font-semibold tracking-[0.12em] text-[var(--faint)] uppercase', UI_FONT);
-
-const xLabelClass = cn('text-[32px] font-bold text-white', DISPLAY_FONT);
-
-function ChartHeader({ title, sub }) {
-  return (
-    <div className="absolute top-14 right-[520px] left-[70px] z-[3]">
-      <h2 className={chartTitleClass}>{title}</h2>
-      {sub ? <p className={chartSubClass}>{sub}</p> : null}
-    </div>
-  );
-}
-
 function ChartFrame({ width, height, yTicks, yMax, xLabels = null, yLabel, xLabel, children }) {
   const plotW = width - CHART_PAD_L - CHART_PAD_R;
   const plotH = height - CHART_PAD_T - CHART_PAD_B;
@@ -57,8 +42,9 @@ function ChartFrame({ width, height, yTicks, yMax, xLabels = null, yLabel, xLabe
           <div key={tick}>
             <div className="absolute h-px bg-white/14" style={{ left: CHART_PAD_L, top: y, width: plotW }} />
             <span
-              className={cn('absolute text-right', axisTickClass)}
+              className={cn('absolute text-right', CHART_AXIS_TICK)}
               style={{
+                ...fsFont(fsChart.axisTick),
                 left: 0,
                 top: y - 18,
                 width: CHART_PAD_L - 18,
@@ -92,7 +78,7 @@ function ChartFrame({ width, height, yTicks, yMax, xLabels = null, yLabel, xLabe
           }}
         >
           {xLabels.map((label, index) => (
-            <span key={index} className={xLabelClass}>
+            <span key={index} className={CHART_X_LABEL} style={fsFont(fsChart.xLabel)}>
               {label}
             </span>
           ))}
@@ -101,8 +87,8 @@ function ChartFrame({ width, height, yTicks, yMax, xLabels = null, yLabel, xLabe
 
       {yLabel ? (
         <span
-          className={cn('absolute origin-left -rotate-90', axisLabelClass)}
-          style={{ left: -8, top: CHART_PAD_T + plotH / 2 }}
+          className={cn('absolute origin-left -rotate-90', CHART_AXIS_LABEL)}
+          style={{ ...fsFont(fsChart.axisLabel), left: -8, top: CHART_PAD_T + plotH / 2 }}
         >
           {yLabel}
         </span>
@@ -110,8 +96,9 @@ function ChartFrame({ width, height, yTicks, yMax, xLabels = null, yLabel, xLabe
 
       {xLabel ? (
         <span
-          className={cn('absolute w-full text-center', axisLabelClass)}
+          className={cn('absolute w-full text-center', CHART_AXIS_LABEL)}
           style={{
+            ...fsFont(fsChart.axisLabel),
             left: CHART_PAD_L,
             top: height - 24,
             width: plotW,
@@ -138,7 +125,9 @@ function ManhattanBar({ value, yMax, plotH, color, delay, badge = null }) {
       style={{
         height,
         background: `linear-gradient(180deg, ${color}, ${accentMix(color, 67)})`,
-        boxShadow: `0 0 calc(20px * var(--glow)) ${accentMix(color, 27)}, inset 0 1px 0 rgba(255,255,255,.18)`,
+        boxShadow: isChartGlowEnabled()
+          ? `0 0 calc(20px * var(--glow)) ${accentMix(color, 27)}, inset 0 1px 0 rgba(255,255,255,.18)`
+          : 'inset 0 1px 0 rgba(255,255,255,.18)',
         animationDelay: `${delay}ms`,
       }}
     >

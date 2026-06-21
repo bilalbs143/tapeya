@@ -55,5 +55,6 @@ export function normalizeBatters(raw) {
     dots: b.dots ?? 0,
     onStrike: !!(b.on_strike ?? b.onStrike),
     isDismissed: !!(b.is_dismissed ?? b.isDismissed),
+    imageUrl: b.image_url ?? b.imageUrl ?? b.avatar_url ?? b.avatarUrl ?? null,
   }));
 }

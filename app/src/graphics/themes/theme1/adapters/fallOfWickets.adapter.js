@@ -1,8 +1,21 @@
 /**
  * FOW processors → FallOfWicketsLTBar data shape.
  */
-import { parseInningsScore, resolveTeamCode, toTeamRecord, tournamentSub } from './_shared';
+import { resolveBroadcastNameParts, resolveBroadcastPlayerName } from '../../../core/domain/playerNameResolver';
+import {
+  coalescePlayerImageUrl,
+  parseInningsScore,
+  resolvePlayerImageUrl,
+  resolveTeamCode,
+  toTeamRecord,
+  tournamentSub,
+} from './_shared';
 import { toTeams } from './teams.adapter';
+
+function formatDismissal(value) {
+  const text = String(value ?? '').trim();
+  return text ? text.toUpperCase() : '';
+}
 
 /**
  * @param {Record<string, unknown>} props
@@ -31,7 +44,7 @@ export function toFallOfWicketsData(props, tokens) {
       wickets: wickets.map((w, index) => ({
         number: w.number ?? w.wicket_number ?? index + 1,
         score: w.score ?? w.runs ?? '—',
-        batter: wicketBatterName(w),
+        batter: resolveBroadcastPlayerName(wicketBatterName(w)),
       })),
     },
   };
@@ -54,15 +67,19 @@ function previewLastWicketBatter(props, tokens) {
   }
 
   const theme1Team = teams[code] ?? toTeamRecord(props.homeTeam ?? props.awayTeam ?? { name: code }, code, tokens);
-  const name = props.name ?? [props.firstName, props.lastName].filter(Boolean).join(' ');
+  const { firstName, lastName, displayName } = resolveBroadcastNameParts({
+    name: props.name,
+    firstName: props.firstName,
+    lastName: props.lastName,
+  });
 
   return {
     teams,
     sub: tournamentSub(props),
     batter: {
-      name,
-      firstName: props.firstName ?? '',
-      lastName: props.lastName ?? '',
+      name: displayName,
+      firstName,
+      lastName,
       runs: props.runs ?? 0,
       balls: props.balls ?? 0,
       ones: props.ones ?? 0,
@@ -71,10 +88,10 @@ function previewLastWicketBatter(props, tokens) {
       fours: props.fours ?? 0,
       sixes: props.sixes ?? 0,
       sr: props.sr ?? '—',
-      dismissal: props.dismissal ?? props.dismissal_text ?? '',
+      dismissal: formatDismissal(props.dismissal ?? props.dismissal_text),
       role: props.role ?? '',
       teamCode: code,
-      avatarUrl: props.avatarUrl ?? props.image_url ?? null,
+      avatarUrl: resolvePlayerImageUrl(props),
       logoUrl: props.logoUrl ?? theme1Team.logoUrl ?? null,
     },
   };
@@ -111,13 +128,13 @@ function findLastDismissedBatter(battingOrder) {
  * @param {Record<string, unknown>|null} dismissedRow
  */
 function buildLastWicketBatter(last, dismissedRow) {
-  const name = wicketBatterName(last) || String(dismissedRow?.display_name ?? dismissedRow?.name ?? '').trim();
-  const parts = name.split(/\s+/);
+  const rawName = wicketBatterName(last) || String(dismissedRow?.display_name ?? dismissedRow?.name ?? '').trim();
+  const { firstName, lastName, displayName } = resolveBroadcastNameParts(rawName);
 
   return {
-    name,
-    firstName: parts[0] ?? '',
-    lastName: parts.slice(1).join(' '),
+    name: displayName,
+    firstName,
+    lastName,
     runs: last.runs ?? dismissedRow?.runs ?? 0,
     balls: last.balls ?? dismissedRow?.balls ?? 0,
     ones: last.ones ?? dismissedRow?.ones ?? 0,
@@ -126,7 +143,9 @@ function buildLastWicketBatter(last, dismissedRow) {
     fours: last.fours ?? dismissedRow?.fours ?? 0,
     sixes: last.sixes ?? dismissedRow?.sixes ?? 0,
     sr: last.sr ?? dismissedRow?.sr ?? '—',
-    dismissal: last.dismissal ?? last.dismissal_text ?? dismissedRow?.dismissal_text ?? dismissedRow?.dismissalText ?? '',
+    dismissal: formatDismissal(
+      last.dismissal ?? last.dismissal_text ?? dismissedRow?.dismissal_text ?? dismissedRow?.dismissalText,
+    ),
   };
 }
 
@@ -159,7 +178,7 @@ export function toLastWicketFsBatter(props, tokens) {
     batter: {
       ...batter,
       teamCode,
-      avatarUrl: last.avatarUrl ?? last.image_url ?? dismissedRow?.avatarUrl ?? dismissedRow?.image_url ?? null,
+      avatarUrl: coalescePlayerImageUrl(last, dismissedRow),
       logoUrl: last.logoUrl ?? battingTeam.logoUrl ?? null,
     },
   };

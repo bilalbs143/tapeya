@@ -2,13 +2,41 @@
  * Shared helpers for Tapeya theme prop adapters.
  */
 
-import { parseBowlingFigures } from '../../../core/domain/player';
+import { formatBroadcastBowlingFigures, parseBowlingFigures } from '../../../core/domain/player';
+import { resolveBroadcastPlayerName } from '../../../core/domain/playerNameResolver';
 
+export { formatBroadcastBowlingFigures, parseBowlingFigures } from '../../../core/domain/player';
+export { resolveBroadcastNameParts, resolveBroadcastPlayerName } from '../../../core/domain/playerNameResolver';
 export { accentGlowShadow, accentMix, normalizeAccentColor } from '../primitives';
 
 /** @param {Record<string, unknown>} props */
 export function tournamentSub(props) {
   return props.tournamentLabel ?? props.tournamentName ?? props.sub ?? '';
+}
+
+/**
+ * Resolve a player portrait URL from common API / session field shapes.
+ *
+ * @param {Record<string, unknown>|null|undefined} row
+ * @returns {string|null}
+ */
+export function resolvePlayerImageUrl(row) {
+  const r = row ?? {};
+  return r.playerImageUrl ?? r.avatarUrl ?? r.image_url ?? r.imageUrl ?? r.avatar_url ?? null;
+}
+
+/**
+ * Return the first portrait URL found across one or more row objects.
+ *
+ * @param {...(Record<string, unknown>|null|undefined)} rows
+ * @returns {string|null}
+ */
+export function coalescePlayerImageUrl(...rows) {
+  for (const row of rows) {
+    const url = resolvePlayerImageUrl(row);
+    if (url) return url;
+  }
+  return null;
 }
 
 /** @param {string|number|null|undefined} value */
@@ -45,10 +73,13 @@ export function toFrameBowler(bowler) {
   const figures = String(b.figures ?? '');
   const parsed = parseBowlingFigures(figures);
   const overs = b.overs ?? '';
+  const w = parsed.wickets ?? b.wickets ?? b.w ?? 0;
+  const r = parsed.runs ?? b.runsConceded ?? b.r ?? 0;
+  const figuresDisplay = formatBroadcastBowlingFigures(figures, { w, r });
 
   return {
-    name: b.name ?? '',
-    figText: figures || `${parsed.wickets ?? b.wickets ?? 0}-${parsed.runs ?? b.runsConceded ?? 0} ${overs}`.trim(),
+    name: resolveBroadcastPlayerName(b),
+    figText: `${figuresDisplay} ${overs}`.trim(),
     o: overs,
     m: 0,
     r: parsed.runs ?? b.runsConceded ?? 0,
@@ -62,7 +93,7 @@ export function toFrameBowler(bowler) {
 export function toFrameBatter(batter) {
   const b = batter ?? {};
   return {
-    name: b.name ?? '',
+    name: resolveBroadcastPlayerName(b),
     runs: b.runs ?? 0,
     balls: b.balls ?? 0,
     onStrike: Boolean(b.onStrike),

@@ -3,7 +3,9 @@
  */
 import { cn } from '@/lib/utils';
 
+import { fsBreak } from '../../config';
 import { FitText, FSStage, Pill, TeamLogoOrCrest, VSBadge } from '../../primitives';
+import { fsFont } from '../shared/fsTypographyStyles';
 import { resolveVSTeams } from './vsBreak.helpers';
 
 export const BREAK_LOGO_SIZE = 300;
@@ -23,14 +25,22 @@ const BREAK_HEADER_CLASS = cn(
 export function BreakTournamentTitle({ children }) {
   if (!children) return null;
 
-  return <div className={cn(BREAK_HEADER_CLASS, 'text-[52px]')}>{children}</div>;
+  return (
+    <div className={BREAK_HEADER_CLASS} style={fsFont(fsBreak.titleLg)}>
+      {children}
+    </div>
+  );
 }
 
 /** Venue line under tournament title — same display style, smaller size. */
 export function BreakVenueLine({ children }) {
   if (!children) return null;
 
-  return <div className={cn(BREAK_HEADER_CLASS, 'text-[36px]')}>{children}</div>;
+  return (
+    <div className={BREAK_HEADER_CLASS} style={fsFont(fsBreak.titleSm)}>
+      {children}
+    </div>
+  );
 }
 
 function BreakHeaderStack({ tournamentName, venueLine }) {

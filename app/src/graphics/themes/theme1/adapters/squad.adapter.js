@@ -1,7 +1,8 @@
 /**
  * Squad processors → SquadListGraphic data shape.
  */
-import { toTeamRecord, tournamentSub } from './_shared';
+import { resolveBroadcastPlayerName } from '../../../core/domain/playerNameResolver';
+import { resolvePlayerImageUrl, toTeamRecord, tournamentSub } from './_shared';
 
 /**
  * @param {Array<Record<string, unknown>>} players
@@ -9,9 +10,9 @@ import { toTeamRecord, tournamentSub } from './_shared';
 function mapSquadPlayers(players) {
   return players.map((p) => ({
     id: p.player_id ?? p.id,
-    name: p.name ?? p.display_name ?? '',
+    name: resolveBroadcastPlayerName(p),
     role: p.role ?? p.playing_role ?? '',
-    avatarUrl: p.avatarUrl ?? p.image_url ?? p.avatar_url ?? null,
+    avatarUrl: resolvePlayerImageUrl(p),
     captain: Boolean(p.captain ?? p.is_captain),
     wicketKeeper: Boolean(p.wicketKeeper ?? p.is_wicket_keeper ?? p.wicket_keeper),
   }));

@@ -4,8 +4,9 @@
  */
 import { cn } from '@/lib/utils';
 
-import { AnimatedNumber, DISPLAY_FONT, fmt, MONO_FONT, UI_FONT } from '../../primitives';
+import { AnimatedNumber, DISPLAY_FONT, fmt } from '../../primitives';
 import { PlayerStatLTBar } from './PlayerStatLTBar';
+import { ltPlayerStatBar, playerStatLtHeroClass, playerStatLtNameClass, playerStatLtSecondaryClass } from './playerStatLtStyles';
 
 const STAT_FIELDS = [
   { key: 'sixes', label: 'SIX' },
@@ -17,25 +18,9 @@ const STAT_FIELDS = [
   { key: 'sr', label: 'S/R' },
 ];
 
-const nameClass = cn(
-  'min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap',
-  'text-[25px] font-bold leading-none text-white uppercase',
-  UI_FONT,
-);
-
 const scoreClusterClass = 'ml-2 flex shrink-0 items-baseline gap-[5px]';
-
 const runsWrapClass = 'flex items-start';
-
-const runsClass = cn(
-  'text-[34px] font-extrabold leading-none text-white',
-  DISPLAY_FONT,
-  '[text-shadow:0_0_calc(18px*var(--glow))_var(--score-shadow)]',
-);
-
-const asteriskClass = cn('text-[14px] font-extrabold leading-none text-[#f5c85a]', DISPLAY_FONT);
-
-const ballsClass = cn('text-[17px] font-medium text-[var(--faint)]', MONO_FONT);
+const asteriskClass = cn('text-[22px] font-extrabold leading-none text-[#f5c85a]', DISPLAY_FONT);
 
 function resolveBatter(batter, teams) {
   if (!batter?.name) return null;
@@ -74,13 +59,23 @@ export function BatsmanMatchLTBar({ batter, teams, edgeToEdge = true }) {
       statValues={statValues}
       header={
         <>
-          <span className={nameClass}>{player.name}</span>
+          <span className={playerStatLtNameClass} style={{ fontSize: ltPlayerStatBar.nameSize }}>
+            {player.name}
+          </span>
           <span className={scoreClusterClass}>
             <span className={runsWrapClass}>
-              <AnimatedNumber value={player.runs ?? 0} className={runsClass} />
+              <AnimatedNumber
+                value={player.runs ?? 0}
+                className={playerStatLtHeroClass}
+                style={{ fontSize: ltPlayerStatBar.heroSize }}
+              />
               {player.notOut ? <span className={asteriskClass}>*</span> : null}
             </span>
-            <AnimatedNumber value={player.balls ?? 0} className={ballsClass} />
+            <AnimatedNumber
+              value={player.balls ?? 0}
+              className={playerStatLtSecondaryClass}
+              style={{ fontSize: ltPlayerStatBar.secondarySize }}
+            />
           </span>
         </>
       }

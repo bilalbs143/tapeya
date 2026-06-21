@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Services\Scoring;
 
+use App\Models\Ball;
 use App\Services\InningsStatsService;
 use PHPUnit\Framework\TestCase;
 use Tests\Support\Scoring\BallFactory;
@@ -22,7 +23,7 @@ abstract class ScoringUnitTestCase extends TestCase
     }
 
     /**
-     * @param  list<\App\Models\Ball>  $balls
+     * @param  list<Ball>  $balls
      * @return array<string, mixed>
      */
     protected function compute(array $balls): array
@@ -34,7 +35,7 @@ abstract class ScoringUnitTestCase extends TestCase
     }
 
     /**
-     * @param  list<\App\Models\Ball>  $balls
+     * @param  list<Ball>  $balls
      * @return array{striker_id: int|null, non_striker_id: int|null}
      */
     protected function creaseAfter(array $balls): array

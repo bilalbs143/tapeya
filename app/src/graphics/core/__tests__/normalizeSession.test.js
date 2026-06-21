@@ -101,6 +101,16 @@ describe('normalizeBatters', () => {
   it('returns empty array for non-array input', () => {
     expect(normalizeBatters(null)).toEqual([]);
   });
+
+  it('maps player image fields to imageUrl', () => {
+    const batters = normalizeBatters([
+      { name: 'Left', image_url: 'https://cdn.example/left.jpg' },
+      { name: 'Right', avatar_url: 'https://cdn.example/right.jpg' },
+    ]);
+
+    expect(batters[0].imageUrl).toBe('https://cdn.example/left.jpg');
+    expect(batters[1].imageUrl).toBe('https://cdn.example/right.jpg');
+  });
 });
 
 describe('normalizeSession', () => {

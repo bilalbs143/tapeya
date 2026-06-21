@@ -1,19 +1,43 @@
 /**
  * Follow / Download Tapeya promo lower-third.
  *
- * Standard LT footprint (1920 × 126) — same as LT_DEFAULT.
- * Layout: [logo] | [headline · divider · url]
+ * Standard LT footprint (1920 × 138) — same as LT_DEFAULT.
+ * Layout: [logo] | headline row (40%) + URL row (60%)
  */
 import { cn } from '@/lib/utils';
 
-import { assets, geometry, ltBar } from '../../config';
-import { GlowPanel, UI_FONT, useScaledBarSurface } from '../../primitives';
+import { assets, geometry, ltBar, ltPromoBar } from '../../config';
+import { GlowPanel, ScaledBarSurface, UI_FONT } from '../../primitives';
 
-/* Standard LT footprint — same canvas as LT_DEFAULT (1920 × 126). */
 const DESIGN_WIDTH = ltBar.designWidth;
 const BAR_RADIUS = geometry.barRadius;
-const LOGO_HEIGHT = 72;
-const PROMO_SIDE_PADDING_Y = ltBar.sidePaddingY;
+
+const promoRowPaddingX = {
+  paddingLeft: ltPromoBar.contentPaddingX,
+  paddingRight: ltPromoBar.contentPaddingX,
+};
+
+/** @param {boolean} [singleRow] */
+function promoHeadlineRowFlexStyle(singleRow = false) {
+  if (singleRow) return { flex: '1 1 0%', minHeight: 0 };
+  return { flex: `${ltPromoBar.headlineRowFlex} ${ltPromoBar.headlineRowFlex} 0%`, minHeight: 0 };
+}
+
+function promoUrlRowFlexStyle() {
+  return { flex: `${ltPromoBar.urlRowFlex} ${ltPromoBar.urlRowFlex} 0%`, minHeight: 0 };
+}
+
+const promoTextRowClass = cn('flex w-full min-h-0 items-center');
+
+const promoHeadlineTextClass = cn(
+  'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap leading-none font-bold tracking-[0.12em] text-[var(--text)] uppercase',
+  UI_FONT,
+);
+
+const promoUrlTextClass = cn(
+  'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap leading-none font-extrabold tracking-[0.08em] text-white',
+  UI_FONT,
+);
 
 /**
  * @param {{
@@ -26,56 +50,63 @@ const PROMO_SIDE_PADDING_Y = ltBar.sidePaddingY;
  * }} props
  */
 export function PlatformPromoLTBar({ headline, url, logoUrl, defaultHeadline = '', defaultUrl = '', edgeToEdge = true }) {
-  const { containerRef, innerRef, scale, surfaceHeight, radius } = useScaledBarSurface(DESIGN_WIDTH, edgeToEdge, BAR_RADIUS);
-
   const resolvedHeadline = headline ?? defaultHeadline;
   const resolvedUrl = url ?? defaultUrl;
   const resolvedLogoUrl = logoUrl ?? assets.brandLogoWhite;
 
   if (!resolvedHeadline && !resolvedUrl) return null;
 
+  const hasBothRows = Boolean(resolvedHeadline && resolvedUrl);
+
   return (
-    <div ref={containerRef} className="w-full max-w-full overflow-hidden" style={{ height: surfaceHeight || undefined }}>
-      <div ref={innerRef} className="origin-top-left" style={{ width: DESIGN_WIDTH, transform: `scale(${scale})` }}>
+    <ScaledBarSurface designWidth={DESIGN_WIDTH} edgeToEdge={edgeToEdge} barRadius={BAR_RADIUS}>
+      {({ radius }) => (
         <GlowPanel
-          ambientPulse
           hideRing
           radius={radius}
           className="flex w-full items-stretch overflow-hidden"
           style={{ height: ltBar.height }}
         >
           <div
-            className="flex shrink-0 items-center justify-center border-r border-white/[0.08] px-5"
-            style={{ paddingTop: PROMO_SIDE_PADDING_Y, paddingBottom: PROMO_SIDE_PADDING_Y }}
+            className="flex shrink-0 items-center justify-center border-r border-white/8"
+            style={{ paddingLeft: ltPromoBar.logoPaddingX, paddingRight: ltPromoBar.logoPaddingX }}
           >
             <img
               src={resolvedLogoUrl}
               alt="Tapeya"
               className="w-auto max-w-full object-contain"
-              style={{ height: LOGO_HEIGHT }}
+              style={{ height: ltPromoBar.logoHeight }}
             />
           </div>
 
-          <div
-            className="flex min-w-0 flex-1 flex-col justify-center gap-[0.65rem] pr-6 pl-7"
-            style={{ paddingTop: PROMO_SIDE_PADDING_Y, paddingBottom: PROMO_SIDE_PADDING_Y }}
-          >
+          <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
             {resolvedHeadline ? (
-              <span className={cn('text-[1.125rem] leading-[1.15] font-extrabold tracking-[0.12em] text-[var(--text)]', UI_FONT)}>
-                {resolvedHeadline}
-              </span>
+              <div
+                className={cn(promoTextRowClass, hasBothRows && 'border-b border-white/8')}
+                style={{ ...promoHeadlineRowFlexStyle(!hasBothRows), ...promoRowPaddingX }}
+              >
+                <span className={promoHeadlineTextClass} style={{ fontSize: ltPromoBar.headlineFont }}>
+                  {resolvedHeadline}
+                </span>
+              </div>
             ) : null}
-            {resolvedHeadline && resolvedUrl ? (
-              <div className="h-px w-full max-w-[42rem] bg-white/[0.08]" aria-hidden="true" />
-            ) : null}
+
             {resolvedUrl ? (
-              <span className={cn('text-[1.625rem] leading-[1.1] font-semibold tracking-[0.08em] text-white', UI_FONT)}>
-                {resolvedUrl}
-              </span>
+              <div
+                className={promoTextRowClass}
+                style={{
+                  ...(hasBothRows ? promoUrlRowFlexStyle() : promoHeadlineRowFlexStyle(true)),
+                  ...promoRowPaddingX,
+                }}
+              >
+                <span className={promoUrlTextClass} style={{ fontSize: ltPromoBar.urlFont }}>
+                  {resolvedUrl}
+                </span>
+              </div>
             ) : null}
           </div>
         </GlowPanel>
-      </div>
-    </div>
+      )}
+    </ScaledBarSurface>
   );
 }

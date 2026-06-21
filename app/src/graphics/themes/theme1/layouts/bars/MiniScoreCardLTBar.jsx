@@ -38,12 +38,12 @@ export function MiniScoreCardLTBar({ miniScoreCard, teams, edgeToEdge = true }) 
         style={{ width: surfaceWidth || undefined, height: surfaceHeight || undefined }}
       >
         <div ref={innerRef} className="w-fit origin-top-left" style={{ transform: `scale(${scale})` }}>
-          <GlowPanel ambientPulse hideRing radius={radius} className="flex min-h-[5.375rem] w-fit items-center">
+          <GlowPanel hideRing radius={radius} className="flex min-h-[5.375rem] w-fit items-center">
             <div className="flex w-fit items-center gap-4 py-5 pr-[1.375rem] pl-10">
               <div className="flex shrink-0 flex-col items-start justify-center gap-1 pr-[1.125rem]">
                 <span
                   className={cn(
-                    'text-[1.875rem] leading-[1.1] font-bold tracking-[0.1em] whitespace-nowrap text-[var(--text)]',
+                    'text-[2rem] leading-[1.1] font-bold tracking-[0.1em] whitespace-nowrap text-[var(--text)] uppercase',
                     UI_FONT,
                   )}
                 >
@@ -52,7 +52,7 @@ export function MiniScoreCardLTBar({ miniScoreCard, teams, edgeToEdge = true }) 
                 {oversText ? (
                   <span
                     className={cn(
-                      'text-[1.625rem] leading-none font-bold tracking-[0.04em] whitespace-nowrap text-[var(--text)]',
+                      'text-[1.75rem] leading-none font-bold tracking-[0.04em] whitespace-nowrap text-[var(--text)] uppercase',
                       DISPLAY_FONT,
                     )}
                   >
@@ -63,12 +63,12 @@ export function MiniScoreCardLTBar({ miniScoreCard, teams, edgeToEdge = true }) 
               <div className="flex shrink-0 items-baseline gap-[1px]">
                 <AnimatedNumber
                   value={miniScoreCard.total ?? 0}
-                  className={cn('text-[1.875rem] leading-[0.92] font-extrabold text-white', DISPLAY_FONT)}
+                  className={cn('text-[2rem] leading-[0.92] font-extrabold text-white', DISPLAY_FONT)}
                 />
-                <span className={cn('text-[1.875rem] leading-[0.92] font-extrabold text-white', DISPLAY_FONT)}>{scoreSep}</span>
+                <span className={cn('text-[2rem] leading-[0.92] font-extrabold text-white', DISPLAY_FONT)}>{scoreSep}</span>
                 <AnimatedNumber
                   value={miniScoreCard.wkts ?? 0}
-                  className={cn('text-[1.875rem] leading-[0.92] font-extrabold text-white', DISPLAY_FONT)}
+                  className={cn('text-[2rem] leading-[0.92] font-extrabold text-white', DISPLAY_FONT)}
                 />
               </div>
             </div>

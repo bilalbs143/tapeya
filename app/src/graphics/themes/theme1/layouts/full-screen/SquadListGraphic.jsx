@@ -3,8 +3,10 @@
  */
 import { cn } from '@/lib/utils';
 
-import { colors } from '../../config';
+import { colors, fsSquad, fsSummaryPanel } from '../../config';
 import { accentMix, Crest, DISPLAY_FONT, FSStage, PlayerAvatarImage, ROW_ANIMATE_IN, UI_FONT } from '../../primitives';
+import { colorHaloShadow } from '../../visualEffects';
+import { FS_HEADER_SUB, FS_PAGE_TITLE_MD, fsFont } from '../shared/fsTypographyStyles';
 
 const SQUAD_GOLD = colors.gold;
 const SQUAD_GOLD_DARK = colors.goldDark;
@@ -17,25 +19,17 @@ const SQUAD_ROW_BASE_DELAY_MS = 120;
 const SQUAD_PLAYER_STAGGER_MS = 70;
 const SQUAD_PLAYERS_PER_ROW = 6;
 
-const squadTitleClass = cn(
-  'm-0 text-[62px] font-extrabold leading-[0.96] tracking-[0.01em] text-white uppercase',
-  DISPLAY_FONT,
-  '[text-shadow:0_2px_18px_rgba(0,0,0,0.5)]',
-);
-
-const headerSubClass = cn('mt-2 mb-0 text-[26px] font-semibold tracking-[0.06em] text-[var(--muted)] uppercase', UI_FONT);
-
-const squadPlayerNameClass = cn('text-[30px] font-extrabold text-white uppercase', DISPLAY_FONT);
+const squadPlayerNameClass = cn('font-extrabold text-white uppercase', DISPLAY_FONT);
 
 const squadRoleClass = cn(
-  'mt-2 text-[18px] font-semibold tracking-[0.1em] text-[var(--muted)] uppercase',
+  'mt-2 font-semibold tracking-[0.1em] text-[var(--text-secondary)] uppercase',
   'whitespace-nowrap',
   UI_FONT,
 );
 
-const captainBadgeClass = cn('text-[22px] font-extrabold', DISPLAY_FONT);
+const captainBadgeClass = cn('font-extrabold', DISPLAY_FONT);
 
-const rrrBandTextClass = cn('text-[34px] font-extrabold tracking-[0.06em] uppercase', 'whitespace-nowrap', DISPLAY_FONT);
+const rrrBandTextClass = cn('font-extrabold tracking-[0.06em] uppercase', 'whitespace-nowrap', DISPLAY_FONT);
 
 /** @param {number} rowStartDelay @param {number} index */
 function getSquadPlayerDelay(rowStartDelay, index) {
@@ -50,11 +44,11 @@ function SquadAvatarSlot({ src, alt = 'Player avatar', size = SQUAD_AVATAR_SIZE 
   );
 }
 
-function SquadRoleBadge({ label, className, style }) {
+function SquadRoleBadge({ label, className, style, fontSize = fsSquad.captainBadge }) {
   return (
     <span
       className={cn('absolute grid size-[38px] place-items-center rounded-full', captainBadgeClass, className)}
-      style={{ ...style, color: BADGE_TEXT }}
+      style={{ ...style, ...fsFont(fontSize), color: BADGE_TEXT }}
     >
       {label}
     </span>
@@ -77,7 +71,9 @@ function SquadPlayerCard({ player, accent, rowStartDelay, index }) {
     >
       <div className="relative">
         <SquadAvatarSlot src={avatarUrl} alt={name} />
-        {wicketKeeper ? <SquadRoleBadge label="WK" className="top-2 left-3.5 text-[16px]" style={badgeStyle} /> : null}
+        {wicketKeeper ? (
+          <SquadRoleBadge label="WK" className="top-2 left-3.5" style={badgeStyle} fontSize={fsSquad.roleBadgeSm} />
+        ) : null}
         {captain ? <SquadRoleBadge label="C" className="top-2 right-3.5" style={badgeStyle} /> : null}
       </div>
 
@@ -88,10 +84,14 @@ function SquadPlayerCard({ player, accent, rowStartDelay, index }) {
           border: `1px solid ${accentMix(accent, 27)}`,
         }}
       >
-        <span className={squadPlayerNameClass}>{name}</span>
+        <span className={squadPlayerNameClass} style={fsFont(fsSquad.playerName)}>
+          {name}
+        </span>
       </div>
 
-      <span className={squadRoleClass}>{role}</span>
+      <span className={squadRoleClass} style={fsFont(fsSquad.subLabel)}>
+        {role}
+      </span>
     </div>
   );
 }
@@ -124,8 +124,14 @@ function SquadHeader({ title, sub, accent, logoUrl, team }) {
       )}
 
       <div className="min-w-0 flex-1 pt-1">
-        <h2 className={squadTitleClass}>{title}</h2>
-        {sub ? <p className={headerSubClass}>{sub}</p> : null}
+        <h2 className={FS_PAGE_TITLE_MD} style={fsFont(fsSummaryPanel.pageTitleMd)}>
+          {title}
+        </h2>
+        {sub ? (
+          <p className={FS_HEADER_SUB} style={fsFont(fsSummaryPanel.headerSub)}>
+            {sub}
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -139,10 +145,10 @@ function RequiredRunRateBand({ value }) {
       className="absolute right-[70px] bottom-10 left-[70px] grid h-[68px] place-items-center rounded-xl"
       style={{
         background: `linear-gradient(100deg, ${SQUAD_GOLD}, ${SQUAD_GOLD_DARK})`,
-        boxShadow: `0 0 calc(20px * var(--glow)) ${SQUAD_GOLD}33`,
+        boxShadow: colorHaloShadow(SQUAD_GOLD),
       }}
     >
-      <span className={rrrBandTextClass} style={{ color: BADGE_TEXT }}>
+      <span className={rrrBandTextClass} style={{ color: BADGE_TEXT, ...fsFont(fsSquad.goldBand) }}>
         REQUIRED RUN RATE : {value}
       </span>
     </div>

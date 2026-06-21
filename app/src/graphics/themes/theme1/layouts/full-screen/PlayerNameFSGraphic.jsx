@@ -3,17 +3,11 @@
  */
 import { cn } from '@/lib/utils';
 
-import {
-  DISPLAY_FONT,
-  FSStage,
-  GlowPanel,
-  Pill,
-  PlayerAvatarImage,
-  ROW_ANIMATE_IN,
-  TeamLogoOrCrest,
-  UI_FONT,
-} from '../../primitives';
+import { resolveBroadcastNameParts } from '../../../../core/domain/playerNameResolver';
+import { fsPill, fsPlayerCard, fsSummaryPanel } from '../../config';
+import { FSStage, GlowPanel, PlayerAvatarImage, ROW_ANIMATE_IN, TeamLogoOrCrest, UI_FONT } from '../../primitives';
 import { resolveFsStatLayout } from '../shared/fsStatLayout';
+import { FS_HEADER_SUB, FS_PLAYER_FIRST, FS_PLAYER_LAST, FS_PLAYER_ROLE, fsFont } from '../shared/fsTypographyStyles';
 import { StatTile } from '../shared/StatTile';
 
 const FS_AVATAR_W = 560;
@@ -25,23 +19,11 @@ const FS_CREST_SIZE = 210;
 const FS_STAT_BASE_DELAY_MS = 120;
 const FS_STAT_STAGGER_MS = 80;
 
-const firstNameClass = cn('text-[46px] font-semibold leading-none tracking-[0.02em] text-[var(--text)] uppercase', DISPLAY_FONT);
+const teamCodeClass = cn('font-semibold leading-none tracking-[0.14em] uppercase', UI_FONT);
 
-const lastNameClass = cn(
-  'text-[92px] font-extrabold leading-[0.95] tracking-[0.01em] text-white uppercase',
-  DISPLAY_FONT,
-  '[text-shadow:0_0_calc(20px*var(--glow))_rgba(120,140,255,0.5)]',
-);
+const careerLabelClass = cn('mt-4 font-medium text-[var(--text-secondary)]', UI_FONT);
 
 const dividerClass = cn('my-[22px] mb-[18px] h-px', 'bg-[linear-gradient(90deg,rgba(120,140,255,0.6),transparent)]');
-
-const teamCodeClass = cn('text-2xl font-semibold leading-none tracking-[0.14em] uppercase', UI_FONT);
-
-const roleClass = cn('mt-0.5 text-[38px] font-bold leading-[1.05] text-white capitalize', DISPLAY_FONT);
-
-const careerLabelClass = cn('mt-4 text-2xl font-medium text-[var(--muted)]', UI_FONT);
-
-const headerSubClass = cn('m-0 text-[26px] font-semibold tracking-[0.06em] text-[var(--muted)] uppercase', UI_FONT);
 
 /** @param {number} index */
 function getStatDelay(index) {
@@ -60,18 +42,10 @@ function resolvePlayer(player, teams) {
 }
 
 function resolvePlayerContent(player) {
-  if (player.firstName) {
-    return {
-      firstName: player.firstName,
-      lastName: player.lastName ?? '',
-      detail: player.role ?? player.tournamentName ?? '',
-    };
-  }
-
-  const parts = (player.name ?? '').trim().split(/\s+/);
+  const { firstName, lastName } = resolveBroadcastNameParts(player);
   return {
-    firstName: parts[0] ?? '',
-    lastName: parts.slice(1).join(' '),
+    firstName,
+    lastName,
     detail: player.role ?? player.tournamentName ?? '',
   };
 }
@@ -129,9 +103,15 @@ export function PlayerNameFSGraphic({
 
   return (
     <FSStage>
-      {sub ? <p className={cn('absolute top-14 right-16 left-16 z-[3] text-center', headerSubClass)}>{sub}</p> : null}
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-10">
-        {topLabel ? <Pill variant="caption">{topLabel}</Pill> : null}
+      {sub ? (
+        <p
+          className={cn('absolute top-14 right-16 left-16 z-[3] text-center', FS_HEADER_SUB)}
+          style={fsFont(fsSummaryPanel.headerSub)}
+        >
+          {sub}
+        </p>
+      ) : null}
+      <div className="absolute inset-0 flex items-center justify-center">
         <div className="flex items-center" style={{ gap: FS_PANEL_GAP }}>
           <div
             className="flex items-stretch"
@@ -165,16 +145,39 @@ export function PlayerNameFSGraphic({
             <TeamMark team={team} accent={accent} logoUrl={logoUrl} />
 
             <GlowPanel radius={20} accent={accent} className="w-full px-[38px] py-[34px]">
-              <div className={firstNameClass}>{firstName}</div>
-              {lastName && <div className={lastNameClass}>{lastName}</div>}
+              {topLabel ? (
+                <div className="mb-5">
+                  <p
+                    className={cn('font-extrabold tracking-[0.18em] uppercase', UI_FONT)}
+                    style={{ color: accent, ...fsFont(fsPill.caption) }}
+                  >
+                    {topLabel}
+                  </p>
+                  <div className="mt-[10px] h-px" style={{ background: `linear-gradient(90deg, ${accent}, transparent)` }} />
+                </div>
+              ) : null}
+              <div className={FS_PLAYER_FIRST} style={fsFont(fsPlayerCard.firstName)}>
+                {firstName}
+              </div>
+              {lastName ? (
+                <div className={FS_PLAYER_LAST} style={fsFont(fsPlayerCard.lastName)}>
+                  {lastName}
+                </div>
+              ) : null}
               <div className={dividerClass} />
-              {team?.code && (
-                <div className={teamCodeClass} style={{ color: accent }}>
+              {team?.code ? (
+                <div className={teamCodeClass} style={{ color: accent, ...fsFont(fsPlayerCard.teamCode) }}>
                   {team.code}
                 </div>
-              )}
-              {detail && <div className={roleClass}>{detail}</div>}
-              <div className={careerLabelClass}>{careerLabel}</div>
+              ) : null}
+              {detail ? (
+                <div className={cn(FS_PLAYER_ROLE, 'mt-0.5')} style={fsFont(fsPlayerCard.role)}>
+                  {detail}
+                </div>
+              ) : null}
+              <div className={careerLabelClass} style={fsFont(fsPlayerCard.careerLabel)}>
+                {careerLabel}
+              </div>
             </GlowPanel>
           </div>
         </div>

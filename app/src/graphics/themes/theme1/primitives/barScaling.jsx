@@ -11,21 +11,22 @@ export function ScaledBarSurface({
   className,
   children,
 }) {
-  const { containerRef, innerRef, scale, surfaceHeight, radius } = useScaledBarSurface(
-    designWidth,
-    edgeToEdge,
-    barRadius,
-    previewGutter,
-  );
+  const { containerRef, innerRef, scale, renderWidth, insetNative, surfaceHeight, radius, containerStyle, innerStyle } =
+    useScaledBarSurface(designWidth, edgeToEdge, barRadius, previewGutter);
   const content = typeof children === 'function' ? children({ radius, scale }) : children;
 
   return (
     <div
       ref={containerRef}
-      className={cn('w-full max-w-full overflow-hidden', className)}
-      style={{ height: surfaceHeight || undefined }}
+      className={cn('max-w-full overflow-hidden', !insetNative && 'w-full', className)}
+      style={{ height: surfaceHeight || undefined, ...containerStyle }}
     >
-      <div ref={innerRef} className="origin-top-left" style={{ width: designWidth, transform: `scale(${scale})` }}>
+      <div
+        ref={innerRef}
+        // insetNative: w-full reflows inside margin box at scale 1 — no fixed renderWidth
+        className={cn(insetNative ? 'w-full' : 'origin-top-left')}
+        style={insetNative ? innerStyle : { width: renderWidth, transform: `scale(${scale})`, ...innerStyle }}
+      >
         {content}
       </div>
     </div>

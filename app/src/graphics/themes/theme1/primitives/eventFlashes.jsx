@@ -3,9 +3,11 @@ import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 import { animation, colors } from '../config';
+import { isFlashBackgroundEnabled, isFlashTextGlowEnabled } from '../visualEffects';
 import { StrapVapor } from './eventStraps';
 
-// ── Flash overlays ────────────────────────────────────────────────────────────
+// ── Flash overlays (full-screen transition header — single dominant title) ─────
+
 function useFlashDismiss(durationMs) {
   const [leaving, setLeaving] = useState(false);
   useEffect(() => {
@@ -24,7 +26,7 @@ function FlashOverlay({ fixed, leaving, glow, children }) {
         leaving ? 'opacity-0' : 'opacity-100',
       )}
     >
-      <div className="absolute inset-0" style={{ background: glow }} />
+      {isFlashBackgroundEnabled() && glow ? <div className="absolute inset-0" style={{ background: glow }} /> : null}
       {children}
     </div>
   );
@@ -124,6 +126,7 @@ const BOUNDARY_THEMES = {
 function BoundaryFlash({ variant, shot, compact, fixed = false }) {
   const theme = BOUNDARY_THEMES[variant];
   const leaving = useFlashDismiss(animation.flashDismissMs.boundary);
+  const shotDisplay = shot ? String(shot).toUpperCase() : null;
 
   return (
     <FlashOverlay fixed={fixed} leaving={leaving} glow={theme.glow}>
@@ -142,23 +145,23 @@ function BoundaryFlash({ variant, shot, compact, fixed = false }) {
           style={{
             fontSize: compact ? (theme.titleSize?.compact ?? 96) : (theme.titleSize?.full ?? 230),
             backgroundImage: theme.titleGradient,
-            filter: `drop-shadow(0 0 calc(40px*var(--glow)) ${theme.titleShadow})`,
+            ...(isFlashTextGlowEnabled() ? { filter: `drop-shadow(0 0 calc(40px*var(--glow)) ${theme.titleShadow})` } : {}),
           }}
         >
           {theme.title}
         </div>
-        {shot && (
+        {shotDisplay ? (
           <div
-            className="bc-animate-strap-text-enter mt-2.5 [font-family:var(--font-ui)] font-semibold tracking-[0.04em]"
+            className="bc-animate-strap-text-enter mt-2.5 [font-family:var(--font-ui)] font-semibold tracking-[0.04em] uppercase"
             style={{
               fontSize: compact ? 16 : 32,
               color: theme.subtitleColor,
               animationDelay: '0.12s',
             }}
           >
-            {shot}
+            {shotDisplay}
           </div>
-        )}
+        ) : null}
       </div>
     </FlashOverlay>
   );
@@ -199,7 +202,7 @@ export function WicketFlash({ compact, fixed = false }) {
           style={{
             fontSize: compact ? 120 : 300,
             backgroundImage: colors.wicketTitleGradient,
-            filter: `drop-shadow(0 0 calc(40px*var(--glow)) ${colors.wicketTextShadow})`,
+            ...(isFlashTextGlowEnabled() ? { filter: `drop-shadow(0 0 calc(40px*var(--glow)) ${colors.wicketTextShadow})` } : {}),
           }}
         >
           WICKET
@@ -219,7 +222,7 @@ export function NotOutFlash({ compact, fixed = false }) {
           style={{
             fontSize: compact ? 120 : 300,
             backgroundImage: colors.notOutTitleGradient,
-            filter: `drop-shadow(0 0 calc(40px*var(--glow)) ${colors.notOutTextShadow})`,
+            ...(isFlashTextGlowEnabled() ? { filter: `drop-shadow(0 0 calc(40px*var(--glow)) ${colors.notOutTextShadow})` } : {}),
           }}
         >
           NOT OUT

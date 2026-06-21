@@ -96,8 +96,9 @@
   place-items: center;
   flex-shrink: 0;
   border-radius: 50%;
-  font-family: var(--font-mono);
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: 0.02em;
   border: 1px solid;
   line-height: 1;
   white-space: nowrap;
@@ -111,26 +112,26 @@
     background: linear-gradient(180deg, #ff3b5c, #c01037);
     color: #fff;
     border-color: rgba(255, 120, 150, 0.9);
-    box-shadow: 0 0 calc(14px * var(--glow)) rgba(255, 60, 100, 0.9);
+    box-shadow: none;
   }
 
   &[data-variant='4'] {
     background: linear-gradient(180deg, rgba(59, 130, 246, 0.35), rgba(59, 130, 246, 0.12));
     color: #bcd6ff;
     border-color: rgba(120, 170, 255, 0.6);
-    box-shadow: 0 0 calc(10px * var(--glow)) rgba(80, 150, 255, 0.7);
+    box-shadow: none;
   }
 
   &[data-variant='6'] {
     background: linear-gradient(180deg, rgba(245, 200, 90, 0.4), rgba(245, 200, 90, 0.12));
     color: #ffe6a8;
     border-color: rgba(245, 210, 120, 0.7);
-    box-shadow: 0 0 calc(10px * var(--glow)) rgba(245, 200, 90, 0.7);
+    box-shadow: none;
   }
 
   &[data-variant='dot'] {
     background: rgba(255, 255, 255, 0.06);
-    color: var(--muted);
+    color: var(--text-secondary);
     border-color: rgba(255, 255, 255, 0.14);
     box-shadow: none;
   }
@@ -273,9 +274,54 @@
   justify-content: flex-end;
 }
 
+// ── Full-screen stage fabric (FSDiagonal) ─────────────────────────────────────
+
+.fs-stage-fabric {
+  pointer-events: none;
+  animation: fsStageFadeIn var(--fs-stage-fade-in, 450ms) ease-out both;
+}
+
+.fs-stage-fabric__wash,
+.fs-stage-fabric__bottom-fill,
+.fs-stage-fabric__corner-fill,
+.fs-stage-fabric__vignette,
+.fs-stage-fabric__glow,
+.fs-stage-fabric__grain {
+  position: absolute;
+  inset: 0;
+}
+
+.fs-fabric-band {
+  position: absolute;
+  left: var(--fs-fabric-band-left, -300px);
+  width: var(--fs-fabric-band-width, 2640px);
+  height: var(--fs-fabric-band-height, 320px);
+  filter: blur(var(--fs-fabric-blur, 8px));
+  will-change: transform;
+}
+
+/** Lower bands pivot from the left so -12° rotation does not lift the bottom-right corner. */
+.fs-fabric-band--lower {
+  transform-origin: 26% 54%;
+}
+
+.fs-stage-fabric__glow--pulse {
+  animation: fsDiagonalGlowPulse var(--fs-stage-glow-cycle, 18s) ease-in-out infinite;
+}
+
+.fs-stage-fabric__grain {
+  animation: fsDiagonalStripesDriftA var(--fs-stage-grain-cycle, 120s) linear infinite;
+}
+
 // ── Reduced-motion overrides ──────────────────────────────────────────────────
 
 @media (prefers-reduced-motion: reduce) {
+  .fs-stage-fabric,
+  .fs-stage-fabric__glow--pulse,
+  .fs-stage-fabric__grain {
+    animation: none;
+  }
+
   .theme1 {
     .crest-ring-pulse-first,
     .crest-ring-pulse-second,
@@ -284,6 +330,7 @@
     .bc-animate-strap-text-enter,
     .bc-animate-strap-text-loop,
     .bc-animate-spark-rise,
+    .bc-strap-ticker-track,
     .bc-animate-row-in,
     .bc-animate-tour-code-reveal,
     .bc-animate-tour-code-glow,

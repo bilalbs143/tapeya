@@ -2,8 +2,9 @@
  * Player intro / stats processors → Tapeya player component shapes.
  */
 import { parseBowlingFigures } from '../../../core/domain/player';
+import { resolveBroadcastNameParts } from '../../../core/domain/playerNameResolver';
 import { fmt } from '../primitives';
-import { resolveTeamCode as resolveTeamSide, toTeamRecord, tournamentSub } from './_shared';
+import { resolvePlayerImageUrl, resolveTeamCode as resolveTeamSide, toTeamRecord, tournamentSub } from './_shared';
 import { toTeams } from './teams.adapter';
 
 function toNum(value) {
@@ -29,13 +30,6 @@ function statOrDash(value) {
 function formatOversDisplay(value) {
   if (value == null || value === '') return '0.0';
   return String(value);
-}
-
-function splitName(full) {
-  const parts = String(full ?? '')
-    .trim()
-    .split(/\s+/);
-  return { firstName: parts[0] ?? '', lastName: parts.slice(1).join(' ') };
 }
 
 function resolveTeamCodeFromPlayerTeam(playerTeam, teams) {
@@ -82,9 +76,11 @@ export function toPlayer(props, tokens) {
   }
 
   const fullName = props.playerName ?? '';
-  const fromParts = splitName(fullName);
-  const firstName = props.playerFirstName ?? props.firstName ?? fromParts.firstName;
-  const lastName = props.playerLastName ?? props.lastName ?? fromParts.lastName;
+  const { firstName, lastName, displayName } = resolveBroadcastNameParts({
+    name: fullName || undefined,
+    firstName: props.playerFirstName ?? props.firstName,
+    lastName: props.playerLastName ?? props.lastName,
+  });
   const stats = Array.isArray(props.stats) ? props.stats : [];
   const teamCode =
     fixtureCode ??
@@ -98,12 +94,12 @@ export function toPlayer(props, tokens) {
     teams,
     sub: tournamentSub(props),
     player: {
-      name: fullName || [firstName, lastName].filter(Boolean).join(' '),
+      name: displayName || fullName,
       firstName,
       lastName,
       role: props.playerRole ?? props.role ?? '',
       teamCode,
-      avatarUrl: props.playerImageUrl ?? props.avatarUrl ?? null,
+      avatarUrl: resolvePlayerImageUrl(props),
       logoUrl: props.playerTeamLogoUrl ?? props.logoUrl ?? null,
     },
     statFields: stats.map((s, index) => ({

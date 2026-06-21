@@ -3,8 +3,10 @@
  */
 import { cn } from '@/lib/utils';
 
-import { colors } from '../../config';
+import { colors, fsSummaryPanel, fsTable } from '../../config';
 import { accentGlowShadow, DISPLAY_FONT, FSStage, PlayerAvatarImage, ROW_ANIMATE_IN, UI_FONT } from '../../primitives';
+import { colorHaloShadow, isTextGlowEnabled, rgbaHaloShadow } from '../../visualEffects';
+import { FS_HEADER_SUB, FS_PAGE_TITLE_LG, fsFont } from '../shared/fsTypographyStyles';
 
 const LEADER_GOLD = colors.gold;
 const LEADER_ACCENT_A = colors.accentA;
@@ -17,29 +19,25 @@ const AVATAR_SLOT_H = 540;
 const LEADER_ROW_BASE_DELAY_MS = 400;
 const LEADER_ROW_STAGGER_MS = 200;
 
-const headerTitleClass = cn(
-  'm-0 text-[78px] font-extrabold leading-[0.96] tracking-[0.01em] text-white uppercase',
-  DISPLAY_FONT,
-  '[text-shadow:0_2px_18px_rgba(0,0,0,0.5)]',
-);
-
-const headerSubClass = cn('mt-2 mb-0 text-[26px] font-semibold tracking-[0.06em] text-[var(--muted)] uppercase', UI_FONT);
-
 const rowNameClass = cn(
-  'overflow-hidden text-[38px] font-bold tracking-[0.02em] text-white uppercase',
+  'overflow-hidden font-bold tracking-[0.02em] text-white uppercase',
   'text-ellipsis whitespace-nowrap',
   DISPLAY_FONT,
 );
 
 const rowClubClass = cn(
-  'overflow-hidden text-[21px] font-semibold tracking-[0.08em] text-[var(--muted)] uppercase',
+  'overflow-hidden font-semibold tracking-[0.08em] text-[var(--text-secondary)] uppercase',
   'text-ellipsis whitespace-nowrap',
   UI_FONT,
 );
 
-const featuredNameTextClass = cn('text-[40px] font-extrabold tracking-[0.04em] text-white uppercase', DISPLAY_FONT);
+const featuredNameTextClass = cn('font-extrabold tracking-[0.04em] text-white uppercase', DISPLAY_FONT);
 
-const featuredValueTextClass = cn('text-[60px] font-extrabold leading-none', DISPLAY_FONT);
+const featuredValueTextClass = cn('font-extrabold leading-none', DISPLAY_FONT);
+
+const rankBadgeClass = cn('leading-none font-extrabold', DISPLAY_FONT);
+
+const rankHeroClass = cn('leading-none font-extrabold', DISPLAY_FONT);
 
 /** @param {number} index */
 function getLeaderRowDelay(index) {
@@ -60,14 +58,14 @@ function getRowShellStyle(filled, top) {
     return {
       background: 'linear-gradient(100deg, rgba(245, 200, 90, 0.22), rgba(20, 26, 42, 0.7) 60%)',
       border: '1px solid rgba(245, 200, 90, 0.45)',
-      boxShadow: '0 0 calc(20px * var(--glow)) rgba(245, 200, 90, 0.25)',
+      boxShadow: rgbaHaloShadow('rgba(245, 200, 90, 0.25)') ?? 'none',
     };
   }
 
   return {
     background: 'linear-gradient(100deg, rgba(120, 140, 255, 0.16), rgba(18, 24, 40, 0.7) 60%)',
     border: '1px solid rgba(120, 140, 255, 0.32)',
-    boxShadow: '0 0 calc(20px * var(--glow)) rgba(91, 124, 255, 0.18)',
+    boxShadow: rgbaHaloShadow('rgba(91, 124, 255, 0.18)') ?? 'none',
   };
 }
 
@@ -85,8 +83,7 @@ function getRankChipStyle(filled, top) {
 
 /** @param {boolean} filled @param {boolean} top */
 function getValueTextShadow(filled, top) {
-  if (!filled) return undefined;
-
+  if (!filled || !isTextGlowEnabled()) return undefined;
   const accent = top ? LEADER_GOLD : LEADER_ACCENT_A;
   return { textShadow: accentGlowShadow(accent, 53) };
 }
@@ -98,7 +95,7 @@ function getFeaturedNameStyle() {
     textAlign: 'center',
     background: 'linear-gradient(180deg, rgba(30, 38, 62, 0.92), rgba(14, 19, 32, 0.95))',
     border: '1px solid rgba(120, 140, 255, 0.4)',
-    boxShadow: '0 0 calc(20px * var(--glow)) rgba(91, 124, 255, 0.3)',
+    boxShadow: rgbaHaloShadow('rgba(91, 124, 255, 0.3)'),
   };
 }
 
@@ -108,7 +105,7 @@ function getFeaturedValueStyle() {
     padding: '14px 26px',
     textAlign: 'center',
     background: `linear-gradient(180deg, ${LEADER_GOLD}, ${LEADER_GOLD_DARK})`,
-    boxShadow: `0 0 calc(26px * var(--glow)) ${LEADER_GOLD}55`,
+    boxShadow: colorHaloShadow(LEADER_GOLD, '26px', '55'),
   };
 }
 
@@ -134,12 +131,8 @@ function LeaderboardRow({ row, delay = 0 }) {
     >
       <div className="grid w-[96px] shrink-0 place-items-center" style={getRankChipStyle(filled, top)}>
         <span
-          className={cn(
-            'text-[52px] leading-none font-extrabold',
-            DISPLAY_FONT,
-            filled ? `text-[${BADGE_TEXT}]` : 'text-[var(--faint)]',
-          )}
-          style={filled ? { color: BADGE_TEXT } : undefined}
+          className={cn(rankBadgeClass, filled ? undefined : 'text-[var(--text-secondary)]')}
+          style={filled ? { color: BADGE_TEXT, ...fsFont(fsTable.rankBadge) } : fsFont(fsTable.rankBadge)}
         >
           {row.rank}
         </span>
@@ -147,16 +140,22 @@ function LeaderboardRow({ row, delay = 0 }) {
 
       <div className="grid w-[168px] shrink-0 place-items-center border-r border-white/[0.08]">
         <span
-          className={cn('text-[66px] leading-none font-extrabold', DISPLAY_FONT, filled ? 'text-white' : 'text-transparent')}
-          style={getValueTextShadow(filled, top)}
+          className={cn(rankHeroClass, filled ? 'text-white' : 'text-transparent')}
+          style={{ ...getValueTextShadow(filled, top), ...fsFont(fsTable.rankHero) }}
         >
           {row.value || '—'}
         </span>
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 px-[30px]">
-        <span className={rowNameClass}>{row.name || ''}</span>
-        {row.club ? <span className={rowClubClass}>{row.club}</span> : null}
+        <span className={rowNameClass} style={fsFont(fsTable.name)}>
+          {row.name || ''}
+        </span>
+        {row.club ? (
+          <span className={rowClubClass} style={fsFont(fsTable.nameSecondary)}>
+            {row.club}
+          </span>
+        ) : null}
       </div>
     </div>
   );
@@ -181,10 +180,12 @@ function LeaderboardFeatured({ featured, avatarUrl }) {
 
       <div className="flex w-full max-w-[440px] flex-col gap-3">
         <div style={getFeaturedNameStyle()}>
-          <span className={featuredNameTextClass}>{featured.name}</span>
+          <span className={featuredNameTextClass} style={fsFont(fsTable.featuredName)}>
+            {featured.name}
+          </span>
         </div>
         <div style={getFeaturedValueStyle()}>
-          <span className={featuredValueTextClass} style={{ color: BADGE_TEXT }}>
+          <span className={featuredValueTextClass} style={{ color: BADGE_TEXT, ...fsFont(fsTable.featuredValue) }}>
             {featured.value}
           </span>
         </div>
@@ -197,8 +198,14 @@ function LeaderboardHeader({ title, sub }) {
   return (
     <div className="absolute top-14 right-16 left-16 z-[3] flex items-start gap-7">
       <div className="min-w-0 flex-1">
-        <h2 className={headerTitleClass}>{title}</h2>
-        {sub ? <p className={headerSubClass}>{sub}</p> : null}
+        <h2 className={FS_PAGE_TITLE_LG} style={fsFont(fsSummaryPanel.pageTitleLg)}>
+          {title}
+        </h2>
+        {sub ? (
+          <p className={FS_HEADER_SUB} style={fsFont(fsSummaryPanel.headerSub)}>
+            {sub}
+          </p>
+        ) : null}
       </div>
     </div>
   );

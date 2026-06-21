@@ -8,10 +8,15 @@
 
 // ── Color tokens ─────────────────────────────────────────────────────────────
 export const colors = {
-  // Text hierarchy
-  text: '#eef2fb',
-  muted: '#9aa7c2',
-  faint: '#65718e',
+  // Text on broadcast overlays — two-color system only (no grey).
+  // Primary: pure white for heroes, active names, scores, titles.
+  // Secondary: soft blue-white — readable on video/panel; harmonizes with accentA.
+  text: '#ffffff',
+  textSecondary: '#dbe8ff',
+
+  // Score numerals use primary white (score-shadow supplies accent glow).
+  scoreColor: '#ffffff',
+  scoreShadow: 'rgba(90,140,255,.85)',
 
   // Accent gradient pair (used on borders, glows, crest rings)
   accentA: '#5b7cff',
@@ -23,10 +28,6 @@ export const colors = {
 
   // Preview stage background
   stageBg: 'radial-gradient(130% 100% at 50% -20%, #0e1424 0%, #070a12 55%, #05070d 100%)',
-
-  // Score value highlights
-  scoreColor: '#dbe8ff',
-  scoreShadow: 'rgba(90,140,255,.85)',
 
   // Event bar sweep wash colors
   eventWash: {
@@ -200,7 +201,6 @@ export const assets = {
 export const typography = {
   fontDisplay: "'Saira Condensed', system-ui, sans-serif",
   fontUI: "'Saira', system-ui, sans-serif",
-  fontMono: "'JetBrains Mono', ui-monospace, monospace",
 };
 
 // ── Spacing & geometry tokens ─────────────────────────────────────────────────
@@ -215,73 +215,181 @@ export const geometry = {
  */
 export const ltBar = {
   designWidth: 1920,
-  height: 126,
+  height: 138,
   crestSize: 86,
   sidePaddingY: 20,
   edgePaddingX: 32,
   batsmenMinWidth: 360,
   previewGutter: 32,
   mobileBreakpoint: 720,
+
+  // Overlay safe-area insets — px each side (margins only; bars render at scale 1 inside safe width).
+  overlayInsetXStats: 380, // player stat bars — L/R
+  overlayInsetXInfo: 360, // fixture / name LTs — L/R
+  overlayInsetXWide: 340, // officials, match summary, promos — L/R
+  overlayInsetBottom: 40, // stats bottom lift
+  overlayInsetBottomSm: 45, // info + wide bottom lift
+
+  controllerBarPaddingY: 22,
+};
+
+/** Default LT Zone C rotation — panel keys must match LT_DEFAULT_ZONE_C_PANELS in ltDefaultZoneC.js. */
+export const ltDefaultZoneC = {
+  dwellMs: 30000,
+  firstInnings: ['crr', 'projectedScore', 'partnership'],
+  secondInnings: ['rrr', 'crr', 'needTarget', 'partnership'],
 };
 
 /** Typography sizes for LT families — px inside scaled HorizontalBar; rem allowed outside scaled surfaces */
 export const ltTypography = {
-  strapTitle: '88px',
-  chipCompact: 24,
+  strapTitle: '96px',
+  chipCompact: 26,
 
   // Zone A — score block
-  teamName: 30,
-  overs: 26,
-  scoreTotal: 70,
-  scoreSep: 42,
-  scoreWkts: 50,
+  teamName: 34,
+  overs: 28,
+  scoreTotal: 76,
+  scoreSep: 46,
+  scoreWkts: 56,
 
   // Zone B — batsmen pill
-  batName: 25,
-  batNameCompact: 22,
-  batRuns: 34,
-  batRunsCompact: 30,
-  batBalls: 17,
+  batName: 27,
+  batNameCompact: 23,
+  batRuns: 38,
+  batRunsCompact: 34,
+  batBalls: 18,
 
-  // Zone C — vertical side headings (AT THIS STAGE, WIN PREDICTION, CURRENT PARTNERSHIP, …)
-  sideHeadingLine1: 17,
-  sideHeadingLine2: 22,
-  columnLabel: 19,
-  columnLabelCompact: 19,
-  teamCode: 32, // standalone Zone C column only (e.g. bowling team between dividers)
-  teamCodeAsLabel: 20,
-  teamNameSecondary: 20,
-  metricValue: 40,
-  metricValueCompact: 40,
-  atStageSep: 22,
-  atStageWkts: 26,
-  winPredictionPercentSuffix: 24,
-  kpiSuffix: 22,
+  // Zone C — Last 30 side-heading only (stat columns use last30* tokens below).
+  sideHeadingLine1: 18,
+  sideHeadingLine2: 26,
+
+  // Zone C — KPI column rhythm (CRR, RRR, Need Target, team code, partnership, projected score, …)
+  // Tuned between original (22/48/34, 28px pad) and compact pass — readable at 1920 broadcast scale.
+  kpiColumnPaddingX: 22,
+  kpiColumnGap: 9,
+  kpiValueGap: 5,
+  kpiSideHeadingLine1: 17,
+  kpiSideHeadingLine2: 24,
+  kpiColumnLabel: 21,
+  kpiTeamCode: 35,
+  kpiTeamCodeAsLabel: 23,
+  kpiTeamNameSecondary: 21,
+  kpiMetricValue: 47,
+  kpiAtStageSep: 23,
+  kpiAtStageWkts: 27,
+  kpiWinPredictionPercentSuffix: 27,
+  kpiPartnershipSuffix: 23,
 
   // Zone C — Last 30 / Last 12
-  last30Label: 13,
-  last30Value: 24,
-  last30ColumnWidth: 80,
-  last12Heading: 18,
-  last12OverLabel: 11,
-  last12TotalRuns: 26,
-  last12TotalMinWidthExtra: 20,
+  last30Label: 15,
+  last30Value: 28,
+  last30ColumnWidth: 84,
+  last12Heading: 20,
+  last12OverLabel: 13,
+  last12TotalRuns: 30,
+  last12TotalMinWidthExtra: 24,
 
   // Zone D
-  bowlerName: 21,
-  bowlerFigures: 21,
-  ballChip: 28,
-  ballChipCompact: 24,
-  lastOverLabel: 16,
-  lastOverRuns: 24,
-  partnershipBalls: 22,
+  bowlerName: 23,
+  bowlerFigures: 23,
+  ballChip: 32,
+  ballChipCompact: 26,
+  ballChipFontScale: 0.5,
+  ballChipFontWeight: 800,
+  /** Compound tokens (WD+W, 2NB+W) — scaled by chip size in resolveBallChipLayout. */
+  ballChipCompoundFontScale: { len6: 0.35, len5: 0.37, len4: 0.4, default: 0.42 },
+  lastOverLabel: 18,
+  lastOverRuns: 28,
 
-  // Spacing (px) — Zone C column rhythm
+  // Spacing (px) — Last 30 heading + Zone B batsmen pill; KPI columns use kpiColumn* above.
   columnPaddingX: 28,
   columnPaddingXCompact: 28,
   last30PaddingX: 6,
   columnGap: 11,
-  kpiValueGap: 6,
+};
+
+/**
+ * Player stat bar tokens — batsman/bowler match & tournament + last wicket LTs.
+ */
+export const ltPlayerStatBar = {
+  /** Shared max width for head + stats — avoids a full-bleed upper row vs centered lower row. */
+  contentMaxWidth: 1720,
+  headPaddingY: 10,
+  statsPaddingY: 16,
+  headPaddingX: 22,
+  statsPaddingX: 20,
+
+  nameSize: 28,
+  heroSize: 38,
+  secondarySize: 19,
+
+  statLabelSize: 15,
+  statValueSize: 32,
+  statLabelValueGap: 6,
+  /** Column gap in stats row (×4 → px, mirrors Tailwind gap scale). */
+  statRowGap: 14,
+  /** Tighter gap for 6-column bowler tournament row. */
+  statRowGapDense: 10,
+};
+
+/**
+ * Match-fixture lower-third tokens — Intro / Toss / Result / Tournament Name,
+ * Custom Caption, and Match Summary (two-row title + detail layout).
+ */
+export const ltFixtureBar = {
+  /** Upper / lower row height split inside the center column (flex-grow ratio). */
+  titleRowFlex: 60,
+  detailRowFlex: 40,
+  contentPaddingX: 32,
+
+  crestPaddingX: 20,
+
+  titleFont: '1.75rem',
+  vsLabelFont: '1.375rem',
+  detailFont: '1.25rem',
+  detailTossFont: '1.375rem',
+
+  /** Match Summary upper-row score strip (scales with title row). */
+  matchSummaryScoreTotal: '3rem',
+  matchSummaryScoreSep: '2rem',
+  matchSummaryScoreWkts: '2.25rem',
+  matchSummaryOvers: '0.9375rem',
+};
+
+/**
+ * Player name LT — shares info overlay inset with fixture bars.
+ */
+export const ltNameBar = {
+  firstNameSize: 24,
+  lastNameSize: 50,
+  roleSize: 22,
+};
+
+/**
+ * Officials LT — shares wide overlay inset with match summary / promos.
+ */
+export const ltOfficialsBar = {
+  /** Left label column — must fit longest heading (COMMENTATORS) at headingSize. */
+  headingColumnWidth: 384,
+  headingSize: '2rem',
+  subtitleSize: '1.25rem',
+  nameSize: '1.875rem',
+  nameJoinedSize: '1.75rem',
+};
+
+/**
+ * Platform promo LT — Follow / Download Tapeya (shared PlatformPromoLTBar).
+ * Upper headline row 40%, lower URL row 60% (URL is the hero line).
+ */
+export const ltPromoBar = {
+  headlineRowFlex: 40,
+  urlRowFlex: 60,
+  contentPaddingX: 32,
+
+  headlineFont: '1.375rem',
+  urlFont: '2rem',
+  logoHeight: 72,
+  logoPaddingX: 20,
 };
 
 /** Full-screen stat chip tokens — PlayerNameFSGraphic and shared StatTile. */
@@ -289,14 +397,229 @@ export const fsStatTile = {
   height: 126,
   width: 260,
   gap: 16,
-  label: 22,
-  value: 54,
+  label: 24,
+  value: 58,
   columnMaxHeight: 760,
   /** Compressed stack when natural height exceeds columnMaxHeight. */
   denseGap: 10,
   denseMinHeight: 72,
-  denseLabel: 16,
-  denseValue: 36,
+  denseLabel: 18,
+  denseValue: 40,
+};
+
+/**
+ * Player hero card — PlayerNameFS, LastWicketFS (≈2× ltNameBar scale).
+ */
+export const fsPlayerCard = {
+  firstName: 50,
+  lastName: 100,
+  role: 42,
+  roleSm: 34,
+  teamCode: 26,
+  careerLabel: 26,
+  dismissalHero: 30,
+};
+
+/**
+ * Page headers, summary panels, score strips, and hero metrics.
+ */
+export const fsSummaryPanel = {
+  headerSub: 28,
+  pageTitleLg: 86,
+  pageTitleMd: 70,
+  sectionTitle: 48,
+  matchPageTitle: 88,
+  panelTitle: 50,
+  panelSub: 26,
+  scoreStripLabel: 24,
+  scoreStripValue: 42,
+  scoreStripHero: 64,
+  rowName: 40,
+  rowNameMd: 34,
+  rowNameSm: 32,
+  dismissal: 24,
+  rowRuns: 42,
+  rowBalls: 26,
+  columnLabel: 26,
+  columnLabelSm: 22,
+  bowlerName: 42,
+  statCell: 38,
+  fowBand: 32,
+  statLabelBox: 24,
+  goldBand: 32,
+  heroMetricXl: 238,
+  heroMetricLg: 194,
+  heroMetricMd: 130,
+};
+
+/** Match summary innings / bowler figure columns. */
+export const fsMatchSummary = {
+  inningsShortName: 44,
+  inningsOvers: 26,
+  inningsTotal: 50,
+  bowlerFigures: 32,
+};
+
+/** Partnership full-screen graphics (Current Partnership + Partnership List). */
+export const fsPartnership = {
+  /** Center label — "Current Partnership". */
+  label: 60,
+  /** Hero partnership runs total. */
+  runs: 220,
+  /** Meta row — "Runs • N Balls". */
+  meta: 40,
+  batterFirstName: 24,
+  batterLastName: 46,
+  batterRuns: 56,
+  batterRunsMd: 38,
+  batterBalls: 26,
+  batterName: 44,
+  batterNameCompact: 28,
+  batterRunsCompact: 30,
+  batterBallsCompact: 20,
+  contributionLabel: 22,
+  contributionValue: 28,
+  total: 30,
+  totalBalls: 16,
+};
+
+/** Leaderboard and point-table rows. */
+export const fsTable = {
+  name: 42,
+  nameSecondary: 24,
+  featuredName: 44,
+  featuredValue: 66,
+  featuredValueSm: 36,
+  statValue: 38,
+  rankBadge: 56,
+  rankHero: 72,
+};
+
+/** Full-screen chart graphics — worm, Manhattan, wagon wheel. */
+export const fsChart = {
+  title: 76,
+  sub: 28,
+  axisTick: 30,
+  axisLabel: 18,
+  xLabel: 32,
+  wagonSectionLabel: 26,
+  wagonPlayerName: 56,
+  wagonPlayerNameDense: 48,
+  wagonPlayerMeta: 26,
+  wagonStatLabel: 24,
+  wagonStatValue: 58,
+  wagonStatLabelDense: 22,
+  wagonStatValueDense: 50,
+  wagonLegend: 22,
+  wagonZoneLabel: 20,
+  wagonZoneValue: 28,
+  wagonZoneLabelDense: 18,
+  wagonZoneValueDense: 24,
+  /** Vertical gap between zone rows (px). */
+  wagonZoneRowGap: 4,
+  wagonZoneRowGapDense: 3,
+};
+
+/** Squad list and playing XI. */
+export const fsSquad = {
+  playerName: 28,
+  subLabel: 20,
+  captainBadge: 24,
+  roleBadgeSm: 16,
+  panelTeamName: 48,
+  playerListName: 34,
+  playerNumberBand: 38,
+  goldBand: 38,
+};
+
+/** VS break and strategic timeout overlays. */
+export const fsBreak = {
+  titleLg: 56,
+  titleSm: 40,
+  timeoutHero: 78,
+};
+
+/** FS pill captions (PlayerNameFS topLabel, MoM, etc.). */
+export const fsPill = {
+  label: 30,
+  caption: 36,
+};
+
+/**
+ * Full-screen stage fabric backdrop (FSDiagonal) — colors, motion, and layer tokens.
+ * Animation classes live in styles/controller.scss; tune here without editing JSX/SCSS curves.
+ */
+export const fsStageFabric = {
+  fadeInMs: 450,
+  fabricEasing: 'cubic-bezier(0.45, 0.05, 0.55, 0.95)',
+  bottomGlowCycleS: 18,
+  grainDriftCycleS: 120,
+  bandBlurPx: 8,
+  bandWidth: 2640,
+  bandHeight: 320,
+  bandLeft: -300,
+  stageBase: 'radial-gradient(120% 100% at 50% -10%, #101a2e 0%, #0a0f1c 52%, #06080f 100%)',
+  baseWash: 'linear-gradient(160deg, rgba(40,65,185,0.10) 0%, rgba(72,50,200,0.09) 50%, rgba(155,92,255,0.07) 100%)',
+  bottomGlow: 'radial-gradient(82% 62% at 50% 108%, rgba(91,124,255,0.24), transparent 68%)',
+  /** Full-width bottom tint — fills gap below the lowest band. */
+  bottomFill: 'linear-gradient(to top, rgba(52,84,196,0.14) 0%, rgba(72,50,200,0.06) 38%, transparent 72%)',
+  /** Bottom-right corner — static fill where rotated bands leave a dead zone. */
+  cornerFill: 'radial-gradient(85% 70% at 100% 100%, rgba(118,72,228,0.18) 0%, rgba(91,124,255,0.10) 32%, transparent 58%)',
+  vignette: 'linear-gradient(to right, rgba(6,8,15,0.38), transparent 18%, transparent 82%, rgba(6,8,15,0.38))',
+  grainColor: 'rgba(120,140,255,0.02)',
+  /** Bands with top >= lowerBandTopPx use transform-origin anchor (see controller.scss). */
+  lowerBandTopPx: 452,
+  /** curve: A | B | C → fsFabricA/B/C keyframes in animations.scss */
+  bands: [
+    { id: 'b0', top: -428, color: 'rgba(40,68,180,0.14)', curve: 'B', durationS: 13, delayS: -9 },
+    { id: 'b1', top: -208, color: 'rgba(52,84,196,0.18)', curve: 'A', durationS: 11, delayS: 0 },
+    { id: 'b2', top: 12, color: 'rgba(91,124,255,0.20)', curve: 'B', durationS: 14, delayS: -4 },
+    { id: 'b3', top: 232, color: 'rgba(72,102,242,0.15)', curve: 'A', durationS: 10, delayS: -6 },
+    { id: 'b4', top: 452, color: 'rgba(118,72,228,0.14)', curve: 'B', durationS: 12, delayS: -2 },
+    { id: 'b5', top: 620, color: 'rgba(155,92,255,0.13)', curve: 'C', durationS: 10.5, delayS: -7 },
+    { id: 'b6', top: 800, color: 'rgba(91,124,255,0.11)', curve: 'A', durationS: 11.5, delayS: -5 },
+  ],
+};
+
+/**
+ * Visual effect toggles — tune broadcast polish without hunting scattered classes.
+ *
+ * textGlow: keep false for on-air readability (no neon halos on scores / names).
+ * intensity: scales --glow (0–1) for decorative halos when re-enabled.
+ */
+export const visualEffects = {
+  /** Global decorative multiplier → CSS `--glow` (0 = flat, 1 = full) */
+  intensity: 1,
+
+  /** Neon text-shadow on scores, hero numbers, player surnames */
+  textGlow: false,
+
+  /** LT GlowPanel ambient gradient sweep */
+  ambientPulse: true,
+
+  /** Crest / team-logo ring halo + pulse animation */
+  crest: {
+    halo: true,
+    pulse: true,
+  },
+
+  /** FS stage bottom radial ambient pulse */
+  fsStageAmbient: true,
+
+  /** Full-screen event flash radial background wash */
+  flashBackground: true,
+
+  /** Drop-shadow on FOUR / SIX / strap flash titles */
+  flashTextGlow: false,
+
+  /** Worm / Manhattan / wagon-wheel decorative halos */
+  chartGlow: true,
+
+  /** Panel, gold-band, score-strip box-shadow halos (not typography) */
+  decorativeBoxGlow: true,
+
+  /** Tour Hits short-code badge outer pulse */
+  tourCodeBadgeGlow: true,
 };
 
 // ── Animation timing tokens ───────────────────────────────────────────────────
@@ -326,14 +649,12 @@ export const animation = {
 // ── CSS custom properties (inline on broadcast roots + :root for SCSS) ───────
 export const CSS_VARS = {
   '--text': colors.text,
-  '--muted': colors.muted,
-  '--faint': colors.faint,
+  '--text-secondary': colors.textSecondary,
   '--accentA': colors.accentA,
   '--accentB': colors.accentB,
-  '--glow': '1',
+  '--glow': String(visualEffects.intensity),
   '--font-display': typography.fontDisplay,
   '--font-ui': typography.fontUI,
-  '--font-mono': typography.fontMono,
 };
 
 /** :root tokens generated into styles/_tokens.css — used by theme SCSS. */
@@ -350,4 +671,12 @@ export const ROOT_CSS_VARS = {
   '--panel-deep': colors.panelDeep,
   '--score-color': colors.scoreColor,
   '--score-shadow': colors.scoreShadow,
+  '--fs-stage-fade-in': `${fsStageFabric.fadeInMs}ms`,
+  '--fs-stage-glow-cycle': `${fsStageFabric.bottomGlowCycleS}s`,
+  '--fs-stage-grain-cycle': `${fsStageFabric.grainDriftCycleS}s`,
+  '--fs-fabric-easing': fsStageFabric.fabricEasing,
+  '--fs-fabric-blur': `${fsStageFabric.bandBlurPx}px`,
+  '--fs-fabric-band-width': `${fsStageFabric.bandWidth}px`,
+  '--fs-fabric-band-height': `${fsStageFabric.bandHeight}px`,
+  '--fs-fabric-band-left': `${fsStageFabric.bandLeft}px`,
 };

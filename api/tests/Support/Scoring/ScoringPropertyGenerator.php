@@ -6,7 +6,6 @@ use App\Enums\Event\DismissalTypeEnum;
 use App\Enums\Event\NoBallRunsTypeEnum;
 use App\Enums\Event\NoBallTypeEnum;
 use App\Models\Ball;
-use Tests\Support\Scoring\PlayerIds;
 
 /**
  * Deterministic random innings builder for property-style scoring tests.
@@ -59,21 +58,25 @@ final class ScoringPropertyGenerator
 
             if ($kind === 'wide') {
                 $balls[] = BallFactory::wide(mt_rand(1, 4), $striker);
+
                 continue;
             }
 
             if ($kind === 'no_ball') {
                 $balls[] = BallFactory::noBall(mt_rand(0, 2), $striker);
+
                 continue;
             }
 
             if ($kind === 'bye') {
                 $balls[] = BallFactory::bye(mt_rand(1, 3));
+
                 continue;
             }
 
             if ($kind === 'leg_bye') {
                 $balls[] = BallFactory::legBye(mt_rand(1, 2));
+
                 continue;
             }
 
@@ -83,6 +86,7 @@ final class ScoringPropertyGenerator
                 $striker = $incoming;
                 $incoming = PlayerIds::FOURTH;
                 $wicketCount++;
+
                 continue;
             }
 

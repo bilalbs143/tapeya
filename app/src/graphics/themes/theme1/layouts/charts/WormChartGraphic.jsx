@@ -5,8 +5,13 @@ import { useLayoutEffect, useRef, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
-import { accentMix, DISPLAY_FONT, FSStage, UI_FONT } from '../../primitives';
+import { fsChart } from '../../config';
+import { accentMix, DISPLAY_FONT, fsFont, FSStage, UI_FONT } from '../../primitives';
+import { chartGlowFilter } from '../../visualEffects';
+import { TEXT_SECONDARY } from '../shared/textStyles';
+import { ChartHeader } from './ChartHeader';
 import { ChartRightCrests } from './ChartRightCrests';
+import { CHART_AXIS_LABEL, CHART_AXIS_TICK, CHART_X_LABEL } from './chartTypographyStyles';
 
 /** Cyan milestone markers on the worm line — matches PSL reference. */
 const WORM_MARKER_COLOR = '#3ad6ff';
@@ -20,18 +25,6 @@ const CHART_PAD_L = 96;
 const CHART_PAD_T = 24;
 const CHART_PAD_B = 64;
 const CHART_PAD_R = 24;
-
-const chartTitleClass = cn('m-0 text-[76px] font-extrabold leading-[0.95] text-white uppercase whitespace-nowrap', DISPLAY_FONT);
-
-const chartSubClass = cn('mt-2.5 mb-0 text-[24px] font-semibold tracking-[0.06em] text-[var(--muted)] uppercase', UI_FONT);
-
-const axisTickClass = cn('text-[30px] font-bold text-[var(--muted)]', DISPLAY_FONT);
-
-const axisLabelClass = cn('text-[18px] font-semibold tracking-[0.12em] text-[var(--faint)] uppercase', UI_FONT);
-
-const xLabelClass = cn('text-[32px] font-bold text-white', DISPLAY_FONT);
-
-const overMarkerClass = cn('text-[32px] font-bold text-white', DISPLAY_FONT);
 
 /**
  * Map cumulative run values to SVG plot coordinates.
@@ -56,15 +49,6 @@ function toPathD(points) {
   return points.map((point, index) => `${index ? 'L' : 'M'}${point[0].toFixed(1)} ${point[1].toFixed(1)}`).join(' ');
 }
 
-function ChartHeader({ title, sub }) {
-  return (
-    <div className="absolute top-14 right-[520px] left-[70px] z-[3]">
-      <h2 className={chartTitleClass}>{title}</h2>
-      {sub ? <p className={chartSubClass}>{sub}</p> : null}
-    </div>
-  );
-}
-
 function ChartFrame({ width, height, yTicks, yMax, xLabels = null, yLabel, xLabel, children }) {
   const plotW = width - CHART_PAD_L - CHART_PAD_R;
   const plotH = height - CHART_PAD_T - CHART_PAD_B;
@@ -78,8 +62,9 @@ function ChartFrame({ width, height, yTicks, yMax, xLabels = null, yLabel, xLabe
           <div key={tick}>
             <div className="absolute h-px bg-white/14" style={{ left: CHART_PAD_L, top: y, width: plotW }} />
             <span
-              className={cn('absolute text-right', axisTickClass)}
+              className={cn('absolute text-right', CHART_AXIS_TICK)}
               style={{
+                ...fsFont(fsChart.axisTick),
                 left: 0,
                 top: y - 18,
                 width: CHART_PAD_L - 18,
@@ -113,7 +98,7 @@ function ChartFrame({ width, height, yTicks, yMax, xLabels = null, yLabel, xLabe
           }}
         >
           {xLabels.map((label, index) => (
-            <span key={index} className={xLabelClass}>
+            <span key={index} className={CHART_X_LABEL} style={fsFont(fsChart.xLabel)}>
               {label}
             </span>
           ))}
@@ -122,8 +107,8 @@ function ChartFrame({ width, height, yTicks, yMax, xLabels = null, yLabel, xLabe
 
       {yLabel ? (
         <span
-          className={cn('absolute origin-left -rotate-90', axisLabelClass)}
-          style={{ left: -8, top: CHART_PAD_T + plotH / 2 }}
+          className={cn('absolute origin-left -rotate-90', CHART_AXIS_LABEL)}
+          style={{ ...fsFont(fsChart.axisLabel), left: -8, top: CHART_PAD_T + plotH / 2 }}
         >
           {yLabel}
         </span>
@@ -131,8 +116,9 @@ function ChartFrame({ width, height, yTicks, yMax, xLabels = null, yLabel, xLabe
 
       {xLabel ? (
         <span
-          className={cn('absolute w-full text-center', axisLabelClass)}
+          className={cn('absolute w-full text-center', CHART_AXIS_LABEL)}
           style={{
+            ...fsFont(fsChart.axisLabel),
             left: CHART_PAD_L,
             top: height - 24,
             width: plotW,
@@ -154,7 +140,7 @@ function MiniStat({ label, value, accent }) {
         borderColor: accentMix(accent, 27),
       }}
     >
-      <span className={cn('text-[20px] font-semibold tracking-[0.1em] text-white/85 uppercase', UI_FONT)}>{label}</span>
+      <span className={cn('text-[20px] font-semibold tracking-[0.1em] uppercase', TEXT_SECONDARY, UI_FONT)}>{label}</span>
       <span className={cn('text-[34px] font-extrabold text-white', DISPLAY_FONT)}>{value}</span>
     </div>
   );
@@ -183,7 +169,9 @@ function WormMeta({ name, meta, accent }) {
           {meta.total}
         </span>
         <span className="flex h-full flex-col justify-center px-[22px]" style={{ background: accentMix(accent, 20) }}>
-          <span className={cn('text-[16px] font-semibold tracking-[0.1em] text-[var(--faint)] uppercase', UI_FONT)}>OVERS</span>
+          <span className={cn('text-[16px] font-semibold tracking-[0.1em] text-[var(--text-secondary)] uppercase', UI_FONT)}>
+            OVERS
+          </span>
           <span className={cn('text-[30px] font-extrabold text-white', DISPLAY_FONT)}>{meta.overs}</span>
         </span>
       </div>
@@ -217,32 +205,36 @@ function WormLines({ topSeries, bottomSeries, topColor, bottomColor, xMax, yMax,
   const pathClass = cn(
     'fill-none stroke-[6px] [stroke-linejoin:round] [stroke-linecap:round]',
     'motion-safe:animate-[wormDraw_1.1s_cubic-bezier(.2,.9,.2,1)_forwards]',
-    'motion-reduce:animate-none',
+    'motion-reduce:animate-none motion-reduce:[stroke-dashoffset:0]',
   );
+
+  const pathsReady = lengths.top > 0 && lengths.bottom > 0;
 
   return (
     <svg width={plotW} height={plotH} className="absolute inset-0 overflow-visible" aria-hidden="true">
       <path
+        key={pathsReady ? `top-${lengths.top}` : 'top-pending'}
         ref={topPathRef}
         d={toPathD(topPoints)}
         className={pathClass}
         stroke={topColor}
         style={{
-          filter: `drop-shadow(0 0 calc(8px * var(--glow)) ${topColor})`,
-          strokeDasharray: lengths.top || undefined,
-          strokeDashoffset: lengths.top || undefined,
+          filter: chartGlowFilter(`drop-shadow(0 0 calc(8px * var(--glow)) ${topColor})`),
+          strokeDasharray: pathsReady ? lengths.top : undefined,
+          strokeDashoffset: pathsReady ? lengths.top : undefined,
           animationDelay: '180ms',
         }}
       />
       <path
+        key={pathsReady ? `bottom-${lengths.bottom}` : 'bottom-pending'}
         ref={bottomPathRef}
         d={toPathD(bottomPoints)}
         className={pathClass}
         stroke={bottomColor}
         style={{
-          filter: `drop-shadow(0 0 calc(8px * var(--glow)) ${bottomColor})`,
-          strokeDasharray: lengths.bottom || undefined,
-          strokeDashoffset: lengths.bottom || undefined,
+          filter: chartGlowFilter(`drop-shadow(0 0 calc(8px * var(--glow)) ${bottomColor})`),
+          strokeDasharray: pathsReady ? lengths.bottom : undefined,
+          strokeDashoffset: pathsReady ? lengths.bottom : undefined,
           animationDelay: '320ms',
         }}
       />
@@ -299,8 +291,9 @@ export function WormChartGraphic({ data }) {
 
         {markerLeft != null ? (
           <span
-            className={overMarkerClass}
+            className={CHART_X_LABEL}
             style={{
+              ...fsFont(fsChart.xLabel),
               position: 'absolute',
               left: markerLeft,
               top: CHART_PAD_T + plotH + 14,

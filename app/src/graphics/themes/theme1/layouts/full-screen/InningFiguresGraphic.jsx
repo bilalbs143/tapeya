@@ -3,38 +3,26 @@
  */
 import { cn } from '@/lib/utils';
 
-import { colors } from '../../config';
-import { AnimatedNumber, DISPLAY_FONT, FSStage, GlowPanel, UI_FONT } from '../../primitives';
+import { colors, fsSummaryPanel } from '../../config';
+import { AnimatedNumber, FSStage, GlowPanel } from '../../primitives';
+import { accentHaloShadow, colorHaloShadow, textGlowClass } from '../../visualEffects';
+import { FS_GOLD_BAND, FS_PANEL_SUB, FS_PANEL_TITLE, FS_TITLE_SHADOW, fsFont } from '../shared/fsTypographyStyles';
 
 const INNING_FIGURES_GOLD = colors.gold;
 
 const CARD_WIDTH = 920;
 
-const headerTitleClass = cn(
-  'm-0 text-[46px] font-extrabold leading-[0.98] tracking-[0.01em] text-white uppercase',
-  DISPLAY_FONT,
-  '[text-shadow:0_2px_18px_rgba(0,0,0,0.5)]',
-);
-
-const headerSubClass = cn('mt-1.5 mb-0 text-[24px] font-semibold tracking-[0.06em] text-[var(--muted)] uppercase', UI_FONT);
-
 const labelBoxClass = cn(
   'inline-flex min-w-[132px] items-center justify-center rounded-lg border px-6 py-2.5',
   'bg-[linear-gradient(180deg,rgba(30,38,62,0.9),rgba(14,19,32,0.92))]',
-  'text-[22px] font-extrabold tracking-[0.14em] text-white uppercase',
-  DISPLAY_FONT,
+  'font-extrabold tracking-[0.14em] text-white uppercase',
+  '[font-family:var(--font-display)]',
 );
 
 const statValueClass = cn(
-  'text-[120px] font-extrabold leading-[0.9] text-white',
-  DISPLAY_FONT,
-  '[text-shadow:0_0_calc(40px*var(--glow))_rgba(120,140,255,0.65)]',
-);
-
-const rrrBandTextClass = cn(
-  'text-[30px] font-extrabold tracking-[0.06em] text-[#0a0e17] uppercase',
-  'whitespace-nowrap',
-  DISPLAY_FONT,
+  'font-extrabold leading-[0.9] text-white',
+  '[font-family:var(--font-display)]',
+  textGlowClass('heroLg'),
 );
 
 function resolveTitle(data) {
@@ -50,10 +38,11 @@ function StatLabelBox({ children, accent }) {
     <span
       className={labelBoxClass}
       style={{
+        ...fsFont(fsSummaryPanel.statLabelBox),
         borderColor: accent
           ? `color-mix(in srgb, ${accent} 40%, transparent)`
           : 'color-mix(in srgb, var(--accentA) 40%, transparent)',
-        boxShadow: accent ? `0 0 calc(18px * var(--glow)) color-mix(in srgb, ${accent} 20%, transparent)` : undefined,
+        boxShadow: accent ? accentHaloShadow(accent) : undefined,
       }}
     >
       {children}
@@ -65,7 +54,7 @@ function StatCell({ label, value, accent }) {
   return (
     <div className="flex flex-col items-center gap-5">
       <StatLabelBox accent={accent}>{label}</StatLabelBox>
-      <AnimatedNumber value={value} className={statValueClass} />
+      <AnimatedNumber value={value} className={statValueClass} style={fsFont(fsSummaryPanel.heroMetricMd)} />
     </div>
   );
 }
@@ -76,10 +65,12 @@ function RequiredRunRateBand({ value }) {
       className="absolute bottom-0 left-1/2 grid h-[68px] min-w-[480px] -translate-x-1/2 translate-y-1/2 place-items-center rounded-xl px-10"
       style={{
         background: `linear-gradient(100deg, ${INNING_FIGURES_GOLD}, #d9a93a)`,
-        boxShadow: `0 0 calc(20px * var(--glow)) ${INNING_FIGURES_GOLD}33`,
+        boxShadow: colorHaloShadow(INNING_FIGURES_GOLD),
       }}
     >
-      <span className={rrrBandTextClass}>REQUIRED RUN RATE : {value}</span>
+      <span className={FS_GOLD_BAND} style={fsFont(fsSummaryPanel.goldBand)}>
+        REQUIRED RUN RATE : {value}
+      </span>
     </div>
   );
 }
@@ -107,8 +98,14 @@ function InningFiguresHeader({ title, sub }) {
   return (
     <div className="absolute top-14 right-16 left-16 z-[3] flex items-start gap-7">
       <div className="min-w-0 flex-1">
-        <h2 className={headerTitleClass}>{title}</h2>
-        {sub ? <p className={headerSubClass}>{sub}</p> : null}
+        <h2 className={cn(FS_PANEL_TITLE, FS_TITLE_SHADOW)} style={fsFont(fsSummaryPanel.panelTitle)}>
+          {title}
+        </h2>
+        {sub ? (
+          <p className={FS_PANEL_SUB} style={fsFont(fsSummaryPanel.panelSub)}>
+            {sub}
+          </p>
+        ) : null}
       </div>
     </div>
   );

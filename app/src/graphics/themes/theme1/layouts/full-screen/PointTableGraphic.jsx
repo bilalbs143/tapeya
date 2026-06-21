@@ -3,8 +3,10 @@
  */
 import { cn } from '@/lib/utils';
 
-import { colors } from '../../config';
+import { colors, fsSummaryPanel, fsTable } from '../../config';
 import { accentGlowShadow, DISPLAY_FONT, FSStage, ROW_ANIMATE_IN, UI_FONT } from '../../primitives';
+import { colorHaloShadow, isTextGlowEnabled, rgbaHaloShadow } from '../../visualEffects';
+import { FS_HEADER_SUB, FS_PAGE_TITLE_LG, fsFont } from '../shared/fsTypographyStyles';
 import { POINT_TABLE_ROW_GAP, resolvePointTableRowHeight } from './pointTableLayout';
 
 const LEADER_GOLD = colors.gold;
@@ -27,25 +29,19 @@ const STAT_COLUMNS = [
 const RANK_COL_W = 70;
 const STAT_COL_GAP = 36;
 
-const headerTitleClass = cn(
-  'm-0 text-[78px] font-extrabold leading-[0.96] tracking-[0.01em] text-white uppercase',
-  DISPLAY_FONT,
-  '[text-shadow:0_2px_18px_rgba(0,0,0,0.5)]',
-);
-
-const headerSubClass = cn('mt-2 mb-0 text-[26px] font-semibold tracking-[0.06em] text-[var(--muted)] uppercase', UI_FONT);
-
 const rowNameClass = cn(
-  'overflow-hidden text-[38px] font-bold tracking-[0.02em] text-white uppercase',
+  'overflow-hidden font-bold tracking-[0.02em] text-white uppercase',
   'text-ellipsis whitespace-nowrap',
   DISPLAY_FONT,
 );
 
-const featuredValueTextClass = cn('text-[60px] font-extrabold leading-none text-[#0a0e17]', DISPLAY_FONT);
+const featuredValueTextClass = cn('font-extrabold leading-none text-[#0a0e17]', DISPLAY_FONT);
 
-const statValueClass = cn('text-[34px] font-extrabold leading-none text-white tabular-nums', DISPLAY_FONT);
+const statValueClass = cn('font-extrabold leading-none text-white tabular-nums', DISPLAY_FONT);
 
-const columnLabelClass = cn('text-[21px] font-semibold tracking-[0.08em] text-[var(--muted)] uppercase', UI_FONT);
+const columnLabelClass = cn('font-semibold tracking-[0.08em] text-[var(--text-secondary)] uppercase', UI_FONT);
+
+const rankBadgeClass = cn('leading-none font-extrabold', DISPLAY_FONT);
 
 /** @param {number} index */
 function getLeaderRowDelay(index) {
@@ -74,14 +70,14 @@ function getRowShellStyle(filled, top) {
     return {
       background: 'linear-gradient(100deg, rgba(245, 200, 90, 0.22), rgba(20, 26, 42, 0.7) 60%)',
       border: '1px solid rgba(245, 200, 90, 0.45)',
-      boxShadow: '0 0 calc(20px * var(--glow)) rgba(245, 200, 90, 0.25)',
+      boxShadow: rgbaHaloShadow('rgba(245, 200, 90, 0.25)') ?? 'none',
     };
   }
 
   return {
     background: 'linear-gradient(100deg, rgba(120, 140, 255, 0.16), rgba(18, 24, 40, 0.7) 60%)',
     border: '1px solid rgba(120, 140, 255, 0.32)',
-    boxShadow: '0 0 calc(20px * var(--glow)) rgba(91, 124, 255, 0.18)',
+    boxShadow: rgbaHaloShadow('rgba(91, 124, 255, 0.18)') ?? 'none',
   };
 }
 
@@ -99,8 +95,7 @@ function getRankChipStyle(filled, top) {
 
 /** @param {boolean} filled @param {boolean} top */
 function getValueTextShadow(filled, top) {
-  if (!filled) return undefined;
-
+  if (!filled || !isTextGlowEnabled()) return undefined;
   const accent = top ? LEADER_GOLD : LEADER_ACCENT_A;
   return { textShadow: accentGlowShadow(accent, 53) };
 }
@@ -111,7 +106,7 @@ function getFeaturedValueStyle() {
     padding: '14px 26px',
     textAlign: 'center',
     background: `linear-gradient(180deg, ${LEADER_GOLD}, ${LEADER_GOLD_DARK})`,
-    boxShadow: `0 0 calc(26px * var(--glow)) ${LEADER_GOLD}55`,
+    boxShadow: colorHaloShadow(LEADER_GOLD, '26px', '55'),
   };
 }
 
@@ -119,8 +114,14 @@ function LeaderboardHeader({ title, sub, compact = false }) {
   return (
     <div className={`absolute right-16 left-16 z-[3] flex items-start gap-7 ${compact ? 'top-10' : 'top-14'}`}>
       <div className="min-w-0 flex-1">
-        <h2 className={headerTitleClass}>{title}</h2>
-        {sub ? <p className={headerSubClass}>{sub}</p> : null}
+        <h2 className={FS_PAGE_TITLE_LG} style={fsFont(fsSummaryPanel.pageTitleLg)}>
+          {title}
+        </h2>
+        {sub ? (
+          <p className={FS_HEADER_SUB} style={fsFont(fsSummaryPanel.headerSub)}>
+            {sub}
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -134,7 +135,11 @@ function PointTableColumnHeader() {
 
       <div className="flex shrink-0 items-center" style={{ gap: STAT_COL_GAP }}>
         {STAT_COLUMNS.map((col) => (
-          <span key={col.key} className={cn(columnLabelClass, 'text-center')} style={{ width: col.width }}>
+          <span
+            key={col.key}
+            className={cn(columnLabelClass, 'text-center')}
+            style={{ width: col.width, ...fsFont(fsSummaryPanel.columnLabel) }}
+          >
             {col.label}
           </span>
         ))}
@@ -164,13 +169,15 @@ function PointTableRow({ row, delay = 0, rowHeight }) {
           ...getRankChipStyle(filled, top),
         }}
       >
-        <span className={cn('text-[36px] leading-none font-extrabold', DISPLAY_FONT)} style={{ color: BADGE_TEXT }}>
+        <span className={rankBadgeClass} style={{ color: BADGE_TEXT, ...fsFont(fsTable.rankBadge) }}>
           {row.rank}
         </span>
       </div>
 
       <div className="flex min-w-0 flex-1 items-center border-r border-white/[0.08] px-6">
-        <span className={rowNameClass}>{row.name}</span>
+        <span className={rowNameClass} style={fsFont(fsTable.name)}>
+          {row.name}
+        </span>
       </div>
 
       <div className="flex shrink-0 items-center pr-1" style={{ gap: STAT_COL_GAP }}>
@@ -184,6 +191,7 @@ function PointTableRow({ row, delay = 0, rowHeight }) {
               className={cn('text-center', statValueClass)}
               style={{
                 width: col.width,
+                ...fsFont(fsTable.statValue),
                 ...(emphasize ? getValueTextShadow(filled, top) : undefined),
               }}
             >
@@ -200,7 +208,9 @@ function PointTableRow({ row, delay = 0, rowHeight }) {
 function PointTableFooter({ text }) {
   return (
     <div className="flex h-[58px] w-full shrink-0 items-center justify-center rounded-[14px]" style={getFeaturedValueStyle()}>
-      <span className={cn(featuredValueTextClass, 'text-[32px] tracking-[0.04em]')}>{text}</span>
+      <span className={cn(featuredValueTextClass, 'tracking-[0.04em]')} style={fsFont(fsTable.featuredValueSm)}>
+        {text}
+      </span>
     </div>
   );
 }

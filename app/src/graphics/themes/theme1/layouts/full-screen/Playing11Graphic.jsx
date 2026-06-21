@@ -3,8 +3,18 @@
  */
 import { cn } from '@/lib/utils';
 
-import { colors } from '../../config';
-import { accentMix, Crest, DISPLAY_FONT, FSStage, normalizeAccentColor, UI_FONT } from '../../primitives';
+import { colors, fsSquad, fsSummaryPanel } from '../../config';
+import {
+  accentGlowShadow,
+  accentMix,
+  Crest,
+  DISPLAY_FONT,
+  FSStage,
+  normalizeAccentColor,
+  ROW_ANIMATE_IN,
+} from '../../primitives';
+import { colorHaloShadow } from '../../visualEffects';
+import { FS_HEADER_SUB, FS_PAGE_TITLE_MD, fsFont } from '../shared/fsTypographyStyles';
 
 const PLAYING11_GOLD = colors.gold;
 
@@ -16,23 +26,11 @@ const XI_ROW_STAGGER_MS = 55;
 
 const PANEL_LOGO_SIZE = 64;
 
-const headerTitleClass = cn(
-  'm-0 text-[64px] font-extrabold leading-[0.96] tracking-[0.01em] text-white uppercase',
-  DISPLAY_FONT,
-  '[text-shadow:0_2px_18px_rgba(0,0,0,0.5)]',
-);
+const panelTeamNameClass = cn('font-extrabold text-white uppercase', DISPLAY_FONT);
 
-const headerSubClass = cn('mt-2 mb-0 text-[26px] font-semibold tracking-[0.06em] text-[var(--muted)] uppercase', UI_FONT);
+const playerNameClass = cn('font-bold tracking-[0.02em] text-white uppercase', 'whitespace-nowrap', DISPLAY_FONT);
 
-const panelTeamNameClass = cn('text-[44px] font-extrabold text-white uppercase', DISPLAY_FONT);
-
-const playerNameClass = cn('text-[30px] font-bold tracking-[0.02em] text-white uppercase', 'whitespace-nowrap', DISPLAY_FONT);
-
-const rrrBandTextClass = cn(
-  'text-[34px] font-extrabold tracking-[0.06em] text-[#0a0e17] uppercase',
-  'whitespace-nowrap',
-  DISPLAY_FONT,
-);
+const rrrBandTextClass = cn('font-extrabold tracking-[0.06em] text-[#0a0e17] uppercase', 'whitespace-nowrap', DISPLAY_FONT);
 
 /** @param {number} index zero-based row index */
 function getXiRowDelay(index) {
@@ -43,8 +41,14 @@ function Playing11Header({ title, sub }) {
   return (
     <div className="absolute top-14 right-16 left-16 z-[3] flex items-start gap-7">
       <div className="min-w-0 flex-1">
-        <h2 className={headerTitleClass}>{title}</h2>
-        {sub ? <p className={headerSubClass}>{sub}</p> : null}
+        <h2 className={FS_PAGE_TITLE_MD} style={fsFont(fsSummaryPanel.pageTitleMd)}>
+          {title}
+        </h2>
+        {sub ? (
+          <p className={FS_HEADER_SUB} style={fsFont(fsSummaryPanel.headerSub)}>
+            {sub}
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -55,17 +59,19 @@ function XiPlayerRow({ name, accent, last = false, index }) {
 
   return (
     <div
-      className={cn('bc-animate-row-in flex min-h-0 flex-1 items-center', !last && 'border-b border-white/10')}
+      className={cn(ROW_ANIMATE_IN, 'flex min-h-0 flex-1 items-center', !last && 'border-b border-white/10')}
       style={{ animationDelay: `${getXiRowDelay(index)}ms` }}
     >
       <span
         className="mr-4 h-6 w-1 shrink-0 rounded-[3px]"
         style={{
           background: barAccent,
-          boxShadow: `0 0 calc(8px * var(--glow)) ${barAccent}`,
+          boxShadow: accentGlowShadow(barAccent, 100, '8px'),
         }}
       />
-      <span className={playerNameClass}>{name}</span>
+      <span className={playerNameClass} style={fsFont(fsSquad.playerListName)}>
+        {name}
+      </span>
     </div>
   );
 }
@@ -80,7 +86,7 @@ function XIPanel({ team }) {
       style={{
         background: `linear-gradient(180deg, ${accentMix(panelAccent, 12)}, rgba(11,15,24,0.85))`,
         border: `1px solid ${accentMix(panelAccent, 33)}`,
-        boxShadow: `0 0 calc(26px * var(--glow)) ${accentMix(panelAccent, 13)}`,
+        boxShadow: accentGlowShadow(panelAccent, 13, '26px'),
       }}
     >
       <div
@@ -89,7 +95,9 @@ function XIPanel({ team }) {
           background: `linear-gradient(100deg, ${accentMix(panelAccent, 80)}, ${accentMix(panelAccent, 27)})`,
         }}
       >
-        <span className={cn('flex-1', panelTeamNameClass)}>{name}</span>
+        <span className={cn('flex-1', panelTeamNameClass)} style={fsFont(fsSquad.panelTeamName)}>
+          {name}
+        </span>
         {logoUrl ? (
           <div className="relative shrink-0" style={{ width: PANEL_LOGO_SIZE, height: PANEL_LOGO_SIZE }}>
             <img src={logoUrl} alt={name} draggable={false} className="block size-full object-contain" />
@@ -122,10 +130,12 @@ function RequiredRunRateBand({ value }) {
       className="absolute right-[70px] bottom-10 left-[70px] grid h-[68px] place-items-center rounded-xl"
       style={{
         background: `linear-gradient(100deg, ${PLAYING11_GOLD}, #d9a93a)`,
-        boxShadow: `0 0 calc(20px * var(--glow)) ${PLAYING11_GOLD}33`,
+        boxShadow: colorHaloShadow(PLAYING11_GOLD),
       }}
     >
-      <span className={rrrBandTextClass}>REQUIRED RUN RATE : {value}</span>
+      <span className={rrrBandTextClass} style={fsFont(fsSquad.goldBand)}>
+        REQUIRED RUN RATE : {value}
+      </span>
     </div>
   );
 }

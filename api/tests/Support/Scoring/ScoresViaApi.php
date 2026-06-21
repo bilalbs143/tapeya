@@ -11,7 +11,6 @@ use App\Models\Innings;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Testing\TestResponse;
-use Tests\TestCase;
 
 /**
  * HTTP helpers for ScorecardController feature tests.

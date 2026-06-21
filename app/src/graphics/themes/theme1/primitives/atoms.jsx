@@ -6,7 +6,8 @@ import { memo, useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 import cricketBatIcon from '../../../../assets/cricket-bat.png';
-import { colors } from '../config';
+import { colors, ltTypography, typography } from '../config';
+import { crestPulseClass, crestRingClassName, isAmbientPulseEnabled } from '../visualEffects';
 import { crestCodeFontSize, crestCornerRadius, crestLogoPadding } from './crestMetrics';
 import { overlayVariantFor } from './playerBarHelpers';
 
@@ -86,8 +87,7 @@ export const CountUpNumber = memo(function CountUpNumber({ value, className, dur
 
 export const Crest = memo(function Crest({ team, size = 86, accent, borderPulseOrder }) {
   const ring = accent || team?.color || colors.accentA;
-  const pulseClass =
-    borderPulseOrder === 1 ? 'crest-ring-pulse-first' : borderPulseOrder === 2 ? 'crest-ring-pulse-second' : undefined;
+  const pulseClass = crestPulseClass(borderPulseOrder);
 
   const src = team?.logoUrl ?? team?.logo;
   const label = team?.code ?? team?.name ?? '?';
@@ -97,13 +97,7 @@ export const Crest = memo(function Crest({ team, size = 86, accent, borderPulseO
   return (
     <div className="relative shrink-0" style={{ width: size, height: size }}>
       <div
-        className={cn(
-          'pointer-events-none absolute -inset-[3px] blur-[0.5px]',
-          'opacity-[calc(0.5+0.5*var(--glow))]',
-          '[background:linear-gradient(140deg,var(--team-ring),var(--accentB))]',
-          '[box-shadow:0_0_calc(22px*var(--glow))_color-mix(in_srgb,var(--team-ring)_33%,transparent)]',
-          pulseClass,
-        )}
+        className={cn(crestRingClassName(), pulseClass)}
         style={{
           '--team-ring': ring,
           '--crest-ring': ring,
@@ -138,28 +132,44 @@ export const Crest = memo(function Crest({ team, size = 86, accent, borderPulseO
   );
 });
 
+/** Shared ball-chip type — display face reads bold at chip sizes; mono was too light at 600/700. */
+const BALL_CHIP_TYPE_STYLE = {
+  fontFamily: typography.fontDisplay,
+  fontWeight: ltTypography.ballChipFontWeight,
+};
+
 /** Compound delivery tokens (e.g. WD+W, 2NB+W) need a pill chip + smaller type. */
 function resolveBallChipLayout(display, size) {
   const text = String(display ?? '');
   const compound = text !== '•' && (text.includes('+') || text.length > 3);
 
   if (!compound) {
-    return { compound: false, style: { width: size, height: size, fontSize: size * 0.42 } };
+    return {
+      compound: false,
+      style: {
+        ...BALL_CHIP_TYPE_STYLE,
+        width: size,
+        height: size,
+        fontSize: size * ltTypography.ballChipFontScale,
+      },
+    };
   }
 
   const len = text.length;
-  // Tighter type + no horizontal padding so pill width stays close to the circular chip size.
-  const fontScale = len >= 6 ? 0.29 : len >= 5 ? 0.31 : len >= 4 ? 0.34 : 0.36;
+  const compoundScale = ltTypography.ballChipCompoundFontScale;
+  const fontScale =
+    len >= 6 ? compoundScale.len6 : len >= 5 ? compoundScale.len5 : len >= 4 ? compoundScale.len4 : compoundScale.default;
 
   return {
     compound: true,
     style: {
+      ...BALL_CHIP_TYPE_STYLE,
       width: 'auto',
       minWidth: size,
       height: size,
       paddingInline: 0,
       fontSize: size * fontScale,
-      letterSpacing: '-0.045em',
+      letterSpacing: '-0.03em',
     },
   };
 }
@@ -224,7 +234,7 @@ export const GlowPanel = memo(function GlowPanel({
   children,
   className,
   radius = 20,
-  ambientPulse = false,
+  ambientPulse = isAmbientPulseEnabled(),
   hideRing = false,
   accent,
   style,

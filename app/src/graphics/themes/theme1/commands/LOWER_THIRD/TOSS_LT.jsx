@@ -1,4 +1,5 @@
 import { toMatchFixtureBundle } from '../../adapters/matchFixture.adapter';
+import { fixtureDetailStyle } from '../../layouts/bars/fixtureBarLayout';
 import { MATCH_FIXTURE_DETAIL_TOSS, MatchFixtureBar } from '../../layouts/bars/MatchFixtureBar';
 import { BroadcastShell } from '../../primitives/BroadcastShell';
 
@@ -7,12 +8,13 @@ export default function TOSS_LT({ isOverlay, tokens, ...props }) {
   if (!bundle) return null;
 
   return (
-    <BroadcastShell stage="bar">
+    <BroadcastShell stage="bar" overlayInset="info" isOverlay={isOverlay}>
       <MatchFixtureBar
         fixture={bundle.fixture}
         teams={bundle.teams}
         edgeToEdge={isOverlay}
         detailClassName={MATCH_FIXTURE_DETAIL_TOSS}
+        detailStyle={fixtureDetailStyle('toss')}
       />
     </BroadcastShell>
   );

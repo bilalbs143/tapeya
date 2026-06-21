@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\Event\DismissalTypeEnum;
 use App\Enums\Event\InningsEndReasonEnum;
 use App\Enums\Event\InningsStatusEnum;
 use App\Enums\Event\MatchStatusEnum;
@@ -111,7 +112,7 @@ class MatchStateService
                 // is not credited, so a bowler-change prompt is still appropriate.
                 $overEndedOnWicket = $lastBall !== null
                     && (bool) $lastBall->is_wicket
-                    && ($lastBall->dismissal_type instanceof \App\Enums\Event\DismissalTypeEnum)
+                    && ($lastBall->dismissal_type instanceof DismissalTypeEnum)
                     && $lastBall->dismissal_type->countsAsBowlerWicket();
 
                 $needsNewBowler = $lastBall !== null

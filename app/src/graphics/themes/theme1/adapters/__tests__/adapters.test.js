@@ -96,8 +96,48 @@ describe('theme1 scoreBar adapter', () => {
     expect(bundle.frame.total).toBe(120);
     expect(bundle.frame.wkts).toBe(3);
     expect(bundle.frame.striker.name).toBe('Batter One');
+    expect(bundle.frame.bowler.figText).toBe('2-28 4.0');
     expect(bundle.match.battingCode).toBe('batting');
     expect(toTeams(props, tokens)?.batting?.code).toBeTruthy();
+  });
+
+  it('maps zone C rotation fields onto LT_DEFAULT frame', () => {
+    const snapshot = createTestSnapshot({
+      active_command: { command_key: 'LT_DEFAULT' },
+      context: {
+        innings_number: 1,
+        partnership: { runs: 32, balls: 24 },
+        projected_score: 186,
+      },
+    });
+
+    const props = PROCESSOR_MAP.LT_DEFAULT(snapshot);
+    const bundle = toScoreBarBundle(props, undefined);
+
+    expect(bundle?.frame.projectedScore).toBe(186);
+    expect(bundle?.frame.partnership).toEqual({ runs: 32, balls: 24 });
+  });
+
+  it('truncates three-part batter names to two broadcast words on LT_DEFAULT', () => {
+    const snapshot = createTestSnapshot({
+      active_command: { command_key: 'LT_DEFAULT' },
+      context: {
+        score: '50-1',
+        overs: '8.0',
+        batters: [
+          { id: 10, name: 'Waqar Saleem Bhatti', runs: 30, balls: 22, on_strike: true },
+          { id: 11, name: 'Other Player Name', runs: 15, balls: 10, on_strike: false },
+        ],
+        bowler: { name: 'Muhammad Ali Khan', figures: '1/20', overs: '3.0' },
+      },
+    });
+
+    const props = PROCESSOR_MAP.LT_DEFAULT(snapshot);
+    const bundle = toScoreBarBundle(props, undefined);
+
+    expect(bundle?.frame.striker.name).toBe('Waqar Saleem');
+    expect(bundle?.frame.nonStriker.name).toBe('Other Player');
+    expect(bundle?.frame.bowler.name).toBe('Muhammad Ali');
   });
 
   it('maps all current-over deliveries including extras onto thisOverChips', () => {
@@ -515,7 +555,7 @@ describe('theme1 fullScreen adapter fixtures', () => {
     expect(bundle?.batter?.threes).toBe(1);
     expect(bundle?.batter?.fours).toBe(5);
     expect(bundle?.batter?.sixes).toBe(2);
-    expect(bundle?.batter?.dismissal).toBe('c Shah b Satti');
+    expect(bundle?.batter?.dismissal).toBe('C SHAH B SATTI');
   });
 
   it('derives current partnership FS batters from live batters array', () => {
@@ -534,6 +574,23 @@ describe('theme1 fullScreen adapter fixtures', () => {
     expect(bundle?.data?.batters).toHaveLength(2);
     expect(bundle?.data?.batters[0].fullName).toBe('Batter One');
     expect(bundle?.data?.partnership).toEqual({ runs: 45, balls: 32 });
+  });
+
+  it('maps batter avatar URLs through partnership FS adapter', () => {
+    const bundle = toPartnershipBundle({
+      partnershipRuns: 11,
+      partnershipBalls: 6,
+      battingTeam: { name: 'Home XI', shortCode: 'HOM', logoUrl: null },
+      bowlingTeam: { name: 'Away XI', shortCode: 'AWY', logoUrl: null },
+      batters: [
+        { name: 'WAQAR SALAM', runs: 5, balls: 2, onStrike: true, imageUrl: 'https://cdn.example/waqar.jpg' },
+        { name: 'KHUSHDIL SHAH', runs: 6, balls: 3, onStrike: false, image_url: 'https://cdn.example/khushdil.jpg' },
+      ],
+    });
+
+    expect(bundle?.data?.batters?.[0]?.avatarUrl).toBe('https://cdn.example/waqar.jpg');
+    expect(bundle?.data?.batters?.[1]?.avatarUrl).toBe('https://cdn.example/khushdil.jpg');
+    expect(bundle?.data?.defaultAvatarUrl).toBeTruthy();
   });
 
   it('maps broadcast partnership_history to partnership list rows', () => {
@@ -1371,6 +1428,16 @@ describe('theme1 leaderboard adapter', () => {
       isNotOut: true,
     });
     expect(leaderboard?.data.featured?.name).toBe('Star Batter');
+  });
+
+  it('formats three-part player names for broadcast (max two words)', () => {
+    const leaderboard = toLeaderboardData({
+      commandKey: 'TOP_BATTER',
+      rows: [{ rank: 1, runs: 42, name: 'Waqar Saleem Bhatti', team: 'HOM' }],
+    });
+
+    expect(leaderboard?.data.rows[0]?.name).toBe('Waqar Saleem');
+    expect(leaderboard?.data.featured?.name).toBe('Waqar Saleem');
   });
 });
 

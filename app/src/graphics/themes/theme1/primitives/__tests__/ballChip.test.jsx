@@ -3,6 +3,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
+import { ltTypography } from '../../config';
 import { BallChip } from '../atoms';
 
 describe('BallChip', () => {
@@ -23,7 +24,7 @@ describe('BallChip', () => {
     expect(chip?.style.width).toBe('auto');
     expect(chip?.style.minWidth).toBe('28px');
     expect(['0', '0px']).toContain(chip?.style.paddingInline);
-    expect(Number.parseFloat(chip?.style.fontSize ?? '0')).toBeLessThan(28 * 0.42);
+    expect(Number.parseFloat(chip?.style.fontSize ?? '0')).toBeLessThan(32 * ltTypography.ballChipFontScale);
     expect(screen.getByText('WD+W')).toBeTruthy();
   });
 

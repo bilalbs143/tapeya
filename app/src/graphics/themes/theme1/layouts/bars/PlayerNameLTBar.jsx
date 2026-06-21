@@ -3,8 +3,11 @@
  */
 import { cn } from '@/lib/utils';
 
-import { geometry, ltBar } from '../../config';
+import { resolveBroadcastNameParts } from '../../../../core/domain/playerNameResolver';
+import { geometry, ltBar, ltNameBar } from '../../config';
 import { DISPLAY_FONT, GlowPanel, ScaledBarSurface, TeamLogoOrCrest, UI_FONT } from '../../primitives';
+import { textGlowClass } from '../../visualEffects';
+import { TEXT_PRIMARY, TEXT_SECONDARY } from '../shared/textStyles';
 
 const DESIGN_WIDTH = ltBar.designWidth;
 const BAR_RADIUS = geometry.barRadius;
@@ -17,15 +20,15 @@ const barClass = cn(
 
 const contentClass = 'flex min-w-0 flex-1 flex-col gap-1';
 
-const firstNameClass = cn('text-[20px] font-semibold leading-none tracking-[0.08em] text-white uppercase', UI_FONT);
+const firstNameClass = cn('font-semibold leading-none tracking-[0.08em] uppercase', TEXT_SECONDARY, UI_FONT);
 
-const lastNameClass = cn(
-  'text-[42px] font-extrabold leading-none text-white uppercase',
-  DISPLAY_FONT,
-  '[text-shadow:0_0_calc(14px*var(--glow))_var(--score-shadow)]',
-);
+const lastNameClass = cn('font-extrabold leading-none uppercase', TEXT_PRIMARY, DISPLAY_FONT, textGlowClass('scoreLt'));
 
-const roleClass = cn('text-[18px] font-semibold leading-none tracking-[0.1em] text-[var(--muted)] uppercase', UI_FONT);
+const roleClass = cn('font-semibold leading-none tracking-[0.1em] uppercase', TEXT_SECONDARY, UI_FONT);
+
+const firstNameStyle = { fontSize: ltNameBar.firstNameSize };
+const lastNameStyle = { fontSize: ltNameBar.lastNameSize };
+const roleStyle = { fontSize: ltNameBar.roleSize };
 
 const logoSideClass = 'flex shrink-0 items-center';
 
@@ -41,18 +44,10 @@ function resolvePlayer(player, teams) {
 }
 
 function resolvePlayerContent(player) {
-  if (player.firstName) {
-    return {
-      firstName: player.firstName,
-      lastName: player.lastName ?? '',
-      role: player.role ?? '',
-    };
-  }
-
-  const parts = (player.name ?? '').trim().split(/\s+/);
+  const { firstName, lastName } = resolveBroadcastNameParts(player);
   return {
-    firstName: parts[0] ?? '',
-    lastName: parts.slice(1).join(' '),
+    firstName,
+    lastName,
     role: player.role ?? '',
   };
 }
@@ -78,12 +73,22 @@ export function PlayerNameLTBar({ player, teams, edgeToEdge = true }) {
   return (
     <ScaledBarSurface designWidth={DESIGN_WIDTH} edgeToEdge={edgeToEdge} barRadius={BAR_RADIUS}>
       {({ radius }) => (
-        <GlowPanel ambientPulse hideRing radius={radius} accent={accent} className="w-full overflow-hidden">
+        <GlowPanel hideRing radius={radius} accent={accent} className="w-full overflow-hidden">
           <div className={barClass}>
             <div className={contentClass}>
-              <span className={firstNameClass}>{firstName}</span>
-              {lastName && <span className={lastNameClass}>{lastName}</span>}
-              {role && <span className={roleClass}>{role}</span>}
+              <span className={firstNameClass} style={firstNameStyle}>
+                {firstName}
+              </span>
+              {lastName && (
+                <span className={lastNameClass} style={lastNameStyle}>
+                  {lastName}
+                </span>
+              )}
+              {role && (
+                <span className={roleClass} style={roleStyle}>
+                  {role}
+                </span>
+              )}
             </div>
 
             <div className={logoSideClass}>

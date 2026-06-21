@@ -7,7 +7,7 @@ export default function LAST_WICKET({ isOverlay, tokens, ...props }) {
   if (!resolved) return null;
 
   return (
-    <BroadcastShell stage="bar">
+    <BroadcastShell stage="bar" overlayInset="stats" isOverlay={isOverlay}>
       <LastWicketLTBar batter={resolved.batter} teams={resolved.teams} edgeToEdge={isOverlay} />
     </BroadcastShell>
   );

@@ -3,7 +3,17 @@
  */
 import { cn } from '@/lib/utils';
 
-import { accentGlowShadow, accentMix, DISPLAY_FONT, FSStage, TeamLogoOrCrest, UI_FONT } from '../../primitives';
+import { fsSummaryPanel } from '../../config';
+import { accentGlowShadow, accentMix, DISPLAY_FONT, FSStage, ROW_ANIMATE_IN, TeamLogoOrCrest, UI_FONT } from '../../primitives';
+import {
+  FS_GOLD_BAND,
+  FS_PANEL_SUB,
+  FS_PANEL_TITLE,
+  FS_SCORE_STRIP_HERO,
+  FS_SCORE_STRIP_LABEL,
+  FS_SCORE_STRIP_VALUE,
+  fsFont,
+} from '../shared/fsTypographyStyles';
 
 const PANEL_LEFT = 70;
 const PANEL_WIDTH = 1020;
@@ -14,31 +24,13 @@ const STAT_COL_WIDTH = 150;
 const BOWLER_ROW_STAGGER_MS = 80;
 const COLUMN_LABELS = ['OVERS', 'DOTS', 'RUNS', 'WICKETS', 'ECO'];
 
-const panelTitleClass = cn('m-0 text-[46px] font-extrabold leading-[0.98] tracking-[0.01em] text-white uppercase', DISPLAY_FONT);
+const columnLabelClass = cn('text-center font-semibold tracking-[0.1em] text-[var(--text-secondary)] uppercase', UI_FONT);
 
-const panelSubClass = cn('mt-1.5 mb-0 text-[24px] font-semibold tracking-[0.06em] text-[var(--muted)] uppercase', UI_FONT);
+const bowlerNameClass = cn('flex-1 font-extrabold text-white uppercase', DISPLAY_FONT);
 
-const columnLabelClass = cn('text-center text-[24px] font-semibold tracking-[0.1em] text-[var(--faint)] uppercase', UI_FONT);
+const statCellClass = cn('text-center font-bold text-[var(--text)]', DISPLAY_FONT);
 
-const bowlerNameClass = cn('flex-1 text-[38px] font-extrabold text-white uppercase', DISPLAY_FONT);
-
-const statCellClass = cn('text-center text-[34px] font-bold text-[var(--text)]', DISPLAY_FONT);
-
-const fowBandTextClass = cn(
-  'text-[30px] font-extrabold tracking-[0.04em] text-[#0a0e17] uppercase',
-  'whitespace-nowrap',
-  DISPLAY_FONT,
-);
-
-const scoreStripLabelClass = cn('text-[22px] font-semibold tracking-[0.14em] text-[var(--faint)] whitespace-nowrap', UI_FONT);
-
-const scoreStripValueClass = cn('text-[38px] font-extrabold text-[var(--text)] whitespace-nowrap', DISPLAY_FONT);
-
-const scoreStripTotalClass = cn(
-  'text-[58px] font-extrabold leading-none text-white whitespace-nowrap',
-  DISPLAY_FONT,
-  '[text-shadow:0_0_calc(18px*var(--glow))_rgba(120,140,255,0.6)]',
-);
+const fowBandTextClass = FS_GOLD_BAND;
 
 /** @param {number} index */
 function getBowlerRowDelay(index) {
@@ -55,8 +47,14 @@ function BowlingSummaryPanelHead({ title, sub, accent, crestLogoUrl, team }) {
       <TeamLogoOrCrest logoUrl={crestLogoUrl} team={team} name={title} accent={accent} size={PANEL_HEAD_CREST_SIZE} plain />
 
       <div className="min-w-0">
-        <h2 className={panelTitleClass}>{title}</h2>
-        {sub ? <p className={panelSubClass}>{sub}</p> : null}
+        <h2 className={FS_PANEL_TITLE} style={fsFont(fsSummaryPanel.panelTitle)}>
+          {title}
+        </h2>
+        {sub ? (
+          <p className={FS_PANEL_SUB} style={fsFont(fsSummaryPanel.panelSub)}>
+            {sub}
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -67,7 +65,7 @@ function BowlingColumnHeader() {
     <div className="flex items-center px-[26px] pb-3.5">
       <span className="flex-1" />
       {COLUMN_LABELS.map((label) => (
-        <span key={label} className={columnLabelClass} style={{ width: STAT_COL_WIDTH }}>
+        <span key={label} className={columnLabelClass} style={{ width: STAT_COL_WIDTH, ...fsFont(fsSummaryPanel.columnLabel) }}>
           {label}
         </span>
       ))}
@@ -77,7 +75,7 @@ function BowlingColumnHeader() {
 
 function StatCell({ value }) {
   return (
-    <span className={statCellClass} style={{ width: STAT_COL_WIDTH }}>
+    <span className={statCellClass} style={{ width: STAT_COL_WIDTH, ...fsFont(fsSummaryPanel.statCell) }}>
       {value}
     </span>
   );
@@ -86,10 +84,12 @@ function StatCell({ value }) {
 function BowlerRow({ name, overs, dots, runs, wickets, eco, index }) {
   return (
     <div
-      className="bc-animate-row-in flex h-[70px] items-center border-b border-white/10 px-[26px]"
+      className={cn(ROW_ANIMATE_IN, 'flex h-[70px] items-center border-b border-white/10 px-[26px]')}
       style={{ animationDelay: `${getBowlerRowDelay(index)}ms` }}
     >
-      <span className={bowlerNameClass}>{name}</span>
+      <span className={bowlerNameClass} style={fsFont(fsSummaryPanel.bowlerName)}>
+        {name}
+      </span>
       <StatCell value={overs} />
       <StatCell value={dots} />
       <StatCell value={runs} />
@@ -110,7 +110,9 @@ function FallOfWicketsBand({ label = 'FALL OF WICKETS', accent, accentSecondary 
         boxShadow: accentGlowShadow(accent, 20, '18px'),
       }}
     >
-      <span className={fowBandTextClass}>{label}</span>
+      <span className={fowBandTextClass} style={fsFont(fsSummaryPanel.fowBand)}>
+        {label}
+      </span>
     </div>
   );
 }
@@ -118,8 +120,12 @@ function FallOfWicketsBand({ label = 'FALL OF WICKETS', accent, accentSecondary 
 function ScoreStripMeta({ label, value }) {
   return (
     <div className="flex shrink-0 items-center gap-3 px-7">
-      <span className={scoreStripLabelClass}>{label}</span>
-      <span className={scoreStripValueClass}>{value}</span>
+      <span className={FS_SCORE_STRIP_LABEL} style={fsFont(fsSummaryPanel.scoreStripLabel)}>
+        {label}
+      </span>
+      <span className={FS_SCORE_STRIP_VALUE} style={fsFont(fsSummaryPanel.scoreStripValue)}>
+        {value}
+      </span>
     </div>
   );
 }
@@ -138,7 +144,9 @@ function BowlingSummaryScoreStrip({ extras, overs, total, accent }) {
         className="flex shrink-0 items-center px-9 pl-7"
         style={{ background: `linear-gradient(100deg, transparent, ${accentMix(accent, 20)})` }}
       >
-        <span className={scoreStripTotalClass}>{total}</span>
+        <span className={FS_SCORE_STRIP_HERO} style={fsFont(fsSummaryPanel.scoreStripHero)}>
+          {total}
+        </span>
       </div>
     </div>
   );
@@ -146,7 +154,7 @@ function BowlingSummaryScoreStrip({ extras, overs, total, accent }) {
 
 function BowlingSummaryHeroCrest({ crestLogoUrl, title, team, accent }) {
   return (
-    <div className="bc-animate-row-in">
+    <div className={ROW_ANIMATE_IN}>
       <TeamLogoOrCrest
         logoUrl={crestLogoUrl}
         team={team}

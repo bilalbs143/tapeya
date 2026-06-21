@@ -7,7 +7,7 @@ export default function MATCH_SUMMARY({ isOverlay, tokens, ...props }) {
   if (!bundle) return null;
 
   return (
-    <BroadcastShell stage="bar">
+    <BroadcastShell stage="bar" overlayInset="wide" isOverlay={isOverlay}>
       <MatchSummaryLTBar summary={bundle.summary} teams={bundle.teams} edgeToEdge={isOverlay} />
     </BroadcastShell>
   );

@@ -2,7 +2,7 @@
  * Leaderboard processors → LeaderboardGraphic data shape.
  */
 import { assets } from '../config';
-import { tournamentSub } from './_shared';
+import { coalescePlayerImageUrl, resolveBroadcastPlayerName, tournamentSub } from './_shared';
 import { leaderboardTitleForCommand } from './presentationLabels';
 
 /**
@@ -14,7 +14,7 @@ export function toLeaderboardData(props) {
 
   const mappedRows = rows.map((row, index) => ({
     rank: row.rank ?? index + 1,
-    name: row.name ?? '',
+    name: resolveBroadcastPlayerName(row),
     club: row.team_name ?? row.team ?? row.club ?? '',
     value: row.runs ?? row.wickets ?? row.value ?? '',
     isNotOut: Boolean(row.is_not_out ?? row.isNotOut),
@@ -29,7 +29,7 @@ export function toLeaderboardData(props) {
       rows: mappedRows,
       featured: featured
         ? {
-            name: featured.name ?? '',
+            name: resolveBroadcastPlayerName(featured),
             value: featured.value ?? '',
             club: featured.team_name ?? featured.team ?? '',
           }
@@ -40,7 +40,7 @@ export function toLeaderboardData(props) {
               club: mappedRows[0].club,
             }
           : null,
-      avatarUrl: props.avatarUrl ?? featured?.image_url ?? mappedRows[0]?.image_url ?? null,
+      avatarUrl: coalescePlayerImageUrl(props, featured, rows[0]),
       logoUrl: props.tournamentLogoUrl ?? assets.brandLogoWhite,
     },
   };

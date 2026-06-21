@@ -1,10 +1,20 @@
 /**
  * Full-screen processors → Tapeya internal graphic data shapes.
  */
+import { resolveBroadcastPlayerName } from '../../../core/domain/playerNameResolver';
 import { assets } from '../config';
 import { isNotOutBatter, resolvePlayerDisplayName } from '../primitives';
-import { normalizeAccentColor, resolveTeamCode, toTeamRecord, tournamentSub } from './_shared';
+import { normalizeAccentColor, resolvePlayerImageUrl, resolveTeamCode, toTeamRecord, tournamentSub } from './_shared';
 import { toTeams } from './teams.adapter';
+
+/**
+ * Pick the raw name field, then apply broadcast formatting (two words, long-word initials).
+ *
+ * @param {Record<string, unknown>} row
+ */
+function toBroadcastDisplayName(row) {
+  return resolveBroadcastPlayerName(resolvePlayerDisplayName(row));
+}
 
 /**
  * @param {Record<string, unknown>} row
@@ -12,7 +22,7 @@ import { toTeams } from './teams.adapter';
 function mapMatchSummaryBatterRow(row) {
   const notOut = isNotOutBatter(row);
   return {
-    name: resolvePlayerDisplayName(row),
+    name: toBroadcastDisplayName(row),
     runs: row.runs ?? 0,
     balls: row.balls ?? 0,
     notOut,
@@ -24,7 +34,7 @@ function mapMatchSummaryBatterRow(row) {
  */
 function mapMatchSummaryBowlerRow(row) {
   return {
-    name: resolvePlayerDisplayName(row),
+    name: toBroadcastDisplayName(row),
     wickets: row.wickets ?? 0,
     runs: row.runs ?? row.runs_conceded ?? 0,
     overs: row.overs ?? row.overs_display ?? row.oversDisplay ?? '',
@@ -74,7 +84,7 @@ function hasMatchSummaryPreviewInnings(props) {
  * @param {Record<string, unknown>} row
  */
 function mapBattingSummaryRow(row) {
-  const name = resolvePlayerDisplayName(row);
+  const name = toBroadcastDisplayName(row);
   const status = row.status ?? 'yet_to_bat';
   if (row.yetToBat || (status === 'yet_to_bat' && row.runs == null)) {
     return { name, yetToBat: true };
@@ -101,7 +111,7 @@ function mapBattingOrderRows(order) {
  */
 function mapBowlers(bowlers) {
   return bowlers.map((b) => ({
-    name: resolvePlayerDisplayName(b),
+    name: toBroadcastDisplayName(b),
     overs: b.overs ?? b.overs_display ?? b.oversDisplay ?? '',
     dots: b.dots ?? 0,
     runs: b.runs ?? b.runs_conceded ?? 0,
@@ -348,11 +358,12 @@ function resolvePartnershipBatters(props) {
  */
 function mapPartnershipBatterRow(batter, options = {}) {
   return {
-    fullName: resolvePlayerDisplayName(batter),
+    fullName: toBroadcastDisplayName(batter),
     runs: batter.runs ?? 0,
     balls: batter.balls ?? 0,
     align: options.align ?? batter.align ?? 'start',
     notOut: options.notOut ?? Boolean(batter.notOut ?? isNotOutBatter(batter)),
+    avatarUrl: resolvePlayerImageUrl(batter),
   };
 }
 
@@ -414,6 +425,7 @@ export function toPartnershipBundle(props, tokens) {
       teamCode: code,
       accent: theme1Team.color,
       logoUrl: props.tournamentLogoUrl ?? assets.brandLogoWhite,
+      defaultAvatarUrl: props.defaultAvatarUrl ?? assets.playerPlaceholder,
       partnership: {
         runs: props.partnershipRuns ?? 0,
         balls: props.partnershipBalls ?? 0,
@@ -462,7 +474,7 @@ function mapPartnershipHistory(partnerships, accent) {
 
       return {
         batters: batters.map((b, index) => ({
-          fullName: resolvePlayerDisplayName(b),
+          fullName: toBroadcastDisplayName(b),
           runs: b.runs ?? 0,
           balls: b.balls ?? 0,
           accent: index === 0 ? accent : '#f5c85a',
@@ -644,9 +656,9 @@ export function toMatchSummaryBundle(props, tokens) {
  * @param {unknown} player
  */
 function formatXiPlayerName(player) {
-  if (typeof player === 'string') return player;
+  if (typeof player === 'string') return resolveBroadcastPlayerName(player);
   const p = player ?? {};
-  const name = p.name ?? p.display_name ?? '';
+  const name = resolveBroadcastPlayerName(p.name ?? p.display_name ?? '');
   const tags = [];
   if (p.is_captain ?? p.captain) tags.push('C');
   if (p.is_wicket_keeper ?? p.wicketKeeper) tags.push('WK');

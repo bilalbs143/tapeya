@@ -2,10 +2,8 @@
 
 namespace Tests\Unit\Services\Scoring;
 
-use App\Enums\Event\DismissalTypeEnum;
 use App\Services\InningsStatsService;
 use PHPUnit\Framework\Attributes\DataProvider;
-use Tests\Support\Scoring\BallFactory;
 use Tests\Support\Scoring\PlayerIds;
 use Tests\Support\Scoring\ScoringPropertyGenerator;
 

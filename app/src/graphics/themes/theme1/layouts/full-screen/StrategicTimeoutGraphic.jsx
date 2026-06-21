@@ -5,7 +5,10 @@ import { useEffect, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
+import { fsBreak } from '../../config';
 import { DISPLAY_FONT } from '../../primitives';
+import { textGlowClass } from '../../visualEffects';
+import { fsFont } from '../shared/fsTypographyStyles';
 import { BreakFSLayout, TeamSide } from './vsBreak';
 import { resolveVSTeams } from './vsBreak.helpers';
 
@@ -58,11 +61,12 @@ function TimeoutDisplay({ value }) {
     >
       <span
         className={cn(
-          'inline-flex items-center justify-center text-[72px] font-extrabold text-white',
+          'inline-flex items-center justify-center font-extrabold text-white',
           'tabular-nums [font-variant-numeric:tabular-nums]',
           DISPLAY_FONT,
-          '[text-shadow:0_0_calc(18px*var(--glow))_color-mix(in_srgb,var(--accentA)_55%,transparent)]',
+          textGlowClass('accent'),
         )}
+        style={fsFont(fsBreak.timeoutHero)}
       >
         <span className="inline-block w-[1.15em] text-right">{minutes}</span>
         <span className="inline-block w-[0.55em] text-center">:</span>

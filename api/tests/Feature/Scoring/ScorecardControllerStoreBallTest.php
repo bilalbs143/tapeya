@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Scoring;
 
+use App\Models\User;
 use Tests\Support\Scoring\BuildsScoringMatch;
 use Tests\Support\Scoring\ScoresViaApi;
 use Tests\TestCase;
@@ -22,7 +23,7 @@ class ScorecardControllerStoreBallTest extends TestCase
 
     public function test_forbidden_for_non_staff_user(): void
     {
-        $stranger = \App\Models\User::factory()->create(['type' => 'user']);
+        $stranger = User::factory()->create(['type' => 'user']);
 
         $this->actingAs($stranger, 'api')
             ->postJson(

@@ -1,14 +1,12 @@
 /* Auto-generated from src/graphics/themes/theme1/config.js — do not edit by hand */
 :root {
-  --text: #eef2fb;
-  --muted: #9aa7c2;
-  --faint: #65718e;
+  --text: #ffffff;
+  --text-secondary: #dbe8ff;
   --accentA: #5b7cff;
   --accentB: #9b5cff;
   --glow: 1;
   --font-display: 'Saira Condensed', system-ui, sans-serif;
   --font-ui: 'Saira', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
   --stage-bg: radial-gradient(130% 100% at 50% -20%, #0e1424 0%, #070a12 55%, #05070d 100%);
   --ambient-sequence-cycle: 30s;
   --strap-text-loop: 4.1s;
@@ -18,6 +16,14 @@
   --ambient-color-c: rgba(220, 40, 90, 0.44);
   --panel-base: rgba(22, 28, 42, 0.88);
   --panel-deep: rgba(11, 15, 24, 0.92);
-  --score-color: #dbe8ff;
+  --score-color: #ffffff;
   --score-shadow: rgba(90, 140, 255, 0.85);
+  --fs-stage-fade-in: 450ms;
+  --fs-stage-glow-cycle: 18s;
+  --fs-stage-grain-cycle: 120s;
+  --fs-fabric-easing: cubic-bezier(0.45, 0.05, 0.55, 0.95);
+  --fs-fabric-blur: 8px;
+  --fs-fabric-band-width: 2640px;
+  --fs-fabric-band-height: 320px;
+  --fs-fabric-band-left: -300px;
 }

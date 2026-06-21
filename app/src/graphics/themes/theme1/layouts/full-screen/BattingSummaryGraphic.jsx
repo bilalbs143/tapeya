@@ -3,17 +3,29 @@
  */
 import { cn } from '@/lib/utils';
 
+import { fsSummaryPanel } from '../../config';
 import {
   accentGlowShadow,
   accentMix,
   DISPLAY_FONT,
   FSStage,
   isNotOutBatter,
-  MONO_FONT,
   NotOutStar,
+  ROW_ANIMATE_IN,
   TeamLogoOrCrest,
-  UI_FONT,
 } from '../../primitives';
+import { accentHaloShadow } from '../../visualEffects';
+import {
+  FS_DISMISSAL,
+  FS_PANEL_SUB,
+  FS_PANEL_TITLE,
+  FS_ROW_BALLS,
+  FS_ROW_NAME,
+  FS_SCORE_STRIP_HERO,
+  FS_SCORE_STRIP_LABEL,
+  FS_SCORE_STRIP_VALUE,
+  fsFont,
+} from '../shared/fsTypographyStyles';
 
 const PANEL_LEFT = 70;
 const PANEL_WIDTH = 1020;
@@ -27,29 +39,9 @@ const BATTED_ROW_GAP = 4;
 const BATTED_ROW_STAGGER_MS = 80;
 const YET_TO_BAT_ROW_STAGGER_MS = 60;
 
-const panelTitleClass = cn('m-0 text-[46px] font-extrabold leading-[0.98] tracking-[0.01em] text-white uppercase', DISPLAY_FONT);
+const battedRunsClass = cn('w-[100px] text-right font-extrabold leading-none text-white', DISPLAY_FONT);
 
-const panelSubClass = cn('mt-1.5 mb-0 text-[24px] font-semibold tracking-[0.06em] text-[var(--muted)] uppercase', UI_FONT);
-
-const battedNameClass = cn('flex-1 text-[36px] font-extrabold leading-none text-white uppercase', DISPLAY_FONT);
-
-const dismissalClass = cn('flex-1 text-[22px] font-semibold tracking-[0.08em] text-[var(--muted)]', UI_FONT);
-
-const battedRunsClass = cn('w-[100px] text-right text-[38px] font-extrabold leading-none text-white', DISPLAY_FONT);
-
-const battedBallsClass = cn('w-[80px] text-right text-[24px] font-medium text-[var(--faint)]', MONO_FONT);
-
-const yetToBatNameClass = cn('flex-1 text-[30px] font-bold leading-none text-[var(--muted)] uppercase', DISPLAY_FONT);
-
-const scoreStripLabelClass = cn('text-[22px] font-semibold tracking-[0.14em] text-[var(--faint)] whitespace-nowrap', UI_FONT);
-
-const scoreStripValueClass = cn('text-[38px] font-extrabold text-[var(--text)] whitespace-nowrap', DISPLAY_FONT);
-
-const scoreStripTotalClass = cn(
-  'text-[58px] font-extrabold leading-none text-white whitespace-nowrap',
-  DISPLAY_FONT,
-  '[text-shadow:0_0_calc(18px*var(--glow))_rgba(120,140,255,0.6)]',
-);
+const yetToBatNameClass = cn('flex-1 font-bold leading-none text-[var(--text-secondary)] uppercase', DISPLAY_FONT);
 
 /** @param {number} index */
 function getBattedRowDelay(index) {
@@ -71,8 +63,14 @@ function BattingSummaryPanelHead({ title, sub, accent, crestLogoUrl, team }) {
       <TeamLogoOrCrest logoUrl={crestLogoUrl} team={team} name={title} accent={accent} size={PANEL_HEAD_CREST_SIZE} plain />
 
       <div className="min-w-0">
-        <h2 className={panelTitleClass}>{title}</h2>
-        {sub ? <p className={panelSubClass}>{sub}</p> : null}
+        <h2 className={FS_PANEL_TITLE} style={fsFont(fsSummaryPanel.panelTitle)}>
+          {title}
+        </h2>
+        {sub ? (
+          <p className={FS_PANEL_SUB} style={fsFont(fsSummaryPanel.panelSub)}>
+            {sub}
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -81,8 +79,12 @@ function BattingSummaryPanelHead({ title, sub, accent, crestLogoUrl, team }) {
 function ScoreStripMeta({ label, value }) {
   return (
     <div className="flex shrink-0 items-center gap-3 px-7">
-      <span className={scoreStripLabelClass}>{label}</span>
-      <span className={scoreStripValueClass}>{value}</span>
+      <span className={FS_SCORE_STRIP_LABEL} style={fsFont(fsSummaryPanel.scoreStripLabel)}>
+        {label}
+      </span>
+      <span className={FS_SCORE_STRIP_VALUE} style={fsFont(fsSummaryPanel.scoreStripValue)}>
+        {value}
+      </span>
     </div>
   );
 }
@@ -101,7 +103,9 @@ function BattingSummaryScoreStrip({ extras, overs, total, accent }) {
         className="flex shrink-0 items-center px-9 pl-7"
         style={{ background: `linear-gradient(100deg, transparent, ${accentMix(accent, 20)})` }}
       >
-        <span className={scoreStripTotalClass}>{total}</span>
+        <span className={FS_SCORE_STRIP_HERO} style={fsFont(fsSummaryPanel.scoreStripHero)}>
+          {total}
+        </span>
       </div>
     </div>
   );
@@ -110,7 +114,7 @@ function BattingSummaryScoreStrip({ extras, overs, total, accent }) {
 function BattedRow({ name, dismissal, runs, balls, notOut, accent, index }) {
   return (
     <div
-      className="bc-animate-row-in flex items-center rounded-xl"
+      className={cn(ROW_ANIMATE_IN, 'flex items-center rounded-xl')}
       style={{
         height: BATTED_ROW_HEIGHT,
         marginBottom: BATTED_ROW_GAP,
@@ -118,16 +122,22 @@ function BattedRow({ name, dismissal, runs, balls, notOut, accent, index }) {
         animationDelay: `${getBattedRowDelay(index)}ms`,
         background: `linear-gradient(100deg, color-mix(in srgb, ${accent} 20%, transparent), rgba(18, 24, 40, 0.7) 70%)`,
         border: `1px solid color-mix(in srgb, ${accent} 33%, transparent)`,
-        boxShadow: `0 0 calc(16px * var(--glow)) color-mix(in srgb, ${accent} 13%, transparent)`,
+        boxShadow: accentHaloShadow(accent, '16px'),
       }}
     >
-      <span className={cn(battedNameClass, 'flex items-start')}>
+      <span className={cn(FS_ROW_NAME, 'flex items-start')} style={fsFont(fsSummaryPanel.rowName)}>
         <span>{name}</span>
         <NotOutStar notOut={notOut} />
       </span>
-      <span className={dismissalClass}>{dismissal}</span>
-      <span className={battedRunsClass}>{runs}</span>
-      <span className={battedBallsClass}>{balls}</span>
+      <span className={FS_DISMISSAL} style={fsFont(fsSummaryPanel.dismissal)}>
+        {dismissal}
+      </span>
+      <span className={battedRunsClass} style={fsFont(fsSummaryPanel.rowRuns)}>
+        {runs}
+      </span>
+      <span className={cn(FS_ROW_BALLS, 'w-[80px] text-right')} style={fsFont(fsSummaryPanel.rowBalls)}>
+        {balls}
+      </span>
     </div>
   );
 }
@@ -135,21 +145,23 @@ function BattedRow({ name, dismissal, runs, balls, notOut, accent, index }) {
 function YetToBatRow({ name, outCount, index }) {
   return (
     <div
-      className="bc-animate-row-in flex items-center border-b border-white/10"
+      className={cn(ROW_ANIMATE_IN, 'flex items-center border-b border-white/10')}
       style={{
         height: YET_TO_BAT_ROW_HEIGHT,
         paddingInline: ROW_PADDING_X,
         animationDelay: `${getYetToBatRowDelay(outCount, index)}ms`,
       }}
     >
-      <span className={yetToBatNameClass}>{name}</span>
+      <span className={yetToBatNameClass} style={fsFont(fsSummaryPanel.rowNameSm)}>
+        {name}
+      </span>
     </div>
   );
 }
 
 function BattingSummaryHeroCrest({ crestLogoUrl, title, team, accent }) {
   return (
-    <div className="bc-animate-row-in">
+    <div className={ROW_ANIMATE_IN}>
       <TeamLogoOrCrest
         logoUrl={crestLogoUrl}
         team={team}

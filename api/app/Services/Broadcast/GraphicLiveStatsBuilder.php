@@ -8,6 +8,7 @@ use App\Models\TournamentMatch;
 use App\Services\InningsStatsService;
 use App\Services\PlayerStatsService;
 use App\Support\BallDelivery\BallDeliveryPresenter;
+use App\Support\Broadcast\BowlingFiguresFormatter;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
@@ -97,7 +98,7 @@ final class GraphicLiveStatsBuilder
                 $bid = (int) $pending['next_bowler_id'];
                 $bowler = [
                     'name' => $playerNames[$bid] ?? '',
-                    'figures' => '0/0',
+                    'figures' => BowlingFiguresFormatter::format(0, 0),
                     'overs' => InningsStatsService::oversDisplay(0),
                     'user_id' => $bid,
                     'runs_conceded' => 0,
@@ -251,7 +252,7 @@ final class GraphicLiveStatsBuilder
                 : '—';
             $bowler = [
                 'name' => $playerNames[$lastBowlerId] ?? '',
-                'figures' => "{$wkts}/{$runsConc}",
+                'figures' => BowlingFiguresFormatter::format($wkts, $runsConc),
                 'overs' => InningsStatsService::oversDisplay($ballsBowled),
                 'user_id' => (int) $lastBowlerId,
                 'runs_conceded' => $runsConc,
@@ -460,7 +461,7 @@ final class GraphicLiveStatsBuilder
                 'dots' => (int) ($row['dots'] ?? 0),
                 'extras_conceded' => $extrasByBowler[$id] ?? 0,
                 'economy' => (float) str_replace(',', '', (string) $row['economy']),
-                'figures_display' => "{$row['wickets']}/{$row['runs']}",
+                'figures_display' => BowlingFiguresFormatter::format((int) $row['wickets'], (int) $row['runs']),
             ];
         }, $stats['bowling']);
 
@@ -514,6 +515,14 @@ final class GraphicLiveStatsBuilder
 
         $currentOverDeliveries = $strip['current_over_deliveries'] ?? [];
 
+        $projectedScore = $this->projectedScore(
+            (int) $active->innings_number,
+            $totalRuns,
+            $legalBalls,
+            $balls,
+            (int) $match->overs,
+        );
+
         return [
             'innings_number' => (int) $active->innings_number,
             'batting_team' => $battingTeamKey,
@@ -536,6 +545,7 @@ final class GraphicLiveStatsBuilder
             'balls_remaining' => $ballsRemaining,
             'current_rr' => $currentRR,
             'required_rr' => $requiredRR,
+            'projected_score' => $projectedScore,
             'win_probability' => $winProbability,
             'fall_of_wickets' => $fallOfWickets,
             'previous_over' => ['runs' => $previousOverRuns, 'wickets' => $previousOverWickets],
@@ -596,6 +606,44 @@ final class GraphicLiveStatsBuilder
         }
 
         return $entries;
+    }
+
+    /**
+     * First-innings projected total based on recent scoring (last 5 overs) and remaining overs.
+     *
+     * @param  Collection<int, Ball>  $balls
+     */
+    private function projectedScore(
+        int $inningsNumber,
+        int $totalRuns,
+        int $legalBalls,
+        Collection $balls,
+        int $matchOvers,
+    ): ?int {
+        if ($inningsNumber !== 1) {
+            return null;
+        }
+
+        $maxBalls = max(0, $matchOvers * 6);
+        $ballsRemaining = max(0, $maxBalls - $legalBalls);
+        if ($legalBalls <= 0 || $ballsRemaining <= 0) {
+            return null;
+        }
+
+        $windowBalls = 30;
+        $legal = $balls->filter(fn (Ball $b) => $b->isLegalDelivery())->values();
+        $windowLegalCount = min($legalBalls, $windowBalls, $legal->count());
+        $recentRuns = $this->computeBallStats($balls, $windowBalls)['runs'];
+
+        if ($windowLegalCount >= 6) {
+            $recentRunRate = $recentRuns / ($windowLegalCount / 6.0);
+        } else {
+            $recentRunRate = $totalRuns / ($legalBalls / 6.0);
+        }
+
+        $remainingOvers = $ballsRemaining / 6.0;
+
+        return (int) round($totalRuns + ($recentRunRate * $remainingOvers));
     }
 
     /**

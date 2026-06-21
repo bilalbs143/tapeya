@@ -8,7 +8,7 @@ import {
   shotZoneAngleToWagonWheel,
 } from '@/lib/utils/shotAreaUtils';
 
-import { tournamentSub } from './_shared';
+import { resolveBroadcastPlayerName, tournamentSub } from './_shared';
 import { chartLabelsForCommand } from './presentationLabels';
 import { toTeams } from './teams.adapter';
 
@@ -248,7 +248,7 @@ export function toWagonWheelData(props, tokens, options = {}) {
   const teams = toTeams(props, tokens);
   const teamPair = chartTeamPair(props.homeTeam, props.awayTeam, teams);
   const player = options.player ?? props.player ?? props;
-  const playerName = player.playerName ?? player.name ?? player.display_name ?? '';
+  const playerName = resolveBroadcastPlayerName(player);
   const teamName = player.teamName ?? props.battingTeam?.name ?? teamPair.bottom.name;
 
   return {

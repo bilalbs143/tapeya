@@ -1,7 +1,7 @@
 export { accentGlowShadow, accentMix, normalizeAccentColor } from './accent';
 export { AnimatedNumber, BallChip, BallTrack, CountUpNumber, Crest, GlowPanel } from './atoms';
 export { ScaledBarSurface } from './barScaling';
-export { useContentFitBarSurface, useFrameTransition, useScaledBarSurface } from './barScalingHooks';
+export { useContentFitBarSurface, useFrameTransition } from './barScalingHooks';
 export { BroadcastShell } from './BroadcastShell';
 export { ControllerBar, NotOutStar } from './controllerBar';
 export {
@@ -30,7 +30,7 @@ export {
 } from './eventStraps';
 export { FitText } from './FitText';
 export { findFitFontSize, measureFitFontSize } from './fitTextSize';
-export { DISPLAY_FONT, fmt, MONO_FONT, ROW_ANIMATE_IN, UI_FONT } from './formatters';
+export { DISPLAY_FONT, fmt, fsFont, ROW_ANIMATE_IN, UI_FONT } from './formatters';
 export { FSDiagonal, FSStage, Pill, TeamLogoOrCrest, TeamLogoSlot, VSBadge } from './fs-kit';
 export { isNotOutBatter, resolvePlayerDisplayName, withNotOutNameSuffix } from './notOut';
 export { resolvePlayerAvatarUrl } from './playerAvatar';

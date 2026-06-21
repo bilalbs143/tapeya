@@ -2,10 +2,10 @@
  * Bowler match lower-third — live in-match figures.
  * Layout: [name · w-r · overs] / [overs · dots · extras · wickets · econ]
  */
-import { cn } from '@/lib/utils';
-
-import { DISPLAY_FONT, fmt, MONO_FONT, UI_FONT } from '../../primitives';
+import { formatBroadcastBowlingFigures } from '../../../../core/domain/player';
+import { fmt } from '../../primitives';
 import { PlayerStatLTBar } from './PlayerStatLTBar';
+import { ltPlayerStatBar, playerStatLtHeroClass, playerStatLtNameClass, playerStatLtSecondaryClass } from './playerStatLtStyles';
 
 const STAT_FIELDS = [
   { key: 'overs', label: 'OVERS' },
@@ -15,21 +15,7 @@ const STAT_FIELDS = [
   { key: 'econ', label: 'ECON' },
 ];
 
-const nameClass = cn(
-  'min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap',
-  'text-[25px] font-bold leading-none text-white uppercase',
-  UI_FONT,
-);
-
 const scoreClusterClass = 'ml-2 flex shrink-0 items-baseline gap-[5px]';
-
-const runsClass = cn(
-  'text-[34px] font-extrabold leading-none text-white',
-  DISPLAY_FONT,
-  '[text-shadow:0_0_calc(18px*var(--glow))_var(--score-shadow)]',
-);
-
-const ballsClass = cn('text-[17px] font-medium text-[var(--faint)]', MONO_FONT);
 
 function resolveBowler(bowler, teams) {
   if (!bowler?.name) return null;
@@ -43,11 +29,11 @@ function resolveBowler(bowler, teams) {
 
 function formatFigures(bowler) {
   if (bowler.figText) {
-    const [figures] = bowler.figText.trim().split(/\s+/);
-    return figures ?? bowler.figText;
+    const [rawFigures] = bowler.figText.trim().split(/\s+/);
+    return formatBroadcastBowlingFigures(rawFigures, { w: bowler.w, r: bowler.r });
   }
 
-  return `${bowler.w ?? 0}-${bowler.r ?? 0}`;
+  return formatBroadcastBowlingFigures(null, { w: bowler.w, r: bowler.r });
 }
 
 function formatOvers(bowler) {
@@ -85,10 +71,16 @@ export function BowlerMatchLTBar({ bowler, teams, edgeToEdge = true }) {
       statValues={statValues}
       header={
         <>
-          <span className={nameClass}>{player.name}</span>
+          <span className={playerStatLtNameClass} style={{ fontSize: ltPlayerStatBar.nameSize }}>
+            {player.name}
+          </span>
           <span className={scoreClusterClass}>
-            <span className={runsClass}>{formatFigures(player)}</span>
-            <span className={ballsClass}>{oversDisplay}</span>
+            <span className={playerStatLtHeroClass} style={{ fontSize: ltPlayerStatBar.heroSize }}>
+              {formatFigures(player)}
+            </span>
+            <span className={playerStatLtSecondaryClass} style={{ fontSize: ltPlayerStatBar.secondarySize }}>
+              {oversDisplay}
+            </span>
           </span>
         </>
       }

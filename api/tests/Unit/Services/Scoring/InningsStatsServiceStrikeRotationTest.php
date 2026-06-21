@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services\Scoring;
 
 use App\Enums\Event\DismissalTypeEnum;
+use App\Models\Ball;
 use App\Services\InningsStatsService;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Support\Scoring\BallFactory;
@@ -17,7 +18,7 @@ use Tests\Support\Scoring\PlayerIds;
 class InningsStatsServiceStrikeRotationTest extends ScoringUnitTestCase
 {
     /**
-     * @return array<string, array{0: callable(): list<\App\Models\Ball>, 1: int, 2: int}>
+     * @return array<string, array{0: callable(): list<Ball>, 1: int, 2: int}>
      */
     public static function rotationCasesProvider(): array
     {

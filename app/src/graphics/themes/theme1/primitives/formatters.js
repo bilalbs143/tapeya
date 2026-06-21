@@ -2,10 +2,14 @@
 
 export const DISPLAY_FONT = '[font-family:var(--font-display)]';
 export const UI_FONT = '[font-family:var(--font-ui)]';
-export const MONO_FONT = '[font-family:var(--font-mono)]';
 
-/** Row stagger animation — defined in theme-01/styles/controller.scss */
+/** Row stagger animation — defined in styles/controller.scss; delay via animationDelay inline. */
 export const ROW_ANIMATE_IN = 'bc-animate-row-in';
+
+/** @param {number} sizePx */
+export function fsFont(sizePx) {
+  return { fontSize: sizePx };
+}
 
 function formatStrikeRate(runs, balls) {
   return balls ? ((runs / balls) * 100).toFixed(1) : '0.0';

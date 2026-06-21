@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { fsStatTile } from '../../config';
 import { DISPLAY_FONT, UI_FONT } from '../../primitives';
 
-const statTileLabelClass = cn('font-semibold leading-none tracking-[0.16em] text-[var(--faint)] uppercase', UI_FONT);
+const statTileLabelClass = cn('font-semibold leading-none tracking-[0.16em] text-[var(--text-secondary)] uppercase', UI_FONT);
 
 const statTileValueClass = cn('font-extrabold leading-none whitespace-nowrap text-white', DISPLAY_FONT);
 

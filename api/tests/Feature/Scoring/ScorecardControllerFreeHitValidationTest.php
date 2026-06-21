@@ -5,8 +5,8 @@ namespace Tests\Feature\Scoring;
 use App\Enums\Event\DismissalTypeEnum;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Support\Scoring\BuildsScoringMatch;
-use Tests\Support\Scoring\ScoringPropertyGenerator;
 use Tests\Support\Scoring\ScoresViaApi;
+use Tests\Support\Scoring\ScoringPropertyGenerator;
 use Tests\TestCase;
 
 /**

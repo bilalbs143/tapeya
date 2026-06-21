@@ -5,8 +5,21 @@ import { useEffect, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
-import { DISPLAY_FONT, FSStage, GlowPanel, UI_FONT } from '../../primitives';
+import { fsChart } from '../../config';
+import { fsFont, FSStage, GlowPanel } from '../../primitives';
+import { isChartGlowEnabled } from '../../visualEffects';
+import { ChartHeader } from './ChartHeader';
 import { ChartRightCrests } from './ChartRightCrests';
+import {
+  WAGON_LEGEND_LABEL,
+  WAGON_PLAYER_META,
+  WAGON_PLAYER_NAME,
+  WAGON_SECTION_LABEL,
+  WAGON_STAT_LABEL,
+  WAGON_STAT_VALUE,
+  WAGON_ZONE_LABEL,
+  WAGON_ZONE_VALUE,
+} from './chartTypographyStyles';
 
 /** Stable SVG gradient id — one wheel per full-screen graphic. */
 const GRASS_GRADIENT_ID = 'wagon-wheel-grass';
@@ -24,15 +37,11 @@ const SHOT_COLORS = {
   six: '#f5c85a',
 };
 
-/** Shared full-screen chart content positioning — matches worm / Manhattan / wagon wheel. */
+/** Shared full-screen chart content positioning — wagon wheel panel. */
+const CHART_AREA_TOP = 210;
 const CHART_AREA_LEFT = 70;
-const CHART_AREA_TOP = 220;
 const CHART_AREA_RIGHT = 540;
 const CHART_AREA_BOTTOM = 72;
-
-const chartTitleClass = cn('m-0 text-[76px] font-extrabold leading-[0.95] text-white uppercase whitespace-nowrap', DISPLAY_FONT);
-
-const chartSubClass = cn('mt-2.5 mb-0 text-[24px] font-semibold tracking-[0.06em] text-[var(--muted)] uppercase', UI_FONT);
 
 const LEGEND_ITEMS = [
   ['1s & 2s', SHOT_COLORS.single],
@@ -78,15 +87,6 @@ function runColor(runs) {
   if (runs === 4) return SHOT_COLORS.four;
   if (runs >= 2) return SHOT_COLORS.multi;
   return SHOT_COLORS.single;
-}
-
-function ChartHeader({ title, sub }) {
-  return (
-    <div className="absolute top-14 right-[520px] left-[70px] z-[3]">
-      <h2 className={chartTitleClass}>{title}</h2>
-      {sub ? <p className={chartSubClass}>{sub}</p> : null}
-    </div>
-  );
 }
 
 function WagonWheelField({ shots, size = WHEEL_SIZE, animate = true }) {
@@ -191,51 +191,59 @@ function WagonWheelField({ shots, size = WHEEL_SIZE, animate = true }) {
 
 function WagonLegend() {
   return (
-    <div className="flex flex-wrap gap-[22px]">
+    <div className="flex flex-wrap justify-center gap-x-7 gap-y-3">
       {LEGEND_ITEMS.map(([label, color]) => (
-        <div key={label} className="flex items-center gap-2">
+        <div key={label} className="flex items-center gap-2.5">
           <span
-            className="h-1 w-[22px] rounded-sm"
+            className="h-1.5 w-7 rounded-sm"
             style={{
               background: color,
               boxShadow: `0 0 6px ${color}`,
             }}
           />
-          <span className={cn('text-[16px] font-semibold tracking-[0.04em] text-[var(--muted)]', UI_FONT)}>{label}</span>
+          <span className={WAGON_LEGEND_LABEL} style={fsFont(fsChart.wagonLegend)}>
+            {label}
+          </span>
         </div>
       ))}
     </div>
   );
 }
 
-function WagonBigStat({ label, value, accent }) {
+function WagonBigStat({ label, value, accent, dense = false }) {
   return (
-    <div className="rounded-[14px] border border-white/8 bg-white/[0.04] px-[18px] py-4">
-      <div className={cn('text-[13px] font-semibold tracking-[0.14em] text-[var(--faint)] uppercase', UI_FONT)}>{label}</div>
-      <div className={cn('mt-1 text-[46px] leading-none font-extrabold', DISPLAY_FONT)} style={{ color: accent }}>
+    <div className="rounded-[14px] border border-white/8 bg-white/[0.04] px-5 py-4">
+      <div className={WAGON_STAT_LABEL} style={fsFont(dense ? fsChart.wagonStatLabelDense : fsChart.wagonStatLabel)}>
+        {label}
+      </div>
+      <div
+        className={WAGON_STAT_VALUE}
+        style={{ ...fsFont(dense ? fsChart.wagonStatValueDense : fsChart.wagonStatValue), color: accent }}
+      >
         {value}
       </div>
     </div>
   );
 }
 
-function WagonZoneBar({ label, value, total, color }) {
+function WagonZoneBar({ label, value, total, color, compact = false }) {
   const pct = total ? Math.round((value / total) * 100) : 0;
 
   return (
     <div className="min-w-0">
-      <div className="mb-1.5 flex items-baseline justify-between gap-2">
+      <div className={cn('flex items-baseline justify-between gap-2', compact ? 'mb-0' : 'mb-0.5')}>
         <span
-          className={cn('min-w-0 truncate text-[14px] font-semibold tracking-[0.07em] text-[var(--muted)] uppercase', UI_FONT)}
+          className={WAGON_ZONE_LABEL}
+          style={fsFont(compact ? fsChart.wagonZoneLabelDense : fsChart.wagonZoneLabel)}
           title={label}
         >
           {label}
         </span>
-        <span className={cn('shrink-0 text-[15px] font-bold text-white tabular-nums', '[font-family:var(--font-mono)]')}>
+        <span className={WAGON_ZONE_VALUE} style={fsFont(compact ? fsChart.wagonZoneValueDense : fsChart.wagonZoneValue)}>
           {value} · {pct}%
         </span>
       </div>
-      <div className="h-2.5 overflow-hidden rounded-md bg-white/[0.06]">
+      <div className="h-2 overflow-hidden rounded-md bg-white/[0.06]">
         <div
           className={cn(
             'h-full rounded-md',
@@ -245,7 +253,7 @@ function WagonZoneBar({ label, value, total, color }) {
           style={{
             width: `${pct}%`,
             background: `linear-gradient(90deg, ${color}, var(--accentB))`,
-            boxShadow: `0 0 calc(10px * var(--glow)) ${color}`,
+            ...(isChartGlowEnabled() ? { boxShadow: `0 0 calc(10px * var(--glow)) ${color}` } : {}),
           }}
         />
       </div>
@@ -254,26 +262,32 @@ function WagonZoneBar({ label, value, total, color }) {
 }
 
 function WagonStatsPanel({ player, stats, zoneBreakdown = [] }) {
+  const denseZones = zoneBreakdown.length >= 5;
+
   return (
-    <div className="flex flex-col gap-[26px]">
+    <div className={cn('flex flex-col', denseZones ? 'gap-4' : 'gap-[26px]')}>
       <div>
-        <div className={cn('text-[16px] font-bold tracking-[0.2em] text-[#9db4ff] uppercase', UI_FONT)}>SHOT MAP</div>
-        <div className={cn('mt-1.5 text-[58px] leading-none font-extrabold text-white', DISPLAY_FONT)}>{player.name}</div>
+        <div className={WAGON_SECTION_LABEL} style={fsFont(fsChart.wagonSectionLabel)}>
+          SHOT MAP
+        </div>
+        <div className={WAGON_PLAYER_NAME} style={fsFont(denseZones ? fsChart.wagonPlayerNameDense : fsChart.wagonPlayerName)}>
+          {player.name}
+        </div>
         {player.teamName || player.role ? (
-          <div className={cn('mt-1 text-[20px] text-[var(--muted)]', UI_FONT)}>
+          <div className={WAGON_PLAYER_META} style={fsFont(fsChart.wagonPlayerMeta)}>
             {[player.teamName, player.role].filter(Boolean).join(' · ')}
           </div>
         ) : null}
       </div>
 
       <div className="grid grid-cols-3 gap-3.5">
-        <WagonBigStat label="RUNS" value={stats.total} accent="#dbe8ff" />
-        <WagonBigStat label="FOURS" value={stats.fours} accent="#5aa0ff" />
-        <WagonBigStat label="SIXES" value={stats.sixes} accent="#f5c85a" />
+        <WagonBigStat label="RUNS" value={stats.total} accent="#dbe8ff" dense={denseZones} />
+        <WagonBigStat label="FOURS" value={stats.fours} accent="#5aa0ff" dense={denseZones} />
+        <WagonBigStat label="SIXES" value={stats.sixes} accent="#f5c85a" dense={denseZones} />
       </div>
 
       {zoneBreakdown.length > 0 ? (
-        <div className={cn('grid gap-x-6 gap-y-2', zoneBreakdown.length > 4 ? 'grid-cols-2' : 'grid-cols-1')}>
+        <div className="flex flex-col" style={{ gap: denseZones ? fsChart.wagonZoneRowGapDense : fsChart.wagonZoneRowGap }}>
           {zoneBreakdown.map((zone, index) => (
             <WagonZoneBar
               key={zone.id}
@@ -281,6 +295,7 @@ function WagonStatsPanel({ player, stats, zoneBreakdown = [] }) {
               value={zone.runs}
               total={stats.total}
               color={ZONE_BAR_COLORS[index % ZONE_BAR_COLORS.length]}
+              compact={zoneBreakdown.length >= 2}
             />
           ))}
         </div>

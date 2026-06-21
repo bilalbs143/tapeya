@@ -6,7 +6,6 @@ use App\Models\Ball;
 use App\Services\InningsStatsService;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Support\Scoring\BallFactory;
-use Tests\Support\Scoring\PlayerIds;
 
 /**
  * Legal delivery classification and ball-counting rules.

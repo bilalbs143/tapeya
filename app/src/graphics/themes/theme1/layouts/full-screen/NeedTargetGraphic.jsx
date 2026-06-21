@@ -3,44 +3,26 @@
  */
 import { cn } from '@/lib/utils';
 
-import { colors } from '../../config';
-import { AnimatedNumber, DISPLAY_FONT, FSStage, GlowPanel, UI_FONT } from '../../primitives';
+import { colors, fsSummaryPanel } from '../../config';
+import { AnimatedNumber, FSStage, GlowPanel } from '../../primitives';
+import { accentHaloShadow, colorHaloShadow, textGlowClass } from '../../visualEffects';
+import { FS_CARD_TITLE, FS_GOLD_BAND, FS_HEADER_SUB_CENTERED, FS_SECTION_TITLE, fsFont } from '../shared/fsTypographyStyles';
 
 const NEED_TARGET_GOLD = colors.gold;
 
 const CARD_WIDTH = 920;
 
-const headerTitleClass = cn(
-  'm-0 text-[44px] font-extrabold leading-[0.96] tracking-[0.01em] text-white uppercase',
-  DISPLAY_FONT,
-  '[text-shadow:0_2px_18px_rgba(0,0,0,0.5)]',
-);
-
-const headerSubClass = cn('mt-2 mb-0 text-[26px] font-semibold tracking-[0.06em] text-[var(--muted)] uppercase', UI_FONT);
-
-const cardTitleClass = cn(
-  'text-center text-[44px] font-extrabold tracking-[0.08em] text-white uppercase',
-  DISPLAY_FONT,
-  '[text-shadow:0_2px_18px_rgba(0,0,0,0.5)]',
-);
-
 const labelBoxClass = cn(
   'inline-flex min-w-[132px] items-center justify-center rounded-lg border px-6 py-2.5',
   'bg-[linear-gradient(180deg,rgba(30,38,62,0.9),rgba(14,19,32,0.92))]',
-  'text-[22px] font-extrabold tracking-[0.14em] text-white uppercase',
-  DISPLAY_FONT,
+  'font-extrabold tracking-[0.14em] text-white uppercase',
+  '[font-family:var(--font-display)]',
 );
 
 const statValueClass = cn(
-  'text-[180px] font-extrabold leading-[0.9] text-white',
-  DISPLAY_FONT,
-  '[text-shadow:0_0_calc(40px*var(--glow))_rgba(120,140,255,0.65)]',
-);
-
-const wicketsFooterClass = cn(
-  'text-[30px] font-extrabold tracking-[0.06em] text-[#0a0e17] uppercase',
-  'whitespace-nowrap',
-  DISPLAY_FONT,
+  'font-extrabold leading-[0.9] text-white',
+  '[font-family:var(--font-display)]',
+  textGlowClass('heroLg'),
 );
 
 function resolveHeaderTitle(data) {
@@ -56,10 +38,11 @@ function NeedTargetLabelBox({ children, accent }) {
     <span
       className={labelBoxClass}
       style={{
+        ...fsFont(fsSummaryPanel.statLabelBox),
         borderColor: accent
           ? `color-mix(in srgb, ${accent} 40%, transparent)`
           : 'color-mix(in srgb, var(--accentA) 40%, transparent)',
-        boxShadow: accent ? `0 0 calc(18px * var(--glow)) color-mix(in srgb, ${accent} 20%, transparent)` : undefined,
+        boxShadow: accent ? accentHaloShadow(accent) : undefined,
       }}
     >
       {children}
@@ -73,7 +56,7 @@ function NeedTargetStatColumn({ topLabel, bottomLabel, value, accent, padValue =
   return (
     <div className="flex flex-col items-center gap-5">
       <NeedTargetLabelBox accent={accent}>{topLabel}</NeedTargetLabelBox>
-      <AnimatedNumber value={displayValue} className={statValueClass} />
+      <AnimatedNumber value={displayValue} className={statValueClass} style={fsFont(fsSummaryPanel.heroMetricLg)} />
       <NeedTargetLabelBox accent={accent}>{bottomLabel}</NeedTargetLabelBox>
     </div>
   );
@@ -85,10 +68,12 @@ function WicketsFooterBand({ wickets }) {
       className="absolute bottom-0 left-1/2 grid h-[68px] min-w-[360px] -translate-x-1/2 translate-y-1/2 place-items-center rounded-xl px-10"
       style={{
         background: `linear-gradient(100deg, ${NEED_TARGET_GOLD}, #d9a93a)`,
-        boxShadow: `0 0 calc(20px * var(--glow)) ${NEED_TARGET_GOLD}33`,
+        boxShadow: colorHaloShadow(NEED_TARGET_GOLD),
       }}
     >
-      <span className={wicketsFooterClass}>WITH {wickets} WICKETS</span>
+      <span className={FS_GOLD_BAND} style={fsFont(fsSummaryPanel.goldBand)}>
+        WITH {wickets} WICKETS
+      </span>
     </div>
   );
 }
@@ -99,7 +84,9 @@ function NeedTargetCard({ title, runsNeeded, ballsRemaining, wicketsRemaining, a
   return (
     <div className="relative" style={{ width: CARD_WIDTH }}>
       <GlowPanel radius={28} accent={ringAccent} className="overflow-hidden px-16 pt-14 pb-20">
-        <h2 className={cardTitleClass}>{title}</h2>
+        <h2 className={FS_CARD_TITLE} style={fsFont(fsSummaryPanel.sectionTitle)}>
+          {title}
+        </h2>
 
         <div className="mt-10 grid grid-cols-2 gap-12">
           <NeedTargetStatColumn topLabel="NEED" bottomLabel="RUNS" value={runsNeeded} accent={ringAccent} />
@@ -116,8 +103,14 @@ function NeedTargetHeader({ title, sub }) {
   return (
     <div className="absolute top-14 right-16 left-16 z-[3] flex items-start gap-7">
       <div className="min-w-0 flex-1">
-        <h2 className={headerTitleClass}>{title}</h2>
-        {sub ? <p className={headerSubClass}>{sub}</p> : null}
+        <h2 className={FS_SECTION_TITLE} style={fsFont(fsSummaryPanel.sectionTitle)}>
+          {title}
+        </h2>
+        {sub ? (
+          <p className={FS_HEADER_SUB_CENTERED} style={fsFont(fsSummaryPanel.headerSub)}>
+            {sub}
+          </p>
+        ) : null}
       </div>
     </div>
   );

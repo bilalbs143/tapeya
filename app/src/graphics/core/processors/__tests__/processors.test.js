@@ -278,6 +278,23 @@ describe('LT_DEFAULT processor', () => {
     expect(props.bowler.name).toBe('Bowler One');
     expect(props.currentOverDeliveries.map((d) => d.displayToken)).toEqual(['1', '4', '0']);
   });
+
+  it('includes zone C rotation fields from live context', () => {
+    const snapshot = createTestSnapshot({
+      context: {
+        innings_number: 2,
+        partnership: { runs: 24, balls: 18 },
+        projected_score: 195,
+      },
+    });
+    const props = processLtDefault(snapshot);
+
+    expect(props.inningsNumber).toBe(2);
+    expect(props.partnershipRuns).toBe(24);
+    expect(props.partnershipBalls).toBe(18);
+    expect(props.runsToWin).toBe(61);
+    expect(props.projectedScore).toBe(195);
+  });
 });
 
 describe('CUSTOM processor', () => {

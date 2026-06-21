@@ -4,8 +4,9 @@
  */
 import { cn } from '@/lib/utils';
 
-import { AnimatedNumber, DISPLAY_FONT, fmt, MONO_FONT, UI_FONT } from '../../primitives';
+import { AnimatedNumber, fmt, UI_FONT } from '../../primitives';
 import { PlayerStatLTBar } from './PlayerStatLTBar';
+import { ltPlayerStatBar, playerStatLtHeroClass, playerStatLtSecondaryClass } from './playerStatLtStyles';
 
 const STAT_FIELDS = [
   { key: 'sixes', label: 'SIX' },
@@ -19,25 +20,17 @@ const STAT_FIELDS = [
 
 const nameClass = cn(
   'shrink-0 overflow-hidden text-ellipsis whitespace-nowrap',
-  'text-[25px] font-bold leading-none text-white uppercase',
+  'font-bold leading-none text-white uppercase',
   UI_FONT,
 );
 
 const dismissalClass = cn(
   'min-w-0 truncate',
-  'text-[15px] font-semibold leading-none tracking-[0.06em] text-[var(--muted)] uppercase',
+  'text-[15px] font-semibold leading-none tracking-[0.06em] text-[var(--text-secondary)] uppercase',
   UI_FONT,
 );
 
 const scoreClusterClass = 'ml-2 flex shrink-0 items-baseline gap-[5px]';
-
-const runsClass = cn(
-  'text-[34px] font-extrabold leading-none text-white',
-  DISPLAY_FONT,
-  '[text-shadow:0_0_calc(18px*var(--glow))_var(--score-shadow)]',
-);
-
-const ballsClass = cn('text-[17px] font-medium text-[var(--faint)]', MONO_FONT);
 
 function resolveBatter(batter, teams) {
   if (!batter?.name && !batter?.firstName) return null;
@@ -79,12 +72,22 @@ export function LastWicketLTBar({ batter, teams, edgeToEdge = true }) {
       header={
         <>
           <div className="flex min-w-0 flex-1 items-baseline gap-2 overflow-hidden">
-            <span className={nameClass}>{player.name}</span>
+            <span className={nameClass} style={{ fontSize: ltPlayerStatBar.nameSize }}>
+              {player.name}
+            </span>
             {player.dismissal ? <span className={dismissalClass}>{player.dismissal}</span> : null}
           </div>
           <span className={scoreClusterClass}>
-            <AnimatedNumber value={player.runs ?? 0} className={runsClass} />
-            <AnimatedNumber value={player.balls ?? 0} className={ballsClass} />
+            <AnimatedNumber
+              value={player.runs ?? 0}
+              className={playerStatLtHeroClass}
+              style={{ fontSize: ltPlayerStatBar.heroSize }}
+            />
+            <AnimatedNumber
+              value={player.balls ?? 0}
+              className={playerStatLtSecondaryClass}
+              style={{ fontSize: ltPlayerStatBar.secondarySize }}
+            />
           </span>
         </>
       }

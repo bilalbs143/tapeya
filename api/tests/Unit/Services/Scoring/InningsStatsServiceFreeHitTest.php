@@ -3,8 +3,8 @@
 namespace Tests\Unit\Services\Scoring;
 
 use App\Enums\Event\DismissalTypeEnum;
-use PHPUnit\Framework\Attributes\DataProvider;
 use App\Services\InningsStatsService;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Support\Scoring\BallFactory;
 
 /**

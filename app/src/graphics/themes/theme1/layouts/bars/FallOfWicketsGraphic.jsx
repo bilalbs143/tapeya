@@ -5,16 +5,17 @@ import { cn } from '@/lib/utils';
 
 import { ltBar } from '../../config';
 import { AnimatedNumber, Crest, DISPLAY_FONT, GlowPanel, ScaledBarSurface, UI_FONT } from '../../primitives';
+import { textGlowClass } from '../../visualEffects';
 
 const DESIGN_WIDTH = ltBar.designWidth;
 
-const headerLabelClass = cn('text-[22px] font-semibold tracking-[0.14em] text-[var(--faint)] uppercase', UI_FONT);
+const headerLabelClass = cn('text-[22px] font-semibold tracking-[0.14em] text-[var(--text-secondary)] uppercase', UI_FONT);
 
 const teamCodeClass = cn('text-[30px] font-bold tracking-[0.1em] text-[var(--text)]', UI_FONT);
 
 const oversClass = cn('text-[26px] font-bold leading-none tracking-[0.04em] text-[var(--text)]', DISPLAY_FONT);
 
-const wicketNumberClass = cn('text-[18px] font-semibold leading-none text-[var(--muted)]', UI_FONT);
+const wicketNumberClass = cn('text-[18px] font-semibold leading-none text-[var(--text-secondary)]', UI_FONT);
 
 const wicketScoreClass = cn('text-[28px] font-extrabold leading-none text-white', DISPLAY_FONT);
 
@@ -54,7 +55,7 @@ export function FallOfWicketsLTBar({ data, teams, edgeToEdge = true, mode = 'all
   return (
     <ScaledBarSurface designWidth={DESIGN_WIDTH} edgeToEdge={edgeToEdge}>
       {({ radius }) => (
-        <GlowPanel ambientPulse hideRing radius={radius} className="flex w-full items-stretch">
+        <GlowPanel hideRing radius={radius} className="flex w-full items-stretch">
           <div className="flex items-center gap-[18px] py-5 pr-[22px]" style={{ paddingLeft: ltBar.edgePaddingX }}>
             <Crest team={team} size={ltBar.crestSize} accent={team.color} borderPulseOrder={1} />
             <div className="flex flex-col gap-1 pr-4">
@@ -64,9 +65,12 @@ export function FallOfWicketsLTBar({ data, teams, edgeToEdge = true, mode = 'all
             <div className="flex items-baseline gap-[5px]">
               <AnimatedNumber
                 value={total}
-                className="[font-family:var(--font-display)] text-[50px] leading-[0.92] font-extrabold text-[var(--score-color)] [text-shadow:0_0_calc(18px*var(--glow))_var(--score-shadow)]"
+                className={cn(
+                  '[font-family:var(--font-display)] text-[50px] leading-[0.92] font-extrabold text-[var(--score-color)]',
+                  textGlowClass('score'),
+                )}
               />
-              <span className="[font-family:var(--font-display)] text-[32px] leading-[0.92] font-extrabold text-[var(--muted)]">
+              <span className="[font-family:var(--font-display)] text-[32px] leading-[0.92] font-extrabold text-[var(--text-secondary)]">
                 {scoreSep}
               </span>
               <AnimatedNumber
@@ -90,7 +94,9 @@ export function FallOfWicketsLTBar({ data, teams, edgeToEdge = true, mode = 'all
                     <span className={wicketNumberClass}>{item.number ?? index + 1}</span>
                     <span className={cn('mt-2', wicketScoreClass)}>{item.score ?? '—'}</span>
                     {item.batter ? (
-                      <span className={cn('mt-1 text-[15px] font-medium text-[var(--faint)]', UI_FONT)}>{item.batter}</span>
+                      <span className={cn('mt-1 text-[15px] font-medium text-[var(--text-secondary)]', UI_FONT)}>
+                        {item.batter}
+                      </span>
                     ) : null}
                   </div>
                 </div>

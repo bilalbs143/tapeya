@@ -4,6 +4,7 @@
  * Use accentMix(accent, percent) for translucent accents. Works with #rrggbb
  * (8-digit hex output) and CSS variables (color-mix).
  */
+import { isDecorativeBoxGlowEnabled } from '../visualEffects';
 
 /** @param {unknown} value @param {string} [fallback] */
 export function normalizeAccentColor(value, fallback = '#5b7cff') {
@@ -37,5 +38,6 @@ export function accentMix(accent, percent) {
  * @param {string} [size='16px']
  */
 export function accentGlowShadow(accent, percent = 13, size = '16px') {
+  if (!isDecorativeBoxGlowEnabled()) return 'none';
   return `0 0 calc(${size} * var(--glow)) ${accentMix(accent, percent)}`;
 }

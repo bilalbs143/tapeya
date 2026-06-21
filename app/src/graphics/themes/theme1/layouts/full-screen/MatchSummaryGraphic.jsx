@@ -3,16 +3,11 @@
  */
 import { cn } from '@/lib/utils';
 
-import {
-  DISPLAY_FONT,
-  FSStage,
-  MONO_FONT,
-  normalizeAccentColor,
-  NotOutStar,
-  TeamLogoOrCrest,
-  UI_FONT,
-  VSBadge,
-} from '../../primitives';
+import { fsMatchSummary, fsSummaryPanel } from '../../config';
+import { DISPLAY_FONT, FSStage, normalizeAccentColor, NotOutStar, TeamLogoOrCrest, UI_FONT, VSBadge } from '../../primitives';
+import { colorHaloShadow } from '../../visualEffects';
+import { FS_GOLD_BAND, FS_MATCH_PAGE_TITLE, FS_PANEL_SUB, FS_ROW_BALLS, fsFont } from '../shared/fsTypographyStyles';
+import { TEXT_SECONDARY } from '../shared/textStyles';
 
 /** Gold accent for the need-target footer band — matches PSL reference. */
 const MATCH_SUMMARY_GOLD = '#f5c85a';
@@ -26,33 +21,19 @@ const MAX_INNINGS_ROWS = 4;
 const INNINGS_BLOCK_GAP = 22;
 const STATS_COLUMNS_GAP = 76;
 
-const pageTitleClass = cn('m-0 text-[80px] font-extrabold leading-[0.95] text-white uppercase', DISPLAY_FONT);
+const inningsShortNameClass = cn('font-extrabold text-white uppercase', DISPLAY_FONT);
 
-const pageSubClass = cn('mt-1.5 mb-0 text-[24px] font-semibold tracking-[0.06em] text-[var(--muted)] uppercase', UI_FONT);
+const inningsOversClass = cn('ml-[22px] font-semibold tracking-[0.06em]', TEXT_SECONDARY, UI_FONT);
 
-const inningsShortNameClass = cn('text-[40px] font-extrabold text-white uppercase', DISPLAY_FONT);
+const inningsTotalClass = cn('font-extrabold text-white whitespace-nowrap', DISPLAY_FONT);
 
-const inningsOversClass = cn('ml-[22px] text-[24px] font-semibold tracking-[0.06em] text-white/[0.78]', UI_FONT);
+const rowNameMdClass = cn('flex-1 font-bold text-white uppercase', DISPLAY_FONT);
 
-const inningsTotalClass = cn('text-[46px] font-extrabold text-white whitespace-nowrap', DISPLAY_FONT);
+const rowRunsClass = cn('w-20 text-right font-extrabold text-white', DISPLAY_FONT);
 
-const batterNameClass = cn('flex-1 text-[32px] font-bold text-white uppercase', DISPLAY_FONT);
+const bowlerFiguresClass = cn('w-[120px] text-right font-extrabold text-white', DISPLAY_FONT);
 
-const batterRunsClass = cn('w-20 text-right text-[34px] font-extrabold text-white', DISPLAY_FONT);
-
-const batterBallsClass = cn('w-[70px] text-right text-[24px] text-[var(--faint)]', MONO_FONT);
-
-const bowlerNameClass = cn('flex-1 text-[32px] font-bold text-white uppercase', DISPLAY_FONT);
-
-const bowlerFiguresClass = cn('w-[120px] text-right text-[32px] font-extrabold text-white', DISPLAY_FONT);
-
-const bowlerOversClass = cn('w-20 text-right text-[24px] text-[var(--faint)]', MONO_FONT);
-
-const needTargetBandClass = cn(
-  'text-[30px] font-extrabold tracking-[0.02em] text-[#0a0e17] uppercase',
-  'whitespace-nowrap',
-  DISPLAY_FONT,
-);
+const needTargetBandClass = FS_GOLD_BAND;
 
 function resolveSub(data) {
   return data.sub ?? '';
@@ -84,8 +65,14 @@ function resolveCrestTeam(crest, teams) {
 function MatchSummaryHeader({ sub }) {
   return (
     <div className="mb-6">
-      <h1 className={pageTitleClass}>Match Summary</h1>
-      {sub ? <p className={pageSubClass}>{sub}</p> : null}
+      <h1 className={FS_MATCH_PAGE_TITLE} style={fsFont(fsSummaryPanel.matchPageTitle)}>
+        Match Summary
+      </h1>
+      {sub ? (
+        <p className={FS_PANEL_SUB} style={fsFont(fsSummaryPanel.panelSub)}>
+          {sub}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -101,10 +88,14 @@ function InningsHeaderBar({ shortName, overs, total, wickets, accent }) {
       }}
     >
       <span className="min-w-0 flex-1 whitespace-nowrap">
-        <span className={inningsShortNameClass}>{shortName}</span>
-        <span className={inningsOversClass}>{overs} OVERS</span>
+        <span className={inningsShortNameClass} style={fsFont(fsMatchSummary.inningsShortName)}>
+          {shortName}
+        </span>
+        <span className={inningsOversClass} style={fsFont(fsMatchSummary.inningsOvers)}>
+          {overs} OVERS
+        </span>
       </span>
-      <span className={inningsTotalClass}>
+      <span className={inningsTotalClass} style={fsFont(fsMatchSummary.inningsTotal)}>
         {total}-{wickets}
       </span>
     </div>
@@ -114,12 +105,16 @@ function InningsHeaderBar({ shortName, overs, total, wickets, accent }) {
 function BattingMiniRow({ name, runs, balls, notOut = false }) {
   return (
     <>
-      <span className={cn(batterNameClass, 'flex items-start')}>
+      <span className={cn(rowNameMdClass, 'flex items-start')} style={fsFont(fsSummaryPanel.rowNameMd)}>
         <span>{name}</span>
         <NotOutStar notOut={notOut} />
       </span>
-      <span className={batterRunsClass}>{runs}</span>
-      <span className={batterBallsClass}>{balls}</span>
+      <span className={rowRunsClass} style={fsFont(fsSummaryPanel.rowRuns)}>
+        {runs}
+      </span>
+      <span className={cn(FS_ROW_BALLS, 'w-[70px] text-right')} style={fsFont(fsSummaryPanel.rowBalls)}>
+        {balls}
+      </span>
     </>
   );
 }
@@ -127,11 +122,15 @@ function BattingMiniRow({ name, runs, balls, notOut = false }) {
 function BowlingMiniRow({ name, wickets, runs, overs }) {
   return (
     <>
-      <span className={bowlerNameClass}>{name}</span>
-      <span className={bowlerFiguresClass}>
+      <span className={rowNameMdClass} style={fsFont(fsSummaryPanel.rowNameMd)}>
+        {name}
+      </span>
+      <span className={bowlerFiguresClass} style={fsFont(fsMatchSummary.bowlerFigures)}>
         {wickets}-{runs}
       </span>
-      <span className={bowlerOversClass}>{overs}</span>
+      <span className={cn(FS_ROW_BALLS, 'w-20 text-right')} style={fsFont(fsSummaryPanel.rowBalls)}>
+        {overs}
+      </span>
     </>
   );
 }
@@ -187,10 +186,12 @@ function NeedTargetBand({ label }) {
       className="flex h-[70px] shrink-0 items-center rounded-xl px-[30px]"
       style={{
         background: `linear-gradient(100deg, ${MATCH_SUMMARY_GOLD}, #d9a93a)`,
-        boxShadow: `0 0 calc(18px * var(--glow)) ${MATCH_SUMMARY_GOLD}33`,
+        boxShadow: colorHaloShadow(MATCH_SUMMARY_GOLD, '18px'),
       }}
     >
-      <span className={needTargetBandClass}>{label}</span>
+      <span className={needTargetBandClass} style={fsFont(fsSummaryPanel.goldBand)}>
+        {label}
+      </span>
     </div>
   );
 }
