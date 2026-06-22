@@ -45,6 +45,7 @@ final class GraphicLiveStatsBuilder
         array $pending,
         ?int $battingTeamId = null,
         ?int $bowlingTeamId = null,
+        array $playerPhotos = [],
     ): array {
         // No deliveries yet: crease + bowler come from matches.pending_crease
         // (scorer picks openers / bowler before the first ball is recorded).
@@ -66,6 +67,7 @@ final class GraphicLiveStatsBuilder
                     'dots' => 0,
                     'on_strike' => $strikeId !== null && $id === $strikeId,
                     'is_dismissed' => false,
+                    'avatar_url' => $playerPhotos[$id] ?? null,
                 ];
                 if ($battingTeamId !== null) {
                     $row['team_id'] = $battingTeamId;
@@ -87,6 +89,7 @@ final class GraphicLiveStatsBuilder
                     'dots' => 0,
                     'on_strike' => $strikeId !== null && $id === $strikeId,
                     'is_dismissed' => false,
+                    'avatar_url' => $playerPhotos[$id] ?? null,
                 ];
                 if ($battingTeamId !== null) {
                     $row['team_id'] = $battingTeamId;
@@ -106,6 +109,7 @@ final class GraphicLiveStatsBuilder
                     'dots' => 0,
                     'wickets' => 0,
                     'economy' => '—',
+                    'avatar_url' => $playerPhotos[$bid] ?? null,
                 ];
                 if ($bowlingTeamId !== null) {
                     $bowler['team_id'] = $bowlingTeamId;
@@ -206,7 +210,7 @@ final class GraphicLiveStatsBuilder
             $strikeId = null;
         }
 
-        $batters = array_map(function ($id) use ($playerNames, $batsmenById, $strikeId, $battingTeamId, $dismissedIds) {
+        $batters = array_map(function ($id) use ($playerNames, $playerPhotos, $batsmenById, $strikeId, $battingTeamId, $dismissedIds) {
             $id = (int) $id;
 
             $row = [
@@ -222,6 +226,7 @@ final class GraphicLiveStatsBuilder
                 'dots' => $batsmenById[$id]['dots'] ?? 0,
                 'on_strike' => $strikeId !== null && $id === $strikeId,
                 'is_dismissed' => in_array($id, $dismissedIds, true),
+                'avatar_url' => $playerPhotos[$id] ?? null,
             ];
             if ($battingTeamId !== null) {
                 $row['team_id'] = $battingTeamId;
@@ -260,6 +265,7 @@ final class GraphicLiveStatsBuilder
                 'dots' => $dotsBowled,
                 'wickets' => $wkts,
                 'economy' => $economyStr,
+                'avatar_url' => $playerPhotos[(int) $lastBowlerId] ?? null,
             ];
             if ($bowlingTeamId !== null) {
                 $bowler['team_id'] = $bowlingTeamId;
@@ -342,7 +348,9 @@ final class GraphicLiveStatsBuilder
             }
         }
 
-        $mirrorNames = InningsStatsService::namesFromDatabase($prefix, []);
+        $mirrorPlayers = InningsStatsService::playersFromDatabase($prefix, []);
+        $mirrorNames = array_map(fn (array $p) => $p['name'], $mirrorPlayers);
+        $mirrorPhotos = array_map(fn (array $p) => $p['avatar_url'], $mirrorPlayers);
         $mirrorStats = $this->inningsStats->compute($prefix, $mirrorNames);
         $stripMirror = $this->graphicOverBattersBowlerStrip(
             $prefix,
@@ -351,6 +359,7 @@ final class GraphicLiveStatsBuilder
             [],
             (int) $first->batting_team_id,
             (int) $first->bowling_team_id,
+            $mirrorPhotos,
         );
 
         return [
@@ -373,6 +382,7 @@ final class GraphicLiveStatsBuilder
         ?Innings $first,
         array $playerNames,
         array $pending = [],
+        array $playerPhotos = [],
     ): array {
         /** @var Collection<int, Ball> $balls */
         $balls = $active->balls;
@@ -394,6 +404,7 @@ final class GraphicLiveStatsBuilder
             $pending,
             (int) $active->batting_team_id,
             (int) $active->bowling_team_id,
+            $playerPhotos,
         );
         $currentOverDeliveries = $strip['current_over_deliveries'] ?? [];
         $currentOverBallModels = $strip['current_over_ball_models'];
@@ -432,7 +443,7 @@ final class GraphicLiveStatsBuilder
             $partnershipRuns = (int) $currentStand['runs'];
             $partnershipBalls = (int) $currentStand['balls'];
         }
-        $partnershipHistory = $this->mapPartnershipHistory($partnerships, $playerNames);
+        $partnershipHistory = $this->mapPartnershipHistory($partnerships, $playerNames, $playerPhotos);
 
         $extrasTotal = (int) ($stats['extras_breakdown']['total'] ?? 0);
         $foursTotal = 0;
@@ -465,7 +476,7 @@ final class GraphicLiveStatsBuilder
             ];
         }, $stats['bowling']);
 
-        $battingOrder = $this->mapBattingOrder($stats['batting']);
+        $battingOrder = $this->mapBattingOrder($stats['batting'], $playerPhotos);
         $bowler = $strip['bowler'];
         if (! empty($bowler['user_id'])) {
             $bowler['extras_conceded'] = $extrasByBowler[(int) $bowler['user_id']] ?? 0;
@@ -721,18 +732,22 @@ final class GraphicLiveStatsBuilder
      * @param  array<int, string>  $playerNames
      * @return list<array<string, mixed>>
      */
-    private function mapPartnershipHistory(array $partnerships, array $playerNames): array
+    private function mapPartnershipHistory(array $partnerships, array $playerNames, array $playerPhotos = []): array
     {
-        return array_map(function (array $p) use ($playerNames) {
-            $name1 = $playerNames[(int) $p['player_1_id']] ?? '';
-            $name2 = $playerNames[(int) $p['player_2_id']] ?? '';
+        return array_map(function (array $p) use ($playerNames, $playerPhotos) {
+            $id1 = (int) $p['player_1_id'];
+            $id2 = (int) $p['player_2_id'];
+            $name1 = $playerNames[$id1] ?? '';
+            $name2 = $playerNames[$id2] ?? '';
 
             return [
                 'wicket_number' => $p['wicket_number'],
-                'batter1_player_id' => (int) $p['player_1_id'],
-                'batter2_player_id' => (int) $p['player_2_id'],
+                'batter1_player_id' => $id1,
+                'batter2_player_id' => $id2,
                 'batter1_display_name' => $this->displaySurname($name1),
                 'batter2_display_name' => $this->displaySurname($name2),
+                'batter1_avatar_url' => $playerPhotos[$id1] ?? null,
+                'batter2_avatar_url' => $playerPhotos[$id2] ?? null,
                 'batter1_runs' => (int) $p['player_1_runs'],
                 'batter2_runs' => (int) $p['player_2_runs'],
                 'batter1_balls' => (int) $p['player_1_balls'],
@@ -745,11 +760,13 @@ final class GraphicLiveStatsBuilder
 
     /**
      * @param  list<array<string, mixed>>  $batting
+     * @param  array<int, string>  $playerPhotos
      * @return list<array<string, mixed>>
      */
-    private function mapBattingOrder(array $batting): array
+    private function mapBattingOrder(array $batting, array $playerPhotos = []): array
     {
-        return array_map(function (array $row) {
+        return array_map(function (array $row) use ($playerPhotos) {
+            $id = (int) $row['id'];
             $isDismissed = ! ($row['is_on_crease'] ?? false) && ($row['dismissal_type'] ?? null) !== null;
             $yetToBat = ($row['balls'] ?? 0) === 0 && ! ($row['is_on_crease'] ?? false) && ($row['dismissal_type'] ?? null) === null;
 
@@ -758,8 +775,9 @@ final class GraphicLiveStatsBuilder
                 : ($isDismissed ? 'dismissed' : 'not_out');
 
             return [
-                'player_id' => (int) $row['id'],
+                'player_id' => $id,
                 'display_name' => $this->displaySurname($row['name'] ?? ''),
+                'avatar_url' => $playerPhotos[$id] ?? null,
                 'runs' => $status === 'yet_to_bat' ? null : (int) ($row['runs'] ?? 0),
                 'balls' => $status === 'yet_to_bat' ? null : (int) ($row['balls'] ?? 0),
                 'status' => $status,

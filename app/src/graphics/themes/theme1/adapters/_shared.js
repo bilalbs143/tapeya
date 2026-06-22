@@ -22,7 +22,7 @@ export function tournamentSub(props) {
  */
 export function resolvePlayerImageUrl(row) {
   const r = row ?? {};
-  return r.playerImageUrl ?? r.avatarUrl ?? r.image_url ?? r.imageUrl ?? r.avatar_url ?? null;
+  return r.playerImageUrl ?? r.avatarUrl ?? r.avatar_url ?? r.imageUrl ?? r.image_url ?? null;
 }
 
 /**
@@ -84,6 +84,7 @@ export function toFrameBowler(bowler) {
     m: 0,
     r: parsed.runs ?? b.runsConceded ?? 0,
     w: parsed.wickets ?? b.wickets ?? 0,
+    avatarUrl: resolvePlayerImageUrl(b),
   };
 }
 
@@ -97,6 +98,7 @@ export function toFrameBatter(batter) {
     runs: b.runs ?? 0,
     balls: b.balls ?? 0,
     onStrike: Boolean(b.onStrike),
+    avatarUrl: resolvePlayerImageUrl(b),
   };
 }
 

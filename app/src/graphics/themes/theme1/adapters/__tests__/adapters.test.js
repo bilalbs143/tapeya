@@ -607,6 +607,8 @@ describe('theme1 fullScreen adapter fixtures', () => {
           batter2_runs: 21,
           batter1_balls: 28,
           batter2_balls: 19,
+          batter1_avatar_url: 'https://cdn.example/khan.jpg',
+          batter2_avatar_url: 'https://cdn.example/mirza.jpg',
           runs: 55,
           balls: 47,
         },
@@ -624,8 +626,18 @@ describe('theme1 fullScreen adapter fixtures', () => {
     });
 
     expect(bundle?.data?.partnerships).toHaveLength(2);
-    expect(bundle?.data?.partnerships[0].batters[0]).toMatchObject({ fullName: 'KHAN', runs: 34, balls: 28 });
-    expect(bundle?.data?.partnerships[0].batters[1]).toMatchObject({ fullName: 'MIRZA', runs: 21, balls: 19 });
+    expect(bundle?.data?.partnerships[0].batters[0]).toMatchObject({
+      fullName: 'KHAN',
+      runs: 34,
+      balls: 28,
+      avatarUrl: 'https://cdn.example/khan.jpg',
+    });
+    expect(bundle?.data?.partnerships[0].batters[1]).toMatchObject({
+      fullName: 'MIRZA',
+      runs: 21,
+      balls: 19,
+      avatarUrl: 'https://cdn.example/mirza.jpg',
+    });
     expect(bundle?.data?.scoreStrip).toEqual({ extras: 8, overs: '18.2', total: '142/4' });
   });
 

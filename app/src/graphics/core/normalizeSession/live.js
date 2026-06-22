@@ -31,6 +31,7 @@ function normalizeAtStageMirror(mirror) {
       name: mirror.bowler?.name ?? '',
       figures: mirror.bowler?.figures ?? '',
       overs: mirror.bowler?.overs ?? '',
+      imageUrl: mirror.bowler?.avatar_url ?? mirror.bowler?.image_url ?? null,
     },
     currentOverDeliveries: normalizeDeliveries(mirror.current_over_deliveries),
     inningsLabel: mirror.innings_label ?? '1st Innings',
@@ -76,6 +77,7 @@ export function normalizeLive(ctx, teams) {
       wickets: bowlerRaw.wickets ?? null,
       economy: bowlerRaw.economy ?? null,
       extrasConceded: bowlerRaw.extras_conceded ?? null,
+      imageUrl: bowlerRaw.avatar_url ?? bowlerRaw.image_url ?? null,
     },
     currentOverDeliveries: normalizeDeliveries(ctx.current_over_deliveries),
     partnership: {

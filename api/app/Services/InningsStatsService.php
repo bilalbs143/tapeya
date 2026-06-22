@@ -13,6 +13,7 @@ use App\Support\BallDelivery\BallDeliveryPresenter;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Centralized innings stats computation — single source of truth used by
@@ -769,9 +770,9 @@ class InningsStatsService
      * Use when ball relations are NOT eager-loaded (e.g. background jobs).
      *
      * @param  array<int>  $extraIds  Additional player IDs to include (e.g. pending players).
-     * @return array<int, string>
+     * @return array<int, array{name: string, avatar_url: string|null}>
      */
-    public static function namesFromDatabase(Collection $balls, array $extraIds = []): array
+    public static function playersFromDatabase(Collection $balls, array $extraIds = []): array
     {
         $ids = $balls->flatMap(fn (Ball $b) => array_filter([
             $b->striker_id,
@@ -785,10 +786,25 @@ class InningsStatsService
             return [];
         }
 
+        $disk = Storage::disk(config('filesystems.media_disk', 'public'));
+
         return User::whereIn('id', $ids)
-            ->pluck('name', 'id')
-            ->map(fn ($n) => $n ?? 'Player')
+            ->get(['id', 'name', 'avatar'])
+            ->keyBy('id')
+            ->map(fn ($u) => [
+                'name' => $u->name ?? 'Player',
+                'avatar_url' => $u->avatar ? $disk->url((string) $u->avatar) : null,
+            ])
             ->all();
+    }
+
+    /**
+     * @param  array<int>  $extraIds
+     * @return array<int, string>
+     */
+    public static function namesFromDatabase(Collection $balls, array $extraIds = []): array
+    {
+        return array_map(fn (array $p) => $p['name'], static::playersFromDatabase($balls, $extraIds));
     }
 
     /**

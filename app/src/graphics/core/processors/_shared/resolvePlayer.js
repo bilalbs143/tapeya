@@ -16,7 +16,7 @@ export function playerBase(p = {}) {
     playerRole: player.role ?? p.playing_role ?? '',
     playerBattingStyle: player.batting_style ?? p.batting_style ?? '',
     playerBowlingStyle: player.bowling_style ?? p.bowling_style ?? '',
-    playerImageUrl: player.image_url ?? null,
+    playerImageUrl: player.avatar_url ?? player.image_url ?? null,
     playerTeamLogoUrl: player.team_logo_url ?? p.team_logo_url ?? null,
     stats: Array.isArray(p.stats) ? p.stats : [],
   };
@@ -156,6 +156,7 @@ export function mergePlayerPropsFromSession(snapshot, p, extra = {}) {
       ...withTeam,
       playerName: batter.name,
       playerTeam: teamShortOrNameForTid(match, tid) || withTeam.playerTeam,
+      playerImageUrl: withTeam.playerImageUrl ?? batter.imageUrl ?? null,
     });
   }
 
@@ -166,6 +167,7 @@ export function mergePlayerPropsFromSession(snapshot, p, extra = {}) {
       ...withTeam,
       playerName: bow.name,
       playerTeam: teamShortOrNameForTid(match, tid) || withTeam.playerTeam,
+      playerImageUrl: withTeam.playerImageUrl ?? bow.imageUrl ?? null,
       playerTeamLogoUrl:
         withTeam.playerTeamLogoUrl ?? teamLogoUrlForTeamId(snapshot, tid) ?? teamLogoUrlForTeamId(snapshot, toNum(bow.teamId)),
     });

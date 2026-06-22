@@ -200,7 +200,7 @@ final class MatchGraphicTournamentLeaderboardService
                 'team' => $teamNames[$uid] ?? '',
                 'team_name' => $teamNames[$uid] ?? '',
                 'is_not_out' => false,
-                'image_url' => $u?->avatar ? $avatarUrl($u->avatar) : null,
+                'avatar_url' => $u?->avatar ? $avatarUrl($u->avatar) : null,
             ];
             $rank++;
         }
@@ -234,7 +234,7 @@ final class MatchGraphicTournamentLeaderboardService
                 'team' => $teamNames[$uid] ?? '',
                 'team_name' => $teamNames[$uid] ?? '',
                 'is_not_out' => (int) ($row->not_outs ?? 0) > 0,
-                'image_url' => $u?->avatar ? $avatarUrl($u->avatar) : null,
+                'avatar_url' => $u?->avatar ? $avatarUrl($u->avatar) : null,
             ];
             $rank++;
         }
@@ -268,7 +268,7 @@ final class MatchGraphicTournamentLeaderboardService
                 'team' => $teamNames[$uid] ?? '',
                 'team_name' => $teamNames[$uid] ?? '',
                 'is_not_out' => false,
-                'image_url' => $u?->avatar ? $avatarUrl($u->avatar) : null,
+                'avatar_url' => $u?->avatar ? $avatarUrl($u->avatar) : null,
             ];
             $rank++;
         }

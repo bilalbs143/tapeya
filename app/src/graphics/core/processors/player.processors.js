@@ -183,6 +183,7 @@ function normalizeBattingOrderRow(row) {
     balls: row.balls ?? null,
     dismissal_text: row.dismissal_text ?? row.dismissalText ?? null,
     is_at_crease: Boolean(row.is_at_crease ?? row.isAtCrease),
+    avatar_url: row.avatar_url ?? row.avatarUrl ?? row.image_url ?? row.imageUrl ?? null,
   };
 }
 

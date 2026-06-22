@@ -7,6 +7,7 @@ use App\Enums\User\PlayingRoleEnum;
 use App\Models\TournamentMatch;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -37,6 +38,12 @@ final class GraphicPlayerProfileEnricher
         $teamMeta = $match !== null ? $this->teamMetaForPlayer($match, $playerId) : ['team_name' => '', 'team_abbrev' => '', 'team_id' => null];
         [$firstName, $lastName] = $this->splitName((string) ($user->name ?: $user->nickname ?: ''));
 
+        $disk = Storage::disk(config('filesystems.media_disk', 'public'));
+        $avatarPath = $user->avatar ?? null;
+        $avatarUrl = $avatarPath
+            ? $disk->url((string) $avatarPath)
+            : ($payload['player']['avatar_url'] ?? $payload['player']['image_url'] ?? null);
+
         $player = array_merge(is_array($payload['player'] ?? null) ? $payload['player'] : [], [
             'name' => $user->name ?: $user->nickname ?: 'Player',
             'first_name' => $firstName,
@@ -47,7 +54,7 @@ final class GraphicPlayerProfileEnricher
             'team' => $teamMeta['team_abbrev'] ?: $teamMeta['team_name'],
             'team_name' => $teamMeta['team_name'],
             'team_abbrev_display' => $teamMeta['team_abbrev'],
-            'image_url' => $payload['player']['image_url'] ?? null,
+            'avatar_url' => $avatarUrl,
         ]);
 
         return array_merge($payload, [

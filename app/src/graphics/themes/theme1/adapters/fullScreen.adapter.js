@@ -451,11 +451,13 @@ function partnershipEntryBatters(entry) {
         display_name: entry.batter1_display_name,
         runs: entry.batter1_runs,
         balls: entry.batter1_balls ?? entry.player_1_balls,
+        avatar_url: entry.batter1_avatar_url ?? null,
       },
       {
         display_name: entry.batter2_display_name,
         runs: entry.batter2_runs,
         balls: entry.batter2_balls ?? entry.player_2_balls,
+        avatar_url: entry.batter2_avatar_url ?? null,
       },
     ].filter((b) => resolvePlayerDisplayName(b));
   }
@@ -479,6 +481,7 @@ function mapPartnershipHistory(partnerships, accent) {
           balls: b.balls ?? 0,
           accent: index === 0 ? accent : '#f5c85a',
           align: index === 1 ? 'right' : undefined,
+          avatarUrl: resolvePlayerImageUrl(b),
         })),
       };
     })

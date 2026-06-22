@@ -63,11 +63,13 @@ final class GraphicContextBuilder
                 isset($pending['next_non_striker_id']) ? (int) $pending['next_non_striker_id'] : null,
                 isset($pending['next_bowler_id']) ? (int) $pending['next_bowler_id'] : null,
             ]));
-            $playerNames = InningsStatsService::namesFromDatabase($active->balls, $pendingIds);
+            $players = InningsStatsService::playersFromDatabase($active->balls, $pendingIds);
+            $playerNames = array_map(fn (array $p) => $p['name'], $players);
+            $playerPhotos = array_map(fn (array $p) => $p['avatar_url'], $players);
 
             $context = array_merge(
                 $context,
-                $this->liveStats->buildLive($match, $active, $first, $playerNames, $pending),
+                $this->liveStats->buildLive($match, $active, $first, $playerNames, $pending, $playerPhotos),
                 [
                     'innings_chart' => $this->liveStats->buildInningsChart($match, $innings),
                     'innings_summaries' => $this->liveStats->buildCompletedInningsSummaries($match, $innings),

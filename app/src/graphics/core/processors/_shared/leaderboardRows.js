@@ -68,7 +68,7 @@ function featuredFromLeaderboardRow(metric, row, explicitFeatured) {
   return {
     name: String(name),
     value: `${v ?? ''}${notOut}`,
-    image_url: row.image_url ?? null,
+    avatar_url: row.avatar_url ?? row.image_url ?? null,
     team_name: row.team_name ?? row.team ?? '',
     metric_kind: row.metric_kind ?? (metric === 'bowling' ? 'wickets' : 'runs'),
   };
