@@ -1,15 +1,20 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTableModule } from '@angular/material/table';
+import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { forkJoin, Subscription } from 'rxjs';
+import { forkJoin, Subscription, EMPTY } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
+
+import { ManageTeamDialogComponent } from '../teams/manage-team-dialog/manage-team-dialog.component';
 
 import { MessageService } from 'src/app/services/message.service';
+import { type TeamRow } from 'src/app/services/teams.service';
 import { TournamentTeamsService, type TournamentTeamRow } from 'src/app/services/tournament-teams.service';
 import { TournamentsService, type Tournament } from 'src/app/services/tournaments.service';
 import { TableWrapperComponent } from 'src/app/shared/components/table-wrapper/table-wrapper.component';
@@ -26,28 +31,52 @@ import { EditTournamentTeamGroupDialogComponent } from './edit-tournament-team-g
     MatCardModule,
     MatButtonModule,
     MatTableModule,
+    MatSortModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
     TablerIconsModule,
-    RouterLink,
     TableWrapperComponent,
   ],
   templateUrl: './tournament-teams-tab.component.html',
 })
 export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly teamsService = inject(TournamentTeamsService);
   private readonly tournamentsService = inject(TournamentsService);
   private readonly messageService = inject(MessageService);
   private readonly sub = new Subscription();
 
-  public teams: TournamentTeamRow[] = [];
+  @ViewChild(MatSort)
+  public set matSort(sort: MatSort | undefined) {
+    if (sort) {
+      this.dataSource.sort = sort;
+      this.dataSource.data = [...this.dataSource.data];
+    }
+  }
+
+  public dataSource = new MatTableDataSource<TournamentTeamRow>([]);
   public tournament: Tournament | null = null;
   public isLoading = true;
   public readonly emptyCell = EMPTY_CELL;
   public readonly columns = ['name', 'sponsor', 'group', 'actions'] as const;
 
   public tournamentId = 0;
+
+  constructor() {
+    this.dataSource.sortingDataAccessor = (row, column) => {
+      switch (column) {
+        case 'name':
+          return row.name ?? '';
+        case 'sponsor':
+          return row.sponsor?.nickname || row.sponsor?.name || '';
+        case 'group':
+          return row.group_index ?? Number.MAX_SAFE_INTEGER;
+        default:
+          return '';
+      }
+    };
+  }
 
   public get numberOfGroups(): number {
     return this.tournament?.number_of_groups != null && this.tournament.number_of_groups > 0
@@ -57,14 +86,38 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
 
   public ngOnInit(): void {
     this.sub.add(
-      this.route.parent!.paramMap.subscribe((params) => {
-        const id = params.get('tournamentId');
-        if (!id) {
-          return;
-        }
-        this.tournamentId = Number(id);
-        this.load();
-      })
+      this.route
+        .parent!.paramMap.pipe(
+          switchMap((params) => {
+            const idRaw = params.get('tournamentId');
+            if (!idRaw) {
+              return EMPTY;
+            }
+
+            const id = Number(idRaw);
+            if (!Number.isFinite(id) || id <= 0) {
+              return EMPTY;
+            }
+
+            this.tournamentId = id;
+            this.isLoading = true;
+
+            return forkJoin({
+              tournament: this.tournamentsService.getById(id),
+              teams: this.teamsService.listTeams(id),
+            }).pipe(
+              catchError(() => {
+                this.isLoading = false;
+                return EMPTY;
+              })
+            );
+          })
+        )
+        .subscribe(({ tournament, teams }) => {
+          this.tournament = tournament.data ?? null;
+          this.dataSource.data = teams.data ?? [];
+          this.isLoading = false;
+        })
     );
   }
 
@@ -80,12 +133,11 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
     }).subscribe({
       next: ({ tournament, teams }) => {
         this.tournament = tournament.data ?? null;
-        this.teams = teams.data ?? [];
+        this.dataSource.data = teams.data ?? [];
         this.isLoading = false;
       },
       error: () => {
         this.isLoading = false;
-        this.messageService.error('Could not load tournament teams.');
       },
     });
   }
@@ -96,7 +148,7 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
       {
         tournamentId: this.tournamentId,
         numberOfGroups: this.numberOfGroups,
-        attachedTeamIds: this.teams.map((t) => t.id),
+        attachedTeamIds: this.dataSource.data.map((t) => t.id),
       },
       (saved) => saved && this.load(),
       { widthSize: 'sm', disableClose: true }
@@ -116,6 +168,34 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
       (saved) => saved && this.load(),
       { widthSize: 'sm', disableClose: true }
     );
+  }
+
+  public openTeamSquad(team: TournamentTeamRow): void {
+    void this.router.navigate(['/tournaments-management/tournaments', this.tournamentId, 'teams', team.id, 'squad']);
+  }
+
+  public openEditTeam(team: TournamentTeamRow): void {
+    this.messageService.openDialog<ManageTeamDialogComponent, boolean>(
+      ManageTeamDialogComponent,
+      { mode: 'edit', team: this.toTeamRow(team) },
+      (saved) => saved && this.load(),
+      { widthSize: 'lg', disableClose: true }
+    );
+  }
+
+  /** Seed for ManageTeamDialog — full row is loaded via TeamsService.getById in the dialog. */
+  private toTeamRow(row: TournamentTeamRow): TeamRow {
+    return {
+      id: row.id,
+      name: row.name,
+      code: row.code ?? '',
+      country: row.country ?? '',
+      city: row.city ?? '',
+      logo: row.logo,
+      sponsor_id: row.sponsor?.id ?? 0,
+      sponsor: row.sponsor,
+      icon_player_ids: [],
+    };
   }
 
   public confirmDetachTeam(team: TournamentTeamRow): void {

@@ -5,6 +5,7 @@ namespace App\Http\Resources\Admin\User;
 use App\Enums\User\RoleGuardEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class UserResource extends JsonResource
 {
@@ -21,12 +22,17 @@ class UserResource extends JsonResource
             ? $user->roles->where('guard', RoleGuardEnum::ADMIN->value)->values()
             : $user->getAdminRoles();
 
+        $avatarUrl = $this->avatar
+            ? Storage::disk(config('filesystems.media_disk'))->url($this->avatar)
+            : null;
+
         return [
             'id' => $this->id,
             'name' => $this->name,
             'nickname' => $this->nickname,
             'email' => $this->email,
             'phone' => $this->phone,
+            'avatar_url' => $avatarUrl,
             'date_of_birth' => $this->date_of_birth?->format('Y-m-d'),
             'type' => $this->type?->label(),
             'type_enum' => $this->type?->name,

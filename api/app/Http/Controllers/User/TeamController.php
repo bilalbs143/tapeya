@@ -185,12 +185,10 @@ class TeamController extends Controller
         // Set the team-level squad: replace existing squad with given players
         $team->players()->sync($playerIds);
 
-        $team->load(['players']);
-
         return $this->success(
             [
                 'team_id' => $team->id,
-                'player_ids' => $team->players->pluck('id')->values()->all(),
+                'player_ids' => array_values(array_map('intval', $playerIds)),
             ],
             'Team squad updated.',
             'SUCCESS'

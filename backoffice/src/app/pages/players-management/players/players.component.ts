@@ -23,7 +23,10 @@ import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
 
 import { ImportPlayersCsvDialogComponent } from './import-players-csv-dialog/import-players-csv-dialog.component';
-import { ManagePlayerDialogComponent } from './manage-player-dialog/manage-player-dialog.component';
+import {
+  ManagePlayerDialogComponent,
+  type ManagePlayerDialogResult,
+} from './manage-player-dialog/manage-player-dialog.component';
 
 const DEFAULT_FILTERS = {
   search: '',
@@ -144,7 +147,7 @@ export class PlayersComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public openCreateDialog(): void {
-    this.messageService.openDialog<ManagePlayerDialogComponent, boolean>(
+    this.messageService.openDialog<ManagePlayerDialogComponent, ManagePlayerDialogResult>(
       ManagePlayerDialogComponent,
       { mode: 'create' },
       (result) => result && this.loadHttpData(),
@@ -165,7 +168,7 @@ export class PlayersComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public openEditDialog(user: User): void {
-    this.messageService.openDialog<ManagePlayerDialogComponent, boolean>(
+    this.messageService.openDialog<ManagePlayerDialogComponent, ManagePlayerDialogResult>(
       ManagePlayerDialogComponent,
       { mode: 'edit', user },
       (result) => result && this.loadHttpData(),

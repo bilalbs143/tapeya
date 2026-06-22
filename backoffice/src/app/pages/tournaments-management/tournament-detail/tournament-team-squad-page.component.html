@@ -1,0 +1,204 @@
+@if (isLoading) {
+  <div class="flex min-h-[18rem] w-full items-center justify-center px-4 py-10">
+    <mat-spinner diameter="40" />
+  </div>
+} @else if (team) {
+  <div aria-label="Manage team squad">
+    <mat-card class="cardWithShadow mb-3!">
+      <mat-card-content class="p-6">
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <mat-form-field
+            appearance="outline"
+            class="hide-hint w-full max-w-sm shrink-0"
+            subscriptSizing="dynamic"
+          >
+            <mat-label>Add player to team squad</mat-label>
+            <input
+              matInput
+              [formControl]="searchControl"
+              [matAutocomplete]="autoCand"
+              [disabled]="isSaving"
+              placeholder="Name, email, or phone"
+            />
+            <mat-autocomplete
+              #autoCand="matAutocomplete"
+              (optionSelected)="onCandidateSelected($event)"
+            >
+              @for (c of visibleCandidates; track c.id) {
+                <mat-option [value]="c">{{ c.name }} — {{ c.email || c.nickname || '#' + c.id }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+
+          <div class="flex flex-wrap items-center justify-end gap-2 lg:shrink-0">
+            <button
+              type="button"
+              mat-stroked-button
+              [disabled]="isSaving"
+              (click)="navigateToTeams()"
+            >
+              Back to Teams
+            </button>
+            <button
+              type="button"
+              mat-flat-button
+              color="primary"
+              [disabled]="isSaving"
+              (click)="openCreatePlayer()"
+            >
+              Create New Player
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="cardWithShadow table-header-theme">
+      <mat-card-content class="p-0">
+        @if (dataSource.data.length === 0) {
+          <div class="flex min-h-[14rem] w-full flex-col items-center justify-center px-4 py-10 text-center text-muted">
+            <p class="m-0 max-w-md text-sm">No players on the Team Squad yet. Search above to add squad members.</p>
+          </div>
+        } @else {
+          <div class="sticky-header-table-container relative overflow-auto">
+            <app-table-wrapper [loading]="false">
+              <table
+                mat-table
+                matSort
+                matSortActive="name"
+                matSortDirection="asc"
+                matSortStart="asc"
+                [dataSource]="dataSource"
+                class="w-full min-w-[640px] text-sm"
+              >
+                <ng-container matColumnDef="name">
+                  <th
+                    mat-header-cell
+                    *matHeaderCellDef
+                    mat-sort-header
+                    class="bg-light-secondary text-sm font-semibold"
+                  >
+                    Name
+                  </th>
+                  <td
+                    mat-cell
+                    *matCellDef="let row"
+                    class="font-medium whitespace-nowrap"
+                  >
+                    {{ row.name }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="nickname">
+                  <th
+                    mat-header-cell
+                    *matHeaderCellDef
+                    mat-sort-header
+                    class="bg-light-secondary text-sm font-semibold"
+                  >
+                    Nickname
+                  </th>
+                  <td
+                    mat-cell
+                    *matCellDef="let row"
+                  >
+                    {{ row.nickname || emptyCell }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="email">
+                  <th
+                    mat-header-cell
+                    *matHeaderCellDef
+                    mat-sort-header
+                    class="bg-light-secondary text-sm font-semibold"
+                  >
+                    Email
+                  </th>
+                  <td
+                    mat-cell
+                    *matCellDef="let row"
+                    class="whitespace-nowrap"
+                  >
+                    {{ row.email || emptyCell }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="phone">
+                  <th
+                    mat-header-cell
+                    *matHeaderCellDef
+                    mat-sort-header
+                    class="bg-light-secondary text-sm font-semibold"
+                  >
+                    Phone
+                  </th>
+                  <td
+                    mat-cell
+                    *matCellDef="let row"
+                    class="whitespace-nowrap"
+                  >
+                    {{ row.phone || emptyCell }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="actions">
+                  <th
+                    mat-header-cell
+                    *matHeaderCellDef
+                    class="bg-light-secondary text-sm font-semibold"
+                  >
+                    Actions
+                  </th>
+                  <td
+                    mat-cell
+                    *matCellDef="let row"
+                    class="text-sm whitespace-nowrap"
+                  >
+                    <button
+                      type="button"
+                      class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle text-black hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-40"
+                      matTooltip="Edit Player"
+                      matTooltipShowDelay="300"
+                      aria-label="Edit player"
+                      [disabled]="isSaving"
+                      (click)="openEditPlayer(row)"
+                    >
+                      <i-tabler
+                        name="edit"
+                        class="size-4.5! text-black"
+                      ></i-tabler>
+                    </button>
+                    <button
+                      type="button"
+                      class="cursor-pointer border-0 bg-transparent p-0 align-middle text-black hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-40"
+                      matTooltip="Remove From Squad"
+                      matTooltipShowDelay="300"
+                      aria-label="Remove from squad"
+                      [disabled]="isSaving"
+                      (click)="confirmRemovePlayer(row)"
+                    >
+                      <i-tabler
+                        name="user-minus"
+                        class="size-4.5! text-black"
+                      ></i-tabler>
+                    </button>
+                  </td>
+                </ng-container>
+
+                <tr
+                  mat-header-row
+                  *matHeaderRowDef="columns"
+                ></tr>
+                <tr
+                  mat-row
+                  *matRowDef="let row; columns: columns"
+                ></tr>
+              </table>
+            </app-table-wrapper>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+}

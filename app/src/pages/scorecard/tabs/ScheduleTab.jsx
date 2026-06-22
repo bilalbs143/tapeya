@@ -7,7 +7,7 @@ import { useMemo } from 'react';
 
 import { MatchCard } from '@/components/scorecard/MatchCard';
 
-function MatchCardList({ matches, tournamentId }) {
+function MatchCardList({ matches = [], tournamentId }) {
   return (
     <div className="space-y-3">
       {matches.map((match) => {
@@ -19,12 +19,12 @@ function MatchCardList({ matches, tournamentId }) {
   );
 }
 
-export function ScheduleTab({ matches, tournamentId, tournament }) {
+export function ScheduleTab({ matches = [], tournamentId, tournament }) {
   const numberOfGroups = tournament?.number_of_groups ?? 1;
   const hasGroups = numberOfGroups > 1;
 
   const matchesByGroup = useMemo(() => {
-    if (!hasGroups || !matches?.length) return null;
+    if (!hasGroups || !matches.length) return null;
     const byGroup = /** @type {Record<number, typeof matches>} */ ({});
     for (let i = 1; i <= numberOfGroups; i++) {
       byGroup[i] = matches.filter((m) => Number(m.group_index) === i);
@@ -34,7 +34,7 @@ export function ScheduleTab({ matches, tournamentId, tournament }) {
 
   const knockoutMatches = useMemo(
     () =>
-      hasGroups && matches?.length
+      hasGroups && matches.length
         ? matches.filter(
             (m) =>
               m.group_index == null ||
@@ -46,7 +46,7 @@ export function ScheduleTab({ matches, tournamentId, tournament }) {
     [hasGroups, matches, numberOfGroups],
   );
 
-  if (!matches?.length) {
+  if (!matches.length) {
     return (
       <div className="mt-4 space-y-3 pb-6">
         <p className="text-muted py-8 text-center text-[13px]">No matches in this tournament</p>
@@ -57,15 +57,19 @@ export function ScheduleTab({ matches, tournamentId, tournament }) {
   if (matchesByGroup != null) {
     return (
       <div className="mt-4 space-y-6 pb-6 focus-visible:outline-none">
-        {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map((groupIndex) => (
-          <section key={groupIndex}>
-            <h3 className="text-brand mb-2 text-[13px] font-bold tracking-wide uppercase">Group {groupIndex}</h3>
-            <MatchCardList matches={matchesByGroup[groupIndex]} tournamentId={tournamentId} />
-            {matchesByGroup[groupIndex].length === 0 && (
-              <p className="bg-surface text-muted rounded-[17px] px-4 py-4 text-center text-[13px]">No matches in this group</p>
-            )}
-          </section>
-        ))}
+        {Array.from({ length: numberOfGroups }, (_, i) => i + 1).map((groupIndex) => {
+          const groupMatches = matchesByGroup[groupIndex] ?? [];
+          return (
+            <section key={groupIndex}>
+              <h3 className="text-brand mb-2 text-[13px] font-bold tracking-wide uppercase">Group {groupIndex}</h3>
+              {groupMatches.length === 0 ? (
+                <p className="bg-surface text-muted rounded-[17px] px-4 py-4 text-center text-[13px]">No matches in this group</p>
+              ) : (
+                <MatchCardList matches={groupMatches} tournamentId={tournamentId} />
+              )}
+            </section>
+          );
+        })}
         {knockoutMatches.length > 0 && (
           <section>
             <h3 className="text-brand mb-2 text-[13px] font-bold tracking-wide uppercase">Knockout / Playoff</h3>

@@ -42,6 +42,10 @@ import {
 
 const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
 
+function comparePlayerName(a, b) {
+  return String(a.name ?? a.nickname).localeCompare(String(b.name ?? b.nickname), undefined, { sensitivity: 'base' });
+}
+
 function teamDisplayMeta(team) {
   const owner = team?.sponsor?.name ?? (team?.owner != null ? String(team.owner) : '—');
   const iconPlayers =
@@ -201,6 +205,7 @@ export default function TournamentSquad() {
   }, [isValidId, isLoadingTeams, teams.length, tournamentIdNum, tournament, navigate]);
 
   const squadIds = useMemo(() => new Set(squad.map((p) => p.id)), [squad]);
+  const displaySquad = useMemo(() => [...squad].sort(comparePlayerName), [squad]);
 
   const getSquadConflictMessage = (player) => {
     const row = occupiedByPlayerId.get(Number(player.id));
@@ -429,7 +434,7 @@ export default function TournamentSquad() {
                   </td>
                 </tr>
               )}
-              {squad.map((player, index) => (
+              {displaySquad.map((player, index) => (
                 <tr key={player.id}>
                   <td className={`border-r border-b border-l py-3 pl-4 ${BORDER}`}>
                     <p className="text-[12px] font-medium text-white">

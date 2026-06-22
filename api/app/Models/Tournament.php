@@ -179,6 +179,8 @@ class Tournament extends BaseModel
     public function teams(): BelongsToMany
     {
         return $this->belongsToMany(Team::class, 'tournament_team')
+            ->orderBy('teams.name')
+            ->orderBy('teams.code')
             ->withPivot('group_index')
             ->withTimestamps();
     }
@@ -191,7 +193,7 @@ class Tournament extends BaseModel
     {
         $instance = $this->newRelatedInstance(User::class);
 
-        return new TournamentSquadPlayersRelation(
+        return (new TournamentSquadPlayersRelation(
             $instance->newQuery(),
             $this,
             'team_user',
@@ -200,7 +202,9 @@ class Tournament extends BaseModel
             $this->getKeyName(),
             $instance->getKeyName(),
             __FUNCTION__,
-        );
+        ))
+            ->orderBy('users.name')
+            ->orderBy('users.nickname');
     }
 
     /**
@@ -208,7 +212,9 @@ class Tournament extends BaseModel
      */
     public function matches(): HasMany
     {
-        return $this->hasMany(TournamentMatch::class, 'tournament_id');
+        return $this->hasMany(TournamentMatch::class, 'tournament_id')
+            ->orderBy('match_date')
+            ->orderByRaw("COALESCE(match_time, '00:00:00')");
     }
 
     /**

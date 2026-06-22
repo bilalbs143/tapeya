@@ -28,7 +28,7 @@ export function TeamsTab({ tournamentId, tournament }) {
               >
                 <span>{formatListIndex(index + 1)}</span>
                 <TeamLogo team={team} variant="teamsTab" />
-                <span>{team.name}</span>
+                <span>{team.name ?? team.code ?? 'Team'}</span>
               </div>
             ))}
           </div>

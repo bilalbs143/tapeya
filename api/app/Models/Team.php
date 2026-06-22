@@ -31,11 +31,12 @@ class Team extends BaseModel
     }
 
     /**
-     * Icon / star players for this team.
+     * Icon / star players for this team (order preserved by pivot insert order).
      */
     public function iconPlayers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'team_icon_players')
+            ->orderBy('team_icon_players.id')
             ->withTimestamps();
     }
 
@@ -45,6 +46,8 @@ class Team extends BaseModel
     public function players(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'team_user')
+            ->orderBy('users.name')
+            ->orderBy('users.nickname')
             ->withTimestamps();
     }
 

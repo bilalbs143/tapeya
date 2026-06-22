@@ -91,6 +91,12 @@ export const TournamentsManagementRoutes: Routes = [
         data: { title: 'Overview' },
       },
       {
+        path: 'teams/:teamId/squad',
+        loadComponent: () =>
+          import('./tournament-detail/tournament-team-squad-page.component').then((m) => m.TournamentTeamSquadPageComponent),
+        data: { title: 'Team Squad' },
+      },
+      {
         path: 'teams',
         loadComponent: () =>
           import('./tournament-detail/tournament-teams-tab.component').then((m) => m.TournamentTeamsTabComponent),
@@ -98,9 +104,8 @@ export const TournamentsManagementRoutes: Routes = [
       },
       {
         path: 'squads',
-        loadComponent: () =>
-          import('./tournament-detail/tournament-squads-tab.component').then((m) => m.TournamentSquadsTabComponent),
-        data: { title: 'Team Squads' },
+        redirectTo: 'teams',
+        pathMatch: 'full',
       },
       {
         path: 'matches',

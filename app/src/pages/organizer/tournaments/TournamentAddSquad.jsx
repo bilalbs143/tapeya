@@ -121,7 +121,7 @@ export default function TournamentAddSquad() {
   // Optimistic removal: filter out deleted teams immediately without refetch.
   const [removedTeamIds, setRemovedTeamIds] = useState([]);
   const baseTeams = stateTeams?.length > 0 ? stateTeams : fetchedTeams;
-  const teams = baseTeams.filter((t) => !removedTeamIds.includes(t.id));
+  const teams = useMemo(() => baseTeams.filter((t) => !removedTeamIds.includes(Number(t.id))), [baseTeams, removedTeamIds]);
 
   const numberOfGroups = tournament?.number_of_groups ?? 1;
   const hasGroups = numberOfGroups > 1;

@@ -73,6 +73,7 @@ export class TournamentMatchesComponent implements OnInit {
   public set matSort(sort: MatSort | undefined) {
     if (sort) {
       this.dataSource.sort = sort;
+      this.dataSource.data = [...this.dataSource.data];
     }
   }
 
@@ -209,6 +210,9 @@ export class TournamentMatchesComponent implements OnInit {
     }
 
     this.dataSource.data = rows;
+    if (this.dataSource.sort) {
+      this.dataSource.data = [...rows];
+    }
     this.dataSource.paginator?.firstPage();
   }
 

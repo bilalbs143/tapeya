@@ -10,13 +10,17 @@ import { MatDivider } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { Subscription } from 'rxjs';
-import { finalize } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { catchError, finalize, map, switchMap } from 'rxjs/operators';
 
 import { EnumsService } from 'src/app/services/enums.service';
 import { Country, LocationService } from 'src/app/services/location.service';
+import { MediaService } from 'src/app/services/media.service';
+import { MessageService } from 'src/app/services/message.service';
 import type { CreatePlayerPayload, UpdatePlayerPayload } from 'src/app/services/players.service';
 import { PlayersService } from 'src/app/services/players.service';
 import type { User } from 'src/app/services/users.service';
+import { AvatarUploaderComponent } from 'src/app/shared/components/avatar-uploader/avatar-uploader.component';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { PHONE_PATTERN } from 'src/app/shared/constants/validation.constants';
@@ -26,6 +30,8 @@ export interface ManagePlayerDialogData {
   mode: 'create' | 'edit';
   user?: User;
 }
+
+export type ManagePlayerDialogResult = User | undefined;
 
 @Component({
   selector: 'app-manage-player-dialog',
@@ -43,15 +49,18 @@ export interface ManagePlayerDialogData {
     DialogWrapperComponent,
     MatDivider,
     SubmitButtonComponent,
+    AvatarUploaderComponent,
   ],
   templateUrl: './manage-player-dialog.component.html',
 })
 export class ManagePlayerDialogComponent implements OnInit, OnDestroy {
   public readonly data = inject<ManagePlayerDialogData>(MAT_DIALOG_DATA);
   private readonly playersService = inject(PlayersService);
+  private readonly mediaService = inject(MediaService);
+  private readonly messageService = inject(MessageService);
   private readonly enumsService = inject(EnumsService);
   private readonly locationService = inject(LocationService);
-  private readonly dialogRef = inject<MatDialogRef<ManagePlayerDialogComponent>>(MatDialogRef);
+  private readonly dialogRef = inject<MatDialogRef<ManagePlayerDialogComponent, ManagePlayerDialogResult>>(MatDialogRef);
   private readonly fb = inject(FormBuilder);
   private readonly sub = new Subscription();
 
@@ -64,8 +73,15 @@ export class ManagePlayerDialogComponent implements OnInit, OnDestroy {
   public readonly bowlingStyleOptions$ = this.enumsService.getOptions('bowling_style');
   public readonly battingStyleOptions$ = this.enumsService.getOptions('batting_style');
 
+  /** Tracks the cropped file chosen in the avatar uploader (null = remove). */
+  public pendingAvatarFile: File | null | undefined = undefined;
+
   public get title(): string {
     return this.data.mode === 'edit' ? 'Edit Player' : 'Add Player';
+  }
+
+  public get currentAvatarUrl(): string | null | undefined {
+    return this.data.user?.avatar_url;
   }
 
   public ngOnInit(): void {
@@ -76,6 +92,11 @@ export class ManagePlayerDialogComponent implements OnInit, OnDestroy {
 
   public ngOnDestroy(): void {
     this.sub.unsubscribe();
+  }
+
+  public onAvatarChange(file: File | null): void {
+    // undefined = no change, File = new upload, null = remove
+    this.pendingAvatarFile = file ?? null;
   }
 
   private initializeForm(): void {
@@ -90,7 +111,6 @@ export class ManagePlayerDialogComponent implements OnInit, OnDestroy {
       bowling_style: [normalizeEnumValue(u?.bowling_style_enum ?? undefined, '')],
       batting_style: [normalizeEnumValue(u?.batting_style_enum ?? undefined, '')],
       country: [u?.country ?? ''],
-      // City starts disabled until a country is selected; enabled reactively via loadCitiesForCountry.
       city: [{ value: u?.city ?? '', disabled: !u?.country }],
     });
   }
@@ -100,18 +120,22 @@ export class ManagePlayerDialogComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.countriesList = res.data ?? [];
         const countryName = this.form.get('country')?.value;
-        if (countryName) this.loadCitiesForCountry(countryName);
+        if (countryName) {
+          this.loadCitiesForCountry(countryName, false);
+        }
       },
       error: () => (this.countriesList = []),
     });
   }
 
-  private loadCitiesForCountry(countryName: string | null): void {
+  private loadCitiesForCountry(countryName: string | null, clearCity = true): void {
     const cityControl = this.form.get('city');
 
     if (!countryName) {
       this.cities = [];
-      cityControl?.setValue('');
+      if (clearCity) {
+        cityControl?.setValue('');
+      }
       cityControl?.disable();
       return;
     }
@@ -120,12 +144,16 @@ export class ManagePlayerDialogComponent implements OnInit, OnDestroy {
     const code = country?.country_code;
     if (!code) {
       this.cities = [];
-      cityControl?.setValue('');
+      if (clearCity) {
+        cityControl?.setValue('');
+      }
       cityControl?.disable();
       return;
     }
 
-    cityControl?.setValue('');
+    if (clearCity) {
+      cityControl?.setValue('');
+    }
     this.locationService.getCities(code).subscribe({
       next: (res) => {
         this.cities = res.data ?? [];
@@ -145,15 +173,29 @@ export class ManagePlayerDialogComponent implements OnInit, OnDestroy {
     }
     const payload = this.buildPayload();
     this.isSubmitting = true;
+
     const req$ =
       this.data.mode === 'create'
         ? this.playersService.create(payload as CreatePlayerPayload)
         : this.playersService.update(this.data.user!.id, payload as UpdatePlayerPayload);
 
-    req$.pipe(finalize(() => (this.isSubmitting = false))).subscribe({
-      next: () => this.dialogRef.close(true),
-      error: () => undefined,
-    });
+    req$
+      .pipe(
+        switchMap((res) =>
+          this.mediaService.applyAvatarField('user', res.data.id, 'avatar', this.pendingAvatarFile, !!this.currentAvatarUrl).pipe(
+            catchError(() => {
+              this.messageService.error('Player saved, but the avatar could not be updated.');
+              return of(undefined);
+            }),
+            map(() => res)
+          )
+        ),
+        finalize(() => (this.isSubmitting = false))
+      )
+      .subscribe({
+        next: (res) => this.dialogRef.close(res.data),
+        error: () => undefined,
+      });
   }
 
   private buildPayload(): Record<string, unknown> {

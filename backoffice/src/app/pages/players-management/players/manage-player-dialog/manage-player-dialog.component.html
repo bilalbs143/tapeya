@@ -6,6 +6,15 @@
   >
     <mat-dialog-content>
       <div class="grid grid-cols-12 gap-x-6">
+        <!-- Avatar uploader — centred above the fields -->
+        <div class="col-span-12 flex justify-center pb-5 pt-1">
+          <app-avatar-uploader
+            [currentUrl]="currentAvatarUrl"
+            altText="Player photo"
+            (fileChange)="onAvatarChange($event)"
+          />
+        </div>
+
         <!-- Row 1: Name | Nickname -->
         <div class="col-span-12 lg:col-span-6">
           <mat-label class="text-sm font-semibold mb-2 block">Name <span class="text-error">*</span></mat-label>
@@ -40,8 +49,8 @@
           </mat-form-field>
         </div>
 
-        <!-- Row 2: Email | Phone (same as manage-user-dialog) -->
-        <div class="col-span-12 lg:col-span-6">
+        <!-- Row 2: Email | Phone | Date of Birth -->
+        <div class="col-span-12 lg:col-span-4">
           <mat-label class="text-sm font-semibold mb-2 block">Email</mat-label>
           <mat-form-field
             appearance="outline"
@@ -55,7 +64,7 @@
             />
           </mat-form-field>
         </div>
-        <div class="col-span-12 lg:col-span-6">
+        <div class="col-span-12 lg:col-span-4">
           <mat-label class="text-sm font-semibold mb-2 block">Phone <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
@@ -72,8 +81,7 @@
           </mat-form-field>
         </div>
 
-        <!-- Row 3: Date of Birth | (spacer — user form has Status here) -->
-        <div class="col-span-12 lg:col-span-6">
+        <div class="col-span-12 lg:col-span-4">
           <mat-label class="text-sm font-semibold mb-2 block">Date of Birth</mat-label>
           <mat-form-field
             appearance="outline"
@@ -92,12 +100,7 @@
             <mat-datepicker #dobPicker></mat-datepicker>
           </mat-form-field>
         </div>
-        <div
-          class="col-span-12 lg:col-span-6 hidden lg:block"
-          aria-hidden="true"
-        ></div>
-
-        <!-- Row 4: Playing Role | Bowling Style | Batting Style (same lg:col-span-4 trio as manage-user-dialog) -->
+        <!-- Row 3: Playing Role | Bowling Style | Batting Style -->
         <div class="col-span-12 lg:col-span-4">
           <mat-label class="text-sm font-semibold mb-2 block">Playing Role</mat-label>
           <mat-form-field

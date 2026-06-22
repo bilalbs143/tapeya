@@ -9,12 +9,15 @@ import { MatInputModule } from '@angular/material/input';
 import { MatDivider } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { Subscription } from 'rxjs';
-import { finalize } from 'rxjs/operators';
+import { Subscription, of } from 'rxjs';
+import { catchError, finalize, map, switchMap } from 'rxjs/operators';
 
 import { EnumsService } from 'src/app/services/enums.service';
 import { Country, LocationService } from 'src/app/services/location.service';
+import { MediaService } from 'src/app/services/media.service';
+import { MessageService } from 'src/app/services/message.service';
 import { CreateUserPayload, UpdateUserPayload, User, UsersService } from 'src/app/services/users.service';
+import { AvatarUploaderComponent } from 'src/app/shared/components/avatar-uploader/avatar-uploader.component';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { PHONE_PATTERN } from 'src/app/shared/constants/validation.constants';
@@ -24,6 +27,8 @@ export interface ManageUserDialogData {
   mode: 'create' | 'edit';
   user?: User;
 }
+
+export type ManageUserDialogResult = User | undefined;
 
 /** Modal to create or edit a user. Uses global error interceptor for 422 validation toasts. */
 @Component({
@@ -42,15 +47,18 @@ export interface ManageUserDialogData {
     DialogWrapperComponent,
     MatDivider,
     SubmitButtonComponent,
+    AvatarUploaderComponent,
   ],
   templateUrl: './manage-user-dialog.component.html',
 })
 export class ManageUserDialogComponent implements OnInit, OnDestroy {
   public readonly data = inject<ManageUserDialogData>(MAT_DIALOG_DATA);
   private readonly usersService = inject(UsersService);
+  private readonly mediaService = inject(MediaService);
+  private readonly messageService = inject(MessageService);
   private readonly enumsService = inject(EnumsService);
   private readonly locationService = inject(LocationService);
-  private readonly dialogRef = inject<MatDialogRef<ManageUserDialogComponent>>(MatDialogRef);
+  private readonly dialogRef = inject<MatDialogRef<ManageUserDialogComponent, ManageUserDialogResult>>(MatDialogRef);
   private readonly fb = inject(FormBuilder);
 
   public form!: FormGroup;
@@ -66,8 +74,18 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
   public readonly appRolesOptions$ = this.enumsService.getOptions('app_roles');
   public readonly adminRolesOptions$ = this.enumsService.getOptions('admin_roles');
 
+  public pendingAvatarFile: File | null | undefined = undefined;
+
   public get title(): string {
     return this.data.mode === 'edit' ? 'Edit User' : 'Create User';
+  }
+
+  public get currentAvatarUrl(): string | null | undefined {
+    return this.data.user?.avatar_url;
+  }
+
+  public onAvatarChange(file: File | null): void {
+    this.pendingAvatarFile = file ?? null;
   }
 
   public ngOnInit(): void {
@@ -119,22 +137,21 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
     this.locationService.getCountries().subscribe({
       next: (res) => {
         this.countriesList = res.data ?? [];
-        // If editing a user with a pre-filled country, load their cities immediately.
         const countryName = this.form.get('country')?.value;
         if (countryName) {
-          this.loadCitiesForCountry(countryName);
+          this.loadCitiesForCountry(countryName, false);
         }
       },
       error: () => (this.countriesList = []),
     });
   }
 
-  private loadCitiesForCountry(countryName: string | null): void {
+  private loadCitiesForCountry(countryName: string | null, clearCity = true): void {
     const cityControl = this.form.get('city');
 
     if (!countryName) {
       this.cities = [];
-      cityControl?.setValue('');
+      if (clearCity) cityControl?.setValue('');
       cityControl?.disable();
       return;
     }
@@ -143,12 +160,12 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
     const code = country?.country_code;
     if (!code) {
       this.cities = [];
-      cityControl?.setValue('');
+      if (clearCity) cityControl?.setValue('');
       cityControl?.disable();
       return;
     }
 
-    cityControl?.setValue('');
+    if (clearCity) cityControl?.setValue('');
     this.locationService.getCities(code).subscribe({
       next: (res) => {
         this.cities = res.data ?? [];
@@ -175,12 +192,25 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
         ? this.usersService.create(payload as unknown as CreateUserPayload)
         : this.usersService.update(this.data.user!.id, payload as unknown as UpdateUserPayload);
 
-    request$.pipe(finalize(() => (this.isSubmitting = false))).subscribe({
-      next: () => this.dialogRef.close(true),
-      error: () => {
-        // Errors are handled globally by the error interceptor (422 validation toasts, etc.).
-      },
-    });
+    request$
+      .pipe(
+        switchMap((res) =>
+          this.mediaService.applyAvatarField('user', res.data.id, 'avatar', this.pendingAvatarFile, !!this.currentAvatarUrl).pipe(
+            catchError(() => {
+              this.messageService.error('User saved, but the avatar could not be updated.');
+              return of(undefined);
+            }),
+            map(() => res)
+          )
+        ),
+        finalize(() => (this.isSubmitting = false))
+      )
+      .subscribe({
+        next: (res) => this.dialogRef.close(res.data),
+        error: () => {
+          // Errors are handled globally by the error interceptor (422 validation toasts, etc.).
+        },
+      });
   }
 
   private buildPayload(): Record<string, unknown> {

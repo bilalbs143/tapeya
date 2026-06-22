@@ -326,8 +326,8 @@ const BackgroundWordTrack = memo(function BackgroundWordTrack({ word }) {
     };
   }, [word, bgWordW]);
 
-  const colSpacing = bgWordW ? bgWordW + BG_WORD_GAP : 400;
-  const numCols = Math.ceil(STRAP_DESIGN_W / colSpacing) + 3;
+  const colSpacing = bgWordW + BG_WORD_GAP;
+  const numCols = bgWordW ? Math.ceil(STRAP_DESIGN_W / colSpacing) + 3 : 0;
 
   return (
     <div
@@ -343,8 +343,12 @@ const BackgroundWordTrack = memo(function BackgroundWordTrack({ word }) {
         {word}
       </span>
 
-      <BgCopy ref={copy1Ref} word={word} colSpacing={colSpacing} numCols={numCols} />
-      <BgCopy word={word} colSpacing={colSpacing} numCols={numCols} />
+      {bgWordW > 0 && (
+        <>
+          <BgCopy ref={copy1Ref} word={word} colSpacing={colSpacing} numCols={numCols} />
+          <BgCopy word={word} colSpacing={colSpacing} numCols={numCols} />
+        </>
+      )}
     </div>
   );
 });

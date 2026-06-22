@@ -6,6 +6,15 @@
   >
     <mat-dialog-content>
       <div class="grid grid-cols-12 gap-x-6">
+        <!-- Avatar uploader -->
+        <div class="col-span-12 flex justify-center pb-5 pt-1">
+          <app-avatar-uploader
+            [currentUrl]="currentAvatarUrl"
+            altText="User photo"
+            (fileChange)="onAvatarChange($event)"
+          />
+        </div>
+
         <!-- Row 1: Name | Nickname -->
         <div class="col-span-12 lg:col-span-6">
           <mat-label class="text-sm font-semibold mb-2 block">Name <span class="text-error">*</span></mat-label>

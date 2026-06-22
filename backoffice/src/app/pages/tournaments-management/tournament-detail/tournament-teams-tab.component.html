@@ -4,14 +4,8 @@
       <div class="col-span-12 lg:col-span-8">
         <h2 class="text-base font-semibold m-0 mb-1">Teams</h2>
         <p class="text-sm text-muted m-0 leading-relaxed">
-          Link teams to this tournament and assign groups when the format uses multiple groups. Rosters and match line-ups are
-          managed on the
-          <a
-            class="text-primary font-medium no-underline hover:underline"
-            [routerLink]="['/tournaments-management/tournaments', tournamentId, 'squads']"
-            >Team Squads</a
-          >
-          tab.
+          Link teams to this tournament, assign groups when the format uses multiple groups, and open each team's squad page to
+          manage players.
         </p>
       </div>
       <div class="col-span-12 lg:col-span-4 flex flex-wrap items-center justify-end gap-2">
@@ -34,7 +28,7 @@
       <div class="flex min-h-[18rem] w-full items-center justify-center px-4 py-10">
         <mat-spinner diameter="40" />
       </div>
-    } @else if (teams.length === 0) {
+    } @else if (dataSource.data.length === 0) {
       <div class="flex min-h-[18rem] w-full flex-col items-center justify-center px-4 py-10 text-center text-muted">
         <p class="m-0 max-w-md text-sm">No teams are linked to this tournament. Attach Teams to add them.</p>
       </div>
@@ -43,13 +37,18 @@
         <app-table-wrapper [loading]="false">
           <table
             mat-table
-            [dataSource]="teams"
+            matSort
+            matSortActive="name"
+            matSortDirection="asc"
+            matSortStart="asc"
+            [dataSource]="dataSource"
             class="w-full min-w-[480px] text-sm"
           >
             <ng-container matColumnDef="name">
               <th
                 mat-header-cell
                 *matHeaderCellDef
+                mat-sort-header
                 class="bg-light-secondary text-sm font-semibold"
               >
                 Team
@@ -66,6 +65,7 @@
               <th
                 mat-header-cell
                 *matHeaderCellDef
+                mat-sort-header
                 class="bg-light-secondary text-sm font-semibold"
               >
                 Sponsor
@@ -81,6 +81,7 @@
               <th
                 mat-header-cell
                 *matHeaderCellDef
+                mat-sort-header
                 class="bg-light-secondary text-sm font-semibold"
               >
                 Group
@@ -105,6 +106,32 @@
                 *matCellDef="let row"
                 class="text-sm whitespace-nowrap"
               >
+                <button
+                  type="button"
+                  class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle text-black hover:opacity-70"
+                  matTooltip="Edit Team"
+                  matTooltipShowDelay="300"
+                  aria-label="Edit team"
+                  (click)="openEditTeam(row)"
+                >
+                  <i-tabler
+                    name="edit"
+                    class="size-4.5! text-black"
+                  ></i-tabler>
+                </button>
+                <button
+                  type="button"
+                  class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle text-black hover:opacity-70"
+                  matTooltip="Manage Team Squad"
+                  matTooltipShowDelay="300"
+                  aria-label="Manage team squad"
+                  (click)="openTeamSquad(row)"
+                >
+                  <i-tabler
+                    name="users"
+                    class="size-4.5! text-black"
+                  ></i-tabler>
+                </button>
                 @if (numberOfGroups > 1) {
                   <button
                     type="button"

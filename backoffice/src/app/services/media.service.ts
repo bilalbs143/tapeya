@@ -10,7 +10,7 @@ import type { FileUploadValue } from '../shared/components/file-upload/file-uplo
  * backend model type via POST/DELETE /admin/media/{type}/{id}/{field}.
  *
  * Supported types (defined in the backend MediaRegistry):
- *   brand, category, hero-slider, tournament, team, campaign, match, product
+ *   brand, category, hero-slider, tournament, team, campaign, match, product, user
  */
 @Injectable({ providedIn: 'root' })
 export class MediaService {
@@ -43,6 +43,24 @@ export class MediaService {
     return this.http.delete<void>(`v1/admin/media/${type}/${id}/${field}`, {
       body: { url },
     });
+  }
+
+  /**
+   * Apply a single avatar-style field using the undefined / File / null tri-state:
+   *   undefined → no change
+   *   File      → upload (replaces any existing file on the backend)
+   *   null      → delete (only when hadAvatar is true)
+   */
+  public applyAvatarField(
+    type: string,
+    id: number,
+    field: string,
+    pending: File | null | undefined,
+    hadAvatar: boolean
+  ): Observable<void> {
+    if (pending instanceof File) return this.uploadField(type, id, field, pending);
+    if (pending === null && hadAvatar) return this.deleteField(type, id, field);
+    return of(undefined);
   }
 
   /**

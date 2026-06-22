@@ -1,0 +1,61 @@
+<input
+  #fileInput
+  type="file"
+  accept="image/*"
+  class="hidden"
+  (change)="onFileSelected($event)"
+/>
+
+<div class="flex flex-col items-center gap-3">
+  <!-- Avatar circle -->
+  <div class="relative size-28 shrink-0">
+    <div
+      class="size-full overflow-hidden rounded-full border-2 border-dashed border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800"
+      [class.border-solid]="hasAvatar"
+      [class.border-gray-200]="hasAvatar"
+      [class.dark:border-gray-700]="hasAvatar"
+    >
+      @if (displayUrl) {
+        <img
+          [src]="displayUrl"
+          [alt]="altText"
+          class="size-full object-cover"
+        />
+      } @else {
+        <!-- Placeholder icon -->
+        <div class="flex size-full items-center justify-center text-gray-400 dark:text-gray-500">
+          <i-tabler
+            name="user"
+            class="size-14!"
+          ></i-tabler>
+        </div>
+      }
+    </div>
+
+    <!-- Edit overlay button -->
+    <button
+      type="button"
+      mat-mini-fab
+      color="primary"
+      class="!absolute -bottom-1 -right-1 !size-7 !min-w-0 shadow-md"
+      [matTooltip]="hasAvatar ? 'Change Photo' : 'Upload Photo'"
+      (click)="triggerPicker()"
+    >
+      <i-tabler
+        name="camera"
+        class="!size-4 flex!"
+      ></i-tabler>
+    </button>
+  </div>
+
+  <!-- Remove link — only shown when an avatar exists -->
+  @if (hasAvatar) {
+    <button
+      type="button"
+      class="text-xs text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors cursor-pointer"
+      (click)="remove()"
+    >
+      Remove Photo
+    </button>
+  }
+</div>

@@ -19,6 +19,7 @@ export interface User {
   nickname: string | null;
   email: string | null;
   phone: string | null;
+  avatar_url?: string | null;
   date_of_birth?: string | null;
   type: string;
   type_enum: string;

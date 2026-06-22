@@ -8,7 +8,12 @@
       <mat-card-content class="p-4 sm:p-6">
         <div class="flex flex-wrap items-start justify-between gap-3">
           <div class="min-w-0">
-            <h1 class="text-xl font-semibold m-0 truncate">{{ tournament.tournament_name }}</h1>
+            <h1 class="text-xl font-semibold m-0 truncate">
+              {{ tournament.tournament_name }}
+              @if (activeTeamName) {
+                <span class="text-muted font-normal"> · {{ activeTeamName }}</span>
+              }
+            </h1>
             <p class="text-sm text-muted m-0 mt-1">
               {{ tournament.venue_name }}
               @if (tournament.start_date || tournament.end_date) {
@@ -49,17 +54,9 @@
             routerLinkActive
             #rlaT="routerLinkActive"
             [active]="rlaT.isActive"
+            [routerLinkActiveOptions]="{ paths: 'subset', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored' }"
           >
             Teams
-          </a>
-          <a
-            mat-tab-link
-            routerLink="squads"
-            routerLinkActive
-            #rlaS="routerLinkActive"
-            [active]="rlaS.isActive"
-          >
-            Team Squads
           </a>
           <a
             mat-tab-link

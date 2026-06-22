@@ -11,6 +11,7 @@ use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentInterestCampaign;
 use App\Models\TournamentMatch;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -104,6 +105,12 @@ class MediaRegistry
                         'relation' => 'images',
                         'relation_path_col' => 'path',
                     ],
+                ],
+            ],
+            'user' => [
+                'model' => User::class,
+                'fields' => [
+                    'avatar' => ['dir' => 'users/avatars', 'column' => 'avatar'],
                 ],
             ],
         ];

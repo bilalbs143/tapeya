@@ -27,7 +27,7 @@ import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
 import { getStatusClass } from 'src/app/utils/status-class.util';
 
-import { ManageUserDialogComponent } from './manage-user-dialog/manage-user-dialog.component';
+import { ManageUserDialogComponent, type ManageUserDialogResult } from './manage-user-dialog/manage-user-dialog.component';
 
 const DEFAULT_FILTERS = {
   phone: '',
@@ -175,7 +175,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public openCreateDialog(): void {
-    this.messageService.openDialog<ManageUserDialogComponent, boolean>(
+    this.messageService.openDialog<ManageUserDialogComponent, ManageUserDialogResult>(
       ManageUserDialogComponent,
       { mode: 'create' },
       (result) => result && this.loadHttpData(),
@@ -187,7 +187,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public openEditDialog(user: User): void {
-    this.messageService.openDialog<ManageUserDialogComponent, boolean>(
+    this.messageService.openDialog<ManageUserDialogComponent, ManageUserDialogResult>(
       ManageUserDialogComponent,
       { mode: 'edit', user },
       (result) => result && this.loadHttpData(),
