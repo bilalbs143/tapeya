@@ -57,4 +57,22 @@ describe('TourHitsMiniBar', () => {
     expect(screen.getByLabelText('Tournament PSL')).toBeTruthy();
     expect(screen.getByText('PSL')).toBeTruthy();
   });
+
+  it('renders count with tabular-nums for stable digit width during animation', () => {
+    const { container } = render(
+      <TourHitsMiniBar
+        mini={{
+          label: 'TOURNAMENT',
+          title: 'SIXES',
+          count: 88,
+          shortCode: 'PSL',
+        }}
+        edgeToEdge={false}
+      />,
+    );
+
+    const counter = container.querySelector('.tabular-nums');
+    expect(counter).toBeTruthy();
+    expect(counter?.textContent).toBe('0');
+  });
 });

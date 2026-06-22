@@ -107,8 +107,9 @@ export function TourHitsMiniBar({ mini, defaultTitle = 'RUNS', edgeToEdge = true
 
               <CountUpNumber
                 value={mini.count}
+                delay={150}
                 className={cn(
-                  'shrink-0 pr-1 [font-family:var(--font-display)] text-[2.75rem] leading-[0.92] font-extrabold tracking-[0.02em] text-[var(--score-color)]',
+                  'shrink-0 pr-1 [font-family:var(--font-display)] text-[2.75rem] leading-[0.92] font-extrabold tracking-[0.02em] text-[var(--score-color)] tabular-nums',
                   textGlowClass('score'),
                 )}
               />

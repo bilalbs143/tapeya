@@ -52,37 +52,67 @@ export const AnimatedNumber = memo(function AnimatedNumber({ value, className, s
   );
 });
 
-export const CountUpNumber = memo(function CountUpNumber({ value, className, duration = 640 }) {
-  const [display, setDisplay] = useState(value);
-  const prevRef = useRef(value);
+export const CountUpNumber = memo(function CountUpNumber({ value, className, duration, delay = 0 }) {
+  // Always start from 0 on mount — the count-up IS the reveal animation.
+  const [display, setDisplay] = useState(0);
+  const prevRef = useRef(0);
+  const spanRef = useRef(null);
 
   useEffect(() => {
-    const start = Number(prevRef.current) || 0;
     const end = Number(value) || 0;
+    const start = Number(prevRef.current) || 0;
+
     if (start === end) {
       setDisplay(end);
       return;
     }
 
-    const startTime = performance.now();
+    // Scale duration to value range so small counts feel snappy and large ones feel weighty.
+    const scaledDuration = duration ?? (end <= 20 ? 750 : end <= 200 ? 950 : 1150);
     let frameId = 0;
+    let timerId = 0;
 
-    const tick = (now) => {
-      const t = Math.min(1, (now - startTime) / duration);
-      const eased = 1 - (1 - t) ** 3;
-      setDisplay(Math.round(start + (end - start) * eased));
-      if (t < 1) {
-        frameId = requestAnimationFrame(tick);
-      } else {
-        prevRef.current = end;
-      }
+    const animate = () => {
+      const startTime = performance.now();
+
+      const tick = (now) => {
+        const t = Math.min(1, (now - startTime) / scaledDuration);
+        const eased = 1 - (1 - t) ** 3;
+        setDisplay(Math.round(start + (end - start) * eased));
+        if (t < 1) {
+          frameId = requestAnimationFrame(tick);
+        } else {
+          prevRef.current = end;
+          // Landing "pop" — snap the number into place with a brief scale bounce.
+          const el = spanRef.current;
+          if (el) {
+            el.classList.remove('bc-animate-num-pop');
+            void el.offsetWidth;
+            el.classList.add('bc-animate-num-pop');
+          }
+        }
+      };
+
+      frameId = requestAnimationFrame(tick);
     };
 
-    frameId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frameId);
-  }, [value, duration]);
+    if (delay > 0) {
+      timerId = setTimeout(animate, delay);
+    } else {
+      animate();
+    }
 
-  return <span className={className}>{display}</span>;
+    return () => {
+      clearTimeout(timerId);
+      cancelAnimationFrame(frameId);
+    };
+  }, [value, duration, delay]);
+
+  return (
+    <span ref={spanRef} className={className}>
+      {display}
+    </span>
+  );
 });
 
 export const Crest = memo(function Crest({ team, size = 86, accent, borderPulseOrder }) {

@@ -11,7 +11,6 @@
 //   • -webkit-mask-composite / mask-composite (no Tailwind equivalent)
 //   • :has() selectors
 //   • CSS custom-property-driven box-shadow / backdrop-filter combos
-//   • @media (prefers-reduced-motion)
 // ─────────────────────────────────────────────────────────────────────────────
 @use 'animations';
 
@@ -322,38 +321,4 @@
   will-change: transform;
   contain: layout style paint;
   opacity: 0;
-}
-
-// ── Reduced-motion overrides ──────────────────────────────────────────────────
-
-@media (prefers-reduced-motion: reduce) {
-  .fs-stage-fabric,
-  .fs-stage-fabric__glow--pulse,
-  .fs-stage-fabric__grain {
-    animation: none;
-  }
-
-  .theme1 {
-    .crest-ring-pulse-first,
-    .crest-ring-pulse-second,
-    .glow-panel-ambient::before,
-    .bc-animate-strap-sweep,
-    .bc-animate-strap-text-enter,
-    .bc-animate-strap-text-loop,
-    .bc-animate-spark-rise,
-    .bc-strap-ticker-track,
-    .bc-animate-row-in,
-    .bc-animate-tour-code-reveal,
-    .bc-animate-tour-code-glow,
-    .animate-bar-rise,
-    .bc-animate-bar-rise {
-      animation: none;
-    }
-
-    .bc-animate-row-in,
-    .bc-animate-tour-code-reveal {
-      opacity: 1;
-      transform: none;
-    }
-  }
 }
