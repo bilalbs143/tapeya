@@ -240,6 +240,14 @@ export const ltDefaultZoneC = {
   secondInnings: ['rrr', 'crr', 'needTarget', 'partnership'],
 };
 
+/** Canonical inline batter score — runs then balls, no parentheses. */
+export const batterScore = {
+  gap: 6,
+  runs: 38,
+  runsCompact: 34,
+  balls: 20,
+};
+
 /** Typography sizes for LT families — px inside scaled HorizontalBar; rem allowed outside scaled surfaces */
 export const ltTypography = {
   strapTitle: '96px',
@@ -252,12 +260,12 @@ export const ltTypography = {
   scoreSep: 46,
   scoreWkts: 56,
 
-  // Zone B — batsmen pill
+  // Zone B — batsmen pill (sizes mirror batterScore — single source of truth)
   batName: 27,
   batNameCompact: 23,
-  batRuns: 38,
-  batRunsCompact: 34,
-  batBalls: 18,
+  batRuns: batterScore.runs,
+  batRunsCompact: batterScore.runsCompact,
+  batBalls: batterScore.balls,
 
   // Zone C — Last 30 side-heading only (stat columns use last30* tokens below).
   sideHeadingLine1: 18,
@@ -320,8 +328,9 @@ export const ltPlayerStatBar = {
   statsPaddingX: 20,
 
   nameSize: 28,
-  heroSize: 38,
-  secondarySize: 19,
+  heroSize: batterScore.runs,
+  secondarySize: batterScore.balls,
+  scoreGap: batterScore.gap,
 
   statLabelSize: 15,
   statValueSize: 32,
@@ -481,7 +490,7 @@ export const fsPartnership = {
   contributionLabel: 22,
   contributionValue: 28,
   total: 30,
-  totalBalls: 16,
+  totalBalls: 18,
 };
 
 /** Leaderboard and point-table rows. */

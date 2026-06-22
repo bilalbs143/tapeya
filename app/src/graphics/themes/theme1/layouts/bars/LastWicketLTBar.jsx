@@ -6,7 +6,9 @@ import { cn } from '@/lib/utils';
 
 import { AnimatedNumber, fmt, UI_FONT } from '../../primitives';
 import { PlayerStatLTBar } from './PlayerStatLTBar';
-import { ltPlayerStatBar, playerStatLtHeroClass, playerStatLtSecondaryClass } from './playerStatLtStyles';
+import { BATTER_SCORE_CLUSTER_CLASS, batterScoreBallsClass, ltPlayerStatBar, playerStatLtHeroClass } from './playerStatLtStyles';
+
+const scoreClusterClass = cn(BATTER_SCORE_CLUSTER_CLASS, 'ml-2');
 
 const STAT_FIELDS = [
   { key: 'sixes', label: 'SIX' },
@@ -29,8 +31,6 @@ const dismissalClass = cn(
   'text-[15px] font-semibold leading-none tracking-[0.06em] text-[var(--text-secondary)] uppercase',
   UI_FONT,
 );
-
-const scoreClusterClass = 'ml-2 flex shrink-0 items-baseline gap-[5px]';
 
 function resolveBatter(batter, teams) {
   if (!batter?.name && !batter?.firstName) return null;
@@ -77,7 +77,7 @@ export function LastWicketLTBar({ batter, teams, edgeToEdge = true }) {
             </span>
             {player.dismissal ? <span className={dismissalClass}>{player.dismissal}</span> : null}
           </div>
-          <span className={scoreClusterClass}>
+          <span className={scoreClusterClass} style={{ gap: ltPlayerStatBar.scoreGap }}>
             <AnimatedNumber
               value={player.runs ?? 0}
               className={playerStatLtHeroClass}
@@ -85,7 +85,7 @@ export function LastWicketLTBar({ batter, teams, edgeToEdge = true }) {
             />
             <AnimatedNumber
               value={player.balls ?? 0}
-              className={playerStatLtSecondaryClass}
+              className={batterScoreBallsClass}
               style={{ fontSize: ltPlayerStatBar.secondarySize }}
             />
           </span>

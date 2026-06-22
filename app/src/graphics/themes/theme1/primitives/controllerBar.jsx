@@ -6,6 +6,7 @@ import { colors, geometry, ltBar, ltTypography } from '../config';
 import { TEXT_SECONDARY } from '../layouts/shared/textStyles';
 import { textGlowClass } from '../visualEffects';
 import { AnimatedNumber, BallChip, BallTrack, Crest, GlowPanel, StrikeBatIcon } from './atoms';
+import { BatterScoreInline } from './batterScore';
 import { useContainerWidth } from './controllerBarHooks';
 import { horizontalBarScale } from './controllerBarScaling';
 import { DISPLAY_FONT } from './formatters';
@@ -773,7 +774,6 @@ function WinPredictionPanel({ label = 'WIN PREDICTION', predictions, teams }) {
 function PartnershipPanel({ partnership, team, hideTeamColumn = false }) {
   if (!partnership) return null;
   if (!hideTeamColumn && !team) return null;
-  const ballsSuffix = partnership.balls != null ? `(${partnership.balls})` : null;
   return (
     <PanelRoot>
       {!hideTeamColumn ? (
@@ -787,7 +787,11 @@ function PartnershipPanel({ partnership, team, hideTeamColumn = false }) {
       <PanelHeadingLines label="CURRENT PARTNERSHIP" />
       <PartialDivider />
       <PanelColumnSlot>
-        <PanelMetricColumn label="RUNS" value={partnership.runs} suffix={ballsSuffix} />
+        <PanelMetricColumn label="RUNS" value={partnership.runs} />
+      </PanelColumnSlot>
+      <PartialDivider />
+      <PanelColumnSlot>
+        <PanelMetricColumn label="BALLS" value={partnership.balls} />
       </PanelColumnSlot>
       <PartialDivider />
     </PanelRoot>
@@ -831,22 +835,14 @@ function HBat({ p, onStrike, truncateName = false, compact = false }) {
       >
         {p.name.toUpperCase()}
       </span>
-      <span className="ml-2 flex shrink-0 items-baseline gap-[5px]">
-        <AnimatedNumber
-          value={p.runs}
-          className={cn(
-            '[font-family:var(--font-display)] leading-none font-extrabold',
-            onStrike ? 'text-white' : TEXT_SECONDARY,
-          )}
-          style={{ fontSize: compact ? lt.batRunsCompact : lt.batRuns }}
-        />
-        <span
-          className={cn('font-medium text-[var(--text-secondary)] tabular-nums', DISPLAY_FONT)}
-          style={{ fontSize: lt.batBalls }}
-        >
-          {p.balls}
-        </span>
-      </span>
+      <BatterScoreInline
+        runs={p.runs}
+        balls={p.balls}
+        runsSize={compact ? lt.batRunsCompact : lt.batRuns}
+        ballsSize={lt.batBalls}
+        onStrike={onStrike}
+        className="ml-2"
+      />
     </div>
   );
 }

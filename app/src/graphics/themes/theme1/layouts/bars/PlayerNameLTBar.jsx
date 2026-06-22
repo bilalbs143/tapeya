@@ -20,14 +20,18 @@ const barClass = cn(
 
 const contentClass = 'flex min-w-0 flex-1 flex-col gap-1';
 
-const firstNameClass = cn('font-semibold leading-none tracking-[0.08em] uppercase', TEXT_SECONDARY, UI_FONT);
+const nameRowClass = cn('flex min-w-0 items-baseline overflow-hidden whitespace-nowrap');
 
-const lastNameClass = cn('font-extrabold leading-none uppercase', TEXT_PRIMARY, DISPLAY_FONT, textGlowClass('scoreLt'));
+const nameClass = cn(
+  'min-w-0 truncate font-extrabold leading-none uppercase',
+  TEXT_PRIMARY,
+  DISPLAY_FONT,
+  textGlowClass('scoreLt'),
+);
 
 const roleClass = cn('font-semibold leading-none tracking-[0.1em] uppercase', TEXT_SECONDARY, UI_FONT);
 
-const firstNameStyle = { fontSize: ltNameBar.firstNameSize };
-const lastNameStyle = { fontSize: ltNameBar.lastNameSize };
+const nameStyle = { fontSize: ltNameBar.lastNameSize };
 const roleStyle = { fontSize: ltNameBar.roleSize };
 
 const logoSideClass = 'flex shrink-0 items-center';
@@ -44,10 +48,9 @@ function resolvePlayer(player, teams) {
 }
 
 function resolvePlayerContent(player) {
-  const { firstName, lastName } = resolveBroadcastNameParts(player);
+  const { displayName } = resolveBroadcastNameParts(player);
   return {
-    firstName,
-    lastName,
+    displayName,
     role: player.role ?? '',
   };
 }
@@ -67,7 +70,7 @@ export function PlayerNameLTBar({ player, teams, edgeToEdge = true }) {
   if (!resolved) return null;
 
   const { player: resolvedPlayer, team, accent } = resolved;
-  const { firstName, lastName, role } = resolvePlayerContent(resolvedPlayer);
+  const { displayName, role } = resolvePlayerContent(resolvedPlayer);
   const logoUrl = resolvedPlayer.logoUrl ?? team?.logoUrl;
 
   return (
@@ -76,19 +79,16 @@ export function PlayerNameLTBar({ player, teams, edgeToEdge = true }) {
         <GlowPanel hideRing radius={radius} accent={accent} className="w-full overflow-hidden">
           <div className={barClass}>
             <div className={contentClass}>
-              <span className={firstNameClass} style={firstNameStyle}>
-                {firstName}
-              </span>
-              {lastName && (
-                <span className={lastNameClass} style={lastNameStyle}>
-                  {lastName}
+              <div className={nameRowClass}>
+                <span className={nameClass} style={nameStyle}>
+                  {displayName}
                 </span>
-              )}
-              {role && (
-                <span className={roleClass} style={roleStyle}>
+              </div>
+              {role ? (
+                <span className={cn(roleClass, 'truncate')} style={roleStyle}>
                   {role}
                 </span>
-              )}
+              ) : null}
             </div>
 
             <div className={logoSideClass}>

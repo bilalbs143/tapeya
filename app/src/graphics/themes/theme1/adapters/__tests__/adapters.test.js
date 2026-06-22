@@ -950,6 +950,7 @@ describe('theme1 player match LT adapters', () => {
             fifties: 0,
             hundreds: 1,
             strike_rate: 295.52,
+            average: 66,
           },
           stats: [
             { label: 'Matches', value: 6 },
@@ -959,8 +960,12 @@ describe('theme1 player match LT adapters', () => {
             { label: '50s', value: 0 },
             { label: '100s', value: 1 },
             { label: 'SR', value: 295.52 },
+            { label: 'Avg', value: 66 },
           ],
         },
+      },
+      context: {
+        tournament: { name: 'Pallandari Super League Season 3' },
       },
     });
 
@@ -968,13 +973,15 @@ describe('theme1 player match LT adapters', () => {
     const resolved = toBatsmanTournamentLt(props, tokens);
 
     expect(resolved?.batter.name).toBe('Taimoor Mirza');
-    expect(resolved?.batter.runs).toBe(198);
+    expect(resolved?.batter.tournamentLabel).toBe('Pallandari Super League Season 3');
     expect(resolved?.batter.matches).toBe(6);
+    expect(resolved?.batter.runs).toBe(198);
     expect(resolved?.batter.fours).toBe(4);
     expect(resolved?.batter.sixes).toBe(27);
     expect(resolved?.batter.fifties).toBe(0);
     expect(resolved?.batter.hundreds).toBe(1);
     expect(resolved?.batter.sr).toBe(295.52);
+    expect(resolved?.batter.avg).toBe(66);
   });
 
   it('maps bowler tournament processor output to BowlerTournamentLTBar shape', () => {
@@ -1003,12 +1010,16 @@ describe('theme1 player match LT adapters', () => {
           ],
         },
       },
+      context: {
+        tournament: { name: 'Pallandari Super League Season 3' },
+      },
     });
 
     const props = PROCESSOR_MAP.BOWLER_TOURNAMENT_LT(snapshot);
     const resolved = toBowlerTournamentLt(props, tokens);
 
     expect(resolved?.bowler.name).toBe('Itsham Satti');
+    expect(resolved?.bowler.tournamentLabel).toBe('Pallandari Super League Season 3');
     expect(resolved?.bowler.w).toBe(1);
     expect(resolved?.bowler.wickets).toBe(1);
     expect(resolved?.bowler.r).toBe(107);

@@ -4,7 +4,16 @@
 import { cn } from '@/lib/utils';
 
 import { colors, fsPartnership, fsSummaryPanel } from '../../config';
-import { accentGlowShadow, accentMix, Crest, DISPLAY_FONT, FSStage, GlowPanel, UI_FONT } from '../../primitives';
+import {
+  accentGlowShadow,
+  accentMix,
+  BatterScoreInline,
+  Crest,
+  DISPLAY_FONT,
+  FSStage,
+  GlowPanel,
+  UI_FONT,
+} from '../../primitives';
 import {
   FS_HEADER_SUB_CENTERED,
   FS_SCORE_STRIP_HERO,
@@ -23,28 +32,12 @@ const batterNameClass = cn('font-extrabold text-white uppercase whitespace-nowra
 
 const batterNameCompactClass = cn('font-extrabold text-white uppercase whitespace-nowrap', DISPLAY_FONT);
 
-const batterRunsClass = cn('font-extrabold leading-none', DISPLAY_FONT);
-
-const batterRunsCompactClass = cn('font-extrabold leading-none', DISPLAY_FONT);
-
-const batterBallsClass = cn('font-medium tabular-nums text-[var(--text-secondary)]', DISPLAY_FONT);
-
-const batterBallsCompactClass = cn('font-medium tabular-nums text-[var(--text-secondary)]', DISPLAY_FONT);
-
 const contributionLabelClass = cn(
   'mt-4 text-center font-semibold tracking-[0.14em] text-[var(--text-secondary)] uppercase',
   UI_FONT,
 );
 
 const contributionValueClass = cn('font-extrabold', DISPLAY_FONT);
-
-const partnershipTotalClass = cn(
-  'font-extrabold leading-none text-white',
-  DISPLAY_FONT,
-  '[text-shadow:0_1px_10px_rgba(0,0,0,0.75)]',
-);
-
-const partnershipTotalBallsClass = cn('font-medium tabular-nums text-[var(--text-secondary)]', DISPLAY_FONT);
 
 function resolvePartnerships(partnerships, accent) {
   return partnerships.map((entry) => ({
@@ -92,20 +85,14 @@ function PartnershipBatterName({ name, runs, balls, accent, align = 'left', comp
     />
   );
   const score = (
-    <>
-      <span
-        className={compact ? batterRunsCompactClass : batterRunsClass}
-        style={{ color: accent, ...(compact ? fsFont(fsPartnership.batterRunsCompact) : fsFont(fsPartnership.batterRunsMd)) }}
-      >
-        {runs}
-      </span>
-      <span
-        className={compact ? batterBallsCompactClass : batterBallsClass}
-        style={fsFont(compact ? fsPartnership.batterBallsCompact : fsPartnership.batterBalls)}
-      >
-        ({balls})
-      </span>
-    </>
+    <BatterScoreInline
+      runs={runs}
+      balls={balls}
+      runsSize={compact ? fsPartnership.batterRunsCompact : fsPartnership.batterRunsMd}
+      ballsSize={compact ? fsPartnership.batterBallsCompact : fsPartnership.batterBalls}
+      accentColor={accent}
+      animateRuns={false}
+    />
   );
 
   if (compact) {
@@ -187,12 +174,13 @@ function ContributionBar({ left, right, className, compact = false }) {
         )}
         style={{ left: `${leftPct}%` }}
       >
-        <span className={partnershipTotalClass} style={fsFont(fsPartnership.total)}>
-          {total}
-        </span>
-        <span className={partnershipTotalBallsClass} style={fsFont(fsPartnership.totalBalls)}>
-          ({totalBalls})
-        </span>
+        <BatterScoreInline
+          runs={total}
+          balls={totalBalls}
+          runsSize={fsPartnership.total}
+          ballsSize={fsPartnership.totalBalls}
+          animateRuns={false}
+        />
       </span>
     </div>
   );

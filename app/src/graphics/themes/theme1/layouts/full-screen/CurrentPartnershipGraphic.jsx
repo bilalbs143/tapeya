@@ -5,9 +5,9 @@ import { cn } from '@/lib/utils';
 
 import { resolveBroadcastNameParts } from '../../../../core/domain/playerNameResolver';
 import { colors, fsPartnership, fsSummaryPanel } from '../../config';
-import { DISPLAY_FONT, FSStage, GlowPanel, NotOutStar, PlayerAvatarImage, UI_FONT } from '../../primitives';
+import { BatterScoreInline, DISPLAY_FONT, FSStage, GlowPanel, NotOutStar, PlayerAvatarImage, UI_FONT } from '../../primitives';
 import { textGlowClass } from '../../visualEffects';
-import { FS_HEADER_SUB_CENTERED, FS_ROW_BALLS, FS_SECTION_TITLE, fsFont } from '../shared/fsTypographyStyles';
+import { FS_HEADER_SUB_CENTERED, FS_SECTION_TITLE, fsFont } from '../shared/fsTypographyStyles';
 
 const PARTNERSHIP_AVATAR_W = 360;
 const PARTNERSHIP_AVATAR_MAX_H = 520;
@@ -26,8 +26,6 @@ const partnershipMetaClass = cn('font-bold tracking-[0.06em] uppercase whitespac
 const batterFirstNameClass = cn('font-semibold tracking-[0.1em] text-[var(--text-secondary)] uppercase', UI_FONT);
 
 const batterLastNameClass = cn('font-extrabold tracking-[0.03em] text-white uppercase whitespace-nowrap', DISPLAY_FONT);
-
-const batterRunsClass = cn('font-extrabold leading-none', DISPLAY_FONT);
 
 function CurrentPartnershipHeader({ title, sub }) {
   return (
@@ -142,14 +140,14 @@ function BatterCell({ batter, accent, align = 'start' }) {
         </span>
       </div>
 
-      <span className="flex shrink-0 items-baseline gap-2">
-        <span className={batterRunsClass} style={{ color: accent, ...fsFont(fsPartnership.batterRuns) }}>
-          {batter.runs}
-        </span>
-        <span className={FS_ROW_BALLS} style={fsFont(fsPartnership.batterBalls)}>
-          {batter.balls}
-        </span>
-      </span>
+      <BatterScoreInline
+        runs={batter.runs}
+        balls={batter.balls}
+        runsSize={fsPartnership.batterRuns}
+        ballsSize={fsPartnership.batterBalls}
+        accentColor={accent}
+        animateRuns={false}
+      />
     </div>
   );
 }

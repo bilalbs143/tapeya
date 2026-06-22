@@ -1,10 +1,9 @@
 /**
  * Bowler tournament lower-third — tournament-scoped career bowling stats.
- * Layout: [name · w-r · overs] / [matches · overs · wickets · runs · avg · econ]
+ * Layout: [name · tournament] / [matches · overs · wickets · runs · avg · econ]
  */
-import { formatBroadcastBowlingFigures } from '../../../../core/domain/player';
 import { PlayerStatLTBar } from './PlayerStatLTBar';
-import { ltPlayerStatBar, playerStatLtHeroClass, playerStatLtNameClass, playerStatLtSecondaryClass } from './playerStatLtStyles';
+import { ltPlayerStatBar, playerStatLtNameClass, playerStatLtTournamentClass } from './playerStatLtStyles';
 
 const STAT_FIELDS = [
   { key: 'matches', label: 'MATCHES' },
@@ -17,8 +16,6 @@ const STAT_FIELDS = [
 
 const STAT_ROW_OVERRIDE_STYLE = { gap: `${ltPlayerStatBar.statRowGapDense * 4}px` };
 
-const scoreClusterClass = 'ml-2 flex shrink-0 items-baseline gap-[5px]';
-
 function resolveBowler(bowler, teams) {
   if (!bowler?.name) return null;
 
@@ -27,15 +24,6 @@ function resolveBowler(bowler, teams) {
     bowler,
     accent: team?.color ?? 'var(--accentA)',
   };
-}
-
-function formatFigures(bowler) {
-  if (bowler.figText) {
-    const [rawFigures] = bowler.figText.trim().split(/\s+/);
-    return formatBroadcastBowlingFigures(rawFigures, { w: bowler.w, r: bowler.r });
-  }
-
-  return formatBroadcastBowlingFigures(null, { w: bowler.w, r: bowler.r });
 }
 
 function formatOvers(bowler) {
@@ -77,14 +65,11 @@ export function BowlerTournamentLTBar({ bowler, teams, edgeToEdge = true }) {
           <span className={playerStatLtNameClass} style={{ fontSize: ltPlayerStatBar.nameSize }}>
             {player.name}
           </span>
-          <span className={scoreClusterClass}>
-            <span className={playerStatLtHeroClass} style={{ fontSize: ltPlayerStatBar.heroSize }}>
-              {formatFigures(player)}
+          {player.tournamentLabel ? (
+            <span className={playerStatLtTournamentClass} style={{ fontSize: ltPlayerStatBar.secondarySize }}>
+              {player.tournamentLabel}
             </span>
-            <span className={playerStatLtSecondaryClass} style={{ fontSize: ltPlayerStatBar.secondarySize }}>
-              {oversDisplay}
-            </span>
-          </span>
+          ) : null}
         </>
       }
     />

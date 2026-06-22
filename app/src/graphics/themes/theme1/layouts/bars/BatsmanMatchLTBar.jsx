@@ -6,7 +6,13 @@ import { cn } from '@/lib/utils';
 
 import { AnimatedNumber, DISPLAY_FONT, fmt } from '../../primitives';
 import { PlayerStatLTBar } from './PlayerStatLTBar';
-import { ltPlayerStatBar, playerStatLtHeroClass, playerStatLtNameClass, playerStatLtSecondaryClass } from './playerStatLtStyles';
+import {
+  BATTER_SCORE_CLUSTER_CLASS,
+  batterScoreBallsClass,
+  ltPlayerStatBar,
+  playerStatLtHeroClass,
+  playerStatLtNameClass,
+} from './playerStatLtStyles';
 
 const STAT_FIELDS = [
   { key: 'sixes', label: 'SIX' },
@@ -18,7 +24,7 @@ const STAT_FIELDS = [
   { key: 'sr', label: 'S/R' },
 ];
 
-const scoreClusterClass = 'ml-2 flex shrink-0 items-baseline gap-[5px]';
+const scoreClusterClass = cn(BATTER_SCORE_CLUSTER_CLASS, 'ml-2');
 const runsWrapClass = 'flex items-start';
 const asteriskClass = cn('text-[22px] font-extrabold leading-none text-[#f5c85a]', DISPLAY_FONT);
 
@@ -62,7 +68,7 @@ export function BatsmanMatchLTBar({ batter, teams, edgeToEdge = true }) {
           <span className={playerStatLtNameClass} style={{ fontSize: ltPlayerStatBar.nameSize }}>
             {player.name}
           </span>
-          <span className={scoreClusterClass}>
+          <span className={scoreClusterClass} style={{ gap: ltPlayerStatBar.scoreGap }}>
             <span className={runsWrapClass}>
               <AnimatedNumber
                 value={player.runs ?? 0}
@@ -73,7 +79,7 @@ export function BatsmanMatchLTBar({ batter, teams, edgeToEdge = true }) {
             </span>
             <AnimatedNumber
               value={player.balls ?? 0}
-              className={playerStatLtSecondaryClass}
+              className={batterScoreBallsClass}
               style={{ fontSize: ltPlayerStatBar.secondarySize }}
             />
           </span>

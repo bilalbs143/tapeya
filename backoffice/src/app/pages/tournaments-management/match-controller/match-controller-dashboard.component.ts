@@ -331,6 +331,15 @@ export class MatchControllerDashboardComponent implements OnInit {
     return this.sendingKey === graphicActionKey(a);
   }
 
+  /** Primary styling only for the graphic currently on air. */
+  public isActionOnAir(a: GraphicCatalogAction): boolean {
+    const active = this.session?.active_command;
+    if (!active) {
+      return false;
+    }
+    return active.command_type === a.command_type && active.command_key === a.command_key;
+  }
+
   /** Live innings from session context (scoring / Reverb). */
   private liveInningsNumber(): 1 | 2 {
     const inn = this.session?.context?.['innings_number'];
@@ -437,10 +446,6 @@ export class MatchControllerDashboardComponent implements OnInit {
         this.refreshCaptions();
       }
     );
-  }
-
-  public usePrimaryButtons(group: GraphicCatalogGroup): boolean {
-    return group.id === 'FULL_SCREEN' || group.id === 'FULL_SCREEN_TRANSITION';
   }
 
   public async toggleFullscreen(): Promise<void> {

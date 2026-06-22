@@ -3,8 +3,17 @@
  */
 import { cn } from '@/lib/utils';
 
-import { fsMatchSummary, fsSummaryPanel } from '../../config';
-import { DISPLAY_FONT, FSStage, normalizeAccentColor, NotOutStar, TeamLogoOrCrest, UI_FONT, VSBadge } from '../../primitives';
+import { batterScore, fsMatchSummary, fsSummaryPanel } from '../../config';
+import {
+  BatterScoreInline,
+  DISPLAY_FONT,
+  FSStage,
+  normalizeAccentColor,
+  NotOutStar,
+  TeamLogoOrCrest,
+  UI_FONT,
+  VSBadge,
+} from '../../primitives';
 import { colorHaloShadow } from '../../visualEffects';
 import { FS_GOLD_BAND, FS_MATCH_PAGE_TITLE, FS_PANEL_SUB, FS_ROW_BALLS, fsFont } from '../shared/fsTypographyStyles';
 import { TEXT_SECONDARY } from '../shared/textStyles';
@@ -28,8 +37,6 @@ const inningsOversClass = cn('ml-[22px] font-semibold tracking-[0.06em]', TEXT_S
 const inningsTotalClass = cn('font-extrabold text-white whitespace-nowrap', DISPLAY_FONT);
 
 const rowNameMdClass = cn('flex-1 font-bold text-white uppercase', DISPLAY_FONT);
-
-const rowRunsClass = cn('w-20 text-right font-extrabold text-white', DISPLAY_FONT);
 
 const bowlerFiguresClass = cn('w-[120px] text-right font-extrabold text-white', DISPLAY_FONT);
 
@@ -109,11 +116,15 @@ function BattingMiniRow({ name, runs, balls, notOut = false }) {
         <span>{name}</span>
         <NotOutStar notOut={notOut} />
       </span>
-      <span className={rowRunsClass} style={fsFont(fsSummaryPanel.rowRuns)}>
-        {runs}
-      </span>
-      <span className={cn(FS_ROW_BALLS, 'w-[70px] text-right')} style={fsFont(fsSummaryPanel.rowBalls)}>
-        {balls}
+      <span className="flex w-[100px] shrink-0 justify-end">
+        <BatterScoreInline
+          runs={runs}
+          balls={balls}
+          runsSize={fsSummaryPanel.rowRuns}
+          ballsSize={fsSummaryPanel.rowBalls}
+          gap={batterScore.gap}
+          animateRuns={false}
+        />
       </span>
     </>
   );

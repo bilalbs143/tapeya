@@ -2,6 +2,7 @@ import { cn } from '@/lib/utils';
 
 import { ltPlayerStatBar } from '../../config';
 import { DISPLAY_FONT, UI_FONT } from '../../primitives';
+import { BATTER_SCORE_CLUSTER_CLASS, batterScoreBallsClass, batterScoreRunsClass } from '../../primitives/batterScore';
 import { textGlowClass } from '../../visualEffects';
 import { TEXT_PRIMARY, TEXT_SECONDARY } from '../shared/textStyles';
 
@@ -15,6 +16,14 @@ export const playerStatLtNameClass = cn(
 
 export const playerStatLtHeroClass = cn('font-extrabold leading-none', TEXT_PRIMARY, DISPLAY_FONT, textGlowClass('score'));
 
-export const playerStatLtSecondaryClass = cn('font-medium tabular-nums', TEXT_SECONDARY, DISPLAY_FONT);
+/** @deprecated Prefer batterScoreBallsClass — kept for existing imports. */
+export const playerStatLtSecondaryClass = batterScoreBallsClass;
 
-export { ltPlayerStatBar };
+export const playerStatLtTournamentClass = cn(
+  'ml-2 min-w-0 max-w-[48%] shrink overflow-hidden text-ellipsis whitespace-nowrap',
+  'font-semibold leading-none tracking-[0.04em] uppercase',
+  TEXT_SECONDARY,
+  UI_FONT,
+);
+
+export { BATTER_SCORE_CLUSTER_CLASS, batterScoreBallsClass, batterScoreRunsClass, ltPlayerStatBar };

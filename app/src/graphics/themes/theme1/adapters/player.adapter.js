@@ -204,21 +204,20 @@ export function toBatsmanTournamentLt(props, tokens) {
   const stats = Array.isArray(props.stats) ? props.stats : [];
   const tb = props.tournamentBatting ?? props.tournament_batting ?? null;
 
-  const runs = toNum(tb?.runs) ?? toNum(findStat(stats, 'runs')) ?? 0;
-  const matches = toNum(tb?.matches) ?? toNum(findStat(stats, 'matches')) ?? 0;
-
   return {
     teams: base.teams,
     batter: {
       name: base.player.name,
       teamCode: base.player.teamCode,
-      runs,
-      matches,
+      tournamentLabel: tournamentSub(props),
+      matches: toNum(tb?.matches) ?? toNum(findStat(stats, 'matches')) ?? 0,
+      runs: toNum(tb?.runs) ?? toNum(findStat(stats, 'runs')) ?? 0,
       fours: toNum(tb?.fours) ?? toNum(findStat(stats, '4s', 'fours')) ?? 0,
       sixes: toNum(tb?.sixes) ?? toNum(findStat(stats, '6s', 'sixes')) ?? 0,
       fifties: toNum(tb?.fifties) ?? toNum(findStat(stats, '50s', 'fifties')) ?? 0,
       hundreds: toNum(tb?.hundreds) ?? toNum(findStat(stats, '100s', 'hundreds')) ?? 0,
       sr: statOrDash(tb?.strike_rate ?? findStat(stats, 'sr', 's/r')),
+      avg: statOrDash(tb?.average ?? findStat(stats, 'avg', 'average')),
     },
   };
 }
@@ -243,6 +242,7 @@ export function toBowlerTournamentLt(props, tokens) {
     bowler: {
       name: base.player.name,
       teamCode: base.player.teamCode,
+      tournamentLabel: tournamentSub(props),
       w: wickets,
       wickets,
       r: runs,

@@ -3,10 +3,11 @@
  */
 import { cn } from '@/lib/utils';
 
-import { fsSummaryPanel } from '../../config';
+import { batterScore, fsSummaryPanel } from '../../config';
 import {
   accentGlowShadow,
   accentMix,
+  BatterScoreInline,
   DISPLAY_FONT,
   FSStage,
   isNotOutBatter,
@@ -19,7 +20,6 @@ import {
   FS_DISMISSAL,
   FS_PANEL_SUB,
   FS_PANEL_TITLE,
-  FS_ROW_BALLS,
   FS_ROW_NAME,
   FS_SCORE_STRIP_HERO,
   FS_SCORE_STRIP_LABEL,
@@ -38,8 +38,6 @@ const ROW_PADDING_X = 22;
 const BATTED_ROW_GAP = 4;
 const BATTED_ROW_STAGGER_MS = 80;
 const YET_TO_BAT_ROW_STAGGER_MS = 60;
-
-const battedRunsClass = cn('w-[100px] text-right font-extrabold leading-none text-white', DISPLAY_FONT);
 
 const yetToBatNameClass = cn('flex-1 font-bold leading-none text-[var(--text-secondary)] uppercase', DISPLAY_FONT);
 
@@ -132,11 +130,15 @@ function BattedRow({ name, dismissal, runs, balls, notOut, accent, index }) {
       <span className={FS_DISMISSAL} style={fsFont(fsSummaryPanel.dismissal)}>
         {dismissal}
       </span>
-      <span className={battedRunsClass} style={fsFont(fsSummaryPanel.rowRuns)}>
-        {runs}
-      </span>
-      <span className={cn(FS_ROW_BALLS, 'w-[80px] text-right')} style={fsFont(fsSummaryPanel.rowBalls)}>
-        {balls}
+      <span className="flex w-[120px] shrink-0 justify-end">
+        <BatterScoreInline
+          runs={runs}
+          balls={balls}
+          runsSize={fsSummaryPanel.rowRuns}
+          ballsSize={fsSummaryPanel.rowBalls}
+          gap={batterScore.gap}
+          animateRuns={false}
+        />
       </span>
     </div>
   );

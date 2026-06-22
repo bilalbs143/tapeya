@@ -146,10 +146,18 @@
   padding-left: 0.35rem;
   padding-right: 0.35rem;
   font-size: 0.72rem;
+  font-weight: 400;
   line-height: 1.2;
   white-space: normal;
   text-align: center;
   min-height: 2.2rem;
+}
+
+.catalog-group__actions .catalog-group__btn--on-air.mat-mdc-outlined-button {
+  background: var(--mat-sys-primary, #1976d2);
+  border-color: var(--mat-sys-primary, #1976d2);
+  color: var(--mat-sys-on-primary, #fff);
+  font-weight: 400;
 }
 
 .controller-dashboard__recent {

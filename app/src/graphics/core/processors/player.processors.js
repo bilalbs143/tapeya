@@ -78,7 +78,7 @@ export function processBatsmanTournament(snapshot) {
     Array.isArray(p.stats) && p.stats.length > 0
       ? p.stats
       : tournamentBatting
-        ? buildTournamentBattingStats(tournamentBatting, snapshot.commandKey === K.BATSMAN_TOURNAMENT_FS)
+        ? buildTournamentBattingStats(tournamentBatting)
         : [];
 
   return withMatchTeams(snapshot, {
@@ -90,7 +90,7 @@ export function processBatsmanTournament(snapshot) {
   });
 }
 
-function buildTournamentBattingStats(tb, includeAverage) {
+function buildTournamentBattingStats(tb) {
   const rows = [
     { label: 'Matches', value: tb.matches ?? 0 },
     { label: 'Runs', value: tb.runs ?? 0 },
@@ -99,10 +99,8 @@ function buildTournamentBattingStats(tb, includeAverage) {
     { label: '50s', value: tb.fifties ?? 0 },
     { label: '100s', value: tb.hundreds ?? 0 },
     { label: 'SR', value: tb.strike_rate ?? '—' },
+    { label: 'Avg', value: tb.average ?? '—' },
   ];
-  if (includeAverage) {
-    rows.push({ label: 'Avg', value: tb.average ?? '—' });
-  }
 
   return rows;
 }

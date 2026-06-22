@@ -1067,6 +1067,7 @@ describe('BATSMAN_TOURNAMENT_LT processor (processBatsmanTournament)', () => {
       { label: '50s', value: 0 },
       { label: '100s', value: 1 },
       { label: 'SR', value: 295.52 },
+      { label: 'Avg', value: '—' },
     ]);
     expect(props.headline).toBe('Tournament Career');
   });
@@ -1083,7 +1084,7 @@ describe('BATSMAN_TOURNAMENT_LT processor (processBatsmanTournament)', () => {
       },
     });
     const props = processBatsmanTournament(snapshot);
-    expect(props.stats).toHaveLength(7);
+    expect(props.stats).toHaveLength(8);
     expect(props.stats[1].value).toBe(50);
   });
 });

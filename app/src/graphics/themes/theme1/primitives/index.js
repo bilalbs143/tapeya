@@ -2,6 +2,13 @@ export { accentGlowShadow, accentMix, normalizeAccentColor } from './accent';
 export { AnimatedNumber, BallChip, BallTrack, CountUpNumber, Crest, GlowPanel } from './atoms';
 export { ScaledBarSurface } from './barScaling';
 export { useContentFitBarSurface, useFrameTransition } from './barScalingHooks';
+export {
+  BATTER_SCORE_CLUSTER_CLASS,
+  BATTER_SCORE_GAP_PX,
+  batterScoreBallsClass,
+  BatterScoreInline,
+  batterScoreRunsClass,
+} from './batterScore';
 export { BroadcastShell } from './BroadcastShell';
 export { ControllerBar, NotOutStar } from './controllerBar';
 export {
