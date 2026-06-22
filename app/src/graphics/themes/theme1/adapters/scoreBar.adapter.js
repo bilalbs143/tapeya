@@ -8,59 +8,15 @@ import { parseInningsScore, toFrameBatter, toFrameBowler } from './_shared';
 import { ballStripLabelForCommand, tourStatTitleForCommand } from './presentationLabels';
 import { toMatch, toTeams } from './teams.adapter';
 
-function deliveryOverIndex(d) {
-  const raw = d.overNumber ?? d.over_number;
-  if (raw != null && raw !== '') return Number(raw);
-  return 0;
-}
-
-function deliveryBallInOver(d) {
-  const raw = d.ballInOver ?? d.ball_in_over;
-  const n = Number(raw);
-  return Number.isFinite(n) && n > 0 ? n : 1;
-}
-
 function deliveryToken(d) {
   return String(d.displayToken ?? d.display_token ?? '');
 }
 
-/** Backend stores 0-indexed overs; broadcast labels are 1-based (e.g. 4.3). */
-function formatBroadcastOverLabel(overIndex, ballInOver) {
-  return `${overIndex + 1}.${ballInOver}`;
-}
-
-function groupDeliveriesByOver(deliveries) {
+function mapDeliveriesToChips(deliveries) {
   if (!Array.isArray(deliveries) || deliveries.length === 0) return [];
-
-  /** @type {{ overIndex: number, over: string, chips: { code: string, chipType: string|null }[] }[]} */
-  const groups = [];
-
-  for (const d of deliveries) {
-    const overIndex = deliveryOverIndex(d);
-    const ballInOver = deliveryBallInOver(d);
-    const token = deliveryToken(d);
-    const chip = {
-      code: token,
-      chipType: d.chip_type ?? d.chipType ?? null,
-    };
-    const prev = groups[groups.length - 1];
-
-    if (prev && prev.overIndex === overIndex) {
-      prev.chips.push(chip);
-      prev.over = formatBroadcastOverLabel(overIndex, ballInOver);
-    } else {
-      groups.push({
-        overIndex,
-        over: formatBroadcastOverLabel(overIndex, ballInOver),
-        chips: [chip],
-      });
-    }
-  }
-
-  return groups.map(({ over, chips }) => ({
-    over,
-    balls: chips.map((c) => c.code),
-    chips,
+  return deliveries.map((d) => ({
+    code: deliveryToken(d),
+    chipType: d.chip_type ?? d.chipType ?? null,
   }));
 }
 
@@ -136,7 +92,7 @@ export function toScoreBarBundle(props, tokens, options = {}) {
       props.dots != null
         ? { dots: props.dots, fours: props.fours, sixes: props.sixes, wickets: props.wickets, runs: props.runs }
         : null,
-    last12ByOver: groupDeliveriesByOver(props.deliveries),
+    last12Chips: mapDeliveriesToChips(props.deliveries),
     last12Label: ballsLabel ? String(ballsLabel).toUpperCase() : undefined,
     last12Runs: props.runs,
     predictions: props.predictions ?? null,

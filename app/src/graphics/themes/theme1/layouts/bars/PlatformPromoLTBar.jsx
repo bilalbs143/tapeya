@@ -1,15 +1,13 @@
 /**
  * Follow / Download Tapeya promo lower-third.
  *
- * Standard LT footprint (1920 × 138) — same as LT_DEFAULT.
- * Layout: [logo] | headline row (40%) + URL row (60%)
+ * Standard LT footprint — ltBar.height × content width (min ltInfoBar.minWidth).
  */
 import { cn } from '@/lib/utils';
 
-import { assets, geometry, ltBar, ltPromoBar } from '../../config';
-import { GlowPanel, ScaledBarSurface, UI_FONT } from '../../primitives';
+import { assets, geometry, infoBarPanelClass, infoBarPanelStyle, ltPromoBar } from '../../config';
+import { InsetLTBarPanel, InsetLTBarSurface, InsetLTLogo, UI_FONT } from '../../primitives';
 
-const DESIGN_WIDTH = ltBar.designWidth;
 const BAR_RADIUS = geometry.barRadius;
 
 const promoRowPaddingX = {
@@ -27,17 +25,18 @@ function promoUrlRowFlexStyle() {
   return { flex: `${ltPromoBar.urlRowFlex} ${ltPromoBar.urlRowFlex} 0%`, minHeight: 0 };
 }
 
-const promoTextRowClass = cn('flex w-full min-h-0 items-center');
+const promoTextRowClass = cn('flex h-full min-h-0 items-center');
 
 const promoHeadlineTextClass = cn(
-  'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap leading-none font-bold tracking-[0.12em] text-[var(--text)] uppercase',
+  'shrink-0 whitespace-nowrap leading-none font-bold tracking-[0.12em] text-[var(--text)] uppercase',
   UI_FONT,
 );
 
-const promoUrlTextClass = cn(
-  'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap leading-none font-extrabold tracking-[0.08em] text-white',
-  UI_FONT,
-);
+const promoHeadlineClampClass = cn(promoHeadlineTextClass, 'min-w-0 overflow-hidden text-ellipsis');
+
+const promoUrlTextClass = cn('shrink-0 whitespace-nowrap leading-none font-extrabold tracking-[0.08em] text-white', UI_FONT);
+
+const promoUrlClampClass = cn(promoUrlTextClass, 'min-w-0 overflow-hidden text-ellipsis');
 
 /**
  * @param {{
@@ -59,33 +58,38 @@ export function PlatformPromoLTBar({ headline, url, logoUrl, defaultHeadline = '
   const hasBothRows = Boolean(resolvedHeadline && resolvedUrl);
 
   return (
-    <ScaledBarSurface designWidth={DESIGN_WIDTH} edgeToEdge={edgeToEdge} barRadius={BAR_RADIUS}>
-      {({ radius }) => (
-        <GlowPanel
+    <InsetLTBarSurface edgeToEdge={edgeToEdge} barRadius={BAR_RADIUS}>
+      {({ radius, atMaxWidth, measuring }) => (
+        <InsetLTBarPanel
+          measuring={measuring}
           hideRing
           radius={radius}
-          className="flex w-full items-stretch overflow-hidden"
-          style={{ height: ltBar.height }}
+          className={infoBarPanelClass(measuring)}
+          style={infoBarPanelStyle(measuring)}
         >
           <div
-            className="flex shrink-0 items-center justify-center border-r border-white/8"
+            className="flex h-full shrink-0 items-center justify-center border-r border-white/8"
             style={{ paddingLeft: ltPromoBar.logoPaddingX, paddingRight: ltPromoBar.logoPaddingX }}
           >
-            <img
+            <InsetLTLogo
+              measuring={measuring}
               src={resolvedLogoUrl}
               alt="Tapeya"
+              height={ltPromoBar.logoHeight}
               className="w-auto max-w-full object-contain"
-              style={{ height: ltPromoBar.logoHeight }}
             />
           </div>
 
-          <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="flex h-full min-w-0 flex-1 flex-col">
             {resolvedHeadline ? (
               <div
                 className={cn(promoTextRowClass, hasBothRows && 'border-b border-white/8')}
                 style={{ ...promoHeadlineRowFlexStyle(!hasBothRows), ...promoRowPaddingX }}
               >
-                <span className={promoHeadlineTextClass} style={{ fontSize: ltPromoBar.headlineFont }}>
+                <span
+                  className={atMaxWidth ? promoHeadlineClampClass : promoHeadlineTextClass}
+                  style={{ fontSize: ltPromoBar.headlineFont }}
+                >
                   {resolvedHeadline}
                 </span>
               </div>
@@ -99,14 +103,14 @@ export function PlatformPromoLTBar({ headline, url, logoUrl, defaultHeadline = '
                   ...promoRowPaddingX,
                 }}
               >
-                <span className={promoUrlTextClass} style={{ fontSize: ltPromoBar.urlFont }}>
+                <span className={atMaxWidth ? promoUrlClampClass : promoUrlTextClass} style={{ fontSize: ltPromoBar.urlFont }}>
                   {resolvedUrl}
                 </span>
               </div>
             ) : null}
           </div>
-        </GlowPanel>
+        </InsetLTBarPanel>
       )}
-    </ScaledBarSurface>
+    </InsetLTBarSurface>
   );
 }

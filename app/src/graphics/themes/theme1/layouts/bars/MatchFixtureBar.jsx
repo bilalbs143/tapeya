@@ -1,11 +1,11 @@
 /**
  * Match fixture lower-third bar — INTRO_LT, TOSS_LT, RESULT_LT, TOURNAMENT_NAME.
- * Standard LT footprint (1920 × 138) — same as LT_DEFAULT.
+ * Standard LT footprint — ltBar.height × content width (min ltInfoBar.minWidth).
  */
 import { cn } from '@/lib/utils';
 
-import { geometry, ltBar } from '../../config';
-import { Crest, GlowPanel, ScaledBarSurface } from '../../primitives';
+import { geometry, infoBarPanelClass, infoBarPanelStyle, ltBar } from '../../config';
+import { InsetLTBarPanel, InsetLTBarSurface, InsetLTCrest } from '../../primitives';
 import {
   fixtureCrestColumnClass,
   fixtureCrestColumnStyle,
@@ -13,7 +13,6 @@ import {
   fixtureDetailRowFlexStyle,
   fixtureDetailStyle,
   fixtureRowPaddingXStyle,
-  fixtureTitleClass,
   fixtureTitleRowClass,
   fixtureTitleRowFlexStyle,
   fixtureTitleStyle,
@@ -21,11 +20,11 @@ import {
   fixtureVsStyle,
   MATCH_FIXTURE_DETAIL_SEMIBOLD,
   MATCH_FIXTURE_DETAIL_TOSS,
+  pickFixtureTitleClass,
 } from './fixtureBarLayout';
 
 export { MATCH_FIXTURE_DETAIL_SEMIBOLD, MATCH_FIXTURE_DETAIL_TOSS };
 
-const DESIGN_WIDTH = ltBar.designWidth;
 const CREST_SIZE = ltBar.crestSize;
 const BAR_RADIUS = geometry.barRadius;
 
@@ -66,38 +65,40 @@ export function MatchFixtureBar({
   const title = fixture.title ?? '';
   const matchDetail = fixture.matchDetail ?? '';
   const hasDetailRow = Boolean(matchDetail);
+  const titleClass = (atMaxWidth) => pickFixtureTitleClass(atMaxWidth);
 
   return (
-    <ScaledBarSurface designWidth={DESIGN_WIDTH} edgeToEdge={edgeToEdge} barRadius={BAR_RADIUS}>
-      {({ radius }) => (
-        <GlowPanel
+    <InsetLTBarSurface edgeToEdge={edgeToEdge} barRadius={BAR_RADIUS}>
+      {({ radius, atMaxWidth, measuring }) => (
+        <InsetLTBarPanel
+          measuring={measuring}
           hideRing
           radius={radius}
-          className="flex w-full items-stretch overflow-hidden"
-          style={{ height: ltBar.height }}
+          className={infoBarPanelClass(measuring)}
+          style={infoBarPanelStyle(measuring)}
         >
           <div className={fixtureCrestColumnClass} style={fixtureCrestColumnStyle}>
-            <Crest team={teamA} size={CREST_SIZE} accent={teamA.color} borderPulseOrder={1} />
+            <InsetLTCrest measuring={measuring} team={teamA} size={CREST_SIZE} accent={teamA.color} borderPulseOrder={1} />
           </div>
 
-          <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="flex h-full min-w-0 flex-1 flex-col">
             <div
               className={cn(fixtureTitleRowClass, !hasDetailRow && 'border-b-0')}
               style={{ ...fixtureTitleRowFlexStyle(!hasDetailRow), ...fixtureRowPaddingXStyle }}
             >
               {title ? (
-                <span className={fixtureTitleClass} style={fixtureTitleStyle}>
+                <span className={titleClass(atMaxWidth)} style={fixtureTitleStyle}>
                   {title}
                 </span>
               ) : (
                 <>
-                  <span className={fixtureTitleClass} style={fixtureTitleStyle}>
+                  <span className={titleClass(atMaxWidth)} style={fixtureTitleStyle}>
                     {nameA}
                   </span>
                   <span className={fixtureVsClass} style={fixtureVsStyle}>
                     {vsLabel}
                   </span>
-                  <span className={fixtureTitleClass} style={fixtureTitleStyle}>
+                  <span className={titleClass(atMaxWidth)} style={fixtureTitleStyle}>
                     {nameB}
                   </span>
                 </>
@@ -106,7 +107,11 @@ export function MatchFixtureBar({
 
             {hasDetailRow ? (
               <div
-                className={cn(fixtureDetailRowClass, detailClassName)}
+                className={cn(
+                  fixtureDetailRowClass,
+                  detailClassName,
+                  atMaxWidth && 'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap',
+                )}
                 style={{ ...fixtureDetailRowFlexStyle(), ...fixtureRowPaddingXStyle, ...detailStyle }}
               >
                 {matchDetail}
@@ -115,10 +120,10 @@ export function MatchFixtureBar({
           </div>
 
           <div className={fixtureCrestColumnClass} style={fixtureCrestColumnStyle}>
-            <Crest team={teamB} size={CREST_SIZE} accent={teamB.color} borderPulseOrder={2} />
+            <InsetLTCrest measuring={measuring} team={teamB} size={CREST_SIZE} accent={teamB.color} borderPulseOrder={2} />
           </div>
-        </GlowPanel>
+        </InsetLTBarPanel>
       )}
-    </ScaledBarSurface>
+    </InsetLTBarSurface>
   );
 }

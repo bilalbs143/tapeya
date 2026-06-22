@@ -126,6 +126,7 @@ export class MatchControllerDashboardComponent implements OnInit {
   public selectedBowler: MatchGraphicPlayerPick | null = null;
   public loading = true;
   public sendingKey: string | null = null;
+  public sendingPick: MatchGraphicPlayerPick | null = null;
   public clearingRecent = false;
   /** Cleanup function returned by BackofficeReverbService.listenMatchGraphics. */
   private graphicsChannelCleanup: (() => void) | null = null;
@@ -331,6 +332,13 @@ export class MatchControllerDashboardComponent implements OnInit {
     return this.sendingKey === graphicActionKey(a);
   }
 
+  public isActionSendingForPick(a: GraphicCatalogAction, pick: MatchGraphicPlayerPick | null): boolean {
+    if (!pick || !this.isActionSending(a)) {
+      return false;
+    }
+    return Number(this.sendingPick?.user_id) === Number(pick.user_id);
+  }
+
   /** Primary styling only for the graphic currently on air. */
   public isActionOnAir(a: GraphicCatalogAction): boolean {
     const active = this.session?.active_command;
@@ -338,6 +346,15 @@ export class MatchControllerDashboardComponent implements OnInit {
       return false;
     }
     return active.command_type === a.command_type && active.command_key === a.command_key;
+  }
+
+  public isActionOnAirForPick(a: GraphicCatalogAction, pick: MatchGraphicPlayerPick | null): boolean {
+    if (!pick || !this.isActionOnAir(a)) {
+      return false;
+    }
+    const payload = this.session?.active_command?.payload;
+    const activeUserId = Number(payload?.['user_id']);
+    return activeUserId > 0 && activeUserId === Number(pick.user_id);
   }
 
   /** Live innings from session context (scoring / Reverb). */
@@ -371,6 +388,9 @@ export class MatchControllerDashboardComponent implements OnInit {
   private dispatchGraphicCommand(action: GraphicCatalogAction, payload: Record<string, unknown> | null): void {
     const key = graphicActionKey(action);
     this.sendingKey = key;
+    const uid = typeof payload?.['user_id'] === 'number' ? payload['user_id'] : null;
+    const tid = typeof payload?.['team_id'] === 'number' ? payload['team_id'] : null;
+    this.sendingPick = uid != null && tid != null ? { user_id: uid, team_id: tid } : null;
     this.graphicService
       .sendCommand(this.matchId, {
         command_type: action.command_type,
@@ -382,6 +402,7 @@ export class MatchControllerDashboardComponent implements OnInit {
       .subscribe({
         next: (res) => {
           this.sendingKey = null;
+          this.sendingPick = null;
           this.messageService.success(`Sent: ${action.label}`);
           if (this.session) {
             const cmd = res.data;
@@ -396,17 +417,12 @@ export class MatchControllerDashboardComponent implements OnInit {
         },
         error: (err: unknown) => {
           this.sendingKey = null;
+          this.sendingPick = null;
           this.messageService.httpError(err);
         },
       });
   }
 
-  /**
-   * Subscribe to the public match graphics Reverb channel so this page stays
-   * in sync when another operator (or another tab) fires a command or edits a
-   * caption.  Called after every successful loadAll() to reconnect if the matchId
-   * changes (rare but possible via route params).
-   */
   private subscribeToGraphicsChannel(): void {
     // Leave any previously subscribed channel first.
     this.graphicsChannelCleanup?.();

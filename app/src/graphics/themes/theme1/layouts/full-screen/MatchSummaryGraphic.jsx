@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 
 import { batterScore, fsMatchSummary, fsSummaryPanel } from '../../config';
 import {
+  batterScoreBallsStyle,
   BatterScoreInline,
   DISPLAY_FONT,
   FSStage,
@@ -139,7 +140,7 @@ function BowlingMiniRow({ name, wickets, runs, overs }) {
       <span className={bowlerFiguresClass} style={fsFont(fsMatchSummary.bowlerFigures)}>
         {wickets}-{runs}
       </span>
-      <span className={cn(FS_ROW_BALLS, 'w-20 text-right')} style={fsFont(fsSummaryPanel.rowBalls)}>
+      <span className={cn(FS_ROW_BALLS, 'w-20 text-right')} style={batterScoreBallsStyle(fsSummaryPanel.rowBalls)}>
         {overs}
       </span>
     </>

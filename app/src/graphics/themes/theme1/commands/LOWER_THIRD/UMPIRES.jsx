@@ -7,7 +7,7 @@ export default function UMPIRES({ isOverlay, tokens: _tokens, ...props }) {
   if (!officials) return null;
 
   return (
-    <BroadcastShell stage="bar" overlayInset="wide" isOverlay={isOverlay}>
+    <BroadcastShell stage="bar" overlayInset="lt" isOverlay={isOverlay}>
       <OfficialsLTBar
         data={officials}
         edgeToEdge={isOverlay}

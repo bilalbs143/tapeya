@@ -7,7 +7,7 @@ export default function CUSTOM({ isOverlay, ...props }) {
   if (!data) return null;
 
   return (
-    <BroadcastShell stage="bar" overlayInset="wide" isOverlay={isOverlay}>
+    <BroadcastShell stage="bar" overlayInset="lt" isOverlay={isOverlay}>
       <CustomCaptionLTBar {...data} edgeToEdge={isOverlay} />
     </BroadcastShell>
   );

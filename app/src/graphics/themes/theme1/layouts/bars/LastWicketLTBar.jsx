@@ -4,9 +4,15 @@
  */
 import { cn } from '@/lib/utils';
 
-import { AnimatedNumber, fmt, UI_FONT } from '../../primitives';
+import { fmt, InsetLTAnimatedNumber, UI_FONT } from '../../primitives';
 import { PlayerStatLTBar } from './PlayerStatLTBar';
-import { BATTER_SCORE_CLUSTER_CLASS, batterScoreBallsClass, ltPlayerStatBar, playerStatLtHeroClass } from './playerStatLtStyles';
+import {
+  BATTER_SCORE_CLUSTER_CLASS,
+  batterScoreBallsClass,
+  batterScoreBallsStyle,
+  ltPlayerStatBar,
+  playerStatLtHeroClass,
+} from './playerStatLtStyles';
 
 const scoreClusterClass = cn(BATTER_SCORE_CLUSTER_CLASS, 'ml-2');
 
@@ -69,7 +75,7 @@ export function LastWicketLTBar({ batter, teams, edgeToEdge = true }) {
       edgeToEdge={edgeToEdge}
       statFields={STAT_FIELDS}
       statValues={statValues}
-      header={
+      header={({ measuring }) => (
         <>
           <div className="flex min-w-0 flex-1 items-baseline gap-2 overflow-hidden">
             <span className={nameClass} style={{ fontSize: ltPlayerStatBar.nameSize }}>
@@ -78,19 +84,21 @@ export function LastWicketLTBar({ batter, teams, edgeToEdge = true }) {
             {player.dismissal ? <span className={dismissalClass}>{player.dismissal}</span> : null}
           </div>
           <span className={scoreClusterClass} style={{ gap: ltPlayerStatBar.scoreGap }}>
-            <AnimatedNumber
+            <InsetLTAnimatedNumber
+              measuring={measuring}
               value={player.runs ?? 0}
               className={playerStatLtHeroClass}
               style={{ fontSize: ltPlayerStatBar.heroSize }}
             />
-            <AnimatedNumber
+            <InsetLTAnimatedNumber
+              measuring={measuring}
               value={player.balls ?? 0}
               className={batterScoreBallsClass}
-              style={{ fontSize: ltPlayerStatBar.secondarySize }}
+              style={batterScoreBallsStyle(ltPlayerStatBar.secondarySize, ltPlayerStatBar.secondaryWeight)}
             />
           </span>
         </>
-      }
+      )}
     />
   );
 }

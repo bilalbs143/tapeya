@@ -1,11 +1,11 @@
 /**
  * Match Summary lower-third — MATCH_SUMMARY.
- * Standard LT footprint (1920 × 126) — same as LT_DEFAULT.
+ * Standard LT footprint — ltBar.height × content width (min ltInfoBar.minWidth).
  */
 import { cn } from '@/lib/utils';
 
-import { geometry, ltBar, ltFixtureBar } from '../../config';
-import { AnimatedNumber, Crest, DISPLAY_FONT, GlowPanel, ScaledBarSurface, UI_FONT } from '../../primitives';
+import { geometry, infoBarPanelClass, infoBarPanelStyle, ltBar, ltFixtureBar } from '../../config';
+import { DISPLAY_FONT, InsetLTAnimatedNumber, InsetLTBarPanel, InsetLTBarSurface, InsetLTCrest, UI_FONT } from '../../primitives';
 import { textGlowClass } from '../../visualEffects';
 import {
   fixtureCrestColumnClass,
@@ -15,15 +15,14 @@ import {
   fixtureDetailRowFlexStyle,
   fixtureDetailStyle,
   fixtureRowPaddingXStyle,
-  fixtureTitleClass,
   fixtureTitleRowClass,
   fixtureTitleRowFlexStyle,
   fixtureTitleStyle,
   fixtureVsClass,
   fixtureVsStyle,
+  pickFixtureTitleClass,
 } from './fixtureBarLayout';
 
-const DESIGN_WIDTH = ltBar.designWidth;
 const CREST_SIZE = ltBar.crestSize;
 const BAR_RADIUS = geometry.barRadius;
 const DEFAULT_LABEL = 'MATCH SUMMARY';
@@ -33,16 +32,17 @@ function teamName(team) {
 }
 
 /**
- * @param {{ total?: number, wkts?: number, scoreSep?: string, oversText?: string, oversLabel?: string }} innings
+ * @param {{ total?: number, wkts?: number, scoreSep?: string, oversText?: string, oversLabel?: string, measuring?: boolean }} innings
  */
-function InningsScore({ innings }) {
+function InningsScore({ innings, measuring = false }) {
   const separator = innings.scoreSep ?? '-';
   const oversLine = `${innings.oversText ?? ''} ${innings.oversLabel ?? 'OVER'}`.trim();
 
   return (
     <div className="flex shrink-0 flex-col items-center leading-[1.05]">
       <div className="flex items-baseline gap-[2px]">
-        <AnimatedNumber
+        <InsetLTAnimatedNumber
+          measuring={measuring}
           value={innings.total ?? 0}
           className={cn('leading-[0.92] font-extrabold text-[var(--text)]', textGlowClass('subtle'), DISPLAY_FONT)}
           style={{ fontSize: ltFixtureBar.matchSummaryScoreTotal }}
@@ -53,7 +53,8 @@ function InningsScore({ innings }) {
         >
           {separator}
         </span>
-        <AnimatedNumber
+        <InsetLTAnimatedNumber
+          measuring={measuring}
           value={innings.wkts ?? 0}
           className={cn('leading-[0.92] font-extrabold text-[var(--text)]', DISPLAY_FONT)}
           style={{ fontSize: ltFixtureBar.matchSummaryScoreWkts }}
@@ -85,39 +86,45 @@ export function MatchSummaryLTBar({ summary, teams, edgeToEdge = true }) {
 
   const vsLabel = summary.vsLabel ?? 'VS';
   const centerLabel = summary.label ?? DEFAULT_LABEL;
+  const titleClass = (atMaxWidth) => cn(pickFixtureTitleClass(atMaxWidth), 'uppercase');
 
   return (
-    <ScaledBarSurface designWidth={DESIGN_WIDTH} edgeToEdge={edgeToEdge} barRadius={BAR_RADIUS}>
-      {({ radius }) => (
-        <GlowPanel
+    <InsetLTBarSurface edgeToEdge={edgeToEdge} barRadius={BAR_RADIUS}>
+      {({ radius, atMaxWidth, measuring }) => (
+        <InsetLTBarPanel
+          measuring={measuring}
           hideRing
           radius={radius}
-          className="flex w-full items-stretch overflow-hidden"
-          style={{ height: ltBar.height }}
+          className={infoBarPanelClass(measuring)}
+          style={infoBarPanelStyle(measuring)}
         >
           <div className={fixtureCrestColumnClass} style={fixtureCrestColumnStyle}>
-            <Crest team={teamA} size={CREST_SIZE} accent={teamA.color} borderPulseOrder={1} />
+            <InsetLTCrest measuring={measuring} team={teamA} size={CREST_SIZE} accent={teamA.color} borderPulseOrder={1} />
           </div>
 
-          <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="flex h-full min-w-0 flex-1 flex-col">
             <div
               className={cn(fixtureTitleRowClass, 'gap-6')}
               style={{ ...fixtureTitleRowFlexStyle(false), ...fixtureRowPaddingXStyle }}
             >
-              <span className={cn(fixtureTitleClass, 'uppercase')} style={fixtureTitleStyle}>
+              <span className={titleClass(atMaxWidth)} style={fixtureTitleStyle}>
                 {teamName(teamA)}
               </span>
-              <InningsScore innings={inningsA} />
+              <InningsScore innings={inningsA} measuring={measuring} />
               <span className={fixtureVsClass} style={fixtureVsStyle}>
                 {vsLabel}
               </span>
-              <InningsScore innings={inningsB} />
-              <span className={cn(fixtureTitleClass, 'uppercase')} style={fixtureTitleStyle}>
+              <InningsScore innings={inningsB} measuring={measuring} />
+              <span className={titleClass(atMaxWidth)} style={fixtureTitleStyle}>
                 {teamName(teamB)}
               </span>
             </div>
             <div
-              className={cn(fixtureDetailRowClass, fixtureDetailClassName('semibold'))}
+              className={cn(
+                fixtureDetailRowClass,
+                fixtureDetailClassName('semibold'),
+                atMaxWidth && 'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap',
+              )}
               style={{ ...fixtureDetailRowFlexStyle(), ...fixtureRowPaddingXStyle, ...fixtureDetailStyle('semibold') }}
             >
               {centerLabel}
@@ -125,10 +132,10 @@ export function MatchSummaryLTBar({ summary, teams, edgeToEdge = true }) {
           </div>
 
           <div className={fixtureCrestColumnClass} style={fixtureCrestColumnStyle}>
-            <Crest team={teamB} size={CREST_SIZE} accent={teamB.color} borderPulseOrder={2} />
+            <InsetLTCrest measuring={measuring} team={teamB} size={CREST_SIZE} accent={teamB.color} borderPulseOrder={2} />
           </div>
-        </GlowPanel>
+        </InsetLTBarPanel>
       )}
-    </ScaledBarSurface>
+    </InsetLTBarSurface>
   );
 }

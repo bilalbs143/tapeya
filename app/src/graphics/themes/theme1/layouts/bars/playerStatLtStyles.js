@@ -2,7 +2,12 @@ import { cn } from '@/lib/utils';
 
 import { ltPlayerStatBar } from '../../config';
 import { DISPLAY_FONT, UI_FONT } from '../../primitives';
-import { BATTER_SCORE_CLUSTER_CLASS, batterScoreBallsClass, batterScoreRunsClass } from '../../primitives/batterScore';
+import {
+  BATTER_SCORE_CLUSTER_CLASS,
+  batterScoreBallsClass,
+  batterScoreBallsStyle,
+  batterScoreRunsClass,
+} from '../../primitives/batterScore';
 import { textGlowClass } from '../../visualEffects';
 import { TEXT_PRIMARY, TEXT_SECONDARY } from '../shared/textStyles';
 
@@ -26,4 +31,4 @@ export const playerStatLtTournamentClass = cn(
   UI_FONT,
 );
 
-export { BATTER_SCORE_CLUSTER_CLASS, batterScoreBallsClass, batterScoreRunsClass, ltPlayerStatBar };
+export { BATTER_SCORE_CLUSTER_CLASS, batterScoreBallsClass, batterScoreBallsStyle, batterScoreRunsClass, ltPlayerStatBar };

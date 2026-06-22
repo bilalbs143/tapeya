@@ -4,6 +4,7 @@
  */
 import { cn } from '@/lib/utils';
 
+import { batterScore as batterScoreTokens } from '../config';
 import { TEXT_SECONDARY } from '../layouts/shared/textStyles';
 import { AnimatedNumber } from './atoms';
 import { DISPLAY_FONT, fsFont } from './formatters';
@@ -20,7 +21,15 @@ export function batterScoreRunsClass({ onStrike = true } = {}) {
   );
 }
 
-export const batterScoreBallsClass = cn('font-medium tabular-nums', TEXT_SECONDARY, DISPLAY_FONT);
+export const batterScoreBallsClass = cn('tabular-nums', TEXT_SECONDARY, DISPLAY_FONT);
+
+/** Balls faced / overs — size + weight from `batterScore` tokens (override weight when needed). */
+export function batterScoreBallsStyle(sizePx, weight = batterScoreTokens.ballsWeight) {
+  return {
+    ...fsFont(sizePx),
+    fontWeight: weight,
+  };
+}
 
 /**
  * @param {{
@@ -60,7 +69,7 @@ export function BatterScoreInline({
           {runs ?? 0}
         </span>
       )}
-      <span className={batterScoreBallsClass} style={fsFont(ballsSize)}>
+      <span className={batterScoreBallsClass} style={batterScoreBallsStyle(ballsSize)}>
         {balls ?? 0}
       </span>
     </span>

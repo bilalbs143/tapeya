@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
-import { fsChart } from '../../config';
+import { colors, fsChart } from '../../config';
 import { fsFont, FSStage, GlowPanel } from '../../primitives';
 import { isChartGlowEnabled } from '../../visualEffects';
 import { ChartHeader } from './ChartHeader';
@@ -281,7 +281,7 @@ function WagonStatsPanel({ player, stats, zoneBreakdown = [] }) {
       </div>
 
       <div className="grid grid-cols-3 gap-3.5">
-        <WagonBigStat label="RUNS" value={stats.total} accent="#dbe8ff" dense={denseZones} />
+        <WagonBigStat label="RUNS" value={stats.total} accent={colors.textSecondary} dense={denseZones} />
         <WagonBigStat label="FOURS" value={stats.fours} accent="#5aa0ff" dense={denseZones} />
         <WagonBigStat label="SIXES" value={stats.sixes} accent="#f5c85a" dense={denseZones} />
       </div>

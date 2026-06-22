@@ -7,7 +7,7 @@ export default function TOURNAMENT_NAME({ isOverlay, tokens, ...props }) {
   if (!bundle) return null;
 
   return (
-    <BroadcastShell stage="bar" overlayInset="info" isOverlay={isOverlay}>
+    <BroadcastShell stage="bar" overlayInset="lt" isOverlay={isOverlay}>
       <MatchFixtureBar
         fixture={bundle.fixture}
         teams={bundle.teams}

@@ -132,12 +132,12 @@
                           mat-stroked-button
                           type="button"
                           class="catalog-group__btn"
-                          [class.catalog-group__btn--on-air]="isActionOnAir(a)"
-                          [disabled]="!card.pick || isActionSending(a)"
+                          [class.catalog-group__btn--on-air]="isActionOnAirForPick(a, card.pick)"
+                          [disabled]="!card.pick || isActionSendingForPick(a, card.pick)"
                           [matTooltip]="playerBatsmanCardTooltip(a, card)"
                           (click)="sendWithPick(a, card.pick)"
                         >
-                          @if (isActionSending(a)) {
+                          @if (isActionSendingForPick(a, card.pick)) {
                             …
                           } @else {
                             {{ a.label }}
@@ -185,12 +185,12 @@
                         mat-stroked-button
                         type="button"
                         class="catalog-group__btn"
-                        [class.catalog-group__btn--on-air]="isActionOnAir(a)"
-                        [disabled]="!liveBowlerCommandPick() || isActionSending(a)"
+                        [class.catalog-group__btn--on-air]="isActionOnAirForPick(a, liveBowlerCommandPick())"
+                        [disabled]="!liveBowlerCommandPick() || isActionSendingForPick(a, liveBowlerCommandPick())"
                         [matTooltip]="playerBowlerCardTooltip(a)"
                         (click)="sendWithPick(a, liveBowlerCommandPick())"
                       >
-                        @if (isActionSending(a)) {
+                        @if (isActionSendingForPick(a, liveBowlerCommandPick())) {
                           …
                         } @else {
                           {{ a.label }}
@@ -251,12 +251,17 @@
                       mat-stroked-button
                       type="button"
                       class="catalog-group__btn"
-                      [class.catalog-group__btn--on-air]="isActionOnAir(a)"
+                      [class.catalog-group__btn--on-air]="
+                        isPlayerPickGroup(group) ? isActionOnAirForPick(a, playerPickValue(group)) : isActionOnAir(a)
+                      "
                       (click)="send(a)"
-                      [disabled]="isActionSending(a) || playerPickActionDisabled(group, a)"
+                      [disabled]="
+                        (isPlayerPickGroup(group) ? isActionSendingForPick(a, playerPickValue(group)) : isActionSending(a)) ||
+                        playerPickActionDisabled(group, a)
+                      "
                       [matTooltip]="catalogActionTooltip(a)"
                     >
-                      @if (isActionSending(a)) {
+                      @if (isPlayerPickGroup(group) ? isActionSendingForPick(a, playerPickValue(group)) : isActionSending(a)) {
                         …
                       } @else {
                         {{ a.label }}

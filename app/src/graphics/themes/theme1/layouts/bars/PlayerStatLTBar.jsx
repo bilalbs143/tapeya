@@ -1,26 +1,31 @@
 /**
  * Shared lower-third player stat bar layout.
  * Header content and stat fields are supplied by callers (batsman, bowler, last wicket).
+ *
+ * Uses the same InsetLTBarSurface shell as fixture / name inset LTs.
  */
 import { cn } from '@/lib/utils';
 
-import { geometry, ltBar, ltPlayerStatBar } from '../../config';
-import { DISPLAY_FONT, GlowPanel, ScaledBarSurface, UI_FONT } from '../../primitives';
+import { geometry, infoBarPanelClass, infoBarPanelStyle, ltPlayerStatBar } from '../../config';
+import { DISPLAY_FONT, InsetLTBarPanel, InsetLTBarSurface, UI_FONT } from '../../primitives';
 import { TEXT_PRIMARY, TEXT_SECONDARY } from '../shared/textStyles';
 
-const DESIGN_WIDTH = ltBar.designWidth;
 const BAR_RADIUS = geometry.barRadius;
 
 const HEAD_GRADIENT_CLASS =
   'bg-[linear-gradient(100deg,color-mix(in_srgb,var(--panel-ring-a,var(--accentA))_33%,transparent),transparent_60%)]';
 
-const contentBandStyle = {
-  width: '100%',
-  maxWidth: ltPlayerStatBar.contentMaxWidth,
+const headRowFlexStyle = {
+  flex: `${ltPlayerStatBar.headRowFlex} ${ltPlayerStatBar.headRowFlex} 0%`,
+  minHeight: 0,
+};
+
+const statsRowFlexStyle = {
+  flex: `${ltPlayerStatBar.statsRowFlex} ${ltPlayerStatBar.statsRowFlex} 0%`,
+  minHeight: 0,
 };
 
 const headBandStyle = {
-  ...contentBandStyle,
   paddingTop: ltPlayerStatBar.headPaddingY,
   paddingBottom: ltPlayerStatBar.headPaddingY,
   paddingLeft: ltPlayerStatBar.headPaddingX,
@@ -28,7 +33,6 @@ const headBandStyle = {
 };
 
 const statsBandStyle = {
-  ...contentBandStyle,
   gap: `${ltPlayerStatBar.statRowGap * 4}px`,
   paddingTop: ltPlayerStatBar.statsPaddingY,
   paddingBottom: ltPlayerStatBar.statsPaddingY,
@@ -38,7 +42,7 @@ const statsBandStyle = {
 
 const statCellClass = 'shrink-0 text-center';
 
-const statLabelClass = cn('font-semibold uppercase tracking-[0.08em]', TEXT_SECONDARY, UI_FONT);
+const statLabelClass = cn('uppercase tracking-[0.08em]', TEXT_SECONDARY, UI_FONT);
 
 const statValueClass = cn('font-extrabold leading-none', TEXT_PRIMARY, DISPLAY_FONT);
 
@@ -48,7 +52,7 @@ const statValueClass = cn('font-extrabold leading-none', TEXT_PRIMARY, DISPLAY_F
  *   edgeToEdge?: boolean,
  *   statFields: Array<{ key: string, label: string }>,
  *   statValues: Record<string, string | number>,
- *   header: import('react').ReactNode,
+ *   header: import('react').ReactNode | ((ctx: { measuring?: boolean }) => import('react').ReactNode),
  *   statRowClass?: string,
  *   statRowStyle?: import('react').CSSProperties,
  * }} props
@@ -62,38 +66,56 @@ export function PlayerStatLTBar({
   statRowClass,
   statRowStyle: callerRowStyle,
 }) {
-  return (
-    <ScaledBarSurface designWidth={DESIGN_WIDTH} edgeToEdge={edgeToEdge} barRadius={BAR_RADIUS}>
-      {({ radius }) => (
-        <GlowPanel hideRing radius={radius} accent={accent} className="w-full overflow-hidden">
-          <div className="flex w-full justify-center">
-            <div className={cn('flex items-center', HEAD_GRADIENT_CLASS)} style={headBandStyle}>
-              {header}
-            </div>
-          </div>
+  const renderHeader = (measuring) => (typeof header === 'function' ? header({ measuring }) : header);
 
-          <div className="flex w-full justify-center border-t border-white/12">
-            <div className={cn('flex justify-center', statRowClass)} style={{ ...statsBandStyle, ...callerRowStyle }}>
-              {statFields.map((field) => (
-                <div key={field.key} className={statCellClass}>
-                  <div className={statLabelClass} style={{ fontSize: ltPlayerStatBar.statLabelSize }}>
-                    {field.label}
+  return (
+    <InsetLTBarSurface edgeToEdge={edgeToEdge} barRadius={BAR_RADIUS}>
+      {({ radius, atMaxWidth, measuring }) => (
+        <InsetLTBarPanel
+          measuring={measuring}
+          hideRing
+          radius={radius}
+          accent={accent}
+          className={infoBarPanelClass(measuring)}
+          style={infoBarPanelStyle(measuring)}
+        >
+          <div className="flex h-full w-full flex-col">
+            <div
+              className={cn('flex min-h-0 w-full items-center justify-center overflow-hidden', HEAD_GRADIENT_CLASS)}
+              style={{ ...headRowFlexStyle, ...headBandStyle }}
+            >
+              {renderHeader(measuring)}
+            </div>
+
+            <div className="flex min-h-0 w-full items-center justify-center border-t border-white/12" style={statsRowFlexStyle}>
+              <div
+                className={cn('flex w-full justify-center', statRowClass, atMaxWidth && 'min-w-0 overflow-hidden')}
+                style={{ ...statsBandStyle, ...callerRowStyle }}
+              >
+                {statFields.map((field) => (
+                  <div key={field.key} className={statCellClass}>
+                    <div
+                      className={statLabelClass}
+                      style={{ fontSize: ltPlayerStatBar.statLabelSize, fontWeight: ltPlayerStatBar.statLabelWeight }}
+                    >
+                      {field.label}
+                    </div>
+                    <div
+                      className={statValueClass}
+                      style={{
+                        fontSize: ltPlayerStatBar.statValueSize,
+                        marginTop: ltPlayerStatBar.statLabelValueGap,
+                      }}
+                    >
+                      {statValues[field.key]}
+                    </div>
                   </div>
-                  <div
-                    className={statValueClass}
-                    style={{
-                      fontSize: ltPlayerStatBar.statValueSize,
-                      marginTop: ltPlayerStatBar.statLabelValueGap,
-                    }}
-                  >
-                    {statValues[field.key]}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
-        </GlowPanel>
+        </InsetLTBarPanel>
       )}
-    </ScaledBarSurface>
+    </InsetLTBarSurface>
   );
 }

@@ -205,7 +205,7 @@ function HorizontalBar({
                 <Last30StatsPanel stats={frame.last30Stats} />
               ) : (
                 <LastBallsPanel
-                  overs={frame.last12ByOver ?? []}
+                  chips={frame.last12Chips ?? []}
                   label={frame.last12Label ?? 'LAST 12 BALLS'}
                   totalRuns={frame.last12Runs ?? frame.runs ?? null}
                   chipSize={ballTrackSize}
@@ -261,7 +261,7 @@ function HorizontalBar({
                   </span>
                   <div
                     className={cn(
-                      'flex shrink-0 items-baseline gap-[9px] font-medium whitespace-nowrap text-[var(--text-secondary)] tabular-nums',
+                      'flex shrink-0 items-baseline gap-[9px] font-semibold whitespace-nowrap text-[var(--text-secondary)] tabular-nums',
                       DISPLAY_FONT,
                     )}
                     style={{ fontSize: lt.bowlerFigures }}
@@ -431,8 +431,8 @@ function Last30StatsPanel({ stats }) {
 }
 
 /** Center-panel multi-ball strip — same chip size as Zone D BallTrack (lt.ballChip). */
-function LastBallsPanel({ overs, label = 'LAST 12 BALLS', totalRuns, chipSize = lt.ballChip, fitContent = false }) {
-  if (!overs?.length) return null;
+function LastBallsPanel({ chips, label = 'LAST 12 BALLS', totalRuns, chipSize = lt.ballChip, fitContent = false }) {
+  if (!chips?.length) return null;
   return (
     <div
       className={cn(
@@ -457,30 +457,9 @@ function LastBallsPanel({ overs, label = 'LAST 12 BALLS', totalRuns, chipSize = 
             style={{ height: chipSize, minWidth: chipSize + lt.last12TotalMinWidthExtra, fontSize: lt.last12TotalRuns }}
           />
         )}
-        <div className="flex min-w-0 flex-nowrap items-center gap-3 overflow-hidden">
-          {overs.map((group, i) => (
-            <div key={group.over ?? `over-${i}`} className="flex items-center gap-2.5">
-              <span
-                className={cn(
-                  'shrink-0 leading-none font-semibold tracking-[0.06em] text-[var(--text-secondary)] tabular-nums',
-                  DISPLAY_FONT,
-                )}
-                style={{ fontSize: lt.last12OverLabel }}
-              >
-                {group.over}
-              </span>
-              <div className="flex items-center gap-1.5">
-                {(group.chips ?? group.balls.map((code) => ({ code, chipType: null }))).map((chip, j) => (
-                  <BallChip
-                    key={`${group.over}-${j}`}
-                    code={chip.code}
-                    chipType={chip.chipType}
-                    size={chipSize}
-                    animate={false}
-                  />
-                ))}
-              </div>
-            </div>
+        <div className="flex min-w-0 flex-nowrap items-center gap-1.5 overflow-hidden">
+          {chips.map((chip, i) => (
+            <BallChip key={`${chip.code}-${i}`} code={chip.code} chipType={chip.chipType} size={chipSize} animate={false} />
           ))}
         </div>
       </div>
@@ -776,14 +755,6 @@ function PartnershipPanel({ partnership, team, hideTeamColumn = false }) {
   if (!hideTeamColumn && !team) return null;
   return (
     <PanelRoot>
-      {!hideTeamColumn ? (
-        <>
-          <PanelColumnSlot>
-            <PanelTeamColumn team={team} />
-          </PanelColumnSlot>
-          <PartialDivider />
-        </>
-      ) : null}
       <PanelHeadingLines label="CURRENT PARTNERSHIP" />
       <PartialDivider />
       <PanelColumnSlot>
@@ -793,6 +764,14 @@ function PartnershipPanel({ partnership, team, hideTeamColumn = false }) {
       <PanelColumnSlot>
         <PanelMetricColumn label="BALLS" value={partnership.balls} />
       </PanelColumnSlot>
+      {!hideTeamColumn ? (
+        <>
+          <PartialDivider />
+          <PanelColumnSlot>
+            <PanelTeamColumn team={team} />
+          </PanelColumnSlot>
+        </>
+      ) : null}
       <PartialDivider />
     </PanelRoot>
   );

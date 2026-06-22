@@ -69,4 +69,4 @@ export const FS_SCORE_STRIP_HERO = cn(
 
 export const FS_ROW_NAME = cn('flex-1 font-extrabold leading-none text-white uppercase', DISPLAY_FONT);
 
-export const FS_ROW_BALLS = cn('font-medium tabular-nums', TEXT_SECONDARY, DISPLAY_FONT);
+export const FS_ROW_BALLS = cn('tabular-nums', TEXT_SECONDARY, DISPLAY_FONT);

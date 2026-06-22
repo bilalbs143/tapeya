@@ -56,7 +56,7 @@ afterEach(() => {
 describe('ScaledBarSurface overlay inset integration', () => {
   it('applies native inset margins at scale 1 when inside OverlayLayoutProvider', async () => {
     const { container } = render(
-      <OverlayLayoutProvider variant="wide">
+      <OverlayLayoutProvider variant="lt">
         <ScaledBarSurface designWidth={ltBar.designWidth} edgeToEdge barRadius={0}>
           <div data-testid="bar-content" style={{ height: ltBar.height }}>
             Match summary
@@ -72,9 +72,9 @@ describe('ScaledBarSurface overlay inset integration', () => {
     expect(inner).toBeTruthy();
 
     await waitFor(() => {
-      expect(surface?.style.marginLeft).toBe(`${ltBar.overlayInsetXWide}px`);
-      expect(surface?.style.marginRight).toBe(`${ltBar.overlayInsetXWide}px`);
-      expect(surface?.style.marginBottom).toBe(`${ltBar.overlayInsetBottomSm}px`);
+      expect(surface?.style.marginLeft).toBe(`${ltBar.overlayInsetXLT}px`);
+      expect(surface?.style.marginRight).toBe(`${ltBar.overlayInsetXLT}px`);
+      expect(surface?.style.marginBottom).toBe(`${ltBar.overlayInsetBottomLT}px`);
     });
 
     expect(inner?.classList.contains('w-full')).toBe(true);

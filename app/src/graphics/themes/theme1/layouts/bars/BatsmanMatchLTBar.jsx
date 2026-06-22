@@ -4,11 +4,12 @@
  */
 import { cn } from '@/lib/utils';
 
-import { AnimatedNumber, DISPLAY_FONT, fmt } from '../../primitives';
+import { DISPLAY_FONT, fmt, InsetLTAnimatedNumber } from '../../primitives';
 import { PlayerStatLTBar } from './PlayerStatLTBar';
 import {
   BATTER_SCORE_CLUSTER_CLASS,
   batterScoreBallsClass,
+  batterScoreBallsStyle,
   ltPlayerStatBar,
   playerStatLtHeroClass,
   playerStatLtNameClass,
@@ -63,28 +64,30 @@ export function BatsmanMatchLTBar({ batter, teams, edgeToEdge = true }) {
       edgeToEdge={edgeToEdge}
       statFields={STAT_FIELDS}
       statValues={statValues}
-      header={
+      header={({ measuring }) => (
         <>
           <span className={playerStatLtNameClass} style={{ fontSize: ltPlayerStatBar.nameSize }}>
             {player.name}
           </span>
           <span className={scoreClusterClass} style={{ gap: ltPlayerStatBar.scoreGap }}>
             <span className={runsWrapClass}>
-              <AnimatedNumber
+              <InsetLTAnimatedNumber
+                measuring={measuring}
                 value={player.runs ?? 0}
                 className={playerStatLtHeroClass}
                 style={{ fontSize: ltPlayerStatBar.heroSize }}
               />
               {player.notOut ? <span className={asteriskClass}>*</span> : null}
             </span>
-            <AnimatedNumber
+            <InsetLTAnimatedNumber
+              measuring={measuring}
               value={player.balls ?? 0}
               className={batterScoreBallsClass}
-              style={{ fontSize: ltPlayerStatBar.secondarySize }}
+              style={batterScoreBallsStyle(ltPlayerStatBar.secondarySize, ltPlayerStatBar.secondaryWeight)}
             />
           </span>
         </>
-      }
+      )}
     />
   );
 }

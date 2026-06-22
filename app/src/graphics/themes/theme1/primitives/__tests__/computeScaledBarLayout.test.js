@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { computeScaledBarLayout, resolveInsetRenderWidth, ZERO_OVERLAY_INSETS } from '../computeScaledBarLayout';
 
 const DESIGN_WIDTH = 1920;
-const NATURAL_HEIGHT = 138;
+const NATURAL_HEIGHT = 139;
 
 describe('computeScaledBarLayout', () => {
   it('uses transform scale from reference width when no horizontal insets', () => {

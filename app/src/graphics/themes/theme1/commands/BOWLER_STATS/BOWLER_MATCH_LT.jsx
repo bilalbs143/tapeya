@@ -7,7 +7,7 @@ export default function BOWLER_MATCH_LT({ isOverlay, tokens, ...props }) {
   if (!resolved) return null;
 
   return (
-    <BroadcastShell stage="bar" overlayInset="stats" isOverlay={isOverlay}>
+    <BroadcastShell stage="bar" overlayInset="lt" isOverlay={isOverlay}>
       <BowlerMatchLTBar bowler={resolved.bowler} teams={resolved.teams} edgeToEdge={isOverlay} />
     </BroadcastShell>
   );

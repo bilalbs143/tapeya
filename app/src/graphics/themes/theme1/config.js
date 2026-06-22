@@ -215,7 +215,7 @@ export const geometry = {
  */
 export const ltBar = {
   designWidth: 1920,
-  height: 138,
+  height: 139,
   crestSize: 86,
   sidePaddingY: 20,
   edgePaddingX: 32,
@@ -223,19 +223,17 @@ export const ltBar = {
   previewGutter: 32,
   mobileBreakpoint: 720,
 
-  // Overlay safe-area insets — px each side (margins only; bars render at scale 1 inside safe width).
-  overlayInsetXStats: 380, // player stat bars — L/R
-  overlayInsetXInfo: 360, // fixture / name LTs — L/R
-  overlayInsetXWide: 340, // officials, match summary, promos — L/R
-  overlayInsetBottom: 40, // stats bottom lift
-  overlayInsetBottomSm: 45, // info + wide bottom lift
+  // Inset LT safe area — shared by every InsetLTBarSurface command (fixture, stats, officials, …).
+  // At 1920×1080: 1920 − (210 × 2) = 1500px horizontal canvas (pairs with ltInfoBar.maxWidth).
+  overlayInsetXLT: 210,
+  overlayInsetBottomLT: 45,
 
   controllerBarPaddingY: 22,
 };
 
 /** Default LT Zone C rotation — panel keys must match LT_DEFAULT_ZONE_C_PANELS in ltDefaultZoneC.js. */
 export const ltDefaultZoneC = {
-  dwellMs: 30000,
+  dwellMs: 20000,
   firstInnings: ['crr', 'projectedScore', 'partnership'],
   secondInnings: ['rrr', 'crr', 'needTarget', 'partnership'],
 };
@@ -245,7 +243,9 @@ export const batterScore = {
   gap: 6,
   runs: 38,
   runsCompact: 34,
-  balls: 20,
+  balls: 22,
+  /** Balls faced + companion secondary figures (bowler overs in stat headers). */
+  ballsWeight: 600,
 };
 
 /** Typography sizes for LT families — px inside scaled HorizontalBar; rem allowed outside scaled surfaces */
@@ -293,7 +293,6 @@ export const ltTypography = {
   last30Value: 28,
   last30ColumnWidth: 84,
   last12Heading: 20,
-  last12OverLabel: 13,
   last12TotalRuns: 30,
   last12TotalMinWidthExtra: 24,
 
@@ -320,25 +319,29 @@ export const ltTypography = {
  * Player stat bar tokens — batsman/bowler match & tournament + last wicket LTs.
  */
 export const ltPlayerStatBar = {
-  /** Shared max width for head + stats — avoids a full-bleed upper row vs centered lower row. */
-  contentMaxWidth: 1720,
-  headPaddingY: 10,
-  statsPaddingY: 16,
-  headPaddingX: 22,
-  statsPaddingX: 20,
+  /** Header row vs stats row height split — favour stats (fixture bars use 60/40). */
+  headRowFlex: 36,
+  statsRowFlex: 64,
 
-  nameSize: 28,
-  heroSize: batterScore.runs,
-  secondarySize: batterScore.balls,
+  headPaddingY: 6,
+  statsPaddingY: 12,
+  headPaddingX: 22,
+  statsPaddingX: 16,
+
+  nameSize: 24,
+  heroSize: 32,
+  secondarySize: 20,
+  secondaryWeight: batterScore.ballsWeight,
   scoreGap: batterScore.gap,
 
-  statLabelSize: 15,
-  statValueSize: 32,
-  statLabelValueGap: 6,
+  statLabelSize: 16,
+  statLabelWeight: 700,
+  statValueSize: 30,
+  statLabelValueGap: 4,
   /** Column gap in stats row (×4 → px, mirrors Tailwind gap scale). */
-  statRowGap: 14,
-  /** Tighter gap for 6-column bowler tournament row. */
-  statRowGapDense: 10,
+  statRowGap: 12,
+  /** Tighter gap for 6+ column tournament rows. */
+  statRowGapDense: 8,
 };
 
 /**
@@ -364,6 +367,44 @@ export const ltFixtureBar = {
   matchSummaryScoreWkts: '2.25rem',
   matchSummaryOvers: '0.9375rem',
 };
+
+/**
+ * Non-score inset lower-thirds — shared min width, fixed height, horizontal expansion.
+ * See docs/THEME1_INFO_LT_SIZING_PROPOSAL.md
+ */
+export const ltInfoBar = {
+  height: ltBar.height,
+  /** Default footprint when content is short — bar stays at min, centered in max zone. */
+  minWidth: 1360,
+  /** Safe-area ceiling at 1920 (must match overlay inset: 1920 − inset×2). Content above this gets ellipsis. */
+  maxWidth: 1500,
+  align: 'center',
+};
+
+/** Fixed-height shell applied to every info LT GlowPanel root. */
+export const infoBarShellStyle = {
+  height: ltInfoBar.height,
+  minHeight: ltInfoBar.height,
+  maxHeight: ltInfoBar.height,
+};
+
+/**
+ * Height + width rules for inset LT GlowPanel — unconstrained when measuring, fills slot on air.
+ * Horizontal width comes from InsetLTBarSurface, not the panel.
+ * @param {boolean} [measuring]
+ */
+export function infoBarPanelStyle(measuring = false) {
+  if (measuring) return infoBarShellStyle;
+  return {
+    ...infoBarShellStyle,
+    width: '100%',
+  };
+}
+
+/** @param {boolean} [measuring] */
+export function infoBarPanelClass(measuring = false) {
+  return measuring ? 'flex w-fit items-stretch overflow-hidden' : 'flex w-full items-stretch overflow-hidden';
+}
 
 /**
  * Player name LT — shares info overlay inset with fixture bars.
@@ -490,7 +531,7 @@ export const fsPartnership = {
   contributionLabel: 22,
   contributionValue: 28,
   total: 30,
-  totalBalls: 18,
+  totalBalls: 20,
 };
 
 /** Leaderboard and point-table rows. */

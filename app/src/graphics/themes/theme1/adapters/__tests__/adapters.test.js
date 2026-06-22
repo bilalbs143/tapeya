@@ -186,7 +186,7 @@ describe('theme1 scoreBar adapter', () => {
 
     expect(bundle?.frame.last12Runs).toBe(24);
     expect(bundle?.frame.runs).toBe(24);
-    expect(bundle?.frame.last12ByOver).toEqual([{ over: '6.3', balls: ['4'], chips: [{ code: '4', chipType: 'single' }] }]);
+    expect(bundle?.frame.last12Chips).toEqual([{ code: '4', chipType: 'single' }]);
   });
 
   it('keeps illegal deliveries such as wides in last 12 balls strip', () => {
@@ -216,9 +216,8 @@ describe('theme1 scoreBar adapter', () => {
     const props = PROCESSOR_MAP.LAST_12_BALLS(snapshot);
     const bundle = toScoreBarBundle(props, undefined, { barVariant: 'last12Balls' });
 
-    expect(bundle?.frame.last12ByOver).toHaveLength(1);
-    expect(bundle?.frame.last12ByOver[0].balls).toEqual(['4', '1', '6', '2', 'WD', '0', '6']);
-    expect(bundle?.frame.last12ByOver[0].balls).toHaveLength(7);
+    expect(bundle?.frame.last12Chips).toHaveLength(7);
+    expect(bundle?.frame.last12Chips.map((chip) => chip.code)).toEqual(['4', '1', '6', '2', 'WD', '0', '6']);
   });
 
   it('maps win prediction processor output onto frame.predictions', () => {

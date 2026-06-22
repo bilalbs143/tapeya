@@ -33,11 +33,15 @@ export const fixtureCrestColumnStyle = {
   paddingRight: ltFixtureBar.crestPaddingX,
 };
 
-export const fixtureTitleClass = cn(
-  'overflow-hidden text-ellipsis whitespace-nowrap',
-  UI,
-  'font-extrabold tracking-[0.08em] text-[var(--text)]',
-);
+export const fixtureTitleClass = cn('shrink-0 whitespace-nowrap', UI, 'font-extrabold tracking-[0.08em] text-[var(--text)]');
+
+/** Apply when bar has reached max safe-area width — ellipsis safety valve. */
+export const fixtureTitleClampClass = cn(fixtureTitleClass, 'min-w-0 overflow-hidden text-ellipsis');
+
+/** @param {boolean} atMaxWidth */
+export function pickFixtureTitleClass(atMaxWidth) {
+  return atMaxWidth ? fixtureTitleClampClass : fixtureTitleClass;
+}
 
 export const fixtureTitleStyle = { fontSize: ltFixtureBar.titleFont };
 

@@ -1,11 +1,12 @@
 export { accentGlowShadow, accentMix, normalizeAccentColor } from './accent';
 export { AnimatedNumber, BallChip, BallTrack, CountUpNumber, Crest, GlowPanel } from './atoms';
 export { ScaledBarSurface } from './barScaling';
-export { useContentFitBarSurface, useFrameTransition } from './barScalingHooks';
+export { useContentFitBarSurface, useFrameTransition, useInsetLTBarSurface } from './barScalingHooks';
 export {
   BATTER_SCORE_CLUSTER_CLASS,
   BATTER_SCORE_GAP_PX,
   batterScoreBallsClass,
+  batterScoreBallsStyle,
   BatterScoreInline,
   batterScoreRunsClass,
 } from './batterScore';
@@ -39,6 +40,8 @@ export { FitText } from './FitText';
 export { findFitFontSize, measureFitFontSize } from './fitTextSize';
 export { DISPLAY_FONT, fmt, fsFont, ROW_ANIMATE_IN, UI_FONT } from './formatters';
 export { FSDiagonal, FSStage, Pill, TeamLogoOrCrest, TeamLogoSlot, VSBadge } from './fs-kit';
+export { InsetLTBarSurface } from './insetLTBarSurface';
+export { InsetLTAnimatedNumber, InsetLTBarPanel, InsetLTCrest, InsetLTLogo, InsetLTTeamMark } from './insetLTMeasureSlots';
 export { isNotOutBatter, resolvePlayerDisplayName, withNotOutNameSuffix } from './notOut';
 export { resolvePlayerAvatarUrl } from './playerAvatar';
 export { PlayerAvatarImage } from './PlayerAvatarImage';

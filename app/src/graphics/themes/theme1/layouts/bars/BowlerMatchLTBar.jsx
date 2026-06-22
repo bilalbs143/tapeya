@@ -5,7 +5,13 @@
 import { formatBroadcastBowlingFigures } from '../../../../core/domain/player';
 import { fmt } from '../../primitives';
 import { PlayerStatLTBar } from './PlayerStatLTBar';
-import { ltPlayerStatBar, playerStatLtHeroClass, playerStatLtNameClass, playerStatLtSecondaryClass } from './playerStatLtStyles';
+import {
+  batterScoreBallsStyle,
+  ltPlayerStatBar,
+  playerStatLtHeroClass,
+  playerStatLtNameClass,
+  playerStatLtSecondaryClass,
+} from './playerStatLtStyles';
 
 const STAT_FIELDS = [
   { key: 'overs', label: 'OVERS' },
@@ -78,7 +84,10 @@ export function BowlerMatchLTBar({ bowler, teams, edgeToEdge = true }) {
             <span className={playerStatLtHeroClass} style={{ fontSize: ltPlayerStatBar.heroSize }}>
               {formatFigures(player)}
             </span>
-            <span className={playerStatLtSecondaryClass} style={{ fontSize: ltPlayerStatBar.secondarySize }}>
+            <span
+              className={playerStatLtSecondaryClass}
+              style={batterScoreBallsStyle(ltPlayerStatBar.secondarySize, ltPlayerStatBar.secondaryWeight)}
+            >
               {oversDisplay}
             </span>
           </span>

@@ -7,7 +7,7 @@ export default function BATSMAN_NAME_LT({ isOverlay, tokens, ...props }) {
   if (!resolved) return null;
 
   return (
-    <BroadcastShell stage="bar" overlayInset="info" isOverlay={isOverlay}>
+    <BroadcastShell stage="bar" overlayInset="lt" isOverlay={isOverlay}>
       <PlayerNameLTBar player={resolved.player} teams={resolved.teams} edgeToEdge={isOverlay} />
     </BroadcastShell>
   );

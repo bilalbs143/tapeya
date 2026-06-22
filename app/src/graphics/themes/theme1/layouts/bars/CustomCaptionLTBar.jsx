@@ -1,24 +1,22 @@
 /**
  * Custom caption lower-third — title + description, no team crests.
- * Same footprint and typography as MatchFixtureBar / TOURNAMENT_NAME.
  */
 import { cn } from '@/lib/utils';
 
-import { geometry, ltBar } from '../../config';
-import { GlowPanel, ScaledBarSurface } from '../../primitives';
+import { geometry, infoBarPanelClass, infoBarPanelStyle } from '../../config';
+import { InsetLTBarPanel, InsetLTBarSurface } from '../../primitives';
 import {
   fixtureDetailClassName,
   fixtureDetailRowClass,
   fixtureDetailRowFlexStyle,
   fixtureDetailStyle,
   fixtureRowPaddingXStyle,
-  fixtureTitleClass,
   fixtureTitleRowClass,
   fixtureTitleRowFlexStyle,
   fixtureTitleStyle,
+  pickFixtureTitleClass,
 } from './fixtureBarLayout';
 
-const DESIGN_WIDTH = ltBar.designWidth;
 const BAR_RADIUS = geometry.barRadius;
 
 /**
@@ -30,21 +28,22 @@ export function CustomCaptionLTBar({ title = '', description = '', edgeToEdge = 
   const hasBothRows = Boolean(title && description);
 
   return (
-    <ScaledBarSurface designWidth={DESIGN_WIDTH} edgeToEdge={edgeToEdge} barRadius={BAR_RADIUS}>
-      {({ radius }) => (
-        <GlowPanel
+    <InsetLTBarSurface edgeToEdge={edgeToEdge} barRadius={BAR_RADIUS}>
+      {({ radius, atMaxWidth, measuring }) => (
+        <InsetLTBarPanel
+          measuring={measuring}
           hideRing
           radius={radius}
-          className="flex w-full items-stretch overflow-hidden"
-          style={{ height: ltBar.height }}
+          className={infoBarPanelClass(measuring)}
+          style={infoBarPanelStyle(measuring)}
         >
-          <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="flex h-full w-full flex-col">
             {title ? (
               <div
                 className={cn(fixtureTitleRowClass, !hasBothRows && 'border-b-0')}
                 style={{ ...fixtureTitleRowFlexStyle(!hasBothRows), ...fixtureRowPaddingXStyle }}
               >
-                <span className={fixtureTitleClass} style={fixtureTitleStyle}>
+                <span className={pickFixtureTitleClass(atMaxWidth)} style={fixtureTitleStyle}>
                   {title}
                 </span>
               </div>
@@ -52,7 +51,11 @@ export function CustomCaptionLTBar({ title = '', description = '', edgeToEdge = 
 
             {description ? (
               <div
-                className={cn(fixtureDetailRowClass, fixtureDetailClassName('semibold'))}
+                className={cn(
+                  fixtureDetailRowClass,
+                  fixtureDetailClassName('semibold'),
+                  atMaxWidth && 'min-w-0 overflow-hidden text-ellipsis whitespace-nowrap',
+                )}
                 style={{
                   ...(hasBothRows ? fixtureDetailRowFlexStyle() : fixtureTitleRowFlexStyle(true)),
                   ...fixtureRowPaddingXStyle,
@@ -63,8 +66,8 @@ export function CustomCaptionLTBar({ title = '', description = '', edgeToEdge = 
               </div>
             ) : null}
           </div>
-        </GlowPanel>
+        </InsetLTBarPanel>
       )}
-    </ScaledBarSurface>
+    </InsetLTBarSurface>
   );
 }

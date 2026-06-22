@@ -1,31 +1,32 @@
 import { ltBar } from '../config';
 
-/** @typedef {'stats' | 'info' | 'wide' | 'bottomOnly'} OverlayInsetVariant */
+/**
+ * Overlay inset variant for BroadcastShell / OverlayLayoutProvider.
+ *
+ * @typedef {'lt' | 'bottomOnly'} OverlayInsetVariant
+ */
+
+/** @type {import('./computeScaledBarLayout.js').OverlayInsets} */
+const LT_INSETS = {
+  left: ltBar.overlayInsetXLT,
+  right: ltBar.overlayInsetXLT,
+  bottom: ltBar.overlayInsetBottomLT,
+};
 
 const INSET_TOKENS = {
-  stats: {
-    left: ltBar.overlayInsetXStats,
-    right: ltBar.overlayInsetXStats,
-    bottom: ltBar.overlayInsetBottom,
-  },
-  info: {
-    left: ltBar.overlayInsetXInfo,
-    right: ltBar.overlayInsetXInfo,
-    bottom: ltBar.overlayInsetBottomSm,
-  },
-  wide: {
-    left: ltBar.overlayInsetXWide,
-    right: ltBar.overlayInsetXWide,
-    bottom: ltBar.overlayInsetBottomSm,
-  },
+  lt: LT_INSETS,
   bottomOnly: {
     left: 0,
     right: 0,
-    bottom: ltBar.overlayInsetBottomSm,
+    bottom: ltBar.overlayInsetBottomLT,
   },
 };
 
 /** @param {OverlayInsetVariant} [variant] */
-export function resolveOverlayInsets(variant = 'info') {
-  return INSET_TOKENS[variant] ?? INSET_TOKENS.info;
+export function resolveOverlayInsets(variant = 'lt') {
+  const insets = INSET_TOKENS[variant];
+  if (!insets) {
+    throw new Error(`Unknown overlay inset variant "${variant}". Expected "lt" or "bottomOnly".`);
+  }
+  return insets;
 }
