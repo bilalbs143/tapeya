@@ -58,13 +58,13 @@
   z-index: 2;
 }
 
-// ── GlowPanel — complex backdrop-filter + CSS-var box-shadow ─────────────────
+// ── GlowPanel — reduced backdrop-filter for smooth animated backgrounds ─────
 
 .bc-glow-panel {
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   background: linear-gradient(180deg, var(--panel-base), var(--panel-deep));
   box-shadow:
     0 18px 50px rgba(0, 0, 0, 0.55),
@@ -279,6 +279,7 @@
 .fs-stage-fabric {
   pointer-events: none;
   animation: fsStageFadeIn var(--fs-stage-fade-in, 450ms) ease-out both;
+  contain: layout style paint;
 }
 
 .fs-stage-fabric__wash,
@@ -296,8 +297,9 @@
   left: var(--fs-fabric-band-left, -300px);
   width: var(--fs-fabric-band-width, 2640px);
   height: var(--fs-fabric-band-height, 320px);
-  filter: blur(var(--fs-fabric-blur, 8px));
-  will-change: transform;
+  opacity: 0.96;
+  will-change: transform, opacity;
+  transform: translateZ(0);
 }
 
 /** Lower bands pivot from the left so -12° rotation does not lift the bottom-right corner. */
