@@ -1,4 +1,4 @@
-import { forwardRef, memo, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { forwardRef, memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -9,17 +9,13 @@ import { horizontalBarScale } from './controllerBarScaling';
 // ── Constants ──────────────────────────────────────────────────────────────────
 const STRAP_DESIGN_W = ltBar.designWidth;
 
-// Separate speeds create a parallax depth effect between the two layers.
-// Both are derived from measured rendered width so word length never affects speed.
-const TICKER_PX_PER_SEC = 140; // main foreground ticker — faster, punchy
-const BG_PX_PER_SEC = 85; // background word grid — slower, receding depth
-
+const TICKER_PX_PER_SEC = 140;
+const BG_PX_PER_SEC = 85;
 const TICKER_WORD_REPEATS = 10;
-const TICKER_WORD_GAP = 100; // px gap between main ticker word instances
+const TICKER_WORD_GAP = 100;
 const TICKER_FONT_SIZE = '68px';
-
 const BG_FONT_SIZE = '42px';
-const BG_WORD_GAP = 120; // px gap between bg word instances (measured proportionally)
+const BG_WORD_GAP = 120;
 
 /** Dense spark field for event straps (flash overlays use animation.sparkCount). */
 const STRAP_SPARK_COUNT = 120;
@@ -180,15 +176,26 @@ export function StrapVapor({ sparkInner, sparkOuter, sparkShadow, bottom = '0', 
   ));
 }
 
-// ── Width measurement via callback ref ────────────────────────────────────────
-// Synchronous measurement on mount, then re-measure after fonts load.
-// Callback ref ensures measurement happens before first render (no jitter from deferred effects).
+// ── Stable measurement hook (bulletproof) ─────────────────────────────────────
+// Measures once, returns stable value, never re-measures
+function useStableMeasure(title) {
+  const measureRef = useRef(null);
+  const [px, setPx] = useState(0);
 
-function scrollAnim(px, pxPerSec) {
-  return {
-    animation: `tickerScroll ${(px / pxPerSec).toFixed(2)}s linear infinite`,
-    '--ticker-px': `${px}px`,
-  };
+  useLayoutEffect(() => {
+    const el = measureRef.current;
+    if (!el) return;
+
+    const measure = () => {
+      const w = el.offsetWidth;
+      if (w > 0) setPx(w + TICKER_WORD_GAP);
+    };
+
+    measure();
+    document.fonts.ready.then(measure);
+  }, [title]);
+
+  return [measureRef, px];
 }
 
 // ── Main ticker ────────────────────────────────────────────────────────────────
@@ -209,26 +216,7 @@ const TickerCopy = forwardRef(function TickerCopy({ title, textStyle }, ref) {
 });
 
 const TickerTrack = memo(function TickerTrack({ title, titleShadow }) {
-  const [scrollPx, setScrollPx] = useState(null);
-  const fontsReadyRef = useRef(false);
-
-  const copy1Ref = useCallback((node) => {
-    if (!node) return;
-
-    const measureAndSet = () => {
-      const w = node.offsetWidth;
-      if (w > 0) {
-        setScrollPx(w + TICKER_WORD_GAP);
-      }
-    };
-
-    measureAndSet();
-
-    if (!fontsReadyRef.current) {
-      fontsReadyRef.current = true;
-      document.fonts.ready.then(() => measureAndSet());
-    }
-  }, []);
+  const [copy1Ref, scrollPx] = useStableMeasure(title);
 
   const textStyle = useMemo(
     () => ({
@@ -238,17 +226,21 @@ const TickerTrack = memo(function TickerTrack({ title, titleShadow }) {
     [titleShadow],
   );
 
-  const trackStyle = useMemo(
-    () => ({
-      gap: TICKER_WORD_GAP,
-      opacity: scrollPx ? 1 : 0,
-      ...(scrollPx ? scrollAnim(scrollPx, TICKER_PX_PER_SEC) : undefined),
-    }),
-    [scrollPx],
-  );
+  const duration = scrollPx > 0 ? (scrollPx / TICKER_PX_PER_SEC).toFixed(2) : 0;
 
   return (
-    <div className="bc-strap-ticker-track flex shrink-0 items-center will-change-transform" style={trackStyle}>
+    <div
+      className="bc-strap-ticker-track flex shrink-0 items-center will-change-transform"
+      style={
+        scrollPx > 0
+          ? {
+              gap: TICKER_WORD_GAP,
+              '--ticker-px': `${scrollPx}px`,
+              animation: `tickerScroll ${duration}s linear infinite`,
+            }
+          : { gap: TICKER_WORD_GAP, opacity: 0 }
+      }
+    >
       <TickerCopy title={title} textStyle={textStyle} ref={copy1Ref} />
       <TickerCopy title={title} textStyle={textStyle} />
     </div>
@@ -282,43 +274,24 @@ const BgCopy = memo(function BgCopy({ word, colSpacing, numCols }) {
 });
 
 const BackgroundWordTrack = memo(function BackgroundWordTrack({ word }) {
-  const [bgWordW, setBgWordW] = useState(0);
-  const fontsReadyRef = useRef(false);
+  const [wordMeasureRef, bgWordW] = useStableMeasure(word);
 
-  const wordMeasureRef = useCallback((node) => {
-    if (!node) return;
-
-    const measureAndSet = () => {
-      const w = node.offsetWidth;
-      if (w > 0) {
-        setBgWordW(w);
-      }
-    };
-
-    measureAndSet();
-
-    if (!fontsReadyRef.current) {
-      fontsReadyRef.current = true;
-      document.fonts.ready.then(() => measureAndSet());
-    }
-  }, []);
-
-  const colSpacing = useMemo(() => (bgWordW > 0 ? bgWordW + BG_WORD_GAP : 0), [bgWordW]);
-  const numCols = useMemo(() => (bgWordW > 0 ? Math.ceil(STRAP_DESIGN_W / colSpacing) + 3 : 0), [bgWordW, colSpacing]);
-  const animPx = useMemo(() => (bgWordW > 0 ? colSpacing * numCols : null), [bgWordW, colSpacing, numCols]);
-
-  const trackStyle = useMemo(
-    () => ({
-      opacity: animPx ? 1 : 0,
-      ...(animPx ? scrollAnim(animPx, BG_PX_PER_SEC) : undefined),
-    }),
-    [animPx],
-  );
+  const colSpacing = bgWordW > 0 ? bgWordW + BG_WORD_GAP : 0;
+  const numCols = bgWordW > 0 ? Math.ceil(STRAP_DESIGN_W / colSpacing) + 3 : 0;
+  const animPx = bgWordW > 0 ? colSpacing * numCols : 0;
+  const duration = animPx > 0 ? (animPx / BG_PX_PER_SEC).toFixed(2) : 0;
 
   return (
     <div
       className="bc-strap-ticker-track pointer-events-none absolute inset-y-0 left-0 flex will-change-transform"
-      style={trackStyle}
+      style={
+        animPx > 0
+          ? {
+              '--ticker-px': `${animPx}px`,
+              animation: `tickerScroll ${duration}s linear infinite`,
+            }
+          : { opacity: 0 }
+      }
       aria-hidden="true"
     >
       <span
