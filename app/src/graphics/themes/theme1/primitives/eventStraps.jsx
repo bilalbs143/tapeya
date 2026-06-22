@@ -183,8 +183,8 @@ export function StrapVapor({ sparkInner, sparkOuter, sparkShadow, bottom = '0', 
 // ── Scroll measurement ─────────────────────────────────────────────────────────
 // Measure once after layout + display fonts load, then start ticker animation.
 // Starting animation before fonts load causes width/duration jumps (visible flutter).
-function useStableWidth(ref, key, { gap = 0, initialValue = 0 } = {}) {
-  const [width, setWidth] = useState(initialValue);
+function useStableScrollWidth(ref, key, gap = 0) {
+  const [scrollPx, setScrollPx] = useState(null);
 
   useLayoutEffect(() => {
     let cancelled = false;
@@ -193,7 +193,7 @@ function useStableWidth(ref, key, { gap = 0, initialValue = 0 } = {}) {
       if (cancelled) return;
       const w = ref.current?.offsetWidth ?? 0;
       if (w > 0) {
-        setWidth(w + gap);
+        setScrollPx(w + gap);
       }
     };
 
@@ -205,15 +205,32 @@ function useStableWidth(ref, key, { gap = 0, initialValue = 0 } = {}) {
     };
   }, [key, gap, ref]);
 
-  return width;
-}
-
-function useStableScrollWidth(ref, key, gap = 0) {
-  return useStableWidth(ref, key, { gap, initialValue: null });
+  return scrollPx;
 }
 
 function useStableTextWidth(ref, key) {
-  return useStableWidth(ref, key, { initialValue: 0 });
+  const [width, setWidth] = useState(0);
+
+  useLayoutEffect(() => {
+    let cancelled = false;
+
+    const finalize = () => {
+      if (cancelled) return;
+      const w = ref.current?.offsetWidth ?? 0;
+      if (w > 0) {
+        setWidth(w);
+      }
+    };
+
+    finalize();
+    document.fonts.ready.then(finalize);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [key, ref]);
+
+  return width;
 }
 
 function scrollAnim(px, pxPerSec) {
