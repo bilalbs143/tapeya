@@ -10,6 +10,7 @@ use App\Models\Team;
 use App\Models\TournamentMatch;
 use App\Services\MatchParticipationService;
 use App\Services\MatchStateService;
+use App\Support\MatchSquadRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -106,14 +107,15 @@ class PlayingElevenController extends Controller
             return $this->forbidden('All players in the playing eleven must be in the match squad.');
         }
 
-        // Playing eleven: between 1 and players_per_side (allows smaller squads for demo/testing).
-        $playersPerSide = (int) $match->players_per_side ?: 11;
         $count = count($playerIds);
-        if ($count < 1) {
-            return $this->forbidden('Playing eleven must have at least one player.');
-        }
+
+        $playersPerSide = MatchSquadRules::playersPerSide($match);
         if ($count > $playersPerSide) {
             return $this->forbidden("Playing eleven cannot exceed {$playersPerSide} players.");
+        }
+
+        if ($error = MatchSquadRules::playingElevenSizeError($match, $count)) {
+            return $this->conflict($error);
         }
 
         // A player cannot appear in both teams' playing elevens for the same match.

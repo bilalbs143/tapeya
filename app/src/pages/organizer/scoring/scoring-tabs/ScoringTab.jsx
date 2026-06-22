@@ -72,6 +72,8 @@ export function ScoringTab({
     bowlingOrder,
     requiredBatting,
     requiredBowling,
+    matchHasStarted,
+    configuredPerSide,
     setBatsmanRole,
     setBowlerRole,
     addPlayerToBattingSquad,
@@ -312,6 +314,8 @@ export function ScoringTab({
     bowlingSquad,
     requiredBatting,
     requiredBowling,
+    matchHasStarted,
+    configuredPerSide,
     hasBallsBowled,
   });
 

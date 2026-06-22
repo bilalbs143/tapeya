@@ -8,6 +8,7 @@ use App\Http\Requests\User\StoreMatchSquadRequest;
 use App\Models\Team;
 use App\Models\TournamentMatch;
 use App\Services\MatchParticipationService;
+use App\Support\MatchSquadRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
@@ -69,6 +70,10 @@ class MatchSquadController extends Controller
         }
 
         $playerIds = $request->validated('player_ids');
+
+        if ($error = MatchSquadRules::matchSquadSizeError($match, count($playerIds))) {
+            return $this->conflict($error);
+        }
 
         if ($participationService->matchHasBalls($match)) {
             $participated = $participationService->participatedPlayerIds($match, (int) $team->id);

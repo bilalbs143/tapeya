@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { useScoringMatch } from '@/context/ScoringMatchContext';
 import { useCreaseSync } from '@/hooks/useCreaseSync';
 import { useToast } from '@/hooks/useToast';
+import { getApiErrorMessage } from '@/lib/apiErrors';
 import {
   useStoreMatchSquadMutation,
   useStorePlayingElevenMutation,
@@ -21,6 +22,8 @@ export function useSquadPersistence({
   bowlingSquad,
   requiredBatting,
   requiredBowling,
+  matchHasStarted = false,
+  configuredPerSide = 11,
   hasBallsBowled,
 }) {
   const { matchId } = useScoringMatch();
@@ -31,12 +34,40 @@ export function useSquadPersistence({
   const [updateCaptain] = useUpdateCaptainMutation();
   const [updateWicketKeeper] = useUpdateWicketKeeperMutation();
 
+  const validateSquadPayload = useCallback(
+    (squad, playingIds, requiredPlaying) => {
+      const allIds = squad.filter((p) => Number.isFinite(Number(p.id))).map((p) => Number(p.id));
+      const minSquadSize = matchHasStarted ? configuredPerSide : 1;
+
+      if (allIds.length < minSquadSize) {
+        toast.error(
+          matchHasStarted
+            ? `Squad must have at least ${configuredPerSide} players once the match has started.`
+            : 'Squad must include at least one player.',
+        );
+        return false;
+      }
+
+      if (playingIds.length !== requiredPlaying) {
+        if (matchHasStarted && playingIds.length < requiredPlaying) {
+          toast.error(`Playing eleven must have exactly ${configuredPerSide} players once the match has started.`);
+        } else if (playingIds.length > requiredPlaying) {
+          toast.error(`Playing eleven cannot exceed ${configuredPerSide} players.`);
+        }
+        return false;
+      }
+
+      return true;
+    },
+    [configuredPerSide, matchHasStarted, toast],
+  );
+
   const handleSaveBatsmanSquad = useCallback(
     async (updatedPlayers, captainId = null, wicketKeeperId = null) => {
       if (!matchId || !battingTeamId) return;
       const squad = updatedPlayers ?? battingSquad;
       const playingIds = squad.filter((p) => p.role === 'playing' && Number.isFinite(Number(p.id))).map((p) => Number(p.id));
-      if (playingIds.length !== requiredBatting) return;
+      if (!validateSquadPayload(squad, playingIds, requiredBatting)) return;
       try {
         const allIds = squad.filter((p) => Number.isFinite(Number(p.id))).map((p) => Number(p.id));
         await storeMatchSquad({ matchId, teamId: battingTeamId, player_ids: allIds }).unwrap();
@@ -56,8 +87,8 @@ export function useSquadPersistence({
           syncPreBallCrease?.();
         }
         toast.success('Batting squad updated.');
-      } catch {
-        // Errors handled by API layer / toasts
+      } catch (err) {
+        toast.error(getApiErrorMessage(err, 'Could not update batting squad.'));
       }
     },
     [
@@ -65,6 +96,7 @@ export function useSquadPersistence({
       battingTeamId,
       battingSquad,
       requiredBatting,
+      validateSquadPayload,
       storeMatchSquad,
       storePlayingEleven,
       updateCaptain,
@@ -81,7 +113,7 @@ export function useSquadPersistence({
       if (!matchId || !bowlingTeamId) return;
       const squad = updatedPlayers ?? bowlingSquad;
       const playingIds = squad.filter((p) => p.role === 'playing' && Number.isFinite(Number(p.id))).map((p) => Number(p.id));
-      if (playingIds.length !== requiredBowling) return;
+      if (!validateSquadPayload(squad, playingIds, requiredBowling)) return;
       try {
         const allIds = squad.filter((p) => Number.isFinite(Number(p.id))).map((p) => Number(p.id));
         await storeMatchSquad({ matchId, teamId: bowlingTeamId, player_ids: allIds }).unwrap();
@@ -98,8 +130,8 @@ export function useSquadPersistence({
           syncPreBallCrease?.();
         }
         toast.success('Bowling squad updated.');
-      } catch {
-        // Errors handled by API layer / toasts
+      } catch (err) {
+        toast.error(getApiErrorMessage(err, 'Could not update bowling squad.'));
       }
     },
     [
@@ -107,6 +139,7 @@ export function useSquadPersistence({
       bowlingTeamId,
       bowlingSquad,
       requiredBowling,
+      validateSquadPayload,
       storeMatchSquad,
       storePlayingEleven,
       updateCaptain,

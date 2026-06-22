@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreMatchSquadRequest;
 use App\Models\Team;
 use App\Models\TournamentMatch;
+use App\Support\MatchSquadRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
@@ -42,6 +43,10 @@ class TournamentMatchSquadController extends Controller
 
         $playerIds = $request->validated('player_ids');
 
+        if ($error = MatchSquadRules::matchSquadSizeError($match, count($playerIds))) {
+            return $this->conflict($error);
+        }
+
         $squadCount = $team->players()
             ->whereIn('users.id', $playerIds)
             ->count();
@@ -49,11 +54,6 @@ class TournamentMatchSquadController extends Controller
         if ($squadCount !== count($playerIds)) {
             return $this->forbidden('All players must belong to the team-level squad before being added to the match squad.');
         }
-
-        DB::table('match_squads')
-            ->where('match_id', $match->id)
-            ->where('team_id', $team->id)
-            ->delete();
 
         $now = now();
         $rows = [];
@@ -67,9 +67,16 @@ class TournamentMatchSquadController extends Controller
             ];
         }
 
-        if ($rows) {
-            DB::table('match_squads')->insert($rows);
-        }
+        DB::transaction(function () use ($match, $team, $rows) {
+            DB::table('match_squads')
+                ->where('match_id', $match->id)
+                ->where('team_id', $team->id)
+                ->delete();
+
+            if ($rows) {
+                DB::table('match_squads')->insert($rows);
+            }
+        });
 
         return $this->success(
             [

@@ -137,8 +137,21 @@ export function useInningsSquads({ battingTeamId, bowlingTeamId }) {
   const battingCount = battingSquad.filter((p) => Number.isFinite(Number(p.id))).length;
   const bowlingCount = bowlingSquad.filter((p) => Number.isFinite(Number(p.id))).length;
   const playersPerSide = match?.playersPerSide;
-  const requiredBatting = playersPerSide != null ? Math.min(playersPerSide, battingCount) : battingCount;
-  const requiredBowling = playersPerSide != null ? Math.min(playersPerSide, bowlingCount) : bowlingCount;
+  const matchStatus = apiMatch?.status ?? null;
+  const matchHasStarted = matchStatus === 'toss_done' || matchStatus === 'in_progress';
+  const configuredPerSide =
+    playersPerSide != null && Number.isFinite(Number(playersPerSide)) ? Number(playersPerSide) : expectedXiSize;
+
+  const requiredBatting = matchHasStarted
+    ? configuredPerSide
+    : playersPerSide != null
+      ? Math.min(configuredPerSide, battingCount)
+      : battingCount;
+  const requiredBowling = matchHasStarted
+    ? configuredPerSide
+    : playersPerSide != null
+      ? Math.min(configuredPerSide, bowlingCount)
+      : bowlingCount;
 
   const battingOrder = useMemo(() => battingSquad.filter((p) => p.role === 'playing'), [battingSquad]);
   const bowlingOrder = useMemo(() => bowlingSquad.filter((p) => p.role === 'playing'), [bowlingSquad]);
@@ -160,6 +173,8 @@ export function useInningsSquads({ battingTeamId, bowlingTeamId }) {
     requiredBatting,
     requiredBowling,
     expectedXiSize,
+    matchHasStarted,
+    configuredPerSide,
     setBatsmanRole,
     setBowlerRole,
     addPlayerToBattingSquad,

@@ -246,7 +246,8 @@
                 @for (a of group.actions; track a.command_type + ':' + a.command_key + ':' + $index) {
                   @if (!hideCatalogAction(a)) {
                     <button
-                      mat-stroked-button
+                      [attr.mat-flat-button]="usePrimaryButtons(group) ? true : null"
+                      [attr.mat-stroked-button]="!usePrimaryButtons(group) ? true : null"
                       type="button"
                       class="catalog-group__btn"
                       [color]="usePrimaryButtons(group) ? 'primary' : undefined"
