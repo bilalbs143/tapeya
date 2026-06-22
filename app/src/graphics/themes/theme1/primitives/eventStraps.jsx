@@ -1,4 +1,4 @@
-import { forwardRef, memo, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { forwardRef, memo, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -180,58 +180,9 @@ export function StrapVapor({ sparkInner, sparkOuter, sparkShadow, bottom = '0', 
   ));
 }
 
-// ── Scroll measurement ─────────────────────────────────────────────────────────
-// Measure once after layout + display fonts load, then start ticker animation.
-// Starting animation before fonts load causes width/duration jumps (visible flutter).
-function useStableScrollWidth(ref, key, gap = 0) {
-  const [scrollPx, setScrollPx] = useState(null);
-
-  useLayoutEffect(() => {
-    let cancelled = false;
-
-    const finalize = () => {
-      if (cancelled) return;
-      const w = ref.current?.offsetWidth ?? 0;
-      if (w > 0) {
-        setScrollPx(w + gap);
-      }
-    };
-
-    finalize();
-    document.fonts.ready.then(finalize);
-
-    return () => {
-      cancelled = true;
-    };
-  }, [key, gap, ref]);
-
-  return scrollPx;
-}
-
-function useStableTextWidth(ref, key) {
-  const [width, setWidth] = useState(0);
-
-  useLayoutEffect(() => {
-    let cancelled = false;
-
-    const finalize = () => {
-      if (cancelled) return;
-      const w = ref.current?.offsetWidth ?? 0;
-      if (w > 0) {
-        setWidth(w);
-      }
-    };
-
-    finalize();
-    document.fonts.ready.then(finalize);
-
-    return () => {
-      cancelled = true;
-    };
-  }, [key, ref]);
-
-  return width;
-}
+// ── Width measurement via callback ref ────────────────────────────────────────
+// Synchronous measurement on mount, then re-measure after fonts load.
+// Callback ref ensures measurement happens before first render (no jitter from deferred effects).
 
 function scrollAnim(px, pxPerSec) {
   return {
@@ -258,23 +209,46 @@ const TickerCopy = forwardRef(function TickerCopy({ title, textStyle }, ref) {
 });
 
 const TickerTrack = memo(function TickerTrack({ title, titleShadow }) {
-  const copy1Ref = useRef(null);
-  const scrollPx = useStableScrollWidth(copy1Ref, title, TICKER_WORD_GAP);
+  const [scrollPx, setScrollPx] = useState(null);
+  const fontsReadyRef = useRef(false);
 
-  const textStyle = {
-    fontSize: TICKER_FONT_SIZE,
-    textShadow: `0 2px calc(16px*var(--glow)) ${titleShadow}, 0 0 calc(32px*var(--glow)) ${titleShadow}`,
-  };
+  const copy1Ref = useCallback((node) => {
+    if (!node) return;
+
+    const measureAndSet = () => {
+      const w = node.offsetWidth;
+      if (w > 0) {
+        setScrollPx(w + TICKER_WORD_GAP);
+      }
+    };
+
+    measureAndSet();
+
+    if (!fontsReadyRef.current) {
+      fontsReadyRef.current = true;
+      document.fonts.ready.then(() => measureAndSet());
+    }
+  }, []);
+
+  const textStyle = useMemo(
+    () => ({
+      fontSize: TICKER_FONT_SIZE,
+      textShadow: `0 2px calc(16px*var(--glow)) ${titleShadow}, 0 0 calc(32px*var(--glow)) ${titleShadow}`,
+    }),
+    [titleShadow],
+  );
+
+  const trackStyle = useMemo(
+    () => ({
+      gap: TICKER_WORD_GAP,
+      opacity: scrollPx ? 1 : 0,
+      ...(scrollPx ? scrollAnim(scrollPx, TICKER_PX_PER_SEC) : undefined),
+    }),
+    [scrollPx],
+  );
 
   return (
-    <div
-      className="bc-strap-ticker-track flex shrink-0 items-center will-change-transform"
-      style={{
-        gap: TICKER_WORD_GAP,
-        opacity: scrollPx ? 1 : 0,
-        ...(scrollPx ? scrollAnim(scrollPx, TICKER_PX_PER_SEC) : undefined),
-      }}
-    >
+    <div className="bc-strap-ticker-track flex shrink-0 items-center will-change-transform" style={trackStyle}>
       <TickerCopy title={title} textStyle={textStyle} ref={copy1Ref} />
       <TickerCopy title={title} textStyle={textStyle} />
     </div>
@@ -308,19 +282,43 @@ const BgCopy = memo(function BgCopy({ word, colSpacing, numCols }) {
 });
 
 const BackgroundWordTrack = memo(function BackgroundWordTrack({ word }) {
-  const wordMeasureRef = useRef(null);
-  const bgWordW = useStableTextWidth(wordMeasureRef, word);
-  const colSpacing = bgWordW > 0 ? bgWordW + BG_WORD_GAP : 0;
-  const numCols = bgWordW > 0 ? Math.ceil(STRAP_DESIGN_W / colSpacing) + 3 : 0;
-  const animPx = bgWordW > 0 ? colSpacing * numCols : null;
+  const [bgWordW, setBgWordW] = useState(0);
+  const fontsReadyRef = useRef(false);
+
+  const wordMeasureRef = useCallback((node) => {
+    if (!node) return;
+
+    const measureAndSet = () => {
+      const w = node.offsetWidth;
+      if (w > 0) {
+        setBgWordW(w);
+      }
+    };
+
+    measureAndSet();
+
+    if (!fontsReadyRef.current) {
+      fontsReadyRef.current = true;
+      document.fonts.ready.then(() => measureAndSet());
+    }
+  }, []);
+
+  const colSpacing = useMemo(() => (bgWordW > 0 ? bgWordW + BG_WORD_GAP : 0), [bgWordW]);
+  const numCols = useMemo(() => (bgWordW > 0 ? Math.ceil(STRAP_DESIGN_W / colSpacing) + 3 : 0), [bgWordW, colSpacing]);
+  const animPx = useMemo(() => (bgWordW > 0 ? colSpacing * numCols : null), [bgWordW, colSpacing, numCols]);
+
+  const trackStyle = useMemo(
+    () => ({
+      opacity: animPx ? 1 : 0,
+      ...(animPx ? scrollAnim(animPx, BG_PX_PER_SEC) : undefined),
+    }),
+    [animPx],
+  );
 
   return (
     <div
       className="bc-strap-ticker-track pointer-events-none absolute inset-y-0 left-0 flex will-change-transform"
-      style={{
-        opacity: animPx ? 1 : 0,
-        ...(animPx ? scrollAnim(animPx, BG_PX_PER_SEC) : undefined),
-      }}
+      style={trackStyle}
       aria-hidden="true"
     >
       <span
