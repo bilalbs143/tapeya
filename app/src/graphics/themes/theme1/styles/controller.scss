@@ -315,6 +315,15 @@
   animation: fsDiagonalStripesDriftA var(--fs-stage-grain-cycle, 120s) linear infinite;
 }
 
+// ── Event strap ticker tracks ─────────────────────────────────────────────────
+
+.bc-strap-ticker-track {
+  gap: 100px;
+  will-change: transform;
+  contain: layout style paint;
+  opacity: 0;
+}
+
 // ── Reduced-motion overrides ──────────────────────────────────────────────────
 
 @media (prefers-reduced-motion: reduce) {
