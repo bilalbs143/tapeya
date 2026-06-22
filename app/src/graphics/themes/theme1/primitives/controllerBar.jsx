@@ -22,20 +22,20 @@ export const ControllerBar = memo(function ControllerBar({
   truncatePlayerNames = false,
 }) {
   const [ref, w] = useContainerWidth();
+  const effectiveW = w > 0 ? w : DESIGN_W;
+
   return (
     <div ref={ref} className={cn('flex w-full max-w-full overflow-hidden', edgeToEdge ? 'justify-stretch' : 'justify-center')}>
-      {w === 0 ? null : (
-        <HorizontalBar
-          frame={frame}
-          teams={teams}
-          match={match}
-          containerW={w}
-          edgeToEdge={edgeToEdge}
-          barVariant={barVariant}
-          zoneCPanel={zoneCPanel}
-          truncatePlayerNames={truncatePlayerNames}
-        />
-      )}
+      <HorizontalBar
+        frame={frame}
+        teams={teams}
+        match={match}
+        containerW={effectiveW}
+        edgeToEdge={edgeToEdge}
+        barVariant={barVariant}
+        zoneCPanel={zoneCPanel}
+        truncatePlayerNames={truncatePlayerNames}
+      />
     </div>
   );
 });

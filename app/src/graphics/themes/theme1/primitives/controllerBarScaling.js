@@ -4,15 +4,16 @@ const DESIGN_W = ltBar.designWidth;
 const MOBILE_UNIFORM_BREAKPOINT = 720;
 
 export function horizontalBarScale(containerW, edgeToEdge) {
-  const isNarrow = containerW > 0 && containerW < MOBILE_UNIFORM_BREAKPOINT;
+  const resolvedW = containerW > 0 ? containerW : DESIGN_W;
+  const isNarrow = resolvedW < MOBILE_UNIFORM_BREAKPOINT;
 
   if (edgeToEdge) {
-    return containerW / DESIGN_W;
+    return resolvedW / DESIGN_W;
   }
 
   if (isNarrow) {
-    return Math.min(containerW / DESIGN_W, 1);
+    return Math.min(resolvedW / DESIGN_W, 1);
   }
 
-  return Math.min((containerW - 32) / DESIGN_W, 1);
+  return Math.min((resolvedW - 32) / DESIGN_W, 1);
 }

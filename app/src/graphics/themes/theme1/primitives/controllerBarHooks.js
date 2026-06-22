@@ -1,16 +1,33 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 
+/**
+ * Tracks container clientWidth with a callback ref so the first measure runs
+ * synchronously when the node mounts (before useLayoutEffect), avoiding a
+ * zero-width first frame that collapses scaled lower-thirds.
+ */
 export function useContainerWidth() {
-  const ref = useRef(null);
   const [w, setW] = useState(0);
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const apply = () => setW((prev) => (prev === el.clientWidth ? prev : el.clientWidth));
-    const ro = new ResizeObserver(apply);
-    ro.observe(el);
+  const roRef = useRef(null);
+
+  const ref = useCallback((node) => {
+    if (roRef.current) {
+      roRef.current.disconnect();
+      roRef.current = null;
+    }
+    if (!node) return;
+
+    const apply = () => {
+      const cw = node.clientWidth;
+      setW((prev) => (prev === cw ? prev : cw));
+    };
+
     apply();
-    return () => ro.disconnect();
+    const ro = new ResizeObserver(apply);
+    ro.observe(node);
+    roRef.current = ro;
   }, []);
+
+  useLayoutEffect(() => () => roRef.current?.disconnect(), []);
+
   return [ref, w];
 }

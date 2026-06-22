@@ -1,4 +1,4 @@
-import { forwardRef, memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { forwardRef, memo, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -181,35 +181,39 @@ export function StrapVapor({ sparkInner, sparkOuter, sparkShadow, bottom = '0', 
 }
 
 // ── Scroll measurement ─────────────────────────────────────────────────────────
-// useLayoutEffect fires before paint — no flash on mount.
-// document.fonts.ready guards against measurements before the display font loads.
-function useElementWidth(ref, key) {
-  const [width, setWidth] = useState(0);
+// Measure once after layout + display fonts load, then start ticker animation.
+// Starting animation before fonts load causes width/duration jumps (visible flutter).
+function useStableWidth(ref, key, { gap = 0, initialValue = 0 } = {}) {
+  const [width, setWidth] = useState(initialValue);
 
   useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const w = el.offsetWidth;
-    if (w) setWidth(w);
-  }, [key]);
+    let cancelled = false;
 
-  useEffect(() => {
-    let live = true;
-    const el = ref.current;
-    if (!el) return;
+    const finalize = () => {
+      if (cancelled) return;
+      const w = ref.current?.offsetWidth ?? 0;
+      if (w > 0) {
+        setWidth(w + gap);
+      }
+    };
 
-    document.fonts.ready.then(() => {
-      if (!live) return;
-      const w = el.offsetWidth;
-      if (w) setWidth((prev) => (prev === w ? prev : w));
-    });
+    finalize();
+    document.fonts.ready.then(finalize);
 
     return () => {
-      live = false;
+      cancelled = true;
     };
-  }, [key]);
+  }, [key, gap, ref]);
 
   return width;
+}
+
+function useStableScrollWidth(ref, key, gap = 0) {
+  return useStableWidth(ref, key, { gap, initialValue: null });
+}
+
+function useStableTextWidth(ref, key) {
+  return useStableWidth(ref, key, { initialValue: 0 });
 }
 
 function scrollAnim(px, pxPerSec) {
@@ -238,8 +242,7 @@ const TickerCopy = forwardRef(function TickerCopy({ title, textStyle }, ref) {
 
 const TickerTrack = memo(function TickerTrack({ title, titleShadow }) {
   const copy1Ref = useRef(null);
-  const copy1W = useElementWidth(copy1Ref, title);
-  const px = copy1W + TICKER_WORD_GAP;
+  const scrollPx = useStableScrollWidth(copy1Ref, title, TICKER_WORD_GAP);
 
   const textStyle = {
     fontSize: TICKER_FONT_SIZE,
@@ -249,7 +252,11 @@ const TickerTrack = memo(function TickerTrack({ title, titleShadow }) {
   return (
     <div
       className="bc-strap-ticker-track flex shrink-0 items-center will-change-transform"
-      style={{ gap: TICKER_WORD_GAP, ...(copy1W ? scrollAnim(px, TICKER_PX_PER_SEC) : undefined) }}
+      style={{
+        gap: TICKER_WORD_GAP,
+        opacity: scrollPx ? 1 : 0,
+        ...(scrollPx ? scrollAnim(scrollPx, TICKER_PX_PER_SEC) : undefined),
+      }}
     >
       <TickerCopy title={title} textStyle={textStyle} ref={copy1Ref} />
       <TickerCopy title={title} textStyle={textStyle} />
@@ -261,10 +268,10 @@ const TickerTrack = memo(function TickerTrack({ title, titleShadow }) {
 const BG_TEXT_CLASS =
   'absolute whitespace-nowrap [font-family:var(--font-display)] font-extrabold tracking-[0.08em] text-white pointer-events-none';
 
-const BgCopy = forwardRef(function BgCopy({ word, colSpacing, numCols }, ref) {
+const BgCopy = memo(function BgCopy({ word, colSpacing, numCols }) {
   const baseStyle = { fontSize: BG_FONT_SIZE, transform: 'translateY(-50%)' };
   return (
-    <div ref={ref} className="relative shrink-0" style={{ width: colSpacing * numCols, height: '100%' }}>
+    <div className="relative shrink-0" style={{ width: colSpacing * numCols, height: '100%' }}>
       {Array.from({ length: numCols }, (_, i) => (
         <span key={`r1-${i}`} className={BG_TEXT_CLASS} style={{ ...baseStyle, left: i * colSpacing, top: '30%', opacity: 0.1 }}>
           {word}
@@ -285,54 +292,18 @@ const BgCopy = forwardRef(function BgCopy({ word, colSpacing, numCols }, ref) {
 
 const BackgroundWordTrack = memo(function BackgroundWordTrack({ word }) {
   const wordMeasureRef = useRef(null);
-  const copy1Ref = useRef(null);
-  const [bgWordW, setBgWordW] = useState(0);
-  const [animPx, setAnimPx] = useState(0);
-
-  useLayoutEffect(() => {
-    const el = wordMeasureRef.current;
-    if (!el) return;
-    const w = el.offsetWidth;
-    if (w) setBgWordW(w);
-  }, [word]);
-
-  useLayoutEffect(() => {
-    if (!bgWordW) return;
-    const el = copy1Ref.current;
-    if (!el) return;
-    const w = el.offsetWidth;
-    if (w) setAnimPx(w);
-  }, [bgWordW, word]);
-
-  useEffect(() => {
-    let live = true;
-
-    document.fonts.ready.then(() => {
-      if (!live) return;
-      const measureEl = wordMeasureRef.current;
-      if (measureEl) {
-        const w = measureEl.offsetWidth;
-        if (w) setBgWordW((prev) => (prev === w ? prev : w));
-      }
-      const copyEl = copy1Ref.current;
-      if (copyEl && bgWordW) {
-        const w = copyEl.offsetWidth;
-        if (w) setAnimPx((prev) => (prev === w ? prev : w));
-      }
-    });
-
-    return () => {
-      live = false;
-    };
-  }, [word, bgWordW]);
-
-  const colSpacing = bgWordW + BG_WORD_GAP;
-  const numCols = bgWordW ? Math.ceil(STRAP_DESIGN_W / colSpacing) + 3 : 0;
+  const bgWordW = useStableTextWidth(wordMeasureRef, word);
+  const colSpacing = bgWordW > 0 ? bgWordW + BG_WORD_GAP : 0;
+  const numCols = bgWordW > 0 ? Math.ceil(STRAP_DESIGN_W / colSpacing) + 3 : 0;
+  const animPx = bgWordW > 0 ? colSpacing * numCols : null;
 
   return (
     <div
       className="bc-strap-ticker-track pointer-events-none absolute inset-y-0 left-0 flex will-change-transform"
-      style={animPx ? scrollAnim(animPx, BG_PX_PER_SEC) : undefined}
+      style={{
+        opacity: animPx ? 1 : 0,
+        ...(animPx ? scrollAnim(animPx, BG_PX_PER_SEC) : undefined),
+      }}
       aria-hidden="true"
     >
       <span
@@ -345,7 +316,7 @@ const BackgroundWordTrack = memo(function BackgroundWordTrack({ word }) {
 
       {bgWordW > 0 && (
         <>
-          <BgCopy ref={copy1Ref} word={word} colSpacing={colSpacing} numCols={numCols} />
+          <BgCopy word={word} colSpacing={colSpacing} numCols={numCols} />
           <BgCopy word={word} colSpacing={colSpacing} numCols={numCols} />
         </>
       )}
@@ -356,29 +327,18 @@ const BackgroundWordTrack = memo(function BackgroundWordTrack({ word }) {
 // ── EventStrap ─────────────────────────────────────────────────────────────────
 function EventStrap({ variant, containerW, edgeToEdge = true }) {
   const tokens = STRAP_VARIANTS[variant];
-  const innerRef = useRef(null);
-  const [natH, setNatH] = useState(0);
   const scale = horizontalBarScale(containerW, edgeToEdge);
   const radius = edgeToEdge ? geometry.barRadiusEdgeToEdge : geometry.barRadius;
-
-  useLayoutEffect(() => {
-    const el = innerRef.current;
-    if (!el) return;
-    const apply = () => setNatH((prev) => (prev === el.offsetHeight ? prev : el.offsetHeight));
-    const ro = new ResizeObserver(apply);
-    ro.observe(el);
-    apply();
-    return () => ro.disconnect();
-  }, []);
+  const surfaceHeight = ltBar.height * scale;
 
   if (!tokens) return null;
 
   return (
     <div
       className="max-w-full overflow-hidden"
-      style={{ width: edgeToEdge ? '100%' : STRAP_DESIGN_W * scale, height: natH * scale }}
+      style={{ width: edgeToEdge ? '100%' : STRAP_DESIGN_W * scale, height: surfaceHeight }}
     >
-      <div ref={innerRef} className="origin-top-left" style={{ width: STRAP_DESIGN_W, transform: `scale(${scale})` }}>
+      <div className="origin-top-left" style={{ width: STRAP_DESIGN_W, transform: `scale(${scale})` }}>
         <div
           className="relative flex w-full items-center overflow-hidden"
           style={{
@@ -420,9 +380,11 @@ function EventStrap({ variant, containerW, edgeToEdge = true }) {
 
 function EventStrapBar({ variant, edgeToEdge = true }) {
   const [ref, w] = useContainerWidth();
+  const effectiveW = w > 0 ? w : STRAP_DESIGN_W;
+
   return (
     <div ref={ref} className={cn('flex w-full max-w-full overflow-hidden', edgeToEdge ? 'justify-stretch' : 'justify-center')}>
-      {w === 0 ? null : <EventStrap variant={variant} containerW={w} edgeToEdge={edgeToEdge} />}
+      <EventStrap variant={variant} containerW={effectiveW} edgeToEdge={edgeToEdge} />
     </div>
   );
 }
