@@ -424,13 +424,14 @@ export const fsPlayerCard = {
  * Page headers, summary panels, score strips, and hero metrics.
  */
 export const fsSummaryPanel = {
-  headerSub: 28,
-  pageTitleLg: 86,
-  pageTitleMd: 70,
-  sectionTitle: 48,
-  matchPageTitle: 88,
+  /** Tournament / match sub-heading under FS page titles. */
+  headerSub: 36,
+  pageTitleLg: 68,
+  pageTitleMd: 56,
+  sectionTitle: 38,
+  matchPageTitle: 70,
   panelTitle: 50,
-  panelSub: 26,
+  panelSub: 34,
   scoreStripLabel: 24,
   scoreStripValue: 42,
   scoreStripHero: 64,
@@ -497,8 +498,8 @@ export const fsTable = {
 
 /** Full-screen chart graphics — worm, Manhattan, wagon wheel. */
 export const fsChart = {
-  title: 76,
-  sub: 28,
+  title: 56,
+  sub: 36,
   axisTick: 30,
   axisLabel: 18,
   xLabel: 32,
@@ -535,7 +536,7 @@ export const fsSquad = {
 /** VS break and strategic timeout overlays. */
 export const fsBreak = {
   titleLg: 56,
-  titleSm: 40,
+  titleSm: 44,
   timeoutHero: 78,
 };
 
