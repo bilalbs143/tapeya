@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useToast } from '@/hooks/useToast';
+import { AppEvents, logEvent } from '@/lib/analytics/facebook';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
 import { toApiDate } from '@/lib/utils/dateUtils';
@@ -119,6 +120,7 @@ export default function TournamentRequest() {
       const res = await createTournamentRequest(payload).unwrap();
       const tournament = res.data?.tournament;
 
+      logEvent(AppEvents.SUBMIT_APPLICATION);
       if (tournament?.id != null) {
         if (res.message) toast.success(res.message);
         navigate('/organizer/tournaments', { replace: true });

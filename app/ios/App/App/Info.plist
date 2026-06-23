@@ -49,5 +49,27 @@
 	<array>
 		<string>remote-notification</string>
 	</array>
+	<key>FacebookAppID</key>
+	<string>972949645600556</string>
+	<key>FacebookClientToken</key>
+	<string>c70f92d3a97880cfae81e5abab704848</string>
+	<key>FacebookDisplayName</key>
+	<string>Tapeya</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>fb972949645600556</string>
+			</array>
+		</dict>
+	</array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>fbapi</string>
+		<string>fb-messenger-share-api</string>
+	</array>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>This identifier will be used to deliver personalised ads to you.</string>
 </dict>
 </plist>

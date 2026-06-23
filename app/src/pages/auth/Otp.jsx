@@ -5,10 +5,11 @@ import { useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useToast } from '@/hooks/useToast';
+import { AppEventParams, AppEvents, logEvent } from '@/lib/analytics/facebook';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { clearOtpPreview, extractOtpFromAuthResponse, getOtpPreview, setOtpPreview } from '@/lib/otpPreviewSession';
-import { markReturningUser } from '@/lib/returningUser';
+import { isReturningUser, markReturningUser } from '@/lib/returningUser';
 import { addSavedProfile, bumpSavedProfile } from '@/lib/savedProfiles';
 import { formatPhoneFull } from '@/lib/utils/phoneUtils';
 import { getRedirectPath } from '@/lib/utils/routeUtils';
@@ -127,7 +128,13 @@ export default function Otp() {
 
         if (token && user) {
           clearOtpPreview();
+          const isNewUser = !isReturningUser();
           markReturningUser();
+          if (isNewUser) {
+            logEvent(AppEvents.COMPLETED_REGISTRATION, {
+              [AppEventParams.REGISTRATION_METHOD]: 'phone',
+            });
+          }
           dispatch(setCredentials({ user, accessToken: token }));
           addSavedProfile({
             id: user.id,

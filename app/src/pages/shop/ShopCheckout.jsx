@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useToast } from '@/hooks/useToast';
+import { AppEventParams, AppEvents, flushEvents, logEvent, logPurchase } from '@/lib/analytics/facebook';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
 import { formatPrice } from '@/lib/format';
@@ -23,6 +24,7 @@ export default function ShopCheckout() {
   const navigate = useNavigate();
   const toast = useToast();
   const user = useAppSelector(selectUser);
+  const checkoutTracked = useRef(false);
   const { data: cart, isLoading: cartLoading } = useGetCartQuery();
   const [createOrder, { isLoading: isSubmitting }] = useCreateOrderMutation();
 
@@ -75,6 +77,10 @@ export default function ShopCheckout() {
       const order = result?.data ?? result;
       if (order?.id) {
         toast.success('Order placed');
+        await logPurchase(subtotal, 'PKR', {
+          [AppEventParams.CONTENT_ID]: String(order.id),
+        });
+        await flushEvents();
         navigate(`/shop/order-payment/${order.id}`, { replace: true });
       }
     } catch (err) {
@@ -85,6 +91,18 @@ export default function ShopCheckout() {
   const items = cart?.items ?? [];
   const subtotal = cart?.subtotal ?? 0;
   const canCheckout = items.length > 0 && !cartLoading;
+
+  useEffect(() => {
+    if (!canCheckout || subtotal <= 0 || checkoutTracked.current) return;
+    checkoutTracked.current = true;
+    logEvent(
+      AppEvents.INITIATED_CHECKOUT,
+      {
+        [AppEventParams.CURRENCY]: 'PKR',
+      },
+      subtotal,
+    );
+  }, [canCheckout, subtotal]);
 
   return (
     <div className="bg-black">

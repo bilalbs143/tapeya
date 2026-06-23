@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
@@ -15,6 +15,7 @@ import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useReverbNotifications } from '@/hooks/useReverbNotifications';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { MainLayout } from '@/layouts/MainLayout';
+import { initFacebookAnalytics } from '@/lib/analytics/facebook';
 import { Toaster } from '@/ui/Toast';
 import { TooltipProvider } from '@/ui/Tooltip';
 
@@ -97,6 +98,10 @@ function RouterEffects() {
 
 function App() {
   useReverbNotifications();
+
+  useEffect(() => {
+    void initFacebookAnalytics();
+  }, []);
 
   return (
     <DialogProvider>

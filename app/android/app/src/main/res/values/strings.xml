@@ -4,4 +4,7 @@
     <string name="title_activity_main">Tapeya</string>
     <string name="package_name">com.tapeya.app</string>
     <string name="custom_url_scheme">com.tapeya.app</string>
+    <string name="facebook_app_id">972949645600556</string>
+    <string name="facebook_client_token">c70f92d3a97880cfae81e5abab704848</string>
+    <string name="fb_login_protocol_scheme">fb972949645600556</string>
 </resources>

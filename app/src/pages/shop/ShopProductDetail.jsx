@@ -4,6 +4,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useToast } from '@/hooks/useToast';
+import { AppEventParams, AppEvents, logEvent } from '@/lib/analytics/facebook';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatPrice } from '@/lib/format';
@@ -54,6 +55,15 @@ export default function ShopProductDetail() {
     try {
       await addToCart({ product_id: normalized.id, quantity }).unwrap();
       toast.success('Added to cart');
+      logEvent(
+        AppEvents.ADDED_TO_CART,
+        {
+          [AppEventParams.CONTENT_ID]: String(normalized.id),
+          [AppEventParams.CONTENT_TYPE]: normalized.categoryName,
+          [AppEventParams.CURRENCY]: 'PKR',
+        },
+        normalized.displayPrice * quantity,
+      );
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Could not add to cart. Try again.'));
     }
@@ -62,6 +72,14 @@ export default function ShopProductDetail() {
   useEffect(() => {
     if (!productSlug) navigate('/shop', { replace: true });
   }, [productSlug, navigate]);
+
+  useEffect(() => {
+    if (!normalized?.id) return;
+    logEvent(AppEvents.VIEWED_CONTENT, {
+      [AppEventParams.CONTENT_ID]: String(normalized.id),
+      [AppEventParams.CONTENT_TYPE]: normalized.categoryName,
+    });
+  }, [normalized?.id]);
 
   if (!productSlug) return null;
 
