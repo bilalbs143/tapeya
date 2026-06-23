@@ -5,10 +5,10 @@ import { cn } from '@/lib/utils';
 
 import { resolveBroadcastNameParts } from '../../../../core/domain/playerNameResolver';
 import { fsPill, fsPlayerCard, fsSummaryPanel } from '../../config';
-import { FSStage, GlowPanel, PlayerAvatarImage, ROW_ANIMATE_IN, TeamLogoOrCrest, UI_FONT } from '../../primitives';
+import { FSStage, GlowPanel, PlayerAvatarImage, TeamLogoOrCrest, UI_FONT } from '../../primitives';
+import { FsStatColumn } from '../shared/FsStatColumn';
 import { resolveFsStatLayout } from '../shared/fsStatLayout';
 import { FS_HEADER_SUB, FS_PLAYER_FIRST, FS_PLAYER_LAST, FS_PLAYER_ROLE, fsFont } from '../shared/fsTypographyStyles';
-import { StatTile } from '../shared/StatTile';
 
 const FS_AVATAR_W = 560;
 const FS_AVATAR_H = 760;
@@ -123,21 +123,13 @@ export function PlayerNameFSGraphic({
             <PlayerAvatarSlot src={avatarUrl} alt={playerName} />
 
             {hasStats && (
-              <div className="flex h-full flex-col justify-center" style={{ height: statLayout.columnH, gap: statLayout.gap }}>
-                {statFields.map((field, index) => (
-                  <div key={field.key} className={ROW_ANIMATE_IN} style={{ animationDelay: `${getStatDelay(index)}ms` }}>
-                    <StatTile
-                      label={field.label}
-                      value={statValues[field.key]}
-                      accent={accent}
-                      height={statLayout.tileH}
-                      width={statLayout.tileW}
-                      labelSize={statLayout.labelSize}
-                      valueSize={statLayout.valueSize}
-                    />
-                  </div>
-                ))}
-              </div>
+              <FsStatColumn
+                statFields={statFields}
+                statValues={statValues}
+                accent={accent}
+                statLayout={statLayout}
+                getDelay={getStatDelay}
+              />
             )}
           </div>
 

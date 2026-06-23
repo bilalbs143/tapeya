@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { resolveBroadcastNameParts } from '../../../../core/domain/playerNameResolver';
 import { fsPlayerCard, fsSummaryPanel } from '../../config';
 import { fmt, GlowPanel, PlayerAvatarImage, TeamLogoOrCrest } from '../../primitives';
+import { FsStatColumn } from '../shared/FsStatColumn';
 import { resolveFsStatLayout } from '../shared/fsStatLayout';
 import {
   FS_DISMISSAL,
@@ -15,7 +16,6 @@ import {
   FS_PLAYER_ROLE,
   fsFont,
 } from '../shared/fsTypographyStyles';
-import { StatTile } from '../shared/StatTile';
 
 const AVATAR_W = 560;
 const AVATAR_H = 760;
@@ -82,19 +82,8 @@ export function LastWicketFSGraphic({ batter, teams, sub }) {
           <PlayerAvatarImage src={avatarUrl} alt={b.name ?? `${firstName} ${lastName}`} fit="cover-top" />
         </div>
 
-        <div className="flex flex-col justify-center" style={{ height: AVATAR_H, gap: statLayout.gap }}>
-          {STAT_FIELDS.map((field) => (
-            <StatTile
-              key={field.key}
-              label={field.label}
-              value={statValues[field.key]}
-              accent={accent}
-              height={statLayout.tileH}
-              width={statLayout.tileW}
-              labelSize={statLayout.labelSize}
-              valueSize={statLayout.valueSize}
-            />
-          ))}
+        <div style={{ height: AVATAR_H }}>
+          <FsStatColumn statFields={STAT_FIELDS} statValues={statValues} accent={accent} statLayout={statLayout} />
         </div>
 
         <GlowPanel className="flex shrink-0 flex-col px-10 py-12" style={{ width: PANEL_W, height: statsColumnHeight }}>

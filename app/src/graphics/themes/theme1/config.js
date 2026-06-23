@@ -450,11 +450,17 @@ export const fsStatTile = {
   label: 24,
   value: 58,
   columnMaxHeight: 760,
-  /** Compressed stack when natural height exceeds columnMaxHeight. */
+  /** Internal chip padding and label/value spacing at default size. */
+  tilePaddingY: 14,
+  tileLabelGap: 8,
+  /** Compressed stack when natural height exceeds available column height. */
   denseGap: 10,
-  denseMinHeight: 72,
+  denseMinHeight: 68,
+  minTileHeight: 48,
   denseLabel: 18,
   denseValue: 40,
+  denseTilePaddingY: 10,
+  denseTileLabelGap: 6,
 };
 
 /**
