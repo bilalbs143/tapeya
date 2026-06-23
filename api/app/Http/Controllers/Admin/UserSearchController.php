@@ -52,13 +52,7 @@ class UserSearchController extends Controller
         }
 
         if ($term !== '') {
-            $safe = '%'.addcslashes($term, '%_\\').'%';
-            $query->where(function ($w) use ($safe): void {
-                $w->where('name', 'like', $safe)
-                    ->orWhere('nickname', 'like', $safe)
-                    ->orWhere('email', 'like', $safe)
-                    ->orWhere('phone', 'like', $safe);
-            });
+            $query->search($term);
         }
 
         $users = $query->orderBy('name')->limit(25)->get();

@@ -3,6 +3,7 @@
 namespace App\Enums\User;
 
 use App\Enums\BaseEnumTrait;
+use App\Models\User;
 
 enum ActivePlatformEnum: string
 {
@@ -25,7 +26,7 @@ enum ActivePlatformEnum: string
         };
     }
 
-    /** Values persisted on {@see \App\Models\User::$active_platform}. */
+    /** Values persisted on {@see User::$active_platform}. */
     public function isStored(): bool
     {
         return $this !== self::UNTRACKED;

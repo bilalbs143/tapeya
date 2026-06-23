@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Enums\User\AppRoleEnum;
 use App\Enums\User\ActivePlatformEnum;
+use App\Enums\User\AppRoleEnum;
 use App\Enums\User\RoleGuardEnum;
 use App\Enums\User\UserTypeEnum;
 use App\Models\Role;

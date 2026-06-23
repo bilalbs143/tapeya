@@ -410,6 +410,15 @@ class User extends Authenticatable
     }
 
     /**
+     * Unified case-insensitive search for name, nickname, email, and phone digits.
+     * Delegates to {@see UserBuilder::search()} for QueryBuilder `filter[search]` and typeaheads.
+     */
+    public function scopeSearch(Builder $query, ?string $term): Builder
+    {
+        return $query->search($term);
+    }
+
+    /**
      * Scope: match phone by digits (e.g. 92212212123 or 212212123 matches +92212212123).
      * Normalizes stored phone to digits in SQL so partial digit search works.
      */

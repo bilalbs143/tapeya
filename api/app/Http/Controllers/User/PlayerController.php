@@ -25,19 +25,7 @@ class PlayerController extends Controller
             ->orderBy('name');
 
         if ($search->isNotEmpty()) {
-            $term = '%'.mb_strtolower($search->toString()).'%';
-            $digits = preg_replace('/\D/', '', $search->toString());
-            $phoneLike = $digits !== '' ? '%'.$digits.'%' : null;
-
-            $phoneExpr = "REGEXP_REPLACE(COALESCE(phone, ''), '[^0-9]', '', 'g') LIKE ?";
-
-            $query->where(function ($q) use ($term, $phoneLike, $phoneExpr) {
-                $q->whereRaw('LOWER(name) LIKE ?', [$term])
-                    ->orWhereRaw("LOWER(COALESCE(nickname, '')) LIKE ?", [$term]);
-                if ($phoneLike !== null) {
-                    $q->orWhereRaw($phoneExpr, [$phoneLike]);
-                }
-            });
+            $query->search($search->toString());
         }
 
         $players = $query->limit(50)->get(['id', 'name', 'nickname', 'playing_role']);

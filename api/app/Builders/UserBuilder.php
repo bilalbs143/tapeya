@@ -27,10 +27,18 @@ class UserBuilder extends Builder
             return $this;
         }
 
-        $this->where(function (Builder $q) use ($query) {
-            $q->where('name', 'like', "%{$query}%")
-                ->orWhere('email', 'like', "%{$query}%")
-                ->orWhere('phone', 'like', "%{$query}%");
+        $safe = '%'.addcslashes(mb_strtolower($query), '%_\\').'%';
+        $digits = preg_replace('/\D/', '', $query);
+        $phoneLike = $digits !== '' ? '%'.$digits.'%' : null;
+        $phoneExpr = "REGEXP_REPLACE(COALESCE(phone, ''), '[^0-9]', '', 'g') LIKE ?";
+
+        $this->where(function (Builder $q) use ($safe, $phoneLike, $phoneExpr) {
+            $q->whereRaw('LOWER(name) LIKE ?', [$safe])
+                ->orWhereRaw("LOWER(COALESCE(nickname, '')) LIKE ?", [$safe])
+                ->orWhereRaw('LOWER(email) LIKE ?', [$safe]);
+            if ($phoneLike !== null) {
+                $q->orWhereRaw($phoneExpr, [$phoneLike]);
+            }
         });
 
         return $this;
