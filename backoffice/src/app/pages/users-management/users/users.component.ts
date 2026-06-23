@@ -25,6 +25,7 @@ import { TableWrapperComponent } from 'src/app/shared/components/table-wrapper/t
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
+import { formatActivePlatform } from 'src/app/shared/functions/display.helper';
 import { getStatusClass } from 'src/app/utils/status-class.util';
 
 import { ManageUserDialogComponent, type ManageUserDialogResult } from './manage-user-dialog/manage-user-dialog.component';
@@ -85,6 +86,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     'country',
     'city',
     'status',
+    'active_platform',
     'created_at',
     'updated_at',
     'actions',
@@ -92,6 +94,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
   public dataSource = new MatTableDataSource<User>([]);
   public readonly statusClass = getStatusClass;
   public readonly emptyCell = EMPTY_CELL;
+  public readonly formatActivePlatform = formatActivePlatform;
 
   public formatRoleNames(roles: UserRole[] | undefined): string {
     if (!roles?.length) return EMPTY_CELL;

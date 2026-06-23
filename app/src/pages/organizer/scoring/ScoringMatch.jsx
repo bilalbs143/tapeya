@@ -302,27 +302,27 @@ export default function ScoringMatch() {
               ) : null}
 
               <div className="-mx-4 bg-black px-4 pb-2">
-              {matchLoading && (
-                <div className="text-muted flex min-h-[200px] items-center justify-center py-8 text-[14px]">Loading match…</div>
-              )}
-              {matchError && (
-                <div className="flex min-h-[200px] flex-col items-center justify-center gap-2 py-8 text-center">
-                  <p className="text-[14px] text-red-400">Failed to load match.</p>
-                  <button type="button" onClick={() => navigate(-1)} className="text-brand text-[14px] font-medium underline">
-                    Go back
-                  </button>
-                </div>
-              )}
-              {matchComplete && !matchLoading && !matchError && (
-                <MatchResultBanner
-                  match={match}
-                  liveScore1={scorecardLiveScore.innings1}
-                  liveScore2={scorecardLiveScore.innings2}
-                  playerOfMatch={apiMatch?.player_of_match ?? null}
-                  serverResultSummary={apiMatch?.result_summary ?? null}
-                />
-              )}
-              {!matchLoading && !matchError && <ActiveView {...tabViewProps} />}
+                {matchLoading && (
+                  <div className="text-muted flex min-h-[200px] items-center justify-center py-8 text-[14px]">Loading match…</div>
+                )}
+                {matchError && (
+                  <div className="flex min-h-[200px] flex-col items-center justify-center gap-2 py-8 text-center">
+                    <p className="text-[14px] text-red-400">Failed to load match.</p>
+                    <button type="button" onClick={() => navigate(-1)} className="text-brand text-[14px] font-medium underline">
+                      Go back
+                    </button>
+                  </div>
+                )}
+                {matchComplete && !matchLoading && !matchError && (
+                  <MatchResultBanner
+                    match={match}
+                    liveScore1={scorecardLiveScore.innings1}
+                    liveScore2={scorecardLiveScore.innings2}
+                    playerOfMatch={apiMatch?.player_of_match ?? null}
+                    serverResultSummary={apiMatch?.result_summary ?? null}
+                  />
+                )}
+                {!matchLoading && !matchError && <ActiveView {...tabViewProps} />}
               </div>
             </Tabs>
           </div>

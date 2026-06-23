@@ -19,6 +19,7 @@ use App\Enums\Tournament\TournamentInterestSubmissionStatusEnum;
 use App\Enums\Tournament\TournamentRequestStatusEnum;
 use App\Enums\Tournament\TournamentScheduleWindowEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
+use App\Enums\User\ActivePlatformEnum;
 use App\Enums\User\BattingStyleEnum;
 use App\Enums\User\BowlingStyleEnum;
 use App\Enums\User\PlayingRoleEnum;
@@ -41,7 +42,7 @@ class EnumController extends Controller
      */
     public function index(): JsonResponse
     {
-        $enums = Cache::remember('admin:enums:v1', 600, fn () => $this->buildEnums());
+        $enums = Cache::remember('admin:enums:v2', 600, fn () => $this->buildEnums());
 
         return $this->success($enums);
     }
@@ -54,6 +55,7 @@ class EnumController extends Controller
         return [
             'user_type' => $this->toOptions(UserTypeEnum::cases(), [UserTypeEnum::SYSTEM]),
             'user_status' => $this->toOptions(UserStatusEnum::cases()),
+            'active_platform' => $this->toOptions(ActivePlatformEnum::cases()),
             'status' => $this->toOptions(StatusEnum::cases()),
             'playing_role' => $this->toOptions(PlayingRoleEnum::cases()),
             'bowling_style' => $this->toOptions(BowlingStyleEnum::cases()),

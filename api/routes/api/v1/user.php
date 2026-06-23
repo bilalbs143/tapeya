@@ -48,6 +48,7 @@ use App\Http\Controllers\User\TournamentReactionController;
 use App\Http\Controllers\User\TournamentRequestController;
 use App\Http\Controllers\User\TournamentStatsController;
 use App\Http\Controllers\User\TournamentTeamController;
+use App\Http\Controllers\User\UserActivePlatformController;
 use App\Http\Controllers\User\UserFollowController;
 use App\Http\Controllers\User\UserMediaController;
 use App\Http\Controllers\User\UserTeamController;
@@ -98,6 +99,7 @@ Route::middleware('auth:api')->prefix('shop')->group(function () {
 Route::middleware('auth:api')->group(function () {
     Route::get('/me', [UserAuthController::class, 'me']);
     Route::post('device-tokens', [DeviceTokenController::class, 'store'])->middleware('throttle:60,1');
+    Route::put('active-platform', [UserActivePlatformController::class, 'update'])->middleware('throttle:30,1');
     Route::delete('profile', [ProfileController::class, 'destroy']);
     Route::match(['patch', 'post'], 'profile', [ProfileController::class, 'update']);
     Route::get('countries', [CountryController::class, 'index']);

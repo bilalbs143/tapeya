@@ -141,9 +141,7 @@ export function formatAge(dateOfBirth) {
     years -= 1;
     lastBday.setFullYear(today.getFullYear() - 1);
   }
-  let months =
-    (today.getFullYear() - lastBday.getFullYear()) * 12 +
-    (today.getMonth() - lastBday.getMonth());
+  let months = (today.getFullYear() - lastBday.getFullYear()) * 12 + (today.getMonth() - lastBday.getMonth());
   let days = today.getDate() - lastBday.getDate();
   if (days < 0) {
     months -= 1;

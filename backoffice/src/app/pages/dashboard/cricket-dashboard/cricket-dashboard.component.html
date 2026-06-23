@@ -426,9 +426,9 @@
       </mat-card>
     </div>
 
-    <!-- ── Row 4: Match Activity (30d area) + Player Growth (6mo bar) ── -->
+    <!-- ── Row 4: Match Activity (30d) — full width ── -->
     <div
-      class="col-span-12 lg:col-span-8"
+      class="col-span-12"
       role="region"
       aria-labelledby="chart-activity-title"
     >
@@ -479,8 +479,9 @@
       </mat-card>
     </div>
 
+    <!-- ── Row 5: Player Growth + Active Platforms (6 / 6) ── -->
     <div
-      class="col-span-12 lg:col-span-4"
+      class="col-span-12 lg:col-span-6"
       role="region"
       aria-labelledby="chart-player-growth-title"
     >
@@ -521,7 +522,49 @@
       </mat-card>
     </div>
 
-    <!-- ── Row 5: Request Trend + Request Pipeline ── -->
+    <div
+      class="col-span-12 lg:col-span-6"
+      role="region"
+      aria-labelledby="chart-platforms-title"
+    >
+      <mat-card class="cardWithShadow mb-0! flex h-full min-h-0 flex-col">
+        <mat-card-header class="pb-3">
+          <mat-card-title id="chart-platforms-title">Active Platforms</mat-card-title>
+          <mat-card-subtitle class="block max-w-none whitespace-normal text-sm leading-snug">
+            App users by last known client — updated on login
+          </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content class="flex min-h-0 flex-1 flex-col justify-center">
+          @if (!hasPlatformData()) {
+            <div class="flex min-h-[240px] flex-1 flex-col items-center justify-center text-center text-muted px-4 py-10">
+              <i-tabler
+                name="devices"
+                class="mb-3 size-10 opacity-50"
+                aria-hidden="true"
+              ></i-tabler>
+              <p class="m-0 text-sm">No app users yet.</p>
+            </div>
+          } @else {
+            <div
+              role="img"
+              aria-label="Donut chart of app users by active platform including untracked"
+            >
+              <apx-chart
+                [series]="platformSeries()"
+                [chart]="platformDonutChart"
+                [labels]="platformLabels()"
+                [colors]="platformColors"
+                [legend]="platformLegend"
+                [plotOptions]="platformPlotOptions"
+                [dataLabels]="platformDataLabels"
+              ></apx-chart>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- ── Row 6: Request Trend + Request Pipeline ── -->
     <div
       class="col-span-12 lg:col-span-8"
       role="region"

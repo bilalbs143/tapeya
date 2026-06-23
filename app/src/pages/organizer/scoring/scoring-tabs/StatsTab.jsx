@@ -62,9 +62,7 @@ function chartGrid(isDesktop) {
   return {
     borderColor: 'rgba(255,255,255,0.2)',
     strokeDashArray: 0,
-    padding: isDesktop
-      ? { left: 8, right: 22, top: 20, bottom: 14 }
-      : { left: 6, right: 6, top: 12, bottom: 8 },
+    padding: isDesktop ? { left: 8, right: 22, top: 20, bottom: 14 } : { left: 6, right: 6, top: 12, bottom: 8 },
     xaxis: { lines: { show: false } },
     yaxis: { lines: { show: true } },
   };
@@ -336,9 +334,7 @@ export function StatsTab() {
     <div className="mt-4 space-y-6 pb-6 lg:space-y-8">
       {wagonWheelEnabled ? (
         <div className="space-y-2">
-          <p className="text-brand text-center text-[11px] font-semibold tracking-wide uppercase lg:text-[13px]">
-            Wagon Wheel
-          </p>
+          <p className="text-brand text-center text-[11px] font-semibold tracking-wide uppercase lg:text-[13px]">Wagon Wheel</p>
           <WagonWheelChart
             ballHistory={ballHistory}
             zones={shotPositionZones.length > 0 ? shotPositionZones : undefined}

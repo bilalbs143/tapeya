@@ -51,6 +51,11 @@ export interface CricketDashboardStats {
     rejected: number;
   };
 
+  // Active client platform breakdown
+  users_by_active_platform: ActivePlatformCount[];
+  users_with_platform_total: number;
+  app_users_total: number;
+
   // Live matches
   live_matches: LiveMatchRow[];
 
@@ -63,6 +68,12 @@ export interface CricketDashboardStats {
 
 export interface CricketFormatCount {
   format: string;
+  label: string;
+  count: number;
+}
+
+export interface ActivePlatformCount {
+  platform: 'web' | 'ios' | 'android' | 'untracked';
   label: string;
   count: number;
 }

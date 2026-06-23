@@ -48,8 +48,7 @@ export function ProfileStrengthReminderScheduler() {
   });
   const user = meResponse?.data ?? userFromStore;
 
-  const eligible =
-    resolveProfileStrengthReminderPayload(location.pathname, { isAuthenticated, user }) !== null;
+  const eligible = resolveProfileStrengthReminderPayload(location.pathname, { isAuthenticated, user }) !== null;
 
   useEffect(() => {
     if (isProfileStrengthReminderBlockedPath(location.pathname) && dialogKey === 'profileStrengthReminder') {

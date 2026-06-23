@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\User\ActivePlatformEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Models\Team;
@@ -208,6 +209,31 @@ class CricketDashboardController extends Controller
             'rejected' => (int) ($requestsByStatus['rejected'] ?? 0),
         ];
 
+        // ── Active platform breakdown (app users) ─────────────────────────────
+        $appUsersTotal = (int) DB::table('users')->where('type', 'user')->count();
+
+        $platformCountsRaw = DB::table('users')
+            ->where('type', 'user')
+            ->whereNotNull('active_platform')
+            ->selectRaw('active_platform, COUNT(*) as cnt')
+            ->groupBy('active_platform')
+            ->pluck('cnt', 'active_platform')
+            ->all();
+
+        $usersWithPlatformTotal = array_sum(array_map('intval', $platformCountsRaw));
+        $usersUntrackedTotal = max(0, $appUsersTotal - $usersWithPlatformTotal);
+
+        $usersByActivePlatform = array_map(
+            fn (ActivePlatformEnum $platform) => [
+                'platform' => $platform->value,
+                'label' => $platform->label(),
+                'count' => $platform === ActivePlatformEnum::UNTRACKED
+                    ? $usersUntrackedTotal
+                    : (int) ($platformCountsRaw[$platform->value] ?? 0),
+            ],
+            ActivePlatformEnum::cases(),
+        );
+
         // ── Live Matches ──────────────────────────────────────────────────────
         $liveMatches = TournamentMatch::query()
             ->where('status', 'in_progress')
@@ -318,6 +344,11 @@ class CricketDashboardController extends Controller
 
             // Request pipeline by status
             'request_pipeline' => $requestPipeline,
+
+            // Active client platform (web / iOS / Android / untracked)
+            'users_by_active_platform' => $usersByActivePlatform,
+            'users_with_platform_total' => $usersWithPlatformTotal,
+            'app_users_total' => $appUsersTotal,
 
             // Live matches
             'live_matches' => $liveMatches,

@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 
+import type { ActivePlatformStored } from 'src/app/shared/constants/active-platform.constants';
 import { toHttpParams } from 'src/app/shared/functions/http-params.function';
 import type { ListParams } from 'src/app/shared/functions/list-params.function';
 
@@ -33,6 +34,9 @@ export interface User {
   batting_style_enum?: string | null;
   country?: string | null;
   city?: string | null;
+  active_platform?: ActivePlatformStored | null;
+  active_platform_label?: string | null;
+  active_platform_updated_at?: string | null;
   roles?: UserRole[];
   role_ids?: number[];
   admin_roles?: UserRole[];

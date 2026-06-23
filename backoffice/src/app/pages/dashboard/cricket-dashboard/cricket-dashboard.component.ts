@@ -68,6 +68,10 @@ export class CricketDashboardComponent implements OnInit {
   // ── Request pipeline ──────────────────────────────────────────────────────
   public readonly requestPipeline = computed(() => this.stats()?.request_pipeline ?? { pending: 0, approved: 0, rejected: 0 });
 
+  // ── Active platform ─────────────────────────────────────────────────────────
+  public readonly usersByActivePlatform = computed(() => this.stats()?.users_by_active_platform ?? []);
+  public readonly appUsersTotal = computed(() => this.stats()?.app_users_total ?? 0);
+
   // ── Live / recent matches ─────────────────────────────────────────────────
   public readonly liveMatches = computed(() => this.stats()?.live_matches ?? []);
   public readonly recentMatches = computed(() => this.stats()?.recent_matches ?? []);
@@ -130,6 +134,10 @@ export class CricketDashboardComponent implements OnInit {
     const p = this.requestPipeline();
     return [p.pending, p.approved, p.rejected];
   });
+
+  public readonly platformSeries = computed(() => this.usersByActivePlatform().map((row) => row.count));
+
+  public readonly platformLabels = computed(() => this.usersByActivePlatform().map((row) => row.label));
 
   // ── Chart configs (static — no signals needed) ────────────────────────────
 
@@ -208,13 +216,16 @@ export class CricketDashboardComponent implements OnInit {
     },
   };
 
-  public readonly matchStatusDataLabels = {
+  public readonly donutPercentDataLabels = {
     enabled: true,
     formatter: (val: string | number | number[] | undefined): string => {
       const n = Array.isArray(val) ? 0 : Number(val ?? 0);
       return n > 0 ? `${n.toFixed(1)}%` : '';
     },
   };
+
+  public readonly matchStatusDataLabels = this.donutPercentDataLabels;
+  public readonly platformDataLabels = this.donutPercentDataLabels;
 
   public readonly formatBarChart = {
     type: 'bar' as const,
@@ -322,6 +333,47 @@ export class CricketDashboardComponent implements OnInit {
     },
   };
 
+  public readonly platformDonutChart = {
+    type: 'donut' as const,
+    height: 240,
+    fontFamily: 'inherit',
+    toolbar: { show: false },
+    foreColor: 'var(--mat-sys-on-surface-variant)',
+  };
+
+  public readonly platformColors = [
+    'var(--mat-sys-primary)',
+    'var(--mat-sys-secondary)',
+    'var(--color-success)',
+    'var(--mat-sys-outline-variant)',
+  ];
+
+  public readonly platformLegend = {
+    position: 'bottom' as const,
+    fontSize: '11px',
+    labels: { colors: 'var(--mat-sys-on-surface-variant)' },
+  };
+
+  public readonly platformPlotOptions = {
+    pie: {
+      donut: {
+        size: '58%',
+        labels: {
+          show: true,
+          name: { color: 'var(--mat-sys-on-surface-variant)' },
+          value: { color: 'var(--mat-sys-on-surface)' },
+          total: {
+            show: true,
+            label: 'Users',
+            color: 'var(--mat-sys-on-surface-variant)',
+            formatter: (w: { globals: { seriesTotals: number[] } }): string =>
+              String(w.globals.seriesTotals.reduce((a, b) => a + b, 0)),
+          },
+        },
+      },
+    },
+  };
+
   public readonly chartGrid = { strokeDashArray: 4, borderColor: 'var(--mat-sys-outline-variant)' };
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -366,6 +418,10 @@ export class CricketDashboardComponent implements OnInit {
 
   public hasPipelineData(): boolean {
     return this.hasSeries(this.pipelineSeries());
+  }
+
+  public hasPlatformData(): boolean {
+    return this.appUsersTotal() > 0 && this.hasSeries(this.platformSeries());
   }
 
   public hasMatchStatusData(): boolean {

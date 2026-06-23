@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Admin\User;
 
+use App\Enums\User\ActivePlatformEnum;
 use App\Enums\User\RoleGuardEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -46,6 +47,9 @@ class UserResource extends JsonResource
             'batting_style_enum' => $this->batting_style?->name,
             'country' => $this->country,
             'city' => $this->city,
+            'active_platform' => $this->active_platform,
+            'active_platform_label' => ActivePlatformEnum::tryLabelFromValue($this->active_platform),
+            'active_platform_updated_at' => $this->active_platform_updated_at?->toIso8601String(),
             'roles' => $appRoles->map(fn ($r) => [
                 'id' => $r->id,
                 'name' => $r->name,

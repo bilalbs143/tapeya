@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Builders\UserBuilder;
 use App\Contracts\RoleEnumInterface;
+use App\Enums\User\ActivePlatformEnum;
 use App\Enums\User\AdminRoleEnum;
 use App\Enums\User\AppRoleEnum;
 use App\Enums\User\BattingStyleEnum;
@@ -61,6 +62,8 @@ class User extends Authenticatable
         'status',
         'followers_count',
         'created_by',
+        'active_platform',
+        'active_platform_updated_at',
     ];
 
     /**
@@ -90,6 +93,7 @@ class User extends Authenticatable
             'bowling_style' => BowlingStyleEnum::class,
             'batting_style' => BattingStyleEnum::class,
             'created_by' => 'integer',
+            'active_platform_updated_at' => 'datetime',
         ];
     }
 
@@ -424,6 +428,29 @@ class User extends Authenticatable
     }
 
     /**
+     * Scope: filter by last known client platform ({@see ActivePlatformEnum}).
+     */
+    public function scopeActivePlatform(Builder $query, ?string $value): void
+    {
+        if ($value === null || $value === '') {
+            return;
+        }
+
+        $platform = ActivePlatformEnum::tryFrom($value);
+        if ($platform === null) {
+            return;
+        }
+
+        if ($platform === ActivePlatformEnum::UNTRACKED) {
+            $query->whereNull('active_platform');
+
+            return;
+        }
+
+        $query->where('active_platform', $platform->value);
+    }
+
+    /**
      * Filters for QueryBuilder (admin/index listing).
      *
      * @return array<int, string|AllowedFilter>
@@ -438,6 +465,7 @@ class User extends Authenticatable
             'nickname',
             'email',
             AllowedFilter::scope('phone'),
+            AllowedFilter::scope('active_platform'),
             AllowedFilter::scope('created_between'),
             AllowedFilter::scope('created_after'),
             AllowedFilter::scope('created_before'),
@@ -460,6 +488,7 @@ class User extends Authenticatable
             'phone',
             'type',
             'status',
+            'active_platform',
             'created_at',
             'updated_at',
         ];

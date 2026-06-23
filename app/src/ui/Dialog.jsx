@@ -181,13 +181,7 @@ export const DialogHeaderClose = forwardRef(function DialogHeaderClose({ classNa
   const baseClass = variant === 'danger' ? CLOSE_BUTTON_DANGER : CLOSE_BUTTON;
 
   return (
-    <DialogPrimitive.Close
-      ref={ref}
-      type="button"
-      className={`${baseClass} ${className}`.trim()}
-      aria-label="Close"
-      {...props}
-    >
+    <DialogPrimitive.Close ref={ref} type="button" className={`${baseClass} ${className}`.trim()} aria-label="Close" {...props}>
       <CloseIcon />
     </DialogPrimitive.Close>
   );

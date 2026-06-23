@@ -38,6 +38,11 @@ export interface StatusFilterOptions {
   status?: string;
 }
 
+/** Options for active platform filter ({@see ActivePlatformEnum}). */
+export interface ActivePlatformFilterOptions {
+  active_platform?: string;
+}
+
 /** Tournament calendar phase filter (upcoming / live / completed). */
 export interface ScheduleWindowFilterOptions {
   schedule_window?: string;
@@ -51,6 +56,7 @@ export type ListParams = BaseListParams &
   Partial<Record<'filter[created_after]', string>> &
   Partial<Record<'filter[created_before]', string>> &
   Partial<Record<'filter[status]', string>> &
+  Partial<Record<'filter[active_platform]', string>> &
   Partial<Record<'filter[schedule_window]', string>>;
 
 const DEFAULT_SORT = '-created_at';
@@ -112,6 +118,18 @@ export function addStatusFilter<T extends BaseListParams>(
 }
 
 /**
+ * Add active platform filter. Only adds filter[active_platform] when value is non-empty.
+ */
+export function addActivePlatformFilter<T extends BaseListParams>(
+  params: T,
+  activePlatform: string
+): T & Partial<Record<'filter[active_platform]', string>> {
+  const value = typeof activePlatform === 'string' ? activePlatform.trim() : '';
+  if (!value) return params as T & Partial<Record<'filter[active_platform]', string>>;
+  return { ...params, 'filter[active_platform]': value } as T & Record<'filter[active_platform]', string>;
+}
+
+/**
  * Add tournament schedule-window filter (upcoming | live | completed).
  */
 export function addScheduleWindowFilter<T extends BaseListParams>(
@@ -141,6 +159,7 @@ export function addCreatedFilter<T extends BaseListParams>(
 export type ListFilterOptions = SearchFilterOptions &
   NamePhoneFilterOptions &
   StatusFilterOptions &
+  ActivePlatformFilterOptions &
   ScheduleWindowFilterOptions &
   CreatedFilterOptions;
 
@@ -158,6 +177,7 @@ export function buildListParams(
   if (filters.name != null) params = addNameFilter(params, filters.name);
   if (filters.phone != null) params = addPhoneFilter(params, filters.phone);
   if (filters.status != null) params = addStatusFilter(params, filters.status);
+  if (filters.active_platform != null) params = addActivePlatformFilter(params, filters.active_platform);
   if (filters.schedule_window != null) params = addScheduleWindowFilter(params, filters.schedule_window);
   params = addCreatedFilter(params, {
     created_after: filters.created_after,

@@ -5,10 +5,8 @@ import {
   sortMatchStatRows,
 } from '@/lib/utils/matchPlayerStatsUtils';
 
-const TABLE_HEAD =
-  'bg-surface px-3 py-2 text-[10px] font-bold tracking-wide text-brand uppercase lg:px-4 lg:py-3 lg:text-[12px]';
-const TABLE_CELL =
-  'border-t border-border-subtle px-3 py-2.5 text-[12px] text-white lg:px-4 lg:py-3 lg:text-[14px]';
+const TABLE_HEAD = 'bg-surface px-3 py-2 text-[10px] font-bold tracking-wide text-brand uppercase lg:px-4 lg:py-3 lg:text-[12px]';
+const TABLE_CELL = 'border-t border-border-subtle px-3 py-2.5 text-[12px] text-white lg:px-4 lg:py-3 lg:text-[14px]';
 
 function StatsTable({ title, headers, rows, emptyMessage }) {
   return (

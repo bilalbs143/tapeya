@@ -10,9 +10,9 @@ import { selectUser } from '@/store/selectors';
 import { clearCredentials } from '@/store/slices/authSlice';
 import {
   DialogDangerButton,
+  dialogDangerTitleClass,
   DialogHeaderClose,
   DialogHeaderRow,
-  dialogDangerTitleClass,
   DialogScrollBody,
   DialogTitle,
 } from '@/ui/Dialog';
@@ -52,7 +52,7 @@ export function DeleteAccountDialog() {
               </svg>
             </span>
           ) : (
-            <DialogHeaderClose  aria-label="Close" />
+            <DialogHeaderClose aria-label="Close" />
           )
         }
       >

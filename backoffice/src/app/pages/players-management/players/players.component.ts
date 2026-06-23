@@ -7,12 +7,15 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { PageEvent } from '@angular/material/paginator';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 import { MaterialModule } from 'src/app/material.module';
+import { EnumsService } from 'src/app/services/enums.service';
+import type { EnumOption } from 'src/app/services/enums.service';
 import { MessageService } from 'src/app/services/message.service';
 import { PlayersService } from 'src/app/services/players.service';
 import type { User } from 'src/app/services/users.service';
@@ -21,6 +24,7 @@ import { TableWrapperComponent } from 'src/app/shared/components/table-wrapper/t
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
+import { formatActivePlatform } from 'src/app/shared/functions/display.helper';
 
 import { ImportPlayersCsvDialogComponent } from './import-players-csv-dialog/import-players-csv-dialog.component';
 import {
@@ -31,6 +35,7 @@ import {
 const DEFAULT_FILTERS = {
   search: '',
   phone: '',
+  active_platform: '',
 } as const;
 
 @Component({
@@ -45,6 +50,7 @@ const DEFAULT_FILTERS = {
     MatSortModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatButtonModule,
     MatDialogModule,
     TablerIconsModule,
@@ -56,9 +62,12 @@ const DEFAULT_FILTERS = {
 export class PlayersComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly playersService = inject(PlayersService);
   private readonly messageService = inject(MessageService);
+  private readonly enumsService = inject(EnumsService);
   public readonly paginatorConfig = inject(PAGINATOR_CONFIG);
   private readonly fb = inject(FormBuilder);
   private readonly sub = new Subscription();
+
+  public platformOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('active_platform');
 
   @ViewChild(MatSort) public sort!: MatSort;
 
@@ -75,10 +84,12 @@ export class PlayersComponent implements OnInit, AfterViewInit, OnDestroy {
     'batting_style',
     'country',
     'city',
+    'active_platform',
     'actions',
   ];
   public dataSource = new MatTableDataSource<User>([]);
   public readonly emptyCell = EMPTY_CELL;
+  public readonly formatActivePlatform = formatActivePlatform;
 
   public totalRecords = 0;
   public currentPage = 0;
@@ -89,6 +100,7 @@ export class PlayersComponent implements OnInit, AfterViewInit, OnDestroy {
     this.searchForm = this.fb.group({
       search: [DEFAULT_FILTERS.search],
       phone: [DEFAULT_FILTERS.phone],
+      active_platform: [DEFAULT_FILTERS.active_platform],
     });
     this.pageSize = this.paginatorConfig.pageSize;
   }
@@ -130,6 +142,7 @@ export class PlayersComponent implements OnInit, AfterViewInit, OnDestroy {
     const requestParams = buildListParams(this.currentPage, this.pageSize, this.sort ?? null, {
       search: (filters.search ?? '').trim(),
       phone: (filters.phone ?? '').trim(),
+      active_platform: filters.active_platform ?? '',
     });
 
     this.isLoading = true;
