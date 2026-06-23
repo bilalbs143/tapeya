@@ -24,7 +24,7 @@ const profileUserIcon = `${CLOUDFRONT_APP_BASE}/images/icons/profile-user.svg`;
 const teamIcon = `${CLOUDFRONT_APP_BASE}/images/icons/teams-white.svg`;
 const userStatsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/user-stats.svg`;
 
-const CONTENT_WRAPPER_CLASS = 'px-4 pb-6 pt-1';
+const CONTENT_WRAPPER_CLASS = 'pb-6 pt-1';
 
 const TABS = [
   {

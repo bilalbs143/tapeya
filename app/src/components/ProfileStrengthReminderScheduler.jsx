@@ -1,15 +1,19 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 
 import { useLocation } from 'react-router-dom';
 
 import { useDialog } from '@/context/DialogContext';
-import { DIALOG_REMINDER_INTERVAL_MS, useIntervalDialogPrompt } from '@/hooks/useIntervalDialogPrompt';
+import {
+  isDialogReminderCooldownElapsed,
+  markDialogReminderShown,
+  PROFILE_STRENGTH_REMINDER_COOLDOWN_MS,
+  profileStrengthReminderStorageKey,
+} from '@/lib/dialogReminderCooldown';
 import { calculateProfileStrength } from '@/lib/utils/playerUtils';
 import { isProfileStrengthReminderBlockedPath } from '@/lib/utils/routeUtils';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated, selectUser } from '@/store/selectors';
-import { store } from '@/store/store';
 
 /**
  * @returns {null | { key: 'profileStrengthReminder' }}
@@ -30,12 +34,13 @@ function resolveProfileStrengthReminderPayload(pathname, { isAuthenticated, user
 
 /**
  * While logged in with an incomplete profile, opens the profile reminder dialog
- * on a timer (unless another dialog is already open, the user is on /profile,
- * the route is the graphic overlay /overlay/:matchId, a live broadcast page, or live scoring.
+ * at most once per 24 hours (unless another dialog is already open, the user is
+ * on /profile, the route is the graphic overlay /overlay/:matchId, a live
+ * broadcast page, or live scoring).
  */
 export function ProfileStrengthReminderScheduler() {
   const location = useLocation();
-  const { closeDialog, dialogKey } = useDialog();
+  const { closeDialog, dialogKey, openDialog } = useDialog();
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const userFromStore = useAppSelector(selectUser);
   const { data: meResponse } = useGetMeQuery(undefined, {
@@ -43,10 +48,8 @@ export function ProfileStrengthReminderScheduler() {
   });
   const user = meResponse?.data ?? userFromStore;
 
-  const userRef = useRef(user);
-  userRef.current = user;
-
-  const enabled = resolveProfileStrengthReminderPayload(location.pathname, { isAuthenticated, user }) !== null;
+  const eligible =
+    resolveProfileStrengthReminderPayload(location.pathname, { isAuthenticated, user }) !== null;
 
   useEffect(() => {
     if (isProfileStrengthReminderBlockedPath(location.pathname) && dialogKey === 'profileStrengthReminder') {
@@ -54,18 +57,20 @@ export function ProfileStrengthReminderScheduler() {
     }
   }, [location.pathname, dialogKey, closeDialog]);
 
-  useIntervalDialogPrompt({
-    intervalMs: DIALOG_REMINDER_INTERVAL_MS,
-    enabled,
-    getOpenDialogPayload: () => {
-      const st = store.getState();
+  useEffect(() => {
+    if (!eligible || dialogKey) return;
 
-      return resolveProfileStrengthReminderPayload(window.location.pathname, {
-        isAuthenticated: st.auth.isAuthenticated,
-        user: userRef.current,
-      });
-    },
-  });
+    const payload = resolveProfileStrengthReminderPayload(location.pathname, { isAuthenticated, user });
+    if (!payload) return;
+
+    const storageKey = profileStrengthReminderStorageKey(user?.id);
+    if (!isDialogReminderCooldownElapsed(storageKey, PROFILE_STRENGTH_REMINDER_COOLDOWN_MS)) {
+      return;
+    }
+
+    markDialogReminderShown(storageKey);
+    openDialog(payload.key, payload.props ?? {});
+  }, [eligible, location.pathname, dialogKey, isAuthenticated, user, openDialog]);
 
   return null;
 }

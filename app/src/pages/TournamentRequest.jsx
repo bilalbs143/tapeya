@@ -141,7 +141,13 @@ export default function TournamentRequest() {
           shortly.
         </p>
 
-        <FormStack as="form" layout="grid-3" className="pb-8" onSubmit={handleSubmit(onSubmit)} onFocus={resetApiError}>
+        <FormStack
+          as="form"
+          layout="grid-3"
+          className="pb-8 lg:items-start lg:gap-y-4"
+          onSubmit={handleSubmit(onSubmit)}
+          onFocus={resetApiError}
+        >
           <FormField label="Contact Person Name" htmlFor="contact_person_name" required>
             <Input
               id="contact_person_name"
@@ -224,16 +230,38 @@ export default function TournamentRequest() {
           />
 
           {groupMode === 'group_wise' && (
-            <FormField label="Number of Groups" htmlFor="number_of_groups" required>
-              <Input
-                id="number_of_groups"
-                inputMode="numeric"
-                placeholder="e.g. 2, 4"
-                error={errors.number_of_groups?.message}
-                {...register('number_of_groups')}
-              />
-            </FormField>
+            <div className="max-lg:order-9">
+              <FormField label="Number of Groups" htmlFor="number_of_groups" required>
+                <Input
+                  id="number_of_groups"
+                  inputMode="numeric"
+                  placeholder="e.g. 2, 4"
+                  error={errors.number_of_groups?.message}
+                  {...register('number_of_groups')}
+                />
+              </FormField>
+            </div>
           )}
+
+          <div className="max-lg:order-11">
+            <ToggleGroupField
+              name="match_timings"
+              control={control}
+              label="Match Timings"
+              options={matchTimingsOptions}
+              error={errors.match_timings?.message}
+              required
+            />
+          </div>
+
+          <FormField label="Ground / Venue Name" htmlFor="venue_name" required className="max-lg:order-12">
+            <Input
+              id="venue_name"
+              placeholder="Name of the Venue"
+              error={errors.venue_name?.message}
+              {...register('venue_name')}
+            />
+          </FormField>
 
           <CountryCityFields
             country={country ?? ''}
@@ -246,27 +274,10 @@ export default function TournamentRequest() {
             countryError={errors.country?.message}
             cityError={errors.city?.message}
             required
+            className="max-lg:order-10 lg:contents"
           />
 
-          <ToggleGroupField
-            name="match_timings"
-            control={control}
-            label="Match Timings"
-            options={matchTimingsOptions}
-            error={errors.match_timings?.message}
-            required
-          />
-
-          <FormField label="Ground / Venue Name" htmlFor="venue_name" required>
-            <Input
-              id="venue_name"
-              placeholder="Name of the Venue"
-              error={errors.venue_name?.message}
-              {...register('venue_name')}
-            />
-          </FormField>
-
-          <FormField label="Start Date" htmlFor="start_date" required>
+          <FormField label="Start Date" htmlFor="start_date" required className="max-lg:order-13">
             <Controller
               name="start_date"
               control={control}
@@ -283,7 +294,7 @@ export default function TournamentRequest() {
             />
           </FormField>
 
-          <FormField label="End Date" htmlFor="end_date" required>
+          <FormField label="End Date" htmlFor="end_date" required className="max-lg:order-14">
             <Controller
               name="end_date"
               control={control}
@@ -300,11 +311,11 @@ export default function TournamentRequest() {
             />
           </FormField>
 
-          <FormField label="Prize (optional)" htmlFor="prize">
+          <FormField label="Prize (optional)" htmlFor="prize" className="max-lg:order-15">
             <Input id="prize" placeholder="e.g. Car, Bike, 1 Lakh" error={errors.prize?.message} {...register('prize')} />
           </FormField>
 
-          <FormActions align="start" className="lg:col-span-3">
+          <FormActions align="start" className="max-lg:order-16 lg:col-span-3">
             <Button type="submit" disabled={busy} variant="auth" className="w-full lg:w-[150px]">
               {isSubmitting ? 'Submitting…' : 'Submit'}
             </Button>

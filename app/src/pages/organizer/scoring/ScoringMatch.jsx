@@ -18,7 +18,6 @@ import { useMatchScoringChannel } from '@/hooks/useMatchScoringChannel';
 import { useScoringMatchData } from '@/hooks/useScoringMatchData';
 import { NAVBAR_HEIGHT, STICKY_TABS_Z } from '@/lib/constants/layout';
 import { computeMatchResultSummary } from '@/lib/utils/scoringUtils';
-import { Container } from '@/ui/Container';
 import { scorecardListClass, scorecardTriggerClass, Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
 
 import { BallsTab, InfoTab, PartnershipTab, ScorecardTab, ScoringTab, StatsTab } from './scoring-tabs';
@@ -42,6 +41,9 @@ const TAB_VIEWS = {
   scoring: ScoringTab,
   stats: StatsTab,
 };
+
+/** Mobile keeps max-w-2xl; desktop uses the app content column (sidebar layout unchanged). */
+const SCORING_PAGE_WIDTH_CLASS = 'mx-auto w-full max-w-2xl lg:max-w-[1100px]';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -280,25 +282,26 @@ export default function ScoringMatch() {
   return (
     <ScoringMatchContext.Provider value={scoringMatchContextValue}>
       <div className="bg-black">
-        <ScoringMatchHeader onBack={() => navigate(-1)} trailing={headerTrailingActions} />
+        <div className={SCORING_PAGE_WIDTH_CLASS}>
+          <ScoringMatchHeader onBack={() => navigate(-1)} trailing={headerTrailingActions} />
 
-        <Container className="!px-4 !py-0">
-          <Tabs value={activeTab} onValueChange={onNavigateToTab} className="w-full">
-            <div className="flex flex-col">
-              <div ref={tabsSentinelRef} className="h-px w-full" aria-hidden />
-              <div className="-mx-4 bg-black px-4 pt-0.5 pb-2">{tabsContent}</div>
-            </div>
-
-            {tabsFixedVisible ? (
-              <div
-                className="fixed right-0 left-0 bg-black pt-1 pb-2 lg:left-[280px]"
-                style={{ top: NAVBAR_HEIGHT, zIndex: STICKY_TABS_Z }}
-              >
-                <div className="mx-auto w-full max-w-2xl min-w-0 px-4 lg:mx-0 lg:max-w-none">{tabsContent}</div>
+          <div className="px-4 pb-0">
+            <Tabs value={activeTab} onValueChange={onNavigateToTab} className="w-full">
+              <div className="flex flex-col">
+                <div ref={tabsSentinelRef} className="h-px w-full" aria-hidden />
+                <div className="-mx-4 bg-black px-4 pt-0.5 pb-2">{tabsContent}</div>
               </div>
-            ) : null}
 
-            <div className="-mx-4 bg-black px-4 pb-2">
+              {tabsFixedVisible ? (
+                <div
+                  className="fixed right-0 left-0 bg-black pt-1 pb-2 lg:left-[280px]"
+                  style={{ top: NAVBAR_HEIGHT, zIndex: STICKY_TABS_Z }}
+                >
+                  <div className={`${SCORING_PAGE_WIDTH_CLASS} min-w-0 px-4`}>{tabsContent}</div>
+                </div>
+              ) : null}
+
+              <div className="-mx-4 bg-black px-4 pb-2">
               {matchLoading && (
                 <div className="text-muted flex min-h-[200px] items-center justify-center py-8 text-[14px]">Loading match…</div>
               )}
@@ -320,9 +323,10 @@ export default function ScoringMatch() {
                 />
               )}
               {!matchLoading && !matchError && <ActiveView {...tabViewProps} />}
-            </div>
-          </Tabs>
-        </Container>
+              </div>
+            </Tabs>
+          </div>
+        </div>
       </div>
     </ScoringMatchContext.Provider>
   );

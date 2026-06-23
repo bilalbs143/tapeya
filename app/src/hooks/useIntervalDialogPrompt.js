@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 
 import { useDialog } from '@/context/DialogContext';
 
-/** Default cadence for repeating reminder dialogs (e.g. profile, app update). */
+/** Default cadence for repeating reminder dialogs (e.g. app update). */
 export const DIALOG_REMINDER_INTERVAL_MS = 4 * 60 * 1000;
 
 /**
