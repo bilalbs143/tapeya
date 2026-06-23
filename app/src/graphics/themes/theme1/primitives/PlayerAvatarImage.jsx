@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 
-import { resolvePlayerAvatarUrl } from './playerAvatar';
+import { isPlayerAvatarPlaceholder, resolvePlayerAvatarUrl } from './playerAvatar';
 
 const LINING_FULL_CLASS =
   'bg-[linear-gradient(180deg,rgba(30,38,62,0.35),rgba(14,19,32,0.5)),repeating-linear-gradient(135deg,rgba(120,140,255,0.06)_0_12px,transparent_12px_24px)]';
@@ -8,7 +8,8 @@ const LINING_FULL_CLASS =
 const LINING_SIMPLE_CLASS = 'bg-[linear-gradient(180deg,rgba(30,38,62,0.35),rgba(14,19,32,0.5))]';
 
 /**
- * Player photo for full-screen graphics — real URL or theme placeholder, always on lining bg.
+ * Player photo for full-screen graphics — real URL or theme placeholder.
+ * Lining background is shown only for the placeholder image.
  *
  * @param {{
  *   src?: string|null,
@@ -19,6 +20,7 @@ const LINING_SIMPLE_CLASS = 'bg-[linear-gradient(180deg,rgba(30,38,62,0.35),rgba
  * }} props
  */
 export function PlayerAvatarImage({ src, alt = 'Player avatar', fit = 'contain-bottom', className, rounded = false }) {
+  const showLining = isPlayerAvatarPlaceholder(src);
   const resolved = resolvePlayerAvatarUrl(src);
   const liningClass = fit === 'cover-top' ? LINING_SIMPLE_CLASS : LINING_FULL_CLASS;
   const shellClass =
@@ -31,7 +33,7 @@ export function PlayerAvatarImage({ src, alt = 'Player avatar', fit = 'contain-b
 
   return (
     <div className={shellClass}>
-      <div aria-hidden className={cn('absolute inset-0', liningClass)} />
+      {showLining ? <div aria-hidden className={cn('absolute inset-0', liningClass)} /> : null}
       <img
         src={resolved}
         alt={alt}

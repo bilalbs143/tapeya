@@ -43,7 +43,7 @@ export { FSDiagonal, FSStage, Pill, TeamLogoOrCrest, TeamLogoSlot, VSBadge } fro
 export { InsetLTBarSurface } from './insetLTBarSurface';
 export { InsetLTAnimatedNumber, InsetLTBarPanel, InsetLTCrest, InsetLTLogo, InsetLTTeamMark } from './insetLTMeasureSlots';
 export { isNotOutBatter, resolvePlayerDisplayName, withNotOutNameSuffix } from './notOut';
-export { resolvePlayerAvatarUrl } from './playerAvatar';
+export { isPlayerAvatarPlaceholder, resolvePlayerAvatarUrl } from './playerAvatar';
 export { PlayerAvatarImage } from './PlayerAvatarImage';
 export { bowlerFigParts, PLAYER_NAME_TRUNCATE_CLASS, surname } from './playerBarHelpers';
 export { ThemeRoot } from './ThemeRoot';
