@@ -242,7 +242,6 @@ export default function TournamentRequest() {
             onCityChange={(v) => setValue('city', v, { shouldValidate: true })}
             countryLabel="Country"
             cityLabel="City"
-            density="relaxed"
             countryError={errors.country?.message}
             cityError={errors.city?.message}
             required

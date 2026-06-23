@@ -16,7 +16,12 @@ import { useDialog } from '@/context/DialogContext';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { getTournamentTitle, parseTournamentId } from '@/lib/utils/tournamentUtils';
+import {
+  getTournamentNumberOfGroups,
+  getTournamentTitle,
+  mergeTournamentMeta,
+  parseTournamentId,
+} from '@/lib/utils/tournamentUtils';
 import {
   useGetTournamentQuery,
   useGetTournamentTeamsQuery,
@@ -103,11 +108,11 @@ export default function TournamentAddSquad() {
   const tournamentIdNum = parseTournamentId(tournamentId, tournamentFromState?.id);
   const isValidId = tournamentIdNum != null;
 
-  const { data: tournamentFromApi } = useGetTournamentQuery(
-    { id: tournamentIdNum },
-    { skip: !isValidId || !!tournamentFromState },
+  const { data: tournamentFromApi } = useGetTournamentQuery({ id: tournamentIdNum }, { skip: !isValidId });
+  const tournament = useMemo(
+    () => mergeTournamentMeta(tournamentFromState, tournamentFromApi),
+    [tournamentFromState, tournamentFromApi],
   );
-  const tournament = tournamentFromState ?? tournamentFromApi ?? null;
 
   // Skip the API fetch when teams were passed via location state.
   const {
@@ -123,7 +128,7 @@ export default function TournamentAddSquad() {
   const baseTeams = stateTeams?.length > 0 ? stateTeams : fetchedTeams;
   const teams = useMemo(() => baseTeams.filter((t) => !removedTeamIds.includes(Number(t.id))), [baseTeams, removedTeamIds]);
 
-  const numberOfGroups = tournament?.number_of_groups ?? 1;
+  const numberOfGroups = getTournamentNumberOfGroups(tournament);
   const hasGroups = numberOfGroups > 1;
   const teamsByGroup = useMemo(() => {
     if (!hasGroups || numberOfGroups < 2) return null;

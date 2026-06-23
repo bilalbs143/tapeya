@@ -8,8 +8,10 @@ import { useDialog } from '@/context/DialogContext';
 import {
   areTournamentTeamsComplete,
   canAddTournamentTeams,
+  getTournamentNumberOfGroups,
   getTournamentTeamLimit,
   getTournamentTitle,
+  mergeTournamentMeta,
   parseTournamentId,
 } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentQuery, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
@@ -69,9 +71,12 @@ export default function TournamentSavedTeams() {
   const isValidId = tournamentIdNum != null;
 
   const { data: tournamentFromApi } = useGetTournamentQuery({ id: tournamentIdNum }, { skip: !isValidId });
-  const tournament = tournamentFromApi ?? tournamentFromState ?? null;
+  const tournament = useMemo(
+    () => mergeTournamentMeta(tournamentFromState, tournamentFromApi),
+    [tournamentFromState, tournamentFromApi],
+  );
 
-  const numberOfGroups = tournament?.number_of_groups ?? 1;
+  const numberOfGroups = getTournamentNumberOfGroups(tournament);
   const hasGroups = numberOfGroups > 1;
 
   const { data: teams = [], isLoading, isError, isSuccess } = useGetTournamentTeamsQuery(tournamentIdNum, { skip: !isValidId });

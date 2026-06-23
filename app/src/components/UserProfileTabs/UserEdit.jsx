@@ -62,7 +62,7 @@ function ProfileEnumSelect({ label, htmlFor, value, onChange, options }) {
         <SelectTrigger id={htmlFor} className={`max-w-none ${selectTriggerInputClass}`}>
           <SelectValue placeholder={`Select ${label}`} />
         </SelectTrigger>
-        <SelectContent className={`z-[100] ${selectContentInputClass}`} viewportClassName={selectViewportInputClass}>
+        <SelectContent className={selectContentInputClass} viewportClassName={selectViewportInputClass}>
           <SelectItem
             value={PROFILE_FIELD_NONE}
             className={selectItemInputClass}
@@ -321,7 +321,6 @@ export function UserEdit({ open, onOpenChange }) {
             onCountryChange={(v) => setValue('country', v, { shouldValidate: true })}
             onCityChange={(v) => setValue('city', v, { shouldValidate: true })}
             enabled={open}
-            density="relaxed"
           />
         </FormStack>
       </DialogScrollBody>

@@ -7,7 +7,7 @@ import {
   batterScoreBallsClass,
   batterScoreBallsStyle,
   batterScoreRunsClass,
-} from '../../primitives/batterScore';
+} from '../../primitives/batterScoreStyles';
 import { textGlowClass } from '../../visualEffects';
 import { TEXT_PRIMARY, TEXT_SECONDARY } from '../shared/textStyles';
 

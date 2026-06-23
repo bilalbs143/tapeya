@@ -21,7 +21,7 @@ import { SearchableSelect } from '@/ui/SearchableSelect';
  * @param {string} [props.countryId]
  * @param {string} [props.cityId]
  * @param {string} [props.className]
- * @param {'default' | 'relaxed'} [props.density='default'] — gap between country and city (16px or 24px)
+ * @param {'default' | 'compact' | 'relaxed'} [props.density='default'] — gap between country and city (matches FormStack density)
  */
 export function CountryCityFields({
   country,

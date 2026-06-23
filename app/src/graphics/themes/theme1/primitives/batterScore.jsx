@@ -4,32 +4,15 @@
  */
 import { cn } from '@/lib/utils';
 
-import { batterScore as batterScoreTokens } from '../config';
-import { TEXT_SECONDARY } from '../layouts/shared/textStyles';
 import { AnimatedNumber } from './atoms';
-import { DISPLAY_FONT, fsFont } from './formatters';
-
-/** Gap between runs and balls (px) — keep in sync with `batterScore.gap` in config.js. */
-export const BATTER_SCORE_GAP_PX = 6;
-
-export const BATTER_SCORE_CLUSTER_CLASS = 'flex shrink-0 items-baseline';
-
-export function batterScoreRunsClass({ onStrike = true } = {}) {
-  return cn(
-    '[font-family:var(--font-display)] leading-none font-extrabold tabular-nums',
-    onStrike ? 'text-white' : TEXT_SECONDARY,
-  );
-}
-
-export const batterScoreBallsClass = cn('tabular-nums', TEXT_SECONDARY, DISPLAY_FONT);
-
-/** Balls faced / overs — size + weight from `batterScore` tokens (override weight when needed). */
-export function batterScoreBallsStyle(sizePx, weight = batterScoreTokens.ballsWeight) {
-  return {
-    ...fsFont(sizePx),
-    fontWeight: weight,
-  };
-}
+import {
+  BATTER_SCORE_CLUSTER_CLASS,
+  BATTER_SCORE_GAP_PX,
+  batterScoreBallsClass,
+  batterScoreBallsStyle,
+  batterScoreRunsClass,
+} from './batterScoreStyles';
+import { fsFont } from './formatters';
 
 /**
  * @param {{

@@ -385,7 +385,6 @@ export default function InterestForm() {
             countryId="interest-country"
             cityId="interest-city"
             required
-            density="relaxed"
           />
 
           <div className="lg:col-span-2">

@@ -13,7 +13,12 @@ import { DEBOUNCE_MS, MIN_SEARCH_LENGTH } from '@/lib/constants/search';
 import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
 import { formatListIndex } from '@/lib/format';
 import { playerDisplayRole } from '@/lib/utils/playerUtils';
-import { getTournamentTitle, parseTournamentId } from '@/lib/utils/tournamentUtils';
+import {
+  getTournamentNumberOfGroups,
+  getTournamentTitle,
+  mergeTournamentMeta,
+  parseTournamentId,
+} from '@/lib/utils/tournamentUtils';
 import { useSearchSquadMembersQuery } from '@/store/api/playerApi';
 import { useGetTeamSquadQuery, useUpdateTeamSquadMutation } from '@/store/api/teamApi';
 import {
@@ -95,13 +100,16 @@ export default function TournamentSquad() {
   const isValidId = tournamentIdNum != null;
 
   const { data: tournamentFromApi } = useGetTournamentQuery({ id: tournamentIdNum }, { skip: !isValidId });
-  const tournament = tournamentFromApi ?? tournamentFromState ?? null;
+  const tournament = useMemo(
+    () => mergeTournamentMeta(tournamentFromState, tournamentFromApi),
+    [tournamentFromState, tournamentFromApi],
+  );
 
   const { data: teams = [], isLoading: isLoadingTeams } = useGetTournamentTeamsQuery(tournamentIdNum, {
     skip: !isValidId,
   });
 
-  const numberOfGroups = tournament?.number_of_groups ?? 1;
+  const numberOfGroups = getTournamentNumberOfGroups(tournament);
   const hasGroups = numberOfGroups > 1;
 
   const teamIdFromUrl = searchParams.get('team');

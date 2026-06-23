@@ -49,7 +49,10 @@ export const DIALOG_FORM_CONTROL_OFFSET = {
   md: 'mt-3',
 };
 
+/** Matches {@link FORM_STACK_DENSITY}: use `default` with normal forms, `compact` with compact FormStack. */
 export const COUNTRY_CITY_DENSITY = {
-  default: 'gap-4',
+  default: 'gap-6',
+  compact: 'gap-4',
+  /** @deprecated Use `default` — kept for existing call sites. */
   relaxed: 'gap-6',
 };

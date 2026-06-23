@@ -2,14 +2,14 @@ export { accentGlowShadow, accentMix, normalizeAccentColor } from './accent';
 export { AnimatedNumber, BallChip, BallTrack, CountUpNumber, Crest, GlowPanel } from './atoms';
 export { ScaledBarSurface } from './barScaling';
 export { useContentFitBarSurface, useFrameTransition, useInsetLTBarSurface } from './barScalingHooks';
+export { BatterScoreInline } from './batterScore';
 export {
   BATTER_SCORE_CLUSTER_CLASS,
   BATTER_SCORE_GAP_PX,
   batterScoreBallsClass,
   batterScoreBallsStyle,
-  BatterScoreInline,
   batterScoreRunsClass,
-} from './batterScore';
+} from './batterScoreStyles';
 export { BroadcastShell } from './BroadcastShell';
 export { ControllerBar, NotOutStar } from './controllerBar';
 export {

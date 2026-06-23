@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
@@ -10,13 +10,13 @@ import { getApiErrorMessage } from '@/lib/apiErrors';
 import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
 import { DEBOUNCE_MS, MIN_SEARCH_LENGTH } from '@/lib/constants/search';
 import { EMPTY_FILE_UPLOAD, fileUploadValueFromUrl } from '@/lib/utils/fileUploadUtils';
-import { canAddTournamentTeams } from '@/lib/utils/tournamentUtils';
+import { canAddTournamentTeams, getTournamentNumberOfGroups, mergeTournamentMeta } from '@/lib/utils/tournamentUtils';
 import { teamFormSchema } from '@/lib/validations/team';
 import { uploadMediaFile, useUploadMediaMutation } from '@/store/api/mediaApi';
 import { useSearchSquadMembersQuery } from '@/store/api/playerApi';
 import { useSearchSponsorsQuery } from '@/store/api/sponsorApi';
 import { useCreateTeamMutation, useSearchTeamsQuery, useUpdateTeamMutation } from '@/store/api/teamApi';
-import { useAttachTeamsToTournamentMutation, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
+import { useAttachTeamsToTournamentMutation, useGetTournamentQuery, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
 import { Checkbox } from '@/ui/Checkbox';
 import { CountryCityFields } from '@/ui/CountryCityFields';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
@@ -94,7 +94,9 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
   const nameValue = watch('name') ?? '';
   const searchQuery = nameValue.trim();
 
-  const numberOfGroups = tournament?.number_of_groups ?? 1;
+  const { data: tournamentFromApi } = useGetTournamentQuery({ id: tournamentId }, { skip: !isTournamentCreate || !tournamentId });
+  const resolvedTournament = useMemo(() => mergeTournamentMeta(tournament, tournamentFromApi), [tournament, tournamentFromApi]);
+  const numberOfGroups = getTournamentNumberOfGroups(resolvedTournament);
   const hasGroups = numberOfGroups > 1;
 
   // ── Local state ─────────────────────────────────────────────────────────────
@@ -163,7 +165,6 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
       setSelectedSponsor(null);
       setSelectedTeam(null);
       setTeamNameDropdownOpen(isTournamentCreate);
-      setSelectedGroupIndex(normalizeGroupIndex(preferredGroupIndex, numberOfGroups));
     }
 
     setLogoUpload(isEdit && team?.logo ? fileUploadValueFromUrl(team.logo) : EMPTY_FILE_UPLOAD);
@@ -171,7 +172,13 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
     setSponsorDropdownOpen(false);
     setIconPlayerSearch('');
     setIconPlayerPanelOpen(false);
-  }, [isEdit, team, reset, isTournamentCreate, preferredGroupIndex, numberOfGroups]);
+  }, [isEdit, team, reset, isTournamentCreate]);
+
+  useEffect(() => {
+    if (!isEdit && isTournamentCreate) {
+      setSelectedGroupIndex(normalizeGroupIndex(preferredGroupIndex, numberOfGroups));
+    }
+  }, [isEdit, isTournamentCreate, preferredGroupIndex, numberOfGroups]);
 
   // ── Close sponsor dropdown on outside click ─────────────────────────────────
 
@@ -294,7 +301,7 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
       }
     }
 
-    if (isTournamentCreate && !canAddTournamentTeams(tournament, existingTeams.length)) {
+    if (isTournamentCreate && !canAddTournamentTeams(resolvedTournament, existingTeams.length)) {
       toast.error('This tournament already has the maximum number of teams.');
       return;
     }

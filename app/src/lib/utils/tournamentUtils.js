@@ -94,3 +94,26 @@ export function canAddTournamentTeams(tournament, currentCount) {
   if (limit == null) return true;
   return currentCount < limit;
 }
+
+/**
+ * Merge route-state tournament payload with GET /tournaments/:id (API wins on conflicts).
+ *
+ * @param {object | null | undefined} stateTournament
+ * @param {object | null | undefined} apiTournament
+ * @returns {object | null}
+ */
+export function mergeTournamentMeta(stateTournament, apiTournament) {
+  if (!stateTournament && !apiTournament) return null;
+  return { ...(stateTournament ?? {}), ...(apiTournament ?? {}) };
+}
+
+/**
+ * Normalized group count — defaults to 1 when missing or invalid.
+ *
+ * @param {object | null | undefined} tournament
+ * @returns {number}
+ */
+export function getTournamentNumberOfGroups(tournament) {
+  const n = Number(tournament?.number_of_groups);
+  return Number.isInteger(n) && n > 0 ? n : 1;
+}

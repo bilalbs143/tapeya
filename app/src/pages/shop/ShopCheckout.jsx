@@ -165,7 +165,6 @@ export default function ShopCheckout() {
               onCountryChange={(v) => setValue('country', v, { shouldValidate: true })}
               onCityChange={(v) => setValue('city', v, { shouldValidate: true })}
               required
-              density="relaxed"
             />
 
             <FormField label="Notes (optional)" htmlFor="notes">

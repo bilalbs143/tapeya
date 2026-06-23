@@ -8,6 +8,7 @@ import {
   areTournamentTeamsComplete,
   canAddTournamentTeams,
   getTournamentTitle,
+  mergeTournamentMeta,
   parseTournamentId,
 } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentQuery, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
@@ -29,10 +30,10 @@ export default function TournamentCreateTeamIntro() {
     { id: tournamentIdNum },
     { skip: !isValidId },
   );
-  const tournament = useMemo(() => {
-    if (!tournamentFromState && !tournamentFromApi) return null;
-    return { ...tournamentFromState, ...tournamentFromApi };
-  }, [tournamentFromState, tournamentFromApi]);
+  const tournament = useMemo(
+    () => mergeTournamentMeta(tournamentFromState, tournamentFromApi),
+    [tournamentFromState, tournamentFromApi],
+  );
 
   const { data: teams = [], isLoading: teamsLoading } = useGetTournamentTeamsQuery(tournamentIdNum, { skip: !isValidId });
   const teamsCount = teamsLoading ? (tournament?.teams_count ?? 0) : teams.length;
