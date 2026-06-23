@@ -41,8 +41,10 @@ import { FreeHitIndicator } from './FreeHitIndicator';
 /** Left-to-right row gradient: 0 → 1 → 2 → 3 → 4 → 6 → wicket → + */
 const RUN_ROW_BG = ['#10100F', '#171715', '#1F1F1C', '#282824', '#31312C', '#3B3B35', '#46463F', '#51514A'];
 
-const RUN_CIRCLE_BASE =
-  'flex aspect-square min-w-0 flex-1 cursor-pointer items-center justify-center rounded-full text-[15px] font-bold transition-opacity active:opacity-80';
+/** Desktop: cap circle size and bump type; mobile keeps flex-1 fill. */
+const SCORING_BTN_DESKTOP = 'lg:size-14 lg:max-h-14 lg:max-w-14 lg:flex-none';
+
+const RUN_CIRCLE_BASE = `flex aspect-square min-w-0 flex-1 cursor-pointer items-center justify-center rounded-full text-[15px] font-bold transition-opacity active:opacity-80 ${SCORING_BTN_DESKTOP} lg:text-[18px]`;
 
 const RUN_CIRCLE_CLASS = `${RUN_CIRCLE_BASE} text-white`;
 
@@ -74,7 +76,7 @@ function RunCircleButton({ runs, backgroundColor, onClick }) {
 
 /** Undo arrow icon — red extras-row control (matches legacy scoring UI). */
 function UndoIcon() {
-  return <CdnIcon src={undoIconUrl} className="h-3 w-3" />;
+  return <CdnIcon src={undoIconUrl} className="h-3 w-3 lg:h-4 lg:w-4" />;
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -86,7 +88,7 @@ function ActionButton({ onClick, label, className = '', children }) {
       type="button"
       onClick={onClick}
       aria-label={label}
-      className={`flex aspect-square min-w-0 flex-1 cursor-pointer items-center justify-center rounded-full text-[12px] font-bold uppercase transition-opacity active:opacity-80 ${className}`}
+      className={`flex aspect-square min-w-0 flex-1 cursor-pointer items-center justify-center rounded-full text-[12px] font-bold uppercase transition-opacity active:opacity-80 ${SCORING_BTN_DESKTOP} lg:text-[14px] ${className}`}
     >
       {children}
     </button>
@@ -99,7 +101,7 @@ function UndoActionButton({ onClick }) {
     <ActionButton onClick={onClick} label="Undo last ball" className="bg-surface border-2 border-red-500 text-red-500">
       <span className="flex flex-col items-center gap-0.5">
         <UndoIcon />
-        <span className="text-[8px] leading-none font-bold">UNDO</span>
+        <span className="text-[8px] leading-none font-bold lg:text-[10px]">UNDO</span>
       </span>
     </ActionButton>
   );
@@ -115,7 +117,7 @@ function WicketRunButton({ backgroundColor, onClick }) {
       style={{ backgroundColor }}
       aria-label="Wicket — open dismissal dialog"
     >
-      <CdnIcon src={wicketIconUrl} className="text-brand h-[22px] w-[22px]" />
+      <CdnIcon src={wicketIconUrl} className="text-brand h-[22px] w-[22px] lg:h-6 lg:w-6" />
     </button>
   );
 }
@@ -162,7 +164,7 @@ function ExtrasScrollRow({ pages }) {
         {visiblePages.map((pageButtons, pageIndex) => (
           <div
             key={pageIndex}
-            className="flex w-full shrink-0 snap-start items-center gap-1.5"
+            className="flex w-full shrink-0 snap-start items-center gap-1.5 lg:justify-center"
             aria-label={`Actions page ${pageIndex + 1} of ${visiblePages.length}`}
           >
             {pageButtons}
@@ -229,7 +231,7 @@ export function ScoringControls({
   const extrasPage2 = [
     onOverthrowWide ? (
       <ActionButton key="ot-wide" onClick={onOverthrowWide} label="Overthrow on Wide Delivery" className="bg-surface text-white">
-        <span className="text-center text-[8px] leading-tight">
+        <span className="text-center text-[8px] leading-tight lg:text-[10px]">
           OT
           <br />
           (W)
@@ -243,7 +245,7 @@ export function ScoringControls({
         label="Overthrow on No Ball Delivery"
         className="bg-surface text-white"
       >
-        <span className="text-center text-[8px] leading-tight">
+        <span className="text-center text-[8px] leading-tight lg:text-[10px]">
           OT
           <br />
           (NB)
@@ -257,7 +259,7 @@ export function ScoringControls({
         label="Award Penalty Runs (Law 41.17)"
         className="bg-surface-raised text-brand"
       >
-        <span className="text-center text-[9px] leading-tight">
+        <span className="text-center text-[9px] leading-tight lg:text-[11px]">
           PEN
           <br />
           RUNS
@@ -271,7 +273,7 @@ export function ScoringControls({
         label="Wide Plus Wicket — Run Out or Stumped Only"
         className="bg-surface text-brand"
       >
-        <span className="text-center text-[9px] leading-tight">
+        <span className="text-center text-[9px] leading-tight lg:text-[11px]">
           WD
           <br />
           WKT
@@ -285,7 +287,7 @@ export function ScoringControls({
         label="No Ball Plus Wicket — Run Out, Obstruct, or Hit Ball Twice"
         className="bg-surface text-brand"
       >
-        <span className="text-center text-[9px] leading-tight">
+        <span className="text-center text-[9px] leading-tight lg:text-[11px]">
           NB
           <br />
           WKT
@@ -299,7 +301,7 @@ export function ScoringControls({
         label="Retired Hurt — Batsman Leaves Without Wicket Credit"
         className="bg-surface text-[#6B7280]"
       >
-        <span className="text-center text-[9px] leading-tight">
+        <span className="text-center text-[9px] leading-tight lg:text-[11px]">
           RET
           <br />
           HURT
@@ -317,7 +319,7 @@ export function ScoringControls({
       <FreeHitIndicator pendingFreeHit={pendingFreeHit} />
 
       {/* Run buttons: 0, 1–4, 6, wicket, custom (+) */}
-      <div className="flex w-full gap-2 self-stretch" role="group" aria-label="Run Scoring">
+      <div className="flex w-full gap-2 self-stretch lg:justify-center" role="group" aria-label="Run Scoring">
         {RUN_BUTTONS.map((runs, index) => (
           <RunCircleButton
             key={runs}
@@ -333,7 +335,7 @@ export function ScoringControls({
           <button
             type="button"
             onClick={onCustomScore}
-            className={`${RUN_CIRCLE_BASE} text-brand text-[22px] leading-none`}
+            className={`${RUN_CIRCLE_BASE} text-brand text-[22px] leading-none lg:text-[26px]`}
             style={{ backgroundColor: RUN_ROW_BG[CUSTOM_ROW_INDEX] }}
             aria-label="Add Custom Score"
           >

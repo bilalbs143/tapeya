@@ -5,17 +5,19 @@ import {
   sortMatchStatRows,
 } from '@/lib/utils/matchPlayerStatsUtils';
 
-const TABLE_HEAD = 'bg-surface px-3 py-2 text-[10px] font-bold tracking-wide text-brand uppercase';
-const TABLE_CELL = 'border-t border-border-subtle px-3 py-2.5 text-[12px] text-white';
+const TABLE_HEAD =
+  'bg-surface px-3 py-2 text-[10px] font-bold tracking-wide text-brand uppercase lg:px-4 lg:py-3 lg:text-[12px]';
+const TABLE_CELL =
+  'border-t border-border-subtle px-3 py-2.5 text-[12px] text-white lg:px-4 lg:py-3 lg:text-[14px]';
 
 function StatsTable({ title, headers, rows, emptyMessage }) {
   return (
     <section className="border-border-subtle overflow-hidden rounded-lg border bg-black">
-      <h3 className="border-border-subtle bg-surface text-brand border-b px-3 py-2 text-[11px] font-bold tracking-wide uppercase">
+      <h3 className="border-border-subtle bg-surface text-brand border-b px-3 py-2 text-[11px] font-bold tracking-wide uppercase lg:px-4 lg:py-3 lg:text-[13px]">
         {title}
       </h3>
       {rows.length === 0 ? (
-        <p className="text-muted px-3 py-4 text-center text-[12px]">{emptyMessage}</p>
+        <p className="text-muted px-3 py-4 text-center text-[12px] lg:px-4 lg:py-5 lg:text-[14px]">{emptyMessage}</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full border-collapse">
@@ -123,7 +125,7 @@ export function MatchPlayerStatsTables({ data, playerNameMap = {}, isLoading = f
   }
 
   return (
-    <div className="space-y-4" aria-label="Match Player Stats">
+    <div className="space-y-4 lg:space-y-5" aria-label="Match Player Stats">
       <StatsTable
         title="Batting (Match)"
         headers={['Player', 'R', 'B', '4s', '6s', 'SR']}

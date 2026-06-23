@@ -9,10 +9,10 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 import { clearCredentials } from '@/store/slices/authSlice';
 import {
+  DialogDangerButton,
   DialogHeaderClose,
   DialogHeaderRow,
-  dialogPrimaryTitleClass,
-  DialogSaveButton,
+  dialogDangerTitleClass,
   DialogScrollBody,
   DialogTitle,
 } from '@/ui/Dialog';
@@ -52,23 +52,23 @@ export function DeleteAccountDialog() {
               </svg>
             </span>
           ) : (
-            <DialogHeaderClose aria-label="Close" />
+            <DialogHeaderClose  aria-label="Close" />
           )
         }
       >
-        <DialogTitle className={dialogPrimaryTitleClass}>Delete Account</DialogTitle>
+        <DialogTitle className={dialogDangerTitleClass}>Delete Account</DialogTitle>
       </DialogHeaderRow>
 
       <DialogScrollBody className="flex flex-col">
-        <p className="text-muted text-center text-[13px] leading-relaxed">
+        <p className="text-center text-[13px] leading-relaxed text-white">
           You will not be able to sign in again with this phone number. Your profile and personal data will be removed
           permanently.
         </p>
       </DialogScrollBody>
 
-      <DialogSaveButton disabled={isLoading} onClick={handleDelete}>
+      <DialogDangerButton disabled={isLoading} onClick={handleDelete}>
         {isLoading ? 'Deleting…' : 'Delete My Account'}
-      </DialogSaveButton>
+      </DialogDangerButton>
     </>
   );
 }

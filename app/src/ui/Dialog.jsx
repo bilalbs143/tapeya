@@ -43,11 +43,14 @@
  *    DialogHeaderRow, DialogHeaderClose
  *    DialogScrollBody
  *    DialogSaveButton
+ *    DialogDangerButton
  *    DialogTitle, DialogDescription
  *
  *  Class-name constants (import when you need to match styling elsewhere):
  *    dialogHeaderClass        — the header-row flex class string
  *    dialogPrimaryTitleClass  — golden uppercase title style
+ *    dialogDangerTitleClass   — red uppercase title for destructive dialogs
+ *    dialogHeaderCloseDangerClass — close button styling for destructive dialogs
  */
 
 import { forwardRef } from 'react';
@@ -83,13 +86,22 @@ const SCROLL_BODY = 'min-h-0 flex-1 pt-0 overflow-y-auto px-5 py-4 [scrollbar-wi
 const SAVE_BUTTON =
   'w-full shrink-0 rounded-b-[17px] bg-[#DB9811] py-4 text-base font-bold uppercase tracking-wide text-black transition-colors hover:bg-[#C48910] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#FFB703] disabled:pointer-events-none disabled:opacity-50';
 
+const DANGER_BUTTON =
+  'w-full shrink-0 rounded-b-[17px] bg-red-600 py-4 text-base font-bold uppercase tracking-wide text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-red-500 disabled:pointer-events-none disabled:opacity-50';
+
 const HEADER_ROW = 'flex min-h-[52px] shrink-0 items-center justify-between gap-3 px-5 py-3';
 
 // Golden uppercase title — the standard style for every dialog header.
 const TITLE_PRIMARY = 'text-left text-[14px] font-bold uppercase leading-tight tracking-wide text-brand';
 
+// Red uppercase title — destructive confirmations (e.g. delete account).
+const TITLE_DANGER = 'text-left text-[14px] font-bold uppercase leading-tight tracking-wide text-red-400';
+
 const CLOSE_BUTTON =
   'inline-flex size-9 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFB703] focus-visible:ring-offset-2 focus-visible:ring-offset-[#080807] disabled:pointer-events-none disabled:opacity-30';
+
+const CLOSE_BUTTON_DANGER =
+  'inline-flex size-9 shrink-0 items-center justify-center rounded-md text-red-300/80 transition-colors hover:text-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#080807] disabled:pointer-events-none disabled:opacity-30';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Exported class-name constants
@@ -97,6 +109,8 @@ const CLOSE_BUTTON =
 /* eslint-disable react-refresh/only-export-components -- shared layout tokens used outside this file */
 export const dialogHeaderClass = HEADER_ROW;
 export const dialogPrimaryTitleClass = TITLE_PRIMARY;
+export const dialogDangerTitleClass = TITLE_DANGER;
+export const dialogHeaderCloseDangerClass = CLOSE_BUTTON_DANGER;
 /* eslint-enable react-refresh/only-export-components */
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -163,12 +177,14 @@ export function DialogContentDark({ className = '', children, onPointerDownOutsi
  * Styled × close button for dark modal headers.
  * Used automatically by DialogHeaderRow unless hideClose / closeSlot is passed.
  */
-export const DialogHeaderClose = forwardRef(function DialogHeaderClose({ className = '', ...props }, ref) {
+export const DialogHeaderClose = forwardRef(function DialogHeaderClose({ className = '', variant = 'default', ...props }, ref) {
+  const baseClass = variant === 'danger' ? CLOSE_BUTTON_DANGER : CLOSE_BUTTON;
+
   return (
     <DialogPrimitive.Close
       ref={ref}
       type="button"
-      className={`${CLOSE_BUTTON} ${className}`.trim()}
+      className={`${baseClass} ${className}`.trim()}
       aria-label="Close"
       {...props}
     >
@@ -256,6 +272,14 @@ export function DialogScrollBody({ className = '', ...props }) {
  */
 export function DialogSaveButton({ className = '', ...props }) {
   return <button type="button" className={`${SAVE_BUTTON} ${className}`.trim()} {...props} />;
+}
+
+/**
+ * Destructive action button fused to the bottom of the panel.
+ * Use for irreversible actions (e.g. delete account).
+ */
+export function DialogDangerButton({ className = '', ...props }) {
+  return <button type="button" className={`${DANGER_BUTTON} ${className}`.trim()} {...props} />;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -141,11 +141,19 @@ export function formatAge(dateOfBirth) {
     years -= 1;
     lastBday.setFullYear(today.getFullYear() - 1);
   }
-  const days = Math.floor((today - lastBday) / (24 * 60 * 60 * 1000));
-  if (years <= 0 && days <= 0) return '—';
+  let months =
+    (today.getFullYear() - lastBday.getFullYear()) * 12 +
+    (today.getMonth() - lastBday.getMonth());
+  let days = today.getDate() - lastBday.getDate();
+  if (days < 0) {
+    months -= 1;
+    days += new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+  }
+  if (years <= 0 && months <= 0 && days <= 0) return '—';
   const parts = [];
   if (years > 0) parts.push(`${years} year${years !== 1 ? 's' : ''}`);
-  parts.push(`${days} day${days !== 1 ? 's' : ''}`);
+  if (months > 0) parts.push(`${months} month${months !== 1 ? 's' : ''}`);
+  if (days > 0) parts.push(`${days} day${days !== 1 ? 's' : ''}`);
   return parts.join(' ');
 }
 

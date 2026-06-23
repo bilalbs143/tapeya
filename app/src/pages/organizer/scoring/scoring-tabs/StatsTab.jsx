@@ -6,7 +6,9 @@ import { MatchPlayerStatsTables } from '@/components/scoring/MatchPlayerStatsTab
 import { WagonWheelChart } from '@/components/scoring/WagonWheelChart';
 import { useScoringMatch } from '@/context/ScoringMatchContext';
 import { useMatchSquads } from '@/hooks/useMatchSquads';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { LG_MEDIA_QUERY } from '@/lib/constants/layout';
 import { buildMatchPlayerNameMap, calculateStrikeRate } from '@/lib/utils/matchPlayerStatsUtils';
 import { getShotPositionOptions, scorecardInningsToBallHistory } from '@/lib/utils/scoringMappers';
 import { getRunsFromBall } from '@/lib/utils/scoringUtils';
@@ -51,18 +53,32 @@ const STAT_ITEMS = [
 ];
 
 /** Shared axis label style for all charts. */
-const BASE_AXIS_STYLE = Object.freeze({ colors: '#fff', fontSize: '12px' });
+function axisStyle(isDesktop) {
+  return { colors: '#FFFFFF', fontSize: isDesktop ? '14px' : '12px', fontWeight: 700 };
+}
 
 /** Shared grid config for all charts. */
-const BASE_GRID = Object.freeze({
-  borderColor: 'rgba(255,255,255,0.2)',
-  strokeDashArray: 0,
-  xaxis: Object.freeze({ lines: Object.freeze({ show: false }) }),
-  yaxis: Object.freeze({ lines: Object.freeze({ show: true }) }),
-});
+function chartGrid(isDesktop) {
+  return {
+    borderColor: 'rgba(255,255,255,0.2)',
+    strokeDashArray: 0,
+    padding: isDesktop
+      ? { left: 8, right: 22, top: 20, bottom: 14 }
+      : { left: 6, right: 6, top: 12, bottom: 8 },
+    xaxis: { lines: { show: false } },
+    yaxis: { lines: { show: true } },
+  };
+}
 
-/** Bar chart column width: narrow so two series remain readable side by side. */
-const BAR_CHART_COLUMN_WIDTH = '20%';
+/** Bar chart column width: narrower on desktop for clearer gaps between overs. */
+const BAR_CHART_COLUMN_WIDTH = '18%';
+const BAR_CHART_COLUMN_WIDTH_DESKTOP = '14%';
+
+const CHART_HEIGHT_MOBILE = 260;
+const CHART_HEIGHT_DESKTOP = 380;
+/** Fewer Y ticks = wider vertical gap between grid rows and cleaner labels. */
+const DESKTOP_Y_TICK_AMOUNT = 4;
+const MOBILE_Y_TICK_AMOUNT = 4;
 
 // ─── Chart option factory ─────────────────────────────────────────────────────
 
@@ -73,39 +89,51 @@ const BAR_CHART_COLUMN_WIDTH = '20%';
  *
  * @param {string} type        ApexCharts chart type ('line' | 'bar').
  * @param {string[]} categories  X-axis category labels.
+ * @param {boolean} isDesktop  Wider layout + larger axis type on lg screens.
  * @param {object}  overrides  Type-specific fields that replace the defaults.
  * @returns {object}
  */
-function makeChartOptions(type, categories, overrides = {}) {
+function makeChartOptions(type, categories, isDesktop, overrides = {}) {
+  const { chart: chartOverrides, yaxis: yaxisOverrides, xaxis: xaxisOverrides, ...restOverrides } = overrides;
+  const labelsStyle = axisStyle(isDesktop);
+  const yAxisLabels = {
+    style: labelsStyle,
+    align: 'right',
+    offsetX: isDesktop ? -2 : 0,
+    formatter: (value) => `${Math.round(value)}`,
+  };
   return {
     chart: {
       type,
       background: 'transparent',
+      foreColor: '#FFFFFF',
       toolbar: { show: false },
       zoom: { enabled: false },
       selection: { enabled: false },
-      ...overrides.chart,
+      ...chartOverrides,
     },
     colors: [CHART_ORANGE, '#FFFFFF'],
     dataLabels: { enabled: false },
     xaxis: {
       categories,
-      labels: { style: BASE_AXIS_STYLE },
+      labels: { style: labelsStyle, offsetY: isDesktop ? 4 : 3 },
       axisBorder: { show: false },
       axisTicks: { show: false },
+      ...xaxisOverrides,
     },
     yaxis: {
       min: 0,
-      tickAmount: 5,
-      labels: { style: BASE_AXIS_STYLE },
+      tickAmount: isDesktop ? DESKTOP_Y_TICK_AMOUNT : MOBILE_Y_TICK_AMOUNT,
+      decimalsInFloat: 0,
+      labels: yAxisLabels,
       axisBorder: { show: false },
       axisTicks: { show: false },
-      ...overrides.yaxis,
+      ...yaxisOverrides,
     },
-    grid: BASE_GRID,
-    tooltip: { theme: 'dark', x: { show: true } },
+    grid: chartGrid(isDesktop),
+    tooltip: { theme: 'dark', x: { show: true }, style: { fontSize: isDesktop ? '14px' : '12px' } },
     legend: { show: false },
-    ...overrides,
+    ...restOverrides,
   };
 }
 
@@ -187,6 +215,8 @@ function computeBattingStatsBar(ballHistory) {
  */
 export function StatsTab() {
   const { matchId, match, wagonWheelEnabled } = useScoringMatch();
+  const isDesktop = useMediaQuery(LG_MEDIA_QUERY);
+  const chartHeight = isDesktop ? CHART_HEIGHT_DESKTOP : CHART_HEIGHT_MOBILE;
   const { data: scorecard } = useGetScorecardQuery(matchId, { skip: !matchId });
   const { innings1Squads, innings2Squads } = useMatchSquads();
 
@@ -270,42 +300,45 @@ export function StatsTab() {
 
   const lineChartOptions = useMemo(
     () =>
-      makeChartOptions('line', categories, {
-        stroke: { curve: 'smooth', width: 2 },
+      makeChartOptions('line', categories, isDesktop, {
+        stroke: { curve: 'smooth', width: isDesktop ? 3 : 2 },
         markers: {
-          size: 4,
+          size: 5,
           colors: ['#fff', '#fff'],
           strokeColors: [CHART_ORANGE, '#FFFFFF'],
           strokeWidth: 2,
-          hover: { size: 6 },
+          hover: { size: isDesktop ? 7 : 6 },
+          clip: true,
         },
         yaxis: { max: yMax },
       }),
-    [categories, yMax],
+    [categories, yMax, isDesktop],
   );
 
   const barChartOptions = useMemo(
     () =>
-      makeChartOptions('bar', categories, {
+      makeChartOptions('bar', categories, isDesktop, {
         plotOptions: {
           bar: {
-            borderRadius: 6,
+            borderRadius: isDesktop ? 8 : 6,
             borderRadiusApplication: 'end',
-            columnWidth: BAR_CHART_COLUMN_WIDTH,
+            columnWidth: isDesktop ? BAR_CHART_COLUMN_WIDTH_DESKTOP : BAR_CHART_COLUMN_WIDTH,
           },
         },
-        yaxis: { min: 0, max: yMax, tickAmount: 6 },
+        yaxis: { min: 0, max: yMax, tickAmount: isDesktop ? DESKTOP_Y_TICK_AMOUNT : MOBILE_Y_TICK_AMOUNT },
       }),
-    [categories, yMax],
+    [categories, yMax, isDesktop],
   );
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <div className="mt-4 space-y-6 pb-6">
+    <div className="mt-4 space-y-6 pb-6 lg:space-y-8">
       {wagonWheelEnabled ? (
         <div className="space-y-2">
-          <p className="text-brand text-center text-[11px] font-semibold tracking-wide uppercase">Wagon Wheel</p>
+          <p className="text-brand text-center text-[11px] font-semibold tracking-wide uppercase lg:text-[13px]">
+            Wagon Wheel
+          </p>
           <WagonWheelChart
             ballHistory={ballHistory}
             zones={shotPositionZones.length > 0 ? shotPositionZones : undefined}
@@ -316,19 +349,25 @@ export function StatsTab() {
       ) : null}
 
       {/* Team-aggregate bars (client ball history) */}
-      <div className="space-y-4">
+      <div className="space-y-4 lg:space-y-5">
         <div>
-          <p className="text-brand mb-1 text-[11px] font-semibold tracking-wide uppercase">{teamAName}</p>
+          <p className="text-brand mb-1 text-[11px] font-semibold tracking-wide uppercase lg:mb-1.5 lg:text-[13px]">
+            {teamAName}
+          </p>
           <BattingStatsBar stats={statsA} />
         </div>
         <div>
-          <p className="text-brand mb-1 text-[11px] font-semibold tracking-wide uppercase">{teamBName}</p>
+          <p className="text-brand mb-1 text-[11px] font-semibold tracking-wide uppercase lg:mb-1.5 lg:text-[13px]">
+            {teamBName}
+          </p>
           <BattingStatsBar stats={statsB} />
         </div>
       </div>
 
       <div className="space-y-2">
-        <p className="text-brand text-center text-[11px] font-semibold tracking-wide uppercase">Player Stats (Match)</p>
+        <p className="text-brand text-center text-[11px] font-semibold tracking-wide uppercase lg:text-[13px]">
+          Player Stats (Match)
+        </p>
         <MatchPlayerStatsTables
           data={matchPlayerStats}
           playerNameMap={playerNameMap}
@@ -338,7 +377,7 @@ export function StatsTab() {
       </div>
 
       {hasChartData ? (
-        <>
+        <div className="space-y-8">
           <ChartSection
             ariaLabel="Over comparison chart"
             title="Over Comparison"
@@ -347,7 +386,7 @@ export function StatsTab() {
             chartTeam={chartTeam}
             onSelectTeam={setChartTeam}
           >
-            <ReactApexChart type="line" series={chartSeries} options={lineChartOptions} height={220} />
+            <ReactApexChart type="line" series={chartSeries} options={lineChartOptions} height={chartHeight} />
           </ChartSection>
           <ChartSection
             ariaLabel="Run comparison chart"
@@ -357,9 +396,9 @@ export function StatsTab() {
             chartTeam={chartTeam}
             onSelectTeam={setChartTeam}
           >
-            <ReactApexChart type="bar" series={chartSeries} options={barChartOptions} height={220} />
+            <ReactApexChart type="bar" series={chartSeries} options={barChartOptions} height={chartHeight} />
           </ChartSection>
-        </>
+        </div>
       ) : (
         <section className="bg-surface mt-6 rounded-lg px-4 py-8 text-center" aria-label="No Chart Data Yet">
           <p className="text-muted text-[14px] font-medium">No over data yet. Start scoring to see comparison charts.</p>
@@ -376,14 +415,14 @@ export function StatsTab() {
  */
 function BattingStatsBar({ stats }) {
   return (
-    <section className="mt-4 flex" aria-label="Batting Statistics">
+    <section className="mt-4 flex lg:mt-5" aria-label="Batting Statistics">
       {STAT_ITEMS.map((item, index) => (
         <span key={item.key} className="contents">
-          <div className="flex flex-1 flex-col items-center justify-center px-3 py-2.5">
-            <p className="text-muted text-[12px] font-bold tracking-wide uppercase">{item.label}</p>
+          <div className="flex flex-1 flex-col items-center justify-center px-3 py-2.5 lg:px-4 lg:py-3.5">
+            <p className="text-muted text-[12px] font-bold tracking-wide uppercase lg:text-[13px]">{item.label}</p>
             {/* Fixed: was stats[item.valueKey] with no fallback — would render
                 "undefined" as text if the key is missing. */}
-            <p className="mt-0.5 text-[14px] font-bold text-white">{stats[item.valueKey] ?? '—'}</p>
+            <p className="mt-0.5 text-[14px] font-bold text-white lg:mt-1 lg:text-[17px]">{stats[item.valueKey] ?? '—'}</p>
           </div>
           {index < STAT_ITEMS.length - 1 && (
             <div
@@ -405,22 +444,22 @@ function BattingStatsBar({ stats }) {
 function ChartSection({ ariaLabel, title, teamAName, teamBName, chartTeam, onSelectTeam, children }) {
   const showTeamToggle = typeof onSelectTeam === 'function';
   return (
-    <section className="mt-6" aria-label={ariaLabel}>
-      <div className="bg-surface flex items-center justify-between gap-4 rounded-t-lg px-3 py-2">
-        <h2 className="text-brand text-[12px] font-bold tracking-wide">{title}</h2>
+    <section className="mt-6 lg:mt-8" aria-label={ariaLabel}>
+      <div className="bg-surface flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-t-lg px-3 py-2.5 lg:px-5 lg:py-3">
+        <h2 className="text-brand text-[12px] font-bold tracking-wide lg:text-[14px]">{title}</h2>
         {showTeamToggle && (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-2.5 lg:gap-4">
             <button
               type="button"
               onClick={() => onSelectTeam(chartTeam === 'teamA' ? 'both' : 'teamA')}
-              className={`text-[12px] font-semibold transition-colors ${chartTeam === 'teamA' ? 'text-brand' : 'text-white'}`}
+              className={`text-[11px] font-semibold transition-colors sm:text-[12px] lg:text-[14px] ${chartTeam === 'teamA' ? 'text-brand' : 'text-white'}`}
             >
               {teamAName}
             </button>
             <button
               type="button"
               onClick={() => onSelectTeam(chartTeam === 'teamB' ? 'both' : 'teamB')}
-              className={`text-[12px] font-semibold transition-colors ${chartTeam === 'teamB' ? 'text-brand' : 'text-white'}`}
+              className={`text-[11px] font-semibold transition-colors sm:text-[12px] lg:text-[14px] ${chartTeam === 'teamB' ? 'text-brand' : 'text-white'}`}
             >
               {teamBName}
             </button>
