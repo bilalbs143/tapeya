@@ -18,6 +18,8 @@
 		522C95892FEAA51C004551BB /* FacebookAnalyticsPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 522C95872FEAA51C004551BB /* FacebookAnalyticsPlugin.swift */; };
 		A084ECDBA7D38E1E42DFC39D /* Pods_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */; };
 		F1A2B3C51FED79650016851A /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F1A2B3C41FED79650016851A /* GoogleService-Info.plist */; };
+		B7C8D9E11FED79650016851F /* FcmTokenPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7C8D9E01FED79650016851F /* FcmTokenPlugin.swift */; };
+		B7C8D9E31FED79650016851F /* FcmTokenPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = B7C8D9E21FED79650016851F /* FcmTokenPlugin.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +41,8 @@
 		E1A2B3C41FED79650016851C /* AppRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AppRelease.entitlements; sourceTree = "<group>"; };
 		F1A2B3C41FED79650016851A /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		FC68EB0AF532CFC21C3344DD /* Pods-App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.debug.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.debug.xcconfig"; sourceTree = "<group>"; };
+		B7C8D9E01FED79650016851F /* FcmTokenPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FcmTokenPlugin.swift; sourceTree = "<group>"; };
+		B7C8D9E21FED79650016851F /* FcmTokenPlugin.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FcmTokenPlugin.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,6 +91,8 @@
 				504EC3071FED79650016851F /* AppDelegate.swift */,
 				522C95862FEAA51C004551BB /* FacebookAnalyticsPlugin.m */,
 				522C95872FEAA51C004551BB /* FacebookAnalyticsPlugin.swift */,
+				B7C8D9E01FED79650016851F /* FcmTokenPlugin.swift */,
+				B7C8D9E21FED79650016851F /* FcmTokenPlugin.m */,
 				E1A2B3C41FED79650016851B /* App.entitlements */,
 				E1A2B3C41FED79650016851C /* AppRelease.entitlements */,
 				F1A2B3C41FED79650016851A /* GoogleService-Info.plist */,
@@ -236,6 +242,8 @@
 				522C95882FEAA51C004551BB /* FacebookAnalyticsPlugin.m in Sources */,
 				522C95892FEAA51C004551BB /* FacebookAnalyticsPlugin.swift in Sources */,
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
+				B7C8D9E11FED79650016851F /* FcmTokenPlugin.swift in Sources */,
+				B7C8D9E31FED79650016851F /* FcmTokenPlugin.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

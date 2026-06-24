@@ -19,6 +19,8 @@ end
 target 'App' do
   capacitor_pods
   pod 'FBSDKCoreKit', '~> 17.0'
+  # FCM registration tokens for iOS push (APNs token alone is not accepted by our backend).
+  pod 'Firebase/Messaging'
 end
 
 post_install do |installer|
