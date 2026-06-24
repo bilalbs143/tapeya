@@ -1,4 +1,3 @@
-import { ACTIVE_PLATFORM_LABELS } from 'src/app/shared/constants/active-platform.constants';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 
 /**
@@ -45,13 +44,4 @@ export function cityCountryLine(city: string | null | undefined, country: string
   if (c) return c;
   if (co) return co;
   return EMPTY_CELL;
-}
-
-const ACTIVE_PLATFORM_LABELS_MAP = ACTIVE_PLATFORM_LABELS;
-
-/** Last active client platform (web / iOS / Android). */
-export function formatActivePlatform(platform: string | null | undefined): string {
-  const value = platform?.trim();
-  if (!value) return EMPTY_CELL;
-  return ACTIVE_PLATFORM_LABELS_MAP[value] ?? value;
 }

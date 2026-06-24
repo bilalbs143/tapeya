@@ -35,6 +35,7 @@ export function AppUpdatePrompt() {
     Boolean(settingsRows?.length) &&
     Boolean(installed) &&
     Boolean(configured) &&
+    Boolean(storeUrl.trim()) &&
     shouldPromptAppUpdate(installed, configured);
 
   useIntervalDialogPrompt({
@@ -47,7 +48,8 @@ export function AppUpdatePrompt() {
       }
       const inst = String(c.installedVersion ?? '').trim();
       const conf = String(c.configuredVersion ?? '').trim();
-      if (!inst || !conf || !shouldPromptAppUpdate(inst, conf)) {
+      const url = String(c.storeUrl ?? '').trim();
+      if (!inst || !conf || !url || !shouldPromptAppUpdate(inst, conf)) {
         return null;
       }
       return {

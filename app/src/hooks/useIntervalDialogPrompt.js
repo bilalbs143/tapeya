@@ -32,6 +32,7 @@ export function useIntervalDialogPrompt({ intervalMs, enabled, getOpenDialogPayl
       }
     };
 
+    tick();
     const id = window.setInterval(tick, intervalMs);
     return () => window.clearInterval(id);
   }, [openDialog, enabled, intervalMs]);

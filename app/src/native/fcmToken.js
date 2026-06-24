@@ -1,5 +1,4 @@
-import { registerPlugin } from '@capacitor/core';
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 
 const FcmToken = registerPlugin('FcmToken');
 

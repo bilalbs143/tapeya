@@ -309,7 +309,7 @@
                 row.active_platform_updated_at ? 'Last seen: ' + (row.active_platform_updated_at | date: 'yyyy-MM-dd HH:mm') : ''
               "
             >
-              {{ row.active_platform_label ?? (row.active_platform ? formatActivePlatform(row.active_platform) : emptyCell) }}
+              {{ row.active_platform_label ?? emptyCell }}
             </td>
           </ng-container>
 

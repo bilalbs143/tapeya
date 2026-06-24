@@ -11,11 +11,7 @@ import { useEffect, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { useNavigate } from 'react-router-dom';
 
-import {
-  addIosFcmTokenRefreshListener,
-  getIosFcmTokenWithRetry,
-  isLikelyApnsToken,
-} from '@/native/fcmToken';
+import { addIosFcmTokenRefreshListener, getIosFcmTokenWithRetry, isLikelyApnsToken } from '@/native/fcmToken';
 import { isNative } from '@/platform/platform';
 import { useRegisterDeviceTokenMutation } from '@/store/api/deviceTokenApi';
 import { useAppSelector } from '@/store/hooks';

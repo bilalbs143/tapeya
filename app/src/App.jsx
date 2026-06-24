@@ -119,8 +119,8 @@ function App() {
               <RouterEffects />
               <ScrollRestoration />
               <DialogManager />
-              <AppUpdatePrompt />
               <ProfileStrengthReminderScheduler />
+              <AppUpdatePrompt />
               <Suspense fallback={<PageFallback />}>
                 <Routes>
                   <Route path="/" element={<SplashScreen />} />
