@@ -372,7 +372,9 @@
               mat-cell
               *matCellDef="let row"
               class="text-sm whitespace-nowrap"
-              [title]="row.active_platform_updated_at ? ('Last seen: ' + (row.active_platform_updated_at | date: 'yyyy-MM-dd HH:mm')) : ''"
+              [title]="
+                row.active_platform_updated_at ? 'Last seen: ' + (row.active_platform_updated_at | date: 'yyyy-MM-dd HH:mm') : ''
+              "
             >
               {{ row.active_platform_label ?? (row.active_platform ? formatActivePlatform(row.active_platform) : emptyCell) }}
             </td>

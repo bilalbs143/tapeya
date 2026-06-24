@@ -1,5 +1,5 @@
-import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { ACTIVE_PLATFORM_LABELS } from 'src/app/shared/constants/active-platform.constants';
+import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 
 /**
  * Parses a date string (ISO or YYYY-MM-DD) as a local date,

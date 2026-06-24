@@ -23,8 +23,8 @@ import { PaginatorComponent } from 'src/app/shared/components/paginator/paginato
 import { TableWrapperComponent } from 'src/app/shared/components/table-wrapper/table-wrapper.component';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
-import { buildListParams } from 'src/app/shared/functions/list-params.function';
 import { formatActivePlatform } from 'src/app/shared/functions/display.helper';
+import { buildListParams } from 'src/app/shared/functions/list-params.function';
 
 import { ImportPlayersCsvDialogComponent } from './import-players-csv-dialog/import-players-csv-dialog.component';
 import {

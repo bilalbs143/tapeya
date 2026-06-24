@@ -7,6 +7,21 @@
       <p class="text-sm text-muted m-0 mb-3 leading-relaxed">
         Search teams by name or code. Teams already on this tournament are hidden from suggestions.
       </p>
+      @if (data.numberOfTeams !== null) {
+        <p
+          class="text-sm m-0 mb-3 leading-relaxed"
+          [class.text-error]="isAtCapacity || exceedsCapacity"
+          [class.text-muted]="!isAtCapacity && !exceedsCapacity"
+        >
+          @if (isAtCapacity) {
+            This tournament has reached its maximum of {{ data.numberOfTeams }} team{{ data.numberOfTeams === 1 ? '' : 's' }}.
+          } @else if (exceedsCapacity) {
+            Too many teams selected. Remove {{ -remainingSlots! }} to stay within the limit of {{ data.numberOfTeams }}.
+          } @else {
+            {{ remainingSlots }} slot{{ remainingSlots === 1 ? '' : 's' }} remaining (limit: {{ data.numberOfTeams }}).
+          }
+        </p>
+      }
       <div class="grid grid-cols-12 gap-x-6">
         @if (data.numberOfGroups > 1) {
           <div

@@ -24,6 +24,7 @@ import { addSearchFilter, baseListParams } from 'src/app/shared/functions/list-p
 export interface AttachTournamentTeamsDialogData {
   tournamentId: number;
   numberOfGroups: number;
+  numberOfTeams: number | null;
   attachedTeamIds: number[];
 }
 
@@ -72,9 +73,41 @@ export class AttachTournamentTeamsDialogComponent implements OnInit, OnDestroy {
 
   public isSubmitting = false;
 
+  /** Slots left before the current chip selection (attached count only). */
+  public get slotsAvailable(): number | null {
+    if (this.data.numberOfTeams === null) {
+      return null;
+    }
+    return this.data.numberOfTeams - this.data.attachedTeamIds.length;
+  }
+
+  /** Slots left after the current chip selection. */
+  public get remainingSlots(): number | null {
+    const available = this.slotsAvailable;
+    if (available === null) {
+      return null;
+    }
+    return available - this.selected.length;
+  }
+
+  /** Tournament already has no room for more teams. */
+  public get isAtCapacity(): boolean {
+    const available = this.slotsAvailable;
+    return available !== null && available <= 0;
+  }
+
+  /** Current selection exceeds the tournament team limit. */
+  public get exceedsCapacity(): boolean {
+    const remaining = this.remainingSlots;
+    return remaining !== null && remaining < 0;
+  }
+
   /** Primary action disabled until there is at least one team and (if grouped) a valid group. */
   public get attachPrimaryDisabled(): boolean {
     if (this.selected.length === 0) {
+      return true;
+    }
+    if (this.exceedsCapacity) {
       return true;
     }
     if (this.data.numberOfGroups > 1 && this.groupForm.invalid) {
@@ -140,6 +173,10 @@ export class AttachTournamentTeamsDialogComponent implements OnInit, OnDestroy {
   public onTeamSelected(event: MatAutocompleteSelectedEvent): void {
     const team = event.option.value as TeamRow;
     if (!team?.id || this.selected.some((t) => t.id === team.id)) {
+      return;
+    }
+    if (this.remainingSlots !== null && this.remainingSlots <= 0) {
+      this.searchControl.setValue('', { emitEvent: false });
       return;
     }
     this.selected = [...this.selected, team];

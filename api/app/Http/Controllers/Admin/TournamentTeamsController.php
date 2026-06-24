@@ -37,6 +37,23 @@ class TournamentTeamsController extends Controller
         $teamIds = $request->validated('team_ids');
         $groupIndex = $request->validated('group_index');
 
+        $alreadyAttached = $tournament->teams()->pluck('teams.id')->all();
+        $duplicates = array_values(array_intersect($teamIds, $alreadyAttached));
+        if (! empty($duplicates)) {
+            return $this->failure('Team is already added to this tournament.', 'VALIDATION_ERROR');
+        }
+
+        $newTeamIds = array_values(array_diff($teamIds, $alreadyAttached));
+        $currentCount = count($alreadyAttached);
+
+        $teamLimit = $tournament->number_of_teams;
+        if ($teamLimit !== null && $currentCount + count($newTeamIds) > $teamLimit) {
+            return $this->failure(
+                'This tournament already has the maximum number of teams ('.$teamLimit.').',
+                'VALIDATION_ERROR'
+            );
+        }
+
         if ($tournament->number_of_groups > 1 && ($groupIndex === null || $groupIndex < 1 || $groupIndex > $tournament->number_of_groups)) {
             return $this->failure('Group index is required and must be between 1 and '.$tournament->number_of_groups.' for this tournament.', 'VALIDATION_ERROR', 422);
         }

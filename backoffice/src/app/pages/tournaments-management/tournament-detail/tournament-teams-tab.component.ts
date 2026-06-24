@@ -148,6 +148,7 @@ export class TournamentTeamsTabComponent implements OnInit, OnDestroy {
       {
         tournamentId: this.tournamentId,
         numberOfGroups: this.numberOfGroups,
+        numberOfTeams: this.tournament?.number_of_teams ?? null,
         attachedTeamIds: this.dataSource.data.map((t) => t.id),
       },
       (saved) => saved && this.load(),
