@@ -43,7 +43,7 @@ public class FacebookAnalyticsPlugin: CAPPlugin {
     }
 
     @objc func flush(_ call: CAPPluginCall) {
-        AppEvents.shared.flush(.explicitlyFlush)
+        AppEvents.shared.flush(for: .explicit)
         call.resolve()
     }
 }

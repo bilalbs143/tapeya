@@ -64,8 +64,6 @@
 		504EC2FB1FED79650016851F = {
 			isa = PBXGroup;
 			children = (
-				522C95862FEAA51C004551BB /* FacebookAnalyticsPlugin.m */,
-				522C95872FEAA51C004551BB /* FacebookAnalyticsPlugin.swift */,
 				504EC3061FED79650016851F /* App */,
 				504EC3051FED79650016851F /* Products */,
 				7F8756D8B27F46E3366F6CEA /* Pods */,
@@ -87,6 +85,8 @@
 			children = (
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
+				522C95862FEAA51C004551BB /* FacebookAnalyticsPlugin.m */,
+				522C95872FEAA51C004551BB /* FacebookAnalyticsPlugin.swift */,
 				E1A2B3C41FED79650016851B /* App.entitlements */,
 				E1A2B3C41FED79650016851C /* AppRelease.entitlements */,
 				F1A2B3C41FED79650016851A /* GoogleService-Info.plist */,
