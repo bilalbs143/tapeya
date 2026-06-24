@@ -41,7 +41,7 @@ class EnumController extends Controller
      */
     public function index(): JsonResponse
     {
-        $enums = Cache::remember('user:enums:v9', 600, fn () => $this->buildEnums());
+        $enums = Cache::remember('user:enums:v10', 600, fn () => $this->buildEnums());
 
         return $this->success($enums);
     }

@@ -42,7 +42,7 @@ class EnumController extends Controller
      */
     public function index(): JsonResponse
     {
-        $enums = Cache::remember('admin:enums:v2', 600, fn () => $this->buildEnums());
+        $enums = Cache::remember('admin:enums:v3', 600, fn () => $this->buildEnums());
 
         return $this->success($enums);
     }
