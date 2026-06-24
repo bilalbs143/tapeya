@@ -70,6 +70,6 @@
 		<string>fb-messenger-share-api</string>
 	</array>
 	<key>NSUserTrackingUsageDescription</key>
-	<string>This identifier will be used to deliver personalised ads to you.</string>
+	<string>Allow Tapeya to use your device identifier to measure ad performance and show you more relevant ads.</string>
 </dict>
 </plist>

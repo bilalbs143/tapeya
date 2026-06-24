@@ -1,6 +1,7 @@
 import UIKit
 import UserNotifications
 import Capacitor
+import AppTrackingTransparency
 import FBSDKCoreKit
 import FirebaseCore
 import FirebaseMessaging
@@ -9,9 +10,11 @@ import FirebaseMessaging
 class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUserNotificationCenterDelegate {
 
     var window: UIWindow?
+    private var didRequestTrackingAuthorization = false
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         ApplicationDelegate.shared.application(application, didFinishLaunchingWithOptions: launchOptions)
+        syncFacebookTrackingSettings()
         FirebaseApp.configure()
         Messaging.messaging().delegate = self
         // Show banners/sounds/badges even when the app is foregrounded.
@@ -29,6 +32,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUser
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
+        requestTrackingAuthorizationIfNeeded()
         AppEvents.shared.activateApp()
     }
 
@@ -65,7 +69,38 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUser
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-        completionHandler([.banner, .sound, .badge])
+        if #available(iOS 14.0, *) {
+            completionHandler([.banner, .sound, .badge])
+        } else {
+            completionHandler([.alert, .sound, .badge])
+        }
+    }
+
+    private func syncFacebookTrackingSettings() {
+        if #available(iOS 14, *) {
+            let authorized = ATTrackingManager.trackingAuthorizationStatus == .authorized
+            Settings.shared.isAdvertiserIDCollectionEnabled = authorized
+        } else {
+            Settings.shared.isAdvertiserIDCollectionEnabled = true
+        }
+    }
+
+    private func requestTrackingAuthorizationIfNeeded() {
+        if #available(iOS 14, *) {
+            let status = ATTrackingManager.trackingAuthorizationStatus
+            if status != .notDetermined {
+                syncFacebookTrackingSettings()
+                return
+            }
+            guard !didRequestTrackingAuthorization else { return }
+            didRequestTrackingAuthorization = true
+            ATTrackingManager.requestTrackingAuthorization { _ in
+                self.syncFacebookTrackingSettings()
+            }
+            return
+        }
+
+        syncFacebookTrackingSettings()
     }
 
 }
