@@ -17,9 +17,16 @@ export function isNavbarOverlayPath(pathname, isDesktop = false) {
   return pathname === '/profile' || TOURNAMENT_DETAILS_PATH.test(pathname) || HIGHLIGHT_DETAILS_PATH.test(pathname);
 }
 
+const AUTH_PATHS = new Set(['/login', '/register', '/otp']);
+
+export function isAuthPath(pathname) {
+  return AUTH_PATHS.has(pathname);
+}
+
 /** Routes where the incomplete-profile reminder dialog must not appear. */
 export function isProfileStrengthReminderBlockedPath(pathname) {
   return (
+    isAuthPath(pathname) ||
     pathname === '/profile' ||
     pathname.startsWith('/overlay/') ||
     isLiveBroadcastPath(pathname) ||

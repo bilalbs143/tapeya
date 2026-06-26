@@ -8,6 +8,9 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+const nativePlatform = process.env.VITE_NATIVE_PLATFORM || 'web';
+const nativeStoreEntry = ['ios', 'android', 'web'].includes(nativePlatform) ? nativePlatform : 'web';
+
 /**
  * Build-time Vite plugin: adds missing loading / decoding hints on <img> in
  * JSX/TSX. Only injects attributes that are absent (never duplicates).
@@ -52,6 +55,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
+      '@native-store': resolve(__dirname, `src/lib/nativeStore/${nativeStoreEntry}.js`),
     },
   },
 

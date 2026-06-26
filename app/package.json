@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:ios": "VITE_NATIVE_PLATFORM=ios vite build",
+    "build:android": "VITE_NATIVE_PLATFORM=android vite build",
     "preview": "vite preview",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -21,6 +23,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "cap:sync": "npm run build && cap sync",
+    "cap:sync:ios": "npm run build:ios && cap sync ios",
+    "cap:sync:android": "npm run build:android && cap sync android",
     "cap:ios": "cap open ios",
     "cap:android": "cap open android"
   },

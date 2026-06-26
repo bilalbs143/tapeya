@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
+import { getStoreConfig } from '@native-store';
 
 import { mapSystemSettingsByKey } from '@/lib/utils/settingsUtils';
 import { useGetPublicSystemSettingsQuery } from '@/store/api/systemSettingsApi';
@@ -66,22 +67,8 @@ export function useNativeStoreVersionInfo(options = {}) {
       return { configuredVersion: '', storeUrl: '', storeName: '' };
     }
     const map = mapSystemSettingsByKey(settingsRows);
-    if (platform === 'ios') {
-      return {
-        configuredVersion: map.ios_app_store_version?.trim() ?? '',
-        storeUrl: map.ios_app_store_url?.trim() ?? '',
-        storeName: 'App Store',
-      };
-    }
-    if (platform === 'android') {
-      return {
-        configuredVersion: map.android_play_store_version?.trim() ?? '',
-        storeUrl: map.android_play_store_url?.trim() ?? '',
-        storeName: 'Play Store',
-      };
-    }
-    return { configuredVersion: '', storeUrl: '', storeName: '' };
-  }, [isNativeMobile, isSuccess, platform, settingsRows]);
+    return getStoreConfig(map);
+  }, [isNativeMobile, isSuccess, settingsRows]);
 
   return {
     isNativeMobile,

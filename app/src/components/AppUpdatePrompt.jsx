@@ -1,10 +1,16 @@
 import { useRef } from 'react';
 
+import { useLocation } from 'react-router-dom';
+
 import { DIALOG_REMINDER_INTERVAL_MS, useIntervalDialogPrompt } from '@/hooks/useIntervalDialogPrompt';
 import { useNativeStoreVersionInfo } from '@/hooks/useNativeStoreVersionInfo';
 import { shouldPromptAppUpdate } from '@/lib/appVersionCompare';
+import { isAuthPath } from '@/lib/utils/routeUtils';
 
 export function AppUpdatePrompt() {
+  const location = useLocation();
+  const onAuthPath = isAuthPath(location.pathname);
+
   const { isNativeMobile, isSettingsReady, settingsRows, installedVersion, configuredVersion, storeUrl, storeName } =
     useNativeStoreVersionInfo({ refetchOnAppResume: true });
 
@@ -30,6 +36,7 @@ export function AppUpdatePrompt() {
   const installed = installedVersion.trim();
   const configured = configuredVersion.trim();
   const enabled =
+    !onAuthPath &&
     isNativeMobile &&
     isSettingsReady &&
     Boolean(settingsRows?.length) &&
@@ -43,7 +50,7 @@ export function AppUpdatePrompt() {
     enabled,
     getOpenDialogPayload: () => {
       const c = ctxRef.current;
-      if (!c.isNativeMobile || !c.isSettingsReady || !c.hasSettingsRows) {
+      if (!c.isNativeMobile || !c.isSettingsReady || !c.hasSettingsRows || isAuthPath(location.pathname)) {
         return null;
       }
       const inst = String(c.installedVersion ?? '').trim();
