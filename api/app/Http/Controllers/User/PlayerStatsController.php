@@ -2,40 +2,45 @@
 
 namespace App\Http\Controllers\User;
 
-use App\Enums\Tournament\TournamentTypeEnum;
-use App\Enums\User\PlayingRoleEnum;
+use App\Enums\Stats\StatCategoryEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\PlayerStatsService;
+use App\Support\Stats\StatBucketFilters;
 use Illuminate\Http\JsonResponse;
+use InvalidArgumentException;
 
 class PlayerStatsController extends Controller
 {
     use BaseControllerTrait;
 
     /**
-     * Accumulative stats for a player (profile), optionally by tournament_type.
+     * Accumulative stats for a player (profile), optionally by tournament_type and cricket_format.
      *
      * Query: tournament_type = league | open_tournament | emerging | all (default: all)
+     *        cricket_format = hard_ball | tape_ball | tennis_ball | hard_tennis | all (default: all)
      */
     public function show(User $user): JsonResponse
     {
-        $tournamentType = request()->query('tournament_type', 'all');
-        $valid = ['league', 'open_tournament', 'emerging', 'all'];
-        if (! in_array($tournamentType, $valid, true)) {
-            return $this->failure('Invalid tournament_type. Use: league, open_tournament, emerging, all.');
+        try {
+            $bucket = StatBucketFilters::fromProfileQuery(
+                request()->query('tournament_type', 'all'),
+                request()->query('cricket_format', 'all'),
+            );
+        } catch (InvalidArgumentException $e) {
+            return $this->failure($e->getMessage());
         }
 
-        $et = $tournamentType === 'all' ? null : ($tournamentType === 'league' ? TournamentTypeEnum::LEAGUE : ($tournamentType === 'open_tournament' ? TournamentTypeEnum::OPEN_TOURNAMENT : TournamentTypeEnum::EMERGING));
         $service = app(PlayerStatsService::class);
 
         $data = [
             'player_id' => $user->id,
-            'tournament_type' => $tournamentType,
-            'batting' => $service->battingForPlayer($user->id, $et),
-            'bowling' => $service->bowlingForPlayer($user->id, $et),
-            'fielding' => $service->fieldingForPlayer($user->id, $et),
+            'tournament_type' => $bucket['tournamentTypeQuery'],
+            'cricket_format' => $bucket['cricketFormatQuery'],
+            'batting' => $service->battingForPlayer($user->id, $bucket['tournamentType'], $bucket['cricketFormat']),
+            'bowling' => $service->bowlingForPlayer($user->id, $bucket['tournamentType'], $bucket['cricketFormat']),
+            'fielding' => $service->fieldingForPlayer($user->id, $bucket['tournamentType'], $bucket['cricketFormat']),
         ];
 
         return $this->success($data);
@@ -44,49 +49,40 @@ class PlayerStatsController extends Controller
     /**
      * Where this player sits on a leaderboard (same rules as GET /rankings).
      *
-     * Query: tournament_type, category, sort, min_innings — defaults: open tournament;
-     *          category + sort from the user's playing role when omitted (bowler → bowling/wickets, etc.).
+     * Query: tournament_type, cricket_format, category, sort, min_innings (qualification threshold)
      */
     public function rankingPosition(User $user): JsonResponse
     {
         $tournamentType = request()->query('tournament_type', 'open_tournament');
-        $category = request()->query('category');
-        if ($category === null || $category === '') {
-            $category = match ($user->playing_role) {
-                PlayingRoleEnum::BOWLER => 'bowling',
-                PlayingRoleEnum::ALL_ROUNDER,
-                PlayingRoleEnum::BATSMAN => 'batting',
-                default => 'batting',
-            };
+        $cricketFormat = request()->query('cricket_format', 'all');
+        $minQualifyingCount = (int) request()->query('min_innings', 0);
+
+        try {
+            $bucket = StatBucketFilters::fromRankingsQuery($tournamentType, $cricketFormat);
+            $categoryEnum = StatBucketFilters::parseCategoryOptional(
+                request()->query('category'),
+                StatCategoryEnum::defaultForPlayingRole($user->playing_role),
+            );
+        } catch (InvalidArgumentException $e) {
+            return $this->failure($e->getMessage());
         }
 
-        $sort = request()->query('sort');
-        if ($sort === null || $sort === '') {
-            $sort = $category === 'batting' ? 'runs' : ($category === 'bowling' ? 'wickets' : 'ct');
-        }
-        $minInnings = (int) request()->query('min_innings', 0);
-
-        $validTournamentType = ['league', 'open_tournament', 'emerging'];
-        if (! in_array($tournamentType, $validTournamentType, true)) {
-            return $this->failure('tournament_type must be one of: league, open_tournament, emerging.');
-        }
-        $validCategory = ['batting', 'bowling', 'fielding'];
-        if (! in_array($category, $validCategory, true)) {
-            return $this->failure('category must be one of: batting, bowling, fielding.');
-        }
+        $sort = request()->query('sort') ?: $categoryEnum->defaultSort();
 
         $rank = app(PlayerStatsService::class)->rankPositionForPlayer(
             (int) $user->id,
             $tournamentType,
-            $category,
+            $categoryEnum->value,
             $sort,
-            $minInnings
+            $minQualifyingCount,
+            $cricketFormat
         );
 
         return $this->success([
             'rank' => $rank,
             'tournament_type' => $tournamentType,
-            'category' => $category,
+            'cricket_format' => $cricketFormat,
+            'category' => $categoryEnum->value,
             'sort' => $sort,
         ]);
     }

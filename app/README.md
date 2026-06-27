@@ -17,13 +17,13 @@ src/
 
 ## Commands
 
-| Command                | Description                     |
-| ---------------------- | ------------------------------- |
-| `npm run dev`          | Start dev server (Web)          |
-| `npm run build`        | Web production build            |
-| `npm run cap:sync`     | Sync existing `dist/` to native |
-| `npm run cap:ios`      | iOS build + sync + open Xcode   |
-| `npm run cap:android`  | Android build + sync + open IDE |
+| Command               | Description                     |
+| --------------------- | ------------------------------- |
+| `npm run dev`         | Start dev server (Web)          |
+| `npm run build`       | Web production build            |
+| `npm run cap:sync`    | Sync existing `dist/` to native |
+| `npm run cap:ios`     | iOS build + sync + open Xcode   |
+| `npm run cap:android` | Android build + sync + open IDE |
 
 ## Native Setup
 

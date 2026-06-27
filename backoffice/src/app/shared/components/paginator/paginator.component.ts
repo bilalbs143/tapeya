@@ -2,11 +2,12 @@ import { Component, EventEmitter, inject, Input, Output, ViewChild } from '@angu
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 import { PAGINATOR_CONFIG } from '../../config/paginator.config';
+import { EmptyDataMessageComponent } from '../empty-data-message/empty-data-message.component';
 
 @Component({
   selector: 'app-paginator',
   standalone: true,
-  imports: [MatPaginatorModule],
+  imports: [MatPaginatorModule, EmptyDataMessageComponent],
   templateUrl: './paginator.component.html',
 })
 export class PaginatorComponent {

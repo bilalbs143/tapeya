@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Enums\Event\CricketFormatEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
 use App\Models\PlayerBattingStats;
 use App\Models\PlayerBowlingStats;
@@ -32,16 +33,23 @@ class RefreshMatchStatsJob implements ShouldQueue
 
         $eventType = $match->tournament->tournament_type;
         $eventTypeValue = $eventType instanceof TournamentTypeEnum ? $eventType->value : (string) $eventType;
+        $cricketFormat = $match->tournament->cricket_format;
+        $cricketFormatValue = $cricketFormat instanceof CricketFormatEnum
+            ? $cricketFormat->value
+            : (string) $cricketFormat;
 
         $batting = $service->computeBattingForMatch($this->matchId);
         $bowling = $service->computeBowlingForMatch($this->matchId);
         $fielding = $service->computeFieldingForMatch($this->matchId);
 
-        $matchIdsInEvent = TournamentMatch::where('tournament_id', $match->tournament_id)
+        $matchIdsInBucket = TournamentMatch::query()
+            ->whereHas('tournament', fn ($q) => $q
+                ->where('tournament_type', $eventTypeValue)
+                ->where('cricket_format', $cricketFormatValue))
             ->pluck('id')
             ->all();
 
-        DB::transaction(function () use ($batting, $bowling, $fielding, $eventTypeValue, $matchIdsInEvent) {
+        DB::transaction(function () use ($batting, $bowling, $fielding, $eventTypeValue, $cricketFormatValue, $matchIdsInBucket) {
             // ── Wipe and re-insert per-match rows ──────────────────────────────
             PlayerMatchBatting::where('match_id', $this->matchId)->delete();
             PlayerMatchBowling::where('match_id', $this->matchId)->delete();
@@ -117,24 +125,27 @@ class RefreshMatchStatsJob implements ShouldQueue
                 ->all();
 
             foreach ($playerIds as $playerId) {
-                $this->refreshAccumulativeBatting($playerId, $eventTypeValue, $matchIdsInEvent);
-                $this->refreshAccumulativeBowling($playerId, $eventTypeValue, $matchIdsInEvent);
-                $this->refreshAccumulativeFielding($playerId, $eventTypeValue, $matchIdsInEvent);
+                $this->refreshAccumulativeBatting($playerId, $eventTypeValue, $cricketFormatValue, $matchIdsInBucket);
+                $this->refreshAccumulativeBowling($playerId, $eventTypeValue, $cricketFormatValue, $matchIdsInBucket);
+                $this->refreshAccumulativeFielding($playerId, $eventTypeValue, $cricketFormatValue, $matchIdsInBucket);
             }
         });
+
+        PlayerStatsService::bustRankingsCache();
     }
 
     // ─── Private: accumulative refresh helpers ────────────────────────────────
 
-    private function refreshAccumulativeBatting(int $playerId, string $eventType, array $matchIdsInEvent): void
+    private function refreshAccumulativeBatting(int $playerId, string $eventType, string $cricketFormat, array $matchIdsInBucket): void
     {
         $rows = PlayerMatchBatting::where('player_id', $playerId)
-            ->whereIn('match_id', $matchIdsInEvent)
+            ->whereIn('match_id', $matchIdsInBucket)
             ->get();
 
         if ($rows->isEmpty()) {
             PlayerBattingStats::where('player_id', $playerId)
                 ->where('tournament_type', $eventType)
+                ->where('cricket_format', $cricketFormat)
                 ->delete();
 
             return;
@@ -162,7 +173,7 @@ class RefreshMatchStatsJob implements ShouldQueue
         $strikeRate = $ballsFaced > 0 ? round(100 * $runs / $ballsFaced, 2) : null;
 
         PlayerBattingStats::updateOrCreate(
-            ['player_id' => $playerId, 'tournament_type' => $eventType],
+            ['player_id' => $playerId, 'tournament_type' => $eventType, 'cricket_format' => $cricketFormat],
             [
                 'matches' => $matches,
                 'innings' => $innings,
@@ -181,15 +192,16 @@ class RefreshMatchStatsJob implements ShouldQueue
         );
     }
 
-    private function refreshAccumulativeBowling(int $playerId, string $eventType, array $matchIdsInEvent): void
+    private function refreshAccumulativeBowling(int $playerId, string $eventType, string $cricketFormat, array $matchIdsInBucket): void
     {
         $rows = PlayerMatchBowling::where('player_id', $playerId)
-            ->whereIn('match_id', $matchIdsInEvent)
+            ->whereIn('match_id', $matchIdsInBucket)
             ->get();
 
         if ($rows->isEmpty()) {
             PlayerBowlingStats::where('player_id', $playerId)
                 ->where('tournament_type', $eventType)
+                ->where('cricket_format', $cricketFormat)
                 ->delete();
 
             return;
@@ -205,20 +217,12 @@ class RefreshMatchStatsJob implements ShouldQueue
         $tenWickets = $rows->sum('ten_wickets');
         $maidens = $rows->sum('maidens');
 
-        // Summing floats directly corrupts the total (e.g. 2.3 + 2.4 = 4.7 but correct = 5.0).
-        // Convert each row's overs to a real ball count, sum, then convert back.
-        $totalBalls = $rows->sum(function ($row) {
-            $wholeOvers = (int) $row->overs;
-            $remainingBalls = (int) round(($row->overs - $wholeOvers) * 10);
+        $totalBalls = $rows->sum(fn ($row) => PlayerStatsService::legalBallsFromCricketOvers((float) $row->overs));
+        $overs = PlayerStatsService::oversFromLegalBalls($totalBalls);
 
-            return $wholeOvers * 6 + $remainingBalls;
-        });
-        $overs = floor($totalBalls / 6) + round(($totalBalls % 6) / 10, 1);
-
-        // overs × 6 would be wrong when overs is stored as decimal shorthand.
         $average = $wickets > 0 ? round($runsConceded / $wickets, 2) : null;
-        $economy = $overs > 0 ? round($runsConceded / $overs, 2) : null;
-        $strikeRate = ($wickets > 0 && $totalBalls > 0) ? round($totalBalls / $wickets, 2) : null;
+        $economy = PlayerStatsService::bowlingEconomy($runsConceded, $totalBalls);
+        $strikeRate = PlayerStatsService::bowlingStrikeRate($totalBalls, $wickets);
 
         // Each PlayerMatchBowling row already stores them correctly — pick the best of each.
         $bestBowlingInnings = $this->pickBestBowlingFigure(
@@ -229,7 +233,7 @@ class RefreshMatchStatsJob implements ShouldQueue
         );
 
         PlayerBowlingStats::updateOrCreate(
-            ['player_id' => $playerId, 'tournament_type' => $eventType],
+            ['player_id' => $playerId, 'tournament_type' => $eventType, 'cricket_format' => $cricketFormat],
             [
                 'matches' => $matches,
                 'innings' => $innings,
@@ -250,22 +254,23 @@ class RefreshMatchStatsJob implements ShouldQueue
         );
     }
 
-    private function refreshAccumulativeFielding(int $playerId, string $eventType, array $matchIdsInEvent): void
+    private function refreshAccumulativeFielding(int $playerId, string $eventType, string $cricketFormat, array $matchIdsInBucket): void
     {
         $rows = PlayerMatchFielding::where('player_id', $playerId)
-            ->whereIn('match_id', $matchIdsInEvent)
+            ->whereIn('match_id', $matchIdsInBucket)
             ->get();
 
         if ($rows->isEmpty()) {
             PlayerFieldingStats::where('player_id', $playerId)
                 ->where('tournament_type', $eventType)
+                ->where('cricket_format', $cricketFormat)
                 ->delete();
 
             return;
         }
 
         PlayerFieldingStats::updateOrCreate(
-            ['player_id' => $playerId, 'tournament_type' => $eventType],
+            ['player_id' => $playerId, 'tournament_type' => $eventType, 'cricket_format' => $cricketFormat],
             [
                 'matches' => $rows->count(),
                 'catches' => $rows->sum('catches'),

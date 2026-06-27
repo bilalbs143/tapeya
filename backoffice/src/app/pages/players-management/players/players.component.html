@@ -329,6 +329,18 @@
               <button
                 type="button"
                 class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                aria-label="View player stats"
+                [routerLink]="[row.id, 'stats']"
+                title="View Stats"
+              >
+                <i-tabler
+                  name="chart-bar"
+                  class="size-4.5!"
+                ></i-tabler>
+              </button>
+              <button
+                type="button"
+                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
                 aria-label="Edit player"
                 (click)="openEditDialog(row)"
               >

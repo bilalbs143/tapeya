@@ -10,6 +10,7 @@ import { PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { RouterLink } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { Observable, Subscription } from 'rxjs';
 
@@ -55,6 +56,7 @@ const DEFAULT_FILTERS = {
     TablerIconsModule,
     TableWrapperComponent,
     PaginatorComponent,
+    RouterLink,
   ],
   templateUrl: './players.component.html',
 })

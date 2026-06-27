@@ -1,5 +1,5 @@
 /**
- * Ranking.jsx — Open-tournament rankings: Top Batters, Top Bowlers, Others (sixes/fours).
+ * Ranking.jsx — Open-tournament tape-ball rankings: Top Batters, Top Bowlers, Others (sixes/fours).
  * Route: /ranking. Sections show top 5 and link to RankingStatsTotal via location state.
  */
 
@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { RANKING_CRICKET_FORMAT, RANKING_TOURNAMENT_TYPE } from '@/lib/constants/ranking';
 import { formatDecimal, getInitials } from '@/lib/utils/displayUtils';
 import { statsTotalPaths } from '@/pages/scorecard/statsTotalFlow';
 import { useGetRankingsQuery } from '@/store/api/rankingApi';
@@ -16,14 +17,13 @@ import { profileListClass, profileTriggerClass, Tabs, TabsContent, TabsList, Tab
 
 const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
-const OPEN_TOURNAMENT_TYPE = 'open_tournament';
-
 /** Number of players shown per section before the "View More" link. */
 const TOP_RANKINGS_LIMIT = 5;
 
 function useOpenTournamentRankings(category, sort) {
   return useGetRankingsQuery({
-    tournament_type: OPEN_TOURNAMENT_TYPE,
+    tournament_type: RANKING_TOURNAMENT_TYPE,
+    cricket_format: RANKING_CRICKET_FORMAT,
     category,
     sort,
   });

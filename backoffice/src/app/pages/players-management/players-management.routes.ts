@@ -9,4 +9,16 @@ export const playersManagementRoutes: Routes = [
       urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Players Management' }],
     },
   },
+  {
+    path: 'players/:playerId/stats',
+    loadComponent: () => import('./players/player-stats/player-stats.component').then((m) => m.PlayerStatsComponent),
+    data: {
+      title: 'Player Stats',
+      urls: [
+        { title: 'Dashboard', url: '/dashboard' },
+        { title: 'Players Management', url: '/players-management/players' },
+        { title: 'Player Stats' },
+      ],
+    },
+  },
 ];

@@ -70,4 +70,63 @@ export class PlayersService {
     }
     return this.http.post<{ data: PlayerCsvImportResult }>(`${this.baseUrl}/import-csv`, formData);
   }
+
+  public getStats(
+    playerId: number,
+    params: { tournament_type?: string; cricket_format?: string } = {}
+  ): Observable<{ data: PlayerStatsResponse }> {
+    return this.http.get<{ data: PlayerStatsResponse }>(`v1/users/${playerId}/stats`, {
+      params: toHttpParams(params as Record<string, unknown>),
+    });
+  }
+}
+
+export interface PlayerBattingStats {
+  matches: number;
+  innings: number;
+  not_outs: number;
+  runs: number;
+  balls_faced: number;
+  fours: number;
+  sixes: number;
+  dots: number;
+  highest_score: string;
+  hundreds: number;
+  fifties: number;
+  average: number | null;
+  strike_rate: number | null;
+}
+
+export interface PlayerBowlingStats {
+  matches: number;
+  innings: number;
+  overs: number;
+  maidens: number;
+  runs_conceded: number;
+  wickets: number;
+  no_balls: number;
+  wides: number;
+  best_bowling_innings: string;
+  best_bowling_match: string;
+  five_wickets: number;
+  ten_wickets: number;
+  average: number | null;
+  economy: number | null;
+  strike_rate: number | null;
+}
+
+export interface PlayerFieldingStats {
+  matches: number;
+  catches: number;
+  run_outs: number;
+  stumpings: number;
+}
+
+export interface PlayerStatsResponse {
+  player_id: number;
+  tournament_type: string;
+  cricket_format: string;
+  batting: PlayerBattingStats;
+  bowling: PlayerBowlingStats;
+  fielding: PlayerFieldingStats;
 }

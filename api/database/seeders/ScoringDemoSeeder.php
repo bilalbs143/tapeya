@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Enums\Common\StatusEnum;
 use App\Enums\Event\CricketFormatEnum;
+use App\Enums\Event\DismissalTypeEnum;
+use App\Enums\Event\InningsStatusEnum;
 use App\Enums\Event\MatchStatusEnum;
 use App\Enums\Event\MatchTimingEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
@@ -14,6 +16,8 @@ use App\Enums\User\PlayingRoleEnum;
 use App\Enums\User\RoleGuardEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
+use App\Jobs\RefreshMatchStatsJob;
+use App\Models\Innings;
 use App\Models\Role;
 use App\Models\Team;
 use App\Models\Tournament;
@@ -44,13 +48,15 @@ use Illuminate\Support\Facades\Hash;
  *   - 36 players (6 per team, no cross-team overlap; real names; playing_role / batting_style / bowling_style), password: password
  *   - 3 organizers (real names; organizer role + cricket profile fields), password: password
  *   - 3 sponsors (real names; sponsor role + cricket profile fields), password: password
- *   - 4 tournaments (organizer_id; short_name e.g. KPL/LSC; number_of_groups / prize per schema; first three single-group, fourth two-group demo)
+ *   - 5 tournaments (explicit type × format; all four cricket formats; two open + tape_ball for aggregation)
  *   - 6 teams (PSL-style names; 3-letter uppercase codes; owned by sponsors; optional logo left null)
  *   - Attaches players to teams (team_user), two icon players per team (team_icon_players)
  *   - Attaches teams to tournaments (tournament_team with group_index when number_of_groups > 1)
  *   - Demo fixtures (matches): single-table tournaments get 2–3 scheduled games; two-group tournament
  *     gets one fixture per group. Several matches use today’s date for the scorecard schedule tab.
- *     All matches remain SCHEDULED (no toss, innings, balls, or stats materialization).
+ *   - One completed match per tournament (first fixture) with innings, balls, and materialized career
+ *     stats via RefreshMatchStatsJob. Covers all four cricket formats; two open_tournament + tape_ball
+ *     events (LSC + PTO) so cross-tournament bucket aggregation can be tested.
  */
 class ScoringDemoSeeder extends Seeder
 {
@@ -62,6 +68,9 @@ class ScoringDemoSeeder extends Seeder
 
     /** Overs cap for scheduled demo fixtures (scorecard schedule tab). */
     private const DEMO_FIXTURE_OVERS = 5;
+
+    /** Players selected per side when scoring the stats demo match. */
+    private const DEMO_STATS_PLAYERS_PER_SIDE = 6;
 
     private const DEMO_TEAM_COUNT = 6;
 
@@ -139,29 +148,62 @@ class ScoringDemoSeeder extends Seeder
         ['name' => 'Quetta Gladiators', 'code' => 'GLD'],
     ];
 
-    /** @var list<string> */
-    private const DEMO_TOURNAMENT_NAMES = [
-        'Karachi Premier League',
-        'Lahore Summer Cup',
-        'Islamabad T20 Challenge',
-        'National Club Championship',
+    /**
+     * Explicit type × format mapping — one row per cricket format plus a second open + tape_ball
+     * tournament for cross-event career aggregation.
+     *
+     * @var list<array{name: string, short: string, type: string, format: string, groups: int, city: string, venue: string}>
+     */
+    private const DEMO_TOURNAMENT_CONFIG = [
+        [
+            'name' => 'Karachi Premier League',
+            'short' => 'KPL',
+            'type' => TournamentTypeEnum::LEAGUE->value,
+            'format' => CricketFormatEnum::HARD_BALL->value,
+            'groups' => 1,
+            'city' => 'Karachi',
+            'venue' => 'National Stadium Karachi',
+        ],
+        [
+            'name' => 'Lahore Summer Cup',
+            'short' => 'LSC',
+            'type' => TournamentTypeEnum::OPEN_TOURNAMENT->value,
+            'format' => CricketFormatEnum::TAPE_BALL->value,
+            'groups' => 1,
+            'city' => 'Lahore',
+            'venue' => 'Gaddafi Stadium Lahore',
+        ],
+        [
+            'name' => 'Islamabad T20 Challenge',
+            'short' => 'ITC',
+            'type' => TournamentTypeEnum::EMERGING->value,
+            'format' => CricketFormatEnum::TENNIS_BALL->value,
+            'groups' => 1,
+            'city' => 'Islamabad',
+            'venue' => 'Rawalpindi Cricket Stadium',
+        ],
+        [
+            'name' => 'National Club Championship',
+            'short' => 'NCC',
+            'type' => TournamentTypeEnum::OPEN_TOURNAMENT->value,
+            'format' => CricketFormatEnum::HARD_TENNIS->value,
+            'groups' => 2,
+            'city' => 'Rawalpindi',
+            'venue' => 'Multan Cricket Stadium',
+        ],
+        [
+            'name' => 'Pindi Tape Ball Open',
+            'short' => 'PTO',
+            'type' => TournamentTypeEnum::OPEN_TOURNAMENT->value,
+            'format' => CricketFormatEnum::TAPE_BALL->value,
+            'groups' => 1,
+            'city' => 'Rawalpindi',
+            'venue' => 'Rawalpindi Cricket Stadium',
+        ],
     ];
 
-    /** @var list<string> */
-    private const DEMO_TOURNAMENT_SHORT_NAMES = [
-        'KPL',
-        'LSC',
-        'ITC',
-        'NCC',
-    ];
-
-    /** @var list<string> */
-    private const DEMO_VENUES = [
-        'National Stadium Karachi',
-        'Gaddafi Stadium Lahore',
-        'Rawalpindi Cricket Stadium',
-        'Multan Cricket Stadium',
-    ];
+    /** Striker run totals for the first completed match in each tournament (index-aligned with config). */
+    private const DEMO_STATS_STRIKER_RUNS = [45, 72, 28, 55, 33];
 
     public function run(): void
     {
@@ -179,7 +221,8 @@ class ScoringDemoSeeder extends Seeder
             $tournaments = $this->createTournaments($organizers);
             $this->createTeamsAndAttach($sponsors, $players, $tournaments);
             $matchCount = $this->createDemoMatches($tournaments);
-            $this->command->info('Done (teams). Tournaments: '.count($tournaments).', Matches: '.$matchCount);
+            $scoredCount = $this->scoreDemoMatchesForStats($tournaments);
+            $this->command->info('Done (teams). Tournaments: '.count($tournaments).', Matches: '.$matchCount.', Scored: '.$scoredCount);
 
             return;
         }
@@ -197,7 +240,8 @@ class ScoringDemoSeeder extends Seeder
         $tournaments = $this->createTournaments($organizers);
         $this->createTeamsAndAttach($sponsors, $players, $tournaments);
         $matchCount = $this->createDemoMatches($tournaments);
-        $this->command->info('Done (all). Players: '.count($players).', Organizers: '.count($organizers).', Sponsors: '.count($sponsors).', Tournaments: '.count($tournaments).', Matches: '.$matchCount);
+        $scoredCount = $this->scoreDemoMatchesForStats($tournaments);
+        $this->command->info('Done (all). Players: '.count($players).', Organizers: '.count($organizers).', Sponsors: '.count($sponsors).', Tournaments: '.count($tournaments).', Matches: '.$matchCount.', Scored: '.$scoredCount);
     }
 
     private function resolveScope(): string
@@ -398,39 +442,34 @@ class ScoringDemoSeeder extends Seeder
     private function createTournaments(array $organizers): array
     {
         $tournaments = [];
-        $types = TournamentTypeEnum::cases();
-        $formats = CricketFormatEnum::cases();
         $timings = MatchTimingEnum::cases();
 
-        for ($i = 1; $i <= 4; $i++) {
-            $org = $organizers[($i - 1) % count($organizers)];
-            $type = $types[($i - 1) % count($types)];
-            $format = $formats[($i - 1) % count($formats)];
-            $timing = $timings[($i - 1) % count($timings)];
-            $start = now()->addDays(7 + $i * 3);
+        foreach (self::DEMO_TOURNAMENT_CONFIG as $i => $config) {
+            $org = $organizers[$i % count($organizers)];
+            $timing = $timings[$i % count($timings)];
+            $start = now()->addDays(7 + ($i + 1) * 3);
             $end = $start->copy()->addDays(7);
 
-            $numberOfGroups = $i === 4 ? 2 : 1;
             $t = Tournament::updateOrCreate(
                 [
-                    'tournament_name' => self::DEMO_TOURNAMENT_NAMES[$i - 1],
+                    'tournament_name' => $config['name'],
                     'organizer_id' => $org->id,
                 ],
                 [
                     'created_by' => $org->id,
-                    'short_name' => self::DEMO_TOURNAMENT_SHORT_NAMES[$i - 1],
-                    'tournament_type' => $type->value,
-                    'cricket_format' => $format->value,
-                    'venue_name' => self::DEMO_VENUES[$i - 1],
+                    'short_name' => $config['short'],
+                    'tournament_type' => $config['type'],
+                    'cricket_format' => $config['format'],
+                    'venue_name' => $config['venue'],
                     'start_date' => $start,
                     'end_date' => $end,
                     'number_of_teams' => 4,
-                    'number_of_groups' => $numberOfGroups,
+                    'number_of_groups' => $config['groups'],
                     'country' => 'Pakistan',
-                    'city' => ['Karachi', 'Lahore', 'Islamabad', 'Rawalpindi'][$i - 1],
+                    'city' => $config['city'],
                     'match_timings' => $timing->value,
                     'status' => StatusEnum::ACTIVE->value,
-                    'prize' => $i === 4 ? 'Championship trophy + prize pool' : 'Participation medals',
+                    'prize' => $config['groups'] > 1 ? 'Championship trophy + prize pool' : 'Participation medals',
                 ]
             );
             $tournaments[] = $t;
@@ -488,10 +527,20 @@ class ScoringDemoSeeder extends Seeder
             }
         }
 
-        // Attach teams to tournaments (each tournament gets 2–4 teams; pivot group_index when grouped)
+        // Attach teams to tournaments (each tournament gets 2–4 teams; pivot group_index when grouped).
+        // Karachi Kings is always included so the same demo batters appear in every format bucket.
+        $anchorTeam = $teams[0];
         foreach ($tournaments as $idx => $tournament) {
             $take = min(4, count($teams) - $idx);
             $tournamentTeams = array_slice($teams, $idx, $take);
+            if (count($tournamentTeams) < 2) {
+                $tournamentTeams = array_slice($teams, 0, 2);
+            }
+            $tournamentTeams = collect($tournamentTeams)
+                ->prepend($anchorTeam)
+                ->unique('id')
+                ->values()
+                ->all();
             if (count($tournamentTeams) < 2) {
                 $tournamentTeams = array_slice($teams, 0, 2);
             }
@@ -562,7 +611,7 @@ class ScoringDemoSeeder extends Seeder
                         'match_date' => $date,
                         'match_time' => $time,
                         'venue_name' => $venue,
-                        'players_per_side' => 11,
+                        'players_per_side' => 5,
                         'overs' => self::DEMO_FIXTURE_OVERS,
                         'status' => MatchStatusEnum::SCHEDULED,
                     ]);
@@ -588,7 +637,7 @@ class ScoringDemoSeeder extends Seeder
                     'match_date' => $today->copy(),
                     'match_time' => $time,
                     'venue_name' => $venue,
-                    'players_per_side' => 11,
+                    'players_per_side' => 5,
                     'overs' => self::DEMO_FIXTURE_OVERS,
                     'status' => MatchStatusEnum::SCHEDULED,
                 ]);
@@ -597,5 +646,237 @@ class ScoringDemoSeeder extends Seeder
         }
 
         return $created;
+    }
+
+    /**
+     * Score the first fixture in each tournament and refresh materialized career stats.
+     *
+     * @param  array<Tournament>  $tournaments
+     */
+    private function scoreDemoMatchesForStats(array $tournaments): int
+    {
+        $scored = 0;
+
+        foreach ($tournaments as $index => $tournament) {
+            $match = $this->findStatsMatchForTournament($tournament);
+
+            if (! $match) {
+                continue;
+            }
+
+            $strikerRuns = self::DEMO_STATS_STRIKER_RUNS[$index]
+                ?? self::DEMO_STATS_STRIKER_RUNS[0];
+
+            $this->scoreMatchWithStats($match, $strikerRuns);
+            RefreshMatchStatsJob::dispatchSync($match->id);
+            $scored++;
+        }
+
+        return $scored;
+    }
+
+    private function findStatsMatchForTournament(Tournament $tournament): ?TournamentMatch
+    {
+        $karachiId = Team::query()->where('code', 'KNG')->value('id');
+        if ($karachiId) {
+            $withKarachi = TournamentMatch::query()
+                ->where('tournament_id', $tournament->id)
+                ->where(function ($query) use ($karachiId) {
+                    $query->where('home_team_id', $karachiId)
+                        ->orWhere('away_team_id', $karachiId);
+                })
+                ->orderBy('id')
+                ->first();
+            if ($withKarachi) {
+                return $withKarachi;
+            }
+        }
+
+        return TournamentMatch::query()
+            ->where('tournament_id', $tournament->id)
+            ->orderBy('id')
+            ->first();
+    }
+
+    private function scoreMatchWithStats(TournamentMatch $match, int $strikerRuns): void
+    {
+        $karachiId = Team::query()->where('code', 'KNG')->value('id');
+        $battingTeamId = (int) $match->home_team_id;
+        $bowlingTeamId = (int) $match->away_team_id;
+
+        if ($karachiId && in_array($karachiId, [$match->home_team_id, $match->away_team_id], true)) {
+            $battingTeamId = (int) $karachiId;
+            $bowlingTeamId = (int) ($match->home_team_id === $karachiId
+                ? $match->away_team_id
+                : $match->home_team_id);
+        }
+
+        $battingPlayers = $this->playersForTeam($battingTeamId);
+        $bowlingPlayers = $this->playersForTeam($bowlingTeamId);
+
+        if (count($battingPlayers) < 2 || count($bowlingPlayers) < 2) {
+            return;
+        }
+
+        $match->update([
+            'players_per_side' => self::DEMO_STATS_PLAYERS_PER_SIDE,
+            'status' => MatchStatusEnum::IN_PROGRESS,
+            'toss_winner_team_id' => $battingTeamId,
+            'chose_to_bat_or_bowl' => 'bat',
+        ]);
+
+        $innings1 = Innings::create([
+            'match_id' => $match->id,
+            'innings_number' => 1,
+            'batting_team_id' => $battingTeamId,
+            'bowling_team_id' => $bowlingTeamId,
+            'status' => InningsStatusEnum::IN_PROGRESS->value,
+        ]);
+
+        $innings2 = Innings::create([
+            'match_id' => $match->id,
+            'innings_number' => 2,
+            'batting_team_id' => $bowlingTeamId,
+            'bowling_team_id' => $battingTeamId,
+            'status' => InningsStatusEnum::NOT_STARTED->value,
+        ]);
+
+        $this->seedMatchSquads($match, $battingPlayers, $bowlingPlayers, $battingTeamId, $bowlingTeamId);
+
+        $strikerId = $battingPlayers[0];
+        $nonStrikerId = $battingPlayers[1];
+        $bowlerId = $bowlingPlayers[0];
+        $fielderId = $bowlingPlayers[1];
+        $nextBatterId = $battingPlayers[2] ?? $battingPlayers[0];
+
+        $innings1->balls()->create([
+            'over' => 0,
+            'ball_in_over' => 1,
+            'striker_id' => $strikerId,
+            'non_striker_id' => $nonStrikerId,
+            'bowler_id' => $bowlerId,
+            'runs' => 4,
+            'runs_off_bat' => 4,
+        ]);
+
+        $innings1->balls()->create([
+            'over' => 0,
+            'ball_in_over' => 2,
+            'striker_id' => $strikerId,
+            'non_striker_id' => $nonStrikerId,
+            'bowler_id' => $bowlerId,
+            'runs' => 6,
+            'runs_off_bat' => 6,
+        ]);
+
+        $innings1->balls()->create([
+            'over' => 0,
+            'ball_in_over' => 3,
+            'striker_id' => $strikerId,
+            'non_striker_id' => $nonStrikerId,
+            'bowler_id' => $bowlerId,
+            'runs' => max(0, $strikerRuns - 10),
+            'runs_off_bat' => max(0, $strikerRuns - 10),
+        ]);
+
+        $innings1->balls()->create([
+            'over' => 0,
+            'ball_in_over' => 4,
+            'striker_id' => $strikerId,
+            'non_striker_id' => $nonStrikerId,
+            'bowler_id' => $bowlerId,
+            'runs' => 1,
+            'runs_off_bat' => 0,
+            'is_wide' => true,
+        ]);
+
+        $innings1->balls()->create([
+            'over' => 0,
+            'ball_in_over' => 5,
+            'striker_id' => $nonStrikerId,
+            'non_striker_id' => $strikerId,
+            'bowler_id' => $bowlerId,
+            'runs' => 0,
+            'runs_off_bat' => 0,
+            'is_wicket' => true,
+            'dismissal_type' => DismissalTypeEnum::CAUGHT->value,
+            'out_player_id' => $nonStrikerId,
+            'fielder_id' => $fielderId,
+        ]);
+
+        $innings1->balls()->create([
+            'over' => 0,
+            'ball_in_over' => 6,
+            'striker_id' => $nextBatterId,
+            'non_striker_id' => $strikerId,
+            'bowler_id' => $bowlerId,
+            'runs' => 0,
+            'runs_off_bat' => 0,
+        ]);
+
+        $innings1->update(['status' => InningsStatusEnum::COMPLETED->value]);
+
+        $innings2->update(['status' => InningsStatusEnum::IN_PROGRESS->value]);
+        $innings2->balls()->create([
+            'over' => 0,
+            'ball_in_over' => 1,
+            'striker_id' => $bowlingPlayers[0],
+            'non_striker_id' => $bowlingPlayers[1],
+            'bowler_id' => $battingPlayers[0],
+            'runs' => 12,
+            'runs_off_bat' => 12,
+        ]);
+        $innings2->update(['status' => InningsStatusEnum::COMPLETED->value]);
+
+        $match->update(['status' => MatchStatusEnum::COMPLETED]);
+    }
+
+    /** @return list<int> */
+    private function playersForTeam(int $teamId): array
+    {
+        return DB::table('team_user')
+            ->where('team_id', $teamId)
+            ->orderBy('user_id')
+            ->pluck('user_id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  list<int>  $battingPlayers
+     * @param  list<int>  $bowlingPlayers
+     */
+    private function seedMatchSquads(
+        TournamentMatch $match,
+        array $battingPlayers,
+        array $bowlingPlayers,
+        int $battingTeamId,
+        int $bowlingTeamId
+    ): void {
+        $now = now();
+        $rows = [];
+
+        foreach ($battingPlayers as $playerId) {
+            $rows[] = [
+                'match_id' => $match->id,
+                'team_id' => $battingTeamId,
+                'user_id' => $playerId,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        foreach ($bowlingPlayers as $playerId) {
+            $rows[] = [
+                'match_id' => $match->id,
+                'team_id' => $bowlingTeamId,
+                'user_id' => $playerId,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        DB::table('match_squads')->insert($rows);
     }
 }

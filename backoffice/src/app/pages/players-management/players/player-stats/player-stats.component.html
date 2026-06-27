@@ -1,0 +1,411 @@
+@if (isLoadingPlayer) {
+  <div class="flex justify-center py-16">
+    <mat-spinner diameter="40" />
+  </div>
+} @else if (player) {
+  <div class="flex flex-col">
+    <mat-card class="cardWithShadow mb-3!">
+      <mat-card-content class="p-4 sm:p-6">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div class="min-w-0">
+            <h1 class="text-xl font-semibold m-0 truncate">{{ player.name }}</h1>
+            <p class="text-sm text-muted m-0 mt-1">
+              {{ player.playing_role ?? 'Player' }}
+              @if (player.phone) {
+                <span class="text-muted"> · {{ player.phone }}</span>
+              }
+              @if (player.city) {
+                <span class="text-muted"> · {{ player.city }}</span>
+              }
+            </p>
+          </div>
+          <span class="rounded-sm font-semibold px-2 py-1 text-xs shrink-0 bg-light-primary text-primary">
+            {{ bucketLabel }}
+          </span>
+        </div>
+
+        <nav
+          mat-tab-nav-bar
+          [tabPanel]="tabPanel"
+          mat-stretch-tabs="false"
+          mat-align-tabs="start"
+          class="mt-4 border-t border-border pt-1"
+        >
+          <a
+            mat-tab-link
+            (click)="setActiveTab('batting')"
+            [active]="activeTab === 'batting'"
+          >
+            Batting
+          </a>
+          <a
+            mat-tab-link
+            (click)="setActiveTab('bowling')"
+            [active]="activeTab === 'bowling'"
+          >
+            Bowling
+          </a>
+          <a
+            mat-tab-link
+            (click)="setActiveTab('fielding')"
+            [active]="activeTab === 'fielding'"
+          >
+            Fielding
+          </a>
+        </nav>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="cardWithShadow mb-3!">
+      <mat-card-content class="p-6">
+        <form
+          (ngSubmit)="applyFilters()"
+          [formGroup]="filterForm"
+          aria-label="Filter form"
+        >
+          <div class="grid grid-cols-12 gap-4 items-end">
+            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+              <mat-form-field
+                appearance="outline"
+                class="w-full hide-hint"
+              >
+                <mat-label>Tournament Type</mat-label>
+                <mat-select formControlName="tournament_type">
+                  @for (opt of tournamentTypeOptions; track opt.value) {
+                    <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+              <mat-form-field
+                appearance="outline"
+                class="w-full hide-hint"
+              >
+                <mat-label>Cricket Format</mat-label>
+                <mat-select formControlName="cricket_format">
+                  @for (opt of cricketFormatOptions; track opt.value) {
+                    <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="col-span-12 sm:col-span-6 lg:col-span-6 flex flex-wrap items-center justify-end gap-2">
+              <button
+                mat-stroked-button
+                type="button"
+                (click)="resetFilters()"
+              >
+                Clear Filters
+              </button>
+              <button
+                mat-flat-button
+                color="primary"
+                type="submit"
+              >
+                Search
+              </button>
+            </div>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-tab-nav-panel #tabPanel>
+      @if (isLoadingStats) {
+        <div class="flex justify-center py-12">
+          <mat-spinner diameter="40" />
+        </div>
+      } @else if (!stats || !hasActiveTabStats()) {
+        <div class="flex min-h-[18rem] w-full items-center justify-center px-4 py-10">
+          <app-empty-data-message variant="inline" />
+        </div>
+      } @else {
+        @switch (activeTab) {
+          @case ('batting') {
+            <div class="grid grid-cols-12 gap-4 mb-4">
+              <div class="col-span-12 sm:col-span-6 lg:col-span-4">
+                <mat-card class="cardWithShadow h-full mb-0!">
+                  <mat-card-content class="p-4 sm:p-5">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-sm text-muted m-0 mb-1">Runs</p>
+                        <p class="text-2xl font-semibold m-0">{{ stats.batting.runs }}</p>
+                        <p class="text-xs text-muted m-0 mt-1">in {{ stats.batting.innings }} innings</p>
+                      </div>
+                      <span class="bg-light-primary text-primary rounded-sm size-10! flex items-center justify-center shrink-0">
+                        <i-tabler
+                          name="cricket"
+                          class="size-5"
+                        />
+                      </span>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+
+              <div class="col-span-12 sm:col-span-6 lg:col-span-4">
+                <mat-card class="cardWithShadow h-full mb-0!">
+                  <mat-card-content class="p-4 sm:p-5">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-sm text-muted m-0 mb-1">Average</p>
+                        <p class="text-2xl font-semibold m-0">
+                          {{ stats.batting.average !== null ? stats.batting.average.toFixed(2) : emptyCell }}
+                        </p>
+                        <p class="text-xs text-muted m-0 mt-1">
+                          SR: {{ stats.batting.strike_rate !== null ? stats.batting.strike_rate.toFixed(2) : emptyCell }}
+                        </p>
+                      </div>
+                      <span class="bg-light-primary text-primary rounded-sm size-10! flex items-center justify-center shrink-0">
+                        <i-tabler
+                          name="chart-line"
+                          class="size-5"
+                        />
+                      </span>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+
+              <div class="col-span-12 sm:col-span-6 lg:col-span-4">
+                <mat-card class="cardWithShadow h-full mb-0!">
+                  <mat-card-content class="p-4 sm:p-5">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-sm text-muted m-0 mb-1">Highest Score</p>
+                        <p class="text-2xl font-semibold m-0">{{ stats.batting.highest_score }}</p>
+                        <p class="text-xs text-muted m-0 mt-1">
+                          100s: {{ stats.batting.hundreds }} · 50s: {{ stats.batting.fifties }}
+                        </p>
+                      </div>
+                      <span class="bg-light-primary text-primary rounded-sm size-10! flex items-center justify-center shrink-0">
+                        <i-tabler
+                          name="trophy"
+                          class="size-5"
+                        />
+                      </span>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+            </div>
+
+            <mat-card class="cardWithShadow mb-0! border border-border shadow-none">
+              <mat-card-content class="p-4 sm:p-6">
+                <div class="shrink-0 mb-4">
+                  <h2 class="text-base font-semibold m-0">Batting Details</h2>
+                  <p class="text-muted m-0 mt-1 text-xs">
+                    Career batting statistics for the selected tournament type and format.
+                  </p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-x-8 gap-y-0 sm:grid-cols-2 lg:grid-cols-3">
+                  @for (row of battingRows(stats.batting); track row.label) {
+                    <div class="border-border border-b py-3">
+                      <p class="text-muted m-0 mb-1 text-xs">{{ row.label }}</p>
+                      <p class="m-0 text-sm font-semibold leading-snug">{{ row.value }}</p>
+                    </div>
+                  }
+                </div>
+              </mat-card-content>
+            </mat-card>
+          }
+
+          @case ('bowling') {
+            <div class="grid grid-cols-12 gap-4 mb-4">
+              <div class="col-span-12 sm:col-span-6 lg:col-span-4">
+                <mat-card class="cardWithShadow h-full mb-0!">
+                  <mat-card-content class="p-4 sm:p-5">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-sm text-muted m-0 mb-1">Wickets</p>
+                        <p class="text-2xl font-semibold m-0">{{ stats.bowling.wickets }}</p>
+                        <p class="text-xs text-muted m-0 mt-1">in {{ stats.bowling.innings }} innings</p>
+                      </div>
+                      <span class="bg-light-primary text-primary rounded-sm size-10! flex items-center justify-center shrink-0">
+                        <i-tabler
+                          name="target"
+                          class="size-5"
+                        />
+                      </span>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+
+              <div class="col-span-12 sm:col-span-6 lg:col-span-4">
+                <mat-card class="cardWithShadow h-full mb-0!">
+                  <mat-card-content class="p-4 sm:p-5">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-sm text-muted m-0 mb-1">Economy</p>
+                        <p class="text-2xl font-semibold m-0">
+                          {{ stats.bowling.economy !== null ? stats.bowling.economy.toFixed(2) : emptyCell }}
+                        </p>
+                        <p class="text-xs text-muted m-0 mt-1">
+                          Avg: {{ stats.bowling.average !== null ? stats.bowling.average.toFixed(2) : emptyCell }}
+                        </p>
+                      </div>
+                      <span class="bg-light-primary text-primary rounded-sm size-10! flex items-center justify-center shrink-0">
+                        <i-tabler
+                          name="chart-line"
+                          class="size-5"
+                        />
+                      </span>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+
+              <div class="col-span-12 sm:col-span-6 lg:col-span-4">
+                <mat-card class="cardWithShadow h-full mb-0!">
+                  <mat-card-content class="p-4 sm:p-5">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-sm text-muted m-0 mb-1">Best Bowling</p>
+                        <p class="text-2xl font-semibold m-0">{{ stats.bowling.best_bowling_innings }}</p>
+                        <p class="text-xs text-muted m-0 mt-1">
+                          5W: {{ stats.bowling.five_wickets }} · 10W: {{ stats.bowling.ten_wickets }}
+                        </p>
+                      </div>
+                      <span class="bg-light-primary text-primary rounded-sm size-10! flex items-center justify-center shrink-0">
+                        <i-tabler
+                          name="trophy"
+                          class="size-5"
+                        />
+                      </span>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+            </div>
+
+            <mat-card class="cardWithShadow mb-0! border border-border shadow-none">
+              <mat-card-content class="p-4 sm:p-6">
+                <div class="shrink-0 mb-4">
+                  <h2 class="text-base font-semibold m-0">Bowling Details</h2>
+                  <p class="text-muted m-0 mt-1 text-xs">
+                    Career bowling statistics for the selected tournament type and format.
+                  </p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-x-8 gap-y-0 sm:grid-cols-2 lg:grid-cols-3">
+                  @for (row of bowlingRows(stats.bowling); track row.label) {
+                    <div class="border-border border-b py-3">
+                      <p class="text-muted m-0 mb-1 text-xs">{{ row.label }}</p>
+                      <p class="m-0 text-sm font-semibold leading-snug">{{ row.value }}</p>
+                    </div>
+                  }
+                </div>
+              </mat-card-content>
+            </mat-card>
+          }
+
+          @case ('fielding') {
+            <div class="grid grid-cols-12 gap-4 mb-4">
+              <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+                <mat-card class="cardWithShadow h-full mb-0!">
+                  <mat-card-content class="p-4 sm:p-5">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-sm text-muted m-0 mb-1">Matches</p>
+                        <p class="text-2xl font-semibold m-0">{{ stats.fielding.matches }}</p>
+                        <p class="text-xs text-muted m-0 mt-1">With fielding contributions</p>
+                      </div>
+                      <span class="bg-light-primary text-primary rounded-sm size-10! flex items-center justify-center shrink-0">
+                        <i-tabler
+                          name="calendar-event"
+                          class="size-5"
+                        />
+                      </span>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+
+              <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+                <mat-card class="cardWithShadow h-full mb-0!">
+                  <mat-card-content class="p-4 sm:p-5">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-sm text-muted m-0 mb-1">Catches</p>
+                        <p class="text-2xl font-semibold m-0">{{ stats.fielding.catches }}</p>
+                      </div>
+                      <span class="bg-light-primary text-primary rounded-sm size-10! flex items-center justify-center shrink-0">
+                        <i-tabler
+                          name="hand-stop"
+                          class="size-5"
+                        />
+                      </span>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+
+              <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+                <mat-card class="cardWithShadow h-full mb-0!">
+                  <mat-card-content class="p-4 sm:p-5">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-sm text-muted m-0 mb-1">Run Outs</p>
+                        <p class="text-2xl font-semibold m-0">{{ stats.fielding.run_outs }}</p>
+                      </div>
+                      <span class="bg-light-primary text-primary rounded-sm size-10! flex items-center justify-center shrink-0">
+                        <i-tabler
+                          name="run"
+                          class="size-5"
+                        />
+                      </span>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+
+              <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+                <mat-card class="cardWithShadow h-full mb-0!">
+                  <mat-card-content class="p-4 sm:p-5">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-sm text-muted m-0 mb-1">Stumpings</p>
+                        <p class="text-2xl font-semibold m-0">{{ stats.fielding.stumpings }}</p>
+                      </div>
+                      <span class="bg-light-primary text-primary rounded-sm size-10! flex items-center justify-center shrink-0">
+                        <i-tabler
+                          name="cricket"
+                          class="size-5"
+                        />
+                      </span>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+            </div>
+
+            <mat-card class="cardWithShadow mb-0! border border-border shadow-none">
+              <mat-card-content class="p-4 sm:p-6">
+                <div class="shrink-0 mb-4">
+                  <h2 class="text-base font-semibold m-0">Fielding Details</h2>
+                  <p class="text-muted m-0 mt-1 text-xs">
+                    Career fielding statistics for the selected tournament type and format.
+                  </p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-x-8 gap-y-0 sm:grid-cols-2 lg:grid-cols-3">
+                  @for (row of fieldingRows(stats.fielding); track row.label) {
+                    <div class="border-border border-b py-3">
+                      <p class="text-muted m-0 mb-1 text-xs">{{ row.label }}</p>
+                      <p class="m-0 text-sm font-semibold leading-snug">{{ row.value }}</p>
+                    </div>
+                  }
+                </div>
+              </mat-card-content>
+            </mat-card>
+          }
+        }
+      }
+    </mat-tab-nav-panel>
+  </div>
+}

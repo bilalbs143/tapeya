@@ -1,11 +1,7 @@
 @if (loading) {
-  <p class="table-not-found-msg">
-    {{ loadingMessage }}
-  </p>
+  <app-empty-data-message [message]="loadingMessage" />
 } @else if ((length === 0 || length === undefined) && showNoRecMessage) {
-  <p class="table-not-found-msg">
-    {{ noRecMessage }}
-  </p>
+  <app-empty-data-message [message]="noRecMessage" />
 }
 
 <mat-paginator

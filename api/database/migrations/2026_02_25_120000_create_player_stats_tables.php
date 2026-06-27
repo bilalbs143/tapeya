@@ -68,11 +68,12 @@ return new class extends Migration
             $table->index('match_id');
         });
 
-        // Accumulative by tournament_type: one row per player per tournament_type. Full column names.
+        // Accumulative by tournament_type + cricket_format: one row per player per stat bucket.
         Schema::create('player_batting_stats', function (Blueprint $table) {
             $table->id();
             $table->foreignId('player_id')->constrained('users')->cascadeOnDelete();
-            $table->string('tournament_type', 30); // league, open_tournament, emerging
+            $table->string('tournament_type', 30);
+            $table->string('cricket_format', 30);
             $table->unsignedInteger('matches')->default(0);
             $table->unsignedInteger('innings')->default(0);
             $table->unsignedInteger('not_outs')->default(0);
@@ -87,14 +88,15 @@ return new class extends Migration
             $table->decimal('average', 8, 2)->nullable();
             $table->decimal('strike_rate', 8, 2)->nullable();
             $table->timestamps();
-            $table->unique(['player_id', 'tournament_type']);
-            $table->index('tournament_type');
+            $table->unique(['player_id', 'tournament_type', 'cricket_format']);
+            $table->index(['tournament_type', 'cricket_format']);
         });
 
         Schema::create('player_bowling_stats', function (Blueprint $table) {
             $table->id();
             $table->foreignId('player_id')->constrained('users')->cascadeOnDelete();
             $table->string('tournament_type', 30);
+            $table->string('cricket_format', 30);
             $table->unsignedInteger('matches')->default(0);
             $table->unsignedInteger('innings')->default(0);
             $table->decimal('overs', 10, 2)->default(0);
@@ -111,21 +113,22 @@ return new class extends Migration
             $table->decimal('economy', 8, 2)->nullable();
             $table->decimal('strike_rate', 8, 2)->nullable();
             $table->timestamps();
-            $table->unique(['player_id', 'tournament_type']);
-            $table->index('tournament_type');
+            $table->unique(['player_id', 'tournament_type', 'cricket_format']);
+            $table->index(['tournament_type', 'cricket_format']);
         });
 
         Schema::create('player_fielding_stats', function (Blueprint $table) {
             $table->id();
             $table->foreignId('player_id')->constrained('users')->cascadeOnDelete();
             $table->string('tournament_type', 30);
+            $table->string('cricket_format', 30);
             $table->unsignedInteger('matches')->default(0);
             $table->unsignedInteger('catches')->default(0);
             $table->unsignedInteger('run_outs')->default(0);
             $table->unsignedInteger('stumpings')->default(0);
             $table->timestamps();
-            $table->unique(['player_id', 'tournament_type']);
-            $table->index('tournament_type');
+            $table->unique(['player_id', 'tournament_type', 'cricket_format']);
+            $table->index(['tournament_type', 'cricket_format']);
         });
     }
 
