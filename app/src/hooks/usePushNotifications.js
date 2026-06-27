@@ -178,7 +178,6 @@ export function usePushNotifications() {
         );
 
         await PushNotifications.register();
-        initializedRef.current = true;
 
         // Re-login often reuses the same OS token without firing registration again.
         if (Capacitor.getPlatform() === 'ios') {
@@ -192,12 +191,34 @@ export function usePushNotifications() {
             await syncDeviceTokenWithApi(registerToken, storedToken);
           }
         }
+
+        if (!cancelled) {
+          initializedRef.current = true;
+        }
       } catch {
         // plugin unavailable or web build
       }
     };
 
-    setup();
+    const handleForeground = async () => {
+      if (cancelled || Capacitor.getPlatform() !== 'ios') return;
+      const fcmToken = await getIosFcmTokenWithRetry(6, 1000);
+      if (fcmToken && !cancelled) {
+        await syncDeviceTokenWithApi(registerToken, fcmToken);
+      }
+    };
+
+    setup().then(() => {
+      if (!cancelled && Capacitor.getPlatform() === 'ios') {
+        import('@capacitor/app').then(({ App }) => {
+          App.addListener('appStateChange', ({ isActive }) => {
+            if (isActive) handleForeground();
+          }).then((l) => {
+            listeners.push(l);
+          });
+        });
+      }
+    });
 
     return () => {
       cancelled = true;

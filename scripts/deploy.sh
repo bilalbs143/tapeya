@@ -59,7 +59,7 @@ deploy_mobile() {
     npm run build
     
     print_status "Mobile web build complete"
-    echo "For native builds, use: npm run cap:sync && npm run cap:open:ios (or cap:open:android)"
+    echo "For native builds, use: npm run cap:ios or npm run cap:android"
 }
 
 case "$1" in

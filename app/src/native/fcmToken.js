@@ -31,7 +31,7 @@ export async function getIosFcmToken() {
  * FCM token may not be ready the instant APNs registration fires — retry briefly.
  * @returns {Promise<string | null>}
  */
-export async function getIosFcmTokenWithRetry(maxAttempts = 6, delayMs = 500) {
+export async function getIosFcmTokenWithRetry(maxAttempts = 20, delayMs = 1500) {
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     const token = await getIosFcmToken();
     if (token) {

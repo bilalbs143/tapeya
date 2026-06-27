@@ -20,23 +20,17 @@ src/
 | Command                | Description                     |
 | ---------------------- | ------------------------------- |
 | `npm run dev`          | Start dev server (Web)          |
-| `npm run build`        | Production build                |
-| `npm run preview`      | Preview production build        |
-| `npm run lint`         | Run ESLint                      |
-| `npm run lint:fix`     | Run ESLint with auto-fix        |
-| `npm run format`       | Format code with Prettier       |
-| `npm run format:check` | Check Prettier formatting       |
-| `npm run fix`          | Lint fix + format (all-in-one)  |
-| `npm run cap:sync`     | Build + sync to native projects |
-| `npm run cap:ios`      | Open Xcode (iOS)                |
-| `npm run cap:android`  | Open Android Studio             |
+| `npm run build`        | Web production build            |
+| `npm run cap:sync`     | Sync existing `dist/` to native |
+| `npm run cap:ios`      | iOS build + sync + open Xcode   |
+| `npm run cap:android`  | Android build + sync + open IDE |
 
 ## Native Setup
 
-1. Build: `npm run build`
-2. Add platforms (first time): `npx cap add ios` and/or `npx cap add android`
-3. Sync: `npm run cap:sync`
-4. Open: `npm run cap:ios` or `npm run cap:android`
+1. Add platforms (first time): `npx cap add ios` and/or `npx cap add android`
+2. iOS: `npm run cap:ios` (build with iOS native config, sync, open Xcode)
+3. Android: `npm run cap:android`
+4. Re-sync only (after a platform build): `npm run cap:sync`
 
 ## Path Aliases
 
