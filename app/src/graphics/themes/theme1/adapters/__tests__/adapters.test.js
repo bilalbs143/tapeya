@@ -1404,7 +1404,27 @@ describe('theme1 squad adapter', () => {
     expect(bundle?.data.players).toHaveLength(2);
     expect(bundle?.data.players[0]).toMatchObject({ name: 'Player One', captain: true });
     expect(bundle?.data.players[1]).toMatchObject({ name: 'Player Two', wicketKeeper: true });
+    expect(bundle?.teams.batting.color).toBe('#9b7bff');
+    expect(bundle?.data.accent).toBe('#9b7bff');
+    expect(bundle?.data.accentAlt).toBe('#f0a93c');
     expect(bundle?.teams.batting.code).toBeTruthy();
+  });
+
+  it('maps bowling squad with away team color when home is batting', () => {
+    const snapshot = createTestSnapshot({
+      active_command: { command_key: 'BOWLING_SQUAD', display_mode: 'FS' },
+      context: {
+        squad_away: [{ player_id: 3, name: 'Away Player', role: 'bowler' }],
+        batting_team: 'home',
+      },
+    });
+
+    const props = PROCESSOR_MAP.BOWLING_SQUAD(snapshot);
+    const bundle = toSquadBundle(props, tokens, 'bowling');
+
+    expect(props.teamSide).toBe('away');
+    expect(bundle?.teams.bowling.color).toBe('#f0a93c');
+    expect(bundle?.data.accentAlt).toBe('#9b7bff');
   });
 
   it('maps preview fixture shape to squad bundle', () => {

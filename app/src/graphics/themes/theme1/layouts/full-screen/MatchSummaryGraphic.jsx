@@ -220,6 +220,7 @@ function MatchSummaryCrests({ top, bottom }) {
         shortName={top.shortName}
         size={CREST_SIZE}
         accent={top.accent}
+        accentAlt={bottom.accent}
         borderPulseOrder={1}
       />
       <VSBadge size={CREST_VS_SIZE} />
@@ -229,6 +230,7 @@ function MatchSummaryCrests({ top, bottom }) {
         shortName={bottom.shortName}
         size={CREST_SIZE}
         accent={bottom.accent}
+        accentAlt={top.accent}
         borderPulseOrder={2}
       />
     </div>

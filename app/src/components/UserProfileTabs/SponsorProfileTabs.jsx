@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { PROFILE_OVERVIEW_ROLE } from '@/lib/constants/profile';
+import { PROFILE_OVERVIEW_ROLE, PROFILE_SHELL_CLASS } from '@/lib/constants/profile';
 import {
   profileListClass,
   profileTabIconClass,
@@ -76,23 +76,25 @@ export function SponsorProfileTabs({ teams, partnerships, reach }) {
   ];
 
   return (
-    <Tabs className="w-full" value={activeTab} onValueChange={handleSubTabChange}>
-      <TabsList className={profileListClass}>
-        {TABS.map(({ value, label, icon }) => (
-          <TabsTrigger key={value} value={value} className={profileTriggerClass}>
-            <img src={icon} alt="" width={profileTabIconSize} height={profileTabIconSize} className={profileTabIconClass} />
-            {label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-      <ProfileMetrics metrics={metrics} />
-      <div className={CONTENT_WRAPPER_CLASS}>
-        {TABS.map(({ value, Content }) => (
-          <TabsContent key={value} value={value} className="focus:outline-none">
-            {value === 'overview' ? <ProfileRoleOverview role={PROFILE_OVERVIEW_ROLE.SPONSOR} /> : Content ? <Content /> : null}
-          </TabsContent>
-        ))}
-      </div>
-    </Tabs>
+    <div className={PROFILE_SHELL_CLASS}>
+      <Tabs className="w-full" value={activeTab} onValueChange={handleSubTabChange}>
+        <TabsList className={profileListClass}>
+          {TABS.map(({ value, label, icon }) => (
+            <TabsTrigger key={value} value={value} className={profileTriggerClass}>
+              <img src={icon} alt="" width={profileTabIconSize} height={profileTabIconSize} className={profileTabIconClass} />
+              {label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <ProfileMetrics metrics={metrics} />
+        <div className={CONTENT_WRAPPER_CLASS}>
+          {TABS.map(({ value, Content }) => (
+            <TabsContent key={value} value={value} className="focus:outline-none">
+              {value === 'overview' ? <ProfileRoleOverview role={PROFILE_OVERVIEW_ROLE.SPONSOR} /> : Content ? <Content /> : null}
+            </TabsContent>
+          ))}
+        </div>
+      </Tabs>
+    </div>
   );
 }

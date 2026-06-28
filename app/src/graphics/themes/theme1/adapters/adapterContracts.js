@@ -356,7 +356,7 @@ export const THEME1_ADAPTER_CONTRACTS = [
   },
   {
     commandKey: 'HIGHEST_RUNS',
-    adapter: (props) => toLeaderboardData(props),
+    adapter: (props, tokens) => toLeaderboardData(props, tokens),
     requireKeys: ['title', 'data'],
     snapshotOverrides: {
       active_command: { command_key: 'HIGHEST_RUNS', display_mode: 'FS' },

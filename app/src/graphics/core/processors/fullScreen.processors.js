@@ -30,6 +30,7 @@ export function processBattingSquad(snapshot) {
 
   return {
     team,
+    teamSide: isBattingHome ? 'home' : 'away',
     tournamentLabel: tournamentLabelOnly(snapshot),
     players: Array.isArray(squad) ? squad : [],
     requiredRunRate: live.requiredRR ?? '',
@@ -49,6 +50,7 @@ export function processBowlingSquad(snapshot) {
 
   return {
     team,
+    teamSide: isBowlingHome ? 'home' : 'away',
     tournamentLabel: tournamentLabelOnly(snapshot),
     players: Array.isArray(squad) ? squad : [],
     requiredRunRate: live.requiredRR ?? '',
@@ -62,6 +64,8 @@ export function processBowlingSummary(snapshot) {
 
   return {
     bowlingTeam: live.bowlingTeam,
+    // bowling side is the opposite of batting
+    bowlingTeamSide: live.battingTeamSide === 'home' ? 'away' : 'home',
     tournamentLabel: tournamentLabelOnly(snapshot),
     bowlers: Array.isArray(p.bowlers) && p.bowlers.length > 0 ? p.bowlers : live.bowlers,
     fallOfWickets: Array.isArray(p.fall_of_wickets) && p.fall_of_wickets.length > 0 ? p.fall_of_wickets : live.fallOfWickets,

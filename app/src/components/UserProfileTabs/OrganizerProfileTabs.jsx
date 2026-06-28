@@ -1,5 +1,5 @@
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { PROFILE_OVERVIEW_ROLE } from '@/lib/constants/profile';
+import { PROFILE_OVERVIEW_ROLE, PROFILE_SHELL_CLASS } from '@/lib/constants/profile';
 import {
   profileListClass,
   profileTabIconClass,
@@ -60,27 +60,29 @@ export function OrganizerProfileTabs({ tournaments, events, teams }) {
       : ORGANIZER_METRICS;
 
   return (
-    <Tabs className="w-full" defaultValue="overview">
-      <TabsList className={profileListClass}>
-        {TABS.map(({ value, label, icon }) => (
-          <TabsTrigger key={value} value={value} className={profileTriggerClass}>
-            <img src={icon} alt="" width={profileTabIconSize} height={profileTabIconSize} className={profileTabIconClass} />
-            {label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-      <ProfileMetrics metrics={metrics} />
-      <div className={CONTENT_WRAPPER_CLASS}>
-        {TABS.map(({ value, Content }) => (
-          <TabsContent key={value} value={value} className="focus:outline-none">
-            {value === 'overview' ? (
-              <ProfileRoleOverview role={PROFILE_OVERVIEW_ROLE.ORGANIZER} tournaments={tournaments} events={events} />
-            ) : Content ? (
-              <Content tournaments={tournaments} events={events} teams={teams} />
-            ) : null}
-          </TabsContent>
-        ))}
-      </div>
-    </Tabs>
+    <div className={PROFILE_SHELL_CLASS}>
+      <Tabs className="w-full" defaultValue="overview">
+        <TabsList className={profileListClass}>
+          {TABS.map(({ value, label, icon }) => (
+            <TabsTrigger key={value} value={value} className={profileTriggerClass}>
+              <img src={icon} alt="" width={profileTabIconSize} height={profileTabIconSize} className={profileTabIconClass} />
+              {label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <ProfileMetrics metrics={metrics} />
+        <div className={CONTENT_WRAPPER_CLASS}>
+          {TABS.map(({ value, Content }) => (
+            <TabsContent key={value} value={value} className="focus:outline-none">
+              {value === 'overview' ? (
+                <ProfileRoleOverview role={PROFILE_OVERVIEW_ROLE.ORGANIZER} tournaments={tournaments} events={events} />
+              ) : Content ? (
+                <Content tournaments={tournaments} events={events} teams={teams} />
+              ) : null}
+            </TabsContent>
+          ))}
+        </div>
+      </Tabs>
+    </div>
   );
 }

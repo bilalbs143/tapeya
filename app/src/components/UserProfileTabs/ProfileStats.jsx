@@ -1,23 +1,12 @@
 import { useMemo, useState } from 'react';
 
 import { StatItem, StatItemInline } from '@/features/profile/components/StatItem';
-import { CONTENT_MAX_WIDTH } from '@/lib/constants/profile';
 import { formatDecimal } from '@/lib/utils/displayUtils';
 import { useGetEnumsQuery } from '@/store/api/enumApi';
 import { useGetPlayerStatsQuery, useGetPlayerTeamsQuery } from '@/store/api/playerApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
-import {
-  Select,
-  SelectContent,
-  selectContentInputClass,
-  SelectItem,
-  selectItemInputClass,
-  SelectTrigger,
-  selectTriggerInputClass,
-  SelectValue,
-  selectViewportInputClass,
-} from '@/ui/Select';
+import { FilterPillSelect, FilterPillSelectGroup } from '@/ui/FilterPillSelect';
 
 const TEAMS_PREVIEW_COUNT = 3;
 const ALL_OPTION = { value: 'all', label: 'All' };
@@ -26,11 +15,6 @@ const LABEL_CLASS = 'text-[14px] font-bold uppercase tracking-wide text-muted';
 
 function withAllOption(options = []) {
   return [ALL_OPTION, ...options];
-}
-
-function optionLabel(options, value) {
-  if (value === 'all') return 'All';
-  return options.find((o) => o.value === value)?.label ?? value;
 }
 
 function hasBattingActivity(stats) {
@@ -147,11 +131,6 @@ export function ProfileStats() {
   const showMoreLink = hasMoreTeams && !teamsExpanded;
   const showLessLink = hasMoreTeams && teamsExpanded;
 
-  const bucketLabel = `${optionLabel(enums.tournament_type ?? [], tournamentType)} · ${optionLabel(
-    enums.cricket_format ?? [],
-    cricketFormat,
-  )}`;
-
   const summaryStats = buildSummaryStats(batting);
 
   const careerAverages = buildBattingCareer(batting);
@@ -162,36 +141,25 @@ export function ProfileStats() {
   const hasAnyTeams = teamNames.length > 0;
 
   return (
-    <div className={`mx-auto w-full ${CONTENT_MAX_WIDTH} py-6`}>
-      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Select value={tournamentType} onValueChange={setTournamentType}>
-          <SelectTrigger className={selectTriggerInputClass} aria-label="Tournament type">
-            <SelectValue placeholder="Tournament type" />
-          </SelectTrigger>
-          <SelectContent className={selectContentInputClass} viewportClassName={selectViewportInputClass}>
-            {tournamentTypeOptions.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value} className={selectItemInputClass}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={cricketFormat} onValueChange={setCricketFormat}>
-          <SelectTrigger className={selectTriggerInputClass} aria-label="Cricket format">
-            <SelectValue placeholder="Cricket format" />
-          </SelectTrigger>
-          <SelectContent className={selectContentInputClass} viewportClassName={selectViewportInputClass}>
-            {cricketFormatOptions.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value} className={selectItemInputClass}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <p className="text-muted mb-4 text-[12px] font-medium tracking-wide uppercase">{bucketLabel}</p>
+    <div className="py-6">
+      <FilterPillSelectGroup className="mb-5">
+        <FilterPillSelect
+          label="Type"
+          segment="left"
+          value={tournamentType}
+          onValueChange={setTournamentType}
+          options={tournamentTypeOptions}
+          ariaLabel="Tournament type"
+        />
+        <FilterPillSelect
+          label="Format"
+          segment="right"
+          value={cricketFormat}
+          onValueChange={setCricketFormat}
+          options={cricketFormatOptions}
+          ariaLabel="Cricket format"
+        />
+      </FilterPillSelectGroup>
 
       {isLoading ? (
         <div className="text-sm text-white/60">Loading stats…</div>

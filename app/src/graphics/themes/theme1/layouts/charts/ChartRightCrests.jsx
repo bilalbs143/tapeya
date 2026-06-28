@@ -17,6 +17,7 @@ export function ChartRightCrests({ top, bottom }) {
         shortName={top.shortName}
         size={CHART_CREST_SIZE}
         accent={top.accent}
+        accentAlt={bottom.accent}
         borderPulseOrder={1}
       />
       <VSBadge size={CHART_CREST_VS_SIZE} />
@@ -26,6 +27,7 @@ export function ChartRightCrests({ top, bottom }) {
         shortName={bottom.shortName}
         size={CHART_CREST_SIZE}
         accent={bottom.accent}
+        accentAlt={top.accent}
         borderPulseOrder={2}
       />
     </div>

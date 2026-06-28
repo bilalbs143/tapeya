@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
@@ -13,7 +13,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import type { GraphicTheme, MatchGraphicSession } from 'src/app/services/match-graphic.service';
+import type { GraphicTheme, MatchGraphicSession, ThemeConfigProperty } from 'src/app/services/match-graphic.service';
 import { MatchGraphicService } from 'src/app/services/match-graphic.service';
 import { MessageService } from 'src/app/services/message.service';
 import type { TournamentMatchRow } from 'src/app/services/tournament-matches.service';
@@ -26,12 +26,6 @@ export interface ControllerSettingsDialogData {
   session: MatchGraphicSession | null;
   themes: GraphicTheme[];
 }
-
-type TeamColors = { text_color?: string; bg_color?: string };
-type ConfigShape = {
-  teams?: { home?: TeamColors; away?: TeamColors };
-  enable_images?: boolean;
-};
 
 @Component({
   selector: 'app-controller-settings-dialog',
@@ -71,33 +65,46 @@ export class ControllerSettingsDialogComponent {
   public readonly sessionReady = signal(this.data.session !== null);
 
   private readonly defaultTheme = this.data.themes.find((t) => t.is_active) ?? this.data.themes[0] ?? null;
-
   private readonly initialThemeId = this.data.session?.graphic_theme_id ?? this.defaultTheme?.id ?? null;
 
   public readonly signedOverlayUrl = signal<string | null>(null);
   public readonly signedLinkLoading = signal(false);
   public readonly signedLinkError = signal(false);
 
+  /** Properties driven by the currently selected theme's config_schema. */
+  public readonly schemaProperties = signal<ThemeConfigProperty[]>([]);
+
+  /** Dynamic config form — rebuilt when the selected theme changes. */
+  public configForm: FormGroup = this.fb.group({});
+
   public readonly form = this.fb.nonNullable.group({
     graphic_theme_id: [this.initialThemeId, Validators.required],
-    home_text: ['#ffffff'],
-    home_bg: ['#0d3320'],
-    away_text: ['#ffffff'],
-    away_bg: ['#4a0e0e'],
-    enable_images: [false],
   });
 
   public readonly saveButtonLabel = computed(() => 'Save');
-
   public readonly dialogTitle = computed(() => 'Graphics Settings');
-
   public readonly dismissLabel = computed(() => (this.sessionReady() && this.data.session === null ? 'Done' : 'Cancel'));
 
   constructor() {
-    this.patchFormFromConfig();
+    this.rebuildConfigFormForTheme(this.initialThemeId);
+
+    // When the broadcaster switches theme, rebuild the config form for the new schema.
+    this.form.controls.graphic_theme_id.valueChanges.subscribe((id) => {
+      this.rebuildConfigFormForTheme(id);
+    });
+
     if (this.sessionReady()) {
       this.refreshSignedOverlayUrl();
     }
+  }
+
+  /** Resolve a human-readable label for a config property.
+   *  Color keys that contain 'home' / 'away' swap in the actual team names. */
+  public propertyLabel(prop: ThemeConfigProperty): string {
+    const home = this.data.match.home_team?.name ?? 'Home';
+    const away = this.data.match.away_team?.name ?? 'Away';
+
+    return prop.label.replace(/\bhome\b/gi, home).replace(/\baway\b/gi, away);
   }
 
   public refreshSignedOverlayUrl(autoCopy = false): void {
@@ -144,20 +151,16 @@ export class ControllerSettingsDialogComponent {
   }
 
   public save(): void {
-    if (this.form.invalid || this.saving) {
+    if (this.form.invalid || this.configForm.invalid || this.saving) {
       return;
     }
 
-    const v = this.form.getRawValue();
+    const themeId = this.form.getRawValue().graphic_theme_id;
+    const configValues = this.configForm.getRawValue() as Record<string, unknown>;
+
     const body = {
-      graphic_theme_id: v.graphic_theme_id,
-      config: {
-        teams: {
-          home: { text_color: v.home_text, bg_color: v.home_bg },
-          away: { text_color: v.away_text, bg_color: v.away_bg },
-        },
-        enable_images: v.enable_images,
-      },
+      graphic_theme_id: themeId,
+      config: configValues,
     };
 
     this.saving = true;
@@ -184,17 +187,27 @@ export class ControllerSettingsDialogComponent {
     });
   }
 
-  private patchFormFromConfig(): void {
-    const cfg = (this.data.session?.config ?? {}) as ConfigShape;
-    const activeTheme = this.data.themes.find((t) => t.id === this.initialThemeId) ?? this.defaultTheme;
-    const themeCfg = (activeTheme?.default_config ?? {}) as ConfigShape;
+  // ---------------------------------------------------------------------------
 
-    this.form.patchValue({
-      home_text: cfg.teams?.home?.text_color ?? themeCfg.teams?.home?.text_color ?? '#ffffff',
-      home_bg: cfg.teams?.home?.bg_color ?? themeCfg.teams?.home?.bg_color ?? '#0d3320',
-      away_text: cfg.teams?.away?.text_color ?? themeCfg.teams?.away?.text_color ?? '#ffffff',
-      away_bg: cfg.teams?.away?.bg_color ?? themeCfg.teams?.away?.bg_color ?? '#4a0e0e',
-      enable_images: Boolean(cfg.enable_images ?? themeCfg.enable_images),
-    });
+  private rebuildConfigFormForTheme(themeId: number | null): void {
+    const theme = this.data.themes.find((t) => t.id === themeId) ?? this.defaultTheme;
+    const properties = theme?.config_schema?.properties ?? [];
+
+    const sessionConfig = this.data.session?.config ?? {};
+    const themeDefaults = theme?.default_config ?? {};
+    // Preserve any values the broadcaster already edited in the current session (before saving).
+    const currentValues = this.configForm.getRawValue() as Record<string, unknown>;
+
+    // Build a new FormGroup with one control per schema property
+    const controls: Record<string, ReturnType<FormBuilder['control']>> = {};
+    for (const prop of properties) {
+      // Priority: in-flight unsaved edit → saved session value → theme default → schema default
+      const savedValue = currentValues[prop.key] ?? sessionConfig[prop.key] ?? themeDefaults[prop.key] ?? prop.default;
+      const validators = prop.type === 'color' ? [Validators.pattern(/^#[0-9a-fA-F]{6}$/)] : [];
+      controls[prop.key] = this.fb.control(savedValue, validators);
+    }
+
+    this.configForm = this.fb.group(controls);
+    this.schemaProperties.set(properties);
   }
 }

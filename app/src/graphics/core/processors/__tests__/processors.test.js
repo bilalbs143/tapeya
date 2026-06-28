@@ -1275,6 +1275,7 @@ describe('remaining processor gaps', () => {
     const props = processBattingSquad(snapshot);
 
     expect(props.team.name).toBe('Home XI');
+    expect(props.teamSide).toBe('home');
     expect(props.players).toHaveLength(2);
     expect(props.requiredRunRate).toBe('9.50');
   });
@@ -1291,6 +1292,7 @@ describe('remaining processor gaps', () => {
     const props = processBowlingSquad(snapshot);
 
     expect(props.team.name).toBe('Away XI');
+    expect(props.teamSide).toBe('away');
     expect(props.players).toHaveLength(1);
   });
 

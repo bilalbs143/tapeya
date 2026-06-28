@@ -45,6 +45,7 @@ function teamRecordForEntry(entry, sideTeams, tokens) {
     },
     code,
     tokens,
+    code === 'home' || code === 'away' ? code : null,
   );
 }
 

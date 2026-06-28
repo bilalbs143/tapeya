@@ -3,9 +3,9 @@
  */
 import { resolveBroadcastNameParts, resolveBroadcastPlayerName } from '../../../core/domain/playerNameResolver';
 import {
-  coalescePlayerImageUrl,
+  coalescePlayerImageUrlGated,
   parseInningsScore,
-  resolvePlayerImageUrl,
+  resolvePlayerImageUrlGated,
   resolveTeamCode,
   toTeamRecord,
   tournamentSub,
@@ -66,7 +66,14 @@ function previewLastWicketBatter(props, tokens) {
     };
   }
 
-  const theme1Team = teams[code] ?? toTeamRecord(props.homeTeam ?? props.awayTeam ?? { name: code }, code, tokens);
+  const theme1Team =
+    teams[code] ??
+    toTeamRecord(
+      props.homeTeam ?? props.awayTeam ?? { name: code },
+      code,
+      tokens,
+      code === 'home' || code === 'away' ? code : null,
+    );
   const { firstName, lastName, displayName } = resolveBroadcastNameParts({
     name: props.name,
     firstName: props.firstName,
@@ -91,7 +98,7 @@ function previewLastWicketBatter(props, tokens) {
       dismissal: formatDismissal(props.dismissal ?? props.dismissal_text),
       role: props.role ?? '',
       teamCode: code,
-      avatarUrl: resolvePlayerImageUrl(props),
+      avatarUrl: resolvePlayerImageUrlGated(props, tokens),
       logoUrl: props.logoUrl ?? theme1Team.logoUrl ?? null,
     },
   };
@@ -178,7 +185,7 @@ export function toLastWicketFsBatter(props, tokens) {
     batter: {
       ...batter,
       teamCode,
-      avatarUrl: coalescePlayerImageUrl(last, dismissedRow),
+      avatarUrl: coalescePlayerImageUrlGated(tokens, last, dismissedRow),
       logoUrl: last.logoUrl ?? battingTeam.logoUrl ?? null,
     },
   };

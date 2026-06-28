@@ -131,11 +131,11 @@ describe('normalizeSession', () => {
         },
         context_hash: 'server-hash-abc',
         config: {
-          home_text_color: '#fff',
-          home_bg_color: '#111',
-          away_text_color: '#eee',
-          away_bg_color: '#222',
-          enable_images: true,
+          homeBgColor: '#111',
+          awayBgColor: '#222',
+          homeTextColor: '#fff',
+          awayTextColor: '#eee',
+          enableImages: true,
         },
         context: {
           match: {

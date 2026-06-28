@@ -4,7 +4,7 @@
 import { parseBowlingFigures } from '../../../core/domain/player';
 import { resolveBroadcastNameParts } from '../../../core/domain/playerNameResolver';
 import { fmt } from '../primitives';
-import { resolvePlayerImageUrl, resolveTeamCode as resolveTeamSide, toTeamRecord, tournamentSub } from './_shared';
+import { resolvePlayerImageUrlGated, resolveTeamCode as resolveTeamSide, toTeamRecord, tournamentSub } from './_shared';
 import { toTeams } from './teams.adapter';
 
 function toNum(value) {
@@ -99,7 +99,7 @@ export function toPlayer(props, tokens) {
       lastName,
       role: props.playerRole ?? props.role ?? '',
       teamCode,
-      avatarUrl: resolvePlayerImageUrl(props),
+      avatarUrl: resolvePlayerImageUrlGated(props, tokens),
       logoUrl: props.playerTeamLogoUrl ?? props.logoUrl ?? null,
     },
     statFields: stats.map((s, index) => ({

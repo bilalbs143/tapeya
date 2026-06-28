@@ -4,7 +4,15 @@
 import { resolveBroadcastPlayerName } from '../../../core/domain/playerNameResolver';
 import { assets } from '../config';
 import { isNotOutBatter, resolvePlayerDisplayName } from '../primitives';
-import { normalizeAccentColor, resolvePlayerImageUrl, resolveTeamCode, toTeamRecord, tournamentSub } from './_shared';
+import {
+  normalizeAccentColor,
+  resolveCounterpartSide,
+  resolvePlayerImageUrlGated,
+  resolveTeamCode,
+  resolveTeamColor,
+  toTeamRecord,
+  tournamentSub,
+} from './_shared';
 import { toTeams } from './teams.adapter';
 
 /**
@@ -165,6 +173,7 @@ export function toBattingSummaryBundle(props, tokens) {
     const code = String(props.teamCode ?? 'batting');
     const team = fixtureTeamRecord(props, code, tokens);
 
+    const side = props.battingTeamSide ?? 'home';
     return {
       teams: { [code]: team },
       data: {
@@ -172,6 +181,7 @@ export function toBattingSummaryBundle(props, tokens) {
         title: props.title,
         sub: tournamentSub(props),
         accent: team.color,
+        accentAlt: resolveTeamColor(resolveCounterpartSide(side), tokens),
         crestLogoUrl: props.crestLogoUrl ?? props.logoUrl ?? null,
         scoreStrip: props.scoreStrip ?? {},
         batsmen: props.batsmen.map(mapBattingSummaryRow),
@@ -184,7 +194,8 @@ export function toBattingSummaryBundle(props, tokens) {
 
   const battingTeam = props.battingTeam ?? {};
   const code = 'batting';
-  const theme1Team = toTeamRecord(battingTeam, code, tokens);
+  const side = props.battingTeamSide ?? null;
+  const theme1Team = toTeamRecord(battingTeam, code, tokens, side);
   const teams = { [code]: theme1Team };
 
   return {
@@ -194,6 +205,7 @@ export function toBattingSummaryBundle(props, tokens) {
       title: battingTeam.name ?? theme1Team.displayName,
       sub: tournamentSub(props),
       accent: theme1Team.color,
+      accentAlt: resolveTeamColor(resolveCounterpartSide(side), tokens),
       crestLogoUrl: props.teamLogoUrl ?? battingTeam.logoUrl ?? null,
       scoreStrip: {
         extras: props.inningsExtras ?? 0,
@@ -212,6 +224,7 @@ export function toBattingSummaryBundle(props, tokens) {
 export function toBowlingSummaryBundle(props, tokens) {
   if (props.title && Array.isArray(props.bowlers) && props.bowlers.length && !props.bowlingTeam) {
     const code = String(props.teamCode ?? 'bowling');
+    const side = props.bowlingTeamSide ?? 'away';
     const team = fixtureTeamRecord(props, code, tokens);
 
     return {
@@ -221,6 +234,7 @@ export function toBowlingSummaryBundle(props, tokens) {
         title: props.title,
         sub: tournamentSub(props),
         accent: team.color,
+        accentAlt: resolveTeamColor(resolveCounterpartSide(side), tokens),
         accentSecondary: props.accentSecondary,
         crestLogoUrl: props.crestLogoUrl ?? props.logoUrl ?? null,
         fallOfWicketsLabel: props.fallOfWicketsLabel ?? 'FALL OF WICKETS',
@@ -235,7 +249,8 @@ export function toBowlingSummaryBundle(props, tokens) {
 
   const bowlingTeam = props.bowlingTeam ?? {};
   const code = 'bowling';
-  const theme1Team = toTeamRecord(bowlingTeam, code, tokens);
+  const side = props.bowlingTeamSide ?? null;
+  const theme1Team = toTeamRecord(bowlingTeam, code, tokens, side);
   const teams = { [code]: theme1Team };
 
   return {
@@ -245,6 +260,7 @@ export function toBowlingSummaryBundle(props, tokens) {
       title: bowlingTeam.name ?? theme1Team.displayName,
       sub: tournamentSub(props),
       accent: theme1Team.color,
+      accentAlt: resolveTeamColor(resolveCounterpartSide(side), tokens),
       crestLogoUrl: props.teamLogoUrl ?? bowlingTeam.logoUrl ?? null,
       fallOfWicketsLabel: formatFallOfWicketsLabel(props.fallOfWickets),
       scoreStrip: {
@@ -287,7 +303,7 @@ export function toInningFiguresBundle(props, tokens) {
   const battingTeam = props.battingTeam ?? {};
   const teams = toTeams(props, tokens);
   const code = teams ? (resolveTeamCode(battingTeam, teams) ?? 'batting') : 'batting';
-  const theme1Team = teams?.[code] ?? toTeamRecord(battingTeam, code, tokens);
+  const theme1Team = teams?.[code] ?? toTeamRecord(battingTeam, code, tokens, props.battingTeamSide ?? null);
 
   return {
     teams: teams ?? { [code]: theme1Team },
@@ -355,15 +371,16 @@ function resolvePartnershipBatters(props) {
 /**
  * @param {Record<string, unknown>} batter
  * @param {{ align?: string, notOut?: boolean }} [options]
+ * @param {import('../../../types.js').ThemeTokens|null|undefined} [tokens]
  */
-function mapPartnershipBatterRow(batter, options = {}) {
+function mapPartnershipBatterRow(batter, options = {}, tokens) {
   return {
     fullName: toBroadcastDisplayName(batter),
     runs: batter.runs ?? 0,
     balls: batter.balls ?? 0,
     align: options.align ?? batter.align ?? 'start',
     notOut: options.notOut ?? Boolean(batter.notOut ?? isNotOutBatter(batter)),
-    avatarUrl: resolvePlayerImageUrl(batter),
+    avatarUrl: resolvePlayerImageUrlGated(batter, tokens),
   };
 }
 
@@ -393,10 +410,14 @@ export function toPartnershipBundle(props, tokens) {
         defaultAvatarUrl: props.defaultAvatarUrl ?? null,
         partnership: props.partnership,
         batters: props.batters.map((batter, index) =>
-          mapPartnershipBatterRow(batter, {
-            align: index === 0 ? 'start' : 'end',
-            notOut: batter.notOut ?? true,
-          }),
+          mapPartnershipBatterRow(
+            batter,
+            {
+              align: index === 0 ? 'start' : 'end',
+              notOut: batter.notOut ?? true,
+            },
+            tokens,
+          ),
         ),
       },
     };
@@ -407,12 +428,12 @@ export function toPartnershipBundle(props, tokens) {
 
   const battingTeam = props.battingTeam ?? {};
   const code = teams.batting ? 'batting' : (resolveTeamCode(battingTeam, teams) ?? 'home');
-  const theme1Team = teams[code] ?? toTeamRecord(battingTeam, code, tokens);
+  const theme1Team = teams[code] ?? toTeamRecord(battingTeam, code, tokens, props.battingTeamSide ?? null);
   const { striker, nonStriker } = resolvePartnershipBatters(props);
 
   const batters = [
-    mapPartnershipBatterRow(striker, { align: 'start', notOut: true }),
-    mapPartnershipBatterRow(nonStriker, { align: 'end', notOut: true }),
+    mapPartnershipBatterRow(striker, { align: 'start', notOut: true }, tokens),
+    mapPartnershipBatterRow(nonStriker, { align: 'end', notOut: true }, tokens),
   ].filter((b) => b.fullName);
 
   if (batters.length < 2) return null;
@@ -468,8 +489,9 @@ function partnershipEntryBatters(entry) {
 /**
  * @param {Array<Record<string, unknown>>} partnerships
  * @param {string} accent
+ * @param {import('../../../types.js').ThemeTokens|null|undefined} [tokens]
  */
-function mapPartnershipHistory(partnerships, accent) {
+function mapPartnershipHistory(partnerships, accent, tokens) {
   return partnerships
     .map((entry) => {
       const batters = partnershipEntryBatters(entry);
@@ -481,7 +503,7 @@ function mapPartnershipHistory(partnerships, accent) {
           balls: b.balls ?? 0,
           accent: index === 0 ? accent : '#f5c85a',
           align: index === 1 ? 'right' : undefined,
-          avatarUrl: resolvePlayerImageUrl(b),
+          avatarUrl: resolvePlayerImageUrlGated(b, tokens),
         })),
       };
     })
@@ -498,9 +520,9 @@ export function toPartnershipListBundle(props, tokens) {
 
   const battingTeam = props.battingTeam ?? {};
   const code = 'batting';
-  const theme1Team = toTeamRecord(battingTeam, code, tokens);
+  const theme1Team = toTeamRecord(battingTeam, code, tokens, props.battingTeamSide ?? null);
   const teams = { [code]: theme1Team };
-  const partnerships = mapPartnershipHistory(rawPartnerships, theme1Team.color);
+  const partnerships = mapPartnershipHistory(rawPartnerships, theme1Team.color, tokens);
   if (!partnerships.length) return null;
 
   return {

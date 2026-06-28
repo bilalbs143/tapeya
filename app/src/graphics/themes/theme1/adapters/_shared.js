@@ -15,6 +15,26 @@ export function tournamentSub(props) {
 }
 
 /**
+ * Single source of truth for team accent colours from session tokens.
+ *
+ * @param {'home'|'away'|null|undefined} side
+ * @param {import('../../../types.js').ThemeTokens|null|undefined} tokens
+ * @returns {string}
+ */
+export function resolveTeamColor(side, tokens) {
+  if (side === 'home') return tokens?.homeBgColor || 'var(--accentA)';
+  if (side === 'away') return tokens?.awayBgColor || 'var(--accentB)';
+  return 'var(--accentA)';
+}
+
+/** @param {'home'|'away'|null|undefined} side */
+export function resolveCounterpartSide(side) {
+  if (side === 'home') return 'away';
+  if (side === 'away') return 'home';
+  return null;
+}
+
+/**
  * Resolve a player portrait URL from common API / session field shapes.
  *
  * @param {Record<string, unknown>|null|undefined} row
@@ -37,6 +57,32 @@ export function coalescePlayerImageUrl(...rows) {
     if (url) return url;
   }
   return null;
+}
+
+/**
+ * Resolve a player portrait URL, returning null when the session has disabled
+ * player images (`tokens.enableImages === false`).
+ *
+ * @param {Record<string, unknown>|null|undefined} row
+ * @param {import('../../../types.js').ThemeTokens|null|undefined} tokens
+ * @returns {string|null}
+ */
+export function resolvePlayerImageUrlGated(row, tokens) {
+  if (tokens != null && tokens.enableImages === false) return null;
+  return resolvePlayerImageUrl(row);
+}
+
+/**
+ * Coalesce portrait URLs across rows, returning null when player images are
+ * disabled (`tokens.enableImages === false`).
+ *
+ * @param {import('../../../types.js').ThemeTokens|null|undefined} tokens
+ * @param {...(Record<string, unknown>|null|undefined)} rows
+ * @returns {string|null}
+ */
+export function coalescePlayerImageUrlGated(tokens, ...rows) {
+  if (tokens != null && tokens.enableImages === false) return null;
+  return coalescePlayerImageUrl(...rows);
 }
 
 /** @param {string|number|null|undefined} value */
@@ -67,8 +113,9 @@ export function parseInningsScore(score, wicketsFallback) {
 
 /**
  * @param {Record<string, unknown>|null|undefined} bowler
+ * @param {import('../../../types.js').ThemeTokens|null|undefined} [tokens]
  */
-export function toFrameBowler(bowler) {
+export function toFrameBowler(bowler, tokens) {
   const b = bowler ?? {};
   const figures = String(b.figures ?? '');
   const parsed = parseBowlingFigures(figures);
@@ -84,21 +131,22 @@ export function toFrameBowler(bowler) {
     m: 0,
     r: parsed.runs ?? b.runsConceded ?? 0,
     w: parsed.wickets ?? b.wickets ?? 0,
-    avatarUrl: resolvePlayerImageUrl(b),
+    avatarUrl: resolvePlayerImageUrlGated(b, tokens),
   };
 }
 
 /**
  * @param {Record<string, unknown>|null|undefined} batter
+ * @param {import('../../../types.js').ThemeTokens|null|undefined} [tokens]
  */
-export function toFrameBatter(batter) {
+export function toFrameBatter(batter, tokens) {
   const b = batter ?? {};
   return {
     name: resolveBroadcastPlayerName(b),
     runs: b.runs ?? 0,
     balls: b.balls ?? 0,
     onStrike: Boolean(b.onStrike),
-    avatarUrl: resolvePlayerImageUrl(b),
+    avatarUrl: resolvePlayerImageUrlGated(b, tokens),
   };
 }
 
@@ -109,13 +157,7 @@ export function toFrameBatter(batter) {
  * @param {'home'|'away'|null} side
  */
 export function toTeamRecord(team, code, tokens, side = null) {
-  const accent =
-    side === 'home'
-      ? tokens?.homeBgColor || 'var(--accentA)'
-      : side === 'away'
-        ? tokens?.awayBgColor || 'var(--accentB)'
-        : 'var(--accentA)';
-
+  const accent = resolveTeamColor(side, tokens);
   const short = team.shortCode ?? team.abbrevDisplay ?? code.toUpperCase();
   const full = team.name ?? short;
 

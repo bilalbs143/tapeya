@@ -112,7 +112,7 @@ function SquadRow({ players, accent, startDelay }) {
   );
 }
 
-function SquadHeader({ title, sub, accent, logoUrl, team }) {
+function SquadHeader({ title, sub, accent, accentAlt, logoUrl, team }) {
   return (
     <div className="absolute top-14 right-16 left-16 z-[3] flex items-start gap-7">
       {logoUrl ? (
@@ -120,7 +120,7 @@ function SquadHeader({ title, sub, accent, logoUrl, team }) {
           <img src={logoUrl} alt={title} draggable={false} className="block size-full object-contain" />
         </div>
       ) : (
-        <Crest team={team} size={SQUAD_HEADER_CREST_SIZE} accent={accent} />
+        <Crest team={team} size={SQUAD_HEADER_CREST_SIZE} accent={accent} accentAlt={accentAlt} />
       )}
 
       <div className="min-w-0 flex-1 pt-1">
@@ -165,6 +165,7 @@ export function SquadListGraphic({ data, teams }) {
     avatarUrl: player.avatarUrl ?? data.defaultAvatarUrl,
   }));
   const accent = data.accent ?? team?.color ?? colors.accentA;
+  const accentAlt = data.accentAlt ?? undefined;
   const top = players.slice(0, SQUAD_PLAYERS_PER_ROW);
   const bottom = players.slice(SQUAD_PLAYERS_PER_ROW);
   const title = data.title ?? team?.fullName ?? team?.displayName ?? '';
@@ -173,7 +174,7 @@ export function SquadListGraphic({ data, teams }) {
 
   return (
     <FSStage>
-      <SquadHeader title={title} sub={data.sub} accent={accent} logoUrl={data.logoUrl} team={team} />
+      <SquadHeader title={title} sub={data.sub} accent={accent} accentAlt={accentAlt} logoUrl={data.logoUrl} team={team} />
 
       <div className="absolute top-[250px] right-[70px] bottom-[150px] left-[70px] flex flex-col justify-center gap-[26px]">
         <SquadRow players={top} accent={accent} startDelay={SQUAD_ROW_BASE_DELAY_MS} />

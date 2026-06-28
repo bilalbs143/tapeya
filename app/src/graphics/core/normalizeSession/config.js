@@ -6,10 +6,10 @@ export function normalizeConfig(config) {
   const c = config && typeof config === 'object' ? config : {};
 
   return {
-    homeTextColor: c.home_text_color ?? '',
-    homeBgColor: c.home_bg_color ?? '',
-    awayTextColor: c.away_text_color ?? '',
-    awayBgColor: c.away_bg_color ?? '',
-    enableImages: Boolean(c.enable_images),
+    homeBgColor: typeof c.homeBgColor === 'string' ? c.homeBgColor : '',
+    awayBgColor: typeof c.awayBgColor === 'string' ? c.awayBgColor : '',
+    homeTextColor: typeof c.homeTextColor === 'string' ? c.homeTextColor : '',
+    awayTextColor: typeof c.awayTextColor === 'string' ? c.awayTextColor : '',
+    enableImages: Boolean(c.enableImages),
   };
 }

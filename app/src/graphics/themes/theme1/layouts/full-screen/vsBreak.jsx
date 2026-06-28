@@ -54,22 +54,23 @@ function BreakHeaderStack({ tournamentName, venueLine }) {
   );
 }
 
-export function HeroTeamMark({ side, borderPulseOrder, size = BREAK_LOGO_SIZE }) {
+export function HeroTeamMark({ side, accentAlt, borderPulseOrder, size = BREAK_LOGO_SIZE }) {
   return (
     <TeamLogoOrCrest
       logoUrl={side.logoUrl}
       team={side.team}
       accent={side.accent}
+      accentAlt={accentAlt}
       size={size}
       borderPulseOrder={borderPulseOrder}
     />
   );
 }
 
-export function TeamSide({ side, borderPulseOrder, showName = false }) {
+export function TeamSide({ side, accentAlt, borderPulseOrder, showName = false }) {
   return (
     <div className={cn('flex flex-col items-center gap-6', showName && 'text-center')}>
-      <HeroTeamMark side={side} borderPulseOrder={borderPulseOrder} />
+      <HeroTeamMark side={side} accentAlt={accentAlt} borderPulseOrder={borderPulseOrder} />
       {showName && side.name ? (
         <FitText
           maxWidth={BREAK_LOGO_SIZE}
@@ -117,9 +118,9 @@ export function VSBreakGraphic({ data, teams, showTeamNames = true }) {
   return (
     <BreakFSLayout tournamentName={data.tournamentName} venueLine={data.venueLine} caption={data.caption}>
       <div className="flex items-center gap-[90px]">
-        <TeamSide side={resolved.left} borderPulseOrder={1} showName={showTeamNames} />
+        <TeamSide side={resolved.left} accentAlt={resolved.right?.accent} borderPulseOrder={1} showName={showTeamNames} />
         <VSBadge size={BREAK_VS_SIZE} />
-        <TeamSide side={resolved.right} borderPulseOrder={2} showName={showTeamNames} />
+        <TeamSide side={resolved.right} accentAlt={resolved.left?.accent} borderPulseOrder={2} showName={showTeamNames} />
       </div>
     </BreakFSLayout>
   );

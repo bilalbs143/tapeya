@@ -152,7 +152,7 @@ function BowlingSummaryScoreStrip({ extras, overs, total, accent }) {
   );
 }
 
-function BowlingSummaryHeroCrest({ crestLogoUrl, title, team, accent }) {
+function BowlingSummaryHeroCrest({ crestLogoUrl, title, team, accent, accentAlt }) {
   return (
     <div className={ROW_ANIMATE_IN}>
       <TeamLogoOrCrest
@@ -160,6 +160,7 @@ function BowlingSummaryHeroCrest({ crestLogoUrl, title, team, accent }) {
         team={team}
         name={title}
         accent={accent}
+        accentAlt={accentAlt}
         size={HERO_CREST_SIZE}
         borderPulseOrder={1}
       />
@@ -170,6 +171,7 @@ function BowlingSummaryHeroCrest({ crestLogoUrl, title, team, accent }) {
 export function BowlingSummaryGraphic({ data, teams }) {
   const team = data.teamCode ? (teams?.[data.teamCode] ?? null) : null;
   const accent = data.accent ?? team?.color ?? '#5b7cff';
+  const accentAlt = data.accentAlt ?? undefined;
   const title = data.title ?? team?.fullName ?? team?.displayName ?? '';
   const bowlers = data.bowlers ?? [];
 
@@ -215,7 +217,13 @@ export function BowlingSummaryGraphic({ data, teams }) {
       </div>
 
       <div className="absolute top-0 bottom-0 grid place-items-center" style={{ right: PANEL_LEFT, width: HERO_CREST_WIDTH }}>
-        <BowlingSummaryHeroCrest crestLogoUrl={data.crestLogoUrl} title={title} team={team} accent={accent} />
+        <BowlingSummaryHeroCrest
+          crestLogoUrl={data.crestLogoUrl}
+          title={title}
+          team={team}
+          accent={accent}
+          accentAlt={accentAlt}
+        />
       </div>
     </FSStage>
   );

@@ -201,6 +201,7 @@ export function processInningFigures(snapshot) {
   return {
     battingTeam: live.battingTeam,
     bowlingTeam: live.bowlingTeam,
+    battingTeamSide: live.battingTeamSide,
     matchHeader: `${mc.homeTeam.name} VS ${mc.awayTeam.name}`,
     tournamentLabel: tournamentLabelOnly(snapshot),
     teamLogoUrl: live.battingTeam?.logoUrl ?? null,
@@ -227,6 +228,7 @@ export function processBattingSummary(snapshot) {
       name: p.batting_team?.display_name ?? live.battingTeam?.name ?? '',
       logoUrl: p.batting_team?.logo_url ?? p.team_logo_url ?? live.battingTeam?.logoUrl ?? null,
     },
+    battingTeamSide: live.battingTeamSide,
     tournamentLabel: tournamentLabelOnly(snapshot),
     battingOrder,
     inningsExtras: p.innings?.extras ?? live.battingTeam?.extras ?? 0,

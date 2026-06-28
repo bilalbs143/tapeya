@@ -1,7 +1,5 @@
 import { useState } from 'react';
 
-import { CONTENT_MAX_WIDTH } from '@/lib/constants/profile';
-
 const LABEL_CLASS = 'text-[14px] font-bold uppercase tracking-wide text-muted';
 const VALUE_CLASS = 'text-sm font-normal text-white';
 
@@ -32,7 +30,7 @@ export function SponsorTeams() {
   const showLess = hasMore && expanded;
 
   return (
-    <div className={`mx-auto w-full ${CONTENT_MAX_WIDTH} py-6`}>
+    <div className="py-6">
       <div className="flex flex-wrap items-baseline gap-x-8">
         {SUMMARY.map(({ label, value }) => (
           <StatItemInline key={label} label={label} value={value} />

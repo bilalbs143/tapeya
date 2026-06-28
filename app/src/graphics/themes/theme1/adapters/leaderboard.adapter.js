@@ -2,13 +2,14 @@
  * Leaderboard processors → LeaderboardGraphic data shape.
  */
 import { assets } from '../config';
-import { coalescePlayerImageUrl, resolveBroadcastPlayerName, tournamentSub } from './_shared';
+import { coalescePlayerImageUrlGated, resolveBroadcastPlayerName, tournamentSub } from './_shared';
 import { leaderboardTitleForCommand } from './presentationLabels';
 
 /**
  * @param {Record<string, unknown>} props
+ * @param {import('../../../types.js').ThemeTokens|null|undefined} [tokens]
  */
-export function toLeaderboardData(props) {
+export function toLeaderboardData(props, tokens) {
   const rows = Array.isArray(props.rows) ? props.rows : [];
   if (!rows.length && !props.featured) return null;
 
@@ -40,7 +41,7 @@ export function toLeaderboardData(props) {
               club: mappedRows[0].club,
             }
           : null,
-      avatarUrl: coalescePlayerImageUrl(props, featured, rows[0]),
+      avatarUrl: coalescePlayerImageUrlGated(tokens, props, featured, rows[0]),
       logoUrl: props.tournamentLogoUrl ?? assets.brandLogoWhite,
     },
   };

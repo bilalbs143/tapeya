@@ -77,7 +77,7 @@ function XiPlayerRow({ name, accent, last = false, index }) {
 }
 
 function XIPanel({ team }) {
-  const { name, accent, logoUrl, team: teamObj, players } = team;
+  const { name, accent, accentAlt, logoUrl, team: teamObj, players } = team;
   const panelAccent = normalizeAccentColor(accent);
 
   return (
@@ -103,7 +103,7 @@ function XIPanel({ team }) {
             <img src={logoUrl} alt={name} draggable={false} className="block size-full object-contain" />
           </div>
         ) : (
-          <Crest team={teamObj} size={PANEL_LOGO_SIZE} accent={panelAccent} />
+          <Crest team={teamObj} size={PANEL_LOGO_SIZE} accent={panelAccent} accentAlt={accentAlt} />
         )}
       </div>
 
@@ -154,8 +154,8 @@ export function Playing11Graphic({ data, teams }) {
       <Playing11Header title={data.title ?? 'PLAYING XI'} sub={data.sub} />
 
       <div className="absolute top-[248px] right-[70px] bottom-[140px] left-[70px] flex gap-11">
-        <XIPanel team={resolvePanel(teamA)} />
-        <XIPanel team={resolvePanel(teamB)} />
+        <XIPanel team={{ ...resolvePanel(teamA), accentAlt: teamB?.accent }} />
+        <XIPanel team={{ ...resolvePanel(teamB), accentAlt: teamA?.accent }} />
       </div>
 
       <RequiredRunRateBand value={data.requiredRR} />

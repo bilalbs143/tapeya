@@ -161,7 +161,7 @@ function YetToBatRow({ name, outCount, index }) {
   );
 }
 
-function BattingSummaryHeroCrest({ crestLogoUrl, title, team, accent }) {
+function BattingSummaryHeroCrest({ crestLogoUrl, title, team, accent, accentAlt }) {
   return (
     <div className={ROW_ANIMATE_IN}>
       <TeamLogoOrCrest
@@ -169,6 +169,7 @@ function BattingSummaryHeroCrest({ crestLogoUrl, title, team, accent }) {
         team={team}
         name={title}
         accent={accent}
+        accentAlt={accentAlt}
         size={HERO_CREST_SIZE}
         borderPulseOrder={1}
       />
@@ -179,6 +180,7 @@ function BattingSummaryHeroCrest({ crestLogoUrl, title, team, accent }) {
 export function BattingSummaryGraphic({ data, teams }) {
   const team = data.teamCode ? (teams?.[data.teamCode] ?? null) : null;
   const accent = data.accent ?? team?.color ?? '#5b7cff';
+  const accentAlt = data.accentAlt ?? undefined;
   const title = data.title ?? team?.fullName ?? team?.displayName ?? '';
   const batsmen = data.batsmen ?? [];
   const batted = batsmen.filter((b) => !b.yetToBat);
@@ -224,7 +226,13 @@ export function BattingSummaryGraphic({ data, teams }) {
       </div>
 
       <div className="absolute top-0 bottom-0 grid place-items-center" style={{ right: PANEL_LEFT, width: HERO_CREST_WIDTH }}>
-        <BattingSummaryHeroCrest crestLogoUrl={data.crestLogoUrl} title={title} team={team} accent={accent} />
+        <BattingSummaryHeroCrest
+          crestLogoUrl={data.crestLogoUrl}
+          title={title}
+          team={team}
+          accent={accent}
+          accentAlt={accentAlt}
+        />
       </div>
     </FSStage>
   );

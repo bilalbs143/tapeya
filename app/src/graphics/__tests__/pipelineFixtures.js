@@ -53,11 +53,11 @@ export function createRawSession(overrides = {}) {
     active_command: activeCommand,
     context_hash: overrides.context_hash ?? 'integration-fixture-hash',
     config: {
-      home_text_color: '#ffffff',
-      home_bg_color: '#0055ff',
-      away_text_color: '#ffffff',
-      away_bg_color: '#ff5500',
-      enable_images: true,
+      homeBgColor: '#0055ff',
+      awayBgColor: '#ff5500',
+      homeTextColor: '#ffffff',
+      awayTextColor: '#ffffff',
+      enableImages: true,
       ...(overrides.config ?? {}),
     },
     context: {

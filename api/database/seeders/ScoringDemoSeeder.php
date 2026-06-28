@@ -51,7 +51,8 @@ use Illuminate\Support\Facades\Hash;
  *   - 5 tournaments (explicit type × format; all four cricket formats; two open + tape_ball for aggregation)
  *   - 6 teams (PSL-style names; 3-letter uppercase codes; owned by sponsors; optional logo left null)
  *   - Attaches players to teams (team_user), two icon players per team (team_icon_players)
- *   - Attaches teams to tournaments (tournament_team with group_index when number_of_groups > 1)
+ *   - Attaches teams to tournaments (tournament_team): exactly number_of_teams per tournament;
+ *     group_index assigned when number_of_groups > 1
  *   - Demo fixtures (matches): single-table tournaments get 2–3 scheduled games; two-group tournament
  *     gets one fixture per group. Several matches use today’s date for the scorecard schedule tab.
  *   - One completed match per tournament (first fixture) with innings, balls, and materialized career
@@ -152,7 +153,7 @@ class ScoringDemoSeeder extends Seeder
      * Explicit type × format mapping — one row per cricket format plus a second open + tape_ball
      * tournament for cross-event career aggregation.
      *
-     * @var list<array{name: string, short: string, type: string, format: string, groups: int, city: string, venue: string}>
+     * @var list<array{name: string, short: string, type: string, format: string, teams: int, groups: int, city: string, venue: string}>
      */
     private const DEMO_TOURNAMENT_CONFIG = [
         [
@@ -160,6 +161,7 @@ class ScoringDemoSeeder extends Seeder
             'short' => 'KPL',
             'type' => TournamentTypeEnum::LEAGUE->value,
             'format' => CricketFormatEnum::HARD_BALL->value,
+            'teams' => 4,
             'groups' => 1,
             'city' => 'Karachi',
             'venue' => 'National Stadium Karachi',
@@ -169,6 +171,7 @@ class ScoringDemoSeeder extends Seeder
             'short' => 'LSC',
             'type' => TournamentTypeEnum::OPEN_TOURNAMENT->value,
             'format' => CricketFormatEnum::TAPE_BALL->value,
+            'teams' => 4,
             'groups' => 1,
             'city' => 'Lahore',
             'venue' => 'Gaddafi Stadium Lahore',
@@ -178,6 +181,7 @@ class ScoringDemoSeeder extends Seeder
             'short' => 'ITC',
             'type' => TournamentTypeEnum::EMERGING->value,
             'format' => CricketFormatEnum::TENNIS_BALL->value,
+            'teams' => 4,
             'groups' => 1,
             'city' => 'Islamabad',
             'venue' => 'Rawalpindi Cricket Stadium',
@@ -187,6 +191,7 @@ class ScoringDemoSeeder extends Seeder
             'short' => 'NCC',
             'type' => TournamentTypeEnum::OPEN_TOURNAMENT->value,
             'format' => CricketFormatEnum::HARD_TENNIS->value,
+            'teams' => 4,
             'groups' => 2,
             'city' => 'Rawalpindi',
             'venue' => 'Multan Cricket Stadium',
@@ -196,6 +201,7 @@ class ScoringDemoSeeder extends Seeder
             'short' => 'PTO',
             'type' => TournamentTypeEnum::OPEN_TOURNAMENT->value,
             'format' => CricketFormatEnum::TAPE_BALL->value,
+            'teams' => 4,
             'groups' => 1,
             'city' => 'Rawalpindi',
             'venue' => 'Rawalpindi Cricket Stadium',
@@ -463,7 +469,7 @@ class ScoringDemoSeeder extends Seeder
                     'venue_name' => $config['venue'],
                     'start_date' => $start,
                     'end_date' => $end,
-                    'number_of_teams' => 4,
+                    'number_of_teams' => $config['teams'],
                     'number_of_groups' => $config['groups'],
                     'country' => 'Pakistan',
                     'city' => $config['city'],
@@ -527,23 +533,15 @@ class ScoringDemoSeeder extends Seeder
             }
         }
 
-        // Attach teams to tournaments (each tournament gets 2–4 teams; pivot group_index when grouped).
-        // Karachi Kings is always included so the same demo batters appear in every format bucket.
-        $anchorTeam = $teams[0];
+        // Attach teams to tournaments — exactly number_of_teams per tournament (pivot group_index when grouped).
         foreach ($tournaments as $idx => $tournament) {
-            $take = min(4, count($teams) - $idx);
-            $tournamentTeams = array_slice($teams, $idx, $take);
-            if (count($tournamentTeams) < 2) {
-                $tournamentTeams = array_slice($teams, 0, 2);
+            $need = (int) $tournament->number_of_teams;
+            if ($need > count($teams)) {
+                throw new \RuntimeException(
+                    "Tournament {$tournament->tournament_name} requires {$need} teams but only ".count($teams).' demo teams exist.'
+                );
             }
-            $tournamentTeams = collect($tournamentTeams)
-                ->prepend($anchorTeam)
-                ->unique('id')
-                ->values()
-                ->all();
-            if (count($tournamentTeams) < 2) {
-                $tournamentTeams = array_slice($teams, 0, 2);
-            }
+            $tournamentTeams = $this->selectTeamsForTournament($teams, $need, $idx);
             $numberOfGroups = max(1, (int) ($tournament->number_of_groups ?? 1));
             $nTeams = count($tournamentTeams);
             foreach ($tournamentTeams as $teamOrder => $team) {
@@ -562,6 +560,28 @@ class ScoringDemoSeeder extends Seeder
             }
         }
 
+    }
+
+    /**
+     * Pick exactly $count teams from the demo pool (rotates start index per tournament).
+     *
+     * @param  array<Team>  $teams
+     * @return array<Team>
+     */
+    private function selectTeamsForTournament(array $teams, int $count, int $tournamentIndex): array
+    {
+        $total = count($teams);
+        if ($count >= $total) {
+            return $teams;
+        }
+
+        $start = $tournamentIndex % $total;
+        $selected = [];
+        for ($i = 0; $i < $count; $i++) {
+            $selected[] = $teams[($start + $i) % $total];
+        }
+
+        return $selected;
     }
 
     /**

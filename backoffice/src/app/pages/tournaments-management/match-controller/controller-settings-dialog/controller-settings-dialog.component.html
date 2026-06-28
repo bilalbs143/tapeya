@@ -85,56 +85,40 @@
           </div>
         }
 
-        <!-- Team colours: same two-column pattern as manage-user-dialog (lg:col-span-6) -->
-        <div class="settings-form-row settings-form-row--after-overlay col-span-12 grid grid-cols-12 gap-x-6">
-          <div class="col-span-12 lg:col-span-6">
-            <mat-label class="text-sm font-semibold mb-2 block"> {{ data.match.home_team?.name ?? 'Home' }} — Text </mat-label>
-            <input
-              type="color"
-              formControlName="home_text"
-              class="h-10 w-full rounded border border-gray-200 cursor-pointer"
-              [attr.aria-label]="(data.match.home_team?.name ?? 'Home') + ' Text Color'"
-            />
+        <!-- Schema-driven config fields -->
+        @if (schemaProperties().length > 0) {
+          <div
+            class="settings-form-row settings-form-row--after-overlay col-span-12"
+            [formGroup]="configForm"
+          >
+            <div class="grid grid-cols-12 gap-x-6">
+              @for (prop of schemaProperties(); track prop.key) {
+                @switch (prop.type) {
+                  @case ('color') {
+                    <div class="col-span-12 lg:col-span-6 mb-4">
+                      <mat-label class="text-sm font-semibold mb-2 block">
+                        {{ propertyLabel(prop) }}
+                      </mat-label>
+                      <input
+                        type="color"
+                        [formControlName]="prop.key"
+                        class="h-10 w-full rounded border border-gray-200 cursor-pointer"
+                        [attr.aria-label]="propertyLabel(prop)"
+                      />
+                    </div>
+                  }
+                  @case ('boolean') {
+                    <div class="col-span-12 mb-4">
+                      <mat-slide-toggle [formControlName]="prop.key">
+                        {{ propertyLabel(prop) }}
+                      </mat-slide-toggle>
+                    </div>
+                  }
+                }
+              }
+            </div>
           </div>
-          <div class="col-span-12 lg:col-span-6">
-            <mat-label class="text-sm font-semibold mb-2 block">
-              {{ data.match.home_team?.name ?? 'Home' }} — Background
-            </mat-label>
-            <input
-              type="color"
-              formControlName="home_bg"
-              class="h-10 w-full rounded border border-gray-200 cursor-pointer"
-              [attr.aria-label]="(data.match.home_team?.name ?? 'Home') + ' Background Color'"
-            />
-          </div>
-        </div>
-
-        <div class="settings-form-row col-span-12 grid grid-cols-12 gap-x-6">
-          <div class="col-span-12 lg:col-span-6">
-            <mat-label class="text-sm font-semibold mb-2 block"> {{ data.match.away_team?.name ?? 'Away' }} — Text </mat-label>
-            <input
-              type="color"
-              formControlName="away_text"
-              class="h-10 w-full rounded border border-gray-200 cursor-pointer"
-              [attr.aria-label]="(data.match.away_team?.name ?? 'Away') + ' Text Color'"
-            />
-          </div>
-          <div class="col-span-12 lg:col-span-6">
-            <mat-label class="text-sm font-semibold mb-2 block">
-              {{ data.match.away_team?.name ?? 'Away' }} — Background
-            </mat-label>
-            <input
-              type="color"
-              formControlName="away_bg"
-              class="h-10 w-full rounded border border-gray-200 cursor-pointer"
-              [attr.aria-label]="(data.match.away_team?.name ?? 'Away') + ' Background Color'"
-            />
-          </div>
-        </div>
-
-        <div class="settings-form-row col-span-12">
-          <mat-slide-toggle formControlName="enable_images">Enable Images</mat-slide-toggle>
-        </div>
+        }
       </div>
     </mat-dialog-content>
 
@@ -150,7 +134,7 @@
       </button>
 
       <app-submit-button
-        [disabled]="form.invalid"
+        [disabled]="form.invalid || configForm.invalid"
         [isSubmitting]="saving"
         [text]="saveButtonLabel()"
         color="primary"

@@ -115,8 +115,11 @@ export const CountUpNumber = memo(function CountUpNumber({ value, className, dur
   );
 });
 
-export const Crest = memo(function Crest({ team, size = 86, accent, borderPulseOrder }) {
+export const Crest = memo(function Crest({ team, size = 86, accent, accentAlt, borderPulseOrder }) {
   const ring = accent || team?.color || colors.accentA;
+  // accentAlt is the counterpart team's color — used for the wide outer glow (25% of the pulse).
+  // Falls back to the global accentB only when no team-specific alt is available.
+  const ringAlt = accentAlt || colors.accentB;
   const pulseClass = crestPulseClass(borderPulseOrder);
 
   const src = team?.logoUrl ?? team?.logo;
@@ -131,7 +134,7 @@ export const Crest = memo(function Crest({ team, size = 86, accent, borderPulseO
         style={{
           '--team-ring': ring,
           '--crest-ring': ring,
-          '--crest-ring-alt': colors.accentB,
+          '--crest-ring-alt': ringAlt,
           borderRadius: cornerRadius + 3,
         }}
       />

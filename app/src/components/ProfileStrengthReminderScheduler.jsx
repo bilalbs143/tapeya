@@ -35,7 +35,7 @@ function resolveProfileStrengthReminderPayload(pathname, { isAuthenticated, user
 /**
  * While logged in with an incomplete profile, opens the profile reminder dialog
  * at most once per 24 hours (unless another dialog is already open, the user is
- * on /profile, auth pages (/login, /register, /otp), the graphic overlay
+ * on /profile, auth pages (/login, /register, /otp), splash (/), the graphic overlay
  * /overlay/:matchId, a live broadcast page, or live scoring).
  */
 export function ProfileStrengthReminderScheduler() {

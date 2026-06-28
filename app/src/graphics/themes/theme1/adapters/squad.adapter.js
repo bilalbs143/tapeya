@@ -2,17 +2,18 @@
  * Squad processors → SquadListGraphic data shape.
  */
 import { resolveBroadcastPlayerName } from '../../../core/domain/playerNameResolver';
-import { resolvePlayerImageUrl, toTeamRecord, tournamentSub } from './_shared';
+import { resolveCounterpartSide, resolvePlayerImageUrlGated, resolveTeamColor, toTeamRecord, tournamentSub } from './_shared';
 
 /**
  * @param {Array<Record<string, unknown>>} players
+ * @param {import('../../../types.js').ThemeTokens|null|undefined} tokens
  */
-function mapSquadPlayers(players) {
+function mapSquadPlayers(players, tokens) {
   return players.map((p) => ({
     id: p.player_id ?? p.id,
     name: resolveBroadcastPlayerName(p),
     role: p.role ?? p.playing_role ?? '',
-    avatarUrl: resolvePlayerImageUrl(p),
+    avatarUrl: resolvePlayerImageUrlGated(p, tokens),
     captain: Boolean(p.captain ?? p.is_captain),
     wicketKeeper: Boolean(p.wicketKeeper ?? p.is_wicket_keeper ?? p.wicket_keeper),
   }));
@@ -32,7 +33,8 @@ export function toSquadBundle(props, tokens, mode) {
   // Preview/fixture shape — title, sub, and teamCode are already graphic-ready.
   if (props.title && !props.team) {
     const code = String(props.teamCode ?? (mode === 'bowling' ? 'bowling' : 'batting'));
-    const accent = props.accent || (mode === 'bowling' ? tokens?.awayBgColor : tokens?.homeBgColor) || 'var(--accentA)';
+    const side = props.teamSide ?? (mode === 'bowling' ? 'away' : 'home');
+    const accent = props.accent || resolveTeamColor(side, tokens) || 'var(--accentA)';
 
     return {
       teams: {
@@ -50,10 +52,11 @@ export function toSquadBundle(props, tokens, mode) {
         title: props.title,
         sub,
         accent,
+        accentAlt: resolveTeamColor(resolveCounterpartSide(side), tokens),
         logoUrl: props.logoUrl ?? null,
         requiredRR: props.requiredRR ?? props.requiredRunRate ?? '',
         defaultAvatarUrl: props.defaultAvatarUrl ?? null,
-        players: mapSquadPlayers(players),
+        players: mapSquadPlayers(players, tokens),
       },
     };
   }
@@ -62,7 +65,9 @@ export function toSquadBundle(props, tokens, mode) {
   if (!team) return null;
 
   const code = mode === 'bowling' ? 'bowling' : 'batting';
-  const theme1Team = toTeamRecord(team, code, tokens);
+  // teamSide is forwarded by processBattingSquad / processBowlingSquad
+  const side = props.teamSide ?? null;
+  const theme1Team = toTeamRecord(team, code, tokens, side);
   const teams = { [code]: theme1Team };
 
   return {
@@ -72,10 +77,11 @@ export function toSquadBundle(props, tokens, mode) {
       title: team.name ?? theme1Team.displayName,
       sub,
       accent: theme1Team.color,
+      accentAlt: resolveTeamColor(resolveCounterpartSide(side), tokens),
       logoUrl: team.logoUrl ?? props.teamLogoUrl ?? props.tournamentLogoUrl ?? null,
       requiredRR: props.requiredRunRate ?? props.requiredRR ?? '',
       defaultAvatarUrl: props.defaultAvatarUrl ?? null,
-      players: mapSquadPlayers(players),
+      players: mapSquadPlayers(players, tokens),
     },
   };
 }

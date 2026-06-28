@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { CONTENT_MAX_WIDTH, FOCUS_RING, PROFILE_OVERVIEW_ROLE } from '@/lib/constants/profile';
+import { FOCUS_RING, PROFILE_OVERVIEW_ROLE } from '@/lib/constants/profile';
 import { formatAge, formatDate } from '@/lib/utils/dateUtils';
 import { getBattingStyleLabel, getBowlingStyleLabel, getPlayingRoleLabel, usePlayerProfileEnums } from '@/store/api/enumApi';
 import { useAppSelector } from '@/store/hooks';
@@ -89,7 +89,7 @@ export function ProfileRoleOverview({ role, tournaments: _tournaments, events: _
   }
 
   return (
-    <div className={`mx-auto w-full ${CONTENT_MAX_WIDTH}`}>
+    <>
       <UserEdit open={editOpen} onOpenChange={setEditOpen} />
 
       <div className="flex flex-wrap items-center justify-end gap-4 py-4">
@@ -117,6 +117,6 @@ export function ProfileRoleOverview({ role, tournaments: _tournaments, events: _
           ))}
         </div>
       </div>
-    </div>
+    </>
   );
 }

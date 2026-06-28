@@ -23,9 +23,13 @@ export function toTeams(props, tokens) {
   const batting = props.battingTeam;
   const bowling = props.bowlingTeam;
   if (batting && bowling) {
+    // battingTeamSide ('home'|'away') is forwarded from scoreboardBase so we can
+    // pick the right color token even when navigating by batting/bowling pair.
+    const battingSide = props.battingTeamSide ?? null;
+    const bowlingSide = battingSide === 'home' ? 'away' : battingSide === 'away' ? 'home' : null;
     return {
-      batting: { ...toTeamRecord(batting, 'batting', tokens), id: batting.id },
-      bowling: { ...toTeamRecord(bowling, 'bowling', tokens), id: bowling.id },
+      batting: { ...toTeamRecord(batting, 'batting', tokens, battingSide), id: batting.id },
+      bowling: { ...toTeamRecord(bowling, 'bowling', tokens, bowlingSide), id: bowling.id },
     };
   }
 

@@ -103,8 +103,16 @@ export const FSStage = memo(function FSStage({ children, designW = FS_DESIGN_W, 
 });
 
 /** Club crest slot — rounded square with neon ring and team logo image. */
-export const TeamLogoSlot = memo(function TeamLogoSlot({ src, alt = 'Team logo', size = 300, accent, borderPulseOrder }) {
+export const TeamLogoSlot = memo(function TeamLogoSlot({
+  src,
+  alt = 'Team logo',
+  size = 300,
+  accent,
+  accentAlt,
+  borderPulseOrder,
+}) {
   const ring = accent || colors.accentA;
+  const ringAlt = accentAlt || colors.accentB;
   const pulseClass = crestPulseClass(borderPulseOrder);
   const cornerRadius = crestCornerRadius(size);
 
@@ -115,7 +123,7 @@ export const TeamLogoSlot = memo(function TeamLogoSlot({ src, alt = 'Team logo',
         style={{
           '--team-ring': ring,
           '--crest-ring': ring,
-          '--crest-ring-alt': colors.accentB,
+          '--crest-ring-alt': ringAlt,
           borderRadius: cornerRadius + 3,
         }}
       />
@@ -140,6 +148,7 @@ export const TeamLogoOrCrest = memo(function TeamLogoOrCrest({
   shortName,
   team = null,
   accent,
+  accentAlt,
   size = 300,
   borderPulseOrder,
   plain = false,
@@ -157,15 +166,32 @@ export const TeamLogoOrCrest = memo(function TeamLogoOrCrest({
       );
     }
 
-    return <TeamLogoSlot src={resolvedLogo} alt={alt} size={size} accent={resolvedAccent} borderPulseOrder={borderPulseOrder} />;
+    return (
+      <TeamLogoSlot
+        src={resolvedLogo}
+        alt={alt}
+        size={size}
+        accent={resolvedAccent}
+        accentAlt={accentAlt}
+        borderPulseOrder={borderPulseOrder}
+      />
+    );
   }
 
   if (team) {
-    return <Crest team={team} size={size} accent={resolvedAccent} borderPulseOrder={borderPulseOrder} />;
+    return <Crest team={team} size={size} accent={resolvedAccent} accentAlt={accentAlt} borderPulseOrder={borderPulseOrder} />;
   }
 
   const code = shortName ?? name ?? '?';
-  return <Crest team={{ code, name: code }} size={size} accent={resolvedAccent} borderPulseOrder={borderPulseOrder} />;
+  return (
+    <Crest
+      team={{ code, name: code }}
+      size={size}
+      accent={resolvedAccent}
+      accentAlt={accentAlt}
+      borderPulseOrder={borderPulseOrder}
+    />
+  );
 });
 
 /** VS lozenge used on hero / summary full-screen graphics. */

@@ -144,7 +144,7 @@ function HorizontalBar({
               paddingBottom: ltBar.controllerBarPaddingY,
             }}
           >
-            <Crest team={bat} size={ltBar.crestSize} accent={bat.color} borderPulseOrder={1} />
+            <Crest team={bat} size={ltBar.crestSize} accent={bat.color} accentAlt={bowl.color} borderPulseOrder={1} />
             <div className="flex items-center gap-4">
               <div className="flex flex-col self-stretch pr-[18px]">
                 <div
@@ -279,7 +279,7 @@ function HorizontalBar({
                 </BowlerSubRow>
               </div>
             )}
-            <Crest team={bowl} size={ltBar.crestSize} accent={bowl.color} borderPulseOrder={2} />
+            <Crest team={bowl} size={ltBar.crestSize} accent={bowl.color} accentAlt={bat.color} borderPulseOrder={2} />
           </div>
         </GlowPanel>
       </div>

@@ -23,10 +23,19 @@ export function isAuthPath(pathname) {
   return AUTH_PATHS.has(pathname);
 }
 
+export function isSplashPath(pathname) {
+  return pathname === '/';
+}
+
+/** Auth and splash — routes where app update and similar entry dialogs must not appear. */
+export function isDialogReminderBlockedPath(pathname) {
+  return isAuthPath(pathname) || isSplashPath(pathname);
+}
+
 /** Routes where the incomplete-profile reminder dialog must not appear. */
 export function isProfileStrengthReminderBlockedPath(pathname) {
   return (
-    isAuthPath(pathname) ||
+    isDialogReminderBlockedPath(pathname) ||
     pathname === '/profile' ||
     pathname.startsWith('/overlay/') ||
     isLiveBroadcastPath(pathname) ||

@@ -4,11 +4,22 @@ import { Observable, catchError, of, tap, throwError } from 'rxjs';
 
 import { MessageService } from './message.service';
 
+export interface ThemeConfigProperty {
+  key: string;
+  label: string;
+  type: 'color' | 'boolean';
+  default: string | boolean;
+}
+
+export interface ThemeConfigSchema {
+  properties: ThemeConfigProperty[];
+}
+
 export interface GraphicTheme {
   id: number;
   slug: string;
   name: string;
-  config_schema: unknown;
+  config_schema: ThemeConfigSchema | null;
   default_config: Record<string, unknown> | null;
   is_active: boolean;
 }

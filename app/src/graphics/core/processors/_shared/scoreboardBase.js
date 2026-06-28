@@ -8,10 +8,11 @@
 export function scoreboardBase(snapshot) {
   const { live } = snapshot;
 
-  return {
+  const base = {
     commandKey: snapshot.commandKey,
     battingTeam: live.battingTeam,
     bowlingTeam: live.bowlingTeam,
+    battingTeamSide: live.battingTeamSide,
     batters: live.batters,
     bowler: live.bowler,
     currentOverDeliveries: live.currentOverDeliveries ?? [],
@@ -19,4 +20,6 @@ export function scoreboardBase(snapshot) {
     currentRR: live.currentRR ?? '',
     requiredRR: live.requiredRR ?? '',
   };
+
+  return base;
 }

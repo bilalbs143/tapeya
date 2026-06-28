@@ -73,7 +73,7 @@ export function processGraphicCommand(snapshot) {
     });
   }
 
-  return {
+  const plan = {
     commandKey,
     commandType: snapshot.commandType,
     commandId: snapshot.commandId,
@@ -83,4 +83,6 @@ export function processGraphicCommand(snapshot) {
     tokens: snapshot.config,
     componentProps,
   };
+
+  return plan;
 }
