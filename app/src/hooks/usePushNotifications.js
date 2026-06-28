@@ -44,15 +44,16 @@ function setStoredPushToken(token) {
 /**
  * @param {ReturnType<typeof useRegisterDeviceTokenMutation>[0]} registerToken
  * @param {string} token
+ * @returns {Promise<boolean>}
  */
 async function syncDeviceTokenWithApi(registerToken, token) {
   const platform = Capacitor.getPlatform();
   if (platform !== 'android' && platform !== 'ios') {
-    return;
+    return false;
   }
 
   if (isLikelyApnsToken(token)) {
-    return;
+    return false;
   }
 
   setStoredPushToken(token);
@@ -63,8 +64,9 @@ async function syncDeviceTokenWithApi(registerToken, token) {
       platform,
       app_version: import.meta.env.VITE_APP_VERSION || undefined,
     }).unwrap();
+    return true;
   } catch {
-    // best-effort — registration event or next login may retry
+    return false;
   }
 }
 
@@ -112,6 +114,7 @@ export function usePushNotifications() {
   const { accessToken } = useAppSelector(selectAuthUserAndToken);
   const [registerToken] = useRegisterDeviceTokenMutation();
   const initializedRef = useRef(false);
+  const setupInProgressRef = useRef(false);
 
   useEffect(() => {
     if (!isNative() || !accessToken) {
@@ -119,7 +122,7 @@ export function usePushNotifications() {
       return undefined;
     }
 
-    if (initializedRef.current) {
+    if (initializedRef.current || setupInProgressRef.current) {
       return undefined;
     }
 
@@ -127,7 +130,14 @@ export function usePushNotifications() {
     /** @type {Array<{ remove: () => Promise<void> }>} */
     const listeners = [];
 
+    const markSynced = () => {
+      initializedRef.current = true;
+    };
+
     const setup = async () => {
+      setupInProgressRef.current = true;
+      let apiSynced = false;
+
       try {
         const { PushNotifications } = await import('@capacitor/push-notifications');
 
@@ -146,7 +156,10 @@ export function usePushNotifications() {
         listeners.push(
           await addIosFcmTokenRefreshListener(async (token) => {
             if (cancelled) return;
-            await syncDeviceTokenWithApi(registerToken, token);
+            if (await syncDeviceTokenWithApi(registerToken, token)) {
+              apiSynced = true;
+              markSynced();
+            }
           }),
         );
 
@@ -158,13 +171,16 @@ export function usePushNotifications() {
             const token = await resolvePushTokenForApi(tokenEvent.value);
             if (!token) return;
 
-            await syncDeviceTokenWithApi(registerToken, token);
+            if (await syncDeviceTokenWithApi(registerToken, token)) {
+              apiSynced = true;
+              markSynced();
+            }
           }),
         );
 
         listeners.push(
           await PushNotifications.addListener('registrationError', () => {
-            // permission denied or FCM misconfigured — silent fail
+            // permission denied or APNs misconfigured — silent fail
           }),
         );
 
@@ -182,29 +198,32 @@ export function usePushNotifications() {
         // Re-login often reuses the same OS token without firing registration again.
         if (Capacitor.getPlatform() === 'ios') {
           const fcmToken = await getIosFcmTokenWithRetry();
-          if (fcmToken && !cancelled) {
-            await syncDeviceTokenWithApi(registerToken, fcmToken);
+          if (fcmToken && !cancelled && (await syncDeviceTokenWithApi(registerToken, fcmToken))) {
+            apiSynced = true;
           }
         } else {
           const storedToken = getStoredPushToken();
-          if (storedToken && !cancelled) {
-            await syncDeviceTokenWithApi(registerToken, storedToken);
+          if (storedToken && !cancelled && (await syncDeviceTokenWithApi(registerToken, storedToken))) {
+            apiSynced = true;
           }
         }
 
-        if (!cancelled) {
-          initializedRef.current = true;
+        if (!cancelled && apiSynced) {
+          markSynced();
         }
       } catch {
-        // plugin unavailable or web build
+        // plugin unavailable or misconfigured
+      } finally {
+        setupInProgressRef.current = false;
       }
     };
 
     const handleForeground = async () => {
-      if (cancelled || Capacitor.getPlatform() !== 'ios') return;
+      if (cancelled || Capacitor.getPlatform() !== 'ios' || initializedRef.current) return;
+
       const fcmToken = await getIosFcmTokenWithRetry(6, 1000);
-      if (fcmToken && !cancelled) {
-        await syncDeviceTokenWithApi(registerToken, fcmToken);
+      if (fcmToken && !cancelled && (await syncDeviceTokenWithApi(registerToken, fcmToken))) {
+        markSynced();
       }
     };
 
@@ -212,7 +231,9 @@ export function usePushNotifications() {
       if (!cancelled && Capacitor.getPlatform() === 'ios') {
         import('@capacitor/app').then(({ App }) => {
           App.addListener('appStateChange', ({ isActive }) => {
-            if (isActive) handleForeground();
+            if (isActive) {
+              void handleForeground();
+            }
           }).then((l) => {
             listeners.push(l);
           });

@@ -2,7 +2,14 @@ import Capacitor
 import FBSDKCoreKit
 
 @objc(FacebookAnalyticsPlugin)
-public class FacebookAnalyticsPlugin: CAPPlugin {
+public class FacebookAnalyticsPlugin: CAPPlugin, CAPBridgedPlugin {
+    public let identifier = "FacebookAnalyticsPlugin"
+    public let jsName = "FacebookAnalytics"
+    public let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "logEvent", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "logPurchase", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "flush", returnType: CAPPluginReturnPromise),
+    ]
 
     @objc func logEvent(_ call: CAPPluginCall) {
         guard let eventName = call.getString("eventName") else {

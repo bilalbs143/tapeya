@@ -20,6 +20,7 @@
 		F1A2B3C51FED79650016851A /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F1A2B3C41FED79650016851A /* GoogleService-Info.plist */; };
 		B7C8D9E11FED79650016851F /* FcmTokenPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7C8D9E01FED79650016851F /* FcmTokenPlugin.swift */; };
 		B7C8D9E31FED79650016851F /* FcmTokenPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = B7C8D9E21FED79650016851F /* FcmTokenPlugin.m */; };
+		C4D5E6F81FED79650016851F /* AppBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4D5E6F71FED79650016851F /* AppBridgeViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,6 +44,7 @@
 		FC68EB0AF532CFC21C3344DD /* Pods-App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.debug.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.debug.xcconfig"; sourceTree = "<group>"; };
 		B7C8D9E01FED79650016851F /* FcmTokenPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FcmTokenPlugin.swift; sourceTree = "<group>"; };
 		B7C8D9E21FED79650016851F /* FcmTokenPlugin.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FcmTokenPlugin.m; sourceTree = "<group>"; };
+		C4D5E6F71FED79650016851F /* AppBridgeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBridgeViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -89,6 +91,7 @@
 			children = (
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
+				C4D5E6F71FED79650016851F /* AppBridgeViewController.swift */,
 				522C95862FEAA51C004551BB /* FacebookAnalyticsPlugin.m */,
 				522C95872FEAA51C004551BB /* FacebookAnalyticsPlugin.swift */,
 				B7C8D9E01FED79650016851F /* FcmTokenPlugin.swift */,
@@ -242,6 +245,7 @@
 				522C95882FEAA51C004551BB /* FacebookAnalyticsPlugin.m in Sources */,
 				522C95892FEAA51C004551BB /* FacebookAnalyticsPlugin.swift in Sources */,
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
+				C4D5E6F81FED79650016851F /* AppBridgeViewController.swift in Sources */,
 				B7C8D9E11FED79650016851F /* FcmTokenPlugin.swift in Sources */,
 				B7C8D9E31FED79650016851F /* FcmTokenPlugin.m in Sources */,
 			);
@@ -396,7 +400,7 @@
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 20;
 				DEVELOPMENT_TEAM = M7P9P5UTTZ;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Tapeya;
@@ -406,7 +410,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.9;
+				MARKETING_VERSION = 1.0.10;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
 				PRODUCT_BUNDLE_IDENTIFIER = com.tapbytapeya.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -428,7 +432,7 @@
 				CODE_SIGN_ENTITLEMENTS = App/AppRelease.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 20;
 				DEVELOPMENT_TEAM = M7P9P5UTTZ;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Tapeya;
@@ -438,7 +442,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.9;
+				MARKETING_VERSION = 1.0.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.tapbytapeya.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

@@ -28,10 +28,47 @@ export async function getIosFcmToken() {
 }
 
 /**
+ * Wait until Firebase has the APNs token before requesting FCM.
+ * @returns {Promise<boolean>}
+ */
+export async function waitForNativeApnsReady(maxAttempts = 30, delayMs = 500) {
+  if (Capacitor.getPlatform() !== 'ios') {
+    return false;
+  }
+
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    try {
+      const info = await FcmToken.getDebugInfo();
+      if (info?.hasApnsToken) {
+        return true;
+      }
+
+      if (typeof info?.cachedFcmToken === 'string' && info.cachedFcmToken && !isLikelyApnsToken(info.cachedFcmToken)) {
+        return true;
+      }
+    } catch {
+      // native plugin not ready yet
+    }
+
+    if (attempt < maxAttempts - 1) {
+      await new Promise((resolve) => {
+        setTimeout(resolve, delayMs);
+      });
+    }
+  }
+
+  return false;
+}
+
+/**
  * FCM token may not be ready the instant APNs registration fires — retry briefly.
  * @returns {Promise<string | null>}
  */
 export async function getIosFcmTokenWithRetry(maxAttempts = 20, delayMs = 1500) {
+  if (Capacitor.getPlatform() === 'ios') {
+    await waitForNativeApnsReady();
+  }
+
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     const token = await getIosFcmToken();
     if (token) {
