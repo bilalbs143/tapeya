@@ -15,7 +15,7 @@ return new class extends Migration
                 ->constrained('matches')
                 ->cascadeOnDelete();
 
-            $table->unsignedTinyInteger('innings_number'); // 1 or 2
+            $table->unsignedTinyInteger('innings_number');
 
             $table->foreignId('batting_team_id')
                 ->constrained('teams')
@@ -25,7 +25,11 @@ return new class extends Migration
                 ->constrained('teams')
                 ->cascadeOnDelete();
 
-            $table->string('status', 30)->default('not_started'); // not_started, in_progress, completed
+            $table->string('status', 30)->default('not_started');
+            $table->string('end_reason', 50)->nullable();
+            $table->string('ended_by', 20)->nullable();
+            $table->text('end_comments')->nullable();
+            $table->boolean('points_awarded_each')->default(false);
 
             $table->timestamps();
 

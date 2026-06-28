@@ -17,18 +17,22 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
             $table->string('type')->default('user');
-            $table->string('phone', 20)->nullable()->unique();
+            $table->string('phone', 30)->nullable()->unique();
             $table->string('status', 30)->nullable()->default(UserStatusEnum::VERIFICATION_PENDING->value);
+            $table->string('active_platform', 20)->nullable();
+            $table->timestamp('active_platform_updated_at')->nullable();
             $table->unsignedInteger('followers_count')->default(0);
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->date('date_of_birth')->nullable();
             $table->string('playing_role', 30)->nullable();
             $table->string('bowling_style', 50)->nullable();
             $table->string('batting_style', 50)->nullable();
             $table->string('country', 100)->nullable();
             $table->string('city', 100)->nullable();
-            $table->string('avatar')->nullable()->after('city');
+            $table->string('avatar')->nullable();
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

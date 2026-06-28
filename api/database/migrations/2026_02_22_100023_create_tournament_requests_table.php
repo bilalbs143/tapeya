@@ -14,6 +14,7 @@ return new class extends Migration
             $table->string('contact_person_name');
             $table->string('contact_phone', 30);
             $table->string('tournament_name');
+            $table->string('short_name', 64)->nullable();
             $table->string('tournament_type', 30);
             $table->string('cricket_format', 30);
             $table->string('venue_name');

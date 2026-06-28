@@ -14,7 +14,6 @@ return new class extends Migration
             $table->string('name');
             $table->json('config_schema')->nullable();
             $table->json('default_config')->nullable();
-            $table->string('graphics_url_template')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

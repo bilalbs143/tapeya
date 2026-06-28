@@ -18,7 +18,6 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->text('body');
             $table->timestamps();
-            // Note: match_id FK index is created automatically by ->constrained(). No explicit index needed.
         });
     }
 

@@ -31,6 +31,21 @@ return new class extends Migration
             $table->unsignedTinyInteger('overs')->default(20);
 
             $table->string('status', 20)->default('scheduled');
+            $table->string('stream_provider_override', 30)->nullable();
+            $table->string('cancel_reason', 50)->nullable();
+            $table->text('cancel_comments')->nullable();
+            $table->boolean('cancel_points_awarded_each')->default(false);
+            $table->string('declare_result_type', 20)->nullable();
+            $table->foreignId('declare_winner_team_id')
+                ->nullable()
+                ->constrained('teams')
+                ->nullOnDelete();
+            $table->text('declare_result_note')->nullable();
+            $table->boolean('wagon_wheel_enabled')->default(false);
+            $table->jsonb('pending_crease')->nullable();
+            $table->unsignedSmallInteger('revised_target')->nullable();
+            $table->timestamp('revised_target_at')->nullable();
+            $table->string('stream_thumbnail')->nullable();
 
             $table->foreignId('winning_team_id')
                 ->nullable()
@@ -38,13 +53,16 @@ return new class extends Migration
                 ->nullOnDelete();
             $table->foreignId('toss_winner_team_id')
                 ->nullable()
-                ->after('winning_team_id')
                 ->constrained('teams')
                 ->nullOnDelete();
             $table->string('chose_to_bat_or_bowl', 10)->nullable();
             $table->boolean('is_no_result')->default(false);
             $table->unsignedSmallInteger('win_by_runs')->nullable();
             $table->unsignedTinyInteger('win_by_wickets')->nullable();
+            $table->foreignId('player_of_match_user_id')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
 
             $table->timestamps();
         });

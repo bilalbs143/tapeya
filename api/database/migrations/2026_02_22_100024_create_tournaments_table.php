@@ -11,7 +11,9 @@ return new class extends Migration
         Schema::create('tournaments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('organizer_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->string('tournament_name');
+            $table->string('short_name', 64)->nullable();
             $table->string('tournament_type', 30);
             $table->string('cricket_format', 30);
             $table->string('venue_name');
@@ -23,6 +25,7 @@ return new class extends Migration
             $table->string('city', 100);
             $table->string('match_timings', 30);
             $table->string('status', 20)->default('active');
+            $table->string('stream_provider', 30)->nullable();
             $table->string('display_image')->nullable();
             $table->string('cover_image')->nullable();
             $table->string('prize', 255)->nullable();

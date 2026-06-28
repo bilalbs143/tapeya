@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('device_tokens', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->string('token', 512); // FCM tokens exceed 255 chars; 512 is indexable on all MySQL versions
+            $table->string('token', 512);
             $table->string('platform', 20);
             $table->string('app_version', 50)->nullable();
             $table->boolean('is_active')->default(true);
@@ -21,6 +21,7 @@ return new class extends Migration
             $table->unique(['user_id', 'token']);
             $table->index('user_id');
             $table->index('is_active');
+            $table->index(['user_id', 'is_active']);
         });
     }
 
