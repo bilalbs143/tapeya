@@ -1,11 +1,16 @@
 <?php
 
+use App\Http\Controllers\YouTubeEmbedProxyController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+/** iOS Capacitor YouTube embed proxy — must stay outside SPA / auth. */
+Route::get('embed/youtube', [YouTubeEmbedProxyController::class, 'show'])
+    ->name('embed.youtube');
 
 /*
  * Serve files from the public disk so /storage/* works even when the symlink

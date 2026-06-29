@@ -2,11 +2,26 @@
 
 namespace App\Streaming\Support;
 
+use App\Settings\ContactSettings;
+
 /**
  * YouTube iframe embed URLs tuned for in-app playback (custom chrome, no YT fullscreen).
  */
 final class YouTubeEmbedUrl
 {
+    /**
+     * Trusted app origin for YouTube `origin` (Admin → System Settings → Public Website URL).
+     */
+    public static function trustedAppOrigin(): ?string
+    {
+        $url = trim((string) app(ContactSettings::class)->publicWebsiteUrl);
+        if ($url === '') {
+            return null;
+        }
+
+        return rtrim($url, '/');
+    }
+
     /**
      * @return array<string, string|int>
      */

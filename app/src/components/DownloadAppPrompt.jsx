@@ -10,11 +10,21 @@ export function DownloadAppPrompt() {
   const location = useLocation();
   const onBlockedPath = isWebDownloadAppBlockedPath(location.pathname);
 
-  const { isWeb, isSettingsReady, settingsRows, hasStoreLink, appStoreUrl, appStoreName, playStoreUrl, playStoreName } =
-    useWebStoreLinks();
+  const {
+    isWeb,
+    isMobileWeb,
+    isSettingsReady,
+    settingsRows,
+    hasStoreLink,
+    appStoreUrl,
+    appStoreName,
+    playStoreUrl,
+    playStoreName,
+  } = useWebStoreLinks();
 
   const ctxRef = useRef({
     isWeb,
+    isMobileWeb,
     isSettingsReady,
     hasSettingsRows: false,
     hasStoreLink,
@@ -25,6 +35,7 @@ export function DownloadAppPrompt() {
   });
   ctxRef.current = {
     isWeb,
+    isMobileWeb,
     isSettingsReady,
     hasSettingsRows: Boolean(settingsRows?.length),
     hasStoreLink,
@@ -34,14 +45,15 @@ export function DownloadAppPrompt() {
     playStoreName,
   };
 
-  const enabled = !onBlockedPath && isWeb && isSettingsReady && Boolean(settingsRows?.length) && hasStoreLink;
+  const enabled =
+    !onBlockedPath && isWeb && isMobileWeb && isSettingsReady && Boolean(settingsRows?.length) && hasStoreLink;
 
   useIntervalDialogPrompt({
     intervalMs: DIALOG_REMINDER_INTERVAL_MS,
     enabled,
     getOpenDialogPayload: () => {
       const c = ctxRef.current;
-      if (!c.isWeb || !c.isSettingsReady || !c.hasSettingsRows || !c.hasStoreLink) {
+      if (!c.isWeb || !c.isMobileWeb || !c.isSettingsReady || !c.hasSettingsRows || !c.hasStoreLink) {
         return null;
       }
       if (isWebDownloadAppBlockedPath(location.pathname)) {

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import { Capacitor } from '@capacitor/core';
-import { getAppDownloadLinks, resolveDownloadLinksForUserAgent } from '@store-links';
+import { detectMobileWebStorePlatform, getAppDownloadLinks, resolveDownloadLinksForUserAgent } from '@store-links';
 
 import { mapSystemSettingsByKey } from '@/lib/utils/settingsUtils';
 import { useGetPublicSystemSettingsQuery } from '@/store/api/systemSettingsApi';
@@ -25,9 +25,11 @@ export function useWebStoreLinks() {
   }, [isWeb, isSuccess, settingsRows]);
 
   const hasStoreLink = Boolean(links.appStoreUrl.trim() || links.playStoreUrl.trim());
+  const isMobileWeb = detectMobileWebStorePlatform() !== null;
 
   return {
     isWeb,
+    isMobileWeb,
     isSettingsReady: isSuccess,
     settingsRows,
     hasStoreLink,

@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "cap:sync": "cap sync",
-    "cap:ios": "VITE_API_URL=https://api.tapeya.com/api/v1 VITE_NATIVE_PLATFORM=ios vite build && cap sync ios && cap open ios",
+    "cap:ios": "VITE_API_URL=https://api.tapeya.com/api/v1 VITE_APP_URL=https://tapeya.com VITE_LIVE_STREAM_DEBUG=1 VITE_NATIVE_PLATFORM=ios vite build && cap sync ios && cap open ios",
     "cap:android": "VITE_API_URL=https://api.tapeya.com/api/v1 VITE_NATIVE_PLATFORM=android vite build && cap sync android && cap open android",
     "preview": "vite preview",
     "lint": "eslint .",

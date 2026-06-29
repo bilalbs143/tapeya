@@ -14,6 +14,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
+import { LiveStreamDebugPanel } from '@/features/stream/debug/LiveStreamDebugPanel';
+import {
+  getLiveStreamDebugEnvironment,
+  liveStreamDebugLog,
+} from '@/features/stream/debug/liveStreamDebug';
 import { useMatchPresenceChannel } from '@/features/stream/hooks/useMatchPresenceChannel';
 import { useMatchStreamChannel } from '@/features/stream/hooks/useMatchStreamChannel';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -27,6 +32,8 @@ import {
   LIVE_BROADCAST_SHELL_HEIGHT,
   LIVE_BROADCAST_SHELL_HEIGHT_DESKTOP,
 } from '@/lib/constants/liveBroadcastLayout';
+import { resolveYoutubeEmbed } from '@/lib/utils/liveStreamUtils';
+import { baseUrl, getApiOrigin } from '@/store/api/baseApi';
 import { useGetMatchQuery } from '@/store/api/matchApi';
 
 import LiveBroadcastItem from './LiveBroadcastItem';
@@ -92,10 +99,56 @@ export default function LiveBroadcast() {
   const isDesktop = useMediaQuery(LG_MEDIA_QUERY);
   const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY);
 
-  const { data: match, isError, refetch } = useGetMatchQuery(matchId, { skip: !matchId });
+  const { data: match, isError, refetch, isLoading, isFetching, error } = useGetMatchQuery(matchId, { skip: !matchId });
 
   const streamStatus = match?.stream?.status;
   const presenceEnabled = streamStatus === 'live' || streamStatus === 'starting';
+
+  const embedSnapshot = useMemo(() => {
+    const playback = match?.stream?.playback;
+    if (!playback || playback.mode !== 'iframe') {
+      return {
+        status: streamStatus,
+        playbackMode: playback?.mode ?? null,
+        iframeSrc: null,
+        directEmbedUrl: null,
+        usesProxy: null,
+      };
+    }
+    const resolved = resolveYoutubeEmbed(playback.embed_url, playback.embed_id);
+    return {
+      status: streamStatus,
+      playbackMode: playback.mode,
+      iframeSrc: resolved.iframeSrc,
+      directEmbedUrl: resolved.directEmbedUrl,
+      usesProxy: resolved.usesProxy,
+    };
+  }, [match?.stream?.playback, streamStatus]);
+
+  useEffect(() => {
+    liveStreamDebugLog('broadcast-page', {
+      matchId,
+      apiBaseUrl: baseUrl,
+      apiOrigin: getApiOrigin(),
+      env: getLiveStreamDebugEnvironment(),
+      query: {
+        isLoading,
+        isFetching,
+        isError,
+        errorStatus: error?.status ?? null,
+        errorMessage: error?.data?.message ?? error?.error ?? null,
+      },
+      matchStatus: match?.status ?? null,
+      stream: match?.stream
+        ? {
+            status: match.stream.status,
+            provider: match.stream.provider ?? null,
+            playback: match.stream.playback ?? null,
+          }
+        : null,
+      embedSnapshot,
+    });
+  }, [matchId, match, isLoading, isFetching, isError, error, embedSnapshot]);
 
   useMatchStreamChannel(matchId);
   const realViewerCount = useMatchPresenceChannel(matchId, presenceEnabled);
@@ -176,6 +229,7 @@ export default function LiveBroadcast() {
           )}
         </div>
       </div>
+      <LiveStreamDebugPanel streamSnapshot={embedSnapshot} />
     </div>
   );
 }
