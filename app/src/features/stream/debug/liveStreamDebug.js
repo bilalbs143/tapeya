@@ -1,7 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 
 const STORAGE_KEY = 'liveStreamDebug';
-const MAX_LOGS = 80;
+const MAX_LOGS = 150;
 
 /** @type {Array<{ id: number, ts: string, tag: string, payload: Record<string, unknown> }>} */
 let logs = [];

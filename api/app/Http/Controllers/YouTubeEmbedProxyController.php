@@ -25,7 +25,8 @@ class YouTubeEmbedProxyController extends Controller
                 'embedSrc' => $rawSrc,
                 'youtubeEmbedOrigin' => YouTubeEmbedUrl::trustedAppOrigin(),
             ])
-            ->header('Content-Security-Policy', 'frame-ancestors *');
+            ->header('Content-Security-Policy', 'frame-ancestors *')
+            ->header('X-Tapeya-Embed-Version', '2026-06-29-yt-api-v2');
     }
 
     private function isAllowedYoutubeEmbedUrl(string $url): bool

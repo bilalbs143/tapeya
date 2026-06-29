@@ -9,5 +9,6 @@ class AppBridgeViewController: CAPBridgeViewController {
     override open func capacitorDidLoad() {
         bridge?.registerPluginInstance(FcmTokenPlugin())
         bridge?.registerPluginInstance(FacebookAnalyticsPlugin())
+        bridge?.registerPluginInstance(YoutubeStreamOverlayPlugin())
     }
 }

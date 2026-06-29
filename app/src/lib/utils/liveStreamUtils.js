@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 
-import { liveStreamDebugLog } from '@/features/stream/debug/liveStreamDebug';
+import { liveStreamDebugLog, isLiveStreamDebugEnabled } from '@/features/stream/debug/liveStreamDebug';
 import { normaliseMatchStatus } from '@/lib/utils/scorecardUtils';
 import { baseUrl, getApiOrigin } from '@/store/api/baseApi';
 
@@ -110,6 +110,9 @@ export function buildYoutubeEmbedProxyUrl(directEmbedUrl) {
 
   const proxyUrl = new URL(proxyBase);
   proxyUrl.searchParams.set('src', buildProxyTargetEmbedUrl(directEmbedUrl) ?? directEmbedUrl);
+  if (isLiveStreamDebugEnabled()) {
+    proxyUrl.searchParams.set('_dbg', '1');
+  }
   return proxyUrl.toString();
 }
 

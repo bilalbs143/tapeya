@@ -48,8 +48,8 @@ class YouTubeEmbedUrlTest extends TestCase
             'youtubeEmbedOrigin' => YouTubeEmbedUrl::trustedAppOrigin(),
         ])->render();
 
-        $this->assertStringContainsString('tapeya.com', $html);
-        $this->assertStringContainsString('onYouTubeIframeAPIReady', $html);
+        $this->assertStringContainsString('tapeya-youtube-proxy-debug', $html);
+        $this->assertStringContainsString('proxyLog(\'boot\'', $html);
         $this->assertStringContainsString("new YT.Player('player'", $html);
         $this->assertStringContainsString('playerVars.origin = pageOrigin', $html);
     }
