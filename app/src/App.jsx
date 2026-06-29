@@ -1,11 +1,9 @@
 import { lazy, Suspense, useEffect } from 'react';
 
-import { DownloadAppPrompt } from '@platform-download';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
-import AppUpdatePrompt from '@/components/AppUpdatePrompt';
 import DialogManager from '@/components/dialogs/DialogManager';
-import { ProfileStrengthReminderScheduler } from '@/components/ProfileStrengthReminderScheduler';
+import ProgrammaticDialogPrompts from '@/components/ProgrammaticDialogPrompts';
 import { RequireAuth } from '@/components/RequireAuth';
 import { ScrollRestoration } from '@/components/ScrollRestoration';
 import SplashScreen from '@/components/SplashScreen';
@@ -120,9 +118,7 @@ function App() {
               <RouterEffects />
               <ScrollRestoration />
               <DialogManager />
-              <ProfileStrengthReminderScheduler />
-              <AppUpdatePrompt />
-              <DownloadAppPrompt />
+              <ProgrammaticDialogPrompts />
               <Suspense fallback={<PageFallback />}>
                 <Routes>
                   <Route path="/" element={<SplashScreen />} />
