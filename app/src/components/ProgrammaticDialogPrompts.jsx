@@ -7,10 +7,13 @@ import { useNativeStoreVersionInfo } from '@/hooks/useNativeStoreVersionInfo';
 import { useWebStoreLinks } from '@/hooks/useWebStoreLinks';
 import { shouldPromptAppUpdate } from '@/lib/appVersionCompare';
 import {
+  appUpdateReminderStorageKey,
+  downloadAppReminderStorageKey,
   isDialogReminderCooldownElapsed,
   markDialogReminderShown,
   PROFILE_STRENGTH_REMINDER_COOLDOWN_MS,
   profileStrengthReminderStorageKey,
+  REPEATING_DIALOG_REMINDER_COOLDOWN_MS,
 } from '@/lib/dialogReminderCooldown';
 import { calculateProfileStrength } from '@/lib/utils/playerUtils';
 import {
@@ -22,8 +25,8 @@ import { useGetMeQuery } from '@/store/api/authApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated, selectUser } from '@/store/selectors';
 
-/** Cadence for repeating reminder dialogs (app update, download app). */
-const REMINDER_INTERVAL_MS = 4 * 60 * 1000;
+/** Poll interval for repeating reminder dialogs (app update, download app). */
+const REMINDER_INTERVAL_MS = REPEATING_DIALOG_REMINDER_COOLDOWN_MS;
 
 /** Dialog keys opened automatically — not from explicit user taps. */
 export const PROGRAMMATIC_DIALOG_KEYS = {
@@ -89,6 +92,7 @@ const PROGRAMMATIC_DIALOG_RULES = /** @type {ProgrammaticDialogRule[]} */ ([
     isBlockedPath: isDialogReminderBlockedPath,
     resolve(ctx) {
       if (
+        !ctx.user?.id ||
         !ctx.isNativeMobile ||
         !ctx.isSettingsReady ||
         !ctx.hasSettingsRows ||
@@ -107,12 +111,24 @@ const PROGRAMMATIC_DIALOG_RULES = /** @type {ProgrammaticDialogRule[]} */ ([
         props: { storeUrl: ctx.storeUrl, storeName: ctx.storeName },
       };
     },
+    beforeOpen(ctx) {
+      if (!ctx.user?.id) {
+        return false;
+      }
+      const storageKey = appUpdateReminderStorageKey(ctx.user.id);
+      if (!isDialogReminderCooldownElapsed(storageKey, REPEATING_DIALOG_REMINDER_COOLDOWN_MS)) {
+        return false;
+      }
+      markDialogReminderShown(storageKey);
+      return true;
+    },
   },
   {
     key: PROGRAMMATIC_DIALOG_KEYS.downloadApp,
     isBlockedPath: isWebDownloadAppBlockedPath,
     resolve(ctx) {
       if (
+        !ctx.user?.id ||
         !ctx.isWeb ||
         !ctx.isSettingsReady ||
         !ctx.hasSettingsRows ||
@@ -130,6 +146,17 @@ const PROGRAMMATIC_DIALOG_RULES = /** @type {ProgrammaticDialogRule[]} */ ([
           playStoreName: ctx.playStoreName,
         },
       };
+    },
+    beforeOpen(ctx) {
+      if (!ctx.user?.id) {
+        return false;
+      }
+      const storageKey = downloadAppReminderStorageKey(ctx.user.id);
+      if (!isDialogReminderCooldownElapsed(storageKey, REPEATING_DIALOG_REMINDER_COOLDOWN_MS)) {
+        return false;
+      }
+      markDialogReminderShown(storageKey);
+      return true;
     },
   },
 ]);
@@ -193,6 +220,10 @@ export function ProgrammaticDialogPrompts() {
     playStoreName,
   });
 
+  const isReminderSettingsReady = isNativeMobile
+    ? isNativeSettingsReady && Boolean(nativeSettingsRows?.length)
+    : isWebSettingsReady && Boolean(webSettingsRows?.length);
+
   const contextRef = useRef(context);
   contextRef.current = context;
 
@@ -252,7 +283,7 @@ export function ProgrammaticDialogPrompts() {
     if (isAuthenticated) {
       tryOpenProgrammaticDialog();
     }
-  }, [isAuthenticated, tryOpenProgrammaticDialog, location.pathname, user?.id]);
+  }, [isAuthenticated, tryOpenProgrammaticDialog, location.pathname, user?.id, isReminderSettingsReady, hasStoreLink]);
 
   return null;
 }
