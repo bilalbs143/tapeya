@@ -49,7 +49,8 @@ class YouTubeEmbedUrlTest extends TestCase
         ])->render();
 
         $this->assertStringContainsString('tapeya.com', $html);
-        $this->assertStringContainsString('widget_referrer', $html);
-        $this->assertStringNotContainsString('window.location.origin', $html);
+        $this->assertStringContainsString('onYouTubeIframeAPIReady', $html);
+        $this->assertStringContainsString("new YT.Player('player'", $html);
+        $this->assertStringContainsString('playerVars.origin = pageOrigin', $html);
     }
 }

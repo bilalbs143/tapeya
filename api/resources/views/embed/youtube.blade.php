@@ -19,43 +19,69 @@
         overflow: hidden;
       }
 
-      iframe {
+      #player {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
-        border: 0;
       }
     </style>
   </head>
   <body>
+    <div id="player"></div>
+    <script src="https://www.youtube.com/iframe_api"></script>
     <script>
       (function () {
         var rawSrc = @json($embedSrc);
+        var youtubeOrigin = @json($youtubeEmbedOrigin);
+        var pageOrigin = youtubeOrigin || window.location.origin;
 
+        // Extract the video/broadcast ID from the embed URL.
+        var videoId = null;
         try {
-          var embedUrl = new URL(rawSrc);
-          var youtubeOrigin = @json($youtubeEmbedOrigin);
-          if (youtubeOrigin) {
-            embedUrl.searchParams.set('origin', youtubeOrigin);
-            embedUrl.searchParams.set('widget_referrer', youtubeOrigin + '/embed/youtube');
+          var match = rawSrc.match(/\/embed\/([^?/]+)/);
+          if (match) {
+            videoId = match[1];
           }
-          embedUrl.searchParams.set('playsinline', '1');
-          if (!embedUrl.searchParams.has('enablejsapi')) {
-            embedUrl.searchParams.set('enablejsapi', '1');
-          }
+        } catch (e) {}
 
-          var frame = document.createElement('iframe');
-          frame.src = embedUrl.toString();
-          frame.title = 'Live Match';
-          frame.allow =
-            'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-          frame.allowFullscreen = true;
-          frame.setAttribute('playsinline', '');
-          frame.setAttribute('webkit-playsinline', '');
-          document.body.appendChild(frame);
-        } catch (error) {
-          /* ignore invalid src */
+        if (!videoId) {
+          return;
+        }
+
+        var playerVars = {
+          autoplay: 1,
+          rel: 0,
+          modestbranding: 1,
+          controls: 1,
+          playsinline: 1,
+          fs: 0,
+          iv_load_policy: 3,
+          cc_load_policy: 0,
+        };
+
+        if (pageOrigin) {
+          playerVars.origin = pageOrigin;
+        }
+
+        function initPlayer() {
+          player = new YT.Player('player', {
+            videoId: videoId,
+            host: 'https://www.youtube.com',
+            playerVars: playerVars,
+            events: {
+              onReady: function (event) {
+                event.target.playVideo();
+              },
+            },
+          });
+        }
+
+        // iframe_api.js may load before or after this script runs.
+        if (window.YT && window.YT.Player) {
+          initPlayer();
+        } else {
+          window.onYouTubeIframeAPIReady = initPlayer;
         }
       })();
     </script>
