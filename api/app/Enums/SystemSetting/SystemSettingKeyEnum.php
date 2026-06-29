@@ -61,6 +61,7 @@ enum SystemSettingKeyEnum: string
     case STREAM_YOUTUBE_REFRESH_TOKEN = 'stream_youtube_refresh_token';
     case STREAM_YOUTUBE_CHANNEL_ID = 'stream_youtube_channel_id';
     case STREAM_YOUTUBE_DEFAULT_PRIVACY = 'stream_youtube_default_privacy';
+    case STREAM_IDLE_END_GRACE_MINUTES = 'stream_idle_end_grace_minutes';
 
     case LIVE_CHAT_ENABLED = 'live_chat_enabled';
     case LIVE_CHAT_MIN_INTERVAL_SEC = 'live_chat_min_interval_sec';

@@ -4,6 +4,7 @@ namespace App\Services\Overlay;
 
 use App\Models\MatchGraphicSession;
 use App\Settings\OverlaySettings;
+use Illuminate\Support\Carbon;
 use RuntimeException;
 
 /**
@@ -52,7 +53,7 @@ final class MatchGraphicOverlayUrlService
     }
 
     /**
-     * @return array{url: string, expires_at: \Illuminate\Support\Carbon}
+     * @return array{url: string, expires_at: Carbon}
      */
     private function buildSignedUrl(int $matchId, ?int $previousExpiresUnix = null): array
     {

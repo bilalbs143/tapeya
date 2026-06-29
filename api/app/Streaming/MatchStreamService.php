@@ -79,6 +79,10 @@ class MatchStreamService
         $stream->refresh();
 
         if ($stream->status !== $before) {
+            if ($stream->status === 'ended') {
+                LiveChatRedisKeys::purgeMatch($match->id);
+            }
+
             broadcast(new MatchStreamStatusUpdated(
                 $match->id,
                 $stream->status,

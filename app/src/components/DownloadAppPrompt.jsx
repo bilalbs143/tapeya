@@ -45,8 +45,7 @@ export function DownloadAppPrompt() {
     playStoreName,
   };
 
-  const enabled =
-    !onBlockedPath && isWeb && isMobileWeb && isSettingsReady && Boolean(settingsRows?.length) && hasStoreLink;
+  const enabled = !onBlockedPath && isWeb && isMobileWeb && isSettingsReady && Boolean(settingsRows?.length) && hasStoreLink;
 
   useIntervalDialogPrompt({
     intervalMs: DIALOG_REMINDER_INTERVAL_MS,

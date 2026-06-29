@@ -135,6 +135,7 @@ class SystemSettingsSeeder extends Seeder
         $streaming->youtubeRefreshToken ??= null;
         $streaming->youtubeChannelId ??= null;
         $streaming->youtubeDefaultPrivacy ??= 'public';
+        $streaming->idleEndGraceMinutes ??= 120;
         $streaming->save();
     }
 

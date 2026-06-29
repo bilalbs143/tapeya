@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef } from 'react';
 
-import { liveStreamDebugLog } from '@/features/stream/debug/liveStreamDebug';
 import {
   hideYoutubeStreamOverlay,
   showYoutubeStreamOverlay,
   updateYoutubeStreamOverlayLayout,
 } from '@/native/youtubeStreamOverlay';
+
+import { StreamVideoLoading } from '../StreamVideoLoading';
 
 function readLayoutRect(element) {
   const rect = element.getBoundingClientRect();
@@ -17,48 +18,62 @@ function readLayoutRect(element) {
   };
 }
 
+function buildOverlayPayload(element, { isLandscape, allowInteraction }) {
+  return {
+    ...readLayoutRect(element),
+    rotation: isLandscape ? -90 : 0,
+    userInteractionEnabled: allowInteraction,
+  };
+}
+
+function scheduleLayoutSync(callback) {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(callback);
+  });
+}
+
 /**
  * iOS-only: native WKWebView overlay loads the proxy URL as a top-level document
  * (same as Mobile Safari), avoiding nested iframe playback restrictions.
  */
-export function IosNativeStreamOverlay({ src, className = '', fill = false }) {
+export function IosNativeStreamOverlay({
+  src,
+  className = '',
+  fill = false,
+  isLandscape = false,
+  allowInteraction = true,
+  isLoading = false,
+}) {
   const boxClass = fill ? 'relative h-full w-full bg-black' : 'relative w-full aspect-video bg-black';
   const containerRef = useRef(null);
   const srcRef = useRef(null);
-
   const shownRef = useRef(false);
+  const layoutOptionsRef = useRef({ isLandscape, allowInteraction });
 
-  const syncLayout = useCallback(async () => {
+  layoutOptionsRef.current = { isLandscape, allowInteraction };
+
+  const syncLayout = useCallback(async (reload = false) => {
     const element = containerRef.current;
     if (!element || !srcRef.current) {
       return;
     }
 
-    const layout = readLayoutRect(element);
-    if (layout.width <= 0 || layout.height <= 0) {
-      liveStreamDebugLog('native-overlay-layout-skip', { layout, reason: 'zero-size' });
+    const payload = buildOverlayPayload(element, layoutOptionsRef.current);
+    if (payload.width <= 0 || payload.height <= 0) {
       return;
     }
 
-    try {
-      if (!shownRef.current) {
-        // First valid layout — call show (not just updateLayout) so the native
-        // WebView is created with proper dimensions if mount-time rect was zero.
-        shownRef.current = true;
-        await showYoutubeStreamOverlay({ url: srcRef.current, ...layout, reload: false });
-        liveStreamDebugLog('native-overlay-show-from-resize', { src: srcRef.current, layout });
-      } else {
-        await updateYoutubeStreamOverlayLayout(layout);
-        liveStreamDebugLog('native-overlay-layout', { src: srcRef.current, layout });
-      }
-    } catch (error) {
-      liveStreamDebugLog('native-overlay-layout-error', {
-        message: error instanceof Error ? error.message : String(error),
-      });
+    if (!shownRef.current || reload) {
+      shownRef.current = true;
+      await showYoutubeStreamOverlay({ url: srcRef.current, ...payload, reload });
+      return;
     }
+
+    await updateYoutubeStreamOverlayLayout(payload);
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     srcRef.current = src;
     shownRef.current = false;
     const element = containerRef.current;
@@ -66,49 +81,51 @@ export function IosNativeStreamOverlay({ src, className = '', fill = false }) {
       return undefined;
     }
 
-    const layout = readLayoutRect(element);
-
-    void (async () => {
-      try {
-        const hasSize = layout.width > 0 && layout.height > 0;
-        if (hasSize) {
-          shownRef.current = true;
-          await showYoutubeStreamOverlay({ url: src, ...layout, reload: true });
-          liveStreamDebugLog('native-overlay-show', {
-            src,
-            layout,
-            note: 'Top-level native WKWebView — same as Safari, not nested iframe.',
-          });
-        } else {
-          // Zero-size at mount — ResizeObserver will call show once layout is stable.
-          liveStreamDebugLog('native-overlay-show-deferred', { layout, reason: 'zero-size-at-mount' });
-        }
-      } catch (error) {
-        liveStreamDebugLog('native-overlay-show-error', {
-          src,
-          message: error instanceof Error ? error.message : String(error),
-        });
-      }
-    })();
+    void syncLayout(true);
 
     const resizeObserver = new ResizeObserver(() => {
-      void syncLayout();
+      scheduleLayoutSync(() => {
+        if (!cancelled) {
+          void syncLayout(false);
+        }
+      });
     });
     resizeObserver.observe(element);
 
-    window.addEventListener('orientationchange', syncLayout);
-    window.addEventListener('resize', syncLayout);
+    const onViewportChange = () => {
+      scheduleLayoutSync(() => {
+        if (!cancelled) {
+          void syncLayout(false);
+        }
+      });
+    };
+
+    window.addEventListener('orientationchange', onViewportChange);
+    window.addEventListener('resize', onViewportChange);
 
     return () => {
+      cancelled = true;
       shownRef.current = false;
       resizeObserver.disconnect();
-      window.removeEventListener('orientationchange', syncLayout);
-      window.removeEventListener('resize', syncLayout);
-      void hideYoutubeStreamOverlay().then(() => {
-        liveStreamDebugLog('native-overlay-hide', { src });
-      });
+      window.removeEventListener('orientationchange', onViewportChange);
+      window.removeEventListener('resize', onViewportChange);
+      void hideYoutubeStreamOverlay();
     };
   }, [src, syncLayout]);
 
-  return <div ref={containerRef} className={`${boxClass} ${className}`} aria-hidden="true" />;
+  useEffect(() => {
+    if (!shownRef.current) {
+      return;
+    }
+
+    scheduleLayoutSync(() => {
+      void syncLayout(false);
+    });
+  }, [isLandscape, allowInteraction, syncLayout]);
+
+  return (
+    <div ref={containerRef} className={`${boxClass} ${className}`} aria-busy={isLoading}>
+      {isLoading && <StreamVideoLoading />}
+    </div>
+  );
 }

@@ -8,6 +8,7 @@ use App\Streaming\Contracts\StreamProviderContract;
 use App\Streaming\Data\CreateStreamData;
 use App\Streaming\Data\StreamIngestConfig;
 use App\Streaming\Data\StreamPlayback;
+use App\Streaming\Support\MatchStreamStatusTransition;
 use App\Streaming\Support\YouTubeEmbedUrl;
 use Google\Client as GoogleClient;
 use Google\Service\YouTube;
@@ -105,33 +106,54 @@ class YouTubeStreamProvider implements StreamProviderContract
             ]);
             $items = $response->getItems();
 
-            if (empty($items)) {
-                $stream->update(['status' => 'ended']);
+            $lifecycle = empty($items) ? null : $items[0]->getStatus()->getLifeCycleStatus();
+            $ingestStatus = $this->fetchIngestStreamStatus($stream);
+            $providerStatus = $this->mapProviderStatus($lifecycle, $ingestStatus);
+            $updates = MatchStreamStatusTransition::resolve($stream, $providerStatus);
 
-                return;
+            if ($updates !== null) {
+                $stream->update($updates);
             }
-
-            $lifecycle = $items[0]->getStatus()->getLifeCycleStatus();
-
-            $status = match ($lifecycle) {
-                'live' => 'live',
-                'complete' => 'ended',
-                'testStarting', 'testing' => 'starting',
-                default => 'idle',
-            };
-
-            $updates = ['status' => $status];
-            if ($status === 'live' && ! $stream->started_at) {
-                $updates['started_at'] = now();
-            }
-            if ($status === 'ended' && ! $stream->ended_at) {
-                $updates['ended_at'] = now();
-            }
-
-            $stream->update($updates);
         } catch (\Exception $e) {
             Log::error("YouTube syncStatus failed for stream {$stream->id}: ".$e->getMessage());
         }
+    }
+
+    private function fetchIngestStreamStatus(MatchStream $stream): ?string
+    {
+        if (! $stream->provider_ingest_id) {
+            return null;
+        }
+
+        try {
+            $response = $this->yt->liveStreams->listLiveStreams('status', [
+                'id' => $stream->provider_ingest_id,
+            ]);
+            $items = $response->getItems();
+
+            if (empty($items)) {
+                return null;
+            }
+
+            return $items[0]->getStatus()->getStreamStatus();
+        } catch (\Exception $e) {
+            Log::warning("YouTube ingest status fetch failed for stream {$stream->id}: ".$e->getMessage());
+
+            return null;
+        }
+    }
+
+    private function mapProviderStatus(?string $lifecycle, ?string $ingestStatus): string
+    {
+        if ($lifecycle === null) {
+            return 'idle';
+        }
+
+        return match ($lifecycle) {
+            'live' => $ingestStatus === 'active' ? 'live' : 'idle',
+            'testStarting', 'testing' => 'starting',
+            default => 'idle',
+        };
     }
 
     public function endStream(MatchStream $stream): void
@@ -146,7 +168,11 @@ class YouTubeStreamProvider implements StreamProviderContract
             Log::warning("YouTube broadcast transition failed for stream {$stream->id}: ".$e->getMessage());
         }
 
-        $stream->update(['status' => 'ended', 'ended_at' => now()]);
+        $stream->update([
+            'status' => 'ended',
+            'ended_at' => now(),
+            'provider_metadata' => $this->metadataWithoutIdleSince($stream),
+        ]);
     }
 
     public function deleteStream(MatchStream $stream): void
@@ -192,5 +218,16 @@ class YouTubeStreamProvider implements StreamProviderContract
     public function supportsWebhooks(): bool
     {
         return false;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function metadataWithoutIdleSince(MatchStream $stream): array
+    {
+        $metadata = $stream->provider_metadata ?? [];
+        unset($metadata['idle_since']);
+
+        return $metadata;
     }
 }

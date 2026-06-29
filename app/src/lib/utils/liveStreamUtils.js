@@ -1,6 +1,5 @@
 import { Capacitor } from '@capacitor/core';
 
-import { liveStreamDebugLog, isLiveStreamDebugEnabled } from '@/features/stream/debug/liveStreamDebug';
 import { normaliseMatchStatus } from '@/lib/utils/scorecardUtils';
 import { baseUrl, getApiOrigin } from '@/store/api/baseApi';
 
@@ -45,10 +44,8 @@ function getYoutubeEmbedDefaultParams() {
 }
 
 /**
- * iOS WKWebView (capacitor://) cannot embed YouTube directly — Error 153.
- * Route through the **public website** (Public Website URL / VITE_APP_URL) so YouTube
- * sees Referer `https://tapeya.com/embed/youtube`, not `api.tapeya.com`.
- * nginx on tapeya.com proxies that path to Laravel on api.tapeya.com.
+ * iOS WKWebView (capacitor://) cannot embed YouTube in nested iframes — Error 153.
+ * Route through the public website so YouTube sees Referer `https://tapeya.com/embed/youtube`.
  */
 export function shouldUseYoutubeEmbedProxy() {
   return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
@@ -79,7 +76,7 @@ export function getYoutubeEmbedProxyBase() {
 }
 
 /**
- * YouTube URL passed to the proxy — origin/widget_referrer are set server-side from settings.
+ * YouTube URL passed to the proxy — origin is set server-side from system settings.
  *
  * @param {string|null} directEmbedUrl
  * @returns {string|null}
@@ -110,9 +107,6 @@ export function buildYoutubeEmbedProxyUrl(directEmbedUrl) {
 
   const proxyUrl = new URL(proxyBase);
   proxyUrl.searchParams.set('src', buildProxyTargetEmbedUrl(directEmbedUrl) ?? directEmbedUrl);
-  if (isLiveStreamDebugEnabled()) {
-    proxyUrl.searchParams.set('_dbg', '1');
-  }
   return proxyUrl.toString();
 }
 
@@ -209,37 +203,14 @@ export function liveMatchWatchPath(tournamentId, matchId) {
 }
 
 /**
- * Resolve direct + final iframe URLs and log diagnostics (iOS proxy path).
- *
- * @returns {{ directEmbedUrl: string|null, iframeSrc: string|null, usesProxy: boolean, proxyBase: string|null, apiOrigin: string }}
+ * @returns {{ iframeSrc: string|null, usesProxy: boolean }}
  */
 export function resolveYoutubeEmbed(embedUrl, embedId) {
   const directEmbedUrl = buildDirectYoutubeEmbedUrl(embedUrl, embedId);
   const usesProxy = shouldUseYoutubeEmbedProxy();
-  const apiOrigin = getApiOrigin();
-  const websiteOrigin = getYoutubeEmbedOrigin();
-  const proxyBase = usesProxy ? getYoutubeEmbedProxyBase() : null;
-  const iframeSrc = directEmbedUrl
-    ? usesProxy
-      ? buildYoutubeEmbedProxyUrl(directEmbedUrl)
-      : directEmbedUrl
-    : null;
+  const iframeSrc = directEmbedUrl ? (usesProxy ? buildYoutubeEmbedProxyUrl(directEmbedUrl) : directEmbedUrl) : null;
 
-  liveStreamDebugLog('embed-resolve', {
-    platform: Capacitor.getPlatform(),
-    isNative: Capacitor.isNativePlatform(),
-    usesProxy,
-    apiOrigin,
-    websiteOrigin,
-    proxyBase,
-    embedUrl: embedUrl ?? null,
-    embedId: embedId ?? null,
-    directEmbedUrl,
-    iframeSrc,
-    hasIframeSrc: Boolean(iframeSrc),
-  });
-
-  return { directEmbedUrl, iframeSrc, usesProxy, proxyBase, apiOrigin };
+  return { iframeSrc, usesProxy };
 }
 
 /**
