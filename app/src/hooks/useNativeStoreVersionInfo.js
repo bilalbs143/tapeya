@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
-import { getStoreConfig } from '@native-store';
+import { getNativeStoreConfig } from '@store-links';
 
 import { mapSystemSettingsByKey } from '@/lib/utils/settingsUtils';
 import { useGetPublicSystemSettingsQuery } from '@/store/api/systemSettingsApi';
@@ -67,7 +67,7 @@ export function useNativeStoreVersionInfo(options = {}) {
       return { configuredVersion: '', storeUrl: '', storeName: '' };
     }
     const map = mapSystemSettingsByKey(settingsRows);
-    return getStoreConfig(map);
+    return getNativeStoreConfig(map);
   }, [isNativeMobile, isSuccess, settingsRows]);
 
   return {

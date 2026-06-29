@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect } from 'react';
 
+import { DownloadAppPrompt } from '@platform-download';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import AppUpdatePrompt from '@/components/AppUpdatePrompt';
@@ -121,6 +122,7 @@ function App() {
               <DialogManager />
               <ProfileStrengthReminderScheduler />
               <AppUpdatePrompt />
+              <DownloadAppPrompt />
               <Suspense fallback={<PageFallback />}>
                 <Routes>
                   <Route path="/" element={<SplashScreen />} />

@@ -56,6 +56,8 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, 'src'),
       '@native-store': resolve(__dirname, `src/lib/nativeStore/${nativeStoreEntry}.js`),
+      '@store-links': resolve(__dirname, `src/lib/nativeStore/storeLinks/${nativeStoreEntry}.js`),
+      '@platform-download': resolve(__dirname, `src/platform/download/${nativeStoreEntry}.js`),
     },
   },
 

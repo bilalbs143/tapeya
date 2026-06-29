@@ -1,3 +1,5 @@
+import { DownloadAppDialog } from '@platform-download';
+
 import { useDialog } from '@/context/DialogContext';
 
 import AddBreakDialog from './AddBreakDialog';
@@ -51,6 +53,7 @@ import WideBallDialog from './WideBallDialog';
 const DIALOG_COMPONENTS = {
   // Global app dialogs
   appUpdate: AppUpdateDialog,
+  downloadApp: DownloadAppDialog,
   inningsEnd: InningsEndDialog,
   manOfTheMatch: ManOfTheMatchDialog,
   pricingSuccess: PricingSuccessDialog,

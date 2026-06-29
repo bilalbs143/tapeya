@@ -1,17 +1,15 @@
 import { Browser } from '@capacitor/browser';
-
-const STORE_NAME = '';
-
-export function getStoreConfig() {
-  return { configuredVersion: '', storeUrl: '', storeName: STORE_NAME };
-}
+import { openExternalStoreUrl, sanitizeStoreUrl } from '@store-links';
 
 export async function openStoreUrl(url) {
-  if (!url) {
-    throw new Error('Missing store URL');
+  const safeUrl = sanitizeStoreUrl(url);
+  if (!safeUrl) {
+    throw new Error('Missing or invalid store URL');
   }
-  await Browser.open({ url });
-  return { platform: 'web', nativeUrl: url };
+  await Browser.open({ url: safeUrl });
+  return { platform: 'web', nativeUrl: safeUrl };
 }
 
-export { STORE_NAME };
+export { openExternalStoreUrl };
+
+export const STORE_NAME = '';

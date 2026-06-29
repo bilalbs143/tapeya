@@ -1,4 +1,4 @@
-const STORE_NAME = 'Play Store';
+import { PLAY_STORE_NAME, sanitizePlayStoreUrl, toNativePlayStoreUrl } from './storeLinks/playStore.js';
 
 const OPENABLE_STORE_URL_PROTOCOLS = new Set(['http:', 'https:', 'market:']);
 
@@ -11,35 +11,15 @@ function isOpenableStoreUrl(value) {
   }
 }
 
-function toNativeStoreUrl(url) {
-  try {
-    const u = new URL(String(url).trim());
-    if (u.hostname === 'play.google.com') {
-      const id = u.searchParams.get('id');
-      if (id) return `market://details?id=${id}`;
-    }
-  } catch {
-    // fall through to original url
-  }
-  return url;
-}
-
-export function getStoreConfig(map) {
-  return {
-    configuredVersion: map.android_play_store_version?.trim() ?? '',
-    storeUrl: map.android_play_store_url?.trim() ?? '',
-    storeName: STORE_NAME,
-  };
-}
-
 export async function openStoreUrl(url) {
-  if (!url || !isOpenableStoreUrl(url)) {
-    throw new Error(`Blocked or invalid URL: ${url}`);
+  const safeUrl = sanitizePlayStoreUrl(url);
+  if (!safeUrl || !isOpenableStoreUrl(safeUrl)) {
+    throw new Error(`Blocked or invalid URL: ${safeUrl || url}`);
   }
 
-  const nativeUrl = toNativeStoreUrl(url);
+  const nativeUrl = toNativePlayStoreUrl(safeUrl);
   window.location.href = nativeUrl;
   return { platform: 'android', nativeUrl };
 }
 
-export { STORE_NAME };
+export { PLAY_STORE_NAME as STORE_NAME };
