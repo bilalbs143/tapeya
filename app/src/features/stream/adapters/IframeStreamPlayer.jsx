@@ -45,7 +45,7 @@ export function IframeStreamPlayer({ playback, className = '', fill = false }) {
         className="absolute inset-0 h-full w-full border-0"
         src={src}
         title="Live Match"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         referrerPolicy="strict-origin-when-cross-origin"
         allowFullScreen
         onLoad={() => {

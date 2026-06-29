@@ -38,7 +38,9 @@
           var youtubeOrigin = @json($youtubeEmbedOrigin);
           if (youtubeOrigin) {
             embedUrl.searchParams.set('origin', youtubeOrigin);
+            embedUrl.searchParams.set('widget_referrer', youtubeOrigin + '/embed/youtube');
           }
+          embedUrl.searchParams.set('playsinline', '1');
           if (!embedUrl.searchParams.has('enablejsapi')) {
             embedUrl.searchParams.set('enablejsapi', '1');
           }
@@ -47,9 +49,10 @@
           frame.src = embedUrl.toString();
           frame.title = 'Live Match';
           frame.allow =
-            'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-          frame.referrerPolicy = 'strict-origin-when-cross-origin';
+            'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
           frame.allowFullscreen = true;
+          frame.setAttribute('playsinline', '');
+          frame.setAttribute('webkit-playsinline', '');
           document.body.appendChild(frame);
         } catch (error) {
           /* ignore invalid src */

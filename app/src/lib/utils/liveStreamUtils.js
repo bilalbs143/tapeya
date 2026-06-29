@@ -46,7 +46,9 @@ function getYoutubeEmbedDefaultParams() {
 
 /**
  * iOS WKWebView (capacitor://) cannot embed YouTube directly — Error 153.
- * Route through an HTTPS page on the API domain that embeds YouTube with a valid Referer.
+ * Route through the **public website** (Public Website URL / VITE_APP_URL) so YouTube
+ * sees Referer `https://tapeya.com/embed/youtube`, not `api.tapeya.com`.
+ * nginx on tapeya.com proxies that path to Laravel on api.tapeya.com.
  */
 export function shouldUseYoutubeEmbedProxy() {
   return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
@@ -56,15 +58,44 @@ export function shouldUseYoutubeEmbedProxy() {
  * @returns {string}
  */
 export function getYoutubeEmbedProxyBase() {
-  const origin = getApiOrigin() || (() => {
-    try {
-      return new URL(baseUrl).origin;
-    } catch {
-      return '';
+  if (shouldUseYoutubeEmbedProxy()) {
+    const websiteOrigin = getYoutubeEmbedOrigin();
+    if (websiteOrigin) {
+      return `${websiteOrigin}/embed/youtube`;
     }
-  })();
+  }
+
+  const origin =
+    getApiOrigin() ||
+    (() => {
+      try {
+        return new URL(baseUrl).origin;
+      } catch {
+        return '';
+      }
+    })();
 
   return origin ? `${origin}/embed/youtube` : '';
+}
+
+/**
+ * YouTube URL passed to the proxy — origin/widget_referrer are set server-side from settings.
+ *
+ * @param {string|null} directEmbedUrl
+ * @returns {string|null}
+ */
+export function buildProxyTargetEmbedUrl(directEmbedUrl) {
+  if (!directEmbedUrl) {
+    return null;
+  }
+
+  try {
+    const url = new URL(directEmbedUrl);
+    url.searchParams.delete('origin');
+    return url.toString();
+  } catch {
+    return directEmbedUrl;
+  }
 }
 
 /**
@@ -72,8 +103,13 @@ export function getYoutubeEmbedProxyBase() {
  * @returns {string}
  */
 export function buildYoutubeEmbedProxyUrl(directEmbedUrl) {
-  const proxyUrl = new URL(getYoutubeEmbedProxyBase());
-  proxyUrl.searchParams.set('src', directEmbedUrl);
+  const proxyBase = getYoutubeEmbedProxyBase();
+  if (!proxyBase) {
+    return '';
+  }
+
+  const proxyUrl = new URL(proxyBase);
+  proxyUrl.searchParams.set('src', buildProxyTargetEmbedUrl(directEmbedUrl) ?? directEmbedUrl);
   return proxyUrl.toString();
 }
 
@@ -178,14 +214,20 @@ export function resolveYoutubeEmbed(embedUrl, embedId) {
   const directEmbedUrl = buildDirectYoutubeEmbedUrl(embedUrl, embedId);
   const usesProxy = shouldUseYoutubeEmbedProxy();
   const apiOrigin = getApiOrigin();
+  const websiteOrigin = getYoutubeEmbedOrigin();
   const proxyBase = usesProxy ? getYoutubeEmbedProxyBase() : null;
-  const iframeSrc = directEmbedUrl ? (usesProxy ? buildYoutubeEmbedProxyUrl(directEmbedUrl) : directEmbedUrl) : null;
+  const iframeSrc = directEmbedUrl
+    ? usesProxy
+      ? buildYoutubeEmbedProxyUrl(directEmbedUrl)
+      : directEmbedUrl
+    : null;
 
   liveStreamDebugLog('embed-resolve', {
     platform: Capacitor.getPlatform(),
     isNative: Capacitor.isNativePlatform(),
     usesProxy,
     apiOrigin,
+    websiteOrigin,
     proxyBase,
     embedUrl: embedUrl ?? null,
     embedId: embedId ?? null,
