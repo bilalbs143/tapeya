@@ -34,6 +34,8 @@ class MatchGraphicSessionResource extends JsonResource
             'pending_players' => $resolvedPending === [] ? null : $resolvedPending,
             'context' => $context,
             'context_hash' => GraphicContextHash::hash($context),
+            'signed_overlay_url' => $this->signed_overlay_url,
+            'signed_overlay_expires_at' => $this->signed_overlay_expires_at?->toIso8601String(),
             'active_command_id' => $this->active_command_id,
             'theme' => $this->whenLoaded('theme', fn () => new GraphicThemeResource($this->theme)),
             'active_command' => $this->whenLoaded('activeCommand', fn () => new MatchGraphicCommandResource($this->activeCommand)),
