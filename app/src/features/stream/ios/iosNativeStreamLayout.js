@@ -53,6 +53,12 @@ export function buildPortraitNativeLayout(placeholder) {
  * @param {Element} placeholder
  * @param {{ isLandscape: boolean }} options
  */
-export function buildNativeOverlayLayout(placeholder, { isLandscape }) {
-  return isLandscape ? buildLandscapeNativeLayout() : buildPortraitNativeLayout(placeholder);
+export function buildNativeOverlayLayout(placeholder, { isLandscape, allowInteraction = true }) {
+  const stack = buildNativeStackLayout(isLandscape);
+  const layout = isLandscape ? buildLandscapeNativeLayout() : buildPortraitNativeLayout(placeholder);
+
+  return {
+    ...layout,
+    userInteractionEnabled: allowInteraction && stack.userInteractionEnabled,
+  };
 }

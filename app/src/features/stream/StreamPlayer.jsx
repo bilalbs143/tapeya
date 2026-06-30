@@ -5,7 +5,7 @@ const PLAYERS = {
   iframe: IframeStreamPlayer,
 };
 
-export function StreamPlayer({ stream, className = '', fill = false, isLandscape = false }) {
+export function StreamPlayer({ stream, className = '', fill = false, isLandscape = false, allowInteraction = true }) {
   if (!stream || !['live', 'ended'].includes(stream.status) || !stream.playback) {
     return <StreamOfflineSlate status={stream?.status} fill={fill} />;
   }
@@ -15,5 +15,13 @@ export function StreamPlayer({ stream, className = '', fill = false, isLandscape
     return <StreamOfflineSlate status="error" fill={fill} />;
   }
 
-  return <Player playback={stream.playback} className={className} fill={fill} isLandscape={isLandscape} />;
+  return (
+    <Player
+      playback={stream.playback}
+      className={className}
+      fill={fill}
+      isLandscape={isLandscape}
+      allowInteraction={allowInteraction}
+    />
+  );
 }
