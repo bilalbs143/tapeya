@@ -18,6 +18,7 @@ import {
   LIVE_BROADCAST_HEADER_OVERLAY_Z,
   LIVE_BROADCAST_HEADER_SCRIM,
   LIVE_BROADCAST_IMMERSIVE_TOGGLE_Z,
+  LIVE_BROADCAST_LANDSCAPE_HEADER_ROW,
 } from '@/lib/constants/liveBroadcastLayout';
 import { getInitials } from '@/lib/utils/displayUtils';
 import { usesIosNativeStreamPlayer } from '@/lib/utils/liveStreamUtils';
@@ -275,10 +276,13 @@ function BroadcastViewport({
       )}
 
       {headerSlot && !hideHeaderOverlay && (
-        <div className={LIVE_BROADCAST_HEADER_SCRIM} style={{ zIndex: LIVE_BROADCAST_HEADER_OVERLAY_Z }}>
+        <div
+          className={isLandscape ? LIVE_BROADCAST_LANDSCAPE_HEADER_ROW : LIVE_BROADCAST_HEADER_SCRIM}
+          style={{ zIndex: LIVE_BROADCAST_HEADER_OVERLAY_Z }}
+        >
           <div
-            className="pointer-events-none relative flex items-center justify-between"
-            style={{ paddingTop: isLandscape ? 'calc(env(safe-area-inset-top) + 8px)' : '8px' }}
+            className={`pointer-events-none relative flex items-center ${isLandscape && !isDesktop ? 'justify-center' : 'justify-between'}`}
+            style={{ paddingTop: '8px' }}
           >
             {headerSlot}
           </div>
@@ -412,7 +416,7 @@ export default function LiveBroadcastItem({
       isLandscape={isLandscape}
       floatingHearts={floatingHearts}
       onHeartEnd={removeHeart}
-      headerSlot={headerSlot}
+      headerSlot={isMobileLandscape && !isIosNativeLandscape ? (statusHeaderSlot ?? headerSlot) : headerSlot}
       isDesktop={isDesktop}
       immersiveLandscape={isMobileLandscape}
       isIosNativeLandscape={isIosNativeLandscape}
@@ -425,10 +429,7 @@ export default function LiveBroadcastItem({
   return (
     <div className={`relative h-full w-full overflow-hidden ${isIosNativeLandscape ? 'bg-transparent' : 'bg-black'}`}>
       {isIosNativeLandscape && isMobileLandscape && (
-        <IosLandscapeStreamChrome
-          headerSlot={statusHeaderSlot ?? headerSlot}
-          onToggleLandscape={onToggleLandscape}
-        />
+        <IosLandscapeStreamChrome headerSlot={statusHeaderSlot ?? headerSlot} onToggleLandscape={onToggleLandscape} />
       )}
 
       <LandscapeRotatedStage rotated={isLandscape} iosNativeLandscape={isIosNativeLandscape}>

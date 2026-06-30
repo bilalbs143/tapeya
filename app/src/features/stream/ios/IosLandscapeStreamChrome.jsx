@@ -6,10 +6,7 @@ import {
 } from '@/features/stream/landscapeRotatedStageStyle';
 import { useVisualViewportSize } from '@/hooks/useVisualViewportSize';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { LIVE_BROADCAST_IMMERSIVE_TOGGLE_Z } from '@/lib/constants/liveBroadcastLayout';
-
-/** Badge row only — no gradient scrim (rotates to a visible top-edge shadow in landscape). */
-const IOS_LANDSCAPE_HEADER_ROW = 'pointer-events-none absolute top-0 right-0 left-0 px-4 pt-2';
+import { LIVE_BROADCAST_IMMERSIVE_TOGGLE_Z, LIVE_BROADCAST_LANDSCAPE_HEADER_ROW } from '@/lib/constants/liveBroadcastLayout';
 
 const maxMinIcon = `${CLOUDFRONT_APP_BASE}/images/icons/max-min-icon.svg`;
 
@@ -45,7 +42,7 @@ export function IosLandscapeStreamChrome({ headerSlot, onToggleLandscape }) {
           <div className="flex h-full w-full items-center justify-center">
             <div style={rotatedStageStyle}>
               <div className="relative size-full">
-                <div className={IOS_LANDSCAPE_HEADER_ROW}>
+                <div className={LIVE_BROADCAST_LANDSCAPE_HEADER_ROW}>
                   <div className="pointer-events-none relative flex items-center justify-center">{headerSlot}</div>
                 </div>
               </div>

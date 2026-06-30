@@ -36,8 +36,10 @@ export function IosNativeStreamOverlay({ src, className = '', fill = false, isLa
   const isLandscapeRef = useRef(isLandscape);
   const [sessionKey, setSessionKey] = useState(0);
   const { isLoading, showRetry } = useIosNativePlayback(src, sessionKey);
+  const showRetryRef = useRef(false);
 
   isLandscapeRef.current = isLandscape;
+  showRetryRef.current = showRetry;
   proxyUrlRef.current = src;
 
   const retryPlayback = useCallback(() => {
@@ -52,6 +54,14 @@ export function IosNativeStreamOverlay({ src, className = '', fill = false, isLa
     }
 
     const landscape = isLandscapeRef.current;
+    if (showRetryRef.current && !landscape) {
+      if (shownRef.current) {
+        shownRef.current = false;
+        await hideYoutubeStreamOverlay();
+      }
+      return;
+    }
+
     const layout = buildNativeOverlayLayout(element, { isLandscape: landscape });
     const embedUrl = withIosNativeEmbedParams(baseUrl, { landscape });
     const stack = landscape ? 'landscape' : 'portrait';
@@ -136,6 +146,18 @@ export function IosNativeStreamOverlay({ src, className = '', fill = false, isLa
       void syncLayout(false);
     });
   }, [isLandscape, syncLayout]);
+
+  /** Portrait: native WKWebView sits above Capacitor — hide it so retry UI is visible. */
+  useEffect(() => {
+    if (!showRetry || isLandscape) {
+      return undefined;
+    }
+
+    shownRef.current = false;
+    void hideYoutubeStreamOverlay();
+
+    return undefined;
+  }, [showRetry, isLandscape]);
 
   const layoutClass = isLandscape && fill ? 'absolute inset-0' : 'relative w-full aspect-video';
   const surfaceClass = showRetry || !(isLandscape && fill) ? 'bg-black' : 'bg-transparent';

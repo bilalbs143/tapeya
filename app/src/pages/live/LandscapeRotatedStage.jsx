@@ -37,10 +37,10 @@ export default function LandscapeRotatedStage({ children, rotated = false, iosNa
     useCssRotation && ready
       ? buildCssRotatedStageStyle(size)
       : {
-        position: 'relative',
-        width: '100%',
-        height: '100%',
-      };
+          position: 'relative',
+          width: '100%',
+          height: '100%',
+        };
 
   return (
     <div
