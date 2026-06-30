@@ -8,8 +8,10 @@ use Illuminate\Support\Carbon;
 use RuntimeException;
 
 /**
- * Issues and persists signed OBS / vMix overlay URLs per graphic session.
- * URLs are reused until an explicit refresh is requested.
+ * Issues signed OBS / vMix overlay URLs per graphic session.
+ *
+ * Each resolve() rotates the active link: a new expires + signature is persisted and
+ * {@see isCurrentLink()} rejects any previously issued URL for that session.
  */
 final class MatchGraphicOverlayUrlService
 {
@@ -20,21 +22,12 @@ final class MatchGraphicOverlayUrlService
     /**
      * @return array{url: string, expires_at: string, theme_slug: string}
      */
-    public function resolve(MatchGraphicSession $session, bool $refresh = false): array
+    public function resolve(MatchGraphicSession $session): array
     {
         $session->loadMissing('theme');
         $themeSlug = $session->theme?->slug;
         if ($themeSlug === null || $themeSlug === '') {
             throw new RuntimeException('Graphic session theme is not configured.');
-        }
-
-        if (! $refresh && filled($session->signed_overlay_url)) {
-            return [
-                'url' => (string) $session->signed_overlay_url,
-                'expires_at' => $session->signed_overlay_expires_at?->toIso8601String()
-                    ?? now()->toIso8601String(),
-                'theme_slug' => $themeSlug,
-            ];
         }
 
         $previousExpires = $session->signed_overlay_expires_at?->getTimestamp();
@@ -50,6 +43,16 @@ final class MatchGraphicOverlayUrlService
             'expires_at' => $payload['expires_at']->toIso8601String(),
             'theme_slug' => $themeSlug,
         ];
+    }
+
+    /** Whether this expires value is still the active link for the session. */
+    public function isCurrentLink(MatchGraphicSession $session, int $expires): bool
+    {
+        if ($session->signed_overlay_expires_at === null) {
+            return true;
+        }
+
+        return $expires === $session->signed_overlay_expires_at->getTimestamp();
     }
 
     /**
@@ -68,8 +71,8 @@ final class MatchGraphicOverlayUrlService
         }
 
         $expires = time() + $ttlSeconds;
-        if ($previousExpiresUnix !== null && $expires <= $previousExpiresUnix) {
-            $expires = $previousExpiresUnix + 1;
+        if ($previousExpiresUnix !== null) {
+            $expires = max($expires, $previousExpiresUnix + 1);
         }
 
         $signature = GraphicOverlaySigner::fromSettings($this->overlaySettings)->sign($matchId, $expires);

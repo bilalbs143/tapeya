@@ -9,6 +9,7 @@ use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentMatch;
 use App\Models\User;
+use App\Services\Overlay\MatchGraphicOverlayUrlService;
 use App\Settings\OverlaySettings;
 use Database\Seeders\SystemSettingsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -89,7 +90,7 @@ class GraphicOverlaySignedUrlTest extends TestCase
         ]);
     }
 
-    public function test_signed_url_is_persisted_and_reused_until_refresh(): void
+    public function test_signed_url_is_regenerated_on_each_request(): void
     {
         $first = $this->getJson("/api/v1/admin/matches/{$this->match->id}/graphic-session/signed-url")
             ->assertOk()
@@ -105,16 +106,10 @@ class GraphicOverlaySignedUrlTest extends TestCase
             ->assertOk()
             ->json('data');
 
-        $this->assertSame($first['url'], $second['url']);
-
-        $refreshed = $this->getJson("/api/v1/admin/matches/{$this->match->id}/graphic-session/signed-url?refresh=1")
-            ->assertOk()
-            ->json('data');
-
-        $this->assertNotSame($first['url'], $refreshed['url']);
+        $this->assertNotSame($first['url'], $second['url']);
 
         $this->session->refresh();
-        $this->assertSame($refreshed['url'], $this->session->signed_overlay_url);
+        $this->assertSame($second['url'], $this->session->signed_overlay_url);
     }
 
     public function test_create_session_issues_persisted_overlay_url(): void
@@ -139,7 +134,7 @@ class GraphicOverlaySignedUrlTest extends TestCase
             ->assertOk()
             ->json('data.url');
 
-        $this->assertSame($session->signed_overlay_url, $again);
+        $this->assertNotSame($session->signed_overlay_url, $again);
     }
 
     public function test_session_payload_includes_persisted_overlay_url(): void
@@ -153,5 +148,25 @@ class GraphicOverlaySignedUrlTest extends TestCase
 
         $this->assertNotEmpty($payload['signed_overlay_url']);
         $this->assertNotEmpty($payload['signed_overlay_expires_at']);
+    }
+
+    public function test_superseded_overlay_link_is_rejected(): void
+    {
+        $service = app(MatchGraphicOverlayUrlService::class);
+        $first = $service->resolve($this->session);
+        $firstQuery = (string) parse_url($first['url'], PHP_URL_QUERY);
+
+        $this->getJson("/api/v1/matches/{$this->match->id}/graphic-session/overlay?{$firstQuery}")
+            ->assertOk();
+
+        $second = $service->resolve($this->session->fresh());
+        $secondQuery = (string) parse_url($second['url'], PHP_URL_QUERY);
+
+        $this->getJson("/api/v1/matches/{$this->match->id}/graphic-session/overlay?{$firstQuery}")
+            ->assertForbidden()
+            ->assertJsonPath('type', 'FORBIDDEN');
+
+        $this->getJson("/api/v1/matches/{$this->match->id}/graphic-session/overlay?{$secondQuery}")
+            ->assertOk();
     }
 }

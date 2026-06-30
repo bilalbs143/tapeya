@@ -183,14 +183,9 @@ export class MatchGraphicService {
     );
   }
 
-  public getSignedOverlayUrl(
-    matchId: number,
-    refresh = false
-  ): Observable<{ data: SignedOverlayUrlPayload }> {
-    const options = refresh ? { params: { refresh: '1' } } : {};
+  public getSignedOverlayUrl(matchId: number): Observable<{ data: SignedOverlayUrlPayload }> {
     return this.http.get<{ data: SignedOverlayUrlPayload }>(
       `v1/admin/matches/${matchId}/graphic-session/signed-url`,
-      options
     );
   }
 

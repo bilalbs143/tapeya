@@ -78,20 +78,20 @@ class MatchGraphicOverlayUrlServiceTest extends TestCase
         ]);
     }
 
-    public function test_refresh_always_issues_a_new_url_even_within_the_same_second(): void
+    public function test_resolve_always_issues_a_new_url_even_within_the_same_second(): void
     {
-        $first = $this->service->resolve($this->session, refresh: true);
-        $second = $this->service->resolve($this->session->fresh(), refresh: true);
+        $first = $this->service->resolve($this->session);
+        $second = $this->service->resolve($this->session->fresh());
 
         $this->assertNotSame($first['url'], $second['url']);
     }
 
-    public function test_resolve_reuses_persisted_url_without_refresh(): void
+    public function test_resolve_persists_latest_url_on_session(): void
     {
-        $issued = $this->service->resolve($this->session, refresh: true);
-        $reused = $this->service->resolve($this->session->fresh(), refresh: false);
+        $issued = $this->service->resolve($this->session);
+        $this->session->refresh();
 
-        $this->assertSame($issued['url'], $reused['url']);
+        $this->assertSame($issued['url'], $this->session->signed_overlay_url);
     }
 
     public function test_build_fails_when_frontend_url_is_missing(): void
@@ -103,6 +103,18 @@ class MatchGraphicOverlayUrlServiceTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Overlay frontend URL is not configured.');
 
-        $this->service->resolve($this->session, refresh: true);
+        $this->service->resolve($this->session);
+    }
+
+    public function test_is_current_link_accepts_persisted_expires_only(): void
+    {
+        $issued = $this->service->resolve($this->session);
+        $this->session->refresh();
+
+        parse_str((string) parse_url($issued['url'], PHP_URL_QUERY), $query);
+        $expires = (int) $query['expires'];
+
+        $this->assertTrue($this->service->isCurrentLink($this->session, $expires));
+        $this->assertFalse($this->service->isCurrentLink($this->session, $expires - 1));
     }
 }

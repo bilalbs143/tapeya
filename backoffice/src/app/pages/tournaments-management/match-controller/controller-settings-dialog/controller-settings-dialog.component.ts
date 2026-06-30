@@ -98,7 +98,7 @@ export class ControllerSettingsDialogComponent {
     }
   }
 
-  /** Load persisted URL from session or API (does not rotate the signature). */
+  /** Show persisted URL without calling the API (each API call rotates the active link). */
   private loadSignedOverlayUrl(): void {
     const cachedUrl = this.data.session?.signed_overlay_url?.trim();
     if (cachedUrl) {
@@ -106,29 +106,27 @@ export class ControllerSettingsDialogComponent {
       return;
     }
 
-    this.fetchSignedOverlayUrl(false);
+    this.fetchSignedOverlayUrl();
   }
 
-  /** Manual refresh — issues a new signed URL and persists it on the session. */
+  /** Issue a new signed URL (invalidates any previous link). */
   public refreshSignedOverlayUrl(autoCopy = false): void {
-    this.fetchSignedOverlayUrl(true, autoCopy);
+    this.fetchSignedOverlayUrl(autoCopy);
   }
 
-  private fetchSignedOverlayUrl(refresh: boolean, autoCopy = false): void {
+  private fetchSignedOverlayUrl(autoCopy = false): void {
     if (!this.sessionReady()) {
       return;
     }
 
     this.signedLinkLoading.set(true);
     this.signedLinkError.set(false);
-    this.matchGraphicService.getSignedOverlayUrl(this.data.matchId, refresh).subscribe({
+    this.matchGraphicService.getSignedOverlayUrl(this.data.matchId).subscribe({
       next: (res) => {
         this.signedOverlayUrl.set(res.data.url);
         this.signedLinkLoading.set(false);
-        if (refresh) {
-          this.mutated = true;
-          this.patchSessionOverlayUrl(res.data.url, res.data.expires_at);
-        }
+        this.mutated = true;
+        this.patchSessionOverlayUrl(res.data.url, res.data.expires_at);
         if (autoCopy) {
           this.copyUrlToClipboard(res.data.url);
         }

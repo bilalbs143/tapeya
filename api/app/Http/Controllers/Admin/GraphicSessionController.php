@@ -54,7 +54,7 @@ class GraphicSessionController extends Controller
         );
 
         try {
-            $this->overlayUrlService->resolve($session, refresh: true);
+            $this->overlayUrlService->resolve($session);
         } catch (RuntimeException) {
             // Session is created; overlay URL can be issued later from settings dialog.
         }

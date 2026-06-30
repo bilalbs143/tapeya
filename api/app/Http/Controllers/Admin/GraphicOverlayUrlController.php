@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 use App\Models\TournamentMatch;
 use App\Services\Overlay\MatchGraphicOverlayUrlService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use RuntimeException;
 
 /**
@@ -24,23 +23,21 @@ class GraphicOverlayUrlController extends Controller
     ) {}
 
     /**
-     * Return the session's signed overlay URL. Generates once, then reuses until ?refresh=1.
+     * Issue a new signed overlay URL and persist it on the session (invalidates any previous link).
      */
-    public function signedOverlayUrl(Request $request, TournamentMatch $match): JsonResponse
+    public function signedOverlayUrl(TournamentMatch $match): JsonResponse
     {
         $session = $this->requireMatchGraphicSession($match);
         if ($session instanceof JsonResponse) {
             return $session;
         }
 
-        $refresh = $request->boolean('refresh');
-
         try {
-            $payload = $this->overlayUrlService->resolve($session, $refresh);
+            $payload = $this->overlayUrlService->resolve($session);
         } catch (RuntimeException $e) {
             return $this->failure($e->getMessage(), 'VALIDATION_ERROR');
         }
 
-        return $this->success($payload);
+        return $this->success($payload)->header('Cache-Control', 'no-store, private');
     }
 }
