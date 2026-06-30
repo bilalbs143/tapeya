@@ -14,8 +14,6 @@ import { DialogProvider } from '@/context/DialogContext';
 import { ToastProvider } from '@/context/ToastContext';
 import GraphicOverlay from '@/graphics/entry/GraphicOverlay';
 import { useReverbNotifications } from '@/hooks/useReverbNotifications';
-import { AuthLayout } from '@/layouts/AuthLayout';
-import { MainLayout } from '@/layouts/MainLayout';
 import { isOverlayRoute } from '@/lib/isOverlayRoute';
 import { Toaster } from '@/ui/Toast';
 import { TooltipProvider } from '@/ui/Tooltip';
@@ -74,6 +72,9 @@ const Highlights = lazy(() => import('@/pages/highlights/Highlights'));
 const HighlightDetails = lazy(() => import('@/pages/highlights/HighlightDetails'));
 
 const InterestForm = lazy(() => import('@/pages/interest/InterestForm'));
+
+const MainLayout = lazy(() => import('@/layouts/MainLayout').then((m) => ({ default: m.MainLayout })));
+const AuthLayout = lazy(() => import('@/layouts/AuthLayout').then((m) => ({ default: m.AuthLayout })));
 
 const Tournaments = lazy(() => import('@/pages/organizer/tournaments/Tournaments'));
 const TournamentCreateTeamIntro = lazy(() => import('@/pages/organizer/tournaments/TournamentCreateTeamIntro'));

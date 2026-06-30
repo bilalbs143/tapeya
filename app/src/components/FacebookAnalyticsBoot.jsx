@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { initFacebookAnalytics } from '@/lib/analytics/facebook';
+import { isOverlayRoute } from '@/lib/isOverlayRoute';
 
 /**
  * Loads Meta Pixel (web) or confirms native SDK readiness.
@@ -8,7 +8,9 @@ import { initFacebookAnalytics } from '@/lib/analytics/facebook';
  */
 export function FacebookAnalyticsBoot() {
   useEffect(() => {
-    void initFacebookAnalytics();
+    if (isOverlayRoute()) return;
+
+    void import('@/lib/analytics/facebook').then(({ initFacebookAnalytics }) => initFacebookAnalytics());
   }, []);
 
   return null;
