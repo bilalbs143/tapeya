@@ -28,19 +28,17 @@ function hasValidPortraitFrame(layout) {
  * Portrait — player above Capacitor, aspect-video sized.
  * Landscape — player below transparent Capacitor; embed loads with ?rotate=1&cover=1.
  */
-export function IosNativeStreamOverlay({ src, className = '', fill = false, isLandscape = false, allowInteraction = true }) {
+export function IosNativeStreamOverlay({ src, className = '', fill = false, isLandscape = false }) {
   const containerRef = useRef(null);
   const proxyUrlRef = useRef(src);
   const stackRef = useRef(null);
   const shownRef = useRef(false);
   const isLandscapeRef = useRef(isLandscape);
-  const allowInteractionRef = useRef(allowInteraction);
   const [sessionKey, setSessionKey] = useState(0);
   const { isLoading, showRetry } = useIosNativePlayback(src, sessionKey);
   const showRetryRef = useRef(false);
 
   isLandscapeRef.current = isLandscape;
-  allowInteractionRef.current = allowInteraction;
   showRetryRef.current = showRetry;
   proxyUrlRef.current = src;
 
@@ -64,10 +62,7 @@ export function IosNativeStreamOverlay({ src, className = '', fill = false, isLa
       return;
     }
 
-    const layout = buildNativeOverlayLayout(element, {
-      isLandscape: landscape,
-      allowInteraction: allowInteractionRef.current,
-    });
+    const layout = buildNativeOverlayLayout(element, { isLandscape: landscape });
     const embedUrl = withIosNativeEmbedParams(baseUrl, { landscape });
     const stack = landscape ? 'landscape' : 'portrait';
     const stackChanged = stackRef.current !== null && stackRef.current !== stack;
@@ -150,7 +145,7 @@ export function IosNativeStreamOverlay({ src, className = '', fill = false, isLa
     afterLayout(() => {
       void syncLayout(false);
     });
-  }, [isLandscape, allowInteraction, syncLayout]);
+  }, [isLandscape, syncLayout]);
 
   /** Portrait: native WKWebView sits above Capacitor — hide it so retry UI is visible. */
   useEffect(() => {

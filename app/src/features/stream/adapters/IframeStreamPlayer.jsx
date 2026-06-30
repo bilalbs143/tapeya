@@ -8,9 +8,8 @@ import { useStreamVideoLoading } from '../hooks/useStreamVideoLoading';
 import { StreamVideoLoading } from '../StreamVideoLoading';
 import { IosNativeStreamOverlay } from './IosNativeStreamOverlay';
 
-export function IframeStreamPlayer({ playback, className = '', fill = false, isLandscape = false, allowInteraction = true }) {
+export function IframeStreamPlayer({ playback, className = '', fill = false, isLandscape = false }) {
   const boxClass = fill ? 'relative h-full w-full bg-black' : 'relative w-full aspect-video bg-black';
-  const interactionClass = allowInteraction ? '' : 'pointer-events-none [&_iframe]:pointer-events-none';
   const resolution = useMemo(
     () => resolveYoutubeEmbed(playback?.embed_url, playback?.embed_id),
     [playback?.embed_url, playback?.embed_id],
@@ -24,19 +23,11 @@ export function IframeStreamPlayer({ playback, className = '', fill = false, isL
   }
 
   if (usesNativeOverlay) {
-    return (
-      <IosNativeStreamOverlay
-        src={src}
-        className={className}
-        fill={fill}
-        isLandscape={isLandscape}
-        allowInteraction={allowInteraction}
-      />
-    );
+    return <IosNativeStreamOverlay src={src} className={className} fill={fill} isLandscape={isLandscape} />;
   }
 
   return (
-    <div className={`${boxClass} overflow-hidden ${interactionClass} ${className}`}>
+    <div className={`${boxClass} overflow-hidden ${className}`}>
       <iframe
         className="absolute inset-0 block h-full w-full border-0"
         src={src}
