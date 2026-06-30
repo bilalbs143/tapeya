@@ -5,15 +5,19 @@ import { cn } from '@/lib/utils';
 
 import { resolveBroadcastNameParts } from '../../../../core/domain/playerNameResolver';
 import { geometry, infoBarPanelClass, infoBarPanelStyle, ltBar, ltNameBar } from '../../config';
-import { DISPLAY_FONT, InsetLTBarPanel, InsetLTBarSurface, InsetLTTeamMark, UI_FONT } from '../../primitives';
+import {
+  accentPanelHeadGradient,
+  DISPLAY_FONT,
+  InsetLTBarPanel,
+  InsetLTBarSurface,
+  InsetLTTeamMark,
+  UI_FONT,
+} from '../../primitives';
 import { textGlowClass } from '../../visualEffects';
 import { TEXT_PRIMARY, TEXT_SECONDARY } from '../shared/textStyles';
 
 const BAR_RADIUS = geometry.barRadius;
 const LOGO_SIZE = ltBar.crestSize;
-
-const HEAD_GRADIENT_CLASS =
-  'bg-[linear-gradient(100deg,color-mix(in_srgb,var(--panel-ring-a,var(--accentA))_33%,transparent),transparent_60%)]';
 
 const nameClass = cn(
   'shrink-0 whitespace-nowrap font-extrabold leading-none uppercase',
@@ -81,7 +85,10 @@ export function PlayerNameLTBar({ player, teams, edgeToEdge = true }) {
           className={infoBarPanelClass(measuring)}
           style={infoBarPanelStyle(measuring)}
         >
-          <div className={cn('flex h-full w-full items-center justify-between gap-6 px-[22px]', HEAD_GRADIENT_CLASS)}>
+          <div
+            className="flex h-full w-full items-center justify-between gap-6 px-[22px]"
+            style={{ background: accentPanelHeadGradient(accent) }}
+          >
             <div className="flex min-h-0 flex-col justify-center gap-1">
               <span className={atMaxWidth ? nameClampClass : nameClass} style={nameStyle}>
                 {displayName}

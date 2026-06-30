@@ -4,7 +4,7 @@
 import { cn } from '@/lib/utils';
 
 import { colors, fsSummaryPanel } from '../../config';
-import { AnimatedNumber, FSStage, GlowPanel } from '../../primitives';
+import { accentMix, AnimatedNumber, FSStage, GlowPanel } from '../../primitives';
 import { accentHaloShadow, colorHaloShadow, textGlowClass } from '../../visualEffects';
 import { FS_GOLD_BAND, FS_PANEL_SUB, FS_PANEL_TITLE, FS_TITLE_SHADOW, fsFont } from '../shared/fsTypographyStyles';
 
@@ -39,9 +39,7 @@ function StatLabelBox({ children, accent }) {
       className={labelBoxClass}
       style={{
         ...fsFont(fsSummaryPanel.statLabelBox),
-        borderColor: accent
-          ? `color-mix(in srgb, ${accent} 40%, transparent)`
-          : 'color-mix(in srgb, var(--accentA) 40%, transparent)',
+        borderColor: accent ? accentMix(accent, 40) : accentMix('var(--accentA)', 40),
         boxShadow: accent ? accentHaloShadow(accent) : undefined,
       }}
     >

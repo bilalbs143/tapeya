@@ -120,7 +120,7 @@ export default function LiveBroadcast() {
     ? {
         ...LIVE_BROADCAST_LANDSCAPE_SHELL_STYLE,
         zIndex: LIVE_BROADCAST_LANDSCAPE_SHELL_Z,
-        height: '100dvh',
+        height: '100vh',
       }
     : { height: isDesktop ? LIVE_BROADCAST_SHELL_HEIGHT_DESKTOP : LIVE_BROADCAST_SHELL_HEIGHT };
 

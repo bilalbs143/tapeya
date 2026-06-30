@@ -118,8 +118,8 @@ function BattedRow({ name, dismissal, runs, balls, notOut, accent, index }) {
         marginBottom: BATTED_ROW_GAP,
         paddingInline: ROW_PADDING_X,
         animationDelay: `${getBattedRowDelay(index)}ms`,
-        background: `linear-gradient(100deg, color-mix(in srgb, ${accent} 20%, transparent), rgba(18, 24, 40, 0.7) 70%)`,
-        border: `1px solid color-mix(in srgb, ${accent} 33%, transparent)`,
+        background: `linear-gradient(100deg, ${accentMix(accent, 20)}, rgba(18, 24, 40, 0.7) 70%)`,
+        border: `1px solid ${accentMix(accent, 33)}`,
         boxShadow: accentHaloShadow(accent, '16px'),
       }}
     >

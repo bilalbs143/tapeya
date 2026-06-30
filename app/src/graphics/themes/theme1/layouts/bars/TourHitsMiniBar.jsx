@@ -3,11 +3,13 @@
  */
 import { cn } from '@/lib/utils';
 
-import { CountUpNumber, DISPLAY_FONT, GlowPanel, UI_FONT, useContentFitBarSurface } from '../../primitives';
+import { accentMix, CountUpNumber, DISPLAY_FONT, GlowPanel, UI_FONT, useContentFitBarSurface } from '../../primitives';
 import { isTourCodeBadgeGlowEnabled, textGlowClass } from '../../visualEffects';
 
 const BADGE_BASE =
-  'flex shrink-0 items-center justify-center rounded-xl border border-[color-mix(in_srgb,var(--accentA)_48%,transparent)] bg-[linear-gradient(145deg,rgba(34,46,82,0.96),rgba(10,15,28,0.98))]';
+  'flex shrink-0 items-center justify-center rounded-xl border bg-[linear-gradient(145deg,rgba(34,46,82,0.96),rgba(10,15,28,0.98))]';
+
+const badgeBorderStyle = { borderColor: accentMix('var(--accentA)', 48) };
 
 /** @param {unknown} value */
 function nonEmptyString(value) {
@@ -25,6 +27,7 @@ function TourShortCodeBadge({ shortCode }) {
         BADGE_BASE,
         'h-16 min-w-[5rem] px-2.5',
       )}
+      style={badgeBorderStyle}
       aria-label={`Tournament ${shortCode}`}
     >
       <span

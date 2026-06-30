@@ -1,43 +1,28 @@
 /**
- * Team accent color helpers for inline gradients, borders, and glows.
+ * Theme1 accent helpers — thin wrapper around shared color utilities.
  *
- * Use accentMix(accent, percent) for translucent accents. Works with #rrggbb
- * (8-digit hex output) and CSS variables (color-mix).
+ * Use `accentMix()` for translucent accents in JSX/inline styles (never color-mix()).
+ * Future themes: import from `graphics/shared/accentColor.js` with their own defaults.
  */
-import { isDecorativeBoxGlowEnabled } from '../visualEffects';
+import { mixColorWithTransparent, normalizeColor } from '../../../shared/accentColor';
+import { colors } from '../config';
 
 /** @param {unknown} value @param {string} [fallback] */
-export function normalizeAccentColor(value, fallback = '#5b7cff') {
-  const raw = String(value ?? '').trim();
-  return raw || fallback;
+export function normalizeAccentColor(value, fallback = colors.accentA) {
+  return normalizeColor(value, fallback);
 }
 
-/** @param {string} color */
-export function isSixDigitHex(color) {
-  return /^#[0-9a-f]{6}$/i.test(color);
-}
+export { isSixDigitHex } from '../../../shared/accentColor';
 
 /**
  * @param {unknown} accent
  * @param {number} percent opacity mixed with transparent (0–100)
  */
 export function accentMix(accent, percent) {
-  const color = normalizeAccentColor(accent);
-  if (isSixDigitHex(color)) {
-    const alpha = Math.round((percent / 100) * 255)
-      .toString(16)
-      .padStart(2, '0');
-    return `${color}${alpha}`;
-  }
-  return `color-mix(in srgb, ${color} ${percent}%, transparent)`;
+  return mixColorWithTransparent(accent, percent, { fallback: colors.accentA });
 }
 
-/**
- * @param {unknown} accent
- * @param {number} [percent=13]
- * @param {string} [size='16px']
- */
-export function accentGlowShadow(accent, percent = 13, size = '16px') {
-  if (!isDecorativeBoxGlowEnabled()) return 'none';
-  return `0 0 calc(${size} * var(--glow)) ${accentMix(accent, percent)}`;
+/** @param {unknown} [accent] */
+export function accentPanelHeadGradient(accent = 'var(--accentA)') {
+  return `linear-gradient(100deg, ${accentMix(accent, 33)}, transparent 60%)`;
 }

@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 
 import { fsStatTile } from '../../config';
-import { DISPLAY_FONT, UI_FONT } from '../../primitives';
+import { accentMix, DISPLAY_FONT, UI_FONT } from '../../primitives';
 
 const statTileLabelClass = cn('font-semibold leading-none tracking-[0.16em] text-[var(--text-secondary)] uppercase', UI_FONT);
 
@@ -36,10 +36,8 @@ export function StatTile({
   return (
     <div
       className={cn(
-        'flex min-h-0 flex-col items-center justify-center rounded-2xl',
+        'flex min-h-0 flex-col items-center justify-center rounded-2xl border',
         'bg-[linear-gradient(180deg,rgba(26,32,48,0.92),rgba(12,16,26,0.95))]',
-        'border border-[color-mix(in_srgb,var(--tile-accent)_33%,transparent)]',
-        '[box-shadow:0_10px_30px_rgba(0,0,0,0.45),0_0_calc(18px*var(--glow))_color-mix(in_srgb,var(--tile-accent)_13%,transparent),inset_0_1px_0_rgba(255,255,255,0.05)]',
         className,
       )}
       style={{
@@ -49,6 +47,8 @@ export function StatTile({
         paddingBottom: paddingY,
         gap: labelGap,
         '--tile-accent': accent,
+        borderColor: accentMix(accent, 33),
+        boxShadow: `0 10px 30px rgba(0,0,0,0.45), 0 0 calc(18px * var(--glow)) ${accentMix(accent, 13)}, inset 0 1px 0 rgba(255,255,255,0.05)`,
       }}
     >
       <span className={statTileLabelClass} style={{ fontSize: labelSize }}>

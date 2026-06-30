@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 
 import cricketBatIcon from '../../../../assets/cricket-bat.png';
 import { colors, ltTypography, typography } from '../config';
-import { crestPulseClass, crestRingClassName, isAmbientPulseEnabled } from '../visualEffects';
+import { crestPulseClass, crestRingBoxShadow, crestRingClassName, isAmbientPulseEnabled } from '../visualEffects';
 import { crestCodeFontSize, crestCornerRadius, crestLogoPadding } from './crestMetrics';
 import { overlayVariantFor } from './playerBarHelpers';
 
@@ -136,6 +136,7 @@ export const Crest = memo(function Crest({ team, size = 86, accent, accentAlt, b
           '--crest-ring': ring,
           '--crest-ring-alt': ringAlt,
           borderRadius: cornerRadius + 3,
+          boxShadow: crestRingBoxShadow(ring),
         }}
       />
       {src ? (
