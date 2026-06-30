@@ -24,6 +24,8 @@ class YouTubeEmbedProxyController extends Controller
             ->view('embed.youtube', [
                 'embedSrc' => $rawSrc,
                 'youtubeEmbedOrigin' => YouTubeEmbedUrl::trustedAppOrigin(),
+                'cover' => $request->boolean('cover'),
+                'rotate' => $request->boolean('rotate'),
             ])
             ->header('Content-Security-Policy', 'frame-ancestors *');
     }
