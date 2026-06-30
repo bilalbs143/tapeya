@@ -126,6 +126,38 @@
           };
         }
 
+        /** Toggle landscape immersive mode without reloading (used on iOS orientation change). */
+        function setEmbedLandscapeMode(landscape) {
+          if (landscape) {
+            urlParams.set('cover', '1');
+            urlParams.set('rotate', '1');
+          } else {
+            urlParams.delete('cover');
+            urlParams.delete('rotate');
+          }
+
+          var flags = applyRotateLayout();
+          if (flags.coverMode) {
+            fitPlayerCover();
+            return;
+          }
+
+          var viewport = layoutViewport();
+          var el = document.getElementById('player');
+          var iframe = el && el.querySelector('iframe');
+          if (iframe) {
+            iframe.style.width = viewport.cw + 'px';
+            iframe.style.height = viewport.ch + 'px';
+          }
+          if (player && typeof player.setSize === 'function') {
+            try {
+              player.setSize(viewport.cw, viewport.ch);
+            } catch (e) {}
+          }
+        }
+
+        window.setEmbedLandscapeMode = setEmbedLandscapeMode;
+
         /** Pixel-size the rotate wrap — 100vh/vw is unreliable inside iOS WKWebView. */
         function applyRotateLayout() {
           var flags = readEmbedFlags();
