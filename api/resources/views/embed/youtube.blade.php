@@ -139,24 +139,28 @@
           var flags = applyRotateLayout();
           if (flags.coverMode) {
             fitPlayerCover();
-            return;
+            window.setTimeout(fitPlayerCover, 100);
+            window.setTimeout(fitPlayerCover, 400);
+          } else {
+            var viewport = layoutViewport();
+            var el = document.getElementById('player');
+            var iframe = el && el.querySelector('iframe');
+            if (iframe) {
+              iframe.style.width = viewport.cw + 'px';
+              iframe.style.height = viewport.ch + 'px';
+            }
+            if (player && typeof player.setSize === 'function') {
+              try {
+                player.setSize(viewport.cw, viewport.ch);
+              } catch (e) {}
+            }
           }
 
-          var viewport = layoutViewport();
-          var el = document.getElementById('player');
-          var iframe = el && el.querySelector('iframe');
-          if (iframe) {
-            iframe.style.width = viewport.cw + 'px';
-            iframe.style.height = viewport.ch + 'px';
-          }
-          if (player && typeof player.setSize === 'function') {
-            try {
-              player.setSize(viewport.cw, viewport.ch);
-            } catch (e) {}
-          }
+          startPlayback();
         }
 
         window.setEmbedLandscapeMode = setEmbedLandscapeMode;
+        window.__tapeyaHasEmbedLandscapeMode = true;
 
         /** Pixel-size the rotate wrap — 100vh/vw is unreliable inside iOS WKWebView. */
         function applyRotateLayout() {
