@@ -19,14 +19,13 @@ import { useMatchStreamChannel } from '@/features/stream/hooks/useMatchStreamCha
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { LG_MEDIA_QUERY, MOBILE_MEDIA_QUERY } from '@/lib/constants/layout';
 import {
-  LIVE_BROADCAST_LANDSCAPE_SHELL_CLASS,
+  getLiveBroadcastShellClass,
   LIVE_BROADCAST_LANDSCAPE_SHELL_STYLE,
   LIVE_BROADCAST_LANDSCAPE_SHELL_Z,
-  LIVE_BROADCAST_SHELL_CLASS,
-  LIVE_BROADCAST_SHELL_DESKTOP_CLASS,
   LIVE_BROADCAST_SHELL_HEIGHT,
   LIVE_BROADCAST_SHELL_HEIGHT_DESKTOP,
 } from '@/lib/constants/liveBroadcastLayout';
+import { usesIosNativeStreamUnderlay } from '@/lib/utils/liveStreamUtils';
 import { useGetMatchQuery } from '@/store/api/matchApi';
 
 import LiveBroadcastItem from './LiveBroadcastItem';
@@ -109,10 +108,9 @@ export default function LiveBroadcast() {
 
   const isMobileLandscape = isMobile && isLandscape;
   const useInFlowHeader = !isDesktop && !isLandscape;
-
-  const shellClass = isLandscape
-    ? LIVE_BROADCAST_LANDSCAPE_SHELL_CLASS
-    : `${LIVE_BROADCAST_SHELL_CLASS} ${LIVE_BROADCAST_SHELL_DESKTOP_CLASS}`;
+  const usesIosNativeUnderlay = usesIosNativeStreamUnderlay();
+  const surfaceBg = usesIosNativeUnderlay ? 'bg-transparent' : 'bg-black';
+  const shellClass = getLiveBroadcastShellClass(isLandscape, surfaceBg);
 
   const shellStyle = isLandscape
     ? { ...LIVE_BROADCAST_LANDSCAPE_SHELL_STYLE, zIndex: LIVE_BROADCAST_LANDSCAPE_SHELL_Z }
@@ -157,12 +155,12 @@ export default function LiveBroadcast() {
 
   return (
     <div className={shellClass} style={shellStyle}>
-      <div className={`relative h-full w-full overflow-hidden ${useInFlowHeader ? 'flex flex-col' : ''}`}>
+      <div className={`relative h-full w-full overflow-hidden ${surfaceBg} ${useInFlowHeader ? 'flex flex-col' : ''}`}>
         {useInFlowHeader && (
           <header className="relative z-20 flex shrink-0 items-center justify-between px-4 py-2">{portraitHeaderContent}</header>
         )}
 
-        <div className={`relative overflow-hidden ${useInFlowHeader ? 'min-h-0 flex-1' : 'h-full w-full'}`}>
+        <div className={`relative overflow-hidden ${surfaceBg} ${useInFlowHeader ? 'min-h-0 flex-1' : 'h-full w-full'}`}>
           {showError && <BroadcastError onRetry={refetch} />}
           {match && (
             <LiveBroadcastItem

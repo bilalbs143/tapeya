@@ -27,6 +27,18 @@ export const LIVE_BROADCAST_SHELL_CLASS = 'relative overflow-hidden bg-black';
 /** Landscape immersive — edge-to-edge over navbar and bottom nav. */
 export const LIVE_BROADCAST_LANDSCAPE_SHELL_CLASS = 'fixed right-0 left-0 overflow-hidden bg-black lg:left-[280px]';
 
+/**
+ * @param {boolean} isLandscape
+ * @param {'bg-black' | 'bg-transparent'} [surfaceBg='bg-black']
+ */
+export function getLiveBroadcastShellClass(isLandscape, surfaceBg = 'bg-black') {
+  if (isLandscape) {
+    return `fixed right-0 left-0 overflow-hidden ${surfaceBg} lg:left-[280px]`;
+  }
+
+  return `relative overflow-hidden ${surfaceBg} ${LIVE_BROADCAST_SHELL_DESKTOP_CLASS}`;
+}
+
 export const LIVE_BROADCAST_LANDSCAPE_SHELL_STYLE = {
   top: 0,
   bottom: 0,

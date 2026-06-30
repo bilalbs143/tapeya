@@ -42,8 +42,17 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
                 return
             }
 
+            hostView.backgroundColor = .black
+
             let webView = self.ensureWebView(on: hostView)
             let needsLoad = reload || webView.url == nil
+
+            if needsLoad {
+                self.cancelReadyFallback()
+                self.playerIsReady = false
+                self.pendingPlayerReady = false
+            }
+
             let applied = self.applyLayout(
                 to: webView,
                 frame: frame,
@@ -51,6 +60,7 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
                 userInteractionEnabled: userInteractionEnabled,
                 visible: !needsLoad
             )
+            self.attachOverlayBelowCapacitorWebView(webView, on: hostView)
             if !applied {
                 call.resolve(["shown": false, "reason": "zero-size-frame"])
                 return
@@ -69,7 +79,13 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
 
     @objc func getReadyState(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
-            call.resolve(["ready": self.playerIsReady])
+            guard let webView = self.overlayWebView else {
+                call.resolve(["ready": false])
+                return
+            }
+
+            let ready = self.playerIsReady && !self.pendingPlayerReady && !webView.isHidden
+            call.resolve(["ready": ready])
         }
     }
 
@@ -91,6 +107,9 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
                 userInteractionEnabled: userInteractionEnabled,
                 visible: !self.pendingPlayerReady
             )
+            if let hostView = self.bridge?.viewController?.view {
+                self.attachOverlayBelowCapacitorWebView(webView, on: hostView)
+            }
             call.resolve(["updated": true])
         }
     }
@@ -120,6 +139,18 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
         let width = max(CGFloat(call.getFloat("width") ?? 0), 0)
         let height = max(CGFloat(call.getFloat("height") ?? 0), 0)
         return CGRect(x: x, y: y, width: width, height: height)
+    }
+
+    private func attachOverlayBelowCapacitorWebView(_ webView: WKWebView, on hostView: UIView) {
+        if webView.superview !== hostView {
+            webView.removeFromSuperview()
+        }
+
+        if let capWebView = self.bridge?.webView {
+            hostView.insertSubview(webView, belowSubview: capWebView)
+        } else if webView.superview !== hostView {
+            hostView.addSubview(webView)
+        }
     }
 
     @discardableResult
@@ -179,11 +210,7 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
 
     private func ensureWebView(on hostView: UIView) -> WKWebView {
         if let existing = overlayWebView {
-            if existing.superview !== hostView {
-                existing.removeFromSuperview()
-                hostView.addSubview(existing)
-            }
-            hostView.bringSubviewToFront(existing)
+            attachOverlayBelowCapacitorWebView(existing, on: hostView)
             return existing
         }
 
@@ -204,13 +231,23 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
             webView.underPageBackgroundColor = .black
         }
 
-        hostView.addSubview(webView)
+        attachOverlayBelowCapacitorWebView(webView, on: hostView)
         overlayWebView = webView
         return webView
     }
 }
 
 extension YoutubeStreamOverlayPlugin: WKNavigationDelegate {
+    public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        DispatchQueue.main.async {
+            webView.scrollView.backgroundColor = .black
+            webView.backgroundColor = .black
+            if #available(iOS 15.0, *) {
+                webView.underPageBackgroundColor = .black
+            }
+        }
+    }
+
     public func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
         DispatchQueue.main.async {
             if self.pendingPlayerReady {

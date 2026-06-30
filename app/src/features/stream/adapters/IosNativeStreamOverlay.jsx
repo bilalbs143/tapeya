@@ -8,17 +8,6 @@ import {
 
 import { StreamVideoLoading } from '../StreamVideoLoading';
 
-function readViewportMetrics() {
-  const viewport = window.visualViewport;
-
-  return {
-    width: viewport?.width ?? window.innerWidth,
-    height: viewport?.height ?? window.innerHeight,
-    offsetLeft: viewport?.offsetLeft ?? 0,
-    offsetTop: viewport?.offsetTop ?? 0,
-  };
-}
-
 function readLayoutRect(element) {
   const rect = element.getBoundingClientRect();
   return {
@@ -30,26 +19,23 @@ function readLayoutRect(element) {
 }
 
 /**
- * Match LandscapeRotatedStage: a (vh × vw) box centered on the viewport, rotated 90°
- * clockwise in CSS. Native WKWebView uses swapped bounds + UIKit rotation (sign differs
- * from CSS degrees because Y-axis points down).
+ * Match LandscapeRotatedStage CSS rotate(90deg): swap pre-rotation bounds and center
+ * on the same screen-space box as the measured placeholder (inside the rotated stage).
  */
-function buildRotatedLandscapeLayout(viewport = readViewportMetrics()) {
-  const { width, height, offsetLeft, offsetTop } = viewport;
-  const layoutWidth = height;
-  const layoutHeight = width;
+function buildRotatedLandscapeLayout(element) {
+  const rect = element.getBoundingClientRect();
 
   return {
-    x: offsetLeft + (width - layoutWidth) / 2,
-    y: offsetTop + (height - layoutHeight) / 2,
-    width: layoutWidth,
-    height: layoutHeight,
+    x: rect.left + (rect.width - rect.height) / 2,
+    y: rect.top + (rect.height - rect.width) / 2,
+    width: rect.height,
+    height: rect.width,
     rotation: 90,
   };
 }
 
 function buildOverlayPayload(element, { isLandscape, allowInteraction }) {
-  const layout = isLandscape ? buildRotatedLandscapeLayout() : readLayoutRect(element);
+  const layout = isLandscape ? buildRotatedLandscapeLayout(element) : readLayoutRect(element);
 
   return {
     ...layout,
@@ -66,6 +52,9 @@ function scheduleLayoutSync(callback) {
 /**
  * iOS-only: native WKWebView overlay loads the proxy URL as a top-level document
  * (same as Mobile Safari), avoiding nested iframe playback restrictions.
+ *
+ * The native view sits *below* the Capacitor web layer so HTML overlays (LIVE badge,
+ * viewer count, landscape toggle) remain visible on top.
  */
 export function IosNativeStreamOverlay({
   src,
@@ -75,7 +64,7 @@ export function IosNativeStreamOverlay({
   allowInteraction = true,
   isLoading = false,
 }) {
-  const boxClass = fill ? 'relative h-full w-full bg-black' : 'relative w-full aspect-video bg-black';
+  const boxClass = fill ? 'relative h-full w-full bg-transparent' : 'relative w-full aspect-video bg-transparent';
   const containerRef = useRef(null);
   const srcRef = useRef(null);
   const shownRef = useRef(false);
@@ -155,7 +144,7 @@ export function IosNativeStreamOverlay({
   return (
     <div
       ref={containerRef}
-      className={`${isLandscape && fill ? 'absolute inset-0' : boxClass} overflow-hidden ${className} bg-black`}
+      className={`${isLandscape && fill ? 'absolute inset-0' : boxClass} overflow-hidden ${isLoading ? 'bg-black' : 'bg-transparent'} ${className}`}
       aria-busy={isLoading}
     >
       <StreamVideoLoading visible={isLoading} />

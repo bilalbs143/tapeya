@@ -4,9 +4,10 @@ import { useLayoutEffect, useRef, useState } from 'react';
  * Player stage — video + overlays (comments, hearts, controls) share one box.
  * When `rotated`, fits a 90°-rotated child inside the measured parent.
  */
-export default function LandscapeRotatedStage({ children, rotated = false }) {
+export default function LandscapeRotatedStage({ children, rotated = false, transparentUnderlay = false }) {
   const zoneRef = useRef(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
+  const surfaceClass = transparentUnderlay ? 'bg-transparent' : 'bg-black';
 
   useLayoutEffect(() => {
     const el = zoneRef.current;
@@ -44,8 +45,8 @@ export default function LandscapeRotatedStage({ children, rotated = false }) {
         };
 
   return (
-    <div ref={zoneRef} className="flex h-full w-full items-center justify-center overflow-hidden bg-black">
-      <div className="overflow-hidden bg-black" style={stageStyle}>
+    <div ref={zoneRef} className={`flex h-full w-full items-center justify-center overflow-hidden ${surfaceClass}`}>
+      <div className={`overflow-hidden ${surfaceClass}`} style={stageStyle}>
         <div className="relative size-full">{children}</div>
       </div>
     </div>

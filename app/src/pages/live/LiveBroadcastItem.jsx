@@ -19,6 +19,7 @@ import {
   LIVE_BROADCAST_IMMERSIVE_TOGGLE_Z,
 } from '@/lib/constants/liveBroadcastLayout';
 import { getInitials } from '@/lib/utils/displayUtils';
+import { usesIosNativeStreamUnderlay } from '@/lib/utils/liveStreamUtils';
 import { mapSystemSettingsByKey } from '@/lib/utils/settingsUtils';
 import { useSendLiveCommentMutation, useSendLiveHeartMutation } from '@/store/api/matchApi';
 import { useGetPublicSystemSettingsQuery } from '@/store/api/systemSettingsApi';
@@ -236,6 +237,7 @@ function BroadcastViewport({
   headerSlot,
   isDesktop,
   immersiveLandscape = false,
+  transparentVideoUnderlay = false,
 }) {
   // Portrait: keep iframe interactive so mobile playback/tap-to-start works.
   // Landscape: block iframe touches so the portaled exit toggle stays tappable.
@@ -252,6 +254,10 @@ function BroadcastViewport({
           allowInteraction={!blockLandscapeVideoPointer}
         />
       </div>
+    ) : transparentVideoUnderlay ? (
+      <div className="absolute inset-0">
+        <StreamPlayer stream={stream} className="h-full w-full" fill isLandscape={false} allowInteraction />
+      </div>
     ) : (
       <div className="absolute inset-0 flex items-start justify-center">
         <StreamPlayer stream={stream} className="max-h-full w-full" fill={false} isLandscape={false} allowInteraction />
@@ -259,7 +265,7 @@ function BroadcastViewport({
     );
 
   return (
-    <div className="relative size-full overflow-hidden bg-black">
+    <div className={`relative size-full overflow-hidden ${transparentVideoUnderlay ? 'bg-transparent' : 'bg-black'}`}>
       {videoLayer}
 
       {!isDesktop && !immersiveLandscape && (
@@ -381,6 +387,7 @@ export default function LiveBroadcastItem({
 
   const stream = match?.stream ?? null;
   const inputDisabled = isSending || sendCooldown;
+  const usesIosNativeUnderlay = usesIosNativeStreamUnderlay();
 
   const bottomPanel = (
     <BroadcastBottomPanel
@@ -408,14 +415,17 @@ export default function LiveBroadcastItem({
       headerSlot={headerSlot}
       isDesktop={isDesktop}
       immersiveLandscape={isMobileLandscape}
+      transparentVideoUnderlay={usesIosNativeUnderlay}
     />
   );
 
   const showFixedLandscapeToggle = isLandscape && !isDesktop;
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-black">
-      <LandscapeRotatedStage rotated={isLandscape}>{viewport}</LandscapeRotatedStage>
+    <div className={`relative h-full w-full overflow-hidden ${usesIosNativeUnderlay ? 'bg-transparent' : 'bg-black'}`}>
+      <LandscapeRotatedStage rotated={isLandscape} transparentUnderlay={usesIosNativeUnderlay}>
+        {viewport}
+      </LandscapeRotatedStage>
 
       {showFixedLandscapeToggle && <LandscapeExitToggle onClick={onToggleLandscape} />}
     </div>

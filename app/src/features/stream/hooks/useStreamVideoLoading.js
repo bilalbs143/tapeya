@@ -6,6 +6,9 @@ import { getYoutubeStreamPlayerReadyState, onYoutubeStreamPlayerReady } from '@/
 
 const READY_MESSAGE_TYPE = 'tapeya-youtube-ready';
 const LOAD_TIMEOUT_MS = 15000;
+/** Brief hold after native playerReady so WKWebView paints before the loader fades. */
+const IOS_LOADER_RELEASE_MS = 120;
+const IOS_READY_STATE_DEFER_MS = 150;
 
 /**
  * Tracks whether the YouTube player is still initialising.
@@ -34,6 +37,7 @@ export function useStreamVideoLoading(src, { usesNativeOverlay = false } = {}) {
 
     setIsLoading(true);
     let cancelled = false;
+    let releaseTimeoutId = null;
     const timeoutId = window.setTimeout(() => {
       if (!cancelled) {
         setIsLoading(false);
@@ -45,21 +49,42 @@ export function useStreamVideoLoading(src, { usesNativeOverlay = false } = {}) {
         return;
       }
       window.clearTimeout(timeoutId);
-      setIsLoading(false);
+
+      const releaseLoader = () => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      };
+
+      if (usesNativeOverlay && Capacitor.getPlatform() === 'ios') {
+        if (releaseTimeoutId !== null) {
+          window.clearTimeout(releaseTimeoutId);
+        }
+        releaseTimeoutId = window.setTimeout(releaseLoader, IOS_LOADER_RELEASE_MS);
+        return;
+      }
+
+      releaseLoader();
     };
     markReadyRef.current = markReady;
 
     if (usesNativeOverlay && Capacitor.getPlatform() === 'ios') {
       const listener = onYoutubeStreamPlayerReady(markReady);
-      void getYoutubeStreamPlayerReadyState().then(({ ready }) => {
-        if (ready) {
-          markReady();
-        }
-      });
+      const readyCheckId = window.setTimeout(() => {
+        void getYoutubeStreamPlayerReadyState().then(({ ready }) => {
+          if (ready) {
+            markReady();
+          }
+        });
+      }, IOS_READY_STATE_DEFER_MS);
 
       return () => {
         cancelled = true;
         window.clearTimeout(timeoutId);
+        window.clearTimeout(readyCheckId);
+        if (releaseTimeoutId !== null) {
+          window.clearTimeout(releaseTimeoutId);
+        }
         listener.remove();
       };
     }

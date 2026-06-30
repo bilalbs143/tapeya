@@ -1,7 +1,7 @@
 export function StreamVideoLoading({ label = 'Loading Video…', visible = true }) {
   return (
     <div
-      className={`absolute -inset-px z-10 flex flex-col items-center justify-center gap-3 bg-black transition-opacity duration-300 ${
+      className={`absolute -top-px -right-px -bottom-[5px] -left-px z-10 flex flex-col items-center justify-center gap-3 bg-black pb-[5px] transition-opacity duration-300 ${
         visible ? 'opacity-100' : 'pointer-events-none opacity-0'
       }`}
       role="status"

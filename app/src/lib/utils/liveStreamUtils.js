@@ -51,6 +51,11 @@ export function shouldUseYoutubeEmbedProxy() {
   return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
 }
 
+/** iOS Capacitor live player: native WKWebView sits below a transparent HTML hole. */
+export function usesIosNativeStreamUnderlay() {
+  return shouldUseYoutubeEmbedProxy();
+}
+
 /**
  * @returns {string}
  */
