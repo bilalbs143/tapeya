@@ -15,8 +15,13 @@ import { useGraphicSession } from './hooks/useGraphicSession';
  * @param {{ matchId: string, searchParams: URLSearchParams, children?: import('react').ReactNode }} props
  */
 export function GraphicControllerProvider({ matchId, searchParams, children }) {
-  const { session, isError, isLoading, sessionQueryArg } = useGraphicSession(matchId, searchParams);
+  const { session, isError, isLoading, sessionQueryArg, error } = useGraphicSession(matchId, searchParams);
   const themeSlug = session?.theme?.slug ?? '';
+  const sessionError = error
+    ? (typeof error === 'object' && error !== null && 'status' in error
+        ? `HTTP ${error.status}${'data' in error && error.data ? `: ${JSON.stringify(error.data)}` : ''}`
+        : String(error))
+    : null;
 
   const snapshot = useMemo(() => {
     if (!session || !themeSlug) return null;
@@ -60,8 +65,9 @@ export function GraphicControllerProvider({ matchId, searchParams, children }) {
       themeSlug,
       isLoading: Boolean(sessionQueryArg && isLoading && !session),
       isError: Boolean(isError && !session),
+      sessionError,
     }),
-    [snapshot, renderPlan, themeSlug, sessionQueryArg, isLoading, isError, session],
+    [snapshot, renderPlan, themeSlug, sessionQueryArg, isLoading, isError, session, sessionError],
   );
 
   return <GraphicControllerContext.Provider value={value}>{children}</GraphicControllerContext.Provider>;
