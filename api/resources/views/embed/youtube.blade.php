@@ -126,55 +126,6 @@
           };
         }
 
-        function embedLog(msg) {
-          try {
-            if (
-              window.webkit &&
-              window.webkit.messageHandlers &&
-              window.webkit.messageHandlers.tapeyaStream
-            ) {
-              window.webkit.messageHandlers.tapeyaStream.postMessage('log:' + msg);
-            }
-          } catch (e) {}
-        }
-
-        /** Toggle landscape immersive mode without reloading (used on iOS orientation change). */
-        function setEmbedLandscapeMode(landscape) {
-          embedLog('setEmbedLandscapeMode(' + landscape + ') search=' + window.location.search);
-          if (landscape) {
-            urlParams.set('cover', '1');
-            urlParams.set('rotate', '1');
-          } else {
-            urlParams.delete('cover');
-            urlParams.delete('rotate');
-          }
-
-          var flags = applyRotateLayout();
-          if (flags.coverMode) {
-            fitPlayerCover();
-            window.setTimeout(fitPlayerCover, 100);
-            window.setTimeout(fitPlayerCover, 400);
-          } else {
-            var viewport = layoutViewport();
-            var el = document.getElementById('player');
-            var iframe = el && el.querySelector('iframe');
-            if (iframe) {
-              iframe.style.width = viewport.cw + 'px';
-              iframe.style.height = viewport.ch + 'px';
-            }
-            if (player && typeof player.setSize === 'function') {
-              try {
-                player.setSize(viewport.cw, viewport.ch);
-              } catch (e) {}
-            }
-          }
-
-          startPlayback();
-          embedLog('setEmbedLandscapeMode done rotateClass=' + document.documentElement.classList.contains('immersive-rotate') + ' inner=' + window.innerWidth + 'x' + window.innerHeight);
-        }
-
-        window.setEmbedLandscapeMode = setEmbedLandscapeMode;
-
         /** Pixel-size the rotate wrap — 100vh/vw is unreliable inside iOS WKWebView. */
         function applyRotateLayout() {
           var flags = readEmbedFlags();
@@ -254,7 +205,6 @@
         }
 
         function notifyHost(event) {
-          embedLog('notifyHost(' + event + ')');
           if (event === 'ready' && hostReadySent) {
             return;
           }
