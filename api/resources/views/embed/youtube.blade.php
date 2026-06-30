@@ -126,8 +126,21 @@
           };
         }
 
+        function embedLog(msg) {
+          try {
+            if (
+              window.webkit &&
+              window.webkit.messageHandlers &&
+              window.webkit.messageHandlers.tapeyaStream
+            ) {
+              window.webkit.messageHandlers.tapeyaStream.postMessage('log:' + msg);
+            }
+          } catch (e) {}
+        }
+
         /** Toggle landscape immersive mode without reloading (used on iOS orientation change). */
         function setEmbedLandscapeMode(landscape) {
+          embedLog('setEmbedLandscapeMode(' + landscape + ') search=' + window.location.search);
           if (landscape) {
             urlParams.set('cover', '1');
             urlParams.set('rotate', '1');
@@ -157,6 +170,7 @@
           }
 
           startPlayback();
+          embedLog('setEmbedLandscapeMode done rotateClass=' + document.documentElement.classList.contains('immersive-rotate') + ' inner=' + window.innerWidth + 'x' + window.innerHeight);
         }
 
         window.setEmbedLandscapeMode = setEmbedLandscapeMode;
@@ -240,6 +254,7 @@
         }
 
         function notifyHost(event) {
+          embedLog('notifyHost(' + event + ')');
           if (event === 'ready' && hostReadySent) {
             return;
           }
