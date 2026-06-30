@@ -1,7 +1,6 @@
 import { Component } from 'react';
 
 import { graphicDebugLog } from '../entry/debugLog';
-import { pushOverlayError, pushOverlayLog } from '../entry/overlayDiagnostics';
 
 /**
  * Catches render errors in theme components so the OBS source stays transparent.
@@ -21,11 +20,6 @@ export class GraphicErrorBoundary extends Component {
       commandKey: this.props.commandKey,
       error: error?.message ?? String(error),
       info,
-    });
-    pushOverlayError('GraphicErrorBoundary', error);
-    pushOverlayLog('renderer:error', {
-      commandKey: this.props.commandKey,
-      message: error?.message ?? String(error),
     });
   }
 

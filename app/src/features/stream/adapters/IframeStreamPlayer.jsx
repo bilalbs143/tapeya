@@ -8,7 +8,7 @@ import { useStreamVideoLoading } from '../hooks/useStreamVideoLoading';
 import { StreamVideoLoading } from '../StreamVideoLoading';
 import { IosNativeStreamOverlay } from './IosNativeStreamOverlay';
 
-export function IframeStreamPlayer({ playback, className = '', fill = false, isLandscape = false, allowInteraction = true }) {
+export function IframeStreamPlayer({ playback, className = '', fill = false, isLandscape = false }) {
   const boxClass = fill ? 'relative h-full w-full bg-black' : 'relative w-full aspect-video bg-black';
   const resolution = useMemo(
     () => resolveYoutubeEmbed(playback?.embed_url, playback?.embed_id),

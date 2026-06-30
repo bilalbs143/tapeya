@@ -249,17 +249,11 @@ function BroadcastViewport({
   const videoLayer =
     isDesktop || isLandscape ? (
       <div className={`absolute inset-0 ${blockLandscapeVideoClass}`}>
-        <StreamPlayer
-          stream={stream}
-          className="h-full w-full"
-          fill
-          isLandscape={isLandscape}
-          allowInteraction={!blockLandscapeVideoPointer}
-        />
+        <StreamPlayer stream={stream} className="h-full w-full" fill isLandscape={isLandscape} />
       </div>
     ) : (
       <div className="absolute inset-0 flex items-start justify-center">
-        <StreamPlayer stream={stream} className="max-h-full w-full" fill={false} isLandscape={false} allowInteraction />
+        <StreamPlayer stream={stream} className="max-h-full w-full" fill={false} isLandscape={false} />
       </div>
     );
 

@@ -36,19 +36,7 @@
 
     <!-- OBS overlay: transparent background from first paint -->
     <script>
-      (function () {
-        if (!location.pathname.startsWith('/overlay/')) return;
-        document.documentElement.dataset.overlayRoute = '';
-        if (!location.search.includes('overlayDebug=1')) return;
-        document.addEventListener('DOMContentLoaded', function () {
-          var el = document.createElement('div');
-          el.id = 'overlay-debug-boot';
-          el.style.cssText =
-            'position:fixed;top:0;left:0;right:0;z-index:2147483647;background:rgba(80,0,0,0.92);color:#0f0;font:12px monospace;padding:8px;';
-          el.textContent = 'HTML boot OK — loading JS module… ' + navigator.userAgent;
-          document.body.appendChild(el);
-        });
-      })();
+      if (location.pathname.startsWith('/overlay/')) document.documentElement.dataset.overlayRoute = '';
     </script>
   </head>
   <body>

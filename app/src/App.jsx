@@ -1,9 +1,10 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense } from 'react';
 
 import { DownloadAppPrompt } from '@platform-download';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
 import AppUpdatePrompt from '@/components/AppUpdatePrompt';
+import { ConsumerRouterEffects } from '@/components/ConsumerRouterEffects';
 import DialogManager from '@/components/dialogs/DialogManager';
 import { ProfileStrengthReminderScheduler } from '@/components/ProfileStrengthReminderScheduler';
 import { RequireAuth } from '@/components/RequireAuth';
@@ -12,12 +13,10 @@ import SplashScreen from '@/components/SplashScreen';
 import { DialogProvider } from '@/context/DialogContext';
 import { ToastProvider } from '@/context/ToastContext';
 import GraphicOverlay from '@/graphics/entry/GraphicOverlay';
-import { usePlatformTracking } from '@/hooks/usePlatformTracking';
-import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useReverbNotifications } from '@/hooks/useReverbNotifications';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { MainLayout } from '@/layouts/MainLayout';
-import { initFacebookAnalytics } from '@/lib/analytics/facebook';
+import { isOverlayRoute } from '@/lib/isOverlayRoute';
 import { Toaster } from '@/ui/Toast';
 import { TooltipProvider } from '@/ui/Tooltip';
 
@@ -92,19 +91,15 @@ function PageFallback() {
   );
 }
 
-/** Hooks that require React Router context (must render inside BrowserRouter). */
+/** Consumer-only side effects (skipped on /overlay/*). */
 function RouterEffects() {
-  usePushNotifications();
-  usePlatformTracking();
-  return null;
+  const { pathname } = useLocation();
+  if (isOverlayRoute(pathname)) return null;
+  return <ConsumerRouterEffects />;
 }
 
 function App() {
   useReverbNotifications();
-
-  useEffect(() => {
-    void initFacebookAnalytics();
-  }, []);
 
   return (
     <DialogProvider>
@@ -128,9 +123,7 @@ function App() {
                   <Route path="/" element={<SplashScreen />} />
                   <Route path="/pages/:slug" element={<StaticPage />} />
 
-                  {/* Graphic overlay — OBS/vMix browser source. Outside auth layout.
-                    Use a signed URL from backoffice (?expires=&signature=) or a
-                    logged-in app session for the initial HTTP load. */}
+                  {/* Graphic overlay — OBS/vMix. No MainLayout/AuthLayout → no Meta Pixel, push, or platform sync. */}
                   <Route path="/overlay/:matchId" element={<GraphicOverlay />} />
 
                   <Route element={<RequireAuth />}>

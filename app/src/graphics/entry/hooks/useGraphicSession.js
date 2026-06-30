@@ -25,7 +25,6 @@ export function useGraphicSession(matchId, searchParams) {
     data: session,
     isError,
     isLoading,
-    error,
     refetch,
   } = useGetGraphicSessionQuery(sessionQueryArg, {
     skip: !sessionQueryArg,
@@ -89,5 +88,5 @@ export function useGraphicSession(matchId, searchParams) {
     };
   }, [matchId, echo, refetchContextIfHashChanged]);
 
-  return { session, isError, isLoading, sessionQueryArg, error };
+  return { session, isError, isLoading, sessionQueryArg };
 }

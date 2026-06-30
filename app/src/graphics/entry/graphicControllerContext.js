@@ -10,7 +10,6 @@ import { createContext } from 'react';
  * @property {string} themeSlug — from `session.theme.slug` (graphic session SSOT)
  * @property {boolean} isLoading
  * @property {boolean} isError
- * @property {string|null} sessionError
  */
 
 export const GraphicControllerContext = createContext(null);

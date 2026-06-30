@@ -64,6 +64,8 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    // vMix 24 CEF ≈ Chrome 86 — avoid shipping syntax/APIs from newer baselines.
+    target: ['chrome86', 'edge86', 'firefox78', 'safari14'],
     // Ship each route's CSS only when the route is visited
     cssCodeSplit: true,
     // ApexCharts core alone is ~500 kB minified; split into apex + react wrapper
