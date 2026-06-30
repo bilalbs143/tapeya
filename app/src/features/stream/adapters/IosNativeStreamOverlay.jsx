@@ -1,91 +1,86 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { withIosNativeEmbedParams } from '@/lib/utils/liveStreamUtils';
 import {
   hideYoutubeStreamOverlay,
   showYoutubeStreamOverlay,
   updateYoutubeStreamOverlayLayout,
 } from '@/native/youtubeStreamOverlay';
 
+import { useIosNativePlayback } from '../hooks/useIosNativePlayback';
+import { buildNativeOverlayLayout, buildNativeStackLayout } from '../ios/iosNativeStreamLayout';
 import { StreamVideoLoading } from '../StreamVideoLoading';
+import { StreamVideoRetry } from '../StreamVideoRetry';
 
-function readLayoutRect(element) {
-  const rect = element.getBoundingClientRect();
-  return {
-    x: rect.left,
-    y: rect.top,
-    width: rect.width,
-    height: rect.height,
-  };
-}
-
-/**
- * Match LandscapeRotatedStage CSS rotate(90deg): swap pre-rotation bounds and center
- * on the same screen-space box as the measured placeholder (inside the rotated stage).
- */
-function buildRotatedLandscapeLayout(element) {
-  const rect = element.getBoundingClientRect();
-
-  return {
-    x: rect.left + (rect.width - rect.height) / 2,
-    y: rect.top + (rect.height - rect.width) / 2,
-    width: rect.height,
-    height: rect.width,
-    rotation: 90,
-  };
-}
-
-function buildOverlayPayload(element, { isLandscape, allowInteraction }) {
-  const layout = isLandscape ? buildRotatedLandscapeLayout(element) : readLayoutRect(element);
-
-  return {
-    ...layout,
-    userInteractionEnabled: allowInteraction,
-  };
-}
-
-function scheduleLayoutSync(callback) {
+function afterLayout(callback) {
   requestAnimationFrame(() => {
     requestAnimationFrame(callback);
   });
 }
 
-/**
- * iOS-only: native WKWebView overlay loads the proxy URL as a top-level document
- * (same as Mobile Safari), avoiding nested iframe playback restrictions.
- *
- * The native view sits *below* the Capacitor web layer so HTML overlays (LIVE badge,
- * viewer count, landscape toggle) remain visible on top.
- */
-export function IosNativeStreamOverlay({
-  src,
-  className = '',
-  fill = false,
-  isLandscape = false,
-  allowInteraction = true,
-  isLoading = false,
-}) {
-  const boxClass = fill ? 'relative h-full w-full bg-transparent' : 'relative w-full aspect-video bg-transparent';
-  const containerRef = useRef(null);
-  const srcRef = useRef(null);
-  const shownRef = useRef(false);
-  const layoutOptionsRef = useRef({ isLandscape, allowInteraction });
+function hasValidPortraitFrame(layout) {
+  return layout.width > 0 && layout.height > 0;
+}
 
-  layoutOptionsRef.current = { isLandscape, allowInteraction };
+/**
+ * iOS YouTube player (native WKWebView + embed proxy).
+ *
+ * Portrait — player above Capacitor, aspect-video sized.
+ * Landscape — player below transparent Capacitor; embed loads with ?rotate=1&cover=1.
+ */
+export function IosNativeStreamOverlay({ src, className = '', fill = false, isLandscape = false }) {
+  const containerRef = useRef(null);
+  const proxyUrlRef = useRef(src);
+  const stackRef = useRef(null);
+  const shownRef = useRef(false);
+  const isLandscapeRef = useRef(isLandscape);
+  const [sessionKey, setSessionKey] = useState(0);
+  const { isLoading, showRetry } = useIosNativePlayback(src, sessionKey);
+
+  isLandscapeRef.current = isLandscape;
+  proxyUrlRef.current = src;
+
+  const retryPlayback = useCallback(() => {
+    setSessionKey((key) => key + 1);
+  }, []);
 
   const syncLayout = useCallback(async (reload = false) => {
     const element = containerRef.current;
-    if (!element || !srcRef.current) {
+    const baseUrl = proxyUrlRef.current;
+    if (!element || !baseUrl) {
       return;
     }
 
-    const payload = buildOverlayPayload(element, layoutOptionsRef.current);
-    if (payload.width <= 0 || payload.height <= 0) {
+    const landscape = isLandscapeRef.current;
+    const layout = buildNativeOverlayLayout(element, { isLandscape: landscape });
+    const embedUrl = withIosNativeEmbedParams(baseUrl, { landscape });
+    const stack = landscape ? 'landscape' : 'portrait';
+    const stackChanged = stackRef.current !== null && stackRef.current !== stack;
+    const hasFrame = layout.immersiveFullscreen || hasValidPortraitFrame(layout);
+
+    if (!hasFrame) {
+      if (stackChanged && shownRef.current) {
+        stackRef.current = stack;
+        await updateYoutubeStreamOverlayLayout({
+          ...buildNativeStackLayout(landscape),
+          url: embedUrl,
+          updateFrame: false,
+        });
+      }
       return;
     }
 
-    if (!shownRef.current || reload) {
+    stackRef.current = stack;
+
+    const payload = {
+      ...layout,
+      url: embedUrl,
+      updateFrame: true,
+    };
+
+    if (!shownRef.current || reload || stackChanged) {
       shownRef.current = true;
-      await showYoutubeStreamOverlay({ url: srcRef.current, ...payload, reload });
+      await showYoutubeStreamOverlay({ ...payload, reload: !shownRef.current || stackChanged || reload });
       return;
     }
 
@@ -94,60 +89,61 @@ export function IosNativeStreamOverlay({
 
   useEffect(() => {
     let cancelled = false;
-    srcRef.current = src;
     shownRef.current = false;
+    stackRef.current = null;
+
     const element = containerRef.current;
     if (!element || !src) {
       return undefined;
     }
 
-    void syncLayout(true);
+    afterLayout(() => {
+      if (!cancelled) {
+        void syncLayout(true);
+      }
+    });
 
-    const onLayoutChange = () => {
-      scheduleLayoutSync(() => {
+    const onViewportChange = () => {
+      afterLayout(() => {
         if (!cancelled) {
           void syncLayout(false);
         }
       });
     };
 
-    const resizeObserver = new ResizeObserver(onLayoutChange);
+    const resizeObserver = new ResizeObserver(onViewportChange);
     resizeObserver.observe(element);
-
-    window.addEventListener('orientationchange', onLayoutChange);
-    window.addEventListener('resize', onLayoutChange);
-    window.visualViewport?.addEventListener('resize', onLayoutChange);
-    window.visualViewport?.addEventListener('scroll', onLayoutChange);
+    window.addEventListener('resize', onViewportChange);
+    window.visualViewport?.addEventListener('resize', onViewportChange);
 
     return () => {
       cancelled = true;
       shownRef.current = false;
+      stackRef.current = null;
       resizeObserver.disconnect();
-      window.removeEventListener('orientationchange', onLayoutChange);
-      window.removeEventListener('resize', onLayoutChange);
-      window.visualViewport?.removeEventListener('resize', onLayoutChange);
-      window.visualViewport?.removeEventListener('scroll', onLayoutChange);
+      window.removeEventListener('resize', onViewportChange);
+      window.visualViewport?.removeEventListener('resize', onViewportChange);
       void hideYoutubeStreamOverlay();
     };
-  }, [src, syncLayout]);
+  }, [src, sessionKey, syncLayout]);
 
   useEffect(() => {
     if (!shownRef.current) {
-      return;
+      return undefined;
     }
 
-    scheduleLayoutSync(() => {
+    afterLayout(() => {
       void syncLayout(false);
     });
-  }, [isLandscape, allowInteraction, syncLayout]);
+  }, [isLandscape, syncLayout]);
+
+  const layoutClass = isLandscape && fill ? 'absolute inset-0' : 'relative w-full aspect-video';
+  const surfaceClass = showRetry || !(isLandscape && fill) ? 'bg-black' : 'bg-transparent';
 
   return (
-    <div
-      ref={containerRef}
-      className={`${isLandscape && fill ? 'absolute inset-0' : boxClass} overflow-hidden ${isLoading ? 'bg-black' : 'bg-transparent'} ${className}`}
-      aria-busy={isLoading}
-    >
+    <div ref={containerRef} className={`${layoutClass} ${surfaceClass} overflow-hidden ${className}`} aria-busy={isLoading}>
       <StreamVideoLoading visible={isLoading} />
+      <StreamVideoRetry visible={showRetry} onRetry={retryPlayback} />
     </div>
   );
 }

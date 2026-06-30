@@ -51,8 +51,8 @@ export function shouldUseYoutubeEmbedProxy() {
   return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
 }
 
-/** iOS Capacitor live player: native WKWebView sits below a transparent HTML hole. */
-export function usesIosNativeStreamUnderlay() {
+/** iOS uses native WKWebView for YouTube (nested iframe blocked in Capacitor). */
+export function usesIosNativeStreamPlayer() {
   return shouldUseYoutubeEmbedProxy();
 }
 
@@ -113,6 +113,29 @@ export function buildYoutubeEmbedProxyUrl(directEmbedUrl) {
   const proxyUrl = new URL(proxyBase);
   proxyUrl.searchParams.set('src', buildProxyTargetEmbedUrl(directEmbedUrl) ?? directEmbedUrl);
   return proxyUrl.toString();
+}
+
+/**
+ * iOS native overlay embed params — rotate/cover only for landscape immersive.
+ *
+ * @param {string} proxyUrl
+ * @param {{ landscape?: boolean }} [options]
+ * @returns {string}
+ */
+export function withIosNativeEmbedParams(proxyUrl, { landscape = false } = {}) {
+  try {
+    const url = new URL(proxyUrl);
+    if (landscape) {
+      url.searchParams.set('cover', '1');
+      url.searchParams.set('rotate', '1');
+    } else {
+      url.searchParams.delete('cover');
+      url.searchParams.delete('rotate');
+    }
+    return url.toString();
+  } catch {
+    return proxyUrl;
+  }
 }
 
 /**

@@ -4,6 +4,9 @@ import Capacitor
 /**
  * Capacitor 6+ no longer auto-discovers local App-target plugins.
  * Register them here so JS registerPlugin('FcmToken') / 'FacebookAnalytics' work.
+ *
+ * Capacitor webview transparency is toggled by YoutubeStreamOverlayPlugin per mode
+ * (portrait = opaque, landscape underlay = transparent). Do not set it globally here.
  */
 class AppBridgeViewController: CAPBridgeViewController {
     override func viewDidLoad() {
@@ -15,15 +18,5 @@ class AppBridgeViewController: CAPBridgeViewController {
         bridge?.registerPluginInstance(FcmTokenPlugin())
         bridge?.registerPluginInstance(FacebookAnalyticsPlugin())
         bridge?.registerPluginInstance(YoutubeStreamOverlayPlugin())
-
-        // Let HTML overlays (LIVE badge, landscape toggle) render above the native stream WKWebView.
-        if let webView = bridge?.webView {
-            webView.isOpaque = false
-            webView.backgroundColor = .clear
-            webView.scrollView.backgroundColor = .clear
-            if #available(iOS 15.0, *) {
-                webView.underPageBackgroundColor = .clear
-            }
-        }
     }
 }

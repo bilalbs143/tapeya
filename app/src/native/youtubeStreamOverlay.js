@@ -1,4 +1,6 @@
-import { Capacitor, registerPlugin } from '@capacitor/core';
+import { registerPlugin } from '@capacitor/core';
+
+import { usesIosNativeStreamPlayer } from '@/lib/utils/liveStreamUtils';
 
 const YoutubeStreamOverlay = registerPlugin('YoutubeStreamOverlay');
 
@@ -11,69 +13,68 @@ function enqueueOverlay(task) {
   return run;
 }
 
-export function isIosNativeStreamOverlayAvailable() {
-  return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
-}
-
 /**
  * @param {{
  *   url: string,
- *   x: number,
- *   y: number,
- *   width: number,
- *   height: number,
- *   rotation?: number,
+ *   x?: number,
+ *   y?: number,
+ *   width?: number,
+ *   height?: number,
  *   userInteractionEnabled?: boolean,
+ *   underlay?: boolean,
+ *   immersiveFullscreen?: boolean,
+ *   updateFrame?: boolean,
  *   reload?: boolean,
- * }} layout
+ * }} options
  */
-export async function showYoutubeStreamOverlay(layout) {
-  if (!isIosNativeStreamOverlayAvailable()) {
+export async function showYoutubeStreamOverlay(options) {
+  if (!usesIosNativeStreamPlayer()) {
     return { shown: false };
   }
-  return enqueueOverlay(() => YoutubeStreamOverlay.show(layout));
+  return enqueueOverlay(() => YoutubeStreamOverlay.show(options));
 }
 
 /**
- * @param {{
- *   x: number,
- *   y: number,
- *   width: number,
- *   height: number,
- *   rotation?: number,
- *   userInteractionEnabled?: boolean,
- * }} layout
+ * @param {Omit<Parameters<typeof showYoutubeStreamOverlay>[0], 'reload'> & { url?: string }} layout
  */
 export async function updateYoutubeStreamOverlayLayout(layout) {
-  if (!isIosNativeStreamOverlayAvailable()) {
+  if (!usesIosNativeStreamPlayer()) {
     return { updated: false };
   }
   return enqueueOverlay(() => YoutubeStreamOverlay.updateLayout(layout));
 }
 
 export async function hideYoutubeStreamOverlay() {
-  if (!isIosNativeStreamOverlayAvailable()) {
+  if (!usesIosNativeStreamPlayer()) {
     return { hidden: false };
   }
   return enqueueOverlay(() => YoutubeStreamOverlay.hide());
 }
 
-/**
- * @returns {Promise<{ ready: boolean }>}
- */
 export async function getYoutubeStreamPlayerReadyState() {
-  if (!isIosNativeStreamOverlayAvailable()) {
+  if (!usesIosNativeStreamPlayer()) {
     return { ready: false };
   }
   return YoutubeStreamOverlay.getReadyState();
 }
 
-/**
- * @param {() => void} callback
- */
 export function onYoutubeStreamPlayerReady(callback) {
-  if (!isIosNativeStreamOverlayAvailable()) {
+  if (!usesIosNativeStreamPlayer()) {
     return { remove: () => {} };
   }
   return YoutubeStreamOverlay.addListener('playerReady', callback);
+}
+
+export function onYoutubeStreamPlayerPlaying(callback) {
+  if (!usesIosNativeStreamPlayer()) {
+    return { remove: () => {} };
+  }
+  return YoutubeStreamOverlay.addListener('playerPlaying', callback);
+}
+
+export function onYoutubeStreamPlayerError(callback) {
+  if (!usesIosNativeStreamPlayer()) {
+    return { remove: () => {} };
+  }
+  return YoutubeStreamOverlay.addListener('playerError', callback);
 }

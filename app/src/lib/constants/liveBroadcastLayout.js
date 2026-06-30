@@ -24,9 +24,7 @@ export const LIVE_BROADCAST_SHELL_DESKTOP_CLASS = 'lg:-mb-[calc(env(safe-area-in
 /** In-flow player shell below the solid global navbar. */
 export const LIVE_BROADCAST_SHELL_CLASS = 'relative overflow-hidden bg-black';
 
-/** Landscape immersive — edge-to-edge over navbar and bottom nav. */
-export const LIVE_BROADCAST_LANDSCAPE_SHELL_CLASS = 'fixed right-0 left-0 overflow-hidden bg-black lg:left-[280px]';
-
+/** Portrait vs immersive landscape shell classes. */
 /**
  * @param {boolean} isLandscape
  * @param {'bg-black' | 'bg-transparent'} [surfaceBg='bg-black']

@@ -5,9 +5,10 @@ import WebKit
 private let playerReadyFallbackSeconds: TimeInterval = 15
 
 /**
- * Loads the YouTube embed proxy URL in a native WKWebView overlay (top-level document).
- * iOS blocks video playback in nested cross-origin iframes inside Capacitor's WKWebView,
- * even when the same URL works in Mobile Safari.
+ * Native YouTube player for iOS Capacitor.
+ *
+ * Portrait: WKWebView above Capacitor, sized to the web placeholder.
+ * Landscape: WKWebView below transparent Capacitor; embed proxy handles rotate/cover via URL params.
  */
 @objc(YoutubeStreamOverlayPlugin)
 public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMessageHandler {
@@ -24,6 +25,7 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
     private var pendingPlayerReady = false
     private var playerIsReady = false
     private var readyFallbackWorkItem: DispatchWorkItem?
+    private var immersiveLandscapeMode = false
 
     @objc func show(_ call: CAPPluginCall) {
         guard let urlString = call.getString("url"), let url = URL(string: urlString) else {
@@ -33,8 +35,9 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
 
         let frame = frameFromCall(call)
         let reload = call.getBool("reload") ?? true
-        let rotationDegrees = CGFloat(call.getFloat("rotation") ?? 0)
         let userInteractionEnabled = call.getBool("userInteractionEnabled") ?? true
+        let underlay = call.getBool("underlay") ?? false
+        let immersiveFullscreen = call.getBool("immersiveFullscreen") ?? false
 
         DispatchQueue.main.async {
             guard let hostView = self.bridge?.viewController?.view else {
@@ -53,14 +56,18 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
                 self.pendingPlayerReady = false
             }
 
+            self.immersiveLandscapeMode = immersiveFullscreen
+            self.attachOverlay(webView, on: hostView, underlay: underlay)
+
             let applied = self.applyLayout(
                 to: webView,
                 frame: frame,
-                rotationDegrees: rotationDegrees,
                 userInteractionEnabled: userInteractionEnabled,
-                visible: !needsLoad
+                visible: !needsLoad,
+                immersiveFullscreen: immersiveFullscreen,
+                hostView: hostView
             )
-            self.attachOverlayBelowCapacitorWebView(webView, on: hostView)
+
             if !applied {
                 call.resolve(["shown": false, "reason": "zero-size-frame"])
                 return
@@ -71,8 +78,11 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
                 webView.load(URLRequest(url: url))
             } else {
                 self.playerIsReady = true
+                webView.isHidden = false
+                self.syncEmbedToMode(immersiveFullscreen, targetUrl: url)
             }
 
+            self.applyCapacitorWebViewTransparency(underlay)
             call.resolve(["shown": true])
         }
     }
@@ -91,8 +101,11 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
 
     @objc func updateLayout(_ call: CAPPluginCall) {
         let frame = frameFromCall(call)
-        let rotationDegrees = CGFloat(call.getFloat("rotation") ?? 0)
         let userInteractionEnabled = call.getBool("userInteractionEnabled") ?? true
+        let underlay = call.getBool("underlay") ?? false
+        let immersiveFullscreen = call.getBool("immersiveFullscreen") ?? false
+        let updateFrame = call.getBool("updateFrame") ?? true
+        let targetUrl = urlFromCall(call)
 
         DispatchQueue.main.async {
             guard let webView = self.overlayWebView else {
@@ -100,16 +113,32 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
                 return
             }
 
-            _ = self.applyLayout(
-                to: webView,
-                frame: frame,
-                rotationDegrees: rotationDegrees,
-                userInteractionEnabled: userInteractionEnabled,
-                visible: !self.pendingPlayerReady
-            )
-            if let hostView = self.bridge?.viewController?.view {
-                self.attachOverlayBelowCapacitorWebView(webView, on: hostView)
+            guard let hostView = self.bridge?.viewController?.view else {
+                call.resolve(["updated": false, "reason": "no-host"])
+                return
             }
+
+            hostView.backgroundColor = .black
+            self.immersiveLandscapeMode = immersiveFullscreen
+            self.attachOverlay(webView, on: hostView, underlay: underlay)
+
+            if updateFrame {
+                _ = self.applyLayout(
+                    to: webView,
+                    frame: frame,
+                    userInteractionEnabled: userInteractionEnabled,
+                    visible: !self.pendingPlayerReady,
+                    immersiveFullscreen: immersiveFullscreen,
+                    hostView: hostView
+                )
+            }
+
+            if self.playerIsReady && !self.pendingPlayerReady {
+                webView.isHidden = false
+            }
+
+            self.syncEmbedToMode(immersiveFullscreen, targetUrl: targetUrl)
+            self.applyCapacitorWebViewTransparency(underlay)
             call.resolve(["updated": true])
         }
     }
@@ -119,18 +148,34 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
             self.cancelReadyFallback()
             self.pendingPlayerReady = false
             self.playerIsReady = false
-            self.overlayWebView?.stopLoading()
+            self.applyCapacitorWebViewTransparency(false)
             self.overlayWebView?.isHidden = true
             call.resolve(["hidden": true])
         }
     }
 
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard message.name == "tapeyaStream" else { return }
+        guard message.name == "tapeyaStream", let event = message.body as? String else { return }
 
         DispatchQueue.main.async {
-            self.revealWebView()
+            switch event {
+            case "ready":
+                self.revealWebView()
+            case "playing":
+                self.notifyListeners("playerPlaying", data: [:])
+            case "error":
+                self.notifyListeners("playerError", data: [:])
+            default:
+                break
+            }
         }
+    }
+
+    private func immersiveHostBounds(for hostView: UIView) -> CGRect {
+        if let window = hostView.window {
+            return window.bounds
+        }
+        return hostView.bounds
     }
 
     private func frameFromCall(_ call: CAPPluginCall) -> CGRect {
@@ -141,15 +186,82 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
         return CGRect(x: x, y: y, width: width, height: height)
     }
 
-    private func attachOverlayBelowCapacitorWebView(_ webView: WKWebView, on hostView: UIView) {
-        if webView.superview !== hostView {
-            webView.removeFromSuperview()
+    private func urlFromCall(_ call: CAPPluginCall) -> URL? {
+        guard let urlString = call.getString("url") else { return nil }
+        return URL(string: urlString)
+    }
+
+    private func embedHasLandscapeParams(_ url: URL?) -> Bool {
+        guard let url, let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            return false
+        }
+        let query = components.queryItems ?? []
+        let cover = query.first(where: { $0.name == "cover" })?.value == "1"
+        let rotate = query.first(where: { $0.name == "rotate" })?.value == "1"
+        return cover && rotate
+    }
+
+    /** Reload when portrait/landscape URL params differ; otherwise refresh embed layout in-place. */
+    private func syncEmbedToMode(_ landscape: Bool, targetUrl: URL?) {
+        guard let webView = overlayWebView else { return }
+
+        let loadedLandscape = embedHasLandscapeParams(webView.url)
+        if loadedLandscape != landscape, let targetUrl {
+            webView.load(URLRequest(url: targetUrl))
+            return
         }
 
-        if let capWebView = self.bridge?.webView {
-            hostView.insertSubview(webView, belowSubview: capWebView)
-        } else if webView.superview !== hostView {
-            hostView.addSubview(webView)
+        refreshEmbedLayout()
+    }
+
+    private func refreshEmbedLayout() {
+        overlayWebView?.evaluateJavaScript(
+            "typeof applyRotateLayout==='function'&&applyRotateLayout();typeof fitPlayerCover==='function'&&fitPlayerCover();"
+        ) { _, _ in }
+    }
+
+    private func applyCapacitorWebViewTransparency(_ underlay: Bool) {
+        guard let webView = bridge?.webView else { return }
+
+        if underlay {
+            webView.isOpaque = false
+            webView.backgroundColor = .clear
+            webView.scrollView.isOpaque = false
+            webView.scrollView.backgroundColor = .clear
+            webView.layer.backgroundColor = UIColor.clear.cgColor
+            webView.scrollView.layer.backgroundColor = UIColor.clear.cgColor
+            if #available(iOS 15.0, *) {
+                webView.underPageBackgroundColor = .clear
+            }
+            return
+        }
+
+        webView.isOpaque = true
+        webView.backgroundColor = .black
+        webView.scrollView.isOpaque = true
+        webView.scrollView.backgroundColor = .black
+        webView.layer.backgroundColor = UIColor.black.cgColor
+        webView.scrollView.layer.backgroundColor = UIColor.black.cgColor
+        if #available(iOS 15.0, *) {
+            webView.underPageBackgroundColor = .black
+        }
+    }
+
+    private func attachOverlay(_ webView: WKWebView, on hostView: UIView, underlay: Bool) {
+        if underlay, let capWebView = bridge?.webView {
+            let targetParent = capWebView.superview ?? hostView
+            if webView.superview !== targetParent {
+                webView.removeFromSuperview()
+                targetParent.insertSubview(webView, belowSubview: capWebView)
+            } else {
+                targetParent.insertSubview(webView, belowSubview: capWebView)
+            }
+        } else {
+            if webView.superview !== hostView {
+                webView.removeFromSuperview()
+                hostView.addSubview(webView)
+            }
+            hostView.bringSubviewToFront(webView)
         }
     }
 
@@ -157,11 +269,25 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
     private func applyLayout(
         to webView: WKWebView,
         frame: CGRect,
-        rotationDegrees: CGFloat,
         userInteractionEnabled: Bool,
-        visible: Bool = true
+        visible: Bool = true,
+        immersiveFullscreen: Bool = false,
+        hostView: UIView? = nil
     ) -> Bool {
         webView.isUserInteractionEnabled = userInteractionEnabled
+
+        if immersiveFullscreen, let host = hostView {
+            let bounds = immersiveHostBounds(for: host)
+            if bounds.width <= 0 || bounds.height <= 0 {
+                webView.isHidden = true
+                return false
+            }
+
+            webView.isHidden = !visible
+            webView.transform = .identity
+            webView.frame = bounds
+            return true
+        }
 
         if frame.width <= 0 || frame.height <= 0 {
             webView.isHidden = true
@@ -172,11 +298,6 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
         webView.transform = .identity
         webView.bounds = CGRect(origin: .zero, size: frame.size)
         webView.center = CGPoint(x: frame.midX, y: frame.midY)
-
-        if rotationDegrees != 0 {
-            webView.transform = CGAffineTransform(rotationAngle: rotationDegrees * .pi / 180.0)
-        }
-
         return true
     }
 
@@ -200,6 +321,7 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
         pendingPlayerReady = false
         playerIsReady = true
         overlayWebView?.isHidden = false
+        refreshEmbedLayout()
         notifyListeners("playerReady", data: [:])
     }
 
@@ -210,13 +332,13 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
 
     private func ensureWebView(on hostView: UIView) -> WKWebView {
         if let existing = overlayWebView {
-            attachOverlayBelowCapacitorWebView(existing, on: hostView)
             return existing
         }
 
         let config = WKWebViewConfiguration()
         config.allowsInlineMediaPlayback = true
         config.mediaTypesRequiringUserActionForPlayback = []
+        config.allowsPictureInPictureMediaPlayback = false
         config.userContentController.add(self, name: "tapeyaStream")
 
         let webView = WKWebView(frame: .zero, configuration: config)
@@ -231,7 +353,6 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
             webView.underPageBackgroundColor = .black
         }
 
-        attachOverlayBelowCapacitorWebView(webView, on: hostView)
         overlayWebView = webView
         return webView
     }
@@ -245,6 +366,7 @@ extension YoutubeStreamOverlayPlugin: WKNavigationDelegate {
             if #available(iOS 15.0, *) {
                 webView.underPageBackgroundColor = .black
             }
+            self.refreshEmbedLayout()
         }
     }
 

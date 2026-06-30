@@ -23,16 +23,7 @@ export function IframeStreamPlayer({ playback, className = '', fill = false, isL
   }
 
   if (usesNativeOverlay) {
-    return (
-      <IosNativeStreamOverlay
-        src={src}
-        className={className}
-        fill={fill}
-        isLandscape={isLandscape}
-        allowInteraction={allowInteraction}
-        isLoading={isLoading}
-      />
-    );
+    return <IosNativeStreamOverlay src={src} className={className} fill={fill} isLandscape={isLandscape} />;
   }
 
   return (
