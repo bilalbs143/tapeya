@@ -13,10 +13,10 @@ export const LIVE_BROADCAST_CONTROLS_OVERLAY_Z = 25;
 export const LIVE_BROADCAST_IMMERSIVE_TOGGLE_Z = 100;
 
 /** Portrait shell height — fills main below navbar + bottom nav padding. */
-export const LIVE_BROADCAST_SHELL_HEIGHT = `calc(100vh - env(safe-area-inset-top) - ${NAVBAR_HEIGHT}px - env(safe-area-inset-bottom) - ${BOTTOM_NAV_HEIGHT}px)`;
+export const LIVE_BROADCAST_SHELL_HEIGHT = `calc(100dvh - env(safe-area-inset-top) - ${NAVBAR_HEIGHT}px - env(safe-area-inset-bottom) - ${BOTTOM_NAV_HEIGHT}px)`;
 
 /** Desktop shell height — extends through main bottom padding (no bottom nav). */
-export const LIVE_BROADCAST_SHELL_HEIGHT_DESKTOP = `calc(100vh - env(safe-area-inset-top) - ${NAVBAR_HEIGHT}px - env(safe-area-inset-bottom))`;
+export const LIVE_BROADCAST_SHELL_HEIGHT_DESKTOP = `calc(100dvh - env(safe-area-inset-top) - ${NAVBAR_HEIGHT}px - env(safe-area-inset-bottom))`;
 
 /** Cancels MainLayout bottom padding on desktop so the player reaches the viewport edge. */
 export const LIVE_BROADCAST_SHELL_DESKTOP_CLASS = 'lg:-mb-[calc(env(safe-area-inset-bottom)+70px)]';
