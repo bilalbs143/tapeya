@@ -8,6 +8,17 @@ import {
 
 import { StreamVideoLoading } from '../StreamVideoLoading';
 
+function readViewportMetrics() {
+  const viewport = window.visualViewport;
+
+  return {
+    width: viewport?.width ?? window.innerWidth,
+    height: viewport?.height ?? window.innerHeight,
+    offsetLeft: viewport?.offsetLeft ?? 0,
+    offsetTop: viewport?.offsetTop ?? 0,
+  };
+}
+
 function readLayoutRect(element) {
   const rect = element.getBoundingClientRect();
   return {
@@ -18,10 +29,30 @@ function readLayoutRect(element) {
   };
 }
 
-function buildOverlayPayload(element, { isLandscape, allowInteraction }) {
+/**
+ * Match LandscapeRotatedStage: a (vh × vw) box centered on the viewport, rotated 90°
+ * clockwise in CSS. Native WKWebView uses swapped bounds + UIKit rotation (sign differs
+ * from CSS degrees because Y-axis points down).
+ */
+function buildRotatedLandscapeLayout(viewport = readViewportMetrics()) {
+  const { width, height, offsetLeft, offsetTop } = viewport;
+  const layoutWidth = height;
+  const layoutHeight = width;
+
   return {
-    ...readLayoutRect(element),
-    rotation: isLandscape ? -90 : 0,
+    x: offsetLeft + (width - layoutWidth) / 2,
+    y: offsetTop + (height - layoutHeight) / 2,
+    width: layoutWidth,
+    height: layoutHeight,
+    rotation: 90,
+  };
+}
+
+function buildOverlayPayload(element, { isLandscape, allowInteraction }) {
+  const layout = isLandscape ? buildRotatedLandscapeLayout() : readLayoutRect(element);
+
+  return {
+    ...layout,
     userInteractionEnabled: allowInteraction,
   };
 }
@@ -83,16 +114,7 @@ export function IosNativeStreamOverlay({
 
     void syncLayout(true);
 
-    const resizeObserver = new ResizeObserver(() => {
-      scheduleLayoutSync(() => {
-        if (!cancelled) {
-          void syncLayout(false);
-        }
-      });
-    });
-    resizeObserver.observe(element);
-
-    const onViewportChange = () => {
+    const onLayoutChange = () => {
       scheduleLayoutSync(() => {
         if (!cancelled) {
           void syncLayout(false);
@@ -100,15 +122,22 @@ export function IosNativeStreamOverlay({
       });
     };
 
-    window.addEventListener('orientationchange', onViewportChange);
-    window.addEventListener('resize', onViewportChange);
+    const resizeObserver = new ResizeObserver(onLayoutChange);
+    resizeObserver.observe(element);
+
+    window.addEventListener('orientationchange', onLayoutChange);
+    window.addEventListener('resize', onLayoutChange);
+    window.visualViewport?.addEventListener('resize', onLayoutChange);
+    window.visualViewport?.addEventListener('scroll', onLayoutChange);
 
     return () => {
       cancelled = true;
       shownRef.current = false;
       resizeObserver.disconnect();
-      window.removeEventListener('orientationchange', onViewportChange);
-      window.removeEventListener('resize', onViewportChange);
+      window.removeEventListener('orientationchange', onLayoutChange);
+      window.removeEventListener('resize', onLayoutChange);
+      window.visualViewport?.removeEventListener('resize', onLayoutChange);
+      window.visualViewport?.removeEventListener('scroll', onLayoutChange);
       void hideYoutubeStreamOverlay();
     };
   }, [src, syncLayout]);
@@ -124,8 +153,12 @@ export function IosNativeStreamOverlay({
   }, [isLandscape, allowInteraction, syncLayout]);
 
   return (
-    <div ref={containerRef} className={`${boxClass} ${className}`} aria-busy={isLoading}>
-      {isLoading && <StreamVideoLoading />}
+    <div
+      ref={containerRef}
+      className={`${isLandscape && fill ? 'absolute inset-0' : boxClass} overflow-hidden ${className} bg-black`}
+      aria-busy={isLoading}
+    >
+      <StreamVideoLoading visible={isLoading} />
     </div>
   );
 }

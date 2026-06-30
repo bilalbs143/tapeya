@@ -20,7 +20,7 @@ final class MatchStreamStatusTransition
     }
 
     /**
-     * @return array<string, mixed>|null  Column updates, or null when unchanged.
+     * @return array<string, mixed>|null Column updates, or null when unchanged.
      */
     public static function resolve(MatchStream $stream, string $providerStatus): ?array
     {

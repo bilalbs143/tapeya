@@ -16,7 +16,7 @@ export function IframeStreamPlayer({ playback, className = '', fill = false, isL
   );
   const src = resolution.iframeSrc;
   const usesNativeOverlay = Capacitor.getPlatform() === 'ios' && resolution.usesProxy;
-  const isLoading = useStreamVideoLoading(src, { usesNativeOverlay });
+  const [isLoading, markReady] = useStreamVideoLoading(src, { usesNativeOverlay });
 
   if (!src) {
     return null;
@@ -36,16 +36,17 @@ export function IframeStreamPlayer({ playback, className = '', fill = false, isL
   }
 
   return (
-    <div className={`${boxClass} ${className}`}>
-      {isLoading && <StreamVideoLoading />}
+    <div className={`${boxClass} overflow-hidden ${className}`}>
       <iframe
-        className="absolute inset-0 h-full w-full border-0"
+        className="absolute inset-0 block h-full w-full border-0"
         src={src}
         title="Live Match"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         referrerPolicy="strict-origin-when-cross-origin"
         allowFullScreen
+        onLoad={markReady}
       />
+      <StreamVideoLoading visible={isLoading} />
     </div>
   );
 }

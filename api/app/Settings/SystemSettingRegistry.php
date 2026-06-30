@@ -570,8 +570,8 @@ final class SystemSettingRegistry
             SystemSettingKeyEnum::STREAM_IDLE_END_GRACE_MINUTES->value => [
                 'group' => SystemSettingGroupEnum::STREAMING,
                 'type' => SystemSettingTypeEnum::INTEGER,
-                'label' => 'Idle Stream Auto-End Grace (minutes)',
-                'description' => 'After OBS/vMix stops, the stream stays idle for this many minutes before Tapeya marks it ended. Manual end from backoffice is immediate.',
+                'label' => 'Idle Stream Auto-End Grace',
+                'description' => 'Minutes idle before auto-end.',
                 'settings_class' => StreamingSettings::class,
                 'property' => 'idleEndGraceMinutes',
                 'nullable_string' => false,
