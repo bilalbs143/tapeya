@@ -160,7 +160,6 @@
         }
 
         window.setEmbedLandscapeMode = setEmbedLandscapeMode;
-        window.__tapeyaHasEmbedLandscapeMode = true;
 
         /** Pixel-size the rotate wrap — 100vh/vw is unreliable inside iOS WKWebView. */
         function applyRotateLayout() {
@@ -240,11 +239,13 @@
           } catch (e) {}
         }
 
-        function notifyHostReady() {
-          if (hostReadySent) {
+        function notifyHost(event) {
+          if (event === 'ready' && hostReadySent) {
             return;
           }
-          hostReadySent = true;
+          if (event === 'ready') {
+            hostReadySent = true;
+          }
 
           try {
             if (
@@ -252,15 +253,21 @@
               window.webkit.messageHandlers &&
               window.webkit.messageHandlers.tapeyaStream
             ) {
-              window.webkit.messageHandlers.tapeyaStream.postMessage('ready');
+              window.webkit.messageHandlers.tapeyaStream.postMessage(event);
             }
           } catch (e) {}
 
-          try {
-            if (window.parent && window.parent !== window) {
-              window.parent.postMessage({ type: 'tapeya-youtube-ready' }, '*');
-            }
-          } catch (e) {}
+          if (event === 'ready') {
+            try {
+              if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'tapeya-youtube-ready' }, '*');
+              }
+            } catch (e) {}
+          }
+        }
+
+        function notifyHostReady() {
+          notifyHost('ready');
         }
 
         function initPlayer() {
@@ -289,6 +296,14 @@
                   window.setTimeout(fitPlayerCover, 1000);
                 }
                 notifyHostReady();
+              },
+              onStateChange: function (event) {
+                if (event.data === YT.PlayerState.PLAYING) {
+                  notifyHost('playing');
+                }
+              },
+              onError: function () {
+                notifyHost('error');
               },
             },
           });
