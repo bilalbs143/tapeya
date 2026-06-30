@@ -1,13 +1,21 @@
 <!doctype html>
-<html lang="en" @if($rotate ?? false) class="immersive-rotate" @endif>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <title>Live Stream</title>
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('rotate') === '1') {
+          document.documentElement.classList.add('immersive-rotate');
+        }
+      })();
+    </script>
     <style>
       html,
       body {
@@ -30,13 +38,11 @@
         overflow: hidden;
       }
 
-      /* Portrait webview — rotate landscape video to fill the phone edge-to-edge. */
       html.immersive-rotate #player-rotate-wrap {
         position: fixed;
         top: 50%;
         left: 50%;
-        width: 100vh;
-        height: 100vw;
+        overflow: hidden;
         transform: translate(-50%, -50%) rotate(90deg);
       }
 
@@ -57,7 +63,7 @@
       }
 
       #touch-shield {
-        position: absolute;
+        position: fixed;
         inset: 0;
         z-index: 10;
         background: transparent;
@@ -78,6 +84,7 @@
         var rawSrc = @json($embedSrc);
         var youtubeOrigin = @json($youtubeEmbedOrigin);
         var pageOrigin = youtubeOrigin || window.location.origin;
+        var urlParams = new URLSearchParams(window.location.search);
 
         var videoId = null;
         try {
@@ -111,20 +118,55 @@
         var player = null;
         var playerInitStarted = false;
         var hostReadySent = false;
-        var coverMode = @json($cover ?? false);
-        var rotateMode = @json($rotate ?? false);
 
-        /** Layout box for 16:9 cover — swap axes when CSS-rotating inside portrait webview. */
+        function readEmbedFlags() {
+          return {
+            coverMode: urlParams.get('cover') === '1',
+            rotateMode: urlParams.get('rotate') === '1',
+          };
+        }
+
+        /** Pixel-size the rotate wrap — 100vh/vw is unreliable inside iOS WKWebView. */
+        function applyRotateLayout() {
+          var flags = readEmbedFlags();
+          var wrap = document.getElementById('player-rotate-wrap');
+          if (!wrap) {
+            return flags;
+          }
+
+          if (flags.rotateMode) {
+            document.documentElement.classList.add('immersive-rotate');
+            var w = window.innerWidth || document.documentElement.clientWidth;
+            var h = window.innerHeight || document.documentElement.clientHeight;
+            wrap.style.width = h + 'px';
+            wrap.style.height = w + 'px';
+          } else {
+            document.documentElement.classList.remove('immersive-rotate');
+            wrap.style.width = '';
+            wrap.style.height = '';
+          }
+
+          return flags;
+        }
+
+        window.applyRotateLayout = applyRotateLayout;
+
         function layoutViewport() {
+          var flags = readEmbedFlags();
           var iw = window.innerWidth || document.documentElement.clientWidth;
           var ih = window.innerHeight || document.documentElement.clientHeight;
-          if (rotateMode) {
+          if (flags.rotateMode) {
             return { cw: ih, ch: iw };
           }
           return { cw: iw, ch: ih };
         }
 
         function fitPlayerCover() {
+          var flags = readEmbedFlags();
+          if (!flags.coverMode) {
+            return;
+          }
+
           var viewport = layoutViewport();
           var cw = viewport.cw;
           var ch = viewport.ch;
@@ -191,7 +233,7 @@
           }
 
           playerInitStarted = true;
-
+          var flags = applyRotateLayout();
           var viewport = layoutViewport();
 
           player = new YT.Player('player', {
@@ -202,9 +244,10 @@
             playerVars: playerVars,
             events: {
               onReady: function () {
+                applyRotateLayout();
                 startPlayback();
                 window.setTimeout(startPlayback, 500);
-                if (coverMode) {
+                if (flags.coverMode) {
                   fitPlayerCover();
                   window.setTimeout(fitPlayerCover, 250);
                   window.setTimeout(fitPlayerCover, 1000);
@@ -214,10 +257,13 @@
             },
           });
 
-          if (coverMode) {
-            window.addEventListener('resize', fitPlayerCover);
-          }
+          window.addEventListener('resize', function () {
+            applyRotateLayout();
+            fitPlayerCover();
+          });
         }
+
+        applyRotateLayout();
 
         if (window.YT && window.YT.Player) {
           initPlayer();

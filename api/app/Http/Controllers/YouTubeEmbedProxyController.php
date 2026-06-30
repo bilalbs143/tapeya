@@ -27,7 +27,8 @@ class YouTubeEmbedProxyController extends Controller
                 'cover' => $request->boolean('cover'),
                 'rotate' => $request->boolean('rotate'),
             ])
-            ->header('Content-Security-Policy', 'frame-ancestors *');
+            ->header('Content-Security-Policy', 'frame-ancestors *')
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate');
     }
 
     private function isAllowedYoutubeEmbedUrl(string $url): bool
