@@ -7,6 +7,7 @@ use App\Http\Controllers\Concerns\ResolvesMatchGraphicSession;
 use App\Http\Controllers\Controller;
 use App\Models\TournamentMatch;
 use App\Services\Overlay\GraphicOverlaySigner;
+use App\Services\Overlay\MatchGraphicOverlayUrlService;
 use App\Settings\OverlaySettings;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,10 @@ class SignedMatchGraphicSessionController extends Controller
     use BaseControllerTrait;
     use ResolvesMatchGraphicSession;
 
-    public function __construct(private readonly OverlaySettings $overlaySettings) {}
+    public function __construct(
+        private readonly OverlaySettings $overlaySettings,
+        private readonly MatchGraphicOverlayUrlService $overlayUrlService,
+    ) {}
 
     /**
      * Public read of graphic session when ?expires=&signature= validate (OBS overlay).
@@ -35,6 +39,18 @@ class SignedMatchGraphicSessionController extends Controller
 
         if (! $signer->verify((int) $match->id, $expires, $signature)) {
             return $this->failure('Invalid or expired overlay link.', 'FORBIDDEN');
+        }
+
+        $session = $this->requireMatchGraphicSession($match);
+        if ($session instanceof JsonResponse) {
+            return $session;
+        }
+
+        if (! $this->overlayUrlService->isCurrentLink($session, $expires)) {
+            return $this->failure(
+                'This overlay link has been superseded. Request a new URL from the controller.',
+                'FORBIDDEN',
+            );
         }
 
         return $this->matchGraphicSessionShowResponse($match);

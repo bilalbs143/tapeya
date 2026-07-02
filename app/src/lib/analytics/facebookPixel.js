@@ -2,6 +2,8 @@
  * Meta Pixel (web) — loads fbq and maps App Event names/params to standard Pixel events.
  */
 
+import { isOverlayRoute } from '@/lib/isOverlayRoute';
+
 import { FACEBOOK_PIXEL_ID } from './facebookConfig';
 
 /** App Event name → Meta Pixel standard event name */
@@ -48,6 +50,7 @@ function ensureFbqStub() {
  */
 export function initFacebookPixel(pixelId = FACEBOOK_PIXEL_ID) {
   if (typeof window === 'undefined') return Promise.resolve(false);
+  if (isOverlayRoute()) return Promise.resolve(false);
 
   const id = pixelId && String(pixelId).trim();
   if (!id) return Promise.resolve(false);
@@ -126,6 +129,8 @@ export function mapAppParamsToPixel(parameters = {}, valueToSum = undefined) {
  * @param {number | undefined} [valueToSum]
  */
 export async function trackPixelEvent(eventName, parameters = {}, valueToSum = undefined) {
+  if (isOverlayRoute()) return;
+
   const ready = await initFacebookPixel();
   if (!ready || !window.fbq) return;
 
@@ -145,6 +150,8 @@ export async function trackPixelEvent(eventName, parameters = {}, valueToSum = u
  * @param {Record<string, unknown>} [parameters]
  */
 export async function trackPixelPurchase(amount, currency, parameters = {}) {
+  if (isOverlayRoute()) return;
+
   const ready = await initFacebookPixel();
   if (!ready || !window.fbq) return;
 

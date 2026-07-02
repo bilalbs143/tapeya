@@ -24,14 +24,27 @@ export const LIVE_BROADCAST_SHELL_DESKTOP_CLASS = 'lg:-mb-[calc(env(safe-area-in
 /** In-flow player shell below the solid global navbar. */
 export const LIVE_BROADCAST_SHELL_CLASS = 'relative overflow-hidden bg-black';
 
-/** Landscape immersive — edge-to-edge over navbar and bottom nav. */
-export const LIVE_BROADCAST_LANDSCAPE_SHELL_CLASS = 'fixed right-0 left-0 overflow-hidden bg-black lg:left-[280px]';
+/** Portrait vs immersive landscape shell classes. */
+/**
+ * @param {boolean} isLandscape
+ * @param {'bg-black' | 'bg-transparent'} [surfaceBg='bg-black']
+ */
+export function getLiveBroadcastShellClass(isLandscape, surfaceBg = 'bg-black') {
+  if (isLandscape) {
+    return `fixed right-0 left-0 overflow-hidden ${surfaceBg} lg:left-[280px]`;
+  }
+
+  return `relative overflow-hidden ${surfaceBg} ${LIVE_BROADCAST_SHELL_DESKTOP_CLASS}`;
+}
 
 export const LIVE_BROADCAST_LANDSCAPE_SHELL_STYLE = {
   top: 0,
   bottom: 0,
 };
 
-/** Top scrim behind the floating page header row. */
+/** Top scrim behind the floating page header row (portrait / desktop overlay). */
 export const LIVE_BROADCAST_HEADER_SCRIM =
   'pointer-events-none absolute top-0 right-0 left-0 bg-gradient-to-b from-black/75 via-black/35 to-transparent px-4 pb-6';
+
+/** Landscape badge row — no gradient (rotates to a visible top-edge shadow). */
+export const LIVE_BROADCAST_LANDSCAPE_HEADER_ROW = 'pointer-events-none absolute top-0 right-0 left-0 px-4 pt-2';

@@ -1,6 +1,9 @@
-import { describe, expect, it } from 'vitest';
+/**
+ * @vitest-environment jsdom
+ */
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { mapAppParamsToPixel } from '../facebookPixel.js';
+import { initFacebookPixel, mapAppParamsToPixel } from '../facebookPixel.js';
 
 describe('mapAppParamsToPixel', () => {
   it('maps content, currency, registration method, and value', () => {
@@ -25,5 +28,24 @@ describe('mapAppParamsToPixel', () => {
 
   it('returns empty object when no params', () => {
     expect(mapAppParamsToPixel()).toEqual({});
+  });
+});
+
+describe('initFacebookPixel', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    delete window.__facebookPixelInitialized;
+    document.querySelectorAll('script[data-tapeya-fb-pixel]').forEach((el) => el.remove());
+  });
+
+  it('does not load fbevents on overlay routes', async () => {
+    window.history.pushState({}, '', '/overlay/123');
+    const appendChild = vi.spyOn(document.head, 'appendChild');
+
+    const ready = await initFacebookPixel('123456789');
+
+    expect(ready).toBe(false);
+    expect(appendChild).not.toHaveBeenCalled();
+    expect(document.querySelector('script[data-tapeya-fb-pixel]')).toBeNull();
   });
 });

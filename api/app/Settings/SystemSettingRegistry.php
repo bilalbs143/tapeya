@@ -182,6 +182,9 @@ final class SystemSettingRegistry
             SystemSettingKeyEnum::STREAM_YOUTUBE_DEFAULT_PRIVACY => [
                 'value' => ['nullable', 'string', Rule::in(['public', 'unlisted'])],
             ],
+            SystemSettingKeyEnum::STREAM_IDLE_END_GRACE_MINUTES => [
+                'value' => ['required', 'integer', 'min:1', 'max:1440'],
+            ],
             SystemSettingKeyEnum::LIVE_CHAT_ENABLED => [
                 'value' => ['required', 'integer', 'in:0,1'],
             ],
@@ -563,6 +566,15 @@ final class SystemSettingRegistry
                 'settings_class' => StreamingSettings::class,
                 'property' => 'youtubeDefaultPrivacy',
                 'nullable_string' => true,
+            ],
+            SystemSettingKeyEnum::STREAM_IDLE_END_GRACE_MINUTES->value => [
+                'group' => SystemSettingGroupEnum::STREAMING,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Idle Stream Auto-End Grace',
+                'description' => 'Minutes idle before auto-end.',
+                'settings_class' => StreamingSettings::class,
+                'property' => 'idleEndGraceMinutes',
+                'nullable_string' => false,
             ],
             SystemSettingKeyEnum::LIVE_CHAT_ENABLED->value => [
                 'group' => SystemSettingGroupEnum::LIVE_CHAT,

@@ -1,7 +1,7 @@
 # Graphics Module — Architecture (single source of truth)
 
 **Scope:** `app/src/graphics` and its integration with the Tapeya broadcast stack  
-**Version:** 3.0 · **Last updated:** June 2026  
+**Version:** 3.1 · **Last updated:** June 2026  
 **Status:** Production-ready for `theme1`. P0–P3 hardening complete. Theme 2 blocked only on layout-strategy decision (§11).
 
 **Related (outside this module):** [`shared/graphics-command-manifest.json`](../../../shared/graphics-command-manifest.json), [`shared/graphics-themes.json`](../../../shared/graphics-themes.json), [`docs/BALL_DELIVERY_ARCHITECTURE.md`](../../../docs/BALL_DELIVERY_ARCHITECTURE.md), [`tapeya-theme-controller/`](../../../tapeya-theme-controller/) (design harness).
@@ -10,14 +10,15 @@
 
 ## How to use this document
 
-| If you need…                        | Read    |
-| ----------------------------------- | ------- |
-| Pipeline, folders, layer rules      | §3–§5   |
-| Add a new command                   | §11     |
-| Start theme 2                       | §10     |
-| Tests, CI, what catches regressions | §8–§9   |
-| What's done vs still open           | §2, §13 |
-| Naming conventions                  | §15     |
+| If you need…                         | Read    |
+| ------------------------------------ | ------- |
+| Pipeline, folders, layer rules       | §3–§5   |
+| Add a new command                    | §11     |
+| Start theme 2                        | §10     |
+| Tests, CI, what catches regressions  | §8–§9   |
+| **CSS / vMix browser compatibility** | **§17** |
+| What's done vs still open            | §2, §13 |
+| Naming conventions                   | §15     |
 
 ---
 
@@ -171,6 +172,10 @@ app/src/graphics/
 │
 ├── __tests__/                      integration, command smoke, fixtures
 │
+├── shared/                         Cross-theme utilities (themes import; core does not)
+│   ├── accentColor.js              vMix-safe color resolve + mix (no color-mix())
+│   └── index.js
+│
 └── themes/
     └── theme1/
         ├── themeMeta.js            ThemeRoot; styleImports (lazy-loaded)
@@ -233,6 +238,8 @@ Processors know **cricket domain**, not visual presentation. English copy lives 
 - Shells inject team CSS vars (`--home-bg`, etc.)
 
 ### `themes/theme1/` — visual implementation
+
+**CSS:** All translucent accents, borders, and glows must use §17 helpers — never `color-mix()` or `100dvh` in theme files.
 
 Three command tiers (by design):
 
@@ -307,20 +314,22 @@ cd app && npm run test:e2e:graphics         # Playwright fixture shell (3 comman
 
 ### Test matrix (what protects what)
 
-| File                                | Protects against                            |
-| ----------------------------------- | ------------------------------------------- |
-| `normalizeSession.test.js`          | Normalizer input-shape regressions          |
-| `processorMapIntegrity.test.js`     | Wrong processor wired to key                |
-| `processors.test.js`                | Processor domain logic                      |
-| `pipeline.integration.test.js`      | Every overlay key → plan + registry         |
-| `commandSmoke.test.js`              | Every command SSR render + shell markers    |
-| `adapterContracts.test.js`          | 25 processor→adapter bundle keys            |
-| `adapters.test.js`                  | Full adapter logic (broader than contracts) |
-| `GraphicControllerProvider.test.js` | Plan build, flash override                  |
-| `GraphicRenderer.test.js`           | Theme root + shell assembly                 |
-| `themeRegistry.test.js`             | Slug/type resolution                        |
-| `GraphicErrorBoundary.test.jsx`     | Render errors; hash recovery                |
-| `graphicSessionSync.test.js`        | Reverb cache patches                        |
+| File                                   | Protects against                            |
+| -------------------------------------- | ------------------------------------------- |
+| `normalizeSession.test.js`             | Normalizer input-shape regressions          |
+| `processorMapIntegrity.test.js`        | Wrong processor wired to key                |
+| `processors.test.js`                   | Processor domain logic                      |
+| `pipeline.integration.test.js`         | Every overlay key → plan + registry         |
+| `commandSmoke.test.js`                 | Every command SSR render + shell markers    |
+| `adapterContracts.test.js`             | 25 processor→adapter bundle keys            |
+| `adapters.test.js`                     | Full adapter logic (broader than contracts) |
+| `GraphicControllerProvider.test.js`    | Plan build, flash override                  |
+| `GraphicRenderer.test.js`              | Theme root + shell assembly                 |
+| `themeRegistry.test.js`                | Slug/type resolution                        |
+| `GraphicErrorBoundary.test.jsx`        | Render errors; hash recovery                |
+| `graphicSessionSync.test.js`           | Reverb cache patches                        |
+| `accent.test.js`                       | Theme1 accent wrapper + glow integration    |
+| `shared/__tests__/accentColor.test.js` | Shared color resolve/mix (§17, all themes)  |
 
 **Not covered:** lazy-load runtime path in tests (smoke uses eager imports); pixel/screenshot baselines; cross-theme parity (no theme 2 yet).
 
@@ -339,6 +348,7 @@ cd app && npm run test:e2e:graphics         # Playwright fixture shell (3 comman
 | Legacy `themes/tapeya/` folder   | ✅ Drift CI forbids                      |
 | Token `_tokens.css` commit drift | ❌ Not diff-checked in CI (optional add) |
 | Runtime theme slug validation    | ❌ Invalid slug → blank overlay          |
+| vMix 24 CSS (`color-mix`, `dvh`) | ⚠️ Convention + §17; not CI-enforced yet |
 
 ---
 
@@ -368,6 +378,8 @@ Do not bulk-copy files until design stakeholders answer this.
 - Use generic adapter names inside each theme (`toScoreBarBundle`, not `toTheme1…`).
 - Processors stay theme-agnostic; themes reimplement all 17 adapters unless `_shared/` is deliberately extracted.
 - Cost model: partial theme ~30–50 files; full theme ~179 files.
+- Follow **§17** for all theme CSS — same rules apply to `theme2/` layouts, primitives, and SCSS.
+- Import color helpers from **`shared/accentColor.js`**; add a thin `primitives/accent.js` with theme token defaults.
 
 ---
 
@@ -394,6 +406,12 @@ Is category = clear / backoffice_only?
 Else (data graphic):
   └─ processor → adapter → layout → primitives → BroadcastShell
 ```
+
+**Before merge — CSS compatibility (§17):**
+
+- No `color-mix()` in theme JSX, inline styles, or SCSS.
+- Translucent accents → `accentMix()` / `accentGlowShadow()` (not Tailwind arbitrary `color-mix` classes).
+- No `100dvh` in overlay or theme styles.
 
 ---
 
@@ -458,6 +476,94 @@ Else (data graphic):
 
 ---
 
+## 17. Browser & CSS compatibility (overlay / vMix)
+
+The signed overlay (`/overlay/:matchId`) runs inside **OBS**, **vMix 29**, and **vMix 24**. vMix 24 embeds an old Chromium (~86–103). Graphics that rely on Chrome 111+ CSS can render **blank or broken** in vMix 24 while working everywhere else.
+
+**Scope:** All code under `themes/` (JSX, SCSS, inline styles). The main Tapeya app may use newer CSS elsewhere; **theme overlay assets must not**.
+
+### Do not use in themes
+
+| Feature                                       | Chrome min | Why it breaks                                                            |
+| --------------------------------------------- | ---------- | ------------------------------------------------------------------------ |
+| `color-mix()`                                 | 111        | Invalid/ignored in vMix 24 → missing borders, glows, gradients           |
+| `color-mix` inside Tailwind arbitrary classes | 111        | Same — e.g. `border-[color-mix(in_srgb,var(--accentA)_40%,transparent)]` |
+| `100dvh`                                      | 108        | Low risk but avoid in overlay/theme CSS; use `100vh` or fixed px         |
+| Hard-coded `color-mix` in `@keyframes`        | 111        | Use `#rrggbbaa` or `rgba()` instead                                      |
+
+**Do not** add `@supports (color: color-mix(...))` blocks in theme SCSS expecting a fallback — theme bundles are loaded as-is in vMix. Always ship the legacy-safe value directly.
+
+### Use instead — SSOT helpers
+
+| Need                             | Use                                                   | Location                                                                         |
+| -------------------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Color resolve + mix (all themes) | `mixColorWithTransparent()`, `resolveCssColorRgb()`   | **`shared/accentColor.js`** (SSOT)                                               |
+| Translucent team/global accent   | `accentMix(accent, percent)`                          | `themes/{slug}/primitives/accent.js` (theme wrapper)                             |
+| LT bar head gradient             | `accentPanelHeadGradient(accent)`                     | theme `primitives/accent.js`                                                     |
+| Box glow from accent             | `accentGlowShadow(accent, percent, size)`             | `themes/theme1/visualEffects.js`                                                 |
+| Halo on panels / labels          | `accentHaloShadow(accent, size, mixPercent)`          | `visualEffects.js`                                                               |
+| Crest ring halo                  | `crestRingBoxShadow(accent)` + `crestRingClassName()` | `visualEffects.js`                                                               |
+| Text neon (when enabled)         | `textGlowClass(variant)`                              | `visualEffects.js` — use existing variants; add `rgba()` only, never `color-mix` |
+
+**Rules for `accentMix()` / `mixColorWithTransparent()`:**
+
+- Shared logic lives in **`shared/accentColor.js`** — copy or import from there in theme 2; do not duplicate parsers.
+- Pass the **accent string** you already have (`#rrggbb`, `rgb(...)`, or `'var(--accentA)'`). Do not hand-write `color-mix`.
+- For hex inputs it returns **8-digit hex** (`#5b7cff21`); for vars/rgb it returns **`rgba(...)`** resolved at runtime.
+- Prefer passing **team hex from props** over `'var(--accentA)'` when the adapter already supplies `accent`.
+- Do **not** compute accent styles at **module scope** (e.g. top-level `const style = { borderColor: accentMix(...) }`) — resolve in render so CSS vars and team colors stay correct.
+
+**Exports:** `primitives/index.js` re-exports `accentMix`, `accentPanelHeadGradient`, `accentGlowShadow`.
+
+### Patterns
+
+```jsx
+// ✅ Border + glow — inline style
+style={{
+  borderColor: accentMix(accent, 40),
+  boxShadow: `0 0 calc(22px * var(--glow)) ${accentMix(accent, 20)}, inset 0 1px 0 rgba(255,255,255,0.06)`,
+}}
+
+// ✅ LT head band
+style={{ background: accentPanelHeadGradient(accent) }}
+
+// ❌ Never — vMix 24
+className="border-[color-mix(in_srgb,var(--accentA)_40%,transparent)]"
+style={{ borderColor: 'color-mix(in srgb, var(--accentA) 40%, transparent)' }}
+```
+
+```scss
+// ✅ Keyframes — fixed rgba or 8-digit hex matching default --accentA (#5b7cff)
+box-shadow: 0 0 calc(12px * var(--glow, 1)) rgba(91, 124, 255, 0.35);
+
+// ❌ Never
+box-shadow: 0 0 calc(12px * var(--glow, 1)) color-mix(in srgb, var(--accentA) 35%, transparent);
+```
+
+When SCSS must follow `--accentA` but cannot call JS, use **precomputed rgba/hex for the default token** (`#5b7cff` → `91, 124, 255`). Dynamic per-team colors belong in JSX via `accentMix(teamColor, percent)`.
+
+### Tailwind note (main app bundle)
+
+Tailwind v4 in the shared SPA CSS may emit `@supports (color: color-mix(...))` with **8-digit hex fallbacks** for utilities like `bg-white/10`. That is OK for main-app pages; **do not rely on it in theme JSX/SCSS**. Theme chunks (`animations.css`, `controller.css`) must contain **zero** `color-mix`.
+
+### Verification before deploy
+
+```bash
+# No color-mix in theme source
+rg 'color-mix' app/src/graphics/themes/
+
+# Theme CSS chunks clean after build
+npm run build
+rg 'color-mix' app/dist/assets/animations*.css app/dist/assets/controller*.css app/dist/assets/_tokens*.css
+# (expect 0 matches)
+
+cd app && npm test -- --run src/graphics/themes/theme1/primitives/__tests__/accent.test.js
+```
+
+Smoke in **vMix 24**: signed overlay URL, transparent background, highest browser version on the input, reload after deploy.
+
+---
+
 ## 16. Appendix — file counts
 
 | Path                        | Files    |
@@ -480,3 +586,4 @@ Else (data graphic):
 | 1.0–1.2 | June 2026 | Initial structure doc; refactor phases; theme1 sync                                                                             |
 | 2.0     | June 2026 | Split audit/review into separate docs                                                                                           |
 | **3.0** | June 2026 | **Merged SSOT:** absorbed `GRAPHICS_MODULE_REVIEW.md` + `ARCHITECTURE_REVIEW.md`; theme 2 guide; P0–P3; test matrix; open items |
+| **3.1** | June 2026 | §17 overlay CSS compatibility (`color-mix`, `100dvh`); SSOT accent helpers; merge checklist in §11                              |

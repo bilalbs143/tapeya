@@ -14,19 +14,19 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
+import { useLiveBroadcastImmersiveDocument } from '@/features/stream/hooks/useLiveBroadcastImmersiveDocument';
 import { useMatchPresenceChannel } from '@/features/stream/hooks/useMatchPresenceChannel';
 import { useMatchStreamChannel } from '@/features/stream/hooks/useMatchStreamChannel';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { LG_MEDIA_QUERY, MOBILE_MEDIA_QUERY } from '@/lib/constants/layout';
 import {
-  LIVE_BROADCAST_LANDSCAPE_SHELL_CLASS,
+  getLiveBroadcastShellClass,
   LIVE_BROADCAST_LANDSCAPE_SHELL_STYLE,
   LIVE_BROADCAST_LANDSCAPE_SHELL_Z,
-  LIVE_BROADCAST_SHELL_CLASS,
-  LIVE_BROADCAST_SHELL_DESKTOP_CLASS,
   LIVE_BROADCAST_SHELL_HEIGHT,
   LIVE_BROADCAST_SHELL_HEIGHT_DESKTOP,
 } from '@/lib/constants/liveBroadcastLayout';
+import { usesIosNativeStreamPlayer } from '@/lib/utils/liveStreamUtils';
 import { useGetMatchQuery } from '@/store/api/matchApi';
 
 import LiveBroadcastItem from './LiveBroadcastItem';
@@ -43,7 +43,7 @@ function StatusBadge({ status }) {
   if (!cfg) return null;
 
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-black/70 px-2.5 py-1 text-[11px] font-bold tracking-wide text-white uppercase backdrop-blur-sm">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-black/85 px-2.5 py-1 text-[11px] font-bold tracking-wide text-white uppercase">
       <span className={`h-2 w-2 shrink-0 rounded-full ${cfg.dot}`} aria-hidden />
       {cfg.label}
     </span>
@@ -108,14 +108,20 @@ export default function LiveBroadcast() {
   const toggleLandscape = useCallback(() => setIsLandscape((prev) => !prev), []);
 
   const isMobileLandscape = isMobile && isLandscape;
+  const immersiveMobileLandscape = isLandscape && !isDesktop;
   const useInFlowHeader = !isDesktop && !isLandscape;
+  const isIosNativeLandscape = usesIosNativeStreamPlayer() && isLandscape;
+  const surfaceBg = isIosNativeLandscape ? 'bg-transparent' : 'bg-black';
+  const shellClass = getLiveBroadcastShellClass(isLandscape, surfaceBg);
 
-  const shellClass = isLandscape
-    ? LIVE_BROADCAST_LANDSCAPE_SHELL_CLASS
-    : `${LIVE_BROADCAST_SHELL_CLASS} ${LIVE_BROADCAST_SHELL_DESKTOP_CLASS}`;
+  useLiveBroadcastImmersiveDocument(immersiveMobileLandscape, isLandscape);
 
   const shellStyle = isLandscape
-    ? { ...LIVE_BROADCAST_LANDSCAPE_SHELL_STYLE, zIndex: LIVE_BROADCAST_LANDSCAPE_SHELL_Z }
+    ? {
+        ...LIVE_BROADCAST_LANDSCAPE_SHELL_STYLE,
+        zIndex: LIVE_BROADCAST_LANDSCAPE_SHELL_Z,
+        height: '100dvh',
+      }
     : { height: isDesktop ? LIVE_BROADCAST_SHELL_HEIGHT_DESKTOP : LIVE_BROADCAST_SHELL_HEIGHT };
 
   const centeredStatusContent = useMemo(
@@ -157,12 +163,12 @@ export default function LiveBroadcast() {
 
   return (
     <div className={shellClass} style={shellStyle}>
-      <div className={`relative h-full w-full overflow-hidden ${useInFlowHeader ? 'flex flex-col' : ''}`}>
+      <div className={`relative h-full w-full overflow-hidden ${surfaceBg} ${useInFlowHeader ? 'flex flex-col' : ''}`}>
         {useInFlowHeader && (
           <header className="relative z-20 flex shrink-0 items-center justify-between px-4 py-2">{portraitHeaderContent}</header>
         )}
 
-        <div className={`relative overflow-hidden ${useInFlowHeader ? 'min-h-0 flex-1' : 'h-full w-full'}`}>
+        <div className={`relative overflow-hidden ${surfaceBg} ${useInFlowHeader ? 'min-h-0 flex-1' : 'h-full w-full'}`}>
           {showError && <BroadcastError onRetry={refetch} />}
           {match && (
             <LiveBroadcastItem
@@ -172,6 +178,7 @@ export default function LiveBroadcast() {
               isMobileLandscape={isMobileLandscape}
               onToggleLandscape={toggleLandscape}
               headerSlot={overlayHeaderSlot}
+              statusHeaderSlot={centeredStatusContent}
             />
           )}
         </div>

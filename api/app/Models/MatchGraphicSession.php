@@ -12,6 +12,8 @@ class MatchGraphicSession extends BaseModel
         'graphic_theme_id',
         'config',
         'context',
+        'signed_overlay_url',
+        'signed_overlay_expires_at',
         'active_command_id',
         'created_by',
         'updated_by',
@@ -25,6 +27,7 @@ class MatchGraphicSession extends BaseModel
         return [
             'config' => 'array',
             'context' => 'array',
+            'signed_overlay_expires_at' => 'datetime',
         ];
     }
 

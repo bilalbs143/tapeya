@@ -376,12 +376,12 @@
   0%,
   100% {
     box-shadow:
-      0 0 calc(12px * var(--glow, 1)) color-mix(in srgb, var(--accentA) 35%, transparent),
+      0 0 calc(12px * var(--glow, 1)) rgba(91, 124, 255, 0.35),
       inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
   50% {
     box-shadow:
-      0 0 calc(24px * var(--glow, 1)) color-mix(in srgb, var(--accentA) 55%, transparent),
+      0 0 calc(24px * var(--glow, 1)) rgba(91, 124, 255, 0.55),
       inset 0 1px 0 rgba(255, 255, 255, 0.12);
   }
 }

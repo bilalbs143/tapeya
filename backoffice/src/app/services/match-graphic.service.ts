@@ -64,6 +64,8 @@ export interface MatchGraphicSession {
   config: Record<string, unknown> | null;
   context: Record<string, unknown> | null;
   context_hash?: string | null;
+  signed_overlay_url?: string | null;
+  signed_overlay_expires_at?: string | null;
   pending_players?: Record<string, unknown> | null;
   active_command_id: number | null;
   theme?: GraphicTheme;
@@ -182,7 +184,9 @@ export class MatchGraphicService {
   }
 
   public getSignedOverlayUrl(matchId: number): Observable<{ data: SignedOverlayUrlPayload }> {
-    return this.http.get<{ data: SignedOverlayUrlPayload }>(`v1/admin/matches/${matchId}/graphic-session/signed-url`);
+    return this.http.get<{ data: SignedOverlayUrlPayload }>(
+      `v1/admin/matches/${matchId}/graphic-session/signed-url`,
+    );
   }
 
   public getGraphicPlayerLists(matchId: number): Observable<{ data: MatchGraphicPlayerListsPayload }> {

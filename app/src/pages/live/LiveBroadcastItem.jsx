@@ -9,6 +9,7 @@ import CommentList from '@/features/stream/CommentList';
 import { FloatingHeartsOverlay } from '@/features/stream/FloatingHeartsOverlay';
 import { useFloatingHearts } from '@/features/stream/hooks/useFloatingHearts';
 import { useMatchComments } from '@/features/stream/hooks/useMatchComments';
+import { IosLandscapeStreamChrome } from '@/features/stream/ios/IosLandscapeStreamChrome';
 import { StreamPlayer } from '@/features/stream/StreamPlayer';
 import { useToast } from '@/hooks/useToast';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
@@ -17,8 +18,10 @@ import {
   LIVE_BROADCAST_HEADER_OVERLAY_Z,
   LIVE_BROADCAST_HEADER_SCRIM,
   LIVE_BROADCAST_IMMERSIVE_TOGGLE_Z,
+  LIVE_BROADCAST_LANDSCAPE_HEADER_ROW,
 } from '@/lib/constants/liveBroadcastLayout';
 import { getInitials } from '@/lib/utils/displayUtils';
+import { usesIosNativeStreamPlayer } from '@/lib/utils/liveStreamUtils';
 import { mapSystemSettingsByKey } from '@/lib/utils/settingsUtils';
 import { useSendLiveCommentMutation, useSendLiveHeartMutation } from '@/store/api/matchApi';
 import { useGetPublicSystemSettingsQuery } from '@/store/api/systemSettingsApi';
@@ -236,6 +239,8 @@ function BroadcastViewport({
   headerSlot,
   isDesktop,
   immersiveLandscape = false,
+  isIosNativeLandscape = false,
+  hideHeaderOverlay = false,
 }) {
   // Portrait: keep iframe interactive so mobile playback/tap-to-start works.
   // Landscape: block iframe touches so the portaled exit toggle stays tappable.
@@ -244,16 +249,16 @@ function BroadcastViewport({
   const videoLayer =
     isDesktop || isLandscape ? (
       <div className={`absolute inset-0 ${blockLandscapeVideoClass}`}>
-        <StreamPlayer stream={stream} className="h-full w-full" fill />
+        <StreamPlayer stream={stream} className="h-full w-full" fill isLandscape={isLandscape} />
       </div>
     ) : (
       <div className="absolute inset-0 flex items-start justify-center">
-        <StreamPlayer stream={stream} className="max-h-full w-full" fill={false} />
+        <StreamPlayer stream={stream} className="max-h-full w-full" fill={false} isLandscape={false} />
       </div>
     );
 
   return (
-    <div className="relative size-full overflow-hidden bg-black">
+    <div className={`relative size-full overflow-hidden ${isIosNativeLandscape ? 'bg-transparent' : 'bg-black'}`}>
       {videoLayer}
 
       {!isDesktop && !immersiveLandscape && (
@@ -264,11 +269,14 @@ function BroadcastViewport({
         <div className={`pointer-events-none absolute inset-0 ${bottomPanelVisible ? GRADIENT_VISIBLE : GRADIENT_HIDDEN}`} />
       )}
 
-      {headerSlot && (
-        <div className={LIVE_BROADCAST_HEADER_SCRIM} style={{ zIndex: LIVE_BROADCAST_HEADER_OVERLAY_Z }}>
+      {headerSlot && !hideHeaderOverlay && (
+        <div
+          className={isLandscape ? LIVE_BROADCAST_LANDSCAPE_HEADER_ROW : LIVE_BROADCAST_HEADER_SCRIM}
+          style={{ zIndex: LIVE_BROADCAST_HEADER_OVERLAY_Z }}
+        >
           <div
-            className="pointer-events-none relative flex items-center justify-between"
-            style={{ paddingTop: isLandscape ? 'calc(env(safe-area-inset-top) + 8px)' : '8px' }}
+            className={`pointer-events-none relative flex items-center ${isLandscape && !isDesktop ? 'justify-center' : 'justify-between'}`}
+            style={{ paddingTop: '8px' }}
           >
             {headerSlot}
           </div>
@@ -295,6 +303,8 @@ export default function LiveBroadcastItem({
   isMobileLandscape = false,
   onToggleLandscape,
   headerSlot = null,
+  /** LIVE + viewer badges only — used by iOS landscape chrome (no back button / spacers). */
+  statusHeaderSlot = null,
 }) {
   const toast = useToast();
   const myUserId = useAppSelector((s) => s.auth?.user?.id ?? null);
@@ -375,6 +385,7 @@ export default function LiveBroadcastItem({
 
   const stream = match?.stream ?? null;
   const inputDisabled = isSending || sendCooldown;
+  const isIosNativeLandscape = usesIosNativeStreamPlayer() && isLandscape;
 
   const bottomPanel = (
     <BroadcastBottomPanel
@@ -399,17 +410,25 @@ export default function LiveBroadcastItem({
       isLandscape={isLandscape}
       floatingHearts={floatingHearts}
       onHeartEnd={removeHeart}
-      headerSlot={headerSlot}
+      headerSlot={isMobileLandscape && !isIosNativeLandscape ? (statusHeaderSlot ?? headerSlot) : headerSlot}
       isDesktop={isDesktop}
       immersiveLandscape={isMobileLandscape}
+      isIosNativeLandscape={isIosNativeLandscape}
+      hideHeaderOverlay={isIosNativeLandscape && isMobileLandscape}
     />
   );
 
-  const showFixedLandscapeToggle = isLandscape && !isDesktop;
+  const showFixedLandscapeToggle = isLandscape && !isDesktop && !isIosNativeLandscape;
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-black">
-      <LandscapeRotatedStage rotated={isLandscape}>{viewport}</LandscapeRotatedStage>
+    <div className={`relative h-full w-full overflow-hidden ${isIosNativeLandscape ? 'bg-transparent' : 'bg-black'}`}>
+      {isIosNativeLandscape && isMobileLandscape && (
+        <IosLandscapeStreamChrome headerSlot={statusHeaderSlot ?? headerSlot} onToggleLandscape={onToggleLandscape} />
+      )}
+
+      <LandscapeRotatedStage rotated={isLandscape} iosNativeLandscape={isIosNativeLandscape}>
+        {viewport}
+      </LandscapeRotatedStage>
 
       {showFixedLandscapeToggle && <LandscapeExitToggle onClick={onToggleLandscape} />}
     </div>

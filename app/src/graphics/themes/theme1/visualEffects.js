@@ -7,6 +7,7 @@
 import { cn } from '@/lib/utils';
 
 import { visualEffects } from './config';
+import { accentMix } from './primitives/accent';
 
 /** @returns {number} 0–1 global decorative intensity (--glow CSS var) */
 export function glowMultiplier() {
@@ -68,7 +69,7 @@ const TEXT_GLOW = {
   subtleSm: '[text-shadow:0_0_calc(8px*var(--glow))_rgba(255,255,255,0.3)]',
   subtleXs: '[text-shadow:0_0_calc(8px*var(--glow))_rgba(255,255,255,0.2)]',
   badge: '[text-shadow:0_0_calc(16px*var(--glow))_rgba(120,140,255,0.65)]',
-  accent: '[text-shadow:0_0_calc(18px*var(--glow))_color-mix(in_srgb,var(--accentA)_55%,transparent)]',
+  accent: '[text-shadow:0_0_calc(18px*var(--glow))_rgba(91,124,255,0.55)]',
   vsNeon: '[text-shadow:0_0_calc(26px*var(--glow))_rgba(120,140,255,0.6)]',
 };
 
@@ -91,10 +92,24 @@ export function crestRingClassName() {
   return cn(
     'pointer-events-none absolute -inset-[3px] blur-[0.5px]',
     '[background:linear-gradient(140deg,var(--team-ring),var(--accentB))]',
-    isCrestHaloEnabled()
-      ? 'opacity-[calc(0.5+0.5*var(--glow))] [box-shadow:0_0_calc(22px*var(--glow))_color-mix(in_srgb,var(--team-ring)_33%,transparent)]'
-      : 'opacity-55',
+    isCrestHaloEnabled() ? 'opacity-[calc(0.5+0.5*var(--glow))]' : 'opacity-55',
   );
+}
+
+/** @param {string} accent */
+export function crestRingBoxShadow(accent) {
+  if (!isCrestHaloEnabled()) return undefined;
+  return accentGlowShadow(accent, 33, '22px');
+}
+
+/**
+ * @param {unknown} accent
+ * @param {number} [percent=13]
+ * @param {string} [size='16px']
+ */
+export function accentGlowShadow(accent, percent = 13, size = '16px') {
+  if (!isDecorativeBoxGlowEnabled()) return 'none';
+  return `0 0 calc(${size} * var(--glow)) ${accentMix(accent, percent)}`;
 }
 
 /** @param {string} [extra=''] */
@@ -108,7 +123,7 @@ export function panelDepthShadow(extra = '') {
 /** @param {string} accent @param {string} [size='18px'] @param {number} [mixPercent=20] */
 export function accentHaloShadow(accent, size = '18px', mixPercent = 20) {
   if (!isDecorativeBoxGlowEnabled()) return undefined;
-  return `0 0 calc(${size} * var(--glow)) color-mix(in srgb, ${accent} ${mixPercent}%, transparent)`;
+  return `0 0 calc(${size} * var(--glow)) ${accentMix(accent, mixPercent)}`;
 }
 
 /** @param {string} rgbaCss @param {string} [size='20px'] */

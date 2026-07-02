@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 
 import { BottomNav } from '@/components/BottomNav';
+import { FacebookAnalyticsBoot } from '@/components/FacebookAnalyticsBoot';
 import { Navbar } from '@/components/Navbar';
 import { Sidebar } from '@/components/Sidebar';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -17,6 +18,7 @@ export function MainLayout() {
 
   return (
     <div className="bg-black">
+      <FacebookAnalyticsBoot />
       <Navbar onMenuClick={() => setSidebarOpen(true)} />
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <main

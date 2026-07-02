@@ -73,6 +73,10 @@ final class EnsureSpatieSettingsDatabaseProperties
                     };
                 }
 
+                if ($settingsClass === StreamingSettings::class && $name === 'idleEndGraceMinutes') {
+                    return 120;
+                }
+
                 return 0;
             }
 

@@ -94,20 +94,27 @@ export class ControllerSettingsDialogComponent {
     });
 
     if (this.sessionReady()) {
-      this.refreshSignedOverlayUrl();
+      this.loadSignedOverlayUrl();
     }
   }
 
-  /** Resolve a human-readable label for a config property.
-   *  Color keys that contain 'home' / 'away' swap in the actual team names. */
-  public propertyLabel(prop: ThemeConfigProperty): string {
-    const home = this.data.match.home_team?.name ?? 'Home';
-    const away = this.data.match.away_team?.name ?? 'Away';
+  /** Show persisted URL without calling the API (each API call rotates the active link). */
+  private loadSignedOverlayUrl(): void {
+    const cachedUrl = this.data.session?.signed_overlay_url?.trim();
+    if (cachedUrl) {
+      this.signedOverlayUrl.set(cachedUrl);
+      return;
+    }
 
-    return prop.label.replace(/\bhome\b/gi, home).replace(/\baway\b/gi, away);
+    this.fetchSignedOverlayUrl();
   }
 
+  /** Issue a new signed URL (invalidates any previous link). */
   public refreshSignedOverlayUrl(autoCopy = false): void {
+    this.fetchSignedOverlayUrl(autoCopy);
+  }
+
+  private fetchSignedOverlayUrl(autoCopy = false): void {
     if (!this.sessionReady()) {
       return;
     }
@@ -118,6 +125,8 @@ export class ControllerSettingsDialogComponent {
       next: (res) => {
         this.signedOverlayUrl.set(res.data.url);
         this.signedLinkLoading.set(false);
+        this.mutated = true;
+        this.patchSessionOverlayUrl(res.data.url, res.data.expires_at);
         if (autoCopy) {
           this.copyUrlToClipboard(res.data.url);
         }
@@ -128,6 +137,23 @@ export class ControllerSettingsDialogComponent {
         this.messageService.httpError(err);
       },
     });
+  }
+
+  private patchSessionOverlayUrl(url: string, expiresAt: string): void {
+    if (!this.data.session) {
+      return;
+    }
+    this.data.session.signed_overlay_url = url;
+    this.data.session.signed_overlay_expires_at = expiresAt;
+  }
+
+  /** Resolve a human-readable label for a config property.
+   *  Color keys that contain 'home' / 'away' swap in the actual team names. */
+  public propertyLabel(prop: ThemeConfigProperty): string {
+    const home = this.data.match.home_team?.name ?? 'Home';
+    const away = this.data.match.away_team?.name ?? 'Away';
+
+    return prop.label.replace(/\bhome\b/gi, home).replace(/\baway\b/gi, away);
   }
 
   public closeDialog(): void {
@@ -170,11 +196,18 @@ export class ControllerSettingsDialogComponent {
       : this.matchGraphicService.updateSession(this.data.matchId, body);
 
     request$.subscribe({
-      next: () => {
+      next: (res) => {
         this.saving = false;
         this.mutated = true;
         if (isFirstSave) {
+          this.data.session = res.data;
           this.sessionReady.set(true);
+          const url = res.data.signed_overlay_url?.trim();
+          if (url) {
+            this.signedOverlayUrl.set(url);
+            this.copyUrlToClipboard(url);
+            return;
+          }
           this.refreshSignedOverlayUrl(true);
           return;
         }

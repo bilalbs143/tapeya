@@ -7,13 +7,10 @@
 import { cn } from '@/lib/utils';
 
 import { geometry, infoBarPanelClass, infoBarPanelStyle, ltPlayerStatBar } from '../../config';
-import { DISPLAY_FONT, InsetLTBarPanel, InsetLTBarSurface, UI_FONT } from '../../primitives';
+import { accentPanelHeadGradient, DISPLAY_FONT, InsetLTBarPanel, InsetLTBarSurface, UI_FONT } from '../../primitives';
 import { TEXT_PRIMARY, TEXT_SECONDARY } from '../shared/textStyles';
 
 const BAR_RADIUS = geometry.barRadius;
-
-const HEAD_GRADIENT_CLASS =
-  'bg-[linear-gradient(100deg,color-mix(in_srgb,var(--panel-ring-a,var(--accentA))_33%,transparent),transparent_60%)]';
 
 const headRowFlexStyle = {
   flex: `${ltPlayerStatBar.headRowFlex} ${ltPlayerStatBar.headRowFlex} 0%`,
@@ -81,8 +78,8 @@ export function PlayerStatLTBar({
         >
           <div className="flex h-full w-full flex-col">
             <div
-              className={cn('flex min-h-0 w-full items-center justify-center overflow-hidden', HEAD_GRADIENT_CLASS)}
-              style={{ ...headRowFlexStyle, ...headBandStyle }}
+              className="flex min-h-0 w-full items-center justify-center overflow-hidden"
+              style={{ ...headRowFlexStyle, ...headBandStyle, background: accentPanelHeadGradient(accent) }}
             >
               {renderHeader(measuring)}
             </div>

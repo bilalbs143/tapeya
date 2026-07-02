@@ -1,5 +1,7 @@
 import { Capacitor, registerPlugin } from '@capacitor/core';
 
+import { isOverlayRoute } from '@/lib/isOverlayRoute';
+
 import { FACEBOOK_PIXEL_ID } from './facebookConfig';
 import { initFacebookPixel, trackPixelEvent, trackPixelPurchase } from './facebookPixel';
 
@@ -53,10 +55,16 @@ function initFacebookAnalyticsInternal() {
     // Native SDK credentials come from Info.plist / AndroidManifest.
     return Promise.resolve(true);
   }
+  if (isOverlayRoute()) {
+    return Promise.resolve(false);
+  }
   return initFacebookPixel(FACEBOOK_PIXEL_ID);
 }
 
 function ensureInitialized() {
+  if (isOverlayRoute()) {
+    return Promise.resolve(false);
+  }
   initPromise ??= initFacebookAnalyticsInternal();
   return initPromise;
 }

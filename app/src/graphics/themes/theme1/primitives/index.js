@@ -1,4 +1,5 @@
-export { accentGlowShadow, accentMix, normalizeAccentColor } from './accent';
+export { accentGlowShadow } from '../visualEffects';
+export { accentMix, accentPanelHeadGradient, normalizeAccentColor } from './accent';
 export { AnimatedNumber, BallChip, BallTrack, CountUpNumber, Crest, GlowPanel } from './atoms';
 export { ScaledBarSurface } from './barScaling';
 export { useContentFitBarSurface, useFrameTransition, useInsetLTBarSurface } from './barScalingHooks';

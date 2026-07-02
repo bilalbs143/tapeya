@@ -12,6 +12,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Tapeya" />
     <meta name="format-detection" content="telephone=no" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <link
       rel="icon"
       type="image/png"
@@ -33,9 +34,47 @@
 
     <title>Tapeya</title>
 
-    <!-- OBS overlay: transparent background from first paint -->
+    <!-- OBS overlay: transparent background + Chrome 86 (vMix 24) polyfills from first paint -->
     <script>
-      if (location.pathname.startsWith('/overlay/')) document.documentElement.dataset.overlayRoute = '';
+      if (location.pathname.startsWith('/overlay/')) {
+        document.documentElement.dataset.overlayRoute = '';
+
+        // Guard third-party scripts (e.g. cached Meta Pixel) that use Array.prototype.at (Chrome 92+).
+        if (!Array.prototype.at) {
+          Array.prototype.at = function (index) {
+            var n = Math.trunc(Number(index)) || 0;
+            if (n < 0) n += this.length;
+            if (n < 0 || n >= this.length) return undefined;
+            return this[n];
+          };
+        }
+
+        // Drop stale Meta Pixel state from a prior vMix browser session.
+        try {
+          delete window.fbq;
+          delete window._fbq;
+          delete window.__facebookPixelInitialized;
+        } catch (e) {}
+
+        // Block fbevents.js injection on overlay (defense in depth — app code also skips pixel init).
+        function isFacebookScript(node) {
+          if (!node || node.tagName !== 'SCRIPT') return false;
+          var src = node.src || '';
+          return /connect\.facebook\.net/i.test(src) || /fbevents\.js/i.test(src);
+        }
+
+        var appendChild = Node.prototype.appendChild;
+        Node.prototype.appendChild = function (node) {
+          if (isFacebookScript(node)) return node;
+          return appendChild.call(this, node);
+        };
+
+        var insertBefore = Node.prototype.insertBefore;
+        Node.prototype.insertBefore = function (node, ref) {
+          if (isFacebookScript(node)) return node;
+          return insertBefore.call(this, node, ref);
+        };
+      }
     </script>
   </head>
   <body>

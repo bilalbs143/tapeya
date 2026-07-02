@@ -37,6 +37,12 @@ class StreamingSettings extends Settings
     /** Default broadcast privacy: 'public' or 'unlisted'. */
     public ?string $youtubeDefaultPrivacy;
 
+    /**
+     * Minutes to keep a match stream in idle after OBS/vMix stops before auto-ending.
+     * Manual "End Stream" in backoffice always ends immediately.
+     */
+    public int $idleEndGraceMinutes;
+
     public static function group(): string
     {
         return 'streaming';

@@ -6,8 +6,8 @@ import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 import { fsBreak } from '../../config';
-import { DISPLAY_FONT } from '../../primitives';
-import { textGlowClass } from '../../visualEffects';
+import { accentMix, DISPLAY_FONT } from '../../primitives';
+import { accentGlowShadow, textGlowClass } from '../../visualEffects';
 import { fsFont } from '../shared/fsTypographyStyles';
 import { BreakFSLayout, TeamSide } from './vsBreak';
 import { resolveVSTeams } from './vsBreak.helpers';
@@ -53,9 +53,11 @@ function TimeoutDisplay({ value }) {
       className={cn(
         'flex w-[300px] shrink-0 items-center justify-center rounded-2xl border px-8 py-8',
         'bg-[linear-gradient(180deg,rgba(30,38,62,0.9),rgba(14,19,32,0.92))]',
-        'border-[color-mix(in_srgb,var(--accentA)_40%,transparent)]',
-        '[box-shadow:0_0_calc(22px*var(--glow))_color-mix(in_srgb,var(--accentA)_20%,transparent),inset_0_1px_0_rgba(255,255,255,0.06)]',
       )}
+      style={{
+        borderColor: accentMix('var(--accentA)', 40),
+        boxShadow: `${accentGlowShadow('var(--accentA)', 20, '22px')}, inset 0 1px 0 rgba(255,255,255,0.06)`,
+      }}
       aria-live="polite"
       aria-label={`Time remaining ${value}`}
     >

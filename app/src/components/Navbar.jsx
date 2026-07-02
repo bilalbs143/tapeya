@@ -61,6 +61,7 @@ export function Navbar({ onMenuClick }) {
 
   return (
     <nav
+      data-app-navbar=""
       className={`lg:border-surface-border fixed top-0 right-0 left-0 flex items-center justify-between border-b border-transparent px-4 transition-colors duration-300 lg:left-[280px] ${
         scrolled || alwaysSolid ? 'bg-black lg:bg-black' : 'bg-transparent lg:bg-transparent'
       }`}

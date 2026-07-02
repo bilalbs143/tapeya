@@ -9,7 +9,14 @@ import { memo } from 'react';
 import { cn } from '@/lib/utils';
 
 import { colors, fsPill, fsStageFabric } from '../config';
-import { crestPulseClass, crestRingClassName, isFsStageAmbientEnabled, textGlowClass } from '../visualEffects';
+import {
+  crestPulseClass,
+  crestRingBoxShadow,
+  crestRingClassName,
+  isFsStageAmbientEnabled,
+  textGlowClass,
+} from '../visualEffects';
+import { accentMix } from './accent';
 import { Crest } from './atoms';
 import { crestCornerRadius, crestLogoPadding } from './crestMetrics';
 import { fsFont } from './formatters';
@@ -125,6 +132,7 @@ export const TeamLogoSlot = memo(function TeamLogoSlot({
           '--crest-ring': ring,
           '--crest-ring-alt': ringAlt,
           borderRadius: cornerRadius + 3,
+          boxShadow: crestRingBoxShadow(ring),
         }}
       />
       <img
@@ -234,11 +242,13 @@ export const Pill = memo(function Pill({ children, accent = colors.accentA, vari
       className={cn(
         'inline-flex max-w-[80%] items-center rounded-full border',
         'bg-[linear-gradient(180deg,rgba(30,38,62,0.9),rgba(14,19,32,0.92))]',
-        '[border-color:color-mix(in_srgb,var(--pill-accent)_40%,transparent)]',
-        '[box-shadow:0_0_calc(22px*var(--glow))_color-mix(in_srgb,var(--pill-accent)_20%,transparent),inset_0_1px_0_rgba(255,255,255,0.06)]',
         layoutClass,
       )}
-      style={{ '--pill-accent': accent }}
+      style={{
+        '--pill-accent': accent,
+        borderColor: accentMix(accent, 40),
+        boxShadow: `0 0 calc(22px * var(--glow)) ${accentMix(accent, 20)}, inset 0 1px 0 rgba(255,255,255,0.06)`,
+      }}
     >
       <span
         className={cn(

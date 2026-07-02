@@ -77,5 +77,10 @@
 	<string>Tapeya needs photo library access so you can choose a profile or document photo.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Tapeya needs permission to save photos to your library when you choose to.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 </dict>
 </plist>
