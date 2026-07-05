@@ -24,7 +24,7 @@ for (let i = 0; i <= 100; i += 1) {
 }
 
 module.exports = {
-  content: ['./graphics.html', './src/graphics/**/*.{js,jsx,ts,tsx}', '../shared/graphics-core/src/**/*.{js,jsx,ts,tsx}'],
+  content: ['./src/graphics/bootstrap/index.html', './src/graphics/**/*.{js,jsx,ts,tsx}', '../shared/graphics-core/src/**/*.{js,jsx,ts,tsx}'],
   corePlugins: {
     // Preflight ON — provides box-sizing, border-style, transform/ring/shadow
     // variable defaults that utilities depend on.  The --tw-backdrop-* variables

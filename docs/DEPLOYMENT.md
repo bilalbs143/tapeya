@@ -136,8 +136,8 @@ Build env is set via `app/package.json` scripts (`build:graphics:production`, `b
   certbot certonly --webroot -w /var/www/tapeya/app/dist-graphics -d graphics.tapeya.com
   ```
 - Document root: `/var/www/tapeya/app/dist-graphics`
-- SPA fallback: `/{sessionId}-{expires}-{signature}` → `graphics.html`
-- Cache: `graphics.html` and signed token paths → `no-cache`; hashed `/assets/*` → `immutable`, 1 year
+- SPA fallback: `/{sessionId}-{expires}-{signature}` → `index.html`
+- Cache: `index.html` and signed token paths → `no-cache`; hashed `/assets/*` → `immutable`, 1 year
 - **URL versioning:** graphics URLs intentionally omit `/v1/` (see plan §16 — single canonical URL, deploy discipline instead of parallel version paths)
 
 ### API / Reverb (production `.env`)

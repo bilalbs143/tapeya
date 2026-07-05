@@ -10,7 +10,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const GRAPHICS_BOOTSTRAP_ROOT = resolve(__dirname, 'src/graphics/bootstrap');
-const GRAPHICS_BUILD_HTML = resolve(__dirname, 'graphics.html');
+const GRAPHICS_INDEX_HTML = resolve(GRAPHICS_BOOTSTRAP_ROOT, 'index.html');
+const GRAPHICS_DIST_DIR = resolve(__dirname, 'dist-graphics');
 
 /** Paths that must never resolve in the graphics bundle — build fails at import time. */
 const FORBIDDEN_GRAPHICS_PREFIXES = [
@@ -48,12 +49,11 @@ const GRAPHICS_OPTIMIZE_DEPS = [
 ];
 
 function graphicsSpaFallback() {
-  // graphics.html exists at the project root (dev) and in dist-graphics (preview);
-  // dist-graphics has no index.html, so this must never rewrite to /index.html.
+  // Signed token paths must serve index.html (dev bootstrap root + preview dist-graphics).
   const rewriteGraphicsPath = (req, _res, next) => {
     const url = req.url?.split('?')[0] ?? '';
-    if (url === '/' || url === '/index.html' || ACCESS_TOKEN_PATH.test(url)) {
-      req.url = '/graphics.html';
+    if (ACCESS_TOKEN_PATH.test(url)) {
+      req.url = '/index.html';
     }
     next();
   };
@@ -85,17 +85,16 @@ function forbidConsumerImports() {
 export default defineConfig(({ command, isPreview }) => {
   // `command === 'serve'` is also true for `vite preview` — isPreview is the
   // only reliable way to tell dev-server and preview-of-build-output apart.
-  // Preview must use __dirname (serves dist-graphics/), same as build.
   const isDevServe = command === 'serve' && !isPreview;
+  const isBuild = command === 'build';
 
   return {
-    // Dev root: bootstrap only — consumer index.html is never discovered.
-    root: isDevServe ? GRAPHICS_BOOTSTRAP_ROOT : __dirname,
+    // Dev + build entry: bootstrap/index.html → dist-graphics/index.html (consumer index.html untouched).
+    root: isDevServe || isBuild ? GRAPHICS_BOOTSTRAP_ROOT : __dirname,
     plugins: [graphicsSpaFallback(), forbidConsumerImports(), react()],
     optimizeDeps: {
-      entries: isDevServe ? [resolve(GRAPHICS_BOOTSTRAP_ROOT, 'index.html')] : [GRAPHICS_BUILD_HTML],
+      entries: [GRAPHICS_INDEX_HTML],
       include: GRAPHICS_OPTIMIZE_DEPS,
-      // Crawl deps from bootstrap entry only; explicit include covers subpaths like react-dom/client.
       noDiscovery: false,
     },
     server: {
@@ -119,13 +118,13 @@ export default defineConfig(({ command, isPreview }) => {
     },
     build: {
       target: ['chrome86', 'edge86', 'firefox78', 'safari14'],
-      outDir: 'dist-graphics',
+      outDir: GRAPHICS_DIST_DIR,
       emptyOutDir: true,
       sourcemap: false,
       cssMinify: true,
       cssCodeSplit: true,
       rollupOptions: {
-        input: { graphics: GRAPHICS_BUILD_HTML },
+        input: { index: GRAPHICS_INDEX_HTML },
       },
     },
     preview: {
@@ -133,8 +132,6 @@ export default defineConfig(({ command, isPreview }) => {
       strictPort: true,
     },
     css: {
-      // Inline PostCSS so this pipeline never leaks into the consumer build
-      // (and the consumer's Tailwind v4 vite plugin never runs here).
       postcss: {
         plugins: [
           tailwindcss3({ config: resolve(__dirname, 'tailwind.graphics.config.cjs') }),

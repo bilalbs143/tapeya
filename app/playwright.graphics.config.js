@@ -22,7 +22,7 @@ export default defineConfig({
   },
   webServer: {
     command: `npm run preview:graphics -- --port ${PORT} --strictPort`,
-    url: `http://127.0.0.1:${PORT}/graphics.html`,
+    url: `http://127.0.0.1:${PORT}/index.html`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
