@@ -77,6 +77,13 @@ export default defineConfig({
     },
   },
 
+  // Vitest loads ../shared/graphics-core tests — allow repo root on Linux CI.
+  server: {
+    fs: {
+      allow: [resolve(__dirname, '..')],
+    },
+  },
+
   build: {
     outDir: 'dist',
     sourcemap: false,
@@ -128,6 +135,10 @@ export default defineConfig({
 
   test: {
     environment: 'node',
-    include: ['src/**/*.test.js', 'src/**/*.test.jsx', '../shared/graphics-core/src/**/*.test.js'],
+    include: [
+      'src/**/*.test.js',
+      'src/**/*.test.jsx',
+      resolve(__dirname, '../shared/graphics-core/src/**/*.test.js'),
+    ],
   },
 });
