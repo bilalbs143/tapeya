@@ -67,7 +67,7 @@ export class ControllerSettingsDialogComponent {
   private readonly defaultTheme = this.data.themes.find((t) => t.is_active) ?? this.data.themes[0] ?? null;
   private readonly initialThemeId = this.data.session?.graphic_theme_id ?? this.defaultTheme?.id ?? null;
 
-  public readonly signedOverlayUrl = signal<string | null>(null);
+  public readonly signedGraphicsUrl = signal<string | null>(null);
   public readonly signedLinkLoading = signal(false);
   public readonly signedLinkError = signal(false);
 
@@ -94,39 +94,39 @@ export class ControllerSettingsDialogComponent {
     });
 
     if (this.sessionReady()) {
-      this.loadSignedOverlayUrl();
+      this.loadSignedGraphicsUrl();
     }
   }
 
   /** Show persisted URL without calling the API (each API call rotates the active link). */
-  private loadSignedOverlayUrl(): void {
+  private loadSignedGraphicsUrl(): void {
     const cachedUrl = this.data.session?.signed_overlay_url?.trim();
     if (cachedUrl) {
-      this.signedOverlayUrl.set(cachedUrl);
+      this.signedGraphicsUrl.set(cachedUrl);
       return;
     }
 
-    this.fetchSignedOverlayUrl();
+    this.fetchSignedGraphicsUrl();
   }
 
   /** Issue a new signed URL (invalidates any previous link). */
-  public refreshSignedOverlayUrl(autoCopy = false): void {
-    this.fetchSignedOverlayUrl(autoCopy);
+  public refreshSignedGraphicsUrl(autoCopy = false): void {
+    this.fetchSignedGraphicsUrl(autoCopy);
   }
 
-  private fetchSignedOverlayUrl(autoCopy = false): void {
+  private fetchSignedGraphicsUrl(autoCopy = false): void {
     if (!this.sessionReady()) {
       return;
     }
 
     this.signedLinkLoading.set(true);
     this.signedLinkError.set(false);
-    this.matchGraphicService.getSignedOverlayUrl(this.data.matchId).subscribe({
+    this.matchGraphicService.getSignedGraphicsUrl(this.data.matchId).subscribe({
       next: (res) => {
-        this.signedOverlayUrl.set(res.data.url);
+        this.signedGraphicsUrl.set(res.data.url);
         this.signedLinkLoading.set(false);
         this.mutated = true;
-        this.patchSessionOverlayUrl(res.data.url, res.data.expires_at);
+        this.patchSessionGraphicsUrl(res.data.url, res.data.expires_at);
         if (autoCopy) {
           this.copyUrlToClipboard(res.data.url);
         }
@@ -139,7 +139,7 @@ export class ControllerSettingsDialogComponent {
     });
   }
 
-  private patchSessionOverlayUrl(url: string, expiresAt: string): void {
+  private patchSessionGraphicsUrl(url: string, expiresAt: string): void {
     if (!this.data.session) {
       return;
     }
@@ -160,8 +160,8 @@ export class ControllerSettingsDialogComponent {
     this.dialogRef.close(this.mutated);
   }
 
-  public copyOverlayUrl(): void {
-    const url = this.signedOverlayUrl();
+  public copyGraphicsUrl(): void {
+    const url = this.signedGraphicsUrl();
     if (!url) {
       return;
     }
@@ -171,7 +171,7 @@ export class ControllerSettingsDialogComponent {
   private copyUrlToClipboard(url: string): void {
     void navigator.clipboard.writeText(url).then(() => {
       this.urlCopied = true;
-      this.snackBar.open('Overlay URL Copied', undefined, { duration: 2000 });
+      this.snackBar.open('Graphics URL copied', undefined, { duration: 2000 });
       setTimeout(() => (this.urlCopied = false), 2500);
     });
   }
@@ -204,11 +204,11 @@ export class ControllerSettingsDialogComponent {
           this.sessionReady.set(true);
           const url = res.data.signed_overlay_url?.trim();
           if (url) {
-            this.signedOverlayUrl.set(url);
+            this.signedGraphicsUrl.set(url);
             this.copyUrlToClipboard(url);
             return;
           }
-          this.refreshSignedOverlayUrl(true);
+          this.refreshSignedGraphicsUrl(true);
           return;
         }
         this.dialogRef.close(true);

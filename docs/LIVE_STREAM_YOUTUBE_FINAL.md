@@ -34,7 +34,7 @@ The only forward-looking investment made now is a **thin provider abstraction la
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │                         PRODUCTION (venue / remote)                           │
-│  Cameras → vMix / OBS ──RTMP──┐   Browser source ← signed GraphicOverlay    │
+│  Cameras → vMix / OBS ──RTMP──┐   Browser source ← signed GraphicsView    │
 │                                │              ↑ Reverb match.{id}.graphics   │
 └────────────────────────────────┼──────────────┼────────────────────────────--┘
                                  │              │

@@ -29,7 +29,7 @@ import { selectIsAuthenticated, selectUser } from '@/store/selectors';
 const REMINDER_INTERVAL_MS = REPEATING_DIALOG_REMINDER_COOLDOWN_MS;
 
 /** Dialog keys opened automatically — not from explicit user taps. */
-export const PROGRAMMATIC_DIALOG_KEYS = {
+const PROGRAMMATIC_DIALOG_KEYS = {
   profileStrengthReminder: 'profileStrengthReminder',
   appUpdate: 'appUpdate',
   downloadApp: 'downloadApp',

@@ -1,9 +1,10 @@
 /**
  * Player name full-screen card — shared by batsman and bowler NAME_FS controllers.
  */
+import { resolveBroadcastNameParts } from '@tapeya/graphics-core/domain/playerNameResolver';
+
 import { cn } from '@/lib/utils';
 
-import { resolveBroadcastNameParts } from '../../../../core/domain/playerNameResolver';
 import { fsPill, fsPlayerCard, fsSummaryPanel } from '../../config';
 import { FSStage, GlowPanel, PlayerAvatarImage, TeamLogoOrCrest, UI_FONT } from '../../primitives';
 import { FsStatColumn } from '../shared/FsStatColumn';
@@ -123,13 +124,7 @@ export function PlayerNameFSGraphic({
             <PlayerAvatarSlot src={avatarUrl} alt={playerName} />
 
             {hasStats && (
-              <FsStatColumn
-                statFields={statFields}
-                statValues={statValues}
-                accent={accent}
-                statLayout={statLayout}
-                getDelay={getStatDelay}
-              />
+              <FsStatColumn statFields={statFields} statValues={statValues} statLayout={statLayout} getDelay={getStatDelay} />
             )}
           </div>
 

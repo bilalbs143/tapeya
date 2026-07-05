@@ -10,7 +10,6 @@ import { ScrollRestoration } from '@/components/ScrollRestoration';
 import SplashScreen from '@/components/SplashScreen';
 import { DialogProvider } from '@/context/DialogContext';
 import { ToastProvider } from '@/context/ToastContext';
-import GraphicOverlay from '@/graphics/entry/GraphicOverlay';
 import { useReverbNotifications } from '@/hooks/useReverbNotifications';
 import { isOverlayRoute } from '@/lib/isOverlayRoute';
 import { Toaster } from '@/ui/Toast';
@@ -119,9 +118,6 @@ function App() {
                 <Routes>
                   <Route path="/" element={<SplashScreen />} />
                   <Route path="/pages/:slug" element={<StaticPage />} />
-
-                  {/* Graphic overlay — OBS/vMix. No MainLayout/AuthLayout → no Meta Pixel, push, or platform sync. */}
-                  <Route path="/overlay/:matchId" element={<GraphicOverlay />} />
 
                   <Route element={<RequireAuth />}>
                     <Route element={<MainLayout />}>

@@ -10,12 +10,12 @@
 
  *   - shared/graphics-command-manifest.json (generated from PHP enum)
 
- *   - shared/graphics-themes.json (registered overlay themes)
+ *   - shared/graphics-themes.json (registered graphics themes)
 
- *   - manifest overlay keys (all commands except pending_full_stack)
+ *   - manifest graphics command keys (all commands except pending_full_stack)
 
- *   - app/src/graphics/core/processorRegistry.js (processorId → implementation)
- *   - app/src/graphics/core/processorMap.js (manifest-driven wiring)
+ *   - shared/graphics-core/src/processorRegistry.js (processorId → implementation)
+ *   - shared/graphics-core/src/processorMap.js (manifest-driven wiring)
 
  *   - app/src/graphics/themes/{theme}/commands/{TYPE}/{KEY}.jsx (1:1 theme files)
 
@@ -45,9 +45,9 @@ const MANIFEST_PATH = path.join(REPO_ROOT, 'shared/graphics-command-manifest.jso
 
 const THEMES_PATH = path.join(REPO_ROOT, 'shared/graphics-themes.json');
 
-const PROCESSOR_REGISTRY_PATH = path.join(REPO_ROOT, 'app/src/graphics/core/processorRegistry.js');
+const PROCESSOR_REGISTRY_PATH = path.join(REPO_ROOT, 'shared/graphics-core/src/processorRegistry.js');
 
-const GRAPHIC_COMMAND_KEYS_PATH = path.join(REPO_ROOT, 'app/src/graphics/core/graphicCommandKeys.js');
+const GRAPHIC_COMMAND_KEYS_PATH = path.join(REPO_ROOT, 'shared/graphics-core/src/graphicCommandKeys.js');
 
 const THEMES_ROOT = path.join(REPO_ROOT, 'app/src/graphics/themes');
 
@@ -599,7 +599,7 @@ async function main() {
 
     if (!registrySet.has(key)) {
 
-      errors.push(`Manifest key "${key}" (status: ${status}) is missing from overlay key set`);
+      errors.push(`Manifest key "${key}" (status: ${status}) is missing from graphics command key set`);
 
     }
 

@@ -2,6 +2,7 @@
 
 - **API (PHP/Laravel):** `api.tapeya.com` → `/var/www/tapeya/api/public`
 - **App (React):** `tapeya.com` → `/var/www/tapeya/app/dist`
+- **Broadcast graphics (vMix/OBS):** `graphics.tapeya.com` → `/var/www/tapeya/app/dist-graphics`
 - **Backoffice (Angular):** `backoffice.tapeya.com` → `/var/www/tapeya/backoffice/dist/backoffice/browser`
 
 ## Setup
@@ -23,12 +24,19 @@
 
 3. **Build frontends before serving:**
    - App: `cd /var/www/tapeya/app && npm run build`
+   - Graphics site: `cd /var/www/tapeya/app && npm run build:graphics:production` → `dist-graphics/`
    - Backoffice: `cd /var/www/tapeya/backoffice && npm run build`
    - Angular output is `dist/backoffice/browser`. If your Angular version uses `dist/backoffice` only, change the backoffice `root` in `tapeya.conf` to `/var/www/tapeya/backoffice/dist/backoffice`.
 
 4. **Laravel:** Set correct permissions and `APP_URL` (e.g. `https://api.tapeya.com`). Run migrations/cache as needed.
+   - Production CORS: `CORS_ALLOWED_ORIGINS` must include `https://graphics.tapeya.com`
+   - Reverb: `REVERB_ALLOWED_ORIGINS` must include `graphics.tapeya.com`
+   - Admin → System Settings → **Graphics Frontend URL** → `https://graphics.tapeya.com`
 
-5. **HTTPS:** Use `tapeya-ssl.conf.sample` as a reference and certbot for Let's Encrypt, then add the SSL server blocks and HTTP→HTTPS redirects.
+5. **HTTPS:** See `tapeya-ssl.conf.sample` for TLS server blocks (including `graphics.tapeya.com`). Obtain certs before production graphics traffic:
+   ```bash
+   certbot certonly --webroot -w /var/www/tapeya/app/dist-graphics -d graphics.tapeya.com
+   ```
 
 6. **Test and reload:**
    ```bash

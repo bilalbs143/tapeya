@@ -218,7 +218,7 @@
     filter: saturate(1.85) brightness(1.18);
     box-shadow:
       0 0 calc(34px * var(--glow, 1)) var(--crest-ring),
-      0 0 calc(52px * var(--glow, 1)) var(--crest-ring-alt, var(--accentB));
+      0 0 calc(52px * var(--glow, 1)) var(--crest-ring);
     transform: rotate(200deg) scale(1.1);
   }
 }
@@ -239,7 +239,7 @@
     filter: saturate(1.85) brightness(1.18);
     box-shadow:
       0 0 calc(34px * var(--glow, 1)) var(--crest-ring),
-      0 0 calc(52px * var(--glow, 1)) var(--crest-ring-alt, var(--accentB));
+      0 0 calc(52px * var(--glow, 1)) var(--crest-ring);
     transform: rotate(200deg) scale(1.1);
   }
 }

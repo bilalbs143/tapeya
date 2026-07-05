@@ -39,7 +39,7 @@ const BOUNDARY_THEMES = {
     sparkOuter: colors.fourSparkOuter,
     sparkShadow: colors.fourSparkShadow,
     title: 'FOUR',
-    titleGradient: colors.fourTitleGradient,
+    titleColor: colors.fourTitleColor,
     titleShadow: colors.fourTitleShadow,
     subtitleColor: colors.fourSubtitle,
     titleSize: { compact: 120, full: 300 },
@@ -50,7 +50,7 @@ const BOUNDARY_THEMES = {
     sparkOuter: colors.wideSparkOuter,
     sparkShadow: colors.wideSparkShadow,
     title: 'WIDE',
-    titleGradient: colors.wideTitleGradient,
+    titleColor: colors.wideTitleColor,
     titleShadow: colors.wideTitleShadow,
     subtitleColor: colors.wideSubtitle,
     titleSize: { compact: 120, full: 300 },
@@ -61,7 +61,7 @@ const BOUNDARY_THEMES = {
     sparkOuter: colors.noBallSparkOuter,
     sparkShadow: colors.noBallSparkShadow,
     title: 'NO BALL',
-    titleGradient: colors.noBallTitleGradient,
+    titleColor: colors.noBallTitleColor,
     titleShadow: colors.noBallTitleShadow,
     subtitleColor: colors.noBallSubtitle,
     titleSize: { compact: 120, full: 300 },
@@ -72,7 +72,7 @@ const BOUNDARY_THEMES = {
     sparkOuter: colors.sixSparkOuter,
     sparkShadow: colors.sixSparkShadow,
     title: 'SIX',
-    titleGradient: colors.sixTitleGradient,
+    titleColor: colors.sixTitleColor,
     titleShadow: colors.sixTitleShadow,
     subtitleColor: colors.sixSubtitle,
     titleSize: { compact: 120, full: 300 },
@@ -83,7 +83,7 @@ const BOUNDARY_THEMES = {
     sparkOuter: colors.fiftyUpSparkOuter,
     sparkShadow: colors.fiftyUpSparkShadow,
     title: 'FIFTY',
-    titleGradient: colors.fiftyUpTitleGradient,
+    titleColor: colors.fiftyUpTitleColor,
     titleShadow: colors.fiftyUpTitleShadow,
     subtitleColor: colors.fiftyUpSubtitle,
     titleSize: { compact: 120, full: 300 },
@@ -94,7 +94,7 @@ const BOUNDARY_THEMES = {
     sparkOuter: colors.hundredUpSparkOuter,
     sparkShadow: colors.hundredUpSparkShadow,
     title: 'HUNDRED',
-    titleGradient: colors.hundredUpTitleGradient,
+    titleColor: colors.hundredUpTitleColor,
     titleShadow: colors.hundredUpTitleShadow,
     subtitleColor: colors.hundredUpSubtitle,
     titleSize: { compact: 120, full: 300 },
@@ -105,7 +105,7 @@ const BOUNDARY_THEMES = {
     sparkOuter: colors.replaySparkOuter,
     sparkShadow: colors.replaySparkShadow,
     title: 'REPLAY',
-    titleGradient: colors.replayTitleGradient,
+    titleColor: colors.replayTitleColor,
     titleShadow: colors.replayTitleShadow,
     subtitleColor: colors.replaySubtitle,
     titleSize: { compact: 120, full: 300 },
@@ -116,7 +116,7 @@ const BOUNDARY_THEMES = {
     sparkOuter: colors.decisionPendingSparkOuter,
     sparkShadow: colors.decisionPendingSparkShadow,
     title: 'DECISION PENDING',
-    titleGradient: colors.decisionPendingTitleGradient,
+    titleColor: colors.decisionPendingTitleColor,
     titleShadow: colors.decisionPendingTitleShadow,
     subtitleColor: colors.decisionPendingSubtitle,
     titleSize: { compact: 120, full: 300 },
@@ -144,8 +144,13 @@ function BoundaryFlash({ variant, shot, compact, fixed = false }) {
           className="bc-flash-title bc-animate-strap-text-enter"
           style={{
             fontSize: compact ? (theme.titleSize?.compact ?? 96) : (theme.titleSize?.full ?? 230),
-            backgroundImage: theme.titleGradient,
-            ...(isFlashTextGlowEnabled() ? { filter: `drop-shadow(0 0 calc(40px*var(--glow)) ${theme.titleShadow})` } : {}),
+            color: theme.titleColor,
+            ...(isFlashTextGlowEnabled()
+              ? {
+                  textShadow: `0 0 calc(40px * var(--glow)) ${theme.titleShadow}`,
+                  filter: `drop-shadow(0 0 calc(40px*var(--glow)) ${theme.titleShadow})`,
+                }
+              : {}),
           }}
         >
           {theme.title}
@@ -201,8 +206,13 @@ export function WicketFlash({ compact, fixed = false }) {
           className="bc-flash-title"
           style={{
             fontSize: compact ? 120 : 300,
-            backgroundImage: colors.wicketTitleGradient,
-            ...(isFlashTextGlowEnabled() ? { filter: `drop-shadow(0 0 calc(40px*var(--glow)) ${colors.wicketTextShadow})` } : {}),
+            color: colors.wicketTitleColor,
+            ...(isFlashTextGlowEnabled()
+              ? {
+                  textShadow: `0 0 calc(40px * var(--glow)) ${colors.wicketTextShadow}`,
+                  filter: `drop-shadow(0 0 calc(40px*var(--glow)) ${colors.wicketTextShadow})`,
+                }
+              : {}),
           }}
         >
           WICKET
@@ -221,8 +231,13 @@ export function NotOutFlash({ compact, fixed = false }) {
           className="bc-flash-title"
           style={{
             fontSize: compact ? 120 : 300,
-            backgroundImage: colors.notOutTitleGradient,
-            ...(isFlashTextGlowEnabled() ? { filter: `drop-shadow(0 0 calc(40px*var(--glow)) ${colors.notOutTextShadow})` } : {}),
+            color: colors.notOutTitleColor,
+            ...(isFlashTextGlowEnabled()
+              ? {
+                  textShadow: `0 0 calc(40px * var(--glow)) ${colors.notOutTextShadow}`,
+                  filter: `drop-shadow(0 0 calc(40px*var(--glow)) ${colors.notOutTextShadow})`,
+                }
+              : {}),
           }}
         >
           NOT OUT

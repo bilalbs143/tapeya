@@ -91,25 +91,25 @@ export function crestPulseClass(borderPulseOrder) {
 export function crestRingClassName() {
   return cn(
     'pointer-events-none absolute -inset-[3px] blur-[0.5px]',
-    '[background:linear-gradient(140deg,var(--team-ring),var(--accentB))]',
+    'bg-[var(--team-ring)]',
     isCrestHaloEnabled() ? 'opacity-[calc(0.5+0.5*var(--glow))]' : 'opacity-55',
   );
 }
 
-/** @param {string} accent */
+/**
+ * Box shadow for {@link crestRingClassName} when halo is enabled.
+ *
+ * Takes the resolved ring color directly (the same value the caller already writes to
+ * the `--team-ring` custom property) rather than reading `'var(--team-ring)'` back —
+ * that CSS variable is only ever set inline on this specific crest instance, so a JS-side
+ * resolution (needed to avoid `color-mix()` for Chrome 86/vMix) can never see it: there's
+ * no fixed DOM ancestor to probe that would have it in scope.
+ *
+ * @param {string} [accent]
+ */
 export function crestRingBoxShadow(accent) {
   if (!isCrestHaloEnabled()) return undefined;
-  return accentGlowShadow(accent, 33, '22px');
-}
-
-/**
- * @param {unknown} accent
- * @param {number} [percent=13]
- * @param {string} [size='16px']
- */
-export function accentGlowShadow(accent, percent = 13, size = '16px') {
-  if (!isDecorativeBoxGlowEnabled()) return 'none';
-  return `0 0 calc(${size} * var(--glow)) ${accentMix(accent, percent)}`;
+  return `0 0 calc(22px * var(--glow)) ${accentMix(accent, 33)}`;
 }
 
 /** @param {string} [extra=''] */

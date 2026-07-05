@@ -49,12 +49,28 @@ function autoLazyImages() {
   };
 }
 
+/** Consumer SPA must not ship graphics runtime — that lives on graphics.tapeya.com. */
+function forbidGraphicsInConsumerApp() {
+  return {
+    name: 'forbid-graphics-in-consumer-app',
+    apply: 'build',
+    resolveId(source) {
+      if (source.startsWith('@/graphics/') || source.startsWith('@tapeya/graphics-core')) {
+        throw new Error(`[consumer build] Forbidden import: ${source}`);
+      }
+      return null;
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [autoLazyImages(), react(), tailwindcss()],
+  plugins: [forbidGraphicsInConsumerApp(), autoLazyImages(), react(), tailwindcss()],
 
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
+      '@tapeya/graphics-core': resolve(__dirname, '../shared/graphics-core/src'),
+      '@/graphics/core': resolve(__dirname, '../shared/graphics-core/src'),
       '@native-store': resolve(__dirname, `src/lib/nativeStore/${nativeStoreEntry}.js`),
       '@store-links': resolve(__dirname, `src/lib/nativeStore/storeLinks/${nativeStoreEntry}.js`),
       '@platform-download': resolve(__dirname, `src/platform/download/${nativeStoreEntry}.js`),
@@ -112,6 +128,6 @@ export default defineConfig({
 
   test: {
     environment: 'node',
-    include: ['src/**/*.test.js', 'src/**/*.test.jsx'],
+    include: ['src/**/*.test.js', 'src/**/*.test.jsx', '../shared/graphics-core/src/**/*.test.js'],
   },
 });

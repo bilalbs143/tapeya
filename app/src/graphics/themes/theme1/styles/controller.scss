@@ -10,7 +10,7 @@
 //     animate-[…] syntax when they contain commas)
 //   • -webkit-mask-composite / mask-composite (no Tailwind equivalent)
 //   • :has() selectors
-//   • CSS custom-property-driven box-shadow / backdrop-filter combos
+//   • CSS custom-property-driven box-shadow combos
 // ─────────────────────────────────────────────────────────────────────────────
 @use 'animations';
 
@@ -57,13 +57,11 @@
   z-index: 2;
 }
 
-// ── GlowPanel — reduced backdrop-filter for smooth animated backgrounds ─────
+// ── GlowPanel — solid panel gradient (no backdrop-filter; unsafe on vMix / Chrome 86) ─
 
 .bc-glow-panel {
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
   background: linear-gradient(180deg, var(--panel-base), var(--panel-deep));
 }
 
@@ -71,12 +69,15 @@
 
 .bc-glow-panel-ring {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   padding: 1px;
   pointer-events: none;
   z-index: 3;
   opacity: calc(0.5 + 0.5 * var(--glow));
-  background: linear-gradient(135deg, var(--panel-ring-a, var(--accentA)), transparent 35%, transparent 65%, var(--accentB));
+  background: linear-gradient(135deg, rgba(120, 140, 255, 0.45), transparent 65%);
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
@@ -100,7 +101,8 @@
 
   &--compound {
     border-radius: 999px;
-    padding-inline: 0;
+    padding-left: 0;
+    padding-right: 0;
   }
 
   &[data-variant='w'] {
@@ -202,16 +204,13 @@
   }
 }
 
-// ── Flash title — background-clip text trick ──────────────────────────────────
+// ── Flash title — solid fill + glow (no background-clip:text; Chrome 86 / vMix safe) ─
 
 .bc-flash-title {
   font-family: var(--font-display);
   font-weight: 800;
   line-height: 0.82;
   letter-spacing: 0.03em;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
 }
 
 // ── Controller overlay / preview shells ───────────────────────────────────────
@@ -238,7 +237,10 @@
 
 .bc-controller-overlay-root--full {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   height: 100%;
   width: 100%;
   min-height: 0;
@@ -256,7 +258,10 @@
 
 .bc-controller-preview-stage--full {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   height: 100%;
   width: 100%;
 }
@@ -284,7 +289,10 @@
 .fs-stage-fabric__glow,
 .fs-stage-fabric__grain {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
 }
 
 .fs-fabric-band {

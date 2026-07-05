@@ -5,8 +5,6 @@ import { cn } from '@/lib/utils';
 
 import { batterScore, fsSummaryPanel } from '../../config';
 import {
-  accentGlowShadow,
-  accentMix,
   BatterScoreInline,
   DISPLAY_FONT,
   FSStage,
@@ -15,7 +13,6 @@ import {
   ROW_ANIMATE_IN,
   TeamLogoOrCrest,
 } from '../../primitives';
-import { accentHaloShadow } from '../../visualEffects';
 import {
   FS_DISMISSAL,
   FS_PANEL_SUB,
@@ -36,6 +33,7 @@ const BATTED_ROW_HEIGHT = 66;
 const YET_TO_BAT_ROW_HEIGHT = 48;
 const ROW_PADDING_X = 22;
 const BATTED_ROW_GAP = 4;
+const BATTED_ROW_BASE_DELAY_MS = 120;
 const BATTED_ROW_STAGGER_MS = 80;
 const YET_TO_BAT_ROW_STAGGER_MS = 60;
 
@@ -43,12 +41,12 @@ const yetToBatNameClass = cn('flex-1 font-bold leading-none text-[var(--text-sec
 
 /** @param {number} index */
 function getBattedRowDelay(index) {
-  return index * BATTED_ROW_STAGGER_MS;
+  return BATTED_ROW_BASE_DELAY_MS + index * BATTED_ROW_STAGGER_MS;
 }
 
 /** @param {number} outCount @param {number} index */
 function getYetToBatRowDelay(outCount, index) {
-  return outCount * BATTED_ROW_STAGGER_MS + index * YET_TO_BAT_ROW_STAGGER_MS;
+  return BATTED_ROW_BASE_DELAY_MS + outCount * BATTED_ROW_STAGGER_MS + index * YET_TO_BAT_ROW_STAGGER_MS;
 }
 
 function resolveSub(data) {
@@ -87,19 +85,19 @@ function ScoreStripMeta({ label, value }) {
   );
 }
 
-function BattingSummaryScoreStrip({ extras, overs, total, accent }) {
+function BattingSummaryScoreStrip({ extras, overs, total }) {
   return (
     <div
       className="mt-[18px] flex h-[92px] w-full items-stretch overflow-hidden rounded-[14px] border border-[rgba(120,140,255,0.28)] bg-[linear-gradient(180deg,rgba(22,28,42,0.92),rgba(11,15,24,0.95))]"
-      style={{ boxShadow: accentGlowShadow(accent, 13, '20px') }}
+      style={{ boxShadow: '0 0 calc(20px * var(--glow)) rgba(120,140,255,0.13)' }}
     >
       <ScoreStripMeta label="EXTRAS" value={extras} />
-      <div className="w-px shrink-0 bg-white/[0.12]" />
+      <div className="w-px shrink-0 bg-white/12" />
       <ScoreStripMeta label="OVERS" value={overs} />
       <div className="min-w-6 flex-1" />
       <div
         className="flex shrink-0 items-center px-9 pl-7"
-        style={{ background: `linear-gradient(100deg, transparent, ${accentMix(accent, 20)})` }}
+        style={{ background: 'linear-gradient(100deg, transparent, rgba(120,140,255,0.16))' }}
       >
         <span className={FS_SCORE_STRIP_HERO} style={fsFont(fsSummaryPanel.scoreStripHero)}>
           {total}
@@ -109,7 +107,7 @@ function BattingSummaryScoreStrip({ extras, overs, total, accent }) {
   );
 }
 
-function BattedRow({ name, dismissal, runs, balls, notOut, accent, index }) {
+function BattedRow({ name, dismissal, runs, balls, notOut, index }) {
   return (
     <div
       className={cn(ROW_ANIMATE_IN, 'flex items-center rounded-xl')}
@@ -118,13 +116,12 @@ function BattedRow({ name, dismissal, runs, balls, notOut, accent, index }) {
         marginBottom: BATTED_ROW_GAP,
         paddingInline: ROW_PADDING_X,
         animationDelay: `${getBattedRowDelay(index)}ms`,
-        background: `linear-gradient(100deg, ${accentMix(accent, 20)}, rgba(18, 24, 40, 0.7) 70%)`,
-        border: `1px solid ${accentMix(accent, 33)}`,
-        boxShadow: accentHaloShadow(accent, '16px'),
+        background: 'linear-gradient(100deg, rgba(120,140,255,0.16), rgba(18,24,40,0.7) 70%)',
+        border: '1px solid rgba(120,140,255,0.28)',
       }}
     >
-      <span className={cn(FS_ROW_NAME, 'flex items-start')} style={fsFont(fsSummaryPanel.rowName)}>
-        <span>{name}</span>
+      <span className={cn(FS_ROW_NAME, 'flex min-w-0 items-start')} style={fsFont(fsSummaryPanel.rowName)}>
+        <span className="overflow-hidden text-ellipsis">{name}</span>
         <NotOutStar notOut={notOut} />
       </span>
       <span className={FS_DISMISSAL} style={fsFont(fsSummaryPanel.dismissal)}>
@@ -147,7 +144,7 @@ function BattedRow({ name, dismissal, runs, balls, notOut, accent, index }) {
 function YetToBatRow({ name, outCount, index }) {
   return (
     <div
-      className={cn(ROW_ANIMATE_IN, 'flex items-center border-b border-white/10')}
+      className={cn(ROW_ANIMATE_IN, 'flex items-center border-b border-white/8')}
       style={{
         height: YET_TO_BAT_ROW_HEIGHT,
         paddingInline: ROW_PADDING_X,
@@ -161,7 +158,7 @@ function YetToBatRow({ name, outCount, index }) {
   );
 }
 
-function BattingSummaryHeroCrest({ crestLogoUrl, title, team, accent, accentAlt }) {
+function BattingSummaryHeroCrest({ crestLogoUrl, title, team, accent }) {
   return (
     <div className={ROW_ANIMATE_IN}>
       <TeamLogoOrCrest
@@ -169,7 +166,6 @@ function BattingSummaryHeroCrest({ crestLogoUrl, title, team, accent, accentAlt 
         team={team}
         name={title}
         accent={accent}
-        accentAlt={accentAlt}
         size={HERO_CREST_SIZE}
         borderPulseOrder={1}
       />
@@ -180,7 +176,6 @@ function BattingSummaryHeroCrest({ crestLogoUrl, title, team, accent, accentAlt 
 export function BattingSummaryGraphic({ data, teams }) {
   const team = data.teamCode ? (teams?.[data.teamCode] ?? null) : null;
   const accent = data.accent ?? team?.color ?? '#5b7cff';
-  const accentAlt = data.accentAlt ?? undefined;
   const title = data.title ?? team?.fullName ?? team?.displayName ?? '';
   const batsmen = data.batsmen ?? [];
   const batted = batsmen.filter((b) => !b.yetToBat);
@@ -208,7 +203,6 @@ export function BattingSummaryGraphic({ data, teams }) {
               runs={batter.runs ?? 0}
               balls={batter.balls ?? 0}
               notOut={Boolean(batter.notOut ?? isNotOutBatter(batter))}
-              accent={accent}
               index={index}
             />
           ))}
@@ -217,22 +211,11 @@ export function BattingSummaryGraphic({ data, teams }) {
           ))}
         </div>
 
-        <BattingSummaryScoreStrip
-          extras={data.scoreStrip.extras}
-          overs={data.scoreStrip.overs}
-          total={data.scoreStrip.total}
-          accent={accent}
-        />
+        <BattingSummaryScoreStrip extras={data.scoreStrip.extras} overs={data.scoreStrip.overs} total={data.scoreStrip.total} />
       </div>
 
       <div className="absolute top-0 bottom-0 grid place-items-center" style={{ right: PANEL_LEFT, width: HERO_CREST_WIDTH }}>
-        <BattingSummaryHeroCrest
-          crestLogoUrl={data.crestLogoUrl}
-          title={title}
-          team={team}
-          accent={accent}
-          accentAlt={accentAlt}
-        />
+        <BattingSummaryHeroCrest crestLogoUrl={data.crestLogoUrl} title={title} team={team} accent={accent} />
       </div>
     </FSStage>
   );

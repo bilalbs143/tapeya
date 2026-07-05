@@ -6,8 +6,8 @@ import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 import { fsBreak } from '../../config';
-import { accentMix, DISPLAY_FONT } from '../../primitives';
-import { accentGlowShadow, textGlowClass } from '../../visualEffects';
+import { DISPLAY_FONT } from '../../primitives';
+import { textGlowClass } from '../../visualEffects';
 import { fsFont } from '../shared/fsTypographyStyles';
 import { BreakFSLayout, TeamSide } from './vsBreak';
 import { resolveVSTeams } from './vsBreak.helpers';
@@ -55,8 +55,8 @@ function TimeoutDisplay({ value }) {
         'bg-[linear-gradient(180deg,rgba(30,38,62,0.9),rgba(14,19,32,0.92))]',
       )}
       style={{
-        borderColor: accentMix('var(--accentA)', 40),
-        boxShadow: `${accentGlowShadow('var(--accentA)', 20, '22px')}, inset 0 1px 0 rgba(255,255,255,0.06)`,
+        borderColor: 'rgba(120,140,255,0.28)',
+        boxShadow: '0 0 calc(22px * var(--glow)) rgba(91,124,255,0.18), inset 0 1px 0 rgba(255,255,255,0.06)',
       }}
       aria-live="polite"
       aria-label={`Time remaining ${value}`}

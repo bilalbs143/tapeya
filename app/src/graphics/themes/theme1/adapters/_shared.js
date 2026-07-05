@@ -2,12 +2,12 @@
  * Shared helpers for Tapeya theme prop adapters.
  */
 
-import { formatBroadcastBowlingFigures, parseBowlingFigures } from '../../../core/domain/player';
-import { resolveBroadcastPlayerName } from '../../../core/domain/playerNameResolver';
+import { formatBroadcastBowlingFigures, parseBowlingFigures } from '@tapeya/graphics-core/domain/player';
+import { resolveBroadcastPlayerName } from '@tapeya/graphics-core/domain/playerNameResolver';
 
-export { formatBroadcastBowlingFigures, parseBowlingFigures } from '../../../core/domain/player';
-export { resolveBroadcastNameParts, resolveBroadcastPlayerName } from '../../../core/domain/playerNameResolver';
 export { accentGlowShadow, accentMix, normalizeAccentColor } from '../primitives';
+export { formatBroadcastBowlingFigures, parseBowlingFigures } from '@tapeya/graphics-core/domain/player';
+export { resolveBroadcastNameParts, resolveBroadcastPlayerName } from '@tapeya/graphics-core/domain/playerNameResolver';
 
 /** @param {Record<string, unknown>} props */
 export function tournamentSub(props) {
@@ -104,9 +104,14 @@ export function parseInningsScore(score, wicketsFallback) {
 
   const sep = raw.includes('/') ? '/' : '-';
   const [runsPart, wktsPart] = raw.split(/[-/]/);
+  const totalParsed = parseInt(runsPart, 10);
+  const wktsParsed = wktsPart != null ? parseInt(wktsPart, 10) : NaN;
+
+  if (Number.isNaN(totalParsed)) return null;
+
   return {
-    total: parseInt(runsPart, 10) || 0,
-    wkts: wktsPart != null ? parseInt(wktsPart, 10) || 0 : (wicketsFallback ?? 0),
+    total: totalParsed,
+    wkts: Number.isNaN(wktsParsed) ? (wicketsFallback ?? 0) : wktsParsed,
     scoreSep: sep,
   };
 }
@@ -158,8 +163,8 @@ export function toFrameBatter(batter, tokens) {
  */
 export function toTeamRecord(team, code, tokens, side = null) {
   const accent = resolveTeamColor(side, tokens);
-  const short = team.shortCode ?? team.abbrevDisplay ?? code.toUpperCase();
-  const full = team.name ?? short;
+  const short = team.shortCode || team.abbrevDisplay || code.toUpperCase();
+  const full = team.name || short;
 
   return {
     code: String(short).toUpperCase(),

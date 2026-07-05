@@ -32,9 +32,9 @@ export function isDialogReminderBlockedPath(pathname) {
   return isAuthPath(pathname) || isSplashPath(pathname);
 }
 
-/** Web-only download prompt — also skip OBS overlay routes. */
+/** Web-only download prompt — skip auth/splash entry routes. */
 export function isWebDownloadAppBlockedPath(pathname) {
-  return isDialogReminderBlockedPath(pathname) || pathname.startsWith('/overlay/');
+  return isDialogReminderBlockedPath(pathname);
 }
 
 /** Routes where the incomplete-profile reminder dialog must not appear. */
@@ -42,7 +42,6 @@ export function isProfileStrengthReminderBlockedPath(pathname) {
   return (
     isDialogReminderBlockedPath(pathname) ||
     pathname === '/profile' ||
-    pathname.startsWith('/overlay/') ||
     isLiveBroadcastPath(pathname) ||
     ORGANIZER_SCORING_MATCH_PATH.test(pathname)
   );

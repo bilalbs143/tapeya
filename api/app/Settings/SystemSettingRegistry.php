@@ -119,13 +119,13 @@ final class SystemSettingRegistry
             SystemSettingKeyEnum::NOTIFICATION_ADMIN_EMAILS => [
                 'value' => ['nullable', 'string', 'max:5000'],
             ],
-            SystemSettingKeyEnum::OVERLAY_FRONTEND_URL => [
+            SystemSettingKeyEnum::GRAPHICS_FRONTEND_URL => [
                 'value' => ['nullable', 'string', 'url', 'max:2048'],
             ],
-            SystemSettingKeyEnum::OVERLAY_DEFAULT_TTL_SECONDS => [
+            SystemSettingKeyEnum::GRAPHICS_DEFAULT_TTL_SECONDS => [
                 'value' => ['nullable', 'integer', 'min:60', 'max:2592000'],
             ],
-            SystemSettingKeyEnum::OVERLAY_SIGNING_SECRET => [
+            SystemSettingKeyEnum::GRAPHICS_SIGNING_SECRET => [
                 'value' => ['nullable', 'string', 'max:512'],
             ],
             SystemSettingKeyEnum::TEST_OTP_PHONES => [
@@ -225,7 +225,7 @@ final class SystemSettingRegistry
             $request->merge(['value' => strtoupper(trim($request->input('value')))]);
         }
 
-        if ($key === SystemSettingKeyEnum::OVERLAY_DEFAULT_TTL_SECONDS && $request->input('value') === '') {
+        if ($key === SystemSettingKeyEnum::GRAPHICS_DEFAULT_TTL_SECONDS && $request->input('value') === '') {
             $request->merge(['value' => null]);
         }
 
@@ -378,30 +378,30 @@ final class SystemSettingRegistry
                 'property' => 'adminEmails',
                 'nullable_string' => true,
             ],
-            SystemSettingKeyEnum::OVERLAY_FRONTEND_URL->value => [
+            SystemSettingKeyEnum::GRAPHICS_FRONTEND_URL->value => [
                 'group' => SystemSettingGroupEnum::GRAPHIC_CONTROLLER,
                 'type' => SystemSettingTypeEnum::STRING,
-                'label' => 'Overlay Frontend URL',
-                'description' => 'React Overlay App Origin (OBS).',
-                'settings_class' => OverlaySettings::class,
+                'label' => 'Graphics Frontend URL',
+                'description' => 'Graphics app origin (e.g. https://graphics.tapeya.com).',
+                'settings_class' => GraphicsSettings::class,
                 'property' => 'frontendUrl',
                 'nullable_string' => true,
             ],
-            SystemSettingKeyEnum::OVERLAY_DEFAULT_TTL_SECONDS->value => [
+            SystemSettingKeyEnum::GRAPHICS_DEFAULT_TTL_SECONDS->value => [
                 'group' => SystemSettingGroupEnum::GRAPHIC_CONTROLLER,
                 'type' => SystemSettingTypeEnum::INTEGER,
-                'label' => 'Overlay Signed URL TTL (Seconds)',
-                'description' => 'Signed Overlay URL Lifetime in Seconds.',
-                'settings_class' => OverlaySettings::class,
+                'label' => 'Graphics Signed URL TTL (Seconds)',
+                'description' => 'Signed graphics URL lifetime in seconds.',
+                'settings_class' => GraphicsSettings::class,
                 'property' => 'defaultTtlSeconds',
                 'nullable_string' => false,
             ],
-            SystemSettingKeyEnum::OVERLAY_SIGNING_SECRET->value => [
+            SystemSettingKeyEnum::GRAPHICS_SIGNING_SECRET->value => [
                 'group' => SystemSettingGroupEnum::GRAPHIC_CONTROLLER,
                 'type' => SystemSettingTypeEnum::STRING,
-                'label' => 'Overlay Signing Secret',
-                'description' => 'HMAC Secret for Signed Overlay URLs.',
-                'settings_class' => OverlaySettings::class,
+                'label' => 'Graphics Signing Secret',
+                'description' => 'HMAC secret for signed graphics URLs.',
+                'settings_class' => GraphicsSettings::class,
                 'property' => 'signingSecret',
                 'nullable_string' => true,
             ],

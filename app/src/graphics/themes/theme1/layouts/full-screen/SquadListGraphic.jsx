@@ -4,7 +4,7 @@
 import { cn } from '@/lib/utils';
 
 import { colors, fsSquad, fsSummaryPanel } from '../../config';
-import { accentMix, Crest, DISPLAY_FONT, FSStage, PlayerAvatarImage, ROW_ANIMATE_IN, UI_FONT } from '../../primitives';
+import { Crest, DISPLAY_FONT, FSStage, PlayerAvatarImage, ROW_ANIMATE_IN, UI_FONT } from '../../primitives';
 import { colorHaloShadow } from '../../visualEffects';
 import { FS_HEADER_SUB, FS_PAGE_TITLE_MD, fsFont } from '../shared/fsTypographyStyles';
 
@@ -55,7 +55,7 @@ function SquadRoleBadge({ label, className, style, fontSize = fsSquad.captainBad
   );
 }
 
-function SquadPlayerCard({ player, accent, rowStartDelay, index }) {
+function SquadPlayerCard({ player, rowStartDelay, index }) {
   const { name, role, captain, wicketKeeper, avatarUrl } = player;
   const badgeStyle = {
     background: `linear-gradient(180deg, ${SQUAD_GOLD}, ${SQUAD_GOLD_DARK})`,
@@ -80,8 +80,8 @@ function SquadPlayerCard({ player, accent, rowStartDelay, index }) {
       <div
         className="mt-1.5 w-full rounded-[10px] px-2.5 py-2.5 text-center"
         style={{
-          background: `linear-gradient(180deg, ${accentMix(accent, 19)}, rgba(14,19,32,0.7))`,
-          border: `1px solid ${accentMix(accent, 27)}`,
+          background: 'linear-gradient(180deg, rgba(30,38,62,0.9), rgba(14,19,32,0.92))',
+          border: '1px solid rgba(120,140,255,0.28)',
         }}
       >
         <span className={squadPlayerNameClass} style={fsFont(fsSquad.playerName)}>
@@ -96,23 +96,17 @@ function SquadPlayerCard({ player, accent, rowStartDelay, index }) {
   );
 }
 
-function SquadRow({ players, accent, startDelay }) {
+function SquadRow({ players, startDelay }) {
   return (
     <div className="flex justify-center gap-[26px]">
       {players.map((player, index) => (
-        <SquadPlayerCard
-          key={player.id ?? `${player.name}-${index}`}
-          player={player}
-          accent={accent}
-          rowStartDelay={startDelay}
-          index={index}
-        />
+        <SquadPlayerCard key={player.id ?? `${player.name}-${index}`} player={player} rowStartDelay={startDelay} index={index} />
       ))}
     </div>
   );
 }
 
-function SquadHeader({ title, sub, accent, accentAlt, logoUrl, team }) {
+function SquadHeader({ title, sub, accent, logoUrl, team }) {
   return (
     <div className="absolute top-14 right-16 left-16 z-[3] flex items-start gap-7">
       {logoUrl ? (
@@ -120,7 +114,7 @@ function SquadHeader({ title, sub, accent, accentAlt, logoUrl, team }) {
           <img src={logoUrl} alt={title} draggable={false} className="block size-full object-contain" />
         </div>
       ) : (
-        <Crest team={team} size={SQUAD_HEADER_CREST_SIZE} accent={accent} accentAlt={accentAlt} />
+        <Crest team={team} size={SQUAD_HEADER_CREST_SIZE} accent={accent} />
       )}
 
       <div className="min-w-0 flex-1 pt-1">
@@ -165,7 +159,6 @@ export function SquadListGraphic({ data, teams }) {
     avatarUrl: player.avatarUrl ?? data.defaultAvatarUrl,
   }));
   const accent = data.accent ?? team?.color ?? colors.accentA;
-  const accentAlt = data.accentAlt ?? undefined;
   const top = players.slice(0, SQUAD_PLAYERS_PER_ROW);
   const bottom = players.slice(SQUAD_PLAYERS_PER_ROW);
   const title = data.title ?? team?.fullName ?? team?.displayName ?? '';
@@ -174,15 +167,11 @@ export function SquadListGraphic({ data, teams }) {
 
   return (
     <FSStage>
-      <SquadHeader title={title} sub={data.sub} accent={accent} accentAlt={accentAlt} logoUrl={data.logoUrl} team={team} />
+      <SquadHeader title={title} sub={data.sub} accent={accent} logoUrl={data.logoUrl} team={team} />
 
       <div className="absolute top-[250px] right-[70px] bottom-[150px] left-[70px] flex flex-col justify-center gap-[26px]">
-        <SquadRow players={top} accent={accent} startDelay={SQUAD_ROW_BASE_DELAY_MS} />
-        <SquadRow
-          players={bottom}
-          accent={accent}
-          startDelay={SQUAD_ROW_BASE_DELAY_MS + SQUAD_PLAYERS_PER_ROW * SQUAD_PLAYER_STAGGER_MS}
-        />
+        <SquadRow players={top} startDelay={SQUAD_ROW_BASE_DELAY_MS} />
+        <SquadRow players={bottom} startDelay={SQUAD_ROW_BASE_DELAY_MS + SQUAD_PLAYERS_PER_ROW * SQUAD_PLAYER_STAGGER_MS} />
       </div>
 
       <RequiredRunRateBand value={data.requiredRR} />

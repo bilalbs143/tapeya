@@ -1,23 +1,26 @@
 /**
- * Pure helpers for overlay session query args and RTK cache patches.
+ * Pure helpers for graphics session query args and RTK cache patches.
  * Extracted from useGraphicSession for unit testing without Redux/Echo.
  */
 
 /**
- * @param {string|undefined} matchId
- * @param {URLSearchParams} searchParams
- * @returns {string|{ matchId: string, expires: string, signature: string }|null}
+ * @param {string|undefined} accessToken Stateless overlay access token from the URL path.
+ * @returns {string|null}
  */
-export function resolveSessionQueryArg(matchId, searchParams) {
-  if (!matchId) return null;
+export function resolveSessionQueryArg(accessToken) {
+  if (!accessToken) return null;
+  return accessToken;
+}
 
-  const expires = searchParams.get('expires');
-  const signature = searchParams.get('signature');
-  if (expires && signature) {
-    return { matchId, expires, signature };
-  }
-
-  return matchId;
+/**
+ * Match id for Reverb channels — from loaded session.
+ *
+ * @param {{ match_id?: string|number }|undefined|null} session
+ * @returns {string|null}
+ */
+export function resolveMatchIdForReverb(session) {
+  if (session?.match_id != null) return String(session.match_id);
+  return null;
 }
 
 /**

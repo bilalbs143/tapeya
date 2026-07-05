@@ -32,11 +32,11 @@ enum SystemSettingKeyEnum: string
 
     case NOTIFICATION_ADMIN_EMAILS = 'notification_admin_emails';
 
-    case OVERLAY_FRONTEND_URL = 'overlay_frontend_url';
+    case GRAPHICS_FRONTEND_URL = 'graphics_frontend_url';
 
-    case OVERLAY_DEFAULT_TTL_SECONDS = 'overlay_default_ttl_seconds';
+    case GRAPHICS_DEFAULT_TTL_SECONDS = 'graphics_default_ttl_seconds';
 
-    case OVERLAY_SIGNING_SECRET = 'overlay_signing_secret';
+    case GRAPHICS_SIGNING_SECRET = 'graphics_signing_secret';
 
     case TEST_OTP_PHONES = 'test_otp_phones';
 

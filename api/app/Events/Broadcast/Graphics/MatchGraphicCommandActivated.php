@@ -17,7 +17,7 @@ use Illuminate\Queue\SerializesModels;
  * Broadcast on the public channel `match.{matchId}.graphics` whenever the
  * active graphic command for a match changes.
  *
- * This is intentionally a **public** channel — the overlay page runs as an
+ * This is intentionally a **public** channel — the graphics page runs as an
  * OBS/vMix browser source with no user auth context, so it cannot join a
  * private channel. The broadcast carries command metadata and
  * `context_hash` (not the full context blob) so overlays stay under the

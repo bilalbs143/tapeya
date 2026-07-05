@@ -36,7 +36,7 @@ use App\Http\Controllers\User\Shop\CartController;
 use App\Http\Controllers\User\Shop\CategoryController;
 use App\Http\Controllers\User\Shop\OrderController;
 use App\Http\Controllers\User\Shop\ProductController;
-use App\Http\Controllers\User\SignedMatchGraphicSessionController;
+use App\Http\Controllers\User\SignedGraphicSessionController;
 use App\Http\Controllers\User\SponsorController;
 use App\Http\Controllers\User\StaticPageController;
 use App\Http\Controllers\User\SupportMessageController;
@@ -71,7 +71,8 @@ Route::get('static-pages/{slug}', [StaticPageController::class, 'show'])
     ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*');
 Route::get('interest-campaigns/sidebar', [InterestCampaignController::class, 'sidebar']);
 
-Route::get('matches/{match}/graphic-session/overlay', [SignedMatchGraphicSessionController::class, 'show']);
+Route::get('graphic-sessions/access/{token}', [SignedGraphicSessionController::class, 'showByToken'])
+    ->where('token', '\d+-\d+-[a-f0-9]{64}');
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [UserAuthController::class, 'register']);
@@ -145,7 +146,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('tournaments/{tournament}/matches', [TournamentMatchController::class, 'store']);
     Route::get('matches/{match}', [TournamentMatchController::class, 'show']);
     Route::get('matches/{match}/graphic-session', [MatchGraphicSessionController::class, 'show']);
-    // Scoring-domain crease endpoint — tells the overlay who is about to bat/bowl.
+    // Scoring-domain crease endpoint — tells the graphics site who is about to bat/bowl.
     // Replaces the old graphic-session path so scoring code is decoupled from the
     // graphics subsystem.  The old path is kept as an alias for backward compat.
     Route::patch('matches/{match}/crease', [MatchCreaseController::class, 'update']);

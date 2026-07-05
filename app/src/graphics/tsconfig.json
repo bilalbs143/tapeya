@@ -9,10 +9,20 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "skipLibCheck": true,
+    "types": ["vite/client", "node"],
     "baseUrl": "..",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@tapeya/graphics-core/*": ["../../../shared/graphics-core/src/*"]
     }
   },
-  "include": ["core/manifestCommandMeta.js", "types.js"]
+  "include": [
+    "../../../shared/graphics-core/src/**/*.js",
+    "types.js",
+    "entry/**/*.js",
+    "entry/**/*.jsx",
+    "exit/**/*.js",
+    "exit/**/*.jsx"
+  ],
+  "exclude": ["../../../shared/graphics-core/src/**/__tests__/**", "entry/**/__tests__/**", "exit/**/__tests__/**"]
 }

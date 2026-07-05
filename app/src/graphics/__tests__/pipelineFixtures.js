@@ -1,5 +1,6 @@
-import { processGraphicCommand } from '@/graphics/core/GraphicCommandProcessor';
-import { normalizeSession } from '@/graphics/core/normalizeSession';
+import { processGraphicCommand } from '@tapeya/graphics-core/GraphicCommandProcessor.js';
+import { normalizeSession } from '@tapeya/graphics-core/normalizeSession/index.js';
+
 import { getThemeCommandComponent, getThemeMeta } from '@/graphics/exit/themeRegistry';
 
 /** @typedef {import('@/graphics/types.js').GraphicRenderPlan} GraphicRenderPlan */

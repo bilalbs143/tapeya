@@ -1,8 +1,9 @@
 /**
  * Player intro / stats processors → Tapeya player component shapes.
  */
-import { parseBowlingFigures } from '../../../core/domain/player';
-import { resolveBroadcastNameParts } from '../../../core/domain/playerNameResolver';
+import { parseBowlingFigures } from '@tapeya/graphics-core/domain/player';
+import { resolveBroadcastNameParts } from '@tapeya/graphics-core/domain/playerNameResolver';
+
 import { fmt } from '../primitives';
 import { resolvePlayerImageUrlGated, resolveTeamCode as resolveTeamSide, toTeamRecord, tournamentSub } from './_shared';
 import { toTeams } from './teams.adapter';

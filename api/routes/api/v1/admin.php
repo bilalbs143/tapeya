@@ -6,8 +6,8 @@ use App\Http\Controllers\Admin\CricketDashboardController;
 use App\Http\Controllers\Admin\EnumController;
 use App\Http\Controllers\Admin\GraphicCommandCatalogController;
 use App\Http\Controllers\Admin\GraphicCommandController;
-use App\Http\Controllers\Admin\GraphicOverlayUrlController;
 use App\Http\Controllers\Admin\GraphicSessionController;
+use App\Http\Controllers\Admin\GraphicSignedUrlController;
 use App\Http\Controllers\Admin\GraphicThemeController;
 use App\Http\Controllers\Admin\HeroSliderController;
 use App\Http\Controllers\Admin\HighlightController as AdminHighlightController;
@@ -104,7 +104,7 @@ Route::prefix('admin')->group(function () {
         Route::get('graphic-command-catalog', [GraphicCommandCatalogController::class, 'index']);
         Route::get('matches/{match}/graphic-session', [GraphicSessionController::class, 'show']);
         Route::post('matches/{match}/graphic-session', [GraphicSessionController::class, 'store']);
-        Route::get('matches/{match}/graphic-session/signed-url', [GraphicOverlayUrlController::class, 'signedOverlayUrl']);
+        Route::get('matches/{match}/graphic-session/signed-url', [GraphicSignedUrlController::class, 'signedUrl']);
         Route::match(['put', 'patch'], 'matches/{match}/graphic-session', [GraphicSessionController::class, 'update']);
         Route::get('matches/{match}/graphic-session/captions', [MatchGraphicCaptionController::class, 'index']);
         Route::post('matches/{match}/graphic-session/captions', [MatchGraphicCaptionController::class, 'store']);

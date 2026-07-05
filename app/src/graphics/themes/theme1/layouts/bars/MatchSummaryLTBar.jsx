@@ -15,12 +15,13 @@ import {
   fixtureDetailRowFlexStyle,
   fixtureDetailStyle,
   fixtureRowPaddingXStyle,
-  fixtureTitleRowClass,
   fixtureTitleRowFlexStyle,
   fixtureTitleStyle,
   fixtureVsClass,
+  fixtureVsRowGridClass,
+  fixtureVsRowNameClass,
+  fixtureVsRowSideClass,
   fixtureVsStyle,
-  pickFixtureTitleClass,
 } from './fixtureBarLayout';
 
 const CREST_SIZE = ltBar.crestSize;
@@ -86,7 +87,7 @@ export function MatchSummaryLTBar({ summary, teams, edgeToEdge = true }) {
 
   const vsLabel = summary.vsLabel ?? 'VS';
   const centerLabel = summary.label ?? DEFAULT_LABEL;
-  const titleClass = (atMaxWidth) => cn(pickFixtureTitleClass(atMaxWidth), 'uppercase');
+  const nameClass = cn(fixtureVsRowNameClass, 'uppercase');
 
   return (
     <InsetLTBarSurface edgeToEdge={edgeToEdge} barRadius={BAR_RADIUS}>
@@ -104,20 +105,24 @@ export function MatchSummaryLTBar({ summary, teams, edgeToEdge = true }) {
 
           <div className="flex h-full min-w-0 flex-1 flex-col">
             <div
-              className={cn(fixtureTitleRowClass, 'gap-6')}
+              className={fixtureVsRowGridClass('gap-6')}
               style={{ ...fixtureTitleRowFlexStyle(false), ...fixtureRowPaddingXStyle }}
             >
-              <span className={titleClass(atMaxWidth)} style={fixtureTitleStyle}>
-                {teamName(teamA)}
-              </span>
-              <InningsScore innings={inningsA} measuring={measuring} />
+              <div className={fixtureVsRowSideClass('start', 'gap-6')}>
+                <span className={nameClass} style={fixtureTitleStyle}>
+                  {teamName(teamA)}
+                </span>
+                <InningsScore innings={inningsA} measuring={measuring} />
+              </div>
               <span className={fixtureVsClass} style={fixtureVsStyle}>
                 {vsLabel}
               </span>
-              <InningsScore innings={inningsB} measuring={measuring} />
-              <span className={titleClass(atMaxWidth)} style={fixtureTitleStyle}>
-                {teamName(teamB)}
-              </span>
+              <div className={fixtureVsRowSideClass('end', 'gap-6')}>
+                <InningsScore innings={inningsB} measuring={measuring} />
+                <span className={nameClass} style={fixtureTitleStyle}>
+                  {teamName(teamB)}
+                </span>
+              </div>
             </div>
             <div
               className={cn(

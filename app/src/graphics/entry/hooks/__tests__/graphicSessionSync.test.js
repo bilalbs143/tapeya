@@ -3,25 +3,30 @@ import { describe, expect, it } from 'vitest';
 import {
   patchSessionContextHash,
   patchSessionFromReverbEvent,
+  resolveMatchIdForReverb,
   resolveSessionQueryArg,
 } from '@/graphics/entry/hooks/graphicSessionSync';
 
+const ACCESS_TOKEN = `42-999-${'a'.repeat(64)}`;
+
 describe('resolveSessionQueryArg', () => {
-  it('returns null when matchId is missing', () => {
-    expect(resolveSessionQueryArg(undefined, new URLSearchParams())).toBeNull();
+  it('returns null when access token is missing', () => {
+    expect(resolveSessionQueryArg(undefined)).toBeNull();
+    expect(resolveSessionQueryArg('')).toBeNull();
   });
 
-  it('returns matchId string for authenticated overlay URL', () => {
-    expect(resolveSessionQueryArg('42', new URLSearchParams())).toBe('42');
+  it('returns access token for signed graphics URL', () => {
+    expect(resolveSessionQueryArg(ACCESS_TOKEN)).toBe(ACCESS_TOKEN);
+  });
+});
+
+describe('resolveMatchIdForReverb', () => {
+  it('returns null when session is missing', () => {
+    expect(resolveMatchIdForReverb(null)).toBeNull();
   });
 
-  it('returns signed overlay arg when expires and signature are present', () => {
-    const params = new URLSearchParams({ expires: '999', signature: 'abc' });
-    expect(resolveSessionQueryArg('42', params)).toEqual({
-      matchId: '42',
-      expires: '999',
-      signature: 'abc',
-    });
+  it('uses session.match_id when available', () => {
+    expect(resolveMatchIdForReverb({ match_id: 99 })).toBe('99');
   });
 });
 

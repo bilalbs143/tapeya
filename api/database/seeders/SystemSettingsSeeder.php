@@ -6,9 +6,9 @@ use App\Settings\AdminNotificationSettings;
 use App\Settings\AppStoreSettings;
 use App\Settings\ContactSettings;
 use App\Settings\GeneralSettings;
+use App\Settings\GraphicsSettings;
 use App\Settings\LiveChatSettings;
 use App\Settings\OtpSettings;
-use App\Settings\OverlaySettings;
 use App\Settings\PushSettings;
 use App\Settings\SmsSettings;
 use App\Settings\StreamingSettings;
@@ -27,7 +27,7 @@ class SystemSettingsSeeder extends Seeder
         $this->seedAppStore();
         $this->seedContact();
         $this->seedAdminNotification();
-        $this->seedOverlay();
+        $this->seedGraphics();
         $this->seedOtp();
         $this->seedSms();
         $this->seedVeevoTechSms();
@@ -77,13 +77,13 @@ class SystemSettingsSeeder extends Seeder
         $adminNotification->save();
     }
 
-    private function seedOverlay(): void
+    private function seedGraphics(): void
     {
-        $overlay = app(OverlaySettings::class);
-        $overlay->frontendUrl ??= 'http://localhost:5173';
-        $overlay->defaultTtlSeconds ??= 86400;
-        $overlay->signingSecret ??= '563b165330a2a1b96d0f9b7172182ef0e0b3480f276eacc6b55ad99c038489e4';
-        $overlay->save();
+        $graphics = app(GraphicsSettings::class);
+        $graphics->frontendUrl ??= 'http://localhost:5180';
+        $graphics->defaultTtlSeconds ??= 86400;
+        $graphics->signingSecret ??= '563b165330a2a1b96d0f9b7172182ef0e0b3480f276eacc6b55ad99c038489e4';
+        $graphics->save();
     }
 
     private function seedOtp(): void

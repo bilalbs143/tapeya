@@ -50,6 +50,8 @@ const baseSession = {
   config: {},
 };
 
+const ACCESS_TOKEN = `1-999-${'a'.repeat(64)}`;
+
 describe('GraphicControllerProvider', () => {
   beforeEach(() => {
     vi.mocked(useGraphicSession).mockReturnValue({
@@ -66,8 +68,7 @@ describe('GraphicControllerProvider', () => {
       createElement(
         GraphicControllerProvider,
         {
-          matchId: '1',
-          searchParams: new URLSearchParams(),
+          accessToken: ACCESS_TOKEN,
         },
         createElement(ContextProbe),
       ),
@@ -88,8 +89,7 @@ describe('GraphicControllerProvider', () => {
       createElement(
         GraphicControllerProvider,
         {
-          matchId: '1',
-          searchParams: new URLSearchParams(),
+          accessToken: ACCESS_TOKEN,
         },
         createElement(ContextProbe),
       ),
@@ -113,8 +113,7 @@ describe('GraphicControllerProvider', () => {
       createElement(
         GraphicControllerProvider,
         {
-          matchId: '1',
-          searchParams: new URLSearchParams(),
+          accessToken: ACCESS_TOKEN,
         },
         createElement(ContextProbe),
       ),
@@ -140,8 +139,7 @@ describe('GraphicControllerProvider', () => {
       createElement(
         GraphicControllerProvider,
         {
-          matchId: '1',
-          searchParams: new URLSearchParams(),
+          accessToken: ACCESS_TOKEN,
         },
         createElement(ContextProbe),
       ),
@@ -167,8 +165,7 @@ describe('GraphicControllerProvider', () => {
       createElement(
         GraphicControllerProvider,
         {
-          matchId: '1',
-          searchParams: new URLSearchParams(),
+          accessToken: ACCESS_TOKEN,
         },
         createElement(ContextProbe),
       ),

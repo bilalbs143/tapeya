@@ -45,7 +45,6 @@ const statValueClass = cn('font-extrabold leading-none', TEXT_PRIMARY, DISPLAY_F
 
 /**
  * @param {{
- *   accent?: string,
  *   edgeToEdge?: boolean,
  *   statFields: Array<{ key: string, label: string }>,
  *   statValues: Record<string, string | number>,
@@ -55,7 +54,6 @@ const statValueClass = cn('font-extrabold leading-none', TEXT_PRIMARY, DISPLAY_F
  * }} props
  */
 export function PlayerStatLTBar({
-  accent,
   edgeToEdge = true,
   statFields,
   statValues,
@@ -72,14 +70,13 @@ export function PlayerStatLTBar({
           measuring={measuring}
           hideRing
           radius={radius}
-          accent={accent}
           className={infoBarPanelClass(measuring)}
           style={infoBarPanelStyle(measuring)}
         >
           <div className="flex h-full w-full flex-col">
             <div
               className="flex min-h-0 w-full items-center justify-center overflow-hidden"
-              style={{ ...headRowFlexStyle, ...headBandStyle, background: accentPanelHeadGradient(accent) }}
+              style={{ ...headRowFlexStyle, ...headBandStyle, background: accentPanelHeadGradient() }}
             >
               {renderHeader(measuring)}
             </div>

@@ -15,7 +15,7 @@ import {
  *
  * Returns the active flash item { commandKey, context, contextHash } or null.
  *
- * @param {string|number|undefined} matchId
+ * @param {string|number|null|undefined} matchId
  * @returns {{ commandKey: string, context: object|null, contextHash: string|null } | null}
  */
 export function useGraphicFlash(matchId) {
@@ -42,6 +42,7 @@ export function useGraphicFlash(matchId) {
 
     const channelName = `match.${matchId}.graphics`;
 
+    /** @param {Record<string, unknown>} event */
     const handler = (event) => {
       const action = graphicFlashEventToAction(event);
       if (action) {

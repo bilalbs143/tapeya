@@ -1,28 +1,24 @@
 /**
- * Theme1 accent helpers — thin wrapper around shared color utilities.
- *
- * Use `accentMix()` for translucent accents in JSX/inline styles (never color-mix()).
- * Future themes: import from `graphics/shared/accentColor.js` with their own defaults.
+ * Theme1 wrapper around shared vMix-safe accent helpers.
  */
-import { mixColorWithTransparent, normalizeColor } from '../../../shared/accentColor';
-import { colors } from '../config';
+import { accentMix as sharedAccentMix } from '../../../shared/accentColor.js';
+import { isDecorativeBoxGlowEnabled } from '../visualEffects';
 
-/** @param {unknown} value @param {string} [fallback] */
-export function normalizeAccentColor(value, fallback = colors.accentA) {
-  return normalizeColor(value, fallback);
-}
-
-export { isSixDigitHex } from '../../../shared/accentColor';
+export {
+  accentMix,
+  accentPanelHeadGradient,
+  isSixDigitHex,
+  mixColorWithTransparent,
+  normalizeAccentColor,
+  resolveCssColorRgb,
+} from '../../../shared/accentColor.js';
 
 /**
  * @param {unknown} accent
- * @param {number} percent opacity mixed with transparent (0–100)
+ * @param {number} [percent=13]
+ * @param {string} [size='16px']
  */
-export function accentMix(accent, percent) {
-  return mixColorWithTransparent(accent, percent, { fallback: colors.accentA });
-}
-
-/** @param {unknown} [accent] */
-export function accentPanelHeadGradient(accent = 'var(--accentA)') {
-  return `linear-gradient(100deg, ${accentMix(accent, 33)}, transparent 60%)`;
+export function accentGlowShadow(accent, percent = 13, size = '16px') {
+  if (!isDecorativeBoxGlowEnabled()) return 'none';
+  return `0 0 calc(${size} * var(--glow)) ${sharedAccentMix(accent, percent)}`;
 }

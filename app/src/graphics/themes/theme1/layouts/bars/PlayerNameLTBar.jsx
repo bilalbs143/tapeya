@@ -1,9 +1,10 @@
 /**
  * Player name lower-third bar — shared by batsman and bowler NAME_LT controllers.
  */
+import { resolveBroadcastNameParts } from '@tapeya/graphics-core/domain/playerNameResolver';
+
 import { cn } from '@/lib/utils';
 
-import { resolveBroadcastNameParts } from '../../../../core/domain/playerNameResolver';
 import { geometry, infoBarPanelClass, infoBarPanelStyle, ltBar, ltNameBar } from '../../config';
 import {
   accentPanelHeadGradient,
@@ -42,7 +43,7 @@ function resolvePlayer(player, teams) {
   return {
     player,
     team,
-    accent: team?.color ?? 'var(--accentA)',
+    teamAccent: team?.color ?? 'var(--accentA)',
   };
 }
 
@@ -70,7 +71,7 @@ export function PlayerNameLTBar({ player, teams, edgeToEdge = true }) {
 
   if (!resolved) return null;
 
-  const { player: resolvedPlayer, team, accent } = resolved;
+  const { player: resolvedPlayer, team, teamAccent } = resolved;
   const { displayName, role } = resolvePlayerContent(resolvedPlayer);
   const logoUrl = resolvedPlayer.logoUrl ?? team?.logoUrl;
 
@@ -81,13 +82,12 @@ export function PlayerNameLTBar({ player, teams, edgeToEdge = true }) {
           measuring={measuring}
           hideRing
           radius={radius}
-          accent={accent}
           className={infoBarPanelClass(measuring)}
           style={infoBarPanelStyle(measuring)}
         >
           <div
             className="flex h-full w-full items-center justify-between gap-6 px-[22px]"
-            style={{ background: accentPanelHeadGradient(accent) }}
+            style={{ background: accentPanelHeadGradient() }}
           >
             <div className="flex min-h-0 flex-col justify-center gap-1">
               <span className={atMaxWidth ? nameClampClass : nameClass} style={nameStyle}>
@@ -101,7 +101,7 @@ export function PlayerNameLTBar({ player, teams, edgeToEdge = true }) {
             </div>
 
             <div className="flex shrink-0 items-center">
-              <TeamMark team={team} accent={accent} logoUrl={logoUrl} measuring={measuring} />
+              <TeamMark team={team} accent={teamAccent} logoUrl={logoUrl} measuring={measuring} />
             </div>
           </div>
         </InsetLTBarPanel>

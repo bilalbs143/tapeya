@@ -260,7 +260,7 @@ export class MatchControllerDashboardComponent implements OnInit {
 
   public captionManageTooltip(): string {
     if (!this.caption) {
-      return 'Add a match caption for Custom overlay commands';
+      return 'Add a match caption for Custom graphics commands';
     }
     return `${this.caption.title} — ${this.caption.description}`;
   }

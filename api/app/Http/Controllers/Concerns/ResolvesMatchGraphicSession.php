@@ -9,7 +9,7 @@ use App\Services\Broadcast\FindMatchGraphicSession;
 use Illuminate\Http\JsonResponse;
 
 /**
- * Shared graphic-session JSON for admin GET, user GET, and signed overlay read.
+ * Shared graphic-session JSON for admin GET, user GET, and signed graphics read.
  */
 trait ResolvesMatchGraphicSession
 {

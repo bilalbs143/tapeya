@@ -1,6 +1,5 @@
+import { createTestSnapshot, PROCESSOR_MAP } from '@tapeya/graphics-core/processors/__tests__/fixtures.js';
 import { describe, expect, it } from 'vitest';
-
-import { createTestSnapshot, PROCESSOR_MAP } from '@/graphics/core/processors/__tests__/fixtures';
 
 import { TEST_TOKENS, THEME1_ADAPTER_CONTRACTS } from '../adapterContracts';
 

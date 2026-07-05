@@ -29,25 +29,20 @@ const scoreClusterClass = cn(BATTER_SCORE_CLUSTER_CLASS, 'ml-2');
 const runsWrapClass = 'flex items-start';
 const asteriskClass = cn('text-[22px] font-extrabold leading-none text-[#f5c85a]', DISPLAY_FONT);
 
-function resolveBatter(batter, teams) {
+function resolveBatter(batter) {
   if (!batter?.name) return null;
-
-  const team = batter.teamCode ? teams[batter.teamCode] : null;
-  return {
-    batter,
-    accent: team?.color ?? 'var(--accentA)',
-  };
+  return { batter };
 }
 
 /**
  * @param {{ batter: object, teams: Record<string, object>, edgeToEdge?: boolean }} props
  */
-export function BatsmanMatchLTBar({ batter, teams, edgeToEdge = true }) {
-  const resolved = resolveBatter(batter, teams);
+export function BatsmanMatchLTBar({ batter, teams: _teams, edgeToEdge = true }) {
+  const resolved = resolveBatter(batter);
 
   if (!resolved) return null;
 
-  const { batter: player, accent } = resolved;
+  const { batter: player } = resolved;
   const statValues = {
     ones: player.ones ?? 0,
     twos: player.twos ?? 0,
@@ -60,7 +55,6 @@ export function BatsmanMatchLTBar({ batter, teams, edgeToEdge = true }) {
 
   return (
     <PlayerStatLTBar
-      accent={accent}
       edgeToEdge={edgeToEdge}
       statFields={STAT_FIELDS}
       statValues={statValues}

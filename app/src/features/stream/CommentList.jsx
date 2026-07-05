@@ -1,6 +1,6 @@
 import { memo } from 'react';
 
-const VISIBLE = 4;
+const VISIBLE = 10;
 
 const CommentList = memo(function CommentList({ messages, isLandscape = false }) {
   const visible = messages.slice(-VISIBLE);
@@ -11,9 +11,7 @@ const CommentList = memo(function CommentList({ messages, isLandscape = false })
 
   return (
     <ul
-      className={`mb-2 flex flex-col-reverse gap-1 overflow-hidden [mask-image:linear-gradient(to_bottom,black_75%,transparent)] ${
-        isLandscape ? 'max-h-36' : 'max-h-28'
-      }`}
+      className={`mb-2 flex flex-col-reverse gap-1 overflow-hidden ${isLandscape ? 'max-h-90' : 'max-h-70'}`}
       aria-label="Live Comments"
       aria-live="polite"
       aria-atomic="false"

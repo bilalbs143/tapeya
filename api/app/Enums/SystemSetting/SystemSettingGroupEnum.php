@@ -23,7 +23,7 @@ enum SystemSettingGroupEnum: string
     /** Internal admin inboxes (order alerts, system mail). */
     case ADMIN_MAIL = 'admin_mail';
 
-    /** Live graphics / OBS browser source: overlay URL, signing, TTL. */
+    /** Live graphics / OBS browser source: graphics URL, signing, TTL. */
     case GRAPHIC_CONTROLLER = 'graphic_controller';
 
     /** OTP verification behaviour (e.g. QA test numbers). */

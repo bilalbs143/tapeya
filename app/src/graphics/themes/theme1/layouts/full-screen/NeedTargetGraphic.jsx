@@ -4,8 +4,8 @@
 import { cn } from '@/lib/utils';
 
 import { colors, fsSummaryPanel } from '../../config';
-import { accentMix, AnimatedNumber, FSStage, GlowPanel } from '../../primitives';
-import { accentHaloShadow, colorHaloShadow, textGlowClass } from '../../visualEffects';
+import { AnimatedNumber, DISPLAY_FONT, FSStage, GlowPanel } from '../../primitives';
+import { colorHaloShadow, textGlowClass } from '../../visualEffects';
 import { FS_CARD_TITLE, FS_GOLD_BAND, FS_HEADER_SUB_CENTERED, FS_SECTION_TITLE, fsFont } from '../shared/fsTypographyStyles';
 
 const NEED_TARGET_GOLD = colors.gold;
@@ -16,14 +16,10 @@ const labelBoxClass = cn(
   'inline-flex min-w-[132px] items-center justify-center rounded-lg border px-6 py-2.5',
   'bg-[linear-gradient(180deg,rgba(30,38,62,0.9),rgba(14,19,32,0.92))]',
   'font-extrabold tracking-[0.14em] text-white uppercase',
-  '[font-family:var(--font-display)]',
+  DISPLAY_FONT,
 );
 
-const statValueClass = cn(
-  'font-extrabold leading-[0.9] text-white',
-  '[font-family:var(--font-display)]',
-  textGlowClass('heroLg'),
-);
+const statValueClass = cn('font-extrabold leading-[0.9] text-white', DISPLAY_FONT, textGlowClass('heroLg'));
 
 function resolveHeaderTitle(data) {
   return data.headerTitle ?? '';
@@ -33,14 +29,13 @@ function resolveHeaderSub(data) {
   return data.sub ?? '';
 }
 
-function NeedTargetLabelBox({ children, accent }) {
+function NeedTargetLabelBox({ children }) {
   return (
     <span
       className={labelBoxClass}
       style={{
         ...fsFont(fsSummaryPanel.statLabelBox),
-        borderColor: accent ? accentMix(accent, 40) : accentMix('var(--accentA)', 40),
-        boxShadow: accent ? accentHaloShadow(accent) : undefined,
+        borderColor: 'rgba(120,140,255,0.28)',
       }}
     >
       {children}
@@ -48,14 +43,14 @@ function NeedTargetLabelBox({ children, accent }) {
   );
 }
 
-function NeedTargetStatColumn({ topLabel, bottomLabel, value, accent, padValue = false }) {
+function NeedTargetStatColumn({ topLabel, bottomLabel, value, padValue = false }) {
   const displayValue = padValue ? String(value).padStart(2, '0') : value;
 
   return (
     <div className="flex flex-col items-center gap-5">
-      <NeedTargetLabelBox accent={accent}>{topLabel}</NeedTargetLabelBox>
+      <NeedTargetLabelBox>{topLabel}</NeedTargetLabelBox>
       <AnimatedNumber value={displayValue} className={statValueClass} style={fsFont(fsSummaryPanel.heroMetricLg)} />
-      <NeedTargetLabelBox accent={accent}>{bottomLabel}</NeedTargetLabelBox>
+      <NeedTargetLabelBox>{bottomLabel}</NeedTargetLabelBox>
     </div>
   );
 }
@@ -65,7 +60,7 @@ function WicketsFooterBand({ wickets }) {
     <div
       className="absolute bottom-0 left-1/2 grid h-[68px] min-w-[360px] -translate-x-1/2 translate-y-1/2 place-items-center rounded-xl px-10"
       style={{
-        background: `linear-gradient(100deg, ${NEED_TARGET_GOLD}, #d9a93a)`,
+        background: `linear-gradient(100deg, ${NEED_TARGET_GOLD}, ${colors.goldDark})`,
         boxShadow: colorHaloShadow(NEED_TARGET_GOLD),
       }}
     >
@@ -87,8 +82,8 @@ function NeedTargetCard({ title, runsNeeded, ballsRemaining, wicketsRemaining, a
         </h2>
 
         <div className="mt-10 grid grid-cols-2 gap-12">
-          <NeedTargetStatColumn topLabel="NEED" bottomLabel="RUNS" value={runsNeeded} accent={ringAccent} />
-          <NeedTargetStatColumn topLabel="FROM" bottomLabel="BALLS" value={ballsRemaining} accent={ringAccent} padValue />
+          <NeedTargetStatColumn topLabel="NEED" bottomLabel="RUNS" value={runsNeeded} />
+          <NeedTargetStatColumn topLabel="FROM" bottomLabel="BALLS" value={ballsRemaining} padValue />
         </div>
       </GlowPanel>
 

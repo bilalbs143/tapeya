@@ -3,7 +3,7 @@
 namespace App\Support\Broadcast;
 
 /**
- * Deterministic context hash shared with the overlay ({@see hashGraphicContext} in JS).
+ * Deterministic context hash shared with the graphics app ({@see hashGraphicContext} in JS).
  */
 final class GraphicContextHash
 {

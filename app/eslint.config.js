@@ -21,6 +21,7 @@ export default [
     ignores: [
       'node_modules/**',
       'dist/**',
+      'dist-graphics/**',
       'build/**',
       'coverage/**',
       'ios/**',
@@ -115,7 +116,10 @@ export default [
           moduleDirectory: ['node_modules', 'src/'],
         },
         alias: {
-          map: [['@', './src']],
+          map: [
+            ['@', './src'],
+            ['@tapeya/graphics-core', '../shared/graphics-core/src'],
+          ],
           extensions: ['.js', '.jsx'],
         },
       },

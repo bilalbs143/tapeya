@@ -38,27 +38,24 @@ const dismissalClass = cn(
   UI_FONT,
 );
 
-function resolveBatter(batter, teams) {
+function resolveBatter(batter) {
   if (!batter?.name && !batter?.firstName) return null;
-
-  const team = batter.teamCode ? teams[batter.teamCode] : null;
   return {
     batter: {
       ...batter,
       name: batter.name ?? [batter.firstName, batter.lastName].filter(Boolean).join(' '),
     },
-    accent: team?.color ?? 'var(--accentA)',
   };
 }
 
 /**
  * @param {{ batter: object, teams: Record<string, object>, edgeToEdge?: boolean }} props
  */
-export function LastWicketLTBar({ batter, teams, edgeToEdge = true }) {
-  const resolved = resolveBatter(batter, teams);
+export function LastWicketLTBar({ batter, teams: _teams, edgeToEdge = true }) {
+  const resolved = resolveBatter(batter);
   if (!resolved) return null;
 
-  const { batter: player, accent } = resolved;
+  const { batter: player } = resolved;
   const statValues = {
     ones: player.ones ?? 0,
     twos: player.twos ?? 0,
@@ -71,7 +68,6 @@ export function LastWicketLTBar({ batter, teams, edgeToEdge = true }) {
 
   return (
     <PlayerStatLTBar
-      accent={accent}
       edgeToEdge={edgeToEdge}
       statFields={STAT_FIELDS}
       statValues={statValues}

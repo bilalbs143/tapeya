@@ -41,7 +41,9 @@ export function toScoreBarBundle(props, tokens, options = {}) {
   const striker = batters.find((b) => b.onStrike) ?? batters[0] ?? {};
   const nonStriker = batters.find((b) => !b.onStrike && b !== striker) ?? batters[1] ?? {};
 
-  const { total, wkts, scoreSep } = parseInningsScore(batting.score, batting.wickets ?? batting.wkts);
+  const parsedScore = parseInningsScore(batting.score, batting.wickets ?? batting.wkts);
+  if (!parsedScore) return null;
+  const { total, wkts, scoreSep } = parsedScore;
 
   const overs = batting.overs ?? '';
   const ballsLabel = ballStripLabelForCommand(props.commandKey, props.ballsLabel ?? null);
@@ -100,7 +102,7 @@ export function toScoreBarBundle(props, tokens, options = {}) {
 
   // At Stage — 2nd innings only; compare 1st innings score at this same over/ball
   if (props.mirrorBattingTeam != null) {
-    const mirrorScore = parseInningsScore(props.mirrorBattingTeam.score);
+    const mirrorScore = parseInningsScore(props.mirrorBattingTeam.score) ?? { total: 0, wkts: 0, scoreSep: '-' };
     const bowlingTeam = teams[match.bowlingCode];
     const battingTeam = teams[match.battingCode];
     frame.stageComparison = [

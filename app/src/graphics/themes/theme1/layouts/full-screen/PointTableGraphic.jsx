@@ -174,7 +174,7 @@ function PointTableRow({ row, delay = 0, rowHeight }) {
         </span>
       </div>
 
-      <div className="flex min-w-0 flex-1 items-center border-r border-white/[0.08] px-6">
+      <div className="flex min-w-0 flex-1 items-center border-r border-white/8 px-6">
         <span className={rowNameClass} style={fsFont(fsTable.name)}>
           {row.name}
         </span>

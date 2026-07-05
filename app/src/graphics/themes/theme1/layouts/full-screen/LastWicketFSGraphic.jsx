@@ -1,9 +1,10 @@
 /**
  * Last wicket full-screen — dismissed batter match scorecard.
  */
+import { resolveBroadcastNameParts } from '@tapeya/graphics-core/domain/playerNameResolver';
+
 import { cn } from '@/lib/utils';
 
-import { resolveBroadcastNameParts } from '../../../../core/domain/playerNameResolver';
 import { fsPlayerCard, fsSummaryPanel } from '../../config';
 import { fmt, GlowPanel, PlayerAvatarImage, TeamLogoOrCrest } from '../../primitives';
 import { FsStatColumn } from '../shared/FsStatColumn';
@@ -83,10 +84,14 @@ export function LastWicketFSGraphic({ batter, teams, sub }) {
         </div>
 
         <div style={{ height: AVATAR_H }}>
-          <FsStatColumn statFields={STAT_FIELDS} statValues={statValues} accent={accent} statLayout={statLayout} />
+          <FsStatColumn statFields={STAT_FIELDS} statValues={statValues} statLayout={statLayout} />
         </div>
 
-        <GlowPanel className="flex shrink-0 flex-col px-10 py-12" style={{ width: PANEL_W, height: statsColumnHeight }}>
+        <GlowPanel
+          accent={accent}
+          className="flex shrink-0 flex-col px-10 py-12"
+          style={{ width: PANEL_W, height: statsColumnHeight }}
+        >
           <div className="flex items-start justify-between gap-6">
             <TeamLogoOrCrest logoUrl={logoUrl} team={team} accent={accent} size={CREST_SIZE} borderPulseOrder={1} />
           </div>

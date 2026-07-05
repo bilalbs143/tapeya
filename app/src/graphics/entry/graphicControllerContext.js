@@ -12,4 +12,4 @@ import { createContext } from 'react';
  * @property {boolean} isError
  */
 
-export const GraphicControllerContext = createContext(null);
+export const GraphicControllerContext = createContext(/** @type {GraphicControllerContextValue|null} */ (null));

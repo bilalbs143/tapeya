@@ -1,5 +1,7 @@
 <?php
 
+$allowedOrigins = env('CORS_ALLOWED_ORIGINS');
+
 return [
 
     /*
@@ -7,9 +9,9 @@ return [
     | Cross-Origin Resource Sharing (CORS) Configuration
     |--------------------------------------------------------------------------
     |
-    | Here you may configure your settings for cross-origin resource sharing
-    | or "CORS". This determines what cross-origin operations may execute
-    | in web browsers. You are free to adjust these settings as needed.
+    | Production: set CORS_ALLOWED_ORIGINS to a comma-separated list including
+    | https://graphics.tapeya.com (overlay / vMix browser source).
+    | Local dev: leave unset to allow all origins (*).
     |
     | To learn more: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
     |
@@ -23,7 +25,9 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => $allowedOrigins !== null && $allowedOrigins !== ''
+        ? array_values(array_filter(array_map('trim', explode(',', $allowedOrigins))))
+        : ['*'],
 
     'allowed_origins_patterns' => [],
 

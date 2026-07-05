@@ -1,7 +1,8 @@
 /**
  * FOW processors → FallOfWicketsLTBar data shape.
  */
-import { resolveBroadcastNameParts, resolveBroadcastPlayerName } from '../../../core/domain/playerNameResolver';
+import { resolveBroadcastNameParts, resolveBroadcastPlayerName } from '@tapeya/graphics-core/domain/playerNameResolver';
+
 import {
   coalescePlayerImageUrlGated,
   parseInningsScore,
@@ -29,7 +30,9 @@ export function toFallOfWicketsData(props, tokens) {
   const wickets = Array.isArray(props.wickets) ? props.wickets : [];
   if (!wickets.length) return null;
 
-  const { total, wkts, scoreSep } = parseInningsScore(batting.score, batting.wickets);
+  const parsedScore = parseInningsScore(batting.score, batting.wickets);
+  if (!parsedScore) return null;
+  const { total, wkts, scoreSep } = parsedScore;
   const battingCode = teams.batting ? 'batting' : (resolveTeamCode(batting, teams) ?? 'home');
 
   return {

@@ -77,7 +77,7 @@ export function OfficialsLTBar({ data, edgeToEdge = true, heading, subtitle = 'M
             <span className={subtitleClass} style={subtitleStyle}>
               {subtitle}
             </span>
-            <span className={atMaxWidth ? headingClampClass : headingClass} style={headingStyle}>
+            <span className={headingClampClass} style={headingStyle}>
               {heading}
             </span>
           </div>
@@ -96,10 +96,7 @@ export function OfficialsLTBar({ data, edgeToEdge = true, heading, subtitle = 'M
                 names.map((name, index) => (
                   <div
                     key={`${name}-${index}`}
-                    className={cn(
-                      'flex h-full min-w-0 items-center justify-center px-4',
-                      index > 0 && 'border-l border-white/[0.08]',
-                    )}
+                    className={cn('flex h-full min-w-0 items-center justify-center px-4', index > 0 && 'border-l border-white/8')}
                   >
                     <span className={atMaxWidth ? nameClampClass : nameClass} style={nameStyle}>
                       {name}

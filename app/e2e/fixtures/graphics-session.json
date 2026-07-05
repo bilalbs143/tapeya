@@ -1,0 +1,50 @@
+{
+  "data": {
+    "id": 1,
+    "match_id": 42,
+    "graphic_theme_id": 1,
+    "config": {
+      "homeBgColor": "#0055ff",
+      "awayBgColor": "#ff5500",
+      "homeTextColor": "#ffffff",
+      "awayTextColor": "#ffffff",
+      "enableImages": false
+    },
+    "context": {
+      "match": {
+        "home_team_id": 1,
+        "away_team_id": 2,
+        "home_team_name": "Home XI",
+        "away_team_name": "Away XI",
+        "home_team_short_code": "HOM",
+        "away_team_short_code": "AWY",
+        "venue_display_line": "National Stadium, Karachi"
+      },
+      "tournament": { "name": "Tapeya Premier League" },
+      "batting_team": "home",
+      "score": "120-3",
+      "overs": "15.2",
+      "batters": [{ "id": 10, "name": "Batter One", "runs": 45, "balls": 30, "on_strike": true }],
+      "bowler": { "name": "Bowler One", "figures": "2/28", "overs": "4.0", "user_id": 20 },
+      "current_over_deliveries": [
+        { "display_token": "1", "chip_type": "single", "over_number": 15, "ball_in_over": 1 },
+        { "display_token": "4", "chip_type": "boundary_four", "over_number": 15, "ball_in_over": 2 }
+      ]
+    },
+    "context_hash": "graphics-smoke-fixture",
+    "active_command_id": 99,
+    "theme": {
+      "id": 1,
+      "slug": "theme1",
+      "name": "Theme 1",
+      "is_active": true
+    },
+    "active_command": {
+      "id": 99,
+      "command_key": "LT_DEFAULT",
+      "command_type": "LOWER_THIRD",
+      "display_mode": "LT",
+      "payload": null
+    }
+  }
+}

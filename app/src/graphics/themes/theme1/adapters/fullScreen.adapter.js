@@ -1,18 +1,11 @@
 /**
  * Full-screen processors → Tapeya internal graphic data shapes.
  */
-import { resolveBroadcastPlayerName } from '../../../core/domain/playerNameResolver';
-import { assets } from '../config';
+import { resolveBroadcastPlayerName } from '@tapeya/graphics-core/domain/playerNameResolver';
+
+import { assets, colors } from '../config';
 import { isNotOutBatter, resolvePlayerDisplayName } from '../primitives';
-import {
-  normalizeAccentColor,
-  resolveCounterpartSide,
-  resolvePlayerImageUrlGated,
-  resolveTeamCode,
-  resolveTeamColor,
-  toTeamRecord,
-  tournamentSub,
-} from './_shared';
+import { normalizeAccentColor, resolvePlayerImageUrlGated, resolveTeamCode, toTeamRecord, tournamentSub } from './_shared';
 import { toTeams } from './teams.adapter';
 
 /**
@@ -173,7 +166,6 @@ export function toBattingSummaryBundle(props, tokens) {
     const code = String(props.teamCode ?? 'batting');
     const team = fixtureTeamRecord(props, code, tokens);
 
-    const side = props.battingTeamSide ?? 'home';
     return {
       teams: { [code]: team },
       data: {
@@ -181,7 +173,6 @@ export function toBattingSummaryBundle(props, tokens) {
         title: props.title,
         sub: tournamentSub(props),
         accent: team.color,
-        accentAlt: resolveTeamColor(resolveCounterpartSide(side), tokens),
         crestLogoUrl: props.crestLogoUrl ?? props.logoUrl ?? null,
         scoreStrip: props.scoreStrip ?? {},
         batsmen: props.batsmen.map(mapBattingSummaryRow),
@@ -205,7 +196,6 @@ export function toBattingSummaryBundle(props, tokens) {
       title: battingTeam.name ?? theme1Team.displayName,
       sub: tournamentSub(props),
       accent: theme1Team.color,
-      accentAlt: resolveTeamColor(resolveCounterpartSide(side), tokens),
       crestLogoUrl: props.teamLogoUrl ?? battingTeam.logoUrl ?? null,
       scoreStrip: {
         extras: props.inningsExtras ?? 0,
@@ -224,7 +214,6 @@ export function toBattingSummaryBundle(props, tokens) {
 export function toBowlingSummaryBundle(props, tokens) {
   if (props.title && Array.isArray(props.bowlers) && props.bowlers.length && !props.bowlingTeam) {
     const code = String(props.teamCode ?? 'bowling');
-    const side = props.bowlingTeamSide ?? 'away';
     const team = fixtureTeamRecord(props, code, tokens);
 
     return {
@@ -234,7 +223,6 @@ export function toBowlingSummaryBundle(props, tokens) {
         title: props.title,
         sub: tournamentSub(props),
         accent: team.color,
-        accentAlt: resolveTeamColor(resolveCounterpartSide(side), tokens),
         accentSecondary: props.accentSecondary,
         crestLogoUrl: props.crestLogoUrl ?? props.logoUrl ?? null,
         fallOfWicketsLabel: props.fallOfWicketsLabel ?? 'FALL OF WICKETS',
@@ -260,7 +248,6 @@ export function toBowlingSummaryBundle(props, tokens) {
       title: bowlingTeam.name ?? theme1Team.displayName,
       sub: tournamentSub(props),
       accent: theme1Team.color,
-      accentAlt: resolveTeamColor(resolveCounterpartSide(side), tokens),
       crestLogoUrl: props.teamLogoUrl ?? bowlingTeam.logoUrl ?? null,
       fallOfWicketsLabel: formatFallOfWicketsLabel(props.fallOfWickets),
       scoreStrip: {
@@ -501,7 +488,7 @@ function mapPartnershipHistory(partnerships, accent, tokens) {
           fullName: toBroadcastDisplayName(b),
           runs: b.runs ?? 0,
           balls: b.balls ?? 0,
-          accent: index === 0 ? accent : '#f5c85a',
+          accent: index === 0 ? accent : colors.gold,
           align: index === 1 ? 'right' : undefined,
           avatarUrl: resolvePlayerImageUrlGated(b, tokens),
         })),
@@ -680,14 +667,16 @@ export function toMatchSummaryBundle(props, tokens) {
 /**
  * @param {unknown} player
  */
-function formatXiPlayerName(player) {
-  if (typeof player === 'string') return resolveBroadcastPlayerName(player);
+function toXiPlayerRow(player) {
+  if (typeof player === 'string') {
+    return { name: resolveBroadcastPlayerName(player), captain: false, wicketKeeper: false };
+  }
   const p = player ?? {};
-  const name = resolveBroadcastPlayerName(p.name ?? p.display_name ?? '');
-  const tags = [];
-  if (p.is_captain ?? p.captain) tags.push('C');
-  if (p.is_wicket_keeper ?? p.wicketKeeper) tags.push('WK');
-  return tags.length ? `${name} (${tags.join('/')})` : name;
+  return {
+    name: resolveBroadcastPlayerName(p.name ?? p.display_name ?? ''),
+    captain: Boolean(p.is_captain ?? p.captain),
+    wicketKeeper: Boolean(p.is_wicket_keeper ?? p.wicketKeeper),
+  };
 }
 
 /**
@@ -718,7 +707,7 @@ export function toPlaying11Bundle(props, tokens) {
         name,
         accent,
         logoUrl: entry.logoUrl ?? null,
-        players: Array.isArray(entry.players) ? entry.players.map(formatXiPlayerName) : [],
+        players: Array.isArray(entry.players) ? entry.players.map(toXiPlayerRow) : [],
       };
     });
 
@@ -756,14 +745,14 @@ export function toPlaying11Bundle(props, tokens) {
           name: props.homeTeam?.name ?? teams.home.displayName,
           accent: normalizeAccentColor(props.homeTeam?.accent ?? teams.home.color, 'var(--accentA)'),
           logoUrl: props.homeTeam?.logoUrl ?? teams.home.logoUrl,
-          players: homePlayers.map(formatXiPlayerName),
+          players: homePlayers.map(toXiPlayerRow),
         },
         {
           teamCode: 'away',
           name: props.awayTeam?.name ?? teams.away.displayName,
           accent: normalizeAccentColor(props.awayTeam?.accent ?? teams.away.color, 'var(--accentB)'),
           logoUrl: props.awayTeam?.logoUrl ?? teams.away.logoUrl,
-          players: awayPlayers.map(formatXiPlayerName),
+          players: awayPlayers.map(toXiPlayerRow),
         },
       ],
     },

@@ -2,7 +2,8 @@
  * Bowler match lower-third — live in-match figures.
  * Layout: [name · w-r · overs] / [overs · dots · extras · wickets · econ]
  */
-import { formatBroadcastBowlingFigures } from '../../../../core/domain/player';
+import { formatBroadcastBowlingFigures } from '@tapeya/graphics-core/domain/player';
+
 import { fmt } from '../../primitives';
 import { PlayerStatLTBar } from './PlayerStatLTBar';
 import {
@@ -23,14 +24,9 @@ const STAT_FIELDS = [
 
 const scoreClusterClass = 'ml-2 flex shrink-0 items-baseline gap-[5px]';
 
-function resolveBowler(bowler, teams) {
+function resolveBowler(bowler) {
   if (!bowler?.name) return null;
-
-  const team = bowler.teamCode ? teams[bowler.teamCode] : null;
-  return {
-    bowler,
-    accent: team?.color ?? 'var(--accentA)',
-  };
+  return { bowler };
 }
 
 function formatFigures(bowler) {
@@ -54,11 +50,11 @@ function formatOvers(bowler) {
 /**
  * @param {{ bowler: object, teams: Record<string, object>, edgeToEdge?: boolean }} props
  */
-export function BowlerMatchLTBar({ bowler, teams, edgeToEdge = true }) {
-  const resolved = resolveBowler(bowler, teams);
+export function BowlerMatchLTBar({ bowler, teams: _teams, edgeToEdge = true }) {
+  const resolved = resolveBowler(bowler);
   if (!resolved) return null;
 
-  const { bowler: player, accent } = resolved;
+  const { bowler: player } = resolved;
   const oversDisplay = formatOvers(player);
   const oversNum = parseFloat(oversDisplay) || 0;
   const statValues = {
@@ -71,7 +67,6 @@ export function BowlerMatchLTBar({ bowler, teams, edgeToEdge = true }) {
 
   return (
     <PlayerStatLTBar
-      accent={accent}
       edgeToEdge={edgeToEdge}
       statFields={STAT_FIELDS}
       statValues={statValues}

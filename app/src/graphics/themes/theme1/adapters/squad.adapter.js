@@ -1,8 +1,9 @@
 /**
  * Squad processors → SquadListGraphic data shape.
  */
-import { resolveBroadcastPlayerName } from '../../../core/domain/playerNameResolver';
-import { resolveCounterpartSide, resolvePlayerImageUrlGated, resolveTeamColor, toTeamRecord, tournamentSub } from './_shared';
+import { resolveBroadcastPlayerName } from '@tapeya/graphics-core/domain/playerNameResolver';
+
+import { resolvePlayerImageUrlGated, resolveTeamColor, toTeamRecord, tournamentSub } from './_shared';
 
 /**
  * @param {Array<Record<string, unknown>>} players
@@ -52,7 +53,6 @@ export function toSquadBundle(props, tokens, mode) {
         title: props.title,
         sub,
         accent,
-        accentAlt: resolveTeamColor(resolveCounterpartSide(side), tokens),
         logoUrl: props.logoUrl ?? null,
         requiredRR: props.requiredRR ?? props.requiredRunRate ?? '',
         defaultAvatarUrl: props.defaultAvatarUrl ?? null,
@@ -77,7 +77,6 @@ export function toSquadBundle(props, tokens, mode) {
       title: team.name ?? theme1Team.displayName,
       sub,
       accent: theme1Team.color,
-      accentAlt: resolveTeamColor(resolveCounterpartSide(side), tokens),
       logoUrl: team.logoUrl ?? props.teamLogoUrl ?? props.tournamentLogoUrl ?? null,
       requiredRR: props.requiredRunRate ?? props.requiredRR ?? '',
       defaultAvatarUrl: props.defaultAvatarUrl ?? null,

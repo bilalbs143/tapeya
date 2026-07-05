@@ -64,9 +64,9 @@ export interface MatchGraphicSession {
   config: Record<string, unknown> | null;
   context: Record<string, unknown> | null;
   context_hash?: string | null;
+  pending_players?: Record<string, unknown> | null;
   signed_overlay_url?: string | null;
   signed_overlay_expires_at?: string | null;
-  pending_players?: Record<string, unknown> | null;
   active_command_id: number | null;
   theme?: GraphicTheme;
   active_command?: MatchGraphicCommand | null;
@@ -117,7 +117,7 @@ export interface MatchGraphicPlayerListsPayload {
   innings_sides?: MatchGraphicInningsSide[];
 }
 
-export interface SignedOverlayUrlPayload {
+export interface SignedGraphicsUrlPayload {
   url: string;
   expires_at: string;
   theme_slug: string;
@@ -183,10 +183,8 @@ export class MatchGraphicService {
     );
   }
 
-  public getSignedOverlayUrl(matchId: number): Observable<{ data: SignedOverlayUrlPayload }> {
-    return this.http.get<{ data: SignedOverlayUrlPayload }>(
-      `v1/admin/matches/${matchId}/graphic-session/signed-url`,
-    );
+  public getSignedGraphicsUrl(matchId: number): Observable<{ data: SignedGraphicsUrlPayload }> {
+    return this.http.get<{ data: SignedGraphicsUrlPayload }>(`v1/admin/matches/${matchId}/graphic-session/signed-url`);
   }
 
   public getGraphicPlayerLists(matchId: number): Observable<{ data: MatchGraphicPlayerListsPayload }> {

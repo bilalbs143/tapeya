@@ -59,7 +59,7 @@ function EventSweep({ kind, radius }) {
 // ── HorizontalBar ─────────────────────────────────────────────────────────────
 const DESIGN_W = ltBar.designWidth;
 const lt = ltTypography;
-const SCORE_DISPLAY_CLASS = '[font-family:var(--font-display)] leading-[0.92] font-extrabold';
+const SCORE_DISPLAY_CLASS = cn(DISPLAY_FONT, 'leading-[0.92] font-extrabold');
 /** Zone C KPI columns — CRR, RRR, Need Target, team code, partnership, projected score, … */
 const KPI_PANEL_SHELL_STYLE = { paddingInline: lt.kpiColumnPaddingX, gap: lt.kpiColumnGap };
 
@@ -144,7 +144,7 @@ function HorizontalBar({
               paddingBottom: ltBar.controllerBarPaddingY,
             }}
           >
-            <Crest team={bat} size={ltBar.crestSize} accent={bat.color} accentAlt={bowl.color} borderPulseOrder={1} />
+            <Crest team={bat} size={ltBar.crestSize} accent={bat.color} borderPulseOrder={1} />
             <div className="flex items-center gap-4">
               <div className="flex flex-col self-stretch pr-[18px]">
                 <div
@@ -279,7 +279,7 @@ function HorizontalBar({
                 </BowlerSubRow>
               </div>
             )}
-            <Crest team={bowl} size={ltBar.crestSize} accent={bowl.color} accentAlt={bat.color} borderPulseOrder={2} />
+            <Crest team={bowl} size={ltBar.crestSize} accent={bowl.color} borderPulseOrder={2} />
           </div>
         </GlowPanel>
       </div>
@@ -451,7 +451,8 @@ function LastBallsPanel({ chips, label = 'LAST 12 BALLS', totalRuns, chipSize = 
           <AnimatedNumber
             value={totalRuns}
             className={cn(
-              'flex shrink-0 items-center justify-center [font-family:var(--font-display)] leading-none font-extrabold text-white',
+              DISPLAY_FONT,
+              'flex shrink-0 items-center justify-center leading-none font-extrabold text-white',
               textGlowClass('subtleSm'),
             )}
             style={{ height: chipSize, minWidth: chipSize + lt.last12TotalMinWidthExtra, fontSize: lt.last12TotalRuns }}
@@ -513,10 +514,7 @@ const PANEL_TEAM_CODE_CLASS = cn(
   textGlowClass('subtleMd'),
 );
 
-const PANEL_METRIC_VALUE_CLASS = cn(
-  '[font-family:var(--font-display)] leading-[0.9] font-extrabold text-white',
-  textGlowClass('subtle'),
-);
+const PANEL_METRIC_VALUE_CLASS = cn(DISPLAY_FONT, 'leading-[0.9] font-extrabold text-white', textGlowClass('subtle'));
 
 /**
  * Standard Zone C KPI block — label above value, consistent padding and hierarchy.
@@ -791,7 +789,7 @@ function HMini({ label, value, labelClassName, hideLabel }) {
         </span>
       ) : null}
       <span
-        className="[font-family:var(--font-display)] leading-none font-bold whitespace-nowrap text-[var(--text)]"
+        className={cn(DISPLAY_FONT, 'leading-none font-bold whitespace-nowrap text-[var(--text)]')}
         style={{ fontSize: lt.overs }}
       >
         {value}
@@ -835,5 +833,5 @@ function HBat({ p, onStrike, truncateName = false, compact = false }) {
  */
 export function NotOutStar({ notOut }) {
   if (!notOut) return null;
-  return <span className="[font-family:var(--font-display)] text-[22px] leading-none font-extrabold text-[#f5c85a]">*</span>;
+  return <span className={cn(DISPLAY_FONT, 'text-[22px] leading-none font-extrabold text-[#f5c85a]')}>*</span>;
 }

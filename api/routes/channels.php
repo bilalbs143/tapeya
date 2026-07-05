@@ -17,7 +17,7 @@ Broadcast::channel('backoffice.notifications', function (User $user) {
 
 /*
  * Public match graphics channel — no auth required.
- * Used by the overlay page (OBS/vMix browser source) to receive live graphic
+ * Used by the graphics page (OBS/vMix browser source) to receive live graphic
  * command updates via Reverb without a user session.
  * The channel name carries the match id, limiting blast radius per fixture.
  */
