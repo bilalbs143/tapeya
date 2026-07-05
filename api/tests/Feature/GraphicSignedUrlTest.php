@@ -9,7 +9,6 @@ use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentMatch;
 use App\Models\User;
-use App\Services\Graphics\GraphicAccessSigner;
 use App\Services\Graphics\MatchGraphicSignedUrlService;
 use App\Settings\GraphicsSettings;
 use Database\Seeders\SystemSettingsSeeder;

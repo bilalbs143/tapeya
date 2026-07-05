@@ -17,7 +17,7 @@
     "build:graphics:fresh": "npm run clean:vite && vite build --config vite.graphics.config.js",
     "build:graphics:production": "VITE_API_URL=https://api.tapeya.com/api/v1 npm run build:graphics",
     "build:graphics:staging": "VITE_API_URL=https://dev-api.tapeya.com/api/v1 npm run build:graphics",
-    "preview:graphics": "vite preview --config vite.graphics.config.js --outDir dist-graphics",
+    "preview:graphics": "vite preview --config vite.graphics.config.js --outDir dist-graphics --host 127.0.0.1",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",

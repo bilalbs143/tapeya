@@ -19,8 +19,7 @@ const themesRegistryPath = resolve(root, '../shared/graphics-themes.json');
 
 const themeArg = process.argv.find((arg) => arg.startsWith('--theme='));
 const themeFlagIndex = process.argv.indexOf('--theme');
-const themeSlug =
-  themeArg?.slice('--theme='.length) ?? (themeFlagIndex >= 0 ? process.argv[themeFlagIndex + 1] : null);
+const themeSlug = themeArg?.slice('--theme='.length) ?? (themeFlagIndex >= 0 ? process.argv[themeFlagIndex + 1] : null);
 
 /**
  * @returns {string[]}
