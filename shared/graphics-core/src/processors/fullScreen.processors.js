@@ -25,19 +25,20 @@ function withSquadRoleFlags(player, squadByName) {
 /**
  * Prefer explicit payload XI when non-empty; otherwise use live squad from context.
  *
- * @param {{ players?: unknown[] }|null|undefined} payloadTeam
+ * @param {{ players?: Record<string, any>[] }|null|undefined} payloadTeam
  * @param {unknown[]} squad
  */
 function resolvePlayingElevenPlayers(payloadTeam, squad) {
   const payloadPlayers = payloadTeam?.players;
+  const squadRecords = /** @type {Record<string, any>[]} */ (Array.isArray(squad) ? squad : []);
   if (Array.isArray(payloadPlayers) && payloadPlayers.length > 0) {
     const squadByName = new Map(
-      (Array.isArray(squad) ? squad : []).map((s) => [String(s?.display_name ?? s?.name ?? '').toLowerCase(), s]),
+      squadRecords.map((s) => [String(s?.display_name ?? s?.name ?? '').toLowerCase(), s]),
     );
     return payloadPlayers.map((player) => withSquadRoleFlags(player, squadByName));
   }
 
-  return Array.isArray(squad) ? squad : [];
+  return squadRecords;
 }
 
 /**

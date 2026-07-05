@@ -108,7 +108,8 @@ export function useGraphicSession(accessToken) {
     }
 
     let hasDroppedSinceMount = false;
-    let reconnectTimer = null;
+    /** @type {ReturnType<typeof setTimeout>|undefined} */
+    let reconnectTimer;
     const RECONNECT_DEBOUNCE_MS = 2500;
 
     const unsubscribe = echo.connector.onConnectionChange((status) => {

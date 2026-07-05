@@ -10,6 +10,11 @@ const rawBaseQuery = fetchBaseQuery({
   },
 });
 
+/**
+ * @param {string | import('@reduxjs/toolkit/query/react').FetchArgs} args
+ * @param {import('@reduxjs/toolkit/query/react').BaseQueryApi} api
+ * @param {{}} extraOptions
+ */
 const baseQueryWithHeaders = async (args, api, extraOptions) => {
   if (args && typeof args === 'object') {
     const method = (args.method ?? 'GET').toUpperCase();
@@ -29,9 +34,11 @@ const baseQueryWithHeaders = async (args, api, extraOptions) => {
 export const graphicsBootstrapBaseApi = createApi({
   reducerPath: 'graphicsBootstrapApi',
   baseQuery: retry(baseQueryWithHeaders, {
-    maxRetries: 3,
-    retryCondition: (error) => {
-      const status = error?.status;
+    // A custom retryCondition replaces RTK's built-in maxRetries cap (the two
+    // options are mutually exclusive), so the attempt cap lives here instead.
+    retryCondition: (error, _args, { attempt }) => {
+      if (attempt > 3) return false;
+      const { status } = /** @type {import('@reduxjs/toolkit/query/react').FetchBaseQueryError} */ (error);
       return status !== 401 && status !== 403;
     },
   }),
