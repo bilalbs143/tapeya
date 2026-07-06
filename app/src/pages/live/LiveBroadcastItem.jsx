@@ -8,8 +8,9 @@ import { createPortal } from 'react-dom';
 import CommentList from '@/features/stream/CommentList';
 import { FloatingHeartsOverlay } from '@/features/stream/FloatingHeartsOverlay';
 import { useFloatingHearts } from '@/features/stream/hooks/useFloatingHearts';
-import { useMatchComments } from '@/features/stream/hooks/useMatchComments';
+import { useStreamComments } from '@/features/stream/hooks/useStreamComments';
 import { IosLandscapeStreamChrome } from '@/features/stream/ios/IosLandscapeStreamChrome';
+import { streamUsesIosNativeYoutubePlayer } from '@/features/stream/ios/streamUsesIosNativeYoutubePlayer';
 import { StreamPlayer } from '@/features/stream/StreamPlayer';
 import { useToast } from '@/hooks/useToast';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
@@ -21,9 +22,8 @@ import {
   LIVE_BROADCAST_LANDSCAPE_HEADER_ROW,
 } from '@/lib/constants/liveBroadcastLayout';
 import { getInitials } from '@/lib/utils/displayUtils';
-import { usesIosNativeStreamPlayer } from '@/lib/utils/liveStreamUtils';
 import { mapSystemSettingsByKey } from '@/lib/utils/settingsUtils';
-import { useSendLiveCommentMutation, useSendLiveHeartMutation } from '@/store/api/matchApi';
+import { useSendLiveCommentMutation, useSendLiveHeartMutation } from '@/store/api/liveApi';
 import { useGetPublicSystemSettingsQuery } from '@/store/api/systemSettingsApi';
 import { useAppSelector } from '@/store/hooks';
 
@@ -297,7 +297,7 @@ function BroadcastViewport({
 // ---------------------------------------------------------------------------
 
 export default function LiveBroadcastItem({
-  match,
+  broadcast,
   isLandscape,
   isDesktop = false,
   isMobileLandscape = false,
@@ -315,8 +315,8 @@ export default function LiveBroadcastItem({
   const cooldownTimerRef = useRef(null);
   const { hearts: floatingHearts, spawnBurst, removeHeart, clearHearts } = useFloatingHearts();
 
-  const matchId = match?.id ?? null;
-  const streamStatus = match?.stream?.status;
+  const streamId = broadcast?.id ?? null;
+  const streamStatus = broadcast?.stream?.status;
   const streamChatActive = streamStatus === 'live' || streamStatus === 'starting';
 
   const { data: settingsRows } = useGetPublicSystemSettingsQuery();
@@ -334,7 +334,7 @@ export default function LiveBroadcastItem({
     },
     [spawnBurst, isMobileLandscape, myUserId],
   );
-  const { messages } = useMatchComments(matchId, chatEnabled, handleRemoteHeart);
+  const { messages } = useStreamComments(streamId, chatEnabled, handleRemoteHeart);
   const [sendComment, { isLoading: isSending }] = useSendLiveCommentMutation();
   const [sendHeart] = useSendLiveHeartMutation();
 
@@ -352,15 +352,15 @@ export default function LiveBroadcastItem({
   );
 
   const handleSendHeart = useCallback(() => {
-    if (!matchId || !chatEnabled) return;
+    if (!streamId || !chatEnabled) return;
     spawnBurst(myAvatar, myInitials);
-    sendHeart({ matchId });
-  }, [spawnBurst, myAvatar, myInitials, matchId, chatEnabled, sendHeart]);
+    sendHeart({ streamId });
+  }, [spawnBurst, myAvatar, myInitials, streamId, chatEnabled, sendHeart]);
 
   const handleSend = useCallback(
     async (text) => {
       const body = text.trim();
-      if (!body || !matchId || !chatEnabled || isSending || sendCooldown) {
+      if (!body || !streamId || !chatEnabled || isSending || sendCooldown) {
         return;
       }
 
@@ -370,7 +370,7 @@ export default function LiveBroadcastItem({
       }, 2000);
 
       try {
-        await sendComment({ matchId, body }).unwrap();
+        await sendComment({ streamId, body }).unwrap();
       } catch (err) {
         const type = err?.data?.type;
         if (type === 'TOO_MANY_REQUESTS') {
@@ -378,14 +378,14 @@ export default function LiveBroadcastItem({
         }
       }
     },
-    [matchId, chatEnabled, isSending, sendCooldown, sendComment, toast],
+    [streamId, chatEnabled, isSending, sendCooldown, sendComment, toast],
   );
 
   const toggleBottomPanel = useCallback(() => setBottomPanelVisible((v) => !v), []);
 
-  const stream = match?.stream ?? null;
+  const stream = broadcast?.stream ?? null;
   const inputDisabled = isSending || sendCooldown;
-  const isIosNativeLandscape = usesIosNativeStreamPlayer() && isLandscape;
+  const isIosNativeLandscape = streamUsesIosNativeYoutubePlayer(stream) && isLandscape;
 
   const bottomPanel = (
     <BroadcastBottomPanel

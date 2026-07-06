@@ -102,34 +102,33 @@ export class BackofficeReverbService {
   }
 
   /**
-   * Subscribe to the public `match.{matchId}.stream` channel for live status updates.
+   * Subscribe to `live-stream.{streamId}` for live status updates.
    */
-  public listenMatchStream(matchId: number, onStatusUpdated: (event: Record<string, unknown>) => void): () => void {
+  public listenLiveStream(streamId: number, onStatusUpdated: (event: Record<string, unknown>) => void): () => void {
     if (!this.echo || !environment.reverb.enabled) {
       return (): void => {
         return;
       };
     }
-    const channelName = `match.${matchId}.stream`;
+    const channelName = `live-stream.${streamId}`;
     const channel = this.echo.channel(channelName);
-    channel.listen('.match.stream.status.updated', onStatusUpdated);
+    channel.listen('.live-stream.status.updated', onStatusUpdated);
     return () => {
       this.echo?.leaveChannel(channelName);
     };
   }
 
   /**
-   * Join `match.{matchId}.presence` for live viewer count (operators see "X watching").
-   * Does not subscribe to chat — separate channel per architecture.
+   * Join `live-stream.{streamId}.presence` for live viewer count.
    */
-  public listenMatchPresence(matchId: number, onCountChange: (count: number) => void): () => void {
+  public listenLiveStreamPresence(streamId: number, onCountChange: (count: number) => void): () => void {
     if (!this.echo || !environment.reverb.enabled) {
       return (): void => {
         return;
       };
     }
 
-    const channelName = `match.${matchId}.presence`;
+    const channelName = `live-stream.${streamId}.presence`;
     let count = 0;
 
     const channel = this.echo.join(channelName) as {

@@ -176,49 +176,53 @@ export function youtubeStreamThumbnail(embedId) {
 }
 
 /**
+ * Card subtitle for Live hub listings when API description is empty.
+ *
+ * @param {object} row
+ * @returns {string}
+ */
+export function liveStreamCardSubtitle(row) {
+  const description = row.description?.trim();
+  if (description) {
+    return description;
+  }
+
+  const title = row.title?.trim() || 'Live Stream';
+  const status = row.stream?.status;
+  if (status === 'live') {
+    return `${title} · Live now`;
+  }
+
+  return '';
+}
+
+/**
  * Normalise GET /live/matches rows for Live hub UI.
  *
- * @param {Array<object>} [matches]
+ * @param {Array<object>} [streams]
  * @returns {Array<object>}
  */
-export function normaliseLiveStreamMatches(matches) {
-  return (matches ?? []).map((match) => {
-    const home = match.home_team ?? {};
-    const away = match.away_team ?? {};
-    const embedId = match.stream?.embed_id ?? null;
-    const thumbnailUrl = match.thumbnail_url?.trim() || youtubeStreamThumbnail(embedId);
+export function normaliseLiveStreams(streams) {
+  return (streams ?? []).map((row) => {
+    const thumbnailUrl = row.thumbnail_url?.trim() || null;
 
     return {
-      id: match.id,
-      tournament_id: match.tournament_id,
-      tournament_name: match.tournament?.name ?? '',
-      status: normaliseMatchStatus(match.status || 'scheduled'),
-      stream: match.stream ?? null,
-      matchId: home.name && away.name ? `${home.name} vs ${away.name}` : `Match ${match.id}`,
-      team1: {
-        name: home.name || 'Home team',
-        initial: (home.name || 'H').charAt(0).toUpperCase(),
-        logo: home.logo ?? null,
-      },
-      team2: {
-        name: away.name || 'Away team',
-        initial: (away.name || 'A').charAt(0).toUpperCase(),
-        logo: away.logo ?? null,
-      },
-      score1: null,
-      score2: null,
-      meta: {},
+      streamId: row.id,
+      linkedMatchId: row.match_id ?? null,
+      tournamentId: row.tournament_id ?? null,
+      title: row.title ?? 'Live Stream',
+      subtitle: liveStreamCardSubtitle(row),
+      stream: row.stream ?? null,
       thumbnail_url: thumbnailUrl,
     };
   });
 }
-
 /**
- * @param {number|string} matchId
+ * @param {number|string} streamId
  * @returns {string}
  */
-export function liveBroadcastPath(matchId) {
-  return `/live/broadcast/${matchId}`;
+export function liveBroadcastPath(streamId) {
+  return `/live/broadcast/${streamId}`;
 }
 
 /**

@@ -1,8 +1,12 @@
+import { HlsStreamPlayer } from './adapters/HlsStreamPlayer';
 import { IframeStreamPlayer } from './adapters/IframeStreamPlayer';
 import { StreamOfflineSlate } from './StreamOfflineSlate';
 
 const PLAYERS = {
+  /** YouTube / embed — uses {@link IosNativeStreamOverlay} on iOS when proxied. */
   iframe: IframeStreamPlayer,
+  /** HLS (.m3u8) — standard `<video>`; never uses the iOS native YouTube overlay. */
+  hls: HlsStreamPlayer,
 };
 
 export function StreamPlayer({ stream, className = '', fill = false, isLandscape = false }) {

@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\HeroSlider;
 use App\Models\Highlight;
+use App\Models\MatchStream;
 use App\Models\Shop\Brand;
 use App\Models\Shop\Category;
 use App\Models\Shop\Product;
@@ -76,6 +77,12 @@ class MediaRegistry
             ],
             'match' => [
                 'model' => TournamentMatch::class,
+                'fields' => [
+                    'thumbnail' => ['dir' => 'match-stream-thumbnails', 'column' => 'stream_thumbnail'],
+                ],
+            ],
+            'live-stream' => [
+                'model' => MatchStream::class,
                 'fields' => [
                     'thumbnail' => ['dir' => 'match-stream-thumbnails', 'column' => 'stream_thumbnail'],
                 ],

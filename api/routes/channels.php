@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\MatchStream;
 use App\Models\TournamentMatch;
 use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
@@ -36,25 +37,20 @@ Broadcast::channel('match.{matchId}.scoring', function (User $user, int|string $
 });
 
 /*
- * Public match chat channel — no WebSocket auth required.
+ * Public live-stream chat channel — no WebSocket auth required.
  * Comments are sent via authenticated HTTP POST; receiving is unrestricted.
- * Isolated from scoring, stream-status, and graphics channels.
  */
-Broadcast::channel('match.{matchId}.chat', function () {
-    return true;
-});
+Broadcast::channel('live-stream.{streamId}.chat', fn () => true);
 
 /*
- * Presence channel — live broadcast viewer count (Phase 2).
+ * Presence channel — live broadcast viewer count.
  * Separate from chat; requires auth:api at WebSocket handshake.
- * Only while the match stream is live or starting.
+ * Only while the stream is live or starting.
  */
-Broadcast::channel('match.{matchId}.presence', function (User $user, int|string $matchId) {
-    $match = TournamentMatch::query()
-        ->with('stream')
-        ->find((int) $matchId);
+Broadcast::channel('live-stream.{streamId}.presence', function (User $user, int|string $streamId) {
+    $stream = MatchStream::query()->find((int) $streamId);
 
-    if (! $match?->stream || ! in_array($match->stream->status, ['live', 'starting'], true)) {
+    if (! $stream || ! in_array($stream->status, ['live', 'starting'], true)) {
         return false;
     }
 

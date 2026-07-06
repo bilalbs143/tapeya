@@ -11,5 +11,6 @@ final readonly class CreateStreamData
         public string $description,
         public ?Carbon $scheduledAt = null,
         public string $privacy = 'public',
+        public ?string $streamingUrl = null,
     ) {}
 }

@@ -11,8 +11,8 @@ import { HeroSlider } from '@/components/HeroSlider';
 import { HighlightSlider } from '@/components/HighlightSlider';
 import { LiveMatchSlider } from '@/components/LiveMatchSlider';
 import { ListingProductCard } from '@/components/shop/ListingProductCard';
-import { normaliseLiveStreamMatches } from '@/lib/utils/liveStreamUtils';
-import { useGetLiveMatchesQuery } from '@/store/api/liveApi';
+import { normaliseLiveStreams } from '@/lib/utils/liveStreamUtils';
+import { useGetLiveStreamsQuery } from '@/store/api/liveApi';
 import { useGetBrandsQuery, useGetProductsQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 
@@ -53,10 +53,10 @@ function ShopSlider({ title, viewMorePath, products, brands, reverseDirection = 
 }
 
 export default function Home() {
-  const { data: liveMatchesRaw } = useGetLiveMatchesQuery(undefined, {
+  const { data: liveStreamsRaw } = useGetLiveStreamsQuery(undefined, {
     pollingInterval: 60_000,
   });
-  const liveMatches = useMemo(() => normaliseLiveStreamMatches(liveMatchesRaw), [liveMatchesRaw]);
+  const liveStreams = useMemo(() => normaliseLiveStreams(liveStreamsRaw), [liveStreamsRaw]);
 
   const { data: brandsResponse } = useGetBrandsQuery({ all: true });
   const brands = brandsResponse?.data ?? [];
@@ -78,7 +78,7 @@ export default function Home() {
       <div className="space-y-6">
         <HeroSlider />
         <ExploreCategories />
-        <LiveMatchSlider matches={liveMatches} />
+        <LiveMatchSlider streams={liveStreams} />
         <HighlightSlider />
         <ShopSlider title="Most popular" viewMorePath="/shop/filter/popular" products={popularProducts} brands={brands} />
         <ShopSlider

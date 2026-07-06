@@ -10,7 +10,7 @@ use App\Models\TournamentMatch;
 use App\Settings\StreamingSettings;
 use App\Streaming\Data\CreateStreamData;
 use App\Streaming\Data\StreamIngestConfig;
-use App\Streaming\MatchStreamService;
+use App\Streaming\LiveStreamService;
 use App\Streaming\StreamProviderManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,7 +20,7 @@ class StreamController extends Controller
     use BaseControllerTrait;
 
     public function __construct(
-        private MatchStreamService $service,
+        private LiveStreamService $service,
         private StreamProviderManager $manager,
     ) {}
 
@@ -30,6 +30,7 @@ class StreamController extends Controller
             'title' => ['sometimes', 'string', 'max:100'],
             'privacy' => ['sometimes', 'in:public,unlisted'],
             'scheduled_at' => ['sometimes', 'date'],
+            'streaming_url' => ['sometimes', 'url', 'starts_with:https', 'max:2048'],
         ]);
 
         $settings = app(StreamingSettings::class);
@@ -39,9 +40,10 @@ class StreamController extends Controller
             title: $request->input('title', "{$match->homeTeam?->name} vs {$match->awayTeam?->name}"),
             description: "Live cricket match streamed via Tapeya. Follow live scores at tapeya.com/match/{$match->id}",
             privacy: $request->input('privacy', $settings->youtubeDefaultPrivacy ?? 'public'),
+            streamingUrl: $request->input('streaming_url'),
         );
 
-        $stream = $this->service->create($match, $data, (int) $request->user()->id);
+        $stream = $this->service->createForMatch($match, $data, (int) $request->user()->id);
         $match->refresh();
         $ingest = $this->manager->driver($stream->provider)->ingestConfig($stream);
 
@@ -63,21 +65,24 @@ class StreamController extends Controller
 
     public function end(TournamentMatch $match): JsonResponse
     {
-        $this->service->end($match);
+        $stream = $match->stream ?? abort(404, 'No stream found.');
+        $this->service->end($stream);
 
         return $this->success(['status' => 'ended'], 'Stream Ended.');
     }
 
     public function destroy(TournamentMatch $match): JsonResponse
     {
-        $this->service->delete($match);
+        $stream = $match->stream ?? abort(404, 'No stream found.');
+        $this->service->delete($stream);
 
         return $this->noContent();
     }
 
     public function sync(TournamentMatch $match): JsonResponse
     {
-        $this->service->syncStatus($match);
+        $stream = $match->stream ?? abort(404, 'No stream found.');
+        $this->service->syncStatus($stream);
 
         return $this->success(['status' => $match->stream?->status ?? 'idle']);
     }

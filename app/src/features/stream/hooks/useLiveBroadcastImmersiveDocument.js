@@ -1,16 +1,15 @@
 import { useEffect } from 'react';
 
-import { usesIosNativeStreamPlayer } from '@/lib/utils/liveStreamUtils';
-
 /**
  * Applies document-level classes for mobile/tablet landscape live broadcast:
  *
  * - `live-broadcast-landscape` — hide global navbar/bottom nav, full-viewport main area
- * - `ios-native-stream-underlay` — transparent Capacitor webview (native video visible below)
+ * - `ios-native-stream-underlay` — transparent Capacitor webview (native YouTube video visible below)
+ *
+ * @param {boolean} isImmersiveLandscape
+ * @param {boolean} usesIosNativeUnderlay — true only for iOS native YouTube iframe streams
  */
-export function useLiveBroadcastImmersiveDocument(isImmersiveLandscape, isLandscape) {
-  const isIosNativeLandscape = usesIosNativeStreamPlayer() && isLandscape;
-
+export function useLiveBroadcastImmersiveDocument(isImmersiveLandscape, usesIosNativeUnderlay = false) {
   useEffect(() => {
     const html = document.documentElement;
 
@@ -18,7 +17,7 @@ export function useLiveBroadcastImmersiveDocument(isImmersiveLandscape, isLandsc
       html.classList.add('live-broadcast-landscape');
     }
 
-    if (isIosNativeLandscape) {
+    if (usesIosNativeUnderlay) {
       html.classList.add('ios-native-stream-underlay');
     }
 
@@ -26,9 +25,9 @@ export function useLiveBroadcastImmersiveDocument(isImmersiveLandscape, isLandsc
       if (isImmersiveLandscape) {
         html.classList.remove('live-broadcast-landscape');
       }
-      if (isIosNativeLandscape) {
+      if (usesIosNativeUnderlay) {
         html.classList.remove('ios-native-stream-underlay');
       }
     };
-  }, [isImmersiveLandscape, isIosNativeLandscape]);
+  }, [isImmersiveLandscape, usesIosNativeUnderlay]);
 }

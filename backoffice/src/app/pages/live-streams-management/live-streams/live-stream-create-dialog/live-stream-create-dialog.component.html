@@ -1,0 +1,143 @@
+<app-dialog-wrapper title="Create Live Stream">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="submit()"
+    aria-label="Create Live Stream Form"
+  >
+    <mat-dialog-content>
+      <div class="grid grid-cols-12 gap-x-6">
+        <div class="col-span-12">
+          <mat-label class="mb-2 block text-sm font-semibold">Stream Type <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-select formControlName="provider">
+              @for (opt of providerOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12">
+          <mat-label class="mb-2 block text-sm font-semibold">Title <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              formControlName="title"
+              maxlength="100"
+              placeholder="Stream Title"
+            />
+            <mat-hint align="end">{{ form.get('title')?.value?.length || 0 }}/100</mat-hint>
+            @if (form.get('title')?.hasError('required') && form.get('title')?.touched) {
+              <mat-error>Title is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12">
+          <mat-label class="mb-2 block text-sm font-semibold">Description</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <textarea
+              matInput
+              rows="3"
+              formControlName="description"
+              maxlength="500"
+              placeholder="Optional Short Description"
+            ></textarea>
+            <mat-hint align="end">{{ form.get('description')?.value?.length || 0 }}/500</mat-hint>
+          </mat-form-field>
+        </div>
+
+        @if (isYoutube) {
+          <div class="col-span-12">
+            <mat-label class="mb-2 block text-sm font-semibold">Broadcast Privacy</mat-label>
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <mat-select formControlName="privacy">
+                <mat-option value="public">Public</mat-option>
+                <mat-option value="unlisted">Unlisted</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        } @else {
+          <div class="col-span-12">
+            <mat-label class="mb-2 block text-sm font-semibold">
+              Streaming URL
+              <span class="text-error">*</span>
+              <span class="text-muted ml-1 text-xs font-normal">(HTTPS YouTube watch/embed URL or HLS .m3u8 link)</span>
+            </mat-label>
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <input
+                matInput
+                formControlName="streaming_url"
+                maxlength="2048"
+                placeholder="https://www.youtube.com/watch?v=..."
+              />
+              @if (form.get('streaming_url')?.hasError('required') && form.get('streaming_url')?.touched) {
+                <mat-error>Streaming URL is required</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        }
+
+        <div class="col-span-12 mb-4">
+          <app-file-upload
+            formControlName="thumbnail"
+            label="Stream Thumbnail"
+            accept="image/jpeg,image/png,image/webp"
+            acceptLabel="JPG, PNG, WebP"
+            [hint]="streamThumbnailHint"
+            [maxSizeMb]="2"
+          ></app-file-upload>
+        </div>
+
+        @if (isYoutube) {
+          <div class="col-span-12">
+            <p class="text-muted m-0 text-sm">
+              After creating, copy the RTMP URL and stream key into OBS or vMix. Use <strong>Manage</strong> to sync status once
+              you go live on YouTube.
+            </p>
+          </div>
+        } @else {
+          <div class="col-span-12">
+            <p class="text-muted m-0 text-sm">
+              After creating, open <strong>Manage</strong> and click <strong>Go Live</strong> when the external feed is ready.
+            </p>
+          </div>
+        }
+      </div>
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions>
+      <button
+        type="button"
+        mat-stroked-button
+        class="border border-error! text-error"
+        [mat-dialog-close]="{ saved: false }"
+      >
+        Cancel
+      </button>
+
+      <app-submit-button
+        [disabled]="form.invalid"
+        [isSubmitting]="isSubmitting"
+        [text]="isYoutube ? 'Create & Get RTMP' : 'Create Live Stream'"
+        color="primary"
+      />
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

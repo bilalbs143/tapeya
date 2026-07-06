@@ -1,18 +1,43 @@
 import { baseApi } from './baseApi';
 
 /**
- * Live stream hub — matches with stream status live or starting (open tournaments only).
+ * Live stream hub and viewer — stream-centric API.
  */
 export const liveApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getLiveMatches: builder.query({
+    getLiveStreams: builder.query({
       query: () => ({
         url: '/live/matches',
       }),
       transformResponse: (response) => response?.data ?? [],
-      providesTags: [{ type: 'LiveStreams', id: 'LIST' }],
+      providesTags: (result) =>
+        result?.length
+          ? [...result.map((row) => ({ type: 'LiveStreams', id: row.id })), { type: 'LiveStreams', id: 'LIST' }]
+          : [{ type: 'LiveStreams', id: 'LIST' }],
+    }),
+    getLiveStream: builder.query({
+      query: (streamId) => ({
+        url: `/live/streams/${streamId}`,
+      }),
+      transformResponse: (response) => response?.data ?? response,
+      providesTags: (_result, _err, streamId) => [{ type: 'LiveStreams', id: streamId }],
+    }),
+    sendLiveComment: builder.mutation({
+      query: ({ streamId, body }) => ({
+        url: `/live/streams/${streamId}/live-comments`,
+        method: 'POST',
+        body: { body },
+      }),
+      transformResponse: (response) => response?.data ?? response,
+    }),
+    sendLiveHeart: builder.mutation({
+      query: ({ streamId }) => ({
+        url: `/live/streams/${streamId}/live-hearts`,
+        method: 'POST',
+      }),
+      transformResponse: (response) => response?.data ?? response,
     }),
   }),
 });
 
-export const { useGetLiveMatchesQuery } = liveApi;
+export const { useGetLiveStreamsQuery, useGetLiveStreamQuery, useSendLiveCommentMutation, useSendLiveHeartMutation } = liveApi;

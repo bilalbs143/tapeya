@@ -75,6 +75,7 @@
     "@reduxjs/toolkit": "^2.11.2",
     "@tapeya/graphics-core": "file:../shared/graphics-core",
     "apexcharts": "^5.10.2",
+    "hls.js": "^1.6.16",
     "laravel-echo": "^2.3.4",
     "libphonenumber-js": "^1.13.1",
     "pusher-js": "^8.5.0",

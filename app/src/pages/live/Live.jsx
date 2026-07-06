@@ -10,10 +10,11 @@
 import { useMemo } from 'react';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { LIVE_STREAM_THUMBNAIL_ASPECT_CLASS } from '@/components/live/LiveStreamThumbnail';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { normaliseLiveStreamMatches } from '@/lib/utils/liveStreamUtils';
+import { normaliseLiveStreams } from '@/lib/utils/liveStreamUtils';
 import { LiveTab, UpcomingTab } from '@/pages/live/tabs';
-import { useGetLiveMatchesQuery } from '@/store/api/liveApi';
+import { useGetLiveStreamsQuery } from '@/store/api/liveApi';
 import { Container } from '@/ui/Container';
 import {
   profileListClass,
@@ -36,7 +37,13 @@ function LiveHubSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-4 pb-6 lg:grid-cols-3">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="bg-surface-border h-[200px] animate-pulse rounded-[20px]" />
+        <div key={i} className="bg-surface-border overflow-hidden rounded-[20px]">
+          <div className={`bg-surface-deep w-full animate-pulse ${LIVE_STREAM_THUMBNAIL_ASPECT_CLASS}`} />
+          <div className="space-y-2 px-4 py-4">
+            <div className="bg-surface-deep h-4 w-3/4 animate-pulse rounded" />
+            <div className="bg-surface-deep h-3 w-1/2 animate-pulse rounded" />
+          </div>
+        </div>
       ))}
     </div>
   );
@@ -47,22 +54,22 @@ function LiveHubError({ onRetry }) {
     <div className="py-12 text-center">
       <p className="text-muted text-[13px]">Failed to load live matches.</p>
       <button type="button" onClick={onRetry} className="mt-3 text-[13px] font-medium text-white underline underline-offset-2">
-        Try again
+        Try Again
       </button>
     </div>
   );
 }
 
 export default function Live() {
-  const { data, isLoading, isError, refetch } = useGetLiveMatchesQuery(undefined, {
+  const { data, isLoading, isError, refetch } = useGetLiveStreamsQuery(undefined, {
     pollingInterval: 60_000,
   });
 
-  const matches = useMemo(() => normaliseLiveStreamMatches(data), [data]);
+  const streams = useMemo(() => normaliseLiveStreams(data), [data]);
 
-  const liveMatches = useMemo(() => matches.filter((m) => m.stream?.status === 'live'), [matches]);
+  const liveStreams = useMemo(() => streams.filter((item) => item.stream?.status === 'live'), [streams]);
 
-  const startingMatches = useMemo(() => matches.filter((m) => m.stream?.status === 'starting'), [matches]);
+  const startingStreams = useMemo(() => streams.filter((item) => item.stream?.status === 'starting'), [streams]);
 
   return (
     <div>
@@ -76,7 +83,7 @@ export default function Live() {
           <Tabs defaultValue="live" className="w-full">
             <TabsList className={`${liveTabListClass} mb-4`}>
               <TabsTrigger value="live" className={`${liveTabTriggerClass} gap-1.5`}>
-                <span>Live ({liveMatches.length})</span>
+                <span>Live ({liveStreams.length})</span>
                 <img
                   src={voiceCircleLiveIcon}
                   alt=""
@@ -87,16 +94,16 @@ export default function Live() {
                 />
               </TabsTrigger>
               <TabsTrigger value="starting" className={liveTabTriggerClass}>
-                Starting ({startingMatches.length})
+                Starting ({startingStreams.length})
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="live" className="mt-0 focus:outline-none">
-              <LiveTab matches={liveMatches} />
+              <LiveTab streams={liveStreams} />
             </TabsContent>
 
             <TabsContent value="starting" className="mt-0 focus:outline-none">
-              <UpcomingTab matches={startingMatches} />
+              <UpcomingTab streams={startingStreams} />
             </TabsContent>
           </Tabs>
         )}

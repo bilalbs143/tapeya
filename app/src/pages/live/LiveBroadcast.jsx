@@ -1,12 +1,6 @@
 /**
- * Live broadcast viewer — single stream fetched by matchId.
- * Route: /live/broadcast/:matchId
- *
- * Layout model:
- * - Solid global navbar; video fills the main content area below it.
- * - Mobile/tablet portrait: in-flow header row (back · live · viewers) above the video.
- * - Desktop: page header floats over the video; back hidden.
- * - Mobile landscape (phones only): immersive controls, but LIVE + viewers stay visible.
+ * Live broadcast viewer — single stream fetched by streamId.
+ * Route: /live/broadcast/:streamId
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -15,8 +9,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
 import { useLiveBroadcastImmersiveDocument } from '@/features/stream/hooks/useLiveBroadcastImmersiveDocument';
-import { useMatchPresenceChannel } from '@/features/stream/hooks/useMatchPresenceChannel';
-import { useMatchStreamChannel } from '@/features/stream/hooks/useMatchStreamChannel';
+import { useLiveStreamChannel } from '@/features/stream/hooks/useLiveStreamChannel';
+import { useStreamPresenceChannel } from '@/features/stream/hooks/useStreamPresenceChannel';
+import { streamUsesIosNativeYoutubePlayer } from '@/features/stream/ios/streamUsesIosNativeYoutubePlayer';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { LG_MEDIA_QUERY, MOBILE_MEDIA_QUERY } from '@/lib/constants/layout';
 import {
@@ -26,8 +21,7 @@ import {
   LIVE_BROADCAST_SHELL_HEIGHT,
   LIVE_BROADCAST_SHELL_HEIGHT_DESKTOP,
 } from '@/lib/constants/liveBroadcastLayout';
-import { usesIosNativeStreamPlayer } from '@/lib/utils/liveStreamUtils';
-import { useGetMatchQuery } from '@/store/api/matchApi';
+import { useGetLiveStreamQuery } from '@/store/api/liveApi';
 
 import LiveBroadcastItem from './LiveBroadcastItem';
 import { formatViewerCount, useVanityViewerCount } from './useVanityViewerCount';
@@ -77,9 +71,9 @@ function ViewerCountBadge({ viewerCount }) {
 function BroadcastError({ onRetry }) {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-black px-4">
-      <p className="text-[14px] text-white/60">Failed to load match.</p>
+      <p className="text-[14px] text-white/60">Failed to load stream.</p>
       <button type="button" onClick={onRetry} className="text-[13px] font-medium text-white underline underline-offset-2">
-        Try again
+        Try Again
       </button>
     </div>
   );
@@ -87,34 +81,34 @@ function BroadcastError({ onRetry }) {
 
 export default function LiveBroadcast() {
   const navigate = useNavigate();
-  const { matchId } = useParams();
+  const { streamId } = useParams();
   const [isLandscape, setIsLandscape] = useState(false);
   const isDesktop = useMediaQuery(LG_MEDIA_QUERY);
   const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY);
 
-  const { data: match, isError, refetch } = useGetMatchQuery(matchId, { skip: !matchId });
+  const { data: broadcast, isError, refetch } = useGetLiveStreamQuery(streamId, { skip: !streamId });
 
-  const streamStatus = match?.stream?.status;
+  const streamStatus = broadcast?.stream?.status;
   const presenceEnabled = streamStatus === 'live' || streamStatus === 'starting';
 
-  useMatchStreamChannel(matchId);
-  const realViewerCount = useMatchPresenceChannel(matchId, presenceEnabled);
+  useLiveStreamChannel(streamId);
+  const realViewerCount = useStreamPresenceChannel(streamId, presenceEnabled);
   const viewerCount = useVanityViewerCount(realViewerCount);
 
   useEffect(() => {
     setIsLandscape(false);
-  }, [matchId]);
+  }, [streamId]);
 
   const toggleLandscape = useCallback(() => setIsLandscape((prev) => !prev), []);
 
   const isMobileLandscape = isMobile && isLandscape;
   const immersiveMobileLandscape = isLandscape && !isDesktop;
   const useInFlowHeader = !isDesktop && !isLandscape;
-  const isIosNativeLandscape = usesIosNativeStreamPlayer() && isLandscape;
+  const isIosNativeLandscape = streamUsesIosNativeYoutubePlayer(broadcast?.stream) && isLandscape;
   const surfaceBg = isIosNativeLandscape ? 'bg-transparent' : 'bg-black';
   const shellClass = getLiveBroadcastShellClass(isLandscape, surfaceBg);
 
-  useLiveBroadcastImmersiveDocument(immersiveMobileLandscape, isLandscape);
+  useLiveBroadcastImmersiveDocument(immersiveMobileLandscape, isIosNativeLandscape);
 
   const shellStyle = isLandscape
     ? {
@@ -159,7 +153,7 @@ export default function LiveBroadcast() {
   const overlayHeaderSlot =
     isDesktop || isLandscape ? (isDesktop || isMobileLandscape ? desktopOverlayHeader : portraitHeaderContent) : null;
 
-  const showError = isError && !match;
+  const showError = isError && !broadcast;
 
   return (
     <div className={shellClass} style={shellStyle}>
@@ -170,9 +164,9 @@ export default function LiveBroadcast() {
 
         <div className={`relative overflow-hidden ${surfaceBg} ${useInFlowHeader ? 'min-h-0 flex-1' : 'h-full w-full'}`}>
           {showError && <BroadcastError onRetry={refetch} />}
-          {match && (
+          {broadcast && (
             <LiveBroadcastItem
-              match={match}
+              broadcast={broadcast}
               isLandscape={isLandscape}
               isDesktop={isDesktop}
               isMobileLandscape={isMobileLandscape}

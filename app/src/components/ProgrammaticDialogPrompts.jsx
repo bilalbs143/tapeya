@@ -48,7 +48,7 @@ const AUTO_DIALOG_KEYS = new Set(Object.values(PROGRAMMATIC_DIALOG_KEYS));
  * @property {string} configuredVersion
  * @property {string} storeUrl
  * @property {string} storeName
- * @property {boolean} isWeb
+ * @property {boolean} shouldPromptDownloadApp
  * @property {boolean} hasStoreLink
  * @property {string} appStoreUrl
  * @property {string} appStoreName
@@ -129,7 +129,7 @@ const PROGRAMMATIC_DIALOG_RULES = /** @type {ProgrammaticDialogRule[]} */ ([
     resolve(ctx) {
       if (
         !ctx.user?.id ||
-        !ctx.isWeb ||
+        !ctx.shouldPromptDownloadApp ||
         !ctx.isSettingsReady ||
         !ctx.hasSettingsRows ||
         !ctx.hasStoreLink ||
@@ -192,7 +192,7 @@ export function ProgrammaticDialogPrompts() {
   } = useNativeStoreVersionInfo({ refetchOnAppResume: true });
 
   const {
-    isWeb,
+    shouldPromptDownloadApp,
     isSettingsReady: isWebSettingsReady,
     settingsRows: webSettingsRows,
     hasStoreLink,
@@ -212,7 +212,7 @@ export function ProgrammaticDialogPrompts() {
     configuredVersion,
     storeUrl,
     storeName,
-    isWeb,
+    shouldPromptDownloadApp,
     hasStoreLink,
     appStoreUrl,
     appStoreName,
@@ -283,7 +283,15 @@ export function ProgrammaticDialogPrompts() {
     if (isAuthenticated) {
       tryOpenProgrammaticDialog();
     }
-  }, [isAuthenticated, tryOpenProgrammaticDialog, location.pathname, user?.id, isReminderSettingsReady, hasStoreLink]);
+  }, [
+    isAuthenticated,
+    tryOpenProgrammaticDialog,
+    location.pathname,
+    user?.id,
+    isReminderSettingsReady,
+    shouldPromptDownloadApp,
+    hasStoreLink,
+  ]);
 
   return null;
 }

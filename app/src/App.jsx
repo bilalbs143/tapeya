@@ -161,7 +161,7 @@ function App() {
                       <Route path="/ranking" element={<Ranking />} />
                       <Route path="/ranking/stats-total/:statType" element={<RankingStatsTotal />} />
                       <Route path="/live" element={<Live />} />
-                      <Route path="/live/broadcast/:matchId" element={<LiveBroadcast />} />
+                      <Route path="/live/broadcast/:streamId" element={<LiveBroadcast />} />
                       <Route path="/highlights" element={<Highlights />} />
                       <Route path="/highlights/:highlightId" element={<HighlightDetails />} />
                       <Route path="/notification-center" element={<NotificationCenter />} />

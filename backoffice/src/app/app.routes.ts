@@ -54,6 +54,11 @@ export const routes: Routes = [
         loadChildren: () => import('./pages/engagement/engagement.routes').then((m) => m.EngagementRoutes),
       },
       {
+        path: 'live-streams-management',
+        loadChildren: () =>
+          import('./pages/live-streams-management/live-streams-management.routes').then((m) => m.LiveStreamsManagementRoutes),
+      },
+      {
         path: 'settings',
         loadChildren: () => import('./pages/settings/settings.routes').then((m) => m.SettingsRoutes),
       },
