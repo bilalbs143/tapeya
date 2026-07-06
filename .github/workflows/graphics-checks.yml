@@ -235,18 +235,22 @@ jobs:
         run: npx playwright install chromium --with-deps
         working-directory: app
 
-      - name: Cache Chrome 86
+      - name: Cache Chromium 86
         uses: actions/cache@v4
         with:
           path: ${{ runner.temp }}/browsers
-          key: chrome-86-0.4240.198-linux
+          key: chromium-r800217-linux
 
-      - name: Install Chrome 86 for vMix compatibility smoke
-        run: npx --yes @puppeteer/browsers install chrome@86.0.4240.198 --path $RUNNER_TEMP/browsers
+      # Chrome-for-testing binaries only exist for M113+, so pinned Chrome 86
+      # downloads 404. Use the Chromium snapshot at the M86 branch point instead
+      # (branch base position 800218; r800217 is the nearest archived build and
+      # reports itself as 86.0.4240.0).
+      - name: Install Chromium 86 for vMix compatibility smoke
+        run: npx --yes @puppeteer/browsers install chromium@800217 --path $RUNNER_TEMP/browsers
         working-directory: app
 
-      - name: Run graphics smoke on Chrome 86
+      - name: Run graphics smoke on Chromium 86
         env:
-          CHROME_86_EXECUTABLE: ${{ runner.temp }}/browsers/chrome/linux-86.0.4240.198/chrome-linux64/chrome
+          CHROME_86_EXECUTABLE: ${{ runner.temp }}/browsers/chromium/linux-800217/chrome-linux/chrome
         run: npm run test:e2e:graphics-smoke
         working-directory: app
