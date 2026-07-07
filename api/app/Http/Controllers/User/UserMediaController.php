@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
+use App\Enums\Tournament\TournamentInterestFormFieldEnum;
 use App\Models\Team;
 use App\Models\TournamentInterestSubmission;
 use App\Models\TournamentMatch;
@@ -82,7 +83,7 @@ class UserMediaController extends Controller
      */
     public function upload(Request $request, string $type, int $id, string $field): JsonResponse
     {
-        $resolved = $this->resolveRecord($type, $id, $field);
+        $resolved = $this->resolveRecord($request, $type, $id, $field);
         if ($resolved instanceof JsonResponse) {
             return $resolved;
         }
@@ -110,7 +111,7 @@ class UserMediaController extends Controller
      */
     public function delete(Request $request, string $type, int $id, string $field): JsonResponse
     {
-        $resolved = $this->resolveRecord($type, $id, $field);
+        $resolved = $this->resolveRecord($request, $type, $id, $field);
         if ($resolved instanceof JsonResponse) {
             return $resolved;
         }
@@ -135,7 +136,7 @@ class UserMediaController extends Controller
      *
      * @return array{0: Model, 1: array<string,mixed>} | JsonResponse
      */
-    private function resolveRecord(string $type, int $id, string $field): array|JsonResponse
+    private function resolveRecord(Request $request, string $type, int $id, string $field): array|JsonResponse
     {
         if (! array_key_exists($type, self::TYPES)) {
             return $this->notFound("Unknown media type: {$type}");
@@ -153,6 +154,19 @@ class UserMediaController extends Controller
 
         if ($record === null) {
             return $this->notFound('Record not found.');
+        }
+
+        if ($type === 'interest-submission') {
+            /** @var TournamentInterestSubmission $record */
+            if ($record->user_id !== $request->user()?->id) {
+                return $this->forbidden('You cannot modify this submission.');
+            }
+
+            $campaign = $record->campaign()->first();
+
+            if (! TournamentInterestFormFieldEnum::isFileField($field) || $campaign === null || ! $campaign->formFieldEnabled($field)) {
+                return $this->failure('This upload field is not enabled for this interest form.', 'VALIDATION_ERROR');
+            }
         }
 
         return [$record, $typeConfig['fields'][$field]];

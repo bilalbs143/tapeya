@@ -68,6 +68,7 @@
         ],
         "test": [
             "@php artisan config:clear --ansi",
+            "@putenv XDEBUG_MODE=off",
             "@php artisan test"
         ],
         "test:scoring": [

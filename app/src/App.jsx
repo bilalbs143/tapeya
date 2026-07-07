@@ -4,6 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-route
 
 import { ConsumerRouterEffects } from '@/components/ConsumerRouterEffects';
 import DialogManager from '@/components/dialogs/DialogManager';
+import InterestCampaignDialogScheduler from '@/components/InterestCampaignDialogScheduler';
 import ProgrammaticDialogPrompts from '@/components/ProgrammaticDialogPrompts';
 import { RequireAuth } from '@/components/RequireAuth';
 import { ScrollRestoration } from '@/components/ScrollRestoration';
@@ -114,6 +115,7 @@ function App() {
               <ScrollRestoration />
               <DialogManager />
               <ProgrammaticDialogPrompts />
+              <InterestCampaignDialogScheduler />
               <Suspense fallback={<PageFallback />}>
                 <Routes>
                   <Route path="/" element={<SplashScreen />} />

@@ -112,6 +112,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('media/{type}/{id}/{field}', [UserMediaController::class, 'upload']);
     Route::delete('media/{type}/{id}/{field}', [UserMediaController::class, 'delete']);
 
+    Route::get('interest-campaigns/dialog', [InterestCampaignController::class, 'dialog']);
     Route::get('interest-campaigns/{slug}', [InterestCampaignController::class, 'show'])
         ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*');
     Route::post('interest-campaigns/{slug}/submissions', [InterestCampaignController::class, 'store'])

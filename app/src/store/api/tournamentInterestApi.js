@@ -7,6 +7,11 @@ export const tournamentInterestApi = baseApi.injectEndpoints({
       transformResponse: (response) => response?.data ?? response,
       providesTags: () => [{ type: 'InterestCampaign', id: 'SIDEBAR' }],
     }),
+    getDialogInterestCampaign: builder.query({
+      query: () => '/interest-campaigns/dialog',
+      transformResponse: (response) => response?.data ?? response,
+      providesTags: () => [{ type: 'InterestCampaign', id: 'DIALOG' }],
+    }),
     getInterestCampaign: builder.query({
       query: ({ slug }) => `/interest-campaigns/${slug}`,
       transformResponse: (response) => response?.data ?? response,
@@ -22,6 +27,7 @@ export const tournamentInterestApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _err, { slug }) => [
         { type: 'InterestCampaign', id: slug },
         { type: 'InterestCampaign', id: 'SIDEBAR' },
+        { type: 'InterestCampaign', id: 'DIALOG' },
       ],
     }),
     withdrawInterest: builder.mutation({
@@ -33,6 +39,7 @@ export const tournamentInterestApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _err, { slug }) => [
         { type: 'InterestCampaign', id: slug },
         { type: 'InterestCampaign', id: 'SIDEBAR' },
+        { type: 'InterestCampaign', id: 'DIALOG' },
       ],
     }),
   }),
@@ -40,6 +47,7 @@ export const tournamentInterestApi = baseApi.injectEndpoints({
 
 export const {
   useGetSidebarInterestCampaignQuery,
+  useGetDialogInterestCampaignQuery,
   useGetInterestCampaignQuery,
   useSubmitInterestMutation,
   useWithdrawInterestMutation,

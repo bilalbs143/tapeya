@@ -4,6 +4,7 @@ import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validatio
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDivider } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -24,6 +25,11 @@ import { TournamentsService, type Tournament } from 'src/app/services/tournament
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
+import {
+  DEFAULT_INTEREST_FORM_FIELDS,
+  LOCKED_INTEREST_FORM_FIELDS,
+  type InterestFormFieldKey,
+} from 'src/app/shared/constants/interest-form-field.constants';
 
 export interface ManageCampaignDialogData {
   mode: 'create' | 'edit';
@@ -68,6 +74,7 @@ function slugify(input: string): string {
     MatRadioModule,
     MatSelectModule,
     MatSlideToggleModule,
+    MatCheckboxModule,
     MatDivider,
     FileUploadComponent,
     DialogWrapperComponent,
@@ -94,6 +101,7 @@ export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
   public slugDirty = false;
 
   public readonly statusOptions$ = this.enumsService.getOptions('tournament_interest_campaign_status');
+  public readonly formFieldOptions$ = this.enumsService.getOptions('tournament_interest_form_field');
 
   public get isEdit(): boolean {
     return this.data.mode === 'edit';
@@ -155,6 +163,7 @@ export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
       description: [c?.description ?? '', [Validators.maxLength(5000)]],
       show_in_sidebar: [c?.show_in_sidebar ?? false],
       show_dialog: [c?.show_dialog ?? false],
+      form_fields: [c?.form_fields?.length ? [...c.form_fields] : [...DEFAULT_INTEREST_FORM_FIELDS], [Validators.required, Validators.minLength(1)]],
       status: [c?.status ?? 'open', [Validators.required]],
       logo: [c?.logo_url ? ({ files: [], existingUrls: [c.logo_url] } as FileUploadValue) : null],
     });
@@ -165,6 +174,9 @@ export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
     if (c?.slug) {
       this.slugDirty = true;
     }
+
+    this.ensureLockedFormFields();
+    this.ensureCountryCityPairing();
   }
 
   private applyKindRules(kind: 'linked' | 'custom'): void {
@@ -232,6 +244,78 @@ export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
     this.form.get('tournament')?.setValue(opt);
   }
 
+  public isFormFieldSelected(key: InterestFormFieldKey): boolean {
+    const selected = this.form.get('form_fields')?.value as InterestFormFieldKey[] | null;
+    return (selected ?? []).includes(key);
+  }
+
+  public isFormFieldLocked(key: InterestFormFieldKey): boolean {
+    return LOCKED_INTEREST_FORM_FIELDS.includes(key);
+  }
+
+  public toggleFormField(key: InterestFormFieldKey, checked: boolean): void {
+    if (this.isFormFieldLocked(key) && !checked) {
+      return;
+    }
+
+    const control = this.form.get('form_fields');
+    const current = [...((control?.value as InterestFormFieldKey[] | null) ?? [])];
+    let next = checked ? Array.from(new Set([...current, key])) : current.filter((k) => k !== key);
+
+    if (checked && (key === 'city' || key === 'country')) {
+      next = Array.from(new Set([...next, 'country', 'city']));
+    }
+    if (!checked && (key === 'country' || key === 'city')) {
+      next = next.filter((k) => k !== 'country' && k !== 'city');
+    }
+
+    control?.setValue(next);
+    control?.markAsDirty();
+    control?.updateValueAndValidity();
+    this.ensureLockedFormFields();
+    this.ensureCountryCityPairing();
+  }
+
+  private ensureCountryCityPairing(): void {
+    const control = this.form.get('form_fields');
+    const current = [...((control?.value as InterestFormFieldKey[] | null) ?? [])];
+    const hasCountry = current.includes('country');
+    const hasCity = current.includes('city');
+
+    let next = current;
+    if (hasCountry || hasCity) {
+      next = Array.from(new Set([...current, 'country', 'city']));
+    } else {
+      next = current.filter((k) => k !== 'country' && k !== 'city');
+    }
+
+    if (next.length !== current.length || next.some((key, i) => key !== current[i])) {
+      control?.setValue(next, { emitEvent: false });
+    }
+  }
+
+  private normalizeFormFields(fields: InterestFormFieldKey[]): InterestFormFieldKey[] {
+    const next = Array.from(new Set([...LOCKED_INTEREST_FORM_FIELDS, ...fields]));
+    const hasCountry = next.includes('country');
+    const hasCity = next.includes('city');
+
+    if (hasCountry || hasCity) {
+      return Array.from(new Set([...next, 'country', 'city']));
+    }
+
+    return next.filter((k) => k !== 'country' && k !== 'city');
+  }
+
+  private ensureLockedFormFields(): void {
+    const control = this.form.get('form_fields');
+    const current = [...((control?.value as InterestFormFieldKey[] | null) ?? [])];
+    const next = Array.from(new Set([...current, ...LOCKED_INTEREST_FORM_FIELDS]));
+
+    if (next.length !== current.length || LOCKED_INTEREST_FORM_FIELDS.some((key) => !current.includes(key))) {
+      control?.setValue(next, { emitEvent: false });
+    }
+  }
+
   private maybeSyncSlug(title: string): void {
     if (this.slugDirty) return;
     const next = slugify(title ?? '');
@@ -284,6 +368,7 @@ export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
       description: description ? description : null,
       show_in_sidebar: !!v.show_in_sidebar,
       show_dialog: !!v.show_dialog,
+      form_fields: this.normalizeFormFields(Array.from(new Set([...LOCKED_INTEREST_FORM_FIELDS, ...(v.form_fields ?? DEFAULT_INTEREST_FORM_FIELDS)]))),
     };
 
     if (!isLinked) {

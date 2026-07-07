@@ -58,6 +58,9 @@ class TournamentInterestCampaignController extends BaseAdminController
                 if ($this->isShowInSidebarEnabled($data)) {
                     $this->clearShowInSidebarOnOtherCampaigns();
                 }
+                if ($this->isShowDialogEnabled($data)) {
+                    $this->clearShowDialogOnOtherCampaigns();
+                }
 
                 return TournamentInterestCampaign::create($data);
             });
@@ -97,6 +100,9 @@ class TournamentInterestCampaignController extends BaseAdminController
         DB::transaction(function () use ($campaign, $data) {
             if (array_key_exists('show_in_sidebar', $data) && $this->isShowInSidebarEnabled($data)) {
                 $this->clearShowInSidebarOnOtherCampaigns($campaign->id);
+            }
+            if (array_key_exists('show_dialog', $data) && $this->isShowDialogEnabled($data)) {
+                $this->clearShowDialogOnOtherCampaigns($campaign->id);
             }
             $campaign->update($data);
         });
@@ -160,5 +166,27 @@ class TournamentInterestCampaignController extends BaseAdminController
         TournamentInterestCampaign::query()
             ->when($exceptCampaignId !== null, fn ($q) => $q->where('id', '!=', $exceptCampaignId))
             ->update(['show_in_sidebar' => false]);
+    }
+
+    /**
+     * Only one interest campaign may have show_dialog enabled at a time.
+     */
+    private function isShowDialogEnabled(array $data): bool
+    {
+        if (! array_key_exists('show_dialog', $data)) {
+            return false;
+        }
+
+        return filter_var($data['show_dialog'], FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /**
+     * Set show_dialog to false on all campaigns except the given id (omit on create).
+     */
+    private function clearShowDialogOnOtherCampaigns(?int $exceptCampaignId = null): void
+    {
+        TournamentInterestCampaign::query()
+            ->when($exceptCampaignId !== null, fn ($q) => $q->where('id', '!=', $exceptCampaignId))
+            ->update(['show_dialog' => false]);
     }
 }
