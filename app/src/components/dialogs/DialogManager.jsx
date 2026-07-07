@@ -19,6 +19,7 @@ import EndInningsDialog from './EndInningsDialog';
 import EndMatchDialog from './EndMatchDialog';
 import ExtraRunsDialog from './ExtraRunsDialog';
 import FielderPickerDialog from './FielderPickerDialog';
+import InterestCampaignDialog from './InterestCampaignDialog';
 import InningsEndDialog from './InningsEndDialog';
 import { ManageTeamDialog } from './ManageTeamDialog';
 import MankadDialog from './MankadDialog';
@@ -59,6 +60,7 @@ const DIALOG_COMPONENTS = {
   pricingSuccess: PricingSuccessDialog,
   draftingSubmitSquadSuccess: DraftingSubmitSquadSuccessDialog,
   profileStrengthReminder: ProfileStrengthReminderDialog,
+  interestCampaign: InterestCampaignDialog,
   deleteAccount: DeleteAccountDialog,
   manageTeam: ManageTeamDialog,
   confirm: ConfirmDialog,
@@ -134,6 +136,7 @@ const DIALOG_CONTENT_CLASS_BY_KEY = {
   scoringMankad: '!min-h-[320px] !max-h-[90vh]',
   scoringWhoIsOutDismissal: '!min-h-[360px] !max-h-[90vh]',
   manOfTheMatch: '!min-h-[260px]',
+  interestCampaign: '!min-h-[480px] !max-h-[90vh]',
 };
 
 export function DialogManager() {

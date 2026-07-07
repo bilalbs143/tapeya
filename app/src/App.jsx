@@ -7,6 +7,7 @@ import AppUpdatePrompt from '@/components/AppUpdatePrompt';
 import { ConsumerRouterEffects } from '@/components/ConsumerRouterEffects';
 import DialogManager from '@/components/dialogs/DialogManager';
 import { ProfileStrengthReminderScheduler } from '@/components/ProfileStrengthReminderScheduler';
+import InterestCampaignDialogScheduler from '@/components/InterestCampaignDialogScheduler';
 import { RequireAuth } from '@/components/RequireAuth';
 import { ScrollRestoration } from '@/components/ScrollRestoration';
 import SplashScreen from '@/components/SplashScreen';
@@ -117,6 +118,7 @@ function App() {
               <ScrollRestoration />
               <DialogManager />
               <ProfileStrengthReminderScheduler />
+              <InterestCampaignDialogScheduler />
               <AppUpdatePrompt />
               <DownloadAppPrompt />
               <Suspense fallback={<PageFallback />}>

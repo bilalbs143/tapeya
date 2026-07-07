@@ -6,10 +6,14 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { Observable, catchError, forkJoin, map, of, Subscription } from 'rxjs';
 
+import { EnumsService } from 'src/app/services/enums.service';
 import { type InterestCampaign, InterestCampaignService } from 'src/app/services/interest-campaign.service';
 import { InterestSubmissionService } from 'src/app/services/interest-submission.service';
 import { MessageService } from 'src/app/services/message.service';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
+import {
+  DEFAULT_INTEREST_FORM_FIELDS,
+} from 'src/app/shared/constants/interest-form-field.constants';
 
 import { CampaignDetailStateService } from './campaign-detail-state.service';
 
@@ -31,11 +35,13 @@ export class CampaignOverviewTabComponent implements OnInit, OnDestroy {
   private readonly campaignService = inject(InterestCampaignService);
   private readonly submissionService = inject(InterestSubmissionService);
   private readonly messageService = inject(MessageService);
+  private readonly enumsService = inject(EnumsService);
   private readonly state = inject(CampaignDetailStateService);
   private readonly sub = new Subscription();
 
   public campaign: InterestCampaign | null = null;
   public stats: SubmissionStats = { total: 0, pending: 0, confirmed: 0, withdrawn: 0 };
+  public formFieldLabels: string[] = [];
   public isLoading = true;
   public readonly emptyCell = EMPTY_CELL;
 
@@ -67,9 +73,15 @@ export class CampaignOverviewTabComponent implements OnInit, OnDestroy {
       pending: this.countByStatus('pending'),
       confirmed: this.countByStatus('confirmed'),
       withdrawn: this.countByStatus('withdrawn'),
+      formFieldOptions: this.enumsService.getOptions('tournament_interest_form_field'),
     }).subscribe({
-      next: ({ campaign, pending, confirmed, withdrawn }) => {
+      next: ({ campaign, pending, confirmed, withdrawn, formFieldOptions }) => {
         this.campaign = campaign.data;
+        const keys = campaign.data.form_fields?.length
+          ? campaign.data.form_fields
+          : DEFAULT_INTEREST_FORM_FIELDS;
+        const byValue = new Map(formFieldOptions.map((opt) => [String(opt.value), opt.label]));
+        this.formFieldLabels = keys.map((key) => byValue.get(key) ?? key);
         const sum = pending + confirmed + withdrawn;
         const fromApi = campaign.data.submissions_count;
         this.stats = {

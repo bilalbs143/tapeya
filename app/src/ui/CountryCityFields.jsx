@@ -22,6 +22,8 @@ import { SearchableSelect } from '@/ui/SearchableSelect';
  * @param {string} [props.cityId]
  * @param {string} [props.className]
  * @param {'default' | 'compact' | 'relaxed'} [props.density='default'] — gap between country and city (matches FormStack density)
+ * @param {boolean} [props.showCountry=true]
+ * @param {boolean} [props.showCity=true]
  */
 export function CountryCityFields({
   country,
@@ -39,6 +41,8 @@ export function CountryCityFields({
   cityId = 'city',
   className = '',
   density = 'default',
+  showCountry = true,
+  showCity = true,
 }) {
   const { countries, cities, citiesLoading } = useCountryCity({
     countryName: country,
@@ -58,46 +62,50 @@ export function CountryCityFields({
 
   return (
     <div className={`flex flex-col ${densityClass} ${className}`.trim()}>
-      <FormField label={countryLabel} htmlFor={countryId} required={required}>
-        <SearchableSelect
-          id={countryId}
-          value={country}
-          onChange={handleCountryChange}
-          options={countryOptions}
-          placeholder="Select Country"
-          searchPlaceholder="Search Countries…"
-          readOnly={readOnly}
-          disabled={readOnly}
-          className={readonlyClass}
-          ariaLabel="Country"
-        />
-        {countryError ? (
-          <p className="text-sm text-red-200" role="alert">
-            {countryError}
-          </p>
-        ) : null}
-      </FormField>
+      {showCountry && (
+        <FormField label={countryLabel} htmlFor={countryId} required={required}>
+          <SearchableSelect
+            id={countryId}
+            value={country}
+            onChange={handleCountryChange}
+            options={countryOptions}
+            placeholder="Select Country"
+            searchPlaceholder="Search Countries…"
+            readOnly={readOnly}
+            disabled={readOnly}
+            className={readonlyClass}
+            ariaLabel="Country"
+          />
+          {countryError ? (
+            <p className="text-sm text-red-200" role="alert">
+              {countryError}
+            </p>
+          ) : null}
+        </FormField>
+      )}
 
-      <FormField label={cityLabel} htmlFor={cityId} required={required}>
-        <SearchableSelect
-          id={cityId}
-          value={city}
-          onChange={onCityChange}
-          options={cityOptions}
-          placeholder="Select City"
-          searchPlaceholder="Search Cities…"
-          disabled={!country || readOnly}
-          loading={citiesLoading && !!country}
-          readOnly={readOnly}
-          className={readonlyClass}
-          ariaLabel="City"
-        />
-        {cityError ? (
-          <p className="text-sm text-red-200" role="alert">
-            {cityError}
-          </p>
-        ) : null}
-      </FormField>
+      {showCity && (
+        <FormField label={cityLabel} htmlFor={cityId} required={required}>
+          <SearchableSelect
+            id={cityId}
+            value={city}
+            onChange={onCityChange}
+            options={cityOptions}
+            placeholder="Select City"
+            searchPlaceholder="Search Cities…"
+            disabled={!country || readOnly}
+            loading={citiesLoading && !!country}
+            readOnly={readOnly}
+            className={readonlyClass}
+            ariaLabel="City"
+          />
+          {cityError ? (
+            <p className="text-sm text-red-200" role="alert">
+              {cityError}
+            </p>
+          ) : null}
+        </FormField>
+      )}
     </div>
   );
 }

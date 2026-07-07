@@ -15,6 +15,7 @@ use App\Enums\Shop\ProductDiscountTypeEnum;
 use App\Enums\SystemSetting\SystemSettingGroupEnum;
 use App\Enums\Tournament\GroupModeEnum;
 use App\Enums\Tournament\TournamentInterestCampaignStatusEnum;
+use App\Enums\Tournament\TournamentInterestFormFieldEnum;
 use App\Enums\Tournament\TournamentInterestSubmissionStatusEnum;
 use App\Enums\Tournament\TournamentRequestStatusEnum;
 use App\Enums\Tournament\TournamentScheduleWindowEnum;
@@ -42,7 +43,7 @@ class EnumController extends Controller
      */
     public function index(): JsonResponse
     {
-        $enums = Cache::remember('admin:enums:v4', 600, fn () => $this->buildEnums());
+        $enums = Cache::remember('admin:enums:v5', 600, fn () => $this->buildEnums());
 
         return $this->success($enums);
     }
@@ -72,6 +73,7 @@ class EnumController extends Controller
             'tournament_request_status' => $this->toOptions(TournamentRequestStatusEnum::cases()),
             'tournament_interest_campaign_status' => $this->toOptions(TournamentInterestCampaignStatusEnum::cases()),
             'tournament_interest_submission_status' => $this->toOptions(TournamentInterestSubmissionStatusEnum::cases()),
+            'tournament_interest_form_field' => $this->toOptions(TournamentInterestFormFieldEnum::cases()),
             'shot_position' => $this->toOptions(ShotPositionEnum::cases()),
             'notification_type' => $this->toOptions(AdminNotificationTypeEnum::cases()),
             'push_notification_status' => $this->toOptions(PushNotificationStatusEnum::cases()),

@@ -128,6 +128,32 @@
           </mat-form-field>
         </div>
 
+        <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">Form Fields <span class="text-error">*</span></mat-label>
+          <p class="mb-3 max-w-3xl text-xs leading-snug text-muted">
+            Choose which fields appear on the public interest form. Unchecked fields are hidden and not required from players. Full name is always stored from the signed-in account. Country and city are toggled together.
+          </p>
+          <div class="grid grid-cols-12 gap-x-4 gap-y-1">
+            @if (formFieldOptions$ | async; as fieldOpts) {
+              @for (opt of fieldOpts; track opt.value) {
+                <div class="col-span-12 sm:col-span-6 lg:col-span-4">
+                  <mat-checkbox
+                    [checked]="isFormFieldSelected($any(opt.value))"
+                    [disabled]="isFormFieldLocked($any(opt.value))"
+                    (change)="toggleFormField($any(opt.value), $event.checked)"
+                    color="primary"
+                  >
+                    {{ opt.label }}
+                  </mat-checkbox>
+                </div>
+              }
+            }
+          </div>
+          @if (form.get('form_fields')?.touched && form.get('form_fields')?.hasError('required')) {
+            <p class="mt-2 text-xs text-error">Select at least one form field.</p>
+          }
+        </div>
+
         <div class="col-span-12 lg:col-span-6">
           <mat-label class="text-sm font-semibold mb-2 block">Show in Sidebar</mat-label>
           <mat-slide-toggle
@@ -145,6 +171,10 @@
             formControlName="show_dialog"
             color="primary"
           ></mat-slide-toggle>
+          <p class="mt-2 mb-0 max-w-md text-xs leading-snug text-muted">
+            Only one campaign can show the in-app interest dialog. If another campaign already has this on, it will be turned off when
+            you save.
+          </p>
         </div>
 
         <div class="col-span-12 mt-6">

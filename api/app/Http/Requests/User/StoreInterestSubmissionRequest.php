@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\User;
 
+use App\Enums\Tournament\TournamentInterestFormFieldEnum;
+use App\Models\TournamentInterestCampaign;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreInterestSubmissionRequest extends FormRequest
@@ -16,14 +18,11 @@ class StoreInterestSubmissionRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'name' => ['required', 'string', 'max:191'],
-            'nickname' => ['required', 'string', 'max:191'],
-            'phone' => ['required', 'string', 'max:30'],
-            'email' => ['required', 'email', 'max:191'],
-            'country' => ['required', 'string', 'max:100'],
-            'city' => ['required', 'string', 'max:100'],
-            'date_of_birth' => ['required', 'date', 'before:today'],
-        ];
+        $slug = $this->route('slug');
+        $campaign = TournamentInterestCampaign::query()
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        return TournamentInterestFormFieldEnum::submissionRules($campaign->resolvedFormFields());
     }
 }

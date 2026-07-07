@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Tournament\TournamentInterestCampaignStatusEnum;
+use App\Enums\Tournament\TournamentInterestFormFieldEnum;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -14,6 +15,7 @@ class TournamentInterestCampaign extends BaseModel
         'tournament_name',
         'slug',
         'description',
+        'form_fields',
         'logo_path',
         'show_in_sidebar',
         'show_dialog',
@@ -24,6 +26,7 @@ class TournamentInterestCampaign extends BaseModel
     protected $casts = [
         'show_in_sidebar' => 'boolean',
         'show_dialog' => 'boolean',
+        'form_fields' => 'array',
         'status' => TournamentInterestCampaignStatusEnum::class,
     ];
 
@@ -62,5 +65,36 @@ class TournamentInterestCampaign extends BaseModel
     public function submissions(): HasMany
     {
         return $this->hasMany(TournamentInterestSubmission::class, 'campaign_id');
+    }
+
+    /**
+     * Enabled public-form fields. Null/empty stored value means legacy default (all fields).
+     *
+     * @return list<string>
+     */
+    public function resolvedFormFields(): array
+    {
+        $stored = $this->form_fields;
+        if ($stored === null || $stored === []) {
+            return TournamentInterestFormFieldEnum::defaults();
+        }
+
+        $allowed = TournamentInterestFormFieldEnum::values();
+
+        $fields = array_values(array_unique(array_filter(
+            $stored,
+            fn (mixed $field) => is_string($field) && in_array($field, $allowed, true),
+        )));
+
+        if (! in_array(TournamentInterestFormFieldEnum::NAME->value, $fields, true)) {
+            array_unshift($fields, TournamentInterestFormFieldEnum::NAME->value);
+        }
+
+        return $fields;
+    }
+
+    public function formFieldEnabled(string $field): bool
+    {
+        return in_array($field, $this->resolvedFormFields(), true);
     }
 }

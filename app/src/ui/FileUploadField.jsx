@@ -207,8 +207,8 @@ function DropzoneVariant({
       {/* Preview grid */}
       {previews.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {previews.map((p) => (
-            <PreviewCard key={p.key} {...p} disabled={disabled} />
+          {previews.map(({ key, ...preview }) => (
+            <PreviewCard key={key} {...preview} disabled={disabled} />
           ))}
         </div>
       )}

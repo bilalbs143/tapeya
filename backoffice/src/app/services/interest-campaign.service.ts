@@ -7,6 +7,7 @@ import type { ListParams } from 'src/app/shared/functions/list-params.function';
 
 import { MessageService } from './message.service';
 import type { UserSearchRow } from './users.service';
+import type { InterestFormFieldKey } from 'src/app/shared/constants/interest-form-field.constants';
 
 export type InterestCampaignStatus = 'open' | 'closed';
 
@@ -28,6 +29,7 @@ export interface InterestCampaign {
   logo_url: string | null;
   show_in_sidebar: boolean;
   show_dialog: boolean;
+  form_fields?: InterestFormFieldKey[];
   status: InterestCampaignStatus;
   status_label: string;
   created_by: number | null;
@@ -58,6 +60,7 @@ export interface CreateInterestCampaignPayload {
   description?: string | null;
   show_in_sidebar?: boolean;
   show_dialog?: boolean;
+  form_fields?: InterestFormFieldKey[];
   status?: InterestCampaignStatus | null;
 }
 

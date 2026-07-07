@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Enums\Tournament\TournamentInterestCampaignStatusEnum;
+use App\Enums\Tournament\TournamentInterestFormFieldEnum;
 use App\Enums\Tournament\TournamentInterestSubmissionStatusEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
@@ -40,6 +41,40 @@ class InterestCampaignController extends Controller
                 'tournament_name' => $campaign->tournament_name,
             ],
         ]);
+    }
+
+    /**
+     * Featured interest campaign for the in-app dialog: open status and show_dialog.
+     */
+    public function dialog(Request $request): JsonResponse
+    {
+        $campaign = TournamentInterestCampaign::query()
+            ->where('show_dialog', true)
+            ->where('status', TournamentInterestCampaignStatusEnum::OPEN->value)
+            ->first();
+
+        if ($campaign === null) {
+            return $this->success(['campaign' => null]);
+        }
+
+        $payload = [
+            'slug' => $campaign->slug,
+            'tournament_name' => $campaign->tournament_name,
+        ];
+
+        $user = $request->user();
+        $submission = TournamentInterestSubmission::query()
+            ->where('campaign_id', $campaign->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        $payload['my_submission_status'] = $submission?->status?->value;
+
+        if ($payload['my_submission_status'] === null) {
+            unset($payload['my_submission_status']);
+        }
+
+        return $this->success(['campaign' => $payload]);
     }
 
     public function show(string $slug): JsonResponse
@@ -89,17 +124,32 @@ class InterestCampaignController extends Controller
         $user = $request->user();
         $payload = $request->validated();
 
+        $defaults = [
+            'name' => $user->name,
+            'nickname' => $user->nickname,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'country' => $user->country,
+            'city' => $user->city,
+            'date_of_birth' => $user->date_of_birth?->format('Y-m-d'),
+        ];
+
         $data = [
-            'name' => $payload['name'] ?? $user->name,
-            'nickname' => $payload['nickname'] ?? $user->nickname,
-            'email' => $payload['email'] ?? $user->email,
-            'phone' => $payload['phone'] ?? $user->phone,
-            'country' => $payload['country'] ?? $user->country,
-            'city' => $payload['city'] ?? $user->city,
-            'date_of_birth' => $payload['date_of_birth'] ?? $user->date_of_birth?->format('Y-m-d'),
             'status' => TournamentInterestSubmissionStatusEnum::PENDING->value,
             'withdrawn_at' => null,
+            // Always stored — submissions.name is NOT NULL and mirrors the signed-in account.
+            'name' => $user->name,
         ];
+
+        foreach (TournamentInterestFormFieldEnum::scalarValues() as $field) {
+            if (TournamentInterestFormFieldEnum::isAlwaysStored($field)) {
+                continue;
+            }
+            if (! $campaign->formFieldEnabled($field)) {
+                continue;
+            }
+            $data[$field] = $payload[$field] ?? $defaults[$field] ?? null;
+        }
 
         $submission = TournamentInterestSubmission::query()
             ->where('campaign_id', $campaign->id)
@@ -108,7 +158,11 @@ class InterestCampaignController extends Controller
 
         // On first submission, seed profile picture from the user's existing avatar
         // when they haven't uploaded one yet (upload happens via the media endpoint).
-        if ($submission === null && $user->avatar) {
+        if (
+            $submission === null
+            && $user->avatar
+            && $campaign->formFieldEnabled(TournamentInterestFormFieldEnum::PROFILE_PICTURE->value)
+        ) {
             $data['profile_picture_path'] = $user->avatar;
         }
 
@@ -166,7 +220,7 @@ class InterestCampaignController extends Controller
         $updates = [];
 
         foreach (['email', 'country', 'city', 'date_of_birth'] as $key) {
-            if ($user->{$key} || empty($payload[$key])) {
+            if (! array_key_exists($key, $payload) || $user->{$key} || empty($payload[$key])) {
                 continue;
             }
 
