@@ -73,8 +73,14 @@ final class EnsureSpatieSettingsDatabaseProperties
                     };
                 }
 
-                if ($settingsClass === StreamingSettings::class && $name === 'idleEndGraceMinutes') {
-                    return 120;
+                if ($settingsClass === StreamingSettings::class) {
+                    return match ($name) {
+                        'idleEndGraceMinutes' => 120,
+                        'concurrentBroadcastAlertThreshold' => 3,
+                        'dailyYoutubeQuotaBudget' => 10000,
+                        'quotaAlertThresholdPercent' => 80,
+                        default => 0,
+                    };
                 }
 
                 return 0;

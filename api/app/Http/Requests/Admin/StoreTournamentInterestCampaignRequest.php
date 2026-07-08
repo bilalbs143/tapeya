@@ -12,6 +12,7 @@ use Illuminate\Validation\Rule;
 class StoreTournamentInterestCampaignRequest extends FormRequest
 {
     use ValidatesTournamentInterestFormFields;
+
     public function authorize(): bool
     {
         return true;

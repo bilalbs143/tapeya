@@ -185,6 +185,15 @@ final class SystemSettingRegistry
             SystemSettingKeyEnum::STREAM_IDLE_END_GRACE_MINUTES => [
                 'value' => ['required', 'integer', 'min:1', 'max:1440'],
             ],
+            SystemSettingKeyEnum::STREAM_CONCURRENT_BROADCAST_ALERT_THRESHOLD => [
+                'value' => ['required', 'integer', 'min:1', 'max:100'],
+            ],
+            SystemSettingKeyEnum::STREAM_DAILY_YOUTUBE_QUOTA_BUDGET => [
+                'value' => ['required', 'integer', 'min:1', 'max:10000000'],
+            ],
+            SystemSettingKeyEnum::STREAM_QUOTA_ALERT_THRESHOLD_PERCENT => [
+                'value' => ['required', 'integer', 'min:1', 'max:100'],
+            ],
             SystemSettingKeyEnum::LIVE_CHAT_ENABLED => [
                 'value' => ['required', 'integer', 'in:0,1'],
             ],
@@ -574,6 +583,33 @@ final class SystemSettingRegistry
                 'description' => 'Minutes idle before auto-end.',
                 'settings_class' => StreamingSettings::class,
                 'property' => 'idleEndGraceMinutes',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::STREAM_CONCURRENT_BROADCAST_ALERT_THRESHOLD->value => [
+                'group' => SystemSettingGroupEnum::STREAMING,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Concurrent Broadcast Alert Threshold',
+                'description' => 'Alert staff when starting/live YouTube streams reach this count (admin + Go Live share one channel). Default 3.',
+                'settings_class' => StreamingSettings::class,
+                'property' => 'concurrentBroadcastAlertThreshold',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::STREAM_DAILY_YOUTUBE_QUOTA_BUDGET->value => [
+                'group' => SystemSettingGroupEnum::STREAMING,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Daily YouTube Quota Budget',
+                'description' => 'Daily YouTube Data API v3 quota units (Google default is 10,000). Used for ops alerts only.',
+                'settings_class' => StreamingSettings::class,
+                'property' => 'dailyYoutubeQuotaBudget',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::STREAM_QUOTA_ALERT_THRESHOLD_PERCENT->value => [
+                'group' => SystemSettingGroupEnum::STREAMING,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'YouTube Quota Alert Threshold %',
+                'description' => 'Alert staff once today’s tracked API usage reaches this percent of the daily budget. Default 80.',
+                'settings_class' => StreamingSettings::class,
+                'property' => 'quotaAlertThresholdPercent',
                 'nullable_string' => false,
             ],
             SystemSettingKeyEnum::LIVE_CHAT_ENABLED->value => [

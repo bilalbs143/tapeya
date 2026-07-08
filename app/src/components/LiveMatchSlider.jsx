@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom';
 import { Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-import { LIVE_STREAM_SLIDER_ASPECT_CLASS, LiveStreamThumbnail } from '@/components/live/LiveStreamThumbnail';
+import { LiveStreamThumbnail } from '@/components/live/LiveStreamThumbnail';
+import { LIVE_STREAM_SLIDER_ASPECT_CLASS } from '@/lib/constants/streamThumbnail.constants';
 import { liveBroadcastPath } from '@/lib/utils/liveStreamUtils';
 
 /**

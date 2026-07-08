@@ -10,8 +10,8 @@
 import { useMemo } from 'react';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
-import { LIVE_STREAM_THUMBNAIL_ASPECT_CLASS } from '@/components/live/LiveStreamThumbnail';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { LIVE_STREAM_THUMBNAIL_ASPECT_CLASS } from '@/lib/constants/streamThumbnail.constants';
 import { normaliseLiveStreams } from '@/lib/utils/liveStreamUtils';
 import { LiveTab, UpcomingTab } from '@/pages/live/tabs';
 import { useGetLiveStreamsQuery } from '@/store/api/liveApi';

@@ -13,4 +13,7 @@ ext {
     androidxJunitVersion = '1.1.5'
     androidxEspressoCoreVersion = '3.5.1'
     cordovaAndroidVersion = '10.1.1'
+    // Self-serve mobile broadcast (TapeyaBroadcastPlugin) — see LIVE_STREAM_MOBILE_BROADCAST.md.
+    kotlinVersion = '1.9.22'
+    rootEncoderVersion = '2.7.5'
 }

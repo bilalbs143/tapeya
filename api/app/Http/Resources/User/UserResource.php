@@ -40,6 +40,8 @@ class UserResource extends JsonResource
             'country' => $this->country,
             'city' => $this->city,
             'followers_count' => (int) ($this->followers_count ?? 0),
+            'can_broadcast' => (bool) $this->can_broadcast,
+            'broadcast_terms_accepted_at' => $this->broadcast_terms_accepted_at?->toIso8601String(),
             'roles' => $appRoles->map(fn ($r) => [
                 'id' => $r->id,
                 'name' => $r->name,

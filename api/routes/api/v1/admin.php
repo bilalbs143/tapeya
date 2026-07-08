@@ -68,6 +68,7 @@ Route::prefix('admin')->group(function () {
         Route::get('countries/cities', [CountryController::class, 'cities']);
         Route::get('users/search', [UserSearchController::class, 'index']);
         Route::apiResource('users', UserController::class);
+        Route::post('users/{user}/broadcast-ban', [UserController::class, 'broadcastBan']);
         Route::post('players/import-csv', [PlayerController::class, 'importCsv']);
         Route::apiResource('players', PlayerController::class)->only(['index', 'store', 'show', 'update']);
         Route::apiResource('teams', TeamController::class);

@@ -46,7 +46,7 @@ final class LiveChatRedisKeys
 
     private static function purgeByPattern(string $pattern): void
     {
-        $cursor = 0;
+        $cursor = '0';
 
         do {
             [$cursor, $keys] = Redis::scan($cursor, [
@@ -54,9 +54,11 @@ final class LiveChatRedisKeys
                 'count' => 100,
             ]);
 
+            $cursor = (string) ($cursor ?? '0');
+
             if (! empty($keys)) {
                 Redis::del(...$keys);
             }
-        } while ($cursor !== 0);
+        } while ($cursor !== '0');
     }
 }

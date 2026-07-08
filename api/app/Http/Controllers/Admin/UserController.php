@@ -8,13 +8,15 @@ use App\Enums\User\UserTypeEnum;
 use App\Http\Requests\Admin\User\StoreUserRequest;
 use App\Http\Requests\Admin\User\UpdateUserRequest;
 use App\Http\Resources\Admin\User\UserResource;
+use App\Models\MatchStream;
 use App\Models\Role;
 use App\Models\User;
+use App\Streaming\LiveStreamService;
 use Illuminate\Http\JsonResponse;
 
 class UserController extends BaseAdminController
 {
-    public function __construct()
+    public function __construct(private LiveStreamService $liveStreamService)
     {
         parent::__construct(User::class, UserResource::class, 'user');
     }
@@ -70,8 +72,12 @@ class UserController extends BaseAdminController
         $validated = $request->validated();
         $roleIds = $validated['role_ids'] ?? null;
         $adminRoleIds = $validated['admin_role_ids'] ?? null;
+        $wasAllowedToBroadcast = (bool) $user->can_broadcast;
+        $revokingBroadcast = array_key_exists('can_broadcast', $validated)
+            && ! (bool) $validated['can_broadcast']
+            && $wasAllowedToBroadcast;
 
-        return $this->_patch($request, $user, null, function ($record) use ($roleIds, $adminRoleIds): void {
+        $response = $this->_patch($request, $user, null, function ($record) use ($roleIds, $adminRoleIds): void {
             if (! is_array($roleIds) && ! is_array($adminRoleIds)) {
                 return;
             }
@@ -102,10 +108,69 @@ class UserController extends BaseAdminController
             }
             unset($data['role_ids'], $data['admin_role_ids']);
         });
+
+        // Clearing "Allow broadcast" without Ban must still cut off reconnect — same stream
+        // cleanup as broadcastBan(), otherwise an in-progress owner can keep refetching ingest.
+        if ($revokingBroadcast) {
+            $this->revokeActiveSelfServeBroadcasts($user->fresh());
+        }
+
+        return $response;
     }
 
     public function destroy(User $user): JsonResponse
     {
         return $this->_destroy($user, null);
+    }
+
+    /**
+     * Revoke self-serve broadcasting access: sets can_broadcast = false, ends every currently
+     * active self-serve stream for this user (v1 only ever allows one at a time per
+     * assertNoActiveSelfServeStream(), but this action does not assume that invariant holds).
+     * Idle streams (never went live) are deleted outright, not ended — mirrors
+     * EndExpiredBroadcasts' case 2 reasoning. Streams that did go live are ended and their
+     * YouTube recording is kept — deletion is manual from backoffice only when needed.
+     */
+    public function broadcastBan(User $user): JsonResponse
+    {
+        $user->update(['can_broadcast' => false]);
+
+        $endedStreams = $this->revokeActiveSelfServeBroadcasts($user);
+
+        return $this->success([
+            'can_broadcast' => false,
+            'ended_streams' => $endedStreams,
+        ], 'Broadcast access revoked.');
+    }
+
+    /**
+     * End/delete every currently-active self-serve stream owned by this user.
+     * Idle (never went live) is deleted via LiveStreamService::delete() — end()'s
+     * transition('complete', ...) can fail on a broadcast that never went live and
+     * would leave an orphaned draft (same as EndExpiredBroadcasts case 2). Streams
+     * that went live are only ended; recordings are not auto-deleted.
+     */
+    private function revokeActiveSelfServeBroadcasts(User $user): int
+    {
+        $activeStreams = MatchStream::query()
+            ->where('owner_user_id', $user->id)
+            ->whereIn('status', ['idle', 'starting', 'live'])
+            ->get();
+
+        if ($activeStreams->isEmpty()) {
+            return 0;
+        }
+
+        foreach ($activeStreams as $stream) {
+            if ($stream->status === 'idle') {
+                $this->liveStreamService->delete($stream);
+
+                continue;
+            }
+
+            $this->liveStreamService->end($stream);
+        }
+
+        return $activeStreams->count();
     }
 }

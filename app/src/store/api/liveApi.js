@@ -37,7 +37,70 @@ export const liveApi = baseApi.injectEndpoints({
       }),
       transformResponse: (response) => response?.data ?? response,
     }),
+    // ── Self-serve mobile broadcast — LiveBroadcastController (owner-gated) ──────
+    acceptBroadcastTerms: builder.mutation({
+      query: () => ({
+        url: '/live/broadcasts/accept-terms',
+        method: 'POST',
+      }),
+      transformResponse: (response) => response?.data ?? response,
+      invalidatesTags: ['User'],
+    }),
+    createBroadcast: builder.mutation({
+      query: ({ title, description }) => ({
+        url: '/live/broadcasts',
+        method: 'POST',
+        body: { title, description },
+      }),
+      transformResponse: (response) => response?.data ?? response,
+    }),
+    getBroadcast: builder.query({
+      query: (streamId) => ({
+        url: `/live/broadcasts/${streamId}`,
+      }),
+      transformResponse: (response) => response?.data ?? response,
+      providesTags: (_result, _err, streamId) => [{ type: 'LiveStreams', id: `broadcast:${streamId}` }],
+    }),
+    endBroadcast: builder.mutation({
+      query: (streamId) => ({
+        url: `/live/broadcasts/${streamId}/end`,
+        method: 'POST',
+      }),
+      transformResponse: (response) => response?.data ?? response,
+      invalidatesTags: (_result, _err, streamId) => [
+        { type: 'LiveStreams', id: streamId },
+        { type: 'LiveStreams', id: `broadcast:${streamId}` },
+        { type: 'LiveStreams', id: 'LIST' },
+      ],
+    }),
+    uploadBroadcastThumbnail: builder.mutation({
+      query: ({ streamId, file }) => {
+        const body = new FormData();
+        body.append('file', file);
+        return { url: `/live/broadcasts/${streamId}/thumbnail`, method: 'POST', body };
+      },
+      transformResponse: (response) => response?.data ?? response,
+      invalidatesTags: (_result, _err, { streamId }) => [{ type: 'LiveStreams', id: streamId }],
+    }),
+    deleteBroadcastThumbnail: builder.mutation({
+      query: (streamId) => ({
+        url: `/live/broadcasts/${streamId}/thumbnail`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_result, _err, streamId) => [{ type: 'LiveStreams', id: streamId }],
+    }),
   }),
 });
 
-export const { useGetLiveStreamsQuery, useGetLiveStreamQuery, useSendLiveCommentMutation, useSendLiveHeartMutation } = liveApi;
+export const {
+  useGetLiveStreamsQuery,
+  useGetLiveStreamQuery,
+  useSendLiveCommentMutation,
+  useSendLiveHeartMutation,
+  useAcceptBroadcastTermsMutation,
+  useCreateBroadcastMutation,
+  useGetBroadcastQuery,
+  useEndBroadcastMutation,
+  useUploadBroadcastThumbnailMutation,
+  useDeleteBroadcastThumbnailMutation,
+} = liveApi;

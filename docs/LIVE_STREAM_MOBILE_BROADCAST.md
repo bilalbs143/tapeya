@@ -7,7 +7,7 @@
 
 > **Prerequisite status (verified against the codebase as of this writing):** the Independent Streams doc is **fully built** — `LiveStreamController@index`/`@show` query `MatchStream::visibleInApp()` (no more `TournamentMatch` join), `LiveStreamResource` exists, `LiveStreamStatusUpdated` broadcasts on `live-stream.{streamId}` unconditionally (not gated behind `match_id`), stream-scoped chat/hearts/presence (`LiveStreamCommentController`, `LiveStreamHeartController`, `useLiveStreamChannel`, `useStreamComments`, `useStreamPresenceChannel`) all exist and work, `LiveBroadcast.jsx` already routes on `/live/broadcast/:streamId` via `useGetLiveStreamQuery(streamId)`, and `LiveBroadcastItem` already takes a `broadcast` prop keyed by `streamId` throughout. **`LiveStreamService` also already has `createStandaloneYoutube()`** — an admin-facing standalone-YouTube-stream creator this doc's `createSelfServe()` wraps rather than duplicates (see Backend changes).
 >
-> **What is genuinely new in this doc, and only this:** `owner_user_id` + `can_broadcast` columns, `createSelfServe()` (a thin wrapper), `LiveBroadcastController` (user-facing create/reconnect/end), the native `TapeyaBroadcastPlugin`, the auto-end/VOD-purge jobs, the report endpoint, the backoffice allowlist/ban UI, and the `GoLive.jsx` app screens. Phase 4 (App UI) is **not** blocked on rebuilding the viewer stack — only on this doc's own backend + plugin landing.
+> **What is genuinely new in this doc, and only this:** `owner_user_id` + `can_broadcast` columns, `createSelfServe()` (a thin wrapper), `LiveBroadcastController` (user-facing create/reconnect/end), the native `TapeyaBroadcastPlugin`, the auto-end/VOD-purge jobs, the backoffice allowlist/ban UI, and the `GoLive.jsx` app screens. Phase 4 (App UI) is **not** blocked on rebuilding the viewer stack — only on this doc's own backend + plugin landing.
 
 ---
 
@@ -40,7 +40,7 @@ No recurring vendor fees, no black-box SDK, no per-minute billing beyond our own
 | Piece | Status |
 |---|---|
 | Ingest (RTMP URL + stream key) | `LiveStreamService::createStandaloneYoutube()` → `YouTubeStreamProvider::createStream()` — unchanged |
-| Status transitions (idle → starting → live → ended) | `streams:sync` polling command — unchanged, already skips nothing based on `owner_user_id` |
+| Status transitions (idle → starting → live → ended) | `streams:sync` polling command — behavior unchanged, already skips nothing based on `owner_user_id`; internals since batched per-provider for quota efficiency, see Phase 5 |
 | Playback | `IframeStreamPlayer.jsx` (web/Android) + `IosNativeStreamOverlay.jsx` (iOS), driven by `MatchStream::playbackForApp()` — unchanged |
 | Realtime status | `LiveStreamStatusUpdated` on `live-stream.{streamId}` (Reverb) — **broadcasts unconditionally now**, not gated behind `match_id` — `useLiveStreamChannel(streamId)` already consumes it |
 | Chat / hearts / presence | `live-stream.{streamId}.chat` / `.presence` — `useStreamComments`, `useStreamPresenceChannel` already consume these |
@@ -129,7 +129,7 @@ No recurring vendor fees, no black-box SDK, no per-minute billing beyond our own
   already live, unconditional)                      useStreamComments(streamId)
 ```
 
-**The viewer side needs zero new code — this is not a caveat, it's already true today.** A self-serve mobile broadcast is a `MatchStream` row identified purely by its `stream_id` — it appears in the same `/live` hub (once live/starting), plays in the same `LiveBroadcast.jsx` viewer, uses the same stream-scoped chat/hearts/presence, all already shipped. `match_id` never enters the picture anywhere in this flow. The only net-new engineering is: (1) who may create a self-serve broadcast and from where, (2) the native capture/publish plugin, (3) auto-end + VOD-purge jobs, and (4) reporting/moderation.
+**The viewer side needs zero new code — this is not a caveat, it's already true today.** A self-serve mobile broadcast is a `MatchStream` row identified purely by its `stream_id` — it appears in the same `/live` hub (once live/starting), plays in the same `LiveBroadcast.jsx` viewer, uses the same stream-scoped chat/hearts/presence, all already shipped. `match_id` never enters the picture anywhere in this flow. The only net-new engineering is: (1) who may create a self-serve broadcast and from where, (2) the native capture/publish plugin, and (3) auto-end + VOD-purge jobs.
 
 ---
 
@@ -139,7 +139,7 @@ No recurring vendor fees, no black-box SDK, no per-minute billing beyond our own
 2. **`match_streams.id` (stream id) is the only identifier this feature ever uses — never `match_id`.** Every route (`/live/broadcasts/{stream}`), every Reverb channel (`live-stream.{streamId}`), every chat/hearts/presence call, and the app's own routing (`/live/go-live/{streamId}`, `/live/broadcast/{streamId}`) key on the stream's own `id`. `match_id` is `NULL` on every self-serve row and is never read, written, or routed on anywhere in this feature — see the full glossary below.
 3. **Ingest credentials are broadcaster-only, one-time (plus a guarded reconnect path).** The RTMP URL + stream key are returned from `POST /live/broadcasts` (alongside `stream_id`) and from the owner-only `GET /live/broadcasts/{stream}` reconnect endpoint — nowhere else. They are handed directly to the native plugin call and must never enter Redux-persisted state, application logs, or analytics events (see Backend changes for the concrete hardening list).
 4. **Own the plugin, borrow the codec plumbing.** See "Decision" above — HaishinKit (iOS) and rootencoder (Android), both open-source, both vendored like any other native dependency already in this repo.
-5. **Trust & Safety ships with v1, not after.** Opening live video publishing to "any user" onto Tapeya's real YouTube channel is a real abuse and brand-risk surface. Rate limits, an admin kill-switch, a soft-launch allowlist, `privacy: 'unlisted'`, and a concrete report endpoint are part of this plan, not a follow-up.
+5. **Trust & Safety ships with v1, not after.** Opening live video publishing to "any user" onto Tapeya's real YouTube channel is a real abuse and brand-risk surface. Rate limits, an admin kill-switch, a soft-launch allowlist, and `privacy: 'unlisted'` are part of this plan, not a follow-up.
 6. **Same chat/hearts/presence UX as every other stream — already true.** `LiveBroadcastItem` already treats every stream generically by `streamId`; this doc adds nothing on top of the existing viewer stack.
 7. **Native platforms only.** `TapeyaBroadcastPlugin` has no web implementation and none is planned — the "Go Live" entry point is gated behind `Capacitor.isNativePlatform()` (see App UI/UX flow).
 
@@ -340,7 +340,7 @@ private function assertNoActiveSelfServeStream(int $ownerUserId): void
 | `POST /live/broadcasts` | Validates `title` (required, max 100), `description` (optional, max 500). 403 unless `$request->user()->can_broadcast`. **403 unless `broadcast_terms_accepted_at` is set** — see the ToS endpoint below; this is the server-side enforcement that makes the pre-broadcast confirmation sheet auditable rather than a client-only, bypassable flag. Calls `createSelfServe()`. Returns `{ stream_id, rtmp_url, stream_key }` (same shape `StreamIngestConfig` already produces for admin streams, via the exact same `$manager->driver($stream->provider)->ingestConfig($stream)` call `Admin\LiveStreamController::payload()` already makes) — **the only two places (this and the row below) ingest credentials are ever returned to a non-admin user.** Stays JSON-only — no thumbnail here (see `thumbnail` action below; a stream needs to exist before an image can be attached to it). |
 | `POST /live/broadcasts/{stream}/thumbnail` | Owner-only, multipart, field `file`. Validates `['sometimes', 'image', 'max:5120']` (mirrors `MediaRegistry`'s default for the admin `live-stream`/`thumbnail` entry — no dimension enforcement server-side, same as admin uploads today). Sets `$stream->update(['stream_thumbnail' => $request->file('file')])`, reusing the exact same `AsFile` cast and `match-stream-thumbnails` disk directory the admin backoffice flow already writes to — a self-serve thumbnail and an admin-uploaded one are indistinguishable in storage. Optional call — the pre-broadcast form only fires it if the broadcaster picked an image. |
 | `DELETE /live/broadcasts/{stream}/thumbnail` | Owner-only. Clears `stream_thumbnail`, falling back to the existing branded-placeholder behavior. |
-| `GET /live/broadcasts/{stream}` | Owner-only (403 otherwise). Re-fetches ingest credentials for app-restart/reconnect. **Returns credentials only when `status` is `idle`, `starting`, or `live`** — a stream that has already `ended` returns 404/410 instead of stale, no-longer-valid credentials. Throttled (e.g. `throttle:30,1`) — it's a reconnect path, not a polling endpoint. |
+| `GET /live/broadcasts/{stream}` | Owner-only (403 otherwise). Re-fetches ingest credentials for app-restart/reconnect. **Returns credentials only when `status` is `idle`, `starting`, or `live`** — a stream that has already `ended` returns 404/410 instead of stale, no-longer-valid credentials. |
 | `POST /live/broadcasts/{stream}/end` | Owner-only. Delegates to `LiveStreamService::end($stream)` (unchanged — already purges stream-scoped Redis keys and broadcasts the real-time status change). |
 
 **Why a dedicated action instead of the generic `media/{type}/{id}/{field}` route** (which already exists for admin uploads via `MediaRegistry`'s `live-stream` entry): `UserMediaController::resolveRecord()` deliberately does not check record ownership — by its own design, it trusts the caller to have already authorized the parent resource. Adding a `live-stream` type there would let any authenticated user upload/delete the thumbnail on *any* `match_streams` row. `LiveBroadcastController` already enforces `$stream->owner_user_id === $request->user()->id` for every other action, so the thumbnail action lives here instead, on the same ownership-checked footing.
@@ -348,12 +348,10 @@ private function assertNoActiveSelfServeStream(int $ownerUserId): void
 ```php
 // routes/api/v1/user.php — inside auth:api group
 Route::post('live/broadcasts/accept-terms', [LiveBroadcastController::class, 'acceptTerms']);
-Route::post('live/broadcasts', [LiveBroadcastController::class, 'store'])
-    ->middleware('throttle:6,60'); // 6 broadcast starts per hour per user
+Route::post('live/broadcasts', [LiveBroadcastController::class, 'store']);
 Route::post('live/broadcasts/{stream}/thumbnail', [LiveBroadcastController::class, 'uploadThumbnail']);
 Route::delete('live/broadcasts/{stream}/thumbnail', [LiveBroadcastController::class, 'deleteThumbnail']);
-Route::get('live/broadcasts/{stream}', [LiveBroadcastController::class, 'show'])
-    ->middleware('throttle:30,1');
+Route::get('live/broadcasts/{stream}', [LiveBroadcastController::class, 'show']);
 Route::post('live/broadcasts/{stream}/end', [LiveBroadcastController::class, 'end']);
 ```
 
@@ -435,9 +433,8 @@ Opening live publishing to every user, onto Tapeya's real YouTube channel, is a 
 |---|---|
 | **Soft launch gate** | `users.can_broadcast` defaults `false`. Flip per-user manually from a new backoffice toggle (see File checklist) until the feature has been observed in the wild. |
 | **Always unlisted** | Every self-serve `createSelfServe()` call forces `privacy: 'unlisted'` — never configurable by the end user in v1. Remember: unlisted stops discovery, not misconduct — see the note in the trade-offs table above. |
-| **Rate limiting** | 1 active broadcast per user at a time (`assertNoActiveSelfServeStream`, with the case-2 auto-end job preventing permanent lockout); 6 broadcast starts/hour (`throttle:6,60`). |
+| **Rate limiting** | 1 active broadcast per user at a time (`assertNoActiveSelfServeStream`, with the case-2 auto-end job preventing permanent lockout). Route-level throttles intentionally omitted for now — re-add if abuse appears. |
 | **Max duration** | `LiveStreamService::SELF_SERVE_MAX_DURATION_SECONDS` (7200 = 2 hours), enforced client-side (plugin timer) and server-side (`EndExpiredBroadcasts` case 1), both reading the same constant. |
-| **Reporting — API + audit trail, Phase 1** | No existing report/flag pattern exists anywhere in the codebase to reuse (verified — confirmed absent), so this is genuinely new: `POST /live/streams/{stream}/report`, body `{ reason: 'spam'\|'harassment'\|'inappropriate_content'\|'other', details?: string }`, throttled (e.g. `throttle:10,60`). Backed by a new `stream_reports` table (`id`, `stream_id`, `reporter_user_id`, `reason`, `details`, `created_at`) with a **unique index on `(stream_id, reporter_user_id)`** — a duplicate report from the same user for the same stream returns 200 (already recorded), not a 422, since the point is deduplication, not rejection. Fires a `StreamReportedAdminNotification` (new, following the exact same pattern as `TournamentRequestSubmittedAdminNotification`/`OrderPlacedAdminNotification`/`UserRegisteredAdminNotification` already in `app/Notifications/`) into the existing admin inbox. **The viewer-facing "Report" button in `LiveBroadcastItem.jsx` and a backoffice report inbox UI are Phase 5, not Phase 1** — Phase 1 ships the API + persisted record + admin notification only, so staff have a paper trail and a signal even before any UI exists to trigger or browse it end-to-end. |
 | **Admin kill-switch + ban** | `POST /admin/users/{user}/broadcast-ban` — precisely: (1) sets `can_broadcast = false`; (2) ends **every** currently-active self-serve stream owned by that user via `LiveStreamService::end()` (v1 only ever allows one, per `assertNoActiveSelfServeStream()`, but the ban action itself should not assume that invariant holds — query for all, not just one); (3) attempts `YouTubeStreamProvider::deleteVideo()` immediately for each just-ended stream (don't wait 7 days) since a ban implies content-related cause. The existing `POST /admin/live-streams/{stream}/end` still works unchanged for a one-off force-end without a full ban. |
 | **Backoffice visibility** | New "Allow broadcast" toggle on the user edit screen; new filter on the Live Streams list for `owner_user_id IS NOT NULL` — requires adding `AllowedFilter::exact('owner_user_id')` (or a boolean `self_serve` callback filter using `whereNotNull('owner_user_id')`) to `MatchStream::getFilters()`, since the admin index already runs through Spatie's `QueryBuilder` against that method (see File checklist). |
 | **ToS acceptance** | `users.broadcast_terms_accepted_at` (see Data model changes) — a persisted timestamp, set via the real `POST /live/broadcasts/accept-terms` endpoint and enforced server-side on `POST /live/broadcasts`, not just a one-time in-app sheet with no server record. |
@@ -596,11 +593,11 @@ pod 'HaishinKit', '~> 2.0' # loose constraint — pin exact tested version once 
 
 ### Android — Kotlin, rootencoder-based
 
-**New file:** `app/android/app/src/main/java/com/tapeya/app/TapeyaBroadcastPlugin.kt`
+**New file:** `app/android/app/src/main/java/com/tapbytapeya/app/TapeyaBroadcastPlugin.kt`
 
 ```kotlin
 // Shape, not full implementation
-package com.tapeya.app
+package com.tapbytapeya.app
 
 import com.getcapacitor.Plugin
 import com.getcapacitor.PluginCall
@@ -646,7 +643,7 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
 }
 ```
 
-**Registration** — `app/android/app/src/main/java/com/tapeya/app/MainActivity.java`:
+**Registration** — `app/android/app/src/main/java/com/tapbytapeya/app/MainActivity.java`:
 ```java
 registerPlugin(TapeyaBroadcastPlugin.class); // before super.onCreate(), same line as FacebookAnalyticsPlugin
 ```
@@ -740,7 +737,6 @@ Duration, peak viewer count (from the presence hook's high-water mark), a note t
 |---|---|
 | Add | `database/migrations/…_add_owner_to_match_streams.php` |
 | Add | `database/migrations/…_add_can_broadcast_and_tos_to_users.php` |
-| Add | `database/migrations/…_create_stream_reports_table.php` — with a unique index on `(stream_id, reporter_user_id)` |
 | Update | `app/Settings/StreamingSettings.php` — nullable second-channel config hook (`selfServeYoutubeChannelId`) |
 | Update | `app/Models/MatchStream.php` — `owner_user_id` fillable, `isSelfServe()`, `owner()` relation, `AllowedFilter::exact('owner_user_id')` (or a `self_serve` callback filter) added to `getFilters()` |
 | Update | `app/Models/User.php` — `can_broadcast`, `broadcast_terms_accepted_at` fillable/casts |
@@ -748,18 +744,14 @@ Duration, peak viewer count (from the presence hook's high-water mark), a note t
 | Update | `app/Streaming/LiveStreamService.php` — `SELF_SERVE_MAX_DURATION_SECONDS` constant, `createSelfServe()` (with the hard-require-YouTube guard); one additive line in `createStandaloneYoutube()` |
 | Update | `app/Streaming/Providers/YouTubeStreamProvider.php` — add `deleteVideo(MatchStream $stream): void` |
 | Add | `app/Http/Controllers/User/LiveBroadcastController.php` — `store`, `show`, `end`, `acceptTerms`, `uploadThumbnail`, `deleteThumbnail` |
-| Add | `app/Http/Controllers/User/LiveStreamReportController.php` |
-| Add | `app/Models/StreamReport.php` |
-| Add | `app/Notifications/StreamReportedAdminNotification.php` (follows the existing `{Event}AdminNotification` pattern — see `TournamentRequestSubmittedAdminNotification`, `OrderPlacedAdminNotification`) |
 | Add | `app/Console/Commands/EndExpiredBroadcasts.php` |
 | Add | `app/Console/Commands/PurgeExpiredBroadcastRecordings.php` |
-| Update | `routes/api/v1/user.php` — `live/broadcasts*` routes (incl. `accept-terms`, `thumbnail`), `live/streams/{stream}/report` |
-| Update | `app/Http/Resources/User/LiveStreamResource.php` — optional `broadcaster` field |
+| Update | `routes/api/v1/user.php` — `live/broadcasts*` routes (incl. `accept-terms`, `thumbnail`) |
+| Update | `app/Http/Resources/User/LiveStreamResource.php` — `broadcaster` field (`id`/`name`/`nickname`/`avatar_url`), present only when `isSelfServe()` |
 | Add | `app/Http/Controllers/Admin/UserBroadcastBanController.php` (or a method on an existing admin `UserController`) |
 | Add tests | `tests/Feature/LiveStream/SelfServeBroadcastTest.php` |
 | Add tests | `tests/Feature/Console/EndExpiredBroadcastsTest.php` (both cases — confirm Case 2 uses `delete()`, no orphan `provider_stream_id` rows survive) |
 | Add tests | `tests/Feature/Console/PurgeExpiredBroadcastRecordingsTest.php` |
-| Add tests | `tests/Feature/LiveStream/StreamReportTest.php` (incl. the unique-constraint/200-on-duplicate behavior) |
 | Add tests | Regression: `LiveStreamResource` (user) and `Admin\Http\Resources\LiveStreamListResource` (admin) never include `rtmp_url`/`stream_key` for any stream |
 
 ### App (React + Capacitor)
@@ -769,7 +761,7 @@ Duration, peak viewer count (from the presence hook's high-water mark), a note t
 | Add | `src/native/tapeyaBroadcast.js` |
 | Add | `src/pages/live/GoLive.jsx` — single file, both `/live/go-live` and `/live/go-live/:streamId` render through it, mode driven by `useParams()` |
 | Add | `src/lib/constants/streamThumbnail.constants.js` — mirrors the backoffice's `stream-thumbnail.constants.ts` values (360×185, aspect 360:185) for the thumbnail picker's crop/preview |
-| Update | `src/store/api/liveApi.js` — `createBroadcast`, `getBroadcast`, `endBroadcast`, `acceptBroadcastTerms`, `uploadBroadcastThumbnail`, `deleteBroadcastThumbnail`, `reportStream` mutations |
+| Update | `src/store/api/liveApi.js` — `createBroadcast`, `getBroadcast`, `endBroadcast`, `acceptBroadcastTerms`, `uploadBroadcastThumbnail`, `deleteBroadcastThumbnail` mutations |
 | Update | `src/App.jsx` — `/live/go-live` and `/live/go-live/:streamId` routes |
 | Update | `src/components/Sidebar.jsx` — replace the commented-out `{ label: 'Go live', comingSoon: true }` placeholder in `MENU_ITEMS` with a real entry (`path: '/live/go-live'`), filtered by `Capacitor.isNativePlatform() && can_broadcast` |
 | Update | Auth/`me` consumer (wherever the app reads the current user profile) — surface `can_broadcast`/`broadcast_terms_accepted_at` from the updated `GET /me` response |
@@ -788,8 +780,8 @@ Duration, peak viewer count (from the presence hook's high-water mark), a note t
 
 | Action | File |
 |---|---|
-| Add | `android/app/src/main/java/com/tapeya/app/TapeyaBroadcastPlugin.kt` |
-| Update | `android/app/src/main/java/com/tapeya/app/MainActivity.java` — `registerPlugin(...)` |
+| Add | `android/app/src/main/java/com/tapbytapeya/app/TapeyaBroadcastPlugin.kt` |
+| Update | `android/app/src/main/java/com/tapbytapeya/app/MainActivity.java` — `registerPlugin(...)` |
 | Update | `android/app/build.gradle` — rootencoder dependency, pin exact version once verified (+ JitPack repo if missing) |
 | Update | `android/app/src/main/AndroidManifest.xml` — camera/mic/foreground-service permissions |
 
@@ -812,13 +804,11 @@ Duration, peak viewer count (from the presence hook's high-water mark), a note t
 - [ ] `GET /me` (or equivalent) response includes `can_broadcast` and `broadcast_terms_accepted_at`
 - [ ] `createSelfServe()` aborts with 503 (fails closed, does not silently provision the wrong provider) if `StreamingSettings::$defaultProvider !== 'youtube'`
 - [ ] Second concurrent `POST /live/broadcasts` from the same user → 422 (`assertNoActiveSelfServeStream`)
-- [ ] `throttle:6,60` returns 429 on the 7th attempt within an hour
 - [ ] `GET /live/broadcasts/{stream}` rejected (403) for a non-owner user; returns 404/410 once `status = ended`
 - [ ] `POST /live/broadcasts/{stream}/end` rejected (403) for a non-owner user
 - [ ] `EndExpiredBroadcasts` case 1: ends a `started_at`-set stream past `SELF_SERVE_MAX_DURATION_SECONDS`; case 2: **deletes** (not just ends) an `idle`/`starting` stream with no `started_at` past 30 minutes, confirmed via `assertDatabaseMissing` that no row (and no orphaned `provider_stream_id` on YouTube) survives; both cases leave admin/match-linked streams alone
 - [ ] `streams:sync` updates a self-serve stream's status identically to an admin YouTube stream, and `LiveStreamStatusUpdated` fires on `live-stream.{streamId}` regardless of `owner_user_id`
 - [ ] `PurgeExpiredBroadcastRecordings` deletes the YouTube video for a self-serve stream ended 7+ days ago, leaves admin streams and self-serve streams ended <7 days ago untouched
-- [ ] `POST /live/streams/{stream}/report` creates one `stream_reports` row; a duplicate report from the same user for the same stream returns 200 (unique constraint on `(stream_id, reporter_user_id)` prevents a second row), not 422; `StreamReportedAdminNotification` fires into the admin inbox
 - [ ] Admin ban action sets `can_broadcast = false`, ends **every** active self-serve stream for that user (not just one), and attempts immediate YouTube video deletion for each
 - [ ] Admin Live Streams list: `?filter[owner_user_id]=…` (or the `self_serve` equivalent) returns only self-serve rows
 - [ ] Regression: no list/show response for any stream (self-serve or otherwise) ever includes `rtmp_url`/`stream_key` — check both the user-facing `LiveStreamResource` and the admin `LiveStreamListResource`
@@ -854,16 +844,15 @@ Duration, peak viewer count (from the presence hook's high-water mark), a note t
 
 Everything here is backend-only, but includes the two pieces easy to mistakenly defer until "the UI needs them" — the user-profile fields and the ToS endpoint — both of which Phase 4 is actually blocked on:
 
-1. `owner_user_id` migration; `users.can_broadcast` + `broadcast_terms_accepted_at` migration; `stream_reports` table (unique index on `stream_id`/`reporter_user_id`).
+1. `owner_user_id` migration; `users.can_broadcast` + `broadcast_terms_accepted_at` migration.
 2. **`GET /me` (or equivalent) updated to expose `can_broadcast` + `broadcast_terms_accepted_at`** — without this Phase 4 has no way to gate the entry point or the ToS sheet.
 3. `LiveStreamService::SELF_SERVE_MAX_DURATION_SECONDS` constant; `createSelfServe()` (wrapping `createStandaloneYoutube()`, with the hard-require-YouTube guard) + `assertNoActiveSelfServeStream()`.
-4. `LiveBroadcastController` (`store`/`show`/`end`/`acceptTerms`) + routes + throttling + credential-exposure hardening + server-side ToS enforcement on `store`.
+4. `LiveBroadcastController` (`store`/`show`/`end`/`acceptTerms`) + routes + credential-exposure hardening + server-side ToS enforcement on `store`.
 5. `EndExpiredBroadcasts` (case 1 ends, case 2 deletes) + `PurgeExpiredBroadcastRecordings` commands, scheduled alongside `streams:sync`.
 6. `YouTubeStreamProvider::deleteVideo()`.
-7. `LiveStreamReportController` + `StreamReport` model + `StreamReportedAdminNotification` — **API and audit trail only.** The viewer-facing report button and the backoffice report inbox UI are Phase 5, not this phase — see that section.
-8. Admin ban action (ends *every* active self-serve stream for the user, not just one) + `AllowedFilter::exact('owner_user_id')` on `MatchStream::getFilters()` + backoffice "Allow broadcast" toggle + Live Streams list filter.
-9. `StreamingSettings` second-channel config hook (unused).
-10. Tests per the Backend section above.
+7. Admin ban action (ends *every* active self-serve stream for the user, not just one) + `AllowedFilter::exact('owner_user_id')` on `MatchStream::getFilters()` + backoffice "Allow broadcast" toggle + Live Streams list filter.
+8. `StreamingSettings` second-channel config hook (unused).
+9. Tests per the Backend section above.
 
 **Exit criteria:** Postman flow — create broadcast as an allowlisted test user (with `broadcast_terms_accepted_at` set via the accept-terms call first), receive RTMP credentials, publish from any RTMP tool (e.g. `ffmpeg` or OBS pointed at the returned URL) to confirm the YouTube pipe + `streams:sync` status transitions + `/live` hub listing + Reverb status updates all work **before** the native plugin exists.
 
@@ -886,11 +875,18 @@ Sidebar "Go Live" entry (replacing the commented-out placeholder in `MENU_ITEMS`
 
 **Exit criteria:** a non-technical allowlisted tester can tap "Go Live" from the sidebar, fill in the form (with or without a thumbnail), preview themselves on camera, explicitly start broadcasting, and end the broadcast — without engineering assistance, on both platforms.
 
-### Phase 5 — Trust & Safety UI hardening
+### Phase 5 — Operational monitoring
 
-The report **API** shipped in Phase 1 — this phase is the UI on both ends of it, plus operational monitoring: the "Report" action in `LiveBroadcastItem.jsx` (viewer-facing), a backoffice report inbox so staff can browse/action `stream_reports` rows (not just receive a notification), the ban action's backoffice UI, and monitoring/alerting on YouTube channel concurrency and API quota usage.
+There is no viewer-facing reporting/flagging feature in this product — moderation is admin-initiated only, via the ban action already shipped in Phase 1 (`POST /admin/users/{user}/broadcast-ban`, with its backoffice toggle and Live Streams list filter). What remains here is purely operational: monitoring/alerting on YouTube channel concurrency and API quota usage, so staff notice a problem (or abuse) before users do. Delivered:
 
-**Exit criteria:** a viewer can report a broadcast from the app; a staff member can find that report in backoffice, then find, force-end, and ban an abusive broadcaster — including immediate YouTube video deletion — in under a minute.
+- `App\Streaming\Support\YouTubeQuotaTracker` — a cache-backed daily counter, incremented at every `YouTubeStreamProvider` Google API call site (`liveStreams.insert`, `liveBroadcasts.insert`/`.bind`/`.transition`/`.delete`, `liveBroadcasts.list`, `liveStreams.list`, `videos.delete`) using Google's documented per-call unit costs. `list` calls are approximated at 1 unit regardless of `part`.
+- `StreamingSettings` gained three new fields: `concurrentBroadcastAlertThreshold` (default 3 — a starting point, not a verified channel ceiling), `dailyYoutubeQuotaBudget` (default 10,000, Google's default project quota), `quotaAlertThresholdPercent` (default 80).
+- `App\Console\Commands\MonitorBroadcastOperations` (`broadcasts:monitor-operations`, scheduled every 15 minutes) — checks concurrent `starting`/`live` YouTube streams against the threshold, and today's tracked quota usage against the budget/percent threshold. Each check alerts at most once per "breach episode" (a cache flag suppresses repeats while the condition persists, and clears once the metric recovers so a later re-breach alerts again).
+- Two new admin notifications following the exact existing `*AdminNotification` pattern (database to the System user's admin inbox + mail to `AdminNotificationSettings::$adminEmails`): `BroadcastConcurrencyAlertAdminNotification`, `YouTubeQuotaAlertAdminNotification`. Wired into `AdminNotificationTypeEnum`, `BroadcastEventNames`, and `ResolveAdminInboxBroadcast` like every other admin notification.
+- **Root-cause quota fix, not just visibility:** `streams:sync`'s per-stream polling (2 API calls × N active streams, every minute) was the dominant quota cost and the thing that actually scales badly with growth. `StreamProviderContract` gained a `syncStatuses(Collection $streams): void` batch method; `YouTubeStreamProvider` implements it as one `liveBroadcasts.list` + one `liveStreams.list` call per 50 streams (YouTube's per-request `id` limit), replacing 2 calls per stream. `LiveStreamService::syncStatuses()` and `SyncStreamStatuses` (now `chunk(50, …)` instead of `lazy()->each(…)`) drive the batching; `syncStatus()` (single-stream, used by the admin manual "sync" button) is unchanged and now just delegates to the batch method with one stream.
+- Tests: `tests/Feature/Console/MonitorBroadcastOperationsTest.php`; `SyncStreamStatusesTest.php` continues to cover the batched command path.
+
+**Exit criteria:** a staff member can find, force-end, and ban an abusive broadcaster — including immediate YouTube video deletion — in under a minute, and gets an alert if YouTube channel concurrency or API quota approaches its limit.
 
 ### Phase 6 — Rollout
 Flip `can_broadcast` for a widening allowlist, watch YouTube channel concurrent-broadcast count and API quota usage, then open broadly. Revisit the dedicated second-channel option once volume or an incident justifies it.

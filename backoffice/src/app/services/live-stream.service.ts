@@ -57,6 +57,10 @@ export interface LiveStreamListItem {
   provider: string;
   match_id: number | null;
   started_at: string | null;
+  /** Set only for self-serve mobile broadcasts (LIVE_STREAM_MOBILE_BROADCAST.md) — null for admin-created rows. */
+  owner_user_id?: number | null;
+  /** Authenticated Reverb presence members; populated for live/starting rows. */
+  watching_count?: number;
 }
 
 export interface PaginatedLiveStreams {

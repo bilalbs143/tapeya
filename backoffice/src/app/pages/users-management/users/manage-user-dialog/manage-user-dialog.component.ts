@@ -74,6 +74,11 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
   public readonly appRolesOptions$ = this.enumsService.getOptions('app_roles');
   public readonly adminRolesOptions$ = this.enumsService.getOptions('admin_roles');
 
+  public readonly broadcastOptions = [
+    { value: false, label: 'Not allowed' },
+    { value: true, label: 'Allowed (Go Live)' },
+  ] as const;
+
   public pendingAvatarFile: File | null | undefined = undefined;
 
   public get title(): string {
@@ -128,6 +133,7 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
       country: [user?.country ?? ''],
       // City starts disabled when no country is pre-selected; enabled reactively via loadCitiesForCountry.
       city: [{ value: user?.city ?? '', disabled: !user?.country }],
+      can_broadcast: [user?.can_broadcast ?? false],
       password: [''],
       password_confirmation: [''],
     });
@@ -230,6 +236,7 @@ export class ManageUserDialogComponent implements OnInit, OnDestroy {
       batting_style: raw.batting_style || null,
       country: raw.country || null,
       city: raw.city || null,
+      can_broadcast: !!raw.can_broadcast,
     };
     if (raw.password) {
       payload['password'] = raw.password;

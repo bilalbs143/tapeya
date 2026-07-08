@@ -23,6 +23,7 @@ class LiveStreamListingTest extends TestCase
 
     public function test_index_includes_standalone_and_open_tournament_streams(): void
     {
+        $user = User::factory()->create();
         $match = $this->createMatch();
         $match->tournament->update(['tournament_type' => TournamentTypeEnum::OPEN_TOURNAMENT->value]);
 
@@ -40,7 +41,7 @@ class LiveStreamListingTest extends TestCase
             'started_at' => now()->subMinute(),
         ]);
 
-        $response = $this->getJson('/api/v1/live/matches')->assertOk();
+        $response = $this->actingAs($user, 'api')->getJson('/api/v1/live/matches')->assertOk();
 
         $ids = collect($response->json('data'))->pluck('id');
         $this->assertTrue($ids->contains($standalone->id));
@@ -49,6 +50,7 @@ class LiveStreamListingTest extends TestCase
 
     public function test_index_excludes_non_open_tournament_match_streams(): void
     {
+        $user = User::factory()->create();
         $match = $this->createMatch();
         $match->tournament->update(['tournament_type' => TournamentTypeEnum::LEAGUE->value]);
 
@@ -60,20 +62,22 @@ class LiveStreamListingTest extends TestCase
             'started_at' => now(),
         ]);
 
-        $response = $this->getJson('/api/v1/live/matches')->assertOk();
+        $response = $this->actingAs($user, 'api')->getJson('/api/v1/live/matches')->assertOk();
 
         $this->assertCount(0, $response->json('data'));
     }
 
     public function test_show_returns_playback_for_standalone_stream(): void
     {
+        $user = User::factory()->create();
         $stream = MatchStream::factory()->create([
             'streaming_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
             'status' => 'live',
             'started_at' => now(),
         ]);
 
-        $this->getJson("/api/v1/live/streams/{$stream->id}")
+        $this->actingAs($user, 'api')
+            ->getJson("/api/v1/live/streams/{$stream->id}")
             ->assertOk()
             ->assertJsonPath('data.title', $stream->title)
             ->assertJsonPath('data.stream.playback.mode', 'iframe')

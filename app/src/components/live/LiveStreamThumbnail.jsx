@@ -1,12 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { LiveStreamThumbnailFallback } from '@/components/live/LiveStreamThumbnailFallback';
-
-/** Matches admin upload guidance (360×185). */
-export const LIVE_STREAM_THUMBNAIL_ASPECT_CLASS = 'aspect-[360/185]';
-
-/** Home carousel — slightly taller and narrower than hub cards. */
-export const LIVE_STREAM_SLIDER_ASPECT_CLASS = 'aspect-[300/200]';
+import { LIVE_STREAM_THUMBNAIL_ASPECT_CLASS } from '@/lib/constants/streamThumbnail.constants';
 
 /**
  * Fixed-aspect broadcast thumbnail frame. Images are center-cropped with object-cover.

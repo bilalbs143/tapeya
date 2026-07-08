@@ -1,0 +1,446 @@
+package com.tapbytapeya.app
+
+import android.Manifest
+import android.content.Intent
+import android.graphics.PixelFormat
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import android.view.SurfaceHolder
+import android.view.SurfaceView
+import android.view.ViewGroup
+import android.widget.FrameLayout
+import com.getcapacitor.JSObject
+import com.getcapacitor.Plugin
+import com.getcapacitor.PermissionState
+import com.getcapacitor.PluginCall
+import com.getcapacitor.PluginMethod
+import com.getcapacitor.annotation.CapacitorPlugin
+import com.getcapacitor.annotation.Permission
+import com.getcapacitor.annotation.PermissionCallback
+import com.pedro.common.ConnectChecker
+import com.pedro.encoder.input.sources.audio.MicrophoneSource
+import com.pedro.encoder.input.sources.video.Camera2Source
+import com.pedro.encoder.input.video.CameraHelper
+import com.pedro.library.base.StreamBase
+import com.pedro.library.generic.GenericStream
+import com.pedro.library.util.BitrateAdapter
+
+/**
+ * Self-serve mobile broadcast — camera capture + RTMP publish via RootEncoder's GenericStream.
+ * See LIVE_STREAM_MOBILE_BROADCAST.md's "Android — Kotlin, rootencoder-based" section.
+ *
+ * Uses `GenericStream` (com.pedro.library.generic), not the doc's sketched `RtmpStream` —
+ * verified against the current RootEncoder README/source: `RtmpStream` still exists but
+ * `GenericStream` is the actively documented, recommended entry point in the pinned
+ * `library:2.7.5` artifact, and it publishes plain RTMP exactly the same way when given an
+ * `rtmp://` endpoint. `ConnectChecker` lives in `com.pedro.common` (moved from
+ * `com.pedro.library.util` since the doc was written) — this file targets the real,
+ * currently-published API surface.
+ */
+@CapacitorPlugin(
+    name = "TapeyaBroadcast",
+    permissions = [
+        Permission(alias = "camera", strings = [Manifest.permission.CAMERA]),
+        Permission(alias = "microphone", strings = [Manifest.permission.RECORD_AUDIO]),
+    ]
+)
+class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
+
+    companion object {
+        private const val TAG = "TapeyaBroadcastPlugin"
+
+        /** Reconnect contract from the doc: 2s -> 4s -> 8s -> 16s -> 30s, 5 attempts before error. */
+        private val RECONNECT_DELAYS_MS = longArrayOf(2000, 4000, 8000, 16000, 30000)
+
+        private const val AUDIO_SAMPLE_RATE = 44100
+        private const val AUDIO_BITRATE = 128_000
+    }
+
+    private data class Resolution(val width: Int, val height: Int, val videoBitrate: Int)
+
+  private val resolutionTiers = listOf(
+        Resolution(1080, 1920, 2_500_000),
+        Resolution(720, 1280, 1_500_000),
+        Resolution(480, 854, 640_000),
+    )
+
+    private val resolutions = mapOf(
+        "720p" to resolutionTiers[1],
+        "1080p" to resolutionTiers[0],
+    )
+
+    private var stream: StreamBase? = null
+    private var previewView: SurfaceView? = null
+    private var bitrateAdapter: BitrateAdapter? = null
+    private var targetVideoBitrate = resolutionTiers[0].videoBitrate
+    private var currentTierIndex = 0
+    private var poorSinceMs: Long? = null
+    private var lastFps = 0
+
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private var reconnectAttempt = 0
+    private var reconnectRunnable: Runnable? = null
+    private var maxDurationRunnable: Runnable? = null
+    private var isEnding = false
+    private var lastEndpoint: String? = null
+    private var lastStreamId: String? = null
+
+    override fun load() {
+        val genericStream = GenericStream(context, this, Camera2Source(context), MicrophoneSource())
+        genericStream.getGlInterface().autoHandleOrientation = true
+        genericStream.setFpsListener { fps -> lastFps = fps }
+        genericStream.getStreamClient().resizeCache(200)
+        stream = genericStream
+    }
+
+    // MARK: - Permissions
+
+    @PluginMethod
+    fun requestPermissions(call: PluginCall) {
+        if (getPermissionState("camera") == PermissionState.GRANTED &&
+            getPermissionState("microphone") == PermissionState.GRANTED
+        ) {
+            permissionsCallback(call)
+        } else {
+            requestPermissionForAliases(arrayOf("camera", "microphone"), call, "permissionsCallback")
+        }
+    }
+
+    @PermissionCallback
+    private fun permissionsCallback(call: PluginCall) {
+        val result = JSObject()
+        result.put("camera", getPermissionState("camera")?.toString() ?: "denied")
+        result.put("microphone", getPermissionState("microphone")?.toString() ?: "denied")
+        call.resolve(result)
+    }
+
+    // MARK: - Preview
+
+    @PluginMethod
+    fun startPreview(call: PluginCall) {
+        val stream = stream ?: return call.reject("Stream not initialized")
+        val activity = activity ?: return call.reject("Activity unavailable")
+
+        val x = (call.getFloat("x") ?: 0f).toInt()
+        val y = (call.getFloat("y") ?: 0f).toInt()
+        val width = (call.getFloat("width") ?: 0f).toInt()
+        val height = (call.getFloat("height") ?: 0f).toInt()
+        val preferredFacing = if (call.getString("position") == "back") {
+            CameraHelper.Facing.BACK
+        } else {
+            CameraHelper.Facing.FRONT
+        }
+
+        // RootEncoder defaults to the back camera; switch before preview when the app asks for front.
+        try {
+            val cameraSource = stream.videoSource as? Camera2Source
+            if (cameraSource != null && cameraSource.getCameraFacing() != preferredFacing) {
+                cameraSource.switchCamera()
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Unable to select preferred camera facing: ${e.message}")
+        }
+
+        activity.runOnUiThread {
+            val contentView = activity.findViewById<ViewGroup>(android.R.id.content)
+            val surfaceView = previewView ?: SurfaceView(activity).also { it.holder.setFormat(PixelFormat.TRANSLUCENT) }
+            previewView = surfaceView
+
+            if (surfaceView.parent !== contentView) {
+                (surfaceView.parent as? ViewGroup)?.removeView(surfaceView)
+                contentView.addView(surfaceView)
+            }
+            contentView.bringChildToFront(surfaceView)
+
+            if (width > 0 && height > 0) {
+                surfaceView.layoutParams = FrameLayout.LayoutParams(width, height).apply {
+                    leftMargin = x
+                    topMargin = y
+                }
+            }
+
+            if (surfaceView.holder.surface?.isValid == true) {
+                if (!stream.isOnPreview) stream.startPreview(surfaceView)
+                call.resolve(JSObject().put("started", true))
+                return@runOnUiThread
+            }
+
+            surfaceView.holder.addCallback(object : SurfaceHolder.Callback {
+                override fun surfaceCreated(holder: SurfaceHolder) {
+                    if (!stream.isOnPreview) stream.startPreview(surfaceView)
+                    call.resolve(JSObject().put("started", true))
+                }
+                override fun surfaceChanged(holder: SurfaceHolder, format: Int, w: Int, h: Int) {}
+                override fun surfaceDestroyed(holder: SurfaceHolder) {}
+            })
+        }
+    }
+
+    @PluginMethod
+    fun stopPreview(call: PluginCall) {
+        val stream = stream
+        val activity = activity ?: return call.resolve(JSObject().put("stopped", true))
+
+        activity.runOnUiThread {
+            if (stream?.isOnPreview == true) stream.stopPreview()
+            previewView?.let { (it.parent as? ViewGroup)?.removeView(it) }
+            call.resolve(JSObject().put("stopped", true))
+        }
+    }
+
+    @PluginMethod
+    fun switchCamera(call: PluginCall) {
+        try {
+            (stream?.videoSource as? Camera2Source)?.switchCamera()
+            call.resolve(JSObject().put("switched", true))
+        } catch (e: Exception) {
+            call.reject("Failed to switch camera: ${e.message}")
+        }
+    }
+
+    @PluginMethod
+    fun toggleMute(call: PluginCall) {
+        val muted = call.getBoolean("muted") ?: true
+        val mic = stream?.audioSource as? MicrophoneSource
+        if (muted) mic?.mute() else mic?.unMute()
+        call.resolve(JSObject().put("muted", muted))
+    }
+
+    // MARK: - Broadcast
+
+    @PluginMethod
+    fun startBroadcast(call: PluginCall) {
+        val stream = stream ?: return call.reject("Stream not initialized")
+        val rtmpUrl = call.getString("rtmpUrl")
+        val streamKey = call.getString("streamKey")
+        if (rtmpUrl == null || streamKey == null) {
+            call.reject("rtmpUrl and streamKey are required")
+            return
+        }
+        val maxDurationSeconds = call.getDouble("maxDurationSeconds") ?: 7200.0
+        val resolution = resolutions[call.getString("resolution")] ?: resolutionTiers[0]
+        currentTierIndex = resolutionTiers.indexOf(resolution).coerceAtLeast(0)
+        poorSinceMs = null
+
+        // Guard against a double slash — YouTube's ingestConfig() rtmp_url has occasionally
+        // included a trailing slash depending on the provider path (see Android snippet note
+        // in the doc).
+        val endpoint = rtmpUrl.trimEnd('/') + "/" + streamKey
+        lastEndpoint = endpoint
+        lastStreamId = call.getString("streamId")
+        targetVideoBitrate = resolution.videoBitrate
+        isEnding = false
+        reconnectAttempt = 0
+
+        startBroadcastService()
+
+        try {
+            if (!stream.isStreaming) {
+                val prepared = stream.prepareVideo(resolution.width, resolution.height, resolution.videoBitrate) &&
+                    stream.prepareAudio(AUDIO_SAMPLE_RATE, true, AUDIO_BITRATE)
+                if (!prepared) {
+                    call.reject("Failed to prepare encoder")
+                    return
+                }
+                stream.startStream(endpoint)
+            }
+            scheduleMaxDurationTimeout(maxDurationSeconds)
+            call.resolve()
+        } catch (e: Exception) {
+            notifyBroadcastState("error", mapOf("message" to (e.message ?: "unknown")))
+            call.reject("Failed to start broadcast: ${e.message}")
+        }
+    }
+
+    @PluginMethod
+    fun stopBroadcast(call: PluginCall) {
+        isEnding = true
+        cancelMaxDurationTimeout()
+        cancelReconnect()
+        teardownStream()
+        stopBroadcastService()
+        notifyBroadcastState("ended", null)
+        call.resolve(JSObject().put("stopped", true))
+    }
+
+    private fun teardownStream() {
+        val stream = stream ?: return
+        try {
+            if (stream.isStreaming) stream.stopStream()
+        } catch (e: Exception) {
+            Log.w(TAG, "stopStream failed", e)
+        }
+    }
+
+    // MARK: - ConnectChecker (RootEncoder callbacks)
+
+    override fun onConnectionStarted(url: String) {
+        if (reconnectAttempt == 0) notifyBroadcastState("connecting", null)
+    }
+
+    override fun onConnectionSuccess() {
+        reconnectAttempt = 0
+        cancelReconnect()
+        bitrateAdapter = BitrateAdapter { bitrate -> stream?.setVideoBitrateOnFly(bitrate) }.also {
+            it.setMaxBitrate(targetVideoBitrate)
+        }
+        notifyBroadcastState("live", null)
+    }
+
+    override fun onConnectionFailed(reason: String) {
+        handleUnexpectedDisconnect(reason)
+    }
+
+    override fun onNewBitrate(bitrate: Long) {
+        val stream = stream
+        val hasCongestion = stream?.getStreamClient()?.hasCongestion() == true
+        bitrateAdapter?.adaptBitrate(bitrate, hasCongestion)
+
+        val quality = when {
+            hasCongestion || bitrate < targetVideoBitrate * 0.5 -> "poor"
+            bitrate >= targetVideoBitrate * 0.85 -> "good"
+            else -> "fair"
+        }
+
+        if (quality == "poor") {
+            val now = System.currentTimeMillis()
+            val since = poorSinceMs
+            if (since == null) {
+                poorSinceMs = now
+            } else if (now - since >= 10_000) {
+                maybeStepDownResolution()
+                poorSinceMs = null
+            }
+        } else {
+            poorSinceMs = null
+        }
+
+        val data = JSObject()
+        data.put("bitrateKbps", (bitrate / 1000).toInt())
+        data.put("fps", lastFps)
+        data.put("droppedFrames", if (hasCongestion) 1 else 0)
+        data.put("networkQuality", quality)
+        notifyListeners("broadcastStats", data)
+    }
+
+    override fun onDisconnect() {
+        if (!isEnding) {
+            notifyBroadcastState("ended", null)
+        }
+    }
+
+    override fun onAuthError() {
+        notifyBroadcastState("error", mapOf("reason" to "auth_error"))
+    }
+
+    override fun onAuthSuccess() {
+        // no-op — onConnectionSuccess already covers the transition to "live".
+    }
+
+    private fun handleUnexpectedDisconnect(reason: String) {
+        if (isEnding) return
+        val endpoint = lastEndpoint ?: return
+
+        if (reconnectAttempt >= RECONNECT_DELAYS_MS.size) {
+            notifyBroadcastState("error", mapOf("reason" to "reconnect_exhausted", "message" to reason))
+            return
+        }
+
+        notifyBroadcastState("reconnecting", null)
+        val delay = RECONNECT_DELAYS_MS[reconnectAttempt]
+        reconnectAttempt += 1
+
+        cancelReconnect()
+        val runnable = Runnable {
+            if (isEnding) return@Runnable
+            try {
+                stream?.startStream(endpoint)
+            } catch (e: Exception) {
+                handleUnexpectedDisconnect(e.message ?: "reconnect_failed")
+            }
+        }
+        reconnectRunnable = runnable
+        mainHandler.postDelayed(runnable, delay)
+    }
+
+    private fun cancelReconnect() {
+        reconnectRunnable?.let { mainHandler.removeCallbacks(it) }
+        reconnectRunnable = null
+    }
+
+    // MARK: - Max duration enforcement (client-side; server-side backstop is
+    // EndExpiredBroadcasts — see LiveStreamService::SELF_SERVE_MAX_DURATION_SECONDS)
+
+    private fun scheduleMaxDurationTimeout(seconds: Double) {
+        cancelMaxDurationTimeout()
+        val runnable = Runnable {
+            isEnding = true
+            cancelReconnect()
+            teardownStream()
+            stopBroadcastService()
+            notifyBroadcastState("ended", mapOf("reason" to "max_duration"))
+        }
+        maxDurationRunnable = runnable
+        mainHandler.postDelayed(runnable, (seconds * 1000).toLong())
+    }
+
+    private fun cancelMaxDurationTimeout() {
+        maxDurationRunnable?.let { mainHandler.removeCallbacks(it) }
+        maxDurationRunnable = null
+    }
+
+    private fun maybeStepDownResolution() {
+        if (currentTierIndex >= resolutionTiers.lastIndex) return
+        val stream = stream ?: return
+        val endpoint = lastEndpoint ?: return
+
+        currentTierIndex += 1
+        val tier = resolutionTiers[currentTierIndex]
+        targetVideoBitrate = tier.videoBitrate
+
+        mainHandler.post {
+            try {
+                if (stream.isStreaming) stream.stopStream()
+                val prepared = stream.prepareVideo(tier.width, tier.height, tier.videoBitrate) &&
+                    stream.prepareAudio(AUDIO_SAMPLE_RATE, true, AUDIO_BITRATE)
+                if (!prepared) {
+                    Log.w(TAG, "resolution step-down prepare failed at tier $currentTierIndex")
+                    return@post
+                }
+                bitrateAdapter?.setMaxBitrate(tier.videoBitrate)
+                stream.startStream(endpoint)
+            } catch (e: Exception) {
+                Log.w(TAG, "resolution step-down failed", e)
+            }
+        }
+    }
+
+    private fun notifyBroadcastState(state: String, extra: Map<String, String>?) {
+        val data = JSObject()
+        data.put("state", state)
+        extra?.forEach { (k, v) -> data.put(k, v) }
+        notifyListeners("broadcastStateChanged", data)
+    }
+
+    // MARK: - Foreground service (Android 14+ mandates a foreground service type for
+    // camera/mic access while backgrounded — see doc's "Backgrounding" section)
+
+    private fun startBroadcastService() {
+        val ctx = context ?: return
+        val intent = Intent(ctx, BroadcastForegroundService::class.java).apply {
+            putExtra(BroadcastForegroundService.EXTRA_STREAM_ID, lastStreamId)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            ctx.startForegroundService(intent)
+        } else {
+            ctx.startService(intent)
+        }
+    }
+
+    private fun stopBroadcastService() {
+        val ctx = context ?: return
+        ctx.stopService(Intent(ctx, BroadcastForegroundService::class.java))
+    }
+}

@@ -4,11 +4,14 @@ const TAPEYA_LOGO_FULL = `${CLOUDFRONT_APP_BASE}/images/logos/tapeya-logo-white.
 
 /**
  * Branded frame when a live stream has no thumbnail (or the image fails to load).
+ *
+ * Logo width classes are literal Tailwind utilities (not template/`min()` strings)
+ * so the scanner emits them — otherwise the img can collapse to 0×0.
  */
 export function LiveStreamThumbnailFallback({ compact = false, className = '' }) {
   const logoClass = compact
-    ? 'relative z-10 h-auto w-[min(72%,128px)] max-w-[128px] opacity-95'
-    : 'relative z-10 h-auto w-[min(78%,168px)] max-w-[168px] opacity-95 md:max-w-[184px]';
+    ? 'relative z-10 h-auto w-28 max-w-[70%] opacity-95'
+    : 'relative z-10 h-auto w-40 max-w-[75%] opacity-95 md:w-44';
 
   return (
     <div

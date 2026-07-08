@@ -1,6 +1,5 @@
 import { Capacitor } from '@capacitor/core';
 
-import { normaliseMatchStatus } from '@/lib/utils/scorecardUtils';
 import { baseUrl, getApiOrigin } from '@/store/api/baseApi';
 
 /**
@@ -176,6 +175,21 @@ export function youtubeStreamThumbnail(embedId) {
 }
 
 /**
+ * "Hosted by @nickname" credit for self-serve mobile broadcasts — null for admin-created
+ * or match-linked streams (see LiveStreamResource's `broadcaster` field).
+ *
+ * @param {object} row
+ * @returns {string|null}
+ */
+export function liveStreamHostCredit(row) {
+  const broadcaster = row.broadcaster;
+  if (!broadcaster) return null;
+
+  const handle = broadcaster.nickname?.trim() || broadcaster.name?.trim();
+  return handle ? `Hosted by ${handle}` : null;
+}
+
+/**
  * Card subtitle for Live hub listings when API description is empty.
  *
  * @param {object} row
@@ -183,8 +197,14 @@ export function youtubeStreamThumbnail(embedId) {
  */
 export function liveStreamCardSubtitle(row) {
   const description = row.description?.trim();
+  const hostCredit = liveStreamHostCredit(row);
+
   if (description) {
-    return description;
+    return hostCredit ? `${description} · ${hostCredit}` : description;
+  }
+
+  if (hostCredit) {
+    return hostCredit;
   }
 
   const title = row.title?.trim() || 'Live Stream';

@@ -19,7 +19,7 @@ class LiveStreamController extends Controller
     {
         $streams = MatchStream::query()
             ->visibleInApp()
-            ->with(['match.homeTeam', 'match.awayTeam', 'match.tournament'])
+            ->with(['match.homeTeam', 'match.awayTeam', 'match.tournament', 'owner'])
             ->orderByRaw("CASE status WHEN 'live' THEN 0 WHEN 'starting' THEN 1 ELSE 2 END")
             ->orderByDesc('started_at')
             ->orderByDesc('id')
@@ -33,7 +33,7 @@ class LiveStreamController extends Controller
      */
     public function show(MatchStream $stream): JsonResponse
     {
-        $stream->loadMissing(['match.homeTeam', 'match.awayTeam', 'match.tournament']);
+        $stream->loadMissing(['match.homeTeam', 'match.awayTeam', 'match.tournament', 'owner']);
 
         return $this->success(new LiveStreamResource($stream));
     }

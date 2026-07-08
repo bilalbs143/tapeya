@@ -151,6 +151,10 @@ class LiveStreamControllerTest extends TestCase
         $ids = collect($response->json('data'))->pluck('id');
         $this->assertTrue($ids->contains($standalone->id));
         $this->assertTrue($ids->contains($linked->id));
+
+        $row = collect($response->json('data'))->firstWhere('id', $standalone->id);
+        $this->assertArrayHasKey('watching_count', $row);
+        $this->assertSame(0, $row['watching_count']);
     }
 
     public function test_update_updates_title_description_streaming_url(): void

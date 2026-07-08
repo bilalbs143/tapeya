@@ -43,6 +43,16 @@ Broadcast::channel('match.{matchId}.scoring', function (User $user, int|string $
 Broadcast::channel('live-stream.{streamId}.chat', fn () => true);
 
 /*
+ * Private live-hub channel — auth:api required (any authenticated consumer).
+ * Matches GET /live/matches (auth-gated). Broadcasts full LiveStreamResource payloads
+ * including unlisted YouTube embed_id / playback — must not sit on a public channel where
+ * the app key alone is enough to subscribe.
+ */
+Broadcast::channel('live-hub', function (User $user) {
+    return $user->id !== null;
+});
+
+/*
  * Presence channel — live broadcast viewer count.
  * Separate from chat; requires auth:api at WebSocket handshake.
  * Only while the stream is live or starting.

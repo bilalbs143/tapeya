@@ -72,7 +72,9 @@
 	<key>NSUserTrackingUsageDescription</key>
 	<string>Allow Tapeya to use your device identifier to measure ad performance and show you more relevant ads.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Tapeya needs camera access so you can take a profile or document photo.</string>
+	<string>Tapeya needs camera access so you can take a profile or document photo, or go live.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Tapeya needs microphone access so viewers can hear you when you go live.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Tapeya needs photo library access so you can choose a profile or document photo.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

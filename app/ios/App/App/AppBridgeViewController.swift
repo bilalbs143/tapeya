@@ -18,5 +18,6 @@ class AppBridgeViewController: CAPBridgeViewController {
         bridge?.registerPluginInstance(FcmTokenPlugin())
         bridge?.registerPluginInstance(FacebookAnalyticsPlugin())
         bridge?.registerPluginInstance(YoutubeStreamOverlayPlugin())
+        bridge?.registerPluginInstance(TapeyaBroadcastPlugin())
     }
 }

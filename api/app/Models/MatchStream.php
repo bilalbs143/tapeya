@@ -14,6 +14,7 @@ class MatchStream extends BaseModel
 {
     protected $fillable = [
         'match_id',
+        'owner_user_id',
         'title',
         'description',
         'streaming_url',
@@ -52,9 +53,24 @@ class MatchStream extends BaseModel
         return $this->belongsTo(TournamentMatch::class, 'match_id');
     }
 
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'owner_user_id');
+    }
+
     public function isStandalone(): bool
     {
         return $this->match_id === null;
+    }
+
+    /**
+     * Self-serve mobile broadcast — created by a regular user via LiveBroadcastController,
+     * not by admin/backoffice. Distinct from isStandalone(): every self-serve stream is
+     * standalone, but not every standalone stream is self-serve (see LIVE_STREAM_MOBILE_BROADCAST.md).
+     */
+    public function isSelfServe(): bool
+    {
+        return $this->owner_user_id !== null;
     }
 
     /**
@@ -164,6 +180,10 @@ class MatchStream extends BaseModel
         return [
             AllowedFilter::exact('status'),
             AllowedFilter::exact('provider'),
+            AllowedFilter::exact('owner_user_id'),
+            AllowedFilter::callback('self_serve', function ($query, $value) {
+                $query->when((bool) $value, fn ($q) => $q->whereNotNull('owner_user_id'), fn ($q) => $q->whereNull('owner_user_id'));
+            }),
             AllowedFilter::callback('search', function ($query, $value) {
                 $term = '%'.addcslashes(mb_strtolower((string) $value), '%_\\').'%';
                 $query->whereRaw('LOWER(title) LIKE ?', [$term]);

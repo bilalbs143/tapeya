@@ -11,8 +11,10 @@ use App\Settings\StreamingSettings;
 use App\Streaming\Data\CreateStreamData;
 use App\Streaming\LiveStreamService;
 use App\Streaming\StreamProviderManager;
+use App\Support\Broadcast\LiveStreamPresenceOccupancy;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class LiveStreamController extends BaseAdminController
 {
@@ -27,6 +29,29 @@ class LiveStreamController extends BaseAdminController
     {
         // Unified admin list — both standalone and match-linked streams.
         return MatchStream::query();
+    }
+
+    public function index()
+    {
+        $query = QueryBuilder::for($this->baseQuery())
+            ->allowedFilters($this->model->getFilters())
+            ->defaultSort('-id')
+            ->allowedSorts($this->model->getSorts());
+
+        $page = $this->paginateOrAll($query);
+        $rows = method_exists($page, 'getCollection') ? $page->getCollection() : $page;
+
+        $eligibleIds = $rows
+            ->filter(fn (MatchStream $stream) => in_array($stream->status, ['live', 'starting'], true))
+            ->pluck('id');
+
+        $counts = app(LiveStreamPresenceOccupancy::class)->countsFor($eligibleIds);
+
+        $rows->each(function (MatchStream $stream) use ($counts): void {
+            $stream->setAttribute('watching_count', $counts[$stream->id] ?? 0);
+        });
+
+        return LiveStreamListResource::collection($page);
     }
 
     public function store(StoreLiveStreamRequest $request): JsonResponse

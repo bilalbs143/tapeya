@@ -7,6 +7,7 @@ use App\Streaming\Contracts\StreamProviderContract;
 use App\Streaming\Data\CreateStreamData;
 use App\Streaming\Data\StreamIngestConfig;
 use App\Streaming\Data\StreamPlayback;
+use Illuminate\Support\Collection;
 
 /**
  * Test double for the YouTube driver — avoids real Google API calls in feature tests
@@ -14,8 +15,13 @@ use App\Streaming\Data\StreamPlayback;
  */
 class FakeStreamProvider implements StreamProviderContract
 {
+    /** Captured for assertions — e.g. confirming self-serve always passes privacy: 'unlisted'. */
+    public ?CreateStreamData $lastCreateData = null;
+
     public function createStream(MatchStream $stream, CreateStreamData $data): void
     {
+        $this->lastCreateData = $data;
+
         $stream->update([
             'provider_stream_id' => 'fake-broadcast-id',
             'provider_ingest_id' => 'fake-ingest-id',
@@ -29,6 +35,14 @@ class FakeStreamProvider implements StreamProviderContract
     public function syncStatus(MatchStream $stream): void
     {
         $stream->update(['status' => 'live']);
+    }
+
+    /**
+     * @param  Collection<int, MatchStream>  $streams
+     */
+    public function syncStatuses(Collection $streams): void
+    {
+        $streams->each(fn (MatchStream $stream) => $this->syncStatus($stream));
     }
 
     public function endStream(MatchStream $stream): void

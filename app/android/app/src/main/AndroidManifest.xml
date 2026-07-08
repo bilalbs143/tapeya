@@ -22,7 +22,22 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- Self-serve broadcast deep link — tapped from the "You're live" foreground-
+                 service notification; picked up by @capacitor/app's appUrlOpen (see
+                 useBroadcastDeepLink.js). Not used for universal/App Links. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="tapeya" android:host="live" />
+            </intent-filter>
+
         </activity>
+
+        <service
+            android:name=".BroadcastForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="camera|microphone" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -55,4 +70,14 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Android 13+ advertising ID (required for Facebook ad/analytics tracking) -->
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+
+    <!-- Self-serve mobile broadcast (TapeyaBroadcastPlugin) — not required so Play Store
+         distribution isn't restricted to camera-equipped devices only. -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
 </manifest>

@@ -12,6 +12,7 @@ import { useLiveBroadcastImmersiveDocument } from '@/features/stream/hooks/useLi
 import { useLiveStreamChannel } from '@/features/stream/hooks/useLiveStreamChannel';
 import { useStreamPresenceChannel } from '@/features/stream/hooks/useStreamPresenceChannel';
 import { streamUsesIosNativeYoutubePlayer } from '@/features/stream/ios/streamUsesIosNativeYoutubePlayer';
+import { LiveStatusBadge, LiveViewerCountBadge } from '@/features/stream/LiveStatusBadges';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { LG_MEDIA_QUERY, MOBILE_MEDIA_QUERY } from '@/lib/constants/layout';
 import {
@@ -24,49 +25,7 @@ import {
 import { useGetLiveStreamQuery } from '@/store/api/liveApi';
 
 import LiveBroadcastItem from './LiveBroadcastItem';
-import { formatViewerCount, useVanityViewerCount } from './useVanityViewerCount';
-
-const STATUS_BADGE = {
-  live: { dot: 'animate-pulse bg-red-500', label: 'Live' },
-  starting: { dot: 'animate-pulse bg-yellow-400', label: 'Starting…' },
-  ended: { dot: 'bg-white/50', label: 'Ended' },
-};
-
-function StatusBadge({ status }) {
-  const cfg = STATUS_BADGE[status];
-  if (!cfg) return null;
-
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-black/85 px-2.5 py-1 text-[11px] font-bold tracking-wide text-white uppercase">
-      <span className={`h-2 w-2 shrink-0 rounded-full ${cfg.dot}`} aria-hidden />
-      {cfg.label}
-    </span>
-  );
-}
-
-function ViewerCountBadge({ viewerCount }) {
-  return (
-    <span
-      className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] font-extrabold text-black"
-      aria-live="polite"
-      aria-label={`${viewerCount} watching`}
-    >
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden>
-        <path
-          d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-          stroke="black"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <circle cx="12" cy="12" r="3" stroke="black" strokeWidth="2" />
-      </svg>
-      <span key={formatViewerCount(viewerCount)} className="animate-[fadeSlideIn_0.4s_ease_forwards]">
-        {formatViewerCount(viewerCount)}
-      </span>
-    </span>
-  );
-}
+import { useVanityViewerCount } from './useVanityViewerCount';
 
 function BroadcastError({ onRetry }) {
   return (
@@ -121,8 +80,8 @@ export default function LiveBroadcast() {
   const centeredStatusContent = useMemo(
     () => (
       <div className="pointer-events-none flex min-w-0 flex-1 items-center justify-center gap-2">
-        {streamStatus && <StatusBadge status={streamStatus} />}
-        {presenceEnabled && <ViewerCountBadge viewerCount={viewerCount} />}
+        {streamStatus && <LiveStatusBadge status={streamStatus} />}
+        {presenceEnabled && <LiveViewerCountBadge viewerCount={viewerCount} />}
       </div>
     ),
     [streamStatus, presenceEnabled, viewerCount],

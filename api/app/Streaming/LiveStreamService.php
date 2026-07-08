@@ -2,17 +2,27 @@
 
 namespace App\Streaming;
 
+use App\Events\Broadcast\LiveHubUpdated;
 use App\Events\Broadcast\LiveStreamStatusUpdated;
+use App\Http\Controllers\User\LiveBroadcastController;
 use App\Models\MatchStream;
 use App\Models\TournamentMatch;
 use App\Settings\StreamingSettings;
 use App\Streaming\Data\CreateStreamData;
 use App\Streaming\Data\StreamPlayback;
 use App\Support\LiveChat\LiveChatRedisKeys;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 
 class LiveStreamService
 {
+    /**
+     * Fixed v1 cap for self-serve mobile broadcasts — single source of truth, shared by
+     * EndExpiredBroadcasts (server enforcement) and the app's startBroadcast() call
+     * (client enforcement). See LIVE_STREAM_MOBILE_BROADCAST.md.
+     */
+    public const SELF_SERVE_MAX_DURATION_SECONDS = 7200;
+
     public function __construct(private StreamProviderResolver $resolver) {}
 
     public function createForMatch(TournamentMatch $match, CreateStreamData $data, int $createdBy): MatchStream
@@ -84,6 +94,7 @@ class LiveStreamService
 
         $stream = MatchStream::create([
             'match_id' => null,
+            'owner_user_id' => $data['owner_user_id'] ?? null,
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
             'streaming_url' => $data['streaming_url'] ?? null,
@@ -102,6 +113,43 @@ class LiveStreamService
         ]);
 
         return $stream;
+    }
+
+    /**
+     * Self-serve mobile broadcast — thin wrapper over createStandaloneYoutube() enforcing
+     * the rules that only apply to user-initiated broadcasts: one active stream at a time,
+     * always unlisted, always YouTube (never silently falls back to another provider).
+     *
+     * @see LiveBroadcastController::store()
+     */
+    public function createSelfServe(int $ownerUserId, string $title, ?string $description): MatchStream
+    {
+        $this->assertNoActiveSelfServeStream($ownerUserId);
+
+        // Self-serve's entire design (iframe playback, RTMP ingest shape) assumes YouTube.
+        // Fail loudly rather than silently provisioning against a different default provider.
+        abort_unless(
+            app(StreamingSettings::class)->defaultProvider === 'youtube',
+            503,
+            'Self-serve broadcasting is temporarily unavailable.',
+        );
+
+        return $this->createStandaloneYoutube([
+            'title' => $title,
+            'description' => $description,
+            'privacy' => 'unlisted',
+            'owner_user_id' => $ownerUserId,
+        ], $ownerUserId);
+    }
+
+    private function assertNoActiveSelfServeStream(int $ownerUserId): void
+    {
+        $exists = MatchStream::query()
+            ->where('owner_user_id', $ownerUserId)
+            ->whereIn('status', ['idle', 'starting', 'live'])
+            ->exists();
+
+        abort_if($exists, 422, 'You already have an active broadcast.');
     }
 
     /**
@@ -185,19 +233,55 @@ class LiveStreamService
         $this->resolver->forStream($stream)->syncStatus($stream);
         $stream->refresh();
 
-        if ($stream->status !== $before) {
-            if ($stream->status === 'ended') {
-                LiveChatRedisKeys::purgeStream($stream->id);
-            }
+        $this->reconcileStatusChange($stream, $before);
+    }
 
-            $this->broadcastStatusChange($stream);
+    /**
+     * Batch equivalent of syncStatus() — groups by provider so each vendor driver can poll many
+     * streams in as few API calls as possible (see YouTubeStreamProvider::syncStatuses()) instead
+     * of one round-trip per stream, since `streams:sync` runs every minute against every active
+     * stream and vendor quota is shared across the whole app.
+     *
+     * @param  Collection<int, MatchStream>  $streams
+     */
+    public function syncStatuses(Collection $streams): void
+    {
+        $eligible = $streams->filter(
+            fn (MatchStream $stream) => $stream->provider !== 'external' && ! in_array($stream->status, ['ended', 'error'], true)
+        )->values();
 
-            if ($stream->match_id) {
-                Log::info("Stream status changed for match {$stream->match_id}", [
-                    'from' => $before,
-                    'to' => $stream->status,
-                ]);
-            }
+        if ($eligible->isEmpty()) {
+            return;
+        }
+
+        $before = $eligible->pluck('status', 'id');
+
+        $eligible->groupBy('provider')->each(
+            fn (Collection $group) => $this->resolver->forStream($group->first())->syncStatuses($group)
+        );
+
+        foreach ($eligible->fresh() as $stream) {
+            $this->reconcileStatusChange($stream, $before->get($stream->id));
+        }
+    }
+
+    private function reconcileStatusChange(MatchStream $stream, string $before): void
+    {
+        if ($stream->status === $before) {
+            return;
+        }
+
+        if ($stream->status === 'ended') {
+            LiveChatRedisKeys::purgeStream($stream->id);
+        }
+
+        $this->broadcastStatusChange($stream);
+
+        if ($stream->match_id) {
+            Log::info("Stream status changed for match {$stream->match_id}", [
+                'from' => $before,
+                'to' => $stream->status,
+            ]);
         }
     }
 
@@ -214,6 +298,9 @@ class LiveStreamService
         }
 
         broadcast(new LiveStreamStatusUpdated($stream->id, $resolvedStatus, $resolvedPlayback));
+
+        $visibleInApp = MatchStream::query()->visibleInApp()->whereKey($stream->id)->exists();
+        broadcast(new LiveHubUpdated($stream, $visibleInApp));
     }
 
     private function playbackPayload(MatchStream $stream): ?StreamPlayback

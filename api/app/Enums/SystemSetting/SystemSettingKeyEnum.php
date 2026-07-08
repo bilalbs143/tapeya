@@ -62,6 +62,9 @@ enum SystemSettingKeyEnum: string
     case STREAM_YOUTUBE_CHANNEL_ID = 'stream_youtube_channel_id';
     case STREAM_YOUTUBE_DEFAULT_PRIVACY = 'stream_youtube_default_privacy';
     case STREAM_IDLE_END_GRACE_MINUTES = 'stream_idle_end_grace_minutes';
+    case STREAM_CONCURRENT_BROADCAST_ALERT_THRESHOLD = 'stream_concurrent_broadcast_alert_threshold';
+    case STREAM_DAILY_YOUTUBE_QUOTA_BUDGET = 'stream_daily_youtube_quota_budget';
+    case STREAM_QUOTA_ALERT_THRESHOLD_PERCENT = 'stream_quota_alert_threshold_percent';
 
     case LIVE_CHAT_ENABLED = 'live_chat_enabled';
     case LIVE_CHAT_MIN_INTERVAL_SEC = 'live_chat_min_interval_sec';

@@ -21,6 +21,8 @@ class LiveStreamListResource extends JsonResource
             'provider' => $this->provider,
             'started_at' => $this->started_at?->toIso8601String(),
             'match_id' => $this->match_id,
+            'owner_user_id' => $this->owner_user_id,
+            'watching_count' => (int) ($this->watching_count ?? 0),
         ];
     }
 }

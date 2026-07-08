@@ -15,6 +15,7 @@ import { Subscription } from 'rxjs';
 
 import { MaterialModule } from 'src/app/material.module';
 import {
+  liveStreamPresenceEligible,
   liveStreamStatusLabel,
   matchControllerLink,
 } from 'src/app/pages/tournaments-management/match-controller/live-stream.utils';
@@ -36,6 +37,7 @@ import { LiveStreamManageDialogComponent } from './live-stream-manage-dialog/liv
 const DEFAULT_FILTERS = {
   status: '',
   search: '',
+  self_serve: '',
 } as const;
 
 const STATUS_OPTIONS = [
@@ -47,12 +49,21 @@ const STATUS_OPTIONS = [
   { value: 'error', label: 'Error' },
 ];
 
+const SELF_SERVE_OPTIONS = [
+  { value: '', label: 'All Streams' },
+  { value: '1', label: 'Self-serve (mobile) only' },
+  { value: '0', label: 'Admin-created only' },
+];
+
 const PROVIDER_LABELS: Record<string, string> = {
   external: 'External URL',
   youtube: 'YouTube RTMP',
 };
 
 const LIVE_STREAM_DIALOG_OPTIONS = { widthSize: 'md' as const, disableClose: true };
+
+/** Soft refresh interval so Watching stays roughly current without joining presence. */
+const WATCHING_REFRESH_MS = 15_000;
 
 @Component({
   selector: 'app-live-streams-list',
@@ -80,6 +91,7 @@ export class LiveStreamsListComponent implements OnInit, AfterViewInit, OnDestro
   private readonly paginatorConfig = inject(PAGINATOR_CONFIG);
   private readonly fb = inject(FormBuilder);
   private readonly sub = new Subscription();
+  private watchingRefreshTimer: ReturnType<typeof setInterval> | null = null;
 
   @ViewChild(MatSort) public sort!: MatSort;
 
@@ -91,12 +103,14 @@ export class LiveStreamsListComponent implements OnInit, AfterViewInit, OnDestro
     'description',
     'streaming_url',
     'status',
+    'watching',
     'provider',
     'match',
     'started_at',
     'actions',
   ];
   public readonly statusOptions = STATUS_OPTIONS;
+  public readonly selfServeOptions = SELF_SERVE_OPTIONS;
   public readonly emptyCell = EMPTY_CELL;
   public readonly statusClass = getStatusClass;
   public readonly matchControllerLink = matchControllerLink;
@@ -110,12 +124,18 @@ export class LiveStreamsListComponent implements OnInit, AfterViewInit, OnDestro
     this.searchForm = this.fb.group({
       status: [DEFAULT_FILTERS.status],
       search: [DEFAULT_FILTERS.search],
+      self_serve: [DEFAULT_FILTERS.self_serve],
     });
     this.pageSize = this.paginatorConfig.pageSize;
   }
 
   public ngOnInit(): void {
     this.loadHttpData();
+    this.watchingRefreshTimer = setInterval(() => {
+      if (!this.isLoading) {
+        this.loadHttpData(undefined, undefined, { silent: true });
+      }
+    }, WATCHING_REFRESH_MS);
   }
 
   public ngAfterViewInit(): void {
@@ -128,6 +148,10 @@ export class LiveStreamsListComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   public ngOnDestroy(): void {
+    if (this.watchingRefreshTimer) {
+      clearInterval(this.watchingRefreshTimer);
+      this.watchingRefreshTimer = null;
+    }
     this.sub.unsubscribe();
   }
 
@@ -167,6 +191,7 @@ export class LiveStreamsListComponent implements OnInit, AfterViewInit, OnDestro
             provider: result.provider ?? 'youtube',
             match_id: null,
             started_at: null,
+            watching_count: 0,
           });
         }
       },
@@ -203,19 +228,33 @@ export class LiveStreamsListComponent implements OnInit, AfterViewInit, OnDestro
     return PROVIDER_LABELS[provider] ?? provider;
   }
 
-  public loadHttpData(pageOverride?: number, perPageOverride?: number): void {
+  public watchingDisplay(row: LiveStreamListItem): string {
+    if (!liveStreamPresenceEligible(row.status)) {
+      return this.emptyCell;
+    }
+
+    return String(row.watching_count ?? 0);
+  }
+
+  public loadHttpData(pageOverride?: number, perPageOverride?: number, options?: { silent?: boolean }): void {
     const page = pageOverride ?? this.currentPage;
     const perPage = perPageOverride ?? this.pageSize;
     const filters = this.searchForm.value;
+    const silent = options?.silent === true;
+
+    const selfServe = (filters.self_serve as string)?.trim();
 
     const params = {
       ...buildListParams(page, perPage, this.sort ?? null, {
         status: (filters.status as string)?.trim() || undefined,
         search: (filters.search as string)?.trim() || undefined,
       }),
+      ...(selfServe ? { 'filter[self_serve]': selfServe } : {}),
     } as Record<string, string | number>;
 
-    this.isLoading = true;
+    if (!silent) {
+      this.isLoading = true;
+    }
 
     this.sub.add(
       this.streamApi.listStreams(params).subscribe({
@@ -225,7 +264,9 @@ export class LiveStreamsListComponent implements OnInit, AfterViewInit, OnDestro
           this.isLoading = false;
         },
         error: () => {
-          this.messageService.error('Failed to load live streams.');
+          if (!silent) {
+            this.messageService.error('Failed to load live streams.');
+          }
           this.isLoading = false;
         },
       })

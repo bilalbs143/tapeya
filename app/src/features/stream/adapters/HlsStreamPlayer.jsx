@@ -13,7 +13,7 @@ function canPlayNativeHls(video) {
 /**
  * HLS playback via `<video>` (+ hls.js on non-Safari). Does not use iOS native YouTube overlay.
  */
-export function HlsStreamPlayer({ playback, className = '', fill = false, isLandscape = false }) {
+export function HlsStreamPlayer({ playback, className = '', fill = false, isLandscape: _isLandscape = false }) {
   const videoRef = useRef(null);
   const hlsRef = useRef(null);
   const url = playback?.url?.trim() || null;

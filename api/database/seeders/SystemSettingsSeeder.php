@@ -136,6 +136,9 @@ class SystemSettingsSeeder extends Seeder
         $streaming->youtubeChannelId ??= null;
         $streaming->youtubeDefaultPrivacy ??= 'public';
         $streaming->idleEndGraceMinutes ??= 120;
+        $streaming->concurrentBroadcastAlertThreshold ??= 3;
+        $streaming->dailyYoutubeQuotaBudget ??= 10000;
+        $streaming->quotaAlertThresholdPercent ??= 80;
         $streaming->save();
     }
 

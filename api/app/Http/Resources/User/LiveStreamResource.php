@@ -4,6 +4,7 @@ namespace App\Http\Resources\User;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class LiveStreamResource extends JsonResource
 {
@@ -22,6 +23,17 @@ class LiveStreamResource extends JsonResource
             'description' => $stream->displayDescription(),
             'streaming_url' => $stream->streaming_url,
             'thumbnail_url' => $stream->thumbnailUrl(),
+            'broadcaster' => $this->when(
+                $stream->isSelfServe() && $stream->relationLoaded('owner') && $stream->owner,
+                fn () => [
+                    'id' => $stream->owner->id,
+                    'name' => $stream->owner->name,
+                    'nickname' => $stream->owner->nickname,
+                    'avatar_url' => $stream->owner->avatar
+                        ? Storage::disk(config('filesystems.media_disk'))->url($stream->owner->avatar)
+                        : null,
+                ],
+            ),
             'stream' => [
                 'status' => $stream->status,
                 'provider' => $stream->provider,

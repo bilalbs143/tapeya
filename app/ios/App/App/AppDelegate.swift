@@ -26,6 +26,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUser
     }
 
     func applicationDidEnterBackground(_ application: UIApplication) {
+        TapeyaBroadcastPlugin.handleAppDidEnterBackground()
     }
 
     func applicationWillEnterForeground(_ application: UIApplication) {

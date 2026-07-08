@@ -7,6 +7,7 @@ import DialogManager from '@/components/dialogs/DialogManager';
 import InterestCampaignDialogScheduler from '@/components/InterestCampaignDialogScheduler';
 import ProgrammaticDialogPrompts from '@/components/ProgrammaticDialogPrompts';
 import { RequireAuth } from '@/components/RequireAuth';
+import { RequireBroadcastAccess } from '@/components/RequireBroadcastAccess';
 import { ScrollRestoration } from '@/components/ScrollRestoration';
 import SplashScreen from '@/components/SplashScreen';
 import { DialogProvider } from '@/context/DialogContext';
@@ -43,6 +44,7 @@ const RankingStatsTotal = lazy(() => import('@/pages/ranking/RankingStatsTotal')
 
 const Live = lazy(() => import('@/pages/live/Live'));
 const LiveBroadcast = lazy(() => import('@/pages/live/LiveBroadcast'));
+const GoLive = lazy(() => import('@/pages/live/GoLive'));
 
 const Reels = lazy(() => import('@/pages/reels/Reels'));
 const UploadReels = lazy(() => import('@/pages/reels/UploadReels'));
@@ -164,6 +166,10 @@ function App() {
                       <Route path="/ranking/stats-total/:statType" element={<RankingStatsTotal />} />
                       <Route path="/live" element={<Live />} />
                       <Route path="/live/broadcast/:streamId" element={<LiveBroadcast />} />
+                      <Route element={<RequireBroadcastAccess />}>
+                        <Route path="/live/go-live" element={<GoLive />} />
+                        <Route path="/live/go-live/:streamId" element={<GoLive />} />
+                      </Route>
                       <Route path="/highlights" element={<Highlights />} />
                       <Route path="/highlights/:highlightId" element={<HighlightDetails />} />
                       <Route path="/notification-center" element={<NotificationCenter />} />

@@ -3,13 +3,7 @@ import { useState } from 'react';
 import { INTEREST_CAMPAIGN_FORM_ID, InterestFormContent } from '@/components/interest/InterestFormContent';
 import { useDialog } from '@/context/DialogContext';
 import { useGetInterestCampaignQuery } from '@/store/api/tournamentInterestApi';
-import {
-  DialogHeaderRow,
-  dialogPrimaryTitleClass,
-  DialogSaveButton,
-  DialogScrollBody,
-  DialogTitle,
-} from '@/ui/Dialog';
+import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
 
 export function InterestCampaignDialog({ slug, tournamentName }) {
   const { closeDialog } = useDialog();

@@ -76,7 +76,6 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     'nickname',
     'email',
     'phone',
-    'date_of_birth',
     'app_roles',
     'admin_roles',
     'playing_role',
@@ -209,6 +208,28 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
             this.usersService.delete(user.id).subscribe({
               next: () => this.loadHttpData(),
               error: () => this.messageService.error('Failed to delete user.'),
+            });
+          }
+        })
+    );
+  }
+
+  /** Revokes self-serve broadcasting access — ends any active broadcast and deletes its VOD. */
+  public openBroadcastBanDialog(user: User): void {
+    this.sub.add(
+      this.messageService
+        .prompt(
+          'Ban Broadcaster?',
+          `${user.name} will lose broadcast access and any active broadcast will be ended immediately. Continue?`,
+          'Ban',
+          'Cancel'
+        )
+        .afterClosed()
+        .subscribe((confirmed) => {
+          if (confirmed) {
+            this.usersService.banBroadcaster(user.id).subscribe({
+              next: () => this.loadHttpData(),
+              error: () => this.messageService.error('Failed to revoke broadcast access.'),
             });
           }
         })

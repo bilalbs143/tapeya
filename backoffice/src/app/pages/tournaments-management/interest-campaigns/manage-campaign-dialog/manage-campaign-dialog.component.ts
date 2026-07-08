@@ -3,8 +3,8 @@ import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatDivider } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -163,7 +163,10 @@ export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
       description: [c?.description ?? '', [Validators.maxLength(5000)]],
       show_in_sidebar: [c?.show_in_sidebar ?? false],
       show_dialog: [c?.show_dialog ?? false],
-      form_fields: [c?.form_fields?.length ? [...c.form_fields] : [...DEFAULT_INTEREST_FORM_FIELDS], [Validators.required, Validators.minLength(1)]],
+      form_fields: [
+        c?.form_fields?.length ? [...c.form_fields] : [...DEFAULT_INTEREST_FORM_FIELDS],
+        [Validators.required, Validators.minLength(1)],
+      ],
       status: [c?.status ?? 'open', [Validators.required]],
       logo: [c?.logo_url ? ({ files: [], existingUrls: [c.logo_url] } as FileUploadValue) : null],
     });
@@ -368,7 +371,9 @@ export class ManageCampaignDialogComponent implements OnInit, OnDestroy {
       description: description ? description : null,
       show_in_sidebar: !!v.show_in_sidebar,
       show_dialog: !!v.show_dialog,
-      form_fields: this.normalizeFormFields(Array.from(new Set([...LOCKED_INTEREST_FORM_FIELDS, ...(v.form_fields ?? DEFAULT_INTEREST_FORM_FIELDS)]))),
+      form_fields: this.normalizeFormFields(
+        Array.from(new Set([...LOCKED_INTEREST_FORM_FIELDS, ...(v.form_fields ?? DEFAULT_INTEREST_FORM_FIELDS)]))
+      ),
     };
 
     if (!isLinked) {

@@ -9,6 +9,7 @@ use App\Http\Controllers\User\HeroSliderController;
 use App\Http\Controllers\User\HighlightController;
 use App\Http\Controllers\User\InningsLifecycleController;
 use App\Http\Controllers\User\InterestCampaignController;
+use App\Http\Controllers\User\LiveBroadcastController;
 use App\Http\Controllers\User\LiveStreamCommentController;
 use App\Http\Controllers\User\LiveStreamController;
 use App\Http\Controllers\User\LiveStreamHeartController;
@@ -132,6 +133,14 @@ Route::middleware('auth:api')->group(function () {
     Route::get('live/streams/{stream}', [LiveStreamController::class, 'show']);
     Route::post('live/streams/{stream}/live-comments', [LiveStreamCommentController::class, 'store'])->middleware('throttle:120,1');
     Route::post('live/streams/{stream}/live-hearts', [LiveStreamHeartController::class, 'store'])->middleware('throttle:60,1');
+
+    // Self-serve mobile broadcast — owner-gated lifecycle, distinct from the read-only hub/viewer routes above.
+    Route::post('live/broadcasts/accept-terms', [LiveBroadcastController::class, 'acceptTerms']);
+    Route::post('live/broadcasts', [LiveBroadcastController::class, 'store']);
+    Route::get('live/broadcasts/{stream}', [LiveBroadcastController::class, 'show']);
+    Route::post('live/broadcasts/{stream}/end', [LiveBroadcastController::class, 'end']);
+    Route::post('live/broadcasts/{stream}/thumbnail', [LiveBroadcastController::class, 'uploadThumbnail']);
+    Route::delete('live/broadcasts/{stream}/thumbnail', [LiveBroadcastController::class, 'deleteThumbnail']);
     Route::get('tournaments', [TournamentController::class, 'index']);
     Route::get('tournaments/{tournament}', [TournamentController::class, 'show']);
     Route::post('tournaments/{tournament}/like', [TournamentReactionController::class, 'like']);

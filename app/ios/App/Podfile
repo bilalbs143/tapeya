@@ -21,6 +21,9 @@ target 'App' do
   pod 'FBSDKCoreKit', '~> 17.0'
   # FCM registration tokens for iOS push (APNs token alone is not accepted by our backend).
   pod 'Firebase/Messaging'
+  # Self-serve mobile broadcast (TapeyaBroadcastPlugin) — camera capture + RTMP publish.
+  # Pin the exact tested version once verified — see "Version pinning" in LIVE_STREAM_MOBILE_BROADCAST.md.
+  pod 'HaishinKit', '~> 2.0'
 end
 
 post_install do |installer|
