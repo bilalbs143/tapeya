@@ -12,6 +12,7 @@ import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
 import com.getcapacitor.PermissionState
@@ -243,9 +244,21 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         setWebViewTransparent(true)
 
         if (width > 0 && height > 0) {
-            surfaceView.layoutParams = FrameLayout.LayoutParams(width, height).apply {
-                leftMargin = x
-                topMargin = y
+            // Parent is CoordinatorLayout (activity_main / Capacitor bridge layout).
+            // FrameLayout.LayoutParams here crash on measure with ClassCastException.
+            surfaceView.layoutParams = when (parent) {
+                is CoordinatorLayout -> CoordinatorLayout.LayoutParams(width, height).apply {
+                    leftMargin = x
+                    topMargin = y
+                }
+                is FrameLayout -> FrameLayout.LayoutParams(width, height).apply {
+                    leftMargin = x
+                    topMargin = y
+                }
+                else -> ViewGroup.MarginLayoutParams(width, height).apply {
+                    leftMargin = x
+                    topMargin = y
+                }
             }
         }
     }
