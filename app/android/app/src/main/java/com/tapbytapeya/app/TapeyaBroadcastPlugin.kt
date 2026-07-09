@@ -263,6 +263,35 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         }
     }
 
+
+    /** RootEncoder requires preview/stream/record stopped before prepareVideo. */
+    private fun stopPreviewForPrepare(stream: StreamBase) {
+        if (!stream.isOnPreview) return
+        try {
+            stream.stopPreview()
+        } catch (e: Exception) {
+            Log.w(TAG, "stopPreview before prepare failed", e)
+        }
+    }
+
+    private fun restartPreviewAfterPublish(stream: StreamBase) {
+        val surfaceView = previewView ?: return
+        val activity = activity ?: return
+        if (surfaceView.holder.surface?.isValid != true) return
+        try {
+            if (!stream.isOnPreview) stream.startPreview(surfaceView)
+        } catch (e: Exception) {
+            Log.w(TAG, "restartPreview after publish failed", e)
+        }
+    }
+
+    private fun prepareEncoder(stream: StreamBase, resolution: Resolution): Boolean {
+        stopPreviewForPrepare(stream)
+        return stream.prepareVideo(resolution.width, resolution.height, resolution.videoBitrate) &&
+            stream.prepareAudio(AUDIO_SAMPLE_RATE, true, AUDIO_BITRATE)
+    }
+
+
     private fun setWebViewTransparent(transparent: Boolean) {
         val webView = bridge.webView ?: return
         webView.setBackgroundColor(if (transparent) Color.TRANSPARENT else Color.BLACK)
@@ -283,9 +312,6 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         currentTierIndex = resolutionTiers.indexOf(resolution).coerceAtLeast(0)
         poorSinceMs = null
 
-        // Guard against a double slash — YouTube's ingestConfig() rtmp_url has occasionally
-        // included a trailing slash depending on the provider path (see Android snippet note
-        // in the doc).
         val endpoint = rtmpUrl.trimEnd('/') + "/" + streamKey
         lastEndpoint = endpoint
         lastStreamId = call.getString("streamId")
@@ -295,21 +321,23 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
 
         startBroadcastService()
 
-        try {
-            if (!stream.isStreaming) {
-                val prepared = stream.prepareVideo(resolution.width, resolution.height, resolution.videoBitrate) &&
-                    stream.prepareAudio(AUDIO_SAMPLE_RATE, true, AUDIO_BITRATE)
-                if (!prepared) {
-                    call.reject("Failed to prepare encoder")
-                    return
+        val activity = activity ?: return call.reject("Activity unavailable")
+        activity.runOnUiThread {
+            try {
+                if (!stream.isStreaming) {
+                    if (!prepareEncoder(stream, resolution)) {
+                        call.reject("Failed to prepare encoder")
+                        return@runOnUiThread
+                    }
+                    stream.startStream(endpoint)
+                    restartPreviewAfterPublish(stream)
                 }
-                stream.startStream(endpoint)
+                scheduleMaxDurationTimeout(maxDurationSeconds)
+                call.resolve()
+            } catch (e: Exception) {
+                notifyBroadcastState("error", mapOf("message" to (e.message ?: "unknown")))
+                call.reject("Failed to start broadcast: ${e.message}")
             }
-            scheduleMaxDurationTimeout(maxDurationSeconds)
-            call.resolve()
-        } catch (e: Exception) {
-            notifyBroadcastState("error", mapOf("message" to (e.message ?: "unknown")))
-            call.reject("Failed to start broadcast: ${e.message}")
         }
     }
 
@@ -462,14 +490,13 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         mainHandler.post {
             try {
                 if (stream.isStreaming) stream.stopStream()
-                val prepared = stream.prepareVideo(tier.width, tier.height, tier.videoBitrate) &&
-                    stream.prepareAudio(AUDIO_SAMPLE_RATE, true, AUDIO_BITRATE)
-                if (!prepared) {
+                if (!prepareEncoder(stream, tier)) {
                     Log.w(TAG, "resolution step-down prepare failed at tier $currentTierIndex")
                     return@post
                 }
                 bitrateAdapter?.setMaxBitrate(tier.videoBitrate)
                 stream.startStream(endpoint)
+                restartPreviewAfterPublish(stream)
             } catch (e: Exception) {
                 Log.w(TAG, "resolution step-down failed", e)
             }

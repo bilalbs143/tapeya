@@ -6,33 +6,30 @@ import { BottomNav } from '@/components/BottomNav';
 import { FacebookAnalyticsBoot } from '@/components/FacebookAnalyticsBoot';
 import { Navbar } from '@/components/Navbar';
 import { Sidebar } from '@/components/Sidebar';
-import { useMediaQuery } from '@/hooks/useMediaQuery';
-import { LG_MEDIA_QUERY } from '@/lib/constants/layout';
-import { isGoLiveBroadcastPath, isLiveStreamImmersivePath, isNavbarOverlayPath } from '@/lib/utils/routeUtils';
+import { useMainLayoutChrome } from '@/hooks/useMainLayoutChrome';
 
 export function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const isDesktop = useMediaQuery(LG_MEDIA_QUERY);
-  const immersiveLive = isLiveStreamImmersivePath(location.pathname);
-  const goLiveCamera = isGoLiveBroadcastPath(location.pathname);
-  const noTopPadding = isNavbarOverlayPath(location.pathname, isDesktop);
+  const { showNavbar, showBottomNav, mainPaddingTop, mainPaddingBottom, rootClassName } = useMainLayoutChrome(
+    location.pathname,
+  );
 
   return (
-    <div className={goLiveCamera ? 'bg-transparent' : 'bg-black'}>
+    <div className={rootClassName}>
       <FacebookAnalyticsBoot />
-      <Navbar onMenuClick={() => setSidebarOpen(true)} />
+      {showNavbar && <Navbar onMenuClick={() => setSidebarOpen(true)} />}
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <main
         className="lg:ml-[280px]"
         style={{
-          paddingTop: noTopPadding ? 0 : 'calc(env(safe-area-inset-top) + 56px)',
-          paddingBottom: isDesktop || immersiveLive ? 0 : 'calc(env(safe-area-inset-bottom) + 70px)',
+          paddingTop: mainPaddingTop,
+          paddingBottom: mainPaddingBottom,
         }}
       >
         <Outlet />
       </main>
-      {!immersiveLive && (
+      {showBottomNav && (
         <div className="lg:hidden">
           <BottomNav />
         </div>

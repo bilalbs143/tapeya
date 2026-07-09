@@ -84,12 +84,13 @@ export function isInterestCampaignDialogBlockedPath(pathname) {
 /** Pages where the navbar may start transparent over a hero image. */
 export function isHeroNavbarPath(pathname, isDesktop = false) {
   if (isHighlightDetailsPath(pathname) && isDesktop) return false;
+  if (isGoLiveBroadcastPath(pathname)) return false;
   return (
     pathname === '/home' ||
     pathname === '/profile' ||
     TOURNAMENT_DETAILS_PATH.test(pathname) ||
     HIGHLIGHT_DETAILS_PATH.test(pathname) ||
-    isLiveStreamImmersivePath(pathname)
+    isLiveBroadcastPath(pathname)
   );
 }
 

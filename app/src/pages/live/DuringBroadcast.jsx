@@ -7,43 +7,35 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
-import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
+import { BroadcastCameraControlDock, BroadcastCameraHeader } from '@/features/stream/BroadcastCameraChrome';
 import {
-  BroadcastCaptureButton,
-  FlipCameraIcon,
-  FloatingControlButton,
-  MicIcon,
-} from '@/features/stream/BroadcastCaptureControls';
-import { CommentInputRow } from '@/features/stream/CommentInputRow';
-import CommentList from '@/features/stream/CommentList';
+  BROADCAST_NETWORK_LABEL,
+  formatBroadcastElapsed,
+  getBroadcastStatusDisplay,
+  getCaptureButtonMode,
+  isBroadcastLivePhase,
+  SELF_SERVE_MAX_DURATION_SECONDS,
+  shouldShowBroadcastControls,
+} from '@/features/stream/broadcastCameraUtils';
 import { FloatingHeartsOverlay } from '@/features/stream/FloatingHeartsOverlay';
+import { useBroadcastCameraUnderlay } from '@/features/stream/hooks/useBroadcastCameraUnderlay';
+import { useBroadcastNativePreview } from '@/features/stream/hooks/useBroadcastNativePreview';
 import { useFloatingHearts } from '@/features/stream/hooks/useFloatingHearts';
 import { useLiveStreamChannel } from '@/features/stream/hooks/useLiveStreamChannel';
 import { useStreamComments } from '@/features/stream/hooks/useStreamComments';
 import { useStreamPresenceChannel } from '@/features/stream/hooks/useStreamPresenceChannel';
-import { LiveStatusBadge, LiveViewerCountBadge } from '@/features/stream/LiveStatusBadges';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import {
-  LIVE_BROADCAST_CONTROLS_OVERLAY_Z,
-  LIVE_BROADCAST_HEADER_OVERLAY_Z,
-  LIVE_BROADCAST_HEADER_SCRIM,
-  LIVE_BROADCAST_HEADER_TOP_PADDING,
-  LIVE_BROADCAST_IMMERSIVE_HEIGHT,
-} from '@/lib/constants/liveBroadcastLayout';
+import { LIVE_BROADCAST_IMMERSIVE_HEIGHT } from '@/lib/constants/liveBroadcastLayout';
 import { getInitials } from '@/lib/utils/displayUtils';
 import {
   onBroadcastStateChanged,
   onBroadcastStats,
-  requestBroadcastPermissions,
   setBroadcastMuted,
   startBroadcast,
-  startBroadcastPreview,
   stopBroadcast,
   stopBroadcastPreview,
   switchBroadcastCamera,
-  updateBroadcastPreviewLayout,
 } from '@/native/tapeyaBroadcast';
 import { isNative } from '@/platform/platform';
 import {
@@ -67,34 +59,9 @@ import { Button } from '@/ui/Button';
 
 import { useVanityViewerCount } from './useVanityViewerCount';
 
-/** Mirrors LiveStreamService::SELF_SERVE_MAX_DURATION_SECONDS (API is the source of truth). */
-const SELF_SERVE_MAX_DURATION_SECONDS = 7200;
-
-const NETWORK_LABEL = { good: 'Good', fair: 'Fair', poor: 'Poor' };
-
-const commentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/comment-icon.svg`;
-
-function formatElapsed(totalSeconds) {
-  const capped = Math.min(Math.max(totalSeconds, 0), SELF_SERVE_MAX_DURATION_SECONDS);
-  const h = Math.floor(capped / 3600);
-  const m = Math.floor((capped % 3600) / 60);
-  const s = Math.floor(capped % 60);
-  return [h, m, s].map((n) => String(n).padStart(2, '0')).join(':');
-}
-
-/** Two rAFs, not one — a single tick isn't reliably post-layout on first paint. */
-function waitForNextPaint() {
-  return new Promise((resolve) => {
-    requestAnimationFrame(() => requestAnimationFrame(resolve));
-  });
-}
-
 export default function DuringBroadcast({ streamId }) {
   const navigate = useNavigate();
   const toast = useToast();
-  const previewRef = useRef(null);
-  const initRanRef = useRef(false);
-  const previewActiveRef = useRef(false);
   const nativeEndSyncedRef = useRef(false);
   const cooldownTimerRef = useRef(null);
 
@@ -117,9 +84,10 @@ export default function DuringBroadcast({ streamId }) {
   const [sendCooldown, setSendCooldown] = useState(false);
 
   const serverStatus = publicBroadcast?.stream?.status;
-  const isLivePhase = phase === 'live' || phase === 'reconnecting';
+  const isLivePhase = isBroadcastLivePhase(phase);
   const presenceEnabled = isLivePhase || serverStatus === 'live';
 
+  useBroadcastCameraUnderlay();
   useLiveStreamChannel(streamId);
   const realViewerCount = useStreamPresenceChannel(streamId, presenceEnabled);
   const viewerCount = useVanityViewerCount(realViewerCount);
@@ -147,35 +115,6 @@ export default function DuringBroadcast({ streamId }) {
     [],
   );
 
-  // Shared by the resumed-while-live init path and the manual "Start Broadcasting" button —
-  // both need to issue the same native startBroadcast() call.
-  const syncPreviewLayout = useCallback(async ({ start = false } = {}) => {
-    if (!isNative()) return;
-    await waitForNextPaint();
-    const rect = previewRef.current?.getBoundingClientRect();
-    if (!rect || rect.width <= 0 || rect.height <= 0) return;
-
-    const layout = {
-      x: Math.round(rect.left),
-      y: Math.round(rect.top),
-      width: Math.round(rect.width),
-      height: Math.round(rect.height),
-    };
-
-    if (start || !previewActiveRef.current) {
-      await startBroadcastPreview({ position: 'front', ...layout });
-      previewActiveRef.current = true;
-      return;
-    }
-
-    try {
-      await updateBroadcastPreviewLayout(layout);
-    } catch {
-      await startBroadcastPreview({ position: 'front', ...layout });
-      previewActiveRef.current = true;
-    }
-  }, []);
-
   const startPublishing = useCallback(
     async (broadcastData) => {
       if (!broadcastData?.rtmp_url || !broadcastData?.stream_key) return;
@@ -195,66 +134,15 @@ export default function DuringBroadcast({ streamId }) {
     [streamId, toast],
   );
 
-  // Init: request permissions + start the camera preview once the broadcast row is loaded.
-  useEffect(() => {
-    if (!broadcast || initRanRef.current) return;
-    initRanRef.current = true;
+  const { previewRef, resetSession } = useBroadcastNativePreview({
+    broadcast,
+    phase,
+    setPhase,
+    onResumedWhileLive: startPublishing,
+  });
 
-    if (broadcast.status !== 'idle' && broadcast.status !== 'starting' && broadcast.status !== 'live') {
-      return;
-    }
+  const handleStartBroadcasting = useCallback(() => startPublishing(broadcast), [broadcast, startPublishing]);
 
-    // Resumed session (app relaunched or task-killed while the server still shows the
-    // broadcast as live): this is a fresh native plugin instance with no RTMP session of its
-    // own, so the server's "live" status does not mean the encoder is actually publishing.
-    const resumedWhileLive = broadcast.status === 'live';
-
-    (async () => {
-      setPhase('requesting_permissions');
-      const perms = await requestBroadcastPermissions();
-      if (perms.camera !== 'granted' || perms.microphone !== 'granted') {
-        setPhase('permission_denied');
-        return;
-      }
-
-      // Wait for the preview container to actually be laid out — reading its rect on the
-      // same tick as the first render can measure 0×0 before the browser/webview has
-      // completed layout, which the native side then silently no-ops on (zero-size frame).
-      await waitForNextPaint();
-      setPhase('previewing');
-      await waitForNextPaint();
-      await syncPreviewLayout({ start: true });
-
-      if (resumedWhileLive) {
-        await startPublishing(broadcast);
-      }
-    })();
-  }, [broadcast, startPublishing, syncPreviewLayout]);
-
-  useEffect(() => {
-    const html = document.documentElement;
-    html.classList.add('broadcast-camera-underlay');
-    return () => html.classList.remove('broadcast-camera-underlay');
-  }, []);
-  useEffect(() => {
-    if (!initRanRef.current || !previewActiveRef.current) return;
-    if (phase !== 'previewing' && phase !== 'connecting' && !isLivePhase) return;
-    void syncPreviewLayout();
-  }, [phase, isLivePhase, syncPreviewLayout]);
-
-  // Re-fit native preview on rotation / viewport resize (full-bleed layout).
-  useEffect(() => {
-    if (!isNative()) return undefined;
-    const onResize = () => {
-      if (!previewActiveRef.current) return;
-      if (phase !== 'previewing' && phase !== 'connecting' && !isLivePhase) return;
-      void syncPreviewLayout();
-    };
-    window.addEventListener('resize', onResize, { passive: true });
-    return () => window.removeEventListener('resize', onResize);
-  }, [phase, isLivePhase, syncPreviewLayout]);
-
-  // Plugin lifecycle → local phase (see "Plugin lifecycle" state machine in the doc).
   useEffect(() => {
     const stateSub = onBroadcastStateChanged(({ state, reason }) => {
       if (state === 'connecting') setPhase('connecting');
@@ -278,7 +166,6 @@ export default function DuringBroadcast({ streamId }) {
     };
   }, []);
 
-  // Elapsed timer, anchored to the server-confirmed started_at once live.
   useEffect(() => {
     if (!isLivePhase) return undefined;
     const startedAt = publicBroadcast?.stream?.started_at ? new Date(publicBroadcast.stream.started_at).getTime() : Date.now();
@@ -288,10 +175,6 @@ export default function DuringBroadcast({ streamId }) {
     return () => window.clearInterval(interval);
   }, [isLivePhase, publicBroadcast?.stream?.started_at]);
 
-  // Reconcile: if the server says the stream ended (admin ban, auto-expiry) while we still
-  // think we're live, stop both the native RTMP publish and the local preview, and reflect
-  // that immediately — stopping only the preview left the encoder still publishing until it
-  // hit its own max-duration timeout or a network-level disconnect.
   useEffect(() => {
     if ((serverStatus === 'ended' || serverStatus === 'error') && phase !== 'ended' && phase !== 'error') {
       void stopBroadcast();
@@ -300,8 +183,6 @@ export default function DuringBroadcast({ streamId }) {
     }
   }, [serverStatus, phase]);
 
-  // iOS backgrounds end the native encoder immediately (reason: 'backgrounded'). Sync the
-  // server row too so the one-active guard does not block the user's next broadcast.
   useEffect(() => {
     if (phase !== 'ended' || endReason !== 'backgrounded' || nativeEndSyncedRef.current) return;
     nativeEndSyncedRef.current = true;
@@ -311,18 +192,6 @@ export default function DuringBroadcast({ streamId }) {
       setEndSummary((prev) => prev ?? { durationSeconds: elapsed, peakViewers });
     })();
   }, [phase, endReason, streamId, endBroadcastMutation, elapsed, peakViewers]);
-
-  useEffect(
-    () => () => {
-      if (initRanRef.current) {
-        previewActiveRef.current = false;
-        void stopBroadcastPreview();
-      }
-    },
-    [],
-  );
-
-  const handleStartBroadcasting = useCallback(() => startPublishing(broadcast), [broadcast, startPublishing]);
 
   const handleConfirmEnd = useCallback(async () => {
     setConfirmEndOpen(false);
@@ -376,14 +245,14 @@ export default function DuringBroadcast({ streamId }) {
   }, [isMuted, toast]);
 
   const handleCapturePress = useCallback(() => {
-    if (phase === 'live' || phase === 'reconnecting') {
+    if (isLivePhase) {
       setConfirmEndOpen(true);
       return;
     }
     if (phase === 'previewing') {
       void handleStartBroadcasting();
     }
-  }, [phase, handleStartBroadcasting]);
+  }, [phase, isLivePhase, handleStartBroadcasting]);
 
   if (isLoading) {
     return (
@@ -422,7 +291,7 @@ export default function DuringBroadcast({ streamId }) {
           </p>
           {endSummary && (
             <div className="text-muted text-[13px]">
-              <p>Duration: {formatElapsed(endSummary.durationSeconds)}</p>
+              <p>Duration: {formatBroadcastElapsed(endSummary.durationSeconds)}</p>
               <p>Peak viewers: {endSummary.peakViewers}</p>
             </div>
           )}
@@ -438,7 +307,7 @@ export default function DuringBroadcast({ streamId }) {
         <h1 className="text-[16px] font-bold text-white uppercase">Broadcast Ended</h1>
         {endSummary && (
           <div className="text-muted text-[13px]">
-            <p>Duration: {formatElapsed(endSummary.durationSeconds)}</p>
+            <p>Duration: {formatBroadcastElapsed(endSummary.durationSeconds)}</p>
             <p>Peak viewers: {endSummary.peakViewers}</p>
           </div>
         )}
@@ -449,48 +318,38 @@ export default function DuringBroadcast({ streamId }) {
     );
   }
 
-  const statusLabel =
-    phase === 'reconnecting'
-      ? 'Reconnecting…'
-      : phase === 'connecting'
-        ? 'Starting…'
-        : phase === 'previewing'
-          ? 'Preview'
-          : undefined;
-  const statusKey = phase === 'reconnecting' || phase === 'connecting' ? 'starting' : isLivePhase ? 'live' : null;
-
-  const showFloatingControls = phase === 'previewing' || phase === 'connecting' || isLivePhase;
-
-  const captureMode = isLivePhase ? 'end' : phase === 'connecting' ? 'connecting' : 'start';
+  const { statusKey, statusLabel } = getBroadcastStatusDisplay(phase);
+  const showFloatingControls = shouldShowBroadcastControls(phase);
+  const captureMode = getCaptureButtonMode(phase);
+  const networkLabel = networkQuality ? (BROADCAST_NETWORK_LABEL[networkQuality] ?? networkQuality) : null;
 
   return (
     <div
-      className={`relative overflow-hidden lg:mx-auto lg:max-w-lg ${isNative() ? 'bg-transparent' : 'bg-black'}`}
+      className={`fixed inset-0 z-0 overflow-hidden lg:mx-auto lg:max-w-lg ${isNative() ? 'bg-transparent' : 'bg-black'}`}
       style={{ height: LIVE_BROADCAST_IMMERSIVE_HEIGHT }}
     >
-      {/* Native camera preview fills the viewport (extends behind the transparent navbar). */}
-      <div ref={previewRef} className="absolute inset-0" aria-hidden />
+      <div ref={previewRef} className="pointer-events-none absolute inset-0" aria-hidden />
 
       {!isNative() && (
-        <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-[12px] text-white/40">
+        <div className="absolute inset-0 flex items-center justify-center bg-black px-6 text-center text-[12px] text-white/40">
           Camera preview is only available in the Tapeya app.
         </div>
       )}
 
       {phase === 'permission_denied' && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-black/80 px-6 text-center">
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-black/90 px-6 text-center">
           <p className="text-[13px] text-white/80">Camera and microphone access are required to go live.</p>
           <p className="text-muted text-[12px]">Enable them in your device settings, then come back to this screen.</p>
         </div>
       )}
 
       {phase === 'error' && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/80 px-6 text-center">
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/90 px-6 text-center">
           <p className="text-[13px] text-white/80">We lost the connection and couldn&apos;t reconnect.</p>
           <Button
             variant="auth"
             onClick={() => {
-              initRanRef.current = false;
+              resetSession();
               setPhase('loading');
             }}
           >
@@ -501,103 +360,37 @@ export default function DuringBroadcast({ streamId }) {
 
       {isLivePhase && <FloatingHeartsOverlay hearts={floatingHearts} onHeartEnd={removeHeart} />}
 
-      <div
-        className={`pointer-events-none absolute inset-0 ${
-          isLivePhase && chatOpen
-            ? 'bg-linear-to-t from-black/85 via-black/20 to-black/30'
-            : 'bg-linear-to-t from-black/50 via-transparent to-black/40'
-        }`}
-      />
-
-      {/* Top header — tournament hero pattern: back + status row floating over video. */}
-      <div className={LIVE_BROADCAST_HEADER_SCRIM} style={{ zIndex: LIVE_BROADCAST_HEADER_OVERLAY_Z }}>
-        <div
-          className="pointer-events-auto flex items-center justify-between gap-2"
-          style={{ paddingTop: LIVE_BROADCAST_HEADER_TOP_PADDING }}
-        >
-          <AppSubpageBackButton onClick={() => navigate(-1)} aria-label="Back" />
-          <div className="flex min-w-0 flex-1 flex-wrap items-center justify-center gap-2">
-            {statusKey && <LiveStatusBadge status={statusKey} label={statusLabel} />}
-            {isLivePhase && (
-              <span className="inline-flex items-center rounded-full bg-black/70 px-2.5 py-1 text-[11px] font-bold tracking-wide text-white tabular-nums backdrop-blur-sm">
-                {formatElapsed(elapsed)}
-              </span>
-            )}
-            {networkQuality && isLivePhase && (
-              <span className="rounded-full bg-black/70 px-2 py-1 text-[10px] text-white/80 backdrop-blur-sm">
-                {NETWORK_LABEL[networkQuality] ?? networkQuality}
-              </span>
-            )}
-          </div>
-          <div className="flex h-7 min-w-7 shrink-0 items-center justify-end">
-            {presenceEnabled ? <LiveViewerCountBadge viewerCount={viewerCount} /> : <span className="h-7 w-7" aria-hidden />}
-          </div>
-        </div>
-      </div>
-
-      {isLivePhase && chatOpen && (
-        <div
-          className="pointer-events-none absolute right-0 left-0 px-4"
-          style={{
-            zIndex: LIVE_BROADCAST_CONTROLS_OVERLAY_Z,
-            bottom: 'calc(env(safe-area-inset-bottom) + 168px)',
-          }}
-        >
-          <CommentList messages={messages} />
-        </div>
-      )}
-
       {showFloatingControls && (
-        <div
-          className="pointer-events-none absolute right-0 bottom-0 left-0 px-4"
-          style={{
-            zIndex: LIVE_BROADCAST_CONTROLS_OVERLAY_Z,
-            paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
-          }}
-        >
-          {isLivePhase && chatOpen && (
-            <div className="pointer-events-auto mb-3">
-              <CommentInputRow onSend={handleSendComment} onSendHeart={handleSendHeart} disabled={isSending || sendCooldown} />
-            </div>
-          )}
-
-          <div className="relative flex items-center justify-center">
-            <div className="pointer-events-auto absolute right-0 bottom-1 flex flex-col items-center gap-3">
-              {isNative() && (phase === 'previewing' || isLivePhase) && (
-                <FloatingControlButton onClick={handleFlipCamera} ariaLabel="Flip camera">
-                  <FlipCameraIcon />
-                </FloatingControlButton>
-              )}
-              {isNative() && isLivePhase && (
-                <FloatingControlButton
-                  onClick={handleToggleMute}
-                  ariaLabel={isMuted ? 'Unmute microphone' : 'Mute microphone'}
-                  active={isMuted}
-                >
-                  <MicIcon muted={isMuted} />
-                </FloatingControlButton>
-              )}
-              {isLivePhase && (
-                <FloatingControlButton
-                  onClick={() => setChatOpen((v) => !v)}
-                  ariaLabel={chatOpen ? 'Hide comments' : 'Show comments'}
-                  active={chatOpen}
-                >
-                  <img
-                    src={commentIcon}
-                    alt=""
-                    className={`h-5 w-5 shrink-0 object-contain ${chatOpen ? 'opacity-100' : 'opacity-55'}`}
-                    aria-hidden
-                  />
-                </FloatingControlButton>
-              )}
-            </div>
-
-            <div className="pointer-events-auto">
-              <BroadcastCaptureButton mode={captureMode} onClick={handleCapturePress} disabled={phase === 'ending'} />
-            </div>
-          </div>
-        </div>
+        <>
+          <BroadcastCameraHeader
+            onBack={() => navigate(-1)}
+            statusKey={statusKey}
+            statusLabel={statusLabel}
+            elapsed={formatBroadcastElapsed(elapsed)}
+            networkLabel={networkLabel}
+            showTimer={isLivePhase}
+            showNetwork={Boolean(networkQuality && isLivePhase)}
+            presenceEnabled={presenceEnabled}
+            viewerCount={viewerCount}
+          />
+          <BroadcastCameraControlDock
+            phase={phase}
+            captureMode={captureMode}
+            isLive={isLivePhase}
+            isNative={isNative()}
+            chatOpen={chatOpen}
+            isMuted={isMuted}
+            isSending={isSending}
+            sendCooldown={sendCooldown}
+            messages={messages}
+            onCapturePress={handleCapturePress}
+            onFlip={handleFlipCamera}
+            onToggleMute={handleToggleMute}
+            onToggleChat={() => setChatOpen((v) => !v)}
+            onSendComment={handleSendComment}
+            onSendHeart={handleSendHeart}
+          />
+        </>
       )}
 
       <AlertDialog open={confirmEndOpen} onOpenChange={setConfirmEndOpen}>
