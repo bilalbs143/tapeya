@@ -243,24 +243,53 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
 
         setWebViewTransparent(true)
 
-        if (width > 0 && height > 0) {
-            // Parent is CoordinatorLayout (activity_main / Capacitor bridge layout).
-            // FrameLayout.LayoutParams here crash on measure with ClassCastException.
-            surfaceView.layoutParams = when (parent) {
-                is CoordinatorLayout -> CoordinatorLayout.LayoutParams(width, height).apply {
-                    leftMargin = x
-                    topMargin = y
+        if (width <= 0 || height <= 0) return
+
+        // JS sends CSS pixels (window.innerWidth); Android layout expects device px.
+        // Full-bleed go-live always passes x/y=0 — use MATCH_PARENT instead of ~412px width.
+        val fullBleed = x == 0 && y == 0
+        val metrics = parent.resources.displayMetrics
+        val scaledWidth = (width * metrics.density).toInt()
+        val scaledHeight = (height * metrics.density).toInt()
+        val scaledX = (x * metrics.density).toInt()
+        val scaledY = (y * metrics.density).toInt()
+
+        surfaceView.layoutParams = when (parent) {
+            is CoordinatorLayout -> if (fullBleed) {
+                CoordinatorLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                )
+            } else {
+                CoordinatorLayout.LayoutParams(scaledWidth, scaledHeight).apply {
+                    leftMargin = scaledX
+                    topMargin = scaledY
                 }
-                is FrameLayout -> FrameLayout.LayoutParams(width, height).apply {
-                    leftMargin = x
-                    topMargin = y
+            }
+            is FrameLayout -> if (fullBleed) {
+                FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                )
+            } else {
+                FrameLayout.LayoutParams(scaledWidth, scaledHeight).apply {
+                    leftMargin = scaledX
+                    topMargin = scaledY
                 }
-                else -> ViewGroup.MarginLayoutParams(width, height).apply {
-                    leftMargin = x
-                    topMargin = y
+            }
+            else -> if (fullBleed) {
+                ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                )
+            } else {
+                ViewGroup.MarginLayoutParams(scaledWidth, scaledHeight).apply {
+                    leftMargin = scaledX
+                    topMargin = scaledY
                 }
             }
         }
+        surfaceView.requestLayout()
     }
 
 
@@ -279,7 +308,11 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         val activity = activity ?: return
         if (surfaceView.holder.surface?.isValid != true) return
         try {
-            if (!stream.isOnPreview) stream.startPreview(surfaceView)
+            if (!stream.isOnPreview) {
+                // prepareVideo stops preview — re-fit full-bleed before restarting camera output.
+                attachPreviewSurface(surfaceView, 0, 0, activity.resources.displayMetrics.widthPixels, activity.resources.displayMetrics.heightPixels)
+                stream.startPreview(surfaceView)
+            }
         } catch (e: Exception) {
             Log.w(TAG, "restartPreview after publish failed", e)
         }
