@@ -1,14 +1,14 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext.kotlinVersion = '1.9.22'
+    ext.kotlinVersion = '2.3.10'
 
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.2.1'
+        classpath 'com.android.tools.build:gradle:8.2.2'
         classpath 'com.google.gms:google-services:4.4.2'
         // Self-serve mobile broadcast (TapeyaBroadcastPlugin) — keep in sync with variables.gradle kotlinVersion.
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
@@ -35,7 +35,7 @@ allprojects {
             eachDependency { details ->
                 if (details.requested.group == 'org.jetbrains.kotlin') {
                     details.useVersion rootProject.ext.kotlinVersion
-                    details.because 'Pin Kotlin artifacts to the project compiler (RootEncoder pulls newer stdlib transitively)'
+                    details.because 'Align Kotlin artifacts with the project compiler (RootEncoder 2.7.5 requires Kotlin 2.3.x)'
                 }
             }
         }
