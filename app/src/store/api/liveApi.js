@@ -61,6 +61,18 @@ export const liveApi = baseApi.injectEndpoints({
       transformResponse: (response) => response?.data ?? response,
       providesTags: (_result, _err, streamId) => [{ type: 'LiveStreams', id: `broadcast:${streamId}` }],
     }),
+    startBroadcastSession: builder.mutation({
+      query: (streamId) => ({
+        url: `/live/broadcasts/${streamId}/start`,
+        method: 'POST',
+      }),
+      transformResponse: (response) => response?.data ?? response,
+      invalidatesTags: (_result, _err, streamId) => [
+        { type: 'LiveStreams', id: streamId },
+        { type: 'LiveStreams', id: `broadcast:${streamId}` },
+        { type: 'LiveStreams', id: 'LIST' },
+      ],
+    }),
     endBroadcast: builder.mutation({
       query: (streamId) => ({
         url: `/live/broadcasts/${streamId}/end`,
@@ -100,6 +112,7 @@ export const {
   useAcceptBroadcastTermsMutation,
   useCreateBroadcastMutation,
   useGetBroadcastQuery,
+  useStartBroadcastSessionMutation,
   useEndBroadcastMutation,
   useUploadBroadcastThumbnailMutation,
   useDeleteBroadcastThumbnailMutation,

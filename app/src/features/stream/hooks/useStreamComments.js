@@ -58,5 +58,5 @@ export function useStreamComments(streamId, enabled = true, onHeart) {
 
   useStreamChatChannel(enabled && streamId ? streamId : null, handleMessage, onHeart);
 
-  return { messages, reset };
+  return { messages, reset, addMessage: handleMessage };
 }

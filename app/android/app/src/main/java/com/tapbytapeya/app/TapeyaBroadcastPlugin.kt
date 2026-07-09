@@ -88,6 +88,7 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
     private var isEnding = false
     private var lastEndpoint: String? = null
     private var lastStreamId: String? = null
+    private var currentFacing: CameraHelper.Facing = CameraHelper.Facing.FRONT
 
     override fun load() {
         val genericStream = GenericStream(context, this, Camera2Source(context), MicrophoneSource())
@@ -134,16 +135,8 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         } else {
             CameraHelper.Facing.FRONT
         }
-
-        // RootEncoder defaults to the back camera; switch before preview when the app asks for front.
-        try {
-            val cameraSource = stream.videoSource as? Camera2Source
-            if (cameraSource != null && cameraSource.getCameraFacing() != preferredFacing) {
-                cameraSource.switchCamera()
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "Unable to select preferred camera facing: ${e.message}")
-        }
+        currentFacing = preferredFacing
+        ensureCameraFacing(preferredFacing)
 
         activity.runOnUiThread {
             val surfaceView = previewView ?: SurfaceView(activity).also { it.holder.setFormat(PixelFormat.TRANSLUCENT) }
@@ -198,7 +191,10 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
     @PluginMethod
     fun switchCamera(call: PluginCall) {
         try {
-            (stream?.videoSource as? Camera2Source)?.switchCamera()
+            val cameraSource = stream?.videoSource as? Camera2Source
+                ?: return call.reject("Camera unavailable")
+            cameraSource.switchCamera()
+            currentFacing = cameraSource.getCameraFacing()
             call.resolve(JSObject().put("switched", true))
         } catch (e: Exception) {
             call.reject("Failed to switch camera: ${e.message}")
@@ -215,6 +211,21 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
 
     // MARK: - Broadcast
 
+
+    /** RootEncoder defaults to back; prepareVideo can reset facing — restore the user's choice. */
+    private fun ensureCameraFacing(preferred: CameraHelper.Facing) {
+        try {
+            val cameraSource = stream?.videoSource as? Camera2Source ?: return
+            var guard = 0
+            while (cameraSource.getCameraFacing() != preferred && guard < 2) {
+                cameraSource.switchCamera()
+                guard++
+            }
+            currentFacing = cameraSource.getCameraFacing()
+        } catch (e: Exception) {
+            Log.w(TAG, "Unable to select camera facing: ${e.message}")
+        }
+    }
 
     /** Insert camera SurfaceView below the Capacitor WebView so floating JS controls stay visible. */
     private fun attachPreviewSurface(surfaceView: SurfaceView, x: Int, y: Int, width: Int, height: Int) {
@@ -309,8 +320,9 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         if (surfaceView.holder.surface?.isValid != true) return
         try {
             if (!stream.isOnPreview) {
-                // prepareVideo stops preview — re-fit full-bleed before restarting camera output.
+                // prepareVideo stops preview and can reset camera to back — restore facing first.
                 attachPreviewSurface(surfaceView, 0, 0, activity.resources.displayMetrics.widthPixels, activity.resources.displayMetrics.heightPixels)
+                ensureCameraFacing(currentFacing)
                 stream.startPreview(surfaceView)
             }
         } catch (e: Exception) {
@@ -320,6 +332,7 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
 
     private fun prepareEncoder(stream: StreamBase, resolution: Resolution): Boolean {
         stopPreviewForPrepare(stream)
+        ensureCameraFacing(currentFacing)
         return stream.prepareVideo(resolution.width, resolution.height, resolution.videoBitrate) &&
             stream.prepareAudio(AUDIO_SAMPLE_RATE, true, AUDIO_BITRATE)
     }

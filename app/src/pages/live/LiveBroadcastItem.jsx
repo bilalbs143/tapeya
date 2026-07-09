@@ -16,10 +16,10 @@ import { StreamPlayer } from '@/features/stream/StreamPlayer';
 import { useToast } from '@/hooks/useToast';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
+  LIVE_BROADCAST_CAMERA_HEADER_TOP,
   LIVE_BROADCAST_CONTROLS_OVERLAY_Z,
   LIVE_BROADCAST_HEADER_OVERLAY_Z,
   LIVE_BROADCAST_HEADER_SCRIM,
-  LIVE_BROADCAST_HEADER_TOP_PADDING,
   LIVE_BROADCAST_IMMERSIVE_TOGGLE_Z,
   LIVE_BROADCAST_LANDSCAPE_HEADER_ROW,
 } from '@/lib/constants/liveBroadcastLayout';
@@ -154,21 +154,29 @@ function BroadcastViewport({
   immersiveLandscape = false,
   isIosNativeLandscape = false,
   hideHeaderOverlay = false,
+  /** Self-serve mobile: fill the shell. Match-linked: 16:9 aspect-video in portrait. */
+  fillPortrait = false,
 }) {
-  // Portrait: keep iframe interactive so mobile playback/tap-to-start works.
+  // Landscape / desktop / self-serve portrait: fill the shell.
+  // Match portrait: aspect-video (16:9) — tournament streams are landscape-encoded.
   // Landscape: block iframe touches so the portaled exit toggle stays tappable.
   const blockLandscapeVideoPointer = !isDesktop && isLandscape;
   const blockLandscapeVideoClass = blockLandscapeVideoPointer ? 'pointer-events-none [&_iframe]:pointer-events-none' : '';
-  const videoLayer =
-    isDesktop || isLandscape ? (
-      <div className={`absolute inset-0 ${blockLandscapeVideoClass}`}>
-        <StreamPlayer stream={stream} className="h-full w-full" fill isLandscape={isLandscape} />
-      </div>
-    ) : (
-      <div className="absolute inset-0 flex items-start justify-center">
-        <StreamPlayer stream={stream} className="max-h-full w-full" fill={false} isLandscape={false} />
-      </div>
-    );
+  const fillVideo = isDesktop || isLandscape || fillPortrait;
+  const videoLayer = fillVideo ? (
+    <div className={`absolute inset-0 ${blockLandscapeVideoClass}`}>
+      <StreamPlayer stream={stream} className="h-full w-full" fill isLandscape={isLandscape} />
+    </div>
+  ) : (
+    <div className="absolute inset-0 flex items-start justify-center">
+      <StreamPlayer stream={stream} className="max-h-full w-full" fill={false} isLandscape={false} />
+    </div>
+  );
+
+  // Match classic portrait sits under the solid app navbar — no extra navbar clearance.
+  // Self-serve immersive / landscape own the top safe area themselves.
+  const headerTopPadding =
+    isLandscape && !isDesktop ? '8px' : fillPortrait ? LIVE_BROADCAST_CAMERA_HEADER_TOP : '10px';
 
   return (
     <div className={`relative size-full overflow-hidden ${isIosNativeLandscape ? 'bg-transparent' : 'bg-black'}`}>
@@ -189,7 +197,7 @@ function BroadcastViewport({
         >
           <div
             className={`pointer-events-none relative flex items-center ${isLandscape && !isDesktop ? 'justify-center' : 'justify-between'}`}
-            style={{ paddingTop: isLandscape && !isDesktop ? '8px' : LIVE_BROADCAST_HEADER_TOP_PADDING }}
+            style={{ paddingTop: headerTopPadding }}
           >
             {headerSlot}
           </div>
@@ -218,6 +226,8 @@ export default function LiveBroadcastItem({
   headerSlot = null,
   /** LIVE + viewer badges only — used by iOS landscape chrome (no back button / spacers). */
   statusHeaderSlot = null,
+  /** Self-serve mobile portrait — fill shell instead of 16:9. */
+  fillPortrait = false,
 }) {
   const toast = useToast();
   const myUserId = useAppSelector((s) => s.auth?.user?.id ?? null);
@@ -328,6 +338,7 @@ export default function LiveBroadcastItem({
       immersiveLandscape={isMobileLandscape}
       isIosNativeLandscape={isIosNativeLandscape}
       hideHeaderOverlay={isIosNativeLandscape && isMobileLandscape}
+      fillPortrait={fillPortrait}
     />
   );
 

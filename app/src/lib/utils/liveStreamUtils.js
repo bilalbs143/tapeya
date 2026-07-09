@@ -217,6 +217,24 @@ export function liveStreamCardSubtitle(row) {
 }
 
 /**
+ * True when this hub/viewer row is a self-serve mobile broadcast (owner-hosted),
+ * not a match-linked 16:9 tournament stream.
+ *
+ * Prefer `is_self_serve` from LiveStreamResource; fall back to broadcaster / match_id
+ * for older API payloads.
+ *
+ * @param {object | null | undefined} broadcast — GET /live/streams/:id payload
+ */
+export function isSelfServeLiveBroadcast(broadcast) {
+  if (!broadcast) return false;
+  if (typeof broadcast.is_self_serve === 'boolean') return broadcast.is_self_serve;
+  if (broadcast.broadcaster) return true;
+  if (broadcast.match_id != null) return false;
+  // Standalone admin streams without an owner stay on the classic layout.
+  return false;
+}
+
+/**
  * Normalise GET /live/matches rows for Live hub UI.
  *
  * @param {Array<object>} [streams]

@@ -19,6 +19,7 @@ class LiveStreamResource extends JsonResource
             'id' => $stream->id,
             'match_id' => $stream->match_id,
             'tournament_id' => $stream->match?->tournament_id,
+            'is_self_serve' => $stream->isSelfServe(),
             'title' => $stream->displayTitle(),
             'description' => $stream->displayDescription(),
             'streaming_url' => $stream->streaming_url,

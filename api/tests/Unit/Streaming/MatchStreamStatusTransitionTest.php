@@ -108,4 +108,49 @@ class MatchStreamStatusTransitionTest extends TestCase
 
         $this->assertNull(MatchStreamStatusTransition::resolve($stream, 'idle'));
     }
+
+    public function test_owner_publishing_grace_blocks_youtube_idle_downgrade(): void
+    {
+        $stream = $this->stream([
+            'status' => 'live',
+            'owner_user_id' => 42,
+            'started_at' => now(),
+            'provider_metadata' => [
+                'owner_publishing_since' => now()->subMinute()->toIso8601String(),
+            ],
+        ]);
+
+        $this->assertNull(MatchStreamStatusTransition::resolve($stream, 'idle'));
+    }
+
+    public function test_owner_publishing_grace_expires_allows_idle_downgrade(): void
+    {
+        $stream = $this->stream([
+            'status' => 'live',
+            'owner_user_id' => 42,
+            'started_at' => now()->subMinutes(10),
+            'provider_metadata' => [
+                'owner_publishing_since' => now()->subMinutes(6)->toIso8601String(),
+            ],
+        ]);
+
+        $updates = MatchStreamStatusTransition::resolve($stream, 'idle');
+
+        $this->assertNotNull($updates);
+        $this->assertSame('idle', $updates['status']);
+    }
+
+    public function test_owner_publishing_grace_blocks_youtube_starting_downgrade(): void
+    {
+        $stream = $this->stream([
+            'status' => 'live',
+            'owner_user_id' => 42,
+            'started_at' => now(),
+            'provider_metadata' => [
+                'owner_publishing_since' => now()->subMinute()->toIso8601String(),
+            ],
+        ]);
+
+        $this->assertNull(MatchStreamStatusTransition::resolve($stream, 'starting'));
+    }
 }

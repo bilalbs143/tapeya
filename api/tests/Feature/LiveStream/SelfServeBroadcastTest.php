@@ -6,6 +6,7 @@ use App\Models\MatchStream;
 use App\Models\User;
 use App\Settings\StreamingSettings;
 use App\Streaming\StreamProviderManager;
+use Carbon\Carbon;
 use Database\Seeders\SystemSettingsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -196,6 +197,43 @@ class SelfServeBroadcastTest extends TestCase
         $this->assertDatabaseHas('match_streams', ['id' => $streamId, 'status' => 'idle']);
     }
 
+    public function test_start_marks_idle_stream_live_for_hub_and_chat(): void
+    {
+        $user = $this->eligibleUser();
+
+        $streamId = $this->actingAs($user, 'api')
+            ->postJson('/api/v1/live/broadcasts', ['title' => 'Mine'])
+            ->json('data.stream_id');
+
+        $this->actingAs($user, 'api')
+            ->postJson("/api/v1/live/broadcasts/{$streamId}/start")
+            ->assertOk()
+            ->assertJsonPath('data.status', 'live');
+
+        $stream = MatchStream::find($streamId);
+        $this->assertSame('live', $stream->status);
+        $this->assertNotNull($stream->started_at);
+        $this->assertNotNull($stream->provider_metadata['owner_publishing_since'] ?? null);
+
+        $this->actingAs($user, 'api')
+            ->postJson("/api/v1/live/streams/{$streamId}/live-comments", ['body' => 'Hello from broadcaster'])
+            ->assertCreated();
+    }
+
+    public function test_start_rejected_for_non_owner(): void
+    {
+        $owner = $this->eligibleUser();
+        $other = $this->eligibleUser();
+
+        $streamId = $this->actingAs($owner, 'api')
+            ->postJson('/api/v1/live/broadcasts', ['title' => 'Mine'])
+            ->json('data.stream_id');
+
+        $this->actingAs($other, 'api')
+            ->postJson("/api/v1/live/broadcasts/{$streamId}/start")
+            ->assertForbidden();
+    }
+
     public function test_thumbnail_upload_and_delete_owner_only(): void
     {
         $owner = $this->eligibleUser();
@@ -223,5 +261,36 @@ class SelfServeBroadcastTest extends TestCase
             ->assertNoContent();
 
         $this->assertNull($stream->fresh()->getRawOriginal('stream_thumbnail'));
+    }
+
+    public function test_start_while_already_live_refreshes_owner_publishing_grace(): void
+    {
+        $user = $this->eligibleUser();
+
+        $streamId = $this->actingAs($user, 'api')
+            ->postJson('/api/v1/live/broadcasts', ['title' => 'Mine'])
+            ->json('data.stream_id');
+
+        $this->actingAs($user, 'api')
+            ->postJson("/api/v1/live/broadcasts/{$streamId}/start")
+            ->assertOk();
+
+        $stream = MatchStream::findOrFail($streamId);
+        $stream->update([
+            'provider_metadata' => array_merge($stream->provider_metadata ?? [], [
+                'owner_publishing_since' => now()->subMinutes(4)->toIso8601String(),
+            ]),
+        ]);
+
+        $before = $stream->fresh()->provider_metadata['owner_publishing_since'];
+
+        $this->actingAs($user, 'api')
+            ->postJson("/api/v1/live/broadcasts/{$streamId}/start")
+            ->assertOk()
+            ->assertJsonPath('data.status', 'live');
+
+        $after = $stream->fresh()->provider_metadata['owner_publishing_since'];
+        $this->assertNotSame($before, $after);
+        $this->assertTrue(Carbon::parse($after)->greaterThan(Carbon::parse($before)));
     }
 }

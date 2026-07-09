@@ -12,7 +12,7 @@ export function isGoLiveBroadcastPath(pathname) {
   return GO_LIVE_BROADCAST_PATH.test(pathname);
 }
 
-/** Mobile broadcaster + watch-live — full-bleed video, no bottom nav. */
+/** Mobile go-live camera, or watch-live when opted into immersive (self-serve). */
 export function isLiveStreamImmersivePath(pathname) {
   return isLiveBroadcastPath(pathname) || isGoLiveBroadcastPath(pathname);
 }
@@ -24,11 +24,13 @@ export function isHighlightDetailsPath(pathname) {
 /** Pages whose main content starts at the viewport top (hero sits behind the fixed navbar). */
 export function isNavbarOverlayPath(pathname, isDesktop = false) {
   if (isHighlightDetailsPath(pathname) && isDesktop) return false;
+  // Go-live camera is always overlay; watch-live padding is decided in useMainLayoutChrome
+  // (self-serve immersive vs match classic) — do not force overlay for all /live/broadcast.
   return (
     pathname === '/profile' ||
     TOURNAMENT_DETAILS_PATH.test(pathname) ||
     HIGHLIGHT_DETAILS_PATH.test(pathname) ||
-    isLiveStreamImmersivePath(pathname)
+    isGoLiveBroadcastPath(pathname)
   );
 }
 
@@ -84,13 +86,13 @@ export function isInterestCampaignDialogBlockedPath(pathname) {
 /** Pages where the navbar may start transparent over a hero image. */
 export function isHeroNavbarPath(pathname, isDesktop = false) {
   if (isHighlightDetailsPath(pathname) && isDesktop) return false;
+  // Go-live owns its own header. Match watch-live keeps a solid navbar (not hero-transparent).
   if (isGoLiveBroadcastPath(pathname)) return false;
   return (
     pathname === '/home' ||
     pathname === '/profile' ||
     TOURNAMENT_DETAILS_PATH.test(pathname) ||
-    HIGHLIGHT_DETAILS_PATH.test(pathname) ||
-    isLiveBroadcastPath(pathname)
+    HIGHLIGHT_DETAILS_PATH.test(pathname)
   );
 }
 

@@ -1,14 +1,13 @@
 import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
 import {
   BroadcastCaptureButton,
-  FlipCameraIcon,
+  CameraFacingIcon,
   FloatingControlButton,
   MicIcon,
 } from '@/features/stream/BroadcastCaptureControls';
 import { CommentInputRow } from '@/features/stream/CommentInputRow';
 import CommentList from '@/features/stream/CommentList';
 import { LiveStatusBadge, LiveViewerCountBadge } from '@/features/stream/LiveStatusBadges';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
   LIVE_BROADCAST_BOTTOM_SCRIM,
   LIVE_BROADCAST_CAMERA_HEADER_CLASS,
@@ -17,49 +16,32 @@ import {
   LIVE_BROADCAST_HEADER_OVERLAY_Z,
 } from '@/lib/constants/liveBroadcastLayout';
 
-const commentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/comment-icon.svg`;
-const PREVIEW_FLIP_SLOT = 'w-11 shrink-0';
-const LIVE_ROW_SLOT = 'w-[104px] shrink-0';
+const LIVE_SIDE_SLOT = 'flex shrink-0 items-center justify-end gap-2';
 
-function CommentToggleIcon({ dimmed = false }) {
-  return (
-    <img
-      src={commentIcon}
-      alt=""
-      className={`h-5 w-5 shrink-0 object-contain ${dimmed ? 'opacity-55' : 'opacity-100'}`}
-      aria-hidden
-    />
-  );
-}
+function FlipButton({ onClick, facing = 'front' }) {
+  const isBack = facing === 'back';
 
-function FlipButton({ onClick }) {
   return (
-    <FloatingControlButton onClick={onClick} ariaLabel="Flip camera">
-      <FlipCameraIcon />
+    <FloatingControlButton
+      onClick={onClick}
+      ariaLabel={isBack ? 'Switch to front camera' : 'Switch to back camera'}
+      tone={isBack ? 'active' : 'default'}
+    >
+      <CameraFacingIcon facing={facing} />
     </FloatingControlButton>
   );
 }
 
-function LiveSideControls({ isMuted, chatOpen, onFlip, onToggleMute, onToggleChat, layout }) {
-  const wrapClass =
-    layout === 'column' ? 'flex shrink-0 flex-col items-center gap-3 pb-1' : 'flex items-center justify-end gap-2';
-
+function LiveSideControls({ cameraFacing, isMuted, onFlip, onToggleMute }) {
   return (
-    <div className={wrapClass}>
-      <FlipButton onClick={onFlip} />
+    <div className={LIVE_SIDE_SLOT}>
+      <FlipButton onClick={onFlip} facing={cameraFacing} />
       <FloatingControlButton
         onClick={onToggleMute}
         ariaLabel={isMuted ? 'Unmute microphone' : 'Mute microphone'}
-        active={isMuted}
+        tone={isMuted ? 'danger' : 'default'}
       >
         <MicIcon muted={isMuted} />
-      </FloatingControlButton>
-      <FloatingControlButton
-        onClick={onToggleChat}
-        ariaLabel={chatOpen ? 'Hide comments' : 'Show comments'}
-        active={chatOpen}
-      >
-        <CommentToggleIcon dimmed={!chatOpen} />
       </FloatingControlButton>
     </div>
   );
@@ -113,29 +95,28 @@ export function BroadcastCameraControlDock({
   captureMode,
   isLive,
   isNative,
-  chatOpen,
   isMuted,
+  cameraFacing = 'front',
   isSending,
   sendCooldown,
+  chatEnabled,
   messages,
   onCapturePress,
   onFlip,
   onToggleMute,
-  onToggleChat,
   onSendComment,
   onSendHeart,
 }) {
-  const showSideColumn = isNative && isLive && chatOpen;
   const showPreviewFlip = isNative && !isLive;
-  const showLiveRow = isNative && isLive && !chatOpen;
+  const showLiveSideControls = isNative && isLive;
 
   return (
     <>
-      {isLive && chatOpen && (
+      {isLive && (
         <div
           className="pointer-events-none absolute right-0 left-0 px-4"
           style={{
-            zIndex: LIVE_BROADCAST_CONTROLS_OVERLAY_Z,
+            zIndex: LIVE_BROADCAST_CONTROLS_OVERLAY_Z + 1,
             bottom: 'calc(env(safe-area-inset-bottom) + 200px)',
           }}
         >
@@ -152,51 +133,39 @@ export function BroadcastCameraControlDock({
           paddingBottom: 'max(20px, env(safe-area-inset-bottom))',
         }}
       >
-        {isLive && chatOpen && (
-          <div className="pointer-events-auto mb-3 flex items-end gap-3">
-            <div className="min-w-0 flex-1">
-              <CommentInputRow
-                onSend={onSendComment}
-                onSendHeart={onSendHeart}
-                disabled={isSending || sendCooldown}
-              />
-            </div>
-            {showSideColumn && (
-              <LiveSideControls
-                layout="column"
-                isMuted={isMuted}
-                chatOpen={chatOpen}
-                onFlip={onFlip}
-                onToggleMute={onToggleMute}
-                onToggleChat={onToggleChat}
-              />
-            )}
+        {isLive && (
+          <div className="pointer-events-auto mb-3 w-full">
+            <CommentInputRow
+              onSend={onSendComment}
+              onSendHeart={onSendHeart}
+              disabled={!chatEnabled || isSending || sendCooldown}
+            />
           </div>
         )}
 
-        <div className="flex items-center justify-center gap-6">
-          <span className={PREVIEW_FLIP_SLOT} aria-hidden />
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+          <div className="flex justify-start">
+            {showPreviewFlip && (
+              <div className="pointer-events-auto">
+                <FlipButton onClick={onFlip} facing={cameraFacing} />
+              </div>
+            )}
+          </div>
           <div className="pointer-events-auto">
             <BroadcastCaptureButton mode={captureMode} onClick={onCapturePress} disabled={phase === 'ending'} />
           </div>
-          {showPreviewFlip ? (
-            <div className={`pointer-events-auto ${PREVIEW_FLIP_SLOT}`}>
-              <FlipButton onClick={onFlip} />
-            </div>
-          ) : showLiveRow ? (
-            <div className={`pointer-events-auto ${LIVE_ROW_SLOT}`}>
-              <LiveSideControls
-                layout="row"
-                isMuted={isMuted}
-                chatOpen={chatOpen}
-                onFlip={onFlip}
-                onToggleMute={onToggleMute}
-                onToggleChat={onToggleChat}
-              />
-            </div>
-          ) : (
-            <span className={PREVIEW_FLIP_SLOT} aria-hidden />
-          )}
+          <div className="flex justify-end">
+            {showLiveSideControls && (
+              <div className="pointer-events-auto">
+                <LiveSideControls
+                  cameraFacing={cameraFacing}
+                  isMuted={isMuted}
+                  onFlip={onFlip}
+                  onToggleMute={onToggleMute}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </>

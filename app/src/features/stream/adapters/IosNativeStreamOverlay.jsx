@@ -25,8 +25,8 @@ function hasValidPortraitFrame(layout) {
 /**
  * iOS YouTube player (native WKWebView + embed proxy).
  *
- * Portrait — player above Capacitor, aspect-video sized.
- * Landscape — player below transparent Capacitor; embed loads with ?rotate=1&cover=1.
+ * Portrait (match / non-fill): player above Capacitor, aspect-video sized.
+ * Fill / landscape: player fills the shell (self-serve immersive or landscape).
  */
 export function IosNativeStreamOverlay({ src, className = '', fill = false, isLandscape = false }) {
   const containerRef = useRef(null);
@@ -159,8 +159,8 @@ export function IosNativeStreamOverlay({ src, className = '', fill = false, isLa
     return undefined;
   }, [showRetry, isLandscape]);
 
-  const layoutClass = isLandscape && fill ? 'absolute inset-0' : 'relative w-full aspect-video';
-  const surfaceClass = showRetry || !(isLandscape && fill) ? 'bg-black' : 'bg-transparent';
+  const layoutClass = fill ? 'absolute inset-0' : 'relative w-full aspect-video';
+  const surfaceClass = showRetry || !fill ? 'bg-black' : 'bg-transparent';
 
   return (
     <div ref={containerRef} className={`${layoutClass} ${surfaceClass} overflow-hidden ${className}`} aria-busy={isLoading}>

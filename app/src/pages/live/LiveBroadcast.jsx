@@ -1,6 +1,11 @@
 /**
  * Live broadcast viewer — single stream fetched by streamId.
  * Route: /live/broadcast/:streamId
+ *
+ * Layout:
+ * - Match-linked: classic chrome (navbar + bottom nav) + 16:9 portrait player.
+ * - Self-serve mobile: full-bleed immersive (no app chrome), same feel as go-live.
+ * - Landscape (phones): immersive overlay for both types.
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -12,6 +17,7 @@ import { useLiveBroadcastImmersiveDocument } from '@/features/stream/hooks/useLi
 import { useLiveStreamChannel } from '@/features/stream/hooks/useLiveStreamChannel';
 import { useStreamPresenceChannel } from '@/features/stream/hooks/useStreamPresenceChannel';
 import { streamUsesIosNativeYoutubePlayer } from '@/features/stream/ios/streamUsesIosNativeYoutubePlayer';
+import { setLiveViewerImmersiveSelfServe } from '@/features/stream/liveViewerChromeStore';
 import { LiveStatusBadge, LiveViewerCountBadge } from '@/features/stream/LiveStatusBadges';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { LG_MEDIA_QUERY, MOBILE_MEDIA_QUERY } from '@/lib/constants/layout';
@@ -20,8 +26,10 @@ import {
   LIVE_BROADCAST_IMMERSIVE_HEIGHT,
   LIVE_BROADCAST_LANDSCAPE_SHELL_STYLE,
   LIVE_BROADCAST_LANDSCAPE_SHELL_Z,
+  LIVE_BROADCAST_SHELL_HEIGHT,
   LIVE_BROADCAST_SHELL_HEIGHT_DESKTOP,
 } from '@/lib/constants/liveBroadcastLayout';
+import { isSelfServeLiveBroadcast } from '@/lib/utils/liveStreamUtils';
 import { useGetLiveStreamQuery } from '@/store/api/liveApi';
 
 import LiveBroadcastItem from './LiveBroadcastItem';
@@ -49,6 +57,16 @@ export default function LiveBroadcast() {
 
   const streamStatus = broadcast?.stream?.status;
   const presenceEnabled = streamStatus === 'live' || streamStatus === 'starting';
+  const isSelfServe = isSelfServeLiveBroadcast(broadcast);
+  /** Full-bleed watch layout — self-serve only; match streams keep classic chrome. */
+  const immersivePortrait = Boolean(broadcast) && isSelfServe && !isDesktop;
+
+  useEffect(() => {
+    // Wait until the stream payload is known so match streams don't briefly hide chrome.
+    if (!broadcast && !isError) return undefined;
+    setLiveViewerImmersiveSelfServe(immersivePortrait);
+    return () => setLiveViewerImmersiveSelfServe(false);
+  }, [broadcast, isError, immersivePortrait]);
 
   useLiveStreamChannel(streamId);
   const realViewerCount = useStreamPresenceChannel(streamId, presenceEnabled);
@@ -74,7 +92,9 @@ export default function LiveBroadcast() {
         zIndex: LIVE_BROADCAST_LANDSCAPE_SHELL_Z,
         height: LIVE_BROADCAST_IMMERSIVE_HEIGHT,
       }
-    : { height: isDesktop ? LIVE_BROADCAST_SHELL_HEIGHT_DESKTOP : LIVE_BROADCAST_IMMERSIVE_HEIGHT };
+    : immersivePortrait
+      ? { height: LIVE_BROADCAST_IMMERSIVE_HEIGHT }
+      : { height: isDesktop ? LIVE_BROADCAST_SHELL_HEIGHT_DESKTOP : LIVE_BROADCAST_SHELL_HEIGHT };
 
   const centeredStatusContent = useMemo(
     () => (
@@ -108,7 +128,15 @@ export default function LiveBroadcast() {
     [centeredStatusContent],
   );
 
-  const overlayHeaderSlot = isDesktop && !isLandscape ? desktopOverlayHeader : portraitHeaderContent;
+  // Match classic: status overlays the 16:9 player (navbar already has back).
+  // Self-serve immersive: page owns back + status (no app navbar).
+  const overlayHeaderSlot = immersivePortrait
+    ? portraitHeaderContent
+    : isDesktop && !isLandscape
+      ? desktopOverlayHeader
+      : isLandscape
+        ? portraitHeaderContent
+        : centeredStatusContent;
 
   const showError = isError && !broadcast;
 
@@ -126,6 +154,7 @@ export default function LiveBroadcast() {
               onToggleLandscape={toggleLandscape}
               headerSlot={overlayHeaderSlot}
               statusHeaderSlot={centeredStatusContent}
+              fillPortrait={immersivePortrait}
             />
           )}
         </div>

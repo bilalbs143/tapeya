@@ -82,6 +82,32 @@ class LiveBroadcastController extends Controller
         ]);
     }
 
+    /**
+     * Owner tapped "Go live" — mark live immediately; optional provider poll for faster embed readiness.
+     */
+    public function start(Request $request, MatchStream $stream): JsonResponse
+    {
+        $this->authorizeOwner($stream, $request);
+        $this->authorizeStillEligible($request);
+
+        if (! in_array($stream->status, ['idle', 'starting', 'live'], true)) {
+            abort(410, 'This broadcast has ended.');
+        }
+
+        $this->service->markPublishing($stream);
+
+        if ($stream->provider !== 'external') {
+            $this->service->syncStatus($stream->fresh());
+        }
+
+        $stream->refresh();
+
+        return $this->success([
+            'status' => $stream->status,
+            'started_at' => $stream->started_at?->toIso8601String(),
+        ]);
+    }
+
     public function end(Request $request, MatchStream $stream): JsonResponse
     {
         $this->authorizeOwner($stream, $request);

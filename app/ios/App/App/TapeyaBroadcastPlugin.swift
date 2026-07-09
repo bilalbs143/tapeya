@@ -40,7 +40,7 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
     private var connection: RTMPConnection?
     private var stream: RTMPStream?
     private var previewView: MTHKView?
-    private var currentPosition: AVCaptureDevice.Position = .back
+    private var currentPosition: AVCaptureDevice.Position = .front
     private var isMuted = false
 
     private var connectionStatusTask: Task<Void, Never>?
@@ -79,28 +79,15 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
         let frame = frameFromCall(call)
         let positionArg = call.getString("position") ?? "front"
         let preferred: AVCaptureDevice.Position = positionArg == "back" ? .back : .front
-        let fallback: AVCaptureDevice.Position = preferred == .front ? .back : .front
 
-        guard let camera =
-            AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: preferred)
-            ?? AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: fallback)
-            ?? AVCaptureDevice.default(for: .video)
-        else {
-            call.reject("Camera unavailable")
-            return
-        }
-        let position = camera.position
-        guard let microphone = AVCaptureDevice.default(for: .audio) else {
-            call.reject("Microphone unavailable")
-            return
-        }
-
-        currentPosition = position
+        currentPosition = preferred
 
         Task {
             do {
-                try await self.mixer.attachVideo(camera, track: 0) { unit in
-                    unit.isVideoMirrored = position == .front
+                try await self.ensureCameraPosition(preferred)
+                guard let microphone = AVCaptureDevice.default(for: .audio) else {
+                    call.reject("Microphone unavailable")
+                    return
                 }
                 try await self.mixer.attachAudio(microphone)
             } catch {
@@ -241,6 +228,9 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
         let stream = RTMPStream(connection: connection)
         self.stream = stream
 
+        // Re-attach the camera the user selected — adding a publish output can reset capture.
+        try await ensureCameraPosition(currentPosition)
+
         await mixer.addOutput(stream)
 
         let strategy = TapeyaBroadcastBitRateStrategy { [weak self] bitrateKbps, fps, droppedFrames, networkQuality in
@@ -284,8 +274,9 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     private static func initialVideoSettings() -> VideoCodecSettings {
+        // Portrait encode to match full-bleed go-live UI (Android uses 1080×1920).
         VideoCodecSettings(
-            videoSize: CGSize(width: 1920, height: 1080),
+            videoSize: CGSize(width: 1080, height: 1920),
             bitRate: 2_500_000
         )
     }
@@ -416,6 +407,23 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
 
     // MARK: - Preview view compositing (mirrors YoutubeStreamOverlayPlugin's attach/applyLayout)
 
+    /** Re-bind video capture to the stored facing (front by default for go-live). */
+    private func ensureCameraPosition(_ position: AVCaptureDevice.Position) async throws {
+        let fallback: AVCaptureDevice.Position = position == .front ? .back : .front
+        guard let camera =
+            AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position)
+            ?? AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: fallback)
+            ?? AVCaptureDevice.default(for: .video)
+        else {
+            throw NSError(domain: "TapeyaBroadcast", code: 1, userInfo: [NSLocalizedDescriptionKey: "Camera unavailable"])
+        }
+
+        try await mixer.attachVideo(camera, track: 0) { unit in
+            unit.isVideoMirrored = camera.position == .front
+        }
+        currentPosition = camera.position
+    }
+
     private func attachPreviewView(frame: CGRect) {
         guard let hostView = bridge?.viewController?.view else { return }
 
@@ -495,9 +503,9 @@ private final actor TapeyaBroadcastBitRateStrategy: HKStreamBitRateStrategy {
     }
 
     private static let tiers: [Tier] = [
-        .init(width: 1920, height: 1080, bitRate: 2_500_000),
-        .init(width: 1280, height: 720, bitRate: 1_500_000),
-        .init(width: 854, height: 480, bitRate: 640_000),
+        .init(width: 1080, height: 1920, bitRate: 2_500_000),
+        .init(width: 720, height: 1280, bitRate: 1_500_000),
+        .init(width: 480, height: 854, bitRate: 640_000),
     ]
 
     private static let poorWindowSeconds: TimeInterval = 10

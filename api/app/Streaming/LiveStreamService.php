@@ -193,6 +193,36 @@ class LiveStreamService
         $this->broadcastStatusChange($stream);
     }
 
+    /**
+     * Owner began RTMP publish — mark live immediately for hub/backoffice/playback.
+     * YouTube sync still runs on schedule (and via manual Sync Status) to reconcile.
+     * Re-calling while already live refreshes the owner publishing grace (resume / reconnect).
+     */
+    public function markPublishing(MatchStream $stream): void
+    {
+        if (! in_array($stream->status, ['idle', 'starting', 'live'], true)) {
+            return;
+        }
+
+        $metadata = $stream->provider_metadata ?? [];
+        unset($metadata['idle_since']);
+        $metadata['owner_publishing_since'] = now()->toIso8601String();
+
+        $wasLive = $stream->status === 'live';
+
+        $stream->update([
+            'status' => 'live',
+            'started_at' => $stream->started_at ?? now(),
+            'provider_metadata' => $metadata,
+        ]);
+        $stream->refresh();
+
+        // Resume only needs grace refresh — avoid duplicate hub/status events when already live.
+        if (! $wasLive) {
+            $this->broadcastStatusChange($stream);
+        }
+    }
+
     public function end(MatchStream $stream): void
     {
         if ($stream->provider === 'external') {

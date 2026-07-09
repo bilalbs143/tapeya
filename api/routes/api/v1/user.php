@@ -138,6 +138,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('live/broadcasts/accept-terms', [LiveBroadcastController::class, 'acceptTerms']);
     Route::post('live/broadcasts', [LiveBroadcastController::class, 'store']);
     Route::get('live/broadcasts/{stream}', [LiveBroadcastController::class, 'show']);
+    Route::post('live/broadcasts/{stream}/start', [LiveBroadcastController::class, 'start']);
     Route::post('live/broadcasts/{stream}/end', [LiveBroadcastController::class, 'end']);
     Route::post('live/broadcasts/{stream}/thumbnail', [LiveBroadcastController::class, 'uploadThumbnail']);
     Route::delete('live/broadcasts/{stream}/thumbnail', [LiveBroadcastController::class, 'deleteThumbnail']);
