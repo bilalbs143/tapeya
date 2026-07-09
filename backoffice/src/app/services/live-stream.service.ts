@@ -7,6 +7,7 @@ export type LiveStreamStatus = 'idle' | 'starting' | 'live' | 'ended' | 'error';
 export interface LiveStreamRow {
   id: number;
   match_id: number | null;
+  owner_user_id?: number | null;
   title: string | null;
   description: string | null;
   streaming_url: string | null;
@@ -26,11 +27,29 @@ export interface StreamIngestCredentials {
   backup_rtmp_url: string | null;
 }
 
+export interface LiveStreamOwnerSummary {
+  id: number;
+  name: string | null;
+  nickname: string | null;
+  email: string | null;
+  phone: string | null;
+}
+
+export interface LiveStreamPlayback {
+  mode: 'iframe' | 'hls';
+  url?: string;
+  embed_url?: string;
+  embed_id?: string | null;
+}
+
 export interface LiveStreamPayload {
   stream: LiveStreamRow | null;
   ingest: StreamIngestCredentials | null;
   thumbnail_url: string | null;
   has_custom_thumbnail?: boolean;
+  watching_count?: number;
+  playback?: LiveStreamPlayback | null;
+  owner?: LiveStreamOwnerSummary | null;
 }
 
 export type LiveStreamProvider = 'external' | 'youtube';

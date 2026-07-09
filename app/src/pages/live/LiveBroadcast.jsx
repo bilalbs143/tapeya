@@ -17,9 +17,9 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { LG_MEDIA_QUERY, MOBILE_MEDIA_QUERY } from '@/lib/constants/layout';
 import {
   getLiveBroadcastShellClass,
+  LIVE_BROADCAST_IMMERSIVE_HEIGHT,
   LIVE_BROADCAST_LANDSCAPE_SHELL_STYLE,
   LIVE_BROADCAST_LANDSCAPE_SHELL_Z,
-  LIVE_BROADCAST_SHELL_HEIGHT,
   LIVE_BROADCAST_SHELL_HEIGHT_DESKTOP,
 } from '@/lib/constants/liveBroadcastLayout';
 import { useGetLiveStreamQuery } from '@/store/api/liveApi';
@@ -62,7 +62,6 @@ export default function LiveBroadcast() {
 
   const isMobileLandscape = isMobile && isLandscape;
   const immersiveMobileLandscape = isLandscape && !isDesktop;
-  const useInFlowHeader = !isDesktop && !isLandscape;
   const isIosNativeLandscape = streamUsesIosNativeYoutubePlayer(broadcast?.stream) && isLandscape;
   const surfaceBg = isIosNativeLandscape ? 'bg-transparent' : 'bg-black';
   const shellClass = getLiveBroadcastShellClass(isLandscape, surfaceBg);
@@ -73,9 +72,9 @@ export default function LiveBroadcast() {
     ? {
         ...LIVE_BROADCAST_LANDSCAPE_SHELL_STYLE,
         zIndex: LIVE_BROADCAST_LANDSCAPE_SHELL_Z,
-        height: '100dvh',
+        height: LIVE_BROADCAST_IMMERSIVE_HEIGHT,
       }
-    : { height: isDesktop ? LIVE_BROADCAST_SHELL_HEIGHT_DESKTOP : LIVE_BROADCAST_SHELL_HEIGHT };
+    : { height: isDesktop ? LIVE_BROADCAST_SHELL_HEIGHT_DESKTOP : LIVE_BROADCAST_IMMERSIVE_HEIGHT };
 
   const centeredStatusContent = useMemo(
     () => (
@@ -109,19 +108,14 @@ export default function LiveBroadcast() {
     [centeredStatusContent],
   );
 
-  const overlayHeaderSlot =
-    isDesktop || isLandscape ? (isDesktop || isMobileLandscape ? desktopOverlayHeader : portraitHeaderContent) : null;
+  const overlayHeaderSlot = isDesktop && !isLandscape ? desktopOverlayHeader : portraitHeaderContent;
 
   const showError = isError && !broadcast;
 
   return (
     <div className={shellClass} style={shellStyle}>
-      <div className={`relative h-full w-full overflow-hidden ${surfaceBg} ${useInFlowHeader ? 'flex flex-col' : ''}`}>
-        {useInFlowHeader && (
-          <header className="relative z-20 flex shrink-0 items-center justify-between px-4 py-2">{portraitHeaderContent}</header>
-        )}
-
-        <div className={`relative overflow-hidden ${surfaceBg} ${useInFlowHeader ? 'min-h-0 flex-1' : 'h-full w-full'}`}>
+      <div className={`relative h-full w-full overflow-hidden ${surfaceBg}`}>
+        <div className={`relative h-full w-full overflow-hidden ${surfaceBg}`}>
           {showError && <BroadcastError onRetry={refetch} />}
           {broadcast && (
             <LiveBroadcastItem

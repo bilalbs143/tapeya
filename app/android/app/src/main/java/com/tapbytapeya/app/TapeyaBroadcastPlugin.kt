@@ -2,6 +2,7 @@ package com.tapbytapeya.app
 
 import android.Manifest
 import android.content.Intent
+import android.graphics.Color
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.Handler
@@ -144,22 +145,9 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         }
 
         activity.runOnUiThread {
-            val contentView = activity.findViewById<ViewGroup>(android.R.id.content)
             val surfaceView = previewView ?: SurfaceView(activity).also { it.holder.setFormat(PixelFormat.TRANSLUCENT) }
             previewView = surfaceView
-
-            if (surfaceView.parent !== contentView) {
-                (surfaceView.parent as? ViewGroup)?.removeView(surfaceView)
-                contentView.addView(surfaceView)
-            }
-            contentView.bringChildToFront(surfaceView)
-
-            if (width > 0 && height > 0) {
-                surfaceView.layoutParams = FrameLayout.LayoutParams(width, height).apply {
-                    leftMargin = x
-                    topMargin = y
-                }
-            }
+            attachPreviewSurface(surfaceView, x, y, width, height)
 
             if (surfaceView.holder.surface?.isValid == true) {
                 if (!stream.isOnPreview) stream.startPreview(surfaceView)
@@ -179,6 +167,21 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
     }
 
     @PluginMethod
+    fun updatePreviewLayout(call: PluginCall) {
+        val surfaceView = previewView ?: return call.reject("Preview not started")
+        val x = (call.getFloat("x") ?: 0f).toInt()
+        val y = (call.getFloat("y") ?: 0f).toInt()
+        val width = (call.getFloat("width") ?: 0f).toInt()
+        val height = (call.getFloat("height") ?: 0f).toInt()
+        val activity = activity ?: return call.reject("Activity unavailable")
+
+        activity.runOnUiThread {
+            attachPreviewSurface(surfaceView, x, y, width, height)
+            call.resolve(JSObject().put("updated", true))
+        }
+    }
+
+    @PluginMethod
     fun stopPreview(call: PluginCall) {
         val stream = stream
         val activity = activity ?: return call.resolve(JSObject().put("stopped", true))
@@ -186,6 +189,7 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         activity.runOnUiThread {
             if (stream?.isOnPreview == true) stream.stopPreview()
             previewView?.let { (it.parent as? ViewGroup)?.removeView(it) }
+            setWebViewTransparent(false)
             call.resolve(JSObject().put("stopped", true))
         }
     }
@@ -210,6 +214,48 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
 
     // MARK: - Broadcast
 
+
+    /** Insert camera SurfaceView below the Capacitor WebView so floating JS controls stay visible. */
+    private fun attachPreviewSurface(surfaceView: SurfaceView, x: Int, y: Int, width: Int, height: Int) {
+        val webView = bridge.webView
+        val parent = webView.parent as? ViewGroup
+            ?: activity?.findViewById<ViewGroup>(android.R.id.content)
+            ?: return
+
+        surfaceView.isClickable = false
+        surfaceView.isFocusable = false
+        surfaceView.setZOrderOnTop(false)
+        surfaceView.setZOrderMediaOverlay(false)
+
+        if (surfaceView.parent != parent) {
+            (surfaceView.parent as? ViewGroup)?.removeView(surfaceView)
+            val webIndex = parent.indexOfChild(webView)
+            parent.addView(surfaceView, if (webIndex >= 0) webIndex else 0)
+        } else {
+            val webIndex = parent.indexOfChild(webView)
+            val surfIndex = parent.indexOfChild(surfaceView)
+            if (webIndex >= 0 && surfIndex > webIndex) {
+                parent.removeView(surfaceView)
+                parent.addView(surfaceView, webIndex)
+            }
+        }
+
+        setWebViewTransparent(true)
+
+        if (width > 0 && height > 0) {
+            surfaceView.layoutParams = FrameLayout.LayoutParams(width, height).apply {
+                leftMargin = x
+                topMargin = y
+            }
+        }
+    }
+
+    private fun setWebViewTransparent(transparent: Boolean) {
+        val webView = bridge.webView ?: return
+        webView.setBackgroundColor(if (transparent) Color.TRANSPARENT else Color.BLACK)
+    }
+
+    // MARK: - Publish
     @PluginMethod
     fun startBroadcast(call: PluginCall) {
         val stream = stream ?: return call.reject("Stream not initialized")

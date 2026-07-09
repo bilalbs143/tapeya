@@ -123,7 +123,12 @@
               class="max-w-xs truncate text-sm whitespace-nowrap"
               [title]="row.title || ''"
             >
-              {{ row.title || emptyCell }}
+              <a
+                [routerLink]="['/live-streams-management/live-streams', row.id, 'overview']"
+                class="text-primary font-medium hover:underline"
+              >
+                {{ row.title || emptyCell }}
+              </a>
             </td>
           </ng-container>
 
@@ -292,10 +297,20 @@
               *matCellDef="let row"
               class="action-link text-sm whitespace-nowrap"
             >
+              <a
+                [routerLink]="['/live-streams-management/live-streams', row.id, 'overview']"
+                class="me-2.5 inline-flex align-middle"
+                aria-label="View Live Stream"
+              >
+                <i-tabler
+                  name="eye"
+                  class="size-4.5!"
+                ></i-tabler>
+              </a>
               <button
                 type="button"
                 class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
-                aria-label="Manage Live Stream"
+                aria-label="Quick Manage Live Stream"
                 (click)="openManageDialog(row)"
               >
                 <i-tabler

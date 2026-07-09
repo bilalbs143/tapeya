@@ -163,6 +163,24 @@ class MatchStream extends BaseModel
         return null;
     }
 
+    /**
+     * Admin/backoffice monitor payload — includes starting streams when a YouTube embed exists.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function playbackForMonitor(): ?array
+    {
+        if ($this->status === 'starting' && ($this->embed_url || $this->provider_playback_id)) {
+            return [
+                'mode' => 'iframe',
+                'embed_id' => $this->provider_playback_id,
+                'embed_url' => YouTubeEmbedUrl::normalize($this->embed_url, $this->provider_playback_id),
+            ];
+        }
+
+        return $this->playbackForApp();
+    }
+
     public function scopeVisibleInApp(Builder $query): void
     {
         $query->whereIn('status', ['live', 'starting'])

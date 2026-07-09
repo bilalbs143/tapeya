@@ -19,6 +19,7 @@ import {
   LIVE_BROADCAST_CONTROLS_OVERLAY_Z,
   LIVE_BROADCAST_HEADER_OVERLAY_Z,
   LIVE_BROADCAST_HEADER_SCRIM,
+  LIVE_BROADCAST_HEADER_TOP_PADDING,
   LIVE_BROADCAST_IMMERSIVE_TOGGLE_Z,
   LIVE_BROADCAST_LANDSCAPE_HEADER_ROW,
 } from '@/lib/constants/liveBroadcastLayout';
@@ -188,7 +189,7 @@ function BroadcastViewport({
         >
           <div
             className={`pointer-events-none relative flex items-center ${isLandscape && !isDesktop ? 'justify-center' : 'justify-between'}`}
-            style={{ paddingTop: '8px' }}
+            style={{ paddingTop: isLandscape && !isDesktop ? '8px' : LIVE_BROADCAST_HEADER_TOP_PADDING }}
           >
             {headerSlot}
           </div>

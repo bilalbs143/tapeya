@@ -1,10 +1,20 @@
 const TOURNAMENT_DETAILS_PATH = /^\/upcoming-tournaments\/[^/]+$/;
 const HIGHLIGHT_DETAILS_PATH = /^\/highlights\/[^/]+$/;
 const LIVE_BROADCAST_PATH = /^\/live\/broadcast\/[^/]+$/;
+const GO_LIVE_BROADCAST_PATH = /^\/live\/go-live\/[^/]+$/;
 const ORGANIZER_SCORING_MATCH_PATH = /^\/organizer\/scoring\/match\/[^/]+$/;
 
 export function isLiveBroadcastPath(pathname) {
   return LIVE_BROADCAST_PATH.test(pathname);
+}
+
+export function isGoLiveBroadcastPath(pathname) {
+  return GO_LIVE_BROADCAST_PATH.test(pathname);
+}
+
+/** Mobile broadcaster + watch-live — full-bleed video, no bottom nav. */
+export function isLiveStreamImmersivePath(pathname) {
+  return isLiveBroadcastPath(pathname) || isGoLiveBroadcastPath(pathname);
 }
 
 export function isHighlightDetailsPath(pathname) {
@@ -14,7 +24,12 @@ export function isHighlightDetailsPath(pathname) {
 /** Pages whose main content starts at the viewport top (hero sits behind the fixed navbar). */
 export function isNavbarOverlayPath(pathname, isDesktop = false) {
   if (isHighlightDetailsPath(pathname) && isDesktop) return false;
-  return pathname === '/profile' || TOURNAMENT_DETAILS_PATH.test(pathname) || HIGHLIGHT_DETAILS_PATH.test(pathname);
+  return (
+    pathname === '/profile' ||
+    TOURNAMENT_DETAILS_PATH.test(pathname) ||
+    HIGHLIGHT_DETAILS_PATH.test(pathname) ||
+    isLiveStreamImmersivePath(pathname)
+  );
 }
 
 const AUTH_PATHS = new Set(['/login', '/register', '/otp']);
@@ -40,7 +55,7 @@ export function isGlobalEntryDialogBlockedPath(pathname) {
   return (
     isDialogReminderBlockedPath(pathname) ||
     pathname.startsWith('/overlay/') ||
-    isLiveBroadcastPath(pathname) ||
+    isLiveStreamImmersivePath(pathname) ||
     ORGANIZER_SCORING_MATCH_PATH.test(pathname)
   );
 }
@@ -73,7 +88,8 @@ export function isHeroNavbarPath(pathname, isDesktop = false) {
     pathname === '/home' ||
     pathname === '/profile' ||
     TOURNAMENT_DETAILS_PATH.test(pathname) ||
-    HIGHLIGHT_DETAILS_PATH.test(pathname)
+    HIGHLIGHT_DETAILS_PATH.test(pathname) ||
+    isLiveStreamImmersivePath(pathname)
   );
 }
 

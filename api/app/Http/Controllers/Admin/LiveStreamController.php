@@ -147,9 +147,17 @@ class LiveStreamController extends BaseAdminController
      */
     private function payload(MatchStream $stream): array
     {
+        $stream->loadMissing('owner:id,name,nickname,email,phone');
+
         $ingest = $stream->provider !== 'external'
             ? $this->manager->driver($stream->provider)->ingestConfig($stream)
             : null;
+
+        $watchingCount = 0;
+        if (in_array($stream->status, ['live', 'starting'], true)) {
+            $counts = app(LiveStreamPresenceOccupancy::class)->countsFor(collect([$stream->id]));
+            $watchingCount = $counts[$stream->id] ?? 0;
+        }
 
         return [
             'stream' => new StreamAdminResource($stream),
@@ -160,6 +168,15 @@ class LiveStreamController extends BaseAdminController
             ] : null,
             'thumbnail_url' => $stream->thumbnailUrl(),
             'has_custom_thumbnail' => (bool) $stream->getRawOriginal('stream_thumbnail'),
+            'watching_count' => $watchingCount,
+            'playback' => $stream->playbackForMonitor(),
+            'owner' => $stream->owner ? [
+                'id' => $stream->owner->id,
+                'name' => $stream->owner->name,
+                'nickname' => $stream->owner->nickname,
+                'email' => $stream->owner->email,
+                'phone' => $stream->owner->phone,
+            ] : null,
         ];
     }
 }

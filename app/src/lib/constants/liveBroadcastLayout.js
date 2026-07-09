@@ -12,6 +12,9 @@ export const LIVE_BROADCAST_CONTROLS_OVERLAY_Z = 25;
 /** Fixed landscape toggle — portaled above all app chrome. */
 export const LIVE_BROADCAST_IMMERSIVE_TOGGLE_Z = 100;
 
+/** Full-bleed immersive shell — video under transparent navbar, no bottom nav. */
+export const LIVE_BROADCAST_IMMERSIVE_HEIGHT = '100dvh';
+
 /** Portrait shell height — fills main below navbar + bottom nav padding. */
 export const LIVE_BROADCAST_SHELL_HEIGHT = `calc(100dvh - env(safe-area-inset-top) - ${NAVBAR_HEIGHT}px - env(safe-area-inset-bottom) - ${BOTTOM_NAV_HEIGHT}px)`;
 
@@ -44,7 +47,10 @@ export const LIVE_BROADCAST_LANDSCAPE_SHELL_STYLE = {
 
 /** Top scrim behind the floating page header row (portrait / desktop overlay). */
 export const LIVE_BROADCAST_HEADER_SCRIM =
-  'pointer-events-none absolute top-0 right-0 left-0 bg-gradient-to-b from-black/75 via-black/35 to-transparent px-4 pb-6';
+  'pointer-events-none absolute top-0 right-0 left-0 bg-gradient-to-b from-black/75 via-black/35 to-transparent px-4 pb-8';
+
+/** Navbar clearance for floating controls on hero / immersive live pages. */
+export const LIVE_BROADCAST_HEADER_TOP_PADDING = 'calc(env(safe-area-inset-top) + 56px)';
 
 /** Landscape badge row — no gradient (rotates to a visible top-edge shadow). */
 export const LIVE_BROADCAST_LANDSCAPE_HEADER_ROW = 'pointer-events-none absolute top-0 right-0 left-0 px-4 pt-2';

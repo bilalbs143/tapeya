@@ -22,6 +22,14 @@ export async function startBroadcastPreview(options = {}) {
   return TapeyaBroadcast.startPreview({ position: 'front', ...options });
 }
 
+/** @param {{ x?: number, y?: number, width?: number, height?: number }} options */
+export async function updateBroadcastPreviewLayout(options = {}) {
+  if (!isNative()) {
+    return { updated: false };
+  }
+  return TapeyaBroadcast.updatePreviewLayout(options);
+}
+
 export async function stopBroadcastPreview() {
   if (!isNative()) {
     return { stopped: false };

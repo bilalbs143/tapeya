@@ -1,0 +1,69 @@
+<div class="overflow-hidden rounded-lg border border-border bg-black">
+  @if (showIframe) {
+    <div class="relative aspect-video w-full bg-black">
+      <iframe
+        [src]="safeEmbedUrl"
+        class="absolute inset-0 h-full w-full border-0"
+        title="Live stream monitor"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+        referrerpolicy="strict-origin-when-cross-origin"
+      ></iframe>
+    </div>
+  } @else if (showHls) {
+    <div class="relative aspect-video w-full bg-black">
+      <video
+        class="h-full w-full bg-black object-contain"
+        [src]="hlsUrl!"
+        controls
+        playsinline
+        autoplay
+        muted
+      ></video>
+      <p class="text-muted m-0 border-t border-border bg-[var(--mat-sys-surface)] px-4 py-2 text-xs">
+        HLS preview uses native playback (Safari). On Chrome, use Open Stream URL.
+      </p>
+    </div>
+  } @else if (showThumbnailFallback) {
+    <div class="relative aspect-video w-full overflow-hidden bg-[#111]">
+      <img
+        [src]="thumbnailUrl"
+        alt=""
+        class="h-full w-full object-cover opacity-80"
+      />
+      <div class="absolute inset-0 flex items-end bg-linear-to-t from-black/80 to-transparent p-4">
+        <p class="m-0 text-sm text-white/90">{{ emptyMessage }}</p>
+      </div>
+    </div>
+  } @else {
+    <div class="flex aspect-video flex-col items-center justify-center gap-3 px-6 text-center">
+      <mat-icon class="text-muted! size-12! text-[48px]!">live_tv</mat-icon>
+      <p class="text-muted m-0 max-w-md text-sm leading-relaxed">{{ emptyMessage }}</p>
+      @if (openUrl) {
+        <a
+          mat-stroked-button
+          color="primary"
+          [href]="openUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Open Stream URL
+        </a>
+      }
+    </div>
+  }
+
+  @if ((showIframe || showHls) && openUrl) {
+    <div class="flex justify-end border-t border-border bg-[var(--mat-sys-surface)] px-3 py-2">
+      <a
+        mat-button
+        color="primary"
+        [href]="openUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Open in new tab
+      </a>
+    </div>
+  }
+</div>

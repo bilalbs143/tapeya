@@ -13,9 +13,8 @@ import AVFoundation
  * If the installed pod version has drifted, the compiler errors here should be small and
  * mechanical (renamed methods/properties), not architectural.
  *
- * Compositing technique mirrors YoutubeStreamOverlayPlugin: an MTHKView (HaishinKit's Metal
- * preview view, MTKView-backed) is added above the Capacitor webview and frame-positioned
- * from JS-supplied coordinates, same as the YouTube overlay's WKWebView.
+ * Compositing: MTHKView is inserted below the Capacitor webview so floating JS controls
+ * stay visible on top of full-bleed camera preview.
  */
 @objc(TapeyaBroadcastPlugin)
 public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
@@ -24,6 +23,7 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "requestPermissions", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "startPreview", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "updatePreviewLayout", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "stopPreview", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "switchCamera", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "toggleMute", returnType: CAPPluginReturnPromise),
@@ -121,6 +121,19 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
+    /** Reposition an existing preview without re-attaching camera/microphone. */
+    @objc func updatePreviewLayout(_ call: CAPPluginCall) {
+        let frame = frameFromCall(call)
+        Task { @MainActor in
+            guard self.previewView != nil else {
+                call.reject("Preview not started")
+                return
+            }
+            self.attachPreviewView(frame: frame)
+            call.resolve(["updated": true])
+        }
+    }
+
     @objc func stopPreview(_ call: CAPPluginCall) {
         Task {
             await self.mixer.stopRunning()
@@ -129,6 +142,7 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
             }
             await MainActor.run {
                 self.previewView?.removeFromSuperview()
+                self.setWebViewTransparent(false)
             }
             call.resolve(["stopped": true])
         }
@@ -407,18 +421,54 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
 
         let view = previewView ?? MTHKView(frame: .zero)
         view.videoGravity = .resizeAspectFill
+        view.isUserInteractionEnabled = false
         previewView = view
 
-        if view.superview !== hostView {
+        if let capWebView = bridge?.webView {
+            let targetParent = capWebView.superview ?? hostView
+            if view.superview !== targetParent {
+                view.removeFromSuperview()
+                targetParent.insertSubview(view, belowSubview: capWebView)
+            } else {
+                targetParent.insertSubview(view, belowSubview: capWebView)
+            }
+            setWebViewTransparent(true)
+        } else if view.superview !== hostView {
             view.removeFromSuperview()
             hostView.addSubview(view)
         }
-        hostView.bringSubviewToFront(view)
 
         guard frame.width > 0, frame.height > 0 else { return }
         view.transform = .identity
         view.bounds = CGRect(origin: .zero, size: frame.size)
         view.center = CGPoint(x: frame.midX, y: frame.midY)
+    }
+
+    private func setWebViewTransparent(_ transparent: Bool) {
+        guard let webView = bridge?.webView else { return }
+
+        if transparent {
+            webView.isOpaque = false
+            webView.backgroundColor = .clear
+            webView.scrollView.isOpaque = false
+            webView.scrollView.backgroundColor = .clear
+            webView.layer.backgroundColor = UIColor.clear.cgColor
+            webView.scrollView.layer.backgroundColor = UIColor.clear.cgColor
+            if #available(iOS 15.0, *) {
+                webView.underPageBackgroundColor = .clear
+            }
+            return
+        }
+
+        webView.isOpaque = true
+        webView.backgroundColor = .black
+        webView.scrollView.isOpaque = true
+        webView.scrollView.backgroundColor = .black
+        webView.layer.backgroundColor = UIColor.black.cgColor
+        webView.scrollView.layer.backgroundColor = UIColor.black.cgColor
+        if #available(iOS 15.0, *) {
+            webView.underPageBackgroundColor = .black
+        }
     }
 
     private func frameFromCall(_ call: CAPPluginCall) -> CGRect {

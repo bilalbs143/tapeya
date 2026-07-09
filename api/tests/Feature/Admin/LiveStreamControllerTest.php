@@ -157,6 +157,31 @@ class LiveStreamControllerTest extends TestCase
         $this->assertSame(0, $row['watching_count']);
     }
 
+    public function test_show_includes_monitoring_fields_for_admin_detail(): void
+    {
+        $admin = $this->admin();
+        $owner = User::factory()->create();
+        $stream = MatchStream::factory()->create([
+            'owner_user_id' => $owner->id,
+            'status' => 'live',
+            'provider' => 'youtube',
+            'provider_playback_id' => 'abc123XYZ01',
+            'embed_url' => 'https://www.youtube.com/embed/abc123XYZ01',
+        ]);
+
+        $response = $this->actingAs($admin, 'api')
+            ->getJson("/api/v1/admin/live-streams/{$stream->id}")
+            ->assertOk();
+
+        $data = $response->json('data');
+        $this->assertSame($owner->id, $data['stream']['owner_user_id']);
+        $this->assertArrayHasKey('watching_count', $data);
+        $this->assertSame($owner->id, $data['owner']['id']);
+        $this->assertNotNull($data['playback']);
+        $this->assertSame('iframe', $data['playback']['mode']);
+        $this->assertNotEmpty($data['playback']['embed_url'] ?? null);
+    }
+
     public function test_update_updates_title_description_streaming_url(): void
     {
         $admin = $this->admin();

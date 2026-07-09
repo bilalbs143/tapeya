@@ -119,3 +119,10 @@ body {
     transform: translateY(0);
   }
 }
+
+/** Go-live camera preview — native MTHKView sits under the Capacitor webview. */
+html.broadcast-camera-underlay,
+html.broadcast-camera-underlay body,
+html.broadcast-camera-underlay main {
+  background-color: transparent !important;
+}
