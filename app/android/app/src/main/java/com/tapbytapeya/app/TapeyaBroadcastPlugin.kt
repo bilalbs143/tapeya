@@ -99,7 +99,7 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
     // MARK: - Permissions
 
     @PluginMethod
-    fun requestPermissions(call: PluginCall) {
+    override fun requestPermissions(call: PluginCall) {
         if (getPermissionState("camera") == PermissionState.GRANTED &&
             getPermissionState("microphone") == PermissionState.GRANTED
         ) {
