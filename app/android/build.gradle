@@ -1,7 +1,8 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    
+    ext.kotlinVersion = '1.9.22'
+
     repositories {
         google()
         mavenCentral()
@@ -9,10 +10,8 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:8.2.1'
         classpath 'com.google.gms:google-services:4.4.2'
-        // Self-serve mobile broadcast (TapeyaBroadcastPlugin) is written in Kotlin — the app
-        // module was Java-only before this. Hardcoded (not $kotlinVersion from variables.gradle)
-        // because buildscript{} evaluates before the later `apply from: "variables.gradle"` below.
-        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22'
+        // Self-serve mobile broadcast (TapeyaBroadcastPlugin) — keep in sync with variables.gradle kotlinVersion.
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -27,6 +26,19 @@ allprojects {
         mavenCentral()
         // RootEncoder (TapeyaBroadcastPlugin) is published via JitPack.
         maven { url 'https://jitpack.io' }
+    }
+    configurations.configureEach {
+        resolutionStrategy {
+            force "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
+            force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${rootProject.ext.kotlinVersion}"
+            force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${rootProject.ext.kotlinVersion}"
+            eachDependency { details ->
+                if (details.requested.group == 'org.jetbrains.kotlin') {
+                    details.useVersion rootProject.ext.kotlinVersion
+                    details.because 'Pin Kotlin artifacts to the project compiler (RootEncoder pulls newer stdlib transitively)'
+                }
+            }
+        }
     }
 }
 
