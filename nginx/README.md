@@ -30,7 +30,7 @@
 
 4. **Laravel:** Set correct permissions and `APP_URL` (e.g. `https://api.tapeya.com`). Run migrations/cache as needed.
    - Production CORS: `CORS_ALLOWED_ORIGINS` must include `https://graphics.tapeya.com`
-   - Reverb: `REVERB_ALLOWED_ORIGINS` must include `graphics.tapeya.com`
+   - Reverb: `REVERB_ALLOWED_ORIGINS` must include `graphics.tapeya.com` and `localhost` (Capacitor WebView host)
    - Admin → System Settings → **Graphics Frontend URL** → `https://graphics.tapeya.com`
 
 5. **HTTPS:** See `tapeya-ssl.conf.sample` for TLS server blocks (including `graphics.tapeya.com`). Obtain certs before production graphics traffic:

@@ -144,8 +144,10 @@ Build env is set via `app/package.json` scripts (`build:graphics:production`, `b
 
 ```env
 CORS_ALLOWED_ORIGINS=https://tapeya.com,https://graphics.tapeya.com,https://backoffice.tapeya.com
-REVERB_ALLOWED_ORIGINS=tapeya.com,graphics.tapeya.com,backoffice.tapeya.com
+REVERB_ALLOWED_ORIGINS=tapeya.com,graphics.tapeya.com,backoffice.tapeya.com,localhost
 ```
+
+`localhost` is required for the Capacitor mobile app (its WebView origin is `capacitor://localhost` on iOS, `https://localhost` on Android) — without it, Reverb closes every WebSocket connection from the app with `pusher:error` code 4009 "Origin not allowed", silently breaking all real-time features (chat, hearts, presence, live status) in the app while the web client keeps working. Restart Reverb (`php artisan reverb:restart` or your process manager) after changing this — it only reads `.env` at boot.
 
 Set **Graphics Frontend URL** (`https://graphics.tapeya.com`), **Graphics Signing Secret**, and **Graphics Signed URL TTL** in Admin → System Settings (not `.env`).
 

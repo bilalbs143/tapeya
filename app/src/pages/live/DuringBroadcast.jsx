@@ -20,9 +20,9 @@ import {
 import { FloatingHeartsOverlay } from '@/features/stream/FloatingHeartsOverlay';
 import { useBroadcastCameraUnderlay } from '@/features/stream/hooks/useBroadcastCameraUnderlay';
 import { useBroadcastNativePreview } from '@/features/stream/hooks/useBroadcastNativePreview';
-import { useBroadcastOwnerChat } from '@/features/stream/hooks/useBroadcastOwnerChat';
 import { useFloatingHearts } from '@/features/stream/hooks/useFloatingHearts';
 import { useLiveStreamChannel } from '@/features/stream/hooks/useLiveStreamChannel';
+import { useStreamComments } from '@/features/stream/hooks/useStreamComments';
 import { useStreamPresenceChannel } from '@/features/stream/hooks/useStreamPresenceChannel';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
@@ -120,8 +120,6 @@ export default function DuringBroadcast({ streamId }) {
   const streamChatActive = serverStatus === 'live' || serverStatus === 'starting';
   const chatEnabled = liveChatGloballyEnabled && (streamChatActive || publishSessionActive || isLivePhase);
   const presenceEnabled = isLivePhase || streamChatActive || publishSessionActive;
-  // Own public Echo for chat/hearts — never share echoManager with hub/presence.
-  const chatListenEnabled = Boolean(streamId) && !sessionFinished;
 
   useBroadcastCameraUnderlay();
   useLiveStreamChannel(streamId);
@@ -137,10 +135,7 @@ export default function DuringBroadcast({ streamId }) {
     },
     [spawnBurst, myUserId],
   );
-  const { messages, addMessage } = useBroadcastOwnerChat(streamId, {
-    enabled: chatListenEnabled,
-    onHeart: handleRemoteHeart,
-  });
+  const { messages, addMessage } = useStreamComments(streamId, chatEnabled, handleRemoteHeart);
   const [sendComment, { isLoading: isSending }] = useSendLiveCommentMutation();
   const [sendHeart] = useSendLiveHeartMutation();
 
@@ -505,7 +500,7 @@ export default function DuringBroadcast({ streamId }) {
           <BroadcastCameraControlDock
             phase={phase}
             captureMode={captureMode}
-            isLive={isLivePhase || publishSessionActive}
+            isLive={isLivePhase}
             isNative={isNative()}
             isMuted={isMuted}
             cameraFacing={cameraFacing}
