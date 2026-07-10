@@ -29,9 +29,5 @@ export function subscribeLiveViewerImmersiveSelfServe(listener) {
 }
 
 export function useLiveViewerImmersiveSelfServe() {
-  return useSyncExternalStore(
-    subscribeLiveViewerImmersiveSelfServe,
-    getLiveViewerImmersiveSelfServe,
-    () => false,
-  );
+  return useSyncExternalStore(subscribeLiveViewerImmersiveSelfServe, getLiveViewerImmersiveSelfServe, () => false);
 }

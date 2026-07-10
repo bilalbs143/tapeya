@@ -11,16 +11,16 @@ const CommentList = memo(function CommentList({ messages, isLandscape = false })
 
   return (
     <ul
-      className={`mb-2 flex flex-col-reverse gap-1 overflow-hidden ${isLandscape ? 'max-h-90' : 'max-h-70'}`}
+      className={`mb-2 flex flex-col-reverse gap-1 overflow-hidden ${isLandscape ? 'max-h-90' : 'max-h-52'}`}
       aria-label="Live Comments"
       aria-live="polite"
       aria-atomic="false"
     >
       {[...visible].reverse().map((m) => (
         <li key={m.id} className="flex items-start gap-2">
-          <div className="min-w-0">
+          <div className="min-w-0 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
             <span className="text-[13px] font-bold text-white">{m.name} </span>
-            <span className="text-[12px] text-white/80">{m.text}</span>
+            <span className="text-[12px] text-white/90">{m.text}</span>
           </div>
         </li>
       ))}

@@ -108,29 +108,33 @@ function BroadcastBottomPanel({
   onToggleLayout,
   bottomPanelVisible,
   onToggleBottomPanel,
+  hideFloatingToggles = false,
 }) {
+  const showChat = bottomPanelVisible || hideFloatingToggles;
+
   return (
     <div className={`flex w-full flex-col gap-2 ${isLandscape ? '' : 'relative'}`}>
-      {bottomPanelVisible && chatEnabled && <CommentList messages={messages} isLandscape={isLandscape} />}
+      {showChat && chatEnabled && <CommentList messages={messages} isLandscape={isLandscape} />}
 
-      <div className={`flex gap-2 ${bottomPanelVisible ? 'items-start' : 'items-center justify-end'}`}>
-        {bottomPanelVisible && streamStatus === 'ended' && (
-          <div className="min-w-0 flex-1 px-1">
-            <p className="mt-1 text-[11px] text-white/60 drop-shadow">Stream has ended</p>
-          </div>
-        )}
-        <BroadcastFloatingToggles
-          className={bottomPanelVisible ? 'ml-auto shrink-0' : ''}
-          isLandscape={isLandscape}
-          onToggleLayout={onToggleLayout}
-          bottomPanelVisible={bottomPanelVisible}
-          onToggleBottomPanel={onToggleBottomPanel}
-        />
-      </div>
-
-      {bottomPanelVisible && chatEnabled && (
-        <CommentInputRow onSend={onSend} onSendHeart={onSendHeart} disabled={inputDisabled} />
+      {streamStatus === 'ended' && showChat && (
+        <div className="min-w-0 px-1">
+          <p className="mt-1 text-[11px] text-white/60 drop-shadow">Stream has ended</p>
+        </div>
       )}
+
+      {!hideFloatingToggles && (
+        <div className={`flex gap-2 ${bottomPanelVisible ? 'items-start' : 'items-center justify-end'}`}>
+          <BroadcastFloatingToggles
+            className={bottomPanelVisible ? 'ml-auto shrink-0' : ''}
+            isLandscape={isLandscape}
+            onToggleLayout={onToggleLayout}
+            bottomPanelVisible={bottomPanelVisible}
+            onToggleBottomPanel={onToggleBottomPanel}
+          />
+        </div>
+      )}
+
+      {showChat && chatEnabled && <CommentInputRow onSend={onSend} onSendHeart={onSendHeart} disabled={inputDisabled} />}
     </div>
   );
 }
@@ -175,8 +179,7 @@ function BroadcastViewport({
 
   // Match classic portrait sits under the solid app navbar — no extra navbar clearance.
   // Self-serve immersive / landscape own the top safe area themselves.
-  const headerTopPadding =
-    isLandscape && !isDesktop ? '8px' : fillPortrait ? LIVE_BROADCAST_CAMERA_HEADER_TOP : '10px';
+  const headerTopPadding = isLandscape && !isDesktop ? '8px' : fillPortrait ? LIVE_BROADCAST_CAMERA_HEADER_TOP : '10px';
 
   return (
     <div className={`relative size-full overflow-hidden ${isIosNativeLandscape ? 'bg-transparent' : 'bg-black'}`}>
@@ -228,6 +231,8 @@ export default function LiveBroadcastItem({
   statusHeaderSlot = null,
   /** Self-serve mobile portrait — fill shell instead of 16:9. */
   fillPortrait = false,
+  /** Self-serve go-live watch — no comment/landscape toggles; comments always visible. */
+  selfServeChrome = false,
 }) {
   const toast = useToast();
   const myUserId = useAppSelector((s) => s.auth?.user?.id ?? null);
@@ -320,8 +325,9 @@ export default function LiveBroadcastItem({
       onSendHeart={handleSendHeart}
       isLandscape={isLandscape}
       onToggleLayout={onToggleLandscape}
-      bottomPanelVisible={bottomPanelVisible}
+      bottomPanelVisible={selfServeChrome ? true : bottomPanelVisible}
       onToggleBottomPanel={toggleBottomPanel}
+      hideFloatingToggles={selfServeChrome}
     />
   );
 
@@ -329,7 +335,7 @@ export default function LiveBroadcastItem({
     <BroadcastViewport
       stream={stream}
       bottomPanel={bottomPanel}
-      bottomPanelVisible={bottomPanelVisible}
+      bottomPanelVisible={selfServeChrome ? true : bottomPanelVisible}
       isLandscape={isLandscape}
       floatingHearts={floatingHearts}
       onHeartEnd={removeHeart}
@@ -342,7 +348,7 @@ export default function LiveBroadcastItem({
     />
   );
 
-  const showFixedLandscapeToggle = isLandscape && !isDesktop && !isIosNativeLandscape;
+  const showFixedLandscapeToggle = !selfServeChrome && isLandscape && !isDesktop && !isIosNativeLandscape;
 
   return (
     <div className={`relative h-full w-full overflow-hidden ${isIosNativeLandscape ? 'bg-transparent' : 'bg-black'}`}>

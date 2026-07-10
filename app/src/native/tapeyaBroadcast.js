@@ -14,12 +14,13 @@ export async function requestBroadcastPermissions() {
   return TapeyaBroadcast.requestPermissions();
 }
 
-/** @param {{ position?: 'back'|'front', x?: number, y?: number, width?: number, height?: number }} [options] */
+/** @param {{ x?: number, y?: number, width?: number, height?: number }} [options] */
 export async function startBroadcastPreview(options = {}) {
   if (!isNative()) {
     return { started: false };
   }
-  return TapeyaBroadcast.startPreview({ position: 'front', ...options });
+  // Always front on start — ignore any legacy position arg from callers.
+  return TapeyaBroadcast.startPreview({ ...options, position: 'front' });
 }
 
 /** @param {{ x?: number, y?: number, width?: number, height?: number }} options */

@@ -17,8 +17,8 @@ import { useLiveBroadcastImmersiveDocument } from '@/features/stream/hooks/useLi
 import { useLiveStreamChannel } from '@/features/stream/hooks/useLiveStreamChannel';
 import { useStreamPresenceChannel } from '@/features/stream/hooks/useStreamPresenceChannel';
 import { streamUsesIosNativeYoutubePlayer } from '@/features/stream/ios/streamUsesIosNativeYoutubePlayer';
-import { setLiveViewerImmersiveSelfServe } from '@/features/stream/liveViewerChromeStore';
 import { LiveStatusBadge, LiveViewerCountBadge } from '@/features/stream/LiveStatusBadges';
+import { setLiveViewerImmersiveSelfServe } from '@/features/stream/liveViewerChromeStore';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { LG_MEDIA_QUERY, MOBILE_MEDIA_QUERY } from '@/lib/constants/layout';
 import {
@@ -76,7 +76,15 @@ export default function LiveBroadcast() {
     setIsLandscape(false);
   }, [streamId]);
 
-  const toggleLandscape = useCallback(() => setIsLandscape((prev) => !prev), []);
+  const toggleLandscape = useCallback(() => {
+    // Self-serve go-live watch stays portrait — no landscape / fullscreen toggle.
+    if (isSelfServe) return;
+    setIsLandscape((prev) => !prev);
+  }, [isSelfServe]);
+
+  useEffect(() => {
+    if (isSelfServe) setIsLandscape(false);
+  }, [isSelfServe]);
 
   const isMobileLandscape = isMobile && isLandscape;
   const immersiveMobileLandscape = isLandscape && !isDesktop;
@@ -155,6 +163,7 @@ export default function LiveBroadcast() {
               headerSlot={overlayHeaderSlot}
               statusHeaderSlot={centeredStatusContent}
               fillPortrait={immersivePortrait}
+              selfServeChrome={isSelfServe}
             />
           )}
         </div>

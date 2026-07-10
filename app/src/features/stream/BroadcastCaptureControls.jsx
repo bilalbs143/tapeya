@@ -43,20 +43,8 @@ export function CameraFacingIcon({ facing = 'front' }) {
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
       <rect x="7" y="4" width="10" height="16" rx="2.5" stroke="currentColor" strokeWidth="1.75" />
       <circle cx="12" cy="10" r="2.75" stroke="currentColor" strokeWidth="1.75" />
-      <path
-        d="M10 16.5h4"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        opacity="0.85"
-      />
-      <path
-        d="M12 6.5v1.2"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        opacity="0.65"
-      />
+      <path d="M10 16.5h4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" opacity="0.85" />
+      <path d="M12 6.5v1.2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" opacity="0.65" />
     </svg>
   );
 }
@@ -72,12 +60,7 @@ export function MicIcon({ muted = false }) {
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        <path
-          d="m4 4 16 16"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
+        <path d="m4 4 16 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
       </svg>
     );
   }

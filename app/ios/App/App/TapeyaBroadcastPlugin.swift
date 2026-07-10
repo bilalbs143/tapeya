@@ -77,14 +77,12 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func startPreview(_ call: CAPPluginCall) {
         let frame = frameFromCall(call)
-        let positionArg = call.getString("position") ?? "front"
-        let preferred: AVCaptureDevice.Position = positionArg == "back" ? .back : .front
-
-        currentPosition = preferred
+        // Go-live always opens on the front camera; flip is opt-in via switchCamera.
+        currentPosition = .front
 
         Task {
             do {
-                try await self.ensureCameraPosition(preferred)
+                try await self.ensureCameraPosition(.front)
                 guard let microphone = AVCaptureDevice.default(for: .audio) else {
                     call.reject("Microphone unavailable")
                     return
@@ -97,6 +95,7 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
 
             await MainActor.run {
                 self.attachPreviewView(frame: frame)
+                self.setIdleTimerDisabled(true)
             }
 
             if let view = self.previewView {
@@ -130,6 +129,9 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
             await MainActor.run {
                 self.previewView?.removeFromSuperview()
                 self.setWebViewTransparent(false)
+                if self.stream == nil {
+                    self.setIdleTimerDisabled(false)
+                }
             }
             call.resolve(["stopped": true])
         }
@@ -188,6 +190,7 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
         Task {
             do {
                 try await self.connectAndPublish(rtmpUrl: rtmpUrl, streamKey: streamKey)
+                await MainActor.run { self.setIdleTimerDisabled(true) }
                 self.scheduleMaxDurationTimer(seconds: maxDurationSeconds)
                 call.resolve()
             } catch {
@@ -204,6 +207,7 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
 
         Task {
             await self.teardownConnection()
+            await MainActor.run { self.setIdleTimerDisabled(false) }
             self.notifyListeners("broadcastStateChanged", data: ["state": "ended"])
             call.resolve(["stopped": true])
         }
@@ -401,20 +405,22 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
 
         Task {
             await instance.teardownConnection()
+            await MainActor.run { instance.setIdleTimerDisabled(false) }
             instance.notifyListeners("broadcastStateChanged", data: ["state": "ended", "reason": "backgrounded"])
         }
     }
 
     // MARK: - Preview view compositing (mirrors YoutubeStreamOverlayPlugin's attach/applyLayout)
 
-    /** Re-bind video capture to the stored facing (front by default for go-live). */
+    /** Keep the screen on for the whole preview/broadcast session — no tap-to-wake. */
+    @MainActor
+    private func setIdleTimerDisabled(_ disabled: Bool) {
+        UIApplication.shared.isIdleTimerDisabled = disabled
+    }
+
+    /** Re-bind video capture to the requested facing (no silent back-camera fallback). */
     private func ensureCameraPosition(_ position: AVCaptureDevice.Position) async throws {
-        let fallback: AVCaptureDevice.Position = position == .front ? .back : .front
-        guard let camera =
-            AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position)
-            ?? AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: fallback)
-            ?? AVCaptureDevice.default(for: .video)
-        else {
+        guard let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position) else {
             throw NSError(domain: "TapeyaBroadcast", code: 1, userInfo: [NSLocalizedDescriptionKey: "Camera unavailable"])
         }
 

@@ -11,9 +11,7 @@ import { useMainLayoutChrome } from '@/hooks/useMainLayoutChrome';
 export function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const { showNavbar, showBottomNav, mainPaddingTop, mainPaddingBottom, rootClassName } = useMainLayoutChrome(
-    location.pathname,
-  );
+  const { showNavbar, showBottomNav, mainPaddingTop, mainPaddingBottom, rootClassName } = useMainLayoutChrome(location.pathname);
 
   return (
     <div className={rootClassName}>

@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 
-import {
-  getFullWindowPreviewLayout,
-  shouldSyncPreviewLayout,
-  waitForNextPaint,
-} from '@/features/stream/broadcastCameraUtils';
+import { getFullWindowPreviewLayout, shouldSyncPreviewLayout, waitForNextPaint } from '@/features/stream/broadcastCameraUtils';
 import {
   requestBroadcastPermissions,
   startBroadcastPreview,
@@ -35,7 +31,7 @@ export function useBroadcastNativePreview({ broadcast, phase, setPhase, onResume
     const layout = getFullWindowPreviewLayout();
 
     if (start || !previewActiveRef.current) {
-      await startBroadcastPreview({ position: 'front', ...layout });
+      await startBroadcastPreview(layout);
       previewActiveRef.current = true;
       return;
     }
@@ -43,7 +39,7 @@ export function useBroadcastNativePreview({ broadcast, phase, setPhase, onResume
     try {
       await updateBroadcastPreviewLayout(layout);
     } catch {
-      await startBroadcastPreview({ position: 'front', ...layout });
+      await startBroadcastPreview(layout);
       previewActiveRef.current = true;
     }
   }, []);

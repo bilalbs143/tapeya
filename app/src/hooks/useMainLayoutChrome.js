@@ -1,11 +1,7 @@
 import { useLiveViewerImmersiveSelfServe } from '@/features/stream/liveViewerChromeStore';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { LG_MEDIA_QUERY } from '@/lib/constants/layout';
-import {
-  isGoLiveBroadcastPath,
-  isLiveStreamImmersivePath,
-  isNavbarOverlayPath,
-} from '@/lib/utils/routeUtils';
+import { isGoLiveBroadcastPath, isLiveStreamImmersivePath, isNavbarOverlayPath } from '@/lib/utils/routeUtils';
 
 /**
  * Layout chrome flags for {@link MainLayout}.
@@ -20,12 +16,10 @@ export function useMainLayoutChrome(pathname) {
   const isWatchLivePath = isLiveStreamImmersivePath(pathname) && !isGoLiveCamera;
   const immersiveSelfServe = useLiveViewerImmersiveSelfServe();
 
-  const hideMobileChrome =
-    isGoLiveCamera || (isWatchLivePath && immersiveSelfServe && !isDesktop);
+  const hideMobileChrome = isGoLiveCamera || (isWatchLivePath && immersiveSelfServe && !isDesktop);
 
   const noBottomNav = isGoLiveCamera || (isWatchLivePath && immersiveSelfServe);
-  const noTopPadding =
-    isNavbarOverlayPath(pathname, isDesktop) || hideMobileChrome;
+  const noTopPadding = isNavbarOverlayPath(pathname, isDesktop) || hideMobileChrome;
 
   return {
     isDesktop,

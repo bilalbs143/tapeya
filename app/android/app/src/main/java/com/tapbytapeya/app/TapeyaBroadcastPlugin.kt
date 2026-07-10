@@ -11,6 +11,7 @@ import android.util.Log
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import com.getcapacitor.JSObject
@@ -130,15 +131,12 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         val y = (call.getFloat("y") ?: 0f).toInt()
         val width = (call.getFloat("width") ?: 0f).toInt()
         val height = (call.getFloat("height") ?: 0f).toInt()
-        val preferredFacing = if (call.getString("position") == "back") {
-            CameraHelper.Facing.BACK
-        } else {
-            CameraHelper.Facing.FRONT
-        }
-        currentFacing = preferredFacing
-        ensureCameraFacing(preferredFacing)
+        // Go-live always opens on the front camera; flip is opt-in via switchCamera.
+        currentFacing = CameraHelper.Facing.FRONT
+        ensureCameraFacing(CameraHelper.Facing.FRONT)
 
         activity.runOnUiThread {
+            setKeepScreenOn(true)
             val surfaceView = previewView ?: SurfaceView(activity).also { it.holder.setFormat(PixelFormat.TRANSLUCENT) }
             previewView = surfaceView
             attachPreviewSurface(surfaceView, x, y, width, height)
@@ -184,6 +182,8 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
             if (stream?.isOnPreview == true) stream.stopPreview()
             previewView?.let { (it.parent as? ViewGroup)?.removeView(it) }
             setWebViewTransparent(false)
+            // Keep screen awake while still publishing (prepareVideo may stop preview briefly).
+            if (stream?.isStreaming != true) setKeepScreenOn(false)
             call.resolve(JSObject().put("stopped", true))
         }
     }
@@ -338,6 +338,22 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
     }
 
 
+
+    /** Keep the display on for the whole preview/broadcast session — no tap-to-wake. */
+    private fun setKeepScreenOn(enabled: Boolean) {
+        val window = activity?.window
+        if (window != null) {
+            if (enabled) {
+                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            } else {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            }
+        }
+        // View-level flag — more reliable on some OEM skins than window flags alone.
+        previewView?.keepScreenOn = enabled
+        bridge.webView?.keepScreenOn = enabled
+    }
+
     private fun setWebViewTransparent(transparent: Boolean) {
         val webView = bridge.webView ?: return
         webView.setBackgroundColor(if (transparent) Color.TRANSPARENT else Color.BLACK)
@@ -369,6 +385,7 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
 
         val activity = activity ?: return call.reject("Activity unavailable")
         activity.runOnUiThread {
+            setKeepScreenOn(true)
             try {
                 if (!stream.isStreaming) {
                     if (!prepareEncoder(stream, resolution)) {
@@ -394,6 +411,7 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         cancelReconnect()
         teardownStream()
         stopBroadcastService()
+        activity?.runOnUiThread { setKeepScreenOn(false) }
         notifyBroadcastState("ended", null)
         call.resolve(JSObject().put("stopped", true))
     }

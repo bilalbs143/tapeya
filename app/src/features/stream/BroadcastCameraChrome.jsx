@@ -73,17 +73,11 @@ export function BroadcastCameraHeader({
             </span>
           )}
           {showNetwork && networkLabel && (
-            <span className="rounded-full bg-black/70 px-2 py-1 text-[10px] text-white/80 backdrop-blur-sm">
-              {networkLabel}
-            </span>
+            <span className="rounded-full bg-black/70 px-2 py-1 text-[10px] text-white/80 backdrop-blur-sm">{networkLabel}</span>
           )}
         </div>
         <div className="flex h-7 min-w-7 shrink-0 items-center justify-end">
-          {presenceEnabled ? (
-            <LiveViewerCountBadge viewerCount={viewerCount} />
-          ) : (
-            <span className="h-7 w-7" aria-hidden />
-          )}
+          {presenceEnabled ? <LiveViewerCountBadge viewerCount={viewerCount} /> : <span className="h-7 w-7" aria-hidden />}
         </div>
       </div>
     </div>
@@ -107,23 +101,10 @@ export function BroadcastCameraControlDock({
   onSendComment,
   onSendHeart,
 }) {
-  const showPreviewFlip = isNative && !isLive;
-  const showLiveSideControls = isNative && isLive;
+  const showSideControls = isNative;
 
   return (
     <>
-      {isLive && (
-        <div
-          className="pointer-events-none absolute right-0 left-0 px-4"
-          style={{
-            zIndex: LIVE_BROADCAST_CONTROLS_OVERLAY_Z + 1,
-            bottom: 'calc(env(safe-area-inset-bottom) + 200px)',
-          }}
-        >
-          <CommentList messages={messages} />
-        </div>
-      )}
-
       <div className={LIVE_BROADCAST_BOTTOM_SCRIM} style={{ zIndex: 5 }} />
 
       <div
@@ -133,6 +114,12 @@ export function BroadcastCameraControlDock({
           paddingBottom: 'max(20px, env(safe-area-inset-bottom))',
         }}
       >
+        {isLive && (
+          <div className="pointer-events-none mb-2 w-full">
+            <CommentList messages={messages} />
+          </div>
+        )}
+
         {isLive && (
           <div className="pointer-events-auto mb-3 w-full">
             <CommentInputRow
@@ -144,25 +131,14 @@ export function BroadcastCameraControlDock({
         )}
 
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-          <div className="flex justify-start">
-            {showPreviewFlip && (
-              <div className="pointer-events-auto">
-                <FlipButton onClick={onFlip} facing={cameraFacing} />
-              </div>
-            )}
-          </div>
+          <div aria-hidden />
           <div className="pointer-events-auto">
             <BroadcastCaptureButton mode={captureMode} onClick={onCapturePress} disabled={phase === 'ending'} />
           </div>
           <div className="flex justify-end">
-            {showLiveSideControls && (
+            {showSideControls && (
               <div className="pointer-events-auto">
-                <LiveSideControls
-                  cameraFacing={cameraFacing}
-                  isMuted={isMuted}
-                  onFlip={onFlip}
-                  onToggleMute={onToggleMute}
-                />
+                <LiveSideControls cameraFacing={cameraFacing} isMuted={isMuted} onFlip={onFlip} onToggleMute={onToggleMute} />
               </div>
             )}
           </div>

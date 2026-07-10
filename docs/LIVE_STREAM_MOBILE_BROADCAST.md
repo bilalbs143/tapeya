@@ -458,7 +458,7 @@ export async function requestBroadcastPermissions() {
   return TapeyaBroadcast.requestPermissions(); // { camera: 'granted'|'denied', microphone: 'granted'|'denied' }
 }
 
-export async function startBroadcastPreview({ position = 'back', x, y, width, height } = {}) {
+export async function startBroadcastPreview({ position = 'front', x, y, width, height } = {}) {
   return TapeyaBroadcast.startPreview({ position, x, y, width, height });
 }
 

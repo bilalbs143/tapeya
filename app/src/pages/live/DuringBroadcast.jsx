@@ -81,7 +81,12 @@ export default function DuringBroadcast({ streamId }) {
   const [phase, setPhase] = useState('loading');
   const sessionFinished = phase === 'ending' || phase === 'ended';
 
-  const { data: broadcast, isLoading, isError, error } = useGetBroadcastQuery(streamId, {
+  const {
+    data: broadcast,
+    isLoading,
+    isError,
+    error,
+  } = useGetBroadcastQuery(streamId, {
     // End invalidates this query; the owner show endpoint then returns 410 — skip so we
     // don't flash "Failed to load broadcast" over the ended / leave flow.
     skip: sessionFinished,
@@ -115,6 +120,7 @@ export default function DuringBroadcast({ streamId }) {
   const streamChatActive = serverStatus === 'live' || serverStatus === 'starting';
   const chatEnabled = liveChatGloballyEnabled && (streamChatActive || publishSessionActive || isLivePhase);
   const presenceEnabled = isLivePhase || streamChatActive || publishSessionActive;
+  const chatListenEnabled = Boolean(streamId) && !sessionFinished && liveChatGloballyEnabled;
 
   useBroadcastCameraUnderlay();
   useLiveStreamChannel(streamId);
@@ -130,7 +136,7 @@ export default function DuringBroadcast({ streamId }) {
     },
     [spawnBurst, myUserId],
   );
-  const { messages, addMessage } = useStreamComments(streamId, chatEnabled, handleRemoteHeart);
+  const { messages, addMessage } = useStreamComments(streamId, chatListenEnabled, handleRemoteHeart);
   const [sendComment, { isLoading: isSending }] = useSendLiveCommentMutation();
   const [sendHeart] = useSendLiveHeartMutation();
 
@@ -237,7 +243,9 @@ export default function DuringBroadcast({ streamId }) {
       try {
         await endBroadcastMutation(streamId).unwrap();
       } catch (err) {
-        toast.error(getApiErrorMessage(err, 'Broadcast stopped on device, but the server could not end it. Try again from Go Live.'));
+        toast.error(
+          getApiErrorMessage(err, 'Broadcast stopped on device, but the server could not end it. Try again from Go Live.'),
+        );
       }
       setEndSummary((prev) => prev ?? { durationSeconds: elapsed, peakViewers });
     })();
@@ -423,8 +431,7 @@ export default function DuringBroadcast({ streamId }) {
       );
     }
 
-    const message =
-      status === 403 ? 'This broadcast belongs to someone else.' : 'Failed to load broadcast.';
+    const message = status === 403 ? 'This broadcast belongs to someone else.' : 'Failed to load broadcast.';
 
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-black px-4 text-center">
@@ -476,7 +483,7 @@ export default function DuringBroadcast({ streamId }) {
         </div>
       )}
 
-      {isLivePhase && <FloatingHeartsOverlay hearts={floatingHearts} onHeartEnd={removeHeart} />}
+      {(isLivePhase || publishSessionActive) && <FloatingHeartsOverlay hearts={floatingHearts} onHeartEnd={removeHeart} />}
 
       {showFloatingControls && (
         <>
