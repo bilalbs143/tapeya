@@ -12,20 +12,22 @@ export function useLiveStreamChannel(streamId) {
   const accessToken = useAppSelector((s) => s.auth?.accessToken);
 
   useEffect(() => {
-    if (!streamId) {
+    if (streamId == null || streamId === '') {
       return undefined;
     }
 
+    const id = String(streamId);
     const echo = acquireEcho({ authToken: accessToken });
     if (!echo) {
       return undefined;
     }
 
-    const channelName = `live-stream.${streamId}`;
+    const channelName = `live-stream.${id}`;
+    const channel = echo.channel(channelName);
 
-    echo.channel(channelName).listen('.live-stream.status.updated', ({ status, playback }) => {
+    channel.listen('.live-stream.status.updated', ({ status, playback }) => {
       dispatch(
-        liveApi.util.updateQueryData('getLiveStream', String(streamId), (draft) => {
+        liveApi.util.updateQueryData('getLiveStream', id, (draft) => {
           if (draft?.stream) {
             draft.stream.status = status;
             draft.stream.playback = playback ?? draft.stream.playback;
@@ -35,7 +37,7 @@ export function useLiveStreamChannel(streamId) {
 
       dispatch(
         liveApi.util.updateQueryData('getLiveStreams', undefined, (draft) => {
-          const row = draft?.find?.((item) => String(item.id) === String(streamId));
+          const row = draft?.find?.((item) => String(item.id) === id);
           if (row?.stream) {
             row.stream.status = status;
             if (playback) {
@@ -47,6 +49,7 @@ export function useLiveStreamChannel(streamId) {
     });
 
     return () => {
+      channel.stopListening('.live-stream.status.updated');
       echo.leave(channelName);
       releaseEcho();
     };

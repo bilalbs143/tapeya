@@ -7,8 +7,11 @@ let _refs = 0;
 let _authToken = null;
 
 /**
- * Acquire a shared Echo instance (ref-counted).
+ * Shared Echo for hub / presence / stream status (auth-capable).
  * Pass `authToken` when subscribing to private/presence channels on the same connection.
+ *
+ * Go-live owner chat uses a **separate** public Echo in `useBroadcastOwnerChat`
+ * so this manager can never drop the broadcaster's comment/heart subscription.
  *
  * @param {{ authToken?: string | null }} [options]
  * @returns {import('laravel-echo').default | null}
@@ -17,9 +20,16 @@ export function acquireEcho({ authToken = null } = {}) {
   const token = authToken?.trim() || null;
 
   if (_echo && _authToken !== token) {
-    _echo.disconnect();
+    // Token changed (e.g. logged in mid-session) — rebuild, preserving refcount so
+    // consumers that already hold a ref don't get disconnected out from under them.
+    const prevRefs = _refs;
+    try {
+      _echo.disconnect();
+    } catch {
+      // ignore
+    }
     _echo = null;
-    _refs = 0;
+    _refs = prevRefs;
   }
 
   if (!_echo) {
@@ -34,14 +44,17 @@ export function acquireEcho({ authToken = null } = {}) {
   return _echo;
 }
 
-/** Release a ref; disconnect when the last subscriber leaves. */
 export function releaseEcho() {
   if (_refs > 0) {
     _refs -= 1;
   }
 
   if (_refs <= 0 && _echo) {
-    _echo.disconnect();
+    try {
+      _echo.disconnect();
+    } catch {
+      // ignore
+    }
     _echo = null;
     _authToken = null;
     _refs = 0;

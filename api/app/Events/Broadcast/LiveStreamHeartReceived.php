@@ -3,7 +3,6 @@
 namespace App\Events\Broadcast;
 
 use Illuminate\Broadcasting\Channel;
-use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 
@@ -14,7 +13,7 @@ use Illuminate\Foundation\Events\Dispatchable;
  */
 final class LiveStreamHeartReceived implements ShouldBroadcastNow
 {
-    use Dispatchable, InteractsWithSockets;
+    use Dispatchable;
 
     public function __construct(
         public readonly int $streamId,

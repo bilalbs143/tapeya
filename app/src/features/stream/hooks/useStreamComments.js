@@ -32,9 +32,8 @@ function makeReducer() {
 /**
  * Local ephemeral comment state keyed by stream id.
  *
- * `enabled` controls whether the chat WebSocket is subscribed (comments + hearts
- * share `live-stream.{id}.chat`). Do **not** clear messages when it flips false —
- * a brief disable used to wipe the broadcaster's feed and drop in-flight events.
+ * `enabled` gates the WebSocket subscription. When disabled we only leave the
+ * channel — we do **not** wipe messages (brief disable used to clear the owner's feed).
  */
 export function useStreamComments(streamId, enabled = true, onHeart) {
   const reducerRef = useRef(makeReducer());
@@ -51,11 +50,14 @@ export function useStreamComments(streamId, enabled = true, onHeart) {
   }, [streamId]);
 
   const handleMessage = useCallback((msg) => {
-    if (!msg?.id) return;
-    dispatch({ type: 'ADD', msg });
+    const id = msg?.id ?? msg?.data?.id;
+    const name = msg?.name ?? msg?.data?.name;
+    const text = msg?.text ?? msg?.body ?? msg?.data?.text ?? msg?.data?.body;
+    if (id == null || text == null) return;
+    dispatch({ type: 'ADD', msg: { id: String(id), name: name ?? 'Viewer', text: String(text) } });
   }, []);
 
-  useStreamChatChannel(enabled && streamId ? streamId : null, handleMessage, onHeart);
+  useStreamChatChannel(enabled && streamId != null && streamId !== '' ? streamId : null, handleMessage, onHeart);
 
   return { messages, reset, addMessage: handleMessage };
 }

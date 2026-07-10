@@ -16,12 +16,13 @@ export function useStreamPresenceChannel(streamId, enabled = true) {
       return undefined;
     }
 
+    const id = String(streamId);
     const echo = acquireEcho({ authToken: accessToken });
     if (!echo) {
       return undefined;
     }
 
-    const channelName = `live-stream.${streamId}.presence`;
+    const channelName = `live-stream.${id}.presence`;
     let count = 0;
 
     echo
