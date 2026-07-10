@@ -232,10 +232,11 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
         let stream = RTMPStream(connection: connection)
         self.stream = stream
 
-        // Re-attach the camera the user selected — adding a publish output can reset capture.
-        try await ensureCameraPosition(currentPosition)
-
         await mixer.addOutput(stream)
+
+        // Re-attach the camera the user selected — adding a publish output can reset capture,
+        // so this must run after addOutput, not before, to actually stick for the live stream.
+        try await ensureCameraPosition(currentPosition)
 
         let strategy = TapeyaBroadcastBitRateStrategy { [weak self] bitrateKbps, fps, droppedFrames, networkQuality in
             self?.notifyListeners("broadcastStats", data: [

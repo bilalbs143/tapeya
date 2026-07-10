@@ -332,9 +332,12 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
 
     private fun prepareEncoder(stream: StreamBase, resolution: Resolution): Boolean {
         stopPreviewForPrepare(stream)
-        ensureCameraFacing(currentFacing)
-        return stream.prepareVideo(resolution.width, resolution.height, resolution.videoBitrate) &&
+        val prepared = stream.prepareVideo(resolution.width, resolution.height, resolution.videoBitrate) &&
             stream.prepareAudio(AUDIO_SAMPLE_RATE, true, AUDIO_BITRATE)
+        // prepareVideo can reset the camera source — restore facing after, not before, so it
+        // actually sticks for the encoder that startStream() is about to use.
+        if (prepared) ensureCameraFacing(currentFacing)
+        return prepared
     }
 
 
