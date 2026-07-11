@@ -56,7 +56,7 @@ final class LiveChatRedisKeys
         try {
             $cursor = null;
             $iterations = 0;
-            // Hard cap — a broken SCAN cursor must never burn the PHP request until max_execution_time.
+            // Cap iterations so a stuck SCAN cannot run unbounded.
             $maxIterations = 50;
 
             do {

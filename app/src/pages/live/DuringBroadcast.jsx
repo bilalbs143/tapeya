@@ -277,8 +277,7 @@ export default function DuringBroadcast({ streamId }) {
 
     await Promise.allSettled([stopBroadcast(), stopBroadcastPreview()]);
 
-    // Native capture is already down by this point — never leave the user stuck on the
-    // ending screen waiting on a slow or failed /end call; just surface the error and leave.
+    // Prefer leaving Go Live even if /end fails — native capture is already stopped.
     try {
       await endBroadcastMutation(streamId).unwrap();
     } catch (err) {

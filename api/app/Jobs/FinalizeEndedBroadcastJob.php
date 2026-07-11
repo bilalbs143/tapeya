@@ -12,11 +12,8 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Post-/end cleanup that must not run on the owner HTTP request thread.
- *
- * Production was fatalling inside PhpRedis (SCAN purge / ShouldBroadcastNow) and stalling
- * on YouTube liveBroadcasts.transition — both burned PHP max_execution_time and left the
- * mobile app on the ending spinner until the fetch failed.
+ * Background finalize after a stream is marked ended: chat Redis purge, hub/status
+ * events, and provider complete (YouTube). Kept off the HTTP request thread.
  */
 class FinalizeEndedBroadcastJob implements ShouldBeUnique, ShouldQueue
 {

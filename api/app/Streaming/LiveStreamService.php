@@ -238,10 +238,7 @@ class LiveStreamService
 
     public function end(MatchStream $stream): void
     {
-        // Synchronous work is DB-only so POST /live/broadcasts/{id}/end returns immediately.
-        // Redis purge, Reverb fan-out, and YouTube complete run on the queue
-        // (@see FinalizeEndedBroadcastJob) — they previously blocked the request until PHP
-        // hit max_execution_time inside PhpRedisConnection.
+        // DB-only on the request path; Redis / Reverb / YouTube run via FinalizeEndedBroadcastJob.
         $wasActive = $stream->status !== 'ended';
 
         if ($wasActive) {
@@ -339,7 +336,6 @@ class LiveStreamService
 
     /**
      * Fan-out status to the per-stream channel and the live hub.
-     * Public so deferred end cleanup (afterResponse) can call it without blocking /end.
      */
     public function broadcastStatusChange(
         MatchStream $stream,
