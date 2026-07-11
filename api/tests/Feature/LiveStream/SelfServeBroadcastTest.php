@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\LiveStream;
 
+use App\Jobs\FinalizeEndedBroadcastJob;
 use App\Models\MatchStream;
 use App\Models\User;
 use App\Settings\StreamingSettings;
@@ -10,6 +11,7 @@ use Carbon\Carbon;
 use Database\Seeders\SystemSettingsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Bus;
 use Tests\Support\Streaming\FakeStreamProvider;
 use Tests\TestCase;
 
@@ -198,6 +200,33 @@ class SelfServeBroadcastTest extends TestCase
         $this->actingAs($user, 'api')
             ->getJson("/api/v1/live/broadcasts/{$streamId}")
             ->assertForbidden();
+    }
+
+    public function test_end_marks_stream_ended_and_queues_finalize_job(): void
+    {
+        Bus::fake();
+
+        $user = $this->eligibleUser();
+
+        $streamId = $this->actingAs($user, 'api')
+            ->postJson('/api/v1/live/broadcasts', ['title' => 'Mine'])
+            ->json('data.stream_id');
+
+        $this->actingAs($user, 'api')
+            ->postJson("/api/v1/live/broadcasts/{$streamId}/start")
+            ->assertOk();
+
+        $this->actingAs($user, 'api')
+            ->postJson("/api/v1/live/broadcasts/{$streamId}/end")
+            ->assertOk()
+            ->assertJsonPath('data.status', 'ended');
+
+        $this->assertSame('ended', MatchStream::find($streamId)->status);
+        $this->assertNotNull(MatchStream::find($streamId)->ended_at);
+
+        Bus::assertDispatched(FinalizeEndedBroadcastJob::class, function (FinalizeEndedBroadcastJob $job) use ($streamId) {
+            return $job->streamId === (int) $streamId && $job->notifyClients === true;
+        });
     }
 
     public function test_show_returns_410_once_ended(): void

@@ -2,6 +2,7 @@
 
 namespace App\Support\LiveChat;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
 final class LiveChatRedisKeys
@@ -37,6 +38,7 @@ final class LiveChatRedisKeys
     public static function purgeStream(int $streamId): void
     {
         self::purgeByPattern(self::streamPattern($streamId));
+        self::purgeByPattern(self::heartPattern($streamId));
     }
 
     public static function streamPattern(int $streamId): string
@@ -44,21 +46,52 @@ final class LiveChatRedisKeys
         return "chat:stream:{$streamId}:*";
     }
 
+    public static function heartPattern(int $streamId): string
+    {
+        return "live_heart:stream:{$streamId}:*";
+    }
+
     private static function purgeByPattern(string $pattern): void
     {
-        $cursor = '0';
+        try {
+            $cursor = null;
+            $iterations = 0;
+            // Hard cap — a broken SCAN cursor must never burn the PHP request until max_execution_time.
+            $maxIterations = 50;
 
-        do {
-            [$cursor, $keys] = Redis::scan($cursor, [
-                'match' => $pattern,
-                'count' => 100,
-            ]);
+            do {
+                $result = Redis::scan($cursor ?? 0, [
+                    'match' => $pattern,
+                    'count' => 100,
+                ]);
 
-            $cursor = (string) ($cursor ?? '0');
+                // Laravel phpredis returns false when the scan is finished with no keys.
+                if ($result === false) {
+                    break;
+                }
 
-            if (! empty($keys)) {
-                Redis::del(...$keys);
+                [$cursor, $keys] = $result;
+                $cursor = $cursor === null || $cursor === false ? 0 : $cursor;
+
+                if (! empty($keys)) {
+                    Redis::del(...$keys);
+                }
+
+                $iterations++;
+            } while ((int) $cursor !== 0 && $iterations < $maxIterations);
+
+            if ((int) $cursor !== 0) {
+                Log::warning('Live chat Redis purge stopped early (SCAN did not finish)', [
+                    'pattern' => $pattern,
+                    'iterations' => $iterations,
+                    'cursor' => $cursor,
+                ]);
             }
-        } while ($cursor !== '0');
+        } catch (\Throwable $e) {
+            // Ending a broadcast must not fatal on Redis — keys expire via TTL anyway.
+            Log::warning('Live chat Redis purge failed: '.$e->getMessage(), [
+                'pattern' => $pattern,
+            ]);
+        }
     }
 }

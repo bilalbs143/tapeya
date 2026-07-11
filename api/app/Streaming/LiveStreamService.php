@@ -5,6 +5,7 @@ namespace App\Streaming;
 use App\Events\Broadcast\LiveHubUpdated;
 use App\Events\Broadcast\LiveStreamStatusUpdated;
 use App\Http\Controllers\User\LiveBroadcastController;
+use App\Jobs\FinalizeEndedBroadcastJob;
 use App\Models\MatchStream;
 use App\Models\TournamentMatch;
 use App\Settings\StreamingSettings;
@@ -237,16 +238,25 @@ class LiveStreamService
 
     public function end(MatchStream $stream): void
     {
-        if ($stream->provider === 'external') {
-            $stream->update(['status' => 'ended', 'ended_at' => now()]);
-            $stream->refresh();
-        } else {
-            $this->resolver->forStream($stream)->endStream($stream);
+        // Synchronous work is DB-only so POST /live/broadcasts/{id}/end returns immediately.
+        // Redis purge, Reverb fan-out, and YouTube complete run on the queue
+        // (@see FinalizeEndedBroadcastJob) — they previously blocked the request until PHP
+        // hit max_execution_time inside PhpRedisConnection.
+        $wasActive = $stream->status !== 'ended';
+
+        if ($wasActive) {
+            $metadata = $stream->provider_metadata ?? [];
+            unset($metadata['idle_since'], $metadata['owner_publishing_since']);
+
+            $stream->update([
+                'status' => 'ended',
+                'ended_at' => now(),
+                'provider_metadata' => $metadata,
+            ]);
             $stream->refresh();
         }
 
-        LiveChatRedisKeys::purgeStream($stream->id);
-        $this->broadcastStatusChange($stream, 'ended', null);
+        FinalizeEndedBroadcastJob::dispatch($stream->id, notifyClients: $wasActive);
     }
 
     public function delete(MatchStream $stream): void
@@ -327,7 +337,11 @@ class LiveStreamService
         }
     }
 
-    private function broadcastStatusChange(
+    /**
+     * Fan-out status to the per-stream channel and the live hub.
+     * Public so deferred end cleanup (afterResponse) can call it without blocking /end.
+     */
+    public function broadcastStatusChange(
         MatchStream $stream,
         ?string $status = null,
         ?StreamPlayback $playback = null,

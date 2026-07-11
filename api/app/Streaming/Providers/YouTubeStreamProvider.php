@@ -213,14 +213,18 @@ class YouTubeStreamProvider implements StreamProviderContract
             $this->yt->liveBroadcasts->transition('complete', $stream->provider_stream_id, 'status');
             YouTubeQuotaTracker::record(YouTubeQuotaTracker::COST_TRANSITION);
         } catch (\Exception $e) {
+            // Common when the remote broadcast never went live, or is already complete.
             Log::warning("YouTube broadcast transition failed for stream {$stream->id}: ".$e->getMessage());
         }
 
-        $stream->update([
-            'status' => 'ended',
-            'ended_at' => now(),
-            'provider_metadata' => $this->metadataWithoutIdleSince($stream),
-        ]);
+        // DB row is usually already `ended` from LiveStreamService::end(); only fill gaps.
+        if ($stream->status !== 'ended' || $stream->ended_at === null) {
+            $stream->update([
+                'status' => 'ended',
+                'ended_at' => $stream->ended_at ?? now(),
+                'provider_metadata' => $this->metadataWithoutIdleSince($stream),
+            ]);
+        }
     }
 
     public function deleteStream(MatchStream $stream): void

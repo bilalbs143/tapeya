@@ -277,15 +277,14 @@ export default function DuringBroadcast({ streamId }) {
 
     await Promise.allSettled([stopBroadcast(), stopBroadcastPreview()]);
 
+    // Native capture is already down by this point — never leave the user stuck on the
+    // ending screen waiting on a slow or failed /end call; just surface the error and leave.
     try {
       await endBroadcastMutation(streamId).unwrap();
-      // Leave immediately — avoid a one-frame "Broadcast Ended" flash before navigation.
-      navigate('/live/go-live', { replace: true });
     } catch (err) {
-      endingInFlightRef.current = false;
-      setPhase('error');
-      toast.error(getApiErrorMessage(err, 'Could not end the broadcast on the server. Please try again.'));
+      toast.error(getApiErrorMessage(err, 'Broadcast stopped on device, but the server could not confirm it.'));
     }
+    navigate('/live/go-live', { replace: true });
   }, [streamId, endBroadcastMutation, navigate, toast]);
 
   const handleSendComment = useCallback(
