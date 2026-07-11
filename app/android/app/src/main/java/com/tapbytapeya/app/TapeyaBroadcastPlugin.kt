@@ -59,6 +59,9 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
 
         private const val AUDIO_SAMPLE_RATE = 44100
         private const val AUDIO_BITRATE = 128_000
+
+        /** See permissionsCallback: lets the camera service settle after a fresh permission grant. */
+        private const val PERMISSION_GRANT_SETTLE_DELAY_MS = 400L
     }
 
     private data class Resolution(val width: Int, val height: Int, val videoBitrate: Int)
@@ -90,6 +93,8 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
     private var lastEndpoint: String? = null
     private var lastStreamId: String? = null
     private var currentFacing: CameraHelper.Facing = CameraHelper.Facing.FRONT
+    /** True once startPreview has run for this go-live session — see startPreview. */
+    private var hasStartedPreviewOnce = false
 
     override fun load() {
         val genericStream = GenericStream(context, this, Camera2Source(context), MicrophoneSource())
@@ -106,7 +111,7 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         if (getPermissionState("camera") == PermissionState.GRANTED &&
             getPermissionState("microphone") == PermissionState.GRANTED
         ) {
-            permissionsCallback(call)
+            resolvePermissions(call)
         } else {
             requestPermissionForAliases(arrayOf("camera", "microphone"), call, "permissionsCallback")
         }
@@ -114,6 +119,14 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
 
     @PermissionCallback
     private fun permissionsCallback(call: PluginCall) {
+        // Camera2 can fail to open right after a fresh grant — the system permission dialog
+        // just dismissed and the Activity/camera service are still settling. Give it a moment
+        // before the caller proceeds to open the camera. The already-granted path above (no
+        // dialog shown) skips this and resolves immediately.
+        mainHandler.postDelayed({ resolvePermissions(call) }, PERMISSION_GRANT_SETTLE_DELAY_MS)
+    }
+
+    private fun resolvePermissions(call: PluginCall) {
         val result = JSObject()
         result.put("camera", getPermissionState("camera")?.toString() ?: "denied")
         result.put("microphone", getPermissionState("microphone")?.toString() ?: "denied")
@@ -131,9 +144,14 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         val y = (call.getFloat("y") ?: 0f).toInt()
         val width = (call.getFloat("width") ?: 0f).toInt()
         val height = (call.getFloat("height") ?: 0f).toInt()
-        // Go-live always opens on the front camera; flip is opt-in via switchCamera.
-        currentFacing = CameraHelper.Facing.FRONT
-        ensureCameraFacing(CameraHelper.Facing.FRONT)
+        // Go-live opens on the front camera only the *first* time this session — flip is
+        // opt-in via switchCamera. A later startPreview call in the same session (e.g. a
+        // layout-resync fallback racing with go-live) must not undo the user's chosen camera.
+        if (!hasStartedPreviewOnce) {
+            currentFacing = CameraHelper.Facing.FRONT
+        }
+        hasStartedPreviewOnce = true
+        ensureCameraFacing(currentFacing)
 
         activity.runOnUiThread {
             setKeepScreenOn(true)
@@ -175,6 +193,7 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
 
     @PluginMethod
     fun stopPreview(call: PluginCall) {
+        hasStartedPreviewOnce = false
         val stream = stream
         val activity = activity ?: return call.resolve(JSObject().put("stopped", true))
 
@@ -320,7 +339,7 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         if (surfaceView.holder.surface?.isValid != true) return
         try {
             if (!stream.isOnPreview) {
-                // prepareVideo stops preview and can reset camera to back — restore facing first.
+                // Re-assert facing before restarting the preview surface, as a safety net.
                 attachPreviewSurface(surfaceView, 0, 0, activity.resources.displayMetrics.widthPixels, activity.resources.displayMetrics.heightPixels)
                 ensureCameraFacing(currentFacing)
                 stream.startPreview(surfaceView)
@@ -332,12 +351,9 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
 
     private fun prepareEncoder(stream: StreamBase, resolution: Resolution): Boolean {
         stopPreviewForPrepare(stream)
-        val prepared = stream.prepareVideo(resolution.width, resolution.height, resolution.videoBitrate) &&
+        ensureCameraFacing(currentFacing)
+        return stream.prepareVideo(resolution.width, resolution.height, resolution.videoBitrate) &&
             stream.prepareAudio(AUDIO_SAMPLE_RATE, true, AUDIO_BITRATE)
-        // prepareVideo can reset the camera source — restore facing after, not before, so it
-        // actually sticks for the encoder that startStream() is about to use.
-        if (prepared) ensureCameraFacing(currentFacing)
-        return prepared
     }
 
 

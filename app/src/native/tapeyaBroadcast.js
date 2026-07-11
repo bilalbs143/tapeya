@@ -14,13 +14,17 @@ export async function requestBroadcastPermissions() {
   return TapeyaBroadcast.requestPermissions();
 }
 
-/** @param {{ x?: number, y?: number, width?: number, height?: number }} [options] */
+/**
+ * @param {{ x?: number, y?: number, width?: number, height?: number }} [options]
+ * Camera facing is fully native-owned (front on first open in a session, preserved across
+ * any later call — see `TapeyaBroadcastPlugin`'s `hasStartedPreviewOnce`); this call never
+ * specifies one.
+ */
 export async function startBroadcastPreview(options = {}) {
   if (!isNative()) {
     return { started: false };
   }
-  // Always front on start — ignore any legacy position arg from callers.
-  return TapeyaBroadcast.startPreview({ ...options, position: 'front' });
+  return TapeyaBroadcast.startPreview(options);
 }
 
 /** @param {{ x?: number, y?: number, width?: number, height?: number }} options */

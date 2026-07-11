@@ -113,17 +113,51 @@ class SelfServeBroadcastTest extends TestCase
         $this->assertSame('unlisted', $this->fakeProvider->lastCreateData->privacy);
     }
 
-    public function test_second_concurrent_broadcast_rejected(): void
+    public function test_second_concurrent_broadcast_rejected_while_live(): void
     {
         $user = $this->eligibleUser();
 
-        $this->actingAs($user, 'api')
+        $streamId = $this->actingAs($user, 'api')
             ->postJson('/api/v1/live/broadcasts', ['title' => 'First'])
-            ->assertCreated();
+            ->json('data.stream_id');
+
+        $this->actingAs($user, 'api')
+            ->postJson("/api/v1/live/broadcasts/{$streamId}/start")
+            ->assertOk();
 
         $this->actingAs($user, 'api')
             ->postJson('/api/v1/live/broadcasts', ['title' => 'Second'])
             ->assertUnprocessable();
+    }
+
+    public function test_store_replaces_abandoned_never_started_broadcast(): void
+    {
+        $user = $this->eligibleUser();
+
+        $abandonedId = $this->actingAs($user, 'api')
+            ->postJson('/api/v1/live/broadcasts', ['title' => 'Abandoned preview'])
+            ->assertCreated()
+            ->json('data.stream_id');
+
+        $this->assertDatabaseHas('match_streams', [
+            'id' => $abandonedId,
+            'status' => 'idle',
+            'started_at' => null,
+        ]);
+
+        $newId = $this->actingAs($user, 'api')
+            ->postJson('/api/v1/live/broadcasts', ['title' => 'Retry'])
+            ->assertCreated()
+            ->json('data.stream_id');
+
+        $this->assertNotSame($abandonedId, $newId);
+        $this->assertDatabaseMissing('match_streams', ['id' => $abandonedId]);
+        $this->assertDatabaseHas('match_streams', [
+            'id' => $newId,
+            'owner_user_id' => $user->id,
+            'title' => 'Retry',
+            'status' => 'idle',
+        ]);
     }
 
     public function test_create_fails_closed_when_default_provider_is_not_youtube(): void

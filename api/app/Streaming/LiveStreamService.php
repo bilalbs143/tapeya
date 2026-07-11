@@ -144,6 +144,18 @@ class LiveStreamService
 
     private function assertNoActiveSelfServeStream(int $ownerUserId): void
     {
+        // A row left at idle/starting with no started_at means the owner opened the camera-
+        // preview screen but never tapped "Start Streaming" (see markPublishing — started_at
+        // is only ever set there). It has no VOD/chat history worth keeping, so clear it here
+        // rather than making the owner wait for EndExpiredBroadcasts's identical but
+        // 30-minutes-later sweep to free their one-active-broadcast slot.
+        MatchStream::query()
+            ->where('owner_user_id', $ownerUserId)
+            ->whereNull('started_at')
+            ->whereIn('status', ['idle', 'starting'])
+            ->lazy()
+            ->each(fn (MatchStream $stream) => $this->delete($stream));
+
         $exists = MatchStream::query()
             ->where('owner_user_id', $ownerUserId)
             ->whereIn('status', ['idle', 'starting', 'live'])

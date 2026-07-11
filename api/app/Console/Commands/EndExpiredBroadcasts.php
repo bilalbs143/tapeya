@@ -33,7 +33,9 @@ class EndExpiredBroadcasts extends Command
         // YouTubeStreamProvider::endStream()'s transition('complete', ...) on a broadcast that
         // was never live, which can error and still leaves an empty draft video on the channel.
         // Without this cleanup the row also permanently occupies the user's one-active-broadcast
-        // slot (LiveStreamService::assertNoActiveSelfServeStream()).
+        // slot. assertNoActiveSelfServeStream() runs this identical cleanup eagerly (no 30-minute
+        // wait) whenever the owner tries to go live again — this sweep is the backstop for a row
+        // that's simply abandoned and never revisited.
         MatchStream::query()
             ->whereNotNull('owner_user_id')
             ->whereNull('started_at')

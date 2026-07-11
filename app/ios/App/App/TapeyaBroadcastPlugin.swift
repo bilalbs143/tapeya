@@ -41,6 +41,8 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
     private var stream: RTMPStream?
     private var previewView: MTHKView?
     private var currentPosition: AVCaptureDevice.Position = .front
+    /** True once `startPreview` has run for this go-live session — see `startPreview`. */
+    private var hasStartedPreviewOnce = false
     private var isMuted = false
 
     private var connectionStatusTask: Task<Void, Never>?
@@ -77,12 +79,18 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func startPreview(_ call: CAPPluginCall) {
         let frame = frameFromCall(call)
-        // Go-live always opens on the front camera; flip is opt-in via switchCamera.
-        currentPosition = .front
+        // Go-live opens on the front camera only the *first* time this session — flip is
+        // opt-in via switchCamera. A later startPreview call in the same session (e.g. a
+        // layout-resync fallback racing with go-live) must not undo the user's chosen camera.
+        if !hasStartedPreviewOnce {
+            currentPosition = .front
+        }
+        hasStartedPreviewOnce = true
+        let targetPosition = currentPosition
 
         Task {
             do {
-                try await self.ensureCameraPosition(.front)
+                try await self.ensureCameraPosition(targetPosition)
                 guard let microphone = AVCaptureDevice.default(for: .audio) else {
                     call.reject("Microphone unavailable")
                     return
@@ -121,6 +129,7 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func stopPreview(_ call: CAPPluginCall) {
+        hasStartedPreviewOnce = false
         Task {
             await self.mixer.stopRunning()
             if let view = self.previewView {
@@ -232,11 +241,10 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
         let stream = RTMPStream(connection: connection)
         self.stream = stream
 
-        await mixer.addOutput(stream)
-
-        // Re-attach the camera the user selected — adding a publish output can reset capture,
-        // so this must run after addOutput, not before, to actually stick for the live stream.
+        // Re-assert the camera the user selected right before publishing, as a safety net.
         try await ensureCameraPosition(currentPosition)
+
+        await mixer.addOutput(stream)
 
         let strategy = TapeyaBroadcastBitRateStrategy { [weak self] bitrateKbps, fps, droppedFrames, networkQuality in
             self?.notifyListeners("broadcastStats", data: [
