@@ -36,4 +36,27 @@ post_install do |installer|
       config.build_settings['CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER'] = 'NO'
     end
   end
+
+  # macOS ships openrsync, which races on CocoaPods' [CP] Copy XCFrameworks (temp files like
+  # .*.??????). Replace rsync with ditto — reliable for archive builds (FBSDKCoreKit, etc.).
+  Dir.glob(File.join(installer.sandbox.root, 'Target Support Files', '*', '*-xcframeworks.sh')).each do |script|
+    contents = File.read(script)
+    next unless contents.include?('rsync --delete')
+
+    patched = contents.gsub(
+      /copy_dir\(\)\n\{\n.*?^\}/m,
+      <<~'SH'.strip
+        copy_dir()
+        {
+          local source="$1"
+          local destination="$2"
+          echo "ditto \"${source}\" \"${destination}\""
+          rm -rf "${destination}"
+          mkdir -p "${destination}"
+          ditto "${source}" "${destination}"
+        }
+      SH
+    )
+    File.write(script, patched) if patched != contents
+  end
 end
