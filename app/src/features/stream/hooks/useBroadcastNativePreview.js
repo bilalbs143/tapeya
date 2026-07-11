@@ -24,25 +24,42 @@ export function useBroadcastNativePreview({ broadcast, phase, setPhase, onResume
   const initRanRef = useRef(false);
   const previewActiveRef = useRef(false);
 
-  const syncPreviewLayout = useCallback(async ({ start = false } = {}) => {
-    if (!isNative()) return;
-    await waitForNextPaint();
-
-    const layout = getFullWindowPreviewLayout();
-
-    if (start || !previewActiveRef.current) {
-      await startBroadcastPreview(layout);
-      previewActiveRef.current = true;
-      return;
-    }
-
+  const startPreviewWithRetry = useCallback(async (layout) => {
+    const target = layout ?? getFullWindowPreviewLayout();
     try {
-      await updateBroadcastPreviewLayout(layout);
+      await startBroadcastPreview(target);
+      return;
     } catch {
-      await startBroadcastPreview(layout);
-      previewActiveRef.current = true;
+      // Native already retries Camera2 open; one delayed JS retry covers Activity-resume races
+      // after the first permission dialog where the first call still times out.
+      await new Promise((resolve) => window.setTimeout(resolve, 700));
+      await waitForNextPaint();
+      await startBroadcastPreview(getFullWindowPreviewLayout());
     }
   }, []);
+
+  const syncPreviewLayout = useCallback(
+    async ({ start = false } = {}) => {
+      if (!isNative()) return;
+      await waitForNextPaint();
+
+      const layout = getFullWindowPreviewLayout();
+
+      if (start || !previewActiveRef.current) {
+        await startPreviewWithRetry(layout);
+        previewActiveRef.current = true;
+        return;
+      }
+
+      try {
+        await updateBroadcastPreviewLayout(layout);
+      } catch {
+        await startPreviewWithRetry(layout);
+        previewActiveRef.current = true;
+      }
+    },
+    [startPreviewWithRetry],
+  );
 
   useEffect(() => {
     if (!broadcast || initRanRef.current) return;
@@ -62,10 +79,17 @@ export function useBroadcastNativePreview({ broadcast, phase, setPhase, onResume
         return;
       }
 
+      // After the system permission dialog, wait for layout + Activity resume before opening Camera2.
+      await waitForNextPaint();
       await waitForNextPaint();
       setPhase('previewing');
       await waitForNextPaint();
-      await syncPreviewLayout({ start: true });
+      try {
+        await syncPreviewLayout({ start: true });
+      } catch {
+        setPhase('error');
+        return;
+      }
 
       if (resumedWhileLive && onResumedWhileLive) {
         await onResumedWhileLive(broadcast);

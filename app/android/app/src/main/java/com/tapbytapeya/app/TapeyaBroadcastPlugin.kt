@@ -60,8 +60,15 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         private const val AUDIO_SAMPLE_RATE = 44100
         private const val AUDIO_BITRATE = 128_000
 
-        /** See permissionsCallback: lets the camera service settle after a fresh permission grant. */
-        private const val PERMISSION_GRANT_SETTLE_DELAY_MS = 400L
+        /**
+         * After the system permission dialog dismisses, Activity resume + CameraService need a beat
+         * before Camera2 open succeeds. JS also retries; this is the first settle before resolve.
+         */
+        private const val PERMISSION_GRANT_SETTLE_DELAY_MS = 500L
+
+        /** Retries inside startPreview when Camera2 open fails right after a fresh grant. */
+        private const val PREVIEW_START_MAX_ATTEMPTS = 4
+        private const val PREVIEW_START_RETRY_DELAY_MS = 350L
     }
 
     private data class Resolution(val width: Int, val height: Int, val videoBitrate: Int)
@@ -95,13 +102,49 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
     private var currentFacing: CameraHelper.Facing = CameraHelper.Facing.FRONT
     /** True once startPreview has run for this go-live session — see startPreview. */
     private var hasStartedPreviewOnce = false
+    /**
+     * Set when the user just granted camera/mic via the system dialog. Camera2Source created in
+     * [load] before permission can leave the pipeline unable to open the device until process
+     * restart — recreate sources before the first post-grant preview.
+     */
+    private var recreatePipelineBeforePreview = false
+    private var previewSurfaceCallback: SurfaceHolder.Callback? = null
+    private var previewStartAttempt = 0
 
     override fun load() {
+        stream = createStreamPipeline()
+    }
+
+    private fun createStreamPipeline(): StreamBase {
         val genericStream = GenericStream(context, this, Camera2Source(context), MicrophoneSource())
         genericStream.getGlInterface().autoHandleOrientation = true
         genericStream.setFpsListener { fps -> lastFps = fps }
         genericStream.getStreamClient().resizeCache(200)
-        stream = genericStream
+        return genericStream
+    }
+
+    /** Tear down and rebuild Camera2 + mic sources — required after a first-time permission grant. */
+    private fun recreateStreamPipeline() {
+        val existing = stream
+        if (existing != null) {
+            try {
+                if (existing.isOnPreview) existing.stopPreview()
+            } catch (e: Exception) {
+                Log.w(TAG, "stopPreview before recreate failed", e)
+            }
+            try {
+                if (existing.isStreaming) existing.stopStream()
+            } catch (e: Exception) {
+                Log.w(TAG, "stopStream before recreate failed", e)
+            }
+            try {
+                existing.release()
+            } catch (e: Exception) {
+                Log.w(TAG, "release before recreate failed", e)
+            }
+        }
+        stream = createStreamPipeline()
+        Log.i(TAG, "Recreated camera pipeline after permission grant")
     }
 
     // MARK: - Permissions
@@ -119,10 +162,9 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
 
     @PermissionCallback
     private fun permissionsCallback(call: PluginCall) {
-        // Camera2 can fail to open right after a fresh grant — the system permission dialog
-        // just dismissed and the Activity/camera service are still settling. Give it a moment
-        // before the caller proceeds to open the camera. The already-granted path above (no
-        // dialog shown) skips this and resolves immediately.
+        // Fresh grant path only (already-granted resolves immediately above). Mark pipeline for
+        // rebuild and let CameraService/Activity settle before JS proceeds to startPreview.
+        recreatePipelineBeforePreview = true
         mainHandler.postDelayed({ resolvePermissions(call) }, PERMISSION_GRANT_SETTLE_DELAY_MS)
     }
 
@@ -137,7 +179,6 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
 
     @PluginMethod
     fun startPreview(call: PluginCall) {
-        val stream = stream ?: return call.reject("Stream not initialized")
         val activity = activity ?: return call.reject("Activity unavailable")
 
         val x = (call.getFloat("x") ?: 0f).toInt()
@@ -151,28 +192,103 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
             currentFacing = CameraHelper.Facing.FRONT
         }
         hasStartedPreviewOnce = true
-        ensureCameraFacing(currentFacing)
 
         activity.runOnUiThread {
-            setKeepScreenOn(true)
-            val surfaceView = previewView ?: SurfaceView(activity).also { it.holder.setFormat(PixelFormat.TRANSLUCENT) }
-            previewView = surfaceView
-            attachPreviewSurface(surfaceView, x, y, width, height)
+            if (recreatePipelineBeforePreview) {
+                recreatePipelineBeforePreview = false
+                recreateStreamPipeline()
+            }
 
-            if (surfaceView.holder.surface?.isValid == true) {
-                if (!stream.isOnPreview) stream.startPreview(surfaceView)
-                call.resolve(JSObject().put("started", true))
+            val stream = stream
+            if (stream == null) {
+                call.reject("Stream not initialized")
                 return@runOnUiThread
             }
 
-            surfaceView.holder.addCallback(object : SurfaceHolder.Callback {
-                override fun surfaceCreated(holder: SurfaceHolder) {
-                    if (!stream.isOnPreview) stream.startPreview(surfaceView)
-                    call.resolve(JSObject().put("started", true))
+            setKeepScreenOn(true)
+            val surfaceView = previewView ?: SurfaceView(activity).also {
+                // Opaque camera layer under a transparent WebView (not translucent — that can
+                // leave a blank SurfaceView on some OEMs right after the permission dialog).
+                it.holder.setFormat(PixelFormat.OPAQUE)
+            }
+            previewView = surfaceView
+            attachPreviewSurface(surfaceView, x, y, width, height)
+
+            var callSettled = false
+            fun resolveStarted() {
+                if (callSettled) return
+                callSettled = true
+                call.resolve(JSObject().put("started", true))
+            }
+            fun rejectStarted(message: String) {
+                if (callSettled) return
+                callSettled = true
+                call.reject(message)
+            }
+
+            fun tryStartCameraPreview() {
+                if (callSettled) return
+                val active = stream
+                if (active.isOnPreview) {
+                    resolveStarted()
+                    return
                 }
-                override fun surfaceChanged(holder: SurfaceHolder, format: Int, w: Int, h: Int) {}
+                val surface = surfaceView.holder.surface
+                if (surface == null || !surface.isValid || surfaceView.width <= 0 || surfaceView.height <= 0) {
+                    // Surface not ready yet — surfaceChanged / post will retry.
+                    return
+                }
+                try {
+                    ensureCameraFacing(currentFacing)
+                    active.startPreview(surfaceView)
+                    previewStartAttempt = 0
+                    resolveStarted()
+                } catch (e: Exception) {
+                    previewStartAttempt += 1
+                    Log.w(TAG, "startPreview attempt $previewStartAttempt failed: ${e.message}")
+                    if (previewStartAttempt >= PREVIEW_START_MAX_ATTEMPTS) {
+                        previewStartAttempt = 0
+                        rejectStarted("Failed to start camera preview: ${e.message}")
+                        return
+                    }
+                    mainHandler.postDelayed({
+                        if (activity.isFinishing || callSettled) return@postDelayed
+                        tryStartCameraPreview()
+                    }, PREVIEW_START_RETRY_DELAY_MS)
+                }
+            }
+
+            previewSurfaceCallback?.let { surfaceView.holder.removeCallback(it) }
+            val callback = object : SurfaceHolder.Callback {
+                override fun surfaceCreated(holder: SurfaceHolder) {
+                    // Prefer surfaceChanged — width/height are often still 0 here.
+                }
+                override fun surfaceChanged(holder: SurfaceHolder, format: Int, w: Int, h: Int) {
+                    if (w > 0 && h > 0) {
+                        tryStartCameraPreview()
+                    }
+                }
                 override fun surfaceDestroyed(holder: SurfaceHolder) {}
-            })
+            }
+            previewSurfaceCallback = callback
+            surfaceView.holder.addCallback(callback)
+
+            // If the surface is already live (common on re-entry), start immediately.
+            surfaceView.post {
+                if (surfaceView.holder.surface?.isValid == true && surfaceView.width > 0 && surfaceView.height > 0) {
+                    tryStartCameraPreview()
+                } else {
+                    surfaceView.requestLayout()
+                    surfaceView.invalidate()
+                }
+            }
+
+            // Never leave the Capacitor call hanging — grey screen + stuck promise after a flaky grant.
+            mainHandler.postDelayed({
+                if (!callSettled) {
+                    rejectStarted("Timed out waiting for camera preview surface")
+                }
+            }, 8_000L)
         }
     }
 
@@ -194,12 +310,18 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
     @PluginMethod
     fun stopPreview(call: PluginCall) {
         hasStartedPreviewOnce = false
+        previewStartAttempt = 0
         val stream = stream
         val activity = activity ?: return call.resolve(JSObject().put("stopped", true))
 
         activity.runOnUiThread {
-            if (stream?.isOnPreview == true) stream.stopPreview()
-            previewView?.let { (it.parent as? ViewGroup)?.removeView(it) }
+            previewView?.let { view ->
+                previewSurfaceCallback?.let { view.holder.removeCallback(it) }
+                previewSurfaceCallback = null
+                if (stream?.isOnPreview == true) stream.stopPreview()
+                (view.parent as? ViewGroup)?.removeView(view)
+            }
+            previewView = null
             setWebViewTransparent(false)
             // Keep screen awake while still publishing (prepareVideo may stop preview briefly).
             if (stream?.isStreaming != true) setKeepScreenOn(false)

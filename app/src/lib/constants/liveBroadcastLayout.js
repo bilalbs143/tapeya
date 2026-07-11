@@ -21,6 +21,12 @@ export const LIVE_BROADCAST_SHELL_HEIGHT = `calc(100dvh - env(safe-area-inset-to
 /** Desktop shell height — extends through main bottom padding (no bottom nav). */
 export const LIVE_BROADCAST_SHELL_HEIGHT_DESKTOP = `calc(100dvh - env(safe-area-inset-top) - ${NAVBAR_HEIGHT}px - env(safe-area-inset-bottom))`;
 
+/** Hero shell height — viewport top to bottom nav; navbar floats transparently on top. */
+export const LIVE_BROADCAST_HERO_HEIGHT = `calc(100dvh - env(safe-area-inset-bottom) - ${BOTTOM_NAV_HEIGHT}px)`;
+
+/** One-time height transition when a self-serve stream flips in/out of hero mode. */
+export const LIVE_BROADCAST_HERO_TRANSITION_CLASS = 'transition-[height] duration-300 ease-out';
+
 /** Cancels MainLayout bottom padding on desktop so the player reaches the viewport edge. */
 export const LIVE_BROADCAST_SHELL_DESKTOP_CLASS = 'lg:-mb-[calc(env(safe-area-inset-bottom)+70px)]';
 

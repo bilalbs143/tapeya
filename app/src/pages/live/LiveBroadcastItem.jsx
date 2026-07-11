@@ -16,10 +16,10 @@ import { StreamPlayer } from '@/features/stream/StreamPlayer';
 import { useToast } from '@/hooks/useToast';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import {
-  LIVE_BROADCAST_CAMERA_HEADER_TOP,
   LIVE_BROADCAST_CONTROLS_OVERLAY_Z,
   LIVE_BROADCAST_HEADER_OVERLAY_Z,
   LIVE_BROADCAST_HEADER_SCRIM,
+  LIVE_BROADCAST_HEADER_TOP_PADDING,
   LIVE_BROADCAST_IMMERSIVE_TOGGLE_Z,
   LIVE_BROADCAST_LANDSCAPE_HEADER_ROW,
 } from '@/lib/constants/liveBroadcastLayout';
@@ -178,8 +178,10 @@ function BroadcastViewport({
   );
 
   // Match classic portrait sits under the solid app navbar — no extra navbar clearance.
-  // Self-serve immersive / landscape own the top safe area themselves.
-  const headerTopPadding = isLandscape && !isDesktop ? '8px' : fillPortrait ? LIVE_BROADCAST_CAMERA_HEADER_TOP : '10px';
+  // Self-serve hero mode sits under a *transparent* app navbar, so its own back/status row
+  // still needs to clear the navbar's height, not just the safe area. Landscape owns the top
+  // safe area itself (no app navbar there at all).
+  const headerTopPadding = isLandscape && !isDesktop ? '8px' : fillPortrait ? LIVE_BROADCAST_HEADER_TOP_PADDING : '10px';
 
   return (
     <div className={`relative size-full overflow-hidden ${isIosNativeLandscape ? 'bg-transparent' : 'bg-black'}`}>

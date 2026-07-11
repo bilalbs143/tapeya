@@ -83,11 +83,19 @@ export function isInterestCampaignDialogBlockedPath(pathname) {
   return isGlobalEntryDialogBlockedPath(pathname) || isInterestFormPath(pathname);
 }
 
-/** Pages where the navbar may start transparent over a hero image. */
-export function isHeroNavbarPath(pathname, isDesktop = false) {
+/**
+ * Pages where the navbar may start transparent over a hero image.
+ * @param {string} pathname
+ * @param {boolean} [isDesktop]
+ * @param {boolean} [isLiveHero] - Self-serve watch-live in hero mode (status === 'live').
+ */
+export function isHeroNavbarPath(pathname, isDesktop = false, isLiveHero = false) {
   if (isHighlightDetailsPath(pathname) && isDesktop) return false;
-  // Go-live owns its own header. Match watch-live keeps a solid navbar (not hero-transparent).
+  // Go-live owns its own header — never hero-transparent.
   if (isGoLiveBroadcastPath(pathname)) return false;
+  // Watch-live: solid for match streams and before/after self-serve playback; transparent
+  // only while a self-serve stream is actually live (hero mode).
+  if (isLiveBroadcastPath(pathname)) return isLiveHero;
   return (
     pathname === '/home' ||
     pathname === '/profile' ||
