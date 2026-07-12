@@ -126,6 +126,8 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
      * failed to open. See CAMERA_OPEN_CONFIRM_DELAY_MS for why this can't be a thrown exception.
      */
     private var lastCameraErrorAtMs = 0L
+    /** True after a successful prepareVideo/prepareAudio — required before startPreview (RootEncoder). */
+    private var encodersPrepared = false
 
     private val cameraCallbacks = object : CameraCallbacks {
         override fun onCameraChanged(facing: CameraHelper.Facing) {}
@@ -145,7 +147,10 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         val genericStream = GenericStream(context, this, Camera2Source(context), MicrophoneSource())
         genericStream.getGlInterface().autoHandleOrientation = true
         genericStream.setFpsListener { fps -> lastFps = fps }
-        genericStream.getStreamClient().resizeCache(200)
+        val client = genericStream.getStreamClient()
+        client.resizeCache(200)
+        // Default reTries is 0 — without this, getStreamClient().reTry() always refuses.
+        client.setReTries(RECONNECT_DELAYS_MS.size)
         (genericStream.videoSource as? Camera2Source)?.setCameraCallback(cameraCallbacks)
         return genericStream
     }
@@ -171,7 +176,7 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
             }
         }
         stream = createStreamPipeline()
-        Log.i(TAG, "Recreated camera pipeline after permission grant")
+        encodersPrepared = false
     }
 
     // MARK: - Permissions
@@ -255,13 +260,18 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
 
             fun tryStartCameraPreview() {
                 if (callSettled) return
+                // Always read the current pipeline — retries may have called recreateStreamPipeline().
                 val active = stream
+                if (active == null) {
+                    rejectStarted("Stream not initialized")
+                    return
+                }
                 if (active.isOnPreview) {
                     resolveStarted()
                     return
                 }
                 val surface = surfaceView.holder.surface
-                if (surface == null || !surface.isValid || surfaceView.width <= 0 || surfaceView.height <= 0) {
+                if (!surface.isValid || surfaceView.width <= 0 || surfaceView.height <= 0) {
                     // Surface not ready yet — surfaceChanged / post will retry.
                     return
                 }
@@ -271,12 +281,18 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
                     // true after a failed async open, and startPreview() no-ops if it thinks
                     // the camera is already running.
                     try {
-                        if (active.isOnPreview) active.stopPreview()
+                        val current = stream
+                        if (current?.isOnPreview == true) current.stopPreview()
                     } catch (e: Exception) {
                         Log.w(TAG, "stopPreview before retry failed", e)
                     }
                     previewStartAttempt += 1
                     Log.w(TAG, "startPreview attempt $previewStartAttempt failed: $reason")
+                    if (reason.contains("FrameBuffer") || reason.contains("GL already") ||
+                        reason.contains("no current context")
+                    ) {
+                        recreateStreamPipeline()
+                    }
                     if (previewStartAttempt >= PREVIEW_START_MAX_ATTEMPTS) {
                         previewStartAttempt = 0
                         rejectStarted("Failed to start camera preview: $reason")
@@ -289,9 +305,18 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
                 }
 
                 try {
+                    val live = stream
+                    if (live == null) {
+                        rejectStarted("Stream not initialized")
+                        return
+                    }
+                    if (!ensurePreparedForPreview(live)) {
+                        retryOrFail("Failed to prepare encoders for preview")
+                        return
+                    }
                     ensureCameraFacing(currentFacing)
                     val attemptStartedAtMs = System.currentTimeMillis()
-                    active.startPreview(surfaceView)
+                    live.startPreview(surfaceView)
                     // Camera2's async open-failure callback never throws (see
                     // CAMERA_OPEN_CONFIRM_DELAY_MS) — wait a beat and check cameraCallbacks
                     // before trusting this "success".
@@ -446,11 +471,10 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
 
         setWebViewTransparent(true)
 
-        if (width <= 0 || height <= 0) return
-
         // JS sends CSS pixels (window.innerWidth); Android layout expects device px.
         // Full-bleed go-live always passes x/y=0 — use MATCH_PARENT instead of ~412px width.
         val fullBleed = x == 0 && y == 0
+        if (!fullBleed && (width <= 0 || height <= 0)) return
         val metrics = parent.resources.displayMetrics
         val scaledWidth = (width * metrics.density).toInt()
         val scaledHeight = (height * metrics.density).toInt()
@@ -508,12 +532,10 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
 
     private fun restartPreviewAfterPublish(stream: StreamBase) {
         val surfaceView = previewView ?: return
-        val activity = activity ?: return
         if (surfaceView.holder.surface?.isValid != true) return
         try {
             if (!stream.isOnPreview) {
-                // Re-assert facing before restarting the preview surface, as a safety net.
-                attachPreviewSurface(surfaceView, 0, 0, activity.resources.displayMetrics.widthPixels, activity.resources.displayMetrics.heightPixels)
+                attachPreviewSurface(surfaceView, 0, 0, 0, 0)
                 ensureCameraFacing(currentFacing)
                 stream.startPreview(surfaceView)
             }
@@ -522,11 +544,74 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         }
     }
 
+    /** Portrait output uses landscape buffer size + rotation (RootEncoder convention). */
     private fun prepareEncoder(stream: StreamBase, resolution: Resolution): Boolean {
         stopPreviewForPrepare(stream)
         ensureCameraFacing(currentFacing)
-        return stream.prepareVideo(resolution.width, resolution.height, resolution.videoBitrate) &&
-            stream.prepareAudio(AUDIO_SAMPLE_RATE, true, AUDIO_BITRATE)
+        val deviceRotation = CameraHelper.getCameraOrientation(context)
+        val portraitOut = resolution.height > resolution.width
+        val bufferW = if (portraitOut) resolution.height else resolution.width
+        val bufferH = if (portraitOut) resolution.width else resolution.height
+        val encodeRotation = if (portraitOut) {
+            if (deviceRotation == 90 || deviceRotation == 270) deviceRotation else 90
+        } else {
+            deviceRotation
+        }
+        return try {
+            val ok = stream.prepareVideo(
+                bufferW,
+                bufferH,
+                resolution.videoBitrate,
+                rotation = encodeRotation,
+            ) && stream.prepareAudio(AUDIO_SAMPLE_RATE, true, AUDIO_BITRATE)
+            encodersPrepared = ok
+            ok
+        } catch (e: Exception) {
+            encodersPrepared = false
+            Log.e(TAG, "prepareEncoder failed", e)
+            false
+        }
+    }
+
+    /** RootEncoder requires prepareVideo before startPreview (otherwise encoder size is 0×0). */
+    private fun ensurePreparedForPreview(stream: StreamBase): Boolean {
+        if (encodersPrepared) return true
+        if (stream.isStreaming || stream.isOnPreview) return true
+        return prepareEncoder(stream, resolutionTiers[1])
+    }
+
+    /** Release and rebuild GenericStream after a failed publish so preview can start again. */
+    private fun hardResetPipeline(@Suppress("UNUSED_PARAMETER") reason: String) {
+        cancelReconnect()
+        cancelMaxDurationTimeout()
+        try {
+            stream?.let { s ->
+                if (s.isStreaming) s.stopStream()
+                if (s.isOnPreview) s.stopPreview()
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "stop during hardReset failed", e)
+        }
+        stopBroadcastService()
+
+        previewView?.let { view ->
+            try {
+                previewSurfaceCallback?.let { view.holder.removeCallback(it) }
+            } catch (_: Exception) {}
+            previewSurfaceCallback = null
+            (view.parent as? ViewGroup)?.removeView(view)
+        }
+        previewView = null
+        setWebViewTransparent(false)
+        setKeepScreenOn(false)
+
+        recreateStreamPipeline()
+        hasStartedPreviewOnce = false
+        previewStartAttempt = 0
+        recreatePipelineBeforePreview = false
+        reconnectAttempt = 0
+        lastEndpoint = null
+        isEnding = false
     }
 
 
@@ -572,6 +657,7 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         targetVideoBitrate = resolution.videoBitrate
         isEnding = false
         reconnectAttempt = 0
+        stream.getStreamClient().setReTries(RECONNECT_DELAYS_MS.size)
 
         startBroadcastService()
 
@@ -581,6 +667,7 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
             try {
                 if (!stream.isStreaming) {
                     if (!prepareEncoder(stream, resolution)) {
+                        hardResetPipeline("prepare_encoder_failed")
                         call.reject("Failed to prepare encoder")
                         return@runOnUiThread
                     }
@@ -590,6 +677,7 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
                 scheduleMaxDurationTimeout(maxDurationSeconds)
                 call.resolve()
             } catch (e: Exception) {
+                Log.e(TAG, "startBroadcast failed", e)
                 notifyBroadcastState("error", mapOf("message" to (e.message ?: "unknown")))
                 call.reject("Failed to start broadcast: ${e.message}")
             }
@@ -606,6 +694,20 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         activity?.runOnUiThread { setKeepScreenOn(false) }
         notifyBroadcastState("ended", null)
         call.resolve(JSObject().put("stopped", true))
+    }
+
+    @PluginMethod
+    fun resetSession(call: PluginCall) {
+        val activity = activity
+        if (activity == null) {
+            hardResetPipeline("js_resetSession_no_activity")
+            call.resolve(JSObject().put("reset", true))
+            return
+        }
+        activity.runOnUiThread {
+            hardResetPipeline("js_resetSession")
+            call.resolve(JSObject().put("reset", true))
+        }
     }
 
     private fun teardownStream() {
@@ -626,6 +728,7 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
     override fun onConnectionSuccess() {
         reconnectAttempt = 0
         cancelReconnect()
+        stream?.getStreamClient()?.setReTries(RECONNECT_DELAYS_MS.size)
         bitrateAdapter = BitrateAdapter { bitrate -> stream?.setVideoBitrateOnFly(bitrate) }.also {
             it.setMaxBitrate(targetVideoBitrate)
         }
@@ -669,6 +772,7 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
     }
 
     override fun onDisconnect() {
+        // reTry uses disconnect(false) and does not call this; only a full stop does.
         if (!isEnding) {
             notifyBroadcastState("ended", null)
         }
@@ -682,30 +786,35 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         // no-op — onConnectionSuccess already covers the transition to "live".
     }
 
+    /**
+     * Must use RootEncoder reTry() — calling startStream() again while isStreaming is still
+     * true throws and exhausts retries without ever reconnecting.
+     */
     private fun handleUnexpectedDisconnect(reason: String) {
         if (isEnding) return
-        val endpoint = lastEndpoint ?: return
-
-        if (reconnectAttempt >= RECONNECT_DELAYS_MS.size) {
-            notifyBroadcastState("error", mapOf("reason" to "reconnect_exhausted", "message" to reason))
+        if (lastEndpoint == null) {
+            notifyBroadcastState("error", mapOf("reason" to "no_endpoint", "message" to reason))
             return
         }
 
-        notifyBroadcastState("reconnecting", null)
-        val delay = RECONNECT_DELAYS_MS[reconnectAttempt]
-        reconnectAttempt += 1
-
-        cancelReconnect()
-        val runnable = Runnable {
-            if (isEnding) return@Runnable
-            try {
-                stream?.startStream(endpoint)
-            } catch (e: Exception) {
-                handleUnexpectedDisconnect(e.message ?: "reconnect_failed")
-            }
+        val client = stream?.getStreamClient()
+        val delay = if (reconnectAttempt < RECONNECT_DELAYS_MS.size) {
+            RECONNECT_DELAYS_MS[reconnectAttempt]
+        } else {
+            -1L
         }
-        reconnectRunnable = runnable
-        mainHandler.postDelayed(runnable, delay)
+
+        if (delay >= 0 && client != null && client.reTry(delay, reason)) {
+            reconnectAttempt += 1
+            notifyBroadcastState("reconnecting", null)
+            return
+        }
+
+        isEnding = true
+        notifyBroadcastState("error", mapOf("reason" to "reconnect_exhausted", "message" to reason))
+        mainHandler.post {
+            hardResetPipeline("reconnect_exhausted")
+        }
     }
 
     private fun cancelReconnect() {
@@ -751,6 +860,7 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
                     return@post
                 }
                 bitrateAdapter?.setMaxBitrate(tier.videoBitrate)
+                stream.getStreamClient().setReTries(RECONNECT_DELAYS_MS.size)
                 stream.startStream(endpoint)
                 restartPreviewAfterPublish(stream)
             } catch (e: Exception) {

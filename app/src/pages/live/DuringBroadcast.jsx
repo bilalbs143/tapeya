@@ -173,11 +173,13 @@ export default function DuringBroadcast({ streamId }) {
     [streamId, toast, startBroadcastSession],
   );
 
+  const [previewGeneration, setPreviewGeneration] = useState(0);
   const { previewRef, resetSession } = useBroadcastNativePreview({
     broadcast,
     phase,
     setPhase,
     onResumedWhileLive: startPublishing,
+    previewGeneration,
   });
 
   useEffect(() => {
@@ -471,8 +473,11 @@ export default function DuringBroadcast({ streamId }) {
           <Button
             variant="auth"
             onClick={() => {
-              resetSession();
-              setPhase('loading');
+              void (async () => {
+                await resetSession();
+                setPreviewGeneration((g) => g + 1);
+                setPhase('loading');
+              })();
             }}
           >
             Try Again

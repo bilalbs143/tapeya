@@ -75,6 +75,14 @@ export async function stopBroadcast() {
   return TapeyaBroadcast.stopBroadcast();
 }
 
+/** Rebuild native camera/GL pipeline after a failed publish (Android). No-op if unsupported. */
+export async function resetBroadcastSession() {
+  if (!isNative() || typeof TapeyaBroadcast.resetSession !== 'function') {
+    return { reset: false };
+  }
+  return TapeyaBroadcast.resetSession();
+}
+
 /**
  * @param {(state: { state: 'connecting'|'live'|'reconnecting'|'ended'|'error', reason?: string, message?: string }) => void} callback
  */

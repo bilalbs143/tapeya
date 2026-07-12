@@ -3,7 +3,9 @@ import { useCallback, useEffect, useRef } from 'react';
 import { getFullWindowPreviewLayout, shouldSyncPreviewLayout, waitForNextPaint } from '@/features/stream/broadcastCameraUtils';
 import {
   requestBroadcastPermissions,
+  resetBroadcastSession,
   startBroadcastPreview,
+  stopBroadcast,
   stopBroadcastPreview,
   updateBroadcastPreviewLayout,
 } from '@/native/tapeyaBroadcast';
@@ -18,8 +20,9 @@ import { isNative } from '@/platform/platform';
  * @param {string} options.phase — local broadcast phase
  * @param {(phase: string) => void} options.setPhase
  * @param {(broadcast: object) => Promise<void>} [options.onResumedWhileLive] — re-publish when server still shows live
+ * @param {number} [options.previewGeneration] — bump after resetSession to re-run preview init
  */
-export function useBroadcastNativePreview({ broadcast, phase, setPhase, onResumedWhileLive }) {
+export function useBroadcastNativePreview({ broadcast, phase, setPhase, onResumedWhileLive, previewGeneration = 0 }) {
   const previewRef = useRef(null);
   const initRanRef = useRef(false);
   const previewActiveRef = useRef(false);
@@ -95,7 +98,7 @@ export function useBroadcastNativePreview({ broadcast, phase, setPhase, onResume
         await onResumedWhileLive(broadcast);
       }
     })();
-  }, [broadcast, onResumedWhileLive, setPhase, syncPreviewLayout]);
+  }, [broadcast, onResumedWhileLive, setPhase, syncPreviewLayout, previewGeneration]);
 
   useEffect(() => {
     if (!initRanRef.current || !previewActiveRef.current) return;
@@ -124,9 +127,15 @@ export function useBroadcastNativePreview({ broadcast, phase, setPhase, onResume
     [],
   );
 
-  const resetSession = useCallback(() => {
+  const resetSession = useCallback(async () => {
     initRanRef.current = false;
     previewActiveRef.current = false;
+    await Promise.allSettled([stopBroadcast(), stopBroadcastPreview()]);
+    try {
+      await resetBroadcastSession();
+    } catch {
+      // stopPreview above is enough when resetSession is unavailable (e.g. iOS).
+    }
   }, []);
 
   return { previewRef, resetSession };
