@@ -148,6 +148,7 @@ const GRADIENT_HIDDEN = 'bg-gradient-to-t from-black/25 to-transparent';
 
 function BroadcastViewport({
   stream,
+  posterUrl = null,
   bottomPanel,
   bottomPanelVisible,
   isLandscape,
@@ -169,11 +170,11 @@ function BroadcastViewport({
   const fillVideo = isDesktop || isLandscape || fillPortrait;
   const videoLayer = fillVideo ? (
     <div className={`absolute inset-0 ${blockLandscapeVideoClass}`}>
-      <StreamPlayer stream={stream} className="h-full w-full" fill isLandscape={isLandscape} />
+      <StreamPlayer stream={stream} posterUrl={posterUrl} className="h-full w-full" fill isLandscape={isLandscape} />
     </div>
   ) : (
     <div className="absolute inset-0 flex items-start justify-center">
-      <StreamPlayer stream={stream} className="max-h-full w-full" fill={false} isLandscape={false} />
+      <StreamPlayer stream={stream} posterUrl={posterUrl} className="max-h-full w-full" fill={false} isLandscape={false} />
     </div>
   );
 
@@ -314,6 +315,7 @@ export default function LiveBroadcastItem({
   const toggleBottomPanel = useCallback(() => setBottomPanelVisible((v) => !v), []);
 
   const stream = broadcast?.stream ?? null;
+  const posterUrl = broadcast?.thumbnail_url?.trim() || null;
   const inputDisabled = isSending || sendCooldown;
   const isIosNativeLandscape = streamUsesIosNativeYoutubePlayer(stream) && isLandscape;
 
@@ -336,6 +338,7 @@ export default function LiveBroadcastItem({
   const viewport = (
     <BroadcastViewport
       stream={stream}
+      posterUrl={posterUrl}
       bottomPanel={bottomPanel}
       bottomPanelVisible={selfServeChrome ? true : bottomPanelVisible}
       isLandscape={isLandscape}

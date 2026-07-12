@@ -118,6 +118,7 @@
         var player = null;
         var playerInitStarted = false;
         var hostReadySent = false;
+        var hostPlayingSent = false;
 
         function readEmbedFlags() {
           return {
@@ -211,6 +212,12 @@
           if (event === 'ready') {
             hostReadySent = true;
           }
+          if (event === 'playing' && hostPlayingSent) {
+            return;
+          }
+          if (event === 'playing') {
+            hostPlayingSent = true;
+          }
 
           try {
             if (
@@ -222,10 +229,19 @@
             }
           } catch (e) {}
 
-          if (event === 'ready') {
+          // Parent iframe (Android Capacitor / web proxy) — ready alone is not playback.
+          var parentMessageType =
+            event === 'ready'
+              ? 'tapeya-youtube-ready'
+              : event === 'playing'
+                ? 'tapeya-youtube-playing'
+                : event === 'error'
+                  ? 'tapeya-youtube-error'
+                  : null;
+          if (parentMessageType) {
             try {
               if (window.parent && window.parent !== window) {
-                window.parent.postMessage({ type: 'tapeya-youtube-ready' }, '*');
+                window.parent.postMessage({ type: parentMessageType }, '*');
               }
             } catch (e) {}
           }

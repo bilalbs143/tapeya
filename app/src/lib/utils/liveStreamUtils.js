@@ -43,20 +43,20 @@ function getYoutubeEmbedDefaultParams() {
 }
 
 /**
- * iOS WKWebView (capacitor://) cannot embed YouTube in nested iframes — Error 153.
- * Load Laravel's embed page from the API host (`web.php` → YouTubeEmbedProxyController).
+ * Capacitor WebViews load YouTube via Laravel's same-origin embed proxy so we can
+ * receive ready/playing postMessages (and avoid iOS Error 153 for nested iframes).
  */
 export function shouldUseYoutubeEmbedProxy() {
+  return Capacitor.isNativePlatform();
+}
+
+/** iOS uses a native WKWebView overlay for YouTube (nested iframe blocked in Capacitor). */
+export function usesIosNativeStreamPlayer() {
   return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
 }
 
-/** iOS uses native WKWebView for YouTube (nested iframe blocked in Capacitor). */
-export function usesIosNativeStreamPlayer() {
-  return shouldUseYoutubeEmbedProxy();
-}
-
 /**
- * Base URL for the iOS native YouTube embed page.
+ * Base URL for the native YouTube embed proxy page.
  *
  * Always the API origin — that is where `/embed/youtube` is served. Do not use
  * `VITE_APP_URL` / the SPA host: without a matching nginx proxy it returns

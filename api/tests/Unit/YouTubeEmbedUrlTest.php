@@ -53,6 +53,8 @@ class YouTubeEmbedUrlTest extends TestCase
         $this->assertStringContainsString('playerVars.origin = pageOrigin', $html);
         $this->assertStringContainsString('player.playVideo', $html);
         $this->assertStringContainsString('tapeya-youtube-ready', $html);
+        $this->assertStringContainsString('tapeya-youtube-playing', $html);
+        $this->assertStringContainsString('tapeya-youtube-error', $html);
         $this->assertStringContainsString('tapeyaStream', $html);
     }
 }

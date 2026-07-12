@@ -1,35 +1,31 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-
-import { Capacitor } from '@capacitor/core';
-
-import { getYoutubeStreamPlayerReadyState, onYoutubeStreamPlayerReady } from '@/native/youtubeStreamOverlay';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 
 const READY_MESSAGE_TYPE = 'tapeya-youtube-ready';
-const LOAD_TIMEOUT_MS = 15000;
-/** Brief hold after native playerReady so WKWebView paints before the loader fades. */
-const IOS_LOADER_RELEASE_MS = 120;
-const IOS_READY_STATE_DEFER_MS = 150;
+const PLAYING_MESSAGE_TYPE = 'tapeya-youtube-playing';
+const ERROR_MESSAGE_TYPE = 'tapeya-youtube-error';
+/** YouTube glass-to-glass is often ~15–30s — keep the connecting overlay through that window. */
+const LIVE_LOAD_TIMEOUT_MS = 45000;
 
 /**
- * Tracks whether the YouTube player is still initialising.
+ * Tracks whether a stream player is still connecting.
  *
- * Native iOS overlay: a real "playerReady" signal comes from the embed proxy via the
- * native bridge (see YoutubeStreamOverlayPlugin), so it clears as soon as YouTube is
- * actually rendering.
+ * Proxy embeds (`waitForPlaying`): overlay stays until `tapeya-youtube-playing`.
+ * On error or 45s timeout → `onError` (Try again). Direct iframe / HLS: clear on
+ * `markReady` (onLoad / canPlay) or soft-clear on timeout.
  *
- * Plain iframe (web/Android): direct YouTube embeds never call back into this origin,
- * so there is no genuine "ready" event — `markReady` (wired to the iframe's `onLoad`) is
- * the closest available signal. The 15s timer is a safety net either way.
- *
- * @param {string|null|undefined} src
- * @param {{ usesNativeOverlay?: boolean }} [options]
+ * @param {string|null|undefined} src — pass null to disable (e.g. iOS native overlay owns its own loader)
+ * @param {{ waitForPlaying?: boolean, sessionKey?: number, onError?: () => void }} [options]
  * @returns {[boolean, () => void]} `[isLoading, markReady]`
  */
-export function useStreamVideoLoading(src, { usesNativeOverlay = false } = {}) {
+export function useStreamVideoLoading(src, { waitForPlaying = false, sessionKey = 0, onError } = {}) {
   const [isLoading, setIsLoading] = useState(Boolean(src));
   const markReadyRef = useRef(() => {});
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
 
-  useEffect(() => {
+  // useLayoutEffect so the message listener is attached before the iframe paints/runs —
+  // mid-broadcast reopen can fire PLAYING very quickly after load.
+  useLayoutEffect(() => {
     if (!src) {
       setIsLoading(false);
       return undefined;
@@ -37,60 +33,46 @@ export function useStreamVideoLoading(src, { usesNativeOverlay = false } = {}) {
 
     setIsLoading(true);
     let cancelled = false;
-    let releaseTimeoutId = null;
-    const timeoutId = window.setTimeout(() => {
-      if (!cancelled) {
-        setIsLoading(false);
-      }
-    }, LOAD_TIMEOUT_MS);
 
-    const markReady = () => {
+    const clearLoader = () => {
       if (cancelled) {
         return;
       }
       window.clearTimeout(timeoutId);
+      setIsLoading(false);
+    };
 
-      const releaseLoader = () => {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      };
-
-      if (usesNativeOverlay && Capacitor.getPlatform() === 'ios') {
-        if (releaseTimeoutId !== null) {
-          window.clearTimeout(releaseTimeoutId);
-        }
-        releaseTimeoutId = window.setTimeout(releaseLoader, IOS_LOADER_RELEASE_MS);
+    // Proxy path: timeout → Try again (same as iOS). Direct iframe/HLS: soft-clear only.
+    const timeoutId = window.setTimeout(() => {
+      if (cancelled) {
         return;
       }
+      setIsLoading(false);
+      if (waitForPlaying) {
+        onErrorRef.current?.();
+      }
+    }, LIVE_LOAD_TIMEOUT_MS);
 
-      releaseLoader();
+    const markReady = () => {
+      if (cancelled || waitForPlaying) {
+        return;
+      }
+      clearLoader();
     };
     markReadyRef.current = markReady;
 
-    if (usesNativeOverlay && Capacitor.getPlatform() === 'ios') {
-      const listener = onYoutubeStreamPlayerReady(markReady);
-      const readyCheckId = window.setTimeout(() => {
-        void getYoutubeStreamPlayerReadyState().then(({ ready }) => {
-          if (ready) {
-            markReady();
-          }
-        });
-      }, IOS_READY_STATE_DEFER_MS);
-
-      return () => {
-        cancelled = true;
-        window.clearTimeout(timeoutId);
-        window.clearTimeout(readyCheckId);
-        if (releaseTimeoutId !== null) {
-          window.clearTimeout(releaseTimeoutId);
-        }
-        listener.remove();
-      };
-    }
-
     function onMessage(event) {
-      if (event.data?.type === READY_MESSAGE_TYPE) {
+      const type = event.data?.type;
+      if (type === PLAYING_MESSAGE_TYPE) {
+        clearLoader();
+        return;
+      }
+      if (type === ERROR_MESSAGE_TYPE) {
+        clearLoader();
+        onErrorRef.current?.();
+        return;
+      }
+      if (type === READY_MESSAGE_TYPE) {
         markReady();
       }
     }
@@ -102,7 +84,7 @@ export function useStreamVideoLoading(src, { usesNativeOverlay = false } = {}) {
       window.clearTimeout(timeoutId);
       window.removeEventListener('message', onMessage);
     };
-  }, [src, usesNativeOverlay]);
+  }, [src, waitForPlaying, sessionKey]);
 
   const markReady = useCallback(() => markReadyRef.current(), []);
 

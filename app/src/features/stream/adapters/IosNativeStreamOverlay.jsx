@@ -28,7 +28,7 @@ function hasValidPortraitFrame(layout) {
  * Portrait (match / non-fill): player above Capacitor, aspect-video sized.
  * Fill / landscape: player fills the shell (self-serve immersive or landscape).
  */
-export function IosNativeStreamOverlay({ src, className = '', fill = false, isLandscape = false }) {
+export function IosNativeStreamOverlay({ src, className = '', fill = false, isLandscape = false, posterUrl = null }) {
   const containerRef = useRef(null);
   const proxyUrlRef = useRef(src);
   const stackRef = useRef(null);
@@ -164,7 +164,7 @@ export function IosNativeStreamOverlay({ src, className = '', fill = false, isLa
 
   return (
     <div ref={containerRef} className={`${layoutClass} ${surfaceClass} overflow-hidden ${className}`} aria-busy={isLoading}>
-      <StreamVideoLoading visible={isLoading} />
+      <StreamVideoLoading visible={isLoading} posterUrl={posterUrl} />
       <StreamVideoRetry visible={showRetry} onRetry={retryPlayback} />
     </div>
   );
