@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 
-import { baseUrl, getApiOrigin } from '@/store/api/baseApi';
+import { getApiOrigin } from '@/store/api/baseApi';
 
 /**
  * Trusted origin for YouTube embed `origin` on web/Android direct embeds.
@@ -44,7 +44,7 @@ function getYoutubeEmbedDefaultParams() {
 
 /**
  * iOS WKWebView (capacitor://) cannot embed YouTube in nested iframes — Error 153.
- * Route through the public website so YouTube sees Referer `https://tapeya.com/embed/youtube`.
+ * Load Laravel's embed page from the API host (`web.php` → YouTubeEmbedProxyController).
  */
 export function shouldUseYoutubeEmbedProxy() {
   return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
@@ -56,26 +56,16 @@ export function usesIosNativeStreamPlayer() {
 }
 
 /**
+ * Base URL for the iOS native YouTube embed page.
+ *
+ * Always the API origin — that is where `/embed/youtube` is served. Do not use
+ * `VITE_APP_URL` / the SPA host: without a matching nginx proxy it returns
+ * `index.html` and the native player never becomes ready.
+ *
  * @returns {string}
  */
 export function getYoutubeEmbedProxyBase() {
-  if (shouldUseYoutubeEmbedProxy()) {
-    const websiteOrigin = getYoutubeEmbedOrigin();
-    if (websiteOrigin) {
-      return `${websiteOrigin}/embed/youtube`;
-    }
-  }
-
-  const origin =
-    getApiOrigin() ||
-    (() => {
-      try {
-        return new URL(baseUrl).origin;
-      } catch {
-        return '';
-      }
-    })();
-
+  const origin = getApiOrigin();
   return origin ? `${origin}/embed/youtube` : '';
 }
 
