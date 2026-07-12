@@ -82,21 +82,11 @@
     <script>
       (function () {
         var rawSrc = @json($embedSrc);
-        var youtubeOrigin = @json($youtubeEmbedOrigin);
-        var pageOrigin = youtubeOrigin || window.location.origin;
+        // YouTube `origin` MUST match the page that hosts the iframe (Error 153 otherwise).
+        // This proxy is served from the API host, so always use location.origin — not the
+        // Public Website URL (e.g. dev.tapeya.com vs dev-api.tapeya.com).
+        var pageOrigin = window.location.origin;
         var urlParams = new URLSearchParams(window.location.search);
-
-        function embedLog(step, data) {
-          try {
-            console.log('[TapeyaIOSStream][embed]', step, data || {});
-          } catch (e) {}
-          try {
-            if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.tapeyaStream) {
-              var payload = Object.assign({ event: 'diag', step: step }, data || {});
-              window.webkit.messageHandlers.tapeyaStream.postMessage(payload);
-            }
-          } catch (e) {}
-        }
 
         var videoId = null;
         try {
@@ -106,20 +96,7 @@
           }
         } catch (e) {}
 
-        embedLog('boot', {
-          href: location.href,
-          locationOrigin: location.origin,
-          youtubeOrigin: youtubeOrigin,
-          pageOrigin: pageOrigin,
-          videoId: videoId,
-          hasRawSrc: !!rawSrc,
-          cover: urlParams.get('cover'),
-          rotate: urlParams.get('rotate'),
-          userAgent: navigator.userAgent,
-        });
-
         if (!videoId) {
-          embedLog('abort_no_video_id', { rawSrcPreview: String(rawSrc || '').slice(0, 160) });
           return;
         }
 
@@ -139,13 +116,6 @@
         if (pageOrigin) {
           playerVars.origin = pageOrigin;
         }
-        embedLog('player_vars', {
-          playerVars: playerVars,
-          pageOrigin: pageOrigin,
-          youtubeOrigin: youtubeOrigin,
-          locationOrigin: location.origin,
-          originMatch: String(playerVars.origin || '') === String(location.origin),
-        });
 
         var player = null;
         var playerInitStarted = false;
@@ -237,7 +207,7 @@
           } catch (e) {}
         }
 
-        function notifyHost(event, detail) {
+        function notifyHost(event) {
           if (event === 'ready' && hostReadySent) {
             return;
           }
@@ -251,38 +221,15 @@
             hostPlayingSent = true;
           }
 
-          embedLog('notify_host', { event: event, detail: detail || null });
-
           try {
             if (
               window.webkit &&
               window.webkit.messageHandlers &&
               window.webkit.messageHandlers.tapeyaStream
             ) {
-              if (event === 'error') {
-                window.webkit.messageHandlers.tapeyaStream.postMessage(
-                  Object.assign(
-                    {
-                      event: 'error',
-                      code: detail && detail.code,
-                      message: detail && detail.message,
-                      origin: playerVars.origin || null,
-                      pageOrigin: pageOrigin,
-                      youtubeOrigin: youtubeOrigin,
-                      videoId: videoId,
-                      href: location.href,
-                      iframeSrc: (document.querySelector('#player iframe') || {}).src || null,
-                    },
-                    detail || {}
-                  )
-                );
-              } else {
-                window.webkit.messageHandlers.tapeyaStream.postMessage(event);
-              }
+              window.webkit.messageHandlers.tapeyaStream.postMessage(event);
             }
-          } catch (e) {
-            embedLog('webkit_post_failed', { message: String(e) });
-          }
+          } catch (e) {}
 
           // Parent iframe (Android Capacitor / web proxy) — ready alone is not playback.
           var parentMessageType =
@@ -296,10 +243,7 @@
           if (parentMessageType) {
             try {
               if (window.parent && window.parent !== window) {
-                window.parent.postMessage(
-                  { type: parentMessageType, detail: detail || null },
-                  '*'
-                );
+                window.parent.postMessage({ type: parentMessageType }, '*');
               }
             } catch (e) {}
           }
@@ -326,11 +270,6 @@
             playerVars: playerVars,
             events: {
               onReady: function () {
-                embedLog('yt_on_ready', {
-                  videoId: videoId,
-                  origin: playerVars.origin || null,
-                  viewport: viewport,
-                });
                 applyRotateLayout();
                 startPlayback();
                 window.setTimeout(startPlayback, 500);
@@ -342,34 +281,12 @@
                 notifyHostReady();
               },
               onStateChange: function (event) {
-                embedLog('yt_state_change', { state: event.data });
                 if (event.data === YT.PlayerState.PLAYING) {
                   notifyHost('playing');
                 }
               },
-              onError: function (event) {
-                var code = event && event.data;
-                var messages = {
-                  2: 'invalid_parameter',
-                  5: 'html5_error',
-                  100: 'video_not_found',
-                  101: 'embedding_not_allowed',
-                  150: 'embedding_not_allowed',
-                  153: 'video_player_configuration_error',
-                };
-                embedLog('yt_on_error', {
-                  code: code,
-                  mapped: messages[code] || 'unknown',
-                  origin: playerVars.origin || null,
-                  pageOrigin: pageOrigin,
-                  youtubeOrigin: youtubeOrigin,
-                  videoId: videoId,
-                  href: location.href,
-                });
-                notifyHost('error', {
-                  code: code,
-                  message: messages[code] || 'unknown',
-                });
+              onError: function () {
+                notifyHost('error');
               },
             },
           });

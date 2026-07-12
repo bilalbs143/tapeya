@@ -89,8 +89,9 @@ export function IosNativeStreamOverlay({ src, className = '', fill = false, isLa
     };
 
     if (!shownRef.current || reload || stackChanged) {
+      const willReload = !shownRef.current || stackChanged || reload;
       shownRef.current = true;
-      await showYoutubeStreamOverlay({ ...payload, reload: !shownRef.current || stackChanged || reload });
+      await showYoutubeStreamOverlay({ ...payload, reload: willReload });
       return;
     }
 
