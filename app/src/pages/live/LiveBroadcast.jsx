@@ -22,6 +22,7 @@ import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
 import { useLiveBroadcastImmersiveDocument } from '@/features/stream/hooks/useLiveBroadcastImmersiveDocument';
 import { useLiveStreamChannel } from '@/features/stream/hooks/useLiveStreamChannel';
 import { useStreamPresenceChannel } from '@/features/stream/hooks/useStreamPresenceChannel';
+import { nativeUnderlaySurfaceClass } from '@/features/stream/ios/iosNativeStreamLayout';
 import { streamUsesIosNativeYoutubePlayer } from '@/features/stream/ios/streamUsesIosNativeYoutubePlayer';
 import { LiveStatusBadge, LiveViewerCountBadge } from '@/features/stream/LiveStatusBadges';
 import { setLiveViewerHeroMode } from '@/features/stream/liveViewerChromeStore';
@@ -96,23 +97,21 @@ export default function LiveBroadcast() {
 
   const isMobileLandscape = isMobile && isLandscape;
   const immersiveMobileLandscape = isLandscape && !isDesktop;
-  const isIosNativeLandscape = streamUsesIosNativeYoutubePlayer(broadcast?.stream) && isLandscape;
-  const surfaceBg = isIosNativeLandscape ? 'bg-transparent' : 'bg-black';
-  // Portrait shell height changes once when hero mode flips on/off (stream goes live / ends) —
-  // animate that instead of snapping. Inert for landscape and for match streams (their height
-  // formula never changes based on status).
+  const isIosNativeUnderlay = streamUsesIosNativeYoutubePlayer(broadcast?.stream) && !isDesktop;
+  const surfaceBg = nativeUnderlaySurfaceClass(isIosNativeUnderlay);
+  // Portrait shell height animates when hero mode flips (live ↔ ended). Match streams are inert.
   const shellClass = isLandscape
     ? getLiveBroadcastShellClass(isLandscape, surfaceBg)
     : `${getLiveBroadcastShellClass(isLandscape, surfaceBg)} ${LIVE_BROADCAST_HERO_TRANSITION_CLASS}`;
 
-  useLiveBroadcastImmersiveDocument(immersiveMobileLandscape, isIosNativeLandscape);
+  useLiveBroadcastImmersiveDocument(immersiveMobileLandscape, isIosNativeUnderlay);
 
   const shellStyle = isLandscape
     ? {
-      ...LIVE_BROADCAST_LANDSCAPE_SHELL_STYLE,
-      zIndex: LIVE_BROADCAST_LANDSCAPE_SHELL_Z,
-      height: LIVE_BROADCAST_IMMERSIVE_HEIGHT,
-    }
+        ...LIVE_BROADCAST_LANDSCAPE_SHELL_STYLE,
+        zIndex: LIVE_BROADCAST_LANDSCAPE_SHELL_Z,
+        height: LIVE_BROADCAST_IMMERSIVE_HEIGHT,
+      }
     : heroMode
       ? { height: LIVE_BROADCAST_HERO_HEIGHT }
       : { height: isDesktop ? LIVE_BROADCAST_SHELL_HEIGHT_DESKTOP : LIVE_BROADCAST_SHELL_HEIGHT };
@@ -165,22 +164,20 @@ export default function LiveBroadcast() {
   return (
     <div className={shellClass} style={shellStyle}>
       <div className={`relative h-full w-full overflow-hidden ${surfaceBg}`}>
-        <div className={`relative h-full w-full overflow-hidden ${surfaceBg}`}>
-          {showError && <BroadcastError onRetry={refetch} />}
-          {broadcast && (
-            <LiveBroadcastItem
-              broadcast={broadcast}
-              isLandscape={isLandscape}
-              isDesktop={isDesktop}
-              isMobileLandscape={isMobileLandscape}
-              onToggleLandscape={toggleLandscape}
-              headerSlot={overlayHeaderSlot}
-              statusHeaderSlot={centeredStatusContent}
-              fillPortrait={heroMode}
-              selfServeChrome={isSelfServe}
-            />
-          )}
-        </div>
+        {showError && <BroadcastError onRetry={refetch} />}
+        {broadcast && (
+          <LiveBroadcastItem
+            broadcast={broadcast}
+            isLandscape={isLandscape}
+            isDesktop={isDesktop}
+            isMobileLandscape={isMobileLandscape}
+            onToggleLandscape={toggleLandscape}
+            headerSlot={overlayHeaderSlot}
+            statusHeaderSlot={centeredStatusContent}
+            fillPortrait={heroMode}
+            selfServeChrome={isSelfServe}
+          />
+        )}
       </div>
     </div>
   );

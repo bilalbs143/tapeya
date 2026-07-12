@@ -5,9 +5,9 @@ import { IframeStreamPlayer } from './adapters/IframeStreamPlayer';
 import { StreamOfflineSlate } from './StreamOfflineSlate';
 
 const PLAYERS = {
-  /** YouTube / embed — uses {@link IosNativeStreamOverlay} on iOS when proxied. */
+  /** YouTube / embed — iOS uses native WKWebView overlay; Android/web use iframe (+ proxy on Capacitor). */
   iframe: IframeStreamPlayer,
-  /** HLS (.m3u8) — standard `<video>`; never uses the iOS native YouTube overlay. */
+  /** HLS (.m3u8) — standard `<video>`. */
   hls: HlsStreamPlayer,
 };
 
@@ -36,12 +36,6 @@ export function StreamPlayer({ stream, className = '', fill = false, isLandscape
     null;
 
   return (
-    <Player
-      playback={stream.playback}
-      className={className}
-      fill={fill}
-      isLandscape={isLandscape}
-      posterUrl={resolvedPoster}
-    />
+    <Player playback={stream.playback} className={className} fill={fill} isLandscape={isLandscape} posterUrl={resolvedPoster} />
   );
 }

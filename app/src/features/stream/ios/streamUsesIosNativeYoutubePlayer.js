@@ -1,8 +1,8 @@
 import { resolveYoutubeEmbed, usesIosNativeStreamPlayer } from '@/lib/utils/liveStreamUtils';
 
 /**
- * True only when this stream mounts {@link IosNativeStreamOverlay} (iOS + iframe YouTube via proxy).
- * HLS and other modes must not use landscape underlay / transparent chrome.
+ * True when this stream mounts {@link IosNativeStreamOverlay} (iOS + iframe YouTube via proxy).
+ * Gates underlay document transparency and native chrome wiring.
  *
  * @param {{ playback?: { mode?: string, embed_url?: string|null, embed_id?: string|null } }|null|undefined} stream
  */

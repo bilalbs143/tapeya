@@ -7,13 +7,7 @@ import { StreamVideoLoading } from '../StreamVideoLoading';
 import { StreamVideoRetry } from '../StreamVideoRetry';
 import { IosNativeStreamOverlay } from './IosNativeStreamOverlay';
 
-export function IframeStreamPlayer({
-  playback,
-  className = '',
-  fill = false,
-  isLandscape = false,
-  posterUrl = null,
-}) {
+export function IframeStreamPlayer({ playback, className = '', fill = false, isLandscape = false, posterUrl = null }) {
   const boxClass = fill ? 'relative h-full w-full bg-black' : 'relative w-full aspect-video bg-black';
   const resolution = useMemo(
     () => resolveYoutubeEmbed(playback?.embed_url, playback?.embed_id),
@@ -37,15 +31,7 @@ export function IframeStreamPlayer({
   }
 
   if (usesNativeOverlay) {
-    return (
-      <IosNativeStreamOverlay
-        src={src}
-        className={className}
-        fill={fill}
-        isLandscape={isLandscape}
-        posterUrl={posterUrl}
-      />
-    );
+    return <IosNativeStreamOverlay src={src} className={className} fill={fill} isLandscape={isLandscape} posterUrl={posterUrl} />;
   }
 
   return (

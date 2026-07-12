@@ -11,6 +11,7 @@ import { FloatingHeartsOverlay } from '@/features/stream/FloatingHeartsOverlay';
 import { useFloatingHearts } from '@/features/stream/hooks/useFloatingHearts';
 import { useStreamComments } from '@/features/stream/hooks/useStreamComments';
 import { IosLandscapeStreamChrome } from '@/features/stream/ios/IosLandscapeStreamChrome';
+import { nativeUnderlaySurfaceClass } from '@/features/stream/ios/iosNativeStreamLayout';
 import { streamUsesIosNativeYoutubePlayer } from '@/features/stream/ios/streamUsesIosNativeYoutubePlayer';
 import { StreamPlayer } from '@/features/stream/StreamPlayer';
 import { useToast } from '@/hooks/useToast';
@@ -157,19 +158,19 @@ function BroadcastViewport({
   headerSlot,
   isDesktop,
   immersiveLandscape = false,
-  isIosNativeLandscape = false,
+  isIosNativeUnderlay = false,
   hideHeaderOverlay = false,
   /** Self-serve mobile: fill the shell. Match-linked: 16:9 aspect-video in portrait. */
   fillPortrait = false,
 }) {
   // Landscape / desktop / self-serve portrait: fill the shell.
   // Match portrait: aspect-video (16:9) — tournament streams are landscape-encoded.
-  // Landscape: block iframe touches so the portaled exit toggle stays tappable.
   const blockLandscapeVideoPointer = !isDesktop && isLandscape;
-  const blockLandscapeVideoClass = blockLandscapeVideoPointer ? 'pointer-events-none [&_iframe]:pointer-events-none' : '';
   const fillVideo = isDesktop || isLandscape || fillPortrait;
+  const surfaceClass = nativeUnderlaySurfaceClass(isIosNativeUnderlay);
+
   const videoLayer = fillVideo ? (
-    <div className={`absolute inset-0 ${blockLandscapeVideoClass}`}>
+    <div className={`absolute inset-0 ${blockLandscapeVideoPointer ? 'pointer-events-none [&_iframe]:pointer-events-none' : ''}`}>
       <StreamPlayer stream={stream} posterUrl={posterUrl} className="h-full w-full" fill isLandscape={isLandscape} />
     </div>
   ) : (
@@ -178,21 +179,26 @@ function BroadcastViewport({
     </div>
   );
 
-  // Match classic portrait sits under the solid app navbar — no extra navbar clearance.
-  // Self-serve hero mode sits under a *transparent* app navbar, so its own back/status row
-  // still needs to clear the navbar's height, not just the safe area. Landscape owns the top
-  // safe area itself (no app navbar there at all).
+  // Classic portrait: under solid navbar. Hero: clear transparent navbar height.
+  // Landscape: owns top safe area (no app navbar).
   const headerTopPadding = isLandscape && !isDesktop ? '8px' : fillPortrait ? LIVE_BROADCAST_HEADER_TOP_PADDING : '10px';
+  const showMobileChrome = !isDesktop && !immersiveLandscape;
 
   return (
-    <div className={`relative size-full overflow-hidden ${isIosNativeLandscape ? 'bg-transparent' : 'bg-black'}`}>
-      {videoLayer}
-
-      {!isDesktop && !immersiveLandscape && (
-        <FloatingHeartsOverlay hearts={floatingHearts} onHeartEnd={onHeartEnd} isLandscape={isLandscape} />
+    <div className={`relative size-full overflow-hidden ${surfaceClass}`}>
+      {/* Classic 16:9 underlay hole — opaque fill below so the UIKit host does not flash through. */}
+      {isIosNativeUnderlay && !fillVideo && (
+        <div className="pointer-events-none absolute inset-0 flex flex-col" aria-hidden>
+          <div className="aspect-video w-full shrink-0" />
+          <div className="min-h-0 flex-1 bg-black" />
+        </div>
       )}
 
-      {!isDesktop && !immersiveLandscape && (
+      {videoLayer}
+
+      {showMobileChrome && <FloatingHeartsOverlay hearts={floatingHearts} onHeartEnd={onHeartEnd} isLandscape={isLandscape} />}
+
+      {showMobileChrome && (
         <div className={`pointer-events-none absolute inset-0 ${bottomPanelVisible ? GRADIENT_VISIBLE : GRADIENT_HIDDEN}`} />
       )}
 
@@ -317,7 +323,11 @@ export default function LiveBroadcastItem({
   const stream = broadcast?.stream ?? null;
   const posterUrl = broadcast?.thumbnail_url?.trim() || null;
   const inputDisabled = isSending || sendCooldown;
-  const isIosNativeLandscape = streamUsesIosNativeYoutubePlayer(stream) && isLandscape;
+  const usesIosNativePlayer = streamUsesIosNativeYoutubePlayer(stream);
+  const isIosNativeLandscape = usesIosNativePlayer && isLandscape;
+  const isIosNativeUnderlay = usesIosNativePlayer && !isDesktop;
+  const panelVisible = selfServeChrome || bottomPanelVisible;
+  const surfaceClass = nativeUnderlaySurfaceClass(isIosNativeUnderlay);
 
   const bottomPanel = (
     <BroadcastBottomPanel
@@ -329,7 +339,7 @@ export default function LiveBroadcastItem({
       onSendHeart={handleSendHeart}
       isLandscape={isLandscape}
       onToggleLayout={onToggleLandscape}
-      bottomPanelVisible={selfServeChrome ? true : bottomPanelVisible}
+      bottomPanelVisible={panelVisible}
       onToggleBottomPanel={toggleBottomPanel}
       hideFloatingToggles={selfServeChrome}
     />
@@ -340,14 +350,14 @@ export default function LiveBroadcastItem({
       stream={stream}
       posterUrl={posterUrl}
       bottomPanel={bottomPanel}
-      bottomPanelVisible={selfServeChrome ? true : bottomPanelVisible}
+      bottomPanelVisible={panelVisible}
       isLandscape={isLandscape}
       floatingHearts={floatingHearts}
       onHeartEnd={removeHeart}
       headerSlot={isMobileLandscape && !isIosNativeLandscape ? (statusHeaderSlot ?? headerSlot) : headerSlot}
       isDesktop={isDesktop}
       immersiveLandscape={isMobileLandscape}
-      isIosNativeLandscape={isIosNativeLandscape}
+      isIosNativeUnderlay={isIosNativeUnderlay}
       hideHeaderOverlay={isIosNativeLandscape && isMobileLandscape}
       fillPortrait={fillPortrait}
     />
@@ -356,12 +366,16 @@ export default function LiveBroadcastItem({
   const showFixedLandscapeToggle = !selfServeChrome && isLandscape && !isDesktop && !isIosNativeLandscape;
 
   return (
-    <div className={`relative h-full w-full overflow-hidden ${isIosNativeLandscape ? 'bg-transparent' : 'bg-black'}`}>
+    <div className={`relative h-full w-full overflow-hidden ${surfaceClass}`}>
       {isIosNativeLandscape && isMobileLandscape && (
         <IosLandscapeStreamChrome headerSlot={statusHeaderSlot ?? headerSlot} onToggleLandscape={onToggleLandscape} />
       )}
 
-      <LandscapeRotatedStage rotated={isLandscape} iosNativeLandscape={isIosNativeLandscape}>
+      <LandscapeRotatedStage
+        rotated={isLandscape}
+        iosNativeLandscape={isIosNativeLandscape}
+        iosNativeUnderlay={isIosNativeUnderlay}
+      >
         {viewport}
       </LandscapeRotatedStage>
 

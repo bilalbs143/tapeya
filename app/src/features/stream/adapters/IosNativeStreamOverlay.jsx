@@ -23,10 +23,8 @@ function hasValidPortraitFrame(layout) {
 }
 
 /**
- * iOS YouTube player (native WKWebView + embed proxy).
- *
- * Portrait (match / non-fill): player above Capacitor, aspect-video sized.
- * Fill / landscape: player fills the shell (self-serve immersive or landscape).
+ * iOS YouTube player — native WKWebView under Capacitor + embed proxy.
+ * Portrait: sized to the placeholder. Landscape: immersive fullscreen.
  */
 export function IosNativeStreamOverlay({ src, className = '', fill = false, isLandscape = false, posterUrl = null }) {
   const containerRef = useRef(null);
@@ -36,10 +34,8 @@ export function IosNativeStreamOverlay({ src, className = '', fill = false, isLa
   const isLandscapeRef = useRef(isLandscape);
   const [sessionKey, setSessionKey] = useState(0);
   const { isLoading, showRetry } = useIosNativePlayback(src, sessionKey);
-  const showRetryRef = useRef(false);
 
   isLandscapeRef.current = isLandscape;
-  showRetryRef.current = showRetry;
   proxyUrlRef.current = src;
 
   const retryPlayback = useCallback(() => {
@@ -54,14 +50,6 @@ export function IosNativeStreamOverlay({ src, className = '', fill = false, isLa
     }
 
     const landscape = isLandscapeRef.current;
-    if (showRetryRef.current && !landscape) {
-      if (shownRef.current) {
-        shownRef.current = false;
-        await hideYoutubeStreamOverlay();
-      }
-      return;
-    }
-
     const layout = buildNativeOverlayLayout(element, { isLandscape: landscape });
     const embedUrl = withIosNativeEmbedParams(baseUrl, { landscape });
     const stack = landscape ? 'landscape' : 'portrait';
@@ -88,10 +76,10 @@ export function IosNativeStreamOverlay({ src, className = '', fill = false, isLa
       updateFrame: true,
     };
 
-    if (!shownRef.current || reload || stackChanged) {
-      const willReload = !shownRef.current || stackChanged || reload;
+    const needsShow = !shownRef.current || reload || stackChanged;
+    if (needsShow) {
       shownRef.current = true;
-      await showYoutubeStreamOverlay({ ...payload, reload: willReload });
+      await showYoutubeStreamOverlay({ ...payload, reload: true });
       return;
     }
 
@@ -148,23 +136,10 @@ export function IosNativeStreamOverlay({ src, className = '', fill = false, isLa
     });
   }, [isLandscape, syncLayout]);
 
-  /** Portrait: native WKWebView sits above Capacitor — hide it so retry UI is visible. */
-  useEffect(() => {
-    if (!showRetry || isLandscape) {
-      return undefined;
-    }
-
-    shownRef.current = false;
-    void hideYoutubeStreamOverlay();
-
-    return undefined;
-  }, [showRetry, isLandscape]);
-
   const layoutClass = fill ? 'absolute inset-0' : 'relative w-full aspect-video';
-  const surfaceClass = showRetry || !fill ? 'bg-black' : 'bg-transparent';
 
   return (
-    <div ref={containerRef} className={`${layoutClass} ${surfaceClass} overflow-hidden ${className}`} aria-busy={isLoading}>
+    <div ref={containerRef} className={`${layoutClass} overflow-hidden bg-transparent ${className}`} aria-busy={isLoading}>
       <StreamVideoLoading visible={isLoading} posterUrl={posterUrl} />
       <StreamVideoRetry visible={showRetry} onRetry={retryPlayback} />
     </div>

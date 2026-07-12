@@ -44,13 +44,17 @@ function getYoutubeEmbedDefaultParams() {
 
 /**
  * Capacitor WebViews load YouTube via Laravel's same-origin embed proxy so we can
- * receive ready/playing postMessages (and avoid iOS Error 153 for nested iframes).
+ * receive ready/playing postMessages (and avoid Error 153 for nested iframes).
  */
 export function shouldUseYoutubeEmbedProxy() {
   return Capacitor.isNativePlatform();
 }
 
-/** iOS uses a native WKWebView overlay for YouTube (nested iframe blocked in Capacitor). */
+/**
+ * iOS: native WKWebView overlay loading the API embed proxy.
+ * In-DOM iframe (Android path) does not reach PLAYING on iOS Capacitor — loader
+ * times out. Do not flip this to false without a device-proven alternative.
+ */
 export function usesIosNativeStreamPlayer() {
   return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
 }

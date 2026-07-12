@@ -20,15 +20,14 @@ html.live-broadcast-landscape main {
   min-height: 100dvh;
 }
 
-/* iOS landscape underlay: html/body MUST stay transparent so the native WKWebView below
-   Capacitor can show through. Black here blocks video entirely (UIKit host stays black in Swift). */
+/* iOS native YouTube underlay — clear document + layout root for the video hole.
+   Keep descendant backgrounds (badges, navbar, bottom nav) intact. */
 html.ios-native-stream-underlay,
 html.ios-native-stream-underlay body,
 html.ios-native-stream-underlay #root,
 html.ios-native-stream-underlay #root > div,
-html.ios-native-stream-underlay #root > div * {
+html.ios-native-stream-underlay main {
   background-color: transparent !important;
-  background-image: none !important;
 }
 
 .font-moul {

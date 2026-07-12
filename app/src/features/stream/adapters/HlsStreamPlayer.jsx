@@ -13,13 +13,7 @@ function canPlayNativeHls(video) {
 /**
  * HLS playback via `<video>` (+ hls.js on non-Safari). Does not use iOS native YouTube overlay.
  */
-export function HlsStreamPlayer({
-  playback,
-  className = '',
-  fill = false,
-  isLandscape: _isLandscape = false,
-  posterUrl = null,
-}) {
+export function HlsStreamPlayer({ playback, className = '', fill = false, isLandscape: _isLandscape = false, posterUrl = null }) {
   const videoRef = useRef(null);
   const hlsRef = useRef(null);
   const url = playback?.url?.trim() || null;
@@ -90,12 +84,7 @@ export function HlsStreamPlayer({
         onPlaying={markReady}
         onError={() => setFailed(true)}
       />
-      <StreamVideoLoading
-        visible={isLoading && !failed}
-        posterUrl={posterUrl}
-        label="Loading video…"
-        hint={null}
-      />
+      <StreamVideoLoading visible={isLoading && !failed} posterUrl={posterUrl} label="Loading video…" hint={null} />
       <StreamVideoRetry visible={failed} onRetry={attachSource} />
     </div>
   );

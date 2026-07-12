@@ -8,8 +8,8 @@
  * @param {boolean} [props.visible]
  */
 export function StreamVideoLoading({
-  label = 'Connecting to live video…',
-  hint = 'This usually takes under 30 seconds.',
+  label = 'Connecting to the video…',
+  hint = 'This usually takes under 30 to 40 seconds.',
   posterUrl = null,
   visible = true,
 }) {
