@@ -25,6 +25,7 @@ import com.getcapacitor.annotation.PermissionCallback
 import com.pedro.common.ConnectChecker
 import com.pedro.encoder.input.sources.audio.MicrophoneSource
 import com.pedro.encoder.input.sources.video.Camera2Source
+import com.pedro.encoder.input.video.CameraCallbacks
 import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.library.base.StreamBase
 import com.pedro.library.generic.GenericStream
@@ -69,6 +70,15 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         /** Retries inside startPreview when Camera2 open fails right after a fresh grant. */
         private const val PREVIEW_START_MAX_ATTEMPTS = 4
         private const val PREVIEW_START_RETRY_DELAY_MS = 350L
+
+        /**
+         * CameraDevice.StateCallback#onError is async and never surfaces as a thrown exception —
+         * RootEncoder's own Camera2ApiManager still sets isRunning=true on that path, so
+         * stream.startPreview() returns normally even when the camera never actually opened.
+         * Wait this long after a "successful" startPreview() call before trusting it, to give a
+         * fast-failing async error a chance to arrive via CameraCallbacks.
+         */
+        private const val CAMERA_OPEN_CONFIRM_DELAY_MS = 350L
     }
 
     private data class Resolution(val width: Int, val height: Int, val videoBitrate: Int)
@@ -111,6 +121,22 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
     private var previewSurfaceCallback: SurfaceHolder.Callback? = null
     private var previewStartAttempt = 0
 
+    /**
+     * Set by cameraCallbacks.onCameraError — the only reliable signal that Camera2 actually
+     * failed to open. See CAMERA_OPEN_CONFIRM_DELAY_MS for why this can't be a thrown exception.
+     */
+    private var lastCameraErrorAtMs = 0L
+
+    private val cameraCallbacks = object : CameraCallbacks {
+        override fun onCameraChanged(facing: CameraHelper.Facing) {}
+        override fun onCameraOpened() {}
+        override fun onCameraDisconnected() {}
+        override fun onCameraError(error: String) {
+            Log.w(TAG, "Camera2 open failed: $error")
+            lastCameraErrorAtMs = System.currentTimeMillis()
+        }
+    }
+
     override fun load() {
         stream = createStreamPipeline()
     }
@@ -120,6 +146,7 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         genericStream.getGlInterface().autoHandleOrientation = true
         genericStream.setFpsListener { fps -> lastFps = fps }
         genericStream.getStreamClient().resizeCache(200)
+        (genericStream.videoSource as? Camera2Source)?.setCameraCallback(cameraCallbacks)
         return genericStream
     }
 
@@ -238,23 +265,47 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
                     // Surface not ready yet — surfaceChanged / post will retry.
                     return
                 }
-                try {
-                    ensureCameraFacing(currentFacing)
-                    active.startPreview(surfaceView)
-                    previewStartAttempt = 0
-                    resolveStarted()
-                } catch (e: Exception) {
+
+                fun retryOrFail(reason: String) {
+                    // Force-close before retrying — RootEncoder's isRunning flag stays (wrongly)
+                    // true after a failed async open, and startPreview() no-ops if it thinks
+                    // the camera is already running.
+                    try {
+                        if (active.isOnPreview) active.stopPreview()
+                    } catch (e: Exception) {
+                        Log.w(TAG, "stopPreview before retry failed", e)
+                    }
                     previewStartAttempt += 1
-                    Log.w(TAG, "startPreview attempt $previewStartAttempt failed: ${e.message}")
+                    Log.w(TAG, "startPreview attempt $previewStartAttempt failed: $reason")
                     if (previewStartAttempt >= PREVIEW_START_MAX_ATTEMPTS) {
                         previewStartAttempt = 0
-                        rejectStarted("Failed to start camera preview: ${e.message}")
+                        rejectStarted("Failed to start camera preview: $reason")
                         return
                     }
                     mainHandler.postDelayed({
                         if (activity.isFinishing || callSettled) return@postDelayed
                         tryStartCameraPreview()
                     }, PREVIEW_START_RETRY_DELAY_MS)
+                }
+
+                try {
+                    ensureCameraFacing(currentFacing)
+                    val attemptStartedAtMs = System.currentTimeMillis()
+                    active.startPreview(surfaceView)
+                    // Camera2's async open-failure callback never throws (see
+                    // CAMERA_OPEN_CONFIRM_DELAY_MS) — wait a beat and check cameraCallbacks
+                    // before trusting this "success".
+                    mainHandler.postDelayed({
+                        if (callSettled) return@postDelayed
+                        if (lastCameraErrorAtMs >= attemptStartedAtMs) {
+                            retryOrFail("Camera2 reported an async open error")
+                        } else {
+                            previewStartAttempt = 0
+                            resolveStarted()
+                        }
+                    }, CAMERA_OPEN_CONFIRM_DELAY_MS)
+                } catch (e: Exception) {
+                    retryOrFail(e.message ?: "unknown error")
                 }
             }
 
