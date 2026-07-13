@@ -207,6 +207,10 @@
           } catch (e) {}
         }
 
+        // iOS native host calls this after revealing the WKWebView. Play-while-hidden
+        // never reaches PLAYING (see [TapeyaDebug] hidden=true on ready).
+        window.tapeyaStartPlayback = startPlayback;
+
         function notifyHost(event) {
           if (event === 'ready' && hostReadySent) {
             return;
@@ -271,16 +275,27 @@
             events: {
               onReady: function () {
                 applyRotateLayout();
+                // Reveal the native webview first, then play (hidden WKWebView blocks PLAYING).
+                notifyHostReady();
                 startPlayback();
-                window.setTimeout(startPlayback, 500);
+                window.setTimeout(startPlayback, 350);
+                window.setTimeout(startPlayback, 1200);
                 if (flags.coverMode) {
                   fitPlayerCover();
                   window.setTimeout(fitPlayerCover, 250);
                   window.setTimeout(fitPlayerCover, 1000);
                 }
-                notifyHostReady();
               },
               onStateChange: function (event) {
+                try {
+                  if (
+                    window.webkit &&
+                    window.webkit.messageHandlers &&
+                    window.webkit.messageHandlers.tapeyaStream
+                  ) {
+                    window.webkit.messageHandlers.tapeyaStream.postMessage('state:' + event.data);
+                  }
+                } catch (e) {}
                 if (event.data === YT.PlayerState.PLAYING) {
                   notifyHost('playing');
                 }
