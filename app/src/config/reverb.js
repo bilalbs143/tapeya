@@ -1,7 +1,7 @@
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 
-import { baseUrl, getApiOrigin } from '@/store/api/baseApi';
+import { baseUrl, getApiOrigin } from '@/lib/apiOrigin';
 
 /**
  * WebSocket host/ports must be reachable from the browser (not localhost loopback in production).
@@ -36,8 +36,8 @@ export function getReverbClientConfig() {
   const derived = deriveFromApiBase();
   return {
     enabled: true,
-    /** Must equal `REVERB_APP_KEY` in `api/.env` */
-    appKey: 'local-reverb-key',
+    /** Must equal `REVERB_APP_KEY` in `api/.env`. Override via `VITE_REVERB_APP_KEY` at build time. */
+    appKey: import.meta.env.VITE_REVERB_APP_KEY || 'local-reverb-key',
     ...derived,
   };
 }
@@ -48,7 +48,7 @@ export function getReverbClientConfig() {
  * @param {{ authToken?: string }} [options]
  *   Pass `authToken` to enable private-channel auth (`/broadcasting/auth`).
  *   Omit (or pass nothing) for public channels — no auth endpoint is set.
- * @returns {Echo|null} null when Reverb is disabled or the API origin is unknown.
+ * @returns {Echo<'reverb'>|null} null when Reverb is disabled or the API origin is unknown.
  */
 export function createEcho({ authToken } = {}) {
   const reverb = getReverbClientConfig();
@@ -57,8 +57,10 @@ export function createEcho({ authToken } = {}) {
   const origin = getApiOrigin();
   if (!origin) return null;
 
-  window.Pusher = Pusher;
+  // Laravel Echo's 'reverb' broadcaster expects a global Pusher client (Reverb speaks the Pusher protocol).
+  /** @type {any} */ (window).Pusher = Pusher;
 
+  /** @type {any} */
   const options = {
     broadcaster: 'reverb',
     key: reverb.appKey,

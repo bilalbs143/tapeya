@@ -1,0 +1,10 @@
+/**
+ * Graphics surface styles (standalone build on graphics.tapeya.com).
+ * Strips theme preview backgrounds so only graphic cards float over transparent video.
+ *
+ * All Tailwind preflight replacements (border, box-sizing, --tw-* variables) live in
+ * src/graphics/shared/styles/tailwind.css — keep resets consolidated there.
+ */
+.graphic-overlay-container > div {
+  background-color: transparent !important;
+}

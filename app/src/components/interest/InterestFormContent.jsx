@@ -116,23 +116,23 @@ export function InterestFormContent({
 
     const source = mySubmission
       ? {
-        name: mySubmission.name ?? '',
-        nickname: mySubmission.nickname ?? '',
-        email: mySubmission.email ?? '',
-        phone: mySubmission.phone ?? '',
-        country: countryFromSubmission || DEFAULT_COUNTRY,
-        city: mySubmission.city ?? '',
-        date_of_birth: formatIsoDateForDisplay(mySubmission.date_of_birth),
-      }
+          name: mySubmission.name ?? '',
+          nickname: mySubmission.nickname ?? '',
+          email: mySubmission.email ?? '',
+          phone: mySubmission.phone ?? '',
+          country: countryFromSubmission || DEFAULT_COUNTRY,
+          city: mySubmission.city ?? '',
+          date_of_birth: formatIsoDateForDisplay(mySubmission.date_of_birth),
+        }
       : {
-        name: profileDefaults?.name ?? '',
-        nickname: profileDefaults?.nickname ?? '',
-        email: profileDefaults?.email ?? '',
-        phone: profileDefaults?.phone ?? '',
-        country: countryFromProfile || DEFAULT_COUNTRY,
-        city: profileDefaults?.city ?? '',
-        date_of_birth: formatIsoDateForDisplay(profileDefaults?.date_of_birth),
-      };
+          name: profileDefaults?.name ?? '',
+          nickname: profileDefaults?.nickname ?? '',
+          email: profileDefaults?.email ?? '',
+          phone: profileDefaults?.phone ?? '',
+          country: countryFromProfile || DEFAULT_COUNTRY,
+          city: profileDefaults?.city ?? '',
+          date_of_birth: formatIsoDateForDisplay(profileDefaults?.date_of_birth),
+        };
     setForm(source);
     const existingPic = mySubmission?.profile_picture_url ?? profileDefaults?.avatar_url ?? null;
     setProfilePictureUpload(fileUploadValueFromUrl(existingPic));
@@ -240,9 +240,7 @@ export function InterestFormContent({
       {(campaign.description || !isOpen) && (
         <div className={isDialog ? 'text-center' : 'mx-auto mb-6 max-w-2xl text-center'}>
           {campaign.description && (
-            <p className="text-muted mb-4 text-[13px] leading-snug whitespace-pre-line md:text-[14px]">
-              {campaign.description}
-            </p>
+            <p className="text-muted mb-4 text-[13px] leading-snug whitespace-pre-line md:text-[14px]">{campaign.description}</p>
           )}
           {!isOpen && (
             <div className="bg-surface rounded-[6px] border border-amber-500/45 p-4 shadow-[0_0_0_1px_rgba(251,191,36,0.12)]">

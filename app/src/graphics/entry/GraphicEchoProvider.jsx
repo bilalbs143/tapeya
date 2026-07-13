@@ -2,23 +2,29 @@ import { createContext, useContext, useEffect, useState } from 'react';
 
 import { createEcho } from '@/config/reverb';
 
-/**
- * One Laravel Echo instance per overlay mount / match id — avoids creating a
- * new WebSocket client on every `useGraphicChannel` re-run and prevents
- * overlapping connections during React strict-mode or route remounts.
- */
-const GraphicEchoContext = createContext(null);
+/** @typedef {import('laravel-echo').default<'reverb'>} GraphicEcho */
 
-export function GraphicEchoProvider({ matchId, children }) {
-  const [echo, setEcho] = useState(null);
+/**
+ * One Laravel Echo instance per overlay mount — avoids creating a new WebSocket
+ * client on every channel hook re-run and prevents overlapping connections during
+ * React strict-mode remounts.
+ */
+const GraphicEchoContext = createContext(/** @type {GraphicEcho|null} */ (null));
+
+/** @param {{ children?: import('react').ReactNode }} props */
+export function GraphicEchoProvider({ children }) {
+  const [echo, setEcho] = useState(/** @type {GraphicEcho|null} */ (null));
 
   useEffect(() => {
-    if (!matchId) {
+    let instance;
+    try {
+      instance = createEcho();
+    } catch (err) {
+      console.error('[graphics:echo] Failed to create Echo instance — WebSocket disabled.', err);
       setEcho(null);
       return undefined;
     }
 
-    const instance = createEcho();
     if (!instance) {
       setEcho(null);
       return undefined;
@@ -30,12 +36,12 @@ export function GraphicEchoProvider({ matchId, children }) {
       instance.disconnect();
       setEcho(null);
     };
-  }, [matchId]);
+  }, []);
 
   return <GraphicEchoContext.Provider value={echo}>{children}</GraphicEchoContext.Provider>;
 }
 
-/** @returns {import('laravel-echo').default|null} */
+/** @returns {GraphicEcho|null} */
 // eslint-disable-next-line react-refresh/only-export-components
 export function useGraphicEcho() {
   return useContext(GraphicEchoContext);

@@ -138,7 +138,7 @@ function LeaderboardRow({ row, delay = 0 }) {
         </span>
       </div>
 
-      <div className="grid w-[168px] shrink-0 place-items-center border-r border-white/[0.08]">
+      <div className="grid w-[168px] shrink-0 place-items-center border-r border-white/8">
         <span
           className={cn(rankHeroClass, filled ? 'text-white' : 'text-transparent')}
           style={{ ...getValueTextShadow(filled, top), ...fsFont(fsTable.rankHero) }}
@@ -172,6 +172,11 @@ function LeaderboardRows({ rows }) {
 }
 
 function LeaderboardFeatured({ featured, avatarUrl }) {
+  // `featured` is null whenever the leaderboard has zero rows and no explicit
+  // payload override (see leaderboardRows.js's featuredFromLeaderboardRow) —
+  // e.g. a tournament with no fours/sixes/wickets recorded yet.
+  if (!featured) return null;
+
   return (
     <div className="flex min-h-0 flex-1 flex-col items-center justify-end gap-[22px]">
       <div className="flex min-h-0 flex-1 items-end justify-center">

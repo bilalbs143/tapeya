@@ -65,10 +65,11 @@ server {
 
 ## Backoffice Deployment (Angular)
 
-1. Build for production:
+1. Build (URLs are baked via Angular environment files — do not edit them for deploy):
    ```bash
    cd backoffice
-   ng build --configuration production
+   npm run build:production   # api.tapeya.com / tapeya.com
+   # npm run build:staging    # dev-api.tapeya.com / dev.tapeya.com
    ```
 
 2. Deploy `dist/backoffice/browser` folder to web server or CDN
@@ -89,25 +90,96 @@ server {
 }
 ```
 
-## Mobile App Deployment
+## Consumer App Deployment (`tapeya.com`)
 
-### Web (PWA)
+Web SPA from `app/` (Vite). URLs are baked by npm scripts — do not edit source for deploy:
+
 ```bash
-cd mobile
-ionic build --prod
+cd app
+npm ci
+npm run build:production   # api.tapeya.com + tapeya.com
+# npm run build:staging    # dev-api.tapeya.com + dev.tapeya.com
 ```
 
-### iOS
+Deploy `app/dist/` to the web root for `tapeya.com`.
+
+### Native (Capacitor)
+
 ```bash
-ionic cap build ios
-# Then use Xcode to archive and submit to App Store
+cd app
+npm run cap:ios        # production API/APP URLs
+# npm run cap:ios:dev  # staging
+npm run cap:android
+# npm run cap:android:dev
 ```
 
-### Android
+Then archive in Xcode / Android Studio as usual.
+
+## Graphics Site Deployment (`graphics.tapeya.com`)
+
+Isolated vMix/OBS browser-source build — see [`docs/GRAPHICS_OVERLAY_ISOLATION_PLAN.md`](GRAPHICS_OVERLAY_ISOLATION_PLAN.md).
+
+### Build
+
 ```bash
-ionic cap build android
-# Then use Android Studio to build APK/AAB
+cd app
+npm ci
+npm run generate:tokens
+npm run build:graphics:production   # bakes VITE_API_URL=https://api.tapeya.com/api/v1
+npm run check:graphics-output       # no color-mix / dvh in dist-graphics
+npm run check:graphics-deps         # no consumer bundles in dist-graphics
 ```
+
+Artifact: `app/dist-graphics/` (serve at web root on `graphics.tapeya.com`).
+
+Build env is set via `app/package.json` scripts (`build:graphics:production`, `build:graphics:staging`) or inline `VITE_API_URL` / `VITE_REVERB_APP_KEY` when running `npm run build:graphics`.
+
+### Server / Nginx
+
+- Config: inline in [`nginx/tapeya.conf`](../nginx/tapeya.conf) (standalone copy: [`nginx/graphics.conf`](../nginx/graphics.conf))
+- **TLS required before go-live:** add the HTTPS server block from [`nginx/tapeya-ssl.conf.sample`](../nginx/tapeya-ssl.conf.sample). Obtain a cert before production graphics traffic.
+  ```bash
+  certbot certonly --webroot -w /var/www/tapeya/app/dist-graphics -d graphics.tapeya.com
+  ```
+- Document root: `/var/www/tapeya/app/dist-graphics`
+- SPA fallback: `/{sessionId}-{expires}-{signature}` → `index.html`
+- Cache: `index.html` and signed token paths → `no-cache`; hashed `/assets/*` → `immutable`, 1 year
+- **URL versioning:** graphics URLs intentionally omit `/v1/` (see plan §16 — single canonical URL, deploy discipline instead of parallel version paths)
+
+### API / Reverb (production `.env`)
+
+```env
+CORS_ALLOWED_ORIGINS=https://tapeya.com,https://graphics.tapeya.com,https://backoffice.tapeya.com
+REVERB_ALLOWED_ORIGINS=tapeya.com,graphics.tapeya.com,backoffice.tapeya.com,localhost
+```
+
+`localhost` is required for the Capacitor mobile app (its WebView origin is `capacitor://localhost` on iOS, `https://localhost` on Android) — without it, Reverb closes every WebSocket connection from the app with `pusher:error` code 4009 "Origin not allowed", silently breaking all real-time features (chat, hearts, presence, live status) in the app while the web client keeps working. Restart Reverb (`php artisan reverb:restart` or your process manager) after changing this — it only reads `.env` at boot.
+
+Set **Graphics Frontend URL** (`https://graphics.tapeya.com`), **Graphics Signing Secret**, and **Graphics Signed URL TTL** in Admin → System Settings (not `.env`).
+
+**Signing secret is required.** If unset, signed URL generation and token verification throw at runtime (no silent empty-string HMAC).
+
+### Go-live runbook (order matters)
+
+1. Deploy **API PHP** (uses `GraphicsSettings`, group `graphics`).
+2. Run SQL migration: [`api/database/sql/migrate_overlay_settings_to_graphics.sql`](../api/database/sql/migrate_overlay_settings_to_graphics.sql)  
+   `UPDATE settings SET "group" = 'graphics' WHERE "group" = 'overlay'`
+3. Confirm **Graphics Signing Secret** and **Graphics Frontend URL** in Admin → System Settings.
+4. Restart queue workers / PHP-FPM if settings were cached in long-lived processes.
+5. Deploy **`dist-graphics/`** to `graphics.tapeya.com` (rsync swap via `graphics-deploy.yml` or `./scripts/deploy.sh graphics`).
+6. Regenerate signed browser-source URLs in Match Graphics Controller (old `/overlay/…` URLs and expired tokens are invalid).
+
+Rename GitHub Actions secrets: `OVERLAY_DEPLOY_*` → `GRAPHICS_DEPLOY_*` before using the deploy workflow.
+
+### CI smoke tests (limitations)
+
+Playwright smoke (`test:e2e:graphics-smoke`, Chrome 86 job) **mock** `GET /graphic-sessions/access/**` via fixtures — they validate the built artifact and vMix-safe CSS, but **do not** hit production API or verify Admin **Graphics Frontend URL**. After deploy, smoke-test one real signed URL in OBS/vMix once.
+
+### CI / manual deploy
+
+- GitHub Actions: `.github/workflows/graphics-deploy.yml` (workflow_dispatch)
+- Local script: `./scripts/deploy.sh graphics`
+- Optional RSYNC secrets: `GRAPHICS_DEPLOY_HOST`, `GRAPHICS_DEPLOY_USER`, `GRAPHICS_DEPLOY_PATH`, `GRAPHICS_DEPLOY_KEY`, `GRAPHICS_DEPLOY_KNOWN_HOSTS` (output of `ssh-keyscan -H $HOST` — pins server host key; deploy fails if missing or key changes)
 
 ## CI/CD Pipeline
 

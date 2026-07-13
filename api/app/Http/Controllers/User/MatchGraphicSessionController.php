@@ -16,7 +16,7 @@ class MatchGraphicSessionController extends Controller
     /**
      * Get or create the graphic session for this match (same payload as admin GET).
      *
-     * Used by the broadcast overlay app with a user API token.
+     * Used by the graphics app with a user API token.
      */
     public function show(TournamentMatch $match): JsonResponse
     {

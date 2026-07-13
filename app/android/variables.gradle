@@ -13,4 +13,9 @@ ext {
     androidxJunitVersion = '1.1.5'
     androidxEspressoCoreVersion = '3.5.1'
     cordovaAndroidVersion = '10.1.1'
+    // Self-serve mobile broadcast (TapeyaBroadcastPlugin) — see LIVE_STREAM_MOBILE_BROADCAST.md.
+    // Must match android/build.gradle buildscript ext.kotlinVersion
+    kotlinVersion = '2.3.10'
+    kotlin_version = '2.3.10'  // Capacitor android module reads this name
+    rootEncoderVersion = '2.7.5'
 }

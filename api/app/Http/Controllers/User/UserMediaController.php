@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Enums\Tournament\TournamentInterestFormFieldEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
-use App\Enums\Tournament\TournamentInterestFormFieldEnum;
 use App\Models\Team;
 use App\Models\TournamentInterestSubmission;
 use App\Models\TournamentMatch;

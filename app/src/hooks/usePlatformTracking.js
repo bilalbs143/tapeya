@@ -4,18 +4,18 @@ import { isDue, POLL_INTERVAL_MS, setLastSyncTime, shouldSyncPlatform } from '@/
 import { getPlatform } from '@/platform/platform';
 import { useUpdateActivePlatformMutation } from '@/store/api/userApi';
 import { useAppSelector } from '@/store/hooks';
-import { selectIsAuthenticated } from '@/store/selectors';
+import { selectAccessToken } from '@/store/selectors';
 
 /**
  * Tracks the user's active platform (web / ios / android).
- * Syncs on login/registration, then at most once every 24 hours while authenticated.
+ * Syncs on login/registration (token change), then at most once every 24 hours while authenticated.
  * Must be called inside RouterEffects (needs Redux + auth state).
  */
 export function usePlatformTracking() {
-  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const accessToken = useAppSelector(selectAccessToken);
   const [updateActivePlatform] = useUpdateActivePlatformMutation();
   const timerRef = useRef(null);
-  const prevAuthenticated = useRef(isAuthenticated);
+  const prevTokenRef = useRef(accessToken);
 
   const sync = useCallback(() => {
     const platform = getPlatform();
@@ -28,8 +28,8 @@ export function usePlatformTracking() {
   }, [updateActivePlatform]);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      prevAuthenticated.current = false;
+    if (!accessToken) {
+      prevTokenRef.current = null;
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
@@ -37,10 +37,10 @@ export function usePlatformTracking() {
       return;
     }
 
-    const justLoggedIn = !prevAuthenticated.current;
-    prevAuthenticated.current = true;
+    const tokenChanged = accessToken !== prevTokenRef.current;
+    prevTokenRef.current = accessToken;
 
-    if (shouldSyncPlatform({ justLoggedIn })) {
+    if (shouldSyncPlatform({ justLoggedIn: tokenChanged })) {
       sync();
     }
 
@@ -54,5 +54,5 @@ export function usePlatformTracking() {
         timerRef.current = null;
       }
     };
-  }, [isAuthenticated, sync]);
+  }, [accessToken, sync]);
 }

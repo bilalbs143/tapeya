@@ -13,13 +13,34 @@ import { chartLabelsForCommand } from './presentationLabels';
 import { toTeams } from './teams.adapter';
 
 /**
+ * "Nice numbers" step size (1/2/5 × a power of 10) closest to yMax / targetTicks —
+ * the standard axis-tick algorithm (matplotlib/d3/Highcharts all use a variant of
+ * this) so gridline density stays readable at any data magnitude, instead of a
+ * fixed step that collapses to just `[0, yMax]` once yMax is small (e.g. early
+ * in an innings, yMax=9 with a fixed step of 10 has room for exactly one tick).
+ *
  * @param {number} yMax
+ * @param {number} targetTicks desired gridline count (excluding the implicit 0)
  */
-function buildYTicks(yMax) {
-  const step = yMax <= 50 ? 10 : yMax <= 100 ? 25 : Math.ceil(yMax / 4 / 10) * 10;
+function niceTickStep(yMax, targetTicks) {
+  const roughStep = yMax / targetTicks;
+  const magnitude = 10 ** Math.floor(Math.log10(roughStep));
+  const normalized = roughStep / magnitude;
+  const niceNormalized = normalized < 1.5 ? 1 : normalized < 3 ? 2 : normalized < 7 ? 5 : 10;
+  // Runs/wickets/overs axes are always integer-valued — never step below 1.
+  return Math.max(1, niceNormalized * magnitude);
+}
+
+/**
+ * @param {number} yMax
+ * @param {number} [targetTicks=4]
+ */
+function buildYTicks(yMax, targetTicks = 4) {
+  if (!(yMax > 0)) return [0];
+
+  const step = niceTickStep(yMax, targetTicks);
   const ticks = [];
-  for (let v = 0; v <= yMax; v += step) ticks.push(v);
-  if (ticks[ticks.length - 1] !== yMax) ticks.push(yMax);
+  for (let v = 0; v <= yMax + step / 1e6; v += step) ticks.push(Math.round(v * 100) / 100);
   return ticks;
 }
 
@@ -120,6 +141,7 @@ export function toWormChartData(props, tokens) {
   const teamPair = resolveChartTeamPair(props, tokens);
   const overCategories = Array.isArray(props.overCategories) ? props.overCategories : [];
   const xMax = overCategories.length || Math.max(...chartSeries.map((s) => s.data?.length ?? 0));
+  if (xMax === 0) return null;
   const yMax = props.yAxisMax ?? 100;
   // Keep null for overs not yet bowled — the layout skips them so shorter-innings
   // lines end at the correct over rather than dropping back to zero.
@@ -210,11 +232,11 @@ export function toPhaseChartData(props, tokens) {
     },
     summary: {
       top: {
-        name: summaryCards[0]?.team ?? teamPair.top.shortName ?? teamPair.top.name,
+        name: summaryCards[0]?.team ?? teamPair.top.name ?? teamPair.top.shortName,
         score: summaryCards[0]?.score ?? '',
       },
       bottom: {
-        name: summaryCards[1]?.team ?? teamPair.bottom.shortName ?? teamPair.bottom.name,
+        name: summaryCards[1]?.team ?? teamPair.bottom.name ?? teamPair.bottom.shortName,
         score: summaryCards[1]?.score ?? '',
       },
     },

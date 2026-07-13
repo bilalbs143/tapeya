@@ -9,8 +9,6 @@ import { isTourCodeBadgeGlowEnabled, textGlowClass } from '../../visualEffects';
 const BADGE_BASE =
   'flex shrink-0 items-center justify-center rounded-xl border bg-[linear-gradient(145deg,rgba(34,46,82,0.96),rgba(10,15,28,0.98))]';
 
-const badgeBorderStyle = { borderColor: accentMix('var(--accentA)', 48) };
-
 /** @param {unknown} value */
 function nonEmptyString(value) {
   return typeof value === 'string' && value.trim() !== '' ? value.trim() : '';
@@ -27,7 +25,7 @@ function TourShortCodeBadge({ shortCode }) {
         BADGE_BASE,
         'h-16 min-w-[5rem] px-2.5',
       )}
-      style={badgeBorderStyle}
+      style={{ borderColor: accentMix('var(--accentA)', 48) }}
       aria-label={`Tournament ${shortCode}`}
     >
       <span
@@ -79,7 +77,7 @@ export function TourHitsMiniBar({ mini, defaultTitle = 'RUNS', edgeToEdge = true
   const shortCode = nonEmptyString(mini.shortCode);
 
   return (
-    <div ref={containerRef} className="mb-4 ml-4 flex w-full justify-start" style={{ height: surfaceHeight || undefined }}>
+    <div ref={containerRef} className="mb-4 flex w-full justify-start" style={{ height: surfaceHeight || undefined }}>
       <div
         className="max-w-full overflow-hidden"
         style={{ width: surfaceWidth || undefined, height: surfaceHeight || undefined }}
@@ -112,7 +110,8 @@ export function TourHitsMiniBar({ mini, defaultTitle = 'RUNS', edgeToEdge = true
                 value={mini.count}
                 delay={150}
                 className={cn(
-                  'shrink-0 pr-1 [font-family:var(--font-display)] text-[2.75rem] leading-[0.92] font-extrabold tracking-[0.02em] text-[var(--score-color)] tabular-nums',
+                  DISPLAY_FONT,
+                  'shrink-0 pr-1 text-[2.75rem] leading-[0.92] font-extrabold tracking-[0.02em] text-[var(--score-color)] tabular-nums',
                   textGlowClass('score'),
                 )}
               />

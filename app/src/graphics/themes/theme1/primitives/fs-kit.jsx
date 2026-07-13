@@ -19,7 +19,7 @@ import {
 import { accentMix } from './accent';
 import { Crest } from './atoms';
 import { crestCornerRadius, crestLogoPadding } from './crestMetrics';
-import { fsFont } from './formatters';
+import { DISPLAY_FONT, fsFont } from './formatters';
 import { FS_DESIGN_H, FS_DESIGN_W, useFitStage } from './useFitStage';
 
 const PILL_LAYOUT = {
@@ -43,7 +43,7 @@ export const FSDiagonal = memo(function FSDiagonal() {
   const glowPulse = isFsStageAmbientEnabled();
 
   return (
-    <div className="fs-stage-fabric absolute inset-0 overflow-hidden" aria-hidden="true">
+    <div className="fs-stage-fabric absolute top-0 right-0 bottom-0 left-0 overflow-hidden" aria-hidden="true">
       <div className="fs-stage-fabric__wash" style={{ background: fsStageFabric.baseWash }} />
 
       {fsStageFabric.bands.map((band) => (
@@ -89,7 +89,7 @@ export const FSStage = memo(function FSStage({ children, designW = FS_DESIGN_W, 
   const { ref, scale, ready } = useFitStage(designW, designH, 'cover');
 
   return (
-    <div ref={ref} className={cn('absolute inset-0 overflow-hidden', className)}>
+    <div ref={ref} className={cn('absolute top-0 right-0 bottom-0 left-0 overflow-hidden', className)}>
       {ready && (
         <div
           className="absolute top-1/2 left-1/2 origin-center"
@@ -110,16 +110,8 @@ export const FSStage = memo(function FSStage({ children, designW = FS_DESIGN_W, 
 });
 
 /** Club crest slot — rounded square with neon ring and team logo image. */
-export const TeamLogoSlot = memo(function TeamLogoSlot({
-  src,
-  alt = 'Team logo',
-  size = 300,
-  accent,
-  accentAlt,
-  borderPulseOrder,
-}) {
+export const TeamLogoSlot = memo(function TeamLogoSlot({ src, alt = 'Team logo', size = 300, accent, borderPulseOrder }) {
   const ring = accent || colors.accentA;
-  const ringAlt = accentAlt || colors.accentB;
   const pulseClass = crestPulseClass(borderPulseOrder);
   const cornerRadius = crestCornerRadius(size);
 
@@ -130,7 +122,6 @@ export const TeamLogoSlot = memo(function TeamLogoSlot({
         style={{
           '--team-ring': ring,
           '--crest-ring': ring,
-          '--crest-ring-alt': ringAlt,
           borderRadius: cornerRadius + 3,
           boxShadow: crestRingBoxShadow(ring),
         }}
@@ -140,7 +131,7 @@ export const TeamLogoSlot = memo(function TeamLogoSlot({
         alt={alt}
         draggable={false}
         className={cn(
-          'absolute inset-0 box-border block size-full object-contain',
+          'absolute top-0 right-0 bottom-0 left-0 box-border block size-full object-contain',
           'bg-[radial-gradient(120%_120%_at_30%_25%,#1b2233,#0a0e17_70%)]',
         )}
         style={{ borderRadius: cornerRadius, padding: crestLogoPadding(size) }}
@@ -156,7 +147,6 @@ export const TeamLogoOrCrest = memo(function TeamLogoOrCrest({
   shortName,
   team = null,
   accent,
-  accentAlt,
   size = 300,
   borderPulseOrder,
   plain = false,
@@ -174,32 +164,15 @@ export const TeamLogoOrCrest = memo(function TeamLogoOrCrest({
       );
     }
 
-    return (
-      <TeamLogoSlot
-        src={resolvedLogo}
-        alt={alt}
-        size={size}
-        accent={resolvedAccent}
-        accentAlt={accentAlt}
-        borderPulseOrder={borderPulseOrder}
-      />
-    );
+    return <TeamLogoSlot src={resolvedLogo} alt={alt} size={size} accent={resolvedAccent} borderPulseOrder={borderPulseOrder} />;
   }
 
   if (team) {
-    return <Crest team={team} size={size} accent={resolvedAccent} accentAlt={accentAlt} borderPulseOrder={borderPulseOrder} />;
+    return <Crest team={team} size={size} accent={resolvedAccent} borderPulseOrder={borderPulseOrder} />;
   }
 
   const code = shortName ?? name ?? '?';
-  return (
-    <Crest
-      team={{ code, name: code }}
-      size={size}
-      accent={resolvedAccent}
-      accentAlt={accentAlt}
-      borderPulseOrder={borderPulseOrder}
-    />
-  );
+  return <Crest team={{ code, name: code }} size={size} accent={resolvedAccent} borderPulseOrder={borderPulseOrder} />;
 });
 
 /** VS lozenge used on hero / summary full-screen graphics. */
@@ -210,7 +183,7 @@ export const VSBadge = memo(function VSBadge({ size = 120 }) {
     <div
       className={cn(
         'relative grid shrink-0 place-items-center',
-        'before:absolute before:inset-0 before:rounded-full',
+        'before:absolute before:top-0 before:right-0 before:bottom-0 before:left-0 before:rounded-full',
         'before:bg-[radial-gradient(circle_at_35%_30%,rgba(120,140,255,0.35),rgba(10,14,24,0)_70%)]',
       )}
       style={{ width: size, height: size }}
@@ -219,7 +192,7 @@ export const VSBadge = memo(function VSBadge({ size = 120 }) {
       <span
         className={cn(
           'relative font-extrabold tracking-[-0.02em] text-white',
-          '[font-family:var(--font-display)]',
+          DISPLAY_FONT,
           '[-webkit-text-stroke:2px_rgba(120,140,255,0.4)]',
           '[text-shadow:0_6px_24px_rgba(0,0,0,0.6)]',
           textGlowClass('vsNeon'),
@@ -253,7 +226,7 @@ export const Pill = memo(function Pill({ children, accent = colors.accentA, vari
       <span
         className={cn(
           'text-center font-extrabold tracking-[0.08em] text-white uppercase',
-          '[font-family:var(--font-display)]',
+          DISPLAY_FONT,
           wrap ? 'whitespace-normal' : 'whitespace-nowrap',
         )}
         style={fsFont(fontSize)}

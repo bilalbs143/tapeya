@@ -6,7 +6,18 @@ import { FullScreenShell } from './shells/FullScreenShell';
 import { LowerThirdShell } from './shells/LowerThirdShell';
 import { PassthroughShell } from './shells/PassthroughShell';
 
-/** @type {Record<string, { themeMeta: object }>} */
+/**
+ * @typedef {Object} ThemeMeta
+ * @property {string} slug
+ * @property {string} folder
+ * @property {string} [label]
+ * @property {import('react').ComponentType<{ children: import('react').ReactNode }>} ThemeRoot
+ * @property {string[]} [styleImports]
+ * @property {string} [googleFontsUrl]
+ * @property {string[]} [googleFontFamilies]
+ */
+
+/** @type {Record<string, { themeMeta: ThemeMeta }>} */
 const themeMetaModules = import.meta.glob('../themes/*/themeMeta.js', { eager: true });
 
 /** @type {Record<string, () => Promise<unknown>>} */
@@ -43,6 +54,7 @@ function injectStylesheetOnce(id, href) {
     return inFlight;
   }
 
+  /** @type {Promise<void>} */
   const promise = new Promise((resolve, reject) => {
     const link = document.createElement('link');
     link.id = id;
@@ -98,7 +110,7 @@ async function waitForThemeFonts(families) {
 function buildThemeRegistry() {
   /** @type {Record<string, string>} */
   const slugToFolder = {};
-  /** @type {Record<string, { slug: string, folder: string, ThemeRoot: import('react').ComponentType<{ children: import('react').ReactNode }> }>} */
+  /** @type {Record<string, ThemeMeta>} */
   const metaBySlug = {};
 
   for (const theme of themesConfig.themes) {
@@ -126,13 +138,12 @@ const registry = buildThemeRegistry();
 /** @type {Record<string, string>} */
 const THEME_SLUG_TO_FOLDER = registry.slugToFolder;
 
-/** @type {Record<string, { slug: string, folder: string, ThemeRoot: import('react').ComponentType<{ children: import('react').ReactNode }> }>} */
+/** @type {Record<string, ThemeMeta>} */
 const THEME_META = registry.metaBySlug;
 
 /** @type {Map<string, string>} */
 const MANIFEST_KEY_TO_TYPE = new Map(manifest.commands.map((command) => [command.key, command.type]));
 
-/** @type {Record<string, () => Promise<{ default: import('react').ComponentType<any> }>>} */
 const themeCommandModules = import.meta.glob('../themes/*/commands/*/*.jsx');
 
 const componentCache = new Map();
@@ -167,7 +178,7 @@ function resolveCommandType(commandKey, commandType) {
 
 /**
  * @param {string|null|undefined} displayMode
- * @returns {import('react').ComponentType<{ children: import('react').ReactNode }>}
+ * @returns {import('react').ComponentType<{ children: import('react').ReactNode, tokens?: import('../types.js').ThemeTokens }>}
  */
 export function resolveDisplayModeShell(displayMode) {
   if (displayMode === 'FS') return FullScreenShell;
@@ -199,7 +210,8 @@ export function getThemeCommandComponent(themeSlug, commandType, commandKey) {
 
   const cacheKey = `${themeFolder}/${resolvedType}/${commandKey}`;
   if (!componentCache.has(cacheKey)) {
-    componentCache.set(cacheKey, lazy(loader));
+    const typedLoader = /** @type {() => Promise<{ default: import('react').ComponentType<any> }>} */ (loader);
+    componentCache.set(cacheKey, lazy(typedLoader));
   }
 
   return componentCache.get(cacheKey);
@@ -243,7 +255,7 @@ export async function ensureThemeFontsLoaded(themeSlug) {
   const folder = resolveThemeFolder(themeSlug);
   if (!folder || loadedThemeFontFolders.has(folder)) return;
 
-  const meta = THEME_META[themeSlug] ?? THEME_META[folder];
+  const meta = THEME_META[themeSlug ?? ''] ?? THEME_META[folder];
   const url = meta?.googleFontsUrl;
   if (!url) {
     loadedThemeFontFolders.add(folder);
@@ -297,5 +309,5 @@ export function listThemeCommandKeys(themeSlug) {
       if (segments.length !== 2) return null;
       return segments[1].replace(/\.jsx$/, '');
     })
-    .filter(Boolean);
+    .filter(/** @returns {key is string} */ (key) => key !== null);
 }

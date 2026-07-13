@@ -6,12 +6,13 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 import { fsChart } from '../../config';
-import { accentMix, DISPLAY_FONT, fsFont, FSStage, UI_FONT } from '../../primitives';
+import { accentGlowShadow, accentMix, DISPLAY_FONT, fsFont, FSStage, UI_FONT } from '../../primitives';
 import { chartGlowFilter } from '../../visualEffects';
 import { TEXT_SECONDARY } from '../shared/textStyles';
+import { CHART_PAD_B, CHART_PAD_L, CHART_PAD_R, CHART_PAD_T, ChartFrame } from './ChartFrame';
 import { ChartHeader } from './ChartHeader';
 import { ChartRightCrests } from './ChartRightCrests';
-import { CHART_AXIS_LABEL, CHART_AXIS_TICK, CHART_X_LABEL } from './chartTypographyStyles';
+import { CHART_X_LABEL } from './chartTypographyStyles';
 
 /** Cyan milestone markers on the worm line — matches PSL reference. */
 const WORM_MARKER_COLOR = '#3ad6ff';
@@ -19,12 +20,6 @@ const WORM_MARKER_COLOR = '#3ad6ff';
 /** Worm chart plot area — design canvas pixels (PSL reference). */
 const CHART_W = 1180;
 const CHART_H = 560;
-
-/** Shared chart frame padding — PSL reference. */
-const CHART_PAD_L = 96;
-const CHART_PAD_T = 24;
-const CHART_PAD_B = 64;
-const CHART_PAD_R = 24;
 
 /**
  * Map cumulative run values to SVG plot coordinates.
@@ -49,95 +44,13 @@ function toPathD(points) {
   return points.map((point, index) => `${index ? 'L' : 'M'}${point[0].toFixed(1)} ${point[1].toFixed(1)}`).join(' ');
 }
 
-function ChartFrame({ width, height, yTicks, yMax, xLabels = null, yLabel, xLabel, children }) {
-  const plotW = width - CHART_PAD_L - CHART_PAD_R;
-  const plotH = height - CHART_PAD_T - CHART_PAD_B;
-
-  return (
-    <div className="relative" style={{ width, height }}>
-      {yTicks.map((tick) => {
-        const y = CHART_PAD_T + plotH - (tick / yMax) * plotH;
-
-        return (
-          <div key={tick}>
-            <div className="absolute h-px bg-white/14" style={{ left: CHART_PAD_L, top: y, width: plotW }} />
-            <span
-              className={cn('absolute text-right', CHART_AXIS_TICK)}
-              style={{
-                ...fsFont(fsChart.axisTick),
-                left: 0,
-                top: y - 18,
-                width: CHART_PAD_L - 18,
-              }}
-            >
-              {tick}
-            </span>
-          </div>
-        );
-      })}
-
-      <div
-        className="absolute"
-        style={{
-          left: CHART_PAD_L,
-          top: CHART_PAD_T,
-          width: plotW,
-          height: plotH,
-        }}
-      >
-        {typeof children === 'function' ? children({ plotW, plotH }) : children}
-      </div>
-
-      {xLabels ? (
-        <div
-          className="absolute flex justify-around"
-          style={{
-            left: CHART_PAD_L,
-            top: CHART_PAD_T + plotH + 12,
-            width: plotW,
-          }}
-        >
-          {xLabels.map((label, index) => (
-            <span key={index} className={CHART_X_LABEL} style={fsFont(fsChart.xLabel)}>
-              {label}
-            </span>
-          ))}
-        </div>
-      ) : null}
-
-      {yLabel ? (
-        <span
-          className={cn('absolute origin-left -rotate-90', CHART_AXIS_LABEL)}
-          style={{ ...fsFont(fsChart.axisLabel), left: -8, top: CHART_PAD_T + plotH / 2 }}
-        >
-          {yLabel}
-        </span>
-      ) : null}
-
-      {xLabel ? (
-        <span
-          className={cn('absolute w-full text-center', CHART_AXIS_LABEL)}
-          style={{
-            ...fsFont(fsChart.axisLabel),
-            left: CHART_PAD_L,
-            top: height - 24,
-            width: plotW,
-          }}
-        >
-          {xLabel}
-        </span>
-      ) : null}
-    </div>
-  );
-}
-
 function MiniStat({ label, value, accent }) {
   return (
     <div
       className={cn('flex h-14 flex-1 items-center justify-between rounded-[10px] px-[22px]', 'border')}
       style={{
-        background: `linear-gradient(100deg, ${accentMix(accent, 33)}, rgba(14,19,32,.85))`,
-        borderColor: accentMix(accent, 27),
+        background: `linear-gradient(100deg, ${accentMix(accent, 22)}, rgba(14,19,32,.85))`,
+        borderColor: accentMix(accent, 28),
       }}
     >
       <span className={cn('text-[20px] font-semibold tracking-[0.1em] uppercase', TEXT_SECONDARY, UI_FONT)}>{label}</span>
@@ -150,10 +63,10 @@ function WormMeta({ name, meta, accent }) {
   return (
     <div className="flex flex-1 flex-col gap-2.5">
       <div
-        className="flex h-16 items-center overflow-hidden rounded-xl border"
+        className="flex h-16 items-center overflow-hidden rounded-xl"
         style={{
-          background: 'linear-gradient(180deg, rgba(22,28,42,.92), rgba(11,15,24,.95))',
-          borderColor: accentMix(accent, 33),
+          background: `linear-gradient(100deg, ${accentMix(accent, 80)}, ${accentMix(accent, 20)} 85%)`,
+          boxShadow: accentGlowShadow(accent, 13),
         }}
       >
         <span
@@ -168,7 +81,7 @@ function WormMeta({ name, meta, accent }) {
         <span className={cn('px-[18px] text-[36px] font-extrabold whitespace-nowrap text-white', DISPLAY_FONT)}>
           {meta.total}
         </span>
-        <span className="flex h-full flex-col justify-center px-[22px]" style={{ background: accentMix(accent, 20) }}>
+        <span className="flex h-full flex-col justify-center px-[22px]" style={{ background: accentMix(accent, 16) }}>
           <span className={cn('text-[16px] font-semibold tracking-[0.1em] text-[var(--text-secondary)] uppercase', UI_FONT)}>
             OVERS
           </span>
@@ -211,7 +124,7 @@ function WormLines({ topSeries, bottomSeries, topColor, bottomColor, xMax, yMax,
   const pathsReady = lengths.top > 0 && lengths.bottom > 0;
 
   return (
-    <svg width={plotW} height={plotH} className="absolute inset-0 overflow-visible" aria-hidden="true">
+    <svg width={plotW} height={plotH} className="absolute top-0 right-0 bottom-0 left-0 overflow-visible" aria-hidden="true">
       <path
         key={pathsReady ? `top-${lengths.top}` : 'top-pending'}
         ref={topPathRef}

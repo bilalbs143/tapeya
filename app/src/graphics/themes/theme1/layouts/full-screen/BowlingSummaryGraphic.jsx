@@ -4,7 +4,7 @@
 import { cn } from '@/lib/utils';
 
 import { fsSummaryPanel } from '../../config';
-import { accentGlowShadow, accentMix, DISPLAY_FONT, FSStage, ROW_ANIMATE_IN, TeamLogoOrCrest, UI_FONT } from '../../primitives';
+import { accentGlowShadow, DISPLAY_FONT, FSStage, ROW_ANIMATE_IN, TeamLogoOrCrest, UI_FONT } from '../../primitives';
 import {
   FS_GOLD_BAND,
   FS_PANEL_SUB,
@@ -21,12 +21,16 @@ const HERO_CREST_WIDTH = 700;
 const HERO_CREST_SIZE = 460;
 const PANEL_HEAD_CREST_SIZE = 92;
 const STAT_COL_WIDTH = 150;
+const BOWLER_ROW_BASE_DELAY_MS = 120;
 const BOWLER_ROW_STAGGER_MS = 80;
 const COLUMN_LABELS = ['OVERS', 'DOTS', 'RUNS', 'WICKETS', 'ECO'];
 
 const columnLabelClass = cn('text-center font-semibold tracking-[0.1em] text-[var(--text-secondary)] uppercase', UI_FONT);
 
-const bowlerNameClass = cn('flex-1 font-extrabold text-white uppercase', DISPLAY_FONT);
+const bowlerNameClass = cn(
+  'min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-extrabold text-white uppercase',
+  DISPLAY_FONT,
+);
 
 const statCellClass = cn('text-center font-bold text-[var(--text)]', DISPLAY_FONT);
 
@@ -34,7 +38,7 @@ const fowBandTextClass = FS_GOLD_BAND;
 
 /** @param {number} index */
 function getBowlerRowDelay(index) {
-  return index * BOWLER_ROW_STAGGER_MS;
+  return BOWLER_ROW_BASE_DELAY_MS + index * BOWLER_ROW_STAGGER_MS;
 }
 
 function resolveSub(data) {
@@ -84,8 +88,12 @@ function StatCell({ value }) {
 function BowlerRow({ name, overs, dots, runs, wickets, eco, index }) {
   return (
     <div
-      className={cn(ROW_ANIMATE_IN, 'flex h-[70px] items-center border-b border-white/10 px-[26px]')}
-      style={{ animationDelay: `${getBowlerRowDelay(index)}ms` }}
+      className={cn(ROW_ANIMATE_IN, 'flex h-[70px] items-center px-[26px]')}
+      style={{
+        animationDelay: `${getBowlerRowDelay(index)}ms`,
+        background: 'linear-gradient(100deg, rgba(120,140,255,0.12), rgba(18,24,40,0) 70%)',
+        borderBottom: '1px solid rgba(120,140,255,0.2)',
+      }}
     >
       <span className={bowlerNameClass} style={fsFont(fsSummaryPanel.bowlerName)}>
         {name}
@@ -130,19 +138,19 @@ function ScoreStripMeta({ label, value }) {
   );
 }
 
-function BowlingSummaryScoreStrip({ extras, overs, total, accent }) {
+function BowlingSummaryScoreStrip({ extras, overs, total }) {
   return (
     <div
       className="mt-3.5 flex h-[92px] w-full items-stretch overflow-hidden rounded-[14px] border border-[rgba(120,140,255,0.28)] bg-[linear-gradient(180deg,rgba(22,28,42,0.92),rgba(11,15,24,0.95))]"
-      style={{ boxShadow: accentGlowShadow(accent, 13, '20px') }}
+      style={{ boxShadow: '0 0 calc(20px * var(--glow)) rgba(120,140,255,0.13)' }}
     >
       <ScoreStripMeta label="EXTRAS" value={extras} />
-      <div className="w-px shrink-0 bg-white/[0.12]" />
+      <div className="w-px shrink-0 bg-white/12" />
       <ScoreStripMeta label="OVERS" value={overs} />
       <div className="min-w-6 flex-1" />
       <div
         className="flex shrink-0 items-center px-9 pl-7"
-        style={{ background: `linear-gradient(100deg, transparent, ${accentMix(accent, 20)})` }}
+        style={{ background: 'linear-gradient(100deg, transparent, rgba(120,140,255,0.16))' }}
       >
         <span className={FS_SCORE_STRIP_HERO} style={fsFont(fsSummaryPanel.scoreStripHero)}>
           {total}
@@ -152,7 +160,7 @@ function BowlingSummaryScoreStrip({ extras, overs, total, accent }) {
   );
 }
 
-function BowlingSummaryHeroCrest({ crestLogoUrl, title, team, accent, accentAlt }) {
+function BowlingSummaryHeroCrest({ crestLogoUrl, title, team, accent }) {
   return (
     <div className={ROW_ANIMATE_IN}>
       <TeamLogoOrCrest
@@ -160,7 +168,6 @@ function BowlingSummaryHeroCrest({ crestLogoUrl, title, team, accent, accentAlt 
         team={team}
         name={title}
         accent={accent}
-        accentAlt={accentAlt}
         size={HERO_CREST_SIZE}
         borderPulseOrder={1}
       />
@@ -171,7 +178,6 @@ function BowlingSummaryHeroCrest({ crestLogoUrl, title, team, accent, accentAlt 
 export function BowlingSummaryGraphic({ data, teams }) {
   const team = data.teamCode ? (teams?.[data.teamCode] ?? null) : null;
   const accent = data.accent ?? team?.color ?? '#5b7cff';
-  const accentAlt = data.accentAlt ?? undefined;
   const title = data.title ?? team?.fullName ?? team?.displayName ?? '';
   const bowlers = data.bowlers ?? [];
 
@@ -203,27 +209,16 @@ export function BowlingSummaryGraphic({ data, teams }) {
               index={index}
             />
           ))}
-          <div className="min-h-10 flex-1 border-b border-white/[0.07]" />
+          <div className="min-h-10 flex-1 border-b border-white/8" />
         </div>
 
         <FallOfWicketsBand label={data.fallOfWicketsLabel} accent={accent} accentSecondary={data.accentSecondary} />
 
-        <BowlingSummaryScoreStrip
-          extras={data.scoreStrip.extras}
-          overs={data.scoreStrip.overs}
-          total={data.scoreStrip.total}
-          accent={accent}
-        />
+        <BowlingSummaryScoreStrip extras={data.scoreStrip.extras} overs={data.scoreStrip.overs} total={data.scoreStrip.total} />
       </div>
 
       <div className="absolute top-0 bottom-0 grid place-items-center" style={{ right: PANEL_LEFT, width: HERO_CREST_WIDTH }}>
-        <BowlingSummaryHeroCrest
-          crestLogoUrl={data.crestLogoUrl}
-          title={title}
-          team={team}
-          accent={accent}
-          accentAlt={accentAlt}
-        />
+        <BowlingSummaryHeroCrest crestLogoUrl={data.crestLogoUrl} title={title} team={team} accent={accent} />
       </div>
     </FSStage>
   );

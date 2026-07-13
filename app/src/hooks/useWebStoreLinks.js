@@ -26,10 +26,12 @@ export function useWebStoreLinks() {
 
   const hasStoreLink = Boolean(links.appStoreUrl.trim() || links.playStoreUrl.trim());
   const isMobileWeb = detectMobileWebStorePlatform() !== null;
+  const shouldPromptDownloadApp = isWeb && isMobileWeb;
 
   return {
     isWeb,
     isMobileWeb,
+    shouldPromptDownloadApp,
     isSettingsReady: isSuccess,
     settingsRows,
     hasStoreLink,

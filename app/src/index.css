@@ -6,13 +6,6 @@ body {
   background-color: #000;
 }
 
-/* OBS overlay route — transparent surround (set via data-overlay-route in index.html). */
-html[data-overlay-route],
-html[data-overlay-route] body,
-html[data-overlay-route] #root {
-  background-color: transparent !important;
-}
-
 /* Mobile/tablet landscape live broadcast — hide global chrome (matches web fixed immersive shell). */
 html.live-broadcast-landscape [data-app-navbar],
 html.live-broadcast-landscape [data-app-bottom-nav] {
@@ -27,28 +20,13 @@ html.live-broadcast-landscape main {
   min-height: 100dvh;
 }
 
-/* iOS landscape underlay: html/body MUST stay transparent so the native WKWebView below
-   Capacitor can show through. Black here blocks video entirely (UIKit host stays black in Swift). */
+/* iOS native YouTube underlay — clear document + layout root for the video hole.
+   Keep descendant backgrounds (badges, navbar, bottom nav) intact. */
 html.ios-native-stream-underlay,
 html.ios-native-stream-underlay body,
 html.ios-native-stream-underlay #root,
 html.ios-native-stream-underlay #root > div,
-html.ios-native-stream-underlay #root > div * {
-  background-color: transparent !important;
-  background-image: none !important;
-}
-
-/*
- * Graphic overlay page — used as a browser source in OBS/vMix.
- *
- * Each graphic component wraps its card in a full-screen dark div
- * (bg-page) for standalone preview. On the overlay page we strip
- * that outer background so only the graphic card floats over the video
- * stream with a transparent surround.
- *
- * The inner <section> elements keep their own backgrounds.
- */
-.graphic-overlay-container > div {
+html.ios-native-stream-underlay main {
   background-color: transparent !important;
 }
 
@@ -164,4 +142,16 @@ html.ios-native-stream-underlay #root > div * {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/** Go-live camera preview — native MTHKView sits under the Capacitor webview. */
+html.broadcast-camera-underlay,
+html.broadcast-camera-underlay body,
+html.broadcast-camera-underlay #root,
+html.broadcast-camera-underlay main {
+  background-color: transparent !important;
+}
+
+html.broadcast-camera-underlay body {
+  overflow: hidden;
 }

@@ -47,6 +47,7 @@ backoffice/.angular/
 app/node_modules/
 app/package-lock.json
 app/dist/
+app/dist-graphics/
 app/www/
 app/.capacitor/
 

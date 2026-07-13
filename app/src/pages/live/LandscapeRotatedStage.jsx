@@ -1,17 +1,23 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 
+import { nativeUnderlaySurfaceClass } from '@/features/stream/ios/iosNativeStreamLayout';
 import { buildCssRotatedStageStyle } from '@/features/stream/landscapeRotatedStageStyle';
 
 /**
  * Player stage — video and overlays share one box.
  *
  * Web landscape: CSS 90° rotation inside the measured parent.
- * iOS native landscape: no CSS rotation — native WKWebView + embed proxy handle orientation.
+ * iOS native landscape: no CSS rotation (native embed handles orientation).
  */
-export default function LandscapeRotatedStage({ children, rotated = false, iosNativeLandscape = false }) {
+export default function LandscapeRotatedStage({
+  children,
+  rotated = false,
+  iosNativeLandscape = false,
+  iosNativeUnderlay = false,
+}) {
   const zoneRef = useRef(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
-  const surfaceClass = iosNativeLandscape ? 'bg-transparent' : 'bg-black';
+  const surfaceClass = nativeUnderlaySurfaceClass(iosNativeUnderlay);
   const useCssRotation = rotated && !iosNativeLandscape;
 
   useLayoutEffect(() => {

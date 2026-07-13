@@ -21,6 +21,9 @@ target 'App' do
   pod 'FBSDKCoreKit', '~> 17.0'
   # FCM registration tokens for iOS push (APNs token alone is not accepted by our backend).
   pod 'Firebase/Messaging'
+  # Self-serve mobile broadcast (TapeyaBroadcastPlugin) — camera capture + RTMP publish.
+  # Pin the exact tested version once verified — see "Version pinning" in LIVE_STREAM_MOBILE_BROADCAST.md.
+  pod 'HaishinKit', '~> 2.0'
 end
 
 post_install do |installer|
@@ -32,5 +35,28 @@ post_install do |installer|
       # CapacitorCordova uses legacy quoted imports (e.g. CDVPlugin.h); Clang errors on those in frameworks.
       config.build_settings['CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER'] = 'NO'
     end
+  end
+
+  # macOS ships openrsync, which races on CocoaPods' [CP] Copy XCFrameworks (temp files like
+  # .*.??????). Replace rsync with ditto — reliable for archive builds (FBSDKCoreKit, etc.).
+  Dir.glob(File.join(installer.sandbox.root, 'Target Support Files', '*', '*-xcframeworks.sh')).each do |script|
+    contents = File.read(script)
+    next unless contents.include?('rsync --delete')
+
+    patched = contents.gsub(
+      /copy_dir\(\)\n\{\n.*?^\}/m,
+      <<~'SH'.strip
+        copy_dir()
+        {
+          local source="$1"
+          local destination="$2"
+          echo "ditto \"${source}\" \"${destination}\""
+          rm -rf "${destination}"
+          mkdir -p "${destination}"
+          ditto "${source}" "${destination}"
+        }
+      SH
+    )
+    File.write(script, patched) if patched != contents
   end
 end

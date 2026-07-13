@@ -200,23 +200,6 @@
             </td>
           </ng-container>
 
-          <ng-container matColumnDef="date_of_birth">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
-            >
-              Date of Birth
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
-            >
-              {{ row.date_of_birth ? (row.date_of_birth | date: 'yyyy-MM-dd') : emptyCell }}
-            </td>
-          </ng-container>
-
           <ng-container matColumnDef="app_roles">
             <th
               mat-header-cell
@@ -451,6 +434,20 @@
                   class="size-4.5!"
                 ></i-tabler>
               </button>
+              @if (row.can_broadcast) {
+                <button
+                  type="button"
+                  class="cursor-pointer border-0 bg-transparent p-0 align-middle"
+                  aria-label="Ban broadcaster"
+                  title="Revoke broadcast access"
+                  (click)="openBroadcastBanDialog(row)"
+                >
+                  <i-tabler
+                    name="broadcast-off"
+                    class="size-4.5!"
+                  ></i-tabler>
+                </button>
+              }
             </td>
           </ng-container>
 

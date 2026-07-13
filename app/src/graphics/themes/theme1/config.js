@@ -48,6 +48,7 @@ export const colors = {
   fourSparkOuter: '#5aa0ff',
   fourSparkShadow: 'rgba(80,150,255,.9)',
   fourTitleGradient: 'linear-gradient(180deg, #90c8ff 0%, #5090ff 55%, #2068e0 100%)',
+  fourTitleColor: '#5090ff',
   fourTitleShadow: 'rgba(80,150,255,.85)',
   fourSubtitle: '#bcd6ff',
 
@@ -63,6 +64,7 @@ export const colors = {
   wideSparkOuter: '#ffaa44',
   wideSparkShadow: 'rgba(255,170,60,.9)',
   wideTitleGradient: 'linear-gradient(180deg, #ffd0a0 0%, #ffaa44 55%, #e87800 100%)',
+  wideTitleColor: '#ffaa44',
   wideTitleShadow: 'rgba(255,170,60,.85)',
   wideSubtitle: '#ffe4b8',
 
@@ -84,6 +86,7 @@ export const colors = {
   noBallSparkOuter: '#e060d0',
   noBallSparkShadow: 'rgba(220,80,200,.9)',
   noBallTitleGradient: 'linear-gradient(180deg, #f0a0e8 0%, #e060d0 55%, #b030a8 100%)',
+  noBallTitleColor: '#e060d0',
   noBallTitleShadow: 'rgba(220,80,200,.85)',
   noBallSubtitle: '#ffd0f4',
 
@@ -105,6 +108,7 @@ export const colors = {
   hundredUpSparkOuter: '#f0c050',
   hundredUpSparkShadow: 'rgba(245,200,90,.95)',
   hundredUpTitleGradient: 'linear-gradient(180deg, #ffe890 0%, #ffd050 55%, #d89010 100%)',
+  hundredUpTitleColor: '#ffd050',
   hundredUpTitleShadow: 'rgba(245,200,90,.9)',
   hundredUpSubtitle: '#ffe8a8',
 
@@ -114,6 +118,7 @@ export const colors = {
   fiftyUpSparkOuter: '#d4b86a',
   fiftyUpSparkShadow: 'rgba(210,185,110,.9)',
   fiftyUpTitleGradient: 'linear-gradient(180deg, #f0e0a8 0%, #d4b86a 55%, #a88828 100%)',
+  fiftyUpTitleColor: '#d4b86a',
   fiftyUpTitleShadow: 'rgba(210,185,110,.85)',
   fiftyUpSubtitle: '#f0e8cc',
 
@@ -123,6 +128,7 @@ export const colors = {
   sixSparkOuter: '#f5b24a',
   sixSparkShadow: 'rgba(245,190,90,.9)',
   sixTitleGradient: 'linear-gradient(180deg, #ffe890 0%, #ffc830 55%, #e89800 100%)',
+  sixTitleColor: '#ffc830',
   sixTitleShadow: 'rgba(245,200,90,.85)',
   sixSubtitle: '#ffe6a8',
 
@@ -135,6 +141,7 @@ export const colors = {
   // Wicket flash (red)
   wicketGlow: 'radial-gradient(60% 50% at 50% 45%, rgba(220,20,60,.42), transparent 62%)',
   wicketTitleGradient: 'linear-gradient(180deg, #ff90a8 0%, #ff3050 55%, #c01030 100%)',
+  wicketTitleColor: '#ff3050',
   wicketTextShadow: 'rgba(255,50,90,.9)',
 
   // Replay strap (cyan lower-third graphic)
@@ -155,6 +162,7 @@ export const colors = {
   replaySparkOuter: '#40c8e8',
   replaySparkShadow: 'rgba(40,200,220,.9)',
   replayTitleGradient: 'linear-gradient(180deg, #90e8ff 0%, #40c8e8 55%, #0898c0 100%)',
+  replayTitleColor: '#40c8e8',
   replayTitleShadow: 'rgba(40,200,220,.85)',
   replaySubtitle: '#b8f4ff',
 
@@ -164,6 +172,7 @@ export const colors = {
   decisionPendingSparkOuter: '#ff9030',
   decisionPendingSparkShadow: 'rgba(255,140,40,.9)',
   decisionPendingTitleGradient: 'linear-gradient(180deg, #ffd0a0 0%, #ff9030 55%, #e06000 100%)',
+  decisionPendingTitleColor: '#ff9030',
   decisionPendingTitleShadow: 'rgba(255,140,40,.85)',
   decisionPendingSubtitle: '#ffe0b8',
 
@@ -176,6 +185,7 @@ export const colors = {
   // Not-out flash (green)
   notOutGlow: 'radial-gradient(60% 50% at 50% 45%, rgba(40,200,110,.42), transparent 62%)',
   notOutTitleGradient: 'linear-gradient(180deg, #90ffc0 0%, #40d880 55%, #18a850 100%)',
+  notOutTitleColor: '#40d880',
   notOutTextShadow: 'rgba(50,220,120,.9)',
 
   // GlowPanel ambient gradient sweep
@@ -189,6 +199,13 @@ export const colors = {
 
   // Text on gold rank chips and stat bands
   badgeText: '#0a0e17',
+
+  // Navy accent tokens — canonical RGB for borders, glows, and panel lining.
+  // Use via CSS vars (--navy-border, etc.) in Tailwind or reference directly.
+  navyAccentRgb: '120, 140, 255',
+  navyBorder: 'rgba(120, 140, 255, 0.28)',
+  navyGlow: 'rgba(120, 140, 255, 0.16)',
+  navyGlowStrong: 'rgba(120, 140, 255, 0.45)',
 };
 
 // ── Shared asset URLs ─────────────────────────────────────────────────────────
@@ -291,7 +308,7 @@ export const ltTypography = {
   // Zone C — Last 30 / Last 12
   last30Label: 15,
   last30Value: 28,
-  last30ColumnWidth: 84,
+  last30ColumnWidth: 96,
   last12Heading: 20,
   last12TotalRuns: 30,
   last12TotalMinWidthExtra: 24,
@@ -376,7 +393,7 @@ export const ltInfoBar = {
   height: ltBar.height,
   /** Default footprint when content is short — bar stays at min, centered in max zone. */
   minWidth: 1360,
-  /** Safe-area ceiling at 1920 (must match overlay inset: 1920 − inset×2). Content above this gets ellipsis. */
+  /** Safe-area ceiling at 1920 (must match overlay: 1920 − side×2). Content above this gets ellipsis. */
   maxWidth: 1500,
   align: 'center',
 };
@@ -712,6 +729,8 @@ export const CSS_VARS = {
   '--glow': String(visualEffects.intensity),
   '--font-display': typography.fontDisplay,
   '--font-ui': typography.fontUI,
+  '--gold': colors.gold,
+  '--badge-text': colors.badgeText,
 };
 
 /** :root tokens generated into styles/_tokens.css — used by theme SCSS. */

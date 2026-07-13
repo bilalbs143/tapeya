@@ -9,8 +9,8 @@ import { useGraphicEcho } from '../GraphicEchoProvider';
  * Uses the shared Echo instance from {@link GraphicEchoProvider} — do not call
  * outside that provider.
  *
- * @param {string|number|undefined} matchId
- * @param {(event: object) => void} onCommand
+ * @param {string|number|null|undefined} matchId
+ * @param {(event: Record<string, unknown>) => void} onCommand
  */
 export function useGraphicChannel(matchId, onCommand) {
   const echo = useGraphicEcho();
@@ -20,9 +20,12 @@ export function useGraphicChannel(matchId, onCommand) {
   useEffect(() => {
     if (!matchId || !echo) return undefined;
 
-    echo.channel(`match.${matchId}.graphics`).listen('.match.graphic.activated', (event) => {
+    /** @param {Record<string, unknown>} event */
+    const handleActivated = (event) => {
       onCommandRef.current(event);
-    });
+    };
+
+    echo.channel(`match.${matchId}.graphics`).listen('.match.graphic.activated', handleActivated);
 
     return () => {
       echo.leave(`match.${matchId}.graphics`);

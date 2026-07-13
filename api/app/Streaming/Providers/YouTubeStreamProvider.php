@@ -10,6 +10,7 @@ use App\Streaming\Data\StreamIngestConfig;
 use App\Streaming\Data\StreamPlayback;
 use App\Streaming\Support\MatchStreamStatusTransition;
 use App\Streaming\Support\YouTubeEmbedUrl;
+use App\Streaming\Support\YouTubeQuotaTracker;
 use Google\Client as GoogleClient;
 use Google\Service\YouTube;
 use Google\Service\YouTube\CdnSettings;
@@ -19,6 +20,7 @@ use Google\Service\YouTube\LiveBroadcastSnippet;
 use Google\Service\YouTube\LiveBroadcastStatus;
 use Google\Service\YouTube\LiveStream;
 use Google\Service\YouTube\LiveStreamSnippet;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 
@@ -52,6 +54,7 @@ class YouTubeStreamProvider implements StreamProviderContract
         ]));
 
         $streamResponse = $this->yt->liveStreams->insert('snippet,cdn', $liveStream);
+        YouTubeQuotaTracker::record(YouTubeQuotaTracker::COST_INSERT);
         $streamId = $streamResponse->getId();
         $ingestion = $streamResponse->getCdn()->getIngestionInfo();
 
@@ -73,9 +76,11 @@ class YouTubeStreamProvider implements StreamProviderContract
         ]));
 
         $broadcastResponse = $this->yt->liveBroadcasts->insert('snippet,status,contentDetails', $broadcast);
+        YouTubeQuotaTracker::record(YouTubeQuotaTracker::COST_INSERT);
         $broadcastId = $broadcastResponse->getId();
 
         $this->yt->liveBroadcasts->bind($broadcastId, 'id,contentDetails', ['streamId' => $streamId]);
+        YouTubeQuotaTracker::record(YouTubeQuotaTracker::COST_BIND);
 
         $stream->update([
             'provider_stream_id' => $broadcastId,
@@ -96,51 +101,93 @@ class YouTubeStreamProvider implements StreamProviderContract
 
     public function syncStatus(MatchStream $stream): void
     {
-        if (! $stream->provider_stream_id) {
+        $this->syncStatuses(collect([$stream]));
+    }
+
+    /**
+     * Batched status poll — one `liveBroadcasts.list` call and one `liveStreams.list` call per
+     * 50 streams (YouTube's per-request `id` limit), instead of 2 calls per stream. This is the
+     * dominant quota cost in the system (`streams:sync` runs every minute), so this is a real
+     * cost reduction, not micro-optimization — see YouTubeQuotaTracker / MonitorBroadcastOperations
+     * and the "reduce quota usage" discussion in LIVE_STREAM_MOBILE_BROADCAST.md's history.
+     *
+     * @param  Collection<int, MatchStream>  $streams
+     */
+    public function syncStatuses(Collection $streams): void
+    {
+        $streams = $streams->filter(fn (MatchStream $stream) => filled($stream->provider_stream_id))->values();
+
+        if ($streams->isEmpty()) {
             return;
         }
 
-        try {
-            $response = $this->yt->liveBroadcasts->listLiveBroadcasts('id,status', [
-                'id' => $stream->provider_stream_id,
-            ]);
-            $items = $response->getItems();
+        $lifecycleByBroadcastId = $this->fetchLifecycleStatuses($streams->pluck('provider_stream_id')->unique());
+        $ingestStatusByStreamId = $this->fetchIngestStatuses($streams->pluck('provider_ingest_id')->filter()->unique());
 
-            $lifecycle = empty($items) ? null : $items[0]->getStatus()->getLifeCycleStatus();
-            $ingestStatus = $this->fetchIngestStreamStatus($stream);
+        foreach ($streams as $stream) {
+            $lifecycle = $lifecycleByBroadcastId[$stream->provider_stream_id] ?? null;
+            $ingestStatus = $stream->provider_ingest_id ? ($ingestStatusByStreamId[$stream->provider_ingest_id] ?? null) : null;
             $providerStatus = $this->mapProviderStatus($lifecycle, $ingestStatus);
             $updates = MatchStreamStatusTransition::resolve($stream, $providerStatus);
 
             if ($updates !== null) {
                 $stream->update($updates);
             }
-        } catch (\Exception $e) {
-            Log::error("YouTube syncStatus failed for stream {$stream->id}: ".$e->getMessage());
         }
     }
 
-    private function fetchIngestStreamStatus(MatchStream $stream): ?string
+    /**
+     * @param  Collection<int, string>  $broadcastIds
+     * @return array<string, string> provider_stream_id => lifecycle status
+     */
+    private function fetchLifecycleStatuses(Collection $broadcastIds): array
     {
-        if (! $stream->provider_ingest_id) {
-            return null;
-        }
+        $result = [];
 
-        try {
-            $response = $this->yt->liveStreams->listLiveStreams('status', [
-                'id' => $stream->provider_ingest_id,
-            ]);
-            $items = $response->getItems();
+        foreach ($broadcastIds->chunk(50) as $chunk) {
+            try {
+                $response = $this->yt->liveBroadcasts->listLiveBroadcasts('id,status', [
+                    'id' => $chunk->implode(','),
+                    'maxResults' => $chunk->count(),
+                ]);
+                YouTubeQuotaTracker::record(YouTubeQuotaTracker::COST_LIST);
 
-            if (empty($items)) {
-                return null;
+                foreach ($response->getItems() as $item) {
+                    $result[$item->getId()] = $item->getStatus()->getLifeCycleStatus();
+                }
+            } catch (\Exception $e) {
+                Log::error('YouTube batch broadcast status fetch failed: '.$e->getMessage());
             }
-
-            return $items[0]->getStatus()->getStreamStatus();
-        } catch (\Exception $e) {
-            Log::warning("YouTube ingest status fetch failed for stream {$stream->id}: ".$e->getMessage());
-
-            return null;
         }
+
+        return $result;
+    }
+
+    /**
+     * @param  Collection<int, string>  $ingestIds
+     * @return array<string, string> provider_ingest_id => stream status
+     */
+    private function fetchIngestStatuses(Collection $ingestIds): array
+    {
+        $result = [];
+
+        foreach ($ingestIds->chunk(50) as $chunk) {
+            try {
+                $response = $this->yt->liveStreams->listLiveStreams('status', [
+                    'id' => $chunk->implode(','),
+                    'maxResults' => $chunk->count(),
+                ]);
+                YouTubeQuotaTracker::record(YouTubeQuotaTracker::COST_LIST);
+
+                foreach ($response->getItems() as $item) {
+                    $result[$item->getId()] = $item->getStatus()->getStreamStatus();
+                }
+            } catch (\Exception $e) {
+                Log::warning('YouTube batch ingest status fetch failed: '.$e->getMessage());
+            }
+        }
+
+        return $result;
     }
 
     private function mapProviderStatus(?string $lifecycle, ?string $ingestStatus): string
@@ -164,15 +211,20 @@ class YouTubeStreamProvider implements StreamProviderContract
 
         try {
             $this->yt->liveBroadcasts->transition('complete', $stream->provider_stream_id, 'status');
+            YouTubeQuotaTracker::record(YouTubeQuotaTracker::COST_TRANSITION);
         } catch (\Exception $e) {
+            // Common when the remote broadcast never went live, or is already complete.
             Log::warning("YouTube broadcast transition failed for stream {$stream->id}: ".$e->getMessage());
         }
 
-        $stream->update([
-            'status' => 'ended',
-            'ended_at' => now(),
-            'provider_metadata' => $this->metadataWithoutIdleSince($stream),
-        ]);
+        // DB row is usually already `ended` from LiveStreamService::end(); only fill gaps.
+        if ($stream->status !== 'ended' || $stream->ended_at === null) {
+            $stream->update([
+                'status' => 'ended',
+                'ended_at' => $stream->ended_at ?? now(),
+                'provider_metadata' => $this->metadataWithoutIdleSince($stream),
+            ]);
+        }
     }
 
     public function deleteStream(MatchStream $stream): void
@@ -183,6 +235,7 @@ class YouTubeStreamProvider implements StreamProviderContract
 
         try {
             $this->yt->liveBroadcasts->delete($stream->provider_stream_id);
+            YouTubeQuotaTracker::record(YouTubeQuotaTracker::COST_DELETE);
         } catch (\Exception $e) {
             Log::warning("YouTube broadcast delete failed for stream {$stream->id}: ".$e->getMessage());
         }

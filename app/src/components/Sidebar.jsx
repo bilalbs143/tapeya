@@ -7,6 +7,7 @@ import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { addSavedProfile } from '@/lib/savedProfiles';
 // import starMatchIcon from '@/assets/images/icons/star-match.svg';
 import { calculateProfileStrength } from '@/lib/utils/playerUtils';
+import { isNative } from '@/platform/platform';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useGetSidebarInterestCampaignQuery } from '@/store/api/tournamentInterestApi';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -20,6 +21,7 @@ const requestTournamentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/request-tourn
 const supportIcon = `${CLOUDFRONT_APP_BASE}/images/icons/support.svg`;
 const topPlayersIcon = `${CLOUDFRONT_APP_BASE}/images/icons/top-players.svg`;
 const interestCampaignIcon = `${CLOUDFRONT_APP_BASE}/images/icons/interest-campaign.svg`;
+const goLiveIcon = `${CLOUDFRONT_APP_BASE}/images/icons/voice-cricle-live.svg`;
 const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
 const MENU_ITEMS = [
@@ -41,7 +43,8 @@ const MENU_ITEMS = [
   //   path: '/organizer/scoring/start-match',
   // },
   /* { label: 'Drafting', path: '/drafting' }, */
-  /* { label: 'Go live', comingSoon: true }, */
+  /* See LIVE_STREAM_MOBILE_BROADCAST.md — entry point, gated in navItems below. */
+  { label: 'Go Live', icon: goLiveIcon, path: '/live/go-live', requiresBroadcast: true },
   /* { label: 'Toss', comingSoon: true }, */
   { label: 'Top Players', icon: topPlayersIcon, path: '/ranking' },
   /* { label: 'Top Sponsors', comingSoon: true }, */
@@ -78,8 +81,10 @@ export function Sidebar({ open, onClose }) {
 
   const { isNativeMobile: showNativeVersions, installedVersion, configuredVersion } = useNativeStoreVersionInfo();
 
+  const canBroadcast = isNative() && Boolean(profileUser?.can_broadcast);
+
   const navItems = useMemo(() => {
-    const filtered = MENU_ITEMS.filter((item) => item.label !== 'Logout');
+    const filtered = MENU_ITEMS.filter((item) => item.label !== 'Logout' && (!item.requiresBroadcast || canBroadcast));
     const slug = sidebarCampaign?.slug;
     if (!slug) return filtered;
     const afterRequestIdx = filtered.findIndex((i) => i.path === '/tournament-request');
@@ -92,7 +97,7 @@ export function Sidebar({ open, onClose }) {
       return [...filtered, interestRow];
     }
     return [...filtered.slice(0, afterRequestIdx + 1), interestRow, ...filtered.slice(afterRequestIdx + 1)];
-  }, [sidebarCampaign]);
+  }, [sidebarCampaign, canBroadcast]);
   const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 1024);
 
   const isActivePath = (path) => {

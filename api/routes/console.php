@@ -17,3 +17,7 @@ Schedule::command('match-graphic:purge-old-commands --hours=24')->dailyAt('03:30
 Schedule::command('push-notifications:purge-old-logs --days=7')->dailyAt('04:00');
 
 Schedule::command('streams:sync')->everyMinute()->withoutOverlapping()->runInBackground();
+
+Schedule::command('broadcasts:end-expired')->everyMinute()->withoutOverlapping()->runInBackground();
+
+Schedule::command('broadcasts:monitor-operations')->everyFifteenMinutes()->withoutOverlapping();

@@ -81,6 +81,11 @@ export const navItems: NavItem[] = [
     ],
   },
   {
+    displayName: 'Live Streams',
+    iconName: 'solar:videocamera-record-line-duotone',
+    route: '/live-streams-management/live-streams',
+  },
+  {
     displayName: 'Notifications',
     iconName: 'solar:bell-line-duotone',
     route: '/notifications',
@@ -159,6 +164,11 @@ export const broadcastStaffNavItems: NavItem[] = [
     displayName: 'Teams Management',
     iconName: 'solar:users-group-two-rounded-line-duotone',
     route: '/tournaments-management/teams',
+  },
+  {
+    displayName: 'Live Streams',
+    iconName: 'solar:videocamera-record-line-duotone',
+    route: '/live-streams-management/live-streams',
   },
   {
     displayName: 'Tournaments Management',

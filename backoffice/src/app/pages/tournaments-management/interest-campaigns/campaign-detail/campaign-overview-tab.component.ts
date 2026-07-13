@@ -11,9 +11,7 @@ import { type InterestCampaign, InterestCampaignService } from 'src/app/services
 import { InterestSubmissionService } from 'src/app/services/interest-submission.service';
 import { MessageService } from 'src/app/services/message.service';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
-import {
-  DEFAULT_INTEREST_FORM_FIELDS,
-} from 'src/app/shared/constants/interest-form-field.constants';
+import { DEFAULT_INTEREST_FORM_FIELDS } from 'src/app/shared/constants/interest-form-field.constants';
 
 import { CampaignDetailStateService } from './campaign-detail-state.service';
 
@@ -77,9 +75,7 @@ export class CampaignOverviewTabComponent implements OnInit, OnDestroy {
     }).subscribe({
       next: ({ campaign, pending, confirmed, withdrawn, formFieldOptions }) => {
         this.campaign = campaign.data;
-        const keys = campaign.data.form_fields?.length
-          ? campaign.data.form_fields
-          : DEFAULT_INTEREST_FORM_FIELDS;
+        const keys = campaign.data.form_fields?.length ? campaign.data.form_fields : DEFAULT_INTEREST_FORM_FIELDS;
         const byValue = new Map(formFieldOptions.map((opt) => [String(opt.value), opt.label]));
         this.formFieldLabels = keys.map((key) => byValue.get(key) ?? key);
         const sum = pending + confirmed + withdrawn;

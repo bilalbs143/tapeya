@@ -15,6 +15,10 @@ class StreamAdminResource extends JsonResource
         return [
             'id' => $this->id,
             'match_id' => $this->match_id,
+            'owner_user_id' => $this->owner_user_id,
+            'title' => $this->title,
+            'description' => $this->description,
+            'streaming_url' => $this->streaming_url,
             'provider' => $this->provider,
             'status' => $this->status,
             'provider_stream_id' => $this->provider_stream_id,

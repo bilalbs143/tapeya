@@ -16,14 +16,9 @@ const STAT_FIELDS = [
 
 const STAT_ROW_OVERRIDE_STYLE = { gap: `${ltPlayerStatBar.statRowGapDense * 4}px` };
 
-function resolveBowler(bowler, teams) {
+function resolveBowler(bowler) {
   if (!bowler?.name) return null;
-
-  const team = bowler.teamCode ? teams[bowler.teamCode] : null;
-  return {
-    bowler,
-    accent: team?.color ?? 'var(--accentA)',
-  };
+  return { bowler };
 }
 
 function formatOvers(bowler) {
@@ -38,11 +33,11 @@ function formatOvers(bowler) {
 /**
  * @param {{ bowler: object, teams: Record<string, object>, edgeToEdge?: boolean }} props
  */
-export function BowlerTournamentLTBar({ bowler, teams, edgeToEdge = true }) {
-  const resolved = resolveBowler(bowler, teams);
+export function BowlerTournamentLTBar({ bowler, teams: _teams, edgeToEdge = true }) {
+  const resolved = resolveBowler(bowler);
   if (!resolved) return null;
 
-  const { bowler: player, accent } = resolved;
+  const { bowler: player } = resolved;
   const oversDisplay = formatOvers(player);
   const statValues = {
     matches: player.matches ?? 0,
@@ -55,7 +50,6 @@ export function BowlerTournamentLTBar({ bowler, teams, edgeToEdge = true }) {
 
   return (
     <PlayerStatLTBar
-      accent={accent}
       edgeToEdge={edgeToEdge}
       statFields={STAT_FIELDS}
       statValues={statValues}

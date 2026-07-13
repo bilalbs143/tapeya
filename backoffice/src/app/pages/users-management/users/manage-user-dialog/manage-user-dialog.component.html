@@ -122,8 +122,8 @@
           </mat-form-field>
         </div>
 
-        <!-- Row 4: App Roles | Backoffice Roles -->
-        <div class="col-span-12 lg:col-span-6">
+        <!-- Row 4: Roles | Backoffice Roles | Broadcast -->
+        <div class="col-span-12 lg:col-span-4">
           <mat-label class="text-sm font-semibold mb-2 block">Roles <span class="text-error">*</span></mat-label>
           <mat-form-field
             appearance="outline"
@@ -146,7 +146,7 @@
           </mat-form-field>
         </div>
 
-        <div class="col-span-12 lg:col-span-6">
+        <div class="col-span-12 lg:col-span-4">
           <mat-label class="text-sm font-semibold mb-2 block">Backoffice Roles</mat-label>
           <mat-form-field
             appearance="outline"
@@ -161,6 +161,23 @@
                 @for (opt of adminRoleOptions; track opt.value) {
                   <mat-option [value]="+opt.value">{{ opt.label }}</mat-option>
                 }
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-4">
+          <mat-label class="text-sm font-semibold mb-2 block">Broadcast</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-select
+              formControlName="can_broadcast"
+              placeholder="Select broadcast access"
+            >
+              @for (opt of broadcastOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
               }
             </mat-select>
           </mat-form-field>

@@ -9,6 +9,7 @@ import cricketBatIcon from '../../../../assets/cricket-bat.png';
 import { colors, ltTypography, typography } from '../config';
 import { crestPulseClass, crestRingBoxShadow, crestRingClassName, isAmbientPulseEnabled } from '../visualEffects';
 import { crestCodeFontSize, crestCornerRadius, crestLogoPadding } from './crestMetrics';
+import { DISPLAY_FONT } from './formatters';
 import { overlayVariantFor } from './playerBarHelpers';
 
 function StrikeBatIcon({ onStrike, size = 24 }) {
@@ -115,11 +116,8 @@ export const CountUpNumber = memo(function CountUpNumber({ value, className, dur
   );
 });
 
-export const Crest = memo(function Crest({ team, size = 86, accent, accentAlt, borderPulseOrder }) {
+export const Crest = memo(function Crest({ team, size = 86, accent, borderPulseOrder }) {
   const ring = accent || team?.color || colors.accentA;
-  // accentAlt is the counterpart team's color — used for the wide outer glow (25% of the pulse).
-  // Falls back to the global accentB only when no team-specific alt is available.
-  const ringAlt = accentAlt || colors.accentB;
   const pulseClass = crestPulseClass(borderPulseOrder);
 
   const src = team?.logoUrl ?? team?.logo;
@@ -134,7 +132,6 @@ export const Crest = memo(function Crest({ team, size = 86, accent, accentAlt, b
         style={{
           '--team-ring': ring,
           '--crest-ring': ring,
-          '--crest-ring-alt': ringAlt,
           borderRadius: cornerRadius + 3,
           boxShadow: crestRingBoxShadow(ring),
         }}
@@ -145,7 +142,7 @@ export const Crest = memo(function Crest({ team, size = 86, accent, accentAlt, b
           alt={team?.displayName ?? team?.fullName ?? team?.name ?? 'Team logo'}
           draggable={false}
           className={cn(
-            'absolute inset-0 box-border block size-full object-contain',
+            'absolute top-0 right-0 bottom-0 left-0 box-border block size-full object-contain',
             'bg-[radial-gradient(120%_120%_at_30%_25%,#1b2233,#0a0e17_70%)]',
           )}
           style={{ borderRadius: cornerRadius, padding: crestLogoPadding(size) }}
@@ -153,9 +150,10 @@ export const Crest = memo(function Crest({ team, size = 86, accent, accentAlt, b
       ) : (
         <div
           className={cn(
-            'absolute inset-0 grid place-items-center px-[8%]',
+            'absolute top-0 right-0 bottom-0 left-0 grid place-items-center px-[8%]',
             'bg-[radial-gradient(120%_120%_at_30%_25%,#1b2233,#0a0e17_70%)]',
-            '[font-family:var(--font-display)] font-extrabold tracking-[0.06em] text-white uppercase',
+            DISPLAY_FONT,
+            'font-extrabold tracking-[0.06em] text-white uppercase',
           )}
           style={{ borderRadius: cornerRadius, fontSize: labelSize }}
         >
@@ -201,7 +199,8 @@ function resolveBallChipLayout(display, size) {
       width: 'auto',
       minWidth: size,
       height: size,
-      paddingInline: 0,
+      paddingLeft: 0,
+      paddingRight: 0,
       fontSize: size * fontScale,
       letterSpacing: '-0.03em',
     },
@@ -243,7 +242,7 @@ export const BallTrack = memo(function BallTrack({ balls = [], chips, size = 28,
           return (
             <span
               key={index}
-              className="inline-block shrink-0 rounded-full border border-white/10"
+              className="inline-block shrink-0 rounded-full border border-white/8"
               style={{ width: size, height: size }}
               aria-hidden="true"
             />

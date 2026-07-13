@@ -74,7 +74,7 @@
             type="button"
             (click)="resetSearchForm()"
           >
-            Clear
+            Clear Search
           </button>
           <button
             mat-flat-button
@@ -270,6 +270,30 @@
                 >
                   <i-tabler
                     name="file-text"
+                    class="size-4.5!"
+                  ></i-tabler>
+                </a>
+              }
+              @if (row.type === AdminNotificationType.BROADCAST_CONCURRENCY_HIGH) {
+                <a
+                  [routerLink]="['/live-streams-management/live-streams']"
+                  aria-label="View live streams"
+                  class="align-middle"
+                >
+                  <i-tabler
+                    name="broadcast"
+                    class="size-4.5!"
+                  ></i-tabler>
+                </a>
+              }
+              @if (row.type === AdminNotificationType.YOUTUBE_QUOTA_HIGH) {
+                <a
+                  [routerLink]="['/live-streams-management/live-streams']"
+                  aria-label="View live streams"
+                  class="align-middle"
+                >
+                  <i-tabler
+                    name="gauge"
                     class="size-4.5!"
                   ></i-tabler>
                 </a>

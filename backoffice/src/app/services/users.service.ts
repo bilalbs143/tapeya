@@ -36,6 +36,7 @@ export interface User {
   active_platform?: string | null;
   active_platform_label?: string | null;
   active_platform_updated_at?: string | null;
+  can_broadcast?: boolean;
   roles?: UserRole[];
   role_ids?: number[];
   admin_roles?: UserRole[];
@@ -92,6 +93,7 @@ export interface CreateUserPayload {
   batting_style?: string | null;
   country?: string | null;
   city?: string | null;
+  can_broadcast?: boolean;
 }
 
 export type UpdateUserPayload = Partial<CreateUserPayload>;
@@ -143,5 +145,16 @@ export class UsersService {
         this.messageService.success('User deleted successfully.');
       })
     );
+  }
+
+  /** Revokes self-serve broadcasting access, ending any active broadcast and deleting its VOD. */
+  public banBroadcaster(id: number): Observable<{ data: { can_broadcast: boolean; ended_streams: number } }> {
+    return this.http
+      .post<{ data: { can_broadcast: boolean; ended_streams: number } }>(`${this.baseUrl}/${id}/broadcast-ban`, {})
+      .pipe(
+        tap(() => {
+          this.messageService.success('Broadcast access revoked.');
+        })
+      );
   }
 }

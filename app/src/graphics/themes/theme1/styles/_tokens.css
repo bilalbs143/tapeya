@@ -7,6 +7,8 @@
   --glow: 1;
   --font-display: 'Saira Condensed', system-ui, sans-serif;
   --font-ui: 'Saira', system-ui, sans-serif;
+  --gold: #f5c85a;
+  --badge-text: #0a0e17;
   --stage-bg: radial-gradient(130% 100% at 50% -20%, #0e1424 0%, #070a12 55%, #05070d 100%);
   --ambient-sequence-cycle: 30s;
   --strap-text-loop: 4.1s;

@@ -1,24 +1,23 @@
 # Graphics Module — Architecture (single source of truth)
 
 **Scope:** `app/src/graphics` and its integration with the Tapeya broadcast stack  
-**Version:** 3.1 · **Last updated:** June 2026  
+**Version:** 3.4 · **Last updated:** July 2026  
 **Status:** Production-ready for `theme1`. P0–P3 hardening complete. Theme 2 blocked only on layout-strategy decision (§11).
 
-**Related (outside this module):** [`shared/graphics-command-manifest.json`](../../../shared/graphics-command-manifest.json), [`shared/graphics-themes.json`](../../../shared/graphics-themes.json), [`docs/BALL_DELIVERY_ARCHITECTURE.md`](../../../docs/BALL_DELIVERY_ARCHITECTURE.md), [`tapeya-theme-controller/`](../../../tapeya-theme-controller/) (design harness).
+**Related (outside this module):** [`shared/graphics-command-manifest.json`](../../../shared/graphics-command-manifest.json), [`shared/graphics-themes.json`](../../../shared/graphics-themes.json), [`docs/BALL_DELIVERY_ARCHITECTURE.md`](../../../docs/BALL_DELIVERY_ARCHITECTURE.md). (`tapeya-theme-controller/` — a planned standalone design harness — does not exist in this repo yet; §14 note updated accordingly.)
 
 ---
 
 ## How to use this document
 
-| If you need…                         | Read    |
-| ------------------------------------ | ------- |
-| Pipeline, folders, layer rules       | §3–§5   |
-| Add a new command                    | §11     |
-| Start theme 2                        | §10     |
-| Tests, CI, what catches regressions  | §8–§9   |
-| **CSS / vMix browser compatibility** | **§17** |
-| What's done vs still open            | §2, §13 |
-| Naming conventions                   | §15     |
+| If you need…                        | Read    |
+| ----------------------------------- | ------- |
+| Pipeline, folders, layer rules      | §3–§5   |
+| Add a new command                   | §11     |
+| Start theme 2                       | §10     |
+| Tests, CI, what catches regressions | §8–§9   |
+| What's done vs still open           | §2, §13 |
+| Naming conventions                  | §15     |
 
 ---
 
@@ -57,16 +56,16 @@ entry (React wiring) → core (normalize + process) → exit (lazy render) → t
 
 ### Health scorecard (post P0–P3)
 
-| Dimension                                       | Status                                                              |
-| ----------------------------------------------- | ------------------------------------------------------------------- |
-| Layer separation (entry / core / exit / themes) | ✅ Strong                                                           |
-| Manifest-driven processor map                   | ✅ `processorRegistry.js` + loop in `processorMap.js`               |
-| Normalizer testability                          | ✅ Split modules + `normalizeSession.test.js`                       |
-| Integration + render smoke                      | ✅ `pipeline.integration.test.js` + `commandSmoke.test.js`          |
-| Adapter formal contracts                        | ⚠️ 25 high-traffic paths; expand before/during theme 2              |
-| Presentation copy in theme                      | ✅ `presentationLabels.js` + adapters (incl. toss/result)           |
-| TypeScript                                      | ⚠️ Started (`typecheck:graphics` on 2 files); full `core/` deferred |
-| Pixel visual regression                         | ⚠️ Playwright shell smoke only (3 commands)                         |
+| Dimension                                       | Status                                                                                        |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Layer separation (entry / core / exit / themes) | ✅ Strong                                                                                     |
+| Manifest-driven processor map                   | ✅ `processorRegistry.js` + loop in `processorMap.js`                                         |
+| Normalizer testability                          | ✅ Split modules + `normalizeSession.test.js`                                                 |
+| Integration + render smoke                      | ✅ `pipeline.integration.test.js` + `commandSmoke.test.js`                                    |
+| Adapter formal contracts                        | ⚠️ 25 high-traffic paths; expand before/during theme 2                                        |
+| Presentation copy in theme                      | ✅ `presentationLabels.js` + adapters (incl. toss/result)                                     |
+| TypeScript                                      | ✅ `checkJs` covers all of `core/`, `entry/`, `exit/`; `themes/theme1/**` deferred to theme 2 |
+| Pixel visual regression                         | ⚠️ Playwright shell smoke only (3 commands)                                                   |
 
 ---
 
@@ -123,7 +122,7 @@ flowchart TD
 
 ### Session lifecycle
 
-1. **Load** — RTK Query fetches signed overlay session (HTTP).
+1. **Load** — RTK Query fetches signed graphics session (HTTP).
 2. **Live updates** — Reverb `.match.graphic.activated` patches cache via `graphicSessionSync.js`.
 3. **Context refresh** — `context_hash` change triggers full context refetch over HTTP.
 4. **Normalize** — `normalizeSession(rawSession, themeSlug)` → `GraphicSessionSnapshot`.
@@ -134,7 +133,7 @@ flowchart TD
 
 **Processor return semantics:** `null` → no plan (blank overlay); `{}` → empty props (clear/animation); object → normal render.
 
-**Theme selection:** `session.theme.slug` from the graphic session API (SSOT). Signed overlay page URLs no longer carry `?theme=`; changing theme in backoffice updates OBS after refresh or the next Reverb theme change refetch.
+**Theme selection:** `session.theme.slug` from the graphic session API (SSOT). Signed graphics URLs no longer carry `?theme=`; changing theme in backoffice updates OBS after refresh or the next Reverb theme change refetch.
 
 ---
 
@@ -143,23 +142,10 @@ flowchart TD
 ```
 app/src/graphics/
 ├── ARCHITECTURE.md                 ← this file (SSOT)
-├── types.js                        JSDoc contracts
+├── types.js                        JSDoc contracts (themes import via relative path)
 │
-├── core/                           Theme-agnostic (never imports themes/)
-│   ├── normalizeSession.js         barrel → normalizeSession/
-│   ├── normalizeSession/           teams, match, live, deliveries, config
-│   ├── GraphicCommandProcessor.js
-│   ├── processorRegistry.js        processorId → function
-│   ├── processorMap.js             manifest loop → PROCESSOR_MAP
-│   ├── manifestCommandMeta.js      flash override; type/displayMode lookup
-│   ├── graphicCommandKeys.js       AUTO-GENERATED from PHP
-│   ├── contextHash.js, utils.js
-│   ├── domain/player.js
-│   ├── processors/                 domain files + _shared/ + __tests__/
-│   └── __tests__/
-│
-├── entry/                          Overlay wiring
-│   ├── GraphicOverlay.jsx          gates on ensureThemeAssetsLoaded()
+├── entry/                          Graphics wiring
+│   ├── GraphicsView.jsx            gates on ensureThemeAssetsLoaded()
 │   ├── GraphicControllerProvider.jsx
 │   ├── GraphicEchoProvider.jsx
 │   └── hooks/                      session, flash, channel, graphicSessionSync
@@ -172,10 +158,6 @@ app/src/graphics/
 │
 ├── __tests__/                      integration, command smoke, fixtures
 │
-├── shared/                         Cross-theme utilities (themes import; core does not)
-│   ├── accentColor.js              vMix-safe color resolve + mix (no color-mix())
-│   └── index.js
-│
 └── themes/
     └── theme1/
         ├── themeMeta.js            ThemeRoot; styleImports (lazy-loaded)
@@ -185,6 +167,19 @@ app/src/graphics/
         ├── layouts/                bars, full-screen, charts, shared
         ├── primitives/
         └── styles/
+
+shared/graphics-core/               Theme-agnostic engine (@tapeya/graphics-core)
+├── src/
+│   ├── normalizeSession/           teams, match, live, deliveries, config
+│   ├── GraphicCommandProcessor.js
+│   ├── processorRegistry.js        processorId → function
+│   ├── processorMap.js             manifest loop → PROCESSOR_MAP
+│   ├── manifestCommandMeta.js      flash override; type/displayMode lookup
+│   ├── graphicCommandKeys.js       AUTO-GENERATED from PHP
+│   ├── domain/                     player, playerNameResolver, ltDefaultZoneC
+│   ├── processors/                 domain files + _shared/ + __tests__/
+│   └── __tests__/
+└── package.json
 ```
 
 ### Commands by TYPE (93 JSX)
@@ -205,9 +200,9 @@ app/src/graphics/
 
 ## 5. Layer responsibilities
 
-### `core/` — data & processing
+### `shared/graphics-core/` — data & processing
 
-Processors know **cricket domain**, not visual presentation. English copy lives in theme adapters (`presentationLabels.js`).
+Processors know **cricket domain**, not visual presentation. English copy lives in theme adapters (`presentationLabels.js`). Imported as `@tapeya/graphics-core/*` — **graphics build only** (consumer Vite forbids it).
 
 | Artifact               | Role                                                     |
 | ---------------------- | -------------------------------------------------------- |
@@ -239,8 +234,6 @@ Processors know **cricket domain**, not visual presentation. English copy lives 
 
 ### `themes/theme1/` — visual implementation
 
-**CSS:** All translucent accents, borders, and glows must use §17 helpers — never `color-mix()` or `100dvh` in theme files.
-
 Three command tiers (by design):
 
 | Tier         | Pattern                                   | ~Count |
@@ -268,9 +261,9 @@ return (
 ```
 PHP GraphicCommandKeyEnum
   → shared/graphics-command-manifest.json   (type, category, displayMode, processorId)
-  → core/graphicCommandKeys.js              (AUTO-GENERATED)
-  → core/processorRegistry.js               (processorId → fn)
-  → core/processorMap.js                    (manifest loop)
+  → shared/graphics-core/src/graphicCommandKeys.js   (AUTO-GENERATED)
+  → shared/graphics-core/src/processorRegistry.js   (processorId → fn)
+  → shared/graphics-core/src/processorMap.js        (manifest loop)
   → themes/{slug}/commands/{TYPE}/{KEY}.jsx
 
 shared/graphics-themes.json                 (slug → folder, completeness)
@@ -282,11 +275,11 @@ scripts/check-graphics-drift.js             (CI parity)
 
 ## 7. Types & contracts
 
-`types.js` defines JSDoc contracts: `GraphicSessionSnapshot`, `GraphicRenderPlan`, `GraphicProcessor`, `ThemeTokens`.
+`types.js` defines JSDoc contracts: `GraphicSessionSnapshot`, `GraphicRenderPlan`, `GraphicProcessor`, `ThemeTokens`, plus fully-typed `match` / `live` / `tournament` sub-shapes (`GraphicMatchSnapshot`, `GraphicLiveSnapshot`, `GraphicTournamentSnapshot`) matching the real normalizer output field-for-field.
 
-**Gaps:** `match` / `live` / `tournament` are loose `Object`. Adapter bundle shapes partially formalized in `adapterContracts.js` (25 commands) + `adapters.test.js`.
+**Gaps:** Raw, per-command dynamic payloads (`snapshot.payload`, leaderboard/point-table/tour-hit rows, next-match fixture data) are intentionally typed `Record<string, any>` at the boundary rather than formalized per-command — formalizing ~95 distinct payload shapes wasn't judged worth it relative to the normalized-snapshot layer. Adapter bundle shapes partially formalized in `adapterContracts.js` (25 commands) + `adapters.test.js`.
 
-**TypeScript:** `src/graphics/tsconfig.json` + `npm run typecheck:graphics` (checkJs on `manifestCommandMeta.js`, `types.js`).
+**TypeScript:** `src/graphics/tsconfig.json` + `npm run typecheck:graphics` — `checkJs` covers all of `shared/graphics-core/src/**`, `entry/**`, and `exit/**` (types.js, react/vite/node ambient types wired in). `themes/theme1/**` is intentionally not yet included — see §13.
 
 ---
 
@@ -303,33 +296,38 @@ cd app && npm run test:e2e:graphics         # Playwright fixture shell (3 comman
 
 ### CI (`.github/workflows/graphics-checks.yml`)
 
-| Job                  | Checks                                       |
-| -------------------- | -------------------------------------------- |
-| `drift`              | manifest ↔ registry ↔ processors ↔ theme JSX |
-| `overlay-tests`      | Full app unit tests                          |
-| `graphics-typecheck` | `typecheck:graphics`                         |
-| `graphics-visual`    | Playwright fixture smoke                     |
-| `manifest-export`    | PHP enum export matches committed manifest   |
-| `theme-controller`   | Vendor sync + harness build                  |
+| Job                       | Checks                                                |
+| ------------------------- | ----------------------------------------------------- |
+| `drift`                   | manifest ↔ registry ↔ processors ↔ theme JSX          |
+| `graphics-tests`          | Full app unit tests                                   |
+| `graphics-typecheck`      | `typecheck:graphics`                                  |
+| `graphics-visual`         | Playwright fixture smoke                              |
+| `manifest-export`         | PHP enum export matches committed manifest            |
+| `graphics-build`          | Isolated build + output/deps gates (no color-mix/dvh) |
+| `consumer-build`          | Consumer SPA build excludes graphics runtime          |
+| `graphics-smoke`          | Playwright smoke against the isolated build           |
+| `graphics-chrome86-smoke` | Same smoke test on a real Chrome 86 binary (vMix 24)  |
+
+(`.github/workflows/graphics-deploy.yml` is separate — manual `workflow_dispatch`, build + output gates + atomic rsync deploy; not part of the PR-triggered checks above.)
 
 ### Test matrix (what protects what)
 
-| File                                   | Protects against                            |
-| -------------------------------------- | ------------------------------------------- |
-| `normalizeSession.test.js`             | Normalizer input-shape regressions          |
-| `processorMapIntegrity.test.js`        | Wrong processor wired to key                |
-| `processors.test.js`                   | Processor domain logic                      |
-| `pipeline.integration.test.js`         | Every overlay key → plan + registry         |
-| `commandSmoke.test.js`                 | Every command SSR render + shell markers    |
-| `adapterContracts.test.js`             | 25 processor→adapter bundle keys            |
-| `adapters.test.js`                     | Full adapter logic (broader than contracts) |
-| `GraphicControllerProvider.test.js`    | Plan build, flash override                  |
-| `GraphicRenderer.test.js`              | Theme root + shell assembly                 |
-| `themeRegistry.test.js`                | Slug/type resolution                        |
-| `GraphicErrorBoundary.test.jsx`        | Render errors; hash recovery                |
-| `graphicSessionSync.test.js`           | Reverb cache patches                        |
-| `accent.test.js`                       | Theme1 accent wrapper + glow integration    |
-| `shared/__tests__/accentColor.test.js` | Shared color resolve/mix (§17, all themes)  |
+| File                                | Protects against                                                                           |
+| ----------------------------------- | ------------------------------------------------------------------------------------------ |
+| `normalizeSession.test.js`          | Normalizer input-shape regressions                                                         |
+| `processorMapIntegrity.test.js`     | Wrong processor wired to key                                                               |
+| `processors.test.js`                | Processor domain logic                                                                     |
+| `pipeline.integration.test.js`      | Every overlay key → plan + registry                                                        |
+| `commandSmoke.test.js`              | Every command SSR render + shell markers                                                   |
+| `adapterContracts.test.js`          | 25 processor→adapter bundle keys                                                           |
+| `adapters.test.js`                  | Full adapter logic (broader than contracts)                                                |
+| `GraphicControllerProvider.test.js` | Plan build, flash override                                                                 |
+| `GraphicRenderer.test.js`           | Theme root + shell assembly                                                                |
+| `themeRegistry.test.js`             | Slug/type resolution                                                                       |
+| `GraphicErrorBoundary.test.jsx`     | Render errors; hash recovery                                                               |
+| `graphicSessionSync.test.js`        | Reverb cache patches                                                                       |
+| `MatchFixtureBar.test.jsx`          | Title-vs-team-names branch, detail row toggle (TOSS_LT/RESULT_LT/INTRO_LT/TOURNAMENT_NAME) |
+| `LeaderboardGraphic.test.jsx`       | Row/featured rendering incl. null-featured guard (HIGHEST*\*/TOP*\* — see §13)             |
 
 **Not covered:** lazy-load runtime path in tests (smoke uses eager imports); pixel/screenshot baselines; cross-theme parity (no theme 2 yet).
 
@@ -348,7 +346,6 @@ cd app && npm run test:e2e:graphics         # Playwright fixture shell (3 comman
 | Legacy `themes/tapeya/` folder   | ✅ Drift CI forbids                      |
 | Token `_tokens.css` commit drift | ❌ Not diff-checked in CI (optional add) |
 | Runtime theme slug validation    | ❌ Invalid slug → blank overlay          |
-| vMix 24 CSS (`color-mix`, `dvh`) | ⚠️ Convention + §17; not CI-enforced yet |
 
 ---
 
@@ -368,7 +365,7 @@ Do not bulk-copy files until design stakeholders answer this.
 1. Add entry to [`shared/graphics-themes.json`](../../../shared/graphics-themes.json) — start `"completeness": "partial"` with whitelist (e.g. `LT_DEFAULT`, `LT_FOUR`, `PLAYING_11`).
 2. Create `themes/theme2/themeMeta.js` (include `googleFontsUrl` + `googleFontFamilies` for overlay font loading), `config.js`, `commands/`, `adapters/`, etc.
 3. Run `npm run generate:tokens` for theme2; `node scripts/check-graphics-drift.js`.
-4. OBS: use the signed overlay URL from backoffice; theme follows `graphic_theme_id` on the session (no `?theme=` param).
+4. OBS: use the signed graphics URL from backoffice; theme follows `graphic_theme_id` on the session (no `?theme=` param).
 5. Add parameterized contract tests: same processor fixture → theme1 + theme2 adapters expose required bundle keys.
 6. Promote to `"completeness": "full"` when every overlay key has JSX.
 
@@ -378,8 +375,6 @@ Do not bulk-copy files until design stakeholders answer this.
 - Use generic adapter names inside each theme (`toScoreBarBundle`, not `toTheme1…`).
 - Processors stay theme-agnostic; themes reimplement all 17 adapters unless `_shared/` is deliberately extracted.
 - Cost model: partial theme ~30–50 files; full theme ~179 files.
-- Follow **§17** for all theme CSS — same rules apply to `theme2/` layouts, primitives, and SCSS.
-- Import color helpers from **`shared/accentColor.js`**; add a thin `primitives/accent.js` with theme token defaults.
 
 ---
 
@@ -407,11 +402,7 @@ Else (data graphic):
   └─ processor → adapter → layout → primitives → BroadcastShell
 ```
 
-**Before merge — CSS compatibility (§17):**
-
-- No `color-mix()` in theme JSX, inline styles, or SCSS.
-- Translucent accents → `accentMix()` / `accentGlowShadow()` (not Tailwind arbitrary `color-mix` classes).
-- No `100dvh` in overlay or theme styles.
+**Note on duplication across command families** (e.g. TOUR*HITS' 6 files, FST*\*'s 10 files, BATSMAN/BOWLER stats' 12 files — near-identical bodies differing only in a title string, a Flash component, or an adapter+layout pair): a shared-factory approach (each command file reduced to a 1-line `export default createXCommand(...)`) was tried and intentionally reverted — it added an indirection layer across the theme that outweighed the line-count savings. Each command file stays a standalone, fully-readable component per the pattern above, even when that means repeating a few lines across siblings.
 
 ---
 
@@ -435,29 +426,29 @@ Else (data graphic):
 
 ## 13. Open & deferred (not blockers)
 
-| Item                       | Recommendation                                                                      |
-| -------------------------- | ----------------------------------------------------------------------------------- |
-| Adapter contracts 25/~40   | **Leave** until theme 2 or adapter change; many paths already in `adapters.test.js` |
-| Full TypeScript `core/`    | **Defer** until theme 2 or core churn slows                                         |
-| Pixel Playwright snapshots | **Defer** — high maintenance; shell smoke + commandSmoke sufficient for now         |
-| `themes/_shared/`          | **Defer** — blocked on §10 layout decision                                          |
-| `isError` debug banner     | **Optional** — blank overlay is OBS-safe                                            |
-| Duplicate flash listeners  | **Leave** — intentional (hash refetch vs queue)                                     |
-| Token CSS diff in CI       | **Add when convenient** — ~5 lines in workflow                                      |
-| Layout unit tests (37/38)  | **Leave** — exercised via command smoke                                             |
+| Item                               | Recommendation                                                                                       |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Adapter contracts 25/~40           | **Leave** until theme 2 or adapter change; many paths already in `adapters.test.js`                  |
+| Full TypeScript `themes/theme1/**` | **Defer** until theme 2 or theme1 churn slows — `core/`, `entry/`, `exit/` are already fully covered |
+| Pixel Playwright snapshots         | **Defer** — high maintenance; shell smoke + commandSmoke sufficient for now                          |
+| `themes/_shared/`                  | **Defer** — blocked on §10 layout decision                                                           |
+| `isError` debug banner             | **Optional** — blank overlay is OBS-safe                                                             |
+| Duplicate flash listeners          | **Leave** — intentional (hash refetch vs queue)                                                      |
+| Token CSS diff in CI               | **Done** — `graphics-checks.yml`'s `drift` job runs `git diff --exit-code` on `_tokens.css`          |
+| Layout unit tests (37/38)          | **Leave** — exercised via command smoke; `MatchFixtureBar`/`LeaderboardGraphic` added this pass      |
 
 ---
 
 ## 14. Cross-repo integration
 
-| Location                                 | Role                                                         |
-| ---------------------------------------- | ------------------------------------------------------------ |
-| `shared/graphics-command-manifest.json`  | Command catalog                                              |
-| `shared/graphics-themes.json`            | Theme registry                                               |
-| `scripts/check-graphics-drift.js`        | Structural parity                                            |
-| `app/src/store/api/graphicSessionApi.js` | RTK Query session                                            |
-| `app/src/App.jsx`                        | `/overlay/:matchId` (+ signed `expires` / `signature` query) |
-| `tapeya-theme-controller/`               | Standalone design harness                                    |
+| Location                                | Role                                                                                                                    |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `shared/graphics-command-manifest.json` | Command catalog                                                                                                         |
+| `shared/graphics-themes.json`           | Theme registry                                                                                                          |
+| `shared/graphics-core/`                 | Processors, normalizers, domain (`@tapeya/graphics-core`)                                                               |
+| `scripts/check-graphics-drift.js`       | Structural parity                                                                                                       |
+| `app/src/graphics/bootstrap/`           | Graphics bootstrap + store (graphics.tapeya.com artifact)                                                               |
+| `tapeya-theme-controller/`              | **Not yet created** — planned standalone design harness, referenced here as a forward pointer, not a current dependency |
 
 ---
 
@@ -476,11 +467,23 @@ Else (data graphic):
 
 ---
 
-## 17. Browser & CSS compatibility (overlay / vMix)
+## 17. Browser & CSS compatibility (graphics / vMix)
 
-The signed overlay (`/overlay/:matchId`) runs inside **OBS**, **vMix 29**, and **vMix 24**. vMix 24 embeds an old Chromium (~86–103). Graphics that rely on Chrome 111+ CSS can render **blank or broken** in vMix 24 while working everywhere else.
+> **Isolation roadmap:** Long-term plan to ship graphics as a separate build (no Tailwind v4, Chrome 86 floor) — see [`docs/GRAPHICS_OVERLAY_ISOLATION_PLAN.md`](../../../docs/GRAPHICS_OVERLAY_ISOLATION_PLAN.md).
 
-**Scope:** All code under `themes/` (JSX, SCSS, inline styles). The main Tapeya app may use newer CSS elsewhere; **theme overlay assets must not**.
+The signed graphics URL (`https://graphics.tapeya.com/{sessionId}-{expires}-{signature}` — `match_graphic_sessions.id`) runs inside **OBS**, **vMix 29**, and **vMix 24**. vMix 24 embeds an old Chromium (~86–103). Graphics that rely on Chrome 111+ CSS can render **blank or broken** in vMix 24 while working everywhere else.
+
+**Scope:** All code under `themes/` (JSX, SCSS, inline styles). The main Tapeya app may use newer CSS elsewhere; **theme broadcast assets must not**.
+
+### Utility CSS toolchain (graphics build)
+
+The graphics build has its own Tailwind pipeline, separate from the consumer app's Tailwind v4:
+
+- Config: [`app/tailwind.graphics.config.cjs`](../../tailwind.graphics.config.cjs) — Tailwind **v3** (installed as the `tailwindcss3` npm alias), content-scanning `src/graphics/**` and `shared/graphics-core/src/**`. `preflight: false` (themes own their resets via SCSS + `graphicsSurface.css`).
+- v3, not v4, is deliberate: v4 emits `color-mix()`, which is exactly the CSS feature §17 prohibits.
+- Wired into `vite.graphics.config.js` via inline PostCSS (`tailwindcss3` + `autoprefixer`, browserslist pinned to `chrome >= 86`) — the consumer app's `@tailwindcss/vite` plugin never runs in this build.
+- Entry stylesheet: `app/src/graphics/shared/styles/tailwind.css` (`@tailwind utilities;`), imported once from `bootstrap/main.jsx`.
+- Any Tailwind-shaped class (including arbitrary values) used anywhere in graphics JSX works automatically — no manual utilities file or generator script to keep in sync.
 
 ### Do not use in themes
 
@@ -490,6 +493,8 @@ The signed overlay (`/overlay/:matchId`) runs inside **OBS**, **vMix 29**, and *
 | `color-mix` inside Tailwind arbitrary classes | 111        | Same — e.g. `border-[color-mix(in_srgb,var(--accentA)_40%,transparent)]` |
 | `100dvh`                                      | 108        | Low risk but avoid in overlay/theme CSS; use `100vh` or fixed px         |
 | Hard-coded `color-mix` in `@keyframes`        | 111        | Use `#rrggbbaa` or `rgba()` instead                                      |
+| `padding-inline` / React `paddingInline`      | 87         | Ignored in Chrome 86 → zero horizontal padding (crowded LT / FS rows)    |
+| Tailwind `inset-0` / CSS `inset:`             | 87         | Ignored → absolute/fixed layers do not pin to edges                      |
 
 **Do not** add `@supports (color: color-mix(...))` blocks in theme SCSS expecting a fallback — theme bundles are loaded as-is in vMix. Always ship the legacy-safe value directly.
 
@@ -560,7 +565,7 @@ rg 'color-mix' app/dist/assets/animations*.css app/dist/assets/controller*.css a
 cd app && npm test -- --run src/graphics/themes/theme1/primitives/__tests__/accent.test.js
 ```
 
-Smoke in **vMix 24**: signed overlay URL, transparent background, highest browser version on the input, reload after deploy.
+Smoke in **vMix 24**: signed graphics URL, transparent background, highest browser version on the input, reload after deploy.
 
 ---
 
@@ -581,9 +586,12 @@ Smoke in **vMix 24**: signed overlay URL, transparent background, highest browse
 
 ## Revision history
 
-| Version | Date      | Changes                                                                                                                         |
-| ------- | --------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| 1.0–1.2 | June 2026 | Initial structure doc; refactor phases; theme1 sync                                                                             |
-| 2.0     | June 2026 | Split audit/review into separate docs                                                                                           |
-| **3.0** | June 2026 | **Merged SSOT:** absorbed `GRAPHICS_MODULE_REVIEW.md` + `ARCHITECTURE_REVIEW.md`; theme 2 guide; P0–P3; test matrix; open items |
-| **3.1** | June 2026 | §17 overlay CSS compatibility (`color-mix`, `100dvh`); SSOT accent helpers; merge checklist in §11                              |
+| Version | Date      | Changes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0–1.2 | June 2026 | Initial structure doc; refactor phases; theme1 sync                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| 2.0     | June 2026 | Split audit/review into separate docs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| **3.0** | June 2026 | **Merged SSOT:** absorbed `GRAPHICS_MODULE_REVIEW.md` + `ARCHITECTURE_REVIEW.md`; theme 2 guide; P0–P3; test matrix; open items                                                                                                                                                                                                                                                                                                                                                                                             |
+| **3.1** | June 2026 | §17 overlay CSS compatibility (`color-mix`, `100dvh`); SSOT accent helpers; merge checklist in §11                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| **3.2** | July 2026 | Link to [`docs/GRAPHICS_OVERLAY_ISOLATION_PLAN.md`](../../../docs/GRAPHICS_OVERLAY_ISOLATION_PLAN.md) in §17; session-scoped signed URL                                                                                                                                                                                                                                                                                                                                                                                     |
+| **3.3** | July 2026 | Signed graphics URL uses `match_graphic_sessions.id` (see isolation plan §17)                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| **3.4** | July 2026 | Production-readiness audit fixes: corrected stale CI job table (§8) and cross-repo links (§14); documented the graphics Tailwind v3 toolchain (§17); TypeScript coverage now spans all of `core/`, `entry/`, `exit/` (§2, §7, §13); deploy workflow gated on `graphics-checks` CI status; added `MatchFixtureBar`/`LeaderboardGraphic` tests and fixed a null-`featured` crash found by the latter (§13). Command-family factories were tried and reverted per team preference — each command stays a standalone file (§11) |

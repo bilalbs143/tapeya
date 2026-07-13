@@ -1,10 +1,20 @@
 const TOURNAMENT_DETAILS_PATH = /^\/upcoming-tournaments\/[^/]+$/;
 const HIGHLIGHT_DETAILS_PATH = /^\/highlights\/[^/]+$/;
 const LIVE_BROADCAST_PATH = /^\/live\/broadcast\/[^/]+$/;
+const GO_LIVE_BROADCAST_PATH = /^\/live\/go-live\/[^/]+$/;
 const ORGANIZER_SCORING_MATCH_PATH = /^\/organizer\/scoring\/match\/[^/]+$/;
 
 export function isLiveBroadcastPath(pathname) {
   return LIVE_BROADCAST_PATH.test(pathname);
+}
+
+export function isGoLiveBroadcastPath(pathname) {
+  return GO_LIVE_BROADCAST_PATH.test(pathname);
+}
+
+/** Mobile go-live camera, or watch-live when opted into immersive (self-serve). */
+export function isLiveStreamImmersivePath(pathname) {
+  return isLiveBroadcastPath(pathname) || isGoLiveBroadcastPath(pathname);
 }
 
 export function isHighlightDetailsPath(pathname) {
@@ -14,7 +24,14 @@ export function isHighlightDetailsPath(pathname) {
 /** Pages whose main content starts at the viewport top (hero sits behind the fixed navbar). */
 export function isNavbarOverlayPath(pathname, isDesktop = false) {
   if (isHighlightDetailsPath(pathname) && isDesktop) return false;
-  return pathname === '/profile' || TOURNAMENT_DETAILS_PATH.test(pathname) || HIGHLIGHT_DETAILS_PATH.test(pathname);
+  // Go-live camera is always overlay; watch-live padding is decided in useMainLayoutChrome
+  // (self-serve immersive vs match classic) — do not force overlay for all /live/broadcast.
+  return (
+    pathname === '/profile' ||
+    TOURNAMENT_DETAILS_PATH.test(pathname) ||
+    HIGHLIGHT_DETAILS_PATH.test(pathname) ||
+    isGoLiveBroadcastPath(pathname)
+  );
 }
 
 const AUTH_PATHS = new Set(['/login', '/register', '/otp']);
@@ -40,7 +57,7 @@ export function isGlobalEntryDialogBlockedPath(pathname) {
   return (
     isDialogReminderBlockedPath(pathname) ||
     pathname.startsWith('/overlay/') ||
-    isLiveBroadcastPath(pathname) ||
+    isLiveStreamImmersivePath(pathname) ||
     ORGANIZER_SCORING_MATCH_PATH.test(pathname)
   );
 }
@@ -66,9 +83,19 @@ export function isInterestCampaignDialogBlockedPath(pathname) {
   return isGlobalEntryDialogBlockedPath(pathname) || isInterestFormPath(pathname);
 }
 
-/** Pages where the navbar may start transparent over a hero image. */
-export function isHeroNavbarPath(pathname, isDesktop = false) {
+/**
+ * Pages where the navbar may start transparent over a hero image.
+ * @param {string} pathname
+ * @param {boolean} [isDesktop]
+ * @param {boolean} [isLiveHero] - Self-serve watch-live in hero mode (status === 'live').
+ */
+export function isHeroNavbarPath(pathname, isDesktop = false, isLiveHero = false) {
   if (isHighlightDetailsPath(pathname) && isDesktop) return false;
+  // Go-live owns its own header — never hero-transparent.
+  if (isGoLiveBroadcastPath(pathname)) return false;
+  // Watch-live: solid for match streams and before/after self-serve playback; transparent
+  // only while a self-serve stream is actually live (hero mode).
+  if (isLiveBroadcastPath(pathname)) return isLiveHero;
   return (
     pathname === '/home' ||
     pathname === '/profile' ||

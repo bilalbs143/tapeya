@@ -216,28 +216,34 @@ Validation: whitelist `command_key` per `command_type` to avoid arbitrary client
 
 **Authorization:** Admin and/or organizer-as-operator; enforce access using `tournament_id` from `$match->tournament_id`.
 
-### 6.3 OBS / vMix overlay URL (signed link — operator note)
+### 6.3 OBS / vMix graphics URL (signed link — operator note)
 
-The **Tapeya app** (`app/`, Vite) exposes a transparent overlay route: `/overlay/:matchId?theme=…`. Browser sources (OBS, vMix, etc.) cannot rely on a normal user login, so the **initial** graphic session is loaded with a **signed query string** (`expires` + `signature`) issued by the API. Real-time updates still use the public Reverb channel `match.{matchId}.graphics` (no token).
+The **Tapeya graphics site** (`graphics.tapeya.com`) exposes a transparent route: `/{sessionId}-{expires}-{signature}`. `{sessionId}` is **`match_graphic_sessions.id`** — the graphic session row that holds theme, config, context, and active command. Browser sources (OBS, vMix, etc.) cannot rely on a normal user login, so the **initial** session is loaded with a **signed access token** in the URL path, issued by the API. Real-time updates use the public Reverb channel `match.{matchId}.graphics` where `{matchId}` comes from the session JSON after bootstrap (no token on WebSocket).
 
 **What operators do**
 
 1. In **Match Graphics Controller**, open **Graphics Settings** (gear / first-load dialog).
-2. Wait for **“Overlay URL (signed)”** to appear, then **copy** the full URL.
-3. In OBS: **Sources → + → Browser** → paste the URL as the address. Set width/height to match your output; leave custom CSS empty unless you know you need it.
-4. Before the link **expires** (default **24 hours** after generation; see `OVERLAY_DEFAULT_TTL_SECONDS` / `config/overlay.php`), use **“New link”** in the same dialog and **update the Browser Source URL** in OBS, or re-open settings and copy again.
+2. Wait for **“Graphics URL (signed)”** to appear, then **copy** the full URL.
+3. In OBS / vMix: paste the URL as the browser source address. Set width/height to match your output (typically 1920×1080).
+4. Before the link **expires** (default **24 hours** after generation; see **Graphics Signed URL TTL** in Admin → System Settings), use **“New link”** in the same dialog and **update the Browser Source URL**, or re-open settings and copy again.
 
-Changing **theme** in the dialog updates only the `theme=` query parameter on the client; you do **not** need a new signature for that. **“New link”** issues a fresh `expires` + `signature` (use if the old link expired or was rotated).
+Theme follows `graphic_theme_id` on the session (from bootstrap JSON) — **no `?theme=` query param** on the signed page URL. **“New link”** issues a fresh signed token (use if the old link expired or was rotated).
 
 **What engineers configure**
 
 | Setting | Purpose |
 |---------|---------|
-| `OVERLAY_FRONTEND_URL` (Laravel `api/.env`) | Origin of the React app used when building the pasted URL (e.g. `http://localhost:5173` or `https://app.tapeya.com`). Must match where OBS loads the page. |
-| `OVERLAY_SIGNING_SECRET` (optional) | Dedicated HMAC secret for overlay links; if unset, `APP_KEY` is used. |
-| `OVERLAY_DEFAULT_TTL_SECONDS` (optional) | Lifetime of each signed link in seconds (default **86400** = 24 hours). Same key as `default_ttl_seconds` in `api/config/overlay.php`. |
+| Admin → **System Settings** → **Graphics Frontend URL** | Origin used when building the pasted URL (e.g. `https://graphics.tapeya.com`). Must match where vMix loads the page. |
+| Admin → **System Settings** → **Graphics Signing Secret** | HMAC secret for signed graphics URLs (required for link generation and verification). |
+| Admin → **System Settings** → **Graphics Signed URL TTL (Seconds)** | Lifetime of each signed link in seconds (default **86400** = 24 hours). |
 
-**Public bootstrap endpoint** (no auth; signature required): `GET /api/v1/matches/{match}/graphic-session/overlay?expires=…&signature=…` — same session JSON shape as the authenticated user `GET …/graphic-session`. The signed **page** URL from the admin endpoint already includes `theme`, `expires`, and `signature` for the operator to paste wholesale.
+**Public bootstrap endpoint** (no auth; signature required):
+
+```
+GET /api/v1/graphic-sessions/access/{sessionId}-{expires}-{signature}
+```
+
+Same session JSON shape as authenticated `GET …/matches/{match}/graphic-session`. HMAC payload: `{sessionId}|{expiresUnix}` (see [`GRAPHICS_OVERLAY_ISOLATION_PLAN.md`](./GRAPHICS_OVERLAY_ISOLATION_PLAN.md) §17).
 
 ---
 
@@ -259,7 +265,7 @@ The **graphics consumer** (future) subscribes to the same contract via:
 - Polling admin (or public-scoped) `GET /admin/matches/{match}/graphic-session/commands?since_id=`, or
 - **WebSocket / SSE** (optional enhancement) for low latency.
 
-The **shipped overlay app** uses **Reverb** for live activations and a single **HTTP bootstrap**: authenticated `GET /api/v1/matches/{match}/graphic-session`, or **signed** `GET /api/v1/matches/{match}/graphic-session/overlay` (§6.3).
+The **shipped overlay app** uses **Reverb** for live activations and a single **HTTP bootstrap**: authenticated `GET /api/v1/matches/{match}/graphic-session`, or **signed** `GET /api/v1/graphic-sessions/{session}/overlay` (§6.3).
 
 Tapeya backoffice does not need WebSockets for MVP; HTTP is enough for operator UX.
 
@@ -303,7 +309,7 @@ The following are **not** required for the backoffice feature to ship:
 
 **Do** document for integrators:
 
-- **Signed overlay URL** flow for OBS / vMix: §6.3 (`signed-url` admin route + public `graphic-session/overlay` bootstrap)
+- **Signed graphics URL** flow for OBS / vMix: §6.3 (`signed-url` admin route + public `graphic-sessions/access/{token}` bootstrap)
 - Command JSON shape and polling/WebSocket plan (when added)
 
 ---

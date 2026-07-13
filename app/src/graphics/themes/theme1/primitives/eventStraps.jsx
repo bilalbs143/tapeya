@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { animation, colors, geometry, ltBar } from '../config';
 import { useContainerWidth } from './controllerBarHooks';
 import { horizontalBarScale } from './controllerBarScaling';
+import { DISPLAY_FONT } from './formatters';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 const STRAP_DESIGN_W = ltBar.designWidth;
@@ -241,7 +242,7 @@ const TickerCopy = forwardRef(function TickerCopy({ title, textStyle }, ref) {
       {Array.from({ length: TICKER_WORD_REPEATS }, (_, i) => (
         <span
           key={i}
-          className="shrink-0 [font-family:var(--font-display)] leading-none font-extrabold tracking-[0.06em] whitespace-nowrap text-white"
+          className={cn(DISPLAY_FONT, 'shrink-0 leading-none font-extrabold tracking-[0.06em] whitespace-nowrap text-white')}
           style={textStyle}
         >
           {title}
@@ -280,8 +281,10 @@ const TickerTrack = memo(function TickerTrack({ title, titleShadow }) {
 });
 
 // ── Background word track ──────────────────────────────────────────────────────
-const BG_TEXT_CLASS =
-  'absolute whitespace-nowrap [font-family:var(--font-display)] font-extrabold tracking-[0.08em] text-white pointer-events-none';
+const BG_TEXT_CLASS = cn(
+  'absolute whitespace-nowrap font-extrabold tracking-[0.08em] text-white pointer-events-none',
+  DISPLAY_FONT,
+);
 
 const BgCopy = forwardRef(function BgCopy({ word, colSpacing, numCols }, ref) {
   const baseStyle = { fontSize: BG_FONT_SIZE, transform: 'translateY(-50%)' };
@@ -380,7 +383,7 @@ const BackgroundWordTrack = memo(function BackgroundWordTrack({ word }) {
     >
       <span
         ref={wordMeasureRef}
-        className="pointer-events-none absolute [font-family:var(--font-display)] font-extrabold tracking-[0.08em] whitespace-nowrap"
+        className={cn('pointer-events-none absolute font-extrabold tracking-[0.08em] whitespace-nowrap', DISPLAY_FONT)}
         style={{ fontSize: BG_FONT_SIZE, top: -9999, opacity: 0 }}
       >
         {word}

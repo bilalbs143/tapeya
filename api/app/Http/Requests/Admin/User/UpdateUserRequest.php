@@ -46,6 +46,7 @@ class UpdateUserRequest extends FormRequest
             'batting_style' => ['nullable', Rule::enum(BattingStyleEnum::class)],
             'country' => ['nullable', 'string', 'max:100'],
             'city' => ['nullable', 'string', 'max:100'],
+            'can_broadcast' => ['sometimes', 'boolean'],
         ];
     }
 }

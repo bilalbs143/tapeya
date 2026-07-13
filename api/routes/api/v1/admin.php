@@ -6,11 +6,12 @@ use App\Http\Controllers\Admin\CricketDashboardController;
 use App\Http\Controllers\Admin\EnumController;
 use App\Http\Controllers\Admin\GraphicCommandCatalogController;
 use App\Http\Controllers\Admin\GraphicCommandController;
-use App\Http\Controllers\Admin\GraphicOverlayUrlController;
 use App\Http\Controllers\Admin\GraphicSessionController;
+use App\Http\Controllers\Admin\GraphicSignedUrlController;
 use App\Http\Controllers\Admin\GraphicThemeController;
 use App\Http\Controllers\Admin\HeroSliderController;
 use App\Http\Controllers\Admin\HighlightController as AdminHighlightController;
+use App\Http\Controllers\Admin\LiveStreamController;
 use App\Http\Controllers\Admin\MatchGraphicCaptionController;
 use App\Http\Controllers\Admin\MatchGraphicPlayerListController;
 use App\Http\Controllers\Admin\MediaController;
@@ -67,6 +68,7 @@ Route::prefix('admin')->group(function () {
         Route::get('countries/cities', [CountryController::class, 'cities']);
         Route::get('users/search', [UserSearchController::class, 'index']);
         Route::apiResource('users', UserController::class);
+        Route::post('users/{user}/broadcast-ban', [UserController::class, 'broadcastBan']);
         Route::post('players/import-csv', [PlayerController::class, 'importCsv']);
         Route::apiResource('players', PlayerController::class)->only(['index', 'store', 'show', 'update']);
         Route::apiResource('teams', TeamController::class);
@@ -96,6 +98,13 @@ Route::prefix('admin')->group(function () {
         Route::delete('matches/{match}/stream', [StreamController::class, 'destroy']);
         Route::post('matches/{match}/stream/sync', [StreamController::class, 'sync']);
         Route::patch('matches/{match}/stream/provider', [StreamController::class, 'setProvider']);
+        Route::apiResource('live-streams', LiveStreamController::class)
+            ->parameters(['live-streams' => 'stream'])
+            ->only(['index', 'store', 'show', 'update', 'destroy']);
+        Route::post('live-streams/{stream}/start', [LiveStreamController::class, 'start']);
+        Route::post('live-streams/{stream}/end', [LiveStreamController::class, 'end']);
+        Route::post('live-streams/{stream}/sync', [LiveStreamController::class, 'sync']);
+        Route::post('live-streams/{stream}/setup', [LiveStreamController::class, 'setup']);
         Route::get('matches/{match}/teams/{team}/squad', [TournamentMatchSquadController::class, 'show']);
         Route::post('matches/{match}/teams/{team}/squad', [TournamentMatchSquadController::class, 'store']);
         Route::get('matches/{match}/graphic-player-lists', MatchGraphicPlayerListController::class);
@@ -104,7 +113,7 @@ Route::prefix('admin')->group(function () {
         Route::get('graphic-command-catalog', [GraphicCommandCatalogController::class, 'index']);
         Route::get('matches/{match}/graphic-session', [GraphicSessionController::class, 'show']);
         Route::post('matches/{match}/graphic-session', [GraphicSessionController::class, 'store']);
-        Route::get('matches/{match}/graphic-session/signed-url', [GraphicOverlayUrlController::class, 'signedOverlayUrl']);
+        Route::get('matches/{match}/graphic-session/signed-url', [GraphicSignedUrlController::class, 'signedUrl']);
         Route::match(['put', 'patch'], 'matches/{match}/graphic-session', [GraphicSessionController::class, 'update']);
         Route::get('matches/{match}/graphic-session/captions', [MatchGraphicCaptionController::class, 'index']);
         Route::post('matches/{match}/graphic-session/captions', [MatchGraphicCaptionController::class, 'store']);

@@ -66,17 +66,15 @@ export function FallOfWicketsLTBar({ data, teams, edgeToEdge = true, mode = 'all
               <AnimatedNumber
                 value={total}
                 className={cn(
-                  '[font-family:var(--font-display)] text-[50px] leading-[0.92] font-extrabold text-[var(--score-color)]',
+                  DISPLAY_FONT,
+                  'text-[50px] leading-[0.92] font-extrabold text-[var(--score-color)]',
                   textGlowClass('score'),
                 )}
               />
-              <span className="[font-family:var(--font-display)] text-[32px] leading-[0.92] font-extrabold text-[var(--text-secondary)]">
+              <span className={cn(DISPLAY_FONT, 'text-[32px] leading-[0.92] font-extrabold text-[var(--text-secondary)]')}>
                 {scoreSep}
               </span>
-              <AnimatedNumber
-                value={wkts}
-                className="[font-family:var(--font-display)] text-[38px] leading-[0.92] font-extrabold text-white"
-              />
+              <AnimatedNumber value={wkts} className={cn(DISPLAY_FONT, 'text-[38px] leading-[0.92] font-extrabold text-white')} />
             </div>
           </div>
 
@@ -86,15 +84,20 @@ export function FallOfWicketsLTBar({ data, teams, edgeToEdge = true, mode = 'all
                 <div key={`${item.number ?? index}-${item.score ?? ''}`} className="flex items-center">
                   {index > 0 ? (
                     <div
-                      className="mx-3 w-px self-stretch bg-[linear-gradient(180deg,transparent,rgba(150,170,255,0.45),transparent)]"
+                      className="mx-3 w-px self-stretch bg-[linear-gradient(180deg,transparent,rgba(255,255,255,0.22),transparent)]"
                       aria-hidden="true"
                     />
                   ) : null}
-                  <div className="flex min-w-[72px] flex-col items-center justify-center px-2 text-center">
+                  <div className="flex max-w-[120px] min-w-[72px] flex-col items-center justify-center px-2 text-center">
                     <span className={wicketNumberClass}>{item.number ?? index + 1}</span>
                     <span className={cn('mt-2', wicketScoreClass)}>{item.score ?? '—'}</span>
                     {item.batter ? (
-                      <span className={cn('mt-1 text-[15px] font-medium text-[var(--text-secondary)]', UI_FONT)}>
+                      <span
+                        className={cn(
+                          'mt-1 max-w-full overflow-hidden text-[15px] font-medium text-ellipsis whitespace-nowrap text-[var(--text-secondary)]',
+                          UI_FONT,
+                        )}
+                      >
                         {item.batter}
                       </span>
                     ) : null}

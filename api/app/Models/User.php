@@ -64,6 +64,8 @@ class User extends Authenticatable
         'created_by',
         'active_platform',
         'active_platform_updated_at',
+        'can_broadcast',
+        'broadcast_terms_accepted_at',
     ];
 
     /**
@@ -94,6 +96,8 @@ class User extends Authenticatable
             'batting_style' => BattingStyleEnum::class,
             'created_by' => 'integer',
             'active_platform_updated_at' => 'datetime',
+            'can_broadcast' => 'boolean',
+            'broadcast_terms_accepted_at' => 'datetime',
         ];
     }
 

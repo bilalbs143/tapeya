@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 
 import { NavbarCartButton } from '@/components/navbar/NavbarCartButton';
 import { NavbarIconBadge } from '@/components/navbar/NavbarIconBadge';
+import { useLiveViewerHeroMode } from '@/features/stream/liveViewerChromeStore';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { LG_MEDIA_QUERY, NAVBAR_HEIGHT, NAVBAR_SCROLL_THRESHOLD, NAVBAR_Z } from '@/lib/constants/layout';
@@ -43,6 +44,7 @@ export function Navbar({ onMenuClick }) {
   const unreadCount = Math.max(0, unreadData?.unreadCount ?? 0);
   const badgeLabel = formatCountBadge(unreadCount);
   const isDesktop = useMediaQuery(LG_MEDIA_QUERY);
+  const liveHeroMode = useLiveViewerHeroMode();
 
   // Re-run on pathname change so scrolled resets correctly when navigating
   // back to a hero page that starts at scroll position 0.
@@ -57,7 +59,7 @@ export function Navbar({ onMenuClick }) {
   }, [location.pathname]);
 
   // Non-hero pages are always solid — no transparent phase.
-  const alwaysSolid = !isHeroNavbarPath(location.pathname, isDesktop);
+  const alwaysSolid = !isHeroNavbarPath(location.pathname, isDesktop, liveHeroMode);
 
   return (
     <nav

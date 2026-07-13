@@ -131,7 +131,8 @@
         <div class="col-span-12">
           <mat-label class="text-sm font-semibold mb-2 block">Form Fields <span class="text-error">*</span></mat-label>
           <p class="mb-3 max-w-3xl text-xs leading-snug text-muted">
-            Choose which fields appear on the public interest form. Unchecked fields are hidden and not required from players. Full name is always stored from the signed-in account. Country and city are toggled together.
+            Choose which fields appear on the public interest form. Unchecked fields are hidden and not required from players.
+            Full name is always stored from the signed-in account. Country and city are toggled together.
           </p>
           <div class="grid grid-cols-12 gap-x-4 gap-y-1">
             @if (formFieldOptions$ | async; as fieldOpts) {
@@ -172,8 +173,8 @@
             color="primary"
           ></mat-slide-toggle>
           <p class="mt-2 mb-0 max-w-md text-xs leading-snug text-muted">
-            Only one campaign can show the in-app interest dialog. If another campaign already has this on, it will be turned off when
-            you save.
+            Only one campaign can show the in-app interest dialog. If another campaign already has this on, it will be turned off
+            when you save.
           </p>
         </div>
 

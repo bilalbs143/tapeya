@@ -28,9 +28,17 @@ const PARTNERSHIP_LIST_GOLD = colors.gold;
 const HEADER_CREST_SIZE = 104;
 const SCORE_STRIP_WIDTH = 640;
 
-const batterNameClass = cn('font-extrabold text-white uppercase whitespace-nowrap', DISPLAY_FONT);
+const batterNameClass = cn(
+  'font-extrabold text-white uppercase',
+  'overflow-hidden text-ellipsis whitespace-nowrap min-w-0',
+  DISPLAY_FONT,
+);
 
-const batterNameCompactClass = cn('font-extrabold text-white uppercase whitespace-nowrap', DISPLAY_FONT);
+const batterNameCompactClass = cn(
+  'font-extrabold text-white uppercase',
+  'overflow-hidden text-ellipsis whitespace-nowrap min-w-0',
+  DISPLAY_FONT,
+);
 
 const contributionLabelClass = cn(
   'mt-4 text-center font-semibold tracking-[0.14em] text-[var(--text-secondary)] uppercase',
@@ -138,7 +146,7 @@ function ContributionBar({ left, right, className, compact = false }) {
     <div className={cn('relative min-w-0', className)}>
       <div
         className={cn(
-          'flex min-w-0 overflow-hidden rounded-[10px] border border-white/[0.12] bg-white/[0.05]',
+          'flex min-w-0 overflow-hidden rounded-[10px] border border-white/12 bg-white/[0.05]',
           compact ? 'h-10' : 'h-11',
         )}
       >
@@ -158,7 +166,7 @@ function ContributionBar({ left, right, className, compact = false }) {
           className="flex items-center justify-end pr-4"
           style={{
             width: `${rightPct}%`,
-            background: `linear-gradient(90deg, ${rightAccent}, #d9a93a)`,
+            background: `linear-gradient(90deg, ${rightAccent}, ${colors.goldDark})`,
           }}
         >
           <span className={`${contributionValueClass} text-[#0a0e17]`} style={fsFont(fsPartnership.contributionValue)}>
@@ -220,13 +228,14 @@ function PartnershipItem({ batters }) {
   );
 }
 
-function PartnershipBreakdownPanel({ partnerships }) {
+function PartnershipBreakdownPanel({ partnerships, accent }) {
   if (!partnerships.length) return null;
+  const ringAccent = accent ?? colors.accentB;
 
   return (
     <GlowPanel
       radius={28}
-      accent={colors.accentB}
+      accent={ringAccent}
       pad={0}
       className="relative flex h-full w-full flex-col justify-start gap-5 overflow-hidden px-16 pt-10 pb-14"
     >
@@ -254,22 +263,22 @@ function ScoreStripMeta({ label, value }) {
   );
 }
 
-function ScoreStrip({ extras, overs, total, accent }) {
+function ScoreStrip({ extras, overs, total }) {
   return (
     <div
-      className="absolute right-0 bottom-[-22px] flex h-[92px] items-stretch overflow-hidden rounded-[14px] border border-[rgba(120,140,255,0.28)] bg-[linear-gradient(180deg,rgba(22,28,42,0.92),rgba(11,15,24,0.95))]"
+      className="absolute right-0 bottom-[-22px] z-[3] flex h-[92px] items-stretch overflow-hidden rounded-[14px] border border-[rgba(120,140,255,0.28)] bg-[linear-gradient(180deg,rgba(22,28,42,0.92),rgba(11,15,24,0.95))]"
       style={{
         width: SCORE_STRIP_WIDTH,
-        boxShadow: accentGlowShadow(accent, 13, '20px'),
+        boxShadow: '0 0 calc(20px * var(--glow)) rgba(120,140,255,0.13)',
       }}
     >
       <ScoreStripMeta label="EXTRAS" value={extras} />
-      <div className="w-px shrink-0 bg-white/[0.12]" />
+      <div className="w-px shrink-0 bg-white/12" />
       <ScoreStripMeta label="OVERS" value={overs} />
       <div className="min-w-6 flex-1" />
       <div
         className="flex shrink-0 items-center px-9 pl-7"
-        style={{ background: `linear-gradient(100deg, transparent, ${accentMix(accent, 20)})` }}
+        style={{ background: 'linear-gradient(100deg, transparent, rgba(120,140,255,0.16))' }}
       >
         <span className={FS_SCORE_STRIP_HERO} style={fsFont(fsSummaryPanel.scoreStripHero)}>
           {total}
@@ -292,8 +301,8 @@ export function PartnershipListGraphic({ data, teams }) {
       <PartnershipListHeader title={title} sub={data.sub} accent={accent} crestLogoUrl={data.crestLogoUrl} team={team} />
 
       <div className="absolute top-[246px] right-24 bottom-16 left-24">
-        <PartnershipBreakdownPanel partnerships={partnerships} />
-        <ScoreStrip extras={data.scoreStrip.extras} overs={data.scoreStrip.overs} total={data.scoreStrip.total} accent={accent} />
+        <PartnershipBreakdownPanel partnerships={partnerships} accent={accent} />
+        <ScoreStrip extras={data.scoreStrip.extras} overs={data.scoreStrip.overs} total={data.scoreStrip.total} />
       </div>
     </FSStage>
   );

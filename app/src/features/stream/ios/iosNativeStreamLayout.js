@@ -1,9 +1,14 @@
 /**
  * Layout payloads for YoutubeStreamOverlayPlugin (Capacitor bridge).
  *
- * Portrait: native WKWebView above Capacitor, sized to the aspect-video placeholder.
- * Landscape: native WKWebView below transparent Capacitor, full-screen; embed page rotates video.
+ * Native YouTube always sits under Capacitor so React chrome (badges, hearts, comments)
+ * composites on top. Landscape fills the host; portrait matches the web placeholder.
  */
+
+/** Shell / stage background while the native player underlays Capacitor. */
+export function nativeUnderlaySurfaceClass(active) {
+  return active ? 'bg-transparent' : 'bg-black';
+}
 
 /**
  * @param {Element} element
@@ -19,33 +24,12 @@ export function readElementLayoutRect(element) {
   };
 }
 
-/** Z-order + interaction mode — always safe to apply before geometry is measured. */
+/** Z-order + interaction. Portrait keeps the measured frame; landscape fills the host. */
 export function buildNativeStackLayout(isLandscape) {
-  if (isLandscape) {
-    return {
-      underlay: true,
-      immersiveFullscreen: true,
-      userInteractionEnabled: false,
-    };
-  }
-
   return {
-    underlay: false,
-    immersiveFullscreen: false,
-    userInteractionEnabled: true,
-  };
-}
-
-/** Landscape immersive — Swift fills the host view; rotation is handled by the embed proxy. */
-export function buildLandscapeNativeLayout() {
-  return buildNativeStackLayout(true);
-}
-
-/** Portrait — native player above Capacitor, matched to the web aspect-video box. */
-export function buildPortraitNativeLayout(placeholder) {
-  return {
-    ...readElementLayoutRect(placeholder),
-    ...buildNativeStackLayout(false),
+    underlay: true,
+    immersiveFullscreen: Boolean(isLandscape),
+    userInteractionEnabled: false,
   };
 }
 
@@ -54,5 +38,12 @@ export function buildPortraitNativeLayout(placeholder) {
  * @param {{ isLandscape: boolean }} options
  */
 export function buildNativeOverlayLayout(placeholder, { isLandscape }) {
-  return isLandscape ? buildLandscapeNativeLayout() : buildPortraitNativeLayout(placeholder);
+  if (isLandscape) {
+    return buildNativeStackLayout(true);
+  }
+
+  return {
+    ...readElementLayoutRect(placeholder),
+    ...buildNativeStackLayout(false),
+  };
 }

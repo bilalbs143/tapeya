@@ -1,0 +1,241 @@
+<app-dialog-wrapper [title]="stream?.title || data.stream.title || 'Manage Live Stream'">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="save()"
+    aria-label="Manage Live Stream Form"
+  >
+    <mat-dialog-content>
+      <div class="grid grid-cols-12 gap-x-6">
+        <div class="col-span-12">
+          <p class="text-muted m-0 mb-2 text-sm leading-snug">
+            @if (isYoutube) {
+              Copy RTMP settings into OBS or vMix, then sync status once YouTube reports live.
+            } @else {
+              Update stream details and mark the external feed live when ready.
+            }
+          </p>
+        </div>
+
+        @if (loading) {
+          <div class="col-span-12 flex items-center gap-3 py-1">
+            <mat-spinner diameter="28" />
+            <span class="text-muted text-sm">Loading Stream…</span>
+          </div>
+        } @else {
+          <div class="col-span-12">
+            <mat-label class="mb-2 block text-sm font-semibold">Provider</mat-label>
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <input
+                matInput
+                readonly
+                [value]="providerLabel"
+              />
+            </mat-form-field>
+          </div>
+
+          <div class="col-span-12">
+            <mat-label class="mb-2 block text-sm font-semibold">Title <span class="text-error">*</span></mat-label>
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <input
+                matInput
+                formControlName="title"
+                maxlength="100"
+                placeholder="Stream Title"
+              />
+              @if (form.get('title')?.hasError('required') && form.get('title')?.touched) {
+                <mat-error>Title is required</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="col-span-12">
+            <mat-label class="mb-2 block text-sm font-semibold">Description</mat-label>
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <textarea
+                matInput
+                rows="3"
+                formControlName="description"
+                maxlength="500"
+                placeholder="Optional Short Description"
+              ></textarea>
+            </mat-form-field>
+          </div>
+
+          <div class="col-span-12 mb-4">
+            <app-file-upload
+              formControlName="thumbnail"
+              label="Stream Thumbnail"
+              accept="image/jpeg,image/png,image/webp"
+              acceptLabel="JPG, PNG, WebP"
+              [hint]="streamThumbnailHint"
+              [maxSizeMb]="2"
+            ></app-file-upload>
+          </div>
+
+          @if (isExternal) {
+            <div class="col-span-12">
+              <mat-label class="mb-2 block text-sm font-semibold">
+                Streaming URL
+                <span class="text-error">*</span>
+              </mat-label>
+              <mat-form-field
+                appearance="outline"
+                class="w-full"
+              >
+                <input
+                  matInput
+                  formControlName="streaming_url"
+                  maxlength="2048"
+                  placeholder="https://..."
+                />
+                @if (form.get('streaming_url')?.hasError('required') && form.get('streaming_url')?.touched) {
+                  <mat-error>Streaming URL is required</mat-error>
+                }
+              </mat-form-field>
+            </div>
+          }
+
+          @if (isYoutube && stream?.provider_playback_id) {
+            <div class="col-span-12">
+              <mat-label class="mb-2 block text-sm font-semibold">Broadcast ID</mat-label>
+              <mat-form-field
+                appearance="outline"
+                class="w-full"
+              >
+                <input
+                  matInput
+                  readonly
+                  [value]="stream!.provider_playback_id"
+                  class="font-mono text-xs"
+                />
+              </mat-form-field>
+            </div>
+          }
+
+          @if (isYoutube) {
+            @for (row of copyFields; track row.field) {
+              <div class="col-span-12">
+                <mat-label class="mb-2 block text-sm font-semibold">{{ row.label }}</mat-label>
+                <mat-form-field
+                  appearance="outline"
+                  class="w-full"
+                >
+                  <input
+                    matInput
+                    readonly
+                    [value]="row.value"
+                    class="font-mono text-xs"
+                  />
+                  <button
+                    mat-icon-button
+                    matSuffix
+                    type="button"
+                    [matTooltip]="copiedField === row.field ? 'Copied!' : 'Copy ' + row.label"
+                    [attr.aria-label]="'Copy ' + row.label"
+                    (click)="copyField(row.field, row.value)"
+                  >
+                    <mat-icon>{{ copiedField === row.field ? 'check' : 'content_copy' }}</mat-icon>
+                  </button>
+                </mat-form-field>
+              </div>
+            }
+          }
+        }
+      </div>
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions class="!flex flex-wrap items-center gap-4 [&_button]:!m-0">
+      <button
+        type="button"
+        mat-stroked-button
+        class="border border-error! text-error"
+        [mat-dialog-close]="mutated"
+      >
+        Close
+      </button>
+
+      @if (!loading) {
+        <app-submit-button
+          [disabled]="form.invalid || !!activeAction"
+          [isSubmitting]="activeAction === 'save'"
+          text="Save Changes"
+          color="primary"
+        />
+
+        @if (isExternal && status !== 'live' && status !== 'starting') {
+          <app-submit-button
+            buttonType="button"
+            className="!m-0"
+            color="primary"
+            text="Go Live"
+            [disabled]="form.invalid || !!activeAction"
+            [isSubmitting]="activeAction === 'start'"
+            (action)="goLive()"
+          />
+        }
+
+        @if (isYoutube) {
+          <app-submit-button
+            buttonType="button"
+            className="!m-0"
+            color="primary"
+            text="Sync Status"
+            [disabled]="!!activeAction"
+            [isSubmitting]="activeAction === 'sync'"
+            (action)="syncStatus()"
+          />
+
+          @if (!isLive) {
+            <app-submit-button
+              buttonType="button"
+              className="!m-0"
+              color="primary"
+              text="New RTMP Setup"
+              [disabled]="!!activeAction"
+              [isSubmitting]="activeAction === 'setup'"
+              (action)="newRtmpSetup()"
+            />
+          }
+        }
+
+        @if (status === 'live' || status === 'starting') {
+          <app-submit-button
+            buttonType="button"
+            className="!m-0"
+            color="warn"
+            text="End Stream"
+            [disabled]="!!activeAction"
+            [isSubmitting]="activeAction === 'end'"
+            (action)="end()"
+          />
+        }
+
+        @if (status !== 'live' && status !== 'starting') {
+          <button
+            mat-stroked-button
+            class="border border-error! text-error"
+            type="button"
+            [disabled]="!!activeAction"
+            (click)="remove()"
+          >
+            @if (activeAction === 'delete') {
+              <mat-spinner diameter="20" />
+            } @else {
+              Delete Stream
+            }
+          </button>
+        }
+      }
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

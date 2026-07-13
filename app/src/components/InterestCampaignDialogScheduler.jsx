@@ -10,10 +10,7 @@ import {
   markInterestCampaignDialogDismissed,
 } from '@/lib/interestCampaignDialog';
 import { isInterestCampaignDialogBlockedPath } from '@/lib/utils/routeUtils';
-import {
-  useGetDialogInterestCampaignQuery,
-  useGetInterestCampaignQuery,
-} from '@/store/api/tournamentInterestApi';
+import { useGetDialogInterestCampaignQuery, useGetInterestCampaignQuery } from '@/store/api/tournamentInterestApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated, selectUser } from '@/store/selectors';
 
@@ -42,10 +39,7 @@ export function InterestCampaignDialogScheduler() {
     return true;
   }, [isAuthenticated, slug, location.pathname, dialogCampaign?.my_submission_status, user?.id]);
 
-  const { isSuccess, isError } = useGetInterestCampaignQuery(
-    { slug: slug ?? '' },
-    { skip: !isEligible || !slug || !!dialogKey },
-  );
+  const { isSuccess, isError } = useGetInterestCampaignQuery({ slug: slug ?? '' }, { skip: !isEligible || !slug || !!dialogKey });
 
   useEffect(() => {
     if (dialogKey === 'interestCampaign' && isInterestCampaignDialogBlockedPath(location.pathname)) {
@@ -72,17 +66,7 @@ export function InterestCampaignDialogScheduler() {
         }
       },
     });
-  }, [
-    isEligible,
-    slug,
-    dialogKey,
-    isSuccess,
-    isError,
-    location.pathname,
-    user?.id,
-    dialogCampaign?.tournament_name,
-    openDialog,
-  ]);
+  }, [isEligible, slug, dialogKey, isSuccess, isError, location.pathname, user?.id, dialogCampaign?.tournament_name, openDialog]);
 
   return null;
 }

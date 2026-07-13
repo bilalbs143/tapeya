@@ -9,12 +9,11 @@ import { StatTile } from './StatTile';
  * @param {{
  *   statFields: Array<{ key: string, label: string }>,
  *   statValues: Record<string, string | number>,
- *   accent: string,
  *   statLayout: ReturnType<typeof import('./fsStatLayout').resolveFsStatLayout>,
  *   getDelay?: (index: number) => number,
  * }} props
  */
-export function FsStatColumn({ statFields, statValues, accent, statLayout, getDelay }) {
+export function FsStatColumn({ statFields, statValues, statLayout, getDelay }) {
   return (
     <div className="flex h-full min-h-0 flex-col" style={{ gap: statLayout.gap }}>
       {statFields.map((field, index) => (
@@ -29,7 +28,6 @@ export function FsStatColumn({ statFields, statValues, accent, statLayout, getDe
           <StatTile
             label={field.label}
             value={statValues[field.key]}
-            accent={accent}
             className="h-full w-full"
             width={statLayout.tileW}
             labelSize={statLayout.labelSize}

@@ -1,0 +1,146 @@
+name: Graphics deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Build target (production or staging)
+        required: true
+        default: production
+        type: choice
+        options:
+          - production
+          - staging
+      deploy:
+        description: RSYNC dist-graphics to server after build
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  verify-ci-status:
+    name: Verify graphics-checks passed on this commit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check graphics-checks.yml conclusion for ${{ github.sha }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sha = context.sha;
+            const { data } = await github.rest.actions.listWorkflowRunsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head_sha: sha,
+            });
+
+            const runs = data.workflow_runs.filter((run) => run.path?.endsWith('graphics-checks.yml'));
+
+            if (runs.length === 0) {
+              core.setFailed(
+                `No graphics-checks.yml run found for commit ${sha}. ` +
+                `Push/open a PR for this commit and let graphics-checks pass before deploying.`,
+              );
+              return;
+            }
+
+            const success = runs.some((run) => run.status === 'completed' && run.conclusion === 'success');
+
+            if (!success) {
+              const latest = runs[0];
+              core.setFailed(
+                `graphics-checks.yml has not succeeded for commit ${sha} ` +
+                `(latest run status: ${latest.status}, conclusion: ${latest.conclusion ?? 'pending'}). ` +
+                `See ${latest.html_url}`,
+              );
+              return;
+            }
+
+            core.info(`graphics-checks.yml succeeded for ${sha} — proceeding.`);
+
+  build:
+    name: Build graphics artifact
+    runs-on: ubuntu-latest
+    needs: verify-ci-status
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: app
+
+      - name: Generate theme tokens
+        run: npm run generate:tokens
+        working-directory: app
+
+      - name: Build graphics (${{ inputs.environment }})
+        run: |
+          if [ "${{ inputs.environment }}" = "staging" ]; then
+            npm run build:graphics:staging
+          else
+            npm run build:graphics:production
+          fi
+        working-directory: app
+
+      - name: Graphics output gates
+        run: npm run check:graphics-output && npm run check:graphics-deps
+        working-directory: app
+
+      - name: Upload dist-graphics artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-graphics-${{ inputs.environment }}
+          path: app/dist-graphics/
+          retention-days: 30
+
+  deploy:
+    name: Deploy to graphics host
+    runs-on: ubuntu-latest
+    needs: build
+    if: inputs.deploy
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Download graphics artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-graphics-${{ inputs.environment }}
+          path: dist-graphics
+
+      - name: RSYNC to server
+        env:
+          GRAPHICS_DEPLOY_HOST: ${{ secrets.GRAPHICS_DEPLOY_HOST }}
+          GRAPHICS_DEPLOY_USER: ${{ secrets.GRAPHICS_DEPLOY_USER }}
+          GRAPHICS_DEPLOY_PATH: ${{ secrets.GRAPHICS_DEPLOY_PATH }}
+          GRAPHICS_DEPLOY_KEY: ${{ secrets.GRAPHICS_DEPLOY_KEY }}
+          GRAPHICS_DEPLOY_KNOWN_HOSTS: ${{ secrets.GRAPHICS_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          if [ -z "$GRAPHICS_DEPLOY_HOST" ] || [ -z "$GRAPHICS_DEPLOY_USER" ] || [ -z "$GRAPHICS_DEPLOY_PATH" ]; then
+            echo "Missing GRAPHICS_DEPLOY_HOST, GRAPHICS_DEPLOY_USER, or GRAPHICS_DEPLOY_PATH secrets."
+            exit 1
+          fi
+          if [ -z "$GRAPHICS_DEPLOY_KNOWN_HOSTS" ]; then
+            echo "Missing GRAPHICS_DEPLOY_KNOWN_HOSTS secret."
+            echo "Generate once: ssh-keyscan -H \"\$GRAPHICS_DEPLOY_HOST\" and store the output in GitHub Actions secrets."
+            exit 1
+          fi
+          STAGING_PATH="${GRAPHICS_DEPLOY_PATH}.new"
+          PREVIOUS_PATH="${GRAPHICS_DEPLOY_PATH}.old"
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "$GRAPHICS_DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$GRAPHICS_DEPLOY_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          SSH_OPTS="-i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o BatchMode=yes"
+          rsync -az --delete \
+            -e "ssh ${SSH_OPTS}" \
+            dist-graphics/ \
+            "${GRAPHICS_DEPLOY_USER}@${GRAPHICS_DEPLOY_HOST}:${STAGING_PATH}/"
+          ssh ${SSH_OPTS} \
+            "${GRAPHICS_DEPLOY_USER}@${GRAPHICS_DEPLOY_HOST}" \
+            "rm -rf '${PREVIOUS_PATH}' && mv '${GRAPHICS_DEPLOY_PATH}' '${PREVIOUS_PATH}' 2>/dev/null || true; mv '${STAGING_PATH}' '${GRAPHICS_DEPLOY_PATH}' && rm -rf '${PREVIOUS_PATH}'"

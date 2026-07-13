@@ -10,10 +10,7 @@ export const BATTER_SCORE_GAP_PX = 6;
 export const BATTER_SCORE_CLUSTER_CLASS = 'flex shrink-0 items-baseline';
 
 export function batterScoreRunsClass({ onStrike = true } = {}) {
-  return cn(
-    '[font-family:var(--font-display)] leading-none font-extrabold tabular-nums',
-    onStrike ? 'text-white' : TEXT_SECONDARY,
-  );
+  return cn(DISPLAY_FONT, 'leading-none font-extrabold tabular-nums', onStrike ? 'text-white' : TEXT_SECONDARY);
 }
 
 export const batterScoreBallsClass = cn('tabular-nums', TEXT_SECONDARY, DISPLAY_FONT);

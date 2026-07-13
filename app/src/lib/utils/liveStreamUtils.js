@@ -1,7 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 
-import { normaliseMatchStatus } from '@/lib/utils/scorecardUtils';
-import { baseUrl, getApiOrigin } from '@/store/api/baseApi';
+import { getApiOrigin } from '@/store/api/baseApi';
 
 /**
  * Trusted origin for YouTube embed `origin` on web/Android direct embeds.
@@ -44,39 +43,33 @@ function getYoutubeEmbedDefaultParams() {
 }
 
 /**
- * iOS WKWebView (capacitor://) cannot embed YouTube in nested iframes — Error 153.
- * Route through the public website so YouTube sees Referer `https://tapeya.com/embed/youtube`.
+ * Capacitor WebViews load YouTube via Laravel's same-origin embed proxy so we can
+ * receive ready/playing postMessages (and avoid Error 153 for nested iframes).
  */
 export function shouldUseYoutubeEmbedProxy() {
-  return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
-}
-
-/** iOS uses native WKWebView for YouTube (nested iframe blocked in Capacitor). */
-export function usesIosNativeStreamPlayer() {
-  return shouldUseYoutubeEmbedProxy();
+  return Capacitor.isNativePlatform();
 }
 
 /**
+ * iOS: native WKWebView overlay loading the API embed proxy.
+ * In-DOM iframe (Android path) does not reach PLAYING on iOS Capacitor — loader
+ * times out. Do not flip this to false without a device-proven alternative.
+ */
+export function usesIosNativeStreamPlayer() {
+  return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
+}
+
+/**
+ * Base URL for the native YouTube embed proxy page.
+ *
+ * Always the API origin — that is where `/embed/youtube` is served. Do not use
+ * `VITE_APP_URL` / the SPA host: without a matching nginx proxy it returns
+ * `index.html` and the native player never becomes ready.
+ *
  * @returns {string}
  */
 export function getYoutubeEmbedProxyBase() {
-  if (shouldUseYoutubeEmbedProxy()) {
-    const websiteOrigin = getYoutubeEmbedOrigin();
-    if (websiteOrigin) {
-      return `${websiteOrigin}/embed/youtube`;
-    }
-  }
-
-  const origin =
-    getApiOrigin() ||
-    (() => {
-      try {
-        return new URL(baseUrl).origin;
-      } catch {
-        return '';
-      }
-    })();
-
+  const origin = getApiOrigin();
   return origin ? `${origin}/embed/youtube` : '';
 }
 
@@ -176,49 +169,92 @@ export function youtubeStreamThumbnail(embedId) {
 }
 
 /**
+ * "Hosted by @nickname" credit for self-serve mobile broadcasts — null for admin-created
+ * or match-linked streams (see LiveStreamResource's `broadcaster` field).
+ *
+ * @param {object} row
+ * @returns {string|null}
+ */
+export function liveStreamHostCredit(row) {
+  const broadcaster = row.broadcaster;
+  if (!broadcaster) return null;
+
+  const handle = broadcaster.nickname?.trim() || broadcaster.name?.trim();
+  return handle ? `Hosted by ${handle}` : null;
+}
+
+/**
+ * Card subtitle for Live hub listings when API description is empty.
+ *
+ * @param {object} row
+ * @returns {string}
+ */
+export function liveStreamCardSubtitle(row) {
+  const description = row.description?.trim();
+  const hostCredit = liveStreamHostCredit(row);
+
+  if (description) {
+    return hostCredit ? `${description} · ${hostCredit}` : description;
+  }
+
+  if (hostCredit) {
+    return hostCredit;
+  }
+
+  const title = row.title?.trim() || 'Live Stream';
+  const status = row.stream?.status;
+  if (status === 'live') {
+    return `${title} · Live now`;
+  }
+
+  return '';
+}
+
+/**
+ * True when this hub/viewer row is a self-serve mobile broadcast (owner-hosted),
+ * not a match-linked 16:9 tournament stream.
+ *
+ * Prefer `is_self_serve` from LiveStreamResource; fall back to broadcaster / match_id
+ * for older API payloads.
+ *
+ * @param {object | null | undefined} broadcast — GET /live/streams/:id payload
+ */
+export function isSelfServeLiveBroadcast(broadcast) {
+  if (!broadcast) return false;
+  if (typeof broadcast.is_self_serve === 'boolean') return broadcast.is_self_serve;
+  if (broadcast.broadcaster) return true;
+  if (broadcast.match_id != null) return false;
+  // Standalone admin streams without an owner stay on the classic layout.
+  return false;
+}
+
+/**
  * Normalise GET /live/matches rows for Live hub UI.
  *
- * @param {Array<object>} [matches]
+ * @param {Array<object>} [streams]
  * @returns {Array<object>}
  */
-export function normaliseLiveStreamMatches(matches) {
-  return (matches ?? []).map((match) => {
-    const home = match.home_team ?? {};
-    const away = match.away_team ?? {};
-    const embedId = match.stream?.embed_id ?? null;
-    const thumbnailUrl = match.thumbnail_url?.trim() || youtubeStreamThumbnail(embedId);
+export function normaliseLiveStreams(streams) {
+  return (streams ?? []).map((row) => {
+    const thumbnailUrl = row.thumbnail_url?.trim() || null;
 
     return {
-      id: match.id,
-      tournament_id: match.tournament_id,
-      tournament_name: match.tournament?.name ?? '',
-      status: normaliseMatchStatus(match.status || 'scheduled'),
-      stream: match.stream ?? null,
-      matchId: home.name && away.name ? `${home.name} vs ${away.name}` : `Match ${match.id}`,
-      team1: {
-        name: home.name || 'Home team',
-        initial: (home.name || 'H').charAt(0).toUpperCase(),
-        logo: home.logo ?? null,
-      },
-      team2: {
-        name: away.name || 'Away team',
-        initial: (away.name || 'A').charAt(0).toUpperCase(),
-        logo: away.logo ?? null,
-      },
-      score1: null,
-      score2: null,
-      meta: {},
+      streamId: row.id,
+      linkedMatchId: row.match_id ?? null,
+      tournamentId: row.tournament_id ?? null,
+      title: row.title ?? 'Live Stream',
+      subtitle: liveStreamCardSubtitle(row),
+      stream: row.stream ?? null,
       thumbnail_url: thumbnailUrl,
     };
   });
 }
-
 /**
- * @param {number|string} matchId
+ * @param {number|string} streamId
  * @returns {string}
  */
-export function liveBroadcastPath(matchId) {
-  return `/live/broadcast/${matchId}`;
+export function liveBroadcastPath(streamId) {
+  return `/live/broadcast/${streamId}`;
 }
 
 /**

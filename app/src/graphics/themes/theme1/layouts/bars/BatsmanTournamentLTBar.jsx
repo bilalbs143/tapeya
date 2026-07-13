@@ -18,24 +18,19 @@ const STAT_FIELDS = [
 
 const STAT_ROW_OVERRIDE_STYLE = { gap: `${ltPlayerStatBar.statRowGapDense * 4}px` };
 
-function resolveBatter(batter, teams) {
+function resolveBatter(batter) {
   if (!batter?.name) return null;
-
-  const team = batter.teamCode ? teams[batter.teamCode] : null;
-  return {
-    batter,
-    accent: team?.color ?? 'var(--accentA)',
-  };
+  return { batter };
 }
 
 /**
  * @param {{ batter: object, teams: Record<string, object>, edgeToEdge?: boolean }} props
  */
-export function BatsmanTournamentLTBar({ batter, teams, edgeToEdge = true }) {
-  const resolved = resolveBatter(batter, teams);
+export function BatsmanTournamentLTBar({ batter, teams: _teams, edgeToEdge = true }) {
+  const resolved = resolveBatter(batter);
   if (!resolved) return null;
 
-  const { batter: player, accent } = resolved;
+  const { batter: player } = resolved;
   const statValues = {
     matches: player.matches ?? 0,
     runs: player.runs ?? 0,
@@ -49,7 +44,6 @@ export function BatsmanTournamentLTBar({ batter, teams, edgeToEdge = true }) {
 
   return (
     <PlayerStatLTBar
-      accent={accent}
       edgeToEdge={edgeToEdge}
       statFields={STAT_FIELDS}
       statValues={statValues}

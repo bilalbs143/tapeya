@@ -82,8 +82,10 @@
     <script>
       (function () {
         var rawSrc = @json($embedSrc);
-        var youtubeOrigin = @json($youtubeEmbedOrigin);
-        var pageOrigin = youtubeOrigin || window.location.origin;
+        // YouTube `origin` MUST match the page that hosts the iframe (Error 153 otherwise).
+        // This proxy is served from the API host, so always use location.origin — not the
+        // Public Website URL (e.g. dev.tapeya.com vs dev-api.tapeya.com).
+        var pageOrigin = window.location.origin;
         var urlParams = new URLSearchParams(window.location.search);
 
         var videoId = null;
@@ -118,6 +120,7 @@
         var player = null;
         var playerInitStarted = false;
         var hostReadySent = false;
+        var hostPlayingSent = false;
 
         function readEmbedFlags() {
           return {
@@ -211,6 +214,12 @@
           if (event === 'ready') {
             hostReadySent = true;
           }
+          if (event === 'playing' && hostPlayingSent) {
+            return;
+          }
+          if (event === 'playing') {
+            hostPlayingSent = true;
+          }
 
           try {
             if (
@@ -222,10 +231,19 @@
             }
           } catch (e) {}
 
-          if (event === 'ready') {
+          // Parent iframe (Android Capacitor / web proxy) — ready alone is not playback.
+          var parentMessageType =
+            event === 'ready'
+              ? 'tapeya-youtube-ready'
+              : event === 'playing'
+                ? 'tapeya-youtube-playing'
+                : event === 'error'
+                  ? 'tapeya-youtube-error'
+                  : null;
+          if (parentMessageType) {
             try {
               if (window.parent && window.parent !== window) {
-                window.parent.postMessage({ type: 'tapeya-youtube-ready' }, '*');
+                window.parent.postMessage({ type: parentMessageType }, '*');
               }
             } catch (e) {}
           }

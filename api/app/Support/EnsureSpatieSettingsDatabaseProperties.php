@@ -3,8 +3,8 @@
 namespace App\Support;
 
 use App\Settings\GeneralSettings;
+use App\Settings\GraphicsSettings;
 use App\Settings\LiveChatSettings;
-use App\Settings\OverlaySettings;
 use App\Settings\PushSettings;
 use App\Settings\StreamingSettings;
 use ReflectionProperty;
@@ -51,7 +51,7 @@ final class EnsureSpatieSettingsDatabaseProperties
             }
 
             if ($type->getName() === 'int') {
-                if ($settingsClass === OverlaySettings::class && $name === 'defaultTtlSeconds') {
+                if ($settingsClass === GraphicsSettings::class && $name === 'defaultTtlSeconds') {
                     return 86400;
                 }
 
@@ -73,8 +73,14 @@ final class EnsureSpatieSettingsDatabaseProperties
                     };
                 }
 
-                if ($settingsClass === StreamingSettings::class && $name === 'idleEndGraceMinutes') {
-                    return 120;
+                if ($settingsClass === StreamingSettings::class) {
+                    return match ($name) {
+                        'idleEndGraceMinutes' => 120,
+                        'concurrentBroadcastAlertThreshold' => 3,
+                        'dailyYoutubeQuotaBudget' => 10000,
+                        'quotaAlertThresholdPercent' => 80,
+                        default => 0,
+                    };
                 }
 
                 return 0;

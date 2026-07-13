@@ -10,7 +10,7 @@ use App\Http\Requests\Admin\UpdateMatchGraphicSessionRequest;
 use App\Models\TournamentMatch;
 use App\Services\Broadcast\CreateMatchGraphicSession;
 use App\Services\Broadcast\FindMatchGraphicSession;
-use App\Services\Overlay\MatchGraphicOverlayUrlService;
+use App\Services\Graphics\MatchGraphicSignedUrlService;
 use Illuminate\Http\JsonResponse;
 use RuntimeException;
 
@@ -24,7 +24,7 @@ class GraphicSessionController extends Controller
 
     public function __construct(
         private readonly CreateMatchGraphicSession $createMatchGraphicSession,
-        private readonly MatchGraphicOverlayUrlService $overlayUrlService,
+        private readonly MatchGraphicSignedUrlService $signedUrlService,
     ) {}
 
     /**
@@ -54,9 +54,9 @@ class GraphicSessionController extends Controller
         );
 
         try {
-            $this->overlayUrlService->resolve($session);
+            $this->signedUrlService->resolve($session);
         } catch (RuntimeException) {
-            // Session is created; overlay URL can be issued later from settings dialog.
+            // Session is created; signed URL can be issued later from settings dialog.
         }
 
         return $this->successWithGraphicSession($session->fresh(), 'Graphic session created.', 'CREATED');

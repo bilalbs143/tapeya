@@ -1,15 +1,23 @@
-const apiBaseUrl = 'https://dev-api.tapeya.com/api';
+const apiBaseUrl = 'https://api.tapeya.com/api';
 const apiOrigin = new URL(apiBaseUrl);
 const useTls = apiOrigin.protocol === 'https:';
 
+/**
+ * Production backoffice build (`npm run build:production`).
+ * Do not edit URLs ad hoc — use `build:staging` for the staging API instead.
+ */
 export const environment = {
   production: true,
   apiBaseUrl,
-  /** Base URL of the React user-facing app (used to generate overlay URLs). */
-  appUrl: 'https://dev.tapeya.com',
+  /** Consumer app origin (interest forms, etc.). Signed graphics URLs come from the API graphics frontend URL setting. */
+  appUrl: 'https://tapeya.com',
   reverb: {
     enabled: true,
-    /** Must equal `REVERB_APP_KEY` in `api/.env` */
+    /**
+     * Must equal `REVERB_APP_KEY` in `api/.env` for THIS environment's API.
+     * If that key is ever rotated away from the shared default, update it here too —
+     * this is a static Angular build-time value, not read from a runtime env var.
+     */
     appKey: 'local-reverb-key',
     wsHost: apiOrigin.hostname,
     wsPort: useTls ? 443 : 80,

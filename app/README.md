@@ -42,4 +42,4 @@ Use `@/` for `src/`:
 
 ## Broadcast graphics overlay
 
-OBS overlay route: `/overlay/:matchId?expires=…&signature=…` (theme from session). Architecture: [`src/graphics/ARCHITECTURE.md`](src/graphics/ARCHITECTURE.md).
+OBS graphics URL: `https://graphics.tapeya.com/{sessionId}-{expires}-{signature}` (theme from session). Architecture: [`src/graphics/ARCHITECTURE.md`](src/graphics/ARCHITECTURE.md).

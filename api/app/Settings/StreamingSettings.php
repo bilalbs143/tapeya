@@ -43,6 +43,30 @@ class StreamingSettings extends Settings
      */
     public int $idleEndGraceMinutes;
 
+    /**
+     * Unused in v1 — a dedicated YouTube channel id for self-serve mobile broadcasts, kept
+     * isolated from the primary match-broadcast channel. Null falls back to the primary
+     * channel (current behavior). See LIVE_STREAM_MOBILE_BROADCAST.md's Trust & Safety section.
+     */
+    public ?string $selfServeYoutubeChannelId;
+
+    /**
+     * Alert staff when concurrent `starting`/`live` YouTube streams (admin + self-serve share
+     * one channel today) reach this count. YouTube doesn't publish one fixed concurrent-broadcast
+     * limit per channel — this default is a conservative starting point, not a verified ceiling.
+     * Raise it once the channel's real behavior is observed. See MonitorBroadcastOperations.
+     */
+    public int $concurrentBroadcastAlertThreshold;
+
+    /**
+     * Daily YouTube Data API v3 quota budget in units — 10,000 is Google's default for a new
+     * project; adjust to match the actual quota granted in Google Cloud Console.
+     */
+    public int $dailyYoutubeQuotaBudget;
+
+    /** Alert staff once today's tracked usage (see YouTubeQuotaTracker) reaches this % of budget. */
+    public int $quotaAlertThresholdPercent;
+
     public static function group(): string
     {
         return 'streaming';

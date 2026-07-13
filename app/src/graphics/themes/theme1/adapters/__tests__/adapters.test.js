@@ -1,6 +1,5 @@
+import { createTestSnapshot, PROCESSOR_MAP } from '@tapeya/graphics-core/processors/__tests__/fixtures.js';
 import { describe, expect, it } from 'vitest';
-
-import { createTestSnapshot, PROCESSOR_MAP } from '@/graphics/core/processors/__tests__/fixtures';
 
 import { assets } from '../../config';
 import { toBreakBundle, toNextMatchBundle, toThisMatchBundle } from '../break.adapter';
@@ -1173,6 +1172,32 @@ describe('theme1 chart adapter', () => {
     expect(chart?.teams.bottom.name).toBe('Away XI');
   });
 
+  it('falls back to the full team name (not the short code) when only one team has batted so far', () => {
+    const phaseChart = [
+      {
+        team_name: 'Home XI',
+        color_token: 'home',
+        total_runs: 20,
+        total_wickets: 0,
+        display_overs: '2.0',
+        fours: 1,
+        sixes: 0,
+        phase_stats: [{ over_range: '1-2', runs: 20, wickets_in_phase: 0 }],
+      },
+    ];
+
+    const snapshot = createTestSnapshot({
+      active_command: { command_key: 'MANHATTAN', display_mode: 'FS' },
+      context: { innings_chart: phaseChart },
+    });
+
+    const props = PROCESSOR_MAP.MANHATTAN(snapshot);
+    const chart = toPhaseChartData(props, tokens);
+
+    expect(chart?.summary.top.name).toBe('Home XI');
+    expect(chart?.summary.bottom.name).toBe('Away XI');
+  });
+
   it('maps wicket badges for all phases that had wickets', () => {
     const phaseChart = [
       {
@@ -1406,7 +1431,6 @@ describe('theme1 squad adapter', () => {
     expect(bundle?.data.players[1]).toMatchObject({ name: 'Player Two', wicketKeeper: true });
     expect(bundle?.teams.batting.color).toBe('#9b7bff');
     expect(bundle?.data.accent).toBe('#9b7bff');
-    expect(bundle?.data.accentAlt).toBe('#f0a93c');
     expect(bundle?.teams.batting.code).toBeTruthy();
   });
 
@@ -1424,7 +1448,6 @@ describe('theme1 squad adapter', () => {
 
     expect(props.teamSide).toBe('away');
     expect(bundle?.teams.bowling.color).toBe('#f0a93c');
-    expect(bundle?.data.accentAlt).toBe('#9b7bff');
   });
 
   it('maps preview fixture shape to squad bundle', () => {
@@ -1567,8 +1590,17 @@ describe('theme1 playing11 adapter', () => {
     });
 
     expect(bundle?.data?.teams).toHaveLength(2);
-    expect(bundle?.data?.teams?.[0]?.players).toEqual(['Batter A (C)']);
-    expect(bundle?.data?.teams?.[1]?.players).toEqual(['Batter B']);
+    expect(bundle?.data?.teams?.[0]?.players).toEqual([{ name: 'Batter A', captain: true, wicketKeeper: false }]);
+    expect(bundle?.data?.teams?.[1]?.players).toEqual([{ name: 'Batter B', captain: false, wicketKeeper: false }]);
+  });
+
+  it('marks a player who is both captain and wicket keeper with both flags', () => {
+    const bundle = toPlaying11Bundle({
+      homeTeam: { name: 'Home XI', players: [{ display_name: 'Batter A', is_captain: true, is_wicket_keeper: true }] },
+      awayTeam: { name: 'Away XI', players: [{ display_name: 'Batter B' }] },
+    });
+
+    expect(bundle?.data?.teams?.[0]?.players).toEqual([{ name: 'Batter A', captain: true, wicketKeeper: true }]);
   });
 });
 

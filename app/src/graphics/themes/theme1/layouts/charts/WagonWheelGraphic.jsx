@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 import { colors, fsChart } from '../../config';
-import { fsFont, FSStage, GlowPanel } from '../../primitives';
+import { accentMix, fsFont, FSStage, GlowPanel } from '../../primitives';
 import { isChartGlowEnabled } from '../../visualEffects';
 import { ChartHeader } from './ChartHeader';
 import { ChartRightCrests } from './ChartRightCrests';
@@ -252,7 +252,7 @@ function WagonZoneBar({ label, value, total, color, compact = false }) {
           )}
           style={{
             width: `${pct}%`,
-            background: `linear-gradient(90deg, ${color}, var(--accentB))`,
+            background: `linear-gradient(90deg, ${color} 0%, ${color} 85%, ${accentMix(color, 55)} 100%)`,
             ...(isChartGlowEnabled() ? { boxShadow: `0 0 calc(10px * var(--glow)) ${color}` } : {}),
           }}
         />

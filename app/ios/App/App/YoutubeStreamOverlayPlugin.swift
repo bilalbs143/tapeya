@@ -7,8 +7,8 @@ private let playerReadyFallbackSeconds: TimeInterval = 15
 /**
  * Native YouTube player for iOS Capacitor.
  *
- * Portrait: WKWebView above Capacitor, sized to the web placeholder.
- * Landscape: WKWebView below transparent Capacitor; embed proxy handles rotate/cover via URL params.
+ * Always underlay (WKWebView below transparent Capacitor) so React chrome composites on top.
+ * Portrait: sized to the web placeholder. Landscape: immersive fullscreen; embed proxy handles rotate/cover.
  */
 @objc(YoutubeStreamOverlayPlugin)
 public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMessageHandler {

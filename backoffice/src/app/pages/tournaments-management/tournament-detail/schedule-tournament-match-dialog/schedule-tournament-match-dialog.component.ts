@@ -26,6 +26,7 @@ import type { Tournament } from 'src/app/services/tournaments.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
+import { LIVE_STREAM_THUMBNAIL_UPLOAD_HINT } from 'src/app/shared/constants/thumbnail.constants';
 
 export interface ScheduleTournamentMatchDialogData {
   tournamentId: number;
@@ -75,6 +76,7 @@ export class ScheduleTournamentMatchDialogComponent implements OnInit {
   public numberOfGroups = 1;
   public isLoading = true;
   public isSubmitting = false;
+  public readonly streamThumbnailHint = LIVE_STREAM_THUMBNAIL_UPLOAD_HINT;
 
   public get isEditMode(): boolean {
     return this.data.mode === 'edit' && !!this.data.match;

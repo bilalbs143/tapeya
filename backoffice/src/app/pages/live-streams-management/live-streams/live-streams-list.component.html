@@ -1,0 +1,344 @@
+<mat-card class="cardWithShadow mb-3!">
+  <mat-card-content class="p-6">
+    <form
+      (ngSubmit)="loadHttpData()"
+      [formGroup]="searchForm"
+      aria-label="Filter live streams"
+    >
+      <div class="grid grid-cols-12 items-end gap-4">
+        <div class="col-span-12 sm:col-span-6 lg:col-span-2">
+          <mat-form-field
+            appearance="outline"
+            class="hide-hint w-full"
+          >
+            <mat-label>Status</mat-label>
+            <mat-select formControlName="status">
+              @for (opt of statusOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 sm:col-span-6 lg:col-span-2">
+          <mat-form-field
+            appearance="outline"
+            class="hide-hint w-full"
+          >
+            <mat-label>Kind</mat-label>
+            <mat-select formControlName="self_serve">
+              @for (opt of selfServeOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+          <mat-form-field
+            appearance="outline"
+            class="hide-hint w-full"
+          >
+            <mat-label>Search Title</mat-label>
+            <input
+              matInput
+              formControlName="search"
+              placeholder="Search By Title"
+            />
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 flex flex-wrap items-center justify-end gap-2 lg:col-span-5">
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="resetSearchForm()"
+          >
+            Clear Search
+          </button>
+          <button
+            mat-flat-button
+            color="primary"
+            type="submit"
+          >
+            Search
+          </button>
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            (click)="openCreateDialog()"
+          >
+            Create Live Stream
+          </button>
+        </div>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="cardWithShadow table-header-theme">
+  <mat-card-content class="p-0">
+    <div class="sticky-header-table-container relative overflow-auto">
+      <app-table-wrapper [loading]="isLoading">
+        <table
+          mat-table
+          matSort
+          aria-label="Live streams list"
+          matSortActive="started_at"
+          matSortStart="desc"
+          matSortDirection="desc"
+          [dataSource]="dataSource"
+          class="min-w-full"
+        >
+          <ng-container matColumnDef="sr">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              #
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row; let i = index"
+              class="text-sm"
+            >
+              {{ totalRecords - currentPage * pageSize - i }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="title">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header="title"
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Title
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="max-w-xs truncate text-sm whitespace-nowrap"
+              [title]="row.title || ''"
+            >
+              <a
+                [routerLink]="['/live-streams-management/live-streams', row.id, 'overview']"
+                class="text-primary font-medium hover:underline"
+              >
+                {{ row.title || emptyCell }}
+              </a>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="description">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Description
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="max-w-xs truncate text-sm"
+              [title]="row.description || ''"
+            >
+              {{ row.description || emptyCell }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="streaming_url">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Stream URL
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="max-w-xs truncate text-sm"
+            >
+              @if (row.streaming_url) {
+                <a
+                  [href]="row.streaming_url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-primary"
+                  [title]="row.streaming_url"
+                >
+                  {{ row.streaming_url }}
+                </a>
+              } @else {
+                {{ emptyCell }}
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header="status"
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Status
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm"
+            >
+              <span
+                class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium"
+                [ngClass]="statusClass(row.status)"
+              >
+                {{ statusLabel(row.status) }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="watching">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+              title="Real authenticated viewers on the presence channel"
+            >
+              Watching
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm whitespace-nowrap tabular-nums"
+            >
+              {{ watchingDisplay(row) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="provider">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header="provider"
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Provider
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm whitespace-nowrap"
+            >
+              {{ providerLabel(row.provider) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="match">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Match
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm whitespace-nowrap"
+            >
+              @if (row.match_id) {
+                <a
+                  [routerLink]="matchControllerLink(row.match_id)"
+                  class="text-primary font-medium hover:underline"
+                >
+                  {{ row.match_id }}
+                </a>
+              } @else if (row.owner_user_id) {
+                Self-serve
+              } @else {
+                Standalone
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="started_at">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header="started_at"
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Started At
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm whitespace-nowrap"
+            >
+              {{ formatDate(row.started_at) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Action
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="action-link text-sm whitespace-nowrap"
+            >
+              <a
+                [routerLink]="['/live-streams-management/live-streams', row.id, 'overview']"
+                class="me-2.5 inline-flex align-middle"
+                aria-label="View Live Stream"
+              >
+                <i-tabler
+                  name="eye"
+                  class="size-4.5!"
+                ></i-tabler>
+              </a>
+              <button
+                type="button"
+                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
+                aria-label="Quick Manage Live Stream"
+                (click)="openManageDialog(row)"
+              >
+                <i-tabler
+                  name="edit"
+                  class="size-4.5!"
+                ></i-tabler>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr
+            mat-header-row
+            *matHeaderRowDef="displayedColumns; sticky: true"
+          ></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: displayedColumns"
+          ></tr>
+        </table>
+      </app-table-wrapper>
+    </div>
+
+    <app-paginator
+      [length]="totalRecords"
+      [pageIndex]="currentPage"
+      [pageSize]="pageSize"
+      [loading]="isLoading"
+      (page)="onPaginationChange($event)"
+    />
+  </mat-card-content>
+</mat-card>

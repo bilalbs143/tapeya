@@ -47,9 +47,9 @@ import {
   type ControllerSettingsDialogData,
 } from './controller-settings-dialog/controller-settings-dialog.component';
 import { LiveMatchStateComponent } from './live-match-state/live-match-state.component';
+import { LiveStreamDialogComponent, type LiveStreamDialogData } from './live-stream-dialog/live-stream-dialog.component';
+import { LiveStreamHeaderStatusComponent } from './live-stream-header-status/live-stream-header-status.component';
 import { MatchCaptionDialogComponent, type MatchCaptionDialogData } from './match-caption-dialog/match-caption-dialog.component';
-import { MatchStreamDialogComponent, type MatchStreamDialogData } from './match-stream-dialog/match-stream-dialog.component';
-import { MatchStreamHeaderStatusComponent } from './match-stream-header-status/match-stream-header-status.component';
 
 /** Batter row from graphic session `context.batters` (ids for command payloads). */
 export interface LiveBatterContextRow {
@@ -81,7 +81,7 @@ export interface BatterCommandCardView {
     MatProgressSpinnerModule,
     MatTooltipModule,
     LiveMatchStateComponent,
-    MatchStreamHeaderStatusComponent,
+    LiveStreamHeaderStatusComponent,
   ],
   templateUrl: './match-controller-dashboard.component.html',
   styleUrl: './match-controller-dashboard.component.scss',
@@ -260,7 +260,7 @@ export class MatchControllerDashboardComponent implements OnInit {
 
   public captionManageTooltip(): string {
     if (!this.caption) {
-      return 'Add a match caption for Custom overlay commands';
+      return 'Add a match caption for Custom graphics commands';
     }
     return `${this.caption.title} — ${this.caption.description}`;
   }
@@ -291,13 +291,13 @@ export class MatchControllerDashboardComponent implements OnInit {
     if (!this.match) {
       return;
     }
-    const data: MatchStreamDialogData = {
+    const data: LiveStreamDialogData = {
       matchId: this.matchId,
       homeTeamName: this.match.home_team?.name ?? 'Home',
       awayTeamName: this.match.away_team?.name ?? 'Away',
       onStreamMutated: () => this.streamRefreshToken.update((n) => n + 1),
     };
-    const ref = this.dialog.open(MatchStreamDialogComponent, {
+    const ref = this.dialog.open(LiveStreamDialogComponent, {
       width: '720px',
       maxWidth: '95vw',
       data,

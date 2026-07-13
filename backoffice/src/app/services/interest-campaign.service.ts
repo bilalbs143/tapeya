@@ -2,12 +2,12 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 
+import type { InterestFormFieldKey } from 'src/app/shared/constants/interest-form-field.constants';
 import { toHttpParams } from 'src/app/shared/functions/http-params.function';
 import type { ListParams } from 'src/app/shared/functions/list-params.function';
 
 import { MessageService } from './message.service';
 import type { UserSearchRow } from './users.service';
-import type { InterestFormFieldKey } from 'src/app/shared/constants/interest-form-field.constants';
 
 export type InterestCampaignStatus = 'open' | 'closed';
 

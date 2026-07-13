@@ -9,9 +9,10 @@ use App\Http\Controllers\User\HeroSliderController;
 use App\Http\Controllers\User\HighlightController;
 use App\Http\Controllers\User\InningsLifecycleController;
 use App\Http\Controllers\User\InterestCampaignController;
-use App\Http\Controllers\User\LiveMatchCommentController;
-use App\Http\Controllers\User\LiveMatchHeartController;
+use App\Http\Controllers\User\LiveBroadcastController;
+use App\Http\Controllers\User\LiveStreamCommentController;
 use App\Http\Controllers\User\LiveStreamController;
+use App\Http\Controllers\User\LiveStreamHeartController;
 use App\Http\Controllers\User\MatchAnalyticsSettingsController;
 use App\Http\Controllers\User\MatchBreakController;
 use App\Http\Controllers\User\MatchCaptainController;
@@ -36,7 +37,7 @@ use App\Http\Controllers\User\Shop\CartController;
 use App\Http\Controllers\User\Shop\CategoryController;
 use App\Http\Controllers\User\Shop\OrderController;
 use App\Http\Controllers\User\Shop\ProductController;
-use App\Http\Controllers\User\SignedMatchGraphicSessionController;
+use App\Http\Controllers\User\SignedGraphicSessionController;
 use App\Http\Controllers\User\SponsorController;
 use App\Http\Controllers\User\StaticPageController;
 use App\Http\Controllers\User\SupportMessageController;
@@ -71,7 +72,8 @@ Route::get('static-pages/{slug}', [StaticPageController::class, 'show'])
     ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*');
 Route::get('interest-campaigns/sidebar', [InterestCampaignController::class, 'sidebar']);
 
-Route::get('matches/{match}/graphic-session/overlay', [SignedMatchGraphicSessionController::class, 'show']);
+Route::get('graphic-sessions/access/{token}', [SignedGraphicSessionController::class, 'showByToken'])
+    ->where('token', '\d+-\d+-[a-f0-9]{64}');
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [UserAuthController::class, 'register']);
@@ -128,8 +130,18 @@ Route::middleware('auth:api')->group(function () {
     Route::get('teams/{team}/squad', [TeamController::class, 'showSquad']);
     Route::post('teams/{team}/squad', [TeamController::class, 'storeSquad']);
     Route::get('live/matches', [LiveStreamController::class, 'index']);
-    Route::post('matches/{match}/live-comments', [LiveMatchCommentController::class, 'store'])->middleware('throttle:120,1');
-    Route::post('matches/{match}/live-hearts', [LiveMatchHeartController::class, 'store'])->middleware('throttle:60,1');
+    Route::get('live/streams/{stream}', [LiveStreamController::class, 'show']);
+    Route::post('live/streams/{stream}/live-comments', [LiveStreamCommentController::class, 'store'])->middleware('throttle:120,1');
+    Route::post('live/streams/{stream}/live-hearts', [LiveStreamHeartController::class, 'store'])->middleware('throttle:60,1');
+
+    // Self-serve mobile broadcast — owner-gated lifecycle, distinct from the read-only hub/viewer routes above.
+    Route::post('live/broadcasts/accept-terms', [LiveBroadcastController::class, 'acceptTerms']);
+    Route::post('live/broadcasts', [LiveBroadcastController::class, 'store']);
+    Route::get('live/broadcasts/{stream}', [LiveBroadcastController::class, 'show']);
+    Route::post('live/broadcasts/{stream}/start', [LiveBroadcastController::class, 'start']);
+    Route::post('live/broadcasts/{stream}/end', [LiveBroadcastController::class, 'end']);
+    Route::post('live/broadcasts/{stream}/thumbnail', [LiveBroadcastController::class, 'uploadThumbnail']);
+    Route::delete('live/broadcasts/{stream}/thumbnail', [LiveBroadcastController::class, 'deleteThumbnail']);
     Route::get('tournaments', [TournamentController::class, 'index']);
     Route::get('tournaments/{tournament}', [TournamentController::class, 'show']);
     Route::post('tournaments/{tournament}/like', [TournamentReactionController::class, 'like']);
@@ -146,7 +158,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('tournaments/{tournament}/matches', [TournamentMatchController::class, 'store']);
     Route::get('matches/{match}', [TournamentMatchController::class, 'show']);
     Route::get('matches/{match}/graphic-session', [MatchGraphicSessionController::class, 'show']);
-    // Scoring-domain crease endpoint — tells the overlay who is about to bat/bowl.
+    // Scoring-domain crease endpoint — tells the graphics site who is about to bat/bowl.
     // Replaces the old graphic-session path so scoring code is decoupled from the
     // graphics subsystem.  The old path is kept as an alias for backward compat.
     Route::patch('matches/{match}/crease', [MatchCreaseController::class, 'update']);

@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\MatchStream;
-use App\Streaming\MatchStreamService;
+use App\Streaming\LiveStreamService;
 use App\Streaming\StreamProviderResolver;
 use Illuminate\Console\Command;
 
@@ -13,19 +13,28 @@ class SyncStreamStatuses extends Command
 
     protected $description = 'Poll providers to sync stream statuses';
 
-    public function handle(MatchStreamService $service, StreamProviderResolver $resolver): int
+    /**
+     * Chunked (not lazy/per-row) on purpose: each chunk is handed to the service as a batch,
+     * so YouTube (and any future batching-capable provider) can poll many streams per API call
+     * instead of one round-trip per stream — see LiveStreamService::syncStatuses() /
+     * YouTubeStreamProvider::syncStatuses(). 50 matches YouTube's per-request `id` limit.
+     */
+    public function handle(LiveStreamService $service, StreamProviderResolver $resolver): int
     {
         MatchStream::query()
             ->whereNotIn('status', ['ended', 'error'])
             ->whereNotNull('provider_stream_id')
+            ->where('provider', '!=', 'external')
             ->with('match.tournament')
-            ->lazy()
-            ->each(function (MatchStream $stream) use ($service, $resolver) {
-                if ($resolver->forMatch($stream->match)->supportsWebhooks()) {
-                    return;
-                }
+            ->orderBy('id')
+            ->chunk(50, function ($streams) use ($service, $resolver) {
+                $pollable = $streams->reject(
+                    fn (MatchStream $stream) => $resolver->forStream($stream)->supportsWebhooks()
+                );
 
-                $service->syncStatus($stream->match);
+                if ($pollable->isNotEmpty()) {
+                    $service->syncStatuses($pollable);
+                }
             });
 
         return self::SUCCESS;

@@ -72,19 +72,18 @@ npm install -g @ionic/cli
    npm install
    ```
 
-3. Configure API URL in `src/environments/environment.ts`:
-   ```typescript
-   export const environment = {
-     production: false,
-     apiUrl: 'http://localhost:8000/api'
-   };
+3. Local API URLs live in `src/environments/environment.development.ts` (`ng serve` uses this).
+   Do not hand-edit production/staging URLs for deploys — use:
+   ```bash
+   npm run build:production   # api.tapeya.com
+   npm run build:staging      # dev-api.tapeya.com
    ```
 
-## Mobile App Setup (Ionic + React)
+## Consumer App Setup (Vite + React + Capacitor)
 
-1. Navigate to the mobile directory:
+1. Navigate to the app directory:
    ```bash
-   cd mobile
+   cd app
    ```
 
 2. Install dependencies:
@@ -92,14 +91,19 @@ npm install -g @ionic/cli
    npm install
    ```
 
-3. Configure API URL in `src/config/api.ts`
+3. Local `npm run dev` uses Vite defaults / `.env` as needed.
+   Deploy builds bake URLs via scripts (same pattern as graphics):
+   ```bash
+   npm run build:production
+   npm run build:staging
+   npm run build:graphics:production
+   npm run build:graphics:staging
+   ```
 
 4. For native builds:
    ```bash
-   # Add iOS platform
-   ionic cap add ios
-   
-   # Add Android platform
-   ionic cap add android
+   npm run cap:ios
+   # or
+   npm run cap:android
    ```
 

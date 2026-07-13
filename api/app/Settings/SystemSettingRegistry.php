@@ -119,13 +119,13 @@ final class SystemSettingRegistry
             SystemSettingKeyEnum::NOTIFICATION_ADMIN_EMAILS => [
                 'value' => ['nullable', 'string', 'max:5000'],
             ],
-            SystemSettingKeyEnum::OVERLAY_FRONTEND_URL => [
+            SystemSettingKeyEnum::GRAPHICS_FRONTEND_URL => [
                 'value' => ['nullable', 'string', 'url', 'max:2048'],
             ],
-            SystemSettingKeyEnum::OVERLAY_DEFAULT_TTL_SECONDS => [
+            SystemSettingKeyEnum::GRAPHICS_DEFAULT_TTL_SECONDS => [
                 'value' => ['nullable', 'integer', 'min:60', 'max:2592000'],
             ],
-            SystemSettingKeyEnum::OVERLAY_SIGNING_SECRET => [
+            SystemSettingKeyEnum::GRAPHICS_SIGNING_SECRET => [
                 'value' => ['nullable', 'string', 'max:512'],
             ],
             SystemSettingKeyEnum::TEST_OTP_PHONES => [
@@ -185,6 +185,15 @@ final class SystemSettingRegistry
             SystemSettingKeyEnum::STREAM_IDLE_END_GRACE_MINUTES => [
                 'value' => ['required', 'integer', 'min:1', 'max:1440'],
             ],
+            SystemSettingKeyEnum::STREAM_CONCURRENT_BROADCAST_ALERT_THRESHOLD => [
+                'value' => ['required', 'integer', 'min:1', 'max:100'],
+            ],
+            SystemSettingKeyEnum::STREAM_DAILY_YOUTUBE_QUOTA_BUDGET => [
+                'value' => ['required', 'integer', 'min:1', 'max:10000000'],
+            ],
+            SystemSettingKeyEnum::STREAM_QUOTA_ALERT_THRESHOLD_PERCENT => [
+                'value' => ['required', 'integer', 'min:1', 'max:100'],
+            ],
             SystemSettingKeyEnum::LIVE_CHAT_ENABLED => [
                 'value' => ['required', 'integer', 'in:0,1'],
             ],
@@ -225,7 +234,7 @@ final class SystemSettingRegistry
             $request->merge(['value' => strtoupper(trim($request->input('value')))]);
         }
 
-        if ($key === SystemSettingKeyEnum::OVERLAY_DEFAULT_TTL_SECONDS && $request->input('value') === '') {
+        if ($key === SystemSettingKeyEnum::GRAPHICS_DEFAULT_TTL_SECONDS && $request->input('value') === '') {
             $request->merge(['value' => null]);
         }
 
@@ -378,30 +387,30 @@ final class SystemSettingRegistry
                 'property' => 'adminEmails',
                 'nullable_string' => true,
             ],
-            SystemSettingKeyEnum::OVERLAY_FRONTEND_URL->value => [
+            SystemSettingKeyEnum::GRAPHICS_FRONTEND_URL->value => [
                 'group' => SystemSettingGroupEnum::GRAPHIC_CONTROLLER,
                 'type' => SystemSettingTypeEnum::STRING,
-                'label' => 'Overlay Frontend URL',
-                'description' => 'React Overlay App Origin (OBS).',
-                'settings_class' => OverlaySettings::class,
+                'label' => 'Graphics Frontend URL',
+                'description' => 'Graphics app origin (e.g. https://graphics.tapeya.com).',
+                'settings_class' => GraphicsSettings::class,
                 'property' => 'frontendUrl',
                 'nullable_string' => true,
             ],
-            SystemSettingKeyEnum::OVERLAY_DEFAULT_TTL_SECONDS->value => [
+            SystemSettingKeyEnum::GRAPHICS_DEFAULT_TTL_SECONDS->value => [
                 'group' => SystemSettingGroupEnum::GRAPHIC_CONTROLLER,
                 'type' => SystemSettingTypeEnum::INTEGER,
-                'label' => 'Overlay Signed URL TTL (Seconds)',
-                'description' => 'Signed Overlay URL Lifetime in Seconds.',
-                'settings_class' => OverlaySettings::class,
+                'label' => 'Graphics Signed URL TTL (Seconds)',
+                'description' => 'Signed graphics URL lifetime in seconds.',
+                'settings_class' => GraphicsSettings::class,
                 'property' => 'defaultTtlSeconds',
                 'nullable_string' => false,
             ],
-            SystemSettingKeyEnum::OVERLAY_SIGNING_SECRET->value => [
+            SystemSettingKeyEnum::GRAPHICS_SIGNING_SECRET->value => [
                 'group' => SystemSettingGroupEnum::GRAPHIC_CONTROLLER,
                 'type' => SystemSettingTypeEnum::STRING,
-                'label' => 'Overlay Signing Secret',
-                'description' => 'HMAC Secret for Signed Overlay URLs.',
-                'settings_class' => OverlaySettings::class,
+                'label' => 'Graphics Signing Secret',
+                'description' => 'HMAC secret for signed graphics URLs.',
+                'settings_class' => GraphicsSettings::class,
                 'property' => 'signingSecret',
                 'nullable_string' => true,
             ],
@@ -574,6 +583,33 @@ final class SystemSettingRegistry
                 'description' => 'Minutes idle before auto-end.',
                 'settings_class' => StreamingSettings::class,
                 'property' => 'idleEndGraceMinutes',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::STREAM_CONCURRENT_BROADCAST_ALERT_THRESHOLD->value => [
+                'group' => SystemSettingGroupEnum::STREAMING,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Concurrent Broadcast Alert Threshold',
+                'description' => 'Alert staff when starting/live YouTube streams reach this count (admin + Go Live share one channel). Default 3.',
+                'settings_class' => StreamingSettings::class,
+                'property' => 'concurrentBroadcastAlertThreshold',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::STREAM_DAILY_YOUTUBE_QUOTA_BUDGET->value => [
+                'group' => SystemSettingGroupEnum::STREAMING,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Daily YouTube Quota Budget',
+                'description' => 'Daily YouTube Data API v3 quota units (Google default is 10,000). Used for ops alerts only.',
+                'settings_class' => StreamingSettings::class,
+                'property' => 'dailyYoutubeQuotaBudget',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::STREAM_QUOTA_ALERT_THRESHOLD_PERCENT->value => [
+                'group' => SystemSettingGroupEnum::STREAMING,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'YouTube Quota Alert Threshold %',
+                'description' => 'Alert staff once today’s tracked API usage reaches this percent of the daily budget. Default 80.',
+                'settings_class' => StreamingSettings::class,
+                'property' => 'quotaAlertThresholdPercent',
                 'nullable_string' => false,
             ],
             SystemSettingKeyEnum::LIVE_CHAT_ENABLED->value => [

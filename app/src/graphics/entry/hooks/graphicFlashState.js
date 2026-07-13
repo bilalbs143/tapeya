@@ -57,7 +57,7 @@ export function graphicFlashReducer(state, action) {
 /**
  * Map a Reverb `.match.graphic.flash` payload to a reducer action.
  *
- * @param {Record<string, unknown>} event
+ * @param {Record<string, any>} event
  * @returns {{ type: 'FLASH', ballId: number|string|null, items: FlashQueueItem[] } | { type: 'CANCEL', ballId: number|string|null } | null}
  */
 export function graphicFlashEventToAction(event) {

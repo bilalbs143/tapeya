@@ -426,22 +426,6 @@ export const matchApi = baseApi.injectEndpoints({
             ]
           : [],
     }),
-
-    sendLiveComment: builder.mutation({
-      query: ({ matchId, body }) => ({
-        url: `/matches/${matchId}/live-comments`,
-        method: 'POST',
-        body: { body },
-      }),
-      transformResponse: (response) => response?.data ?? response,
-    }),
-    sendLiveHeart: builder.mutation({
-      query: ({ matchId }) => ({
-        url: `/matches/${matchId}/live-hearts`,
-        method: 'POST',
-      }),
-      transformResponse: (response) => response?.data ?? response,
-    }),
   }),
 });
 
@@ -478,7 +462,5 @@ export const {
   useUpdatePlayerOfMatchMutation,
   useUpdateCreaseMutation,
   useUpdateMatchAnalyticsSettingsMutation,
-  useSendLiveCommentMutation,
-  useSendLiveHeartMutation,
   useUpdateCaptainMutation,
 } = matchApi;

@@ -35,7 +35,7 @@ class ExportGraphicCommandManifest extends Command
         $this->info("Exported {$commandCount} command(s) → {$manifestPath}");
 
         // ── 2. Write JS constants file ────────────────────────────────────────
-        $jsPath = base_path('../app/src/graphics/core/graphicCommandKeys.js');
+        $jsPath = base_path('../shared/graphics-core/src/graphicCommandKeys.js');
         $js = GraphicCommandManifestBuilder::buildJsConstants();
 
         File::ensureDirectoryExists(dirname($jsPath));

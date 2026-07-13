@@ -23,6 +23,8 @@
 		D1E2F3A41FED79650016851F /* YoutubeStreamOverlayPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E2F3A31FED79650016851F /* YoutubeStreamOverlayPlugin.swift */; };
 		D1E2F3A61FED79650016851F /* YoutubeStreamOverlayPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = D1E2F3A51FED79650016851F /* YoutubeStreamOverlayPlugin.m */; };
 		C4D5E6F81FED79650016851F /* AppBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4D5E6F71FED79650016851F /* AppBridgeViewController.swift */; };
+		E5F6A7B91FED79650016852B /* TapeyaBroadcastPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5F6A7B81FED79650016852A /* TapeyaBroadcastPlugin.swift */; };
+		E5F6A7BB1FED79650016852D /* TapeyaBroadcastPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = E5F6A7BA1FED79650016852C /* TapeyaBroadcastPlugin.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,6 +51,8 @@
 		D1E2F3A31FED79650016851F /* YoutubeStreamOverlayPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YoutubeStreamOverlayPlugin.swift; sourceTree = "<group>"; };
 		D1E2F3A51FED79650016851F /* YoutubeStreamOverlayPlugin.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = YoutubeStreamOverlayPlugin.m; sourceTree = "<group>"; };
 		C4D5E6F71FED79650016851F /* AppBridgeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBridgeViewController.swift; sourceTree = "<group>"; };
+		E5F6A7B81FED79650016852A /* TapeyaBroadcastPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapeyaBroadcastPlugin.swift; sourceTree = "<group>"; };
+		E5F6A7BA1FED79650016852C /* TapeyaBroadcastPlugin.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TapeyaBroadcastPlugin.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,6 +105,8 @@
 				B7C8D9E01FED79650016851F /* FcmTokenPlugin.swift */,
 				D1E2F3A31FED79650016851F /* YoutubeStreamOverlayPlugin.swift */,
 				D1E2F3A51FED79650016851F /* YoutubeStreamOverlayPlugin.m */,
+				E5F6A7B81FED79650016852A /* TapeyaBroadcastPlugin.swift */,
+				E5F6A7BA1FED79650016852C /* TapeyaBroadcastPlugin.m */,
 				B7C8D9E21FED79650016851F /* FcmTokenPlugin.m */,
 				E1A2B3C41FED79650016851B /* App.entitlements */,
 				E1A2B3C41FED79650016851C /* AppRelease.entitlements */,
@@ -256,6 +262,8 @@
 				B7C8D9E31FED79650016851F /* FcmTokenPlugin.m in Sources */,
 				D1E2F3A41FED79650016851F /* YoutubeStreamOverlayPlugin.swift in Sources */,
 				D1E2F3A61FED79650016851F /* YoutubeStreamOverlayPlugin.m in Sources */,
+				E5F6A7B91FED79650016852B /* TapeyaBroadcastPlugin.swift in Sources */,
+				E5F6A7BB1FED79650016852D /* TapeyaBroadcastPlugin.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -408,7 +416,7 @@
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 29;
+				CURRENT_PROJECT_VERSION = 40;
 				DEVELOPMENT_TEAM = M7P9P5UTTZ;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Tapeya;
@@ -418,7 +426,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.2;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
 				PRODUCT_BUNDLE_IDENTIFIER = com.tapbytapeya.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -440,7 +448,7 @@
 				CODE_SIGN_ENTITLEMENTS = App/AppRelease.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 29;
+				CURRENT_PROJECT_VERSION = 40;
 				DEVELOPMENT_TEAM = M7P9P5UTTZ;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Tapeya;
@@ -450,7 +458,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.tapbytapeya.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

@@ -45,10 +45,10 @@ use Illuminate\Support\Facades\Hash;
  * Prerequisites: RoleSeeder must have been run (Roles exist).
  *
  * Creates:
- *   - 36 players (6 per team, no cross-team overlap; real names; playing_role / batting_style / bowling_style), password: password
+ *   - 66 players (11 per team, no cross-team overlap; real names; playing_role / batting_style / bowling_style), password: password
  *   - 3 organizers (real names; organizer role + cricket profile fields), password: password
  *   - 3 sponsors (real names; sponsor role + cricket profile fields), password: password
- *   - 5 tournaments (explicit type × format; all four cricket formats; two open + tape_ball for aggregation)
+ *   - 6 tournaments (explicit type × format; Tapeya Open Championship 11-a-side; all four cricket formats)
  *   - 6 teams (PSL-style names; 3-letter uppercase codes; owned by sponsors; optional logo left null)
  *   - Attaches players to teams (team_user), two icon players per team (team_icon_players)
  *   - Attaches teams to tournaments (tournament_team): exactly number_of_teams per tournament;
@@ -71,15 +71,15 @@ class ScoringDemoSeeder extends Seeder
     private const DEMO_FIXTURE_OVERS = 5;
 
     /** Players selected per side when scoring the stats demo match. */
-    private const DEMO_STATS_PLAYERS_PER_SIDE = 6;
+    private const DEMO_STATS_PLAYERS_PER_SIDE = 11;
 
     private const DEMO_TEAM_COUNT = 6;
 
-    private const DEMO_PLAYERS_PER_TEAM = 6;
+    private const DEMO_PLAYERS_PER_TEAM = 11;
 
     private const DEMO_PLAYER_COUNT = self::DEMO_TEAM_COUNT * self::DEMO_PLAYERS_PER_TEAM;
 
-    /** @var list<string> Six players per team in order (Karachi → Quetta); each name used once. */
+    /** @var list<string> Eleven players per team in order (Karachi → Quetta); each name used once. */
     private const DEMO_PLAYER_NAMES = [
         // Karachi Kings
         'Babar Azam',
@@ -88,6 +88,11 @@ class ScoringDemoSeeder extends Seeder
         'Amir Yamin',
         'Sahibzada Farhan',
         'Usman Shan',
+        'Mir Hamza',
+        'Ahmed Shehzad',
+        'Shan Masood',
+        'James Vince',
+        'Tim David',
         // Lahore Qalandars
         'Shaheen Afridi',
         'Fakhar Zaman',
@@ -95,6 +100,11 @@ class ScoringDemoSeeder extends Seeder
         'Abdullah Shafique',
         'Salman Mirza',
         'Zaman Khan',
+        'David Willey',
+        'Ali Raza',
+        'Jahangir Khan',
+        'Dilbar Hussain',
+        'Yasir Shah',
         // Islamabad United
         'Mohammad Rizwan',
         'Shadab Khan',
@@ -102,6 +112,11 @@ class ScoringDemoSeeder extends Seeder
         'Faheem Ashraf',
         'Azam Khan',
         'Haider Ali',
+        'Colin Ingram',
+        'Alex Hales',
+        'Paul Stirling',
+        'Luke Gauchi',
+        'Ben Dwarshuis',
         // Peshawar Zalmi
         'Saim Ayub',
         'Usama Mir',
@@ -109,6 +124,11 @@ class ScoringDemoSeeder extends Seeder
         'Khushdil Shah',
         'Waqar Salam Bhatti',
         'Rumman Raees',
+        'Wanindu Hasaranga',
+        'James Neesham',
+        'Luke Wood',
+        'Tom Kohler-Cadmore',
+        'Sajid Khan',
         // Multan Sultans
         'Mohammad Nawaz',
         'Iftikhar Ahmed',
@@ -116,6 +136,11 @@ class ScoringDemoSeeder extends Seeder
         'Mohammad Wasim',
         'Agha Salman',
         'Tayyab Tahir',
+        'Ihsanullah',
+        'Abbas Afridi',
+        'Sameen Gul',
+        'Muzzammil Mumtaz',
+        'David Miller',
         // Quetta Gladiators
         'Sarfaraz Ahmed',
         'Hasan Ali',
@@ -123,6 +148,11 @@ class ScoringDemoSeeder extends Seeder
         'Saud Shakeel',
         'Mohammad Hafeez',
         'Umar Akmal',
+        'Jason Roy',
+        'Umaid Asif',
+        'Odean Smith',
+        'Ahsan Ali',
+        'Will Jacks',
     ];
 
     /** @var list<string> */
@@ -156,6 +186,16 @@ class ScoringDemoSeeder extends Seeder
      * @var list<array{name: string, short: string, type: string, format: string, teams: int, groups: int, city: string, venue: string}>
      */
     private const DEMO_TOURNAMENT_CONFIG = [
+        [
+            'name' => 'Tapeya Open Championship',
+            'short' => 'TOC',
+            'type' => TournamentTypeEnum::OPEN_TOURNAMENT->value,
+            'format' => CricketFormatEnum::TAPE_BALL->value,
+            'teams' => 2,
+            'groups' => 1,
+            'city' => 'Karachi',
+            'venue' => 'National Stadium Karachi',
+        ],
         [
             'name' => 'Karachi Premier League',
             'short' => 'KPL',
@@ -209,7 +249,7 @@ class ScoringDemoSeeder extends Seeder
     ];
 
     /** Striker run totals for the first completed match in each tournament (index-aligned with config). */
-    private const DEMO_STATS_STRIKER_RUNS = [45, 72, 28, 55, 33];
+    private const DEMO_STATS_STRIKER_RUNS = [58, 45, 72, 28, 55, 33];
 
     public function run(): void
     {
@@ -332,7 +372,7 @@ class ScoringDemoSeeder extends Seeder
             $slug = $this->slugFromName($displayName);
             $email = "{$slug}_{$base}@demo.local";
             $nick = "{$slug}_{$base}";
-            $phone = '+92300'.str_pad((string) (abs($numBase) % 10000000 + $i), 7, '0', STR_PAD_LEFT);
+            $phone = '+92300'.str_pad((string) (abs(crc32($email)) % 10000000), 7, '0', STR_PAD_LEFT);
 
             $user = User::updateOrCreate(
                 ['email' => $email],
@@ -374,7 +414,7 @@ class ScoringDemoSeeder extends Seeder
             $slug = $this->slugFromName($displayName);
             $email = "{$slug}_{$base}@demo.local";
             $nick = "{$slug}_{$base}";
-            $phone = '+92301'.str_pad((string) (abs($numBase) % 10000000 + $i), 7, '0', STR_PAD_LEFT);
+            $phone = '+92301'.str_pad((string) (abs(crc32($email)) % 10000000), 7, '0', STR_PAD_LEFT);
 
             $user = User::updateOrCreate(
                 ['email' => $email],
@@ -416,7 +456,7 @@ class ScoringDemoSeeder extends Seeder
             $slug = $this->slugFromName($displayName);
             $email = "{$slug}_{$base}@demo.local";
             $nick = "{$slug}_{$base}";
-            $phone = '+92302'.str_pad((string) (abs($numBase) % 10000000 + $i), 7, '0', STR_PAD_LEFT);
+            $phone = '+92302'.str_pad((string) (abs(crc32($email)) % 10000000), 7, '0', STR_PAD_LEFT);
 
             $user = User::updateOrCreate(
                 ['email' => $email],
@@ -494,14 +534,16 @@ class ScoringDemoSeeder extends Seeder
         for ($i = 0; $i < self::DEMO_TEAM_COUNT; $i++) {
             $sponsor = $sponsors[$i % count($sponsors)];
             $teamDef = self::DEMO_TEAMS[$i];
-            $team = Team::create([
-                'name' => $teamDef['name'],
-                'code' => $teamDef['code'],
-                'country' => 'Pakistan',
-                'city' => 'Karachi',
-                'user_id' => $sponsor->id,
-                'created_by' => $sponsor->id,
-            ]);
+            $team = Team::updateOrCreate(
+                ['code' => $teamDef['code']],
+                [
+                    'name' => $teamDef['name'],
+                    'country' => 'Pakistan',
+                    'city' => 'Karachi',
+                    'user_id' => $sponsor->id,
+                    'created_by' => $sponsor->id,
+                ]
+            );
             $teams[] = $team;
         }
 
@@ -631,7 +673,7 @@ class ScoringDemoSeeder extends Seeder
                         'match_date' => $date,
                         'match_time' => $time,
                         'venue_name' => $venue,
-                        'players_per_side' => 5,
+                        'players_per_side' => self::DEMO_PLAYERS_PER_TEAM,
                         'overs' => self::DEMO_FIXTURE_OVERS,
                         'status' => MatchStatusEnum::SCHEDULED,
                     ]);
@@ -657,7 +699,7 @@ class ScoringDemoSeeder extends Seeder
                     'match_date' => $today->copy(),
                     'match_time' => $time,
                     'venue_name' => $venue,
-                    'players_per_side' => 5,
+                    'players_per_side' => self::DEMO_PLAYERS_PER_TEAM,
                     'overs' => self::DEMO_FIXTURE_OVERS,
                     'status' => MatchStatusEnum::SCHEDULED,
                 ]);

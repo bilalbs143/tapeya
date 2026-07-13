@@ -47,7 +47,7 @@ function EventSweep({ kind, radius }) {
   if (!wash) return null;
   return (
     <div
-      className="bc-animate-wkt-sweep pointer-events-none absolute inset-0 z-[5]"
+      className="bc-animate-wkt-sweep pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-[5]"
       style={{
         borderRadius: radius,
         background: `linear-gradient(90deg, transparent, ${wash} 50%, transparent)`,
@@ -59,9 +59,14 @@ function EventSweep({ kind, radius }) {
 // ── HorizontalBar ─────────────────────────────────────────────────────────────
 const DESIGN_W = ltBar.designWidth;
 const lt = ltTypography;
-const SCORE_DISPLAY_CLASS = '[font-family:var(--font-display)] leading-[0.92] font-extrabold';
+const SCORE_DISPLAY_CLASS = cn(DISPLAY_FONT, 'leading-[0.92] font-extrabold');
 /** Zone C KPI columns — CRR, RRR, Need Target, team code, partnership, projected score, … */
-const KPI_PANEL_SHELL_STYLE = { paddingInline: lt.kpiColumnPaddingX, gap: lt.kpiColumnGap };
+/** Physical L/R padding — Chrome 86 / vMix ignore CSS logical padding-inline. */
+const KPI_PANEL_SHELL_STYLE = {
+  paddingLeft: lt.kpiColumnPaddingX,
+  paddingRight: lt.kpiColumnPaddingX,
+  gap: lt.kpiColumnGap,
+};
 
 /** 4-zone grid: A (fixed) | B (1fr — all remainder) | C (max-content) | D (fixed). */
 const ZONE_GRID_STYLE = { gridTemplateColumns: 'auto minmax(0, 1fr) auto auto' };
@@ -144,7 +149,7 @@ function HorizontalBar({
               paddingBottom: ltBar.controllerBarPaddingY,
             }}
           >
-            <Crest team={bat} size={ltBar.crestSize} accent={bat.color} accentAlt={bowl.color} borderPulseOrder={1} />
+            <Crest team={bat} size={ltBar.crestSize} accent={bat.color} borderPulseOrder={1} />
             <div className="flex items-center gap-4">
               <div className="flex flex-col self-stretch pr-[18px]">
                 <div
@@ -178,7 +183,8 @@ function HorizontalBar({
             <div
               className="relative flex w-full min-w-0 items-center rounded-[14px] border border-[rgba(120,140,255,0.28)] bg-[linear-gradient(180deg,rgba(40,52,84,0.55),rgba(16,22,38,0.65))] [box-shadow:inset_0_1px_0_rgba(255,255,255,0.07),0_0_calc(16px*var(--glow))_rgba(90,110,255,0.25)]"
               style={{
-                paddingInline: isCompact ? lt.columnPaddingXCompact : lt.columnPaddingX,
+                paddingLeft: isCompact ? lt.columnPaddingXCompact : lt.columnPaddingX,
+                paddingRight: isCompact ? lt.columnPaddingXCompact : lt.columnPaddingX,
                 paddingTop: ltBar.controllerBarPaddingY - 4,
                 paddingBottom: ltBar.controllerBarPaddingY - 4,
               }}
@@ -279,7 +285,7 @@ function HorizontalBar({
                 </BowlerSubRow>
               </div>
             )}
-            <Crest team={bowl} size={ltBar.crestSize} accent={bowl.color} accentAlt={bat.color} borderPulseOrder={2} />
+            <Crest team={bowl} size={ltBar.crestSize} accent={bowl.color} borderPulseOrder={2} />
           </div>
         </GlowPanel>
       </div>
@@ -399,7 +405,8 @@ function Last30StatColumn({ label, value }) {
       style={{
         gap: lt.columnGap,
         width: lt.last30ColumnWidth,
-        paddingInline: lt.last30PaddingX,
+        paddingLeft: lt.last30PaddingX,
+        paddingRight: lt.last30PaddingX,
       }}
     >
       <span
@@ -451,7 +458,8 @@ function LastBallsPanel({ chips, label = 'LAST 12 BALLS', totalRuns, chipSize = 
           <AnimatedNumber
             value={totalRuns}
             className={cn(
-              'flex shrink-0 items-center justify-center [font-family:var(--font-display)] leading-none font-extrabold text-white',
+              DISPLAY_FONT,
+              'flex shrink-0 items-center justify-center leading-none font-extrabold text-white',
               textGlowClass('subtleSm'),
             )}
             style={{ height: chipSize, minWidth: chipSize + lt.last12TotalMinWidthExtra, fontSize: lt.last12TotalRuns }}
@@ -480,7 +488,10 @@ function PanelHeadingLines({ label, variant = 'kpi' }) {
   const line1Size = variant === 'last30' ? lt.sideHeadingLine1 : lt.kpiSideHeadingLine1;
   const line2Size = variant === 'last30' ? lt.sideHeadingLine2 : lt.kpiSideHeadingLine2;
   return (
-    <div className="flex shrink-0 flex-col items-center justify-center gap-1 leading-[1.1]" style={{ paddingInline: paddingX }}>
+    <div
+      className="flex shrink-0 flex-col items-center justify-center gap-1 leading-[1.1]"
+      style={{ paddingLeft: paddingX, paddingRight: paddingX }}
+    >
       {lines.map((line, index) => {
         const isLast = index === lines.length - 1;
         const isEmphasized = lines.length === 1 || (isLast && lines.length > 1);
@@ -513,10 +524,7 @@ const PANEL_TEAM_CODE_CLASS = cn(
   textGlowClass('subtleMd'),
 );
 
-const PANEL_METRIC_VALUE_CLASS = cn(
-  '[font-family:var(--font-display)] leading-[0.9] font-extrabold text-white',
-  textGlowClass('subtle'),
-);
+const PANEL_METRIC_VALUE_CLASS = cn(DISPLAY_FONT, 'leading-[0.9] font-extrabold text-white', textGlowClass('subtle'));
 
 /**
  * Standard Zone C KPI block — label above value, consistent padding and hierarchy.
@@ -791,7 +799,7 @@ function HMini({ label, value, labelClassName, hideLabel }) {
         </span>
       ) : null}
       <span
-        className="[font-family:var(--font-display)] leading-none font-bold whitespace-nowrap text-[var(--text)]"
+        className={cn(DISPLAY_FONT, 'leading-none font-bold whitespace-nowrap text-[var(--text)]')}
         style={{ fontSize: lt.overs }}
       >
         {value}
@@ -835,5 +843,5 @@ function HBat({ p, onStrike, truncateName = false, compact = false }) {
  */
 export function NotOutStar({ notOut }) {
   if (!notOut) return null;
-  return <span className="[font-family:var(--font-display)] text-[22px] leading-none font-extrabold text-[#f5c85a]">*</span>;
+  return <span className={cn(DISPLAY_FONT, 'text-[22px] leading-none font-extrabold text-[#f5c85a]')}>*</span>;
 }

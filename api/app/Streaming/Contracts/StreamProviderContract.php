@@ -6,6 +6,7 @@ use App\Models\MatchStream;
 use App\Streaming\Data\CreateStreamData;
 use App\Streaming\Data\StreamIngestConfig;
 use App\Streaming\Data\StreamPlayback;
+use Illuminate\Support\Collection;
 
 interface StreamProviderContract
 {
@@ -14,6 +15,14 @@ interface StreamProviderContract
 
     /** Poll vendor API for current status and update $stream if changed. */
     public function syncStatus(MatchStream $stream): void;
+
+    /**
+     * Poll vendor API for many streams in as few round-trips as possible (vendor quota is
+     * shared and this runs on a schedule) — same effect as calling syncStatus() on each.
+     *
+     * @param  Collection<int, MatchStream>  $streams
+     */
+    public function syncStatuses(Collection $streams): void;
 
     /** Gracefully end the broadcast. */
     public function endStream(MatchStream $stream): void;

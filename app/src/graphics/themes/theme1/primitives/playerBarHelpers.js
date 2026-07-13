@@ -1,5 +1,6 @@
+import { formatBroadcastBowlingFigures } from '@tapeya/graphics-core/domain/player';
+
 import { chipTypeToVariant, overlayVariantFor, presentBall } from '../../../../../../shared/ball-delivery/index.js';
-import { formatBroadcastBowlingFigures } from '../../../core/domain/player';
 
 export { chipTypeToVariant, overlayVariantFor, presentBall };
 
@@ -26,9 +27,4 @@ export function bowlerFigParts(bowler) {
     figures: formatBroadcastBowlingFigures(null, { w: b.w, r: b.r }),
     overs: String(b.o ?? 0),
   };
-}
-
-/** @deprecated Use overlayVariantFor(presentation) — kept for BallChip string fallback. */
-export function ballChipVariant(code) {
-  return overlayVariantFor(code);
 }

@@ -17,6 +17,9 @@ import {
   fixtureTitleRowFlexStyle,
   fixtureTitleStyle,
   fixtureVsClass,
+  fixtureVsRowGridClass,
+  fixtureVsRowNameClass,
+  fixtureVsRowSideClass,
   fixtureVsStyle,
   MATCH_FIXTURE_DETAIL_SEMIBOLD,
   MATCH_FIXTURE_DETAIL_TOSS,
@@ -83,7 +86,11 @@ export function MatchFixtureBar({
 
           <div className="flex h-full min-w-0 flex-1 flex-col">
             <div
-              className={cn(fixtureTitleRowClass, !hasDetailRow && 'border-b-0')}
+              className={
+                title
+                  ? cn(fixtureTitleRowClass, !hasDetailRow && 'border-b-0')
+                  : fixtureVsRowGridClass(cn('gap-7', !hasDetailRow && 'border-b-0'))
+              }
               style={{ ...fixtureTitleRowFlexStyle(!hasDetailRow), ...fixtureRowPaddingXStyle }}
             >
               {title ? (
@@ -92,15 +99,19 @@ export function MatchFixtureBar({
                 </span>
               ) : (
                 <>
-                  <span className={titleClass(atMaxWidth)} style={fixtureTitleStyle}>
-                    {nameA}
-                  </span>
+                  <div className={fixtureVsRowSideClass('start')}>
+                    <span className={fixtureVsRowNameClass} style={fixtureTitleStyle}>
+                      {nameA}
+                    </span>
+                  </div>
                   <span className={fixtureVsClass} style={fixtureVsStyle}>
                     {vsLabel}
                   </span>
-                  <span className={titleClass(atMaxWidth)} style={fixtureTitleStyle}>
-                    {nameB}
-                  </span>
+                  <div className={fixtureVsRowSideClass('end')}>
+                    <span className={fixtureVsRowNameClass} style={fixtureTitleStyle}>
+                      {nameB}
+                    </span>
+                  </div>
                 </>
               )}
             </div>

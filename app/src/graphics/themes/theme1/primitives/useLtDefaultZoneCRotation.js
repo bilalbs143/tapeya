@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { getEligibleLtDefaultZoneCPanels } from '../../../core/domain/ltDefaultZoneC';
+import { getEligibleLtDefaultZoneCPanels } from '@tapeya/graphics-core/domain/ltDefaultZoneC';
+
 import { ltDefaultZoneC } from '../config';
 
 /**
@@ -8,7 +9,7 @@ import { ltDefaultZoneC } from '../config';
  *
  * @param {Record<string, unknown>} props Processor props
  * @param {Record<string, unknown>|null|undefined} frame Score bar frame
- * @returns {import('../../../core/domain/ltDefaultZoneC.js').LtDefaultZoneCPanel|null}
+ * @returns {import('@tapeya/graphics-core/domain/ltDefaultZoneC.js').LtDefaultZoneCPanel|null}
  */
 export function useLtDefaultZoneCRotation(props, frame) {
   const ctx = useMemo(

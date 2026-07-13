@@ -5,11 +5,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import { CommentInputRow } from '@/features/stream/CommentInputRow';
 import CommentList from '@/features/stream/CommentList';
 import { FloatingHeartsOverlay } from '@/features/stream/FloatingHeartsOverlay';
 import { useFloatingHearts } from '@/features/stream/hooks/useFloatingHearts';
-import { useMatchComments } from '@/features/stream/hooks/useMatchComments';
+import { useStreamComments } from '@/features/stream/hooks/useStreamComments';
 import { IosLandscapeStreamChrome } from '@/features/stream/ios/IosLandscapeStreamChrome';
+import { nativeUnderlaySurfaceClass } from '@/features/stream/ios/iosNativeStreamLayout';
+import { streamUsesIosNativeYoutubePlayer } from '@/features/stream/ios/streamUsesIosNativeYoutubePlayer';
 import { StreamPlayer } from '@/features/stream/StreamPlayer';
 import { useToast } from '@/hooks/useToast';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
@@ -17,13 +20,13 @@ import {
   LIVE_BROADCAST_CONTROLS_OVERLAY_Z,
   LIVE_BROADCAST_HEADER_OVERLAY_Z,
   LIVE_BROADCAST_HEADER_SCRIM,
+  LIVE_BROADCAST_HEADER_TOP_PADDING,
   LIVE_BROADCAST_IMMERSIVE_TOGGLE_Z,
   LIVE_BROADCAST_LANDSCAPE_HEADER_ROW,
 } from '@/lib/constants/liveBroadcastLayout';
 import { getInitials } from '@/lib/utils/displayUtils';
-import { usesIosNativeStreamPlayer } from '@/lib/utils/liveStreamUtils';
 import { mapSystemSettingsByKey } from '@/lib/utils/settingsUtils';
-import { useSendLiveCommentMutation, useSendLiveHeartMutation } from '@/store/api/matchApi';
+import { useSendLiveCommentMutation, useSendLiveHeartMutation } from '@/store/api/liveApi';
 import { useGetPublicSystemSettingsQuery } from '@/store/api/systemSettingsApi';
 import { useAppSelector } from '@/store/hooks';
 
@@ -36,38 +39,6 @@ const BOTTOM_OVERLAY = 'pointer-events-none absolute right-0 bottom-[12px] left-
 
 const TOGGLE_BTN =
   'flex h-9 w-9 shrink-0 touch-manipulation items-center justify-center rounded-full bg-white/[0.13] backdrop-blur-[9.7px] transition-opacity active:opacity-80';
-
-// ---------------------------------------------------------------------------
-// Icons
-// ---------------------------------------------------------------------------
-
-function HeartIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-        stroke="#000"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function SendIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
-        stroke="#080807"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 function LandscapeExitToggle({ onClick }) {
   if (typeof document === 'undefined') return null;
@@ -124,63 +95,6 @@ function BroadcastFloatingToggles({ className = '', isLandscape, onToggleLayout,
 }
 
 // ---------------------------------------------------------------------------
-// CommentInputRow — owns its own comment state so keystrokes never
-// re-render the parent (and therefore never re-render the StreamPlayer).
-// ---------------------------------------------------------------------------
-
-function CommentInputRow({ onSend, onSendHeart, disabled = false }) {
-  const [comment, setComment] = useState('');
-  const canSend = comment.trim().length > 0 && !disabled;
-
-  const handleSend = () => {
-    const text = comment.trim();
-    if (!text) return;
-    onSend(text);
-    setComment('');
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey && canSend) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
-  return (
-    <div className="flex w-full items-center gap-2 rounded-[12px] bg-white/[0.13] py-2 pr-2 pl-4 backdrop-blur-[9.7px]">
-      <input
-        type="text"
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={disabled ? 'Chat Unavailable' : 'Add a Comment…'}
-        disabled={disabled}
-        className="min-w-0 flex-1 border-0 bg-transparent text-[13px] text-white placeholder:text-white/60 focus:outline-none disabled:opacity-50"
-      />
-      <div className="flex shrink-0 items-center gap-1.5">
-        <button
-          type="button"
-          onClick={handleSend}
-          disabled={!canSend}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-white transition-transform active:scale-95 disabled:opacity-50"
-          aria-label="Send Comment"
-        >
-          <SendIcon />
-        </button>
-        <button
-          type="button"
-          onClick={onSendHeart}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-white transition-transform active:scale-95"
-          aria-label="Send Heart"
-        >
-          <HeartIcon />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // BroadcastBottomPanel
 // ---------------------------------------------------------------------------
 
@@ -195,29 +109,33 @@ function BroadcastBottomPanel({
   onToggleLayout,
   bottomPanelVisible,
   onToggleBottomPanel,
+  hideFloatingToggles = false,
 }) {
+  const showChat = bottomPanelVisible || hideFloatingToggles;
+
   return (
     <div className={`flex w-full flex-col gap-2 ${isLandscape ? '' : 'relative'}`}>
-      {bottomPanelVisible && chatEnabled && <CommentList messages={messages} isLandscape={isLandscape} />}
+      {showChat && chatEnabled && <CommentList messages={messages} isLandscape={isLandscape} />}
 
-      <div className={`flex gap-2 ${bottomPanelVisible ? 'items-start' : 'items-center justify-end'}`}>
-        {bottomPanelVisible && streamStatus === 'ended' && (
-          <div className="min-w-0 flex-1 px-1">
-            <p className="mt-1 text-[11px] text-white/60 drop-shadow">Stream has ended</p>
-          </div>
-        )}
-        <BroadcastFloatingToggles
-          className={bottomPanelVisible ? 'ml-auto shrink-0' : ''}
-          isLandscape={isLandscape}
-          onToggleLayout={onToggleLayout}
-          bottomPanelVisible={bottomPanelVisible}
-          onToggleBottomPanel={onToggleBottomPanel}
-        />
-      </div>
-
-      {bottomPanelVisible && chatEnabled && (
-        <CommentInputRow onSend={onSend} onSendHeart={onSendHeart} disabled={inputDisabled} />
+      {streamStatus === 'ended' && showChat && (
+        <div className="min-w-0 px-1">
+          <p className="mt-1 text-[11px] text-white/60 drop-shadow">Stream has ended</p>
+        </div>
       )}
+
+      {!hideFloatingToggles && (
+        <div className={`flex gap-2 ${bottomPanelVisible ? 'items-start' : 'items-center justify-end'}`}>
+          <BroadcastFloatingToggles
+            className={bottomPanelVisible ? 'ml-auto shrink-0' : ''}
+            isLandscape={isLandscape}
+            onToggleLayout={onToggleLayout}
+            bottomPanelVisible={bottomPanelVisible}
+            onToggleBottomPanel={onToggleBottomPanel}
+          />
+        </div>
+      )}
+
+      {showChat && chatEnabled && <CommentInputRow onSend={onSend} onSendHeart={onSendHeart} disabled={inputDisabled} />}
     </div>
   );
 }
@@ -231,6 +149,7 @@ const GRADIENT_HIDDEN = 'bg-gradient-to-t from-black/25 to-transparent';
 
 function BroadcastViewport({
   stream,
+  posterUrl = null,
   bottomPanel,
   bottomPanelVisible,
   isLandscape,
@@ -239,33 +158,47 @@ function BroadcastViewport({
   headerSlot,
   isDesktop,
   immersiveLandscape = false,
-  isIosNativeLandscape = false,
+  isIosNativeUnderlay = false,
   hideHeaderOverlay = false,
+  /** Self-serve mobile: fill the shell. Match-linked: 16:9 aspect-video in portrait. */
+  fillPortrait = false,
 }) {
-  // Portrait: keep iframe interactive so mobile playback/tap-to-start works.
-  // Landscape: block iframe touches so the portaled exit toggle stays tappable.
+  // Landscape / desktop / self-serve portrait: fill the shell.
+  // Match portrait: aspect-video (16:9) — tournament streams are landscape-encoded.
   const blockLandscapeVideoPointer = !isDesktop && isLandscape;
-  const blockLandscapeVideoClass = blockLandscapeVideoPointer ? 'pointer-events-none [&_iframe]:pointer-events-none' : '';
-  const videoLayer =
-    isDesktop || isLandscape ? (
-      <div className={`absolute inset-0 ${blockLandscapeVideoClass}`}>
-        <StreamPlayer stream={stream} className="h-full w-full" fill isLandscape={isLandscape} />
-      </div>
-    ) : (
-      <div className="absolute inset-0 flex items-start justify-center">
-        <StreamPlayer stream={stream} className="max-h-full w-full" fill={false} isLandscape={false} />
-      </div>
-    );
+  const fillVideo = isDesktop || isLandscape || fillPortrait;
+  const surfaceClass = nativeUnderlaySurfaceClass(isIosNativeUnderlay);
+
+  const videoLayer = fillVideo ? (
+    <div className={`absolute inset-0 ${blockLandscapeVideoPointer ? 'pointer-events-none [&_iframe]:pointer-events-none' : ''}`}>
+      <StreamPlayer stream={stream} posterUrl={posterUrl} className="h-full w-full" fill isLandscape={isLandscape} />
+    </div>
+  ) : (
+    <div className="absolute inset-0 flex items-start justify-center">
+      <StreamPlayer stream={stream} posterUrl={posterUrl} className="max-h-full w-full" fill={false} isLandscape={false} />
+    </div>
+  );
+
+  // Classic portrait: under solid navbar. Hero: clear transparent navbar height.
+  // Landscape: owns top safe area (no app navbar).
+  const headerTopPadding = isLandscape && !isDesktop ? '8px' : fillPortrait ? LIVE_BROADCAST_HEADER_TOP_PADDING : '10px';
+  const showMobileChrome = !isDesktop && !immersiveLandscape;
 
   return (
-    <div className={`relative size-full overflow-hidden ${isIosNativeLandscape ? 'bg-transparent' : 'bg-black'}`}>
-      {videoLayer}
-
-      {!isDesktop && !immersiveLandscape && (
-        <FloatingHeartsOverlay hearts={floatingHearts} onHeartEnd={onHeartEnd} isLandscape={isLandscape} />
+    <div className={`relative size-full overflow-hidden ${surfaceClass}`}>
+      {/* Classic 16:9 underlay hole — opaque fill below so the UIKit host does not flash through. */}
+      {isIosNativeUnderlay && !fillVideo && (
+        <div className="pointer-events-none absolute inset-0 flex flex-col" aria-hidden>
+          <div className="aspect-video w-full shrink-0" />
+          <div className="min-h-0 flex-1 bg-black" />
+        </div>
       )}
 
-      {!isDesktop && !immersiveLandscape && (
+      {videoLayer}
+
+      {showMobileChrome && <FloatingHeartsOverlay hearts={floatingHearts} onHeartEnd={onHeartEnd} isLandscape={isLandscape} />}
+
+      {showMobileChrome && (
         <div className={`pointer-events-none absolute inset-0 ${bottomPanelVisible ? GRADIENT_VISIBLE : GRADIENT_HIDDEN}`} />
       )}
 
@@ -276,7 +209,7 @@ function BroadcastViewport({
         >
           <div
             className={`pointer-events-none relative flex items-center ${isLandscape && !isDesktop ? 'justify-center' : 'justify-between'}`}
-            style={{ paddingTop: '8px' }}
+            style={{ paddingTop: headerTopPadding }}
           >
             {headerSlot}
           </div>
@@ -297,7 +230,7 @@ function BroadcastViewport({
 // ---------------------------------------------------------------------------
 
 export default function LiveBroadcastItem({
-  match,
+  broadcast,
   isLandscape,
   isDesktop = false,
   isMobileLandscape = false,
@@ -305,6 +238,10 @@ export default function LiveBroadcastItem({
   headerSlot = null,
   /** LIVE + viewer badges only — used by iOS landscape chrome (no back button / spacers). */
   statusHeaderSlot = null,
+  /** Self-serve mobile portrait — fill shell instead of 16:9. */
+  fillPortrait = false,
+  /** Self-serve go-live watch — no comment/landscape toggles; comments always visible. */
+  selfServeChrome = false,
 }) {
   const toast = useToast();
   const myUserId = useAppSelector((s) => s.auth?.user?.id ?? null);
@@ -315,8 +252,8 @@ export default function LiveBroadcastItem({
   const cooldownTimerRef = useRef(null);
   const { hearts: floatingHearts, spawnBurst, removeHeart, clearHearts } = useFloatingHearts();
 
-  const matchId = match?.id ?? null;
-  const streamStatus = match?.stream?.status;
+  const streamId = broadcast?.id ?? null;
+  const streamStatus = broadcast?.stream?.status;
   const streamChatActive = streamStatus === 'live' || streamStatus === 'starting';
 
   const { data: settingsRows } = useGetPublicSystemSettingsQuery();
@@ -334,7 +271,7 @@ export default function LiveBroadcastItem({
     },
     [spawnBurst, isMobileLandscape, myUserId],
   );
-  const { messages } = useMatchComments(matchId, chatEnabled, handleRemoteHeart);
+  const { messages } = useStreamComments(streamId, chatEnabled, handleRemoteHeart);
   const [sendComment, { isLoading: isSending }] = useSendLiveCommentMutation();
   const [sendHeart] = useSendLiveHeartMutation();
 
@@ -352,15 +289,15 @@ export default function LiveBroadcastItem({
   );
 
   const handleSendHeart = useCallback(() => {
-    if (!matchId || !chatEnabled) return;
+    if (!streamId || !chatEnabled) return;
     spawnBurst(myAvatar, myInitials);
-    sendHeart({ matchId });
-  }, [spawnBurst, myAvatar, myInitials, matchId, chatEnabled, sendHeart]);
+    sendHeart({ streamId });
+  }, [spawnBurst, myAvatar, myInitials, streamId, chatEnabled, sendHeart]);
 
   const handleSend = useCallback(
     async (text) => {
       const body = text.trim();
-      if (!body || !matchId || !chatEnabled || isSending || sendCooldown) {
+      if (!body || !streamId || !chatEnabled || isSending || sendCooldown) {
         return;
       }
 
@@ -370,7 +307,7 @@ export default function LiveBroadcastItem({
       }, 2000);
 
       try {
-        await sendComment({ matchId, body }).unwrap();
+        await sendComment({ streamId, body }).unwrap();
       } catch (err) {
         const type = err?.data?.type;
         if (type === 'TOO_MANY_REQUESTS') {
@@ -378,14 +315,19 @@ export default function LiveBroadcastItem({
         }
       }
     },
-    [matchId, chatEnabled, isSending, sendCooldown, sendComment, toast],
+    [streamId, chatEnabled, isSending, sendCooldown, sendComment, toast],
   );
 
   const toggleBottomPanel = useCallback(() => setBottomPanelVisible((v) => !v), []);
 
-  const stream = match?.stream ?? null;
+  const stream = broadcast?.stream ?? null;
+  const posterUrl = broadcast?.thumbnail_url?.trim() || null;
   const inputDisabled = isSending || sendCooldown;
-  const isIosNativeLandscape = usesIosNativeStreamPlayer() && isLandscape;
+  const usesIosNativePlayer = streamUsesIosNativeYoutubePlayer(stream);
+  const isIosNativeLandscape = usesIosNativePlayer && isLandscape;
+  const isIosNativeUnderlay = usesIosNativePlayer && !isDesktop;
+  const panelVisible = selfServeChrome || bottomPanelVisible;
+  const surfaceClass = nativeUnderlaySurfaceClass(isIosNativeUnderlay);
 
   const bottomPanel = (
     <BroadcastBottomPanel
@@ -397,36 +339,43 @@ export default function LiveBroadcastItem({
       onSendHeart={handleSendHeart}
       isLandscape={isLandscape}
       onToggleLayout={onToggleLandscape}
-      bottomPanelVisible={bottomPanelVisible}
+      bottomPanelVisible={panelVisible}
       onToggleBottomPanel={toggleBottomPanel}
+      hideFloatingToggles={selfServeChrome}
     />
   );
 
   const viewport = (
     <BroadcastViewport
       stream={stream}
+      posterUrl={posterUrl}
       bottomPanel={bottomPanel}
-      bottomPanelVisible={bottomPanelVisible}
+      bottomPanelVisible={panelVisible}
       isLandscape={isLandscape}
       floatingHearts={floatingHearts}
       onHeartEnd={removeHeart}
       headerSlot={isMobileLandscape && !isIosNativeLandscape ? (statusHeaderSlot ?? headerSlot) : headerSlot}
       isDesktop={isDesktop}
       immersiveLandscape={isMobileLandscape}
-      isIosNativeLandscape={isIosNativeLandscape}
+      isIosNativeUnderlay={isIosNativeUnderlay}
       hideHeaderOverlay={isIosNativeLandscape && isMobileLandscape}
+      fillPortrait={fillPortrait}
     />
   );
 
-  const showFixedLandscapeToggle = isLandscape && !isDesktop && !isIosNativeLandscape;
+  const showFixedLandscapeToggle = !selfServeChrome && isLandscape && !isDesktop && !isIosNativeLandscape;
 
   return (
-    <div className={`relative h-full w-full overflow-hidden ${isIosNativeLandscape ? 'bg-transparent' : 'bg-black'}`}>
+    <div className={`relative h-full w-full overflow-hidden ${surfaceClass}`}>
       {isIosNativeLandscape && isMobileLandscape && (
         <IosLandscapeStreamChrome headerSlot={statusHeaderSlot ?? headerSlot} onToggleLandscape={onToggleLandscape} />
       )}
 
-      <LandscapeRotatedStage rotated={isLandscape} iosNativeLandscape={isIosNativeLandscape}>
+      <LandscapeRotatedStage
+        rotated={isLandscape}
+        iosNativeLandscape={isIosNativeLandscape}
+        iosNativeUnderlay={isIosNativeUnderlay}
+      >
         {viewport}
       </LandscapeRotatedStage>
 

@@ -1,9 +1,10 @@
 import { useEffect, useMemo } from 'react';
 
-import { processGraphicCommand } from '../core/GraphicCommandProcessor';
-import { applyFlashToSnapshot } from '../core/manifestCommandMeta';
-import { normalizeSession } from '../core/normalizeSession';
-import { graphicDebugLog, isGraphicDebugEnabled } from './debugLog';
+import { graphicDebugLog, isGraphicDebugEnabled } from '@tapeya/graphics-core/debugLog.js';
+import { processGraphicCommand } from '@tapeya/graphics-core/GraphicCommandProcessor.js';
+import { applyFlashToSnapshot } from '@tapeya/graphics-core/manifestCommandMeta.js';
+import { normalizeSession } from '@tapeya/graphics-core/normalizeSession/index.js';
+
 import { GraphicControllerContext } from './graphicControllerContext';
 import { useGraphicFlash } from './hooks/useGraphicFlash';
 import { useGraphicSession } from './hooks/useGraphicSession';
@@ -12,10 +13,13 @@ import { useGraphicSession } from './hooks/useGraphicSession';
  * Entry layer: loads session, normalizes once, runs processor, exposes render plan.
  * Theme slug is read from `session.theme.slug` (graphic session SSOT).
  *
- * @param {{ matchId: string, searchParams: URLSearchParams, children?: import('react').ReactNode }} props
+ * @param {{
+ *   accessToken: string,
+ *   children?: import('react').ReactNode,
+ * }} props
  */
-export function GraphicControllerProvider({ matchId, searchParams, children }) {
-  const { session, isError, isLoading, sessionQueryArg } = useGraphicSession(matchId, searchParams);
+export function GraphicControllerProvider({ accessToken, children }) {
+  const { session, isError, isLoading, sessionQueryArg, matchId } = useGraphicSession(accessToken);
   const themeSlug = session?.theme?.slug ?? '';
 
   const snapshot = useMemo(() => {

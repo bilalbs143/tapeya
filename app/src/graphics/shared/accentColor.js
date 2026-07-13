@@ -14,6 +14,11 @@ export function normalizeColor(value, fallback = '#5b7cff') {
   return raw || fallback;
 }
 
+/** @param {unknown} value @param {string} [fallback='#5b7cff'] */
+export function normalizeAccentColor(value, fallback = '#5b7cff') {
+  return normalizeColor(value, fallback);
+}
+
 /** @param {string} color */
 export function isSixDigitHex(color) {
   return /^#[0-9a-f]{6}$/i.test(color);
@@ -108,4 +113,14 @@ export function mixColorWithTransparent(rawColor, percent, { fallback = '#5b7cff
   }
 
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+/** Alias for theme code — mix accent at `percent` opacity (0–100). */
+export function accentMix(rawColor, percent, options) {
+  return mixColorWithTransparent(rawColor, percent, options);
+}
+
+/** @param {unknown} [accent] */
+export function accentPanelHeadGradient(accent = 'var(--accentA)') {
+  return `linear-gradient(100deg, ${accentMix(accent, 33)}, transparent 60%)`;
 }

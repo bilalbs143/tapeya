@@ -9,6 +9,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(android.os.Bundle savedInstanceState) {
         registerPlugin(FacebookAnalyticsPlugin.class);
+        registerPlugin(TapeyaBroadcastPlugin.class);
         super.onCreate(savedInstanceState);
         FacebookSdk.setAdvertiserIDCollectionEnabled(true);
         FacebookSdk.setAutoLogAppEventsEnabled(true);

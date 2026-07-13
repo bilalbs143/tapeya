@@ -50,6 +50,7 @@ class UserResource extends JsonResource
             'active_platform' => $this->active_platform,
             'active_platform_label' => ActivePlatformEnum::tryLabelFromValue($this->active_platform),
             'active_platform_updated_at' => $this->active_platform_updated_at?->toIso8601String(),
+            'can_broadcast' => (bool) $this->can_broadcast,
             'roles' => $appRoles->map(fn ($r) => [
                 'id' => $r->id,
                 'name' => $r->name,

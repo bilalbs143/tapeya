@@ -863,12 +863,12 @@ After each ball, `ScorecardController::clearGraphicPendingCreaseIds()` clears `n
          │
          ├─────────────────────────────────────────┐
          ▼                                         ▼
-[OBS/vMix Overlay]                         [Backoffice]
-/overlay/:matchId                          receives .graphics event
+[OBS/vMix graphics site]                   [Backoffice]
+/{sessionId}-{expires}-{signature}       HTTP bootstrap + Reverb on match.{matchId}.graphics
 (signed URL, no auth)                      patches local session copy
     │
     ▼
-GraphicOverlay.jsx
+GraphicsView.jsx
 → graphicRegistry maps commandKey → component file
 → buildGraphicProps() maps session.context + payload → component props
 → Lazy-loaded component renders
@@ -901,16 +901,20 @@ SyncMatchGraphicContextJob (immediate, unique-per-match via ShouldBeUnique)
 
 ### 17.4 Overlay authentication
 
-Signed URL for OBS/vMix (no login required):
+Signed URL for OBS/vMix (no login required). **Target (locked):**
+
 ```
-/overlay/{matchId}?theme=tapeya-basic&expires={unix_ts}&signature={hmac_sha256}
+https://graphics.tapeya.com/{sessionId}-{expires_unix}-{hmac_sha256_hex}
 ```
 
-HMAC-SHA256: `hash_hmac('sha256', matchId|expires, secret)`. 24-hour TTL. Clock-skew tolerance: 120s.
+- `{sessionId}` = `match_graphic_sessions.id`
+- HMAC-SHA256: `hash_hmac('sha256', sessionId|expires, secret)`. 24-hour TTL. Clock-skew tolerance: 120s.
+- Public bootstrap: `GET /api/v1/graphic-sessions/access/{token}`
+- Reverb: `match.{matchId}.graphics` — `{matchId}` from session JSON after bootstrap
 
-Generated via backoffice: `GET /admin/matches/{id}/graphic-session/signed-url?theme=slug`.
+Generated via backoffice: `GET /admin/matches/{match}/graphic-session/signed-url`.
 
-The computed `overlayUrl` signal in the controller-settings dialog appends the currently-selected theme slug as a query param, so the URL updates live as the operator selects a different theme.
+> **Note:** Current code may still use match-scoped URLs during migration. See [`GRAPHICS_OVERLAY_ISOLATION_PLAN.md`](./GRAPHICS_OVERLAY_ISOLATION_PLAN.md) §17.
 
 ---
 
@@ -1075,7 +1079,7 @@ Normalized props → spread into lazy-loaded React component
 
 ### 20.4 Debug logging
 
-`graphicDebugLog.js` exports `graphicDebugLog(tag, payload)`. Activated by `localStorage.graphicDebug = '1'` or `import.meta.env.DEV`. Used within `buildGraphicProps` and `GraphicOverlay` to log command rendering.
+`graphicDebugLog.js` exports `graphicDebugLog(tag, payload)`. Activated by `localStorage.graphicDebug = '1'` or `import.meta.env.DEV`. Used within `buildGraphicProps` and `GraphicsView` to log command rendering.
 
 ---
 
@@ -1246,9 +1250,8 @@ After load, `subscribeToGraphicsChannel()` joins public Reverb channel:
 ### 22.8 Settings dialog (updated in develop)
 
 - **Theme selector** (dropdown)
-- **Signed overlay URL** with:
+- **Signed graphics URL** with:
   - Loading/error states (signals)
-  - `overlayUrl` computed signal: auto-appends current theme slug as `?theme=` param
   - Copy button with clipboard feedback
   - Refresh button to regenerate signature
 - **Team color pickers:** home/away text + background colors (HTML5 color inputs)

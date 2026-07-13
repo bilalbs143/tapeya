@@ -2,52 +2,96 @@
 
 namespace App\Support\LiveChat;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
 final class LiveChatRedisKeys
 {
-    public static function interval(int $matchId, int|string $userId): string
+    public static function intervalForStream(int $streamId, int|string $userId): string
     {
-        return "chat:{$matchId}:interval:{$userId}";
+        return "chat:stream:{$streamId}:interval:{$userId}";
     }
 
-    public static function burst(int $matchId, int|string $userId): string
+    public static function burstForStream(int $streamId, int|string $userId): string
     {
-        return "chat:{$matchId}:burst:{$userId}";
+        return "chat:stream:{$streamId}:burst:{$userId}";
     }
 
-    public static function dedup(int $matchId, int|string $userId): string
+    public static function dedupForStream(int $streamId, int|string $userId): string
     {
-        return "chat:{$matchId}:dedup:{$userId}";
+        return "chat:stream:{$streamId}:dedup:{$userId}";
     }
 
-    public static function mute(int $matchId, int|string $userId): string
+    public static function muteForStream(int $streamId, int|string $userId): string
     {
-        return "chat:{$matchId}:mute:{$userId}";
+        return "chat:stream:{$streamId}:mute:{$userId}";
+    }
+
+    public static function heartThrottle(int $streamId, int|string $userId): string
+    {
+        return "live_heart:stream:{$streamId}:{$userId}";
     }
 
     /**
-     * Purge all chat operational keys for a match when the stream ends.
+     * Purge all chat operational keys for a stream when it ends.
      */
-    public static function purgeMatch(int $matchId): void
+    public static function purgeStream(int $streamId): void
     {
-        $pattern = self::matchPattern($matchId);
-        $cursor = 0;
-
-        do {
-            [$cursor, $keys] = Redis::scan($cursor, [
-                'match' => $pattern,
-                'count' => 100,
-            ]);
-
-            if (! empty($keys)) {
-                Redis::del(...$keys);
-            }
-        } while ($cursor !== 0);
+        self::purgeByPattern(self::streamPattern($streamId));
+        self::purgeByPattern(self::heartPattern($streamId));
     }
 
-    public static function matchPattern(int $matchId): string
+    public static function streamPattern(int $streamId): string
     {
-        return "chat:{$matchId}:*";
+        return "chat:stream:{$streamId}:*";
+    }
+
+    public static function heartPattern(int $streamId): string
+    {
+        return "live_heart:stream:{$streamId}:*";
+    }
+
+    private static function purgeByPattern(string $pattern): void
+    {
+        try {
+            $cursor = null;
+            $iterations = 0;
+            // Cap iterations so a stuck SCAN cannot run unbounded.
+            $maxIterations = 50;
+
+            do {
+                $result = Redis::scan($cursor ?? 0, [
+                    'match' => $pattern,
+                    'count' => 100,
+                ]);
+
+                // Laravel phpredis returns false when the scan is finished with no keys.
+                if ($result === false) {
+                    break;
+                }
+
+                [$cursor, $keys] = $result;
+                $cursor = $cursor === null || $cursor === false ? 0 : $cursor;
+
+                if (! empty($keys)) {
+                    Redis::del(...$keys);
+                }
+
+                $iterations++;
+            } while ((int) $cursor !== 0 && $iterations < $maxIterations);
+
+            if ((int) $cursor !== 0) {
+                Log::warning('Live chat Redis purge stopped early (SCAN did not finish)', [
+                    'pattern' => $pattern,
+                    'iterations' => $iterations,
+                    'cursor' => $cursor,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // Ending a broadcast must not fatal on Redis — keys expire via TTL anyway.
+            Log::warning('Live chat Redis purge failed: '.$e->getMessage(), [
+                'pattern' => $pattern,
+            ]);
+        }
     }
 }

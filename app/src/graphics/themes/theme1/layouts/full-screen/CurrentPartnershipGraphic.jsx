@@ -1,9 +1,10 @@
 /**
  * Ported from theme-controller — render-only graphic.
  */
+import { resolveBroadcastNameParts } from '@tapeya/graphics-core/domain/playerNameResolver';
+
 import { cn } from '@/lib/utils';
 
-import { resolveBroadcastNameParts } from '../../../../core/domain/playerNameResolver';
 import { colors, fsPartnership, fsSummaryPanel } from '../../config';
 import { BatterScoreInline, DISPLAY_FONT, FSStage, GlowPanel, NotOutStar, PlayerAvatarImage, UI_FONT } from '../../primitives';
 import { textGlowClass } from '../../visualEffects';
@@ -25,7 +26,11 @@ const partnershipMetaClass = cn('font-bold tracking-[0.06em] uppercase whitespac
 
 const batterFirstNameClass = cn('font-semibold tracking-[0.1em] text-[var(--text-secondary)] uppercase', UI_FONT);
 
-const batterLastNameClass = cn('font-extrabold tracking-[0.03em] text-white uppercase whitespace-nowrap', DISPLAY_FONT);
+const batterLastNameClass = cn(
+  'font-extrabold tracking-[0.03em] text-white uppercase',
+  'overflow-hidden text-ellipsis whitespace-nowrap',
+  DISPLAY_FONT,
+);
 
 function CurrentPartnershipHeader({ title, sub }) {
   return (
@@ -91,13 +96,14 @@ function PartnershipCenterStat({ runs, balls }) {
   );
 }
 
-function PartnershipHeroPanel({ partnership, batters }) {
+function PartnershipHeroPanel({ partnership, batters, accent }) {
   const [left, right] = batters;
+  const ringAccent = accent ?? colors.accentB;
 
   return (
     <GlowPanel
       radius={28}
-      accent={colors.accentB}
+      accent={ringAccent}
       className="relative h-full w-full overflow-hidden px-9 pt-[120px]"
       data-testid="partnership-hero-panel"
     >
@@ -123,7 +129,7 @@ function PartnershipHeroPanel({ partnership, batters }) {
   );
 }
 
-function BatterCell({ batter, accent, align = 'start' }) {
+function BatterCell({ batter, align = 'start' }) {
   const isEnd = align === 'end';
   const notOut = Boolean(batter.notOut);
   const { firstName, lastName } = resolveBroadcastNameParts(batter.fullName);
@@ -145,14 +151,13 @@ function BatterCell({ batter, accent, align = 'start' }) {
         balls={batter.balls}
         runsSize={fsPartnership.batterRuns}
         ballsSize={fsPartnership.batterBalls}
-        accentColor={accent}
         animateRuns={false}
       />
     </div>
   );
 }
 
-function BatterStrap({ batters, accent }) {
+function BatterStrap({ batters }) {
   const [left, right] = batters;
 
   if (!left || !right) return null;
@@ -167,9 +172,9 @@ function BatterStrap({ batters, accent }) {
       )}
       data-testid="partnership-batter-strap"
     >
-      <BatterCell batter={left} accent={accent} align={left.align ?? 'start'} />
+      <BatterCell batter={left} align={left.align ?? 'start'} />
       <div className="w-px shrink-0 bg-white/[0.14]" />
-      <BatterCell batter={right} accent={accent} align={right.align ?? 'end'} />
+      <BatterCell batter={right} align={right.align ?? 'end'} />
     </div>
   );
 }
@@ -190,8 +195,8 @@ export function CurrentPartnershipGraphic({ data, teams }) {
       <CurrentPartnershipHeader title={title} sub={data.sub} />
 
       <div className="absolute top-[250px] right-24 bottom-[70px] left-24">
-        <PartnershipHeroPanel partnership={data.partnership} batters={batters} />
-        <BatterStrap batters={batters} accent={accent} />
+        <PartnershipHeroPanel partnership={data.partnership} batters={batters} accent={accent} />
+        <BatterStrap batters={batters} />
       </div>
     </FSStage>
   );

@@ -1,19 +1,17 @@
 import { lazy, Suspense } from 'react';
 
-import { DownloadAppPrompt } from '@platform-download';
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
-import AppUpdatePrompt from '@/components/AppUpdatePrompt';
 import { ConsumerRouterEffects } from '@/components/ConsumerRouterEffects';
 import DialogManager from '@/components/dialogs/DialogManager';
-import { ProfileStrengthReminderScheduler } from '@/components/ProfileStrengthReminderScheduler';
 import InterestCampaignDialogScheduler from '@/components/InterestCampaignDialogScheduler';
+import ProgrammaticDialogPrompts from '@/components/ProgrammaticDialogPrompts';
 import { RequireAuth } from '@/components/RequireAuth';
+import { RequireBroadcastAccess } from '@/components/RequireBroadcastAccess';
 import { ScrollRestoration } from '@/components/ScrollRestoration';
 import SplashScreen from '@/components/SplashScreen';
 import { DialogProvider } from '@/context/DialogContext';
 import { ToastProvider } from '@/context/ToastContext';
-import GraphicOverlay from '@/graphics/entry/GraphicOverlay';
 import { useReverbNotifications } from '@/hooks/useReverbNotifications';
 import { isOverlayRoute } from '@/lib/isOverlayRoute';
 import { Toaster } from '@/ui/Toast';
@@ -46,6 +44,7 @@ const RankingStatsTotal = lazy(() => import('@/pages/ranking/RankingStatsTotal')
 
 const Live = lazy(() => import('@/pages/live/Live'));
 const LiveBroadcast = lazy(() => import('@/pages/live/LiveBroadcast'));
+const GoLive = lazy(() => import('@/pages/live/GoLive'));
 
 const Reels = lazy(() => import('@/pages/reels/Reels'));
 const UploadReels = lazy(() => import('@/pages/reels/UploadReels'));
@@ -117,17 +116,12 @@ function App() {
               <RouterEffects />
               <ScrollRestoration />
               <DialogManager />
-              <ProfileStrengthReminderScheduler />
+              <ProgrammaticDialogPrompts />
               <InterestCampaignDialogScheduler />
-              <AppUpdatePrompt />
-              <DownloadAppPrompt />
               <Suspense fallback={<PageFallback />}>
                 <Routes>
                   <Route path="/" element={<SplashScreen />} />
                   <Route path="/pages/:slug" element={<StaticPage />} />
-
-                  {/* Graphic overlay — OBS/vMix. No MainLayout/AuthLayout → no Meta Pixel, push, or platform sync. */}
-                  <Route path="/overlay/:matchId" element={<GraphicOverlay />} />
 
                   <Route element={<RequireAuth />}>
                     <Route element={<MainLayout />}>
@@ -171,7 +165,11 @@ function App() {
                       <Route path="/ranking" element={<Ranking />} />
                       <Route path="/ranking/stats-total/:statType" element={<RankingStatsTotal />} />
                       <Route path="/live" element={<Live />} />
-                      <Route path="/live/broadcast/:matchId" element={<LiveBroadcast />} />
+                      <Route path="/live/broadcast/:streamId" element={<LiveBroadcast />} />
+                      <Route element={<RequireBroadcastAccess />}>
+                        <Route path="/live/go-live" element={<GoLive />} />
+                        <Route path="/live/go-live/:streamId" element={<GoLive />} />
+                      </Route>
                       <Route path="/highlights" element={<Highlights />} />
                       <Route path="/highlights/:highlightId" element={<HighlightDetails />} />
                       <Route path="/notification-center" element={<NotificationCenter />} />

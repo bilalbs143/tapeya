@@ -1,9 +1,10 @@
 /**
  * Last wicket full-screen — dismissed batter match scorecard.
  */
+import { resolveBroadcastNameParts } from '@tapeya/graphics-core/domain/playerNameResolver';
+
 import { cn } from '@/lib/utils';
 
-import { resolveBroadcastNameParts } from '../../../../core/domain/playerNameResolver';
 import { fsPlayerCard, fsSummaryPanel } from '../../config';
 import { fmt, GlowPanel, PlayerAvatarImage, TeamLogoOrCrest } from '../../primitives';
 import { FsStatColumn } from '../shared/FsStatColumn';
@@ -77,16 +78,20 @@ export function LastWicketFSGraphic({ batter, teams, sub }) {
           {sub}
         </p>
       ) : null}
-      <div className="absolute inset-0 flex items-center justify-center gap-10 px-16">
+      <div className="absolute top-0 right-0 bottom-0 left-0 flex items-center justify-center gap-10 px-16">
         <div className="relative shrink-0 overflow-hidden" style={{ width: AVATAR_W, height: AVATAR_H }}>
           <PlayerAvatarImage src={avatarUrl} alt={b.name ?? `${firstName} ${lastName}`} fit="cover-top" />
         </div>
 
         <div style={{ height: AVATAR_H }}>
-          <FsStatColumn statFields={STAT_FIELDS} statValues={statValues} accent={accent} statLayout={statLayout} />
+          <FsStatColumn statFields={STAT_FIELDS} statValues={statValues} statLayout={statLayout} />
         </div>
 
-        <GlowPanel className="flex shrink-0 flex-col px-10 py-12" style={{ width: PANEL_W, height: statsColumnHeight }}>
+        <GlowPanel
+          accent={accent}
+          className="flex shrink-0 flex-col px-10 py-12"
+          style={{ width: PANEL_W, height: statsColumnHeight }}
+        >
           <div className="flex items-start justify-between gap-6">
             <TeamLogoOrCrest logoUrl={logoUrl} team={team} accent={accent} size={CREST_SIZE} borderPulseOrder={1} />
           </div>

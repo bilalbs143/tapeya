@@ -23,7 +23,8 @@ describe('BallChip', () => {
     expect(chip?.classList.contains('bc-ball-chip--compound')).toBe(true);
     expect(chip?.style.width).toBe('auto');
     expect(chip?.style.minWidth).toBe('28px');
-    expect(['0', '0px']).toContain(chip?.style.paddingInline);
+    expect(['0', '0px']).toContain(chip?.style.paddingLeft);
+    expect(['0', '0px']).toContain(chip?.style.paddingRight);
     expect(Number.parseFloat(chip?.style.fontSize ?? '0')).toBeLessThan(32 * ltTypography.ballChipFontScale);
     expect(screen.getByText('WD+W')).toBeTruthy();
   });

@@ -15,7 +15,7 @@ export function LowerThirdShell({ children, tokens }) {
 
   return (
     <div
-      className="graphic-shell graphic-shell--lt pointer-events-none fixed inset-0 z-10 flex items-end justify-stretch"
+      className="graphic-shell graphic-shell--lt pointer-events-none fixed top-0 right-0 bottom-0 left-0 z-10 flex items-end justify-stretch"
       style={style}
     >
       <div className="w-full">{children}</div>
