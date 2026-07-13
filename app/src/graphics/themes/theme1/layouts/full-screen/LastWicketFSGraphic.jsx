@@ -78,7 +78,7 @@ export function LastWicketFSGraphic({ batter, teams, sub }) {
           {sub}
         </p>
       ) : null}
-      <div className="absolute inset-0 flex items-center justify-center gap-10 px-16">
+      <div className="absolute top-0 right-0 bottom-0 left-0 flex items-center justify-center gap-10 px-16">
         <div className="relative shrink-0 overflow-hidden" style={{ width: AVATAR_W, height: AVATAR_H }}>
           <PlayerAvatarImage src={avatarUrl} alt={b.name ?? `${firstName} ${lastName}`} fit="cover-top" />
         </div>

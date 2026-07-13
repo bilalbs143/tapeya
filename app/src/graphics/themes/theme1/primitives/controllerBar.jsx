@@ -47,7 +47,7 @@ function EventSweep({ kind, radius }) {
   if (!wash) return null;
   return (
     <div
-      className="bc-animate-wkt-sweep pointer-events-none absolute inset-0 z-[5]"
+      className="bc-animate-wkt-sweep pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-[5]"
       style={{
         borderRadius: radius,
         background: `linear-gradient(90deg, transparent, ${wash} 50%, transparent)`,

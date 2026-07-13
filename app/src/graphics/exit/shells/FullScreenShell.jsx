@@ -10,7 +10,10 @@ export function FullScreenShell({ children, tokens }) {
   const style = useTeamCssVars(tokens);
 
   return (
-    <div className="graphic-shell graphic-shell--fs pointer-events-none fixed inset-0 z-10 overflow-hidden" style={style}>
+    <div
+      className="graphic-shell graphic-shell--fs pointer-events-none fixed top-0 right-0 bottom-0 left-0 z-10 overflow-hidden"
+      style={style}
+    >
       {children}
     </div>
   );

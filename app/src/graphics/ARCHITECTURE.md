@@ -494,6 +494,7 @@ The graphics build has its own Tailwind pipeline, separate from the consumer app
 | `100dvh`                                      | 108        | Low risk but avoid in overlay/theme CSS; use `100vh` or fixed px         |
 | Hard-coded `color-mix` in `@keyframes`        | 111        | Use `#rrggbbaa` or `rgba()` instead                                      |
 | `padding-inline` / React `paddingInline`      | 87         | Ignored in Chrome 86 → zero horizontal padding (crowded LT / FS rows)    |
+| Tailwind `inset-0` / CSS `inset:`             | 87         | Ignored → absolute/fixed layers do not pin to edges                      |
 
 **Do not** add `@supports (color: color-mix(...))` blocks in theme SCSS expecting a fallback — theme bundles are loaded as-is in vMix. Always ship the legacy-safe value directly.
 

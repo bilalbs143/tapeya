@@ -33,7 +33,7 @@ export function PlayerAvatarImage({ src, alt = 'Player avatar', fit = 'contain-b
 
   return (
     <div className={shellClass}>
-      {showLining ? <div aria-hidden className={cn('absolute inset-0', liningClass)} /> : null}
+      {showLining ? <div aria-hidden className={cn('absolute top-0 right-0 bottom-0 left-0', liningClass)} /> : null}
       <img
         src={resolved}
         alt={alt}

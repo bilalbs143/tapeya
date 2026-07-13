@@ -393,7 +393,7 @@ export const ltInfoBar = {
   height: ltBar.height,
   /** Default footprint when content is short — bar stays at min, centered in max zone. */
   minWidth: 1360,
-  /** Safe-area ceiling at 1920 (must match overlay inset: 1920 − inset×2). Content above this gets ellipsis. */
+  /** Safe-area ceiling at 1920 (must match overlay: 1920 − side×2). Content above this gets ellipsis. */
   maxWidth: 1500,
   align: 'center',
 };

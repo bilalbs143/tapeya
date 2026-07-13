@@ -60,7 +60,7 @@ function ManhattanBar({ value, yMax, plotH, color, delay, badge = null }) {
 
 function ManhattanBars({ buckets, yMax, plotH, topColor, bottomColor, topWicketBadges = null }) {
   return (
-    <div className="absolute inset-0 flex">
+    <div className="absolute top-0 right-0 bottom-0 left-0 flex">
       {buckets.map((bucket, index) => (
         <div key={bucket.label} className="relative flex flex-1 items-end justify-center" style={{ gap: BAR_GAP }}>
           <ManhattanBar

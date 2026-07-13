@@ -90,7 +90,7 @@ export function crestPulseClass(borderPulseOrder) {
 /** Shared crest / team-logo ring wrapper classes. */
 export function crestRingClassName() {
   return cn(
-    'pointer-events-none absolute -inset-[3px] blur-[0.5px]',
+    'pointer-events-none absolute -top-[3px] -right-[3px] -bottom-[3px] -left-[3px] blur-[0.5px]',
     'bg-[var(--team-ring)]',
     isCrestHaloEnabled() ? 'opacity-[calc(0.5+0.5*var(--glow))]' : 'opacity-55',
   );

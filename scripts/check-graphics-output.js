@@ -6,7 +6,8 @@
  * utilities that compile to them (color-mix, dvh/svh/lvh, backdrop-filter, mix-blend-mode,
  * bg-clip-text, aspect-ratio, text-balance, field-sizing, @starting-style, @container,
  * inset shorthand, padding-inline/block, margin-inline/block (CSS + React camelCase),
- * :has()/:is()/:where(), @property, overflow: clip, text-underline-offset, subgrid).
+ * Tailwind inset-* (not inset-x/y), oklch/oklab, dvw/svw/lvw, :has()/:is()/:where(),
+ * @property, overflow: clip, text-underline-offset, subgrid).
  * Run after: cd app && npm run build:graphics
  */
 
@@ -42,13 +43,17 @@ const FORBIDDEN_PATTERNS = [
   { name: 'field-sizing', regex: /(?<![-\w])field-sizing\s*:/i },
   // @starting-style — Chrome 117+
   { name: '@starting-style', regex: /@starting-style\b/i },
-  // inset shorthand — Chrome 87+
+  // inset shorthand — Chrome 87+ (CSS longhand; box-shadow `inset` is excluded by lookbehind)
   { name: 'inset (shorthand)', regex: /(?<![-\w])inset\s*:/i },
+  { name: 'inset-inline', regex: /(?<![-\w])inset-inline(?:-start|-end)?\s*:/i },
+  { name: 'inset-block', regex: /(?<![-\w])inset-block(?:-start|-end)?\s*:/i },
   // CSS logical properties — Chrome 87+ (CSS longhands)
   { name: 'padding-inline', regex: /(?<![-\w])padding-inline\s*:/i },
   { name: 'padding-block', regex: /(?<![-\w])padding-block\s*:/i },
   { name: 'margin-inline', regex: /(?<![-\w])margin-inline\s*:/i },
   { name: 'margin-block', regex: /(?<![-\w])margin-block\s*:/i },
+  { name: 'border-inline', regex: /(?<![-\w])border-inline(?:-start|-end)?(?:-\w+)?\s*:/i },
+  { name: 'border-block', regex: /(?<![-\w])border-block(?:-start|-end)?(?:-\w+)?\s*:/i },
   // React inline-style camelCase — same Chrome 87+ APIs; autoprefixer never rewrites these
   { name: 'paddingInline (JS)', regex: /\bpaddingInline\b/ },
   { name: 'paddingBlock (JS)', regex: /\bpaddingBlock\b/ },
@@ -56,6 +61,25 @@ const FORBIDDEN_PATTERNS = [
   { name: 'marginBlock (JS)', regex: /\bmarginBlock\b/ },
   { name: 'insetInline (JS)', regex: /\binsetInline\b/ },
   { name: 'insetBlock (JS)', regex: /\binsetBlock\b/ },
+  { name: 'borderInline (JS)', regex: /\bborderInline(?:Start|End|Width|Style|Color)?\b/ },
+  { name: 'borderBlock (JS)', regex: /\bborderBlock(?:Start|End|Width|Style|Color)?\b/ },
+  // Modern color spaces — Chrome 111+
+  { name: 'oklch()', regex: /oklch\s*\(/i },
+  { name: 'oklab()', regex: /oklab\s*\(/i },
+  { name: 'lab()', regex: /(?<![-\w])lab\s*\(/i },
+  { name: 'lch()', regex: /(?<![-\w])lch\s*\(/i },
+  // Same Values L4 cohort as dvh
+  { name: 'dvw unit', regex: /\bdvw\b/ },
+  { name: 'svw unit', regex: /\bsvw\b/ },
+  { name: 'lvw unit', regex: /\blvw\b/ },
+  // text-wrap: pretty — Chrome 117+
+  { name: 'text-wrap: pretty', regex: /text-wrap\s*:\s*pretty\b/i },
+  // container-type without @container — Chrome 105+
+  { name: 'container-type', regex: /(?<![-\w])container-type\s*:/i },
+  // accent-color — Chrome 93+
+  { name: 'accent-color', regex: /(?<![-\w])accent-color\s*:/i },
+  // content-visibility — flaky on older CEF
+  { name: 'content-visibility', regex: /(?<![-\w])content-visibility\s*:/i },
   // Container queries — Chrome 105+
   { name: '@container', regex: /@container\b/i },
   // :has() — Chrome 105+
@@ -77,6 +101,8 @@ const FORBIDDEN_PATTERNS = [
   { name: 'grid-template-*: subgrid', regex: /grid-template-(?:columns|rows)\s*:\s*subgrid\b/i },
   // Tailwind class names that compile to the above (catch in bundled JS/HTML too).
   // Exclude --tw-backdrop-* variable declarations (inert preflight defaults, not actual usage).
+  // Exclude inset-x-* / inset-y-* (physical left/right or top/bottom — Chrome 86 safe).
+  { name: 'inset-* class (shorthand)', regex: /(?<![-\w])(?:-)?(?:\w+:)*inset-(?:0|auto|px|full|\[[^\]]+\])\b/ },
   { name: 'backdrop-blur-* class', regex: /(?<!--tw-)\bbackdrop-blur(?:-\w+)?\b/ },
   { name: 'mix-blend-* class', regex: /\bmix-blend-(?:\w+(?:-\w+)*)?\b/ },
   { name: 'bg-clip-text class', regex: /\bbg-clip-text\b/ },

@@ -124,7 +124,7 @@ function WormLines({ topSeries, bottomSeries, topColor, bottomColor, xMax, yMax,
   const pathsReady = lengths.top > 0 && lengths.bottom > 0;
 
   return (
-    <svg width={plotW} height={plotH} className="absolute inset-0 overflow-visible" aria-hidden="true">
+    <svg width={plotW} height={plotH} className="absolute top-0 right-0 bottom-0 left-0 overflow-visible" aria-hidden="true">
       <path
         key={pathsReady ? `top-${lengths.top}` : 'top-pending'}
         ref={topPathRef}

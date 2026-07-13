@@ -112,7 +112,7 @@ export function PlayerNameFSGraphic({
           {sub}
         </p>
       ) : null}
-      <div className="absolute inset-0 flex items-center justify-center">
+      <div className="absolute top-0 right-0 bottom-0 left-0 flex items-center justify-center">
         <div className="flex items-center" style={{ gap: FS_PANEL_GAP }}>
           <div
             className="flex items-stretch"

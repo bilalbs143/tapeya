@@ -21,12 +21,14 @@ function FlashOverlay({ fixed, leaving, glow, children }) {
   return (
     <div
       className={cn(
-        'pointer-events-none inset-0 grid place-items-center transition-opacity duration-500 ease-out',
+        'pointer-events-none top-0 right-0 bottom-0 left-0 grid place-items-center transition-opacity duration-500 ease-out',
         fixed ? 'fixed z-50' : 'absolute z-20',
         leaving ? 'opacity-0' : 'opacity-100',
       )}
     >
-      {isFlashBackgroundEnabled() && glow ? <div className="absolute inset-0" style={{ background: glow }} /> : null}
+      {isFlashBackgroundEnabled() && glow ? (
+        <div className="absolute top-0 right-0 bottom-0 left-0" style={{ background: glow }} />
+      ) : null}
       {children}
     </div>
   );

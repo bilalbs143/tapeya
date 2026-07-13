@@ -93,7 +93,7 @@ export function TeamSide({ side, borderPulseOrder, showName = false }) {
 export function BreakFSLayout({ tournamentName, venueLine, caption, children }) {
   return (
     <FSStage>
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-[70px] text-center">
+      <div className="absolute top-0 right-0 bottom-0 left-0 flex flex-col items-center justify-center gap-[70px] text-center">
         <BreakHeaderStack tournamentName={tournamentName} venueLine={venueLine} />
         {children}
         {caption ? (

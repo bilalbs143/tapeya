@@ -142,7 +142,7 @@ export const Crest = memo(function Crest({ team, size = 86, accent, borderPulseO
           alt={team?.displayName ?? team?.fullName ?? team?.name ?? 'Team logo'}
           draggable={false}
           className={cn(
-            'absolute inset-0 box-border block size-full object-contain',
+            'absolute top-0 right-0 bottom-0 left-0 box-border block size-full object-contain',
             'bg-[radial-gradient(120%_120%_at_30%_25%,#1b2233,#0a0e17_70%)]',
           )}
           style={{ borderRadius: cornerRadius, padding: crestLogoPadding(size) }}
@@ -150,7 +150,7 @@ export const Crest = memo(function Crest({ team, size = 86, accent, borderPulseO
       ) : (
         <div
           className={cn(
-            'absolute inset-0 grid place-items-center px-[8%]',
+            'absolute top-0 right-0 bottom-0 left-0 grid place-items-center px-[8%]',
             'bg-[radial-gradient(120%_120%_at_30%_25%,#1b2233,#0a0e17_70%)]',
             DISPLAY_FONT,
             'font-extrabold tracking-[0.06em] text-white uppercase',

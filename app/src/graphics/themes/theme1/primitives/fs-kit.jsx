@@ -43,7 +43,7 @@ export const FSDiagonal = memo(function FSDiagonal() {
   const glowPulse = isFsStageAmbientEnabled();
 
   return (
-    <div className="fs-stage-fabric absolute inset-0 overflow-hidden" aria-hidden="true">
+    <div className="fs-stage-fabric absolute top-0 right-0 bottom-0 left-0 overflow-hidden" aria-hidden="true">
       <div className="fs-stage-fabric__wash" style={{ background: fsStageFabric.baseWash }} />
 
       {fsStageFabric.bands.map((band) => (
@@ -89,7 +89,7 @@ export const FSStage = memo(function FSStage({ children, designW = FS_DESIGN_W, 
   const { ref, scale, ready } = useFitStage(designW, designH, 'cover');
 
   return (
-    <div ref={ref} className={cn('absolute inset-0 overflow-hidden', className)}>
+    <div ref={ref} className={cn('absolute top-0 right-0 bottom-0 left-0 overflow-hidden', className)}>
       {ready && (
         <div
           className="absolute top-1/2 left-1/2 origin-center"
@@ -131,7 +131,7 @@ export const TeamLogoSlot = memo(function TeamLogoSlot({ src, alt = 'Team logo',
         alt={alt}
         draggable={false}
         className={cn(
-          'absolute inset-0 box-border block size-full object-contain',
+          'absolute top-0 right-0 bottom-0 left-0 box-border block size-full object-contain',
           'bg-[radial-gradient(120%_120%_at_30%_25%,#1b2233,#0a0e17_70%)]',
         )}
         style={{ borderRadius: cornerRadius, padding: crestLogoPadding(size) }}
@@ -183,7 +183,7 @@ export const VSBadge = memo(function VSBadge({ size = 120 }) {
     <div
       className={cn(
         'relative grid shrink-0 place-items-center',
-        'before:absolute before:inset-0 before:rounded-full',
+        'before:absolute before:top-0 before:right-0 before:bottom-0 before:left-0 before:rounded-full',
         'before:bg-[radial-gradient(circle_at_35%_30%,rgba(120,140,255,0.35),rgba(10,14,24,0)_70%)]',
       )}
       style={{ width: size, height: size }}
