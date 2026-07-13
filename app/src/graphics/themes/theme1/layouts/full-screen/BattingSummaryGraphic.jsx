@@ -114,7 +114,8 @@ function BattedRow({ name, dismissal, runs, balls, notOut, index }) {
       style={{
         height: BATTED_ROW_HEIGHT,
         marginBottom: BATTED_ROW_GAP,
-        paddingInline: ROW_PADDING_X,
+        paddingLeft: ROW_PADDING_X,
+        paddingRight: ROW_PADDING_X,
         animationDelay: `${getBattedRowDelay(index)}ms`,
         background: 'linear-gradient(100deg, rgba(120,140,255,0.16), rgba(18,24,40,0.7) 70%)',
         border: '1px solid rgba(120,140,255,0.28)',
@@ -147,7 +148,8 @@ function YetToBatRow({ name, outCount, index }) {
       className={cn(ROW_ANIMATE_IN, 'flex items-center border-b border-white/8')}
       style={{
         height: YET_TO_BAT_ROW_HEIGHT,
-        paddingInline: ROW_PADDING_X,
+        paddingLeft: ROW_PADDING_X,
+        paddingRight: ROW_PADDING_X,
         animationDelay: `${getYetToBatRowDelay(outCount, index)}ms`,
       }}
     >

@@ -5,8 +5,8 @@
  * Scans dist-graphics/ (.css, .js, .html) for Chrome-86-unsafe properties and Tailwind
  * utilities that compile to them (color-mix, dvh/svh/lvh, backdrop-filter, mix-blend-mode,
  * bg-clip-text, aspect-ratio, text-balance, field-sizing, @starting-style, @container,
- * inset shorthand, padding-inline/block, margin-inline/block, :has()/:is()/:where(),
- * @property, overflow: clip, text-underline-offset, subgrid).
+ * inset shorthand, padding-inline/block, margin-inline/block (CSS + React camelCase),
+ * :has()/:is()/:where(), @property, overflow: clip, text-underline-offset, subgrid).
  * Run after: cd app && npm run build:graphics
  */
 
@@ -44,11 +44,18 @@ const FORBIDDEN_PATTERNS = [
   { name: '@starting-style', regex: /@starting-style\b/i },
   // inset shorthand — Chrome 87+
   { name: 'inset (shorthand)', regex: /(?<![-\w])inset\s*:/i },
-  // CSS logical properties — Chrome 87+
+  // CSS logical properties — Chrome 87+ (CSS longhands)
   { name: 'padding-inline', regex: /(?<![-\w])padding-inline\s*:/i },
   { name: 'padding-block', regex: /(?<![-\w])padding-block\s*:/i },
   { name: 'margin-inline', regex: /(?<![-\w])margin-inline\s*:/i },
   { name: 'margin-block', regex: /(?<![-\w])margin-block\s*:/i },
+  // React inline-style camelCase — same Chrome 87+ APIs; autoprefixer never rewrites these
+  { name: 'paddingInline (JS)', regex: /\bpaddingInline\b/ },
+  { name: 'paddingBlock (JS)', regex: /\bpaddingBlock\b/ },
+  { name: 'marginInline (JS)', regex: /\bmarginInline\b/ },
+  { name: 'marginBlock (JS)', regex: /\bmarginBlock\b/ },
+  { name: 'insetInline (JS)', regex: /\binsetInline\b/ },
+  { name: 'insetBlock (JS)', regex: /\binsetBlock\b/ },
   // Container queries — Chrome 105+
   { name: '@container', regex: /@container\b/i },
   // :has() — Chrome 105+

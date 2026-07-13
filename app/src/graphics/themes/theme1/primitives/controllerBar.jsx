@@ -61,7 +61,12 @@ const DESIGN_W = ltBar.designWidth;
 const lt = ltTypography;
 const SCORE_DISPLAY_CLASS = cn(DISPLAY_FONT, 'leading-[0.92] font-extrabold');
 /** Zone C KPI columns — CRR, RRR, Need Target, team code, partnership, projected score, … */
-const KPI_PANEL_SHELL_STYLE = { paddingInline: lt.kpiColumnPaddingX, gap: lt.kpiColumnGap };
+/** Physical L/R padding — Chrome 86 / vMix ignore CSS logical padding-inline. */
+const KPI_PANEL_SHELL_STYLE = {
+  paddingLeft: lt.kpiColumnPaddingX,
+  paddingRight: lt.kpiColumnPaddingX,
+  gap: lt.kpiColumnGap,
+};
 
 /** 4-zone grid: A (fixed) | B (1fr — all remainder) | C (max-content) | D (fixed). */
 const ZONE_GRID_STYLE = { gridTemplateColumns: 'auto minmax(0, 1fr) auto auto' };
@@ -178,7 +183,8 @@ function HorizontalBar({
             <div
               className="relative flex w-full min-w-0 items-center rounded-[14px] border border-[rgba(120,140,255,0.28)] bg-[linear-gradient(180deg,rgba(40,52,84,0.55),rgba(16,22,38,0.65))] [box-shadow:inset_0_1px_0_rgba(255,255,255,0.07),0_0_calc(16px*var(--glow))_rgba(90,110,255,0.25)]"
               style={{
-                paddingInline: isCompact ? lt.columnPaddingXCompact : lt.columnPaddingX,
+                paddingLeft: isCompact ? lt.columnPaddingXCompact : lt.columnPaddingX,
+                paddingRight: isCompact ? lt.columnPaddingXCompact : lt.columnPaddingX,
                 paddingTop: ltBar.controllerBarPaddingY - 4,
                 paddingBottom: ltBar.controllerBarPaddingY - 4,
               }}
@@ -399,7 +405,8 @@ function Last30StatColumn({ label, value }) {
       style={{
         gap: lt.columnGap,
         width: lt.last30ColumnWidth,
-        paddingInline: lt.last30PaddingX,
+        paddingLeft: lt.last30PaddingX,
+        paddingRight: lt.last30PaddingX,
       }}
     >
       <span
@@ -481,7 +488,10 @@ function PanelHeadingLines({ label, variant = 'kpi' }) {
   const line1Size = variant === 'last30' ? lt.sideHeadingLine1 : lt.kpiSideHeadingLine1;
   const line2Size = variant === 'last30' ? lt.sideHeadingLine2 : lt.kpiSideHeadingLine2;
   return (
-    <div className="flex shrink-0 flex-col items-center justify-center gap-1 leading-[1.1]" style={{ paddingInline: paddingX }}>
+    <div
+      className="flex shrink-0 flex-col items-center justify-center gap-1 leading-[1.1]"
+      style={{ paddingLeft: paddingX, paddingRight: paddingX }}
+    >
       {lines.map((line, index) => {
         const isLast = index === lines.length - 1;
         const isEmphasized = lines.length === 1 || (isLast && lines.length > 1);
