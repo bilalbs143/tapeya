@@ -60,8 +60,6 @@ import {
 } from '@/ui/AlertDialog';
 import { Button } from '@/ui/Button';
 
-import { useVanityViewerCount } from './useVanityViewerCount';
-
 export default function DuringBroadcast({ streamId }) {
   const navigate = useNavigate();
   const toast = useToast();
@@ -124,7 +122,8 @@ export default function DuringBroadcast({ streamId }) {
   useBroadcastCameraUnderlay();
   useLiveStreamChannel(streamId);
   const realViewerCount = useStreamPresenceChannel(streamId, presenceEnabled);
-  const viewerCount = useVanityViewerCount(realViewerCount);
+  // Go-live camera is always self-serve — show real presence, never vanity.
+  const viewerCount = realViewerCount;
   const { hearts: floatingHearts, spawnBurst, removeHeart } = useFloatingHearts();
   const handleRemoteHeart = useCallback(
     (payload) => {

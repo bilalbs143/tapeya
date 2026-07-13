@@ -19,16 +19,28 @@ function randomInt(min, max) {
 }
 
 /**
- * Vanity viewer count: starts low, climbs over the session, with dips and spikes
- * around a slowly rising target. Real presence is added on top.
+ * Viewer count for the live watch chrome.
+ *
+ * - `enabled: true` (default) — vanity base that climbs over the session, plus real presence
+ *   (match-linked / admin streams).
+ * - `enabled: false` — real presence only (self-serve mobile go-live).
+ *
+ * @param {number} [realCount=0]
+ * @param {{ enabled?: boolean }} [options]
  */
-export function useVanityViewerCount(realCount = 0) {
+export function useVanityViewerCount(realCount = 0, { enabled = true } = {}) {
   const [base, setBase] = useState(() => randomInt(START_MIN, START_MAX));
   const timerRef = useRef(null);
   const startedAtRef = useRef(Date.now());
 
   useEffect(() => {
+    if (!enabled) {
+      return undefined;
+    }
+
     let cancelled = false;
+    startedAtRef.current = Date.now();
+    setBase(randomInt(START_MIN, START_MAX));
 
     function schedule() {
       timerRef.current = setTimeout(
@@ -65,7 +77,11 @@ export function useVanityViewerCount(realCount = 0) {
       cancelled = true;
       clearTimeout(timerRef.current);
     };
-  }, []);
+  }, [enabled]);
+
+  if (!enabled) {
+    return realCount;
+  }
 
   return base + realCount;
 }
