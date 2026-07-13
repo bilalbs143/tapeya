@@ -3,12 +3,18 @@ import Capacitor
 import WebKit
 
 private let playerReadyFallbackSeconds: TimeInterval = 15
+/** Retries after reveal — YouTube often ignores playVideo while the WKWebView is still hidden. */
+private let playbackKickDelays: [TimeInterval] = [0, 0.35, 1.2]
 
 /**
  * Native YouTube player for iOS Capacitor.
  *
  * Always underlay (WKWebView below transparent Capacitor) so React chrome composites on top.
  * Portrait: sized to the web placeholder. Landscape: immersive fullscreen; embed proxy handles rotate/cover.
+ *
+ * Playback contract with `/embed/youtube`:
+ * 1. Overlay loads hidden until the embed posts `ready`.
+ * 2. Reveal, then call `tapeyaStartPlayback` (repeat) — play-while-hidden never reaches PLAYING.
  */
 @objc(YoutubeStreamOverlayPlugin)
 public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMessageHandler {
@@ -25,6 +31,7 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
     private var pendingPlayerReady = false
     private var playerIsReady = false
     private var readyFallbackWorkItem: DispatchWorkItem?
+    private var playbackKickWorkItems: [DispatchWorkItem] = []
     private var immersiveLandscapeMode = false
 
     @objc func show(_ call: CAPPluginCall) {
@@ -52,6 +59,7 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
 
             if needsLoad {
                 self.cancelReadyFallback()
+                self.cancelPlaybackKicks()
                 self.playerIsReady = false
                 self.pendingPlayerReady = false
             }
@@ -80,6 +88,7 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
                 self.playerIsReady = true
                 webView.isHidden = false
                 self.syncEmbedToMode(immersiveFullscreen, targetUrl: url)
+                self.schedulePlaybackKicks()
             }
 
             self.applyCapacitorWebViewTransparency(underlay)
@@ -146,6 +155,7 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
     @objc func hide(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
             self.cancelReadyFallback()
+            self.cancelPlaybackKicks()
             self.pendingPlayerReady = false
             self.playerIsReady = false
             self.applyCapacitorWebViewTransparency(false)
@@ -162,8 +172,10 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
             case "ready":
                 self.revealWebView()
             case "playing":
+                self.cancelPlaybackKicks()
                 self.notifyListeners("playerPlaying", data: [:])
             case "error":
+                self.cancelPlaybackKicks()
                 self.notifyListeners("playerError", data: [:])
             default:
                 break
@@ -303,6 +315,7 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
 
     private func beginPendingPlayerReady(for webView: WKWebView) {
         cancelReadyFallback()
+        cancelPlaybackKicks()
         pendingPlayerReady = true
         playerIsReady = false
         webView.isHidden = true
@@ -323,6 +336,33 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
         overlayWebView?.isHidden = false
         refreshEmbedLayout()
         notifyListeners("playerReady", data: [:])
+        schedulePlaybackKicks()
+    }
+
+    /** Call embed `tapeyaStartPlayback` after the webview is visible. */
+    private func schedulePlaybackKicks() {
+        cancelPlaybackKicks()
+
+        for delay in playbackKickDelays {
+            let workItem = DispatchWorkItem { [weak self] in
+                self?.kickPlayback()
+            }
+            playbackKickWorkItems.append(workItem)
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
+        }
+    }
+
+    private func kickPlayback() {
+        guard playerIsReady, overlayWebView?.isHidden == false else { return }
+
+        overlayWebView?.evaluateJavaScript(
+            "typeof tapeyaStartPlayback==='function'&&tapeyaStartPlayback();"
+        ) { _, _ in }
+    }
+
+    private func cancelPlaybackKicks() {
+        playbackKickWorkItems.forEach { $0.cancel() }
+        playbackKickWorkItems.removeAll()
     }
 
     private func cancelReadyFallback() {

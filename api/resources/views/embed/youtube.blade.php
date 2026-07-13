@@ -207,8 +207,8 @@
           } catch (e) {}
         }
 
-        // iOS native host calls this after revealing the WKWebView. Play-while-hidden
-        // never reaches PLAYING (see [TapeyaDebug] hidden=true on ready).
+        // iOS native host calls this after the WKWebView is unhidden. YouTube will not
+        // enter PLAYING while the overlay webview is still hidden.
         window.tapeyaStartPlayback = startPlayback;
 
         function notifyHost(event) {
@@ -275,7 +275,9 @@
             events: {
               onReady: function () {
                 applyRotateLayout();
-                // Reveal the native webview first, then play (hidden WKWebView blocks PLAYING).
+                // Tell the native host first so it can unhide, then play.
+                // iOS also re-invokes tapeyaStartPlayback after reveal (authoritative).
+                // Visible embeds (Android iframe) rely on these play calls directly.
                 notifyHostReady();
                 startPlayback();
                 window.setTimeout(startPlayback, 350);
@@ -287,15 +289,6 @@
                 }
               },
               onStateChange: function (event) {
-                try {
-                  if (
-                    window.webkit &&
-                    window.webkit.messageHandlers &&
-                    window.webkit.messageHandlers.tapeyaStream
-                  ) {
-                    window.webkit.messageHandlers.tapeyaStream.postMessage('state:' + event.data);
-                  }
-                } catch (e) {}
                 if (event.data === YT.PlayerState.PLAYING) {
                   notifyHost('playing');
                 }
