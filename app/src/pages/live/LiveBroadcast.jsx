@@ -79,7 +79,10 @@ export default function LiveBroadcast() {
 
   useLiveStreamChannel(streamId);
   const realViewerCount = useStreamPresenceChannel(streamId, presenceEnabled);
-  const viewerCount = useVanityViewerCount(realViewerCount);
+  // Self-serve mobile: real presence only. Match / admin streams keep vanity + presence.
+  const viewerCount = useVanityViewerCount(realViewerCount, {
+    enabled: Boolean(broadcast) && !isSelfServe,
+  });
 
   useEffect(() => {
     setIsLandscape(false);
