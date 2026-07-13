@@ -58,7 +58,7 @@ function NeedTargetStatColumn({ topLabel, bottomLabel, value, padValue = false }
 function WicketsFooterBand({ wickets }) {
   return (
     <div
-      className="absolute bottom-0 left-1/2 z-[4] grid h-[68px] min-w-[360px] -translate-x-1/2 translate-y-1/2 place-items-center rounded-xl px-10"
+      className="absolute bottom-0 left-1/2 z-[3] grid h-[68px] min-w-[360px] -translate-x-1/2 translate-y-1/2 place-items-center rounded-xl px-10"
       style={{
         background: `linear-gradient(100deg, ${NEED_TARGET_GOLD}, ${colors.goldDark})`,
         boxShadow: colorHaloShadow(NEED_TARGET_GOLD),
