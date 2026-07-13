@@ -45,7 +45,7 @@ deploy_backoffice() {
     cd "$PROJECT_ROOT/backoffice"
 
     npm ci
-    ng build --configuration production
+    npm run build:production
 
     print_status "Backoffice built successfully"
     echo "Deploy the 'dist/backoffice' folder to your web server"
@@ -56,7 +56,7 @@ deploy_mobile() {
     cd "$PROJECT_ROOT/app"
 
     npm ci
-    npm run build
+    npm run build:production
 
     print_status "Mobile web build complete"
     echo "For native builds, use: npm run cap:ios or npm run cap:android"

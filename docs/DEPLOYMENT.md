@@ -65,10 +65,11 @@ server {
 
 ## Backoffice Deployment (Angular)
 
-1. Build for production:
+1. Build (URLs are baked via Angular environment files — do not edit them for deploy):
    ```bash
    cd backoffice
-   ng build --configuration production
+   npm run build:production   # api.tapeya.com / tapeya.com
+   # npm run build:staging    # dev-api.tapeya.com / dev.tapeya.com
    ```
 
 2. Deploy `dist/backoffice/browser` folder to web server or CDN
@@ -89,25 +90,30 @@ server {
 }
 ```
 
-## Mobile App Deployment
+## Consumer App Deployment (`tapeya.com`)
 
-### Web (PWA)
+Web SPA from `app/` (Vite). URLs are baked by npm scripts — do not edit source for deploy:
+
 ```bash
-cd mobile
-ionic build --prod
+cd app
+npm ci
+npm run build:production   # api.tapeya.com + tapeya.com
+# npm run build:staging    # dev-api.tapeya.com + dev.tapeya.com
 ```
 
-### iOS
+Deploy `app/dist/` to the web root for `tapeya.com`.
+
+### Native (Capacitor)
+
 ```bash
-ionic cap build ios
-# Then use Xcode to archive and submit to App Store
+cd app
+npm run cap:ios        # production API/APP URLs
+# npm run cap:ios:dev  # staging
+npm run cap:android
+# npm run cap:android:dev
 ```
 
-### Android
-```bash
-ionic cap build android
-# Then use Android Studio to build APK/AAB
-```
+Then archive in Xcode / Android Studio as usual.
 
 ## Graphics Site Deployment (`graphics.tapeya.com`)
 

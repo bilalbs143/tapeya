@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:production": "VITE_API_URL=https://api.tapeya.com/api/v1 VITE_APP_URL=https://tapeya.com vite build",
+    "build:staging": "VITE_API_URL=https://dev-api.tapeya.com/api/v1 VITE_APP_URL=https://dev.tapeya.com vite build",
     "cap:sync": "cap sync",
     "cap:ios": "VITE_API_URL=https://api.tapeya.com/api/v1 VITE_APP_URL=https://tapeya.com VITE_NATIVE_PLATFORM=ios vite build && cap sync ios && cap open ios",
     "cap:ios:dev": "VITE_API_URL=https://dev-api.tapeya.com/api/v1 VITE_APP_URL=https://dev.tapeya.com VITE_NATIVE_PLATFORM=ios vite build && cap sync ios && cap open ios",
