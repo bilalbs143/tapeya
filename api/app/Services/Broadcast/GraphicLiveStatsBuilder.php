@@ -421,7 +421,7 @@ final class GraphicLiveStatsBuilder
             'number' => $fowOrdinals[$i] ?? "{$fow['wicket_number']}th",
             'score' => (string) $fow['score'],
             'wicket_number' => (int) $fow['wicket_number'],
-            'batsman_display_name' => $this->displaySurname($fow['batsman_name'] ?? ''),
+            'batsman_display_name' => trim((string) ($fow['batsman_name'] ?? '')),
             'overs_at_fall' => $fow['overs'] ?? '',
             'display' => "{$fow['wicket_number']}-{$fow['score']}",
         ], $stats['fall_of_wickets'], array_keys($stats['fall_of_wickets']));
@@ -465,7 +465,7 @@ final class GraphicLiveStatsBuilder
 
             return [
                 'player_id' => $id,
-                'display_name' => $this->displaySurname($row['name']),
+                'display_name' => trim((string) ($row['name'] ?? '')),
                 'overs_display' => $row['overs'],
                 'runs_conceded' => (int) $row['runs'],
                 'wickets' => (int) $row['wickets'],
@@ -744,8 +744,8 @@ final class GraphicLiveStatsBuilder
                 'wicket_number' => $p['wicket_number'],
                 'batter1_player_id' => $id1,
                 'batter2_player_id' => $id2,
-                'batter1_display_name' => $this->displaySurname($name1),
-                'batter2_display_name' => $this->displaySurname($name2),
+                'batter1_display_name' => trim($name1),
+                'batter2_display_name' => trim($name2),
                 'batter1_avatar_url' => $playerPhotos[$id1] ?? null,
                 'batter2_avatar_url' => $playerPhotos[$id2] ?? null,
                 'batter1_runs' => (int) $p['player_1_runs'],
@@ -776,7 +776,7 @@ final class GraphicLiveStatsBuilder
 
             return [
                 'player_id' => $id,
-                'display_name' => $this->displaySurname($row['name'] ?? ''),
+                'display_name' => trim((string) ($row['name'] ?? '')),
                 'avatar_url' => $playerPhotos[$id] ?? null,
                 'runs' => $status === 'yet_to_bat' ? null : (int) ($row['runs'] ?? 0),
                 'balls' => $status === 'yet_to_bat' ? null : (int) ($row['balls'] ?? 0),
@@ -787,19 +787,10 @@ final class GraphicLiveStatsBuilder
         }, $batting);
     }
 
-    private function displaySurname(string $fullName): string
-    {
-        $fullName = trim($fullName);
-        if ($fullName === '') {
-            return '';
-        }
-        $parts = preg_split('/\s+/', $fullName) ?: [];
-
-        return count($parts) > 1 ? (string) end($parts) : $fullName;
-    }
-
     /**
      * Per-innings summaries for match summary graphics (all innings in the fixture).
+     *
+     * display_name carries the full player name; theme adapters apply LT/FS broadcast formatting.
      *
      * @param  Collection<int, Innings>  $innings
      * @return list<array<string, mixed>>
@@ -834,7 +825,7 @@ final class GraphicLiveStatsBuilder
                 ->sortByDesc(fn (array $row) => (int) ($row['runs'] ?? 0))
                 ->take(3)
                 ->map(fn (array $row) => [
-                    'display_name' => $this->displaySurname((string) ($row['name'] ?? '')),
+                    'display_name' => trim((string) ($row['name'] ?? '')),
                     'runs' => (int) ($row['runs'] ?? 0),
                     'balls' => (int) ($row['balls'] ?? 0),
                     'is_not_out' => (bool) ($row['is_on_crease'] ?? false),
@@ -846,7 +837,7 @@ final class GraphicLiveStatsBuilder
                 ->sortByDesc(fn (array $row) => (int) ($row['wickets'] ?? 0))
                 ->take(3)
                 ->map(fn (array $row) => [
-                    'display_name' => $this->displaySurname((string) ($row['name'] ?? '')),
+                    'display_name' => trim((string) ($row['name'] ?? '')),
                     'wickets' => (int) ($row['wickets'] ?? 0),
                     'runs_conceded' => (int) ($row['runs'] ?? 0),
                     'overs_display' => (string) ($row['overs'] ?? ''),

@@ -1,11 +1,14 @@
 /**
  * FOW processors → FallOfWicketsLTBar data shape.
  */
-import { resolveBroadcastNameParts, resolveBroadcastPlayerName } from '@tapeya/graphics-core/domain/playerNameResolver';
+import { BROADCAST_NAME_STYLE } from '@tapeya/graphics-core/domain/playerNameResolver';
 
 import {
   coalescePlayerImageUrlGated,
   parseInningsScore,
+  resolveFsNameParts,
+  resolveLtNameParts,
+  resolveLtPlayerName,
   resolvePlayerImageUrlGated,
   resolveTeamCode,
   toTeamRecord,
@@ -47,7 +50,7 @@ export function toFallOfWicketsData(props, tokens) {
       wickets: wickets.map((w, index) => ({
         number: w.number ?? w.wicket_number ?? index + 1,
         score: w.score ?? w.runs ?? '—',
-        batter: resolveBroadcastPlayerName(wicketBatterName(w)),
+        batter: resolveLtPlayerName(wicketBatterName(w)),
       })),
     },
   };
@@ -56,8 +59,9 @@ export function toFallOfWicketsData(props, tokens) {
 /**
  * @param {Record<string, unknown>} props
  * @param {import('../../../types.js').ThemeTokens|undefined} tokens
+ * @param {import('@tapeya/graphics-core/domain/playerNameResolver').BroadcastNameStyle} nameStyle
  */
-function previewLastWicketBatter(props, tokens) {
+function previewLastWicketBatter(props, tokens, nameStyle) {
   if (!props.firstName && !props.name) return null;
 
   let teams = toTeams(props, tokens);
@@ -77,7 +81,8 @@ function previewLastWicketBatter(props, tokens) {
       tokens,
       code === 'home' || code === 'away' ? code : null,
     );
-  const { firstName, lastName, displayName } = resolveBroadcastNameParts({
+  const resolveParts = nameStyle === BROADCAST_NAME_STYLE.compact ? resolveLtNameParts : resolveFsNameParts;
+  const { firstName, lastName, displayName } = resolveParts({
     name: props.name,
     firstName: props.firstName,
     lastName: props.lastName,
@@ -136,10 +141,12 @@ function findLastDismissedBatter(battingOrder) {
 /**
  * @param {Record<string, unknown>} last
  * @param {Record<string, unknown>|null} dismissedRow
+ * @param {import('@tapeya/graphics-core/domain/playerNameResolver').BroadcastNameStyle} nameStyle
  */
-function buildLastWicketBatter(last, dismissedRow) {
+function buildLastWicketBatter(last, dismissedRow, nameStyle) {
   const rawName = wicketBatterName(last) || String(dismissedRow?.display_name ?? dismissedRow?.name ?? '').trim();
-  const { firstName, lastName, displayName } = resolveBroadcastNameParts(rawName);
+  const resolveParts = nameStyle === BROADCAST_NAME_STYLE.compact ? resolveLtNameParts : resolveFsNameParts;
+  const { firstName, lastName, displayName } = resolveParts(rawName);
 
   return {
     name: displayName,
@@ -162,10 +169,11 @@ function buildLastWicketBatter(last, dismissedRow) {
 /**
  * @param {Record<string, unknown>} props
  * @param {import('../../../types.js').ThemeTokens|undefined} tokens
+ * @param {{ nameStyle?: import('@tapeya/graphics-core/domain/playerNameResolver').BroadcastNameStyle }} [options]
  */
-export function toLastWicketFsBatter(props, tokens) {
+export function toLastWicketFsBatter(props, tokens, { nameStyle = BROADCAST_NAME_STYLE.standard } = {}) {
   if ((props.firstName || props.name) && !Array.isArray(props.wickets)) {
-    return previewLastWicketBatter(props, tokens);
+    return previewLastWicketBatter(props, tokens, nameStyle);
   }
 
   const teams = toTeams(props, tokens);
@@ -176,8 +184,8 @@ export function toLastWicketFsBatter(props, tokens) {
   if (!last) return null;
 
   const dismissedRow = findLastDismissedBatter(props.battingOrder);
-  const batter = buildLastWicketBatter(last, dismissedRow);
-  if (!batter.name && !batter.firstName) return null;
+  const batter = buildLastWicketBatter(last, dismissedRow, nameStyle);
+  if (!batter.name && !batter.firstName && !batter.lastName) return null;
 
   const battingTeam = props.battingTeam ?? {};
   const teamCode = teams.batting ? 'batting' : (resolveTeamCode(battingTeam, teams) ?? 'home');

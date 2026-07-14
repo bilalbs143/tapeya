@@ -3,11 +3,39 @@
  */
 
 import { formatBroadcastBowlingFigures, parseBowlingFigures } from '@tapeya/graphics-core/domain/player';
-import { resolveBroadcastPlayerName } from '@tapeya/graphics-core/domain/playerNameResolver';
+import {
+  BROADCAST_NAME_STYLE,
+  resolveBroadcastNameParts,
+  resolveBroadcastPlayerName,
+} from '@tapeya/graphics-core/domain/playerNameResolver';
 
 export { accentGlowShadow, accentMix, normalizeAccentColor } from '../primitives';
 export { formatBroadcastBowlingFigures, parseBowlingFigures } from '@tapeya/graphics-core/domain/player';
-export { resolveBroadcastNameParts, resolveBroadcastPlayerName } from '@tapeya/graphics-core/domain/playerNameResolver';
+export {
+  BROADCAST_NAME_STYLE,
+  resolveBroadcastNameParts,
+  resolveBroadcastPlayerName,
+} from '@tapeya/graphics-core/domain/playerNameResolver';
+
+/** Lower-third broadcast name (compact: "M Bilal"). */
+export function resolveLtPlayerName(input) {
+  return resolveBroadcastPlayerName(input, BROADCAST_NAME_STYLE.compact);
+}
+
+/** Full-screen broadcast name (standard: "Muhammad Bilal"). */
+export function resolveFsPlayerName(input) {
+  return resolveBroadcastPlayerName(input, BROADCAST_NAME_STYLE.standard);
+}
+
+/** @param {Parameters<typeof resolveBroadcastNameParts>[0]} input */
+export function resolveLtNameParts(input) {
+  return resolveBroadcastNameParts(input, BROADCAST_NAME_STYLE.compact);
+}
+
+/** @param {Parameters<typeof resolveBroadcastNameParts>[0]} input */
+export function resolveFsNameParts(input) {
+  return resolveBroadcastNameParts(input, BROADCAST_NAME_STYLE.standard);
+}
 
 /** @param {Record<string, unknown>} props */
 export function tournamentSub(props) {
@@ -130,7 +158,7 @@ export function toFrameBowler(bowler, tokens) {
   const figuresDisplay = formatBroadcastBowlingFigures(figures, { w, r });
 
   return {
-    name: resolveBroadcastPlayerName(b),
+    name: resolveLtPlayerName(b),
     figText: `${figuresDisplay} ${overs}`.trim(),
     o: overs,
     m: 0,
@@ -147,7 +175,7 @@ export function toFrameBowler(bowler, tokens) {
 export function toFrameBatter(batter, tokens) {
   const b = batter ?? {};
   return {
-    name: resolveBroadcastPlayerName(b),
+    name: resolveLtPlayerName(b),
     runs: b.runs ?? 0,
     balls: b.balls ?? 0,
     onStrike: Boolean(b.onStrike),

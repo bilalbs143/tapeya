@@ -1,20 +1,27 @@
 /**
  * Full-screen processors → Tapeya internal graphic data shapes.
  */
-import { resolveBroadcastPlayerName } from '@tapeya/graphics-core/domain/playerNameResolver';
-
 import { assets, colors } from '../config';
 import { isNotOutBatter, resolvePlayerDisplayName } from '../primitives';
-import { normalizeAccentColor, resolvePlayerImageUrlGated, resolveTeamCode, toTeamRecord, tournamentSub } from './_shared';
+import {
+  normalizeAccentColor,
+  resolveFsNameParts,
+  resolveFsPlayerName,
+  resolvePlayerImageUrlGated,
+  resolveTeamCode,
+  toTeamRecord,
+  tournamentSub,
+} from './_shared';
 import { toTeams } from './teams.adapter';
 
 /**
- * Pick the raw name field, then apply broadcast formatting (two words, long-word initials).
+ * Apply FS (standard) broadcast formatting from the full row so first/last
+ * can recover a fuller name when display_name is surname-only.
  *
  * @param {Record<string, unknown>} row
  */
 function toBroadcastDisplayName(row) {
-  return resolveBroadcastPlayerName(resolvePlayerDisplayName(row));
+  return resolveFsPlayerName(row);
 }
 
 /**
@@ -361,8 +368,11 @@ function resolvePartnershipBatters(props) {
  * @param {import('../../../types.js').ThemeTokens|null|undefined} [tokens]
  */
 function mapPartnershipBatterRow(batter, options = {}, tokens) {
+  const { firstName, lastName, displayName } = resolveFsNameParts(batter);
   return {
-    fullName: toBroadcastDisplayName(batter),
+    fullName: displayName,
+    firstName,
+    lastName,
     runs: batter.runs ?? 0,
     balls: batter.balls ?? 0,
     align: options.align ?? batter.align ?? 'start',
@@ -669,11 +679,11 @@ export function toMatchSummaryBundle(props, tokens) {
  */
 function toXiPlayerRow(player) {
   if (typeof player === 'string') {
-    return { name: resolveBroadcastPlayerName(player), captain: false, wicketKeeper: false };
+    return { name: resolveFsPlayerName(player), captain: false, wicketKeeper: false };
   }
   const p = player ?? {};
   return {
-    name: resolveBroadcastPlayerName(p.name ?? p.display_name ?? ''),
+    name: resolveFsPlayerName(p.name ?? p.display_name ?? ''),
     captain: Boolean(p.is_captain ?? p.captain),
     wicketKeeper: Boolean(p.is_wicket_keeper ?? p.wicketKeeper),
   };

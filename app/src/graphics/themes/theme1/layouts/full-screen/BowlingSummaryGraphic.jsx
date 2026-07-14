@@ -20,12 +20,14 @@ const PANEL_WIDTH = 1020;
 const HERO_CREST_WIDTH = 700;
 const HERO_CREST_SIZE = 460;
 const PANEL_HEAD_CREST_SIZE = 92;
-const STAT_COL_WIDTH = 150;
+/** Per-stat column — kept narrow so longer broadcast names get room. */
+const STAT_COL_WIDTH = 122;
+const STAT_CELL_SIZE = 34;
 const BOWLER_ROW_BASE_DELAY_MS = 120;
 const BOWLER_ROW_STAGGER_MS = 80;
 const COLUMN_LABELS = ['OVERS', 'DOTS', 'RUNS', 'WICKETS', 'ECO'];
 
-const columnLabelClass = cn('text-center font-semibold tracking-[0.1em] text-[var(--text-secondary)] uppercase', UI_FONT);
+const columnLabelClass = cn('text-center font-semibold tracking-[0.04em] text-[var(--text-secondary)] uppercase', UI_FONT);
 
 const bowlerNameClass = cn(
   'min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-extrabold text-white uppercase',
@@ -69,7 +71,7 @@ function BowlingColumnHeader() {
     <div className="flex items-center px-[26px] pb-3.5">
       <span className="flex-1" />
       {COLUMN_LABELS.map((label) => (
-        <span key={label} className={columnLabelClass} style={{ width: STAT_COL_WIDTH, ...fsFont(fsSummaryPanel.columnLabel) }}>
+        <span key={label} className={columnLabelClass} style={{ width: STAT_COL_WIDTH, ...fsFont(fsSummaryPanel.columnLabelSm) }}>
           {label}
         </span>
       ))}
@@ -79,7 +81,7 @@ function BowlingColumnHeader() {
 
 function StatCell({ value }) {
   return (
-    <span className={statCellClass} style={{ width: STAT_COL_WIDTH, ...fsFont(fsSummaryPanel.statCell) }}>
+    <span className={statCellClass} style={{ width: STAT_COL_WIDTH, ...fsFont(STAT_CELL_SIZE) }}>
       {value}
     </span>
   );

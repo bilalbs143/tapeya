@@ -1,7 +1,7 @@
 # Graphics Module — Architecture (single source of truth)
 
 **Scope:** `app/src/graphics` and its integration with the Tapeya broadcast stack  
-**Version:** 3.4 · **Last updated:** July 2026  
+**Version:** 3.5 · **Last updated:** July 2026  
 **Status:** Production-ready for `theme1`. P0–P3 hardening complete. Theme 2 blocked only on layout-strategy decision (§11).
 
 **Related (outside this module):** [`shared/graphics-command-manifest.json`](../../../shared/graphics-command-manifest.json), [`shared/graphics-themes.json`](../../../shared/graphics-themes.json), [`docs/BALL_DELIVERY_ARCHITECTURE.md`](../../../docs/BALL_DELIVERY_ARCHITECTURE.md). (`tapeya-theme-controller/` — a planned standalone design harness — does not exist in this repo yet; §14 note updated accordingly.)
@@ -49,10 +49,10 @@ entry (React wiring) → core (normalize + process) → exit (lazy render) → t
 | Theme JSX files                 | 93 (`LT_EMPTY`, `ADD_CAPTION` have no JSX by design)                        |
 | Processor map entries           | ~94 overlay keys (manifest-driven)                                          |
 | Adapter modules                 | 17 domain + `_shared` + `adapterContracts.js`                               |
-| Layout components               | 38 (`bars/`, `full-screen/`, `charts/`, `shared/`)                          |
-| Files under `themes/theme1/`    | ~179                                                                        |
-| Total under `app/src/graphics/` | ~228                                                                        |
-| Tests                           | **232** graphics-only · **255** full app (`npm test -- --run src/graphics`) |
+| Layout components               | ~45 (`bars/`, `full-screen/`, `charts/`, `shared/`)                         |
+| Files under `themes/theme1/`    | ~179                                                                       |
+| Total under `app/src/graphics/` | ~279                                                                       |
+| Tests                           | **268** graphics (`npm test -- --run src/graphics`)                        |
 
 ### Health scorecard (post P0–P3)
 
@@ -204,12 +204,13 @@ shared/graphics-core/               Theme-agnostic engine (@tapeya/graphics-core
 
 Processors know **cricket domain**, not visual presentation. English copy lives in theme adapters (`presentationLabels.js`). Imported as `@tapeya/graphics-core/*` — **graphics build only** (consumer Vite forbids it).
 
-| Artifact               | Role                                                     |
-| ---------------------- | -------------------------------------------------------- |
-| `normalizeSession/`    | snake_case API → camelCase `GraphicSessionSnapshot`      |
-| `processorRegistry.js` | Shared `processorId` implementations                     |
-| `processorMap.js`      | Builds map from manifest + registry; animation/FST loops |
-| `processors/_shared/`  | `scoreboardBase`, `matchContext`, `resolvePlayer`, etc.  |
+| Artifact                    | Role                                                                                                                                                                           |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `normalizeSession/`         | snake_case API → camelCase `GraphicSessionSnapshot`                                                                                                                            |
+| `processorRegistry.js`      | Shared `processorId` implementations                                                                                                                                           |
+| `processorMap.js`           | Builds map from manifest + registry; animation/FST loops                                                                                                                       |
+| `processors/_shared/`       | `scoreboardBase`, `matchContext`, `resolvePlayer`, etc.                                                                                                                        |
+| `domain/playerNameResolver` | Broadcast name styles: **compact** (e.g. `M Bilal`) vs **standard** (e.g. `Muhammad Bilal`). Theme1 picks by surface via `resolveLtPlayerName` / `resolveFsPlayerName` (and matching `*NameParts`) in `_shared`. **Default:** compact on LT / scoreboard bars; standard on FS (squads, summaries, NAME_FS, MOM, charts, …). **Exception:** `LAST_WICKET` LT uses standard/full names (same as `LAST_WICKET_FS`). API live-stats `display_name` fields send the **full** player name — themes format; do not reintroduce server-side surname stripping. |
 
 **Adding a processor:** PHP enum → manifest export → `PROCESSOR_REGISTRY` entry → (map is automatic) → theme JSX.
 
@@ -288,7 +289,7 @@ scripts/check-graphics-drift.js             (CI parity)
 ### Commands
 
 ```bash
-cd app && npm test -- --run src/graphics    # 232 graphics tests
+cd app && npm test -- --run src/graphics    # 268 graphics tests
 cd app && npm run typecheck:graphics
 node scripts/check-graphics-drift.js
 cd app && npm run test:e2e:graphics         # Playwright fixture shell (3 commands)
@@ -578,9 +579,9 @@ Smoke in **vMix 24**: signed graphics URL, transparent background, highest brows
 | `exit/`                     | 7        |
 | `themes/theme1/adapters/`   | 18       |
 | `themes/theme1/commands/`   | 93       |
-| `themes/theme1/layouts/`    | 38       |
+| `themes/theme1/layouts/`    | ~45      |
 | `themes/theme1/primitives/` | 19       |
-| **Total**                   | **~228** |
+| **Total**                   | **~279** |
 
 ---
 
@@ -595,3 +596,4 @@ Smoke in **vMix 24**: signed graphics URL, transparent background, highest brows
 | **3.2** | July 2026 | Link to [`docs/GRAPHICS_OVERLAY_ISOLATION_PLAN.md`](../../../docs/GRAPHICS_OVERLAY_ISOLATION_PLAN.md) in §17; session-scoped signed URL                                                                                                                                                                                                                                                                                                                                                                                     |
 | **3.3** | July 2026 | Signed graphics URL uses `match_graphic_sessions.id` (see isolation plan §17)                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | **3.4** | July 2026 | Production-readiness audit fixes: corrected stale CI job table (§8) and cross-repo links (§14); documented the graphics Tailwind v3 toolchain (§17); TypeScript coverage now spans all of `core/`, `entry/`, `exit/` (§2, §7, §13); deploy workflow gated on `graphics-checks` CI status; added `MatchFixtureBar`/`LeaderboardGraphic` tests and fixed a null-`featured` crash found by the latter (§13). Command-family factories were tried and reverted per team preference — each command stays a standalone file (§11) |
+| **3.5** | July 2026 | Dual broadcast name styles in `domain/playerNameResolver` (§5): compact LT vs standard FS via theme1 `_shared` helpers; `LAST_WICKET` LT uses full/standard names; API live-stats keep full `display_name` (themes format). Refreshed test/file counts in §2 / §8 / appendix. |

@@ -1,10 +1,9 @@
 /**
  * Player name lower-third bar — shared by batsman and bowler NAME_LT controllers.
  */
-import { resolveBroadcastNameParts } from '@tapeya/graphics-core/domain/playerNameResolver';
-
 import { cn } from '@/lib/utils';
 
+import { resolveLtNameParts } from '../../adapters/_shared';
 import { geometry, infoBarPanelClass, infoBarPanelStyle, ltBar, ltNameBar } from '../../config';
 import {
   accentPanelHeadGradient,
@@ -37,7 +36,7 @@ const nameStyle = { fontSize: ltNameBar.lastNameSize };
 const roleStyle = { fontSize: ltNameBar.roleSize };
 
 function resolvePlayer(player, teams) {
-  if (!player?.name && !player?.firstName) return null;
+  if (!player?.name && !player?.firstName && !player?.lastName && !player?.displayName) return null;
 
   const team = player.teamCode ? teams[player.teamCode] : null;
   return {
@@ -48,7 +47,13 @@ function resolvePlayer(player, teams) {
 }
 
 function resolvePlayerContent(player) {
-  const { displayName } = resolveBroadcastNameParts(player);
+  if (player.name || player.displayName) {
+    return {
+      displayName: player.name ?? player.displayName,
+      role: player.role ?? '',
+    };
+  }
+  const { displayName } = resolveLtNameParts(player);
   return {
     displayName,
     role: player.role ?? '',

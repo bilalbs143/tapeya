@@ -1,10 +1,9 @@
 /**
  * Ported from theme-controller — render-only graphic.
  */
-import { resolveBroadcastNameParts } from '@tapeya/graphics-core/domain/playerNameResolver';
-
 import { cn } from '@/lib/utils';
 
+import { resolveFsNameParts } from '../../adapters/_shared';
 import { colors, fsPartnership, fsSummaryPanel } from '../../config';
 import { BatterScoreInline, DISPLAY_FONT, FSStage, GlowPanel, NotOutStar, PlayerAvatarImage, UI_FONT } from '../../primitives';
 import { textGlowClass } from '../../visualEffects';
@@ -132,14 +131,19 @@ function PartnershipHeroPanel({ partnership, batters, accent }) {
 function BatterCell({ batter, align = 'start' }) {
   const isEnd = align === 'end';
   const notOut = Boolean(batter.notOut);
-  const { firstName, lastName } = resolveBroadcastNameParts(batter.fullName);
+  const { firstName, lastName } =
+    batter.firstName || batter.lastName
+      ? { firstName: batter.firstName ?? '', lastName: batter.lastName ?? '' }
+      : resolveFsNameParts(batter.fullName ?? batter);
 
   return (
     <div className={cn('flex flex-1 items-center justify-between gap-6 px-10 py-5', isEnd ? 'flex-row-reverse' : 'flex-row')}>
       <div className={cn('flex min-w-0 flex-col', isEnd ? 'items-end' : 'items-start')}>
-        <span className={batterFirstNameClass} style={fsFont(fsPartnership.batterFirstName)}>
-          {firstName}
-        </span>
+        {firstName ? (
+          <span className={batterFirstNameClass} style={fsFont(fsPartnership.batterFirstName)}>
+            {firstName}
+          </span>
+        ) : null}
         <span className={cn(batterLastNameClass, 'flex items-start')} style={fsFont(fsPartnership.batterLastName)}>
           <span>{lastName}</span>
           <NotOutStar notOut={notOut} />

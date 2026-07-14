@@ -1,10 +1,9 @@
 /**
  * Last wicket full-screen — dismissed batter match scorecard.
  */
-import { resolveBroadcastNameParts } from '@tapeya/graphics-core/domain/playerNameResolver';
-
 import { cn } from '@/lib/utils';
 
+import { resolveFsNameParts } from '../../adapters/_shared';
 import { fsPlayerCard, fsSummaryPanel } from '../../config';
 import { fmt, GlowPanel, PlayerAvatarImage, TeamLogoOrCrest } from '../../primitives';
 import { FsStatColumn } from '../shared/FsStatColumn';
@@ -32,7 +31,7 @@ const STAT_FIELDS = [
 ];
 
 function resolveBatter(batter, teams) {
-  if (!batter?.name && !batter?.firstName) return null;
+  if (!batter?.name && !batter?.firstName && !batter?.lastName) return null;
   const team = batter.teamCode ? teams[batter.teamCode] : null;
   return {
     batter,
@@ -42,7 +41,10 @@ function resolveBatter(batter, teams) {
 }
 
 function resolveContent(batter) {
-  const { firstName, lastName } = resolveBroadcastNameParts(batter);
+  if (batter.firstName || batter.lastName) {
+    return { firstName: batter.firstName ?? '', lastName: batter.lastName ?? '' };
+  }
+  const { firstName, lastName } = resolveFsNameParts(batter);
   return { firstName, lastName };
 }
 
@@ -96,12 +98,16 @@ export function LastWicketFSGraphic({ batter, teams, sub }) {
             <TeamLogoOrCrest logoUrl={logoUrl} team={team} accent={accent} size={CREST_SIZE} borderPulseOrder={1} />
           </div>
           <div className="mt-8">
-            <p className={FS_PLAYER_FIRST} style={fsFont(fsPlayerCard.firstName)}>
-              {firstName}
-            </p>
-            <p className={FS_PLAYER_LAST} style={fsFont(fsPlayerCard.lastName)}>
-              {lastName}
-            </p>
+            {firstName ? (
+              <p className={FS_PLAYER_FIRST} style={fsFont(fsPlayerCard.firstName)}>
+                {firstName}
+              </p>
+            ) : null}
+            {lastName ? (
+              <p className={FS_PLAYER_LAST} style={fsFont(fsPlayerCard.lastName)}>
+                {lastName}
+              </p>
+            ) : null}
             {b.dismissal ? (
               <p className={cn(FS_DISMISSAL, 'mt-3')} style={fsFont(fsPlayerCard.dismissalHero)}>
                 {b.dismissal}

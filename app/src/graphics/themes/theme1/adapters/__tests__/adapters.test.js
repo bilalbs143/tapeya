@@ -1,3 +1,4 @@
+import { BROADCAST_NAME_STYLE } from '@tapeya/graphics-core/domain/playerNameResolver';
 import { createTestSnapshot, PROCESSOR_MAP } from '@tapeya/graphics-core/processors/__tests__/fixtures.js';
 import { describe, expect, it } from 'vitest';
 
@@ -94,7 +95,7 @@ describe('theme1 scoreBar adapter', () => {
     expect(bundle).not.toBeNull();
     expect(bundle.frame.total).toBe(120);
     expect(bundle.frame.wkts).toBe(3);
-    expect(bundle.frame.striker.name).toBe('Batter One');
+    expect(bundle.frame.striker.name).toBe('B One');
     expect(bundle.frame.bowler.figText).toBe('2-28 4.0');
     expect(bundle.match.battingCode).toBe('batting');
     expect(toTeams(props, tokens)?.batting?.code).toBeTruthy();
@@ -117,7 +118,7 @@ describe('theme1 scoreBar adapter', () => {
     expect(bundle?.frame.partnership).toEqual({ runs: 32, balls: 24 });
   });
 
-  it('truncates three-part batter names to two broadcast words on LT_DEFAULT', () => {
+  it('formats names as first initial + second word and drops the third on LT_DEFAULT', () => {
     const snapshot = createTestSnapshot({
       active_command: { command_key: 'LT_DEFAULT' },
       context: {
@@ -134,9 +135,9 @@ describe('theme1 scoreBar adapter', () => {
     const props = PROCESSOR_MAP.LT_DEFAULT(snapshot);
     const bundle = toScoreBarBundle(props, undefined);
 
-    expect(bundle?.frame.striker.name).toBe('Waqar Saleem');
-    expect(bundle?.frame.nonStriker.name).toBe('Other Player');
-    expect(bundle?.frame.bowler.name).toBe('Muhammad Ali');
+    expect(bundle?.frame.striker.name).toBe('W Saleem');
+    expect(bundle?.frame.nonStriker.name).toBe('O Player');
+    expect(bundle?.frame.bowler.name).toBe('M Ali');
   });
 
   it('maps all current-over deliveries including extras onto thisOverChips', () => {
@@ -547,6 +548,8 @@ describe('theme1 fullScreen adapter fixtures', () => {
     });
 
     expect(bundle?.batter?.name).toBe('HAMEED');
+    expect(bundle?.batter?.firstName).toBe('');
+    expect(bundle?.batter?.lastName).toBe('HAMEED');
     expect(bundle?.batter?.runs).toBe(56);
     expect(bundle?.batter?.ones).toBe(8);
     expect(bundle?.batter?.twos).toBe(3);
@@ -554,6 +557,32 @@ describe('theme1 fullScreen adapter fixtures', () => {
     expect(bundle?.batter?.fours).toBe(5);
     expect(bundle?.batter?.sixes).toBe(2);
     expect(bundle?.batter?.dismissal).toBe('C SHAH B SATTI');
+  });
+
+  it('maps last wicket LT with standard/full broadcast names', () => {
+    const bundle = toLastWicketFsBatter(
+      {
+        tournamentLabel: 'Pallandari Super League Season 3',
+        battingTeam: { name: 'Home XI', shortCode: 'HOM', logoUrl: null },
+        bowlingTeam: { name: 'Away XI', shortCode: 'AWY', logoUrl: null },
+        wickets: [{ number: '1st', score: '22', batsman_display_name: 'Muhammad Bilal' }],
+        battingOrder: [
+          {
+            display_name: 'Muhammad Bilal',
+            status: 'dismissed',
+            runs: 56,
+            balls: 32,
+            dismissal_text: 'c Shah b Satti',
+          },
+        ],
+      },
+      undefined,
+      { nameStyle: BROADCAST_NAME_STYLE.standard },
+    );
+
+    expect(bundle?.batter?.name).toBe('Muhammad Bilal');
+    expect(bundle?.batter?.firstName).toBe('Muhammad');
+    expect(bundle?.batter?.lastName).toBe('Bilal');
   });
 
   it('derives current partnership FS batters from live batters array', () => {
@@ -893,7 +922,7 @@ describe('theme1 player match LT adapters', () => {
     const props = PROCESSOR_MAP.BATSMAN_MATCH_LT(snapshot);
     const resolved = toBatsmanMatchLt(props, tokens);
 
-    expect(resolved?.batter.name).toBe('Taimoor Mirza');
+    expect(resolved?.batter.name).toBe('T Mirza');
     expect(resolved?.batter.runs).toBe(28);
     expect(resolved?.batter.balls).toBe(10);
     expect(resolved?.batter.fours).toBe(1);
@@ -923,7 +952,7 @@ describe('theme1 player match LT adapters', () => {
     const props = PROCESSOR_MAP.BOWLER_MATCH_LT(snapshot);
     const resolved = toBowlerMatchLt(props, tokens);
 
-    expect(resolved?.bowler.name).toBe('Itsham Satti');
+    expect(resolved?.bowler.name).toBe('I Satti');
     expect(resolved?.bowler.w).toBe(0);
     expect(resolved?.bowler.r).toBe(27);
     expect(resolved?.bowler.overs).toBe('1.5');
@@ -970,7 +999,7 @@ describe('theme1 player match LT adapters', () => {
     const props = PROCESSOR_MAP.BATSMAN_TOURNAMENT_LT(snapshot);
     const resolved = toBatsmanTournamentLt(props, tokens);
 
-    expect(resolved?.batter.name).toBe('Taimoor Mirza');
+    expect(resolved?.batter.name).toBe('T Mirza');
     expect(resolved?.batter.tournamentLabel).toBe('Pallandari Super League Season 3');
     expect(resolved?.batter.matches).toBe(6);
     expect(resolved?.batter.runs).toBe(198);
@@ -1016,7 +1045,7 @@ describe('theme1 player match LT adapters', () => {
     const props = PROCESSOR_MAP.BOWLER_TOURNAMENT_LT(snapshot);
     const resolved = toBowlerTournamentLt(props, tokens);
 
-    expect(resolved?.bowler.name).toBe('Itsham Satti');
+    expect(resolved?.bowler.name).toBe('I Satti');
     expect(resolved?.bowler.tournamentLabel).toBe('Pallandari Super League Season 3');
     expect(resolved?.bowler.w).toBe(1);
     expect(resolved?.bowler.wickets).toBe(1);
@@ -1495,7 +1524,7 @@ describe('theme1 leaderboard adapter', () => {
     expect(leaderboard?.data.featured?.name).toBe('Star Batter');
   });
 
-  it('formats three-part player names for broadcast (max two words)', () => {
+  it('formats three-part player names as first two words on FS leaderboards', () => {
     const leaderboard = toLeaderboardData({
       commandKey: 'TOP_BATTER',
       rows: [{ rank: 1, runs: 42, name: 'Waqar Saleem Bhatti', team: 'HOM' }],
@@ -1532,7 +1561,7 @@ describe('theme1 fallOfWickets adapter', () => {
     expect(fow?.data.total).toBe(105);
     expect(fow?.data.wkts).toBe(2);
     expect(fow?.data.wickets).toHaveLength(2);
-    expect(fow?.data.wickets[0]).toMatchObject({ number: '1', score: '22', batter: 'Player A' });
+    expect(fow?.data.wickets[0]).toMatchObject({ number: '1', score: '22', batter: 'P A' });
     expect(fow?.data.oversText).toBe('12.0 OVER');
     expect(fow?.teams?.home?.code).toBe('HOM');
   });

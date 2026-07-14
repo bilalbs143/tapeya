@@ -39,7 +39,7 @@ const dismissalClass = cn(
 );
 
 function resolveBatter(batter) {
-  if (!batter?.name && !batter?.firstName) return null;
+  if (!batter?.name && !batter?.firstName && !batter?.lastName) return null;
   return {
     batter: {
       ...batter,

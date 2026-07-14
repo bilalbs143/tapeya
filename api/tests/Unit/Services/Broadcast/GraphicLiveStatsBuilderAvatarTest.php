@@ -64,6 +64,32 @@ class GraphicLiveStatsBuilderAvatarTest extends TestCase
 
         $this->assertSame('https://cdn.example/waqar.jpg', $history[0]['batter1_avatar_url'] ?? null);
         $this->assertSame('https://cdn.example/khushdil.jpg', $history[0]['batter2_avatar_url'] ?? null);
+        $this->assertSame('Waqar Salam', $history[0]['batter1_display_name'] ?? null);
+        $this->assertSame('Khushdil Shah', $history[0]['batter2_display_name'] ?? null);
+    }
+
+    public function test_map_batting_order_keeps_full_display_names(): void
+    {
+        $builder = new GraphicLiveStatsBuilder(
+            new PlayerStatsService,
+            new InningsStatsService,
+            new WinProbabilitySimilarSituationsService,
+        );
+
+        $method = new ReflectionMethod(GraphicLiveStatsBuilder::class, 'mapBattingOrder');
+        $method->setAccessible(true);
+
+        /** @var list<array<string, mixed>> $order */
+        $order = $method->invoke($builder, [[
+            'id' => 10,
+            'name' => 'Muhammad Bilal',
+            'runs' => 42,
+            'balls' => 28,
+            'is_on_crease' => true,
+            'dismissal_type' => null,
+        ]]);
+
+        $this->assertSame('Muhammad Bilal', $order[0]['display_name'] ?? null);
     }
 
     /**

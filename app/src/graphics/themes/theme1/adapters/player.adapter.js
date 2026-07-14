@@ -2,10 +2,16 @@
  * Player intro / stats processors → Tapeya player component shapes.
  */
 import { parseBowlingFigures } from '@tapeya/graphics-core/domain/player';
-import { resolveBroadcastNameParts } from '@tapeya/graphics-core/domain/playerNameResolver';
+import { BROADCAST_NAME_STYLE } from '@tapeya/graphics-core/domain/playerNameResolver';
 
 import { fmt } from '../primitives';
-import { resolvePlayerImageUrlGated, resolveTeamCode as resolveTeamSide, toTeamRecord, tournamentSub } from './_shared';
+import {
+  resolveBroadcastNameParts,
+  resolvePlayerImageUrlGated,
+  resolveTeamCode as resolveTeamSide,
+  toTeamRecord,
+  tournamentSub,
+} from './_shared';
 import { toTeams } from './teams.adapter';
 
 function toNum(value) {
@@ -54,8 +60,9 @@ function resolveTeamCodeFromPlayerTeam(playerTeam, teams) {
 /**
  * @param {Record<string, unknown>} props
  * @param {import('../../../types.js').ThemeTokens|undefined} tokens
+ * @param {{ nameStyle?: import('@tapeya/graphics-core/domain/playerNameResolver').BroadcastNameStyle }} [options]
  */
-export function toPlayer(props, tokens) {
+export function toPlayer(props, tokens, { nameStyle = BROADCAST_NAME_STYLE.compact } = {}) {
   let teams = toTeams(props, tokens);
   const fixtureCode = props.teamCode != null ? String(props.teamCode) : null;
 
@@ -77,11 +84,14 @@ export function toPlayer(props, tokens) {
   }
 
   const fullName = props.playerName ?? '';
-  const { firstName, lastName, displayName } = resolveBroadcastNameParts({
-    name: fullName || undefined,
-    firstName: props.playerFirstName ?? props.firstName,
-    lastName: props.playerLastName ?? props.lastName,
-  });
+  const { firstName, lastName, displayName } = resolveBroadcastNameParts(
+    {
+      name: fullName || undefined,
+      firstName: props.playerFirstName ?? props.firstName,
+      lastName: props.playerLastName ?? props.lastName,
+    },
+    nameStyle,
+  );
   const stats = Array.isArray(props.stats) ? props.stats : [];
   const teamCode =
     fixtureCode ??
@@ -118,7 +128,7 @@ export function toPlayer(props, tokens) {
  * @param {import('../../../types.js').ThemeTokens|undefined} tokens
  */
 export function toMomPlayer(props, tokens) {
-  const resolved = toPlayer(props, tokens);
+  const resolved = toPlayer(props, tokens, { nameStyle: BROADCAST_NAME_STYLE.standard });
   if (!resolved) return null;
   return {
     teams: resolved.teams,

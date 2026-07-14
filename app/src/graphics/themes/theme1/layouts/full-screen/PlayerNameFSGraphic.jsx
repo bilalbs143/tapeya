@@ -1,10 +1,9 @@
 /**
  * Player name full-screen card — shared by batsman and bowler NAME_FS controllers.
  */
-import { resolveBroadcastNameParts } from '@tapeya/graphics-core/domain/playerNameResolver';
-
 import { cn } from '@/lib/utils';
 
+import { resolveFsNameParts } from '../../adapters/_shared';
 import { fsPill, fsPlayerCard, fsSummaryPanel } from '../../config';
 import { FSStage, GlowPanel, PlayerAvatarImage, TeamLogoOrCrest, UI_FONT } from '../../primitives';
 import { FsStatColumn } from '../shared/FsStatColumn';
@@ -32,7 +31,7 @@ function getStatDelay(index) {
 }
 
 function resolvePlayer(player, teams) {
-  if (!player?.name && !player?.firstName) return null;
+  if (!player?.name && !player?.firstName && !player?.lastName) return null;
 
   const team = player.teamCode ? teams[player.teamCode] : null;
   return {
@@ -43,7 +42,15 @@ function resolvePlayer(player, teams) {
 }
 
 function resolvePlayerContent(player) {
-  const { firstName, lastName } = resolveBroadcastNameParts(player);
+  // Prefer adapter-provided parts (already standard-styled for FS commands).
+  if (player.firstName || player.lastName) {
+    return {
+      firstName: player.firstName ?? '',
+      lastName: player.lastName ?? '',
+      detail: player.role ?? player.tournamentName ?? '',
+    };
+  }
+  const { firstName, lastName } = resolveFsNameParts(player);
   return {
     firstName,
     lastName,
@@ -143,9 +150,11 @@ export function PlayerNameFSGraphic({
                   <div className="mt-[10px] h-px" style={{ background: `linear-gradient(90deg, ${accent}, transparent)` }} />
                 </div>
               ) : null}
-              <div className={FS_PLAYER_FIRST} style={fsFont(fsPlayerCard.firstName)}>
-                {firstName}
-              </div>
+              {firstName ? (
+                <div className={FS_PLAYER_FIRST} style={fsFont(fsPlayerCard.firstName)}>
+                  {firstName}
+                </div>
+              ) : null}
               {lastName ? (
                 <div className={FS_PLAYER_LAST} style={fsFont(fsPlayerCard.lastName)}>
                   {lastName}

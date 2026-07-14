@@ -1,9 +1,7 @@
 /**
  * Squad processors → SquadListGraphic data shape.
  */
-import { resolveBroadcastPlayerName } from '@tapeya/graphics-core/domain/playerNameResolver';
-
-import { resolvePlayerImageUrlGated, resolveTeamColor, toTeamRecord, tournamentSub } from './_shared';
+import { resolveFsPlayerName, resolvePlayerImageUrlGated, resolveTeamColor, toTeamRecord, tournamentSub } from './_shared';
 
 /**
  * @param {Array<Record<string, unknown>>} players
@@ -12,7 +10,7 @@ import { resolvePlayerImageUrlGated, resolveTeamColor, toTeamRecord, tournamentS
 function mapSquadPlayers(players, tokens) {
   return players.map((p) => ({
     id: p.player_id ?? p.id,
-    name: resolveBroadcastPlayerName(p),
+    name: resolveFsPlayerName(p),
     role: p.role ?? p.playing_role ?? '',
     avatarUrl: resolvePlayerImageUrlGated(p, tokens),
     captain: Boolean(p.captain ?? p.is_captain),

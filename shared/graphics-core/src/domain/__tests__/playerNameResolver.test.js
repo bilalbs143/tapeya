@@ -1,22 +1,29 @@
 import { describe, expect, it } from 'vitest';
 
-import { collectNameWords, resolveBroadcastNameParts, resolveBroadcastPlayerName } from '../playerNameResolver';
+import {
+  BROADCAST_NAME_STYLE,
+  collectNameWords,
+  resolveBroadcastNameParts,
+  resolveBroadcastPlayerName,
+} from '../playerNameResolver';
 
-describe('resolveBroadcastPlayerName', () => {
-  it('keeps first two words and drops middle/extra names', () => {
-    expect(resolveBroadcastPlayerName('Muhammad Nawaz Ali')).toBe('Muhammad Nawaz');
+describe('resolveBroadcastPlayerName — compact (LT)', () => {
+  it('uses first initial + full second name and drops the third', () => {
+    expect(resolveBroadcastPlayerName('Muhammad Bilal Khan')).toBe('M Bilal');
+    expect(resolveBroadcastPlayerName('Muhammad Nawaz Ali')).toBe('M Nawaz');
+    expect(resolveBroadcastPlayerName('Shaheen Shah Afridi')).toBe('S Shah');
   });
 
-  it('abbreviates a word longer than 12 characters', () => {
-    expect(resolveBroadcastPlayerName('Christopheranthony Nawaz')).toBe('C. Nawaz');
+  it('initials the first word for two-part names', () => {
+    expect(resolveBroadcastPlayerName('Babar Azam')).toBe('B Azam');
   });
 
-  it('abbreviates only the long word when the other is short', () => {
-    expect(resolveBroadcastPlayerName('Muhammad Verylongsurnamehere')).toBe('Muhammad V.');
-  });
-
-  it('handles a single-word name', () => {
+  it('keeps a single-word name full', () => {
     expect(resolveBroadcastPlayerName('Rashid')).toBe('Rashid');
+  });
+
+  it('defaults to compact when style is omitted', () => {
+    expect(resolveBroadcastPlayerName('Muhammad Bilal Khan')).toBe('M Bilal');
   });
 
   it('handles empty input', () => {
@@ -25,9 +32,46 @@ describe('resolveBroadcastPlayerName', () => {
   });
 });
 
+describe('resolveBroadcastPlayerName — standard (FS)', () => {
+  it('keeps first two words full and drops the third', () => {
+    expect(resolveBroadcastPlayerName('Muhammad Bilal Khan', BROADCAST_NAME_STYLE.standard)).toBe('Muhammad Bilal');
+    expect(resolveBroadcastPlayerName('Muhammad Nawaz Ali', BROADCAST_NAME_STYLE.standard)).toBe('Muhammad Nawaz');
+  });
+
+  it('abbreviates a word longer than 12 characters', () => {
+    expect(resolveBroadcastPlayerName('Christopheranthony Nawaz', BROADCAST_NAME_STYLE.standard)).toBe('C. Nawaz');
+  });
+
+  it('abbreviates only the long word when the other is short', () => {
+    expect(resolveBroadcastPlayerName('Muhammad Verylongsurnamehere', BROADCAST_NAME_STYLE.standard)).toBe(
+      'Muhammad V.',
+    );
+  });
+
+  it('keeps a single-word name full', () => {
+    expect(resolveBroadcastPlayerName('Rashid', BROADCAST_NAME_STYLE.standard)).toBe('Rashid');
+  });
+
+  it('places a single-word standard name on lastName for FS hero layouts', () => {
+    expect(resolveBroadcastNameParts('Rashid', BROADCAST_NAME_STYLE.standard)).toEqual({
+      firstName: '',
+      lastName: 'Rashid',
+      displayName: 'Rashid',
+    });
+  });
+});
+
 describe('resolveBroadcastNameParts', () => {
-  it('splits into first and last for two-word result', () => {
+  it('compact: splits into initial firstName and full lastName', () => {
     expect(resolveBroadcastNameParts('Muhammad Nawaz Ali')).toEqual({
+      firstName: 'M',
+      lastName: 'Nawaz',
+      displayName: 'M Nawaz',
+    });
+  });
+
+  it('standard: keeps full first two words', () => {
+    expect(resolveBroadcastNameParts('Muhammad Nawaz Ali', BROADCAST_NAME_STYLE.standard)).toEqual({
       firstName: 'Muhammad',
       lastName: 'Nawaz',
       displayName: 'Muhammad Nawaz',
@@ -36,10 +80,13 @@ describe('resolveBroadcastNameParts', () => {
 
   it('reads from firstName/lastName when name is absent', () => {
     expect(
-      resolveBroadcastNameParts({
-        firstName: 'Muhammad',
-        lastName: 'Nawaz Ali',
-      }),
+      resolveBroadcastNameParts(
+        {
+          firstName: 'Muhammad',
+          lastName: 'Nawaz Ali',
+        },
+        BROADCAST_NAME_STYLE.standard,
+      ),
     ).toEqual({
       firstName: 'Muhammad',
       lastName: 'Nawaz',
@@ -55,9 +102,17 @@ describe('resolveBroadcastNameParts', () => {
         lastName: 'Name',
       }),
     ).toEqual({
-      firstName: 'Muhammad',
+      firstName: 'M',
       lastName: 'Nawaz',
-      displayName: 'Muhammad Nawaz',
+      displayName: 'M Nawaz',
+    });
+  });
+
+  it('keeps single-word parts without inventing a last name', () => {
+    expect(resolveBroadcastNameParts('Rashid')).toEqual({
+      firstName: 'Rashid',
+      lastName: '',
+      displayName: 'Rashid',
     });
   });
 });
@@ -65,5 +120,15 @@ describe('resolveBroadcastNameParts', () => {
 describe('collectNameWords', () => {
   it('normalizes display_name aliases', () => {
     expect(collectNameWords({ display_name: 'A B C' })).toEqual(['A', 'B', 'C']);
+  });
+
+  it('prefers first/last when display_name is a single surname token', () => {
+    expect(
+      collectNameWords({
+        display_name: 'Bilal',
+        first_name: 'Muhammad',
+        last_name: 'Bilal',
+      }),
+    ).toEqual(['Muhammad', 'Bilal']);
   });
 });
