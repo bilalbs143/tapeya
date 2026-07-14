@@ -1,44 +1,60 @@
 # Tapeya Nginx configuration
 
-- **API (PHP/Laravel):** `api.tapeya.com` → `/var/www/tapeya/api/public`
-- **App (React):** `tapeya.com` → `/var/www/tapeya/app/dist`
-- **Broadcast graphics (vMix/OBS):** `graphics.tapeya.com` → `/var/www/tapeya/app/dist-graphics`
-- **Backoffice (Angular):** `backoffice.tapeya.com` → `/var/www/tapeya/backoffice/dist/backoffice/browser`
+Production mirrors of `/etc/nginx/sites-available/*.conf`. HTTP is ACME + HTTPS redirect only; all apps are served over TLS.
 
-## Setup
+| File | Host | Root |
+|------|------|------|
+| `api.conf` | `api.tapeya.com` | `/var/www/tapeya/api/public` |
+| `app.conf` | `tapeya.com` (+ `www` → apex) | `/var/www/tapeya/app/dist` |
+| `graphics.conf` | `graphics.tapeya.com` | `/var/www/tapeya/app/dist-graphics` |
+| `backoffice.conf` | `backoffice.tapeya.com` | `/var/www/tapeya/backoffice/dist/backoffice/browser` |
 
-1. **Install and enable:**
-   - Copy or symlink into your nginx config directory, e.g.:
-     ```bash
-     sudo cp /var/www/tapeya/nginx/tapeya.conf /etc/nginx/sites-available/tapeya.conf
-     sudo ln -s /etc/nginx/sites-available/tapeya.conf /etc/nginx/sites-enabled/
-     ```
-   - Or include from `http {}` in your main config:
-     ```nginx
-     include /var/www/tapeya/nginx/tapeya.conf;
-     ```
+`tapeya.conf` only includes the four files above (optional all-in-one include).
 
-2. **PHP-FPM:** Ensure PHP-FPM is running and the upstream in `tapeya.conf` matches your setup:
-   - Default: `unix:/run/php/php-fpm.sock`
-   - Or `server 127.0.0.1:9000;` if using TCP.
+## Deploy
 
-3. **Build frontends before serving:**
-   - App: `cd /var/www/tapeya/app && npm run build`
-   - Graphics site: `cd /var/www/tapeya/app && npm run build:graphics:production` → `dist-graphics/`
-   - Backoffice: `cd /var/www/tapeya/backoffice && npm run build`
-   - Angular output is `dist/backoffice/browser`. If your Angular version uses `dist/backoffice` only, change the backoffice `root` in `tapeya.conf` to `/var/www/tapeya/backoffice/dist/backoffice`.
+```bash
+sudo cp /var/www/tapeya/nginx/api.conf /etc/nginx/sites-available/api.conf
+sudo cp /var/www/tapeya/nginx/app.conf /etc/nginx/sites-available/app.conf
+sudo cp /var/www/tapeya/nginx/graphics.conf /etc/nginx/sites-available/graphics.conf
+sudo cp /var/www/tapeya/nginx/backoffice.conf /etc/nginx/sites-available/backoffice.conf
 
-4. **Laravel:** Set correct permissions and `APP_URL` (e.g. `https://api.tapeya.com`). Run migrations/cache as needed.
-   - Production CORS: `CORS_ALLOWED_ORIGINS` must include `https://graphics.tapeya.com`
-   - Reverb: `REVERB_ALLOWED_ORIGINS` must include `graphics.tapeya.com` and `localhost` (Capacitor WebView host)
-   - Admin → System Settings → **Graphics Frontend URL** → `https://graphics.tapeya.com`
+# Enable once (production already has these):
+# sudo ln -sfn /etc/nginx/sites-available/api.conf /etc/nginx/sites-enabled/
+# sudo ln -sfn /etc/nginx/sites-available/app.conf /etc/nginx/sites-enabled/
+# sudo ln -sfn /etc/nginx/sites-available/graphics.conf /etc/nginx/sites-enabled/
+# sudo ln -sfn /etc/nginx/sites-available/backoffice.conf /etc/nginx/sites-enabled/
 
-5. **HTTPS:** See `tapeya-ssl.conf.sample` for TLS server blocks (including `graphics.tapeya.com`). Obtain certs before production graphics traffic:
-   ```bash
-   certbot certonly --webroot -w /var/www/tapeya/app/dist-graphics -d graphics.tapeya.com
-   ```
+sudo mkdir -p /var/cache/nginx/api && sudo chown www-data:www-data /var/cache/nginx/api
+sudo nginx -t && sudo systemctl reload nginx
+```
 
-6. **Test and reload:**
-   ```bash
-   sudo nginx -t && sudo systemctl reload nginx
-   ```
+## Certificates
+
+- **Shared:** `api.tapeya.com`, `tapeya.com`, `backoffice.tapeya.com` → `/etc/letsencrypt/live/api.tapeya.com/`
+- **Graphics:** `graphics.tapeya.com` → `/etc/letsencrypt/live/graphics.tapeya.com/`
+
+```bash
+# Expand shared cert (example)
+certbot certonly --cert-name api.tapeya.com --expand --webroot -w /var/www/certbot \
+  -d api.tapeya.com -d tapeya.com -d backoffice.tapeya.com
+
+# Dedicated graphics cert
+certbot certonly --webroot -w /var/www/certbot -d graphics.tapeya.com --cert-name graphics.tapeya.com
+```
+
+## Highlights (production rules)
+
+- **API:** Reverb proxy (`/app/`, `/apps`), FastCGI micro-cache (skips auth / non-GET / embed), embed without `X-Frame-Options`, deny `.env` + `storage/logs`
+- **App:** hashed asset long-cache + `gzip_static`, `/embed/youtube` loopback to API, SPA fallback
+- **Graphics:** signed-token routes, no-cache shell, long-cache `/assets/`
+- **Backoffice:** `X-Robots-Tag: noindex`, hashed asset long-cache
+
+## App / Laravel checklist
+
+- Build app: `cd app && npm run build:production`
+- Graphics: `cd app && npm run build:graphics:production`
+- Backoffice: `cd backoffice && npm run build`
+- `CORS_ALLOWED_ORIGINS` — web hosts; Capacitor covered by `config/cors.php` patterns
+- `REVERB_ALLOWED_ORIGINS` must include `localhost` for Capacitor
+- Admin → Graphics Frontend URL → `https://graphics.tapeya.com`
