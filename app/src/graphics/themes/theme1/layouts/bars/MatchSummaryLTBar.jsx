@@ -62,7 +62,7 @@ function InningsScore({ innings, measuring = false }) {
         />
       </div>
       <span
-        className={cn('mt-[2px] font-bold tracking-[0.12em] text-[var(--text-secondary)]', UI_FONT)}
+        className={cn('mt-[2px] font-bold tracking-[0.12em] text-white', UI_FONT)}
         style={{ fontSize: ltFixtureBar.matchSummaryOvers }}
       >
         {oversLine}

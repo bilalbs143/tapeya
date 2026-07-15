@@ -1,5 +1,6 @@
 /**
  * Fall-of-wickets lower-third strip — team header plus wicket columns.
+ * Spacing ownership mirrors ControllerBar: edge / crest / scoreBlock / zoneGap tokens.
  */
 import { cn } from '@/lib/utils';
 
@@ -55,36 +56,52 @@ export function FallOfWicketsLTBar({ data, teams, edgeToEdge = true, mode = 'all
   return (
     <ScaledBarSurface designWidth={DESIGN_WIDTH} edgeToEdge={edgeToEdge}>
       {({ radius }) => (
-        <GlowPanel hideRing radius={radius} className="flex w-full items-stretch">
-          <div className="flex items-center gap-[18px] py-5 pr-[22px]" style={{ paddingLeft: ltBar.edgePaddingX }}>
+        <GlowPanel hideRing radius={radius} className="flex w-full items-stretch" style={{ gap: ltBar.zoneGapX }}>
+          {/* Score cluster — trailing gutter owned by columnGap */}
+          <div
+            className="flex shrink-0 items-center"
+            style={{
+              gap: ltBar.crestToContentGap,
+              paddingLeft: ltBar.edgePaddingX,
+              paddingTop: ltBar.controllerBarPaddingY,
+              paddingBottom: ltBar.controllerBarPaddingY,
+            }}
+          >
             <Crest team={team} size={ltBar.crestSize} accent={team.color} borderPulseOrder={1} />
-            <div className="flex flex-col gap-1 pr-4">
-              <span className={teamCodeClass}>{teamLabel}</span>
-              {oversText ? <span className={oversClass}>{oversText}</span> : null}
-            </div>
-            <div className="flex items-baseline gap-[5px]">
-              <AnimatedNumber
-                value={total}
-                className={cn(
-                  DISPLAY_FONT,
-                  'text-[50px] leading-[0.92] font-extrabold text-[var(--score-color)]',
-                  textGlowClass('score'),
-                )}
-              />
-              <span className={cn(DISPLAY_FONT, 'text-[32px] leading-[0.92] font-extrabold text-[var(--text-secondary)]')}>
-                {scoreSep}
-              </span>
-              <AnimatedNumber value={wkts} className={cn(DISPLAY_FONT, 'text-[38px] leading-[0.92] font-extrabold text-white')} />
+            <div className="flex items-center" style={{ gap: ltBar.scoreBlockGap }}>
+              <div className="flex flex-col gap-1">
+                <span className={teamCodeClass}>{teamLabel}</span>
+                {oversText ? <span className={oversClass}>{oversText}</span> : null}
+              </div>
+              <div className="flex items-baseline gap-[5px]">
+                <AnimatedNumber
+                  value={total}
+                  className={cn(
+                    DISPLAY_FONT,
+                    'text-[50px] leading-[0.92] font-extrabold text-[var(--score-color)]',
+                    textGlowClass('score'),
+                  )}
+                />
+                <span className={cn(DISPLAY_FONT, 'text-[32px] leading-[0.92] font-extrabold text-[var(--text-secondary)]')}>
+                  {scoreSep}
+                </span>
+                <AnimatedNumber
+                  value={wkts}
+                  className={cn(DISPLAY_FONT, 'text-[38px] leading-[0.92] font-extrabold text-white')}
+                />
+              </div>
             </div>
           </div>
 
-          <div className="mx-2.5 flex min-w-0 flex-1 items-center self-stretch">
-            <div className="flex min-w-0 flex-1 items-center justify-end gap-0 overflow-hidden pr-4">
+          {/* Wicket columns — side gutters owned by columnGap */}
+          <div className="flex min-w-0 flex-1 items-center self-stretch overflow-hidden">
+            <div className="flex min-w-0 flex-1 items-center justify-end gap-0 overflow-hidden">
               {wickets.map((item, index) => (
                 <div key={`${item.number ?? index}-${item.score ?? ''}`} className="flex items-center">
                   {index > 0 ? (
                     <div
-                      className="mx-3 w-px self-stretch bg-[linear-gradient(180deg,transparent,rgba(255,255,255,0.22),transparent)]"
+                      className="w-px self-stretch bg-[linear-gradient(180deg,transparent,rgba(255,255,255,0.22),transparent)]"
+                      style={{ marginLeft: ltBar.batsmenDividerGapX, marginRight: ltBar.batsmenDividerGapX }}
                       aria-hidden="true"
                     />
                   ) : null}
@@ -94,7 +111,7 @@ export function FallOfWicketsLTBar({ data, teams, edgeToEdge = true, mode = 'all
                     {item.batter ? (
                       <span
                         className={cn(
-                          'mt-1 max-w-full overflow-hidden text-[15px] font-medium text-ellipsis whitespace-nowrap text-[var(--text-secondary)]',
+                          'mt-1 max-w-full overflow-hidden text-[18px] font-bold text-ellipsis whitespace-nowrap text-[var(--text)]',
                           UI_FONT,
                         )}
                       >
@@ -107,15 +124,16 @@ export function FallOfWicketsLTBar({ data, teams, edgeToEdge = true, mode = 'all
             </div>
           </div>
 
-          {mode === 'last' ? (
-            <div className="flex items-center" style={{ paddingRight: ltBar.edgePaddingX }}>
-              <span className={headerLabelClass}>LAST WICKET</span>
-            </div>
-          ) : (
-            <div className="flex items-center" style={{ paddingRight: ltBar.edgePaddingX }}>
-              <span className={headerLabelClass}>FALL OF WICKETS</span>
-            </div>
-          )}
+          <div
+            className="flex shrink-0 items-center"
+            style={{
+              paddingRight: ltBar.edgePaddingX,
+              paddingTop: ltBar.controllerBarPaddingY,
+              paddingBottom: ltBar.controllerBarPaddingY,
+            }}
+          >
+            <span className={headerLabelClass}>{mode === 'last' ? 'LAST WICKET' : 'FALL OF WICKETS'}</span>
+          </div>
         </GlowPanel>
       )}
     </ScaledBarSurface>

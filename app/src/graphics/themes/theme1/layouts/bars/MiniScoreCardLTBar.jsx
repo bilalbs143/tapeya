@@ -39,7 +39,7 @@ export function MiniScoreCardLTBar({ miniScoreCard, teams, edgeToEdge = true }) 
       >
         <div ref={innerRef} className="w-fit origin-top-left" style={{ transform: `scale(${scale})` }}>
           <GlowPanel hideRing radius={radius} className="flex min-h-[5.375rem] w-fit items-center">
-            <div className="flex w-fit items-center gap-4 py-5 pr-[1.375rem] pl-10">
+            <div className="flex w-fit items-center gap-4 px-10 py-5">
               <div className="flex shrink-0 flex-col items-start justify-center gap-1 pr-[1.125rem]">
                 <span
                   className={cn(
@@ -60,15 +60,17 @@ export function MiniScoreCardLTBar({ miniScoreCard, teams, edgeToEdge = true }) 
                   </span>
                 ) : null}
               </div>
-              <div className="flex shrink-0 items-baseline gap-[1px]">
+              <div className="flex shrink-0 items-baseline gap-[2px]">
                 <AnimatedNumber
                   value={miniScoreCard.total ?? 0}
-                  className={cn('text-[2rem] leading-[0.92] font-extrabold text-white', DISPLAY_FONT)}
+                  className={cn('text-[2.75rem] leading-[0.92] font-extrabold text-[var(--score-color)]', DISPLAY_FONT)}
                 />
-                <span className={cn('text-[2rem] leading-[0.92] font-extrabold text-white', DISPLAY_FONT)}>{scoreSep}</span>
+                <span className={cn('text-[2.25rem] leading-[0.92] font-extrabold text-[var(--text-secondary)]', DISPLAY_FONT)}>
+                  {scoreSep}
+                </span>
                 <AnimatedNumber
                   value={miniScoreCard.wkts ?? 0}
-                  className={cn('text-[2rem] leading-[0.92] font-extrabold text-white', DISPLAY_FONT)}
+                  className={cn('text-[2.5rem] leading-[0.92] font-extrabold text-white', DISPLAY_FONT)}
                 />
               </div>
             </div>

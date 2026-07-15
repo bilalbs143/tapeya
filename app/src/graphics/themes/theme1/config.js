@@ -235,7 +235,7 @@ export const ltBar = {
   height: 139,
   crestSize: 86,
   sidePaddingY: 20,
-  edgePaddingX: 32,
+  edgePaddingX: 25,
   batsmenMinWidth: 360,
   previewGutter: 32,
   mobileBreakpoint: 720,
@@ -246,8 +246,29 @@ export const ltBar = {
   overlayInsetBottomLT: 45,
 
   controllerBarPaddingY: 22,
-};
 
+  /**
+   * Scoreboard LT (ControllerBar) spacing ownership — do not reintroduce overlapping gutters:
+   * - Bar edge inset: Zone A `paddingLeft` / Zone D `paddingRight` → `edgePaddingX`
+   * - Gaps between zones A↔B, B↔C, C↔D: single CSS grid `columnGap` → `zoneGapX`
+   * - Inner content only: `crestToContentGap`, `scoreBlockGap`, batsmen pill tokens below
+   * Fall-of-wickets LT reuses the same edge / crest / score / zone tokens for family consistency.
+   */
+  zoneGapX: 25,
+  /** Zone A / D — breathing room between team crest and score / bowler block. */
+  crestToContentGap: 32,
+  /** Zone A — space between team+overs stack and total/wkts score (sole owner; no extra pr). */
+  scoreBlockGap: 26,
+  /** Horizontal space around the batsmen pill centre divider (each side). */
+  batsmenDividerGapX: 18,
+  /**
+   * Zone C internal air between PartialDividers and KPI columns/headings.
+   * Applied on Zone C shell + PanelRoot so the leading `|` matches every inner `|`.
+   */
+  zoneCInnerGapX: 10,
+  /** Zone D — name ↔ figures / figures ↔ overs micro-gap. */
+  bowlerInlineGap: 10,
+};
 /** Default LT Zone C rotation — panel keys must match LT_DEFAULT_ZONE_C_PANELS in ltDefaultZoneC.js. */
 export const ltDefaultZoneC = {
   dwellMs: 20000,
@@ -296,7 +317,7 @@ export const ltTypography = {
   kpiSideHeadingLine1: 17,
   kpiSideHeadingLine2: 24,
   kpiColumnLabel: 21,
-  kpiTeamCode: 35,
+  kpiTeamCode: 40,
   kpiTeamCodeAsLabel: 23,
   kpiTeamNameSecondary: 21,
   kpiMetricValue: 47,
@@ -314,11 +335,11 @@ export const ltTypography = {
   last12TotalMinWidthExtra: 24,
 
   // Zone D
-  bowlerName: 23,
-  bowlerFigures: 23,
+  bowlerName: 26,
+  bowlerFigures: 26,
   ballChip: 32,
   ballChipCompact: 26,
-  ballChipFontScale: 0.5,
+  ballChipFontScale: 0.56,
   ballChipFontWeight: 800,
   /** Compound tokens (WD+W, 2NB+W) — scaled by chip size in resolveBallChipLayout. */
   ballChipCompoundFontScale: { len6: 0.35, len5: 0.37, len4: 0.4, default: 0.42 },
@@ -382,7 +403,7 @@ export const ltFixtureBar = {
   matchSummaryScoreTotal: '3rem',
   matchSummaryScoreSep: '2rem',
   matchSummaryScoreWkts: '2.25rem',
-  matchSummaryOvers: '0.9375rem',
+  matchSummaryOvers: '1.125rem',
 };
 
 /**

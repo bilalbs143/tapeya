@@ -1,4 +1,4 @@
-import { memo, useLayoutEffect, useRef, useState } from 'react';
+import { Fragment, memo, useLayoutEffect, useRef, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -68,8 +68,12 @@ const KPI_PANEL_SHELL_STYLE = {
   gap: lt.kpiColumnGap,
 };
 
-/** 4-zone grid: A (fixed) | B (1fr — all remainder) | C (max-content) | D (fixed). */
-const ZONE_GRID_STYLE = { gridTemplateColumns: 'auto minmax(0, 1fr) auto auto' };
+/** 4-zone grid: A (fixed) | B (1fr — all remainder) | C (max-content) | D (fixed).
+ * Inter-zone gutters are owned solely by `columnGap` (see ltBar.zoneGapX). */
+const ZONE_GRID_STYLE = {
+  gridTemplateColumns: 'auto minmax(0, 1fr) auto auto',
+  columnGap: ltBar.zoneGapX,
+};
 const ZONE_A_CLASS = 'flex shrink-0 items-center';
 const ZONE_B_CLASS = 'flex min-w-0 items-center';
 const ZONE_C_CLASS = 'flex w-max shrink-0 items-center self-stretch';
@@ -140,18 +144,19 @@ function HorizontalBar({
         <GlowPanel hideRing radius={radius} className="grid w-full items-stretch" style={ZONE_GRID_STYLE}>
           <EventSweep kind={kind} radius={radius} />
 
-          {/* ZONE A — score (Priority 1, fixed) */}
+          {/* ZONE A — score (Priority 1). Trailing gutter → grid columnGap. */}
           <div
-            className={cn(ZONE_A_CLASS, 'gap-[18px] pr-[22px]')}
+            className={ZONE_A_CLASS}
             style={{
+              gap: ltBar.crestToContentGap,
               paddingLeft: ltBar.edgePaddingX,
               paddingTop: ltBar.controllerBarPaddingY,
               paddingBottom: ltBar.controllerBarPaddingY,
             }}
           >
             <Crest team={bat} size={ltBar.crestSize} accent={bat.color} borderPulseOrder={1} />
-            <div className="flex items-center gap-4">
-              <div className="flex flex-col self-stretch pr-[18px]">
+            <div className="flex items-center" style={{ gap: ltBar.scoreBlockGap }}>
+              <div className="flex flex-col self-stretch">
                 <div
                   className="[font-family:var(--font-ui)] font-bold tracking-[0.1em] whitespace-nowrap text-[var(--text)] uppercase"
                   style={{ fontSize: lt.teamName }}
@@ -178,8 +183,8 @@ function HorizontalBar({
             </div>
           </div>
 
-          {/* ZONE B — batsmen pill (Priority 2, receives all grid remainder) */}
-          <div className={cn(ZONE_B_CLASS, 'py-0 pr-[10px] pl-1')}>
+          {/* ZONE B — batsmen pill (Priority 2). Outer gutters → grid columnGap. */}
+          <div className={cn(ZONE_B_CLASS, 'py-0')}>
             <div
               className="relative flex w-full min-w-0 items-center rounded-[14px] border border-[rgba(120,140,255,0.28)] bg-[linear-gradient(180deg,rgba(40,52,84,0.55),rgba(16,22,38,0.65))] [box-shadow:inset_0_1px_0_rgba(255,255,255,0.07),0_0_calc(16px*var(--glow))_rgba(90,110,255,0.25)]"
               style={{
@@ -191,7 +196,8 @@ function HorizontalBar({
             >
               <HBat p={frame.striker} onStrike={frame.striker.onStrike} truncateName={batsmenTruncate} compact={isCompact} />
               <div
-                className="mx-[14px] my-1 w-px self-stretch bg-[linear-gradient(180deg,transparent,rgba(150,170,255,0.5),transparent)]"
+                className="my-1 w-px self-stretch bg-[linear-gradient(180deg,transparent,rgba(150,170,255,0.5),transparent)]"
+                style={{ marginLeft: ltBar.batsmenDividerGapX, marginRight: ltBar.batsmenDividerGapX }}
                 aria-hidden="true"
               />
               <HBat
@@ -203,9 +209,9 @@ function HorizontalBar({
             </div>
           </div>
 
-          {/* ZONE C — variant middle (Priority 4, content-width only) */}
+          {/* ZONE C — variant middle (Priority 4). Side margins → grid columnGap. */}
           {isLastBalls ? (
-            <div className={cn(ZONE_C_CLASS, 'mx-2.5')}>
+            <div className={ZONE_C_CLASS} style={{ gap: ltBar.zoneCInnerGapX }}>
               <PartialDivider />
               {isLast30Balls ? (
                 <Last30StatsPanel stats={frame.last30Stats} />
@@ -220,7 +226,7 @@ function HorizontalBar({
               )}
             </div>
           ) : (
-            <div className={cn(ZONE_C_CLASS, 'mx-2.5')}>
+            <div className={ZONE_C_CLASS} style={{ gap: ltBar.zoneCInnerGapX }}>
               <PartialDivider />
               {isAtStage ? (
                 <AtStagePanel label={frame.stageLabel ?? 'AT THIS STAGE'} comparisons={frame.stageComparison} />
@@ -244,10 +250,11 @@ function HorizontalBar({
             </div>
           )}
 
-          {/* ZONE D — bowler + crest (Priority 3, fixed footprint) */}
+          {/* ZONE D — bowler + crest (Priority 3). Leading gutter → grid columnGap. */}
           <div
-            className={cn(ZONE_D_CLASS, 'gap-[18px] pl-3')}
+            className={ZONE_D_CLASS}
             style={{
+              gap: ltBar.crestToContentGap,
               paddingRight: ltBar.edgePaddingX,
               paddingTop: ltBar.controllerBarPaddingY,
               paddingBottom: ltBar.controllerBarPaddingY,
@@ -255,7 +262,7 @@ function HorizontalBar({
           >
             {!hideBowler && (
               <div className="min-w-0 text-right">
-                <div className="flex min-w-0 items-baseline justify-between gap-[9px]">
+                <div className="flex min-w-0 items-baseline justify-between" style={{ gap: ltBar.bowlerInlineGap }}>
                   <span
                     className={cn(
                       'min-w-0 overflow-hidden [font-family:var(--font-ui)] font-semibold text-ellipsis whitespace-nowrap text-white',
@@ -267,10 +274,10 @@ function HorizontalBar({
                   </span>
                   <div
                     className={cn(
-                      'flex shrink-0 items-baseline gap-[9px] font-semibold whitespace-nowrap text-[var(--text-secondary)] tabular-nums',
+                      'flex shrink-0 items-baseline font-semibold whitespace-nowrap text-[var(--text-secondary)] tabular-nums',
                       DISPLAY_FONT,
                     )}
-                    style={{ fontSize: lt.bowlerFigures }}
+                    style={{ gap: ltBar.bowlerInlineGap, fontSize: lt.bowlerFigures }}
                   >
                     <span>{bowlerStats.figures}</span>
                     <span>{bowlerStats.overs}</span>
@@ -309,7 +316,7 @@ const PANEL_TEAM_COLUMN_SHELL_CLASS = 'flex shrink-0 flex-col items-center justi
 
 function PanelRoot({ children, className, ariaLabel }) {
   return (
-    <div className={cn(PANEL_ROOT_CLASS, className)} aria-label={ariaLabel}>
+    <div className={cn(PANEL_ROOT_CLASS, className)} style={{ gap: ltBar.zoneCInnerGapX }} aria-label={ariaLabel}>
       {children}
     </div>
   );
@@ -327,13 +334,8 @@ function BowlTeamOnlyPanel({ team }) {
   );
 }
 
-function PanelColumnSlot({ showDivider = false, children }) {
-  return (
-    <div className={PANEL_COLUMN_SLOT_CLASS}>
-      {showDivider && <PartialDivider />}
-      {children}
-    </div>
-  );
+function PanelColumnSlot({ children }) {
+  return <div className={PANEL_COLUMN_SLOT_CLASS}>{children}</div>;
 }
 
 /**
@@ -429,9 +431,12 @@ function Last30StatsPanel({ stats }) {
   return (
     <PanelWithHeading label="LAST 30 BALLS" headingVariant="last30">
       {LAST_30_STAT_COLUMNS.map((col, index) => (
-        <PanelColumnSlot key={col.key} showDivider={index > 0}>
-          <Last30StatColumn label={col.label} value={stats[col.key]} />
-        </PanelColumnSlot>
+        <Fragment key={col.key}>
+          {index > 0 ? <PartialDivider /> : null}
+          <PanelColumnSlot>
+            <Last30StatColumn label={col.label} value={stats[col.key]} />
+          </PanelColumnSlot>
+        </Fragment>
       ))}
     </PanelWithHeading>
   );
@@ -601,9 +606,12 @@ function RunRateMetricsPanel({ frame, bowl, includeRrr = false, metric, teamFirs
   );
 
   const metricColumns = columns.map((col, index) => (
-    <PanelColumnSlot key={col.key} showDivider={index > 0}>
-      <PanelMetricColumn label={col.label} value={col.value} />
-    </PanelColumnSlot>
+    <Fragment key={col.key}>
+      {index > 0 ? <PartialDivider /> : null}
+      <PanelColumnSlot>
+        <PanelMetricColumn label={col.label} value={col.value} />
+      </PanelColumnSlot>
+    </Fragment>
   ));
 
   return (
@@ -667,7 +675,7 @@ function NeedTargetPanel({ runsToWin, ballsRemaining, runsLabel = 'TO WIN', ball
 
   if (!withHeading) {
     return (
-      <div className="flex w-fit shrink-0 items-center self-stretch" aria-label={ariaLabel}>
+      <div className="flex w-fit shrink-0 items-center self-stretch" style={{ gap: ltBar.zoneCInnerGapX }} aria-label={ariaLabel}>
         {metrics}
       </div>
     );
@@ -729,9 +737,12 @@ function AtStagePanel({ label = 'AT THIS STAGE', comparisons }) {
   return (
     <PanelWithHeading label={label}>
       {comparisons.map((entry, index) => (
-        <PanelColumnSlot key={entry.label ?? index} showDivider={index > 0}>
-          <AtStageTeamColumn entry={entry} />
-        </PanelColumnSlot>
+        <Fragment key={entry.label ?? index}>
+          {index > 0 ? <PartialDivider /> : null}
+          <PanelColumnSlot>
+            <AtStageTeamColumn entry={entry} />
+          </PanelColumnSlot>
+        </Fragment>
       ))}
     </PanelWithHeading>
   );
@@ -750,9 +761,12 @@ function WinPredictionPanel({ label = 'WIN PREDICTION', predictions, teams }) {
   return (
     <PanelWithHeading label={label}>
       {entries.map(({ entry, team }, index) => (
-        <PanelColumnSlot key={entry.teamCode} showDivider={index > 0}>
-          <WinPredictionTeamColumn team={team} entry={entry} />
-        </PanelColumnSlot>
+        <Fragment key={entry.teamCode}>
+          {index > 0 ? <PartialDivider /> : null}
+          <PanelColumnSlot>
+            <WinPredictionTeamColumn team={team} entry={entry} />
+          </PanelColumnSlot>
+        </Fragment>
       ))}
     </PanelWithHeading>
   );
@@ -810,7 +824,7 @@ function HMini({ label, value, labelClassName, hideLabel }) {
 
 function HBat({ p, onStrike, truncateName = false, compact = false }) {
   return (
-    <div className={cn('flex min-w-0 flex-1 items-center', onStrike ? 'gap-2' : 'gap-3')}>
+    <div className="flex min-w-0 flex-1 items-center gap-2.5">
       <StrikeBatIcon onStrike={onStrike} size={24} />
       <span
         className={cn(
