@@ -15,8 +15,9 @@ export async function requestBroadcastPermissions() {
 }
 
 /**
- * @param {{ x?: number, y?: number, width?: number, height?: number }} [options]
- * Camera facing is fully native-owned (front on first open in a session, preserved across
+ * @param {{ x?: number, y?: number, width?: number, height?: number, orientation?: 'portrait'|'landscape' }} [options]
+ * `orientation` drives the native mixer capture orientation so the landscape preview/encode is
+ * upright. Camera facing is fully native-owned (front on first open in a session, preserved across
  * any later call — see `TapeyaBroadcastPlugin`'s `hasStartedPreviewOnce`); this call never
  * specifies one.
  */

@@ -221,6 +221,11 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
         val y = (call.getFloat("y") ?: 0f).toInt()
         val width = (call.getFloat("width") ?: 0f).toInt()
         val height = (call.getFloat("height") ?: 0f).toInt()
+        // Orientation is known from the go-live form; select the matching encode ladder now so the
+        // preview buffer is landscape (not the portrait default) — otherwise a landscape preview is
+        // rotated/letterboxed until publish. autoHandleOrientation still drives actual rotation.
+        val orientation = call.getString("orientation") ?: "portrait"
+        resolutionTiers = if (orientation == "landscape") landscapeResolutionTiers else portraitResolutionTiers
         // Go-live opens on the front camera only the *first* time this session — flip is
         // opt-in via switchCamera. A later startPreview call in the same session (e.g. a
         // layout-resync fallback racing with go-live) must not undo the user's chosen camera.
@@ -581,8 +586,9 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
     private fun ensurePreparedForPreview(stream: StreamBase): Boolean {
         if (encodersPrepared) return true
         if (stream.isStreaming || stream.isOnPreview) return true
-        // Preview prepare uses portrait mid-tier; publish swaps tiers in startBroadcast.
-        return prepareEncoder(stream, portraitResolutionTiers[1])
+        // Preview prepare uses the active ladder's mid-tier (portrait or landscape, set in
+        // startPreview from the stream orientation); publish swaps to the target tier in startBroadcast.
+        return prepareEncoder(stream, resolutionTiers[1])
     }
 
     /** Release and rebuild GenericStream after a failed publish so preview can start again. */

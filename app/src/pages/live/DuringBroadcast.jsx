@@ -110,6 +110,7 @@ export default function DuringBroadcast({ streamId }) {
   const [endReason, setEndReason] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
   const [cameraFacing, setCameraFacing] = useState('front');
+  const [commentsVisible, setCommentsVisible] = useState(true);
   const [sendCooldown, setSendCooldown] = useState(false);
   const [publishSessionActive, setPublishSessionActive] = useState(false);
 
@@ -346,6 +347,10 @@ export default function DuringBroadcast({ streamId }) {
     }
   }, [isMuted, toast]);
 
+  const handleToggleComments = useCallback(() => {
+    setCommentsVisible((visible) => !visible);
+  }, []);
+
   const handleCapturePress = useCallback(() => {
     if (isLivePhase) {
       setConfirmEndOpen(true);
@@ -556,9 +561,11 @@ export default function DuringBroadcast({ streamId }) {
             sendCooldown={sendCooldown}
             chatEnabled={chatEnabled}
             messages={messages}
+            commentsVisible={commentsVisible}
             onCapturePress={handleCapturePress}
             onFlip={handleFlipCamera}
             onToggleMute={handleToggleMute}
+            onToggleComments={handleToggleComments}
             onSendComment={handleSendComment}
             onSendHeart={handleSendHeart}
           />

@@ -487,8 +487,35 @@ portrait-shaped preview under rotated chrome.
 `@capacitor/screen-orientation` (v6, matching the Capacitor 6 stack) must be synced into the native
 projects — this happens automatically via the existing `npm run cap:ios` / `npm run cap:android`
 scripts (they run `cap sync`). iOS relies on the landscape orientations already declared in
-`Info.plist`; no `AppDelegate` change is needed. Device QA on physical iOS/Android is still required
-to confirm the preview re-syncs cleanly on the lock-driven rotation for both orientations.
+`Info.plist`; no `AppDelegate` change is needed. Android's `MainActivity` already declares
+`configChanges="orientation|screenSize|…"`, so the lock rotates the activity **without** recreating
+it (the WebView + broadcast survive the rotation).
+
+---
+
+## Native capture orientation (the buffer must match the aspect)
+
+Locking the interface only fixes the chrome + view geometry. The **encoded/captured buffer** must
+also be landscape, or the preview and stream come out rotated (a portrait buffer squeezed into a
+16:9 frame). The `orientation` selected on the form is passed to `startPreview` **and**
+`startBroadcast` so both the preview and the encode are correct.
+
+**iOS (HaishinKit `MediaMixer`)** — the mixer defaults to `videoOrientation = .portrait`. The plugin
+now calls `mixer.setVideoOrientation(...)` via `applyVideoOrientation()`, mapping the phone's
+physical pose (`UIDevice.current.orientation`) to the capture orientation with the standard
+device→capture landscape inversion. It is re-asserted on every `attachVideo` path (start preview,
+publish/reconnect, camera flip) and on `orientationDidChangeNotification`, which self-corrects the
+lock-vs-preview timing race. `MTHKView` just displays the mixer buffer, so there is no double
+rotation once the buffer itself is landscape.
+
+**Android (RootEncoder `GenericStream`)** — `glInterface.autoHandleOrientation = true` already tracks
+device orientation, and `prepareEncoder` already swaps buffer dimensions + rotation by aspect. The
+gap was that **preview always prepared the portrait tier**; `startPreview` now selects the
+orientation's tier ladder so the preview buffer is landscape too (`ensurePreparedForPreview` uses
+`resolutionTiers[1]`).
+
+Portrait is untouched on both platforms (it is each encoder's default), so there is no regression to
+the existing portrait path.
 
 ---
 

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 
 import { getFullWindowPreviewLayout, shouldSyncPreviewLayout, waitForNextPaint } from '@/features/stream/broadcastCameraUtils';
+import { getStreamOrientation } from '@/lib/utils/liveStreamUtils';
 import {
   requestBroadcastPermissions,
   resetBroadcastSession,
@@ -27,19 +28,25 @@ export function useBroadcastNativePreview({ broadcast, phase, setPhase, onResume
   const initRanRef = useRef(false);
   const previewActiveRef = useRef(false);
 
-  const startPreviewWithRetry = useCallback(async (layout) => {
-    const target = layout ?? getFullWindowPreviewLayout();
-    try {
-      await startBroadcastPreview(target);
-      return;
-    } catch {
-      // Native already retries Camera2 open; one delayed JS retry covers Activity-resume races
-      // after the first permission dialog where the first call still times out.
-      await new Promise((resolve) => window.setTimeout(resolve, 700));
-      await waitForNextPaint();
-      await startBroadcastPreview(getFullWindowPreviewLayout());
-    }
-  }, []);
+  // Orientation drives the native mixer capture orientation so the landscape preview is upright.
+  const orientation = getStreamOrientation({ orientation: broadcast?.orientation });
+
+  const startPreviewWithRetry = useCallback(
+    async (layout) => {
+      const target = layout ?? getFullWindowPreviewLayout();
+      try {
+        await startBroadcastPreview({ ...target, orientation });
+        return;
+      } catch {
+        // Native already retries Camera2 open; one delayed JS retry covers Activity-resume races
+        // after the first permission dialog where the first call still times out.
+        await new Promise((resolve) => window.setTimeout(resolve, 700));
+        await waitForNextPaint();
+        await startBroadcastPreview({ ...getFullWindowPreviewLayout(), orientation });
+      }
+    },
+    [orientation],
+  );
 
   const syncPreviewLayout = useCallback(
     async ({ start = false } = {}) => {

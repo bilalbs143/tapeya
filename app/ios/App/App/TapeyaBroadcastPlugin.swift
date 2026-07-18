@@ -64,6 +64,45 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
 
     public override func load() {
         TapeyaBroadcastPlugin.sharedInstance = self
+        // Needed so `UIDevice.current.orientation` returns a real value when we map the
+        // physical device pose to the capture orientation (see currentVideoOrientation()).
+        UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleDeviceOrientationChange),
+            name: UIDevice.orientationDidChangeNotification,
+            object: nil
+        )
+    }
+
+    // MARK: - Capture orientation
+
+    /**
+     * Re-assert the encode/capture orientation whenever the phone is physically rotated so a
+     * landscape session tracks the device (and self-corrects the lock-vs-preview timing race).
+     */
+    @objc private func handleDeviceOrientationChange() {
+        Task { await self.applyVideoOrientation() }
+    }
+
+    /**
+     * Capture orientation for the active session. Portrait sessions stay `.portrait` (HaishinKit's
+     * default). Landscape sessions follow the phone using the standard device→capture landscape
+     * inversion, defaulting to `.landscapeRight` when the phone is flat / not yet rotated.
+     */
+    @MainActor
+    private func currentVideoOrientation() -> AVCaptureVideoOrientation {
+        guard broadcastOrientation == "landscape" else { return .portrait }
+        switch UIDevice.current.orientation {
+        case .landscapeLeft: return .landscapeRight
+        case .landscapeRight: return .landscapeLeft
+        default: return .landscapeRight
+        }
+    }
+
+    private func applyVideoOrientation() async {
+        let orientation = await MainActor.run { self.currentVideoOrientation() }
+        await mixer.setVideoOrientation(orientation)
     }
 
     // MARK: - Permissions
@@ -85,6 +124,10 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func startPreview(_ call: CAPPluginCall) {
         let frame = frameFromCall(call)
+        // Orientation is known from the go-live form; drives the mixer capture orientation so the
+        // preview (and later the encode) is upright landscape instead of a rotated portrait buffer.
+        let orientation = call.getString("orientation") ?? "portrait"
+        broadcastOrientation = (orientation == "landscape") ? "landscape" : "portrait"
         // Go-live opens on the front camera only the *first* time this session — flip is
         // opt-in via switchCamera. A later startPreview call in the same session (e.g. a
         // layout-resync fallback racing with go-live) must not undo the user's chosen camera.
@@ -106,6 +149,8 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
                 call.reject("Failed to attach camera/microphone: \(error.localizedDescription)")
                 return
             }
+
+            await self.applyVideoOrientation()
 
             await MainActor.run {
                 self.attachPreviewView(frame: frame)
@@ -166,6 +211,8 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
                 try await self.mixer.attachVideo(camera, track: 0) { unit in
                     unit.isVideoMirrored = nextPosition == .front
                 }
+                // Re-attaching video can reset capture orientation — keep landscape upright on flip.
+                await self.applyVideoOrientation()
                 self.currentPosition = nextPosition
                 call.resolve(["switched": true])
             } catch {
@@ -255,6 +302,8 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
 
         // Re-assert the camera the user selected right before publishing, as a safety net.
         try await ensureCameraPosition(currentPosition)
+        // Re-assert capture orientation too — the encode must match the preview the user framed.
+        await applyVideoOrientation()
 
         await mixer.addOutput(stream)
 

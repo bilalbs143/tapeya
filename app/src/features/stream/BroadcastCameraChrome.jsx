@@ -2,6 +2,7 @@ import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
 import {
   BroadcastCaptureButton,
   CameraFacingIcon,
+  ChatIcon,
   FloatingControlButton,
   MicIcon,
 } from '@/features/stream/BroadcastCaptureControls';
@@ -15,11 +16,7 @@ import {
   LIVE_BROADCAST_CONTROLS_OVERLAY_Z,
   LIVE_BROADCAST_HEADER_OVERLAY_Z,
 } from '@/lib/constants/liveBroadcastLayout';
-import {
-  getStreamOrientationLabel,
-  getStreamOrientationOptions,
-  useGetEnumsQuery,
-} from '@/store/api/enumApi';
+import { getStreamOrientationLabel, getStreamOrientationOptions, useGetEnumsQuery } from '@/store/api/enumApi';
 
 const LIVE_SIDE_SLOT = 'flex shrink-0 items-center justify-end gap-2';
 
@@ -37,9 +34,26 @@ function FlipButton({ onClick, facing = 'front' }) {
   );
 }
 
-function LiveSideControls({ cameraFacing, isMuted, onFlip, onToggleMute }) {
+function LiveSideControls({
+  cameraFacing,
+  isMuted,
+  onFlip,
+  onToggleMute,
+  canToggleComments = false,
+  commentsVisible = true,
+  onToggleComments,
+}) {
   return (
     <div className={LIVE_SIDE_SLOT}>
+      {canToggleComments && (
+        <FloatingControlButton
+          onClick={onToggleComments}
+          ariaLabel={commentsVisible ? 'Hide comments' : 'Show comments'}
+          tone={commentsVisible ? 'active' : 'default'}
+        >
+          <ChatIcon off={!commentsVisible} />
+        </FloatingControlButton>
+      )}
       <FlipButton onClick={onFlip} facing={cameraFacing} />
       <FloatingControlButton
         onClick={onToggleMute}
@@ -83,7 +97,9 @@ export function BroadcastCameraHeader({
               </span>
             )}
             {showNetwork && networkLabel && (
-              <span className="rounded-full bg-black/70 px-2 py-1 text-[10px] text-white/80 backdrop-blur-sm">{networkLabel}</span>
+              <span className="rounded-full bg-black/70 px-2 py-1 text-[10px] text-white/80 backdrop-blur-sm">
+                {networkLabel}
+              </span>
             )}
           </div>
           <span
@@ -113,9 +129,11 @@ export function BroadcastCameraControlDock({
   sendCooldown,
   chatEnabled,
   messages,
+  commentsVisible = true,
   onCapturePress,
   onFlip,
   onToggleMute,
+  onToggleComments,
   onSendComment,
   onSendHeart,
 }) {
@@ -132,13 +150,11 @@ export function BroadcastCameraControlDock({
           paddingBottom: 'max(20px, env(safe-area-inset-bottom))',
         }}
       >
-        {isLive && (
-          <div className="pointer-events-none mb-2 w-full">
-            <CommentList messages={messages} />
-          </div>
-        )}
+        <div className="pointer-events-none mb-2 w-full">
+          <CommentList messages={messages} />
+        </div>
 
-        {isLive && (
+        {isLive && commentsVisible && (
           <div className="pointer-events-auto mb-3 w-full">
             <CommentInputRow
               onSend={onSendComment}
@@ -156,7 +172,15 @@ export function BroadcastCameraControlDock({
           <div className="flex justify-end">
             {showSideControls && (
               <div className="pointer-events-auto">
-                <LiveSideControls cameraFacing={cameraFacing} isMuted={isMuted} onFlip={onFlip} onToggleMute={onToggleMute} />
+                <LiveSideControls
+                  cameraFacing={cameraFacing}
+                  isMuted={isMuted}
+                  onFlip={onFlip}
+                  onToggleMute={onToggleMute}
+                  canToggleComments={isLive}
+                  commentsVisible={commentsVisible}
+                  onToggleComments={onToggleComments}
+                />
               </div>
             )}
           </div>

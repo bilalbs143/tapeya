@@ -6,7 +6,6 @@
 **/dist/
 **/.angular/
 app/www/
-app/android/
 app/ios/App/Pods/
 backoffice/.angular/
 

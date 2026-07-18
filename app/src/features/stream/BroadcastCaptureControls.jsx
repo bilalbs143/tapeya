@@ -85,6 +85,29 @@ export function MicIcon({ muted = false }) {
   );
 }
 
+/** Comment feed visibility toggle — slashed bubble when hidden, mirroring MicIcon's muted affordance. */
+export function ChatIcon({ off = false }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M20 11.5a7.5 7.5 0 0 1-10.5 6.86L4 20l1.64-4.9A7.5 7.5 0 1 1 20 11.5Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {off ? (
+        <path d="m4 4 16 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      ) : (
+        <>
+          <path d="M9 11h6" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" opacity="0.85" />
+          <path d="M9 8.5h4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" opacity="0.55" />
+        </>
+      )}
+    </svg>
+  );
+}
+
 export function FloatingControlButton({
   onClick,
   disabled,
