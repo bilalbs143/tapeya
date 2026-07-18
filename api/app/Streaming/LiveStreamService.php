@@ -2,6 +2,7 @@
 
 namespace App\Streaming;
 
+use App\Enums\Streaming\StreamOrientationEnum;
 use App\Events\Broadcast\LiveHubUpdated;
 use App\Events\Broadcast\LiveStreamStatusUpdated;
 use App\Http\Controllers\User\LiveBroadcastController;
@@ -79,7 +80,7 @@ class LiveStreamService
     /**
      * Standalone YouTube RTMP stream (no match) — same provider flow as match-linked streams.
      *
-     * @param  array{title: string, description?: ?string, streaming_url?: ?string, privacy?: string}  $data
+     * @param  array{title: string, description?: ?string, streaming_url?: ?string, privacy?: string, owner_user_id?: ?int, orientation?: string|StreamOrientationEnum}  $data
      */
     public function createStandaloneYoutube(array $data, int $createdBy): MatchStream
     {
@@ -93,11 +94,14 @@ class LiveStreamService
             streamingUrl: $data['streaming_url'] ?? null,
         );
 
+        $orientation = MatchStream::normalizeOrientation($data['orientation'] ?? StreamOrientationEnum::Portrait);
+
         $stream = MatchStream::create([
             'match_id' => null,
             'owner_user_id' => $data['owner_user_id'] ?? null,
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
+            'orientation' => $orientation,
             'streaming_url' => $data['streaming_url'] ?? null,
             'provider' => $providerSlug,
             'status' => 'idle',
@@ -121,10 +125,17 @@ class LiveStreamService
      * the rules that only apply to user-initiated broadcasts: one active stream at a time,
      * always unlisted, always YouTube (never silently falls back to another provider).
      *
+     * @param  StreamOrientationEnum|string  $orientation
+     *
      * @see LiveBroadcastController::store()
+     * @see docs/LIVE_STREAM_ORIENTATION.md
      */
-    public function createSelfServe(int $ownerUserId, string $title, ?string $description): MatchStream
-    {
+    public function createSelfServe(
+        int $ownerUserId,
+        string $title,
+        ?string $description,
+        StreamOrientationEnum|string $orientation = StreamOrientationEnum::Portrait,
+    ): MatchStream {
         $this->assertNoActiveSelfServeStream($ownerUserId);
 
         // Self-serve's entire design (iframe playback, RTMP ingest shape) assumes YouTube.
@@ -140,6 +151,7 @@ class LiveStreamService
             'description' => $description,
             'privacy' => 'unlisted',
             'owner_user_id' => $ownerUserId,
+            'orientation' => MatchStream::normalizeOrientation($orientation),
         ], $ownerUserId);
     }
 

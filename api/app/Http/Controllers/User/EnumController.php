@@ -19,6 +19,7 @@ use App\Enums\Event\PlayersPerSideEnum;
 use App\Enums\Event\ShotPositionEnum;
 use App\Enums\Event\TossChoiceEnum;
 use App\Enums\Stats\StatCategoryEnum;
+use App\Enums\Streaming\StreamOrientationEnum;
 use App\Enums\Tournament\GroupModeEnum;
 use App\Enums\Tournament\TournamentInterestCampaignStatusEnum;
 use App\Enums\Tournament\TournamentInterestSubmissionStatusEnum;
@@ -42,7 +43,7 @@ class EnumController extends Controller
      */
     public function index(): JsonResponse
     {
-        $enums = Cache::remember('user:enums:v11', 600, fn () => $this->buildEnums());
+        $enums = Cache::remember('user:enums:v12', 600, fn () => $this->buildEnums());
 
         return $this->success($enums);
     }
@@ -73,6 +74,7 @@ class EnumController extends Controller
             'batting_style' => $this->toOptions(BattingStyleEnum::cases()),
             'bowling_style' => $this->toOptions(BowlingStyleEnum::cases()),
             'playing_role' => $this->toOptions(PlayingRoleEnum::cases()),
+            'stream_orientation' => $this->toStreamOrientationOptions(StreamOrientationEnum::cases()),
             'tournament_interest_campaign_status' => $this->toOptions(TournamentInterestCampaignStatusEnum::cases()),
             'tournament_interest_submission_status' => $this->toOptions(TournamentInterestSubmissionStatusEnum::cases()),
         ];
@@ -90,6 +92,25 @@ class EnumController extends Controller
             $options[] = [
                 'value' => $case->value,
                 'label' => method_exists($case, 'label') ? $case->label() : $case->value,
+            ];
+        }
+
+        return $options;
+    }
+
+    /**
+     * @param  array<int, StreamOrientationEnum>  $cases
+     * @return array<int, array{value: string, label: string, hint: string}>
+     */
+    private function toStreamOrientationOptions(array $cases): array
+    {
+        $options = [];
+
+        foreach ($cases as $case) {
+            $options[] = [
+                'value' => $case->value,
+                'label' => $case->label(),
+                'hint' => $case->hint(),
             ];
         }
 

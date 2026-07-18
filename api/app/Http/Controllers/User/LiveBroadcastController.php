@@ -4,12 +4,14 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
+use App\Enums\Streaming\StreamOrientationEnum;
 use App\Models\MatchStream;
 use App\Streaming\LiveStreamService;
 use App\Streaming\StreamProviderManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 /**
  * Self-serve mobile broadcast lifecycle — create, reconnect, end, and thumbnail management
@@ -46,12 +48,14 @@ class LiveBroadcastController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:100'],
             'description' => ['nullable', 'string', 'max:500'],
+            'orientation' => ['sometimes', Rule::enum(StreamOrientationEnum::class)],
         ]);
 
         $stream = $this->service->createSelfServe(
             (int) $user->id,
             $validated['title'],
             $validated['description'] ?? null,
+            StreamOrientationEnum::normalize($validated['orientation'] ?? StreamOrientationEnum::Portrait),
         );
 
         $ingest = $this->manager->driver($stream->provider)->ingestConfig($stream);
@@ -60,6 +64,7 @@ class LiveBroadcastController extends Controller
             'stream_id' => $stream->id,
             'rtmp_url' => $ingest->rtmpUrl,
             'stream_key' => $ingest->streamKey,
+            'orientation' => $stream->resolvedOrientation(),
         ], 'Broadcast created.', 'CREATED');
     }
 
@@ -79,6 +84,7 @@ class LiveBroadcastController extends Controller
             'rtmp_url' => $ingest->rtmpUrl,
             'stream_key' => $ingest->streamKey,
             'status' => $stream->status,
+            'orientation' => $stream->resolvedOrientation(),
         ]);
     }
 

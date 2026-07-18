@@ -6,12 +6,12 @@
  * - Match-linked: classic chrome (navbar + bottom nav) + 16:9 portrait player, always.
  * - Self-serve mobile, before/after playback (idle/starting/ended): same classic chrome
  *   + 16:9 player as match-linked — no special-casing.
- * - Self-serve mobile, during playback (status === 'live'): hero mode — video expands from
- *   viewport top to just above the bottom nav; navbar becomes a transparent overlay on top
- *   of the video (same pattern as the Hero Banner on /upcoming-tournaments/:id); bottom nav
- *   stays visible throughout.
- * - Landscape (phones): immersive overlay for both types — unaffected by hero mode, and
- *   already disabled entirely for self-serve streams.
+ * - Self-serve mobile portrait, during playback (status === 'live'): hero mode — video expands
+ *   from viewport top to just above the bottom nav; navbar becomes a transparent overlay on top
+ *   of the video; bottom nav stays visible throughout.
+ * - Self-serve mobile landscape (orientation === 'landscape'): match-like 16:9 + landscape
+ *   rotate toggle allowed (docs/LIVE_STREAM_ORIENTATION.md).
+ * - Landscape (phones): immersive overlay for match and landscape self-serve.
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -38,7 +38,8 @@ import {
   LIVE_BROADCAST_SHELL_HEIGHT,
   LIVE_BROADCAST_SHELL_HEIGHT_DESKTOP,
 } from '@/lib/constants/liveBroadcastLayout';
-import { isSelfServeLiveBroadcast } from '@/lib/utils/liveStreamUtils';
+import { getStreamOrientation, isSelfServeLiveBroadcast } from '@/lib/utils/liveStreamUtils';
+import { getStreamOrientationOptions, useGetEnumsQuery } from '@/store/api/enumApi';
 import { useGetLiveStreamQuery } from '@/store/api/liveApi';
 
 import LiveBroadcastItem from './LiveBroadcastItem';
@@ -63,12 +64,18 @@ export default function LiveBroadcast() {
   const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY);
 
   const { data: broadcast, isError, refetch } = useGetLiveStreamQuery(streamId, { skip: !streamId });
+  const { data: enums = {} } = useGetEnumsQuery();
 
   const streamStatus = broadcast?.stream?.status;
   const presenceEnabled = streamStatus === 'live' || streamStatus === 'starting';
   const isSelfServe = isSelfServeLiveBroadcast(broadcast);
-  /** Hero mode — self-serve mobile, only while actually live; match streams never qualify. */
-  const heroMode = Boolean(broadcast) && isSelfServe && !isDesktop && streamStatus === 'live';
+  const orientation = getStreamOrientation(broadcast);
+  const orientationOptions = getStreamOrientationOptions(enums);
+  // Portrait is the first StreamOrientationEnum case — hero only for that value.
+  const portraitValue = orientationOptions[0]?.value;
+  const isPortraitSelfServe = Boolean(isSelfServe && portraitValue && orientation === portraitValue);
+  /** Hero mode — portrait self-serve mobile only while live; landscape self-serve uses match-like 16:9. */
+  const heroMode = Boolean(broadcast) && isPortraitSelfServe && !isDesktop && streamStatus === 'live';
 
   useEffect(() => {
     // Wait until the stream payload is known so match streams don't briefly hide chrome.
@@ -89,14 +96,14 @@ export default function LiveBroadcast() {
   }, [streamId]);
 
   const toggleLandscape = useCallback(() => {
-    // Self-serve go-live watch stays portrait — no landscape / fullscreen toggle.
-    if (isSelfServe) return;
+    // Portrait self-serve go-live stays portrait-only; landscape self-serve + match can rotate.
+    if (isPortraitSelfServe) return;
     setIsLandscape((prev) => !prev);
-  }, [isSelfServe]);
+  }, [isPortraitSelfServe]);
 
   useEffect(() => {
-    if (isSelfServe) setIsLandscape(false);
-  }, [isSelfServe]);
+    if (isPortraitSelfServe) setIsLandscape(false);
+  }, [isPortraitSelfServe]);
 
   const isMobileLandscape = isMobile && isLandscape;
   const immersiveMobileLandscape = isLandscape && !isDesktop;
@@ -178,7 +185,7 @@ export default function LiveBroadcast() {
             headerSlot={overlayHeaderSlot}
             statusHeaderSlot={centeredStatusContent}
             fillPortrait={heroMode}
-            selfServeChrome={isSelfServe}
+            selfServeChrome={isPortraitSelfServe}
           />
         )}
       </div>

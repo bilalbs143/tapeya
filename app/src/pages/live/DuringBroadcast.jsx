@@ -20,6 +20,7 @@ import {
 import { FloatingHeartsOverlay } from '@/features/stream/FloatingHeartsOverlay';
 import { useBroadcastCameraUnderlay } from '@/features/stream/hooks/useBroadcastCameraUnderlay';
 import { useBroadcastNativePreview } from '@/features/stream/hooks/useBroadcastNativePreview';
+import { useBroadcastOrientationLock } from '@/features/stream/hooks/useBroadcastOrientationLock';
 import { useFloatingHearts } from '@/features/stream/hooks/useFloatingHearts';
 import { useLiveStreamChannel } from '@/features/stream/hooks/useLiveStreamChannel';
 import { useStreamComments } from '@/features/stream/hooks/useStreamComments';
@@ -28,6 +29,7 @@ import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { LIVE_BROADCAST_IMMERSIVE_HEIGHT } from '@/lib/constants/liveBroadcastLayout';
 import { getInitials } from '@/lib/utils/displayUtils';
+import { getStreamOrientation } from '@/lib/utils/liveStreamUtils';
 import { mapSystemSettingsByKey } from '@/lib/utils/settingsUtils';
 import {
   onBroadcastStateChanged,
@@ -39,6 +41,7 @@ import {
   switchBroadcastCamera,
 } from '@/native/tapeyaBroadcast';
 import { isNative } from '@/platform/platform';
+import { getStreamOrientationOptions, useGetEnumsQuery } from '@/store/api/enumApi';
 import {
   useEndBroadcastMutation,
   useGetBroadcastQuery,
@@ -93,6 +96,7 @@ export default function DuringBroadcast({ streamId }) {
     skip: sessionFinished,
   });
   const { data: settingsRows } = useGetPublicSystemSettingsQuery();
+  const { data: enums = {} } = useGetEnumsQuery();
   const settingsByKey = useMemo(() => mapSystemSettingsByKey(settingsRows), [settingsRows]);
   const liveChatGloballyEnabled = settingsByKey.live_chat_enabled !== '0';
   const [endBroadcastMutation] = useEndBroadcastMutation();
@@ -161,6 +165,7 @@ export default function DuringBroadcast({ streamId }) {
         await startBroadcast({
           rtmpUrl: broadcastData.rtmp_url,
           streamKey: broadcastData.stream_key,
+          orientation: getStreamOrientation(broadcastData),
           maxDurationSeconds: SELF_SERVE_MAX_DURATION_SECONDS,
           streamId,
         });
@@ -361,6 +366,35 @@ export default function DuringBroadcast({ streamId }) {
     navigate(-1);
   }, [shouldConfirmEndOnLeave, navigate]);
 
+  const streamOrientation = getStreamOrientation({
+    orientation: broadcast?.orientation ?? publicBroadcast?.orientation,
+  });
+  const orientationOptions = getStreamOrientationOptions(enums);
+  // Landscape is the second StreamOrientationEnum case (after portrait).
+  const landscapeValue = orientationOptions[1]?.value;
+  const isLandscapeStream = Boolean(landscapeValue && streamOrientation === landscapeValue);
+
+  // Native hard-lock: rotate the whole view (WebView chrome + native camera preview) to match the
+  // selected orientation. `orientationLocked` is false on web / when the plugin is unavailable, in
+  // which case we fall back to the coach-mark nudge below.
+  const orientationLocked = useBroadcastOrientationLock({ orientation: streamOrientation });
+
+  const [needsLandscapeRotate, setNeedsLandscapeRotate] = useState(false);
+  useEffect(() => {
+    if (!isLandscapeStream || orientationLocked || typeof window === 'undefined') {
+      setNeedsLandscapeRotate(false);
+      return undefined;
+    }
+    const sync = () => setNeedsLandscapeRotate(window.innerHeight > window.innerWidth);
+    sync();
+    window.addEventListener('resize', sync, { passive: true });
+    window.addEventListener('orientationchange', sync, { passive: true });
+    return () => {
+      window.removeEventListener('resize', sync);
+      window.removeEventListener('orientationchange', sync);
+    };
+  }, [isLandscapeStream, orientationLocked]);
+
   // Prefer ended UI over query errors — ending invalidates getBroadcast and the API returns 410.
   if (phase === 'ended') {
     if (endReason === 'backgrounded') {
@@ -498,7 +532,19 @@ export default function DuringBroadcast({ streamId }) {
             showNetwork={Boolean(networkQuality && isLivePhase)}
             presenceEnabled={presenceEnabled}
             viewerCount={viewerCount}
+            orientation={streamOrientation}
           />
+          {needsLandscapeRotate && landscapeValue && (
+            <div
+              className="pointer-events-none absolute top-[88px] right-4 left-4 z-20 flex justify-center"
+              role="status"
+              aria-live="polite"
+            >
+              <p className="rounded-full bg-black/80 px-3 py-2 text-center text-[11px] font-semibold tracking-wide text-white backdrop-blur-sm">
+                Rotate your phone sideways for {orientationOptions.find((o) => o.value === landscapeValue)?.label ?? 'landscape'}
+              </p>
+            </div>
+          )}
           <BroadcastCameraControlDock
             phase={phase}
             captureMode={captureMode}

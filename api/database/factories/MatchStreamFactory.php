@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Streaming\StreamOrientationEnum;
 use App\Models\MatchStream;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -23,6 +24,7 @@ class MatchStreamFactory extends Factory
             'match_id' => null,
             'title' => $this->faker->sentence(3),
             'description' => $this->faker->optional()->sentence(),
+            'orientation' => StreamOrientationEnum::Portrait,
             'streaming_url' => 'https://example.com/stream/'.Str::random(8),
             'provider' => 'external',
             'status' => 'idle',

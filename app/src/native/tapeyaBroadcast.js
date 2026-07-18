@@ -58,7 +58,8 @@ export async function setBroadcastMuted(muted) {
 }
 
 /**
- * @param {{ rtmpUrl: string, streamKey: string, resolution?: '720p'|'1080p', maxDurationSeconds?: number, streamId?: string|number }} options
+ * @param {{ rtmpUrl: string, streamKey: string, orientation?: 'portrait'|'landscape', resolution?: '720p'|'1080p', maxDurationSeconds?: number, streamId?: string|number }} options
+ * `orientation` selects portrait 9:16 vs landscape 16:9 encode tiers (docs/LIVE_STREAM_ORIENTATION.md).
  * `streamId` is Android-only — used as the deep-link target for the "You're live" foreground-service notification.
  */
 export async function startBroadcast(options) {

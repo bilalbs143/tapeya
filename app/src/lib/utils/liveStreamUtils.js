@@ -229,6 +229,19 @@ export function isSelfServeLiveBroadcast(broadcast) {
 }
 
 /**
+ * Self-serve Go Live encode/viewer aspect from the stream payload (API StreamOrientationEnum value).
+ * Missing / legacy rows resolve to portrait — the API column default.
+ *
+ * @param {object | null | undefined} broadcast — live stream or owner broadcast payload
+ * @returns {string}
+ * @see docs/LIVE_STREAM_ORIENTATION.md
+ */
+export function getStreamOrientation(broadcast) {
+  const value = broadcast?.orientation;
+  return typeof value === 'string' && value.length > 0 ? value : 'portrait';
+}
+
+/**
  * Normalise GET /live/matches rows for Live hub UI.
  *
  * @param {Array<object>} [streams]

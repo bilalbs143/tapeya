@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Casts\AsFile;
+use App\Enums\Streaming\StreamOrientationEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
 use App\Streaming\Support\StreamUrlPlayback;
 use App\Streaming\Support\YouTubeEmbedUrl;
@@ -17,6 +18,7 @@ class MatchStream extends BaseModel
         'owner_user_id',
         'title',
         'description',
+        'orientation',
         'streaming_url',
         'stream_thumbnail',
         'provider',
@@ -41,6 +43,7 @@ class MatchStream extends BaseModel
     protected function casts(): array
     {
         return [
+            'orientation' => StreamOrientationEnum::class,
             'provider_metadata' => 'array',
             'stream_thumbnail' => AsFile::class.':match-stream-thumbnails,false,media',
             'started_at' => 'datetime',
@@ -71,6 +74,33 @@ class MatchStream extends BaseModel
     public function isSelfServe(): bool
     {
         return $this->owner_user_id !== null;
+    }
+
+    /**
+     * Normalize Go Live aspect (API string, enum, or junk → enum).
+     *
+     * @see docs/LIVE_STREAM_ORIENTATION.md
+     */
+    public static function normalizeOrientation(mixed $value): StreamOrientationEnum
+    {
+        return StreamOrientationEnum::normalize($value);
+    }
+
+    /**
+     * Encode / viewer aspect for self-serve Go Live (API string value).
+     * Column wins; provider_metadata.orientation is a fallback for spike/manual rows.
+     *
+     * @see docs/LIVE_STREAM_ORIENTATION.md
+     */
+    public function resolvedOrientation(): string
+    {
+        if ($this->orientation instanceof StreamOrientationEnum) {
+            return $this->orientation->value;
+        }
+
+        $fallback = $this->provider_metadata['orientation'] ?? null;
+
+        return StreamOrientationEnum::normalize($fallback)->value;
     }
 
     /**

@@ -109,10 +109,65 @@ class SelfServeBroadcastTest extends TestCase
             'owner_user_id' => $user->id,
             'provider' => 'youtube',
             'title' => 'Tapeya Launch Event',
+            'orientation' => 'portrait',
         ]);
+
+        $this->assertSame('portrait', $response->json('data.orientation'));
 
         // Never public — see "Ingest & playback provider" in the design doc.
         $this->assertSame('unlisted', $this->fakeProvider->lastCreateData->privacy);
+    }
+
+    public function test_store_defaults_orientation_to_portrait_when_omitted(): void
+    {
+        $user = $this->eligibleUser();
+
+        $response = $this->actingAs($user, 'api')
+            ->postJson('/api/v1/live/broadcasts', ['title' => 'Default Orientation'])
+            ->assertCreated();
+
+        $this->assertSame('portrait', $response->json('data.orientation'));
+        $this->assertDatabaseHas('match_streams', [
+            'id' => $response->json('data.stream_id'),
+            'orientation' => 'portrait',
+        ]);
+    }
+
+    public function test_store_persists_landscape_orientation(): void
+    {
+        $user = $this->eligibleUser();
+
+        $response = $this->actingAs($user, 'api')
+            ->postJson('/api/v1/live/broadcasts', [
+                'title' => 'Wide Stream',
+                'orientation' => 'landscape',
+            ])
+            ->assertCreated();
+
+        $streamId = $response->json('data.stream_id');
+        $this->assertSame('landscape', $response->json('data.orientation'));
+        $this->assertDatabaseHas('match_streams', [
+            'id' => $streamId,
+            'orientation' => 'landscape',
+        ]);
+
+        $this->actingAs($user, 'api')
+            ->getJson("/api/v1/live/broadcasts/{$streamId}")
+            ->assertOk()
+            ->assertJsonPath('data.orientation', 'landscape');
+    }
+
+    public function test_store_rejects_invalid_orientation(): void
+    {
+        $user = $this->eligibleUser();
+
+        $this->actingAs($user, 'api')
+            ->postJson('/api/v1/live/broadcasts', [
+                'title' => 'Bad Orientation',
+                'orientation' => 'square',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['orientation']);
     }
 
     public function test_second_concurrent_broadcast_rejected_while_live(): void

@@ -1,8 +1,8 @@
 import { baseApi } from './baseApi';
 
 /**
- * Enum API – options for app forms (tournament, profile, etc.).
- * GET /enums is public; response shape: { data: { tournament_type, cricket_format, match_timings, batting_style, bowling_style, ... } }.
+ * Enum API – options for app forms (tournament, profile, go-live, etc.).
+ * GET /enums is public; response shape: { data: { tournament_type, stream_orientation, ... } }.
  */
 export const enumApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -14,6 +14,29 @@ export const enumApi = baseApi.injectEndpoints({
 });
 
 export const { useGetEnumsQuery } = enumApi;
+
+/** @param {object|undefined} enums — GET /enums payload */
+export function getStreamOrientationOptions(enums) {
+  return Array.isArray(enums?.stream_orientation) ? enums.stream_orientation : [];
+}
+
+/**
+ * Radio / picker rows from GET /enums → stream_orientation.
+ * @param {Array<{ value: string, label: string, hint?: string }>} [options]
+ */
+export function toGoLiveOrientationPickerOptions(options = []) {
+  return (Array.isArray(options) ? options : []).map((opt) => ({
+    value: opt.value,
+    label: opt.hint ? `${opt.label} — ${opt.hint}` : opt.label,
+  }));
+}
+
+/** Same pattern as getPlayingRoleLabel — label comes from GET /enums options. */
+export function getStreamOrientationLabel(value, options = []) {
+  if (!value) return '—';
+  const opt = (options || []).find((o) => o.value === value);
+  return opt ? opt.label : value;
+}
 
 export function usePlayerProfileEnums() {
   const { data: enums = {}, isLoading } = useGetEnumsQuery();

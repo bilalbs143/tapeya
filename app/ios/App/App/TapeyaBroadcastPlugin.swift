@@ -55,6 +55,12 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
     private var lastRtmpUrl: String?
     private var lastStreamKey: String?
     private var bitrateStrategy: TapeyaBroadcastBitRateStrategy?
+    /** Encode aspect for the current publish session — portrait 9:16 (default) or landscape 16:9. */
+    private var broadcastOrientation: String = "portrait"
+    /** Starting quality tier within the orientation ladder (0 = 1080p, 1 = 720p). */
+    private var broadcastStartTierIndex: Int = 0
+    /** Active quality tier — updated on step-down so reconnect does not jump back to 1080p. */
+    private var broadcastActiveTierIndex: Int = 0
 
     public override func load() {
         TapeyaBroadcastPlugin.sharedInstance = self
@@ -190,6 +196,12 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
         let maxDurationSeconds = call.getDouble("maxDurationSeconds") ?? 7200
+        let orientation = call.getString("orientation") ?? "portrait"
+        broadcastOrientation = (orientation == "landscape") ? "landscape" : "portrait"
+        let resolutionLabel = call.getString("resolution")
+        let startTierIndex = (resolutionLabel == "720p") ? 1 : 0
+        broadcastStartTierIndex = startTierIndex
+        broadcastActiveTierIndex = startTierIndex
 
         lastRtmpUrl = rtmpUrl
         lastStreamKey = streamKey
@@ -246,17 +258,30 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
 
         await mixer.addOutput(stream)
 
-        let strategy = TapeyaBroadcastBitRateStrategy { [weak self] bitrateKbps, fps, droppedFrames, networkQuality in
-            self?.notifyListeners("broadcastStats", data: [
-                "bitrateKbps": bitrateKbps,
-                "fps": fps,
-                "droppedFrames": droppedFrames,
-                "networkQuality": networkQuality,
-            ])
-        }
+        let strategy = TapeyaBroadcastBitRateStrategy(
+            orientation: self.broadcastOrientation,
+            startTierIndex: self.broadcastActiveTierIndex,
+            floorTierIndex: self.broadcastStartTierIndex,
+            onStats: { [weak self] bitrateKbps, fps, droppedFrames, networkQuality in
+                self?.notifyListeners("broadcastStats", data: [
+                    "bitrateKbps": bitrateKbps,
+                    "fps": fps,
+                    "droppedFrames": droppedFrames,
+                    "networkQuality": networkQuality,
+                ])
+            },
+            onTierIndexChanged: { [weak self] index in
+                self?.broadcastActiveTierIndex = index
+            }
+        )
         bitrateStrategy = strategy
         await stream.setBitrateStorategy(strategy)
-        await stream.setVideoSettings(Self.initialVideoSettings())
+        await stream.setVideoSettings(
+            Self.initialVideoSettings(
+                orientation: self.broadcastOrientation,
+                startTierIndex: self.broadcastActiveTierIndex
+            )
+        )
 
         observeConnectionStatus(connection)
         observeStreamStatus(stream)
@@ -286,11 +311,13 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
         connection = nil
     }
 
-    private static func initialVideoSettings() -> VideoCodecSettings {
-        // Portrait encode to match full-bleed go-live UI (Android uses 1080×1920).
-        VideoCodecSettings(
-            videoSize: CGSize(width: 1080, height: 1920),
-            bitRate: 2_500_000
+    private static func initialVideoSettings(orientation: String, startTierIndex: Int = 0) -> VideoCodecSettings {
+        let tiers = TapeyaBroadcastBitRateStrategy.tiers(for: orientation)
+        let index = min(max(startTierIndex, 0), tiers.count - 1)
+        let tier = tiers[index]
+        return VideoCodecSettings(
+            videoSize: CGSize(width: tier.width, height: tier.height),
+            bitRate: tier.bitRate
         )
     }
 
@@ -338,7 +365,7 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
             notifyListeners("broadcastStateChanged", data: ["state": "error", "reason": "bad_name"])
         case RTMPStream.Code.unpublishSuccess.rawValue:
             break // expected on our own stopBroadcast()/teardownConnection()
-        case RTMPStream.Code.connectClosed.rawValue,
+        case  q216qRTMPStream.Code.connectClosed.rawValue,
              RTMPStream.Code.connectFailed.rawValue,
              RTMPStream.Code.failed.rawValue:
             handleUnexpectedDisconnect()
@@ -509,19 +536,31 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
  * HaishinKit's built-in `HKStreamVideoAdaptiveBitRateStrategy` only lowers bitRate/frameInterval —
  * the spec wants resolution step-down after ~10s of poor network. This strategy listens to
  * `NetworkMonitorEvent` (fired ~1 Hz while publishing) and emits `broadcastStats` to JS.
+ *
+ * Tier tables are orientation-aware (portrait 9:16 vs landscape 16:9) — see LIVE_STREAM_ORIENTATION.md.
  */
 private final actor TapeyaBroadcastBitRateStrategy: HKStreamBitRateStrategy {
-    private struct Tier: Sendable {
+    struct Tier: Sendable {
         let width: Double
         let height: Double
         let bitRate: Int
     }
 
-    private static let tiers: [Tier] = [
+    private static let portraitTiers: [Tier] = [
         .init(width: 1080, height: 1920, bitRate: 2_500_000),
         .init(width: 720, height: 1280, bitRate: 1_500_000),
         .init(width: 480, height: 854, bitRate: 640_000),
     ]
+
+    private static let landscapeTiers: [Tier] = [
+        .init(width: 1920, height: 1080, bitRate: 2_500_000),
+        .init(width: 1280, height: 720, bitRate: 1_500_000),
+        .init(width: 854, height: 480, bitRate: 640_000),
+    ]
+
+    static func tiers(for orientation: String) -> [Tier] {
+        orientation == "landscape" ? landscapeTiers : portraitTiers
+    }
 
     private static let poorWindowSeconds: TimeInterval = 10
     private static let queuePoorThreshold = 64 * 1024
@@ -529,21 +568,35 @@ private final actor TapeyaBroadcastBitRateStrategy: HKStreamBitRateStrategy {
     let mamimumVideoBitRate: Int
     let mamimumAudioBitRate: Int
 
+    private let tiers: [Tier]
+    private let floorTierIndex: Int
     private var tierIndex = 0
     private var poorSince: Date?
     private var lastQuality = "good"
     private var insufficientBWEvents = 0
 
     private let onStats: @Sendable (Int, Int, Int, String) -> Void
+    private let onTierIndexChanged: @Sendable (Int) -> Void
 
     init(
+        orientation: String = "portrait",
+        startTierIndex: Int = 0,
+        floorTierIndex: Int = 0,
         maxVideoBitRate: Int = 2_500_000,
         maxAudioBitRate: Int = 128_000,
-        onStats: @escaping @Sendable (Int, Int, Int, String) -> Void
+        onStats: @escaping @Sendable (Int, Int, Int, String) -> Void,
+        onTierIndexChanged: @escaping @Sendable (Int) -> Void = { _ in }
     ) {
+        let resolvedTiers = Self.tiers(for: orientation)
+        let clampedStart = min(max(startTierIndex, 0), resolvedTiers.count - 1)
+        let clampedFloor = min(max(floorTierIndex, 0), resolvedTiers.count - 1)
+        self.tiers = resolvedTiers
+        self.floorTierIndex = clampedFloor
+        self.tierIndex = clampedStart
         self.mamimumVideoBitRate = maxVideoBitRate
         self.mamimumAudioBitRate = maxAudioBitRate
         self.onStats = onStats
+        self.onTierIndexChanged = onTierIndexChanged
     }
 
     func adjustBitrate(_ event: NetworkMonitorEvent, stream: some HKStream) async {
@@ -558,16 +611,17 @@ private final actor TapeyaBroadcastBitRateStrategy: HKStreamBitRateStrategy {
             await evaluatePoorWindow(stream: stream)
             await emitStats(stream: stream, report: report)
         case .reset:
-            tierIndex = 0
+            tierIndex = floorTierIndex
             poorSince = nil
             lastQuality = "good"
             insufficientBWEvents = 0
-            await applyTier(Self.tiers[0], to: stream)
+            onTierIndexChanged(tierIndex)
+            await applyTier(tiers[tierIndex], to: stream)
         }
     }
 
     private func updateQuality(report: NetworkMonitorReport, insufficient: Bool) {
-        let target = Self.tiers[tierIndex].bitRate
+        let target = tiers[tierIndex].bitRate
         let actual = report.currentBytesOutPerSecond * 8
 
         if insufficient || report.currentQueueBytesOut > Self.queuePoorThreshold {
@@ -592,12 +646,13 @@ private final actor TapeyaBroadcastBitRateStrategy: HKStreamBitRateStrategy {
         }
 
         guard let since = poorSince, Date().timeIntervalSince(since) >= Self.poorWindowSeconds else { return }
-        guard tierIndex < Self.tiers.count - 1 else { return }
+        guard tierIndex < tiers.count - 1 else { return }
 
         tierIndex += 1
         poorSince = nil
         insufficientBWEvents = 0
-        await applyTier(Self.tiers[tierIndex], to: stream)
+        onTierIndexChanged(tierIndex)
+        await applyTier(tiers[tierIndex], to: stream)
     }
 
     private func applyTier(_ tier: Tier, to stream: some HKStream) async {

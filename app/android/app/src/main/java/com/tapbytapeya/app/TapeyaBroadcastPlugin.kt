@@ -83,21 +83,25 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
 
     private data class Resolution(val width: Int, val height: Int, val videoBitrate: Int)
 
-  private val resolutionTiers = listOf(
+  private val portraitResolutionTiers = listOf(
         Resolution(1080, 1920, 2_500_000),
         Resolution(720, 1280, 1_500_000),
         Resolution(480, 854, 640_000),
     )
 
-    private val resolutions = mapOf(
-        "720p" to resolutionTiers[1],
-        "1080p" to resolutionTiers[0],
+    private val landscapeResolutionTiers = listOf(
+        Resolution(1920, 1080, 2_500_000),
+        Resolution(1280, 720, 1_500_000),
+        Resolution(854, 480, 640_000),
     )
+
+    /** Active encode ladder for the current publish session (portrait default). */
+    private var resolutionTiers = portraitResolutionTiers
 
     private var stream: StreamBase? = null
     private var previewView: SurfaceView? = null
     private var bitrateAdapter: BitrateAdapter? = null
-    private var targetVideoBitrate = resolutionTiers[0].videoBitrate
+    private var targetVideoBitrate = portraitResolutionTiers[0].videoBitrate
     private var currentTierIndex = 0
     private var poorSinceMs: Long? = null
     private var lastFps = 0
@@ -577,7 +581,8 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
     private fun ensurePreparedForPreview(stream: StreamBase): Boolean {
         if (encodersPrepared) return true
         if (stream.isStreaming || stream.isOnPreview) return true
-        return prepareEncoder(stream, resolutionTiers[1])
+        // Preview prepare uses portrait mid-tier; publish swaps tiers in startBroadcast.
+        return prepareEncoder(stream, portraitResolutionTiers[1])
     }
 
     /** Release and rebuild GenericStream after a failed publish so preview can start again. */
@@ -647,7 +652,13 @@ class TapeyaBroadcastPlugin : Plugin(), ConnectChecker {
             return
         }
         val maxDurationSeconds = call.getDouble("maxDurationSeconds") ?: 7200.0
-        val resolution = resolutions[call.getString("resolution")] ?: resolutionTiers[0]
+        val orientation = call.getString("orientation") ?: "portrait"
+        resolutionTiers = if (orientation == "landscape") landscapeResolutionTiers else portraitResolutionTiers
+        val resolutionByLabel = mapOf(
+            "720p" to resolutionTiers[1],
+            "1080p" to resolutionTiers[0],
+        )
+        val resolution = resolutionByLabel[call.getString("resolution")] ?: resolutionTiers[0]
         currentTierIndex = resolutionTiers.indexOf(resolution).coerceAtLeast(0)
         poorSinceMs = null
 

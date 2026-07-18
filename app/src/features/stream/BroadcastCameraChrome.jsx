@@ -15,6 +15,11 @@ import {
   LIVE_BROADCAST_CONTROLS_OVERLAY_Z,
   LIVE_BROADCAST_HEADER_OVERLAY_Z,
 } from '@/lib/constants/liveBroadcastLayout';
+import {
+  getStreamOrientationLabel,
+  getStreamOrientationOptions,
+  useGetEnumsQuery,
+} from '@/store/api/enumApi';
 
 const LIVE_SIDE_SLOT = 'flex shrink-0 items-center justify-end gap-2';
 
@@ -57,7 +62,11 @@ export function BroadcastCameraHeader({
   showNetwork,
   presenceEnabled,
   viewerCount,
+  orientation,
 }) {
+  const { data: enums = {} } = useGetEnumsQuery();
+  const orientationLabel = getStreamOrientationLabel(orientation, getStreamOrientationOptions(enums));
+
   return (
     <div className={LIVE_BROADCAST_CAMERA_HEADER_CLASS} style={{ zIndex: LIVE_BROADCAST_HEADER_OVERLAY_Z }}>
       <div
@@ -65,16 +74,25 @@ export function BroadcastCameraHeader({
         style={{ paddingTop: LIVE_BROADCAST_CAMERA_HEADER_TOP }}
       >
         <AppSubpageBackButton onClick={onBack} aria-label="Back" />
-        <div className="flex min-w-0 flex-1 flex-wrap items-center justify-center gap-2">
-          {statusKey && <LiveStatusBadge status={statusKey} label={statusLabel} />}
-          {showTimer && (
-            <span className="inline-flex items-center rounded-full bg-black/70 px-2.5 py-1 text-[11px] font-bold tracking-wide text-white tabular-nums backdrop-blur-sm">
-              {elapsed}
-            </span>
-          )}
-          {showNetwork && networkLabel && (
-            <span className="rounded-full bg-black/70 px-2 py-1 text-[10px] text-white/80 backdrop-blur-sm">{networkLabel}</span>
-          )}
+        <div className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
+          <div className="flex min-w-0 flex-wrap items-center justify-center gap-2">
+            {statusKey && <LiveStatusBadge status={statusKey} label={statusLabel} />}
+            {showTimer && (
+              <span className="inline-flex items-center rounded-full bg-black/70 px-2.5 py-1 text-[11px] font-bold tracking-wide text-white tabular-nums backdrop-blur-sm">
+                {elapsed}
+              </span>
+            )}
+            {showNetwork && networkLabel && (
+              <span className="rounded-full bg-black/70 px-2 py-1 text-[10px] text-white/80 backdrop-blur-sm">{networkLabel}</span>
+            )}
+          </div>
+          <span
+            className="inline-flex items-center gap-1.5 rounded-full bg-black/75 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-white backdrop-blur-sm"
+            aria-label={`Selected orientation: ${orientationLabel}`}
+          >
+            <span className="bg-brand h-1.5 w-1.5 shrink-0 rounded-full" aria-hidden />
+            {orientationLabel}
+          </span>
         </div>
         <div className="flex h-7 min-w-7 shrink-0 items-center justify-end">
           {presenceEnabled ? <LiveViewerCountBadge viewerCount={viewerCount} /> : <span className="h-7 w-7" aria-hidden />}

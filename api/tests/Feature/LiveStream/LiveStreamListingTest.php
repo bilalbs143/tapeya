@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\LiveStream;
 
+use App\Enums\Streaming\StreamOrientationEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
 use App\Models\MatchStream;
 use App\Models\User;
@@ -100,7 +101,26 @@ class LiveStreamListingTest extends TestCase
             ->getJson("/api/v1/live/streams/{$stream->id}")
             ->assertOk()
             ->assertJsonPath('data.is_self_serve', true)
+            ->assertJsonPath('data.orientation', 'portrait')
             ->assertJsonPath('data.broadcaster.id', $owner->id);
+    }
+
+    public function test_show_exposes_landscape_orientation_for_self_serve_streams(): void
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create();
+        $stream = MatchStream::factory()->create([
+            'owner_user_id' => $owner->id,
+            'orientation' => StreamOrientationEnum::Landscape,
+            'status' => 'live',
+            'started_at' => now(),
+            'streaming_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        ]);
+
+        $this->actingAs($viewer, 'api')
+            ->getJson("/api/v1/live/streams/{$stream->id}")
+            ->assertOk()
+            ->assertJsonPath('data.orientation', 'landscape');
     }
 
     public function test_comment_on_standalone_stream(): void

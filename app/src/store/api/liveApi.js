@@ -47,11 +47,15 @@ export const liveApi = baseApi.injectEndpoints({
       invalidatesTags: ['User'],
     }),
     createBroadcast: builder.mutation({
-      query: ({ title, description }) => ({
-        url: '/live/broadcasts',
-        method: 'POST',
-        body: { title, description },
-      }),
+      query: ({ title, description, orientation }) => {
+        const body = { title, description };
+        if (orientation) body.orientation = orientation;
+        return {
+          url: '/live/broadcasts',
+          method: 'POST',
+          body,
+        };
+      },
       transformResponse: (response) => response?.data ?? response,
     }),
     getBroadcast: builder.query({
