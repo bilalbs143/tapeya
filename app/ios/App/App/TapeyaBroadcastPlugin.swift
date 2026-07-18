@@ -365,7 +365,7 @@ public class TapeyaBroadcastPlugin: CAPPlugin, CAPBridgedPlugin {
             notifyListeners("broadcastStateChanged", data: ["state": "error", "reason": "bad_name"])
         case RTMPStream.Code.unpublishSuccess.rawValue:
             break // expected on our own stopBroadcast()/teardownConnection()
-        case  q216qRTMPStream.Code.connectClosed.rawValue,
+        case RTMPStream.Code.connectClosed.rawValue,
              RTMPStream.Code.connectFailed.rawValue,
              RTMPStream.Code.failed.rawValue:
             handleUnexpectedDisconnect()

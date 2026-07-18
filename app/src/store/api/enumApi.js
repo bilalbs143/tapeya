@@ -21,7 +21,8 @@ export function getStreamOrientationOptions(enums) {
 }
 
 /**
- * Radio / picker rows from GET /enums → stream_orientation.
+ * Full-width radio rows from GET /enums → stream_orientation, with the hint appended
+ * to the label (e.g. "Portrait · 9:16 — hold your phone upright").
  * @param {Array<{ value: string, label: string, hint?: string }>} [options]
  */
 export function toGoLiveOrientationPickerOptions(options = []) {

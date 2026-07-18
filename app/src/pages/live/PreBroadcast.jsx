@@ -6,7 +6,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
@@ -31,8 +31,8 @@ import { FormActions } from '@/ui/form/FormActions';
 import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
-import { RadioOptionList } from '@/ui/RadioOptionList';
 import { Textarea } from '@/ui/Textarea';
+import { ToggleGroupField } from '@/ui/ToggleGroupField';
 
 const EMPTY_FILE_UPLOAD = { files: [], existingUrls: [] };
 
@@ -184,23 +184,19 @@ export default function PreBroadcast() {
             />
           </FormField>
 
-          <FormField label="Orientation" htmlFor="orientation" required>
-            <Controller
+          <div>
+            <ToggleGroupField
               name="orientation"
               control={control}
-              render={({ field }) => (
-                <RadioOptionList
-                  options={orientationPickerOptions}
-                  value={field.value}
-                  onChange={field.onChange}
-                  ariaLabel="Stream orientation"
-                />
-              )}
+              label="Orientation"
+              options={orientationPickerOptions}
+              error={errors.orientation?.message}
+              required
             />
             <p className="text-muted mt-2 text-[12px] leading-snug">
               Locked for this stream after you go live. Portrait is the default.
             </p>
-          </FormField>
+          </div>
 
           <FileUploadField
             value={thumbnail}
