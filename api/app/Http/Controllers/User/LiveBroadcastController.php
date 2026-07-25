@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Enums\Streaming\StreamOrientationEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
-use App\Enums\Streaming\StreamOrientationEnum;
 use App\Models\MatchStream;
 use App\Streaming\LiveStreamService;
 use App\Streaming\StreamProviderManager;

@@ -10,6 +10,7 @@ export function normalizeConfig(config) {
     awayBgColor: typeof c.awayBgColor === 'string' ? c.awayBgColor : '',
     homeTextColor: typeof c.homeTextColor === 'string' ? c.homeTextColor : '',
     awayTextColor: typeof c.awayTextColor === 'string' ? c.awayTextColor : '',
+    textColor: typeof c.textColor === 'string' ? c.textColor : '',
     enableImages: Boolean(c.enableImages),
   };
 }

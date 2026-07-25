@@ -125,7 +125,6 @@ class LiveStreamService
      * the rules that only apply to user-initiated broadcasts: one active stream at a time,
      * always unlisted, always YouTube (never silently falls back to another provider).
      *
-     * @param  StreamOrientationEnum|string  $orientation
      *
      * @see LiveBroadcastController::store()
      * @see docs/LIVE_STREAM_ORIENTATION.md

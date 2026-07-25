@@ -1,9 +1,10 @@
 /**
  * @typedef {Object} ThemeTokens
- * @property {string} homeTextColor
  * @property {string} homeBgColor
- * @property {string} awayTextColor
  * @property {string} awayBgColor
+ * @property {string} [homeTextColor] Optional; themes may omit (fall back to theme CSS `--text`)
+ * @property {string} [awayTextColor] Optional; themes may omit
+ * @property {string} [textColor] Optional primary overlay text override for `--text`
  * @property {boolean} enableImages
  */
 

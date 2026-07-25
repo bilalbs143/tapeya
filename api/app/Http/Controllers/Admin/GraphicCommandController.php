@@ -15,6 +15,7 @@ use App\Services\Broadcast\FindMatchGraphicSession;
 use App\Services\Broadcast\GraphicCareerEnricher;
 use App\Services\Broadcast\GraphicCommandHistoryService;
 use App\Services\Broadcast\GraphicContextOrchestrator;
+use App\Services\Broadcast\GraphicFollowUpScheduler;
 use App\Services\Broadcast\GraphicPlayerProfileEnricher;
 use App\Utils\Constants\ApiConstants;
 use Illuminate\Http\JsonResponse;
@@ -35,6 +36,7 @@ class GraphicCommandController extends Controller
         private readonly GraphicCareerEnricher $careerPayloadEnricher,
         private readonly GraphicPlayerProfileEnricher $playerProfileEnricher,
         private readonly GraphicContextOrchestrator $graphicContextOrchestrator,
+        private readonly GraphicFollowUpScheduler $graphicFollowUps,
     ) {}
 
     public function index(TournamentMatch $match): JsonResponse
@@ -96,6 +98,7 @@ class GraphicCommandController extends Controller
                 ]);
 
                 $this->graphicContextOrchestrator->syncAndBroadcast($match);
+                $this->graphicFollowUps->onCommandActivated($match, $cmd, $request->user()?->id);
             }
 
             return $cmd->fresh();
@@ -120,6 +123,7 @@ class GraphicCommandController extends Controller
             ]);
 
             $this->graphicContextOrchestrator->syncAndBroadcast($match);
+            $this->graphicFollowUps->onCommandActivated($match, $command, $request->user()?->id);
         });
 
         $command->load('session');
