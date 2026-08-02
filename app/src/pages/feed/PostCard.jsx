@@ -2,19 +2,53 @@ import { useMemo, useState } from 'react';
 
 import { Link } from 'react-router-dom';
 
+import RepostedPostEmbed from '@/components/feed/RepostedPostEmbed';
+import TextPostBackground from '@/components/feed/TextPostBackground';
+import { OfficialBadge } from '@/components/OfficialBadge';
+import { usePostEngagement } from '@/features/feed/usePostEngagement';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { getFeedTextBackground } from '@/lib/constants/composeBackgrounds';
 import { formatCount } from '@/lib/format';
 import { formatPostTimestamp } from '@/lib/utils/feedUtils';
+import { buildPostDetailPath } from '@/lib/utils/postShareUtils';
+import { useFollowReelCreatorMutation, useUnfollowReelCreatorMutation } from '@/store/api/reelsApi';
+import { useAppSelector } from '@/store/hooks';
+import { selectUser } from '@/store/selectors';
 
-const feedCommentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-comment.svg`;
-const feedShareIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-share.svg`;
+const avatarPlaceholder = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
+const imagePlaceholder =
+  'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect fill="%231a1a1a" width="800" height="600"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="central" text-anchor="middle" fill="%234a5568" font-size="24" font-family="sans-serif"%3EImage%3C/text%3E%3C/svg%3E';
 
-export function ThumbsUpIcon({ filled, className = '' }) {
+export function HeartIcon({ filled = false, className = '' }) {
   return (
     <svg
       className={className}
-      width="18"
-      height="18"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill={filled ? 'currentColor' : 'none'}
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
+  );
+}
+
+/** @deprecated Prefer HeartIcon — kept for ActivityFeedDetail / older imports */
+export function ThumbsUpIcon({ filled, className = '' }) {
+  return <HeartIcon filled={filled} className={className} />;
+}
+
+export function CommentIcon({ className = '' }) {
+  return (
+    <svg
+      className={className}
+      width="20"
+      height="20"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -23,129 +57,337 @@ export function ThumbsUpIcon({ filled, className = '' }) {
       strokeLinejoin="round"
       aria-hidden
     >
-      <path
-        d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"
-        fill={filled ? 'currentColor' : 'none'}
-      />
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
     </svg>
   );
 }
 
+export function ShareIcon({ className = '' }) {
+  return (
+    <svg
+      className={className}
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" />
+    </svg>
+  );
+}
+
+export function BookmarkIcon({ filled = false, className = '' }) {
+  return (
+    <svg
+      className={className}
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill={filled ? 'currentColor' : 'none'}
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+    </svg>
+  );
+}
+
+export function RepostIcon({ className = '' }) {
+  return (
+    <svg
+      className={className}
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M17 1l4 4-4 4" />
+      <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+      <path d="M7 23l-4-4 4-4" />
+      <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+    </svg>
+  );
+}
+
+function PlayIcon({ className = '' }) {
+  return (
+    <svg className={className} width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M8 5v14l11-7z" />
+    </svg>
+  );
+}
+
+function AvatarRing({ src, errored, onError }) {
+  return (
+    <div className="rounded-full bg-[linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))] p-[2px]">
+      <img
+        src={errored || !src ? avatarPlaceholder : src}
+        alt=""
+        className="border-surface h-11 w-11 rounded-full border-2 object-cover"
+        loading="lazy"
+        onError={onError}
+      />
+    </div>
+  );
+}
+
+export function ActionButton({ active, onClick, icon, ariaLabel, disabled }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      aria-pressed={active == null ? undefined : Boolean(active)}
+      title={ariaLabel}
+      className={`grid h-11 min-h-11 flex-1 place-items-center rounded-xl transition-[color,background-color,transform] active:scale-95 disabled:opacity-50 ${
+        active ? 'text-brand' : 'text-muted hover:bg-surface-raised hover:text-white'
+      }`}
+    >
+      {icon}
+    </button>
+  );
+}
+
+/** Quiet outline Follow control shared by feed list + detail. */
+export function FollowChip({ following, busy, onClick, name }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={busy}
+      aria-label={following ? `Unfollow ${name}` : `Follow ${name}`}
+      aria-pressed={Boolean(following)}
+      className={`h-9 shrink-0 rounded-full px-3 text-[12px] font-semibold transition-colors disabled:opacity-50 ${
+        following ? 'text-muted hover:text-white' : 'text-brand ring-brand/40 hover:bg-brand/10 ring-1 ring-inset'
+      }`}
+    >
+      {following ? 'Following' : 'Follow'}
+    </button>
+  );
+}
+
 /**
- * Reusable post card for the activity feed.
- * API-ready: accepts a single post object and optional like state/callbacks.
- *
- * @param {Object} post - Post data (id, imageUrl, publishedAt, authorName, authorAvatarUrl, title, description, likesCount, commentsCount, sharesCount, latestComment)
- * @param {boolean} isLiked - Whether the current user has liked this post
- * @param {number} likesCountOverride - Optional override for displayed like count (e.g. after optimistic update)
- * @param {function(string)} onLike - Callback when like is toggled (receives post id)
+ * Feed card for mixed posts (text / image / video / repost).
+ * Content is a link; engagement controls sit outside so nested interactive a11y stays valid.
  */
-export default function PostCard({ post, isLiked = false, likesCountOverride, onLike }) {
+export default function PostCard({ post }) {
   const {
     id,
+    type = 'text',
     imageUrl,
     publishedAt,
     authorName,
     authorAvatarUrl,
+    authorIsOfficial,
     title,
     description,
+    body,
+    backgroundId,
     likesCount,
     commentsCount,
     sharesCount,
+    repostsCount,
+    viewsCount,
     latestComment,
+    repostOf,
+    media,
+    liked,
+    saved,
+    followingCreator,
+    authorId,
   } = post;
+
+  const currentUser = useAppSelector(selectUser);
+  const [followCreator, { isLoading: isFollowPending }] = useFollowReelCreatorMutation();
+  const [unfollowCreator, { isLoading: isUnfollowPending }] = useUnfollowReelCreatorMutation();
 
   const [imageError, setImageError] = useState(false);
   const [authorAvatarError, setAuthorAvatarError] = useState(false);
-  const [commenterAvatarError, setCommenterAvatarError] = useState(false);
 
-  const displayLikesCount = likesCountOverride ?? likesCount;
+  const { toggleLike, toggleSave, share, repost, isReposting } = usePostEngagement(post);
+
   const formattedTimestamp = useMemo(() => formatPostTimestamp(publishedAt), [publishedAt]);
+  const caption = description || body || '';
+  const textBg = type === 'text' ? getFeedTextBackground(backgroundId) : null;
+  const mediaUrl = imageUrl || media?.[0]?.url || repostOf?.imageUrl || null;
+  const mediaWidth = media?.[0]?.width || null;
+  const mediaHeight = media?.[0]?.height || null;
+  const imageAspectStyle =
+    type === 'image' && mediaWidth && mediaHeight ? { aspectRatio: `${mediaWidth} / ${mediaHeight}` } : undefined;
+  const detailTo = buildPostDetailPath(post);
 
-  const handleLikeClick = (e) => {
+  const isOwnPost = authorId != null && currentUser?.id != null && String(authorId) === String(currentUser.id);
+  const showFollow = Boolean(authorId) && !isOwnPost;
+  const followBusy = isFollowPending || isUnfollowPending;
+
+  const onFollowClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    onLike?.(id);
+    if (!authorId || followBusy) return;
+    if (followingCreator) {
+      unfollowCreator(authorId);
+    } else {
+      followCreator(authorId);
+    }
   };
 
-  const avatarPlaceholder =
-    'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"%3E%3Crect fill="%234a5568" width="64" height="64"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="central" text-anchor="middle" fill="%2394a3b8" font-size="24" font-family="sans-serif" %3E?%3C/text%3E%3C/svg%3E';
-  const imagePlaceholder =
-    'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect fill="%231a1a1a" width="800" height="600"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="central" text-anchor="middle" fill="%234a5568" font-size="24" font-family="sans-serif"%3EImage%3C/text%3E%3C/svg%3E';
-
   return (
-    <Link to={`/feed/${id}`} className="block">
-      <article className="bg-surface overflow-hidden rounded-2xl shadow-[0_18px_40px_rgba(0,0,0,0.9)]" data-post-id={id}>
-        {/* Post image with timestamp overlay - bottom-left corner */}
-        <div className="relative aspect-[4/3] w-full overflow-hidden bg-black">
-          <img
-            src={imageError ? imagePlaceholder : imageUrl}
-            alt=""
-            className="h-full w-full object-cover"
-            loading="lazy"
-            onError={() => setImageError(true)}
-          />
-          <div className="absolute bottom-0 left-0 w-fit max-w-full px-3 py-2">
-            <span className="text-[12px] font-normal text-white">{formattedTimestamp}</span>
+    <article
+      className="bg-surface overflow-hidden shadow-[0_1px_0_0_rgba(255,255,255,0.06)_inset,0_20px_40px_-24px_rgba(0,0,0,0.8)]"
+      data-post-id={id}
+    >
+      <header className="flex items-center gap-2 px-4 pt-3.5">
+        <Link
+          to={detailTo}
+          className="focus-visible:ring-brand focus-visible:ring-offset-surface flex min-w-0 flex-1 items-center gap-3 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+        >
+          <AvatarRing src={authorAvatarUrl} errored={authorAvatarError} onError={() => setAuthorAvatarError(true)} />
+          <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 items-center gap-1">
+              <span className="truncate text-[14px] font-bold text-white">{authorName}</span>
+              <OfficialBadge isOfficial={authorIsOfficial} />
+            </div>
+            <time className="text-muted block text-[11px] leading-tight" dateTime={publishedAt || undefined}>
+              {formattedTimestamp}
+            </time>
           </div>
-        </div>
+        </Link>
+        {showFollow ? (
+          <FollowChip following={followingCreator} busy={followBusy} onClick={onFollowClick} name={authorName} />
+        ) : null}
+      </header>
 
-        <div className="p-4">
-          {/* Author */}
-          <div className="border-surface-border mb-3 flex items-center gap-2 border-b pb-3">
-            <img
-              src={authorAvatarError ? avatarPlaceholder : authorAvatarUrl}
-              alt=""
-              className="h-9 w-9 flex-shrink-0 rounded-full object-cover"
-              loading="lazy"
-              onError={() => setAuthorAvatarError(true)}
-            />
-            <span className="text-[14px] font-medium text-white">{authorName}</span>
-          </div>
+      {(caption ||
+        (title && type !== 'text' && type !== 'repost' && title !== caption) ||
+        (type === 'image' && mediaUrl) ||
+        (type === 'video' && mediaUrl)) && (
+        <Link
+          to={detailTo}
+          className="focus-visible:ring-brand block focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
+        >
+          {caption && textBg ? (
+            <TextPostBackground background={textBg} className="mt-3 min-h-56" rounded={false}>
+              <p className={`mx-auto whitespace-pre-wrap ${textBg.textClassName}`}>{caption}</p>
+            </TextPostBackground>
+          ) : caption ? (
+            <p className="max-w-[42ch] px-5 pt-3 text-[15px] leading-[1.6] text-pretty whitespace-pre-wrap text-white sm:px-6">
+              {caption}
+            </p>
+          ) : null}
 
-          {/* Title & description */}
-          <h2 className="mb-1.5 text-[14px] leading-snug font-bold text-white">{title}</h2>
-          <p className="mb-4 line-clamp-3 text-[14px] leading-relaxed font-normal text-[#B0B0B0]">{description}</p>
+          {title && type !== 'text' && type !== 'repost' && title !== caption && (
+            <h2 className="px-5 pt-1 text-[14px] leading-snug font-bold text-white/80 sm:px-6">{title}</h2>
+          )}
 
-          {/* Engagement row - icons & text #A2A6AB, evenly spaced */}
-          <div className="border-surface-border text-muted mb-4 flex items-center justify-between border-t border-b py-3">
-            <button
-              type="button"
-              onClick={handleLikeClick}
-              className={`flex items-center gap-1.5 transition-transform ${isLiked ? 'text-brand' : ''}`}
-              aria-label={isLiked ? 'Unlike' : 'Like'}
-            >
-              <ThumbsUpIcon filled={isLiked} />
-              <span className="text-[14px] font-normal">{formatCount(displayLikesCount)}</span>
-            </button>
-            <span className="flex items-center gap-1.5" aria-hidden>
-              <img src={feedCommentIcon} alt="" className="h-[17px] w-[17px] object-contain" aria-hidden />
-              <span className="text-[14px] font-normal">{formatCount(commentsCount)}</span>
-            </span>
-            <span className="flex items-center gap-1.5" aria-hidden>
-              <img src={feedShareIcon} alt="" className="h-5 w-5 object-contain" aria-hidden />
-              <span className="text-[14px] font-normal">{formatCount(sharesCount)}</span>
-            </span>
-          </div>
-
-          {/* Latest comment */}
-          {latestComment && (
-            <div className="flex gap-2 p-3">
+          {type === 'image' && mediaUrl && (
+            <div className="mt-3 max-h-[420px] overflow-hidden bg-black" style={imageAspectStyle}>
               <img
-                src={commenterAvatarError ? avatarPlaceholder : latestComment.commenterAvatarUrl}
+                src={imageError ? imagePlaceholder : mediaUrl}
                 alt=""
-                className="h-9 w-9 flex-shrink-0 rounded-full object-cover"
+                width={mediaWidth || undefined}
+                height={mediaHeight || undefined}
+                className="h-full max-h-[420px] w-full object-cover"
                 loading="lazy"
-                onError={() => setCommenterAvatarError(true)}
+                decoding="async"
+                onError={() => setImageError(true)}
               />
-              <div className="min-w-0 flex-1">
-                <p className="text-[14px] font-bold text-white">{latestComment.commenterName}</p>
-                <p className="mt-0.5 text-[14px] leading-relaxed font-normal text-[#B0B0B0]">{latestComment.text}</p>
-              </div>
             </div>
           )}
-        </div>
-      </article>
-    </Link>
+
+          {type === 'video' && mediaUrl && (
+            <div className="relative mt-3 w-full overflow-hidden bg-black">
+              <img
+                src={imageError ? imagePlaceholder : mediaUrl}
+                alt=""
+                className="block h-auto w-full"
+                loading="lazy"
+                onError={() => setImageError(true)}
+              />
+              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.2)_0%,transparent_28%,transparent_62%,rgba(0,0,0,0.55)_100%)]" />
+              <span className="absolute inset-0 grid place-items-center" aria-hidden>
+                <span className="grid h-12 w-12 place-items-center rounded-full bg-black/35 ring-1 ring-white/35 backdrop-blur-sm">
+                  <PlayIcon className="ml-0.5 h-5 w-5 text-white" />
+                </span>
+              </span>
+              {typeof viewsCount === 'number' && viewsCount > 0 && (
+                <span className="absolute bottom-3 left-3 rounded-full bg-black/40 px-2 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
+                  {formatCount(viewsCount)} views
+                </span>
+              )}
+            </div>
+          )}
+        </Link>
+      )}
+
+      {type === 'repost' && repostOf ? <RepostedPostEmbed post={repostOf} /> : null}
+
+      <div className="text-muted flex items-center justify-between px-4 pt-3 pb-1 text-[12px]">
+        <span className="flex items-center gap-1.5">
+          <span className="from-brand to-brand-dark grid h-5 w-5 place-items-center rounded-full bg-linear-to-br">
+            <HeartIcon filled className="h-2.5 w-2.5 text-white" />
+          </span>
+          <span className="tabular-nums">{formatCount(likesCount)}</span>
+        </span>
+        <Link to={detailTo} className="tabular-nums transition-colors hover:text-white">
+          {formatCount(commentsCount)} comments · {formatCount(sharesCount)} shares · {formatCount(repostsCount)} reposts
+        </Link>
+      </div>
+
+      <div className="border-border my-1 border-t" />
+
+      <div className="flex items-center gap-0.5 px-1.5 pb-2" role="group" aria-label="Post actions">
+        <ActionButton
+          active={liked}
+          onClick={toggleLike}
+          icon={<HeartIcon filled={liked} />}
+          ariaLabel={liked ? 'Unlike' : 'Like'}
+        />
+        <Link
+          to={detailTo}
+          className="text-muted hover:bg-surface-raised grid h-11 min-h-11 flex-1 place-items-center rounded-xl transition-colors hover:text-white active:scale-95"
+          aria-label="Comment"
+          title="Comment"
+        >
+          <CommentIcon />
+        </Link>
+        <ActionButton onClick={share} icon={<ShareIcon />} ariaLabel="Share" />
+        <ActionButton onClick={repost} icon={<RepostIcon />} ariaLabel="Repost" disabled={isReposting} />
+        <ActionButton
+          active={saved}
+          onClick={toggleSave}
+          icon={<BookmarkIcon filled={saved} />}
+          ariaLabel={saved ? 'Unsave post' : 'Save post'}
+        />
+      </div>
+
+      {latestComment && commentsCount > 0 ? (
+        <Link
+          to={detailTo}
+          className="border-border text-muted block border-t px-5 py-2.5 text-[13px] leading-snug transition-colors hover:text-white/80 sm:px-6"
+        >
+          <span className="block truncate">
+            <span className="font-semibold text-white/80">{latestComment.commenterName}</span>
+            <span>: {latestComment.text}</span>
+          </span>
+        </Link>
+      ) : null}
+    </article>
   );
 }

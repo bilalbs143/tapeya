@@ -13,9 +13,9 @@ use App\Http\Resources\User\InterestSubmissionResource;
 use App\Models\TournamentInterestCampaign;
 use App\Models\TournamentInterestSubmission;
 use App\Models\User;
+use App\Support\Media\MediaDisk;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class InterestCampaignController extends Controller
 {
@@ -90,8 +90,7 @@ class InterestCampaignController extends Controller
             ->where('user_id', $user->id)
             ->first();
 
-        $disk = Storage::disk(config('filesystems.media_disk'));
-        $avatarUrl = $user->avatar ? $disk->url($user->avatar) : null;
+        $avatarUrl = MediaDisk::url($user->avatar);
 
         return $this->success([
             'campaign' => new InterestCampaignResource($campaign),

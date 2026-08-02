@@ -10,10 +10,10 @@ use App\Models\User;
 use App\Services\Broadcast\GraphicContextBuilder;
 use App\Services\Broadcast\GraphicContextOrchestrator;
 use App\Support\BallDelivery\BallDeliveryPresenter;
+use App\Support\Media\MediaDisk;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Centralized innings stats computation — single source of truth used by
@@ -786,14 +786,12 @@ class InningsStatsService
             return [];
         }
 
-        $disk = Storage::disk(config('filesystems.media_disk', 'public'));
-
         return User::whereIn('id', $ids)
             ->get(['id', 'name', 'avatar'])
             ->keyBy('id')
             ->map(fn ($u) => [
                 'name' => $u->name ?? 'Player',
-                'avatar_url' => $u->avatar ? $disk->url((string) $u->avatar) : null,
+                'avatar_url' => MediaDisk::url($u->avatar ? (string) $u->avatar : null),
             ])
             ->all();
     }

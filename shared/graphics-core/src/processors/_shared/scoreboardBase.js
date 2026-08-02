@@ -19,6 +19,7 @@ export function scoreboardBase(snapshot) {
     extras: live.battingTeam?.extras ?? 0,
     currentRR: live.currentRR ?? '',
     requiredRR: live.requiredRR ?? '',
+    maxOversPerInnings: snapshot.match?.maxOversPerInnings ?? null,
   };
 
   return base;

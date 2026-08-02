@@ -6,9 +6,9 @@ use App\Models\PlayerMatchBatting;
 use App\Models\PlayerMatchBowling;
 use App\Models\TournamentMatch;
 use App\Models\User;
+use App\Support\Media\MediaDisk;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Tournament-wide and match-scoped leaderboards for graphic overlays.
@@ -104,9 +104,7 @@ final class MatchGraphicTournamentLeaderboardService
     /** @return \Closure(?string): ?string */
     private function mediaUrlResolver(): \Closure
     {
-        $disk = Storage::disk(config('filesystems.media_disk', 'public'));
-
-        return static fn (?string $path): ?string => $path ? $disk->url($path) : null;
+        return static fn (?string $path): ?string => MediaDisk::url($path);
     }
 
     /**

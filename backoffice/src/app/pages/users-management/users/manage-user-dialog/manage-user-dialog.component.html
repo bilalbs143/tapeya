@@ -183,6 +183,24 @@
           </mat-form-field>
         </div>
 
+        <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">Official account</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-select
+              formControlName="is_official"
+              placeholder="Official badge"
+            >
+              @for (opt of officialOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+            <mat-hint>Shows a blue verification tick beside this user’s name in the app. Staff only.</mat-hint>
+          </mat-form-field>
+        </div>
+
         <!-- Row 5: Playing Role | Bowling Style | Batting Style -->
         <div class="col-span-12 lg:col-span-4">
           <mat-label class="text-sm font-semibold mb-2 block">Playing Role</mat-label>

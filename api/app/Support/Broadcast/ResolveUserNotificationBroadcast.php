@@ -4,9 +4,17 @@ namespace App\Support\Broadcast;
 
 use App\Events\Broadcast\User\OrderPlacedBroadcast;
 use App\Events\Broadcast\User\OrderStatusUpdatedBroadcast;
+use App\Events\Broadcast\User\PostEngagementBroadcast;
 use App\Models\User;
 use App\Notifications\OrderPlacedUserNotification;
 use App\Notifications\OrderStatusUpdatedUserNotification;
+use App\Notifications\PostCommentedUserNotification;
+use App\Notifications\PostCommentReplyUserNotification;
+use App\Notifications\PostLikedUserNotification;
+use App\Notifications\PostMentionedUserNotification;
+use App\Notifications\PostPublishedFollowerNotification;
+use App\Notifications\PostRepostedUserNotification;
+use App\Notifications\UserFollowedUserNotification;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Notifications\DatabaseNotification;
 
@@ -29,6 +37,18 @@ final class ResolveUserNotificationBroadcast
                 $data,
             ),
             OrderStatusUpdatedUserNotification::class => new OrderStatusUpdatedBroadcast(
+                $user->getKey(),
+                $notificationId,
+                $notificationType,
+                $data,
+            ),
+            PostLikedUserNotification::class,
+            PostCommentedUserNotification::class,
+            PostCommentReplyUserNotification::class,
+            PostMentionedUserNotification::class,
+            PostRepostedUserNotification::class,
+            PostPublishedFollowerNotification::class,
+            UserFollowedUserNotification::class => new PostEngagementBroadcast(
                 $user->getKey(),
                 $notificationId,
                 $notificationType,

@@ -57,7 +57,10 @@ export const baseApi = createApi({
     'MatchPlayerStats',
     'InterestCampaign',
     'LiveStreams',
+    'LiveScores',
     'Highlight',
+    'Reel',
+    'Post',
   ],
   endpoints: () => ({}),
 });

@@ -59,6 +59,7 @@ html.ios-native-stream-underlay main {
   --color-brand: #da9811;
   --color-brand-hover: #f0b94a;
   --color-brand-dark: #d8a11e;
+  --color-official-badge: #1d9bf0;
   --color-surface: #141412;
   --color-surface-raised: #1c1c1a;
   --color-surface-border: #1a1a1a;
@@ -154,4 +155,11 @@ html.broadcast-camera-underlay main {
 
 html.broadcast-camera-underlay body {
   overflow: hidden;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }

@@ -33,8 +33,8 @@ const DraftingHome = lazy(() => import('@/pages/drafting/DraftingHome'));
 const TeamList = lazy(() => import('@/pages/drafting/TeamList'));
 const TeamDetail = lazy(() => import('@/pages/drafting/TeamDetail'));
 
-const ActivityFeed = lazy(() => import('@/pages/feed/ActivityFeed'));
 const ActivityFeedDetail = lazy(() => import('@/pages/feed/ActivityFeedDetail'));
+const ComposePost = lazy(() => import('@/pages/feed/ComposePost'));
 
 const Pricing = lazy(() => import('@/pages/pricing/Pricing'));
 const PricingDetail = lazy(() => import('@/pages/pricing/PricingDetail'));
@@ -48,6 +48,7 @@ const GoLive = lazy(() => import('@/pages/live/GoLive'));
 
 const Reels = lazy(() => import('@/pages/reels/Reels'));
 const UploadReels = lazy(() => import('@/pages/reels/UploadReels'));
+const CreatorReelsProfile = lazy(() => import('@/pages/reels/CreatorReelsProfile'));
 
 const ScorecardHome = lazy(() => import('@/pages/scorecard/ScorecardHome'));
 const ScorecardDetails = lazy(() => import('@/pages/scorecard/ScorecardDetails'));
@@ -174,11 +175,14 @@ function App() {
                       <Route path="/highlights/:highlightId" element={<HighlightDetails />} />
                       <Route path="/notification-center" element={<NotificationCenter />} />
                       <Route path="/support" element={<Support />} />
-                      <Route path="/reels" element={<Reels />} />
+                      <Route path="/reels/u/:userId" element={<CreatorReelsProfile />} />
                       <Route path="/reels/upload" element={<UploadReels />} />
+                      <Route path="/reels/:reelId" element={<Reels />} />
+                      <Route path="/reels" element={<Reels />} />
                       <Route path="/pricing" element={<Pricing />} />
                       <Route path="/pricing/:planId" element={<PricingDetail />} />
-                      <Route path="/feed" element={<ActivityFeed />} />
+                      <Route path="/feed" element={<Navigate to="/" replace />} />
+                      <Route path="/feed/compose" element={<ComposePost />} />
                       <Route path="/feed/:postId" element={<ActivityFeedDetail />} />
                     </Route>
                   </Route>

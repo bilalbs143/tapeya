@@ -4,9 +4,9 @@ namespace App\Http\Resources\Admin\User;
 
 use App\Enums\User\ActivePlatformEnum;
 use App\Enums\User\RoleGuardEnum;
+use App\Support\Media\MediaDisk;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 class UserResource extends JsonResource
 {
@@ -23,9 +23,7 @@ class UserResource extends JsonResource
             ? $user->roles->where('guard', RoleGuardEnum::ADMIN->value)->values()
             : $user->getAdminRoles();
 
-        $avatarUrl = $this->avatar
-            ? Storage::disk(config('filesystems.media_disk'))->url($this->avatar)
-            : null;
+        $avatarUrl = MediaDisk::url($this->avatar);
 
         return [
             'id' => $this->id,
@@ -51,6 +49,7 @@ class UserResource extends JsonResource
             'active_platform_label' => ActivePlatformEnum::tryLabelFromValue($this->active_platform),
             'active_platform_updated_at' => $this->active_platform_updated_at?->toIso8601String(),
             'can_broadcast' => (bool) $this->can_broadcast,
+            'is_official' => (bool) $this->is_official,
             'roles' => $appRoles->map(fn ($r) => [
                 'id' => $r->id,
                 'name' => $r->name,

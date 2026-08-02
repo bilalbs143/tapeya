@@ -43,5 +43,40 @@ class GraphicThemeSeeder extends Seeder
                 'is_active' => true,
             ]
         );
+
+        GraphicTheme::updateOrCreate(
+            ['slug' => 'theme2'],
+            [
+                'name' => 'Crimson Gold Premium Theme',
+                'config_schema' => [
+                    'properties' => [
+                        [
+                            'key' => 'homeBgColor',
+                            'label' => 'Home Team Color',
+                            'type' => 'color',
+                            'default' => '#2e0a1a',
+                        ],
+                        [
+                            'key' => 'awayBgColor',
+                            'label' => 'Away Team Color',
+                            'type' => 'color',
+                            'default' => '#9c0028',
+                        ],
+                        [
+                            'key' => 'enableImages',
+                            'label' => 'Show Player Images',
+                            'type' => 'boolean',
+                            'default' => false,
+                        ],
+                    ],
+                ],
+                'default_config' => [
+                    'homeBgColor' => '#2e0a1a',
+                    'awayBgColor' => '#9c0028',
+                    'enableImages' => false,
+                ],
+                'is_active' => true,
+            ]
+        );
     }
 }

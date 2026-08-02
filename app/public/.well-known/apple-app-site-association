@@ -1,0 +1,17 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "M7P9P5UTTZ.com.tapbytapeya.app",
+        "paths": [
+          "/reels",
+          "/reels/*",
+          "/feed",
+          "/feed/*",
+          "/live/go-live/*"
+        ]
+      }
+    ]
+  }
+}

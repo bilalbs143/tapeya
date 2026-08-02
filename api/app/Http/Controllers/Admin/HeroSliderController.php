@@ -7,8 +7,8 @@ use App\Http\Requests\Admin\HeroSlider\StoreHeroSliderRequest;
 use App\Http\Requests\Admin\HeroSlider\UpdateHeroSliderRequest;
 use App\Http\Resources\Admin\HeroSlider\HeroSliderResource;
 use App\Models\HeroSlider;
+use App\Support\Media\MediaDisk;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Storage;
 
 class HeroSliderController extends BaseAdminController
 {
@@ -53,12 +53,8 @@ class HeroSliderController extends BaseAdminController
     public function destroy(HeroSlider $hero_slider): JsonResponse
     {
         $hero_slider = $this->refresh($hero_slider);
-        $disk = Storage::disk(config('filesystems.media_disk'));
         foreach (['image_mobile', 'image_desktop'] as $field) {
-            $path = $hero_slider->getRawOriginal($field);
-            if ($path) {
-                $disk->delete($path);
-            }
+            MediaDisk::delete($hero_slider->getRawOriginal($field));
         }
         $hero_slider->delete();
 

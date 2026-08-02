@@ -25,6 +25,7 @@ export function createTestSnapshot(overrides = {}) {
       away_team_name: 'Away XI',
       home_team_short_code: 'HOM',
       away_team_short_code: 'AWY',
+      max_overs_per_innings: 20,
     },
     home_team: { id: 1, name: 'Home XI', short_code: 'HOM' },
     away_team: { id: 2, name: 'Away XI', short_code: 'AWY' },

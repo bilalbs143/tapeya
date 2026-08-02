@@ -37,6 +37,7 @@ export interface User {
   active_platform_label?: string | null;
   active_platform_updated_at?: string | null;
   can_broadcast?: boolean;
+  is_official?: boolean;
   roles?: UserRole[];
   role_ids?: number[];
   admin_roles?: UserRole[];
@@ -94,6 +95,7 @@ export interface CreateUserPayload {
   country?: string | null;
   city?: string | null;
   can_broadcast?: boolean;
+  is_official?: boolean;
 }
 
 export type UpdateUserPayload = Partial<CreateUserPayload>;

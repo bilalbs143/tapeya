@@ -6,6 +6,8 @@
  * To create a second theme, copy this file under `themes/{slug}/` and modify values.
  */
 
+import { getAppAssetsBase } from '../../../lib/constants/assets.js';
+
 // ── Color tokens ─────────────────────────────────────────────────────────────
 export const colors = {
   // Text on broadcast overlays — two-color system only (no grey).
@@ -210,8 +212,12 @@ export const colors = {
 
 // ── Shared asset URLs ─────────────────────────────────────────────────────────
 export const assets = {
-  brandLogoWhite: 'https://d1nmw2vhka3zp0.cloudfront.net/app/images/logos/tapeya-logo-white.svg',
-  playerPlaceholder: 'https://d1nmw2vhka3zp0.cloudfront.net/app/images/background/player-placeholder-theme1.png',
+  get brandLogoWhite() {
+    return `${getAppAssetsBase()}/images/logos/tapeya-logo-white.svg`;
+  },
+  get playerPlaceholder() {
+    return `${getAppAssetsBase()}/images/background/player-placeholder-theme1.png`;
+  },
 };
 
 // ── Typography tokens ─────────────────────────────────────────────────────────
@@ -228,12 +234,18 @@ export const geometry = {
 
 /**
  * Lower-third layout tokens — single source for bar footprint (see lower-third-implementation-guide.md).
- * Height values are design-unit estimates; confirm in browser during Phase 1 baseline capture.
+ *
+ * Default scoreboard LT is content-sized (not a fixed CSS height):
+ *   bar height ≈ crestSize + 2 × controllerBarPaddingY
+ * `controllerBarPaddingY` is derived from `height` and `crestSize` so that identity holds.
  */
+const LT_BAR_HEIGHT = 139;
+const LT_CREST_SIZE = 86;
+
 export const ltBar = {
   designWidth: 1920,
-  height: 139,
-  crestSize: 86,
+  height: LT_BAR_HEIGHT,
+  crestSize: LT_CREST_SIZE,
   sidePaddingY: 20,
   edgePaddingX: 25,
   batsmenMinWidth: 360,
@@ -245,7 +257,8 @@ export const ltBar = {
   overlayInsetXLT: 210,
   overlayInsetBottomLT: 45,
 
-  controllerBarPaddingY: 22,
+  /** Zone A/D vertical inset — keeps crestSize + 2×pad = height. */
+  controllerBarPaddingY: (LT_BAR_HEIGHT - LT_CREST_SIZE) / 2,
 
   /**
    * Scoreboard LT (ControllerBar) spacing ownership — do not reintroduce overlapping gutters:

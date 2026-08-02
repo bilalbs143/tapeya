@@ -47,6 +47,12 @@ enum SystemSettingGroupEnum: string
     /** Push notification provider credentials and kill switch. */
     case PUSH_NOTIFICATIONS = 'push_notifications';
 
+    /** Reels upload / playback / view counting tunables. */
+    case REELS = 'reels';
+
+    /** Public CDN hostname for media + static /app assets (Cloudflare → B2). */
+    case MEDIA_CDN = 'media_cdn';
+
     public function label(): string
     {
         return match ($this) {
@@ -63,6 +69,8 @@ enum SystemSettingGroupEnum: string
             self::STREAMING => 'Live Streaming',
             self::LIVE_CHAT => 'Live Match Chat',
             self::PUSH_NOTIFICATIONS => 'Push Notifications',
+            self::REELS => 'Reels',
+            self::MEDIA_CDN => 'Media & CDN',
         };
     }
 }

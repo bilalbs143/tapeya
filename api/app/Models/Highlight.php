@@ -3,10 +3,10 @@
 namespace App\Models;
 
 use App\Enums\Highlight\HighlightVideoSourceEnum;
+use App\Support\Media\MediaDisk;
 use App\Utils\Traits\Model\Filters\DateFilterTrait;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Storage;
 use Spatie\QueryBuilder\AllowedFilter;
 
 class Highlight extends BaseModel
@@ -66,7 +66,7 @@ class Highlight extends BaseModel
     {
         $path = $this->getRawOriginal('thumbnail');
 
-        return $path ? Storage::disk(config('filesystems.media_disk'))->url($path) : null;
+        return MediaDisk::url($path);
     }
 
     /**
@@ -83,7 +83,7 @@ class Highlight extends BaseModel
         }
 
         return match ($this->video_source ?? HighlightVideoSourceEnum::YOUTUBE) {
-            HighlightVideoSourceEnum::UPLOAD => Storage::disk(config('filesystems.media_disk'))->url($value),
+            HighlightVideoSourceEnum::UPLOAD => MediaDisk::url($value),
             default => $value,
         };
     }

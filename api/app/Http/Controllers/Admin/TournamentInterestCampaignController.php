@@ -8,10 +8,10 @@ use App\Http\Requests\Admin\UpdateTournamentInterestCampaignRequest;
 use App\Http\Resources\Admin\TournamentInterestCampaignResource;
 use App\Models\Tournament;
 use App\Models\TournamentInterestCampaign;
+use App\Support\Media\MediaDisk;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class TournamentInterestCampaignController extends BaseAdminController
@@ -117,9 +117,7 @@ class TournamentInterestCampaignController extends BaseAdminController
     {
         $logoPath = $campaign->logo_path;
         $response = $this->_destroy($campaign, 'Interest campaign deleted.');
-        if ($logoPath) {
-            Storage::disk(config('filesystems.media_disk'))->delete($logoPath);
-        }
+        MediaDisk::delete($logoPath);
 
         return $response;
     }

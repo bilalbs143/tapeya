@@ -8,12 +8,12 @@ use App\Enums\Event\MatchTimingEnum;
 use App\Enums\Tournament\TournamentScheduleWindowEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
 use App\Models\Relations\TournamentSquadPlayersRelation;
+use App\Support\Media\MediaDisk;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Spatie\QueryBuilder\AllowedFilter;
 
 class Tournament extends BaseModel
@@ -235,11 +235,7 @@ class Tournament extends BaseModel
      */
     public function logoUrl(): ?string
     {
-        if (! $this->display_image) {
-            return null;
-        }
-
-        return Storage::disk(config('filesystems.media_disk'))->url($this->display_image);
+        return MediaDisk::url($this->display_image);
     }
 
     /**

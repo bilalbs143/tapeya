@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources\Admin\Shop;
 
+use App\Support\Media\MediaDisk;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 class BrandResource extends JsonResource
 {
@@ -17,7 +17,7 @@ class BrandResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-            'logo' => $this->logo ? Storage::disk(config('filesystems.media_disk'))->url($this->logo) : null,
+            'logo' => MediaDisk::url($this->logo),
             'is_active' => $this->is_active,
             'sort_order' => $this->sort_order,
             'created_at' => $this->created_at?->toIso8601String(),

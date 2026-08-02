@@ -9,8 +9,8 @@ use App\Services\InningsStatsService;
 use App\Services\PlayerStatsService;
 use App\Support\BallDelivery\BallDeliveryPresenter;
 use App\Support\Broadcast\BowlingFiguresFormatter;
+use App\Support\Media\MediaDisk;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Live innings stats, ball windows, win probability, and per-innings chart data
@@ -852,7 +852,7 @@ final class GraphicLiveStatsBuilder
                 'team' => [
                     'display_name' => $team?->name ?? '',
                     'short_code' => $team?->code ?? '',
-                    'logo_url' => $team?->logo ? Storage::disk(config('filesystems.media_disk', 'public'))->url($team->logo) : null,
+                    'logo_url' => MediaDisk::url($team?->logo),
                 ],
                 'runs' => (int) $stats['total_runs'],
                 'wickets' => (int) $stats['total_wickets'],
@@ -899,8 +899,7 @@ final class GraphicLiveStatsBuilder
 
             $teamModel = $battingTeamKey === 'home' ? $match->homeTeam : $match->awayTeam;
             $teamName = $teamModel?->name ?? ($battingTeamKey === 'home' ? 'Home' : 'Away');
-            $disk = Storage::disk(config('filesystems.media_disk', 'public'));
-            $teamLogoUrl = $teamModel?->logo ? $disk->url($teamModel->logo) : null;
+            $teamLogoUrl = MediaDisk::url($teamModel?->logo);
 
             // Group balls by completed overs (1-indexed for display).
             $overRuns = [];   // over_index (0-based) => total runs

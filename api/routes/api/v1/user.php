@@ -5,11 +5,14 @@ use App\Http\Controllers\User\AdditionalRunsController;
 use App\Http\Controllers\User\Auth\UserAuthController;
 use App\Http\Controllers\User\DeviceTokenController;
 use App\Http\Controllers\User\EnumController;
+use App\Http\Controllers\User\FeedController;
+use App\Http\Controllers\User\HashtagController;
 use App\Http\Controllers\User\HeroSliderController;
 use App\Http\Controllers\User\HighlightController;
 use App\Http\Controllers\User\InningsLifecycleController;
 use App\Http\Controllers\User\InterestCampaignController;
 use App\Http\Controllers\User\LiveBroadcastController;
+use App\Http\Controllers\User\LiveScoreController;
 use App\Http\Controllers\User\LiveStreamCommentController;
 use App\Http\Controllers\User\LiveStreamController;
 use App\Http\Controllers\User\LiveStreamHeartController;
@@ -29,6 +32,11 @@ use App\Http\Controllers\User\NotificationController;
 use App\Http\Controllers\User\PlayerController;
 use App\Http\Controllers\User\PlayerStatsController;
 use App\Http\Controllers\User\PlayingElevenController;
+use App\Http\Controllers\User\PostCommentController;
+use App\Http\Controllers\User\PostController;
+use App\Http\Controllers\User\PostInteractionController;
+use App\Http\Controllers\User\PostMultipartController;
+use App\Http\Controllers\User\PostViewController;
 use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\User\RankingController;
 use App\Http\Controllers\User\ScorecardController;
@@ -52,6 +60,7 @@ use App\Http\Controllers\User\TournamentTeamController;
 use App\Http\Controllers\User\UserActivePlatformController;
 use App\Http\Controllers\User\UserFollowController;
 use App\Http\Controllers\User\UserMediaController;
+use App\Http\Controllers\User\UserProfileController;
 use App\Http\Controllers\User\UserTeamController;
 use Illuminate\Support\Facades\Route;
 
@@ -66,6 +75,42 @@ Route::get('enums', [EnumController::class, 'index']);
 // Highlights — public list; reactions require auth (wired below)
 Route::get('highlights', [HighlightController::class, 'index']);
 Route::get('highlights/{highlight}', [HighlightController::class, 'show']);
+
+/*
+ * Posts spine — surface map
+ * -------------------------
+ * Identity / mixed feed:  GET feed, feed/following, feed/saved; GET|POST posts; GET|PATCH|DELETE posts/{post}; POST posts/{post}/repost
+ * Video (reels) UX:       GET reels/feed*, reels/{post}; multipart under reels/{post}/upload/*
+ * Engagement (any Post):  like|save|share|comments|views under reels/{post}/… (legacy path)
+ *                         aliases under posts/{post}/… (preferred for feed clients)
+ * Deferred: queue names reels-*, admin Angular /admin/posts*, Spatie group may still be "reels"
+ */
+
+// Reels — public explore feed + show; mutating routes require auth
+Route::get('reels/feed', [PostController::class, 'feed']);
+Route::get('reels/trending', [PostController::class, 'trending']);
+Route::get('reels/search', [PostController::class, 'search']);
+Route::get('reels/mine', [PostController::class, 'mine'])->middleware('auth:api');
+Route::get('reels/saved', [PostController::class, 'saved'])->middleware('auth:api');
+Route::get('reels/liked', [PostController::class, 'liked'])->middleware('auth:api');
+Route::get('reels/feed/following', [PostController::class, 'following'])->middleware('auth:api');
+Route::get('reels/{post}', [PostController::class, 'show']);
+Route::get('users/{user}/profile', [UserProfileController::class, 'show']);
+Route::get('users/{user}/reels', [PostController::class, 'forUser']);
+Route::get('reels/{post}/comments', [PostCommentController::class, 'index']);
+Route::get('reels/{post}/comments/{comment}/replies', [PostCommentController::class, 'replies']);
+Route::get('posts/{post}/comments', [PostCommentController::class, 'index']);
+Route::get('posts/{post}/comments/{comment}/replies', [PostCommentController::class, 'replies']);
+Route::get('hashtags/search', [HashtagController::class, 'search']);
+Route::get('hashtags/{name}/reels', [HashtagController::class, 'reels'])
+    ->where('name', '[A-Za-z0-9_]+');
+
+// Home mixed feed + posts surface
+Route::get('feed', [FeedController::class, 'explore']);
+Route::get('feed/following', [FeedController::class, 'following'])->middleware('auth:api');
+Route::get('feed/saved', [FeedController::class, 'saved'])->middleware('auth:api');
+Route::get('posts/{post}', [FeedController::class, 'show']);
+
 Route::get('hero-sliders', [HeroSliderController::class, 'index']);
 Route::get('system-settings', [SystemSettingController::class, 'index']);
 Route::get('static-pages/{slug}', [StaticPageController::class, 'show'])
@@ -130,6 +175,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('teams/{team}/squad', [TeamController::class, 'showSquad']);
     Route::post('teams/{team}/squad', [TeamController::class, 'storeSquad']);
     Route::get('live/matches', [LiveStreamController::class, 'index']);
+    Route::get('live/scores', [LiveScoreController::class, 'index']);
     Route::get('live/streams/{stream}', [LiveStreamController::class, 'show']);
     Route::post('live/streams/{stream}/live-comments', [LiveStreamCommentController::class, 'store'])->middleware('throttle:120,1');
     Route::post('live/streams/{stream}/live-hearts', [LiveStreamHeartController::class, 'store'])->middleware('throttle:60,1');
@@ -205,6 +251,10 @@ Route::middleware('auth:api')->group(function () {
     Route::get('matches/{match}/notes', [MatchNoteController::class, 'index']);
     Route::post('matches/{match}/notes', [MatchNoteController::class, 'store']);
     Route::delete('matches/{match}/notes/{note}', [MatchNoteController::class, 'destroy']);
+    Route::middleware('throttle:60,1')->group(function () {
+        Route::get('users/search', [UserFollowController::class, 'search']);
+        Route::get('users/suggestions', [UserFollowController::class, 'suggestions']);
+    });
     Route::get('users/{user}/stats', [PlayerStatsController::class, 'show']);
     Route::get('users/{user}/ranking-position', [PlayerStatsController::class, 'rankingPosition']);
     Route::get('users/{user}/teams', [UserTeamController::class, 'index']);
@@ -219,6 +269,41 @@ Route::middleware('auth:api')->group(function () {
     Route::post('highlights/{highlight}/like', [HighlightController::class, 'like']);
     Route::post('highlights/{highlight}/dislike', [HighlightController::class, 'dislike']);
     Route::post('highlights/{highlight}/share', [HighlightController::class, 'share']);
+
+    // Reels — create / update / delete / interactions
+    Route::post('reels', [PostController::class, 'store']);
+    Route::post('posts', [FeedController::class, 'store']);
+    Route::post('posts/{post}/repost', [FeedController::class, 'repost']);
+    Route::patch('reels/{post}', [PostController::class, 'update']);
+    Route::delete('reels/{post}', [PostController::class, 'destroy']);
+    Route::patch('posts/{post}', [PostController::class, 'update']);
+    Route::delete('posts/{post}', [PostController::class, 'destroy']);
+
+    Route::post('reels/{post}/upload/init', [PostMultipartController::class, 'initiate']);
+    Route::post('reels/{post}/upload/part', [PostMultipartController::class, 'part']);
+    Route::post('reels/{post}/upload/complete', [PostMultipartController::class, 'complete']);
+    Route::post('reels/{post}/upload/abort', [PostMultipartController::class, 'abort']);
+
+    Route::post('reels/{post}/like', [PostInteractionController::class, 'like']);
+    Route::delete('reels/{post}/like', [PostInteractionController::class, 'unlike']);
+    Route::post('reels/{post}/save', [PostInteractionController::class, 'save']);
+    Route::delete('reels/{post}/save', [PostInteractionController::class, 'unsave']);
+    Route::post('reels/{post}/share', [PostInteractionController::class, 'share']);
+    Route::post('reels/{post}/views', [PostViewController::class, 'store']);
+    // Feed-preferred aliases (same controllers / Post model)
+    Route::post('posts/{post}/like', [PostInteractionController::class, 'like']);
+    Route::delete('posts/{post}/like', [PostInteractionController::class, 'unlike']);
+    Route::post('posts/{post}/save', [PostInteractionController::class, 'save']);
+    Route::delete('posts/{post}/save', [PostInteractionController::class, 'unsave']);
+    Route::post('posts/{post}/share', [PostInteractionController::class, 'share']);
+
+    Route::post('reels/{post}/report', [PostInteractionController::class, 'report']);
+    Route::post('posts/{post}/report', [PostInteractionController::class, 'report']);
+
+    Route::post('reels/{post}/comments', [PostCommentController::class, 'store']);
+    Route::delete('reels/{post}/comments/{comment}', [PostCommentController::class, 'destroy']);
+    Route::post('posts/{post}/comments', [PostCommentController::class, 'store']);
+    Route::delete('posts/{post}/comments/{comment}', [PostCommentController::class, 'destroy']);
 
     Route::get('notifications', [NotificationController::class, 'index']);
     Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);

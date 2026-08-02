@@ -22,6 +22,14 @@ const STATUS_CLASS_MAP: Record<string, string> = {
   unread: 'bg-light-warning text-warning',
   upcoming: 'bg-light-info text-info',
   live: 'bg-light-primary text-primary',
+  uploading: 'bg-light-warning text-warning',
+  ready: 'bg-light-success text-success',
+  failed: 'bg-light-error text-error',
+  removed: 'bg-light-secondary text-secondary',
+  open: 'bg-light-warning text-warning',
+  reviewed: 'bg-light-info text-info',
+  dismissed: 'bg-light-secondary text-secondary',
+  actioned: 'bg-light-success text-success',
 };
 
 const DEFAULT_STATUS_CLASS = 'bg-light-secondary text-secondary';

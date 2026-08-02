@@ -78,6 +78,7 @@
     "@radix-ui/react-toolbar": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@reduxjs/toolkit": "^2.11.2",
+    "@tanstack/react-virtual": "^3.14.9",
     "@tapeya/graphics-core": "file:../shared/graphics-core",
     "apexcharts": "^5.10.2",
     "hls.js": "^1.6.16",

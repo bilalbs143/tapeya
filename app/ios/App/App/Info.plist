@@ -63,6 +63,14 @@
 				<string>fb972949645600556</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.tapbytapeya.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>tapeya</string>
+			</array>
+		</dict>
 	</array>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>

@@ -7,7 +7,7 @@ import { NavbarIconBadge } from '@/components/navbar/NavbarIconBadge';
 import { useLiveViewerHeroMode } from '@/features/stream/liveViewerChromeStore';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { LG_MEDIA_QUERY, NAVBAR_HEIGHT, NAVBAR_SCROLL_THRESHOLD, NAVBAR_Z } from '@/lib/constants/layout';
+import { LG_MEDIA_QUERY, NAVBAR_OFFSET_CSS, NAVBAR_SCROLL_THRESHOLD, NAVBAR_Z } from '@/lib/constants/layout';
 import { NAVBAR_ICON_BTN_CLASS } from '@/lib/constants/navbar';
 import { BOTTOM_NAV_ITEMS } from '@/lib/constants/navigation';
 import { formatCountBadge } from '@/lib/utils/displayUtils';
@@ -18,14 +18,14 @@ import { useAppSelector } from '@/store/hooks';
 const hamburgerIcon = `${CLOUDFRONT_APP_BASE}/images/icons/hamburger-icon.svg`;
 const notificationIcon = `${CLOUDFRONT_APP_BASE}/images/icons/notification-icon.svg`;
 const profileIcon = `${CLOUDFRONT_APP_BASE}/images/icons/profile.svg`;
-const scoreIcon = `${CLOUDFRONT_APP_BASE}/images/icons/score-bottom.svg`;
+const reelsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/reels-navigation-b.svg`;
 const shopNavIcon = `${CLOUDFRONT_APP_BASE}/images/icons/shop-navigation.svg`;
 const upcomingIcon = `${CLOUDFRONT_APP_BASE}/images/icons/upcoming-bottom.svg`;
 const logo = `${CLOUDFRONT_APP_BASE}/images/logos/tapya-t.svg`;
 
 const DESKTOP_NAV_PATH_TO_ICON = {
   '/shop': shopNavIcon,
-  '/scorecard': scoreIcon,
+  '/reels': reelsIcon,
   '/upcoming-tournaments': upcomingIcon,
   '/profile': profileIcon,
 };
@@ -72,7 +72,7 @@ export function Navbar({ onMenuClick }) {
         // bar while the navbar background extends all the way to the screen edge,
         // covering the status bar area gracefully (viewport-fit=cover).
         paddingTop: 'env(safe-area-inset-top)',
-        height: `calc(${NAVBAR_HEIGHT}px + env(safe-area-inset-top))`,
+        height: NAVBAR_OFFSET_CSS,
         zIndex: NAVBAR_Z,
       }}
     >

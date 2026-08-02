@@ -7,8 +7,8 @@ use App\Http\Requests\Admin\Shop\StoreCategoryRequest;
 use App\Http\Requests\Admin\Shop\UpdateCategoryRequest;
 use App\Http\Resources\Admin\Shop\CategoryResource;
 use App\Models\Shop\Category;
+use App\Support\Media\MediaDisk;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Storage;
 
 class CategoryController extends BaseAdminController
 {
@@ -48,9 +48,7 @@ class CategoryController extends BaseAdminController
 
     public function destroy(Category $category): JsonResponse
     {
-        if ($category->image) {
-            Storage::disk(config('filesystems.media_disk'))->delete($category->image);
-        }
+        MediaDisk::delete($category->getRawOriginal('image'));
 
         return $this->_destroy($category, null);
     }

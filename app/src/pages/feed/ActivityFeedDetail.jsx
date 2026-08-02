@@ -1,319 +1,253 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import PostCommentsThread from '@/components/feed/PostCommentsThread';
+import RepostedPostEmbed from '@/components/feed/RepostedPostEmbed';
+import TextPostBackground from '@/components/feed/TextPostBackground';
+import { OfficialBadge } from '@/components/OfficialBadge';
+import { usePostEngagement } from '@/features/feed/usePostEngagement';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { getFeedTextBackground } from '@/lib/constants/composeBackgrounds';
 import { formatCount } from '@/lib/format';
 import { formatPostTimestamp } from '@/lib/utils/feedUtils';
-import { ThumbsUpIcon } from '@/pages/feed/PostCard';
+import { ActionButton, BookmarkIcon, CommentIcon, FollowChip, HeartIcon, RepostIcon, ShareIcon } from '@/pages/feed/PostCard';
+import { useGetPostQuery } from '@/store/api/feedApi';
+import { useFollowReelCreatorMutation, useUnfollowReelCreatorMutation } from '@/store/api/reelsApi';
+import { useAppSelector } from '@/store/hooks';
+import { selectUser } from '@/store/selectors';
 import { Container } from '@/ui/Container';
 
-import { getPostDetail } from './feedData';
-
-const feedCommentIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-comment.svg`;
-const feedShareIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-share.svg`;
-
-const AVATAR_PLACEHOLDER =
-  'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"%3E%3Crect fill="%234a5568" width="64" height="64"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="central" text-anchor="middle" fill="%2394a3b8" font-size="24" font-family="sans-serif" %3E?%3C/text%3E%3C/svg%3E';
+const AVATAR_PLACEHOLDER = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 const IMAGE_PLACEHOLDER =
   'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect fill="%231a1a1a" width="800" height="600"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="central" text-anchor="middle" fill="%234a5568" font-size="24" font-family="sans-serif"%3EImage%3C/text%3E%3C/svg%3E';
 
-function ThumbsDownIcon({ filled, className = '' }) {
-  return (
-    <svg
-      className={className}
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path
-        d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"
-        fill={filled ? 'currentColor' : 'none'}
-      />
-    </svg>
-  );
-}
-
 /**
- * Single comment row: avatar, name, text, like/dislike counts.
- * Supports optional like/dislike toggle for interactivity.
- */
-function CommentItem({ comment, onLike, onDislike, likedByUser, dislikedByUser }) {
-  const [avatarError, setAvatarError] = useState(false);
-  const displayLikes = likedByUser !== undefined ? comment.likesCount + (likedByUser ? 1 : 0) : comment.likesCount;
-  const displayDislikes = dislikedByUser !== undefined ? comment.dislikesCount + (dislikedByUser ? 1 : 0) : comment.dislikesCount;
-
-  return (
-    <div className="border-surface-border flex gap-2 border-b py-3 last:border-b-0">
-      <img
-        src={avatarError ? AVATAR_PLACEHOLDER : comment.commenterAvatarUrl}
-        alt=""
-        className="h-9 w-9 flex-shrink-0 rounded-full object-cover"
-        loading="lazy"
-        onError={() => setAvatarError(true)}
-      />
-      <div className="min-w-0 flex-1">
-        <p className="text-[14px] font-bold text-white">{comment.commenterName}</p>
-        <p className="mt-0.5 text-[14px] leading-relaxed font-normal text-[#B0B0B0]">{comment.text}</p>
-        <div className="text-muted mt-2 flex items-center gap-4">
-          {typeof onLike === 'function' ? (
-            <button
-              type="button"
-              onClick={() => onLike(comment.id)}
-              className={`flex items-center gap-1.5 transition-colors ${likedByUser ? 'text-brand' : ''}`}
-              aria-label="Like Comment"
-            >
-              <ThumbsUpIcon filled={likedByUser} />
-              <span className="text-[14px] font-normal">{formatCount(displayLikes)}</span>
-            </button>
-          ) : (
-            <span className="flex items-center gap-1.5" aria-hidden>
-              <ThumbsUpIcon />
-              <span className="text-[14px] font-normal">{formatCount(comment.likesCount)}</span>
-            </span>
-          )}
-          {typeof onDislike === 'function' ? (
-            <button
-              type="button"
-              onClick={() => onDislike(comment.id)}
-              className={`flex items-center gap-1.5 transition-colors ${dislikedByUser ? 'text-red-500' : ''}`}
-              aria-label="Dislike Comment"
-            >
-              <ThumbsDownIcon filled={dislikedByUser} />
-              <span className="text-[14px] font-normal">{formatCount(displayDislikes)}</span>
-            </button>
-          ) : (
-            <span className="flex items-center gap-1.5" aria-hidden>
-              <ThumbsDownIcon />
-              <span className="text-[14px] font-normal">{formatCount(comment.dislikesCount)}</span>
-            </span>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/**
- * Activity Feed Detail: single post with full content and comment thread.
- * UI matches ActivityFeed/PostCard; adds comment list and add-comment input.
+ * Activity Feed Detail — same hierarchy as PostCard; video posts redirect to reels.
+ * Comments use the same reel-style thread UI, inline (not a bottom sheet).
  */
 export default function ActivityFeedDetail() {
   const { postId } = useParams();
   const navigate = useNavigate();
-  const detail = useMemo(() => (postId ? getPostDetail(postId) : null), [postId]);
+  const location = useLocation();
+  const currentUser = useAppSelector(selectUser);
 
-  const [postLiked, setPostLiked] = useState(false);
-  const [newComments, setNewComments] = useState([]);
-  const [commentInput, setCommentInput] = useState('');
-  const [commentReactions, setCommentReactions] = useState(() => new Map());
+  const { data: post, isLoading, isError } = useGetPostQuery(postId, { skip: !postId });
+  const [followCreator, { isLoading: isFollowPending }] = useFollowReelCreatorMutation();
+  const [unfollowCreator, { isLoading: isUnfollowPending }] = useUnfollowReelCreatorMutation();
+  const { toggleLike, toggleSave, share, repost, isReposting } = usePostEngagement(post);
+
   const [imageError, setImageError] = useState(false);
   const [authorAvatarError, setAuthorAvatarError] = useState(false);
-
-  const post = detail?.post ?? null;
-  const commentsToShow = useMemo(() => [...(detail?.comments ?? []), ...newComments], [detail, newComments]);
+  const [stickyCommentComposer, setStickyCommentComposer] = useState(false);
 
   useEffect(() => {
-    if (!postId) return;
-    setNewComments([]);
-    setCommentReactions(new Map());
-    setImageError(false);
-    setAuthorAvatarError(false);
+    if (post?.type === 'video') {
+      navigate(`/reels/${post.id}`, { replace: true });
+    }
+  }, [post, navigate]);
+
+  useEffect(() => {
+    if (location.hash === '#comments' && post && post.type !== 'video') {
+      document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [location.hash, post]);
+
+  useEffect(() => {
+    const updateComposerPosition = () => setStickyCommentComposer(window.scrollY > 24);
+    updateComposerPosition();
+    window.addEventListener('scroll', updateComposerPosition, { passive: true });
+    return () => window.removeEventListener('scroll', updateComposerPosition);
   }, [postId]);
-
-  const displayLikesCount = post ? (postLiked ? post.likesCount + 1 : post.likesCount) : 0;
-  const displayCommentsCount = commentsToShow.length;
-
-  const togglePostLike = useCallback(() => {
-    setPostLiked((prev) => !prev);
-  }, []);
-
-  const handleCommentLike = useCallback((commentId) => {
-    setCommentReactions((prev) => {
-      const next = new Map(prev);
-      const current = next.get(commentId);
-      if (current === 'like') {
-        next.delete(commentId);
-      } else {
-        next.set(commentId, 'like');
-      }
-      return next;
-    });
-  }, []);
-
-  const handleCommentDislike = useCallback((commentId) => {
-    setCommentReactions((prev) => {
-      const next = new Map(prev);
-      const current = next.get(commentId);
-      if (current === 'dislike') {
-        next.delete(commentId);
-      } else {
-        next.set(commentId, 'dislike');
-      }
-      return next;
-    });
-  }, []);
-
-  const handleAddComment = useCallback(
-    (e) => {
-      e?.preventDefault();
-      const text = commentInput.trim();
-      if (!text) return;
-      const comment = {
-        id: `comment-new-${Date.now()}`,
-        commenterName: 'You',
-        commenterAvatarUrl: 'https://i.pravatar.cc/128?img=1',
-        text,
-        likesCount: 0,
-        dislikesCount: 0,
-      };
-      setNewComments((prev) => [...prev, comment]);
-      setCommentInput('');
-    },
-    [commentInput],
-  );
 
   const formattedTimestamp = useMemo(() => (post ? formatPostTimestamp(post.publishedAt) : ''), [post]);
 
-  if (!post) {
+  const scrollToComments = () => {
+    document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.setTimeout(() => {
+      document.querySelector('#comments textarea')?.focus({ preventScroll: true });
+    }, 350);
+  };
+
+  if (isLoading) {
     return (
       <div className="bg-black text-white">
-        <AppSubpageHeader sticky divider title="ACTIVITY FEED" onBack={() => navigate('/feed')} />
+        <AppSubpageHeader sticky title="ACTIVITY FEED" onBack={() => navigate('/')} />
         <Container>
-          <div className="py-8 text-center">
-            <p className="text-muted">Post not found.</p>
-            <button type="button" onClick={() => navigate('/feed')} className="text-brand mt-4 underline">
-              Back to feed
-            </button>
+          <div className="flex items-center justify-center py-16" role="status" aria-label="Loading post">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white/70" aria-hidden />
           </div>
         </Container>
       </div>
     );
   }
 
-  const { imageUrl, authorName, authorAvatarUrl, title, description, sharesCount } = post;
+  if (isError || !post || post.type === 'video') {
+    return (
+      <div className="bg-black text-white">
+        <AppSubpageHeader sticky title="ACTIVITY FEED" onBack={() => navigate('/')} />
+        <Container>
+          <div className="py-8 text-center">
+            <p className="text-muted">{post?.type === 'video' ? 'Opening reel…' : 'Post not found.'}</p>
+            {post?.type !== 'video' && (
+              <button type="button" onClick={() => navigate('/')} className="text-brand mt-4 underline">
+                Back to home
+              </button>
+            )}
+          </div>
+        </Container>
+      </div>
+    );
+  }
+
+  const {
+    type,
+    imageUrl,
+    authorName,
+    authorAvatarUrl,
+    authorId,
+    authorIsOfficial,
+    title,
+    description,
+    body,
+    backgroundId,
+    likesCount,
+    commentsCount,
+    sharesCount,
+    repostsCount,
+    liked,
+    saved,
+    followingCreator,
+    media,
+    repostOf,
+    publishedAt,
+  } = post;
+
+  const caption = description || body || '';
+  const textBg = type === 'text' ? getFeedTextBackground(backgroundId) : null;
+  const mediaSrc = imageUrl || media?.[0]?.url;
+  const mediaWidth = media?.[0]?.width || null;
+  const mediaHeight = media?.[0]?.height || null;
+  const showImage = type === 'image' && Boolean(mediaSrc);
+  const imageAspectStyle = showImage && mediaWidth && mediaHeight ? { aspectRatio: `${mediaWidth} / ${mediaHeight}` } : undefined;
+  const isOwnPost = authorId != null && currentUser?.id != null && String(authorId) === String(currentUser.id);
+  const showFollow = Boolean(authorId) && !isOwnPost;
+  const followBusy = isFollowPending || isUnfollowPending;
+
+  const onFollowClick = () => {
+    if (!authorId || followBusy) return;
+    if (followingCreator) {
+      unfollowCreator(authorId);
+    } else {
+      followCreator(authorId);
+    }
+  };
 
   return (
     <div className="min-h-full bg-black text-white">
-      <AppSubpageHeader sticky divider title="ACTIVITY FEED" />
+      <AppSubpageHeader sticky title="ACTIVITY FEED" />
 
-      <Container className="flex flex-col gap-0 pb-24">
-        {/* Post block - consistent with PostCard */}
-        <article className="bg-surface overflow-hidden rounded-2xl shadow-[0_18px_40px_rgba(0,0,0,0.9)]">
-          <div className="relative aspect-[4/3] w-full overflow-hidden bg-black">
-            <img
-              src={imageError ? IMAGE_PLACEHOLDER : imageUrl}
-              alt=""
-              className="h-full w-full object-cover"
-              loading="lazy"
-              onError={() => setImageError(true)}
-            />
-            <div className="absolute bottom-0 left-0 max-w-full px-3 py-2">
-              <span className="text-[12px] font-normal text-white">{formattedTimestamp}</span>
-            </div>
-          </div>
-
-          <div className="p-4">
-            <div className="border-surface-border mb-3 flex items-center gap-2 border-b pb-3">
-              <img
-                src={authorAvatarError ? AVATAR_PLACEHOLDER : authorAvatarUrl}
-                alt=""
-                className="h-9 w-9 flex-shrink-0 rounded-full object-cover"
-                loading="lazy"
-                onError={() => setAuthorAvatarError(true)}
-              />
-              <div className="min-w-0">
-                <span className="block text-[14px] font-medium text-white">{authorName}</span>
-                <span className="text-muted block text-[12px] font-normal">{formattedTimestamp}</span>
+      <Container className="pb-24">
+        <div className="-mx-4 flex flex-col gap-0.5 bg-black">
+          <article className="bg-surface overflow-hidden shadow-[0_1px_0_0_rgba(255,255,255,0.06)_inset,0_20px_40px_-24px_rgba(0,0,0,0.8)]">
+            <header className="flex items-center gap-2 px-4 pt-3.5">
+              <div className="flex min-w-0 flex-1 items-center gap-3">
+                <div className="rounded-full bg-[linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))] p-[2px]">
+                  <img
+                    src={authorAvatarError || !authorAvatarUrl ? AVATAR_PLACEHOLDER : authorAvatarUrl}
+                    alt=""
+                    className="border-surface h-11 w-11 rounded-full border-2 object-cover"
+                    loading="lazy"
+                    onError={() => setAuthorAvatarError(true)}
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex min-w-0 items-center gap-1">
+                    <span className="truncate text-[14px] font-bold text-white">{authorName}</span>
+                    <OfficialBadge isOfficial={authorIsOfficial} />
+                  </div>
+                  <time className="text-muted block text-[11px] leading-tight" dateTime={publishedAt || undefined}>
+                    {formattedTimestamp}
+                  </time>
+                </div>
               </div>
-            </div>
+              {showFollow ? (
+                <FollowChip following={followingCreator} busy={followBusy} onClick={onFollowClick} name={authorName} />
+              ) : null}
+            </header>
 
-            <h2 className="mb-1.5 text-[14px] leading-snug font-bold text-white">{title}</h2>
-            <p className="mb-4 text-[14px] leading-relaxed font-normal text-[#B0B0B0]">{description}</p>
+            {caption && textBg ? (
+              <TextPostBackground background={textBg} className="mt-3 min-h-72" rounded={false}>
+                <p className={`mx-auto whitespace-pre-wrap ${textBg.textClassName}`}>{caption}</p>
+              </TextPostBackground>
+            ) : caption ? (
+              <p className="max-w-[42ch] px-5 pt-3 text-[15px] leading-[1.6] whitespace-pre-wrap text-white sm:px-6">{caption}</p>
+            ) : null}
 
-            <div className="border-surface-border text-muted mb-4 flex items-center justify-between border-t border-b py-3">
-              <button
-                type="button"
-                onClick={togglePostLike}
-                className={`flex items-center gap-1.5 transition-transform ${postLiked ? 'text-brand' : ''}`}
-                aria-label={postLiked ? 'Unlike' : 'Like'}
-              >
-                <ThumbsUpIcon filled={postLiked} />
-                <span className="text-[14px] font-normal">{formatCount(displayLikesCount)}</span>
-              </button>
-              <span className="flex items-center gap-1.5" aria-hidden>
-                <img src={feedCommentIcon} alt="" className="h-[17px] w-[17px] object-contain" />
-                <span className="text-[14px] font-normal">{formatCount(displayCommentsCount)}</span>
-              </span>
-              <span className="flex items-center gap-1.5" aria-hidden>
-                <img src={feedShareIcon} alt="" className="h-5 w-5 object-contain" />
-                <span className="text-[14px] font-normal">{formatCount(sharesCount)}</span>
-              </span>
-            </div>
-          </div>
-        </article>
+            {title && type !== 'text' && type !== 'repost' && title !== caption && (
+              <h2 className="px-5 pt-1 text-[14px] leading-snug font-bold text-white/80 sm:px-6">{title}</h2>
+            )}
 
-        {/* Comments */}
-        <div className="bg-surface mt-4 rounded-2xl px-4 py-3 shadow-[0_18px_40px_rgba(0,0,0,0.9)]">
-          {commentsToShow.length === 0 ? (
-            <p className="text-muted py-4 text-center text-[14px]">No comments yet. Be the first to comment.</p>
-          ) : (
-            <div className="divide-y divide-[#1A1A1A]">
-              {commentsToShow.map((comment) => (
-                <CommentItem
-                  key={comment.id}
-                  comment={comment}
-                  onLike={handleCommentLike}
-                  onDislike={handleCommentDislike}
-                  likedByUser={commentReactions.get(comment.id) === 'like'}
-                  dislikedByUser={commentReactions.get(comment.id) === 'dislike'}
+            {type === 'repost' && repostOf ? <RepostedPostEmbed post={repostOf} /> : null}
+
+            {showImage && (
+              <div className="mt-3 max-h-[420px] overflow-hidden bg-black" style={imageAspectStyle}>
+                <img
+                  src={imageError ? IMAGE_PLACEHOLDER : mediaSrc}
+                  alt=""
+                  width={mediaWidth || undefined}
+                  height={mediaHeight || undefined}
+                  className="h-full max-h-[420px] w-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                  onError={() => setImageError(true)}
                 />
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
+            )}
 
-        {/* Add comment - fixed at bottom above nav */}
-        <form onSubmit={handleAddComment} className="fixed right-0 bottom-20 left-0 z-10 mx-auto max-w-2xl px-4">
-          <div className="bg-surface-border flex items-center gap-2 rounded-2xl border border-[#2A2A2A] px-4 py-3">
-            <input
-              type="text"
-              value={commentInput}
-              onChange={(e) => setCommentInput(e.target.value)}
-              placeholder="Add a Comment…"
-              className="placeholder:text-muted min-w-0 flex-1 bg-transparent text-[14px] text-white focus:outline-none"
-              aria-label="Add a Comment"
+            <div className="text-muted flex items-center justify-between px-4 pt-3 pb-1 text-[12px]">
+              <span className="flex items-center gap-1.5">
+                <span className="from-brand to-brand-dark grid h-5 w-5 place-items-center rounded-full bg-linear-to-br">
+                  <HeartIcon filled className="h-2.5 w-2.5 text-white" />
+                </span>
+                <span className="tabular-nums">{formatCount(likesCount)}</span>
+              </span>
+              <button type="button" onClick={scrollToComments} className="tabular-nums transition-colors hover:text-white">
+                {formatCount(commentsCount)} comments · {formatCount(sharesCount)} shares · {formatCount(repostsCount)} reposts
+              </button>
+            </div>
+
+            <div className="border-border my-1 border-t" />
+
+            <div className="flex items-center gap-0.5 px-1.5 pb-2" role="group" aria-label="Post actions">
+              <ActionButton
+                active={liked}
+                onClick={toggleLike}
+                icon={<HeartIcon filled={liked} />}
+                ariaLabel={liked ? 'Unlike' : 'Like'}
+              />
+              <ActionButton onClick={scrollToComments} icon={<CommentIcon />} ariaLabel="Comment" />
+              <ActionButton onClick={share} icon={<ShareIcon />} ariaLabel="Share" />
+              <ActionButton onClick={repost} icon={<RepostIcon />} ariaLabel="Repost" disabled={isReposting} />
+              <ActionButton
+                active={saved}
+                onClick={toggleSave}
+                icon={<BookmarkIcon filled={saved} />}
+                ariaLabel={saved ? 'Unsave post' : 'Save post'}
+              />
+            </div>
+          </article>
+
+          <div className="bg-surface px-4 py-4">
+            <PostCommentsThread
+              postId={postId}
+              loginFrom={`/feed/${postId}`}
+              stickyComposer={stickyCommentComposer}
+              className=""
             />
-            <button
-              type="button"
-              className="text-muted flex h-8 w-8 shrink-0 items-center justify-center transition-opacity hover:opacity-80"
-              aria-label="Emoji"
-            >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                <line x1="9" y1="9" x2="9.01" y2="9" />
-                <line x1="15" y1="9" x2="15.01" y2="9" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              className="text-muted flex h-8 w-8 shrink-0 items-center justify-center transition-opacity hover:opacity-80"
-              aria-label="Like"
-            >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-              </svg>
-            </button>
           </div>
-        </form>
+        </div>
       </Container>
     </div>
   );

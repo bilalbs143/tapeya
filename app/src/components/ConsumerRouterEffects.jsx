@@ -1,4 +1,4 @@
-import { useBroadcastDeepLink } from '@/hooks/useBroadcastDeepLink';
+import { useAppDeepLink } from '@/hooks/useAppDeepLink';
 import { useLiveHubChannel } from '@/hooks/useLiveHubChannel';
 import { usePlatformTracking } from '@/hooks/usePlatformTracking';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
@@ -7,7 +7,7 @@ import { usePushNotifications } from '@/hooks/usePushNotifications';
 export function ConsumerRouterEffects() {
   usePushNotifications();
   usePlatformTracking();
-  useBroadcastDeepLink();
+  useAppDeepLink();
   useLiveHubChannel();
   return null;
 }

@@ -6,7 +6,9 @@ use App\Settings\ContactSettings;
 use App\Settings\GeneralSettings;
 use App\Settings\GraphicsSettings;
 use App\Settings\LiveChatSettings;
+use App\Settings\MediaCdnSettings;
 use App\Settings\OtpSettings;
+use App\Settings\PostsSettings;
 use App\Settings\PushSettings;
 use App\Settings\SmsSettings;
 use App\Settings\StreamingSettings;
@@ -42,6 +44,8 @@ return [
         StreamingSettings::class,
         LiveChatSettings::class,
         PushSettings::class,
+        PostsSettings::class,
+        MediaCdnSettings::class,
     ],
 
     /*

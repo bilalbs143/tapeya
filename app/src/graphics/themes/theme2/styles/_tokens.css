@@ -1,0 +1,35 @@
+/* Auto-generated from src/graphics/themes/theme2/config.js — do not edit by hand */
+:root {
+  --text: #ffffff;
+  --accentA: #c40038;
+  --accentB: #c9a227;
+  --glow: 1;
+  --font-display: 'Saira Condensed', system-ui, sans-serif;
+  --font-ui: 'Saira', system-ui, sans-serif;
+  --gold: #c9a227;
+  --badge-text: #1a0a14;
+  --stage-bg: radial-gradient(120% 100% at 40% 15%, #9c2040 0%, #7a1832 45%, #4a1020 80%, #2e0a16 100%);
+  --ambient-sequence-cycle: 30s;
+  --strap-text-loop: 4.1s;
+  --strap-text-enter: 0.55s;
+  --ambient-color-a: rgba(156, 0, 40, 0.06);
+  --ambient-color-b: rgba(196, 0, 56, 0.28);
+  --ambient-color-c: rgba(110, 0, 28, 0.4);
+  --panel-base: #2e0a1a;
+  --panel-deep: #2e0a1a;
+  --panel-stat: #000000;
+  --panel-bowler: linear-gradient(to right, #9c0028, #b80032, #c40038);
+  --navy-border: rgba(196, 0, 56, 0.32);
+  --navy-glow: rgba(196, 0, 56, 0.18);
+  --score-color: #ffffff;
+  --score-shadow: rgba(156, 0, 40, 0.55);
+  --fs-stage-fade-in: 0ms;
+  --fs-stage-glow-cycle: 24s;
+  --fs-stage-grain-cycle: 140s;
+  --fs-fabric-easing: cubic-bezier(0.37, 0.04, 0.22, 1);
+  --fs-fabric-blur: 2px;
+  --fs-fabric-band-width: 2900px;
+  --fs-fabric-band-height: 380px;
+  --fs-fabric-band-left: -280px;
+  --fs-stage-sheen-cycle: 14.5s;
+}

@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Enums\Streaming\StreamOrientationEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
-use App\Enums\Streaming\StreamOrientationEnum;
 use App\Models\MatchStream;
 use App\Streaming\LiveStreamService;
 use App\Streaming\StreamProviderManager;
+use App\Support\Media\MediaDisk;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 /**
@@ -129,30 +129,20 @@ class LiveBroadcastController extends Controller
 
         $request->validate(['file' => ['required', 'image', 'max:5120']]);
 
-        $disk = config('filesystems.media_disk');
         $oldPath = $stream->getRawOriginal('stream_thumbnail');
+        MediaDisk::delete($oldPath);
 
-        if ($oldPath) {
-            Storage::disk($disk)->delete($oldPath);
-        }
-
-        $path = $request->file('file')->store('match-stream-thumbnails', $disk);
+        $path = MediaDisk::storeUploaded($request->file('file'), 'match-stream-thumbnails');
         $stream->update(['stream_thumbnail' => $path]);
 
-        return $this->success(['thumbnail_url' => Storage::disk($disk)->url($path)]);
+        return $this->success(['thumbnail_url' => MediaDisk::url($path)]);
     }
 
     public function deleteThumbnail(Request $request, MatchStream $stream): JsonResponse
     {
         $this->authorizeOwner($stream, $request);
 
-        $disk = config('filesystems.media_disk');
-        $oldPath = $stream->getRawOriginal('stream_thumbnail');
-
-        if ($oldPath) {
-            Storage::disk($disk)->delete($oldPath);
-        }
-
+        MediaDisk::delete($stream->getRawOriginal('stream_thumbnail'));
         $stream->update(['stream_thumbnail' => null]);
 
         return $this->noContent();

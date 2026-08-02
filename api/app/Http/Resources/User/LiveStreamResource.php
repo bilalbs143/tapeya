@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources\User;
 
+use App\Support\Media\MediaDisk;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 class LiveStreamResource extends JsonResource
 {
@@ -31,9 +31,8 @@ class LiveStreamResource extends JsonResource
                     'id' => $stream->owner->id,
                     'name' => $stream->owner->name,
                     'nickname' => $stream->owner->nickname,
-                    'avatar_url' => $stream->owner->avatar
-                        ? Storage::disk(config('filesystems.media_disk'))->url($stream->owner->avatar)
-                        : null,
+                    'avatar_url' => MediaDisk::url($stream->owner->avatar),
+                    'is_official' => (bool) $stream->owner->is_official,
                 ],
             ),
             'stream' => [

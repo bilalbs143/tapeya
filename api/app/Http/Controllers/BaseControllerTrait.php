@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\Media\MediaDisk;
 use App\Utils\Constants\ApiConstants;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -46,21 +46,19 @@ trait BaseControllerTrait
     }
 
     /**
-     * Store/update a single image field on a model in a consistent way.
+     * Store/update a single image field on a model via {@see MediaDisk} (ACL-safe).
      *
-     * - Saves the uploaded file to "images/{$path}" on the default disk.
+     * - Saves the uploaded file under $path on the media disk.
      * - Deletes the previous file if a record and old path exist.
      */
     protected function storeImage(Request $request, string $param, string $path, array &$data, $record = null): void
     {
         if ($request->hasFile($param)) {
-            $data[$param] = $request
-                ->file($param)
-                ->store($path, config('filesystems.media_disk'));
-
             if ($record && $record->$param) {
-                Storage::disk(config('filesystems.media_disk'))->delete($record->$param);
+                MediaDisk::delete($record->getRawOriginal($param) ?? $record->$param);
             }
+
+            $data[$param] = MediaDisk::storeUploaded($request->file($param), $path);
         }
     }
 

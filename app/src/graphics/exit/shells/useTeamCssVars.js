@@ -14,8 +14,10 @@ export function useTeamCssVars(tokens) {
   // cast rather than let the structural "no common properties" check fire.
   return /** @type {import('react').CSSProperties} */ ({
     '--home-bg': tokens.homeBgColor || undefined,
-    '--home-text': tokens.homeTextColor || undefined,
     '--away-bg': tokens.awayBgColor || undefined,
-    '--away-text': tokens.awayTextColor || undefined,
+    // Optional overrides when a theme schema still provides them.
+    ...(tokens.homeTextColor ? { '--home-text': tokens.homeTextColor } : null),
+    ...(tokens.awayTextColor ? { '--away-text': tokens.awayTextColor } : null),
+    ...(tokens.textColor ? { '--text': tokens.textColor } : null),
   });
 }

@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources\User\Shop;
 
+use App\Support\Media\MediaDisk;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 class CategoryResource extends JsonResource
 {
@@ -19,7 +19,7 @@ class CategoryResource extends JsonResource
             'slug' => $this->slug,
             'parent_id' => $this->parent_id,
             'parent' => $this->whenLoaded('parent', fn () => new CategoryResource($this->parent)),
-            'image' => $this->image ? Storage::disk(config('filesystems.media_disk'))->url($this->image) : null,
+            'image' => MediaDisk::url($this->image),
             'sort_order' => $this->sort_order,
         ];
     }

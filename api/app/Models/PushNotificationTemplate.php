@@ -72,6 +72,46 @@ class PushNotificationTemplate extends BaseModel
                 'title' => 'Sample Title',
                 'body' => 'Sample message body',
             ],
+            'post_liked' => [
+                'actor_name' => 'Alex',
+                'post_id' => '42',
+                'deep_link' => '/reels/42',
+            ],
+            'post_commented' => [
+                'actor_name' => 'Alex',
+                'post_id' => '42',
+                'comment_id' => '7',
+                'deep_link' => '/reels/42',
+            ],
+            'post_comment_reply' => [
+                'actor_name' => 'Alex',
+                'post_id' => '42',
+                'comment_id' => '8',
+                'parent_id' => '7',
+                'deep_link' => '/reels/42',
+            ],
+            'post_mentioned' => [
+                'actor_name' => 'Alex',
+                'post_id' => '42',
+                'comment_id' => '7',
+                'deep_link' => '/feed/42',
+                'mention_source' => 'post',
+            ],
+            'post_reposted' => [
+                'actor_name' => 'Alex',
+                'post_id' => '42',
+                'deep_link' => '/reels/42',
+            ],
+            'post_published' => [
+                'actor_name' => 'Alex',
+                'post_id' => '42',
+                'deep_link' => '/reels/42',
+            ],
+            'user_followed' => [
+                'actor_name' => 'Alex',
+                'actor_id' => '9',
+                'deep_link' => '/notification-center',
+            ],
             default => [],
         };
     }

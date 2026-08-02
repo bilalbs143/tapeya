@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 
+import { useNavigate } from 'react-router-dom';
+
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { isSafeNotificationNavigatePath, normalizeAppPath } from '@/lib/deepLinks/deepLinkRegistry';
 import { formatRelativeDate } from '@/lib/utils/dateUtils';
 import { getInitials } from '@/lib/utils/displayUtils';
 import { useGetNotificationsQuery, useMarkAllNotificationsReadMutation } from '@/store/api/notificationApi';
@@ -43,8 +46,21 @@ function mapApiNotificationToCard(notification) {
     regularText = tail ? `: ${tail}` : '';
   }
 
-  const nameSource = data.customer_name || data.user_name || data.tournament_name || '';
+  const nameSource = data.actor_name || data.customer_name || data.user_name || data.tournament_name || '';
   const fallback = nameSource ? getInitials(nameSource) : 'NT';
+
+  let href = null;
+  if (typeof data.deep_link === 'string' && data.deep_link) {
+    const path = normalizeAppPath(data.deep_link);
+    if (isSafeNotificationNavigatePath(path)) {
+      href = path;
+    }
+  } else if (data.order_id) {
+    const path = `/shop/orders/${data.order_id}`;
+    if (isSafeNotificationNavigatePath(path)) {
+      href = path;
+    }
+  }
 
   return {
     id: notification.id,
@@ -57,14 +73,32 @@ function mapApiNotificationToCard(notification) {
     // actionLabel is reserved for future use
     actionLabel: null,
     unread: !notification.read_at,
+    href,
   };
 }
 
-function NotificationCard({ notification, onActionClick }) {
-  const { avatar, fallback, boldText, regularText, timestamp, actionLabel, unread } = notification;
+function NotificationCard({ notification, onActionClick, onNavigate }) {
+  const { avatar, fallback, boldText, regularText, timestamp, actionLabel, unread, href } = notification;
+
+  const interactive = Boolean(href && onNavigate);
 
   return (
-    <article className="bg-surface flex items-start gap-3 rounded-[17px] p-4">
+    <article
+      className={`bg-surface flex items-start gap-3 rounded-[17px] p-4${interactive ? 'cursor-pointer transition-opacity active:opacity-90' : ''}`}
+      role={interactive ? 'button' : undefined}
+      tabIndex={interactive ? 0 : undefined}
+      onClick={interactive ? () => onNavigate(href) : undefined}
+      onKeyDown={
+        interactive
+          ? (event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                onNavigate(href);
+              }
+            }
+          : undefined
+      }
+    >
       <Avatar className="h-12 w-12 shrink-0 rounded-full bg-[#252520]">
         {avatar && <AvatarImage src={avatar} alt="" />}
         <AvatarFallback className="bg-[#252520] text-sm font-semibold text-[#141412]">{fallback}</AvatarFallback>
@@ -81,7 +115,10 @@ function NotificationCard({ notification, onActionClick }) {
           {actionLabel && onActionClick && (
             <button
               type="button"
-              onClick={() => onActionClick(notification)}
+              onClick={(event) => {
+                event.stopPropagation();
+                onActionClick(notification);
+              }}
               className="border-brand text-brand rounded-[6px] border bg-transparent px-3 py-1 text-[13px] font-bold transition-opacity active:opacity-90"
             >
               {actionLabel}
@@ -95,6 +132,7 @@ function NotificationCard({ notification, onActionClick }) {
 }
 
 export default function NotificationCenter() {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [items, setItems] = useState([]);
   const [markAllError, setMarkAllError] = useState(false);
@@ -192,7 +230,7 @@ export default function NotificationCenter() {
           <ul className="flex flex-col gap-3" aria-label="Notifications">
             {notifications.map((notification) => (
               <li key={notification.id}>
-                <NotificationCard notification={notification} />
+                <NotificationCard notification={notification} onNavigate={(path) => navigate(path)} />
               </li>
             ))}
           </ul>

@@ -1,0 +1,610 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Theme-01 keyframe animations
+// Keyframes use literal values or var() where supported; timing tokens live in
+// config.js and are exposed on :root via _tokens.css.
+//
+// Ambient controller sequence (30s cycle, active ~0–21%):
+//   0%     left crest pulse begins; gradient starts immediately from the left
+//   ~2.5%  left crest peak
+//   ~6–15% gradient sweeps left → right
+//   ~16%   right crest peak (triggered as gradient arrives)
+//   ~21%   sequence ends; idle until next cycle
+// ─────────────────────────────────────────────────────────────────────────────
+
+@keyframes numPop {
+  0% {
+    transform: translateY(-6px) scale(1.18);
+    color: #fff;
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@keyframes chipIn {
+  0% {
+    transform: scale(0.3);
+  }
+  60% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes barRise {
+  0% {
+    transform: translateY(34px);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@keyframes rowIn {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes wormDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes barGrow {
+  0% {
+    transform: scaleY(0.001);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes fadeUp {
+  0% {
+    transform: translateY(22px) scale(0.99);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/** Default LT Zone C rotation — next panel rises from below. */
+@keyframes zoneCRise {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes growW {
+  0% {
+    width: 0;
+  }
+}
+
+@keyframes wktSweep {
+  0% {
+    transform: translateX(-30%);
+  }
+  100% {
+    transform: translateX(30%);
+  }
+}
+
+@keyframes wktUp {
+  from {
+    transform: translateY(20px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes sixPop {
+  0% {
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+// Full-screen transition — theme3 slam / settle / soft-exit (one cycle ≈ flashDismissMs)
+@keyframes fst-action-impact {
+  0% {
+    transform: scale(2.4) rotate(-4deg);
+    opacity: 0;
+  }
+  14% {
+    transform: scale(0.92) rotate(1deg);
+    opacity: 1;
+  }
+  22% {
+    transform: scale(1.08) rotate(0deg);
+    opacity: 1;
+  }
+  32% {
+    transform: scale(0.98) rotate(0deg);
+    opacity: 1;
+  }
+  42%,
+  72% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  88% {
+    transform: scale(1.12) rotate(2deg);
+    opacity: 0.35;
+  }
+  100% {
+    transform: scale(1.35) rotate(3deg);
+    opacity: 0;
+  }
+}
+
+@keyframes fst-action-glow {
+  0%,
+  100% {
+    transform: scale(0.85);
+    opacity: 0.4;
+  }
+  20% {
+    transform: scale(1.2);
+    opacity: 0.9;
+  }
+  55% {
+    transform: scale(1.1);
+    opacity: 0.65;
+  }
+  85% {
+    transform: scale(1.35);
+    opacity: 0.25;
+  }
+}
+
+@keyframes fst-action-ring {
+  0% {
+    transform: scale(0.35);
+    opacity: 0;
+  }
+  18% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  45% {
+    transform: scale(1.15);
+    opacity: 0.35;
+  }
+  75%,
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+}
+
+@keyframes sparkRise {
+  0% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--spark-peak, 1);
+  }
+  100% {
+    transform: translateY(-46vh) translateX(var(--spark-drift, 0px)) scale(0.3);
+    opacity: 0;
+  }
+}
+
+@keyframes livePulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes nbSweep {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+// Event strap title — one-shot enter (first phase of strapTextLoop, synced with vapor).
+@keyframes strapTextEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(70px) scale(0.84);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/** Theme3 ActionBanner chromatic text-shadow pulse (Four / Six / Out / …). */
+@keyframes actionTextShadow {
+  0% {
+    transform: translateY(0);
+    text-shadow:
+      0 0 0 #0c2ffb,
+      0 0 0 #2cfcfd,
+      0 0 0 #fb203b,
+      0 0 0 #fefc4b;
+  }
+  20% {
+    transform: translateY(-1em);
+    text-shadow:
+      0 0.125em 0 #0c2ffb,
+      0 0.25em 0 #2cfcfd,
+      0 -0.125em 0 #fb203b,
+      0 -0.25em 0 #fefc4b;
+  }
+  40% {
+    transform: translateY(0.5em);
+    text-shadow:
+      0 -0.0625em 0 #0c2ffb,
+      0 -0.125em 0 #2cfcfd,
+      0 0.0625em 0 #fb203b,
+      0 0.125em 0 #fefc4b;
+  }
+  60% {
+    transform: translateY(-0.25em);
+    text-shadow:
+      0 0.03125em 0 #0c2ffb,
+      0 0.0625em 0 #2cfcfd,
+      0 -0.03125em 0 #fb203b,
+      0 -0.0625em 0 #fefc4b;
+  }
+  80% {
+    transform: translateY(0);
+    text-shadow:
+      0 0 0 #0c2ffb,
+      0 0 0 #2cfcfd,
+      0 0 0 #fb203b,
+      0 0 0 #fefc4b;
+  }
+}
+
+// Event strap title: rise from bottom → hold 3s with zoom pulse → exit upward → loop
+// Phase splits match config.js strapTextEnterS / HoldS / ExitS on --strap-text-loop.
+@keyframes strapTextLoop {
+  0% {
+    opacity: 0;
+    transform: translateY(70px) scale(0.84);
+  }
+  13.4% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(0) scale(1.06);
+  }
+  37% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  49% {
+    opacity: 1;
+    transform: translateY(0) scale(1.06);
+  }
+  61% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  73% {
+    opacity: 1;
+    transform: translateY(0) scale(1.06);
+  }
+  86.6% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  93% {
+    opacity: 0;
+    transform: translateY(-70px) scale(0.88);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(70px) scale(0.84);
+  }
+}
+
+// Left crest — pulses once at the start of each 30s cycle.
+@keyframes crestRingPulseFirst {
+  0%,
+  5%,
+  100% {
+    opacity: calc(0.55 + 0.45 * var(--glow, 1));
+    filter: saturate(1.2);
+    box-shadow: 0 0 calc(16px * var(--glow, 1)) var(--crest-ring);
+    transform: rotate(0deg) scale(1);
+  }
+  2.5% {
+    opacity: 1;
+    filter: saturate(1.85) brightness(1.18);
+    box-shadow:
+      0 0 calc(34px * var(--glow, 1)) var(--crest-ring),
+      0 0 calc(52px * var(--glow, 1)) var(--crest-ring);
+    transform: rotate(200deg) scale(1.1);
+  }
+}
+
+// Right crest — pulses once when the gradient sweep reaches the right edge.
+@keyframes crestRingPulseSecond {
+  0%,
+  13%,
+  21%,
+  100% {
+    opacity: calc(0.55 + 0.45 * var(--glow, 1));
+    filter: saturate(1.2);
+    box-shadow: 0 0 calc(16px * var(--glow, 1)) var(--crest-ring);
+    transform: rotate(0deg) scale(1);
+  }
+  16% {
+    opacity: 1;
+    filter: saturate(1.85) brightness(1.18);
+    box-shadow:
+      0 0 calc(34px * var(--glow, 1)) var(--crest-ring),
+      0 0 calc(52px * var(--glow, 1)) var(--crest-ring);
+    transform: rotate(200deg) scale(1.1);
+  }
+}
+
+@keyframes fsDiagonalStripesDriftA {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(72px, 50px, 0);
+  }
+}
+
+@keyframes fsDiagonalStripesDriftB {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-96px, -68px, 0);
+  }
+}
+
+@keyframes fsDiagonalGlowPulse {
+  0%,
+  100% {
+    opacity: 0.88;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+// Full-screen stage fabric mount fade (unused when --fs-stage-fade-in is 0).
+@keyframes fsStageFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// Theme2 fabric — natural cloth billow (calm amp, soft symmetry, ease-in ridges).
+// Lift ↔ rotateX ↔ scaleX stay coupled; A/B nearly mirrored, C lagging ripple.
+@keyframes fsFabricA {
+  0% {
+    transform: rotate(-10deg) rotateX(0.8deg) scaleX(1) translate3d(0, 0, 0);
+    animation-timing-function: cubic-bezier(0.37, 0.04, 0.22, 1);
+  }
+  14% {
+    transform: rotate(-9.25deg) rotateX(2.5deg) scaleX(1.03) translate3d(15px, -22px, 14px);
+    animation-timing-function: cubic-bezier(0.42, 0, 0.48, 1);
+  }
+  34% {
+    transform: rotate(-10.45deg) rotateX(-0.7deg) scaleX(0.98) translate3d(-12px, 15px, -8px);
+    animation-timing-function: cubic-bezier(0.37, 0.04, 0.22, 1);
+  }
+  52% {
+    transform: rotate(-9.15deg) rotateX(2.85deg) scaleX(1.036) translate3d(18px, -25px, 17px);
+    animation-timing-function: cubic-bezier(0.42, 0, 0.48, 1);
+  }
+  72% {
+    transform: rotate(-10.5deg) rotateX(-0.85deg) scaleX(0.978) translate3d(-14px, 19px, -10px);
+    animation-timing-function: cubic-bezier(0.37, 0.04, 0.25, 1);
+  }
+  88% {
+    transform: rotate(-9.4deg) rotateX(2deg) scaleX(1.02) translate3d(11px, -13px, 11px);
+    animation-timing-function: cubic-bezier(0.4, 0, 0.35, 1);
+  }
+  100% {
+    transform: rotate(-10deg) rotateX(0.8deg) scaleX(1) translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fsFabricB {
+  0% {
+    transform: rotate(-10deg) rotateX(0.5deg) scaleX(1) translate3d(0, 0, 0);
+    animation-timing-function: cubic-bezier(0.42, 0, 0.48, 1);
+  }
+  14% {
+    transform: rotate(-10.45deg) rotateX(-0.75deg) scaleX(0.98) translate3d(-13px, 16px, -9px);
+    animation-timing-function: cubic-bezier(0.37, 0.04, 0.22, 1);
+  }
+  34% {
+    transform: rotate(-9.25deg) rotateX(2.55deg) scaleX(1.03) translate3d(15px, -21px, 14px);
+    animation-timing-function: cubic-bezier(0.42, 0, 0.48, 1);
+  }
+  52% {
+    transform: rotate(-10.55deg) rotateX(-0.95deg) scaleX(0.976) translate3d(-15px, 21px, -11px);
+    animation-timing-function: cubic-bezier(0.37, 0.04, 0.22, 1);
+  }
+  72% {
+    transform: rotate(-9.2deg) rotateX(2.7deg) scaleX(1.034) translate3d(17px, -23px, 16px);
+    animation-timing-function: cubic-bezier(0.42, 0, 0.48, 1);
+  }
+  88% {
+    transform: rotate(-10.35deg) rotateX(-0.55deg) scaleX(0.985) translate3d(-10px, 12px, -7px);
+    animation-timing-function: cubic-bezier(0.4, 0, 0.35, 1);
+  }
+  100% {
+    transform: rotate(-10deg) rotateX(0.5deg) scaleX(1) translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fsFabricC {
+  0% {
+    transform: rotate(-10deg) rotateX(0.65deg) scaleX(1) translate3d(0, 0, 0);
+    animation-timing-function: cubic-bezier(0.37, 0.04, 0.22, 1);
+  }
+  16% {
+    transform: rotate(-9.35deg) rotateX(2.25deg) scaleX(1.026) translate3d(13px, -19px, 12px);
+    animation-timing-function: cubic-bezier(0.42, 0, 0.48, 1);
+  }
+  36% {
+    transform: rotate(-10.4deg) rotateX(-0.65deg) scaleX(0.982) translate3d(-11px, 14px, -8px);
+    animation-timing-function: cubic-bezier(0.37, 0.04, 0.22, 1);
+  }
+  54% {
+    transform: rotate(-9.25deg) rotateX(2.7deg) scaleX(1.032) translate3d(16px, -23px, 15px);
+    animation-timing-function: cubic-bezier(0.42, 0, 0.48, 1);
+  }
+  74% {
+    transform: rotate(-10.45deg) rotateX(-0.8deg) scaleX(0.98) translate3d(-13px, 17px, -9px);
+    animation-timing-function: cubic-bezier(0.37, 0.04, 0.25, 1);
+  }
+  90% {
+    transform: rotate(-9.45deg) rotateX(1.85deg) scaleX(1.018) translate3d(10px, -11px, 9px);
+    animation-timing-function: cubic-bezier(0.4, 0, 0.35, 1);
+  }
+  100% {
+    transform: rotate(-10deg) rotateX(0.65deg) scaleX(1) translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fsStageVolumeBreathe {
+  0%,
+  100% {
+    transform: rotateX(3.6deg) rotateZ(-0.7deg) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: rotateX(4.2deg) rotateZ(-0.45deg) translate3d(0, 0.22%, 3px);
+  }
+}
+
+@keyframes fsStageCornerCrest {
+  0%,
+  100% {
+    transform: rotate(-8deg) scale(1) translate3d(0, 0, 0);
+    opacity: 0.58;
+  }
+  50% {
+    transform: rotate(-6.9deg) scale(1.035) translate3d(-1.4%, -1%, 0);
+    opacity: 0.7;
+  }
+}
+
+@keyframes fsStageCornerFill {
+  0%,
+  100% {
+    opacity: 0.82;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.018);
+  }
+}
+
+@keyframes fsStageSheenDrift {
+  0%,
+  100% {
+    transform: translate3d(1%, -0.4%, 0);
+  }
+  50% {
+    transform: translate3d(-3.5%, 1%, 0);
+  }
+}
+
+// Tour Hits — tournament short-code badge reveal (scale only — never hide with opacity).
+@keyframes tourCodeReveal {
+  0% {
+    transform: scale(0.82);
+  }
+  65% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+// Gentle glow pulse on the tour short-code badge after reveal.
+@keyframes tourCodeGlow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 calc(12px * var(--glow, 1)) rgba(196, 0, 56, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+  50% {
+    box-shadow:
+      0 0 calc(24px * var(--glow, 1)) rgba(196, 0, 56, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  }
+}
+
+// Event ticker band — scrolls left by exactly --ticker-px (the measured width of one copy).
+// Using a pixel value instead of -50% ensures all variants move at the same px/s rate
+// regardless of word length — duration is computed as copyWidth / TICKER_PX_PER_SEC.
+@keyframes tickerScroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-1 * var(--ticker-px)));
+  }
+}
+
+// Background gradient — starts with the left crest and travels smoothly to the right.
+@keyframes controllerGradientSweep {
+  0%,
+  22%,
+  100% {
+    opacity: 0;
+    transform: translateX(-52%);
+  }
+  0.2% {
+    opacity: 1;
+    transform: translateX(-48%);
+  }
+  19% {
+    opacity: 1;
+    transform: translateX(148%);
+  }
+  20.5% {
+    opacity: 0;
+    transform: translateX(158%);
+  }
+}

@@ -26,4 +26,20 @@ export const ContentManagementRoutes: Routes = [
       urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Content Management' }, { title: 'Highlights' }],
     },
   },
+  {
+    path: 'posts',
+    loadComponent: () => import('./posts/posts.component').then((m) => m.PostsComponent),
+    data: {
+      title: 'Posts',
+      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Content Management' }, { title: 'Posts' }],
+    },
+  },
+  {
+    path: 'post-reports',
+    loadComponent: () => import('./post-reports/post-reports.component').then((m) => m.PostReportsComponent),
+    data: {
+      title: 'Post Reports',
+      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Content Management' }, { title: 'Post Reports' }],
+    },
+  },
 ];

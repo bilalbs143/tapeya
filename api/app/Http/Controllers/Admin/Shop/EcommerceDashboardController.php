@@ -7,10 +7,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Shop\Order;
 use App\Models\Shop\OrderItem;
 use App\Models\Shop\Product;
+use App\Support\Media\MediaDisk;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class EcommerceDashboardController extends Controller
 {
@@ -290,7 +290,7 @@ class EcommerceDashboardController extends Controller
             ->all() : [];
         $topProductsWithImage = array_map(function ($p) use ($productImages) {
             $img = $productImages[$p['id']] ?? null;
-            $path = $img && $img->path ? Storage::disk(config('filesystems.media_disk'))->url($img->path) : null;
+            $path = $img && $img->path ? MediaDisk::url($img->path) : null;
 
             return [
                 'id' => $p['id'],

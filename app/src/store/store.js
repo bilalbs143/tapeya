@@ -9,7 +9,7 @@ import rootReducer from './rootReducer';
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['auth', 'reels'],
+  whitelist: ['auth'],
   version: 1,
 };
 

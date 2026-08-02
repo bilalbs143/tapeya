@@ -6,6 +6,12 @@
       "folder": "theme1",
       "label": "Midnight Neon Premium Theme",
       "completeness": "full"
+    },
+    {
+      "slug": "theme2",
+      "folder": "theme2",
+      "label": "Theme 2 — Wine / Gold (controller-3 style)",
+      "completeness": "full"
     }
   ]
 }

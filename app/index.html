@@ -12,6 +12,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Tapeya" />
     <meta name="format-detection" content="telephone=no" />
+    <!-- Favicon uses legacy CloudFront fallback; runtime app assets follow cdn_public_base_url -->
     <link
       rel="icon"
       type="image/png"
@@ -28,7 +29,7 @@
       rel="stylesheet"
     />
 
-    <!-- Warm the connection to the CloudFront CDN used for all app images -->
+    <!-- Warm CDN connection (fallback host; production should match cdn_public_base_url) -->
     <link rel="preconnect" href="https://d1nmw2vhka3zp0.cloudfront.net" />
 
     <title>Tapeya</title>
