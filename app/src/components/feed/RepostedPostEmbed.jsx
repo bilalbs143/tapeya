@@ -50,8 +50,6 @@ export default function RepostedPostEmbed({ post, className = '' }) {
   const mediaUrl = post.imageUrl || post.media?.[0]?.url || null;
   const mediaWidth = post.media?.[0]?.width || null;
   const mediaHeight = post.media?.[0]?.height || null;
-  const imageAspectStyle =
-    type === 'image' && mediaWidth && mediaHeight ? { aspectRatio: `${mediaWidth} / ${mediaHeight}` } : undefined;
   const detailTo = buildPostDetailPath(post);
 
   return (
@@ -96,13 +94,13 @@ export default function RepostedPostEmbed({ post, className = '' }) {
       ) : null}
 
       {type === 'image' && mediaUrl ? (
-        <div className="overflow-hidden bg-black" style={imageAspectStyle}>
+        <div className="w-full bg-black">
           <img
             src={imageError ? IMAGE_PLACEHOLDER : mediaUrl}
             alt=""
             width={mediaWidth || undefined}
             height={mediaHeight || undefined}
-            className="max-h-[360px] w-full object-cover"
+            className="block h-auto w-full"
             loading="lazy"
             decoding="async"
             onError={() => setImageError(true)}

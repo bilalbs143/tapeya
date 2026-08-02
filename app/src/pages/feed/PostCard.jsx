@@ -229,8 +229,6 @@ export default function PostCard({ post }) {
   const mediaUrl = imageUrl || media?.[0]?.url || repostOf?.imageUrl || null;
   const mediaWidth = media?.[0]?.width || null;
   const mediaHeight = media?.[0]?.height || null;
-  const imageAspectStyle =
-    type === 'image' && mediaWidth && mediaHeight ? { aspectRatio: `${mediaWidth} / ${mediaHeight}` } : undefined;
   const detailTo = buildPostDetailPath(post);
 
   const isOwnPost = authorId != null && currentUser?.id != null && String(authorId) === String(currentUser.id);
@@ -297,13 +295,13 @@ export default function PostCard({ post }) {
           )}
 
           {type === 'image' && mediaUrl && (
-            <div className="mt-3 max-h-[420px] overflow-hidden bg-black" style={imageAspectStyle}>
+            <div className="mt-3 w-full bg-black">
               <img
                 src={imageError ? imagePlaceholder : mediaUrl}
                 alt=""
                 width={mediaWidth || undefined}
                 height={mediaHeight || undefined}
-                className="h-full max-h-[420px] w-full object-cover"
+                className="block h-auto w-full"
                 loading="lazy"
                 decoding="async"
                 onError={() => setImageError(true)}

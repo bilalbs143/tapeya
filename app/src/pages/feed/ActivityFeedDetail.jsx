@@ -130,7 +130,6 @@ export default function ActivityFeedDetail() {
   const mediaWidth = media?.[0]?.width || null;
   const mediaHeight = media?.[0]?.height || null;
   const showImage = type === 'image' && Boolean(mediaSrc);
-  const imageAspectStyle = showImage && mediaWidth && mediaHeight ? { aspectRatio: `${mediaWidth} / ${mediaHeight}` } : undefined;
   const isOwnPost = authorId != null && currentUser?.id != null && String(authorId) === String(currentUser.id);
   const showFollow = Boolean(authorId) && !isOwnPost;
   const followBusy = isFollowPending || isUnfollowPending;
@@ -192,13 +191,13 @@ export default function ActivityFeedDetail() {
             {type === 'repost' && repostOf ? <RepostedPostEmbed post={repostOf} /> : null}
 
             {showImage && (
-              <div className="mt-3 max-h-[420px] overflow-hidden bg-black" style={imageAspectStyle}>
+              <div className="mt-3 w-full bg-black">
                 <img
                   src={imageError ? IMAGE_PLACEHOLDER : mediaSrc}
                   alt=""
                   width={mediaWidth || undefined}
                   height={mediaHeight || undefined}
-                  className="h-full max-h-[420px] w-full object-cover"
+                  className="block h-auto w-full"
                   loading="lazy"
                   decoding="async"
                   onError={() => setImageError(true)}
