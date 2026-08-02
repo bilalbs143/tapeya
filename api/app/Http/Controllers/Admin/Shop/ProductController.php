@@ -8,8 +8,8 @@ use App\Http\Requests\Admin\Shop\UpdateProductRequest;
 use App\Http\Resources\Admin\Shop\ProductResource;
 use App\Models\Shop\Product;
 use App\Models\Shop\ProductImage;
+use App\Support\Media\MediaDisk;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Storage;
 
 class ProductController extends BaseAdminController
 {
@@ -50,7 +50,7 @@ class ProductController extends BaseAdminController
     public function destroy(Product $product): JsonResponse
     {
         $product = $this->refresh($product);
-        $product->images->each(fn (ProductImage $img) => Storage::disk(config('filesystems.media_disk'))->delete($img->path));
+        $product->images->each(fn (ProductImage $img) => MediaDisk::delete($img->path));
         $product->images()->delete();
 
         return $this->_destroy($product, null);

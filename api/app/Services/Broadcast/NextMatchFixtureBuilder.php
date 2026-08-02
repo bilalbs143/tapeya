@@ -3,7 +3,7 @@
 namespace App\Services\Broadcast;
 
 use App\Models\TournamentMatch;
-use Illuminate\Support\Facades\Storage;
+use App\Support\Media\MediaDisk;
 
 /**
  * Resolves the next scheduled fixture in the same tournament for NEXT_MATCH graphics.
@@ -47,8 +47,7 @@ final class NextMatchFixtureBuilder
             return null;
         }
 
-        $disk = Storage::disk(config('filesystems.media_disk', 'public'));
-        $logoUrl = static fn (?string $path): ?string => $path ? $disk->url($path) : null;
+        $logoUrl = static fn (?string $path): ?string => MediaDisk::url($path);
 
         $venue = trim((string) ($next->venue_name ?? $next->tournament?->venue_name ?? ''));
         $venueLine = $venue !== '' ? 'LIVE FROM '.$venue : '';

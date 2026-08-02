@@ -1,0 +1,136 @@
+<app-dialog-wrapper title="Manage Post">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    aria-label="Post form"
+  >
+    <mat-dialog-content>
+      <div class="flex flex-col gap-2">
+        <div class="shrink-0">
+          <h2 class="text-base font-semibold m-0">Post Details</h2>
+          <p class="text-muted m-0 mt-1 text-xs">Creator, type, engagement, and media for this post.</p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-x-8 gap-y-0 sm:grid-cols-2">
+          <div class="border-border border-b py-3">
+            <p class="text-muted m-0 mb-1 text-xs">Creator</p>
+            <p class="m-0 text-sm font-semibold leading-snug">{{ creatorLabel() }}</p>
+          </div>
+          <div class="border-border border-b py-3">
+            <p class="text-muted m-0 mb-1 text-xs">Post ID</p>
+            <p class="m-0 text-sm font-semibold leading-snug">#{{ post.id }}</p>
+          </div>
+          <div class="border-border border-b py-3">
+            <p class="text-muted m-0 mb-1 text-xs">Type</p>
+            <p class="m-0 text-sm font-semibold leading-snug">{{ typeLabel() }}</p>
+          </div>
+          <div class="border-border border-b py-3">
+            <p class="text-muted m-0 mb-1 text-xs">Current Status</p>
+            <p class="m-0">
+              <span
+                class="rounded-sm font-semibold px-1.5 py-1 text-xs inline-block capitalize"
+                [ngClass]="statusClass(post.status)"
+              >
+                {{ post.status || emptyCell }}
+              </span>
+            </p>
+          </div>
+          <div class="border-border border-b py-3">
+            <p class="text-muted m-0 mb-1 text-xs">Current Visibility</p>
+            <p class="m-0 text-sm font-semibold leading-snug capitalize">{{ post.visibility || emptyCell }}</p>
+          </div>
+          <div class="border-border border-b py-3">
+            <p class="text-muted m-0 mb-1 text-xs">Engagement</p>
+            <p class="m-0 text-sm font-semibold leading-snug">
+              {{ post.counts?.views ?? 0 }} views · {{ post.counts?.likes ?? 0 }} likes ·
+              {{ post.counts?.comments ?? 0 }} comments · {{ post.counts?.reports ?? 0 }} reports
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <p class="text-muted m-0 mb-3 text-xs font-medium">Content</p>
+          <app-post-content-preview [post]="post" />
+        </div>
+
+        <div class="shrink-0 mt-6">
+          <h2 class="text-base font-semibold m-0">Edit Post</h2>
+          <p class="text-muted m-0 mt-1 text-xs">Update status, visibility, and body.</p>
+        </div>
+
+        <div class="grid grid-cols-12 gap-x-6 pt-2">
+          <div class="col-span-12 lg:col-span-6">
+            <mat-label class="text-sm font-semibold mb-2 block">Status <span class="text-error">*</span></mat-label>
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <mat-select
+                formControlName="status"
+                placeholder="Select Status"
+              >
+                @for (opt of statusOptions; track opt.value) {
+                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="col-span-12 lg:col-span-6">
+            <mat-label class="text-sm font-semibold mb-2 block">Visibility <span class="text-error">*</span></mat-label>
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <mat-select
+                formControlName="visibility"
+                placeholder="Select Visibility"
+              >
+                @for (opt of visibilityOptions; track opt.value) {
+                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="col-span-12">
+            <mat-label class="text-sm font-semibold mb-2 block">Body</mat-label>
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <textarea
+                matInput
+                formControlName="caption"
+                placeholder="Post body…"
+                rows="4"
+              ></textarea>
+              @if (form.get('caption')?.hasError('maxlength') && form.get('caption')?.touched) {
+                <mat-error>Body is too long (max 2200 characters)</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions>
+      <button
+        type="button"
+        mat-stroked-button
+        class="border border-error! text-error"
+        [mat-dialog-close]="false"
+      >
+        Cancel
+      </button>
+
+      <app-submit-button
+        [disabled]="form.invalid"
+        [isSubmitting]="isSubmitting"
+        text="Submit"
+        color="primary"
+      />
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

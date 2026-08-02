@@ -7,9 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\UpdateProfileRequest;
 use App\Http\Resources\User\UserResource;
 use App\Services\User\AppAccountDeletionService;
+use App\Support\Media\MediaDisk;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -26,9 +26,7 @@ class ProfileController extends Controller
         $data = $request->validated();
 
         if (array_key_exists('avatar', $data) && $data['avatar'] === null) {
-            if ($user->avatar) {
-                Storage::disk(config('filesystems.media_disk'))->delete($user->avatar);
-            }
+            MediaDisk::delete($user->getRawOriginal('avatar'));
         }
 
         $this->storeImage($request, 'avatar', self::AVATAR_STORAGE_PATH, $data, $user);

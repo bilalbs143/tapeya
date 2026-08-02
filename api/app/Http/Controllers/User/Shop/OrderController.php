@@ -12,11 +12,11 @@ use App\Models\Shop\Cart;
 use App\Models\Shop\Order;
 use App\Models\Shop\OrderItem;
 use App\Models\Shop\Product;
+use App\Support\Media\MediaDisk;
 use App\Utils\Constants\ApiConstants;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class OrderController extends Controller
 {
@@ -38,7 +38,7 @@ class OrderController extends Controller
                 if (empty($snapshot['image_url']) && $item->product) {
                     $firstImage = $item->product->images->first();
                     if ($firstImage && $firstImage->path) {
-                        $snapshot['image_url'] = Storage::disk(config('filesystems.media_disk'))->url($firstImage->path);
+                        $snapshot['image_url'] = MediaDisk::url($firstImage->path);
                         $item->product_snapshot = $snapshot;
                     }
                 }
@@ -62,7 +62,7 @@ class OrderController extends Controller
             if (empty($snapshot['image_url']) && $item->product) {
                 $firstImage = $item->product->images->first();
                 if ($firstImage && $firstImage->path) {
-                    $snapshot['image_url'] = Storage::disk(config('filesystems.media_disk'))->url($firstImage->path);
+                    $snapshot['image_url'] = MediaDisk::url($firstImage->path);
                     $item->product_snapshot = $snapshot;
                 }
             }
@@ -93,7 +93,7 @@ class OrderController extends Controller
             $product = $item->product;
             $firstImage = $product?->images->first();
             $imageUrl = $firstImage && $firstImage->path
-                ? Storage::disk(config('filesystems.media_disk'))->url($firstImage->path)
+                ? MediaDisk::url($firstImage->path)
                 : null;
 
             $preflightItems[] = [

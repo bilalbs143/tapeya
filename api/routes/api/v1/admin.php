@@ -17,6 +17,8 @@ use App\Http\Controllers\Admin\MatchGraphicPlayerListController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PlayerController;
+use App\Http\Controllers\Admin\PostController as AdminPostController;
+use App\Http\Controllers\Admin\PostReportController as AdminPostReportController;
 use App\Http\Controllers\Admin\PushNotificationController;
 use App\Http\Controllers\Admin\PushNotificationTemplateController;
 use App\Http\Controllers\Admin\Shop\BrandController as AdminBrandController;
@@ -54,6 +56,14 @@ Route::prefix('admin')->group(function () {
     Route::middleware(['auth:api', 'admin.only'])->group(function () {
         Route::get('enums', [EnumController::class, 'index']);
         Route::apiResource('highlights', AdminHighlightController::class);
+        Route::get('posts', [AdminPostController::class, 'index']);
+        Route::get('posts/{post}', [AdminPostController::class, 'show']);
+        Route::patch('posts/{post}', [AdminPostController::class, 'update']);
+        Route::post('posts/{post}/reprocess', [AdminPostController::class, 'reprocess']);
+        Route::delete('posts/{post}', [AdminPostController::class, 'destroy']);
+        Route::get('post-reports', [AdminPostReportController::class, 'index']);
+        Route::get('post-reports/{postReport}', [AdminPostReportController::class, 'show']);
+        Route::patch('post-reports/{postReport}', [AdminPostReportController::class, 'update']);
         Route::get('push-notifications', [PushNotificationController::class, 'index']);
         Route::post('push-notifications/send', [PushNotificationController::class, 'send']);
         Route::get('push-notifications/{pushNotificationLog}', [PushNotificationController::class, 'show']);

@@ -5,14 +5,20 @@ import React from 'react';
 
 import ReactDOM from 'react-dom/client';
 
-import { StoreProvider } from '@/providers/StoreProvider';
+import { bootstrapCdnFromPublicSettings } from '@/lib/bootstrapCdn';
 
-import App from './App';
+async function start() {
+  await bootstrapCdnFromPublicSettings();
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <StoreProvider>
-      <App />
-    </StoreProvider>
-  </React.StrictMode>,
-);
+  const [{ StoreProvider }, { default: App }] = await Promise.all([import('@/providers/StoreProvider'), import('./App')]);
+
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    <React.StrictMode>
+      <StoreProvider>
+        <App />
+      </StoreProvider>
+    </React.StrictMode>,
+  );
+}
+
+start();

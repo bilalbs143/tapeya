@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
+use App\Support\Media\MediaDisk;
 use App\Support\MediaRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Generic media-management controller.
@@ -35,7 +35,6 @@ class MediaController extends Controller
             return $this->notFound($e->getMessage());
         }
 
-        $disk = config('filesystems.media_disk');
         $multiple = $config['multiple'] ?? false;
 
         if ($multiple) {
@@ -50,14 +49,14 @@ class MediaController extends Controller
             $results = [];
 
             foreach ($request->file('files', []) as $file) {
-                $path = $file->store($config['dir'], $disk);
+                $path = MediaDisk::storeUploaded($file, $config['dir']);
                 $pivot = $record->$relation()->create([
                     $pathCol => $path,
                     'sort_order' => $sortOrder++,
                 ]);
                 $results[] = [
                     'id' => $pivot->id,
-                    'url' => Storage::disk($disk)->url($path),
+                    'url' => MediaDisk::url($path),
                 ];
             }
 
@@ -72,13 +71,13 @@ class MediaController extends Controller
         $oldPath = $record->getRawOriginal($column);
 
         if ($oldPath) {
-            Storage::disk($disk)->delete($oldPath);
+            MediaDisk::delete($oldPath);
         }
 
-        $path = $request->file('file')->store($config['dir'], $disk);
+        $path = MediaDisk::storeUploaded($request->file('file'), $config['dir']);
         $record->update([$column => $path]);
 
-        return $this->success(['url' => Storage::disk($disk)->url($path)]);
+        return $this->success(['url' => MediaDisk::url($path)]);
     }
 
     /**
@@ -95,7 +94,6 @@ class MediaController extends Controller
             return $this->notFound($e->getMessage());
         }
 
-        $disk = config('filesystems.media_disk');
         $multiple = $config['multiple'] ?? false;
 
         if ($multiple) {
@@ -106,14 +104,14 @@ class MediaController extends Controller
             $url = $request->input('url');
 
             $target = $record->$relation()->get()->first(
-                fn ($img) => Storage::disk($disk)->url($img->$pathCol) === $url
+                fn ($img) => MediaDisk::url($img->$pathCol) === $url
             );
 
             if (! $target) {
                 return $this->notFound('Image not found.');
             }
 
-            Storage::disk($disk)->delete($target->$pathCol);
+            MediaDisk::delete($target->$pathCol);
             $target->delete();
 
             return $this->noContent();
@@ -124,7 +122,7 @@ class MediaController extends Controller
         $path = $record->getRawOriginal($column);
 
         if ($path) {
-            Storage::disk($disk)->delete($path);
+            MediaDisk::delete($path);
         }
 
         $record->update([$column => null]);

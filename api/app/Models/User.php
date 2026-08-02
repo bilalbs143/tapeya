@@ -61,12 +61,32 @@ class User extends Authenticatable
         'type',
         'status',
         'followers_count',
+        'following_count',
+        'reels_count',
+        'posts_count',
         'created_by',
         'active_platform',
         'active_platform_updated_at',
         'can_broadcast',
+        'is_official',
         'broadcast_terms_accepted_at',
     ];
+
+    /**
+     * Constrained columns for social user eager loads / mention search.
+     * Keep in sync with PostResource creator, PostCommentResource, and UserMentionResource.
+     *
+     * @var list<string>
+     */
+    public const SOCIAL_SUMMARY_COLUMNS = ['id', 'name', 'nickname', 'avatar', 'is_official'];
+
+    /**
+     * Relation constraint string, e.g. `user:id,name,nickname,avatar,is_official`.
+     */
+    public static function socialSummaryWith(string $relation = 'user'): string
+    {
+        return $relation.':'.implode(',', self::SOCIAL_SUMMARY_COLUMNS);
+    }
 
     /**
      * The attributes that should be hidden for serialization.
@@ -97,6 +117,7 @@ class User extends Authenticatable
             'created_by' => 'integer',
             'active_platform_updated_at' => 'datetime',
             'can_broadcast' => 'boolean',
+            'is_official' => 'boolean',
             'broadcast_terms_accepted_at' => 'datetime',
         ];
     }

@@ -6,6 +6,7 @@ use App\Enums\SystemSetting\SystemSettingGroupEnum;
 use App\Enums\SystemSetting\SystemSettingKeyEnum;
 use App\Enums\SystemSetting\SystemSettingTypeEnum;
 use App\Services\Notifications\SmsSender;
+use App\Support\Media\MediaCdn;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -30,7 +31,16 @@ final class SystemSettingRegistry
      */
     public static function meta(SystemSettingKeyEnum $key): array
     {
+        if (! self::isRegistered($key)) {
+            throw new \InvalidArgumentException('Unknown or retired system setting: '.$key->value);
+        }
+
         return self::definitions()[$key->value];
+    }
+
+    public static function isRegistered(SystemSettingKeyEnum $key): bool
+    {
+        return array_key_exists($key->value, self::definitions());
     }
 
     public static function group(SystemSettingKeyEnum $key): SystemSettingGroupEnum
@@ -69,6 +79,10 @@ final class SystemSettingRegistry
         $settings = app($class);
         $settings->{$m['property']} = $value;
         $settings->save();
+
+        if ($key === SystemSettingKeyEnum::CDN_PUBLIC_BASE_URL) {
+            MediaCdn::applyToFilesystemConfig();
+        }
     }
 
     public static function serialize(SystemSettingKeyEnum $key, mixed $raw): mixed
@@ -103,7 +117,8 @@ final class SystemSettingRegistry
             ],
             SystemSettingKeyEnum::IOS_APP_STORE_URL,
             SystemSettingKeyEnum::ANDROID_PLAY_STORE_URL,
-            SystemSettingKeyEnum::PUBLIC_WEBSITE_URL => [
+            SystemSettingKeyEnum::PUBLIC_WEBSITE_URL,
+            SystemSettingKeyEnum::CDN_PUBLIC_BASE_URL => [
                 'value' => ['nullable', 'string', 'url', 'max:2048'],
             ],
             SystemSettingKeyEnum::IOS_APP_STORE_VERSION,
@@ -244,6 +259,11 @@ final class SystemSettingRegistry
                 $request->merge(['value' => null]);
             }
         }
+
+        if ($key === SystemSettingKeyEnum::CDN_PUBLIC_BASE_URL && is_string($request->input('value'))) {
+            $normalized = MediaCdn::normalizeBaseUrl($request->input('value'));
+            $request->merge(['value' => $normalized]);
+        }
     }
 
     public static function afterValidation(Validator $validator, ?SystemSettingKeyEnum $key, mixed $raw): void
@@ -376,6 +396,15 @@ final class SystemSettingRegistry
                 'description' => 'Marketing or Corporate Website URL.',
                 'settings_class' => ContactSettings::class,
                 'property' => 'publicWebsiteUrl',
+                'nullable_string' => true,
+            ],
+            SystemSettingKeyEnum::CDN_PUBLIC_BASE_URL->value => [
+                'group' => SystemSettingGroupEnum::MEDIA_CDN,
+                'type' => SystemSettingTypeEnum::STRING,
+                'label' => 'CDN Public Base URL',
+                'description' => 'Cloudflare hostname for media and static /app assets (e.g. https://cdn.tapeya.com). Empty uses AWS_URL.',
+                'settings_class' => MediaCdnSettings::class,
+                'property' => 'cdnPublicBaseUrl',
                 'nullable_string' => true,
             ],
             SystemSettingKeyEnum::NOTIFICATION_ADMIN_EMAILS->value => [
@@ -692,6 +721,96 @@ final class SystemSettingRegistry
                 'settings_class' => PushSettings::class,
                 'property' => 'fcmServiceAccountJson',
                 'nullable_string' => true,
+            ],
+            SystemSettingKeyEnum::REELS_MAX_DURATION_SECONDS->value => [
+                'group' => SystemSettingGroupEnum::REELS,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Max Duration (seconds)',
+                'description' => 'Maximum reel length in seconds. 0 = no app limit.',
+                'settings_class' => PostsSettings::class,
+                'property' => 'maxDurationSeconds',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::REELS_MIN_DURATION_SECONDS->value => [
+                'group' => SystemSettingGroupEnum::REELS,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Min Duration (seconds)',
+                'description' => 'Minimum reel length in seconds. 0 = no app limit.',
+                'settings_class' => PostsSettings::class,
+                'property' => 'minDurationSeconds',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::REELS_MAX_UPLOAD_MB->value => [
+                'group' => SystemSettingGroupEnum::REELS,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Max Upload (MB)',
+                'description' => 'Maximum original file size in megabytes. 0 = no app limit.',
+                'settings_class' => PostsSettings::class,
+                'property' => 'maxUploadMb',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::REELS_HLS_SEGMENT_SECONDS->value => [
+                'group' => SystemSettingGroupEnum::REELS,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'HLS Segment Seconds',
+                'description' => 'HLS segment length in seconds (clamped 2–4). Default 2 for faster ABR on short reels.',
+                'settings_class' => PostsSettings::class,
+                'property' => 'hlsSegmentSeconds',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::REELS_VIEW_MIN_WATCHED_MS->value => [
+                'group' => SystemSettingGroupEnum::REELS,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'View Min Watched (ms)',
+                'description' => 'Minimum watched milliseconds before a view can count.',
+                'settings_class' => PostsSettings::class,
+                'property' => 'viewMinWatchedMs',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::REELS_VIEW_MIN_COMPLETION_RATE_PERCENT->value => [
+                'group' => SystemSettingGroupEnum::REELS,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'View Min Completion %',
+                'description' => 'Minimum watch completion percent (0–100) to count a view. Default 25.',
+                'settings_class' => PostsSettings::class,
+                'property' => 'viewMinCompletionRatePercent',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::REELS_VIEW_ALLOW_ANONYMOUS->value => [
+                'group' => SystemSettingGroupEnum::REELS,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Allow Anonymous Views',
+                'description' => '1 = count views without auth, 0 = authenticated only.',
+                'settings_class' => PostsSettings::class,
+                'property' => 'viewAllowAnonymous',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::REELS_VIEW_REDIS_BUFFER->value => [
+                'group' => SystemSettingGroupEnum::REELS,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Redis View Buffer',
+                'description' => 'Deprecated: view counts always write to MySQL immediately. Leftover Redis keys can still be drained with reels:flush-view-counters.',
+                'settings_class' => PostsSettings::class,
+                'property' => 'viewRedisBuffer',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::REELS_MULTIPART_PART_SIZE_MB->value => [
+                'group' => SystemSettingGroupEnum::REELS,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Multipart Part Size (MB)',
+                'description' => 'Chunk size for reel original uploads in megabytes (e.g. 1 = 1 MB).',
+                'settings_class' => PostsSettings::class,
+                'property' => 'multipartPartSizeMb',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::REELS_MULTIPART_MAX_PARTS->value => [
+                'group' => SystemSettingGroupEnum::REELS,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Multipart Max Parts',
+                'description' => 'Maximum number of upload parts. 0 = no app limit.',
+                'settings_class' => PostsSettings::class,
+                'property' => 'multipartMaxParts',
+                'nullable_string' => false,
             ],
         ];
     }

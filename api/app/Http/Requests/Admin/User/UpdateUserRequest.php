@@ -47,6 +47,7 @@ class UpdateUserRequest extends FormRequest
             'country' => ['nullable', 'string', 'max:100'],
             'city' => ['nullable', 'string', 'max:100'],
             'can_broadcast' => ['sometimes', 'boolean'],
+            'is_official' => ['sometimes', 'boolean'],
         ];
     }
 }

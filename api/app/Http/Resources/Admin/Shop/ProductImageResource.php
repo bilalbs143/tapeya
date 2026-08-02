@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources\Admin\Shop;
 
+use App\Support\Media\MediaDisk;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 class ProductImageResource extends JsonResource
 {
@@ -15,7 +15,7 @@ class ProductImageResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'path' => $this->path ? Storage::disk(config('filesystems.media_disk'))->url($this->path) : null,
+            'path' => MediaDisk::url($this->path),
             'alt' => $this->alt,
             'sort_order' => $this->sort_order,
         ];

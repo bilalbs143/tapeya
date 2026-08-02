@@ -62,6 +62,16 @@ export const navItems: NavItem[] = [
         iconName: 'tabler:point',
         route: '/content-management/highlights',
       },
+      {
+        displayName: 'Posts',
+        iconName: 'tabler:point',
+        route: '/content-management/posts',
+      },
+      {
+        displayName: 'Post Reports',
+        iconName: 'tabler:point',
+        route: '/content-management/post-reports',
+      },
     ],
   },
   {

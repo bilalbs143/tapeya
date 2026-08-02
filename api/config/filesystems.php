@@ -57,9 +57,13 @@ return [
         ],
 
         /*
-         * S3 disk. Set AWS_URL to your CloudFront distribution URL (e.g. https://d123.cloudfront.net)
-         * so that Storage::disk('s3')->url($path) returns CloudFront URLs instead of direct S3 URLs.
-         * See: https://laravel.com/docs/12.x/filesystem#s3-driver-configuration
+         * S3-compatible disk (AWS S3 or Backblaze B2 via AWS_ENDPOINT).
+         * Set AWS_URL to your Cloudflare CDN hostname (e.g. https://cdn.tapeya.com)
+         * so Storage::url() returns CDN URLs. Admin setting cdn_public_base_url overrides AWS_URL at boot.
+         *
+         * Object Ownership must be BucketOwnerEnforced (no object ACLs). Public read is via CDN /
+         * bucket policy. Always write through App\Support\Media\MediaDisk — never storePublicly()
+         * or visibility=public. See docs/MEDIA_CDN_MIGRATION.md.
          */
         's3' => [
             'driver' => 's3',
@@ -70,8 +74,8 @@ return [
             'url' => env('AWS_URL') ? rtrim(env('AWS_URL'), '/') : null,
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
-            'throw' => false,
-            'report' => false,
+            'throw' => true,
+            'report' => true,
         ],
 
     ],
@@ -81,8 +85,8 @@ return [
     | Media / public assets disk
     |--------------------------------------------------------------------------
     |
-    | hero sliders). Use 'public' for local storage, or 's3' to store on S3
-    | and serve URLs via CloudFront (set AWS_URL to your CloudFront domain).
+    | Use 'public' for local storage, or 's3' for B2/S3 with Cloudflare CDN
+    | (AWS_URL / cdn_public_base_url). See docs/MEDIA_CDN_MIGRATION.md.
     |
     */
     'media_disk' => env('MEDIA_DISK', 'public'),

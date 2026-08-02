@@ -14,12 +14,12 @@ import {
 } from '@/ui/Tabs';
 
 import { ProfileMetrics } from './ProfileMetrics';
-// import { ProfilePosts } from './ProfilePosts';
+import { ProfileReels } from './ProfileReels';
 import { ProfileRoleOverview } from './ProfileRoleOverview';
 import { ProfileStats } from './ProfileStats';
 
 const profileUserIcon = `${CLOUDFRONT_APP_BASE}/images/icons/profile-user.svg`;
-// const userPostsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/user-posts.svg`;
+const userPostsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/user-posts.svg`;
 const userStatsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/user-stats.svg`;
 
 const CONTENT_WRAPPER_CLASS = 'pb-6 pt-1';
@@ -37,12 +37,12 @@ const TABS = [
     icon: userStatsIcon,
     Content: ProfileStats,
   },
-  // {
-  //   value: 'posts',
-  //   label: 'Posts',
-  //   icon: userPostsIcon,
-  //   Content: ProfilePosts,
-  // },
+  {
+    value: 'reels',
+    label: 'Reels',
+    icon: userPostsIcon,
+    Content: ProfileReels,
+  },
 ];
 
 /**
@@ -58,16 +58,15 @@ export function PlayerProfile({ user }) {
 
   const rankingDisplay = !userId ? '—' : rankLoading ? '…' : (rankData?.rank ?? '—');
   const followersDisplay = user?.followers_count != null ? String(user.followers_count) : '—';
-  /** No player-level “likes received” API yet; keep placeholder. */
-  const likesDisplay = '—';
+  const reelsDisplay = user?.reels_count != null ? String(user.reels_count) : '0';
 
   const metrics = [
     {
       value: String(rankingDisplay),
-      label: 'RANKING',
+      label: 'Ranking',
     },
-    { value: followersDisplay, label: 'FOLLOWERS' },
-    { value: likesDisplay, label: 'LIKES' },
+    { value: followersDisplay, label: 'Followers' },
+    { value: reelsDisplay, label: 'Reels' },
   ];
 
   return (
@@ -87,7 +86,13 @@ export function PlayerProfile({ user }) {
         <div className={CONTENT_WRAPPER_CLASS}>
           {TABS.map(({ value, Content }) => (
             <TabsContent key={value} value={value} className="focus-visible:outline-none">
-              {value === 'overview' ? <ProfileRoleOverview role={PROFILE_OVERVIEW_ROLE.PLAYER} /> : <Content />}
+              {value === 'overview' ? (
+                <ProfileRoleOverview role={PROFILE_OVERVIEW_ROLE.PLAYER} />
+              ) : value === 'reels' ? (
+                <ProfileReels userId={userId} />
+              ) : (
+                <Content />
+              )}
             </TabsContent>
           ))}
         </div>

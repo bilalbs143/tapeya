@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\HeroSlider;
 use App\Models\Highlight;
 use App\Models\MatchStream;
+use App\Models\PostVideo;
 use App\Models\Shop\Brand;
 use App\Models\Shop\Category;
 use App\Models\Shop\Product;
@@ -13,6 +14,7 @@ use App\Models\Tournament;
 use App\Models\TournamentInterestCampaign;
 use App\Models\TournamentMatch;
 use App\Models\User;
+use App\Support\Post\PostVideoFormats;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -95,9 +97,7 @@ class MediaRegistry
                         'dir' => 'highlights/videos',
                         'column' => 'video',
                         'file_rules' => [
-                            'required',
-                            'file',
-                            'mimetypes:video/mp4,video/webm,video/quicktime',
+                            ...PostVideoFormats::fileRules(),
                             'max:102400',
                         ],
                     ],
@@ -118,6 +118,21 @@ class MediaRegistry
                 'model' => User::class,
                 'fields' => [
                     'avatar' => ['dir' => 'users/avatars', 'column' => 'avatar'],
+                ],
+            ],
+            'post_video' => [
+                'model' => PostVideo::class,
+                'fields' => [
+                    'original' => [
+                        'dir' => 'posts/videos/original',
+                        'column' => 'original_path',
+                        'file_rules' => PostVideoFormats::fileRules(),
+                    ],
+                    'thumbnail' => [
+                        'dir' => 'posts/videos/thumbs',
+                        'column' => 'thumbnail_path',
+                        'file_rules' => ['required', 'image', 'max:5120'],
+                    ],
                 ],
             ],
         ];

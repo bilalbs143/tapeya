@@ -6,8 +6,8 @@ use App\Events\Broadcast\LiveStreamHeartReceived;
 use App\Models\MatchStream;
 use App\Models\User;
 use App\Support\LiveChat\LiveChatRedisKeys;
+use App\Support\Media\MediaDisk;
 use Illuminate\Support\Facades\Redis;
-use Illuminate\Support\Facades\Storage;
 
 class LiveStreamHeartService
 {
@@ -34,11 +34,7 @@ class LiveStreamHeartService
 
     private function avatarUrl(User $user): ?string
     {
-        if (! $user->avatar) {
-            return null;
-        }
-
-        return Storage::disk(config('filesystems.media_disk'))->url($user->avatar);
+        return MediaDisk::url($user->avatar);
     }
 
     private function initials(User $user): string

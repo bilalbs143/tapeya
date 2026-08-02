@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Settings\GeneralSettings;
 use App\Settings\GraphicsSettings;
 use App\Settings\LiveChatSettings;
+use App\Settings\PostsSettings;
 use App\Settings\PushSettings;
 use App\Settings\StreamingSettings;
 use ReflectionProperty;
@@ -79,6 +80,22 @@ final class EnsureSpatieSettingsDatabaseProperties
                         'concurrentBroadcastAlertThreshold' => 3,
                         'dailyYoutubeQuotaBudget' => 10000,
                         'quotaAlertThresholdPercent' => 80,
+                        default => 0,
+                    };
+                }
+
+                if ($settingsClass === PostsSettings::class) {
+                    return match ($name) {
+                        'maxDurationSeconds' => 0,
+                        'minDurationSeconds' => 0,
+                        'maxUploadMb' => 0,
+                        'hlsSegmentSeconds' => 2,
+                        'viewMinWatchedMs' => 3000,
+                        'viewMinCompletionRatePercent' => 25,
+                        'viewAllowAnonymous' => 0,
+                        'viewRedisBuffer' => 1,
+                        'multipartPartSizeMb' => 1,
+                        'multipartMaxParts' => 0,
                         default => 0,
                     };
                 }

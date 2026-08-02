@@ -1,0 +1,154 @@
+<div class="flex flex-col gap-4">
+  @if (post.type === 'video') {
+    <div>
+      <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <p class="text-muted m-0 text-xs font-medium">Video</p>
+        <div class="flex flex-wrap items-center gap-3 text-xs text-muted">
+          @if (post.duration_ms) {
+            <span>Duration {{ formatDuration(post.duration_ms) }}</span>
+          }
+          @if (post.width && post.height) {
+            <span>{{ post.width }}×{{ post.height }}</span>
+          }
+          @if (playback) {
+            <span>{{ playback.is_processed ? 'HLS ready' : 'Processing / original' }}</span>
+          }
+        </div>
+      </div>
+
+      <div class="overflow-hidden rounded-sm border border-default-border bg-black">
+        @if (progressiveVideoUrl(); as src) {
+          <video
+            class="max-h-[420px] w-full bg-black object-contain"
+            [src]="src"
+            [poster]="posterUrl() || undefined"
+            controls
+            playsinline
+            preload="metadata"
+          ></video>
+        } @else if (posterUrl(); as poster) {
+          <div class="relative flex max-h-[420px] min-h-[200px] items-center justify-center bg-[#111]">
+            <img
+              [src]="poster"
+              alt="Video poster"
+              class="max-h-[420px] w-full object-contain opacity-90"
+            />
+          </div>
+          <p class="text-muted m-0 border-t border-default-border bg-[var(--mat-sys-surface)] px-3 py-2 text-xs">
+            Progressive original is unavailable. Open HLS/playback in a new tab (Chrome may not play HLS natively).
+          </p>
+        } @else {
+          <div class="text-muted flex min-h-[160px] items-center justify-center px-4 py-8 text-sm">
+            No video preview available yet.
+          </div>
+        }
+
+        @if (openUrl(); as href) {
+          <div class="flex flex-wrap justify-end gap-2 border-t border-default-border bg-[var(--mat-sys-surface)] px-3 py-2">
+            @if (progressiveVideoUrl(); as progressive) {
+              <a
+                mat-button
+                color="primary"
+                [href]="progressive"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open original
+              </a>
+            }
+            @if (hlsUrl(); as hls) {
+              <a
+                mat-button
+                color="primary"
+                [href]="hls"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open HLS
+              </a>
+            }
+            @if (!progressiveVideoUrl() && !hlsUrl()) {
+              <a
+                mat-button
+                color="primary"
+                [href]="href"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open playback
+              </a>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (post.type === 'image' && post.media?.length) {
+    <div>
+      <p class="text-muted m-0 mb-2 text-xs font-medium">Images ({{ post.media!.length }})</p>
+      <div class="flex flex-wrap gap-3">
+        @for (item of post.media; track item.id) {
+          @if (item.url) {
+            <a
+              [href]="item.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="block"
+            >
+              <img
+                [src]="item.url"
+                alt="Post image"
+                class="h-36 w-auto max-w-full rounded-sm border border-default-border object-cover"
+              />
+            </a>
+          }
+        }
+      </div>
+    </div>
+  }
+
+  @if (post.type === 'text') {
+    <div>
+      <p class="text-muted m-0 mb-1 text-xs font-medium">Text Post</p>
+      @if (post.background_id) {
+        <p class="text-muted m-0 mb-1 text-xs">Background: {{ post.background_id }}</p>
+      }
+      @if (post.title) {
+        <p class="m-0 mb-1 text-sm font-semibold leading-snug">{{ post.title }}</p>
+      }
+      <p class="m-0 text-sm font-semibold leading-snug whitespace-pre-wrap">
+        {{ post.body || post.caption || emptyCell }}
+      </p>
+    </div>
+  }
+
+  @if (post.type === 'repost') {
+    <div>
+      <p class="text-muted m-0 mb-1 text-xs font-medium">Repost</p>
+      <p class="m-0 text-sm font-semibold leading-snug whitespace-pre-wrap">
+        {{ post.body || post.caption || emptyCell }}
+      </p>
+    </div>
+  }
+
+  @if (post.cover_url && post.type !== 'video' && post.type !== 'image') {
+    <div>
+      <p class="text-muted m-0 mb-1 text-xs font-medium">Cover</p>
+      <img
+        [src]="post.cover_url"
+        alt="Post cover"
+        class="mt-1 max-h-48 w-auto rounded-sm border border-default-border object-contain"
+      />
+    </div>
+  }
+
+  @if (post.processing_error) {
+    <div>
+      <p class="text-muted m-0 mb-1 text-xs font-medium text-error">Processing Error</p>
+      <p class="m-0 text-sm font-semibold leading-snug whitespace-pre-wrap text-error">
+        {{ post.processing_error }}
+      </p>
+    </div>
+  }
+</div>

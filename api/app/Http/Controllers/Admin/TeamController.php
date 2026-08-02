@@ -11,8 +11,8 @@ use App\Models\Role;
 use App\Models\Team;
 use App\Models\TournamentMatch;
 use App\Models\User;
+use App\Support\Media\MediaDisk;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Storage;
 
 class TeamController extends BaseAdminController
 {
@@ -100,10 +100,7 @@ class TeamController extends BaseAdminController
         }
 
         $team = $this->refresh($team);
-        $disk = Storage::disk(config('filesystems.media_disk'));
-        if ($team->logo) {
-            $disk->delete($team->logo);
-        }
+        MediaDisk::delete($team->getRawOriginal('logo'));
         $team->delete();
 
         return $this->noContent();

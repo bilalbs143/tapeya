@@ -7,8 +7,8 @@ use App\Http\Requests\Admin\StoreTournamentRequest;
 use App\Http\Requests\Admin\UpdateTournamentRequest;
 use App\Http\Resources\Admin\TournamentResource;
 use App\Models\Tournament;
+use App\Support\Media\MediaDisk;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Storage;
 
 class TournamentController extends BaseAdminController
 {
@@ -80,13 +80,8 @@ class TournamentController extends BaseAdminController
     public function destroy(Tournament $tournament): JsonResponse
     {
         $tournament = $this->refresh($tournament);
-        $disk = Storage::disk(config('filesystems.media_disk'));
-        if ($tournament->display_image) {
-            $disk->delete($tournament->display_image);
-        }
-        if ($tournament->cover_image) {
-            $disk->delete($tournament->cover_image);
-        }
+        MediaDisk::delete($tournament->getRawOriginal('display_image'));
+        MediaDisk::delete($tournament->getRawOriginal('cover_image'));
         $tournament->delete();
 
         return $this->noContent();

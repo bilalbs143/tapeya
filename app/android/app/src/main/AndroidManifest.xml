@@ -23,13 +23,40 @@
             </intent-filter>
 
             <!-- Self-serve broadcast deep link — tapped from the "You're live" foreground-
-                 service notification; picked up by @capacitor/app's appUrlOpen (see
-                 useBroadcastDeepLink.js). Not used for universal/App Links. -->
+                 service notification; picked up by @capacitor/app's appUrlOpen. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="tapeya" android:host="live" />
+            </intent-filter>
+
+            <!-- Shared reel deep link: tapeya://reels/{id} -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="tapeya" android:host="reels" />
+            </intent-filter>
+
+            <!-- Shared feed post deep link: tapeya://feed/{id} -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="tapeya" android:host="feed" />
+            </intent-filter>
+
+            <!-- HTTPS App Links (verified via /.well-known/assetlinks.json on the web domain).
+                 Host must serve assetlinks without redirect — apex tapeya.com only.
+                 Keep pathPrefix entries aligned with DEEP_LINK_ROUTES in deepLinkRegistry.js. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="tapeya.com" android:pathPrefix="/reels" />
+                <data android:scheme="https" android:host="tapeya.com" android:pathPrefix="/feed" />
+                <data android:scheme="https" android:host="tapeya.com" android:pathPrefix="/live/go-live" />
             </intent-filter>
 
         </activity>

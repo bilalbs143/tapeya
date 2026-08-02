@@ -6,8 +6,8 @@ use App\Enums\User\BattingStyleEnum;
 use App\Enums\User\BowlingStyleEnum;
 use App\Enums\User\PlayingRoleEnum;
 use App\Models\TournamentMatch;
+use App\Support\Media\MediaDisk;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -73,8 +73,7 @@ final class GraphicSquadBuilder
                     'u.avatar',
                 ]);
 
-        $disk = Storage::disk(config('filesystems.media_disk', 'public'));
-        $avatarUrl = static fn (?string $path): ?string => $path ? $disk->url($path) : null;
+        $avatarUrl = static fn (?string $path): ?string => MediaDisk::url($path);
 
         return $collection->map(function ($row, int $index) use ($captainId, $wkId, $avatarUrl) {
             $userId = (int) $row->user_id;

@@ -7,6 +7,8 @@
  * Every color, timing, spacing, and typography value lives here.
  */
 
+import { getAppAssetsBase } from '../../../lib/constants/assets.js';
+
 // ── Color tokens ─────────────────────────────────────────────────────────────
 export const colors = {
   // Text on broadcast overlays — primary white only.
@@ -214,8 +216,12 @@ export const colors = {
 
 // ── Shared asset URLs ─────────────────────────────────────────────────────────
 export const assets = {
-  brandLogoWhite: 'https://d1nmw2vhka3zp0.cloudfront.net/app/images/logos/tapeya-logo-white.svg',
-  playerPlaceholder: 'https://d1nmw2vhka3zp0.cloudfront.net/app/images/background/player-placeholder-theme1.png',
+  get brandLogoWhite() {
+    return `${getAppAssetsBase()}/images/logos/tapeya-logo-white.svg`;
+  },
+  get playerPlaceholder() {
+    return `${getAppAssetsBase()}/images/background/player-placeholder-theme1.png`;
+  },
 };
 
 /**

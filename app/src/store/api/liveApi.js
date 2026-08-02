@@ -15,6 +15,16 @@ export const liveApi = baseApi.injectEndpoints({
           ? [...result.map((row) => ({ type: 'LiveStreams', id: row.id })), { type: 'LiveStreams', id: 'LIST' }]
           : [{ type: 'LiveStreams', id: 'LIST' }],
     }),
+    getLiveScores: builder.query({
+      query: () => ({
+        url: '/live/scores',
+      }),
+      transformResponse: (response) => response?.data ?? [],
+      providesTags: (result) =>
+        result?.length
+          ? [...result.map((row) => ({ type: 'LiveScores', id: row.id })), { type: 'LiveScores', id: 'LIST' }]
+          : [{ type: 'LiveScores', id: 'LIST' }],
+    }),
     getLiveStream: builder.query({
       query: (streamId) => ({
         url: `/live/streams/${streamId}`,
@@ -110,6 +120,7 @@ export const liveApi = baseApi.injectEndpoints({
 
 export const {
   useGetLiveStreamsQuery,
+  useGetLiveScoresQuery,
   useGetLiveStreamQuery,
   useSendLiveCommentMutation,
   useSendLiveHeartMutation,

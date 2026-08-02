@@ -11,6 +11,7 @@ import { useEffect, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { useNavigate } from 'react-router-dom';
 
+import { isSafeNotificationNavigatePath, normalizeAppPath } from '@/lib/deepLinks/deepLinkRegistry';
 import { addIosFcmTokenRefreshListener, getIosFcmTokenWithRetry, isLikelyApnsToken } from '@/native/fcmToken';
 import { isNative } from '@/platform/platform';
 import { useRegisterDeviceTokenMutation } from '@/store/api/deviceTokenApi';
@@ -88,7 +89,17 @@ async function resolvePushTokenForApi(registrationToken) {
 }
 
 function routeFromPushData(navigate, data) {
-  if (!data?.type) return;
+  if (!data) return;
+
+  if (typeof data.deep_link === 'string' && data.deep_link) {
+    const path = normalizeAppPath(data.deep_link);
+    if (isSafeNotificationNavigatePath(path)) {
+      navigate(path);
+      return;
+    }
+  }
+
+  if (!data.type) return;
 
   switch (data.type) {
     case 'order_placed':
@@ -97,6 +108,17 @@ function routeFromPushData(navigate, data) {
       if (data.order_id) {
         navigate(`/shop/orders/${data.order_id}`);
       }
+      break;
+    case 'post_liked':
+    case 'post_commented':
+    case 'post_comment_reply':
+    case 'post_mentioned':
+    case 'post_reposted':
+    case 'post_published':
+      navigate('/notification-center');
+      break;
+    case 'user_followed':
+      navigate('/notification-center');
       break;
     case 'manual_broadcast':
       navigate('/home');

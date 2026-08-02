@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources\Admin;
 
+use App\Support\Media\MediaDisk;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 class TournamentResource extends JsonResource
 {
@@ -13,8 +13,6 @@ class TournamentResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $disk = Storage::disk(config('filesystems.media_disk'));
-
         return [
             'id' => $this->id,
             'organizer_id' => $this->organizer_id,
@@ -54,8 +52,8 @@ class TournamentResource extends JsonResource
             'status_label' => $this->status?->label(),
             'schedule_phase' => $this->schedulePhase()?->value,
             'schedule_phase_label' => $this->schedulePhase()?->label(),
-            'display_image' => $this->display_image ? $disk->url($this->display_image) : null,
-            'cover_image' => $this->cover_image ? $disk->url($this->cover_image) : null,
+            'display_image' => MediaDisk::url($this->display_image),
+            'cover_image' => MediaDisk::url($this->cover_image),
             'prize' => $this->prize,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

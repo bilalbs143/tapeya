@@ -235,11 +235,13 @@ const RELATIVE_DAYS_CUTOFF = 10;
 
 /**
  * Humanized relative date: "2 hours ago" → fallback to formatDate after 10 days.
+ * Pass `{ compact: true }` for short form ("2h ago") — e.g. TikTok-style comment timestamps.
  *
  * @param {string|Date|null|undefined} dateString
+ * @param {{ compact?: boolean }} [options]
  * @returns {string}
  */
-export function formatRelativeDate(dateString) {
+export function formatRelativeDate(dateString, { compact = false } = {}) {
   if (!dateString) return '';
   const date = dateString instanceof Date ? dateString : new Date(dateString);
   if (Number.isNaN(date.getTime())) return '';
@@ -247,18 +249,21 @@ export function formatRelativeDate(dateString) {
   const diffMs = now - date;
 
   if (diffMs < 0) return formatDate(date);
-  if (diffMs < MINUTE_MS) return 'Moments ago';
+  if (diffMs < MINUTE_MS) return compact ? 'now' : 'Moments ago';
   if (diffMs < HOUR_MS) {
     const mins = Math.floor(diffMs / MINUTE_MS);
+    if (compact) return `${mins}m ago`;
     return mins === 1 ? '1 minute ago' : `${mins} minutes ago`;
   }
   if (diffMs < DAY_MS) {
     const hours = Math.floor(diffMs / HOUR_MS);
+    if (compact) return `${hours}h ago`;
     return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
   }
 
   const diffDays = Math.floor(diffMs / DAY_MS);
   if (diffDays <= RELATIVE_DAYS_CUTOFF) {
+    if (compact) return `${diffDays}d ago`;
     return diffDays === 1 ? '1 day ago' : `${diffDays} days ago`;
   }
 

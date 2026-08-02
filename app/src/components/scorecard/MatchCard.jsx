@@ -34,15 +34,31 @@ function TeamAvatar({ team, accent }) {
   return <TeamLogo team={team} variant="scorecardCard" accent={accent} />;
 }
 
-/** Parse score2 like "27/1 (4.4/50 OV, T:235)" into current score and overs */
-function parseLiveScore2(score2) {
-  if (!score2 || typeof score2 !== 'string') return { current: score2, overs: null };
-  const idx = score2.indexOf(' (');
-  if (idx === -1) return { current: score2, overs: null };
+/** Parse annotated scores like "27/1 (4.4/50 OV, T:235)" into current score and overs */
+function parseAnnotatedScore(score) {
+  if (!score || typeof score !== 'string') return { current: score, overs: null };
+  const idx = score.indexOf(' (');
+  if (idx === -1) return { current: score, overs: null };
   return {
-    current: score2.slice(0, idx),
-    overs: score2.slice(idx),
+    current: score.slice(0, idx),
+    overs: score.slice(idx),
   };
+}
+
+function ScoreValue({ score, emphasize }) {
+  if (score == null || score === '') return null;
+  const parsed = emphasize ? parseAnnotatedScore(score) : { current: score, overs: null };
+  if (!parsed.overs) {
+    return (
+      <span className={`shrink-0 text-[14px] ${emphasize ? 'text-brand font-bold' : 'font-medium text-white'}`}>{score}</span>
+    );
+  }
+  return (
+    <span className="shrink-0 text-right">
+      <span className="text-muted text-[13px]">{parsed.overs}</span>{' '}
+      <span className="text-brand text-[14px] font-bold">{parsed.current}</span>
+    </span>
+  );
 }
 
 function normalizeTeam(team, fallbackName = 'Team', fallbackInitial = 'T') {
@@ -87,7 +103,7 @@ function getMatchDisplay(match) {
   };
 }
 
-export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
+export function MatchCard({ match, showScheduleTableLinks = true, to = null, compact = false }) {
   if (!match || typeof match !== 'object') return null;
 
   const { status, matchId, league, t1, t2, score1, score2, meta } = getMatchDisplay(match);
@@ -96,12 +112,21 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
   const isStreamLive = match.stream?.status === 'live';
   const isResult = status === 'result';
   const useLiveLayout = isLive || isResult;
-  const liveScore2 = useLiveLayout ? parseLiveScore2(score2) : null;
+  const score1Annotated = useLiveLayout && typeof score1 === 'string' && score1.includes(' (');
+  const score2Annotated = useLiveLayout && typeof score2 === 'string' && score2.includes(' (');
+  const emphasizeScore1 = score1Annotated;
+  const emphasizeScore2 = score2Annotated || (useLiveLayout && !score1Annotated);
+  const topRowClass = compact ? 'mb-3 flex items-center justify-between gap-2' : 'mb-4 flex items-center justify-between gap-3';
+  const liveRowsClass = compact ? 'mb-3 flex flex-col gap-2' : 'mb-4 flex flex-col gap-3';
+  const commentaryClass = compact ? 'truncate' : 'mb-3';
+  const surfaceClass = compact
+    ? 'bg-surface block h-full rounded-[17px] p-3 transition-opacity active:opacity-90'
+    : 'bg-surface block rounded-[17px] p-4 transition-opacity active:opacity-90';
 
   const cardInner = (
     <>
       {/* Top row: status left, group badge (optional), match title right */}
-      <div className="mb-4 flex items-center justify-between gap-3">
+      <div className={topRowClass}>
         <div className="flex items-center gap-2">
           {(isLive || isStreamLive) && <LiveIcon />}
           <span className={`text-[12px] font-bold uppercase ${STATUS_STYLES[status]}`}>{status}</span>
@@ -131,26 +156,20 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
           </div>
         </div>
       ) : (
-        <div className="mb-4 flex flex-col gap-3">
+        <div className={liveRowsClass}>
           <div className="flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2">
               <TeamAvatar team={t1} accent="green" />
               <span className="truncate text-[14px] font-semibold text-white">{t1.name}</span>
             </div>
-            {score1 != null && score1 !== '' && <span className="shrink-0 text-[14px] font-medium text-white">{score1}</span>}
+            <ScoreValue score={score1} emphasize={emphasizeScore1} />
           </div>
           <div className="flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2">
               <TeamAvatar team={t2} accent="orange" />
               <span className="truncate text-[14px] font-semibold text-white">{t2.name}</span>
             </div>
-            {score2 != null && score2 !== '' && (
-              <span className="shrink-0 text-right">
-                {liveScore2?.overs && <span className="text-muted text-[13px]">{liveScore2.overs}</span>}
-                {liveScore2?.overs && ' '}
-                <span className="text-brand text-[14px] font-bold">{liveScore2?.current ?? score2}</span>
-              </span>
-            )}
+            <ScoreValue score={score2} emphasize={emphasizeScore2} />
           </div>
         </div>
       )}
@@ -163,10 +182,10 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
         </div>
       )}
       {(isLive || isResult) && meta?.commentary && (
-        <p className="mb-3">
+        <p className={commentaryClass}>
           <CommentaryText
             text={meta.commentary}
-            className="text-[13px] text-[#BBBBBB]"
+            className={compact ? 'text-muted text-[12px]' : 'text-[13px] text-[#BBBBBB]'}
             numberClassName="font-semibold text-[#CCCCCC]"
           />
         </p>
@@ -195,11 +214,11 @@ export function MatchCard({ match, showScheduleTableLinks = true, to = null }) {
 
   if (to) {
     return (
-      <Link to={to} className="bg-surface block rounded-[17px] p-4 transition-opacity active:opacity-90">
+      <Link to={to} className={surfaceClass}>
         {cardInner}
       </Link>
     );
   }
 
-  return <div className="bg-surface rounded-[17px] p-4">{cardInner}</div>;
+  return <div className={compact ? 'bg-surface h-full rounded-[17px] p-3' : 'bg-surface rounded-[17px] p-4'}>{cardInner}</div>;
 }

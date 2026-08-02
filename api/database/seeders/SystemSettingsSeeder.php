@@ -8,7 +8,9 @@ use App\Settings\ContactSettings;
 use App\Settings\GeneralSettings;
 use App\Settings\GraphicsSettings;
 use App\Settings\LiveChatSettings;
+use App\Settings\MediaCdnSettings;
 use App\Settings\OtpSettings;
+use App\Settings\PostsSettings;
 use App\Settings\PushSettings;
 use App\Settings\SmsSettings;
 use App\Settings\StreamingSettings;
@@ -35,6 +37,8 @@ class SystemSettingsSeeder extends Seeder
         $this->seedStreaming();
         $this->seedLiveChat();
         $this->seedPush();
+        $this->seedReels();
+        $this->seedMediaCdn();
     }
 
     private function seedGeneral(): void
@@ -161,5 +165,28 @@ class SystemSettingsSeeder extends Seeder
         $push->fcmProjectId ??= null;
         $push->fcmServiceAccountJson ??= null;
         $push->save();
+    }
+
+    private function seedReels(): void
+    {
+        $reels = app(PostsSettings::class);
+        $reels->maxDurationSeconds ??= 0;
+        $reels->minDurationSeconds ??= 0;
+        $reels->maxUploadMb ??= 0;
+        $reels->hlsSegmentSeconds ??= 2;
+        $reels->viewMinWatchedMs ??= 3000;
+        $reels->viewMinCompletionRatePercent ??= 25;
+        $reels->viewAllowAnonymous ??= 0;
+        $reels->viewRedisBuffer ??= 1;
+        $reels->multipartPartSizeMb ??= 1;
+        $reels->multipartMaxParts ??= 0;
+        $reels->save();
+    }
+
+    private function seedMediaCdn(): void
+    {
+        $cdn = app(MediaCdnSettings::class);
+        $cdn->cdnPublicBaseUrl ??= null;
+        $cdn->save();
     }
 }

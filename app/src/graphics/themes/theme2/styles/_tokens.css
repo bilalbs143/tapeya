@@ -24,7 +24,7 @@
   --score-color: #ffffff;
   --score-shadow: rgba(156, 0, 40, 0.55);
   --fs-stage-fade-in: 0ms;
-  --fs-stage-glow-cycle: 22s;
+  --fs-stage-glow-cycle: 24s;
   --fs-stage-grain-cycle: 140s;
   --fs-fabric-easing: cubic-bezier(0.37, 0.04, 0.22, 1);
   --fs-fabric-blur: 2px;

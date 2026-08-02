@@ -7,8 +7,8 @@ use App\Http\Requests\Admin\Shop\StoreBrandRequest;
 use App\Http\Requests\Admin\Shop\UpdateBrandRequest;
 use App\Http\Resources\Admin\Shop\BrandResource;
 use App\Models\Shop\Brand;
+use App\Support\Media\MediaDisk;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Storage;
 
 class BrandController extends BaseAdminController
 {
@@ -48,9 +48,7 @@ class BrandController extends BaseAdminController
 
     public function destroy(Brand $brand): JsonResponse
     {
-        if ($brand->logo) {
-            Storage::disk(config('filesystems.media_disk'))->delete($brand->logo);
-        }
+        MediaDisk::delete($brand->getRawOriginal('logo'));
 
         return $this->_destroy($brand, null);
     }

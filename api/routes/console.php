@@ -21,3 +21,7 @@ Schedule::command('streams:sync')->everyMinute()->withoutOverlapping()->runInBac
 Schedule::command('broadcasts:end-expired')->everyMinute()->withoutOverlapping()->runInBackground();
 
 Schedule::command('broadcasts:monitor-operations')->everyFifteenMinutes()->withoutOverlapping();
+
+Schedule::command('posts:purge-expired-originals')->dailyAt('04:30')->withoutOverlapping();
+
+Schedule::command('posts:flush-view-counters')->everyMinute()->withoutOverlapping();

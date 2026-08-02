@@ -6,6 +6,8 @@ use App\Channels\SmsChannel;
 use App\Enums\User\AppRoleEnum;
 use App\Models\User;
 use App\Services\Notifications\SmsSender;
+use App\Support\Media\MediaCdn;
+use App\Support\Media\MediaDisk;
 use Illuminate\Notifications\ChannelManager;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +28,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        MediaCdn::applyToFilesystemConfig();
+        MediaDisk::configureFilesystem();
+
         Route::bind('player', function (string $value): User {
             return User::query()
                 ->user()

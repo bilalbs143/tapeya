@@ -1,217 +1,396 @@
 /**
  * UploadReels
  *
- * Reel upload flow: back, preview, caption, publish. Route: /reels/upload
+ * Mobile-first TikTok-style flow: empty → portrait preview → details → post.
+ * Route: /reels/upload
  *
- * Coding guidelines: docs/Coding guidelines.md (§2 selectors, useAppDispatch)
+ * After Post, upload continues in the background (floating chip) while the user
+ * browses /reels.
+ *
+ * Coding guidelines: docs/Coding guidelines.md (§2 selectors)
  */
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-import { AppSubpageHeader } from '@/components/AppSubpageHeader';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { getInitials } from '@/lib/utils/displayUtils';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { selectUser } from '@/store/selectors';
-import { addReel } from '@/store/slices/reelsSlice';
-import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
-import { Button } from '@/ui/Button';
-import { Container } from '@/ui/Container';
-import { FormActions } from '@/ui/form/FormActions';
-import { FormStack } from '@/ui/form/FormStack';
-import { FormField } from '@/ui/FormField';
-import { Textarea } from '@/ui/Textarea';
+import { getReelUploadSession, startReelUpload, useReelUploadSession } from '@/features/reels/reelUploadSessionStore';
+import {
+  formatReelMaxUploadLabel,
+  probeReelVideoDuration,
+  REEL_VIDEO_ACCEPT,
+  validateReelVideoForUpload,
+} from '@/lib/utils/reelVideoFormats';
+import { useUploadMediaMutation } from '@/store/api/mediaApi';
+import {
+  useAbortReelMultipartMutation,
+  useCompleteReelMultipartMutation,
+  useCreateReelMutation,
+  useInitReelMultipartMutation,
+  useUploadReelMultipartPartMutation,
+} from '@/store/api/reelsApi';
+import { useGetPublicSystemSettingsQuery } from '@/store/api/systemSettingsApi';
 
-const editReelIcon = `${CLOUDFRONT_APP_BASE}/images/icons/edit-reel.svg`;
-const playIcon = `${CLOUDFRONT_APP_BASE}/images/icons/play-icon.svg`;
-const reelCameraIcon = `${CLOUDFRONT_APP_BASE}/images/icons/reel-camera-icon.svg`;
+import { UploadDetailsStep } from './upload/UploadDetailsStep';
+import { UploadEmptyStep } from './upload/UploadEmptyStep';
+import { UploadPreviewStep } from './upload/UploadPreviewStep';
 
-const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=96&h=96&fit=crop';
 const UPLOAD_REEL_TAB = 'my-videos';
+const STEPS = {
+  EMPTY: 'empty',
+  PREVIEW: 'preview',
+  DETAILS: 'details',
+};
 
-function CloseIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" aria-hidden>
-      <path d="M18 6L6 18M6 6l12 12" />
-    </svg>
-  );
+function settingRowKey(row) {
+  if (!row?.key) return '';
+  return typeof row.key === 'string' ? row.key : String(row.key);
 }
 
-function fileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+function settingInt(settings, key) {
+  const row = settings.find((item) => settingRowKey(item) === key);
+  const value = Number(row?.value);
+  return Number.isFinite(value) ? value : 0;
+}
+
+function appendHashtagToken(caption) {
+  const trimmed = caption.trimEnd();
+  if (!trimmed) return '#';
+  if (/\s#$/.test(`${trimmed} `) || trimmed.endsWith('#')) return trimmed;
+  return `${trimmed} #`;
 }
 
 export default function UploadReels() {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-  const user = useAppSelector(selectUser);
+  const location = useLocation();
   const fileInputRef = useRef(null);
+  const previewUrlRef = useRef(null);
+  const seededFromComposeRef = useRef(false);
+  const uploadSession = useReelUploadSession();
 
-  const [caption, setCaption] = useState('');
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [isPublishing, setIsPublishing] = useState(false);
-  const videoPreviewRef = useRef(null);
-
-  const displayName = user?.name ?? user?.username ?? 'Oneeb Arif';
-  const displayHandle = user?.username ? `@${user.username}` : '@oneeb';
-  const avatarUrl = user?.avatar ?? user?.profileImage ?? DEFAULT_AVATAR;
-
-  const clearVideo = useCallback(() => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setSelectedFile(null);
-    setPreviewUrl(null);
-  }, [previewUrl]);
-
-  const handleFileChange = useCallback(
-    (e) => {
-      const file = e.target?.files?.[0];
-      if (!file || !file.type.startsWith('video/')) return;
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
-      e.target.value = '';
-    },
-    [previewUrl],
+  const { data: publicSettings = [] } = useGetPublicSystemSettingsQuery();
+  const uploadLimits = useMemo(
+    () => ({
+      maxUploadMb: settingInt(publicSettings, 'reels_max_upload_mb'),
+      maxDurationSeconds: settingInt(publicSettings, 'reels_max_duration_seconds'),
+      minDurationSeconds: settingInt(publicSettings, 'reels_min_duration_seconds'),
+    }),
+    [publicSettings],
   );
 
-  const handleDelete = useCallback(() => {
+  const [createReel] = useCreateReelMutation();
+  const [uploadMedia] = useUploadMediaMutation();
+  const [initMultipart] = useInitReelMultipartMutation();
+  const [uploadPart] = useUploadReelMultipartPartMutation();
+  const [completeMultipart] = useCompleteReelMultipartMutation();
+  const [abortMultipart] = useAbortReelMultipartMutation();
+
+  const [step, setStep] = useState(STEPS.EMPTY);
+  const [caption, setCaption] = useState(() => (typeof location.state?.caption === 'string' ? location.state.caption : ''));
+  const [visibility, setVisibility] = useState(() =>
+    location.state?.visibility === 'followers' || location.state?.visibility === 'private' ? location.state.visibility : 'public',
+  );
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [isStarting, setIsStarting] = useState(false);
+  const [isValidatingFile, setIsValidatingFile] = useState(false);
+  const [error, setError] = useState(null);
+  const [handoffHint, setHandoffHint] = useState(() => {
+    const state = location.state;
+    if (!state || typeof state !== 'object') return null;
+    if (state.fromCompose && !(state.file instanceof File)) {
+      return 'Your caption and privacy selection are ready. Choose a video to continue.';
+    }
+    return null;
+  });
+
+  const isBusyPublishing = isStarting || uploadSession.status === 'uploading';
+
+  const limitsHint = useMemo(() => {
+    const parts = [];
+    if (uploadLimits.maxDurationSeconds > 0) {
+      parts.push(`up to ${uploadLimits.maxDurationSeconds}s`);
+    }
+    const sizeLabel = formatReelMaxUploadLabel(uploadLimits.maxUploadMb);
+    if (sizeLabel) parts.push(`max ${sizeLabel}`);
+    return parts.length ? parts.join(' · ') : null;
+  }, [uploadLimits]);
+
+  const revokePreviewUrl = useCallback(() => {
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
+  }, []);
+
+  /** Clear local video UI without revoking — session owns the object URL after Post. */
+  const detachPreviewWithoutRevoke = useCallback(() => {
+    previewUrlRef.current = null;
+    setSelectedFile(null);
+    setPreviewUrl(null);
+  }, []);
+
+  const openPicker = useCallback(() => {
+    if (isBusyPublishing || isValidatingFile) return;
+    fileInputRef.current?.click();
+  }, [isBusyPublishing, isValidatingFile]);
+
+  const clearVideo = useCallback(() => {
+    revokePreviewUrl();
+    setSelectedFile(null);
+    setPreviewUrl(null);
+  }, [revokePreviewUrl]);
+
+  useEffect(() => {
+    return () => {
+      // Only revoke if we still own the URL (not handed off to the upload session).
+      revokePreviewUrl();
+    };
+  }, [revokePreviewUrl]);
+
+  const handleFileChange = useCallback(
+    async (e) => {
+      const file = e.target?.files?.[0];
+      e.target.value = '';
+      if (!file || isBusyPublishing) return;
+
+      setIsValidatingFile(true);
+      setError(null);
+      try {
+        const result = await validateReelVideoForUpload(file, uploadLimits);
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
+
+        revokePreviewUrl();
+        const nextUrl = URL.createObjectURL(file);
+        previewUrlRef.current = nextUrl;
+        setSelectedFile(file);
+        setPreviewUrl(nextUrl);
+        setStep(STEPS.PREVIEW);
+      } finally {
+        setIsValidatingFile(false);
+      }
+    },
+    [isBusyPublishing, revokePreviewUrl, uploadLimits],
+  );
+
+  // Support legacy handoffs that included a File. The current compose flow
+  // intentionally hands off only caption and visibility, then opens this picker.
+  useEffect(() => {
+    if (seededFromComposeRef.current) return;
+    const file = location.state?.file;
+    if (!(file instanceof File)) {
+      if (location.state?.fromCompose) {
+        seededFromComposeRef.current = true;
+      }
+      return;
+    }
+    seededFromComposeRef.current = true;
+    setHandoffHint(null);
+    void (async () => {
+      setIsValidatingFile(true);
+      setError(null);
+      try {
+        const result = await validateReelVideoForUpload(file, uploadLimits);
+        if (!result.ok) {
+          setError(result.error);
+          setHandoffHint('Couldn’t use the video from Create post. Pick another file below — your caption is still filled in.');
+          return;
+        }
+        revokePreviewUrl();
+        const nextUrl = URL.createObjectURL(file);
+        previewUrlRef.current = nextUrl;
+        setSelectedFile(file);
+        setPreviewUrl(nextUrl);
+        setStep(STEPS.PREVIEW);
+      } finally {
+        setIsValidatingFile(false);
+      }
+    })();
+  }, [location.state, revokePreviewUrl, uploadLimits]);
+
+  const handleBackFromEmpty = useCallback(() => {
+    navigate(-1);
+  }, [navigate]);
+
+  const handleBackFromPreview = useCallback(() => {
+    if (isBusyPublishing) return;
     clearVideo();
-  }, [clearVideo]);
+    setError(null);
+    setStep(STEPS.EMPTY);
+  }, [clearVideo, isBusyPublishing]);
+
+  const handleBackFromDetails = useCallback(() => {
+    if (isBusyPublishing) return;
+    setError(null);
+    setStep(STEPS.PREVIEW);
+  }, [isBusyPublishing]);
+
+  const handleInsertHashtag = useCallback(() => {
+    setCaption((prev) => appendHashtagToken(prev));
+  }, []);
 
   const handlePublish = useCallback(async () => {
-    if (!selectedFile) return;
-    setIsPublishing(true);
-    try {
-      const dataUrl = await fileToDataUrl(selectedFile);
-      const id = `published-${Date.now()}`;
-      dispatch(
-        addReel({
-          id,
-          caption: caption.trim() || 'No caption',
-          videoUrl: dataUrl,
-          username: displayName,
-          handle: displayHandle,
-          likes: 0,
-        }),
-      );
-      clearVideo();
-      setCaption('');
-      navigate('/reels', { state: { tab: UPLOAD_REEL_TAB } });
-    } finally {
-      setIsPublishing(false);
+    if (!selectedFile || isBusyPublishing) return;
+    if (getReelUploadSession().status === 'uploading') {
+      setError('Another reel is still uploading. Please wait.');
+      return;
     }
-  }, [selectedFile, caption, displayName, displayHandle, dispatch, navigate, clearVideo]);
+
+    setIsStarting(true);
+    setError(null);
+
+    const file = selectedFile;
+    const sessionPreviewUrl = previewUrl;
+    const postCaption = caption.trim() || undefined;
+    const postVisibility = visibility;
+
+    try {
+      const precheck = await validateReelVideoForUpload(file, uploadLimits);
+      if (!precheck.ok) {
+        setError(precheck.error);
+        return;
+      }
+
+      // Re-check after await — another upload may have started (e.g. second tab / race).
+      if (getReelUploadSession().status === 'uploading') {
+        setError('Another reel is still uploading. Please wait.');
+        return;
+      }
+
+      let clientDurationMs;
+      try {
+        const duration = precheck.durationSec != null ? precheck.durationSec : await probeReelVideoDuration(file);
+        if (duration != null) clientDurationMs = Math.round(duration * 1000);
+      } catch {
+        // optional — server can probe during transcode
+      }
+
+      // Hand ownership of the object URL to the session before navigating away.
+      detachPreviewWithoutRevoke();
+      setCaption('');
+      setVisibility('public');
+      setStep(STEPS.EMPTY);
+
+      const started = startReelUpload({
+        file,
+        caption: postCaption,
+        visibility: postVisibility,
+        clientDurationMs,
+        previewUrl: sessionPreviewUrl,
+        mutations: {
+          createReel,
+          uploadMedia,
+          initMultipart,
+          uploadPart,
+          completeMultipart,
+          abortMultipart,
+        },
+      });
+
+      if (!started) {
+        // Re-attach for retry if session refused (should be rare).
+        previewUrlRef.current = sessionPreviewUrl;
+        setSelectedFile(file);
+        setPreviewUrl(sessionPreviewUrl);
+        setCaption(postCaption || '');
+        setVisibility(postVisibility || 'public');
+        setStep(STEPS.DETAILS);
+        setError('Another reel is still uploading. Please wait.');
+        return;
+      }
+
+      navigate('/reels', { state: { tab: UPLOAD_REEL_TAB } });
+    } catch (err) {
+      // If we already detached the preview, restore so the user can retry.
+      if (!previewUrlRef.current && sessionPreviewUrl) {
+        previewUrlRef.current = sessionPreviewUrl;
+        setSelectedFile(file);
+        setPreviewUrl(sessionPreviewUrl);
+        setCaption(postCaption || '');
+        setVisibility(postVisibility || 'public');
+        setStep(STEPS.DETAILS);
+      }
+      const message = err?.data?.message || err?.error || err?.message || 'Could not publish reel. Please try again.';
+      setError(typeof message === 'string' ? message : 'Could not publish reel. Please try again.');
+    } finally {
+      setIsStarting(false);
+    }
+  }, [
+    selectedFile,
+    isBusyPublishing,
+    uploadLimits,
+    caption,
+    visibility,
+    previewUrl,
+    createReel,
+    uploadMedia,
+    initMultipart,
+    uploadPart,
+    completeMultipart,
+    abortMultipart,
+    navigate,
+    detachPreviewWithoutRevoke,
+  ]);
 
   return (
-    <div className="bg-black">
-      <AppSubpageHeader title="Upload Reel" backAriaLabel="Go back" />
-      <Container>
-        <FormStack
-          as="form"
-          density="compact"
-          className="pb-8"
-          onSubmit={(e) => {
-            e.preventDefault();
-            handlePublish();
+    <div className="relative bg-black">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={REEL_VIDEO_ACCEPT}
+        onChange={handleFileChange}
+        className="sr-only"
+        tabIndex={-1}
+        aria-hidden
+      />
+
+      {step === STEPS.EMPTY || !previewUrl ? (
+        <UploadEmptyStep
+          onSelectVideo={openPicker}
+          onBack={handleBackFromEmpty}
+          error={error}
+          limitsHint={limitsHint}
+          isBusy={isValidatingFile || uploadSession.status === 'uploading'}
+          busyLabel={uploadSession.status === 'uploading' ? 'Upload in progress…' : undefined}
+          handoffHint={
+            uploadSession.status === 'uploading'
+              ? 'Your reel is still uploading. Progress is shown in the top-left — you can browse while it finishes.'
+              : handoffHint
+          }
+        />
+      ) : null}
+
+      {step === STEPS.PREVIEW && previewUrl ? (
+        <UploadPreviewStep
+          previewUrl={previewUrl}
+          onBack={handleBackFromPreview}
+          onNext={() => {
+            setError(null);
+            setStep(STEPS.DETAILS);
           }}
-        >
-          {/* User row */}
-          <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12 shrink-0">
-              <AvatarImage src={avatarUrl} alt="" />
-              <AvatarFallback className="bg-surface text-white">{getInitials(displayName)}</AvatarFallback>
-            </Avatar>
-            <span className="text-[15px] font-medium text-white">{displayName}</span>
-          </div>
+          onChangeVideo={openPicker}
+          error={error}
+          isBusy={isValidatingFile}
+        />
+      ) : null}
 
-          {/* Card: caption + video preview */}
-          <div className="bg-surface rounded-[17px] p-4">
-            <FormField label="Caption" htmlFor="reel-caption">
-              <Textarea
-                id="reel-caption"
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
-                placeholder="What Do You Want to Talk About?"
-                rows={3}
-                className="min-h-0 resize-none border-0 bg-transparent !px-0 !py-0 text-[15px] focus:ring-0"
-              />
-            </FormField>
-            <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black">
-              {previewUrl ? (
-                <>
-                  <video
-                    ref={videoPreviewRef}
-                    src={previewUrl}
-                    playsInline
-                    preload="metadata"
-                    className="h-full w-full object-contain"
-                  >
-                    <track kind="captions" />
-                  </video>
-                  <button
-                    type="button"
-                    onClick={() => videoPreviewRef.current?.play()}
-                    className="absolute top-1/2 left-1/2 flex h-[30px] w-[30px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow"
-                    aria-label="Play"
-                  >
-                    <img src={playIcon} alt="" className="h-3 w-3 object-contain" aria-hidden />
-                  </button>
-                  <div className="absolute top-2 right-2 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="flex h-[25px] w-[25px] items-center justify-center rounded-full bg-white"
-                      aria-label="Change Video"
-                    >
-                      <img src={editReelIcon} alt="" className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleDelete}
-                      className="flex h-[25px] w-[25px] items-center justify-center rounded-full bg-[#FF2424]"
-                      aria-label="Remove Video"
-                    >
-                      <CloseIcon />
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="text-muted flex h-full w-full flex-col items-center justify-center gap-2"
-                >
-                  <img src={reelCameraIcon} alt="" className="h-8 w-8 shrink-0 opacity-80 brightness-0 invert" aria-hidden />
-                  <span className="text-sm">Select Video</span>
-                </button>
-              )}
-              <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileChange} className="hidden" aria-hidden />
-            </div>
-          </div>
-
-          <FormActions className="flex-row items-center justify-center gap-4 pt-2 lg:my-5 lg:justify-start">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="flex h-[37px] w-[37px] shrink-0 items-center justify-center rounded-full bg-white"
-              aria-label="Add or Change Video"
-            >
-              <img src={reelCameraIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
-            </button>
-            <Button type="submit" disabled={!selectedFile || isPublishing} variant="auth" className="!w-auto min-w-[160px]">
-              {isPublishing ? 'Publishing…' : 'Publish Now'}
-            </Button>
-          </FormActions>
-        </FormStack>
-      </Container>
+      {step === STEPS.DETAILS && previewUrl ? (
+        <UploadDetailsStep
+          previewUrl={previewUrl}
+          caption={caption}
+          onCaptionChange={setCaption}
+          visibility={visibility}
+          onVisibilityChange={setVisibility}
+          onInsertHashtag={handleInsertHashtag}
+          onBack={handleBackFromDetails}
+          onPost={handlePublish}
+          isPublishing={isBusyPublishing}
+          error={error}
+        />
+      ) : null}
     </div>
   );
 }

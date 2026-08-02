@@ -1,10 +1,69 @@
 /**
- * CDN base for static app assets (images, icons) on CloudFront.
- * Build asset URLs as `${CLOUDFRONT_APP_BASE}/images/...`.
+ * CDN bases for static app assets (icons, logos) served from the media CDN (`/app/...`).
+ * Uploaded user media uses absolute URLs from the API — do not prefix those here.
+ *
+ * Call {@link setCdnPublicBaseUrl} from boot (main.jsx) before importing App so
+ * module-level `${CLOUDFRONT_APP_BASE}/...` strings resolve to the configured CDN.
  */
-export const CLOUDFRONT_APP_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net/app';
 
-export const FIXTURE_BG_IMAGE = `${CLOUDFRONT_APP_BASE}/images/background/fixture-bg.png`;
+/** Legacy CloudFront fallback until B2 + Cloudflare cutover. */
+export const DEFAULT_CDN_PUBLIC_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net';
+
+export const DEFAULT_APP_ASSETS_BASE = `${DEFAULT_CDN_PUBLIC_BASE}/app`;
+
+/** Public CDN origin (no trailing slash), e.g. https://cdn.tapeya.com */
+export let CDN_PUBLIC_BASE = DEFAULT_CDN_PUBLIC_BASE;
+
+/**
+ * Static app asset base (`{CDN}/app`). Prefer importing this; updated at boot from settings.
+ * @type {string}
+ */
+export let CLOUDFRONT_APP_BASE = DEFAULT_APP_ASSETS_BASE;
+
+export let FIXTURE_BG_IMAGE = `${DEFAULT_APP_ASSETS_BASE}/images/background/fixture-bg.png`;
+
+/**
+ * @param {string | null | undefined} cdnPublicBaseUrl e.g. https://cdn.tapeya.com
+ * @returns {string} effective CDN public base
+ */
+export function setCdnPublicBaseUrl(cdnPublicBaseUrl) {
+  const normalized = normalizeCdnPublicBase(cdnPublicBaseUrl);
+  if (!normalized) {
+    CDN_PUBLIC_BASE = DEFAULT_CDN_PUBLIC_BASE;
+    CLOUDFRONT_APP_BASE = DEFAULT_APP_ASSETS_BASE;
+    FIXTURE_BG_IMAGE = `${DEFAULT_APP_ASSETS_BASE}/images/background/fixture-bg.png`;
+    return CDN_PUBLIC_BASE;
+  }
+  CDN_PUBLIC_BASE = normalized;
+  CLOUDFRONT_APP_BASE = `${normalized}/app`;
+  FIXTURE_BG_IMAGE = `${CLOUDFRONT_APP_BASE}/images/background/fixture-bg.png`;
+  return CDN_PUBLIC_BASE;
+}
+
+/**
+ * @param {string | null | undefined} url
+ */
+export function normalizeCdnPublicBase(url) {
+  if (url == null || typeof url !== 'string') return '';
+  let trimmed = url.trim().replace(/\/+$/, '');
+  if (!trimmed) return '';
+  if (!/^https?:\/\//i.test(trimmed)) {
+    trimmed = `https://${trimmed}`;
+  }
+  return trimmed;
+}
+
+export function getCdnPublicBase() {
+  return CDN_PUBLIC_BASE;
+}
+
+export function getAppAssetsBase() {
+  return CLOUDFRONT_APP_BASE;
+}
+
+export function getFixtureBgImage() {
+  return FIXTURE_BG_IMAGE;
+}
 
 /** Shared × close icon path — used in Dialog, Toast, CountryPickerSheet, ActionMenuSheet. */
 export const CLOSE_ICON_PATH =

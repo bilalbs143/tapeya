@@ -8,9 +8,9 @@ use App\Models\MatchGraphicSession;
 use App\Models\MatchSetting;
 use App\Models\TournamentMatch;
 use App\Services\InningsStatsService;
+use App\Support\Media\MediaDisk;
 use App\Support\Scoring\MatchPendingState;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Composes the full graphic `context` JSON from match + innings data.
@@ -87,9 +87,7 @@ final class GraphicContextBuilder
 
     private function buildBase(TournamentMatch $match): array
     {
-        $disk = Storage::disk(config('filesystems.media_disk', 'public'));
-
-        $logoUrl = static fn (?string $path): ?string => $path ? $disk->url($path) : null;
+        $logoUrl = static fn (?string $path): ?string => MediaDisk::url($path);
 
         $home = $match->homeTeam;
         $away = $match->awayTeam;
@@ -173,9 +171,7 @@ final class GraphicContextBuilder
 
         $settings = MatchSetting::resolveFor($match);
 
-        $disk = Storage::disk(config('filesystems.media_disk', 'public'));
-
-        $logoUrl = static fn (?string $path): ?string => $path ? $disk->url($path) : null;
+        $logoUrl = static fn (?string $path): ?string => MediaDisk::url($path);
 
         $home = $match->homeTeam;
         $away = $match->awayTeam;

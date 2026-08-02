@@ -7,8 +7,8 @@ use App\Http\Requests\Admin\Highlight\StoreHighlightRequest;
 use App\Http\Requests\Admin\Highlight\UpdateHighlightRequest;
 use App\Http\Resources\Admin\HighlightResource;
 use App\Models\Highlight;
+use App\Support\Media\MediaDisk;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Storage;
 
 class HighlightController extends BaseAdminController
 {
@@ -58,18 +58,10 @@ class HighlightController extends BaseAdminController
     {
         $highlight = $this->refresh($highlight);
 
-        $disk = config('filesystems.media_disk');
-
-        $thumbnail = $highlight->getRawOriginal('thumbnail');
-        if ($thumbnail) {
-            Storage::disk($disk)->delete($thumbnail);
-        }
+        MediaDisk::delete($highlight->getRawOriginal('thumbnail'));
 
         if ($highlight->video_source === HighlightVideoSourceEnum::UPLOAD) {
-            $video = $highlight->getRawOriginal('video');
-            if ($video) {
-                Storage::disk($disk)->delete($video);
-            }
+            MediaDisk::delete($highlight->getRawOriginal('video'));
         }
 
         $highlight->delete();
@@ -83,10 +75,6 @@ class HighlightController extends BaseAdminController
             return;
         }
 
-        $path = $highlight->getRawOriginal('video');
-
-        if ($path) {
-            Storage::disk(config('filesystems.media_disk'))->delete($path);
-        }
+        MediaDisk::delete($highlight->getRawOriginal('video'));
     }
 }

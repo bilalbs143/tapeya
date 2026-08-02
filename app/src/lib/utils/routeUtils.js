@@ -12,6 +12,26 @@ export function isGoLiveBroadcastPath(pathname) {
   return GO_LIVE_BROADCAST_PATH.test(pathname);
 }
 
+/** Reels vertical feed — full-bleed video under transparent navbar. */
+export function isReelsFeedPath(pathname) {
+  return pathname === '/reels' || /^\/reels\/\d+$/.test(pathname);
+}
+
+/** Reel compose screens (upload flow). */
+export function isReelsUploadPath(pathname) {
+  return pathname === '/reels/upload' || pathname.startsWith('/reels/upload/');
+}
+
+/** Public creator profile opened from the reels action rail. */
+export function isReelsCreatorProfilePath(pathname) {
+  return /^\/reels\/u\/\d+$/.test(pathname);
+}
+
+/** Fixed-shell reels feed — no main bottom padding (full-bleed video). */
+export function isReelsImmersivePath(pathname) {
+  return isReelsFeedPath(pathname);
+}
+
 /** Mobile go-live camera, or watch-live when opted into immersive (self-serve). */
 export function isLiveStreamImmersivePath(pathname) {
   return isLiveBroadcastPath(pathname) || isGoLiveBroadcastPath(pathname);
@@ -30,7 +50,8 @@ export function isNavbarOverlayPath(pathname, isDesktop = false) {
     pathname === '/profile' ||
     TOURNAMENT_DETAILS_PATH.test(pathname) ||
     HIGHLIGHT_DETAILS_PATH.test(pathname) ||
-    isGoLiveBroadcastPath(pathname)
+    isGoLiveBroadcastPath(pathname) ||
+    isReelsFeedPath(pathname)
   );
 }
 
@@ -100,7 +121,8 @@ export function isHeroNavbarPath(pathname, isDesktop = false, isLiveHero = false
     pathname === '/home' ||
     pathname === '/profile' ||
     TOURNAMENT_DETAILS_PATH.test(pathname) ||
-    HIGHLIGHT_DETAILS_PATH.test(pathname)
+    HIGHLIGHT_DETAILS_PATH.test(pathname) ||
+    isReelsFeedPath(pathname)
   );
 }
 

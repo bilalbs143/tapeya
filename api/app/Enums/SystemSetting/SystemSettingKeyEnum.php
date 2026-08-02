@@ -30,6 +30,8 @@ enum SystemSettingKeyEnum: string
 
     case PUBLIC_WEBSITE_URL = 'public_website_url';
 
+    case CDN_PUBLIC_BASE_URL = 'cdn_public_base_url';
+
     case NOTIFICATION_ADMIN_EMAILS = 'notification_admin_emails';
 
     case GRAPHICS_FRONTEND_URL = 'graphics_frontend_url';
@@ -77,6 +79,17 @@ enum SystemSettingKeyEnum: string
     case PUSH_FCM_PROJECT_ID = 'push_fcm_project_id';
     case PUSH_FCM_SERVICE_ACCOUNT_JSON = 'push_fcm_service_account_json';
 
+    case REELS_MAX_DURATION_SECONDS = 'reels_max_duration_seconds';
+    case REELS_MIN_DURATION_SECONDS = 'reels_min_duration_seconds';
+    case REELS_MAX_UPLOAD_MB = 'reels_max_upload_mb';
+    case REELS_HLS_SEGMENT_SECONDS = 'reels_hls_segment_seconds';
+    case REELS_VIEW_MIN_WATCHED_MS = 'reels_view_min_watched_ms';
+    case REELS_VIEW_MIN_COMPLETION_RATE_PERCENT = 'reels_view_min_completion_rate_percent';
+    case REELS_VIEW_ALLOW_ANONYMOUS = 'reels_view_allow_anonymous';
+    case REELS_VIEW_REDIS_BUFFER = 'reels_view_redis_buffer';
+    case REELS_MULTIPART_PART_SIZE_MB = 'reels_multipart_part_size_mb';
+    case REELS_MULTIPART_MAX_PARTS = 'reels_multipart_max_parts';
+
     public function group(): SystemSettingGroupEnum
     {
         return SystemSettingRegistry::group($this);
@@ -112,7 +125,11 @@ enum SystemSettingKeyEnum: string
             self::SUPPORT_EMAIL,
             self::SUPPORT_PHONE,
             self::PUBLIC_WEBSITE_URL,
+            self::CDN_PUBLIC_BASE_URL,
             self::LIVE_CHAT_ENABLED,
+            self::REELS_MAX_DURATION_SECONDS,
+            self::REELS_MIN_DURATION_SECONDS,
+            self::REELS_MAX_UPLOAD_MB,
         ];
     }
 

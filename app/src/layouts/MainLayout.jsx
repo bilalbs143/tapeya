@@ -5,6 +5,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { BottomNav } from '@/components/BottomNav';
 import { FacebookAnalyticsBoot } from '@/components/FacebookAnalyticsBoot';
 import { Navbar } from '@/components/Navbar';
+import { ReelUploadFloatingProgress } from '@/components/reels/ReelUploadFloatingProgress';
 import { Sidebar } from '@/components/Sidebar';
 import { useMainLayoutChrome } from '@/hooks/useMainLayoutChrome';
 
@@ -18,6 +19,7 @@ export function MainLayout() {
       <FacebookAnalyticsBoot />
       {showNavbar && <Navbar onMenuClick={() => setSidebarOpen(true)} />}
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <ReelUploadFloatingProgress />
       <main
         className="lg:ml-[280px]"
         style={{

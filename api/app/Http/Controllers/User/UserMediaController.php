@@ -5,13 +5,18 @@ namespace App\Http\Controllers\User;
 use App\Enums\Tournament\TournamentInterestFormFieldEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
+use App\Models\Post;
 use App\Models\Team;
 use App\Models\TournamentInterestSubmission;
 use App\Models\TournamentMatch;
+use App\Services\Post\PostService;
+use App\Settings\PostsSettings;
+use App\Support\Media\MediaDisk;
+use App\Support\PhpUploadError;
+use App\Support\Post\PostVideoFormats;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * User-scoped generic media upload / delete.
@@ -19,15 +24,16 @@ use Illuminate\Support\Facades\Storage;
  * POST   /api/v1/media/{type}/{id}/{field}   — upload or replace a media field
  * DELETE /api/v1/media/{type}/{id}/{field}   — remove a media field
  *
- * Requires an authenticated app user (Sanctum). Does not re-check record ownership here —
- * callers should only hit this after the user already passed authorization on the parent
- * resource (team update, match scoring, interest submit, etc.).
+ * Requires an authenticated app user (Sanctum). Ownership is enforced for
+ * interest-submission and reel (video post) types.
  *
  * Registered types and fields:
  *   team / logo
  *   match / thumbnail
  *   interest-submission / profile_picture
  *   interest-submission / id_document
+ *   reel / original   (video post — type key kept for app compat)
+ *   reel / thumbnail
  */
 class UserMediaController extends Controller
 {
@@ -76,6 +82,21 @@ class UserMediaController extends Controller
                 ],
             ],
         ],
+        'reel' => [
+            'model' => Post::class,
+            'fields' => [
+                'original' => [
+                    'dir' => 'posts/videos/original',
+                    'column' => 'original_path',
+                    'file_rules' => PostVideoFormats::fileRules(),
+                ],
+                'thumbnail' => [
+                    'dir' => 'posts/videos/thumbs',
+                    'column' => 'thumbnail_path',
+                    'file_rules' => ['required', 'image', 'max:5120'],
+                ],
+            ],
+        ],
     ];
 
     /**
@@ -90,20 +111,57 @@ class UserMediaController extends Controller
 
         [$record, $config] = $resolved;
 
-        $request->validate(['file' => $config['file_rules']]);
+        $maxKb = $type === 'reel' && $field === 'original'
+            ? app(PostsSettings::class)->maxUploadKbForValidation()
+            : null;
 
-        $disk = config('filesystems.media_disk');
-        $column = $config['column'];
-        $oldPath = $record->getRawOriginal($column);
-
-        if ($oldPath) {
-            Storage::disk($disk)->delete($oldPath);
+        $rules = $config['file_rules'];
+        if ($maxKb !== null) {
+            $rules[] = 'max:'.$maxKb;
         }
 
-        $path = $request->file('file')->store($config['dir'], $disk);
-        $record->update([$column => $path]);
+        if ($message = PhpUploadError::message($request->file('file'))) {
+            return $this->failure($message, 'VALIDATION_ERROR', ['file' => [$message]]);
+        }
 
-        return $this->success(['url' => Storage::disk($disk)->url($path)]);
+        $request->validate(['file' => $rules]);
+
+        $column = $config['column'];
+        $oldPath = $type === 'reel'
+            ? ($record instanceof Post ? $record->videoRaw($column) : null)
+            : $record->getRawOriginal($column);
+
+        if ($oldPath) {
+            MediaDisk::delete($oldPath);
+        }
+
+        $dir = $config['dir'];
+        if ($type === 'reel') {
+            $dir = $config['dir'].'/'.$record->id;
+        }
+
+        $path = MediaDisk::storeUploaded($request->file('file'), $dir);
+
+        if ($type === 'reel' && $record instanceof Post) {
+            $record->fillVideo([$column => $path]);
+            if ($field === 'thumbnail') {
+                $record->forceFill(['cover_path' => $path])->save();
+            }
+            if ($field === 'original') {
+                app(PostService::class)->markOriginalUploaded($record);
+            }
+            $record->refresh();
+        } else {
+            $record->update([$column => $path]);
+        }
+
+        // Permanent CDN URL via MediaCdn / MediaDisk (no signed playback URLs).
+        return $this->success([
+            'url' => MediaDisk::url($path),
+            'status' => $type === 'reel' && $record instanceof Post
+                ? $record->status?->value
+                : null,
+        ]);
     }
 
     /**
@@ -118,12 +176,11 @@ class UserMediaController extends Controller
 
         [$record, $config] = $resolved;
 
-        $disk = config('filesystems.media_disk');
         $column = $config['column'];
         $oldPath = $record->getRawOriginal($column);
 
         if ($oldPath) {
-            Storage::disk($disk)->delete($oldPath);
+            MediaDisk::delete($oldPath);
         }
 
         $record->update([$column => null]);
@@ -166,6 +223,13 @@ class UserMediaController extends Controller
 
             if (! TournamentInterestFormFieldEnum::isFileField($field) || $campaign === null || ! $campaign->formFieldEnabled($field)) {
                 return $this->failure('This upload field is not enabled for this interest form.', 'VALIDATION_ERROR');
+            }
+        }
+
+        if ($type === 'reel') {
+            /** @var Post $record */
+            if ($record->user_id !== $request->user()?->id) {
+                return $this->forbidden('You cannot modify this reel.');
             }
         }
 

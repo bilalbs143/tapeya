@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources\User;
 
+use App\Support\Media\MediaDisk;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 class UserResource extends JsonResource
 {
@@ -15,9 +15,7 @@ class UserResource extends JsonResource
     {
         $user = $this->resource;
         $appRoles = $user->getAppRoles();
-        $avatarUrl = $this->avatar
-            ? Storage::disk(config('filesystems.media_disk'))->url($this->avatar)
-            : null;
+        $avatarUrl = MediaDisk::url($this->avatar);
 
         return [
             'id' => $this->id,
@@ -40,7 +38,11 @@ class UserResource extends JsonResource
             'country' => $this->country,
             'city' => $this->city,
             'followers_count' => (int) ($this->followers_count ?? 0),
+            'following_count' => (int) ($this->following_count ?? 0),
+            'reels_count' => (int) ($this->reels_count ?? 0),
+            'posts_count' => (int) ($this->posts_count ?? 0),
             'can_broadcast' => (bool) $this->can_broadcast,
+            'is_official' => (bool) $this->is_official,
             'broadcast_terms_accepted_at' => $this->broadcast_terms_accepted_at?->toIso8601String(),
             'roles' => $appRoles->map(fn ($r) => [
                 'id' => $r->id,

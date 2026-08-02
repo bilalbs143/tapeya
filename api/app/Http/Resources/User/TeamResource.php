@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources\User;
 
+use App\Support\Media\MediaDisk;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 class TeamResource extends JsonResource
 {
@@ -14,12 +14,11 @@ class TeamResource extends JsonResource
     public function toArray(Request $request): array
     {
         $team = $this->resource;
-        $disk = Storage::disk(config('filesystems.media_disk'));
 
         return [
             'id' => $team->id,
             'name' => $team->name,
-            'logo' => $team->logo ? $disk->url($team->logo) : null,
+            'logo' => MediaDisk::url($team->logo),
             'code' => $team->code,
             'country' => $team->country,
             'city' => $team->city,

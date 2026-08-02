@@ -8,6 +8,7 @@ use App\Events\Broadcast\Admin\UserRegisteredBroadcast;
 use App\Events\Broadcast\Admin\YouTubeQuotaAlertBroadcast;
 use App\Events\Broadcast\User\OrderPlacedBroadcast;
 use App\Events\Broadcast\User\OrderStatusUpdatedBroadcast;
+use App\Events\Broadcast\User\PostEngagementBroadcast;
 
 /**
  * Laravel `broadcastAs()` names. Echo listens with a leading dot (e.g. `.user.order.placed`).
@@ -16,6 +17,7 @@ use App\Events\Broadcast\User\OrderStatusUpdatedBroadcast;
  *
  * @see OrderPlacedBroadcast
  * @see OrderStatusUpdatedBroadcast
+ * @see PostEngagementBroadcast
  * @see \App\Events\Broadcast\Admin\OrderPlacedBroadcast
  * @see TournamentRequestSubmittedBroadcast
  * @see UserRegisteredBroadcast
@@ -27,6 +29,8 @@ final class BroadcastEventNames
     public const USER_ORDER_PLACED = 'user.order.placed';
 
     public const USER_ORDER_STATUS_UPDATED = 'user.order.status_updated';
+
+    public const USER_POST_ENGAGEMENT = 'user.post.engagement';
 
     public const ADMIN_ORDER_PLACED = 'admin.order.placed';
 

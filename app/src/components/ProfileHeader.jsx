@@ -1,3 +1,4 @@
+import { OfficialBadge } from '@/components/OfficialBadge';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { calculateProfileStrength } from '@/lib/utils/playerUtils';
@@ -31,6 +32,7 @@ export function ProfileHeader({
   const avatarSrc = avatarSrcProp ?? userProp?.avatar_url ?? defaultAvatar;
   const strength = strengthProp ?? (userProp ? calculateProfileStrength(userProp) : 0);
   const showStrengthBar = strength < 100;
+  const isOfficial = Boolean(userProp?.is_official);
 
   return (
     <header className="relative isolate mb-6 overflow-visible" style={{ height: BANNER_HEIGHT }}>
@@ -69,7 +71,10 @@ export function ProfileHeader({
             </div>
             <div className={showStrengthBar ? 'relative min-w-0 flex-1 pb-10' : 'min-w-0 flex-1'}>
               <div className={`flex flex-col items-start gap-1.5 ${showStrengthBar ? '' : 'translate-y-[25%]'}`}>
-                <h1 className="max-w-full truncate text-base font-semibold tracking-tight text-white">{name}</h1>
+                <h1 className="inline-flex max-w-full items-center gap-1.5 text-base font-semibold tracking-tight text-white">
+                  <span className="truncate">{name}</span>
+                  <OfficialBadge isOfficial={isOfficial} size="md" />
+                </h1>
                 <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold tracking-wide text-black">
                   {role}
                 </span>
