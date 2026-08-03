@@ -7,6 +7,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { CLOUDFRONT_APP_BASE, FIXTURE_BG_IMAGE } from '@/lib/constants/assets';
 import { LG_MEDIA_QUERY, NAVBAR_HERO_CONTROL_OFFSET } from '@/lib/constants/layout';
 import { formatCount } from '@/lib/format';
+import { buildHighlightShareUrl, shareLink } from '@/lib/share';
 import { ThumbsUpIcon } from '@/pages/feed/PostCard';
 import {
   useDislikeHighlightMutation,
@@ -158,19 +159,18 @@ export default function HighlightDetails() {
   const handleShare = async () => {
     if (!highlight) return;
 
+    const channel = await shareLink({
+      title: getHighlightTitle(highlight),
+      text: highlight.description || getHighlightTitle(highlight),
+      url: buildHighlightShareUrl(highlight.id),
+    });
+    if (!channel) return;
+
     try {
-      if (typeof navigator !== 'undefined' && navigator.share) {
-        await navigator.share({
-          title: getHighlightTitle(highlight),
-          text: highlight.description || getHighlightTitle(highlight),
-          url: window.location.href,
-        });
-      }
-      // Call API regardless of whether Web Share succeeded
       const result = await shareHighlight(highlight.id).unwrap();
       setCounts((prev) => ({ ...prev, shares_count: result.shares_count ?? prev.shares_count + 1 }));
     } catch {
-      // User cancelled share or API failed — no-op
+      // Share sheet succeeded; ignore analytics failure.
     }
   };
 

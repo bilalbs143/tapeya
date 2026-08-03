@@ -148,12 +148,12 @@ class PostApiTest extends TestCase
             'published_at' => now(),
         ]);
 
-        $this->getJson('/api/v1/reels/'.$reel->id.'/comments')
+        $this->getJson('/api/v1/posts/'.$reel->id.'/comments')
             ->assertOk()
             ->assertJsonPath('data.items', []);
 
         $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/reels/'.$reel->id.'/comments', ['body' => 'Looks good'])
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments', ['body' => 'Looks good'])
             ->assertCreated()
             ->assertJsonPath('data.body', 'Looks good');
     }

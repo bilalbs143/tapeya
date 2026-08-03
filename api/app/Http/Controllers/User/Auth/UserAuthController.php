@@ -6,6 +6,7 @@ use App\Enums\User\AppRoleEnum;
 use App\Enums\User\RoleGuardEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
+use App\Events\UserReferred;
 use App\Events\UserRegistered;
 use App\Exceptions\OtpSmsDeliveryException;
 use App\Http\Controllers\Controller;
@@ -16,6 +17,7 @@ use App\Http\Resources\User\UserResource;
 use App\Models\Role;
 use App\Models\User;
 use App\Utils\Services\OtpService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -38,37 +40,47 @@ class UserAuthController extends Controller
     /**
      * Register: name, phone (with country code), optional email. Creates user (VERIFICATION_PENDING), sends OTP.
      * User must then call verify-otp with the code to activate and get token.
+     *
+     * Optional referral_nickname stores referred_by immediately; UserReferred (push + DB notify)
+     * fires only after OTP verification activates the account.
      */
     public function register(RegisterRequest $request)
     {
         $data = $request->validated();
 
-        $user = User::create([
-            'name' => $data['name'],
-            'nickname' => $data['nickname'],
-            'phone' => $data['phone'],
-            'email' => $data['email'] ?? null,
-            'password' => null,
-            'type' => UserTypeEnum::USER,
-            'status' => UserStatusEnum::VERIFICATION_PENDING,
-        ]);
+        $referrer = $this->resolveReferrer($data['referral_nickname'] ?? null);
 
-        $playerRole = Role::findBySlug(AppRoleEnum::PLAYER->value, RoleGuardEnum::APP->value);
-        if ($playerRole) {
-            $user->roles()->attach($playerRole->id);
-        }
+        $user = DB::transaction(function () use ($data, $referrer) {
+            $user = User::create([
+                'name' => $data['name'],
+                'nickname' => $data['nickname'],
+                'phone' => $data['phone'],
+                'email' => $data['email'] ?? null,
+                'password' => null,
+                'type' => UserTypeEnum::USER,
+                'status' => UserStatusEnum::VERIFICATION_PENDING,
+                'referred_by' => $referrer?->id,
+            ]);
+
+            $playerRole = Role::findBySlug(AppRoleEnum::PLAYER->value, RoleGuardEnum::APP->value);
+            if ($playerRole) {
+                $user->roles()->attach($playerRole->id);
+            }
+
+            return $user;
+        });
 
         event(new UserRegistered($user));
 
         $this->sendOtpHandlingTestPhoneSmsFailure($user);
 
-        $data = ['user' => new UserResource($user)];
+        $payload = ['user' => new UserResource($user)];
         $otp = $this->otpService->getCurrentOtp($user->phone);
         if ($otp !== null) {
-            $data['otp'] = $otp;
+            $payload['otp'] = $otp;
         }
 
-        return response()->success($data, 'auth.otp_sent', 'SUCCESS');
+        return response()->success($payload, 'auth.otp_sent', 'SUCCESS');
     }
 
     /**
@@ -121,8 +133,14 @@ class UserAuthController extends Controller
             return response()->failure('Account is blocked.', 'FORBIDDEN');
         }
 
+        $wasPending = $user->isVerificationPending();
+
         $user->update(['status' => UserStatusEnum::ACTIVE]);
         $user = $user->fresh();
+
+        if ($wasPending) {
+            $this->dispatchReferralIfNeeded($user);
+        }
 
         $token = $user->createToken('app')->plainTextToken;
 
@@ -155,6 +173,49 @@ class UserAuthController extends Controller
         request()->user()->currentAccessToken()?->delete();
 
         return response()->success(message: 'auth.logged_out');
+    }
+
+    /**
+     * Notify the referrer once, when a referred account first becomes ACTIVE.
+     */
+    private function dispatchReferralIfNeeded(User $user): void
+    {
+        if ($user->referred_by === null) {
+            return;
+        }
+
+        $referrer = User::query()->find($user->referred_by);
+        if ($referrer === null || (int) $referrer->id === (int) $user->id) {
+            return;
+        }
+
+        event(new UserReferred($referrer, $user));
+    }
+
+    /**
+     * Resolve an active app user by nickname for referral assignment.
+     * Prefers an exact nickname match, then the earliest case-insensitive match.
+     * Unknown or inactive nicknames are ignored so registration is not blocked.
+     */
+    private function resolveReferrer(?string $referralNickname): ?User
+    {
+        if ($referralNickname === null || $referralNickname === '') {
+            return null;
+        }
+
+        $base = User::query()
+            ->active()
+            ->where('type', UserTypeEnum::USER);
+
+        $exact = (clone $base)->where('nickname', $referralNickname)->first();
+        if ($exact !== null) {
+            return $exact;
+        }
+
+        return $base
+            ->whereRaw('LOWER(nickname) = ?', [strtolower($referralNickname)])
+            ->orderBy('id')
+            ->first();
     }
 
     /**

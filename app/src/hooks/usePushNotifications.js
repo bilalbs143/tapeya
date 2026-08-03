@@ -112,12 +112,14 @@ function routeFromPushData(navigate, data) {
     case 'post_liked':
     case 'post_commented':
     case 'post_comment_reply':
+    case 'post_comment_liked':
     case 'post_mentioned':
     case 'post_reposted':
     case 'post_published':
       navigate('/notification-center');
       break;
     case 'user_followed':
+    case 'user_referred':
       navigate('/notification-center');
       break;
     case 'manual_broadcast':

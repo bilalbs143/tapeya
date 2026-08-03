@@ -26,7 +26,7 @@ class ExtractPostPosterJobTest extends TestCase
         $this->assertSame(42, $job->postId);
     }
 
-    public function test_skips_when_thumbnail_already_set(): void
+    public function test_skips_when_thumbnail_already_set_without_force(): void
     {
         $user = User::factory()->create();
         $post = $this->makeVideoPost($user, [
@@ -57,9 +57,29 @@ class ExtractPostPosterJobTest extends TestCase
         $posters = Mockery::mock(PostPosterService::class);
         $posters->shouldReceive('extractAndStore')
             ->once()
-            ->with(Mockery::on(fn (Post $r) => $r->id === $post->id))
+            ->with(Mockery::on(fn (Post $r) => $r->id === $post->id), false)
             ->andReturn($post);
 
         (new ExtractPostPosterJob($post->id))->handle($posters);
+    }
+
+    public function test_force_refine_calls_poster_service_when_thumbnail_exists(): void
+    {
+        $user = User::factory()->create();
+        $post = $this->makeVideoPost($user, [
+            'body' => 'Provisional poster',
+            'status' => PostStatusEnum::Processing,
+            'visibility' => PostVisibilityEnum::Public,
+            'original_path' => 'posts/videos/original/1/a.mp4',
+            'thumbnail_path' => 'posts/videos/thumbs/1/client.jpg',
+        ]);
+
+        $posters = Mockery::mock(PostPosterService::class);
+        $posters->shouldReceive('extractAndStore')
+            ->once()
+            ->with(Mockery::on(fn (Post $r) => $r->id === $post->id), true)
+            ->andReturn($post);
+
+        (new ExtractPostPosterJob($post->id, true))->handle($posters);
     }
 }

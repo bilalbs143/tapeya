@@ -338,7 +338,7 @@ class PostService
                 $this->bumpVideoPostCount((int) $post->user_id, 1);
             }
 
-            ExtractPostPosterJob::dispatch($post->id);
+            ExtractPostPosterJob::dispatch($post->id, true);
             ProcessPostVideoJob::dispatch($post->id);
             event(new PostProcessingUpdated($post->fresh(['video']) ?? $post));
 
@@ -416,7 +416,7 @@ class PostService
             $this->bumpVideoPostCount((int) $post->user_id, 1);
         }
 
-        ExtractPostPosterJob::dispatch($post->id);
+        ExtractPostPosterJob::dispatch($post->id, true);
         ProcessPostVideoJob::dispatch($post->id);
         event(new PostProcessingUpdated($post->load('video')));
 

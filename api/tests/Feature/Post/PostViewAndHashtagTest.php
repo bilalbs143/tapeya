@@ -46,7 +46,7 @@ class PostViewAndHashtagTest extends TestCase
         $reel = $this->readyReel($owner);
 
         $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/reels/'.$reel->id.'/views', [
+            ->postJson('/api/v1/posts/'.$reel->id.'/views', [
                 'watched_ms' => 1000,
                 'completion_rate' => 0.05,
             ])
@@ -55,7 +55,7 @@ class PostViewAndHashtagTest extends TestCase
             ->assertJsonPath('data.views_count', 0);
 
         $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/reels/'.$reel->id.'/views', [
+            ->postJson('/api/v1/posts/'.$reel->id.'/views', [
                 'watched_ms' => 3500,
                 'completion_rate' => 0.2,
             ])
@@ -64,7 +64,7 @@ class PostViewAndHashtagTest extends TestCase
             ->assertJsonPath('data.views_count', 1);
 
         $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/reels/'.$reel->id.'/views', [
+            ->postJson('/api/v1/posts/'.$reel->id.'/views', [
                 'watched_ms' => 8000,
                 'completion_rate' => 0.5,
             ])
@@ -83,7 +83,7 @@ class PostViewAndHashtagTest extends TestCase
         ]);
 
         $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/reels/'.$reel->id.'/views', [
+            ->postJson('/api/v1/posts/'.$reel->id.'/views', [
                 'watched_ms' => 3500,
                 'completion_rate' => 0.3,
             ])

@@ -19,6 +19,7 @@ class PostCommentResource extends JsonResource
             'parent_id' => $this->parent_id,
             'body' => $this->body,
             'likes_count' => (int) $this->likes_count,
+            'liked' => (bool) ($this->viewer_liked ?? false),
             'is_pinned' => (bool) $this->is_pinned,
             'replies_count' => (int) ($this->replies_count ?? 0),
             'user' => $this->whenLoaded('user', function () {

@@ -1,6 +1,6 @@
 /**
  * Full-screen portrait preview before adding reel details.
- * Uses MainLayout chrome (navbar + bottom nav); fills remaining viewport height.
+ * iOS WKWebView: wait for a decoded frame, then play — early play() paints blank.
  */
 
 import { useEffect, useRef } from 'react';
@@ -8,16 +8,38 @@ import { useEffect, useRef } from 'react';
 import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
 import { Button } from '@/ui/Button';
 
-export function UploadPreviewStep({ previewUrl, onBack, onNext, onChangeVideo, error = null, isBusy = false }) {
+export function UploadPreviewStep({
+  previewUrl,
+  onBack,
+  onNext,
+  onChangeVideo,
+  onPreviewReady = null,
+  error = null,
+  isBusy = false,
+}) {
   const videoRef = useRef(null);
+  const onReadyRef = useRef(onPreviewReady);
+  onReadyRef.current = onPreviewReady;
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !previewUrl) return undefined;
-    video.play().catch(() => {
-      // Autoplay may be blocked; user can tap Next regardless.
-    });
+
+    let done = false;
+    const start = () => {
+      if (done) return;
+      done = true;
+      onReadyRef.current?.();
+      video.play().catch(() => {});
+    };
+
+    video.load();
+    video.addEventListener('loadeddata', start);
+    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) start();
+
     return () => {
+      done = true;
+      video.removeEventListener('loadeddata', start);
       video.pause();
     };
   }, [previewUrl]);
@@ -25,12 +47,13 @@ export function UploadPreviewStep({ previewUrl, onBack, onNext, onChangeVideo, e
   return (
     <div className="relative flex min-h-[calc(100dvh-56px-70px-env(safe-area-inset-top)-env(safe-area-inset-bottom))] flex-col overflow-hidden bg-black lg:min-h-[calc(100dvh-56px-env(safe-area-inset-top))]">
       <video
+        key={previewUrl}
         ref={videoRef}
         src={previewUrl}
         playsInline
         muted
         loop
-        preload="metadata"
+        preload="auto"
         className="absolute inset-0 h-full w-full object-contain"
       >
         <track kind="captions" />

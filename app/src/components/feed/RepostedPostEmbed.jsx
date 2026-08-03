@@ -6,8 +6,8 @@ import TextPostBackground from '@/components/feed/TextPostBackground';
 import { OfficialBadge } from '@/components/OfficialBadge';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { getFeedTextBackground } from '@/lib/constants/composeBackgrounds';
+import { buildPostDetailPath } from '@/lib/share';
 import { formatPostTimestamp } from '@/lib/utils/feedUtils';
-import { buildPostDetailPath } from '@/lib/utils/postShareUtils';
 
 const AVATAR_PLACEHOLDER = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 const IMAGE_PLACEHOLDER =
@@ -50,8 +50,6 @@ export default function RepostedPostEmbed({ post, className = '' }) {
   const mediaUrl = post.imageUrl || post.media?.[0]?.url || null;
   const mediaWidth = post.media?.[0]?.width || null;
   const mediaHeight = post.media?.[0]?.height || null;
-  const imageAspectStyle =
-    type === 'image' && mediaWidth && mediaHeight ? { aspectRatio: `${mediaWidth} / ${mediaHeight}` } : undefined;
   const detailTo = buildPostDetailPath(post);
 
   return (
@@ -96,13 +94,13 @@ export default function RepostedPostEmbed({ post, className = '' }) {
       ) : null}
 
       {type === 'image' && mediaUrl ? (
-        <div className="overflow-hidden bg-black" style={imageAspectStyle}>
+        <div className="w-full bg-black">
           <img
             src={imageError ? IMAGE_PLACEHOLDER : mediaUrl}
             alt=""
             width={mediaWidth || undefined}
             height={mediaHeight || undefined}
-            className="max-h-[360px] w-full object-cover"
+            className="block h-auto w-full"
             loading="lazy"
             decoding="async"
             onError={() => setImageError(true)}

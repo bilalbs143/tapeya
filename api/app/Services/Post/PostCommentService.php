@@ -3,8 +3,10 @@
 namespace App\Services\Post;
 
 use App\Events\PostCommented;
+use App\Events\PostCommentLiked;
 use App\Models\Post;
 use App\Models\PostComment;
+use App\Models\PostCommentLike;
 use App\Models\PostCommentMention;
 use App\Models\User;
 use App\Support\Post\PostMentionParser;
@@ -132,5 +134,90 @@ class PostCommentService
                 ])->save();
             }
         });
+    }
+
+    /**
+     * @return array{liked: bool, likes_count: int}
+     */
+    public function like(Post $post, PostComment $comment, User $user): array
+    {
+        $wasCreated = false;
+
+        DB::transaction(function () use ($comment, $user, &$wasCreated) {
+            $like = PostCommentLike::query()->firstOrCreate([
+                'comment_id' => $comment->id,
+                'user_id' => $user->id,
+            ]);
+
+            $wasCreated = $like->wasRecentlyCreated;
+            if ($wasCreated) {
+                $comment->increment('likes_count');
+            }
+        });
+
+        $comment->refresh();
+
+        if ($wasCreated) {
+            event(new PostCommentLiked($post, $comment, $user));
+        }
+
+        return [
+            'liked' => true,
+            'likes_count' => (int) $comment->likes_count,
+        ];
+    }
+
+    /**
+     * @return array{liked: bool, likes_count: int}
+     */
+    public function unlike(PostComment $comment, User $user): array
+    {
+        DB::transaction(function () use ($comment, $user) {
+            $deleted = PostCommentLike::query()
+                ->where('comment_id', $comment->id)
+                ->where('user_id', $user->id)
+                ->delete();
+
+            if ($deleted > 0 && $comment->likes_count > 0) {
+                $comment->decrement('likes_count');
+            }
+        });
+
+        $comment->refresh();
+
+        return [
+            'liked' => false,
+            'likes_count' => (int) $comment->likes_count,
+        ];
+    }
+
+    /**
+     * @param  iterable<int, PostComment>  $comments
+     */
+    public function attachViewerLiked(iterable $comments, ?User $viewer): void
+    {
+        $list = collect($comments);
+        if ($list->isEmpty()) {
+            return;
+        }
+
+        if (! $viewer) {
+            foreach ($list as $comment) {
+                $comment->setAttribute('viewer_liked', false);
+            }
+
+            return;
+        }
+
+        $likedIds = PostCommentLike::query()
+            ->where('user_id', $viewer->id)
+            ->whereIn('comment_id', $list->pluck('id')->all())
+            ->pluck('comment_id')
+            ->all();
+        $likedSet = array_flip($likedIds);
+
+        foreach ($list as $comment) {
+            $comment->setAttribute('viewer_liked', isset($likedSet[$comment->id]));
+        }
     }
 }

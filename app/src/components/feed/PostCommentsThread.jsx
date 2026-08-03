@@ -5,6 +5,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { useLocation, useNavigate } from 'react-router-dom';
+
 import { OfficialBadge } from '@/components/OfficialBadge';
 import { useDebounce } from '@/hooks/useDebounce';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
@@ -12,6 +14,7 @@ import { DEBOUNCE_MS } from '@/lib/constants/search';
 import { formatCount } from '@/lib/format';
 import { formatRelativeDate } from '@/lib/utils/dateUtils';
 import { detectMentionTrigger, splitMentionSegments } from '@/lib/utils/displayUtils';
+import { HeartIcon } from '@/pages/feed/PostCard';
 import {
   useAddReelCommentMutation,
   useDeleteReelCommentMutation,
@@ -19,10 +22,12 @@ import {
   useGetReelCommentsQuery,
   useLazyGetReelCommentRepliesQuery,
   useLazyGetReelCommentsQuery,
+  useLikeReelCommentMutation,
+  useUnlikeReelCommentMutation,
 } from '@/store/api/reelsApi';
 import { useSearchUsersQuery } from '@/store/api/userApi';
 import { useAppSelector } from '@/store/hooks';
-import { selectUser } from '@/store/selectors';
+import { selectIsAuthenticated, selectUser } from '@/store/selectors';
 import { Avatar, AvatarImage } from '@/ui/Avatar';
 import { Textarea } from '@/ui/Textarea';
 
@@ -172,8 +177,36 @@ function MentionDropdown({ query, onSelect, onClose }) {
   );
 }
 
-function CommentRow({ comment, isReply = false, currentUserId, deleting, onReply, onDelete }) {
+function CommentRow({ comment, isReply = false, currentUserId, deleting, liking, onReply, onDelete, onToggleLike }) {
   const isOwn = currentUserId != null && comment.user?.id === currentUserId;
+  const [liked, setLiked] = useState(Boolean(comment.liked));
+  const [likesCount, setLikesCount] = useState(Number(comment.likesCount ?? 0));
+  const likeInFlightRef = useRef(false);
+
+  useEffect(() => {
+    setLiked(Boolean(comment.liked));
+    setLikesCount(Number(comment.likesCount ?? 0));
+  }, [comment.id, comment.liked, comment.likesCount]);
+
+  const handleLike = async () => {
+    if (liking || likeInFlightRef.current) return;
+    likeInFlightRef.current = true;
+    const nextLiked = !liked;
+    const prevLiked = liked;
+    const prevCount = likesCount;
+    setLiked(nextLiked);
+    setLikesCount((count) => Math.max(0, count + (nextLiked ? 1 : -1)));
+    try {
+      const result = await onToggleLike(comment, nextLiked);
+      if (result?.liked != null) setLiked(Boolean(result.liked));
+      if (result?.likes_count != null) setLikesCount(Number(result.likes_count));
+    } catch {
+      setLiked(prevLiked);
+      setLikesCount(prevCount);
+    } finally {
+      likeInFlightRef.current = false;
+    }
+  };
 
   return (
     <div className="flex gap-2.5">
@@ -181,25 +214,12 @@ function CommentRow({ comment, isReply = false, currentUserId, deleting, onReply
         <AvatarImage src={userAvatarUrl(comment.user)} alt="" />
       </Avatar>
       <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
-            <span className="inline-flex min-w-0 items-center gap-1 text-[13px] font-semibold text-white">
-              <span className="truncate">{comment.user?.name || 'User'}</span>
-              <OfficialBadge isOfficial={comment.user?.isOfficial} />
-            </span>
-            <span className="text-muted text-[11px]">{formatRelativeDate(comment.createdAt, { compact: true })}</span>
-          </div>
-          {isOwn ? (
-            <button
-              type="button"
-              onClick={() => onDelete(comment)}
-              disabled={deleting}
-              className="text-muted inline-flex size-6 shrink-0 items-center justify-center rounded-md transition-colors hover:text-red-400 disabled:opacity-40"
-              aria-label="Delete Comment"
-            >
-              <TrashIcon />
-            </button>
-          ) : null}
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
+          <span className="inline-flex min-w-0 items-center gap-1 text-[13px] font-semibold text-white">
+            <span className="truncate">{comment.user?.name || 'User'}</span>
+            <OfficialBadge isOfficial={comment.user?.isOfficial} />
+          </span>
+          <span className="text-muted text-[11px]">{formatRelativeDate(comment.createdAt, { compact: true })}</span>
         </div>
 
         <p className="mt-0.5 text-[13px] leading-relaxed whitespace-pre-wrap text-white/85">
@@ -214,21 +234,46 @@ function CommentRow({ comment, isReply = false, currentUserId, deleting, onReply
           )}
         </p>
 
-        <div className="text-muted mt-1.5 flex items-center gap-4">
+        <button
+          type="button"
+          onClick={() => onReply(comment)}
+          className="text-brand hover:text-brand-hover mt-1.5 text-[12px] font-medium transition-colors"
+        >
+          Reply
+        </button>
+      </div>
+
+      <div className="flex min-w-6 shrink-0 flex-col items-center gap-1 self-start">
+        {isOwn ? (
           <button
             type="button"
-            onClick={() => onReply(comment)}
-            className="text-brand hover:text-brand-hover text-[12px] font-medium transition-colors"
+            onClick={() => onDelete(comment)}
+            disabled={deleting}
+            className="text-muted inline-flex size-6 items-center justify-center rounded-md transition-colors hover:text-red-400 disabled:opacity-40"
+            aria-label="Delete Comment"
           >
-            Reply
+            <TrashIcon />
           </button>
-        </div>
+        ) : null}
+        <button
+          type="button"
+          onClick={handleLike}
+          disabled={liking}
+          className={`inline-flex min-h-6 min-w-6 flex-col items-center justify-center gap-0.5 rounded-md text-[10px] font-medium transition-colors disabled:opacity-40 ${
+            liked ? 'text-brand' : 'text-muted hover:text-white'
+          }`}
+          aria-label={liked ? 'Unlike comment' : 'Like comment'}
+          aria-pressed={liked}
+        >
+          <HeartIcon filled={liked} className="h-3.5 w-3.5 shrink-0" />
+          {likesCount > 0 ? <span className="leading-none">{formatCount(likesCount)}</span> : null}
+        </button>
       </div>
     </div>
   );
 }
 
-function RepliesSection({ postId, comment, currentUserId, deletingId, onReply, onDelete }) {
+function RepliesSection({ postId, comment, currentUserId, deletingId, likingId, onReply, onDelete, onToggleLike }) {
   const [expanded, setExpanded] = useState(false);
   const [extraItems, setExtraItems] = useState([]);
   const [loadedPage, setLoadedPage] = useState(1);
@@ -330,8 +375,10 @@ function RepliesSection({ postId, comment, currentUserId, deletingId, onReply, o
                     isReply
                     currentUserId={currentUserId}
                     deleting={deletingId === reply.id}
+                    liking={likingId === reply.id}
                     onReply={onReply}
                     onDelete={onDelete}
+                    onToggleLike={onToggleLike}
                   />
                 ))}
                 {hasMore ? (
@@ -377,7 +424,10 @@ export default function PostCommentsThread({
   stickyComposer = false,
   render,
 }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const currentUser = useAppSelector(selectUser);
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const textareaRef = useRef(null);
   const activePostIdRef = useRef(postId);
   const [body, setBody] = useState('');
@@ -387,6 +437,7 @@ export default function PostCommentsThread({
   const [loadedPage, setLoadedPage] = useState(1);
   const [actionError, setActionError] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [likingId, setLikingId] = useState(null);
 
   const {
     data,
@@ -397,6 +448,8 @@ export default function PostCommentsThread({
   const [fetchCommentsPage, { isFetching: isLoadingMore }] = useLazyGetReelCommentsQuery();
   const [addComment, { isLoading: isPosting }] = useAddReelCommentMutation();
   const [deleteComment] = useDeleteReelCommentMutation();
+  const [likeComment] = useLikeReelCommentMutation();
+  const [unlikeComment] = useUnlikeReelCommentMutation();
 
   useEffect(() => {
     activePostIdRef.current = postId;
@@ -409,6 +462,7 @@ export default function PostCommentsThread({
     setLoadedPage(1);
     setActionError(null);
     setDeletingId(null);
+    setLikingId(null);
     setReplyTo(null);
     setBody('');
     setMentionState(null);
@@ -473,6 +527,7 @@ export default function PostCommentsThread({
     setLoadedPage(1);
     setActionError(null);
     setDeletingId(null);
+    setLikingId(null);
   }, []);
 
   const handleReply = (comment, threadId) => {
@@ -480,6 +535,32 @@ export default function PostCommentsThread({
     setActionError(null);
     requestAnimationFrame(() => textareaRef.current?.focus());
   };
+
+  const handleToggleLike = useCallback(
+    async (comment, nextLiked) => {
+      if (!postId || !comment?.id) {
+        throw new Error('Missing comment');
+      }
+      if (!isAuthenticated) {
+        navigate('/login', { state: { from: location } });
+        throw new Error('Auth required');
+      }
+
+      setLikingId(comment.id);
+      setActionError(null);
+      try {
+        const mutation = nextLiked ? likeComment : unlikeComment;
+        const response = await mutation({ reelId: postId, commentId: comment.id }).unwrap();
+        return response?.data ?? response;
+      } catch (error) {
+        setActionError('Could not update like. Try again.');
+        throw error;
+      } finally {
+        setLikingId(null);
+      }
+    },
+    [isAuthenticated, likeComment, location, navigate, postId, unlikeComment],
+  );
 
   const handleBodyChange = (e) => {
     const { value, selectionStart } = e.target;
@@ -577,16 +658,20 @@ export default function PostCommentsThread({
                   comment={comment}
                   currentUserId={currentUser?.id}
                   deleting={deletingId === comment.id}
+                  liking={likingId === comment.id}
                   onReply={(c) => handleReply(c, c.id)}
                   onDelete={handleDelete}
+                  onToggleLike={handleToggleLike}
                 />
                 <RepliesSection
                   postId={postId}
                   comment={comment}
                   currentUserId={currentUser?.id}
                   deletingId={deletingId}
+                  likingId={likingId}
                   onReply={(c) => handleReply(c, comment.id)}
                   onDelete={handleDelete}
+                  onToggleLike={handleToggleLike}
                 />
               </li>
             ))}
@@ -667,7 +752,7 @@ export default function PostCommentsThread({
   }
 
   return (
-    <section id="comments" className={`scroll-mt-24 ${stickyComposer ? 'pb-20' : ''} ${className}`}>
+    <section id="comments" className={`scroll-mt-24 ${stickyComposer ? 'pb-16' : ''} ${className}`}>
       {showHeader ? (
         <div className="mb-4 flex items-center justify-between gap-2">
           <h2 className="text-[15px] font-bold text-white">

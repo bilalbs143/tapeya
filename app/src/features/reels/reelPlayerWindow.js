@@ -1,7 +1,20 @@
 /**
- * Shared reel player window rule — mount prev/current/next only.
- * Import this in Reels.jsx and tests so the predicate cannot drift.
+ * Shared reel player window — mount nearby slides only.
+ * Native iOS uses a wider warm window so the next clip can decode before snap.
  */
-export function isInPlayerWindow(index, activeIndex) {
-  return Math.abs(index - activeIndex) <= 1;
+
+import { isIOS } from '@/platform/platform';
+
+/** @returns {number} */
+export function getReelPlayerWindowRadius() {
+  return isIOS() ? 2 : 1;
+}
+
+/**
+ * @param {number} index
+ * @param {number} activeIndex
+ * @param {number} [radius]
+ */
+export function isInPlayerWindow(index, activeIndex, radius = getReelPlayerWindowRadius()) {
+  return Math.abs(index - activeIndex) <= radius;
 }

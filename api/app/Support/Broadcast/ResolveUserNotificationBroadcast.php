@@ -9,12 +9,14 @@ use App\Models\User;
 use App\Notifications\OrderPlacedUserNotification;
 use App\Notifications\OrderStatusUpdatedUserNotification;
 use App\Notifications\PostCommentedUserNotification;
+use App\Notifications\PostCommentLikedUserNotification;
 use App\Notifications\PostCommentReplyUserNotification;
 use App\Notifications\PostLikedUserNotification;
 use App\Notifications\PostMentionedUserNotification;
 use App\Notifications\PostPublishedFollowerNotification;
 use App\Notifications\PostRepostedUserNotification;
 use App\Notifications\UserFollowedUserNotification;
+use App\Notifications\UserReferredUserNotification;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Notifications\DatabaseNotification;
 
@@ -45,10 +47,12 @@ final class ResolveUserNotificationBroadcast
             PostLikedUserNotification::class,
             PostCommentedUserNotification::class,
             PostCommentReplyUserNotification::class,
+            PostCommentLikedUserNotification::class,
             PostMentionedUserNotification::class,
             PostRepostedUserNotification::class,
             PostPublishedFollowerNotification::class,
-            UserFollowedUserNotification::class => new PostEngagementBroadcast(
+            UserFollowedUserNotification::class,
+            UserReferredUserNotification::class => new PostEngagementBroadcast(
                 $user->getKey(),
                 $notificationId,
                 $notificationType,

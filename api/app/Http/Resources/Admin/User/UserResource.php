@@ -68,6 +68,7 @@ class UserResource extends JsonResource
                 'name' => $this->creator->name,
                 'nickname' => $this->creator->nickname,
             ] : null),
+            'referral_nickname' => $this->whenLoaded('referrer', fn () => $this->referrer?->nickname),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

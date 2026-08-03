@@ -15,7 +15,7 @@ import { OfficialBadge } from '@/components/OfficialBadge';
 import { ReelPosterGrid } from '@/components/reels/ReelPosterGrid';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatCount } from '@/lib/format';
-import { buildCreatorProfileShareUrl } from '@/lib/utils/creatorProfileShareUtils';
+import { buildCreatorProfileShareUrl, shareLink } from '@/lib/share';
 import {
   useFollowReelCreatorMutation,
   useGetLikedReelsQuery,
@@ -244,22 +244,14 @@ export default function CreatorReelsProfile() {
 
   const handleShare = async () => {
     if (!profile?.id) return;
-    const url = buildCreatorProfileShareUrl(profile.id);
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: displayName,
-          text: handle ? `${displayName} (${handle}) on Tapeya` : `${displayName} on Tapeya`,
-          url,
-        });
-        setShareHint('');
-      } else if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(url);
-        setShareHint('Link copied');
-        window.setTimeout(() => setShareHint(''), 2000);
-      }
-    } catch {
-      // Share cancelled — ignore.
+    const channel = await shareLink({
+      url: buildCreatorProfileShareUrl(profile.id),
+      title: displayName,
+      text: handle ? `${displayName} (${handle}) on Tapeya` : `${displayName} on Tapeya`,
+    });
+    if (channel === 'copy_link') {
+      setShareHint('Link copied');
+      window.setTimeout(() => setShareHint(''), 2000);
     }
   };
 

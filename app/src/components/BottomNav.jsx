@@ -2,29 +2,54 @@ import { Link, useLocation } from 'react-router-dom';
 
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { BOTTOM_NAV_Z } from '@/lib/constants/layout';
+import { useGetMeQuery } from '@/store/api/authApi';
+import { useAppSelector } from '@/store/hooks';
+import { selectUser } from '@/store/selectors';
+import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 
 const homeIcon = `${CLOUDFRONT_APP_BASE}/images/icons/home-navigation.svg`;
-const profileIcon = `${CLOUDFRONT_APP_BASE}/images/icons/profile.svg`;
 const reelsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/reels-navigation-b.svg`;
 const shopIcon = `${CLOUDFRONT_APP_BASE}/images/icons/shop-navigation.svg`;
-const upcomingIcon = `${CLOUDFRONT_APP_BASE}/images/icons/upcoming-bottom.svg`;
+const liveIcon = `${CLOUDFRONT_APP_BASE}/images/icons/live-navigation.svg`;
+const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
 function isTabActive(pathname, tabPath) {
   return pathname === tabPath || pathname.startsWith(tabPath + '/');
 }
 
+function ProfileTabIcon({ avatarUrl, isActive }) {
+  return (
+    <Avatar
+      className={`h-[22px] w-[22px] ring-1 ring-white/25 transition-opacity duration-200 ${
+        isActive ? 'opacity-100' : 'opacity-70 group-active:opacity-100'
+      }`}
+    >
+      <AvatarImage src={avatarUrl || defaultAvatar} alt="" className="object-cover" />
+      <AvatarFallback className="bg-transparent p-0">
+        <img src={defaultAvatar} alt="" className="h-full w-full object-cover" />
+      </AvatarFallback>
+    </Avatar>
+  );
+}
+
 export function BottomNav() {
   const location = useLocation();
+  const user = useAppSelector(selectUser);
+  const { data: meResponse } = useGetMeQuery(undefined, {
+    skip: !user?.id,
+  });
+  const profileUser = meResponse?.data ?? user;
+  const avatarUrl = profileUser?.avatar_url || profileUser?.avatarUrl || null;
 
   const items = [
+    { path: '/home', label: 'Home', icon: homeIcon },
     { path: '/shop', label: 'Shop', icon: shopIcon },
     { path: '/reels', label: 'Reels', icon: reelsIcon },
-    { path: '/home', label: 'Home', icon: homeIcon },
-    { path: '/upcoming-tournaments', label: 'Upcoming', icon: upcomingIcon },
-    { path: '/profile', label: 'Profile', icon: profileIcon },
+    { path: '/live', label: 'Live', icon: liveIcon },
+    { path: '/profile', label: 'Profile', isProfile: true },
   ];
 
-  const renderTab = ({ path, label, icon }) => {
+  const renderTab = ({ path, label, icon, isProfile }) => {
     const isActive = isTabActive(location.pathname, path);
 
     return (
@@ -35,13 +60,17 @@ export function BottomNav() {
         aria-current={isActive ? 'page' : undefined}
       >
         <span className="grid h-6 w-8 place-items-center">
-          <img
-            src={icon}
-            alt=""
-            className={`h-[22px] w-[22px] shrink-0 object-contain transition-opacity duration-200 ${
-              isActive ? 'opacity-100' : 'opacity-70 group-active:opacity-100'
-            }`}
-          />
+          {isProfile ? (
+            <ProfileTabIcon avatarUrl={avatarUrl} isActive={isActive} />
+          ) : (
+            <img
+              src={icon}
+              alt=""
+              className={`h-[22px] w-[22px] shrink-0 object-contain transition-opacity duration-200 ${
+                isActive ? 'opacity-100' : 'opacity-70 group-active:opacity-100'
+              }`}
+            />
+          )}
         </span>
         <span
           className={`max-w-full truncate text-[11px] leading-none font-medium tracking-[0.01em] transition-colors duration-200 ${

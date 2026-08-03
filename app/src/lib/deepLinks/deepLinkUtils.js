@@ -5,10 +5,31 @@
 import { APP_URL_SCHEME, isAllowedDeepLinkPath, normalizeAppPath } from '@/lib/deepLinks/deepLinkRegistry';
 
 /**
+ * Public website origin for shareable HTTPS links.
+ * Prefer `VITE_APP_URL` — on Capacitor, `window.location.origin` is `capacitor://localhost`.
+ */
+export function getPublicAppOrigin() {
+  const fromEnv = import.meta.env.VITE_APP_URL?.replace(/\/$/, '');
+  if (fromEnv) {
+    return fromEnv;
+  }
+
+  if (typeof window !== 'undefined' && window.location?.origin && window.location.origin !== 'null') {
+    const { origin } = window.location;
+    if (!origin.startsWith('capacitor://')) {
+      return origin;
+    }
+  }
+
+  return '';
+}
+
+/**
  * HTTPS share / Universal Link for an in-app path.
  * @param {string} path e.g. `/reels/12`
+ * @param {string} [origin]
  */
-export function buildHttpsDeepLink(path, origin = typeof window !== 'undefined' ? window.location.origin : '') {
+export function buildHttpsDeepLink(path, origin = getPublicAppOrigin()) {
   const normalized = normalizeAppPath(path);
   return `${String(origin).replace(/\/$/, '')}${normalized}`;
 }

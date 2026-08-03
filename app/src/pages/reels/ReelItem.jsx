@@ -18,7 +18,7 @@ import { useViewTracker } from '@/features/reels/useViewTracker';
 import { StreamVideoRetry } from '@/features/stream/StreamVideoRetry';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatCount } from '@/lib/format';
-import { buildReelShareUrl } from '@/lib/utils/reelShareUtils';
+import { buildReelShareUrl, shareLink } from '@/lib/share';
 import {
   useFollowReelCreatorMutation,
   useLikeReelMutation,
@@ -34,6 +34,9 @@ import { Avatar, AvatarImage } from '@/ui/Avatar';
 const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
 const ACTION_ICON = 'drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)] transition-transform duration-150 active:scale-90';
+
+/** Match poster + video framing so iOS letterboxing never leaks the other layer. */
+const MEDIA_LAYER = 'absolute inset-0 h-full w-full object-contain';
 
 /** Collapse long captions; "See more" only when over this length. */
 const CAPTION_COLLAPSE_LIMIT = 100;
@@ -187,6 +190,7 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
   const [paused, setPaused] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isScrubbing, setIsScrubbing] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
   const [scrubPercent, setScrubPercent] = useState(0);
   const [scrubTime, setScrubTime] = useState(0);
   const [commentsOpen, setCommentsOpen] = useState(false);
@@ -226,6 +230,10 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
     setCaptionExpanded(false);
     setReportOpen(false);
   }, [reel.id]);
+
+  useEffect(() => {
+    setVideoReady(false);
+  }, [reel.id, inPlayerWindow]);
 
   const {
     failed: playbackFailed,
@@ -272,12 +280,14 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
         video.play().catch(() => setPaused(true));
       }
     } else {
+      // Don't seek to 0 — on iOS that flashes black while a neighbor is still on screen.
       video.pause();
-      video.currentTime = 0;
       setPaused(false);
       setProgress(0);
     }
   }, [isActive, paused, inPlayerWindow, playbackFailed, readyToken]);
+
+  const revealVideo = useCallback(() => setVideoReady(true), []);
 
   const getVideo = () => videoRef.current;
 
@@ -423,47 +433,42 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
 
   const handleShare = async () => {
     if (!reel?.id) return;
-    const shareUrl = buildReelShareUrl(reel.id);
-    try {
-      if (navigator.share) {
-        // URL only — no title/caption so shares stay a clean deep link.
-        await navigator.share({ url: shareUrl });
-        if (isAuthenticated) {
-          await shareReel({ id: reel.id, channel: 'system_share' });
-        }
-      } else if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(shareUrl);
-        if (isAuthenticated) {
-          await shareReel({ id: reel.id, channel: 'copy_link' });
-        }
-      } else if (isAuthenticated) {
-        await shareReel({ id: reel.id, channel: 'other' });
-      }
-    } catch {
-      // User cancelled share sheet — ignore.
+    // URL only — no title/caption so shares stay a clean deep link.
+    const channel = await shareLink({ url: buildReelShareUrl(reel.id) });
+    if (channel && isAuthenticated) {
+      await shareReel({ id: reel.id, channel });
     }
   };
 
   return (
     <div className="relative h-screen w-full shrink-0 snap-start overflow-hidden bg-black">
-      {inPlayerWindow ? (
-        <video
-          ref={videoRef}
-          muted={false}
-          loop
-          playsInline
-          preload={isActive ? 'auto' : 'metadata'}
-          poster={reel.posterUrl || undefined}
-          onClick={handleVideoTap}
-          className="absolute inset-0 h-full w-full"
-        >
-          <track kind="captions" />
-        </video>
-      ) : reel.posterUrl ? (
-        <img src={reel.posterUrl} alt="" className="absolute inset-0 h-full w-full" loading="lazy" decoding="async" />
+      {reel.posterUrl ? (
+        <img
+          src={reel.posterUrl}
+          alt=""
+          className={MEDIA_LAYER}
+          loading={inPlayerWindow ? 'eager' : 'lazy'}
+          decoding="async"
+          draggable={false}
+        />
       ) : (
         <div className="absolute inset-0 bg-black" aria-hidden />
       )}
+
+      {inPlayerWindow ? (
+        <video
+          ref={videoRef}
+          loop
+          playsInline
+          preload="auto"
+          onClick={handleVideoTap}
+          onLoadedData={revealVideo}
+          onPlaying={revealVideo}
+          className={`${MEDIA_LAYER} transition-opacity duration-150 ${videoReady ? 'opacity-100' : 'opacity-0'}`}
+        >
+          <track kind="captions" />
+        </video>
+      ) : null}
 
       <StreamVideoRetry
         visible={Boolean(inPlayerWindow && playbackFailed)}

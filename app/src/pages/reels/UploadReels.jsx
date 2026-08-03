@@ -15,6 +15,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { getReelUploadSession, startReelUpload, useReelUploadSession } from '@/features/reels/reelUploadSessionStore';
+import { awaitReelPosterBriefly, extractReelPosterJpeg } from '@/lib/utils/extractReelPoster';
 import {
   formatReelMaxUploadLabel,
   probeReelVideoDuration,
@@ -65,6 +66,7 @@ export default function UploadReels() {
   const location = useLocation();
   const fileInputRef = useRef(null);
   const previewUrlRef = useRef(null);
+  const posterPromiseRef = useRef(/** @type {Promise<Blob|null>|null} */ (null));
   const seededFromComposeRef = useRef(false);
   const uploadSession = useReelUploadSession();
 
@@ -135,8 +137,28 @@ export default function UploadReels() {
     fileInputRef.current?.click();
   }, [isBusyPublishing, isValidatingFile]);
 
+  const commitSelectedFile = useCallback(
+    (file) => {
+      revokePreviewUrl();
+      const nextUrl = URL.createObjectURL(file);
+      previewUrlRef.current = nextUrl;
+      posterPromiseRef.current = null;
+      setSelectedFile(file);
+      setPreviewUrl(nextUrl);
+      setStep(STEPS.PREVIEW);
+    },
+    [revokePreviewUrl],
+  );
+
+  /** Poster extract after preview has a frame — avoids iOS blank first paint. */
+  const handlePreviewReady = useCallback(() => {
+    if (!selectedFile || posterPromiseRef.current) return;
+    posterPromiseRef.current = extractReelPosterJpeg(selectedFile).catch(() => null);
+  }, [selectedFile]);
+
   const clearVideo = useCallback(() => {
     revokePreviewUrl();
+    posterPromiseRef.current = null;
     setSelectedFile(null);
     setPreviewUrl(null);
   }, [revokePreviewUrl]);
@@ -163,17 +185,12 @@ export default function UploadReels() {
           return;
         }
 
-        revokePreviewUrl();
-        const nextUrl = URL.createObjectURL(file);
-        previewUrlRef.current = nextUrl;
-        setSelectedFile(file);
-        setPreviewUrl(nextUrl);
-        setStep(STEPS.PREVIEW);
+        commitSelectedFile(file);
       } finally {
         setIsValidatingFile(false);
       }
     },
-    [isBusyPublishing, revokePreviewUrl, uploadLimits],
+    [commitSelectedFile, isBusyPublishing, uploadLimits],
   );
 
   // Support legacy handoffs that included a File. The current compose flow
@@ -199,17 +216,12 @@ export default function UploadReels() {
           setHandoffHint('Couldn’t use the video from Create post. Pick another file below — your caption is still filled in.');
           return;
         }
-        revokePreviewUrl();
-        const nextUrl = URL.createObjectURL(file);
-        previewUrlRef.current = nextUrl;
-        setSelectedFile(file);
-        setPreviewUrl(nextUrl);
-        setStep(STEPS.PREVIEW);
+        commitSelectedFile(file);
       } finally {
         setIsValidatingFile(false);
       }
     })();
-  }, [location.state, revokePreviewUrl, uploadLimits]);
+  }, [commitSelectedFile, location.state, uploadLimits]);
 
   const handleBackFromEmpty = useCallback(() => {
     navigate(-1);
@@ -268,6 +280,9 @@ export default function UploadReels() {
         // optional — server can probe during transcode
       }
 
+      const posterBlob = await awaitReelPosterBriefly(posterPromiseRef.current, 2000);
+      posterPromiseRef.current = null;
+
       // Hand ownership of the object URL to the session before navigating away.
       detachPreviewWithoutRevoke();
       setCaption('');
@@ -280,6 +295,7 @@ export default function UploadReels() {
         visibility: postVisibility,
         clientDurationMs,
         previewUrl: sessionPreviewUrl,
+        posterBlob,
         mutations: {
           createReel,
           uploadMedia,
@@ -372,6 +388,7 @@ export default function UploadReels() {
             setStep(STEPS.DETAILS);
           }}
           onChangeVideo={openPicker}
+          onPreviewReady={handlePreviewReady}
           error={error}
           isBusy={isValidatingFile}
         />

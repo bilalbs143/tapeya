@@ -15,10 +15,12 @@ enum NotificationEventEnum: string
     case POST_LIKED = 'post_liked';
     case POST_COMMENTED = 'post_commented';
     case POST_COMMENT_REPLY = 'post_comment_reply';
+    case POST_COMMENT_LIKED = 'post_comment_liked';
     case POST_MENTIONED = 'post_mentioned';
     case POST_REPOSTED = 'post_reposted';
     case POST_PUBLISHED = 'post_published';
     case USER_FOLLOWED = 'user_followed';
+    case USER_REFERRED = 'user_referred';
 
     public function label(): string
     {
@@ -30,10 +32,12 @@ enum NotificationEventEnum: string
             self::POST_LIKED => 'Post Liked',
             self::POST_COMMENTED => 'Post Commented',
             self::POST_COMMENT_REPLY => 'Post Comment Reply',
+            self::POST_COMMENT_LIKED => 'Post Comment Liked',
             self::POST_MENTIONED => 'Post Mention',
             self::POST_REPOSTED => 'Post Reposted',
             self::POST_PUBLISHED => 'Post Published',
             self::USER_FOLLOWED => 'User Followed',
+            self::USER_REFERRED => 'User Referred',
         };
     }
 }

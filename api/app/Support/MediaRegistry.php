@@ -131,7 +131,7 @@ class MediaRegistry
                     'thumbnail' => [
                         'dir' => 'posts/videos/thumbs',
                         'column' => 'thumbnail_path',
-                        'file_rules' => ['required', 'image', 'max:5120'],
+                        'file_rules' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
                     ],
                 ],
             ],

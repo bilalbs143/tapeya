@@ -163,6 +163,52 @@ class FeedAndComposeTest extends TestCase
         $this->assertContains('text', $types);
     }
 
+    public function test_feed_mine_returns_mixed_owned_posts(): void
+    {
+        $owner = User::factory()->create();
+        $other = User::factory()->create();
+
+        $video = $this->makeVideoPost($owner, [
+            'body' => 'My video',
+            'status' => PostStatusEnum::Ready,
+            'visibility' => PostVisibilityEnum::Public,
+            'published_at' => now(),
+        ]);
+
+        $text = Post::query()->create([
+            'user_id' => $owner->id,
+            'type' => PostTypeEnum::Text,
+            'body' => 'My text',
+            'status' => PostStatusEnum::Ready,
+            'visibility' => PostVisibilityEnum::Public,
+            'published_at' => now(),
+        ]);
+
+        $this->makeVideoPost($other, [
+            'body' => 'Someone else',
+            'status' => PostStatusEnum::Ready,
+            'visibility' => PostVisibilityEnum::Public,
+            'published_at' => now(),
+        ]);
+
+        $items = $this->actingAs($owner, 'api')
+            ->getJson('/api/v1/feed/mine')
+            ->assertOk()
+            ->json('data.items');
+
+        $ids = collect($items)->pluck('id')->all();
+        $types = collect($items)->pluck('type')->all();
+
+        $this->assertContains($video->id, $ids);
+        $this->assertContains($text->id, $ids);
+        $this->assertNotContains(
+            Post::query()->where('user_id', $other->id)->value('id'),
+            $ids,
+        );
+        $this->assertContains('video', $types);
+        $this->assertContains('text', $types);
+    }
+
     public function test_user_can_repost_to_feed(): void
     {
         $author = User::factory()->create();

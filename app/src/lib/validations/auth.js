@@ -38,11 +38,24 @@ const nicknameSchema = z
   .max(50, 'Nickname must be at most 50 characters')
   .regex(/^[a-zA-Z0-9_]+$/, 'Nickname may only contain letters, numbers and underscores');
 
+const optionalReferralNicknameSchema = z
+  .union([
+    z
+      .string()
+      .trim()
+      .max(50, 'Referral nickname must be at most 50 characters')
+      .regex(/^[a-zA-Z0-9_]+$/, 'Referral nickname may only contain letters, numbers and underscores'),
+    z.literal(''),
+  ])
+  .optional()
+  .transform((v) => (v === '' || v === undefined ? undefined : v));
+
 export const registerSchema = z.object({
   phone: phoneSchema,
   name: nameSchema,
   nickname: nicknameSchema,
   email: emailSchema.optional(),
+  referral_nickname: optionalReferralNicknameSchema,
 });
 
 export const updateProfileSchema = z.object({

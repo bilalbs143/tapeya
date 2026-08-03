@@ -139,15 +139,22 @@ class PostFeedService
     }
 
     /**
+     * Owner's posts (Mine / My Videos).
+     * /reels/mine passes videosOnly; /feed/mine passes false for mixed types.
+     *
      * @return CursorPaginator<int, Post>
      */
-    public function mine(int $userId, ?string $cursor, int $perPage = 10): CursorPaginator
+    public function mine(int $userId, ?string $cursor, int $perPage = 10, bool $videosOnly = true): CursorPaginator
     {
         $perPage = max(1, min($perPage, 20));
 
-        return Post::query()
-            ->videosOnly()
-            ->ownedBy($userId)
+        $query = Post::query()->ownedBy($userId);
+
+        if ($videosOnly) {
+            $query->videosOnly();
+        }
+
+        return $query
             ->whereNotIn('status', [
                 PostStatusEnum::Uploading,
                 PostStatusEnum::Removed,

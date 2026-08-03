@@ -3,9 +3,10 @@
  */
 
 export const BOTTOM_NAV_ITEMS = [
+  { path: '/home', label: 'Home' },
   { path: '/shop', label: 'Shop' },
   { path: '/reels', label: 'Reels' },
-  { path: '/upcoming-tournaments', label: 'Upcoming' },
+  { path: '/live', label: 'Live' },
   { path: '/profile', label: 'Profile' },
 ];
 

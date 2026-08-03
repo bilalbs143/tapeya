@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { buildFeedTimelineRows, FEED_TIMELINE_ROW_GAP_PX } from '@/components/feed/buildFeedTimelineRows';
 import ComposerTrigger from '@/components/feed/ComposerTrigger';
@@ -10,6 +10,7 @@ import { FeedReelsWidget } from '@/components/feed/FeedReelsWidget';
 import { FeedShopWidget } from '@/components/feed/FeedShopWidget';
 import { FeedSuggestedFollowsWidget } from '@/components/feed/FeedSuggestedFollowsWidget';
 import FeedTabs from '@/components/feed/FeedTabs';
+import { useCatalogCycle } from '@/hooks/useCatalogCycle';
 import { useStickyUnderNavbar } from '@/hooks/useStickyUnderNavbar';
 import { NAVBAR_OFFSET_CSS, STICKY_TABS_Z } from '@/lib/constants/layout';
 import { composeDestination } from '@/lib/feed/composeDestination';
@@ -18,21 +19,27 @@ import {
   FEED_LIST_ARG,
   useGetFollowingFeedQuery,
   useGetHomeFeedQuery,
+  useGetMineFeedQuery,
   useGetSavedFeedQuery,
   useLazyGetFollowingFeedQuery,
   useLazyGetHomeFeedQuery,
+  useLazyGetMineFeedQuery,
   useLazyGetSavedFeedQuery,
+  useLazyPeekHomeFeedQuery,
 } from '@/store/api/feedApi';
 import { useGetHighlightsQuery } from '@/store/api/highlightApi';
 import { REELS_LIST_ARG } from '@/store/api/postEngagementCache';
 import { useGetReelsFeedQuery } from '@/store/api/reelsApi';
 import { useGetBrandsQuery, useGetProductsQuery } from '@/store/api/shopApi';
 import { SUGGESTED_USERS_ARG, useGetSuggestedUsersQuery } from '@/store/api/userApi';
+import { useAppSelector } from '@/store/hooks';
+import { selectIsAuthenticated } from '@/store/selectors';
 
 const TABS = [
-  { id: 'explore', label: 'Explore', shortLabel: 'Explore', Icon: ExploreIcon },
-  { id: 'following', label: 'Following', shortLabel: 'Following', Icon: FollowingIcon },
-  { id: 'saved', label: 'Saved', shortLabel: 'Saved', Icon: SavedIcon },
+  { id: 'explore', label: 'Explore', shortLabel: 'Explore', Icon: ExploreIcon, requiresAuth: false },
+  { id: 'following', label: 'Following', shortLabel: 'Following', Icon: FollowingIcon, requiresAuth: true },
+  { id: 'mine', label: 'Mine', shortLabel: 'Mine', Icon: MineIcon, requiresAuth: true },
+  { id: 'saved', label: 'Saved', shortLabel: 'Saved', Icon: SavedIcon, requiresAuth: true },
 ];
 
 const SUGGESTED_FOLLOWS_REFILL_AT = 5;
@@ -72,6 +79,26 @@ function FollowingIcon({ className = '' }) {
       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
       <circle cx="9" cy="7" r="3" />
       <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a3 3 0 0 1 0 5.74" />
+    </svg>
+  );
+}
+
+function MineIcon({ className = '' }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
     </svg>
   );
 }
@@ -128,14 +155,18 @@ function TimelineRow({ row, onSuggestedFollowed }) {
 }
 
 /**
- * Home feed timeline: Explore | Following | Saved tabs, infinite cursor load.
- * Tab chrome uses CSS sticky under the fixed navbar ({@link NAVBAR_OFFSET_CSS});
- * stuck styling comes from {@link useStickyUnderNavbar}.
+ * Home feed timeline: Explore | Following | Mine | Saved tabs, infinite cursor load.
+ * Explore client-cycles after cursor exhaustion ({@link useCatalogCycle}) with
+ * occasional page-1 peeks for new posts — never replacing the scrolled RTK cache.
+ * Tab chrome uses CSS sticky under the fixed navbar ({@link NAVBAR_OFFSET_CSS}).
  * Timeline rows are window-virtualized for a light DOM on long sessions.
  *
  * @param {{ embedded?: boolean, className?: string }} props
  */
 export default function FeedRegion({ embedded: _embedded = false, className = '' }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const [tab, setTab] = useState('explore');
   const { sentinelRef, isStuck } = useStickyUnderNavbar();
   const loadMoreRef = useRef(null);
@@ -149,15 +180,20 @@ export default function FeedRegion({ embedded: _embedded = false, className = ''
     skip: tab !== 'explore',
   });
   const followingQuery = useGetFollowingFeedQuery(FEED_LIST_ARG, {
-    skip: tab !== 'following',
+    skip: tab !== 'following' || !isAuthenticated,
+  });
+  const mineQuery = useGetMineFeedQuery(FEED_LIST_ARG, {
+    skip: tab !== 'mine' || !isAuthenticated,
   });
   const savedQuery = useGetSavedFeedQuery(FEED_LIST_ARG, {
-    skip: tab !== 'saved',
+    skip: tab !== 'saved' || !isAuthenticated,
   });
 
   const [fetchMoreExplore] = useLazyGetHomeFeedQuery();
   const [fetchMoreFollowing] = useLazyGetFollowingFeedQuery();
+  const [fetchMoreMine] = useLazyGetMineFeedQuery();
   const [fetchMoreSaved] = useLazyGetSavedFeedQuery();
+  const [peekHomeFeed] = useLazyPeekHomeFeedQuery();
   const shouldLoadShop = tab === 'explore';
   const { data: brandsResponse } = useGetBrandsQuery(
     { all: true },
@@ -213,7 +249,7 @@ export default function FeedRegion({ embedded: _embedded = false, className = ''
     }
   }, [refetchSuggestions, shouldLoadSuggestions]);
 
-  const active = tab === 'following' ? followingQuery : tab === 'saved' ? savedQuery : exploreQuery;
+  const active = tab === 'following' ? followingQuery : tab === 'mine' ? mineQuery : tab === 'saved' ? savedQuery : exploreQuery;
   const items = active.data?.items ?? EMPTY_LIST;
   const hasMore = Boolean(active.data?.hasMore);
   const nextCursor = active.data?.nextCursor ?? null;
@@ -240,6 +276,20 @@ export default function FeedRegion({ embedded: _embedded = false, className = ''
     [popularProducts, specialOfferProducts],
   );
 
+  const peekPage = useCallback(() => peekHomeFeed(FEED_LIST_ARG, false).unwrap(), [peekHomeFeed]);
+
+  const {
+    displayCycles,
+    freshItems,
+    freshFromCycle,
+    advance: advanceExploreCycle,
+  } = useCatalogCycle({
+    enabled: tab === 'explore',
+    items: tab === 'explore' ? items : EMPTY_LIST,
+    hasMore: tab === 'explore' ? hasMore : true,
+    peekPage,
+  });
+
   const timelineRows = useMemo(
     () =>
       buildFeedTimelineRows({
@@ -249,8 +299,11 @@ export default function FeedRegion({ embedded: _embedded = false, className = ''
         brands,
         suggestedUsers,
         highlights,
+        cycles: displayCycles,
+        freshItems,
+        freshFromCycle,
       }),
-    [items, tab, shopCollections, brands, suggestedUsers, highlights],
+    [items, tab, shopCollections, brands, suggestedUsers, highlights, displayCycles, freshItems, freshFromCycle],
   );
 
   const shouldRefillSuggestions = suggestedUsers.length <= SUGGESTED_FOLLOWS_REFILL_AT + 1;
@@ -291,16 +344,47 @@ export default function FeedRegion({ embedded: _embedded = false, className = ''
   });
 
   const loadMore = useCallback(() => {
-    if (!hasMore || !nextCursor || isInitialLoading || isFetchingMore || loadMoreLockRef.current) {
+    if (isInitialLoading || isFetchingMore || loadMoreLockRef.current) {
       return;
     }
+
+    if (hasMore && nextCursor) {
+      loadMoreLockRef.current = true;
+      const arg = { ...FEED_LIST_ARG, cursor: nextCursor };
+      const req =
+        tab === 'following'
+          ? fetchMoreFollowing(arg)
+          : tab === 'mine'
+            ? fetchMoreMine(arg)
+            : tab === 'saved'
+              ? fetchMoreSaved(arg)
+              : fetchMoreExplore(arg);
+      Promise.resolve(req).finally(() => {
+        loadMoreLockRef.current = false;
+      });
+      return;
+    }
+
+    // Explore-only client cycle (+ soft freshness). Never replaces the scrolled RTK cache.
+    if (tab !== 'explore') return;
+
     loadMoreLockRef.current = true;
-    const arg = { ...FEED_LIST_ARG, cursor: nextCursor };
-    const req = tab === 'following' ? fetchMoreFollowing(arg) : tab === 'saved' ? fetchMoreSaved(arg) : fetchMoreExplore(arg);
-    Promise.resolve(req).finally(() => {
+    advanceExploreCycle();
+    requestAnimationFrame(() => {
       loadMoreLockRef.current = false;
     });
-  }, [hasMore, nextCursor, isInitialLoading, isFetchingMore, tab, fetchMoreExplore, fetchMoreFollowing, fetchMoreSaved]);
+  }, [
+    hasMore,
+    nextCursor,
+    isInitialLoading,
+    isFetchingMore,
+    tab,
+    fetchMoreExplore,
+    fetchMoreFollowing,
+    fetchMoreMine,
+    fetchMoreSaved,
+    advanceExploreCycle,
+  ]);
 
   useEffect(() => {
     const el = loadMoreRef.current;
@@ -317,6 +401,11 @@ export default function FeedRegion({ embedded: _embedded = false, className = ''
   }, [loadMore]);
 
   const onSelectTab = (next) => {
+    const meta = TABS.find((item) => item.id === next);
+    if (meta?.requiresAuth && !isAuthenticated) {
+      navigate('/login', { state: { from: location } });
+      return;
+    }
     setTab(next);
   };
 
@@ -327,9 +416,11 @@ export default function FeedRegion({ embedded: _embedded = false, className = ''
   const emptyCopy =
     tab === 'following'
       ? 'No posts from people you follow yet.'
-      : tab === 'saved'
-        ? 'No saved posts yet.'
-        : 'No posts yet — be the first.';
+      : tab === 'mine'
+        ? 'You haven’t posted yet.'
+        : tab === 'saved'
+          ? 'No saved posts yet.'
+          : 'No posts yet — be the first.';
 
   const virtualItems = virtualizer.getVirtualItems();
 

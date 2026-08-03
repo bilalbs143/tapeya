@@ -8,6 +8,7 @@ use App\Settings\LiveChatSettings;
 use App\Settings\PostsSettings;
 use App\Settings\PushSettings;
 use App\Settings\StreamingSettings;
+use Illuminate\Support\Facades\Schema;
 use ReflectionProperty;
 use Spatie\LaravelSettings\Settings;
 use Spatie\LaravelSettings\SettingsConfig;
@@ -17,6 +18,11 @@ final class EnsureSpatieSettingsDatabaseProperties
 {
     public static function ensure(): void
     {
+        // Unit tests run before Feature migrations; skip until the settings table exists.
+        if (! Schema::hasTable('settings')) {
+            return;
+        }
+
         foreach (self::settingsClasses() as $settingsClass) {
             if (! is_string($settingsClass) || ! is_subclass_of($settingsClass, Settings::class)) {
                 continue;

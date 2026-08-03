@@ -56,7 +56,7 @@ export function safeUpdateQueryData(dispatch, endpointName, arg, recipe) {
  */
 export function patchPostCaches(dispatch, id, updater) {
   const patches = [];
-  for (const endpoint of ['getHomeFeed', 'getFollowingFeed', 'getSavedFeed']) {
+  for (const endpoint of ['getHomeFeed', 'getFollowingFeed', 'getMineFeed', 'getSavedFeed']) {
     patches.push(
       safeUpdateQueryData(dispatch, endpoint, FEED_LIST_ARG, (draft) => {
         if (!draft?.items) return;

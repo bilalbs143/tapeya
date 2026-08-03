@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Enums\Tournament\TournamentInterestFormFieldEnum;
+use App\Events\Broadcast\Post\PostProcessingUpdated;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Models\Post;
@@ -13,6 +14,7 @@ use App\Services\Post\PostService;
 use App\Settings\PostsSettings;
 use App\Support\Media\MediaDisk;
 use App\Support\PhpUploadError;
+use App\Support\Post\PostImageStorage;
 use App\Support\Post\PostVideoFormats;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
@@ -44,60 +46,63 @@ class UserMediaController extends Controller
      * 'column' is the DB column that stores the raw path.
      * 'file_rules' is the Laravel validation rule array for the 'file' key.
      *
-     * @var array<string, array{model: class-string<Model>, fields: array<string, array<string, mixed>>}>
+     * @return array<string, array{model: class-string<Model>, fields: array<string, array<string, mixed>>}>
      */
-    private const TYPES = [
-        'team' => [
-            'model' => Team::class,
-            'fields' => [
-                'logo' => [
-                    'dir' => 'teams',
-                    'column' => 'logo',
-                    'file_rules' => ['required', 'image', 'max:5120'],
+    private static function types(): array
+    {
+        return [
+            'team' => [
+                'model' => Team::class,
+                'fields' => [
+                    'logo' => [
+                        'dir' => 'teams',
+                        'column' => 'logo',
+                        'file_rules' => ['required', 'image', 'max:5120'],
+                    ],
                 ],
             ],
-        ],
-        'match' => [
-            'model' => TournamentMatch::class,
-            'fields' => [
-                'thumbnail' => [
-                    'dir' => 'match-stream-thumbnails',
-                    'column' => 'stream_thumbnail',
-                    'file_rules' => ['required', 'image', 'max:5120'],
+            'match' => [
+                'model' => TournamentMatch::class,
+                'fields' => [
+                    'thumbnail' => [
+                        'dir' => 'match-stream-thumbnails',
+                        'column' => 'stream_thumbnail',
+                        'file_rules' => ['required', 'image', 'max:5120'],
+                    ],
                 ],
             ],
-        ],
-        'interest-submission' => [
-            'model' => TournamentInterestSubmission::class,
-            'fields' => [
-                'profile_picture' => [
-                    'dir' => 'interest/profile-pictures',
-                    'column' => 'profile_picture_path',
-                    'file_rules' => ['required', 'image', 'max:5120'],
-                ],
-                'id_document' => [
-                    'dir' => 'interest/id-documents',
-                    'column' => 'id_document_path',
-                    'file_rules' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
-                ],
-            ],
-        ],
-        'reel' => [
-            'model' => Post::class,
-            'fields' => [
-                'original' => [
-                    'dir' => 'posts/videos/original',
-                    'column' => 'original_path',
-                    'file_rules' => PostVideoFormats::fileRules(),
-                ],
-                'thumbnail' => [
-                    'dir' => 'posts/videos/thumbs',
-                    'column' => 'thumbnail_path',
-                    'file_rules' => ['required', 'image', 'max:5120'],
+            'interest-submission' => [
+                'model' => TournamentInterestSubmission::class,
+                'fields' => [
+                    'profile_picture' => [
+                        'dir' => 'interest/profile-pictures',
+                        'column' => 'profile_picture_path',
+                        'file_rules' => ['required', 'image', 'max:5120'],
+                    ],
+                    'id_document' => [
+                        'dir' => 'interest/id-documents',
+                        'column' => 'id_document_path',
+                        'file_rules' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
+                    ],
                 ],
             ],
-        ],
-    ];
+            'reel' => [
+                'model' => Post::class,
+                'fields' => [
+                    'original' => [
+                        'dir' => 'posts/videos/original',
+                        'column' => 'original_path',
+                        'file_rules' => PostVideoFormats::fileRules(),
+                    ],
+                    'thumbnail' => [
+                        'dir' => 'posts/videos/thumbs',
+                        'column' => 'thumbnail_path',
+                        'file_rules' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+                    ],
+                ],
+            ],
+        ];
+    }
 
     /**
      * Upload (or replace) a media field. Multipart body key: "file"
@@ -127,6 +132,18 @@ class UserMediaController extends Controller
         $request->validate(['file' => $rules]);
 
         $column = $config['column'];
+
+        // Provisional client posters must not overwrite the FFmpeg poster after the original lands
+        // (thumb upload races multipart complete → ExtractPostPosterJob force-refine).
+        if ($type === 'reel' && $field === 'thumbnail' && $record instanceof Post && $record->videoRaw('original_path')) {
+            $existing = $record->videoRaw('thumbnail_path') ?: $record->getRawOriginal('cover_path');
+
+            return $this->success([
+                'url' => $existing ? MediaDisk::url($existing) : null,
+                'status' => $record->status?->value,
+            ]);
+        }
+
         $oldPath = $type === 'reel'
             ? ($record instanceof Post ? $record->videoRaw($column) : null)
             : $record->getRawOriginal($column);
@@ -140,12 +157,30 @@ class UserMediaController extends Controller
             $dir = $config['dir'].'/'.$record->id;
         }
 
-        $path = MediaDisk::storeUploaded($request->file('file'), $dir);
+        $file = $request->file('file');
+        $path = null;
+
+        if ($type === 'reel' && $field === 'thumbnail' && $record instanceof Post) {
+            try {
+                $stored = PostImageStorage::storeFromUpload($file, $record->id, 'posts/videos/thumbs');
+                $path = $stored['path'];
+            } catch (\Throwable) {
+                // Best-effort WebP — fall back to raw store so provisional posters never block upload.
+                $path = MediaDisk::storeUploaded($file, $dir);
+            }
+        } else {
+            $path = MediaDisk::storeUploaded($file, $dir);
+        }
 
         if ($type === 'reel' && $record instanceof Post) {
             $record->fillVideo([$column => $path]);
             if ($field === 'thumbnail') {
+                $oldCover = $record->getRawOriginal('cover_path');
                 $record->forceFill(['cover_path' => $path])->save();
+                if (is_string($oldCover) && $oldCover !== '' && $oldCover !== $path && $oldCover !== $oldPath) {
+                    MediaDisk::delete($oldCover);
+                }
+                event(new PostProcessingUpdated($record->fresh(['video']) ?? $record));
             }
             if ($field === 'original') {
                 app(PostService::class)->markOriginalUploaded($record);
@@ -195,11 +230,13 @@ class UserMediaController extends Controller
      */
     private function resolveRecord(Request $request, string $type, int $id, string $field): array|JsonResponse
     {
-        if (! array_key_exists($type, self::TYPES)) {
+        $types = self::types();
+
+        if (! array_key_exists($type, $types)) {
             return $this->notFound("Unknown media type: {$type}");
         }
 
-        $typeConfig = self::TYPES[$type];
+        $typeConfig = $types[$type];
 
         if (! array_key_exists($field, $typeConfig['fields'])) {
             return $this->notFound("Unknown field '{$field}' for type '{$type}'.");
