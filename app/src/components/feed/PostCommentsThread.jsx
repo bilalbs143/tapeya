@@ -214,25 +214,12 @@ function CommentRow({ comment, isReply = false, currentUserId, deleting, liking,
         <AvatarImage src={userAvatarUrl(comment.user)} alt="" />
       </Avatar>
       <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
-            <span className="inline-flex min-w-0 items-center gap-1 text-[13px] font-semibold text-white">
-              <span className="truncate">{comment.user?.name || 'User'}</span>
-              <OfficialBadge isOfficial={comment.user?.isOfficial} />
-            </span>
-            <span className="text-muted text-[11px]">{formatRelativeDate(comment.createdAt, { compact: true })}</span>
-          </div>
-          {isOwn ? (
-            <button
-              type="button"
-              onClick={() => onDelete(comment)}
-              disabled={deleting}
-              className="text-muted inline-flex size-6 shrink-0 items-center justify-center rounded-md transition-colors hover:text-red-400 disabled:opacity-40"
-              aria-label="Delete Comment"
-            >
-              <TrashIcon />
-            </button>
-          ) : null}
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
+          <span className="inline-flex min-w-0 items-center gap-1 text-[13px] font-semibold text-white">
+            <span className="truncate">{comment.user?.name || 'User'}</span>
+            <OfficialBadge isOfficial={comment.user?.isOfficial} />
+          </span>
+          <span className="text-muted text-[11px]">{formatRelativeDate(comment.createdAt, { compact: true })}</span>
         </div>
 
         <p className="mt-0.5 text-[13px] leading-relaxed whitespace-pre-wrap text-white/85">
@@ -247,28 +234,40 @@ function CommentRow({ comment, isReply = false, currentUserId, deleting, liking,
           )}
         </p>
 
-        <div className="text-muted mt-1.5 flex items-center justify-between gap-4">
+        <button
+          type="button"
+          onClick={() => onReply(comment)}
+          className="text-brand hover:text-brand-hover mt-1.5 text-[12px] font-medium transition-colors"
+        >
+          Reply
+        </button>
+      </div>
+
+      <div className="flex min-w-6 shrink-0 flex-col items-center gap-1 self-start">
+        {isOwn ? (
           <button
             type="button"
-            onClick={() => onReply(comment)}
-            className="text-brand hover:text-brand-hover text-[12px] font-medium transition-colors"
+            onClick={() => onDelete(comment)}
+            disabled={deleting}
+            className="text-muted inline-flex size-6 items-center justify-center rounded-md transition-colors hover:text-red-400 disabled:opacity-40"
+            aria-label="Delete Comment"
           >
-            Reply
+            <TrashIcon />
           </button>
-          <button
-            type="button"
-            onClick={handleLike}
-            disabled={liking}
-            className={`inline-flex items-center gap-1 text-[12px] font-medium transition-colors disabled:opacity-40 ${
-              liked ? 'text-brand' : 'text-muted hover:text-white'
-            }`}
-            aria-label={liked ? 'Unlike comment' : 'Like comment'}
-            aria-pressed={liked}
-          >
-            <HeartIcon filled={liked} className="h-3.5 w-3.5" />
-            {likesCount > 0 ? <span>{formatCount(likesCount)}</span> : null}
-          </button>
-        </div>
+        ) : null}
+        <button
+          type="button"
+          onClick={handleLike}
+          disabled={liking}
+          className={`inline-flex min-h-6 min-w-6 flex-col items-center justify-center gap-0.5 rounded-md text-[10px] font-medium transition-colors disabled:opacity-40 ${
+            liked ? 'text-brand' : 'text-muted hover:text-white'
+          }`}
+          aria-label={liked ? 'Unlike comment' : 'Like comment'}
+          aria-pressed={liked}
+        >
+          <HeartIcon filled={liked} className="h-3.5 w-3.5 shrink-0" />
+          {likesCount > 0 ? <span className="leading-none">{formatCount(likesCount)}</span> : null}
+        </button>
       </div>
     </div>
   );
