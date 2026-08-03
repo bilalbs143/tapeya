@@ -43,18 +43,13 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\UserSearchController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Admin API (backoffice)
-|--------------------------------------------------------------------------
-*/
-
 Route::prefix('admin')->group(function () {
-    Route::post('/login', [AdminAuthController::class, 'login']);
+    Route::post('/login', [AdminAuthController::class, 'login'])->middleware('throttle:5,1');
     Route::post('/logout', [AdminAuthController::class, 'logout'])->middleware('auth:api');
 
     Route::middleware(['auth:api', 'admin.only'])->group(function () {
         Route::get('enums', [EnumController::class, 'index']);
+
         Route::apiResource('highlights', AdminHighlightController::class);
         Route::get('posts', [AdminPostController::class, 'index']);
         Route::get('posts/{post}', [AdminPostController::class, 'show']);
@@ -64,6 +59,7 @@ Route::prefix('admin')->group(function () {
         Route::get('post-reports', [AdminPostReportController::class, 'index']);
         Route::get('post-reports/{postReport}', [AdminPostReportController::class, 'show']);
         Route::patch('post-reports/{postReport}', [AdminPostReportController::class, 'update']);
+
         Route::get('push-notifications', [PushNotificationController::class, 'index']);
         Route::post('push-notifications/send', [PushNotificationController::class, 'send']);
         Route::get('push-notifications/{pushNotificationLog}', [PushNotificationController::class, 'show']);
@@ -74,34 +70,41 @@ Route::prefix('admin')->group(function () {
         Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
         Route::delete('notifications', [NotificationController::class, 'flush']);
         Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
-        Route::get('countries', [CountryController::class, 'index']);
-        Route::get('countries/cities', [CountryController::class, 'cities']);
+
         Route::get('users/search', [UserSearchController::class, 'index']);
         Route::apiResource('users', UserController::class);
         Route::post('users/{user}/broadcast-ban', [UserController::class, 'broadcastBan']);
         Route::post('players/import-csv', [PlayerController::class, 'importCsv']);
         Route::apiResource('players', PlayerController::class)->only(['index', 'store', 'show', 'update']);
+
         Route::apiResource('teams', TeamController::class);
+
         Route::apiResource('hero-sliders', HeroSliderController::class);
         Route::apiResource('static-pages', StaticPageController::class);
         Route::get('system-settings', [SystemSettingController::class, 'index']);
         Route::get('system-settings/{key}', [SystemSettingController::class, 'show'])->where('key', '[a-z0-9_]+');
         Route::patch('system-settings/{key}', [SystemSettingController::class, 'patch'])->where('key', '[a-z0-9_]+');
+
         Route::apiResource('tournaments', TournamentController::class);
         Route::get('tournaments/{tournament}/broadcaster', [TournamentBroadcasterController::class, 'index']);
         Route::post('tournaments/{tournament}/broadcaster', [TournamentBroadcasterController::class, 'store']);
         Route::delete('tournaments/{tournament}/broadcaster', [TournamentBroadcasterController::class, 'destroy']);
         Route::get('tournaments/{tournament}/teams', [TournamentTeamsController::class, 'index']);
         Route::post('tournaments/{tournament}/teams', [TournamentTeamsController::class, 'store']);
-        Route::get('tournaments/{tournament}/teams/{team}/squad', [TournamentTeamSquadController::class, 'show']);
-        Route::get('tournaments/{tournament}/squad-occupancy', [TournamentTeamSquadController::class, 'occupancy']);
-        Route::post('tournaments/{tournament}/teams/{team}/squad', [TournamentTeamSquadController::class, 'store']);
         Route::patch('tournaments/{tournament}/teams/{team}', [TournamentTeamsController::class, 'update']);
         Route::delete('tournaments/{tournament}/teams/{team}', [TournamentTeamsController::class, 'destroy']);
+        Route::get('tournaments/{tournament}/teams/{team}/squad', [TournamentTeamSquadController::class, 'show']);
+        Route::post('tournaments/{tournament}/teams/{team}/squad', [TournamentTeamSquadController::class, 'store']);
+        Route::get('tournaments/{tournament}/squad-occupancy', [TournamentTeamSquadController::class, 'occupancy']);
         Route::get('tournaments/{tournament}/matches', [TournamentMatchController::class, 'index']);
         Route::post('tournaments/{tournament}/matches', [TournamentMatchController::class, 'store']);
+
         Route::get('matches/{match}', [TournamentMatchController::class, 'show']);
         Route::match(['post', 'patch'], 'matches/{match}', [TournamentMatchController::class, 'update']);
+        Route::get('matches/{match}/teams/{team}/squad', [TournamentMatchSquadController::class, 'show']);
+        Route::post('matches/{match}/teams/{team}/squad', [TournamentMatchSquadController::class, 'store']);
+        Route::get('matches/{match}/graphic-player-lists', MatchGraphicPlayerListController::class);
+
         Route::post('matches/{match}/stream', [StreamController::class, 'create']);
         Route::get('matches/{match}/stream', [StreamController::class, 'show']);
         Route::post('matches/{match}/stream/end', [StreamController::class, 'end']);
@@ -115,9 +118,6 @@ Route::prefix('admin')->group(function () {
         Route::post('live-streams/{stream}/end', [LiveStreamController::class, 'end']);
         Route::post('live-streams/{stream}/sync', [LiveStreamController::class, 'sync']);
         Route::post('live-streams/{stream}/setup', [LiveStreamController::class, 'setup']);
-        Route::get('matches/{match}/teams/{team}/squad', [TournamentMatchSquadController::class, 'show']);
-        Route::post('matches/{match}/teams/{team}/squad', [TournamentMatchSquadController::class, 'store']);
-        Route::get('matches/{match}/graphic-player-lists', MatchGraphicPlayerListController::class);
 
         Route::get('graphic-themes', [GraphicThemeController::class, 'index']);
         Route::get('graphic-command-catalog', [GraphicCommandCatalogController::class, 'index']);
@@ -129,7 +129,6 @@ Route::prefix('admin')->group(function () {
         Route::post('matches/{match}/graphic-session/captions', [MatchGraphicCaptionController::class, 'store']);
         Route::match(['put', 'patch'], 'matches/{match}/graphic-session/captions/{caption}', [MatchGraphicCaptionController::class, 'update']);
         Route::delete('matches/{match}/graphic-session/captions/{caption}', [MatchGraphicCaptionController::class, 'destroy']);
-
         Route::get('matches/{match}/graphic-session/commands', [GraphicCommandController::class, 'index']);
         Route::delete('matches/{match}/graphic-session/commands', [GraphicCommandController::class, 'destroyHistory']);
         Route::post('matches/{match}/graphic-session/commands', [GraphicCommandController::class, 'store']);
@@ -140,16 +139,17 @@ Route::prefix('admin')->group(function () {
 
         Route::get('cricket/dashboard-stats', CricketDashboardController::class);
 
+        Route::get('countries', [CountryController::class, 'index']);
+        Route::get('countries/cities', [CountryController::class, 'cities']);
+
         Route::get('tournament-requests', [TournamentRequestController::class, 'index']);
         Route::get('tournament-requests/{tournament_request}', [TournamentRequestController::class, 'show']);
         Route::match(['put', 'patch'], 'tournament-requests/{tournament_request}', [TournamentRequestController::class, 'update']);
-
         Route::get('interest-campaigns', [TournamentInterestCampaignController::class, 'index']);
         Route::post('interest-campaigns', [TournamentInterestCampaignController::class, 'store']);
         Route::get('interest-campaigns/{campaign}', [TournamentInterestCampaignController::class, 'show']);
         Route::match(['put', 'patch'], 'interest-campaigns/{campaign}', [TournamentInterestCampaignController::class, 'update']);
         Route::delete('interest-campaigns/{campaign}', [TournamentInterestCampaignController::class, 'destroy']);
-
         Route::get('interest-submissions', [TournamentInterestSubmissionController::class, 'index']);
         Route::get('interest-submissions/{submission}', [TournamentInterestSubmissionController::class, 'show']);
         Route::match(['put', 'patch'], 'interest-submissions/{submission}', [TournamentInterestSubmissionController::class, 'update']);
