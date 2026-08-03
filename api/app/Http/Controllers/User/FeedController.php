@@ -82,6 +82,19 @@ class FeedController extends Controller
         return $this->cursorSuccess($paginator, $request);
     }
 
+    /** Home Mine — mixed posts owned by the authenticated viewer. */
+    public function mine(Request $request): JsonResponse
+    {
+        $paginator = $this->feedService->mine(
+            (int) $request->user()->id,
+            $request->query('cursor'),
+            (int) $request->query('per_page', 10),
+            videosOnly: false,
+        );
+
+        return $this->cursorSuccess($paginator, $request);
+    }
+
     public function show(Request $request, Post $post): JsonResponse
     {
         $visible = $this->feedService->findVisible((int) $post->id, $request->user()?->id);

@@ -34,29 +34,23 @@ class PostInteractionTest extends TestCase
         $reel = $this->readyReel($owner);
 
         $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/reels/'.$reel->id.'/like')
+            ->postJson('/api/v1/posts/'.$reel->id.'/like')
             ->assertOk()
             ->assertJsonPath('data.liked', true)
             ->assertJsonPath('data.likes_count', 1);
 
         $this->actingAs($viewer, 'api')
-            ->deleteJson('/api/v1/reels/'.$reel->id.'/like')
+            ->deleteJson('/api/v1/posts/'.$reel->id.'/like')
             ->assertOk()
             ->assertJsonPath('data.liked', false)
             ->assertJsonPath('data.likes_count', 0);
     }
 
-    public function test_posts_engagement_aliases_match_reels_routes(): void
+    public function test_user_can_save_share_and_list_comments_on_posts_routes(): void
     {
         $owner = User::factory()->create();
         $viewer = User::factory()->create();
         $post = $this->readyReel($owner);
-
-        $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/posts/'.$post->id.'/like')
-            ->assertOk()
-            ->assertJsonPath('data.liked', true)
-            ->assertJsonPath('data.likes_count', 1);
 
         $this->actingAs($viewer, 'api')
             ->postJson('/api/v1/posts/'.$post->id.'/save')
@@ -69,14 +63,14 @@ class PostInteractionTest extends TestCase
             ->assertJsonPath('data.shares_count', 1);
 
         $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/posts/'.$post->id.'/comments', ['body' => 'Alias path works'])
+            ->postJson('/api/v1/posts/'.$post->id.'/comments', ['body' => 'Looks good'])
             ->assertCreated()
-            ->assertJsonPath('data.body', 'Alias path works');
+            ->assertJsonPath('data.body', 'Looks good');
 
         $this->actingAs($viewer, 'api')
             ->getJson('/api/v1/posts/'.$post->id.'/comments')
             ->assertOk()
-            ->assertJsonPath('data.items.0.body', 'Alias path works');
+            ->assertJsonPath('data.items.0.body', 'Looks good');
     }
 
     public function test_user_can_comment_and_reply_one_level(): void
@@ -86,12 +80,12 @@ class PostInteractionTest extends TestCase
         $reel = $this->readyReel($owner);
 
         $top = $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/reels/'.$reel->id.'/comments', ['body' => 'Great shot'])
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments', ['body' => 'Great shot'])
             ->assertCreated()
             ->json('data');
 
         $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/reels/'.$reel->id.'/comments', [
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments', [
                 'body' => 'Agreed',
                 'parent_id' => $top['id'],
             ])
@@ -101,7 +95,7 @@ class PostInteractionTest extends TestCase
         $nestedParent = PostComment::query()->where('parent_id', $top['id'])->first();
 
         $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/reels/'.$reel->id.'/comments', [
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments', [
                 'body' => 'Too deep',
                 'parent_id' => $nestedParent->id,
             ])
@@ -130,17 +124,17 @@ class PostInteractionTest extends TestCase
         $reel->forceFill(['comments_count' => 5])->save();
 
         $page1 = $this->actingAs($viewer, 'api')
-            ->getJson('/api/v1/reels/'.$reel->id.'/comments?page=1&per_page=2')
+            ->getJson('/api/v1/posts/'.$reel->id.'/comments?page=1&per_page=2')
             ->assertOk()
             ->json('data');
 
         $page2 = $this->actingAs($viewer, 'api')
-            ->getJson('/api/v1/reels/'.$reel->id.'/comments?page=2&per_page=2')
+            ->getJson('/api/v1/posts/'.$reel->id.'/comments?page=2&per_page=2')
             ->assertOk()
             ->json('data');
 
         $page3 = $this->actingAs($viewer, 'api')
-            ->getJson('/api/v1/reels/'.$reel->id.'/comments?page=3&per_page=2')
+            ->getJson('/api/v1/posts/'.$reel->id.'/comments?page=3&per_page=2')
             ->assertOk()
             ->json('data');
 
@@ -161,19 +155,19 @@ class PostInteractionTest extends TestCase
         $reel = $this->readyReel($owner);
 
         $top = $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/reels/'.$reel->id.'/comments', ['body' => 'Parent'])
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments', ['body' => 'Parent'])
             ->assertCreated()
             ->json('data');
 
         $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/reels/'.$reel->id.'/comments', [
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments', [
                 'body' => 'Reply A',
                 'parent_id' => $top['id'],
             ])
             ->assertCreated();
 
         $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/reels/'.$reel->id.'/comments', [
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments', [
                 'body' => 'Reply B',
                 'parent_id' => $top['id'],
             ])
@@ -182,7 +176,7 @@ class PostInteractionTest extends TestCase
         $this->assertSame(3, $reel->fresh()->comments_count);
 
         $this->actingAs($viewer, 'api')
-            ->deleteJson('/api/v1/reels/'.$reel->id.'/comments/'.$top['id'])
+            ->deleteJson('/api/v1/posts/'.$reel->id.'/comments/'.$top['id'])
             ->assertOk();
 
         $this->assertSame(0, $reel->fresh()->comments_count);
@@ -220,7 +214,7 @@ class PostInteractionTest extends TestCase
         $this->readyReel($owner);
 
         $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/reels/'.$liked->id.'/like')
+            ->postJson('/api/v1/posts/'.$liked->id.'/like')
             ->assertOk();
 
         $response = $this->actingAs($viewer, 'api')
@@ -239,7 +233,7 @@ class PostInteractionTest extends TestCase
         $reel = $this->readyReel($owner);
 
         $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/reels/'.$reel->id.'/report', [
+            ->postJson('/api/v1/posts/'.$reel->id.'/report', [
                 'reason' => 'spam',
                 'details' => 'Looks like spam',
             ])
@@ -248,11 +242,110 @@ class PostInteractionTest extends TestCase
             ->assertJsonPath('data.reports_count', 1);
 
         $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/reels/'.$reel->id.'/report', [
+            ->postJson('/api/v1/posts/'.$reel->id.'/report', [
                 'reason' => 'spam',
             ])
             ->assertOk()
             ->assertJsonPath('data.already_reported', true)
             ->assertJsonPath('data.reports_count', 1);
+    }
+
+    public function test_user_can_like_and_unlike_comment_idempotently(): void
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create();
+        $other = User::factory()->create();
+        $reel = $this->readyReel($owner);
+
+        $comment = $this->actingAs($viewer, 'api')
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments', ['body' => 'Like me'])
+            ->assertCreated()
+            ->assertJsonPath('data.liked', false)
+            ->assertJsonPath('data.likes_count', 0)
+            ->json('data');
+
+        $this->actingAs($other, 'api')
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments/'.$comment['id'].'/like')
+            ->assertOk()
+            ->assertJsonPath('data.liked', true)
+            ->assertJsonPath('data.likes_count', 1);
+
+        // Idempotent re-like does not double-count.
+        $this->actingAs($other, 'api')
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments/'.$comment['id'].'/like')
+            ->assertOk()
+            ->assertJsonPath('data.liked', true)
+            ->assertJsonPath('data.likes_count', 1);
+
+        $this->actingAs($other, 'api')
+            ->getJson('/api/v1/posts/'.$reel->id.'/comments')
+            ->assertOk()
+            ->assertJsonPath('data.items.0.id', $comment['id'])
+            ->assertJsonPath('data.items.0.liked', true)
+            ->assertJsonPath('data.items.0.likes_count', 1);
+
+        $this->actingAs($viewer, 'api')
+            ->getJson('/api/v1/posts/'.$reel->id.'/comments')
+            ->assertOk()
+            ->assertJsonPath('data.items.0.liked', false)
+            ->assertJsonPath('data.items.0.likes_count', 1);
+
+        $this->actingAs($other, 'api')
+            ->deleteJson('/api/v1/posts/'.$reel->id.'/comments/'.$comment['id'].'/like')
+            ->assertOk()
+            ->assertJsonPath('data.liked', false)
+            ->assertJsonPath('data.likes_count', 0);
+
+        $this->actingAs($other, 'api')
+            ->deleteJson('/api/v1/posts/'.$reel->id.'/comments/'.$comment['id'].'/like')
+            ->assertOk()
+            ->assertJsonPath('data.liked', false)
+            ->assertJsonPath('data.likes_count', 0);
+
+        $this->assertSame(0, PostComment::query()->findOrFail($comment['id'])->likes_count);
+    }
+
+    public function test_comment_like_rejects_cross_post_comment(): void
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create();
+        $postA = $this->readyReel($owner);
+        $postB = $this->readyReel($owner);
+
+        $comment = $this->actingAs($viewer, 'api')
+            ->postJson('/api/v1/posts/'.$postA->id.'/comments', ['body' => 'On A'])
+            ->assertCreated()
+            ->json('data');
+
+        $this->actingAs($viewer, 'api')
+            ->postJson('/api/v1/posts/'.$postA->id.'/comments/'.$comment['id'].'/like')
+            ->assertOk()
+            ->assertJsonPath('data.liked', true)
+            ->assertJsonPath('data.likes_count', 1);
+
+        $this->actingAs($viewer, 'api')
+            ->postJson('/api/v1/posts/'.$postB->id.'/comments/'.$comment['id'].'/like')
+            ->assertNotFound();
+
+        $reply = $this->actingAs($viewer, 'api')
+            ->postJson('/api/v1/posts/'.$postA->id.'/comments', [
+                'body' => 'Reply',
+                'parent_id' => $comment['id'],
+            ])
+            ->assertCreated()
+            ->json('data');
+
+        $this->actingAs($viewer, 'api')
+            ->postJson('/api/v1/posts/'.$postA->id.'/comments/'.$reply['id'].'/like')
+            ->assertOk()
+            ->assertJsonPath('data.liked', true)
+            ->assertJsonPath('data.likes_count', 1);
+
+        $this->actingAs($viewer, 'api')
+            ->getJson('/api/v1/posts/'.$postA->id.'/comments/'.$comment['id'].'/replies')
+            ->assertOk()
+            ->assertJsonPath('data.items.0.id', $reply['id'])
+            ->assertJsonPath('data.items.0.liked', true)
+            ->assertJsonPath('data.items.0.likes_count', 1);
     }
 }

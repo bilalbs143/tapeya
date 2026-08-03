@@ -97,6 +97,7 @@ class PostController extends Controller
             (int) $request->user()->id,
             $request->query('cursor'),
             (int) $request->query('per_page', 10),
+            videosOnly: true,
         );
 
         return $this->cursorSuccess($paginator, $request);

@@ -162,6 +162,19 @@ export const feedApi = baseApi.injectEndpoints({
       ...cursorQueryOptions('FEED'),
     }),
 
+    /**
+     * Page-1 peek for Explore client-loop freshness.
+     * Isolated from getHomeFeed so it never replaces the scrolled cache.
+     */
+    peekHomeFeed: builder.query({
+      query: ({ perPage = FEED_LIST_ARG.perPage } = {}) => ({
+        url: '/feed',
+        params: { per_page: perPage },
+      }),
+      transformResponse: (response) => normalizeCursorPage(response?.data),
+      keepUnusedDataFor: 0,
+    }),
+
     getFollowingFeed: builder.query({
       query: ({ cursor, perPage = FEED_LIST_ARG.perPage } = {}) => ({
         url: '/feed/following',
@@ -172,6 +185,18 @@ export const feedApi = baseApi.injectEndpoints({
       }),
       transformResponse: (response) => normalizeCursorPage(response?.data),
       ...cursorQueryOptions('FOLLOWING'),
+    }),
+
+    getMineFeed: builder.query({
+      query: ({ cursor, perPage = FEED_LIST_ARG.perPage } = {}) => ({
+        url: '/feed/mine',
+        params: {
+          cursor: cursor || undefined,
+          per_page: perPage,
+        },
+      }),
+      transformResponse: (response) => normalizeCursorPage(response?.data),
+      ...cursorQueryOptions('MINE'),
     }),
 
     getSavedFeed: builder.query({
@@ -211,6 +236,7 @@ export const feedApi = baseApi.injectEndpoints({
       invalidatesTags: [
         { type: 'Post', id: 'FEED' },
         { type: 'Post', id: 'FOLLOWING' },
+        { type: 'Post', id: 'MINE' },
       ],
     }),
 
@@ -227,6 +253,7 @@ export const feedApi = baseApi.injectEndpoints({
       invalidatesTags: (_r, _e, { id }) => [
         { type: 'Post', id: 'FEED' },
         { type: 'Post', id: 'FOLLOWING' },
+        { type: 'Post', id: 'MINE' },
         { type: 'Post', id },
       ],
     }),
@@ -334,10 +361,13 @@ export const feedApi = baseApi.injectEndpoints({
 export const {
   useGetHomeFeedQuery,
   useGetFollowingFeedQuery,
+  useGetMineFeedQuery,
   useGetSavedFeedQuery,
   useLazyGetHomeFeedQuery,
   useLazyGetFollowingFeedQuery,
+  useLazyGetMineFeedQuery,
   useLazyGetSavedFeedQuery,
+  useLazyPeekHomeFeedQuery,
   useGetPostQuery,
   useCreatePostMutation,
   useRepostPostMutation,

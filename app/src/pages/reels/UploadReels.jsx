@@ -15,6 +15,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { getReelUploadSession, startReelUpload, useReelUploadSession } from '@/features/reels/reelUploadSessionStore';
+import { awaitReelPosterBriefly, extractReelPosterJpeg } from '@/lib/utils/extractReelPoster';
 import {
   formatReelMaxUploadLabel,
   probeReelVideoDuration,
@@ -65,6 +66,7 @@ export default function UploadReels() {
   const location = useLocation();
   const fileInputRef = useRef(null);
   const previewUrlRef = useRef(null);
+  const posterPromiseRef = useRef(/** @type {Promise<Blob|null>|null} */ (null));
   const seededFromComposeRef = useRef(false);
   const uploadSession = useReelUploadSession();
 
@@ -135,8 +137,13 @@ export default function UploadReels() {
     fileInputRef.current?.click();
   }, [isBusyPublishing, isValidatingFile]);
 
+  const beginSilentPosterExtract = useCallback((file) => {
+    posterPromiseRef.current = extractReelPosterJpeg(file).catch(() => null);
+  }, []);
+
   const clearVideo = useCallback(() => {
     revokePreviewUrl();
+    posterPromiseRef.current = null;
     setSelectedFile(null);
     setPreviewUrl(null);
   }, [revokePreviewUrl]);
@@ -168,12 +175,13 @@ export default function UploadReels() {
         previewUrlRef.current = nextUrl;
         setSelectedFile(file);
         setPreviewUrl(nextUrl);
+        beginSilentPosterExtract(file);
         setStep(STEPS.PREVIEW);
       } finally {
         setIsValidatingFile(false);
       }
     },
-    [isBusyPublishing, revokePreviewUrl, uploadLimits],
+    [beginSilentPosterExtract, isBusyPublishing, revokePreviewUrl, uploadLimits],
   );
 
   // Support legacy handoffs that included a File. The current compose flow
@@ -204,12 +212,13 @@ export default function UploadReels() {
         previewUrlRef.current = nextUrl;
         setSelectedFile(file);
         setPreviewUrl(nextUrl);
+        beginSilentPosterExtract(file);
         setStep(STEPS.PREVIEW);
       } finally {
         setIsValidatingFile(false);
       }
     })();
-  }, [location.state, revokePreviewUrl, uploadLimits]);
+  }, [beginSilentPosterExtract, location.state, revokePreviewUrl, uploadLimits]);
 
   const handleBackFromEmpty = useCallback(() => {
     navigate(-1);
@@ -268,6 +277,9 @@ export default function UploadReels() {
         // optional — server can probe during transcode
       }
 
+      const posterBlob = await awaitReelPosterBriefly(posterPromiseRef.current, 2000);
+      posterPromiseRef.current = null;
+
       // Hand ownership of the object URL to the session before navigating away.
       detachPreviewWithoutRevoke();
       setCaption('');
@@ -280,6 +292,7 @@ export default function UploadReels() {
         visibility: postVisibility,
         clientDurationMs,
         previewUrl: sessionPreviewUrl,
+        posterBlob,
         mutations: {
           createReel,
           uploadMedia,

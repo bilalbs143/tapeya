@@ -79,14 +79,12 @@ Route::get('highlights/{highlight}', [HighlightController::class, 'show']);
 /*
  * Posts spine — surface map
  * -------------------------
- * Identity / mixed feed:  GET feed, feed/following, feed/saved; GET|POST posts; GET|PATCH|DELETE posts/{post}; POST posts/{post}/repost
- * Video (reels) UX:       GET reels/feed*, reels/{post}; multipart under reels/{post}/upload/*
- * Engagement (any Post):  like|save|share|comments|views under reels/{post}/… (legacy path)
- *                         aliases under posts/{post}/… (preferred for feed clients)
- * Deferred: queue names reels-*, admin Angular /admin/posts*, Spatie group may still be "reels"
+ * Mixed feed:   GET feed*; GET|POST posts; GET|PATCH|DELETE posts/{post}; engagement under posts/{post}/…
+ * Video reels:  GET reels/feed*|reels/{post}; POST reels; multipart reels/{post}/upload/*; PATCH|DELETE reels/{post}
+ * Admin:        /admin/posts* only — see admin.php
  */
 
-// Reels — public explore feed + show; mutating routes require auth
+// Reels — video-only explore feed + show
 Route::get('reels/feed', [PostController::class, 'feed']);
 Route::get('reels/trending', [PostController::class, 'trending']);
 Route::get('reels/search', [PostController::class, 'search']);
@@ -97,10 +95,6 @@ Route::get('reels/feed/following', [PostController::class, 'following'])->middle
 Route::get('reels/{post}', [PostController::class, 'show']);
 Route::get('users/{user}/profile', [UserProfileController::class, 'show']);
 Route::get('users/{user}/reels', [PostController::class, 'forUser']);
-Route::get('reels/{post}/comments', [PostCommentController::class, 'index']);
-Route::get('reels/{post}/comments/{comment}/replies', [PostCommentController::class, 'replies']);
-Route::get('posts/{post}/comments', [PostCommentController::class, 'index']);
-Route::get('posts/{post}/comments/{comment}/replies', [PostCommentController::class, 'replies']);
 Route::get('hashtags/search', [HashtagController::class, 'search']);
 Route::get('hashtags/{name}/reels', [HashtagController::class, 'reels'])
     ->where('name', '[A-Za-z0-9_]+');
@@ -108,8 +102,11 @@ Route::get('hashtags/{name}/reels', [HashtagController::class, 'reels'])
 // Home mixed feed + posts surface
 Route::get('feed', [FeedController::class, 'explore']);
 Route::get('feed/following', [FeedController::class, 'following'])->middleware('auth:api');
+Route::get('feed/mine', [FeedController::class, 'mine'])->middleware('auth:api');
 Route::get('feed/saved', [FeedController::class, 'saved'])->middleware('auth:api');
 Route::get('posts/{post}', [FeedController::class, 'show']);
+Route::get('posts/{post}/comments', [PostCommentController::class, 'index']);
+Route::get('posts/{post}/comments/{comment}/replies', [PostCommentController::class, 'replies']);
 
 Route::get('hero-sliders', [HeroSliderController::class, 'index']);
 Route::get('system-settings', [SystemSettingController::class, 'index']);
@@ -270,40 +267,31 @@ Route::middleware('auth:api')->group(function () {
     Route::post('highlights/{highlight}/dislike', [HighlightController::class, 'dislike']);
     Route::post('highlights/{highlight}/share', [HighlightController::class, 'share']);
 
-    // Reels — create / update / delete / interactions
-    Route::post('reels', [PostController::class, 'store']);
+    // Posts — compose + engagement (any post type, including video)
     Route::post('posts', [FeedController::class, 'store']);
     Route::post('posts/{post}/repost', [FeedController::class, 'repost']);
-    Route::patch('reels/{post}', [PostController::class, 'update']);
-    Route::delete('reels/{post}', [PostController::class, 'destroy']);
     Route::patch('posts/{post}', [PostController::class, 'update']);
     Route::delete('posts/{post}', [PostController::class, 'destroy']);
-
-    Route::post('reels/{post}/upload/init', [PostMultipartController::class, 'initiate']);
-    Route::post('reels/{post}/upload/part', [PostMultipartController::class, 'part']);
-    Route::post('reels/{post}/upload/complete', [PostMultipartController::class, 'complete']);
-    Route::post('reels/{post}/upload/abort', [PostMultipartController::class, 'abort']);
-
-    Route::post('reels/{post}/like', [PostInteractionController::class, 'like']);
-    Route::delete('reels/{post}/like', [PostInteractionController::class, 'unlike']);
-    Route::post('reels/{post}/save', [PostInteractionController::class, 'save']);
-    Route::delete('reels/{post}/save', [PostInteractionController::class, 'unsave']);
-    Route::post('reels/{post}/share', [PostInteractionController::class, 'share']);
-    Route::post('reels/{post}/views', [PostViewController::class, 'store']);
-    // Feed-preferred aliases (same controllers / Post model)
     Route::post('posts/{post}/like', [PostInteractionController::class, 'like']);
     Route::delete('posts/{post}/like', [PostInteractionController::class, 'unlike']);
     Route::post('posts/{post}/save', [PostInteractionController::class, 'save']);
     Route::delete('posts/{post}/save', [PostInteractionController::class, 'unsave']);
     Route::post('posts/{post}/share', [PostInteractionController::class, 'share']);
-
-    Route::post('reels/{post}/report', [PostInteractionController::class, 'report']);
+    Route::post('posts/{post}/views', [PostViewController::class, 'store']);
     Route::post('posts/{post}/report', [PostInteractionController::class, 'report']);
-
-    Route::post('reels/{post}/comments', [PostCommentController::class, 'store']);
-    Route::delete('reels/{post}/comments/{comment}', [PostCommentController::class, 'destroy']);
     Route::post('posts/{post}/comments', [PostCommentController::class, 'store']);
     Route::delete('posts/{post}/comments/{comment}', [PostCommentController::class, 'destroy']);
+    Route::post('posts/{post}/comments/{comment}/like', [PostCommentController::class, 'like']);
+    Route::delete('posts/{post}/comments/{comment}/like', [PostCommentController::class, 'unlike']);
+
+    // Reels — video create / update / delete + multipart upload
+    Route::post('reels', [PostController::class, 'store']);
+    Route::patch('reels/{post}', [PostController::class, 'update']);
+    Route::delete('reels/{post}', [PostController::class, 'destroy']);
+    Route::post('reels/{post}/upload/init', [PostMultipartController::class, 'initiate']);
+    Route::post('reels/{post}/upload/part', [PostMultipartController::class, 'part']);
+    Route::post('reels/{post}/upload/complete', [PostMultipartController::class, 'complete']);
+    Route::post('reels/{post}/upload/abort', [PostMultipartController::class, 'abort']);
 
     Route::get('notifications', [NotificationController::class, 'index']);
     Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);

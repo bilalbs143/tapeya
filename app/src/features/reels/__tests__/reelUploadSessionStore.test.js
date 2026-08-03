@@ -37,6 +37,27 @@ describe('reelUploadSessionStore', () => {
     vi.useRealTimers();
   });
 
+  it('forwards posterBlob to publishReel', async () => {
+    publishReel.mockResolvedValue({ id: 9 });
+
+    const { startReelUpload } = await import('../reelUploadSessionStore');
+    const file = new File(['x'], 'a.mp4', { type: 'video/mp4' });
+    const posterBlob = new Blob(['p'], { type: 'image/jpeg' });
+    const mutations = { createReel: vi.fn() };
+
+    expect(startReelUpload({ file, mutations, previewUrl: null, posterBlob })).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(publishReel).toHaveBeenCalledWith(
+      mutations,
+      expect.objectContaining({
+        file,
+        posterBlob,
+      }),
+    );
+  });
+
   it('refuses a second upload while one is in flight', async () => {
     let resolvePublish;
     publishReel.mockImplementation(

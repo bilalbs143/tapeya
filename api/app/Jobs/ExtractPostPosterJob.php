@@ -11,7 +11,8 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Fast path: extract poster JPG before heavy transcode so profile grids light up early.
+ * Fast path: extract poster WebP before / alongside heavy transcode so grids light up early.
+ * When $forceRefine is true, overwrites a provisional client thumbnail after the original lands.
  */
 class ExtractPostPosterJob implements ShouldBeUnique, ShouldQueue
 {
@@ -28,7 +29,8 @@ class ExtractPostPosterJob implements ShouldBeUnique, ShouldQueue
     public int $uniqueFor = 300;
 
     public function __construct(
-        public int $postId
+        public int $postId,
+        public bool $forceRefine = false,
     ) {
         $this->afterCommit = true;
         $this->onQueue(config('posts.queues.poster', 'reels-poster'));
@@ -50,7 +52,7 @@ class ExtractPostPosterJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        if ($post->videoRaw('thumbnail_path')) {
+        if (! $this->forceRefine && $post->videoRaw('thumbnail_path')) {
             return;
         }
 
@@ -58,7 +60,7 @@ class ExtractPostPosterJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        $posters->extractAndStore($post);
+        $posters->extractAndStore($post, $this->forceRefine);
     }
 
     public function failed(?\Throwable $exception): void

@@ -60,6 +60,13 @@ class PushNotificationTemplateSeeder extends Seeder
                 'available_variables' => ['actor_name', 'post_id', 'comment_id', 'parent_id', 'deep_link', 'actor_id'],
             ],
             [
+                'key' => 'post_comment_liked',
+                'name' => 'Post Comment Liked',
+                'title_template' => 'New like',
+                'body_template' => '{{actor_name}} liked your comment',
+                'available_variables' => ['actor_name', 'post_id', 'comment_id', 'deep_link', 'actor_id'],
+            ],
+            [
                 'key' => 'post_mentioned',
                 'name' => 'Post Mention',
                 'title_template' => 'You were mentioned',

@@ -112,6 +112,7 @@ function routeFromPushData(navigate, data) {
     case 'post_liked':
     case 'post_commented':
     case 'post_comment_reply':
+    case 'post_comment_liked':
     case 'post_mentioned':
     case 'post_reposted':
     case 'post_published':

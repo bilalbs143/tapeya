@@ -11,6 +11,7 @@ use App\Models\PushNotificationLog;
 use App\Models\User;
 use App\Models\UserFollow;
 use App\Notifications\PostCommentedUserNotification;
+use App\Notifications\PostCommentLikedUserNotification;
 use App\Notifications\PostCommentReplyUserNotification;
 use App\Notifications\PostLikedUserNotification;
 use App\Notifications\PostMentionedUserNotification;
@@ -82,7 +83,7 @@ class PostEngagementNotificationTest extends TestCase
         $reel = $this->readyReel($owner);
 
         $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/reels/'.$reel->id.'/like')
+            ->postJson('/api/v1/posts/'.$reel->id.'/like')
             ->assertOk();
 
         Notification::assertSentTo($owner, PostLikedUserNotification::class, function ($notification) use ($reel, $viewer) {
@@ -105,7 +106,7 @@ class PostEngagementNotificationTest extends TestCase
         $reel = $this->readyReel($owner);
 
         $this->actingAs($owner, 'api')
-            ->postJson('/api/v1/reels/'.$reel->id.'/like')
+            ->postJson('/api/v1/posts/'.$reel->id.'/like')
             ->assertOk();
 
         Notification::assertNothingSent();
@@ -121,7 +122,7 @@ class PostEngagementNotificationTest extends TestCase
         $reel = $this->readyReel($owner);
 
         $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/reels/'.$reel->id.'/comments', [
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments', [
                 'body' => 'Nice one @star_player',
             ])
             ->assertCreated();
@@ -279,7 +280,7 @@ class PostEngagementNotificationTest extends TestCase
         $reel = $this->readyReel($owner);
 
         $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/reels/'.$reel->id.'/comments', [
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments', [
                 'body' => 'Great @owner_nick',
             ])
             ->assertCreated();
@@ -298,7 +299,7 @@ class PostEngagementNotificationTest extends TestCase
         $reel = $this->readyReel($owner);
 
         $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/reels/'.$reel->id.'/comments', [
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments', [
                 'body' => 'mail me at user@gmail.com',
             ])
             ->assertCreated();
@@ -317,7 +318,7 @@ class PostEngagementNotificationTest extends TestCase
         $reel = $this->readyReel($owner);
 
         $top = $this->actingAs($commenter, 'api')
-            ->postJson('/api/v1/reels/'.$reel->id.'/comments', ['body' => 'First'])
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments', ['body' => 'First'])
             ->assertCreated()
             ->json('data');
 
@@ -325,7 +326,7 @@ class PostEngagementNotificationTest extends TestCase
         Notification::fake();
 
         $this->actingAs($replier, 'api')
-            ->postJson('/api/v1/reels/'.$reel->id.'/comments', [
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments', [
                 'body' => 'Second',
                 'parent_id' => $top['id'],
             ])
@@ -399,7 +400,126 @@ class PostEngagementNotificationTest extends TestCase
         $this->app->instance(PushNotificationService::class, $push);
 
         $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/reels/'.$reel->id.'/like')
+            ->postJson('/api/v1/posts/'.$reel->id.'/like')
+            ->assertOk();
+    }
+
+    public function test_comment_like_notifies_comment_author_not_post_owner(): void
+    {
+        Notification::fake();
+
+        $owner = $this->activeUser(['name' => 'Owner']);
+        $commenter = $this->activeUser(['name' => 'Commenter']);
+        $liker = $this->activeUser(['name' => 'Liker']);
+        $reel = $this->readyReel($owner);
+
+        $comment = $this->actingAs($commenter, 'api')
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments', ['body' => 'Like this'])
+            ->assertCreated()
+            ->json('data');
+
+        Notification::fake();
+
+        $this->actingAs($liker, 'api')
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments/'.$comment['id'].'/like')
+            ->assertOk();
+
+        Notification::assertSentTo($commenter, PostCommentLikedUserNotification::class, function ($notification) use ($reel, $comment, $liker, $commenter) {
+            $data = $notification->toArray($commenter);
+
+            return $data['type'] === 'post_comment_liked'
+                && $data['post_id'] === $reel->id
+                && $data['comment_id'] === $comment['id']
+                && $data['deep_link'] === PostPaths::deepLink($reel->id)
+                && $data['actor_id'] === $liker->id;
+        });
+
+        Notification::assertNotSentTo($owner, PostCommentLikedUserNotification::class);
+        Notification::assertNotSentTo($liker, PostCommentLikedUserNotification::class);
+    }
+
+    public function test_self_comment_like_does_not_notify(): void
+    {
+        Notification::fake();
+
+        $owner = $this->activeUser();
+        $commenter = $this->activeUser();
+        $reel = $this->readyReel($owner);
+
+        $comment = $this->actingAs($commenter, 'api')
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments', ['body' => 'Mine'])
+            ->assertCreated()
+            ->json('data');
+
+        Notification::fake();
+
+        $this->actingAs($commenter, 'api')
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments/'.$comment['id'].'/like')
+            ->assertOk();
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_comment_re_like_does_not_notify_again(): void
+    {
+        Notification::fake();
+
+        $owner = $this->activeUser();
+        $commenter = $this->activeUser();
+        $liker = $this->activeUser();
+        $reel = $this->readyReel($owner);
+
+        $comment = $this->actingAs($commenter, 'api')
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments', ['body' => 'Once'])
+            ->assertCreated()
+            ->json('data');
+
+        Notification::fake();
+
+        $this->actingAs($liker, 'api')
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments/'.$comment['id'].'/like')
+            ->assertOk();
+
+        Notification::assertSentTo($commenter, PostCommentLikedUserNotification::class);
+        Notification::fake();
+
+        $this->actingAs($liker, 'api')
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments/'.$comment['id'].'/like')
+            ->assertOk();
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_comment_like_dispatches_push_to_comment_author(): void
+    {
+        Notification::fake();
+
+        $owner = $this->activeUser();
+        $commenter = $this->activeUser();
+        $liker = $this->activeUser();
+        $reel = $this->readyReel($owner);
+
+        $comment = $this->actingAs($commenter, 'api')
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments', ['body' => 'Push me'])
+            ->assertCreated()
+            ->json('data');
+
+        $push = Mockery::mock(PushNotificationService::class);
+        $push->shouldReceive('dispatch')
+            ->once()
+            ->withArgs(function (NotificationEventEnum $event, array $data, ?int $userId) use ($reel, $comment, $commenter, $liker) {
+                return $event === NotificationEventEnum::POST_COMMENT_LIKED
+                    && $data['post_id'] === $reel->id
+                    && $data['comment_id'] === $comment['id']
+                    && $data['deep_link'] === PostPaths::deepLink($reel->id)
+                    && $data['actor_id'] === $liker->id
+                    && $userId === $commenter->id;
+            })
+            ->andReturn(Mockery::mock(PushNotificationLog::class));
+        $this->app->instance(PushNotificationService::class, $push);
+
+        $this->actingAs($liker, 'api')
+            ->postJson('/api/v1/posts/'.$reel->id.'/comments/'.$comment['id'].'/like')
             ->assertOk();
     }
 

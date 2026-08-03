@@ -172,6 +172,7 @@ class PostE2ECompletionTest extends TestCase
 
         Queue::assertPushed(ExtractPostPosterJob::class, function ($job) use ($reel) {
             return $job->postId === $reel->id
+                && $job->forceRefine === true
                 && $job->queue === config('posts.queues.poster');
         });
         Queue::assertPushed(ProcessPostVideoJob::class, function ($job) use ($reel) {

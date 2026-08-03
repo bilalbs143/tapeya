@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Notifications\OrderPlacedUserNotification;
 use App\Notifications\OrderStatusUpdatedUserNotification;
 use App\Notifications\PostCommentedUserNotification;
+use App\Notifications\PostCommentLikedUserNotification;
 use App\Notifications\PostCommentReplyUserNotification;
 use App\Notifications\PostLikedUserNotification;
 use App\Notifications\PostMentionedUserNotification;
@@ -45,6 +46,7 @@ final class ResolveUserNotificationBroadcast
             PostLikedUserNotification::class,
             PostCommentedUserNotification::class,
             PostCommentReplyUserNotification::class,
+            PostCommentLikedUserNotification::class,
             PostMentionedUserNotification::class,
             PostRepostedUserNotification::class,
             PostPublishedFollowerNotification::class,

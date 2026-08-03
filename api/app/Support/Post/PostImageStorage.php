@@ -14,8 +14,11 @@ final class PostImageStorage
     /**
      * @return array{path: string, mime: string, width: int|null, height: int|null, size_bytes: int|null}
      */
-    public static function storeFromUpload(UploadedFile $file, int|string $postKey): array
-    {
+    public static function storeFromUpload(
+        UploadedFile $file,
+        int|string $postKey,
+        string $directory = 'posts/images',
+    ): array {
         $uuid = (string) Str::uuid();
         $tmpOriginal = tempnam(sys_get_temp_dir(), 'postimg_');
         if ($tmpOriginal === false) {
@@ -34,7 +37,12 @@ final class PostImageStorage
                 throw new \RuntimeException('Could not encode image as WebP.');
             }
 
-            $path = 'posts/images/'.$postKey.'/'.$uuid.'.webp';
+            $directory = trim($directory, '/');
+            if ($directory === '') {
+                $directory = 'posts/images';
+            }
+
+            $path = $directory.'/'.$postKey.'/'.$uuid.'.webp';
             MediaDisk::put($path, $encoded['bytes'], [
                 'ContentType' => 'image/webp',
             ]);

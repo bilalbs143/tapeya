@@ -25,4 +25,16 @@ class PostImageStorageTest extends TestCase
 
         Storage::disk(MediaDisk::name())->assertExists($stored['path']);
     }
+
+    public function test_store_from_upload_honors_custom_directory(): void
+    {
+        Storage::fake(MediaDisk::name());
+
+        $file = UploadedFile::fake()->image('poster.jpg', 640, 360);
+        $stored = PostImageStorage::storeFromUpload($file, 99, 'posts/videos/thumbs');
+
+        $this->assertStringStartsWith('posts/videos/thumbs/99/', $stored['path']);
+        $this->assertStringEndsWith('.webp', $stored['path']);
+        Storage::disk(MediaDisk::name())->assertExists($stored['path']);
+    }
 }

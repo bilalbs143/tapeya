@@ -147,7 +147,7 @@ export default function ActivityFeedDetail() {
     <div className="min-h-full bg-black text-white">
       <AppSubpageHeader sticky title="ACTIVITY FEED" />
 
-      <Container className="pb-24">
+      <Container className="pb-2">
         <div className="-mx-4 flex flex-col gap-0.5 bg-black">
           <article className="bg-surface overflow-hidden shadow-[0_1px_0_0_rgba(255,255,255,0.06)_inset,0_20px_40px_-24px_rgba(0,0,0,0.8)]">
             <header className="flex items-center gap-2 px-4 pt-3.5">

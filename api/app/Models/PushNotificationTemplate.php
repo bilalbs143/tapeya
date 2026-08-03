@@ -90,6 +90,12 @@ class PushNotificationTemplate extends BaseModel
                 'parent_id' => '7',
                 'deep_link' => '/reels/42',
             ],
+            'post_comment_liked' => [
+                'actor_name' => 'Alex',
+                'post_id' => '42',
+                'comment_id' => '7',
+                'deep_link' => '/reels/42',
+            ],
             'post_mentioned' => [
                 'actor_name' => 'Alex',
                 'post_id' => '42',

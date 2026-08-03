@@ -116,6 +116,7 @@ function isCurrentGeneration(generation) {
  *   visibility?: string,
  *   clientDurationMs?: number,
  *   previewUrl?: string | null,
+ *   posterBlob?: Blob | File | null,
  *   mutations: {
  *     createReel: Function,
  *     uploadMedia: Function,
@@ -132,7 +133,7 @@ export function startReelUpload(opts) {
     return false;
   }
 
-  const { file, caption, visibility, clientDurationMs, previewUrl, mutations } = opts;
+  const { file, caption, visibility, clientDurationMs, previewUrl, posterBlob, mutations } = opts;
   if (!file || !mutations?.createReel) {
     return false;
   }
@@ -161,6 +162,7 @@ export function startReelUpload(opts) {
         caption,
         visibility,
         clientDurationMs,
+        posterBlob: posterBlob || null,
         onProgress: ({ stage, percent }) => {
           if (!isCurrentGeneration(generation) || session.status !== 'uploading') return;
           setSession({

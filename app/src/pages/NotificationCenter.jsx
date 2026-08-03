@@ -3,56 +3,66 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { isSafeNotificationNavigatePath, normalizeAppPath } from '@/lib/deepLinks/deepLinkRegistry';
 import { formatRelativeDate } from '@/lib/utils/dateUtils';
 import { getInitials } from '@/lib/utils/displayUtils';
-import { useGetNotificationsQuery, useMarkAllNotificationsReadMutation } from '@/store/api/notificationApi';
+import {
+  useGetNotificationsQuery,
+  useMarkAllNotificationsReadMutation,
+  useMarkNotificationReadMutation,
+} from '@/store/api/notificationApi';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 import { Container } from '@/ui/Container';
 
 const PAGE_SIZE = 10;
+const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
-const ChevronDown = () => (
-  <svg
-    className="text-muted h-4 w-4"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M6 9l6 6 6-6" />
-  </svg>
-);
+function startOfLocalDay(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+function dayGroupLabel(createdAt) {
+  if (!createdAt) return 'Earlier';
+  const t = startOfLocalDay(createdAt);
+  const today = startOfLocalDay(new Date());
+  const yesterday = today - 24 * 60 * 60 * 1000;
+  if (t === today) return 'Today';
+  if (t === yesterday) return 'Yesterday';
+  return 'Earlier';
+}
 
 /**
  * Maps a raw API notification to the shape expected by NotificationCard.
- * Message format expected: "Bold label: remaining detail text"
+ * Message format expected: "Kind: detail text" → detail as body, kind next to time.
  */
 function mapApiNotificationToCard(notification) {
   if (!notification) return null;
 
   const data = notification.data || {};
-  const rawMessage = typeof data.message === 'string' ? data.message : '';
+  const rawMessage = typeof data.message === 'string' ? data.message.trim() : '';
+  const type = notification.type || data.type || null;
 
-  let boldText = 'Notification';
-  let regularText = '';
+  let message = rawMessage || 'Notification';
+  let kind = null;
 
-  if (rawMessage) {
-    const [firstPart, ...rest] = rawMessage.split(':');
-    boldText = firstPart || boldText;
-    const tail = rest.join(':');
-    regularText = tail ? `: ${tail}` : '';
+  const colon = rawMessage.indexOf(':');
+  if (colon > 0) {
+    kind = rawMessage.slice(0, colon).trim() || null;
+    const detail = rawMessage.slice(colon + 1).trim();
+    if (detail) message = detail;
   }
 
   const nameSource = data.actor_name || data.customer_name || data.user_name || data.tournament_name || '';
-  const fallback = nameSource ? getInitials(nameSource) : 'NT';
+  const fallback = nameSource ? getInitials(nameSource) : 'N';
+  const avatar = data.actor_avatar_url || data.avatar_url || null;
 
   let href = null;
   if (typeof data.deep_link === 'string' && data.deep_link) {
     const path = normalizeAppPath(data.deep_link);
-    if (isSafeNotificationNavigatePath(path)) {
+    if (isSafeNotificationNavigatePath(path) && path !== '/notification-center') {
       href = path;
     }
   } else if (data.order_id) {
@@ -60,73 +70,98 @@ function mapApiNotificationToCard(notification) {
     if (isSafeNotificationNavigatePath(path)) {
       href = path;
     }
+  } else if (data.actor_id && type === 'user_followed') {
+    href = `/reels/u/${data.actor_id}`;
   }
 
   return {
     id: notification.id,
-    avatar: null,
+    type,
+    avatar,
     fallback,
-    boldText,
-    regularText,
+    message,
+    kind,
     createdAt: notification.created_at ?? null,
     timestamp: notification.created_at ? formatRelativeDate(notification.created_at) : '',
-    // actionLabel is reserved for future use
-    actionLabel: null,
     unread: !notification.read_at,
     href,
   };
 }
 
-function NotificationCard({ notification, onActionClick, onNavigate }) {
-  const { avatar, fallback, boldText, regularText, timestamp, actionLabel, unread, href } = notification;
+function groupNotifications(notifications) {
+  /** @type {Array<{ label: string, items: typeof notifications }>} */
+  const groups = [];
+  const indexByLabel = new Map();
 
-  const interactive = Boolean(href && onNavigate);
+  notifications.forEach((item) => {
+    const label = dayGroupLabel(item.createdAt);
+    let group = indexByLabel.get(label);
+    if (!group) {
+      group = { label, items: [] };
+      indexByLabel.set(label, group);
+      groups.push(group);
+    }
+    group.items.push(item);
+  });
+
+  return groups;
+}
+
+function NotificationSkeleton() {
+  return (
+    <ul className="flex flex-col gap-1.5" aria-hidden>
+      {Array.from({ length: 5 }, (_, i) => (
+        <li key={i} className="bg-surface/70 flex animate-pulse items-center gap-2.5 rounded-xl px-2.5 py-2">
+          <div className="h-9 w-9 shrink-0 rounded-full bg-white/8" />
+          <div className="min-w-0 flex-1 space-y-1.5">
+            <div className="h-2.5 w-[78%] rounded bg-white/8" />
+            <div className="h-2.5 w-[34%] rounded bg-white/6" />
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function NotificationCard({ notification, onOpen }) {
+  const { avatar, fallback, message, kind, timestamp, unread } = notification;
+  const interactive = Boolean(onOpen);
 
   return (
     <article
-      className={`bg-surface flex items-start gap-3 rounded-[17px] p-4${interactive ? 'cursor-pointer transition-opacity active:opacity-90' : ''}`}
+      className={`bg-surface flex items-center gap-2.5 rounded-xl px-2.5 py-2 transition-colors ${
+        interactive ? 'cursor-pointer active:bg-white/5' : ''
+      }`}
       role={interactive ? 'button' : undefined}
       tabIndex={interactive ? 0 : undefined}
-      onClick={interactive ? () => onNavigate(href) : undefined}
+      aria-label={`${message}${unread ? ', unread' : ''}`}
+      onClick={interactive ? () => onOpen(notification) : undefined}
       onKeyDown={
         interactive
           ? (event) => {
               if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault();
-                onNavigate(href);
+                onOpen(notification);
               }
             }
           : undefined
       }
     >
-      <Avatar className="h-12 w-12 shrink-0 rounded-full bg-[#252520]">
-        {avatar && <AvatarImage src={avatar} alt="" />}
-        <AvatarFallback className="bg-[#252520] text-sm font-semibold text-[#141412]">{fallback}</AvatarFallback>
+      <Avatar className="h-9 w-9 shrink-0 rounded-full bg-white/8">
+        <AvatarImage src={avatar || defaultAvatar} alt="" className="object-cover" />
+        <AvatarFallback className="bg-white/10 text-[11px] font-semibold text-white/80">{fallback}</AvatarFallback>
       </Avatar>
+
       <div className="min-w-0 flex-1">
-        <p className="text-[12px] leading-snug text-white">
-          <span className="font-bold">{boldText}</span>
-          <span className="font-normal">{regularText}</span>
+        <p className="text-[12px] leading-[1.35] text-white/90">{message}</p>
+        <p className="text-muted mt-0.5 text-[10px]">
+          {timestamp}
+          {kind ? <span aria-hidden> · </span> : null}
+          {kind ? <span className="text-brand">{kind}</span> : null}
         </p>
-        <p className="text-muted mt-1 text-[12px]">{timestamp}</p>
       </div>
-      {(actionLabel || unread) && (
-        <div className="flex shrink-0 items-center gap-2">
-          {actionLabel && onActionClick && (
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onActionClick(notification);
-              }}
-              className="border-brand text-brand rounded-[6px] border bg-transparent px-3 py-1 text-[13px] font-bold transition-opacity active:opacity-90"
-            >
-              {actionLabel}
-            </button>
-          )}
-          {unread && <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#4CAF50]" aria-hidden />}
-        </div>
-      )}
+
+      {unread ? <span className="bg-brand h-1.5 w-1.5 shrink-0 rounded-full" aria-hidden /> : null}
     </article>
   );
 }
@@ -142,12 +177,14 @@ export default function NotificationCenter() {
     isLoading,
     isFetching,
     isError,
+    refetch,
   } = useGetNotificationsQuery({
     page,
     per_page: PAGE_SIZE,
   });
 
   const [markAllNotificationsRead, { isLoading: isMarkingAll }] = useMarkAllNotificationsReadMutation();
+  const [markNotificationRead] = useMarkNotificationReadMutation();
 
   // Merge incoming page data into `items`, deduplicating by id.
   // Page 1 refetches update the top of the list without discarding loaded pages.
@@ -178,6 +215,8 @@ export default function NotificationCenter() {
     [items],
   );
 
+  const groups = useMemo(() => groupNotifications(notifications), [notifications]);
+  const unreadCount = useMemo(() => notifications.filter((n) => n.unread).length, [notifications]);
   const hasMoreOlder = (apiResponse?.meta?.current_page ?? 0) < (apiResponse?.meta?.last_page ?? 0);
 
   const loadOlder = () => {
@@ -185,72 +224,144 @@ export default function NotificationCenter() {
     setPage((prev) => prev + 1);
   };
 
+  const markLocalRead = (id) => {
+    const now = new Date().toISOString();
+    setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read_at: n.read_at || now } : n)));
+  };
+
+  const handleOpen = async (notification) => {
+    if (notification.unread) {
+      markLocalRead(notification.id);
+      try {
+        await markNotificationRead(notification.id).unwrap();
+      } catch {
+        // Keep optimistic read; list tag invalidation can reconcile later.
+      }
+    }
+    if (notification.href) {
+      navigate(notification.href);
+    }
+  };
+
   const handleMarkAllAsRead = async () => {
+    if (unreadCount === 0 || isMarkingAll) return;
     setMarkAllError(false);
     try {
       await markAllNotificationsRead().unwrap();
       const now = new Date().toISOString();
       setItems((prev) => prev.map((n) => ({ ...n, read_at: n.read_at || now })));
-    } catch (err) {
-      console.error('Failed to mark notifications as read:', err);
+    } catch {
       setMarkAllError(true);
     }
   };
 
   return (
-    <div className="bg-black">
-      <AppSubpageHeader sticky title="NOTIFICATION CENTER" />
+    <div className="min-h-full bg-black">
+      <AppSubpageHeader sticky title="Notifications" titleClassName="normal-case" />
 
-      <Container>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-muted text-[13px] font-bold tracking-wide uppercase">LATEST</h2>
-          {notifications.length > 0 && (
+      <Container className="pb-5">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <p className="text-muted text-[11px]">
+            {isLoading && items.length === 0
+              ? 'Loading…'
+              : unreadCount > 0
+                ? `${unreadCount} unread`
+                : notifications.length > 0
+                  ? 'You’re all caught up'
+                  : 'Inbox'}
+          </p>
+          {unreadCount > 0 ? (
             <button
               type="button"
               onClick={handleMarkAllAsRead}
               disabled={isMarkingAll}
-              className="text-brand text-[12px] font-normal underline transition-opacity active:opacity-90"
+              className="text-brand shrink-0 text-[11px] font-semibold transition-opacity active:opacity-80 disabled:opacity-50"
             >
-              {isMarkingAll ? 'Marking…' : 'Mark all as read'}
+              {isMarkingAll ? 'Marking…' : 'Mark all read'}
             </button>
-          )}
+          ) : null}
         </div>
 
-        {isLoading && <p className="text-muted mb-3 text-[12px]">Loading notifications…</p>}
-
         {(isError || markAllError) && (
-          <p className="text-brand mb-3 text-[12px]">
-            {isError
-              ? 'Failed to load notifications. Please try again.'
-              : 'Failed to mark notifications as read. Please try again.'}
-          </p>
+          <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-red-400/20 bg-red-400/10 px-3 py-2">
+            <p className="text-[11px] text-red-300">{isError ? 'Couldn’t load notifications.' : 'Couldn’t mark all as read.'}</p>
+            {isError ? (
+              <button type="button" onClick={() => refetch()} className="text-[11px] font-semibold text-white underline">
+                Retry
+              </button>
+            ) : null}
+          </div>
         )}
 
-        {notifications.length > 0 ? (
-          <ul className="flex flex-col gap-3" aria-label="Notifications">
-            {notifications.map((notification) => (
-              <li key={notification.id}>
-                <NotificationCard notification={notification} onNavigate={(path) => navigate(path)} />
-              </li>
+        {isLoading && items.length === 0 ? <NotificationSkeleton /> : null}
+
+        {!isLoading && notifications.length === 0 && !isError ? (
+          <div className="flex flex-col items-center px-4 py-10 text-center">
+            <div className="mb-3 grid h-11 w-11 place-items-center rounded-full bg-white/6 ring-1 ring-white/10">
+              <svg
+                className="text-muted h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                aria-hidden
+              >
+                <path
+                  d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <p className="text-[14px] font-semibold text-white">No notifications yet</p>
+            <p className="text-muted mt-1 max-w-[16rem] text-[12px] leading-relaxed">
+              Likes, comments, follows, and order updates will show up here.
+            </p>
+          </div>
+        ) : null}
+
+        {groups.length > 0 ? (
+          <div className="flex flex-col gap-3.5" aria-label="Notifications">
+            {groups.map((group) => (
+              <section key={group.label} aria-labelledby={`notif-group-${group.label}`}>
+                <h2
+                  id={`notif-group-${group.label}`}
+                  className="text-muted mb-1.5 px-0.5 text-[10px] font-bold tracking-wide uppercase"
+                >
+                  {group.label}
+                </h2>
+                <ul className="flex flex-col gap-1.5">
+                  {group.items.map((notification) => (
+                    <li key={notification.id}>
+                      <NotificationCard
+                        notification={notification}
+                        onOpen={notification.href || notification.unread ? handleOpen : undefined}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </section>
             ))}
-          </ul>
-        ) : (
-          !isLoading && <p className="text-muted text-[12px]">You have no notifications yet.</p>
-        )}
+          </div>
+        ) : null}
 
-        {hasMoreOlder && (
-          <div className="mt-6 flex flex-col items-center pb-4">
+        {hasMoreOlder ? (
+          <div className="mt-4 flex justify-center">
             <button
               type="button"
               onClick={loadOlder}
               disabled={isFetching}
-              className="text-muted text-[12px] font-normal transition-opacity active:opacity-90 disabled:opacity-60"
+              className="text-muted inline-flex items-center gap-1 rounded-full border border-white/10 px-3 py-1.5 text-[11px] font-semibold transition-colors hover:text-white disabled:opacity-50"
             >
-              {isFetching ? 'Loading…' : 'View Older'}
+              {isFetching ? 'Loading…' : 'View older'}
+              {!isFetching ? (
+                <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                  <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              ) : null}
             </button>
-            <ChevronDown />
           </div>
-        )}
+        ) : null}
       </Container>
     </div>
   );

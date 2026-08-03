@@ -390,7 +390,7 @@ export const reelsApi = baseApi.injectEndpoints({
 
     likeReel: builder.mutation({
       query: (id) => ({
-        url: `/reels/${id}/like`,
+        url: `/posts/${id}/like`,
         method: 'POST',
       }),
       invalidatesTags: [{ type: 'Reel', id: 'LIKED' }],
@@ -410,7 +410,7 @@ export const reelsApi = baseApi.injectEndpoints({
 
     unlikeReel: builder.mutation({
       query: (id) => ({
-        url: `/reels/${id}/like`,
+        url: `/posts/${id}/like`,
         method: 'DELETE',
       }),
       invalidatesTags: [{ type: 'Reel', id: 'LIKED' }],
@@ -430,7 +430,7 @@ export const reelsApi = baseApi.injectEndpoints({
 
     saveReel: builder.mutation({
       query: (id) => ({
-        url: `/reels/${id}/save`,
+        url: `/posts/${id}/save`,
         method: 'POST',
       }),
       invalidatesTags: [{ type: 'Reel', id: 'SAVED' }],
@@ -450,7 +450,7 @@ export const reelsApi = baseApi.injectEndpoints({
 
     unsaveReel: builder.mutation({
       query: (id) => ({
-        url: `/reels/${id}/save`,
+        url: `/posts/${id}/save`,
         method: 'DELETE',
       }),
       invalidatesTags: [{ type: 'Reel', id: 'SAVED' }],
@@ -470,7 +470,7 @@ export const reelsApi = baseApi.injectEndpoints({
 
     shareReel: builder.mutation({
       query: ({ id, channel = 'copy_link' }) => ({
-        url: `/reels/${id}/share`,
+        url: `/posts/${id}/share`,
         method: 'POST',
         body: { channel },
       }),
@@ -520,7 +520,7 @@ export const reelsApi = baseApi.injectEndpoints({
 
     reportReel: builder.mutation({
       query: ({ id, reason, details }) => ({
-        url: `/reels/${id}/report`,
+        url: `/posts/${id}/report`,
         method: 'POST',
         body: { reason, details },
       }),
@@ -528,7 +528,7 @@ export const reelsApi = baseApi.injectEndpoints({
 
     getReelComments: builder.query({
       query: ({ reelId, page = 1, perPage = 20 }) => ({
-        url: `/reels/${reelId}/comments`,
+        url: `/posts/${reelId}/comments`,
         params: { page, per_page: perPage },
       }),
       transformResponse: (response) => ({
@@ -542,7 +542,7 @@ export const reelsApi = baseApi.injectEndpoints({
 
     getReelCommentReplies: builder.query({
       query: ({ reelId, commentId, page = 1, perPage = 20 }) => ({
-        url: `/reels/${reelId}/comments/${commentId}/replies`,
+        url: `/posts/${reelId}/comments/${commentId}/replies`,
         params: { page, per_page: perPage },
       }),
       transformResponse: (response) => ({
@@ -558,7 +558,7 @@ export const reelsApi = baseApi.injectEndpoints({
 
     addReelComment: builder.mutation({
       query: ({ reelId, body, parentId }) => ({
-        url: `/reels/${reelId}/comments`,
+        url: `/posts/${reelId}/comments`,
         method: 'POST',
         body: { body, parent_id: parentId || undefined },
       }),
@@ -583,7 +583,7 @@ export const reelsApi = baseApi.injectEndpoints({
 
     deleteReelComment: builder.mutation({
       query: ({ reelId, commentId }) => ({
-        url: `/reels/${reelId}/comments/${commentId}`,
+        url: `/posts/${reelId}/comments/${commentId}`,
         method: 'DELETE',
       }),
       invalidatesTags: (_r, _e, arg) => [
@@ -602,9 +602,47 @@ export const reelsApi = baseApi.injectEndpoints({
       },
     }),
 
+    likeReelComment: builder.mutation({
+      query: ({ reelId, commentId }) => ({
+        url: `/posts/${reelId}/comments/${commentId}/like`,
+        method: 'POST',
+      }),
+      async onQueryStarted({ reelId, commentId }, { dispatch, getState, queryFulfilled }) {
+        const patches = optimisticCommentLikePatches(dispatch, getState, reelId, commentId, true);
+        try {
+          const { data } = await queryFulfilled;
+          const likes = data?.data?.likes_count;
+          if (likes != null) {
+            syncCommentLikePatches(dispatch, getState, reelId, commentId, true, likes);
+          }
+        } catch {
+          patches.forEach((p) => p.undo());
+        }
+      },
+    }),
+
+    unlikeReelComment: builder.mutation({
+      query: ({ reelId, commentId }) => ({
+        url: `/posts/${reelId}/comments/${commentId}/like`,
+        method: 'DELETE',
+      }),
+      async onQueryStarted({ reelId, commentId }, { dispatch, getState, queryFulfilled }) {
+        const patches = optimisticCommentLikePatches(dispatch, getState, reelId, commentId, false);
+        try {
+          const { data } = await queryFulfilled;
+          const likes = data?.data?.likes_count;
+          if (likes != null) {
+            syncCommentLikePatches(dispatch, getState, reelId, commentId, false, likes);
+          }
+        } catch {
+          patches.forEach((p) => p.undo());
+        }
+      },
+    }),
+
     recordReelView: builder.mutation({
       query: ({ id, watched_ms, completion_rate }) => ({
-        url: `/reels/${id}/views`,
+        url: `/posts/${id}/views`,
         method: 'POST',
         body: { watched_ms, completion_rate },
       }),
@@ -668,7 +706,8 @@ function normalizeComment(raw) {
     reelId: raw.post_id ?? raw.reel_id ?? null,
     parentId: raw.parent_id ?? null,
     body: raw.body ?? '',
-    likesCount: raw.likes_count ?? 0,
+    likesCount: Number(raw.likes_count ?? 0),
+    liked: Boolean(raw.liked),
     isPinned: Boolean(raw.is_pinned),
     repliesCount: raw.replies_count ?? 0,
     user: {
@@ -684,6 +723,49 @@ function normalizeComment(raw) {
 
 function sameId(a, b) {
   return a != null && b != null && String(a) === String(b);
+}
+
+function patchCommentCaches(dispatch, getState, reelId, commentId, updater) {
+  const patches = [];
+  const queries = getState()?.api?.queries ?? {};
+
+  Object.values(queries).forEach((entry) => {
+    if (!entry?.data?.items || !Array.isArray(entry.data.items)) return;
+    if (entry.endpointName !== 'getReelComments' && entry.endpointName !== 'getReelCommentReplies') {
+      return;
+    }
+    if (!sameId(entry.originalArgs?.reelId, reelId)) return;
+
+    patches.push(
+      safeUpdateQueryData(dispatch, entry.endpointName, entry.originalArgs, (draft) => {
+        if (!draft?.items) return;
+        const idx = draft.items.findIndex((c) => sameId(c.id, commentId));
+        if (idx >= 0) {
+          draft.items[idx] = updater(draft.items[idx]);
+        }
+      }),
+    );
+  });
+
+  return patches;
+}
+
+function optimisticCommentLikePatches(dispatch, getState, reelId, commentId, liked) {
+  return patchCommentCaches(dispatch, getState, reelId, commentId, (comment) => ({
+    ...comment,
+    liked,
+    likesCount: liked
+      ? Math.max(0, (comment.likesCount ?? 0) + (comment.liked ? 0 : 1))
+      : Math.max(0, (comment.likesCount ?? 0) - (comment.liked ? 1 : 0)),
+  }));
+}
+
+function syncCommentLikePatches(dispatch, getState, reelId, commentId, liked, likesCount) {
+  return patchCommentCaches(dispatch, getState, reelId, commentId, (comment) => ({
+    ...comment,
+    liked,
+    likesCount,
+  }));
 }
 
 function patchCreatorFollowingCaches(dispatch, getState, creatorId, following) {
@@ -804,6 +886,8 @@ export const {
   useLazyGetReelCommentRepliesQuery,
   useAddReelCommentMutation,
   useDeleteReelCommentMutation,
+  useLikeReelCommentMutation,
+  useUnlikeReelCommentMutation,
   useRecordReelViewMutation,
   useInitReelMultipartMutation,
   useUploadReelMultipartPartMutation,

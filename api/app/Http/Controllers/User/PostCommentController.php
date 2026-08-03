@@ -34,6 +34,8 @@ class PostCommentController extends Controller
             (int) $request->query('per_page', 20),
         );
 
+        $this->comments->attachViewerLiked($paginator->items(), $request->user());
+
         return $this->success([
             'items' => PostCommentResource::collection($paginator->items()),
             'current_page' => $paginator->currentPage(),
@@ -66,6 +68,8 @@ class PostCommentController extends Controller
             );
         }
 
+        $this->comments->attachViewerLiked($paginator->items(), $request->user());
+
         return $this->success([
             'items' => PostCommentResource::collection($paginator->items()),
             'current_page' => $paginator->currentPage(),
@@ -96,7 +100,35 @@ class PostCommentController extends Controller
             );
         }
 
+        $this->comments->attachViewerLiked([$comment], $request->user());
+
         return $this->success(new PostCommentResource($comment), 'Comment added.', 'CREATED');
+    }
+
+    public function like(Request $request, Post $post, PostComment $comment): JsonResponse
+    {
+        if ($deny = $this->guardVisible($request, $post)) {
+            return $deny;
+        }
+
+        if ((int) $comment->post_id !== (int) $post->id) {
+            return $this->notFound('Comment not found.');
+        }
+
+        return $this->success($this->comments->like($post, $comment, $request->user()));
+    }
+
+    public function unlike(Request $request, Post $post, PostComment $comment): JsonResponse
+    {
+        if ($deny = $this->guardVisible($request, $post)) {
+            return $deny;
+        }
+
+        if ((int) $comment->post_id !== (int) $post->id) {
+            return $this->notFound('Comment not found.');
+        }
+
+        return $this->success($this->comments->unlike($comment, $request->user()));
     }
 
     public function destroy(Request $request, Post $post, PostComment $comment): JsonResponse

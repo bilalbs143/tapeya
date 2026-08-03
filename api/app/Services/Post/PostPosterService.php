@@ -35,6 +35,9 @@ class PostPosterService
             return $post;
         }
 
+        $previousThumb = $post->videoRaw('thumbnail_path');
+        $previousCover = $post->getRawOriginal('cover_path');
+
         $tmpDir = storage_path('app/tmp/reels-poster/'.$post->id);
         if (! is_dir($tmpDir) && ! mkdir($tmpDir, 0755, true) && ! is_dir($tmpDir)) {
             Log::warning('Post poster skipped: could not create temp dir', ['post_id' => $post->id]);
@@ -84,6 +87,12 @@ class PostPosterService
 
             $post->fillVideo($updates);
             $post->forceFill(['cover_path' => $posterKey])->save();
+
+            foreach (array_unique(array_filter([$previousThumb, $previousCover])) as $oldKey) {
+                if (is_string($oldKey) && $oldKey !== '' && $oldKey !== $posterKey) {
+                    MediaDisk::delete($oldKey);
+                }
+            }
 
             event(new PostProcessingUpdated($post->fresh(['video']) ?? $post));
 

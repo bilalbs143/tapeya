@@ -1,5 +1,5 @@
 /**
- * Compact Explore | Following segmented control — same language as Reels tabs
+ * Compact Explore | Following | Mine | Saved control — same language as Reels tabs
  * (icon-only when idle, brand pill + label when active).
  */
 
