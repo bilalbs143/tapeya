@@ -79,7 +79,7 @@ describe('buildFeedTimelineRows', () => {
       posts: [{ id: 1 }],
       tab: 'explore',
       cycles: 2,
-      freshPosts: [{ id: 9 }],
+      freshItems: [{ id: 9 }],
       freshFromCycle: 1,
       shopCollections: [],
       brands: [],

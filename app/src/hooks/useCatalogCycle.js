@@ -1,61 +1,61 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
-  EXPLORE_FRESHNESS_EVERY_CYCLES,
-  maxExploreCyclesForPostCount,
-  pickNewPosts,
-  pruneFreshPosts,
-} from '@/lib/feed/exploreFeedLoop';
-import { FEED_LIST_ARG } from '@/store/api/feedApi';
+  CATALOG_FRESHNESS_EVERY_CYCLES,
+  maxCyclesForCatalogSize,
+  pickNewItems,
+  pruneFreshItems,
+} from '@/lib/catalogCycle';
 
 const EMPTY_LIST = Object.freeze([]);
 
 /**
- * Explore-only client cycle after cursor exhaustion + soft page-1 freshness.
- * Does not touch the scrolled getHomeFeed RTK cache.
+ * Client cycle after cursor exhaustion + soft page-1 freshness.
+ * Does not touch the scrolled RTK list cache — callers supply an isolated peek.
  *
  * @param {{
  *   enabled: boolean,
  *   items: Array<object>,
  *   hasMore: boolean,
- *   peekHomeFeed: (arg?: object) => { unwrap: () => Promise<{ items?: object[] }> },
+ *   peekPage: () => Promise<{ items?: object[] }>,
  * }} args
  */
-export function useExploreFeedCycle({ enabled, items, hasMore, peekHomeFeed }) {
+export function useCatalogCycle({ enabled, items, hasMore, peekPage }) {
   const [cycles, setCycles] = useState(1);
-  const [freshPosts, setFreshPosts] = useState(EMPTY_LIST);
+  const [freshItems, setFreshItems] = useState(EMPTY_LIST);
   const [freshFromCycle, setFreshFromCycle] = useState(/** @type {number|null} */ (null));
 
   const pendingRef = useRef(/** @type {object[]} */ ([]));
   const itemsRef = useRef(items);
-  const freshRef = useRef(freshPosts);
+  const freshRef = useRef(freshItems);
+  const peekPageRef = useRef(peekPage);
   itemsRef.current = items;
-  freshRef.current = freshPosts;
+  freshRef.current = freshItems;
+  peekPageRef.current = peekPage;
 
-  // Reset when leaving Explore, or when cursor pagination is active again.
+  // Reset when leaving the cycling surface, or when cursor pagination is active again.
   useEffect(() => {
     setCycles(1);
-    setFreshPosts(EMPTY_LIST);
+    setFreshItems(EMPTY_LIST);
     setFreshFromCycle(null);
     pendingRef.current = [];
   }, [enabled, hasMore]);
 
   // If the RTK catalog gains ids (invalidate/refetch), drop duplicates from soft-fresh.
   useEffect(() => {
-    setFreshPosts((prev) => {
-      const next = pruneFreshPosts(prev, items);
+    setFreshItems((prev) => {
+      const next = pruneFreshItems(prev, items);
       if (next === prev) return prev;
       return next.length ? next : EMPTY_LIST;
     });
   }, [items]);
 
   const peek = useCallback(() => {
-    // preferCacheValue=false so each soft-fresh peek hits the network.
-    void peekHomeFeed(FEED_LIST_ARG, false)
-      .unwrap()
+    void peekPageRef
+      .current()
       .then((page) => {
         const known = [...itemsRef.current, ...freshRef.current, ...pendingRef.current];
-        const found = pickNewPosts(known, page?.items);
+        const found = pickNewItems(known, page?.items);
         if (found.length) {
           pendingRef.current = [...found, ...pendingRef.current];
         }
@@ -63,31 +63,31 @@ export function useExploreFeedCycle({ enabled, items, hasMore, peekHomeFeed }) {
       .catch(() => {
         // Best-effort; keep cycling the loaded catalog.
       });
-  }, [peekHomeFeed]);
+  }, []);
 
-  const catalogSize = items.length + freshPosts.length;
-  const maxCycles = maxExploreCyclesForPostCount(catalogSize);
+  const catalogSize = items.length + freshItems.length;
+  const maxCycles = maxCyclesForCatalogSize(catalogSize);
   const displayCycles = enabled && !hasMore ? Math.min(cycles, maxCycles) : 1;
 
   const advance = useCallback(() => {
     if (!enabled || !itemsRef.current.length || hasMore) return false;
 
-    const max = maxExploreCyclesForPostCount(itemsRef.current.length + freshRef.current.length);
+    const max = maxCyclesForCatalogSize(itemsRef.current.length + freshRef.current.length);
     if (cycles >= max) return false;
 
     const next = cycles + 1;
     const pending = pendingRef.current;
     if (pending.length) {
       pendingRef.current = [];
-      setFreshPosts((prev) => {
-        const added = pickNewPosts([...itemsRef.current, ...prev], pending);
+      setFreshItems((prev) => {
+        const added = pickNewItems([...itemsRef.current, ...prev], pending);
         return added.length ? [...added, ...prev] : prev;
       });
       setFreshFromCycle((from) => (from == null ? cycles : from));
     }
 
     setCycles(next);
-    if (next % EXPLORE_FRESHNESS_EVERY_CYCLES === 0) {
+    if (next % CATALOG_FRESHNESS_EVERY_CYCLES === 0) {
       peek();
     }
     return true;
@@ -95,7 +95,7 @@ export function useExploreFeedCycle({ enabled, items, hasMore, peekHomeFeed }) {
 
   return {
     displayCycles,
-    freshPosts: enabled ? freshPosts : EMPTY_LIST,
+    freshItems: enabled ? freshItems : EMPTY_LIST,
     freshFromCycle: enabled ? freshFromCycle : null,
     advance,
   };

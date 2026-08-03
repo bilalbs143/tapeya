@@ -1,6 +1,6 @@
-import { EXPLORE_LOOP_MAX_CYCLES, postsForExploreCycle } from '@/lib/feed/exploreFeedLoop';
+import { CATALOG_CYCLE_MAX_CYCLES, itemsForCycle } from '@/lib/catalogCycle';
 
-export { EXPLORE_LOOP_MAX_CYCLES, EXPLORE_LOOP_MAX_POST_ROWS, maxExploreCyclesForPostCount } from '@/lib/feed/exploreFeedLoop';
+export { CATALOG_CYCLE_MAX_CYCLES, CATALOG_CYCLE_MAX_ROWS, maxCyclesForCatalogSize } from '@/lib/catalogCycle';
 
 const SHOP_WIDGET_FIRST_POST_COUNT = 3;
 const SUGGESTED_FOLLOWS_FIRST_POST_COUNT = 5;
@@ -8,7 +8,7 @@ const HIGHLIGHT_WIDGET_FIRST_POST_COUNT = 7;
 const FEED_WIDGET_POST_INTERVAL = 8;
 const SUGGESTED_FOLLOWS_VISIBLE_COUNT = 3;
 
-const EMPTY_FRESH_POSTS = Object.freeze([]);
+const EMPTY_FRESH_ITEMS = Object.freeze([]);
 
 function getWidgetSlot(postIndex, firstPostCount) {
   const postsSeen = postIndex + 1;
@@ -30,7 +30,7 @@ function getItemWindow(items, windowIndex, size = 3) {
  * Flatten posts + Explore injection widgets into a virtualizable row list.
  * Explore may repeat posts across `cycles` with keys `post-{id}-c{n}`.
  * Discovery widgets render on the first pass only.
- * Soft-fresh posts (if any) are applied from `freshFromCycle` onward.
+ * Soft-fresh items (if any) are applied from `freshFromCycle` onward.
  *
  * @param {{
  *   posts: Array<object>,
@@ -40,7 +40,7 @@ function getItemWindow(items, windowIndex, size = 3) {
  *   suggestedUsers: Array<object>,
  *   highlights: Array<object>,
  *   cycles?: number,
- *   freshPosts?: Array<object>,
+ *   freshItems?: Array<object>,
  *   freshFromCycle?: number|null,
  * }} args
  */
@@ -52,17 +52,17 @@ export function buildFeedTimelineRows({
   suggestedUsers,
   highlights,
   cycles = 1,
-  freshPosts = EMPTY_FRESH_POSTS,
+  freshItems = EMPTY_FRESH_ITEMS,
   freshFromCycle = null,
 }) {
   /** @type {Array<{ key: string, type: string, estimateSize: number, [k: string]: unknown }>} */
   const rows = [];
   const basePosts = Array.isArray(posts) ? posts : [];
   const isExplore = tab === 'explore';
-  const cycleCount = isExplore ? Math.max(1, Math.min(EXPLORE_LOOP_MAX_CYCLES, Number(cycles) || 1)) : 1;
+  const cycleCount = isExplore ? Math.max(1, Math.min(CATALOG_CYCLE_MAX_CYCLES, Number(cycles) || 1)) : 1;
   const postsWithFresh =
-    isExplore && freshPosts.length > 0 && freshFromCycle != null
-      ? postsForExploreCycle(basePosts, freshPosts, freshFromCycle, freshFromCycle)
+    isExplore && freshItems.length > 0 && freshFromCycle != null
+      ? itemsForCycle(basePosts, freshItems, freshFromCycle, freshFromCycle)
       : basePosts;
 
   for (let cycle = 0; cycle < cycleCount; cycle++) {

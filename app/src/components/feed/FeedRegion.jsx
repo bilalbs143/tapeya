@@ -10,7 +10,7 @@ import { FeedReelsWidget } from '@/components/feed/FeedReelsWidget';
 import { FeedShopWidget } from '@/components/feed/FeedShopWidget';
 import { FeedSuggestedFollowsWidget } from '@/components/feed/FeedSuggestedFollowsWidget';
 import FeedTabs from '@/components/feed/FeedTabs';
-import { useExploreFeedCycle } from '@/hooks/useExploreFeedCycle';
+import { useCatalogCycle } from '@/hooks/useCatalogCycle';
 import { useStickyUnderNavbar } from '@/hooks/useStickyUnderNavbar';
 import { NAVBAR_OFFSET_CSS, STICKY_TABS_Z } from '@/lib/constants/layout';
 import { composeDestination } from '@/lib/feed/composeDestination';
@@ -156,7 +156,7 @@ function TimelineRow({ row, onSuggestedFollowed }) {
 
 /**
  * Home feed timeline: Explore | Following | Mine | Saved tabs, infinite cursor load.
- * Explore client-cycles after cursor exhaustion ({@link useExploreFeedCycle}) with
+ * Explore client-cycles after cursor exhaustion ({@link useCatalogCycle}) with
  * occasional page-1 peeks for new posts — never replacing the scrolled RTK cache.
  * Tab chrome uses CSS sticky under the fixed navbar ({@link NAVBAR_OFFSET_CSS}).
  * Timeline rows are window-virtualized for a light DOM on long sessions.
@@ -276,16 +276,18 @@ export default function FeedRegion({ embedded: _embedded = false, className = ''
     [popularProducts, specialOfferProducts],
   );
 
+  const peekPage = useCallback(() => peekHomeFeed(FEED_LIST_ARG, false).unwrap(), [peekHomeFeed]);
+
   const {
     displayCycles,
-    freshPosts,
+    freshItems,
     freshFromCycle,
     advance: advanceExploreCycle,
-  } = useExploreFeedCycle({
+  } = useCatalogCycle({
     enabled: tab === 'explore',
     items: tab === 'explore' ? items : EMPTY_LIST,
     hasMore: tab === 'explore' ? hasMore : true,
-    peekHomeFeed,
+    peekPage,
   });
 
   const timelineRows = useMemo(
@@ -298,10 +300,10 @@ export default function FeedRegion({ embedded: _embedded = false, className = ''
         suggestedUsers,
         highlights,
         cycles: displayCycles,
-        freshPosts,
+        freshItems,
         freshFromCycle,
       }),
-    [items, tab, shopCollections, brands, suggestedUsers, highlights, displayCycles, freshPosts, freshFromCycle],
+    [items, tab, shopCollections, brands, suggestedUsers, highlights, displayCycles, freshItems, freshFromCycle],
   );
 
   const shouldRefillSuggestions = suggestedUsers.length <= SUGGESTED_FOLLOWS_REFILL_AT + 1;

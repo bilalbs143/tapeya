@@ -13,12 +13,15 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
 import { OpenInAppBanner } from '@/components/deepLinks/OpenInAppBanner';
+import { buildCycledReelRows } from '@/features/reels/buildCycledReelRows';
 import { isInPlayerWindow } from '@/features/reels/reelPlayerWindow';
 import { setReelsFocusMode } from '@/features/reels/reelsFocusModeStore';
 import { useReelPrefetch } from '@/features/reels/useReelPrefetch';
 import { useReelProcessingChannel } from '@/features/reels/useReelProcessingChannel';
+import { useCatalogCycle } from '@/hooks/useCatalogCycle';
 import { NAVBAR_HERO_CONTROL_OFFSET } from '@/lib/constants/layout';
 import { buildReelSharePath } from '@/lib/share';
+import { REELS_LIST_ARG } from '@/store/api/postEngagementCache';
 import {
   useGetFollowingReelsQuery,
   useGetMyReelsQuery,
@@ -29,11 +32,14 @@ import {
   useLazyGetMyReelsQuery,
   useLazyGetReelsFeedQuery,
   useLazyGetSavedReelsQuery,
+  useLazyPeekReelsFeedQuery,
 } from '@/store/api/reelsApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated } from '@/store/selectors';
 
 import ReelItem from './ReelItem';
+
+const EMPTY_LIST = Object.freeze([]);
 
 const TAB_EXPLORE = 'explore';
 const TAB_FOLLOWING = 'following';
@@ -160,9 +166,11 @@ export default function Reels() {
   const mineQuery = useGetMyReelsQuery({ perPage: 10 }, { skip: activeTab !== TAB_MY_VIDEOS || !isAuthenticated });
   const savedQuery = useGetSavedReelsQuery({ perPage: 10 }, { skip: activeTab !== TAB_SAVED || !isAuthenticated });
   const [fetchMoreExplore] = useLazyGetReelsFeedQuery();
+  const [peekReelsFeed] = useLazyPeekReelsFeedQuery();
   const [fetchMoreFollowing] = useLazyGetFollowingReelsQuery();
   const [fetchMoreMine] = useLazyGetMyReelsQuery();
   const [fetchMoreSaved] = useLazyGetSavedReelsQuery();
+  const loadMoreLockRef = useRef(false);
 
   const selectTab = useCallback(
     (tabId) => {
@@ -185,7 +193,7 @@ export default function Reels() {
           ? savedQuery
           : mineQuery;
 
-  const reels = useMemo(() => {
+  const baseReels = useMemo(() => {
     const playable = (activeQuery.data?.items ?? []).filter((item) => item.status !== 'uploading');
     if (activeTab !== TAB_EXPLORE || !deepReelId) return playable;
 
@@ -196,12 +204,44 @@ export default function Reels() {
     return [deep, ...playable.filter((item) => Number(item.id) !== Number(deep.id))];
   }, [activeQuery.data?.items, activeTab, deepReelId, deepReelQuery.currentData]);
 
-  useReelPrefetch(reels, activeIndex);
-
   const nextCursor = activeQuery.data?.nextCursor ?? null;
   const hasMore = Boolean(activeQuery.data?.hasMore);
-  const isLoading =
-    activeQuery.isLoading || activeQuery.isFetching || (Boolean(deepReelId) && reels.length === 0 && !deepReelQuery.isError);
+  const isFetchingPage = activeQuery.isFetching;
+  const isInitialLoading =
+    activeQuery.isLoading || (Boolean(deepReelId) && baseReels.length === 0 && !deepReelQuery.isError);
+
+  const peekPage = useCallback(
+    () => peekReelsFeed(REELS_LIST_ARG, false).unwrap(),
+    [peekReelsFeed],
+  );
+
+  const {
+    displayCycles,
+    freshItems,
+    freshFromCycle,
+    advance: advanceExploreCycle,
+  } = useCatalogCycle({
+    enabled: activeTab === TAB_EXPLORE,
+    items: activeTab === TAB_EXPLORE ? baseReels : EMPTY_LIST,
+    hasMore: activeTab === TAB_EXPLORE ? hasMore : true,
+    peekPage,
+  });
+
+  const reelRows = useMemo(() => {
+    if (activeTab !== TAB_EXPLORE) {
+      return baseReels.map((reel) => ({ key: `reel-${reel.id}`, reel }));
+    }
+    return buildCycledReelRows({
+      reels: baseReels,
+      cycles: displayCycles,
+      freshItems,
+      freshFromCycle,
+    });
+  }, [activeTab, baseReels, displayCycles, freshItems, freshFromCycle]);
+
+  const reels = useMemo(() => reelRows.map((row) => row.reel), [reelRows]);
+
+  useReelPrefetch(reels, activeIndex);
 
   useEffect(() => {
     if (deepReelId) setActiveTab(TAB_EXPLORE);
@@ -212,18 +252,47 @@ export default function Reels() {
     if (containerRef.current) containerRef.current.scrollTop = 0;
   }, [activeTab, deepReelId]);
 
-  const loadMore = useCallback(async () => {
-    if (!hasMore || !nextCursor || isLoading) return;
-    if (activeTab === TAB_EXPLORE) {
-      await fetchMoreExplore({ cursor: nextCursor, perPage: 10 });
-    } else if (activeTab === TAB_FOLLOWING) {
-      await fetchMoreFollowing({ cursor: nextCursor, perPage: 10 });
-    } else if (activeTab === TAB_SAVED) {
-      await fetchMoreSaved({ cursor: nextCursor, perPage: 10 });
-    } else {
-      await fetchMoreMine({ cursor: nextCursor, perPage: 10 });
+  const loadMore = useCallback(() => {
+    if (loadMoreLockRef.current) return;
+
+    if (hasMore && nextCursor) {
+      if (isFetchingPage || isInitialLoading) return;
+      loadMoreLockRef.current = true;
+      const arg = { ...REELS_LIST_ARG, cursor: nextCursor };
+      const req =
+        activeTab === TAB_EXPLORE
+          ? fetchMoreExplore(arg)
+          : activeTab === TAB_FOLLOWING
+            ? fetchMoreFollowing(arg)
+            : activeTab === TAB_SAVED
+              ? fetchMoreSaved(arg)
+              : fetchMoreMine(arg);
+      Promise.resolve(req).finally(() => {
+        loadMoreLockRef.current = false;
+      });
+      return;
     }
-  }, [activeTab, fetchMoreExplore, fetchMoreFollowing, fetchMoreMine, fetchMoreSaved, hasMore, isLoading, nextCursor]);
+
+    // Explore-only client cycle (+ soft freshness). Never replaces the scrolled RTK cache.
+    if (activeTab !== TAB_EXPLORE) return;
+
+    loadMoreLockRef.current = true;
+    advanceExploreCycle();
+    requestAnimationFrame(() => {
+      loadMoreLockRef.current = false;
+    });
+  }, [
+    activeTab,
+    advanceExploreCycle,
+    fetchMoreExplore,
+    fetchMoreFollowing,
+    fetchMoreMine,
+    fetchMoreSaved,
+    hasMore,
+    isFetchingPage,
+    isInitialLoading,
+    nextCursor,
+  ]);
 
   const handleScroll = useCallback(() => {
     if (!containerRef.current) return;
@@ -301,7 +370,7 @@ export default function Reels() {
           onScroll={handleScroll}
           className="h-full w-full [scroll-snap-type:y_mandatory] overflow-y-scroll [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
-          {reels.length === 0 && !isLoading ? (
+          {reelRows.length === 0 && !isInitialLoading ? (
             <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
               <p className="text-sm font-medium text-white">{emptyCopy}</p>
               {activeTab === TAB_MY_VIDEOS ? (
@@ -312,10 +381,10 @@ export default function Reels() {
             </div>
           ) : null}
 
-          {reels.map((reel, index) => (
+          {reelRows.map((row, index) => (
             <ReelItem
-              key={reel.id}
-              reel={reel}
+              key={row.key}
+              reel={row.reel}
               isActive={index === activeIndex}
               inPlayerWindow={isInPlayerWindow(index, activeIndex)}
             />

@@ -117,6 +117,19 @@ export const reelsApi = baseApi.injectEndpoints({
           : [{ type: 'Reel', id: 'FEED' }],
     }),
 
+    /**
+     * Page-1 peek for Explore reels client-loop freshness.
+     * Isolated from getReelsFeed so it never replaces the scrolled cache.
+     */
+    peekReelsFeed: builder.query({
+      query: ({ perPage = REELS_LIST_ARG.perPage } = {}) => ({
+        url: '/reels/feed',
+        params: { per_page: perPage },
+      }),
+      transformResponse: (response) => normalizeCursorPage(response?.data),
+      keepUnusedDataFor: 0,
+    }),
+
     getMyReels: builder.query({
       query: ({ cursor, perPage = 10 } = {}) => ({
         url: '/reels/mine',
@@ -894,6 +907,7 @@ export const {
   useCompleteReelMultipartMutation,
   useAbortReelMultipartMutation,
   useLazyGetReelsFeedQuery,
+  useLazyPeekReelsFeedQuery,
   useLazyGetMyReelsQuery,
   useLazyGetFollowingReelsQuery,
   useLazyGetSavedReelsQuery,
