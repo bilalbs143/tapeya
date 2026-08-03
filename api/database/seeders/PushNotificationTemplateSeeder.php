@@ -94,6 +94,13 @@ class PushNotificationTemplateSeeder extends Seeder
                 'body_template' => '{{actor_name}} started following you',
                 'available_variables' => ['actor_name', 'actor_id', 'deep_link'],
             ],
+            [
+                'key' => 'user_referred',
+                'name' => 'User Referred',
+                'title_template' => 'New referral',
+                'body_template' => '{{actor_name}} joined using your nickname',
+                'available_variables' => ['actor_name', 'actor_id', 'deep_link'],
+            ],
         ];
 
         foreach ($templates as $template) {

@@ -70,7 +70,7 @@ function mapApiNotificationToCard(notification) {
     if (isSafeNotificationNavigatePath(path)) {
       href = path;
     }
-  } else if (data.actor_id && type === 'user_followed') {
+  } else if (data.actor_id && (type === 'user_followed' || type === 'user_referred')) {
     href = `/reels/u/${data.actor_id}`;
   }
 

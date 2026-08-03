@@ -65,6 +65,7 @@ class User extends Authenticatable
         'reels_count',
         'posts_count',
         'created_by',
+        'referred_by',
         'active_platform',
         'active_platform_updated_at',
         'can_broadcast',
@@ -250,6 +251,22 @@ class User extends Authenticatable
     public function creator(): BelongsTo
     {
         return $this->belongsTo(self::class, 'created_by');
+    }
+
+    /**
+     * User who referred this account via nickname at registration. Null when no referral was used.
+     */
+    public function referrer(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'referred_by');
+    }
+
+    /**
+     * Users who registered with this account's nickname as their referral.
+     */
+    public function referrals(): HasMany
+    {
+        return $this->hasMany(self::class, 'referred_by');
     }
 
     /**

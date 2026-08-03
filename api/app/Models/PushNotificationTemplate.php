@@ -118,6 +118,11 @@ class PushNotificationTemplate extends BaseModel
                 'actor_id' => '9',
                 'deep_link' => '/notification-center',
             ],
+            'user_referred' => [
+                'actor_name' => 'Alex',
+                'actor_id' => '9',
+                'deep_link' => '/notification-center',
+            ],
             default => [],
         };
     }

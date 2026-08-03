@@ -77,6 +77,7 @@ export class PlayersComponent implements OnInit, AfterViewInit, OnDestroy {
     'sr',
     'name',
     'nickname',
+    'referral_nickname',
     'email',
     'phone',
     'date_of_birth',

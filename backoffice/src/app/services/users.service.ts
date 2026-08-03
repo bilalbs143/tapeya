@@ -44,6 +44,7 @@ export interface User {
   admin_role_ids?: number[];
   created_by?: number | null;
   creator?: { id: number; name: string; nickname: string | null } | null;
+  referral_nickname?: string | null;
   created_at?: string;
   updated_at?: string;
 }

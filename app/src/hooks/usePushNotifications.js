@@ -119,6 +119,7 @@ function routeFromPushData(navigate, data) {
       navigate('/notification-center');
       break;
     case 'user_followed':
+    case 'user_referred':
       navigate('/notification-center');
       break;
     case 'manual_broadcast':

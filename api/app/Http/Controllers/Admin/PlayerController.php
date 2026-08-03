@@ -81,27 +81,27 @@ class PlayerController extends Controller
         $user->roles()->sync([$playerRoleId]);
         $user->load('roles');
 
-        return $this->success(new UserResource($user->fresh(['roles', 'creator:id,name,nickname'])), 'Player created.', 'CREATED');
+        return $this->success(new UserResource($user->fresh(['roles', 'creator:id,name,nickname', 'referrer:id,nickname'])), 'Player created.', 'CREATED');
     }
 
     public function show(User $player): JsonResponse
     {
-        return $this->success(new UserResource($player->fresh(['roles', 'creator:id,name,nickname'])));
+        return $this->success(new UserResource($player->fresh(['roles', 'creator:id,name,nickname', 'referrer:id,nickname'])));
     }
 
     public function update(UpdateBroadcasterPlayerRequest $request, User $player): JsonResponse
     {
         $data = $request->validated();
         if ($data === []) {
-            return $this->success(new UserResource($player->fresh(['roles', 'creator:id,name,nickname'])));
+            return $this->success(new UserResource($player->fresh(['roles', 'creator:id,name,nickname', 'referrer:id,nickname'])));
         }
         $player->update($data);
 
-        return $this->success(new UserResource($player->fresh(['roles', 'creator:id,name,nickname'])), 'Player updated.');
+        return $this->success(new UserResource($player->fresh(['roles', 'creator:id,name,nickname', 'referrer:id,nickname'])), 'Player updated.');
     }
 
     private function playerBaseQuery()
     {
-        return User::query()->user()->withRole(AppRoleEnum::PLAYER)->with(['creator:id,name,nickname']);
+        return User::query()->user()->withRole(AppRoleEnum::PLAYER)->with(['creator:id,name,nickname', 'referrer:id,nickname']);
     }
 }

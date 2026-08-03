@@ -16,6 +16,7 @@ use App\Notifications\PostMentionedUserNotification;
 use App\Notifications\PostPublishedFollowerNotification;
 use App\Notifications\PostRepostedUserNotification;
 use App\Notifications\UserFollowedUserNotification;
+use App\Notifications\UserReferredUserNotification;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Notifications\DatabaseNotification;
 
@@ -50,7 +51,8 @@ final class ResolveUserNotificationBroadcast
             PostMentionedUserNotification::class,
             PostRepostedUserNotification::class,
             PostPublishedFollowerNotification::class,
-            UserFollowedUserNotification::class => new PostEngagementBroadcast(
+            UserFollowedUserNotification::class,
+            UserReferredUserNotification::class => new PostEngagementBroadcast(
                 $user->getKey(),
                 $notificationId,
                 $notificationType,

@@ -118,9 +118,9 @@ Route::get('graphic-sessions/access/{token}', [SignedGraphicSessionController::c
     ->where('token', '\d+-\d+-[a-f0-9]{64}');
 
 Route::prefix('auth')->group(function () {
-    Route::post('/register', [UserAuthController::class, 'register']);
-    Route::post('/request-otp', [UserAuthController::class, 'requestOtp']);
-    Route::post('/verify-otp', [UserAuthController::class, 'verifyOtp']);
+    Route::post('/register', [UserAuthController::class, 'register'])->middleware('throttle:5,1');
+    Route::post('/request-otp', [UserAuthController::class, 'requestOtp'])->middleware('throttle:5,1');
+    Route::post('/verify-otp', [UserAuthController::class, 'verifyOtp'])->middleware('throttle:10,1');
     Route::post('/logout', [UserAuthController::class, 'logout'])->middleware('auth:api');
 });
 
