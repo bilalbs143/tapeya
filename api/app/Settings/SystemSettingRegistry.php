@@ -236,6 +236,32 @@ final class SystemSettingRegistry
             SystemSettingKeyEnum::PUSH_FCM_SERVICE_ACCOUNT_JSON => [
                 'value' => ['nullable', 'string', 'max:8192'],
             ],
+            SystemSettingKeyEnum::REELS_MAX_DURATION_SECONDS,
+            SystemSettingKeyEnum::REELS_MIN_DURATION_SECONDS => [
+                'value' => ['required', 'integer', 'min:0', 'max:3600'],
+            ],
+            SystemSettingKeyEnum::REELS_MAX_UPLOAD_MB => [
+                'value' => ['required', 'integer', 'min:0', 'max:2048'],
+            ],
+            SystemSettingKeyEnum::REELS_HLS_SEGMENT_SECONDS => [
+                'value' => ['required', 'integer', 'min:2', 'max:4'],
+            ],
+            SystemSettingKeyEnum::REELS_VIEW_MIN_WATCHED_MS => [
+                'value' => ['required', 'integer', 'min:0', 'max:600000'],
+            ],
+            SystemSettingKeyEnum::REELS_VIEW_MIN_COMPLETION_RATE_PERCENT => [
+                'value' => ['required', 'integer', 'min:0', 'max:100'],
+            ],
+            SystemSettingKeyEnum::REELS_VIEW_ALLOW_ANONYMOUS,
+            SystemSettingKeyEnum::REELS_VIEW_REDIS_BUFFER => [
+                'value' => ['required', 'integer', 'in:0,1'],
+            ],
+            SystemSettingKeyEnum::REELS_MULTIPART_PART_SIZE_MB => [
+                'value' => ['required', 'integer', 'min:1', 'max:100'],
+            ],
+            SystemSettingKeyEnum::REELS_MULTIPART_MAX_PARTS => [
+                'value' => ['required', 'integer', 'min:0', 'max:10000'],
+            ],
         };
     }
 
