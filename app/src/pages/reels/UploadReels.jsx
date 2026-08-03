@@ -137,9 +137,24 @@ export default function UploadReels() {
     fileInputRef.current?.click();
   }, [isBusyPublishing, isValidatingFile]);
 
-  const beginSilentPosterExtract = useCallback((file) => {
-    posterPromiseRef.current = extractReelPosterJpeg(file).catch(() => null);
-  }, []);
+  const commitSelectedFile = useCallback(
+    (file) => {
+      revokePreviewUrl();
+      const nextUrl = URL.createObjectURL(file);
+      previewUrlRef.current = nextUrl;
+      posterPromiseRef.current = null;
+      setSelectedFile(file);
+      setPreviewUrl(nextUrl);
+      setStep(STEPS.PREVIEW);
+    },
+    [revokePreviewUrl],
+  );
+
+  /** Poster extract after preview has a frame — avoids iOS blank first paint. */
+  const handlePreviewReady = useCallback(() => {
+    if (!selectedFile || posterPromiseRef.current) return;
+    posterPromiseRef.current = extractReelPosterJpeg(selectedFile).catch(() => null);
+  }, [selectedFile]);
 
   const clearVideo = useCallback(() => {
     revokePreviewUrl();
@@ -170,18 +185,12 @@ export default function UploadReels() {
           return;
         }
 
-        revokePreviewUrl();
-        const nextUrl = URL.createObjectURL(file);
-        previewUrlRef.current = nextUrl;
-        setSelectedFile(file);
-        setPreviewUrl(nextUrl);
-        beginSilentPosterExtract(file);
-        setStep(STEPS.PREVIEW);
+        commitSelectedFile(file);
       } finally {
         setIsValidatingFile(false);
       }
     },
-    [beginSilentPosterExtract, isBusyPublishing, revokePreviewUrl, uploadLimits],
+    [commitSelectedFile, isBusyPublishing, uploadLimits],
   );
 
   // Support legacy handoffs that included a File. The current compose flow
@@ -207,18 +216,12 @@ export default function UploadReels() {
           setHandoffHint('Couldn’t use the video from Create post. Pick another file below — your caption is still filled in.');
           return;
         }
-        revokePreviewUrl();
-        const nextUrl = URL.createObjectURL(file);
-        previewUrlRef.current = nextUrl;
-        setSelectedFile(file);
-        setPreviewUrl(nextUrl);
-        beginSilentPosterExtract(file);
-        setStep(STEPS.PREVIEW);
+        commitSelectedFile(file);
       } finally {
         setIsValidatingFile(false);
       }
     })();
-  }, [beginSilentPosterExtract, location.state, revokePreviewUrl, uploadLimits]);
+  }, [commitSelectedFile, location.state, uploadLimits]);
 
   const handleBackFromEmpty = useCallback(() => {
     navigate(-1);
@@ -385,6 +388,7 @@ export default function UploadReels() {
             setStep(STEPS.DETAILS);
           }}
           onChangeVideo={openPicker}
+          onPreviewReady={handlePreviewReady}
           error={error}
           isBusy={isValidatingFile}
         />

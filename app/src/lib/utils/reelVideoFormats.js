@@ -81,13 +81,24 @@ export function probeReelVideoDuration(file) {
     const url = URL.createObjectURL(file);
     const video = document.createElement('video');
     video.preload = 'metadata';
-    video.onloadedmetadata = () => {
-      const duration = video.duration;
+    video.muted = true;
+    video.playsInline = true;
+
+    const release = () => {
+      video.onloadedmetadata = null;
+      video.onerror = null;
+      video.removeAttribute('src');
+      video.load(); // free decoder before the preview attaches the same File (iOS)
       URL.revokeObjectURL(url);
+    };
+
+    video.onloadedmetadata = () => {
+      const { duration } = video;
+      release();
       resolve(Number.isFinite(duration) ? duration : null);
     };
     video.onerror = () => {
-      URL.revokeObjectURL(url);
+      release();
       reject(new Error('Could not read video metadata.'));
     };
     video.src = url;
