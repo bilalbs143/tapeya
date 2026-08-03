@@ -1,11 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import {
-  CATALOG_FRESHNESS_EVERY_CYCLES,
-  maxCyclesForCatalogSize,
-  pickNewItems,
-  pruneFreshItems,
-} from '@/lib/catalogCycle';
+import { CATALOG_FRESHNESS_EVERY_CYCLES, maxCyclesForCatalogSize, pickNewItems, pruneFreshItems } from '@/lib/catalogCycle';
 
 const EMPTY_LIST = Object.freeze([]);
 

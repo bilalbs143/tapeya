@@ -207,13 +207,9 @@ export default function Reels() {
   const nextCursor = activeQuery.data?.nextCursor ?? null;
   const hasMore = Boolean(activeQuery.data?.hasMore);
   const isFetchingPage = activeQuery.isFetching;
-  const isInitialLoading =
-    activeQuery.isLoading || (Boolean(deepReelId) && baseReels.length === 0 && !deepReelQuery.isError);
+  const isInitialLoading = activeQuery.isLoading || (Boolean(deepReelId) && baseReels.length === 0 && !deepReelQuery.isError);
 
-  const peekPage = useCallback(
-    () => peekReelsFeed(REELS_LIST_ARG, false).unwrap(),
-    [peekReelsFeed],
-  );
+  const peekPage = useCallback(() => peekReelsFeed(REELS_LIST_ARG, false).unwrap(), [peekReelsFeed]);
 
   const {
     displayCycles,

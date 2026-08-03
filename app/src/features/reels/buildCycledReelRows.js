@@ -14,20 +14,13 @@ const EMPTY_FRESH = Object.freeze([]);
  * }} args
  * @returns {Array<{ key: string, reel: object }>}
  */
-export function buildCycledReelRows({
-  reels,
-  cycles = 1,
-  freshItems = EMPTY_FRESH,
-  freshFromCycle = null,
-}) {
+export function buildCycledReelRows({ reels, cycles = 1, freshItems = EMPTY_FRESH, freshFromCycle = null }) {
   const base = Array.isArray(reels) ? reels : [];
   if (!base.length) return [];
 
   const cycleCount = Math.max(1, Math.min(CATALOG_CYCLE_MAX_CYCLES, Number(cycles) || 1));
   const withFresh =
-    freshItems.length > 0 && freshFromCycle != null
-      ? itemsForCycle(base, freshItems, freshFromCycle, freshFromCycle)
-      : base;
+    freshItems.length > 0 && freshFromCycle != null ? itemsForCycle(base, freshItems, freshFromCycle, freshFromCycle) : base;
 
   /** @type {Array<{ key: string, reel: object }>} */
   const rows = [];
