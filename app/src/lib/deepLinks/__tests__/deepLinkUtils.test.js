@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { buildDeepLinkPath, isAllowedDeepLinkPath, isSafeNotificationNavigatePath } from '../deepLinkRegistry';
-import { buildAppSchemeDeepLink, buildHttpsDeepLink, pathFromDeepLinkUrl } from '../deepLinkUtils';
+import { buildAppSchemeDeepLink, buildHttpsDeepLink, getPublicAppOrigin, pathFromDeepLinkUrl } from '../deepLinkUtils';
 
 describe('deepLinkRegistry', () => {
   it('builds known routes', () => {
@@ -37,6 +37,14 @@ describe('deepLinkUtils', () => {
     expect(buildHttpsDeepLink('/reels/12', 'https://tapeya.com')).toBe('https://tapeya.com/reels/12');
     expect(buildAppSchemeDeepLink('/reels/12')).toBe('tapeya://reels/12');
     expect(buildAppSchemeDeepLink('/live/go-live/31')).toBe('tapeya://live/go-live/31');
+  });
+
+  it('prefers VITE_APP_URL over capacitor origin for share links', () => {
+    const previous = import.meta.env.VITE_APP_URL;
+    import.meta.env.VITE_APP_URL = 'https://dev.tapeya.com';
+    expect(getPublicAppOrigin()).toBe('https://dev.tapeya.com');
+    expect(buildHttpsDeepLink('/feed/48')).toBe('https://dev.tapeya.com/feed/48');
+    import.meta.env.VITE_APP_URL = previous;
   });
 
   it('parses https and custom-scheme deep links', () => {

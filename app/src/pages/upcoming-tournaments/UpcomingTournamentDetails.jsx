@@ -5,6 +5,7 @@ import { useLocation, useNavigate, useParams, useSearchParams } from 'react-rout
 import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatCount } from '@/lib/format';
+import { buildTournamentShareUrl, shareLink } from '@/lib/share';
 import { formatOrdinalDateRange } from '@/lib/utils/dateUtils';
 import { getTournamentCoverImage, getTournamentTitle, isValidTournamentId } from '@/lib/utils/tournamentUtils';
 import { ThumbsUpIcon } from '@/pages/feed/PostCard';
@@ -177,18 +178,19 @@ export default function UpcomingTournamentDetails() {
 
   const handleShare = async () => {
     if (!canReact || isReacting) return;
+
+    const channel = await shareLink({
+      title: displayName,
+      text: description || displayName,
+      url: buildTournamentShareUrl(numericId),
+    });
+    if (!channel) return;
+
     try {
-      if (typeof navigator !== 'undefined' && navigator.share) {
-        await navigator.share({
-          title: displayName,
-          text: description || displayName,
-          url: window.location.href,
-        });
-        const result = await shareTournament(numericId).unwrap();
-        if (result && typeof result === 'object') setCounts((prev) => ({ ...prev, ...result }));
-      }
+      const result = await shareTournament(numericId).unwrap();
+      if (result && typeof result === 'object') setCounts((prev) => ({ ...prev, ...result }));
     } catch {
-      // User cancelled or share failed; do not increment share count.
+      // Share sheet succeeded; ignore analytics failure.
     }
   };
 

@@ -6,8 +6,8 @@ import TextPostBackground from '@/components/feed/TextPostBackground';
 import { OfficialBadge } from '@/components/OfficialBadge';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { getFeedTextBackground } from '@/lib/constants/composeBackgrounds';
+import { buildPostDetailPath } from '@/lib/share';
 import { formatPostTimestamp } from '@/lib/utils/feedUtils';
-import { buildPostDetailPath } from '@/lib/utils/postShareUtils';
 
 const AVATAR_PLACEHOLDER = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 const IMAGE_PLACEHOLDER =

@@ -8,6 +8,8 @@ import { PlayerProfile } from '@/components/UserProfileTabs/PlayerProfile';
 import { SponsorProfileTabs } from '@/components/UserProfileTabs/SponsorProfileTabs';
 import { useDialog } from '@/context/DialogContext';
 import { useToast } from '@/hooks/useToast';
+import { buildHttpsDeepLink } from '@/lib/deepLinks/deepLinkUtils';
+import { shareLink } from '@/lib/share';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
@@ -63,27 +65,11 @@ export default function Profile() {
     return userRoleSlugs[0] ?? null;
   }, [searchParams, userRoleSlugs]);
 
-  // TODO: replace window.location.href with a public profile URL (e.g. /players/:id)
-  // once a public profile route exists.
+  // TODO: replace with a public profile URL (e.g. /players/:id) once that route exists.
   const handleShare = useCallback(async () => {
-    const url = window.location.href;
-
-    if (typeof navigator !== 'undefined' && navigator.share) {
-      try {
-        await navigator.share({ url });
-      } catch {
-        // User cancelled native share — no-op
-      }
-      return;
-    }
-
-    // No Web Share API (desktop) — copy link to clipboard
-    try {
-      await navigator.clipboard.writeText(url);
-      toast.success('Link copied');
-    } catch {
-      // Clipboard blocked — silent
-    }
+    const path = `${window.location.pathname}${window.location.search}`;
+    const channel = await shareLink({ url: buildHttpsDeepLink(path) });
+    if (channel === 'copy_link') toast.success('Link copied');
   }, [toast]);
 
   const setActiveRole = (value) => {

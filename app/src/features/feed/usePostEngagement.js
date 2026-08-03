@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { buildPostShareUrl } from '@/lib/utils/postShareUtils';
+import { buildPostShareUrl, shareLink } from '@/lib/share';
 import {
   useLikePostMutation,
   useRepostPostMutation,
@@ -60,24 +60,10 @@ export function usePostEngagement(post) {
 
   const share = useCallback(async () => {
     if (!post?.id) return;
-    const shareUrl = buildPostShareUrl(post);
-    try {
-      if (typeof navigator !== 'undefined' && navigator.share) {
-        // URL only — no title/caption so shares stay a clean deep link.
-        await navigator.share({ url: shareUrl });
-        if (isAuthenticated) {
-          await sharePost({ id: post.id, channel: 'system_share' });
-        }
-      } else if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(shareUrl);
-        if (isAuthenticated) {
-          await sharePost({ id: post.id, channel: 'copy_link' });
-        }
-      } else if (isAuthenticated) {
-        await sharePost({ id: post.id, channel: 'other' });
-      }
-    } catch {
-      // User cancelled share sheet — ignore.
+    // URL only — no title/caption so shares stay a clean deep link.
+    const channel = await shareLink({ url: buildPostShareUrl(post) });
+    if (channel && isAuthenticated) {
+      await sharePost({ id: post.id, channel });
     }
   }, [isAuthenticated, post, sharePost]);
 

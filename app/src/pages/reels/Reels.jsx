@@ -18,7 +18,7 @@ import { setReelsFocusMode } from '@/features/reels/reelsFocusModeStore';
 import { useReelPrefetch } from '@/features/reels/useReelPrefetch';
 import { useReelProcessingChannel } from '@/features/reels/useReelProcessingChannel';
 import { NAVBAR_HERO_CONTROL_OFFSET } from '@/lib/constants/layout';
-import { buildReelSharePath } from '@/lib/utils/reelShareUtils';
+import { buildReelSharePath } from '@/lib/share';
 import {
   useGetFollowingReelsQuery,
   useGetMyReelsQuery,

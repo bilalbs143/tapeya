@@ -18,7 +18,7 @@ import { useViewTracker } from '@/features/reels/useViewTracker';
 import { StreamVideoRetry } from '@/features/stream/StreamVideoRetry';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatCount } from '@/lib/format';
-import { buildReelShareUrl } from '@/lib/utils/reelShareUtils';
+import { buildReelShareUrl, shareLink } from '@/lib/share';
 import {
   useFollowReelCreatorMutation,
   useLikeReelMutation,
@@ -423,24 +423,10 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
 
   const handleShare = async () => {
     if (!reel?.id) return;
-    const shareUrl = buildReelShareUrl(reel.id);
-    try {
-      if (navigator.share) {
-        // URL only — no title/caption so shares stay a clean deep link.
-        await navigator.share({ url: shareUrl });
-        if (isAuthenticated) {
-          await shareReel({ id: reel.id, channel: 'system_share' });
-        }
-      } else if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(shareUrl);
-        if (isAuthenticated) {
-          await shareReel({ id: reel.id, channel: 'copy_link' });
-        }
-      } else if (isAuthenticated) {
-        await shareReel({ id: reel.id, channel: 'other' });
-      }
-    } catch {
-      // User cancelled share sheet — ignore.
+    // URL only — no title/caption so shares stay a clean deep link.
+    const channel = await shareLink({ url: buildReelShareUrl(reel.id) });
+    if (channel && isAuthenticated) {
+      await shareReel({ id: reel.id, channel });
     }
   };
 
