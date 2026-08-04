@@ -18,6 +18,9 @@ final class MediaDisk
 {
     public const IMMUTABLE_CACHE_CONTROL = 'public, max-age=31536000, immutable';
 
+    /** HLS masters are rewritten as ABR rungs land — must not be edge-immutable. */
+    public const HLS_MASTER_CACHE_CONTROL = 'public, max-age=60, must-revalidate';
+
     public static function name(): string
     {
         return (string) config('filesystems.media_disk', 'public');

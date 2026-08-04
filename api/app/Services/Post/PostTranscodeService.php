@@ -512,8 +512,11 @@ class PostTranscodeService
     {
         $masterBody = PostAbrLadder::masterPlaylist($hlsVariants);
         $masterKey = 'posts/videos/hls/'.$postId.'/'.$encodeId.'/master.m3u8';
+        // Same key is rewritten after each ABR rung; immutable Cache-Control would
+        // pin an early (single-rung) master at the CDN for up to a year.
         MediaDisk::put($masterKey, $masterBody, [
             'ContentType' => 'application/vnd.apple.mpegurl',
+            'CacheControl' => MediaDisk::HLS_MASTER_CACHE_CONTROL,
         ]);
 
         return $masterKey;

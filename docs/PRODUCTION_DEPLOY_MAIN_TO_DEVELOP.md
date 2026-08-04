@@ -1,38 +1,128 @@
-# Production deploy — `main` → `develop` (incl. staged work)
+# Production deploy — B2 + Cloudflare CDN cutover
 
-**Baseline (last production on `main`):** `bbc4ebd` — *Enhance layout and spacing in theme1 graphics components* (2026-07-15)
+**Not just `git pull`.** The CDN Worker is already live on Cloudflare (`cdn.tapeya.com`). Production still needs env + admin settings + API/app deploy.
 
-**Target:** current `develop` + all staged/uncommitted work (as of this doc).
+Worker redeploy is only needed when `infra/cdn-tapeya` changes — from a laptop with Wrangler auth:
 
-**Scope of change (vs `main`):** ~650+ files across `api/`, `app/`, `backoffice/`, `docs/`, `nginx/`, `supervisor/`.
-
-> Commit/push the staged work on `develop` before deploy. This doc assumes that tree is what you ship.
-
----
-
-## What is shipping
-
-| Area | Summary |
-|------|---------|
-| **Feed + posts + reels** | Compose (text/image/video), feed, reels player, likes/comments/saves/shares/reposts, mentions, hashtags, views, reports, follow suggestions, official badge |
-| **Media** | `MediaDisk` / `MediaCdn` write path; permanent CDN URLs; poster + ABR transcode queues |
-| **Push / realtime** | `post_*` notification events; `user.post.engagement` broadcast |
-| **Admin** | Posts + post-reports moderation (preview/play); official user flag; CDN + reels system settings |
-| **Live** | Stream orientation (portrait/landscape) + related app/native |
-| **Graphics** | Theme2 overlay pack |
-| **Infra** | New supervisor queues; nginx `/.well-known` for app links; scheduled post jobs |
-
-**Not required for this release:** Sponsored brand posts (doc only / future).
+```bash
+cd infra/cdn-tapeya
+npx wrangler deploy
+```
 
 ---
 
-## Pre-deploy checklist
+## Already done (no prod server step)
 
-1. [ ] All intended changes committed on `develop` and merged/tagged for production.
-2. [ ] Staging smoke: compose text/image/reel → like/comment → admin can open/play post → CDN host on media URLs.
-3. [ ] FFmpeg on API host with **libwebp** (`ffmpeg -hide_banner -encoders | grep libwebp`).
-4. [ ] Object storage ready (`MEDIA_DISK=s3`, B2/S3 creds, CDN host). See [MEDIA_CDN_MIGRATION.md](./MEDIA_CDN_MIGRATION.md).
-5. [ ] PHP upload limits high enough for reels (nginx `client_max_body_size` + FPM/`PHP_VALUE` — **not** only `public/.user.ini`).
+- [x] Worker `cdn-tapeya` on route `cdn.tapeya.com/*`
+- [x] B2 read-only Worker secret (`B2_APPLICATION_KEY`) set in Cloudflare
+- [x] Workers Cache enabled; CORS + range support on CDN
+
+---
+
+## Pre-deploy
+
+1. [ ] Commit & push this work (incl. `infra/cdn-tapeya`, HLS master cache fix, API/app changes).
+2. [ ] **rclone sync AWS S3 → B2** (same keys) — see [S3 → B2 sync](#s3--b2-sync-rclone) below. Do this **before** flipping prod CDN URL.
+3. [ ] Confirm FFmpeg on API host (`libwebp` for posters).
+4. [ ] Confirm reel queues in Supervisor (`reels-poster`, `reels-transcode`, `reels`).
+
+---
+
+## S3 → B2 sync (rclone)
+
+**Direction:** AWS S3 `tapeya` (`ap-south-1`, CloudFront origin) → Backblaze B2 `tapeya` (`us-east-005`).  
+**Rule:** same object keys (no rewrite).  
+**Size (approx):** ~1.1 GiB / ~1.6k objects → full sync usually **5–15 minutes** (`--transfers 16`); slow link up to ~30 minutes.
+
+### Install rclone (Linux server)
+
+```bash
+# Official install script (gets latest stable)
+curl -fsSL https://rclone.org/install.sh | sudo bash
+
+# Or via package manager (version may be older):
+# sudo apt-get update && sudo apt-get install -y rclone   # Debian/Ubuntu
+# sudo dnf install -y rclone                             # Fedora/RHEL
+
+rclone version
+```
+
+### IAM on AWS user (required)
+
+Must include **`s3:ListBucket`** on the bucket ARN (object-only policy is not enough for rclone):
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket"],
+      "Resource": "arn:aws:s3:::tapeya"
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
+      "Resource": "arn:aws:s3:::tapeya/*"
+    }
+  ]
+}
+```
+
+For sync-from-S3 only, `GetObject` + `ListBucket` is enough on the AWS side. B2 write key needs list/read/write on bucket `tapeya`.
+
+### rclone config
+
+Create a local config file (do **not** commit secrets), e.g. `/tmp/tapeya-rclone.conf`:
+
+```ini
+[s3src]
+type = s3
+provider = AWS
+access_key_id = <AWS_ACCESS_KEY_ID>
+secret_access_key = <AWS_SECRET_ACCESS_KEY>
+region = ap-south-1
+
+[b2dest]
+type = s3
+provider = Other
+access_key_id = <B2_KEY_ID>
+secret_access_key = <B2_APPLICATION_KEY>
+endpoint = s3.us-east-005.backblazeb2.com
+region = us-east-005
+force_path_style = true
+```
+
+Put real values only in `/tmp/tapeya-rclone.conf` on the server (never commit that file).
+
+```bash
+export RCLONE_CONFIG=/tmp/tapeya-rclone.conf
+chmod 600 "$RCLONE_CONFIG"
+```
+
+### Steps
+
+```bash
+# 1) Sanity — list source
+rclone lsd s3src:tapeya
+rclone size s3src:tapeya
+
+# 2) Dry-run full sync
+rclone sync s3src:tapeya b2dest:tapeya --checksum --dry-run -v
+
+# 3) Optional — copy 2–3 files for real, then check CDN
+rclone copyto s3src:tapeya/path/to/file.jpg b2dest:tapeya/path/to/file.jpg --no-traverse
+curl -I "https://cdn.tapeya.com/path/to/file.jpg"   # expect 200
+
+# 4) Full sync
+rclone sync s3src:tapeya b2dest:tapeya --checksum --transfers 16 -v
+
+# 5) Spot-check
+rclone size b2dest:tapeya
+curl -I "https://cdn.tapeya.com/<known-key>"
+```
+
+`sync` makes B2 match S3 (same keys). Re-run later for a **delta** before final cutover.
 
 ---
 
@@ -42,34 +132,51 @@
 
 ```bash
 cd /var/www/tapeya/api   # adjust path
-git fetch && git checkout <release-ref>
+git fetch && git checkout <release-ref>   # or: git pull
 composer install --no-dev --optimize-autoloader
-php artisan migrate --force
-php artisan db:seed --class=SystemSettingsSeeder --force
-php artisan db:seed --class=PushNotificationTemplateSeeder --force
-php artisan db:seed --class=GraphicThemeSeeder --force   # if theme2 needs DB seed
+php artisan migrate --force               # if any pending
 php artisan settings:clear-cache
 php artisan config:clear
-php artisan route:clear
-php artisan cache:clear
 php artisan config:cache
-php artisan route:cache
+# optional:
+# php artisan route:cache
 ```
 
-**Env / Admin settings to verify**
+### 2. Env (API `.env`) — B2 write key + CDN host
 
-| Key | Notes |
-|-----|--------|
-| `MEDIA_DISK=s3` | Production media disk |
-| `AWS_*` + `AWS_ENDPOINT` | B2/S3-compatible |
-| `AWS_URL` | CDN fallback hostname |
-| Admin → **Media & CDN** → `cdn_public_base_url` | Overrides `AWS_URL` at boot |
-| Admin → **Reels** | Upload MB, duration, multipart, view counters |
-| `FFMPEG_PATH` / `FFPROBE_PATH` | If not on PATH / need ffmpeg-full |
+Use the **read/write** B2 application key for Laravel (not the Worker read-only key).
 
-### 2. Queue workers (Supervisor)
+```env
+MEDIA_DISK=s3
+AWS_ACCESS_KEY_ID=...          # B2 write key id
+AWS_SECRET_ACCESS_KEY=...      # B2 write application key
+AWS_DEFAULT_REGION=us-east-005
+AWS_BUCKET=tapeya
+AWS_ENDPOINT=https://s3.us-east-005.backblazeb2.com
+AWS_USE_PATH_STYLE_ENDPOINT=true
+AWS_URL=https://cdn.tapeya.com
+```
 
-Copy/update `supervisor/tapeya.conf` and reload:
+Then:
+
+```bash
+php artisan config:clear
+php artisan settings:clear-cache
+php artisan config:cache
+```
+
+### 3. Admin setting
+
+Admin → **System Settings** → **Media & CDN** → `cdn_public_base_url` = `https://cdn.tapeya.com` (no trailing slash).
+
+```bash
+php artisan settings:clear-cache
+php artisan config:clear
+```
+
+Empty setting falls back to `AWS_URL`. Admin setting overrides `AWS_URL` at boot.
+
+### 4. Queue workers (if supervisor config changed)
 
 ```bash
 sudo supervisorctl reread
@@ -77,118 +184,43 @@ sudo supervisorctl update
 sudo supervisorctl status
 ```
 
-**Must be running**
+Must be up: `default`, `push-notifications`, `reels-poster`, `reels-transcode`, `reels`.
 
-| Program | Queue |
-|---------|--------|
-| `artisan-queue` | `default` |
-| `artisan-queue-push` | `push-notifications` |
-| `artisan-queue-reels-poster` | `reels-poster` (×2) |
-| `artisan-queue-reels-transcode` | `reels-transcode` (×1, heavy) |
-| `artisan-queue-reels` | `reels` (cleanup) |
-
-Scheduler (already via cron `schedule:run`) picks up:
-
-- `posts:flush-view-counters` — every minute  
-- `posts:purge-expired-originals` — daily 04:30  
-
-### 3. Nginx
-
-- Deploy `nginx/app.conf` (adds `/.well-known/apple-app-site-association` + `assetlinks.json`).
-- Confirm API upload body size matches reel limits (raise if still 64M).
-- `sudo nginx -t && sudo systemctl reload nginx`
-
-### 4. Mobile web app (`app/`)
+### 5. App / backoffice (if shipping frontend changes)
 
 ```bash
-cd /var/www/tapeya/app   # or CI artifact
-npm ci
-npm run build
-# deploy dist/ to app web root
-```
+cd /var/www/tapeya/app
+npm ci && npm run build
+# deploy dist/
 
-CDN for in-app assets comes from public `cdn_public_base_url` at boot (`bootstrapCdn`). Favicon/`preconnect` in `index.html` may still use the legacy CloudFront fallback until cutover.
-
-### 5. Backoffice
-
-```bash
 cd /var/www/tapeya/backoffice
-npm ci
-npm run build
-# deploy dist to backoffice host
+npm ci && npm run build
+# deploy dist/
 ```
 
-Confirm nav: **Content → Posts**, **Post reports**.
+---
 
-### 6. Native / deep links (store builds)
+## Post-deploy smoke
 
-Do this **after** mobile web + nginx are live (so `/.well-known/*` is reachable). Soft “Open in Tapeya” (`tapeya://`) still works without verification; auto-open from HTTPS needs this.
-
-**Android App Links**
-
-1. Confirm Play App Signing SHA-256 is in `app/public/.well-known/assetlinks.json` ([PLAY_APP_SIGNING_SHA256.md](./PLAY_APP_SIGNING_SHA256.md)).
-2. Confirm live:
-   ```bash
-   curl -sI https://tapeya.com/.well-known/assetlinks.json | head
-   curl -s https://tapeya.com/.well-known/assetlinks.json
-   ```
-3. Install a **Play-signed** release (internal/testing/production track — not a random local debug keystore).
-4. Verify association:
-   ```bash
-   adb shell pm get-app-links com.tapbytapeya.app
-   ```
-   Expect `tapeya.com` verified / approved for App Links. If not, fix SHA + redeploy JSON, then reinstall or wait for Android to re-check.
-
-**iOS Universal Links**
-
-1. Confirm AASA live (no redirect):  
-   `curl -sI https://tapeya.com/.well-known/apple-app-site-association | head`
-2. Ship a build with Associated Domains for `applinks:tapeya.com`.
-
-Details: [DEEP_LINKS.md](./DEEP_LINKS.md).
+- [ ] Media URL host is `cdn.tapeya.com` (not raw B2, not CloudFront)
+- [ ] `curl -I https://cdn.tapeya.com/<known-object-key>` → **200**
+- [ ] Upload avatar / image post → CDN host on URL; object loads
+- [ ] Upload reel → poster → processing finishes → HLS plays from CDN
+- [ ] `supervisorctl status` — reel queues UP
+- [ ] Failed upload (bad creds) → `UPLOAD_FAILED`, no bad DB path
 
 ---
 
-## Post-deploy smoke (10 minutes)
+## Rollback
 
-- [ ] `GET /api/v1/...` health / login works  
-- [ ] Compose **text** + **image** post → appear in feed  
-- [ ] Upload **reel** → poster appears → processing finishes → HLS/original plays  
-- [ ] Like / comment / mention → in-app notification + (if enabled) push  
-- [ ] Follow user → notification  
-- [ ] Admin: open post → **video plays**; open post-report → post media loads  
-- [ ] Media URL host = CDN (`cdn_public_base_url`), not raw B2  
-- [ ] `supervisorctl status` — all reel queues UP  
-- [ ] Live go-live orientation still works  
-- [ ] Graphics theme2 selectable if expected in prod  
-- [ ] `https://tapeya.com/.well-known/assetlinks.json` + AASA return JSON (not SPA HTML)  
-- [ ] Play-signed install: `adb shell pm get-app-links com.tapbytapeya.app` shows domain verified  
+1. Point `cdn_public_base_url` / `AWS_URL` back to CloudFront.
+2. Restore previous AWS/S3 credentials on `MEDIA_DISK=s3` (objects still on S3 until deleted).
+3. `php artisan settings:clear-cache && php artisan config:clear && php artisan config:cache`
 
 ---
 
-## Rollback (short)
+## Related docs
 
-1. Redeploy previous API/app/backoffice git ref.  
-2. Do **not** reverse migrations unless data loss is acceptable (posts tables are new). Prefer feature-off via settings / app store hold.  
-3. CDN: point `cdn_public_base_url` / `AWS_URL` back if media host is wrong.  
-4. Restore previous `supervisor/tapeya.conf` + `supervisorctl update`.
-
----
-
-## Related deeper docs
-
-- [FEED_REELS_PRODUCTION_CLOSEOUT.md](./FEED_REELS_PRODUCTION_CLOSEOUT.md) — full gate checklist  
-- [MEDIA_CDN_MIGRATION.md](./MEDIA_CDN_MIGRATION.md) — B2 + Cloudflare cutover  
-- [MEDIA_DELIVERY_AND_CACHE_PLAN.md](./MEDIA_DELIVERY_AND_CACHE_PLAN.md) — edge cache  
-- [REELS_ARCHITECTURE.md](./REELS_ARCHITECTURE.md) — queues / ABR  
-
----
-
-## Committed on `develop` since `main` (already on branch)
-
-1. `2d3ac12` — Stream orientation enum + live broadcast  
-2. `a7c280b` — Build scripts / iOS deps  
-3. `63d6513` — Live broadcast orientation handling  
-4. `7012349` — Graphics theme2  
-
-**Plus** the full staged feed/reels/media/admin tree (must be committed before release).
+- [MEDIA_CDN_MIGRATION.md](./MEDIA_CDN_MIGRATION.md) — B2 + Worker phases, rclone, cutover
+- [MEDIA_DELIVERY_AND_CACHE_PLAN.md](./MEDIA_DELIVERY_AND_CACHE_PLAN.md) — delivery / cache planning
+- [FEED_REELS_PRODUCTION_CLOSEOUT.md](./FEED_REELS_PRODUCTION_CLOSEOUT.md) — full feed/reels gate checklist

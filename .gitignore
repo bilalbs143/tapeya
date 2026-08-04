@@ -15,6 +15,13 @@
 .env.local
 .env.*.local
 
+# ===================
+# Infra (Cloudflare Workers)
+# ===================
+infra/*/node_modules/
+infra/*/.wrangler/
+infra/*/.dev.vars
+
 # Logs
 *.log
 npm-debug.log*
