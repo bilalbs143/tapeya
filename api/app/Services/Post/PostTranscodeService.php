@@ -207,8 +207,8 @@ class PostTranscodeService
 
             event(new PostProcessingUpdated($post->fresh(['video']) ?? $post));
 
-            // Original is only needed until HLS ABR finishes — drop it immediately.
-            CleanupPostOriginalJob::dispatch($post->id);
+            // Keep original ≥48h for re-encode / debugging; daily purge is the safety net.
+            CleanupPostOriginalJob::dispatch($post->id)->delay(now()->addHours(48));
 
             return $post->fresh(['video']);
         } catch (\Throwable $e) {

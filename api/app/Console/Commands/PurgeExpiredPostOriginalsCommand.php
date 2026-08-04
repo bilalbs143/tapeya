@@ -9,7 +9,7 @@ class PurgeExpiredPostOriginalsCommand extends Command
 {
     protected $signature = 'posts:purge-expired-originals';
 
-    protected $description = 'Delete original reel uploads that still exist after HLS is ready';
+    protected $description = 'Delete original reel uploads still present ≥48h after HLS ready';
 
     public function handle(PostMediaCleanupService $cleanup): int
     {
