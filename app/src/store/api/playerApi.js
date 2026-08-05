@@ -3,22 +3,11 @@ import { RANKING_CRICKET_FORMAT, RANKING_TOURNAMENT_TYPE } from '@/lib/constants
 import { baseApi } from './baseApi';
 
 /**
- * Players API – search users for squad/icon pickers, and player stats for profile.
- * GET /players?for_squad=1&search=... — all eligible squad members (player, sponsor, organizer)
- * GET /users/{user}/stats, GET /users/{user}/teams
+ * Cricket profile stats / ranking / teams for a user.
+ * App-user typeahead lives in userApi (`lookupUsers` → GET /users/lookup).
  */
 export const playerApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    searchSquadMembers: builder.query({
-      query: (search = '') => ({
-        url: '/players',
-        params: {
-          for_squad: 1,
-          ...(search != null && String(search).trim() !== '' ? { search: String(search).trim() } : {}),
-        },
-      }),
-      transformResponse: (response) => response?.data ?? response ?? [],
-    }),
     getPlayerStats: builder.query({
       query: ({ userId, tournament_type = 'all', cricket_format = 'all' }) => ({
         url: `/users/${userId}/stats`,
@@ -61,5 +50,4 @@ export const playerApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useSearchSquadMembersQuery, useGetPlayerStatsQuery, useGetPlayerRankingPositionQuery, useGetPlayerTeamsQuery } =
-  playerApi;
+export const { useGetPlayerStatsQuery, useGetPlayerRankingPositionQuery, useGetPlayerTeamsQuery } = playerApi;

@@ -38,8 +38,6 @@ export interface User {
   active_platform_updated_at?: string | null;
   can_broadcast?: boolean;
   is_official?: boolean;
-  roles?: UserRole[];
-  role_ids?: number[];
   admin_roles?: UserRole[];
   admin_role_ids?: number[];
   created_by?: number | null;
@@ -51,18 +49,9 @@ export interface User {
 
 /**
  * Minimal user row for admin search pickers (organizer, broadcast staff, team squads, etc.).
- * Some endpoints omit optional keys (e.g. phone on narrow JSON resources).
  */
 export type UserSearchRow = Pick<User, 'id' | 'name' | 'nickname' | 'email'> & {
   phone?: string | null;
-};
-
-/** Query params for {@link UsersService.adminUserSearch} (matches admin `UserSearchController`). */
-export type AdminUserSearchParams = {
-  app_role?: string;
-  for_squad?: boolean;
-  context?: 'broadcaster';
-  tournament_id?: number;
 };
 
 export interface UsersListResponse {
@@ -88,7 +77,6 @@ export interface CreateUserPayload {
   password_confirmation?: string | null;
   type: string;
   status?: string | null;
-  role_ids?: number[];
   admin_role_ids?: number[];
   playing_role?: string | null;
   bowling_style?: string | null;
@@ -117,12 +105,12 @@ export class UsersService {
   }
 
   /**
-   * Unified admin user typeahead — `GET v1/admin/users/search`.
-   * Examples: default picker (no extra), `{ app_role: 'sponsor' }` for organizer, `{ for_squad: true }` for team squads, `{ context: 'broadcaster', tournament_id }` for broadcast staff.
+   * Unified admin user typeahead — `GET v1/admin/users/search?search=…`
+   * Same endpoint for organizer, team owner, squad, broadcast staff, etc.
    */
-  public adminUserSearch(search?: string | null, extra: AdminUserSearchParams = {}): Observable<{ data: UserSearchRow[] }> {
+  public adminUserSearch(search?: string | null): Observable<{ data: UserSearchRow[] }> {
     return this.http.get<{ data: UserSearchRow[] }>(`${this.baseUrl}/search`, {
-      params: toHttpParams(extra as Record<string, unknown>, { search: search ?? '' }),
+      params: toHttpParams({}, { search: search ?? '' }),
     });
   }
 

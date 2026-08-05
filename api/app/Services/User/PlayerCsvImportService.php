@@ -2,14 +2,11 @@
 
 namespace App\Services\User;
 
-use App\Enums\User\AppRoleEnum;
 use App\Enums\User\BattingStyleEnum;
 use App\Enums\User\BowlingStyleEnum;
 use App\Enums\User\PlayingRoleEnum;
-use App\Enums\User\RoleGuardEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
-use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +16,7 @@ use Illuminate\Validation\Rule;
 use Nnjeim\World\Models\City;
 
 /**
- * Bulk-create app users with the {@see AppRoleEnum::PLAYER} app role only (admin CSV import).
+ * Bulk-create app users (`type = user`) for the admin player registry / CSV import.
  *
  * Header (required columns, any order):
  * name,nickname,phone,email,date_of_birth,playing_role,bowling_style,batting_style,country,city
@@ -50,15 +47,6 @@ class PlayerCsvImportService
         $errors = [];
         $imported = 0;
         $skipped = 0;
-
-        $playerRoleId = Role::query()
-            ->where('slug', AppRoleEnum::PLAYER->value)
-            ->where('guard', RoleGuardEnum::APP->value)
-            ->value('id');
-
-        if ($playerRoleId === null) {
-            return $this->result(0, 0, ['Player app role is not configured.'], $dryRun);
-        }
 
         $realPath = $file->getRealPath();
         if ($realPath === false) {
@@ -133,9 +121,9 @@ class PlayerCsvImportService
 
                 try {
                     $createdBy = $actor->id;
-                    DB::transaction(function () use ($data, $playerRoleId, $createdBy): void {
+                    DB::transaction(function () use ($data, $createdBy): void {
                         $email = $data['email'] !== '' ? $data['email'] : null;
-                        $user = User::query()->create([
+                        User::query()->create([
                             'name' => $data['name'],
                             'nickname' => $data['nickname'],
                             'email' => $email,
@@ -150,7 +138,6 @@ class PlayerCsvImportService
                             'city' => $data['city'],
                             'created_by' => $createdBy,
                         ]);
-                        $user->roles()->sync([$playerRoleId]);
                     });
                     $imported++;
                 } catch (\Throwable $e) {

@@ -19,13 +19,13 @@ import {
   mergeTournamentMeta,
   parseTournamentId,
 } from '@/lib/utils/tournamentUtils';
-import { useSearchSquadMembersQuery } from '@/store/api/playerApi';
 import { useGetTeamSquadQuery, useUpdateTeamSquadMutation } from '@/store/api/teamApi';
 import {
   useGetTournamentQuery,
   useGetTournamentSquadOccupancyQuery,
   useGetTournamentTeamsQuery,
 } from '@/store/api/tournamentApi';
+import { useLookupUsersQuery } from '@/store/api/userApi';
 import { Container } from '@/ui/Container';
 import { FormField } from '@/ui/FormField';
 import { CloseIcon } from '@/ui/icons/CloseIcon';
@@ -190,7 +190,7 @@ export default function TournamentSquad() {
     setFindPlayer('');
   }, [selectedTeamId]);
 
-  const { data: playerSearchResults = [], isFetching: isSearchingPlayers } = useSearchSquadMembersQuery(debouncedFindPlayer, {
+  const { data: playerSearchResults = [], isFetching: isSearchingPlayers } = useLookupUsersQuery(debouncedFindPlayer, {
     skip: debouncedFindPlayer.length < MIN_SEARCH_LENGTH,
   });
 

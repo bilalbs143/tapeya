@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
-use App\Models\Tournament;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -36,7 +35,8 @@ class AdminUserSearchTest extends TestCase
         $this->actingAs($admin, 'api')
             ->getJson('/api/v1/admin/users/search?search=taimoor')
             ->assertOk()
-            ->assertJsonPath('data.0.id', $target->id);
+            ->assertJsonPath('data.0.id', $target->id)
+            ->assertJsonStructure(['data' => [['id', 'name', 'nickname', 'email', 'phone']]]);
 
         $this->actingAs($admin, 'api')
             ->getJson('/api/v1/admin/users/search?search=rocket')
@@ -62,34 +62,35 @@ class AdminUserSearchTest extends TestCase
             ->assertJsonPath('data.0.id', $target->id);
     }
 
-    public function test_broadcaster_context_uses_same_case_insensitive_search(): void
+    public function test_admin_user_search_excludes_administrators_and_blocked_users(): void
     {
         $admin = User::factory()->create(['type' => UserTypeEnum::ADMINISTRATOR]);
 
-        $target = User::factory()->create([
+        $active = User::factory()->create([
             'type' => UserTypeEnum::USER,
             'status' => UserStatusEnum::ACTIVE,
-            'name' => 'Broadcaster Pick',
-            'nickname' => 'BCAST',
-            'phone' => '+92-321-4445566',
+            'name' => 'Active Lookup',
+            'nickname' => 'active_lookup',
         ]);
 
-        $tournamentId = Tournament::create([
-            'organizer_id' => $admin->id,
-            'tournament_name' => 'Search Test Cup',
-            'tournament_type' => 'league',
-            'cricket_format' => 'tape_ball',
-            'venue_name' => 'Test Ground',
-            'start_date' => now()->toDateString(),
-            'end_date' => now()->toDateString(),
-            'number_of_teams' => 2,
-            'city' => 'Test City',
-            'match_timings' => 'day',
-        ])->id;
+        User::factory()->create([
+            'type' => UserTypeEnum::ADMINISTRATOR,
+            'status' => UserStatusEnum::ACTIVE,
+            'name' => 'Admin Lookup',
+            'nickname' => 'admin_lookup',
+        ]);
+
+        User::factory()->create([
+            'type' => UserTypeEnum::USER,
+            'status' => UserStatusEnum::BLOCKED,
+            'name' => 'Blocked Lookup',
+            'nickname' => 'blocked_lookup',
+        ]);
 
         $this->actingAs($admin, 'api')
-            ->getJson("/api/v1/admin/users/search?context=broadcaster&tournament_id={$tournamentId}&search=bcast")
+            ->getJson('/api/v1/admin/users/search?search=lookup')
             ->assertOk()
-            ->assertJsonPath('data.0.id', $target->id);
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $active->id);
     }
 }

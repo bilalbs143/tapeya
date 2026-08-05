@@ -3,7 +3,7 @@
 namespace App\Contracts;
 
 /**
- * Role enums (AppRoleEnum, AdminRoleEnum) implement this so User::hasRole() works with guard.
+ * Role enums (e.g. AdminRoleEnum) implement this so User::hasRole() works with guard.
  */
 interface RoleEnumInterface
 {

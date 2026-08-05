@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('slug', 50);
-            $table->string('guard', 30)->default('app');
+            $table->string('guard', 30)->default('admin');
             $table->timestamps();
 
             $table->unique(['slug', 'guard']);

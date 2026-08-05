@@ -122,30 +122,7 @@
           </mat-form-field>
         </div>
 
-        <!-- Row 4: Roles | Backoffice Roles | Broadcast -->
-        <div class="col-span-12 lg:col-span-4">
-          <mat-label class="text-sm font-semibold mb-2 block">Roles <span class="text-error">*</span></mat-label>
-          <mat-form-field
-            appearance="outline"
-            class="w-full"
-          >
-            <mat-select
-              formControlName="role_ids"
-              multiple
-              placeholder="Select Roles"
-            >
-              @if (appRolesOptions$ | async; as roleOptions) {
-                @for (opt of roleOptions; track opt.value) {
-                  <mat-option [value]="+opt.value">{{ opt.label }}</mat-option>
-                }
-              }
-            </mat-select>
-            @if (form.get('role_ids')?.invalid && form.get('role_ids')?.touched) {
-              <mat-error>Select at least one role</mat-error>
-            }
-          </mat-form-field>
-        </div>
-
+        <!-- Row 4: Backoffice Roles | Broadcast | Official -->
         <div class="col-span-12 lg:col-span-4">
           <mat-label class="text-sm font-semibold mb-2 block">Backoffice Roles</mat-label>
           <mat-form-field

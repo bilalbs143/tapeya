@@ -77,7 +77,6 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     'referral_nickname',
     'email',
     'phone',
-    'app_roles',
     'admin_roles',
     'playing_role',
     'bowling_style',

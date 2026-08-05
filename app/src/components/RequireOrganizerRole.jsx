@@ -4,15 +4,13 @@ import { useGetMeQuery } from '@/store/api/authApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 
-function userHasOrganizerRole(user) {
-  const roles = user?.roles;
-  if (!Array.isArray(roles)) return false;
-  return roles.some((r) => r?.slug === 'organizer');
+function userIsTournamentManager(user) {
+  return Boolean(user?.capabilities?.tournament_manager);
 }
 
 /**
- * Allows nested routes only when the current user has the organizer role.
- * Waits for /me when roles are not yet on the store user.
+ * Allows nested routes only when the current user manages at least one tournament
+ * (organizer_id / created_by / broadcast staff — see capabilities.tournament_manager).
  */
 export function RequireOrganizerRole() {
   const user = useAppSelector(selectUser);
@@ -20,14 +18,14 @@ export function RequireOrganizerRole() {
     skip: !user?.id,
   });
   const profileUser = meResponse?.data ?? user;
-  const roles = profileUser?.roles;
-  const hasOrganizer = userHasOrganizerRole(profileUser);
+  const hasCaps = profileUser?.capabilities != null;
+  const allowed = userIsTournamentManager(profileUser);
 
-  if (isLoading && !Array.isArray(roles)) {
+  if (isLoading && !hasCaps) {
     return null;
   }
 
-  if (!hasOrganizer) {
+  if (!allowed) {
     return <Navigate to="/home" replace />;
   }
 

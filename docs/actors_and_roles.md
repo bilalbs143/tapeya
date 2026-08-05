@@ -1,113 +1,72 @@
-# Actors, Roles & Permissions (final)
+# Actors, Roles & Permissions
+
+> **App auth (2026-08):** Assignment-based. See **[APP_CAPABILITIES.md](./APP_CAPABILITIES.md)**.  
+> App-guard roles (`player` / `organizer` / `sponsor`) are **removed**. Roles remain for **admin backoffice** only.
 
 ## 1. Overview
 
 | Actor | Login | Where | Storage |
 |-------|--------|--------|---------|
-| **Admin** | Yes, separate | Backoffice only | `users.type = administrator` + optional `roles` (guard=admin) |
-| **User** (player / organizer / sponsor) | Yes | App only | `users.type = user` + `roles` (guard=app) via `role_user` |
+| **Admin** | Yes | Backoffice | `users.type = administrator` **or** `type = user` + admin-guard role (e.g. broadcaster) |
+| **App user** | Yes | App | `users.type = user` — capabilities from tournament/team/vendor **assignments** |
 
-- **Roles** are scoped by **guard** (`app` | `admin`). Same `roles` table and `role_user` pivot; slug is unique per guard.
-- **Permissions** are attached to **roles**; users get permissions through their roles. Permissions also have a guard.
-
----
+- **Roles** are scoped by **guard**. Only **`admin`** guard roles are seeded (`super_admin`, `broadcaster`).
+- **Permissions** attach to admin roles; used by `EnsureAdminPermission` (exact slug).
 
 ## 2. Database
 
 | Table | Purpose |
 |-------|---------|
 | `users` | All accounts. `type`: administrator, system, user. |
-| `roles` | name, slug, **guard** (app/admin). Slug unique per guard. |
-| `role_user` | user_id ↔ role_id (user has many roles). |
-| `permissions` | name, slug, **guard**. Slug unique per guard. |
-| `role_permission` | role_id ↔ permission_id (role has many permissions). |
+| `roles` | name, slug, **guard** (`admin`). App-guard rows deleted by `api/database/scripts/drop_legacy_app_guard_roles.sql`. |
+| `role_user` | user_id ↔ role_id (admin roles only after cleanup). |
+| `permissions` | name, slug, **guard** (admin). |
+| `role_permission` | role_id ↔ permission_id. |
 
-**Flow**: User → **roles** (via `role_user`) → **permissions** (via `role_permission`).
-
-**Backoffice admin permission slugs:** Canonical seed list in **`api/database/seeders/PermissionSeeder.php`**; readable mirror in **`BROADCASTER_ROLE.md` §8**. See **`SHARED_DOMAIN_SERVICES.md`** (admin permission table) for how that lines up with HTTP layers.
-
----
+**Cleanup SQL:** `api/database/scripts/drop_legacy_app_guard_roles.sql` (run once on existing DBs).
 
 ## 3. Guards
 
 | Guard | Used for | Role examples |
 |-------|----------|----------------|
-| `app` | App users (`type = user`) | player, organizer, sponsor |
-| `admin` | Backoffice admins (`type = administrator`) | super_admin, … |
+| `admin` | Backoffice | `super_admin`, `broadcaster` |
 
-- Enums: **`AppRoleEnum`** (player, organizer, sponsor), **`AdminRoleEnum`** (super_admin; add more as needed).
-- **`RoleGuardEnum`**: `APP`, `ADMIN`. **`RoleEnumInterface`**: `guard(): string` (implemented by app/admin role enums).
+- Enum: **`RoleGuardEnum::ADMIN`** only. **`AppRoleEnum` deleted.** Legacy `guard = 'app'` role rows are removed by the SQL cleanup script (string match, not enum).
 
----
+## 4–6. Role / Permission / User APIs
 
-## 4. Role API
+Unchanged for **admin** roles: `Role::findBySlug`, `$user->hasRole(AdminRoleEnum::…)`, `$user->hasPermissionTo('…', 'admin')`, `$user->getAdminRoles()`.
 
-| Method | Description |
-|--------|-------------|
-| `Role::findBySlug(string $slug, ?string $guard = null)` | Get role by slug (and optional guard). |
-| `Role::forGuard(string $guard)` | Scope: roles for that guard. |
-| `$role->users` | Users that have this role. |
-| `$role->permissions` | Permissions attached to this role. |
-| `$role->givePermissionTo(Permission\|string $permission)` | Attach permission (by object or slug; uses role’s guard). |
-| `$role->revokePermissionTo(Permission\|string $permission)` | Detach permission. |
-| `$role->hasPermission(string $slug)` | Whether this role has that permission. |
-| `$role->isRole(RoleEnumInterface $role)` | Whether this role matches the enum (slug + guard). |
+**App feature gates** (not roles):
 
----
-
-## 5. Permission API
-
-| Method | Description |
-|--------|-------------|
-| `Permission::firstOrCreate(['slug' => '…', 'guard' => '…'], ['name' => '…'])` | Create permission if missing. |
-| `$permission->roles` | Roles that have this permission. |
-
----
-
-## 6. User API (roles & permissions)
-
-| Method | Description |
-|--------|-------------|
-| `$user->roles` | User’s roles. |
-| `$user->hasRole(RoleEnumInterface\|string $role, ?string $guard = null)` | Has this role (enum or slug; guard default app). |
-| `$user->hasAnyRole(array $roles, ?string $guard = null)` | Has any of the given roles. |
-| `$user->hasPermissionTo(string $permission, ?string $guard = null)` | Has this permission via any of their roles (guard default app). |
-| `User::appUsers()` | Scope: `type = user`. |
-| `User::withRole(RoleEnumInterface\|string $role, ?string $guard = null)` | Scope: users that have this role. |
-
----
+| Helper | Meaning |
+|--------|---------|
+| `$user->canManageTeam($team)` | Owner or tournament staff for that team |
+| `$user->isTournamentStaff($tournament)` | organizer_id / created_by / broadcaster pivot |
+| `$user->appCapabilities()` | `tournament_manager`, `team_owner`, `vendor_status` for `/me` |
 
 ## 7. Actor usage
 
-**Admin**
+**Admin / backoffice**
 
-- `$user->isAdmin()`.
-- Roles (optional): `$user->hasRole(AdminRoleEnum::SUPER_ADMIN)`, `$user->hasPermissionTo('streams.delete', RoleGuardEnum::ADMIN->value)`.
+- `$user->isAdmin()`, `$user->canAccessBackofficeApi()`, `$user->hasBroadcastBackofficeRole()`.
+- `$user->hasPermissionTo('streams.delete', RoleGuardEnum::ADMIN->value)`.
 
-**App user (player / organizer / sponsor)**
+**App user**
 
-- `$user->isUser()`, `$user->roles`, `$user->hasRole(AppRoleEnum::SPONSOR)`, `$user->hasAnyRole([AppRoleEnum::PLAYER, AppRoleEnum::ORGANIZER])`, `$user->hasPermissionTo('tournaments.create')`.
-- Queries: `User::appUsers()->withRole(AppRoleEnum::ORGANIZER)->get()`.
+- `$user->isUser()`, `$user->appCapabilities()`, assignment helpers above.
+- Admin Players registry = all `type = user` (no role filter).
 
----
+## 8. Unified user search
 
-## 8. Example: attach permission to role and check on user
+See [APP_CAPABILITIES.md §3](./APP_CAPABILITIES.md#3-unified-user-search-pickers).
 
-```php
-// Create permission (e.g. in seeder or when adding a feature)
-Permission::firstOrCreate(
-    ['slug' => 'tournaments.create', 'guard' => 'app'],
-    ['name' => 'Create tournaments']
-);
+| Surface | Endpoint |
+|---------|----------|
+| App pickers (owner / squad / icons) | `GET /users/lookup?search=` |
+| App @mentions | `GET /users/search?q=` |
+| Backoffice all pickers | `GET /admin/users/search?search=` |
 
-// Attach to role
-$role = Role::findBySlug(AppRoleEnum::ORGANIZER->value, RoleGuardEnum::APP->value);
-$role->givePermissionTo('tournaments.create');
+## 9. Cleanup
 
-// Check on user
-$user->hasPermissionTo('tournaments.create');  // true if any of user's roles have this permission
-```
-
----
-
-**Status**: Final. Roles and permissions are guard-based; actors (admin, user) and APIs above are the single source of truth.
+After deploy, run `api/database/scripts/drop_legacy_app_guard_roles.sql` on existing DBs so app-guard `roles` / `role_user` / orphan `permissions` rows are dropped. Fresh installs never seed them (`RoleSeeder` is admin-only).

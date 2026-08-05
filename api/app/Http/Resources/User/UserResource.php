@@ -14,7 +14,6 @@ class UserResource extends JsonResource
     public function toArray(Request $request): array
     {
         $user = $this->resource;
-        $appRoles = $user->getAppRoles();
         $avatarUrl = MediaDisk::url($this->avatar);
 
         return [
@@ -44,11 +43,7 @@ class UserResource extends JsonResource
             'can_broadcast' => (bool) $this->can_broadcast,
             'is_official' => (bool) $this->is_official,
             'broadcast_terms_accepted_at' => $this->broadcast_terms_accepted_at?->toIso8601String(),
-            'roles' => $appRoles->map(fn ($r) => [
-                'id' => $r->id,
-                'name' => $r->name,
-                'slug' => $r->slug,
-            ])->values()->all(),
+            'capabilities' => $user->appCapabilities(),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

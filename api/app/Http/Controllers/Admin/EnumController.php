@@ -43,7 +43,7 @@ class EnumController extends Controller
      */
     public function index(): JsonResponse
     {
-        $enums = Cache::remember('admin:enums:v5', 600, fn () => $this->buildEnums());
+        $enums = Cache::remember('admin:enums:v6', 600, fn () => $this->buildEnums());
 
         return $this->success($enums);
     }
@@ -78,11 +78,6 @@ class EnumController extends Controller
             'notification_type' => $this->toOptions(AdminNotificationTypeEnum::cases()),
             'push_notification_status' => $this->toOptions(PushNotificationStatusEnum::cases()),
             'push_triggered_by' => $this->toOptions(PushTriggeredByEnum::cases()),
-            'app_roles' => Role::forGuard(RoleGuardEnum::APP->value)->orderBy('name')->get()->map(fn (Role $r) => [
-                'value' => (string) $r->id,
-                'label' => $r->name,
-                'slug' => $r->slug,
-            ])->values()->all(),
             'admin_roles' => Role::forGuard(RoleGuardEnum::ADMIN->value)->orderBy('name')->get()->map(fn (Role $r) => [
                 'value' => (string) $r->id,
                 'label' => $r->name,

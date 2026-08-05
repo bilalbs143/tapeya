@@ -10,25 +10,8 @@ const profileHeaderBg = `${CLOUDFRONT_APP_BASE}/images/standard/profile-header.j
 const BANNER_HEIGHT = 202;
 const CONTENT_MAX = 'max-w-[1100px]';
 
-/** Primary role label for display (e.g. "Player" → "PLAYER"). */
-function getPrimaryRoleLabel(user) {
-  const roles = user?.roles;
-  if (!roles?.length) return 'MEMBER';
-  const first = roles[0];
-  const label = first?.name ?? first?.slug ?? '';
-  return label ? label.toUpperCase().replace(/-/g, ' ') : 'MEMBER';
-}
-
-export function ProfileHeader({
-  user: userProp,
-  name: nameProp,
-  role: roleProp,
-  strength: strengthProp,
-  avatarSrc: avatarSrcProp,
-  onShare,
-}) {
+export function ProfileHeader({ user: userProp, name: nameProp, strength: strengthProp, avatarSrc: avatarSrcProp, onShare }) {
   const name = nameProp ?? (userProp?.name?.trim() || userProp?.nickname?.trim() || 'Guest');
-  const role = roleProp ?? getPrimaryRoleLabel(userProp);
   const avatarSrc = avatarSrcProp ?? userProp?.avatar_url ?? defaultAvatar;
   const strength = strengthProp ?? (userProp ? calculateProfileStrength(userProp) : 0);
   const showStrengthBar = strength < 100;
@@ -70,14 +53,11 @@ export function ProfileHeader({
               <ProfileAvatar src={avatarSrc} name={name} />
             </div>
             <div className={showStrengthBar ? 'relative min-w-0 flex-1 pb-10' : 'min-w-0 flex-1'}>
-              <div className={`flex flex-col items-start gap-1.5 ${showStrengthBar ? '' : 'translate-y-[25%]'}`}>
+              <div className={showStrengthBar ? '' : 'translate-y-[25%]'}>
                 <h1 className="inline-flex max-w-full items-center gap-1.5 text-base font-semibold tracking-tight text-white">
                   <span className="truncate">{name}</span>
                   <OfficialBadge isOfficial={isOfficial} size="md" />
                 </h1>
-                <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold tracking-wide text-black">
-                  {role}
-                </span>
               </div>
               {showStrengthBar && (
                 <div className="bg-surface absolute bottom-[-22px] left-0 z-0 w-full max-w-[358px] rounded-full px-4 py-3 backdrop-blur">

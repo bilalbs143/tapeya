@@ -13,10 +13,9 @@ import { EMPTY_FILE_UPLOAD, fileUploadValueFromUrl } from '@/lib/utils/fileUploa
 import { canAddTournamentTeams, getTournamentNumberOfGroups, mergeTournamentMeta } from '@/lib/utils/tournamentUtils';
 import { teamFormSchema } from '@/lib/validations/team';
 import { uploadMediaFile, useUploadMediaMutation } from '@/store/api/mediaApi';
-import { useSearchSquadMembersQuery } from '@/store/api/playerApi';
-import { useSearchSponsorsQuery } from '@/store/api/sponsorApi';
 import { useCreateTeamMutation, useSearchTeamsQuery, useUpdateTeamMutation } from '@/store/api/teamApi';
 import { useAttachTeamsToTournamentMutation, useGetTournamentQuery, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
+import { useLookupUsersQuery } from '@/store/api/userApi';
 import { Checkbox } from '@/ui/Checkbox';
 import { CountryCityFields } from '@/ui/CountryCityFields';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
@@ -219,11 +218,11 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
 
   // ── API ──────────────────────────────────────────────────────────────────────
 
-  const { data: sponsorsList = [], isFetching: isSearchingSponsors } = useSearchSponsorsQuery(debouncedSponsorSearch, {
+  const { data: sponsorsList = [], isFetching: isSearchingSponsors } = useLookupUsersQuery(debouncedSponsorSearch, {
     skip: debouncedSponsorSearch.length < MIN_SEARCH_LENGTH,
   });
 
-  const { data: playersList = [], isFetching: isSearchingPlayers } = useSearchSquadMembersQuery(debouncedIconPlayerSearch, {
+  const { data: playersList = [], isFetching: isSearchingPlayers } = useLookupUsersQuery(debouncedIconPlayerSearch, {
     skip: debouncedIconPlayerSearch.length < MIN_SEARCH_LENGTH,
   });
 

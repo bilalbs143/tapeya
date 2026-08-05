@@ -24,7 +24,6 @@ class StoreUserRequest extends FormRequest
      */
     public function rules(): array
     {
-        $appRoleIds = Role::forGuard(RoleGuardEnum::APP->value)->pluck('id')->toArray();
         $adminRoleIds = Role::forGuard(RoleGuardEnum::ADMIN->value)->pluck('id')->toArray();
 
         return [
@@ -42,8 +41,6 @@ class StoreUserRequest extends FormRequest
             ],
             'type' => ['required', Rule::enum(UserTypeEnum::class), Rule::notIn([UserTypeEnum::SYSTEM])],
             'status' => ['nullable', Rule::enum(UserStatusEnum::class)],
-            'role_ids' => ['required', 'array', 'min:1'],
-            'role_ids.*' => ['integer', Rule::in($appRoleIds)],
             'admin_role_ids' => ['sometimes', 'array'],
             'admin_role_ids.*' => ['integer', Rule::in($adminRoleIds)],
             'playing_role' => ['nullable', Rule::enum(PlayingRoleEnum::class)],

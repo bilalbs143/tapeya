@@ -29,7 +29,6 @@ use App\Http\Controllers\User\MatchSubstituteController;
 use App\Http\Controllers\User\MatchTossController;
 use App\Http\Controllers\User\MatchWicketKeeperController;
 use App\Http\Controllers\User\NotificationController;
-use App\Http\Controllers\User\PlayerController;
 use App\Http\Controllers\User\PlayerStatsController;
 use App\Http\Controllers\User\PlayingElevenController;
 use App\Http\Controllers\User\PostCommentController;
@@ -46,7 +45,6 @@ use App\Http\Controllers\User\Shop\CategoryController;
 use App\Http\Controllers\User\Shop\OrderController;
 use App\Http\Controllers\User\Shop\ProductController;
 use App\Http\Controllers\User\SignedGraphicSessionController;
-use App\Http\Controllers\User\SponsorController;
 use App\Http\Controllers\User\StaticPageController;
 use App\Http\Controllers\User\SupportMessageController;
 use App\Http\Controllers\User\SystemSettingController;
@@ -59,6 +57,7 @@ use App\Http\Controllers\User\TournamentStatsController;
 use App\Http\Controllers\User\TournamentTeamController;
 use App\Http\Controllers\User\UserActivePlatformController;
 use App\Http\Controllers\User\UserFollowController;
+use App\Http\Controllers\User\UserLookupController;
 use App\Http\Controllers\User\UserMediaController;
 use App\Http\Controllers\User\UserProfileController;
 use App\Http\Controllers\User\UserTeamController;
@@ -127,6 +126,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('reels/{post}/upload/abort', [PostMultipartController::class, 'abort']);
 
     Route::get('users/search', [UserFollowController::class, 'search'])->middleware('throttle:60,1');
+    Route::get('users/lookup', [UserLookupController::class, 'index'])->middleware('throttle:60,1');
     Route::get('users/suggestions', [UserFollowController::class, 'suggestions']);
     Route::get('users/{user}/profile', [UserProfileController::class, 'show']);
     Route::get('users/{user}/reels', [PostController::class, 'forUser']);
@@ -246,8 +246,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('tournament-requests', [TournamentRequestController::class, 'index']);
     Route::post('tournament-requests', [TournamentRequestController::class, 'store']);
 
-    Route::get('sponsors', [SponsorController::class, 'index']);
-    Route::get('players', [PlayerController::class, 'index']);
     Route::get('countries', [CountryController::class, 'index']);
     Route::get('countries/cities', [CountryController::class, 'cities']);
 

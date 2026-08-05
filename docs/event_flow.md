@@ -47,11 +47,11 @@ End-to-end flow from tournament request to scheduled tournament matches. Defines
 - Admin reviews tournament requests (list, filter by status).
 - Admin approves or rejects a request.
 - On **approve**, admin creates a **Tournament** (from the tournament request). The tournament is the verified, live entity used for teams and schedule.
-- Admin selects an **organizer** (app user with organizer role) via a searchable dropdown. The organizer will manage the tournament in the app. No contact info (name, phone) is collected on tournament creation.
+- Admin selects an **organizer** (any app user — assigned via `tournaments.organizer_id`) via a searchable dropdown. That assignment is what grants tournament management in the app (see [APP_CAPABILITIES.md](./APP_CAPABILITIES.md)). No contact info (name, phone) is collected on tournament creation.
 
 **Implementation:**
 
-- **Admin API:** `TournamentRequestController` (approve/reject), `TournamentController` (CRUD for tournaments), `GET /admin/users/for-organizer-dropdown?search=` (server-side user search for organizer selection).
+- **Admin API:** `TournamentRequestController` (approve/reject), `TournamentController` (CRUD for tournaments), `GET /admin/users/search?search=` (unified app-user typeahead for organizer selection and other pickers).
 - **Models:** `TournamentRequest`, `Tournament` (`tournaments`). Tournament has `organizer_id` (FK to users) — the user who manages the tournament.
 - Tournament fields include: organizer_id, event name, type, format, venue, dates, number of matches/teams, match timings, status, images.
 - Authorization for organizer actions (matches, squads, toss, scorecard, etc.): user must be the tournament's organizer (`tournament.organizer_id === user.id`).
@@ -60,12 +60,12 @@ End-to-end flow from tournament request to scheduled tournament matches. Defines
 
 ## 4. Step 3: Create teams ✅ Done (API)
 
-**Actors:** Sponsor, or **Organizer on sponsor’s behalf**.
+**Actors:** Team owner (`teams.user_id`), or **tournament staff** for teams attached to their tournament. Creating a team **for another user** is admin-only (app users create only for themselves).
 
 **Behaviour:**
 
-- For a given (approved) **tournament**, **teams** are created either by the **sponsor** or by the **organizer** (creating a team on behalf of a sponsor).
-- Sponsor assigns players/participants to teams (e.g. via drafting or direct selection, as per product spec). Organizer can create the team with the same structure when acting on sponsor’s behalf.
+- For a given (approved) **tournament**, **teams** are created by app users (self-owned) or by **admin** on behalf of an owner.
+- Team owner (or tournament staff for that team’s tournament) assigns players to the squad.
 
 **Create team — fields**
 
@@ -151,7 +151,7 @@ For a scheduled match with **squad announced** (Step 5), the organizer **starts 
 
 2. **Playing eleven** (after toss)
    - **After** the toss, from each team's **announced squad** (Step 5), the organizer selects the **playing eleven** (11 players who will take the field).
-   - Each of the 11 is designated as batsman/bowler (or role: batsman, bowler, all-rounder, wicketkeeper as per app roles).
+   - Each of the 11 is designated as batsman/bowler (or playing role: batsman, bowler, all-rounder, wicketkeeper).
 
 **To implement:**
 

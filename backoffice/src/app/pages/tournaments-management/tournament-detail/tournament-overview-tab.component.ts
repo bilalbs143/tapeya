@@ -128,13 +128,12 @@ export class TournamentOverviewTabComponent implements OnInit, OnDestroy {
             if (!this.tournamentId) {
               return of({ data: [] as UserSearchRow[] });
             }
-            return this.usersService
-              .adminUserSearch(term ?? '', { context: 'broadcaster', tournament_id: this.tournamentId })
-              .pipe(catchError(() => of({ data: [] as UserSearchRow[] })));
+            return this.usersService.adminUserSearch(term ?? '').pipe(catchError(() => of({ data: [] as UserSearchRow[] })));
           })
         )
         .subscribe((res) => {
-          this.candidates = res.data ?? [];
+          const attachedId = this.broadcaster?.id;
+          this.candidates = (res.data ?? []).filter((u) => attachedId == null || u.id !== attachedId);
         })
     );
     this.sub.add(

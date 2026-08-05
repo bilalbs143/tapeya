@@ -54,6 +54,18 @@ export const userApi = baseApi.injectEndpoints({
     }),
 
     /**
+     * Team owner / squad / icon pickers — any non-blocked app user.
+     * Distinct from searchUsers (mentions). GET /users/lookup?search=...
+     */
+    lookupUsers: builder.query({
+      query: (search = '') => ({
+        url: '/users/lookup',
+        params: search != null && String(search).trim() !== '' ? { search: String(search).trim() } : {},
+      }),
+      transformResponse: (response) => response?.data ?? response ?? [],
+    }),
+
+    /**
      * Ranked who-to-follow for Explore feed widget.
      * @param {{ limit?: number }} [params]
      */
@@ -70,4 +82,4 @@ export const userApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useUpdateActivePlatformMutation, useSearchUsersQuery, useGetSuggestedUsersQuery } = userApi;
+export const { useUpdateActivePlatformMutation, useSearchUsersQuery, useLookupUsersQuery, useGetSuggestedUsersQuery } = userApi;

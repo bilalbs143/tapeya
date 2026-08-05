@@ -263,7 +263,7 @@ $table->foreignId('owner_user_id')->nullable()->after('created_by')->constrained
 
 ### Users — moderation gate (v1: allowlist) + ToS acceptance
 
-**Migration:** add `users.can_broadcast` (boolean, default `false`) and `users.broadcast_terms_accepted_at` (nullable timestamp) — **or** reuse an existing roles/permissions mechanism if one already fits; check `AppRoleEnum` before adding bespoke columns. Do not use `AdminRoleEnum::BROADCASTER` for this — see the Naming & Route Glossary above, it's a different, staff-only concept.
+**Migration:** add `users.can_broadcast` (boolean, default `false`) and `users.broadcast_terms_accepted_at` (nullable timestamp). Do **not** invent an app-guard role for this — app auth is assignment/flag based ([APP_CAPABILITIES.md](./APP_CAPABILITIES.md)). Do not use `AdminRoleEnum::BROADCASTER` for self-serve Go Live — see the Naming & Route Glossary above; that role is staff-only backoffice.
 
 - `can_broadcast` starts `false` for everyone; flipped per-user from backoffice during the allowlist phase (see Trust & Safety and File checklist for the backoffice toggle).
 - `broadcast_terms_accepted_at` is set the first time a user confirms the community-guidelines sheet on `/live/go-live`, via a real write endpoint — **not** a client-only flag (see "ToS acceptance endpoint" under Backend changes for the route and the server-side enforcement this makes possible).

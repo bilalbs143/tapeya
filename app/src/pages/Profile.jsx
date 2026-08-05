@@ -15,19 +15,23 @@ import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 import { profileListClass, profileTriggerClass, Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
 
-const PROFILE_ROLES = [
+const PROFILE_VIEWS = [
   { value: 'player', label: 'As a Player' },
   { value: 'organizer', label: 'As an Organizer' },
   { value: 'sponsor', label: 'As a Sponsor' },
 ];
 
-/** Role slugs the user holds. Returns [] when user has no roles; ['player'] when user not yet loaded. */
-function getRoleSlugs(user) {
+/**
+ * Profile views from assignment-based capabilities (not app roles).
+ * Every app user gets the player view; organizer/sponsor appear when assigned.
+ */
+function getProfileViews(user) {
   if (user == null) return ['player'];
-  const roles = user.roles;
-  if (!roles || !Array.isArray(roles)) return [];
-  const slugs = roles.map((r) => r?.slug).filter(Boolean);
-  return slugs;
+  const caps = user.capabilities ?? {};
+  const views = ['player'];
+  if (caps.tournament_manager) views.push('organizer');
+  if (caps.team_owner) views.push('sponsor');
+  return views;
 }
 
 function ProfileContent({ activeRole, user }) {
@@ -39,7 +43,7 @@ function ProfileContent({ activeRole, user }) {
     case 'player':
       return <PlayerProfile user={user} />;
     default:
-      return <p className="text-muted text-[13px]">Unknown profile role. Select a tab above or go back.</p>;
+      return <p className="text-muted text-[13px]">Unknown profile view. Select a tab above or go back.</p>;
   }
 }
 
@@ -53,17 +57,17 @@ export default function Profile() {
   const user = meResponse?.data ?? userFromStore;
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const userRoleSlugs = useMemo(() => getRoleSlugs(user), [user]);
+  const profileViews = useMemo(() => getProfileViews(user), [user]);
 
-  const visibleRoleTabs = useMemo(() => PROFILE_ROLES.filter(({ value }) => userRoleSlugs.includes(value)), [userRoleSlugs]);
+  const visibleTabs = useMemo(() => PROFILE_VIEWS.filter(({ value }) => profileViews.includes(value)), [profileViews]);
 
-  const hasMultipleRoles = userRoleSlugs.length > 1;
+  const hasMultipleViews = profileViews.length > 1;
 
   const activeRole = useMemo(() => {
     const fromUrl = searchParams.get('role');
-    if (fromUrl && userRoleSlugs.includes(fromUrl)) return fromUrl;
-    return userRoleSlugs[0] ?? null;
-  }, [searchParams, userRoleSlugs]);
+    if (fromUrl && profileViews.includes(fromUrl)) return fromUrl;
+    return profileViews[0] ?? null;
+  }, [searchParams, profileViews]);
 
   // TODO: replace with a public profile URL (e.g. /players/:id) once that route exists.
   const handleShare = useCallback(async () => {
@@ -85,11 +89,11 @@ export default function Profile() {
     <div className="bg-black">
       <ProfileHeader user={user} onShare={handleShare} />
 
-      {hasMultipleRoles && (
+      {hasMultipleViews && (
         <Tabs className="w-full" value={activeRole ?? ''} onValueChange={setActiveRole}>
           <div className="px-4 pt-10">
             <TabsList className={profileListClass}>
-              {visibleRoleTabs.map(({ value, label }) => (
+              {visibleTabs.map(({ value, label }) => (
                 <TabsTrigger key={value} value={value} className={profileTriggerClass}>
                   {label}
                 </TabsTrigger>
@@ -100,11 +104,7 @@ export default function Profile() {
       )}
 
       <div className="px-4 pt-6 pb-6">
-        {userRoleSlugs.length === 0 ? (
-          <p className="text-muted text-[13px]">You don&apos;t have any profile roles yet.</p>
-        ) : (
-          <ProfileContent activeRole={activeRole ?? 'player'} user={user} />
-        )}
+        <ProfileContent activeRole={activeRole ?? 'player'} user={user} />
       </div>
 
       <section className="border-t border-white/10 px-4 pt-8 pb-10" aria-labelledby="account-danger-heading">

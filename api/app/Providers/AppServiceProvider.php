@@ -3,7 +3,6 @@
 namespace App\Providers;
 
 use App\Channels\SmsChannel;
-use App\Enums\User\AppRoleEnum;
 use App\Models\User;
 use App\Services\Notifications\SmsSender;
 use App\Support\Media\MediaCdn;
@@ -34,7 +33,6 @@ class AppServiceProvider extends ServiceProvider
         Route::bind('player', function (string $value): User {
             return User::query()
                 ->user()
-                ->withRole(AppRoleEnum::PLAYER)
                 ->whereKey($value)
                 ->firstOrFail();
         });

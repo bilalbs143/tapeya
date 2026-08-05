@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Admin\Player;
 
-use App\Enums\User\AppRoleEnum;
 use App\Enums\User\BattingStyleEnum;
 use App\Enums\User\BowlingStyleEnum;
 use App\Enums\User\PlayingRoleEnum;
@@ -10,7 +9,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
- * Create an app user with only the {@see AppRoleEnum::PLAYER} app role (backoffice player registry).
+ * Create an app user for the backoffice player registry (`type = user`).
  */
 class StoreBroadcasterPlayerRequest extends FormRequest
 {

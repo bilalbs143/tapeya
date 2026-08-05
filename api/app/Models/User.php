@@ -7,7 +7,6 @@ use App\Builders\UserBuilder;
 use App\Contracts\RoleEnumInterface;
 use App\Enums\User\ActivePlatformEnum;
 use App\Enums\User\AdminRoleEnum;
-use App\Enums\User\AppRoleEnum;
 use App\Enums\User\BattingStyleEnum;
 use App\Enums\User\BowlingStyleEnum;
 use App\Enums\User\PlayingRoleEnum;
@@ -227,7 +226,7 @@ class User extends Authenticatable
     }
 
     /**
-     * May manage another sponsor's team-level squad when that team is in a tournament this user staffs.
+     * May manage another owner's team-level squad when that team is in a tournament this user staffs.
      */
     public function canManageTeamSquadAsTournamentStaff(Team $team): bool
     {
@@ -243,6 +242,79 @@ class User extends Authenticatable
                     ->orWhereHas('broadcasters', fn ($b) => $b->whereKey($uid));
             })
             ->exists();
+    }
+
+    /**
+     * App team management: owner of the team, or tournament staff for a tournament that includes it.
+     * Not gated on Organizer/Sponsor app roles — see docs/APP_CAPABILITIES.md.
+     */
+    public function canManageTeam(Team $team): bool
+    {
+        if (! $this->isUser() || $this->isSystem()) {
+            return false;
+        }
+
+        if ((int) $team->user_id === (int) $this->id) {
+            return true;
+        }
+
+        return $this->canManageTeamSquadAsTournamentStaff($team);
+    }
+
+    /**
+     * Teams this user owns (`teams.user_id`).
+     */
+    public function ownedTeams(): HasMany
+    {
+        return $this->hasMany(Team::class, 'user_id');
+    }
+
+    /** True when the user owns at least one team. */
+    public function isTeamOwner(): bool
+    {
+        if ($this->relationLoaded('ownedTeams')) {
+            return $this->ownedTeams->isNotEmpty();
+        }
+
+        return $this->ownedTeams()->exists();
+    }
+
+    /**
+     * True when the user is organizer_id, created_by, or tournament_broadcaster on at least one tournament.
+     */
+    public function isTournamentManager(): bool
+    {
+        $uid = $this->id;
+
+        return Tournament::query()
+            ->where(function ($q) use ($uid) {
+                $q->where('organizer_id', $uid)
+                    ->orWhere('created_by', $uid)
+                    ->orWhereHas('broadcasters', fn ($b) => $b->whereKey($uid));
+            })
+            ->exists();
+    }
+
+    /**
+     * Marketplace vendor status from shop_vendors when present; null until that table exists / user has no row.
+     */
+    public function vendorStatus(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * Derived app capabilities for /me (assignment-based — not app role slugs).
+     *
+     * @return array{tournament_manager: bool, team_owner: bool, vendor_status: ?string}
+     */
+    public function appCapabilities(): array
+    {
+        return [
+            'tournament_manager' => $this->isTournamentManager(),
+            'team_owner' => $this->isTeamOwner(),
+            'vendor_status' => $this->vendorStatus(),
+        ];
     }
 
     /**
@@ -270,7 +342,8 @@ class User extends Authenticatable
     }
 
     /**
-     * Roles (app: player/organizer/sponsor; admin: future roles). Same pivot for all guards.
+     * Roles (admin-guard only for backoffice: super_admin, broadcaster).
+     * App feature auth is assignment-based — see docs/APP_CAPABILITIES.md.
      */
     public function roles(): BelongsToMany
     {
@@ -319,20 +392,6 @@ class User extends Authenticatable
     }
 
     /**
-     * App-guard roles for this user (for API / serialization). Single query, qualified for joins.
-     *
-     * @return Collection<int, Role>
-     */
-    public function getAppRoles(): Collection
-    {
-        if ($this->relationLoaded('roles')) {
-            return $this->roles->where('guard', RoleGuardEnum::APP->value)->values();
-        }
-
-        return $this->roles()->where('roles.guard', RoleGuardEnum::APP->value)->get();
-    }
-
-    /**
      * @return Collection<int, Role>
      */
     public function getAdminRoles(): Collection
@@ -345,7 +404,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user has a role. Use RoleEnumInterface (AppRoleEnum, AdminRoleEnum) or slug + guard.
+     * Check if user has a role. Prefer AdminRoleEnum; string slugs default to admin guard.
      */
     public function hasRole(RoleEnumInterface|string $role, ?string $guard = null): bool
     {
@@ -354,7 +413,7 @@ class User extends Authenticatable
             $guard = $role->guard();
         } else {
             $slug = $role;
-            $guard ??= RoleGuardEnum::APP->value;
+            $guard ??= RoleGuardEnum::ADMIN->value;
         }
 
         if ($this->relationLoaded('roles')) {
@@ -366,10 +425,10 @@ class User extends Authenticatable
         return $this->roles()->where('slug', $slug)->where('guard', $guard)->exists();
     }
 
-    /** @param array<RoleEnumInterface|string> $roles Guard for string slugs: pass $guard or defaults to app. */
+    /** @param array<RoleEnumInterface|string> $roles Guard for string slugs: pass $guard or defaults to admin. */
     public function hasAnyRole(array $roles, ?string $guard = null): bool
     {
-        $defaultGuard = $guard ?? RoleGuardEnum::APP->value;
+        $defaultGuard = $guard ?? RoleGuardEnum::ADMIN->value;
         foreach ($roles as $r) {
             if ($this->hasRole($r, $r instanceof RoleEnumInterface ? null : $defaultGuard)) {
                 return true;
@@ -384,7 +443,7 @@ class User extends Authenticatable
         return $query->where('type', UserTypeEnum::USER);
     }
 
-    /** Scope: users that have the given role (e.g. all sponsors). Use enum or slug + guard. */
+    /** Scope: users that have the given admin-guard role. Use enum or slug + guard. */
     public function scopeWithRole(Builder $query, RoleEnumInterface|string $role, ?string $guard = null): Builder
     {
         if ($role instanceof RoleEnumInterface) {
@@ -392,33 +451,26 @@ class User extends Authenticatable
             $guard = $role->guard();
         } else {
             $slug = $role;
-            $guard ??= RoleGuardEnum::APP->value;
+            $guard ??= RoleGuardEnum::ADMIN->value;
         }
 
         return $query->whereHas('roles', fn (Builder $q) => $q->where('slug', $slug)->where('guard', $guard));
     }
 
     /**
-     * Scope: app users with player, sponsor, or organizer role (tournament team squad pickers).
+     * Scope: active app users eligible for tournament team squad pickers.
      */
     public function scopeEligibleForTournamentSquad(Builder $query): Builder
     {
-        return $query->whereHas('roles', function (Builder $q): void {
-            $q->where('roles.guard', RoleGuardEnum::APP->value)
-                ->whereIn('roles.slug', [
-                    AppRoleEnum::PLAYER->value,
-                    AppRoleEnum::SPONSOR->value,
-                    AppRoleEnum::ORGANIZER->value,
-                ]);
-        });
+        return $query->appUsers()->notBlocked();
     }
 
     /**
-     * Check if user has a permission (through any of their roles). Use when permissions are attached to roles.
+     * Check if user has a permission (through any of their roles). Admin-guard by default.
      */
     public function hasPermissionTo(string $permission, ?string $guard = null): bool
     {
-        $guard ??= RoleGuardEnum::APP->value;
+        $guard ??= RoleGuardEnum::ADMIN->value;
 
         return $this->roles()
             ->where('guard', $guard)

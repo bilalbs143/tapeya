@@ -12,8 +12,8 @@ import { DEBOUNCE_MS, MIN_SEARCH_LENGTH } from '@/lib/constants/search';
 import { BORDER, HEADER_BG } from '@/lib/constants/tableStyles';
 import { formatListIndex } from '@/lib/format';
 import { playerDisplayRole } from '@/lib/utils/playerUtils';
-import { useSearchSquadMembersQuery } from '@/store/api/playerApi';
 import { useGetTeamSquadQuery, useSearchTeamsQuery, useUpdateTeamSquadMutation } from '@/store/api/teamApi';
+import { useLookupUsersQuery } from '@/store/api/userApi';
 import { Container } from '@/ui/Container';
 import { FormField } from '@/ui/FormField';
 import { CloseIcon } from '@/ui/icons/CloseIcon';
@@ -84,7 +84,7 @@ export default function TeamDetail() {
   const trimmedFindPlayer = findPlayer.trim();
   const debouncedFindPlayer = useDebounce(trimmedFindPlayer, DEBOUNCE_MS);
 
-  const { data: playerSearchResults = [], isFetching: isSearchingPlayers } = useSearchSquadMembersQuery(debouncedFindPlayer, {
+  const { data: playerSearchResults = [], isFetching: isSearchingPlayers } = useLookupUsersQuery(debouncedFindPlayer, {
     skip: debouncedFindPlayer.length < MIN_SEARCH_LENGTH,
   });
 

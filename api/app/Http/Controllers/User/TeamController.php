@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers\User;
 
-use App\Enums\User\AppRoleEnum;
-use App\Enums\User\RoleGuardEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreTeamRequest;
@@ -11,9 +9,7 @@ use App\Http\Requests\User\StoreTeamSquadRequest;
 use App\Http\Requests\User\UpdateTeamRequest;
 use App\Http\Resources\User\TeamResource;
 use App\Http\Resources\User\UserResource;
-use App\Models\Role;
 use App\Models\Team;
-use App\Models\User;
 use App\Services\Tournament\TournamentTeamSquadValidator;
 use Illuminate\Http\JsonResponse;
 
@@ -50,37 +46,32 @@ class TeamController extends Controller
     }
 
     /**
-     * Create a team for a sponsor.
+     * Create a team owned by the authenticated user.
      *
-     * - If sponsor_user_id is omitted, the authenticated user is the team owner (sponsor role added if missing).
-     * - If sponsor_user_id is provided and differs from the authenticated user, only organizers may do this;
-     *   the chosen owner receives the sponsor role if they do not already have it.
+     * App users may only create a team for themselves (assignment-based ownership).
+     * Creating a team on behalf of another user is admin-only.
      */
     public function store(StoreTeamRequest $request): JsonResponse
     {
         $authUser = $request->user();
         $data = $request->validated();
 
-        $sponsorId = $data['sponsor_user_id'] ?? $authUser->id;
+        $sponsorId = isset($data['sponsor_user_id']) ? (int) $data['sponsor_user_id'] : (int) $authUser->id;
         $iconPlayerIds = $data['icon_player_ids'] ?? [];
 
         unset($data['sponsor_user_id'], $data['icon_player_ids']);
 
-        $isOrganizer = $authUser->hasRole(AppRoleEnum::ORGANIZER);
-        if ((int) $sponsorId !== (int) $authUser->id && ! $isOrganizer) {
-            return $this->forbidden('Only organizers can create teams on behalf of sponsors.');
+        if ($sponsorId !== (int) $authUser->id) {
+            return $this->forbidden('You can only create a team for yourself.');
         }
-
-        $owner = User::findOrFail($sponsorId);
-        $this->ensureAppUserHasSponsorRole($owner);
 
         $team = Team::create([
             'name' => $data['name'],
             'code' => $data['code'],
             'country' => $data['country'],
             'city' => $data['city'],
-            'user_id' => $sponsorId,
-            'created_by' => $authUser?->id,
+            'user_id' => $authUser->id,
+            'created_by' => $authUser->id,
         ]);
 
         if (! empty($iconPlayerIds)) {
@@ -97,30 +88,24 @@ class TeamController extends Controller
     }
 
     /**
-     * Update team metadata (name, code, country, city, sponsor, icon players).
+     * Update team metadata (name, code, country, city, icon players).
      *
-     * Only the team owner (sponsor) or an organizer can update.
-     * Only organizers may change team ownership.
+     * Allowed for the team owner or tournament staff of a tournament that includes this team.
+     * Ownership changes are admin-only.
      */
     public function update(UpdateTeamRequest $request, Team $team): JsonResponse
     {
         $authUser = $request->user();
-        $isOrganizer = $authUser->hasRole(AppRoleEnum::ORGANIZER);
 
-        if ((int) $team->user_id !== (int) $authUser->id && ! $isOrganizer) {
-            return $this->forbidden('Only the team owner or an organizer can edit this team.');
+        if (! $authUser->canManageTeam($team)) {
+            return $this->forbidden('Only the team owner or tournament staff for this team can edit it.');
         }
 
         $data = $request->validated();
-        $sponsorId = isset($data['sponsor_user_id']) ? (int) $data['sponsor_user_id'] : (int) $team->user_id;
         $iconPlayerIds = $data['icon_player_ids'] ?? [];
 
-        if ($sponsorId !== (int) $team->user_id) {
-            if (! $isOrganizer) {
-                return $this->forbidden('Only organizers can change team ownership.');
-            }
-            $newOwner = User::findOrFail($sponsorId);
-            $this->ensureAppUserHasSponsorRole($newOwner);
+        if (isset($data['sponsor_user_id']) && (int) $data['sponsor_user_id'] !== (int) $team->user_id) {
+            return $this->forbidden('Only administrators can change team ownership.');
         }
 
         $team->update([
@@ -128,7 +113,6 @@ class TeamController extends Controller
             'code' => $data['code'],
             'country' => $data['country'],
             'city' => $data['city'],
-            'user_id' => $sponsorId,
         ]);
 
         $team->iconPlayers()->sync($iconPlayerIds);
@@ -141,7 +125,7 @@ class TeamController extends Controller
      * Get the team-level squad (players belonging to this team).
      * GET /teams/{team}/squad
      *
-     * Any authenticated app user may view (squad is public within the app; changing it is still sponsor/organizer-only).
+     * Any authenticated app user may view (squad is public within the app).
      */
     public function showSquad(Team $team): JsonResponse
     {
@@ -153,24 +137,14 @@ class TeamController extends Controller
     /**
      * Create or update the team-level squad (players belonging to this team).
      *
-     * Only the team sponsor or an organizer can manage the squad.
+     * Allowed for the team owner or tournament staff of a tournament that includes this team.
      */
     public function storeSquad(StoreTeamSquadRequest $request, Team $team): JsonResponse
     {
         $authUser = $request->user();
 
-        $isSponsor = $authUser->hasRole(AppRoleEnum::SPONSOR);
-        $isOrganizer = $authUser->hasRole(AppRoleEnum::ORGANIZER);
-
-        // Only sponsor of this team or organizer can manage squad
-        if ((int) $team->user_id === (int) $authUser->id) {
-            if (! $isSponsor) {
-                return $this->forbidden('Only sponsors can manage their own team squad.');
-            }
-        } else {
-            if (! $isOrganizer && ! $authUser->canManageTeamSquadAsTournamentStaff($team)) {
-                return $this->forbidden('Only organizers or tournament staff can manage squads for other sponsors.');
-            }
+        if (! $authUser->canManageTeam($team)) {
+            return $this->forbidden('Only the team owner or tournament staff for this team can manage the squad.');
         }
 
         $playerIds = $request->validated('player_ids');
@@ -182,7 +156,6 @@ class TeamController extends Controller
             ]);
         }
 
-        // Set the team-level squad: replace existing squad with given players
         $team->players()->sync($playerIds);
 
         return $this->success(
@@ -193,20 +166,5 @@ class TeamController extends Controller
             'Team squad updated.',
             'SUCCESS'
         );
-    }
-
-    /** Team owner must carry the sponsor role; attach without removing other app roles. */
-    private function ensureAppUserHasSponsorRole(User $user): void
-    {
-        if ($user->hasRole(AppRoleEnum::SPONSOR)) {
-            return;
-        }
-
-        $sponsorRole = Role::query()
-            ->where('slug', AppRoleEnum::SPONSOR->value)
-            ->where('guard', RoleGuardEnum::APP->value)
-            ->firstOrFail();
-
-        $user->roles()->syncWithoutDetaching([$sponsorRole->id]);
     }
 }

@@ -9,16 +9,13 @@ use App\Enums\Event\InningsStatusEnum;
 use App\Enums\Event\MatchStatusEnum;
 use App\Enums\Event\MatchTimingEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
-use App\Enums\User\AppRoleEnum;
 use App\Enums\User\BattingStyleEnum;
 use App\Enums\User\BowlingStyleEnum;
 use App\Enums\User\PlayingRoleEnum;
-use App\Enums\User\RoleGuardEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
 use App\Jobs\RefreshMatchStatsJob;
 use App\Models\Innings;
-use App\Models\Role;
 use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentMatch;
@@ -34,20 +31,18 @@ use Illuminate\Support\Facades\Hash;
  *   php artisan db:seed --class=ScoringDemoSeeder
  *
  * Scope (via SEEDER_SCOPE env):
- *   - users  … only users (roles + players + organizers + sponsors). No tournaments/teams.
+ *   - users  … only users (players + organizers + sponsors). No tournaments/teams.
  *   - teams  … only teams path: users (by SCORING_DEMO_BASE) + tournaments + teams + attach.
- *   - all    … default: roles + all users + tournaments + teams + attach.
+ *   - all    … default: all users + tournaments + teams + attach.
  *
  * For "teams" scope use the same base as a previous "users" run so existing users are reused:
  *   SEEDER_SCOPE=users SCORING_DEMO_BASE=sd123 php artisan db:seed --class=ScoringDemoSeeder
  *   SEEDER_SCOPE=teams SCORING_DEMO_BASE=sd123 php artisan db:seed --class=ScoringDemoSeeder
  *
- * Prerequisites: RoleSeeder must have been run (Roles exist).
- *
  * Creates:
  *   - 66 players (11 per team, no cross-team overlap; real names; playing_role / batting_style / bowling_style), password: password
- *   - 3 organizers (real names; organizer role + cricket profile fields), password: password
- *   - 3 sponsors (real names; sponsor role + cricket profile fields), password: password
+ *   - 3 organizers (real names; become tournament staff via organizer_id; cricket profile fields), password: password
+ *   - 3 sponsors (real names; become team owners via teams.user_id; cricket profile fields), password: password
  *   - 6 tournaments (explicit type × format; Tapeya Open Championship 11-a-side; all four cricket formats)
  *   - 6 teams (PSL-style names; 3-letter uppercase codes; owned by sponsors; optional logo left null)
  *   - Attaches players to teams (team_user), two icon players per team (team_icon_players)
@@ -256,8 +251,6 @@ class ScoringDemoSeeder extends Seeder
         $scope = $this->resolveScope();
         $this->command->info('Seeding scoring demo data (scope: '.$scope.')…');
 
-        $this->ensureRoles();
-
         $base = $this->resolveBase($scope);
 
         if ($scope === self::SCOPE_TEAMS) {
@@ -310,21 +303,6 @@ class ScoringDemoSeeder extends Seeder
         return $envBase !== null && $envBase !== '' ? (string) $envBase : 'sd'.(time() % 1000000);
     }
 
-    private function ensureRoles(): void
-    {
-        $appRoles = [
-            ['name' => 'Player', 'slug' => AppRoleEnum::PLAYER->value, 'guard' => RoleGuardEnum::APP->value],
-            ['name' => 'Organizer', 'slug' => AppRoleEnum::ORGANIZER->value, 'guard' => RoleGuardEnum::APP->value],
-            ['name' => 'Sponsor', 'slug' => AppRoleEnum::SPONSOR->value, 'guard' => RoleGuardEnum::APP->value],
-        ];
-        foreach ($appRoles as $r) {
-            Role::firstOrCreate(
-                ['slug' => $r['slug'], 'guard' => $r['guard']],
-                ['name' => $r['name']]
-            );
-        }
-    }
-
     private function slugFromName(string $name): string
     {
         $slug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '_', $name) ?? '', '_'));
@@ -360,13 +338,7 @@ class ScoringDemoSeeder extends Seeder
 
     private function createPlayers(string $base): array
     {
-        $playerRole = Role::where('slug', AppRoleEnum::PLAYER->value)->where('guard', RoleGuardEnum::APP->value)->first();
-        if (! $playerRole) {
-            throw new \RuntimeException('Player role not found. Run RoleSeeder first.');
-        }
-
         $players = [];
-        $numBase = is_numeric($base) ? (int) $base : crc32($base);
         for ($i = 1; $i <= self::DEMO_PLAYER_COUNT; $i++) {
             $displayName = self::DEMO_PLAYER_NAMES[$i - 1];
             $slug = $this->slugFromName($displayName);
@@ -387,7 +359,6 @@ class ScoringDemoSeeder extends Seeder
                     'city' => 'Karachi',
                 ], $this->demoCricketProfile($i))
             );
-            $user->roles()->syncWithoutDetaching([$playerRole->id]);
             $players[] = $user;
         }
 
@@ -402,13 +373,7 @@ class ScoringDemoSeeder extends Seeder
 
     private function createOrganizers(string $base): array
     {
-        $role = Role::where('slug', AppRoleEnum::ORGANIZER->value)->where('guard', RoleGuardEnum::APP->value)->first();
-        if (! $role) {
-            throw new \RuntimeException('Organizer role not found.');
-        }
-
         $organizers = [];
-        $numBase = is_numeric($base) ? (int) $base : crc32($base);
         for ($i = 1; $i <= count(self::DEMO_ORGANIZER_NAMES); $i++) {
             $displayName = self::DEMO_ORGANIZER_NAMES[$i - 1];
             $slug = $this->slugFromName($displayName);
@@ -429,7 +394,6 @@ class ScoringDemoSeeder extends Seeder
                     'city' => 'Lahore',
                 ], $this->demoCricketProfile($i + 5))
             );
-            $user->roles()->syncWithoutDetaching([$role->id]);
             $organizers[] = $user;
         }
 
@@ -444,13 +408,7 @@ class ScoringDemoSeeder extends Seeder
 
     private function createSponsors(string $base): array
     {
-        $role = Role::where('slug', AppRoleEnum::SPONSOR->value)->where('guard', RoleGuardEnum::APP->value)->first();
-        if (! $role) {
-            throw new \RuntimeException('Sponsor role not found.');
-        }
-
         $sponsors = [];
-        $numBase = is_numeric($base) ? (int) $base : crc32($base);
         for ($i = 1; $i <= count(self::DEMO_SPONSOR_NAMES); $i++) {
             $displayName = self::DEMO_SPONSOR_NAMES[$i - 1];
             $slug = $this->slugFromName($displayName);
@@ -471,7 +429,6 @@ class ScoringDemoSeeder extends Seeder
                     'city' => 'Islamabad',
                 ], $this->demoCricketProfile($i + 11))
             );
-            $user->roles()->syncWithoutDetaching([$role->id]);
             $sponsors[] = $user;
         }
 

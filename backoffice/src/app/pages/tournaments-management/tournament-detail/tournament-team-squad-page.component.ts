@@ -243,11 +243,7 @@ export class TournamentTeamSquadPageComponent implements OnInit, OnDestroy {
           distinctUntilChanged(),
 
           switchMap((term) =>
-            this.usersService
-
-              .adminUserSearch(term ?? '', { for_squad: true })
-
-              .pipe(catchError(() => of({ data: [] as SquadUser[] })))
+            this.usersService.adminUserSearch(term ?? '').pipe(catchError(() => of({ data: [] as SquadUser[] })))
           )
         )
 

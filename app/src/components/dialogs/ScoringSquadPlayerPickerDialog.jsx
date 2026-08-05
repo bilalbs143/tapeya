@@ -6,7 +6,7 @@ import { useDialog } from '@/context/DialogContext';
 import { useDebounce } from '@/hooks/useDebounce';
 import { DEBOUNCE_MS, MIN_SEARCH_LENGTH } from '@/lib/constants/search';
 import { squadPlayerProfileFields } from '@/lib/utils/playerUtils';
-import { useSearchSquadMembersQuery } from '@/store/api/playerApi';
+import { useLookupUsersQuery } from '@/store/api/userApi';
 import {
   DialogHeaderClose,
   DialogHeaderRow,
@@ -60,7 +60,7 @@ function AddPlayerSearch({ squadIds, onAdd }) {
 
   const trimmed = query.trim();
   const debouncedQuery = useDebounce(trimmed, DEBOUNCE_MS);
-  const { data: results = [], isFetching } = useSearchSquadMembersQuery(debouncedQuery, {
+  const { data: results = [], isFetching } = useLookupUsersQuery(debouncedQuery, {
     skip: debouncedQuery.length < MIN_SEARCH_LENGTH,
   });
 

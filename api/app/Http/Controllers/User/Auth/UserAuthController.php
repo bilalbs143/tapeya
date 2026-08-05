@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers\User\Auth;
 
-use App\Enums\User\AppRoleEnum;
-use App\Enums\User\RoleGuardEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
 use App\Events\UserReferred;
@@ -14,7 +12,6 @@ use App\Http\Requests\User\Auth\RegisterRequest;
 use App\Http\Requests\User\Auth\RequestOtpRequest;
 use App\Http\Requests\User\Auth\VerifyOtpRequest;
 use App\Http\Resources\User\UserResource;
-use App\Models\Role;
 use App\Models\User;
 use App\Utils\Services\OtpService;
 use Illuminate\Support\Facades\DB;
@@ -51,7 +48,7 @@ class UserAuthController extends Controller
         $referrer = $this->resolveReferrer($data['referral_nickname'] ?? null);
 
         $user = DB::transaction(function () use ($data, $referrer) {
-            $user = User::create([
+            return User::create([
                 'name' => $data['name'],
                 'nickname' => $data['nickname'],
                 'phone' => $data['phone'],
@@ -61,13 +58,6 @@ class UserAuthController extends Controller
                 'status' => UserStatusEnum::VERIFICATION_PENDING,
                 'referred_by' => $referrer?->id,
             ]);
-
-            $playerRole = Role::findBySlug(AppRoleEnum::PLAYER->value, RoleGuardEnum::APP->value);
-            if ($playerRole) {
-                $user->roles()->attach($playerRole->id);
-            }
-
-            return $user;
         });
 
         event(new UserRegistered($user));
