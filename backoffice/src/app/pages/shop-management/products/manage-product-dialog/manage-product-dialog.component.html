@@ -148,24 +148,6 @@
             }
           </mat-form-field>
         </div>
-        <div class="col-span-12 lg:col-span-6">
-          <mat-label class="text-sm font-semibold mb-2 block">Listing Status <span class="text-error">*</span></mat-label>
-          <mat-form-field
-            appearance="outline"
-            class="w-full"
-          >
-            <mat-select
-              formControlName="status"
-              placeholder="Select Status"
-            >
-              @if (productStatusOptions$ | async; as opts) {
-                @for (opt of opts; track opt.value) {
-                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                }
-              }
-            </mat-select>
-          </mat-form-field>
-        </div>
         <div class="col-span-12">
           <mat-label class="text-sm font-semibold w-full block mb-2">Flags</mat-label>
           <div class="flex flex-wrap justify-between gap-4 w-full">

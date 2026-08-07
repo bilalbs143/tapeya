@@ -48,8 +48,6 @@ class ProductResource extends JsonResource
             'stock_quantity' => $this->stock_quantity,
             'low_stock_threshold' => $this->low_stock_threshold,
             'is_active' => $this->is_active,
-            'status' => $this->status?->value,
-            'status_label' => $this->status?->label(),
             'is_featured' => $this->is_featured,
             'is_popular' => $this->is_popular,
             'is_special_offer' => $this->is_special_offer,

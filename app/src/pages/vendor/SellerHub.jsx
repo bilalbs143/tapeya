@@ -87,7 +87,7 @@ export default function SellerHub() {
   }, [store?.slug, toast]);
 
   const productsCount = dashboard?.total_products ?? dashboard?.products_count;
-  const publishedCount = dashboard?.active_products ?? dashboard?.published_count;
+  const activeCount = dashboard?.active_products ?? dashboard?.published_count;
   const pendingOrders = dashboard?.pending_orders ?? dashboard?.pending_orders_count;
   const grossRevenue = dashboard?.gross_revenue;
   const netEarnings = dashboard?.net_earnings;
@@ -128,7 +128,7 @@ export default function SellerHub() {
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               <MetricCard label="Products" value={productsCount} />
-              <MetricCard label="Published" value={publishedCount} />
+              <MetricCard label="Active" value={activeCount} />
               <MetricCard label="Pending Orders" value={pendingOrders} />
               <MetricCard label="Gross Revenue" value={grossRevenue != null ? formatPrice(grossRevenue) : '—'} />
               <MetricCard label="Net Earnings" value={netEarnings != null ? formatPrice(netEarnings) : '—'} />

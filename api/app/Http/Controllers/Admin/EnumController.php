@@ -14,7 +14,6 @@ use App\Enums\Shop\OrderStatusEnum;
 use App\Enums\Shop\PaymentMethodEnum;
 use App\Enums\Shop\PaymentStatusEnum;
 use App\Enums\Shop\ProductDiscountTypeEnum;
-use App\Enums\Shop\ProductStatusEnum;
 use App\Enums\SystemSetting\SystemSettingGroupEnum;
 use App\Enums\Tournament\GroupModeEnum;
 use App\Enums\Tournament\TournamentInterestCampaignStatusEnum;
@@ -68,7 +67,6 @@ class EnumController extends Controller
             'payment_status' => $this->toOptions(PaymentStatusEnum::cases()),
             'payment_method' => $this->toOptions(PaymentMethodEnum::cases()),
             'product_discount_type' => $this->toOptions(ProductDiscountTypeEnum::cases()),
-            'product_status' => $this->toOptions(ProductStatusEnum::cases()),
             'system_setting_group' => $this->toOptions(SystemSettingGroupEnum::cases()),
             'tournament_type' => $this->toOptions(TournamentTypeEnum::cases()),
             'tournament_schedule_window' => $this->toOptions(TournamentScheduleWindowEnum::cases()),

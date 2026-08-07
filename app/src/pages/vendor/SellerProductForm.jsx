@@ -6,7 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
-import { formatIsoDateForDisplay, toApiDate } from '@/lib/utils/dateUtils';
+import { formatIsoDateForDisplay, formatIsoTimeForDisplay, toApiDateTime } from '@/lib/utils/dateUtils';
 import { EMPTY_FILE_UPLOAD } from '@/lib/utils/fileUploadUtils';
 import { useGetBrandsQuery, useGetCategoriesQuery } from '@/store/api/shopApi';
 import {
@@ -17,6 +17,7 @@ import {
   useUploadProductImagesMutation,
 } from '@/store/api/vendorShopApi';
 import { Button } from '@/ui/Button';
+import { Checkbox } from '@/ui/Checkbox';
 import { Container } from '@/ui/Container';
 import { DatePicker } from '@/ui/DatePicker';
 import { FileUploadField } from '@/ui/FileUploadField';
@@ -24,6 +25,7 @@ import { FormActions } from '@/ui/form/FormActions';
 import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
+import { SearchableSelect } from '@/ui/SearchableSelect';
 import {
   Select,
   SelectContent,
@@ -36,11 +38,11 @@ import {
   selectViewportInputClass,
 } from '@/ui/Select';
 import { Textarea } from '@/ui/Textarea';
+import { TimePicker } from '@/ui/TimePicker';
 
-const STATUS_OPTIONS = [
-  { value: 'draft', label: 'Draft' },
-  { value: 'published', label: 'Published' },
-  { value: 'archived', label: 'Archived' },
+const ACTIVE_OPTIONS = [
+  { value: 'true', label: 'Active' },
+  { value: 'false', label: 'Inactive' },
 ];
 
 const DISCOUNT_TYPES = [
@@ -48,29 +50,21 @@ const DISCOUNT_TYPES = [
   { value: 'fixed', label: 'Fixed Amount' },
 ];
 
-function slugify(text) {
-  return String(text ?? '')
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/[\s_-]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
 const DEFAULT_VALUES = {
   name: '',
-  slug: '',
   description: '',
   price: '',
   brand_id: '',
   category_id: '',
   stock_quantity: '0',
-  status: 'draft',
+  is_active: true,
   enable_discount: false,
   discount_type: 'percentage',
   discount_value: '',
-  discount_starts_at: '',
-  discount_ends_at: '',
+  discount_starts_at_date: '',
+  discount_starts_at_time: '',
+  discount_ends_at_date: '',
+  discount_ends_at_time: '',
 };
 
 export default function SellerProductForm() {
@@ -86,13 +80,14 @@ export default function SellerProductForm() {
   const { data: categoriesResponse } = useGetCategoriesQuery({ all: true });
   const brands = brandsResponse?.data ?? [];
   const categories = categoriesResponse?.data ?? [];
+  const brandOptions = useMemo(() => brands.map((b) => ({ value: String(b.id), label: b.name })), [brands]);
+  const categoryOptions = useMemo(() => categories.map((c) => ({ value: String(c.id), label: c.name })), [categories]);
 
   const { data: product, isLoading: productLoading } = useGetVendorProductQuery(id, { skip: !isEdit });
   const [createProduct, { isLoading: isCreating }] = useCreateVendorProductMutation();
   const [updateProduct, { isLoading: isUpdating }] = useUpdateVendorProductMutation();
   const [uploadImages, { isLoading: isUploading }] = useUploadProductImagesMutation();
   const [imageUpload, setImageUpload] = useState(EMPTY_FILE_UPLOAD);
-  const [slugTouched, setSlugTouched] = useState(false);
 
   const {
     register,
@@ -100,39 +95,31 @@ export default function SellerProductForm() {
     handleSubmit,
     reset,
     watch,
-    setValue,
     formState: { errors },
   } = useForm({ defaultValues: DEFAULT_VALUES });
 
   const enableDiscount = watch('enable_discount');
-  const nameValue = watch('name');
-
   useEffect(() => {
     if (!isEdit || !product) return;
-    setSlugTouched(true);
     reset({
       name: product.name ?? '',
-      slug: product.slug ?? '',
       description: product.description ?? '',
       price: product.price != null ? String(product.price) : '',
       brand_id: product.brand_id != null ? String(product.brand_id) : '',
       category_id: product.category_id != null ? String(product.category_id) : '',
       stock_quantity: product.stock_quantity != null ? String(product.stock_quantity) : '0',
-      status: product.status ?? 'draft',
+      is_active: product.is_active !== false,
       enable_discount: Boolean(product.discount_type),
       discount_type: product.discount_type ?? 'percentage',
       discount_value: product.discount_value != null ? String(product.discount_value) : '',
-      discount_starts_at: formatIsoDateForDisplay(product.discount_starts_at),
-      discount_ends_at: formatIsoDateForDisplay(product.discount_ends_at),
+      discount_starts_at_date: formatIsoDateForDisplay(product.discount_starts_at),
+      discount_starts_at_time: formatIsoTimeForDisplay(product.discount_starts_at),
+      discount_ends_at_date: formatIsoDateForDisplay(product.discount_ends_at),
+      discount_ends_at_time: formatIsoTimeForDisplay(product.discount_ends_at),
     });
     const existingUrls = (product.images ?? []).map((img) => img.path ?? img.url).filter(Boolean);
     setImageUpload({ files: [], existingUrls });
   }, [isEdit, product, reset]);
-
-  useEffect(() => {
-    if (isEdit || slugTouched) return;
-    setValue('slug', slugify(nameValue));
-  }, [nameValue, isEdit, slugTouched, setValue]);
 
   const existingImageUrls = useMemo(() => imageUpload?.existingUrls ?? [], [imageUpload]);
 
@@ -144,20 +131,19 @@ export default function SellerProductForm() {
 
     const payload = {
       name: data.name.trim(),
-      slug: data.slug.trim(),
       description: data.description.trim(),
       price: Number(data.price),
       brand_id: Number(data.brand_id),
       category_id: Number(data.category_id),
       stock_quantity: Number(data.stock_quantity),
-      status: data.status,
+      is_active: data.is_active === true || data.is_active === 'true',
     };
 
     if (data.enable_discount && data.discount_type && data.discount_value !== '') {
       payload.discount_type = data.discount_type;
       payload.discount_value = Number(data.discount_value);
-      payload.discount_starts_at = toApiDate(data.discount_starts_at) || undefined;
-      payload.discount_ends_at = toApiDate(data.discount_ends_at) || undefined;
+      payload.discount_starts_at = toApiDateTime(data.discount_starts_at_date, data.discount_starts_at_time) || undefined;
+      payload.discount_ends_at = toApiDateTime(data.discount_ends_at_date, data.discount_ends_at_time) || undefined;
     } else if (isEdit) {
       payload.discount_type = null;
       payload.discount_value = null;
@@ -172,7 +158,7 @@ export default function SellerProductForm() {
         if (newFiles.length > 0) {
           await uploadImages({ productId: Number(id), files: newFiles }).unwrap();
         }
-        toast.success(data.status === 'published' ? 'Product published' : 'Product updated');
+        toast.success('Product updated');
         navigate('/seller/products');
       } else {
         const result = await createProduct(payload).unwrap();
@@ -182,7 +168,7 @@ export default function SellerProductForm() {
         if (productId && newFiles.length > 0) {
           await uploadImages({ productId, files: newFiles }).unwrap();
         }
-        toast.success(data.status === 'published' ? 'Product published' : 'Product created');
+        toast.success('Product created');
         navigate('/seller/products');
       }
     } catch (err) {
@@ -224,18 +210,6 @@ export default function SellerProductForm() {
             />
           </FormField>
 
-          <FormField label="Slug" htmlFor="slug" required>
-            <Input
-              id="slug"
-              disabled={readOnly}
-              error={errors.slug?.message}
-              {...register('slug', {
-                required: 'Slug is required',
-                onChange: () => setSlugTouched(true),
-              })}
-            />
-          </FormField>
-
           <FormField label="Description" htmlFor="description" required>
             <Textarea
               id="description"
@@ -267,33 +241,17 @@ export default function SellerProductForm() {
               control={control}
               rules={{ required: 'Brand is required' }}
               render={({ field }) => (
-                <Select value={field.value || undefined} onValueChange={field.onChange} disabled={readOnly}>
-                  <SelectTrigger
-                    id="brand_id"
-                    className={selectTriggerInputClass}
-                    aria-label="Brand"
-                    aria-invalid={!!errors.brand_id}
-                  >
-                    <SelectValue placeholder="Select Brand" />
-                  </SelectTrigger>
-                  <SelectContent
-                    className={selectContentInputClass}
-                    viewportClassName={selectViewportInputClass}
-                    position="popper"
-                  >
-                    {brands.map((b) => (
-                      <SelectItem
-                        key={b.id}
-                        value={String(b.id)}
-                        className={selectItemInputClass}
-                        textClassName="!text-white"
-                        indicatorClassName="!text-white"
-                      >
-                        {b.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchableSelect
+                  id="brand_id"
+                  value={field.value || ''}
+                  onChange={field.onChange}
+                  options={brandOptions}
+                  placeholder="Select Brand"
+                  searchPlaceholder="Search Brands…"
+                  disabled={readOnly}
+                  readOnly={readOnly}
+                  ariaLabel="Brand"
+                />
               )}
             />
             {errors.brand_id?.message && (
@@ -309,33 +267,17 @@ export default function SellerProductForm() {
               control={control}
               rules={{ required: 'Category is required' }}
               render={({ field }) => (
-                <Select value={field.value || undefined} onValueChange={field.onChange} disabled={readOnly}>
-                  <SelectTrigger
-                    id="category_id"
-                    className={selectTriggerInputClass}
-                    aria-label="Category"
-                    aria-invalid={!!errors.category_id}
-                  >
-                    <SelectValue placeholder="Select Category" />
-                  </SelectTrigger>
-                  <SelectContent
-                    className={selectContentInputClass}
-                    viewportClassName={selectViewportInputClass}
-                    position="popper"
-                  >
-                    {categories.map((c) => (
-                      <SelectItem
-                        key={c.id}
-                        value={String(c.id)}
-                        className={selectItemInputClass}
-                        textClassName="!text-white"
-                        indicatorClassName="!text-white"
-                      >
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchableSelect
+                  id="category_id"
+                  value={field.value || ''}
+                  onChange={field.onChange}
+                  options={categoryOptions}
+                  placeholder="Select Category"
+                  searchPlaceholder="Search Categories…"
+                  disabled={readOnly}
+                  readOnly={readOnly}
+                  ariaLabel="Category"
+                />
               )}
             />
             {errors.category_id?.message && (
@@ -360,14 +302,26 @@ export default function SellerProductForm() {
             />
           </FormField>
 
-          <FormField label="Status" htmlFor="status" required>
+          <FormField label="Status" htmlFor="is_active" required>
             <Controller
-              name="status"
+              name="is_active"
               control={control}
-              rules={{ required: true }}
+              rules={{
+                validate: (v) => v === true || v === false || v === 'true' || v === 'false' || 'Status is required',
+              }}
               render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange} disabled={readOnly}>
-                  <SelectTrigger id="status" className={selectTriggerInputClass} aria-label="Status">
+                <Select
+                  value={
+                    field.value === true || field.value === 'true'
+                      ? 'true'
+                      : field.value === false || field.value === 'false'
+                        ? 'false'
+                        : undefined
+                  }
+                  onValueChange={(v) => field.onChange(v === 'true')}
+                  disabled={!canEdit}
+                >
+                  <SelectTrigger id="is_active" className={selectTriggerInputClass} aria-label="Status">
                     <SelectValue placeholder="Select Status" />
                   </SelectTrigger>
                   <SelectContent
@@ -375,7 +329,7 @@ export default function SellerProductForm() {
                     viewportClassName={selectViewportInputClass}
                     position="popper"
                   >
-                    {STATUS_OPTIONS.map((opt) => (
+                    {ACTIVE_OPTIONS.map((opt) => (
                       <SelectItem
                         key={opt.value}
                         value={opt.value}
@@ -393,10 +347,24 @@ export default function SellerProductForm() {
           </FormField>
 
           <div className="border-t border-[#FFFFFF14] pt-6">
-            <label className="flex items-center gap-3 text-[14px] text-white">
-              <input type="checkbox" className="accent-brand h-4 w-4" disabled={readOnly} {...register('enable_discount')} />
-              Add Discount (Optional)
-            </label>
+            <Controller
+              name="enable_discount"
+              control={control}
+              render={({ field }) => (
+                <label
+                  htmlFor="enable_discount"
+                  className={`flex items-center gap-3 text-[14px] text-white ${readOnly ? 'cursor-default opacity-70' : 'cursor-pointer'}`}
+                >
+                  <Checkbox
+                    id="enable_discount"
+                    checked={!!field.value}
+                    onCheckedChange={(checked) => field.onChange(checked === true)}
+                    disabled={readOnly}
+                  />
+                  <span>Add Discount</span>
+                </label>
+              )}
+            />
           </div>
 
           {enableDiscount && (
@@ -443,51 +411,95 @@ export default function SellerProductForm() {
                   })}
                 />
               </FormField>
-              <FormField label="Discount Starts" htmlFor="discount_starts_at" required>
-                <Controller
-                  name="discount_starts_at"
-                  control={control}
-                  rules={{
-                    validate: (v) => !enableDiscount || !!v || 'Start date is required',
-                  }}
-                  render={({ field }) => (
-                    <DatePicker
-                      id="discount_starts_at"
-                      value={field.value}
-                      onChange={field.onChange}
-                      placeholder="Choose Date"
-                      allowFuture
-                      disabled={readOnly}
-                      error={errors.discount_starts_at?.message}
-                    />
-                  )}
-                />
+              <FormField label="Discount Start" htmlFor="discount_starts_at_date" required>
+                <div className="grid grid-cols-2 gap-3">
+                  <Controller
+                    name="discount_starts_at_date"
+                    control={control}
+                    rules={{
+                      validate: (v) => !enableDiscount || !!v || 'Start date is required',
+                    }}
+                    render={({ field }) => (
+                      <DatePicker
+                        id="discount_starts_at_date"
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Choose Date"
+                        allowFuture
+                        disabled={readOnly}
+                      />
+                    )}
+                  />
+                  <Controller
+                    name="discount_starts_at_time"
+                    control={control}
+                    rules={{
+                      validate: (v) => !enableDiscount || !!v || 'Start time is required',
+                    }}
+                    render={({ field }) => (
+                      <TimePicker
+                        id="discount_starts_at_time"
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Select Time"
+                        disabled={readOnly}
+                      />
+                    )}
+                  />
+                </div>
+                {(errors.discount_starts_at_date?.message || errors.discount_starts_at_time?.message) && (
+                  <p className="text-sm text-red-200" role="alert">
+                    {errors.discount_starts_at_date?.message || errors.discount_starts_at_time?.message}
+                  </p>
+                )}
               </FormField>
-              <FormField label="Discount Ends" htmlFor="discount_ends_at" required>
-                <Controller
-                  name="discount_ends_at"
-                  control={control}
-                  rules={{
-                    validate: (v) => !enableDiscount || !!v || 'End date is required',
-                  }}
-                  render={({ field }) => (
-                    <DatePicker
-                      id="discount_ends_at"
-                      value={field.value}
-                      onChange={field.onChange}
-                      placeholder="Choose Date"
-                      allowFuture
-                      disabled={readOnly}
-                      error={errors.discount_ends_at?.message}
-                    />
-                  )}
-                />
+              <FormField label="Discount End" htmlFor="discount_ends_at_date" required>
+                <div className="grid grid-cols-2 gap-3">
+                  <Controller
+                    name="discount_ends_at_date"
+                    control={control}
+                    rules={{
+                      validate: (v) => !enableDiscount || !!v || 'End date is required',
+                    }}
+                    render={({ field }) => (
+                      <DatePicker
+                        id="discount_ends_at_date"
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Choose Date"
+                        allowFuture
+                        disabled={readOnly}
+                      />
+                    )}
+                  />
+                  <Controller
+                    name="discount_ends_at_time"
+                    control={control}
+                    rules={{
+                      validate: (v) => !enableDiscount || !!v || 'End time is required',
+                    }}
+                    render={({ field }) => (
+                      <TimePicker
+                        id="discount_ends_at_time"
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Select Time"
+                        disabled={readOnly}
+                      />
+                    )}
+                  />
+                </div>
+                {(errors.discount_ends_at_date?.message || errors.discount_ends_at_time?.message) && (
+                  <p className="text-sm text-red-200" role="alert">
+                    {errors.discount_ends_at_date?.message || errors.discount_ends_at_time?.message}
+                  </p>
+                )}
               </FormField>
             </>
           )}
 
           <FileUploadField
-            label={isEdit ? 'Add Images' : 'Images (Optional)'}
+            label={isEdit ? 'Add Images' : 'Images'}
             value={imageUpload}
             onChange={setImageUpload}
             accept="image/jpeg,image/png,image/webp"

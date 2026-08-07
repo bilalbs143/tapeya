@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Admin\Shop;
 
 use App\Enums\Shop\ProductDiscountTypeEnum;
-use App\Enums\Shop\ProductStatusEnum;
 use App\Models\Shop\Product;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -41,7 +40,6 @@ class UpdateProductRequest extends FormRequest
             'stock_quantity' => ['required', 'integer', 'min:0'],
             'low_stock_threshold' => ['required', 'integer', 'min:0'],
             'is_active' => ['boolean'],
-            'status' => ['sometimes', Rule::enum(ProductStatusEnum::class)],
             'is_featured' => ['boolean'],
             'is_popular' => ['boolean'],
             'is_special_offer' => ['boolean'],

@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Shop;
 
-use App\Enums\Shop\ProductStatusEnum;
 use App\Enums\Shop\VendorStatusEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
@@ -35,7 +34,6 @@ class VendorProductAuthTest extends TestCase
                 'category_id' => $product->category_id,
                 'stock_quantity' => 1,
                 'low_stock_threshold' => 1,
-                'status' => ProductStatusEnum::PUBLISHED->value,
             ])
             ->assertNotFound();
     }
@@ -71,7 +69,6 @@ class VendorProductAuthTest extends TestCase
                 'category_id' => $category->id,
                 'stock_quantity' => 5,
                 'low_stock_threshold' => 1,
-                'status' => ProductStatusEnum::DRAFT->value,
             ])
             ->assertForbidden()
             ->assertJsonPath('type', 'VENDOR_NOT_APPROVED');
@@ -93,7 +90,6 @@ class VendorProductAuthTest extends TestCase
                 'category_id' => $category->id,
                 'stock_quantity' => 3,
                 'low_stock_threshold' => 1,
-                'status' => ProductStatusEnum::PUBLISHED->value,
                 'is_featured' => true,
                 'is_popular' => true,
             ])
@@ -142,7 +138,6 @@ class VendorProductAuthTest extends TestCase
             'category_id' => $category->id,
             'stock_quantity' => 5,
             'is_active' => true,
-            'status' => ProductStatusEnum::PUBLISHED,
         ]);
     }
 }

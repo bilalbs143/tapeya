@@ -91,6 +91,40 @@ export function formatIsoDateForDisplay(iso) {
   return '';
 }
 
+/**
+ * Converts an API ISO datetime to HH:mm for TimePicker (local time).
+ *
+ * @param {string} [iso]
+ * @returns {string}
+ */
+export function formatIsoTimeForDisplay(iso) {
+  if (!iso || typeof iso !== 'string') return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+/**
+ * Combines DatePicker (MM-DD-YYYY / YYYY-MM-DD) + TimePicker (HH:mm) into API datetime
+ * `YYYY-MM-DDTHH:mm` (same shape as admin product discount fields).
+ *
+ * @param {string|Date|null|undefined} dateValue
+ * @param {string|null|undefined} timeValue
+ * @returns {string}
+ */
+export function toApiDateTime(dateValue, timeValue) {
+  const date = toApiDate(dateValue);
+  const time = typeof timeValue === 'string' ? timeValue.trim() : '';
+  if (!date || !/^\d{2}:\d{2}$/.test(time)) return '';
+
+  const [year, month, day] = date.split('-').map(Number);
+  const [hours, minutes] = time.split(':').map(Number);
+  const local = new Date(year, month - 1, day, hours, minutes, 0, 0);
+  if (Number.isNaN(local.getTime())) return '';
+
+  return local.toISOString().slice(0, 16);
+}
+
 /** DatePicker → MM-DD-YYYY; API expects YYYY-MM-DD. Returns '' when unparseable. */
 export function toApiDate(value) {
   if (value == null || value === '') return '';

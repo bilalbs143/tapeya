@@ -83,7 +83,6 @@ export class ManageProductDialogComponent implements OnInit, OnDestroy {
   public categories: Category[] = [];
   public vendors: Vendor[] = [];
   public discountTypeOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('product_discount_type');
-  public productStatusOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('product_status');
   public editor!: Editor;
   public toolbar: Toolbar = NGX_EDITOR_TOOLBAR;
 
@@ -119,7 +118,6 @@ export class ManageProductDialogComponent implements OnInit, OnDestroy {
       stock_quantity: [p?.stock_quantity ?? 0, [Validators.required, Validators.min(0)]],
       low_stock_threshold: [p?.low_stock_threshold ?? 5, [Validators.required, Validators.min(0)]],
       is_active: [p?.is_active ?? true],
-      status: [p?.status ?? 'published', [Validators.required]],
       is_featured: [p?.is_featured ?? false],
       is_popular: [p?.is_popular ?? false],
       is_special_offer: [p?.is_special_offer ?? false],
@@ -244,7 +242,6 @@ export class ManageProductDialogComponent implements OnInit, OnDestroy {
       stock_quantity: Number(raw.stock_quantity ?? 0),
       low_stock_threshold: Number(raw.low_stock_threshold ?? 5),
       is_active: !!raw.is_active,
-      status: String(raw.status || 'published'),
       is_featured: !!raw.is_featured,
       is_popular: !!raw.is_popular,
       is_special_offer: !!raw.is_special_offer,

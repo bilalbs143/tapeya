@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Vendor\Shop;
 
 use App\Enums\Shop\ProductDiscountTypeEnum;
-use App\Enums\Shop\ProductStatusEnum;
 use App\Http\Middleware\EnsureVendor;
 use App\Models\Shop\Product;
 use Illuminate\Foundation\Http\FormRequest;
@@ -22,16 +21,8 @@ class StoreProductRequest extends FormRequest
      */
     public function rules(): array
     {
-        $vendorId = EnsureVendor::vendor($this)->id;
-
         return [
             'name' => ['required', 'string', 'max:255'],
-            'slug' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('shop_products', 'slug')->where(fn ($q) => $q->where('vendor_id', $vendorId)),
-            ],
             'description' => ['required', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
             'brand_id' => ['required', 'integer', 'exists:shop_brands,id'],
@@ -39,7 +30,6 @@ class StoreProductRequest extends FormRequest
             'stock_quantity' => ['required', 'integer', 'min:0'],
             'low_stock_threshold' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['boolean'],
-            'status' => ['nullable', Rule::enum(ProductStatusEnum::class)],
             'discount_type' => ['nullable', Rule::enum(ProductDiscountTypeEnum::class)],
             'discount_value' => ['nullable', 'numeric', 'min:0', 'required_with:discount_type'],
             'discount_starts_at' => ['nullable', 'date', 'required_with:discount_type'],
@@ -53,12 +43,9 @@ class StoreProductRequest extends FormRequest
     public function validated($key = null, $default = null): array
     {
         $data = parent::validated($key, $default);
-        $data['slug'] = Str::slug($data['slug']);
+        $vendorId = EnsureVendor::vendor($this)->id;
+        $data['slug'] = $this->uniqueSlug(Str::slug($data['name']), $vendorId);
         $data['sku'] = Product::generateIntelligentSku((int) $data['brand_id'], (int) $data['category_id']);
-        $data['status'] = $data['status'] ?? ProductStatusEnum::DRAFT->value;
-        if ($data['status'] instanceof ProductStatusEnum) {
-            $data['status'] = $data['status']->value;
-        }
         if (! array_key_exists('is_active', $data)) {
             $data['is_active'] = true;
         }
@@ -73,5 +60,22 @@ class StoreProductRequest extends FormRequest
         unset($data['is_featured'], $data['is_popular'], $data['is_special_offer']);
 
         return $data;
+    }
+
+    private function uniqueSlug(string $base, int $vendorId): string
+    {
+        $base = $base !== '' ? $base : 'product';
+        $slug = $base;
+        $c = 0;
+        while (
+            Product::query()
+                ->where('vendor_id', $vendorId)
+                ->where('slug', $slug)
+                ->exists()
+        ) {
+            $slug = $base.'-'.(++$c);
+        }
+
+        return $slug;
     }
 }

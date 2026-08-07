@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Vendor\Shop;
 
 use App\Enums\Shop\ProductDiscountTypeEnum;
-use App\Enums\Shop\ProductStatusEnum;
 use App\Http\Middleware\EnsureVendor;
 use App\Models\Shop\Product;
 use Illuminate\Foundation\Http\FormRequest;
@@ -22,20 +21,8 @@ class UpdateProductRequest extends FormRequest
      */
     public function rules(): array
     {
-        $vendorId = EnsureVendor::vendor($this)->id;
-        $productId = $this->routeProductId();
-
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
-            'slug' => [
-                'sometimes',
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('shop_products', 'slug')
-                    ->where(fn ($q) => $q->where('vendor_id', $vendorId))
-                    ->ignore($productId),
-            ],
             'description' => ['sometimes', 'required', 'string'],
             'price' => ['sometimes', 'required', 'numeric', 'min:0'],
             'brand_id' => ['sometimes', 'required', 'integer', 'exists:shop_brands,id'],
@@ -43,7 +30,6 @@ class UpdateProductRequest extends FormRequest
             'stock_quantity' => ['sometimes', 'required', 'integer', 'min:0'],
             'low_stock_threshold' => ['sometimes', 'nullable', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
-            'status' => ['sometimes', Rule::enum(ProductStatusEnum::class)],
             'discount_type' => ['sometimes', 'nullable', Rule::enum(ProductDiscountTypeEnum::class)],
             'discount_value' => ['sometimes', 'nullable', 'numeric', 'min:0', 'required_with:discount_type'],
             'discount_starts_at' => ['sometimes', 'nullable', 'date', 'required_with:discount_type'],
@@ -64,8 +50,10 @@ class UpdateProductRequest extends FormRequest
             ->whereKey($productId)
             ->firstOrFail();
 
-        if (isset($data['slug'])) {
-            $data['slug'] = Str::slug($data['slug']);
+        // Slug is server-managed from name (not accepted from the seller UI).
+        unset($data['slug']);
+        if (array_key_exists('name', $data)) {
+            $data['slug'] = $this->uniqueSlug(Str::slug($data['name']), $vendorId, $productId);
         }
 
         $brandId = (int) ($data['brand_id'] ?? $product->brand_id);
@@ -74,10 +62,6 @@ class UpdateProductRequest extends FormRequest
         $categoryChanged = isset($data['category_id']) && (int) $product->category_id !== $categoryId;
         if ($brandChanged || $categoryChanged) {
             $data['sku'] = Product::generateIntelligentSku($brandId, $categoryId);
-        }
-
-        if (array_key_exists('status', $data) && $data['status'] instanceof ProductStatusEnum) {
-            $data['status'] = $data['status']->value;
         }
 
         if (isset($data['discount_type']) && ($data['discount_type'] === null || $data['discount_type'] === '')) {
@@ -89,6 +73,24 @@ class UpdateProductRequest extends FormRequest
         unset($data['is_featured'], $data['is_popular'], $data['is_special_offer']);
 
         return $data;
+    }
+
+    private function uniqueSlug(string $base, int $vendorId, int $ignoreProductId): string
+    {
+        $base = $base !== '' ? $base : 'product';
+        $slug = $base;
+        $c = 0;
+        while (
+            Product::query()
+                ->where('vendor_id', $vendorId)
+                ->where('slug', $slug)
+                ->where('id', '!=', $ignoreProductId)
+                ->exists()
+        ) {
+            $slug = $base.'-'.(++$c);
+        }
+
+        return $slug;
     }
 
     private function routeProductId(): int

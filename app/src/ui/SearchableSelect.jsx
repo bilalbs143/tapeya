@@ -83,20 +83,22 @@ export function SearchableSelect({
     setHighlightIndex(-1);
   }, [query]);
 
+  const selectedLabel = options.find((o) => o.value === value)?.label ?? '';
+  const displayValue = selectedLabel || value || '';
+
   if (readOnly) {
     return (
       <input
         id={id}
         type="text"
         readOnly
-        value={value}
+        value={displayValue}
         className={`${searchableSelectTriggerClass} text-white ${className}`.trim()}
         aria-readonly="true"
       />
     );
   }
 
-  const displayValue = value || '';
   const isDisabled = disabled || loading;
 
   function selectOption(optionValue) {

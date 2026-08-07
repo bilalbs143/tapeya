@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Shop;
 
-use App\Enums\Shop\ProductStatusEnum;
 use App\Enums\Shop\VendorStatusEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
@@ -36,7 +35,7 @@ class BuyerVendorCatalogTest extends TestCase
             'is_platform' => false,
             'approved_at' => now(),
         ]);
-        $product = $this->makeProduct($vendor, ProductStatusEnum::PUBLISHED);
+        $product = $this->makeProduct($vendor, true);
 
         $this->actingAs($buyer, 'api')
             ->getJson('/api/v1/shop/products/'.$product->slug)
@@ -68,7 +67,7 @@ class BuyerVendorCatalogTest extends TestCase
             'is_platform' => false,
             'suspended_at' => now(),
         ]);
-        $product = $this->makeProduct($vendor, ProductStatusEnum::PUBLISHED);
+        $product = $this->makeProduct($vendor, true);
 
         $this->actingAs($buyer, 'api')
             ->getJson('/api/v1/shop/products/'.$product->slug)
@@ -87,7 +86,7 @@ class BuyerVendorCatalogTest extends TestCase
             ->assertNotFound();
     }
 
-    private function makeProduct(Vendor $vendor, ProductStatusEnum $status): Product
+    private function makeProduct(Vendor $vendor, bool $isActive = true): Product
     {
         $brand = Brand::create(['name' => 'Brand', 'slug' => 'brand-'.uniqid(), 'is_active' => true]);
         $category = Category::create(['name' => 'Cat', 'slug' => 'cat-'.uniqid(), 'is_active' => true]);
@@ -102,8 +101,7 @@ class BuyerVendorCatalogTest extends TestCase
             'brand_id' => $brand->id,
             'category_id' => $category->id,
             'stock_quantity' => 5,
-            'is_active' => true,
-            'status' => $status,
+            'is_active' => $isActive,
         ]);
     }
 }

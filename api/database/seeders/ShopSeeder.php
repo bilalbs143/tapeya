@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Enums\Shop\ProductStatusEnum;
 use App\Models\Shop\Brand;
 use App\Models\Shop\Category;
 use App\Models\Shop\Product;
@@ -74,7 +73,6 @@ class ShopSeeder extends Seeder
                 'stock_quantity' => $row['stock_quantity'] ?? 0,
                 'low_stock_threshold' => $row['low_stock_threshold'] ?? 5,
                 'is_active' => $isActive,
-                'status' => $isActive ? ProductStatusEnum::PUBLISHED : ProductStatusEnum::ARCHIVED,
                 'is_featured' => $row['is_featured'] ?? false,
                 'is_popular' => $row['is_popular'] ?? false,
                 'is_special_offer' => $row['is_special_offer'] ?? false,

@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\Shop\PaymentStatusEnum;
-use App\Enums\Shop\ProductStatusEnum;
 use App\Enums\Shop\VendorStatusEnum;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -113,12 +112,10 @@ return new class extends Migration
 
         Schema::table('shop_products', function (Blueprint $table) {
             $table->foreignId('vendor_id')->nullable()->after('id')->constrained('shop_vendors')->restrictOnDelete();
-            $table->string('status', 30)->default(ProductStatusEnum::PUBLISHED->value)->after('is_active');
         });
 
         DB::table('shop_products')->update([
             'vendor_id' => $houseVendorId,
-            'status' => DB::raw("CASE WHEN is_active = true THEN '".ProductStatusEnum::PUBLISHED->value."' ELSE '".ProductStatusEnum::ARCHIVED->value."' END"),
         ]);
 
         Schema::table('shop_products', function (Blueprint $table) {
@@ -131,7 +128,6 @@ return new class extends Migration
         Schema::table('shop_products', function (Blueprint $table) {
             $table->unique(['vendor_id', 'slug']);
             $table->unique(['vendor_id', 'sku']);
-            $table->index(['vendor_id', 'status'], 'shop_products_vendor_id_status_index');
         });
 
         Schema::table('shop_orders', function (Blueprint $table) {
@@ -184,11 +180,9 @@ return new class extends Migration
         });
 
         Schema::table('shop_products', function (Blueprint $table) {
-            $table->dropIndex('shop_products_vendor_id_status_index');
             $table->dropUnique(['vendor_id', 'slug']);
             $table->dropUnique(['vendor_id', 'sku']);
             $table->dropConstrainedForeignId('vendor_id');
-            $table->dropColumn('status');
             $table->unique('slug');
             $table->unique('sku');
         });

@@ -42,7 +42,7 @@ export const vendorShopApi = baseApi.injectEndpoints({
           per_page: params.per_page ?? 15,
           page: params.page,
           all: params.all ? 1 : undefined,
-          'filter[status]': params.status,
+          'filter[is_active]': params.is_active,
         },
       }),
       providesTags: ['VendorShop'],

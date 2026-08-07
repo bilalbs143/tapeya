@@ -32,8 +32,6 @@ export interface Product {
   stock_quantity: number;
   low_stock_threshold: number;
   is_active: boolean;
-  status?: string | null;
-  status_label?: string | null;
   is_featured: boolean;
   is_popular: boolean;
   is_special_offer: boolean;
@@ -63,7 +61,6 @@ export interface ProductSavePayload {
   stock_quantity: number;
   low_stock_threshold: number;
   is_active: boolean;
-  status?: string;
   is_featured: boolean;
   is_popular: boolean;
   is_special_offer: boolean;

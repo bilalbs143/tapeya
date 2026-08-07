@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Admin\Shop;
 
 use App\Enums\Shop\ProductDiscountTypeEnum;
-use App\Enums\Shop\ProductStatusEnum;
 use App\Models\Shop\Product;
 use App\Models\Shop\Vendor;
 use Illuminate\Foundation\Http\FormRequest;
@@ -33,7 +32,6 @@ class StoreProductRequest extends FormRequest
             'stock_quantity' => ['required', 'integer', 'min:0'],
             'low_stock_threshold' => ['required', 'integer', 'min:0'],
             'is_active' => ['boolean'],
-            'status' => ['nullable', Rule::enum(ProductStatusEnum::class)],
             'is_featured' => ['boolean'],
             'is_popular' => ['boolean'],
             'is_special_offer' => ['boolean'],
@@ -63,9 +61,6 @@ class StoreProductRequest extends FormRequest
             if (! array_key_exists($bool, $data)) {
                 $data[$bool] = false;
             }
-        }
-        if (! array_key_exists('status', $data) || $data['status'] === null || $data['status'] === '') {
-            $data['status'] = ProductStatusEnum::PUBLISHED->value;
         }
         if (! array_key_exists('stock_quantity', $data) || $data['stock_quantity'] === null) {
             $data['stock_quantity'] = 0;

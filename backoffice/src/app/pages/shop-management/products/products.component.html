@@ -23,21 +23,6 @@
             appearance="outline"
             class="w-full hide-hint"
           >
-            <mat-label>Listing</mat-label>
-            <mat-select formControlName="status">
-              @if (statusOptions$ | async; as opts) {
-                @for (opt of opts; track opt.value) {
-                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                }
-              }
-            </mat-select>
-          </mat-form-field>
-        </div>
-        <div class="col-span-12 sm:col-span-6 lg:col-span-2">
-          <mat-form-field
-            appearance="outline"
-            class="w-full hide-hint"
-          >
             <mat-label>Active</mat-label>
             <mat-select formControlName="is_active">
               @if (activeOptions$ | async; as opts) {
@@ -314,7 +299,7 @@
               *matHeaderCellDef
               class="bg-light-secondary text-sm font-semibold"
             >
-              Listing
+              Status
             </th>
             <td
               mat-cell
@@ -323,15 +308,9 @@
             >
               <span
                 class="rounded-sm font-semibold px-1.5 py-1 text-xs"
-                [ngClass]="statusClass(row.status ?? (row.is_active ? 'active' : 'inactive'))"
+                [ngClass]="statusClass(row.is_active ? 'active' : 'inactive')"
               >
-                @if (row.status_label) {
-                  {{ row.status_label }}
-                } @else if (row.status) {
-                  {{ row.status | titlecase }}
-                } @else {
-                  {{ row.is_active ? 'Active' : 'Inactive' }}
-                }
+                {{ row.is_active ? 'Active' : 'Inactive' }}
               </span>
             </td>
           </ng-container>

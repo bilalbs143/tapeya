@@ -35,9 +35,6 @@ const STATUS_CLASS_MAP: Record<string, string> = {
   advance: 'bg-light-info text-info',
   paid: 'bg-light-success text-success',
   refunded: 'bg-light-secondary text-secondary',
-  draft: 'bg-light-secondary text-secondary',
-  published: 'bg-light-success text-success',
-  archived: 'bg-light-warning text-warning',
 };
 
 const DEFAULT_STATUS_CLASS = 'bg-light-secondary text-secondary';

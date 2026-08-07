@@ -3,7 +3,6 @@
 namespace Tests\Feature\Shop;
 
 use App\Enums\Notification\AdminNotificationTypeEnum;
-use App\Enums\Shop\ProductStatusEnum;
 use App\Enums\Shop\VendorStatusEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
@@ -58,14 +57,12 @@ class VendorApplyAndPublishTest extends TestCase
                 'category_id' => $category->id,
                 'stock_quantity' => 5,
                 'low_stock_threshold' => 1,
-                'status' => ProductStatusEnum::PUBLISHED->value,
             ])
             ->assertCreated();
 
         $productId = $create->json('data.id');
         $product = Product::query()->findOrFail($productId);
 
-        $this->assertSame(ProductStatusEnum::PUBLISHED, $product->status);
         $this->assertTrue($product->isSellable());
     }
 

@@ -3,7 +3,6 @@
 namespace App\Services\Shop;
 
 use App\Enums\Shop\OrderStatusEnum;
-use App\Enums\Shop\ProductStatusEnum;
 use App\Models\Shop\Product;
 use App\Models\Shop\Vendor;
 use App\Models\Shop\VendorOrder;
@@ -87,7 +86,7 @@ class VendorDashboardService
             $totalProducts = Product::query()->forVendor($vendor->id)->count();
             $activeProducts = Product::query()
                 ->forVendor($vendor->id)
-                ->where('status', ProductStatusEnum::PUBLISHED)
+                ->where('is_active', true)
                 ->count();
 
             return [

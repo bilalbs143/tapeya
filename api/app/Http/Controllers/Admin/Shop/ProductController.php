@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin\Shop;
 
 use App\Enums\Shop\InventoryReasonEnum;
-use App\Enums\Shop\ProductStatusEnum;
 use App\Http\Controllers\Admin\BaseAdminController;
 use App\Http\Requests\Admin\Shop\StoreProductRequest;
 use App\Http\Requests\Admin\Shop\UpdateProductRequest;
@@ -33,7 +32,6 @@ class ProductController extends BaseAdminController
     {
         $data = $request->validated();
         $data['vendor_id'] = $data['vendor_id'] ?? Vendor::ensureHouse()->id;
-        $data['status'] = $data['status'] ?? ProductStatusEnum::PUBLISHED->value;
         $stockQuantity = (int) ($data['stock_quantity'] ?? 0);
         unset($data['stock_quantity']);
 

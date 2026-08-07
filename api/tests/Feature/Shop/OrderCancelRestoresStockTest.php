@@ -5,7 +5,6 @@ namespace Tests\Feature\Shop;
 use App\Enums\Shop\InventoryReasonEnum;
 use App\Enums\Shop\OrderStatusEnum;
 use App\Enums\Shop\PaymentStatusEnum;
-use App\Enums\Shop\ProductStatusEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
 use App\Models\Shop\Brand;
@@ -48,7 +47,6 @@ class OrderCancelRestoresStockTest extends TestCase
             'category_id' => $category->id,
             'stock_quantity' => 5,
             'is_active' => true,
-            'status' => ProductStatusEnum::PUBLISHED,
         ]);
 
         $order = Order::create([

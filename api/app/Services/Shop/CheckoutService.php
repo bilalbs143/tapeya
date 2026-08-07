@@ -6,7 +6,6 @@ use App\Enums\Shop\InventoryReasonEnum;
 use App\Enums\Shop\OrderStatusEnum;
 use App\Enums\Shop\PaymentMethodEnum;
 use App\Enums\Shop\PaymentStatusEnum;
-use App\Enums\Shop\ProductStatusEnum;
 use App\Enums\Shop\VendorStatusEnum;
 use App\Models\Shop\Cart;
 use App\Models\Shop\Order;
@@ -69,7 +68,6 @@ class CheckoutService
                 $vendor = $vendors->get($product->vendor_id);
                 $sellable = $vendor
                     && $vendor->status === VendorStatusEnum::APPROVED
-                    && $product->status === ProductStatusEnum::PUBLISHED
                     && $product->is_active
                     && $product->stock_quantity >= $cartItem->quantity;
 

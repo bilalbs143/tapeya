@@ -6,18 +6,12 @@ import { useGetVendorProductsQuery, useGetVendorStoreQuery } from '@/store/api/v
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 
-const STATUS_STYLES = {
-  draft: 'border border-[#6B7280] text-[#6B7280]',
-  published: 'border border-[#34C759] text-[#34C759]',
-  archived: 'border border-[#FF3B30] text-[#FF3B30]',
-};
-
-function StatusPill({ status, statusLabel }) {
-  const value = (status ?? '').toLowerCase();
-  const style = STATUS_STYLES[value] ?? STATUS_STYLES.draft;
+function StatusPill({ isActive }) {
+  const active = !!isActive;
+  const style = active ? 'border border-[#34C759] text-[#34C759]' : 'border border-[#6B7280] text-[#6B7280]';
   return (
     <span className={`inline-block rounded-full px-3 py-1 text-[11px] font-bold tracking-wide uppercase ${style}`}>
-      {(statusLabel ?? status ?? '—').toString().toUpperCase()}
+      {active ? 'ACTIVE' : 'INACTIVE'}
     </span>
   );
 }
@@ -54,7 +48,7 @@ export default function SellerProducts() {
           </p>
         ) : (
           <p className="text-muted mb-4 text-[13px] leading-snug md:text-[14px]">
-            Manage your catalog. Publish products to make them sellable in the shop.
+            Manage your catalog. Active products are sellable in the shop.
           </p>
         )}
 
@@ -97,7 +91,7 @@ export default function SellerProducts() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="mb-1 flex flex-wrap items-center gap-2">
-                        <StatusPill status={product.status} statusLabel={product.status_label} />
+                        <StatusPill isActive={product.is_active} />
                       </div>
                       <p className="line-clamp-2 text-[13px] font-bold text-white">{product.name}</p>
                       <p className="text-brand mt-1 text-[14px] font-bold">{formatPrice(product.price)}</p>

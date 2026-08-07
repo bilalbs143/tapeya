@@ -311,7 +311,6 @@ User (vendor) 0..1──1 Vendor   (null user_id iff is_platform)
 | Enum | Values |
 |------|--------|
 | `VendorStatusEnum` | `pending`, `approved`, `suspended`, `rejected` |
-| `ProductStatusEnum` | `draft`, `published`, `archived` |
 | `PaymentStatusEnum` | `unpaid`, `advance`, `paid`, `refunded` |
 | `OrderStatusEnum` | `pending`, `processing`, `dispatched`, `delivered`, `cancelled` |
 | `InventoryReasonEnum` | `sale`, `cancel_restore`, `restock`, `admin_adjust`, `manual` |

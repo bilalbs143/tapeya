@@ -5,7 +5,6 @@ namespace Tests\Feature\Shop;
 use App\Enums\Shop\InventoryReasonEnum;
 use App\Enums\Shop\OrderStatusEnum;
 use App\Enums\Shop\PaymentStatusEnum;
-use App\Enums\Shop\ProductStatusEnum;
 use App\Enums\Shop\VendorStatusEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
@@ -216,7 +215,6 @@ class MarketplaceIntegrityFixTest extends TestCase
             'category_id' => $category->id,
             'stock_quantity' => $stock,
             'is_active' => true,
-            'status' => ProductStatusEnum::PUBLISHED,
         ]);
     }
 
