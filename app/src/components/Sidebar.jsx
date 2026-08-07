@@ -7,6 +7,7 @@ import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { addSavedProfile } from '@/lib/savedProfiles';
 // import starMatchIcon from '@/assets/images/icons/star-match.svg';
 import { calculateProfileStrength } from '@/lib/utils/playerUtils';
+import { userHasVendorAccess } from '@/lib/vendorAccess';
 import { isNative } from '@/platform/platform';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useGetSidebarInterestCampaignQuery } from '@/store/api/tournamentInterestApi';
@@ -23,6 +24,8 @@ const supportIcon = `${CLOUDFRONT_APP_BASE}/images/icons/support.svg`;
 const topPlayersIcon = `${CLOUDFRONT_APP_BASE}/images/icons/top-players.svg`;
 const interestCampaignIcon = `${CLOUDFRONT_APP_BASE}/images/icons/interest-campaign.svg`;
 const goLiveIcon = `${CLOUDFRONT_APP_BASE}/images/icons/voice-cricle-live.svg`;
+const sellerHubIcon = `${CLOUDFRONT_APP_BASE}/images/icons/seller-hub.svg`;
+const becomeASellerIcon = `${CLOUDFRONT_APP_BASE}/images/icons/become-a-seller.svg`;
 const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
 const MENU_ITEMS = [
@@ -34,6 +37,18 @@ const MENU_ITEMS = [
     path: '/organizer/tournaments',
   },
   { label: 'My Orders', icon: myOrderIcon, path: '/shop/orders' },
+  {
+    label: 'Seller Hub',
+    icon: sellerHubIcon,
+    path: '/seller',
+    requiresVendor: true,
+  },
+  {
+    label: 'Become a Seller',
+    icon: becomeASellerIcon,
+    path: '/seller/apply',
+    requiresNoVendor: true,
+  },
   {
     label: 'Request Tournament',
     icon: requestTournamentIcon,
@@ -84,9 +99,17 @@ export function Sidebar({ open, onClose }) {
   const { isNativeMobile: showNativeVersions, installedVersion, configuredVersion } = useNativeStoreVersionInfo();
 
   const canBroadcast = isNative() && Boolean(profileUser?.can_broadcast);
+  const canAccessSellerHub = userHasVendorAccess(profileUser);
+  const canApplyAsSeller = profileUser?.capabilities?.vendor_status == null;
 
   const navItems = useMemo(() => {
-    const filtered = MENU_ITEMS.filter((item) => item.label !== 'Logout' && (!item.requiresBroadcast || canBroadcast));
+    const filtered = MENU_ITEMS.filter(
+      (item) =>
+        item.label !== 'Logout' &&
+        (!item.requiresBroadcast || canBroadcast) &&
+        (!item.requiresVendor || canAccessSellerHub) &&
+        (!item.requiresNoVendor || canApplyAsSeller),
+    );
     const slug = sidebarCampaign?.slug;
     if (!slug) return filtered;
     const afterRequestIdx = filtered.findIndex((i) => i.path === '/tournament-request');
@@ -99,7 +122,7 @@ export function Sidebar({ open, onClose }) {
       return [...filtered, interestRow];
     }
     return [...filtered.slice(0, afterRequestIdx + 1), interestRow, ...filtered.slice(afterRequestIdx + 1)];
-  }, [sidebarCampaign, canBroadcast]);
+  }, [sidebarCampaign, canBroadcast, canAccessSellerHub, canApplyAsSeller]);
   const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 1024);
 
   const isActivePath = (path) => {

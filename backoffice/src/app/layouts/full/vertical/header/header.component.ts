@@ -127,6 +127,7 @@ export class HeaderComponent implements OnInit {
   public notificationIcon(type: string | null): string {
     if (type === AdminNotificationType.ORDER_PLACED) return 'shopping-cart';
     if (type === AdminNotificationType.TOURNAMENT_REQUEST_SUBMITTED) return 'file-text';
+    if (type === AdminNotificationType.VENDOR_APPLICATION_SUBMITTED) return 'building-store';
     if (type === AdminNotificationType.BROADCAST_CONCURRENCY_HIGH) return 'broadcast';
     if (type === AdminNotificationType.YOUTUBE_QUOTA_HIGH) return 'gauge';
     return 'user';

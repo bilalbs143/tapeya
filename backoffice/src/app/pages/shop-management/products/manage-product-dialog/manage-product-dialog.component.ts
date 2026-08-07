@@ -23,6 +23,8 @@ import type { Category } from 'src/app/services/shop/category.service';
 import { CategoryService } from 'src/app/services/shop/category.service';
 import type { Product, ProductSavePayload } from 'src/app/services/shop/product.service';
 import { ProductService } from 'src/app/services/shop/product.service';
+import type { Vendor } from 'src/app/services/shop/vendor.service';
+import { VendorService } from 'src/app/services/shop/vendor.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import {
   FileUploadComponent,
@@ -67,6 +69,7 @@ export class ManageProductDialogComponent implements OnInit, OnDestroy {
   private readonly mediaService = inject(MediaService);
   private readonly brandService = inject(BrandService);
   private readonly categoryService = inject(CategoryService);
+  private readonly vendorService = inject(VendorService);
   private readonly enumsService = inject(EnumsService);
   private readonly dialogRef = inject<MatDialogRef<ManageProductDialogComponent>>(MatDialogRef);
   private readonly fb = inject(FormBuilder);
@@ -78,7 +81,9 @@ export class ManageProductDialogComponent implements OnInit, OnDestroy {
   public isSubmitting = false;
   public brands: Brand[] = [];
   public categories: Category[] = [];
+  public vendors: Vendor[] = [];
   public discountTypeOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('product_discount_type');
+  public productStatusOptions$: Observable<EnumOption[]> = this.enumsService.getOptions('product_status');
   public editor!: Editor;
   public toolbar: Toolbar = NGX_EDITOR_TOOLBAR;
 
@@ -94,6 +99,7 @@ export class ManageProductDialogComponent implements OnInit, OnDestroy {
     });
     this.loadBrands();
     this.loadCategories();
+    this.loadVendors();
   }
 
   public ngOnDestroy(): void {
@@ -109,9 +115,11 @@ export class ManageProductDialogComponent implements OnInit, OnDestroy {
       price: [p?.price ?? 0, [Validators.required, Validators.min(0)]],
       brand_id: [p?.brand_id ?? null, [Validators.required]],
       category_id: [p?.category_id ?? null, [Validators.required]],
+      vendor_id: [p?.vendor_id ?? null, [Validators.required]],
       stock_quantity: [p?.stock_quantity ?? 0, [Validators.required, Validators.min(0)]],
       low_stock_threshold: [p?.low_stock_threshold ?? 5, [Validators.required, Validators.min(0)]],
       is_active: [p?.is_active ?? true],
+      status: [p?.status ?? 'published', [Validators.required]],
       is_featured: [p?.is_featured ?? false],
       is_popular: [p?.is_popular ?? false],
       is_special_offer: [p?.is_special_offer ?? false],
@@ -202,6 +210,21 @@ export class ManageProductDialogComponent implements OnInit, OnDestroy {
     });
   }
 
+  private loadVendors(): void {
+    this.vendorService.getList({ all: true, sort: 'store_name' }).subscribe({
+      next: (res) => {
+        this.vendors = res.data ?? [];
+        if (this.data.mode === 'create' && !this.form.get('vendor_id')?.value) {
+          const platform = this.vendors.find((v) => v.is_platform);
+          const defaultId = platform?.id ?? this.vendors[0]?.id ?? null;
+          if (defaultId != null) {
+            this.form.patchValue({ vendor_id: defaultId }, { emitEvent: false });
+          }
+        }
+      },
+    });
+  }
+
   public onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -217,9 +240,11 @@ export class ManageProductDialogComponent implements OnInit, OnDestroy {
       price: Number(raw.price),
       brand_id: Number(raw.brand_id),
       category_id: Number(raw.category_id),
+      vendor_id: Number(raw.vendor_id),
       stock_quantity: Number(raw.stock_quantity ?? 0),
       low_stock_threshold: Number(raw.low_stock_threshold ?? 5),
       is_active: !!raw.is_active,
+      status: String(raw.status || 'published'),
       is_featured: !!raw.is_featured,
       is_popular: !!raw.is_popular,
       is_special_offer: !!raw.is_special_offer,

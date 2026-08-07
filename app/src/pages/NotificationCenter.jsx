@@ -65,6 +65,11 @@ function mapApiNotificationToCard(notification) {
     if (isSafeNotificationNavigatePath(path) && path !== '/notification-center') {
       href = path;
     }
+  } else if (data.vendor_order_id) {
+    const path = `/seller/orders/${data.vendor_order_id}`;
+    if (isSafeNotificationNavigatePath(path)) {
+      href = path;
+    }
   } else if (data.order_id) {
     const path = `/shop/orders/${data.order_id}`;
     if (isSafeNotificationNavigatePath(path)) {
@@ -277,7 +282,7 @@ export default function NotificationCenter() {
               disabled={isMarkingAll}
               className="text-brand shrink-0 text-[11px] font-semibold transition-opacity active:opacity-80 disabled:opacity-50"
             >
-              {isMarkingAll ? 'Marking…' : 'Mark all read'}
+              {isMarkingAll ? 'Marking…' : 'Mark All Read'}
             </button>
           ) : null}
         </div>
@@ -313,7 +318,7 @@ export default function NotificationCenter() {
                 />
               </svg>
             </div>
-            <p className="text-[14px] font-semibold text-white">No notifications yet</p>
+            <p className="text-[14px] font-semibold text-white">No Notifications Yet</p>
             <p className="text-muted mt-1 max-w-[16rem] text-[12px] leading-relaxed">
               Likes, comments, follows, and order updates will show up here.
             </p>
@@ -353,7 +358,7 @@ export default function NotificationCenter() {
               disabled={isFetching}
               className="text-muted inline-flex items-center gap-1 rounded-full border border-white/10 px-3 py-1.5 text-[11px] font-semibold transition-colors hover:text-white disabled:opacity-50"
             >
-              {isFetching ? 'Loading…' : 'View older'}
+              {isFetching ? 'Loading…' : 'View Older'}
               {!isFetching ? (
                 <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
                   <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />

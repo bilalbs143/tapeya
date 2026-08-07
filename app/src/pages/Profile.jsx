@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import { ProfileHeader } from '@/components/ProfileHeader';
 import { OrganizerProfileTabs } from '@/components/UserProfileTabs/OrganizerProfileTabs';
@@ -88,6 +88,18 @@ export default function Profile() {
   return (
     <div className="bg-black">
       <ProfileHeader user={user} onShare={handleShare} />
+
+      {user?.capabilities?.vendor_status == null ? (
+        <div className="px-4 pt-4">
+          <Link
+            to="/seller/apply"
+            className="border-brand/40 bg-brand/10 text-brand flex w-full items-center justify-between rounded-[17px] border px-4 py-3 text-[14px] font-bold transition-opacity active:opacity-90"
+          >
+            <span>Become a Seller</span>
+            <span aria-hidden>→</span>
+          </Link>
+        </div>
+      ) : null}
 
       {hasMultipleViews && (
         <Tabs className="w-full" value={activeRole ?? ''} onValueChange={setActiveRole}>

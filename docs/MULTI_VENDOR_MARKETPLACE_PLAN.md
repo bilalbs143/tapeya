@@ -1,8 +1,8 @@
 # Multi-Vendor Marketplace — Implementation Plan
 
-**Status:** Final (ready for Phase 0)  
+**Status:** Final — Phase 0–4 scoped MVP implemented; payouts & address-book simplified out (2026-08-07)  
 **Date:** 2026-08-04  
-**Revised:** 2026-08-04 — adversarial review pass incorporated  
+**Revised:** 2026-08-07 — Removed seller payout settlement (tables/API/UI), payout bank fields, `shop_shipping_rules`, and `shop_addresses`. Shipping = vendor `default_shipping_amount` only. Checkout prefills from last `shop_orders` address. Vendor may record payment like admin. Earlier: COD payment model; no product moderation; vendor **`rejected`** for denied applies.  
 **Related:** [Shop Ecommerce Design](./SHOP_ECOMMERCE_DESIGN.md), [Actors & Roles](./actors_and_roles.md), [Broadcaster Role](./BROADCASTER_ROLE.md), [App capabilities](./APP_CAPABILITIES.md) (do **before** Phase 0)
 
 **Prerequisite:** [APP_CAPABILITIES.md](./APP_CAPABILITIES.md) is live (assignment-based app auth; **no** app-guard roles). Vendor auth gates on `shop_vendors` + status — **do not** introduce a vendor app role or seed `shop.vendor.*` app permissions.
@@ -18,9 +18,9 @@ This revision closes defects found in review against the live plan and the real 
 | B1 | `admin.permission:shop.admin.*` wildcards do not work (`hasPermissionTo` is exact slug) | Exact slugs only; wired on money/trust routes (§5) |
 | B2 | Broadcast Operator can reach `admin/shop/*` via `canAccessBackofficeApi()` | Shop money/trust routes require `isAdmin()` **or** exact shop permission; broadcaster seeder gets **zero** shop permissions (§5.3) |
 | B3 | Derived parent-status table incomplete (`{pending,dispatched}`, etc.) | Replaced with exhaustive aggregator algorithm (§4.2) |
-| B4 | No underpayment state for manual bank transfer | `PaymentStatusEnum` includes `underpaid` (§4.4) |
+| B4 | Offline payment needs partial + full received states | `PaymentStatusEnum`: `unpaid` \| `advance` \| `paid` \| `refunded` (§4.4); COD; no in-app Pay Now |
 | B5 | Bare `_patch()` would reintroduce cancel/stock bugs on new endpoints | Mandatory transition services; no bare status/stock/payment PATCH (§6.4, §8) |
-| G1 | Payouts underspecified vs “#1 must-have” | Full payout model + manual settlement runbook; schema Phase 0, ops Phase 3 (§4.1, §8.5, §12) |
+| G1 | Payouts underspecified vs “#1 must-have” | **Superseded 2026-08-07:** payout settlement removed from v1 (no tables/API/UI). Focus = vendors + selling. Reintroduce later if needed. |
 | G2 | Public catalog never actually opens | Explicit Phase 2: unauthenticated catalog GETs (§6.1, §12) |
 | G3 | Checkout deadlock / stale commission / stale sellability | Ordered locks, re-read vendor+rate+sellability inside txn (§6.3) |
 | G4 | Dashboard drift / indexes / cache | Shared enum source; indexes; cache owner (§9) |
@@ -29,7 +29,8 @@ This revision closes defects found in review against the live plan and the real 
 | G7 | Policies presented as existing pattern | Flagged as **new** infra; User boolean helpers remain primary for middleware (§5.5) |
 | G8 | File list omitted controllers that must change | Expanded (§16) |
 | G9 | Cart/OrderDetail/nav/RTK contract gaps | Locked contracts (§11, §17) |
-| G10 | Bank details in unvalidated `meta` JSON | First-class payout columns + ownership checks (§4.1) |
+| G10 | Bank details in unvalidated `meta` JSON | **Superseded 2026-08-07:** no payout bank columns; settlement out of scope for v1 |
+| G11 | Address book + shipping rules overhead | **2026-08-07:** drop `shop_addresses` / `shop_shipping_rules`; last-order prefill; flat vendor shipping |
 
 ---
 
@@ -41,8 +42,8 @@ This plan converts that into a **multi-vendor marketplace** where:
 
 | Actor | Owns |
 |-------|------|
-| **Platform admin** (`type = administrator`) | Categories, brands, vendor lifecycle, platform catalog & order oversight, payment verification, commissions & payouts |
-| **Vendor** | Store profile, own products & inventory, own vendor-orders, lightweight metrics dashboard (app-first) |
+| **Platform admin** (`type = administrator`) | Categories, brands, vendor lifecycle, platform catalog & order oversight, payment verification, commissions |
+| **Vendor** | Store profile, own products & inventory, own vendor-orders, payment record on owned slices, lightweight metrics dashboard (app-first) |
 | **Buyer (app user)** | Browse catalog, multi-vendor cart, checkout, own parent-order history |
 
 **Data approach:** Wipe **transactional** shop data (carts, orders). Rebuild schema. Re-seed catalog via adapted `ShopSeeder` / `shop:export-seeder` output assigned to a **platform house vendor** so demos and curated product media are not thrown away casually. Update [SHOP_ECOMMERCE_DESIGN.md](./SHOP_ECOMMERCE_DESIGN.md) to match this schema after Phase 0 lands.
@@ -75,7 +76,7 @@ This plan converts that into a **multi-vendor marketplace** where:
 
 - No vendor entity, role, product ownership, or vendor-order split  
 - No shop permissions; broadcast operators inherit shop routes via `admin.only`  
-- No commission / payout / payment_status model  
+- No commission / payment_status model  
 - No transition guards on order status  
 - Fat controllers; no shop tests/factories  
 
@@ -96,7 +97,7 @@ This plan converts that into a **multi-vendor marketplace** where:
 ```
 ┌──────────────────┐   create / approve / suspend   ┌──────────────┐
 │ Platform Admin   │ ─────────────────────────────▶│   Vendor     │
-│ (administrator)  │   commission + payouts         │ (shop_vendors)│
+│ (administrator)  │   commission + payments       │ (shop_vendors)│
 └────────┬─────────┘                               └──────┬───────┘
          │ categories & brands                             │ products
          ▼                                                 ▼
@@ -118,7 +119,7 @@ This plan converts that into a **multi-vendor marketplace** where:
 | Resource | Owner | Admin power |
 |----------|-------|-------------|
 | Category / Brand | Platform | Full CRUD |
-| Vendor / store | `shop_vendors` ↔ user | Create, approve, suspend, commission, payouts |
+| Vendor / store | `shop_vendors` ↔ user | Create, approve, suspend, commission |
 | Product | Vendor | Oversee, force-unpublish, featured flags |
 | Inventory | Vendor | Adjust with audit |
 | Parent order | Buyer-facing | Payment verification, support overrides via services |
@@ -156,19 +157,15 @@ Fresh shop migrations (replace or migrate-wipe). Catalog re-seeded; carts/orders
 | `address` / `city` / `country` | | Business address |
 | `status` | string | `pending` \| `approved` \| `suspended` \| `rejected` |
 | `commission_rate` | decimal(5,2), nullable | Null → `config('shop.default_commission_rate')` |
+| `default_shipping_amount` | decimal(12,2), default 0 | Per-store flat shipping; quoted/checkout sum across cart vendors |
 | `is_platform` | boolean, default false | House vendor flag |
 | `approved_at` / `suspended_at` | timestamps, nullable | |
 | `suspension_reason` | text, nullable | |
-| **Payout identity (first-class, not JSON)** | | |
-| `payout_account_title` | string, nullable | |
-| `payout_bank_name` | string, nullable | |
-| `payout_iban` | string, nullable | Encrypted at rest if available |
-| `payout_details_verified_at` | timestamp, nullable | Admin-verified |
 | `timestamps` | | |
 
 Indexes: `status`, `slug`, `user_id`, `is_platform`.
 
-`meta` JSON is allowed only for non-financial extras (e.g. WhatsApp). **Never** store IBAN solely in `meta`.
+`meta` JSON is allowed only for non-financial extras (e.g. WhatsApp). **No** payout bank columns on vendors in v1.
 
 #### `shop_vendor_orders`
 
@@ -192,32 +189,9 @@ Indexes: `status`, `slug`, `user_id`, `is_platform`.
 Constraints: `UNIQUE(order_id, vendor_id)`.  
 Indexes: `(vendor_id, status)`, `(vendor_id, created_at)`, `order_id`.
 
-#### `shop_vendor_payouts` + `shop_vendor_payout_items`
+#### ~~`shop_vendor_payouts` + `shop_vendor_payout_items`~~ — **removed (2026-08-07)**
 
-Ship schema in Phase 0; **ops UI/API in Phase 3**.
-
-**`shop_vendor_payouts`**
-
-| Column | Notes |
-|--------|-------|
-| `vendor_id` | FK |
-| `amount` | decimal(12,2) |
-| `currency` | default PKR |
-| `status` | `pending` \| `paid` \| `failed` \| `cancelled` |
-| `period_start` / `period_end` | date |
-| `reference` | bank transfer ref |
-| `paid_at` | nullable |
-| `created_by` | admin user id |
-| `notes` | nullable |
-| `timestamps` | |
-
-**`shop_vendor_payout_items`** (required link — do not omit)
-
-| Column | Notes |
-|--------|-------|
-| `payout_id` | FK cascade |
-| `vendor_order_id` | FK, **unique** (a vendor-order settles at most once) |
-| `amount` | earnings included |
+Seller settlement batches are **out of v1**. Do not create these tables or admin/vendor payout APIs. Commission/`vendor_earnings` still snapshot on vendor-orders for reporting.
 
 #### `shop_inventory_logs` (required Phase 0 — not optional)
 
@@ -236,7 +210,17 @@ Ship schema in Phase 0; **ops UI/API in Phase 3**.
 
 #### `shop_product_moderations`
 
-Defer table until self-serve vendor signup. Admin-created vendors in Phase 0–2 publish immediately.
+**Removed / not shipped (locked §17 #4).** There is no moderation queue table in the live schema. When an approved vendor publishes a product (`status = published`), it is **immediately sellable**. Admin/house products behave the same. Reintroduce a queue later only if abuse warrants it.
+
+#### ~~`shop_addresses`~~ — **removed (2026-08-07)**
+
+No buyer address book. Delivery is the `address` / `city` / `country` snapshot on `shop_orders`. Checkout prefills from the buyer’s **latest order** (`GET shop/orders?per_page=1`, ordered by `created_at` desc).
+
+#### ~~`shop_shipping_rules`~~ — **removed (2026-08-07)**
+
+No platform city/country rules table. Quote + checkout shipping = **sum of each cart vendor’s `default_shipping_amount`**.
+
+**Not** in `config/shop.php` — no global `default_shipping_amount` env key.
 
 ### 4.2 Altered tables
 
@@ -265,7 +249,7 @@ Defer table until self-serve vendor signup. Admin-created vendors in Phase 0–2
 |--------|----------|
 | `status` | **Derived aggregate only** via `OrderStatusAggregator` |
 | `payment_status` | See enum §4.4 |
-| `payment_method` | `bank_transfer` (v1) |
+| `payment_method` | `cod` (Cash on Delivery — collected outside the app) |
 | `amount_received` | decimal(12,2), nullable — for under/over recording |
 | `payment_verified_at` / `payment_verified_by` | Admin verification |
 | `placed_at` | Checkout timestamp |
@@ -319,7 +303,6 @@ User (buyer) 1──* Cart 1──* CartItem *──1 Product
 User (buyer) 1──* Order 1──* VendorOrder *──1 Vendor
                       └──* OrderItem *──1 VendorOrder
 Product *──1 Vendor
-Vendor 1──* Payout 1──* PayoutItem *──1 VendorOrder
 User (vendor) 0..1──1 Vendor   (null user_id iff is_platform)
 ```
 
@@ -329,9 +312,8 @@ User (vendor) 0..1──1 Vendor   (null user_id iff is_platform)
 |------|--------|
 | `VendorStatusEnum` | `pending`, `approved`, `suspended`, `rejected` |
 | `ProductStatusEnum` | `draft`, `published`, `archived` |
-| `PaymentStatusEnum` | `unpaid`, `pending_verification`, `underpaid`, `paid`, `refunded`, `partially_refunded` |
+| `PaymentStatusEnum` | `unpaid`, `advance`, `paid`, `refunded` |
 | `OrderStatusEnum` | `pending`, `processing`, `dispatched`, `delivered`, `cancelled` |
-| `PayoutStatusEnum` | `pending`, `paid`, `failed`, `cancelled` |
 | `InventoryReasonEnum` | `sale`, `cancel_restore`, `restock`, `admin_adjust`, `manual` |
 | App roles | **No** `VENDOR` — see [APP_CAPABILITIES.md](./APP_CAPABILITIES.md) |
 
@@ -363,10 +345,9 @@ Admin creates/approves a `shop_vendors` row; that assignment alone unlocks the S
 |------|--------|
 | `shop.catalog.manage` | Brands, categories |
 | `shop.vendors.manage` | Vendor CRUD / approve / suspend / commission |
-| `shop.products.oversee` | Cross-vendor product moderation / featured |
+| `shop.products.oversee` | Cross-vendor product CRUD / featured flags |
 | `shop.orders.oversee` | Parent + vendor-order support |
-| `shop.payments.verify` | Mark paid / underpaid |
-| `shop.payouts.manage` | Settlement batches |
+| `shop.payments.verify` | Record unpaid / advance / paid / refunded |
 
 `EnsureAdminPermission` must be called with **one exact slug**, e.g. `admin.permission:shop.vendors.manage`. Never `shop.admin.*`.
 
@@ -379,7 +360,6 @@ Admin creates/approves a `shop_vendors` row; that assignment alone unlocks the S
 | Admin brands/categories | `admin.only` + `admin.permission:shop.catalog.manage` |
 | Admin vendors / commission | `admin.only` + `admin.permission:shop.vendors.manage` |
 | Admin payments | `admin.only` + `admin.permission:shop.payments.verify` |
-| Admin payouts | `admin.only` + `admin.permission:shop.payouts.manage` |
 | Admin order oversee | `admin.only` + `admin.permission:shop.orders.oversee` |
 
 Because `User::isAdmin()` bypasses permission checks inside `EnsureAdminPermission`, platform administrators keep full access. Broadcast Operators fail these middleware checks unless mistakenly given shop slugs — **PermissionSeeder must not attach shop slugs to broadcaster**.
@@ -395,10 +375,12 @@ Split middleware or route groups: **read** vs **mutate**.
 | Vendor row state | Mutations | Read (dashboard, store, historical orders) |
 |------------------|-----------|-----------------------------------------------|
 | missing | 403 `VENDOR_PROFILE_REQUIRED` | 403 |
-| `rejected` | 403 `VENDOR_NOT_APPROVED` | 403 (or apply CTA later) |
+| `rejected` | 403 `VENDOR_NOT_APPROVED` | 403 — no Seller hub (Become-a-seller apply was denied) |
 | `pending` | 403 `VENDOR_NOT_APPROVED` | **yes** — read-only “awaiting approval” |
 | `suspended` | 403 `VENDOR_SUSPENDED` | **yes** — read-only |
 | `approved` | allow | allow |
+
+**`rejected` vs `suspended`:** reject is for **self-serve apply** still in `pending` (never went live). Suspend is for an already **`approved`** store that must be taken down. Approved vendors cannot be rejected — use suspend.
 
 Matches `capabilities.vendor_status` UI rules in [APP_CAPABILITIES.md](./APP_CAPABILITIES.md) §3.4.
 
@@ -417,10 +399,10 @@ Do not rely on “hide in UI” only.
 ### 5.6 Admin creates vendor
 
 1. Select/create app user.  
-2. Create `shop_vendors` linked to that user (`pending` or `approved`) — **no app role attach**.  
-3. Vendor completes store + payout fields in app; admin verifies payout details before Phase 3 payouts.
+2. Create `shop_vendors` linked to that user (`pending` or `approved`) — **no app role attach**. Optionally set `default_shipping_amount` on create.  
+3. Vendor completes store profile in app (Seller Hub / Store Settings).
 
-Self-serve apply = later phase.
+Self-serve apply = Phase 4 (`POST shop/vendor/apply` → `pending`; admin **approve** or **reject**).
 
 ---
 
@@ -452,6 +434,7 @@ Self-serve apply = later phase.
 | GET | `shop/vendor/orders` |
 | GET | `shop/vendor/orders/{vendorOrder}` |
 | POST | `shop/vendor/orders/{vendorOrder}/status` | **Action endpoint**, not bare PATCH |
+| POST | `shop/vendor/orders/{vendorOrder}/payment` | Same verify path as admin (`OrderPaymentService`) |
 
 #### Admin (`admin/shop/`)
 
@@ -461,8 +444,8 @@ Self-serve apply = later phase.
 | apiResource vendors + approve/suspend | | `shop.vendors.manage` |
 | products oversee / featured | | `shop.products.oversee` |
 | orders / vendor-orders support | | `shop.orders.oversee` |
-| POST `orders/{id}/payment` | mark unpaid/pending_verification/underpaid/paid | `shop.payments.verify` |
-| payouts CRUD + mark paid | | `shop.payouts.manage` |
+| POST `orders/{id}/payment` | mark unpaid/advance/paid | `shop.payments.verify` |
+| POST `orders/{id}/refund` | refund workflow | `shop.payments.verify` |
 | dashboard-stats | | any of shop.* or admin |
 
 ### 6.2 Services (required)
@@ -476,9 +459,9 @@ Self-serve apply = later phase.
 | `InventoryService` | **Only** path to change `stock_quantity`; always logs |
 | `VendorOrderStatusService` | State machine + stock restore + parent recompute |
 | `OrderStatusAggregator` | Pure function + tests |
-| `OrderPaymentService` | Payment status transitions + `amount_received` |
-| `PayoutService` | Build batch from unpaid delivered earnings; mark paid |
+| `OrderPaymentService` | Payment status transitions + `amount_received` (admin + vendor) |
 | `VendorDashboardService` / `AdminEcommerceDashboardService` | Metrics; shared status lists from enums |
+| ~~`PayoutService`~~ | **Removed 2026-08-07** |
 
 **Controllers never** call `$model->update(['status' => …])` or adjust stock directly.
 
@@ -514,6 +497,7 @@ Optional later: `Idempotency-Key` on POST orders.
 | Vendor advances fulfillment | `POST .../status` body `{status}` | `VendorOrderStatusService` |
 | Admin support status override | `POST admin/.../status` | same service (+ reason) |
 | Admin payment | `POST admin/shop/orders/{id}/payment` | `OrderPaymentService` |
+| Vendor payment | `POST shop/vendor/orders/{id}/payment` | same service (owned slice only) |
 | Cancel path | only via status service | must call `InventoryService::restore` + log |
 
 **Allowed vendor transitions:**
@@ -534,7 +518,8 @@ v1 recommendation: vendors may cancel only from `pending` or `processing`. After
 |-------|-------|
 | `OrderPlaced` | Notify buyer, admin, **each vendor** |
 | `VendorOrderStatusUpdated` | Vendor + buyer; may trigger parent `OrderStatusUpdated` when aggregate changes |
-| `OrderPaymentUpdated` | Vendor read-only signal (ship/no-ship) |
+| `VendorApplicationSubmitted` | Admin inbox when a user applies as seller |
+| Payment recorded | Via `OrderPaymentService` (admin or owning vendor); parent payment fields exposed on vendor order resources |
 
 ### 6.6 SKU / slug
 
@@ -552,7 +537,7 @@ Sellable iff:
 2. `stock_quantity >= requested`  
 3. `vendor.status = approved` (and not `is_platform` restrictions — house vendor is approved)  
 
-Suspended vendor → hidden from catalog; open vendor-orders remain completable; new cart adds rejected.
+Suspended vendor → hidden from catalog; open vendor-orders remain completable; new cart adds of their products fail sellability checks.
 
 **Brand ≠ Vendor.** Brand = equipment brand (GM, etc.). Vendor = seller. Ad `brand_partners` remain separate ([SPONSORED_BRAND_POSTS.md](./SPONSORED_BRAND_POSTS.md)).
 
@@ -560,32 +545,36 @@ Suspended vendor → hidden from catalog; open vendor-orders remain completable;
 
 ---
 
-## 8. Order, payment, payouts
+## 8. Order, payment & shipping
 
 ### 8.1 Buyer
 
 - Cart may mix vendors; UI groups by vendor (§11).  
-- One checkout, one platform bank transfer (current NayaPay flow) for **parent total**.  
-- Order detail: parent payment CTA from `payment_status`; per-line delivery from **vendor-order** status.  
-- **Pay Now** shows when `payment_status ∈ {unpaid, underpaid, pending_verification}` — **not** when `order.status === 'pending'` (fixes today’s conflation in `OrderDetail.jsx`).
+- Checkout creates parent order with `payment_status = unpaid` and `payment_method = cod`.  
+- **Payment is cash on delivery (COD)** — collection outside the app; there is no in-app Pay Now.  
+- Shipping address is required on checkout and stored on `shop_orders`; next visit prefills from the **last order**.  
+- Order detail shows fulfillment per vendor-order; payment status may appear as a parent label.
 
 ### 8.2 Vendor
 
-- Notified per vendor-order.  
-- Sees own items, shared shipping address, earnings, parent `payment_status` (read-only).  
-- Soft warning if unpaid; hard block to dispatch optional config `shop.require_payment_before_dispatch` (default **false** in v1).
+- Notified per vendor-order (placed / status).  
+- Sees own items, shared shipping address, earnings, tracking.  
+- May record parent payment (`amount_received` / status) on orders they own (same rules as admin verify).  
+- Collects payment from the customer manually outside the app.
 
 ### 8.3 Admin
 
-- Verify payments (`amount_received` vs `total` → `paid` or `underpaid`).  
+- Records payments / refunds on the parent: `amount_received` vs `total` → `advance` or `paid`; also `unpaid` / `refunded`.  
 - Support status overrides via status service.  
-- Phase 3: run payout batches.
+- **No** payout batch UI in v1.
 
 ### 8.4 Cancel + stock
 
 Any transition to `cancelled` on a vendor-order **must** restore stock through `InventoryService` (feature-tested). Parent totals display cancelled slices; GMV metrics exclude cancelled.
 
-### 8.5 Commission & payouts (specified)
+Buyer self-cancel is allowed only while every vendor-order is still `pending` **and** parent `payment_status` is not `advance` or `paid` (recorded payment requires admin refund instead).
+
+### 8.5 Commission & shipping (specified)
 
 **Earnings formula (locked):**
 
@@ -594,30 +583,9 @@ commission_amount = round(subtotal * commission_rate_snapshot / 100, 2)
 vendor_earnings   = subtotal + shipping_amount - discount_amount - commission_amount
 ```
 
-(Tax later. Shipping to vendor in v1 is 0.)
+(Tax later.) Each vendor-order gets its own `default_shipping_amount`; parent `shipping_amount` is the sum across vendors in the cart.
 
-**Eligible for payout:** vendor-orders where:
-
-- `status = delivered`  
-- parent `payment_status = paid`  
-- not already linked in `shop_vendor_payout_items`  
-
-**`PayoutService::createBatch(vendor, period, actor)`:**
-
-1. Select eligible vendor-orders in period (`lockForUpdate`).  
-2. Sum `vendor_earnings` → payout amount.  
-3. Insert payout + items.  
-4. Admin marks paid with `reference` after bank transfer.
-
-**Manual settlement runbook (Phase 3):**
-
-1. Admin → Payouts → “Generate batch” for vendor + date range.  
-2. Export CSV (vendor IBAN, title, amount, order numbers).  
-3. Finance sends bank transfer outside Tapeya.  
-4. Admin → Mark paid + paste bank reference.  
-5. Vendor sees payout history in app (read-only).
-
-No automated bank API in v1.
+**Seller settlement / payouts:** out of scope for v1 (removed 2026-08-07). `vendor_earnings` remains for dashboards/reporting only.
 
 ---
 
@@ -632,7 +600,7 @@ Indexes: `(vendor_id, created_at)` on vendor-orders; products `(vendor_id, statu
 
 ### 9.2 Admin dashboard
 
-Extend existing KPIs; add vendors-by-status, GMV by vendor, commission accrued, payment verification queue, payouts pending.
+Extend existing KPIs; add vendors-by-status, GMV by vendor, commission accrued, payment verification queue.
 
 **Consistency rules:**
 
@@ -646,14 +614,13 @@ Extend existing KPIs; add vendors-by-status, GMV by vendor, commission accrued, 
 
 | Module | Notes |
 |--------|-------|
-| Vendors | New; approve/suspend; commission; payout field verify |
+| Vendors | Approve/suspend; commission; store defaults (shipping) |
 | Products | Vendor column; featured toggles; no dead multipart images-on-create — keep **two-step media upload** |
 | Orders | Parent + vendor-orders; payment action dialog |
-| Payouts | Phase 3 |
 | Dashboard | Enum-driven widgets |
 | Brands / Categories | Unchanged ownership |
 
-Nav visibility: administrators only for shop money modules (broadcast operators excluded).
+Nav visibility: administrators only for shop money modules (broadcast operators excluded). ~~Payouts nav~~ removed 2026-08-07.
 
 ---
 
@@ -685,7 +652,7 @@ UI may render from `vendor_groups` when present; hooks keep using flat `items` +
 
 | UI element | Source field |
 |------------|--------------|
-| Pay Now | `payment_status` ∈ unpaid \| underpaid \| pending_verification |
+| Payment label | Parent `payment_status` / `payment_status_label` (informational; no Pay Now) |
 | Line “Delivered on …” | that line’s `vendor_order.status` (fallback parent only if single vendor-order) |
 | Section headers | Group items by `vendor_order` |
 
@@ -711,7 +678,7 @@ UI may render from `vendor_groups` when present; hooks keep using flat `items` +
 
 ### Phase 0 — Foundations (no half-migrated FKs)
 
-1. Replace shop migrations: vendors, vendor_orders, payout tables, inventory_logs, product.vendor_id, payment fields.  
+1. Replace shop migrations: vendors, vendor_orders, inventory_logs, product.vendor_id, payment fields (no payout tables).  
 2. Seed **platform house vendor** (`is_platform = true`, approved).  
 3. Adapt `ShopSeeder` / export: all products → house vendor.  
 4. Refactor checkout to **always** create one vendor-order (even single seller) + `InventoryService` + cancel restore.  
@@ -734,20 +701,30 @@ UI may render from `vendor_groups` when present; hooks keep using flat `items` +
 
 1. Multi-vendor checkout path (already structurally ready).  
 2. Cart `vendor_groups` + app UI.  
-3. Payment fields + admin verify + OrderDetail Pay Now split.  
+3. Payment fields + admin verify (offline collection; no buyer Pay Now).  
 4. **Unauthenticated catalog GETs.**  
 5. Per-vendor notifications.
 
-### Phase 3 — Dashboards + payouts
+### Phase 3 — Dashboards (+ tracking)
 
 1. Vendor + admin dashboard extensions.  
-2. `PayoutService` + admin UI + CSV export + mark paid.  
-3. Vendor payout history read API.  
-4. Tracking number fields on vendor-order (optional UI).
+2. ~~PayoutService + admin payout UI~~ — **removed 2026-08-07**; do not ship.  
+3. Tracking number fields on vendor-order (optional UI).
 
-### Phase 4 — Hardening
+### Phase 4 — Hardening (scoped MVP — Done)
 
-Moderation queue, self-serve apply, shipping rules, gateway, returns/RMA, brand allowlist, public SEO, etc. (§14).
+Shipped (§14 “should-have soon”), without gateway/RMA/SEO:
+
+1. Self-serve vendor apply (`POST shop/vendor/apply` → pending; admin approve/reject).  
+2. Vendor publish is immediately sellable (**no** product moderation queue — locked).  
+3. Buyer cancel when every vendor-order is still `pending` (stock restore via status service).  
+4. Checkout address on `shop_orders`; prefill from **last order** (no `shop_addresses`).  
+5. Shipping: sum of vendor `default_shipping_amount` only (no `shop_shipping_rules`).  
+6. Manual full-refund workflow (`refunded` via `OrderPaymentService`).  
+7. Seller orders UI for `tracking_number` / `carrier` + vendor payment record.  
+8. Payment is COD (no pay-before-dispatch gate).
+
+**Deferred (still §14 later):** JazzCash/card gateway, Returns/RMA, brand allowlist, public SEO, reviews/variants/coupons/wishlist/tax, courier webhooks, **seller payout settlement**. Product moderation stays deferred unless abuse requires it.
 
 ---
 
@@ -771,22 +748,24 @@ Scalability: composite indexes §4; dashboard cache §9; queue notifications per
 
 ### Must-have (this plan’s Phase 0–3)
 
-Commission snapshots, payment_status (incl. underpaid), inventory logs + cancel restore, vendor suspension cascade, exact admin shop permissions, payouts + item link + runbook, IDOR tests.
+Commission snapshots, payment_status (unpaid/advance/paid/refunded), inventory logs + cancel restore, vendor suspension cascade, exact admin shop permissions, IDOR tests.
 
 ### Should-have soon
 
-Product moderation, self-serve vendor apply, shipping rules, buyer cancel (all vendor-orders pending), saved addresses, public catalog (Phase 2), refund workflow tied to payment_status, tracking numbers.
+~~Self-serve vendor apply, buyer cancel, public catalog, refund workflow, tracking, last-order checkout prefill, flat vendor shipping~~ — **shipped in Phases 2–4** (address book / shipping rules / payouts later removed 2026-08-07).
 
 ### Later / missing from first draft — now tracked
 
 | Feature | Note |
 |---------|------|
+| Product moderation queue | **Not chosen for v1** — publish is live immediately (§17 #4) |
 | Returns / RMA | Refund enum ≠ reverse logistics |
 | Courier integration | Labels + webhooks |
 | Brand authorization | Anti-counterfeit for cricket gear |
 | Wash-trading / self-purchase exclusion | Rankings & future ratings |
-| Gateway (JazzCash / card) | Replace manual transfer |
-| Reviews, variants, coupons, wishlist, tax | Prioritize after payouts stable |
+| Gateway (JazzCash / card) | Replace manual COD recording |
+| Seller payout settlement | Reintroduce batches/IBAN only if ops need it |
+| Reviews, variants, coupons, wishlist, tax | Prioritize after core selling is stable |
 
 ### Non-goals v1
 
@@ -799,7 +778,7 @@ In-app buyer↔vendor inbox (WhatsApp remains), multi-warehouse, auctions, FX.
 | Layer | Must cover |
 |-------|------------|
 | Unit | Aggregator matrix §4.2; commission math; transition matrix |
-| Feature | IDOR vendor product/order; checkout split; suspend hides products; cancel restores stock **and** inventory log; broadcast user **403** on `shop.vendors.manage`; payment underpaid path |
+| Feature | IDOR vendor product/order; checkout split; suspend hides products; cancel restores stock **and** inventory log; broadcast user **403** on `shop.vendors.manage`; payment advance/paid path |
 | Feature | House-vendor single-seller checkout still works after Phase 0 |
 
 Factories: `VendorFactory`, `ProductFactory`, `OrderFactory`, `VendorOrderFactory`.
@@ -812,45 +791,40 @@ Success criteria in §18 are API/test-checkable (no “looks right in UI” only
 
 ```
 api/
-  app/Enums/Shop/*                          # new + PaymentStatus, VendorStatus, …
-  app/Models/Shop/Vendor.php                # new (auth source of truth)
-  app/Models/Shop/VendorOrder.php           # new
-  app/Models/Shop/VendorPayout.php          # new
-  app/Models/Shop/VendorPayoutItem.php      # new
-  app/Models/Shop/InventoryLog.php          # new
+  app/Enums/Shop/*                          # VendorStatus, ProductStatus, PaymentStatus, OrderStatus, …
+  app/Models/Shop/Vendor.php                # auth source of truth
+  app/Models/Shop/VendorOrder.php
+  app/Models/Shop/InventoryLog.php
   app/Models/Shop/Product.php               # vendor_id, status, uniques
   app/Models/Shop/Order.php                 # payment_*, aggregator hook
   app/Models/Shop/OrderItem.php             # vendor_order_id invariant
   app/Models/Shop/Cart.php / CartItem.php
-  app/Services/Shop/*                       # all services §6.2
-  app/Http/Controllers/User/Shop/*          # ProductController, CartController, OrderController (change)
-  app/Http/Controllers/Vendor/Shop/*        # new
-  app/Http/Controllers/Admin/Shop/*         # OrderController, ProductController, EcommerceDashboardController (change)
-  app/Http/Controllers/Admin/Shop/VendorController.php
-  app/Http/Controllers/Admin/Shop/PayoutController.php
+  app/Services/Shop/*                       # services §6.2 (no PayoutService)
+  app/Http/Controllers/User/Shop/*          # ProductController, CartController, OrderController
+  app/Http/Controllers/Vendor/Shop/*        # store, products, orders (+ payment), dashboard
+  app/Http/Controllers/Admin/Shop/*         # OrderController, ProductController, VendorController, EcommerceDashboardController
   app/Http/Middleware/EnsureVendor.php
   app/Http/Requests|Resources/…/Shop/*
   app/Support/MediaRegistry.php             # vendor/app access rules for product
-  database/migrations/*shop*
-  database/seeders/{Permission,Shop}Seeder.php  # admin shop perms only; no app vendor role
-  tests/Unit/Shop/OrderStatusAggregatorTest.php
+  database/migrations/2026_08_05_100000_marketplace_phase0_shop_vendors.php
+  database/seeders/{Permission,Shop}Seeder.php  # admin shop perms only; no payouts.manage; no app vendor role
   tests/Feature/Shop/*
 
 backoffice/
   pages/shop-management/vendors/**
   pages/shop-management/orders/**           # payment + vendor-orders
-  pages/shop-management/payouts/**          # Phase 3
-  services/shop/*
+  services/shop/*                           # no payout.service
 
 app/
-  pages/shop/*                              # Sold by, cart groups, payment_status
-  pages/vendor/*                            # Seller hub (profile entry)
+  pages/shop/*                              # Sold by, cart groups, checkout last-order prefill
+  pages/vendor/*                            # Seller hub / apply / store / orders
+  components/Sidebar.jsx                    # Seller Hub / Become a Seller
   store/api/shopApi.js                      # buyer tags
   store/api/vendorShopApi.js                # separate tags
   auth /me                                  # capabilities.vendor_status (see APP_CAPABILITIES)
 ```
 
-Also update: `docs/SHOP_ECOMMERCE_DESIGN.md`, `docs/actors_and_roles.md`, `docs/API.md`, `BROADCASTER_ROLE.md` §8 permission mirror, `docs/APP_CAPABILITIES.md`.
+Also keep in sync: `docs/SHOP_ECOMMERCE_DESIGN.md`, `docs/actors_and_roles.md`, `docs/APP_CAPABILITIES.md`.
 
 ---
 
@@ -861,42 +835,49 @@ Also update: `docs/SHOP_ECOMMERCE_DESIGN.md`, `docs/actors_and_roles.md`, `docs/
 | 1 | Product URLs | Brand browse kept; add vendor store pages; detail shows vendor |
 | 2 | Slug uniqueness | `UNIQUE(vendor_id, slug)` |
 | 3 | Admin products | On-behalf-of house or any vendor with required `vendor_id` |
-| 4 | Moderation | Immediate publish for admin-created vendors; queue when self-serve |
-| 5 | Vendor desktop | App Seller hub first; Angular vendor portal later if demanded |
-| 6 | Default commission | `config('shop.default_commission_rate')` = **10**; per-vendor override |
-| 7 | Pay before ship | Soft warning v1; config flag for hard block later |
-| 8 | Public catalog | **Phase 2** unauthenticated GETs |
-| 9 | `is_active` vs status | **`status` only** (`draft`/`published`/`archived`) |
-| 10 | Cart API shape | Flat `items` + additive `vendor_groups` |
-| 11 | Vendor nav | Profile “Seller hub”, not bottom nav |
-| 12 | `/me` gate | `capabilities.vendor_status` (status, not boolean); no app VENDOR role |
-| 13 | RTK cache | Separate `VendorShop` tag namespace |
-| 14 | Payouts phase | Schema Phase 0; service/UI Phase 3 |
-| 15 | Authz style | Exact **admin** permission middleware + scopes; Policies optional; app vendor = `shop_vendors` status ([APP_CAPABILITIES](./APP_CAPABILITIES.md)) |
-| 16 | App capabilities | Assignment model already shipped ([APP_CAPABILITIES](./APP_CAPABILITIES.md)); marketplace must not reintroduce app roles |
+| 4 | Product moderation | **None** — approved vendor publish → `published` and sellable immediately (no queue / no `pending_moderation`) |
+| 5 | Vendor statuses | `pending` \| `approved` \| `suspended` \| `rejected` — reject = deny Become-a-seller apply; suspend = take down a live approved store |
+| 6 | Vendor desktop | App Seller hub first; Angular vendor portal later if demanded |
+| 7 | Default commission | `config('shop.default_commission_rate')` = **10**; per-vendor override |
+| 8 | Pay before ship | **No** — COD; payment recorded by admin or owning vendor |
+| 9 | Shipping amount | Sum of each cart vendor’s `default_shipping_amount` only — **not** platform rules / `config('shop.default_shipping_amount')` |
+| 10 | Public catalog | **Phase 2** unauthenticated GETs |
+| 11 | `is_active` vs status | **`status` only** (`draft`/`published`/`archived`) |
+| 12 | Cart API shape | Flat `items` + additive `vendor_groups` |
+| 13 | Vendor nav | Sidebar **Seller Hub** / **Become a Seller**; profile CTA optional |
+| 14 | `/me` gate | `capabilities.vendor_status` (status, not boolean); no app VENDOR role |
+| 15 | RTK cache | Separate `VendorShop` tag namespace |
+| 16 | Payouts | **Out of v1** (removed 2026-08-07) |
+| 17 | Authz style | Exact **admin** permission middleware + scopes; Policies optional; app vendor = `shop_vendors` status ([APP_CAPABILITIES](./APP_CAPABILITIES.md)) |
+| 18 | App capabilities | Assignment model already shipped ([APP_CAPABILITIES](./APP_CAPABILITIES.md)); marketplace must not reintroduce app roles |
+| 19 | Checkout address | Snapshot on `shop_orders`; prefill from last order — **no** `shop_addresses` |
 
 ---
 
 ## 18. Success criteria (testable)
 
-1. Broadcast Operator receives **403** on vendor approve, payment verify, and payout routes.  
+1. Broadcast Operator receives **403** on vendor approve and payment verify routes.  
 2. Admin can create/approve/suspend vendors; categories/brands remain admin-owned.  
 3. Vendor can CRUD own products only (IDOR test fails cross-vendor).  
 4. Multi-vendor checkout creates 1 parent + N vendor-orders; commission snapshots present.  
 5. Cancelled vendor-order restores stock and writes `shop_inventory_logs` reason `cancel_restore`.  
 6. Aggregator unit tests pass the full matrix in §4.2.  
-7. `payment_status` drives Pay Now; underpaid is representable with `amount_received`.  
+7. Admin or owning vendor records `amount_received` → `advance` or `paid`; buyer has no Pay Now; cancel blocked once payment is recorded.  
 8. Suspended vendor products are not sellable inside checkout txn.  
 9. Phase 0 single house-vendor path: buyer shop regression green.  
-10. Phase 3: payout batch links vendor-orders uniquely; second payout attempt excludes them.
+10. Checkout stores address on `shop_orders`; shipping quote equals sum of vendor flat amounts.  
+11. No payout / address-book / shipping-rules routes or tables in the live schema.
 
 ---
 
 ## 19. Next step
 
-1. Ship [APP_CAPABILITIES.md](./APP_CAPABILITIES.md) PR1–PR2 (team auth + stop app-role gates).  
-2. Implement marketplace **Phase 0** exactly as §12 (house vendor + InventoryService + status service + **admin** shop permissions).  
-3. Then Phase 1 vendors/app Seller hub (`shop_vendors` assignment only).  
-4. Keep [SHOP_ECOMMERCE_DESIGN.md](./SHOP_ECOMMERCE_DESIGN.md) in sync when migrations land.
+1. ~~Ship [APP_CAPABILITIES.md](./APP_CAPABILITIES.md)~~ **Done** (assignment-based app auth).  
+2. ~~Implement marketplace **Phase 0**~~ **Done** (house vendor schema, CheckoutService, InventoryService, VendorOrderStatusService, admin shop permission slugs).  
+3. ~~Implement **Phase 1**~~ **Done** (admin vendors CRUD/approve/suspend, EnsureVendor + seller product APIs, app Seller hub, buyer Sold-by + store page, vendor product media allowlist, admin-only featured flags).  
+4. ~~Implement **Phase 2**~~ **Done** (cart `vendor_groups`, payment verify, public catalog GETs, per-vendor order notifications). Later: COD model (no Pay Now).  
+5. ~~Implement **Phase 3**~~ **Done** (VendorDashboardService + admin marketplace KPIs, optional tracking). ~~Payouts~~ removed 2026-08-07.  
+6. ~~Implement **Phase 4** scoped MVP~~ **Done** (self-serve apply, immediate vendor publish, buyer cancel, last-order checkout prefill, flat vendor shipping, COD + refund, seller tracking + vendor payment).  
+7. Keep [SHOP_ECOMMERCE_DESIGN.md](./SHOP_ECOMMERCE_DESIGN.md) in sync with the live schema.
 
 This document is the coding contract for marketplace work until superseded by a dated revision.

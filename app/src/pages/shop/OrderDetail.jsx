@@ -1,14 +1,17 @@
-import { memo, useEffect } from 'react';
+import { memo, useEffect, useMemo } from 'react';
 
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { ShopContactCard } from '@/components/shop/ShopContactCard';
+import { useToast } from '@/hooks/useToast';
+import { getApiErrorMessage } from '@/lib/apiErrors';
 import { formatPrice } from '@/lib/format';
 import { formatDate } from '@/lib/utils/dateUtils';
-import { useGetOrderQuery } from '@/store/api/shopApi';
+import { useCancelOrderMutation, useGetOrderQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 
-const OrderItemCard = memo(function OrderItemCard({ item, orderStatus, orderUpdatedAt }) {
+const OrderItemCard = memo(function OrderItemCard({ item, vendorOrderStatus, vendorOrderUpdatedAt }) {
   const snapshot = item.product_snapshot ?? {};
   const name = snapshot.name ?? 'Product';
   const edition = snapshot.edition ?? snapshot.variant ?? '';
@@ -16,8 +19,8 @@ const OrderItemCard = memo(function OrderItemCard({ item, orderStatus, orderUpda
   const quantity = item.quantity ?? 1;
   const imageUrl = snapshot.image_url;
 
-  const isDelivered = orderStatus === 'delivered';
-  const deliveryLabel = isDelivered ? `Delivered on ${formatDate(orderUpdatedAt) || '—'}` : 'Pending';
+  const isDelivered = vendorOrderStatus === 'delivered';
+  const deliveryLabel = isDelivered ? `Delivered on ${formatDate(vendorOrderUpdatedAt) || '—'}` : 'Pending';
 
   return (
     <div className="bg-surface flex gap-3 rounded-[17px] p-4">
@@ -64,6 +67,8 @@ const OrderItemCard = memo(function OrderItemCard({ item, orderStatus, orderUpda
 export default function OrderDetail() {
   const { orderId } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
+  const [cancelOrder, { isLoading: isCancelling }] = useCancelOrderMutation();
   const {
     data: order,
     isLoading,
@@ -75,6 +80,36 @@ export default function OrderDetail() {
   useEffect(() => {
     if (!orderId) navigate('/shop/orders', { replace: true });
   }, [orderId, navigate]);
+
+  const vendorOrdersById = useMemo(() => {
+    const map = new Map();
+    for (const vo of order?.vendor_orders ?? []) {
+      map.set(vo.id, vo);
+    }
+    return map;
+  }, [order?.vendor_orders]);
+
+  const itemGroups = useMemo(() => {
+    const items = order?.items ?? [];
+    if (items.length === 0) return [];
+
+    const vendorOrders = order?.vendor_orders ?? [];
+    if (vendorOrders.length > 0) {
+      const grouped = vendorOrders.map((vo) => ({
+        key: vo.id,
+        header: vo.vendor?.store_name || vo.vendor_order_number || `Vendor Order #${vo.id}`,
+        vendorOrder: vo,
+        items: items.filter((item) => item.vendor_order_id === vo.id),
+      }));
+      const orphanItems = items.filter((item) => !item.vendor_order_id || !vendorOrdersById.has(item.vendor_order_id));
+      if (orphanItems.length > 0) {
+        grouped.push({ key: 'other', header: null, vendorOrder: null, items: orphanItems });
+      }
+      return grouped.filter((g) => g.items.length > 0);
+    }
+
+    return [{ key: 'all', header: null, vendorOrder: null, items }];
+  }, [order?.items, order?.vendor_orders, vendorOrdersById]);
 
   if (!orderId) return null;
 
@@ -112,28 +147,72 @@ export default function OrderDetail() {
   }
 
   const orderNumber = order.order_number ?? orderId;
-  const items = order.items ?? [];
   const subtotal = order.subtotal;
   const shipping = order.shipping_amount;
   const discount = order.discount_amount;
   const total = order.total;
-  const status = order.status ?? '';
-  const updatedAt = order.updated_at ?? order.created_at;
+  const paymentStatus = order.payment_status;
+  const paymentStatusLabel = order.payment_status_label;
+  const hasRecordedPayment = paymentStatus === 'paid' || paymentStatus === 'advance';
+
+  const vendorOrdersList = order.vendor_orders ?? [];
+  const allVendorOrdersPending = vendorOrdersList.length > 0 && vendorOrdersList.every((vo) => vo.status === 'pending');
+  const canCancel = order.status !== 'cancelled' && !hasRecordedPayment && (allVendorOrdersPending || order.status === 'pending');
+
+  const onCancel = async () => {
+    if (!canCancel || !window.confirm('Cancel this order? Stock will be restored.')) return;
+    try {
+      await cancelOrder(order.id).unwrap();
+      toast.success('Order cancelled');
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Could not cancel order.'));
+    }
+  };
 
   return (
     <div className="bg-black">
       <AppSubpageHeader title="ORDER DETAIL" />
       <Container>
         <div className="pb-8">
-          <p className="text-brand mb-4 text-[16px] font-bold tracking-wide uppercase">
-            ORDER NUMBER: <span className="text-brand font-bold uppercase">{orderNumber}</span>
-          </p>
+          <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+            <p className="text-brand text-[16px] font-bold tracking-wide uppercase">
+              ORDER NUMBER: <span className="text-brand font-bold uppercase">{orderNumber}</span>
+            </p>
+            {paymentStatusLabel && (
+              <p className="text-muted text-[12px] font-normal">
+                {hasRecordedPayment ? `Payment: ${paymentStatusLabel}` : paymentStatusLabel}
+              </p>
+            )}
+          </div>
 
-          <div className="flex flex-col gap-3">
-            {items.length === 0 ? (
+          <div className="flex flex-col gap-5">
+            {itemGroups.length === 0 ? (
               <p className="text-muted text-[13px]">No items in this order.</p>
             ) : (
-              items.map((item) => <OrderItemCard key={item.id} item={item} orderStatus={status} orderUpdatedAt={updatedAt} />)
+              itemGroups.map((group) => (
+                <section key={group.key} className="space-y-3">
+                  {group.vendorOrder?.vendor?.store_name ? (
+                    <ShopContactCard
+                      name={group.vendorOrder.vendor.store_name}
+                      phone={group.vendorOrder.vendor.phone}
+                      href={group.vendorOrder.vendor.slug ? `/shop/vendors/${group.vendorOrder.vendor.slug}` : undefined}
+                    />
+                  ) : group.header ? (
+                    <h2 className="px-0.5 text-[13px] font-bold tracking-wide text-white uppercase">{group.header}</h2>
+                  ) : null}
+                  {group.items.map((item) => {
+                    const vo = group.vendorOrder ?? vendorOrdersById.get(item.vendor_order_id);
+                    return (
+                      <OrderItemCard
+                        key={item.id}
+                        item={item}
+                        vendorOrderStatus={vo?.status}
+                        vendorOrderUpdatedAt={vo?.updated_at}
+                      />
+                    );
+                  })}
+                </section>
+              ))
             )}
           </div>
 
@@ -157,15 +236,18 @@ export default function OrderDetail() {
               <p className="text-[16px] font-semibold text-white">Grand Total:</p>
               <p className="text-brand mt-1 text-[20px] font-bold">{formatPrice(total)}</p>
             </div>
-            {status === 'pending' && (
-              <button
-                type="button"
-                onClick={() => navigate(`/shop/order-payment/${order.id}`)}
-                className="bg-brand shrink-0 rounded-[6px] px-6 py-3.5 text-[16px] font-semibold text-black transition-opacity active:opacity-90"
-              >
-                Pay Now
-              </button>
-            )}
+            <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+              {canCancel && (
+                <button
+                  type="button"
+                  disabled={isCancelling}
+                  onClick={onCancel}
+                  className="rounded-[6px] border border-red-500/40 bg-red-950/30 px-6 py-3.5 text-[16px] font-semibold text-red-300 transition-opacity active:opacity-90 disabled:opacity-50"
+                >
+                  {isCancelling ? 'Cancelling…' : 'Cancel Order'}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </Container>

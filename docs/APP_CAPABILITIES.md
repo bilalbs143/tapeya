@@ -47,10 +47,11 @@ Profile **tabs** (“As a Player / Organizer / Sponsor”) remain as UI views fr
 
 | `vendor_status` | UI |
 |-----------------|----|
-| `null` / `rejected` | No Seller hub |
+| `null` | No Seller hub (not a vendor) — show “Become a seller” |
 | `pending` | Read-only “awaiting approval” |
 | `approved` | Full vendor mutations |
 | `suspended` | Read-only hub |
+| `rejected` | No Seller hub (apply denied); do not show re-apply until admin clears/deletes |
 
 No `roles` array on the app user resource.
 
@@ -102,7 +103,7 @@ Player / organizer / sponsor are the **same** app users. Typeaheads must not fil
 |--------|------|
 | Tournament request | Any authenticated app user |
 | Direct tournament create in app | Via request / admin / league provisioner — not a global role |
-| Become vendor | Admin creates `shop_vendors` (self-serve later) |
+| Become vendor | Self-serve `POST /shop/vendor/apply` → `pending`; admin approve/reject. App: **Become a Seller** / **Seller Hub** in sidebar |
 
 ---
 

@@ -105,7 +105,9 @@ function routeFromPushData(navigate, data) {
     case 'order_placed':
     case 'order_status_updated':
     case 'order_delivered':
-      if (data.order_id) {
+      if (data.vendor_order_id) {
+        navigate(`/seller/orders/${data.vendor_order_id}`);
+      } else if (data.order_id) {
         navigate(`/shop/orders/${data.order_id}`);
       }
       break;

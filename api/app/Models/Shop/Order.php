@@ -3,6 +3,8 @@
 namespace App\Models\Shop;
 
 use App\Enums\Shop\OrderStatusEnum;
+use App\Enums\Shop\PaymentMethodEnum;
+use App\Enums\Shop\PaymentStatusEnum;
 use App\Models\BaseModel;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -35,6 +37,11 @@ class Order extends BaseModel
         'user_id',
         'order_number',
         'status',
+        'payment_status',
+        'payment_method',
+        'amount_received',
+        'payment_verified_at',
+        'payment_verified_by',
         'subtotal',
         'shipping_amount',
         'discount_amount',
@@ -44,6 +51,7 @@ class Order extends BaseModel
         'city',
         'country',
         'notes',
+        'placed_at',
     ];
 
     /**
@@ -53,21 +61,36 @@ class Order extends BaseModel
     {
         return [
             'status' => OrderStatusEnum::class,
+            'payment_status' => PaymentStatusEnum::class,
+            'payment_method' => PaymentMethodEnum::class,
+            'amount_received' => 'decimal:2',
+            'payment_verified_at' => 'datetime',
             'subtotal' => 'decimal:2',
             'shipping_amount' => 'decimal:2',
             'discount_amount' => 'decimal:2',
             'total' => 'decimal:2',
+            'placed_at' => 'datetime',
         ];
     }
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'user_id')->withTrashed();
+    }
+
+    public function paymentVerifier(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'payment_verified_by')->withTrashed();
     }
 
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class, 'order_id');
+    }
+
+    public function vendorOrders(): HasMany
+    {
+        return $this->hasMany(VendorOrder::class, 'order_id');
     }
 
     /** Scope: filter orders by customer phone (matches user.phone by digits). */
@@ -90,7 +113,7 @@ class Order extends BaseModel
      */
     public static function getFilters(): array
     {
-        return ['id', 'user_id', 'status', 'order_number', AllowedFilter::scope('phone')];
+        return ['id', 'user_id', 'status', 'payment_status', 'order_number', AllowedFilter::scope('phone')];
     }
 
     /**

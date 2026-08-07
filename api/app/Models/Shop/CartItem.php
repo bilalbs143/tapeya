@@ -11,6 +11,7 @@ class CartItem extends BaseModel
 
     protected $fillable = [
         'cart_id',
+        'vendor_id',
         'product_id',
         'quantity',
         'price_snapshot',
@@ -30,6 +31,11 @@ class CartItem extends BaseModel
     public function cart(): BelongsTo
     {
         return $this->belongsTo(Cart::class, 'cart_id');
+    }
+
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(Vendor::class, 'vendor_id');
     }
 
     public function product(): BelongsTo

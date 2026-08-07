@@ -11,16 +11,17 @@ use Illuminate\Database\Seeder;
 class PermissionSeeder extends Seeder
 {
     /**
-     * Admin-guard permissions and role sync. {@see AdminRoleEnum::BROADCASTER} and {@see AdminRoleEnum::SUPER_ADMIN}
-     * receive the same slug bundle. Attach to routes with middleware when needed; platform administrators bypass permission checks.
+     * Admin-guard permissions and role sync.
+     * Broadcast operators get broadcast/tournament slugs only — never shop money/trust slugs.
+     * Platform administrators bypass permission checks via EnsureAdminPermission.
      *
-     * Slug list mirror: docs/BROADCASTER_ROLE.md §8 — keep in sync when adding rows here.
+     * Slug list mirror: docs/BROADCASTER_ROLE.md §8 + docs/MULTI_VENDOR_MARKETPLACE_PLAN.md §5.2.
      */
     public function run(): void
     {
         $guard = RoleGuardEnum::ADMIN->value;
 
-        $rows = [
+        $broadcastRows = [
             ['Broadcast Dashboard', 'broadcast.dashboard.view'],
             ['Broadcast Controller Session', 'broadcast.controller.session'],
             ['Tournament Manage (Scoped)', 'tournament.manage'],
@@ -29,7 +30,15 @@ class PermissionSeeder extends Seeder
             ['Matches Score', 'matches.score'],
         ];
 
-        foreach ($rows as [$name, $slug]) {
+        $shopRows = [
+            ['Shop Catalog Manage', 'shop.catalog.manage'],
+            ['Shop Vendors Manage', 'shop.vendors.manage'],
+            ['Shop Products Oversee', 'shop.products.oversee'],
+            ['Shop Orders Oversee', 'shop.orders.oversee'],
+            ['Shop Payments Verify', 'shop.payments.verify'],
+        ];
+
+        foreach ([...$broadcastRows, ...$shopRows] as [$name, $slug]) {
             Permission::firstOrCreate(
                 ['slug' => $slug, 'guard' => $guard],
                 ['name' => $name]
@@ -42,7 +51,7 @@ class PermissionSeeder extends Seeder
             ->first();
 
         if ($broadcaster) {
-            foreach ($rows as [, $slug]) {
+            foreach ($broadcastRows as [, $slug]) {
                 $broadcaster->givePermissionTo($slug);
             }
         }
@@ -53,7 +62,7 @@ class PermissionSeeder extends Seeder
             ->first();
 
         if ($super) {
-            foreach ($rows as [, $slug]) {
+            foreach ([...$broadcastRows, ...$shopRows] as [, $slug]) {
                 $super->givePermissionTo($slug);
             }
         }

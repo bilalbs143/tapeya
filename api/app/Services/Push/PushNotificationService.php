@@ -109,8 +109,17 @@ class PushNotificationService
             $payload['deep_link'] = '/shop/orders/'.$data['order_id'];
         }
 
+        if (isset($data['vendor_order_id'])) {
+            $payload['vendor_order_id'] = $data['vendor_order_id'];
+            $payload['deep_link'] = '/seller/orders/'.$data['vendor_order_id'];
+        }
+
         if (isset($data['order_number'])) {
             $payload['order_number'] = $data['order_number'];
+        }
+
+        if (isset($data['vendor_order_number'])) {
+            $payload['vendor_order_number'] = $data['vendor_order_number'];
         }
 
         if (isset($data['post_id'])) {

@@ -26,6 +26,14 @@ class ProductResource extends JsonResource
 
         return [
             'id' => $this->id,
+            'vendor_id' => $this->vendor_id,
+            'vendor' => $this->whenLoaded('vendor', fn () => $this->vendor ? [
+                'id' => $this->vendor->id,
+                'store_name' => $this->vendor->store_name,
+                'slug' => $this->vendor->slug,
+                'is_platform' => (bool) $this->vendor->is_platform,
+                'status' => $this->vendor->status?->value,
+            ] : null),
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
@@ -40,6 +48,8 @@ class ProductResource extends JsonResource
             'stock_quantity' => $this->stock_quantity,
             'low_stock_threshold' => $this->low_stock_threshold,
             'is_active' => $this->is_active,
+            'status' => $this->status?->value,
+            'status_label' => $this->status?->label(),
             'is_featured' => $this->is_featured,
             'is_popular' => $this->is_popular,
             'is_special_offer' => $this->is_special_offer,

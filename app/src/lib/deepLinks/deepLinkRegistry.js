@@ -60,6 +60,7 @@ export function isSafeNotificationNavigatePath(path) {
   if (isAllowedDeepLinkPath(normalized)) return true;
   if (normalized === '/notification-center') return true;
   if (/^\/shop\/orders\/\d+$/.test(normalized)) return true;
+  if (/^\/seller\/orders\/\d+$/.test(normalized)) return true;
   return false;
 }
 

@@ -74,7 +74,7 @@ export default function ShopCategory() {
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="What are you looking for?"
+              placeholder="What Are You Looking For?"
               className="bg-surface placeholder:text-muted/47 focus:ring-brand/50 h-12 w-full rounded-[6px] pr-14 pl-4 text-white focus:ring-2 focus:outline-none"
               aria-label="Search Shop"
             />

@@ -1,6 +1,6 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useToast } from '@/hooks/useToast';
@@ -88,6 +88,14 @@ export default function ShopCart() {
   const [removeItem] = useRemoveCartItemMutation();
 
   const items = cart?.items ?? [];
+  const vendorGroups = useMemo(() => {
+    if (Array.isArray(cart?.vendor_groups) && cart.vendor_groups.length > 0) {
+      return cart.vendor_groups;
+    }
+    if (items.length === 0) return [];
+    return [{ vendor: null, items, subtotal: null }];
+  }, [cart?.vendor_groups, items]);
+
   const subtotalFromApi = toNumber(cart?.subtotal);
   const subtotalFromItems = items.reduce((sum, i) => sum + toNumber(i.price_snapshot) * Math.max(0, toNumber(i.quantity)), 0);
   const subtotal = subtotalFromApi > 0 ? subtotalFromApi : subtotalFromItems;
@@ -138,16 +146,47 @@ export default function ShopCart() {
           </div>
         ) : (
           <div className="flex flex-col gap-3 pb-28 lg:flex-row lg:items-start lg:gap-6 lg:pb-0">
-            <div className="min-w-0 flex-1 space-y-3">
-              {items.map((item) => (
-                <CartItemCard
-                  key={item.id}
-                  item={item}
-                  onUpdateQty={handleUpdateQty}
-                  onRemove={handleRemove}
-                  isUpdating={isUpdating}
-                />
-              ))}
+            <div className="min-w-0 flex-1 space-y-5">
+              {vendorGroups.map((group, groupIndex) => {
+                const storeName = group.vendor?.store_name;
+                const storeSlug = group.vendor?.slug;
+                const groupKey = group.vendor?.id ?? `flat-${groupIndex}`;
+                const groupSubtotal = toNumber(group.subtotal);
+                const groupItems = group.items ?? [];
+
+                return (
+                  <section key={groupKey} className="space-y-3">
+                    {storeName && (
+                      <div className="flex items-baseline justify-between gap-3 px-0.5">
+                        <h2 className="min-w-0 text-[13px] font-bold tracking-wide text-white uppercase">
+                          {storeSlug ? (
+                            <Link
+                              to={`/shop/vendors/${storeSlug}`}
+                              className="text-brand transition-opacity hover:opacity-80 active:opacity-80"
+                            >
+                              {storeName}
+                            </Link>
+                          ) : (
+                            storeName
+                          )}
+                        </h2>
+                        {groupSubtotal > 0 && (
+                          <span className="text-muted shrink-0 text-[12px] font-medium">{formatPrice(groupSubtotal)}</span>
+                        )}
+                      </div>
+                    )}
+                    {groupItems.map((item) => (
+                      <CartItemCard
+                        key={item.id}
+                        item={item}
+                        onUpdateQty={handleUpdateQty}
+                        onRemove={handleRemove}
+                        isUpdating={isUpdating}
+                      />
+                    ))}
+                  </section>
+                );
+              })}
             </div>
 
             <div className="lg:sticky lg:top-20 lg:w-[320px] lg:shrink-0">

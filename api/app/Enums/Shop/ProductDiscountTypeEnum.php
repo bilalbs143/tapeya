@@ -15,7 +15,7 @@ enum ProductDiscountTypeEnum: string
     {
         return match ($this) {
             self::PERCENTAGE => 'Percentage',
-            self::FIXED => 'Fixed',
+            self::FIXED => 'Fixed Amount',
         };
     }
 }

@@ -3,7 +3,7 @@
     <form
       (ngSubmit)="loadHttpData()"
       [formGroup]="searchForm"
-      aria-label="Filter form"
+      aria-label="Filter Form"
     >
       <div class="grid grid-cols-12 gap-4 items-end">
         <div class="col-span-12 sm:col-span-6 lg:col-span-2">
@@ -23,9 +23,24 @@
             appearance="outline"
             class="w-full hide-hint"
           >
-            <mat-label>Status</mat-label>
-            <mat-select formControlName="is_active">
+            <mat-label>Listing</mat-label>
+            <mat-select formControlName="status">
               @if (statusOptions$ | async; as opts) {
+                @for (opt of opts; track opt.value) {
+                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                }
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 sm:col-span-6 lg:col-span-2">
+          <mat-form-field
+            appearance="outline"
+            class="w-full hide-hint"
+          >
+            <mat-label>Active</mat-label>
+            <mat-select formControlName="is_active">
+              @if (activeOptions$ | async; as opts) {
                 @for (opt of opts; track opt.value) {
                   <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
                 }
@@ -67,13 +82,13 @@
             </mat-select>
           </mat-form-field>
         </div>
-        <div class="col-span-12 sm:col-span-6 lg:col-span-4 flex flex-wrap items-center justify-end gap-2">
+        <div class="col-span-12 sm:col-span-6 lg:col-span-2 flex flex-wrap items-center justify-end gap-2">
           <button
             mat-stroked-button
             type="button"
             (click)="resetSearchForm()"
           >
-            Clear Search
+            Clear
           </button>
           <button
             mat-flat-button
@@ -103,7 +118,7 @@
         <table
           mat-table
           matSort
-          aria-label="Products list"
+          aria-label="Products List"
           matSortActive="id"
           matSortStart="desc"
           matSortDirection="desc"
@@ -222,10 +237,26 @@
               class="text-sm"
             >
               @if (row.discount_type) {
-                {{ row.discount_type === 'percentage' ? 'Percentage' : 'Fixed' }}
+                {{ row.discount_type === 'percentage' ? 'Percentage' : 'Fixed Amount' }}
               } @else {
                 {{ emptyCell }}
               }
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="vendor">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Vendor
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm whitespace-nowrap"
+            >
+              {{ row.vendor?.store_name ?? emptyCell }}
             </td>
           </ng-container>
           <ng-container matColumnDef="brand">
@@ -283,7 +314,7 @@
               *matHeaderCellDef
               class="bg-light-secondary text-sm font-semibold"
             >
-              Status
+              Listing
             </th>
             <td
               mat-cell
@@ -292,9 +323,15 @@
             >
               <span
                 class="rounded-sm font-semibold px-1.5 py-1 text-xs"
-                [ngClass]="statusClass(row.is_active ? 'active' : 'inactive')"
+                [ngClass]="statusClass(row.status ?? (row.is_active ? 'active' : 'inactive'))"
               >
-                {{ row.is_active ? 'Active' : 'Inactive' }}
+                @if (row.status_label) {
+                  {{ row.status_label }}
+                } @else if (row.status) {
+                  {{ row.status | titlecase }}
+                } @else {
+                  {{ row.is_active ? 'Active' : 'Inactive' }}
+                }
               </span>
             </td>
           </ng-container>
@@ -331,7 +368,7 @@
               <button
                 type="button"
                 class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
-                aria-label="Edit product"
+                aria-label="Edit Product"
                 (click)="openEditDialog(row)"
               >
                 <i-tabler
@@ -342,7 +379,7 @@
               <button
                 type="button"
                 class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
-                aria-label="Delete product"
+                aria-label="Delete Product"
                 (click)="openDeleteDialog(row)"
               >
                 <i-tabler

@@ -1,0 +1,266 @@
+<app-dialog-wrapper [title]="title">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    aria-label="Vendor Form"
+  >
+    <mat-dialog-content>
+      <div class="grid grid-cols-12 gap-x-6">
+        <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">User <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-chip-grid
+              #userChipGrid
+              aria-label="Vendor User"
+              [disabled]="userSelectDisabled"
+            >
+              @if (selectedUser) {
+                <mat-chip-row
+                  [disabled]="userSelectDisabled"
+                  (removed)="removeUser()"
+                  class="text-sm"
+                >
+                  {{ userChipLabel(selectedUser) }}
+                  @if (!userSelectDisabled) {
+                    <button
+                      type="button"
+                      matChipRemove
+                      [attr.aria-label]="'Remove user ' + userChipLabel(selectedUser)"
+                    >
+                      <mat-icon>cancel</mat-icon>
+                    </button>
+                  }
+                </mat-chip-row>
+              }
+              @if (!userSelectDisabled) {
+                <input
+                  [formControl]="userSearch"
+                  [matChipInputFor]="userChipGrid"
+                  [matChipInputSeparatorKeyCodes]="roleChipSeparatorKeys"
+                  [matChipInputAddOnBlur]="roleChipInputAddOnBlur"
+                  (matChipInputTokenEnd)="onUserChipInputTokenEnd($event)"
+                  [matAutocomplete]="userAuto"
+                  [placeholder]="selectedUser ? 'Search To Replace…' : 'Search To Assign…'"
+                />
+              }
+            </mat-chip-grid>
+            <mat-autocomplete
+              #userAuto="matAutocomplete"
+              (optionSelected)="onUserSelected($event)"
+            >
+              @for (c of userCandidates; track c.id) {
+                <mat-option [value]="c">{{ userOptionLabel(c) }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          @if (form.get('user_id')?.invalid && form.get('user_id')?.touched) {
+            <p class="text-error text-sm m-0 mt-1">Select a user from the suggestions.</p>
+          }
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Store Name <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              formControlName="store_name"
+              placeholder="Store Name"
+            />
+            @if (form.get('store_name')?.invalid && form.get('store_name')?.touched) {
+              <mat-error>Store name is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Slug <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              formControlName="slug"
+              placeholder="Auto-Generated From Store Name"
+              readonly
+            />
+            @if (form.get('slug')?.invalid && form.get('slug')?.touched) {
+              <mat-error>Slug is required (enter a store name to generate)</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">Description</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <textarea
+              matInput
+              formControlName="description"
+              rows="3"
+              placeholder="Store Description"
+            ></textarea>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Phone</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              formControlName="phone"
+              placeholder="Phone"
+            />
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Email</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              type="email"
+              formControlName="email"
+              placeholder="Email"
+            />
+            @if (form.get('email')?.invalid && form.get('email')?.touched) {
+              <mat-error>Enter a valid email</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12">
+          <mat-label class="text-sm font-semibold mb-2 block">Address</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              formControlName="address"
+              placeholder="Address"
+            />
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Country</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-select
+              formControlName="country"
+              placeholder="Select Country"
+            >
+              <mat-option value="">Select Country</mat-option>
+              @for (c of countriesList; track c.country_code) {
+                <mat-option [value]="c.name">{{ c.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">City</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-select
+              formControlName="city"
+              placeholder="Select City"
+            >
+              <mat-option value="">Select City</mat-option>
+              @for (c of cities; track c.id) {
+                <mat-option [value]="c.name">{{ c.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Commission Rate (%)</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              type="number"
+              formControlName="commission_rate"
+              min="0"
+              max="100"
+              step="0.01"
+              placeholder="e.g. 10"
+            />
+            @if (form.get('commission_rate')?.invalid && form.get('commission_rate')?.touched) {
+              <mat-error>Must be between 0 and 100</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Default Shipping (PKR)</mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <input
+              matInput
+              type="number"
+              formControlName="default_shipping_amount"
+              min="0"
+              step="0.01"
+              placeholder="0"
+            />
+            @if (form.get('default_shipping_amount')?.invalid && form.get('default_shipping_amount')?.touched) {
+              <mat-error>Must be 0 or greater</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        @if (!isEdit) {
+          <div class="col-span-12 lg:col-span-6">
+            <mat-label class="text-sm font-semibold mb-2 block">Status</mat-label>
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+            >
+              <mat-select formControlName="status">
+                <mat-option value="pending">Pending</mat-option>
+                <mat-option value="approved">Approved</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        }
+      </div>
+    </mat-dialog-content>
+
+    <mat-divider></mat-divider>
+    <mat-dialog-actions>
+      <button
+        type="button"
+        mat-stroked-button
+        class="border border-error! text-error"
+        [mat-dialog-close]="false"
+      >
+        Cancel
+      </button>
+      <app-submit-button
+        [disabled]="form.invalid"
+        [isSubmitting]="isSubmitting"
+        text="Submit"
+        color="primary"
+      />
+    </mat-dialog-actions>
+  </form>
+</app-dialog-wrapper>

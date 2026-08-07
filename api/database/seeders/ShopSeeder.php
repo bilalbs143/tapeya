@@ -2,10 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Enums\Shop\ProductStatusEnum;
 use App\Models\Shop\Brand;
 use App\Models\Shop\Category;
 use App\Models\Shop\Product;
 use App\Models\Shop\ProductImage;
+use App\Models\Shop\Vendor;
 use Illuminate\Database\Seeder;
 
 class ShopSeeder extends Seeder
@@ -17,6 +19,7 @@ class ShopSeeder extends Seeder
      */
     public function run(): void
     {
+        Vendor::ensureHouse();
         $this->seedBrands();
         $this->seedCategories();
         $this->seedProducts();
@@ -58,15 +61,20 @@ class ShopSeeder extends Seeder
 
     protected function seedProducts(): void
     {
+        $houseVendorId = Vendor::ensureHouse()->id;
+
         foreach ($this->products() as $row) {
+            $isActive = $row['is_active'] ?? true;
             $attributes = [
+                'vendor_id' => $houseVendorId,
                 'name' => $row['name'],
                 'description' => $row['description'] ?? null,
                 'sku' => $row['sku'] ?? null,
                 'price' => $row['price'],
                 'stock_quantity' => $row['stock_quantity'] ?? 0,
                 'low_stock_threshold' => $row['low_stock_threshold'] ?? 5,
-                'is_active' => $row['is_active'] ?? true,
+                'is_active' => $isActive,
+                'status' => $isActive ? ProductStatusEnum::PUBLISHED : ProductStatusEnum::ARCHIVED,
                 'is_featured' => $row['is_featured'] ?? false,
                 'is_popular' => $row['is_popular'] ?? false,
                 'is_special_offer' => $row['is_special_offer'] ?? false,
@@ -85,14 +93,20 @@ class ShopSeeder extends Seeder
             } else {
                 $attributes['category_id'] = null;
             }
-            Product::updateOrCreate(['slug' => $row['slug']], $attributes);
+            Product::updateOrCreate(
+                ['vendor_id' => $houseVendorId, 'slug' => $row['slug']],
+                $attributes
+            );
         }
     }
 
     protected function seedProductImages(): void
     {
         foreach ($this->productImages() as $row) {
-            $productId = Product::where('slug', $row['product_slug'])->value('id');
+            $productId = Product::query()
+                ->where('slug', $row['product_slug'])
+                ->where('vendor_id', Vendor::ensureHouse()->id)
+                ->value('id');
             if (! $productId) {
                 continue;
             }

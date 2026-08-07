@@ -31,7 +31,7 @@ import { getStatusClass } from 'src/app/utils/status-class.util';
 
 import { ManageProductDialogComponent } from './manage-product-dialog/manage-product-dialog.component';
 
-const DEFAULT_FILTERS = { name: '', is_active: '', brand_id: '', category_id: '' } as const;
+const DEFAULT_FILTERS = { name: '', status: '', is_active: '', brand_id: '', category_id: '' } as const;
 
 @Component({
   selector: 'app-products',
@@ -74,6 +74,7 @@ export class ProductsComponent implements OnInit, AfterViewInit, OnDestroy {
     'sale_price',
     'sale_percentage',
     'sale_type',
+    'vendor',
     'brand',
     'category',
     'stock_quantity',
@@ -94,12 +95,17 @@ export class ProductsComponent implements OnInit, AfterViewInit, OnDestroy {
   public categories: Category[] = [];
 
   public statusOptions$: Observable<EnumOption[]> = this.enumsService
+    .getOptions('product_status')
+    .pipe(map((opts) => [{ value: '', label: 'All' }, ...opts]));
+
+  public activeOptions$: Observable<EnumOption[]> = this.enumsService
     .getOptions('status')
     .pipe(map((opts) => [{ value: '', label: 'All' }, ...opts]));
 
   constructor() {
     this.searchForm = this.fb.group({
       name: [DEFAULT_FILTERS.name],
+      status: [DEFAULT_FILTERS.status],
       is_active: [DEFAULT_FILTERS.is_active],
       brand_id: [DEFAULT_FILTERS.brand_id],
       category_id: [DEFAULT_FILTERS.category_id],
@@ -170,6 +176,7 @@ export class ProductsComponent implements OnInit, AfterViewInit, OnDestroy {
     let params = { ...buildListParams(page, perPage, this.sort ?? null, {}) } as Record<string, unknown>;
     const statusFilter = this.mapStatusToIsActive(filters.is_active);
     if (statusFilter !== null) params = { ...params, 'filter[is_active]': statusFilter };
+    if ((filters.status ?? '') !== '') params = { ...params, 'filter[status]': filters.status };
     if ((filters.name ?? '').trim() !== '') params = { ...params, 'filter[name]': (filters.name as string).trim() };
     if ((filters.brand_id ?? '') !== '') params = { ...params, 'filter[brand_id]': filters.brand_id };
     if ((filters.category_id ?? '') !== '') params = { ...params, 'filter[category_id]': filters.category_id };

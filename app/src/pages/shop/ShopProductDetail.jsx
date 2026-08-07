@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { ShopContactCard } from '@/components/shop/ShopContactCard';
 import { useToast } from '@/hooks/useToast';
 import { AppEventParams, AppEvents, logEvent } from '@/lib/analytics/facebook';
 import { getApiErrorMessage } from '@/lib/apiErrors';
@@ -223,6 +224,14 @@ export default function ShopProductDetail() {
               </button>
             </div>
 
+            {normalized.vendor?.store_name ? (
+              <ShopContactCard
+                name={normalized.vendor.store_name}
+                phone={normalized.vendor.phone}
+                href={normalized.vendor.slug ? `/shop/vendors/${normalized.vendor.slug}` : undefined}
+              />
+            ) : null}
+
             {normalized.description && (
               <section className="pt-2">
                 <h3 className="text-muted mb-2 text-[12px] font-bold tracking-wide uppercase">Features</h3>
@@ -329,6 +338,16 @@ export default function ShopProductDetail() {
             </div>
           </div>
         </div>
+
+        {normalized.vendor?.store_name ? (
+          <div className="mt-4 hidden lg:block">
+            <ShopContactCard
+              name={normalized.vendor.store_name}
+              phone={normalized.vendor.phone}
+              href={normalized.vendor.slug ? `/shop/vendors/${normalized.vendor.slug}` : undefined}
+            />
+          </div>
+        ) : null}
 
         {normalized.description && (
           <section className="hidden pt-2 lg:block">

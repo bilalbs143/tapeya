@@ -104,7 +104,7 @@ export default function ShopHome() {
                     key={id}
                     to={`/shop/${slug}`}
                     className="bg-surface flex shrink-0 items-center gap-2 rounded-[6px] px-[13px] py-[10px] text-[13px] font-semibold tracking-wide text-white uppercase transition-colors hover:bg-[#252520] lg:min-w-[96px] lg:justify-center lg:px-4"
-                    aria-label={`Shop ${name} products`}
+                    aria-label={`Shop ${name} Products`}
                   >
                     {logo ? <img src={logo} alt={`${name} logo`} className="h-5 w-5 shrink-0 object-contain" /> : null}
                     {name}
@@ -123,7 +123,7 @@ export default function ShopHome() {
                       key={id}
                       to={`/shop/${slug}`}
                       className="bg-surface flex shrink-0 items-center gap-2 rounded-[6px] px-[13px] py-[10px] text-[13px] font-semibold tracking-wide text-white uppercase transition-colors hover:bg-[#252520] lg:min-w-[96px] lg:justify-center lg:px-4"
-                      aria-label={`Shop ${name} products`}
+                      aria-label={`Shop ${name} Products`}
                     >
                       {logo ? <img src={logo} alt={`${name} logo`} className="h-5 w-5 shrink-0 object-contain" /> : null}
                       {name}
@@ -136,14 +136,14 @@ export default function ShopHome() {
 
           <div className="space-y-6 pt-2">
             <ShopSlider
-              title="Most popular"
+              title="Most Popular"
               viewMorePath="/shop/filter/popular"
               products={popularProducts}
               brands={brands}
               reverseDirection={false}
             />
             <ShopSlider
-              title="Special offer"
+              title="Special Offer"
               viewMorePath="/shop/filter/special-offer"
               products={specialOfferProducts}
               brands={brands}

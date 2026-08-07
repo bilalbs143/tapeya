@@ -44,6 +44,9 @@ use App\Http\Controllers\User\Shop\CartController;
 use App\Http\Controllers\User\Shop\CategoryController;
 use App\Http\Controllers\User\Shop\OrderController;
 use App\Http\Controllers\User\Shop\ProductController;
+use App\Http\Controllers\User\Shop\ShippingQuoteController;
+use App\Http\Controllers\User\Shop\VendorApplyController;
+use App\Http\Controllers\User\Shop\VendorController as UserVendorController;
 use App\Http\Controllers\User\SignedGraphicSessionController;
 use App\Http\Controllers\User\StaticPageController;
 use App\Http\Controllers\User\SupportMessageController;
@@ -61,6 +64,10 @@ use App\Http\Controllers\User\UserLookupController;
 use App\Http\Controllers\User\UserMediaController;
 use App\Http\Controllers\User\UserProfileController;
 use App\Http\Controllers\User\UserTeamController;
+use App\Http\Controllers\Vendor\Shop\DashboardController as VendorDashboardController;
+use App\Http\Controllers\Vendor\Shop\OrderController as VendorOrderController;
+use App\Http\Controllers\Vendor\Shop\ProductController as VendorProductController;
+use App\Http\Controllers\Vendor\Shop\StoreController as VendorStoreController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('enums', [EnumController::class, 'index']);
@@ -71,6 +78,19 @@ Route::get('highlights', [HighlightController::class, 'index']);
 Route::get('highlights/{highlight}', [HighlightController::class, 'show']);
 Route::get('interest-campaigns/sidebar', [InterestCampaignController::class, 'sidebar']);
 Route::get('graphic-sessions/access/{token}', [SignedGraphicSessionController::class, 'showByToken'])->where('token', '\d+-\d+-[a-f0-9]{64}');
+
+// Public shop catalog (Phase 2) — cart/checkout/orders remain behind auth:api
+Route::prefix('shop')->group(function () {
+    Route::get('vendors', [UserVendorController::class, 'index']);
+    Route::get('vendors/{vendor:slug}', [UserVendorController::class, 'show']);
+    Route::get('vendors/{vendor:slug}/products/{product}', [ProductController::class, 'showForVendor']);
+    Route::get('products', [ProductController::class, 'index']);
+    Route::get('products/{product}', [ProductController::class, 'show']);
+    Route::get('brands', [BrandController::class, 'index']);
+    Route::get('brands/{brand}', [BrandController::class, 'show']);
+    Route::get('categories', [CategoryController::class, 'index']);
+    Route::get('categories/{category}', [CategoryController::class, 'show']);
+});
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [UserAuthController::class, 'register'])->middleware('throttle:5,1');
@@ -223,12 +243,29 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('live/broadcasts/{stream}/thumbnail', [LiveBroadcastController::class, 'deleteThumbnail']);
 
     Route::prefix('shop')->group(function () {
-        Route::get('products', [ProductController::class, 'index']);
-        Route::get('products/{product:slug}', [ProductController::class, 'show']);
-        Route::get('brands', [BrandController::class, 'index']);
-        Route::get('brands/{brand}', [BrandController::class, 'show']);
-        Route::get('categories', [CategoryController::class, 'index']);
-        Route::get('categories/{category}', [CategoryController::class, 'show']);
+        Route::post('vendor/apply', [VendorApplyController::class, 'store']);
+
+        Route::prefix('vendor')->group(function () {
+            Route::middleware('vendor:read')->group(function () {
+                Route::get('dashboard', [VendorDashboardController::class, 'show']);
+                Route::get('store', [VendorStoreController::class, 'show']);
+                Route::get('products', [VendorProductController::class, 'index']);
+                Route::get('products/{product}', [VendorProductController::class, 'show']);
+                Route::get('orders', [VendorOrderController::class, 'index']);
+                Route::get('orders/{vendorOrder}', [VendorOrderController::class, 'show']);
+            });
+
+            Route::middleware('vendor')->group(function () {
+                Route::patch('store', [VendorStoreController::class, 'update']);
+                Route::post('products', [VendorProductController::class, 'store']);
+                Route::match(['put', 'patch'], 'products/{product}', [VendorProductController::class, 'update']);
+                Route::delete('products/{product}', [VendorProductController::class, 'destroy']);
+                Route::post('orders/{vendorOrder}/status', [VendorOrderController::class, 'updateStatus']);
+                Route::post('orders/{vendorOrder}/payment', [VendorOrderController::class, 'updatePayment']);
+            });
+        });
+
+        Route::get('shipping/quote', [ShippingQuoteController::class, 'show']);
         Route::get('cart', [CartController::class, 'show']);
         Route::post('cart/items', [CartController::class, 'addItem']);
         Route::patch('cart/items/{cartItem}', [CartController::class, 'updateItem']);
@@ -236,6 +273,7 @@ Route::middleware('auth:api')->group(function () {
         Route::post('orders', [OrderController::class, 'store']);
         Route::get('orders', [OrderController::class, 'index']);
         Route::get('orders/{order}', [OrderController::class, 'show']);
+        Route::post('orders/{order}/cancel', [OrderController::class, 'cancel']);
     });
 
     Route::post('support/messages', [SupportMessageController::class, 'store']);

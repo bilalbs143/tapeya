@@ -2,7 +2,7 @@
   <form
     [formGroup]="form"
     (ngSubmit)="onSubmit()"
-    aria-label="Product form"
+    aria-label="Product Form"
   >
     <mat-dialog-content>
       <div class="grid grid-cols-12 gap-x-6">
@@ -54,6 +54,25 @@
             />
             @if (form.get('price')?.invalid && form.get('price')?.touched) {
               <mat-error>Price is required (min 0)</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Vendor <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-select
+              formControlName="vendor_id"
+              placeholder="Select Vendor"
+            >
+              @for (v of vendors; track v.id) {
+                <mat-option [value]="v.id"> {{ v.store_name }}{{ v.is_platform ? ' (Platform)' : '' }} </mat-option>
+              }
+            </mat-select>
+            @if (form.get('vendor_id')?.invalid && form.get('vendor_id')?.touched) {
+              <mat-error>Vendor is required</mat-error>
             }
           </mat-form-field>
         </div>
@@ -127,6 +146,24 @@
             @if (form.get('low_stock_threshold')?.invalid && form.get('low_stock_threshold')?.touched) {
               <mat-error>Low stock threshold is required (min 0)</mat-error>
             }
+          </mat-form-field>
+        </div>
+        <div class="col-span-12 lg:col-span-6">
+          <mat-label class="text-sm font-semibold mb-2 block">Listing Status <span class="text-error">*</span></mat-label>
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+          >
+            <mat-select
+              formControlName="status"
+              placeholder="Select Status"
+            >
+              @if (productStatusOptions$ | async; as opts) {
+                @for (opt of opts; track opt.value) {
+                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                }
+              }
+            </mat-select>
           </mat-form-field>
         </div>
         <div class="col-span-12">

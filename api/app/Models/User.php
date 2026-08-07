@@ -15,6 +15,7 @@ use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
 use App\Models\Shop\Cart;
 use App\Models\Shop\Order;
+use App\Models\Shop\Vendor;
 use App\Utils\Services\OtpService;
 use App\Utils\Traits\Model\BaseModelTrait;
 use App\Utils\Traits\Model\Filters\DateFilterTrait;
@@ -24,10 +25,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\QueryBuilder\AllowedFilter;
 
@@ -296,11 +299,24 @@ class User extends Authenticatable
     }
 
     /**
-     * Marketplace vendor status from shop_vendors when present; null until that table exists / user has no row.
+     * Marketplace vendor status from shop_vendors; null when user has no vendor row.
      */
     public function vendorStatus(): ?string
     {
-        return null;
+        if (! Schema::hasTable('shop_vendors')) {
+            return null;
+        }
+
+        $vendor = $this->relationLoaded('shopVendor')
+            ? $this->shopVendor
+            : $this->shopVendor()->first();
+
+        return $vendor?->status?->value;
+    }
+
+    public function shopVendor(): HasOne
+    {
+        return $this->hasOne(Vendor::class, 'user_id');
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin\Shop;
 
 use App\Enums\Shop\ProductDiscountTypeEnum;
+use App\Enums\Shop\ProductStatusEnum;
 use App\Models\Shop\Product;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -20,10 +21,19 @@ class UpdateProductRequest extends FormRequest
     public function rules(): array
     {
         $product = $this->route('product');
+        $vendorId = (int) ($this->input('vendor_id') ?: $product->vendor_id);
 
         return [
+            'vendor_id' => ['sometimes', 'integer', 'exists:shop_vendors,id'],
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', Rule::unique('shop_products', 'slug')->ignore($product->id)],
+            'slug' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('shop_products', 'slug')
+                    ->where(fn ($q) => $q->where('vendor_id', $vendorId))
+                    ->ignore($product->id),
+            ],
             'description' => ['required', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
             'brand_id' => ['required', 'integer', 'exists:shop_brands,id'],
@@ -31,6 +41,7 @@ class UpdateProductRequest extends FormRequest
             'stock_quantity' => ['required', 'integer', 'min:0'],
             'low_stock_threshold' => ['required', 'integer', 'min:0'],
             'is_active' => ['boolean'],
+            'status' => ['sometimes', Rule::enum(ProductStatusEnum::class)],
             'is_featured' => ['boolean'],
             'is_popular' => ['boolean'],
             'is_special_offer' => ['boolean'],

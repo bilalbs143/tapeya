@@ -1,0 +1,115 @@
+import { memo, useCallback, useMemo } from 'react';
+
+import { useNavigate } from 'react-router-dom';
+
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { formatPrice } from '@/lib/format';
+import { formatRelativeDate } from '@/lib/utils/dateUtils';
+import { useGetVendorOrdersQuery, useGetVendorStoreQuery } from '@/store/api/vendorShopApi';
+import { Button } from '@/ui/Button';
+import { Container } from '@/ui/Container';
+
+import { OrderStatusPill } from './OrderStatusPill';
+
+const CURRENT_STATUSES = ['pending', 'processing', 'dispatched'];
+
+const OrderCard = memo(function OrderCard({ order, onClick }) {
+  const relativeTime = formatRelativeDate(order.created_at);
+
+  return (
+    <button
+      type="button"
+      onClick={() => onClick(order.id)}
+      className="bg-surface flex w-full flex-col gap-2 rounded-[17px] p-4 text-left transition-opacity active:opacity-90"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <p className="min-w-0 flex-1 text-base leading-tight font-bold text-white">
+          {order.vendor_order_number ?? `#${order.id}`}
+        </p>
+        {relativeTime ? <span className="text-muted shrink-0 text-[12px] font-medium">{relativeTime}</span> : null}
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex min-w-0 items-baseline gap-2">
+          <span className="text-brand text-[16px] font-bold">{formatPrice(order.total)}</span>
+          <span className="text-[16px] font-medium text-[#808080]">Total</span>
+        </div>
+        <OrderStatusPill status={order.status} statusLabel={order.status_label} />
+      </div>
+    </button>
+  );
+});
+
+function OrderSection({ title, orders, emptyMessage, onOpen }) {
+  return (
+    <section>
+      <h2 className="text-muted mb-4 text-[13px] font-bold tracking-wide uppercase">{title}</h2>
+      {orders.length === 0 ? (
+        <p className="bg-surface text-muted rounded-[17px] px-4 py-6 text-center text-[13px]">{emptyMessage}</p>
+      ) : (
+        <ul className="flex flex-col gap-3">
+          {orders.map((order) => (
+            <li key={order.id}>
+              <OrderCard order={order} onClick={onOpen} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+export default function SellerOrders() {
+  const navigate = useNavigate();
+  const { data: store } = useGetVendorStoreQuery();
+  const { data: ordersResponse, isLoading, isError, refetch } = useGetVendorOrdersQuery({ all: true });
+  const orders = ordersResponse?.data ?? [];
+  const canEdit = store?.status === 'approved';
+
+  const { currentOrders, previousOrders } = useMemo(() => {
+    const current = [];
+    const previous = [];
+    for (const order of orders) {
+      if (CURRENT_STATUSES.includes((order.status ?? '').toLowerCase())) current.push(order);
+      else previous.push(order);
+    }
+    return { currentOrders: current, previousOrders: previous };
+  }, [orders]);
+
+  const openOrder = useCallback(
+    (id) => {
+      navigate(`/seller/orders/${id}`);
+    },
+    [navigate],
+  );
+
+  return (
+    <div className="bg-black">
+      <AppSubpageHeader sticky title="ORDERS" onBack={() => navigate('/seller')} />
+      <Container className="pb-8">
+        {!canEdit && store?.status ? (
+          <p className="text-muted mb-4 text-[13px] leading-snug">
+            Order updates are disabled while your account is {store.status_label ?? store.status}.
+          </p>
+        ) : null}
+
+        {isLoading ? (
+          <div className="flex min-h-[30vh] items-center justify-center py-12">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white/70" />
+          </div>
+        ) : isError ? (
+          <div className="flex min-h-[30vh] flex-col items-center justify-center gap-4 py-12">
+            <p className="text-muted text-[14px]">Could not load orders. Please try again.</p>
+            <Button type="button" variant="orange" className="px-6 py-2.5 text-[14px]" onClick={() => refetch()}>
+              Retry
+            </Button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-8">
+            <OrderSection title="Current Orders" orders={currentOrders} emptyMessage="No Current Orders." onOpen={openOrder} />
+            <OrderSection title="Previous Orders" orders={previousOrders} emptyMessage="No Previous Orders." onOpen={openOrder} />
+          </div>
+        )}
+      </Container>
+    </div>
+  );
+}

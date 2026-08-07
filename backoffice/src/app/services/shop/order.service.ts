@@ -16,6 +16,18 @@ export interface OrderItem {
   total_price: number;
 }
 
+export interface VendorOrderSummary {
+  id: number;
+  vendor_id: number;
+  vendor_order_number: string;
+  status: string;
+  status_label: string;
+  subtotal: number;
+  total: number;
+  vendor_earnings: number;
+  commission_amount: number;
+}
+
 export interface Order {
   id: number;
   user_id: number;
@@ -23,6 +35,13 @@ export interface Order {
   order_number: string;
   status: string;
   status_label: string;
+  payment_status?: string | null;
+  payment_status_label?: string | null;
+  payment_method?: string | null;
+  payment_method_label?: string | null;
+  amount_received?: number | null;
+  payment_verified_at?: string | null;
+  payment_verified_by?: number | null;
   subtotal: number;
   shipping_amount: number;
   discount_amount: number;
@@ -33,8 +52,20 @@ export interface Order {
   country: string;
   notes: string | null;
   items?: OrderItem[];
+  vendor_orders?: VendorOrderSummary[];
   created_at?: string;
   updated_at?: string;
+}
+
+export interface UpdateOrderPaymentPayload {
+  payment_status: string;
+  amount_received?: number | null;
+}
+
+export interface RefundOrderPayload {
+  payment_status: 'refunded';
+  amount_received?: number | null;
+  notes?: string | null;
 }
 
 export interface OrdersListResponse {
@@ -63,5 +94,17 @@ export class OrderService {
     return this.http
       .patch<{ data: Order }>(`${this.baseUrl}/${id}`, { status })
       .pipe(tap(() => this.messageService.success('Order status updated successfully.')));
+  }
+
+  public updatePayment(id: number, payload: UpdateOrderPaymentPayload): Observable<{ data: Order }> {
+    return this.http
+      .post<{ data: Order }>(`${this.baseUrl}/${id}/payment`, payload)
+      .pipe(tap(() => this.messageService.success('Payment updated successfully.')));
+  }
+
+  public refund(id: number, payload: RefundOrderPayload): Observable<{ data: Order }> {
+    return this.http
+      .post<{ data: Order }>(`${this.baseUrl}/${id}/refund`, payload)
+      .pipe(tap(() => this.messageService.success('Refund recorded successfully.')));
   }
 }

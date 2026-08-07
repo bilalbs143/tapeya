@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Shop\Order;
 use App\Models\Shop\OrderItem;
 use App\Models\Shop\Product;
+use App\Services\Shop\AdminEcommerceDashboardService;
 use App\Support\Media\MediaDisk;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -15,6 +16,10 @@ use Illuminate\Support\Facades\DB;
 class EcommerceDashboardController extends Controller
 {
     use BaseControllerTrait;
+
+    public function __construct(
+        private readonly AdminEcommerceDashboardService $marketplaceDashboard,
+    ) {}
 
     /**
      * Return aggregated stats for the ecommerce dashboard.
@@ -35,8 +40,8 @@ class EcommerceDashboardController extends Controller
         $sevenDaysAgo = $now->copy()->subDays(6)->startOfDay();
         $thirtyDaysAgo = $now->copy()->subDays(29)->startOfDay();
 
-        // Exclude cancelled from revenue/order counts where meaningful
-        $completedStatuses = ['delivered', 'dispatched', 'processing', 'pending'];
+        // Exclude cancelled from revenue/order counts where meaningful (enum-driven)
+        $completedStatuses = $this->marketplaceDashboard->activeOrderStatusValues();
 
         // Today's sales (revenue) and count
         $todayRevenue = (float) Order::query()
@@ -361,6 +366,8 @@ class EcommerceDashboardController extends Controller
             'products_total' => $productsTotal,
             'customers_total' => $customersTotal,
             'low_stock_products' => $lowStockProducts,
+            // Marketplace Phase 3
+            'marketplace' => $this->marketplaceDashboard->marketplaceMetrics(),
         ];
     }
 }

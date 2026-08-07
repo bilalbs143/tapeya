@@ -3,7 +3,7 @@
     <form
       (ngSubmit)="loadHttpData()"
       [formGroup]="searchForm"
-      aria-label="Filter form"
+      aria-label="Filter Form"
     >
       <div class="grid grid-cols-12 gap-4 items-end">
         <div class="col-span-12 sm:col-span-6 lg:col-span-3">
@@ -69,7 +69,7 @@
         <table
           mat-table
           matSort
-          aria-label="Brands list"
+          aria-label="Brands List"
           matSortActive="sort_order"
           matSortStart="asc"
           matSortDirection="asc"
@@ -220,7 +220,7 @@
               <button
                 type="button"
                 class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
-                aria-label="Edit brand"
+                aria-label="Edit Brand"
                 (click)="openEditDialog(row)"
               >
                 <i-tabler
@@ -231,7 +231,7 @@
               <button
                 type="button"
                 class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
-                aria-label="Delete brand"
+                aria-label="Delete Brand"
                 (click)="openDeleteDialog(row)"
               >
                 <i-tabler

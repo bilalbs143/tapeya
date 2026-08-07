@@ -131,6 +131,11 @@ export const navItems: NavItem[] = [
         route: '/shop-management/categories',
       },
       {
+        displayName: 'Vendors',
+        iconName: 'tabler:point',
+        route: '/shop-management/vendors',
+      },
+      {
         displayName: 'Products',
         iconName: 'tabler:point',
         route: '/shop-management/products',

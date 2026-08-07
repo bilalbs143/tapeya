@@ -8,6 +8,7 @@ import InterestCampaignDialogScheduler from '@/components/InterestCampaignDialog
 import ProgrammaticDialogPrompts from '@/components/ProgrammaticDialogPrompts';
 import { RequireAuth } from '@/components/RequireAuth';
 import { RequireBroadcastAccess } from '@/components/RequireBroadcastAccess';
+import { RequireVendorAccess } from '@/components/RequireVendorAccess';
 import { ScrollRestoration } from '@/components/ScrollRestoration';
 import SplashScreen from '@/components/SplashScreen';
 import { DialogProvider } from '@/context/DialogContext';
@@ -61,10 +62,18 @@ const ShopCheckout = lazy(() => import('@/pages/shop/ShopCheckout'));
 const ShopCategory = lazy(() => import('@/pages/shop/ShopCategory'));
 const ShopFilter = lazy(() => import('@/pages/shop/ShopFilter'));
 const ShopProductDetail = lazy(() => import('@/pages/shop/ShopProductDetail'));
+const ShopVendorStore = lazy(() => import('@/pages/shop/ShopVendorStore'));
 const MyOrders = lazy(() => import('@/pages/shop/MyOrders'));
 const OrderDetail = lazy(() => import('@/pages/shop/OrderDetail'));
-const OrderPayment = lazy(() => import('@/pages/shop/OrderPayment'));
 const OrderSuccess = lazy(() => import('@/pages/shop/OrderSuccess'));
+
+const SellerHub = lazy(() => import('@/pages/vendor/SellerHub'));
+const SellerApply = lazy(() => import('@/pages/vendor/SellerApply'));
+const SellerOrders = lazy(() => import('@/pages/vendor/SellerOrders'));
+const SellerOrderDetail = lazy(() => import('@/pages/vendor/SellerOrderDetail'));
+const SellerProducts = lazy(() => import('@/pages/vendor/SellerProducts'));
+const SellerProductForm = lazy(() => import('@/pages/vendor/SellerProductForm'));
+const SellerStore = lazy(() => import('@/pages/vendor/SellerStore'));
 
 const UpcomingTournaments = lazy(() => import('@/pages/upcoming-tournaments/UpcomingTournaments'));
 const UpcomingTournamentDetails = lazy(() => import('@/pages/upcoming-tournaments/UpcomingTournamentDetails'));
@@ -124,8 +133,15 @@ function App() {
                   <Route path="/" element={<SplashScreen />} />
                   <Route path="/pages/:slug" element={<StaticPage />} />
 
-                  <Route element={<RequireAuth />}>
-                    <Route element={<MainLayout />}>
+                  <Route element={<MainLayout />}>
+                    {/* Public shop catalog (unauthenticated GETs) */}
+                    <Route path="/shop" element={<ShopHome />} />
+                    <Route path="/shop/vendors/:vendorSlug" element={<ShopVendorStore />} />
+                    <Route path="/shop/:brandId/product/:productSlug" element={<ShopProductDetail />} />
+                    <Route path="/shop/filter/:filterKey" element={<ShopFilter />} />
+                    <Route path="/shop/:brandId" element={<ShopCategory />} />
+
+                    <Route element={<RequireAuth />}>
                       <Route path="/home" element={<Home />} />
                       <Route path="/profile" element={<Profile />} />
                       <Route path="/drafting" element={<DraftingHome />} />
@@ -150,17 +166,22 @@ function App() {
                       <Route path="/scorecard/:tournamentId" element={<ScorecardDetails />} />
                       <Route path="/scorecard/:tournamentId/match/:matchId" element={<ScorecardStatusDetails />} />
                       <Route path="/scorecard/:tournamentId/stats-total/:statType" element={<StatsTotal />} />
-                      {/* Shop */}
-                      <Route path="/shop" element={<ShopHome />} />
+                      {/* Shop — auth-only */}
                       <Route path="/shop/cart" element={<ShopCart />} />
                       <Route path="/shop/checkout" element={<ShopCheckout />} />
-                      <Route path="/shop/order-payment/:orderId" element={<OrderPayment />} />
                       <Route path="/shop/orders/:orderId" element={<OrderDetail />} />
                       <Route path="/shop/orders" element={<MyOrders />} />
                       <Route path="/shop/order-success" element={<OrderSuccess />} />
-                      <Route path="/shop/:brandId/product/:productSlug" element={<ShopProductDetail />} />
-                      <Route path="/shop/filter/:filterKey" element={<ShopFilter />} />
-                      <Route path="/shop/:brandId" element={<ShopCategory />} />
+                      <Route path="/seller/apply" element={<SellerApply />} />
+                      <Route element={<RequireVendorAccess />}>
+                        <Route path="/seller" element={<SellerHub />} />
+                        <Route path="/seller/orders" element={<SellerOrders />} />
+                        <Route path="/seller/orders/:id" element={<SellerOrderDetail />} />
+                        <Route path="/seller/products" element={<SellerProducts />} />
+                        <Route path="/seller/products/new" element={<SellerProductForm />} />
+                        <Route path="/seller/products/:id/edit" element={<SellerProductForm />} />
+                        <Route path="/seller/store" element={<SellerStore />} />
+                      </Route>
                       <Route path="/tournament-request" element={<TournamentRequest />} />
                       <Route path="/tournament-request/success" element={<TournamentRequestSuccess />} />
                       <Route path="/ranking" element={<Ranking />} />

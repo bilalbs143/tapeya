@@ -11,6 +11,8 @@ class OrderItem extends BaseModel
 
     protected $fillable = [
         'order_id',
+        'vendor_id',
+        'vendor_order_id',
         'product_id',
         'product_snapshot',
         'quantity',
@@ -34,6 +36,16 @@ class OrderItem extends BaseModel
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class, 'order_id');
+    }
+
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(Vendor::class, 'vendor_id');
+    }
+
+    public function vendorOrder(): BelongsTo
+    {
+        return $this->belongsTo(VendorOrder::class, 'vendor_order_id');
     }
 
     public function product(): BelongsTo

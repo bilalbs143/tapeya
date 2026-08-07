@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\Shop\CategoryController as AdminCategoryControlle
 use App\Http\Controllers\Admin\Shop\EcommerceDashboardController;
 use App\Http\Controllers\Admin\Shop\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\Shop\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\Shop\VendorController as AdminVendorController;
 use App\Http\Controllers\Admin\StaticPageController;
 use App\Http\Controllers\Admin\StreamController;
 use App\Http\Controllers\Admin\SystemSettingController;
@@ -155,13 +156,32 @@ Route::prefix('admin')->group(function () {
         Route::match(['put', 'patch'], 'interest-submissions/{submission}', [TournamentInterestSubmissionController::class, 'update']);
 
         Route::prefix('shop')->group(function () {
-            Route::get('dashboard-stats', EcommerceDashboardController::class);
-            Route::apiResource('brands', AdminBrandController::class);
-            Route::apiResource('categories', AdminCategoryController::class);
-            Route::apiResource('products', AdminProductController::class);
-            Route::get('orders', [AdminOrderController::class, 'index']);
-            Route::get('orders/{order}', [AdminOrderController::class, 'show']);
-            Route::match(['put', 'patch'], 'orders/{order}', [AdminOrderController::class, 'update']);
+            Route::get('dashboard-stats', EcommerceDashboardController::class)
+                ->middleware('admin.permission:shop.orders.oversee');
+            Route::apiResource('brands', AdminBrandController::class)
+                ->middleware('admin.permission:shop.catalog.manage');
+            Route::apiResource('categories', AdminCategoryController::class)
+                ->middleware('admin.permission:shop.catalog.manage');
+            Route::apiResource('vendors', AdminVendorController::class)
+                ->middleware('admin.permission:shop.vendors.manage');
+            Route::post('vendors/{vendor}/approve', [AdminVendorController::class, 'approve'])
+                ->middleware('admin.permission:shop.vendors.manage');
+            Route::post('vendors/{vendor}/suspend', [AdminVendorController::class, 'suspend'])
+                ->middleware('admin.permission:shop.vendors.manage');
+            Route::post('vendors/{vendor}/reject', [AdminVendorController::class, 'reject'])
+                ->middleware('admin.permission:shop.vendors.manage');
+            Route::apiResource('products', AdminProductController::class)
+                ->middleware('admin.permission:shop.products.oversee');
+            Route::get('orders', [AdminOrderController::class, 'index'])
+                ->middleware('admin.permission:shop.orders.oversee');
+            Route::get('orders/{order}', [AdminOrderController::class, 'show'])
+                ->middleware('admin.permission:shop.orders.oversee');
+            Route::match(['put', 'patch'], 'orders/{order}', [AdminOrderController::class, 'update'])
+                ->middleware('admin.permission:shop.orders.oversee');
+            Route::post('orders/{order}/payment', [AdminOrderController::class, 'updatePayment'])
+                ->middleware('admin.permission:shop.payments.verify');
+            Route::post('orders/{order}/refund', [AdminOrderController::class, 'refund'])
+                ->middleware('admin.permission:shop.payments.verify');
         });
     });
 });
