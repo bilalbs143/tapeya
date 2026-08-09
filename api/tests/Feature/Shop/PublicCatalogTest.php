@@ -55,4 +55,58 @@ class PublicCatalogTest extends TestCase
 
         $this->getJson('/api/v1/shop/cart')->assertUnauthorized();
     }
+
+    public function test_brands_has_products_omits_empty_brands(): void
+    {
+        $owner = User::factory()->create([
+            'type' => UserTypeEnum::USER,
+            'status' => UserStatusEnum::ACTIVE,
+        ]);
+        $vendor = Vendor::query()->create([
+            'user_id' => $owner->id,
+            'store_name' => 'Public Shop',
+            'slug' => 'public-shop-brands',
+            'status' => VendorStatusEnum::APPROVED,
+            'is_platform' => false,
+            'approved_at' => now(),
+        ]);
+        $withProduct = Brand::create(['name' => 'TM Sports', 'slug' => 'tm-sports-pub', 'is_active' => true]);
+        $empty = Brand::create(['name' => 'Empty Brand', 'slug' => 'empty-brand-pub', 'is_active' => true]);
+        $inactiveOnly = Brand::create(['name' => 'Inactive Only', 'slug' => 'inactive-only-pub', 'is_active' => true]);
+        $category = Category::create(['name' => 'Cat', 'slug' => 'cat-brands-pub', 'is_active' => true]);
+
+        Product::create([
+            'vendor_id' => $vendor->id,
+            'name' => 'Public Bat',
+            'slug' => 'public-bat-brands',
+            'sku' => 'SKU-PUB-BRANDS',
+            'description' => 'd',
+            'price' => 100,
+            'brand_id' => $withProduct->id,
+            'category_id' => $category->id,
+            'stock_quantity' => 5,
+            'is_active' => true,
+        ]);
+        Product::create([
+            'vendor_id' => $vendor->id,
+            'name' => 'Hidden Bat',
+            'slug' => 'hidden-bat-brands',
+            'sku' => 'SKU-HID-BRANDS',
+            'description' => 'd',
+            'price' => 100,
+            'brand_id' => $inactiveOnly->id,
+            'category_id' => $category->id,
+            'stock_quantity' => 5,
+            'is_active' => false,
+        ]);
+
+        $all = $this->getJson('/api/v1/shop/brands?all=1')->assertOk()->json('data');
+        $this->assertEqualsCanonicalizing(
+            [$withProduct->id, $empty->id, $inactiveOnly->id],
+            array_column($all, 'id'),
+        );
+
+        $listed = $this->getJson('/api/v1/shop/brands?all=1&has_products=1')->assertOk()->json('data');
+        $this->assertSame([$withProduct->id], array_column($listed, 'id'));
+    }
 }

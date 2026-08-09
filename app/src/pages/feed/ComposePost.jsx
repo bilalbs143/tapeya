@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import TextPostBackground from '@/components/feed/TextPostBackground';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { UserAvatar } from '@/components/UserAvatar';
 import {
   canUseComposeBackgrounds,
   COMPOSE_BACKGROUND_MAX_CHARS,
@@ -27,7 +27,6 @@ import {
   selectViewportInputClass,
 } from '@/ui/Select';
 
-const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 const POST_BODY_MAX_CHARS = 2200;
 const PLAIN_EDITOR_BACKGROUND = { className: 'bg-transparent' };
 const VISIBILITY_OPTIONS = [
@@ -111,7 +110,6 @@ export default function ComposePost() {
   const [error, setError] = useState('');
   const [createPost, { isLoading }] = useCreatePostMutation();
 
-  const avatar = user?.avatar_url || user?.avatarUrl || defaultAvatar;
   const displayName = user?.name || 'You';
 
   const hasMedia = images.length > 0;
@@ -252,9 +250,7 @@ export default function ComposePost() {
       <Container className="pb-8">
         <form onSubmit={onSubmit}>
           <div className="flex items-center gap-3">
-            <div className="rounded-full bg-[linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))] p-[2px]">
-              <img src={avatar} alt="" className="border-page h-11 w-11 rounded-full border-2 object-cover" />
-            </div>
+            <UserAvatar src={user?.avatar_url || user?.avatarUrl} name={displayName} userId={user?.id} size="xl" ring="brand" />
             <div className="min-w-0">
               <p className="truncate text-[15px] font-bold text-white">{displayName}</p>
               <div className="mt-1">

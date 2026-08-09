@@ -227,6 +227,11 @@ class Post extends BaseModel
         return $query->where('type', PostTypeEnum::Video);
     }
 
+    public function scopeNonVideos(Builder $query): Builder
+    {
+        return $query->where('type', '!=', PostTypeEnum::Video);
+    }
+
     public function thumbnailUrl(): ?string
     {
         return app(PostPlaybackUrlService::class)->posterUrl($this);

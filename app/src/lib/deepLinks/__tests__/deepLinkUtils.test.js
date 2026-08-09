@@ -24,6 +24,7 @@ describe('deepLinkRegistry', () => {
     expect(isSafeNotificationNavigatePath('/feed/8')).toBe(true);
     expect(isSafeNotificationNavigatePath('/reels/12')).toBe(true);
     expect(isSafeNotificationNavigatePath('/notification-center')).toBe(true);
+    expect(isSafeNotificationNavigatePath('/home')).toBe(true);
     expect(isSafeNotificationNavigatePath('/shop/orders/9')).toBe(true);
     expect(isSafeNotificationNavigatePath('/shop')).toBe(false);
     expect(isSafeNotificationNavigatePath('/reels/upload')).toBe(false);

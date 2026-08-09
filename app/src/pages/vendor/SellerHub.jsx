@@ -77,7 +77,7 @@ export default function SellerHub() {
 
   const handleCopyStoreLink = useCallback(async () => {
     if (!store?.slug) return;
-    const url = buildHttpsDeepLink(`/shop/vendors/${store.slug}`);
+    const url = buildHttpsDeepLink(`/shop/${store.slug}`);
     try {
       await navigator.clipboard.writeText(url);
       toast.success('Store link copied');
@@ -159,6 +159,34 @@ export default function SellerHub() {
                 <p className="text-[14px] font-bold text-white">Products</p>
                 <p className="text-muted mt-0.5 text-[12px]">
                   {canEdit ? 'Manage your catalog' : 'View your catalog (read-only)'}
+                </p>
+              </div>
+              <span className="text-brand text-[18px]" aria-hidden>
+                →
+              </span>
+            </Link>
+            <Link
+              to="/seller/brands"
+              className="bg-surface flex items-center justify-between rounded-[17px] px-4 py-4 transition-opacity active:opacity-90"
+            >
+              <div>
+                <p className="text-[14px] font-bold text-white">Brands</p>
+                <p className="text-muted mt-0.5 text-[12px]">
+                  {canEdit ? 'Add missing brands for your catalog' : 'View brands (read-only)'}
+                </p>
+              </div>
+              <span className="text-brand text-[18px]" aria-hidden>
+                →
+              </span>
+            </Link>
+            <Link
+              to="/seller/categories"
+              className="bg-surface flex items-center justify-between rounded-[17px] px-4 py-4 transition-opacity active:opacity-90"
+            >
+              <div>
+                <p className="text-[14px] font-bold text-white">Categories</p>
+                <p className="text-muted mt-0.5 text-[12px]">
+                  {canEdit ? 'Add missing categories for your catalog' : 'View categories (read-only)'}
                 </p>
               </div>
               <span className="text-brand text-[18px]" aria-hidden>

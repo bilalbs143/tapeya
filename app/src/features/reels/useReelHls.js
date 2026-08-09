@@ -1,6 +1,9 @@
 /**
  * Attach progressive original or HLS to a video element for reel playback.
- * Pass enabled=false outside the prev/current/next window to destroy the player.
+ * Pass enabled=false outside the player window to destroy the player.
+ *
+ * `role`: warm neighbors attach with a ~2s buffer; active is promoted in place
+ * (config bump only — never destroy on warm→active).
  *
  * When encoding finishes, upgrades original → HLS at the same timestamp so the
  * swap feels seamless (keeps play/pause state).
@@ -12,6 +15,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import Hls from 'hls.js';
+
+import { applyInlineVideoAttributes } from '@/features/reels/inlineVideo';
+
+const HLS_ACTIVE_BUFFER = { maxBufferLength: 12, maxMaxBufferLength: 20 };
+const HLS_WARM_BUFFER = { maxBufferLength: 2, maxMaxBufferLength: 4 };
 
 function isHlsUrl(url) {
   if (!url || typeof url !== 'string') return false;
@@ -55,13 +63,15 @@ export function resolveReelPlaybackSource(playback) {
 /**
  * @param {React.RefObject<HTMLVideoElement|null>} videoRef
  * @param {{ url?: string|null, type?: string|null, hlsUrl?: string|null }} playback
- * @param {{ enabled?: boolean }} [options]
+ * @param {{ enabled?: boolean, role?: 'active'|'warm' }} [options]
  */
 export function useReelHls(videoRef, playback, options = {}) {
-  const { enabled = true } = options;
+  const { enabled = true, role = 'active' } = options;
   const hlsRef = useRef(null);
+  const roleRef = useRef(role);
   const resumeRef = useRef(null);
   const sourceKeyRef = useRef(null);
+  roleRef.current = role;
   const [failed, setFailed] = useState(false);
   const [retryToken, setRetryToken] = useState(0);
   const [readyToken, setReadyToken] = useState(0);
@@ -152,6 +162,7 @@ export function useReelHls(videoRef, playback, options = {}) {
       const video = videoRef.current;
       if (!video) return;
 
+      applyInlineVideoAttributes(video);
       setFailed(false);
       destroy();
 
@@ -184,11 +195,14 @@ export function useReelHls(videoRef, playback, options = {}) {
         return;
       }
 
+      const warm = roleRef.current === 'warm';
+      const buffer = warm ? HLS_WARM_BUFFER : HLS_ACTIVE_BUFFER;
       const hls = new Hls({
         enableWorker: true,
-        maxBufferLength: 12,
-        maxMaxBufferLength: 20,
+        maxBufferLength: buffer.maxBufferLength,
+        maxMaxBufferLength: buffer.maxMaxBufferLength,
         abrEwmaDefaultEstimate: 1_200_000,
+        ...(warm ? { startLevel: 0 } : {}),
       });
       hlsRef.current = hls;
       hls.loadSource(sourceUrl);
@@ -218,6 +232,19 @@ export function useReelHls(videoRef, playback, options = {}) {
       destroy();
     };
   }, [videoRef, sourceUrl, mode, enabled, retryToken, destroy, markFailed, bumpReady, applyResume]);
+
+  // Promote warm → active without destroy/recreate (the snap we must not stall).
+  useEffect(() => {
+    const hls = hlsRef.current;
+    if (!hls || role !== 'active') return;
+    hls.config.maxBufferLength = HLS_ACTIVE_BUFFER.maxBufferLength;
+    hls.config.maxMaxBufferLength = HLS_ACTIVE_BUFFER.maxMaxBufferLength;
+    try {
+      hls.currentLevel = -1;
+    } catch {
+      // Native / detached instances may not expose currentLevel.
+    }
+  }, [role]);
 
   return { sourceUrl, useHls, mode, failed, retry, markFailed, readyToken };
 }

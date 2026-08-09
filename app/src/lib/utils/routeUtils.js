@@ -79,6 +79,7 @@ export function isGlobalEntryDialogBlockedPath(pathname) {
     isDialogReminderBlockedPath(pathname) ||
     pathname.startsWith('/overlay/') ||
     isLiveStreamImmersivePath(pathname) ||
+    isReelsImmersivePath(pathname) ||
     ORGANIZER_SCORING_MATCH_PATH.test(pathname)
   );
 }

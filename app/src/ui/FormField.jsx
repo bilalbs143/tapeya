@@ -10,14 +10,23 @@ function getLabelClass(labelClassName) {
   return labelClassName || FORM_FIELD_LABEL_CLASS;
 }
 
-export function FormField({ htmlFor, label, children, className = '', labelClassName = '', required }) {
+export function FormField({ htmlFor, label, children, className = '', labelClassName = '', required, labelAction }) {
+  const labelNode = label ? (
+    <Label htmlFor={htmlFor} className={getLabelClass(labelClassName)}>
+      {label}
+      {required && <span className={FORM_FIELD_REQUIRED_CLASS}> *</span>}
+    </Label>
+  ) : null;
+
   return (
     <div className={`${FORM_FIELD_WRAPPER_CLASS} ${className}`.trim()}>
-      {label && (
-        <Label htmlFor={htmlFor} className={getLabelClass(labelClassName)}>
-          {label}
-          {required && <span className={FORM_FIELD_REQUIRED_CLASS}> *</span>}
-        </Label>
+      {labelAction ? (
+        <div className="flex items-center justify-between gap-2">
+          {labelNode}
+          {labelAction}
+        </div>
+      ) : (
+        labelNode
       )}
       {children}
     </div>

@@ -8,9 +8,12 @@ import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { formatIsoDateForDisplay, formatIsoTimeForDisplay, toApiDateTime } from '@/lib/utils/dateUtils';
 import { EMPTY_FILE_UPLOAD } from '@/lib/utils/fileUploadUtils';
-import { useGetBrandsQuery, useGetCategoriesQuery } from '@/store/api/shopApi';
+import { SellerBrandDialog } from '@/pages/vendor/SellerBrandDialog';
+import { SellerCategoryDialog } from '@/pages/vendor/SellerCategoryDialog';
 import {
   useCreateVendorProductMutation,
+  useGetVendorBrandsQuery,
+  useGetVendorCategoriesQuery,
   useGetVendorProductQuery,
   useGetVendorStoreQuery,
   useUpdateVendorProductMutation,
@@ -76,8 +79,8 @@ export default function SellerProductForm() {
   const { data: store } = useGetVendorStoreQuery();
   const canEdit = store?.status === 'approved';
 
-  const { data: brandsResponse } = useGetBrandsQuery({ all: true });
-  const { data: categoriesResponse } = useGetCategoriesQuery({ all: true });
+  const { data: brandsResponse } = useGetVendorBrandsQuery({ all: true });
+  const { data: categoriesResponse } = useGetVendorCategoriesQuery({ all: true });
   const brands = brandsResponse?.data ?? [];
   const categories = categoriesResponse?.data ?? [];
   const brandOptions = useMemo(() => brands.map((b) => ({ value: String(b.id), label: b.name })), [brands]);
@@ -88,12 +91,15 @@ export default function SellerProductForm() {
   const [updateProduct, { isLoading: isUpdating }] = useUpdateVendorProductMutation();
   const [uploadImages, { isLoading: isUploading }] = useUploadProductImagesMutation();
   const [imageUpload, setImageUpload] = useState(EMPTY_FILE_UPLOAD);
+  const [brandDialogOpen, setBrandDialogOpen] = useState(false);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
 
   const {
     register,
     control,
     handleSubmit,
     reset,
+    setValue,
     watch,
     formState: { errors },
   } = useForm({ defaultValues: DEFAULT_VALUES });
@@ -235,7 +241,18 @@ export default function SellerProductForm() {
             />
           </FormField>
 
-          <FormField label="Brand" htmlFor="brand_id" required>
+          <FormField
+            label="Brand"
+            htmlFor="brand_id"
+            required
+            labelAction={
+              canEdit ? (
+                <button type="button" onClick={() => setBrandDialogOpen(true)} className="text-brand text-[12px] font-semibold">
+                  Add Missing Brand
+                </button>
+              ) : null
+            }
+          >
             <Controller
               name="brand_id"
               control={control}
@@ -261,7 +278,22 @@ export default function SellerProductForm() {
             )}
           </FormField>
 
-          <FormField label="Category" htmlFor="category_id" required>
+          <FormField
+            label="Category"
+            htmlFor="category_id"
+            required
+            labelAction={
+              canEdit ? (
+                <button
+                  type="button"
+                  onClick={() => setCategoryDialogOpen(true)}
+                  className="text-brand text-[12px] font-semibold"
+                >
+                  Add Missing Category
+                </button>
+              ) : null
+            }
+          >
             <Controller
               name="category_id"
               control={control}
@@ -523,6 +555,23 @@ export default function SellerProductForm() {
           )}
         </FormStack>
       </Container>
+
+      <SellerBrandDialog
+        open={brandDialogOpen}
+        onOpenChange={setBrandDialogOpen}
+        canEdit={canEdit}
+        onSaved={(saved) => {
+          if (saved?.id) setValue('brand_id', String(saved.id), { shouldValidate: true });
+        }}
+      />
+      <SellerCategoryDialog
+        open={categoryDialogOpen}
+        onOpenChange={setCategoryDialogOpen}
+        canEdit={canEdit}
+        onSaved={(saved) => {
+          if (saved?.id) setValue('category_id', String(saved.id), { shouldValidate: true });
+        }}
+      />
     </div>
   );
 }

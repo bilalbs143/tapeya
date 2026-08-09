@@ -13,7 +13,8 @@ const searchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/searchicon.svg`;
 
 export default function ShopCategory() {
   const navigate = useNavigate();
-  const { brandId: brandSlug } = useParams();
+  const { slug, brandSlug: brandSlugParam } = useParams();
+  const brandSlug = brandSlugParam || slug;
   const [query, setQuery] = useState('');
   const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [tabsFixedVisible, setTabsFixedVisible] = useState(false);
@@ -60,12 +61,7 @@ export default function ShopCategory() {
     <div className="bg-black">
       <AppSubpageHeader
         onBack={() => navigate('/shop')}
-        title={
-          <h1 className="min-w-0 text-[16px] font-bold tracking-wide uppercase">
-            <span className="text-white">SHOP - </span>
-            <span className="text-brand">{displayTitle || 'Brand'}</span>
-          </h1>
-        }
+        title={<h1 className="min-w-0 text-[16px] font-bold tracking-wide text-white uppercase">{displayTitle || 'Brand'}</h1>}
       />
       <Container>
         <div className="flex flex-col gap-3">
@@ -148,7 +144,7 @@ export default function ShopCategory() {
 
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
             {products.map((product) => (
-              <ListingProductCard key={product.id} product={product} brandSlug={brandSlug} />
+              <ListingProductCard key={product.id} product={product} />
             ))}
           </div>
         </div>

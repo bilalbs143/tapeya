@@ -64,6 +64,8 @@ use App\Http\Controllers\User\UserLookupController;
 use App\Http\Controllers\User\UserMediaController;
 use App\Http\Controllers\User\UserProfileController;
 use App\Http\Controllers\User\UserTeamController;
+use App\Http\Controllers\Vendor\Shop\BrandController as VendorBrandController;
+use App\Http\Controllers\Vendor\Shop\CategoryController as VendorCategoryController;
 use App\Http\Controllers\Vendor\Shop\DashboardController as VendorDashboardController;
 use App\Http\Controllers\Vendor\Shop\OrderController as VendorOrderController;
 use App\Http\Controllers\Vendor\Shop\ProductController as VendorProductController;
@@ -150,6 +152,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('users/suggestions', [UserFollowController::class, 'suggestions']);
     Route::get('users/{user}/profile', [UserProfileController::class, 'show']);
     Route::get('users/{user}/reels', [PostController::class, 'forUser']);
+    Route::get('users/{user}/posts', [PostController::class, 'forUserPosts']);
     Route::get('users/{user}/stats', [PlayerStatsController::class, 'show']);
     Route::get('users/{user}/ranking-position', [PlayerStatsController::class, 'rankingPosition']);
     Route::get('users/{user}/teams', [UserTeamController::class, 'index']);
@@ -253,6 +256,10 @@ Route::middleware('auth:api')->group(function () {
                 Route::get('products/{product}', [VendorProductController::class, 'show']);
                 Route::get('orders', [VendorOrderController::class, 'index']);
                 Route::get('orders/{vendorOrder}', [VendorOrderController::class, 'show']);
+                Route::get('brands', [VendorBrandController::class, 'index']);
+                Route::get('brands/{brand}', [VendorBrandController::class, 'show']);
+                Route::get('categories', [VendorCategoryController::class, 'index']);
+                Route::get('categories/{category}', [VendorCategoryController::class, 'show']);
             });
 
             Route::middleware('vendor')->group(function () {
@@ -262,6 +269,10 @@ Route::middleware('auth:api')->group(function () {
                 Route::delete('products/{product}', [VendorProductController::class, 'destroy']);
                 Route::post('orders/{vendorOrder}/status', [VendorOrderController::class, 'updateStatus']);
                 Route::post('orders/{vendorOrder}/payment', [VendorOrderController::class, 'updatePayment']);
+                Route::post('brands', [VendorBrandController::class, 'store']);
+                Route::match(['put', 'patch'], 'brands/{brand}', [VendorBrandController::class, 'update']);
+                Route::post('categories', [VendorCategoryController::class, 'store']);
+                Route::match(['put', 'patch'], 'categories/{category}', [VendorCategoryController::class, 'update']);
             });
         });
 

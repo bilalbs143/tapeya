@@ -8,8 +8,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { OfficialBadge } from '@/components/OfficialBadge';
+import { UserAvatar } from '@/components/UserAvatar';
 import { useDebounce } from '@/hooks/useDebounce';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { DEBOUNCE_MS } from '@/lib/constants/search';
 import { formatCount } from '@/lib/format';
 import { formatRelativeDate } from '@/lib/utils/dateUtils';
@@ -28,10 +28,8 @@ import {
 import { useSearchUsersQuery } from '@/store/api/userApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated, selectUser } from '@/store/selectors';
-import { Avatar, AvatarImage } from '@/ui/Avatar';
 import { Textarea } from '@/ui/Textarea';
 
-const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 const COMMENTS_PER_PAGE = 20;
 const REPLIES_PER_PAGE = 50;
 
@@ -93,7 +91,7 @@ function SendIcon() {
 }
 
 function userAvatarUrl(user) {
-  return user?.avatarUrl || user?.avatar_url || defaultAvatar;
+  return user?.avatarUrl || user?.avatar_url || null;
 }
 
 function MentionDropdown({ query, onSelect, onClose }) {
@@ -160,9 +158,7 @@ function MentionDropdown({ query, onSelect, onClose }) {
               index === activeIndex ? 'bg-border' : 'hover:bg-border'
             }`}
           >
-            <Avatar className="h-7 w-7 shrink-0">
-              <AvatarImage src={userAvatarUrl(user)} alt="" />
-            </Avatar>
+            <UserAvatar src={userAvatarUrl(user)} name={user.name} size="xs" />
             <span className="min-w-0 flex-1">
               <span className="flex min-w-0 items-center gap-1">
                 <span className="block truncate text-[13px] font-medium text-white">{user.name}</span>
@@ -210,9 +206,12 @@ function CommentRow({ comment, isReply = false, currentUserId, deleting, liking,
 
   return (
     <div className="flex gap-2.5">
-      <Avatar className={isReply ? 'h-7 w-7 shrink-0' : 'h-9 w-9 shrink-0'}>
-        <AvatarImage src={userAvatarUrl(comment.user)} alt="" />
-      </Avatar>
+      <UserAvatar
+        src={userAvatarUrl(comment.user)}
+        name={comment.user?.name}
+        userId={comment.user?.id}
+        size={isReply ? 'xs' : 'md'}
+      />
       <div className="min-w-0 flex-1">
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
           <span className="inline-flex min-w-0 items-center gap-1 text-[13px] font-semibold text-white">
@@ -711,9 +710,7 @@ export default function PostCommentsThread({
         </div>
       ) : null}
       <div className="flex items-end gap-2">
-        <Avatar className="h-8 w-8 shrink-0">
-          <AvatarImage src={userAvatarUrl(currentUser)} alt="" />
-        </Avatar>
+        <UserAvatar src={userAvatarUrl(currentUser)} name={currentUser?.name} userId={currentUser?.id} size="sm" />
         <div className="relative flex min-h-9 flex-1 items-center rounded-2xl border border-white/10 bg-black/40 px-3">
           <Textarea
             ref={textareaRef}

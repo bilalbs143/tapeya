@@ -128,6 +128,77 @@ export const vendorShopApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['VendorShop'],
     }),
+
+    getVendorBrands: builder.query({
+      query: (params = {}) => ({
+        url: '/shop/vendor/brands',
+        params: {
+          per_page: params.per_page ?? 15,
+          page: params.page,
+          all: params.all ? 1 : undefined,
+          'filter[name]': params.name || undefined,
+        },
+      }),
+      providesTags: ['VendorShop'],
+    }),
+    getVendorBrand: builder.query({
+      query: (id) => `/shop/vendor/brands/${id}`,
+      transformResponse: (response) => response?.data ?? response,
+      providesTags: ['VendorShop'],
+    }),
+    createVendorBrand: builder.mutation({
+      query: (body) => ({
+        url: '/shop/vendor/brands',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['VendorShop', 'Shop'],
+    }),
+    updateVendorBrand: builder.mutation({
+      query: ({ id, body }) => {
+        if (body instanceof FormData) {
+          body.append('_method', 'PATCH');
+          return { url: `/shop/vendor/brands/${id}`, method: 'POST', body };
+        }
+        return { url: `/shop/vendor/brands/${id}`, method: 'PATCH', body };
+      },
+      invalidatesTags: ['VendorShop', 'Shop'],
+    }),
+    getVendorCategories: builder.query({
+      query: (params = {}) => ({
+        url: '/shop/vendor/categories',
+        params: {
+          per_page: params.per_page ?? 15,
+          page: params.page,
+          all: params.all ? 1 : undefined,
+          'filter[name]': params.name || undefined,
+        },
+      }),
+      providesTags: ['VendorShop'],
+    }),
+    getVendorCategory: builder.query({
+      query: (id) => `/shop/vendor/categories/${id}`,
+      transformResponse: (response) => response?.data ?? response,
+      providesTags: ['VendorShop'],
+    }),
+    createVendorCategory: builder.mutation({
+      query: (body) => ({
+        url: '/shop/vendor/categories',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['VendorShop', 'Shop'],
+    }),
+    updateVendorCategory: builder.mutation({
+      query: ({ id, body }) => {
+        if (body instanceof FormData) {
+          body.append('_method', 'PATCH');
+          return { url: `/shop/vendor/categories/${id}`, method: 'POST', body };
+        }
+        return { url: `/shop/vendor/categories/${id}`, method: 'PATCH', body };
+      },
+      invalidatesTags: ['VendorShop', 'Shop'],
+    }),
   }),
 });
 
@@ -146,4 +217,12 @@ export const {
   useGetVendorOrderQuery,
   useUpdateVendorOrderStatusMutation,
   useUpdateVendorOrderPaymentMutation,
+  useGetVendorBrandsQuery,
+  useGetVendorBrandQuery,
+  useCreateVendorBrandMutation,
+  useUpdateVendorBrandMutation,
+  useGetVendorCategoriesQuery,
+  useGetVendorCategoryQuery,
+  useCreateVendorCategoryMutation,
+  useUpdateVendorCategoryMutation,
 } = vendorShopApi;

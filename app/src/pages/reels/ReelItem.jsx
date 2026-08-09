@@ -12,11 +12,11 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { OfficialBadge } from '@/components/OfficialBadge';
 import ReelCommentsSheet from '@/components/reels/ReelCommentsSheet';
 import ReelReportDialog from '@/components/reels/ReelReportDialog';
+import { UserAvatar } from '@/components/UserAvatar';
 import { toggleReelsFocusMode, useReelsFocusMode } from '@/features/reels/reelsFocusModeStore';
 import { useReelHls } from '@/features/reels/useReelHls';
 import { useViewTracker } from '@/features/reels/useViewTracker';
 import { StreamVideoRetry } from '@/features/stream/StreamVideoRetry';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatCount } from '@/lib/format';
 import { buildReelShareUrl, shareLink } from '@/lib/share';
 import {
@@ -29,13 +29,10 @@ import {
 } from '@/store/api/reelsApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated, selectUser } from '@/store/selectors';
-import { Avatar, AvatarImage } from '@/ui/Avatar';
-
-const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
 const ACTION_ICON = 'drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)] transition-transform duration-150 active:scale-90';
 
-/** Match poster + video framing so iOS letterboxing never leaks the other layer. */
+/** Match poster + video framing so iOS letterboxing / Android default artwork never leaks the other layer. */
 const MEDIA_LAYER = 'absolute inset-0 h-full w-full object-contain';
 
 /** Collapse long captions; "See more" only when over this length. */
@@ -159,6 +156,15 @@ function PlayIcon({ className = '' }) {
   );
 }
 
+function SoundOffIcon({ className = '' }) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M11 5 6 9H3v6h3l5 4V5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="m23 9-6 6M17 9l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function ActionButton({ label, count, onClick, active = false, activeClassName = 'text-white', children }) {
   const showCount = count != null && Number(count) > 0;
   return (
@@ -196,6 +202,7 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [captionExpanded, setCaptionExpanded] = useState(false);
+  const [mutedByPolicy, setMutedByPolicy] = useState(false);
   const [likeReel] = useLikeReelMutation();
   const [unlikeReel] = useUnlikeReelMutation();
   const [saveReel] = useSaveReelMutation();
@@ -210,6 +217,9 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
   const creatorId = reel.creator?.id ?? null;
   const isOwnReel = currentUser?.id != null && creatorId != null && Number(currentUser.id) === Number(creatorId);
   const showFollow = Boolean(creatorId) && !isOwnReel && !reel.followingCreator;
+  const creatorName = reel.creator?.name || reel.username || reel.handle || 'Creator';
+  const creatorHandle = reel.handle || (reel.creator?.nickname ? `@${reel.creator.nickname}` : '');
+  const showCreatorHandle = Boolean(creatorHandle) && creatorHandle !== creatorName;
   const caption = typeof reel.caption === 'string' ? reel.caption.trim() : '';
   const captionNeedsCollapse = caption.length > CAPTION_COLLAPSE_LIMIT;
   const visibleCaption =
@@ -229,6 +239,7 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
   useEffect(() => {
     setCaptionExpanded(false);
     setReportOpen(false);
+    setMutedByPolicy(false);
   }, [reel.id]);
 
   useEffect(() => {
@@ -246,7 +257,7 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
       type: reel.playback?.type,
       hlsUrl: reel.playback?.hlsUrl,
     },
-    { enabled: inPlayerWindow },
+    { enabled: inPlayerWindow, role: isActive ? 'active' : 'warm' },
   );
 
   const getCurrentTimeMs = useCallback(() => {
@@ -273,20 +284,43 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !inPlayerWindow) return;
+    if (!video || !inPlayerWindow) return undefined;
+
+    const tryPlay = () => {
+      if (paused || playbackFailed || !isActive) return;
+      video.muted = mutedByPolicy;
+      const attempt = video.play();
+      if (!attempt || typeof attempt.catch !== 'function') return;
+      attempt.catch(() => {
+        if (video.muted) return;
+        video.muted = true;
+        setMutedByPolicy(true);
+        video.play().catch(() => {});
+      });
+    };
+
     if (isActive) {
-      if (!paused && !playbackFailed) {
-        // Unmuted autoplay is often blocked after route changes — show the play control.
-        video.play().catch(() => setPaused(true));
-      }
+      tryPlay();
     } else {
       // Don't seek to 0 — on iOS that flashes black while a neighbor is still on screen.
       video.pause();
       setPaused(false);
       setProgress(0);
     }
-  }, [isActive, paused, inPlayerWindow, playbackFailed, readyToken]);
 
+    const onVisibility = () => {
+      if (document.hidden) {
+        video.pause();
+        return;
+      }
+      tryPlay();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, [isActive, paused, inPlayerWindow, playbackFailed, readyToken, mutedByPolicy]);
+
+  // Android Chrome/WebView paints a tiny default play-artwork before a real frame.
+  // object-contain scales it full-screen (blurry giant play icon). Reveal only after playback.
   const revealVideo = useCallback(() => setVideoReady(true), []);
 
   const getVideo = () => videoRef.current;
@@ -303,6 +337,7 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
     const video = videoRef.current;
     if (!video || !inPlayerWindow) return undefined;
     const onTimeUpdate = () => {
+      if (video.currentTime > 0) revealVideo();
       const duration = video.duration;
       if (Number.isFinite(duration) && duration > 0) {
         setProgress((video.currentTime / duration) * 100);
@@ -315,14 +350,23 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
       video.removeEventListener('timeupdate', onTimeUpdate);
       video.removeEventListener('ended', onEnded);
     };
-  }, [inPlayerWindow, reel.id]);
+  }, [inPlayerWindow, reel.id, revealVideo]);
 
   const handleTogglePlay = () => {
     const video = videoRef.current;
     if (!video) return;
     if (paused) {
-      video.play().catch(() => setPaused(true));
       setPaused(false);
+      video.muted = mutedByPolicy;
+      video.play().catch(() => {
+        if (!video.muted) {
+          video.muted = true;
+          setMutedByPolicy(true);
+          video.play().catch(() => setPaused(true));
+          return;
+        }
+        setPaused(true);
+      });
     } else {
       video.pause();
       setPaused(true);
@@ -334,7 +378,22 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
     likeReel(reel.id);
   };
 
+  const unmuteIfNeeded = () => {
+    if (!mutedByPolicy) return false;
+    const video = videoRef.current;
+    if (video) {
+      video.muted = false;
+      video.play().catch(() => {
+        video.muted = true;
+        setMutedByPolicy(true);
+      });
+    }
+    setMutedByPolicy(false);
+    return true;
+  };
+
   const handleVideoTap = () => {
+    if (unmuteIfNeeded()) return;
     const now = Date.now();
     if (now - lastTapRef.current < DOUBLE_TAP_MS) {
       lastTapRef.current = 0;
@@ -442,37 +501,57 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
 
   return (
     <div className="relative h-screen w-full shrink-0 snap-start overflow-hidden bg-black">
-      {reel.posterUrl ? (
-        <img
-          src={reel.posterUrl}
-          alt=""
-          className={MEDIA_LAYER}
-          loading={inPlayerWindow ? 'eager' : 'lazy'}
-          decoding="async"
-          draggable={false}
-        />
-      ) : (
-        <div className="absolute inset-0 bg-black" aria-hidden />
-      )}
+      <div className="absolute inset-0" onClick={inPlayerWindow ? handleVideoTap : undefined}>
+        {reel.posterUrl ? (
+          <img
+            src={reel.posterUrl}
+            alt=""
+            className={MEDIA_LAYER}
+            loading={inPlayerWindow ? 'eager' : 'lazy'}
+            decoding="async"
+            draggable={false}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-black" aria-hidden />
+        )}
 
-      {inPlayerWindow ? (
-        <video
-          ref={videoRef}
-          loop
-          playsInline
-          preload="auto"
-          onClick={handleVideoTap}
-          onLoadedData={revealVideo}
-          onPlaying={revealVideo}
-          className={`${MEDIA_LAYER} transition-opacity duration-150 ${videoReady ? 'opacity-100' : 'opacity-0'}`}
+        {inPlayerWindow ? (
+          <video
+            ref={videoRef}
+            loop
+            playsInline
+            muted={mutedByPolicy}
+            preload="auto"
+            poster={reel.posterUrl || undefined}
+            onPlaying={revealVideo}
+            className={`${MEDIA_LAYER} ${videoReady ? '' : 'invisible'}`}
+          >
+            <track kind="captions" />
+          </video>
+        ) : null}
+      </div>
+
+      {mutedByPolicy && isActive ? (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            unmuteIfNeeded();
+          }}
+          aria-label="Tap for sound"
+          className={`absolute left-1/2 z-40 flex min-h-11 -translate-x-1/2 items-center gap-2 rounded-full bg-black/70 px-4 py-2.5 text-[13px] font-semibold text-white shadow-[0_8px_24px_rgba(0,0,0,0.45)] backdrop-blur-md transition-transform active:scale-95 ${
+            focusMode ? 'bottom-[max(4.75rem,calc(env(safe-area-inset-bottom)+3.5rem))]' : 'bottom-32'
+          }`}
         >
-          <track kind="captions" />
-        </video>
+          <SoundOffIcon className="shrink-0" />
+          Tap for sound
+        </button>
       ) : null}
 
       <StreamVideoRetry
         visible={Boolean(inPlayerWindow && playbackFailed)}
         onRetry={() => {
+          setVideoReady(false);
           retryPlayback();
           setPaused(false);
         }}
@@ -524,17 +603,7 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
         }`}
       >
         <div className="relative flex w-11 flex-col items-center pb-1">
-          <button
-            type="button"
-            onClick={openCreatorProfile}
-            disabled={!creatorId}
-            className="rounded-full bg-linear-to-br from-white via-white to-white/80 p-[1.5px] shadow-[0_2px_10px_rgba(0,0,0,0.45)] transition-opacity enabled:active:opacity-90 disabled:opacity-100"
-            aria-label={reel.handle || reel.username ? `View ${reel.handle || reel.username}'s profile` : 'View creator profile'}
-          >
-            <Avatar className="h-9 w-9 border-2 border-black">
-              <AvatarImage src={reel.creator?.avatarUrl || defaultAvatar} alt="" />
-            </Avatar>
-          </button>
+          <UserAvatar src={reel.creator?.avatarUrl} name={creatorName} userId={creatorId} size="md" ring="light" />
           {showFollow ? (
             <button
               type="button"
@@ -543,7 +612,7 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
                 handleFollow();
               }}
               className="bg-brand text-ink absolute -bottom-0.5 left-1/2 flex size-[18px] -translate-x-1/2 items-center justify-center rounded-full text-[13px] leading-none font-bold shadow-[0_2px_6px_rgba(0,0,0,0.4)] transition-transform active:scale-90"
-              aria-label={`Follow ${reel.username || 'creator'}`}
+              aria-label={`Follow ${creatorName}`}
             >
               +
             </button>
@@ -597,10 +666,17 @@ export default function ReelItem({ reel, isActive, inPlayerWindow = true }) {
           type="button"
           onClick={openCreatorProfile}
           disabled={!creatorId}
-          className="inline-flex max-w-full items-center gap-1 text-left text-[15px] leading-tight font-bold text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.55)] transition-opacity enabled:active:opacity-90"
+          className="inline-flex max-w-full flex-col items-start text-left transition-opacity enabled:active:opacity-90"
         >
-          <span className="truncate">{reel.handle || reel.username}</span>
-          <OfficialBadge isOfficial={reel.creator?.isOfficial} />
+          <span className="inline-flex max-w-full items-center gap-1 text-[15px] leading-tight font-bold text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.55)]">
+            <span className="truncate">{creatorName}</span>
+            <OfficialBadge isOfficial={reel.creator?.isOfficial} />
+          </span>
+          {showCreatorHandle ? (
+            <span className="mt-0.5 truncate text-[12px] font-medium text-white/75 drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]">
+              {creatorHandle}
+            </span>
+          ) : null}
         </button>
         {caption ? (
           <p className="mt-1.5 text-[13px] leading-relaxed text-white/90 drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]">

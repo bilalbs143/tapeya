@@ -36,7 +36,6 @@ function getItemWindow(items, windowIndex, size = 3) {
  *   posts: Array<object>,
  *   tab: string,
  *   shopCollections: Array<{ id: string, title: string, products: Array<object> }>,
- *   brands: Array<object>,
  *   suggestedUsers: Array<object>,
  *   highlights: Array<object>,
  *   cycles?: number,
@@ -48,7 +47,6 @@ export function buildFeedTimelineRows({
   posts,
   tab,
   shopCollections,
-  brands,
   suggestedUsers,
   highlights,
   cycles = 1,
@@ -93,7 +91,6 @@ export function buildFeedTimelineRows({
           estimateSize: 280,
           title: collection.title,
           products: getItemWindow(collection.products, collectionWindow),
-          brands,
         });
       }
 

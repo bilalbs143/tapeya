@@ -1,13 +1,10 @@
 /**
  * Shared reel player window — mount nearby slides only.
- * Native iOS uses a wider warm window so the next clip can decode before snap.
+ * ±2 so the next two clips can decode before snap (all platforms).
  */
 
-import { isIOS } from '@/platform/platform';
-
-/** @returns {number} */
 export function getReelPlayerWindowRadius() {
-  return isIOS() ? 2 : 1;
+  return 2;
 }
 
 /**

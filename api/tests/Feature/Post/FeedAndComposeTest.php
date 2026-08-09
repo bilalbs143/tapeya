@@ -394,6 +394,63 @@ class FeedAndComposeTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_user_posts_endpoint_returns_non_video_posts_only(): void
+    {
+        $author = User::factory()->create();
+        $stranger = User::factory()->create();
+
+        $this->makeVideoPost($author, [
+            'body' => 'A reel',
+            'status' => PostStatusEnum::Ready,
+            'published_at' => now(),
+        ]);
+
+        Post::query()->create([
+            'user_id' => $author->id,
+            'type' => PostTypeEnum::Text,
+            'body' => 'Public text',
+            'status' => PostStatusEnum::Ready,
+            'visibility' => PostVisibilityEnum::Public,
+            'published_at' => now(),
+        ]);
+
+        Post::query()->create([
+            'user_id' => $author->id,
+            'type' => PostTypeEnum::Image,
+            'body' => 'Followers image',
+            'status' => PostStatusEnum::Ready,
+            'visibility' => PostVisibilityEnum::Followers,
+            'published_at' => now()->subSecond(),
+        ]);
+
+        $strangerPosts = $this->actingAs($stranger, 'api')
+            ->getJson('/api/v1/users/'.$author->id.'/posts')
+            ->assertOk()
+            ->json('data.items');
+
+        $this->assertSame(['text'], collect($strangerPosts)->pluck('type')->all());
+        $this->assertSame(['Public text'], collect($strangerPosts)->pluck('body')->all());
+
+        $ownerPosts = $this->actingAs($author, 'api')
+            ->getJson('/api/v1/users/'.$author->id.'/posts')
+            ->assertOk()
+            ->json('data.items');
+
+        $this->assertEqualsCanonicalizing(['text', 'image'], collect($ownerPosts)->pluck('type')->all());
+
+        $this->actingAs($stranger, 'api')
+            ->getJson('/api/v1/users/'.$author->id.'/reels')
+            ->assertOk()
+            ->assertJsonCount(1, 'data.items')
+            ->assertJsonPath('data.items.0.type', 'video');
+
+        $this->actingAs($stranger, 'api')
+            ->getJson('/api/v1/users/'.$author->id.'/profile')
+            ->assertOk()
+            ->assertJsonPath('data.posts_count', 1)
+            ->assertJsonPath('data.reels_count', 1);
+    }
+
     public function test_compose_video_returns_upload_contract(): void
     {
         $user = User::factory()->create();

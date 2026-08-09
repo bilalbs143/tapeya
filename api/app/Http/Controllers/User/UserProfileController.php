@@ -31,10 +31,14 @@ class UserProfileController extends Controller
         }
 
         $user->setAttribute('viewer_is_following', $isFollowing);
-        // Live count matches the profile Reels grid (denormalized users.reels_count can drift).
+        // Live counts match the profile Reels / Posts grids (denormalized columns can drift).
         $user->setAttribute(
             'reels_count',
             $this->feedService->countForUser((int) $user->id, $viewer?->id),
+        );
+        $user->setAttribute(
+            'posts_count',
+            $this->feedService->countPostsForUser((int) $user->id, $viewer?->id),
         );
 
         return $this->success(new PublicUserProfileResource($user));

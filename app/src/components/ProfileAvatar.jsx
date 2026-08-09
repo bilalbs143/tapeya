@@ -16,7 +16,7 @@ export function ProfileAvatar({ src, name, overlap = true }) {
             alt={name}
             width={100}
             height={100}
-            className="aspect-square h-[100px] w-[100px] object-cover object-center sm:h-[100px] sm:w-[100px]"
+            className="aspect-square h-[100px] w-[100px] object-cover object-top sm:h-[100px] sm:w-[100px]"
           />
         </div>
       </div>

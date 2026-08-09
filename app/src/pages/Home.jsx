@@ -17,15 +17,16 @@ export default function Home() {
 
   return (
     <Container>
-      <div className="space-y-[15px]">
-        <HeroSlider />
-        <ExploreCategories />
-        <HomeLiveScoreSlider />
-        <LiveMatchSlider streams={liveStreams} />
-
-        {/* Hub scrolls into shared social feed (Explore | Following) */}
-        <FeedRegion embedded />
-      </div>
+      <FeedRegion
+        top={
+          <div className="mb-[15px] space-y-[15px]">
+            <HeroSlider />
+            <ExploreCategories />
+            <HomeLiveScoreSlider />
+            <LiveMatchSlider streams={liveStreams} />
+          </div>
+        }
+      />
     </Container>
   );
 }

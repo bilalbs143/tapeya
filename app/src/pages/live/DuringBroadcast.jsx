@@ -25,6 +25,7 @@ import { useFloatingHearts } from '@/features/stream/hooks/useFloatingHearts';
 import { useLiveStreamChannel } from '@/features/stream/hooks/useLiveStreamChannel';
 import { useStreamComments } from '@/features/stream/hooks/useStreamComments';
 import { useStreamPresenceChannel } from '@/features/stream/hooks/useStreamPresenceChannel';
+import { useAppBack } from '@/hooks/useAppBack';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { LIVE_BROADCAST_IMMERSIVE_HEIGHT } from '@/lib/constants/liveBroadcastLayout';
@@ -65,6 +66,7 @@ import { Button } from '@/ui/Button';
 
 export default function DuringBroadcast({ streamId }) {
   const navigate = useNavigate();
+  const goBack = useAppBack();
   const toast = useToast();
   const nativeEndSyncedRef = useRef(false);
   const cooldownTimerRef = useRef(null);
@@ -368,8 +370,8 @@ export default function DuringBroadcast({ streamId }) {
       setConfirmEndOpen(true);
       return;
     }
-    navigate(-1);
-  }, [shouldConfirmEndOnLeave, navigate]);
+    goBack();
+  }, [shouldConfirmEndOnLeave, goBack]);
 
   const streamOrientation = getStreamOrientation({
     orientation: broadcast?.orientation ?? publicBroadcast?.orientation,

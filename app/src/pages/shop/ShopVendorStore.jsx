@@ -12,7 +12,7 @@ import { Container } from '@/ui/Container';
 const searchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/searchicon.svg`;
 
 export default function ShopVendorStore() {
-  const { vendorSlug } = useParams();
+  const { slug: vendorSlug } = useParams();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [activeCategoryId, setActiveCategoryId] = useState(null);
@@ -204,7 +204,6 @@ export default function ShopVendorStore() {
                       slug: vendor.slug,
                     },
                   }}
-                  brandSlug={product.brand?.slug ?? product.brandSlug}
                 />
               ))}
             </div>

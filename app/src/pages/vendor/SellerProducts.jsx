@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { formatPrice } from '@/lib/format';
+import { NoImagePlaceholder } from '@/pages/vendor/NoImagePlaceholder';
 import { useGetVendorProductsQuery, useGetVendorStoreQuery } from '@/store/api/vendorShopApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
@@ -10,8 +11,8 @@ function StatusPill({ isActive }) {
   const active = !!isActive;
   const style = active ? 'border border-[#34C759] text-[#34C759]' : 'border border-[#6B7280] text-[#6B7280]';
   return (
-    <span className={`inline-block rounded-full px-3 py-1 text-[11px] font-bold tracking-wide uppercase ${style}`}>
-      {active ? 'ACTIVE' : 'INACTIVE'}
+    <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase ${style}`}>
+      {active ? 'Active' : 'Inactive'}
     </span>
   );
 }
@@ -80,22 +81,22 @@ export default function SellerProducts() {
                 <li key={product.id}>
                   <Link
                     to={`/seller/products/${product.id}/edit`}
-                    className="bg-surface flex gap-3 rounded-[17px] p-3 transition-opacity active:opacity-90"
+                    className="bg-surface flex items-center gap-3 rounded-[17px] p-3 transition-opacity active:opacity-90"
                   >
-                    <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white">
+                    <div className="flex h-[56px] w-[56px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white">
                       {imageUrl ? (
                         <img src={imageUrl} alt="" className="h-full w-full object-contain p-1" />
                       ) : (
-                        <div className="bg-surface-deep h-full w-full" aria-hidden />
+                        <NoImagePlaceholder />
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="mb-1 flex flex-wrap items-center gap-2">
-                        <StatusPill isActive={product.is_active} />
-                      </div>
                       <p className="line-clamp-2 text-[13px] font-bold text-white">{product.name}</p>
                       <p className="text-brand mt-1 text-[14px] font-bold">{formatPrice(product.price)}</p>
-                      <p className="text-muted mt-0.5 text-[11px]">Stock: {product.stock_quantity ?? 0}</p>
+                    </div>
+                    <div className="flex shrink-0 flex-col items-end gap-1.5">
+                      <StatusPill isActive={product.is_active} />
+                      <p className="text-muted text-[11px]">Stock: {product.stock_quantity ?? 0}</p>
                     </div>
                   </Link>
                 </li>

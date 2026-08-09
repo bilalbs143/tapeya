@@ -9,6 +9,7 @@ import { AppEventParams, AppEvents, logEvent } from '@/lib/analytics/facebook';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatPrice } from '@/lib/format';
+import { buildShopVendorPath } from '@/lib/shopPaths';
 import { useAddCartItemMutation, useGetProductQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 
@@ -20,13 +21,21 @@ function getImageUrls(images) {
 }
 
 export default function ShopProductDetail() {
-  const { brandId, productSlug } = useParams();
+  const { vendorSlug, productSlug } = useParams();
   const { state } = useLocation();
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
 
-  const { data: product, isLoading, isError, error } = useGetProductQuery(productSlug, { skip: !productSlug });
+  const {
+    data: product,
+    isLoading,
+    isError,
+    error,
+  } = useGetProductQuery({
+    slug: productSlug,
+    vendor: vendorSlug,
+  });
   const toast = useToast();
   const [addToCart, { isLoading: isAddingToCart }] = useAddCartItemMutation();
 
@@ -49,7 +58,7 @@ export default function ShopProductDetail() {
     };
   }, [product]);
 
-  const backTo = state?.from ?? (brandId ? `/shop/${brandId}` : '/shop');
+  const backTo = state?.from ?? `/shop/${vendorSlug}`;
 
   const handleAddToCart = async () => {
     if (!normalized?.id) return;
@@ -71,10 +80,6 @@ export default function ShopProductDetail() {
   };
 
   useEffect(() => {
-    if (!productSlug) navigate('/shop', { replace: true });
-  }, [productSlug, navigate]);
-
-  useEffect(() => {
     if (!normalized?.id) return;
     logEvent(AppEvents.VIEWED_CONTENT, {
       [AppEventParams.CONTENT_ID]: String(normalized.id),
@@ -82,28 +87,28 @@ export default function ShopProductDetail() {
     });
   }, [normalized?.id]);
 
-  if (!productSlug) return null;
-
-  if (isLoading || !normalized) {
+  if (isLoading) {
     return (
       <div className="bg-black">
         <AppSubpageHeader title="SHOP" onBack={() => navigate(backTo)} />
         <Container>
-          <div className="flex min-h-[40vh] items-center justify-center">
-            {!isLoading && <p className="text-muted text-[14px]">Product not found.</p>}
+          <div className="flex min-h-[40vh] items-center justify-center" role="status" aria-label="Loading product">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white/70" aria-hidden />
           </div>
         </Container>
       </div>
     );
   }
 
-  if (isError) {
+  if (isError || !normalized) {
     return (
       <div className="bg-black">
         <AppSubpageHeader title="SHOP" onBack={() => navigate(backTo)} />
         <Container>
           <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
-            <p className="text-muted text-[14px]">{error?.data?.message ?? 'Something went wrong.'}</p>
+            <p className="text-muted text-[14px]">
+              {isError ? (error?.data?.message ?? 'Something went wrong.') : 'Product not found.'}
+            </p>
             <button
               type="button"
               onClick={() => navigate(backTo)}
@@ -228,7 +233,7 @@ export default function ShopProductDetail() {
               <ShopContactCard
                 name={normalized.vendor.store_name}
                 phone={normalized.vendor.phone}
-                href={normalized.vendor.slug ? `/shop/vendors/${normalized.vendor.slug}` : undefined}
+                href={buildShopVendorPath(normalized.vendor.slug)}
               />
             ) : null}
 
@@ -344,7 +349,7 @@ export default function ShopProductDetail() {
             <ShopContactCard
               name={normalized.vendor.store_name}
               phone={normalized.vendor.phone}
-              href={normalized.vendor.slug ? `/shop/vendors/${normalized.vendor.slug}` : undefined}
+              href={buildShopVendorPath(normalized.vendor.slug)}
             />
           </div>
         ) : null}

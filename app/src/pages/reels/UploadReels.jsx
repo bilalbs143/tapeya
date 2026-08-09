@@ -4,8 +4,7 @@
  * Mobile-first TikTok-style flow: empty → portrait preview → details → post.
  * Route: /reels/upload
  *
- * After Post, upload continues in the background (floating chip) while the user
- * browses /reels.
+ * After Post, a blocking progress dialog stays open until the upload finishes.
  *
  * Coding guidelines: docs/Coding guidelines.md (§2 selectors)
  */
@@ -36,7 +35,6 @@ import { UploadDetailsStep } from './upload/UploadDetailsStep';
 import { UploadEmptyStep } from './upload/UploadEmptyStep';
 import { UploadPreviewStep } from './upload/UploadPreviewStep';
 
-const UPLOAD_REEL_TAB = 'my-videos';
 const STEPS = {
   EMPTY: 'empty',
   PREVIEW: 'preview',
@@ -315,10 +313,7 @@ export default function UploadReels() {
         setVisibility(postVisibility || 'public');
         setStep(STEPS.DETAILS);
         setError('Another reel is still uploading. Please wait.');
-        return;
       }
-
-      navigate('/reels', { state: { tab: UPLOAD_REEL_TAB } });
     } catch (err) {
       // If we already detached the preview, restore so the user can retry.
       if (!previewUrlRef.current && sessionPreviewUrl) {
@@ -372,9 +367,7 @@ export default function UploadReels() {
           isBusy={isValidatingFile || uploadSession.status === 'uploading'}
           busyLabel={uploadSession.status === 'uploading' ? 'Upload in progress…' : undefined}
           handoffHint={
-            uploadSession.status === 'uploading'
-              ? 'Your reel is still uploading. Progress is shown in the top-left — you can browse while it finishes.'
-              : handoffHint
+            uploadSession.status === 'uploading' ? 'Your reel is still uploading. Please wait until it finishes.' : handoffHint
           }
         />
       ) : null}

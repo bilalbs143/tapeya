@@ -7,8 +7,8 @@ import PostCommentsThread from '@/components/feed/PostCommentsThread';
 import RepostedPostEmbed from '@/components/feed/RepostedPostEmbed';
 import TextPostBackground from '@/components/feed/TextPostBackground';
 import { OfficialBadge } from '@/components/OfficialBadge';
+import { UserAvatar } from '@/components/UserAvatar';
 import { usePostEngagement } from '@/features/feed/usePostEngagement';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { getFeedTextBackground } from '@/lib/constants/composeBackgrounds';
 import { formatCount } from '@/lib/format';
 import { formatPostTimestamp } from '@/lib/utils/feedUtils';
@@ -19,7 +19,6 @@ import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 import { Container } from '@/ui/Container';
 
-const AVATAR_PLACEHOLDER = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 const IMAGE_PLACEHOLDER =
   'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect fill="%231a1a1a" width="800" height="600"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="central" text-anchor="middle" fill="%234a5568" font-size="24" font-family="sans-serif"%3EImage%3C/text%3E%3C/svg%3E';
 
@@ -39,7 +38,6 @@ export default function ActivityFeedDetail() {
   const { toggleLike, toggleSave, share, repost, isReposting } = usePostEngagement(post);
 
   const [imageError, setImageError] = useState(false);
-  const [authorAvatarError, setAuthorAvatarError] = useState(false);
   const [stickyCommentComposer, setStickyCommentComposer] = useState(false);
 
   useEffect(() => {
@@ -73,7 +71,7 @@ export default function ActivityFeedDetail() {
   if (isLoading) {
     return (
       <div className="bg-black text-white">
-        <AppSubpageHeader sticky title="ACTIVITY FEED" onBack={() => navigate('/')} />
+        <AppSubpageHeader sticky title="ACTIVITY FEED" />
         <Container>
           <div className="flex items-center justify-center py-16" role="status" aria-label="Loading post">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white/70" aria-hidden />
@@ -86,12 +84,12 @@ export default function ActivityFeedDetail() {
   if (isError || !post || post.type === 'video') {
     return (
       <div className="bg-black text-white">
-        <AppSubpageHeader sticky title="ACTIVITY FEED" onBack={() => navigate('/')} />
+        <AppSubpageHeader sticky title="ACTIVITY FEED" />
         <Container>
           <div className="py-8 text-center">
             <p className="text-muted">{post?.type === 'video' ? 'Opening reel…' : 'Post not found.'}</p>
             {post?.type !== 'video' && (
-              <button type="button" onClick={() => navigate('/')} className="text-brand mt-4 underline">
+              <button type="button" onClick={() => navigate('/home')} className="text-brand mt-4 underline">
                 Back to home
               </button>
             )}
@@ -152,15 +150,7 @@ export default function ActivityFeedDetail() {
           <article className="bg-surface overflow-hidden shadow-[0_1px_0_0_rgba(255,255,255,0.06)_inset,0_20px_40px_-24px_rgba(0,0,0,0.8)]">
             <header className="flex items-center gap-2 px-4 pt-3.5">
               <div className="flex min-w-0 flex-1 items-center gap-3">
-                <div className="rounded-full bg-[linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))] p-[2px]">
-                  <img
-                    src={authorAvatarError || !authorAvatarUrl ? AVATAR_PLACEHOLDER : authorAvatarUrl}
-                    alt=""
-                    className="border-surface h-11 w-11 rounded-full border-2 object-cover"
-                    loading="lazy"
-                    onError={() => setAuthorAvatarError(true)}
-                  />
-                </div>
+                <UserAvatar src={authorAvatarUrl} name={authorName} userId={authorId} size="xl" ring="brand" />
                 <div className="min-w-0 flex-1">
                   <div className="flex min-w-0 items-center gap-1">
                     <span className="truncate text-[14px] font-bold text-white">{authorName}</span>

@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useAppBack } from '@/hooks/useAppBack';
 
 /**
  * Standard circular back button used throughout the app.
@@ -30,10 +30,11 @@ function BackChevron() {
  * cannot be used (overlay layouts, custom match headers, etc.).
  */
 export function AppSubpageBackButton({ onClick, className = '', 'aria-label': ariaLabel = 'Back', ...rest }) {
+  const goBack = useAppBack();
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={onClick ?? goBack}
       className={`${appSubpageBackButtonClassName} ${className}`.trim()}
       aria-label={ariaLabel}
       {...rest}
@@ -68,7 +69,7 @@ export function AppSubpageBackButton({ onClick, className = '', 'aria-label': ar
  *                                   normal-case. Only applies when title is a
  *                                   string/number.
  *
- * onBack         {function}         Defaults to navigate(-1).
+ * onBack         {function}         Defaults to useAppBack (/home if stack is empty).
  *
  * right          {ReactNode}        Optional right-side slot (search icon,
  *                                   filter button, etc.). Must be 36×36 for
@@ -98,9 +99,6 @@ export function AppSubpageHeader({
   backClassName = '',
   backAriaLabel,
 }) {
-  const navigate = useNavigate();
-  const handleBack = onBack ?? (() => navigate(-1));
-
   // Fixed height: py-1 + h-9 (36px) — consistent everywhere.
   const headerClass = [
     'flex items-center gap-3 bg-black px-4 py-1',
@@ -133,7 +131,7 @@ export function AppSubpageHeader({
 
   return (
     <header className={headerClass}>
-      <AppSubpageBackButton onClick={handleBack} className={backClassName} aria-label={backAriaLabel ?? 'Back'} />
+      <AppSubpageBackButton onClick={onBack} className={backClassName} aria-label={backAriaLabel ?? 'Back'} />
       {titleSlot}
       {rightElement}
     </header>

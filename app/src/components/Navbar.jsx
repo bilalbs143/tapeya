@@ -10,6 +10,7 @@ import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { LG_MEDIA_QUERY, NAVBAR_OFFSET_CSS, NAVBAR_SCROLL_THRESHOLD, NAVBAR_Z } from '@/lib/constants/layout';
 import { NAVBAR_ICON_BTN_CLASS } from '@/lib/constants/navbar';
 import { BOTTOM_NAV_ITEMS } from '@/lib/constants/navigation';
+import { handlePrimaryTabClick } from '@/lib/navigation/tabReselect';
 import { formatCountBadge } from '@/lib/utils/displayUtils';
 import { isHeroNavbarPath } from '@/lib/utils/routeUtils';
 import { useGetNotificationUnreadCountQuery } from '@/store/api/notificationApi';
@@ -77,7 +78,12 @@ export function Navbar({ onMenuClick }) {
       }}
     >
       <div className="flex min-w-0 flex-1 items-center gap-4 lg:gap-6">
-        <Link to="/home" className="shrink-0" aria-label="Tapeya Home">
+        <Link
+          to="/home"
+          className="shrink-0"
+          aria-label="Tapeya Home"
+          onClick={(event) => handlePrimaryTabClick(event, location.pathname, '/home')}
+        >
           <img src={logo} alt="" className="h-8 w-auto" />
         </Link>
 
@@ -89,6 +95,7 @@ export function Navbar({ onMenuClick }) {
               <Link
                 key={path}
                 to={path}
+                onClick={(event) => handlePrimaryTabClick(event, location.pathname, path)}
                 className={`flex flex-col items-center gap-0.5 transition-opacity hover:opacity-100 lg:flex-row lg:items-center lg:gap-2 lg:opacity-100 ${isActive ? 'opacity-100' : 'opacity-70'}`}
                 aria-current={isActive ? 'page' : undefined}
               >

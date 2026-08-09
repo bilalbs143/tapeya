@@ -1,17 +1,17 @@
 import { Link } from 'react-router-dom';
 
 import { OfficialBadge } from '@/components/OfficialBadge';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { UserAvatar } from '@/components/UserAvatar';
+import { buildCreatorProfilePath } from '@/lib/share';
 import { useFollowReelCreatorMutation } from '@/store/api/reelsApi';
 
-const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 const VISIBLE_ROWS = 3;
 /** Keeps widget height stable while followed users drop out of the buffer. */
 const ROW_SLOT_CLASS = 'min-h-[3.25rem]';
 
 function SuggestedFollowRow({ user, onFollowed }) {
   const [followCreator, { isLoading: isFollowPending }] = useFollowReelCreatorMutation();
-  const profilePath = `/reels/u/${user.id}`;
+  const profilePath = buildCreatorProfilePath(user.id);
   const displayName = user.name || user.nickname || 'User';
 
   const onFollowClick = async () => {
@@ -27,18 +27,7 @@ function SuggestedFollowRow({ user, onFollowed }) {
 
   return (
     <div className={`${ROW_SLOT_CLASS} flex animate-[fadeSlideIn_240ms_ease-out] items-center gap-3`}>
-      <Link to={profilePath} className="shrink-0" aria-label={`View ${displayName}`}>
-        <img
-          src={user.avatarUrl || defaultAvatar}
-          alt=""
-          className="border-border size-11 rounded-full border object-cover"
-          onError={(event) => {
-            if (event.currentTarget.src !== defaultAvatar) {
-              event.currentTarget.src = defaultAvatar;
-            }
-          }}
-        />
-      </Link>
+      <UserAvatar src={user.avatarUrl} name={displayName} userId={user.id} size="xl" />
 
       <div className="min-w-0 flex-1">
         <Link to={profilePath} className="flex min-w-0 items-center gap-1">

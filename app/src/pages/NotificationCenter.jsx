@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { UserAvatar } from '@/components/UserAvatar';
 import { isSafeNotificationNavigatePath, normalizeAppPath } from '@/lib/deepLinks/deepLinkRegistry';
 import { formatRelativeDate } from '@/lib/utils/dateUtils';
 import { getInitials } from '@/lib/utils/displayUtils';
@@ -12,11 +12,9 @@ import {
   useMarkAllNotificationsReadMutation,
   useMarkNotificationReadMutation,
 } from '@/store/api/notificationApi';
-import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 import { Container } from '@/ui/Container';
 
 const PAGE_SIZE = 10;
-const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
 function startOfLocalDay(date) {
   const d = new Date(date);
@@ -152,10 +150,7 @@ function NotificationCard({ notification, onOpen }) {
           : undefined
       }
     >
-      <Avatar className="h-9 w-9 shrink-0 rounded-full bg-white/8">
-        <AvatarImage src={avatar || defaultAvatar} alt="" className="object-cover" />
-        <AvatarFallback className="bg-white/10 text-[11px] font-semibold text-white/80">{fallback}</AvatarFallback>
-      </Avatar>
+      <UserAvatar src={avatar} fallback={fallback} size="md" />
 
       <div className="min-w-0 flex-1">
         <p className="text-[12px] leading-[1.35] text-white/90">{message}</p>

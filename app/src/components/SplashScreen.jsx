@@ -4,6 +4,7 @@ import { Navigate } from 'react-router-dom';
 
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { isReturningUser } from '@/lib/returningUser';
+import { hasSplashPlayedThisSession, markSplashPlayedThisSession, resolveSplashDestination } from '@/lib/splashNavigation';
 import { useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated } from '@/store/selectors';
 
@@ -13,32 +14,31 @@ const SPLASH_DURATION_MS = 3000;
 const SPLASH_FADE_OUT_MS = 350;
 
 export default function SplashScreen() {
-  const [exiting, setExiting] = useState(false);
-  const [redirect, setRedirect] = useState(false);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const destination = resolveSplashDestination({
+    isAuthenticated,
+    isReturning: isReturningUser(),
+  });
+  const [exiting, setExiting] = useState(false);
+  const [redirect, setRedirect] = useState(() => hasSplashPlayedThisSession());
 
-  // Step 1: start the fade-out after the full splash duration.
   useEffect(() => {
+    if (redirect) {
+      markSplashPlayedThisSession();
+      return undefined;
+    }
     const startExit = setTimeout(() => setExiting(true), SPLASH_DURATION_MS);
     return () => clearTimeout(startExit);
-  }, []);
+  }, [redirect]);
 
-  // Step 2: trigger navigation once the fade-out animation has finished.
-  // Total time before redirect: SPLASH_DURATION_MS + SPLASH_FADE_OUT_MS.
   useEffect(() => {
-    if (!exiting) return;
+    if (!exiting || redirect) return undefined;
     const go = setTimeout(() => setRedirect(true), SPLASH_FADE_OUT_MS);
     return () => clearTimeout(go);
-  }, [exiting]);
+  }, [exiting, redirect]);
 
   if (redirect) {
-    if (isAuthenticated) {
-      return <Navigate to="/home" replace />;
-    }
-    if (isReturningUser()) {
-      return <Navigate to="/login" replace />;
-    }
-    return <Navigate to="/register" replace />;
+    return <Navigate to={destination} replace />;
   }
 
   return (

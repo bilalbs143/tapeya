@@ -29,18 +29,12 @@ export const shopApi = baseApi.injectEndpoints({
     }),
     getProduct: builder.query({
       query: (arg) => {
-        if (arg && typeof arg === 'object') {
-          const slug = arg.slug ?? arg.id;
-          const vendor = arg.vendor;
-          if (vendor) {
-            return `/shop/vendors/${vendor}/products/${slug}`;
-          }
-          return {
-            url: `/shop/products/${slug}`,
-            params: arg.vendor_slug ? { vendor: arg.vendor_slug } : undefined,
-          };
+        const slug = typeof arg === 'object' ? (arg.slug ?? arg.id) : arg;
+        const vendor = typeof arg === 'object' ? arg.vendor : undefined;
+        if (vendor) {
+          return `/shop/vendors/${vendor}/products/${slug}`;
         }
-        return `/shop/products/${arg}`;
+        return `/shop/products/${slug}`;
       },
       transformResponse: (response) => response?.data ?? response,
       providesTags: ['Shop'],
@@ -72,6 +66,7 @@ export const shopApi = baseApi.injectEndpoints({
           per_page: params.per_page ?? 15,
           page: params.page,
           all: params.all ? 1 : undefined,
+          has_products: params.has_products ? 1 : undefined,
         },
       }),
       providesTags: ['Shop'],

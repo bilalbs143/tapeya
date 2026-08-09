@@ -148,11 +148,13 @@ DialogOverlay.displayName = 'DialogOverlay';
  *
  * Outside taps do not dismiss the dialog (overlay is still visible for context);
  * use the header close control, in-content actions, or Escape to dismiss.
+ *
+ * @param {string} [overlayClassName] Extra overlay classes (e.g. `bg-black/80`).
  */
-export function DialogContentDark({ className = '', children, onPointerDownOutside, ...props }) {
+export function DialogContentDark({ className = '', overlayClassName = '', children, onPointerDownOutside, ...props }) {
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className={OVERLAY_DIALOG} />
+      <DialogPrimitive.Overlay className={`${OVERLAY_DIALOG} ${overlayClassName}`.trim()} />
       <DialogPrimitive.Content
         {...props}
         className={`${CONTENT_DARK} ${className}`.trim()}

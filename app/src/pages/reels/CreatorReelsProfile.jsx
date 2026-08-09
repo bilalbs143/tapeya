@@ -2,8 +2,8 @@
  * Public creator profile for reels — opened from the feed action-rail avatar.
  * Route: /reels/u/:userId
  *
- * Own profile: Reels / Liked / Saved tabs (private Liked & Saved).
- * Other profiles: Reels grid only.
+ * Everyone: Reels / Posts tabs.
+ * Own profile also: Liked / Saved (private).
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -13,9 +13,12 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { OfficialBadge } from '@/components/OfficialBadge';
 import { ReelPosterGrid } from '@/components/reels/ReelPosterGrid';
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { UserAvatar } from '@/components/UserAvatar';
+import { composeDestination } from '@/lib/feed/composeDestination';
 import { formatCount } from '@/lib/format';
 import { buildCreatorProfileShareUrl, shareLink } from '@/lib/share';
+import PostCard from '@/pages/feed/PostCard';
+import { useGetUserPostsQuery, useLazyGetUserPostsQuery } from '@/store/api/feedApi';
 import {
   useFollowReelCreatorMutation,
   useGetLikedReelsQuery,
@@ -29,12 +32,10 @@ import {
 } from '@/store/api/reelsApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectAuthUserAndToken } from '@/store/selectors';
-import { Avatar, AvatarImage } from '@/ui/Avatar';
 import { Container } from '@/ui/Container';
 
-const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
-
 const TAB_REELS = 'reels';
+const TAB_POSTS = 'posts';
 const TAB_LIKED = 'liked';
 const TAB_SAVED = 'saved';
 
@@ -113,8 +114,31 @@ function SavedTabIcon({ className = 'size-4' }) {
   );
 }
 
-const OWN_TABS = [
+function PostsTabIcon({ className = 'size-4' }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <rect x="4" y="3" width="16" height="18" rx="2" />
+      <path d="M8 8h8M8 12h8M8 16h5" />
+    </svg>
+  );
+}
+
+const SHARED_TABS = [
   { id: TAB_REELS, label: 'Reels', Icon: ReelsTabIcon },
+  { id: TAB_POSTS, label: 'Posts', Icon: PostsTabIcon },
+];
+
+const OWN_TABS = [
+  ...SHARED_TABS,
   { id: TAB_LIKED, label: 'Liked', Icon: LikedTabIcon },
   { id: TAB_SAVED, label: 'Saved', Icon: SavedTabIcon },
 ];
@@ -139,16 +163,18 @@ export default function CreatorReelsProfile() {
   const [activeTab, setActiveTab] = useState(TAB_REELS);
 
   useEffect(() => {
-    if (!isOwnProfile && activeTab !== TAB_REELS) {
+    if (!isOwnProfile && activeTab !== TAB_REELS && activeTab !== TAB_POSTS) {
       setActiveTab(TAB_REELS);
     }
   }, [isOwnProfile, activeTab]);
 
   const reelsQuery = useGetUserReelsQuery({ userId, perPage: 18 }, { skip: !validUserId || activeTab !== TAB_REELS });
+  const postsQuery = useGetUserPostsQuery({ userId, perPage: 10 }, { skip: !validUserId || activeTab !== TAB_POSTS });
   const likedQuery = useGetLikedReelsQuery({ perPage: 18 }, { skip: !isOwnProfile || !isAuthed || activeTab !== TAB_LIKED });
   const savedQuery = useGetSavedReelsQuery({ perPage: 18 }, { skip: !isOwnProfile || !isAuthed || activeTab !== TAB_SAVED });
 
   const [fetchMoreReels] = useLazyGetUserReelsQuery();
+  const [fetchMorePosts] = useLazyGetUserPostsQuery();
   const [fetchMoreLiked] = useLazyGetLikedReelsQuery();
   const [fetchMoreSaved] = useLazyGetSavedReelsQuery();
   const [followCreator, { isLoading: isFollowing }] = useFollowReelCreatorMutation();
@@ -205,7 +231,14 @@ export default function CreatorReelsProfile() {
     [profile],
   );
 
-  const activeQuery = activeTab === TAB_LIKED ? likedQuery : activeTab === TAB_SAVED ? savedQuery : reelsQuery;
+  const activeQuery =
+    activeTab === TAB_POSTS
+      ? postsQuery
+      : activeTab === TAB_LIKED
+        ? likedQuery
+        : activeTab === TAB_SAVED
+          ? savedQuery
+          : reelsQuery;
 
   const items = activeQuery.data?.items ?? [];
   const nextCursor = activeQuery.data?.nextCursor ?? null;
@@ -214,9 +247,20 @@ export default function CreatorReelsProfile() {
   const isError = activeQuery.isError;
 
   const emptyCopy =
-    activeTab === TAB_LIKED ? 'No liked reels yet.' : activeTab === TAB_SAVED ? 'No saved reels yet.' : 'No reels yet.';
+    activeTab === TAB_POSTS
+      ? 'No posts yet.'
+      : activeTab === TAB_LIKED
+        ? 'No liked reels yet.'
+        : activeTab === TAB_SAVED
+          ? 'No saved reels yet.'
+          : 'No reels yet.';
 
-  const emptyAction = activeTab === TAB_REELS && isOwnProfile ? { to: '/reels/upload', label: 'Upload a Reel' } : null;
+  const emptyAction =
+    activeTab === TAB_REELS && isOwnProfile
+      ? { to: '/reels/upload', label: 'Upload a Reel' }
+      : activeTab === TAB_POSTS && isOwnProfile
+        ? { to: composeDestination(undefined, isAuthed), label: 'Create a Post' }
+        : null;
 
   const requireAuth = useCallback(
     (nextPath) => {
@@ -266,6 +310,10 @@ export default function CreatorReelsProfile() {
 
   const loadMore = async () => {
     if (!nextCursor || isFetching) return;
+    if (activeTab === TAB_POSTS) {
+      await fetchMorePosts({ userId, cursor: nextCursor, perPage: 10 });
+      return;
+    }
     if (activeTab === TAB_LIKED) {
       await fetchMoreLiked({ cursor: nextCursor, perPage: 18 });
       return;
@@ -300,9 +348,7 @@ export default function CreatorReelsProfile() {
         ) : (
           <>
             <div className="flex flex-col items-center text-center">
-              <Avatar className="h-24 w-24 rounded-full border border-white/10">
-                <AvatarImage src={profile.avatarUrl || defaultAvatar} alt="" />
-              </Avatar>
+              <UserAvatar src={profile.avatarUrl} name={displayName} size="2xl" />
 
               <h1 className="mt-3 inline-flex max-w-full items-center justify-center gap-1.5 text-[20px] font-bold text-white">
                 <span className="truncate">{displayName}</span>
@@ -376,43 +422,71 @@ export default function CreatorReelsProfile() {
 
             {shareHint ? <p className="text-brand mt-2 text-center text-[12px]">{shareHint}</p> : null}
 
-            {isOwnProfile ? (
-              <nav className="mt-6" aria-label="Profile reels tabs">
-                <div className="flex items-center gap-0.5 rounded-full border border-white/12 bg-black/55 p-1">
-                  {OWN_TABS.map(({ id, label, Icon }) => {
-                    const active = activeTab === id;
-                    return (
-                      <button
-                        key={id}
-                        type="button"
-                        onClick={() => selectTab(id)}
-                        aria-current={active ? 'page' : undefined}
-                        aria-label={label}
-                        className={`flex flex-1 items-center justify-center gap-1.5 rounded-full text-[12px] font-semibold tracking-wide transition-all duration-200 ${
-                          active
-                            ? 'bg-brand text-ink px-3 py-2.5 shadow-sm'
-                            : 'py-2.5 text-white/65 hover:bg-white/10 hover:text-white'
-                        }`}
-                      >
-                        <Icon className="size-4 shrink-0" />
-                        <span>{label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </nav>
-            ) : (
-              <div className="mt-6 mb-3 flex items-center justify-between">
-                <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">Reels</h2>
-                <span className="text-muted text-[12px]">{formatCount(profile.reelsCount ?? 0)}</span>
+            <nav className="mt-6" aria-label="Profile content tabs">
+              <div className="flex items-center gap-0.5 rounded-full border border-white/12 bg-black/55 p-1">
+                {(isOwnProfile ? OWN_TABS : SHARED_TABS).map(({ id, label, Icon }) => {
+                  const active = activeTab === id;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => selectTab(id)}
+                      aria-current={active ? 'page' : undefined}
+                      aria-label={label}
+                      className={`flex min-w-0 flex-1 items-center justify-center gap-1 rounded-full text-[11px] font-semibold tracking-wide transition-all duration-200 sm:gap-1.5 sm:text-[12px] ${
+                        active
+                          ? 'bg-brand text-ink px-2 py-2.5 shadow-sm sm:px-3'
+                          : 'py-2.5 text-white/65 hover:bg-white/10 hover:text-white'
+                      }`}
+                    >
+                      <Icon className="size-4 shrink-0" />
+                      <span className="truncate">{label}</span>
+                    </button>
+                  );
+                })}
               </div>
-            )}
+            </nav>
 
-            <div className={isOwnProfile ? 'mt-4' : undefined}>
+            <div className="mt-4">
               {isLoading ? (
-                <p className="text-muted py-8 text-center text-sm">Loading reels…</p>
+                <p className="text-muted py-8 text-center text-sm">
+                  {activeTab === TAB_POSTS ? 'Loading posts…' : 'Loading reels…'}
+                </p>
               ) : isError ? (
-                <p className="text-muted py-8 text-center text-sm">Could not load reels.</p>
+                <p className="text-muted py-8 text-center text-sm">
+                  {activeTab === TAB_POSTS ? 'Could not load posts.' : 'Could not load reels.'}
+                </p>
+              ) : activeTab === TAB_POSTS ? (
+                <>
+                  {items.length ? (
+                    <div className="-mx-4 space-y-2">
+                      {items.map((post) => (
+                        <PostCard key={post.id} post={post} />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="py-10 text-center">
+                      <p className="text-muted text-sm">{emptyCopy}</p>
+                      {emptyAction ? (
+                        <Link to={emptyAction.to} className="text-brand mt-2 inline-block text-sm font-semibold">
+                          {emptyAction.label}
+                        </Link>
+                      ) : null}
+                    </div>
+                  )}
+                  {nextCursor ? (
+                    <div className="mt-4 flex justify-center">
+                      <button
+                        type="button"
+                        onClick={loadMore}
+                        disabled={isFetching}
+                        className="text-muted text-[12px] font-semibold transition-opacity active:opacity-90 disabled:opacity-60"
+                      >
+                        {isFetching ? 'Loading…' : 'Load more'}
+                      </button>
+                    </div>
+                  ) : null}
+                </>
               ) : (
                 <>
                   <ReelPosterGrid items={items} emptyMessage={emptyCopy} emptyAction={emptyAction} />

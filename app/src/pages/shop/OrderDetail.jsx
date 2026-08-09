@@ -7,6 +7,7 @@ import { ShopContactCard } from '@/components/shop/ShopContactCard';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { formatPrice } from '@/lib/format';
+import { buildShopVendorPath } from '@/lib/shopPaths';
 import { formatDate } from '@/lib/utils/dateUtils';
 import { useCancelOrderMutation, useGetOrderQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
@@ -195,7 +196,7 @@ export default function OrderDetail() {
                     <ShopContactCard
                       name={group.vendorOrder.vendor.store_name}
                       phone={group.vendorOrder.vendor.phone}
-                      href={group.vendorOrder.vendor.slug ? `/shop/vendors/${group.vendorOrder.vendor.slug}` : undefined}
+                      href={buildShopVendorPath(group.vendorOrder.vendor.slug)}
                     />
                   ) : group.header ? (
                     <h2 className="px-0.5 text-[13px] font-bold tracking-wide text-white uppercase">{group.header}</h2>

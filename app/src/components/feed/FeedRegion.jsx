@@ -10,10 +10,13 @@ import { FeedReelsWidget } from '@/components/feed/FeedReelsWidget';
 import { FeedShopWidget } from '@/components/feed/FeedShopWidget';
 import { FeedSuggestedFollowsWidget } from '@/components/feed/FeedSuggestedFollowsWidget';
 import FeedTabs from '@/components/feed/FeedTabs';
+import { PullToRefreshIndicator } from '@/components/PullToRefreshIndicator';
 import { useCatalogCycle } from '@/hooks/useCatalogCycle';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { useStickyUnderNavbar } from '@/hooks/useStickyUnderNavbar';
 import { NAVBAR_OFFSET_CSS, STICKY_TABS_Z } from '@/lib/constants/layout';
 import { composeDestination } from '@/lib/feed/composeDestination';
+import { useTabReselect } from '@/lib/navigation/tabReselect';
 import PostCard from '@/pages/feed/PostCard';
 import {
   FEED_LIST_ARG,
@@ -30,7 +33,7 @@ import {
 import { useGetHighlightsQuery } from '@/store/api/highlightApi';
 import { REELS_LIST_ARG } from '@/store/api/postEngagementCache';
 import { useGetReelsFeedQuery } from '@/store/api/reelsApi';
-import { useGetBrandsQuery, useGetProductsQuery } from '@/store/api/shopApi';
+import { useGetProductsQuery } from '@/store/api/shopApi';
 import { SUGGESTED_USERS_ARG, useGetSuggestedUsersQuery } from '@/store/api/userApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated } from '@/store/selectors';
@@ -143,7 +146,7 @@ function TimelineRow({ row, onSuggestedFollowed }) {
     return <PostCard post={row.post} />;
   }
   if (row.type === 'shop') {
-    return <FeedShopWidget title={row.title} products={row.products} brands={row.brands} />;
+    return <FeedShopWidget title={row.title} products={row.products} />;
   }
   if (row.type === 'suggested') {
     return <FeedSuggestedFollowsWidget users={row.users} onFollowed={onSuggestedFollowed} />;
@@ -161,9 +164,9 @@ function TimelineRow({ row, onSuggestedFollowed }) {
  * Tab chrome uses CSS sticky under the fixed navbar ({@link NAVBAR_OFFSET_CSS}).
  * Timeline rows are window-virtualized for a light DOM on long sessions.
  *
- * @param {{ embedded?: boolean, className?: string }} props
+ * @param {{ className?: string, top?: import('react').ReactNode }} props
  */
-export default function FeedRegion({ embedded: _embedded = false, className = '' }) {
+export default function FeedRegion({ className = '', top = null }) {
   const navigate = useNavigate();
   const location = useLocation();
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
@@ -195,12 +198,6 @@ export default function FeedRegion({ embedded: _embedded = false, className = ''
   const [fetchMoreSaved] = useLazyGetSavedFeedQuery();
   const [peekHomeFeed] = useLazyPeekHomeFeedQuery();
   const shouldLoadShop = tab === 'explore';
-  const { data: brandsResponse } = useGetBrandsQuery(
-    { all: true },
-    {
-      skip: !shouldLoadShop,
-    },
-  );
   const { data: popularResponse } = useGetProductsQuery(
     { is_popular: true, per_page: 9 },
     {
@@ -250,13 +247,20 @@ export default function FeedRegion({ embedded: _embedded = false, className = ''
   }, [refetchSuggestions, shouldLoadSuggestions]);
 
   const active = tab === 'following' ? followingQuery : tab === 'mine' ? mineQuery : tab === 'saved' ? savedQuery : exploreQuery;
+  const refetchActive = active.refetch;
+  const refreshHomeFeed = useCallback(() => refetchActive?.(), [refetchActive]);
+  const onHomeReselect = useCallback(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    refreshHomeFeed();
+  }, [refreshHomeFeed]);
+  useTabReselect('home', onHomeReselect);
+  const { offset, refreshing } = usePullToRefresh({ onRefresh: refreshHomeFeed });
   const items = active.data?.items ?? EMPTY_LIST;
   const hasMore = Boolean(active.data?.hasMore);
   const nextCursor = active.data?.nextCursor ?? null;
   const isInitialLoading = active.isLoading || (active.isFetching && items.length === 0);
   const isFetchingMore = active.isFetching && items.length > 0;
   const isError = active.isError;
-  const brands = brandsResponse?.data ?? EMPTY_LIST;
   const popularProducts = popularResponse?.data ?? EMPTY_LIST;
   const specialOfferProducts = specialOfferResponse?.data ?? EMPTY_LIST;
   const shopCollections = useMemo(
@@ -296,14 +300,13 @@ export default function FeedRegion({ embedded: _embedded = false, className = ''
         posts: items,
         tab,
         shopCollections,
-        brands,
         suggestedUsers,
         highlights,
         cycles: displayCycles,
         freshItems,
         freshFromCycle,
       }),
-    [items, tab, shopCollections, brands, suggestedUsers, highlights, displayCycles, freshItems, freshFromCycle],
+    [items, tab, shopCollections, suggestedUsers, highlights, displayCycles, freshItems, freshFromCycle],
   );
 
   const shouldRefillSuggestions = suggestedUsers.length <= SUGGESTED_FOLLOWS_REFILL_AT + 1;
@@ -426,6 +429,8 @@ export default function FeedRegion({ embedded: _embedded = false, className = ''
 
   return (
     <section className={`relative bg-black ${className}`} data-feed-region data-feed-stuck={isStuck ? '1' : '0'}>
+      <PullToRefreshIndicator offset={offset} refreshing={refreshing} className="-mx-4" />
+      {top}
       {/* In-flow sentinel (Shop/Scorecard pattern) — marks the sticky threshold under the navbar. */}
       <div ref={sentinelRef} className="h-px w-full" aria-hidden />
 

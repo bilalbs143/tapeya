@@ -6,6 +6,7 @@ import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { formatPrice, toNumber } from '@/lib/format';
+import { buildShopVendorPath } from '@/lib/shopPaths';
 import { useGetCartQuery, useRemoveCartItemMutation, useUpdateCartItemMutation } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 import {
@@ -161,7 +162,7 @@ export default function ShopCart() {
                         <h2 className="min-w-0 text-[13px] font-bold tracking-wide text-white uppercase">
                           {storeSlug ? (
                             <Link
-                              to={`/shop/vendors/${storeSlug}`}
+                              to={buildShopVendorPath(storeSlug)}
                               className="text-brand transition-opacity hover:opacity-80 active:opacity-80"
                             >
                               {storeName}

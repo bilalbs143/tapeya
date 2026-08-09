@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  isGlobalEntryDialogBlockedPath,
   isHeroNavbarPath,
+  isInterestCampaignDialogBlockedPath,
   isNavbarOverlayPath,
+  isProfileStrengthReminderBlockedPath,
   isReelsCreatorProfilePath,
   isReelsFeedPath,
   isReelsImmersivePath,
@@ -28,6 +31,17 @@ describe('reels route helpers', () => {
     expect(isReelsImmersivePath('/reels/u/12')).toBe(false);
     expect(isNavbarOverlayPath('/reels/u/12')).toBe(false);
     expect(isHeroNavbarPath('/reels/u/12', false)).toBe(false);
+  });
+});
+
+describe('auto dialogs on immersive reels', () => {
+  it('blocks profile / interest / global entry dialogs on the reels player', () => {
+    expect(isGlobalEntryDialogBlockedPath('/reels')).toBe(true);
+    expect(isGlobalEntryDialogBlockedPath('/reels/12')).toBe(true);
+    expect(isProfileStrengthReminderBlockedPath('/reels/12')).toBe(true);
+    expect(isInterestCampaignDialogBlockedPath('/reels/12')).toBe(true);
+    expect(isGlobalEntryDialogBlockedPath('/reels/upload')).toBe(false);
+    expect(isGlobalEntryDialogBlockedPath('/home')).toBe(false);
   });
 });
 

@@ -1,12 +1,9 @@
 import { Link, useParams } from 'react-router-dom';
 
-import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { UserAvatar } from '@/components/UserAvatar';
 import { formatDecimal, getInitials } from '@/lib/utils/displayUtils';
 import { statsTotalPaths } from '@/pages/scorecard/statsTotalFlow';
 import { useGetTournamentSeasonStatsQuery } from '@/store/api/tournamentApi';
-import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
-
-const defaultPlayerImage = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -66,12 +63,7 @@ function PlayerStatCard({ player, primaryStat, statSuffix = '' }) {
 
   return (
     <div className="bg-surface flex items-start gap-3 rounded-[17px] p-3">
-      <Avatar className="border-surface-border h-12 w-12 shrink-0 overflow-hidden rounded-full border">
-        {/* Fixed: was two conditional AvatarImage renders — simplified to one
-            since AvatarImage handles a falsy src via the AvatarFallback. */}
-        <AvatarImage src={player.image || defaultPlayerImage} alt="" />
-        <AvatarFallback className="bg-surface-border text-xs font-medium text-white">{initials}</AvatarFallback>
-      </Avatar>
+      <UserAvatar src={player.image} name={player.name} size="card" fallback={initials} />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-3">
           <span className="text-[16px] font-bold text-white">{player.name}</span>

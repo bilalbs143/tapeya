@@ -10,16 +10,12 @@ import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { ListingProductCard } from '@/components/shop/ListingProductCard';
 import { ShopSearchPopover } from '@/components/shop/ShopSearchPopover';
 import { NAVBAR_HEIGHT } from '@/lib/constants/layout';
+import { buildShopBrandPath } from '@/lib/shopPaths';
 import { useGetBrandsQuery, useGetProductsQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 
-function ShopSlider({ title, viewMorePath, products, brands, reverseDirection = false }) {
-  const productsWithBrandSlug = products.map((p) => ({
-    ...p,
-    brandSlug: brands.find((b) => b.id === p.brand_id)?.slug,
-  }));
-
-  if (productsWithBrandSlug.length === 0) return null;
+function ShopSlider({ title, viewMorePath, products, reverseDirection = false }) {
+  if (products.length === 0) return null;
 
   return (
     <section className="mb-10 space-y-3">
@@ -45,9 +41,9 @@ function ShopSlider({ title, viewMorePath, products, brands, reverseDirection = 
         className="shop-swiper -mx-4 px-4 [&_.swiper-wrapper]:items-stretch"
         grabCursor
       >
-        {productsWithBrandSlug.map((product) => (
+        {products.map((product) => (
           <SwiperSlide key={product.id}>
-            <ListingProductCard product={product} brandSlug={product.brandSlug} />
+            <ListingProductCard product={product} />
           </SwiperSlide>
         ))}
       </Swiper>
@@ -58,7 +54,7 @@ function ShopSlider({ title, viewMorePath, products, brands, reverseDirection = 
 export default function ShopHome() {
   const [tabsFixedVisible, setTabsFixedVisible] = useState(false);
   const tabsSentinelRef = useRef(null);
-  const { data: brandsResponse } = useGetBrandsQuery({ all: true });
+  const { data: brandsResponse } = useGetBrandsQuery({ all: true, has_products: true });
   const brands = brandsResponse?.data ?? [];
   const { data: popularResponse } = useGetProductsQuery({
     is_popular: true,
@@ -102,7 +98,7 @@ export default function ShopHome() {
                 {brands.map(({ id, name, slug, logo }) => (
                   <Link
                     key={id}
-                    to={`/shop/${slug}`}
+                    to={buildShopBrandPath(slug)}
                     className="bg-surface flex shrink-0 items-center gap-2 rounded-[6px] px-[13px] py-[10px] text-[13px] font-semibold tracking-wide text-white uppercase transition-colors hover:bg-[#252520] lg:min-w-[96px] lg:justify-center lg:px-4"
                     aria-label={`Shop ${name} Products`}
                   >
@@ -121,7 +117,7 @@ export default function ShopHome() {
                   {brands.map(({ id, name, slug, logo }) => (
                     <Link
                       key={id}
-                      to={`/shop/${slug}`}
+                      to={buildShopBrandPath(slug)}
                       className="bg-surface flex shrink-0 items-center gap-2 rounded-[6px] px-[13px] py-[10px] text-[13px] font-semibold tracking-wide text-white uppercase transition-colors hover:bg-[#252520] lg:min-w-[96px] lg:justify-center lg:px-4"
                       aria-label={`Shop ${name} Products`}
                     >
@@ -135,18 +131,11 @@ export default function ShopHome() {
           )}
 
           <div className="space-y-6 pt-2">
-            <ShopSlider
-              title="Most Popular"
-              viewMorePath="/shop/filter/popular"
-              products={popularProducts}
-              brands={brands}
-              reverseDirection={false}
-            />
+            <ShopSlider title="Most Popular" viewMorePath="/shop/filter/popular" products={popularProducts} />
             <ShopSlider
               title="Special Offer"
               viewMorePath="/shop/filter/special-offer"
               products={specialOfferProducts}
-              brands={brands}
               reverseDirection
             />
           </div>

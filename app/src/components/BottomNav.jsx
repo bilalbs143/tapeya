@@ -1,17 +1,17 @@
 import { Link, useLocation } from 'react-router-dom';
 
+import { UserAvatar } from '@/components/UserAvatar';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { BOTTOM_NAV_Z } from '@/lib/constants/layout';
+import { handlePrimaryTabClick } from '@/lib/navigation/tabReselect';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
-import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 
 const homeIcon = `${CLOUDFRONT_APP_BASE}/images/icons/home-navigation.svg`;
 const reelsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/reels-navigation-b.svg`;
 const shopIcon = `${CLOUDFRONT_APP_BASE}/images/icons/shop-navigation.svg`;
 const liveIcon = `${CLOUDFRONT_APP_BASE}/images/icons/live-navigation.svg`;
-const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
 
 function isTabActive(pathname, tabPath) {
   return pathname === tabPath || pathname.startsWith(tabPath + '/');
@@ -19,16 +19,13 @@ function isTabActive(pathname, tabPath) {
 
 function ProfileTabIcon({ avatarUrl, isActive }) {
   return (
-    <Avatar
-      className={`h-[22px] w-[22px] ring-1 ring-white/25 transition-opacity duration-200 ${
+    <UserAvatar
+      src={avatarUrl}
+      size="nav"
+      className={`ring-1 ring-white/25 transition-opacity duration-200 ${
         isActive ? 'opacity-100' : 'opacity-70 group-active:opacity-100'
       }`}
-    >
-      <AvatarImage src={avatarUrl || defaultAvatar} alt="" className="object-cover" />
-      <AvatarFallback className="bg-transparent p-0">
-        <img src={defaultAvatar} alt="" className="h-full w-full object-cover" />
-      </AvatarFallback>
-    </Avatar>
+    />
   );
 }
 
@@ -56,6 +53,7 @@ export function BottomNav() {
       <Link
         key={path}
         to={path}
+        onClick={(event) => handlePrimaryTabClick(event, location.pathname, path)}
         className="group relative flex h-[50px] min-w-12 flex-col items-center justify-center gap-1 rounded-xl px-1 transition-colors duration-200 focus-visible:outline-none"
         aria-current={isActive ? 'page' : undefined}
       >

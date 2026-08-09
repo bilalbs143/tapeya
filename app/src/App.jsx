@@ -15,6 +15,7 @@ import { DialogProvider } from '@/context/DialogContext';
 import { ToastProvider } from '@/context/ToastContext';
 import { useReverbNotifications } from '@/hooks/useReverbNotifications';
 import { isOverlayRoute } from '@/lib/isOverlayRoute';
+import { RedirectShopLegacyBrandProduct, RedirectShopProductPrefix, RedirectShopVendorPrefix } from '@/pages/shop/ShopRedirects';
 import { Toaster } from '@/ui/Toast';
 import { TooltipProvider } from '@/ui/Tooltip';
 
@@ -62,7 +63,7 @@ const ShopCheckout = lazy(() => import('@/pages/shop/ShopCheckout'));
 const ShopCategory = lazy(() => import('@/pages/shop/ShopCategory'));
 const ShopFilter = lazy(() => import('@/pages/shop/ShopFilter'));
 const ShopProductDetail = lazy(() => import('@/pages/shop/ShopProductDetail'));
-const ShopVendorStore = lazy(() => import('@/pages/shop/ShopVendorStore'));
+const ShopSlugPage = lazy(() => import('@/pages/shop/ShopSlugPage'));
 const MyOrders = lazy(() => import('@/pages/shop/MyOrders'));
 const OrderDetail = lazy(() => import('@/pages/shop/OrderDetail'));
 const OrderSuccess = lazy(() => import('@/pages/shop/OrderSuccess'));
@@ -74,6 +75,8 @@ const SellerOrderDetail = lazy(() => import('@/pages/vendor/SellerOrderDetail'))
 const SellerProducts = lazy(() => import('@/pages/vendor/SellerProducts'));
 const SellerProductForm = lazy(() => import('@/pages/vendor/SellerProductForm'));
 const SellerStore = lazy(() => import('@/pages/vendor/SellerStore'));
+const SellerBrands = lazy(() => import('@/pages/vendor/SellerBrands'));
+const SellerCategories = lazy(() => import('@/pages/vendor/SellerCategories'));
 
 const UpcomingTournaments = lazy(() => import('@/pages/upcoming-tournaments/UpcomingTournaments'));
 const UpcomingTournamentDetails = lazy(() => import('@/pages/upcoming-tournaments/UpcomingTournamentDetails'));
@@ -136,10 +139,13 @@ function App() {
                   <Route element={<MainLayout />}>
                     {/* Public shop catalog (unauthenticated GETs) */}
                     <Route path="/shop" element={<ShopHome />} />
-                    <Route path="/shop/vendors/:vendorSlug" element={<ShopVendorStore />} />
-                    <Route path="/shop/:brandId/product/:productSlug" element={<ShopProductDetail />} />
                     <Route path="/shop/filter/:filterKey" element={<ShopFilter />} />
-                    <Route path="/shop/:brandId" element={<ShopCategory />} />
+                    <Route path="/shop/brands/:brandSlug" element={<ShopCategory />} />
+                    <Route path="/shop/vendors/:vendorSlug" element={<RedirectShopVendorPrefix />} />
+                    <Route path="/shop/product/:vendorSlug/:productSlug" element={<RedirectShopProductPrefix />} />
+                    <Route path="/shop/:brandId/product/:productSlug" element={<RedirectShopLegacyBrandProduct />} />
+                    <Route path="/shop/:vendorSlug/:productSlug" element={<ShopProductDetail />} />
+                    <Route path="/shop/:slug" element={<ShopSlugPage />} />
 
                     <Route element={<RequireAuth />}>
                       <Route path="/home" element={<Home />} />
@@ -181,6 +187,8 @@ function App() {
                         <Route path="/seller/products/new" element={<SellerProductForm />} />
                         <Route path="/seller/products/:id/edit" element={<SellerProductForm />} />
                         <Route path="/seller/store" element={<SellerStore />} />
+                        <Route path="/seller/brands" element={<SellerBrands />} />
+                        <Route path="/seller/categories" element={<SellerCategories />} />
                       </Route>
                       <Route path="/tournament-request" element={<TournamentRequest />} />
                       <Route path="/tournament-request/success" element={<TournamentRequestSuccess />} />
