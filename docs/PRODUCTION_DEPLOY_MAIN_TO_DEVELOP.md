@@ -1,128 +1,50 @@
-# Production deploy — B2 + Cloudflare CDN cutover
+# Production deploy — `main` → `develop`
 
-**Not just `git pull`.** The CDN Worker is already live on Cloudflare (`cdn.tapeya.com`). Production still needs env + admin settings + API/app deploy.
+Ship **origin/develop** onto production after merge.
 
-Worker redeploy is only needed when `infra/cdn-tapeya` changes — from a laptop with Wrangler auth:
+| | SHA | Message |
+|---|---|---|
+| **main** (prod today) | `2de444c` | Keep reel originals for 48 hours after HLS is ready. |
+| **develop** (ship this) | `e061270` | Simplify shop products to Active/Inactive and server-managed slugs. |
 
-```bash
-cd infra/cdn-tapeya
-npx wrangler deploy
-```
+**3 commits** on develop, not on main:
+
+1. `959fea5` — Replace app-guard roles with assignment-based capabilities.
+2. `f1a9ad2` — Ship multi-vendor marketplace MVP for sellers and COD checkout.
+3. `e061270` — Shop products Active/Inactive + server-managed slugs.
+
+No CDN/Wrangler, no native Capacitor rebuild, no `composer.lock` change.
 
 ---
 
-## Already done (no prod server step)
+## What this release does
 
-- [x] Worker `cdn-tapeya` on route `cdn.tapeya.com/*`
-- [x] B2 read-only Worker secret (`B2_APPLICATION_KEY`) set in Cloudflare
-- [x] Workers Cache enabled; CORS + range support on CDN
+- App auth uses tournament/team **capabilities** (`/me`), not app-guard roles (`player` / `organizer` / `sponsor`).
+- Multi-vendor shop: sellers apply + list products + fulfill; buyers COD checkout; admin vendors / payments.
+- Existing products attach to the **house vendor** `tapeya-house` (Tapeya).
+- Product sellability = `is_active` + approved vendor. Slugs generated on the server.
+
+---
+
+## ⚠ Migration destroys live shop carts & orders
+
+`2026_08_05_100000_marketplace_phase0_shop_vendors` **deletes** all rows in:
+
+- `shop_cart_items` / `shop_carts`
+- `shop_order_items` / `shop_orders`
+
+Then creates the house vendor and sets every `shop_products.vendor_id` to it.
+
+**Before migrate:** warn ops / dump those tables if you need a record. There is no in-place conversion of old orders.
 
 ---
 
 ## Pre-deploy
 
-1. [ ] Commit & push this work (incl. `infra/cdn-tapeya`, HLS master cache fix, API/app changes).
-2. [ ] **rclone sync AWS S3 → B2** (same keys) — see [S3 → B2 sync](#s3--b2-sync-rclone) below. Do this **before** flipping prod CDN URL.
-3. [ ] Confirm FFmpeg on API host (`libwebp` for posters).
-4. [ ] Confirm reel queues in Supervisor (`reels-poster`, `reels-transcode`, `reels`).
-
----
-
-## S3 → B2 sync (rclone)
-
-**Direction:** AWS S3 `tapeya` (`ap-south-1`, CloudFront origin) → Backblaze B2 `tapeya` (`us-east-005`).  
-**Rule:** same object keys (no rewrite).  
-**Size (approx):** ~1.1 GiB / ~1.6k objects → full sync usually **5–15 minutes** (`--transfers 16`); slow link up to ~30 minutes.
-
-### Install rclone (Linux server)
-
-```bash
-# Official install script (gets latest stable)
-curl -fsSL https://rclone.org/install.sh | sudo bash
-
-# Or via package manager (version may be older):
-# sudo apt-get update && sudo apt-get install -y rclone   # Debian/Ubuntu
-# sudo dnf install -y rclone                             # Fedora/RHEL
-
-rclone version
-```
-
-### IAM on AWS user (required)
-
-Must include **`s3:ListBucket`** on the bucket ARN (object-only policy is not enough for rclone):
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": ["s3:ListBucket"],
-      "Resource": "arn:aws:s3:::tapeya"
-    },
-    {
-      "Effect": "Allow",
-      "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
-      "Resource": "arn:aws:s3:::tapeya/*"
-    }
-  ]
-}
-```
-
-For sync-from-S3 only, `GetObject` + `ListBucket` is enough on the AWS side. B2 write key needs list/read/write on bucket `tapeya`.
-
-### rclone config
-
-Create a local config file (do **not** commit secrets), e.g. `/tmp/tapeya-rclone.conf`:
-
-```ini
-[s3src]
-type = s3
-provider = AWS
-access_key_id = <AWS_ACCESS_KEY_ID>
-secret_access_key = <AWS_SECRET_ACCESS_KEY>
-region = ap-south-1
-
-[b2dest]
-type = s3
-provider = Other
-access_key_id = <B2_KEY_ID>
-secret_access_key = <B2_APPLICATION_KEY>
-endpoint = s3.us-east-005.backblazeb2.com
-region = us-east-005
-force_path_style = true
-```
-
-Put real values only in `/tmp/tapeya-rclone.conf` on the server (never commit that file).
-
-```bash
-export RCLONE_CONFIG=/tmp/tapeya-rclone.conf
-chmod 600 "$RCLONE_CONFIG"
-```
-
-### Steps
-
-```bash
-# 1) Sanity — list source
-rclone lsd s3src:tapeya
-rclone size s3src:tapeya
-
-# 2) Dry-run full sync
-rclone sync s3src:tapeya b2dest:tapeya --checksum --dry-run -v
-
-# 3) Optional — copy 2–3 files for real, then check CDN
-rclone copyto s3src:tapeya/path/to/file.jpg b2dest:tapeya/path/to/file.jpg --no-traverse
-curl -I "https://cdn.tapeya.com/path/to/file.jpg"   # expect 200
-
-# 4) Full sync
-rclone sync s3src:tapeya b2dest:tapeya --checksum --transfers 16 -v
-
-# 5) Spot-check
-rclone size b2dest:tapeya
-curl -I "https://cdn.tapeya.com/<known-key>"
-```
-
-`sync` makes B2 match S3 (same keys). Re-run later for a **delta** before final cutover.
+1. [ ] Merge `develop` → `main` (or deploy `e061270`) and push.
+2. [ ] DB dump (at least `shop_*` + `roles` / `role_user` / `permissions`).
+3. [ ] Confirm prod still on `2de444c` (or note current SHA) so rollback is possible.
+4. [ ] Optional `.env`: `SHOP_DEFAULT_COMMISSION_RATE=10` (default is already 10).
 
 ---
 
@@ -132,95 +54,128 @@ curl -I "https://cdn.tapeya.com/<known-key>"
 
 ```bash
 cd /var/www/tapeya/api   # adjust path
-git fetch && git checkout <release-ref>   # or: git pull
+git fetch
+git checkout <release-ref>   # main after merge, or e061270
 composer install --no-dev --optimize-autoloader
-php artisan migrate --force               # if any pending
+php artisan migrate --force
+php artisan db:seed --class=PermissionSeeder --force
+php artisan db:seed --class=PushNotificationTemplateSeeder --force
 php artisan settings:clear-cache
 php artisan config:clear
 php artisan config:cache
-# optional:
-# php artisan route:cache
+# optional: php artisan route:cache
 ```
 
-### 2. Env (API `.env`) — B2 write key + CDN host
+`PermissionSeeder` adds admin slugs (idempotent `firstOrCreate` + attach to `super_admin`):
 
-Use the **read/write** B2 application key for Laravel (not the Worker read-only key).
+- `shop.catalog.manage`
+- `shop.vendors.manage`
+- `shop.products.oversee`
+- `shop.orders.oversee`
+- `shop.payments.verify`
 
-```env
-MEDIA_DISK=s3
-AWS_ACCESS_KEY_ID=...          # B2 write key id
-AWS_SECRET_ACCESS_KEY=...      # B2 write application key
-AWS_DEFAULT_REGION=us-east-005
-AWS_BUCKET=tapeya
-AWS_ENDPOINT=https://s3.us-east-005.backblazeb2.com
-AWS_USE_PATH_STYLE_ENDPOINT=true
-AWS_URL=https://cdn.tapeya.com
-```
+Broadcaster does **not** get shop money/trust slugs.
 
-Then:
+`PushNotificationTemplateSeeder` updates `order_*` variables and deletes retired keys  
+`vendor_order_placed` / `vendor_order_status_updated` / `order_payment_updated`.
+
+### 2. Drop legacy app-guard roles (once, existing DBs only)
+
+After migrate + seeders. Irreversible. Does **not** touch admin-guard (`super_admin`, `broadcaster`).
 
 ```bash
-php artisan config:clear
-php artisan settings:clear-cache
-php artisan config:cache
+cd /var/www/tapeya/api
+psql "$DATABASE_URL" -f database/scripts/drop_legacy_app_guard_roles.sql
 ```
 
-### 3. Admin setting
+Fresh installs never seed app-guard roles (`RoleSeeder` is admin-only). Skip if `roles.guard = 'app'` is already empty.
 
-Admin → **System Settings** → **Media & CDN** → `cdn_public_base_url` = `https://cdn.tapeya.com` (no trailing slash).
+### 3. Queue workers
 
-```bash
-php artisan settings:clear-cache
-php artisan config:clear
-```
-
-Empty setting falls back to `AWS_URL`. Admin setting overrides `AWS_URL` at boot.
-
-### 4. Queue workers (if supervisor config changed)
+No new supervisor programs. Vendor/admin shop pushes use the existing `push-notifications` queue.
 
 ```bash
-sudo supervisorctl reread
-sudo supervisorctl update
 sudo supervisorctl status
+# must be UP: default, push-notifications, reels-poster, reels-transcode, reels
 ```
 
-Must be up: `default`, `push-notifications`, `reels-poster`, `reels-transcode`, `reels`.
+Restart PHP-FPM / queue only if workers still run old code:
 
-### 5. App / backoffice (if shipping frontend changes)
+```bash
+sudo supervisorctl restart all
+sudo systemctl reload php8.2-fpm   # adjust
+```
+
+### 4. Consumer app (`tapeya.com`)
 
 ```bash
 cd /var/www/tapeya/app
-npm ci && npm run build
-# deploy dist/
-
-cd /var/www/tapeya/backoffice
-npm ci && npm run build
-# deploy dist/
+npm ci
+npm run build:production
+# deploy app/dist/
 ```
+
+Seller hub: `/seller`, `/seller/apply`, products, orders, store. Buyer: vendor store, COD checkout, cart count.
+
+### 5. Backoffice (`admin.tapeya.com`)
+
+```bash
+cd /var/www/tapeya/backoffice
+npm ci
+npm run build:production
+# deploy dist/backoffice/browser
+```
+
+New **Shop → Vendors**. Orders: vendor splits, COD payment verify / refund. Products: Active/Inactive + vendor.
 
 ---
 
 ## Post-deploy smoke
 
-- [ ] Media URL host is `cdn.tapeya.com` (not raw B2, not CloudFront)
-- [ ] `curl -I https://cdn.tapeya.com/<known-object-key>` → **200**
-- [ ] Upload avatar / image post → CDN host on URL; object loads
-- [ ] Upload reel → poster → processing finishes → HLS plays from CDN
-- [ ] `supervisorctl status` — reel queues UP
-- [ ] Failed upload (bad creds) → `UPLOAD_FAILED`, no bad DB path
+### Capabilities (959fea5)
+
+- [ ] Logged-in `/me` has `capabilities` (no app `player`/`organizer`/`sponsor` roles required).
+- [ ] Team / squad / mention pickers still search users.
+- [ ] Backoffice user search still works.
+- [ ] `SELECT count(*) FROM roles WHERE guard = 'app';` → `0` after SQL script.
+
+### Marketplace (f1a9ad2 + e061270)
+
+- [ ] House vendor exists: `slug = tapeya-house`, `is_platform = true`, `status = approved`.
+- [ ] All existing products have `vendor_id` = that house vendor.
+- [ ] Public catalog + product detail still load.
+- [ ] Add to cart → checkout (address prefill from last order if any) → thank-you. **COD only.**
+- [ ] Cart header shows item count.
+- [ ] User applies as seller → pending; admin **Vendors** approve/reject/suspend.
+- [ ] Approved seller: `/seller` → create product (slug auto) → appears when Active.
+- [ ] Seller updates order status + optional tracking; buyer order detail shows vendor groups.
+- [ ] Admin can verify COD payment / mark refunded.
+- [ ] Push: buyer `order_placed` / `order_status_updated`; seller new-order + status (same `order_*` templates).
+- [ ] Inactive product is not sellable; approved vendor + Active is.
 
 ---
 
 ## Rollback
 
-1. Point `cdn_public_base_url` / `AWS_URL` back to CloudFront.
-2. Restore previous AWS/S3 credentials on `MEDIA_DISK=s3` (objects still on S3 until deleted).
-3. `php artisan settings:clear-cache && php artisan config:clear && php artisan config:cache`
+1. Redeploy previous API/app/backoffice (`2de444c`).
+2. Restore DB dump taken before migrate (required — migrate wipes orders/carts and is not a clean down on prod data).
+3. `php artisan config:clear && php artisan config:cache && php artisan settings:clear-cache`
+
+Do **not** rely on `migrate:rollback` for this shop migration in production.
 
 ---
 
-## Related docs
+## Out of scope this release
 
-- [MEDIA_CDN_MIGRATION.md](./MEDIA_CDN_MIGRATION.md) — B2 + Worker phases, rclone, cutover
-- [MEDIA_DELIVERY_AND_CACHE_PLAN.md](./MEDIA_DELIVERY_AND_CACHE_PLAN.md) — delivery / cache planning
-- [FEED_REELS_PRODUCTION_CLOSEOUT.md](./FEED_REELS_PRODUCTION_CLOSEOUT.md) — full feed/reels gate checklist
+- B2 / `cdn.tapeya.com` cutover (already live; no Worker change).
+- Native iOS/Android store build (no `app/ios` / `app/android` diff).
+- JazzCash / card gateway, RMA, seller payouts.
+
+---
+
+## Related
+
+- [MULTI_VENDOR_MARKETPLACE_PLAN.md](./MULTI_VENDOR_MARKETPLACE_PLAN.md)
+- [APP_CAPABILITIES.md](./APP_CAPABILITIES.md)
+- [actors_and_roles.md](./actors_and_roles.md) §9 cleanup SQL
+- [DEPLOYMENT.md](./DEPLOYMENT.md) — build commands
