@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

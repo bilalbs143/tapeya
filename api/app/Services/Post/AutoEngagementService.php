@@ -18,17 +18,24 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Temporary growth helper: walk all public posts in id chunks, drip likes/views
- * from random active users. No extra tables.
+ * Temporary growth helper: walk public ready posts in id chunks, drip likes/views
+ * from random active users. Video posts use reels targets (likes + views);
+ * text/image/repost use simple-post likes only.
  *
- * Chunk cursor lives in cache via {@see Cache::forever()} — no TTL, so it is not
- * time-expired. (A full cache flush still resets it to 0, which is safe: the walk
- * simply restarts from the lowest under-target id.)
+ * Chunk size is derived from the ready-post catalog (no admin knob).
+ * Cursor: cache key {@see self::CURSOR_CACHE_KEY} via {@see Cache::forever()}.
  */
 class AutoEngagementService
 {
-    /** Durable-until-flushed cursor; never use a TTL on this key. */
+    /** Durable-until-flush cursor; never use a TTL on this key. */
     public const CURSOR_CACHE_KEY = 'posts.auto_engagement.cursor_id';
+
+    /** Scheduled every 15 minutes — spread one full sweep across the day. */
+    private const TICKS_PER_DAY = 96;
+
+    private const MAX_CHUNK = 200;
+
+    private const MAX_DRIP = 3;
 
     public function __construct(
         private PostsSettings $settings,
@@ -48,33 +55,31 @@ class AutoEngagementService
             return 0;
         }
 
-        $likeTarget = max(0, min(50, (int) $this->settings->autoLikeCount));
-        $viewTarget = max(0, min(200, (int) $this->settings->autoViewCount));
-        $chunk = max(1, min(200, (int) $this->settings->autoEngagementPostsPerRun));
-        $drip = max(1, min(5, (int) $this->settings->autoEngagementActionsPerPost));
+        $reelsTarget = $this->settings->reelsEngagementTarget();
+        $simpleTarget = $this->settings->simplePostLikesTarget();
 
-        if ($likeTarget === 0 && $viewTarget === 0) {
+        if ($reelsTarget === 0 && $simpleTarget === 0) {
             return 0;
         }
 
-        if ($this->remainingUnderTargetCount($likeTarget, $viewTarget) === 0) {
+        if ($this->remainingUnderTargetCount($reelsTarget, $simpleTarget) === 0) {
             $this->resetCursor();
 
             return 0;
         }
 
+        $chunk = $this->chunkSize();
         $cursor = $this->cursor();
 
-        $posts = $this->underTargetQuery($likeTarget, $viewTarget)
+        $posts = $this->underTargetQuery($reelsTarget, $simpleTarget)
             ->where('id', '>', $cursor)
             ->orderBy('id')
             ->limit($chunk)
             ->get();
 
-        // End of catalog — wrap to first under-target chunk.
         if ($posts->isEmpty()) {
             $this->resetCursor();
-            $posts = $this->underTargetQuery($likeTarget, $viewTarget)
+            $posts = $this->underTargetQuery($reelsTarget, $simpleTarget)
                 ->orderBy('id')
                 ->limit($chunk)
                 ->get();
@@ -88,6 +93,12 @@ class AutoEngagementService
 
         $touched = 0;
         foreach ($posts as $post) {
+            [$likeTarget, $viewTarget] = $this->targetsForPost($post, $reelsTarget, $simpleTarget);
+            if ($likeTarget === 0 && $viewTarget === 0) {
+                continue;
+            }
+
+            $drip = $this->dripFor($likeTarget, $viewTarget);
             if ($this->dripEngagePost($post, $likeTarget, $viewTarget, $drip)) {
                 $touched++;
             }
@@ -98,18 +109,18 @@ class AutoEngagementService
         return $touched;
     }
 
-    /** How many public posts still sit under like and/or view targets. */
-    public function remainingUnderTargetCount(?int $likeTarget = null, ?int $viewTarget = null): int
+    /** How many public ready posts still sit under type-specific targets. */
+    public function remainingUnderTargetCount(?int $reelsTarget = null, ?int $simpleTarget = null): int
     {
         $this->reloadSettings();
-        $likeTarget ??= max(0, min(50, (int) $this->settings->autoLikeCount));
-        $viewTarget ??= max(0, min(200, (int) $this->settings->autoViewCount));
+        $reelsTarget ??= $this->settings->reelsEngagementTarget();
+        $simpleTarget ??= $this->settings->simplePostLikesTarget();
 
-        if ($likeTarget === 0 && $viewTarget === 0) {
+        if ($reelsTarget === 0 && $simpleTarget === 0) {
             return 0;
         }
 
-        return $this->underTargetQuery($likeTarget, $viewTarget)->count();
+        return $this->underTargetQuery($reelsTarget, $simpleTarget)->count();
     }
 
     public function isComplete(): bool
@@ -132,6 +143,20 @@ class AutoEngagementService
     private function storeCursor(int $postId): void
     {
         Cache::forever(self::CURSOR_CACHE_KEY, max(0, $postId));
+    }
+
+    /**
+     * Posts per tick from ready catalog size (~one full pass per day at 15m schedule).
+     */
+    public function chunkSize(): int
+    {
+        $ready = $this->readyPublicPostCount();
+
+        if ($ready <= 0) {
+            return 1;
+        }
+
+        return max(1, min(self::MAX_CHUNK, (int) ceil($ready / self::TICKS_PER_DAY)));
     }
 
     /**
@@ -208,21 +233,66 @@ class AutoEngagementService
     }
 
     /**
-     * @return Builder<Post>
+     * @return array{0: int, 1: int} [likeTarget, viewTarget]
      */
-    private function underTargetQuery(int $likeTarget, int $viewTarget): Builder
+    private function targetsForPost(Post $post, int $reelsTarget, int $simpleTarget): array
+    {
+        if ($this->isVideo($post)) {
+            return [$reelsTarget, $reelsTarget];
+        }
+
+        return [$simpleTarget, 0];
+    }
+
+    private function dripFor(int $likeTarget, int $viewTarget): int
+    {
+        $cap = max($likeTarget, $viewTarget);
+
+        if ($cap <= 0) {
+            return 1;
+        }
+
+        return max(1, min(self::MAX_DRIP, (int) ceil($cap / 10)));
+    }
+
+    private function readyPublicPostCount(): int
     {
         return Post::query()
             ->whereNotNull('published_at')
             ->where('visibility', PostVisibilityEnum::Public)
             ->where('status', PostStatusEnum::Ready)
-            ->where(function ($q) use ($likeTarget, $viewTarget) {
-                if ($likeTarget > 0) {
-                    $q->where('likes_count', '<', $likeTarget);
+            ->count();
+    }
+
+    /**
+     * @return Builder<Post>
+     */
+    private function underTargetQuery(int $reelsTarget, int $simpleTarget): Builder
+    {
+        return Post::query()
+            ->whereNotNull('published_at')
+            ->where('visibility', PostVisibilityEnum::Public)
+            ->where('status', PostStatusEnum::Ready)
+            ->where(function ($q) use ($reelsTarget, $simpleTarget) {
+                $hasClause = false;
+
+                if ($reelsTarget > 0) {
+                    $q->where(function ($video) use ($reelsTarget) {
+                        $video->where('type', PostTypeEnum::Video)
+                            ->where(function ($targets) use ($reelsTarget) {
+                                $targets->where('likes_count', '<', $reelsTarget)
+                                    ->orWhere('views_count', '<', $reelsTarget);
+                            });
+                    });
+                    $hasClause = true;
                 }
-                if ($viewTarget > 0) {
-                    $method = $likeTarget > 0 ? 'orWhere' : 'where';
-                    $q->{$method}('views_count', '<', $viewTarget);
+
+                if ($simpleTarget > 0) {
+                    $method = $hasClause ? 'orWhere' : 'where';
+                    $q->{$method}(function ($simple) use ($simpleTarget) {
+                        $simple->where('type', '!=', PostTypeEnum::Video)
+                            ->where('likes_count', '<', $simpleTarget);
+                    });
                 }
             });
     }

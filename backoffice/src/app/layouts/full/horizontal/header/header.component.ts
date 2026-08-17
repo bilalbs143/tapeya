@@ -110,6 +110,7 @@ export class AppHorizontalHeaderComponent implements OnInit {
     if (type === AdminNotificationType.VENDOR_APPLICATION_SUBMITTED) return 'building-store';
     if (type === AdminNotificationType.BROADCAST_CONCURRENCY_HIGH) return 'broadcast';
     if (type === AdminNotificationType.YOUTUBE_QUOTA_HIGH) return 'gauge';
+    if (type === AdminNotificationType.SUPPORT_MESSAGE_SUBMITTED) return 'headset';
     return 'user';
   }
 

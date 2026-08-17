@@ -9,4 +9,5 @@ export const ADMIN_BACKOFFICE_BROADCAST_EVENTS = [
   '.admin.vendor_application.submitted',
   '.admin.broadcast_concurrency.high',
   '.admin.youtube_quota.high',
+  '.admin.support_message.submitted',
 ] as const;

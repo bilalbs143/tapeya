@@ -3,41 +3,33 @@
     <form
       (ngSubmit)="loadHttpData()"
       [formGroup]="searchForm"
-      aria-label="Filter Form"
+      aria-label="Filter form"
     >
       <div class="grid grid-cols-12 gap-4 items-end">
-        <div class="col-span-12 sm:col-span-6 lg:col-span-3">
-          <mat-form-field
-            appearance="outline"
-            class="w-full hide-hint"
-          >
-            <mat-label>Store Name</mat-label>
-            <input
-              matInput
-              formControlName="store_name"
-            />
-          </mat-form-field>
-        </div>
-        <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+        <div class="col-span-12 sm:col-span-6 lg:col-span-4">
           <mat-form-field
             appearance="outline"
             class="w-full hide-hint"
           >
             <mat-label>Status</mat-label>
             <mat-select formControlName="status">
-              @for (opt of statusFilterOptions; track opt.value) {
-                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              <mat-option value="">All</mat-option>
+              @if (statusOptions$ | async; as opts) {
+                @for (opt of opts; track opt.value) {
+                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                }
               }
             </mat-select>
           </mat-form-field>
         </div>
-        <div class="col-span-12 sm:col-span-6 lg:col-span-6 flex flex-wrap items-center justify-end gap-2">
+
+        <div class="col-span-12 sm:col-span-6 lg:col-span-8 flex flex-wrap items-center justify-end gap-2">
           <button
             mat-stroked-button
             type="button"
             (click)="resetSearchForm()"
           >
-            Clear Search
+            Clear
           </button>
           <button
             mat-flat-button
@@ -45,14 +37,6 @@
             type="submit"
           >
             Search
-          </button>
-          <button
-            mat-flat-button
-            color="primary"
-            type="button"
-            (click)="openCreateDialog()"
-          >
-            Add Vendor
           </button>
         </div>
       </div>
@@ -67,8 +51,8 @@
         <table
           mat-table
           matSort
-          aria-label="Vendors List"
-          matSortActive="id"
+          aria-label="Support messages list"
+          matSortActive="created_at"
           matSortStart="desc"
           matSortDirection="desc"
           [dataSource]="dataSource"
@@ -90,56 +74,24 @@
               {{ totalRecords - currentPage * pageSize - i }}
             </td>
           </ng-container>
-          <ng-container matColumnDef="store_name">
+
+          <ng-container matColumnDef="name">
             <th
               mat-header-cell
               *matHeaderCellDef
-              mat-sort-header
               class="bg-light-secondary text-sm font-semibold"
             >
-              Store Name
+              From
             </th>
             <td
               mat-cell
               *matCellDef="let row"
               class="text-sm whitespace-nowrap"
             >
-              {{ row.store_name }}
+              <span class="font-medium">{{ submitterLabel(row) }}</span>
             </td>
           </ng-container>
-          <ng-container matColumnDef="slug">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              mat-sort-header
-              class="bg-light-secondary text-sm font-semibold"
-            >
-              Slug
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
-            >
-              {{ row.slug ?? emptyCell }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="user">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
-            >
-              User
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="text-sm whitespace-nowrap"
-            >
-              {{ row.user?.name ?? emptyCell }}
-            </td>
-          </ng-container>
+
           <ng-container matColumnDef="phone">
             <th
               mat-header-cell
@@ -153,13 +105,65 @@
               *matCellDef="let row"
               class="text-sm whitespace-nowrap"
             >
-              {{ row.phone ?? row.user?.phone ?? emptyCell }}
+              {{ row.phone ?? emptyCell }}
             </td>
           </ng-container>
+
+          <ng-container matColumnDef="message">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Message
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm max-w-[320px]"
+            >
+              <span
+                class="line-clamp-2 leading-snug"
+                [title]="row.message"
+              >
+                {{ row.message }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="attachment">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="bg-light-secondary text-sm font-semibold"
+            >
+              Attachment
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let row"
+              class="text-sm whitespace-nowrap"
+            >
+              @if (row.attachment_url) {
+                <a
+                  [href]="row.attachment_url"
+                  target="_blank"
+                  rel="noopener"
+                  class="text-primary"
+                >
+                  View
+                </a>
+              } @else {
+                {{ emptyCell }}
+              }
+            </td>
+          </ng-container>
+
           <ng-container matColumnDef="status">
             <th
               mat-header-cell
               *matHeaderCellDef
+              mat-sort-header="status"
               class="bg-light-secondary text-sm font-semibold"
             >
               Status
@@ -167,48 +171,35 @@
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
+              class="text-sm whitespace-nowrap"
             >
               <span
                 class="rounded-sm font-semibold px-1.5 py-1 text-xs"
                 [ngClass]="statusClass(row.status)"
               >
-                {{ statusLabel(row) }}
+                {{ row.status_label ?? row.status }}
               </span>
             </td>
           </ng-container>
-          <ng-container matColumnDef="commission_rate">
+
+          <ng-container matColumnDef="created_at">
             <th
               mat-header-cell
               *matHeaderCellDef
+              mat-sort-header
               class="bg-light-secondary text-sm font-semibold"
             >
-              Commission
+              Created At
             </th>
             <td
               mat-cell
               *matCellDef="let row"
-              class="text-sm"
+              class="text-sm whitespace-nowrap"
             >
-              {{ row.commission_rate !== null ? row.commission_rate + '%' : emptyCell }}
+              {{ row.created_at ? (row.created_at | date: 'yyyy-MM-dd HH:mm') : emptyCell }}
             </td>
           </ng-container>
-          <ng-container matColumnDef="is_platform">
-            <th
-              mat-header-cell
-              *matHeaderCellDef
-              class="bg-light-secondary text-sm font-semibold"
-            >
-              Platform
-            </th>
-            <td
-              mat-cell
-              *matCellDef="let row"
-              class="text-sm"
-            >
-              {{ row.is_platform ? 'Yes' : 'No' }}
-            </td>
-          </ng-container>
+
           <ng-container matColumnDef="actions">
             <th
               mat-header-cell
@@ -225,72 +216,17 @@
               <button
                 type="button"
                 class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
-                aria-label="Edit Vendor"
-                (click)="openEditDialog(row)"
+                aria-label="View support message"
+                (click)="openUpdateDialog(row)"
               >
                 <i-tabler
                   name="edit"
                   class="size-4.5!"
                 ></i-tabler>
               </button>
-              @if (canApprove(row)) {
-                <button
-                  type="button"
-                  class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
-                  aria-label="Approve Vendor"
-                  title="Approve"
-                  (click)="approveVendor(row)"
-                >
-                  <i-tabler
-                    name="check"
-                    class="size-4.5!"
-                  ></i-tabler>
-                </button>
-              }
-              @if (canReject(row)) {
-                <button
-                  type="button"
-                  class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
-                  aria-label="Reject Vendor"
-                  title="Reject"
-                  (click)="rejectVendor(row)"
-                >
-                  <i-tabler
-                    name="x"
-                    class="size-4.5!"
-                  ></i-tabler>
-                </button>
-              }
-              @if (canSuspend(row)) {
-                <button
-                  type="button"
-                  class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
-                  aria-label="Suspend Vendor"
-                  title="Suspend"
-                  (click)="suspendVendor(row)"
-                >
-                  <i-tabler
-                    name="ban"
-                    class="size-4.5!"
-                  ></i-tabler>
-                </button>
-              }
-              <button
-                type="button"
-                class="me-2.5 cursor-pointer border-0 bg-transparent p-0 align-middle"
-                aria-label="Delete Vendor"
-                [disabled]="row.is_platform"
-                [class.opacity-40]="row.is_platform"
-                [class.pointer-events-none]="row.is_platform"
-                (click)="openDeleteDialog(row)"
-              >
-                <i-tabler
-                  name="trash"
-                  class="size-4.5!"
-                ></i-tabler>
-              </button>
             </td>
           </ng-container>
+
           <tr
             mat-header-row
             *matHeaderRowDef="displayedColumns; sticky: true"
@@ -302,6 +238,7 @@
         </table>
       </app-table-wrapper>
     </div>
+
     <app-paginator
       [length]="totalRecords"
       [pageIndex]="currentPage"

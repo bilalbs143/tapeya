@@ -15,6 +15,7 @@ use App\Enums\Shop\PaymentMethodEnum;
 use App\Enums\Shop\PaymentStatusEnum;
 use App\Enums\Shop\ProductDiscountTypeEnum;
 use App\Enums\Stats\StatsBucketEnum;
+use App\Enums\Support\SupportMessageStatusEnum;
 use App\Enums\SystemSetting\SystemSettingGroupEnum;
 use App\Enums\Tournament\GroupModeEnum;
 use App\Enums\Tournament\TournamentInterestCampaignStatusEnum;
@@ -46,7 +47,7 @@ class EnumController extends Controller
      */
     public function index(): JsonResponse
     {
-        $enums = Cache::remember('admin:enums:v16', 600, fn () => $this->buildEnums());
+        $enums = Cache::remember('admin:enums:v17', 600, fn () => $this->buildEnums());
 
         return $this->success($enums);
     }
@@ -65,6 +66,7 @@ class EnumController extends Controller
             'bowling_style' => $this->toOptions(BowlingStyleEnum::cases()),
             'batting_style' => $this->toOptions(BattingStyleEnum::cases()),
             'order_status' => $this->toOptions(OrderStatusEnum::cases()),
+            'support_message_status' => $this->toOptions(SupportMessageStatusEnum::cases()),
             'payment_status' => $this->toOptions(PaymentStatusEnum::cases()),
             'payment_method' => $this->toOptions(PaymentMethodEnum::cases()),
             'product_discount_type' => $this->toOptions(ProductDiscountTypeEnum::cases()),

@@ -90,10 +90,8 @@ enum SystemSettingKeyEnum: string
     case REELS_MULTIPART_PART_SIZE_MB = 'reels_multipart_part_size_mb';
     case REELS_MULTIPART_MAX_PARTS = 'reels_multipart_max_parts';
     case REELS_AUTO_ENGAGEMENT_ENABLED = 'reels_auto_engagement_enabled';
-    case REELS_AUTO_LIKE_COUNT = 'reels_auto_like_count';
-    case REELS_AUTO_VIEW_COUNT = 'reels_auto_view_count';
-    case REELS_AUTO_ENGAGEMENT_POSTS_PER_RUN = 'reels_auto_engagement_posts_per_run';
-    case REELS_AUTO_ENGAGEMENT_ACTIONS_PER_POST = 'reels_auto_engagement_actions_per_post';
+    case REELS_ENGAGEMENT_PER_DAY = 'reels_engagement_per_day';
+    case REELS_SIMPLE_POST_LIKES_PER_DAY = 'reels_simple_post_likes_per_day';
 
     public function group(): SystemSettingGroupEnum
     {

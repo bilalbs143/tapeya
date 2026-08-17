@@ -106,6 +106,11 @@ export const navItems: NavItem[] = [
     route: '/notifications',
   },
   {
+    displayName: 'Support',
+    iconName: 'solar:chat-round-call-line-duotone',
+    route: '/support',
+  },
+  {
     displayName: 'Engagement',
     iconName: 'solar:chat-round-dots-line-duotone',
     children: [

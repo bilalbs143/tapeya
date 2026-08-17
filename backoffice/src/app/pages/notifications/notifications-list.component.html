@@ -310,6 +310,18 @@
                   ></i-tabler>
                 </a>
               }
+              @if (row.type === AdminNotificationType.SUPPORT_MESSAGE_SUBMITTED && row.data?.support_message_id !== null) {
+                <a
+                  [routerLink]="['/support']"
+                  aria-label="View Support Messages"
+                  class="align-middle"
+                >
+                  <i-tabler
+                    name="headset"
+                    class="size-4.5!"
+                  ></i-tabler>
+                </a>
+              }
             </td>
           </ng-container>
           <tr

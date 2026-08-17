@@ -71,6 +71,7 @@ export class VendorsComponent implements OnInit, AfterViewInit, OnDestroy {
     'store_name',
     'slug',
     'user',
+    'phone',
     'status',
     'commission_rate',
     'is_platform',

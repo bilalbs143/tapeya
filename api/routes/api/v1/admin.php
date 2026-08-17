@@ -30,6 +30,7 @@ use App\Http\Controllers\Admin\Shop\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\Shop\VendorController as AdminVendorController;
 use App\Http\Controllers\Admin\StaticPageController;
 use App\Http\Controllers\Admin\StreamController;
+use App\Http\Controllers\Admin\SupportMessageController as AdminSupportMessageController;
 use App\Http\Controllers\Admin\SystemSettingController;
 use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\TournamentBroadcasterController;
@@ -61,6 +62,10 @@ Route::prefix('admin')->group(function () {
         Route::get('post-reports', [AdminPostReportController::class, 'index']);
         Route::get('post-reports/{postReport}', [AdminPostReportController::class, 'show']);
         Route::patch('post-reports/{postReport}', [AdminPostReportController::class, 'update']);
+
+        Route::get('support-messages', [AdminSupportMessageController::class, 'index']);
+        Route::get('support-messages/{supportMessage}', [AdminSupportMessageController::class, 'show']);
+        Route::patch('support-messages/{supportMessage}', [AdminSupportMessageController::class, 'update']);
 
         Route::get('push-notifications', [PushNotificationController::class, 'index']);
         Route::post('push-notifications/send', [PushNotificationController::class, 'send']);

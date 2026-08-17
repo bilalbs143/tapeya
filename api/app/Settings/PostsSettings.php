@@ -41,20 +41,17 @@ class PostsSettings extends Settings
     /** Max multipart parts (0 = no app limit). */
     public int $multipartMaxParts;
 
-    /** 1 = temporary auto like/view boost enabled, 0 = off. */
+    /** 1 = auto like/view boost from random active users, 0 = off. */
     public int $autoEngagementEnabled;
 
-    /** Target likes_count per post (fill up to this with random active users). */
-    public int $autoLikeCount;
+    /**
+     * Target likes_count and views_count per reel (video post).
+     * Likes on reels also record a view for the same user.
+     */
+    public int $reelsEngagementPerDay;
 
-    /** Target views_count per post/reel (fill up to this; likes also count as views on reels). */
-    public int $autoViewCount;
-
-    /** How many under-target posts to touch each successful tick. */
-    public int $autoEngagementPostsPerRun;
-
-    /** Max likes (and max views) to add per post per tick — keeps growth gradual. */
-    public int $autoEngagementActionsPerPost;
+    /** Target likes_count per simple post (text / image / repost). Views are not boosted. */
+    public int $simplePostLikesPerDay;
 
     public static function group(): string
     {
@@ -64,6 +61,16 @@ class PostsSettings extends Settings
     public function autoEngagementIsEnabled(): bool
     {
         return $this->autoEngagementEnabled === 1;
+    }
+
+    public function reelsEngagementTarget(): int
+    {
+        return max(0, min(200, (int) $this->reelsEngagementPerDay));
+    }
+
+    public function simplePostLikesTarget(): int
+    {
+        return max(0, min(50, (int) $this->simplePostLikesPerDay));
     }
 
     public function viewMinCompletionRate(): float

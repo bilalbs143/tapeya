@@ -4,12 +4,14 @@ namespace App\Support\Broadcast;
 
 use App\Events\Broadcast\Admin\BroadcastConcurrencyAlertBroadcast;
 use App\Events\Broadcast\Admin\OrderPlacedBroadcast;
+use App\Events\Broadcast\Admin\SupportMessageSubmittedBroadcast;
 use App\Events\Broadcast\Admin\TournamentRequestSubmittedBroadcast;
 use App\Events\Broadcast\Admin\UserRegisteredBroadcast;
 use App\Events\Broadcast\Admin\VendorApplicationSubmittedBroadcast;
 use App\Events\Broadcast\Admin\YouTubeQuotaAlertBroadcast;
 use App\Notifications\BroadcastConcurrencyAlertAdminNotification;
 use App\Notifications\OrderPlacedAdminNotification;
+use App\Notifications\SupportMessageSubmittedAdminNotification;
 use App\Notifications\TournamentRequestSubmittedAdminNotification;
 use App\Notifications\UserRegisteredAdminNotification;
 use App\Notifications\VendorApplicationSubmittedAdminNotification;
@@ -55,6 +57,11 @@ final class ResolveAdminInboxBroadcast
                 $data,
             ),
             YouTubeQuotaAlertAdminNotification::class => new YouTubeQuotaAlertBroadcast(
+                $notificationId,
+                $notificationType,
+                $data,
+            ),
+            SupportMessageSubmittedAdminNotification::class => new SupportMessageSubmittedBroadcast(
                 $notificationId,
                 $notificationType,
                 $data,

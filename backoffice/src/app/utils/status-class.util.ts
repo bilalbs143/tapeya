@@ -28,6 +28,7 @@ const STATUS_CLASS_MAP: Record<string, string> = {
   failed: 'bg-light-error text-error',
   removed: 'bg-light-secondary text-secondary',
   open: 'bg-light-warning text-warning',
+  resolved: 'bg-light-success text-success',
   reviewed: 'bg-light-info text-info',
   dismissed: 'bg-light-secondary text-secondary',
   actioned: 'bg-light-success text-success',
