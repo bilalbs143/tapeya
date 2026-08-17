@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
+import { PlayerSearchResultRow } from '@/components/PlayerSearchResultRow';
 import { TeamLogo } from '@/components/TeamLogo';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToast } from '@/hooks/useToast';
@@ -230,19 +231,12 @@ export default function TeamDetail() {
                     ) : playersToAdd.length > 0 ? (
                       <ul className="py-1">
                         {playersToAdd.map((player) => (
-                          <li key={player.id}>
-                            <button
-                              type="button"
-                              onClick={() => handleAddPlayer(player)}
-                              disabled={isSavingSquad}
-                              className="flex w-full cursor-pointer flex-col gap-0.5 px-4 py-3 text-left text-white transition-colors hover:bg-white/10 disabled:opacity-60"
-                            >
-                              <span className="font-semibold text-white">{player.name ?? player.nickname ?? '—'}</span>
-                              {(player.playing_role ?? player.playing_role_enum) && (
-                                <span className="text-muted text-[13px]">{player.playing_role ?? player.playing_role_enum}</span>
-                              )}
-                            </button>
-                          </li>
+                          <PlayerSearchResultRow
+                            key={player.id}
+                            player={player}
+                            disabled={isSavingSquad}
+                            onClick={() => handleAddPlayer(player)}
+                          />
                         ))}
                       </ul>
                     ) : (

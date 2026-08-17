@@ -71,7 +71,7 @@ class AdminVendorManageTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.status', VendorStatusEnum::APPROVED->value);
 
-        $this->assertSame(VendorStatusEnum::APPROVED->value, $owner->fresh()->vendorStatus());
+        $this->assertSame(VendorStatusEnum::APPROVED->value, $owner->fresh()->shopVendor?->status?->value);
 
         $this->actingAs($admin, 'api')
             ->postJson("/api/v1/admin/shop/vendors/{$vendorId}/suspend", [

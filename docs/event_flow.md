@@ -2,6 +2,8 @@
 
 End-to-end flow from tournament request to scheduled tournament matches. Defines who does what and what is implemented vs planned.
 
+**Casual / standalone games:** this document covers **Tournament Match** only (a Match that belongs to a tournament). **Quick Match** is a first-class Match with **no** tournament — not a tournament subtype and not a dummy tournament. See [QUICK_MATCH.md](./QUICK_MATCH.md) §5.0. Do not fold Quick Match into these numbered steps. Do not make organizer Start Match `tournament_id` optional.
+
 ---
 
 ## 1. Overview

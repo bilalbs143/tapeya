@@ -4,6 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-route
 
 import { ConsumerRouterEffects } from '@/components/ConsumerRouterEffects';
 import DialogManager from '@/components/dialogs/DialogManager';
+import { GoogleAnalyticsBoot } from '@/components/GoogleAnalyticsBoot';
 import InterestCampaignDialogScheduler from '@/components/InterestCampaignDialogScheduler';
 import ProgrammaticDialogPrompts from '@/components/ProgrammaticDialogPrompts';
 import { RequireAuth } from '@/components/RequireAuth';
@@ -96,6 +97,8 @@ const TournamentAddSquad = lazy(() => import('@/pages/organizer/tournaments/Tour
 const TournamentSquad = lazy(() => import('@/pages/organizer/tournaments/TournamentSquad'));
 const StartMatch = lazy(() => import('@/pages/organizer/scoring/StartMatch'));
 const ScoringMatch = lazy(() => import('@/pages/organizer/scoring/ScoringMatch'));
+const QuickMatchWizard = lazy(() => import('@/pages/quick-match/QuickMatchWizard'));
+const MyMatches = lazy(() => import('@/pages/quick-match/MyMatches'));
 
 function PageFallback() {
   return (
@@ -127,6 +130,7 @@ function App() {
               }}
             >
               <RouterEffects />
+              <GoogleAnalyticsBoot />
               <ScrollRestoration />
               <DialogManager />
               <ProgrammaticDialogPrompts />
@@ -156,7 +160,6 @@ function App() {
                       <Route path="/upcoming-tournaments" element={<UpcomingTournaments />} />
                       <Route path="/upcoming-tournaments/:tournamentId" element={<UpcomingTournamentDetails />} />
                       <Route path="/interest/:slug" element={<InterestForm />} />
-                      {/* <Route element={<RequireOrganizerRole />}> */}
                       <Route path="/organizer/tournaments" element={<Tournaments />} />
                       <Route
                         path="/organizer/tournaments/:tournamentId/create-team-intro"
@@ -165,10 +168,13 @@ function App() {
                       <Route path="/organizer/tournaments/:tournamentId/saved-teams" element={<TournamentSavedTeams />} />
                       <Route path="/organizer/tournaments/:tournamentId/add-squad" element={<TournamentAddSquad />} />
                       <Route path="/organizer/tournaments/:tournamentId/squad" element={<TournamentSquad />} />
-                      {/* </Route> */}
                       <Route path="/organizer/scoring/start-match" element={<StartMatch />} />
                       <Route path="/organizer/scoring/match/:matchId" element={<ScoringMatch />} />
+                      <Route path="/quick-match" element={<QuickMatchWizard />} />
+                      <Route path="/quick-match/:matchId" element={<QuickMatchWizard />} />
+                      <Route path="/matches" element={<MyMatches />} />
                       <Route path="/scorecard" element={<ScorecardHome />} />
+                      <Route path="/scorecard/match/:matchId" element={<ScorecardStatusDetails />} />
                       <Route path="/scorecard/:tournamentId" element={<ScorecardDetails />} />
                       <Route path="/scorecard/:tournamentId/match/:matchId" element={<ScorecardStatusDetails />} />
                       <Route path="/scorecard/:tournamentId/stats-total/:statType" element={<StatsTotal />} />

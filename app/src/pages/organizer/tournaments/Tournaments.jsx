@@ -9,24 +9,11 @@ import { areTournamentTeamsComplete, getTournamentDisplayImage, getTournamentTit
 import { useGetTournamentsQuery } from '@/store/api/tournamentApi';
 import { useGetMyTournamentRequestsQuery } from '@/store/api/tournamentRequestApi';
 import { Container } from '@/ui/Container';
+import { StatusPill } from '@/ui/StatusPill';
+import { tournamentRequestStatusTone } from '@/ui/statusPillTones';
 
 /** Same asset as upcoming tournament details (Fixtures) header. */
 const FIXTURE_CARD_IMAGE = `${CLOUDFRONT_APP_BASE}/images/background/fixture-bg.png`;
-
-const STATUS_STYLES = {
-  pending: 'bg-brand/15 text-brand border-brand/40',
-  approved: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40',
-  rejected: 'bg-red-500/15 text-red-400 border-red-500/40',
-};
-
-function StatusBadge({ status, label }) {
-  const style = STATUS_STYLES[status] ?? STATUS_STYLES.pending;
-  return (
-    <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-bold tracking-wide uppercase ${style}`}>
-      {label ?? status}
-    </span>
-  );
-}
 
 function PendingRequestCard({ request }) {
   const dates = formatDateRange(request.start_date, request.end_date);
@@ -40,7 +27,11 @@ function PendingRequestCard({ request }) {
       </div>
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex flex-wrap items-center gap-2">
-          <StatusBadge status={request.status} label={request.status_label} />
+          <StatusPill
+            tone={tournamentRequestStatusTone(request.status)}
+            size="sm"
+            label={request.status_label ?? request.status}
+          />
         </div>
         <h3 className="line-clamp-2 text-[13px] font-bold text-white">{request.tournament_name}</h3>
         {request.tournament_type_label && <p className="text-muted mt-0.5 text-[12px]">{request.tournament_type_label}</p>}

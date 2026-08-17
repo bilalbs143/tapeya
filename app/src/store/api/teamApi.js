@@ -9,10 +9,19 @@ import { stripDeferredMediaFields } from './mediaApi';
 export const teamApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     searchTeams: builder.query({
-      query: (search = '') => ({
-        url: '/teams',
-        params: search.trim() ? { search: search.trim() } : {},
-      }),
+      query: (arg = '') => {
+        if (arg && typeof arg === 'object') {
+          const params = {};
+          if (arg.search?.trim()) params.search = arg.search.trim();
+          if (arg.mine) params.mine = 1;
+          return { url: '/teams', params };
+        }
+        const search = typeof arg === 'string' ? arg : '';
+        return {
+          url: '/teams',
+          params: search.trim() ? { search: search.trim() } : {},
+        };
+      },
       transformResponse: (response) => response?.data ?? response ?? [],
       providesTags: (result) =>
         Array.isArray(result) && result.length > 0
@@ -85,5 +94,6 @@ export const {
   useCreateTeamMutation,
   useUpdateTeamMutation,
   useGetTeamSquadQuery,
+  useLazyGetTeamSquadQuery,
   useUpdateTeamSquadMutation,
 } = teamApi;

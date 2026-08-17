@@ -11,14 +11,12 @@ export function RequireVendorAccess() {
     skip: !user?.id,
   });
   const profileUser = meResponse?.data ?? user;
-  const hasCaps = profileUser?.capabilities != null;
-  const allowed = userHasVendorAccess(profileUser);
 
-  if (isLoading && !hasCaps) {
+  if (isLoading && meResponse == null) {
     return null;
   }
 
-  if (!allowed) {
+  if (!userHasVendorAccess(profileUser)) {
     return <Navigate to="/profile" replace />;
   }
 

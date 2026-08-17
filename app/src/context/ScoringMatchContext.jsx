@@ -16,7 +16,9 @@ export const ScoringMatchContext = createContext(null);
  * @returns {{
  *   matchId: string,
  *   match: object | null,
+ *   apiMatch: object | null,
  *   matchComplete: boolean,
+ *   canOperate: boolean,
  *   wagonWheelEnabled: boolean,
  *   innings1Id: string | null,
  *   innings2Id: string | null,

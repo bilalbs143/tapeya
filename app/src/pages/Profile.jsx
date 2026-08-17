@@ -21,18 +21,7 @@ const PROFILE_VIEWS = [
   { value: 'sponsor', label: 'As a Sponsor' },
 ];
 
-/**
- * Profile views from assignment-based capabilities (not app roles).
- * Every app user gets the player view; organizer/sponsor appear when assigned.
- */
-function getProfileViews(user) {
-  if (user == null) return ['player'];
-  const caps = user.capabilities ?? {};
-  const views = ['player'];
-  if (caps.tournament_manager) views.push('organizer');
-  if (caps.team_owner) views.push('sponsor');
-  return views;
-}
+const PROFILE_VIEW_VALUES = PROFILE_VIEWS.map((v) => v.value);
 
 function ProfileContent({ activeRole, user }) {
   switch (activeRole) {
@@ -57,17 +46,11 @@ export default function Profile() {
   const user = meResponse?.data ?? userFromStore;
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const profileViews = useMemo(() => getProfileViews(user), [user]);
-
-  const visibleTabs = useMemo(() => PROFILE_VIEWS.filter(({ value }) => profileViews.includes(value)), [profileViews]);
-
-  const hasMultipleViews = profileViews.length > 1;
-
   const activeRole = useMemo(() => {
     const fromUrl = searchParams.get('role');
-    if (fromUrl && profileViews.includes(fromUrl)) return fromUrl;
-    return profileViews[0] ?? null;
-  }, [searchParams, profileViews]);
+    if (fromUrl && PROFILE_VIEW_VALUES.includes(fromUrl)) return fromUrl;
+    return 'player';
+  }, [searchParams]);
 
   // TODO: replace with a public profile URL (e.g. /players/:id) once that route exists.
   const handleShare = useCallback(async () => {
@@ -89,22 +72,20 @@ export default function Profile() {
     <div className="bg-black">
       <ProfileHeader user={user} onShare={handleShare} />
 
-      {hasMultipleViews && (
-        <Tabs className="w-full" value={activeRole ?? ''} onValueChange={setActiveRole}>
-          <div className="px-4 pt-10">
-            <TabsList className={profileListClass}>
-              {visibleTabs.map(({ value, label }) => (
-                <TabsTrigger key={value} value={value} className={profileTriggerClass}>
-                  {label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </div>
-        </Tabs>
-      )}
+      <Tabs className="w-full" value={activeRole} onValueChange={setActiveRole}>
+        <div className="px-4 pt-10">
+          <TabsList className={profileListClass}>
+            {PROFILE_VIEWS.map(({ value, label }) => (
+              <TabsTrigger key={value} value={value} className={profileTriggerClass}>
+                {label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
+      </Tabs>
 
       <div className="px-4 pt-6 pb-6">
-        <ProfileContent activeRole={activeRole ?? 'player'} user={user} />
+        <ProfileContent activeRole={activeRole} user={user} />
       </div>
 
       <section className="border-t border-white/10 px-4 pt-8 pb-10" aria-labelledby="account-danger-heading">

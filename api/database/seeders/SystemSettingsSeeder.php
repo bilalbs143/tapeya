@@ -180,6 +180,11 @@ class SystemSettingsSeeder extends Seeder
         $reels->viewRedisBuffer ??= 1;
         $reels->multipartPartSizeMb ??= 1;
         $reels->multipartMaxParts ??= 0;
+        $reels->autoEngagementEnabled ??= 0;
+        $reels->autoLikeCount ??= 8;
+        $reels->autoViewCount ??= 40;
+        $reels->autoEngagementPostsPerRun ??= 100;
+        $reels->autoEngagementActionsPerPost ??= 1;
         $reels->save();
     }
 

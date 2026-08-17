@@ -3,8 +3,10 @@
 namespace App\Services;
 
 use App\Enums\Event\CricketFormatEnum;
+use App\Enums\Event\MatchKindEnum;
 use App\Enums\Event\PenaltyTeamEnum;
 use App\Enums\Stats\StatCategoryEnum;
+use App\Enums\Stats\StatsBucketEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
 use App\Models\Ball;
 use App\Models\Innings;
@@ -550,13 +552,13 @@ class PlayerStatsService
      * tournament_type and cricket_format are both specific; else computes from balls.
      * Profile views with cricket_format=all always compute — no materialized "all" row exists.
      *
-     * @param  TournamentTypeEnum|'all'|null  $eventType  null or 'all' = compute from balls
+     * @param  StatsBucketEnum|TournamentTypeEnum|'all'|null  $eventType  null or 'all' = tournament career (excludes quick)
      * @param  CricketFormatEnum|'all'|null  $cricketFormat  null or 'all' = no format filter
      * @return array{matches: int, innings: int, not_outs: int, runs: int, balls_faced: int, fours: int, sixes: int, dots: int, highest_score: string, hundreds: int, fifties: int, average: float|null, strike_rate: float|null}
      */
     public function battingForPlayer(
         int $playerId,
-        TournamentTypeEnum|string|null $eventType,
+        StatsBucketEnum|TournamentTypeEnum|string|null $eventType,
         CricketFormatEnum|string|null $cricketFormat = null
     ): array {
         $eventTypeValue = $this->normalizeEventType($eventType);
@@ -592,13 +594,13 @@ class PlayerStatsService
      * Accumulative bowling stats for a player. Reads from player_bowling_stats when
      * tournament_type and cricket_format are set; else computes.
      *
-     * @param  TournamentTypeEnum|'all'|null  $eventType
+     * @param  StatsBucketEnum|TournamentTypeEnum|'all'|null  $eventType
      * @param  CricketFormatEnum|'all'|null  $cricketFormat
      * @return array{matches: int, innings: int, overs: float, maidens: int, runs_conceded: int, wickets: int, no_balls: int, wides: int, best_bowling_innings: string, best_bowling_match: string, five_wickets: int, ten_wickets: int, average: float|null, economy: float|null, strike_rate: float|null}
      */
     public function bowlingForPlayer(
         int $playerId,
-        TournamentTypeEnum|string|null $eventType,
+        StatsBucketEnum|TournamentTypeEnum|string|null $eventType,
         CricketFormatEnum|string|null $cricketFormat = null
     ): array {
         $eventTypeValue = $this->normalizeEventType($eventType);
@@ -636,13 +638,13 @@ class PlayerStatsService
      * Accumulative fielding stats for a player. Reads from player_fielding_stats when
      * tournament_type and cricket_format are set; else computes.
      *
-     * @param  TournamentTypeEnum|'all'|null  $eventType
+     * @param  StatsBucketEnum|TournamentTypeEnum|'all'|null  $eventType
      * @param  CricketFormatEnum|'all'|null  $cricketFormat
      * @return array{matches: int, catches: int, run_outs: int, stumpings: int}
      */
     public function fieldingForPlayer(
         int $playerId,
-        TournamentTypeEnum|string|null $eventType,
+        StatsBucketEnum|TournamentTypeEnum|string|null $eventType,
         CricketFormatEnum|string|null $cricketFormat = null
     ): array {
         $eventTypeValue = $this->normalizeEventType($eventType);
@@ -980,7 +982,7 @@ class PlayerStatsService
 
     private function computeBattingForPlayer(
         int $playerId,
-        TournamentTypeEnum|string|null $eventType,
+        StatsBucketEnum|TournamentTypeEnum|string|null $eventType,
         CricketFormatEnum|string|null $cricketFormat = null
     ): array {
         $matchIds = $this->matchIdsForStatBucket($eventType, $cricketFormat);
@@ -1057,16 +1059,15 @@ class PlayerStatsService
 
     private function computeBowlingForPlayer(
         int $playerId,
-        TournamentTypeEnum|string|null $eventType,
+        StatsBucketEnum|TournamentTypeEnum|string|null $eventType,
         CricketFormatEnum|string|null $cricketFormat = null
     ): array {
         $base = Ball::query()
             ->where('bowler_id', $playerId)
             ->join('innings', 'balls.innings_id', '=', 'innings.id')
-            ->join('matches', 'innings.match_id', '=', 'matches.id')
-            ->join('tournaments', 'matches.tournament_id', '=', 'tournaments.id');
+            ->join('matches', 'innings.match_id', '=', 'matches.id');
 
-        $this->applyStatBucketFilter($base, $eventType, $cricketFormat);
+        $this->scopeMatchBucket($base, $eventType, $cricketFormat);
 
         $balls = $base->select('balls.*')->get();
         $runsConceded = $balls->sum(fn ($b) => self::runsConcededByBowlerOnBall($b));
@@ -1121,7 +1122,7 @@ class PlayerStatsService
 
     private function computeFieldingForPlayer(
         int $playerId,
-        TournamentTypeEnum|string|null $eventType,
+        StatsBucketEnum|TournamentTypeEnum|string|null $eventType,
         CricketFormatEnum|string|null $cricketFormat = null
     ): array {
         $query = Ball::query()
@@ -1129,10 +1130,9 @@ class PlayerStatsService
             ->where('fielder_id', $playerId)
             ->join('innings', 'balls.innings_id', '=', 'innings.id')
             ->join('matches', 'innings.match_id', '=', 'matches.id')
-            ->join('tournaments', 'matches.tournament_id', '=', 'tournaments.id')
             ->select('balls.*', 'innings.match_id');
 
-        $this->applyStatBucketFilter($query, $eventType, $cricketFormat);
+        $this->scopeMatchBucket($query, $eventType, $cricketFormat);
 
         $balls = $query->get();
         $catches = $balls->filter(fn ($b) => $b->dismissal_type?->value === 'caught')->count();
@@ -1154,32 +1154,50 @@ class PlayerStatsService
     // ─── Private: query helpers ───────────────────────────────────────────────
 
     /**
-     * Apply tournament_type and cricket_format filters; null on either dimension means "all".
+     * Scope a query that already joins `matches` to a stats bucket.
+     * Quick: filter matches.kind + matches.cricket_format.
+     * Tournament / all: join tournaments and filter type/format (excludes quick via inner join).
      */
-    private function applyStatBucketFilter(
+    private function scopeMatchBucket(
         Builder $query,
-        TournamentTypeEnum|string|null $eventType,
+        StatsBucketEnum|TournamentTypeEnum|string|null $eventType,
         CricketFormatEnum|string|null $cricketFormat = null
     ): void {
         $typeVal = $this->normalizeEventType($eventType);
+        $formatVal = $this->normalizeCricketFormat($cricketFormat);
+
+        if ($typeVal === StatsBucketEnum::QUICK->value) {
+            $query->where('matches.kind', MatchKindEnum::QUICK->value);
+            if ($formatVal !== null) {
+                $query->where('matches.cricket_format', $formatVal);
+            }
+
+            return;
+        }
+
+        $query->join('tournaments', 'matches.tournament_id', '=', 'tournaments.id');
+
         if ($typeVal !== null) {
             $query->where('tournaments.tournament_type', $typeVal);
         }
 
-        $formatVal = $this->normalizeCricketFormat($cricketFormat);
         if ($formatVal !== null) {
             $query->where('tournaments.cricket_format', $formatVal);
         }
     }
 
-    /** @return string|null tournament_type string, or null for 'all' / null */
-    private function normalizeEventType(TournamentTypeEnum|string|null $eventType): ?string
+    /** @return string|null bucket string, or null for 'all' / null (tournament career) */
+    private function normalizeEventType(StatsBucketEnum|TournamentTypeEnum|string|null $eventType): ?string
     {
         if ($eventType === null || $eventType === 'all') {
             return null;
         }
 
-        return $eventType instanceof TournamentTypeEnum ? $eventType->value : (string) $eventType;
+        if ($eventType instanceof StatsBucketEnum || $eventType instanceof TournamentTypeEnum) {
+            return $eventType->value;
+        }
+
+        return (string) $eventType;
     }
 
     /** @return string|null cricket_format string, or null for 'all' / null */
@@ -1193,22 +1211,36 @@ class PlayerStatsService
     }
 
     private function matchIdsForStatBucket(
-        TournamentTypeEnum|string|null $eventType,
+        StatsBucketEnum|TournamentTypeEnum|string|null $eventType,
         CricketFormatEnum|string|null $cricketFormat = null
     ): array {
-        $q = TournamentMatch::query()->select('matches.id');
-        $filterByType = $eventType && $eventType !== 'all';
-        $filterByFormat = $cricketFormat && $cricketFormat !== 'all';
+        $typeVal = $this->normalizeEventType($eventType);
+        $formatVal = $this->normalizeCricketFormat($cricketFormat);
 
-        if ($filterByType || $filterByFormat) {
+        $q = TournamentMatch::query()->select('matches.id');
+
+        if ($typeVal === StatsBucketEnum::QUICK->value) {
+            $q->where('matches.kind', MatchKindEnum::QUICK->value);
+            if ($formatVal !== null) {
+                $q->where('matches.cricket_format', $formatVal);
+            }
+
+            return $q->pluck('matches.id')->all();
+        }
+
+        // Tournament career (including "all"): never include quick matches.
+        $q->where(function ($inner) {
+            $inner->where('matches.kind', MatchKindEnum::TOURNAMENT->value)
+                ->orWhereNull('matches.kind');
+        });
+
+        if ($typeVal !== null || $formatVal !== null) {
             $q->join('tournaments', 'matches.tournament_id', '=', 'tournaments.id');
         }
-        if ($filterByType) {
-            $val = $eventType instanceof TournamentTypeEnum ? $eventType->value : $eventType;
-            $q->where('tournaments.tournament_type', $val);
+        if ($typeVal !== null) {
+            $q->where('tournaments.tournament_type', $typeVal);
         }
-        if ($filterByFormat) {
-            $formatVal = $cricketFormat instanceof CricketFormatEnum ? $cricketFormat->value : $cricketFormat;
+        if ($formatVal !== null) {
             $q->where('tournaments.cricket_format', $formatVal);
         }
 
@@ -1217,34 +1249,32 @@ class PlayerStatsService
 
     private function matchCountForPlayerBatting(
         int $playerId,
-        TournamentTypeEnum|string|null $eventType,
+        StatsBucketEnum|TournamentTypeEnum|string|null $eventType,
         CricketFormatEnum|string|null $cricketFormat = null
     ): int {
         $q = TournamentMatch::query()
             ->join('innings', 'matches.id', '=', 'innings.match_id')
             ->join('balls', 'innings.id', '=', 'balls.innings_id')
-            ->join('tournaments', 'matches.tournament_id', '=', 'tournaments.id')
             ->where('balls.striker_id', $playerId)
             ->distinct('matches.id');
 
-        $this->applyStatBucketFilter($q, $eventType, $cricketFormat);
+        $this->scopeMatchBucket($q, $eventType, $cricketFormat);
 
         return $q->count('matches.id');
     }
 
     private function matchCountForPlayerBowling(
         int $playerId,
-        TournamentTypeEnum|string|null $eventType,
+        StatsBucketEnum|TournamentTypeEnum|string|null $eventType,
         CricketFormatEnum|string|null $cricketFormat = null
     ): int {
         $q = TournamentMatch::query()
             ->join('innings', 'matches.id', '=', 'innings.match_id')
             ->join('balls', 'innings.id', '=', 'balls.innings_id')
-            ->join('tournaments', 'matches.tournament_id', '=', 'tournaments.id')
             ->where('balls.bowler_id', $playerId)
             ->distinct('matches.id');
 
-        $this->applyStatBucketFilter($q, $eventType, $cricketFormat);
+        $this->scopeMatchBucket($q, $eventType, $cricketFormat);
 
         return $q->count('matches.id');
     }
@@ -1255,15 +1285,14 @@ class PlayerStatsService
      */
     private function matchCountWithTenWickets(
         int $playerId,
-        TournamentTypeEnum|string|null $eventType,
+        StatsBucketEnum|TournamentTypeEnum|string|null $eventType,
         CricketFormatEnum|string|null $cricketFormat = null
     ): int {
         $inningsQuery = Innings::query()
             ->join('matches', 'innings.match_id', '=', 'matches.id')
-            ->join('tournaments', 'matches.tournament_id', '=', 'tournaments.id')
             ->select('innings.id', 'innings.match_id');
 
-        $this->applyStatBucketFilter($inningsQuery, $eventType, $cricketFormat);
+        $this->scopeMatchBucket($inningsQuery, $eventType, $cricketFormat);
 
         $inningsByMatch = $inningsQuery->get()->groupBy('match_id');
 
@@ -1315,15 +1344,14 @@ class PlayerStatsService
      */
     private function bestBowlingMatchForPlayer(
         int $playerId,
-        TournamentTypeEnum|string|null $eventType,
+        StatsBucketEnum|TournamentTypeEnum|string|null $eventType,
         CricketFormatEnum|string|null $cricketFormat = null
     ): string {
         $inningsQuery = Innings::query()
             ->join('matches', 'innings.match_id', '=', 'matches.id')
-            ->join('tournaments', 'matches.tournament_id', '=', 'tournaments.id')
             ->select('innings.id', 'innings.match_id');
 
-        $this->applyStatBucketFilter($inningsQuery, $eventType, $cricketFormat);
+        $this->scopeMatchBucket($inningsQuery, $eventType, $cricketFormat);
 
         $inningsByMatch = $inningsQuery->get()->groupBy('match_id');
 

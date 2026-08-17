@@ -91,7 +91,7 @@ final class GraphicContextBuilder
 
         $home = $match->homeTeam;
         $away = $match->awayTeam;
-        $tournament = $match->tournament;
+        $summary = $match->tournamentSummary();
 
         $matchContext = self::graphicSessionMatchSlice($match);
 
@@ -111,9 +111,9 @@ final class GraphicContextBuilder
         return [
             'match' => $matchContext,
             'tournament' => [
-                'name' => $tournament?->tournament_name ?? '',
-                'short' => $tournament?->short_name ?? '',
-                'logo_url' => $tournament ? $logoUrl($tournament->display_image) : null,
+                'name' => $summary['name'] ?? '',
+                'short' => $summary['short_name'] ?? '',
+                'logo_url' => $summary['logo_url'] ?? null,
             ],
             'tournament_aggregates' => $this->tournamentAggregates->buildForTournament($tournamentId),
             'next_match_fixture' => $this->nextMatchFixture->buildForMatch($match),

@@ -30,7 +30,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Schema;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\QueryBuilder\AllowedFilter;
 
@@ -67,6 +66,7 @@ class User extends Authenticatable
         'reels_count',
         'posts_count',
         'created_by',
+        'added_via_quick_match',
         'referred_by',
         'active_platform',
         'active_platform_updated_at',
@@ -118,6 +118,7 @@ class User extends Authenticatable
             'bowling_style' => BowlingStyleEnum::class,
             'batting_style' => BattingStyleEnum::class,
             'created_by' => 'integer',
+            'added_via_quick_match' => 'boolean',
             'active_platform_updated_at' => 'datetime',
             'can_broadcast' => 'boolean',
             'is_official' => 'boolean',
@@ -210,8 +211,37 @@ class User extends Authenticatable
         return $this->isUser() && $this->isTournamentStaff($tournament);
     }
 
+    public function isQuickMatchOwner(TournamentMatch $match): bool
+    {
+        return $match->isQuick()
+            && $match->created_by !== null
+            && (int) $match->created_by === (int) $this->id;
+    }
+
+    public function canOperateQuickMatch(TournamentMatch $match): bool
+    {
+        return $this->isUser() && $this->isQuickMatchOwner($match);
+    }
+
     /**
-     * App scoring / scorecard: organizer or pivot staff, or platform administrator (break-glass).
+     * Kind-first gate for toss / squad / XI / captain / WK / PoM.
+     * Does not include admin break-glass (that is {@see canScoreMatchInApp} only).
+     * Never call {@see canOperateTournamentInApp} for a quick match.
+     */
+    public function canOperateMatchInApp(TournamentMatch $match): bool
+    {
+        if ($match->isQuick()) {
+            return $this->canOperateQuickMatch($match);
+        }
+
+        $match->loadMissing('tournament');
+
+        return $this->canOperateTournamentInApp($match->tournament);
+    }
+
+    /**
+     * App scoring / scorecard: kind-first. Quick → owner (or admin). Tournament → staff (or admin).
+     * Never call {@see canOperateTournamentInApp} for a quick match (tournament is null).
      */
     public function canScoreMatchInApp(TournamentMatch $match): bool
     {
@@ -221,6 +251,10 @@ class User extends Authenticatable
 
         if ($this->isAdmin()) {
             return true;
+        }
+
+        if ($match->isQuick()) {
+            return $this->canOperateQuickMatch($match);
         }
 
         $match->loadMissing('tournament');
@@ -272,65 +306,9 @@ class User extends Authenticatable
         return $this->hasMany(Team::class, 'user_id');
     }
 
-    /** True when the user owns at least one team. */
-    public function isTeamOwner(): bool
-    {
-        if ($this->relationLoaded('ownedTeams')) {
-            return $this->ownedTeams->isNotEmpty();
-        }
-
-        return $this->ownedTeams()->exists();
-    }
-
-    /**
-     * True when the user is organizer_id, created_by, or tournament_broadcaster on at least one tournament.
-     */
-    public function isTournamentManager(): bool
-    {
-        $uid = $this->id;
-
-        return Tournament::query()
-            ->where(function ($q) use ($uid) {
-                $q->where('organizer_id', $uid)
-                    ->orWhere('created_by', $uid)
-                    ->orWhereHas('broadcasters', fn ($b) => $b->whereKey($uid));
-            })
-            ->exists();
-    }
-
-    /**
-     * Marketplace vendor status from shop_vendors; null when user has no vendor row.
-     */
-    public function vendorStatus(): ?string
-    {
-        if (! Schema::hasTable('shop_vendors')) {
-            return null;
-        }
-
-        $vendor = $this->relationLoaded('shopVendor')
-            ? $this->shopVendor
-            : $this->shopVendor()->first();
-
-        return $vendor?->status?->value;
-    }
-
     public function shopVendor(): HasOne
     {
         return $this->hasOne(Vendor::class, 'user_id');
-    }
-
-    /**
-     * Derived app capabilities for /me (assignment-based — not app role slugs).
-     *
-     * @return array{tournament_manager: bool, team_owner: bool, vendor_status: ?string}
-     */
-    public function appCapabilities(): array
-    {
-        return [
-            'tournament_manager' => $this->isTournamentManager(),
-            'team_owner' => $this->isTeamOwner(),
-            'vendor_status' => $this->vendorStatus(),
-        ];
     }
 
     /**

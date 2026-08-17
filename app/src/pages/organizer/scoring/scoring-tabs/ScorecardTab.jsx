@@ -25,7 +25,7 @@ const TABLE_CELL = `border-r border-b ${BORDER} px-4 py-3 text-center text-white
 const TABLE_CELL_LEFT = `border-r border-b border-l ${BORDER} bg-black px-4 py-3 text-white`;
 const TABLE_CELL_LA = `border-r border-b ${BORDER} px-4 py-3 text-white`;
 const TABLE_HEADER_CELL = `${HEADER_BG} w-[2.5rem] border-r border-b py-2.5 text-center font-bold text-white ${BORDER}`;
-const TABLE_HEADER_FIRST = `${HEADER_BG} border-r border-b border-l px-4 py-2.5 text-left text-[12px] font-bold text-brand ${BORDER}`;
+const TABLE_HEADER_FIRST = `${HEADER_BG} border-r border-b border-l px-4 py-2.5 text-left text-[12px] font-bold text-white ${BORDER}`;
 const TABLE_EMPTY_CELL = `border-r border-b border-l ${BORDER} px-4 py-3 text-center text-muted`;
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -220,7 +220,7 @@ export function ScorecardTab() {
             <tr className={HEADER_BG}>
               <th
                 colSpan={3}
-                className={`${HEADER_BG} text-brand border-r border-b border-l px-4 py-2.5 text-left text-[12px] font-bold tracking-wide uppercase ${BORDER}`}
+                className={`${HEADER_BG} border-r border-b border-l px-4 py-2.5 text-left text-[12px] font-bold tracking-wide text-white uppercase ${BORDER}`}
               >
                 Fall of Wickets
               </th>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { PlayerSearchResultRow } from '@/components/PlayerSearchResultRow';
 import { ScoringBatsmanPickerRow, ScoringBowlerPickerRow } from '@/components/scoring/ScoringPlayerPickerRows';
 import { SquadSetupPlayerRow } from '@/components/scoring/SquadSetupPlayerRow';
 import { useDialog } from '@/context/DialogContext';
@@ -109,21 +110,14 @@ function AddPlayerSearch({ squadIds, onAdd }) {
           ) : candidates.length > 0 ? (
             <ul className="py-1">
               {candidates.map((player) => (
-                <li key={player.id}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onAdd(player);
-                      setQuery('');
-                    }}
-                    className="flex w-full cursor-pointer flex-col gap-0.5 px-4 py-3 text-left text-white transition-colors hover:bg-white/10"
-                  >
-                    <span className="font-semibold text-white">{player.name ?? player.nickname ?? '—'}</span>
-                    {(player.playing_role ?? player.playing_role_enum) && (
-                      <span className="text-muted text-[13px]">{player.playing_role ?? player.playing_role_enum}</span>
-                    )}
-                  </button>
-                </li>
+                <PlayerSearchResultRow
+                  key={player.id}
+                  player={player}
+                  onClick={() => {
+                    onAdd(player);
+                    setQuery('');
+                  }}
+                />
               ))}
             </ul>
           ) : (

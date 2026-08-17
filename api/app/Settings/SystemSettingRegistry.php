@@ -253,7 +253,8 @@ final class SystemSettingRegistry
                 'value' => ['required', 'integer', 'min:0', 'max:100'],
             ],
             SystemSettingKeyEnum::REELS_VIEW_ALLOW_ANONYMOUS,
-            SystemSettingKeyEnum::REELS_VIEW_REDIS_BUFFER => [
+            SystemSettingKeyEnum::REELS_VIEW_REDIS_BUFFER,
+            SystemSettingKeyEnum::REELS_AUTO_ENGAGEMENT_ENABLED => [
                 'value' => ['required', 'integer', 'in:0,1'],
             ],
             SystemSettingKeyEnum::REELS_MULTIPART_PART_SIZE_MB => [
@@ -261,6 +262,18 @@ final class SystemSettingRegistry
             ],
             SystemSettingKeyEnum::REELS_MULTIPART_MAX_PARTS => [
                 'value' => ['required', 'integer', 'min:0', 'max:10000'],
+            ],
+            SystemSettingKeyEnum::REELS_AUTO_LIKE_COUNT => [
+                'value' => ['required', 'integer', 'min:0', 'max:50'],
+            ],
+            SystemSettingKeyEnum::REELS_AUTO_VIEW_COUNT => [
+                'value' => ['required', 'integer', 'min:0', 'max:200'],
+            ],
+            SystemSettingKeyEnum::REELS_AUTO_ENGAGEMENT_POSTS_PER_RUN => [
+                'value' => ['required', 'integer', 'min:1', 'max:200'],
+            ],
+            SystemSettingKeyEnum::REELS_AUTO_ENGAGEMENT_ACTIONS_PER_POST => [
+                'value' => ['required', 'integer', 'min:1', 'max:5'],
             ],
         };
     }
@@ -836,6 +849,51 @@ final class SystemSettingRegistry
                 'description' => 'Maximum number of upload parts. 0 = no app limit.',
                 'settings_class' => PostsSettings::class,
                 'property' => 'multipartMaxParts',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::REELS_AUTO_ENGAGEMENT_ENABLED->value => [
+                'group' => SystemSettingGroupEnum::REELS,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Auto Engagement Enabled',
+                'description' => '1 = temporary auto likes/views from random active users. 0 = off.',
+                'settings_class' => PostsSettings::class,
+                'property' => 'autoEngagementEnabled',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::REELS_AUTO_LIKE_COUNT->value => [
+                'group' => SystemSettingGroupEnum::REELS,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Auto Like Count',
+                'description' => 'Target likes_count per post (0–50). Filled by random active users. Each like also counts a view on reels.',
+                'settings_class' => PostsSettings::class,
+                'property' => 'autoLikeCount',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::REELS_AUTO_VIEW_COUNT->value => [
+                'group' => SystemSettingGroupEnum::REELS,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Auto Extra View Count',
+                'description' => 'Target views_count per post (0–200). Reels: likes also count as views for the same user.',
+                'settings_class' => PostsSettings::class,
+                'property' => 'autoViewCount',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::REELS_AUTO_ENGAGEMENT_POSTS_PER_RUN->value => [
+                'group' => SystemSettingGroupEnum::REELS,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Auto Engagement Chunk Size',
+                'description' => 'Posts per tick, ordered by id (first 100, then next 100…). Typical: 100.',
+                'settings_class' => PostsSettings::class,
+                'property' => 'autoEngagementPostsPerRun',
+                'nullable_string' => false,
+            ],
+            SystemSettingKeyEnum::REELS_AUTO_ENGAGEMENT_ACTIONS_PER_POST->value => [
+                'group' => SystemSettingGroupEnum::REELS,
+                'type' => SystemSettingTypeEnum::INTEGER,
+                'label' => 'Auto Engagement Actions Per Post',
+                'description' => 'Max likes and max views to add per post per tick (1–5). Keeps growth gradual.',
+                'settings_class' => PostsSettings::class,
+                'property' => 'autoEngagementActionsPerPost',
                 'nullable_string' => false,
             ],
         ];

@@ -1,63 +1,58 @@
-# App capabilities — assignment model
+# App auth — assignment model
 
-**Status:** Current (legacy app roles removed 2026-08-05)  
-**Related:** [Actors & roles](./actors_and_roles.md), [Broadcaster role](./BROADCASTER_ROLE.md), [Multi-vendor marketplace plan](./MULTI_VENDOR_MARKETPLACE_PLAN.md)
+**Status:** Current  
+**Related:** [Actors & roles](./actors_and_roles.md), [Broadcaster role](./BROADCASTER_ROLE.md), [Multi-vendor marketplace plan](./MULTI_VENDOR_MARKETPLACE_PLAN.md), [Quick Match](./QUICK_MATCH.md)
 
----
+App authorization is **per resource**, not a `/me` capability bag and not app-guard roles.
 
-## 1. Model
-
-App authorization is **resource assignment**, not app-guard roles.
-
-| Capability | Source of truth |
-|------------|-----------------|
+| Action | Source of truth |
+|--------|-----------------|
 | Manage a tournament | `organizer_id` / `created_by` / `tournament_broadcaster` on **that** tournament |
 | Own / manage a team | `teams.user_id` **or** tournament staff for a tournament that includes the team (`User::canManageTeam`) |
-| Sell in shop | `shop_vendors` row + status (when marketplace ships) |
-| Use the app | Any active `users.type = user` |
+| Sell in shop | `shop_vendors` row + status |
+| Use the app | Any `users.type = user` |
 
-**Deleted:** `AppRoleEnum`, `RoleGuardEnum::APP`, app-guard role seeding, register/CSV role attach, separate `/sponsors` and `/players` typeaheads.  
+**Deleted:** `AppRoleEnum`, `RoleGuardEnum::APP`, `/me` `capabilities`.  
 **Kept:** admin-guard roles (`super_admin`, `broadcaster`) for backoffice only.
-
-Profile **tabs** (“As a Player / Organizer / Sponsor”) remain as UI views from capabilities. The header role **badge pill** was removed.
 
 ---
 
-## 2. API helpers
+## 1. API helpers
 
 | Method | Meaning |
 |--------|---------|
 | `User::isTournamentStaff($tournament)` | Assignment on that tournament |
-| `User::canOperateTournamentInApp` / `canScoreMatchInApp` | Staff (or admin break-glass for scoring) |
+| `User::canOperateTournamentInApp` / `canScoreMatchInApp` | Staff (or admin break-glass for scoring). **`canOperateTournamentInApp(Tournament $tournament)` stays non-nullable forever** — do not `?Tournament`. Quick Match: `canScoreMatchInApp` **kind-branches first**; quick path uses `canOperateQuickMatch` only. |
 | `User::canManageTeam($team)` | Owner **or** `canManageTeamSquadAsTournamentStaff` |
-| `User::appCapabilities()` | Payload for `/me` |
-| `User::scopeEligibleForTournamentSquad` | App users (`type = user`, not blocked) |
+| `User::isUser()` / `User::isActive()` | **Type** vs **status**. `isUser()` does not imply active. |
+| `User::scopeAppUsers` | Exact `type = user`. Quick Match walk-ups are `type=user` too. Flag: `added_via_quick_match`. |
+| `User::scopeEligibleForTournamentSquad` | `appUsers()->notBlocked()` |
 
-`/me` (and app `UserResource`):
+`/me` (and self `UserResource`) has **no** `capabilities` and **no** `roles`. If the user has a `shop_vendors` row, include:
 
 ```json
 {
-  "capabilities": {
-    "tournament_manager": true,
-    "team_owner": true,
-    "vendor_status": null
+  "vendor": {
+    "id": 1,
+    "store_name": "Street Kit",
+    "status": "pending"
   }
 }
 ```
 
-| `vendor_status` | UI |
-|-----------------|----|
-| `null` | No Seller hub (not a vendor) — show “Become a seller” |
-| `pending` | Read-only “awaiting approval” |
-| `approved` | Full vendor mutations |
-| `suspended` | Read-only hub |
-| `rejected` | No Seller hub (apply denied); do not show re-apply until admin clears/deletes |
+Omit `vendor` when they have no store.
 
-No `roles` array on the app user resource.
+| `vendor.status` | UI |
+|-----------------|----|
+| *(no vendor)* | Become a Seller |
+| `pending` | Seller Hub (read-only until approved) |
+| `approved` | Seller Hub |
+| `suspended` | Seller Hub (read-only) |
+| `rejected` | Neither hub nor apply |
 
 ---
 
-## 3. Unified user search (pickers)
+## 2. Unified user search (pickers)
 
 Player / organizer / sponsor are the **same** app users. Typeaheads must not filter by legacy role.
 
@@ -82,11 +77,9 @@ Player / organizer / sponsor are the **same** app users. Typeaheads must not fil
 **Resource:** `Admin\UserSearchResource` — `{ id, name, nickname, email, phone }`  
 **Scope:** `type = user`, not blocked. Limit 25.
 
-**Removed query modes:** `for_squad`, `context=broadcaster` + `tournament_id`. No separate organizer/sponsor search endpoints.
-
 ---
 
-## 4. Team rules (locked)
+## 3. Team rules (locked)
 
 | Action | Who |
 |--------|-----|
@@ -97,73 +90,38 @@ Player / organizer / sponsor are the **same** app users. Typeaheads must not fil
 
 ---
 
-## 5. Non-resource creates
+## 4. Non-resource creates
 
 | Action | Rule |
 |--------|------|
 | Tournament request | Any authenticated app user |
-| Direct tournament create in app | Via request / admin / league provisioner — not a global role |
-| Become vendor | Self-serve `POST /shop/vendor/apply` → `pending`; admin approve/reject. App: **Become a Seller** / **Seller Hub** in sidebar |
+| Direct tournament create in app | Via request / admin / league provisioner |
+| Quick Match | Any authenticated app user. Owner scores their own match. |
+| Become vendor | `POST /shop/vendor/apply` → `pending`; admin approve/reject |
 
 ---
 
-## 6. DB cleanup
+## 5. App UI
 
-| Artifact | Path |
-|----------|------|
-| SQL script | `api/database/scripts/drop_legacy_app_guard_roles.sql` |
-
-Run once on existing DBs (not via `artisan migrate`). Deletes:
-
-1. `role_user` / `role_permission` rows for `roles.guard = 'app'`
-2. those `roles` rows
-3. orphan `permissions` with `guard = 'app'` (none seeded today — safe no-op)
-
-Admin-guard roles/permissions untouched. **Irreversible.** Fresh installs never seed app roles (`RoleSeeder` is admin-only); `roles` / `permissions` table defaults are `admin`.
-
-```bash
-psql "$DATABASE_URL" -f api/database/scripts/drop_legacy_app_guard_roles.sql
-```
-
----
-
-## 7. App UI
-
-| Surface | Gate / behavior |
-|---------|-----------------|
-| Profile tabs | Always **player**; **organizer** if `tournament_manager`; **sponsor** if `team_owner` (UI views, not roles) |
-| Profile header | Name + official badge only — **no** role/capability label pill |
-| `RequireOrganizerRole` | `capabilities.tournament_manager` |
+| Surface | Behavior |
+|---------|----------|
+| Profile tabs | Always Player / Organizer / Sponsor (empty states until they have data) |
+| Profile header | Name + official badge only — **no** role pill |
+| My Tournaments / Request Tournament | Any logged-in user |
+| Seller Hub / Become a Seller | From `/me` `vendor` (see §1) |
 | Team owner / squad pickers | `useLookupUsersQuery` (`/users/lookup`; empty search → `[]`) |
-| Backoffice broadcast picker | Client filters out the currently assigned broadcaster from candidates |
 
 ---
 
-## 8. Marketplace
+## 6. Marketplace
 
-Do **not** introduce a vendor app-guard role or seed `shop.vendor.*` app permissions. Gate on `shop_vendors` + `capabilities.vendor_status`. Admin shop money routes still need exact `admin.permission:…` slugs (marketplace plan §5.3) — separate from this app-role cleanup.
+Do **not** introduce a vendor app-guard role. Gate on `shop_vendors`. Admin shop money routes still need exact `admin.permission:…` slugs (marketplace plan §5.3).
 
 ---
 
-## 9. Verification
+## 7. Verification
 
-- `TeamCapabilityAuthTest` — assignment gates, no `data.roles` on `/me`
+- `TeamCapabilityAuthTest` — assignment gates; `/me` has no `capabilities` / `roles`
+- `VendorApplyAndPublishTest` — `/me` includes `vendor` after apply
 - `UserLookupTest` — empty search → `[]`; name match among app users
-- `AdminUserSearchTest` — single admin search; no context modes
-- `PlayerActivePlatformFilterTest` — players = `type = user`
 - Grep: no `AppRoleEnum` / `sponsorApi` / app `GET /players` picker in product code
-
----
-
-## 10. Changelog (this cut)
-
-| Change | Detail |
-|--------|--------|
-| Legacy app roles removed | No `AppRoleEnum`; `RoleSeeder` admin-only; SQL script drops `guard = app` rows |
-| `/me` capabilities | `tournament_manager`, `team_owner`, `vendor_status`; no `roles` |
-| Profile header | Role badge/label removed |
-| App user pickers | One `GET /users/lookup`; deleted `/sponsors` + `/players` picker |
-| Mentions stay separate | `GET /users/search?q=` unchanged |
-| Admin user pickers | One `GET /admin/users/search?search=`; dropped `for_squad` / broadcaster context |
-| Demo seeder | Organizers/sponsors are plain users; power via `organizer_id` / `teams.user_id` |
-| Review follow-ups | `/users/lookup` requires search; broadcast picker filters attached user client-side |

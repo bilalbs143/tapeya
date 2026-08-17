@@ -4,47 +4,56 @@ Ship **origin/develop** onto production after merge.
 
 | | SHA | Message |
 |---|---|---|
-| **main** (prod today) | `2de444c` | Keep reel originals for 48 hours after HLS is ready. |
-| **develop** (ship this) | `e061270` | Simplify shop products to Active/Inactive and server-managed slugs. |
+| **main** (prod today) | `5159b51` | Refactor production deployment documentation for `main` to `develop` transition |
+| **develop** (committed tip) | `2bdf5b3` | Update iOS deployment target to 15.0 and increment project version to 1.1.4 |
 
-**3 commits** on develop, not on main:
+**Committed on develop, not on main:** `2bdf5b3` (iOS 15 / app **1.1.4** build **45**).
 
-1. `959fea5` — Replace app-guard roles with assignment-based capabilities.
-2. `f1a9ad2` — Ship multi-vendor marketplace MVP for sellers and COD checkout.
-3. `e061270` — Shop products Active/Inactive + server-managed slugs.
+**Also on the develop working tree (commit before merge):** Quick Match, casual stats bucket, auto engagement, `/me` vendor (no capabilities bag), complete-profile once after register, GA4, scorecard App Links.
 
-No CDN/Wrangler, no native Capacitor rebuild, no `composer.lock` change.
+No `composer.lock` / `package-lock.json` change. No CDN/Wrangler.
 
 ---
 
 ## What this release does
 
-- App auth uses tournament/team **capabilities** (`/me`), not app-guard roles (`player` / `organizer` / `sponsor`).
-- Multi-vendor shop: sellers apply + list products + fulfill; buyers COD checkout; admin vendors / payments.
-- Existing products attach to the **house vendor** `tapeya-house` (Tapeya).
-- Product sellability = `is_active` + approved vendor. Slugs generated on the server.
+- **Quick Match:** any logged-in app user can create a standalone match (no tournament). Owner scores it. Walk-up players are normal `type=user` (`added_via_quick_match` + `created_by`). Admin: Tournaments → Quick Matches (list / show / cancel).
+- **Stats:** quick matches write a casual career bucket (`tournament_type='quick'`). League / open / emerging rankings stay tournament-only.
+- **`/me`:** no `capabilities` bag. Optional `vendor` `{ id, store_name, status }` when the user has a store. Seller Hub vs Become a Seller follows that object.
+- **Complete profile** popup: once after register, not every login / 24h.
+- **Auto engagement:** optional drip of likes/views on public Ready posts (Admin → System Settings → Reels). **Default off.**
+- **GA4** web page views (`G-MR83CQDG6Z`); skipped on native and `/overlay/*`.
+- **Deep links:** `/scorecard` and `/scorecard/*` on AASA + Android App Links.
+- **iOS native:** deployment target **15.0**, marketing **1.1.4**, build **45**.
 
 ---
 
-## ⚠ Migration destroys live shop carts & orders
+## ⚠ Quick Match migration is schema, not a data wipe
 
-`2026_08_05_100000_marketplace_phase0_shop_vendors` **deletes** all rows in:
+`2026_08_10_100000_add_quick_match_columns_to_matches_and_users`:
 
-- `shop_cart_items` / `shop_carts`
-- `shop_order_items` / `shop_orders`
+- `matches.kind` (default `tournament`)
+- `matches.created_by` (nullable FK)
+- `matches.cricket_format` (nullable)
+- `matches.tournament_id` **nullable**
+- `matches.venue_name` **nullable**
+- `users.added_via_quick_match` (boolean, default false)
 
-Then creates the house vendor and sets every `shop_products.vendor_id` to it.
+Existing tournament matches stay as they are (`kind` default + non-null `tournament_id`).
 
-**Before migrate:** warn ops / dump those tables if you need a record. There is no in-place conversion of old orders.
+`2026_08_10_220000_drop_quick_match_scorers_table` is `dropIfExists` — no-op if that table was never created (prod).
+
+**Do not `migrate:rollback` the Quick Match migration after any live quick match exists** — `down()` deletes rows with null `tournament_id` / `venue_name`. Restore a dump instead.
 
 ---
 
 ## Pre-deploy
 
-1. [ ] Merge `develop` → `main` (or deploy `e061270`) and push.
-2. [ ] DB dump (at least `shop_*` + `roles` / `role_user` / `permissions`).
-3. [ ] Confirm prod still on `2de444c` (or note current SHA) so rollback is possible.
-4. [ ] Optional `.env`: `SHOP_DEFAULT_COMMISSION_RATE=10` (default is already 10).
+1. [ ] Commit the develop working tree, merge `develop` → `main`, and push.
+2. [ ] DB dump (at least `matches`, `users`, `player_*_stats`, `settings`, `shop_vendors`).
+3. [ ] Confirm prod still on `5159b51` (or note current SHA) so rollback is possible.
+4. [ ] Confirm Laravel scheduler cron (`schedule:run`) is already running — auto engagement uses it; no new supervisor program.
+5. [ ] Leave auto engagement **off** until you explicitly enable it in Admin → Reels.
 
 ---
 
@@ -55,58 +64,54 @@ Then creates the house vendor and sets every `shop_products.vendor_id` to it.
 ```bash
 cd /var/www/tapeya/api   # adjust path
 git fetch
-git checkout <release-ref>   # main after merge, or e061270
+git checkout <release-ref>   # main after merge
 composer install --no-dev --optimize-autoloader
 php artisan migrate --force
-php artisan db:seed --class=PermissionSeeder --force
-php artisan db:seed --class=PushNotificationTemplateSeeder --force
+php artisan db:seed --class=SystemSettingsSeeder --force
 php artisan settings:clear-cache
 php artisan config:clear
 php artisan config:cache
 # optional: php artisan route:cache
 ```
 
-`PermissionSeeder` adds admin slugs (idempotent `firstOrCreate` + attach to `super_admin`):
+`SystemSettingsSeeder` adds Reels auto-engagement keys (idempotent). Defaults:
 
-- `shop.catalog.manage`
-- `shop.vendors.manage`
-- `shop.products.oversee`
-- `shop.orders.oversee`
-- `shop.payments.verify`
+| Key | Default |
+|-----|---------|
+| Enabled | **off** (`0`) |
+| Auto like target | 8 |
+| Auto view target | 40 |
+| Chunk size | 100 |
+| Actions per post per tick | 1 |
 
-Broadcaster does **not** get shop money/trust slugs.
+No new `PermissionSeeder` slugs this release. Admin Quick Matches use the existing tournaments admin gate.
 
-`PushNotificationTemplateSeeder` updates `order_*` variables and deletes retired keys  
-`vendor_order_placed` / `vendor_order_status_updated` / `order_payment_updated`.
+### 2. Queue / scheduler
 
-### 2. Drop legacy app-guard roles (once, existing DBs only)
-
-After migrate + seeders. Irreversible. Does **not** touch admin-guard (`super_admin`, `broadcaster`).
-
-```bash
-cd /var/www/tapeya/api
-psql "$DATABASE_URL" -f database/scripts/drop_legacy_app_guard_roles.sql
-```
-
-Fresh installs never seed app-guard roles (`RoleSeeder` is admin-only). Skip if `roles.guard = 'app'` is already empty.
-
-### 3. Queue workers
-
-No new supervisor programs. Vendor/admin shop pushes use the existing `push-notifications` queue.
+No new supervisor programs. Auto engagement is `posts:process-auto-engagement` every **15 minutes** via the Laravel scheduler.
 
 ```bash
 sudo supervisorctl status
 # must be UP: default, push-notifications, reels-poster, reels-transcode, reels
 ```
 
-Restart PHP-FPM / queue only if workers still run old code:
+Restart PHP-FPM / queue so workers load the new match/stats code:
 
 ```bash
 sudo supervisorctl restart all
 sudo systemctl reload php8.2-fpm   # adjust
 ```
 
-### 4. Consumer app (`tapeya.com`)
+Manual / ops:
+
+```bash
+php artisan posts:process-auto-engagement
+php artisan posts:process-auto-engagement --reset-cursor
+```
+
+Cursor is cache key `posts.auto_engagement.cursor_id` (`Cache::forever`). A full cache flush restarts the walk from the beginning (safe).
+
+### 3. Consumer app (`tapeya.com`)
 
 ```bash
 cd /var/www/tapeya/app
@@ -115,9 +120,11 @@ npm run build:production
 # deploy app/dist/
 ```
 
-Seller hub: `/seller`, `/seller/apply`, products, orders, store. Buyer: vendor store, COD checkout, cart count.
+Ships Quick Match (`/quick-match`, `/matches`), Home CTA, profile tabs always visible, seller nav from `/me` `vendor`, complete-profile once, GA4, AASA `/scorecard` paths.
 
-### 5. Backoffice (`admin.tapeya.com`)
+Graphics overlay host: API `GraphicContextBuilder` now tolerates null tournament. Rebuild graphics only if you ship overlay assets from this tree (`npm run build:graphics:production`).
+
+### 4. Backoffice (`admin.tapeya.com`)
 
 ```bash
 cd /var/www/tapeya/backoffice
@@ -126,56 +133,78 @@ npm run build:production
 # deploy dist/backoffice/browser
 ```
 
-New **Shop → Vendors**. Orders: vendor splits, COD payment verify / refund. Products: Active/Inactive + vendor.
+New **Tournaments → Quick Matches**. Reels settings include auto engagement.
+
+### 5. Native (store) — only if you ship the app binaries
+
+| Platform | Why |
+|----------|-----|
+| **iOS** | Target 15.0, version **1.1.4** (45). Required for a store/TestFlight build of this tree. |
+| **Android** | App Link `pathPrefix="/scorecard"`. Web AASA already covers iOS Universal Links without a store build. |
+
+Web-only production (tapeya.com) works without a store submit. Scorecard App Links on existing Android installs wait for a Play update.
 
 ---
 
 ## Post-deploy smoke
 
-### Capabilities (959fea5)
+### Quick Match
 
-- [ ] Logged-in `/me` has `capabilities` (no app `player`/`organizer`/`sponsor` roles required).
-- [ ] Team / squad / mention pickers still search users.
-- [ ] Backoffice user search still works.
-- [ ] `SELECT count(*) FROM roles WHERE guard = 'app';` → `0` after SQL script.
+- [ ] Logged-in Home shows **Start Quick Match**; sidebar **Quick Match** / **My Matches**.
+- [ ] Create scheduled match (inline walk-up name+phone) → `/quick-matches` 201, `kind=quick`, `tournament_id` null, `venue_name` null.
+- [ ] Toss → score a ball as owner; a second account cannot score.
+- [ ] Walk-up activates via normal login OTP (not register).
+- [ ] Profile stats: casual/quick bucket is separate from tournament rankings.
+- [ ] Admin Quick Matches list / filter / cancel scheduled.
+- [ ] Existing tournament scorecard / scoring still works (`kind=tournament`).
 
-### Marketplace (f1a9ad2 + e061270)
+### `/me` + seller
 
-- [ ] House vendor exists: `slug = tapeya-house`, `is_platform = true`, `status = approved`.
-- [ ] All existing products have `vendor_id` = that house vendor.
-- [ ] Public catalog + product detail still load.
-- [ ] Add to cart → checkout (address prefill from last order if any) → thank-you. **COD only.**
-- [ ] Cart header shows item count.
-- [ ] User applies as seller → pending; admin **Vendors** approve/reject/suspend.
-- [ ] Approved seller: `/seller` → create product (slug auto) → appears when Active.
-- [ ] Seller updates order status + optional tracking; buyer order detail shows vendor groups.
-- [ ] Admin can verify COD payment / mark refunded.
-- [ ] Push: buyer `order_placed` / `order_status_updated`; seller new-order + status (same `order_*` templates).
-- [ ] Inactive product is not sellable; approved vendor + Active is.
+- [ ] `GET /api/v1/me` has **no** `data.capabilities` and **no** `data.roles`.
+- [ ] No store → no `vendor` key; sidebar **Become a Seller**.
+- [ ] After apply → `vendor.status=pending`; sidebar **Seller Hub**.
+- [ ] Team / squad payloads do **not** include `sponsor.vendor`.
+
+### Complete profile / GA
+
+- [ ] New register → OTP → complete-profile popup once; later logins do not show it.
+- [ ] Web page views fire in GA4 (`G-MR83CQDG6Z`); `/overlay/*` and native do not.
+
+### Auto engagement (leave off unless intended)
+
+- [ ] Admin Reels: setting exists, **disabled**.
+- [ ] `php artisan posts:process-auto-engagement` with disabled setting touches 0 posts.
+- [ ] If you enable it: likes/views drip on public Ready posts from random **active** users, never the owner.
+
+### Deep links
+
+- [ ] `https://tapeya.com/.well-known/apple-app-site-association` includes `/scorecard` and `/scorecard/*`.
 
 ---
 
 ## Rollback
 
-1. Redeploy previous API/app/backoffice (`2de444c`).
-2. Restore DB dump taken before migrate (required — migrate wipes orders/carts and is not a clean down on prod data).
+1. Redeploy previous API/app/backoffice (`5159b51`).
+2. If migrate already ran: restore the DB dump (do **not** `migrate:rollback` the Quick Match migration on a DB that has quick matches).
 3. `php artisan config:clear && php artisan config:cache && php artisan settings:clear-cache`
-
-Do **not** rely on `migrate:rollback` for this shop migration in production.
 
 ---
 
 ## Out of scope this release
 
 - B2 / `cdn.tapeya.com` cutover (already live; no Worker change).
-- Native iOS/Android store build (no `app/ios` / `app/android` diff).
+- New Composer / npm lockfile.
 - JazzCash / card gateway, RMA, seller payouts.
+- Enabling auto engagement (ship **off**; turn on later in Admin).
 
 ---
 
 ## Related
 
-- [MULTI_VENDOR_MARKETPLACE_PLAN.md](./MULTI_VENDOR_MARKETPLACE_PLAN.md)
-- [APP_CAPABILITIES.md](./APP_CAPABILITIES.md)
-- [actors_and_roles.md](./actors_and_roles.md) §9 cleanup SQL
+- [APP_CAPABILITIES.md](./APP_CAPABILITIES.md) — `/me` vendor, no capability bag
+- [AUTO_ENGAGEMENT.md](./AUTO_ENGAGEMENT.md)
+- [actors_and_roles.md](./actors_and_roles.md)
+- [player_stats_schema.md](./player_stats_schema.md) — quick bucket
+- [event_flow.md](./event_flow.md) — tournament flow unchanged
+- [DEEP_LINKS.md](./DEEP_LINKS.md)
 - [DEPLOYMENT.md](./DEPLOYMENT.md) — build commands

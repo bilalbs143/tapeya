@@ -60,8 +60,8 @@ class MatchSquadController extends Controller
     ): JsonResponse {
         $authUser = $request->user();
 
-        if (! $authUser->canOperateTournamentInApp($match->tournament)) {
-            return $this->forbidden('You cannot manage match squads for this tournament.');
+        if (! $authUser->canOperateMatchInApp($match)) {
+            return $this->forbidden('You cannot manage match squads for this match.');
         }
 
         // Team must be part of this match (home or away).
@@ -85,13 +85,8 @@ class MatchSquadController extends Controller
             }
         }
 
-        // Ensure all players are in the team-level squad (team_user).
-        $squadCount = $team->players()
-            ->whereIn('users.id', $playerIds)
-            ->count();
-
-        if ($squadCount !== count($playerIds)) {
-            return $this->forbidden('All players must belong to the team-level squad before being added to the match squad.');
+        if ($error = MatchSquadRules::rosterSubsetError($match, $team, $playerIds)) {
+            return $this->forbidden($error);
         }
 
         // Replace existing match squad for this match+team atomically.

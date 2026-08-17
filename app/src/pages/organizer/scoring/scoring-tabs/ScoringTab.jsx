@@ -52,7 +52,7 @@ export function ScoringTab({
   onTargetRevisionEnded,
   registerOpenActionMenu,
 }) {
-  const { matchId, match, matchComplete, wagonWheelEnabled, innings1Id, innings2Id } = useScoringMatch();
+  const { matchId, match, matchComplete, canOperate, wagonWheelEnabled, innings1Id, innings2Id } = useScoringMatch();
   const toast = useToast();
   const { dialogKey, openDialog, closeDialog } = useDialog();
 
@@ -804,7 +804,7 @@ export function ScoringTab({
 
         <OverStrip oversFromBalls={oversFromBalls} scrollRef={overStatsScrollRef} />
 
-        {isReadyToScore && (
+        {isReadyToScore && canOperate && (
           <ScoringControls
             pendingFreeHit={pendingFreeHit}
             extraTypeOptions={extraTypeOptions}
@@ -834,6 +834,10 @@ export function ScoringTab({
             onCustomScore={() => openDialog('scoringCustomScore', { onSubmit: (n) => handleRuns(n) })}
           />
         )}
+
+        {isReadyToScore && !canOperate ? (
+          <p className="text-muted mt-4 text-center text-[13px]">View only — you can’t score this match.</p>
+        ) : null}
 
         <ActionMenuSheet
           open={actionMenuOpen}

@@ -14,6 +14,7 @@ use App\Enums\Shop\OrderStatusEnum;
 use App\Enums\Shop\PaymentMethodEnum;
 use App\Enums\Shop\PaymentStatusEnum;
 use App\Enums\Shop\ProductDiscountTypeEnum;
+use App\Enums\Stats\StatsBucketEnum;
 use App\Enums\SystemSetting\SystemSettingGroupEnum;
 use App\Enums\Tournament\GroupModeEnum;
 use App\Enums\Tournament\TournamentInterestCampaignStatusEnum;
@@ -45,7 +46,7 @@ class EnumController extends Controller
      */
     public function index(): JsonResponse
     {
-        $enums = Cache::remember('admin:enums:v15', 600, fn () => $this->buildEnums());
+        $enums = Cache::remember('admin:enums:v16', 600, fn () => $this->buildEnums());
 
         return $this->success($enums);
     }
@@ -69,6 +70,7 @@ class EnumController extends Controller
             'product_discount_type' => $this->toOptions(ProductDiscountTypeEnum::cases()),
             'system_setting_group' => $this->toOptions(SystemSettingGroupEnum::cases()),
             'tournament_type' => $this->toOptions(TournamentTypeEnum::cases()),
+            'stats_bucket' => $this->toOptions(StatsBucketEnum::cases()),
             'tournament_schedule_window' => $this->toOptions(TournamentScheduleWindowEnum::cases()),
             'group_mode' => $this->toOptions(GroupModeEnum::cases()),
             'cricket_format' => $this->toOptions(CricketFormatEnum::cases()),

@@ -330,7 +330,7 @@ Aligned with [APP_CAPABILITIES.md](./APP_CAPABILITIES.md):
 | App role | **None** — gate on `shop_vendors` only |
 | Profile | `shop_vendors.user_id` (1:1 for human vendors) — **source of truth** |
 | Login | App Sanctum |
-| `/me` | `capabilities.vendor_status`: `null` \| `pending` \| `approved` \| `suspended` \| `rejected` (not a boolean) |
+| `/me` | Optional `vendor`: `{ id, store_name, status }` when `shop_vendors` exists; omit when not |
 
 Admin creates/approves a `shop_vendors` row; that assignment alone unlocks the Seller hub. No role-attach helper.
 
@@ -381,7 +381,7 @@ Split middleware or route groups: **read** vs **mutate**.
 
 **`rejected` vs `suspended`:** reject is for **self-serve apply** still in `pending` (never went live). Suspend is for an already **`approved`** store that must be taken down. Approved vendors cannot be rejected — use suspend.
 
-Matches `capabilities.vendor_status` UI rules in [APP_CAPABILITIES.md](./APP_CAPABILITIES.md) §3.4.
+Matches `vendor.status` UI rules in [APP_CAPABILITIES.md](./APP_CAPABILITIES.md) §1.
 
 ### 5.5 Policies vs User booleans
 
@@ -660,7 +660,7 @@ UI may render from `vendor_groups` when present; hooks keep using flat `items` +
 | Decision | Choice |
 |----------|--------|
 | Nav | **Profile entry** (“Seller hub”) — do **not** add a 6th bottom-nav tab (`BOTTOM_NAV_ITEMS` is a fixed 5-item grid) |
-| Gate | `capabilities.vendor_status` from `/me` ([APP_CAPABILITIES.md](./APP_CAPABILITIES.md) §3.4) — status string, **not** a boolean; show read-only hub when `suspended` / `pending` |
+| Gate | `/me` `vendor` ([APP_CAPABILITIES.md](./APP_CAPABILITIES.md) §1) — omit when no store; show read-only hub when `suspended` / `pending` |
 | Product images | Create product → then media upload `type=product` (extend app media allowlist + authorize owner vendor). Never expect images in store-product JSON body |
 | API slice | Prefer `vendorShopApi.js` **or** separate RTK tags: `Shop` (buyer) vs `VendorShop` — vendor mutations must **not** `invalidatesTags: ['Shop']` only |
 
@@ -820,7 +820,7 @@ app/
   components/Sidebar.jsx                    # Seller Hub / Become a Seller
   store/api/shopApi.js                      # buyer tags
   store/api/vendorShopApi.js                # separate tags
-  auth /me                                  # capabilities.vendor_status (see APP_CAPABILITIES)
+  auth /me                                  # optional vendor { id, store_name, status }
 ```
 
 Also keep in sync: `docs/SHOP_ECOMMERCE_DESIGN.md`, `docs/actors_and_roles.md`, `docs/APP_CAPABILITIES.md`.
@@ -844,11 +844,11 @@ Also keep in sync: `docs/SHOP_ECOMMERCE_DESIGN.md`, `docs/actors_and_roles.md`, 
 | 11 | `is_active` vs status | **`status` only** (`draft`/`published`/`archived`) |
 | 12 | Cart API shape | Flat `items` + additive `vendor_groups` |
 | 13 | Vendor nav | Sidebar **Seller Hub** / **Become a Seller**; profile CTA optional |
-| 14 | `/me` gate | `capabilities.vendor_status` (status, not boolean); no app VENDOR role |
+| 14 | `/me` gate | Optional `vendor` object; no app VENDOR role |
 | 15 | RTK cache | Separate `VendorShop` tag namespace |
 | 16 | Payouts | **Out of v1** (removed 2026-08-07) |
 | 17 | Authz style | Exact **admin** permission middleware + scopes; Policies optional; app vendor = `shop_vendors` status ([APP_CAPABILITIES](./APP_CAPABILITIES.md)) |
-| 18 | App capabilities | Assignment model already shipped ([APP_CAPABILITIES](./APP_CAPABILITIES.md)); marketplace must not reintroduce app roles |
+| 18 | App auth | Assignment model already shipped ([APP_CAPABILITIES](./APP_CAPABILITIES.md)); marketplace must not reintroduce app roles |
 | 19 | Checkout address | Snapshot on `shop_orders`; prefill from last order — **no** `shop_addresses` |
 
 ---

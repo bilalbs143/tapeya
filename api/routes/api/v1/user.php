@@ -37,6 +37,7 @@ use App\Http\Controllers\User\PostInteractionController;
 use App\Http\Controllers\User\PostMultipartController;
 use App\Http\Controllers\User\PostViewController;
 use App\Http\Controllers\User\ProfileController;
+use App\Http\Controllers\User\QuickMatchController;
 use App\Http\Controllers\User\RankingController;
 use App\Http\Controllers\User\ScorecardController;
 use App\Http\Controllers\User\Shop\BrandController;
@@ -155,6 +156,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('users/{user}/posts', [PostController::class, 'forUserPosts']);
     Route::get('users/{user}/stats', [PlayerStatsController::class, 'show']);
     Route::get('users/{user}/ranking-position', [PlayerStatsController::class, 'rankingPosition']);
+    Route::get('users/{user}/recent-matches', [PlayerStatsController::class, 'recentMatches']);
     Route::get('users/{user}/teams', [UserTeamController::class, 'index']);
     Route::post('users/{user}/follow', [UserFollowController::class, 'follow']);
     Route::delete('users/{user}/follow', [UserFollowController::class, 'unfollow']);
@@ -193,6 +195,14 @@ Route::middleware('auth:api')->group(function () {
     Route::get('tournaments/{tournament}/season-stats', [TournamentStatsController::class, 'seasonStats']);
     Route::get('tournaments/{tournament}/matches', [TournamentMatchController::class, 'index']);
     Route::post('tournaments/{tournament}/matches', [TournamentMatchController::class, 'store']);
+
+    Route::get('quick-matches', [QuickMatchController::class, 'index']);
+    Route::post('quick-matches', [QuickMatchController::class, 'store']);
+    Route::get('quick-matches/{quickMatch}', [QuickMatchController::class, 'show']);
+    Route::patch('quick-matches/{quickMatch}', [QuickMatchController::class, 'update']);
+    Route::post('quick-matches/{quickMatch}/teams/{team}/players', [QuickMatchController::class, 'addPlayer'])
+        ->middleware('throttle:30,1');
+    Route::delete('quick-matches/{quickMatch}/teams/{team}/players/{user}', [QuickMatchController::class, 'removePlayer']);
 
     Route::get('matches/{match}', [TournamentMatchController::class, 'show']);
     Route::get('matches/{match}/graphic-session', [MatchGraphicSessionController::class, 'show']);

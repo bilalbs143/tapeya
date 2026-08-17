@@ -114,10 +114,65 @@ class PostViewService
         ];
     }
 
+    /**
+     * Server-side counted view for an authenticated user (auto engagement / internal).
+     * Uses the same viewer_key scheme as HTTP views; no Request required.
+     *
+     * @return array{counted: bool, views_count: int, already_counted: bool}
+     */
+    public function recordCountedForUser(Post $post, User $user): array
+    {
+        if ($post->status->isUnavailable() || $post->published_at === null) {
+            throw ValidationException::withMessages([
+                'reel' => ['Post not found.'],
+            ]);
+        }
+
+        $watchedMs = max($this->settings->viewMinWatchedMs, 3000);
+        $viewerKey = $this->viewerKeyForUser($user);
+
+        $countedNow = false;
+        $alreadyCounted = false;
+
+        DB::transaction(function () use ($post, $user, $viewerKey, $watchedMs, &$countedNow, &$alreadyCounted) {
+            /** @var PostView $view */
+            $view = PostView::query()->firstOrNew([
+                'post_id' => $post->id,
+                'viewer_key' => $viewerKey,
+            ]);
+
+            $alreadyCounted = (bool) $view->counted;
+
+            $view->user_id = $user->id;
+            $view->watched_ms = max((int) $view->watched_ms, $watchedMs);
+            $view->completion_rate = max((float) ($view->completion_rate ?? 0), 1.0);
+
+            if (! $view->counted) {
+                $view->counted = true;
+                $countedNow = true;
+            }
+
+            $view->save();
+
+            if ($countedNow) {
+                app(PostViewCounterBuffer::class)->bump((int) $post->id);
+            }
+        });
+
+        $post->refresh();
+        $pending = app(PostViewCounterBuffer::class)->pendingFor((int) $post->id);
+
+        return [
+            'counted' => $countedNow || $alreadyCounted,
+            'already_counted' => $alreadyCounted && ! $countedNow,
+            'views_count' => (int) $post->views_count + $pending,
+        ];
+    }
+
     private function viewerKey(?User $user, Request $request): string
     {
         if ($user) {
-            return hash_hmac('sha256', 'u:'.$user->id, (string) config('app.key'));
+            return $this->viewerKeyForUser($user);
         }
 
         $device = (string) $request->header('X-Device-Id', '');
@@ -131,5 +186,10 @@ class PostViewService
             'anon:'.$request->ip().'|'.$request->userAgent(),
             (string) config('app.key')
         );
+    }
+
+    private function viewerKeyForUser(User $user): string
+    {
+        return hash_hmac('sha256', 'u:'.$user->id, (string) config('app.key'));
     }
 }

@@ -4,7 +4,7 @@ import { useScoringMatch } from '@/context/ScoringMatchContext';
 const DASH = '—';
 
 export function InfoTab({ liveScore: liveScoreProp }) {
-  const { match, matchId } = useScoringMatch();
+  const { match, matchId, apiMatch } = useScoringMatch();
   if (!match) return null;
   const { homeTeam, awayTeam, venue, overs, playersPerSide, matchDate, matchTime, toss } = match;
   const homeName = (homeTeam?.name ?? '').trim() || DASH;
@@ -23,8 +23,19 @@ export function InfoTab({ liveScore: liveScoreProp }) {
       ? `${liveScore.totalRuns}/${liveScore.totalWickets} (${liveScore.oversDisplay} ov)`
       : null;
 
+  const isQuick = apiMatch?.kind === 'quick';
+  const formatLabel = apiMatch?.cricket_format_label ?? apiMatch?.cricket_format;
+
   return (
     <div className="mt-4 pb-10">
+      {isQuick ? (
+        <p className="text-brand mb-4 text-center text-[12px] font-bold tracking-wide uppercase">
+          Quick Match
+          {formatLabel ? ` · ${formatLabel}` : ''}
+          {overs != null ? ` · ${overs} ov` : ''}
+        </p>
+      ) : null}
+
       <div className="mx-auto flex w-full max-w-2xl items-stretch">
         <div className="bg-surface flex flex-1 flex-col items-center justify-center gap-1 rounded-[17px] border border-[#FFFFFF0F] p-4">
           <TeamLogo team={homeTeam} name={homeName} variant="match" />
@@ -43,7 +54,7 @@ export function InfoTab({ liveScore: liveScoreProp }) {
 
       <div className="mt-6 py-5">
         <div className="space-y-4 text-[12px]">
-          <InfoRow label="Playing" value={playersPerSide ? `${playersPerSide} per side` : DASH} />
+          <InfoRow label="Playing" value={playersPerSide ? `${playersPerSide} Per Side` : DASH} />
           <InfoRow label="Overs" value={overs ?? DASH} />
           <InfoRow label="Venue" value={venue || DASH} />
           <InfoRow label="Date & Time" value={dateTimeLabel} />

@@ -41,9 +41,29 @@ class PostsSettings extends Settings
     /** Max multipart parts (0 = no app limit). */
     public int $multipartMaxParts;
 
+    /** 1 = temporary auto like/view boost enabled, 0 = off. */
+    public int $autoEngagementEnabled;
+
+    /** Target likes_count per post (fill up to this with random active users). */
+    public int $autoLikeCount;
+
+    /** Target views_count per post/reel (fill up to this; likes also count as views on reels). */
+    public int $autoViewCount;
+
+    /** How many under-target posts to touch each successful tick. */
+    public int $autoEngagementPostsPerRun;
+
+    /** Max likes (and max views) to add per post per tick — keeps growth gradual. */
+    public int $autoEngagementActionsPerPost;
+
     public static function group(): string
     {
         return 'reels';
+    }
+
+    public function autoEngagementIsEnabled(): bool
+    {
+        return $this->autoEngagementEnabled === 1;
     }
 
     public function viewMinCompletionRate(): float

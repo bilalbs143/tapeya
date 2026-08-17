@@ -5,6 +5,7 @@ import { useDialog } from '@/context/DialogContext';
 import AddBreakDialog from './AddBreakDialog';
 import AdditionalRunsDialog from './AdditionalRunsDialog';
 import AppUpdateDialog from './AppUpdateDialog';
+import BallTypeDialog from './BallTypeDialog';
 import BaseDialog from './BaseDialog';
 import CaughtOutDialog from './CaughtOutDialog';
 import ChangeSquadDialog from './ChangeSquadDialog';
@@ -36,6 +37,8 @@ import PenaltyRunsDialog from './PenaltyRunsDialog';
 import PlayersPerSideDialog from './PlayersPerSideDialog';
 import PricingSuccessDialog from './PricingSuccessDialog';
 import ProfileStrengthReminderDialog from './ProfileStrengthReminderDialog';
+import QuickMatchWizardAddPlayerDialog from './QuickMatchWizardAddPlayerDialog';
+import QuickMatchWizardSetSideDialog from './QuickMatchWizardSetSideDialog';
 import RetiredHurtDialog from './RetiredHurtDialog';
 import RetiredOutDialog from './RetiredOutDialog';
 import ReviseTargetDialog from './ReviseTargetDialog';
@@ -67,8 +70,11 @@ const DIALOG_COMPONENTS = {
   // Start Match dialogs
   startMatchOvers: OversDialog,
   startMatchPlayersPerSide: PlayersPerSideDialog,
+  startMatchBallType: BallTypeDialog,
   startMatchTeamSelect: TeamSelectDialog,
   startMatchToss: TossDialog,
+  quickMatchWizardAddPlayer: QuickMatchWizardAddPlayerDialog,
+  quickMatchWizardSetSide: QuickMatchWizardSetSideDialog,
   // Scoring dialogs
   scoringExtraRuns: ExtraRunsDialog,
   scoringNoBall: NoBallDialog,

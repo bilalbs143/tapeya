@@ -15,6 +15,6 @@ export const EXPLORE_CATEGORIES = [
   { path: '/ranking', label: 'Rankings' },
   { path: '/upcoming-tournaments', label: 'Upcoming' },
 
-  { path: '/live', label: 'Live' },
+  { path: '/quick-match', label: 'Quick Match' },
   { path: '/highlights', label: 'Highlights' },
 ];

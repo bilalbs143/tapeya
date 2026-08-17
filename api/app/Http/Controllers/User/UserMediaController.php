@@ -284,6 +284,14 @@ class UserMediaController extends Controller
             }
         }
 
+        if ($type === 'match') {
+            /** @var TournamentMatch $record */
+            $user = $request->user();
+            if ($user === null || ! $user->canScoreMatchInApp($record)) {
+                return $this->forbidden('You cannot modify this match thumbnail.');
+            }
+        }
+
         return [$record, $typeConfig['fields'][$field]];
     }
 

@@ -89,3 +89,11 @@ export function buildHighlightShareUrl(highlightId) {
 export function buildTournamentShareUrl(tournamentId) {
   return buildHttpsDeepLink(`/upcoming-tournaments/${tournamentId}`);
 }
+
+export function buildQuickMatchScorecardPath(matchId) {
+  return buildDeepLinkPath('quickMatchScorecard', { matchId });
+}
+
+export function buildQuickMatchScorecardShareUrl(matchId) {
+  return buildHttpsDeepLink(buildQuickMatchScorecardPath(matchId));
+}

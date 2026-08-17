@@ -3,10 +3,13 @@
 namespace App\Support;
 
 use App\Enums\Event\MatchStatusEnum;
+use App\Models\Team;
 use App\Models\TournamentMatch;
+use Illuminate\Support\Facades\DB;
 
 /**
- * Shared squad / playing-eleven size rules for match lifecycle endpoints.
+ * Shared squad / playing-eleven size and membership rules for match lifecycle endpoints.
+ * Kind branch lives here (tournament vs quick); controllers stay thin callers.
  */
 final class MatchSquadRules
 {
@@ -49,12 +52,92 @@ final class MatchSquadRules
         }
 
         $playersPerSide = self::playersPerSide($match);
-        $minRequired = self::hasMatchStarted($match) ? $playersPerSide : 1;
 
-        if ($count < $minRequired) {
-            return self::hasMatchStarted($match)
-                ? "Playing eleven must have exactly {$playersPerSide} players once the match has started."
-                : 'Playing eleven must have at least one player.';
+        if ($count > $playersPerSide) {
+            return "Playing eleven cannot exceed {$playersPerSide} players.";
+        }
+
+        if (self::hasMatchStarted($match) && $count !== $playersPerSide) {
+            return "Playing eleven must have exactly {$playersPerSide} players once the match has started.";
+        }
+
+        if ($count < 1) {
+            return 'Playing eleven must have at least one player.';
+        }
+
+        return null;
+    }
+
+    /**
+     * All player ids must already be on the team's roster (`team_user`).
+     * Quick Match create upserts walk-ups onto `team_user` first, so the same rule applies.
+     *
+     * @param  list<int>  $playerIds
+     */
+    public static function rosterSubsetError(TournamentMatch $match, Team $team, array $playerIds): ?string
+    {
+        if ($playerIds === []) {
+            return null;
+        }
+
+        $squadCount = $team->players()
+            ->whereIn('users.id', $playerIds)
+            ->count();
+
+        if ($squadCount !== count($playerIds)) {
+            return 'All players must belong to the team-level squad before being added to the match squad.';
+        }
+
+        return null;
+    }
+
+    /**
+     * Playing XI must be a subset of the announced match squad.
+     *
+     * @param  list<int>  $playerIds
+     */
+    public static function playingElevenSubsetError(TournamentMatch $match, Team $team, array $playerIds): ?string
+    {
+        if ($playerIds === []) {
+            return null;
+        }
+
+        $squadCount = DB::table('match_squads')
+            ->where('match_id', $match->id)
+            ->where('team_id', $team->id)
+            ->whereIn('user_id', $playerIds)
+            ->count();
+
+        if ($squadCount !== count($playerIds)) {
+            return 'All players in the playing eleven must be in the match squad.';
+        }
+
+        return null;
+    }
+
+    /**
+     * A player cannot appear in both sides' playing elevens.
+     *
+     * @param  list<int>  $playerIds
+     */
+    public static function bothSidesConflictError(TournamentMatch $match, Team $team, array $playerIds): ?string
+    {
+        if ($playerIds === []) {
+            return null;
+        }
+
+        $oppositeTeamId = (int) $team->id === (int) $match->home_team_id
+            ? $match->away_team_id
+            : $match->home_team_id;
+
+        $crossTeamConflict = DB::table('match_players')
+            ->where('match_id', $match->id)
+            ->where('team_id', $oppositeTeamId)
+            ->whereIn('user_id', $playerIds)
+            ->exists();
+
+        if ($crossTeamConflict) {
+            return 'One or more players are already in the opposing team\'s playing eleven.';
         }
 
         return null;

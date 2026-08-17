@@ -62,6 +62,14 @@ export const TournamentsManagementRoutes: Routes = [
     ],
   },
   {
+    path: 'quick-matches',
+    loadComponent: () => import('./quick-matches/quick-matches-list.component').then((m) => m.QuickMatchesListComponent),
+    data: {
+      title: 'Quick Matches',
+      urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Tournaments Management' }, { title: 'Quick Matches' }],
+    },
+  },
+  {
     path: 'teams',
     loadComponent: () => import('./teams/teams.component').then((m) => m.TeamsComponent),
     data: {

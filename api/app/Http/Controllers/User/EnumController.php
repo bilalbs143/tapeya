@@ -19,6 +19,7 @@ use App\Enums\Event\PlayersPerSideEnum;
 use App\Enums\Event\ShotPositionEnum;
 use App\Enums\Event\TossChoiceEnum;
 use App\Enums\Stats\StatCategoryEnum;
+use App\Enums\Stats\StatsBucketEnum;
 use App\Enums\Streaming\StreamOrientationEnum;
 use App\Enums\Tournament\GroupModeEnum;
 use App\Enums\Tournament\TournamentInterestCampaignStatusEnum;
@@ -43,7 +44,7 @@ class EnumController extends Controller
      */
     public function index(): JsonResponse
     {
-        $enums = Cache::remember('user:enums:v12', 600, fn () => $this->buildEnums());
+        $enums = Cache::remember('user:enums:v13', 600, fn () => $this->buildEnums());
 
         return $this->success($enums);
     }
@@ -53,6 +54,7 @@ class EnumController extends Controller
     {
         return [
             'tournament_type' => $this->toOptions(TournamentTypeEnum::cases()),
+            'stats_bucket' => $this->toOptions(StatsBucketEnum::cases()),
             'group_mode' => $this->toOptions(GroupModeEnum::cases()),
             'cricket_format' => $this->toOptions(CricketFormatEnum::cases()),
             'stat_category' => $this->toOptions(StatCategoryEnum::cases()),

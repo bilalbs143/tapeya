@@ -2,7 +2,7 @@
 
 Player statistics are derived from ball-by-ball scorecard data and aggregated per player. We maintain **per match** stats and **accumulative stats by tournament type** (and optionally overall). Structure follows international cricket conventions (ICC / ESPN Cricinfo–style).
 
-**Source:** Ball-by-ball data and match/innings data (see [event_flow.md](event_flow.md)). The scorecard is **innings-wise**: every match has **exactly 2 innings**; each match belongs to a **tournament**, and each tournament has a **tournament_type** (`league` \| `open_tournament` \| `emerging`). All deliveries and totals are stored per innings; from that we derive per-match and accumulative-by-tournament-type stats.
+**Source:** Ball-by-ball data and match/innings data (see [event_flow.md](event_flow.md)). The scorecard is **innings-wise**: every match has **exactly 2 innings**. **Tournament matches** belong to a tournament with `tournament_type` (`league` \| `open_tournament` \| `emerging`). **Quick matches** have no tournament (see [QUICK_MATCH.md](./QUICK_MATCH.md)): they write **per-match** stats from balls, and Phase 4 also materializes a casual career bucket in `player_*_stats` with `tournament_type='quick'` (legacy column name — value is a stats bucket, **not** a `TournamentTypeEnum`). League / open tournament / emerging rows and rankings must never include quick matches.
 
 **Striker on each ball:** Every delivery must store **striker** (and non-striker). Batting stats are attributed using the striker: runs off the bat, balls faced (no-balls count; wides do not), fours, sixes, and dots all go to the striker for that ball. This ensures player aggregates (runs, average, strike rate, boundaries) are correct.
 
@@ -15,10 +15,10 @@ We maintain stats at **two** levels (both derived from the same ball-by-ball + i
 | Level | Grain | Use |
 |-------|--------|-----|
 | **Per match** | One set of stats per **player × match** (and optionally per **player × match × innings**). | Match scorecard, “performance in this match”, match-wise breakdown in profile. |
-| **Accumulative by tournament type** | One set of stats per **player × tournament_type** (league, open_tournament, emerging). Sum over all matches in tournaments of that type. | Player profile “League stats”, “Open Tournament stats”, “Emerging stats”; leaderboards by tournament type; **player ranking based only on Open Tournament stats** (see §7). |
-| **Overall (optional)** | One set of stats per **player** (all matches, all tournament types). | “Career” or “All” view. |
+| **Accumulative by stats bucket** | One set of stats per **player × stats_bucket × cricket_format**. Buckets: `league` \| `open_tournament` \| `emerging` \| `quick` (`StatsBucketEnum`). Tournament matches derive bucket from `tournament.tournament_type`; quick matches always use `quick`. Stored in `player_*_stats.tournament_type` (legacy column name). | Player profile Type filter (including **Quick**); leaderboards by tournament type only (never `quick`). |
+| **Overall (optional)** | One set of stats per **player** across **tournament** buckets only (`all` on profile excludes quick). | “Career” or “All” view. |
 
-**Flow (from [event_flow.md](event_flow.md)):** Tournament (has `tournament_type`) → Match (belongs to tournament) → Innings (2 per match) → Balls (per innings, with striker/bowler). So for **per match** we group by `player_id` + `match_id` (and optionally `innings_id`). For **accumulative by tournament type** we group by `player_id` + `tournament_type` (tournament_type comes from match → tournament).
+**Flow (from [event_flow.md](event_flow.md)):** Tournament (has `tournament_type`) → Match (belongs to tournament) → Innings (2 per match) → Balls (per innings, with striker/bowler). So for **per match** we group by `player_id` + `match_id` (and optionally `innings_id`). For **accumulative by tournament type** we group by `player_id` + `tournament_type` (tournament_type comes from match → tournament). **Quick matches** ([QUICK_MATCH.md](./QUICK_MATCH.md)) have no tournament: per-match grain still applies; accumulative career uses bucket `quick` keyed by `matches.cricket_format` (Phase 4).
 
 ---
 
@@ -28,7 +28,7 @@ We maintain stats at **two** levels (both derived from the same ball-by-ball + i
 |----------------|-------------|
 | **Player**     | `user_id` / player id. |
 | **Match**      | Each match has **2 innings**. Per-match stats: one row (or set) per player per match; accumulative stats sum over matches. |
-| **Tournament type** | `league` \| `open_tournament` \| `emerging` (from `TournamentTypeEnum`). **Accumulative stats** are stored or computed **per tournament type**; “overall” = all types combined. |
+| **Tournament type / stats bucket** | Tournament buckets: `league` \| `open_tournament` \| `emerging` (from `TournamentTypeEnum`). Casual bucket: `quick` (`StatsBucketEnum`) — **not** a tournament type; do not add it to `TournamentTypeEnum`. Profile `all` = tournament buckets only. |
 | **Season / year** | Optional. Filter stats by event start date or a defined season window. |
 | **Format**     | Optional. e.g. overs format (club vs tournament) or ball type; if we support multiple formats, stats can be split. |
 | **Team**       | Optional. Stats when playing for a specific team. |
@@ -201,19 +201,21 @@ Formulas (Ave, SR, Econ, BBI, etc.) can be computed at read time from raw counts
 - `player_match_bowling` — bowling totals for the match
 - `player_match_fielding` — catches, run outs, stumpings for the match
 
-**Accumulative tables** (keyed by `player_id` + `tournament_type`):
+**Accumulative tables** (keyed by `player_id` + stats bucket in column `tournament_type` + `cricket_format`):
 
-- `player_batting_stats` — batting by tournament type (league, open_tournament, emerging)
-- `player_bowling_stats` — bowling by tournament type
-- `player_fielding_stats` — fielding by tournament type
+- `player_batting_stats` — batting by bucket (`league`, `open_tournament`, `emerging`, `quick`)
+- `player_bowling_stats` — bowling by bucket
+- `player_fielding_stats` — fielding by bucket
 
-Ball-by-ball remains the source of truth. When a ball is added, updated, or deleted, `RefreshMatchStatsJob` is dispatched: it recomputes per-match stats for that match from balls, writes/updates the per-match tables, then recomputes accumulative stats for each player involved (by aggregating their per-match rows for that tournament type) and upserts the accumulative tables. Reads use the tables first and fall back to computing from balls if no rows exist (e.g. before the job has run). **Partnerships** are still derived on read from balls (striker/non_striker + runs per stand).
+Ball-by-ball remains the source of truth. When a ball is added, updated, or deleted, `RefreshMatchStatsJob` is dispatched: it recomputes per-match stats for that match from balls, writes/updates the per-match tables, then recomputes accumulative stats for each player involved (tournament bucket **or** `quick`) and upserts the accumulative tables. Tournament recompute also busts rankings cache; quick recompute does **not**. Reads use the tables first and fall back to computing from balls if no rows exist (e.g. before the job has run). **Partnerships** are still derived on read from balls (striker/non_striker + runs per stand).
+
+**Quick matches ([QUICK_MATCH.md](./QUICK_MATCH.md)):** `PlayerMatchStatsWriter` runs for every kind. Tournament `recompute` runs only for tournament matches. `recomputeQuick` writes `player_*_stats` with `tournament_type='quick'` keyed by `matches.cricket_format`. Do **not** add `quick` to `TournamentTypeEnum`. Rankings (`GET /rankings`) reject `tournament_type=quick`. Profile `tournament_type=all` excludes quick.
 
 **Endpoints:**
 
 - **Per-match stats (scorecard):** `GET /api/v1/matches/{match}/player-stats` — batting, bowling, fielding for the match.
-- **Player accumulative stats:** `GET /api/v1/users/{user}/stats?tournament_type=league|open_tournament|emerging|all` — batting, bowling, fielding for the user, optionally by tournament type.
-- **Rankings:** `GET /api/v1/rankings?tournament_type=...&category=batting|bowling|fielding&sort=...&min_innings=...` — leaderboard (e.g. Open Tournament).
+- **Player accumulative stats:** `GET /api/v1/users/{user}/stats?tournament_type=league|open_tournament|emerging|quick|all` — batting, bowling, fielding for the user, optionally by stats bucket.
+- **Rankings:** `GET /api/v1/rankings?tournament_type=...&category=batting|bowling|fielding&sort=...&min_innings=...` — leaderboard (e.g. Open Tournament). Never `quick`.
 
 Partnerships are included in the scorecard response: each innings in `GET /api/v1/matches/{match}/scorecard` has a `partnerships` array (player_1_id, player_2_id, runs, balls, wicket_number).
 

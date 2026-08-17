@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 
+import { PlayerSearchResultRow } from '@/components/PlayerSearchResultRow';
 import { useDialog } from '@/context/DialogContext';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToast } from '@/hooks/useToast';
@@ -547,20 +548,16 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
                       ) : (
                         <ul>
                           {sponsorsList.map((s) => (
-                            <li key={s.id}>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  field.onChange(String(s.id));
-                                  setSelectedSponsor({ id: s.id, name: s.name ?? '' });
-                                  setSponsorSearch('');
-                                  setSponsorDropdownOpen(false);
-                                }}
-                                className="flex w-full cursor-pointer items-center rounded-sm px-3 py-2.5 text-left text-base text-white transition-colors hover:bg-white/10 focus:bg-white/10 focus:outline-none"
-                              >
-                                {s.name}
-                              </button>
-                            </li>
+                            <PlayerSearchResultRow
+                              key={s.id}
+                              player={s}
+                              onClick={() => {
+                                field.onChange(String(s.id));
+                                setSelectedSponsor({ id: s.id, name: s.name ?? '' });
+                                setSponsorSearch('');
+                                setSponsorDropdownOpen(false);
+                              }}
+                            />
                           ))}
                         </ul>
                       )}

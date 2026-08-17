@@ -73,7 +73,7 @@ class PlayingElevenController extends Controller
     ): JsonResponse {
         $authUser = $request->user();
 
-        if (! $authUser->canOperateTournamentInApp($match->tournament)) {
+        if (! $authUser->canOperateMatchInApp($match)) {
             return $this->forbidden('You cannot manage the playing eleven for this match.');
         }
 
@@ -96,41 +96,18 @@ class PlayingElevenController extends Controller
             }
         }
 
-        // Ensure all players are already in the match squad.
-        $squadCount = DB::table('match_squads')
-            ->where('match_id', $match->id)
-            ->where('team_id', $team->id)
-            ->whereIn('user_id', $playerIds)
-            ->count();
-
-        if ($squadCount !== count($playerIds)) {
-            return $this->forbidden('All players in the playing eleven must be in the match squad.');
+        if ($error = MatchSquadRules::playingElevenSubsetError($match, $team, $playerIds)) {
+            return $this->forbidden($error);
         }
 
         $count = count($playerIds);
-
-        $playersPerSide = MatchSquadRules::playersPerSide($match);
-        if ($count > $playersPerSide) {
-            return $this->forbidden("Playing eleven cannot exceed {$playersPerSide} players.");
-        }
 
         if ($error = MatchSquadRules::playingElevenSizeError($match, $count)) {
             return $this->conflict($error);
         }
 
-        // A player cannot appear in both teams' playing elevens for the same match.
-        $oppositeTeamId = $team->id === $match->home_team_id
-            ? $match->away_team_id
-            : $match->home_team_id;
-
-        $crossTeamConflict = DB::table('match_players')
-            ->where('match_id', $match->id)
-            ->where('team_id', $oppositeTeamId)
-            ->whereIn('user_id', $playerIds)
-            ->exists();
-
-        if ($crossTeamConflict) {
-            return $this->forbidden('One or more players are already in the opposing team\'s playing eleven.');
+        if ($error = MatchSquadRules::bothSidesConflictError($match, $team, $playerIds)) {
+            return $this->forbidden($error);
         }
 
         // Replace existing playing eleven atomically — delete + insert must both succeed or neither.

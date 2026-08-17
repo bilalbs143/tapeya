@@ -38,6 +38,9 @@ class UserAuthController extends Controller
      * Register: name, phone (with country code), optional email. Creates user (VERIFICATION_PENDING), sends OTP.
      * User must then call verify-otp with the code to activate and get token.
      *
+     * Walk-ups already exist as verification_pending users — they activate via login OTP
+     * (request-otp → verify-otp), not via register. Unique phone still rejects that path.
+     *
      * Optional referral_nickname stores referred_by immediately; UserReferred (push + DB notify)
      * fires only after OTP verification activates the account.
      */
@@ -135,7 +138,7 @@ class UserAuthController extends Controller
         $token = $user->createToken('app')->plainTextToken;
 
         $data = [
-            'user' => new UserResource($user),
+            'user' => UserResource::self($user),
             'auth' => [
                 'access_token' => $token,
                 'token_type' => 'Bearer',
@@ -155,7 +158,7 @@ class UserAuthController extends Controller
             return response()->failure('Unauthenticated.', 'UNAUTHORIZED');
         }
 
-        return response()->success(new UserResource($user));
+        return response()->success(UserResource::self($user));
     }
 
     public function logout()

@@ -32,7 +32,7 @@ export const vendorShopApi = baseApi.injectEndpoints({
         method: 'PATCH',
         body,
       }),
-      invalidatesTags: ['VendorShop'],
+      invalidatesTags: ['VendorShop', 'User'],
     }),
 
     getVendorProducts: builder.query({

@@ -14,6 +14,7 @@ import {
 } from '@/ui/Tabs';
 
 import { ProfileMetrics } from './ProfileMetrics';
+import { ProfileRecentMatches } from './ProfileRecentMatches';
 import { ProfileReels } from './ProfileReels';
 import { ProfileRoleOverview } from './ProfileRoleOverview';
 import { ProfileStats } from './ProfileStats';
@@ -87,7 +88,10 @@ export function PlayerProfile({ user }) {
           {TABS.map(({ value, Content }) => (
             <TabsContent key={value} value={value} className="focus-visible:outline-none">
               {value === 'overview' ? (
-                <ProfileRoleOverview role={PROFILE_OVERVIEW_ROLE.PLAYER} />
+                <>
+                  <ProfileRoleOverview role={PROFILE_OVERVIEW_ROLE.PLAYER} />
+                  <ProfileRecentMatches userId={userId} />
+                </>
               ) : value === 'reels' ? (
                 <ProfileReels userId={userId} />
               ) : (

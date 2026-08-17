@@ -24,13 +24,23 @@ class TeamController extends Controller
     /**
      * List/search teams (e.g. for organizer to find a team to attach to tournament).
      * GET /teams?search=... — optional search by code or name (partial match).
+     * GET /teams?mine=1 — only teams owned by the authenticated user (sponsor).
      */
     public function index(): JsonResponse
     {
         $search = request()->str('search')->trim();
+        $mine = request()->boolean('mine');
         $query = Team::query()
             ->with(['sponsor', 'iconPlayers'])
             ->orderBy('name');
+
+        if ($mine) {
+            $userId = request()->user()?->id;
+            if ($userId === null) {
+                return $this->forbidden('Authentication required.');
+            }
+            $query->where('user_id', $userId);
+        }
 
         if ($search->isNotEmpty()) {
             $term = '%'.mb_strtolower($search->toString()).'%';

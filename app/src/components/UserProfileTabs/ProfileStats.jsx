@@ -112,7 +112,10 @@ export function ProfileStats() {
   const userId = user?.id ?? null;
 
   const { data: enums = {} } = useGetEnumsQuery();
-  const tournamentTypeOptions = useMemo(() => withAllOption(enums.tournament_type ?? []), [enums.tournament_type]);
+  const tournamentTypeOptions = useMemo(
+    () => withAllOption(enums.stats_bucket ?? enums.tournament_type ?? []),
+    [enums.stats_bucket, enums.tournament_type],
+  );
   const cricketFormatOptions = useMemo(() => withAllOption(enums.cricket_format ?? []), [enums.cricket_format]);
 
   const { data: statsData, isLoading: statsLoading } = useGetPlayerStatsQuery(

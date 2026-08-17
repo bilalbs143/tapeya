@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/useToast';
 import { AppEventParams, AppEvents, logEvent } from '@/lib/analytics/facebook';
 import { getApiErrorMessage } from '@/lib/apiErrors';
+import { consumeJustRegistered, markPendingCompleteProfilePrompt } from '@/lib/completeProfilePrompt';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { clearOtpPreview, extractOtpFromAuthResponse, getOtpPreview, setOtpPreview } from '@/lib/otpPreviewSession';
 import { isReturningUser, markReturningUser } from '@/lib/returningUser';
@@ -134,6 +135,9 @@ export default function Otp() {
             logEvent(AppEvents.COMPLETED_REGISTRATION, {
               [AppEventParams.REGISTRATION_METHOD]: 'phone',
             });
+          }
+          if (consumeJustRegistered(phoneRaw) && user.id) {
+            markPendingCompleteProfilePrompt(user.id);
           }
           dispatch(setCredentials({ user, accessToken: token }));
           addSavedProfile({

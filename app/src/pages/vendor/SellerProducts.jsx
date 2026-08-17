@@ -6,16 +6,7 @@ import { NoImagePlaceholder } from '@/pages/vendor/NoImagePlaceholder';
 import { useGetVendorProductsQuery, useGetVendorStoreQuery } from '@/store/api/vendorShopApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
-
-function StatusPill({ isActive }) {
-  const active = !!isActive;
-  const style = active ? 'border border-[#34C759] text-[#34C759]' : 'border border-[#6B7280] text-[#6B7280]';
-  return (
-    <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase ${style}`}>
-      {active ? 'Active' : 'Inactive'}
-    </span>
-  );
-}
+import { StatusPill } from '@/ui/StatusPill';
 
 export default function SellerProducts() {
   const navigate = useNavigate();
@@ -95,7 +86,11 @@ export default function SellerProducts() {
                       <p className="text-brand mt-1 text-[14px] font-bold">{formatPrice(product.price)}</p>
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-1.5">
-                      <StatusPill isActive={product.is_active} />
+                      <StatusPill
+                        tone={product.is_active ? 'success' : 'muted'}
+                        size="sm"
+                        label={product.is_active ? 'Active' : 'Inactive'}
+                      />
                       <p className="text-muted text-[11px]">Stock: {product.stock_quantity ?? 0}</p>
                     </div>
                   </Link>

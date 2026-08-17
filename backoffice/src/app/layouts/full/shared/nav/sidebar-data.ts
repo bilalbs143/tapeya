@@ -32,6 +32,11 @@ export const navItems: NavItem[] = [
         route: '/tournaments-management/tournament-requests',
       },
       {
+        displayName: 'Quick Matches',
+        iconName: 'tabler:point',
+        route: '/tournaments-management/quick-matches',
+      },
+      {
         displayName: 'Teams',
         iconName: 'tabler:point',
         route: '/tournaments-management/teams',

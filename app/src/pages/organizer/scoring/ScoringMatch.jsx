@@ -220,12 +220,14 @@ export default function ScoringMatch() {
     () => ({
       matchId,
       match,
+      apiMatch: apiMatch ?? null,
       matchComplete,
+      canOperate: Boolean(apiMatch?.can_operate),
       wagonWheelEnabled,
       innings1Id,
       innings2Id,
     }),
-    [matchId, match, matchComplete, wagonWheelEnabled, innings1Id, innings2Id],
+    [matchId, match, apiMatch, matchComplete, wagonWheelEnabled, innings1Id, innings2Id],
   );
 
   // ── Scoring tab props ──────────────────────────────────────────────────────

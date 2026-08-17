@@ -6,13 +6,12 @@ import { useDialog } from '@/context/DialogContext';
 import { useNativeStoreVersionInfo } from '@/hooks/useNativeStoreVersionInfo';
 import { useWebStoreLinks } from '@/hooks/useWebStoreLinks';
 import { shouldPromptAppUpdate } from '@/lib/appVersionCompare';
+import { consumePendingCompleteProfilePrompt, hasPendingCompleteProfilePrompt } from '@/lib/completeProfilePrompt';
 import {
   appUpdateReminderStorageKey,
   downloadAppReminderStorageKey,
   isDialogReminderCooldownElapsed,
   markDialogReminderShown,
-  PROFILE_STRENGTH_REMINDER_COOLDOWN_MS,
-  profileStrengthReminderStorageKey,
   REPEATING_DIALOG_REMINDER_COOLDOWN_MS,
 } from '@/lib/dialogReminderCooldown';
 import { calculateProfileStrength } from '@/lib/utils/playerUtils';
@@ -73,18 +72,17 @@ const PROGRAMMATIC_DIALOG_RULES = /** @type {ProgrammaticDialogRule[]} */ ([
       if (isProfileStrengthReminderBlockedPath(ctx.pathname)) {
         return null;
       }
-      if (!ctx.user?.id || calculateProfileStrength(ctx.user) >= 100) {
+      if (!ctx.user?.id || !hasPendingCompleteProfilePrompt(ctx.user.id)) {
+        return null;
+      }
+      if (calculateProfileStrength(ctx.user) >= 100) {
+        consumePendingCompleteProfilePrompt(ctx.user.id);
         return null;
       }
       return { key: PROGRAMMATIC_DIALOG_KEYS.profileStrengthReminder };
     },
     beforeOpen(ctx) {
-      const storageKey = profileStrengthReminderStorageKey(ctx.user?.id);
-      if (!isDialogReminderCooldownElapsed(storageKey, PROFILE_STRENGTH_REMINDER_COOLDOWN_MS)) {
-        return false;
-      }
-      markDialogReminderShown(storageKey);
-      return true;
+      return consumePendingCompleteProfilePrompt(ctx.user?.id);
     },
   },
   {
@@ -162,7 +160,7 @@ const PROGRAMMATIC_DIALOG_RULES = /** @type {ProgrammaticDialogRule[]} */ ([
 ]);
 
 /**
- * Single source of truth for all auto-open dialogs (profile reminder, app update, download app).
+ * Single source of truth for all auto-open dialogs (complete-profile once after register, app update, download app).
  *
  * Only runs while the user is logged in. Closes open reminder dialogs on logout or blocked routes.
  * To add a new auto-dialog: extend PROGRAMMATIC_DIALOG_KEYS, add a rule to PROGRAMMATIC_DIALOG_RULES,

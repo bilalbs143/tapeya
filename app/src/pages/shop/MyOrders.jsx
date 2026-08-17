@@ -5,28 +5,11 @@ import { useNavigate } from 'react-router-dom';
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { formatPrice } from '@/lib/format';
 import { formatRelativeDate } from '@/lib/utils/dateUtils';
+import { OrderStatusPill } from '@/pages/vendor/OrderStatusPill';
 import { useGetOrdersQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 
 const CURRENT_STATUSES = ['pending', 'processing'];
-
-const STATUS_PILL_STYLES = {
-  pending: 'border border-brand text-brand font-bold uppercase tracking-wide',
-  processing: 'border border-white text-white font-bold uppercase tracking-wide',
-  dispatched: 'border border-[#34C759] text-[#34C759] font-bold uppercase tracking-wide',
-  delivered: 'border border-[#22C55E] text-[#22C55E] font-bold uppercase tracking-wide',
-  cancelled: 'border border-[#FF3B30] text-[#FF3B30] font-bold uppercase tracking-wide',
-  shipped: 'border border-[#34C759] text-[#34C759] font-bold uppercase tracking-wide',
-};
-
-function OrderStatusPill({ status, statusLabel }) {
-  const value = (status ?? '').toLowerCase();
-  const display = (statusLabel ?? value) !== '' ? (statusLabel ?? value).toUpperCase() : '—';
-  const style =
-    STATUS_PILL_STYLES[value] ?? 'border border-[#6B7280] bg-transparent text-[#6B7280] font-bold uppercase tracking-wide';
-
-  return <span className={`inline-block rounded-full px-3 py-1 text-[11px] ${style}`}>{display}</span>;
-}
 
 const OrderCard = memo(function OrderCard({ order, onClick }) {
   const items = order.items ?? [];

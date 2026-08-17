@@ -47,7 +47,19 @@ export const playerApi = baseApi.injectEndpoints({
       transformResponse: (response) => response?.data ?? response ?? [],
       providesTags: (result, error, userId) => (result?.length ? [{ type: 'User', id: `teams-${userId}` }] : []),
     }),
+    getPlayerRecentMatches: builder.query({
+      query: ({ userId, limit = 10 }) => ({
+        url: `/users/${userId}/recent-matches`,
+        params: { limit },
+      }),
+      transformResponse: (response) => response?.data ?? response ?? [],
+    }),
   }),
 });
 
-export const { useGetPlayerStatsQuery, useGetPlayerRankingPositionQuery, useGetPlayerTeamsQuery } = playerApi;
+export const {
+  useGetPlayerStatsQuery,
+  useGetPlayerRankingPositionQuery,
+  useGetPlayerTeamsQuery,
+  useGetPlayerRecentMatchesQuery,
+} = playerApi;

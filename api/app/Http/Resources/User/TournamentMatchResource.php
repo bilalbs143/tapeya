@@ -16,6 +16,10 @@ class TournamentMatchResource extends JsonResource
 
         return [
             'id' => $match->id,
+            'kind' => $match->kind?->value,
+            'cricket_format' => $match->cricket_format?->value,
+            'cricket_format_label' => $match->cricket_format?->label(),
+            'created_by' => $match->created_by !== null ? (int) $match->created_by : null,
             'tournament_id' => $match->tournament_id,
             'group_index' => $match->group_index,
             'match_date' => $match->match_date?->format('Y-m-d'),
@@ -30,12 +34,9 @@ class TournamentMatchResource extends JsonResource
             'away_team_id' => $match->away_team_id,
             'home_team' => $this->whenLoaded('homeTeam', fn () => new TeamResource($match->homeTeam)),
             'away_team' => $this->whenLoaded('awayTeam', fn () => new TeamResource($match->awayTeam)),
-            'tournament' => $this->whenLoaded('tournament', fn () => [
-                'id' => $match->tournament->id,
-                'name' => $match->tournament->tournament_name ?? '',
-                'short_name' => $match->tournament->short_name ?? '',
-                'logo_url' => $match->tournament->logoUrl(),
-            ]),
+            'tournament' => $this->whenLoaded('tournament', fn () => $match->tournamentSummary()),
+            'can_operate' => $request->user()?->canScoreMatchInApp($match) ?? false,
+            'is_owner' => $request->user()?->isQuickMatchOwner($match) ?? false,
 
             'winning_team_id' => $match->winning_team_id,
             'toss_winner_team_id' => $match->toss_winner_team_id,

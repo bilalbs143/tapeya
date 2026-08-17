@@ -13,7 +13,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/ui/ToggleGroup';
  */
 export function OversDialog({ initialOvers, options, onChange }) {
   const { closeDialog } = useDialog();
-  const [overs, setOvers] = useState(initialOvers ?? '');
+  const [overs, setOvers] = useState(initialOvers != null ? String(initialOvers) : '');
 
   const handlePreset = (v) => {
     onChange?.(String(v));

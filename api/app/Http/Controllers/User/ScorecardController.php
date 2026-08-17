@@ -382,6 +382,7 @@ class ScorecardController extends Controller
 
         $data = [
             'match_id' => $match->id,
+            'tournament' => $match->tournamentSummary(),
             'innings' => $innings->map(fn (Innings $inn) => $this->formatInnings($match, $inn)),
         ];
 

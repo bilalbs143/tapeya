@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\PostController as AdminPostController;
 use App\Http\Controllers\Admin\PostReportController as AdminPostReportController;
 use App\Http\Controllers\Admin\PushNotificationController;
 use App\Http\Controllers\Admin\PushNotificationTemplateController;
+use App\Http\Controllers\Admin\QuickMatchController;
 use App\Http\Controllers\Admin\Shop\BrandController as AdminBrandController;
 use App\Http\Controllers\Admin\Shop\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\Shop\EcommerceDashboardController;
@@ -99,6 +100,10 @@ Route::prefix('admin')->group(function () {
         Route::get('tournaments/{tournament}/squad-occupancy', [TournamentTeamSquadController::class, 'occupancy']);
         Route::get('tournaments/{tournament}/matches', [TournamentMatchController::class, 'index']);
         Route::post('tournaments/{tournament}/matches', [TournamentMatchController::class, 'store']);
+
+        Route::get('quick-matches', [QuickMatchController::class, 'index']);
+        Route::get('quick-matches/{quickMatch}', [QuickMatchController::class, 'show']);
+        Route::post('quick-matches/{quickMatch}/cancel', [QuickMatchController::class, 'cancel']);
 
         Route::get('matches/{match}', [TournamentMatchController::class, 'show']);
         Route::match(['post', 'patch'], 'matches/{match}', [TournamentMatchController::class, 'update']);

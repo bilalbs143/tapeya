@@ -204,6 +204,20 @@ export function formatDate(value, options = { day: '2-digit', month: 'short', ye
 }
 
 /**
+ * Format a full ISO datetime for display, e.g. "2026-08-16T15:46:03Z" → "16 Aug 2026, 3:46 PM".
+ *
+ * @param {string|Date|null|undefined} value
+ * @returns {string} Formatted string e.g. "16 Aug 2026, 3:46 PM" or ""
+ */
+export function formatDateTime(value) {
+  if (value == null || value === '') return '';
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const time = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  return `${formatDate(date)}, ${time}`;
+}
+
+/**
  * Format a date range for display. Uses formatDate for each part.
  *
  * @param {string|Date|null|undefined} startDate - Start date (ISO or Date)

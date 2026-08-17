@@ -6,13 +6,17 @@ use App\Enums\Notification\AdminNotificationTypeEnum;
 use App\Enums\Shop\VendorStatusEnum;
 use App\Enums\User\UserStatusEnum;
 use App\Enums\User\UserTypeEnum;
+use App\Models\PushNotificationLog;
 use App\Models\Shop\Brand;
 use App\Models\Shop\Category;
 use App\Models\Shop\Product;
 use App\Models\Shop\Vendor;
+use App\Models\Team;
 use App\Models\User;
 use App\Notifications\VendorApplicationSubmittedAdminNotification;
+use App\Services\Push\PushNotificationService;
 use App\Utils\Services\SystemUserService;
+use Database\Seeders\SystemSettingsSeeder;
 use Database\Seeders\SystemUserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
@@ -64,6 +68,96 @@ class VendorApplyAndPublishTest extends TestCase
         $product = Product::query()->findOrFail($productId);
 
         $this->assertTrue($product->isSellable());
+    }
+
+    public function test_me_includes_vendor_after_apply(): void
+    {
+        $user = User::factory()->create([
+            'type' => UserTypeEnum::USER,
+            'status' => UserStatusEnum::ACTIVE,
+        ]);
+
+        $this->actingAs($user, 'api')
+            ->postJson('/api/v1/shop/vendor/apply', [
+                'store_name' => 'Street Kit',
+                'city' => 'Lahore',
+                'country' => 'Pakistan',
+            ])
+            ->assertCreated();
+
+        $this->actingAs($user, 'api')
+            ->getJson('/api/v1/me')
+            ->assertOk()
+            ->assertJsonPath('data.vendor.store_name', 'Street Kit')
+            ->assertJsonPath('data.vendor.status', VendorStatusEnum::PENDING->value)
+            ->assertJsonMissingPath('data.capabilities');
+    }
+
+    public function test_login_user_payload_includes_vendor(): void
+    {
+        $this->seed(SystemSettingsSeeder::class);
+        config(['app.debug' => true]);
+
+        $push = \Mockery::mock(PushNotificationService::class);
+        $push->shouldReceive('dispatch')->andReturn(\Mockery::mock(PushNotificationLog::class))->byDefault();
+        $this->app->instance(PushNotificationService::class, $push);
+
+        $user = User::factory()->create([
+            'type' => UserTypeEnum::USER,
+            'status' => UserStatusEnum::ACTIVE,
+            'phone' => '+923011110002',
+        ]);
+
+        $this->actingAs($user, 'api')
+            ->postJson('/api/v1/shop/vendor/apply', [
+                'store_name' => 'Login Kit',
+                'city' => 'Lahore',
+                'country' => 'Pakistan',
+            ])
+            ->assertCreated();
+
+        $otp = $this->postJson('/api/v1/auth/request-otp', [
+            'phone' => $user->phone,
+        ])->assertOk()->json('data.otp');
+
+        $this->postJson('/api/v1/auth/verify-otp', [
+            'phone' => $user->phone,
+            'code' => $otp,
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.user.vendor.store_name', 'Login Kit')
+            ->assertJsonMissingPath('data.user.capabilities');
+    }
+
+    public function test_team_sponsor_payload_omits_vendor(): void
+    {
+        $user = User::factory()->create([
+            'type' => UserTypeEnum::USER,
+            'status' => UserStatusEnum::ACTIVE,
+        ]);
+
+        $this->actingAs($user, 'api')
+            ->postJson('/api/v1/shop/vendor/apply', [
+                'store_name' => 'Squad Kit',
+                'city' => 'Lahore',
+                'country' => 'Pakistan',
+            ])
+            ->assertCreated();
+
+        Team::create([
+            'name' => 'Mine',
+            'code' => 'TM'.uniqid(),
+            'country' => 'PK',
+            'city' => 'Lahore',
+            'user_id' => $user->id,
+            'created_by' => $user->id,
+        ]);
+
+        $this->actingAs($user, 'api')
+            ->getJson('/api/v1/teams?mine=1')
+            ->assertOk()
+            ->assertJsonMissingPath('data.0.sponsor.vendor')
+            ->assertJsonMissingPath('data.0.sponsor.capabilities');
     }
 
     public function test_vendor_apply_notifies_admin_inbox(): void

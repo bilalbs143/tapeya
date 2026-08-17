@@ -1,20 +1,8 @@
-/** Cooldown before the incomplete-profile reminder may appear again. */
-export const PROFILE_STRENGTH_REMINDER_COOLDOWN_MS = 24 * 60 * 60 * 1000;
-
 /** Cooldown before download-app / app-update reminders may appear again. */
 export const REPEATING_DIALOG_REMINDER_COOLDOWN_MS = 4 * 60 * 1000;
 
-const PROFILE_STRENGTH_REMINDER_KEY_PREFIX = 'tapeya_dialog_reminder_profile_strength_';
 const DOWNLOAD_APP_REMINDER_KEY_PREFIX = 'tapeya_dialog_reminder_download_app_';
 const APP_UPDATE_REMINDER_KEY_PREFIX = 'tapeya_dialog_reminder_app_update_';
-
-/**
- * @param {string|number} userId
- * @returns {string}
- */
-export function profileStrengthReminderStorageKey(userId) {
-  return `${PROFILE_STRENGTH_REMINDER_KEY_PREFIX}${userId}`;
-}
 
 /**
  * @param {string|number} userId

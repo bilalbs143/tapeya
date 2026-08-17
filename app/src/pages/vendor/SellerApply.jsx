@@ -78,7 +78,7 @@ export default function SellerApply() {
     return <Navigate to="/seller" replace />;
   }
 
-  if (!meLoading && user?.capabilities?.vendor_status != null) {
+  if (!meLoading && user?.vendor != null) {
     return <Navigate to="/profile" replace />;
   }
 

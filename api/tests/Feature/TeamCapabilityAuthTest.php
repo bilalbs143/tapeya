@@ -163,18 +163,31 @@ class TeamCapabilityAuthTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_me_exposes_assignment_based_capabilities(): void
+    public function test_me_has_no_capability_bag(): void
     {
         $user = User::factory()->create(['type' => 'user']);
-        $this->createTeamFor($user);
-        $this->createTournamentFor($user);
 
         $this->actingAs($user, 'api')
             ->getJson('/api/v1/me')
             ->assertOk()
-            ->assertJsonPath('data.capabilities.team_owner', true)
-            ->assertJsonPath('data.capabilities.tournament_manager', true)
-            ->assertJsonPath('data.capabilities.vendor_status', null)
+            ->assertJsonMissingPath('data.capabilities')
+            ->assertJsonMissingPath('data.vendor')
             ->assertJsonMissingPath('data.roles');
+    }
+
+    public function test_teams_mine_returns_only_owned_teams(): void
+    {
+        $owner = User::factory()->create(['type' => 'user', 'status' => 'active']);
+        $other = User::factory()->create(['type' => 'user', 'status' => 'active']);
+        $mine = $this->createTeamFor($owner, 'Mine');
+        $theirs = $this->createTeamFor($other, 'Theirs');
+
+        $response = $this->actingAs($owner, 'api')
+            ->getJson('/api/v1/teams?mine=1')
+            ->assertOk();
+
+        $ids = collect($response->json('data'))->pluck('id');
+        $this->assertTrue($ids->contains($mine->id));
+        $this->assertFalse($ids->contains($theirs->id));
     }
 }

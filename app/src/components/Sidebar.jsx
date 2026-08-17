@@ -5,9 +5,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useNativeStoreVersionInfo } from '@/hooks/useNativeStoreVersionInfo';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { addSavedProfile } from '@/lib/savedProfiles';
-// import starMatchIcon from '@/assets/images/icons/star-match.svg';
 import { calculateProfileStrength } from '@/lib/utils/playerUtils';
-import { userHasVendorAccess } from '@/lib/vendorAccess';
+import { userCanApplyAsSeller, userHasVendorAccess } from '@/lib/vendorAccess';
 import { isNative } from '@/platform/platform';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useGetSidebarInterestCampaignQuery } from '@/store/api/tournamentInterestApi';
@@ -26,8 +25,9 @@ const interestCampaignIcon = `${CLOUDFRONT_APP_BASE}/images/icons/interest-campa
 const goLiveIcon = `${CLOUDFRONT_APP_BASE}/images/icons/voice-cricle-live.svg`;
 const sellerHubIcon = `${CLOUDFRONT_APP_BASE}/images/icons/seller-hub.svg`;
 const becomeASellerIcon = `${CLOUDFRONT_APP_BASE}/images/icons/become-a-seller.svg`;
+const quickMatchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/quick-match.svg`;
+const myMatchesIcon = `${CLOUDFRONT_APP_BASE}/images/icons/my-matches.svg`;
 const defaultAvatar = `${CLOUDFRONT_APP_BASE}/images/standard/default-avatar.png`;
-
 const MENU_ITEMS = [
   { label: 'Home', icon: homeIcon, path: '/home' },
   { label: 'Score', icon: scoreIcon, path: '/scorecard' },
@@ -35,6 +35,16 @@ const MENU_ITEMS = [
     label: 'My Tournaments',
     icon: requestTournamentIcon,
     path: '/organizer/tournaments',
+  },
+  {
+    label: 'Quick Match',
+    icon: quickMatchIcon,
+    path: '/quick-match',
+  },
+  {
+    label: 'My Matches',
+    icon: myMatchesIcon,
+    path: '/matches',
   },
   { label: 'My Orders', icon: myOrderIcon, path: '/shop/orders' },
   {
@@ -100,7 +110,7 @@ export function Sidebar({ open, onClose }) {
 
   const canBroadcast = isNative() && Boolean(profileUser?.can_broadcast);
   const canAccessSellerHub = userHasVendorAccess(profileUser);
-  const canApplyAsSeller = profileUser?.capabilities?.vendor_status == null;
+  const canApplyAsSeller = userCanApplyAsSeller(profileUser);
 
   const navItems = useMemo(() => {
     const filtered = MENU_ITEMS.filter(

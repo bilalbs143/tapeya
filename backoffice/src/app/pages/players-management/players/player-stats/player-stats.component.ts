@@ -109,7 +109,10 @@ export class PlayerStatsComponent implements OnInit, OnDestroy {
 
     this.sub.add(
       this.enumsService.getEnums().subscribe((enums) => {
-        this.tournamentTypeOptions = [{ value: 'all', label: 'All' }, ...(enums['tournament_type'] ?? [])];
+        this.tournamentTypeOptions = [
+          { value: 'all', label: 'All' },
+          ...(enums['stats_bucket'] ?? enums['tournament_type'] ?? []),
+        ];
         this.cricketFormatOptions = [{ value: 'all', label: 'All' }, ...(enums['cricket_format'] ?? [])];
       })
     );

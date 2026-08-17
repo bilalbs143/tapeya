@@ -6,6 +6,8 @@ import {
   buildCreatorProfileShareUrl,
   buildPostDetailPath,
   buildPostShareUrl,
+  buildQuickMatchScorecardPath,
+  buildQuickMatchScorecardShareUrl,
   buildReelSharePath,
   buildReelShareUrl,
   shareLink,
@@ -86,5 +88,10 @@ describe('share URL builders', () => {
     expect(buildReelSharePath(42)).toBe('/reels/42');
     expect(buildReelShareUrl(42)).toMatch(/\/reels\/42$/);
     expect(buildCreatorProfileShareUrl(9)).toMatch(/\/reels\/u\/9$/);
+  });
+
+  it('builds quick match scorecard share urls', () => {
+    expect(buildQuickMatchScorecardPath(901)).toBe('/scorecard/match/901');
+    expect(buildQuickMatchScorecardShareUrl(901)).toMatch(/\/scorecard\/match\/901$/);
   });
 });

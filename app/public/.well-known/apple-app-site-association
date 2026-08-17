@@ -9,7 +9,9 @@
           "/reels/*",
           "/feed",
           "/feed/*",
-          "/live/go-live/*"
+          "/live/go-live/*",
+          "/scorecard",
+          "/scorecard/*"
         ]
       }
     ]
