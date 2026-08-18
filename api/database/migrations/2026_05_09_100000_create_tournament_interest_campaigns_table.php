@@ -14,6 +14,7 @@ return new class extends Migration
             $table->string('tournament_name');
             $table->string('slug', 191)->unique();
             $table->text('description')->nullable();
+            $table->json('form_fields')->nullable();
             $table->string('logo_path')->nullable();
             $table->boolean('show_in_sidebar')->default(false);
             $table->boolean('show_dialog')->default(false);

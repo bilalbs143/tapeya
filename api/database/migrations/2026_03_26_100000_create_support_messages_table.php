@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('phone', 30)->nullable();
             $table->text('message');
             $table->string('attachment_path', 500)->nullable();
+            $table->string('status', 20)->default('open');
             $table->timestamps();
         });
     }

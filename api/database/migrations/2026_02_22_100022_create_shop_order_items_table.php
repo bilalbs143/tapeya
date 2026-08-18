@@ -11,6 +11,8 @@ return new class extends Migration
         Schema::create('shop_order_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')->constrained('shop_orders')->cascadeOnDelete();
+            $table->foreignId('vendor_id')->constrained('shop_vendors')->restrictOnDelete();
+            $table->foreignId('vendor_order_id')->constrained('shop_vendor_orders')->restrictOnDelete();
             $table->foreignId('product_id')->nullable()->constrained('shop_products')->nullOnDelete();
             $table->json('product_snapshot');
             $table->unsignedInteger('quantity');

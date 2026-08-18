@@ -11,7 +11,9 @@ return new class extends Migration
         Schema::create('matches', function (Blueprint $table) {
             $table->id();
 
+            $table->string('kind', 20)->default('tournament');
             $table->foreignId('tournament_id')
+                ->nullable()
                 ->constrained('tournaments')
                 ->cascadeOnDelete();
             $table->unsignedTinyInteger('group_index')->nullable();
@@ -26,9 +28,10 @@ return new class extends Migration
 
             $table->date('match_date');
             $table->time('match_time');
-            $table->string('venue_name');
+            $table->string('venue_name')->nullable();
             $table->unsignedTinyInteger('players_per_side')->default(11);
             $table->unsignedTinyInteger('overs')->default(20);
+            $table->string('cricket_format', 30)->nullable();
 
             $table->string('status', 20)->default('scheduled');
             $table->string('stream_provider_override', 30)->nullable();
@@ -60,6 +63,10 @@ return new class extends Migration
             $table->unsignedSmallInteger('win_by_runs')->nullable();
             $table->unsignedTinyInteger('win_by_wickets')->nullable();
             $table->foreignId('player_of_match_user_id')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
+            $table->foreignId('created_by')
                 ->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
