@@ -3,17 +3,17 @@
 namespace Database\Factories;
 
 use App\Enums\Streaming\StreamOrientationEnum;
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
- * @extends Factory<MatchStream>
+ * @extends Factory<LiveStream>
  */
-class MatchStreamFactory extends Factory
+class LiveStreamFactory extends Factory
 {
-    protected $model = MatchStream::class;
+    protected $model = LiveStream::class;
 
     /**
      * @return array<string, mixed>

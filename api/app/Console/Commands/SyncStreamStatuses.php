@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Streaming\LiveStreamService;
 use App\Streaming\StreamProviderResolver;
 use Illuminate\Console\Command;
@@ -21,7 +21,7 @@ class SyncStreamStatuses extends Command
      */
     public function handle(LiveStreamService $service, StreamProviderResolver $resolver): int
     {
-        MatchStream::query()
+        LiveStream::query()
             ->whereNotIn('status', ['ended', 'error'])
             ->whereNotNull('provider_stream_id')
             ->where('provider', '!=', 'external')
@@ -29,7 +29,7 @@ class SyncStreamStatuses extends Command
             ->orderBy('id')
             ->chunk(50, function ($streams) use ($service, $resolver) {
                 $pollable = $streams->reject(
-                    fn (MatchStream $stream) => $resolver->forStream($stream)->supportsWebhooks()
+                    fn (LiveStream $stream) => $resolver->forStream($stream)->supportsWebhooks()
                 );
 
                 if ($pollable->isNotEmpty()) {

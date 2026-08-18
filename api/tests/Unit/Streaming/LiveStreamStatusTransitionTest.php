@@ -2,13 +2,13 @@
 
 namespace Tests\Unit\Streaming;
 
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Settings\StreamingSettings;
-use App\Streaming\Support\MatchStreamStatusTransition;
+use App\Streaming\Support\LiveStreamStatusTransition;
 use Carbon\Carbon;
 use Tests\TestCase;
 
-class MatchStreamStatusTransitionTest extends TestCase
+class LiveStreamStatusTransitionTest extends TestCase
 {
     protected function setUp(): void
     {
@@ -31,9 +31,9 @@ class MatchStreamStatusTransitionTest extends TestCase
     /**
      * @param  array<string, mixed>  $attrs
      */
-    private function stream(array $attrs = []): MatchStream
+    private function stream(array $attrs = []): LiveStream
     {
-        return new MatchStream(array_merge([
+        return new LiveStream(array_merge([
             'status' => 'idle',
             'provider_metadata' => [],
         ], $attrs));
@@ -46,7 +46,7 @@ class MatchStreamStatusTransitionTest extends TestCase
             'started_at' => now()->subMinutes(10),
         ]);
 
-        $updates = MatchStreamStatusTransition::resolve($stream, 'idle');
+        $updates = LiveStreamStatusTransition::resolve($stream, 'idle');
 
         $this->assertNotNull($updates);
         $this->assertSame('idle', $updates['status']);
@@ -64,7 +64,7 @@ class MatchStreamStatusTransitionTest extends TestCase
             ],
         ]);
 
-        $updates = MatchStreamStatusTransition::resolve($stream, 'idle');
+        $updates = LiveStreamStatusTransition::resolve($stream, 'idle');
 
         $this->assertNotNull($updates);
         $this->assertSame('ended', $updates['status']);
@@ -80,7 +80,7 @@ class MatchStreamStatusTransitionTest extends TestCase
             ],
         ]);
 
-        $this->assertNull(MatchStreamStatusTransition::resolve($stream, 'idle'));
+        $this->assertNull(LiveStreamStatusTransition::resolve($stream, 'idle'));
     }
 
     public function test_reconnect_clears_idle_since_and_returns_live(): void
@@ -93,7 +93,7 @@ class MatchStreamStatusTransitionTest extends TestCase
             ],
         ]);
 
-        $updates = MatchStreamStatusTransition::resolve($stream, 'live');
+        $updates = LiveStreamStatusTransition::resolve($stream, 'live');
 
         $this->assertSame('live', $updates['status']);
         $this->assertArrayNotHasKey('idle_since', $updates['provider_metadata']);
@@ -106,7 +106,7 @@ class MatchStreamStatusTransitionTest extends TestCase
             'provider_metadata' => [],
         ]);
 
-        $this->assertNull(MatchStreamStatusTransition::resolve($stream, 'idle'));
+        $this->assertNull(LiveStreamStatusTransition::resolve($stream, 'idle'));
     }
 
     public function test_owner_publishing_grace_blocks_youtube_idle_downgrade(): void
@@ -120,7 +120,7 @@ class MatchStreamStatusTransitionTest extends TestCase
             ],
         ]);
 
-        $this->assertNull(MatchStreamStatusTransition::resolve($stream, 'idle'));
+        $this->assertNull(LiveStreamStatusTransition::resolve($stream, 'idle'));
     }
 
     public function test_owner_publishing_grace_expires_allows_idle_downgrade(): void
@@ -134,7 +134,7 @@ class MatchStreamStatusTransitionTest extends TestCase
             ],
         ]);
 
-        $updates = MatchStreamStatusTransition::resolve($stream, 'idle');
+        $updates = LiveStreamStatusTransition::resolve($stream, 'idle');
 
         $this->assertNotNull($updates);
         $this->assertSame('idle', $updates['status']);
@@ -151,6 +151,6 @@ class MatchStreamStatusTransitionTest extends TestCase
             ],
         ]);
 
-        $this->assertNull(MatchStreamStatusTransition::resolve($stream, 'starting'));
+        $this->assertNull(LiveStreamStatusTransition::resolve($stream, 'starting'));
     }
 }

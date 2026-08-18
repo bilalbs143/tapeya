@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Console;
 
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Models\User;
 use App\Streaming\StreamProviderManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,7 +24,7 @@ class EndExpiredBroadcastsTest extends TestCase
     public function test_case_one_ends_a_self_serve_stream_past_the_max_duration(): void
     {
         $owner = User::factory()->create(['type' => 'user']);
-        $stream = MatchStream::factory()->create([
+        $stream = LiveStream::factory()->create([
             'match_id' => null,
             'owner_user_id' => $owner->id,
             'provider' => 'youtube',
@@ -41,7 +41,7 @@ class EndExpiredBroadcastsTest extends TestCase
     public function test_case_one_leaves_a_stream_within_budget_alone(): void
     {
         $owner = User::factory()->create(['type' => 'user']);
-        $stream = MatchStream::factory()->create([
+        $stream = LiveStream::factory()->create([
             'match_id' => null,
             'owner_user_id' => $owner->id,
             'provider' => 'youtube',
@@ -58,7 +58,7 @@ class EndExpiredBroadcastsTest extends TestCase
     public function test_case_two_deletes_a_stream_that_never_went_live(): void
     {
         $owner = User::factory()->create(['type' => 'user']);
-        $stream = MatchStream::factory()->create([
+        $stream = LiveStream::factory()->create([
             'match_id' => null,
             'owner_user_id' => $owner->id,
             'provider' => 'youtube',
@@ -75,7 +75,7 @@ class EndExpiredBroadcastsTest extends TestCase
     public function test_case_two_leaves_a_recently_created_idle_stream_alone(): void
     {
         $owner = User::factory()->create(['type' => 'user']);
-        $stream = MatchStream::factory()->create([
+        $stream = LiveStream::factory()->create([
             'match_id' => null,
             'owner_user_id' => $owner->id,
             'provider' => 'youtube',
@@ -91,7 +91,7 @@ class EndExpiredBroadcastsTest extends TestCase
 
     public function test_admin_and_match_linked_streams_are_never_touched(): void
     {
-        $adminStandalone = MatchStream::factory()->create([
+        $adminStandalone = LiveStream::factory()->create([
             'match_id' => null,
             'owner_user_id' => null,
             'provider' => 'youtube',

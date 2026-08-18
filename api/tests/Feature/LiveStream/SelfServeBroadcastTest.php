@@ -3,7 +3,7 @@
 namespace Tests\Feature\LiveStream;
 
 use App\Jobs\FinalizeEndedBroadcastJob;
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Models\User;
 use App\Settings\StreamingSettings;
 use App\Streaming\StreamProviderManager;
@@ -276,8 +276,8 @@ class SelfServeBroadcastTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.status', 'ended');
 
-        $this->assertSame('ended', MatchStream::find($streamId)->status);
-        $this->assertNotNull(MatchStream::find($streamId)->ended_at);
+        $this->assertSame('ended', LiveStream::find($streamId)->status);
+        $this->assertNotNull(LiveStream::find($streamId)->ended_at);
 
         Bus::assertDispatched(FinalizeEndedBroadcastJob::class, function (FinalizeEndedBroadcastJob $job) use ($streamId) {
             return $job->streamId === (int) $streamId && $job->notifyClients === true;
@@ -328,7 +328,7 @@ class SelfServeBroadcastTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.status', 'live');
 
-        $stream = MatchStream::find($streamId);
+        $stream = LiveStream::find($streamId);
         $this->assertSame('live', $stream->status);
         $this->assertNotNull($stream->started_at);
         $this->assertNotNull($stream->provider_metadata['owner_publishing_since'] ?? null);
@@ -371,7 +371,7 @@ class SelfServeBroadcastTest extends TestCase
             ->post("/api/v1/live/broadcasts/{$streamId}/thumbnail", ['file' => $file])
             ->assertOk();
 
-        $stream = MatchStream::find($streamId);
+        $stream = LiveStream::find($streamId);
         $this->assertNotNull($stream->getRawOriginal('stream_thumbnail'));
 
         $this->actingAs($owner, 'api')
@@ -393,7 +393,7 @@ class SelfServeBroadcastTest extends TestCase
             ->postJson("/api/v1/live/broadcasts/{$streamId}/start")
             ->assertOk();
 
-        $stream = MatchStream::findOrFail($streamId);
+        $stream = LiveStream::findOrFail($streamId);
         $stream->update([
             'provider_metadata' => array_merge($stream->provider_metadata ?? [], [
                 'owner_publishing_since' => now()->subMinutes(4)->toIso8601String(),

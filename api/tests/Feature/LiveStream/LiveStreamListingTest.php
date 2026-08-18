@@ -4,7 +4,7 @@ namespace Tests\Feature\LiveStream;
 
 use App\Enums\Streaming\StreamOrientationEnum;
 use App\Enums\Tournament\TournamentTypeEnum;
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Models\User;
 use Database\Seeders\SystemSettingsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -28,13 +28,13 @@ class LiveStreamListingTest extends TestCase
         $match = $this->createMatch();
         $match->tournament->update(['tournament_type' => TournamentTypeEnum::OPEN_TOURNAMENT->value]);
 
-        $standalone = MatchStream::factory()->create([
+        $standalone = LiveStream::factory()->create([
             'title' => 'Tapeya Launch',
             'status' => 'live',
             'started_at' => now(),
         ]);
 
-        $linked = MatchStream::factory()->create([
+        $linked = LiveStream::factory()->create([
             'match_id' => $match->id,
             'provider' => 'youtube',
             'streaming_url' => null,
@@ -49,13 +49,13 @@ class LiveStreamListingTest extends TestCase
         $this->assertTrue($ids->contains($linked->id));
     }
 
-    public function test_index_excludes_non_open_tournament_match_streams(): void
+    public function test_index_excludes_non_open_tournament_live_streams(): void
     {
         $user = User::factory()->create();
         $match = $this->createMatch();
         $match->tournament->update(['tournament_type' => TournamentTypeEnum::LEAGUE->value]);
 
-        MatchStream::factory()->create([
+        LiveStream::factory()->create([
             'match_id' => $match->id,
             'provider' => 'youtube',
             'streaming_url' => null,
@@ -71,7 +71,7 @@ class LiveStreamListingTest extends TestCase
     public function test_show_returns_playback_for_standalone_stream(): void
     {
         $user = User::factory()->create();
-        $stream = MatchStream::factory()->create([
+        $stream = LiveStream::factory()->create([
             'streaming_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
             'status' => 'live',
             'started_at' => now(),
@@ -90,7 +90,7 @@ class LiveStreamListingTest extends TestCase
     {
         $owner = User::factory()->create();
         $viewer = User::factory()->create();
-        $stream = MatchStream::factory()->create([
+        $stream = LiveStream::factory()->create([
             'owner_user_id' => $owner->id,
             'status' => 'live',
             'started_at' => now(),
@@ -109,7 +109,7 @@ class LiveStreamListingTest extends TestCase
     {
         $owner = User::factory()->create();
         $viewer = User::factory()->create();
-        $stream = MatchStream::factory()->create([
+        $stream = LiveStream::factory()->create([
             'owner_user_id' => $owner->id,
             'orientation' => StreamOrientationEnum::Landscape,
             'status' => 'live',
@@ -126,7 +126,7 @@ class LiveStreamListingTest extends TestCase
     public function test_comment_on_standalone_stream(): void
     {
         $user = User::factory()->create();
-        $stream = MatchStream::factory()->create(['status' => 'live', 'started_at' => now()]);
+        $stream = LiveStream::factory()->create(['status' => 'live', 'started_at' => now()]);
 
         $this->actingAs($user, 'api')
             ->postJson("/api/v1/live/streams/{$stream->id}/live-comments", ['body' => 'Hello Tapeya!'])

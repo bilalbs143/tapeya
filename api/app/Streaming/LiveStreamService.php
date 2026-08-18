@@ -7,7 +7,7 @@ use App\Events\Broadcast\LiveHubUpdated;
 use App\Events\Broadcast\LiveStreamStatusUpdated;
 use App\Http\Controllers\User\LiveBroadcastController;
 use App\Jobs\FinalizeEndedBroadcastJob;
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Models\TournamentMatch;
 use App\Settings\StreamingSettings;
 use App\Streaming\Data\CreateStreamData;
@@ -27,7 +27,7 @@ class LiveStreamService
 
     public function __construct(private StreamProviderResolver $resolver) {}
 
-    public function createForMatch(TournamentMatch $match, CreateStreamData $data, int $createdBy): MatchStream
+    public function createForMatch(TournamentMatch $match, CreateStreamData $data, int $createdBy): LiveStream
     {
         if ($match->stream?->status === 'live') {
             abort(422, 'A stream is already live for this match.');
@@ -40,7 +40,7 @@ class LiveStreamService
 
         $provider = $this->resolver->forMatch($match);
 
-        $stream = MatchStream::create([
+        $stream = LiveStream::create([
             'match_id' => $match->id,
             'title' => $data->title,
             'description' => $data->description,
@@ -64,9 +64,9 @@ class LiveStreamService
     /**
      * @param  array{title: string, description?: ?string, streaming_url: string, status?: string}  $data
      */
-    public function createStandalone(array $data, int $createdBy): MatchStream
+    public function createStandalone(array $data, int $createdBy): LiveStream
     {
-        return MatchStream::create([
+        return LiveStream::create([
             'match_id' => null,
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
@@ -82,7 +82,7 @@ class LiveStreamService
      *
      * @param  array{title: string, description?: ?string, streaming_url?: ?string, privacy?: string, owner_user_id?: ?int, orientation?: string|StreamOrientationEnum}  $data
      */
-    public function createStandaloneYoutube(array $data, int $createdBy): MatchStream
+    public function createStandaloneYoutube(array $data, int $createdBy): LiveStream
     {
         $settings = app(StreamingSettings::class);
         $providerSlug = $settings->defaultProvider;
@@ -94,9 +94,9 @@ class LiveStreamService
             streamingUrl: $data['streaming_url'] ?? null,
         );
 
-        $orientation = MatchStream::normalizeOrientation($data['orientation'] ?? StreamOrientationEnum::Portrait);
+        $orientation = LiveStream::normalizeOrientation($data['orientation'] ?? StreamOrientationEnum::Portrait);
 
-        $stream = MatchStream::create([
+        $stream = LiveStream::create([
             'match_id' => null,
             'owner_user_id' => $data['owner_user_id'] ?? null,
             'title' => $data['title'],
@@ -134,7 +134,7 @@ class LiveStreamService
         string $title,
         ?string $description,
         StreamOrientationEnum|string $orientation = StreamOrientationEnum::Portrait,
-    ): MatchStream {
+    ): LiveStream {
         $this->assertNoActiveSelfServeStream($ownerUserId);
 
         // Self-serve's entire design (iframe playback, RTMP ingest shape) assumes YouTube.
@@ -150,7 +150,7 @@ class LiveStreamService
             'description' => $description,
             'privacy' => 'unlisted',
             'owner_user_id' => $ownerUserId,
-            'orientation' => MatchStream::normalizeOrientation($orientation),
+            'orientation' => LiveStream::normalizeOrientation($orientation),
         ], $ownerUserId);
     }
 
@@ -161,14 +161,14 @@ class LiveStreamService
         // is only ever set there). It has no VOD/chat history worth keeping, so clear it here
         // rather than making the owner wait for EndExpiredBroadcasts's identical but
         // 30-minutes-later sweep to free their one-active-broadcast slot.
-        MatchStream::query()
+        LiveStream::query()
             ->where('owner_user_id', $ownerUserId)
             ->whereNull('started_at')
             ->whereIn('status', ['idle', 'starting'])
             ->lazy()
-            ->each(fn (MatchStream $stream) => $this->delete($stream));
+            ->each(fn (LiveStream $stream) => $this->delete($stream));
 
-        $exists = MatchStream::query()
+        $exists = LiveStream::query()
             ->where('owner_user_id', $ownerUserId)
             ->whereIn('status', ['idle', 'starting', 'live'])
             ->exists();
@@ -179,7 +179,7 @@ class LiveStreamService
     /**
      * Replace YouTube RTMP credentials on an existing stream row (keeps stream id).
      */
-    public function provisionProviderStream(MatchStream $stream, CreateStreamData $data): MatchStream
+    public function provisionProviderStream(LiveStream $stream, CreateStreamData $data): LiveStream
     {
         if ($stream->provider === 'external') {
             abort(422, 'External streams cannot be provisioned via RTMP.');
@@ -209,7 +209,7 @@ class LiveStreamService
         return $stream;
     }
 
-    public function markLive(MatchStream $stream): void
+    public function markLive(LiveStream $stream): void
     {
         $stream->update(['status' => 'live', 'started_at' => $stream->started_at ?? now()]);
         $stream->refresh();
@@ -222,7 +222,7 @@ class LiveStreamService
      * YouTube sync still runs on schedule (and via manual Sync Status) to reconcile.
      * Re-calling while already live refreshes the owner publishing grace (resume / reconnect).
      */
-    public function markPublishing(MatchStream $stream): void
+    public function markPublishing(LiveStream $stream): void
     {
         if (! in_array($stream->status, ['idle', 'starting', 'live'], true)) {
             return;
@@ -247,7 +247,7 @@ class LiveStreamService
         }
     }
 
-    public function end(MatchStream $stream): void
+    public function end(LiveStream $stream): void
     {
         // DB-only on the request path; Redis / Reverb / YouTube run via FinalizeEndedBroadcastJob.
         $wasActive = $stream->status !== 'ended';
@@ -267,7 +267,7 @@ class LiveStreamService
         FinalizeEndedBroadcastJob::dispatch($stream->id, notifyClients: $wasActive);
     }
 
-    public function delete(MatchStream $stream): void
+    public function delete(LiveStream $stream): void
     {
         if ($stream->provider !== 'external') {
             $this->resolver->forStream($stream)->deleteStream($stream);
@@ -283,7 +283,7 @@ class LiveStreamService
         return $this->resolver->forMatch($match)->playback($stream);
     }
 
-    public function syncStatus(MatchStream $stream): void
+    public function syncStatus(LiveStream $stream): void
     {
         if ($stream->provider === 'external' || in_array($stream->status, ['ended', 'error'], true)) {
             return;
@@ -302,12 +302,12 @@ class LiveStreamService
      * of one round-trip per stream, since `streams:sync` runs every minute against every active
      * stream and vendor quota is shared across the whole app.
      *
-     * @param  Collection<int, MatchStream>  $streams
+     * @param  Collection<int, LiveStream>  $streams
      */
     public function syncStatuses(Collection $streams): void
     {
         $eligible = $streams->filter(
-            fn (MatchStream $stream) => $stream->provider !== 'external' && ! in_array($stream->status, ['ended', 'error'], true)
+            fn (LiveStream $stream) => $stream->provider !== 'external' && ! in_array($stream->status, ['ended', 'error'], true)
         )->values();
 
         if ($eligible->isEmpty()) {
@@ -325,7 +325,7 @@ class LiveStreamService
         }
     }
 
-    private function reconcileStatusChange(MatchStream $stream, string $before): void
+    private function reconcileStatusChange(LiveStream $stream, string $before): void
     {
         if ($stream->status === $before) {
             return;
@@ -349,7 +349,7 @@ class LiveStreamService
      * Fan-out status to the per-stream channel and the live hub.
      */
     public function broadcastStatusChange(
-        MatchStream $stream,
+        LiveStream $stream,
         ?string $status = null,
         ?StreamPlayback $playback = null,
     ): void {
@@ -362,11 +362,11 @@ class LiveStreamService
 
         broadcast(new LiveStreamStatusUpdated($stream->id, $resolvedStatus, $resolvedPlayback));
 
-        $visibleInApp = MatchStream::query()->visibleInApp()->whereKey($stream->id)->exists();
+        $visibleInApp = LiveStream::query()->visibleInApp()->whereKey($stream->id)->exists();
         broadcast(new LiveHubUpdated($stream, $visibleInApp));
     }
 
-    private function playbackPayload(MatchStream $stream): ?StreamPlayback
+    private function playbackPayload(LiveStream $stream): ?StreamPlayback
     {
         $playback = $stream->playbackForApp();
 

@@ -8,7 +8,7 @@ use App\Enums\User\UserTypeEnum;
 use App\Http\Requests\Admin\User\StoreUserRequest;
 use App\Http\Requests\Admin\User\UpdateUserRequest;
 use App\Http\Resources\Admin\User\UserResource;
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Models\Role;
 use App\Models\User;
 use App\Streaming\LiveStreamService;
@@ -128,7 +128,7 @@ class UserController extends BaseAdminController
      */
     private function revokeActiveSelfServeBroadcasts(User $user): int
     {
-        $activeStreams = MatchStream::query()
+        $activeStreams = LiveStream::query()
             ->where('owner_user_id', $user->id)
             ->whereIn('status', ['idle', 'starting', 'live'])
             ->get();

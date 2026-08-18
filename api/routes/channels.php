@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Models\TournamentMatch;
 use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
@@ -58,7 +58,7 @@ Broadcast::channel('live-hub', function (User $user) {
  * Only while the stream is live or starting.
  */
 Broadcast::channel('live-stream.{streamId}.presence', function (User $user, int|string $streamId) {
-    $stream = MatchStream::query()->find((int) $streamId);
+    $stream = LiveStream::query()->find((int) $streamId);
 
     if (! $stream || ! in_array($stream->status, ['live', 'starting'], true)) {
         return false;

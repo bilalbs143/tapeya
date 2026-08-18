@@ -18,7 +18,7 @@ No new alter migration. The live table was renamed with SQL, and the **original 
 | SQL | `api/database/scripts/rename_match_streams_to_live_streams.sql` |
 | Create migration | `2026_05_18_100000_create_match_streams_table.php` → `2026_05_18_100000_create_live_streams_table.php` (same timestamp, new filename + contents) |
 | `migrations` row | id 63, batch 1, now `2026_05_18_100000_create_live_streams_table` |
-| Model | `MatchStream::$table = 'live_streams'` (class name unchanged) |
+| Model | `App\Models\LiveStream` (`$table = 'live_streams'`) |
 | Tests | `assertDatabaseHas/Missing` table strings updated |
 | Cutover | `artisan migrate:status` — create file **Ran**, nothing pending; app brought back up; workers restarted; `php8.3-fpm` reloaded |
 
@@ -54,7 +54,7 @@ Updating the create file **and** the `migrations.migration` value keeps:
 |------|------|
 | `api/database/scripts/rename_match_streams_to_live_streams.sql` | One-shot production rename (do not re-run) |
 | `api/database/migrations/2026_05_18_100000_create_live_streams_table.php` | Canonical create for fresh installs |
-| `api/app/Models/MatchStream.php` | `$table = 'live_streams'` |
+| `api/app/Models/LiveStream.php` | Eloquent model (`$table = 'live_streams'`) |
 | `exports/tapeya-pre-live-streams-rename-20260818-022250.dump` | Rollback dump |
 
 Historical copies under `api/database/migrations-backup/` and `migrations copy/` still say `match_streams` — those folders are not used by artisan.
@@ -69,7 +69,7 @@ Restore the dump (preferred):
 sudo -u postgres pg_restore --clean --if-exists -d tapeya /var/www/tapeya/exports/tapeya-pre-live-streams-rename-20260818-022250.dump
 ```
 
-That restores the old table **and** the old `migrations` filename. Also revert the git changes (create file name, model `$table`, tests).
+That restores the old table **and** the old `migrations` filename. Also revert the git changes (create file name, `LiveStream` model, tests).
 
 SQL-only undo (if the dump is not used):
 
@@ -79,7 +79,7 @@ ALTER TABLE live_streams RENAME TO match_streams;
 -- to 2026_05_18_100000_create_match_streams_table
 ```
 
-Then restore the old create migration file and remove `$table` (or set it to `match_streams`).
+Then restore the old create migration file and revert the `LiveStream` model if rolling the app back with the dump.
 
 ---
 
@@ -94,7 +94,7 @@ Product language is already “live stream”:
 | Backoffice | Live Streams management |
 | PHP services | `LiveStreamService`, `LiveStreamController` |
 | DB (now) | `live_streams` |
-| Eloquent class | `MatchStream` (unchanged) |
+| Eloquent class | `LiveStream` |
 
 The table started as 1:1 with `matches`. `match_id` is nullable. Standalone and self-serve broadcasts live in the same table.
 
@@ -104,10 +104,8 @@ The table started as 1:1 with `matches`. `match_id` is nullable. Standalone and 
 
 | Item | Why |
 |------|-----|
-| `MatchStream` class name | Large PHP rename; collides with `LiveStreamService` |
-| Media disk `match-stream-thumbnails` | Object storage / CDN keys |
+| Media disk `match-stream-thumbnails` | Object storage / CDN keys already in use |
 | API and Reverb names | Clients already use live-stream URLs |
-| `migrate:fresh` | Not used for this cutover |
 | Historical docs (`LIVE_STREAM_YOUTUBE_FINAL.md`, etc.) | Still describe the former table name |
 
 ---
@@ -119,7 +117,7 @@ The table started as 1:1 with `matches`. `match_id` is nullable. Standalone and 
 - [x] No new alter migration
 - [x] Create migration filename + contents updated
 - [x] `migrations` row updated to the new filename
-- [x] `MatchStream::$table = 'live_streams'` + tests
+- [x] `LiveStream` model + factory + tests (`MatchStream` renamed)
 - [x] Short `artisan down` + workers stopped
-- [x] Model / media disk / API paths not renamed beyond `$table`
+- [x] Media disk / API paths not renamed (CDN + client URLs)
 - [x] Smoke after `artisan up`

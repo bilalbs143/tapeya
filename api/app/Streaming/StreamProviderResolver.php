@@ -2,7 +2,7 @@
 
 namespace App\Streaming;
 
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Models\TournamentMatch;
 use App\Settings\StreamingSettings;
 use App\Streaming\Contracts\StreamProviderContract;
@@ -24,7 +24,7 @@ class StreamProviderResolver
         return $this->manager->driver($slug);
     }
 
-    public function forStream(MatchStream $stream): StreamProviderContract
+    public function forStream(LiveStream $stream): StreamProviderContract
     {
         if ($stream->provider === 'external') {
             throw new \LogicException('External streams have no provider driver.');

@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Streaming\LiveStreamService;
 use Illuminate\Console\Command;
 
@@ -20,13 +20,13 @@ class EndExpiredBroadcasts extends Command
     {
         // Case 1: actually went live, past the fixed cap — end it (keeps the VOD and chat
         // history, exactly like a broadcaster tapping "End Broadcast" themselves).
-        MatchStream::query()
+        LiveStream::query()
             ->whereNotNull('owner_user_id')
             ->whereNotNull('started_at')
             ->where('started_at', '<=', now()->subSeconds(LiveStreamService::SELF_SERVE_MAX_DURATION_SECONDS))
             ->whereIn('status', ['starting', 'live'])
             ->lazy()
-            ->each(fn (MatchStream $stream) => $service->end($stream));
+            ->each(fn (LiveStream $stream) => $service->end($stream));
 
         // Case 2: created but never actually went live. delete(), not end() — a broadcast
         // that never connected has no VOD or chat history worth keeping, and end() would call
@@ -36,13 +36,13 @@ class EndExpiredBroadcasts extends Command
         // slot. assertNoActiveSelfServeStream() runs this identical cleanup eagerly (no 30-minute
         // wait) whenever the owner tries to go live again — this sweep is the backstop for a row
         // that's simply abandoned and never revisited.
-        MatchStream::query()
+        LiveStream::query()
             ->whereNotNull('owner_user_id')
             ->whereNull('started_at')
             ->where('created_at', '<=', now()->subMinutes(30))
             ->whereIn('status', ['idle', 'starting'])
             ->lazy()
-            ->each(fn (MatchStream $stream) => $service->delete($stream));
+            ->each(fn (LiveStream $stream) => $service->delete($stream));
 
         return self::SUCCESS;
     }

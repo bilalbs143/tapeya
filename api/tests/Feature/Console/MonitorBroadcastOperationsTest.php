@@ -3,7 +3,7 @@
 namespace Tests\Feature\Console;
 
 use App\Enums\Notification\AdminNotificationTypeEnum;
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Notifications\BroadcastConcurrencyAlertAdminNotification;
 use App\Notifications\YouTubeQuotaAlertAdminNotification;
 use App\Settings\StreamingSettings;
@@ -35,7 +35,7 @@ class MonitorBroadcastOperationsTest extends TestCase
 
     private function createConcurrentStreams(int $count): void
     {
-        MatchStream::factory()->count($count)->create([
+        LiveStream::factory()->count($count)->create([
             'match_id' => null,
             'provider' => 'youtube',
             'status' => 'live',
@@ -86,7 +86,7 @@ class MonitorBroadcastOperationsTest extends TestCase
 
         Artisan::call('broadcasts:monitor-operations');
 
-        MatchStream::query()->update(['status' => 'ended']);
+        LiveStream::query()->update(['status' => 'ended']);
         Artisan::call('broadcasts:monitor-operations');
 
         $this->createConcurrentStreams($threshold);

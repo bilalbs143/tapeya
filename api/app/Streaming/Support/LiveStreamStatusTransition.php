@@ -2,7 +2,7 @@
 
 namespace App\Streaming\Support;
 
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Settings\StreamingSettings;
 use Carbon\Carbon;
 
@@ -10,7 +10,7 @@ use Carbon\Carbon;
  * Maps provider-reported signals (live / starting / idle) onto persisted stream
  * status, with a grace period before auto-ending idle sessions.
  */
-final class MatchStreamStatusTransition
+final class LiveStreamStatusTransition
 {
     /** Don't downgrade owner-confirmed self-serve publish while YouTube ingest catches up. */
     public const OWNER_PUBLISHING_GRACE_MINUTES = 5;
@@ -25,7 +25,7 @@ final class MatchStreamStatusTransition
     /**
      * @return array<string, mixed>|null Column updates, or null when unchanged.
      */
-    public static function resolve(MatchStream $stream, string $providerStatus): ?array
+    public static function resolve(LiveStream $stream, string $providerStatus): ?array
     {
         $providerStatus = match ($providerStatus) {
             'live', 'starting', 'idle' => $providerStatus,
@@ -70,7 +70,7 @@ final class MatchStreamStatusTransition
     /**
      * @param  array<string, mixed>  $metadata
      */
-    private static function ownerPublishingGraceActive(MatchStream $stream, array $metadata): bool
+    private static function ownerPublishingGraceActive(LiveStream $stream, array $metadata): bool
     {
         if ($stream->owner_user_id === null) {
             return false;
@@ -89,7 +89,7 @@ final class MatchStreamStatusTransition
      * @param  array<string, mixed>  $metadata
      * @return array<string, mixed>|null
      */
-    private static function resolveIdle(MatchStream $stream, array $metadata): ?array
+    private static function resolveIdle(LiveStream $stream, array $metadata): ?array
     {
         if (self::ownerPublishingGraceActive($stream, $metadata) && in_array($stream->status, ['live', 'starting'], true)) {
             return null;
@@ -128,7 +128,7 @@ final class MatchStreamStatusTransition
     /**
      * @param  array<string, mixed>  $updates
      */
-    private static function hasChanges(MatchStream $stream, array $updates): bool
+    private static function hasChanges(LiveStream $stream, array $updates): bool
     {
         foreach ($updates as $key => $value) {
             if ($key === 'provider_metadata') {

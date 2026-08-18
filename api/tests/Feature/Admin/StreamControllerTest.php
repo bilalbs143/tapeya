@@ -12,8 +12,7 @@ use Tests\Support\Streaming\FakeStreamProvider;
 use Tests\TestCase;
 
 /**
- * Regression coverage for the existing match-linked stream lifecycle after the
- * MatchStreamService -> LiveStreamService rename/refactor (Phase 1).
+ * Regression coverage for the existing match-linked stream lifecycle.
  */
 class StreamControllerTest extends TestCase
 {

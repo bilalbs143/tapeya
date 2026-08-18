@@ -3,7 +3,7 @@
 namespace Tests\Feature\Admin;
 
 use App\Enums\User\UserTypeEnum;
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Models\User;
 use App\Streaming\StreamProviderManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -31,7 +31,7 @@ class BroadcastBanTest extends TestCase
         $admin = User::factory()->create(['type' => UserTypeEnum::ADMINISTRATOR]);
         $broadcaster = User::factory()->create(['type' => 'user', 'can_broadcast' => true]);
 
-        $active = MatchStream::factory()->create([
+        $active = LiveStream::factory()->create([
             'match_id' => null,
             'owner_user_id' => $broadcaster->id,
             'provider' => 'youtube',
@@ -55,7 +55,7 @@ class BroadcastBanTest extends TestCase
         $admin = User::factory()->create(['type' => UserTypeEnum::ADMINISTRATOR]);
         $broadcaster = User::factory()->create(['type' => 'user', 'can_broadcast' => true]);
 
-        $idle = MatchStream::factory()->create([
+        $idle = LiveStream::factory()->create([
             'match_id' => null,
             'owner_user_id' => $broadcaster->id,
             'provider' => 'youtube',
@@ -91,7 +91,7 @@ class BroadcastBanTest extends TestCase
         $admin = User::factory()->create(['type' => UserTypeEnum::ADMINISTRATOR]);
         $broadcaster = User::factory()->create(['type' => 'user', 'can_broadcast' => true]);
 
-        $active = MatchStream::factory()->create([
+        $active = LiveStream::factory()->create([
             'match_id' => null,
             'owner_user_id' => $broadcaster->id,
             'provider' => 'youtube',

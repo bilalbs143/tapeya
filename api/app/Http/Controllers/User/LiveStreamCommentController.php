@@ -5,7 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\SendLiveCommentRequest;
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Services\LiveChat\LiveStreamCommentService;
 use Illuminate\Http\JsonResponse;
 
@@ -18,7 +18,7 @@ class LiveStreamCommentController extends Controller
     /**
      * POST /api/v1/live/streams/{stream}/live-comments
      */
-    public function store(SendLiveCommentRequest $request, MatchStream $stream): JsonResponse
+    public function store(SendLiveCommentRequest $request, LiveStream $stream): JsonResponse
     {
         $user = $request->user();
 

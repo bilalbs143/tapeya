@@ -3,7 +3,7 @@
 namespace Tests\Feature\Admin;
 
 use App\Enums\User\UserTypeEnum;
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Models\User;
 use App\Streaming\StreamProviderManager;
 use Database\Seeders\SystemSettingsSeeder;
@@ -105,7 +105,7 @@ class LiveStreamControllerTest extends TestCase
     {
         $admin = $this->admin();
         $match = $this->createMatch();
-        $stream = MatchStream::factory()->create([
+        $stream = LiveStream::factory()->create([
             'match_id' => $match->id,
             'provider' => 'youtube',
         ]);
@@ -139,8 +139,8 @@ class LiveStreamControllerTest extends TestCase
         $admin = $this->admin();
         $match = $this->createMatch();
 
-        $standalone = MatchStream::factory()->create(['title' => 'Standalone Event']);
-        $linked = MatchStream::factory()->create([
+        $standalone = LiveStream::factory()->create(['title' => 'Standalone Event']);
+        $linked = LiveStream::factory()->create([
             'match_id' => $match->id,
             'provider' => 'youtube',
             'title' => null,
@@ -161,7 +161,7 @@ class LiveStreamControllerTest extends TestCase
     {
         $admin = $this->admin();
         $owner = User::factory()->create();
-        $stream = MatchStream::factory()->create([
+        $stream = LiveStream::factory()->create([
             'owner_user_id' => $owner->id,
             'status' => 'live',
             'provider' => 'youtube',
@@ -185,7 +185,7 @@ class LiveStreamControllerTest extends TestCase
     public function test_update_updates_title_description_streaming_url(): void
     {
         $admin = $this->admin();
-        $stream = MatchStream::factory()->create();
+        $stream = LiveStream::factory()->create();
 
         $this->actingAs($admin, 'api')->patchJson("/api/v1/admin/live-streams/{$stream->id}", [
             'title' => 'Updated Title',
@@ -204,7 +204,7 @@ class LiveStreamControllerTest extends TestCase
     public function test_start_marks_external_stream_live(): void
     {
         $admin = $this->admin();
-        $stream = MatchStream::factory()->create(['status' => 'idle']);
+        $stream = LiveStream::factory()->create(['status' => 'idle']);
 
         $this->actingAs($admin, 'api')
             ->postJson("/api/v1/admin/live-streams/{$stream->id}/start")
@@ -219,7 +219,7 @@ class LiveStreamControllerTest extends TestCase
     public function test_start_rejects_non_external_provider(): void
     {
         $admin = $this->admin();
-        $stream = MatchStream::factory()->create(['provider' => 'youtube']);
+        $stream = LiveStream::factory()->create(['provider' => 'youtube']);
 
         $this->actingAs($admin, 'api')
             ->postJson("/api/v1/admin/live-streams/{$stream->id}/start")
@@ -229,7 +229,7 @@ class LiveStreamControllerTest extends TestCase
     public function test_end_marks_external_stream_ended_without_provider_call(): void
     {
         $admin = $this->admin();
-        $stream = MatchStream::factory()->create(['status' => 'live', 'started_at' => now()]);
+        $stream = LiveStream::factory()->create(['status' => 'live', 'started_at' => now()]);
 
         $this->actingAs($admin, 'api')
             ->postJson("/api/v1/admin/live-streams/{$stream->id}/end")
@@ -244,7 +244,7 @@ class LiveStreamControllerTest extends TestCase
     public function test_sync_is_noop_for_external_provider(): void
     {
         $admin = $this->admin();
-        $stream = MatchStream::factory()->create(['status' => 'starting']);
+        $stream = LiveStream::factory()->create(['status' => 'starting']);
 
         $this->actingAs($admin, 'api')
             ->postJson("/api/v1/admin/live-streams/{$stream->id}/sync")
@@ -255,7 +255,7 @@ class LiveStreamControllerTest extends TestCase
     public function test_destroy_deletes_standalone_stream(): void
     {
         $admin = $this->admin();
-        $stream = MatchStream::factory()->create();
+        $stream = LiveStream::factory()->create();
 
         $this->actingAs($admin, 'api')
             ->deleteJson("/api/v1/admin/live-streams/{$stream->id}")
@@ -268,10 +268,10 @@ class LiveStreamControllerTest extends TestCase
     {
         $match = $this->createMatch();
 
-        MatchStream::factory()->create(['match_id' => $match->id, 'provider' => 'youtube']);
+        LiveStream::factory()->create(['match_id' => $match->id, 'provider' => 'youtube']);
 
         $this->expectException(QueryException::class);
 
-        MatchStream::factory()->create(['match_id' => $match->id, 'provider' => 'youtube']);
+        LiveStream::factory()->create(['match_id' => $match->id, 'provider' => 'youtube']);
     }
 }

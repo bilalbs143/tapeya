@@ -5,7 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Enums\Streaming\StreamOrientationEnum;
 use App\Http\Controllers\BaseControllerTrait;
 use App\Http\Controllers\Controller;
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Streaming\LiveStreamService;
 use App\Streaming\StreamProviderManager;
 use App\Support\Media\MediaDisk;
@@ -68,7 +68,7 @@ class LiveBroadcastController extends Controller
         ], 'Broadcast created.', 'CREATED');
     }
 
-    public function show(Request $request, MatchStream $stream): JsonResponse
+    public function show(Request $request, LiveStream $stream): JsonResponse
     {
         $this->authorizeOwner($stream, $request);
         $this->authorizeStillEligible($request);
@@ -91,7 +91,7 @@ class LiveBroadcastController extends Controller
     /**
      * Owner tapped "Go live" — mark live immediately; optional provider poll for faster embed readiness.
      */
-    public function start(Request $request, MatchStream $stream): JsonResponse
+    public function start(Request $request, LiveStream $stream): JsonResponse
     {
         $this->authorizeOwner($stream, $request);
         $this->authorizeStillEligible($request);
@@ -114,7 +114,7 @@ class LiveBroadcastController extends Controller
         ]);
     }
 
-    public function end(Request $request, MatchStream $stream): JsonResponse
+    public function end(Request $request, LiveStream $stream): JsonResponse
     {
         $this->authorizeOwner($stream, $request);
 
@@ -123,7 +123,7 @@ class LiveBroadcastController extends Controller
         return $this->success(['status' => 'ended'], 'Broadcast Ended.');
     }
 
-    public function uploadThumbnail(Request $request, MatchStream $stream): JsonResponse
+    public function uploadThumbnail(Request $request, LiveStream $stream): JsonResponse
     {
         $this->authorizeOwner($stream, $request);
 
@@ -138,7 +138,7 @@ class LiveBroadcastController extends Controller
         return $this->success(['thumbnail_url' => MediaDisk::url($path)]);
     }
 
-    public function deleteThumbnail(Request $request, MatchStream $stream): JsonResponse
+    public function deleteThumbnail(Request $request, LiveStream $stream): JsonResponse
     {
         $this->authorizeOwner($stream, $request);
 
@@ -152,7 +152,7 @@ class LiveBroadcastController extends Controller
      * Every action in this controller is owner-gated — a regular user can never touch
      * someone else's broadcast through these routes (unlike the read-only hub/viewer routes).
      */
-    private function authorizeOwner(MatchStream $stream, Request $request): void
+    private function authorizeOwner(LiveStream $stream, Request $request): void
     {
         abort_unless($stream->owner_user_id === $request->user()->id, 403);
     }

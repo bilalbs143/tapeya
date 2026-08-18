@@ -173,7 +173,7 @@ class TournamentMatch extends BaseModel
 
     public function stream(): HasOne
     {
-        return $this->hasOne(MatchStream::class, 'match_id');
+        return $this->hasOne(LiveStream::class, 'match_id');
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────

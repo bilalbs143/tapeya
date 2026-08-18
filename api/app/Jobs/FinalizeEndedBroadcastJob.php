@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Models\MatchStream;
+use App\Models\LiveStream;
 use App\Streaming\LiveStreamService;
 use App\Streaming\StreamProviderManager;
 use App\Support\LiveChat\LiveChatRedisKeys;
@@ -38,7 +38,7 @@ class FinalizeEndedBroadcastJob implements ShouldBeUnique, ShouldQueue
 
     public function handle(LiveStreamService $liveStreams, StreamProviderManager $providers): void
     {
-        $stream = MatchStream::query()->find($this->streamId);
+        $stream = LiveStream::query()->find($this->streamId);
         if (! $stream) {
             return;
         }

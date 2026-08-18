@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\QueryBuilder\AllowedFilter;
 
-class MatchStream extends BaseModel
+class LiveStream extends BaseModel
 {
     protected $table = 'live_streams';
 
