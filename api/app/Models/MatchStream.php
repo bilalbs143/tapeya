@@ -13,6 +13,8 @@ use Spatie\QueryBuilder\AllowedFilter;
 
 class MatchStream extends BaseModel
 {
+    protected $table = 'live_streams';
+
     protected $fillable = [
         'match_id',
         'owner_user_id',

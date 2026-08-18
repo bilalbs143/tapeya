@@ -42,7 +42,7 @@ class StreamControllerTest extends TestCase
             ->postJson("/api/v1/admin/matches/{$match->id}/stream")
             ->assertCreated();
 
-        $this->assertDatabaseHas('match_streams', [
+        $this->assertDatabaseHas('live_streams', [
             'match_id' => $match->id,
             'provider' => 'youtube',
             'provider_stream_id' => 'fake-broadcast-id',
@@ -60,7 +60,7 @@ class StreamControllerTest extends TestCase
             ])
             ->assertCreated();
 
-        $this->assertDatabaseHas('match_streams', [
+        $this->assertDatabaseHas('live_streams', [
             'match_id' => $match->id,
             'streaming_url' => 'https://www.youtube.com/watch?v=abc123',
         ]);
@@ -78,7 +78,7 @@ class StreamControllerTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.status', 'ended');
 
-        $this->assertDatabaseHas('match_streams', ['match_id' => $match->id, 'status' => 'ended']);
+        $this->assertDatabaseHas('live_streams', ['match_id' => $match->id, 'status' => 'ended']);
     }
 
     public function test_sync_stream_for_match(): void
@@ -105,6 +105,6 @@ class StreamControllerTest extends TestCase
             ->deleteJson("/api/v1/admin/matches/{$match->id}/stream")
             ->assertNoContent();
 
-        $this->assertDatabaseMissing('match_streams', ['match_id' => $match->id]);
+        $this->assertDatabaseMissing('live_streams', ['match_id' => $match->id]);
     }
 }

@@ -9,7 +9,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('match_streams', function (Blueprint $table) {
+        Schema::create('live_streams', function (Blueprint $table) {
             $table->id();
             $table->foreignId('match_id')->nullable()->constrained('matches')->cascadeOnDelete();
             $table->string('title')->nullable();
@@ -41,12 +41,12 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        DB::statement('CREATE UNIQUE INDEX match_streams_match_id_unique ON match_streams (match_id) WHERE match_id IS NOT NULL');
+        DB::statement('CREATE UNIQUE INDEX live_streams_match_id_unique ON live_streams (match_id) WHERE match_id IS NOT NULL');
     }
 
     public function down(): void
     {
-        DB::statement('DROP INDEX IF EXISTS match_streams_match_id_unique');
-        Schema::dropIfExists('match_streams');
+        DB::statement('DROP INDEX IF EXISTS live_streams_match_id_unique');
+        Schema::dropIfExists('live_streams');
     }
 };

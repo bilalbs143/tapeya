@@ -103,7 +103,7 @@ class SelfServeBroadcastTest extends TestCase
         $this->assertNotNull($response->json('data.rtmp_url'));
         $this->assertNotNull($response->json('data.stream_key'));
 
-        $this->assertDatabaseHas('match_streams', [
+        $this->assertDatabaseHas('live_streams', [
             'id' => $streamId,
             'match_id' => null,
             'owner_user_id' => $user->id,
@@ -127,7 +127,7 @@ class SelfServeBroadcastTest extends TestCase
             ->assertCreated();
 
         $this->assertSame('portrait', $response->json('data.orientation'));
-        $this->assertDatabaseHas('match_streams', [
+        $this->assertDatabaseHas('live_streams', [
             'id' => $response->json('data.stream_id'),
             'orientation' => 'portrait',
         ]);
@@ -146,7 +146,7 @@ class SelfServeBroadcastTest extends TestCase
 
         $streamId = $response->json('data.stream_id');
         $this->assertSame('landscape', $response->json('data.orientation'));
-        $this->assertDatabaseHas('match_streams', [
+        $this->assertDatabaseHas('live_streams', [
             'id' => $streamId,
             'orientation' => 'landscape',
         ]);
@@ -196,7 +196,7 @@ class SelfServeBroadcastTest extends TestCase
             ->assertCreated()
             ->json('data.stream_id');
 
-        $this->assertDatabaseHas('match_streams', [
+        $this->assertDatabaseHas('live_streams', [
             'id' => $abandonedId,
             'status' => 'idle',
             'started_at' => null,
@@ -208,8 +208,8 @@ class SelfServeBroadcastTest extends TestCase
             ->json('data.stream_id');
 
         $this->assertNotSame($abandonedId, $newId);
-        $this->assertDatabaseMissing('match_streams', ['id' => $abandonedId]);
-        $this->assertDatabaseHas('match_streams', [
+        $this->assertDatabaseMissing('live_streams', ['id' => $abandonedId]);
+        $this->assertDatabaseHas('live_streams', [
             'id' => $newId,
             'owner_user_id' => $user->id,
             'title' => 'Retry',
@@ -312,7 +312,7 @@ class SelfServeBroadcastTest extends TestCase
             ->postJson("/api/v1/live/broadcasts/{$streamId}/end")
             ->assertForbidden();
 
-        $this->assertDatabaseHas('match_streams', ['id' => $streamId, 'status' => 'idle']);
+        $this->assertDatabaseHas('live_streams', ['id' => $streamId, 'status' => 'idle']);
     }
 
     public function test_start_marks_idle_stream_live_for_hub_and_chat(): void

@@ -46,7 +46,7 @@ class LiveStreamControllerTest extends TestCase
             ->assertJsonPath('data.stream.status', 'idle')
             ->assertJsonPath('data.stream.match_id', null);
 
-        $this->assertDatabaseHas('match_streams', [
+        $this->assertDatabaseHas('live_streams', [
             'title' => 'Tapeya Launch Event',
             'match_id' => null,
             'provider' => 'external',
@@ -72,7 +72,7 @@ class LiveStreamControllerTest extends TestCase
             ->assertJsonPath('data.ingest.rtmp_url', 'rtmp://fake.example.com/live')
             ->assertJsonPath('data.ingest.stream_key', 'fake-key');
 
-        $this->assertDatabaseHas('match_streams', [
+        $this->assertDatabaseHas('live_streams', [
             'title' => 'Tapeya Studio Show',
             'match_id' => null,
             'provider' => 'youtube',
@@ -193,7 +193,7 @@ class LiveStreamControllerTest extends TestCase
             'streaming_url' => 'https://example.com/updated.m3u8',
         ])->assertOk();
 
-        $this->assertDatabaseHas('match_streams', [
+        $this->assertDatabaseHas('live_streams', [
             'id' => $stream->id,
             'title' => 'Updated Title',
             'description' => 'Updated description',
@@ -261,7 +261,7 @@ class LiveStreamControllerTest extends TestCase
             ->deleteJson("/api/v1/admin/live-streams/{$stream->id}")
             ->assertNoContent();
 
-        $this->assertDatabaseMissing('match_streams', ['id' => $stream->id]);
+        $this->assertDatabaseMissing('live_streams', ['id' => $stream->id]);
     }
 
     public function test_partial_unique_index_enforces_one_stream_per_match(): void

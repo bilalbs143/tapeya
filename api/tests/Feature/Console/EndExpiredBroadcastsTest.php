@@ -69,7 +69,7 @@ class EndExpiredBroadcastsTest extends TestCase
 
         Artisan::call('broadcasts:end-expired');
 
-        $this->assertDatabaseMissing('match_streams', ['id' => $stream->id]);
+        $this->assertDatabaseMissing('live_streams', ['id' => $stream->id]);
     }
 
     public function test_case_two_leaves_a_recently_created_idle_stream_alone(): void
@@ -86,7 +86,7 @@ class EndExpiredBroadcastsTest extends TestCase
 
         Artisan::call('broadcasts:end-expired');
 
-        $this->assertDatabaseHas('match_streams', ['id' => $stream->id]);
+        $this->assertDatabaseHas('live_streams', ['id' => $stream->id]);
     }
 
     public function test_admin_and_match_linked_streams_are_never_touched(): void
@@ -102,6 +102,6 @@ class EndExpiredBroadcastsTest extends TestCase
 
         Artisan::call('broadcasts:end-expired');
 
-        $this->assertDatabaseHas('match_streams', ['id' => $adminStandalone->id]);
+        $this->assertDatabaseHas('live_streams', ['id' => $adminStandalone->id]);
     }
 }
