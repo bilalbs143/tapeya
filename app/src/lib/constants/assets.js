@@ -6,8 +6,8 @@
  * module-level `${CLOUDFRONT_APP_BASE}/...` strings resolve to the configured CDN.
  */
 
-/** Legacy CloudFront fallback until B2 + Cloudflare cutover. */
-export const DEFAULT_CDN_PUBLIC_BASE = 'https://d1nmw2vhka3zp0.cloudfront.net';
+/** Fallback CDN origin when settings have not loaded yet. */
+export const DEFAULT_CDN_PUBLIC_BASE = 'https://cdn.tapeya.com';
 
 export const DEFAULT_APP_ASSETS_BASE = `${DEFAULT_CDN_PUBLIC_BASE}/app`;
 

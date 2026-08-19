@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\Common\StatusEnum;
+use App\Enums\Content\HeroSliderCtaTypeEnum;
 use App\Enums\Event\CricketFormatEnum;
 use App\Enums\Event\MatchStatusEnum;
 use App\Enums\Event\MatchTimingEnum;
@@ -47,7 +48,7 @@ class EnumController extends Controller
      */
     public function index(): JsonResponse
     {
-        $enums = Cache::remember('admin:enums:v17', 600, fn () => $this->buildEnums());
+        $enums = Cache::remember('admin:enums:v19', 600, fn () => $this->buildEnums());
 
         return $this->success($enums);
     }
@@ -62,6 +63,7 @@ class EnumController extends Controller
             'user_status' => $this->toOptions(UserStatusEnum::cases()),
             'active_platform' => $this->toOptions(ActivePlatformEnum::cases()),
             'status' => $this->toOptions(StatusEnum::cases()),
+            'hero_slider_cta_type' => $this->toOptions(HeroSliderCtaTypeEnum::cases()),
             'playing_role' => $this->toOptions(PlayingRoleEnum::cases()),
             'bowling_style' => $this->toOptions(BowlingStyleEnum::cases()),
             'batting_style' => $this->toOptions(BattingStyleEnum::cases()),

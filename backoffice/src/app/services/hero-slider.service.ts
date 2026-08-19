@@ -7,10 +7,19 @@ import type { ListParams } from 'src/app/shared/functions/list-params.function';
 
 import { MessageService } from './message.service';
 
+export type HeroSliderCtaType = 'none' | 'url' | 'dialog';
+
 export interface HeroSlider {
   id: number;
   image_mobile: string | null;
   image_desktop: string | null;
+  cta_type: HeroSliderCtaType;
+  cta_type_label?: string;
+  cta_label: string | null;
+  cta_url: string | null;
+  cta_target_blank: boolean;
+  cta_dialog_key: string | null;
+  cta_dialog_param: string | null;
   status: string;
   status_enum: string;
   created_at?: string;
@@ -32,6 +41,12 @@ export interface HeroSlidersListResponse {
 
 export interface HeroSliderSavePayload {
   status: string;
+  cta_type: HeroSliderCtaType;
+  cta_label?: string | null;
+  cta_url?: string | null;
+  cta_target_blank?: boolean;
+  cta_dialog_key?: string | null;
+  cta_dialog_param?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -54,7 +69,7 @@ export class HeroSliderService {
   public create(payload: HeroSliderSavePayload): Observable<{ data: HeroSlider }> {
     return this.http.post<{ data: HeroSlider }>(this.baseUrl, payload).pipe(
       tap(() => {
-        this.messageService.success('Hero slider created successfully.');
+        this.messageService.success('Hero Slider Created Successfully.');
       })
     );
   }
@@ -62,7 +77,7 @@ export class HeroSliderService {
   public update(id: number, payload: HeroSliderSavePayload): Observable<{ data: HeroSlider }> {
     return this.http.put<{ data: HeroSlider }>(`${this.baseUrl}/${id}`, payload).pipe(
       tap(() => {
-        this.messageService.success('Hero slider updated successfully.');
+        this.messageService.success('Hero Slider Updated Successfully.');
       })
     );
   }
@@ -70,7 +85,7 @@ export class HeroSliderService {
   public delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`).pipe(
       tap(() => {
-        this.messageService.success('Hero slider deleted successfully.');
+        this.messageService.success('Hero Slider Deleted Successfully.');
       })
     );
   }

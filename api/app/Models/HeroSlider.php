@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Casts\AsFile;
 use App\Enums\Common\StatusEnum;
+use App\Enums\Content\HeroSliderCtaTypeEnum;
 use App\Utils\Traits\Model\BaseModelTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -16,6 +17,12 @@ class HeroSlider extends Model
         'image_mobile',
         'image_desktop',
         'status',
+        'cta_type',
+        'cta_label',
+        'cta_url',
+        'cta_target_blank',
+        'cta_dialog_key',
+        'cta_dialog_param',
     ];
 
     /**
@@ -27,6 +34,8 @@ class HeroSlider extends Model
             'image_mobile' => AsFile::class.':hero-sliders,false,media',
             'image_desktop' => AsFile::class.':hero-sliders,false,media',
             'status' => StatusEnum::class,
+            'cta_type' => HeroSliderCtaTypeEnum::class,
+            'cta_target_blank' => 'boolean',
         ];
     }
 

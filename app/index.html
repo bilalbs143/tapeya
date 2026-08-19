@@ -12,14 +12,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Tapeya" />
     <meta name="format-detection" content="telephone=no" />
-    <!-- Favicon uses legacy CloudFront fallback; runtime app assets follow cdn_public_base_url -->
-    <link
-      rel="icon"
-      type="image/png"
-      href="https://d1nmw2vhka3zp0.cloudfront.net/app/images/icons/tapeya-favicon-latest.png"
-      sizes="512x512"
-    />
-    <link rel="apple-touch-icon" href="https://d1nmw2vhka3zp0.cloudfront.net/app/images/icons/tapeya-favicon-latest.png" />
+    <!-- Favicon uses CDN fallback; runtime app assets follow cdn_public_base_url -->
+    <link rel="icon" type="image/png" href="https://cdn.tapeya.com/app/images/icons/tapeya-favicon-latest.png" sizes="512x512" />
+    <link rel="apple-touch-icon" href="https://cdn.tapeya.com/app/images/icons/tapeya-favicon-latest.png" />
 
     <!-- App fonts only (Montserrat, Moul). Graphics fonts load per-theme via themeRegistry. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -29,8 +24,8 @@
       rel="stylesheet"
     />
 
-    <!-- Warm CDN connection (fallback host; production should match cdn_public_base_url) -->
-    <link rel="preconnect" href="https://d1nmw2vhka3zp0.cloudfront.net" />
+    <!-- Warm CDN connection (production should match cdn_public_base_url) -->
+    <link rel="preconnect" href="https://cdn.tapeya.com" />
 
     <title>Tapeya</title>
   </head>

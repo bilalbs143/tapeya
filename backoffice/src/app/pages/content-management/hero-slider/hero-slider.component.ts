@@ -67,6 +67,7 @@ export class HeroSliderComponent implements OnInit, AfterViewInit, OnDestroy {
     'sr',
     'image_mobile',
     'image_desktop',
+    'cta_label',
     'status',
     'created_at',
     'updated_at',
@@ -141,7 +142,7 @@ export class HeroSliderComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       error: () => {
         this.isLoading = false;
-        this.messageService.error('Failed to load hero sliders.');
+        this.messageService.error('Failed To Load Hero Sliders.');
       },
     });
   }
@@ -173,13 +174,13 @@ export class HeroSliderComponent implements OnInit, AfterViewInit, OnDestroy {
   public openDeleteDialog(item: HeroSlider): void {
     this.sub.add(
       this.messageService
-        .prompt('Delete Hero Slider?', `Are you sure you want to delete this slide?`, 'Delete', 'Cancel')
+        .prompt('Delete Hero Slider?', `Are You Sure You Want To Delete This Slide?`, 'Delete', 'Cancel')
         .afterClosed()
         .subscribe((confirmed) => {
           if (confirmed) {
             this.heroSliderService.delete(item.id).subscribe({
               next: () => this.loadHttpData(),
-              error: () => this.messageService.error('Failed to delete hero slider.'),
+              error: () => this.messageService.error('Failed To Delete Hero Slider.'),
             });
           }
         })

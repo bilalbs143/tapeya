@@ -38,7 +38,7 @@ Config: `api/config/filesystems.php` (`s3`), boot: `MediaDisk::configureFilesyst
 aws s3 ls s3://OLD_BUCKET/ --recursive | awk '{print $4}' | awk -F/ '{print $1}' | sort | uniq -c | sort -rn
 ```
 
-1. Confirm CloudFront (`d1nmw2vhka3zp0.cloudfront.net` or current) fronts that same bucket for `/app` + uploads.
+1. Confirm the CDN (`cdn.tapeya.com` or current) fronts that same bucket for `/app` + uploads.
 2. Create B2 bucket + application key (read/write on that bucket).
 3. Note B2 S3 endpoint + region (B2 → bucket → S3 Compatible API).
 
