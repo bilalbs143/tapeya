@@ -96,9 +96,10 @@
 <mat-card class="cardWithShadow table-header-theme">
   <mat-card-content class="p-0">
     @if (isLoading) {
-      <div class="flex min-h-[18rem] w-full items-center justify-center px-4 py-10">
-        <mat-spinner diameter="40" />
-      </div>
+      <app-loader-block
+        label="Loading matches"
+        class="min-h-[18rem] w-full px-4 py-10"
+      />
     } @else if (hasNoMatches) {
       <div class="flex min-h-[18rem] w-full flex-col items-center justify-center px-4 py-10 text-center text-muted">
         <p class="m-0 max-w-md text-sm">No matches scheduled for this tournament yet.</p>

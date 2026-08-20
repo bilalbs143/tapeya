@@ -8,6 +8,7 @@ import { formatRelativeDate } from '@/lib/utils/dateUtils';
 import { useGetVendorOrdersQuery, useGetVendorStoreQuery } from '@/store/api/vendorShopApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { PageLoader } from '@/ui/Loader';
 
 import { OrderStatusPill } from './OrderStatusPill';
 
@@ -43,17 +44,13 @@ function OrderSection({ title, orders, emptyMessage, onOpen }) {
   return (
     <section>
       <h2 className="text-muted mb-4 text-[13px] font-bold tracking-wide uppercase">{title}</h2>
-      {orders.length === 0 ? (
-        <p className="bg-surface text-muted rounded-[17px] px-4 py-6 text-center text-[13px]">{emptyMessage}</p>
-      ) : (
-        <ul className="flex flex-col gap-3">
-          {orders.map((order) => (
-            <li key={order.id}>
-              <OrderCard order={order} onClick={onOpen} />
-            </li>
-          ))}
-        </ul>
-      )}
+      <div className="flex flex-col gap-3">
+        {orders.length === 0 ? (
+          <p className="text-muted text-[13px]">{emptyMessage}</p>
+        ) : (
+          orders.map((order) => <OrderCard key={order.id} order={order} onClick={onOpen} />)
+        )}
+      </div>
     </section>
   );
 }
@@ -93,9 +90,7 @@ export default function SellerOrders() {
         ) : null}
 
         {isLoading ? (
-          <div className="flex min-h-[30vh] items-center justify-center py-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white/70" />
-          </div>
+          <PageLoader label="Loading orders" className="min-h-[30vh] py-12" />
         ) : isError ? (
           <div className="flex min-h-[30vh] flex-col items-center justify-center gap-4 py-12">
             <p className="text-muted text-[14px]">Could not load orders. Please try again.</p>
@@ -105,8 +100,8 @@ export default function SellerOrders() {
           </div>
         ) : (
           <div className="flex flex-col gap-8">
-            <OrderSection title="Current Orders" orders={currentOrders} emptyMessage="No Current Orders." onOpen={openOrder} />
-            <OrderSection title="Previous Orders" orders={previousOrders} emptyMessage="No Previous Orders." onOpen={openOrder} />
+            <OrderSection title="Current Orders" orders={currentOrders} emptyMessage="No current orders." onOpen={openOrder} />
+            <OrderSection title="Previous Orders" orders={previousOrders} emptyMessage="No previous orders." onOpen={openOrder} />
           </div>
         )}
       </Container>

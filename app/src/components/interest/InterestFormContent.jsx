@@ -20,6 +20,7 @@ import { FormActions } from '@/ui/form/FormActions';
 import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
+import { Loader, LoaderBlock } from '@/ui/Loader';
 
 const PROFILE_PICTURE_REQUIRED_MSG = 'Please add a profile picture.';
 const ID_DOCUMENT_REQUIRED_MSG = 'Please add your CNIC or B-Form.';
@@ -46,7 +47,7 @@ const EMPTY_FORM = {
  * @param {() => void} [props.onSubmitted]
  * @param {object} [props.payload] — preloaded campaign response; skips fetch when provided
  * @param {string} [props.formId] — when set (dialog), links an external DialogSaveButton to this form
- * @param {(state: { visible: boolean, disabled: boolean, label: string }) => void} [props.onSubmitUiChange]
+ * @param {(state: { visible: boolean, disabled: boolean, loading: boolean, label: string }) => void} [props.onSubmitUiChange]
  */
 export function InterestFormContent({
   slug,
@@ -105,6 +106,7 @@ export function InterestFormContent({
     onSubmitUiChange({
       visible: !isConfirmed,
       disabled: !isOpen || isSubmitting,
+      loading: isSubmitting,
       label: isSubmitting ? 'Submitting…' : isActive ? 'Update My Details' : "I'm Interested",
     });
   }, [isDialog, onSubmitUiChange, isConfirmed, isOpen, isSubmitting, isActive]);
@@ -224,7 +226,7 @@ export function InterestFormContent({
   };
 
   if (!hasPreloadedPayload && isLoading) {
-    return <p className="text-muted py-6 text-center text-sm">Loading interest form…</p>;
+    return <LoaderBlock label="Loading form" className="py-6" />;
   }
 
   if (!hasPreloadedPayload && (isError || !campaign)) {
@@ -426,6 +428,7 @@ export function InterestFormContent({
                   variant="orangeDialogWhite"
                   size="dialog"
                   disabled={!isOpen || isSubmitting}
+                  loading={isSubmitting}
                   className="w-full sm:w-[220px] sm:uppercase"
                 >
                   {isSubmitting ? 'Submitting…' : isActive ? 'Update My Details' : "I'm Interested"}
@@ -436,8 +439,9 @@ export function InterestFormContent({
                   type="button"
                   onClick={handleWithdraw}
                   disabled={isWithdrawing}
-                  className="bg-surface w-full rounded-[6px] border border-red-500/40 py-3 text-sm font-semibold text-red-300 transition hover:bg-red-950/20 disabled:cursor-not-allowed disabled:opacity-60 sm:w-[180px]"
+                  className="bg-surface flex w-full items-center justify-center gap-2 rounded-[6px] border border-red-500/40 py-3 text-sm font-semibold text-red-300 transition hover:bg-red-950/20 disabled:cursor-not-allowed disabled:opacity-60 sm:w-[180px]"
                 >
+                  {isWithdrawing ? <Loader size="xs" /> : null}
                   {isWithdrawing ? 'Withdrawing…' : 'Withdraw'}
                 </button>
               )}

@@ -1,3 +1,5 @@
+import { Loader } from '@/ui/Loader';
+
 /**
  * Connecting / loading overlay for stream players.
  *
@@ -30,7 +32,7 @@ export function StreamVideoLoading({
         </>
       ) : null}
       <div className="relative z-10 flex flex-col items-center gap-2 px-6 text-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white/70" aria-hidden />
+        <Loader />
         <p className="text-sm text-white/80">{label}</p>
         {hint ? <p className="max-w-xs text-[12px] text-white/50">{hint}</p> : null}
       </div>

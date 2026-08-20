@@ -1,6 +1,7 @@
 import { TeamLogo } from '@/components/TeamLogo';
 import { formatListIndex } from '@/lib/format';
 import { useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
+import { LoaderBlock } from '@/ui/Loader';
 
 export function TeamsTab({ tournamentId, tournament }) {
   const id = tournamentId != null ? String(tournamentId) : '';
@@ -16,7 +17,7 @@ export function TeamsTab({ tournamentId, tournament }) {
 
       <div className="border-surface-border border">
         <div className="bg-surface px-4 py-3 text-[13px] font-bold text-white">Teams</div>
-        {isLoading && <p className="text-muted px-4 py-4 text-[13px]">Loading teams…</p>}
+        {isLoading && <LoaderBlock label="Loading teams" className="px-4 py-4" />}
         {isError && !isLoading && <p className="px-4 py-4 text-[13px] text-red-400">Failed to load teams.</p>}
         {!isLoading && !isError && teams.length === 0 && <p className="text-muted px-4 py-4 text-[13px]">No teams available.</p>}
         {!isLoading && !isError && teams.length > 0 && (

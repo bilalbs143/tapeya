@@ -8,6 +8,7 @@ import { normaliseMatchStatus } from '@/lib/utils/scorecardUtils';
 import { isValidTournamentId } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentMatchesQuery } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
+import { LoaderBlock } from '@/ui/Loader';
 
 const STATUS_LABELS = { upcoming: 'Upcoming', live: 'Live', result: 'Result' };
 
@@ -62,7 +63,7 @@ export function FixturesTab({
   }
 
   if (isLoading) {
-    return wrap(<p className="text-muted py-4 text-center text-[13px]">Loading fixtures…</p>);
+    return wrap(<LoaderBlock label="Loading fixtures" className="py-4" />);
   }
 
   if (isError) {

@@ -9,6 +9,7 @@ import { areTournamentTeamsComplete, getTournamentDisplayImage, getTournamentTit
 import { useGetTournamentsQuery } from '@/store/api/tournamentApi';
 import { useGetMyTournamentRequestsQuery } from '@/store/api/tournamentRequestApi';
 import { Container } from '@/ui/Container';
+import { PageLoader } from '@/ui/Loader';
 import { StatusPill } from '@/ui/StatusPill';
 import { tournamentRequestStatusTone } from '@/ui/statusPillTones';
 
@@ -221,7 +222,7 @@ export default function Tournaments() {
       <div className="bg-black">
         <AppSubpageHeader title="My Tournaments" />
         <Container>
-          <p className="text-muted py-6 text-center text-[13px]">Loading tournaments…</p>
+          <PageLoader label="Loading tournaments" className="py-6" />
         </Container>
       </div>
     );

@@ -7,7 +7,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatDivider } from '@angular/material/list';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { finalize, map, switchMap } from 'rxjs/operators';
@@ -23,6 +22,7 @@ import { MediaService } from 'src/app/services/media.service';
 import { MessageService } from 'src/app/services/message.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
 import { FileUploadComponent, type FileUploadValue } from 'src/app/shared/components/file-upload/file-upload.component';
+import { LoaderComponent } from 'src/app/shared/components/loader/loader.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { LIVE_STREAM_THUMBNAIL_UPLOAD_HINT } from 'src/app/shared/constants/thumbnail.constants';
 
@@ -50,11 +50,11 @@ const PROVIDER_LABELS: Record<string, string> = {
     MatInputModule,
     MatIconModule,
     MatDivider,
-    MatProgressSpinnerModule,
     MatTooltipModule,
     DialogWrapperComponent,
     FileUploadComponent,
     SubmitButtonComponent,
+    LoaderComponent,
   ],
   templateUrl: './live-stream-manage-dialog.component.html',
 })

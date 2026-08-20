@@ -1,3 +1,5 @@
+import { Loader } from '@/ui/Loader';
+
 const FLOATING_BTN_BASE =
   'flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full backdrop-blur-md transition-[transform,background-color,color,box-shadow] active:scale-95 disabled:opacity-50';
 
@@ -149,7 +151,7 @@ export function BroadcastCaptureButton({ mode, onClick, disabled = false }) {
       aria-label={isEnd ? 'End broadcast' : isConnecting ? 'Connecting' : 'Start broadcast'}
     >
       {isConnecting ? (
-        <div className="h-9 w-9 animate-spin rounded-full border-2 border-white/30 border-t-white" aria-hidden />
+        <Loader size="xs" tone="light" />
       ) : isEnd ? (
         <span className="block h-7 w-7 rounded-[6px] bg-red-500" aria-hidden />
       ) : (

@@ -17,9 +17,12 @@
         </div>
 
         @if (loading) {
-          <div class="col-span-12 flex items-center gap-3 py-1">
-            <mat-spinner diameter="28" />
-            <span class="text-muted text-sm">Loading Stream…</span>
+          <div
+            class="col-span-12 flex items-center gap-3 py-1"
+            role="status"
+            aria-label="Loading stream"
+          >
+            <app-loader [label]="null" />
           </div>
         } @else {
           <div class="col-span-12">
@@ -229,7 +232,10 @@
             (click)="remove()"
           >
             @if (activeAction === 'delete') {
-              <mat-spinner diameter="20" />
+              <app-loader
+                [diameter]="20"
+                [label]="null"
+              />
             } @else {
               Delete Stream
             }

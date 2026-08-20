@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from '@/ui/Dialog';
 import { FormStack } from '@/ui/form/FormStack';
+import { LoaderBlock } from '@/ui/Loader';
 
 // ─── Nav icons ───────────────────────────────────────────────────────────────
 
@@ -45,7 +46,7 @@ function SquadPickerSaveFooter({ hideSquadSetup, saving, requiredPlayingCount, s
   const label = saving ? 'Saving…' : isReady ? 'Save' : `Select ${remaining} more`;
 
   return (
-    <DialogSaveButton disabled={saving || !isReady} onClick={onSave}>
+    <DialogSaveButton disabled={saving || !isReady} loading={saving} onClick={onSave}>
       {label}
     </DialogSaveButton>
   );
@@ -106,7 +107,7 @@ function AddPlayerSearch({ squadIds, onAdd }) {
           {trimmed.length < MIN_SEARCH_LENGTH ? (
             <p className="text-muted px-4 py-3 text-[13px]">Type at least {MIN_SEARCH_LENGTH} characters to search</p>
           ) : isFetching ? (
-            <p className="text-muted px-4 py-3 text-[13px]">Searching…</p>
+            <LoaderBlock label="Searching" size="xs" className="px-4 py-3" />
           ) : candidates.length > 0 ? (
             <ul className="py-1">
               {candidates.map((player) => (

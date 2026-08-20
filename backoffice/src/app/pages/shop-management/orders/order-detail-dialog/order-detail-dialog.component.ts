@@ -18,6 +18,7 @@ import { MessageService } from 'src/app/services/message.service';
 import type { Order, OrderItem, VendorOrderSummary } from 'src/app/services/shop/order.service';
 import { OrderService } from 'src/app/services/shop/order.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { getStatusClass } from 'src/app/utils/status-class.util';
@@ -45,6 +46,7 @@ const REFUND_STATUS_VALUES = [{ value: 'refunded', label: 'Refunded' }] as const
     TablerIconsModule,
     DialogWrapperComponent,
     SubmitButtonComponent,
+    LoaderBlockComponent,
   ],
   templateUrl: './order-detail-dialog.component.html',
 })

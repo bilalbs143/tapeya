@@ -8,7 +8,6 @@ import { MatDialogClose, MatDialogModule, MatDialogRef } from '@angular/material
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDivider } from '@angular/material/list';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { Subscription, take } from 'rxjs';
@@ -21,6 +20,7 @@ import { LocationService } from 'src/app/services/location.service';
 import { MessageService } from 'src/app/services/message.service';
 import { PlayersService, type PlayerCsvImportResult } from 'src/app/services/players.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { LoaderComponent } from 'src/app/shared/components/loader/loader.component';
 
 @Component({
   selector: 'app-import-players-csv-dialog',
@@ -35,10 +35,10 @@ import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper
     MatDivider,
     MatExpansionModule,
     MatIconModule,
-    MatProgressSpinnerModule,
     MatTableModule,
     TablerIconsModule,
     DialogWrapperComponent,
+    LoaderComponent,
   ],
   templateUrl: './import-players-csv-dialog.component.html',
 })

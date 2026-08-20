@@ -1,7 +1,8 @@
 @if (isLoading) {
-  <div class="flex min-h-[18rem] w-full items-center justify-center px-4 py-10">
-    <mat-spinner diameter="40" />
-  </div>
+  <app-loader-block
+    label="Loading squad"
+    class="min-h-[18rem] w-full px-4 py-10"
+  />
 } @else if (team) {
   <div aria-label="Manage team squad">
     <mat-card class="cardWithShadow mb-3!">

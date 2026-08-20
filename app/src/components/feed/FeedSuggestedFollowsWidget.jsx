@@ -4,6 +4,7 @@ import { OfficialBadge } from '@/components/OfficialBadge';
 import { UserAvatar } from '@/components/UserAvatar';
 import { buildCreatorProfilePath } from '@/lib/share';
 import { useFollowReelCreatorMutation } from '@/store/api/reelsApi';
+import { Loader } from '@/ui/Loader';
 
 const VISIBLE_ROWS = 3;
 /** Keeps widget height stable while followed users drop out of the buffer. */
@@ -43,8 +44,9 @@ function SuggestedFollowRow({ user, onFollowed }) {
         onClick={onFollowClick}
         disabled={isFollowPending}
         aria-label={`Follow ${displayName}`}
-        className="text-brand ring-brand/40 hover:bg-brand/10 h-9 shrink-0 rounded-full px-3 text-[12px] font-semibold ring-1 transition-all ring-inset active:scale-95 disabled:opacity-50"
+        className="text-brand ring-brand/40 hover:bg-brand/10 flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full px-3 text-[12px] font-semibold ring-1 transition-all ring-inset active:scale-95 disabled:opacity-50"
       >
+        {isFollowPending ? <Loader size="xs" /> : null}
         {isFollowPending ? 'Following…' : 'Follow'}
       </button>
     </div>

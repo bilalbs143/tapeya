@@ -9,6 +9,7 @@ import { SellerBrandDialog } from '@/pages/vendor/SellerBrandDialog';
 import { useGetVendorBrandsQuery, useGetVendorStoreQuery } from '@/store/api/vendorShopApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { PageLoader } from '@/ui/Loader';
 
 const editIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-edit-icon.svg`;
 
@@ -62,9 +63,7 @@ export default function SellerBrands() {
         )}
 
         {isLoading ? (
-          <div className="flex min-h-[30vh] items-center justify-center py-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white/70" />
-          </div>
+          <PageLoader label="Loading brands" className="min-h-[30vh] py-12" />
         ) : isError ? (
           <div className="flex min-h-[30vh] flex-col items-center justify-center gap-4 py-12">
             <p className="text-muted text-[14px]">Could not load brands. Please try again.</p>
@@ -73,10 +72,10 @@ export default function SellerBrands() {
             </Button>
           </div>
         ) : brands.length === 0 ? (
-          <div className="bg-surface flex min-h-[30vh] flex-col items-center justify-center gap-4 rounded-[17px] px-4 py-10">
-            <p className="text-muted text-center text-[14px]">No Brands Yet.</p>
+          <div className="py-12 text-center">
+            <p className="text-muted text-[14px]">No Brands Yet.</p>
             {canEdit ? (
-              <Button type="button" variant="orange" className="px-6 py-2.5 text-[14px]" onClick={openCreate}>
+              <Button type="button" variant="orange" className="mt-4 px-6 py-2.5 text-[14px]" onClick={openCreate}>
                 Add Brand
               </Button>
             ) : null}

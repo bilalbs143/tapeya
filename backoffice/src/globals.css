@@ -41,6 +41,14 @@
   /* Shadow */
   --shadow-sm: #919eab4d 0px 0px 2px 0px, #919eab1f 0px 12px 24px -4px;
   --shadow-md: rgba(145, 158, 171, 0.12) 0px 1px 16px;
+
+  --animate-loader-spin: loader-spin 0.85s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;
+
+  @keyframes loader-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
 }
 
 @layer base {

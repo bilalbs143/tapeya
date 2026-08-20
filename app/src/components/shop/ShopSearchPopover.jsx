@@ -5,6 +5,7 @@ import { MIN_SEARCH_LENGTH, SEARCH_RESULTS_LIMIT } from '@/lib/constants/search'
 import { formatPrice } from '@/lib/format';
 import { buildShopProductPath } from '@/lib/shopPaths';
 import { useGetProductsQuery } from '@/store/api/shopApi';
+import { LoaderBlock } from '@/ui/Loader';
 import { Popover, PopoverAnchor, PopoverContent } from '@/ui/Popover';
 import { SearchInput } from '@/ui/SearchInput';
 
@@ -54,7 +55,7 @@ export function ShopSearchPopover() {
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="max-h-[min(70vh,320px)] overflow-y-auto rounded-[6px] py-1">
-          {isSearching && <div className="text-muted px-4 py-6 text-center text-[13px]">Searching…</div>}
+          {isSearching && <LoaderBlock label="Searching" size="xs" className="px-4 py-6" />}
           {!isSearching && showEmpty && (
             <div className="text-muted px-4 py-6 text-center text-[13px]">
               No products found for &quot;{debouncedSearch}&quot;

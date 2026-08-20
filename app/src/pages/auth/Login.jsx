@@ -22,6 +22,7 @@ import { Button } from '@/ui/Button';
 import { FormActions } from '@/ui/form/FormActions';
 import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
+import { Loader } from '@/ui/Loader';
 import { PhoneInput } from '@/ui/PhoneInput';
 
 const tapeyaLogo = `${CLOUDFRONT_APP_BASE}/images/logos/tapeya-logo-white.svg`;
@@ -236,9 +237,11 @@ function ProfilePicker({ profiles, tappingProfile, busy, onTap, onRemove, onUseO
                 />
 
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[14px] font-bold text-white">{isTapping ? 'Signing in…' : profile.name}</p>
+                  <p className="truncate text-[14px] font-bold text-white">{profile.name}</p>
                   <p className="text-muted truncate text-[12px] font-medium">{formatPhoneMasked(profile.phone)}</p>
                 </div>
+
+                {isTapping ? <Loader size="xs" /> : null}
               </button>
             </div>
           );
@@ -284,8 +287,8 @@ function PhoneForm({ control, errors, error, busy, hasSavedProfiles, onSubmit, o
       )}
 
       <FormActions align="stack" className="pt-0">
-        <Button type="submit" disabled={busy} variant="auth" className="lg:w-full">
-          {busy ? 'Signing in…' : 'Login'}
+        <Button type="submit" disabled={busy} loading={busy} variant="auth" className="lg:w-full">
+          Login
         </Button>
       </FormActions>
     </FormStack>

@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useReportReelMutation } from '@/store/api/reelsApi';
 import { BottomSheet } from '@/ui/BottomSheet';
 import { FormStack } from '@/ui/form/FormStack';
+import { Loader } from '@/ui/Loader';
 import { RadioOptionList } from '@/ui/RadioOptionList';
 import { Textarea } from '@/ui/Textarea';
 
@@ -94,8 +95,9 @@ export default function ReelReportDialog({ reelId, open, onClose }) {
             type="submit"
             form="reel-report-form"
             disabled={isLoading || !reason}
-            className="bg-brand text-ink w-full rounded-full px-4 py-3 text-sm font-semibold transition-transform active:scale-[0.98] disabled:opacity-50"
+            className="bg-brand text-ink flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-semibold transition-transform active:scale-[0.98] disabled:opacity-50"
           >
+            {isLoading ? <Loader size="xs" tone="ink" /> : null}
             {isLoading ? 'Submitting…' : 'Submit Report'}
           </button>
         )

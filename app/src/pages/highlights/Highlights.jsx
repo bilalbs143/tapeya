@@ -6,6 +6,7 @@ import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { HighlightSearchPopover } from '@/components/highlights/HighlightSearchPopover';
 import { useGetHighlightsQuery } from '@/store/api/highlightApi';
 import { Container } from '@/ui/Container';
+import { LoaderBlock } from '@/ui/Loader';
 
 import { HighlightsSection } from './components/HighlightsSection';
 import { sortHighlightsByRecent, sortHighlightsByViews } from './highlightsUtils';
@@ -29,14 +30,7 @@ export default function Highlights() {
         <div className="flex flex-col gap-6 pb-6">
           <HighlightSearchPopover />
 
-          {/* Loading skeleton */}
-          {isLoading ? (
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="bg-surface h-[200px] animate-pulse rounded-[17px]" />
-              ))}
-            </div>
-          ) : null}
+          {isLoading ? <LoaderBlock label="Loading highlights" className="py-16" /> : null}
 
           {/* Error */}
           {isError && !isLoading ? (

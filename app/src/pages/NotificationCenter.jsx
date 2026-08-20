@@ -13,6 +13,7 @@ import {
   useMarkNotificationReadMutation,
 } from '@/store/api/notificationApi';
 import { Container } from '@/ui/Container';
+import { Loader, LoaderBlock } from '@/ui/Loader';
 
 const PAGE_SIZE = 10;
 
@@ -108,22 +109,6 @@ function groupNotifications(notifications) {
   });
 
   return groups;
-}
-
-function NotificationSkeleton() {
-  return (
-    <ul className="flex flex-col gap-1.5" aria-hidden>
-      {Array.from({ length: 5 }, (_, i) => (
-        <li key={i} className="bg-surface/70 flex animate-pulse items-center gap-2.5 rounded-xl px-2.5 py-2">
-          <div className="h-9 w-9 shrink-0 rounded-full bg-white/8" />
-          <div className="min-w-0 flex-1 space-y-1.5">
-            <div className="h-2.5 w-[78%] rounded bg-white/8" />
-            <div className="h-2.5 w-[34%] rounded bg-white/6" />
-          </div>
-        </li>
-      ))}
-    </ul>
-  );
 }
 
 function NotificationCard({ notification, onOpen }) {
@@ -263,7 +248,7 @@ export default function NotificationCenter() {
         <div className="mb-3 flex items-center justify-between gap-3">
           <p className="text-muted text-[11px]">
             {isLoading && items.length === 0
-              ? 'Loading…'
+              ? ''
               : unreadCount > 0
                 ? `${unreadCount} unread`
                 : notifications.length > 0
@@ -275,8 +260,9 @@ export default function NotificationCenter() {
               type="button"
               onClick={handleMarkAllAsRead}
               disabled={isMarkingAll}
-              className="text-brand shrink-0 text-[11px] font-semibold transition-opacity active:opacity-80 disabled:opacity-50"
+              className="text-brand inline-flex shrink-0 items-center gap-1.5 text-[11px] font-semibold transition-opacity active:opacity-80 disabled:opacity-50"
             >
+              {isMarkingAll ? <Loader size="xs" /> : null}
               {isMarkingAll ? 'Marking…' : 'Mark All Read'}
             </button>
           ) : null}
@@ -293,7 +279,7 @@ export default function NotificationCenter() {
           </div>
         )}
 
-        {isLoading && items.length === 0 ? <NotificationSkeleton /> : null}
+        {isLoading && items.length === 0 ? <LoaderBlock label="Loading notifications" className="py-10" /> : null}
 
         {!isLoading && notifications.length === 0 && !isError ? (
           <div className="flex flex-col items-center px-4 py-10 text-center">
@@ -353,7 +339,8 @@ export default function NotificationCenter() {
               disabled={isFetching}
               className="text-muted inline-flex items-center gap-1 rounded-full border border-white/10 px-3 py-1.5 text-[11px] font-semibold transition-colors hover:text-white disabled:opacity-50"
             >
-              {isFetching ? 'Loading…' : 'View Older'}
+              {isFetching ? <Loader size="xs" /> : null}
+              View Older
               {!isFetching ? (
                 <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
                   <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />

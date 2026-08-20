@@ -8,11 +8,12 @@ import { MaterialModule } from 'src/app/material.module';
 import type { CricketDashboardStats, LiveMatchRow, RecentMatchRow, TopTeamRow } from 'src/app/models/cricket-dashboard.models';
 import { AuthService } from 'src/app/services/auth.service';
 import { CricketDashboardService } from 'src/app/services/cricket/cricket-dashboard.service';
+import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
 
 @Component({
   selector: 'app-cricket-dashboard',
   standalone: true,
-  imports: [CommonModule, MaterialModule, TablerIconsModule, NgApexchartsModule, RouterLink],
+  imports: [CommonModule, MaterialModule, TablerIconsModule, NgApexchartsModule, RouterLink, LoaderBlockComponent],
   templateUrl: './cricket-dashboard.component.html',
 })
 export class CricketDashboardComponent implements OnInit {

@@ -58,6 +58,7 @@ import { forwardRef } from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 
 import { CLOSE_ICON_PATH } from '@/lib/constants/assets';
+import { Loader } from '@/ui/Loader';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Radix primitives — re-exported for convenience
@@ -261,21 +262,44 @@ export function DialogScrollBody({ className = '', ...props }) {
  * Primary action button fused to the bottom of the panel.
  * Single consistent style across all dialogs — matches the User Edit Dialog "Save" button.
  *
- * For async saves:
- *   <DialogSaveButton onClick={handleSave} disabled={isSaving}>
+ * For async saves, pass `loading` — it renders the gold ring `<Loader>` next to the label:
+ *   <DialogSaveButton onClick={handleSave} disabled={isSaving} loading={isSaving}>
  *     {isSaving ? 'Saving…' : 'Save'}
  *   </DialogSaveButton>
  */
-export function DialogSaveButton({ className = '', ...props }) {
-  return <button type="button" className={`${SAVE_BUTTON} ${className}`.trim()} {...props} />;
+export function DialogSaveButton({ className = '', loading = false, children, ...props }) {
+  return (
+    <button type="button" className={`${SAVE_BUTTON} ${className}`.trim()} {...props}>
+      {loading ? (
+        <span className="inline-flex items-center justify-center gap-2">
+          <Loader size="xs" tone="ink" />
+          {children}
+        </span>
+      ) : (
+        children
+      )}
+    </button>
+  );
 }
 
 /**
  * Destructive action button fused to the bottom of the panel.
- * Use for irreversible actions (e.g. delete account).
+ * Use for irreversible actions (e.g. delete account). Pass `loading` the same way as
+ * `DialogSaveButton` — renders a white ring `<Loader>` (readable against the red fill).
  */
-export function DialogDangerButton({ className = '', ...props }) {
-  return <button type="button" className={`${DANGER_BUTTON} ${className}`.trim()} {...props} />;
+export function DialogDangerButton({ className = '', loading = false, children, ...props }) {
+  return (
+    <button type="button" className={`${DANGER_BUTTON} ${className}`.trim()} {...props}>
+      {loading ? (
+        <span className="inline-flex items-center justify-center gap-2">
+          <Loader size="xs" tone="light" />
+          {children}
+        </span>
+      ) : (
+        children
+      )}
+    </button>
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -84,7 +84,7 @@ export function HlsStreamPlayer({ playback, className = '', fill = false, isLand
         onPlaying={markReady}
         onError={() => setFailed(true)}
       />
-      <StreamVideoLoading visible={isLoading && !failed} posterUrl={posterUrl} label="Loading video…" hint={null} />
+      <StreamVideoLoading visible={isLoading && !failed} posterUrl={posterUrl} />
       <StreamVideoRetry visible={failed} onRetry={attachSource} />
     </div>
   );

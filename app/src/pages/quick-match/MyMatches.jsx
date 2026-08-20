@@ -7,6 +7,7 @@ import { QuickMatchListCard } from '@/pages/quick-match/QuickMatchListCard';
 import { useGetQuickMatchesQuery } from '@/store/api/quickMatchApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { PageLoader } from '@/ui/Loader';
 
 export default function MyMatches() {
   const navigate = useNavigate();
@@ -48,11 +49,7 @@ export default function MyMatches() {
         }
       />
       <Container>
-        {isLoading ? (
-          <div className="flex justify-center py-16" role="status" aria-label="Loading">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white/70" />
-          </div>
-        ) : null}
+        {isLoading ? <PageLoader label="Loading matches" className="py-16" /> : null}
         {isError ? (
           <div className="py-10 text-center">
             <p className="text-[14px] text-red-400">Could not load matches.</p>

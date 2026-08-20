@@ -13,6 +13,7 @@ import {
   type QuickMatchSide,
 } from 'src/app/services/quick-matches.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { getStatusClass } from 'src/app/utils/status-class.util';
@@ -33,6 +34,7 @@ export interface QuickMatchDetailDialogData {
     TablerIconsModule,
     DialogWrapperComponent,
     SubmitButtonComponent,
+    LoaderBlockComponent,
   ],
   templateUrl: './quick-match-detail-dialog.component.html',
 })

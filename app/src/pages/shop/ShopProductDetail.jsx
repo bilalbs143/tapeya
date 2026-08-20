@@ -12,6 +12,7 @@ import { formatPrice } from '@/lib/format';
 import { buildShopVendorPath } from '@/lib/shopPaths';
 import { useAddCartItemMutation, useGetProductQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
+import { Loader, PageLoader } from '@/ui/Loader';
 
 const shoppingCartIcon = `${CLOUDFRONT_APP_BASE}/images/icons/shopping-cart.svg`;
 
@@ -92,9 +93,7 @@ export default function ShopProductDetail() {
       <div className="bg-black">
         <AppSubpageHeader title="SHOP" onBack={() => navigate(backTo)} />
         <Container>
-          <div className="flex min-h-[40vh] items-center justify-center" role="status" aria-label="Loading product">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white/70" aria-hidden />
-          </div>
+          <PageLoader label="Loading product" className="min-h-[40vh] py-12" />
         </Container>
       </div>
     );
@@ -224,7 +223,11 @@ export default function ShopProductDetail() {
                 disabled={normalized.stock < 1 || isAddingToCart}
                 className="bg-brand flex flex-1 items-center justify-center gap-2 rounded-[6px] py-3.5 text-base text-[16px] font-semibold text-black transition-opacity active:opacity-90 disabled:opacity-50"
               >
-                <img src={shoppingCartIcon} alt="" className="h-6 w-6 shrink-0" aria-hidden />
+                {isAddingToCart ? (
+                  <Loader size="xs" tone="ink" />
+                ) : (
+                  <img src={shoppingCartIcon} alt="" className="h-6 w-6 shrink-0" aria-hidden />
+                )}
                 {isAddingToCart ? 'Adding…' : 'Add to Cart'}
               </button>
             </div>

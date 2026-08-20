@@ -14,6 +14,7 @@ import {
 import { useGetTournamentQuery, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { PageLoader } from '@/ui/Loader';
 
 export default function TournamentCreateTeamIntro() {
   const navigate = useNavigate();
@@ -75,7 +76,7 @@ export default function TournamentCreateTeamIntro() {
       <div className="flex min-h-[calc(100vh-144px)] flex-col bg-black">
         <AppSubpageHeader title={title} titleClassName="truncate" />
         <Container>
-          <p className="text-muted py-6 text-center text-[13px]">Loading…</p>
+          <PageLoader label="Loading tournament" className="py-6" />
         </Container>
       </div>
     );

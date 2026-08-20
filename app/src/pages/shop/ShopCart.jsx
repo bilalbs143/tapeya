@@ -9,6 +9,7 @@ import { formatPrice, toNumber } from '@/lib/format';
 import { buildShopVendorPath } from '@/lib/shopPaths';
 import { useGetCartQuery, useRemoveCartItemMutation, useUpdateCartItemMutation } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
+import { PageLoader } from '@/ui/Loader';
 import {
   Select,
   SelectContent,
@@ -132,7 +133,9 @@ export default function ShopCart() {
     <div className="flex flex-1 flex-col bg-black">
       <AppSubpageHeader title="SELECTED ITEMS" />
       <Container fullWidth className="flex flex-1 flex-col">
-        {isLoading ? null : emptyCart ? (
+        {isLoading ? (
+          <PageLoader label="Loading cart" className="flex-1 py-16" />
+        ) : emptyCart ? (
           <div className="flex flex-1 items-center justify-center">
             <div className="flex flex-col items-center gap-4 text-center">
               <p className="text-muted text-[14px]">Your cart is empty.</p>

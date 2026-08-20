@@ -203,6 +203,7 @@ export default function Support() {
               size="dialog"
               className="sm:w-[180px]"
               disabled={!isValid || isSubmitting}
+              loading={isSubmitting}
             >
               {isSubmitting ? 'Sending…' : 'Send Message'}
             </Button>

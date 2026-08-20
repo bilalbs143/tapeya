@@ -8,11 +8,12 @@ import { MaterialModule } from 'src/app/material.module';
 import type { EcommerceDashboardStats } from 'src/app/models/ecommerce-dashboard.models';
 import { AuthService } from 'src/app/services/auth.service';
 import { EcommerceDashboardService } from 'src/app/services/shop/ecommerce-dashboard.service';
+import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
 
 @Component({
   selector: 'app-ecommerce-dashboard',
   standalone: true,
-  imports: [CommonModule, MaterialModule, TablerIconsModule, NgApexchartsModule, RouterLink],
+  imports: [CommonModule, MaterialModule, TablerIconsModule, NgApexchartsModule, RouterLink, LoaderBlockComponent],
   templateUrl: './ecommerce-dashboard.component.html',
 })
 export class EcommerceDashboardComponent implements OnInit {

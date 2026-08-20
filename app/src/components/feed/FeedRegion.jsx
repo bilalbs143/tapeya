@@ -37,6 +37,7 @@ import { useGetProductsQuery } from '@/store/api/shopApi';
 import { SUGGESTED_USERS_ARG, useGetSuggestedUsersQuery } from '@/store/api/userApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated } from '@/store/selectors';
+import { LoaderBlock } from '@/ui/Loader';
 
 const TABS = [
   { id: 'explore', label: 'Explore', shortLabel: 'Explore', Icon: ExploreIcon, requiresAuth: false },
@@ -498,18 +499,10 @@ export default function FeedRegion({ className = '', top = null }) {
           </div>
         ) : null}
 
-        {isInitialLoading ? (
-          <div className="flex items-center justify-center py-16" role="status" aria-label="Loading feed">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white/70" aria-hidden />
-          </div>
-        ) : null}
+        {isInitialLoading ? <LoaderBlock label="Loading feed" className="py-16" /> : null}
 
         <div ref={loadMoreRef} className="h-8" aria-hidden />
-        {isFetchingMore ? (
-          <div className="flex items-center justify-center py-4" role="status" aria-label="Loading more">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-white/10 border-t-white/70" aria-hidden />
-          </div>
-        ) : null}
+        {isFetchingMore ? <LoaderBlock label="Loading more" className="py-4" /> : null}
       </div>
     </section>
   );

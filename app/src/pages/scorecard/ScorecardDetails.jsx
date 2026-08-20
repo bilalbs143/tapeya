@@ -7,6 +7,7 @@ import { NAVBAR_HEIGHT, STICKY_TABS_Z } from '@/lib/constants/layout';
 import { getTournamentTitle, isValidTournamentId, parseTournamentId } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentMatchesQuery, useGetTournamentQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
+import { LoaderBlock } from '@/ui/Loader';
 import { scorecardListClass, scorecardTriggerClass, Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
 
 import { ScheduleTab, SquadsTab, StatsTab, TableTab, TeamsTab } from './tabs';
@@ -109,7 +110,7 @@ export default function ScorecardDetails() {
             </div>
           )}
 
-          {isLoading && <p className="text-muted mt-4 pb-6 text-center text-[13px]">Loading matches…</p>}
+          {isLoading && <LoaderBlock label="Loading scorecard" className="py-6" />}
 
           {isError && !isLoading && <p className="mt-4 pb-6 text-center text-[13px] text-red-400">Failed to load matches.</p>}
 

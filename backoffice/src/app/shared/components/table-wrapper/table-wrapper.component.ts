@@ -14,6 +14,9 @@ export class TableWrapperComponent {
 
   /**
    * Controls the display of the loading state over the table.
+   * Intentionally uses `mat-progress-bar` (top-of-table indeterminate bar) rather than the
+   * shared gold `app-loader` ring — a bar reads better for "refreshing existing rows" than a
+   * centered spinner would, since the table's current content stays visible underneath.
    */
   @Input() public loading: boolean = false;
 

@@ -2,6 +2,7 @@ import { BORDER_ALT } from '@/lib/constants/tableStyles';
 import { formatListIndex } from '@/lib/format';
 import { playerDisplayRole } from '@/lib/utils/playerUtils';
 import { useGetTeamSquadQuery } from '@/store/api/teamApi';
+import { LoaderBlock } from '@/ui/Loader';
 
 export function SquadSingle({ tournamentId, teamId }) {
   const {
@@ -19,7 +20,7 @@ export function SquadSingle({ tournamentId, teamId }) {
   if (isLoading) {
     return (
       <div className="mt-4 pb-6">
-        <p className="text-muted py-4 text-center text-[13px]">Loading squad…</p>
+        <LoaderBlock label="Loading squad" className="py-4" />
       </div>
     );
   }

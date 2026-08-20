@@ -8,6 +8,7 @@ import { buildHttpsDeepLink } from '@/lib/deepLinks/deepLinkUtils';
 import { formatPrice } from '@/lib/format';
 import { useGetVendorDashboardQuery, useGetVendorStoreQuery } from '@/store/api/vendorShopApi';
 import { Container } from '@/ui/Container';
+import { PageLoader } from '@/ui/Loader';
 
 function StatusBanner({ status, statusLabel, suspensionReason }) {
   if (status === 'pending') {
@@ -122,9 +123,7 @@ export default function SellerHub() {
           )}
 
           {isLoading ? (
-            <div className="flex min-h-[20vh] items-center justify-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white/70" />
-            </div>
+            <PageLoader label="Loading store dashboard" className="min-h-[20vh] py-12" />
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               <MetricCard label="Products" value={productsCount} />

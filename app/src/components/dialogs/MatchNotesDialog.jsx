@@ -10,6 +10,7 @@ import { DialogBackButton } from '@/ui/DialogBackButton';
 import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
+import { LoaderBlock } from '@/ui/Loader';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/Popover';
 import { Textarea } from '@/ui/Textarea';
 
@@ -173,7 +174,7 @@ export function MatchNotesDialog({ matchId }) {
           {view === 'add' ? (
             <AddNoteForm body={draftBody} onBodyChange={setDraftBody} />
           ) : isLoading ? (
-            <p className="text-muted py-8 text-center text-[13px]">Loading notes…</p>
+            <LoaderBlock label="Loading notes" className="py-8" />
           ) : notes.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-8 text-center">
               <p className="text-[14px] font-medium text-white">{emptyMessage ?? "You don't have any Notes added yet."}</p>
@@ -192,12 +193,12 @@ export function MatchNotesDialog({ matchId }) {
               ))}
             </ul>
           )}
-          {isFetching && !isLoading ? <p className="text-muted text-center text-[11px]">Updating…</p> : null}
+          {isFetching && !isLoading ? <LoaderBlock label="Updating notes" className="py-1" /> : null}
         </FormStack>
       </DialogScrollBody>
 
       {view === 'add' ? (
-        <DialogSaveButton disabled={!canSubmitNote} onClick={handleCreate}>
+        <DialogSaveButton disabled={!canSubmitNote} loading={isCreating} onClick={handleCreate}>
           {isCreating ? 'Saving…' : 'Add Note'}
         </DialogSaveButton>
       ) : (

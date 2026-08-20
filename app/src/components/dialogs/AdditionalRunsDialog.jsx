@@ -59,7 +59,7 @@ export function AdditionalRunsDialog({ matchId, inningsId }) {
         </FormStack>
       </DialogScrollBody>
 
-      <DialogSaveButton disabled={!canSubmit} onClick={handleAdd}>
+      <DialogSaveButton disabled={!canSubmit} loading={isLoading} onClick={handleAdd}>
         {isLoading ? 'Adding…' : 'Add Runs'}
       </DialogSaveButton>
     </>

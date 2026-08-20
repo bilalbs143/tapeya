@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import { RemoveScroll } from 'react-remove-scroll';
 
+import { Loader } from '@/ui/Loader';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/Popover';
 import { searchableSelectTriggerClass, selectItemInputClass } from '@/ui/Select';
 
@@ -18,15 +19,6 @@ function ChevronIcon({ className = '' }) {
       aria-hidden
     >
       <path d="M3 4.5L6 7.5L9 4.5" />
-    </svg>
-  );
-}
-
-function SpinnerIcon() {
-  return (
-    <svg className="h-4 w-4 animate-spin text-white/70" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
     </svg>
   );
 }
@@ -147,7 +139,7 @@ export function SearchableSelect({
           <span className={`min-w-0 flex-1 truncate text-left ${displayValue ? 'text-white' : 'text-muted/47'}`}>
             {displayValue || placeholder}
           </span>
-          {loading ? <SpinnerIcon /> : <ChevronIcon className="shrink-0 text-white" />}
+          {loading ? <Loader size="xs" /> : <ChevronIcon className="shrink-0 text-white" />}
         </button>
       </PopoverTrigger>
 

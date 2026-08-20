@@ -17,6 +17,7 @@ import { ToastProvider } from '@/context/ToastContext';
 import { useReverbNotifications } from '@/hooks/useReverbNotifications';
 import { isOverlayRoute } from '@/lib/isOverlayRoute';
 import { RedirectShopLegacyBrandProduct, RedirectShopProductPrefix, RedirectShopVendorPrefix } from '@/pages/shop/ShopRedirects';
+import { FullScreenLoader } from '@/ui/Loader';
 import { Toaster } from '@/ui/Toast';
 import { TooltipProvider } from '@/ui/Tooltip';
 
@@ -101,11 +102,7 @@ const QuickMatchWizard = lazy(() => import('@/pages/quick-match/QuickMatchWizard
 const MyMatches = lazy(() => import('@/pages/quick-match/MyMatches'));
 
 function PageFallback() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-black">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white/70" />
-    </div>
-  );
+  return <FullScreenLoader label="Loading page" />;
 }
 
 /** Consumer-only side effects (skipped on /overlay/*). */

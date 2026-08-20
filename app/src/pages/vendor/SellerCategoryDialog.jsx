@@ -160,7 +160,7 @@ export function SellerCategoryDialog({ open, onOpenChange, category = null, canE
       </DialogScrollBody>
 
       {canEdit ? (
-        <DialogSaveButton form={FORM_ID} type="submit" disabled={isSubmitting}>
+        <DialogSaveButton form={FORM_ID} type="submit" disabled={isSubmitting} loading={isSubmitting}>
           {isSubmitting ? 'Saving…' : isEdit ? 'Save' : 'Add Category'}
         </DialogSaveButton>
       ) : null}

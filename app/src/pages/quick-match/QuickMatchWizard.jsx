@@ -23,6 +23,7 @@ import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 import { FormActions } from '@/ui/form/FormActions';
 import { FormStack } from '@/ui/form/FormStack';
+import { PageLoader } from '@/ui/Loader';
 
 function scrollToSide(sideId) {
   document.getElementById(sideId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -253,9 +254,7 @@ export default function QuickMatchWizard() {
         <div className="bg-black">
           <AppSubpageHeader title="Quick Match" onBack={() => navigate(-1)} />
           <Container>
-            <div className="flex justify-center py-16" role="status" aria-label="Loading">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white/70" />
-            </div>
+            <PageLoader label="Loading match" className="py-16" />
           </Container>
         </div>
       );
@@ -414,6 +413,7 @@ export default function QuickMatchWizard() {
               variant="fixture"
               className="flex-1 cursor-pointer"
               disabled={isBusy}
+              loading={isBusy}
               onClick={handleSubmit(onSaveForLater, onInvalid)}
             >
               {isBusy ? 'Saving…' : 'Save for Later'}

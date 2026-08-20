@@ -74,6 +74,13 @@ html.ios-native-stream-underlay main {
   --animate-splash-slide-up: splash-slide-up 0.6s ease-out forwards;
   --animate-splash-slide-up-delayed: splash-slide-up 0.6s ease-out 0.35s forwards;
   --animate-splash-fade-out: splash-fade-out 0.35s ease-out forwards;
+  --animate-loader-spin: loader-spin 0.85s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;
+
+  @keyframes loader-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
 
   @keyframes splash-slide-up {
     from {

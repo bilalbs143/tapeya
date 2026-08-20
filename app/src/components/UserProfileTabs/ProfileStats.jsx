@@ -7,6 +7,7 @@ import { useGetPlayerStatsQuery, useGetPlayerTeamsQuery } from '@/store/api/play
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 import { FilterPillSelect, FilterPillSelectGroup } from '@/ui/FilterPillSelect';
+import { Loader, LoaderBlock } from '@/ui/Loader';
 
 const TEAMS_PREVIEW_COUNT = 3;
 const ALL_OPTION = { value: 'all', label: 'All' };
@@ -165,7 +166,7 @@ export function ProfileStats() {
       </FilterPillSelectGroup>
 
       {isLoading ? (
-        <div className="text-sm text-white/60">Loading stats…</div>
+        <LoaderBlock label="Loading stats" className="py-4" />
       ) : (
         <>
           <div className="flex flex-wrap items-baseline gap-x-8">
@@ -179,7 +180,7 @@ export function ProfileStats() {
           <div className="mt-4 flex flex-wrap items-baseline gap-x-1">
             <span className={LABEL_CLASS}>TEAMS:</span>
             {teamsLoading ? (
-              <span className="text-sm text-white/60">Loading…</span>
+              <Loader label="Loading teams" />
             ) : hasAnyTeams ? (
               <>
                 <span className="text-sm font-normal text-white/70">

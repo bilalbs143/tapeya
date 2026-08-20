@@ -12,6 +12,7 @@ export function InterestCampaignDialog({ slug, tournamentName }) {
   const [submitUi, setSubmitUi] = useState({
     visible: false,
     disabled: true,
+    loading: false,
     label: "I'm Interested",
   });
 
@@ -42,7 +43,7 @@ export function InterestCampaignDialog({ slug, tournamentName }) {
       </div>
 
       {submitUi.visible && (
-        <DialogSaveButton form={INTEREST_CAMPAIGN_FORM_ID} type="submit" disabled={submitUi.disabled}>
+        <DialogSaveButton form={INTEREST_CAMPAIGN_FORM_ID} type="submit" disabled={submitUi.disabled} loading={submitUi.loading}>
           {submitUi.label}
         </DialogSaveButton>
       )}

@@ -85,7 +85,7 @@ export function EndEventDialog({
         </FormStack>
       </DialogScrollBody>
 
-      <DialogSaveButton disabled={!canSubmit} onClick={handleDone}>
+      <DialogSaveButton disabled={!canSubmit} loading={isSaving} onClick={handleDone}>
         {isSaving ? savingLabel : submitLabel}
       </DialogSaveButton>
     </>

@@ -6,6 +6,7 @@ import { getApiErrorMessage } from '@/lib/apiErrors';
 import { useGetInterestCampaignQuery } from '@/store/api/tournamentInterestApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { PageLoader } from '@/ui/Loader';
 
 export default function InterestForm() {
   const { slug } = useParams();
@@ -19,10 +20,10 @@ export default function InterestForm() {
       <div className="bg-black">
         <AppSubpageHeader
           sticky
-          title={<h1 className="min-w-0 truncate px-1 text-center text-[15px] leading-snug font-bold text-white/70">Loading…</h1>}
+          title={<h1 className="min-w-0 truncate px-1 text-center text-[15px] leading-snug font-bold text-white/80">Interest</h1>}
         />
         <Container className="pb-8">
-          <p className="text-muted py-8 text-center text-sm">Loading interest form…</p>
+          <PageLoader label="Loading form" />
         </Container>
       </div>
     );

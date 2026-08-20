@@ -9,6 +9,7 @@ import { DialogFormSection } from '@/ui/form/DialogFormSection';
 import { FormActions } from '@/ui/form/FormActions';
 import { FormStack } from '@/ui/form/FormStack';
 import { Input } from '@/ui/Input';
+import { Loader } from '@/ui/Loader';
 
 /**
  * Revise 2nd innings chase target (DLS) — set new target, then continue or end innings.
@@ -83,16 +84,18 @@ export function ReviseTargetDialog({ matchId, currentTarget, onInningsEnded }) {
                 type="button"
                 disabled={!targetValid || isRevisingTarget}
                 onClick={() => submit('continue')}
-                className="border-border-subtle bg-surface focus-visible:ring-brand enabled:active:bg-surface-raised flex flex-1 items-center justify-center rounded-[10px] border-2 px-3 py-3 text-[12px] font-bold tracking-wide text-white uppercase transition-colors focus:outline-none focus-visible:ring-2 disabled:opacity-40"
+                className="border-border-subtle bg-surface focus-visible:ring-brand enabled:active:bg-surface-raised flex flex-1 items-center justify-center gap-2 rounded-[10px] border-2 px-3 py-3 text-[12px] font-bold tracking-wide text-white uppercase transition-colors focus:outline-none focus-visible:ring-2 disabled:opacity-40"
               >
+                {pendingAction === 'continue' && isRevisingTarget ? <Loader size="xs" /> : null}
                 {pendingAction === 'continue' && isRevisingTarget ? 'Saving…' : 'Continue Innings'}
               </button>
               <button
                 type="button"
                 disabled={!targetValid || isRevisingTarget}
                 onClick={() => submit('end_innings')}
-                className="border-border-subtle bg-surface focus-visible:ring-brand enabled:active:bg-surface-raised flex flex-1 items-center justify-center rounded-[10px] border-2 px-3 py-3 text-[12px] font-bold tracking-wide text-white uppercase transition-colors focus:outline-none focus-visible:ring-2 disabled:opacity-40"
+                className="border-border-subtle bg-surface focus-visible:ring-brand enabled:active:bg-surface-raised flex flex-1 items-center justify-center gap-2 rounded-[10px] border-2 px-3 py-3 text-[12px] font-bold tracking-wide text-white uppercase transition-colors focus:outline-none focus-visible:ring-2 disabled:opacity-40"
               >
+                {pendingAction === 'end_innings' && isRevisingTarget ? <Loader size="xs" /> : null}
                 {pendingAction === 'end_innings' && isRevisingTarget ? 'Saving…' : 'End Innings'}
               </button>
             </FormActions>

@@ -30,6 +30,7 @@ import { isValidTournamentId } from '@/lib/utils/tournamentUtils';
 import { useGetMatchQuery, useGetMatchStateQuery, useGetScorecardQuery } from '@/store/api/matchApi';
 import { useGetTournamentMatchesQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
+import { PageLoader } from '@/ui/Loader';
 import { scorecardListClass, scorecardTriggerClass, Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
 
 import {
@@ -374,11 +375,7 @@ export default function ScorecardStatusDetails() {
   }
 
   if (matchLoading) {
-    return (
-      <div className="flex min-h-[40vh] items-center justify-center bg-black">
-        <p className="text-muted text-[13px]">Loading match…</p>
-      </div>
-    );
+    return <PageLoader label="Loading match" className="min-h-[40vh] bg-black py-12" />;
   }
 
   if (matchIsError || tournamentMismatch || !apiMatch || !match) {

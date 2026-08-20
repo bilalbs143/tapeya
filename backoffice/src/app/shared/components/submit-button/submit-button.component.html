@@ -11,6 +11,9 @@
     {{ text }}
   }
   @if (isSubmitting) {
-    <mat-spinner diameter="20"></mat-spinner>
+    <app-loader
+      [diameter]="20"
+      [tone]="'light'"
+    />
   }
 </button>

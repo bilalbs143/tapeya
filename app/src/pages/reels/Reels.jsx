@@ -40,6 +40,7 @@ import {
 } from '@/store/api/reelsApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated } from '@/store/selectors';
+import { PageLoader } from '@/ui/Loader';
 
 import ReelItem from './ReelItem';
 
@@ -395,6 +396,8 @@ export default function Reels() {
               offset > 0 || refreshing ? '' : '[scroll-snap-type:y_mandatory]'
             }`}
           >
+            {isInitialLoading ? <PageLoader label="Loading reels" className="h-full" /> : null}
+
             {reelRows.length === 0 && !isInitialLoading ? (
               <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
                 <p className="text-sm font-medium text-white">{emptyCopy}</p>

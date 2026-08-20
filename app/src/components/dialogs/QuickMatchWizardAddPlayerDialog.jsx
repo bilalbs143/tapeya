@@ -11,6 +11,7 @@ import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrol
 import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
+import { LoaderBlock } from '@/ui/Loader';
 import { PhoneInput } from '@/ui/PhoneInput';
 import { ToggleGroup, ToggleGroupItem } from '@/ui/ToggleGroup';
 
@@ -125,7 +126,7 @@ export function QuickMatchWizardAddPlayerDialog({ sideLabel = 'Side', blockedUse
               <FormStack density="compact">
                 <p className="text-muted text-[12px] font-bold tracking-wide uppercase">Your Players</p>
                 {loadingMine ? (
-                  <p className="text-muted text-[13px]">Loading players…</p>
+                  <LoaderBlock label="Loading players" className="py-3" />
                 ) : myPlayers.length === 0 ? (
                   <p className="text-muted text-[13px]">No players added yet.</p>
                 ) : (
@@ -154,7 +155,7 @@ export function QuickMatchWizardAddPlayerDialog({ sideLabel = 'Side', blockedUse
                     {debounced.length < MIN_SEARCH_LENGTH ? (
                       <p className="text-muted px-4 py-3 text-[13px]">Type at least {MIN_SEARCH_LENGTH} characters</p>
                     ) : searching ? (
-                      <p className="text-muted px-4 py-3 text-[13px]">Searching…</p>
+                      <LoaderBlock label="Searching" size="xs" className="px-4 py-3" />
                     ) : candidates.length === 0 ? (
                       <p className="text-muted px-4 py-3 text-[13px]">No Players Found</p>
                     ) : (
@@ -194,7 +195,12 @@ export function QuickMatchWizardAddPlayerDialog({ sideLabel = 'Side', blockedUse
       </DialogScrollBody>
 
       {mode === 'walkup' ? (
-        <DialogSaveButton disabled={!canSaveWalkUp} onClick={addWalkUp} className="disabled:!bg-white/10 disabled:!text-white/40">
+        <DialogSaveButton
+          disabled={!canSaveWalkUp}
+          loading={saving}
+          onClick={addWalkUp}
+          className="disabled:!bg-white/10 disabled:!text-white/40"
+        >
           {saving ? 'Adding…' : `Add To ${sideLabel}`}
         </DialogSaveButton>
       ) : null}

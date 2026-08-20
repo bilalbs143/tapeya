@@ -20,6 +20,7 @@ import { useAppDispatch } from '@/store/hooks';
 import { setCredentials } from '@/store/slices/authSlice';
 import { Button } from '@/ui/Button';
 import { Input } from '@/ui/Input';
+import { Loader } from '@/ui/Loader';
 
 const tapeyaLogo = `${CLOUDFRONT_APP_BASE}/images/logos/tapeya-logo-white.svg`;
 
@@ -292,8 +293,9 @@ export default function Otp() {
                 type="button"
                 onClick={handleResend}
                 disabled={!phoneRaw || isResendLoading || resendCooldown > 0}
-                className="text-brand font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820] disabled:cursor-not-allowed disabled:opacity-50"
+                className="text-brand inline-flex items-center gap-1.5 font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820] disabled:cursor-not-allowed disabled:opacity-50"
               >
+                {isResendLoading ? <Loader size="xs" /> : null}
                 {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : isResendLoading ? 'Sending…' : 'Resend'}
               </button>
             </p>
@@ -304,7 +306,7 @@ export default function Otp() {
             )}
           </div>
 
-          <Button type="submit" disabled={busy} variant="auth" className="mt-4 lg:w-full">
+          <Button type="submit" disabled={busy} loading={isLoading} variant="auth" className="mt-4 lg:w-full">
             {busy ? 'Verifying…' : 'Next'}
           </Button>
         </form>

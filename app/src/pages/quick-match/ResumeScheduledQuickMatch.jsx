@@ -209,7 +209,7 @@ export function ResumeScheduledQuickMatch({ match, onBack, navigate }) {
                 }
               />
 
-              <Button type="button" variant="fixture" disabled={busy} onClick={() => saveSettings()}>
+              <Button type="button" variant="fixture" disabled={busy} loading={isSaving} onClick={() => saveSettings()}>
                 {isSaving ? 'Saving…' : 'Save Settings'}
               </Button>
             </>
@@ -273,7 +273,7 @@ export function ResumeScheduledQuickMatch({ match, onBack, navigate }) {
 
           <FormActions align="stack">
             {canOperate ? (
-              <Button type="button" variant="orange" disabled={busy} onClick={onToss}>
+              <Button type="button" variant="orange" disabled={busy} loading={isTossing} onClick={onToss}>
                 {isTossing ? 'Starting…' : 'Toss & Start'}
               </Button>
             ) : null}

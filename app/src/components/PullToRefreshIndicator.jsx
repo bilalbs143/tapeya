@@ -19,7 +19,7 @@ export function PullToRefreshIndicator({ offset = 0, refreshing = false, classNa
       aria-hidden={offset < 8}
     >
       <div
-        className={`size-8 rounded-full border-2 border-white/10 border-t-white/70 ${spinning ? 'animate-spin' : ''}`}
+        className={`border-t-brand size-8 rounded-full border-2 border-white/10 ${spinning ? 'animate-loader-spin' : ''}`}
         style={spinning ? undefined : { transform: `rotate(${progress * 280}deg)` }}
       />
     </div>

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useGetBrandsQuery, useGetVendorBySlugQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
+import { PageLoader } from '@/ui/Loader';
 
 import ShopCategory from './ShopCategory';
 import ShopVendorStore from './ShopVendorStore';
@@ -29,9 +30,7 @@ export default function ShopSlugPage() {
       <div className="bg-black">
         <AppSubpageHeader title="SHOP" onBack={() => navigate('/shop')} />
         <Container>
-          <div className="flex min-h-[40vh] items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white/70" />
-          </div>
+          <PageLoader label="Loading shop page" className="min-h-[40vh] py-12" />
         </Container>
       </div>
     );

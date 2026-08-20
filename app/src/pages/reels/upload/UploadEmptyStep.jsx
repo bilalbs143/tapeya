@@ -5,6 +5,7 @@
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { Container } from '@/ui/Container';
+import { Loader } from '@/ui/Loader';
 
 /** Same camera glyph as the Reels feed upload control. */
 function CameraIcon({ className = '' }) {
@@ -134,11 +135,7 @@ export function UploadEmptyStep({
           className="border-border bg-surface active:bg-surface-raised flex w-full flex-col items-center rounded-[17px] border px-5 py-8 text-center transition-colors disabled:opacity-60"
         >
           <span className="border-brand/35 bg-brand/10 text-brand flex size-[72px] items-center justify-center rounded-full border-2">
-            {isBusy ? (
-              <span className="border-brand/30 border-t-brand size-8 animate-spin rounded-full border-2" aria-hidden />
-            ) : (
-              <CameraIcon className="size-8" />
-            )}
+            {isBusy ? <Loader /> : <CameraIcon className="size-8" />}
           </span>
 
           <span className="mt-5 text-[17px] font-semibold text-white">

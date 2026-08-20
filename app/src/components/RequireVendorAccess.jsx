@@ -4,6 +4,7 @@ import { userHasVendorAccess } from '@/lib/vendorAccess';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
+import { FullScreenLoader } from '@/ui/Loader';
 
 export function RequireVendorAccess() {
   const user = useAppSelector(selectUser);
@@ -13,7 +14,7 @@ export function RequireVendorAccess() {
   const profileUser = meResponse?.data ?? user;
 
   if (isLoading && meResponse == null) {
-    return null;
+    return <FullScreenLoader label="Checking access" />;
   }
 
   if (!userHasVendorAccess(profileUser)) {

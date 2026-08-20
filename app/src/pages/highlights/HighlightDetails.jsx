@@ -17,6 +17,7 @@ import {
   useShareHighlightMutation,
 } from '@/store/api/highlightApi';
 import { Container } from '@/ui/Container';
+import { LoaderBlock } from '@/ui/Loader';
 
 import { MoreHighlightRow } from './components/MoreHighlightRow';
 import {
@@ -277,13 +278,7 @@ export default function HighlightDetails() {
       </div>
 
       <Container className="!px-4 !py-0">
-        {/* Loading skeleton for text content */}
-        {isLoading && !highlight ? (
-          <div className="mt-4 animate-pulse space-y-2">
-            <div className="bg-surface h-5 w-3/4 rounded" />
-            <div className="bg-surface h-4 w-1/3 rounded" />
-          </div>
-        ) : null}
+        {isLoading && !highlight ? <LoaderBlock label="Loading highlight" className="mt-4 py-6" /> : null}
 
         {/* Title & date */}
         {highlight ? (

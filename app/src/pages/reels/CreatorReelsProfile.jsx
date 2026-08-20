@@ -33,6 +33,7 @@ import {
 import { useAppSelector } from '@/store/hooks';
 import { selectAuthUserAndToken } from '@/store/selectors';
 import { Container } from '@/ui/Container';
+import { Loader, LoaderBlock, PageLoader } from '@/ui/Loader';
 
 const TAB_REELS = 'reels';
 const TAB_POSTS = 'posts';
@@ -342,7 +343,7 @@ export default function CreatorReelsProfile() {
 
       <Container>
         {profileLoading ? (
-          <p className="text-muted text-sm">Loading profile…</p>
+          <PageLoader label="Loading profile" className="py-10" />
         ) : profileError || !profile ? (
           <p className="text-muted text-sm">Could not load this profile.</p>
         ) : (
@@ -449,9 +450,7 @@ export default function CreatorReelsProfile() {
 
             <div className="mt-4">
               {isLoading ? (
-                <p className="text-muted py-8 text-center text-sm">
-                  {activeTab === TAB_POSTS ? 'Loading posts…' : 'Loading reels…'}
-                </p>
+                <LoaderBlock label={activeTab === TAB_POSTS ? 'Loading posts' : 'Loading reels'} className="py-8" />
               ) : isError ? (
                 <p className="text-muted py-8 text-center text-sm">
                   {activeTab === TAB_POSTS ? 'Could not load posts.' : 'Could not load reels.'}
@@ -480,9 +479,10 @@ export default function CreatorReelsProfile() {
                         type="button"
                         onClick={loadMore}
                         disabled={isFetching}
-                        className="text-muted text-[12px] font-semibold transition-opacity active:opacity-90 disabled:opacity-60"
+                        className="text-muted inline-flex items-center gap-1.5 text-[12px] font-semibold transition-opacity active:opacity-90 disabled:opacity-60"
                       >
-                        {isFetching ? 'Loading…' : 'Load more'}
+                        {isFetching ? <Loader size="xs" /> : null}
+                        Load More
                       </button>
                     </div>
                   ) : null}
@@ -496,9 +496,10 @@ export default function CreatorReelsProfile() {
                         type="button"
                         onClick={loadMore}
                         disabled={isFetching}
-                        className="text-muted text-[12px] font-semibold transition-opacity active:opacity-90 disabled:opacity-60"
+                        className="text-muted inline-flex items-center gap-1.5 text-[12px] font-semibold transition-opacity active:opacity-90 disabled:opacity-60"
                       >
-                        {isFetching ? 'Loading…' : 'Load more'}
+                        {isFetching ? <Loader size="xs" /> : null}
+                        Load More
                       </button>
                     </div>
                   ) : null}

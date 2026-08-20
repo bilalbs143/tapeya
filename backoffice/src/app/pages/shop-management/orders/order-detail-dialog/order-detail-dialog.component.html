@@ -1,7 +1,10 @@
 <app-dialog-wrapper title="Order Details">
   @if (isLoading) {
     <mat-dialog-content>
-      <p class="m-0 py-6 text-center text-muted text-sm">Loading order…</p>
+      <app-loader-block
+        label="Loading order"
+        class="py-6"
+      />
     </mat-dialog-content>
   } @else if (order) {
     <mat-dialog-content>

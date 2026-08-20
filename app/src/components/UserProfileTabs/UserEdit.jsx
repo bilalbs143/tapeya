@@ -325,7 +325,7 @@ export function UserEdit({ open, onOpenChange }) {
         </FormStack>
       </DialogScrollBody>
 
-      <DialogSaveButton form={USER_EDIT_FORM_ID} type="submit" disabled={isSaving}>
+      <DialogSaveButton form={USER_EDIT_FORM_ID} type="submit" disabled={isSaving} loading={isSaving}>
         {isSaving ? 'Saving…' : 'Save'}
       </DialogSaveButton>
     </BaseDialog>

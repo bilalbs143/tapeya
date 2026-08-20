@@ -5,6 +5,11 @@
 
 import { Slot } from '@radix-ui/react-slot';
 
+import { Loader } from '@/ui/Loader';
+
+// Variants with a dark/black fill need a white ring; everything else (gold/light fills) needs the dark "ink" ring.
+const DARK_FILL_VARIANTS = new Set(['dark', 'black']);
+
 const variants = {
   primary: 'bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800',
   secondary: 'bg-slate-200 text-slate-800 hover:bg-slate-300 active:bg-slate-400',
@@ -37,6 +42,11 @@ const sizes = {
   dialog: 'w-full py-3 text-[14px] font-bold uppercase tracking-wide',
 };
 
+/**
+ * Pass `loading` for async actions — renders a small `<Loader>` next to the label
+ * (tone auto-picked from `variant` so it reads against the button's fill). Ignored when
+ * `asChild` is set, since Radix `Slot` requires exactly one child element to clone onto.
+ */
 export function Button({
   children,
   variant = 'primary',
@@ -44,9 +54,11 @@ export function Button({
   className = '',
   disabled = false,
   asChild = false,
+  loading = false,
   ...props
 }) {
   const Comp = asChild ? Slot : 'button';
+  const showSpinner = loading && !asChild;
   return (
     <Comp
       type={asChild ? undefined : 'button'}
@@ -54,7 +66,14 @@ export function Button({
       className={`inline-flex cursor-pointer touch-manipulation items-center justify-center font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     >
-      {children}
+      {showSpinner ? (
+        <span className="inline-flex items-center justify-center gap-2">
+          <Loader size="xs" tone={DARK_FILL_VARIANTS.has(variant) ? 'light' : 'ink'} />
+          {children}
+        </span>
+      ) : (
+        children
+      )}
     </Comp>
   );
 }

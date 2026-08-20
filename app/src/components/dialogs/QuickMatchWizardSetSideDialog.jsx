@@ -8,6 +8,7 @@ import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrol
 import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
+import { LoaderBlock } from '@/ui/Loader';
 import { ToggleGroup, ToggleGroupItem } from '@/ui/ToggleGroup';
 
 /**
@@ -86,7 +87,7 @@ export function QuickMatchWizardSetSideDialog({
           {mode === 'saved' ? (
             <FormStack density="compact">
               {isFetching ? (
-                <p className="text-muted text-[13px]">Loading teams…</p>
+                <LoaderBlock label="Loading teams" className="py-3" />
               ) : teams.length === 0 ? (
                 <p className="text-muted text-[13px]">No owned teams yet. Use New Team to create one.</p>
               ) : (

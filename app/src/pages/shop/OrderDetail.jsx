@@ -11,6 +11,7 @@ import { buildShopVendorPath } from '@/lib/shopPaths';
 import { formatDate } from '@/lib/utils/dateUtils';
 import { useCancelOrderMutation, useGetOrderQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
+import { Loader, PageLoader } from '@/ui/Loader';
 
 const OrderItemCard = memo(function OrderItemCard({ item, vendorOrderStatus, vendorOrderUpdatedAt }) {
   const snapshot = item.product_snapshot ?? {};
@@ -119,9 +120,7 @@ export default function OrderDetail() {
       <div className="bg-black">
         <AppSubpageHeader title="ORDER DETAIL" />
         <Container>
-          <div className="flex min-h-[40vh] items-center justify-center py-12">
-            <p className="text-muted text-[14px]">Loading order…</p>
-          </div>
+          <PageLoader label="Loading order" className="min-h-[40vh] py-12" />
         </Container>
       </div>
     );
@@ -243,8 +242,9 @@ export default function OrderDetail() {
                   type="button"
                   disabled={isCancelling}
                   onClick={onCancel}
-                  className="rounded-[6px] border border-red-500/40 bg-red-950/30 px-6 py-3.5 text-[16px] font-semibold text-red-300 transition-opacity active:opacity-90 disabled:opacity-50"
+                  className="flex items-center justify-center gap-2 rounded-[6px] border border-red-500/40 bg-red-950/30 px-6 py-3.5 text-[16px] font-semibold text-red-300 transition-opacity active:opacity-90 disabled:opacity-50"
                 >
+                  {isCancelling ? <Loader size="xs" tone="light" /> : null}
                   {isCancelling ? 'Cancelling…' : 'Cancel Order'}
                 </button>
               )}

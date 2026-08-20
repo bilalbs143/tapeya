@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnDestroy, OnInit, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
@@ -24,6 +23,7 @@ import {
   type LiveStreamStatus,
 } from 'src/app/services/live-stream.service';
 import { MessageService } from 'src/app/services/message.service';
+import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { getStatusClass } from 'src/app/utils/status-class.util';
 
@@ -49,9 +49,9 @@ const PROVIDER_LABELS: Record<string, string> = {
     MatCardModule,
     MatButtonModule,
     MatTabsModule,
-    MatProgressSpinnerModule,
     TablerIconsModule,
     SubmitButtonComponent,
+    LoaderBlockComponent,
   ],
   providers: [LiveStreamDetailStateService],
   templateUrl: './live-stream-detail-shell.component.html',

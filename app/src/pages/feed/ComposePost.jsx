@@ -16,6 +16,7 @@ import { useCreatePostMutation } from '@/store/api/feedApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 import { Container } from '@/ui/Container';
+import { Loader } from '@/ui/Loader';
 import {
   Select,
   SelectContent,
@@ -235,10 +236,11 @@ export default function ComposePost() {
       type="button"
       onClick={onSubmit}
       disabled={!canPost || isLoading}
-      className={`flex h-9 shrink-0 items-center rounded-full px-4 text-[13px] font-bold transition-all ${
+      className={`flex h-9 shrink-0 items-center gap-1.5 rounded-full px-4 text-[13px] font-bold transition-all ${
         canPost && !isLoading ? 'bg-brand text-ink active:scale-95' : 'bg-surface-raised text-muted cursor-not-allowed'
       }`}
     >
+      {isLoading ? <Loader size="xs" tone="ink" /> : null}
       {postLabel}
     </button>
   );

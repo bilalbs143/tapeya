@@ -17,6 +17,7 @@ import {
 import { useGetTournamentQuery, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { LoaderBlock } from '@/ui/Loader';
 
 function teamDisplay(team) {
   const owner = team.sponsor?.name ?? (team.owner != null ? String(team.owner) : '—');
@@ -139,7 +140,7 @@ export default function TournamentSavedTeams() {
     <div className="bg-black">
       <AppSubpageHeader title={tournament ? `${getTournamentTitle(tournament)} - Teams` : 'Tournaments - Teams'} />
       <Container>
-        {isLoading && <p className="text-muted mb-3 text-[13px]">Loading teams…</p>}
+        {isLoading && <LoaderBlock label="Loading teams" className="mb-3 py-3" />}
         {isError && <p className="mb-3 text-[13px] text-red-400">Failed to load teams.</p>}
 
         <div className="mb-3 flex items-center justify-between">

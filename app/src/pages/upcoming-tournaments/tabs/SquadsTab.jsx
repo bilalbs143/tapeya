@@ -8,6 +8,7 @@ import { playerDisplayRole } from '@/lib/utils/playerUtils';
 import { getTournamentTitle, isValidTournamentId } from '@/lib/utils/tournamentUtils';
 import { useGetTeamSquadQuery } from '@/store/api/teamApi';
 import { useGetTournamentQuery, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
+import { LoaderBlock } from '@/ui/Loader';
 
 function SquadTeams({ tournamentId }) {
   const [searchParams] = useSearchParams();
@@ -42,7 +43,7 @@ function SquadTeams({ tournamentId }) {
   }
 
   if (isLoading) {
-    return wrap(<p className="text-muted py-4 text-center text-[13px]">Loading squads…</p>);
+    return wrap(<LoaderBlock label="Loading squads" className="py-4" />);
   }
 
   if (isError) {
@@ -115,7 +116,7 @@ function SquadSingle({ tournamentId, teamId }) {
   }
 
   if (isLoading) {
-    return wrap(<p className="text-muted py-4 text-center text-[13px]">Loading squad…</p>);
+    return wrap(<LoaderBlock label="Loading squad" className="py-4" />);
   }
 
   if (isError) {

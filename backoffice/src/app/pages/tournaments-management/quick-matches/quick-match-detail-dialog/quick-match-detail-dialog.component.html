@@ -1,7 +1,10 @@
 <app-dialog-wrapper title="Quick Match Details">
   @if (isLoading) {
     <mat-dialog-content>
-      <p class="m-0 py-6 text-center text-muted text-sm">Loading quick match…</p>
+      <app-loader-block
+        label="Loading quick match"
+        class="py-6"
+      />
     </mat-dialog-content>
   } @else if (match) {
     <mat-dialog-content>

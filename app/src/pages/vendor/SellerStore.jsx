@@ -15,6 +15,7 @@ import { FormActions } from '@/ui/form/FormActions';
 import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
+import { PageLoader } from '@/ui/Loader';
 import { Textarea } from '@/ui/Textarea';
 
 const DEFAULT_VALUES = {
@@ -91,9 +92,7 @@ export default function SellerStore() {
       <div className="bg-black">
         <AppSubpageHeader sticky title="STORE SETTINGS" onBack={() => navigate('/seller')} />
         <Container>
-          <div className="flex min-h-[30vh] items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white/70" />
-          </div>
+          <PageLoader label="Loading store" className="min-h-[30vh] py-12" />
         </Container>
       </div>
     );
@@ -173,7 +172,7 @@ export default function SellerStore() {
           </FormField>
           {canEdit && (
             <FormActions align="stack">
-              <Button type="submit" variant="auth" className="w-full" disabled={isSaving}>
+              <Button type="submit" variant="auth" className="w-full" disabled={isSaving} loading={isSaving}>
                 {isSaving ? 'Saving…' : 'Save Store'}
               </Button>
             </FormActions>

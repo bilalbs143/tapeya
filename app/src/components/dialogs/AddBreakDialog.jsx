@@ -76,7 +76,7 @@ export function AddBreakDialog({ matchId, inningsId = null }) {
         </FormStack>
       </DialogScrollBody>
 
-      <DialogSaveButton disabled={!canSubmit} onClick={handleDone}>
+      <DialogSaveButton disabled={!canSubmit} loading={isStoringBreak} onClick={handleDone}>
         {isStoringBreak ? 'Saving…' : 'Done'}
       </DialogSaveButton>
     </>

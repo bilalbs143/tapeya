@@ -10,6 +10,7 @@ import { EnumsService } from 'src/app/services/enums.service';
 import type { TournamentRequest } from 'src/app/services/tournament-request.service';
 import { TournamentRequestService } from 'src/app/services/tournament-request.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { getStatusClass } from 'src/app/utils/status-class.util';
 
@@ -20,7 +21,15 @@ export interface TournamentRequestDetailDialogData {
 @Component({
   selector: 'app-tournament-request-detail-dialog',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatDivider, TablerIconsModule, DialogWrapperComponent],
+  imports: [
+    CommonModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatDivider,
+    TablerIconsModule,
+    DialogWrapperComponent,
+    LoaderBlockComponent,
+  ],
   templateUrl: './tournament-request-detail-dialog.component.html',
 })
 export class TournamentRequestDetailDialogComponent implements OnInit {

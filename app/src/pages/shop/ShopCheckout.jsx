@@ -18,6 +18,7 @@ import { FormActions } from '@/ui/form/FormActions';
 import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
+import { PageLoader } from '@/ui/Loader';
 import { PhoneInput } from '@/ui/PhoneInput';
 
 export default function ShopCheckout() {
@@ -117,7 +118,9 @@ export default function ShopCheckout() {
     <div className="bg-black">
       <AppSubpageHeader title="BILLING DETAILS" />
       <Container className="pb-8">
-        {cartLoading ? null : !canCheckout ? (
+        {cartLoading ? (
+          <PageLoader label="Loading checkout" />
+        ) : !canCheckout ? (
           <div className="py-8 text-center">
             <p className="text-muted text-[14px]">Your cart is empty.</p>
             <button

@@ -25,6 +25,7 @@ import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { CloseIcon } from '@/ui/icons/CloseIcon';
 import { Input } from '@/ui/Input';
+import { LoaderBlock } from '@/ui/Loader';
 import {
   Select,
   SelectContent,
@@ -443,7 +444,7 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
                 {showTeamNameDropdown ? (
                   <div className="bg-surface absolute top-full right-0 left-0 z-10 mt-1 max-h-48 overflow-auto rounded-[6px] border border-[#141412] shadow-lg">
                     {isSearchingTeams ? (
-                      <p className="text-muted px-4 py-3 text-[13px] capitalize">Searching…</p>
+                      <LoaderBlock label="Searching" size="xs" className="px-4 py-3" />
                     ) : searchResults.length > 0 ? (
                       <ul className="py-1">
                         {searchResults.map((result) => (
@@ -542,7 +543,7 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
                           Type at least {MIN_SEARCH_LENGTH} characters to search
                         </p>
                       ) : isSearchingSponsors ? (
-                        <p className="text-muted px-3 py-4 text-center text-[13px]">Searching…</p>
+                        <LoaderBlock label="Searching" size="xs" className="px-3 py-4" />
                       ) : sponsorsList.length === 0 ? (
                         <p className="text-muted px-3 py-4 text-center text-[13px]">No users found</p>
                       ) : (
@@ -644,7 +645,7 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
                               Type at least {MIN_SEARCH_LENGTH} characters
                             </p>
                           ) : isSearchingPlayers ? (
-                            <p className="text-muted px-3 py-4 text-center text-[13px]">Searching…</p>
+                            <LoaderBlock label="Searching" size="xs" className="px-3 py-4" />
                           ) : playersList.length === 0 ? (
                             <p className="text-muted px-3 py-4 text-center text-[13px]">No players found</p>
                           ) : (
@@ -723,7 +724,7 @@ export function ManageTeamDialog({ mode = 'create', team, tournamentId, tourname
         </FormStack>
       </DialogScrollBody>
 
-      <DialogSaveButton form="manage-team-form" type="submit" disabled={isSaving}>
+      <DialogSaveButton form="manage-team-form" type="submit" disabled={isSaving} loading={isSaving}>
         {saveLabel}
       </DialogSaveButton>
     </>

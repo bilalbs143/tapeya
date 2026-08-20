@@ -28,6 +28,7 @@ import { FormActions } from '@/ui/form/FormActions';
 import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
+import { PageLoader } from '@/ui/Loader';
 import { SearchableSelect } from '@/ui/SearchableSelect';
 import {
   Select,
@@ -187,9 +188,7 @@ export default function SellerProductForm() {
       <div className="bg-black">
         <AppSubpageHeader sticky title="EDIT PRODUCT" onBack={() => navigate('/seller/products')} />
         <Container>
-          <div className="flex min-h-[30vh] items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white/70" />
-          </div>
+          <PageLoader label="Loading product" className="min-h-[30vh] py-12" />
         </Container>
       </div>
     );
@@ -548,7 +547,7 @@ export default function SellerProductForm() {
 
           {!readOnly && (
             <FormActions align="stack">
-              <Button type="submit" variant="auth" className="w-full" disabled={isSubmitting}>
+              <Button type="submit" variant="auth" className="w-full" disabled={isSubmitting} loading={isSubmitting}>
                 {isSubmitting ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Product'}
               </Button>
             </FormActions>

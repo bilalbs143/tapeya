@@ -218,8 +218,8 @@ export default function PreBroadcast() {
           )}
 
           <FormActions align="start">
-            <Button type="submit" variant="auth" disabled={busy} className="w-full lg:w-[150px]">
-              {busy ? 'Starting…' : 'Go Live'}
+            <Button type="submit" variant="auth" disabled={busy} loading={isCreating} className="w-full lg:w-[150px]">
+              Go Live
             </Button>
           </FormActions>
         </FormStack>

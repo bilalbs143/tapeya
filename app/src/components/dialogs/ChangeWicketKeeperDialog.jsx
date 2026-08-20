@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { DialogHeaderRow, dialogPrimaryTitleClass, DialogSaveButton, DialogScrollBody, DialogTitle } from '@/ui/Dialog';
 import { FormStack } from '@/ui/form/FormStack';
+import { LoaderBlock } from '@/ui/Loader';
 
 /**
  * Action menu → Change Wicket Keeper (bowling team playing XI).
@@ -53,13 +54,7 @@ export function ChangeWicketKeeperDialog({ matchId, teamId, players = [] }) {
 
       <DialogScrollBody>
         <FormStack density="compact">
-          {isLoadingSquad && (
-            <div className="flex flex-col gap-2">
-              {[1, 2, 3].map((n) => (
-                <div key={n} className="bg-surface-raised h-[52px] animate-pulse rounded-[10px]" />
-              ))}
-            </div>
-          )}
+          {isLoadingSquad && <LoaderBlock label="Loading squad" className="py-6" />}
           {!isLoadingSquad && (
             <ul className="flex flex-col gap-2" role="radiogroup" aria-label="Wicket Keeper">
               {sortedPlayers.length === 0 && <li className="text-muted text-[13px]">No players found in squad.</li>}
@@ -95,8 +90,8 @@ export function ChangeWicketKeeperDialog({ matchId, teamId, players = [] }) {
         </FormStack>
       </DialogScrollBody>
 
-      <DialogSaveButton disabled={!canSubmit} onClick={handleDone}>
-        Done
+      <DialogSaveButton disabled={!canSubmit} loading={isSaving} onClick={handleDone}>
+        {isSaving ? 'Saving…' : 'Done'}
       </DialogSaveButton>
     </>
   );

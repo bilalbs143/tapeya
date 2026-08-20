@@ -441,6 +441,7 @@ export default function StartMatch() {
               onClick={handleSubmit(onSaveFixture)}
               className="flex-1 cursor-pointer lg:w-[150px] lg:flex-none lg:whitespace-nowrap"
               disabled={isCreatingMatch}
+              loading={isCreatingMatch}
             >
               {isCreatingMatch ? 'Saving…' : 'Save Fixture'}
             </Button>
@@ -450,6 +451,7 @@ export default function StartMatch() {
               onClick={handleSubmit(onOpenToss)}
               className="flex-1 cursor-pointer lg:w-[150px] lg:flex-none lg:whitespace-nowrap"
               disabled={isCreatingMatch || isUpdatingToss}
+              loading={isCreatingMatch || isUpdatingToss}
             >
               {isCreatingMatch || isUpdatingToss ? 'Starting…' : 'Start Match'}
             </Button>

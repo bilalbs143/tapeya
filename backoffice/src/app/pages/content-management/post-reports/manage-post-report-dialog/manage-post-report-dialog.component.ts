@@ -5,7 +5,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatDivider } from '@angular/material/list';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { finalize } from 'rxjs/operators';
 
@@ -14,6 +13,7 @@ import { PostReportService } from 'src/app/services/post-report.service';
 import type { AdminPost } from 'src/app/services/post.service';
 import { PostService } from 'src/app/services/post.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { LoaderComponent } from 'src/app/shared/components/loader/loader.component';
 import { PostContentPreviewComponent } from 'src/app/shared/components/post-content-preview/post-content-preview.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
@@ -47,10 +47,10 @@ const TYPE_LABELS: Record<string, string> = {
     MatDivider,
     MatFormFieldModule,
     MatSelectModule,
-    MatProgressSpinnerModule,
     DialogWrapperComponent,
     PostContentPreviewComponent,
     SubmitButtonComponent,
+    LoaderComponent,
   ],
   templateUrl: './manage-post-report-dialog.component.html',
 })

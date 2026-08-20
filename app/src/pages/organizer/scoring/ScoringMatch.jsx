@@ -18,6 +18,7 @@ import { useMatchScoringChannel } from '@/hooks/useMatchScoringChannel';
 import { useScoringMatchData } from '@/hooks/useScoringMatchData';
 import { NAVBAR_HEIGHT, STICKY_TABS_Z } from '@/lib/constants/layout';
 import { computeMatchResultSummary } from '@/lib/utils/scoringUtils';
+import { LoaderBlock } from '@/ui/Loader';
 import { scorecardListClass, scorecardTriggerClass, Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
 
 import { BallsTab, InfoTab, PartnershipTab, ScorecardTab, ScoringTab, StatsTab } from './scoring-tabs';
@@ -304,9 +305,7 @@ export default function ScoringMatch() {
               ) : null}
 
               <div className="-mx-4 bg-black px-4 pb-2">
-                {matchLoading && (
-                  <div className="text-muted flex min-h-[200px] items-center justify-center py-8 text-[14px]">Loading match…</div>
-                )}
+                {matchLoading && <LoaderBlock label="Loading match" className="min-h-[200px] py-8" />}
                 {matchError && (
                   <div className="flex min-h-[200px] flex-col items-center justify-center gap-2 py-8 text-center">
                     <p className="text-[14px] text-red-400">Failed to load match.</p>

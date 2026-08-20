@@ -4,6 +4,7 @@ import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { useGetStaticPageBySlugQuery } from '@/store/api/staticPageApi';
 import { Container } from '@/ui/Container';
+import { PageLoader } from '@/ui/Loader';
 
 function normalizeSlug(raw) {
   if (typeof raw !== 'string') return '';
@@ -37,7 +38,7 @@ export default function StaticPage() {
       <AppSubpageHeader sticky title={headerLabel} />
 
       <Container className="pb-8">
-        {busy && <p className="text-muted text-[13px] md:text-[14px]">Loading…</p>}
+        {busy && <PageLoader label="Loading page" />}
 
         {!busy && error && (
           <p className="text-muted text-[13px] leading-snug md:text-[14px]">

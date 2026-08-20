@@ -28,6 +28,7 @@ import {
   useRemoveTeamFromTournamentMutation,
 } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
+import { LoaderBlock } from '@/ui/Loader';
 
 const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
 const teamEditIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-edit-icon.svg`;
@@ -191,9 +192,6 @@ export default function TournamentAddSquad() {
     <div className="bg-black">
       <AppSubpageHeader title={tournament ? `${getTournamentTitle(tournament)} - Teams` : 'Tournaments - Teams'} />
       <Container>
-        {/* Loading indicator only shown when teams are not available from state */}
-        {!stateTeams?.length && isLoading && <p className="text-muted mb-3 text-[13px]">Loading teams…</p>}
-
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-[13px] font-bold tracking-wide text-white uppercase">Teams</h2>
           {teams.length > 0 && (
@@ -214,21 +212,7 @@ export default function TournamentAddSquad() {
           )}
         </div>
 
-        {isLoading && teams.length === 0 && (
-          <ul className="space-y-3 pb-10">
-            {[1, 2, 3].map((i) => (
-              <li key={i} className="bg-surface animate-pulse rounded-[17px] p-4">
-                <div className="flex gap-3">
-                  <div className="bg-surface-raised h-12 w-12 shrink-0 rounded-lg" />
-                  <div className="flex-1 space-y-2">
-                    <div className="bg-surface-raised h-4 w-24 rounded" />
-                    <div className="bg-surface-raised h-3 w-32 rounded" />
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+        {isLoading && teams.length === 0 && <LoaderBlock label="Loading teams" className="py-10" />}
 
         {!isLoading && teamsByGroup != null && (
           <div className="space-y-6 pb-10">

@@ -2,6 +2,7 @@ import { TeamLogo } from '@/components/TeamLogo';
 import { formatListIndex } from '@/lib/format';
 import { isValidTournamentId } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
+import { LoaderBlock } from '@/ui/Loader';
 
 export function TeamsTab({ tournamentId }) {
   const hasValidId = isValidTournamentId(tournamentId);
@@ -23,11 +24,7 @@ export function TeamsTab({ tournamentId }) {
   }
 
   if (isLoading) {
-    return (
-      <div className="mt-4 pb-6">
-        <p className="text-muted py-4 text-center text-[13px]">Loading teams…</p>
-      </div>
-    );
+    return <LoaderBlock label="Loading teams" className="mt-4 py-6" />;
   }
 
   if (isError) {

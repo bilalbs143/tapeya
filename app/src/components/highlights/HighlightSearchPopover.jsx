@@ -5,6 +5,7 @@ import { FIXTURE_BG_IMAGE } from '@/lib/constants/assets';
 import { MIN_SEARCH_LENGTH, SEARCH_RESULTS_LIMIT } from '@/lib/constants/search';
 import { formatHighlightDate } from '@/pages/highlights/highlightsUtils';
 import { useGetHighlightsQuery } from '@/store/api/highlightApi';
+import { LoaderBlock } from '@/ui/Loader';
 import { Popover, PopoverAnchor, PopoverContent } from '@/ui/Popover';
 import { SearchInput } from '@/ui/SearchInput';
 
@@ -48,7 +49,7 @@ export function HighlightSearchPopover() {
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="max-h-[min(70vh,320px)] overflow-y-auto rounded-[6px] py-1">
-          {isLoading && <div className="text-muted px-4 py-6 text-center text-[13px]">Searching…</div>}
+          {isLoading && <LoaderBlock label="Searching" size="xs" className="px-4 py-6" />}
           {!isLoading && showEmpty && (
             <div className="text-muted px-4 py-6 text-center text-[13px]">
               No highlights found for &quot;{debouncedSearch}&quot;

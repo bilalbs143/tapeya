@@ -18,6 +18,7 @@ import { useLookupUsersQuery } from '@/store/api/userApi';
 import { Container } from '@/ui/Container';
 import { FormField } from '@/ui/FormField';
 import { CloseIcon } from '@/ui/icons/CloseIcon';
+import { LoaderBlock, PageLoader } from '@/ui/Loader';
 
 const searchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/searchicon.svg`;
 const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
@@ -152,7 +153,7 @@ export default function TeamDetail() {
       <div className="bg-black">
         <AppSubpageHeader title="Drafting" />
         <Container>
-          <p className="text-muted py-6 text-center text-[13px]">Loading team…</p>
+          <PageLoader label="Loading team" className="py-6" />
         </Container>
       </div>
     );
@@ -227,7 +228,7 @@ export default function TeamDetail() {
                     {trimmedFindPlayer.length < MIN_SEARCH_LENGTH ? (
                       <p className="text-muted px-4 py-3 text-[13px]">Type at least {MIN_SEARCH_LENGTH} characters to search</p>
                     ) : isSearchingPlayers ? (
-                      <p className="text-muted px-4 py-3 text-[13px]">Searching…</p>
+                      <LoaderBlock label="Searching" size="xs" className="px-4 py-3" />
                     ) : playersToAdd.length > 0 ? (
                       <ul className="py-1">
                         {playersToAdd.map((player) => (
@@ -253,7 +254,7 @@ export default function TeamDetail() {
           </div>
 
           <div className="mb-6 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {isLoadingSquad && <p className="text-muted mb-3 text-[13px]">Loading squad…</p>}
+            {isLoadingSquad && <LoaderBlock label="Loading squad" className="mb-3 py-3" />}
             <table className="w-full border-collapse text-[12px] text-white">
               <thead>
                 <tr className={HEADER_BG}>

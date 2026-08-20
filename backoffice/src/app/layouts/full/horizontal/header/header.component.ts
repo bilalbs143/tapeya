@@ -14,6 +14,7 @@ import { BackofficeReverbService } from 'src/app/services/backoffice-reverb.serv
 import { CoreService } from 'src/app/services/core.service';
 import type { Notification } from 'src/app/services/notifications.service';
 import { NotificationsService } from 'src/app/services/notifications.service';
+import { LoaderComponent } from 'src/app/shared/components/loader/loader.component';
 import { HEADER_NOTIFICATION_PREVIEW_PER_PAGE } from 'src/app/shared/config/paginator.config';
 import { ADMIN_NOTIFICATION_TYPE_LABELS, AdminNotificationType } from 'src/app/shared/constants/notification.constants';
 import { authUserDisplayName, authUserDisplayRole, isAdmin as authUserIsAdmin } from 'src/app/shared/functions/auth-user-display';
@@ -28,7 +29,7 @@ interface profiledd {
 
 @Component({
   selector: 'app-horizontal-header',
-  imports: [RouterModule, TablerIconsModule, MaterialModule, BrandingComponent, NgScrollbarModule],
+  imports: [RouterModule, TablerIconsModule, MaterialModule, BrandingComponent, NgScrollbarModule, LoaderComponent],
   templateUrl: './header.component.html',
 })
 export class AppHorizontalHeaderComponent implements OnInit {

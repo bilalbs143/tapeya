@@ -8,6 +8,7 @@ import { formatRelativeDate } from '@/lib/utils/dateUtils';
 import { OrderStatusPill } from '@/pages/vendor/OrderStatusPill';
 import { useGetOrdersQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
+import { PageLoader } from '@/ui/Loader';
 
 const CURRENT_STATUSES = ['pending', 'processing'];
 
@@ -75,11 +76,7 @@ export default function MyOrders() {
     <div className="bg-black">
       <AppSubpageHeader title="MY ORDERS" />
       <Container>
-        {isLoading && (
-          <div className="flex min-h-[30vh] items-center justify-center py-12">
-            <p className="text-muted text-[14px]">Loading orders…</p>
-          </div>
-        )}
+        {isLoading && <PageLoader label="Loading orders" className="min-h-[30vh] py-12" />}
 
         {isError && !isLoading && (
           <div className="flex min-h-[30vh] flex-col items-center justify-center gap-4 py-12">

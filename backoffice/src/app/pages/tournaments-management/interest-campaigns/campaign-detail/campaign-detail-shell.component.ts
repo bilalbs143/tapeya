@@ -1,13 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { type InterestCampaign, InterestCampaignService } from 'src/app/services/interest-campaign.service';
 import { MessageService } from 'src/app/services/message.service';
+import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
 import { getStatusClass } from 'src/app/utils/status-class.util';
 
 import { CampaignDetailStateService } from './campaign-detail-state.service';
@@ -15,7 +15,7 @@ import { CampaignDetailStateService } from './campaign-detail-state.service';
 @Component({
   selector: 'app-campaign-detail-shell',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, MatCardModule, MatTabsModule, MatProgressSpinnerModule],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, MatCardModule, MatTabsModule, LoaderBlockComponent],
   providers: [CampaignDetailStateService],
   templateUrl: './campaign-detail-shell.component.html',
 })

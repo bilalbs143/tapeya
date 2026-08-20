@@ -28,6 +28,7 @@ import {
 import { useSearchUsersQuery } from '@/store/api/userApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated, selectUser } from '@/store/selectors';
+import { Loader, LoaderBlock } from '@/ui/Loader';
 import { Textarea } from '@/ui/Textarea';
 
 const COMMENTS_PER_PAGE = 20;
@@ -140,7 +141,7 @@ function MentionDropdown({ query, onSelect, onClose }) {
       aria-label="Mention suggestions"
     >
       {isFetching && users.length === 0 ? (
-        <p className="text-muted px-3 py-3 text-[12px]">Searching…</p>
+        <LoaderBlock label="Searching" size="xs" className="px-3 py-3" />
       ) : users.length === 0 ? (
         <p className="text-muted px-3 py-3 text-[12px]">No users found</p>
       ) : (
@@ -364,7 +365,7 @@ function RepliesSection({ postId, comment, currentUserId, deletingId, likingId, 
         {expanded ? (
           <div className="mt-3 space-y-3">
             {isFetching && replies.length === 0 ? (
-              <p className="text-muted text-[12px]">Loading replies…</p>
+              <LoaderBlock label="Loading replies" className="py-3" />
             ) : (
               <>
                 {replies.map((reply) => (
@@ -385,13 +386,10 @@ function RepliesSection({ postId, comment, currentUserId, deletingId, likingId, 
                     type="button"
                     onClick={handleLoadMore}
                     disabled={isLoadingMore}
-                    className="text-brand hover:text-brand-hover text-[12px] font-semibold transition-colors disabled:opacity-50"
+                    className="text-brand hover:text-brand-hover inline-flex items-center gap-1.5 text-[12px] font-semibold transition-colors disabled:opacity-50"
                   >
-                    {isLoadingMore
-                      ? 'Loading…'
-                      : remaining > 0
-                        ? `Load more replies (${formatCount(remaining)} left)`
-                        : 'Load more replies'}
+                    {isLoadingMore ? <Loader size="xs" /> : null}
+                    {remaining > 0 ? `Load More Replies (${formatCount(remaining)} left)` : 'Load More Replies'}
                   </button>
                 ) : null}
               </>
@@ -643,9 +641,7 @@ export default function PostCommentsThread({
     <>
       {errorBanner}
       {isLoading || (isFetching && comments.length === 0) ? (
-        <div className="flex items-center justify-center py-10" role="status" aria-label="Loading comments">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white/70" aria-hidden />
-        </div>
+        <LoaderBlock label="Loading comments" className="py-10" />
       ) : comments.length === 0 && !commentsQueryError ? (
         <p className="py-8 text-center text-sm text-white/50">No comments yet. Be the first.</p>
       ) : comments.length === 0 ? null : (
@@ -682,13 +678,10 @@ export default function PostCommentsThread({
                 type="button"
                 onClick={handleLoadMore}
                 disabled={isLoadingMore}
-                className="text-muted border-border rounded-full border px-4 py-2 text-[13px] font-semibold transition-colors hover:text-white disabled:opacity-50"
+                className="text-muted border-border inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-[13px] font-semibold transition-colors hover:text-white disabled:opacity-50"
               >
-                {isLoadingMore
-                  ? 'Loading…'
-                  : remaining > 0
-                    ? `Load more comments (${formatCount(remaining)} left)`
-                    : 'Load more comments'}
+                {isLoadingMore ? <Loader size="xs" /> : null}
+                {remaining > 0 ? `Load More Comments (${formatCount(remaining)} left)` : 'Load More Comments'}
               </button>
             </div>
           ) : null}
@@ -734,11 +727,7 @@ export default function PostCommentsThread({
           className="bg-brand text-ink flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-transform active:scale-95 disabled:opacity-50"
           aria-label="Post Comment"
         >
-          {isPosting ? (
-            <span className="border-ink/30 border-t-ink h-3.5 w-3.5 animate-spin rounded-full border-2" aria-hidden />
-          ) : (
-            <SendIcon />
-          )}
+          {isPosting ? <Loader size="xs" tone="ink" /> : <SendIcon />}
         </button>
       </div>
     </form>

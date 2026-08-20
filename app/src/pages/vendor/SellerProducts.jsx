@@ -6,6 +6,7 @@ import { NoImagePlaceholder } from '@/pages/vendor/NoImagePlaceholder';
 import { useGetVendorProductsQuery, useGetVendorStoreQuery } from '@/store/api/vendorShopApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { PageLoader } from '@/ui/Loader';
 import { StatusPill } from '@/ui/StatusPill';
 
 export default function SellerProducts() {
@@ -45,9 +46,7 @@ export default function SellerProducts() {
         )}
 
         {isLoading ? (
-          <div className="flex min-h-[30vh] items-center justify-center py-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white/70" />
-          </div>
+          <PageLoader label="Loading products" className="min-h-[30vh] py-12" />
         ) : isError ? (
           <div className="flex min-h-[30vh] flex-col items-center justify-center gap-4 py-12">
             <p className="text-muted text-[14px]">Could not load products. Please try again.</p>
@@ -56,10 +55,10 @@ export default function SellerProducts() {
             </Button>
           </div>
         ) : products.length === 0 ? (
-          <div className="bg-surface flex min-h-[30vh] flex-col items-center justify-center gap-4 rounded-[17px] px-4 py-10">
-            <p className="text-muted text-center text-[14px]">No Products Yet.</p>
+          <div className="py-12 text-center">
+            <p className="text-muted text-[14px]">No Products Yet.</p>
             {canEdit ? (
-              <Button asChild variant="orange" className="px-6 py-2.5 text-[14px]">
+              <Button asChild variant="orange" className="mt-4 px-6 py-2.5 text-[14px]">
                 <Link to="/seller/products/new">Create Product</Link>
               </Button>
             ) : null}

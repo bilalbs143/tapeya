@@ -12,6 +12,7 @@ import { formatDecimal, getInitials } from '@/lib/utils/displayUtils';
 import { statsTotalPaths } from '@/pages/scorecard/statsTotalFlow';
 import { useGetRankingsQuery } from '@/store/api/rankingApi';
 import { Container } from '@/ui/Container';
+import { LoaderBlock } from '@/ui/Loader';
 import { profileListClass, profileTriggerClass, Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/Tabs';
 
 /** Number of players shown per section before the "View More" link. */
@@ -107,7 +108,7 @@ function RankingSection({ title, linkTo, linkState, rows, variant = 'batter', lo
           View More
         </Link>
       </div>
-      {loading && <p className="text-muted text-[13px]">Loading rankings…</p>}
+      {loading && <LoaderBlock label="Loading rankings" className="py-6" />}
       {error && !loading && <p className="text-[13px] text-red-400">Failed to load rankings.</p>}
       {!loading && !error && rows.length === 0 && <p className="text-muted text-[13px]">{emptyMessage}</p>}
       <div className="space-y-3 lg:grid lg:grid-cols-1 lg:justify-items-center lg:gap-3 lg:space-y-0">

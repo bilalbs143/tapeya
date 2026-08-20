@@ -18,6 +18,7 @@ import { useFollowReelCreatorMutation, useUnfollowReelCreatorMutation } from '@/
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 import { Container } from '@/ui/Container';
+import { LoaderBlock } from '@/ui/Loader';
 
 const IMAGE_PLACEHOLDER =
   'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect fill="%231a1a1a" width="800" height="600"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="central" text-anchor="middle" fill="%234a5568" font-size="24" font-family="sans-serif"%3EImage%3C/text%3E%3C/svg%3E';
@@ -73,9 +74,7 @@ export default function ActivityFeedDetail() {
       <div className="bg-black text-white">
         <AppSubpageHeader sticky title="ACTIVITY FEED" />
         <Container>
-          <div className="flex items-center justify-center py-16" role="status" aria-label="Loading post">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white/70" aria-hidden />
-          </div>
+          <LoaderBlock label="Loading post" className="py-16" />
         </Container>
       </div>
     );

@@ -7,7 +7,6 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -18,6 +17,7 @@ import { MatchGraphicService } from 'src/app/services/match-graphic.service';
 import { MessageService } from 'src/app/services/message.service';
 import type { TournamentMatchRow } from 'src/app/services/tournament-matches.service';
 import { DialogWrapperComponent } from 'src/app/shared/components/dialog-wrapper/dialog-wrapper.component';
+import { LoaderComponent } from 'src/app/shared/components/loader/loader.component';
 import { SubmitButtonComponent } from 'src/app/shared/components/submit-button/submit-button.component';
 
 export interface ControllerSettingsDialogData {
@@ -40,11 +40,11 @@ export interface ControllerSettingsDialogData {
     MatIconModule,
     MatInputModule,
     MatSelectModule,
-    MatProgressSpinnerModule,
     MatSlideToggleModule,
     MatTooltipModule,
     DialogWrapperComponent,
     SubmitButtonComponent,
+    LoaderComponent,
   ],
   templateUrl: './controller-settings-dialog.component.html',
   styleUrl: './controller-settings-dialog.component.scss',

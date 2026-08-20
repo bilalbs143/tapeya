@@ -83,6 +83,7 @@ import { formatListIndex } from '@/lib/format';
 import { buildStatsTotalRows } from '@/lib/utils/rankingUtils';
 import { useGetTournamentSeasonStatsQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
+import { PageLoader } from '@/ui/Loader';
 
 import { getStatsTotalBackPath, SCORECARD_FLOW, VALID_STAT_TYPES } from './statsTotalFlow';
 
@@ -218,7 +219,7 @@ export default function StatsTotal() {
       <div className="bg-black">
         {header}
         <Container className="pb-6">
-          <p className="text-muted mt-4 text-center text-[13px]">Loading stats…</p>
+          <PageLoader label="Loading stats" className="py-6" />
         </Container>
       </div>
     );

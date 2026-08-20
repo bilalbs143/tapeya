@@ -9,6 +9,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { TeamLogo } from '@/components/TeamLogo';
 import { useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
+import { LoaderBlock } from '@/ui/Loader';
 
 export function SquadTeams({ tournamentId }) {
   const [searchParams] = useSearchParams();
@@ -37,7 +38,7 @@ export function SquadTeams({ tournamentId }) {
   if (isLoading) {
     return (
       <div className="mt-4 pb-6">
-        <p className="text-muted py-4 text-center text-[13px]">Loading squads…</p>
+        <LoaderBlock label="Loading squads" className="py-4" />
       </div>
     );
   }

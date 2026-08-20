@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import { useGetPlayerRecentMatchesQuery } from '@/store/api/playerApi';
+import { LoaderBlock } from '@/ui/Loader';
 
 /**
  * Recent matches on player profile — Quick badge when kind=quick.
@@ -9,7 +10,7 @@ export function ProfileRecentMatches({ userId }) {
   const { data: matches = [], isLoading } = useGetPlayerRecentMatchesQuery({ userId, limit: 8 }, { skip: !userId });
 
   if (!userId || isLoading) {
-    return isLoading ? <p className="text-muted mt-4 text-[13px]">Loading recent matches…</p> : null;
+    return isLoading ? <LoaderBlock label="Loading recent matches" className="mt-4 py-4" /> : null;
   }
 
   if (matches.length === 0) return null;

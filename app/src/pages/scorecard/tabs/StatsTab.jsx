@@ -4,6 +4,7 @@ import { UserAvatar } from '@/components/UserAvatar';
 import { formatDecimal, getInitials } from '@/lib/utils/displayUtils';
 import { statsTotalPaths } from '@/pages/scorecard/statsTotalFlow';
 import { useGetTournamentSeasonStatsQuery } from '@/store/api/tournamentApi';
+import { LoaderBlock } from '@/ui/Loader';
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -140,7 +141,7 @@ export function StatsTab({ tournamentId }) {
     return (
       <div className="mt-4 pb-6 focus:outline-none">
         {titleNode}
-        <p className="text-muted mt-4 text-center text-[13px]">Loading season stats…</p>
+        <LoaderBlock label="Loading season stats" className="mt-4 py-4" />
       </div>
     );
   }

@@ -4,6 +4,7 @@
 
 import { ReelPosterGrid } from '@/components/reels/ReelPosterGrid';
 import { useGetUserReelsQuery } from '@/store/api/reelsApi';
+import { LoaderBlock } from '@/ui/Loader';
 
 export function ProfileReels({ userId }) {
   const { data, isLoading, isError } = useGetUserReelsQuery({ userId, perPage: 12 }, { skip: !userId });
@@ -15,7 +16,7 @@ export function ProfileReels({ userId }) {
   }
 
   if (isLoading) {
-    return <p className="text-muted py-6 text-center text-sm">Loading reels…</p>;
+    return <LoaderBlock label="Loading reels" className="py-6" />;
   }
 
   if (isError) {

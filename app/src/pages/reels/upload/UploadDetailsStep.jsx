@@ -116,7 +116,14 @@ export function UploadDetailsStep({
         ) : null}
 
         <div className="mt-8">
-          <Button type="button" variant="auth" disabled={isPublishing} onClick={onPost} className="w-full! rounded-full!">
+          <Button
+            type="button"
+            variant="auth"
+            disabled={isPublishing}
+            loading={isPublishing}
+            onClick={onPost}
+            className="w-full! rounded-full!"
+          >
             {isPublishing ? 'Posting…' : 'Post'}
           </Button>
         </div>

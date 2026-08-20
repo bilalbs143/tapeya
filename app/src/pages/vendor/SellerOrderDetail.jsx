@@ -22,6 +22,7 @@ import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import { Label } from '@/ui/Label';
+import { PageLoader } from '@/ui/Loader';
 import {
   Select,
   SelectContent,
@@ -187,9 +188,7 @@ export default function SellerOrderDetail() {
       <div className="bg-black">
         <AppSubpageHeader sticky title="ORDER" onBack={() => navigate('/seller/orders')} />
         <Container>
-          <div className="flex min-h-[30vh] items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-white/70" />
-          </div>
+          <PageLoader label="Loading order" className="min-h-[30vh] py-12" />
         </Container>
       </div>
     );
@@ -370,7 +369,7 @@ export default function SellerOrderDetail() {
                 </FormField>
               </div>
               <FormActions align="stack">
-                <Button type="submit" variant="auth" className="w-full" disabled={isSavingPayment}>
+                <Button type="submit" variant="auth" className="w-full" disabled={isSavingPayment} loading={isSavingPayment}>
                   {isSavingPayment ? 'Saving…' : 'Save Payment'}
                 </Button>
               </FormActions>
@@ -434,7 +433,7 @@ export default function SellerOrderDetail() {
               ) : null}
 
               <FormActions align="stack">
-                <Button type="submit" variant="auth" className="w-full" disabled={isSaving}>
+                <Button type="submit" variant="auth" className="w-full" disabled={isSaving} loading={isSaving}>
                   {isSaving ? 'Saving…' : 'Update Order'}
                 </Button>
               </FormActions>
