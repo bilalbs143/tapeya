@@ -9,6 +9,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\UpdateMatchTossRequest;
 use App\Http\Resources\User\TournamentMatchResource;
 use App\Models\TournamentMatch;
+use App\Services\Broadcast\GraphicContextOrchestrator;
+use App\Services\Broadcast\SyncUserOwnedOverlayCommand;
 use App\Services\MatchStateService;
 use App\Services\QuickMatch\QuickMatchService;
 use Illuminate\Http\JsonResponse;
@@ -29,6 +31,8 @@ class MatchTossController extends Controller
         TournamentMatch $match,
         MatchStateService $matchStateService,
         QuickMatchService $quickMatches,
+        SyncUserOwnedOverlayCommand $syncUserOwnedOverlayCommand,
+        GraphicContextOrchestrator $graphicContextOrchestrator,
     ): JsonResponse {
         $authUser = $request->user();
 
@@ -82,10 +86,15 @@ class MatchTossController extends Controller
 
         $match->load(['homeTeam', 'awayTeam', 'winningTeam', 'tossWinnerTeam', 'innings', 'playerOfMatch', 'stream']);
 
+        $fresh = $match->fresh() ?? $match;
+        if ($syncUserOwnedOverlayCommand->advanceIfPresent($fresh, $authUser->id)) {
+            $graphicContextOrchestrator->syncAndBroadcast($fresh);
+        }
+
         // Broadcast the full match state now that toss result and both innings
         // rows are persisted, so subscribers can show batting/bowling teams and
         // match status before the first ball is bowled.
-        $matchState = $matchStateService->build($match->fresh());
+        $matchState = $matchStateService->build($fresh);
         MatchStateUpdated::dispatch($match->id, $matchState);
 
         return $this->success(

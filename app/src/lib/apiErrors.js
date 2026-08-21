@@ -15,6 +15,16 @@ export function isUnauthorizedError(error) {
 }
 
 /**
+ * @param {unknown} error
+ * @returns {boolean}
+ */
+export function isNotFoundError(error) {
+  if (!error || typeof error !== 'object') return false;
+  const s = error.status;
+  return s === 404 || s === '404' || error.data?.type === 'NOT_FOUND';
+}
+
+/**
  * Normalize API error message from RTK Query / fetchBaseQuery error shape.
  * Backend returns { message?, type?, errors? } on 4xx/5xx.
  *

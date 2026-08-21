@@ -56,6 +56,8 @@ export const baseApi = createApi({
     'MatchState',
     'Scorecard',
     'MatchPlayerStats',
+    'GraphicSession',
+    'GraphicTheme',
     'InterestCampaign',
     'LiveStreams',
     'LiveScores',

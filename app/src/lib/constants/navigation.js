@@ -11,7 +11,7 @@ export const BOTTOM_NAV_ITEMS = [
 ];
 
 export const EXPLORE_CATEGORIES = [
-  { path: '/scorecard', label: 'Score' },
+  { path: '/live/streaming', label: 'Streaming' },
   { path: '/ranking', label: 'Rankings' },
   { path: '/upcoming-tournaments', label: 'Upcoming' },
 

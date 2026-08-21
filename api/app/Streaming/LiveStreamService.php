@@ -64,10 +64,14 @@ class LiveStreamService
     /**
      * @param  array{title: string, description?: ?string, streaming_url: string, status?: string}  $data
      */
+    /**
+     * @param  array{title: string, description?: ?string, streaming_url: string, status?: string, owner_user_id?: ?int}  $data
+     */
     public function createStandalone(array $data, int $createdBy): LiveStream
     {
         return LiveStream::create([
             'match_id' => null,
+            'owner_user_id' => $data['owner_user_id'] ?? null,
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
             'streaming_url' => $data['streaming_url'],
@@ -161,8 +165,11 @@ class LiveStreamService
         // is only ever set there). It has no VOD/chat history worth keeping, so clear it here
         // rather than making the owner wait for EndExpiredBroadcasts's identical but
         // 30-minutes-later sweep to free their one-active-broadcast slot.
+        // Watch-URL (provider=external) streams are managed separately and must not
+        // occupy the one-active mobile Go Live slot.
         LiveStream::query()
             ->where('owner_user_id', $ownerUserId)
+            ->where('provider', '!=', 'external')
             ->whereNull('started_at')
             ->whereIn('status', ['idle', 'starting'])
             ->lazy()
@@ -170,6 +177,7 @@ class LiveStreamService
 
         $exists = LiveStream::query()
             ->where('owner_user_id', $ownerUserId)
+            ->where('provider', '!=', 'external')
             ->whereIn('status', ['idle', 'starting', 'live'])
             ->exists();
 

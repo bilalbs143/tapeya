@@ -13,7 +13,7 @@ class GraphicThemeController extends Controller
     use BaseControllerTrait;
 
     /**
-     * List active graphics themes for the match controller settings UI.
+     * List active graphics themes for match controller settings and app broadcast setup.
      */
     public function index(): JsonResponse
     {

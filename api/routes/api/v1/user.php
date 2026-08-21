@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\CountryController;
+use App\Http\Controllers\Admin\GraphicThemeController;
 use App\Http\Controllers\User\AdditionalRunsController;
 use App\Http\Controllers\User\Auth\UserAuthController;
 use App\Http\Controllers\User\DeviceTokenController;
@@ -63,6 +64,7 @@ use App\Http\Controllers\User\UserActivePlatformController;
 use App\Http\Controllers\User\UserFollowController;
 use App\Http\Controllers\User\UserLookupController;
 use App\Http\Controllers\User\UserMediaController;
+use App\Http\Controllers\User\UserOwnedLiveStreamController;
 use App\Http\Controllers\User\UserProfileController;
 use App\Http\Controllers\User\UserTeamController;
 use App\Http\Controllers\Vendor\Shop\BrandController as VendorBrandController;
@@ -205,7 +207,10 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('quick-matches/{quickMatch}/teams/{team}/players/{user}', [QuickMatchController::class, 'removePlayer']);
 
     Route::get('matches/{match}', [TournamentMatchController::class, 'show']);
+    Route::get('graphic-themes', [GraphicThemeController::class, 'index']);
     Route::get('matches/{match}/graphic-session', [MatchGraphicSessionController::class, 'show']);
+    Route::match(['put', 'patch'], 'matches/{match}/graphic-session', [MatchGraphicSessionController::class, 'upsert']);
+    Route::get('matches/{match}/graphic-session/signed-url', [MatchGraphicSessionController::class, 'signedUrl']);
     Route::patch('matches/{match}/crease', [MatchCreaseController::class, 'update']);
     Route::patch('matches/{match}/toss', [MatchTossController::class, 'update']);
     Route::patch('matches/{match}/player-of-match', [MatchPlayerOfMatchController::class, 'update']);
@@ -254,6 +259,15 @@ Route::middleware('auth:api')->group(function () {
     Route::post('live/broadcasts/{stream}/end', [LiveBroadcastController::class, 'end']);
     Route::post('live/broadcasts/{stream}/thumbnail', [LiveBroadcastController::class, 'uploadThumbnail']);
     Route::delete('live/broadcasts/{stream}/thumbnail', [LiveBroadcastController::class, 'deleteThumbnail']);
+
+    Route::get('live/my-streams', [UserOwnedLiveStreamController::class, 'index']);
+    Route::post('live/my-streams', [UserOwnedLiveStreamController::class, 'store']);
+    Route::get('live/my-streams/{stream}', [UserOwnedLiveStreamController::class, 'show']);
+    Route::match(['put', 'patch'], 'live/my-streams/{stream}', [UserOwnedLiveStreamController::class, 'update']);
+    Route::post('live/my-streams/{stream}/start', [UserOwnedLiveStreamController::class, 'start']);
+    Route::post('live/my-streams/{stream}/end', [UserOwnedLiveStreamController::class, 'end']);
+    Route::post('live/my-streams/{stream}/thumbnail', [UserOwnedLiveStreamController::class, 'uploadThumbnail']);
+    Route::delete('live/my-streams/{stream}/thumbnail', [UserOwnedLiveStreamController::class, 'deleteThumbnail']);
 
     Route::prefix('shop')->group(function () {
         Route::post('vendor/apply', [VendorApplyController::class, 'store']);

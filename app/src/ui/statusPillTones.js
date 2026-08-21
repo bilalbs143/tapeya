@@ -43,3 +43,32 @@ export function orderStatusTone(status) {
       return 'muted';
   }
 }
+
+/** Tone for user-owned / hub live stream lifecycle statuses. */
+export function liveStreamStatusTone(status) {
+  switch ((status ?? '').toLowerCase()) {
+    case 'live':
+      return 'danger';
+    case 'starting':
+      return 'brand';
+    case 'ended':
+      return 'muted';
+    case 'idle':
+    default:
+      return 'white';
+  }
+}
+
+export function liveStreamStatusLabel(status) {
+  switch ((status ?? '').toLowerCase()) {
+    case 'live':
+      return 'Live';
+    case 'starting':
+      return 'Starting';
+    case 'ended':
+      return 'Ended';
+    case 'idle':
+    default:
+      return 'Idle';
+  }
+}

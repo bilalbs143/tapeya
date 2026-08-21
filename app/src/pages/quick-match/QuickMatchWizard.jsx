@@ -407,11 +407,11 @@ export default function QuickMatchWizard() {
             ) : null}
           </div>
 
-          <FormActions align="start">
+          <FormActions align="start" className="!flex-row !gap-3">
             <Button
               type="button"
               variant="fixture"
-              className="flex-1 cursor-pointer"
+              className="min-w-0 flex-1 cursor-pointer"
               disabled={isBusy}
               loading={isBusy}
               onClick={handleSubmit(onSaveForLater, onInvalid)}
@@ -421,7 +421,7 @@ export default function QuickMatchWizard() {
             <Button
               type="button"
               variant="orange"
-              className="flex-1 cursor-pointer"
+              className="min-w-0 flex-1 cursor-pointer"
               disabled={isBusy}
               onClick={handleSubmit(onOpenToss, onInvalid)}
             >

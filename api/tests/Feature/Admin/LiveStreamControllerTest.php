@@ -101,6 +101,28 @@ class LiveStreamControllerTest extends TestCase
             ->assertJsonPath('data.ingest.stream_key', 'fake-key');
     }
 
+    public function test_setup_accepts_null_description_when_stream_description_is_null(): void
+    {
+        $admin = $this->admin();
+
+        $create = $this->actingAs($admin, 'api')->postJson('/api/v1/admin/live-streams', [
+            'provider' => 'youtube',
+            'title' => 'Null Description Stream',
+        ])->assertCreated();
+
+        $streamId = $create->json('data.stream.id');
+        LiveStream::query()->whereKey($streamId)->update(['description' => null]);
+
+        $this->actingAs($admin, 'api')
+            ->postJson("/api/v1/admin/live-streams/{$streamId}/setup", [
+                'title' => 'Still Works',
+                'description' => null,
+                'privacy' => 'public',
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.stream.title', 'Still Works');
+    }
+
     public function test_setup_rejects_match_linked_stream(): void
     {
         $admin = $this->admin();

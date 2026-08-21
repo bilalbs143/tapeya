@@ -9,6 +9,9 @@ use Illuminate\Console\Command;
 /**
  * Self-serve mobile broadcasts only — two distinct failure modes, two distinct cleanups.
  * See LIVE_STREAM_MOBILE_BROADCAST.md's "Auto-end enforcement" section.
+ *
+ * Watch-URL streams (`provider=external`) are excluded: organizers paste YouTube/Facebook
+ * links that may run longer than the mobile Go Live 2h budget, and they end those manually.
  */
 class EndExpiredBroadcasts extends Command
 {
@@ -22,6 +25,7 @@ class EndExpiredBroadcasts extends Command
         // history, exactly like a broadcaster tapping "End Broadcast" themselves).
         LiveStream::query()
             ->whereNotNull('owner_user_id')
+            ->where('provider', '!=', 'external')
             ->whereNotNull('started_at')
             ->where('started_at', '<=', now()->subSeconds(LiveStreamService::SELF_SERVE_MAX_DURATION_SECONDS))
             ->whereIn('status', ['starting', 'live'])
@@ -38,6 +42,7 @@ class EndExpiredBroadcasts extends Command
         // that's simply abandoned and never revisited.
         LiveStream::query()
             ->whereNotNull('owner_user_id')
+            ->where('provider', '!=', 'external')
             ->whereNull('started_at')
             ->where('created_at', '<=', now()->subMinutes(30))
             ->whereIn('status', ['idle', 'starting'])

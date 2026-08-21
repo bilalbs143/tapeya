@@ -19,7 +19,6 @@ import {
   useShareTournamentMutation,
 } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
-import { Loader } from '@/ui/Loader';
 import { Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
 
 const feedShareIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-share.svg`;
@@ -223,9 +222,6 @@ export default function UpcomingTournamentDetails() {
         <div className="mt-4">
           <h1 className="text-[22px] leading-tight font-bold text-white">{displayName}</h1>
           <p className="text-muted mt-1 text-[14px]">{formatOrdinalDateRange(startDate, endDate)}</p>
-          {isLoadingTournament && !stateTournament && hasValidId && (
-            <Loader label="Refreshing tournament details" className="mt-1" />
-          )}
         </div>
 
         {canExpressInterest && (

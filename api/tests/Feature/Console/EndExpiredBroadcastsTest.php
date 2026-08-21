@@ -104,4 +104,21 @@ class EndExpiredBroadcastsTest extends TestCase
 
         $this->assertDatabaseHas('live_streams', ['id' => $adminStandalone->id]);
     }
+
+    public function test_external_watch_url_streams_are_not_capped_by_max_duration(): void
+    {
+        $owner = User::factory()->create(['type' => 'user']);
+        $stream = LiveStream::factory()->create([
+            'match_id' => null,
+            'owner_user_id' => $owner->id,
+            'provider' => 'external',
+            'streaming_url' => 'https://www.youtube.com/watch?v=abc',
+            'status' => 'live',
+            'started_at' => now()->subSeconds(7201),
+        ]);
+
+        Artisan::call('broadcasts:end-expired');
+
+        $this->assertSame('live', $stream->fresh()->status);
+    }
 }

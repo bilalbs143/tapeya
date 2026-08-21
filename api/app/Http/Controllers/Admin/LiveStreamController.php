@@ -131,10 +131,10 @@ class LiveStreamController extends BaseAdminController
         $settings = app(StreamingSettings::class);
 
         $data = new CreateStreamData(
-            title: $request->input('title', $stream->title ?? 'Live Stream'),
-            description: $request->input('description', $stream->description ?? ''),
-            privacy: $request->input('privacy', $settings->youtubeDefaultPrivacy ?? 'public'),
-            streamingUrl: $request->input('streaming_url', $stream->streaming_url),
+            title: (string) ($request->input('title') ?? $stream->title ?? 'Live Stream'),
+            description: $request->input('description') ?? $stream->description ?? '',
+            privacy: (string) ($request->input('privacy') ?? $settings->youtubeDefaultPrivacy ?? 'public'),
+            streamingUrl: $request->input('streaming_url') ?? $stream->streaming_url,
         );
 
         $stream = $this->service->provisionProviderStream($stream, $data);

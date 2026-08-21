@@ -6,11 +6,13 @@ import { EXPLORE_CATEGORIES } from '@/lib/constants/navigation';
 
 const highlightsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/highlights.svg`;
 const liveScoreIcon = `${CLOUDFRONT_APP_BASE}/images/icons/live-score.svg`;
+const streamingIcon = `${CLOUDFRONT_APP_BASE}/images/icons/streaming-explore.svg`;
 const rankingsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/rankings.svg`;
 const upcomingIcon = `${CLOUDFRONT_APP_BASE}/images/icons/upcoming.svg`;
 
 const PATH_TO_ICON = {
   '/quick-match': quickMatchExploreIcon,
+  '/live/streaming': streamingIcon,
   '/scorecard': liveScoreIcon,
   '/ranking': rankingsIcon,
   '/upcoming-tournaments': upcomingIcon,

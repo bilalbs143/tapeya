@@ -124,6 +124,15 @@ export default function ScoringMatch() {
     });
   }, [matchId, apiMatch?.analytics_settings, openDialog]);
 
+  const handleOpenBroadcastGraphics = useCallback(() => {
+    if (!matchId) return;
+    openDialog('scoringBroadcastGraphics', {
+      matchId,
+      homeName: apiMatch?.home_team?.name ?? 'Home',
+      awayName: apiMatch?.away_team?.name ?? 'Away',
+    });
+  }, [apiMatch?.away_team?.name, apiMatch?.home_team?.name, matchId, openDialog]);
+
   const registerOpenActionMenu = useCallback((openFn) => {
     openActionMenuRef.current = openFn ?? null;
     if (openFn && pendingOpenActionMenuRef.current) {
@@ -148,10 +157,25 @@ export default function ScoringMatch() {
     openActionMenuRef.current?.();
   }, [activeTab, setSearchParams]);
 
+  const canOperate = Boolean(apiMatch?.can_operate);
+
   const headerTrailingActions = useMemo(() => {
     if (!matchId || matchLoading || matchError) return null;
     return (
       <>
+        {canOperate ? (
+          <button
+            type="button"
+            onClick={handleOpenBroadcastGraphics}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-[#1A1A18] transition-opacity active:opacity-80"
+            aria-label="Broadcast graphics"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+              <rect x="2" y="4" width="20" height="13" rx="2" />
+              <path d="M8 21h8M12 17v4" />
+            </svg>
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={handleOpenMatchSettings}
@@ -182,7 +206,7 @@ export default function ScoringMatch() {
         </button>
       </>
     );
-  }, [matchId, matchLoading, matchError, handleOpenActionMenu, handleOpenMatchSettings]);
+  }, [matchId, matchLoading, matchError, canOperate, handleOpenActionMenu, handleOpenMatchSettings, handleOpenBroadcastGraphics]);
 
   const ActiveView = TAB_VIEWS[activeTab];
 
@@ -223,12 +247,12 @@ export default function ScoringMatch() {
       match,
       apiMatch: apiMatch ?? null,
       matchComplete,
-      canOperate: Boolean(apiMatch?.can_operate),
+      canOperate,
       wagonWheelEnabled,
       innings1Id,
       innings2Id,
     }),
-    [matchId, match, apiMatch, matchComplete, wagonWheelEnabled, innings1Id, innings2Id],
+    [matchId, match, apiMatch, matchComplete, canOperate, wagonWheelEnabled, innings1Id, innings2Id],
   );
 
   // ── Scoring tab props ──────────────────────────────────────────────────────

@@ -426,6 +426,61 @@ export const matchApi = baseApi.injectEndpoints({
             ]
           : [],
     }),
+
+    getGraphicThemes: builder.query({
+      query: () => '/graphic-themes',
+      transformResponse: (response) => response?.data ?? [],
+      providesTags: [{ type: 'GraphicTheme', id: 'LIST' }],
+    }),
+
+    getGraphicSession: builder.query({
+      query: (matchId) => `/matches/${matchId}/graphic-session`,
+      transformResponse: (response) => response?.data ?? response,
+      providesTags: (_result, _err, matchId) => [{ type: 'GraphicSession', id: matchId }],
+    }),
+
+    upsertGraphicSession: builder.mutation({
+      query: ({ matchId, graphic_theme_id, config }) => {
+        const body = { graphic_theme_id };
+        if (config != null) body.config = config;
+        return {
+          url: `/matches/${matchId}/graphic-session`,
+          method: 'PUT',
+          body,
+        };
+      },
+      transformResponse: (response) => response?.data ?? response,
+      async onQueryStarted({ matchId }, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(matchApi.util.upsertQueryData('getGraphicSession', String(matchId), data));
+        } catch {
+          /* ignore */
+        }
+      },
+    }),
+
+    refreshGraphicSignedUrl: builder.mutation({
+      query: (matchId) => ({
+        url: `/matches/${matchId}/graphic-session/signed-url`,
+        method: 'GET',
+      }),
+      transformResponse: (response) => response?.data ?? response,
+      async onQueryStarted(matchId, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(
+            matchApi.util.updateQueryData('getGraphicSession', String(matchId), (draft) => {
+              if (!draft) return;
+              draft.signed_overlay_url = data.url;
+              draft.signed_overlay_expires_at = data.expires_at;
+            }),
+          );
+        } catch {
+          /* ignore */
+        }
+      },
+    }),
   }),
 });
 
@@ -463,4 +518,8 @@ export const {
   useUpdateCreaseMutation,
   useUpdateMatchAnalyticsSettingsMutation,
   useUpdateCaptainMutation,
+  useGetGraphicThemesQuery,
+  useGetGraphicSessionQuery,
+  useUpsertGraphicSessionMutation,
+  useRefreshGraphicSignedUrlMutation,
 } = matchApi;
