@@ -25,25 +25,27 @@ export function readElementLayoutRect(element) {
 }
 
 /** Z-order + interaction. Portrait keeps the measured frame; landscape fills the host. */
-export function buildNativeStackLayout(isLandscape) {
+export function buildNativeStackLayout(isLandscape, { interactive = false } = {}) {
   return {
-    underlay: true,
+    // Live: under Capacitor so React chrome (badges/hearts) receives taps.
+    // Highlights VOD: native on top + userInteractionEnabled so YouTube controls work.
+    underlay: !interactive,
     immersiveFullscreen: Boolean(isLandscape),
-    userInteractionEnabled: false,
+    userInteractionEnabled: Boolean(interactive),
   };
 }
 
 /**
  * @param {Element} placeholder
- * @param {{ isLandscape: boolean }} options
+ * @param {{ isLandscape: boolean, interactive?: boolean }} options
  */
-export function buildNativeOverlayLayout(placeholder, { isLandscape }) {
+export function buildNativeOverlayLayout(placeholder, { isLandscape, interactive = false }) {
   if (isLandscape) {
-    return buildNativeStackLayout(true);
+    return buildNativeStackLayout(true, { interactive });
   }
 
   return {
     ...readElementLayoutRect(placeholder),
-    ...buildNativeStackLayout(false),
+    ...buildNativeStackLayout(false, { interactive }),
   };
 }

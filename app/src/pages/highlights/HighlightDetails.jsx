@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
+import { IframeStreamPlayer } from '@/features/stream/adapters/IframeStreamPlayer';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { CLOUDFRONT_APP_BASE, FIXTURE_BG_IMAGE } from '@/lib/constants/assets';
 import { LG_MEDIA_QUERY, NAVBAR_HERO_CONTROL_OFFSET } from '@/lib/constants/layout';
@@ -219,12 +220,13 @@ export default function HighlightDetails() {
       {/* Hero banner / video player */}
       <div className="relative h-[200px] w-full overflow-hidden bg-black lg:h-[400px]">
         {isPlaying && isYouTube ? (
-          <iframe
-            src={`${highlight.videoUrl}${highlight.videoUrl?.includes('?') ? '&' : '?'}autoplay=1`}
+          <IframeStreamPlayer
+            playback={{ mode: 'iframe', embed_url: highlight.videoUrl }}
+            fill
+            showControls
+            posterUrl={bannerImage}
             title={displayTitle}
-            allow="autoplay; encrypted-media; picture-in-picture"
-            allowFullScreen
-            className="h-full w-full border-0"
+            className="h-full w-full"
           />
         ) : isPlaying && isDirectVideo ? (
           /* Direct video file */

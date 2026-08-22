@@ -7,11 +7,19 @@ import { StreamVideoLoading } from '../StreamVideoLoading';
 import { StreamVideoRetry } from '../StreamVideoRetry';
 import { IosNativeStreamOverlay } from './IosNativeStreamOverlay';
 
-export function IframeStreamPlayer({ playback, className = '', fill = false, isLandscape = false, posterUrl = null }) {
+export function IframeStreamPlayer({
+  playback,
+  className = '',
+  fill = false,
+  isLandscape = false,
+  posterUrl = null,
+  showControls = false,
+  title = 'Live Match',
+}) {
   const boxClass = fill ? 'relative h-full w-full bg-black' : 'relative w-full aspect-video bg-black';
   const resolution = useMemo(
-    () => resolveYoutubeEmbed(playback?.embed_url, playback?.embed_id),
-    [playback?.embed_url, playback?.embed_id],
+    () => resolveYoutubeEmbed(playback?.embed_url, playback?.embed_id, { showControls }),
+    [playback?.embed_url, playback?.embed_id, showControls],
   );
   const src = resolution.iframeSrc;
   const usesNativeOverlay = usesIosNativeStreamPlayer() && resolution.usesProxy;
@@ -31,7 +39,16 @@ export function IframeStreamPlayer({ playback, className = '', fill = false, isL
   }
 
   if (usesNativeOverlay) {
-    return <IosNativeStreamOverlay src={src} className={className} fill={fill} isLandscape={isLandscape} posterUrl={posterUrl} />;
+    return (
+      <IosNativeStreamOverlay
+        src={src}
+        className={className}
+        fill={fill}
+        isLandscape={isLandscape}
+        posterUrl={posterUrl}
+        showControls={showControls}
+      />
+    );
   }
 
   return (
@@ -40,7 +57,7 @@ export function IframeStreamPlayer({ playback, className = '', fill = false, isL
         key={sessionKey}
         className="absolute inset-0 block h-full w-full border-0"
         src={src}
-        title="Live Match"
+        title={title}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         referrerPolicy="strict-origin-when-cross-origin"
         allowFullScreen

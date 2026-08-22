@@ -113,6 +113,17 @@
           enablejsapi: 1,
         };
 
+        // Highlights / VOD — show native YouTube chrome and allow scrubbing.
+        if (urlParams.get('controls') === '1') {
+          playerVars.controls = 1;
+          playerVars.disablekb = 0;
+          playerVars.fs = 1;
+          var shield = document.getElementById('touch-shield');
+          if (shield) {
+            shield.style.display = 'none';
+          }
+        }
+
         if (pageOrigin) {
           playerVars.origin = pageOrigin;
         }

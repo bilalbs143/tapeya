@@ -25,17 +25,29 @@ function hasValidPortraitFrame(layout) {
 /**
  * iOS YouTube player — native WKWebView under Capacitor + embed proxy.
  * Portrait: sized to the placeholder. Landscape: immersive fullscreen.
+ *
+ * @param {boolean} [showControls] — VOD/highlights: enable WKWebView touches for YouTube chrome.
+ *   Live underlays keep this false so React badges/hearts receive taps above the player.
  */
-export function IosNativeStreamOverlay({ src, className = '', fill = false, isLandscape = false, posterUrl = null }) {
+export function IosNativeStreamOverlay({
+  src,
+  className = '',
+  fill = false,
+  isLandscape = false,
+  posterUrl = null,
+  showControls = false,
+}) {
   const containerRef = useRef(null);
   const proxyUrlRef = useRef(src);
   const stackRef = useRef(null);
   const shownRef = useRef(false);
   const isLandscapeRef = useRef(isLandscape);
+  const showControlsRef = useRef(showControls);
   const [sessionKey, setSessionKey] = useState(0);
   const { isLoading, showRetry } = useIosNativePlayback(src, sessionKey);
 
   isLandscapeRef.current = isLandscape;
+  showControlsRef.current = showControls;
   proxyUrlRef.current = src;
 
   const retryPlayback = useCallback(() => {
@@ -50,7 +62,8 @@ export function IosNativeStreamOverlay({ src, className = '', fill = false, isLa
     }
 
     const landscape = isLandscapeRef.current;
-    const layout = buildNativeOverlayLayout(element, { isLandscape: landscape });
+    const interactive = showControlsRef.current;
+    const layout = buildNativeOverlayLayout(element, { isLandscape: landscape, interactive });
     const embedUrl = withIosNativeEmbedParams(baseUrl, { landscape });
     const stack = landscape ? 'landscape' : 'portrait';
     const stackChanged = stackRef.current !== null && stackRef.current !== stack;
@@ -60,7 +73,7 @@ export function IosNativeStreamOverlay({ src, className = '', fill = false, isLa
       if (stackChanged && shownRef.current) {
         stackRef.current = stack;
         await updateYoutubeStreamOverlayLayout({
-          ...buildNativeStackLayout(landscape),
+          ...buildNativeStackLayout(landscape, { interactive }),
           url: embedUrl,
           updateFrame: false,
         });
@@ -134,7 +147,7 @@ export function IosNativeStreamOverlay({ src, className = '', fill = false, isLa
     afterLayout(() => {
       void syncLayout(false);
     });
-  }, [isLandscape, syncLayout]);
+  }, [isLandscape, showControls, syncLayout]);
 
   const layoutClass = fill ? 'absolute inset-0' : 'relative w-full aspect-video';
 
