@@ -151,7 +151,7 @@ export default function LiveStreamingCreate() {
           )}
 
           <FormActions align="start">
-            <Button type="submit" variant="auth" disabled={busy} loading={busy} className="w-full lg:w-[180px]">
+            <Button type="submit" variant="orange" disabled={busy} loading={busy} className="w-full lg:w-[180px]">
               Go Live
             </Button>
           </FormActions>

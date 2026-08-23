@@ -9,7 +9,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { ListingProductCard } from '@/components/shop/ListingProductCard';
 import { ShopSearchPopover } from '@/components/shop/ShopSearchPopover';
-import { NAVBAR_HEIGHT } from '@/lib/constants/layout';
+import { getNavbarOffsetPx, NAVBAR_OFFSET_CSS } from '@/lib/constants/layout';
 import { buildShopBrandPath } from '@/lib/shopPaths';
 import { useGetBrandsQuery, useGetProductsQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
@@ -21,7 +21,7 @@ function ShopSlider({ title, viewMorePath, products, reverseDirection = false })
     <section className="mb-10 space-y-3">
       <header className="flex items-center justify-between">
         <h2 className="text-muted text-[13px] font-bold tracking-wide uppercase">{title}</h2>
-        <Link to={viewMorePath} className="text-brand text-[12px] font-bold uppercase transition-opacity active:opacity-80">
+        <Link to={viewMorePath} className="text-brand text-[12px] font-bold transition-opacity active:opacity-80">
           View More
         </Link>
       </header>
@@ -76,7 +76,7 @@ export default function ShopHome() {
       },
       {
         root: null,
-        rootMargin: `-${NAVBAR_HEIGHT}px 0px 0px 0px`,
+        rootMargin: `-${getNavbarOffsetPx()}px 0px 0px 0px`,
         threshold: 0,
       },
     );
@@ -111,7 +111,7 @@ export default function ShopHome() {
           </div>
 
           {tabsFixedVisible && (
-            <div className="fixed right-0 left-0 z-10 bg-black pt-1 pb-2 lg:left-[280px]" style={{ top: NAVBAR_HEIGHT }}>
+            <div className="fixed right-0 left-0 z-10 bg-black pt-1 pb-2 lg:left-[280px]" style={{ top: NAVBAR_OFFSET_CSS }}>
               <div className="mx-auto max-w-2xl px-4 lg:max-w-none lg:px-4">
                 <div className="flex gap-2 overflow-x-auto py-1 [scrollbar-width:none] lg:gap-3 [&::-webkit-scrollbar]:hidden">
                   {brands.map(({ id, name, slug, logo }) => (

@@ -6,8 +6,8 @@ import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { formatPrice } from '@/lib/format';
 import { formatRelativeDate } from '@/lib/utils/dateUtils';
 import { useGetVendorOrdersQuery, useGetVendorStoreQuery } from '@/store/api/vendorShopApi';
-import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { ListEmpty, ListError } from '@/ui/ListState';
 import { PageLoader } from '@/ui/Loader';
 
 import { OrderStatusPill } from './OrderStatusPill';
@@ -40,16 +40,14 @@ const OrderCard = memo(function OrderCard({ order, onClick }) {
   );
 });
 
-function OrderSection({ title, orders, emptyMessage, onOpen }) {
+function OrderSection({ title, orders, onOpen }) {
   return (
     <section>
       <h2 className="text-muted mb-4 text-[13px] font-bold tracking-wide uppercase">{title}</h2>
       <div className="flex flex-col gap-3">
-        {orders.length === 0 ? (
-          <p className="text-muted text-[13px]">{emptyMessage}</p>
-        ) : (
-          orders.map((order) => <OrderCard key={order.id} order={order} onClick={onOpen} />)
-        )}
+        {orders.map((order) => (
+          <OrderCard key={order.id} order={order} onClick={onOpen} />
+        ))}
       </div>
     </section>
   );
@@ -92,16 +90,15 @@ export default function SellerOrders() {
         {isLoading ? (
           <PageLoader label="Loading orders" className="min-h-[30vh] py-12" />
         ) : isError ? (
-          <div className="flex min-h-[30vh] flex-col items-center justify-center gap-4 py-12">
-            <p className="text-muted text-[14px]">Could not load orders. Please try again.</p>
-            <Button type="button" variant="orange" className="px-6 py-2.5 text-[14px]" onClick={() => refetch()}>
-              Retry
-            </Button>
-          </div>
+          <ListError message="Could not load orders." onRetry={() => refetch()} />
+        ) : orders.length === 0 ? (
+          <ListEmpty title="No Orders Yet." description="Orders from your store will show up here." />
         ) : (
           <div className="flex flex-col gap-8">
-            <OrderSection title="Current Orders" orders={currentOrders} emptyMessage="No current orders." onOpen={openOrder} />
-            <OrderSection title="Previous Orders" orders={previousOrders} emptyMessage="No previous orders." onOpen={openOrder} />
+            {currentOrders.length > 0 ? <OrderSection title="Current Orders" orders={currentOrders} onOpen={openOrder} /> : null}
+            {previousOrders.length > 0 ? (
+              <OrderSection title="Previous Orders" orders={previousOrders} onOpen={openOrder} />
+            ) : null}
           </div>
         )}
       </Container>

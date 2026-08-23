@@ -56,10 +56,16 @@ export const LIVE_BROADCAST_HEADER_SCRIM =
   'pointer-events-none absolute top-0 right-0 left-0 bg-gradient-to-b from-black/70 via-black/25 to-transparent px-4 pb-10';
 
 /** Navbar clearance for floating controls on hero / immersive live pages. */
-export const LIVE_BROADCAST_HEADER_TOP_PADDING = 'calc(env(safe-area-inset-top) + 56px)';
+export const LIVE_BROADCAST_HEADER_TOP_PADDING = `calc(env(safe-area-inset-top) + ${NAVBAR_HEIGHT}px)`;
 
 /** Go-live camera — navbar hidden; controls sit below the status bar only. */
 export const LIVE_BROADCAST_CAMERA_HEADER_TOP = 'calc(env(safe-area-inset-top) + 10px)';
+
+/**
+ * Secondary banners under the go-live camera header (e.g. rotate tip).
+ * Keeps the previous 88px web offset; adds safe-area on native.
+ */
+export const LIVE_BROADCAST_CAMERA_BANNER_TOP = 'calc(env(safe-area-inset-top, 0px) + 88px)';
 
 /** Top header row on the go-live camera screen. */
 export const LIVE_BROADCAST_CAMERA_HEADER_CLASS =

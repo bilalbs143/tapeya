@@ -52,7 +52,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { ScorecardTabs } from '@/components/scorecard/ScorecardTabs';
-import { NAVBAR_HEIGHT } from '@/lib/constants/layout';
+import { getNavbarOffsetPx, NAVBAR_OFFSET_CSS } from '@/lib/constants/layout';
 import { normaliseTournamentMatches } from '@/lib/utils/scorecardUtils';
 import { useGetTournamentsQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
@@ -83,7 +83,7 @@ export default function ScorecardHome() {
       },
       {
         root: null,
-        rootMargin: `-${NAVBAR_HEIGHT}px 0px 0px 0px`,
+        rootMargin: `-${getNavbarOffsetPx()}px 0px 0px 0px`,
         threshold: 0,
       },
     );
@@ -98,7 +98,12 @@ export default function ScorecardHome() {
         <div className="flex flex-col">
           <div ref={tabsSentinelRef} className="h-px w-full" aria-hidden />
           <div className="-mx-4 bg-black px-4 pt-0.5 pb-2">
-            <ScorecardTabs matches={matches} tournaments={tournaments} fixedVisible={tabsFixedVisible} fixedTop={NAVBAR_HEIGHT} />
+            <ScorecardTabs
+              matches={matches}
+              tournaments={tournaments}
+              fixedVisible={tabsFixedVisible}
+              fixedTop={NAVBAR_OFFSET_CSS}
+            />
           </div>
         </div>
       </Container>

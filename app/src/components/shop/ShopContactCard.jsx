@@ -59,25 +59,13 @@ export function ShopContactCard({ name, phone, href }) {
 
       {displayPhone ? (
         <div className="flex shrink-0 items-center gap-2">
-          <Button
-            asChild
-            variant="file"
-            size="sm"
-            className="h-10 w-10 shrink-0 rounded-[6px] !p-0"
-            aria-label={`Call ${displayName}`}
-          >
+          <Button asChild variant="file" size="icon" className="rounded-[6px]" aria-label={`Call ${displayName}`}>
             <a href={`tel:${displayPhone}`}>
               <PhoneIcon />
             </a>
           </Button>
           {wa ? (
-            <Button
-              asChild
-              variant="orange"
-              size="sm"
-              className="h-10 w-10 shrink-0 rounded-[6px] !p-0"
-              aria-label={`WhatsApp ${displayName}`}
-            >
+            <Button asChild variant="orange" size="icon" aria-label={`WhatsApp ${displayName}`}>
               <a href={wa} target="_blank" rel="noopener noreferrer">
                 <WhatsAppIcon />
               </a>

@@ -6,6 +6,7 @@
 import { useMemo } from 'react';
 
 import { MatchCard } from '@/components/scorecard/MatchCard';
+import { ListEmpty } from '@/ui/ListState';
 
 function MatchCardList({ matches = [], tournamentId }) {
   return (
@@ -49,7 +50,7 @@ export function ScheduleTab({ matches = [], tournamentId, tournament }) {
   if (!matches.length) {
     return (
       <div className="mt-4 space-y-3 pb-6">
-        <p className="text-muted py-8 text-center text-[13px]">No matches in this tournament</p>
+        <ListEmpty title="No Matches Yet." />
       </div>
     );
   }
@@ -63,7 +64,7 @@ export function ScheduleTab({ matches = [], tournamentId, tournament }) {
             <section key={groupIndex}>
               <h3 className="text-brand mb-2 text-[13px] font-bold tracking-wide uppercase">Group {groupIndex}</h3>
               {groupMatches.length === 0 ? (
-                <p className="bg-surface text-muted rounded-[17px] px-4 py-4 text-center text-[13px]">No matches in this group</p>
+                <ListEmpty title="No Matches In This Group." />
               ) : (
                 <MatchCardList matches={groupMatches} tournamentId={tournamentId} />
               )}

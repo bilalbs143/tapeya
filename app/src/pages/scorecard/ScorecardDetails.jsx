@@ -3,10 +3,11 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
-import { NAVBAR_HEIGHT, STICKY_TABS_Z } from '@/lib/constants/layout';
+import { getNavbarOffsetPx, NAVBAR_OFFSET_CSS, STICKY_TABS_Z } from '@/lib/constants/layout';
 import { getTournamentTitle, isValidTournamentId, parseTournamentId } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentMatchesQuery, useGetTournamentQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
+import { ListError } from '@/ui/ListState';
 import { LoaderBlock } from '@/ui/Loader';
 import { scorecardListClass, scorecardTriggerClass, Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
 
@@ -50,6 +51,7 @@ export default function ScorecardDetails() {
     data: matches = [],
     isLoading,
     isError,
+    refetch,
   } = useGetTournamentMatchesQuery({ tournamentId, all: true }, { skip: !hasValidId });
 
   const { data: tournament, isLoading: isLoadingTournament } = useGetTournamentQuery(
@@ -70,7 +72,7 @@ export default function ScorecardDetails() {
       },
       {
         root: null,
-        rootMargin: `-${NAVBAR_HEIGHT}px 0px 0px 0px`,
+        rootMargin: `-${getNavbarOffsetPx()}px 0px 0px 0px`,
         threshold: 0,
       },
     );
@@ -104,7 +106,7 @@ export default function ScorecardDetails() {
           {tabsFixedVisible && (
             <div
               className="fixed right-0 left-0 bg-black pt-1 pb-2 lg:left-[280px]"
-              style={{ top: NAVBAR_HEIGHT, zIndex: STICKY_TABS_Z }}
+              style={{ top: NAVBAR_OFFSET_CSS, zIndex: STICKY_TABS_Z }}
             >
               <div className="mx-auto w-full max-w-2xl min-w-0 px-4 lg:mx-0 lg:max-w-none">{tabsContent}</div>
             </div>
@@ -112,10 +114,8 @@ export default function ScorecardDetails() {
 
           {isLoading && <LoaderBlock label="Loading scorecard" className="py-6" />}
 
-          {isError && !isLoading && <p className="mt-4 pb-6 text-center text-[13px] text-red-400">Failed to load matches.</p>}
+          {isError && !isLoading ? <ListError message="Could not load matches." onRetry={() => refetch()} /> : null}
 
-          {/* TODO: add empty state when !isLoading && !isError &&
-                    matches.length === 0 (see top). */}
           {!isLoading && !isError && <ActiveView matches={matches} tournamentId={tournamentId} tournament={tournament} />}
         </Tabs>
       </Container>

@@ -172,7 +172,7 @@ export default function SellerStore() {
           </FormField>
           {canEdit && (
             <FormActions align="stack">
-              <Button type="submit" variant="auth" className="w-full" disabled={isSaving} loading={isSaving}>
+              <Button type="submit" variant="orange" className="w-full" disabled={isSaving} loading={isSaving}>
                 {isSaving ? 'Saving…' : 'Save Store'}
               </Button>
             </FormActions>

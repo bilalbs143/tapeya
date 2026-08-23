@@ -6,6 +6,7 @@ import { useDialog } from '@/context/DialogContext';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { useSearchTeamsQuery } from '@/store/api/teamApi';
 import { Container } from '@/ui/Container';
+import { ListEmpty, ListError } from '@/ui/ListState';
 import { LoaderBlock } from '@/ui/Loader';
 
 const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
@@ -113,9 +114,7 @@ export default function TeamList() {
 
         {isLoading && <LoaderBlock label="Loading teams" className="py-10" />}
 
-        {isError && !isLoading && (
-          <p className="bg-surface rounded-[17px] px-4 py-6 text-center text-[13px] text-red-400">Failed to load teams.</p>
-        )}
+        {isError && !isLoading ? <ListError message="Could not load teams." /> : null}
 
         {!isLoading && !isError && teams.length > 0 && (
           <ul className="space-y-3 pb-10 lg:grid lg:grid-cols-3 lg:gap-3 lg:space-y-0">
@@ -127,11 +126,9 @@ export default function TeamList() {
           </ul>
         )}
 
-        {!isLoading && !isError && teams.length === 0 && (
-          <p className="bg-surface text-muted rounded-[17px] px-4 py-6 text-center text-[13px]">
-            No teams yet. Create your first team to get started.
-          </p>
-        )}
+        {!isLoading && !isError && teams.length === 0 ? (
+          <ListEmpty title="No Teams Yet." description="Create your first team to get started." />
+        ) : null}
       </Container>
     </div>
   );

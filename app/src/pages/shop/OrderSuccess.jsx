@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { Button } from '@/ui/Button';
 
 const successOrderGif = `${CLOUDFRONT_APP_BASE}/images/icons/success-order.gif`;
 
@@ -34,10 +35,11 @@ export default function OrderSuccess() {
 
         <div className="flex w-full flex-col gap-4 lg:flex-row lg:justify-center lg:gap-4">
           {orderId != null ? (
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={handleViewOrders}
-              className="border-brand text-brand flex w-full items-center justify-center gap-2 rounded-[6px] border-2 bg-transparent py-3.5 text-[16px] font-bold transition-opacity active:opacity-90 lg:w-auto lg:px-8"
+              className="w-full gap-2 py-3.5 text-[16px] lg:w-auto lg:px-8"
             >
               View My Orders
               <svg
@@ -51,13 +53,14 @@ export default function OrderSuccess() {
               >
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
-            </button>
+            </Button>
           ) : null}
 
-          <button
+          <Button
             type="button"
+            variant="orange"
             onClick={handleShopAgain}
-            className="bg-brand flex w-full items-center justify-center gap-2 rounded-[6px] px-8 py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90 lg:w-auto"
+            className="w-full gap-2 px-8 py-3.5 text-[16px] lg:w-auto"
           >
             Shop Again
             <svg
@@ -71,7 +74,7 @@ export default function OrderSuccess() {
             >
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
-          </button>
+          </Button>
         </div>
       </div>
     </div>

@@ -41,17 +41,15 @@ import {
 import { getStreamOrientation, isSelfServeLiveBroadcast } from '@/lib/utils/liveStreamUtils';
 import { getStreamOrientationOptions, useGetEnumsQuery } from '@/store/api/enumApi';
 import { useGetLiveStreamQuery } from '@/store/api/liveApi';
+import { ListError } from '@/ui/ListState';
 
 import LiveBroadcastItem from './LiveBroadcastItem';
 import { useVanityViewerCount } from './useVanityViewerCount';
 
 function BroadcastError({ onRetry }) {
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-black px-4">
-      <p className="text-[14px] text-white/60">Failed to load stream.</p>
-      <button type="button" onClick={onRetry} className="text-[13px] font-medium text-white underline underline-offset-2">
-        Try Again
-      </button>
+    <div className="flex h-full w-full flex-col items-center justify-center bg-black px-4">
+      <ListError message="Could not load stream." onRetry={onRetry} />
     </div>
   );
 }

@@ -7,39 +7,36 @@ import { Slot } from '@radix-ui/react-slot';
 
 import { Loader } from '@/ui/Loader';
 
-// Variants with a dark/black fill need a white ring; everything else (gold/light fills) needs the dark "ink" ring.
-const DARK_FILL_VARIANTS = new Set(['dark', 'black']);
+// Variants with a dark/near-black fill need a white ring; everything else (gold/light fills) needs
+// the dark "ink" ring. `danger`'s muted red-on-dark fill reads the same way as dark.
+const DARK_FILL_VARIANTS = new Set(['dark', 'danger']);
 
 const variants = {
-  primary: 'bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800',
-  secondary: 'bg-slate-200 text-slate-800 hover:bg-slate-300 active:bg-slate-400',
-  outline: 'border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50',
-  ghost: 'text-indigo-600 hover:bg-indigo-50',
   file: 'border border-[#FFB800] text-[#FFB800] bg-transparent hover:bg-transparent active:bg-transparent',
-  card: 'bg-[#EBF2FF] text-muted',
-  auth: 'h-12 w-[358px] max-w-full rounded-[6px] bg-brand font-bold text-ink transition-opacity hover:opacity-95 active:opacity-90',
+  /** Brand-gold outline — bordered secondary action (e.g. "View Details" beside a primary CTA) */
+  outline: 'rounded-[6px] border-2 border-brand bg-transparent text-brand hover:bg-brand/10 active:opacity-90',
+  /** Dashboard tile — square icon+label card; pair with `size="card"` */
+  card: 'bg-surface text-muted',
   /** Light grey/off-white background, dark text – e.g. Save Fixture */
   fixture: 'rounded-[6px] bg-[#E8EAFC] font-medium text-ink transition-opacity hover:opacity-95 active:opacity-90',
-  /** Orange primary action – e.g. Start Match */
+  /** Brand-gold primary action – forms, CTAs, login/register, start match, etc. */
   orange: 'rounded-[6px] bg-brand font-bold text-ink transition-opacity hover:opacity-95 active:opacity-90',
   /** Scoring tab overlay – e.g. Add Batsman / Add Bowler table button */
-  dark: 'rounded-[17px] bg-[#080807] text-white transition-opacity hover:opacity-95 active:opacity-90 focus:outline-none ',
-  /** Unselected role toggle – e.g. Playing / Bench when inactive */
-  black: 'rounded-[6px] bg-black text-white transition-opacity hover:opacity-95 active:opacity-90 focus:outline-none',
-  /** Dialog primary – e.g. Create New (orange, dark text) */
-  orangeDialog:
-    'rounded-[6px] bg-brand !capitalize font-bold text-ink transition-opacity hover:opacity-95 active:opacity-90 focus:outline-none',
-  /** Dialog primary with white text – e.g. Add Batsman / Add Bowler submit */
-  orangeDialogWhite:
-    'rounded-[6px] !capitalize bg-brand font-bold transition-opacity hover:opacity-95 active:opacity-90 focus:outline-none ',
+  dark: 'rounded-[6px] bg-[#080807] text-white transition-opacity hover:opacity-95 active:opacity-90 focus:outline-none ',
+  /** Destructive action – e.g. Cancel Order, Withdraw Interest. Muted/bordered, not a solid fill. */
+  danger:
+    'rounded-[6px] border border-red-500/40 bg-red-950/30 font-semibold text-red-300 transition-colors hover:bg-red-950/40 active:opacity-90',
 };
 
 const sizes = {
   sm: 'px-3 py-1.5 text-sm',
-  md: 'px-4 py-2 text-base',
-  lg: 'px-6 py-3 text-lg',
+  md: 'h-[45px] px-4 text-base',
   /** Dialog full-width primary – py-3, text-[14px] */
-  dialog: 'w-full py-3 text-[14px] font-bold uppercase tracking-wide',
+  dialog: 'w-full py-3 text-[14px] font-bold tracking-wide',
+  /** Square icon-only button */
+  icon: 'h-10 w-10 shrink-0 px-0 py-0',
+  /** Dashboard tile — icon + label stacked vertically, fixed footprint */
+  card: 'h-[120px] w-[158px] flex-col gap-3 rounded-[18px] px-0 py-0',
 };
 
 /**
@@ -49,7 +46,7 @@ const sizes = {
  */
 export function Button({
   children,
-  variant = 'primary',
+  variant = 'orange',
   size = 'md',
   className = '',
   disabled = false,

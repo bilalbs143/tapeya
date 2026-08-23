@@ -340,7 +340,7 @@ export default function TournamentRequest() {
           </FormField>
 
           <FormActions align="start" className="max-lg:order-16 lg:col-span-3">
-            <Button type="submit" disabled={busy} loading={isSubmitting} variant="auth" className="w-full lg:w-[150px]">
+            <Button type="submit" disabled={busy} loading={isSubmitting} variant="orange" className="w-full lg:w-[150px]">
               {isSubmitting ? 'Submitting…' : 'Submit'}
             </Button>
           </FormActions>

@@ -9,6 +9,7 @@ import { SellerBrandDialog } from '@/pages/vendor/SellerBrandDialog';
 import { useGetVendorBrandsQuery, useGetVendorStoreQuery } from '@/store/api/vendorShopApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { ListEmpty, ListError } from '@/ui/ListState';
 import { PageLoader } from '@/ui/Loader';
 
 const editIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-edit-icon.svg`;
@@ -65,21 +66,18 @@ export default function SellerBrands() {
         {isLoading ? (
           <PageLoader label="Loading brands" className="min-h-[30vh] py-12" />
         ) : isError ? (
-          <div className="flex min-h-[30vh] flex-col items-center justify-center gap-4 py-12">
-            <p className="text-muted text-[14px]">Could not load brands. Please try again.</p>
-            <Button type="button" variant="orange" className="px-6 py-2.5 text-[14px]" onClick={() => refetch()}>
-              Retry
-            </Button>
-          </div>
+          <ListError message="Could not load brands." onRetry={() => refetch()} />
         ) : brands.length === 0 ? (
-          <div className="py-12 text-center">
-            <p className="text-muted text-[14px]">No Brands Yet.</p>
-            {canEdit ? (
-              <Button type="button" variant="orange" className="mt-4 px-6 py-2.5 text-[14px]" onClick={openCreate}>
-                Add Brand
-              </Button>
-            ) : null}
-          </div>
+          <ListEmpty
+            title="No Brands Yet."
+            action={
+              canEdit ? (
+                <Button type="button" variant="orange" onClick={openCreate}>
+                  Add Brand
+                </Button>
+              ) : null
+            }
+          />
         ) : (
           <ul className="flex flex-col gap-3">
             {brands.map((brand) => (

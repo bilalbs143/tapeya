@@ -12,12 +12,14 @@ import { formatPrice } from '@/lib/format';
 import { useCreateOrderMutation, useGetCartQuery, useGetOrdersQuery, useGetShippingQuoteQuery } from '@/store/api/shopApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
+import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 import { CountryCityFields } from '@/ui/CountryCityFields';
 import { FormActions } from '@/ui/form/FormActions';
 import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
+import { ListEmpty } from '@/ui/ListState';
 import { PageLoader } from '@/ui/Loader';
 import { PhoneInput } from '@/ui/PhoneInput';
 
@@ -121,16 +123,15 @@ export default function ShopCheckout() {
         {cartLoading ? (
           <PageLoader label="Loading checkout" />
         ) : !canCheckout ? (
-          <div className="py-8 text-center">
-            <p className="text-muted text-[14px]">Your cart is empty.</p>
-            <button
-              type="button"
-              onClick={() => navigate('/shop/cart')}
-              className="bg-brand mt-4 rounded-full px-6 py-3 text-[14px] font-bold text-black"
-            >
-              View Cart
-            </button>
-          </div>
+          <ListEmpty
+            title="Your Cart Is Empty."
+            description="Add items before checking out."
+            action={
+              <Button type="button" variant="orange" onClick={() => navigate('/shop/cart')}>
+                View Cart
+              </Button>
+            }
+          />
         ) : (
           <FormStack as="form" layout="grid-3" onSubmit={handleSubmit(onSubmit)}>
             <FormField label="Full Name" htmlFor="fullName">
@@ -221,12 +222,14 @@ export default function ShopCheckout() {
             </div>
 
             <FormActions align="start" className="lg:col-span-3">
-              <button
+              <Button
                 type="submit"
+                variant="orange"
                 disabled={isSubmitting}
-                className="bg-brand flex w-full items-center justify-center gap-2 rounded-[6px] py-3.5 text-[16px] font-bold text-black transition-opacity active:opacity-90 disabled:opacity-50 lg:w-auto lg:px-4"
+                loading={isSubmitting}
+                className="w-full gap-2 py-3.5 text-[16px] lg:w-auto lg:px-4"
               >
-                {isSubmitting ? 'Placing Order…' : 'Place Order'}
+                Place Order
                 <svg
                   className="h-5 w-5"
                   fill="none"
@@ -238,7 +241,7 @@ export default function ShopCheckout() {
                 >
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
-              </button>
+              </Button>
             </FormActions>
           </FormStack>
         )}

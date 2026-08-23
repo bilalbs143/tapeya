@@ -13,6 +13,7 @@ import {
   useMarkNotificationReadMutation,
 } from '@/store/api/notificationApi';
 import { Container } from '@/ui/Container';
+import { ListEmpty, ListError } from '@/ui/ListState';
 import { Loader, LoaderBlock } from '@/ui/Loader';
 
 const PAGE_SIZE = 10;
@@ -268,42 +269,15 @@ export default function NotificationCenter() {
           ) : null}
         </div>
 
-        {(isError || markAllError) && (
-          <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-red-400/20 bg-red-400/10 px-3 py-2">
-            <p className="text-[11px] text-red-300">{isError ? 'Couldn’t load notifications.' : 'Couldn’t mark all as read.'}</p>
-            {isError ? (
-              <button type="button" onClick={() => refetch()} className="text-[11px] font-semibold text-white underline">
-                Retry
-              </button>
-            ) : null}
-          </div>
-        )}
+        {isError ? <ListError message="Could not load notifications." onRetry={() => refetch()} /> : null}
+        {markAllError && !isError ? (
+          <p className="mb-3 text-center text-[11px] text-red-300">Couldn’t mark all as read.</p>
+        ) : null}
 
         {isLoading && items.length === 0 ? <LoaderBlock label="Loading notifications" className="py-10" /> : null}
 
         {!isLoading && notifications.length === 0 && !isError ? (
-          <div className="flex flex-col items-center px-4 py-10 text-center">
-            <div className="mb-3 grid h-11 w-11 place-items-center rounded-full bg-white/6 ring-1 ring-white/10">
-              <svg
-                className="text-muted h-5 w-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                aria-hidden
-              >
-                <path
-                  d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <p className="text-[14px] font-semibold text-white">No Notifications Yet</p>
-            <p className="text-muted mt-1 max-w-[16rem] text-[12px] leading-relaxed">
-              Likes, comments, follows, and order updates will show up here.
-            </p>
-          </div>
+          <ListEmpty title="No Notifications Yet." description="Likes, comments, follows, and order updates will show up here." />
         ) : null}
 
         {groups.length > 0 ? (

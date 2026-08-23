@@ -22,6 +22,7 @@ import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
 import { Label } from '@/ui/Label';
+import { ListError } from '@/ui/ListState';
 import { PageLoader } from '@/ui/Loader';
 import {
   Select,
@@ -199,12 +200,7 @@ export default function SellerOrderDetail() {
       <div className="bg-black">
         <AppSubpageHeader sticky title="ORDER" onBack={() => navigate('/seller/orders')} />
         <Container>
-          <div className="flex min-h-[30vh] flex-col items-center justify-center gap-3">
-            <p className="text-muted text-[14px]">Could not load this order.</p>
-            <Button type="button" variant="orange" className="px-6 py-2.5 text-[14px]" onClick={() => refetch()}>
-              Retry
-            </Button>
-          </div>
+          <ListError message="Could not load this order." onRetry={() => refetch()} />
         </Container>
       </div>
     );
@@ -369,7 +365,7 @@ export default function SellerOrderDetail() {
                 </FormField>
               </div>
               <FormActions align="stack">
-                <Button type="submit" variant="auth" className="w-full" disabled={isSavingPayment} loading={isSavingPayment}>
+                <Button type="submit" variant="orange" className="w-full" disabled={isSavingPayment} loading={isSavingPayment}>
                   {isSavingPayment ? 'Saving…' : 'Save Payment'}
                 </Button>
               </FormActions>
@@ -433,7 +429,7 @@ export default function SellerOrderDetail() {
               ) : null}
 
               <FormActions align="stack">
-                <Button type="submit" variant="auth" className="w-full" disabled={isSaving} loading={isSaving}>
+                <Button type="submit" variant="orange" className="w-full" disabled={isSaving} loading={isSaving}>
                   {isSaving ? 'Saving…' : 'Update Order'}
                 </Button>
               </FormActions>

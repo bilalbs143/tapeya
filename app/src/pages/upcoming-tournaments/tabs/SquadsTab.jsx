@@ -8,6 +8,7 @@ import { playerDisplayRole } from '@/lib/utils/playerUtils';
 import { getTournamentTitle, isValidTournamentId } from '@/lib/utils/tournamentUtils';
 import { useGetTeamSquadQuery } from '@/store/api/teamApi';
 import { useGetTournamentQuery, useGetTournamentTeamsQuery } from '@/store/api/tournamentApi';
+import { ListEmpty, ListError } from '@/ui/ListState';
 import { LoaderBlock } from '@/ui/Loader';
 
 function SquadTeams({ tournamentId }) {
@@ -20,6 +21,7 @@ function SquadTeams({ tournamentId }) {
     data: teams = [],
     isLoading,
     isError,
+    refetch,
   } = useGetTournamentTeamsQuery(tournamentId, {
     skip: !hasValidId,
   });
@@ -39,7 +41,7 @@ function SquadTeams({ tournamentId }) {
   // ------------------------------------------------------------------
 
   if (!hasValidId) {
-    return wrap(<p className="text-muted py-4 text-center text-[13px]">Squads are not available for this sample tournament.</p>);
+    return wrap(<ListEmpty title="Squads Unavailable." description="Squads are not available for this sample tournament." />);
   }
 
   if (isLoading) {
@@ -47,11 +49,11 @@ function SquadTeams({ tournamentId }) {
   }
 
   if (isError) {
-    return wrap(<p className="py-4 text-center text-[13px] text-red-400">Failed to load teams for squads.</p>);
+    return wrap(<ListError message="Could not load teams for squads." onRetry={() => refetch()} />);
   }
 
   if (!teams.length) {
-    return wrap(<p className="text-muted py-8 text-center text-[13px]">No teams added yet.</p>);
+    return wrap(<ListEmpty title="No Teams Yet." />);
   }
 
   // ------------------------------------------------------------------
@@ -95,6 +97,7 @@ function SquadSingle({ tournamentId, teamId }) {
     data: squad = [],
     isLoading,
     isError,
+    refetch,
   } = useGetTeamSquadQuery(teamId, {
     skip: !teamId,
   });
@@ -120,11 +123,11 @@ function SquadSingle({ tournamentId, teamId }) {
   }
 
   if (isError) {
-    return wrap(<p className="py-4 text-center text-[13px] text-red-400">Failed to load squad.</p>);
+    return wrap(<ListError message="Could not load squad." onRetry={() => refetch()} />);
   }
 
   if (!squad.length) {
-    return wrap(<p className="text-muted py-8 text-center text-[13px]">No players in this squad yet.</p>);
+    return wrap(<ListEmpty title="No Players Yet." description="This squad has no players yet." />);
   }
 
   const title = tournament ? `${getTournamentTitle(tournament)} - Squad` : 'Squad';

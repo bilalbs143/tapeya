@@ -6,13 +6,14 @@ import { getApiErrorMessage } from '@/lib/apiErrors';
 import { useGetInterestCampaignQuery } from '@/store/api/tournamentInterestApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { ListEmpty, ListError } from '@/ui/ListState';
 import { PageLoader } from '@/ui/Loader';
 
 export default function InterestForm() {
   const { slug } = useParams();
   const navigate = useNavigate();
 
-  const { data: payload, isLoading, isError, error } = useGetInterestCampaignQuery({ slug }, { skip: !slug });
+  const { data: payload, isLoading, isError, error, refetch } = useGetInterestCampaignQuery({ slug }, { skip: !slug });
   const campaign = payload?.campaign;
 
   if (isLoading) {
@@ -30,10 +31,7 @@ export default function InterestForm() {
   }
 
   if (isError || !campaign) {
-    const message =
-      error?.status === 404
-        ? "We couldn't find this interest form. The link may be wrong or it has been removed."
-        : getApiErrorMessage(error, 'Failed to load this interest form.');
+    const isNotFound = error?.status === 404;
     return (
       <div className="bg-black">
         <AppSubpageHeader
@@ -41,16 +39,25 @@ export default function InterestForm() {
           title={<h1 className="min-w-0 truncate px-1 text-center text-[15px] leading-snug font-bold text-white/80">Interest</h1>}
         />
         <Container className="pb-8">
-          <p className="py-8 text-center text-sm text-red-300">{message}</p>
-          <Button
-            type="button"
-            variant="orangeDialogWhite"
-            size="dialog"
-            className="mx-auto mt-3 w-full uppercase sm:w-[220px]"
-            onClick={() => navigate('/upcoming-tournaments')}
-          >
-            Browse Tournaments
-          </Button>
+          {isNotFound ? (
+            <ListEmpty
+              title="Interest Form Not Found."
+              description="The link may be wrong or it has been removed."
+              action={
+                <Button
+                  type="button"
+                  variant="orange"
+                  size="dialog"
+                  className="w-full sm:w-[220px]"
+                  onClick={() => navigate('/upcoming-tournaments')}
+                >
+                  Browse Tournaments
+                </Button>
+              }
+            />
+          ) : (
+            <ListError message={getApiErrorMessage(error, 'Could not load this interest form.')} onRetry={() => refetch()} />
+          )}
         </Container>
       </div>
     );

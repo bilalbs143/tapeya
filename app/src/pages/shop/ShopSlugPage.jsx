@@ -2,7 +2,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useGetBrandsQuery, useGetVendorBySlugQuery } from '@/store/api/shopApi';
+import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { ListEmpty } from '@/ui/ListState';
 import { PageLoader } from '@/ui/Loader';
 
 import ShopCategory from './ShopCategory';
@@ -44,16 +46,14 @@ export default function ShopSlugPage() {
     <div className="bg-black">
       <AppSubpageHeader title="SHOP" onBack={() => navigate('/shop')} />
       <Container>
-        <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
-          <p className="text-muted text-[14px]">Page not found.</p>
-          <button
-            type="button"
-            onClick={() => navigate('/shop')}
-            className="bg-brand rounded-full px-6 py-2.5 text-[14px] font-bold text-black"
-          >
-            Back to Shop
-          </button>
-        </div>
+        <ListEmpty
+          title="Page Not Found."
+          action={
+            <Button type="button" variant="orange" onClick={() => navigate('/shop')}>
+              Back to Shop
+            </Button>
+          }
+        />
       </Container>
     </div>
   );

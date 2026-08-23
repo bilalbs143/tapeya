@@ -3,7 +3,9 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
+import { LG_MEDIA_QUERY, NAVBAR_HERO_CONTROL_OFFSET } from '@/lib/constants/layout';
 import { formatCount } from '@/lib/format';
 import { buildTournamentShareUrl, shareLink } from '@/lib/share';
 import { formatOrdinalDateRange } from '@/lib/utils/dateUtils';
@@ -77,6 +79,7 @@ export default function UpcomingTournamentDetails() {
   const location = useLocation();
   const stateTournament = location.state?.tournament;
   const [searchParams, setSearchParams] = useSearchParams();
+  const isDesktop = useMediaQuery(LG_MEDIA_QUERY);
 
   const [activeTab, setActiveTab] = useState(() => tabFromSearchParams(searchParams));
   const [counts, setCounts] = useState({
@@ -214,7 +217,12 @@ export default function UpcomingTournamentDetails() {
           }}
         />
         <div className="absolute inset-0 bg-black/40" />
-        <AppSubpageBackButton onClick={() => navigate(-1)} className="absolute top-20 left-4" aria-label="Back" />
+        <AppSubpageBackButton
+          onClick={() => navigate(-1)}
+          className={`absolute left-4 z-10 ${isDesktop ? 'top-4' : ''}`}
+          style={isDesktop ? undefined : { top: NAVBAR_HERO_CONTROL_OFFSET }}
+          aria-label="Back"
+        />
       </div>
 
       <Container className="!px-4 !py-0">
@@ -228,7 +236,7 @@ export default function UpcomingTournamentDetails() {
           <button
             type="button"
             onClick={handleInterestClick}
-            className="bg-brand mt-4 flex w-full items-center justify-center gap-2 rounded-[10px] py-3 text-[14px] font-bold tracking-wide text-black uppercase transition-opacity active:opacity-90"
+            className="bg-brand mt-4 flex w-full items-center justify-center gap-2 rounded-[10px] py-3 text-[14px] font-bold tracking-wide text-black transition-opacity active:opacity-90"
           >
             I'm Interested
           </button>

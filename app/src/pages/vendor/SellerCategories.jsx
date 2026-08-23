@@ -9,6 +9,7 @@ import { SellerCategoryDialog } from '@/pages/vendor/SellerCategoryDialog';
 import { useGetVendorCategoriesQuery, useGetVendorStoreQuery } from '@/store/api/vendorShopApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { ListEmpty, ListError } from '@/ui/ListState';
 import { PageLoader } from '@/ui/Loader';
 
 const editIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-edit-icon.svg`;
@@ -65,21 +66,18 @@ export default function SellerCategories() {
         {isLoading ? (
           <PageLoader label="Loading categories" className="min-h-[30vh] py-12" />
         ) : isError ? (
-          <div className="flex min-h-[30vh] flex-col items-center justify-center gap-4 py-12">
-            <p className="text-muted text-[14px]">Could not load categories. Please try again.</p>
-            <Button type="button" variant="orange" className="px-6 py-2.5 text-[14px]" onClick={() => refetch()}>
-              Retry
-            </Button>
-          </div>
+          <ListError message="Could not load categories." onRetry={() => refetch()} />
         ) : categories.length === 0 ? (
-          <div className="py-12 text-center">
-            <p className="text-muted text-[14px]">No Categories Yet.</p>
-            {canEdit ? (
-              <Button type="button" variant="orange" className="mt-4 px-6 py-2.5 text-[14px]" onClick={openCreate}>
-                Add Category
-              </Button>
-            ) : null}
-          </div>
+          <ListEmpty
+            title="No Categories Yet."
+            action={
+              canEdit ? (
+                <Button type="button" variant="orange" onClick={openCreate}>
+                  Add Category
+                </Button>
+              ) : null
+            }
+          />
         ) : (
           <ul className="flex flex-col gap-3">
             {categories.map((category) => (

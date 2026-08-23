@@ -40,6 +40,8 @@ import {
 } from '@/store/api/reelsApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated } from '@/store/selectors';
+import { Button } from '@/ui/Button';
+import { ListEmpty } from '@/ui/ListState';
 import { PageLoader } from '@/ui/Loader';
 
 import ReelItem from './ReelItem';
@@ -317,14 +319,14 @@ export default function Reels() {
 
   const emptyCopy =
     deepReelId && deepReelQuery.isError
-      ? 'This reel is unavailable.'
+      ? 'This Reel Is Unavailable.'
       : activeTab === TAB_EXPLORE
-        ? 'No reels to explore yet.'
+        ? 'No Reels To Explore Yet.'
         : activeTab === TAB_FOLLOWING
-          ? 'No reels from people you follow yet.'
+          ? 'No Reels From People You Follow Yet.'
           : activeTab === TAB_SAVED
-            ? 'No saved reels yet.'
-            : 'You have not uploaded any reels yet.';
+            ? 'No Saved Reels Yet.'
+            : 'No Reels Yet.';
 
   return (
     <div className="fixed inset-0 z-30 bg-black lg:left-[280px]">
@@ -399,13 +401,18 @@ export default function Reels() {
             {isInitialLoading ? <PageLoader label="Loading reels" className="h-full" /> : null}
 
             {reelRows.length === 0 && !isInitialLoading ? (
-              <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
-                <p className="text-sm font-medium text-white">{emptyCopy}</p>
-                {activeTab === TAB_MY_VIDEOS ? (
-                  <button type="button" onClick={() => navigate('/reels/upload')} className="text-brand text-sm font-semibold">
-                    Upload Your First Reel
-                  </button>
-                ) : null}
+              <div className="flex h-full flex-col items-center justify-center px-6">
+                <ListEmpty
+                  title={emptyCopy}
+                  description={activeTab === TAB_MY_VIDEOS ? 'You have not uploaded any reels yet.' : undefined}
+                  action={
+                    activeTab === TAB_MY_VIDEOS ? (
+                      <Button type="button" variant="orange" onClick={() => navigate('/reels/upload')}>
+                        Upload Your First Reel
+                      </Button>
+                    ) : null
+                  }
+                />
               </div>
             ) : null}
 

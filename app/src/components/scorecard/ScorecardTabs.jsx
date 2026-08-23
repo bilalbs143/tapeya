@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 
-import { STICKY_TABS_Z } from '@/lib/constants/layout';
+import { NAVBAR_OFFSET_CSS, STICKY_TABS_Z } from '@/lib/constants/layout';
+import { ListEmpty } from '@/ui/ListState';
 import {
   scorecardLinkClass,
   scorecardListClass,
@@ -37,7 +38,7 @@ function TabListRow({ className = '' }) {
   );
 }
 
-export function ScorecardTabs({ matches, tournaments = [], fixedVisible = false, fixedTop = 64 }) {
+export function ScorecardTabs({ matches, tournaments = [], fixedVisible = false, fixedTop = NAVBAR_OFFSET_CSS }) {
   return (
     <Tabs defaultValue="all" className="w-full">
       {fixedVisible && (
@@ -53,7 +54,7 @@ export function ScorecardTabs({ matches, tournaments = [], fixedVisible = false,
       <TournamentLinks tournaments={tournaments} />
       <TabsContent value="all" className="mt-4 focus:outline-none">
         {matches.length === 0 ? (
-          <p className="text-muted py-8 text-center text-[13px]">No matches in this category</p>
+          <ListEmpty title="No Matches In This Category." />
         ) : (
           <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
             {matches.map((match) => (

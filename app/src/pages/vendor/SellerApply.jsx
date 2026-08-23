@@ -157,7 +157,7 @@ export default function SellerApply() {
             />
           </FormField>
           <FormActions align="stack">
-            <Button type="submit" variant="auth" className="w-full" disabled={isSubmitting} loading={isSubmitting}>
+            <Button type="submit" variant="orange" className="w-full" disabled={isSubmitting} loading={isSubmitting}>
               {isSubmitting ? 'Submitting…' : 'Submit Application'}
             </Button>
           </FormActions>

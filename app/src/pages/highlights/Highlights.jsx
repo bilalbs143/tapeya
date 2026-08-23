@@ -6,6 +6,7 @@ import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { HighlightSearchPopover } from '@/components/highlights/HighlightSearchPopover';
 import { useGetHighlightsQuery } from '@/store/api/highlightApi';
 import { Container } from '@/ui/Container';
+import { ListEmpty, ListError } from '@/ui/ListState';
 import { LoaderBlock } from '@/ui/Loader';
 
 import { HighlightsSection } from './components/HighlightsSection';
@@ -14,7 +15,7 @@ import { sortHighlightsByRecent, sortHighlightsByViews } from './highlightsUtils
 export default function Highlights() {
   const navigate = useNavigate();
 
-  const { data: highlights = [], isLoading, isError } = useGetHighlightsQuery({ per_page: 50 });
+  const { data: highlights = [], isLoading, isError, refetch } = useGetHighlightsQuery({ per_page: 50 });
 
   const mostRecent = useMemo(() => sortHighlightsByRecent(highlights), [highlights]);
   const mostViewed = useMemo(() => sortHighlightsByViews(highlights), [highlights]);
@@ -32,22 +33,17 @@ export default function Highlights() {
 
           {isLoading ? <LoaderBlock label="Loading highlights" className="py-16" /> : null}
 
-          {/* Error */}
-          {isError && !isLoading ? (
-            <p className="text-muted py-4 text-center text-[13px]">Failed to load highlights. Please try again later.</p>
+          {isError && !isLoading ? <ListError message="Could not load highlights." onRetry={() => refetch()} /> : null}
+
+          {!isLoading && !isError && highlights.length === 0 ? (
+            <ListEmpty title="No Highlights Yet." description="Highlights will appear here when available." />
           ) : null}
 
-          {/* Sections */}
-          {!isLoading && !isError ? (
+          {!isLoading && !isError && highlights.length > 0 ? (
             <>
               <HighlightsSection title="MOST RECENT" highlights={mostRecent} onCardClick={handleCardClick} />
               <HighlightsSection title="MOST VIEWED" highlights={mostViewed} onCardClick={handleCardClick} />
             </>
-          ) : null}
-
-          {/* Empty state */}
-          {!isLoading && !isError && highlights.length === 0 ? (
-            <p className="text-muted py-2 text-center text-[13px]">No highlights available yet.</p>
           ) : null}
         </div>
       </Container>

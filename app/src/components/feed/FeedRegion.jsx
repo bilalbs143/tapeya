@@ -37,6 +37,7 @@ import { useGetProductsQuery } from '@/store/api/shopApi';
 import { SUGGESTED_USERS_ARG, useGetSuggestedUsersQuery } from '@/store/api/userApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated } from '@/store/selectors';
+import { ListEmpty, ListError } from '@/ui/ListState';
 import { LoaderBlock } from '@/ui/Loader';
 
 const TABS = [
@@ -419,12 +420,12 @@ export default function FeedRegion({ className = '', top = null }) {
 
   const emptyCopy =
     tab === 'following'
-      ? 'No posts from people you follow yet.'
+      ? 'No Posts From People You Follow Yet.'
       : tab === 'mine'
-        ? 'You haven’t posted yet.'
+        ? 'You Haven’t Posted Yet.'
         : tab === 'saved'
-          ? 'No saved posts yet.'
-          : 'No posts yet — be the first.';
+          ? 'No Saved Posts Yet.'
+          : 'No Posts Yet.';
 
   const virtualItems = virtualizer.getVirtualItems();
 
@@ -459,22 +460,11 @@ export default function FeedRegion({ className = '', top = null }) {
       <div className="-mx-4 flex flex-col gap-0.5 bg-black pb-8">
         <FeedReelsWidget reels={stripReels} />
 
-        {isError && (
-          <div className="flex flex-col items-center gap-3 py-6">
-            <p className="text-center text-[14px] text-red-400">Couldn’t load the feed.</p>
-            <button
-              type="button"
-              onClick={onRetry}
-              className="bg-surface-raised rounded-full px-4 py-2 text-[13px] font-semibold text-white"
-            >
-              Retry
-            </button>
-          </div>
-        )}
+        {isError ? <ListError message="Could not load the feed." onRetry={onRetry} /> : null}
 
-        {!isError && items.length === 0 && !isInitialLoading && (
-          <p className="text-muted py-8 text-center text-[14px]">{emptyCopy}</p>
-        )}
+        {!isError && items.length === 0 && !isInitialLoading ? (
+          <ListEmpty title={emptyCopy} description={tab === 'explore' ? 'Be the first to post.' : undefined} />
+        ) : null}
 
         {!isError && timelineRows.length > 0 ? (
           <div ref={timelineRef} className="relative w-full" style={{ height: `${virtualizer.getTotalSize()}px` }}>

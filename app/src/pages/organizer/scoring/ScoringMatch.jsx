@@ -16,8 +16,9 @@ import { ScoringMatchContext } from '@/context/ScoringMatchContext';
 import { useInningsLifecycle } from '@/hooks/useInningsLifecycle';
 import { useMatchScoringChannel } from '@/hooks/useMatchScoringChannel';
 import { useScoringMatchData } from '@/hooks/useScoringMatchData';
-import { NAVBAR_HEIGHT, STICKY_TABS_Z } from '@/lib/constants/layout';
+import { getNavbarOffsetPx, NAVBAR_OFFSET_CSS, STICKY_TABS_Z } from '@/lib/constants/layout';
 import { computeMatchResultSummary } from '@/lib/utils/scoringUtils';
+import { ListError } from '@/ui/ListState';
 import { LoaderBlock } from '@/ui/Loader';
 import { scorecardListClass, scorecardTriggerClass, Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
 
@@ -105,7 +106,7 @@ export default function ScoringMatch() {
       },
       {
         root: null,
-        rootMargin: `-${NAVBAR_HEIGHT}px 0px 0px 0px`,
+        rootMargin: `-${getNavbarOffsetPx()}px 0px 0px 0px`,
         threshold: 0,
       },
     );
@@ -322,7 +323,7 @@ export default function ScoringMatch() {
               {tabsFixedVisible ? (
                 <div
                   className="fixed right-0 left-0 bg-black pt-1 pb-2 lg:left-[280px]"
-                  style={{ top: NAVBAR_HEIGHT, zIndex: STICKY_TABS_Z }}
+                  style={{ top: NAVBAR_OFFSET_CSS, zIndex: STICKY_TABS_Z }}
                 >
                   <div className={`${SCORING_PAGE_WIDTH_CLASS} min-w-0 px-4`}>{tabsContent}</div>
                 </div>
@@ -330,14 +331,7 @@ export default function ScoringMatch() {
 
               <div className="-mx-4 bg-black px-4 pb-2">
                 {matchLoading && <LoaderBlock label="Loading match" className="min-h-[200px] py-8" />}
-                {matchError && (
-                  <div className="flex min-h-[200px] flex-col items-center justify-center gap-2 py-8 text-center">
-                    <p className="text-[14px] text-red-400">Failed to load match.</p>
-                    <button type="button" onClick={() => navigate(-1)} className="text-brand text-[14px] font-medium underline">
-                      Go back
-                    </button>
-                  </div>
-                )}
+                {matchError ? <ListError message="Could not load match." /> : null}
                 {matchComplete && !matchLoading && !matchError && (
                   <MatchResultBanner
                     match={match}

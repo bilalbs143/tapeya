@@ -11,7 +11,9 @@ import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { formatPrice } from '@/lib/format';
 import { buildShopVendorPath } from '@/lib/shopPaths';
 import { useAddCartItemMutation, useGetProductQuery } from '@/store/api/shopApi';
+import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { ListEmpty, ListError } from '@/ui/ListState';
 import { Loader, PageLoader } from '@/ui/Loader';
 
 const shoppingCartIcon = `${CLOUDFRONT_APP_BASE}/images/icons/shopping-cart.svg`;
@@ -33,6 +35,7 @@ export default function ShopProductDetail() {
     isLoading,
     isError,
     error,
+    refetch,
   } = useGetProductQuery({
     slug: productSlug,
     vendor: vendorSlug,
@@ -104,18 +107,18 @@ export default function ShopProductDetail() {
       <div className="bg-black">
         <AppSubpageHeader title="SHOP" onBack={() => navigate(backTo)} />
         <Container>
-          <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
-            <p className="text-muted text-[14px]">
-              {isError ? (error?.data?.message ?? 'Something went wrong.') : 'Product not found.'}
-            </p>
-            <button
-              type="button"
-              onClick={() => navigate(backTo)}
-              className="bg-brand rounded-full px-6 py-2.5 text-[14px] font-bold text-black"
-            >
-              Go Back
-            </button>
-          </div>
+          {isError ? (
+            <ListError message={error?.data?.message ?? 'Could not load product.'} onRetry={() => refetch()} />
+          ) : (
+            <ListEmpty
+              title="Product Not Found."
+              action={
+                <Button type="button" variant="orange" onClick={() => navigate(backTo)}>
+                  Go Back
+                </Button>
+              }
+            />
+          )}
         </Container>
       </div>
     );
@@ -217,19 +220,20 @@ export default function ShopProductDetail() {
                   <span className="text-xl leading-none font-bold">+</span>
                 </button>
               </div>
-              <button
+              <Button
                 type="button"
+                variant="orange"
                 onClick={handleAddToCart}
                 disabled={normalized.stock < 1 || isAddingToCart}
-                className="bg-brand flex flex-1 items-center justify-center gap-2 rounded-[6px] py-3.5 text-base text-[16px] font-semibold text-black transition-opacity active:opacity-90 disabled:opacity-50"
+                className="flex-1 gap-2 py-3.5 text-[16px]"
               >
                 {isAddingToCart ? (
                   <Loader size="xs" tone="ink" />
                 ) : (
                   <img src={shoppingCartIcon} alt="" className="h-6 w-6 shrink-0" aria-hidden />
                 )}
-                {isAddingToCart ? 'Adding…' : 'Add to Cart'}
-              </button>
+                Add to Cart
+              </Button>
             </div>
 
             {normalized.vendor?.store_name ? (
@@ -333,15 +337,20 @@ export default function ShopProductDetail() {
                     <span className="text-xl leading-none font-bold">+</span>
                   </button>
                 </div>
-                <button
+                <Button
                   type="button"
+                  variant="orange"
                   onClick={handleAddToCart}
                   disabled={normalized.stock < 1 || isAddingToCart}
-                  className="bg-brand flex flex-1 items-center justify-center gap-2 rounded-[6px] py-3.5 text-base text-[16px] font-semibold text-black transition-opacity active:opacity-90 disabled:opacity-50"
+                  className="flex-1 gap-2 py-3.5 text-[16px]"
                 >
-                  <img src={shoppingCartIcon} alt="" className="h-6 w-6 shrink-0" aria-hidden />
-                  {isAddingToCart ? 'Adding…' : 'Add to Cart'}
-                </button>
+                  {isAddingToCart ? (
+                    <Loader size="xs" tone="ink" />
+                  ) : (
+                    <img src={shoppingCartIcon} alt="" className="h-6 w-6 shrink-0" aria-hidden />
+                  )}
+                  Add to Cart
+                </Button>
               </div>
             </div>
           </div>

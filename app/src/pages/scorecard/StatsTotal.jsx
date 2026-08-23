@@ -83,6 +83,7 @@ import { formatListIndex } from '@/lib/format';
 import { buildStatsTotalRows } from '@/lib/utils/rankingUtils';
 import { useGetTournamentSeasonStatsQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
+import { ListEmpty, ListError } from '@/ui/ListState';
 import { PageLoader } from '@/ui/Loader';
 
 import { getStatsTotalBackPath, SCORECARD_FLOW, VALID_STAT_TYPES } from './statsTotalFlow';
@@ -184,6 +185,7 @@ export default function StatsTotal() {
     data: stats,
     isLoading,
     isError,
+    refetch,
   } = useGetTournamentSeasonStatsQuery(tournamentId, {
     skip: !tournamentId,
   });
@@ -208,7 +210,7 @@ export default function StatsTotal() {
       <div className="bg-black">
         {header}
         <Container className="pb-6">
-          <p className="text-muted mt-4 text-center text-[13px]">Select a tournament to view stats.</p>
+          <ListEmpty title="No Tournament Selected." description="Select a tournament to view stats." />
         </Container>
       </div>
     );
@@ -230,7 +232,7 @@ export default function StatsTotal() {
       <div className="bg-black">
         {header}
         <Container className="pb-6">
-          <p className="mt-4 text-center text-[13px] text-red-400">Failed to load stats.</p>
+          <ListError message="Could not load stats." onRetry={() => refetch()} />
         </Container>
       </div>
     );
@@ -251,46 +253,40 @@ export default function StatsTotal() {
 
         <h3 className="text-muted mt-4 text-left text-[13px] font-bold tracking-wide uppercase">{subheading}</h3>
 
-        <div className="border-surface-border mt-3 overflow-x-auto overflow-y-hidden border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <table className="w-full min-w-max border-collapse text-[12px] text-white">
-            <thead>
-              <tr className={HEADER_BG}>
-                {columns.map((col, i) => (
-                  <th
-                    key={col.key}
-                    className={`${COL_TH} ${col.width ?? ''} ${HEADER_BG} border-r border-b ${BORDER_ALT} ${i === 0 ? 'border-l' : ''}`}
-                  >
-                    {col.header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={columns.length}
-                    className={`text-muted border-r border-b border-l py-6 text-center text-[13px] ${BORDER_ALT}`}
-                  >
-                    No stats available yet.
-                  </td>
-                </tr>
-              )}
-              {rows.map((row) => (
-                <tr key={row.rank}>
+        {rows.length === 0 ? (
+          <ListEmpty title="No Stats Available Yet." />
+        ) : (
+          <div className="border-surface-border mt-3 overflow-x-auto overflow-y-hidden border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <table className="w-full min-w-max border-collapse text-[12px] text-white">
+              <thead>
+                <tr className={HEADER_BG}>
                   {columns.map((col, i) => (
-                    <td
+                    <th
                       key={col.key}
-                      className={`${COL_TD} border-r border-b ${BORDER_ALT} bg-transparent ${i === 0 ? 'border-l' : ''}`}
+                      className={`${COL_TH} ${col.width ?? ''} ${HEADER_BG} border-r border-b ${BORDER_ALT} ${i === 0 ? 'border-l' : ''}`}
                     >
-                      {col.key === 'player' ? `${formatListIndex(row.rank)} ${row.playerName}` : row[col.key]}
-                    </td>
+                      {col.header}
+                    </th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr key={row.rank}>
+                    {columns.map((col, i) => (
+                      <td
+                        key={col.key}
+                        className={`${COL_TD} border-r border-b ${BORDER_ALT} bg-transparent ${i === 0 ? 'border-l' : ''}`}
+                      >
+                        {col.key === 'player' ? `${formatListIndex(row.rank)} ${row.playerName}` : row[col.key]}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Container>
     </div>
   );

@@ -132,7 +132,6 @@ const DIALOG_CONTENT_CLASS_BY_KEY = {
   scoringEndInnings: '!min-h-[320px] !max-h-[90vh]',
   scoringEndMatch: '!min-h-[320px] !max-h-[90vh]',
   scoringDeclareResult: '!min-h-[360px] !max-h-[90vh]',
-  scoringReviseTarget: '!min-h-[300px] !max-h-[90vh]',
   scoringNoBall: '!min-h-[420px] !max-h-[90vh]',
   scoringWideBall: '!min-h-[280px] !max-h-[90vh]',
   scoringOverthrow: '!min-h-[300px] !max-h-[90vh]',

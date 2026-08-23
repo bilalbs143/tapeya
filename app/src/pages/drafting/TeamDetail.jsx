@@ -15,9 +15,11 @@ import { formatListIndex } from '@/lib/format';
 import { playerDisplayRole } from '@/lib/utils/playerUtils';
 import { useGetTeamSquadQuery, useSearchTeamsQuery, useUpdateTeamSquadMutation } from '@/store/api/teamApi';
 import { useLookupUsersQuery } from '@/store/api/userApi';
+import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
 import { FormField } from '@/ui/FormField';
 import { CloseIcon } from '@/ui/icons/CloseIcon';
+import { ListEmpty } from '@/ui/ListState';
 import { LoaderBlock, PageLoader } from '@/ui/Loader';
 
 const searchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/searchicon.svg`;
@@ -164,14 +166,14 @@ export default function TeamDetail() {
       <div className="bg-black">
         <AppSubpageHeader title="Drafting" />
         <Container>
-          <p className="text-muted py-6 text-center text-[13px]">Team not found.</p>
-          <button
-            type="button"
-            onClick={() => navigate('/drafting/teams')}
-            className="text-brand mx-auto mt-2 block text-[13px] font-semibold"
-          >
-            Back to Teams
-          </button>
+          <ListEmpty
+            title="Team Not Found."
+            action={
+              <Button type="button" variant="orange" onClick={() => navigate('/drafting/teams')}>
+                Back To Teams
+              </Button>
+            }
+          />
         </Container>
       </div>
     );
@@ -306,7 +308,7 @@ export default function TeamDetail() {
         <button
           type="button"
           onClick={() => navigate('/drafting/teams')}
-          className="border-brand text-brand m-auto flex h-12 max-w-fit items-center justify-center rounded-[6px] border px-4 text-center text-[16px] font-bold tracking-wide uppercase transition-opacity active:opacity-90 lg:m-0"
+          className="border-brand text-brand m-auto flex h-12 max-w-fit items-center justify-center rounded-[6px] border px-4 text-center text-[16px] font-bold tracking-wide transition-opacity active:opacity-90 lg:m-0"
         >
           Back to Teams
         </button>

@@ -12,6 +12,7 @@ import { formatDecimal, getInitials } from '@/lib/utils/displayUtils';
 import { statsTotalPaths } from '@/pages/scorecard/statsTotalFlow';
 import { useGetRankingsQuery } from '@/store/api/rankingApi';
 import { Container } from '@/ui/Container';
+import { ListEmpty, ListError } from '@/ui/ListState';
 import { LoaderBlock } from '@/ui/Loader';
 import { profileListClass, profileTriggerClass, Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/Tabs';
 
@@ -103,14 +104,14 @@ function RankingSection({ title, linkTo, linkState, rows, variant = 'batter', lo
         <Link
           to={linkTo}
           state={linkState}
-          className="text-brand text-[12px] font-bold tracking-wide uppercase transition-opacity active:opacity-80"
+          className="text-brand text-[12px] font-bold tracking-wide transition-opacity active:opacity-80"
         >
           View More
         </Link>
       </div>
       {loading && <LoaderBlock label="Loading rankings" className="py-6" />}
-      {error && !loading && <p className="text-[13px] text-red-400">Failed to load rankings.</p>}
-      {!loading && !error && rows.length === 0 && <p className="text-muted text-[13px]">{emptyMessage}</p>}
+      {error && !loading ? <ListError message="Could not load rankings." /> : null}
+      {!loading && !error && rows.length === 0 ? <ListEmpty title={emptyMessage} /> : null}
       <div className="space-y-3 lg:grid lg:grid-cols-1 lg:justify-items-center lg:gap-3 lg:space-y-0">
         {rows.slice(0, TOP_RANKINGS_LIMIT).map((player, index) => (
           <div key={player.id} className={desktopCardWidthClass}>

@@ -6,6 +6,7 @@ import { NoImagePlaceholder } from '@/pages/vendor/NoImagePlaceholder';
 import { useGetVendorProductsQuery, useGetVendorStoreQuery } from '@/store/api/vendorShopApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { ListEmpty, ListError } from '@/ui/ListState';
 import { PageLoader } from '@/ui/Loader';
 import { StatusPill } from '@/ui/StatusPill';
 
@@ -48,21 +49,18 @@ export default function SellerProducts() {
         {isLoading ? (
           <PageLoader label="Loading products" className="min-h-[30vh] py-12" />
         ) : isError ? (
-          <div className="flex min-h-[30vh] flex-col items-center justify-center gap-4 py-12">
-            <p className="text-muted text-[14px]">Could not load products. Please try again.</p>
-            <Button type="button" variant="orange" className="px-6 py-2.5 text-[14px]" onClick={() => refetch()}>
-              Retry
-            </Button>
-          </div>
+          <ListError message="Could not load products." onRetry={() => refetch()} />
         ) : products.length === 0 ? (
-          <div className="py-12 text-center">
-            <p className="text-muted text-[14px]">No Products Yet.</p>
-            {canEdit ? (
-              <Button asChild variant="orange" className="mt-4 px-6 py-2.5 text-[14px]">
-                <Link to="/seller/products/new">Create Product</Link>
-              </Button>
-            ) : null}
-          </div>
+          <ListEmpty
+            title="No Products Yet."
+            action={
+              canEdit ? (
+                <Button asChild variant="orange">
+                  <Link to="/seller/products/new">Create Product</Link>
+                </Button>
+              ) : null
+            }
+          />
         ) : (
           <ul className="flex flex-col gap-3">
             {products.map((product) => {

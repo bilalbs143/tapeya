@@ -17,7 +17,9 @@ import {
   useLikeHighlightMutation,
   useShareHighlightMutation,
 } from '@/store/api/highlightApi';
+import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { ListEmpty } from '@/ui/ListState';
 import { LoaderBlock } from '@/ui/Loader';
 
 import { MoreHighlightRow } from './components/MoreHighlightRow';
@@ -190,15 +192,15 @@ export default function HighlightDetails() {
   if (!hasValidId || (isError && !stateHighlight)) {
     return (
       <div className="min-h-screen bg-black">
-        <Container className="py-8 text-center">
-          <p className="text-muted text-[14px]">Highlight not found.</p>
-          <button
-            type="button"
-            onClick={() => navigate('/highlights')}
-            className="text-brand mt-4 text-[14px] font-bold transition-opacity active:opacity-80"
-          >
-            Back to Highlights
-          </button>
+        <Container>
+          <ListEmpty
+            title="Highlight Not Found."
+            action={
+              <Button type="button" variant="orange" onClick={() => navigate('/highlights')}>
+                Back to Highlights
+              </Button>
+            }
+          />
         </Container>
       </div>
     );

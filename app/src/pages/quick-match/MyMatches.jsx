@@ -7,6 +7,7 @@ import { QuickMatchListCard } from '@/pages/quick-match/QuickMatchListCard';
 import { useGetQuickMatchesQuery } from '@/store/api/quickMatchApi';
 import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { ListEmpty, ListError } from '@/ui/ListState';
 import { PageLoader } from '@/ui/Loader';
 
 export default function MyMatches() {
@@ -50,23 +51,18 @@ export default function MyMatches() {
       />
       <Container>
         {isLoading ? <PageLoader label="Loading matches" className="py-16" /> : null}
-        {isError ? (
-          <div className="py-10 text-center">
-            <p className="text-[14px] text-red-400">Could not load matches.</p>
-            <button type="button" className="text-brand mt-2 text-[14px]" onClick={() => refetch()}>
-              Retry
-            </button>
-          </div>
-        ) : null}
+        {isError ? <ListError message="Could not load matches." onRetry={() => refetch()} /> : null}
 
         {!isLoading && !isError && matches.length === 0 ? (
-          <div className="py-12 text-center">
-            <p className="text-muted text-[14px]">No Quick Matches Yet.</p>
-            <p className="text-muted mt-1 text-[13px]">Just playing today? Start a Quick Match.</p>
-            <Button type="button" variant="orange" className="mt-4" onClick={() => navigate('/quick-match')}>
-              Start Quick Match
-            </Button>
-          </div>
+          <ListEmpty
+            title="No Quick Matches Yet."
+            description="Just playing today? Start a Quick Match."
+            action={
+              <Button type="button" variant="orange" onClick={() => navigate('/quick-match')}>
+                Start Quick Match
+              </Button>
+            }
+          />
         ) : null}
 
         <ul className="space-y-3 pb-10">

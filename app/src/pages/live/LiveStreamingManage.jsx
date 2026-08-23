@@ -28,6 +28,7 @@ import { FormActions } from '@/ui/form/FormActions';
 import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
+import { ListError } from '@/ui/ListState';
 import { LoaderBlock } from '@/ui/Loader';
 import { StatusPill } from '@/ui/StatusPill';
 import { liveStreamStatusLabel, liveStreamStatusTone } from '@/ui/statusPillTones';
@@ -41,7 +42,7 @@ export default function LiveStreamingManage() {
   const [thumbnail, setThumbnail] = useState(EMPTY_FILE_UPLOAD);
   const [previewUrl, setPreviewUrl] = useState(null);
 
-  const { data: stream, isLoading, isError } = useGetMyLiveStreamQuery(streamId, { skip: !streamId });
+  const { data: stream, isLoading, isError, refetch } = useGetMyLiveStreamQuery(streamId, { skip: !streamId });
   const [updateStream, { isLoading: isSaving }] = useUpdateMyLiveStreamMutation();
   const [startStream, { isLoading: isStarting }] = useStartMyLiveStreamMutation();
   const [endStream, { isLoading: isEnding }] = useEndMyLiveStreamMutation();
@@ -139,7 +140,7 @@ export default function LiveStreamingManage() {
           <LoaderBlock label="Loading stream" className="py-16" />
         ) : (
           <>
-            {isError && <p className="text-sm text-red-400">Stream not found or you do not have access.</p>}
+            {isError ? <ListError message="Could not load stream." onRetry={() => refetch()} /> : null}
 
             {stream && (
               <>
@@ -198,13 +199,13 @@ export default function LiveStreamingManage() {
 
                   {!isEnded && (
                     <FormActions align="start" className="flex-col gap-3 sm:flex-row">
-                      <Button type="submit" variant="auth" disabled={busy} loading={isSaving} className="w-full sm:w-auto">
+                      <Button type="submit" variant="orange" disabled={busy} loading={isSaving} className="w-full sm:w-auto">
                         Save Changes
                       </Button>
                       {canGoLive && (
                         <Button
                           type="button"
-                          variant="auth"
+                          variant="orange"
                           disabled={busy}
                           loading={isStarting}
                           className="w-full sm:w-auto"

@@ -55,7 +55,7 @@ function GuidelinesGate({ open, onAccept, isAccepting }) {
           <li>Tapeya staff may end your broadcast and revoke access for violations of these guidelines.</li>
           <li>Broadcasts are capped at 2 hours.</li>
         </ul>
-        <Button variant="auth" className="mt-5 w-full" disabled={isAccepting} onClick={onAccept}>
+        <Button variant="orange" className="mt-5 w-full" disabled={isAccepting} onClick={onAccept}>
           {isAccepting ? 'Please wait…' : 'I Agree, Continue'}
         </Button>
       </div>
@@ -218,7 +218,7 @@ export default function PreBroadcast() {
           )}
 
           <FormActions align="start">
-            <Button type="submit" variant="auth" disabled={busy} loading={isCreating} className="w-full lg:w-[150px]">
+            <Button type="submit" variant="orange" disabled={busy} loading={isCreating} className="w-full lg:w-[150px]">
               Go Live
             </Button>
           </FormActions>

@@ -191,7 +191,7 @@ export default function Login() {
               to="/register"
               className="text-brand font-medium underline underline-offset-2 transition-colors hover:text-[#E8A820]"
             >
-              Sign up
+              Sign Up
             </Link>
           </p>
         </div>
@@ -287,7 +287,7 @@ function PhoneForm({ control, errors, error, busy, hasSavedProfiles, onSubmit, o
       )}
 
       <FormActions align="stack" className="pt-0">
-        <Button type="submit" disabled={busy} loading={busy} variant="auth" className="lg:w-full">
+        <Button type="submit" disabled={busy} loading={busy} variant="orange" className="lg:w-full">
           Login
         </Button>
       </FormActions>

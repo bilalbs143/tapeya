@@ -163,8 +163,8 @@ export default function Register() {
           )}
 
           <FormActions align="stack" className="pt-0">
-            <Button type="submit" disabled={busy} loading={busy} variant="auth" className="lg:w-full">
-              Sign up
+            <Button type="submit" disabled={busy} loading={busy} variant="orange" className="lg:w-full">
+              Sign Up
             </Button>
           </FormActions>
 

@@ -2,6 +2,7 @@ import { BORDER_ALT } from '@/lib/constants/tableStyles';
 import { formatListIndex } from '@/lib/format';
 import { playerDisplayRole } from '@/lib/utils/playerUtils';
 import { useGetTeamSquadQuery } from '@/store/api/teamApi';
+import { ListEmpty, ListError } from '@/ui/ListState';
 import { LoaderBlock } from '@/ui/Loader';
 
 export function SquadSingle({ tournamentId, teamId }) {
@@ -9,6 +10,7 @@ export function SquadSingle({ tournamentId, teamId }) {
     data: squad = [],
     isLoading,
     isError,
+    refetch,
   } = useGetTeamSquadQuery(teamId, {
     skip: !teamId,
   });
@@ -28,7 +30,7 @@ export function SquadSingle({ tournamentId, teamId }) {
   if (isError) {
     return (
       <div className="mt-4 pb-6">
-        <p className="py-4 text-center text-[13px] text-red-400">Failed to load squad.</p>
+        <ListError message="Could not load squad." onRetry={() => refetch()} />
       </div>
     );
   }
@@ -36,7 +38,7 @@ export function SquadSingle({ tournamentId, teamId }) {
   if (!squad.length) {
     return (
       <div className="mt-4 pb-6">
-        <p className="text-muted py-8 text-center text-[13px]">No players in this squad yet.</p>
+        <ListEmpty title="No Players Yet." description="This squad has no players yet." />
       </div>
     );
   }

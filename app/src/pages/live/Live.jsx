@@ -15,6 +15,7 @@ import { normaliseLiveStreams } from '@/lib/utils/liveStreamUtils';
 import { LiveTab, UpcomingTab } from '@/pages/live/tabs';
 import { useGetLiveStreamsQuery } from '@/store/api/liveApi';
 import { Container } from '@/ui/Container';
+import { ListError } from '@/ui/ListState';
 import { LoaderBlock } from '@/ui/Loader';
 import {
   profileListClass,
@@ -37,17 +38,6 @@ function LiveHubSkeleton() {
   return <LoaderBlock label="Loading live matches" className="py-16" />;
 }
 
-function LiveHubError({ onRetry }) {
-  return (
-    <div className="py-12 text-center">
-      <p className="text-muted text-[13px]">Failed to load live matches.</p>
-      <button type="button" onClick={onRetry} className="mt-3 text-[13px] font-medium text-white underline underline-offset-2">
-        Try Again
-      </button>
-    </div>
-  );
-}
-
 export default function Live() {
   const { data, isLoading, isError, refetch } = useGetLiveStreamsQuery(undefined, {
     pollingInterval: 60_000,
@@ -66,7 +56,7 @@ export default function Live() {
         {isLoading ? (
           <LiveHubSkeleton />
         ) : isError ? (
-          <LiveHubError onRetry={refetch} />
+          <ListError message="Could not load live matches." onRetry={refetch} />
         ) : (
           <Tabs defaultValue="live" className="w-full">
             <TabsList className={`${liveTabListClass} mb-4`}>

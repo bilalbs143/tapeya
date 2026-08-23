@@ -159,7 +159,7 @@ export function toApiDate(value) {
 }
 
 /**
- * Human-readable age from a YYYY-MM-DD date-of-birth. Returns '—' for missing/invalid.
+ * Compact age from a YYYY-MM-DD date-of-birth (e.g. "19y 2m 3d"). Returns '—' for missing/invalid.
  *
  * @param {string} [dateOfBirth] - YYYY-MM-DD
  * @returns {string}
@@ -183,9 +183,9 @@ export function formatAge(dateOfBirth) {
   }
   if (years <= 0 && months <= 0 && days <= 0) return '—';
   const parts = [];
-  if (years > 0) parts.push(`${years} year${years !== 1 ? 's' : ''}`);
-  if (months > 0) parts.push(`${months} month${months !== 1 ? 's' : ''}`);
-  if (days > 0) parts.push(`${days} day${days !== 1 ? 's' : ''}`);
+  if (years > 0) parts.push(`${years}y`);
+  if (months > 0) parts.push(`${months}m`);
+  if (days > 0) parts.push(`${days}d`);
   return parts.join(' ');
 }
 

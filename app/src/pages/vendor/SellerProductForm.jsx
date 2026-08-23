@@ -547,7 +547,7 @@ export default function SellerProductForm() {
 
           {!readOnly && (
             <FormActions align="stack">
-              <Button type="submit" variant="auth" className="w-full" disabled={isSubmitting} loading={isSubmitting}>
+              <Button type="submit" variant="orange" className="w-full" disabled={isSubmitting} loading={isSubmitting}>
                 {isSubmitting ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Product'}
               </Button>
             </FormActions>

@@ -28,6 +28,7 @@ import {
   useRemoveTeamFromTournamentMutation,
 } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
+import { ListEmpty } from '@/ui/ListState';
 import { LoaderBlock } from '@/ui/Loader';
 
 const teamDeleteIcon = `${CLOUDFRONT_APP_BASE}/images/icons/team-delete-icon.svg`;
@@ -226,9 +227,7 @@ export default function TournamentAddSquad() {
                     </li>
                   ))}
                 </ul>
-                {teamsByGroup[groupIndex].length === 0 && (
-                  <p className="bg-surface text-muted rounded-[17px] px-4 py-4 text-center text-[13px]">No teams in this group</p>
-                )}
+                {teamsByGroup[groupIndex].length === 0 && <ListEmpty title="No Teams In This Group." />}
               </section>
             ))}
           </div>
@@ -245,9 +244,7 @@ export default function TournamentAddSquad() {
         )}
 
         {!isLoading && teams.length === 0 && (
-          <p className="bg-surface text-muted rounded-[17px] px-4 py-6 text-center text-[13px]">
-            No teams yet. Add teams from the saved teams step first.
-          </p>
+          <ListEmpty title="No Teams Yet." description="Add teams from the saved teams step first." />
         )}
       </Container>
     </div>

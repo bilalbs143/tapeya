@@ -27,6 +27,7 @@ const Otp = lazy(() => import('@/pages/auth/Otp'));
 
 const Home = lazy(() => import('@/pages/Home'));
 const Profile = lazy(() => import('@/pages/Profile'));
+const Stats = lazy(() => import('@/pages/Stats'));
 const StaticPage = lazy(() => import('@/pages/StaticPage'));
 const Support = lazy(() => import('@/pages/Support'));
 const NotificationCenter = lazy(() => import('@/pages/NotificationCenter'));
@@ -154,6 +155,7 @@ function App() {
                     <Route element={<RequireAuth />}>
                       <Route path="/home" element={<Home />} />
                       <Route path="/profile" element={<Profile />} />
+                      <Route path="/stats" element={<Stats />} />
                       <Route path="/drafting" element={<DraftingHome />} />
                       <Route path="/drafting/teams" element={<TeamList />} />
                       <Route path="/drafting/teams/:teamId" element={<TeamDetail />} />

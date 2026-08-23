@@ -1,5 +1,6 @@
 import { useWicketFlow } from '@/hooks/useWicketFlow';
 import { BottomSheet } from '@/ui/BottomSheet';
+import { Button } from '@/ui/Button';
 
 import { DismissalChip } from './DismissalChip';
 import { WicketSummaryCard } from './WicketSummaryCard';
@@ -28,14 +29,15 @@ export function WicketSummaryScreen({ open, model, onUndo, onProceed, isUndoing 
           >
             Undo
           </button>
-          <button
+          <Button
             type="button"
+            variant="orange"
             onClick={handleProceed}
             disabled={isUndoing}
-            className="bg-brand text-ink flex flex-1 items-center justify-center rounded-lg py-3.5 text-[14px] font-bold transition-opacity active:opacity-80 disabled:opacity-50"
+            className="flex-1 rounded-lg py-3.5 text-[14px]"
           >
             Proceed
-          </button>
+          </Button>
         </div>
       }
     >

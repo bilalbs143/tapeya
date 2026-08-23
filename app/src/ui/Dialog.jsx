@@ -85,10 +85,10 @@ const CONTENT_DARK =
 const SCROLL_BODY = 'min-h-0 flex-1 pt-0 overflow-y-auto px-5 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden';
 
 const SAVE_BUTTON =
-  'w-full shrink-0 rounded-b-[17px] bg-[#DB9811] py-4 text-base font-bold uppercase tracking-wide text-black transition-colors hover:bg-[#C48910] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#FFB703] disabled:pointer-events-none disabled:opacity-50';
+  'w-full shrink-0 rounded-b-[17px] bg-[#DB9811] py-4 text-base font-bold tracking-wide text-black transition-colors hover:bg-[#C48910] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#FFB703] disabled:pointer-events-none disabled:opacity-50';
 
 const DANGER_BUTTON =
-  'w-full shrink-0 rounded-b-[17px] bg-red-600 py-4 text-base font-bold uppercase tracking-wide text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-red-500 disabled:pointer-events-none disabled:opacity-50';
+  'w-full shrink-0 rounded-b-[17px] bg-red-600 py-4 text-base font-bold tracking-wide text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-red-500 disabled:pointer-events-none disabled:opacity-50';
 
 const HEADER_ROW = 'flex min-h-[52px] shrink-0 items-center justify-between gap-3 px-5 py-3';
 

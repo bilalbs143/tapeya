@@ -8,7 +8,9 @@ import { getApiErrorMessage } from '@/lib/apiErrors';
 import { formatPrice, toNumber } from '@/lib/format';
 import { buildShopVendorPath } from '@/lib/shopPaths';
 import { useGetCartQuery, useRemoveCartItemMutation, useUpdateCartItemMutation } from '@/store/api/shopApi';
+import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { ListEmpty } from '@/ui/ListState';
 import { PageLoader } from '@/ui/Loader';
 import {
   Select,
@@ -136,18 +138,15 @@ export default function ShopCart() {
         {isLoading ? (
           <PageLoader label="Loading cart" className="flex-1 py-16" />
         ) : emptyCart ? (
-          <div className="flex flex-1 items-center justify-center">
-            <div className="flex flex-col items-center gap-4 text-center">
-              <p className="text-muted text-[14px]">Your cart is empty.</p>
-              <button
-                type="button"
-                onClick={() => navigate('/shop')}
-                className="bg-brand rounded-full px-6 py-3 text-[14px] font-bold text-black"
-              >
+          <ListEmpty
+            title="Your Cart Is Empty."
+            description="Browse the shop and add items to continue."
+            action={
+              <Button type="button" variant="orange" onClick={() => navigate('/shop')}>
                 Continue Shopping
-              </button>
-            </div>
-          </div>
+              </Button>
+            }
+          />
         ) : (
           <div className="flex flex-col gap-3 pb-28 lg:flex-row lg:items-start lg:gap-6 lg:pb-0">
             <div className="min-w-0 flex-1 space-y-5">
@@ -219,7 +218,7 @@ export default function ShopCart() {
                     <button
                       type="button"
                       onClick={() => navigate('/shop/checkout')}
-                      className="bg-brand shrink-0 rounded-[6px] px-6 py-3 text-[14px] font-bold tracking-wide text-black uppercase transition-opacity hover:opacity-95 active:opacity-90 lg:px-8 lg:py-3.5"
+                      className="bg-brand shrink-0 rounded-[6px] px-6 py-3 text-[14px] font-bold tracking-wide text-black transition-opacity hover:opacity-95 active:opacity-90 lg:px-8 lg:py-3.5"
                     >
                       Checkout
                     </button>
@@ -241,7 +240,7 @@ export default function ShopCart() {
             <button
               type="button"
               onClick={() => navigate('/shop/checkout')}
-              className="bg-brand shrink-0 rounded-[6px] px-8 py-3.5 text-[14px] font-bold tracking-wide text-black uppercase transition-opacity active:opacity-90"
+              className="bg-brand shrink-0 rounded-[6px] px-8 py-3.5 text-[14px] font-bold tracking-wide text-black transition-opacity active:opacity-90"
             >
               Checkout
             </button>

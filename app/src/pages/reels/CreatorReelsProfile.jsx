@@ -32,7 +32,9 @@ import {
 } from '@/store/api/reelsApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectAuthUserAndToken } from '@/store/selectors';
+import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { ListEmpty, ListError } from '@/ui/ListState';
 import { Loader, LoaderBlock, PageLoader } from '@/ui/Loader';
 
 const TAB_REELS = 'reels';
@@ -157,6 +159,7 @@ export default function CreatorReelsProfile() {
     data: profile,
     isLoading: profileLoading,
     isError: profileError,
+    refetch: refetchProfile,
   } = useGetUserProfileQuery(userId, { skip: !validUserId });
 
   const isOwnProfile = currentUser?.id != null && profile?.id != null && Number(currentUser.id) === Number(profile.id);
@@ -249,12 +252,12 @@ export default function CreatorReelsProfile() {
 
   const emptyCopy =
     activeTab === TAB_POSTS
-      ? 'No posts yet.'
+      ? 'No Posts Yet.'
       : activeTab === TAB_LIKED
-        ? 'No liked reels yet.'
+        ? 'No Liked Reels Yet.'
         : activeTab === TAB_SAVED
-          ? 'No saved reels yet.'
-          : 'No reels yet.';
+          ? 'No Saved Reels Yet.'
+          : 'No Reels Yet.';
 
   const emptyAction =
     activeTab === TAB_REELS && isOwnProfile
@@ -331,7 +334,7 @@ export default function CreatorReelsProfile() {
       <div className="bg-black">
         <AppSubpageHeader sticky title="PROFILE" />
         <Container>
-          <p className="text-muted text-sm">Profile not found.</p>
+          <ListEmpty title="Profile Not Found." />
         </Container>
       </div>
     );
@@ -345,7 +348,7 @@ export default function CreatorReelsProfile() {
         {profileLoading ? (
           <PageLoader label="Loading profile" className="py-10" />
         ) : profileError || !profile ? (
-          <p className="text-muted text-sm">Could not load this profile.</p>
+          <ListError message="Could not load this profile." onRetry={() => refetchProfile()} />
         ) : (
           <>
             <div className="flex flex-col items-center text-center">
@@ -452,9 +455,10 @@ export default function CreatorReelsProfile() {
               {isLoading ? (
                 <LoaderBlock label={activeTab === TAB_POSTS ? 'Loading posts' : 'Loading reels'} className="py-8" />
               ) : isError ? (
-                <p className="text-muted py-8 text-center text-sm">
-                  {activeTab === TAB_POSTS ? 'Could not load posts.' : 'Could not load reels.'}
-                </p>
+                <ListError
+                  message={activeTab === TAB_POSTS ? 'Could not load posts.' : 'Could not load reels.'}
+                  onRetry={() => activeQuery.refetch?.()}
+                />
               ) : activeTab === TAB_POSTS ? (
                 <>
                   {items.length ? (
@@ -464,14 +468,16 @@ export default function CreatorReelsProfile() {
                       ))}
                     </div>
                   ) : (
-                    <div className="py-10 text-center">
-                      <p className="text-muted text-sm">{emptyCopy}</p>
-                      {emptyAction ? (
-                        <Link to={emptyAction.to} className="text-brand mt-2 inline-block text-sm font-semibold">
-                          {emptyAction.label}
-                        </Link>
-                      ) : null}
-                    </div>
+                    <ListEmpty
+                      title={emptyCopy}
+                      action={
+                        emptyAction ? (
+                          <Button asChild variant="orange">
+                            <Link to={emptyAction.to}>{emptyAction.label}</Link>
+                          </Button>
+                        ) : null
+                      }
+                    />
                   )}
                   {nextCursor ? (
                     <div className="mt-4 flex justify-center">

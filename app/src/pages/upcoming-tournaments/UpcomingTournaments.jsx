@@ -8,6 +8,7 @@ import { formatDateRange, parseDate, toDateStr } from '@/lib/utils/dateUtils';
 import { getTournamentDisplayImage, getTournamentTitle } from '@/lib/utils/tournamentUtils';
 import { useGetTournamentsQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
+import { ListEmpty, ListError } from '@/ui/ListState';
 import { LoaderBlock } from '@/ui/Loader';
 import { scorecardListClass, scorecardTriggerClass, Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
 
@@ -58,7 +59,7 @@ export default function UpcomingTournaments() {
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const [activeMonth, setActiveMonth] = useState(currentMonth);
 
-  const { data, isLoading, isError } = useGetTournamentsQuery({ all: true });
+  const { data, isLoading, isError, refetch } = useGetTournamentsQuery({ all: true });
   const todayStr = toDateStr(now);
 
   const monthTabs = useMemo(() => {
@@ -149,10 +150,10 @@ export default function UpcomingTournaments() {
             </div>
           )}
 
-          {isError && <p className="py-4 text-center text-[13px] text-red-400">Failed to load tournaments. Try again later.</p>}
-          {isEmpty && !isLoading && !isError && (
-            <p className="text-muted py-2 text-center text-[13px]">No upcoming tournaments for this month.</p>
-          )}
+          {isError ? <ListError message="Could not load tournaments." onRetry={() => refetch()} /> : null}
+          {isEmpty && !isLoading && !isError ? (
+            <ListEmpty title="No Upcoming Tournaments." description="Nothing scheduled for this month." />
+          ) : null}
         </Tabs>
       </Container>
     </div>

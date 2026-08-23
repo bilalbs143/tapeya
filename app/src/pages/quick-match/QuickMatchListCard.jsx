@@ -89,7 +89,7 @@ export function QuickMatchListCard({ match, onShare }) {
           {showShare ? (
             <button
               type="button"
-              className="text-brand inline-flex items-center gap-1.5 text-[12px] font-bold tracking-wide uppercase"
+              className="text-brand inline-flex items-center gap-1.5 text-[12px] font-bold tracking-wide"
               onClick={(event) => onShare?.(event, match)}
             >
               <ShareGlyph />

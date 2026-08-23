@@ -5,9 +5,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { ListingProductCard } from '@/components/shop/ListingProductCard';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { NAVBAR_HEIGHT } from '@/lib/constants/layout';
+import { getNavbarOffsetPx, NAVBAR_OFFSET_CSS } from '@/lib/constants/layout';
 import { useGetCategoriesQuery, useGetProductsQuery, useGetVendorBySlugQuery } from '@/store/api/shopApi';
+import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
+import { ListEmpty } from '@/ui/ListState';
 import { PageLoader } from '@/ui/Loader';
 
 const searchIcon = `${CLOUDFRONT_APP_BASE}/images/icons/searchicon.svg`;
@@ -60,7 +62,7 @@ export default function ShopVendorStore() {
       },
       {
         root: null,
-        rootMargin: `-${NAVBAR_HEIGHT}px 0px 0px 0px`,
+        rootMargin: `-${getNavbarOffsetPx()}px 0px 0px 0px`,
         threshold: 0,
       },
     );
@@ -88,16 +90,14 @@ export default function ShopVendorStore() {
       <div className="bg-black">
         <AppSubpageHeader title="STORE" onBack={() => navigate('/shop')} />
         <Container>
-          <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
-            <p className="text-muted text-[14px]">Store not found.</p>
-            <button
-              type="button"
-              onClick={() => navigate('/shop')}
-              className="bg-brand rounded-full px-6 py-2.5 text-[14px] font-bold text-black"
-            >
-              Back to Shop
-            </button>
-          </div>
+          <ListEmpty
+            title="Store Not Found."
+            action={
+              <Button type="button" variant="orange" onClick={() => navigate('/shop')}>
+                Back to Shop
+              </Button>
+            }
+          />
         </Container>
       </div>
     );
@@ -177,7 +177,7 @@ export default function ShopVendorStore() {
           </div>
 
           {tabsFixedVisible && (
-            <div className="fixed right-0 left-0 z-10 bg-black pt-1 pb-2 lg:left-[280px]" style={{ top: NAVBAR_HEIGHT }}>
+            <div className="fixed right-0 left-0 z-10 bg-black pt-1 pb-2 lg:left-[280px]" style={{ top: NAVBAR_OFFSET_CSS }}>
               <div className="mx-auto max-w-2xl px-4 lg:max-w-none lg:px-4">
                 <div className="flex gap-2 overflow-x-auto py-1 [scrollbar-width:none] lg:gap-3 [&::-webkit-scrollbar]:hidden">
                   {categoryTabs}
@@ -187,9 +187,7 @@ export default function ShopVendorStore() {
           )}
 
           {products.length === 0 ? (
-            <p className="text-muted py-8 text-center text-[14px]">
-              {query || activeCategoryId ? 'No products match your search.' : 'No products from this store yet.'}
-            </p>
+            <ListEmpty title={query || activeCategoryId ? 'No Products Match Your Search.' : 'No Products Yet.'} />
           ) : (
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
               {products.map((product) => (

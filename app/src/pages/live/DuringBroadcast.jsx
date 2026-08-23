@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
+import { useDialog } from '@/context/DialogContext';
 import { BroadcastCameraControlDock, BroadcastCameraHeader } from '@/features/stream/BroadcastCameraChrome';
 import {
   BROADCAST_NETWORK_LABEL,
@@ -28,7 +29,7 @@ import { useStreamPresenceChannel } from '@/features/stream/hooks/useStreamPrese
 import { useAppBack } from '@/hooks/useAppBack';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
-import { LIVE_BROADCAST_IMMERSIVE_HEIGHT } from '@/lib/constants/liveBroadcastLayout';
+import { LIVE_BROADCAST_CAMERA_BANNER_TOP, LIVE_BROADCAST_IMMERSIVE_HEIGHT } from '@/lib/constants/liveBroadcastLayout';
 import { getInitials } from '@/lib/utils/displayUtils';
 import { getStreamOrientation } from '@/lib/utils/liveStreamUtils';
 import { mapSystemSettingsByKey } from '@/lib/utils/settingsUtils';
@@ -53,21 +54,14 @@ import {
 } from '@/store/api/liveApi';
 import { useGetPublicSystemSettingsQuery } from '@/store/api/systemSettingsApi';
 import { useAppSelector } from '@/store/hooks';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogTitle,
-} from '@/ui/AlertDialog';
 import { Button } from '@/ui/Button';
+import { ListError } from '@/ui/ListState';
 import { FullScreenLoader } from '@/ui/Loader';
 
 export default function DuringBroadcast({ streamId }) {
   const navigate = useNavigate();
   const goBack = useAppBack();
+  const { openDialog } = useDialog();
   const toast = useToast();
   const nativeEndSyncedRef = useRef(false);
   const cooldownTimerRef = useRef(null);
@@ -108,7 +102,6 @@ export default function DuringBroadcast({ streamId }) {
   const [networkQuality, setNetworkQuality] = useState(null);
   const [elapsed, setElapsed] = useState(0);
   const [peakViewers, setPeakViewers] = useState(0);
-  const [confirmEndOpen, setConfirmEndOpen] = useState(false);
   const [endSummary, setEndSummary] = useState(null);
   const [endReason, setEndReason] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
@@ -279,7 +272,6 @@ export default function DuringBroadcast({ streamId }) {
   }, [streamId, endBroadcastMutation]);
 
   const handleConfirmEnd = useCallback(async () => {
-    setConfirmEndOpen(false);
     setPhase('ending');
     endingInFlightRef.current = true;
     publishSessionActiveRef.current = false;
@@ -354,25 +346,34 @@ export default function DuringBroadcast({ streamId }) {
     setCommentsVisible((visible) => !visible);
   }, []);
 
+  const confirmEndBroadcast = useCallback(() => {
+    openDialog('confirm', {
+      title: 'End Broadcast?',
+      message: 'Your broadcast will end immediately for all viewers.',
+      confirmLabel: 'End Broadcast',
+      onConfirm: handleConfirmEnd,
+    });
+  }, [openDialog, handleConfirmEnd]);
+
   const handleCapturePress = useCallback(() => {
     if (isLivePhase) {
-      setConfirmEndOpen(true);
+      confirmEndBroadcast();
       return;
     }
     if (phase === 'previewing') {
       void handleStartBroadcasting();
     }
-  }, [phase, isLivePhase, handleStartBroadcasting]);
+  }, [phase, isLivePhase, handleStartBroadcasting, confirmEndBroadcast]);
 
   const shouldConfirmEndOnLeave = isLivePhase || phase === 'connecting';
 
   const handleBack = useCallback(() => {
     if (shouldConfirmEndOnLeave) {
-      setConfirmEndOpen(true);
+      confirmEndBroadcast();
       return;
     }
     goBack();
-  }, [shouldConfirmEndOnLeave, goBack]);
+  }, [shouldConfirmEndOnLeave, goBack, confirmEndBroadcast]);
 
   const streamOrientation = getStreamOrientation({
     orientation: broadcast?.orientation ?? publicBroadcast?.orientation,
@@ -418,7 +419,7 @@ export default function DuringBroadcast({ streamId }) {
               <p>Peak viewers: {endSummary.peakViewers}</p>
             </div>
           )}
-          <Button variant="auth" onClick={() => navigate('/live/go-live', { replace: true })}>
+          <Button variant="orange" onClick={() => navigate('/live/go-live', { replace: true })}>
             Start New Broadcast
           </Button>
         </div>
@@ -434,7 +435,7 @@ export default function DuringBroadcast({ streamId }) {
             <p>Peak viewers: {endSummary.peakViewers}</p>
           </div>
         )}
-        <Button variant="auth" onClick={() => navigate('/live/go-live', { replace: true })}>
+        <Button variant="orange" onClick={() => navigate('/live/go-live', { replace: true })}>
           Done
         </Button>
       </div>
@@ -456,19 +457,19 @@ export default function DuringBroadcast({ streamId }) {
       return (
         <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-black px-4 text-center">
           <h1 className="text-[16px] font-bold text-white uppercase">Broadcast Ended</h1>
-          <Button variant="auth" onClick={() => navigate('/live/go-live', { replace: true })}>
+          <Button variant="orange" onClick={() => navigate('/live/go-live', { replace: true })}>
             Back to Go Live
           </Button>
         </div>
       );
     }
 
-    const message = status === 403 ? 'This broadcast belongs to someone else.' : 'Failed to load broadcast.';
+    const message = status === 403 ? 'This broadcast belongs to someone else.' : 'Could not load broadcast.';
 
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-black px-4 text-center">
-        <p className="text-[14px] text-white/70">{message}</p>
-        <Button variant="auth" onClick={() => navigate('/live/go-live', { replace: true })}>
+        <ListError message={message} />
+        <Button variant="orange" onClick={() => navigate('/live/go-live', { replace: true })}>
           Back to Go Live
         </Button>
       </div>
@@ -504,7 +505,7 @@ export default function DuringBroadcast({ streamId }) {
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/90 px-6 text-center">
           <p className="text-[13px] text-white/80">We lost the connection and couldn&apos;t reconnect.</p>
           <Button
-            variant="auth"
+            variant="orange"
             onClick={() => {
               void (async () => {
                 await resetSession();
@@ -536,7 +537,8 @@ export default function DuringBroadcast({ streamId }) {
           />
           {needsLandscapeRotate && landscapeValue && (
             <div
-              className="pointer-events-none absolute top-[88px] right-4 left-4 z-20 flex justify-center"
+              className="pointer-events-none absolute right-4 left-4 z-20 flex justify-center"
+              style={{ top: LIVE_BROADCAST_CAMERA_BANNER_TOP }}
               role="status"
               aria-live="polite"
             >
@@ -566,17 +568,6 @@ export default function DuringBroadcast({ streamId }) {
           />
         </>
       )}
-
-      <AlertDialog open={confirmEndOpen} onOpenChange={setConfirmEndOpen}>
-        <AlertDialogContent>
-          <AlertDialogTitle>End Broadcast?</AlertDialogTitle>
-          <AlertDialogDescription>Your broadcast will end immediately for all viewers.</AlertDialogDescription>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmEnd}>End Broadcast</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

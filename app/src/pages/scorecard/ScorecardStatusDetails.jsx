@@ -30,6 +30,7 @@ import { isValidTournamentId } from '@/lib/utils/tournamentUtils';
 import { useGetMatchQuery, useGetMatchStateQuery, useGetScorecardQuery } from '@/store/api/matchApi';
 import { useGetTournamentMatchesQuery } from '@/store/api/tournamentApi';
 import { Container } from '@/ui/Container';
+import { ListEmpty } from '@/ui/ListState';
 import { PageLoader } from '@/ui/Loader';
 import { scorecardListClass, scorecardTriggerClass, Tabs, TabsList, TabsTrigger } from '@/ui/Tabs';
 
@@ -368,8 +369,8 @@ export default function ScorecardStatusDetails() {
 
   if (!matchIdOk || (!standaloneRoute && !tournamentOk)) {
     return (
-      <div className="flex min-h-[40vh] items-center justify-center bg-black px-4">
-        <p className="text-muted text-center text-[13px]">Invalid match or tournament link.</p>
+      <div className="bg-black">
+        <ListEmpty title="Invalid Link." description="This match or tournament link is not valid." />
       </div>
     );
   }
@@ -380,10 +381,11 @@ export default function ScorecardStatusDetails() {
 
   if (matchIsError || tournamentMismatch || !apiMatch || !match) {
     return (
-      <div className="flex min-h-[40vh] items-center justify-center bg-black px-4">
-        <p className="text-muted text-center text-[13px]">
-          {tournamentMismatch ? 'This match does not belong to this tournament.' : 'Match not found.'}
-        </p>
+      <div className="bg-black">
+        <ListEmpty
+          title={tournamentMismatch ? 'Wrong Tournament.' : 'Match Not Found.'}
+          description={tournamentMismatch ? 'This match does not belong to this tournament.' : 'This match could not be found.'}
+        />
       </div>
     );
   }

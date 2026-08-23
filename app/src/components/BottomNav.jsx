@@ -22,7 +22,7 @@ function ProfileTabIcon({ avatarUrl, isActive }) {
     <UserAvatar
       src={avatarUrl}
       size="nav"
-      className={`ring-1 ring-white/25 transition-opacity duration-200 ${
+      className={`rounded-full ring-1 ring-white/25 transition-opacity duration-200 ${
         isActive ? 'opacity-100' : 'opacity-70 group-active:opacity-100'
       }`}
     />

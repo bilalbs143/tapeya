@@ -10,12 +10,7 @@ export default function DraftingHome() {
       <AppSubpageHeader title="Drafting" />
 
       <div className="flex flex-1 items-center justify-center">
-        <Button
-          type="button"
-          variant="card"
-          onClick={() => openDialog('manageTeam', { mode: 'create' })}
-          className="!bg-surface flex h-[120px] w-[158px] flex-col items-center justify-center gap-3 rounded-[18px] px-0 py-0"
-        >
+        <Button type="button" variant="card" size="card" onClick={() => openDialog('manageTeam', { mode: 'create' })}>
           <span className="bg-brand text-ink flex h-[44px] w-[44px] items-center justify-center rounded-full text-[32px] font-bold">
             +
           </span>

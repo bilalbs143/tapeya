@@ -10,8 +10,10 @@ import { formatPrice } from '@/lib/format';
 import { buildShopVendorPath } from '@/lib/shopPaths';
 import { formatDate } from '@/lib/utils/dateUtils';
 import { useCancelOrderMutation, useGetOrderQuery } from '@/store/api/shopApi';
+import { Button } from '@/ui/Button';
 import { Container } from '@/ui/Container';
-import { Loader, PageLoader } from '@/ui/Loader';
+import { ListEmpty } from '@/ui/ListState';
+import { PageLoader } from '@/ui/Loader';
 
 const OrderItemCard = memo(function OrderItemCard({ item, vendorOrderStatus, vendorOrderUpdatedAt }) {
   const snapshot = item.product_snapshot ?? {};
@@ -131,16 +133,14 @@ export default function OrderDetail() {
       <div className="bg-black">
         <AppSubpageHeader title="ORDER DETAIL" />
         <Container>
-          <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 py-12">
-            <p className="text-muted text-[14px]">Order not found.</p>
-            <button
-              type="button"
-              onClick={() => navigate('/shop/orders')}
-              className="bg-brand rounded-full px-6 py-2.5 text-[14px] font-bold text-black"
-            >
-              My Orders
-            </button>
-          </div>
+          <ListEmpty
+            title="Order Not Found."
+            action={
+              <Button type="button" variant="orange" onClick={() => navigate('/shop/orders')}>
+                My Orders
+              </Button>
+            }
+          />
         </Container>
       </div>
     );
@@ -187,7 +187,7 @@ export default function OrderDetail() {
 
           <div className="flex flex-col gap-5">
             {itemGroups.length === 0 ? (
-              <p className="text-muted text-[13px]">No items in this order.</p>
+              <ListEmpty title="No Items In This Order." />
             ) : (
               itemGroups.map((group) => (
                 <section key={group.key} className="space-y-3">
@@ -238,15 +238,16 @@ export default function OrderDetail() {
             </div>
             <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
               {canCancel && (
-                <button
+                <Button
                   type="button"
+                  variant="danger"
                   disabled={isCancelling}
+                  loading={isCancelling}
                   onClick={onCancel}
-                  className="flex items-center justify-center gap-2 rounded-[6px] border border-red-500/40 bg-red-950/30 px-6 py-3.5 text-[16px] font-semibold text-red-300 transition-opacity active:opacity-90 disabled:opacity-50"
+                  className="px-6 py-3.5 text-[16px]"
                 >
-                  {isCancelling ? <Loader size="xs" tone="light" /> : null}
-                  {isCancelling ? 'Cancelling…' : 'Cancel Order'}
-                </button>
+                  Cancel Order
+                </Button>
               )}
             </div>
           </div>

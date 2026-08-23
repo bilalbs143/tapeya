@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { ListingProductCard } from '@/components/shop/ListingProductCard';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { NAVBAR_HEIGHT } from '@/lib/constants/layout';
+import { getNavbarOffsetPx, NAVBAR_OFFSET_CSS } from '@/lib/constants/layout';
 import { useGetBrandsQuery, useGetCategoriesQuery, useGetProductsQuery } from '@/store/api/shopApi';
 import { Container } from '@/ui/Container';
 
@@ -47,7 +47,7 @@ export default function ShopCategory() {
       },
       {
         root: null,
-        rootMargin: `-${NAVBAR_HEIGHT}px 0px 0px 0px`,
+        rootMargin: `-${getNavbarOffsetPx()}px 0px 0px 0px`,
         threshold: 0,
       },
     );
@@ -111,7 +111,7 @@ export default function ShopCategory() {
           </div>
 
           {tabsFixedVisible && (
-            <div className="fixed right-0 left-0 z-10 bg-black pt-1 pb-2 lg:left-[280px]" style={{ top: NAVBAR_HEIGHT }}>
+            <div className="fixed right-0 left-0 z-10 bg-black pt-1 pb-2 lg:left-[280px]" style={{ top: NAVBAR_OFFSET_CSS }}>
               <div className="mx-auto max-w-2xl px-4 lg:max-w-none lg:px-4">
                 <div className="flex gap-2 overflow-x-auto py-1 [scrollbar-width:none] lg:gap-3 [&::-webkit-scrollbar]:hidden">
                   <button

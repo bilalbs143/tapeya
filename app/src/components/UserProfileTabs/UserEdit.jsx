@@ -204,7 +204,7 @@ export function UserEdit({ open, onOpenChange }) {
   return (
     <BaseDialog open={open} onOpenChange={onOpenChange} height="!h-[min(90vh,600px)]">
       <DialogHeaderRow>
-        <DialogTitle className={dialogPrimaryTitleClass}>EDIT PROFILE</DialogTitle>
+        <DialogTitle className={dialogPrimaryTitleClass}>Edit Profile</DialogTitle>
       </DialogHeaderRow>
 
       <DialogScrollBody>
@@ -245,7 +245,7 @@ export function UserEdit({ open, onOpenChange }) {
             />
           </FormField>
 
-          <FormField label="Date Of Birth" htmlFor="dob">
+          <FormField label="Date of Birth" htmlFor="dob">
             <Controller
               name="dateOfBirth"
               control={control}

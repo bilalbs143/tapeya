@@ -20,7 +20,7 @@ import { FormActions } from '@/ui/form/FormActions';
 import { FormStack } from '@/ui/form/FormStack';
 import { FormField } from '@/ui/FormField';
 import { Input } from '@/ui/Input';
-import { Loader, LoaderBlock } from '@/ui/Loader';
+import { LoaderBlock } from '@/ui/Loader';
 
 const PROFILE_PICTURE_REQUIRED_MSG = 'Please add a profile picture.';
 const ID_DOCUMENT_REQUIRED_MSG = 'Please add your CNIC or B-Form.';
@@ -425,25 +425,26 @@ export function InterestFormContent({
               {!isDialog && (
                 <Button
                   type="submit"
-                  variant="orangeDialogWhite"
+                  variant="orange"
                   size="dialog"
                   disabled={!isOpen || isSubmitting}
                   loading={isSubmitting}
-                  className="w-full sm:w-[220px] sm:uppercase"
+                  className="w-full sm:w-[220px]"
                 >
-                  {isSubmitting ? 'Submitting…' : isActive ? 'Update My Details' : "I'm Interested"}
+                  {isActive ? 'Update My Details' : "I'm Interested"}
                 </Button>
               )}
               {isActive && (
-                <button
+                <Button
                   type="button"
+                  variant="danger"
                   onClick={handleWithdraw}
                   disabled={isWithdrawing}
-                  className="bg-surface flex w-full items-center justify-center gap-2 rounded-[6px] border border-red-500/40 py-3 text-sm font-semibold text-red-300 transition hover:bg-red-950/20 disabled:cursor-not-allowed disabled:opacity-60 sm:w-[180px]"
+                  loading={isWithdrawing}
+                  className="w-full py-3 text-sm sm:w-[180px]"
                 >
-                  {isWithdrawing ? <Loader size="xs" /> : null}
-                  {isWithdrawing ? 'Withdrawing…' : 'Withdraw'}
-                </button>
+                  Withdraw
+                </Button>
               )}
             </div>
           </FormActions>

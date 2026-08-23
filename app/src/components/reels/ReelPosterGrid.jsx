@@ -5,6 +5,8 @@
 import { Link } from 'react-router-dom';
 
 import { formatCount } from '@/lib/format';
+import { Button } from '@/ui/Button';
+import { ListEmpty } from '@/ui/ListState';
 
 function EyeIcon({ className = 'h-3 w-3' }) {
   return (
@@ -35,17 +37,19 @@ function HeartGlyph({ className = 'h-3 w-3' }) {
  *   emptyAction?: { to: string, label: string } | null,
  * }} props
  */
-export function ReelPosterGrid({ items, emptyMessage = 'No reels yet.', emptyAction = null }) {
+export function ReelPosterGrid({ items, emptyMessage = 'No Reels Yet.', emptyAction = null }) {
   if (!items?.length) {
     return (
-      <div className="py-10 text-center">
-        <p className="text-muted text-sm">{emptyMessage}</p>
-        {emptyAction ? (
-          <Link to={emptyAction.to} className="text-brand mt-2 inline-block text-sm font-semibold">
-            {emptyAction.label}
-          </Link>
-        ) : null}
-      </div>
+      <ListEmpty
+        title={emptyMessage}
+        action={
+          emptyAction ? (
+            <Button asChild variant="orange">
+              <Link to={emptyAction.to}>{emptyAction.label}</Link>
+            </Button>
+          ) : null
+        }
+      />
     );
   }
 

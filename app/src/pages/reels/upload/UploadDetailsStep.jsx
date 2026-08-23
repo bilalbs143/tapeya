@@ -118,7 +118,7 @@ export function UploadDetailsStep({
         <div className="mt-8">
           <Button
             type="button"
-            variant="auth"
+            variant="orange"
             disabled={isPublishing}
             loading={isPublishing}
             onClick={onPost}

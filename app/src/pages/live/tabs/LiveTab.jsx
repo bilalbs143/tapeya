@@ -2,10 +2,11 @@ import { Link } from 'react-router-dom';
 
 import { LiveEventCard } from '@/components/live/LiveEventCard';
 import { liveBroadcastPath } from '@/lib/utils/liveStreamUtils';
+import { ListEmpty } from '@/ui/ListState';
 
 export function LiveTab({ streams = [] }) {
   if (streams.length === 0) {
-    return <p className="text-muted py-6 text-center text-[13px]">No live broadcasts right now.</p>;
+    return <ListEmpty title="No Live Broadcasts Right Now." />;
   }
 
   return (
