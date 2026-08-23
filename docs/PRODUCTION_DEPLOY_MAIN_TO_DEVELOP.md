@@ -1,79 +1,88 @@
 # Production deploy — `main` → `develop`
 
-Ship **origin/develop** (after commit + merge) onto production.
+Ship **local `develop` tip** (after push + merge to `main`) onto production.
 
 | | SHA | Message |
 |---|---|---|
-| **main** (prod today) | `5159b51` | Refactor production deployment documentation for `main` to `develop` transition |
-| **develop** (committed tip) | `058002a` | Ship Quick Match as a first-class scoring path and drop leftover `/me` capability flags |
-| **Working tree** (commit before merge) | — | Support messages admin, auto engagement settings refactor, minor backoffice polish |
+| **main** (prod today) | `ae2c4fd` | Rename `match_streams` table to `live_streams` and update related model and tests |
+| **develop** (release tip) | `f1734b2` | Unify list empty/error states and tighten button and shell UI consistency |
 
-**Committed on develop, not on prod:** `058002a` → `5159b51` (Quick Match, iOS **1.1.4** build **45**, `/me` vendor, complete-profile once, GA4, scorecard App Links, auto engagement v1).
+**On develop, not on prod:** `ae2c4fd` → `f1734b2` (**7** commits).
 
-**Also on the develop working tree (commit before merge):** Support messages admin workflow (status + inbox notification + backoffice list), auto engagement v2 (reels vs simple-post targets, derived chunk size), vendors list phone column.
+| SHA | Summary |
+|---|---|
+| `ae57868` | Rename `MatchStream` model → `LiveStream` (table already `live_streams` on main) |
+| `495e253` | Drop unused import in shop carts migration file |
+| `252fd9c` | Hero slider CTAs (none / URL / dialog) + static assets base → `cdn.tapeya.com` |
+| `54ebdac` | Shared loaders in app + backoffice; seller empty states aligned |
+| `34b2f34` | Organizer broadcast graphics (OBS overlay) + user watch-URL live streams (YouTube/Facebook) |
+| `57c89ed` | Highlight YouTube playback on iOS Capacitor (Error 153) |
+| `f1734b2` | Shared `ListEmpty`/`ListError`, Button size cleanup, safe-area hero offsets, profile/sidebar polish |
 
-No `composer.lock` / `package-lock.json` change. No CDN/Wrangler.
+**Branch note:** `origin/develop` may still lag this tip. Push `develop`, then merge `develop` → `main` before production checkout.
+
+No `composer.lock` / `package-lock.json` change. No CDN/Wrangler. No native marketing/build bump in this range (iOS still **1.1.4** / **45**; Android **1.1.6** / **17**).
 
 ---
 
 ## What this release does
 
-### Committed (`058002a`)
+### Live streaming & graphics
 
-- **Quick Match:** any logged-in app user can create a standalone match (no tournament). Owner scores it. Walk-up players are normal `type=user` (`added_via_quick_match` + `created_by`). Admin: Tournaments → Quick Matches (list / show / cancel).
-- **Stats:** quick matches write a casual career bucket (`tournament_type='quick'`). League / open / emerging rankings stay tournament-only.
-- **`/me`:** no `capabilities` bag. Optional `vendor` `{ id, store_name, status }` when the user has a store. Seller Hub vs Become a Seller follows that object.
-- **Complete profile** popup: once after register, not every login / 24h.
-- **Auto engagement (v1):** optional drip of likes/views on public Ready posts (Admin → System Settings → Reels). **Default off.**
-- **GA4** web page views (`G-MR83CQDG6Z`); skipped on native and `/overlay/*`.
-- **Deep links:** `/scorecard` and `/scorecard/*` on AASA + Android App Links.
-- **iOS native:** deployment target **15.0**, marketing **1.1.4**, build **45**.
+- **Watch-URL streams:** logged-in users can add a YouTube or Facebook watch URL (`/live/streaming`) so viewers watch on the Live hub — same pattern as admin external streams. Not subject to the mobile Go Live 2h camera cap.
+- **Broadcast graphics:** scorers open **Broadcast graphics** on a match, save theme/config, copy a signed OBS overlay URL (1920×1080). Lifecycle: THIS_MATCH → TOSS_LT → LT_DEFAULT + existing scoring flashes. Destination RTMP stays outside Tapeya (manual encoder setup).
 
-### Working tree (commit before merge)
+### Hero sliders
 
-- **Support messages admin:** app users already submit via `POST /api/v1/support-messages`. Admins get list / show / status update (`open` → `in_progress` → `resolved`), a shared inbox notification, and a realtime broadcast. Backoffice: **Support → Support Messages**. No new permission slugs — same `admin.only` gate as other admin routes.
-- **Auto engagement (v2):** replaces per-post like/view/chunk knobs with type-specific daily targets. Reels (video) get likes **and** views; text/image/repost get likes only. Chunk size is derived from the ready-post catalog (~one full sweep per day at the 15-minute schedule). **Default off.**
-- **Backoffice polish:** vendors table shows seller phone; minor Quick Matches list/detail copy tweaks.
+- Admin CTA types: **none** (banner only), **url** (internal/external), **dialog** (in-app dialog key + optional param).
+- Existing slides with a non-empty `cta_url` are backfilled to `cta_type=url`.
+- Hardcoded CloudFront app asset bases switched to **`cdn.tapeya.com`**.
+
+### Consumer / backoffice UI
+
+- Shared **`ListEmpty` / `ListError`** across lists; Button variants/sizes tightened (`md` = 45px; unused `lg` removed).
+- Safe-area-aware offsets under fixed navbar (tournament/highlight heroes, sticky tabs, profile header).
+- Shared loaders (`Loader` / `PageLoader`) in app + backoffice; seller catalog empties match My Matches / orders patterns.
+- Profile shell cleanup (dead role tabs removed); `/stats` page; sidebar My Tournaments icon from CDN; match notes delete icon; revise-target dialog in-body side-by-side actions.
+
+### Highlights (native)
+
+- iOS Capacitor highlight YouTube playback uses the live embed proxy / native overlay path to avoid Error 153; interactive controls for VOD.
 
 ---
 
 ## ⚠ Migrations
 
-### Quick Match — schema, not a data wipe
+### Hero slider CTAs — additive
 
-`2026_08_10_100000_add_quick_match_columns_to_matches_and_users`:
+`2026_08_19_100000_add_cta_fields_to_hero_sliders_table`:
 
-- `matches.kind` (default `tournament`)
-- `matches.created_by` (nullable FK)
-- `matches.cricket_format` (nullable)
-- `matches.tournament_id` **nullable**
-- `matches.venue_name` **nullable**
-- `users.added_via_quick_match` (boolean, default false)
+- `hero_sliders.cta_type` (string, default `none`)
+- `hero_sliders.cta_label` (nullable)
+- `hero_sliders.cta_url` (nullable)
+- `hero_sliders.cta_target_blank` (boolean, default true)
+- `hero_sliders.cta_dialog_key` (nullable)
+- `hero_sliders.cta_dialog_param` (nullable)
 
-Existing tournament matches stay as they are (`kind` default + non-null `tournament_id`).
+Backfill: rows with a non-empty `cta_url` → `cta_type=url`. Safe on prod; `down()` drops the new columns.
 
-`2026_08_10_220000_drop_quick_match_scorers_table` is `dropIfExists` — no-op if that table was never created (prod).
+### Shop carts migration file — no schema change expected
 
-**Do not `migrate:rollback` the Quick Match migration after any live quick match exists** — `down()` deletes rows with null `tournament_id` / `venue_name`. Restore a dump instead.
+`2026_02_22_100019_create_shop_carts_table` only drops an unused import on develop. If prod already ran this migration under `ae2c4fd` / `27ef48d`, migrate will skip it. No data change.
 
-### Support message status — additive
+### Live streams table — already on main
 
-`2026_08_18_100000_add_status_to_support_messages_table`:
-
-- `support_messages.status` (string, default `open`)
-
-The `support_messages` table already exists from an earlier migration. Existing rows pick up `open`. Safe to run on prod; rollback only drops the column.
+Table rename `match_streams` → `live_streams` is already on **main** (`ae2c4fd`). This release only finishes the Eloquent model rename (`LiveStream`). No new table migration for that.
 
 ---
 
 ## Pre-deploy
 
-1. [ ] Commit the develop working tree, merge `develop` → `main`, and push.
-2. [ ] DB dump (at least `matches`, `users`, `player_*_stats`, `settings`, `shop_vendors`, `support_messages`).
-3. [ ] Confirm prod still on `5159b51` (or note current SHA) so rollback is possible.
-4. [ ] Confirm Laravel scheduler cron (`schedule:run`) is already running — auto engagement uses it; no new supervisor program.
-5. [ ] Leave auto engagement **off** until you explicitly enable it in Admin → Reels.
-6. [ ] If prod had auto engagement v1 tuned, note the old values — v2 uses different setting keys (see below).
+1. [ ] Push local `develop` (`f1734b2`), merge `develop` → `main`, push `main`.
+2. [ ] DB dump (at least `hero_sliders`, `live_streams`, `matches`, `settings`).
+3. [ ] Confirm prod still on `ae2c4fd` (or note current SHA) so rollback is possible.
+4. [ ] Confirm graphics overlay host + signing secret in System Settings (graphics group) are correct for OBS.
+5. [ ] Confirm Laravel scheduler cron is running (existing live/broadcast commands unchanged in role).
 
 ---
 
@@ -87,58 +96,22 @@ git fetch
 git checkout <release-ref>   # main after merge
 composer install --no-dev --optimize-autoloader
 php artisan migrate --force
-php artisan db:seed --class=SystemSettingsSeeder --force
-php artisan settings:clear-cache
 php artisan config:clear
 php artisan config:cache
+php artisan settings:clear-cache
 # optional: php artisan route:cache
 ```
 
-`SystemSettingsSeeder` + `EnsureSpatieSettingsDatabaseProperties` add Reels auto-engagement keys (idempotent). Defaults:
+No new `SystemSettingsSeeder` / `PermissionSeeder` requirement for this slice beyond existing graphics settings.
 
-| Key | Default | Notes |
-|-----|---------|-------|
-| Enabled | **off** (`0`) | unchanged |
-| Reels likes + views target | 10 | 0–200; each like also counts as a view |
-| Simple post likes target | 8 | 0–50; views not boosted |
-| Chunk size | *(derived)* | ~`ceil(ready_posts / 96)` per tick, max 200 — no admin knob |
-
-Replaces v1 keys (`autoLikeCount`, `autoViewCount`, `autoEngagementPostsPerRun`, `autoEngagementActionsPerPost`). Stale v1 properties may remain in the settings payload but are ignored.
-
-No new `PermissionSeeder` slugs this release. Admin Quick Matches and Support Messages use the existing tournaments / admin gate.
-
-New admin routes:
-
-- `GET /api/v1/admin/support-messages` (filter by `status`, `user_id`)
-- `GET /api/v1/admin/support-messages/{id}`
-- `PATCH /api/v1/admin/support-messages/{id}` (`status` only)
-
-### 2. Queue / scheduler
-
-No new supervisor programs. Auto engagement is `posts:process-auto-engagement` every **15 minutes** via the Laravel scheduler. Support message admin notifications are queued (`ShouldQueue`).
-
-```bash
-sudo supervisorctl status
-# must be UP: default, push-notifications, reels-poster, reels-transcode, reels
-```
-
-Restart PHP-FPM / queue so workers load new code:
+Restart PHP-FPM / queues so workers load new code:
 
 ```bash
 sudo supervisorctl restart all
 sudo systemctl reload php8.2-fpm   # adjust
 ```
 
-Manual / ops:
-
-```bash
-php artisan posts:process-auto-engagement
-php artisan posts:process-auto-engagement --reset-cursor
-```
-
-Cursor is cache key `posts.auto_engagement.cursor_id` (`Cache::forever`). A full cache flush restarts the walk from the beginning (safe).
-
-### 3. Consumer app (`tapeya.com`)
+### 2. Consumer app (`tapeya.com`)
 
 ```bash
 cd /var/www/tapeya/app
@@ -147,11 +120,16 @@ npm run build:production
 # deploy app/dist/
 ```
 
-Ships Quick Match (`/quick-match`, `/matches`), Home CTA, profile tabs always visible, seller nav from `/me` `vendor`, complete-profile once, GA4, AASA `/scorecard` paths. Support form (`/support`) unchanged — no app rebuild required for the admin workflow alone, but ship with the rest of this release.
+Ships: Live Streaming UI, Broadcast graphics dialog, hero CTA taps, ListState/Button polish, CDN asset base, highlight iOS fix (web bundle; store build still needed for Capacitor installs).
 
-Graphics overlay host: API `GraphicContextBuilder` now tolerates null tournament. Rebuild graphics only if you ship overlay assets from this tree (`npm run build:graphics:production`).
+Graphics overlay host: rebuild/deploy graphics if OBS loads from this tree:
 
-### 4. Backoffice (`admin.tapeya.com`)
+```bash
+npm run build:graphics:production
+# deploy graphics dist to graphics.tapeya.com (or your overlay host)
+```
+
+### 3. Backoffice (`admin.tapeya.com`)
 
 ```bash
 cd /var/www/tapeya/backoffice
@@ -162,90 +140,81 @@ npm run build:production
 
 New / updated:
 
-- **Tournaments → Quick Matches**
-- **Support → Support Messages** (list, filter by status, manage dialog)
-- Reels settings: auto engagement v2 targets
-- Notifications: support-message-submitted type (headset icon, link to message)
-- Vendors list: phone column
+- Hero slider create/edit: CTA type, label, URL, target blank, dialog key/param
+- Shared loader components / seller empty-state alignment
+- Live stream admin surfaces tied to `LiveStream` naming (if present in this tree)
 
-### 5. Native (store) — only if you ship the app binaries
+### 4. Native (store) — only if you ship binaries
 
 | Platform | Why |
 |----------|-----|
-| **iOS** | Target 15.0, version **1.1.4** (45). Required for a store/TestFlight build of this tree. |
-| **Android** | App Link `pathPrefix="/scorecard"`. Web AASA already covers iOS Universal Links without a store build. |
+| **iOS** | Highlight YouTube Error 153 fix needs a Capacitor build. Version still **1.1.4** (45) unless you bump separately. |
+| **Android** | Same webview/bundle benefits if you ship; no version bump in this range (**1.1.6** / **17**). |
 
-Web-only production (tapeya.com) works without a store submit. Scorecard App Links on existing Android installs wait for a Play update.
+Web-only production works without a store submit. Existing native installs keep old highlight embed behavior until updated.
 
 ---
 
 ## Post-deploy smoke
 
-### Quick Match
+### Hero CTAs
 
-- [ ] Logged-in Home shows **Start Quick Match**; sidebar **Quick Match** / **My Matches**.
-- [ ] Create scheduled match (inline walk-up name+phone) → `/quick-matches` 201, `kind=quick`, `tournament_id` null, `venue_name` null.
-- [ ] Toss → score a ball as owner; a second account cannot score.
-- [ ] Walk-up activates via normal login OTP (not register).
-- [ ] Profile stats: casual/quick bucket is separate from tournament rankings.
-- [ ] Admin Quick Matches list / filter / cancel scheduled.
-- [ ] Existing tournament scorecard / scoring still works (`kind=tournament`).
+- [ ] Admin can create a slide with CTA **none**, **url**, and **dialog**.
+- [ ] App home: URL slide opens internal path or external link; dialog slide opens the mapped dialog.
+- [ ] Legacy slides with only `cta_url` still behave as URL after migrate backfill.
 
-### Support messages
+### Live streaming (watch URL)
 
-- [ ] App user submits support message → 201, row in `support_messages` with `status=open`.
-- [ ] Admin inbox notification appears (type `support_message_submitted`); bell realtime event fires.
-- [ ] Backoffice **Support → Support Messages**: list, filter by status, open manage dialog.
-- [ ] PATCH status `open` → `in_progress` → `resolved`; invalid status returns 422.
-- [ ] Non-admin cannot hit `/api/v1/admin/support-messages*`.
+- [ ] Logged-in user: `/live/streaming` → Add Live Stream with YouTube/Facebook URL → appears on Live hub when live/listed as designed.
+- [ ] Manage stream (edit / status) works; viewer can open `/live/broadcast/:id`.
+- [ ] Mobile Go Live camera flow still works independently.
 
-### `/me` + seller
+### Broadcast graphics
 
-- [ ] `GET /api/v1/me` has **no** `data.capabilities` and **no** `data.roles`.
-- [ ] No store → no `vendor` key; sidebar **Become a Seller**.
-- [ ] After apply → `vendor.status=pending`; sidebar **Seller Hub**.
-- [ ] Team / squad payloads do **not** include `sponsor.vendor`.
+- [ ] Scorer: match → Broadcast graphics → save theme → signed URL copies.
+- [ ] OBS Browser Source loads overlay; toss / first ball advances lifecycle when a session exists.
+- [ ] Fan APIs do not expose overlay signing secrets.
 
-### Complete profile / GA
+### Highlights (native, if shipping)
 
-- [ ] New register → OTP → complete-profile popup once; later logins do not show it.
-- [ ] Web page views fire in GA4 (`G-MR83CQDG6Z`); `/overlay/*` and native do not.
+- [ ] iOS: open a YouTube highlight — plays without Error 153; controls usable for VOD.
 
-### Auto engagement (leave off unless intended)
+### UI sanity
 
-- [ ] Admin Reels: setting exists, **disabled**; v2 target fields visible (reels + simple post).
-- [ ] `php artisan posts:process-auto-engagement` with disabled setting touches 0 posts.
-- [ ] If you enable it: reels get likes **and** views up to target; simple posts get likes only; chunk size scales with catalog size.
+- [ ] Empty lists show shared empty copy (e.g. My Matches / Tournaments / Live Streaming).
+- [ ] List errors show red message + brand text **Retry**.
+- [ ] Tournament detail back button clears the navbar logo on notched devices.
+- [ ] Fixture card actions use compact outline buttons; revise-target dialog has side-by-side actions and no huge empty footer.
 
-### Deep links
+### CDN
 
-- [ ] `https://tapeya.com/.well-known/apple-app-site-association` includes `/scorecard` and `/scorecard/*`.
+- [ ] App icons/logos load from `cdn.tapeya.com` (no stale CloudFront-only base for static app assets).
 
 ---
 
 ## Rollback
 
-1. Redeploy previous API/app/backoffice (`5159b51`).
-2. If migrate already ran: restore the DB dump (do **not** `migrate:rollback` the Quick Match migration on a DB that has quick matches).
+1. Redeploy previous API/app/backoffice (`ae2c4fd`).
+2. If migrate already ran: restore the DB dump **or** roll back only the hero CTA migration if safe (`php artisan migrate:rollback --step=1` only when that migration is the latest batch — prefer dump restore if unsure).
 3. `php artisan config:clear && php artisan config:cache && php artisan settings:clear-cache`
 
 ---
 
 ## Out of scope this release
 
-- B2 / `cdn.tapeya.com` cutover (already live; no Worker change).
+- B2 / `cdn.tapeya.com` Worker cutover (already live; no Wrangler change).
 - New Composer / npm lockfile.
+- Native version bump / store metadata beyond shipping the existing numbers.
 - JazzCash / card gateway, RMA, seller payouts.
-- Enabling auto engagement (ship **off**; turn on later in Admin).
-- User-facing support form changes (submit flow already live).
+- Enabling auto engagement (unchanged; leave as currently configured on prod).
 
 ---
 
 ## Related
 
-- [APP_CAPABILITIES.md](./APP_CAPABILITIES.md) — `/me` vendor, no capability bag
-- [actors_and_roles.md](./actors_and_roles.md)
-- [player_stats_schema.md](./player_stats_schema.md) — quick bucket
-- [event_flow.md](./event_flow.md) — tournament flow unchanged
+- [LIVE_STREAM_USER_OWNED_BROADCAST.md](./LIVE_STREAM_USER_OWNED_BROADCAST.md) — organizer OBS overlay slice
+- [LIVE_STREAM_TABLE_RENAME.md](./LIVE_STREAM_TABLE_RENAME.md) — `live_streams` naming
+- [LIVE_STREAM_YOUTUBE_FINAL.md](./LIVE_STREAM_YOUTUBE_FINAL.md)
+- [MEDIA_CDN_MIGRATION.md](./MEDIA_CDN_MIGRATION.md) — `cdn.tapeya.com`
 - [DEEP_LINKS.md](./DEEP_LINKS.md)
 - [DEPLOYMENT.md](./DEPLOYMENT.md) — build commands
