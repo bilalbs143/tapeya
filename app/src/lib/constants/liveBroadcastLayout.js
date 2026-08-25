@@ -9,6 +9,13 @@ export const LIVE_BROADCAST_HEADER_OVERLAY_Z = 20;
 /** Comment / toggle controls overlaid on the video — above header so toggles stay tappable. */
 export const LIVE_BROADCAST_CONTROLS_OVERLAY_Z = 25;
 
+/** Portrait floating rotate / comment toggles — shared by live + highlights. */
+export const LIVE_BROADCAST_TOGGLE_BTN =
+  'flex h-9 w-9 shrink-0 touch-manipulation items-center justify-center rounded-full bg-white/[0.13] backdrop-blur-[9.7px] transition-opacity active:opacity-80';
+
+/** Dock for portrait floating toggles (right-aligned above bottom chrome). */
+export const LIVE_BROADCAST_BOTTOM_OVERLAY = 'pointer-events-none absolute right-0 bottom-[12px] left-0 px-4 pb-2';
+
 /** Fixed landscape toggle — portaled above all app chrome. */
 export const LIVE_BROADCAST_IMMERSIVE_TOGGLE_Z = 100;
 

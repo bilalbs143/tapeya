@@ -20,9 +20,12 @@ class YouTubeEmbedProxyController extends Controller
             abort(404);
         }
 
+        $allowControls = $request->query('controls') === '1';
+
         return response()
             ->view('embed.youtube', [
                 'embedSrc' => $rawSrc,
+                'allowControls' => $allowControls,
                 'youtubeEmbedOrigin' => YouTubeEmbedUrl::trustedAppOrigin(),
             ])
             ->header('Content-Security-Policy', 'frame-ancestors *')

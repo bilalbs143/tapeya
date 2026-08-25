@@ -10,9 +10,9 @@ export function MoreHighlightRow({ highlight, onClick }) {
     <button
       type="button"
       onClick={() => onClick?.(highlight)}
-      className="bg-surface focus-visible:ring-brand flex w-full items-center gap-3 rounded-[17px] p-3 text-left transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black active:opacity-90"
+      className="focus-visible:ring-brand flex w-full items-center gap-3 py-2.5 text-left transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black active:opacity-80"
     >
-      <div className="bg-surface-deep h-[72px] w-[112px] shrink-0 overflow-hidden rounded-[10px]">
+      <div className="bg-surface h-[56px] w-[88px] shrink-0 overflow-hidden rounded-lg">
         <img
           src={imageUrl}
           alt={title}
@@ -25,7 +25,7 @@ export function MoreHighlightRow({ highlight, onClick }) {
         />
       </div>
       <div className="min-w-0 flex-1">
-        <h3 className="line-clamp-2 text-[13px] font-medium text-white">{title}</h3>
+        <h3 className="line-clamp-2 text-[13px] leading-snug font-medium text-white">{title}</h3>
         {durationLabel ? <p className="text-muted mt-1 text-[12px]">{durationLabel}</p> : null}
       </div>
     </button>

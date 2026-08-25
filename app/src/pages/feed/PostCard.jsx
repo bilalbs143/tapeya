@@ -9,7 +9,7 @@ import { UserAvatar } from '@/components/UserAvatar';
 import { usePostEngagement } from '@/features/feed/usePostEngagement';
 import { getFeedTextBackground } from '@/lib/constants/composeBackgrounds';
 import { formatCount } from '@/lib/format';
-import { buildPostDetailPath } from '@/lib/share';
+import { buildPostDetailPath, resolveCreatorProfilePath } from '@/lib/share';
 import { formatPostTimestamp } from '@/lib/utils/feedUtils';
 import { useFollowReelCreatorMutation, useUnfollowReelCreatorMutation } from '@/store/api/reelsApi';
 import { useAppSelector } from '@/store/hooks';
@@ -214,6 +214,7 @@ export default function PostCard({ post }) {
   const mediaWidth = media?.[0]?.width || null;
   const mediaHeight = media?.[0]?.height || null;
   const detailTo = buildPostDetailPath(post);
+  const profileTo = resolveCreatorProfilePath(authorId);
 
   const isOwnPost = authorId != null && currentUser?.id != null && String(authorId) === String(currentUser.id);
   const showFollow = Boolean(authorId) && !isOwnPost;
@@ -238,18 +239,33 @@ export default function PostCard({ post }) {
       <header className="flex items-center gap-2 px-4 pt-3.5">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <UserAvatar src={authorAvatarUrl} name={authorName} userId={authorId} size="xl" ring="brand" />
-          <Link
-            to={detailTo}
-            className="focus-visible:ring-brand focus-visible:ring-offset-surface min-w-0 flex-1 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-          >
-            <div className="flex min-w-0 items-center gap-1">
-              <span className="truncate text-[14px] font-bold text-white">{authorName}</span>
-              <OfficialBadge isOfficial={authorIsOfficial} />
-            </div>
-            <time className="text-muted block text-[11px] leading-tight" dateTime={publishedAt || undefined}>
-              {formattedTimestamp}
-            </time>
-          </Link>
+          <div className="min-w-0 flex-1">
+            {profileTo ? (
+              <Link
+                to={profileTo}
+                className="focus-visible:ring-brand focus-visible:ring-offset-surface flex min-w-0 items-center gap-1 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                aria-label={authorName ? `View ${authorName}'s profile` : 'View profile'}
+              >
+                <span className="truncate text-[14px] font-bold text-white">{authorName}</span>
+                <OfficialBadge isOfficial={authorIsOfficial} />
+              </Link>
+            ) : (
+              <div className="flex min-w-0 items-center gap-1">
+                <span className="truncate text-[14px] font-bold text-white">{authorName}</span>
+                <OfficialBadge isOfficial={authorIsOfficial} />
+              </div>
+            )}
+            {formattedTimestamp ? (
+              <Link
+                to={detailTo}
+                className="focus-visible:ring-brand focus-visible:ring-offset-surface focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+              >
+                <time className="text-muted block text-[11px] leading-tight" dateTime={publishedAt || undefined}>
+                  {formattedTimestamp}
+                </time>
+              </Link>
+            ) : null}
+          </div>
         </div>
         {showFollow ? (
           <FollowChip following={followingCreator} busy={followBusy} onClick={onFollowClick} name={authorName} />

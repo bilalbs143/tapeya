@@ -5,6 +5,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useNativeStoreVersionInfo } from '@/hooks/useNativeStoreVersionInfo';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { addSavedProfile } from '@/lib/savedProfiles';
+import { resolveOwnProfilePath } from '@/lib/share';
 import { calculateProfileStrength } from '@/lib/utils/playerUtils';
 import { userCanApplyAsSeller, userHasVendorAccess } from '@/lib/vendorAccess';
 import { isNative } from '@/platform/platform';
@@ -111,6 +112,7 @@ export function Sidebar({ open, onClose }) {
   /** Same merge as Profile page / ProfileHeader — live /me data when available */
   const profileUser = meResponse?.data ?? user;
   const strength = profileUser ? calculateProfileStrength(profileUser) : 0;
+  const ownProfilePath = resolveOwnProfilePath(profileUser?.id);
 
   const { isNativeMobile: showNativeVersions, installedVersion, configuredVersion } = useNativeStoreVersionInfo();
 
@@ -232,7 +234,7 @@ export function Sidebar({ open, onClose }) {
         <div className="flex flex-1 flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto px-4 pb-6" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 24px)' }}>
             <Link
-              to="/profile"
+              to={ownProfilePath}
               onClick={onClose}
               className="flex gap-3 rounded-lg transition-colors hover:bg-white/5 focus:outline-none"
             >

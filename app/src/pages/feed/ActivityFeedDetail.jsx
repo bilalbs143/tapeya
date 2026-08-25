@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import PostCommentsThread from '@/components/feed/PostCommentsThread';
@@ -11,6 +11,7 @@ import { UserAvatar } from '@/components/UserAvatar';
 import { usePostEngagement } from '@/features/feed/usePostEngagement';
 import { getFeedTextBackground } from '@/lib/constants/composeBackgrounds';
 import { formatCount } from '@/lib/format';
+import { resolveCreatorProfilePath } from '@/lib/share';
 import { formatPostTimestamp } from '@/lib/utils/feedUtils';
 import { ActionButton, BookmarkIcon, CommentIcon, FollowChip, HeartIcon, RepostIcon, ShareIcon } from '@/pages/feed/PostCard';
 import { useGetPostQuery } from '@/store/api/feedApi';
@@ -130,6 +131,7 @@ export default function ActivityFeedDetail() {
   const isOwnPost = authorId != null && currentUser?.id != null && String(authorId) === String(currentUser.id);
   const showFollow = Boolean(authorId) && !isOwnPost;
   const followBusy = isFollowPending || isUnfollowPending;
+  const profileTo = resolveCreatorProfilePath(authorId);
 
   const onFollowClick = () => {
     if (!authorId || followBusy) return;
@@ -151,10 +153,21 @@ export default function ActivityFeedDetail() {
               <div className="flex min-w-0 flex-1 items-center gap-3">
                 <UserAvatar src={authorAvatarUrl} name={authorName} userId={authorId} size="xl" ring="brand" />
                 <div className="min-w-0 flex-1">
-                  <div className="flex min-w-0 items-center gap-1">
-                    <span className="truncate text-[14px] font-bold text-white">{authorName}</span>
-                    <OfficialBadge isOfficial={authorIsOfficial} />
-                  </div>
+                  {profileTo ? (
+                    <Link
+                      to={profileTo}
+                      className="focus-visible:ring-brand focus-visible:ring-offset-surface flex min-w-0 items-center gap-1 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                      aria-label={authorName ? `View ${authorName}'s profile` : 'View profile'}
+                    >
+                      <span className="truncate text-[14px] font-bold text-white">{authorName}</span>
+                      <OfficialBadge isOfficial={authorIsOfficial} />
+                    </Link>
+                  ) : (
+                    <div className="flex min-w-0 items-center gap-1">
+                      <span className="truncate text-[14px] font-bold text-white">{authorName}</span>
+                      <OfficialBadge isOfficial={authorIsOfficial} />
+                    </div>
+                  )}
                   <time className="text-muted block text-[11px] leading-tight" dateTime={publishedAt || undefined}>
                     {formattedTimestamp}
                   </time>

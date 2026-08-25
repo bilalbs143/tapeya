@@ -22,6 +22,7 @@ import { SearchableSelect } from '@/ui/SearchableSelect';
  * @param {string} [props.cityId]
  * @param {string} [props.className]
  * @param {'default' | 'compact' | 'relaxed'} [props.density='default'] — gap between country and city (matches FormStack density)
+ * @param {'stack' | 'row'} [props.layout='stack'] — stack vertically, or side-by-side on one row
  * @param {boolean} [props.showCountry=true]
  * @param {boolean} [props.showCity=true]
  */
@@ -41,6 +42,7 @@ export function CountryCityFields({
   cityId = 'city',
   className = '',
   density = 'default',
+  layout = 'stack',
   showCountry = true,
   showCity = true,
 }) {
@@ -59,9 +61,10 @@ export function CountryCityFields({
   }
 
   const densityClass = COUNTRY_CITY_DENSITY[density] ?? COUNTRY_CITY_DENSITY.default;
+  const layoutClass = layout === 'row' ? 'grid grid-cols-2 gap-3 sm:gap-6' : `flex flex-col ${densityClass}`;
 
   return (
-    <div className={`flex flex-col ${densityClass} ${className}`.trim()}>
+    <div className={`${layoutClass} ${className}`.trim()}>
       {showCountry && (
         <FormField label={countryLabel} htmlFor={countryId} required={required}>
           <SearchableSelect

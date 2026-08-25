@@ -103,8 +103,7 @@ final class EnsureSpatieSettingsDatabaseProperties
                         'multipartPartSizeMb' => 1,
                         'multipartMaxParts' => 0,
                         'autoEngagementEnabled' => 0,
-                        'reelsEngagementPerDay' => 10,
-                        'simplePostLikesPerDay' => 8,
+                        'reelsEngagementPerDay' => 5,
                         default => 0,
                     };
                 }

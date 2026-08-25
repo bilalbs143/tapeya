@@ -116,16 +116,20 @@ function SummaryHighlight({ label, value }) {
 }
 
 /**
- * Career batting / bowling / fielding stats for the signed-in user.
- * Used on the standalone `/stats` page.
+ * Career batting / bowling / fielding stats.
+ * - `/stats` page: omit `userId` → signed-in user
+ * - Creator profile Stats tab: pass that profile's `userId`
+ *
+ * @param {{ userId?: string|number|null }} [props]
  */
-export function ProfileStats() {
+export function ProfileStats({ userId: userIdProp } = {}) {
   const navigate = useNavigate();
   const [teamsExpanded, setTeamsExpanded] = useState(false);
   const [tournamentType, setTournamentType] = useState('all');
   const [cricketFormat, setCricketFormat] = useState('all');
-  const user = useAppSelector(selectUser);
-  const userId = user?.id ?? null;
+  const currentUser = useAppSelector(selectUser);
+  const userId = userIdProp ?? currentUser?.id ?? null;
+  const isOwnStats = currentUser?.id != null && userId != null && Number(currentUser.id) === Number(userId);
 
   const { data: enums = {} } = useGetEnumsQuery();
   const tournamentTypeOptions = useMemo(
@@ -169,6 +173,14 @@ export function ProfileStats() {
     );
   }
 
+  const highlightsEmptyDescription = isOwnStats
+    ? 'Play matches to build your record.'
+    : 'This player has no batting highlights yet.';
+  const battingEmpty = isOwnStats ? 'No batting stats recorded yet.' : 'No batting stats recorded for this player.';
+  const bowlingEmpty = isOwnStats ? 'No bowling stats recorded yet.' : 'No bowling stats recorded for this player.';
+  const fieldingEmpty = isOwnStats ? 'No fielding stats recorded yet.' : 'No fielding stats recorded for this player.';
+  const teamsEmpty = isOwnStats ? 'No teams yet' : 'No teams listed';
+
   return (
     <div className="flex flex-col gap-5 pb-8">
       <FilterPillSelectGroup>
@@ -201,7 +213,7 @@ export function ProfileStats() {
               ))}
             </div>
           ) : (
-            <ListEmpty title="No Batting Highlights Yet." description="Play matches to build your record." />
+            <ListEmpty title="No Batting Highlights Yet." description={highlightsEmptyDescription} />
           )}
 
           <section className="bg-surface rounded-[17px] px-4 py-4 sm:px-5">
@@ -235,16 +247,16 @@ export function ProfileStats() {
                   ) : null}
                 </>
               ) : (
-                <span className="text-muted text-[14px]">No teams yet</span>
+                <span className="text-muted text-[14px]">{teamsEmpty}</span>
               )}
             </div>
           </section>
 
-          <CareerStatSection title="Batting" items={careerAverages} emptyMessage="No batting stats recorded yet." />
+          <CareerStatSection title="Batting" items={careerAverages} emptyMessage={battingEmpty} />
 
-          <CareerStatSection title="Bowling" items={bowlingCareer} emptyMessage="No bowling stats recorded yet." />
+          <CareerStatSection title="Bowling" items={bowlingCareer} emptyMessage={bowlingEmpty} />
 
-          <CareerStatSection title="Fielding" items={fieldingCareer} emptyMessage="No fielding stats recorded yet." />
+          <CareerStatSection title="Fielding" items={fieldingCareer} emptyMessage={fieldingEmpty} />
         </>
       )}
     </div>

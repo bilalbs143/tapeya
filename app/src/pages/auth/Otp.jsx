@@ -306,7 +306,7 @@ export default function Otp() {
             )}
           </div>
 
-          <Button type="submit" disabled={busy} loading={isLoading} variant="orange" className="mt-4 lg:w-full">
+          <Button type="submit" disabled={busy} loading={isLoading} variant="orange" className="mt-4 w-full">
             {busy ? 'Verifying…' : 'Next'}
           </Button>
         </form>

@@ -90,8 +90,8 @@ enum SystemSettingKeyEnum: string
     case REELS_MULTIPART_PART_SIZE_MB = 'reels_multipart_part_size_mb';
     case REELS_MULTIPART_MAX_PARTS = 'reels_multipart_max_parts';
     case REELS_AUTO_ENGAGEMENT_ENABLED = 'reels_auto_engagement_enabled';
+    /** Lifetime max likes/views per reel soft-cap (legacy key; value is daily max). */
     case REELS_ENGAGEMENT_PER_DAY = 'reels_engagement_per_day';
-    case REELS_SIMPLE_POST_LIKES_PER_DAY = 'reels_simple_post_likes_per_day';
 
     public function group(): SystemSettingGroupEnum
     {

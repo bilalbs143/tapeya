@@ -45,13 +45,16 @@ class PostsSettings extends Settings
     public int $autoEngagementEnabled;
 
     /**
-     * Target likes_count and views_count per reel (video post).
-     * Likes on reels also record a view for the same user.
+     * Max likes/views auto-applied to a reel per calendar day.
+     * Each day picks a random amount in 1…this value. Soft lifetime = daily × fresh days.
      */
     public int $reelsEngagementPerDay;
 
-    /** Target likes_count per simple post (text / image / repost). Views are not boosted. */
-    public int $simplePostLikesPerDay;
+    /** Only boost posts published within this many days. */
+    public const AUTO_ENGAGEMENT_FRESH_DAYS = 30;
+
+    /** Simple posts get this fraction of the reel daily max (likes only). */
+    public const AUTO_ENGAGEMENT_SIMPLE_RATIO = 0.6;
 
     public static function group(): string
     {
@@ -63,14 +66,60 @@ class PostsSettings extends Settings
         return $this->autoEngagementEnabled === 1;
     }
 
-    public function reelsEngagementTarget(): int
+    /** Max auto likes/views per reel per calendar day. */
+    public function reelsDailyMax(): int
     {
-        return max(0, min(200, (int) $this->reelsEngagementPerDay));
+        return max(0, min(50, (int) $this->reelsEngagementPerDay));
     }
 
+    /** Max auto likes per simple post per calendar day. */
+    public function simpleDailyMax(): int
+    {
+        return max(0, min(30, (int) round($this->reelsDailyMax() * self::AUTO_ENGAGEMENT_SIMPLE_RATIO)));
+    }
+
+    /**
+     * Soft ceiling so a post cannot grow forever (daily max × freshness window).
+     */
+    public function reelsLifetimeMax(): int
+    {
+        return $this->reelsDailyMax() * self::AUTO_ENGAGEMENT_FRESH_DAYS;
+    }
+
+    public function simpleLifetimeMax(): int
+    {
+        return $this->simpleDailyMax() * self::AUTO_ENGAGEMENT_FRESH_DAYS;
+    }
+
+    public function autoEngagementFreshDays(): int
+    {
+        return self::AUTO_ENGAGEMENT_FRESH_DAYS;
+    }
+
+    /**
+     * Inclusive random daily drip range for a given daily max.
+     *
+     * @return array{0: int, 1: int} [min, max]
+     */
+    public function dailyDripRange(int $dailyMax): array
+    {
+        if ($dailyMax <= 0) {
+            return [0, 0];
+        }
+
+        return [1, $dailyMax];
+    }
+
+    /** @deprecated Use {@see reelsLifetimeMax()} */
+    public function reelsEngagementTarget(): int
+    {
+        return $this->reelsLifetimeMax();
+    }
+
+    /** @deprecated Use {@see simpleLifetimeMax()} */
     public function simplePostLikesTarget(): int
     {
-        return max(0, min(50, (int) $this->simplePostLikesPerDay));
+        return $this->simpleLifetimeMax();
     }
 
     public function viewMinCompletionRate(): float

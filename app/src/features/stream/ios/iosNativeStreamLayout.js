@@ -24,11 +24,15 @@ export function readElementLayoutRect(element) {
   };
 }
 
-/** Z-order + interaction. Portrait keeps the measured frame; landscape fills the host. */
+/**
+ * Z-order + interaction. Portrait keeps the measured frame; landscape fills the host.
+ *
+ * Default `interactive: false` (live + highlight landscape): native under Capacitor so React
+ * chrome stays tappable. Highlights portrait VOD passes `interactive: true` so YouTube
+ * play/pause/seek work — keep React controls outside that frame.
+ */
 export function buildNativeStackLayout(isLandscape, { interactive = false } = {}) {
   return {
-    // Live: under Capacitor so React chrome (badges/hearts) receives taps.
-    // Highlights VOD: native on top + userInteractionEnabled so YouTube controls work.
     underlay: !interactive,
     immersiveFullscreen: Boolean(isLandscape),
     userInteractionEnabled: Boolean(interactive),

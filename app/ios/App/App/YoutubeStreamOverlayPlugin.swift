@@ -9,7 +9,8 @@ private let playbackKickDelays: [TimeInterval] = [0, 0.35, 1.2]
 /**
  * Native YouTube player for iOS Capacitor.
  *
- * Always underlay (WKWebView below transparent Capacitor) so React chrome composites on top.
+ * Underlay (`underlay: true`): WKWebView below Capacitor — React chrome stays tappable (live).
+ * Interactive (`underlay: false`): WKWebView above Capacitor — YouTube controls receive taps (highlights VOD).
  * Portrait: sized to the web placeholder. Landscape: immersive fullscreen; embed proxy handles rotate/cover.
  *
  * Playback contract with `/embed/youtube`:
@@ -261,6 +262,7 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
 
     private func attachOverlay(_ webView: WKWebView, on hostView: UIView, underlay: Bool) {
         if underlay, let capWebView = bridge?.webView {
+            // Below Capacitor so React chrome (live badges / rotate) receives taps.
             let targetParent = capWebView.superview ?? hostView
             if webView.superview !== targetParent {
                 webView.removeFromSuperview()
@@ -268,13 +270,26 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
             } else {
                 targetParent.insertSubview(webView, belowSubview: capWebView)
             }
-        } else {
-            if webView.superview !== hostView {
-                webView.removeFromSuperview()
-                hostView.addSubview(webView)
-            }
-            hostView.bringSubviewToFront(webView)
+            return
         }
+
+        // VOD / interactive: above Capacitor so YouTube play/pause/seek receive taps.
+        if let capWebView = bridge?.webView {
+            let targetParent = capWebView.superview ?? hostView
+            if webView.superview !== targetParent {
+                webView.removeFromSuperview()
+                targetParent.insertSubview(webView, aboveSubview: capWebView)
+            } else {
+                targetParent.insertSubview(webView, aboveSubview: capWebView)
+            }
+            return
+        }
+
+        if webView.superview !== hostView {
+            webView.removeFromSuperview()
+            hostView.addSubview(webView)
+        }
+        hostView.bringSubviewToFront(webView)
     }
 
     @discardableResult
@@ -287,6 +302,12 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
         hostView: UIView? = nil
     ) -> Bool {
         webView.isUserInteractionEnabled = userInteractionEnabled
+        webView.scrollView.isUserInteractionEnabled = userInteractionEnabled
+        // Ensure the scroll view does not eat the first tap when controls are enabled.
+        if userInteractionEnabled {
+            webView.scrollView.delaysContentTouches = false
+            webView.scrollView.canCancelContentTouches = false
+        }
 
         if immersiveFullscreen, let host = hostView {
             let bounds = immersiveHostBounds(for: host)

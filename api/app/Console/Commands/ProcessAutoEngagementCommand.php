@@ -10,7 +10,7 @@ class ProcessAutoEngagementCommand extends Command
     protected $signature = 'posts:process-auto-engagement
                             {--reset-cursor : Reset chunk cursor to the start}';
 
-    protected $description = 'Temporary: drip likes/views on the next chunk of public posts';
+    protected $description = 'Drip random daily likes/views on fresh public posts (toward soft lifetime)';
 
     public function handle(AutoEngagementService $service): int
     {
@@ -23,9 +23,9 @@ class ProcessAutoEngagementCommand extends Command
         $remaining = $service->remainingUnderTargetCount();
 
         if ($remaining === 0) {
-            $this->info("All posts at target. Touched {$touched} this run.");
+            $this->info("All eligible posts at soft lifetime (or outside freshness). Touched {$touched} this run.");
         } else {
-            $this->info("Touched {$touched} post(s). Remaining under target: {$remaining}.");
+            $this->info("Touched {$touched} post(s). Remaining under soft lifetime: {$remaining}.");
         }
 
         return self::SUCCESS;

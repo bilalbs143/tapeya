@@ -75,6 +75,8 @@ class LiveStreamService
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
             'streaming_url' => $data['streaming_url'],
+            // Paste URLs are always horizontal 16:9 — not mobile Go Live portrait hero.
+            'orientation' => StreamOrientationEnum::Landscape,
             'provider' => 'external',
             'status' => $data['status'] ?? 'idle',
             'created_by' => $createdBy,

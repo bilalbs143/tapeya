@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 import { OfficialBadge } from '@/components/OfficialBadge';
 import { UserAvatar } from '@/components/UserAvatar';
-import { buildCreatorProfilePath } from '@/lib/share';
+import { resolveCreatorProfilePath } from '@/lib/share';
 import { useFollowReelCreatorMutation } from '@/store/api/reelsApi';
 import { Loader } from '@/ui/Loader';
 
@@ -12,7 +12,7 @@ const ROW_SLOT_CLASS = 'min-h-[3.25rem]';
 
 function SuggestedFollowRow({ user, onFollowed }) {
   const [followCreator, { isLoading: isFollowPending }] = useFollowReelCreatorMutation();
-  const profilePath = buildCreatorProfilePath(user.id);
+  const profilePath = resolveCreatorProfilePath(user.id);
   const displayName = user.name || user.nickname || 'User';
 
   const onFollowClick = async () => {
@@ -31,10 +31,17 @@ function SuggestedFollowRow({ user, onFollowed }) {
       <UserAvatar src={user.avatarUrl} name={displayName} userId={user.id} size="xl" />
 
       <div className="min-w-0 flex-1">
-        <Link to={profilePath} className="flex min-w-0 items-center gap-1">
-          <span className="truncate text-[14px] font-bold text-white">{displayName}</span>
-          <OfficialBadge isOfficial={user.isOfficial} size="sm" />
-        </Link>
+        {profilePath ? (
+          <Link to={profilePath} className="flex min-w-0 items-center gap-1">
+            <span className="truncate text-[14px] font-bold text-white">{displayName}</span>
+            <OfficialBadge isOfficial={user.isOfficial} size="sm" />
+          </Link>
+        ) : (
+          <div className="flex min-w-0 items-center gap-1">
+            <span className="truncate text-[14px] font-bold text-white">{displayName}</span>
+            <OfficialBadge isOfficial={user.isOfficial} size="sm" />
+          </div>
+        )}
         {user.nickname ? <p className="text-muted truncate text-[12px]">@{user.nickname}</p> : null}
         {user.subtitle ? <p className="text-muted/90 mt-0.5 truncate text-[11px]">{user.subtitle}</p> : null}
       </div>

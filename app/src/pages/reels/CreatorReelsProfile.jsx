@@ -1,9 +1,9 @@
 /**
- * Public creator profile for reels — opened from the feed action-rail avatar.
- * Route: /reels/u/:userId
+ * Public creator profile — main profile for own user (`/reels/u/:userId`).
+ * Edit / account details live at `/profile`.
  *
- * Everyone: Reels / Posts tabs.
- * Own profile also: Liked / Saved (private).
+ * Other users: Reels / Posts / Stats.
+ * Own profile: Reels / Posts / Liked / Saved (+ Edit Profile). Career stats via sidebar My Stats.
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -14,6 +14,7 @@ import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { OfficialBadge } from '@/components/OfficialBadge';
 import { ReelPosterGrid } from '@/components/reels/ReelPosterGrid';
 import { UserAvatar } from '@/components/UserAvatar';
+import { ProfileStats } from '@/components/UserProfileTabs/ProfileStats';
 import { composeDestination } from '@/lib/feed/composeDestination';
 import { formatCount } from '@/lib/format';
 import { buildCreatorProfileShareUrl, shareLink } from '@/lib/share';
@@ -39,8 +40,11 @@ import { Loader, LoaderBlock, PageLoader } from '@/ui/Loader';
 
 const TAB_REELS = 'reels';
 const TAB_POSTS = 'posts';
+const TAB_STATS = 'stats';
 const TAB_LIKED = 'liked';
 const TAB_SAVED = 'saved';
+
+const PUBLIC_CONTENT_TABS = new Set([TAB_REELS, TAB_POSTS, TAB_STATS]);
 
 function LocationPinIcon({ className = 'h-3.5 w-3.5' }) {
   return (
@@ -135,13 +139,36 @@ function PostsTabIcon({ className = 'size-4' }) {
   );
 }
 
-const SHARED_TABS = [
+function StatsTabIcon({ className = 'size-4' }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M4 19V5" />
+      <path d="M4 19h16" />
+      <path d="M8 17V11" />
+      <path d="M12 17V7" />
+      <path d="M16 17v-4" />
+    </svg>
+  );
+}
+
+const BASE_TABS = [
   { id: TAB_REELS, label: 'Reels', Icon: ReelsTabIcon },
   { id: TAB_POSTS, label: 'Posts', Icon: PostsTabIcon },
 ];
 
+const OTHER_TABS = [...BASE_TABS, { id: TAB_STATS, label: 'Stats', Icon: StatsTabIcon }];
+
 const OWN_TABS = [
-  ...SHARED_TABS,
+  ...BASE_TABS,
   { id: TAB_LIKED, label: 'Liked', Icon: LikedTabIcon },
   { id: TAB_SAVED, label: 'Saved', Icon: SavedTabIcon },
 ];
@@ -167,10 +194,16 @@ export default function CreatorReelsProfile() {
   const [activeTab, setActiveTab] = useState(TAB_REELS);
 
   useEffect(() => {
-    if (!isOwnProfile && activeTab !== TAB_REELS && activeTab !== TAB_POSTS) {
+    if (isOwnProfile) {
+      if (activeTab === TAB_STATS) setActiveTab(TAB_REELS);
+      return;
+    }
+    if (!PUBLIC_CONTENT_TABS.has(activeTab)) {
       setActiveTab(TAB_REELS);
     }
   }, [isOwnProfile, activeTab]);
+
+  const isStatsTab = activeTab === TAB_STATS;
 
   const reelsQuery = useGetUserReelsQuery({ userId, perPage: 18 }, { skip: !validUserId || activeTab !== TAB_REELS });
   const postsQuery = useGetUserPostsQuery({ userId, perPage: 10 }, { skip: !validUserId || activeTab !== TAB_POSTS });
@@ -187,7 +220,6 @@ export default function CreatorReelsProfile() {
 
   const displayName = profile?.name || profile?.nickname || 'Creator';
   const handle = profile?.nickname ? `@${profile.nickname}` : null;
-  const headerTitle = (profile?.nickname || profile?.name || 'PROFILE').toUpperCase();
 
   const locationLabel = useMemo(() => {
     if (!profile) return null;
@@ -235,8 +267,9 @@ export default function CreatorReelsProfile() {
     [profile],
   );
 
-  const activeQuery =
-    activeTab === TAB_POSTS
+  const activeQuery = isStatsTab
+    ? null
+    : activeTab === TAB_POSTS
       ? postsQuery
       : activeTab === TAB_LIKED
         ? likedQuery
@@ -244,11 +277,11 @@ export default function CreatorReelsProfile() {
           ? savedQuery
           : reelsQuery;
 
-  const items = activeQuery.data?.items ?? [];
-  const nextCursor = activeQuery.data?.nextCursor ?? null;
-  const isLoading = activeQuery.isLoading;
-  const isFetching = activeQuery.isFetching;
-  const isError = activeQuery.isError;
+  const items = activeQuery?.data?.items ?? [];
+  const nextCursor = activeQuery?.data?.nextCursor ?? null;
+  const isLoading = Boolean(activeQuery?.isLoading);
+  const isFetching = Boolean(activeQuery?.isFetching);
+  const isError = Boolean(activeQuery?.isError);
 
   const emptyCopy =
     activeTab === TAB_POSTS
@@ -332,7 +365,7 @@ export default function CreatorReelsProfile() {
   if (!validUserId) {
     return (
       <div className="bg-black">
-        <AppSubpageHeader sticky title="PROFILE" />
+        <AppSubpageHeader sticky title="" />
         <Container>
           <ListEmpty title="Profile Not Found." />
         </Container>
@@ -342,7 +375,7 @@ export default function CreatorReelsProfile() {
 
   return (
     <div className="bg-black pb-6">
-      <AppSubpageHeader sticky title={headerTitle} />
+      <AppSubpageHeader sticky title="" />
 
       <Container>
         {profileLoading ? (
@@ -351,84 +384,88 @@ export default function CreatorReelsProfile() {
           <ListError message="Could not load this profile." onRetry={() => refetchProfile()} />
         ) : (
           <>
-            <div className="flex flex-col items-center text-center">
-              <UserAvatar src={profile.avatarUrl} name={displayName} size="2xl" />
+            <header className="pt-1">
+              <div className="flex items-start gap-4">
+                <UserAvatar src={profile.avatarUrl} name={displayName} size="2xl" ring="brand" className="shrink-0" />
 
-              <h1 className="mt-3 inline-flex max-w-full items-center justify-center gap-1.5 text-[20px] font-bold text-white">
-                <span className="truncate">{displayName}</span>
-                <OfficialBadge isOfficial={profile.isOfficial} size="md" />
-              </h1>
-              {handle ? <p className="text-muted mt-0.5 text-[13px]">{handle}</p> : null}
+                <div className="min-w-0 flex-1 self-center">
+                  <h1 className="inline-flex max-w-full items-center gap-1.5 text-[20px] leading-tight font-bold text-white">
+                    <span className="truncate">{displayName}</span>
+                    <OfficialBadge isOfficial={profile.isOfficial} size="md" />
+                  </h1>
+                  {handle ? <p className="text-muted mt-0.5 truncate text-[13px]">{handle}</p> : null}
 
-              {roleStylePills.length > 0 ? (
-                <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5">
-                  {roleStylePills.map((label) => (
-                    <span
-                      key={label}
-                      className="bg-surface text-muted inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide uppercase"
-                    >
-                      {label}
-                    </span>
-                  ))}
+                  {locationLabel ? (
+                    <p className="text-muted mt-2 flex min-w-0 items-center gap-1.5 text-[12px]">
+                      <LocationPinIcon className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{locationLabel}</span>
+                    </p>
+                  ) : null}
+
+                  {roleStylePills.length > 0 ? (
+                    <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                      {roleStylePills.map((label) => (
+                        <span
+                          key={label}
+                          className="bg-surface-raised text-muted inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold tracking-wide uppercase"
+                        >
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
-              ) : null}
-            </div>
+              </div>
 
-            <div className="mt-5 grid grid-cols-3 gap-2">
-              {stats.map(({ label, value }) => (
-                <div key={label} className="bg-surface rounded-[14px] px-2 py-3 text-center">
-                  <div className="text-[16px] font-bold text-white">{value}</div>
-                  <div className="text-muted mt-1 text-[11px] font-bold tracking-wide uppercase">{label}</div>
-                </div>
-              ))}
-            </div>
+              <div className="bg-surface mt-5 grid grid-cols-3 divide-x divide-white/10 overflow-hidden rounded-[14px]">
+                {stats.map(({ label, value }) => (
+                  <div key={label} className="px-2 py-3.5 text-center">
+                    <div className="text-[17px] font-bold text-white tabular-nums">{value}</div>
+                    <div className="text-muted mt-1 text-[10px] font-bold tracking-wide uppercase sm:text-[11px]">{label}</div>
+                  </div>
+                ))}
+              </div>
 
-            {locationLabel ? (
-              <p className="text-muted mt-4 flex items-center justify-center gap-1.5 text-[12px]">
-                <LocationPinIcon />
-                {locationLabel}
-              </p>
-            ) : null}
+              <div className="mt-4 flex items-center gap-2">
+                {isOwnProfile ? (
+                  <Link
+                    to="/profile"
+                    className="border-brand text-brand flex h-11 flex-1 items-center justify-center rounded-[10px] border text-[14px] font-bold transition-opacity active:opacity-90"
+                  >
+                    Edit Profile
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleFollowToggle}
+                    disabled={isFollowing || isUnfollowing}
+                    className={
+                      profile.isFollowing
+                        ? 'bg-surface text-muted flex h-11 flex-1 items-center justify-center rounded-[10px] text-[14px] font-bold transition-opacity active:opacity-90 disabled:opacity-60'
+                        : 'bg-brand text-ink flex h-11 flex-1 items-center justify-center rounded-[10px] text-[14px] font-bold transition-opacity active:opacity-90 disabled:opacity-60'
+                    }
+                  >
+                    {profile.isFollowing ? 'Following' : 'Follow'}
+                  </button>
+                )}
 
-            <div className="mt-4 flex items-center gap-2">
-              {isOwnProfile ? (
-                <Link
-                  to="/profile"
-                  className="border-brand text-brand flex h-11 flex-1 items-center justify-center rounded-[10px] border text-[14px] font-bold transition-opacity active:opacity-90"
-                >
-                  Edit Profile
-                </Link>
-              ) : (
                 <button
                   type="button"
-                  onClick={handleFollowToggle}
-                  disabled={isFollowing || isUnfollowing}
-                  className={
-                    profile.isFollowing
-                      ? 'bg-surface text-muted flex h-11 flex-1 items-center justify-center rounded-[10px] text-[14px] font-bold transition-opacity active:opacity-90 disabled:opacity-60'
-                      : 'bg-brand text-ink flex h-11 flex-1 items-center justify-center rounded-[10px] text-[14px] font-bold transition-opacity active:opacity-90 disabled:opacity-60'
-                  }
+                  onClick={handleShare}
+                  className="bg-surface text-muted flex h-11 items-center justify-center gap-1.5 rounded-[10px] px-4 text-[13px] font-bold transition-opacity active:opacity-90"
+                  aria-label="Share profile"
                 >
-                  {profile.isFollowing ? 'Following' : 'Follow'}
+                  <ShareIcon />
+                  Share
                 </button>
-              )}
+              </div>
 
-              <button
-                type="button"
-                onClick={handleShare}
-                className="bg-surface text-muted flex h-11 items-center justify-center gap-1.5 rounded-[10px] px-4 text-[13px] font-bold transition-opacity active:opacity-90"
-                aria-label="Share profile"
-              >
-                <ShareIcon />
-                Share
-              </button>
-            </div>
+              {shareHint ? <p className="text-brand mt-2 text-center text-[12px]">{shareHint}</p> : null}
+            </header>
 
-            {shareHint ? <p className="text-brand mt-2 text-center text-[12px]">{shareHint}</p> : null}
-
-            <nav className="mt-6" aria-label="Profile content tabs">
+            <nav className="mt-5" aria-label="Profile content tabs">
               <div className="flex items-center gap-0.5 rounded-full border border-white/12 bg-black/55 p-1">
-                {(isOwnProfile ? OWN_TABS : SHARED_TABS).map(({ id, label, Icon }) => {
+                {(isOwnProfile ? OWN_TABS : OTHER_TABS).map(({ id, label, Icon }) => {
                   const active = activeTab === id;
                   return (
                     <button
@@ -452,12 +489,14 @@ export default function CreatorReelsProfile() {
             </nav>
 
             <div className="mt-4">
-              {isLoading ? (
+              {isStatsTab ? (
+                <ProfileStats key={userId} userId={userId} />
+              ) : isLoading ? (
                 <LoaderBlock label={activeTab === TAB_POSTS ? 'Loading posts' : 'Loading reels'} className="py-8" />
               ) : isError ? (
                 <ListError
                   message={activeTab === TAB_POSTS ? 'Could not load posts.' : 'Could not load reels.'}
-                  onRetry={() => activeQuery.refetch?.()}
+                  onRetry={() => activeQuery?.refetch?.()}
                 />
               ) : activeTab === TAB_POSTS ? (
                 <>

@@ -11,6 +11,8 @@ import {
   buildQuickMatchScorecardShareUrl,
   buildReelSharePath,
   buildReelShareUrl,
+  resolveCreatorProfilePath,
+  resolveOwnProfilePath,
   shareLink,
 } from '../share';
 
@@ -89,6 +91,22 @@ describe('share URL builders', () => {
     expect(buildReelSharePath(42)).toBe('/reels/42');
     expect(buildReelShareUrl(42)).toMatch(/\/reels\/42$/);
     expect(buildCreatorProfileShareUrl(9)).toMatch(/\/reels\/u\/9$/);
+  });
+
+  it('resolves creator profile paths safely for UI links', () => {
+    expect(resolveCreatorProfilePath(9)).toBe('/reels/u/9');
+    expect(resolveCreatorProfilePath('12')).toBe('/reels/u/12');
+    expect(resolveCreatorProfilePath(null)).toBeNull();
+    expect(resolveCreatorProfilePath('')).toBeNull();
+    expect(resolveCreatorProfilePath(0)).toBeNull();
+    expect(resolveCreatorProfilePath(-1)).toBeNull();
+    expect(resolveCreatorProfilePath('abc')).toBeNull();
+  });
+
+  it('resolves own profile path for nav (main profile is /reels/u/:id)', () => {
+    expect(resolveOwnProfilePath(71)).toBe('/reels/u/71');
+    expect(resolveOwnProfilePath(null)).toBe('/profile');
+    expect(resolveOwnProfilePath('')).toBe('/profile');
   });
 
   it('builds quick match scorecard share urls', () => {

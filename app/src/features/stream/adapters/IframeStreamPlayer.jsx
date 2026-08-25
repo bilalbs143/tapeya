@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 
-import { resolveYoutubeEmbed, usesIosNativeStreamPlayer } from '@/lib/utils/liveStreamUtils';
+import { resolveStreamIframeSrc, usesIosNativeStreamPlayer } from '@/lib/utils/liveStreamUtils';
 
 import { useStreamVideoLoading } from '../hooks/useStreamVideoLoading';
 import { StreamVideoLoading } from '../StreamVideoLoading';
@@ -14,12 +14,18 @@ export function IframeStreamPlayer({
   isLandscape = false,
   posterUrl = null,
   showControls = false,
+  /**
+   * iOS native only. Defaults to showControls.
+   * Live keeps `false` so native stays under Capacitor (React chrome tappable).
+   * Highlights portrait VOD passes `true` so YouTube seek/play work.
+   */
+  interactive = showControls,
   title = 'Live Match',
 }) {
   const boxClass = fill ? 'relative h-full w-full bg-black' : 'relative w-full aspect-video bg-black';
   const resolution = useMemo(
-    () => resolveYoutubeEmbed(playback?.embed_url, playback?.embed_id, { showControls }),
-    [playback?.embed_url, playback?.embed_id, showControls],
+    () => resolveStreamIframeSrc(playback, { showControls }),
+    [playback, playback?.embed_url, playback?.embed_id, showControls],
   );
   const src = resolution.iframeSrc;
   const usesNativeOverlay = usesIosNativeStreamPlayer() && resolution.usesProxy;
@@ -47,6 +53,7 @@ export function IframeStreamPlayer({
         isLandscape={isLandscape}
         posterUrl={posterUrl}
         showControls={showControls}
+        interactive={interactive}
       />
     );
   }

@@ -1,9 +1,13 @@
+import { useMemo } from 'react';
+
 import { Link, useLocation } from 'react-router-dom';
 
 import { UserAvatar } from '@/components/UserAvatar';
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
 import { BOTTOM_NAV_Z } from '@/lib/constants/layout';
+import { isPrimaryTabActive } from '@/lib/navigation/primaryTabs';
 import { handlePrimaryTabClick } from '@/lib/navigation/tabReselect';
+import { resolveOwnProfilePath } from '@/lib/share';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
@@ -12,10 +16,6 @@ const homeIcon = `${CLOUDFRONT_APP_BASE}/images/icons/home-navigation.svg`;
 const reelsIcon = `${CLOUDFRONT_APP_BASE}/images/icons/reels-navigation-b.svg`;
 const shopIcon = `${CLOUDFRONT_APP_BASE}/images/icons/shop-navigation.svg`;
 const liveIcon = `${CLOUDFRONT_APP_BASE}/images/icons/live-navigation.svg`;
-
-function isTabActive(pathname, tabPath) {
-  return pathname === tabPath || pathname.startsWith(tabPath + '/');
-}
 
 function ProfileTabIcon({ avatarUrl, isActive }) {
   return (
@@ -37,21 +37,25 @@ export function BottomNav() {
   });
   const profileUser = meResponse?.data ?? user;
   const avatarUrl = profileUser?.avatar_url || profileUser?.avatarUrl || null;
+  const profilePath = resolveOwnProfilePath(profileUser?.id);
 
-  const items = [
-    { path: '/home', label: 'Home', icon: homeIcon },
-    { path: '/shop', label: 'Shop', icon: shopIcon },
-    { path: '/reels', label: 'Reels', icon: reelsIcon },
-    { path: '/live', label: 'Live', icon: liveIcon },
-    { path: '/profile', label: 'Profile', isProfile: true },
-  ];
+  const items = useMemo(
+    () => [
+      { path: '/home', label: 'Home', icon: homeIcon },
+      { path: '/shop', label: 'Shop', icon: shopIcon },
+      { path: '/reels', label: 'Reels', icon: reelsIcon },
+      { path: '/live', label: 'Live', icon: liveIcon },
+      { path: profilePath, label: 'Profile', isProfile: true },
+    ],
+    [profilePath],
+  );
 
   const renderTab = ({ path, label, icon, isProfile }) => {
-    const isActive = isTabActive(location.pathname, path);
+    const isActive = isPrimaryTabActive(location.pathname, path, profileUser?.id);
 
     return (
       <Link
-        key={path}
+        key={isProfile ? 'profile' : path}
         to={path}
         onClick={(event) => handlePrimaryTabClick(event, location.pathname, path)}
         className="group relative flex h-[50px] min-w-12 flex-col items-center justify-center gap-1 rounded-xl px-1 transition-colors duration-200 focus-visible:outline-none"

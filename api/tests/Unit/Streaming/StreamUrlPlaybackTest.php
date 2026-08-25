@@ -26,6 +26,28 @@ class StreamUrlPlaybackTest extends TestCase
         $this->assertSame($url, $playback['url']);
     }
 
+    public function test_resolve_facebook_watch_live_url(): void
+    {
+        $url = 'https://www.facebook.com/watch/live/?mibextid=wwXIfr&ref=watch_permalink&v=1578076810638752&rdid=s84e56Yp5UqVq2N3';
+        $playback = StreamUrlPlayback::resolve($url);
+
+        $this->assertSame('iframe', $playback['mode']);
+        $this->assertSame('facebook', $playback['provider']);
+        $this->assertStringStartsWith('https://www.facebook.com/plugins/video.php?', $playback['embed_url']);
+        $this->assertStringContainsString(rawurlencode('https://www.facebook.com/watch/?v=1578076810638752'), $playback['embed_url']);
+    }
+
+    public function test_resolve_facebook_share_v_url(): void
+    {
+        $url = 'https://www.facebook.com/share/v/1EthobuGMr/?mibextid=wwXIfr';
+        $playback = StreamUrlPlayback::resolve($url);
+
+        $this->assertSame('iframe', $playback['mode']);
+        $this->assertSame('facebook', $playback['provider']);
+        $this->assertStringStartsWith('https://www.facebook.com/plugins/video.php?', $playback['embed_url']);
+        $this->assertStringContainsString(rawurlencode('https://www.facebook.com/share/v/1EthobuGMr'), $playback['embed_url']);
+    }
+
     public function test_playback_for_app_on_standalone_stream(): void
     {
         $stream = new LiveStream([

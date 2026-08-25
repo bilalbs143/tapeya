@@ -72,8 +72,11 @@ export default function LiveBroadcast() {
   // Portrait is the first StreamOrientationEnum case — hero only for that value.
   const portraitValue = orientationOptions[0]?.value;
   const isPortraitSelfServe = Boolean(isSelfServe && portraitValue && orientation === portraitValue);
-  /** Hero mode — portrait self-serve mobile only while live; landscape self-serve uses match-like 16:9. */
-  const heroMode = Boolean(broadcast) && isPortraitSelfServe && !isDesktop && streamStatus === 'live';
+  // Watch-URL streams (YouTube/Facebook/HLS paste) are always 16:9 — never portrait hero.
+  // Hero is only for mobile Go Live camera (no streaming_url).
+  const isWatchUrlStream = Boolean(broadcast?.streaming_url?.trim());
+  /** Hero mode — portrait self-serve mobile camera only while live. */
+  const heroMode = Boolean(broadcast) && isPortraitSelfServe && !isDesktop && streamStatus === 'live' && !isWatchUrlStream;
 
   useEffect(() => {
     // Wait until the stream payload is known so match streams don't briefly hide chrome.
@@ -94,14 +97,14 @@ export default function LiveBroadcast() {
   }, [streamId]);
 
   const toggleLandscape = useCallback(() => {
-    // Portrait self-serve go-live stays portrait-only; landscape self-serve + match can rotate.
-    if (isPortraitSelfServe) return;
+    // Portrait self-serve go-live stays portrait-only; watch-URL + landscape self-serve + match can rotate.
+    if (isPortraitSelfServe && !isWatchUrlStream) return;
     setIsLandscape((prev) => !prev);
-  }, [isPortraitSelfServe]);
+  }, [isPortraitSelfServe, isWatchUrlStream]);
 
   useEffect(() => {
-    if (isPortraitSelfServe) setIsLandscape(false);
-  }, [isPortraitSelfServe]);
+    if (isPortraitSelfServe && !isWatchUrlStream) setIsLandscape(false);
+  }, [isPortraitSelfServe, isWatchUrlStream]);
 
   const isMobileLandscape = isMobile && isLandscape;
   const immersiveMobileLandscape = isLandscape && !isDesktop;
@@ -183,7 +186,7 @@ export default function LiveBroadcast() {
             headerSlot={overlayHeaderSlot}
             statusHeaderSlot={centeredStatusContent}
             fillPortrait={heroMode}
-            selfServeChrome={isPortraitSelfServe}
+            selfServeChrome={isPortraitSelfServe && !isWatchUrlStream}
           />
         )}
       </div>

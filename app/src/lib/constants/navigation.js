@@ -1,5 +1,6 @@
 /**
  * Navigation items (path + label). Icons are wired in each consuming component.
+ * Profile path is resolved at render time to `/reels/u/:userId` (see resolveOwnProfilePath).
  */
 
 export const BOTTOM_NAV_ITEMS = [
@@ -7,7 +8,7 @@ export const BOTTOM_NAV_ITEMS = [
   { path: '/shop', label: 'Shop' },
   { path: '/reels', label: 'Reels' },
   { path: '/live', label: 'Live' },
-  { path: '/profile', label: 'Profile' },
+  { id: 'profile', path: '/profile', label: 'Profile' },
 ];
 
 export const EXPLORE_CATEGORIES = [

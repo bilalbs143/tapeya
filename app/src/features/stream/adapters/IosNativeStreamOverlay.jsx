@@ -23,11 +23,12 @@ function hasValidPortraitFrame(layout) {
 }
 
 /**
- * iOS YouTube player — native WKWebView under Capacitor + embed proxy.
+ * iOS YouTube player — native WKWebView + embed proxy.
  * Portrait: sized to the placeholder. Landscape: immersive fullscreen.
  *
- * @param {boolean} [showControls] — VOD/highlights: enable WKWebView touches for YouTube chrome.
- *   Live underlays keep this false so React badges/hearts receive taps above the player.
+ * @param {boolean} [showControls] — Embed URL chrome (`controls=1`). Only useful when interactive.
+ * @param {boolean} [interactive] — When true, native sits above Capacitor and receives touches
+ *   (covers React chrome). Live + highlights keep false (underlay) so rotate/badges stay tappable.
  */
 export function IosNativeStreamOverlay({
   src,
@@ -36,17 +37,20 @@ export function IosNativeStreamOverlay({
   isLandscape = false,
   posterUrl = null,
   showControls = false,
+  interactive = showControls,
 }) {
   const containerRef = useRef(null);
   const proxyUrlRef = useRef(src);
   const stackRef = useRef(null);
   const shownRef = useRef(false);
   const isLandscapeRef = useRef(isLandscape);
+  const interactiveRef = useRef(interactive);
   const showControlsRef = useRef(showControls);
   const [sessionKey, setSessionKey] = useState(0);
   const { isLoading, showRetry } = useIosNativePlayback(src, sessionKey);
 
   isLandscapeRef.current = isLandscape;
+  interactiveRef.current = interactive;
   showControlsRef.current = showControls;
   proxyUrlRef.current = src;
 
@@ -62,9 +66,12 @@ export function IosNativeStreamOverlay({
     }
 
     const landscape = isLandscapeRef.current;
-    const interactive = showControlsRef.current;
-    const layout = buildNativeOverlayLayout(element, { isLandscape: landscape, interactive });
-    const embedUrl = withIosNativeEmbedParams(baseUrl, { landscape });
+    const canInteract = interactiveRef.current;
+    const layout = buildNativeOverlayLayout(element, { isLandscape: landscape, interactive: canInteract });
+    const embedUrl = withIosNativeEmbedParams(baseUrl, {
+      landscape,
+      showControls: showControlsRef.current,
+    });
     const stack = landscape ? 'landscape' : 'portrait';
     const stackChanged = stackRef.current !== null && stackRef.current !== stack;
     const hasFrame = layout.immersiveFullscreen || hasValidPortraitFrame(layout);
@@ -73,7 +80,7 @@ export function IosNativeStreamOverlay({
       if (stackChanged && shownRef.current) {
         stackRef.current = stack;
         await updateYoutubeStreamOverlayLayout({
-          ...buildNativeStackLayout(landscape, { interactive }),
+          ...buildNativeStackLayout(landscape, { interactive: canInteract }),
           url: embedUrl,
           updateFrame: false,
         });
@@ -144,15 +151,20 @@ export function IosNativeStreamOverlay({
       return undefined;
     }
 
+    // Interactive flips z-order (under/over Capacitor) — full show reload is more reliable than updateLayout.
     afterLayout(() => {
-      void syncLayout(false);
+      void syncLayout(true);
     });
-  }, [isLandscape, showControls, syncLayout]);
+  }, [isLandscape, interactive, showControls, syncLayout]);
 
   const layoutClass = fill ? 'absolute inset-0' : 'relative w-full aspect-video';
 
   return (
-    <div ref={containerRef} className={`${layoutClass} overflow-hidden bg-transparent ${className}`} aria-busy={isLoading}>
+    <div
+      ref={containerRef}
+      className={`${layoutClass} overflow-hidden bg-transparent ${interactive ? 'pointer-events-none' : ''} ${className}`}
+      aria-busy={isLoading}
+    >
       <StreamVideoLoading visible={isLoading} posterUrl={posterUrl} />
       <StreamVideoRetry visible={showRetry} onRetry={retryPlayback} />
     </div>

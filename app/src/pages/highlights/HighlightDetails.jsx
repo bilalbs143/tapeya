@@ -1,15 +1,34 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import { AppSubpageBackButton } from '@/components/AppSubpageHeader';
+import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { IframeStreamPlayer } from '@/features/stream/adapters/IframeStreamPlayer';
+import { useLiveBroadcastImmersiveDocument } from '@/features/stream/hooks/useLiveBroadcastImmersiveDocument';
+import { IosLandscapeStreamChrome } from '@/features/stream/ios/IosLandscapeStreamChrome';
+import { nativeUnderlaySurfaceClass } from '@/features/stream/ios/iosNativeStreamLayout';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { CLOUDFRONT_APP_BASE, FIXTURE_BG_IMAGE } from '@/lib/constants/assets';
-import { LG_MEDIA_QUERY, NAVBAR_HERO_CONTROL_OFFSET } from '@/lib/constants/layout';
+import { LG_MEDIA_QUERY } from '@/lib/constants/layout';
+import {
+  getLiveBroadcastShellClass,
+  LIVE_BROADCAST_BOTTOM_OVERLAY,
+  LIVE_BROADCAST_CONTROLS_OVERLAY_Z,
+  LIVE_BROADCAST_IMMERSIVE_HEIGHT,
+  LIVE_BROADCAST_IMMERSIVE_TOGGLE_Z,
+  LIVE_BROADCAST_LANDSCAPE_SHELL_STYLE,
+  LIVE_BROADCAST_LANDSCAPE_SHELL_Z,
+  LIVE_BROADCAST_SHELL_HEIGHT,
+  LIVE_BROADCAST_SHELL_HEIGHT_DESKTOP,
+  LIVE_BROADCAST_TOGGLE_BTN,
+} from '@/lib/constants/liveBroadcastLayout';
 import { formatCount } from '@/lib/format';
 import { buildHighlightShareUrl, shareLink } from '@/lib/share';
+import { resolveYoutubeEmbed, usesIosNativeStreamPlayer } from '@/lib/utils/liveStreamUtils';
+import { hideYoutubeStreamOverlay } from '@/native/youtubeStreamOverlay';
 import { ThumbsUpIcon } from '@/pages/feed/PostCard';
+import LandscapeRotatedStage from '@/pages/live/LandscapeRotatedStage';
 import {
   useDislikeHighlightMutation,
   useGetHighlightQuery,
@@ -32,13 +51,24 @@ import {
 } from './highlightsUtils';
 
 const feedShareIcon = `${CLOUDFRONT_APP_BASE}/images/icons/feed-share.svg`;
+const maxMinIcon = `${CLOUDFRONT_APP_BASE}/images/icons/max-min-icon.svg`;
+
+function engagementFromHighlight(h) {
+  if (!h) {
+    return { likes_count: 0, dislikes_count: 0, shares_count: 0, my_reaction: null };
+  }
+  return {
+    likes_count: h.likes_count ?? h.likesCount ?? 0,
+    dislikes_count: h.dislikes_count ?? h.dislikesCount ?? 0,
+    shares_count: h.shares_count ?? h.sharesCount ?? 0,
+    my_reaction: h.my_reaction ?? h.myReaction ?? null,
+  };
+}
 
 function ThumbsDownIcon({ className = '' }) {
   return (
     <svg
       className={className}
-      width="20"
-      height="20"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -55,6 +85,28 @@ function ThumbsDownIcon({ className = '' }) {
   );
 }
 
+/** Web landscape exit — same portal as live `LandscapeExitToggle`. */
+function HighlightLandscapeExitToggle({ onClick }) {
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
+    <div
+      className="pointer-events-none fixed right-0 bottom-0 p-4 pb-[calc(env(safe-area-inset-bottom)+12px)]"
+      style={{ zIndex: LIVE_BROADCAST_IMMERSIVE_TOGGLE_Z }}
+    >
+      <button
+        type="button"
+        onClick={onClick}
+        className={`pointer-events-auto touch-manipulation ${LIVE_BROADCAST_TOGGLE_BTN}`}
+        aria-label="Rotate to portrait"
+      >
+        <img src={maxMinIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
+      </button>
+    </div>,
+    document.body,
+  );
+}
+
 export default function HighlightDetails() {
   const navigate = useNavigate();
   const isDesktop = useMediaQuery(LG_MEDIA_QUERY);
@@ -63,13 +115,11 @@ export default function HighlightDetails() {
   const stateHighlight = location.state?.highlight;
   const hasValidId = isValidHighlightId(highlightId);
 
-  // Fetch the full highlight from the API (also increments views_count on the server)
-  const { data: apiHighlight, isLoading, isError } = useGetHighlightQuery(highlightId, { skip: !hasValidId });
+  const { data: apiHighlight, isLoading } = useGetHighlightQuery(highlightId, { skip: !hasValidId });
 
-  // Fallback to router state while API loads
+  // Prefer API; keep list navigation state even if the detail request errors (transient / offline).
   const highlight = apiHighlight ?? stateHighlight ?? null;
 
-  // Fetch all highlights for "More Highlights" section
   const { data: allHighlights = [] } = useGetHighlightsQuery({ per_page: 50 });
   const moreHighlights = useMemo(() => getMoreHighlights(allHighlights, highlight?.id), [allHighlights, highlight?.id]);
 
@@ -77,33 +127,81 @@ export default function HighlightDetails() {
   const [dislikeHighlight, { isLoading: isDisliking }] = useDislikeHighlightMutation();
   const [shareHighlight] = useShareHighlightMutation();
 
-  const [counts, setCounts] = useState({ likes_count: 0, dislikes_count: 0, shares_count: 0 });
-  const [myReaction, setMyReaction] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const initialEngagement = engagementFromHighlight(stateHighlight);
+  const [counts, setCounts] = useState({
+    likes_count: initialEngagement.likes_count,
+    dislikes_count: initialEngagement.dislikes_count,
+    shares_count: initialEngagement.shares_count,
+  });
+  const [myReaction, setMyReaction] = useState(initialEngagement.my_reaction);
+  // Tie playback to the current id so switching highlights stops immediately (no useEffect lag).
+  const [playingHighlightId, setPlayingHighlightId] = useState(null);
+  const [isLandscape, setIsLandscape] = useState(false);
+  const isPlaying = playingHighlightId != null && String(playingHighlightId) === String(highlightId);
 
-  // Reset player when the URL changes (navigating to a different highlight).
-  // Use highlightId from params — it's a stable string, never undefined.
-  useEffect(() => {
-    setIsPlaying(false);
+  const isYouTube = highlight?.videoSource === 'youtube';
+  const isDirectVideo = highlight?.videoSource === 'upload';
+  const hasVideo = Boolean(highlight?.videoUrl);
+
+  const usesIosNativePlayer = useMemo(() => {
+    if (!isYouTube || !highlight?.videoUrl || !usesIosNativeStreamPlayer()) return false;
+    const { iframeSrc, usesProxy } = resolveYoutubeEmbed(highlight.videoUrl, null, { showControls: true });
+    return usesProxy && Boolean(iframeSrc);
+  }, [isYouTube, highlight?.videoUrl]);
+
+  // Match live: immersive rotate for any non-desktop width (phones + tablets).
+  const immersiveMobileLandscape = Boolean(isPlaying && isLandscape && !isDesktop);
+  // Portrait iOS: native above Capacitor so YouTube play/pause/seek work.
+  // Landscape iOS: underlay so IosLandscapeStreamChrome stays tappable.
+  const nativeInteractive = Boolean(usesIosNativePlayer && isPlaying && !isDesktop && !immersiveMobileLandscape);
+  const isIosNativeLandscape = Boolean(usesIosNativePlayer && immersiveMobileLandscape);
+  // Same as landscape — portrait interactive path does not underlay.
+  const isIosNativeUnderlay = isIosNativeLandscape;
+  const surfaceBg = nativeUnderlaySurfaceClass(isIosNativeUnderlay);
+
+  useLiveBroadcastImmersiveDocument(immersiveMobileLandscape, isIosNativeUnderlay);
+
+  // Stop native audio/video as soon as the route id changes (before paint).
+  useLayoutEffect(() => {
+    setIsLandscape(false);
+    void hideYoutubeStreamOverlay();
   }, [highlightId]);
 
-  // Sync counts + reaction when fresh API data arrives.
-  // Intentionally uses apiHighlight only — stateHighlight is router-state and never updates.
   useEffect(() => {
-    if (!apiHighlight) return;
+    if (!isPlaying || isDesktop) {
+      setIsLandscape(false);
+    }
+  }, [isPlaying, isDesktop]);
+
+  // Leaving the page — ensure the native underlay is torn down.
+  useEffect(() => {
+    return () => {
+      void hideYoutubeStreamOverlay();
+    };
+  }, []);
+
+  useEffect(() => {
+    const source = apiHighlight ?? stateHighlight;
+    if (!source) return;
+    const next = engagementFromHighlight(source);
     setCounts({
-      likes_count: apiHighlight.likes_count ?? 0,
-      dislikes_count: apiHighlight.dislikes_count ?? 0,
-      shares_count: apiHighlight.shares_count ?? 0,
+      likes_count: next.likes_count,
+      dislikes_count: next.dislikes_count,
+      shares_count: next.shares_count,
     });
-    setMyReaction(apiHighlight.my_reaction ?? null);
-  }, [apiHighlight]);
+    setMyReaction(next.my_reaction);
+  }, [apiHighlight, stateHighlight]);
+
+  const toggleLandscape = useCallback(() => {
+    if (!isPlaying || isDesktop) return;
+    setIsLandscape((prev) => !prev);
+  }, [isPlaying, isDesktop]);
 
   const handleLike = async () => {
     if (!highlight || isLiking || isDisliking || myReaction === 'like') return;
 
-    // Optimistic update
     const prevReaction = myReaction;
+    const prevCounts = counts;
     setMyReaction('like');
     setCounts((prev) => ({
       ...prev,
@@ -113,21 +211,15 @@ export default function HighlightDetails() {
 
     try {
       const result = await likeHighlight(highlight.id).unwrap();
-      // Sync with server response
       setCounts({
         likes_count: result.likes_count ?? 0,
         dislikes_count: result.dislikes_count ?? 0,
-        shares_count: result.shares_count ?? counts.shares_count,
+        shares_count: result.shares_count ?? prevCounts.shares_count,
       });
       setMyReaction(result.my_reaction ?? null);
     } catch {
-      // Revert on error
       setMyReaction(prevReaction);
-      setCounts((prev) => ({
-        ...prev,
-        likes_count: highlight.likes_count ?? 0,
-        dislikes_count: highlight.dislikes_count ?? 0,
-      }));
+      setCounts(prevCounts);
     }
   };
 
@@ -135,6 +227,7 @@ export default function HighlightDetails() {
     if (!highlight || isLiking || isDisliking || myReaction === 'dislike') return;
 
     const prevReaction = myReaction;
+    const prevCounts = counts;
     setMyReaction('dislike');
     setCounts((prev) => ({
       ...prev,
@@ -147,16 +240,12 @@ export default function HighlightDetails() {
       setCounts({
         likes_count: result.likes_count ?? 0,
         dislikes_count: result.dislikes_count ?? 0,
-        shares_count: result.shares_count ?? counts.shares_count,
+        shares_count: result.shares_count ?? prevCounts.shares_count,
       });
       setMyReaction(result.my_reaction ?? null);
     } catch {
       setMyReaction(prevReaction);
-      setCounts((prev) => ({
-        ...prev,
-        likes_count: highlight.likes_count ?? 0,
-        dislikes_count: highlight.dislikes_count ?? 0,
-      }));
+      setCounts(prevCounts);
     }
   };
 
@@ -179,19 +268,17 @@ export default function HighlightDetails() {
   };
 
   const handlePlay = () => {
-    if (highlight?.videoUrl) setIsPlaying(true);
+    if (highlight?.videoUrl) setPlayingHighlightId(highlightId);
   };
-
-  const hasVideo = !!highlight?.videoUrl;
 
   const handleMoreHighlightClick = (item) => {
     navigate(`/highlights/${item.id}`, { state: { highlight: item } });
   };
 
-  // ── Not found ──────────────────────────────────────────────────────────────
-  if (!hasValidId || (isError && !stateHighlight)) {
+  if (!hasValidId || (!isLoading && !highlight)) {
     return (
       <div className="min-h-screen bg-black">
+        <AppSubpageHeader title="HIGHLIGHT" onBack={() => navigate('/highlights')} />
         <Container>
           <ListEmpty
             title="Highlight Not Found."
@@ -211,162 +298,197 @@ export default function HighlightDetails() {
   const dateLabel = formatHighlightDate(highlight?.publishedAt);
   const durationLabel = formatHighlightDuration(highlight?.duration);
   const description = highlight?.description ?? '';
+  const showRotateToggle = isPlaying && !isDesktop;
 
-  // video_source from the API tells us the type; video_url is already a ready-to-use embed URL
-  // for YouTube or a direct storage URL for uploaded videos.
-  const isYouTube = highlight?.videoSource === 'youtube';
-  const isDirectVideo = highlight?.videoSource === 'upload';
+  const landscapeShellClass = getLiveBroadcastShellClass(true, surfaceBg);
+  const landscapeShellStyle = {
+    ...LIVE_BROADCAST_LANDSCAPE_SHELL_STYLE,
+    zIndex: LIVE_BROADCAST_LANDSCAPE_SHELL_Z,
+    height: LIVE_BROADCAST_IMMERSIVE_HEIGHT,
+  };
+
+  const player =
+    isPlaying && isYouTube ? (
+      <IframeStreamPlayer
+        key={highlightId}
+        playback={{ mode: 'iframe', embed_url: highlight.videoUrl }}
+        fill
+        isLandscape={immersiveMobileLandscape}
+        showControls
+        interactive={nativeInteractive}
+        posterUrl={bannerImage}
+        title={displayTitle}
+        className="h-full w-full"
+      />
+    ) : isPlaying && isDirectVideo ? (
+      <div className="flex h-full w-full items-center justify-center bg-black">
+        <video
+          key={highlightId}
+          src={highlight.videoUrl}
+          controls
+          playsInline
+          className="max-h-full max-w-full object-contain"
+          poster={bannerImage}
+        >
+          <track kind="captions" />
+        </video>
+      </div>
+    ) : (
+      <>
+        <img
+          src={bannerImage}
+          alt={displayTitle}
+          className="h-full w-full object-cover"
+          onError={(e) => {
+            if (e.currentTarget.src !== FIXTURE_BG_IMAGE) {
+              e.currentTarget.src = FIXTURE_BG_IMAGE;
+            }
+          }}
+        />
+        {hasVideo ? (
+          <button
+            type="button"
+            onClick={handlePlay}
+            className="absolute inset-0 flex items-center justify-center transition-opacity active:opacity-70"
+            aria-label="Play Video"
+          >
+            <svg viewBox="0 0 80 80" className="h-16 w-16 drop-shadow-lg" aria-hidden>
+              <circle cx="40" cy="40" r="40" fill="black" fillOpacity="0.45" />
+              <polygon points="32,24 32,56 60,40" fill="white" />
+            </svg>
+          </button>
+        ) : null}
+      </>
+    );
+
+  const playerStage = (
+    <div className={`relative h-full w-full overflow-hidden ${surfaceBg}`}>
+      {isIosNativeLandscape ? <IosLandscapeStreamChrome onToggleLandscape={toggleLandscape} /> : null}
+
+      <LandscapeRotatedStage
+        rotated={immersiveMobileLandscape}
+        iosNativeLandscape={isIosNativeLandscape}
+        iosNativeUnderlay={isIosNativeUnderlay}
+      >
+        <div className={`relative size-full overflow-hidden ${surfaceBg}`}>
+          <div className="absolute inset-0">{player}</div>
+
+          {/* Web only — iOS interactive native covers overlays; rotate sits below the frame. */}
+          {showRotateToggle && !immersiveMobileLandscape && !nativeInteractive ? (
+            <div className={LIVE_BROADCAST_BOTTOM_OVERLAY} style={{ zIndex: LIVE_BROADCAST_CONTROLS_OVERLAY_Z }}>
+              <div className="pointer-events-auto flex justify-end">
+                <button
+                  type="button"
+                  onClick={toggleLandscape}
+                  className={LIVE_BROADCAST_TOGGLE_BTN}
+                  aria-label="Rotate to landscape"
+                >
+                  <img src={maxMinIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </LandscapeRotatedStage>
+
+      {showRotateToggle && immersiveMobileLandscape && !isIosNativeLandscape ? (
+        <HighlightLandscapeExitToggle onClick={toggleLandscape} />
+      ) : null}
+    </div>
+  );
+
+  if (immersiveMobileLandscape) {
+    return (
+      <div className={landscapeShellClass} style={landscapeShellStyle}>
+        {playerStage}
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-black">
-      {/* Hero banner / video player */}
-      <div className="relative h-[200px] w-full overflow-hidden bg-black lg:h-[400px]">
-        {isPlaying && isYouTube ? (
-          <IframeStreamPlayer
-            playback={{ mode: 'iframe', embed_url: highlight.videoUrl }}
-            fill
-            showControls
-            posterUrl={bannerImage}
-            title={displayTitle}
-            className="h-full w-full"
-          />
-        ) : isPlaying && isDirectVideo ? (
-          /* Direct video file */
-          <div className="flex h-full w-full items-center justify-center bg-black">
-            <video
-              src={highlight.videoUrl}
-              controls
-              playsInline
-              className="max-h-full max-w-full object-contain"
-              poster={bannerImage}
-            >
-              <track kind="captions" />
-            </video>
-          </div>
-        ) : (
-          /* Thumbnail / poster with centered play button overlay */
-          <>
-            <img
-              src={bannerImage}
-              alt={displayTitle}
-              className="h-full w-full object-cover"
-              onError={(e) => {
-                if (e.currentTarget.src !== FIXTURE_BG_IMAGE) {
-                  e.currentTarget.src = FIXTURE_BG_IMAGE;
-                }
-              }}
-            />
-            {hasVideo ? (
-              <button
-                type="button"
-                onClick={handlePlay}
-                className="absolute inset-0 flex items-center justify-center transition-opacity active:opacity-70"
-                aria-label="Play Video"
-              >
-                {/* Simple play triangle */}
-                <svg viewBox="0 0 80 80" className="h-16 w-16 drop-shadow-lg" aria-hidden>
-                  <circle cx="40" cy="40" r="40" fill="black" fillOpacity="0.45" />
-                  <polygon points="32,24 32,56 60,40" fill="white" />
-                </svg>
-              </button>
-            ) : null}
-          </>
-        )}
+    <div
+      className={`flex flex-col overflow-hidden ${isIosNativeUnderlay ? surfaceBg : 'bg-black'}`}
+      style={{ height: isDesktop ? LIVE_BROADCAST_SHELL_HEIGHT_DESKTOP : LIVE_BROADCAST_SHELL_HEIGHT }}
+    >
+      <AppSubpageHeader title="HIGHLIGHT" />
 
-        <AppSubpageBackButton
-          onClick={() => navigate(-1)}
-          className={`absolute left-4 z-10 ${isDesktop ? 'top-4' : ''}`}
-          style={isDesktop ? undefined : { top: NAVBAR_HERO_CONTROL_OFFSET }}
-          aria-label="Back"
-        />
-      </div>
+      <div className={`relative mt-4 aspect-video w-full shrink-0 overflow-hidden ${surfaceBg}`}>{playerStage}</div>
 
-      <Container className="!px-4 !py-0">
-        {isLoading && !highlight ? <LoaderBlock label="Loading highlight" className="mt-4 py-6" /> : null}
+      {/* Outside the native frame so rotate stays tappable while YouTube controls are interactive. */}
+      {showRotateToggle && nativeInteractive ? (
+        <div className="flex shrink-0 justify-end bg-black px-4 py-2">
+          <button type="button" onClick={toggleLandscape} className={LIVE_BROADCAST_TOGGLE_BTN} aria-label="Rotate to landscape">
+            <img src={maxMinIcon} alt="" className="h-5 w-5 shrink-0 object-contain" aria-hidden />
+          </button>
+        </div>
+      ) : null}
 
-        {/* Title & date */}
-        {highlight ? (
-          <div className="mt-4">
-            <h1 className="text-[16px] leading-tight font-bold text-white">{displayTitle}</h1>
-            {dateLabel || durationLabel ? (
-              <p className="text-muted mt-1 text-[14px]">{[dateLabel, durationLabel].filter(Boolean).join(' · ')}</p>
-            ) : null}
-          </div>
-        ) : null}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-black">
+        <Container className="shrink-0 px-4! py-0!">
+          {isLoading && !highlight ? <LoaderBlock label="Loading highlight" className="mt-3 py-4" /> : null}
 
-        {/* Reactions — centered */}
-        {highlight ? (
-          <div className="mt-4 flex justify-center">
-            <div className="flex items-start gap-8">
-              {/* Like */}
-              <button
-                type="button"
-                onClick={handleLike}
-                disabled={isLiking || isDisliking}
-                className="flex flex-col items-center gap-1.5 transition-opacity active:opacity-80 disabled:opacity-60"
-                aria-label={`Like. ${formatCount(counts.likes_count)} likes`}
-                aria-pressed={myReaction === 'like'}
-              >
-                <div
-                  className={`flex h-[44px] w-[44px] items-center justify-center rounded-full transition-colors ${
-                    myReaction === 'like' ? 'bg-brand' : 'bg-surface'
-                  }`}
-                >
-                  <ThumbsUpIcon filled={myReaction === 'like'} className={myReaction === 'like' ? 'text-black' : 'text-white'} />
+          {highlight ? (
+            <div className="mt-3">
+              <h1 className="line-clamp-2 text-[15px] leading-snug font-bold text-white">{displayTitle}</h1>
+              <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-2">
+                {dateLabel || durationLabel ? (
+                  <p className="text-muted text-[13px]">{[dateLabel, durationLabel].filter(Boolean).join(' · ')}</p>
+                ) : null}
+                <div className="ml-auto flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handleLike}
+                    disabled={isLiking || isDisliking}
+                    className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 transition-opacity active:opacity-80 disabled:opacity-60 ${
+                      myReaction === 'like' ? 'bg-brand text-black' : 'bg-surface text-white'
+                    }`}
+                    aria-label={`Like. ${formatCount(counts.likes_count)} likes`}
+                    aria-pressed={myReaction === 'like'}
+                  >
+                    <ThumbsUpIcon filled={myReaction === 'like'} className="h-4 w-4" />
+                    <span className="text-[12px] font-medium tabular-nums">{formatCount(counts.likes_count)}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDislike}
+                    disabled={isLiking || isDisliking}
+                    className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 transition-opacity active:opacity-80 disabled:opacity-60 ${
+                      myReaction === 'dislike' ? 'bg-brand text-black' : 'bg-surface text-white'
+                    }`}
+                    aria-label={`Dislike. ${formatCount(counts.dislikes_count)} dislikes`}
+                    aria-pressed={myReaction === 'dislike'}
+                  >
+                    <ThumbsDownIcon className="h-4 w-4" />
+                    <span className="text-[12px] font-medium tabular-nums">{formatCount(counts.dislikes_count)}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleShare}
+                    className="bg-surface flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-white transition-opacity active:opacity-80"
+                    aria-label={`Share. ${formatCount(counts.shares_count)} shares`}
+                  >
+                    <img src={feedShareIcon} alt="" className="h-4 w-4 brightness-0 invert" aria-hidden />
+                    <span className="text-[12px] font-medium tabular-nums">{formatCount(counts.shares_count)}</span>
+                  </button>
                 </div>
-                <span className="text-[12px] font-medium text-white">{formatCount(counts.likes_count)}</span>
-              </button>
-
-              {/* Dislike */}
-              <button
-                type="button"
-                onClick={handleDislike}
-                disabled={isLiking || isDisliking}
-                className="flex flex-col items-center gap-1.5 transition-opacity active:opacity-80 disabled:opacity-60"
-                aria-label={`Dislike. ${formatCount(counts.dislikes_count)} dislikes`}
-                aria-pressed={myReaction === 'dislike'}
-              >
-                <div
-                  className={`flex h-[44px] w-[44px] items-center justify-center rounded-full transition-colors ${
-                    myReaction === 'dislike' ? 'bg-brand' : 'bg-surface'
-                  }`}
-                >
-                  <ThumbsDownIcon className={myReaction === 'dislike' ? 'text-black' : 'text-white'} />
-                </div>
-                <span className="text-[12px] font-medium text-white">{formatCount(counts.dislikes_count)}</span>
-              </button>
-
-              {/* Share */}
-              <button
-                type="button"
-                onClick={handleShare}
-                className="flex flex-col items-center gap-1.5 transition-opacity active:opacity-80"
-                aria-label={`Share. ${formatCount(counts.shares_count)} shares`}
-              >
-                <div className="bg-surface flex h-[44px] w-[44px] items-center justify-center rounded-full">
-                  <img src={feedShareIcon} alt="" className="h-5 w-5 brightness-0 invert" aria-hidden />
-                </div>
-                <span className="text-[12px] font-medium text-white">{formatCount(counts.shares_count)}</span>
-              </button>
+              </div>
             </div>
-          </div>
-        ) : null}
+          ) : null}
 
-        {/* Description */}
-        {description ? <p className="mt-4 text-left text-[14px] leading-relaxed text-white/95">{description}</p> : null}
+          {description ? <p className="mt-2.5 line-clamp-2 text-[13px] leading-snug text-white/90">{description}</p> : null}
+        </Container>
 
-        {/* More Highlights */}
         {moreHighlights.length > 0 ? (
-          <section className="border-surface-border mt-6 border-t pt-6 pb-6">
-            <h2 className="text-muted mb-3 text-[13px] font-bold tracking-wide uppercase md:text-[16px]">More Highlights</h2>
-            <div className="space-y-3">
+          <section className="border-surface-border mt-3 flex min-h-0 flex-1 flex-col overflow-hidden border-t px-4 pt-3 pb-4">
+            <h2 className="text-muted mb-2.5 shrink-0 text-[12px] font-bold tracking-wide uppercase">More Highlights</h2>
+            <div className="divide-surface-border min-h-0 flex-1 divide-y overflow-y-auto">
               {moreHighlights.map((item) => (
                 <MoreHighlightRow key={item.id} highlight={item} onClick={handleMoreHighlightClick} />
               ))}
             </div>
           </section>
         ) : null}
-      </Container>
+      </div>
     </div>
   );
 }

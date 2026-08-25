@@ -6,7 +6,7 @@ import TextPostBackground from '@/components/feed/TextPostBackground';
 import { OfficialBadge } from '@/components/OfficialBadge';
 import { UserAvatar } from '@/components/UserAvatar';
 import { getFeedTextBackground } from '@/lib/constants/composeBackgrounds';
-import { buildPostDetailPath } from '@/lib/share';
+import { buildPostDetailPath, resolveCreatorProfilePath } from '@/lib/share';
 import { formatPostTimestamp } from '@/lib/utils/feedUtils';
 
 const IMAGE_PLACEHOLDER =
@@ -49,26 +49,39 @@ export default function RepostedPostEmbed({ post, className = '' }) {
   const mediaWidth = post.media?.[0]?.width || null;
   const mediaHeight = post.media?.[0]?.height || null;
   const detailTo = buildPostDetailPath(post);
+  const profileTo = resolveCreatorProfilePath(post.authorId);
 
   return (
     <div className={`border-border bg-surface-raised/40 mx-4 mt-3 overflow-hidden border ${className}`.trim()}>
       <div className="flex items-center gap-2.5 px-3 pt-2.5 pb-2">
         <UserAvatar src={post.authorAvatarUrl} name={post.authorName} userId={post.authorId} size="sm" ring="brand" />
-        <Link
-          to={detailTo}
-          className="focus-visible:ring-brand min-w-0 flex-1 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <p className="flex min-w-0 items-center gap-1 text-[13px] font-bold text-white">
-            <span className="truncate">{post.authorName}</span>
-            <OfficialBadge isOfficial={post.authorIsOfficial} />
-          </p>
-          {formattedTimestamp ? (
-            <p className="text-muted text-[11px]">
-              <time dateTime={post.publishedAt || undefined}>{formattedTimestamp}</time>
+        <div className="min-w-0 flex-1">
+          {profileTo ? (
+            <Link
+              to={profileTo}
+              className="focus-visible:ring-brand flex min-w-0 items-center gap-1 text-[13px] font-bold text-white focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
+              onClick={(e) => e.stopPropagation()}
+              aria-label={post.authorName ? `View ${post.authorName}'s profile` : 'View profile'}
+            >
+              <span className="truncate">{post.authorName}</span>
+              <OfficialBadge isOfficial={post.authorIsOfficial} />
+            </Link>
+          ) : (
+            <p className="flex min-w-0 items-center gap-1 text-[13px] font-bold text-white">
+              <span className="truncate">{post.authorName}</span>
+              <OfficialBadge isOfficial={post.authorIsOfficial} />
             </p>
+          )}
+          {formattedTimestamp ? (
+            <Link
+              to={detailTo}
+              className="focus-visible:ring-brand text-muted block text-[11px] focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <time dateTime={post.publishedAt || undefined}>{formattedTimestamp}</time>
+            </Link>
           ) : null}
-        </Link>
+        </div>
       </div>
 
       <Link

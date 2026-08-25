@@ -21,7 +21,7 @@ Ship **local `develop` tip** (after push + merge to `main`) onto production.
 
 **Branch note:** `origin/develop` may still lag this tip. Push `develop`, then merge `develop` → `main` before production checkout.
 
-No `composer.lock` / `package-lock.json` change. No CDN/Wrangler. No native marketing/build bump in this range (iOS still **1.1.4** / **45**; Android **1.1.6** / **17**).
+No `composer.lock` / `package-lock.json` change. No CDN/Wrangler. Android unchanged (**1.1.6** / **17**). iOS bumped to marketing **1.1.5**, build **46**.
 
 ---
 
@@ -148,7 +148,7 @@ New / updated:
 
 | Platform | Why |
 |----------|-----|
-| **iOS** | Highlight YouTube Error 153 fix needs a Capacitor build. Version still **1.1.4** (45) unless you bump separately. |
+| **iOS** | Highlight YouTube Error 153 fix needs a Capacitor build. Ship marketing **1.1.5**, build **46**. |
 | **Android** | Same webview/bundle benefits if you ship; no version bump in this range (**1.1.6** / **17**). |
 
 Web-only production works without a store submit. Existing native installs keep old highlight embed behavior until updated.
@@ -204,7 +204,7 @@ Web-only production works without a store submit. Existing native installs keep 
 
 - B2 / `cdn.tapeya.com` Worker cutover (already live; no Wrangler change).
 - New Composer / npm lockfile.
-- Native version bump / store metadata beyond shipping the existing numbers.
+- Android version bump / store metadata (iOS already bumped to **1.1.5** / **46**).
 - JazzCash / card gateway, RMA, seller payouts.
 - Enabling auto engagement (unchanged; leave as currently configured on prod).
 

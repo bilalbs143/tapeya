@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" @if(!empty($allowControls)) class="allow-controls" @endif>
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -62,6 +62,7 @@
         border: 0;
       }
 
+      /* Live: block taps so React chrome above the underlay receives them. VOD: omit/remove. */
       #touch-shield {
         position: fixed;
         inset: 0;
@@ -71,13 +72,20 @@
         -webkit-user-select: none;
         user-select: none;
       }
+
+      html.allow-controls #touch-shield {
+        display: none !important;
+        pointer-events: none !important;
+      }
     </style>
   </head>
   <body>
     <div id="player-rotate-wrap">
       <div id="player"></div>
     </div>
-    <div id="touch-shield" aria-hidden="true"></div>
+    @if(empty($allowControls))
+      <div id="touch-shield" aria-hidden="true"></div>
+    @endif
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
       (function () {
@@ -87,6 +95,9 @@
         // Public Website URL (e.g. dev.tapeya.com vs dev-api.tapeya.com).
         var pageOrigin = window.location.origin;
         var urlParams = new URLSearchParams(window.location.search);
+        var allowControls =
+          @json(!empty($allowControls)) ||
+          urlParams.get('controls') === '1';
 
         var videoId = null;
         try {
@@ -114,13 +125,14 @@
         };
 
         // Highlights / VOD — show native YouTube chrome and allow scrubbing.
-        if (urlParams.get('controls') === '1') {
+        if (allowControls) {
+          document.documentElement.classList.add('allow-controls');
           playerVars.controls = 1;
           playerVars.disablekb = 0;
           playerVars.fs = 1;
           var shield = document.getElementById('touch-shield');
-          if (shield) {
-            shield.style.display = 'none';
+          if (shield && shield.parentNode) {
+            shield.parentNode.removeChild(shield);
           }
         }
 

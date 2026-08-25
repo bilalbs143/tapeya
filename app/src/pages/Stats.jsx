@@ -4,6 +4,7 @@ import { Container } from '@/ui/Container';
 
 /**
  * Career stats for the signed-in user — filters, highlights, batting / bowling / fielding.
+ * Same UI is reused on creator profiles via `<ProfileStats userId={…} />`.
  */
 export default function Stats() {
   return (

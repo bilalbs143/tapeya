@@ -30,7 +30,7 @@ describe('reels route helpers', () => {
     expect(isReelsFeedPath('/reels/u/12')).toBe(false);
     expect(isReelsImmersivePath('/reels/u/12')).toBe(false);
     expect(isNavbarOverlayPath('/reels/u/12')).toBe(false);
-    expect(isHeroNavbarPath('/reels/u/12', false)).toBe(false);
+    expect(isHeroNavbarPath('/reels/u/12')).toBe(false);
   });
 });
 
@@ -45,6 +45,20 @@ describe('auto dialogs on immersive reels', () => {
   });
 });
 
+describe('auto dialogs on highlight details', () => {
+  it('blocks entry dialogs so playback is not interrupted', () => {
+    expect(isGlobalEntryDialogBlockedPath('/highlights/6')).toBe(true);
+    expect(isProfileStrengthReminderBlockedPath('/highlights/6')).toBe(true);
+    expect(isInterestCampaignDialogBlockedPath('/highlights/6')).toBe(true);
+    expect(isGlobalEntryDialogBlockedPath('/highlights')).toBe(false);
+  });
+  it('blocks profile reminder on edit account and creator profiles', () => {
+    expect(isProfileStrengthReminderBlockedPath('/profile')).toBe(true);
+    expect(isProfileStrengthReminderBlockedPath('/reels/u/12')).toBe(true);
+    expect(isProfileStrengthReminderBlockedPath('/home')).toBe(false);
+  });
+});
+
 describe('isNavbarOverlayPath', () => {
   it('includes reels feed like tournament hero pages', () => {
     expect(isNavbarOverlayPath('/reels')).toBe(true);
@@ -56,39 +70,35 @@ describe('isNavbarOverlayPath', () => {
 
 describe('isHeroNavbarPath', () => {
   it('stays solid for match-linked / not-live watch-live, regardless of isLiveHero', () => {
-    expect(isHeroNavbarPath('/live/broadcast/31', false, false)).toBe(false);
+    expect(isHeroNavbarPath('/live/broadcast/31', false)).toBe(false);
   });
 
   it('goes transparent only when isLiveHero is true', () => {
-    expect(isHeroNavbarPath('/live/broadcast/31', false, true)).toBe(true);
-  });
-
-  it('trusts the caller for desktop instead of re-gating it independently', () => {
-    // The caller (LiveBroadcast.jsx) only ever computes heroMode true when !isDesktop, so this
-    // input combination shouldn't occur in practice — this just documents that the function
-    // itself doesn't second-guess isLiveHero based on isDesktop for the live-broadcast branch.
-    expect(isHeroNavbarPath('/live/broadcast/31', true, true)).toBe(true);
+    expect(isHeroNavbarPath('/live/broadcast/31', true)).toBe(true);
   });
 
   it('go-live camera never goes transparent', () => {
-    expect(isHeroNavbarPath('/live/go-live/31', false, true)).toBe(false);
+    expect(isHeroNavbarPath('/live/go-live/31', true)).toBe(false);
   });
 
   it('unrelated hero pages are unaffected by the new param', () => {
-    expect(isHeroNavbarPath('/home', false)).toBe(true);
-    expect(isHeroNavbarPath('/profile', false)).toBe(true);
-    expect(isHeroNavbarPath('/upcoming-tournaments/6', false)).toBe(true);
-    expect(isHeroNavbarPath('/highlights/6', false)).toBe(true);
-    expect(isHeroNavbarPath('/highlights/6', true)).toBe(false);
+    expect(isHeroNavbarPath('/home')).toBe(true);
+    expect(isHeroNavbarPath('/profile')).toBe(true);
+    expect(isHeroNavbarPath('/upcoming-tournaments/6')).toBe(true);
+  });
+
+  it('highlight details use solid navbar (standard live-style shell)', () => {
+    expect(isHeroNavbarPath('/highlights/6')).toBe(false);
+    expect(isNavbarOverlayPath('/highlights/6')).toBe(false);
   });
 
   it('reels feed uses transparent hero navbar; upload does not', () => {
-    expect(isHeroNavbarPath('/reels', false)).toBe(true);
-    expect(isHeroNavbarPath('/reels/upload', false)).toBe(false);
+    expect(isHeroNavbarPath('/reels')).toBe(true);
+    expect(isHeroNavbarPath('/reels/upload')).toBe(false);
   });
 
   it('non-hero pages stay solid', () => {
-    expect(isHeroNavbarPath('/shop', false)).toBe(false);
-    expect(isHeroNavbarPath('/scorecard', false)).toBe(false);
+    expect(isHeroNavbarPath('/shop')).toBe(false);
+    expect(isHeroNavbarPath('/scorecard')).toBe(false);
   });
 });

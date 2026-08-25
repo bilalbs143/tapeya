@@ -7,7 +7,7 @@
 import { Link } from 'react-router-dom';
 
 import { CLOUDFRONT_APP_BASE } from '@/lib/constants/assets';
-import { buildCreatorProfilePath } from '@/lib/share';
+import { resolveCreatorProfilePath } from '@/lib/share';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/Avatar';
 
@@ -40,13 +40,6 @@ function resolveAvatarSrc(src, hasCustomFallback) {
   return DEFAULT_USER_AVATAR;
 }
 
-function creatorProfilePath(userId) {
-  if (userId == null || userId === '') return null;
-  const numeric = Number(userId);
-  if (!Number.isFinite(numeric) || numeric <= 0) return null;
-  return buildCreatorProfilePath(numeric);
-}
-
 /**
  * @param {object} props
  * @param {string|null|undefined} [props.src]
@@ -65,7 +58,7 @@ export function UserAvatar({ src, name, userId, size = 'md', ring = false, fallb
   const hasCustomFallback = fallback != null && fallback !== false;
   const resolvedSrc = resolveAvatarSrc(src, hasCustomFallback);
   const label = alt ?? name ?? '';
-  const profilePath = creatorProfilePath(userId);
+  const profilePath = resolveCreatorProfilePath(userId);
 
   const avatar = (
     <Avatar className={cn(sizeClass, 'shrink-0 overflow-hidden rounded-full', ringKey ? RING_AVATAR[ringKey] : null)}>

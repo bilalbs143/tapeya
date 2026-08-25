@@ -264,9 +264,6 @@ final class SystemSettingRegistry
                 'value' => ['required', 'integer', 'min:0', 'max:10000'],
             ],
             SystemSettingKeyEnum::REELS_ENGAGEMENT_PER_DAY => [
-                'value' => ['required', 'integer', 'min:0', 'max:200'],
-            ],
-            SystemSettingKeyEnum::REELS_SIMPLE_POST_LIKES_PER_DAY => [
                 'value' => ['required', 'integer', 'min:0', 'max:50'],
             ],
         };
@@ -849,7 +846,7 @@ final class SystemSettingRegistry
                 'group' => SystemSettingGroupEnum::REELS,
                 'type' => SystemSettingTypeEnum::INTEGER,
                 'label' => 'Auto Engagement Enabled',
-                'description' => '1 = drip likes/views from random active users. 0 = off.',
+                'description' => '1 = drip likes/views from random active users each day toward the lifetime max. 0 = off.',
                 'settings_class' => PostsSettings::class,
                 'property' => 'autoEngagementEnabled',
                 'nullable_string' => false,
@@ -857,19 +854,10 @@ final class SystemSettingRegistry
             SystemSettingKeyEnum::REELS_ENGAGEMENT_PER_DAY->value => [
                 'group' => SystemSettingGroupEnum::REELS,
                 'type' => SystemSettingTypeEnum::INTEGER,
-                'label' => 'Reels Likes And Views Target',
-                'description' => 'Target likes_count and views_count per reel (video). 0–200. Each like also counts as a view.',
+                'label' => 'Auto Engagement Daily Max',
+                'description' => 'Max likes/views auto-added per reel per day (0–50). Each day picks a random amount from 1 to this value. Simple posts use ~60%. Soft lifetime = daily × 30 days.',
                 'settings_class' => PostsSettings::class,
                 'property' => 'reelsEngagementPerDay',
-                'nullable_string' => false,
-            ],
-            SystemSettingKeyEnum::REELS_SIMPLE_POST_LIKES_PER_DAY->value => [
-                'group' => SystemSettingGroupEnum::REELS,
-                'type' => SystemSettingTypeEnum::INTEGER,
-                'label' => 'Simple Post Likes Target',
-                'description' => 'Target likes_count per text/image/repost. 0–50. Views are not boosted.',
-                'settings_class' => PostsSettings::class,
-                'property' => 'simplePostLikesPerDay',
                 'nullable_string' => false,
             ],
         ];

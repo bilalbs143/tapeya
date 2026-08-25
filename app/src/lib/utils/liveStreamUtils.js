@@ -77,6 +77,109 @@ export function extractYoutubeVideoId(input) {
 }
 
 /**
+ * @param {string} hostname
+ * @returns {boolean}
+ */
+function isFacebookHost(hostname) {
+  const host = hostname.replace(/^www\./, '').toLowerCase();
+  return (
+    host === 'facebook.com' ||
+    host === 'm.facebook.com' ||
+    host === 'fb.watch' ||
+    host === 'fb.com' ||
+    host.endsWith('.facebook.com')
+  );
+}
+
+/**
+ * Canonical Facebook permalink for the plugin `href` param (mirrors API FacebookEmbedUrl).
+ *
+ * @param {string} input
+ * @returns {string|null}
+ */
+export function facebookPermalink(input) {
+  if (!input?.trim()) {
+    return null;
+  }
+
+  try {
+    const url = new URL(input.trim());
+    if (!isFacebookHost(url.hostname)) {
+      return null;
+    }
+
+    const path = url.pathname || '/';
+    const videoId = url.searchParams.get('v');
+    // watch/?v=… , watch/live/?v=… , and video.php?v=…
+    if (videoId && /^\d+$/.test(videoId)) {
+      return `https://www.facebook.com/watch/?v=${videoId}`;
+    }
+
+    const shareMatch = path.match(/^\/share\/v\/([^/]+)\/?$/);
+    if (shareMatch) {
+      return `https://www.facebook.com/share/v/${shareMatch[1]}`;
+    }
+
+    const videosMatch = path.match(/\/videos\/(\d+)/);
+    if (videosMatch) {
+      return `https://www.facebook.com/watch/?v=${videosMatch[1]}`;
+    }
+
+    const reelMatch = path.match(/^\/reel\/(\d+)/);
+    if (reelMatch) {
+      return `https://www.facebook.com/reel/${reelMatch[1]}`;
+    }
+
+    if (url.hostname.replace(/^www\./, '').toLowerCase() === 'fb.watch') {
+      const code = path.split('/').filter(Boolean)[0];
+      return code ? `https://fb.watch/${code}` : null;
+    }
+
+    return `https://www.facebook.com${path === '' ? '/' : path}`;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Facebook plugins/video.php embed URL, or null if input is not Facebook.
+ * Already-normalized plugin URLs are returned as-is.
+ *
+ * @param {string|null|undefined} input
+ * @returns {string|null}
+ */
+export function buildFacebookEmbedUrl(input) {
+  if (!input?.trim()) {
+    return null;
+  }
+
+  try {
+    const url = new URL(input.trim());
+    if (!isFacebookHost(url.hostname)) {
+      return null;
+    }
+    if (url.pathname.startsWith('/plugins/video.php')) {
+      return url.toString();
+    }
+  } catch {
+    return null;
+  }
+
+  const permalink = facebookPermalink(input);
+  if (!permalink) {
+    return null;
+  }
+
+  const embed = new URL('https://www.facebook.com/plugins/video.php');
+  embed.searchParams.set('href', permalink);
+  embed.searchParams.set('show_text', 'false');
+  embed.searchParams.set('autoplay', 'true');
+  embed.searchParams.set('mute', '0');
+  embed.searchParams.set('width', '1280');
+  return embed.toString();
+}
+
+/**
  * Capacitor WebViews load YouTube via Laravel's same-origin embed proxy so we can
  * receive ready/playing postMessages (and avoid Error 153 for nested iframes).
  */
@@ -147,13 +250,13 @@ export function buildYoutubeEmbedProxyUrl(directEmbedUrl, { showControls = false
 }
 
 /**
- * iOS native overlay embed params — rotate/cover only for landscape immersive.
+ * iOS native overlay embed params — rotate/cover for landscape immersive; optional VOD controls.
  *
  * @param {string} proxyUrl
- * @param {{ landscape?: boolean }} [options]
+ * @param {{ landscape?: boolean, showControls?: boolean }} [options]
  * @returns {string}
  */
-export function withIosNativeEmbedParams(proxyUrl, { landscape = false } = {}) {
+export function withIosNativeEmbedParams(proxyUrl, { landscape = false, showControls = false } = {}) {
   try {
     const url = new URL(proxyUrl);
     if (landscape) {
@@ -162,6 +265,9 @@ export function withIosNativeEmbedParams(proxyUrl, { landscape = false } = {}) {
     } else {
       url.searchParams.delete('cover');
       url.searchParams.delete('rotate');
+    }
+    if (showControls) {
+      url.searchParams.set('controls', '1');
     }
     return url.toString();
   } catch {
@@ -326,6 +432,33 @@ export function resolveYoutubeEmbed(embedUrl, embedId, { showControls = false } 
     : null;
 
   return { iframeSrc, usesProxy };
+}
+
+/**
+ * Resolve iframe src for live playback — YouTube (optionally proxied) or generic HTTPS embeds
+ * (Facebook plugin URL, etc. from {@link StreamUrlPlayback}).
+ *
+ * @param {{ embed_url?: string|null, embed_id?: string|null }|null|undefined} playback
+ * @param {{ showControls?: boolean }} [options]
+ * @returns {{ iframeSrc: string|null, usesProxy: boolean }}
+ */
+export function resolveStreamIframeSrc(playback, { showControls = false } = {}) {
+  const youtube = resolveYoutubeEmbed(playback?.embed_url, playback?.embed_id, { showControls });
+  if (youtube.iframeSrc) {
+    return youtube;
+  }
+
+  const raw = typeof playback?.embed_url === 'string' ? playback.embed_url.trim() : '';
+  const facebook = buildFacebookEmbedUrl(raw);
+  if (facebook) {
+    return { iframeSrc: facebook, usesProxy: false };
+  }
+
+  if (raw.startsWith('https://')) {
+    return { iframeSrc: raw, usesProxy: false };
+  }
+
+  return { iframeSrc: null, usesProxy: false };
 }
 
 /**

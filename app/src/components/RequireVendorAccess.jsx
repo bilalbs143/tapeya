@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom';
 
+import { resolveOwnProfilePath } from '@/lib/share';
 import { userHasVendorAccess } from '@/lib/vendorAccess';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useAppSelector } from '@/store/hooks';
@@ -18,7 +19,7 @@ export function RequireVendorAccess() {
   }
 
   if (!userHasVendorAccess(profileUser)) {
-    return <Navigate to="/profile" replace />;
+    return <Navigate to={resolveOwnProfilePath(profileUser?.id)} replace />;
   }
 
   return <Outlet />;

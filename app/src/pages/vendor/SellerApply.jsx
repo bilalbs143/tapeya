@@ -7,6 +7,7 @@ import { AppSubpageHeader } from '@/components/AppSubpageHeader';
 import { useToast } from '@/hooks/useToast';
 import { getApiErrorMessage } from '@/lib/apiErrors';
 import { DEFAULT_COUNTRY } from '@/lib/constants/geo';
+import { resolveOwnProfilePath } from '@/lib/share';
 import { userHasVendorAccess } from '@/lib/vendorAccess';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useApplyAsVendorMutation } from '@/store/api/vendorShopApi';
@@ -44,6 +45,7 @@ export default function SellerApply() {
     skip: !userFromStore?.id,
   });
   const user = meResponse?.data ?? userFromStore;
+  const ownProfilePath = resolveOwnProfilePath(user?.id);
   const [applyAsVendor, { isLoading: isSubmitting }] = useApplyAsVendorMutation();
 
   const {
@@ -79,7 +81,7 @@ export default function SellerApply() {
   }
 
   if (!meLoading && user?.vendor != null) {
-    return <Navigate to="/profile" replace />;
+    return <Navigate to={ownProfilePath} replace />;
   }
 
   const onSubmit = async (data) => {
@@ -105,7 +107,7 @@ export default function SellerApply() {
 
   return (
     <div className="bg-black">
-      <AppSubpageHeader sticky title="BECOME A SELLER" onBack={() => navigate('/profile')} />
+      <AppSubpageHeader sticky title="BECOME A SELLER" onBack={() => navigate(ownProfilePath)} />
       <Container className="pb-8">
         <p className="text-muted mb-4 text-[13px] leading-snug md:text-[14px]">
           Tell us about your store. Applications are reviewed before you can publish products.

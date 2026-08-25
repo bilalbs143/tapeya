@@ -128,7 +128,10 @@ export default function LiveStreamingCreate() {
               error={errors.streaming_url?.message}
               {...register('streaming_url')}
             />
-            <p className="text-muted mt-2 text-[12px] leading-snug">HTTPS YouTube, Facebook, or HLS link</p>
+            <p className="text-muted mt-2 text-[12px] leading-snug">
+              Prefer a YouTube watch URL or Facebook <span className="text-white/80">watch/?v=…</span> / page video link. Share
+              short links (<span className="text-white/80">share/v/…</span>) often cannot be embedded.
+            </p>
           </FormField>
 
           <FileUploadField
