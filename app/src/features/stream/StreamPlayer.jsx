@@ -1,4 +1,4 @@
-import { youtubeStreamThumbnail } from '@/lib/utils/liveStreamUtils';
+import { isInteractiveIframePlayback, youtubeStreamThumbnail } from '@/lib/utils/liveStreamUtils';
 
 import { HlsStreamPlayer } from './adapters/HlsStreamPlayer';
 import { IframeStreamPlayer } from './adapters/IframeStreamPlayer';
@@ -35,7 +35,17 @@ export function StreamPlayer({ stream, className = '', fill = false, isLandscape
     youtubeStreamThumbnail(stream.embed_id) ||
     null;
 
+  const interactiveIframe = isInteractiveIframePlayback(stream.playback);
+
   return (
-    <Player playback={stream.playback} className={className} fill={fill} isLandscape={isLandscape} posterUrl={resolvedPoster} />
+    <Player
+      playback={stream.playback}
+      className={className}
+      fill={fill}
+      isLandscape={isLandscape}
+      posterUrl={resolvedPoster}
+      showControls={interactiveIframe}
+      interactive={interactiveIframe}
+    />
   );
 }

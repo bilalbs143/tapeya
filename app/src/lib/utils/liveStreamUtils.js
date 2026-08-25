@@ -122,7 +122,8 @@ export function facebookPermalink(input) {
 
     const videosMatch = path.match(/\/videos\/(\d+)/);
     if (videosMatch) {
-      return `https://www.facebook.com/watch/?v=${videosMatch[1]}`;
+      const cleanPath = path.replace(/\/$/, '');
+      return `https://www.facebook.com${cleanPath}`;
     }
 
     const reelMatch = path.match(/^\/reel\/(\d+)/);
@@ -148,6 +149,23 @@ export function facebookPermalink(input) {
  * @param {string|null|undefined} input
  * @returns {string|null}
  */
+function buildFacebookPluginEmbedUrl(permalink) {
+  const embed = new URL('https://www.facebook.com/plugins/video.php');
+  embed.searchParams.set('href', permalink);
+  embed.searchParams.set('show_text', 'false');
+  embed.searchParams.set('autoplay', 'true');
+  embed.searchParams.set('mute', '0');
+  embed.searchParams.set('width', '1280');
+  embed.searchParams.set('height', '720');
+  embed.searchParams.set('allowfullscreen', 'true');
+  return embed.toString();
+}
+
+/** True when a watch-URL / streaming_url points at Facebook (before playback resolves). */
+export function isFacebookStreamUrl(input) {
+  return Boolean(facebookPermalink(input));
+}
+
 export function buildFacebookEmbedUrl(input) {
   if (!input?.trim()) {
     return null;
@@ -158,8 +176,10 @@ export function buildFacebookEmbedUrl(input) {
     if (!isFacebookHost(url.hostname)) {
       return null;
     }
+    // Rebuild plugin URLs so stale href-only embeds pick up height / fullscreen params.
     if (url.pathname.startsWith('/plugins/video.php')) {
-      return url.toString();
+      const href = url.searchParams.get('href');
+      return href ? buildFacebookPluginEmbedUrl(href) : url.toString();
     }
   } catch {
     return null;
@@ -170,13 +190,7 @@ export function buildFacebookEmbedUrl(input) {
     return null;
   }
 
-  const embed = new URL('https://www.facebook.com/plugins/video.php');
-  embed.searchParams.set('href', permalink);
-  embed.searchParams.set('show_text', 'false');
-  embed.searchParams.set('autoplay', 'true');
-  embed.searchParams.set('mute', '0');
-  embed.searchParams.set('width', '1280');
-  return embed.toString();
+  return buildFacebookPluginEmbedUrl(permalink);
 }
 
 /**
@@ -443,15 +457,16 @@ export function resolveYoutubeEmbed(embedUrl, embedId, { showControls = false } 
  * @returns {{ iframeSrc: string|null, usesProxy: boolean }}
  */
 export function resolveStreamIframeSrc(playback, { showControls = false } = {}) {
-  const youtube = resolveYoutubeEmbed(playback?.embed_url, playback?.embed_id, { showControls });
-  if (youtube.iframeSrc) {
-    return youtube;
-  }
-
   const raw = typeof playback?.embed_url === 'string' ? playback.embed_url.trim() : '';
+
   const facebook = buildFacebookEmbedUrl(raw);
   if (facebook) {
     return { iframeSrc: facebook, usesProxy: false };
+  }
+
+  const youtube = resolveYoutubeEmbed(raw, playback?.embed_id, { showControls });
+  if (youtube.iframeSrc) {
+    return youtube;
   }
 
   if (raw.startsWith('https://')) {
@@ -459,6 +474,61 @@ export function resolveStreamIframeSrc(playback, { showControls = false } = {}) 
   }
 
   return { iframeSrc: null, usesProxy: false };
+}
+
+/** True when playback resolves to a YouTube iframe (autoplay / proxy path — not tap-to-play). */
+export function isYoutubeIframePlayback(playback) {
+  if (!playback || playback.mode !== 'iframe') {
+    return false;
+  }
+  const raw = typeof playback.embed_url === 'string' ? playback.embed_url.trim() : '';
+  return Boolean(playback.embed_id?.trim() || resolveYoutubeEmbed(raw, playback.embed_id).iframeSrc);
+}
+
+/** True for non-YouTube iframe embeds (Facebook, generic HTTPS, etc.) that need tap-to-play + chrome passthrough. */
+export function isInteractiveIframePlayback(playback) {
+  if (!playback || playback.mode !== 'iframe') {
+    return false;
+  }
+  return !isYoutubeIframePlayback(playback);
+}
+
+/** True when a watch-URL points at YouTube (before playback resolves). */
+export function isYoutubeStreamUrl(input) {
+  return Boolean(extractYoutubeVideoId(input));
+}
+
+/** True when a watch-URL points at HLS (before playback resolves). */
+export function isHlsStreamUrl(input) {
+  if (!input?.trim()) {
+    return false;
+  }
+  try {
+    const url = new URL(input.trim());
+    const path = url.pathname.toLowerCase();
+    const host = url.hostname.toLowerCase();
+    if (path.endsWith('.m3u8')) {
+      return true;
+    }
+    return host.includes('cloudfront.net') || host.includes('live-video.net');
+  } catch {
+    return false;
+  }
+}
+
+/** True for HTTPS watch-URLs that map to interactive iframe playback (not YouTube or HLS). */
+export function isInteractiveStreamUrl(input) {
+  if (!input?.trim()) {
+    return false;
+  }
+  if (isYoutubeStreamUrl(input) || isHlsStreamUrl(input)) {
+    return false;
+  }
+  try {
+    return new URL(input.trim()).protocol === 'https:';
+  } catch {
+    return false;
+  }
 }
 
 /**

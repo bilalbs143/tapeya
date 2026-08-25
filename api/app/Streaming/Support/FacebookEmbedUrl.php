@@ -55,6 +55,8 @@ final class FacebookEmbedUrl
             'autoplay' => 'true',
             'mute' => '0',
             'width' => '1280',
+            'height' => '720',
+            'allowfullscreen' => 'true',
         ], '', '&', PHP_QUERY_RFC3986);
     }
 
@@ -89,9 +91,11 @@ final class FacebookEmbedUrl
             return 'https://www.facebook.com/share/v/'.$m[1];
         }
 
-        // /{page}/videos/{id}/ or /videos/{id}/
+        // /{page}/videos/{id}/ — keep canonical page video URL (watch/?v= often fails for page posts).
         if (preg_match('#/videos/(\d+)#', $path, $m)) {
-            return 'https://www.facebook.com/watch/?v='.$m[1];
+            $cleanPath = rtrim($path, '/');
+
+            return 'https://www.facebook.com'.$cleanPath;
         }
 
         // /reel/{id}

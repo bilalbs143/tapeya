@@ -5,6 +5,8 @@ import {
   buildFacebookEmbedUrl,
   facebookPermalink,
   getStreamOrientation,
+  isInteractiveIframePlayback,
+  isInteractiveStreamUrl,
   isSelfServeLiveBroadcast,
   resolveStreamIframeSrc,
   resolveYoutubeEmbed,
@@ -48,6 +50,64 @@ describe('facebookPermalink / buildFacebookEmbedUrl', () => {
     expect(facebookPermalink(input)).toBe('https://www.facebook.com/share/v/1EthobuGMr');
     expect(buildFacebookEmbedUrl(input)).toContain(encodeURIComponent('https://www.facebook.com/share/v/1EthobuGMr'));
   });
+
+  it('keeps canonical page /videos/{id} permalinks', () => {
+    const input = 'https://www.facebook.com/RaiMudasirAlii/videos/1638854447583237';
+    expect(facebookPermalink(input)).toBe('https://www.facebook.com/RaiMudasirAlii/videos/1638854447583237');
+    expect(buildFacebookEmbedUrl(input)).toContain(
+      encodeURIComponent('https://www.facebook.com/RaiMudasirAlii/videos/1638854447583237'),
+    );
+  });
+
+  it('rebuilds stale Facebook plugin embeds with height and fullscreen params', () => {
+    const stale =
+      'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Fwatch%2F%3Fv%3D1578076810638752&show_text=false&autoplay=true';
+    const rebuilt = buildFacebookEmbedUrl(stale);
+    expect(rebuilt).toContain('height=720');
+    expect(rebuilt).toContain('allowfullscreen=true');
+    expect(rebuilt).toContain(encodeURIComponent('https://www.facebook.com/watch/?v=1578076810638752'));
+  });
+});
+
+describe('isInteractiveStreamUrl', () => {
+  it('detects non-YouTube HTTPS watch URLs before playback resolves', () => {
+    expect(isInteractiveStreamUrl('https://www.facebook.com/RaiMudasirAlii/videos/1638854447583237')).toBe(true);
+    expect(isInteractiveStreamUrl('https://example.com/embed/live')).toBe(true);
+    expect(isInteractiveStreamUrl('https://www.youtube.com/watch?v=abc')).toBe(false);
+    expect(isInteractiveStreamUrl('https://cdn.example.com/live/stream.m3u8')).toBe(false);
+  });
+});
+
+describe('isInteractiveIframePlayback', () => {
+  it('treats non-YouTube iframe playback as interactive', () => {
+    expect(isInteractiveIframePlayback({ mode: 'iframe', provider: 'facebook' })).toBe(true);
+    expect(
+      isInteractiveIframePlayback({
+        mode: 'iframe',
+        embed_url: 'https://www.facebook.com/plugins/video.php?href=foo',
+      }),
+    ).toBe(true);
+    expect(
+      isInteractiveIframePlayback({
+        mode: 'iframe',
+        embed_url: 'https://example.com/player/live',
+      }),
+    ).toBe(true);
+  });
+
+  it('excludes YouTube iframe playback', () => {
+    expect(isInteractiveIframePlayback({ mode: 'iframe', embed_id: 'abc' })).toBe(false);
+    expect(
+      isInteractiveIframePlayback({
+        mode: 'iframe',
+        embed_url: 'https://www.youtube.com/embed/abc',
+      }),
+    ).toBe(false);
+  });
+
+  it('excludes HLS playback', () => {
+    expect(isInteractiveIframePlayback({ mode: 'hls', url: 'https://cdn.example.com/live.m3u8' })).toBe(false);
+  });
 });
 
 describe('resolveStreamIframeSrc', () => {
@@ -60,11 +120,12 @@ describe('resolveStreamIframeSrc', () => {
     expect(result.usesProxy).toBe(false);
   });
 
-  it('passes through an already-normalized Facebook plugin embed', () => {
+  it('normalizes stale plugin embed URLs from the API', () => {
     const embed =
       'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Fwatch%2F%3Fv%3D1578076810638752&show_text=false&autoplay=true';
-    const result = resolveStreamIframeSrc({ embed_url: embed });
-    expect(result.iframeSrc).toBe(embed);
+    const result = resolveStreamIframeSrc({ embed_url: embed, provider: 'facebook' });
+    expect(result.iframeSrc).toContain('height=720');
+    expect(result.iframeSrc).toContain('allowfullscreen=true');
     expect(result.usesProxy).toBe(false);
   });
 

@@ -38,7 +38,12 @@ import {
   LIVE_BROADCAST_SHELL_HEIGHT,
   LIVE_BROADCAST_SHELL_HEIGHT_DESKTOP,
 } from '@/lib/constants/liveBroadcastLayout';
-import { getStreamOrientation, isSelfServeLiveBroadcast } from '@/lib/utils/liveStreamUtils';
+import {
+  getStreamOrientation,
+  isInteractiveIframePlayback,
+  isInteractiveStreamUrl,
+  isSelfServeLiveBroadcast,
+} from '@/lib/utils/liveStreamUtils';
 import { getStreamOrientationOptions, useGetEnumsQuery } from '@/store/api/enumApi';
 import { useGetLiveStreamQuery } from '@/store/api/liveApi';
 import { ListError } from '@/ui/ListState';
@@ -75,8 +80,13 @@ export default function LiveBroadcast() {
   // Watch-URL streams (YouTube/Facebook/HLS paste) are always 16:9 — never portrait hero.
   // Hero is only for mobile Go Live camera (no streaming_url).
   const isWatchUrlStream = Boolean(broadcast?.streaming_url?.trim());
+  const isInteractiveWatchStream =
+    isWatchUrlStream &&
+    (isInteractiveStreamUrl(broadcast?.streaming_url) || isInteractiveIframePlayback(broadcast?.stream?.playback));
   /** Hero mode — portrait self-serve mobile camera only while live. */
   const heroMode = Boolean(broadcast) && isPortraitSelfServe && !isDesktop && streamStatus === 'live' && !isWatchUrlStream;
+  /** Interactive iframe watch-URL: fill portrait player so the embed is large enough to tap play. */
+  const fillInteractivePortrait = Boolean(isInteractiveWatchStream && !isDesktop && !isLandscape);
 
   useEffect(() => {
     // Wait until the stream payload is known so match streams don't briefly hide chrome.
@@ -185,7 +195,8 @@ export default function LiveBroadcast() {
             onToggleLandscape={toggleLandscape}
             headerSlot={overlayHeaderSlot}
             statusHeaderSlot={centeredStatusContent}
-            fillPortrait={heroMode}
+            fillPortrait={heroMode || fillInteractivePortrait}
+            allowVideoInteraction={isInteractiveWatchStream}
             selfServeChrome={isPortraitSelfServe && !isWatchUrlStream}
           />
         )}

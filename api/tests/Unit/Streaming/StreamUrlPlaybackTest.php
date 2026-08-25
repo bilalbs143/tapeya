@@ -48,6 +48,20 @@ class StreamUrlPlaybackTest extends TestCase
         $this->assertStringContainsString(rawurlencode('https://www.facebook.com/share/v/1EthobuGMr'), $playback['embed_url']);
     }
 
+    public function test_resolve_facebook_page_video_url(): void
+    {
+        $url = 'https://www.facebook.com/RaiMudasirAlii/videos/1638854447583237';
+        $playback = StreamUrlPlayback::resolve($url);
+
+        $this->assertSame('iframe', $playback['mode']);
+        $this->assertSame('facebook', $playback['provider']);
+        $this->assertStringStartsWith('https://www.facebook.com/plugins/video.php?', $playback['embed_url']);
+        $this->assertStringContainsString(
+            rawurlencode('https://www.facebook.com/RaiMudasirAlii/videos/1638854447583237'),
+            $playback['embed_url']
+        );
+    }
+
     public function test_playback_for_app_on_standalone_stream(): void
     {
         $stream = new LiveStream([

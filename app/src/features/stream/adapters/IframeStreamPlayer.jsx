@@ -30,6 +30,7 @@ export function IframeStreamPlayer({
   const src = resolution.iframeSrc;
   const usesNativeOverlay = usesIosNativeStreamPlayer() && resolution.usesProxy;
   const waitForPlaying = Boolean(resolution.usesProxy && !usesNativeOverlay);
+  const showTapToPlayHint = !waitForPlaying;
   const [sessionKey, setSessionKey] = useState(0);
   const [failed, setFailed] = useState(false);
 
@@ -65,14 +66,18 @@ export function IframeStreamPlayer({
         className="absolute inset-0 block h-full w-full border-0"
         src={src}
         title={title}
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
         referrerPolicy="strict-origin-when-cross-origin"
         allowFullScreen
-        // Direct YouTube embeds have no PLAYING callback — onLoad is the best signal.
-        // Proxy iframes wait for tapeya-youtube-playing (waitForPlaying).
+        // Proxy embeds wait for PLAYING; direct iframes clear on load so play buttons stay tappable.
         onLoad={waitForPlaying ? undefined : markReady}
       />
-      <StreamVideoLoading visible={isLoading && !failed} posterUrl={posterUrl} />
+      <StreamVideoLoading
+        visible={isLoading && !failed}
+        posterUrl={posterUrl}
+        label={showTapToPlayHint ? 'Loading video…' : undefined}
+        hint={showTapToPlayHint ? 'Tap play on the video if it does not start automatically.' : undefined}
+      />
       <StreamVideoRetry
         visible={failed}
         onRetry={() => {

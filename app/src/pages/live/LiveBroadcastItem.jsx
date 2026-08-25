@@ -159,11 +159,13 @@ function BroadcastViewport({
   hideHeaderOverlay = false,
   /** Self-serve mobile: fill the shell. Match-linked: 16:9 aspect-video in portrait. */
   fillPortrait = false,
+  /** Non-YouTube iframe embeds — keep iframe tappable (incl. landscape). */
+  allowVideoInteraction = false,
 }) {
-  // Landscape / desktop / self-serve portrait: fill the shell.
+  // Landscape / desktop / self-serve portrait / interactive iframe: fill the shell.
   // Match portrait: aspect-video (16:9) — tournament streams are landscape-encoded.
-  const blockLandscapeVideoPointer = !isDesktop && isLandscape;
-  const fillVideo = isDesktop || isLandscape || fillPortrait;
+  const blockLandscapeVideoPointer = !isDesktop && isLandscape && !allowVideoInteraction;
+  const fillVideo = isDesktop || isLandscape || fillPortrait || allowVideoInteraction;
   const surfaceClass = nativeUnderlaySurfaceClass(isIosNativeUnderlay);
 
   const videoLayer = fillVideo ? (
@@ -239,6 +241,8 @@ export default function LiveBroadcastItem({
   fillPortrait = false,
   /** Self-serve go-live watch — no comment/landscape toggles; comments always visible. */
   selfServeChrome = false,
+  /** Interactive iframe embed — keep video tappable and fill portrait shell. */
+  allowVideoInteraction = false,
 }) {
   const toast = useToast();
   const myUserId = useAppSelector((s) => s.auth?.user?.id ?? null);
@@ -357,6 +361,7 @@ export default function LiveBroadcastItem({
       isIosNativeUnderlay={isIosNativeUnderlay}
       hideHeaderOverlay={isIosNativeLandscape && isMobileLandscape}
       fillPortrait={fillPortrait}
+      allowVideoInteraction={allowVideoInteraction}
     />
   );
 
