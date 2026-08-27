@@ -1,12 +1,49 @@
-<mat-card class="cardWithShadow mb-3!">
+<mat-card class="cardWithShadow overflow-hidden">
+  <mat-card-content class="p-6">
+    <app-page-header
+      title="Live Streams"
+      subtitle="Manage and monitor live streams"
+      [badge]="totalRecords"
+      [showFiltersToggle]="false"
+    >
+      <ng-container pageActions>
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="resetSearchForm()"
+        >
+          Clear Search
+        </button>
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          (click)="loadHttpData()"
+        >
+          Search
+        </button>
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          (click)="openCreateDialog()"
+        >
+          Create Live Stream
+        </button>
+      </ng-container>
+    </app-page-header>
+  </mat-card-content>
+
+  <mat-divider></mat-divider>
+
   <mat-card-content class="p-6">
     <form
       (ngSubmit)="loadHttpData()"
       [formGroup]="searchForm"
       aria-label="Filter live streams"
     >
-      <div class="grid grid-cols-12 items-end gap-4">
-        <div class="col-span-12 sm:col-span-6 lg:col-span-2">
+      <app-search-filter-bar>
+        <div>
           <mat-form-field
             appearance="outline"
             class="hide-hint w-full"
@@ -20,7 +57,7 @@
           </mat-form-field>
         </div>
 
-        <div class="col-span-12 sm:col-span-6 lg:col-span-2">
+        <div>
           <mat-form-field
             appearance="outline"
             class="hide-hint w-full"
@@ -34,7 +71,7 @@
           </mat-form-field>
         </div>
 
-        <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+        <div>
           <mat-form-field
             appearance="outline"
             class="hide-hint w-full"
@@ -47,38 +84,13 @@
             />
           </mat-form-field>
         </div>
-
-        <div class="col-span-12 flex flex-wrap items-center justify-end gap-2 lg:col-span-5">
-          <button
-            mat-stroked-button
-            type="button"
-            (click)="resetSearchForm()"
-          >
-            Clear Search
-          </button>
-          <button
-            mat-flat-button
-            color="primary"
-            type="submit"
-          >
-            Search
-          </button>
-          <button
-            mat-flat-button
-            color="primary"
-            type="button"
-            (click)="openCreateDialog()"
-          >
-            Create Live Stream
-          </button>
-        </div>
-      </div>
+      </app-search-filter-bar>
     </form>
   </mat-card-content>
-</mat-card>
 
-<mat-card class="cardWithShadow table-header-theme">
-  <mat-card-content class="p-0">
+  <mat-divider></mat-divider>
+
+  <mat-card-content class="p-0 relative">
     <div class="sticky-header-table-container relative overflow-auto">
       <app-table-wrapper [loading]="isLoading">
         <table

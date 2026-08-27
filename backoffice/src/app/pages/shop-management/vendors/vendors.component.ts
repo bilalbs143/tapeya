@@ -16,8 +16,7 @@ import { MaterialModule } from 'src/app/material.module';
 import { MessageService } from 'src/app/services/message.service';
 import type { Vendor } from 'src/app/services/shop/vendor.service';
 import { VendorService } from 'src/app/services/shop/vendor.service';
-import { PaginatorComponent } from 'src/app/shared/components/paginator/paginator.component';
-import { TableWrapperComponent } from 'src/app/shared/components/table-wrapper/table-wrapper.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
@@ -51,8 +50,7 @@ const STATUS_FILTER_OPTIONS = [
     MatButtonModule,
     MatDialogModule,
     TablerIconsModule,
-    TableWrapperComponent,
-    PaginatorComponent,
+    CommonSharedModule,
   ],
   templateUrl: './vendors.component.html',
 })

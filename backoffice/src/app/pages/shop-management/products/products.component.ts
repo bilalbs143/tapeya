@@ -22,8 +22,7 @@ import type { Category } from 'src/app/services/shop/category.service';
 import { CategoryService } from 'src/app/services/shop/category.service';
 import type { Product } from 'src/app/services/shop/product.service';
 import { ProductService } from 'src/app/services/shop/product.service';
-import { PaginatorComponent } from 'src/app/shared/components/paginator/paginator.component';
-import { TableWrapperComponent } from 'src/app/shared/components/table-wrapper/table-wrapper.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
@@ -48,8 +47,7 @@ const DEFAULT_FILTERS = { name: '', is_active: '', brand_id: '', category_id: ''
     MatButtonModule,
     MatDialogModule,
     TablerIconsModule,
-    TableWrapperComponent,
-    PaginatorComponent,
+    CommonSharedModule,
   ],
   templateUrl: './products.component.html',
 })

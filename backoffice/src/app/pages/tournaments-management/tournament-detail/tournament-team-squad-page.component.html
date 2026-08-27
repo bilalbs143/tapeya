@@ -5,7 +5,7 @@
   />
 } @else if (team) {
   <div aria-label="Manage team squad">
-    <mat-card class="cardWithShadow mb-3!">
+    <mat-card class="cardWithShadow overflow-hidden">
       <mat-card-content class="p-6">
         <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <mat-form-field
@@ -52,10 +52,10 @@
           </div>
         </div>
       </mat-card-content>
-    </mat-card>
 
-    <mat-card class="cardWithShadow table-header-theme">
-      <mat-card-content class="p-0">
+      <mat-divider></mat-divider>
+
+      <mat-card-content class="p-0 relative">
         @if (dataSource.data.length === 0) {
           <div class="flex min-h-[14rem] w-full flex-col items-center justify-center px-4 py-10 text-center text-muted">
             <p class="m-0 max-w-md text-sm">No players on the Team Squad yet. Search above to add squad members.</p>

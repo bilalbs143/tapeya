@@ -1,0 +1,35 @@
+import { NgModule } from '@angular/core';
+
+import { DialogWrapperComponent } from './components/dialog-wrapper/dialog-wrapper.component';
+import { LoaderBlockComponent } from './components/loader/loader-block.component';
+import { PageHeaderComponent } from './components/page-header/page-header.component';
+import { PaginatorComponent } from './components/paginator/paginator.component';
+import { SearchFilterBarComponent } from './components/search-filter-bar/search-filter-bar.component';
+import { SubmitButtonComponent } from './components/submit-button/submit-button.component';
+import { TableWrapperComponent } from './components/table-wrapper/table-wrapper.component';
+
+/**
+ * Bundles the shared components used across most backoffice list/dialog pages
+ * (page header, filter bar, table wrapper, paginator, dialog shell, submit
+ * button, block loader) so pages import one thing instead of listing each
+ * standalone component individually.
+ *
+ * Page-type-specific components (file upload, avatar uploader, table image,
+ * post content preview, empty-data message) stay out of this bundle —
+ * import those directly where actually used.
+ */
+const SHARED_COMPONENTS = [
+  PageHeaderComponent,
+  SearchFilterBarComponent,
+  TableWrapperComponent,
+  PaginatorComponent,
+  DialogWrapperComponent,
+  SubmitButtonComponent,
+  LoaderBlockComponent,
+];
+
+@NgModule({
+  imports: [...SHARED_COMPONENTS],
+  exports: [...SHARED_COMPONENTS],
+})
+export class CommonSharedModule {}

@@ -7,6 +7,8 @@ export const SupportRoutes: Routes = [
     loadComponent: () => import('./support-messages-list.component').then((m) => m.SupportMessagesListComponent),
     data: {
       title: 'Support Messages',
+      icon: 'solar:headphones-round-line-duotone',
+      hideBreadcrumb: true,
       urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Support Messages' }],
     },
   },

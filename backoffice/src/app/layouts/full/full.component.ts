@@ -89,9 +89,27 @@ export class FullComponent implements OnDestroy {
   }
 
   /** Hide breadcrumb on dashboard routes (cricket + ecommerce). */
+  /**
+   * Hide the global breadcrumb strip on dashboard/ecommerce, or when the active
+   * route opts out via `data: { hideBreadcrumb: true }` (pages that provide their
+   * own header via `app-page-header`).
+   */
   public get showBreadcrumb(): boolean {
     const path = this.router.url.split('?')[0];
-    return path !== '/dashboard' && path !== '/ecommerce';
+    if (path === '/dashboard' || path === '/ecommerce') return false;
+    return !this.routeDataFlag('hideBreadcrumb');
+  }
+
+  /** Walk the activated-route tree and return true if any segment sets `data[key] = true`. */
+  private routeDataFlag(key: string): boolean {
+    let route = this.router.routerState.root;
+    while (route.firstChild) route = route.firstChild;
+    let r: typeof route | null = route;
+    while (r) {
+      if (r.snapshot.data[key]) return true;
+      r = r.parent;
+    }
+    return false;
   }
 
   constructor() {

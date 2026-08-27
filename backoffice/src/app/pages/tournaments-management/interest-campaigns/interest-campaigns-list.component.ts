@@ -20,8 +20,7 @@ import type { EnumOption } from 'src/app/services/enums.service';
 import { EnumsService } from 'src/app/services/enums.service';
 import { type InterestCampaign, InterestCampaignService } from 'src/app/services/interest-campaign.service';
 import { MessageService } from 'src/app/services/message.service';
-import { PaginatorComponent } from 'src/app/shared/components/paginator/paginator.component';
-import { TableWrapperComponent } from 'src/app/shared/components/table-wrapper/table-wrapper.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
@@ -55,8 +54,7 @@ const DEFAULT_FILTERS = { status: '', linked: '', search: '' } as const;
     MatDialogModule,
     MatTooltipModule,
     TablerIconsModule,
-    TableWrapperComponent,
-    PaginatorComponent,
+    CommonSharedModule,
     RouterLink,
   ],
   templateUrl: './interest-campaigns-list.component.html',
@@ -109,9 +107,14 @@ export class InterestCampaignsListComponent implements OnInit, OnChanges, AfterV
   }
 
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes['tournamentId'] && !changes['tournamentId'].firstChange) {
-      this.currentPage = 0;
-      this.loadHttpData();
+    if (changes['tournamentId']) {
+      // Routed navigation (withComponentInputBinding) sets every declared @Input to `undefined`
+      // when the route has no matching param/data key, clobbering the `null` class default.
+      this.tournamentId ??= null;
+      if (!changes['tournamentId'].firstChange) {
+        this.currentPage = 0;
+        this.loadHttpData();
+      }
     }
   }
 

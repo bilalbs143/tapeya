@@ -18,8 +18,7 @@ import type { EnumOption } from 'src/app/services/enums.service';
 import { EnumsService } from 'src/app/services/enums.service';
 import { MessageService } from 'src/app/services/message.service';
 import { QuickMatchesService, type QuickMatchRow } from 'src/app/services/quick-matches.service';
-import { PaginatorComponent } from 'src/app/shared/components/paginator/paginator.component';
-import { TableWrapperComponent } from 'src/app/shared/components/table-wrapper/table-wrapper.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { getStatusClass } from 'src/app/utils/status-class.util';
@@ -49,8 +48,7 @@ const DEFAULT_FILTERS = {
     MatButtonModule,
     MatDialogModule,
     TablerIconsModule,
-    TableWrapperComponent,
-    PaginatorComponent,
+    CommonSharedModule,
   ],
   templateUrl: './quick-matches-list.component.html',
 })

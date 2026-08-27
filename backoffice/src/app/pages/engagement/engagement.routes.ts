@@ -7,6 +7,8 @@ export const EngagementRoutes: Routes = [
     loadComponent: () => import('./push-notifications/push-notifications.component').then((m) => m.PushNotificationsComponent),
     data: {
       title: 'Push Notifications',
+      icon: 'solar:bell-line-duotone',
+      hideBreadcrumb: true,
       urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Engagement' }, { title: 'Push Notifications' }],
     },
   },
@@ -18,6 +20,8 @@ export const EngagementRoutes: Routes = [
       ),
     data: {
       title: 'Push Notification Templates',
+      icon: 'solar:letter-line-duotone',
+      hideBreadcrumb: true,
       urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Engagement' }, { title: 'Push Notification Templates' }],
     },
   },

@@ -18,9 +18,8 @@ import { EnumsService } from 'src/app/services/enums.service';
 import { MessageService } from 'src/app/services/message.service';
 import type { Category } from 'src/app/services/shop/category.service';
 import { CategoryService } from 'src/app/services/shop/category.service';
-import { PaginatorComponent } from 'src/app/shared/components/paginator/paginator.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { TableImageComponent } from 'src/app/shared/components/table-image/table-image.component';
-import { TableWrapperComponent } from 'src/app/shared/components/table-wrapper/table-wrapper.component';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
@@ -46,8 +45,7 @@ const DEFAULT_FILTERS = { name: '', is_active: '' } as const;
     MatDialogModule,
     TablerIconsModule,
     TableImageComponent,
-    TableWrapperComponent,
-    PaginatorComponent,
+    CommonSharedModule,
   ],
   templateUrl: './categories.component.html',
 })

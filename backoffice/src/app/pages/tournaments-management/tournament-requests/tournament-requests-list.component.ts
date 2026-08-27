@@ -21,8 +21,7 @@ import { EnumsService } from 'src/app/services/enums.service';
 import { MessageService } from 'src/app/services/message.service';
 import type { TournamentRequest } from 'src/app/services/tournament-request.service';
 import { TournamentRequestService } from 'src/app/services/tournament-request.service';
-import { PaginatorComponent } from 'src/app/shared/components/paginator/paginator.component';
-import { TableWrapperComponent } from 'src/app/shared/components/table-wrapper/table-wrapper.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
@@ -47,8 +46,7 @@ const DEFAULT_FILTERS = { contact_phone: '', status: '', tournament_type: '' } a
     MatButtonModule,
     MatDialogModule,
     TablerIconsModule,
-    TableWrapperComponent,
-    PaginatorComponent,
+    CommonSharedModule,
   ],
   templateUrl: './tournament-requests-list.component.html',
 })

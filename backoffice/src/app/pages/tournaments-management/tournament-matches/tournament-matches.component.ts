@@ -5,6 +5,7 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -21,8 +22,7 @@ import { ScheduleTournamentMatchDialogComponent } from '../tournament-detail/sch
 import { EnumsService } from 'src/app/services/enums.service';
 import { MessageService } from 'src/app/services/message.service';
 import { TournamentMatchesService, type TournamentMatchRow } from 'src/app/services/tournament-matches.service';
-import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
-import { TableWrapperComponent } from 'src/app/shared/components/table-wrapper/table-wrapper.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { getStatusClass } from 'src/app/utils/status-class.util';
@@ -42,6 +42,7 @@ const DEFAULT_FILTERS = {
     ReactiveFormsModule,
     RouterLink,
     MatCardModule,
+    MatDividerModule,
     MatTableModule,
     MatSortModule,
     MatButtonModule,
@@ -53,8 +54,7 @@ const DEFAULT_FILTERS = {
     MatPaginatorModule,
     MatTooltipModule,
     TablerIconsModule,
-    TableWrapperComponent,
-    LoaderBlockComponent,
+    CommonSharedModule,
   ],
   templateUrl: './tournament-matches.component.html',
 })

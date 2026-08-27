@@ -6,6 +6,8 @@ export const LiveStreamsManagementRoutes: Routes = [
     loadComponent: () => import('./live-streams/live-streams-list.component').then((m) => m.LiveStreamsListComponent),
     data: {
       title: 'Live Streams',
+      icon: 'solar:videocamera-record-line-duotone',
+      hideBreadcrumb: true,
       urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Live Streams' }],
     },
   },

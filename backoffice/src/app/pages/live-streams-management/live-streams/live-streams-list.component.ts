@@ -21,8 +21,7 @@ import {
 } from 'src/app/pages/tournaments-management/match-controller/live-stream.utils';
 import { LiveStreamService, type LiveStreamListItem, type LiveStreamStatus } from 'src/app/services/live-stream.service';
 import { MessageService } from 'src/app/services/message.service';
-import { PaginatorComponent } from 'src/app/shared/components/paginator/paginator.component';
-import { TableWrapperComponent } from 'src/app/shared/components/table-wrapper/table-wrapper.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { PAGINATOR_CONFIG } from 'src/app/shared/config/paginator.config';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 import { buildListParams } from 'src/app/shared/functions/list-params.function';
@@ -80,8 +79,7 @@ const WATCHING_REFRESH_MS = 15_000;
     MatButtonModule,
     TablerIconsModule,
     RouterLink,
-    TableWrapperComponent,
-    PaginatorComponent,
+    CommonSharedModule,
   ],
   templateUrl: './live-streams-list.component.html',
 })

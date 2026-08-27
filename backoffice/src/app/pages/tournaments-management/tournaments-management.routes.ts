@@ -7,6 +7,8 @@ export const TournamentsManagementRoutes: Routes = [
     loadComponent: () => import('./tournaments/tournaments.component').then((m) => m.TournamentsComponent),
     data: {
       title: 'Tournaments',
+      icon: 'solar:cup-line-duotone',
+      hideBreadcrumb: true,
       urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Tournaments Management' }, { title: 'Tournaments' }],
     },
   },
@@ -16,6 +18,8 @@ export const TournamentsManagementRoutes: Routes = [
       import('./tournament-requests/tournament-requests-list.component').then((m) => m.TournamentRequestsListComponent),
     data: {
       title: 'Tournament Requests',
+      icon: 'solar:clipboard-list-line-duotone',
+      hideBreadcrumb: true,
       urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Tournaments Management' }, { title: 'Tournament Requests' }],
     },
   },
@@ -25,6 +29,8 @@ export const TournamentsManagementRoutes: Routes = [
       import('./interest-campaigns/interest-campaigns-list.component').then((m) => m.InterestCampaignsListComponent),
     data: {
       title: 'Interest Campaigns',
+      icon: 'solar:hand-heart-line-duotone',
+      hideBreadcrumb: true,
       urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Tournaments Management' }, { title: 'Interest Campaigns' }],
     },
   },
@@ -66,6 +72,8 @@ export const TournamentsManagementRoutes: Routes = [
     loadComponent: () => import('./quick-matches/quick-matches-list.component').then((m) => m.QuickMatchesListComponent),
     data: {
       title: 'Quick Matches',
+      icon: 'solar:gameboy-line-duotone',
+      hideBreadcrumb: true,
       urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Tournaments Management' }, { title: 'Quick Matches' }],
     },
   },
@@ -74,6 +82,8 @@ export const TournamentsManagementRoutes: Routes = [
     loadComponent: () => import('./teams/teams.component').then((m) => m.TeamsComponent),
     data: {
       title: 'Teams',
+      icon: 'solar:shield-star-line-duotone',
+      hideBreadcrumb: true,
       urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Tournaments Management' }, { title: 'Teams' }],
     },
   },

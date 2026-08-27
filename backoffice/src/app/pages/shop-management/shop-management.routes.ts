@@ -7,6 +7,8 @@ export const ShopManagementRoutes: Routes = [
     loadComponent: () => import('./brands/brands.component').then((m) => m.BrandsComponent),
     data: {
       title: 'Brands',
+      icon: 'solar:tag-line-duotone',
+      hideBreadcrumb: true,
       urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Shop' }, { title: 'Brands' }],
     },
   },
@@ -15,6 +17,8 @@ export const ShopManagementRoutes: Routes = [
     loadComponent: () => import('./categories/categories.component').then((m) => m.CategoriesComponent),
     data: {
       title: 'Categories',
+      icon: 'solar:widget-2-line-duotone',
+      hideBreadcrumb: true,
       urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Shop' }, { title: 'Categories' }],
     },
   },
@@ -23,6 +27,8 @@ export const ShopManagementRoutes: Routes = [
     loadComponent: () => import('./vendors/vendors.component').then((m) => m.VendorsComponent),
     data: {
       title: 'Vendors',
+      icon: 'solar:buildings-2-line-duotone',
+      hideBreadcrumb: true,
       urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Shop' }, { title: 'Vendors' }],
     },
   },
@@ -31,6 +37,8 @@ export const ShopManagementRoutes: Routes = [
     loadComponent: () => import('./products/products.component').then((m) => m.ProductsComponent),
     data: {
       title: 'Products',
+      icon: 'solar:box-line-duotone',
+      hideBreadcrumb: true,
       urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Shop' }, { title: 'Products' }],
     },
   },
@@ -39,6 +47,8 @@ export const ShopManagementRoutes: Routes = [
     loadComponent: () => import('./orders/orders.component').then((m) => m.OrdersComponent),
     data: {
       title: 'Orders',
+      icon: 'solar:bill-list-line-duotone',
+      hideBreadcrumb: true,
       urls: [{ title: 'Dashboard', url: '/dashboard' }, { title: 'Shop' }, { title: 'Orders' }],
     },
   },

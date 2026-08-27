@@ -1,12 +1,49 @@
-<mat-card class="cardWithShadow mb-3!">
+<mat-card class="cardWithShadow overflow-hidden">
+  <mat-card-content class="p-6">
+    <app-page-header
+      title="Highlights"
+      subtitle="Manage video highlights"
+      [badge]="totalRecords"
+      [showFiltersToggle]="false"
+    >
+      <ng-container pageActions>
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="resetSearchForm()"
+        >
+          Clear Search
+        </button>
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          (click)="loadHttpData()"
+        >
+          Search
+        </button>
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          (click)="openCreateDialog()"
+        >
+          Add Highlight
+        </button>
+      </ng-container>
+    </app-page-header>
+  </mat-card-content>
+
+  <mat-divider></mat-divider>
+
   <mat-card-content class="p-6">
     <form
       (ngSubmit)="loadHttpData()"
       [formGroup]="searchForm"
       aria-label="Filter form"
     >
-      <div class="grid grid-cols-12 gap-4 items-end">
-        <div class="col-span-12 sm:col-span-6 lg:col-span-4">
+      <app-search-filter-bar>
+        <div>
           <mat-form-field
             appearance="outline"
             class="w-full hide-hint"
@@ -25,40 +62,15 @@
             </mat-icon>
           </mat-form-field>
         </div>
-
-        <div class="col-span-12 sm:col-span-6 lg:col-span-8 flex flex-wrap items-center justify-end gap-2">
-          <button
-            mat-stroked-button
-            type="button"
-            (click)="resetSearchForm()"
-          >
-            Clear Search
-          </button>
-          <button
-            mat-flat-button
-            color="primary"
-            type="submit"
-          >
-            Search
-          </button>
-          <button
-            mat-flat-button
-            color="primary"
-            type="button"
-            (click)="openCreateDialog()"
-          >
-            Add Highlight
-          </button>
-        </div>
-      </div>
+      </app-search-filter-bar>
     </form>
   </mat-card-content>
-</mat-card>
 
-<mat-card class="cardWithShadow table-header-theme">
-  <mat-card-content class="p-0">
+  <mat-divider></mat-divider>
+
+  <mat-card-content class="p-0 relative">
     <div class="sticky-header-table-container relative overflow-auto">
-      <app-table-wrapper>
+      <app-table-wrapper [loading]="isLoading">
         <table
           mat-table
           matSort

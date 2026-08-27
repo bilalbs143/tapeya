@@ -4,6 +4,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSort, MatSortModule } from '@angular/material/sort';
@@ -28,8 +29,7 @@ import {
 } from 'src/app/services/tournament-teams.service';
 import { UsersService } from 'src/app/services/users.service';
 import type { User } from 'src/app/services/users.service';
-import { LoaderBlockComponent } from 'src/app/shared/components/loader/loader-block.component';
-import { TableWrapperComponent } from 'src/app/shared/components/table-wrapper/table-wrapper.component';
+import { CommonSharedModule } from 'src/app/shared/common.module';
 import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 
 @Component({
@@ -43,6 +43,8 @@ import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
     ReactiveFormsModule,
 
     MatCardModule,
+
+    MatDividerModule,
 
     MatButtonModule,
 
@@ -58,11 +60,9 @@ import { EMPTY_CELL } from 'src/app/shared/constants/display.constants';
 
     MatTooltipModule,
 
-    LoaderBlockComponent,
-
     TablerIconsModule,
 
-    TableWrapperComponent,
+    CommonSharedModule,
   ],
 
   templateUrl: './tournament-team-squad-page.component.html',

@@ -1,4 +1,4 @@
-<mat-card class="cardWithShadow mb-3!">
+<mat-card class="cardWithShadow overflow-hidden">
   <mat-card-content class="p-6">
     <form
       (ngSubmit)="applyFilters()"
@@ -91,10 +91,10 @@
       </div>
     </form>
   </mat-card-content>
-</mat-card>
 
-<mat-card class="cardWithShadow table-header-theme">
-  <mat-card-content class="p-0">
+  <mat-divider></mat-divider>
+
+  <mat-card-content class="p-0 relative">
     @if (isLoading) {
       <app-loader-block
         label="Loading matches"
