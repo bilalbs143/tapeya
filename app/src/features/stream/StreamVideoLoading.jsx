@@ -17,8 +17,8 @@ export function StreamVideoLoading({
 }) {
   return (
     <div
-      className={`absolute -top-px -right-px -bottom-[5px] -left-px z-10 flex flex-col items-center justify-center gap-3 overflow-hidden bg-black pb-[5px] transition-opacity duration-300 ${
-        visible ? 'opacity-100' : 'pointer-events-none opacity-0'
+      className={`pointer-events-none absolute -top-px -right-px -bottom-[5px] -left-px z-10 flex flex-col items-center justify-center gap-3 overflow-hidden bg-black pb-[5px] transition-opacity duration-300 ${
+        visible ? 'opacity-100' : 'opacity-0'
       }`}
       role="status"
       aria-live="polite"

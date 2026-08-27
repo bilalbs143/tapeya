@@ -232,7 +232,7 @@ export default function LiveStreamingManage() {
 
                 {canGoLive && (
                   <p className="text-muted -mt-4 mb-8 text-[12px] leading-snug">
-                    When your YouTube or Facebook feed is ready, tap Go Live so it appears on the Live hub.
+                    When your YouTube or HLS feed is ready, tap Go Live so it appears on the Live hub.
                   </p>
                 )}
               </>

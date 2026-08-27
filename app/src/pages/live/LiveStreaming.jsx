@@ -23,7 +23,7 @@ export default function LiveStreaming() {
       <AppSubpageHeader title="LIVE STREAMING" />
       <Container>
         <p className="mb-6 text-left text-[14px] text-white/90 lg:text-center">
-          Add a YouTube or Facebook watch URL so viewers can watch on the Live hub — same as admin external streams.
+          Add a YouTube watch URL or HLS link so viewers can watch on the Live hub — same as admin external streams.
         </p>
 
         <Button variant="orange" className="mb-8 w-full lg:w-auto" onClick={() => navigate('/live/streaming/create')}>

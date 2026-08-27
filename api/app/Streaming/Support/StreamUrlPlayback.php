@@ -24,15 +24,6 @@ final class StreamUrlPlayback
             ];
         }
 
-        $facebookEmbed = FacebookEmbedUrl::embedFromUrl($url);
-        if ($facebookEmbed) {
-            return [
-                'mode' => 'iframe',
-                'embed_url' => $facebookEmbed,
-                'provider' => 'facebook',
-            ];
-        }
-
         if (self::isHlsUrl($url)) {
             return [
                 'mode' => 'hls',

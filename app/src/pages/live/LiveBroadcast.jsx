@@ -14,7 +14,7 @@
  * - Landscape (phones): immersive overlay for match and landscape self-serve.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -26,6 +26,7 @@ import { nativeUnderlaySurfaceClass } from '@/features/stream/ios/iosNativeStrea
 import { streamUsesIosNativeYoutubePlayer } from '@/features/stream/ios/streamUsesIosNativeYoutubePlayer';
 import { LiveStatusBadge, LiveViewerCountBadge } from '@/features/stream/LiveStatusBadges';
 import { setLiveViewerHeroMode } from '@/features/stream/liveViewerChromeStore';
+import { shouldShowStreamDebugOverlay, StreamDebugOverlay } from '@/features/stream/StreamDebugOverlay';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { LG_MEDIA_QUERY, MOBILE_MEDIA_QUERY } from '@/lib/constants/layout';
 import {
@@ -44,6 +45,8 @@ import {
   isInteractiveStreamUrl,
   isSelfServeLiveBroadcast,
 } from '@/lib/utils/liveStreamUtils';
+import { streamDebugLog } from '@/lib/utils/streamDebugLog';
+import { hideYoutubeStreamOverlay } from '@/native/youtubeStreamOverlay';
 import { getStreamOrientationOptions, useGetEnumsQuery } from '@/store/api/enumApi';
 import { useGetLiveStreamQuery } from '@/store/api/liveApi';
 import { ListError } from '@/ui/ListState';
@@ -77,7 +80,7 @@ export default function LiveBroadcast() {
   // Portrait is the first StreamOrientationEnum case — hero only for that value.
   const portraitValue = orientationOptions[0]?.value;
   const isPortraitSelfServe = Boolean(isSelfServe && portraitValue && orientation === portraitValue);
-  // Watch-URL streams (YouTube/Facebook/HLS paste) are always 16:9 — never portrait hero.
+  // Watch-URL streams (YouTube/HLS paste) are always 16:9 — never portrait hero.
   // Hero is only for mobile Go Live camera (no streaming_url).
   const isWatchUrlStream = Boolean(broadcast?.streaming_url?.trim());
   const isInteractiveWatchStream =
@@ -87,6 +90,17 @@ export default function LiveBroadcast() {
   const heroMode = Boolean(broadcast) && isPortraitSelfServe && !isDesktop && streamStatus === 'live' && !isWatchUrlStream;
   /** Interactive iframe watch-URL: fill portrait player so the embed is large enough to tap play. */
   const fillInteractivePortrait = Boolean(isInteractiveWatchStream && !isDesktop && !isLandscape);
+
+  useEffect(() => {
+    streamDebugLog('LiveBroadcast', {
+      streamId,
+      streamStatus,
+      streaming_url: broadcast?.streaming_url,
+      isInteractiveWatchStream,
+      fillInteractivePortrait,
+      playback: broadcast?.stream?.playback,
+    });
+  }, [streamId, streamStatus, broadcast, isInteractiveWatchStream, fillInteractivePortrait]);
 
   useEffect(() => {
     // Wait until the stream payload is known so match streams don't briefly hide chrome.
@@ -105,6 +119,16 @@ export default function LiveBroadcast() {
   useEffect(() => {
     setIsLandscape(false);
   }, [streamId]);
+
+  useLayoutEffect(() => {
+    void hideYoutubeStreamOverlay();
+  }, [streamId]);
+
+  useEffect(() => {
+    return () => {
+      void hideYoutubeStreamOverlay();
+    };
+  }, []);
 
   const toggleLandscape = useCallback(() => {
     // Portrait self-serve go-live stays portrait-only; watch-URL + landscape self-serve + match can rotate.
@@ -200,6 +224,7 @@ export default function LiveBroadcast() {
             selfServeChrome={isPortraitSelfServe && !isWatchUrlStream}
           />
         )}
+        <StreamDebugOverlay enabled={shouldShowStreamDebugOverlay()} />
       </div>
     </div>
   );

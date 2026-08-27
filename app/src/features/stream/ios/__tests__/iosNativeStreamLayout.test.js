@@ -33,4 +33,12 @@ describe('buildNativeStackLayout', () => {
       userInteractionEnabled: true,
     });
   });
+
+  it('underlay can still enable native taps without promoting above Capacitor', () => {
+    expect(buildNativeStackLayout(false, { interactive: false, touchEnabled: true })).toEqual({
+      underlay: true,
+      immersiveFullscreen: false,
+      userInteractionEnabled: true,
+    });
+  });
 });

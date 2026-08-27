@@ -26,40 +26,14 @@ class StreamUrlPlaybackTest extends TestCase
         $this->assertSame($url, $playback['url']);
     }
 
-    public function test_resolve_facebook_watch_live_url(): void
+    public function test_resolve_generic_https_iframe_url(): void
     {
-        $url = 'https://www.facebook.com/watch/live/?mibextid=wwXIfr&ref=watch_permalink&v=1578076810638752&rdid=s84e56Yp5UqVq2N3';
+        $url = 'https://example.com/player/live';
         $playback = StreamUrlPlayback::resolve($url);
 
         $this->assertSame('iframe', $playback['mode']);
-        $this->assertSame('facebook', $playback['provider']);
-        $this->assertStringStartsWith('https://www.facebook.com/plugins/video.php?', $playback['embed_url']);
-        $this->assertStringContainsString(rawurlencode('https://www.facebook.com/watch/?v=1578076810638752'), $playback['embed_url']);
-    }
-
-    public function test_resolve_facebook_share_v_url(): void
-    {
-        $url = 'https://www.facebook.com/share/v/1EthobuGMr/?mibextid=wwXIfr';
-        $playback = StreamUrlPlayback::resolve($url);
-
-        $this->assertSame('iframe', $playback['mode']);
-        $this->assertSame('facebook', $playback['provider']);
-        $this->assertStringStartsWith('https://www.facebook.com/plugins/video.php?', $playback['embed_url']);
-        $this->assertStringContainsString(rawurlencode('https://www.facebook.com/share/v/1EthobuGMr'), $playback['embed_url']);
-    }
-
-    public function test_resolve_facebook_page_video_url(): void
-    {
-        $url = 'https://www.facebook.com/RaiMudasirAlii/videos/1638854447583237';
-        $playback = StreamUrlPlayback::resolve($url);
-
-        $this->assertSame('iframe', $playback['mode']);
-        $this->assertSame('facebook', $playback['provider']);
-        $this->assertStringStartsWith('https://www.facebook.com/plugins/video.php?', $playback['embed_url']);
-        $this->assertStringContainsString(
-            rawurlencode('https://www.facebook.com/RaiMudasirAlii/videos/1638854447583237'),
-            $playback['embed_url']
-        );
+        $this->assertSame($url, $playback['embed_url']);
+        $this->assertArrayNotHasKey('provider', $playback);
     }
 
     public function test_playback_for_app_on_standalone_stream(): void

@@ -116,7 +116,7 @@ export const liveApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _err, streamId) => [{ type: 'LiveStreams', id: streamId }],
     }),
 
-    // ── User-owned watch-URL streams (YouTube / Facebook / HLS) ───────────────
+    // ── User-owned watch-URL streams (YouTube / HLS) ───────────────
     getMyLiveStreams: builder.query({
       query: () => ({ url: '/live/my-streams' }),
       transformResponse: (response) => response?.data ?? [],

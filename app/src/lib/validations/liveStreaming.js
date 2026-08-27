@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * Create / edit watch-URL live streams (YouTube, Facebook, HLS) — mirrors admin external provider.
+ * Create / edit watch-URL live streams (YouTube, HLS) — mirrors admin external provider.
  */
 export const liveStreamingSchema = z.object({
   title: z.string().trim().min(1, 'Title is required').max(100, 'Title must be 100 characters or fewer'),

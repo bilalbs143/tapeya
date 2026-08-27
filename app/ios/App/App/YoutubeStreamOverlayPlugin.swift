@@ -34,6 +34,7 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
     private var readyFallbackWorkItem: DispatchWorkItem?
     private var playbackKickWorkItems: [DispatchWorkItem] = []
     private var immersiveLandscapeMode = false
+    private var lastLoadedOverlayUrl: String?
 
     @objc func show(_ call: CAPPluginCall) {
         guard let urlString = call.getString("url"), let url = URL(string: urlString) else {
@@ -56,7 +57,8 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
             hostView.backgroundColor = .black
 
             let webView = self.ensureWebView(on: hostView)
-            let needsLoad = reload || webView.url == nil
+            let sameUrl = self.lastLoadedOverlayUrl == urlString
+            let needsLoad = webView.url == nil || (reload && !sameUrl)
 
             if needsLoad {
                 self.cancelReadyFallback()
@@ -78,21 +80,26 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
             )
 
             if !applied {
+                print("[TapeyaStream] show rejected zero-size-frame")
                 call.resolve(["shown": false, "reason": "zero-size-frame"])
                 return
             }
 
             if needsLoad {
+                print("[TapeyaStream] show load url=\(urlString) underlay=\(underlay) interactive=\(userInteractionEnabled) frame=\(frame)")
                 self.beginPendingPlayerReady(for: webView)
-                webView.load(URLRequest(url: url))
+                self.loadOverlayContent(webView: webView, url: url)
             } else {
                 self.playerIsReady = true
                 webView.isHidden = false
                 self.syncEmbedToMode(immersiveFullscreen, targetUrl: url)
-                self.schedulePlaybackKicks()
+                if self.isYoutubeEmbedProxy(webView.url) {
+                    self.schedulePlaybackKicks()
+                }
             }
 
             self.applyCapacitorWebViewTransparency(underlay)
+            self.applyCapacitorWebViewInteraction(underlay: underlay)
             call.resolve(["shown": true])
         }
     }
@@ -149,6 +156,7 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
 
             self.syncEmbedToMode(immersiveFullscreen, targetUrl: targetUrl)
             self.applyCapacitorWebViewTransparency(underlay)
+            self.applyCapacitorWebViewInteraction(underlay: underlay)
             call.resolve(["updated": true])
         }
     }
@@ -159,7 +167,9 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
             self.cancelPlaybackKicks()
             self.pendingPlayerReady = false
             self.playerIsReady = false
+            self.lastLoadedOverlayUrl = nil
             self.applyCapacitorWebViewTransparency(false)
+            self.applyCapacitorWebViewInteraction(underlay: true)
             self.overlayWebView?.isHidden = true
             call.resolve(["hidden": true])
         }
@@ -214,13 +224,23 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
         return cover && rotate
     }
 
+    private func loadOverlayContent(webView: WKWebView, url: URL) {
+        lastLoadedOverlayUrl = url.absoluteString
+        webView.load(URLRequest(url: url))
+    }
+
+    private func isYoutubeEmbedProxy(_ url: URL?) -> Bool {
+        guard let url else { return false }
+        return url.path.contains("/embed/youtube")
+    }
+
     /** Reload when portrait/landscape URL params differ; otherwise refresh embed layout in-place. */
     private func syncEmbedToMode(_ landscape: Bool, targetUrl: URL?) {
         guard let webView = overlayWebView else { return }
 
         let loadedLandscape = embedHasLandscapeParams(webView.url)
         if loadedLandscape != landscape, let targetUrl {
-            webView.load(URLRequest(url: targetUrl))
+            loadOverlayContent(webView: webView, url: targetUrl)
             return
         }
 
@@ -257,6 +277,20 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
         webView.scrollView.layer.backgroundColor = UIColor.black.cgColor
         if #available(iOS 15.0, *) {
             webView.underPageBackgroundColor = .black
+        }
+    }
+
+    /** Reduce Capacitor scroll/pan competing with the interactive native overlay. */
+    private func applyCapacitorWebViewInteraction(underlay: Bool) {
+        guard let capWebView = bridge?.webView else { return }
+
+        let scrollView = capWebView.scrollView
+        if underlay {
+            scrollView.isScrollEnabled = true
+            scrollView.panGestureRecognizer.isEnabled = true
+        } else {
+            scrollView.isScrollEnabled = false
+            scrollView.panGestureRecognizer.isEnabled = false
         }
     }
 
@@ -303,6 +337,7 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
     ) -> Bool {
         webView.isUserInteractionEnabled = userInteractionEnabled
         webView.scrollView.isUserInteractionEnabled = userInteractionEnabled
+        webView.isExclusiveTouch = userInteractionEnabled
         // Ensure the scroll view does not eat the first tap when controls are enabled.
         if userInteractionEnabled {
             webView.scrollView.delaysContentTouches = false
@@ -355,9 +390,12 @@ public class YoutubeStreamOverlayPlugin: CAPPlugin, CAPBridgedPlugin, WKScriptMe
         pendingPlayerReady = false
         playerIsReady = true
         overlayWebView?.isHidden = false
+        print("[TapeyaStream] revealWebView url=\(overlayWebView?.url?.absoluteString ?? "nil")")
         refreshEmbedLayout()
         notifyListeners("playerReady", data: [:])
-        schedulePlaybackKicks()
+        if isYoutubeEmbedProxy(overlayWebView?.url) {
+            schedulePlaybackKicks()
+        }
     }
 
     /** Call embed `tapeyaStartPlayback` after the webview is visible. */
@@ -427,12 +465,18 @@ extension YoutubeStreamOverlayPlugin: WKNavigationDelegate {
             if #available(iOS 15.0, *) {
                 webView.underPageBackgroundColor = .black
             }
+            // YouTube proxy posts tapeyaStream ready; generic embeds reveal on navigation finish.
+            if self.pendingPlayerReady, !self.isYoutubeEmbedProxy(webView.url) {
+                print("[TapeyaStream] didFinish non-YouTube url=\(webView.url?.absoluteString ?? "nil")")
+                self.revealWebView()
+            }
             self.refreshEmbedLayout()
         }
     }
 
     public func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
         DispatchQueue.main.async {
+            print("[TapeyaStream] didFail error=\(error.localizedDescription)")
             if self.pendingPlayerReady {
                 self.revealWebView()
             }
@@ -441,6 +485,7 @@ extension YoutubeStreamOverlayPlugin: WKNavigationDelegate {
 
     public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         DispatchQueue.main.async {
+            print("[TapeyaStream] didFailProvisional error=\(error.localizedDescription)")
             if self.pendingPlayerReady {
                 self.revealWebView()
             }

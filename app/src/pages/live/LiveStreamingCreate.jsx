@@ -1,5 +1,5 @@
 /**
- * Create a watch-URL live stream (YouTube / Facebook / HLS).
+ * Create a watch-URL live stream (YouTube / HLS).
  */
 
 import { useEffect, useState } from 'react';
@@ -103,8 +103,7 @@ export default function LiveStreamingCreate() {
       <Container>
         <FormStack as="form" className="pb-8 lg:items-start lg:gap-y-4" onSubmit={handleSubmit(onSubmit)}>
           <p className="text-left text-[14px] text-white/90 lg:text-center">
-            Paste an HTTPS YouTube watch/embed URL, Facebook Live link, or HLS .m3u8. It goes live on the hub as soon as you
-            submit.
+            Paste an HTTPS YouTube watch/embed URL or HLS .m3u8. It goes live on the hub as soon as you submit.
           </p>
 
           <FormField label="Title" htmlFor="title" required>
@@ -129,8 +128,7 @@ export default function LiveStreamingCreate() {
               {...register('streaming_url')}
             />
             <p className="text-muted mt-2 text-[12px] leading-snug">
-              Prefer a YouTube watch URL or Facebook <span className="text-white/80">watch/?v=…</span> / page video link. Share
-              short links (<span className="text-white/80">share/v/…</span>) often cannot be embedded.
+              Prefer a YouTube watch or embed URL, or an HLS <span className="text-white/80">.m3u8</span> playlist.
             </p>
           </FormField>
 

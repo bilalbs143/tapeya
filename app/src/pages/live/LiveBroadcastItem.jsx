@@ -162,8 +162,6 @@ function BroadcastViewport({
   /** Non-YouTube iframe embeds — keep iframe tappable (incl. landscape). */
   allowVideoInteraction = false,
 }) {
-  // Landscape / desktop / self-serve portrait / interactive iframe: fill the shell.
-  // Match portrait: aspect-video (16:9) — tournament streams are landscape-encoded.
   const blockLandscapeVideoPointer = !isDesktop && isLandscape && !allowVideoInteraction;
   const fillVideo = isDesktop || isLandscape || fillPortrait || allowVideoInteraction;
   const surfaceClass = nativeUnderlaySurfaceClass(isIosNativeUnderlay);

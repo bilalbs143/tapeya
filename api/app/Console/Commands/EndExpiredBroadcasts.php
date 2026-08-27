@@ -10,7 +10,7 @@ use Illuminate\Console\Command;
  * Self-serve mobile broadcasts only — two distinct failure modes, two distinct cleanups.
  * See LIVE_STREAM_MOBILE_BROADCAST.md's "Auto-end enforcement" section.
  *
- * Watch-URL streams (`provider=external`) are excluded: organizers paste YouTube/Facebook
+ * Watch-URL streams (`provider=external`) are excluded: organizers paste YouTube/HLS
  * links that may run longer than the mobile Go Live 2h budget, and they end those manually.
  */
 class EndExpiredBroadcasts extends Command

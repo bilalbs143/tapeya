@@ -12,7 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * App users create/manage standalone watch-URL streams (YouTube / Facebook / HLS),
+ * App users create/manage standalone watch-URL streams (YouTube / HLS),
  * mirroring admin external live streams — no RTMP / can_broadcast gate.
  *
  * @see Admin\LiveStreamController

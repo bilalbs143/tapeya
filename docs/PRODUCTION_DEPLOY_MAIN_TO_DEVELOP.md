@@ -15,7 +15,7 @@ Ship **local `develop` tip** (after push + merge to `main`) onto production.
 | `495e253` | Drop unused import in shop carts migration file |
 | `252fd9c` | Hero slider CTAs (none / URL / dialog) + static assets base → `cdn.tapeya.com` |
 | `54ebdac` | Shared loaders in app + backoffice; seller empty states aligned |
-| `34b2f34` | Organizer broadcast graphics (OBS overlay) + user watch-URL live streams (YouTube/Facebook) |
+| `34b2f34` | Organizer broadcast graphics (OBS overlay) + user watch-URL live streams (YouTube/HLS) |
 | `57c89ed` | Highlight YouTube playback on iOS Capacitor (Error 153) |
 | `f1734b2` | Shared `ListEmpty`/`ListError`, Button size cleanup, safe-area hero offsets, profile/sidebar polish |
 
@@ -29,7 +29,7 @@ No `composer.lock` / `package-lock.json` change. No CDN/Wrangler. Android unchan
 
 ### Live streaming & graphics
 
-- **Watch-URL streams:** logged-in users can add a YouTube or Facebook watch URL (`/live/streaming`) so viewers watch on the Live hub — same pattern as admin external streams. Not subject to the mobile Go Live 2h camera cap.
+- **Watch-URL streams:** logged-in users can add a YouTube or HLS watch URL (`/live/streaming`) so viewers watch on the Live hub — same pattern as admin external streams. Not subject to the mobile Go Live 2h camera cap.
 - **Broadcast graphics:** scorers open **Broadcast graphics** on a match, save theme/config, copy a signed OBS overlay URL (1920×1080). Lifecycle: THIS_MATCH → TOSS_LT → LT_DEFAULT + existing scoring flashes. Destination RTMP stays outside Tapeya (manual encoder setup).
 
 ### Hero sliders
@@ -165,7 +165,7 @@ Web-only production works without a store submit. Existing native installs keep 
 
 ### Live streaming (watch URL)
 
-- [ ] Logged-in user: `/live/streaming` → Add Live Stream with YouTube/Facebook URL → appears on Live hub when live/listed as designed.
+- [ ] Logged-in user: `/live/streaming` → Add Live Stream with YouTube/HLS URL → appears on Live hub when live/listed as designed.
 - [ ] Manage stream (edit / status) works; viewer can open `/live/broadcast/:id`.
 - [ ] Mobile Go Live camera flow still works independently.
 

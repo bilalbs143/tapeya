@@ -25,31 +25,31 @@ export function readElementLayoutRect(element) {
 }
 
 /**
- * Z-order + interaction. Portrait keeps the measured frame; landscape fills the host.
- *
- * Default `interactive: false` (live + highlight landscape): native under Capacitor so React
- * chrome stays tappable. Highlights portrait VOD passes `interactive: true` so YouTube
- * play/pause/seek work — keep React controls outside that frame.
+ * @param {boolean} isLandscape
+ * @param {{ interactive?: boolean, touchEnabled?: boolean }} [options]
+ *   - `interactive` — false = underlay (below Capacitor). true = above Capacitor (YouTube VOD controls).
+ *   - `touchEnabled` — native WKWebView receives taps (defaults to `interactive`).
  */
-export function buildNativeStackLayout(isLandscape, { interactive = false } = {}) {
+export function buildNativeStackLayout(isLandscape, { interactive = false, touchEnabled } = {}) {
+  const nativeTouches = touchEnabled ?? interactive;
   return {
     underlay: !interactive,
     immersiveFullscreen: Boolean(isLandscape),
-    userInteractionEnabled: Boolean(interactive),
+    userInteractionEnabled: Boolean(nativeTouches),
   };
 }
 
 /**
  * @param {Element} placeholder
- * @param {{ isLandscape: boolean, interactive?: boolean }} options
+ * @param {{ isLandscape: boolean, interactive?: boolean, touchEnabled?: boolean }} options
  */
-export function buildNativeOverlayLayout(placeholder, { isLandscape, interactive = false }) {
+export function buildNativeOverlayLayout(placeholder, { isLandscape, interactive = false, touchEnabled } = {}) {
   if (isLandscape) {
-    return buildNativeStackLayout(true, { interactive });
+    return buildNativeStackLayout(true, { interactive, touchEnabled });
   }
 
   return {
     ...readElementLayoutRect(placeholder),
-    ...buildNativeStackLayout(false, { interactive }),
+    ...buildNativeStackLayout(false, { interactive, touchEnabled }),
   };
 }

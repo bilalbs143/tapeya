@@ -99,7 +99,7 @@ class UserOwnedLiveStreamTest extends TestCase
             'owner_user_id' => $user->id,
             'created_by' => $user->id,
             'title' => 'Go Live Now',
-            'streaming_url' => 'https://www.facebook.com/watch/live/?v=123',
+            'streaming_url' => 'https://www.youtube.com/watch?v=testvid12',
             'provider' => 'external',
             'status' => 'idle',
         ]);
