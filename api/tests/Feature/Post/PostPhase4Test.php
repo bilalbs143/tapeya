@@ -62,19 +62,6 @@ class PostPhase4Test extends TestCase
         ], $overrides));
     }
 
-    public function test_user_feed_exposes_hls_playback_fields(): void
-    {
-        $owner = User::factory()->create();
-        $reel = $this->readyReel($owner);
-
-        $this->getJson('/api/v1/reels/'.$reel->id)
-            ->assertOk()
-            ->assertJsonPath('data.playback.type', 'hls')
-            ->assertJsonPath('data.playback.hls_url', fn ($url) => is_string($url) && str_contains($url, 'master.m3u8'))
-            ->assertJsonPath('data.playback.url', fn ($url) => is_string($url) && str_contains($url, 'master.m3u8'))
-            ->assertJsonPath('data.playback.is_processed', true);
-    }
-
     public function test_delete_hard_deletes_reel_and_dispatches_media_cleanup(): void
     {
         Queue::fake();

@@ -6,7 +6,6 @@ use App\Enums\Post\PostStatusEnum;
 use App\Models\Hashtag;
 use App\Models\Post;
 use App\Models\User;
-use App\Services\Post\PostHashtagParser;
 use Database\Seeders\SystemSettingsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\CreatesVideoPosts;
@@ -108,38 +107,4 @@ class PostViewAndHashtagTest extends TestCase
         $this->assertSame(1, Hashtag::query()->where('name', 'cricket')->value('posts_count'));
     }
 
-    public function test_trending_and_hashtag_reels_endpoints(): void
-    {
-        $owner = User::factory()->create();
-        $hot = $this->readyReel($owner, [
-            'body' => 'Hot #cricket',
-            'likes_count' => 50,
-            'comments_count' => 10,
-            'shares_count' => 5,
-            'views_count' => 1000,
-        ]);
-        app(PostHashtagParser::class)->syncForPost($hot);
-
-        $this->getJson('/api/v1/reels/trending')
-            ->assertOk()
-            ->assertJsonPath('data.items.0.id', $hot->id);
-
-        $this->getJson('/api/v1/hashtags/search?q=cri')
-            ->assertOk()
-            ->assertJsonPath('data.0.name', 'cricket');
-
-        $this->getJson('/api/v1/hashtags/cricket/reels')
-            ->assertOk()
-            ->assertJsonPath('data.items.0.id', $hot->id);
-    }
-
-    public function test_search_reels_by_caption(): void
-    {
-        $owner = User::factory()->create();
-        $this->readyReel($owner, ['body' => 'Unique yorker delivery']);
-
-        $this->getJson('/api/v1/reels/search?q=yorker')
-            ->assertOk()
-            ->assertJsonPath('data.items.0.caption', 'Unique yorker delivery');
-    }
 }

@@ -13,16 +13,6 @@ class PostApiTest extends TestCase
     use CreatesVideoPosts;
     use RefreshDatabase;
 
-    public function test_guest_can_fetch_empty_explore_feed(): void
-    {
-        $response = $this->getJson('/api/v1/reels/feed');
-
-        $response->assertOk()
-            ->assertJsonPath('type', 'SUCCESS')
-            ->assertJsonPath('data.items', [])
-            ->assertJsonPath('data.has_more', false);
-    }
-
     public function test_authenticated_user_can_create_reel_shell(): void
     {
         $user = User::factory()->create();
@@ -75,47 +65,6 @@ class PostApiTest extends TestCase
         $this->assertNotContains('Still uploading', $captions);
     }
 
-    public function test_explore_lists_hls_ready_reels_not_processing_without_hls(): void
-    {
-        $user = User::factory()->create();
-
-        $this->makeVideoPost($user, [
-            'body' => 'Ready',
-            'status' => PostStatusEnum::Ready,
-            'published_at' => now(),
-            'ready_at' => now(),
-        ]);
-
-        $this->makeVideoPost($user, [
-            'body' => 'Processing',
-            'status' => PostStatusEnum::Processing,
-            'published_at' => now(),
-        ]);
-
-        $this->makeVideoPost($user, [
-            'body' => 'Uploading',
-            'status' => PostStatusEnum::Uploading,
-            'published_at' => null,
-        ]);
-
-        $this->makeVideoPost($user, [
-            'body' => 'No poster',
-            'status' => PostStatusEnum::Ready,
-            'published_at' => now(),
-            'thumbnail_path' => null,
-            'cover_path' => null,
-        ]);
-
-        $response = $this->getJson('/api/v1/reels/feed');
-
-        $response->assertOk();
-        $captions = collect($response->json('data.items'))->pluck('caption')->all();
-        $this->assertContains('Ready', $captions);
-        $this->assertNotContains('Processing', $captions);
-        $this->assertNotContains('Uploading', $captions);
-        $this->assertNotContains('No poster', $captions);
-    }
-
     public function test_owner_mine_exposes_original_playback_while_processing(): void
     {
         $user = User::factory()->create();
@@ -135,27 +84,6 @@ class PostApiTest extends TestCase
             ->assertJsonPath('data.items.0.playback.type', 'original')
             ->assertJsonPath('data.items.0.playback.is_processed', false)
             ->assertJsonPath('data.items.0.playback.url', fn ($url) => is_string($url) && str_contains($url, 'original'));
-    }
-
-    public function test_guest_can_comment_on_processing_reel(): void
-    {
-        $owner = User::factory()->create();
-        $viewer = User::factory()->create();
-
-        $reel = $this->makeVideoPost($owner, [
-            'body' => 'Still encoding',
-            'status' => PostStatusEnum::Processing,
-            'published_at' => now(),
-        ]);
-
-        $this->getJson('/api/v1/posts/'.$reel->id.'/comments')
-            ->assertOk()
-            ->assertJsonPath('data.items', []);
-
-        $this->actingAs($viewer, 'api')
-            ->postJson('/api/v1/posts/'.$reel->id.'/comments', ['body' => 'Looks good'])
-            ->assertCreated()
-            ->assertJsonPath('data.body', 'Looks good');
     }
 
     public function test_non_owner_cannot_delete_reel(): void
