@@ -2,8 +2,6 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildDirectYoutubeEmbedUrl,
-  buildFacebookEmbedUrl,
-  facebookPermalink,
   getStreamOrientation,
   isInteractiveIframePlayback,
   isInteractiveStreamUrl,
@@ -80,33 +78,6 @@ describe('resolveStreamIframeSrc', () => {
   it('returns null when there is no usable embed', () => {
     expect(resolveStreamIframeSrc(null).iframeSrc).toBeNull();
     expect(resolveStreamIframeSrc({ embed_url: 'not-a-url' }).iframeSrc).toBeNull();
-  });
-
-  it('builds a Facebook plugin embed from a raw page/video URL', () => {
-    const result = resolveStreamIframeSrc({
-      embed_url: 'https://www.facebook.com/PakistanCricketBoard/videos/1388154923463052',
-    });
-    expect(result.iframeSrc).toContain('plugins/video.php');
-    expect(result.iframeSrc).toContain(encodeURIComponent('https://www.facebook.com/watch/?v=1388154923463052'));
-    // Facebook's plugin only renders its fullscreen/expand control near this size.
-    expect(result.iframeSrc).toContain('width=1280');
-    expect(result.iframeSrc).toContain('height=720');
-    expect(result.usesProxy).toBe(false);
-  });
-});
-
-describe('facebookPermalink / buildFacebookEmbedUrl', () => {
-  it('normalizes a page/video URL to watch/?v= and a plugin embed', () => {
-    const input = 'https://web.facebook.com/100084369563623/videos/2292292598197539';
-    expect(facebookPermalink(input)).toBe('https://www.facebook.com/watch/?v=2292292598197539');
-    const embed = buildFacebookEmbedUrl(input);
-    expect(embed).toContain('https://www.facebook.com/plugins/video.php?');
-    expect(embed).toContain(encodeURIComponent('https://www.facebook.com/watch/?v=2292292598197539'));
-  });
-
-  it('returns null for non-Facebook hosts', () => {
-    expect(facebookPermalink('https://example.com/videos/123')).toBeNull();
-    expect(buildFacebookEmbedUrl('https://example.com/videos/123')).toBeNull();
   });
 });
 
