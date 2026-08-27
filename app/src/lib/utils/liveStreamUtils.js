@@ -43,6 +43,117 @@ function getYoutubeEmbedDefaultParams({ showControls = false } = {}) {
 }
 
 /**
+ * @param {string} hostname
+ * @returns {boolean}
+ */
+function isFacebookHost(hostname) {
+  const host = hostname.replace(/^www\./, '').toLowerCase();
+  return (
+    host === 'facebook.com' ||
+    host === 'm.facebook.com' ||
+    host === 'web.facebook.com' ||
+    host === 'fb.watch' ||
+    host === 'fb.com' ||
+    host.endsWith('.facebook.com')
+  );
+}
+
+/**
+ * Canonical Facebook permalink for the plugin `href` param (mirrors API FacebookEmbedUrl).
+ *
+ * @param {string} input
+ * @returns {string|null}
+ */
+export function facebookPermalink(input) {
+  if (!input?.trim()) {
+    return null;
+  }
+
+  try {
+    const url = new URL(input.trim());
+    if (!isFacebookHost(url.hostname)) {
+      return null;
+    }
+
+    const path = url.pathname || '/';
+    const videoId = url.searchParams.get('v');
+    if (videoId && /^\d+$/.test(videoId)) {
+      return `https://www.facebook.com/watch/?v=${videoId}`;
+    }
+
+    const shareMatch = path.match(/^\/share\/v\/([^/]+)\/?$/);
+    if (shareMatch) {
+      return `https://www.facebook.com/share/v/${shareMatch[1]}`;
+    }
+
+    const videosMatch = path.match(/\/videos\/(\d+)/);
+    if (videosMatch) {
+      return `https://www.facebook.com/watch/?v=${videosMatch[1]}`;
+    }
+
+    const reelMatch = path.match(/^\/reel\/(\d+)/);
+    if (reelMatch) {
+      return `https://www.facebook.com/reel/${reelMatch[1]}`;
+    }
+
+    if (url.hostname.replace(/^www\./, '').toLowerCase() === 'fb.watch') {
+      const code = path.split('/').filter(Boolean)[0];
+      return code ? `https://fb.watch/${code}` : null;
+    }
+
+    return `https://www.facebook.com${path === '' ? '/' : path}`;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Facebook plugins/video.php embed URL, or null if input is not Facebook.
+ *
+ * width/height=1280x720 is required — Facebook's plugin renders a stripped-down
+ * player with no fullscreen/expand control below roughly this size.
+ *
+ * @param {string|null|undefined} input
+ * @returns {string|null}
+ */
+export function buildFacebookEmbedUrl(input) {
+  if (!input?.trim()) {
+    return null;
+  }
+
+  try {
+    const url = new URL(input.trim());
+    if (!isFacebookHost(url.hostname)) {
+      return null;
+    }
+    if (url.pathname.startsWith('/plugins/video.php')) {
+      return url.toString();
+    }
+  } catch {
+    return null;
+  }
+
+  const permalink = facebookPermalink(input);
+  if (!permalink) {
+    return null;
+  }
+
+  const embed = new URL('https://www.facebook.com/plugins/video.php');
+  embed.searchParams.set('href', permalink);
+  embed.searchParams.set('show_text', 'false');
+  embed.searchParams.set('autoplay', 'true');
+  embed.searchParams.set('mute', '0');
+  embed.searchParams.set('width', '1280');
+  embed.searchParams.set('height', '720');
+  return embed.toString();
+}
+
+/** True when an iframe src is a Facebook plugins/video.php embed. */
+export function isFacebookEmbedSrc(src) {
+  return typeof src === 'string' && src.includes('facebook.com/plugins/video.php');
+}
+
+/**
  * Extract a YouTube video id from watch / embed / shorts / youtu.be URLs.
  *
  * @param {string|null|undefined} input
@@ -345,6 +456,11 @@ export function resolveStreamIframeSrc(playback, { showControls = false } = {}) 
   const youtube = resolveYoutubeEmbed(raw, playback?.embed_id, { showControls });
   if (youtube.iframeSrc) {
     return youtube;
+  }
+
+  const facebook = isFacebookEmbedSrc(raw) ? raw : buildFacebookEmbedUrl(raw);
+  if (facebook) {
+    return { iframeSrc: facebook, usesProxy: false };
   }
 
   if (raw.startsWith('https://')) {
